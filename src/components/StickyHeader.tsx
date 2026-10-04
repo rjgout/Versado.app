@@ -28,7 +28,7 @@ export default function StickyHeader({ children }: { children: React.ReactNode }
   }, []);
 
   return (
-    <div ref={ref} className="fixed top-0 inset-x-0 z-20">
+    <div ref={ref} data-sticky-header className="fixed top-0 inset-x-0 z-20">
       {children}
     </div>
   );

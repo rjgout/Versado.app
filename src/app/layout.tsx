@@ -163,6 +163,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ConfirmProvider>
         <PodcastPlayerProvider>
         <ReadAloudPlayerProvider>
+        <FocusModeController>
         {/* Header + mini-player samen in één vaste wrapper (i.p.v. sticky —
             zie StickyHeader.tsx voor waarom) zodat ze bij het scrollen als
             één geheel bovenaan blijven staan, ongeacht de exacte hoogte van
@@ -229,7 +230,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {user && <ActivityTracker />}
         {user && <TimeZoneSync known={user.timeZone} />}
         </StickyHeader>
-        <FocusModeController />
         <Suspense fallback={null}><NavigationScroll /></Suspense>
         <main className="mx-auto max-w-5xl px-4 pb-[var(--main-pad-bottom)] pt-[var(--main-pad-top)]">
           {user && <SocialTabs />}
@@ -241,6 +241,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       {user && <FreezeGiftPopup />}
         <ServiceWorkerRegister />
         <EdgeSwipeGuard />
+        </FocusModeController>
         </ReadAloudPlayerProvider>
         </PodcastPlayerProvider>
         </ConfirmProvider>

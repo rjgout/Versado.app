@@ -64,18 +64,27 @@ body {
 
 /* Focus mode gebruikt dezelfde vaste terugbalk als normale detailpagina's,
  * maar laat de globale statusheader en mobiele ondernavigatie tijdelijk weg.
- * De selector staat op body zodat routekennis centraal blijft en pagina's
- * geen eigen hideHeader/hideBottomNav-props nodig hebben. */
-body[data-shell-mode="focus"] [data-app-global-header],
-body[data-shell-mode="focus"] nav[data-main-nav] {
+ * De routegestuurde shell-wrapper houdt dit centraal zodat pagina's geen eigen
+ * hideHeader/hideBottomNav-props nodig hebben. */
+[data-shell-mode="focus"] [data-app-global-header],
+[data-shell-mode="focus"] nav[data-main-nav] {
   display: none;
 }
 
-body[data-shell-mode="focus"] [data-subpage-back-bar] {
+/* In focus mode bevat de shell alleen de terugbalk. Laat die balk zelf in de
+ * layout-ruimte staan zodat <main> er niet achter begint. Sticky houdt de
+ * bestaande oriëntatie tijdens scrollen vast zonder een aparte hoogte-offset
+ * of een pagina-specifieke marge nodig te maken. */
+[data-shell-mode="focus"] [data-sticky-header] {
+  position: sticky;
+}
+
+[data-shell-mode="focus"] [data-subpage-back-bar] {
   padding-top: env(safe-area-inset-top);
 }
 
-body[data-shell-mode="focus"] main {
+[data-shell-mode="focus"] main {
+  /* De terugbalk staat in focus mode weer in de normale layout-flow. */
   padding-top: 1rem !important;
   padding-bottom: calc(1rem + env(safe-area-inset-bottom)) !important;
 }

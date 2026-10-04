@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useLayoutEffect } from "react";
+import type { ReactNode } from "react";
 import { isFocusRoute } from "@/lib/focusMode";
 
 /**
@@ -9,16 +9,13 @@ import { isFocusRoute } from "@/lib/focusMode";
  * normale pagina's exact hetzelfde, terwijl actieve flows hun eigen canvas
  * krijgen zonder dat iedere pagina header/bottomnav-props hoeft door te geven.
  */
-export default function FocusModeController() {
+export default function FocusModeController({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const focus = isFocusRoute(pathname);
 
-  useLayoutEffect(() => {
-    document.body.dataset.shellMode = focus ? "focus" : "normal";
-    return () => {
-      delete document.body.dataset.shellMode;
-    };
-  }, [focus]);
-
-  return null;
+  return (
+    <div data-shell-mode={focus ? "focus" : "normal"} className="contents">
+      {children}
+    </div>
+  );
 }
