@@ -1,6 +1,5 @@
 "use client";
 
-import SystemIcon from "@/components/versado/SystemIcon";
 import { nanoid } from "nanoid";
 import { StreakContinuationCard } from "@/components/StreakContinuation";
 
@@ -74,10 +73,6 @@ export default function QuickPracticeFlow({ exercises }: { exercises: Exercise[]
         </h2>
         <p className="text-gold-600 dark:text-gold-400 font-extrabold text-lg">+{summary.xpEarned} XP</p>
         <StreakContinuationCard />
-        {summary.dayEarned && (
-          <p className="flex items-center gap-1 text-orange-500 font-extrabold text-lg"><SystemIcon kind="streak" className="h-5 w-5" fill="currentColor" aria-hidden />{summary.currentStreak}</p>
-        )}
-
         {summary.freezeUsed && (
           <p className="text-sm bg-ice-50 dark:bg-slate-700 text-ice-600 dark:text-ice-400 rounded-xl px-3 py-2">
             {t("lesson.freezeUsed")}

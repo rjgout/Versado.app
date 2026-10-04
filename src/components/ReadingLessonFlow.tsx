@@ -220,13 +220,6 @@ export default function ReadingLessonFlow({
         )}
 
         <StreakContinuationCard />
-        {result.dayEarned && (
-          <div className="mt-2">
-            <div className="flex items-center gap-1 text-xl font-extrabold text-orange-500"><SystemIcon kind="streak" className="h-5 w-5" fill="currentColor" aria-hidden />{result.currentStreak}</div>
-            <div className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase">{t("lesson.streak")}</div>
-          </div>
-        )}
-
         {result.newAchievements.length > 0 && (
           <div className="flex flex-col gap-2 w-full">
             <p className="text-sm font-bold text-brand-700 dark:text-brand-300">
