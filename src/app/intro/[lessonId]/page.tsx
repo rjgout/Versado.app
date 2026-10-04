@@ -144,6 +144,7 @@ export default async function IntroLessonPage({ params }: { params: Promise<{ le
       exercises={exercises}
       nextLessonId={nextLesson?.id ?? null}
       courseHref={introCourse ? `/courses/${introCourse.id}` : "/courses"}
+      courseId={introCourse?.id}
     />
     </>
   );

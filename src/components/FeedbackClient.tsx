@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
+import type { MessageKey } from "@/lib/i18n/core";
 import { getLanguage } from "@/lib/languages";
 import { X } from "lucide-react";
 import ProfilePage from "@/components/profile/ProfilePage";
@@ -21,6 +22,12 @@ interface ReportView {
   screenshot: string | null;
   status: string;
   createdAt: string;
+  kind?: "GENERAL" | "EXERCISE";
+  questionId?: string | null;
+  questionSource?: string | null;
+  questionCategory?: string | null;
+  verseRef?: string | null;
+  questionSnapshot?: string | null;
 }
 
 const MAX_DIMENSION = 1400;
@@ -156,7 +163,14 @@ export default function FeedbackClient() {
             {reports.map((r) => (
               <li key={r.id} className="flex flex-col gap-2 py-3">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="whitespace-pre-wrap text-sm text-vs-fg">{r.message}</p>
+                  <div className="min-w-0">
+                    {r.kind === "EXERCISE" && (
+                      <p className="mb-1 text-xs font-extrabold uppercase tracking-wide text-vs-accent">
+                        {t("feedback.exercise.label")} {r.verseRef ?? r.questionId ?? ""}
+                      </p>
+                    )}
+                    <p className="whitespace-pre-wrap text-sm text-vs-fg">{r.kind === "EXERCISE" && r.questionCategory ? t(`feedback.exercise.categories.${categoryKey(r.questionCategory)}` as MessageKey) : r.message}</p>
+                  </div>
                   <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-bold uppercase ${STATUS_CLASSES[r.status] ?? STATUS_CLASSES.NEW}`}>
                     {(STATUSES as readonly string[]).includes(r.status) ? t(`feedback.status.${r.status as (typeof STATUSES)[number]}`) : r.status}
                   </span>
@@ -175,4 +189,16 @@ export default function FeedbackClient() {
       </ProfileCard>
     </ProfilePage>
   );
+}
+
+function categoryKey(code: string): string {
+  const keys: Record<string, string> = {
+    ANSWER_SHOULD_BE_ACCEPTED: "answerShouldBeAccepted",
+    ANSWER_SHOULD_BE_REJECTED: "answerShouldBeRejected",
+    QUESTION_UNCLEAR: "questionUnclear",
+    ANSWERS_INCORRECT: "answersIncorrect",
+    VISUAL_BROKEN: "visualBroken",
+    OTHER: "other",
+  };
+  return keys[code] ?? "other";
 }

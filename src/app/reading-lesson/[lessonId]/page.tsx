@@ -116,6 +116,7 @@ export default async function ReadingLessonPage({
       term={localizeTerm(chapterTerm(lesson.chapter.book.slug), getT(user.uiLanguage))}
       exercises={issued.exercises}
       sessionId={issued.sessionId}
+      courseId={lesson.courseId}
       language={lesson.chapter.book.contentCollection.language}
     />
     </>

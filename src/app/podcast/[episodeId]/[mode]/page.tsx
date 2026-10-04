@@ -87,6 +87,7 @@ export default async function PodcastLessonPage({
         exercises={exercises}
         courseHref={courseHref}
         nextRound={nextRound}
+        courseId={course?.id}
       />
     </div>
   );

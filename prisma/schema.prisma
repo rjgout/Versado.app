@@ -2218,6 +2218,27 @@ enum FeedbackStatus {
   WONT_DO
 }
 
+enum FeedbackKind {
+  GENERAL
+  EXERCISE
+}
+
+enum ExerciseFeedbackCategory {
+  ANSWER_SHOULD_BE_ACCEPTED
+  ANSWER_SHOULD_BE_REJECTED
+  QUESTION_UNCLEAR
+  ANSWERS_INCORRECT
+  VISUAL_BROKEN
+  OTHER
+}
+
+enum ExerciseFeedbackSource {
+  SCRIPTURE
+  INTRO
+  KIDS
+  PODCAST
+}
+
 // Een melding vanuit de profielpagina, met optioneel een screenshot. Wordt
 // bij aanmaken gemaild naar de beheerder (zie src/lib/feedback.ts); die kan
 // de status vanuit die mail bijwerken via een tokenlink (respondToken,
@@ -2235,10 +2256,31 @@ model Feedback {
   status       FeedbackStatus @default(NEW)
   respondToken String         @unique
 
+  // Vraagmeldingen gebruiken dezelfde status-/adminflow als algemene feedback,
+  // maar bewaren daarnaast stabiele vraagcontext zodat de tekst niet de enige
+  // manier is om een probleem terug te vinden.
+  kind             FeedbackKind              @default(GENERAL)
+  questionId       String?
+  questionSource   ExerciseFeedbackSource?
+  questionCategory ExerciseFeedbackCategory?
+  courseId         String?
+  lessonId         String?
+  contentKey       String?
+  chapterId        String?
+  verseRef         String?
+  questionType     ExerciseType?
+  givenAnswer      String?
+  correctAnswer    String?
+  uiLanguage       String?
+  contentLanguage  String?
+  questionSnapshot String?
+  submissionKey    String?                    @unique
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([questionId, questionSource])
 }
 
 // Nieuws/wijzigingen die een admin publiceert via /adminbackend — de eerste

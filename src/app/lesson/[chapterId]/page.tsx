@@ -114,6 +114,7 @@ export default async function LessonPage({
       stepsHref={stepCourse ? `/courses/${stepCourse.id}/chapter/${chapter.id}` : null}
       challengeId={challengeId}
       courseId={course?.id}
+      contentKey={content.contentKey}
       focusVerse={vers ? Number(vers) || undefined : undefined}
       language={chapter.book.contentCollection.language}
     />

@@ -19,6 +19,10 @@ import { chapterTerm, type ChapterTerm } from "@/lib/chapterTerm";
 import { ContentStatusLine, LongChapterNotice, type ReadState } from "@/components/learning/ContentStatus";
 import PersonalMascot from "@/components/versado/PersonalMascot";
 import FocusLayout from "@/components/versado/FocusLayout";
+import ExerciseFeedbackSheet from "@/components/ExerciseFeedbackSheet";
+import { Flag, CheckCircle2, XCircle } from "lucide-react";
+import { exerciseProgress } from "@/lib/exerciseProgress";
+import type { ExerciseFeedbackContext } from "@/lib/exerciseFeedback";
 
 export type ExerciseType = "FILL_BLANK" | "WORD_BANK" | "TRUE_FALSE" | "MULTIPLE_CHOICE" | "SEQUENCE" | "IMAGE_CHOICE";
 
@@ -78,6 +82,8 @@ interface Props {
   focusVerse?: number;
   /** Taal van de uitgave, voor de voorleesstem. */
   language?: string;
+  /** Stabiele inhoudsleutel voor vraagfeedback, los van de route. */
+  contentKey?: string;
 }
 
 type Phase = "read" | "exercises" | "review" | "summary";
@@ -112,7 +118,7 @@ const FONT_SCALE_KEY = "bom-reader-font-scale";
 const MIN_SCALE = 0.85;
 const MAX_SCALE = 1.5;
 
-export default function LessonFlow({ chapterId, bookName, chapterNumber, nextChapterId, verses, audio, term = chapterTerm(null), exercises, sessionId, content, route, readingMinutes, stepsHref, challengeId, courseId, focusVerse, language }: Props) {
+export default function LessonFlow({ chapterId, bookName, chapterNumber, nextChapterId, verses, audio, term = chapterTerm(null), exercises, sessionId, content, route, readingMinutes, stepsHref, challengeId, courseId, focusVerse, language, contentKey }: Props) {
   const t = useT();
   const [phase, setPhase] = useState<Phase>("read");
   const [read, setRead] = useState<ReadState>(content.read);
@@ -256,8 +262,15 @@ export default function LessonFlow({ chapterId, bookName, chapterNumber, nextCha
   if (phase === "exercises" && current) {
     return (
       <FocusLayout className="max-w-2xl gap-6">
-        <ProgressBar current={index} total={exercises.length} />
-        <ExerciseCard key={current.id} exercise={current} onDone={onExerciseDone} disabled={submitting} focus />
+        <ExerciseCard
+          key={current.id}
+          exercise={current}
+          onDone={onExerciseDone}
+          disabled={submitting}
+          focus
+          progress={{ current: index, total: exercises.length }}
+          feedbackContext={{ source: "SCRIPTURE", questionId: current.id, courseId, contentKey, chapterId, verseRef: current.verseRef, contentLanguage: language }}
+        />
         {error && <p className="text-sm font-bold text-red-600 dark:text-red-400">{error}</p>}
       </FocusLayout>
     );
@@ -293,6 +306,8 @@ export default function LessonFlow({ chapterId, bookName, chapterNumber, nextCha
           onSkip={skipCurrentReview}
           disabled={submitting}
           focus
+          progress={{ current: reviewPos, total: reviewQueue.length }}
+          feedbackContext={{ source: "SCRIPTURE", questionId: reviewExercise.id, courseId, contentKey, chapterId, verseRef: reviewExercise.verseRef, contentLanguage: language }}
         />
       </FocusLayout>
     );
@@ -503,15 +518,6 @@ function NoteEditor({ initialText, onSave }: { initialText: string; onSave: (tex
   );
 }
 
-function ProgressBar({ current, total }: { current: number; total: number }) {
-  const pct = Math.round((current / total) * 100);
-  return (
-    <div className="h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-      <div className="h-full bg-brand-500 transition-all duration-300" style={{ width: `${pct}%` }} />
-    </div>
-  );
-}
-
 function formatCorrectAnswer(type: Exercise["type"], correctAnswer: string[], t: TFunction): string {
   if (type === "TRUE_FALSE") return correctAnswer[0] === "true" ? t("lesson.true") : t("lesson.false");
   return correctAnswer.join(" ");
@@ -592,6 +598,8 @@ export function ExerciseCard({
   onCheck,
   showHint = true,
   focus = false,
+  progress,
+  feedbackContext,
 }: {
   exercise: Exercise;
   onDone: (given: string[], correct: boolean) => void;
@@ -605,6 +613,10 @@ export function ExerciseCard({
   showHint?: boolean;
   /** Een actieve focusflow gebruikt de pagina zelf als canvas i.p.v. een buitenkaart. */
   focus?: boolean;
+  /** Progressie binnen deze uitgedeelde oefenset/stap. */
+  progress?: { current: number; total: number };
+  /** Server-gevalideerde context voor de gedeelde vraagfeedback. */
+  feedbackContext?: ExerciseFeedbackContext;
 }) {
   const t = useT();
   const [checked, setChecked] = useState(false);
@@ -615,6 +627,8 @@ export function ExerciseCard({
   const [choice, setChoice] = useState<string | null>(null);
   const [placed, setPlaced] = useState<{ word: string; poolIndex: number }[]>([]);
   const [trueFalseAnswer, setTrueFalseAnswer] = useState<"true" | "false" | null>(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState(false);
 
   const pool = useMemo(() => exercise.wordBank ?? [], [exercise]);
   const availablePool = pool
@@ -671,27 +685,59 @@ export function ExerciseCard({
     onDone(givenAnswer, wasCorrect);
   }
 
-  const feedback = checked && (
-    <p
-      className={`rounded-xl px-3 py-2 font-bold text-sm ${
-        wasCorrect
-          ? "bg-brand-50 dark:bg-slate-700 text-brand-700 dark:text-brand-300"
-          : "bg-red-50 dark:bg-slate-700 text-red-500 dark:text-red-400"
-      }`}
-    >
-      {wasCorrect
-        ? t("lesson.correct")
-        : exercise.type === "IMAGE_CHOICE"
-          ? t("lesson.wrongImage")
-          : t("lesson.wrongAnswer", { answer: formatCorrectAnswer(exercise.type, correctAnswer ?? [], t) })}
-    </p>
-  );
   const mascotReaction = <ExerciseMascotReaction checked={checked} correct={wasCorrect} />;
-  const surfaceClass = focus ? "flex flex-col gap-5" : "card flex flex-col gap-5";
+  const surfaceClass = focus ? "flex min-h-[calc(100dvh-var(--header-height,4.5rem)-2rem)] flex-col gap-5" : "card flex flex-col gap-5";
+  const givenFeedbackContext = feedbackContext
+    ? { ...feedbackContext, givenAnswer }
+    : undefined;
+  const progressState = progress ? exerciseProgress(progress.current, progress.total, checked) : null;
+
+  const actionArea = (
+    <ExerciseActionArea
+      focus={focus}
+      checked={checked}
+      wasCorrect={wasCorrect}
+      correctAnswer={correctAnswer}
+      exerciseType={exercise.type}
+      feedbackContext={givenFeedbackContext}
+      feedbackSent={feedbackSent}
+      onOpenFeedback={() => setFeedbackOpen(true)}
+      onCheck={check}
+      onNext={next}
+      onSkip={onSkip}
+      checking={checking}
+      canCheck={canCheck}
+      disabled={disabled}
+    />
+  );
+
+  const progressHeader = progressState && (
+    <div className="sticky top-[var(--header-height,4.5rem)] z-10 -mx-1 bg-vs-app/95 py-2 backdrop-blur sm:-mx-2" data-exercise-progress>
+      <div className="mb-1 flex items-center justify-between gap-3 text-xs font-extrabold uppercase tracking-wide text-vs-fg-3">
+        <span>{t("lesson.exerciseProgress")}</span>
+        <span>{progressState.answered}/{progressState.total}</span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-vs-line" aria-label={`${progressState.answered}/${progressState.total}`}>
+        <div className="h-full rounded-full bg-vs-accent transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${progressState.percent}%` }} />
+      </div>
+    </div>
+  );
+
+  const feedbackSheet = feedbackOpen && givenFeedbackContext && (
+    <ExerciseFeedbackSheet
+      context={givenFeedbackContext}
+      onClose={() => setFeedbackOpen(false)}
+      onSubmitted={() => {
+        setFeedbackOpen(false);
+        setFeedbackSent(true);
+      }}
+    />
+  );
 
   if (exercise.type === "TRUE_FALSE") {
     return (
       <div className={surfaceClass}>
+        {progressHeader}
         <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{exercise.verseRef}</p>
         {showHint && <HintControl exercise={exercise} checked={checked} />}
         {mascotReaction}
@@ -720,16 +766,8 @@ export function ExerciseCard({
             );
           })}
         </div>
-        {feedback}
-        <FooterControls
-          checked={checked}
-          checking={checking}
-          canCheck={canCheck}
-          disabled={disabled}
-          onCheck={check}
-          onNext={next}
-          onSkip={onSkip}
-        />
+        {actionArea}
+        {feedbackSheet}
       </div>
     );
   }
@@ -742,6 +780,7 @@ export function ExerciseCard({
     if (options.length === 0) {
       return (
         <div className={surfaceClass}>
+          {progressHeader}
           <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{exercise.verseRef}</p>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             {t("lesson.outdated")}
@@ -755,6 +794,7 @@ export function ExerciseCard({
 
     return (
       <div className={surfaceClass}>
+        {progressHeader}
         <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{exercise.verseRef}</p>
         {showHint && <HintControl exercise={exercise} checked={checked} />}
         {mascotReaction}
@@ -794,16 +834,8 @@ export function ExerciseCard({
             );
           })}
         </div>
-        {feedback}
-        <FooterControls
-          checked={checked}
-          checking={checking}
-          canCheck={canCheck}
-          disabled={disabled}
-          onCheck={check}
-          onNext={next}
-          onSkip={onSkip}
-        />
+        {actionArea}
+        {feedbackSheet}
       </div>
     );
   }
@@ -812,6 +844,7 @@ export function ExerciseCard({
     const options = exercise.options ?? [];
     return (
         <div className={surfaceClass}>
+        {progressHeader}
         <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{exercise.verseRef}</p>
         {showHint && <HintControl exercise={exercise} checked={checked} />}
         {mascotReaction}
@@ -840,16 +873,8 @@ export function ExerciseCard({
             );
           })}
         </div>
-        {feedback}
-        <FooterControls
-          checked={checked}
-          checking={checking}
-          canCheck={canCheck}
-          disabled={disabled}
-          onCheck={check}
-          onNext={next}
-          onSkip={onSkip}
-        />
+        {actionArea}
+        {feedbackSheet}
       </div>
     );
   }
@@ -858,6 +883,7 @@ export function ExerciseCard({
     const options = exercise.options ?? [];
     return (
       <div className={surfaceClass}>
+        {progressHeader}
         <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{exercise.verseRef}</p>
         {showHint && <HintControl exercise={exercise} checked={checked} />}
         {mascotReaction}
@@ -887,16 +913,8 @@ export function ExerciseCard({
             );
           })}
         </div>
-        {feedback}
-        <FooterControls
-          checked={checked}
-          checking={checking}
-          canCheck={canCheck}
-          disabled={disabled}
-          onCheck={check}
-          onNext={next}
-          onSkip={onSkip}
-        />
+        {actionArea}
+        {feedbackSheet}
       </div>
     );
   }
@@ -905,6 +923,7 @@ export function ExerciseCard({
   // aantikken), SEQUENCE gebruikt alleen langere zinnen i.p.v. losse woorden.
   return (
     <div className={surfaceClass}>
+      {progressHeader}
       <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{exercise.verseRef}</p>
       {showHint && <HintControl exercise={exercise} checked={checked} />}
       {mascotReaction}
@@ -943,27 +962,15 @@ export function ExerciseCard({
         ))}
       </div>
 
-      {feedback}
-      <FooterControls
-        checked={checked}
-        checking={checking}
-        canCheck={canCheck}
-        disabled={disabled}
-        onCheck={check}
-        onNext={next}
-        onSkip={onSkip}
-      />
+      {actionArea}
+      {feedbackSheet}
     </div>
   );
 }
 
 function ExerciseMascotReaction({ checked, correct }: { checked: boolean; correct: boolean }) {
   const state = checked ? (correct ? "success" : "encourage") : "thinking";
-  return (
-    <div className="mx-auto aspect-square w-[clamp(5.5rem,24vw,6.75rem)] shrink-0 sm:w-28 lg:w-32">
-      <PersonalMascot state={state} size={128} fill />
-    </div>
-  );
+  return <div className="mx-auto aspect-square w-16 shrink-0 sm:w-20"><PersonalMascot state={state} size={96} fill /></div>;
 }
 
 export function LessonResultMascot({ scorePercent, celebrate = false, successThreshold = 50 }: { scorePercent: number; celebrate?: boolean; successThreshold?: number }) {
@@ -975,7 +982,7 @@ export function LessonResultMascot({ scorePercent, celebrate = false, successThr
   );
 }
 
-function FooterControls({
+function ExerciseActionArea({
   checked,
   checking,
   canCheck,
@@ -983,6 +990,13 @@ function FooterControls({
   onCheck,
   onNext,
   onSkip,
+  focus,
+  wasCorrect,
+  correctAnswer,
+  exerciseType,
+  feedbackContext,
+  feedbackSent,
+  onOpenFeedback,
 }: {
   checked: boolean;
   checking: boolean;
@@ -991,32 +1005,51 @@ function FooterControls({
   onCheck: () => void;
   onNext: () => void;
   onSkip?: () => void;
+  focus: boolean;
+  wasCorrect: boolean;
+  correctAnswer: string[] | null;
+  exerciseType: Exercise["type"];
+  feedbackContext?: ExerciseFeedbackContext & { givenAnswer: string[] };
+  feedbackSent: boolean;
+  onOpenFeedback: () => void;
 }) {
   const t = useT();
-  if (!checked) {
-    return (
-      <div className="flex items-center justify-between gap-3">
-        {onSkip ? (
-          <button
-            className="text-sm font-bold text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
-            disabled={disabled}
-            onClick={onSkip}
-          >
-            {t("lesson.skip")}
-          </button>
-        ) : (
-          <span />
-        )}
-        <button className="btn-primary" disabled={!canCheck || disabled || checking} onClick={onCheck}>
-          {checking ? t("lesson.checking") : t("lesson.check")}
-        </button>
-      </div>
-    );
-  }
   return (
-    <button className="btn-primary self-end animate-pop" disabled={disabled} onClick={onNext}>
-      {disabled ? t("courses.busy") : t("lesson.continue")}
-    </button>
+    <div className={focus ? "sticky bottom-0 z-20 -mx-4 mt-auto border-t border-vs-line bg-vs-elevated/95 px-4 pt-3 pb-[max(1rem,var(--vs-safe-area-bottom))] backdrop-blur sm:-mx-2 sm:px-2" : "mt-2"} data-exercise-action-area>
+      {checked && (
+        <div className="mb-3" aria-live="polite">
+          <div className={`flex items-center justify-between gap-3 rounded-2xl px-3 py-2 font-extrabold ${wasCorrect ? "bg-vs-success-soft text-vs-success" : "bg-vs-danger-soft text-vs-danger"}`}>
+            <span className="inline-flex min-w-0 items-center gap-2">
+              {wasCorrect ? <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden /> : <XCircle className="h-5 w-5 shrink-0" aria-hidden />}
+              {wasCorrect ? t("lesson.correctTitle") : t("lesson.wrongTitle")}
+            </span>
+            {feedbackContext && (
+              <button type="button" onClick={onOpenFeedback} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-current/70 hover:bg-black/5 hover:text-current focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current" aria-label={t("feedback.exercise.reportQuestion")}>
+                <Flag className="h-4 w-4" aria-hidden />
+              </button>
+            )}
+          </div>
+          {!wasCorrect && <p className="mt-2 px-1 text-sm font-semibold text-vs-fg-2">{exerciseType === "IMAGE_CHOICE" ? t("lesson.wrongImage") : t("lesson.wrongAnswer", { answer: formatCorrectAnswer(exerciseType, correctAnswer ?? [], t) })}</p>}
+          {feedbackSent && <p className="mt-2 px-1 text-sm font-bold text-vs-success" role="status">{t("feedback.exercise.sent")}</p>}
+        </div>
+      )}
+      {!checked ? (
+        <div className="flex items-center gap-3">
+          {onSkip ? (
+            <button className="text-sm font-bold text-vs-fg-3 hover:text-vs-fg" disabled={disabled} onClick={onSkip}>
+              {t("lesson.skip")}
+            </button>
+          ) : null}
+          <button className={`${focus ? "w-full" : "ml-auto"} btn-primary min-h-12`} disabled={!canCheck || disabled || checking} onClick={onCheck}>
+            {checking ? t("lesson.checking") : t("lesson.check")}
+          </button>
+        </div>
+      ) : (
+        <button className="btn-primary min-h-12 w-full animate-pop" disabled={disabled} onClick={onNext}>
+          {disabled ? t("courses.busy") : t("lesson.continue")}
+        </button>
+      )}
+    </div>
   );
 }
 

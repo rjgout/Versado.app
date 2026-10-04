@@ -40,6 +40,7 @@ interface Props {
   exercises: Exercise[];
   /** De door de server uitgedeelde vragen van deze stap; null zonder vragen (dan alleen lezen). */
   sessionId: string | null;
+  courseId?: string;
   /** Taal van de uitgave, voor de voorleesstem. */
   language?: string;
 }
@@ -77,6 +78,7 @@ export default function ReadingLessonFlow({
   term,
   exercises,
   sessionId,
+  courseId,
   language,
 }: Props) {
   const t = useT();
@@ -161,20 +163,17 @@ export default function ReadingLessonFlow({
   if (phase === "exercises" && current) {
     return (
       <FocusLayout className="max-w-2xl gap-6">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-2">
-            {t("readingLesson.stepVerses", { n: lessonNumber, start: startVerse, end: endVerse })}
-          </p>
-          <div className="h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-            <div className="h-full bg-brand-500 transition-all duration-300" style={{ width: `${Math.round((index / exercises.length) * 100)}%` }} />
-          </div>
-        </div>
+        <p className="text-xs font-bold uppercase tracking-wide text-vs-fg-3">
+          {t("readingLesson.stepVerses", { n: lessonNumber, start: startVerse, end: endVerse })}
+        </p>
         <ExerciseCard
           key={current.id}
           exercise={current}
           onDone={onDone}
           disabled={submitting}
           focus
+          progress={{ current: index, total: exercises.length }}
+          feedbackContext={{ source: "SCRIPTURE", questionId: current.id, courseId, lessonId, chapterId, verseRef: current.verseRef, contentLanguage: language }}
         />
         {error && <p className="text-sm font-bold text-red-600 dark:text-red-400">{error}</p>}
       </FocusLayout>

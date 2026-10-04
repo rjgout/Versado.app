@@ -72,6 +72,7 @@ export default function IntroLessonFlow({
   exercises,
   nextLessonId,
   courseHref,
+  courseId,
 }: {
   lessonId: string;
   number: number;
@@ -82,6 +83,7 @@ export default function IntroLessonFlow({
   nextLessonId: string | null;
   /** Terug naar dé introductiecursus zelf, nooit de generieke /courses-lijst van alle cursustypes. */
   courseHref: string;
+  courseId?: string;
 }) {
   const t = useT();
   // Een finalChoices-blok (alleen in de laatste les) hoort ná de eindtoets
@@ -157,14 +159,6 @@ export default function IntroLessonFlow({
     return (
       <FocusLayout className="max-w-2xl gap-6">
         <Header number={number} title={title} />
-        <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-          <div
-            className="h-full bg-brand-500 transition-all duration-300"
-            style={{
-              width: `${Math.round(((contentBlocks.length + exerciseIndex + 1) / Math.max(1, contentBlocks.length + exercises.length)) * 100)}%`,
-            }}
-          />
-        </div>
         <ExerciseCard
           key={current.id}
           exercise={current}
@@ -172,6 +166,8 @@ export default function IntroLessonFlow({
           disabled={submitting}
           checkEndpoint={`/api/intro-exercises/${current.id}/check`}
           focus
+          progress={{ current: exerciseIndex, total: exercises.length }}
+          feedbackContext={{ source: "INTRO", questionId: current.id, courseId, lessonId }}
         />
       </FocusLayout>
     );

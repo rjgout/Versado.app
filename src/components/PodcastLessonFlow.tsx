@@ -37,6 +37,7 @@ export default function PodcastLessonFlow({
   exercises,
   courseHref,
   nextRound,
+  courseId,
 }: {
   episodeId: string;
   mode: "CONTENT" | "BOM_CONNECTION";
@@ -44,6 +45,7 @@ export default function PodcastLessonFlow({
   courseHref: string;
   /** De andere ronde van deze aflevering, als die bestaat en nog niet af is. */
   nextRound: { href: string; label: string } | null;
+  courseId?: string;
 }) {
   const t = useT();
   const [index, setIndex] = useState(0);
@@ -138,12 +140,6 @@ export default function PodcastLessonFlow({
 
   return (
     <FocusLayout className="max-w-2xl gap-6">
-      <div className="h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-        <div
-          className="h-full bg-brand-500 transition-all duration-300"
-          style={{ width: `${Math.round((index / exercises.length) * 100)}%` }}
-        />
-      </div>
       <ExerciseCard
         key={current.id}
         exercise={current}
@@ -151,6 +147,8 @@ export default function PodcastLessonFlow({
         disabled={submitting}
         checkEndpoint={`/api/podcast-exercises/${current.id}/check`}
         focus
+        progress={{ current: index, total: exercises.length }}
+        feedbackContext={{ source: "PODCAST", questionId: current.id, courseId, lessonId: episodeId }}
       />
     </FocusLayout>
   );

@@ -495,6 +495,9 @@ export const es: PartialMessages = {
     "hintsLeftMany": "{n} sugerencias",
     "hintLoading": "Cargando sugerencia...",
     "correct": "¡Bien hecho! ✅",
+    "correctTitle": "¡Bien hecho!",
+    "wrongTitle": "No exactamente",
+    "exerciseProgress": "Progreso",
     "wrongImage": "No exactamente: la imagen correcta se describe arriba.",
     "wrongAnswer": "No exactamente, la respuesta correcta fue: {answer}",
     "outdated": "Este ejercicio aún no se puede mostrar (contenido obsoleto — recargue el contenido con db:seed).",
@@ -2508,6 +2511,21 @@ export const es: PartialMessages = {
       "IN_PROGRESS": "En progreso",
       "DONE": "Listo",
       "WONT_DO": "No se realizará"
+    },
+    "exercise": {
+      "title": "¿Qué no está bien?",
+      "label": "Comentarios sobre la pregunta",
+      "reportTitle": "Comentarios sobre la pregunta",
+      "reportQuestion": "Informar de un problema con esta pregunta",
+      "sent": "Gracias, tus comentarios se han enviado.",
+      "categories": {
+        "answerShouldBeAccepted": "Mi respuesta debería haberse aceptado",
+        "answerShouldBeRejected": "Mi respuesta no debería haberse aceptado",
+        "questionUnclear": "La pregunta o tarea no está clara",
+        "answersIncorrect": "Hay un problema con las respuestas",
+        "visualBroken": "La imagen o la vista no funciona correctamente",
+        "other": "Hay otro problema"
+      }
     }
   },
   "adminCommon": {

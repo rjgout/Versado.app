@@ -68,6 +68,7 @@ export default async function KidsStoryPage({ params }: { params: Promise<{ stor
       exercises={exercises}
       courseHref={course ? `/courses/${course.id}` : "/courses"}
       nextStoryHref={nextStory ? `/kids/${nextStory.id}` : null}
+      courseId={course?.id}
     />
     </>
   );

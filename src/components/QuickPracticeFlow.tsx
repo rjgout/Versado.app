@@ -94,13 +94,15 @@ export default function QuickPracticeFlow({ exercises }: { exercises: Exercise[]
 
   return (
     <FocusLayout className="max-w-2xl gap-6">
-      <div className="h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-        <div
-          className="h-full bg-brand-500 transition-all duration-300"
-          style={{ width: `${Math.round((index / exercises.length) * 100)}%` }}
-        />
-      </div>
-      <ExerciseCard key={current.id} exercise={current} onDone={onDone} disabled={submitting} focus />
+      <ExerciseCard
+        key={current.id}
+        exercise={current}
+        onDone={onDone}
+        disabled={submitting}
+        focus
+        progress={{ current: index, total: exercises.length }}
+        feedbackContext={{ source: "SCRIPTURE", questionId: current.id, verseRef: current.verseRef }}
+      />
     </FocusLayout>
   );
 }
