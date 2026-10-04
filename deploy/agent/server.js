@@ -27,7 +27,6 @@ const PORT = Number(process.env.PORT || 4000);
 const AGENT_TOKEN = process.env.AGENT_TOKEN || "";
 const APP_CONTAINER_NAME = process.env.APP_CONTAINER_NAME || "jehova-app";
 const APP_IMAGE_FALLBACK = process.env.APP_IMAGE || "ghcr.io/rjgout/jehova-app:latest";
-const APP_DATABASE_URL = process.env.APP_DATABASE_URL || "";
 const APP_BRANDING_VOLUME = process.env.APP_BRANDING_VOLUME || "";
 const APP_BRANDING_DESTINATION = process.env.APP_BRANDING_DESTINATION || "/data/branding";
 const FLAG_DIR = "/flag";
@@ -140,16 +139,6 @@ async function getHealthStatus(name) {
   return info?.State?.Health?.Status || null;
 }
 
-function environmentMap(entries) {
-  const values = new Map();
-  for (const entry of entries || []) {
-    const separator = entry.indexOf("=");
-    if (separator === -1) continue;
-    values.set(entry.slice(0, separator), entry.slice(separator + 1));
-  }
-  return values;
-}
-
 function mountArgs(mounts) {
   const args = [];
   for (const mount of mounts || []) {
@@ -173,18 +162,10 @@ function hasMountAt(mounts, destination) {
 // oorspronkelijke compose-configuratie die niet altijd als bestand op de NAS
 // staat.
 async function recreateContainer(name, image, templateFrom) {
-  const environment = environmentMap(templateFrom?.Config?.Env);
-  if (!environment.get("DATABASE_URL")?.trim()) {
-    if (!APP_DATABASE_URL.trim()) {
-      throw new Error("DATABASE_URL ontbreekt in de app-container en APP_DATABASE_URL ontbreekt in de deploy-agent.");
-    }
-    environment.set("DATABASE_URL", APP_DATABASE_URL);
-  }
-
   await runDocker(["rm", "-f", name]).catch(() => {});
 
   const args = ["create", "--name", name];
-  for (const [key, value] of environment) args.push("-e", `${key}=${value}`);
+  for (const env of templateFrom?.Config?.Env || []) args.push("-e", env);
   for (const [key, value] of Object.entries(templateFrom?.Config?.Labels || {})) {
     args.push("--label", `${key}=${value}`);
   }

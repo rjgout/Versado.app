@@ -42,10 +42,16 @@ jobs:
           # jehova-app zelf gewoon kunnen pullen.
           - name: jehova-app
             context: .
+            dockerfile: ./Dockerfile
+          # De proxy heeft de rootcontext nodig voor de mascotte-asset. De
+          # Dockerfile moet daarom expliciet zijn; anders bouwt deze matrixrij
+          # per ongeluk opnieuw de app-image uit de root-Dockerfile.
           - name: jehova-proxy
             context: .
+            dockerfile: ./deploy/nginx/Dockerfile
           - name: jehova-deploy-agent
             context: ./deploy/agent
+            dockerfile: ./deploy/agent/Dockerfile
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -78,6 +84,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |

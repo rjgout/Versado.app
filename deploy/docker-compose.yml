@@ -109,9 +109,6 @@ services:
       AGENT_TOKEN: CHANGE_THIS_TO_A_DIFFERENT_LONG_RANDOM_STRING
       APP_CONTAINER_NAME: jehova-app
       APP_IMAGE: ghcr.io/rjgout/jehova-app:latest
-      # Fallback voor legacy containers zonder DATABASE_URL in hun
-      # inspect-configuratie. Gebruik hetzelfde wachtwoord als hierboven.
-      APP_DATABASE_URL: postgresql://bom:CHANGE_THIS_DB_PASSWORD@jehova-db:5432/bom?schema=public
       APP_BRANDING_VOLUME: branding_assets
       APP_BRANDING_DESTINATION: /data/branding
     volumes:
