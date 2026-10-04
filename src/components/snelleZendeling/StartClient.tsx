@@ -14,12 +14,27 @@ export default function QuickMissionaryStartClient() {
   const [error, setError] = useState(false);
 
   async function start() {
+    if (starting) return;
     setStarting(true);
     setError(false);
-    const response = await fetch("/api/snelle-zendeling/runs", { method: "POST" });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data.runId) { setError(true); setStarting(false); return; }
-    router.push(`/snelle-zendeling/run/${data.runId}`);
+    try {
+      const response = await fetch("/api/snelle-zendeling/runs", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || typeof data.runId !== "string" || data.runId.length === 0) {
+        setError(true);
+        return;
+      }
+      router.push(`/snelle-zendeling/run/${data.runId}`);
+    } catch {
+      setError(true);
+    } finally {
+      setStarting(false);
+    }
   }
 
   return (
