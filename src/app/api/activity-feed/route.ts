@@ -26,7 +26,15 @@ export async function GET() {
     take: PAGE_SIZE,
     include: {
       user: { select: { id: true, handle: true, discriminator: true, avatarEmoji: true } },
-      reactions: { select: { userId: true, emoji: true } },
+      reactions: {
+        orderBy: { createdAt: "asc" },
+        select: {
+          userId: true,
+          emoji: true,
+          createdAt: true,
+          user: { select: { id: true, handle: true, discriminator: true, avatarEmoji: true } },
+        },
+      },
     },
   });
 
@@ -51,6 +59,14 @@ export async function GET() {
         createdAt: item.updatedAt,
         actor: item.user,
         reactionCounts,
+        reactions: item.reactions.map((reaction) => ({
+          id: reaction.user.id,
+          handle: reaction.user.handle,
+          discriminator: reaction.user.discriminator,
+          avatarEmoji: reaction.user.avatarEmoji,
+          emoji: reaction.emoji,
+          createdAt: reaction.createdAt,
+        })),
         myReaction,
         canReact: item.userId !== user.id,
         text:

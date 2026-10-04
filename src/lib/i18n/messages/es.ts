@@ -108,7 +108,10 @@ export const es: PartialMessages = {
     "achievementText": "consiguió el logro {achievement}",
     "achievementFallback": "un logro",
     "react": "Reaccionar",
-    "reactWith": "Reaccionar con {emoji}"
+    "reactWith": "Reaccionar con {emoji}",
+    "reactions": "Reacciones",
+    "reactionBy": "{name} reaccionó con {emoji}",
+    "noReactions": "Aún no hay reacciones"
   },
   "common": {
     "loading": "Cargando...",
@@ -1314,6 +1317,8 @@ export const es: PartialMessages = {
     "reminderHint": "Un aviso para practicar.",
     "socialLabel": "Social",
     "socialHint": "Reacciones a tus actividades, solicitudes de amistad, retos e invitaciones al juego de palabras.",
+    "activityReactionsLabel": "Reacciones a mis actividades",
+    "activityReactionsHint": "Recibe una notificación cuando otros reaccionen a tus actividades.",
     "achievementsLabel": "Logros y competición",
     "achievementsHint": "Nuevos logros y el resultado semanal.",
     "wordGameLabel": "Palabra del día",
@@ -1924,6 +1929,10 @@ export const es: PartialMessages = {
     "ctaActivity": "Ver la actividad",
     "activityReactionTitle": "Nueva reacción a tu actividad",
     "activityReactionText": "{name} reaccionó con {emoji} a tu actividad.",
+    "activityReactionBatchTitle": "Nuevas reacciones a tu actividad",
+    "activityReactionBatchOne": "{name} reaccionó a tu actividad.",
+    "activityReactionBatchTwo": "{first} y {second} reaccionaron a tu actividad.",
+    "activityReactionBatchMany": "{first}, {second} y {others} personas más reaccionaron a tu actividad.",
     "freezeTitle": "¡Tienes una racha congelada! 🧊",
     "freezeText": "¡{name} te congeló la racha! 🧊",
     "freezePush": "{name} te congeló la racha.",

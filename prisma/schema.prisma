@@ -222,6 +222,7 @@ model User {
   notifyDailyReminder Boolean @default(true)
   notifyStreakReturn  Boolean @default(true)
   notifySocial        Boolean @default(true) // vriendschapsverzoeken, uitdagingen, woordspel
+  notifyActivityReactions Boolean @default(true) // samengevatte reacties op eigen activiteiten
   notifyAchievements  Boolean @default(true) // prestaties, wekelijkse competitie-uitslag
   notifyWordGame      Boolean @default(true) // nieuw woord van de dag
   // Melding in de app als een vriend online komt (zie announceCameOnline in
@@ -248,6 +249,7 @@ model User {
   xpTx            XPTransaction[]
   activityFeedItems ActivityFeedItem[]
   activityFeedReactions ActivityFeedReaction[]
+  activityReactionNotificationBatches ActivityReactionNotificationBatch[] @relation("ActivityReactionNotificationRecipient")
   weeklyScores    WeeklyScore[]
   bookmarks       Bookmark[]
   highlights      Highlight[]
@@ -1470,6 +1472,7 @@ model ActivityFeedItem {
   updatedAt       DateTime     @updatedAt
 
   reactions ActivityFeedReaction[]
+  reactionNotificationBatches ActivityReactionNotificationBatch[]
 
   @@index([userId, updatedAt])
   @@index([userId, kind, groupKey, createdAt])
@@ -1483,9 +1486,32 @@ model ActivityFeedReaction {
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   emoji     String
   createdAt DateTime         @default(now())
+  notificationBatchId String?
+  notificationBatch ActivityReactionNotificationBatch? @relation(fields: [notificationBatchId], references: [id], onDelete: SetNull)
 
   @@unique([itemId, userId])
   @@index([userId])
+  @@index([notificationBatchId])
+}
+
+// Een batch verzamelt nieuwe reacties op één activiteit tot het venster is
+// verstreken. De scheduler verstuurt hem server-side; de client is nooit de
+// timer of bron van waarheid voor reactiemeldingen.
+model ActivityReactionNotificationBatch {
+  id              String                   @id @default(cuid())
+  itemId          String
+  item            ActivityFeedItem         @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  recipientUserId String
+  recipient       User                     @relation("ActivityReactionNotificationRecipient", fields: [recipientUserId], references: [id], onDelete: Cascade)
+  firstReactionAt DateTime
+  sendAfter       DateTime
+  sentAt          DateTime?
+  createdAt       DateTime                 @default(now())
+  reactions       ActivityFeedReaction[]
+
+  @@index([sendAfter, sentAt])
+  @@index([itemId, sentAt])
+  @@index([recipientUserId, sentAt])
 }
 
 // --- Streak freezes -------------------------------------------------------

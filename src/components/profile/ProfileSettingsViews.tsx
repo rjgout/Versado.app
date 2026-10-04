@@ -205,6 +205,7 @@ export function NotificationsView({
 
       <SettingsSection title={t("profile.kindsSection")}>
         {kind("notifySocial", t("profile.socialLabel"), t("profile.socialHint"))}
+        {kind("notifyActivityReactions", t("profile.activityReactionsLabel"), t("profile.activityReactionsHint"))}
         {kind("notifyStreakReturn", t("streakReturn.setting"), t("streakReturn.settingHint"))}
         {kind("notifyAchievements", t("profile.achievementsLabel"), t("profile.achievementsHint"))}
         {kind("notifyWordGame", t("profile.wordGameLabel"), t("profile.wordGameHint"))}

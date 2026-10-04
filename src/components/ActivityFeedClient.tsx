@@ -17,6 +17,7 @@ interface FeedItem {
   actor: { id: string; handle: string; discriminator: string; avatarEmoji: string | null };
   text: string;
   reactionCounts: Record<string, number>;
+  reactions: { id: string; handle: string; discriminator: string; avatarEmoji: string | null; emoji: string; createdAt: string }[];
   myReaction: string | null;
   canReact: boolean;
 }
@@ -55,16 +56,7 @@ export default function ActivityFeedClient() {
       body: JSON.stringify({ emoji }),
     });
     if (!response.ok) return;
-    const { emoji: saved } = await response.json();
-    setItems((current) =>
-      current?.map((entry) => {
-        if (entry.id !== item.id) return entry;
-        const counts = { ...entry.reactionCounts };
-        if (entry.myReaction) counts[entry.myReaction] = Math.max(0, (counts[entry.myReaction] ?? 1) - 1);
-        if (saved) counts[saved] = (counts[saved] ?? 0) + 1;
-        return { ...entry, reactionCounts: counts, myReaction: saved };
-      }) ?? null
-    );
+    await load();
   }
 
   if (!items) return <p className="text-slate-400 dark:text-slate-500">{error ?? t("common.loading")}</p>;
@@ -91,7 +83,7 @@ export default function ActivityFeedClient() {
           {items.map((item) => {
             const reactionEntries = Object.entries(item.reactionCounts).filter(([, count]) => count > 0);
             return (
-              <article key={item.id} className="card !bg-vs-subtle dark:!bg-vs-surface flex flex-col gap-2 !p-3 sm:!p-4 sm:gap-2.5">
+              <article id={`activity-${item.id}`} key={item.id} className="card !bg-vs-subtle dark:!bg-vs-surface flex flex-col gap-2 !p-3 sm:!p-4 sm:gap-2.5 scroll-mt-20">
                 <div className="flex items-start gap-3">
                   <UserAvatar id={item.actor.id} handle={item.actor.handle} avatarEmoji={item.actor.avatarEmoji} size="sm" />
                   <div className="min-w-0 flex-1">
@@ -106,24 +98,33 @@ export default function ActivityFeedClient() {
                   {item.achievementIcon && <span className="text-2xl" aria-hidden>{item.achievementIcon}</span>}
                 </div>
 
-                <div className="flex min-h-9 flex-wrap items-center gap-1.5">
-                  {reactionEntries.map(([emoji, count]) => (
-                    item.canReact ? (
+                <div className="flex min-h-9 flex-wrap items-center gap-1.5" aria-label={t("activityFeed.reactions")}>
+                  {item.reactions.map((reaction) => {
+                    const label = `${reaction.handle}#${reaction.discriminator}`;
+                    const content = (
+                      <>
+                        <UserAvatar id={reaction.id} handle={reaction.handle} avatarEmoji={reaction.avatarEmoji} size="xs" className="!h-6 !w-6" />
+                        <span className="max-w-[10rem] truncate">{label}</span>
+                        <span aria-hidden>{reaction.emoji}</span>
+                      </>
+                    );
+                    return item.canReact ? (
                       <button
-                        key={emoji}
+                        key={`${reaction.id}-${reaction.createdAt}`}
                         type="button"
-                        onClick={() => react(item, emoji)}
-                        className={"min-h-9 rounded-full border px-2 py-1 text-sm " + (item.myReaction === emoji ? "border-brand-400 bg-brand-50 dark:bg-slate-700" : "border-slate-200 dark:border-slate-600")}
-                        aria-label={t("activityFeed.reactWith", { emoji })}
+                        onClick={() => react(item, reaction.emoji)}
+                        className="inline-flex min-h-9 max-w-full items-center gap-1 rounded-full border border-slate-200 px-2 py-1 text-xs dark:border-slate-600"
+                        aria-label={t("activityFeed.reactionBy", { name: label, emoji: reaction.emoji })}
                       >
-                        {emoji} {count}
+                        {content}
                       </button>
                     ) : (
-                      <span key={emoji} className="rounded-full px-2 py-1 text-sm border border-slate-200 dark:border-slate-600">
-                        {emoji} {count}
+                      <span key={`${reaction.id}-${reaction.createdAt}`} className="inline-flex min-h-9 max-w-full items-center gap-1 rounded-full border border-slate-200 px-2 py-1 text-xs dark:border-slate-600">
+                        {content}
                       </span>
-                    )
-                  ))}
+                    );
+                  })}
+                  {item.reactions.length === 0 && reactionEntries.length === 0 && <span className="text-xs text-vs-fg-3">{t("activityFeed.noReactions")}</span>}
                   {item.canReact && (
                     <div className="relative ml-auto">
                       <button

@@ -31,6 +31,7 @@ export interface ProfileData {
   notifyDailyReminder: boolean;
   notifyStreakReturn: boolean;
   notifySocial: boolean;
+  notifyActivityReactions: boolean;
   notifyAchievements: boolean;
   notifyWordGame: boolean;
   notifyFriendOnline: boolean;
@@ -66,6 +67,7 @@ export interface ProfileData {
 export type ProfileToggleField =
   | "notifyDailyReminder"
   | "notifyStreakReturn"
+  | "notifyActivityReactions"
   | "notifyDailyText"
   | "notifySocial"
   | "notifyAchievements"

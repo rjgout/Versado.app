@@ -12,13 +12,14 @@ import { translateOr, type TFunction } from "@/lib/i18n/core";
 // Elke gebeurtenis valt in één categorie, die de gebruiker in zijn profiel
 // apart aan/uit kan zetten (zie User.notify* in schema.prisma) — bovenop,
 // niet in plaats van, de kanaalschakelaars (email/pushNotificationsEnabled).
-type NotifyCategory = "dailyReminder" | "dailyText" | "social" | "achievements" | "wordGame" | "streakReturn";
+type NotifyCategory = "dailyReminder" | "dailyText" | "social" | "activityReactions" | "achievements" | "wordGame" | "streakReturn";
 
-const CATEGORY_FIELD: Record<NotifyCategory, "notifyDailyReminder" | "notifyDailyText" | "notifySocial" | "notifyAchievements" | "notifyWordGame" | "notifyStreakReturn"> = {
+const CATEGORY_FIELD: Record<NotifyCategory, "notifyDailyReminder" | "notifyDailyText" | "notifySocial" | "notifyActivityReactions" | "notifyAchievements" | "notifyWordGame" | "notifyStreakReturn"> = {
   streakReturn: "notifyStreakReturn",
   dailyReminder: "notifyDailyReminder",
   dailyText: "notifyDailyText",
   social: "notifySocial",
+  activityReactions: "notifyActivityReactions",
   achievements: "notifyAchievements",
   wordGame: "notifyWordGame",
 };
@@ -60,7 +61,10 @@ async function storeNotification(userId: string, kind: NotificationKind, title: 
   await prisma.$transaction([
     // Dezelfde melding nog eens (bv. twee keer "Bram heeft gespeeld — jij bent
     // aan de beurt!") vervangt de oude, in plaats van zich op te stapelen.
-    prisma.notification.deleteMany({ where: { userId, kind, title, body } }),
+    // Dezelfde tekst op twee verschillende activiteiten zijn twee meldingen;
+    // de URL maakt het inhoudelijke doel van de melding onderdeel van de
+    // idempotentiesleutel.
+    prisma.notification.deleteMany({ where: { userId, kind, title, body, url } }),
     prisma.notification.deleteMany({ where: { userId, createdAt: { lt: new Date(Date.now() - NOTIFICATION_MAX_AGE_MS) } } }),
     prisma.notification.create({ data: { userId, kind, title, body, url } }),
   ]);
@@ -100,6 +104,7 @@ async function notifyUser(input: NotifyInput): Promise<void> {
       notifyDailyReminder: true,
       notifyDailyText: true,
       notifySocial: true,
+      notifyActivityReactions: true,
       notifyAchievements: true,
       notifyWordGame: true,
       notifyStreakReturn: true,
@@ -222,23 +227,18 @@ export async function notifyInviteAccepted(
   });
 }
 
-export async function notifyActivityReaction(
-  ownerUserId: string,
-  reactorDisplayName: string,
-  emoji: string
-): Promise<void> {
+export async function notifyActivityReactionBatch(ownerUserId: string, names: string[], url: string): Promise<void> {
+  const text = (t: TFunction): string => {
+    if (names.length === 1) return t("notify.activityReactionBatchOne", { name: names[0] });
+    if (names.length === 2) return t("notify.activityReactionBatchTwo", { first: names[0], second: names[1] });
+    return t("notify.activityReactionBatchMany", { first: names[0], second: names[1], others: names.length - 2 });
+  };
   await notifyUser({
     userId: ownerUserId,
-    category: "social",
+    category: "activityReactions",
     kind: "friends",
-    url: "/activity",
-    content: (t) =>
-      simple(
-        t("notify.activityReactionTitle"),
-        t("notify.activityReactionTitle"),
-        t("notify.activityReactionText", { name: reactorDisplayName, emoji }),
-        t("notify.ctaActivity")
-      ),
+    url,
+    content: (t) => simple(t("notify.activityReactionBatchTitle"), t("notify.activityReactionBatchTitle"), text(t), t("notify.ctaActivity")),
   });
 }
 

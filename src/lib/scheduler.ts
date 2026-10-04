@@ -15,6 +15,7 @@ import { cleanupRegistrations } from "@/lib/registration";
 import { runGroupAdminMaintenance } from "@/lib/social/groups";
 import { getStreakContinuation } from "@/lib/streakContinuation";
 import { runStreakReturnReminders } from "@/lib/streakReturnNotifications";
+import { runActivityReactionNotificationTick } from "@/lib/activityReactionNotifications";
 
 const TICK_MS = 60_000;
 // Vast (niet instelbaar) moment voor de wekelijkse uitslag — dit is geen
@@ -427,6 +428,7 @@ export function startNotificationSchedulers(): void {
     runIncognitoExpiryTick().catch((e) => console.error("Incognito-vervaltijd mislukt:", e));
     runSocialTick().catch((e) => console.error("Samen (vrienden- en groepsreeksen) mislukt:", e));
     runRegistrationCleanupTick().catch((e) => console.error("Aanmeldingen opruimen mislukt:", e));
+    runActivityReactionNotificationTick().catch((e) => console.error("Reactiemeldingen bundelen mislukt:", e));
     runFsyWeeklyCheckIfDue(prisma).catch((e) => console.error("FSY-weekcontrole mislukt:", e));
   }, TICK_MS);
 }

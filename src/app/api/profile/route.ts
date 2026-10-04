@@ -83,6 +83,7 @@ export async function GET() {
     notifyDailyReminder: user.notifyDailyReminder,
     notifyStreakReturn: user.notifyStreakReturn,
     notifySocial: user.notifySocial,
+    notifyActivityReactions: user.notifyActivityReactions,
     notifyAchievements: user.notifyAchievements,
     notifyWordGame: user.notifyWordGame,
     notifyFriendOnline: user.notifyFriendOnline,

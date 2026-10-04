@@ -3,8 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
-import { formatTag } from "@/lib/handle";
-import { notifyActivityReaction } from "@/lib/notify";
+import { ACTIVITY_REACTION_BATCH_WINDOW_MS } from "@/lib/activityReactionNotifications";
 
 const REACTIONS = ["🫶🏻", "❤️", "🎉", "🔥", "🙌"] as const;
 const schema = z.object({ emoji: z.enum(REACTIONS) });
@@ -34,26 +33,61 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ite
   const item = await visibleItem(itemId, user.id);
   if (!item) return await apiError("apiErrors.forbidden", 403);
 
-  const existing = await prisma.activityFeedReaction.findUnique({
-    where: { itemId_userId: { itemId, userId: user.id } },
-    select: { emoji: true },
+  const result = await prisma.$transaction(async (tx) => {
+    // De itemrij is de kleine kritieke sectie: hierdoor kunnen twee reacties
+    // op hetzelfde item niet tegelijk twee open batches aanmaken.
+    const locked = await tx.$queryRaw<{ id: string }[]>`
+      SELECT "id" FROM "ActivityFeedItem" WHERE "id" = ${itemId} FOR UPDATE`;
+    if (locked.length === 0) return null;
+    const lockedItem = await tx.activityFeedItem.findUnique({
+      where: { id: itemId },
+      select: { userId: true, user: { select: { notifyActivityReactions: true } } },
+    });
+    if (!lockedItem || lockedItem.userId !== item.userId) return null;
+
+    const existing = await tx.activityFeedReaction.findUnique({
+      where: { itemId_userId: { itemId, userId: user.id } },
+      select: { emoji: true },
+    });
+    if (existing?.emoji === parsed.data.emoji) {
+      await tx.activityFeedReaction.delete({ where: { itemId_userId: { itemId, userId: user.id } } });
+      return { emoji: null };
+    }
+    if (existing) {
+      const reaction = await tx.activityFeedReaction.update({
+        where: { itemId_userId: { itemId, userId: user.id } },
+        data: { emoji: parsed.data.emoji },
+        select: { emoji: true },
+      });
+      return { emoji: reaction.emoji };
+    }
+
+    let notificationBatchId: string | null = null;
+    if (lockedItem.user.notifyActivityReactions) {
+      const now = new Date();
+      const activeBatch = await tx.activityReactionNotificationBatch.findFirst({
+        where: { itemId, sentAt: null, sendAfter: { gt: now } },
+        orderBy: { createdAt: "desc" },
+        select: { id: true },
+      });
+      notificationBatchId = activeBatch?.id ?? (
+        await tx.activityReactionNotificationBatch.create({
+          data: {
+            itemId,
+            recipientUserId: lockedItem.userId,
+            firstReactionAt: new Date(),
+            sendAfter: new Date(Date.now() + ACTIVITY_REACTION_BATCH_WINDOW_MS),
+          },
+          select: { id: true },
+        })
+      ).id;
+    }
+    const reaction = await tx.activityFeedReaction.create({
+      data: { itemId, userId: user.id, emoji: parsed.data.emoji, notificationBatchId },
+      select: { emoji: true },
+    });
+    return { emoji: reaction.emoji };
   });
-  if (existing?.emoji === parsed.data.emoji) {
-    await prisma.activityFeedReaction.delete({ where: { itemId_userId: { itemId, userId: user.id } } });
-    return NextResponse.json({ emoji: null });
-  }
-  const reaction = await prisma.activityFeedReaction.upsert({
-    where: { itemId_userId: { itemId, userId: user.id } },
-    update: { emoji: parsed.data.emoji },
-    create: { itemId, userId: user.id, emoji: parsed.data.emoji },
-    select: { emoji: true },
-  });
-  if (!existing) {
-    await notifyActivityReaction(
-      item.userId,
-      formatTag(user.handle, user.discriminator),
-      reaction.emoji
-    ).catch(() => {});
-  }
-  return NextResponse.json({ emoji: reaction.emoji });
+  if (!result) return await apiError("apiErrors.forbidden", 403);
+  return NextResponse.json(result);
 }

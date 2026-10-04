@@ -45,6 +45,7 @@ const patchSchema = z.object({
   notifyDailyReminder: z.boolean().optional(),
   notifyStreakReturn: z.boolean().optional(),
   notifySocial: z.boolean().optional(),
+  notifyActivityReactions: z.boolean().optional(),
   notifyAchievements: z.boolean().optional(),
   notifyWordGame: z.boolean().optional(),
   notifyFriendOnline: z.boolean().optional(),
