@@ -261,7 +261,7 @@ export default function FriendPicker({
         ref={sheetRef}
         className="flex w-full max-h-[85vh] sm:max-w-md flex-col rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl"
         style={{
-          paddingBottom: "env(safe-area-inset-bottom)",
+          paddingBottom: "var(--vs-safe-area-bottom)",
           transform: closing ? "translateY(100%)" : `translateY(${dragY}px)`,
           transition: dragY > 0 && !closing ? "none" : "transform 0.2s ease-out",
         }}

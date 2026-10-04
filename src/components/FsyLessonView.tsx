@@ -4,6 +4,7 @@ import { useT } from "@/components/I18nProvider";
 import FsyContentBlocks from "@/components/FsyContentBlocks";
 import FocusLayout from "@/components/versado/FocusLayout";
 import type { FsyContentBlock } from "@/lib/fsyContent";
+import { isNativeApp, openExternalUrl } from "@/lib/platform";
 
 interface Props {
   title: string;
@@ -43,7 +44,18 @@ export default function FsyLessonView({ title, month, year, category, blocks, so
 
       <p className="text-xs text-slate-400 dark:text-slate-500">
         {t("courseViews.fsy.source")}{" "}
-        <a href={sourceUrl} target="_blank" rel="noreferrer" className="underline">
+        <a
+          href={sourceUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="underline"
+          onClick={(event) => {
+            if (isNativeApp()) {
+              event.preventDefault();
+              void openExternalUrl(sourceUrl);
+            }
+          }}
+        >
           {t("courseViews.fsy.officialSite")}
         </a>
       </p>

@@ -21,6 +21,7 @@ import ChangelogPopup from "@/components/ChangelogPopup";
 import ThemeScript from "@/components/ThemeScript";
 import BottomNav from "@/components/BottomNav";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import NativeAppBridge from "@/components/NativeAppBridge";
 import NotificationCenter from "@/components/NotificationCenter";
 import EdgeSwipeGuard from "@/components/EdgeSwipeGuard";
 import SubpageBackBar from "@/components/SubpageBackBar";
@@ -174,7 +175,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             rechts reeks, XP en divisie, meldingen en de avatar (ingang naar
             profiel). Op telefoon en tablet staat de navigatie onderaan
             (BottomNav). Zie docs/VERSADO-DESIGN.md. */}
-        <header data-app-global-header className="border-b border-vs-line bg-vs-elevated pt-[env(safe-area-inset-top)]">
+        <header data-app-global-header className="border-b border-vs-line bg-vs-elevated pt-[var(--vs-safe-area-top)]">
           {/* Vanaf xl iets breder dan de pagina: logo, contentkiezer, navigatie en
             status passen anders niet naast elkaar. */}
           <div className="relative mx-auto flex h-14 max-w-5xl min-w-0 items-center gap-2 px-4 sm:h-16 sm:gap-3 xl:max-w-6xl">
@@ -238,8 +239,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {user && <BottomNav />}
         {user && <InviteListener />}
         {user && <ChangelogPopup />}
-      {user && <FreezeGiftPopup />}
+        {user && <FreezeGiftPopup />}
         <ServiceWorkerRegister />
+        <NativeAppBridge />
         <EdgeSwipeGuard />
         </FocusModeController>
         </ReadAloudPlayerProvider>

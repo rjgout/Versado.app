@@ -150,7 +150,7 @@ export default function StreakCelebrationFlow({ value, onDone }: { value: Streak
 
   return (
     <div className="fixed inset-0 z-[90] overflow-y-auto bg-vs-app text-vs-fg" role="dialog" aria-modal="true" aria-labelledby="streak-celebration-title">
-      <div className="vs-motion flex min-h-[100dvh] flex-col px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] sm:px-8">
+      <div className="vs-motion flex min-h-[100dvh] flex-col px-4 pb-[calc(1rem+var(--vs-safe-area-bottom))] pt-[calc(1rem+var(--vs-safe-area-top))] sm:px-8">
         <header className="mx-auto flex w-full max-w-2xl items-center justify-between gap-3">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-vs-fg-3">{index + 1} / {steps.length}</p>
           <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full text-vs-fg-2 hover:bg-vs-subtle" onClick={onDone} aria-label={t("streakCelebration.close")}>

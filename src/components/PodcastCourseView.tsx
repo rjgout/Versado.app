@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePodcastPlayer } from "@/lib/podcastPlayerContext";
 import { useT } from "@/components/I18nProvider";
+import { isNativeApp, openExternalUrl } from "@/lib/platform";
 import AppSelect from "@/components/AppSelect";
 import type { PodcastChapter } from "@/lib/podcastChapters";
 
@@ -134,6 +135,12 @@ export default function PodcastCourseView({ courseName, podcastName, episodes, s
                   target="_blank"
                   rel="noreferrer"
                   className="text-xs font-bold text-brand-600 dark:text-brand-300 underline underline-offset-2"
+                  onClick={(event) => {
+                    if (isNativeApp()) {
+                      event.preventDefault();
+                      void openExternalUrl(episode.listenUrl!);
+                    }
+                  }}
                 >
                   {t("courseViews.podcast.viewOnSite")}
                 </a>

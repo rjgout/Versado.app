@@ -208,7 +208,7 @@ export default function NotificationCenter() {
           >
             <div
               className="mx-auto flex h-full max-w-md flex-col px-3"
-              style={{ paddingTop: "calc(env(safe-area-inset-top) + 1rem)" }}
+              style={{ paddingTop: "calc(var(--vs-safe-area-top) + 1rem)" }}
             >
               <div className="flex items-center justify-between gap-3 px-1 pb-3" onClick={(e) => e.stopPropagation()}>
                 <h2 className="text-3xl font-extrabold text-white drop-shadow">{t("notifications.title")}</h2>
@@ -234,7 +234,7 @@ export default function NotificationCenter() {
               </div>
 
               <div
-                className="flex-1 overflow-y-auto overscroll-contain pb-[calc(2rem+env(safe-area-inset-bottom))] flex flex-col gap-3"
+                className="flex-1 overflow-y-auto overscroll-contain pb-[calc(2rem+var(--vs-safe-area-bottom))] flex flex-col gap-3"
               >
                 {groups.length === 0 ? (
                   <div className="mt-20 flex flex-col items-center gap-2 text-center text-white/80" onClick={(e) => e.stopPropagation()}>

@@ -8,6 +8,7 @@ import { useConfirm } from "@/components/ConfirmProvider";
 import { iconButton, primaryButton, secondaryButton, surfaceCard } from "@/components/versado/styles";
 import { socialRequest } from "@/components/social/shared";
 import ToggleSwitch from "@/components/versado/ToggleSwitch";
+import { canShareContent, shareContent } from "@/lib/platform";
 
 /** De groepslink zoals hij gedeeld wordt; de QR-code bevat precies deze tekst. */
 export function groupLinkUrl(token: string): string {
@@ -83,7 +84,7 @@ export default function GroupLinkSettings({ groupId, groupName, token, onChanged
   const [optimistic, setOptimistic] = useState<boolean | null>(null);
   const url = token ? groupLinkUrl(token) : null;
 
-  useEffect(() => setCanShare(typeof navigator !== "undefined" && typeof navigator.share === "function"), []);
+  useEffect(() => setCanShare(canShareContent()), []);
 
   async function setActive(active: boolean) {
     if (!active && !(await confirm(t("together.link.revokeConfirm")))) return;
@@ -107,7 +108,7 @@ export default function GroupLinkSettings({ groupId, groupName, token, onChanged
 
   async function share() {
     if (!url) return;
-    await navigator.share({ title: groupName, text: t("together.link.shareText", { group: groupName }), url }).catch(() => {});
+    await shareContent({ title: groupName, text: t("together.link.shareText", { group: groupName }), url });
   }
 
   return (

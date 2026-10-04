@@ -38,6 +38,13 @@ body {
 /* Leesplezier: instelbare lettergrootte voor de reader (zie ReaderSettings) */
 :root {
   --reader-font-scale: 1;
+  /* Capacitor Android kan veilige systeemruimte als CSS-variabelen injecteren;
+   * env() dekt browsers en iOS-PWA's. Eén alias voorkomt pagina-specifieke
+   * verschillen tussen web, PWA en native WebViews. */
+  --vs-safe-area-top: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --vs-safe-area-right: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
+  --vs-safe-area-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+  --vs-safe-area-left: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
 }
 
 /* Ruimte boven en onder <main> (layout.tsx): onder de vaste bovenbalk, en
@@ -47,7 +54,7 @@ body {
  * rekent in plaats van met eigen getallen. */
 :root {
   --main-pad-top: calc(var(--header-height, 4.5rem) + 2rem);
-  --main-pad-bottom: calc(6rem + env(safe-area-inset-bottom));
+  --main-pad-bottom: calc(6rem + var(--vs-safe-area-bottom));
 }
 @media (min-width: 1024px) {
   :root {
@@ -80,13 +87,13 @@ body {
 }
 
 [data-shell-mode="focus"] [data-subpage-back-bar] {
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--vs-safe-area-top);
 }
 
 [data-shell-mode="focus"] main {
   /* De terugbalk staat in focus mode weer in de normale layout-flow. */
   padding-top: 1rem !important;
-  padding-bottom: calc(1rem + env(safe-area-inset-bottom)) !important;
+  padding-bottom: calc(1rem + var(--vs-safe-area-bottom)) !important;
 }
 
 /* --- Versado-designtokens ---------------------------------------------------

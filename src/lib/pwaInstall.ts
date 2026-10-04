@@ -1,5 +1,7 @@
 "use client";
 
+import { isNativeApp } from "@/lib/platform";
+
 // Vangt het beforeinstallprompt-event (Android/Chrome) al bij het laden van
 // de app op — niet pas wanneer een specifieke pagina (zoals /onboarding of
 // de homepage) mount. De browser vuurt dit event maar één keer per sessie en
@@ -53,6 +55,7 @@ export async function promptInstall(): Promise<"accepted" | "dismissed" | "unava
 /** display-mode: standalone (Android/desktop) of het oudere navigator.standalone (iOS). */
 export function isStandalone(): boolean {
   if (typeof window === "undefined") return false;
+  if (isNativeApp()) return true;
   const nav = window.navigator as Navigator & { standalone?: boolean };
   return window.matchMedia?.("(display-mode: standalone)").matches === true || nav.standalone === true;
 }

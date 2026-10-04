@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
+import { canShareContent, shareContent } from "@/lib/platform";
 
 /**
  * Persoonlijke uitnodigingslink op de Vrienden-pagina (zie
@@ -23,22 +24,18 @@ export default function FriendInviteCard({ appName }: { appName: string }) {
       .then((d) => d?.code && setCode(d.code));
     // Pas na het laden bepalen: op de server bestaat navigator niet, en een
     // verschil tussen server- en clientweergave geeft een hydratatiefout.
-    setCanShare(typeof navigator !== "undefined" && typeof navigator.share === "function");
+    setCanShare(canShareContent());
   }, []);
 
   const link = code ? `${window.location.origin}/uitnodiging/${code}` : null;
 
   async function share() {
     if (!link) return;
-    try {
-      await navigator.share({
-        title: appName,
-        text: t("friendInvite.shareText", { app: appName }),
-        url: link,
-      });
-    } catch {
-      // Deelmenu gesloten zonder te delen: niets aan de hand.
-    }
+    await shareContent({
+      title: appName,
+      text: t("friendInvite.shareText", { app: appName }),
+      url: link,
+    });
   }
 
   async function copy() {

@@ -239,7 +239,7 @@ export default function InviteListener() {
   return (
     <div
       className="fixed inset-x-0 top-0 z-[60] flex justify-center px-2 pointer-events-none"
-      style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.5rem)" }}
+      style={{ paddingTop: "calc(var(--vs-safe-area-top) + 0.5rem)" }}
     >
       <div className="w-full max-w-md animate-slide-down">
         <div

@@ -229,7 +229,7 @@ export default function ActivityFeedClient() {
         >
           <div
             className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-t-3xl bg-white shadow-2xl dark:bg-slate-900 sm:rounded-3xl"
-            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+            style={{ paddingBottom: "var(--vs-safe-area-bottom)" }}
             role="dialog"
             aria-modal="true"
             aria-labelledby={`activity-reactions-title-${detailsItem.id}`}

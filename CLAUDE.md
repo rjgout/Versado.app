@@ -73,6 +73,23 @@ gebruikt `<PersonalMascot state />`: de gebruiker kiest zijn gids (Novi, Varo
 of Vera, `User.companion`, standaard Novi), de feature alleen de state. Zie de
 sectie "Mascottes" in `docs/VERSADO-DESIGN.md` voor de character canon.
 
+## Platformfundering: web/PWA, iOS en Android
+
+Versado blijft één Next.js-codebase. iOS/iPadOS en Android gebruiken
+Capacitor-shells in `ios/` en `android/` die dezelfde gedeployde SSR-app laden;
+bouw geen aparte pagina's, routers of businesslogica per platform. De native
+identiteit is `app.versado.app`. De complete werkwijze, beperkingen en
+storevoorbereiding staan in `docs/PLATFORMEN.md`.
+
+Nieuwe features worden standaard beoordeeld op web, PWA, iOS, Android,
+telefoon, tablet en desktop, inclusief safe areas, touch, toetsenbord, dark
+mode, toegankelijkheid, netwerk/resume, browserback, Android systeem-back en
+deep links. Native gedrag loopt via `src/lib/platform.ts` en
+`src/components/NativeAppBridge.tsx`; verspreide directe Capacitor-checks zijn
+niet de standaard. Native permissies worden pas toegevoegd wanneer de feature
+ze daadwerkelijk nodig heeft. De bestaande webpush blijft losstaan van
+toekomstige APNs/FCM-push.
+
 ## Techstack
 
 - Next.js 16 (App Router) + TypeScript (strict) + Tailwind CSS + React 19

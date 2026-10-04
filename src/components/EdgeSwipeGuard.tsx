@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { isNativeApp } from "@/lib/platform";
 
 // Binnen deze afstand (px) van de linker-/rechterschermrand telt een touch-
 // start als "edge swipe" — vergelijkbaar met de aangrijpingszone die iOS zelf
@@ -19,6 +20,10 @@ const EDGE_ZONE_PX = 24;
  */
 export default function EdgeSwipeGuard() {
   useEffect(() => {
+    // In native Android hoort de systeem-back gesture bij Capacitor's App
+    // listener; in iOS mag WKWebView zijn eigen teruggebaar afhandelen.
+    if (isNativeApp()) return;
+
     let startX = 0;
     let startY = 0;
     let fromEdge = false;

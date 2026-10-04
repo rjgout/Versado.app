@@ -23,7 +23,7 @@ export default function BottomNav() {
       data-main-nav
       aria-label={t("nav.main")}
     >
-      <div className="mx-auto grid w-full max-w-xl grid-cols-4 px-2 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))]">
+      <div className="mx-auto grid w-full max-w-xl grid-cols-4 px-2 pt-1.5 pb-[calc(0.375rem+var(--vs-safe-area-bottom))]">
         {PRIMARY_NAV.map((item) => {
           const isActive = item.id === active;
           return (
