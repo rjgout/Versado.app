@@ -12,9 +12,10 @@ import { translateOr, type TFunction } from "@/lib/i18n/core";
 // Elke gebeurtenis valt in één categorie, die de gebruiker in zijn profiel
 // apart aan/uit kan zetten (zie User.notify* in schema.prisma) — bovenop,
 // niet in plaats van, de kanaalschakelaars (email/pushNotificationsEnabled).
-type NotifyCategory = "dailyReminder" | "dailyText" | "social" | "achievements" | "wordGame";
+type NotifyCategory = "dailyReminder" | "dailyText" | "social" | "achievements" | "wordGame" | "streakReturn";
 
-const CATEGORY_FIELD: Record<NotifyCategory, "notifyDailyReminder" | "notifyDailyText" | "notifySocial" | "notifyAchievements" | "notifyWordGame"> = {
+const CATEGORY_FIELD: Record<NotifyCategory, "notifyDailyReminder" | "notifyDailyText" | "notifySocial" | "notifyAchievements" | "notifyWordGame" | "notifyStreakReturn"> = {
+  streakReturn: "notifyStreakReturn",
   dailyReminder: "notifyDailyReminder",
   dailyText: "notifyDailyText",
   social: "notifySocial",
@@ -34,6 +35,7 @@ interface NotifyContent {
 }
 
 interface NotifyInput {
+  interruptedDay?: string;
   userId: string;
   category: NotifyCategory;
   content: (t: TFunction) => NotifyContent;
@@ -100,11 +102,15 @@ async function notifyUser(input: NotifyInput): Promise<void> {
       notifySocial: true,
       notifyAchievements: true,
       notifyWordGame: true,
+      notifyStreakReturn: true,
+      streakInterruptedDay: true,
+      streakReturnSeenAt: true,
       onlineSocketCount: true,
     },
   });
   if (!user) return;
   if (!user[CATEGORY_FIELD[input.category]]) return;
+  if (input.category === "streakReturn" && (user.streakInterruptedDay !== input.interruptedDay || user.streakReturnSeenAt || user.onlineSocketCount > 0)) return;
   const t = getT(user.uiLanguage);
   const content = input.content(t);
   const absoluteUrl = `${await getAppUrl()}${input.url}`;
@@ -233,6 +239,19 @@ export async function notifyActivityReaction(
         t("notify.activityReactionText", { name: reactorDisplayName, emoji }),
         t("notify.ctaActivity")
       ),
+  });
+}
+
+export async function notifyStreakReturn(userId: string, interruptedDay: string, absentDays: number): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user || user.streakInterruptedDay !== interruptedDay || user.streakReturnSeenAt) return;
+  await notifyUser({
+    userId, category: "streakReturn", url: "/streak", interruptedDay,
+    content: (t) => {
+      const title = t(absentDays < 30 ? "streakReturn.notifyEarlyTitle" : absentDays < 365 ? "streakReturn.notifyLaterTitle" : "streakReturn.notifyLongTitle");
+      const body = t(absentDays < 30 ? "streakReturn.notifyEarlyBody" : absentDays < 365 ? "streakReturn.notifyLaterBody" : "streakReturn.notifyLongBody", { n: user.currentStreak });
+      return simple(title, title, body, t("streakReturn.continue"));
+    },
   });
 }
 

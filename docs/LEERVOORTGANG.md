@@ -93,7 +93,54 @@ Niet doen:
 - voortgang aan een cursus-id hangen als de inhoud gedeeld is;
 - `ChapterProgress` gebruiken (alleen nog bron van de migratie).
 
-Een andere leeractiviteit (spel, losse oefenvorm) meldt zich via `recordLearningActivity` met een eerlijk aantal beantwoorde en vereiste vragen of zetten.
+Een andere leeractiviteit (spel, losse oefenvorm) meldt zich via `recordLearningActivity` met een eerlijk aantal beantwoorde en vereiste vragen of zetten en een stabiele sleutel van de sessie/ronde. De sleutel blijft gelijk bij retries.
+
+## Reeks voortzetten na een onderbreking
+
+Een persoonlijke reeks telt verdiende actieve dagen, niet de gemiste of bevroren
+dagen daartussen. Afwezigheid vernietigt het opgebouwde aantal nooit. Deze
+regel verandert de afzonderlijke regels voor vriendenreeksen/groepen niet.
+
+- `streakRules.ts` blijft de enige definitie van een geldige activiteit, ook
+  voor terugkeer. Er is geen tweede lijst van activiteiten.
+- `streakContinuation.ts` verwerkt afgesloten dagen met een rijvergrendeling
+  op de gebruiker. Beschikbare freezes worden eerst verbruikt, ook als ze
+  slechts een deel van de gemiste dagen dekken. Ze verhogen de reeks niet.
+- Daarna markeert `streakInterruptedDay` de eerste onbevroren gemiste dag.
+  `currentStreak` blijft staan, zonder vervaldatum zolang het account bestaat.
+- `learning/streakReturnRules.ts` bevat de configureerbare drempels (3–12
+  activiteiten, afhankelijk van volledig gemiste onbevroren dagen) en
+  herinneringsintervallen (1, 3, 7, 14, 30, 60, 120, 240, 365, daarna jaarlijks).
+- Alle vereiste activiteiten moeten op één reeksdag zijn afgerond. Een
+  onafgemaakte poging begint de volgende dag opnieuw; de normale XP blijven
+  behouden. De vereiste hoeveelheid wordt dan opnieuw bepaald. Er is geen
+  terugkeerbonus of deadline. De geslaagde dag geeft precies +1.
+- `StreakActivity` claimt elke sessie/ronde eenmaal per gebruiker, binnen
+  dezelfde transactie als voortgang en beloning. Oudere cursusclients zonder
+  poging-id gebruiken conservatief een hash van hun inzending; nieuwere
+  clients behouden één poging-id bij retries en krijgen bij een nieuwe ronde
+  een nieuwe. Hoofdstukoefeningen blijven server-uitgedeelde sessies gebruiken.
+- `StreakDay` bewaart `STUDIED`, `FROZEN` of `RETURNED`. Geen rij blijft gemist.
+  `StreakDayIndicator` is het centrale vervangpunt voor het voorlopige ✨.
+- `StreakContinuationProvider` toont eenmaal per onderbreking/browser-sessie
+  een uitleg met Vera. Dashboard, reekspagina en oefenuitslagen delen de
+  voortgangskaart. Uitlezen na afronding gebeurt via het bestaande XP-event
+  en een socketbericht na commit, met zichtbare polling als terugval.
+- Alleen openen verdient geen dag, maar zet `streakReturnSeenAt`: de
+  afwezigheidsmeldingen stoppen dan. `notifyStreakReturn` is een aparte
+  categorie; kanalen, online-status en de lokale herinneringstijd blijven
+  leidend. Er worden geen oude meldingen in het meldingencentrum bewaard.
+
+Migratie `20261004090000_streak_continuation` behoudt alle tellers en
+historische kalenderregels. Bestaande lopende reeksen krijgen een lokale
+uitrolgrens (`streakGraceDay`), zodat oude ontbrekende dagen geen freezes
+verbruiken of direct een onderbreking opleveren. De migratie maakt geen
+fictieve studiedagen en reconstrueert geen vroeger verloren reeksen. De nieuwe
+notificatiecategorie staat voor bestaande accounts uit tot zij haar aanzetten.
+
+`npm run test:streak-return` test de pure regels en, met
+`LEARNING_TEST_DATABASE_URL`, echte transacties, XP, gelijktijdigheid,
+kalender, meldingen en de SQL-backfill op bestaande gebruikers.
 
 ## Bestaande gebruikers (migratie `20261002150000_learning_progress`)
 

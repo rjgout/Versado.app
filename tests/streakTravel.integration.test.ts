@@ -22,7 +22,7 @@ const EXERCISE = { kind: "CONTENT_EXERCISES", answered: 3, required: 3 } as cons
 
 async function study(iso: string, timeZone: string | null) {
   await L.db.user.update({ where: { id: userId }, data: { timeZone } });
-  return L.db.$transaction((tx) => L.streak.recordLearningActivity(tx, userId, EXERCISE, new Date(iso)));
+  return L.db.$transaction((tx) => L.streak.recordLearningActivity(tx, userId, { ...EXERCISE, key: `test:${iso}` }, new Date(iso)));
 }
 
 async function state() {
@@ -33,9 +33,10 @@ async function state() {
 
 async function reset(fields: { currentStreak?: number; lastStudyDate?: string | null; lastStudyTimeZone?: string | null; freezeCount?: number } = {}) {
   await L.db.streakDay.deleteMany({ where: { userId } });
+  await L.db.streakActivity.deleteMany({ where: { userId } });
   await L.db.user.update({
     where: { id: userId },
-    data: { currentStreak: 0, longestStreak: 0, lastStudyDate: null, lastStudyTimeZone: null, timeZone: null, freezeCount: 0, ...fields },
+    data: { currentStreak: 0, longestStreak: 0, lastStudyDate: null, lastStudyTimeZone: null, timeZone: null, freezeCount: 0, streakGraceDay: null, streakInterruptedDay: null, streakReturnDay: null, streakReturnTimeZone: null, streakReturnCount: 0, streakReturnRequired: 0, ...fields },
   });
 }
 
@@ -117,7 +118,7 @@ test("bestaande reeks van vóór de tijdzones blijft intact bij de overgang", { 
   assert.equal(s.lastStudyTimeZone, "Europe/Amsterdam");
 });
 
-test("echt gemiste dag: freeze of breuk zoals voorheen", { skip }, async () => {
+test("echt gemiste dag: eerst een reeksbevriezing, zonder extra reeksdag", { skip }, async () => {
   await reset({ currentStreak: 4, lastStudyDate: "2026-10-01", lastStudyTimeZone: "Europe/Amsterdam", freezeCount: 1 });
   const r = await study("2026-10-03T10:00:00Z", "Europe/Amsterdam"); // 2 okt. gemist
   assert.equal(r.freezeUsed, true);

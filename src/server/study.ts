@@ -140,7 +140,7 @@ async function loadRoom(code: string): Promise<Room | string> {
     // al beantwoord was, zodat niemand vast blijft zitten.
     if (!round.closedAt) {
       await prisma.studyRound.update({ where: { id: round.id }, data: { closedAt: new Date() } }).catch(() => {});
-      await awardRound(questions.length, round.startedAt, round.answers).catch(() => {});
+      await awardRound(questions.length, round.startedAt, round.answers, round.id).catch(() => {});
     }
     const results = scoreRound(questions.length, round.startedAt, round.answers);
     room.history.push(results);
@@ -227,10 +227,10 @@ function broadcast(room: Room) {
 
 // --- Rondes ----------------------------------------------------------------------
 
-async function awardRound(total: number, startedAt: Date, answers: StudyAnswerRow[]) {
+async function awardRound(total: number, startedAt: Date, answers: StudyAnswerRow[], roundId: string) {
   const results = scoreRound(total, startedAt, answers);
   for (const r of results) {
-    const outcome = await completeStudyRound(r.userId, r.correct, r.answered, total, r.rank === 1 && results.length > 1).catch(() => null);
+    const outcome = await completeStudyRound(r.userId, r.correct, r.answered, total, r.rank === 1 && results.length > 1, `study:${roundId}`).catch(() => null);
     if (outcome && outcome.newAchievements.length > 0) notifyNewAchievements(r.userId, outcome.newAchievements).catch(() => {});
   }
   return results;
@@ -254,7 +254,7 @@ async function closeRound(room: Room) {
     room.round = null;
     broadcast(room);
     // XP en reeks na het tonen van de uitslag: dat mag even duren.
-    await awardRound(round.questions.length, startedAt, answers).catch(() => {});
+    await awardRound(round.questions.length, startedAt, answers, round.id).catch(() => {});
     for (const r of results) io?.to(`user:${r.userId}`).emit("st:awarded", { code: room.code });
   } finally {
     room.closing = false;

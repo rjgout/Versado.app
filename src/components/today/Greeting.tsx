@@ -13,7 +13,7 @@ export default function Greeting({ data, language, showMascot = true }: { data: 
   const locale = getLanguage(language).intlLocale;
   const date = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long", timeZone: data.timeZone }).format(new Date());
   const { current, studiedToday } = data.streak;
-  const status = studiedToday
+  const status = data.streak.interrupted ? t("streakReturn.saved", { n: current }) : studiedToday
     ? t("today.streakDone")
     : current === 1
       ? t("today.streakKeepOne")

@@ -7,6 +7,7 @@ import { completeKidsStory } from "@/lib/streak";
 import { notifyNewAchievements } from "@/lib/notify";
 import { standardContentXp } from "@/lib/xpRules";
 import { apiError } from "@/lib/apiError";
+import { activitySubmissionKey } from "@/lib/activitySubmission";
 
 const schema = z.object({
   answers: z.array(
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ sto
   const scorePercent = total === 0 ? 0 : Math.round((correctCount / total) * 100);
   const xp = standardContentXp(correctCount, total);
 
-  const lessonResult = await completeKidsStory(user.id, storyId, scorePercent, xp, results.length, total);
+  const lessonResult = await completeKidsStory(user.id, storyId, scorePercent, xp, results.length, total, activitySubmissionKey(req.headers, `kids:${storyId}`, parsed.data.answers));
   notifyNewAchievements(user.id, lessonResult.newAchievements).catch(() => {});
 
   return NextResponse.json({ results, correctCount, total, ...lessonResult });

@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/db";
 import { userDayKey } from "@/lib/timeZone";
+import { settleStreakDays } from "@/lib/streakContinuation";
+import { continuationView, type StreakContinuationView } from "@/lib/learning/streakReturnRules";
 
-export type StreakDayState = "STUDIED" | "FROZEN" | "NONE" | "FUTURE";
+export type StreakDayState = "STUDIED" | "RETURNED" | "FROZEN" | "NONE" | "FUTURE";
 
 export interface StreakDayView {
   dayKey: string;
@@ -53,8 +55,8 @@ export async function getStreakMonth(userId: string, year: number, month: number
     const dk = `${year}-${pad(month)}-${pad(d)}`;
     const found = byDay.get(dk);
     let state: StreakDayState;
-    if (found === "STUDIED") {
-      state = "STUDIED";
+    if (found === "STUDIED" || found === "RETURNED") {
+      state = found;
       daysStudied++;
     } else if (found === "FROZEN") {
       state = "FROZEN";
@@ -71,6 +73,7 @@ export async function getStreakMonth(userId: string, year: number, month: number
 }
 
 export interface StreakOverview {
+  continuation: StreakContinuationView;
   currentStreak: number;
   longestStreak: number;
   freezeCount: number;
@@ -88,10 +91,8 @@ export function clampToStreakStartMonth(requested: YearMonth, firstMonth: YearMo
 }
 
 export async function getStreakOverview(userId: string, year?: number, month?: number): Promise<StreakOverview> {
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { id: userId },
-    select: { currentStreak: true, longestStreak: true, freezeCount: true, timeZone: true, createdAt: true },
-  });
+  const now = new Date();
+  const { user } = await prisma.$transaction((tx) => settleStreakDays(tx, userId, now));
 
   // Standaard de maand van vandaag, in de tijdzone van de gebruiker.
   const today = userDayKey(user);
@@ -103,6 +104,7 @@ export async function getStreakOverview(userId: string, year?: number, month?: n
   );
 
   return {
+    continuation: continuationView(user, now),
     currentStreak: user.currentStreak,
     longestStreak: user.longestStreak,
     freezeCount: user.freezeCount,

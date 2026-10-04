@@ -1,13 +1,15 @@
 import type { ChapterGuessLevel, XPReason, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import { addDays } from "@/lib/dates";
 import { userTimeZone } from "@/lib/timeZone";
 import { awardXp } from "@/lib/xp";
 import { checkAndAwardAchievements } from "@/lib/achievements";
 import { awardCompetitionXp } from "@/lib/competitionXp";
 import { XP_PER_CORRECT_LIGHT, applyRepeatDiscount } from "@/lib/xpRules";
 import { notifyFreezeReceived } from "@/lib/notify";
-import { hasStudiedToday, qualifiesForStreak, streakDayGap, type LearningActivity } from "@/lib/learning/streakRules";
+import { qualifiesForStreak, type LearningActivity } from "@/lib/learning/streakRules";
+import { continuationView } from "@/lib/learning/streakReturnRules";
+import { settleStreakDays } from "@/lib/streakContinuation";
+import { emitToUser } from "@/lib/realtime";
 
 const PASS_THRESHOLD = 60; // percentage nodig om een les (podcast, kinderen, introductie) als voltooid te tellen
 const STREAK_MILESTONE_FOR_FREEZE = 7; // elke 7-daagse streak levert een freeze op
@@ -28,124 +30,23 @@ export interface StudyResult {
   // vlammetje-viering alleen bij de EERSTE afronding per dag te tonen, niet
   // bij elke volgende les diezelfde dag.
   alreadyStudiedToday: boolean;
+  dayEarned?: boolean;
+  duplicate?: boolean;
 }
 
 type Tx = Prisma.TransactionClient;
 
-interface DailyStreakResult {
-  today: string;
-  /** Tijdzone waarin "today" is bepaald (wordt User.lastStudyTimeZone). */
-  timeZone: string;
-  alreadyStudiedToday: boolean;
-  currentStreak: number;
-  longestStreak: number;
-  streakBroken: boolean;
-  freezeUsed: boolean;
-  freezeCountBeforeMilestone: number;
-  freezesEarned: number;
+async function activityTransaction(userId: string, work: (tx: Tx) => Promise<StudyResult>): Promise<StudyResult> {
+  const result = await prisma.$transaction(work);
+  // Pas na commit opnieuw uitlezen, ook op een ander geopend apparaat.
+  emitToUser(userId, "streak_changed");
+  return result;
 }
 
-/**
- * De kern van "vandaag geldt als gestudeerd". Schrijft de AUTO_SPENT-
- * freezetransactie en de StreakDay-rijen (zie /streak) al weg indien van
- * toepassing, maar laat het definitieve user.update en de eventuele
- * EARNED-freezetransactie aan recordLearningActivity. Niet rechtstreeks
- * aanroepen: alleen via recordLearningActivity, die eerst de reeksregel
- * controleert.
- */
-async function applyDailyStreak(tx: Tx, userId: string, now: Date): Promise<DailyStreakResult> {
-  const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
-  // "Vandaag" en het aantal dagen sinds de laatste reeksdag volgens de
-  // tijdzoneregel in streakRules.ts: de servertijd (niet de klok van het
-  // toestel) in de tijdzone van de gebruiker, voorzichtig gerekend als die
-  // sinds de laatste reeksdag is veranderd.
-  const { today, gap } = streakDayGap(user, now);
-  const alreadyStudiedToday = gap !== null && gap <= 0;
-
-  let currentStreak = user.currentStreak;
-  let freezeUsed = false;
-  let streakBroken = false;
-  let freezeCount = user.freezeCount;
-  const frozenDayKeys: string[] = [];
-
-  if (alreadyStudiedToday) {
-    // al gestudeerd vandaag: streak blijft gelijk
-  } else if (!user.lastStudyDate) {
-    currentStreak = 1;
-  } else {
-    const missedDays = gap! - 1;
-    if (missedDays <= 0) {
-      // gap === 1: aansluitende dag, niets gemist
-      currentStreak += 1;
-    } else if (freezeCount >= missedDays) {
-      // Genoeg freezes om elke gemiste dag te overbruggen — de reeks loopt
-      // door, maar het getal telt (net als bij een gewone aansluitende dag)
-      // maar met 1 op, niet met het aantal gemiste dagen: freezes tellen
-      // bewust niet mee in het reeksgetal (zie ook de kalender op /streak,
-      // waar die dagen apart als FROZEN staan, niet als STUDIED).
-      for (let i = 1; i <= missedDays; i++) {
-        frozenDayKeys.push(addDays(user.lastStudyDate, i));
-      }
-      freezeCount -= missedDays;
-      freezeUsed = true;
-      currentStreak += 1;
-      await tx.freezeTransaction.create({
-        data: {
-          userId,
-          type: "AUTO_SPENT",
-          amount: -missedDays,
-          reason: `Streak beschermd op ${today} (${missedDays} dag${missedDays > 1 ? "en" : ""} gemist)`,
-        },
-      });
-    } else {
-      // Niet genoeg freezes om ALLE gemiste dagen te overbruggen: er blijft
-      // dan sowieso minstens één echte gemiste dag over, dus breekt de reeks.
-      // De studiedag van vandaag telt wel meteen mee: de nieuwe reeks begint
-      // op 1. Er worden ook geen freezes "voor niets" verbruikt.
-      streakBroken = currentStreak > 0;
-      currentStreak = 1;
-    }
-  }
-  const longestStreak = Math.max(user.longestStreak, currentStreak);
-
-  if (!alreadyStudiedToday) {
-    for (const fk of frozenDayKeys) {
-      await tx.streakDay.upsert({
-        where: { userId_dayKey: { userId, dayKey: fk } },
-        create: { userId, dayKey: fk, status: "FROZEN" },
-        update: { status: "FROZEN" },
-      });
-    }
-    await tx.streakDay.upsert({
-      where: { userId_dayKey: { userId, dayKey: today } },
-      create: { userId, dayKey: today, status: "STUDIED" },
-      update: { status: "STUDIED" },
-    });
-  }
-
-  let freezesEarned = 0;
-  const streakMilestoneHit =
-    currentStreak > 0 &&
-    currentStreak % STREAK_MILESTONE_FOR_FREEZE === 0 &&
-    user.currentStreak % STREAK_MILESTONE_FOR_FREEZE !== 0;
-  if (streakMilestoneHit && !alreadyStudiedToday) {
-    freezesEarned += 1;
-  }
-
-  return {
-    today,
-    timeZone: userTimeZone(user),
-    alreadyStudiedToday,
-    currentStreak,
-    longestStreak,
-    streakBroken,
-    freezeUsed,
-    freezeCountBeforeMilestone: freezeCount,
-    freezesEarned,
-  };
-}
 
 export interface StreakSnapshot {
+  dayEarned: boolean;
+  duplicate: boolean;
   currentStreak: number;
   longestStreak: number;
   streakBroken: boolean;
@@ -167,52 +68,66 @@ export interface StreakSnapshot {
 export async function recordLearningActivity(
   tx: Tx,
   userId: string,
-  activity: LearningActivity,
+  activity: LearningActivity & { key: string },
   /** Altijd de servertijd; alleen tests geven een ander moment mee. */
   now: Date = new Date()
 ): Promise<StreakSnapshot> {
-  if (!qualifiesForStreak(activity)) {
-    const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
-    return {
-      currentStreak: user.currentStreak,
-      longestStreak: user.longestStreak,
-      streakBroken: false,
-      freezeUsed: false,
-      freezesEarned: 0,
-      freezeCount: user.freezeCount,
-      alreadyStudiedToday: hasStudiedToday(user, now),
-      counted: false,
-    };
+  const { user, freezesUsed } = await settleStreakDays(tx, userId, now);
+  const view = continuationView(user, now);
+  const snapshot: StreakSnapshot = {
+    currentStreak: user.currentStreak, longestStreak: user.longestStreak,
+    streakBroken: false, freezeUsed: freezesUsed > 0, freezesEarned: 0,
+    freezeCount: user.freezeCount, alreadyStudiedToday: view.studiedToday,
+    counted: false, dayEarned: false, duplicate: false,
+  };
+
+  // De stabiele sleutel hoort bij de echte sessie/ronde, niet bij de request.
+  // Hierdoor tellen retries ook op een latere dag niet opnieuw.
+  const claimed = await tx.streakActivity.createMany({
+    data: [{ userId, key: activity.key }], skipDuplicates: true,
+  });
+  if (!claimed.count) return { ...snapshot, duplicate: true };
+  if (!qualifiesForStreak(activity)) return snapshot;
+
+  if (user.streakInterruptedDay) {
+    const completed = view.completed + 1;
+    if (completed < view.required) {
+      await tx.user.update({ where: { id: userId }, data: {
+        streakReturnDay: view.day, streakReturnTimeZone: userTimeZone(user),
+        streakReturnCount: completed, streakReturnRequired: view.required,
+        streakReturnSeenAt: now,
+      } });
+      return { ...snapshot, counted: true };
+    }
+  } else if (view.studiedToday) {
+    return { ...snapshot, counted: true };
   }
 
-  const daily = await applyDailyStreak(tx, userId, now);
-  const freezeCount = daily.freezeCountBeforeMilestone + daily.freezesEarned;
-  await tx.user.update({
-    where: { id: userId },
-    data: {
-      currentStreak: daily.currentStreak,
-      longestStreak: daily.longestStreak,
-      // Telde vandaag al (ook na een reis naar het westen, waar de datum
-      // terugspringt), dan blijft de laatste reeksdag zoals hij was: nooit
-      // terug in de tijd.
-      ...(daily.alreadyStudiedToday ? {} : { lastStudyDate: daily.today, lastStudyTimeZone: daily.timeZone }),
-      freezeCount,
-    },
+  const currentStreak = user.currentStreak + 1;
+  const longestStreak = Math.max(user.longestStreak, currentStreak);
+  const freezesEarned = currentStreak % STREAK_MILESTONE_FOR_FREEZE === 0 ? 1 : 0;
+  const status = user.streakInterruptedDay ? "RETURNED" : "STUDIED";
+  // Een terugkeerdag is één nieuwe dag. De gemiste dagen worden nooit gevuld.
+  await tx.streakDay.upsert({
+    where: { userId_dayKey: { userId, dayKey: view.day } },
+    create: { userId, dayKey: view.day, status },
+    update: { status },
   });
-  if (daily.freezesEarned > 0) {
+  await tx.user.update({ where: { id: userId }, data: {
+    currentStreak, longestStreak, lastStudyDate: view.day,
+    lastStudyTimeZone: userTimeZone(user), streakGraceDay: null,
+    streakInterruptedDay: null, streakReturnDay: null, streakReturnTimeZone: null,
+    streakReturnCount: 0, streakReturnRequired: 0, streakReturnSeenAt: null, streakReminderDay: 0,
+    freezeCount: { increment: freezesEarned },
+  } });
+  if (freezesEarned) {
     await tx.freezeTransaction.create({
-      data: { userId, type: "EARNED", amount: daily.freezesEarned, reason: "Mijlpaal bereikt" },
+      data: { userId, type: "EARNED", amount: freezesEarned, reason: "Mijlpaal bereikt" },
     });
   }
   return {
-    currentStreak: daily.currentStreak,
-    longestStreak: daily.longestStreak,
-    streakBroken: daily.streakBroken,
-    freezeUsed: daily.freezeUsed,
-    freezesEarned: daily.freezesEarned,
-    freezeCount,
-    alreadyStudiedToday: daily.alreadyStudiedToday,
-    counted: true,
+    ...snapshot, currentStreak, longestStreak, counted: true, dayEarned: true,
+    freezesEarned, freezeCount: user.freezeCount + freezesEarned,
   };
 }
 
@@ -238,12 +153,12 @@ interface ActivityXp {
 async function finishActivity(
   tx: Tx,
   userId: string,
-  activity: LearningActivity,
+  activity: LearningActivity & { key: string },
   xp: ActivityXp | null,
   result: { chapterCompleted: boolean; scorePercent: number }
 ): Promise<StudyResult> {
   const streak = await recordLearningActivity(tx, userId, activity);
-  const amount = xp?.amount ?? 0;
+  const amount = streak.duplicate ? 0 : xp?.amount ?? 0;
   if (xp && amount > 0) {
     await awardXp(tx, userId, amount, xp.reason, xp.metadata);
     await awardCompetitionXp(tx, userId, xp.competitionKey, amount, xp.competition);
@@ -261,6 +176,8 @@ async function finishActivity(
     freezeCount: streak.freezeCount,
     newAchievements,
     alreadyStudiedToday: streak.alreadyStudiedToday,
+    dayEarned: streak.dayEarned,
+    duplicate: streak.duplicate,
   };
 }
 
@@ -279,14 +196,15 @@ export async function completeLiveQuiz(
   chapterId: string,
   scorePercent: number,
   xp: number,
-  won: boolean
+  won: boolean,
+  activityKey: string
 ): Promise<StudyResult> {
   const reason: XPReason = won ? "LIVE_GAME_WON" : "LIVE_GAME_PLAYED";
-  return prisma.$transaction((tx) =>
+  return activityTransaction(userId, (tx) =>
     finishActivity(
       tx,
       userId,
-      { kind: "GAME", answered: 1, required: 1 },
+      { kind: "GAME", answered: 1, required: 1, key: activityKey },
       { amount: xp, reason, metadata: { chapterId, scorePercent }, competitionKey: "LESSON", competition: { won, metadata: { chapterId, scorePercent, xpReason: reason } } },
       { chapterCompleted: false, scorePercent }
     )
@@ -298,13 +216,13 @@ export async function completeLiveQuiz(
  * levert de lichte XP per goed antwoord op en raakt geen voortgang van
  * inhoud.
  */
-export async function completeQuickPractice(userId: string, correctCount: number, total: number): Promise<StudyResult> {
+export async function completeQuickPractice(userId: string, correctCount: number, total: number, activityKey: string): Promise<StudyResult> {
   const xp = correctCount * XP_PER_CORRECT_LIGHT;
-  return prisma.$transaction((tx) =>
+  return activityTransaction(userId, (tx) =>
     finishActivity(
       tx,
       userId,
-      { kind: "PRACTICE", answered: total, required: 1 },
+      { kind: "PRACTICE", answered: total, required: 1, key: activityKey },
       { amount: xp, reason: "QUICK_PRACTICE", metadata: { correctCount, total }, competitionKey: "QUICK_PRACTICE", competition: { metadata: { correctCount, total } } },
       { chapterCompleted: false, scorePercent: percent(correctCount, total) }
     )
@@ -318,13 +236,13 @@ export async function completeQuickPractice(userId: string, correctCount: number
  * basisbeloning van de inhoud niet: de stap is door de host gekozen. De
  * competitie-XP heeft een eigen dagelijkse limiet.
  */
-export async function completeStudyRound(userId: string, correctCount: number, answered: number, total: number, won: boolean): Promise<StudyResult> {
+export async function completeStudyRound(userId: string, correctCount: number, answered: number, total: number, won: boolean, activityKey: string): Promise<StudyResult> {
   const xp = correctCount * XP_PER_CORRECT_LIGHT;
-  return prisma.$transaction((tx) =>
+  return activityTransaction(userId, (tx) =>
     finishActivity(
       tx,
       userId,
-      { kind: "GAME", answered, required: 1 },
+      { kind: "GAME", answered, required: 1, key: activityKey },
       { amount: xp, reason: "STUDY_TOGETHER", metadata: { correctCount, total, won }, competitionKey: "STUDY_TOGETHER", competition: { won, metadata: { correctCount, total } } },
       { chapterCompleted: false, scorePercent: percent(correctCount, total) }
     )
@@ -336,14 +254,15 @@ export async function completeChapterGuess(
   userId: string,
   correctCount: number,
   total: number,
-  level?: ChapterGuessLevel
+  level: ChapterGuessLevel | undefined,
+  activityKey: string
 ): Promise<StudyResult> {
   const xp = correctCount * XP_PER_CORRECT_LIGHT;
-  return prisma.$transaction((tx) =>
+  return activityTransaction(userId, (tx) =>
     finishActivity(
       tx,
       userId,
-      { kind: "GAME", answered: total, required: 1 },
+      { kind: "GAME", answered: total, required: 1, key: activityKey },
       { amount: xp, reason: "CHAPTER_GUESS_COMPLETED", metadata: { correctCount, total }, competitionKey: "CHAPTER_GUESS", competition: { level, metadata: { correctCount, total, level } } },
       { chapterCompleted: false, scorePercent: percent(correctCount, total) }
     )
@@ -354,12 +273,12 @@ export async function completeChapterGuess(
  * Een potje van het dagelijkse woordspel (src/lib/wordGame.ts): winst of
  * verlies telt mee voor de reeks; de XP is vooraf berekend (bij verlies 0).
  */
-export async function completeWordGame(userId: string, xpEarned: number): Promise<StudyResult> {
-  return prisma.$transaction((tx) =>
+export async function completeWordGame(userId: string, xpEarned: number, activityKey: string): Promise<StudyResult> {
+  return activityTransaction(userId, (tx) =>
     finishActivity(
       tx,
       userId,
-      { kind: "GAME", answered: 1, required: 1 },
+      { kind: "GAME", answered: 1, required: 1, key: activityKey },
       { amount: xpEarned, reason: "WORD_GAME_WON", metadata: { xpEarned }, competitionKey: "WORD_GAME" },
       { chapterCompleted: false, scorePercent: xpEarned > 0 ? 100 : 0 }
     )
@@ -373,13 +292,14 @@ export async function completeWordGame(userId: string, xpEarned: number): Promis
 export async function completeAlleskennerSolo(
   userId: string,
   xpEarned: number,
-  metadata: Record<string, unknown>
+  metadata: Record<string, unknown>,
+  activityKey: string
 ): Promise<StudyResult> {
-  return prisma.$transaction((tx) =>
+  return activityTransaction(userId, (tx) =>
     finishActivity(
       tx,
       userId,
-      { kind: "GAME", answered: 1, required: 1 },
+      { kind: "GAME", answered: 1, required: 1, key: activityKey },
       { amount: xpEarned, reason: "ALLESKENNER_SOLO", metadata, competitionKey: "ALLESKENNER_SOLO" },
       { chapterCompleted: false, scorePercent: 100 }
     )
@@ -403,20 +323,24 @@ async function completeCourseLesson(
   existing: LessonProgressRow | null,
   save: (data: { nowCompleted: boolean; wasAlreadyCompleted: boolean; xpToAward: number }) => Promise<void>,
   attempt: { scorePercent: number; xp: number; answered: number; total: number },
-  xp: Omit<ActivityXp, "amount">
+  xp: Omit<ActivityXp, "amount">,
+  activityKey: string
 ): Promise<StudyResult> {
   const wasAlreadyCompleted = existing?.completed ?? false;
   const nowCompleted = wasAlreadyCompleted || attempt.scorePercent >= PASS_THRESHOLD;
   const alreadyPerfect = (existing?.bestScore ?? 0) === 100;
   const xpToAward = alreadyPerfect ? applyRepeatDiscount(attempt.xp) : attempt.xp;
-  await save({ nowCompleted, wasAlreadyCompleted, xpToAward });
-  return finishActivity(
+  const result = await finishActivity(
     tx,
     userId,
-    { kind: "COURSE_LESSON", answered: attempt.answered, required: attempt.total },
+    { kind: "COURSE_LESSON", answered: attempt.answered, required: attempt.total, key: activityKey },
     { ...xp, amount: xpToAward },
     { chapterCompleted: nowCompleted, scorePercent: attempt.scorePercent }
   );
+  if (!result.duplicate) await save({ nowCompleted, wasAlreadyCompleted, xpToAward });
+  // Cursusprestaties hebben ook de zojuist opgeslagen voortgang nodig.
+  if (!result.duplicate) result.newAchievements.push(...await checkAndAwardAchievements(tx, userId));
+  return result;
 }
 
 function progressData(userId: string, scorePercent: number, existing: LessonProgressRow | null, d: { nowCompleted: boolean; wasAlreadyCompleted: boolean; xpToAward: number }) {
@@ -439,9 +363,11 @@ export async function completePodcastLesson(
   scorePercent: number,
   xpForThisAttempt: number,
   answered: number,
-  total: number
+  total: number,
+  activityKey: string
 ): Promise<StudyResult> {
-  return prisma.$transaction(async (tx) => {
+  return activityTransaction(userId, async (tx) => {
+    await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
     const where = { userId_episodeId_mode: { userId, episodeId, mode } };
     const existing = await tx.podcastEpisodeProgress.findUnique({ where });
     return completeCourseLesson(
@@ -453,7 +379,8 @@ export async function completePodcastLesson(
         await tx.podcastEpisodeProgress.upsert({ where, create: { ...data.create, episodeId, mode }, update: data.update });
       },
       { scorePercent, xp: xpForThisAttempt, answered, total },
-      { reason: "PODCAST_LESSON_COMPLETED", metadata: { episodeId, mode, scorePercent }, competitionKey: "PODCAST_LESSON", competition: { metadata: { episodeId, mode, scorePercent } } }
+      { reason: "PODCAST_LESSON_COMPLETED", metadata: { episodeId, mode, scorePercent }, competitionKey: "PODCAST_LESSON", competition: { metadata: { episodeId, mode, scorePercent } } },
+      activityKey
     );
   });
 }
@@ -465,9 +392,11 @@ export async function completeKidsStory(
   scorePercent: number,
   xpForThisAttempt: number,
   answered: number,
-  total: number
+  total: number,
+  activityKey: string
 ): Promise<StudyResult> {
-  return prisma.$transaction(async (tx) => {
+  return activityTransaction(userId, async (tx) => {
+    await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
     const where = { userId_storyId: { userId, storyId } };
     const existing = await tx.kidsStoryProgress.findUnique({ where });
     return completeCourseLesson(
@@ -479,7 +408,8 @@ export async function completeKidsStory(
         await tx.kidsStoryProgress.upsert({ where, create: { ...data.create, storyId }, update: data.update });
       },
       { scorePercent, xp: xpForThisAttempt, answered, total },
-      { reason: "KIDS_STORY_COMPLETED", metadata: { storyId, scorePercent }, competitionKey: "KIDS_STORY", competition: { metadata: { storyId, scorePercent } } }
+      { reason: "KIDS_STORY_COMPLETED", metadata: { storyId, scorePercent }, competitionKey: "KIDS_STORY", competition: { metadata: { storyId, scorePercent } } },
+      activityKey
     );
   });
 }
@@ -491,9 +421,11 @@ export async function completeIntroLesson(
   scorePercent: number,
   xpForThisAttempt: number,
   answered: number,
-  total: number
+  total: number,
+  activityKey: string
 ): Promise<StudyResult> {
-  return prisma.$transaction(async (tx) => {
+  return activityTransaction(userId, async (tx) => {
+    await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
     const where = { userId_lessonId: { userId, lessonId } };
     const existing = await tx.introLessonProgress.findUnique({ where });
     return completeCourseLesson(
@@ -505,7 +437,8 @@ export async function completeIntroLesson(
         await tx.introLessonProgress.upsert({ where, create: { ...data.create, lessonId }, update: data.update });
       },
       { scorePercent, xp: xpForThisAttempt, answered, total },
-      { reason: "INTRO_LESSON_COMPLETED", metadata: { lessonId, scorePercent }, competitionKey: "INTRO_LESSON", competition: { metadata: { lessonId, scorePercent } } }
+      { reason: "INTRO_LESSON_COMPLETED", metadata: { lessonId, scorePercent }, competitionKey: "INTRO_LESSON", competition: { metadata: { lessonId, scorePercent } } },
+      activityKey
     );
   });
 }

@@ -3,37 +3,13 @@
 import { useEffect, useState } from "react";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { getLanguage } from "@/lib/languages";
-import { rich } from "@/lib/i18n/rich";
 import Link from "next/link";
 import SystemIcon from "@/components/versado/SystemIcon";
+import { StreakContinuationCard, useStreakContinuation } from "@/components/StreakContinuation";
+import StreakDayIndicator from "@/components/versado/StreakDayIndicator";
+import type { StreakOverview, StreakDayView } from "@/lib/streakCalendar";
 
 
-type StreakDayState = "STUDIED" | "FROZEN" | "NONE" | "FUTURE";
-
-interface StreakDayView {
-  dayKey: string;
-  day: number;
-  weekday: number; // 0 = maandag ... 6 = zondag
-  state: StreakDayState;
-}
-
-interface StreakMonthView {
-  /** Vandaag in de tijdzone van de gebruiker (bepaald door de server). */
-  today: string;
-  year: number;
-  month: number;
-  days: StreakDayView[];
-  daysStudied: number;
-  freezesUsed: number;
-}
-
-interface StreakOverview {
-  currentStreak: number;
-  longestStreak: number;
-  freezeCount: number;
-  firstMonth: { year: number; month: number };
-  month: StreakMonthView;
-}
 
 
 function monthLabel(year: number, month: number, locale: string): string {
@@ -43,11 +19,12 @@ function monthLabel(year: number, month: number, locale: string): string {
 }
 
 function isActive(day: StreakDayView | null): boolean {
-  return !!day && (day.state === "STUDIED" || day.state === "FROZEN");
+  return !!day && (day.state === "STUDIED" || day.state === "FROZEN" || day.state === "RETURNED");
 }
 
 export default function StreakClient() {
   const t = useT();
+  const continuation = useStreakContinuation();
   const intlLocale = getLanguage(useUiLanguage()).intlLocale;
   const [overview, setOverview] = useState<StreakOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +45,7 @@ export default function StreakClient() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [continuation?.day, continuation?.status, continuation?.currentStreak]);
 
   if (error) {
     return (
@@ -121,6 +98,12 @@ export default function StreakClient() {
   }
 
   const today = month.today;
+  // De provider krijgt een voltooide terugkeer direct via het reeks-event.
+  // Gebruik die actuele waarde ook in de hero, terwijl de kalender-API op de
+  // achtergrond opnieuw laadt, zodat 7/7 nooit kort naast de oude stand staat.
+  const displayedCurrentStreak = continuation?.currentStreak ?? overview.currentStreak;
+  const displayedLongestStreak = Math.max(overview.longestStreak, displayedCurrentStreak);
+  const displayedStatus = continuation?.status ?? overview.continuation.status;
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col gap-4 sm:gap-5">
@@ -128,21 +111,23 @@ export default function StreakClient() {
 
       <div className="card bg-gradient-to-br from-orange-400 to-red-500 text-white !border-orange-300/40 dark:!border-orange-200/20 !shadow-md dark:!shadow-none flex flex-col items-center gap-1 !py-8">
         <SystemIcon kind="streak" className="h-10 w-10 text-orange-100" fill="currentColor" aria-hidden />
-        <div className="text-5xl font-extrabold leading-none">{overview.currentStreak}</div>
-        <div className="text-orange-50 font-bold text-sm mt-1">{t("streakPage.daysInARow")}</div>
-        {overview.longestStreak > 0 && (
+        <div className="text-5xl font-extrabold leading-none">{displayedCurrentStreak}</div>
+        <div className="text-orange-50 font-bold text-sm mt-1">{t("streakReturn.totalDays")}</div>
+        {displayedStatus === "INTERRUPTED" && <p className="mt-1 text-sm text-white">{t("streakReturn.interrupted")}</p>}
+        {displayedLongestStreak > 0 && (
           <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-black/15 px-3.5 py-1.5 text-xs font-bold text-white">
-            {t("streakPage.longest", { n: overview.longestStreak })}
+            {t("streakPage.longest", { n: displayedLongestStreak })}
           </span>
         )}
       </div>
 
+      <StreakContinuationCard />
       <div className="card !py-3 !bg-ice-50 dark:!bg-slate-800 !border-ice-400/30 dark:!border-slate-700 flex items-center gap-3">
         <span className="text-2xl shrink-0" aria-hidden>
           <SystemIcon kind="freeze" className="h-7 w-7 text-ice-500" aria-hidden />
         </span>
         <p className="text-sm text-ice-700 dark:text-ice-400">
-          {rich(t("streakPage.explain"), { streak: <span className="font-bold text-orange-500">{t("streakPage.streakWord")}</span> })}
+          {t("streakReturn.explainFreeze")}
         </p>
       </div>
 
@@ -199,10 +184,11 @@ export default function StreakClient() {
                   const prevActive = j > 0 ? isActive(w[j - 1]) : false;
                   const nextActive = j < 6 ? isActive(w[j + 1]) : false;
                   const isToday = d.dayKey === today;
+                  const label = `${d.dayKey}: ${t(d.state === "STUDIED" ? "streakReturn.studiedDay" : d.state === "RETURNED" ? "streakReturn.returnedDay" : d.state === "FROZEN" ? "streakReturn.frozenDay" : d.state === "FUTURE" ? "streakReturn.futureDay" : "streakReturn.missedDay")}`;
 
                   if (active) {
                     return (
-                      <div key={j} className="flex-1 relative">
+                      <div key={j} className="flex-1 relative" aria-label={label} title={label}>
                         <div
                           className={`absolute inset-y-0.5 flex items-center justify-center bg-gradient-to-b from-orange-400 to-red-500 text-white font-extrabold text-sm ${
                             prevActive ? "left-0" : "left-1 rounded-l-full"
@@ -210,20 +196,22 @@ export default function StreakClient() {
                             isToday ? "ring-2 ring-offset-1 ring-orange-300 dark:ring-offset-slate-800" : ""
                           }`}
                         >
-                          {d.state === "FROZEN" ? <SystemIcon kind="freeze" className="h-4 w-4" aria-hidden /> : d.day}
+                          <span aria-hidden className="flex items-center gap-0.5">
+                            {(d.state === "STUDIED" || d.state === "FROZEN" || d.state === "RETURNED") && <StreakDayIndicator state={d.state} />}{d.day}
+                          </span>
                         </div>
                       </div>
                     );
                   }
 
                   return (
-                    <div key={j} className="flex-1 flex items-center justify-center">
+                    <div key={j} className="flex-1 flex items-center justify-center" aria-label={label} title={label}>
                       <div
                         className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold ${
                           isToday
                             ? "border-2 border-orange-400 text-orange-500"
                             : d.state === "FUTURE"
-                              ? "text-slate-300 dark:text-slate-500"
+                              ? "text-slate-500 dark:text-slate-400"
                               : "text-slate-500 dark:text-slate-400"
                         }`}
                       >
@@ -235,6 +223,11 @@ export default function StreakClient() {
               </div>
             ))}
           </div>
+        </div>
+        <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-vs-fg-2">
+          {(["STUDIED", "FROZEN", "RETURNED"] as const).map((state) => <span key={state} className="inline-flex items-center gap-1">
+            <StreakDayIndicator state={state} />{t(state === "STUDIED" ? "streakReturn.studiedDay" : state === "FROZEN" ? "streakReturn.frozenDay" : "streakReturn.returnedDay")}
+          </span>)}
         </div>
       </div>
     </div>

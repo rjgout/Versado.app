@@ -1,6 +1,7 @@
 "use client";
 
 import SystemIcon from "@/components/versado/SystemIcon";
+import { StreakContinuationCard } from "@/components/StreakContinuation";
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
@@ -53,6 +54,7 @@ interface Result {
   scorePercent: number;
   currentStreak: number;
   alreadyStudiedToday: boolean;
+  dayEarned?: boolean;
   newAchievements: string[];
   nextLessonId: string | null;
 }
@@ -217,7 +219,8 @@ export default function ReadingLessonFlow({
           </p>
         )}
 
-        {!result.alreadyStudiedToday && (
+        <StreakContinuationCard />
+        {result.dayEarned && (
           <div className="mt-2">
             <div className="flex items-center gap-1 text-xl font-extrabold text-orange-500"><SystemIcon kind="streak" className="h-5 w-5" fill="currentColor" aria-hidden />{result.currentStreak}</div>
             <div className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase">{t("lesson.streak")}</div>

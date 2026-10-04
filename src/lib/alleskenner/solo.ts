@@ -191,7 +191,7 @@ export async function recordSoloRun(runId: string, userId: string, seconds: numb
 
   const run = await prisma.alleskennerSoloRun.findUniqueOrThrow({ where: { id: runId } });
   const xpEarned = soloXp(run.mode, rounded);
-  await completeAlleskennerSolo(userId, xpEarned, { mode: run.mode, seconds: rounded });
+  await completeAlleskennerSolo(userId, xpEarned, { mode: run.mode, seconds: rounded }, `solo:${runId}`);
   await prisma.alleskennerSoloRun.update({ where: { id: runId }, data: { xpEarned } });
 
   let rank: number | null = null;

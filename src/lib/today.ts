@@ -2,7 +2,7 @@ import type { User } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { dayKey } from "@/lib/dates";
 import { userTimeZone, zonedParts } from "@/lib/timeZone";
-import { hasStudiedToday } from "@/lib/learning/streakRules";
+import { getStreakContinuation } from "@/lib/streakContinuation";
 import { getTextOfTheDay, type DailyText } from "@/lib/dailyText";
 import { wordGamePeriod } from "@/lib/wordGame";
 import { getActiveGameStatus, type ActivityItem } from "@/lib/activeGames";
@@ -88,7 +88,7 @@ export interface TodayData {
   /** IANA-tijdzone van de gebruiker, voor datum en begroeting. */
   timeZone: string;
   partOfDay: "morning" | "afternoon" | "evening" | "night";
-  streak: { current: number; studiedToday: boolean };
+  streak: { current: number; studiedToday: boolean; interrupted?: boolean };
   actions: OpenAction[];
   continueItems: ContinueItem[];
   dailyText: DailyText | null;
@@ -169,6 +169,7 @@ function openActions(status: Awaited<ReturnType<typeof getActiveGameStatus>>, fr
 }
 
 export async function getTodayData(user: User): Promise<TodayData> {
+  const continuation = await getStreakContinuation(user.id);
   const t = getT(user.uiLanguage);
   // De dagelijkse Alleskenner is voor iedereen dezelfde, met één vaste
   // daggrens (UTC); de persoonlijke dag (reeks, begroeting) volgt hieronder
@@ -362,7 +363,7 @@ export async function getTodayData(user: User): Promise<TodayData> {
     firstName: user.handle,
     timeZone,
     partOfDay: partOfDay(timeZone),
-    streak: { current: user.currentStreak, studiedToday: hasStudiedToday(user) },
+    streak: { current: continuation.currentStreak, studiedToday: continuation.studiedToday, interrupted: continuation.status === "INTERRUPTED" },
     actions: openActions(gameStatus, friendRequests),
     continueItems,
     dailyText,

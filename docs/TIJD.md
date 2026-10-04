@@ -90,6 +90,15 @@ het kleinste:
 Een reeksdag ontstaat alleen door een activiteit die daarvoor telt
 (`qualifiesForStreak`), nooit door alleen van tijdzone te wisselen.
 
+Een onderbroken persoonlijke reeks blijft bewaard. De eerste onbevroren
+gemiste dag bepaalt de afwezigheidsduur voor de terugkeeropdracht. Hiervoor
+worden dezelfde lokale dagsleutels en de bestaande tweezoneregel gebruikt.
+Een onvoltooide poging bewaart haar dag én tijdzone: zodra de huidige dag
+of de dag in die pogingtijdzone niet meer overeenkomt, begint de poging op
+0 met een opnieuw berekende eis. Reizen verlengt een poging dus niet over
+middernacht. Succes schrijft uitsluitend de echte terugkeerdag, nooit de
+gemiste dagen. Zie `docs/LEERVOORTGANG.md` voor opslag, uitrol en meldingen.
+
 ## Bestaande gegevens
 
 Vóór de tijdzones was elke reeksdag een UTC-dag (`dayKey()` in

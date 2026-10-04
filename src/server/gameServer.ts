@@ -389,7 +389,7 @@ async function finishGame(room: RoomState) {
       // telt als vandaag gestudeerd, net als bij CHAPTER_GUESS hieronder.
       // completeLiveQuiz/awardXp behandelen xp = 0 zelf al als no-op voor de
       // XP-boekhouding.
-      await completeLiveQuiz(p.userId, room.chapterId!, percent, xp, won).catch(() => {});
+      await completeLiveQuiz(p.userId, room.chapterId!, percent, xp, won, `live:${room.id}`).catch(() => {});
     }
   } else if (room.mode === "CHAPTER_GUESS") {
     const total = room.cgQuestions.length;
@@ -397,7 +397,7 @@ async function finishGame(room: RoomState) {
       await prisma.liveGamePlayer
         .update({ where: { gameId_userId: { gameId: room.id, userId: p.userId } }, data: { score: p.score } })
         .catch(() => {});
-      await completeChapterGuess(p.userId, p.correctCount, total, room.level ?? undefined).catch(() => {});
+      await completeChapterGuess(p.userId, p.correctCount, total, room.level ?? undefined, `live:${room.id}`).catch(() => {});
     }
   } else {
     // FAMILY_GAME: bewust GEEN XP/streak — dit spel moet op zichzelf leuk
@@ -685,6 +685,10 @@ export function initGameServer(httpServer: HttpServer) {
           where: { id: user.id },
           data: { onlineSocketCount: { increment: 1 }, lastSeenAt: new Date() },
           select: { onlineSocketCount: true },
+        });
+        await prisma.user.updateMany({
+          where: { id: user.id, streakInterruptedDay: { not: null }, streakReturnSeenAt: null },
+          data: { streakReturnSeenAt: new Date() },
         });
         return { previousSeenAt: before?.lastSeenAt ?? null, firstSocket: updated.onlineSocketCount === 1 };
       })

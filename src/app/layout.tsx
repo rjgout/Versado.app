@@ -1,4 +1,5 @@
 import FreezeGiftPopup from "@/components/FreezeGiftPopup";
+import { StreakContinuationProvider } from "@/components/StreakContinuation";
 import { ConfirmProvider } from "@/components/ConfirmProvider";
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
@@ -157,6 +158,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <I18nProvider language={uiLanguage} messages={messagesFor(uiLanguage)}>
         <CompanionProvider character={companionToMascot(user?.companion)}>
+        <StreakContinuationProvider userId={user?.id}>
         <ConfirmProvider>
         <PodcastPlayerProvider>
         <ReadAloudPlayerProvider>
@@ -240,6 +242,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </ReadAloudPlayerProvider>
         </PodcastPlayerProvider>
         </ConfirmProvider>
+        </StreakContinuationProvider>
         </CompanionProvider>
         </I18nProvider>
       </body>

@@ -4,6 +4,13 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Je persoonlijke reeks blijft voortaan bewaard na een onderbreking.
+  Reeksbevriezingen worden eerst automatisch gebruikt; daarna kun je op je
+  eigen moment verdergaan met 3–12 afgeronde leeractiviteiten op één dag.
+  Vera legt dit uit, de voortgang blijft zichtbaar en de kalender laat
+  eerlijk zien welke dagen actief, bevroren, gemist of voortgezet zijn.
+  Vrijblijvende terugkeerherinneringen zijn afzonderlijk instelbaar.
+
 - Beveiliging: de onderliggende software is bijgewerkt, waaronder een
   kritiek lek in het webframework. Voor gebruikers verandert er niets.
 - Leren en Spelen hebben dezelfde kaarten: tik op de afbeelding of titel om

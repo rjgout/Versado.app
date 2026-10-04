@@ -77,6 +77,9 @@ test("dag van één persoon: behouden, nog bezig of gemist (eigen tijdzone)", ()
   // Lopende reeks met een oudere laatste dag: wachten op de reeksafsluiting (bevriezing).
   const rolling = { ...ams, lastStudyDate: "2031-05-05", lastStudyTimeZone: "Europe/Amsterdam", currentStreak: 4 };
   assert.equal(memberDayOutcome(rolling, "2031-05-06", at("2031-05-06T23:00:00Z")), "pending");
+  // De bewaarde teller van een al onderbroken persoonlijke reeks mag de
+  // gemiste sociale dag niet eindeloos in behandeling houden.
+  assert.equal(memberDayOutcome({ ...rolling, streakInterruptedDay: "2031-05-06" }, "2031-05-06", at("2031-05-06T23:00:00Z")), "missed");
   // Maar nooit langer dan tot de dag overal voorbij is.
   assert.equal(memberDayOutcome(rolling, "2031-05-06", at("2031-05-07T12:15:00Z")), "missed");
   // Tokio is eerder klaar dan Nederland, Los Angeles later.

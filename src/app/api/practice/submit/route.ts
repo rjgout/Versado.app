@@ -6,6 +6,7 @@ import { isExerciseCorrect } from "@/lib/exerciseGen";
 import { completeQuickPractice } from "@/lib/streak";
 import { notifyNewAchievements } from "@/lib/notify";
 import { apiError } from "@/lib/apiError";
+import { activitySubmissionKey } from "@/lib/activitySubmission";
 
 const schema = z.object({
   answers: z.array(
@@ -33,6 +34,9 @@ export async function POST(req: NextRequest) {
 
   const exerciseIds = parsed.data.answers.map((a) => a.exerciseId);
   const exercises = await prisma.exercise.findMany({ where: { id: { in: exerciseIds }, status: "APPROVED" } });
+  if (new Set(exerciseIds).size !== exerciseIds.length || exercises.length !== exerciseIds.length) {
+    return await apiError("apiErrors.invalidInput", 400);
+  }
   const exerciseById = new Map(exercises.map((e) => [e.id, e]));
 
   let correctCount = 0;
@@ -50,7 +54,7 @@ export async function POST(req: NextRequest) {
   }
 
   const total = parsed.data.answers.length;
-  const result = await completeQuickPractice(user.id, correctCount, total);
+  const result = await completeQuickPractice(user.id, correctCount, total, activitySubmissionKey(req.headers, "practice", parsed.data.answers));
   notifyNewAchievements(user.id, result.newAchievements).catch(() => {});
 
   return NextResponse.json({ correctCount, total, ...result });

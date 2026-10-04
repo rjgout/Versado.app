@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/session";
 import { isEmailConfigured } from "@/lib/email";
 import { getTodayData, isTodayComplete } from "@/lib/today";
 import Greeting from "@/components/today/Greeting";
+import { StreakContinuationCard } from "@/components/StreakContinuation";
 import OpenActions from "@/components/today/OpenActions";
 import ContinueSection from "@/components/today/ContinueSection";
 import TodaySection from "@/components/today/TodaySection";
@@ -43,6 +44,7 @@ export default async function DashboardPage() {
   return (
     <div className="vs-motion mx-auto flex max-w-5xl flex-col gap-8 sm:gap-10">
       <Greeting data={data} language={language} showMascot={!showRestState} />
+      <StreakContinuationCard />
       <div className="grid grid-cols-1 gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-x-8 lg:gap-y-10">
         {/* Vaste plek: direct boven "Wacht op jou". Rendert zelf niets (dus
             ook geen lege rij of marge) als hij niet zichtbaar is. */}

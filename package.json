@@ -26,6 +26,7 @@
     "test:cards": "tsx --test tests/cards.test.ts",
     "test:conference": "tsx --test tests/generalConference.test.ts",
     "test:streak-calendar": "tsx --test tests/streak-calendar.test.ts",
+    "test:streak-return": "tsx --test tests/streak-return.test.ts tests/streak-return.integration.test.ts",
     "test:social": "tsx --test tests/social-rules.test.ts tests/social.integration.test.ts tests/social-links.integration.test.ts",
     "test:time": "tsx --test tests/timeZone.test.ts tests/wordGameTime.test.ts tests/streakTravel.integration.test.ts tests/wordGame.integration.test.ts",
     "test:companion": "tsx --test tests/companion.integration.test.ts",

@@ -9,6 +9,7 @@ import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { rich } from "@/lib/i18n/rich";
 import PersonalMascot from "@/components/versado/PersonalMascot";
 import { futureTime } from "@/lib/timeFormat";
+import { StreakContinuationCard } from "@/components/StreakContinuation";
 
 type LetterState = "correct" | "present" | "absent";
 
@@ -299,6 +300,7 @@ export default function WordGameClient() {
               ) : null}
             </div>
           )}
+          <StreakContinuationCard />
           <p className="text-sm text-slate-400 dark:text-slate-500">
             {t(game.nextReleaseDay === "today" ? "wordOfTheDay.comeBackToday" : "wordOfTheDay.comeBackTomorrow")}
           </p>

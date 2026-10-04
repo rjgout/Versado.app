@@ -9,6 +9,7 @@ import { getLanguage } from "@/lib/languages";
 import DivisionEmblem from "@/components/versado/DivisionEmblem";
 import type { LeagueTier } from "@/generated/prisma/client";
 import type { MessageKey } from "@/lib/i18n/core";
+import { useStreakContinuation } from "@/components/StreakContinuation";
 
 // Beloningsstatus in de header: reeks, XP en divisie. Bewust prominent (dit
 // zijn de belangrijkste motivatoren) en elk een directe ingang naar de
@@ -31,18 +32,21 @@ export default function NavUserBadges({
   // zichtbaar is zonder op de volgende paginanavigatie te hoeven wachten.
   const [values, setValues] = useState({ streak, xp, studiedToday });
   const t = useT();
+  const continuation = useStreakContinuation();
   const locale = getLanguage(useUiLanguage()).intlLocale;
 
   useEffect(() => {
     return onXpChanged(() => {
       fetch("/api/user-badges")
         .then((r) => r.json())
-        // Een XP-wijziging komt van studeren of spelen: de reeks is dan voor
-        // vandaag binnen.
-        .then((data) => setValues({ streak: data.currentStreak, xp: data.xpTotal, studiedToday: true }))
+        .then((data) => setValues({ streak: data.currentStreak, xp: data.xpTotal, studiedToday: data.studiedToday }))
         .catch(() => {});
     });
   }, []);
+
+  useEffect(() => {
+    if (continuation) setValues((old) => ({ ...old, streak: continuation.currentStreak, studiedToday: continuation.studiedToday }));
+  }, [continuation]);
 
   const number = (n: number) => new Intl.NumberFormat(locale, n >= 10000 ? { notation: "compact", maximumFractionDigits: 1 } : {}).format(n);
   const chip = "vs-motion flex h-10 items-center gap-1.5 rounded-full px-2.5 text-sm font-extrabold tabular-nums transition-colors";

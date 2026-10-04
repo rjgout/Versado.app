@@ -1,6 +1,7 @@
 "use client";
 
 import SystemIcon from "@/components/versado/SystemIcon";
+import { StreakContinuationCard } from "@/components/StreakContinuation";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -53,6 +54,7 @@ interface Summary {
   currentStreak?: number;
   newAchievements?: string[];
   alreadyStudiedToday?: boolean;
+  dayEarned?: boolean;
 }
 
 interface AnswerResult {
@@ -215,7 +217,8 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
           {t("readingLesson.score", { correct: finalSummary.correctCount, total: finalSummary.total })}
         </h2>
         {!!finalSummary.xpEarned && <p className="text-gold-600 dark:text-gold-400 font-extrabold text-lg">+{finalSummary.xpEarned} XP</p>}
-        {!!finalSummary.currentStreak && !finalSummary.alreadyStudiedToday && (
+        <StreakContinuationCard />
+        {finalSummary.dayEarned && (
           <p className="flex items-center gap-1 text-orange-500 font-extrabold text-lg"><SystemIcon kind="streak" className="h-5 w-5" fill="currentColor" aria-hidden />{finalSummary.currentStreak}</p>
         )}
         <div className="flex gap-3 mt-2">

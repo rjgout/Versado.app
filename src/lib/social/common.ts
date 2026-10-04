@@ -53,7 +53,7 @@ export async function memberDayStates(db: Db, userIds: string[], dayKey: string,
   const [users, days] = await Promise.all([
     db.user.findMany({
       where: { id: { in: userIds } },
-      select: { id: true, timeZone: true, lastStudyDate: true, lastStudyTimeZone: true, currentStreak: true },
+      select: { id: true, timeZone: true, lastStudyDate: true, lastStudyTimeZone: true, currentStreak: true, streakInterruptedDay: true },
     }),
     db.streakDay.findMany({ where: { userId: { in: userIds }, dayKey }, select: { userId: true } }),
   ]);

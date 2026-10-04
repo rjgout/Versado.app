@@ -1,6 +1,8 @@
 "use client";
 
 import SystemIcon from "@/components/versado/SystemIcon";
+import { nanoid } from "nanoid";
+import { StreakContinuationCard } from "@/components/StreakContinuation";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -26,6 +28,7 @@ interface Summary {
   streakBroken: boolean;
   newAchievements: string[];
   alreadyStudiedToday: boolean;
+  dayEarned?: boolean;
 }
 
 type Phase = "read" | "exercises" | "summary";
@@ -53,6 +56,7 @@ export default function KidsLessonFlow({
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [activityId] = useState(() => nanoid());
 
   const current = exercises[index];
 
@@ -60,7 +64,7 @@ export default function KidsLessonFlow({
     setSubmitting(true);
     const res = await fetch(`/api/kids-stories/${storyId}/submit`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-activity-id": activityId },
       body: JSON.stringify({ answers: all }),
     });
     const data = await res.json();
@@ -113,7 +117,8 @@ export default function KidsLessonFlow({
           {t("readingLesson.score", { correct: summary.correctCount, total: summary.total })}
         </h2>
         <p className="text-gold-600 dark:text-gold-400 font-extrabold text-lg">+{summary.xpEarned} XP</p>
-        {!summary.alreadyStudiedToday && (
+        <StreakContinuationCard />
+        {summary.dayEarned && (
           <p className="flex items-center gap-1 text-orange-500 font-extrabold text-lg"><SystemIcon kind="streak" className="h-5 w-5" fill="currentColor" aria-hidden />{summary.currentStreak}</p>
         )}
 

@@ -64,6 +64,7 @@ export interface MemberDayInput {
   lastStudyDate: string | null;
   lastStudyTimeZone: string | null;
   currentStreak: number;
+  streakInterruptedDay?: string | null;
 }
 
 export type MemberDayOutcome = "kept" | "missed" | "pending";
@@ -80,8 +81,8 @@ export function memberDayOutcome(member: MemberDayInput, dayKey: string, now: Da
   if (member.lastStudyDate) {
     if (dayKeyInZone(now, member.lastStudyTimeZone ?? LEGACY_DAY_TIME_ZONE) <= dayKey) return "pending";
     // Een lopende reeks met een oudere laatste dag: de reeksafsluiting moet
-    // de gemiste dagen nog bevriezen of de reeks op nul zetten.
-    if (member.currentStreak > 0 && member.lastStudyDate < dayKey) return "pending";
+    // de gemiste dagen nog bevriezen of als onderbreking verwerken.
+    if (member.currentStreak > 0 && !member.streakInterruptedDay && member.lastStudyDate < dayKey) return "pending";
   }
   return "missed";
 }

@@ -165,6 +165,18 @@ model User {
   // reeksen precies zoals ze waren.
   timeZone          String?
   lastStudyTimeZone String?
+  // Uitrolgrens: historische gaten vóór deze dag veranderen geen bestaande reeks.
+  streakGraceDay String?
+  // Eerste onbevroren gemiste dag; null = actief. Het opgebouwde getal blijft staan.
+  streakInterruptedDay String?
+  streakReturnDay String?
+  streakReturnTimeZone String?
+  streakReturnCount Int @default(0)
+  streakReturnRequired Int @default(0)
+  // App opnieuw gebruikt: stopt herinneringen voor deze onderbreking, geen reekscredit.
+  streakReturnSeenAt DateTime?
+  streakReminderDay Int @default(0)
+  streakActivities StreakActivity[]
   // Het enige hint-tegoed dat er is (zie src/lib/shop.ts) — gekocht in de
   // winkel of verdiend bij het Woordspel/Raad het hoofdstuk komt allebei
   // hier terecht, zodat overal waar hints gebruikt kunnen worden precies
@@ -208,6 +220,7 @@ model User {
   // uit te zetten, geen tweede opt-in-drempel. Zie notifyUser in
   // src/lib/notify.ts voor hoe dit samen met de kanaalschakelaars werkt.
   notifyDailyReminder Boolean @default(true)
+  notifyStreakReturn  Boolean @default(true)
   notifySocial        Boolean @default(true) // vriendschapsverzoeken, uitdagingen, woordspel
   notifyAchievements  Boolean @default(true) // prestaties, wekelijkse competitie-uitslag
   notifyWordGame      Boolean @default(true) // nieuw woord van de dag
@@ -1506,13 +1519,25 @@ model FreezeTransaction {
 
 // Eén rij per dag die meetelt voor de reeks-kalender (zie /streak): STUDIED
 // voor een dag waarop echt geoefend is, FROZEN voor een gemiste dag die
-// automatisch door een streak freeze is overbrugd (zie applyDailyStreak in
-// src/lib/streak.ts). Een dag zonder rij hier telt als niet geoefend. Los
+// automatisch door een reeksbevriezing is overbrugd (streakContinuation.ts),
+// RETURNED voor een geslaagde terugkeerdag. Geen rij betekent niet geoefend. Los
 // van User.currentStreak/lastStudyDate (die blijven de snelle cache voor
 // "wat is mijn streak nu") — dit is puur de geschiedenis voor de kalender.
 enum StreakDayStatus {
   STUDIED
   FROZEN
+  RETURNED
+}
+
+// Eén afgeronde activiteit telt eenmaal, ook over retries, tabbladen en daggrenzen.
+model StreakActivity {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, key])
 }
 
 model StreakDay {

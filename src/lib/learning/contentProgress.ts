@@ -15,6 +15,7 @@
 
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { emitToUser } from "@/lib/realtime";
 import { isExerciseCorrect } from "@/lib/exerciseGen";
 import { awardXp } from "@/lib/xp";
 import { awardCompetitionXp } from "@/lib/competitionXp";
@@ -359,6 +360,8 @@ export async function submitExerciseSession(
 ): Promise<ContentExerciseResult> {
   return prisma.$transaction(
     async (tx) => {
+      // Dezelfde lockvolgorde als andere leeractiviteiten: gebruiker vóór XP/feed.
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
       const session = await tx.exerciseSession.findUnique({ where: { id: sessionId } });
       if (!session || session.userId !== userId) throw new ExerciseSessionError("NOT_FOUND");
       if (session.submittedAt) throw new ExerciseSessionError("ALREADY_SUBMITTED");
@@ -464,7 +467,7 @@ export async function submitExerciseSession(
         await awardCompetitionXp(tx, userId, "LESSON", xpEarned, { metadata });
       }
 
-      let streak = await recordLearningActivity(tx, userId, { kind: "CONTENT_EXERCISES", answered: results.length, required: issued.length });
+      let streak = await recordLearningActivity(tx, userId, { kind: "CONTENT_EXERCISES", answered: results.length, required: issued.length, key: `content:${sessionId}` });
       if (exercisesCompletedNow) {
         const completed = await tx.contentProgress.count({ where: { userId, exercisesCompletedAt: { not: null } } });
         if (completed % CHAPTERS_MILESTONE_FOR_FREEZE === 0) streak = await grantMilestoneFreeze(tx, userId, streak);
@@ -492,10 +495,14 @@ export async function submitExerciseSession(
         freezeCount: streak.freezeCount,
         newAchievements,
         alreadyStudiedToday: streak.alreadyStudiedToday,
+        dayEarned: streak.dayEarned,
       };
     },
     { timeout: 20000 }
-  );
+  ).then((result) => {
+    emitToUser(userId, "streak_changed");
+    return result;
+  });
 }
 
 /**

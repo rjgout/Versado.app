@@ -209,6 +209,7 @@ export interface AnswerResult {
     currentStreak: number;
     newAchievements: string[];
     alreadyStudiedToday: boolean;
+    dayEarned?: boolean;
   } | null;
 }
 
@@ -257,7 +258,7 @@ export async function submitChapterGuessAnswer(
 
   if (finished) {
     const correctCount = await prisma.chapterGuessQuestion.count({ where: { gameId, correct: true } });
-    const result = await completeChapterGuess(userId, correctCount, game.questionCount, game.level);
+    const result = await completeChapterGuess(userId, correctCount, game.questionCount, game.level, `chapter-guess:${gameId}`);
     return {
       correct,
       correctChapter,
@@ -271,6 +272,7 @@ export async function submitChapterGuessAnswer(
         currentStreak: result.currentStreak,
         newAchievements: result.newAchievements,
         alreadyStudiedToday: result.alreadyStudiedToday,
+        dayEarned: result.dayEarned,
       },
     };
   }

@@ -29,6 +29,7 @@ export interface ProfileData {
   dailyTextTime: string;
   notifyDailyText: boolean;
   notifyDailyReminder: boolean;
+  notifyStreakReturn: boolean;
   notifySocial: boolean;
   notifyAchievements: boolean;
   notifyWordGame: boolean;
@@ -64,6 +65,7 @@ export interface ProfileData {
 /** Instellingen die als losse aan/uit-waarde via PATCH /api/account gaan. */
 export type ProfileToggleField =
   | "notifyDailyReminder"
+  | "notifyStreakReturn"
   | "notifyDailyText"
   | "notifySocial"
   | "notifyAchievements"

@@ -13,6 +13,8 @@ import { refreshDueFriendStreaks, refreshFriendStreaksFor } from "@/lib/social/f
 import { refreshDueGroups, refreshGroupsFor } from "@/lib/social/groupStreak";
 import { cleanupRegistrations } from "@/lib/registration";
 import { runGroupAdminMaintenance } from "@/lib/social/groups";
+import { getStreakContinuation } from "@/lib/streakContinuation";
+import { runStreakReturnReminders } from "@/lib/streakReturnNotifications";
 
 const TICK_MS = 60_000;
 // Vast (niet instelbaar) moment voor de wekelijkse uitslag — dit is geen
@@ -96,6 +98,7 @@ async function runDailyReminderTick(): Promise<void> {
       where: {
         timeZone: group.timeZone,
         dailyReminderTime: group.time,
+        streakInterruptedDay: null,
         OR: [{ emailNotificationsEnabled: true }, { pushNotificationsEnabled: true }],
         AND: [
           { OR: [{ lastDailyReminderSentDate: null }, { lastDailyReminderSentDate: { not: group.today } }] },
@@ -313,76 +316,30 @@ async function runWordGameBonusTick(): Promise<void> {
 /**
  * Verwerkt afgesloten streak-dagen zonder dat de gebruiker online hoeft te zijn.
  * Na middernacht is de vorige kalenderdag definitief gemist. Een beschikbare
- * freeze wordt dan direct ingezet; zonder voldoende freezes wordt de reeks
- * meteen op nul gezet.
+ * freeze wordt eerst ingezet; zonder voldoende freezes blijft de reeks
+ * als onderbroken bewaard. Activiteiten gebruiken dezelfde dagafsluiting.
  */
 async function runStreakRolloverTick(): Promise<void> {
   const now = new Date();
-  // Voorselectie in de database: wie overal ter wereld al minstens een dag
-  // gemist kan hebben (Kiritimati loopt het verst voor, UTC+14). Of dat voor
-  // deze gebruiker echt zo is, beslist streakDayGap hieronder met zijn eigen
-  // tijdzone(s); zo komt niet elke minuut iedereen langs voor een
-  // transactie die niets doet.
   const latestToday = dayKeyInZone(now, "Pacific/Kiritimati");
+  const cutoff = addDays(latestToday, -1);
   const candidates = await prisma.user.findMany({
     where: {
-      currentStreak: { gt: 0 },
-      lastStudyDate: { not: null, lt: addDays(latestToday, -1) },
+      currentStreak: { gt: 0 }, streakInterruptedDay: null,
+      // Het nieuwste van echte studiedag en eenmalige uitrolanker is de
+      // effectieve ankerdag. Beide moeten verstreken zijn; anders zou iedere
+      // gemigreerde gebruiker met een oude studiedag elke minuut meekomen.
+      OR: [
+        { streakGraceDay: null, lastStudyDate: { lt: cutoff } },
+        { lastStudyDate: null, streakGraceDay: { lt: cutoff } },
+        { lastStudyDate: { lt: cutoff }, streakGraceDay: { lt: cutoff } },
+      ],
     },
-    select: { id: true, lastStudyDate: true, lastStudyTimeZone: true, timeZone: true },
+    select: { id: true },
   });
-
   for (const user of candidates) {
-    const { gap } = streakDayGap(user, now);
-    if (gap === null || gap <= 1) continue;
-    await prisma.$transaction(async (tx) => {
-      const fresh = await tx.user.findUnique({
-        where: { id: user.id },
-        select: { currentStreak: true, lastStudyDate: true, lastStudyTimeZone: true, timeZone: true, freezeCount: true },
-      });
-      if (!fresh?.lastStudyDate || fresh.currentStreak <= 0) return;
-      // Pas gemist als de dag in de huidige én in de vorige tijdzone voorbij
-      // is (zie streakRules.ts): reizen kost zo nooit een reeksdag.
-      const { gap: freshGap } = streakDayGap(fresh, now);
-      const missedDays = (freshGap ?? 0) - 1;
-      if (missedDays <= 0) return;
-      const lastStudyDate = fresh.lastStudyDate;
-
-      if (fresh.freezeCount >= missedDays) {
-        for (let i = 1; i <= missedDays; i++) {
-          const frozenDayKey = addDays(lastStudyDate, i);
-          await tx.streakDay.upsert({
-            where: { userId_dayKey: { userId: user.id, dayKey: frozenDayKey } },
-            create: { userId: user.id, dayKey: frozenDayKey, status: "FROZEN" },
-            update: { status: "FROZEN" },
-          });
-        }
-        await tx.freezeTransaction.create({
-          data: {
-            userId: user.id,
-            type: "AUTO_SPENT",
-            amount: -missedDays,
-            reason: `Streak beschermd op ${addDays(lastStudyDate, missedDays + 1)} (${missedDays} dag${missedDays > 1 ? "en" : ""} gemist)`,
-          },
-        });
-        await tx.user.update({
-          where: { id: user.id },
-          data: {
-            freezeCount: { decrement: missedDays },
-            // Laat de meest recente beschermde dag gelden als ankerpunt (in
-            // dezelfde tijdzone als de laatste reeksdag). Daardoor kan een
-            // studieactiviteit vandaag de reeks normaal met één verhogen,
-            // zonder de freeze opnieuw te tellen.
-            lastStudyDate: addDays(lastStudyDate, missedDays),
-          },
-        });
-      } else {
-        await tx.user.update({
-          where: { id: user.id },
-          data: { currentStreak: 0 },
-        });
-      }
-    }).catch((e) => console.error(`Streak rollover mislukt voor ${user.id}:`, e));
+    await getStreakContinuation(user.id, now)
+      .catch((e) => console.error(`Reeksafsluiting mislukt voor ${user.id}:`, e));
   }
 }
 
@@ -463,7 +420,9 @@ export function startNotificationSchedulers(): void {
     runSeasonRolloverTick().catch((e) => console.error("Seizoensafsluiting mislukt:", e));
     runWordGameNotificationTick().catch((e) => console.error("Woord-van-de-dag-melding mislukt:", e));
     runWordGameBonusTick().catch((e) => console.error("Woord-van-de-dag-bonus mislukt:", e));
-    runStreakRolloverTick().catch((e) => console.error("Streak rollover mislukt:", e));
+    runStreakRolloverTick()
+      .then(() => runStreakReturnReminders())
+      .catch((e) => console.error("Reeksafsluiting/herinnering mislukt:", e));
     runIncognitoExpiryTick().catch((e) => console.error("Incognito-vervaltijd mislukt:", e));
     runSocialTick().catch((e) => console.error("Samen (vrienden- en groepsreeksen) mislukt:", e));
     runRegistrationCleanupTick().catch((e) => console.error("Aanmeldingen opruimen mislukt:", e));

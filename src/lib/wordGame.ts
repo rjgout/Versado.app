@@ -418,7 +418,7 @@ export async function submitGuess(
   if (saved.count === 0) return { error: "Je gok is al verwerkt. Ververs de pagina." };
   const updated = await prisma.wordGame.findUniqueOrThrow({ where: { id: game.id } });
 
-  const newAchievements = finished ? (await completeWordGame(userId, xpEarned)).newAchievements : [];
+  const newAchievements = finished ? (await completeWordGame(userId, xpEarned, `word:${game.id}`)).newAchievements : [];
 
   return { ...(await buildView(period, now, updated)), newAchievements };
 }
