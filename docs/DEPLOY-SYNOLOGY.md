@@ -82,6 +82,12 @@ Dit is nodig zodat de NAS de images kan ophalen zonder in te loggen bij ghcr.io.
      Tunnel (of andere reverse proxy) al gebruikt om je NAS te bereiken
 6. Klik **Deploy the stack**.
 
+Na een wijziging aan `deploy/docker-compose.yml` moet je de stack één keer
+via **Update the stack** bijwerken voordat je vanuit `/adminbackend` een app-
+deploy uitvoert. Daarmee krijgt `jehova-deploy` ook de database-URL-fallback
+en de branding-volume mee; een oude deploy-agent kan die nieuwe configuratie
+niet zelf achteraf raden.
+
 Portainer trekt nu de vijf images en start alles. `jehova-app` wacht via de
 `depends_on`/`service_healthy`-configuratie tot `jehova-db` en `jehova-redis`
 daadwerkelijk gezond zijn, draait daarna automatisch de database-migraties
@@ -150,8 +156,9 @@ de app zelf (dus niet meer via Portainer) — dat volgt precies dit stappenplan:
 2. **Nieuwe versie pullen** — de nieuwste `jehova-app`-image wordt van
    ghcr.io gehaald.
 3. **Nieuwe container starten** — de oude `jehova-app`-container wordt
-   vervangen door een nieuwe met exact dezelfde instellingen, maar de nieuwe
-   image.
+   vervangen door een nieuwe met dezelfde omgeving, mounts en netwerken, maar
+   de nieuwe image. Een ontbrekende `DATABASE_URL` wordt aangevuld met de
+   expliciete fallback uit de stackconfiguratie.
 4. **Healthcheck** — er wordt gewacht tot Docker's eigen gezondheidscontrole
    van `jehova-app` (die o.a. de databaseverbinding checkt, zie
    `/api/health`) "gezond" meldt.

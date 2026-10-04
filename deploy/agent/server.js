@@ -27,6 +27,9 @@ const PORT = Number(process.env.PORT || 4000);
 const AGENT_TOKEN = process.env.AGENT_TOKEN || "";
 const APP_CONTAINER_NAME = process.env.APP_CONTAINER_NAME || "jehova-app";
 const APP_IMAGE_FALLBACK = process.env.APP_IMAGE || "ghcr.io/rjgout/jehova-app:latest";
+const APP_DATABASE_URL = process.env.APP_DATABASE_URL || "";
+const APP_BRANDING_VOLUME = process.env.APP_BRANDING_VOLUME || "";
+const APP_BRANDING_DESTINATION = process.env.APP_BRANDING_DESTINATION || "/data/branding";
 const FLAG_DIR = "/flag";
 const FLAG_PATH = `${FLAG_DIR}/maintenance.on`;
 const STATE_DIR = "/state";
@@ -94,11 +97,23 @@ function maintenanceIsOn() {
   return existsSync(FLAG_PATH);
 }
 
+function safeDockerArgs(args) {
+  let redactNext = false;
+  return args.map((arg) => {
+    if (redactNext) {
+      redactNext = false;
+      return `${arg.split("=", 1)[0]}=<redacted>`;
+    }
+    if (arg === "-e" || arg === "--env") redactNext = true;
+    return arg;
+  });
+}
+
 function runDocker(args, opts = {}) {
   return new Promise((resolve, reject) => {
     execFile("docker", args, { timeout: opts.timeout || 30000, maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
       if (err) {
-        reject(new Error(`docker ${args.join(" ")} mislukt: ${stderr || err.message}`));
+        reject(new Error(`docker ${safeDockerArgs(args).join(" ")} mislukt: ${stderr || err.message}`));
         return;
       }
       resolve(stdout.trim());
@@ -125,16 +140,51 @@ async function getHealthStatus(name) {
   return info?.State?.Health?.Status || null;
 }
 
+function environmentMap(entries) {
+  const values = new Map();
+  for (const entry of entries || []) {
+    const separator = entry.indexOf("=");
+    if (separator === -1) continue;
+    values.set(entry.slice(0, separator), entry.slice(separator + 1));
+  }
+  return values;
+}
+
+function mountArgs(mounts) {
+  const args = [];
+  for (const mount of mounts || []) {
+    const source = mount.Type === "volume" ? mount.Name : mount.Source;
+    if (!mount.Type || !source || !mount.Destination) continue;
+    const spec = [`type=${mount.Type}`, `source=${source}`, `destination=${mount.Destination}`];
+    if (mount.RW === false) spec.push("readonly");
+    if (mount.Type === "bind" && mount.Propagation) spec.push(`bind-propagation=${mount.Propagation}`);
+    args.push("--mount", spec.join(","));
+  }
+  return args;
+}
+
+function hasMountAt(mounts, destination) {
+  return (mounts || []).some((mount) => mount.Destination === destination);
+}
+
 // Herbouwt de container met een (mogelijk nieuwe) image, maar verder
-// identiek aan wat er al draaide (omgevingsvariabelen, netwerken,
-// herstartbeleid, labels) — zodat we nooit hoeven te gokken naar de
-// oorspronkelijke compose-configuratie (die, afhankelijk van hoe de stack
-// gestart is, niet altijd als bestand terug te vinden is op de NAS).
+// identiek aan wat er al draaide (omgeving, mounts, netwerken,
+// herstartbeleid en labels) — zodat we niet hoeven te gokken naar de
+// oorspronkelijke compose-configuratie die niet altijd als bestand op de NAS
+// staat.
 async function recreateContainer(name, image, templateFrom) {
+  const environment = environmentMap(templateFrom?.Config?.Env);
+  if (!environment.get("DATABASE_URL")?.trim()) {
+    if (!APP_DATABASE_URL.trim()) {
+      throw new Error("DATABASE_URL ontbreekt in de app-container en APP_DATABASE_URL ontbreekt in de deploy-agent.");
+    }
+    environment.set("DATABASE_URL", APP_DATABASE_URL);
+  }
+
   await runDocker(["rm", "-f", name]).catch(() => {});
 
   const args = ["create", "--name", name];
-  for (const env of templateFrom?.Config?.Env || []) args.push("-e", env);
+  for (const [key, value] of environment) args.push("-e", `${key}=${value}`);
   for (const [key, value] of Object.entries(templateFrom?.Config?.Labels || {})) {
     args.push("--label", `${key}=${value}`);
   }
@@ -147,6 +197,11 @@ async function recreateContainer(name, image, templateFrom) {
   }
   const networks = Object.keys(templateFrom?.NetworkSettings?.Networks || {});
   if (networks[0]) args.push("--network", networks[0]);
+  const mounts = templateFrom?.Mounts || [];
+  args.push(...mountArgs(mounts));
+  if (APP_BRANDING_VOLUME && !hasMountAt(mounts, APP_BRANDING_DESTINATION)) {
+    args.push("--mount", `type=volume,source=${APP_BRANDING_VOLUME},destination=${APP_BRANDING_DESTINATION}`);
+  }
   args.push(image);
 
   await runDocker(args);
