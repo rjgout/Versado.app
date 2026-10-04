@@ -2,109 +2,231 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Even geduld… — Jehova</title>
+<title>We maken Versado even beter</title>
 <style>
   :root {
-    color-scheme: light dark;
-    --bg: #eef6ff;
-    --card: #ffffff;
-    --text: #0c3a69;
-    --muted: #4a6b8a;
-    --accent: #2e86f5;
-    --gold: #f6b93b;
+    color-scheme: light;
+    --background: #f1f7fd;
+    --background-glow: rgba(116, 179, 238, 0.2);
+    --foreground: #102a43;
+    --muted: #5d7187;
+    --line: rgba(87, 129, 168, 0.2);
+    --accent: #287dc1;
+    --track: #d6e7f5;
   }
+
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0a2e54;
-      --card: #0f2e4d;
-      --text: #eef6ff;
-      --muted: #a9c6e6;
-      --accent: #4fa3f7;
-      --gold: #f8cd6c;
+      color-scheme: dark;
+      --background: #111d2d;
+      --background-glow: rgba(65, 133, 196, 0.16);
+      --foreground: #f3f7fb;
+      --muted: #afc0d2;
+      --line: rgba(173, 198, 222, 0.18);
+      --accent: #78b8eb;
+      --track: #29425d;
     }
   }
+
   * { box-sizing: border-box; }
-  html, body {
-    height: 100%;
+
+  html {
+    min-height: 100%;
+    background: var(--background);
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
     margin: 0;
-    background: var(--bg);
-    color: var(--text);
+    overflow-x: hidden;
+    background:
+      radial-gradient(circle at 50% 22%, var(--background-glow), transparent 35rem),
+      var(--background);
+    color: var(--foreground);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
-  body {
+
+  .screen {
+    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    padding: max(28px, env(safe-area-inset-top))
+      max(20px, env(safe-area-inset-right))
+      max(28px, env(safe-area-inset-bottom))
+      max(20px, env(safe-area-inset-left));
   }
-  .card {
-    background: var(--card);
-    border-radius: 24px;
-    padding: 40px 32px;
-    max-width: 420px;
-    width: 100%;
+
+  .content {
+    width: min(100%, 580px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(10, 46, 84, 0.12);
   }
-  .icon {
-    font-size: 48px;
-    line-height: 1;
-    margin-bottom: 8px;
+
+  .brand {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: clamp(26px, 5vh, 52px);
   }
+
+  .brand img {
+    display: block;
+    width: auto;
+    max-width: min(220px, 72vw);
+    max-height: 48px;
+    object-fit: contain;
+  }
+
+  /* Alleen actief als de gedeelde Huisstijl-kopie nog niet bestaat. */
+  .brand-fallback {
+    color: var(--accent);
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .family {
+    display: block;
+    width: min(100%, 330px);
+    height: auto;
+    margin: 0 auto clamp(28px, 5vh, 48px);
+    object-fit: contain;
+  }
+
   h1 {
-    font-size: 1.4rem;
-    margin: 12px 0 8px;
+    max-width: 520px;
+    margin: 0;
+    color: var(--foreground);
+    font-size: clamp(1.75rem, 5vw, 2.45rem);
+    line-height: 1.12;
+    letter-spacing: -0.035em;
   }
-  p {
+
+  .intro {
+    max-width: 500px;
+    margin: 16px auto 0;
     color: var(--muted);
-    line-height: 1.5;
-    margin: 0 0 8px;
+    font-size: clamp(1rem, 2.5vw, 1.1rem);
+    line-height: 1.6;
   }
-  .dots span {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    margin: 20px 4px 4px;
-    border-radius: 50%;
+
+  .status {
+    width: min(100%, 360px);
+    margin: 32px auto 0;
+  }
+
+  .scanner {
+    position: relative;
+    height: 10px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--track);
+  }
+
+  .scanner-beam {
+    position: absolute;
+    top: 1px;
+    bottom: 1px;
+    left: 1px;
+    width: 30%;
+    border-radius: inherit;
     background: var(--accent);
-    animation: bounce 1.2s infinite ease-in-out;
+    box-shadow: 0 0 14px rgba(40, 125, 193, 0.45);
+    animation: scan 4.8s ease-in-out infinite alternate;
   }
-  .dots span:nth-child(2) { animation-delay: 0.15s; background: var(--gold); }
-  .dots span:nth-child(3) { animation-delay: 0.3s; }
-  @keyframes bounce {
-    0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
-    40% { transform: scale(1); opacity: 1; }
+
+  .status-text {
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.4;
   }
+
+  .reassurance {
+    margin: 28px 0 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  @keyframes scan {
+    from { transform: translateX(0); }
+    to { transform: translateX(230%); }
+  }
+
+  @media (min-width: 700px) {
+    .family { width: min(100%, 390px); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .dots span { animation: none; }
+    .scanner-beam {
+      animation: none;
+      transform: translateX(115%);
+      box-shadow: none;
+    }
   }
 </style>
 </head>
 <body>
-  <main class="card" role="status" aria-live="polite">
-    <div class="icon" aria-hidden="true">📖</div>
-    <h1>Even geduld…</h1>
-    <p>We zijn bezig met een korte update van de website.</p>
-    <p>De website is zo weer beschikbaar — deze pagina ververst vanzelf.</p>
-    <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+  <main class="screen">
+    <div class="content">
+      <div class="brand" role="img" aria-label="Versado">
+        <img id="header-logo" src="/maintenance-assets/header-logo.png" alt="">
+        <span id="header-logo-fallback" class="brand-fallback" hidden>Versado</span>
+      </div>
+
+      <img
+        class="family"
+        src="/maintenance-assets/family-support.webp"
+        alt=""
+        aria-hidden="true"
+      >
+
+      <h1>We maken Versado even beter</h1>
+      <p class="intro">We werken heel even aan een korte update.<br>Je komt automatisch terug zodra alles klaar is.</p>
+
+      <div class="status" role="status" aria-live="polite">
+        <div class="scanner" aria-hidden="true"><span class="scanner-beam"></span></div>
+        <p class="status-text">Versado komt zo weer terug.</p>
+      </div>
+
+      <p class="reassurance">Je hoeft niets te verversen.</p>
+    </div>
   </main>
+
   <script>
-    // Probeert zelf periodiek of de app alweer terug is, zodat niemand
-    // handmatig hoeft te verversen. Geen afhankelijkheid van de app zelf:
-    // dit bestand staat volledig los, en zonder JavaScript blijft gewoon de
-    // statische tekst hierboven zichtbaar.
-    (function poll() {
-      setInterval(function () {
-        fetch(location.href, { method: "GET", cache: "no-store" })
-          .then(function (res) {
-            // De proxy geeft 503 terug zolang onderhoud aan staat (zie
-            // nginx.conf); alles anders dan dat betekent dat de app er weer is.
-            if (res.status !== 503) location.reload();
+    (function () {
+      var logo = document.getElementById("header-logo");
+      var fallback = document.getElementById("header-logo-fallback");
+      var probeInFlight = false;
+
+      if (logo && fallback) {
+        logo.addEventListener("error", function () {
+          logo.hidden = true;
+          fallback.hidden = false;
+        });
+      }
+
+      window.setInterval(function () {
+        if (probeInFlight) return;
+        probeInFlight = true;
+        fetch("/__maintenance-probe", { method: "GET", cache: "no-store", credentials: "omit" })
+          .then(function (response) {
+            if (response.ok) window.location.reload();
           })
           .catch(function () {
-            // Nog niet bereikbaar — gewoon nog eens proberen bij de volgende tik.
+            // De app is nog niet gezond; probeer het bij de volgende interval opnieuw.
+          })
+          .finally(function () {
+            probeInFlight = false;
           });
       }, 5000);
     })();

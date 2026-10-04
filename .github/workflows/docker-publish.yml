@@ -43,7 +43,7 @@ jobs:
           - name: jehova-app
             context: .
           - name: jehova-proxy
-            context: ./deploy/nginx
+            context: .
           - name: jehova-deploy-agent
             context: ./deploy/agent
     steps:

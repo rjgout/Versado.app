@@ -44,6 +44,7 @@ services:
       - jehova-app
     volumes:
       - maintenance_flag:/flag:ro
+      - branding_assets:/branding:ro
 
   jehova-app:
     image: ghcr.io/rjgout/jehova-app:latest
@@ -72,11 +73,15 @@ services:
       # /adminbackend — zelfde geheim als hieronder bij jehova-deploy.
       DEPLOY_AGENT_URL: "http://jehova-deploy:4000"
       DEPLOY_AGENT_TOKEN: CHANGE_THIS_TO_A_DIFFERENT_LONG_RANDOM_STRING
+      # Laat Huisstijl het laatst opgeslagen headerlogo delen met de proxy,
+      # zodat de onderhoudspagina zonder Next.js kan blijven tekenen.
+      BRANDING_ASSET_DIR: /data/branding
     volumes:
       # Eigen kopie van de voorgelezen hoofdstukken (ruim een gigabyte per
       # taal), gevuld bij "Inhoud opnieuw laden" in /adminbackend. Op de NAS
       # zelf, zodat een nieuwe image de bestanden niet opnieuw hoeft te halen.
       - /volume1/docker/jehova-app/audio:/data/audio
+      - branding_assets:/data/branding
     depends_on:
       jehova-db:
         condition: service_healthy
@@ -140,6 +145,9 @@ volumes:
   # Bestandsvlag (aan/uit) waarmee jehova-proxy bepaalt of bezoekers de app
   # of de onderhoudspagina zien; alleen jehova-deploy schrijft erin.
   maintenance_flag:
+  # Laatste headerlogo uit Huisstijl; blijft beschikbaar terwijl jehova-app
+  # tijdelijk wordt vervangen of nog niet gezond is.
+  branding_assets:
   # Onthoudt welke image-versie voor het laatst gezond bevestigd is, voor
   # een handmatige rollback los van een mislukte deploy.
   deploy_state:
