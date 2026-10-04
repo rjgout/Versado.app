@@ -1,0 +1,277 @@
+{
+  "game": "Snelle Zendeling",
+  "generatedWith": "built-in imagegen",
+  "sprites": {
+    "varo-snelle-zendeling-glide": {
+      "file": "assets/mascots/varo-snelle-zendeling-glide.png",
+      "canvas": [
+        1254,
+        1254
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "alphaCentroid": [
+        626.588,
+        626.991
+      ],
+      "visibleBounds": [
+        154,
+        263,
+        1031,
+        912
+      ],
+      "pairScale": 0.75
+    },
+    "varo-snelle-zendeling-boost": {
+      "file": "assets/mascots/varo-snelle-zendeling-boost.png",
+      "canvas": [
+        1254,
+        1254
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "alphaCentroid": [
+        626.689,
+        626.621
+      ],
+      "visibleBounds": [
+        150,
+        271,
+        1040,
+        922
+      ],
+      "pairScale": 0.75
+    },
+    "varo-pair-check": {
+      "centroidDifferencePixels": [
+        0.101,
+        -0.37
+      ],
+      "identicalScale": true,
+      "identicalCanvas": true
+    },
+    "vera-snelle-zendeling-glide": {
+      "file": "assets/mascots/vera-snelle-zendeling-glide.png",
+      "canvas": [
+        1254,
+        1254
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "alphaCentroid": [
+        626.447,
+        626.723
+      ],
+      "visibleBounds": [
+        125,
+        294,
+        1026,
+        899
+      ],
+      "pairScale": 0.75
+    },
+    "vera-snelle-zendeling-boost": {
+      "file": "assets/mascots/vera-snelle-zendeling-boost.png",
+      "canvas": [
+        1254,
+        1254
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "alphaCentroid": [
+        626.585,
+        627.008
+      ],
+      "visibleBounds": [
+        118,
+        297,
+        1027,
+        888
+      ],
+      "pairScale": 0.75
+    },
+    "vera-pair-check": {
+      "centroidDifferencePixels": [
+        0.137,
+        0.285
+      ],
+      "identicalScale": true,
+      "identicalCanvas": true
+    },
+    "novi-snelle-zendeling-glide": {
+      "file": "assets/mascots/novi-snelle-zendeling-glide.png",
+      "canvas": [
+        1254,
+        1254
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "alphaCentroid": [
+        627.014,
+        627.003
+      ],
+      "visibleBounds": [
+        184,
+        320,
+        988,
+        861
+      ],
+      "pairScale": 0.68
+    },
+    "novi-snelle-zendeling-boost": {
+      "file": "assets/mascots/novi-snelle-zendeling-boost.png",
+      "canvas": [
+        1254,
+        1254
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "alphaCentroid": [
+        626.391,
+        626.772
+      ],
+      "visibleBounds": [
+        171,
+        322,
+        994,
+        858
+      ],
+      "pairScale": 0.68
+    },
+    "novi-pair-check": {
+      "centroidDifferencePixels": [
+        -0.623,
+        -0.231
+      ],
+      "identicalScale": true,
+      "identicalCanvas": true
+    }
+  },
+  "obstacles": {
+    "obstacle-wall": {
+      "file": "assets/obstacles/obstacle-wall.png",
+      "canvas": [
+        384,
+        2501
+      ],
+      "effectiveWidth": 384,
+      "gapBoundary": "top",
+      "gapAnchor": [
+        0.5,
+        0
+      ],
+      "stemFile": "assets/obstacles/obstacle-wall-stem.png",
+      "stemSize": [
+        384,
+        384
+      ],
+      "cropOutsideViewport": true,
+      "collision": "fixed-width rectangle; do not derive from opaque-pixel silhouette"
+    },
+    "obstacle-rock": {
+      "file": "assets/obstacles/obstacle-rock.png",
+      "canvas": [
+        384,
+        2158
+      ],
+      "effectiveWidth": 384,
+      "gapBoundary": "bottom",
+      "gapAnchor": [
+        0.5,
+        1
+      ],
+      "stemFile": "assets/obstacles/obstacle-rock-stem.png",
+      "stemSize": [
+        384,
+        384
+      ],
+      "cropOutsideViewport": true,
+      "collision": "fixed-width rectangle; do not derive from opaque-pixel silhouette"
+    }
+  },
+  "layers": {
+    "background-sky": {
+      "file": "assets/background/background-sky.png",
+      "canvas": [
+        2172,
+        724
+      ],
+      "z": 0,
+      "suggestedParallaxSpeed": 0,
+      "horizontalRepeat": "near-seamless; visually checked",
+      "edgeMeanDifference8bit": 0.844,
+      "align": "bottom",
+      "foregroundMaxDisplayHeightFraction": null
+    },
+    "background-hills": {
+      "file": "assets/background/background-hills.png",
+      "canvas": [
+        2172,
+        724
+      ],
+      "z": 1,
+      "suggestedParallaxSpeed": 0.12,
+      "horizontalRepeat": "near-seamless; visually checked",
+      "edgeMeanDifference8bit": 0.526,
+      "align": "bottom",
+      "foregroundMaxDisplayHeightFraction": null
+    },
+    "background-city": {
+      "file": "assets/background/background-city.png",
+      "canvas": [
+        2172,
+        724
+      ],
+      "z": 2,
+      "suggestedParallaxSpeed": 0.2,
+      "horizontalRepeat": "near-seamless; visually checked",
+      "edgeMeanDifference8bit": 0.0,
+      "align": "bottom",
+      "foregroundMaxDisplayHeightFraction": null
+    },
+    "background-landscape": {
+      "file": "assets/background/background-landscape.png",
+      "canvas": [
+        2172,
+        724
+      ],
+      "z": 3,
+      "suggestedParallaxSpeed": 0.35,
+      "horizontalRepeat": "near-seamless; visually checked",
+      "edgeMeanDifference8bit": 2.935,
+      "align": "bottom",
+      "foregroundMaxDisplayHeightFraction": null
+    },
+    "foreground-ground": {
+      "file": "assets/foreground/foreground-ground.png",
+      "canvas": [
+        2172,
+        724
+      ],
+      "z": 5,
+      "suggestedParallaxSpeed": 0.75,
+      "horizontalRepeat": "near-seamless; visually checked",
+      "edgeMeanDifference8bit": 2.657,
+      "align": "bottom",
+      "foregroundMaxDisplayHeightFraction": 0.08
+    }
+  },
+  "rules": {
+    "obstacleWidth": "constant; engine selected",
+    "gapHeight": "constant; engine selected",
+    "pairSpacing": "constant; engine selected",
+    "randomizeOnly": "gap vertical position"
+  }
+}

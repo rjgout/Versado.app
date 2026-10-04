@@ -1,0 +1,14 @@
+{
+  "productionPngCount": 15,
+  "requiredAssetCount": 13,
+  "optionalStemTextureCount": 2,
+  "spritesCanvas": [
+    1254,
+    1254
+  ],
+  "poseCenterDifferenceMaxPixels": 0.623,
+  "obstacleCanvasWidth": 384,
+  "alpha": "all sprites/obstacles and four cutout layers have true alpha; sky opaque",
+  "looping": "near-seamless, not pixel-exact; numeric edge differences in manifest",
+  "integration": "not implemented in game engine; collision and scrolling require engine integration"
+}
