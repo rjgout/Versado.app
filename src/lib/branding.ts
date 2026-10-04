@@ -13,6 +13,7 @@ const DATA_URL_RE = /^data:image\/(png|jpeg|jpg|webp|svg\+xml|x-icon|vnd\.micros
 // geen gebruikersbestand (zie Feedback.screenshot voor dezelfde aanpak).
 const MAX_DATA_URL_LENGTH = 2 * 1024 * 1024;
 const HEADER_LOGO_FILENAME = "header-logo.png";
+const FAVICON_FILENAME = "favicon.png";
 
 // De proxy mag tijdens onderhoud niet afhankelijk zijn van Next.js. Daarom
 // krijgt hij de laatst opgeslagen headerbranding via een gedeeld volume.
@@ -36,31 +37,30 @@ export async function getBranding(): Promise<BrandingView> {
   };
 }
 
-export async function syncHeaderLogo(): Promise<void> {
+async function syncPngAsset(assetDir: string, filename: string, dataUrl: string | null): Promise<void> {
+  const target = path.join(assetDir, filename);
+  const decoded = decodeBrandingDataUrl(dataUrl);
+
+  if (!decoded || decoded.contentType !== "image/png") {
+    await rm(target, { force: true });
+    return;
+  }
+
+  const temporary = path.join(assetDir, `.${filename}.${process.pid}.tmp`);
+  await writeFile(temporary, decoded.buffer);
+  await rename(temporary, target);
+}
+
+export async function syncBrandingAssets(): Promise<void> {
   const assetDir = brandingAssetDir();
   if (!assetDir) return;
 
-  const target = path.join(assetDir, HEADER_LOGO_FILENAME);
   const branding = await getBranding();
-  const decoded = decodeBrandingDataUrl(branding.logoDataUrl);
-
-  if (!decoded) {
-    await rm(target, { force: true });
-    return;
-  }
-
-  // De Huisstijl-upload zet het headerlogo om naar PNG. Alleen die vorm wordt
-  // hier naar de vaste nginx-URL geschreven; zo krijgt de proxy nooit een
-  // verkeerde MIME-typecombinatie bij een handmatig gemuteerde databaserecord.
-  if (decoded.contentType !== "image/png") {
-    await rm(target, { force: true });
-    return;
-  }
-
   await mkdir(assetDir, { recursive: true });
-  const temporary = path.join(assetDir, `.${HEADER_LOGO_FILENAME}.${process.pid}.tmp`);
-  await writeFile(temporary, decoded.buffer);
-  await rename(temporary, target);
+  // De Huisstijl-upload zet beide beelden om naar PNG. De vaste proxy-URLs
+  // blijven daardoor eenvoudig en krijgen nooit een verkeerde MIME-combinatie.
+  await syncPngAsset(assetDir, HEADER_LOGO_FILENAME, branding.logoDataUrl);
+  await syncPngAsset(assetDir, FAVICON_FILENAME, branding.faviconDataUrl);
 }
 
 export async function updateBranding(patch: Partial<BrandingView>): Promise<void> {
@@ -71,12 +71,12 @@ export async function updateBranding(patch: Partial<BrandingView>): Promise<void
   });
 
   try {
-    await syncHeaderLogo();
+    await syncBrandingAssets();
   } catch (error) {
     // Een branding-update mag niet mislukken omdat de optionele proxy-volume
-    // tijdelijk niet schrijfbaar is. De volgende app-start synchroniseert
-    // het bestand opnieuw.
-    console.warn("Headerlogo kon niet naar de onderhoudsproxy worden gesynchroniseerd.", error);
+    // tijdelijk niet schrijfbaar is. De volgende app-start synchroniseert de
+    // bestanden opnieuw.
+    console.warn("Huisstijl kon niet naar de onderhoudsproxy worden gesynchroniseerd.", error);
   }
 }
 

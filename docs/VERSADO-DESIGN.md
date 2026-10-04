@@ -233,8 +233,8 @@ accessoires direct herkenbaar zijn.
 ### Consistentie
 
 Ook het zelfstandige onderhoudsscherm van de deployment volgt deze identiteit:
-het gebruikt de actuele headerbranding uit Huisstijl via een lokale laatst
-bekende proxy-kopie, de familie-asset `family-support` en dezelfde rustige
+het gebruikt de actuele headerbranding en favicon uit Huisstijl via lokale
+laatst bekende proxy-kopieën, de familie-asset `family-support` en dezelfde rustige
 licht/donker-richting als de app. De status is indeterminate en geen nep-
 percentage; beweging stopt bij `prefers-reduced-motion`. Het scherm mag voor
 zijn werking niet afhankelijk zijn van Next.js, externe fonts of een CDN.
