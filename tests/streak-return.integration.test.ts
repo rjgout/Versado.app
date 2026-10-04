@@ -156,17 +156,24 @@ test("herinneringen respecteren categorie, lokale tijd, terugkomst en dubbele ti
 test("echte migratie behoudt oude tellers en geschiedenis, zonder ongevraagde herinneringen", { skip }, async () => {
   const schema = `streak_migration_${randomUUID().replaceAll("-", "")}`;
   const migration = await readFile(new URL("../prisma/migrations/20261004090000_streak_continuation/migration.sql", import.meta.url), "utf8");
+  const restoreMigration = await readFile(new URL("../prisma/migrations/20261004120000_restore_existing_streaks/migration.sql", import.meta.url), "utf8");
   await L.db.$transaction(async tx => {
     await tx.$executeRawUnsafe(`CREATE SCHEMA "${schema}"`);
     await tx.$executeRawUnsafe(`SET LOCAL search_path TO "${schema}"`);
     await tx.$executeRawUnsafe('CREATE TYPE "StreakDayStatus" AS ENUM (\'STUDIED\', \'FROZEN\')');
-    await tx.$executeRawUnsafe('CREATE TABLE "User" ("id" TEXT PRIMARY KEY, "timeZone" TEXT, "currentStreak" INTEGER, "freezeCount" INTEGER, "xpTotal" INTEGER, "lastStudyDate" TEXT)');
-    await tx.$executeRawUnsafe('INSERT INTO "User" VALUES (\'old\',\'Europe/Amsterdam\',184,5,2508,\'2020-01-01\'), (\'empty\',NULL,0,3,42,NULL)');
+    await tx.$executeRawUnsafe('CREATE TABLE "User" ("id" TEXT PRIMARY KEY, "timeZone" TEXT, "currentStreak" INTEGER, "longestStreak" INTEGER, "freezeCount" INTEGER, "xpTotal" INTEGER, "lastStudyDate" TEXT)');
+    await tx.$executeRawUnsafe('INSERT INTO "User" VALUES (\'old\',\'Europe/Amsterdam\',184,184,5,2508,\'2020-01-01\'), (\'broken\',\'Europe/Amsterdam\',0,184,2,420,\'2020-01-01\'), (\'empty\',NULL,0,0,3,42,NULL)');
     for (const sql of migration.replace(/--[^\n]*/g, "").split(";").filter(s => s.trim())) await tx.$executeRawUnsafe(sql);
+    for (const sql of restoreMigration.replace(/--[^\n]*/g, "").split(";").filter(s => s.trim())) await tx.$executeRawUnsafe(sql);
     const rows = await tx.$queryRaw<{ id: string; currentStreak: number; freezeCount: number; xpTotal: number; streakGraceDay: string | null; streakInterruptedDay: string | null; notifyStreakReturn: boolean }[]>`SELECT * FROM "User" ORDER BY "id"`;
-    assert.deepEqual(rows.map(r => [r.currentStreak,r.freezeCount,r.xpTotal,r.streakInterruptedDay,r.notifyStreakReturn]), [[0,3,42,null,false],[184,5,2508,null,false]]);
-    assert.equal(rows[0].streakGraceDay, null);
-    assert.ok(rows[1].streakGraceDay);
+    assert.deepEqual(rows.map(r => [r.id,r.currentStreak,r.freezeCount,r.xpTotal,r.streakInterruptedDay,r.notifyStreakReturn]), [["broken",184,2,420,null,false],["empty",0,3,42,null,false],["old",184,5,2508,null,false]]);
+    assert.ok(rows[0].streakGraceDay);
+    assert.equal(rows[1].streakGraceDay, null);
+    assert.ok(rows[2].streakGraceDay);
+    await tx.$executeRawUnsafe('UPDATE "User" SET "currentStreak" = 184, "streakInterruptedDay" = \'2026-10-03\', "streakReturnCount" = 2 WHERE "id" = \'broken\'');
+    for (const sql of restoreMigration.replace(/--[^\n]*/g, "").split(";").filter(s => s.trim())) await tx.$executeRawUnsafe(sql);
+    const cleared = await tx.$queryRaw<{ currentStreak: number; streakInterruptedDay: string | null; streakReturnCount: number }[]>`SELECT "currentStreak", "streakInterruptedDay", "streakReturnCount" FROM "User" WHERE "id" = 'broken'`;
+    assert.deepEqual(cleared[0], { currentStreak: 184, streakInterruptedDay: null, streakReturnCount: 0 });
     await tx.$executeRawUnsafe(`DROP SCHEMA "${schema}" CASCADE`);
   });
 });

@@ -138,6 +138,15 @@ verbruiken of direct een onderbreking opleveren. De migratie maakt geen
 fictieve studiedagen en reconstrueert geen vroeger verloren reeksen. De nieuwe
 notificatiecategorie staat voor bestaande accounts uit tot zij haar aanzetten.
 
+Migratie `20261004120000_restore_existing_streaks` herstelt daarnaast
+bestaande accounts waarvoor de oude logica `currentStreak` al op nul had gezet,
+maar `longestStreak` nog het opgebouwde record bewaart. Die waarde wordt als
+nieuwe startstand gebruikt met dezelfde lokale uitrolgrens; er wordt geen
+historische studiedag verzonnen en geen terugkeeropdracht opgelegd. Ook een
+reeds gemarkeerde onderbreking uit de eerste uitrol wordt eenmalig gewist, zodat
+de gebruiker vanaf deze uitrol normaal kan verdergaan. Vanaf de eerstvolgende
+nieuwe afwezigheid gelden de gewone freeze- en voortzettingsregels.
+
 `npm run test:streak-return` test de pure regels en, met
 `LEARNING_TEST_DATABASE_URL`, echte transacties, XP, gelijktijdigheid,
 kalender, meldingen en de SQL-backfill op bestaande gebruikers.
