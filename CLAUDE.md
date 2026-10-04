@@ -75,11 +75,16 @@ sectie "Mascottes" in `docs/VERSADO-DESIGN.md` voor de character canon.
 
 ## Platformfundering: web/PWA, iOS en Android
 
-Versado blijft één Next.js-codebase. iOS/iPadOS en Android gebruiken
-Capacitor-shells in `ios/` en `android/` die dezelfde gedeployde SSR-app laden;
-bouw geen aparte pagina's, routers of businesslogica per platform. De native
-identiteit is `app.versado.app`. De complete werkwijze, beperkingen en
-storevoorbereiding staan in `docs/PLATFORMEN.md`.
+Versado blijft één product en één gedeelde codebase. De definitieve native
+doelarchitectuur is hybride: een lokale Capacitor-client met de gedeelde UI en
+een remote Versado-backend, terwijl web/PWA de bestaande Next.js SSR-flow mag
+blijven gebruiken. De huidige repository is nog servergedreven; Capacitor's
+remote `server.url` is daarom alleen een expliciete `remote-preview` en geen
+storeproductieprofiel. `CAPACITOR_BUILD_PROFILE=release` wordt bewust geweigerd
+tot de client/API/auth-migratie is afgerond. Bouw geen aparte iOS/Android-
+frontend, router of businesslogica. De native identiteit is `app.versado.app`.
+De complete werkwijze, beperkingen en releasegate staan in
+`docs/PLATFORMEN.md`.
 
 Nieuwe features worden standaard beoordeeld op web, PWA, iOS, Android,
 telefoon, tablet en desktop, inclusief safe areas, touch, toetsenbord, dark
