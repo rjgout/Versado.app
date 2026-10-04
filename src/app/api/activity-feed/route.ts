@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
 import { getT } from "@/lib/i18n";
 import { translateOr } from "@/lib/i18n/core";
-import { selectReactionPreview } from "@/lib/activityReactionPreview";
+import { selectReactionerPreview } from "@/lib/activityReactionPreview";
 
 const PAGE_SIZE = 30;
 
@@ -46,13 +46,21 @@ export async function GET() {
   const counts = itemIds.length > 0
     ? await prisma.activityFeedReaction.groupBy({ by: ["itemId"], where: { itemId: { in: itemIds } }, _count: { _all: true } })
     : [];
+  const uniqueCounts = itemIds.length > 0
+    ? await prisma.$queryRaw<{ itemId: string; uniqueCount: number }[]>(Prisma.sql`
+        SELECT "itemId", COUNT(DISTINCT "userId")::int AS "uniqueCount"
+        FROM "ActivityFeedReaction"
+        WHERE "itemId" IN (${Prisma.join(itemIds)})
+        GROUP BY "itemId"
+      `)
+    : [];
   const myReactions = itemIds.length > 0
     ? await prisma.activityFeedReaction.findMany({ where: { itemId: { in: itemIds }, userId: user.id }, select: { itemId: true, emoji: true } })
     : [];
   const previewRows = itemIds.length > 0
     ? await prisma.$queryRaw<PreviewReactionRow[]>(Prisma.sql`
-        WITH ranked AS (
-          SELECT
+        WITH first_reactions AS (
+          SELECT DISTINCT ON (r."itemId", r."userId")
             r."id",
             r."itemId",
             r."userId",
@@ -60,21 +68,26 @@ export async function GET() {
             r."createdAt",
             u."handle",
             u."discriminator",
-            u."avatarEmoji",
-            ROW_NUMBER() OVER (
-              PARTITION BY r."itemId"
-              ORDER BY
-                CASE WHEN ${friendIds.length > 0 ? Prisma.sql`r."userId" IN (${Prisma.join(friendIds)})` : Prisma.sql`FALSE`} THEN 0 ELSE 1 END,
-                r."createdAt" ASC,
-                r."id" ASC
-            ) AS reaction_rank
+            u."avatarEmoji"
           FROM "ActivityFeedReaction" r
           JOIN "User" u ON u."id" = r."userId"
           WHERE r."itemId" IN (${Prisma.join(itemIds)})
+          ORDER BY r."itemId", r."userId", r."createdAt" ASC, r."id" ASC
+        ), ranked AS (
+          SELECT
+            first_reactions.*,
+            ROW_NUMBER() OVER (
+              PARTITION BY first_reactions."itemId"
+              ORDER BY
+                CASE WHEN ${friendIds.length > 0 ? Prisma.sql`first_reactions."userId" IN (${Prisma.join(friendIds)})` : Prisma.sql`FALSE`} THEN 0 ELSE 1 END,
+                first_reactions."createdAt" ASC,
+                first_reactions."id" ASC
+            ) AS reaction_rank
+          FROM first_reactions
         )
         SELECT "id", "itemId", "userId", "emoji", "createdAt", "handle", "discriminator", "avatarEmoji"
         FROM ranked
-        WHERE reaction_rank <= 5
+        WHERE reaction_rank <= 3
         ORDER BY "itemId", "createdAt" ASC, "id" ASC
       `)
     : [];
@@ -82,16 +95,17 @@ export async function GET() {
   const friendIdSet = new Set(friendIds);
   for (const itemId of itemIds) {
     const rows = previewRows.filter((row) => row.itemId === itemId);
-    previewByItem.set(itemId, selectReactionPreview(rows, friendIdSet));
+    previewByItem.set(itemId, selectReactionerPreview(rows, friendIdSet));
   }
   const countByItem = new Map(counts.map((count) => [count.itemId, count._count._all]));
+  const uniqueCountByItem = new Map(uniqueCounts.map((count) => [count.itemId, Number(count.uniqueCount)]));
   const myReactionByItem = new Map(myReactions.map((reaction) => [reaction.itemId, reaction.emoji]));
 
   return NextResponse.json({
     items: items.map((item) => {
       const reactions = previewByItem.get(item.id) ?? [];
-      // De teller blijft over alle reacties gaan; de preview zelf bevat bewust
-      // hooguit vijf rijen en mag dus geen vertekend aantal tonen.
+      // De teller gaat over alle reacties; de feedpreview bevat bewust maar
+      // drie unieke reageerders en mag dus geen vertekend aantal tonen.
       const reactionCount = countByItem.get(item.id) ?? 0;
       const myReaction = myReactionByItem.get(item.id) ?? null;
       const reason = item.xpReason
@@ -110,6 +124,7 @@ export async function GET() {
         createdAt: item.updatedAt,
         actor: item.user,
         reactionCount,
+        uniqueReactionCount: uniqueCountByItem.get(item.id) ?? 0,
         reactions: reactions.map((reaction) => ({
           id: reaction.userId,
           handle: reaction.handle,

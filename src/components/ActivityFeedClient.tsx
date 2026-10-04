@@ -18,6 +18,7 @@ interface FeedItem {
   actor: { id: string; handle: string; discriminator: string; avatarEmoji: string | null };
   text: string;
   reactionCount: number;
+  uniqueReactionCount: number;
   reactions: Reaction[];
   myReaction: string | null;
   canReact: boolean;
@@ -28,6 +29,7 @@ export default function ActivityFeedClient() {
   const uiLanguage = useUiLanguage();
   const [items, setItems] = useState<FeedItem[] | null>(null);
   const [openReactions, setOpenReactions] = useState<string | null>(null);
+  const [reactionDetailsItemId, setReactionDetailsItemId] = useState<string | null>(null);
   const [expandedReactions, setExpandedReactions] = useState<Record<string, { reactions: Reaction[]; nextCursor: string | null; loading: boolean }>>({});
   const [error, setError] = useState<string | null>(null);
 
@@ -48,6 +50,15 @@ export default function ActivityFeedClient() {
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, []);
+
+  useEffect(() => {
+    if (!reactionDetailsItemId) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setReactionDetailsItemId(null);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [reactionDetailsItemId]);
 
   async function react(item: FeedItem, emoji: string) {
     if (!item.canReact) return;
@@ -92,9 +103,16 @@ export default function ActivityFeedClient() {
     });
   }
 
+  function openReactionDetails(itemId: string) {
+    setReactionDetailsItemId(itemId);
+    if (!expandedReactions[itemId]) void loadAllReactions(itemId);
+  }
+
   if (!items) return <p className="text-slate-400 dark:text-slate-500">{error ?? t("common.loading")}</p>;
 
   const locale = getLanguage(uiLanguage).intlLocale;
+  const detailsItem = items.find((item) => item.id === reactionDetailsItemId) ?? null;
+  const details = detailsItem ? expandedReactions[detailsItem.id] : null;
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-4 sm:gap-5">
       <div>
@@ -114,10 +132,24 @@ export default function ActivityFeedClient() {
       ) : (
         <div className="flex flex-col gap-2.5">
           {items.map((item) => {
-            const fullReactions = expandedReactions[item.id];
-            const displayedReactions = fullReactions?.reactions ?? item.reactions;
+            const names = item.reactions.slice(0, 3).map((reaction) => `${reaction.handle}#${reaction.discriminator}`);
+            // Bij grotere groepen noemen we twee mensen en vat de teller de
+            // rest samen; de derde avatar blijft als visuele context staan.
+            const otherReactors = Math.max(0, item.uniqueReactionCount - 2);
+            let reactionSummary: string | null = null;
+            if (item.uniqueReactionCount === 1 && names[0] && item.reactions[0]) {
+              reactionSummary = t("activityFeed.reactionSummaryOne", { name: names[0], emoji: item.reactions[0].emoji });
+            } else if (item.uniqueReactionCount === 2 && names.length >= 2) {
+              reactionSummary = t("activityFeed.reactionSummaryTwo", { first: names[0], second: names[1] });
+            } else if (item.uniqueReactionCount === 3 && names.length >= 3) {
+              reactionSummary = t("activityFeed.reactionSummaryThree", { first: names[0], second: names[1], third: names[2] });
+            } else if (otherReactors === 1 && names.length >= 2) {
+              reactionSummary = t("activityFeed.reactionSummaryMoreOne", { first: names[0], second: names[1] });
+            } else if (otherReactors > 1 && names.length >= 2) {
+              reactionSummary = t("activityFeed.reactionSummaryMore", { first: names[0], second: names[1], others: otherReactors });
+            }
             return (
-              <article id={`activity-${item.id}`} key={item.id} className="card !bg-vs-subtle dark:!bg-vs-surface flex flex-col gap-2 !p-3 sm:!p-4 sm:gap-2.5 scroll-mt-20">
+              <article id={`activity-${item.id}`} key={item.id} className="card !bg-vs-subtle dark:!bg-vs-surface flex flex-col gap-1.5 !p-3 sm:!p-4 sm:gap-2 scroll-mt-20">
                 <div className="flex items-start gap-3">
                   <UserAvatar id={item.actor.id} handle={item.actor.handle} avatarEmoji={item.actor.avatarEmoji} size="sm" />
                   <div className="min-w-0 flex-1">
@@ -132,49 +164,34 @@ export default function ActivityFeedClient() {
                   {item.achievementIcon && <span className="text-2xl" aria-hidden>{item.achievementIcon}</span>}
                 </div>
 
-                {fullReactions && <p className="text-xs font-bold text-vs-fg-2">{t("activityFeed.allReactions")}</p>}
-                <div className="flex min-h-9 flex-wrap items-center gap-1.5" aria-label={t("activityFeed.reactions")}>
-                  {displayedReactions.map((reaction) => {
-                    const label = `${reaction.handle}#${reaction.discriminator}`;
-                    const content = (
-                      <>
-                        <UserAvatar id={reaction.id} handle={reaction.handle} avatarEmoji={reaction.avatarEmoji} size="xs" className="!h-6 !w-6" />
-                        <span className="max-w-[10rem] truncate">{label}</span>
-                        <span aria-hidden>{reaction.emoji}</span>
-                      </>
-                    );
-                    return item.canReact ? (
-                      <button
-                        key={`${reaction.id}-${reaction.createdAt}`}
-                        type="button"
-                        onClick={() => react(item, reaction.emoji)}
-                        className="inline-flex min-h-9 max-w-full items-center gap-1 rounded-full border border-slate-200 px-2 py-1 text-xs dark:border-slate-600"
-                        aria-label={t("activityFeed.reactWith", { emoji: reaction.emoji })}
-                      >
-                        {content}
-                      </button>
-                    ) : (
-                      <span key={`${reaction.id}-${reaction.createdAt}`} className="inline-flex min-h-9 max-w-full items-center gap-1 rounded-full border border-slate-200 px-2 py-1 text-xs dark:border-slate-600">
-                        {content}
+                <div className="flex min-w-0 items-center gap-2">
+                  {reactionSummary && (
+                    <button
+                      type="button"
+                      className="flex min-h-9 min-w-0 flex-1 items-center gap-2 rounded-lg px-1 py-1 text-left text-xs text-vs-fg-2 transition-colors hover:bg-vs-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent"
+                      onClick={() => openReactionDetails(item.id)}
+                      aria-label={reactionSummary}
+                    >
+                      <span className="flex shrink-0 -space-x-2" aria-hidden>
+                        {item.reactions.slice(0, 3).map((reaction) => (
+                          <UserAvatar
+                            key={reaction.id}
+                            id={reaction.id}
+                            handle={reaction.handle}
+                            avatarEmoji={reaction.avatarEmoji}
+                            size="xs"
+                            className="!h-6 !w-6 ring-2 ring-vs-subtle dark:ring-vs-surface"
+                          />
+                        ))}
                       </span>
-                    );
-                  })}
-                  {displayedReactions.length === 0 && <span className="text-xs text-vs-fg-3">{t("activityFeed.noReactions")}</span>}
-                  {!fullReactions && item.reactionCount > item.reactions.length && (
-                    <button type="button" className="min-h-9 rounded-full px-2 text-xs font-bold text-vs-accent hover:bg-vs-accent-soft" onClick={() => loadAllReactions(item.id)}>
-                      {t(item.reactionCount - item.reactions.length === 1 ? "activityFeed.viewOtherReaction" : "activityFeed.viewOtherReactions", { count: item.reactionCount - item.reactions.length })}
-                    </button>
-                  )}
-                  {fullReactions?.nextCursor && (
-                    <button type="button" className="min-h-9 rounded-full px-2 text-xs font-bold text-vs-accent hover:bg-vs-accent-soft" disabled={fullReactions.loading} onClick={() => loadAllReactions(item.id, fullReactions.nextCursor)}>
-                      {fullReactions.loading ? t("common.loading") : t("activityFeed.loadMoreReactions")}
+                      <span className="min-w-0 truncate">{reactionSummary}</span>
                     </button>
                   )}
                   {item.canReact && (
-                    <div className="relative ml-auto">
+                    <div className="relative ml-auto shrink-0">
                       <button
                         type="button"
-                        className="btn-secondary !min-h-9 !border !border-vs-line !bg-transparent !px-2.5 !py-1 text-xs !shadow-none text-vs-accent hover:!bg-vs-accent-soft dark:!border-vs-line dark:!bg-transparent dark:text-vs-accent dark:hover:!bg-vs-accent-soft"
+                        className="btn-secondary !min-h-9 !border-0 !bg-transparent !px-2 !py-1 text-xs !shadow-none text-vs-accent hover:!bg-vs-accent-soft dark:!border-0 dark:!bg-transparent dark:text-vs-accent dark:hover:!bg-vs-accent-soft"
                         onClick={() => setOpenReactions(openReactions === item.id ? null : item.id)}
                         aria-expanded={openReactions === item.id}
                       >
@@ -201,6 +218,70 @@ export default function ActivityFeedClient() {
               </article>
             );
           })}
+        </div>
+      )}
+
+      {detailsItem && reactionDetailsItemId && (
+        <div
+          className="fixed inset-0 z-[70] flex items-end justify-center bg-slate-900/50 px-0 backdrop-blur-sm sm:items-center sm:px-4"
+          role="presentation"
+          onClick={() => setReactionDetailsItemId(null)}
+        >
+          <div
+            className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-t-3xl bg-white shadow-2xl dark:bg-slate-900 sm:rounded-3xl"
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={`activity-reactions-title-${detailsItem.id}`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex justify-center pb-1 pt-2 sm:hidden" aria-hidden>
+              <div className="h-1.5 w-10 rounded-full bg-slate-300 dark:bg-slate-600" />
+            </div>
+            <div className="flex items-center justify-between gap-3 px-5 pb-3 pt-4">
+              <h2 id={`activity-reactions-title-${detailsItem.id}`} className="text-xl font-extrabold text-vs-fg">
+                {t("activityFeed.allReactions")}
+              </h2>
+              <button
+                type="button"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-vs-subtle text-vs-fg-2 hover:bg-vs-accent-soft"
+                onClick={() => setReactionDetailsItemId(null)}
+                aria-label={t("common.close")}
+              >
+                ×
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4">
+              {!details || details.loading ? (
+                <p className="py-8 text-center text-sm text-vs-fg-3">{t("common.loading")}</p>
+              ) : (
+                <div className="flex flex-col divide-y divide-vs-line">
+                  {details.reactions.map((reaction) => (
+                    <div key={`${reaction.id}-${reaction.createdAt}`} className="flex min-h-14 items-center gap-3 py-2.5">
+                      <UserAvatar id={reaction.id} handle={reaction.handle} avatarEmoji={reaction.avatarEmoji} size="sm" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold text-vs-fg">{reaction.handle}#{reaction.discriminator}</p>
+                        <time className="text-xs text-vs-fg-3" dateTime={reaction.createdAt}>
+                          {new Date(reaction.createdAt).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" })}
+                        </time>
+                      </div>
+                      <span className="text-xl" aria-label={t("activityFeed.reactionBy", { name: `${reaction.handle}#${reaction.discriminator}`, emoji: reaction.emoji })}>{reaction.emoji}</span>
+                    </div>
+                  ))}
+                  {details.nextCursor && (
+                    <button
+                      type="button"
+                      className="mx-auto mt-3 min-h-10 rounded-full px-3 text-sm font-bold text-vs-accent hover:bg-vs-accent-soft"
+                      disabled={details.loading}
+                      onClick={() => loadAllReactions(detailsItem.id, details.nextCursor)}
+                    >
+                      {details.loading ? t("common.loading") : t("activityFeed.loadMoreReactions")}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
