@@ -192,7 +192,7 @@ function extractLessonLinks(html: string, year: number, month: number): string[]
   const pattern = /<a\b[^>]*href=["']([^"']*\/fsy-lessons\/[^"'#?]+)(?:\?[^"']*)?["'][^>]*>/gi;
 
   for (const match of html.matchAll(pattern)) {
-    let href = decodeHtml(match[1]);
+    const href = decodeHtml(match[1]);
     try {
       const url = new URL(href, FSY_BASE_URL);
       const expectedPath = `/study/ftsoy/${year}/${String(month).padStart(2, "0")}/fsy-lessons/`;

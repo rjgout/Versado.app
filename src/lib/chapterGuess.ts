@@ -8,7 +8,7 @@ import type { ChapterGuessLevel } from "@/generated/prisma/client";
 export const QUESTION_COUNT_OPTIONS = [5, 10, 15] as const;
 export const BEGINNER_OPTION_COUNT = 4;
 
-// Interne signaal-errors om binnen een transactie (zie useChapterGuessHint)
+// Interne signaal-errors om binnen een transactie (zie chapterGuessHint)
 // af te breken met een specifieke reden, zonder de foutmelding zelf al
 // binnen de transactie te construeren.
 class HintAlreadyUsedError extends Error {}
@@ -317,7 +317,7 @@ export interface HintResult {
   bookName?: string; // ADVANCED
 }
 
-export async function useChapterGuessHint(
+export async function chapterGuessHint(
   gameId: string,
   userId: string
 ): Promise<(HintResult & { hintCredits: number }) | { error: string }> {

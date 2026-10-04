@@ -58,7 +58,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ gameId:
     myScore: isPlayer1 ? game.player1Score : game.player2Score,
     opponentScore: isPlayer1 ? game.player2Score : game.player1Score,
     // Eén gedeeld tegoed (verdiend of gekocht, overal inzetbaar) — zie
-    // useHint in src/lib/scrabbleGame.ts.
+    // scrabbleHint in src/lib/scrabbleGame.ts.
     myHintCredits: user.hintBalance,
     isMyTurn: game.status === "ACTIVE" && game.turnUserId === user.id,
     opponent: { id: opponent.id, displayName: opponent.handle },

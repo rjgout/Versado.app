@@ -93,7 +93,7 @@ export async function importIntroPersons(
 
   // Pass 2: Verbind familierelaties
   for (const p of persons) {
-    const updates: Record<string, string | null> = {};
+    const updates: Prisma.PersonUncheckedUpdateInput = {};
 
     if (p.fatherSlug) {
       const father = await prisma.person.findUnique({ where: { slug: p.fatherSlug } });
@@ -106,7 +106,7 @@ export async function importIntroPersons(
     }
 
     if (Object.keys(updates).length > 0) {
-      await prisma.person.update({ where: { slug: p.slug }, data: updates as any });
+      await prisma.person.update({ where: { slug: p.slug }, data: updates });
     }
   }
   log(`  - ${persons.length} personen`);

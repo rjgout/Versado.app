@@ -352,7 +352,7 @@ test("bevriezing: aangeboden, niet nodig, wel nodig, wachttijd per groep", { ski
   assert.equal(await freezes(q[0]), 1, "gereserveerd");
   await rejects(L.freeze.offerGroupFreeze(q[1], gid, noon(D1)), "together.errors.groupFreezeAlreadyOffered");
   assert.equal(await freezes(q[1]), 1);
-  let detail = (await L.views.groupDetail(gid, q[2], "Europe/Amsterdam", noon(D1)))!;
+  const detail = (await L.views.groupDetail(gid, q[2], "Europe/Amsterdam", noon(D1)))!;
   assert.equal(detail.today.protectedBy?.id, q[0]);
   assert.equal(detail.today.achieved, false, "beschermd is niet gehaald");
   // Het doel wordt toch gehaald: de bevriezing gaat terug, zonder wachttijd.

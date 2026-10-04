@@ -220,7 +220,7 @@ export async function placeMove(
       },
     }),
     // Eén gedeeld hint-tegoed (User.hintBalance) i.p.v. een los per-partij
-    // tegoed — zie useHint hieronder voor dezelfde reden.
+    // tegoed — zie scrabbleHint hieronder voor dezelfde reden.
     prisma.user.update({ where: { id: userId }, data: { hintBalance: { increment: 1 } } }),
   ]);
 
@@ -397,7 +397,7 @@ export interface HintActionResult {
  * placeMove hierboven). Geen tegoed of geen spelbaar woord gevonden? Dan
  * wordt er niets afgeschreven.
  */
-export async function useHint(gameId: string, userId: string): Promise<HintActionResult> {
+export async function scrabbleHint(gameId: string, userId: string): Promise<HintActionResult> {
   const game = await prisma.scrabbleGame.findUnique({ where: { id: gameId } });
   if (!game) return { ok: false, error: "Spel niet gevonden." };
   if (game.status !== "ACTIVE") return { ok: false, error: "Dit spel is niet actief." };

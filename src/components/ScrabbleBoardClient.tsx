@@ -312,7 +312,7 @@ export default function ScrabbleBoardClient({ gameId }: { gameId: string }) {
     }
     setHintIndices(body.usedIndices ?? []);
     setHintSecondsLeft(10);
-    // Eén gedeeld tegoed (zie useHint in scrabbleGame.ts) dat overal
+    // Eén gedeeld tegoed (zie scrabbleHint in scrabbleGame.ts) dat overal
     // hetzelfde moet tonen — de server-waarde overnemen i.p.v. lokaal
     // aftrekken voorkomt dat dit scherm uit de pas gaat lopen met andere
     // schermen (winkel, Raad het hoofdstuk) die hetzelfde tegoed tonen.

@@ -143,7 +143,7 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
     resetInputs();
   }
 
-  async function useHint() {
+  async function requestHint() {
     if (hintLoading || hint || !game) return;
     setHintLoading(true);
     setError(null);
@@ -248,7 +248,7 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
         </span>
         <div className="flex items-center gap-2">
           {game.level !== "EXPERT" && (
-            <button className="btn-secondary !px-3 !py-1.5 !text-xs" disabled={hintLoading || hint !== null || answered} onClick={useHint}>
+            <button className="btn-secondary !px-3 !py-1.5 !text-xs" disabled={hintLoading || hint !== null || answered} onClick={requestHint}>
               {t("chapterGuess.hintButton", { n: game.hintCredits })}
             </button>
           )}

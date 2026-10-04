@@ -3,7 +3,15 @@
 import { useState, useMemo } from "react";
 import { useT } from "@/components/I18nProvider";
 
-export default function PersonsSearch({ persons }: { persons: any[] }) {
+type PersonLink = { slug: string; name: string };
+type PersonEntry = PersonLink & {
+  description: string | null;
+  father: PersonLink | null;
+  mother: PersonLink | null;
+  children: PersonLink[];
+};
+
+export default function PersonsSearch({ persons }: { persons: PersonEntry[] }) {
   const t = useT();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -86,7 +94,7 @@ export default function PersonsSearch({ persons }: { persons: any[] }) {
                   {person.children.length > 0 && (
                     <p>
                       {t("persons.children")}{" "}
-                      {person.children.map((c: any, i: number) => (
+                      {person.children.map((c, i) => (
                         <span key={c.slug}>
                           <a href={`#${c.slug}`} className="font-bold text-brand-600 dark:text-brand-300 hover:underline">
                             {c.name}
