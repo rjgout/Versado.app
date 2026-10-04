@@ -1,0 +1,108 @@
+{
+  "id": "mysterie-001a-ontdekker",
+  "title": "Vertrek uit Jeruzalem",
+  "status": "complete",
+  "missingAssets": [],
+  "generator": "built-in imagegen",
+  "nativeResolution": [
+    1254,
+    1254
+  ],
+  "technicalExport": "Vier personages proportioneel geschaald, transparante marge en dezelfde baseline; geen hertekening bij technische export. Bord op oorspronkelijke gegenereerde resolutie.",
+  "grid": {
+    "rows": 4,
+    "columns": 4,
+    "boundsNormalized": {
+      "left": 0.09,
+      "top": 0.13,
+      "right": 0.91,
+      "bottom": 0.87
+    },
+    "cellWidthNormalized": 0.205,
+    "cellHeightNormalized": 0.185,
+    "feetWithinCell": [
+      0.5,
+      0.8
+    ],
+    "maximumCharacterHeightCellFraction": 0.65,
+    "altarCell": "R4C1",
+    "tentCell": "R3C3",
+    "renderInstruction": "Gebruik het volledige bord zonder uitsnede. Zet de voeten op het celanker. Schaal de zichtbare personagehoogte tot maximaal 65% van de celhoogte."
+  },
+  "assets": [
+    {
+      "filename": "board.png",
+      "width": 1254,
+      "height": 1254,
+      "description": "Leeg wildernisbord met Jeruzalem, tent, rivier en stenen altaar.",
+      "transparent": false,
+      "transparentPixelFraction": 0,
+      "designedForGrid": [
+        4,
+        4
+      ]
+    },
+    {
+      "filename": "lehi.png",
+      "width": 1254,
+      "height": 1254,
+      "description": "Waardige vader met grijzende baard, crème tuniek en terracotta mantel.",
+      "transparent": true,
+      "transparentPixelFraction": 0.8218326554388,
+      "footAnchorPixels": [
+        627,
+        1149
+      ],
+      "visibleHeightPixels": 1050
+    },
+    {
+      "filename": "laman.png",
+      "width": 1254,
+      "height": 1254,
+      "description": "Jonge volwassen zoon, donkere baard, okergele tuniek en bruin vest.",
+      "transparent": true,
+      "transparentPixelFraction": 0.8441230486685032,
+      "footAnchorPixels": [
+        627,
+        1149
+      ],
+      "visibleHeightPixels": 1050
+    },
+    {
+      "filename": "lemuel.png",
+      "width": 1254,
+      "height": 1254,
+      "description": "Jonge volwassen zoon, gladgeschoren, blauwe tuniek en crème sjerp.",
+      "transparent": true,
+      "transparentPixelFraction": 0.8544936903662665,
+      "footAnchorPixels": [
+        627,
+        1149
+      ],
+      "visibleHeightPixels": 1050
+    },
+    {
+      "filename": "sariah.png",
+      "width": 1254,
+      "height": 1254,
+      "description": "Warme volwassen moeder met saliegroene jurk, crème hoofddoek en omslagdoek.",
+      "transparent": true,
+      "transparentPixelFraction": 0.8237086299916822,
+      "footAnchorPixels": [
+        627,
+        1149
+      ],
+      "visibleHeightPixels": 1050
+    }
+  ],
+  "logicValidation": {
+    "uniqueSolutionCount": 1,
+    "solution": {
+      "laman": "R1C3",
+      "lemuel": "R2C1",
+      "sariah": "R3C4",
+      "lehi": "R4C2"
+    },
+    "note": "Posities zijn uitsluitend puzzellogica, geen historische of Schriftuurlijke beweringen."
+  }
+}
