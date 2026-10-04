@@ -4,25 +4,10 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
 import { ACTIVITY_REACTION_BATCH_WINDOW_MS } from "@/lib/activityReactionNotifications";
+import { visibleActivityItem } from "@/lib/activityFeedVisibility";
 
 const REACTIONS = ["🫶🏻", "❤️", "🎉", "🔥", "🙌"] as const;
 const schema = z.object({ emoji: z.enum(REACTIONS) });
-
-async function visibleItem(itemId: string, userId: string): Promise<{ userId: string } | null> {
-  const item = await prisma.activityFeedItem.findUnique({ where: { id: itemId }, select: { userId: true } });
-  if (!item || item.userId === userId) return null;
-  const friendship = await prisma.friendship.findFirst({
-    where: {
-      status: "ACCEPTED",
-      OR: [
-        { senderId: userId, receiverId: item.userId },
-        { senderId: item.userId, receiverId: userId },
-      ],
-    },
-    select: { id: true },
-  });
-  return friendship ? item : null;
-}
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ itemId: string }> }) {
   const user = await getCurrentUser();
@@ -30,8 +15,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ite
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return await apiError("apiErrors.invalidInput", 400);
   const { itemId } = await params;
-  const item = await visibleItem(itemId, user.id);
-  if (!item) return await apiError("apiErrors.forbidden", 403);
+  const item = await visibleActivityItem(itemId, user.id);
+  if (!item || item.userId === user.id) return await apiError("apiErrors.forbidden", 403);
 
   const result = await prisma.$transaction(async (tx) => {
     // De itemrij is de kleine kritieke sectie: hierdoor kunnen twee reacties

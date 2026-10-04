@@ -57,6 +57,10 @@ export const nl = {
     reactions: "Reacties",
     reactionBy: "{name} reageerde met {emoji}",
     noReactions: "Nog geen reacties",
+    allReactions: "Alle reacties",
+    viewOtherReaction: "Bekijk 1 andere reactie",
+    viewOtherReactions: "Bekijk {count} andere reacties",
+    loadMoreReactions: "Meer reacties laden",
   },
   common: {
     loading: "Laden...",

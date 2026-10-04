@@ -7,6 +7,7 @@ import { getLanguage } from "@/lib/languages";
 import PersonalMascot from "@/components/versado/PersonalMascot";
 
 const REACTIONS = ["🫶🏻", "❤️", "🎉", "🔥", "🙌"] as const;
+type Reaction = { id: string; handle: string; discriminator: string; avatarEmoji: string | null; emoji: string; createdAt: string };
 
 interface FeedItem {
   id: string;
@@ -16,8 +17,8 @@ interface FeedItem {
   createdAt: string;
   actor: { id: string; handle: string; discriminator: string; avatarEmoji: string | null };
   text: string;
-  reactionCounts: Record<string, number>;
-  reactions: { id: string; handle: string; discriminator: string; avatarEmoji: string | null; emoji: string; createdAt: string }[];
+  reactionCount: number;
+  reactions: Reaction[];
   myReaction: string | null;
   canReact: boolean;
 }
@@ -27,6 +28,7 @@ export default function ActivityFeedClient() {
   const uiLanguage = useUiLanguage();
   const [items, setItems] = useState<FeedItem[] | null>(null);
   const [openReactions, setOpenReactions] = useState<string | null>(null);
+  const [expandedReactions, setExpandedReactions] = useState<Record<string, { reactions: Reaction[]; nextCursor: string | null; loading: boolean }>>({});
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
@@ -56,7 +58,38 @@ export default function ActivityFeedClient() {
       body: JSON.stringify({ emoji }),
     });
     if (!response.ok) return;
+    setExpandedReactions((current) => {
+      const next = { ...current };
+      delete next[item.id];
+      return next;
+    });
     await load();
+  }
+
+  async function loadAllReactions(itemId: string, cursor?: string | null) {
+    const current = expandedReactions[itemId];
+    setExpandedReactions((state) => ({
+      ...state,
+      [itemId]: { reactions: cursor ? current?.reactions ?? [] : [], nextCursor: current?.nextCursor ?? null, loading: true },
+    }));
+    const suffix = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+    const response = await fetch(`/api/activity-feed/${encodeURIComponent(itemId)}/reactions${suffix}`, { cache: "no-store" });
+    if (!response.ok) {
+      setExpandedReactions((state) => ({ ...state, [itemId]: { ...(state[itemId] ?? { reactions: [], nextCursor: null }), loading: false } }));
+      return;
+    }
+    const data = (await response.json()) as { reactions: Reaction[]; nextCursor: string | null };
+    setExpandedReactions((state) => {
+      const previous = state[itemId];
+      return {
+        ...state,
+        [itemId]: {
+          reactions: cursor ? [...(previous?.reactions ?? []), ...data.reactions] : data.reactions,
+          nextCursor: data.nextCursor,
+          loading: false,
+        },
+      };
+    });
   }
 
   if (!items) return <p className="text-slate-400 dark:text-slate-500">{error ?? t("common.loading")}</p>;
@@ -81,7 +114,8 @@ export default function ActivityFeedClient() {
       ) : (
         <div className="flex flex-col gap-2.5">
           {items.map((item) => {
-            const reactionEntries = Object.entries(item.reactionCounts).filter(([, count]) => count > 0);
+            const fullReactions = expandedReactions[item.id];
+            const displayedReactions = fullReactions?.reactions ?? item.reactions;
             return (
               <article id={`activity-${item.id}`} key={item.id} className="card !bg-vs-subtle dark:!bg-vs-surface flex flex-col gap-2 !p-3 sm:!p-4 sm:gap-2.5 scroll-mt-20">
                 <div className="flex items-start gap-3">
@@ -98,8 +132,9 @@ export default function ActivityFeedClient() {
                   {item.achievementIcon && <span className="text-2xl" aria-hidden>{item.achievementIcon}</span>}
                 </div>
 
+                {fullReactions && <p className="text-xs font-bold text-vs-fg-2">{t("activityFeed.allReactions")}</p>}
                 <div className="flex min-h-9 flex-wrap items-center gap-1.5" aria-label={t("activityFeed.reactions")}>
-                  {item.reactions.map((reaction) => {
+                  {displayedReactions.map((reaction) => {
                     const label = `${reaction.handle}#${reaction.discriminator}`;
                     const content = (
                       <>
@@ -114,7 +149,7 @@ export default function ActivityFeedClient() {
                         type="button"
                         onClick={() => react(item, reaction.emoji)}
                         className="inline-flex min-h-9 max-w-full items-center gap-1 rounded-full border border-slate-200 px-2 py-1 text-xs dark:border-slate-600"
-                        aria-label={t("activityFeed.reactionBy", { name: label, emoji: reaction.emoji })}
+                        aria-label={t("activityFeed.reactWith", { emoji: reaction.emoji })}
                       >
                         {content}
                       </button>
@@ -124,7 +159,17 @@ export default function ActivityFeedClient() {
                       </span>
                     );
                   })}
-                  {item.reactions.length === 0 && reactionEntries.length === 0 && <span className="text-xs text-vs-fg-3">{t("activityFeed.noReactions")}</span>}
+                  {displayedReactions.length === 0 && <span className="text-xs text-vs-fg-3">{t("activityFeed.noReactions")}</span>}
+                  {!fullReactions && item.reactionCount > item.reactions.length && (
+                    <button type="button" className="min-h-9 rounded-full px-2 text-xs font-bold text-vs-accent hover:bg-vs-accent-soft" onClick={() => loadAllReactions(item.id)}>
+                      {t(item.reactionCount - item.reactions.length === 1 ? "activityFeed.viewOtherReaction" : "activityFeed.viewOtherReactions", { count: item.reactionCount - item.reactions.length })}
+                    </button>
+                  )}
+                  {fullReactions?.nextCursor && (
+                    <button type="button" className="min-h-9 rounded-full px-2 text-xs font-bold text-vs-accent hover:bg-vs-accent-soft" disabled={fullReactions.loading} onClick={() => loadAllReactions(item.id, fullReactions.nextCursor)}>
+                      {fullReactions.loading ? t("common.loading") : t("activityFeed.loadMoreReactions")}
+                    </button>
+                  )}
                   {item.canReact && (
                     <div className="relative ml-auto">
                       <button

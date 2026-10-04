@@ -112,6 +112,10 @@ export const en: PartialMessages = {
     reactions: "Reactions",
     reactionBy: "{name} reacted with {emoji}",
     noReactions: "No reactions yet",
+    allReactions: "All reactions",
+    viewOtherReaction: "View 1 other reaction",
+    viewOtherReactions: "View {count} other reactions",
+    loadMoreReactions: "Load more reactions",
   },
   common: {
     loading: "Loading...",

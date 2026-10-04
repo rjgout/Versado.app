@@ -112,6 +112,10 @@ export const fr: PartialMessages = {
     reactions: "Réactions",
     reactionBy: "{name} a réagi avec {emoji}",
     noReactions: "Aucune réaction pour le moment",
+    allReactions: "Toutes les réactions",
+    viewOtherReaction: "Voir 1 autre réaction",
+    viewOtherReactions: "Voir {count} autres réactions",
+    loadMoreReactions: "Charger plus de réactions",
   },
   common: {
     loading: "Chargement...",
