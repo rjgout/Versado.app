@@ -7,13 +7,15 @@
 import { prisma } from "@/lib/db";
 import { addDays, daysBetween } from "@/lib/dates";
 import { dayKeyInZone, resolveTimeZone } from "@/lib/timeZone";
-import { notifyGroupAdminAssigned, notifyGroupInvite } from "@/lib/notify";
+import { notifyGroupAdminAssigned, notifyGroupInvite, notifyGroupMemberPauseEnded, notifyGroupMemberPaused } from "@/lib/notify";
 import {
   ADMIN_INACTIVE_DAYS,
   GROUP_LIMIT_PER_USER,
   GROUP_MAX_MEMBERS,
   GROUP_NAME_MAX_LENGTH,
   GROUP_REJOIN_COOLDOWN_DAYS,
+  GROUP_STREAK_PAUSE_COOLDOWN_DAYS,
+  GROUP_STREAK_PAUSE_MAX_DAYS,
   dayEndsForAll,
 } from "@/lib/social/rules";
 import { SocialError, isUniqueViolation, lockGroup, lockUsers, recordSocialEvent, type Db, type Tx } from "@/lib/social/common";
@@ -48,7 +50,7 @@ export async function requireAdmin(db: Db, groupId: string, userId: string) {
  * Zo verandert het vereiste aantal van een lopende groepsdag nooit door
  * iemand die er halverwege bij komt.
  */
-async function nextEligibleDay(tx: Tx, groupId: string, joinerTimeZone: string | null, now: Date): Promise<string> {
+export async function nextEligibleDay(tx: Tx, groupId: string, joinerTimeZone: string | null, now: Date): Promise<string> {
   const rows = await tx.$queryRaw<{ timeZone: string | null }[]>`
     SELECT DISTINCT u."timeZone" FROM "GroupMembership" m JOIN "User" u ON u."id" = m."userId"
     WHERE m."groupId" = ${groupId} AND m."leftAt" IS NULL`;
@@ -175,6 +177,95 @@ export async function updateGroupSettings(
   if (changes.membersCanApprove !== undefined) data.membersCanApprove = changes.membersCanApprove;
   if (changes.showOnLeaderboard !== undefined) data.showOnLeaderboard = changes.showOnLeaderboard;
   await prisma.socialGroup.update({ where: { id: groupId }, data });
+}
+
+/**
+ * Zet één lid tijdelijk buiten de groepsreeks. De start ligt bewust na de
+ * nieuwste al begonnen lokale groepsdag, zodat een lopende dag niet achteraf
+ * van samenstelling verandert.
+ */
+export async function pauseMemberForGroupStreak(
+  adminId: string,
+  groupId: string,
+  memberId: string,
+  days: number,
+  now: Date = new Date()
+): Promise<{ userId: string; groupId: string; groupName: string; fromDay: string; untilDay: string }> {
+  if (!Number.isInteger(days) || days < 1 || days > GROUP_STREAK_PAUSE_MAX_DAYS) {
+    throw new SocialError("together.errors.groupPauseDurationInvalid", 400, { n: GROUP_STREAK_PAUSE_MAX_DAYS });
+  }
+  if (adminId === memberId) throw new SocialError("apiErrors.invalidInput", 400);
+
+  const result = await prisma.$transaction(async (tx) => {
+    await lockUsers(tx, [adminId, memberId]);
+    if (!(await lockGroup(tx, groupId))) throw new SocialError("together.errors.groupNotFound", 404);
+    await requireAdmin(tx, groupId, adminId);
+    const target = await activeMembership(tx, groupId, memberId);
+    if (!target) throw new SocialError("together.errors.groupMemberNotFound", 404);
+    const user = await tx.user.findUniqueOrThrow({ where: { id: memberId }, select: { timeZone: true } });
+    const group = await tx.socialGroup.findUniqueOrThrow({ where: { id: groupId }, select: { name: true } });
+    const fromDay = await nextEligibleDay(tx, groupId, user.timeZone, now);
+
+    if (target.streakPauseFromDay && target.streakPauseUntilDay && target.streakPauseUntilDay >= fromDay) {
+      throw new SocialError("together.errors.groupPauseAlreadyActive", 409);
+    }
+    const lastEnded = target.lastStreakPauseEndedDay ?? target.streakPauseUntilDay;
+    if (lastEnded && fromDay <= addDays(lastEnded, GROUP_STREAK_PAUSE_COOLDOWN_DAYS)) {
+      throw new SocialError("together.errors.groupPauseCooldown", 409, { date: addDays(lastEnded, GROUP_STREAK_PAUSE_COOLDOWN_DAYS + 1) });
+    }
+
+    const untilDay = addDays(fromDay, days - 1);
+    await tx.groupMembership.update({
+      where: { id: target.id },
+      data: { streakPauseFromDay: fromDay, streakPauseUntilDay: untilDay, lastStreakPauseEndedDay: null },
+    });
+    await recordSocialEvent(tx, { kind: "GROUP_MEMBER_PAUSED", groupId, userId: memberId, dayKey: fromDay, data: { untilDay, by: adminId } });
+    return { userId: memberId, groupId, groupName: group.name, fromDay, untilDay };
+  });
+  notifyGroupMemberPaused(result.userId, result.groupId, result.groupName).catch(() => {});
+  return result;
+}
+
+/**
+ * Een echte studiedag beëindigt een actieve groepspauze. De huidige dag blijft
+ * uitgesloten; pas de volgende groepsdag telt het lid weer mee. Bevroren
+ * dagen komen hier niet binnen en beëindigen de pauze dus niet.
+ */
+export async function endGroupStreakPausesForActivity(userIds: string[], now: Date = new Date()): Promise<{ userId: string; groupId: string; groupName: string }[]> {
+  if (userIds.length === 0) return [];
+  const memberships = await prisma.groupMembership.findMany({
+    where: { userId: { in: [...new Set(userIds)] }, leftAt: null, streakPauseFromDay: { not: null }, streakPauseUntilDay: { not: null } },
+    select: { groupId: true, userId: true },
+  });
+  const groupIds = [...new Set(memberships.map((m) => m.groupId))].sort();
+  const ended: { userId: string; groupId: string; groupName: string }[] = [];
+
+  for (const groupId of groupIds) {
+    const result = await prisma.$transaction(async (tx) => {
+      const candidateIds = memberships.filter((m) => m.groupId === groupId).map((m) => m.userId);
+      await lockUsers(tx, candidateIds);
+      if (!(await lockGroup(tx, groupId))) return [];
+      const rows = await tx.groupMembership.findMany({
+        where: { groupId, userId: { in: candidateIds }, leftAt: null, streakPauseFromDay: { not: null }, streakPauseUntilDay: { not: null } },
+        include: { group: { select: { name: true } }, user: { select: { timeZone: true } } },
+      });
+      const changed: { userId: string; groupId: string; groupName: string }[] = [];
+      for (const row of rows) {
+        const day = dayKeyInZone(now, resolveTimeZone(row.user.timeZone));
+        if (day < row.streakPauseFromDay! || day > row.streakPauseUntilDay!) continue;
+        // De minuuttaak kan dezelfde studiedag meerdere keren zien; de
+        // einddatum en het event moeten daarom idempotent blijven.
+        if (row.lastStreakPauseEndedDay === day) continue;
+        await tx.groupMembership.update({ where: { id: row.id }, data: { streakPauseUntilDay: day, lastStreakPauseEndedDay: day } });
+        await recordSocialEvent(tx, { kind: "GROUP_MEMBER_PAUSE_ENDED", groupId, userId: row.userId, dayKey: day, data: { reason: "activity" } });
+        changed.push({ userId: row.userId, groupId, groupName: row.group.name });
+      }
+      return changed;
+    });
+    ended.push(...result);
+    for (const item of result) notifyGroupMemberPauseEnded(item.userId, item.groupId, item.groupName).catch(() => {});
+  }
+  return ended;
 }
 
 /** Lid beheerder maken of de beheerdersrol afnemen. Er blijft altijd minstens één beheerder. */

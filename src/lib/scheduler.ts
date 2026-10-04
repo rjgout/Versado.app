@@ -380,10 +380,11 @@ async function runSocialTick(): Promise<void> {
     const now = new Date();
     const since = new Date(socialWatermark.getTime() - 5_000);
     socialWatermark = now;
-    const fresh = await prisma.streakDay.findMany({ where: { createdAt: { gt: since } }, select: { userId: true }, distinct: ["userId"] });
-    const userIds = fresh.map((row) => row.userId);
+    const fresh = await prisma.streakDay.findMany({ where: { createdAt: { gt: since } }, select: { userId: true, status: true } });
+    const userIds = [...new Set(fresh.map((row) => row.userId))];
+    const studiedUserIds = [...new Set(fresh.filter((row) => row.status === "STUDIED").map((row) => row.userId))];
     await refreshFriendStreaksFor(userIds, now);
-    await refreshGroupsFor(userIds, now);
+    await refreshGroupsFor(userIds, now, studiedUserIds);
     await refreshDueGroups(now);
     await refreshDueFriendStreaks(now);
     if (now.getTime() - lastAdminMaintenance >= 60 * 60_000) {

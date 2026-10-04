@@ -119,8 +119,12 @@ Bijwerken is idempotent en veilig om vaak aan te roepen:
   iedereen die meetelt hem voorbij is (`nextCheckAt`). De uitkomst is
   gehaald, beschermd (reeks blijft staan), gepauzeerd (reeks blijft staan)
   of gemist.
-- Bij gemist begint de reeks opnieuw. Latere dagen die al gehaald waren
-  (andere tijdzones liepen voor), tellen dan als begin van de nieuwe reeks.
+- Bij gemist wordt de reeks **onderbroken**: `SocialGroup.streakInterruptedDay`
+  wordt gevuld, maar `currentStreak` en de opgebouwde waarde blijven staan.
+  Extra gemiste dagen veranderen die waarde niet.
+- De eerstvolgende normale dag die het doel haalt, zet de reeks voort en telt
+  precies één dag op. Er is voor een groep geen aparte herstelopdracht en geen
+  deadline.
 
 Dit gebeurt op drie momenten:
 
@@ -148,6 +152,37 @@ relevant is:
 - **Beheerders, elk uur**: eerst alleen de beheerders zelf en een telling
   per groep (`adminMaintenanceCandidates`). Alleen groepen met een inactieve
   of ontbrekende beheerder laden daarna hun leden.
+
+### Statussen van een groepsreeks
+
+- **actief**: de groep kan een normale groepsdag halen;
+- **beschermd**: de dag werd niet gehaald, maar een aangeboden
+  reeksbevriezing houdt de reeks actief;
+- **gepauzeerd**: minder dan drie leden tellen voor die dag mee; er wordt
+  niets verloren en de reeks schuift niet op;
+- **onderbroken**: een dag werd gemist zonder groepsfreeze. De oude waarde
+  blijft bewaard en wordt hervat zodra de groep weer één normale groepsdag
+  behaalt.
+
+Een groepsfreeze voorkomt dus een onderbreking, maar is geen extra reeksdag.
+Een onderbroken groep hoeft alleen weer samen de bestaande
+`requiredContributors()`-voorwaarde te halen.
+
+### Tijdelijke pauze van een groepslid
+
+Een groepsbeheerder kan een ander lid voor maximaal 30 dagen pauzeren voor de
+groepsreeks. Het lid blijft lid, houdt zijn rol en sociale functies, en de
+persoonlijke reeks wordt niet geraakt. De pauze begint pas op de eerstvolgende
+veilige groepsdag en verandert lopende of afgesloten `GroupDay`-rijen nooit.
+
+Een lid telt tijdens de pauze niet mee voor `requiredContributors()`. Als er
+minder dan drie leden overblijven, geldt gewoon de bestaande status
+`PAUSED`. Na afloop telt het lid vanaf de juiste volgende groepsdag weer mee.
+Na het einde geldt per groep en lid een cooldown van 30 dagen voordat opnieuw
+een pauze kan worden ingesteld. Een echte geldige studieactiviteit tijdens de
+actieve pauze beëindigt die pauze automatisch voor toekomstige groepsdagen;
+een persoonlijke bevriezing doet dat niet. Er is geen automatische pauze of
+inactiviteitsregel voor gewone leden.
 
 Er wordt dus nooit elke minuut over alle gebruikers, groepen of leden
 gelopen. Een groep van 500 leden kost per afgesloten dag één keer het laden
@@ -323,8 +358,9 @@ Vanaf de eerste versie wordt elke betekenisvolle gebeurtenis vastgelegd, voor
 een latere tijdlijn:
 
 - groep gestart, lid erbij of weg, beheerderswissels;
-- reeks gestart, dag gehaald, perfecte dag, mijlpaal, verbroken, gepauzeerd of
-  hervat;
+- reeks gestart, dag gehaald, perfecte dag, mijlpaal, onderbroken, voortgezet,
+  gepauzeerd of hervat;
+- lid tijdelijk gepauzeerd of vroegtijdig door activiteit hervat;
 - bevriezing aangeboden, teruggegeven of gebruikt, en wie de reeks redde;
 - de dagen, mijlpalen en breuk van vriendenreeksen.
 

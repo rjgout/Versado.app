@@ -417,7 +417,7 @@ test("bevriezing: vertrekken geeft een gereserveerde bevriezing terug", { skip }
   assert.equal((await L.db.groupFreezeOffer.findFirstOrThrow({ where: { groupId: gid, dayKey: D1 } })).status, "CANCELLED");
 });
 
-test("groep gemist zonder bevriezing: reeks verbroken, eerdere prestaties blijven", { skip }, async () => {
+test("groep gemist zonder bevriezing: reeks blijft staan en wordt onderbroken", { skip }, async () => {
   const a = await user("Br1");
   const b = await user("Br2");
   const c = await user("Br3");
@@ -428,12 +428,87 @@ test("groep gemist zonder bevriezing: reeks verbroken, eerdere prestaties blijve
   await L.streak.refreshGroup(gid, morningAfter(D2));
   const g = await group(gid);
   assert.equal((await day(gid, D2))?.status, "MISSED");
-  assert.equal(g.currentStreak, 0);
+  assert.equal(g.currentStreak, 1);
+  assert.equal(g.streakInterruptedDay, D2);
   assert.equal(g.longestStreak, 1);
   assert.equal(await L.db.groupAchievement.count({ where: { groupId: gid } }), 2, "eerste dag en iedereen deed mee");
   // Eigen bijdrage, vanaf de eigen instapdag: 2 afgesloten dagen, A droeg 2 keer bij.
   const detail = (await L.views.groupDetail(gid, a, "Europe/Amsterdam", noon(D3)))!;
   assert.deepEqual({ days: detail.myContribution.days, contributed: detail.myContribution.contributed }, { days: 2, contributed: 2 });
+});
+
+test("onderbroken groepsreeks gaat verder met één normale groepsdag", { skip }, async () => {
+  const a = await user("Ci1");
+  const b = await user("Ci2");
+  const c = await user("Ci3");
+  const gid = await newGroup(a, "Verder", [b, c], noon(D0));
+  for (const id of [a, b, c]) await kept(id, D1);
+  await L.streak.refreshGroup(gid, morningAfter(D1));
+  await L.streak.refreshGroup(gid, morningAfter(D2));
+  let g = await group(gid);
+  assert.equal(g.currentStreak, 1);
+  assert.equal(g.streakInterruptedDay, D2);
+
+  for (const id of [a, b, c]) await kept(id, D3);
+  await L.streak.refreshGroup(gid, noon(D3));
+  g = await group(gid);
+  assert.equal(g.currentStreak, 2);
+  assert.equal(g.streakInterruptedDay, null);
+  assert.equal((await day(gid, D3))?.status, "ACHIEVED");
+  assert.ok((await L.db.socialEvent.findMany({ where: { groupId: gid }, select: { kind: true } })).some((e) => e.kind === "GROUP_STREAK_CONTINUED"));
+});
+
+test("pauze sluit een lid vanaf de volgende groepsdag uit en studeren beëindigt haar vroeg", { skip }, async () => {
+  const a = await user("Pz1");
+  const b = await user("Pz2");
+  const c = await user("Pz3");
+  const d = await user("Pz4");
+  const gid = await newGroup(a, "Pauze", [b, c, d], noon(D0));
+
+  for (const id of [a, b, c, d]) await kept(id, D1);
+  await L.streak.refreshGroup(gid, morningAfter(D1));
+  assert.equal((await day(gid, D1))?.status, "ACHIEVED");
+
+  const pause = await L.groups.pauseMemberForGroupStreak(a, gid, b, 7, noon(D1));
+  assert.equal(pause.fromDay, D2);
+  assert.equal(pause.untilDay, "2031-05-13");
+  assert.equal((await L.db.groupMembership.findUniqueOrThrow({ where: { groupId_userId: { groupId: gid, userId: b } } })).role, "MEMBER");
+  assert.deepEqual((await L.days.groupDayCounts(L.db, [gid], D1)).get(gid), { eligible: 4, contributors: 4 });
+  assert.deepEqual((await L.days.groupDayCounts(L.db, [gid], D2)).get(gid), { eligible: 3, contributors: 0 });
+
+  await L.streak.refreshGroupsFor([b], noon(D2), []);
+  assert.equal((await L.db.groupMembership.findUniqueOrThrow({ where: { groupId_userId: { groupId: gid, userId: b } } })).streakPauseUntilDay, "2031-05-13");
+  await L.groups.endGroupStreakPausesForActivity([b], noon(D2));
+  const membership = await L.db.groupMembership.findUniqueOrThrow({ where: { groupId_userId: { groupId: gid, userId: b } } });
+  assert.equal(membership.streakPauseUntilDay, D2);
+  assert.equal(membership.lastStreakPauseEndedDay, D2);
+  assert.deepEqual((await L.days.groupDayCounts(L.db, [gid], D2)).get(gid), { eligible: 3, contributors: 0 });
+  assert.deepEqual((await L.days.groupDayCounts(L.db, [gid], D3)).get(gid), { eligible: 4, contributors: 0 });
+
+  const e = await user("Pz5");
+  const f = await user("Pz6");
+  const g = await user("Pz7");
+  const small = await newGroup(e, "Te weinig", [f, g], noon(D0));
+  await L.groups.pauseMemberForGroupStreak(e, small, f, 1, noon(D1));
+  await L.streak.refreshGroup(small, morningAfter(D2));
+  assert.equal((await group(small)).paused, true);
+  assert.equal((await group(small)).streakInterruptedDay, null);
+});
+
+test("groepspauze is begrensd en heeft een groepsgebonden cooldown", { skip }, async () => {
+  const a = await user("Pc1");
+  const b = await user("Pc2");
+  const c = await user("Pc3");
+  const d = await user("Pc4");
+  const gid = await newGroup(a, "Cooldown", [b, c, d], noon(D0));
+  await rejects(L.groups.pauseMemberForGroupStreak(a, gid, b, 31, noon(D1)), "together.errors.groupPauseDurationInvalid");
+  await L.groups.pauseMemberForGroupStreak(a, gid, b, 1, noon(D1));
+  await L.groups.endGroupStreakPausesForActivity([b], noon(D2));
+  await rejects(L.groups.pauseMemberForGroupStreak(a, gid, b, 1, noon(D2)), "together.errors.groupPauseCooldown");
+  await L.groups.pauseMemberForGroupStreak(a, gid, b, 1, noon("2031-06-08"));
+  await L.groups.pauseMemberForGroupStreak(a, gid, c, 1, noon(D2));
+  const gid2 = await newGroup(a, "Andere cooldown", [b, c, d], noon(D0));
+  await L.groups.pauseMemberForGroupStreak(a, gid2, b, 1, noon("2031-06-08"));
 });
 
 // --- Seintjes en privacy -----------------------------------------------------

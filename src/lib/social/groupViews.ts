@@ -32,6 +32,7 @@ export interface GroupListItem {
   name: string;
   memberCount: number;
   currentStreak: number;
+  streakInterruptedDay: string | null;
   role: "ADMIN" | "MEMBER";
   today: GroupToday;
 }
@@ -82,7 +83,7 @@ function userDay(timeZone: string | null, now: Date): string {
 export async function listMyGroups(userId: string, timeZone: string | null, now: Date = new Date()) {
   const memberships = await prisma.groupMembership.findMany({
     where: { userId, leftAt: null },
-    include: { group: { select: { id: true, name: true, memberCount: true, currentStreak: true } } },
+    include: { group: { select: { id: true, name: true, memberCount: true, currentStreak: true, streakInterruptedDay: true } } },
     orderBy: { joinedAt: "asc" },
   });
   const today = await todayFor(memberships.map((m) => m.group), userId, userDay(timeZone, now));
@@ -107,6 +108,7 @@ export interface GroupMemberView {
   friend: { contributedToday: boolean; canNudge: boolean; nudgeAvailableAt: string | null } | null;
   /** Nog geen vrienden: kan de kijker een verzoek sturen (of loopt er al een)? */
   friendRequest: "none" | "pending" | null;
+  streakPause: { fromDay: string; untilDay: string; status: "scheduled" | "active" | "ended" } | null;
 }
 
 /** Het volledige groepsscherm voor een lid. Null = geen lid (zie publicGroup). */
@@ -121,7 +123,7 @@ export async function groupDetail(groupId: string, userId: string, timeZone: str
     todayFor([group], userId, dayKey).then((m) => m.get(groupId)!),
     prisma.groupMembership.findMany({
       where: { groupId, leftAt: null },
-      include: { user: { select: personSelect } },
+      include: { user: { select: { ...personSelect, timeZone: true } } },
       // ADMIN staat in de enum na MEMBER: aflopend zet beheerders bovenaan.
       orderBy: [{ role: "desc" }, { joinedAt: "asc" }],
     }),
@@ -173,6 +175,9 @@ export async function groupDetail(groupId: string, userId: string, timeZone: str
         ? { contributedToday: friendKept.has(m.userId), canNudge: !disabled.has(m.userId), nudgeAvailableAt: availability.get(m.userId) ?? null }
         : null,
       friendRequest: isMe || isFriend ? null : pendingIds.has(m.userId) ? "pending" : "none",
+      streakPause: m.streakPauseFromDay && m.streakPauseUntilDay
+        ? { fromDay: m.streakPauseFromDay, untilDay: m.streakPauseUntilDay, status: dayKeyInZone(now, resolveTimeZone(m.user.timeZone)) < m.streakPauseFromDay ? "scheduled" : dayKeyInZone(now, resolveTimeZone(m.user.timeZone)) <= m.streakPauseUntilDay ? "active" : "ended" }
+        : null,
     };
   });
 
@@ -191,6 +196,7 @@ export async function groupDetail(groupId: string, userId: string, timeZone: str
     maxMembers: GROUP_MAX_MEMBERS,
     currentStreak: group.currentStreak,
     longestStreak: group.longestStreak,
+    streakInterruptedDay: group.streakInterruptedDay,
     membersCanInvite: group.membersCanInvite,
     membersCanApprove: group.membersCanApprove,
     showOnLeaderboard: group.showOnLeaderboard,
@@ -220,7 +226,7 @@ export type GroupDetail = NonNullable<Awaited<ReturnType<typeof groupDetail>>>;
 export async function publicGroup(groupId: string) {
   const group = await prisma.socialGroup.findFirst({
     where: { id: groupId, showOnLeaderboard: true },
-    select: { id: true, name: true, memberCount: true, currentStreak: true, longestStreak: true, achievements: { select: { slug: true, achievedAt: true } } },
+    select: { id: true, name: true, memberCount: true, currentStreak: true, longestStreak: true, streakInterruptedDay: true, achievements: { select: { slug: true, achievedAt: true } } },
   });
   if (!group) return null;
   return { ...group, achievements: group.achievements.map((a) => ({ slug: a.slug, achievedAt: a.achievedAt.toISOString() })) };

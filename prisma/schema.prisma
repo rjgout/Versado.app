@@ -2522,6 +2522,9 @@ model SocialGroup {
   longestStreak     Int      @default(0)
   streakStartDay    String?
   lastAchievedDay   String?
+  // Een gemiste dag verbreekt de reeks niet meer: de waarde blijft staan en
+  // wordt hervat zodra de groep weer een normale groepsdag haalt.
+  streakInterruptedDay String?
   // Eerste groepsdag die nog niet definitief is afgesloten, en wanneer dat op
   // zijn vroegst kan (iedereen moet die dag in de eigen tijdzone voorbij zijn).
   nextDay           String
@@ -2563,6 +2566,11 @@ model GroupMembership {
   // Eerste groepsdag waarop dit lid meetelt: de dag na de laatste dag die bij
   // het toetreden al bij een van de leden was begonnen (zie groups.ts).
   eligibleFromDay String
+  // Tijdelijke uitsluiting voor de groepsreeks; persoonlijke voortgang en
+  // rol blijven intact. Beide grenzen gelden inclusief.
+  streakPauseFromDay      String?
+  streakPauseUntilDay     String?
+  lastStreakPauseEndedDay String?
   leftAt          DateTime?
   // Na vertrek of verwijdering pas na dit moment opnieuw lid.
   rejoinAfter     DateTime?

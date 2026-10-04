@@ -12,11 +12,13 @@
 
 import { prisma } from "@/lib/db";
 import { addDays } from "@/lib/dates";
-import { notifyGroupFreezeNotNeeded, notifyGroupFreezeUsed, notifyGroupMembersInApp } from "@/lib/notify";
+import { dayKeyInZone, resolveTimeZone } from "@/lib/timeZone";
+import { notifyGroupFreezeNotNeeded, notifyGroupFreezeUsed, notifyGroupMemberPauseEnded, notifyGroupMembersInApp } from "@/lib/notify";
 import { GROUP_STREAK_MILESTONES, dayEndsForAll, latestDayKey, requiredContributors, resolveSocialDay } from "@/lib/social/rules";
 import { memberDayStates, recordSocialEvent, type Tx } from "@/lib/social/common";
 import { eligibleMemberIds, groupDayCounts } from "@/lib/social/groupDays";
 import { consumeOfferTx, returnOfferTx } from "@/lib/social/groupFreeze";
+import { endGroupStreakPausesForActivity } from "@/lib/social/groups";
 
 export const GROUP_ACHIEVEMENTS = ["first-day", "streak-7", "streak-30", "streak-100", "streak-365", "perfect-day", "perfect-week", "rescued"] as const;
 export type GroupAchievementSlug = (typeof GROUP_ACHIEVEMENTS)[number];
@@ -28,6 +30,7 @@ interface GroupState {
   longestStreak: number;
   streakStartDay: string | null;
   lastAchievedDay: string | null;
+  streakInterruptedDay: string | null;
   nextDay: string;
   nextCheckAt: Date;
   paused: boolean;
@@ -36,6 +39,9 @@ interface GroupState {
 interface Effects {
   released: { userId: string }[];
   rescued: { userId: string; streak: number }[];
+  interrupted: { streak: number }[];
+  continued: { streak: number }[];
+  pauseEnded: { userId: string }[];
 }
 
 async function awardGroupAchievement(tx: Tx, groupId: string, slug: GroupAchievementSlug, dayKey: string): Promise<void> {
@@ -44,15 +50,33 @@ async function awardGroupAchievement(tx: Tx, groupId: string, slug: GroupAchieve
 }
 
 /** Tijdzones van de leden: wanneer is een dag voor iedereen voorbij? */
-async function memberZones(tx: Tx, groupId: string): Promise<(string | null)[]> {
+async function memberZones(tx: Tx, groupId: string, dayKey: string): Promise<(string | null)[]> {
   const rows = await tx.$queryRaw<{ timeZone: string | null; lastStudyTimeZone: string | null }[]>`
     SELECT DISTINCT u."timeZone", u."lastStudyTimeZone"
     FROM "GroupMembership" m JOIN "User" u ON u."id" = m."userId"
-    WHERE m."groupId" = ${groupId} AND m."leftAt" IS NULL`;
+    WHERE m."groupId" = ${groupId} AND m."leftAt" IS NULL AND m."eligibleFromDay" <= ${dayKey}
+      AND (m."streakPauseFromDay" IS NULL OR ${dayKey} < m."streakPauseFromDay"
+        OR m."streakPauseUntilDay" IS NULL OR ${dayKey} > m."streakPauseUntilDay")`;
   return rows.flatMap((r) => [r.timeZone, r.lastStudyTimeZone]);
 }
 
+/** Legt het normale einde van een verlopen pauze één keer vast. */
+async function settleExpiredPauses(tx: Tx, groupId: string, now: Date, effects: Effects): Promise<void> {
+  const rows = await tx.groupMembership.findMany({
+    where: { groupId, leftAt: null, streakPauseFromDay: { not: null }, streakPauseUntilDay: { not: null } },
+    include: { user: { select: { timeZone: true } } },
+  });
+  for (const row of rows) {
+    const day = dayKeyInZone(now, resolveTimeZone(row.user.timeZone));
+    if (day <= row.streakPauseUntilDay! || row.lastStreakPauseEndedDay) continue;
+    await tx.groupMembership.update({ where: { id: row.id }, data: { lastStreakPauseEndedDay: row.streakPauseUntilDay } });
+    await recordSocialEvent(tx, { kind: "GROUP_MEMBER_PAUSE_ENDED", groupId, userId: row.userId, dayKey: row.streakPauseUntilDay, data: { reason: "expired" } });
+    effects.pauseEnded.push({ userId: row.userId });
+  }
+}
+
 async function achieveDay(tx: Tx, state: GroupState, dayKey: string, counts: { eligible: number; contributors: number; required: number }, now: Date, effects: Effects): Promise<boolean> {
+  const wasInterrupted = state.streakInterruptedDay !== null;
   const data = {
     status: "ACHIEVED" as const,
     eligibleCount: counts.eligible,
@@ -80,6 +104,11 @@ async function achieveDay(tx: Tx, state: GroupState, dayKey: string, counts: { e
   if ((GROUP_STREAK_MILESTONES as readonly number[]).includes(state.currentStreak)) {
     await recordSocialEvent(tx, { kind: "GROUP_MILESTONE", groupId: state.id, dayKey, data: { streak: state.currentStreak } });
     await awardGroupAchievement(tx, state.id, `streak-${state.currentStreak}` as GroupAchievementSlug, dayKey);
+  }
+  if (wasInterrupted) {
+    state.streakInterruptedDay = null;
+    effects.continued.push({ streak: state.currentStreak });
+    await recordSocialEvent(tx, { kind: "GROUP_STREAK_CONTINUED", groupId: state.id, dayKey, data: { streak: state.currentStreak } });
   }
   // Een aangeboden bevriezing is nu niet meer nodig: direct terug.
   const offer = await tx.groupFreezeOffer.findUnique({ where: { groupId_dayKey: { groupId: state.id, dayKey } } });
@@ -142,14 +171,11 @@ async function settleDay(tx: Tx, state: GroupState, dayKey: string, now: Date, e
       }
     } else {
       status = "MISSED";
-      if (state.currentStreak > 0) {
-        await recordSocialEvent(tx, { kind: "GROUP_STREAK_BROKEN", groupId: state.id, dayKey, data: { streak: state.currentStreak, contributors, required } });
+      if (state.currentStreak > 0 && !state.streakInterruptedDay) {
+        state.streakInterruptedDay = dayKey;
+        effects.interrupted.push({ streak: state.currentStreak });
+        await recordSocialEvent(tx, { kind: "GROUP_STREAK_INTERRUPTED", groupId: state.id, dayKey, data: { streak: state.currentStreak, contributors, required } });
       }
-      // Latere dagen die al gehaald zijn (andere tijdzones liepen voor),
-      // vormen het begin van de nieuwe reeks.
-      const later = await tx.groupDay.findMany({ where: { groupId: state.id, dayKey: { gt: dayKey }, status: "ACHIEVED" }, select: { dayKey: true }, orderBy: { dayKey: "asc" } });
-      state.currentStreak = later.length;
-      state.streakStartDay = later[0]?.dayKey ?? null;
     }
   }
 
@@ -183,8 +209,9 @@ export async function refreshGroup(groupId: string, now: Date = new Date()): Pro
       if (locked.length === 0) return null;
       const group = await tx.socialGroup.findUniqueOrThrow({ where: { id: groupId } });
       const state: GroupState = { ...group };
-      const effects: Effects = { released: [], rescued: [] };
+      const effects: Effects = { released: [], rescued: [], interrupted: [], continued: [], pauseEnded: [] };
       const horizon = latestDayKey(now);
+      await settleExpiredPauses(tx, groupId, now, effects);
 
       // Afsluiten: de oudste open dag(en), zodra ze voor iedereen voorbij zijn.
       while (state.nextDay < horizon && now >= state.nextCheckAt) {
@@ -194,7 +221,7 @@ export async function refreshGroup(groupId: string, now: Date = new Date()): Pro
           break;
         }
         state.nextDay = addDays(state.nextDay, 1);
-        state.nextCheckAt = dayEndsForAll(state.nextDay, await memberZones(tx, groupId));
+        state.nextCheckAt = dayEndsForAll(state.nextDay, await memberZones(tx, groupId, state.nextDay));
       }
 
       // Live: open dagen die al genoeg bijdragen hebben.
@@ -212,6 +239,7 @@ export async function refreshGroup(groupId: string, now: Date = new Date()): Pro
           longestStreak: state.longestStreak,
           streakStartDay: state.streakStartDay,
           lastAchievedDay: state.lastAchievedDay,
+          streakInterruptedDay: state.streakInterruptedDay,
           nextDay: state.nextDay,
           nextCheckAt: state.nextCheckAt,
           paused: state.paused,
@@ -240,11 +268,28 @@ export async function refreshGroup(groupId: string, now: Date = new Date()): Pro
       })
     ).catch(() => {});
   }
+  if (result.effects.interrupted.length > 0 || result.effects.continued.length > 0) {
+    const members = await prisma.groupMembership.findMany({ where: { groupId, leftAt: null }, select: { userId: true } });
+    for (const interruption of result.effects.interrupted) {
+      notifyGroupMembersInApp(members.map((m) => m.userId), `/groups/${groupId}`, (t) => ({
+        title: t("together.notify.groupStreakInterruptedTitle"),
+        body: t("together.notify.groupStreakInterruptedText", { group: result.name, n: interruption.streak }),
+      })).catch(() => {});
+    }
+    for (const continuation of result.effects.continued) {
+      notifyGroupMembersInApp(members.map((m) => m.userId), `/groups/${groupId}`, (t) => ({
+        title: t("together.notify.groupStreakContinuedTitle"),
+        body: t("together.notify.groupStreakContinuedText", { group: result.name, n: continuation.streak }),
+      })).catch(() => {});
+    }
+  }
+  for (const pause of result.effects.pauseEnded) notifyGroupMemberPauseEnded(pause.userId, groupId, result.name).catch(() => {});
 }
 
 /** Groepen van deze gebruikers bijwerken (na nieuwe persoonlijke reeksdagen). */
-export async function refreshGroupsFor(userIds: string[], now: Date = new Date()): Promise<void> {
+export async function refreshGroupsFor(userIds: string[], now: Date = new Date(), studiedUserIds: string[] = []): Promise<void> {
   if (userIds.length === 0) return;
+  await endGroupStreakPausesForActivity(studiedUserIds, now);
   const groups = await prisma.groupMembership.findMany({ where: { userId: { in: userIds }, leftAt: null }, select: { groupId: true }, distinct: ["groupId"] });
   for (const g of groups) await refreshGroup(g.groupId, now).catch((e) => console.error(`Groep ${g.groupId}:`, e));
 }

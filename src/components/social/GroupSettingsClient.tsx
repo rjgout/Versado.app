@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ShieldCheck } from "lucide-react";
-import { useT } from "@/components/I18nProvider";
+import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
 import UserAvatar from "@/components/UserAvatar";
 import UserTag from "@/components/UserTag";
@@ -11,6 +11,7 @@ import { SocialHeading, socialRequest, type Person } from "@/components/social/s
 import GroupLinkSettings from "@/components/social/GroupLinkSettings";
 import ToggleSwitch from "@/components/versado/ToggleSwitch";
 import { GROUP_NAME_MAX_LENGTH } from "@/lib/social/rules";
+import { getLanguage } from "@/lib/languages";
 
 interface SettingsData {
   id: string;
@@ -20,7 +21,7 @@ interface SettingsData {
   membersCanApprove: boolean;
   showOnLeaderboard: boolean;
   joinLink: { token: string | null } | null;
-  members: { person: Person; role: "ADMIN" | "MEMBER"; isMe: boolean }[];
+  members: { person: Person; role: "ADMIN" | "MEMBER"; isMe: boolean; streakPause: { fromDay: string; untilDay: string; status: "scheduled" | "active" | "ended" } | null }[];
 }
 
 /**
@@ -29,12 +30,15 @@ interface SettingsData {
  */
 export default function GroupSettingsClient({ groupId }: { groupId: string }) {
   const t = useT();
+  const locale = getLanguage(useUiLanguage()).intlLocale;
   const confirm = useConfirm();
   const [data, setData] = useState<SettingsData | null>(null);
   const [state, setState] = useState<"loading" | "forbidden" | "error" | "ready">("loading");
   const [name, setName] = useState("");
   const [saved, setSaved] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [pauseTarget, setPauseTarget] = useState<SettingsData["members"][number] | null>(null);
+  const [pauseDays, setPauseDays] = useState(7);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/groups/${groupId}`).catch(() => null);
@@ -65,6 +69,15 @@ export default function GroupSettingsClient({ groupId }: { groupId: string }) {
     const result = await socialRequest(`/api/groups/${groupId}/members/${member.id}`, { action });
     if (!result.ok) setMessage(result.error ?? t("together.common.error"));
     load();
+  }
+
+  async function pauseMember() {
+    if (!pauseTarget) return;
+    setMessage(null);
+    const result = await socialRequest(`/api/groups/${groupId}/members/${pauseTarget.person.id}`, { action: "pause", days: pauseDays });
+    if (!result.ok) setMessage(result.error ?? t("together.common.error"));
+    else setPauseTarget(null);
+    await load();
   }
 
   if (state === "loading") return <p className="text-sm text-vs-fg-3">{t("common.loading")}</p>;
@@ -128,6 +141,8 @@ export default function GroupSettingsClient({ groupId }: { groupId: string }) {
                   {m.role === "ADMIN" ? t("together.common.admin") : null}
                   {m.isMe ? `${m.role === "ADMIN" ? " · " : ""}${t("together.common.you")}` : null}
                 </p>
+                {m.streakPause?.status === "active" && <p className="text-xs font-semibold text-vs-accent">{t("together.common.pausedUntil", { date: new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }).format(new Date(`${m.streakPause.untilDay}T12:00:00Z`)) })}</p>}
+                {m.streakPause?.status === "scheduled" && <p className="text-xs text-vs-fg-3">{t("together.common.pauseScheduled", { from: m.streakPause.fromDay, until: m.streakPause.untilDay })}</p>}
               </div>
               <div className="flex flex-wrap gap-2">
                 {m.role === "MEMBER" ? (
@@ -144,11 +159,33 @@ export default function GroupSettingsClient({ groupId }: { groupId: string }) {
                     {t("together.settings.remove")}
                   </button>
                 )}
+                {!m.isMe && (!m.streakPause || m.streakPause.status === "ended") && (
+                  <button type="button" className={`${secondaryButton} !h-9 !px-3 !text-xs`} onClick={() => setPauseTarget(m)}>
+                    {t("together.settings.pause")}
+                  </button>
+                )}
               </div>
             </li>
           ))}
         </ul>
       </section>
+
+      {pauseTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-vs-overlay/50 px-4" role="dialog" aria-modal="true" aria-labelledby="pause-member-title">
+          <div className={`${surfaceCard} w-full max-w-sm p-5 shadow-xl`}>
+            <h2 id="pause-member-title" className="text-lg font-extrabold text-vs-fg">{t("together.settings.pauseTitle", { name: pauseTarget.person.handle })}</h2>
+            <p className="mt-2 text-sm text-vs-fg-2">{t("together.settings.pauseText")}</p>
+            <label className="mt-4 block text-sm font-bold text-vs-fg" htmlFor="pause-days">{t("together.settings.pauseDuration")}</label>
+            <select id="pause-days" className="input mt-1 w-full" value={pauseDays} onChange={(e) => setPauseDays(Number(e.target.value))}>
+              {[1, 3, 7, 14, 21, 30].map((days) => <option key={days} value={days}>{t("together.settings.pauseDays", { n: days })}</option>)}
+            </select>
+            <div className="mt-5 flex justify-end gap-2">
+              <button type="button" className={secondaryButton} onClick={() => setPauseTarget(null)}>{t("together.group.cancel")}</button>
+              <button type="button" className={primaryButton} onClick={pauseMember}>{t("together.settings.pauseConfirm")}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

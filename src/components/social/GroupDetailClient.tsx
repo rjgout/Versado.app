@@ -21,6 +21,7 @@ interface MemberView {
   isMe: boolean;
   friend: { contributedToday: boolean; canNudge: boolean; nudgeAvailableAt: string | null } | null;
   friendRequest: "none" | "pending" | null;
+  streakPause: { fromDay: string; untilDay: string; status: "scheduled" | "active" | "ended" } | null;
 }
 
 interface GroupAchievementView {
@@ -35,6 +36,7 @@ interface MemberGroup {
   maxMembers: number;
   currentStreak: number;
   longestStreak: number;
+  streakInterruptedDay: string | null;
   role: "ADMIN" | "MEMBER";
   canInvite: boolean;
   today: GroupTodayData;
@@ -223,6 +225,14 @@ function MemberGroupView({ group, reload }: { group: MemberGroup; reload: () => 
 
       {/* Bovenaan, ook op een telefoon: iemand wacht hierop. */}
       {group.joinRequests.length > 0 && <JoinRequests groupId={group.id} requests={group.joinRequests} locale={locale} onDecided={reload} />}
+
+      {group.streakInterruptedDay && (
+        <section aria-label={t("together.group.interruptedTitle")} className={`${surfaceCard} border-vs-accent/30 !bg-vs-accent-soft p-4`}>
+          <p className="font-extrabold text-vs-fg">{t("together.group.interruptedTitle")}</p>
+          <p className="mt-1 text-sm text-vs-fg-2">{t("together.group.interruptedText", { n: group.currentStreak })}</p>
+          <div className="mt-3"><GroupTodayLine today={group.today} size="sm" showProtection={false} /></div>
+        </section>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="flex min-w-0 flex-col gap-4">

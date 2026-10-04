@@ -604,6 +604,26 @@ export async function notifyGroupAdminAssigned(userId: string, groupId: string, 
   });
 }
 
+export async function notifyGroupMemberPaused(userId: string, groupId: string, groupName: string): Promise<void> {
+  await notifyUser({
+    userId,
+    category: "social",
+    kind: "groups",
+    url: `/groups/${groupId}`,
+    content: (t) => simple(t("together.notify.groupMemberPausedTitle"), t("together.notify.groupMemberPausedTitle"), t("together.notify.groupMemberPausedText", { group: groupName }), t("together.notify.ctaGroup")),
+  });
+}
+
+export async function notifyGroupMemberPauseEnded(userId: string, groupId: string, groupName: string): Promise<void> {
+  await notifyUser({
+    userId,
+    category: "social",
+    kind: "groups",
+    url: `/groups/${groupId}`,
+    content: (t) => simple(t("together.notify.groupMemberPauseEndedTitle"), t("together.notify.groupMemberPauseEndedTitle"), t("together.notify.groupMemberPauseEndedText", { group: groupName }), t("together.notify.ctaGroup")),
+  });
+}
+
 /**
  * Een gebeurtenis voor een hele groep (bv. "Thomas heeft de reeks gered!"):
  * alleen in het meldingencentrum, in één keer, zonder push of e-mail, zodat

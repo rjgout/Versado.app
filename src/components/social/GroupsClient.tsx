@@ -10,7 +10,7 @@ import GroupTodayLine, { type GroupTodayData } from "@/components/social/GroupTo
 import { SocialHeading, StreakBadge, socialRequest, type Person } from "@/components/social/shared";
 
 interface GroupsData {
-  groups: { id: string; name: string; memberCount: number; currentStreak: number; role: "ADMIN" | "MEMBER"; today: GroupTodayData }[];
+  groups: { id: string; name: string; memberCount: number; currentStreak: number; streakInterruptedDay: string | null; role: "ADMIN" | "MEMBER"; today: GroupTodayData }[];
   invites: { id: string; inviter: Person; group: { id: string; name: string; memberCount: number; currentStreak: number } }[];
   limit: number;
 }
@@ -129,6 +129,7 @@ export default function GroupsClient() {
                       <StreakBadge days={group.currentStreak} />
                       <ChevronRight className="h-5 w-5 shrink-0 text-vs-fg-3" aria-hidden />
                     </div>
+                    {group.streakInterruptedDay && <p className="text-xs font-semibold text-vs-accent">{t("together.group.interruptedShort")}</p>}
                     <GroupTodayLine today={group.today} />
                   </Link>
                 </li>

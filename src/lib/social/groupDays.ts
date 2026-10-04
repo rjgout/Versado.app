@@ -22,6 +22,8 @@ export async function groupDayCounts(db: Db, groupIds: string[], dayKey: string)
     FROM "GroupMembership" m
     LEFT JOIN "StreakDay" s ON s."userId" = m."userId" AND s."dayKey" = ${dayKey}
     WHERE m."groupId" = ANY(${groupIds}::text[]) AND m."leftAt" IS NULL AND m."eligibleFromDay" <= ${dayKey}
+      AND (m."streakPauseFromDay" IS NULL OR ${dayKey} < m."streakPauseFromDay"
+        OR m."streakPauseUntilDay" IS NULL OR ${dayKey} > m."streakPauseUntilDay")
     GROUP BY m."groupId"
   `);
   for (const row of rows) result.set(row.groupId, { eligible: Number(row.eligible), contributors: Number(row.contributors) });
@@ -31,7 +33,17 @@ export async function groupDayCounts(db: Db, groupIds: string[], dayKey: string)
 /** De leden die op deze dag meetellen (voor het definitief afsluiten van een dag). */
 export async function eligibleMemberIds(db: Db, groupId: string, dayKey: string): Promise<string[]> {
   const rows = await db.groupMembership.findMany({
-    where: { groupId, leftAt: null, eligibleFromDay: { lte: dayKey } },
+    where: {
+      groupId,
+      leftAt: null,
+      eligibleFromDay: { lte: dayKey },
+      OR: [
+        { streakPauseFromDay: null },
+        { streakPauseFromDay: { gt: dayKey } },
+        { streakPauseUntilDay: null },
+        { streakPauseUntilDay: { lt: dayKey } },
+      ],
+    },
     select: { userId: true },
   });
   return rows.map((r) => r.userId);

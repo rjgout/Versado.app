@@ -14,6 +14,10 @@ export const GROUP_MIN_MEMBERS = 3;
 export const GROUP_NAME_MAX_LENGTH = 60;
 export const GROUP_REJOIN_COOLDOWN_DAYS = 7;
 export const GROUP_FREEZE_COOLDOWN_DAYS = 30;
+/** Maximale duur van een tijdelijke uitsluiting voor de groepsreeks. */
+export const GROUP_STREAK_PAUSE_MAX_DAYS = 30;
+/** Na het einde van een pauze moet eerst deze periode verstrijken. */
+export const GROUP_STREAK_PAUSE_COOLDOWN_DAYS = 30;
 export const ADMIN_INACTIVE_DAYS = 14;
 export const NUDGE_INTERVAL_HOURS = 6;
 
