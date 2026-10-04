@@ -39,7 +39,7 @@ type Tx = Prisma.TransactionClient;
 async function activityTransaction(userId: string, work: (tx: Tx) => Promise<StudyResult>): Promise<StudyResult> {
   const result = await prisma.$transaction(work);
   // Pas na commit opnieuw uitlezen, ook op een ander geopend apparaat.
-  emitToUser(userId, "streak_changed");
+  emitToUser(userId, "streak_changed", { dayEarned: result.dayEarned === true, currentStreak: result.currentStreak });
   return result;
 }
 

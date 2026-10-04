@@ -500,7 +500,7 @@ export async function submitExerciseSession(
     },
     { timeout: 20000 }
   ).then((result) => {
-    emitToUser(userId, "streak_changed");
+    emitToUser(userId, "streak_changed", { dayEarned: result.dayEarned === true, currentStreak: result.currentStreak });
     return result;
   });
 }

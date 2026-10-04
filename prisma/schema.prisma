@@ -1573,6 +1573,8 @@ model StreakDay {
   dayKey    String // yyyy-mm-dd, dezelfde dag-bucket als User.lastStudyDate
   status    StreakDayStatus
   createdAt DateTime        @default(now())
+  // Server-side claim zodat de reeksviering op meerdere tabs/apparaten maar één keer verschijnt.
+  celebrationShownAt DateTime?
 
   @@unique([userId, dayKey])
   // Voor Samen: de minuuttaak in scheduler.ts zoekt alleen de nieuwe rijen

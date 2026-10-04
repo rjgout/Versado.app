@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { X } from "lucide-react";
@@ -10,6 +10,7 @@ import SystemIcon from "@/components/versado/SystemIcon";
 import { onXpChanged } from "@/lib/xpBroadcast";
 import { getSocket } from "@/lib/socketClient";
 import type { StreakContinuationView } from "@/lib/learning/streakReturnRules";
+import StreakCelebrationFlow, { type StreakCelebrationValue } from "@/components/StreakCelebrationFlow";
 
 const Context = createContext<StreakContinuationView | null>(null);
 export const useStreakContinuation = () => useContext(Context);
@@ -46,9 +47,26 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
   const [value, setValue] = useState<StreakContinuationView | null>(null);
   const [welcome, setWelcome] = useState(false);
   const [success, setSuccess] = useState<number | null>(null);
+  const [celebration, setCelebration] = useState<StreakCelebrationValue | null>(null);
   const latest = useRef<StreakContinuationView | null>(null);
   const shown = useRef(new Set<string>());
   const dialog = useRef<HTMLDialogElement>(null);
+  const claimingCelebration = useRef(false);
+
+  const claimCelebration = useCallback(async () => {
+    if (!userId || claimingCelebration.current) return;
+    claimingCelebration.current = true;
+    try {
+      const response = await fetch("/api/streak/celebration", { method: "POST", cache: "no-store" });
+      if (!response.ok) return;
+      const result = (await response.json()) as { show: boolean; streak: number | null; dayKey: string | null };
+      if (result.show && result.streak !== null && result.dayKey) setCelebration({ streak: result.streak, dayKey: result.dayKey });
+    } catch {
+      // Een tijdelijke netwerkfout mag de leeractiviteit niet blokkeren.
+    } finally {
+      claimingCelebration.current = false;
+    }
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) return;
@@ -70,6 +88,7 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
         }
         latest.current = next;
         setValue(next);
+        if (next.status === "ACTIVE" && next.studiedToday) void claimCelebration();
         if (next.status === "INTERRUPTED") {
           const key = `streak-return:${userId}:${next.interruptedDay}`;
           let alreadyShown = shown.current.has(key);
@@ -102,7 +121,7 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
       document.removeEventListener("visibilitychange", refresh);
       window.clearInterval(timer);
     };
-  }, [userId, pathname]);
+  }, [claimCelebration, userId, pathname]);
 
   useEffect(() => {
     const element = dialog.current;
@@ -139,5 +158,6 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
         <button type="button" className="btn-primary mt-5 w-full" onClick={() => setWelcome(false)}>{t("streakReturn.continue")}</button>
       </>}
     </dialog>
+    {celebration && <StreakCelebrationFlow value={celebration} onDone={() => setCelebration(null)} />}
   </Context.Provider>;
 }
