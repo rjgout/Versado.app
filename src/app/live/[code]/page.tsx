@@ -6,6 +6,7 @@ import ChapterGuessGameRoom from "@/components/ChapterGuessGameRoom";
 import FamilyGameRoom from "@/components/FamilyGameRoom";
 import AlleskennerRoom from "@/components/alleskenner/AlleskennerRoom";
 import StudyRoom from "@/components/study/StudyRoom";
+import FocusLayout from "@/components/versado/FocusLayout";
 import { localizedCourse } from "@/lib/courseText";
 
 export default async function LiveGamePage({ params }: { params: Promise<{ code: string }> }) {
@@ -26,19 +27,19 @@ export default async function LiveGamePage({ params }: { params: Promise<{ code:
     },
   });
 
+  let content;
   if (game?.mode === "CHAPTER_GUESS") {
-    return <ChapterGuessGameRoom code={upperCode} myUserId={user.id} />;
-  }
-  if (game?.mode === "STUDY" && game.studySession) {
+    content = <ChapterGuessGameRoom code={upperCode} myUserId={user.id} />;
+  } else if (game?.mode === "STUDY" && game.studySession) {
     const course = game.studySession.course;
     const courseName = localizedCourse({ ...course, work: course.contentCollection.work }, user.uiLanguage).name;
-    return <StudyRoom code={upperCode} myUserId={user.id} courseName={courseName} />;
+    content = <StudyRoom code={upperCode} myUserId={user.id} courseName={courseName} />;
+  } else if (game?.mode === "ALLESKENNER") {
+    content = <AlleskennerRoom code={upperCode} />;
+  } else if (game?.mode === "FAMILY_GAME") {
+    content = <FamilyGameRoom code={upperCode} myUserId={user.id} />;
+  } else {
+    content = <GameRoom code={upperCode} myUserId={user.id} />;
   }
-  if (game?.mode === "ALLESKENNER") {
-    return <AlleskennerRoom code={upperCode} />;
-  }
-  if (game?.mode === "FAMILY_GAME") {
-    return <FamilyGameRoom code={upperCode} myUserId={user.id} />;
-  }
-  return <GameRoom code={upperCode} myUserId={user.id} />;
+  return <FocusLayout className="max-w-5xl">{content}</FocusLayout>;
 }

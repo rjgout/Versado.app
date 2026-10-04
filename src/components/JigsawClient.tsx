@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState, type PointerEvent } from "react";
 import { useT } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
 import ToggleSwitch from "@/components/versado/ToggleSwitch";
+import FocusLayout from "@/components/versado/FocusLayout";
 import { JIGSAW_LEVELS, jigsawGrid, jigsawPiecePath, type JigsawLevel, type JigsawState } from "@/lib/jigsaw";
 
 async function requestGame(body: object, fallback: string): Promise<JigsawState & { accepted?: boolean }> {
@@ -216,7 +217,7 @@ function Puzzle({ initial, image, onExit }: { initial: JigsawState; image: strin
   }
 
   return (
-    <div className="max-w-5xl mx-auto flex flex-col gap-3">
+    <FocusLayout className="max-w-5xl gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-extrabold text-brand-800 dark:text-brand-300">🧩 {t("jigsaw.title")}</h1>
         <button type="button" className="btn-secondary min-h-11" disabled={busy} onClick={exit}>{t("jigsaw.chooseAnother")}</button>
@@ -288,6 +289,6 @@ function Puzzle({ initial, image, onExit }: { initial: JigsawState; image: strin
       {drag && <div className="fixed z-[100] pointer-events-none text-slate-700 drop-shadow-xl" style={{ left: drag.x, top: drag.y, width: drag.width, height: drag.height, transform: "translate(-50%, -50%)" }}>
         <PieceImage piece={drag.piece} pieces={game.pieces} aspect={aspect} image={image} />
       </div>}
-    </div>
+    </FocusLayout>
   );
 }

@@ -12,6 +12,7 @@ import type { ChapterTerm } from "@/lib/chapterTerm";
 import { useT } from "@/components/I18nProvider";
 import { translateOr } from "@/lib/i18n/core";
 import PersonalMascot from "@/components/versado/PersonalMascot";
+import FocusLayout from "@/components/versado/FocusLayout";
 
 interface VerseView {
   id: string;
@@ -118,7 +119,7 @@ export default function ReadingLessonFlow({
 
   if (phase === "read") {
     return (
-      <div className="max-w-2xl mx-auto flex flex-col gap-4">
+      <FocusLayout className="max-w-3xl gap-4">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
@@ -140,6 +141,7 @@ export default function ReadingLessonFlow({
           audio={audio}
           term={term}
           language={language}
+          focus
         />
         <button
           className="btn-primary self-start"
@@ -152,13 +154,13 @@ export default function ReadingLessonFlow({
           {sessionId === null || exercises.length === 0 ? t("readingLesson.finishStep") : t("readingLesson.toQuestions")}
         </button>
         {error && <p className="text-sm font-bold text-red-600 dark:text-red-400">{error}</p>}
-      </div>
+      </FocusLayout>
     );
   }
 
   if (phase === "exercises" && current) {
     return (
-      <div className="max-w-2xl mx-auto flex flex-col gap-6">
+      <FocusLayout className="max-w-2xl gap-6">
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-2">
             {t("readingLesson.stepVerses", { n: lessonNumber, start: startVerse, end: endVerse })}
@@ -172,9 +174,10 @@ export default function ReadingLessonFlow({
           exercise={current}
           onDone={onDone}
           disabled={submitting}
+          focus
         />
         {error && <p className="text-sm font-bold text-red-600 dark:text-red-400">{error}</p>}
-      </div>
+      </FocusLayout>
     );
   }
 
@@ -182,7 +185,7 @@ export default function ReadingLessonFlow({
     const effectiveNextLessonId = result.nextLessonId ?? nextLessonId;
     if (result.readOnly) {
       return (
-        <div className="max-w-md mx-auto card flex flex-col items-center gap-4 text-center animate-pop">
+        <FocusLayout className="max-w-2xl items-center gap-4 py-4 text-center animate-pop sm:py-8">
           <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
             {t("readingLesson.stepDone", { n: lessonNumber })}
           </p>
@@ -194,11 +197,11 @@ export default function ReadingLessonFlow({
               <Link href={`/reading-lesson/${effectiveNextLessonId}`} className="btn-primary">{t("readingLesson.nextStep")}</Link>
             )}
           </div>
-        </div>
+        </FocusLayout>
       );
     }
     return (
-      <div className="max-w-md mx-auto card flex flex-col items-center gap-4 text-center animate-pop">
+      <FocusLayout className="max-w-2xl items-center gap-4 py-4 text-center animate-pop sm:py-8">
         <LessonResultMascot scorePercent={result.scorePercent} celebrate={result.newAchievements.length > 0} successThreshold={60} />
         <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
           {t("readingLesson.stepDone", { n: lessonNumber })}
@@ -249,7 +252,7 @@ export default function ReadingLessonFlow({
             </Link>
           )}
         </div>
-      </div>
+      </FocusLayout>
     );
   }
 

@@ -10,6 +10,7 @@ import { ACHIEVEMENT_DISPLAY } from "@/lib/achievementDisplay";
 import { announceXpChanged } from "@/lib/xpBroadcast";
 import { useT } from "@/components/I18nProvider";
 import { translateOr } from "@/lib/i18n/core";
+import FocusLayout from "@/components/versado/FocusLayout";
 
 interface Answer {
   exerciseId: string;
@@ -85,7 +86,7 @@ export default function KidsLessonFlow({
 
   if (phase === "read") {
     return (
-      <div className="max-w-2xl mx-auto flex flex-col gap-6">
+      <FocusLayout className="max-w-3xl gap-6">
         <h1 className="text-2xl font-extrabold text-brand-800 dark:text-brand-300">{title}</h1>
         {images.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -101,13 +102,13 @@ export default function KidsLessonFlow({
             {t("lessonFlows.startQuestions")}
           </button>
         )}
-      </div>
+      </FocusLayout>
     );
   }
 
   if (phase === "summary" && summary) {
     return (
-      <div className="max-w-md mx-auto card flex flex-col items-center gap-4 text-center animate-pop">
+      <FocusLayout className="max-w-2xl items-center gap-4 py-4 text-center animate-pop sm:py-8">
         <LessonResultMascot
           scorePercent={summary.total > 0 ? Math.round((summary.correctCount / summary.total) * 100) : 100}
           celebrate={summary.newAchievements.length > 0}
@@ -160,12 +161,12 @@ export default function KidsLessonFlow({
             </Link>
           )}
         </div>
-      </div>
+      </FocusLayout>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto flex flex-col gap-6">
+    <FocusLayout className="max-w-2xl gap-6">
       <div className="h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
         <div
           className="h-full bg-brand-500 transition-all duration-300"
@@ -178,7 +179,8 @@ export default function KidsLessonFlow({
         onDone={onDone}
         disabled={submitting}
         checkEndpoint={`/api/kids-exercises/${current.id}/check`}
+        focus
       />
-    </div>
+    </FocusLayout>
   );
 }

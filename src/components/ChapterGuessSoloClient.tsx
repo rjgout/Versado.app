@@ -8,6 +8,7 @@ import { announceXpChanged } from "@/lib/xpBroadcast";
 import IntroAudioButton from "@/components/IntroAudioButton";
 import { useT } from "@/components/I18nProvider";
 import AppSelect from "@/components/AppSelect";
+import FocusLayout from "@/components/versado/FocusLayout";
 
 type Level = "BEGINNER" | "ADVANCED" | "EXPERT";
 
@@ -190,7 +191,7 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
 
   if (gaveUpSummary) {
     return (
-      <div className="max-w-md mx-auto card flex flex-col items-center gap-4 text-center animate-pop">
+      <FocusLayout className="max-w-2xl items-center gap-4 py-4 text-center animate-pop sm:py-8">
         <div className="text-5xl">🏳️</div>
         <h2 className="text-2xl font-extrabold text-slate-600 dark:text-slate-300">{t("chapterGuess.gaveUp")}</h2>
         <p className="text-slate-500 dark:text-slate-400">
@@ -204,13 +205,13 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
             {t("wordOfTheDay.back")}
           </Link>
         </div>
-      </div>
+      </FocusLayout>
     );
   }
 
   if (finalSummary) {
     return (
-      <div className="max-w-md mx-auto card flex flex-col items-center gap-4 text-center animate-pop">
+      <FocusLayout className="max-w-2xl items-center gap-4 py-4 text-center animate-pop sm:py-8">
         <div className="text-5xl">🔎</div>
         <h2 className="text-2xl font-extrabold text-brand-800 dark:text-brand-300">
           {t("readingLesson.score", { correct: finalSummary.correctCount, total: finalSummary.total })}
@@ -225,7 +226,7 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
             {t("wordOfTheDay.back")}
           </Link>
         </div>
-      </div>
+      </FocusLayout>
     );
   }
 
@@ -237,7 +238,7 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
   const answered = feedback !== null;
 
   return (
-    <div className="max-w-xl mx-auto flex flex-col gap-6">
+      <FocusLayout className="max-w-3xl gap-6">
       <div className="flex items-center justify-between text-sm font-bold text-slate-400 dark:text-slate-500">
         <span>
           {t("chapterGuess.questionOf", { n: question.index + 1, total: question.total })}
@@ -372,6 +373,6 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
 
         {error && <p className="text-red-600 dark:text-red-400 text-sm font-semibold">{error}</p>}
       </div>
-    </div>
+    </FocusLayout>
   );
 }

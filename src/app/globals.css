@@ -62,6 +62,24 @@ body {
   min-height: calc(100dvh - var(--main-pad-top) - var(--main-pad-bottom));
 }
 
+/* Focus mode gebruikt dezelfde vaste terugbalk als normale detailpagina's,
+ * maar laat de globale statusheader en mobiele ondernavigatie tijdelijk weg.
+ * De selector staat op body zodat routekennis centraal blijft en pagina's
+ * geen eigen hideHeader/hideBottomNav-props nodig hebben. */
+body[data-shell-mode="focus"] [data-app-global-header],
+body[data-shell-mode="focus"] nav[data-main-nav] {
+  display: none;
+}
+
+body[data-shell-mode="focus"] [data-subpage-back-bar] {
+  padding-top: env(safe-area-inset-top);
+}
+
+body[data-shell-mode="focus"] main {
+  padding-top: 1rem !important;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom)) !important;
+}
+
 /* --- Versado-designtokens ---------------------------------------------------
  *
  * Semantische kleuren voor de nieuwe app-shell en Vandaag (zie

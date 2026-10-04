@@ -5,6 +5,7 @@ import Link from "next/link";
 import UserAvatar from "@/components/UserAvatar";
 import { getSocket } from "@/lib/socketClient";
 import { useT } from "@/components/I18nProvider";
+import FocusLayout from "@/components/versado/FocusLayout";
 import { useConfirm } from "@/components/ConfirmProvider";
 import { rich } from "@/lib/i18n/rich";
 
@@ -335,7 +336,7 @@ export default function ScrabbleBoardClient({ gameId }: { gameId: string }) {
   }
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-4">
+    <FocusLayout className="max-w-4xl gap-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-extrabold text-brand-800 dark:text-brand-300">
@@ -548,6 +549,6 @@ export default function ScrabbleBoardClient({ gameId }: { gameId: string }) {
           </div>
         </section>
       )}
-    </div>
+    </FocusLayout>
   );
 }

@@ -9,6 +9,7 @@ import { ExerciseCard, LessonResultMascot, type Exercise } from "@/components/Le
 import { useActivityStatus } from "@/lib/useActivity";
 import { announceXpChanged } from "@/lib/xpBroadcast";
 import { useT } from "@/components/I18nProvider";
+import FocusLayout from "@/components/versado/FocusLayout";
 
 interface Answer {
   exerciseId: string;
@@ -66,7 +67,7 @@ export default function QuickPracticeFlow({ exercises }: { exercises: Exercise[]
 
   if (summary) {
     return (
-      <div className="max-w-md mx-auto card flex flex-col items-center gap-4 text-center animate-pop">
+      <FocusLayout className="max-w-2xl items-center gap-4 py-4 text-center animate-pop sm:py-8">
         <LessonResultMascot scorePercent={summary.total > 0 ? Math.round((summary.correctCount / summary.total) * 100) : 100} />
         <h2 className="text-2xl font-extrabold text-brand-800 dark:text-brand-300">
           {t("readingLesson.score", { correct: summary.correctCount, total: summary.total })}
@@ -87,19 +88,19 @@ export default function QuickPracticeFlow({ exercises }: { exercises: Exercise[]
         <Link href="/dashboard" className="btn-primary mt-2">
           {t("misc.backToDashboard")}
         </Link>
-      </div>
+      </FocusLayout>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto flex flex-col gap-6">
+    <FocusLayout className="max-w-2xl gap-6">
       <div className="h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
         <div
           className="h-full bg-brand-500 transition-all duration-300"
           style={{ width: `${Math.round((index / exercises.length) * 100)}%` }}
         />
       </div>
-      <ExerciseCard key={current.id} exercise={current} onDone={onDone} disabled={submitting} />
-    </div>
+      <ExerciseCard key={current.id} exercise={current} onDone={onDone} disabled={submitting} focus />
+    </FocusLayout>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useT } from "@/components/I18nProvider";
 import FsyContentBlocks from "@/components/FsyContentBlocks";
+import FocusLayout from "@/components/versado/FocusLayout";
 import type { FsyContentBlock } from "@/lib/fsyContent";
 
 interface Props {
@@ -28,7 +29,7 @@ export default function FsyLessonView({ title, month, year, category, blocks, so
   const t = useT();
   const categoryKey = FSY_CATEGORY_KEYS[category as keyof typeof FSY_CATEGORY_KEYS];
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-6">
+    <FocusLayout className="max-w-3xl gap-6">
       <div>
         <p className="text-xs font-extrabold uppercase tracking-wide text-slate-400 dark:text-slate-500">
           {categoryKey ? t(categoryKey) : t("courseViews.fsy.lesson")} · {month}/{year}
@@ -36,7 +37,7 @@ export default function FsyLessonView({ title, month, year, category, blocks, so
         <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-800 dark:text-brand-300 mt-1">{title}</h1>
       </div>
 
-      <article className="card">
+      <article>
         <FsyContentBlocks blocks={blocks} />
       </article>
 
@@ -46,6 +47,6 @@ export default function FsyLessonView({ title, month, year, category, blocks, so
           {t("courseViews.fsy.officialSite")}
         </a>
       </p>
-    </div>
+    </FocusLayout>
   );
 }

@@ -18,6 +18,7 @@ import { useReadAloudPlayer } from "@/lib/readAloudPlayerContext";
 import { chapterTerm, type ChapterTerm } from "@/lib/chapterTerm";
 import { ContentStatusLine, LongChapterNotice, type ReadState } from "@/components/learning/ContentStatus";
 import PersonalMascot from "@/components/versado/PersonalMascot";
+import FocusLayout from "@/components/versado/FocusLayout";
 
 export type ExerciseType = "FILL_BLANK" | "WORD_BANK" | "TRUE_FALSE" | "MULTIPLE_CHOICE" | "SEQUENCE" | "IMAGE_CHOICE";
 
@@ -217,12 +218,12 @@ export default function LessonFlow({ chapterId, bookName, chapterNumber, nextCha
     // (en een hoofdstuk buiten een route): lezen, oefenen mag daarna.
     const afterReading = route === "FRONT_TO_BACK";
     return (
-      <div className="max-w-2xl mx-auto flex flex-col gap-4">
+      <FocusLayout className="max-w-2xl gap-4">
         {showLongNotice && stepsHref && <LongChapterNotice minutes={readingMinutes} stepsHref={stepsHref} onReadFull={() => setShowLongNotice(false)} />}
         {(read !== "UNREAD" || content.exercisesAnswered > 0) && (
           <ContentStatusLine read={read} exercisesAnswered={content.exercisesAnswered} exercisesTotal={content.exercisesTotal} />
         )}
-        <ReaderView chapterId={chapterId} bookName={bookName} chapterNumber={chapterNumber} verses={verses} audio={audio} term={term} focusVerse={focusVerse} language={language} />
+        <ReaderView chapterId={chapterId} bookName={bookName} chapterNumber={chapterNumber} verses={verses} audio={audio} term={term} focusVerse={focusVerse} language={language} focus />
         <div className="flex flex-col gap-3">
           {justMarkedRead && <p className="text-sm text-vs-fg-2">{t("progress.readingNoXp")}</p>}
           <div className="flex flex-wrap items-center gap-3">
@@ -248,17 +249,17 @@ export default function LessonFlow({ chapterId, bookName, chapterNumber, nextCha
             )}
           </div>
         </div>
-      </div>
+      </FocusLayout>
     );
   }
 
   if (phase === "exercises" && current) {
     return (
-      <div className="max-w-2xl mx-auto flex flex-col gap-6">
+      <FocusLayout className="max-w-2xl gap-6">
         <ProgressBar current={index} total={exercises.length} />
-        <ExerciseCard key={current.id} exercise={current} onDone={onExerciseDone} disabled={submitting} />
+        <ExerciseCard key={current.id} exercise={current} onDone={onExerciseDone} disabled={submitting} focus />
         {error && <p className="text-sm font-bold text-red-600 dark:text-red-400">{error}</p>}
-      </div>
+      </FocusLayout>
     );
   }
 
@@ -269,7 +270,7 @@ export default function LessonFlow({ chapterId, bookName, chapterNumber, nextCha
       return null;
     }
     return (
-      <div className="max-w-2xl mx-auto flex flex-col gap-6">
+      <FocusLayout className="max-w-2xl gap-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl font-extrabold text-brand-800 dark:text-brand-300">
             {t("lesson.reviewTitle", { pos: reviewPos + 1, total: reviewQueue.length })}
@@ -291,8 +292,9 @@ export default function LessonFlow({ chapterId, bookName, chapterNumber, nextCha
           onDone={onReviewDone}
           onSkip={skipCurrentReview}
           disabled={submitting}
+          focus
         />
-      </div>
+      </FocusLayout>
     );
   }
 
@@ -312,6 +314,7 @@ export function ReaderView({
   term = chapterTerm(null),
   focusVerse,
   language,
+  focus = false,
 }: {
   chapterId: string;
   bookName: string;
@@ -321,6 +324,7 @@ export function ReaderView({
   term?: ChapterTerm;
   focusVerse?: number;
   language?: string;
+  focus?: boolean;
 }) {
   const t = useT();
   const [scale, setScale] = useState(1);
@@ -418,7 +422,7 @@ export function ReaderView({
         language={language}
       />
 
-      <div className="card flex flex-col gap-4" style={{ "--reader-font-scale": scale } as React.CSSProperties}>
+      <div className={`${focus ? "" : "card "}flex flex-col gap-4`} style={{ "--reader-font-scale": scale } as React.CSSProperties}>
         {verseState.map((v) => (
           <div
             key={v.id}
@@ -587,6 +591,7 @@ export function ExerciseCard({
   checkEndpoint,
   onCheck,
   showHint = true,
+  focus = false,
 }: {
   exercise: Exercise;
   onDone: (given: string[], correct: boolean) => void;
@@ -598,6 +603,8 @@ export function ExerciseCard({
   onCheck?: (given: string[]) => Promise<{ correct: boolean; correctAnswer: string[] | null }>;
   /** Hints uit bij een wedstrijd tegen anderen, waar iedereen gelijke kansen moet hebben. */
   showHint?: boolean;
+  /** Een actieve focusflow gebruikt de pagina zelf als canvas i.p.v. een buitenkaart. */
+  focus?: boolean;
 }) {
   const t = useT();
   const [checked, setChecked] = useState(false);
@@ -680,10 +687,11 @@ export function ExerciseCard({
     </p>
   );
   const mascotReaction = <ExerciseMascotReaction checked={checked} correct={wasCorrect} />;
+  const surfaceClass = focus ? "flex flex-col gap-5" : "card flex flex-col gap-5";
 
   if (exercise.type === "TRUE_FALSE") {
     return (
-      <div className="card flex flex-col gap-5">
+      <div className={surfaceClass}>
         <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{exercise.verseRef}</p>
         {showHint && <HintControl exercise={exercise} checked={checked} />}
         {mascotReaction}
@@ -733,7 +741,7 @@ export function ExerciseCard({
     // nooit een doodlopende weg tonen, gewoon doorlaten zonder score.
     if (options.length === 0) {
       return (
-        <div className="card flex flex-col gap-5">
+        <div className={surfaceClass}>
           <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{exercise.verseRef}</p>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             {t("lesson.outdated")}
@@ -746,7 +754,7 @@ export function ExerciseCard({
     }
 
     return (
-      <div className="card flex flex-col gap-5">
+      <div className={surfaceClass}>
         <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{exercise.verseRef}</p>
         {showHint && <HintControl exercise={exercise} checked={checked} />}
         {mascotReaction}
@@ -803,7 +811,7 @@ export function ExerciseCard({
   if (exercise.type === "MULTIPLE_CHOICE") {
     const options = exercise.options ?? [];
     return (
-      <div className="card flex flex-col gap-5">
+        <div className={surfaceClass}>
         <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{exercise.verseRef}</p>
         {showHint && <HintControl exercise={exercise} checked={checked} />}
         {mascotReaction}
@@ -849,7 +857,7 @@ export function ExerciseCard({
   if (exercise.type === "IMAGE_CHOICE") {
     const options = exercise.options ?? [];
     return (
-      <div className="card flex flex-col gap-5">
+      <div className={surfaceClass}>
         <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{exercise.verseRef}</p>
         {showHint && <HintControl exercise={exercise} checked={checked} />}
         {mascotReaction}
@@ -896,7 +904,7 @@ export function ExerciseCard({
   // WORD_BANK / SEQUENCE — zelfde mechaniek (items in de juiste volgorde
   // aantikken), SEQUENCE gebruikt alleen langere zinnen i.p.v. losse woorden.
   return (
-    <div className="card flex flex-col gap-5">
+    <div className={surfaceClass}>
       <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{exercise.verseRef}</p>
       {showHint && <HintControl exercise={exercise} checked={checked} />}
       {mascotReaction}
@@ -1025,7 +1033,7 @@ function SummaryScreen({
 }) {
   const t = useT();
   return (
-    <div className="max-w-md mx-auto card flex flex-col items-center gap-4 text-center animate-pop">
+    <FocusLayout className="max-w-2xl items-center gap-4 py-4 text-center animate-pop sm:py-8">
       <LessonResultMascot scorePercent={summary.scorePercent} celebrate={summary.newAchievements.length > 0} />
       <h2 className="text-2xl font-extrabold text-brand-800 dark:text-brand-300">
         {t("lesson.score", { correct: summary.correctCount, total: summary.total, pct: summary.scorePercent })}
@@ -1094,6 +1102,6 @@ function SummaryScreen({
           </Link>
         )}
       </div>
-    </div>
+    </FocusLayout>
   );
 }

@@ -8,6 +8,7 @@ import UserAvatar from "@/components/UserAvatar";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { rich } from "@/lib/i18n/rich";
 import PersonalMascot from "@/components/versado/PersonalMascot";
+import FocusLayout from "@/components/versado/FocusLayout";
 import { futureTime } from "@/lib/timeFormat";
 import { StreakContinuationCard } from "@/components/StreakContinuation";
 
@@ -159,17 +160,17 @@ export default function WordGameClient() {
 
   if (loadError) {
     return (
-      <div className="max-w-md mx-auto card text-center flex flex-col gap-3">
+      <FocusLayout className="max-w-md items-center card text-center gap-3">
         <p className="text-red-600 dark:text-red-400 font-semibold">{loadError}</p>
         <Link href="/live" className="btn-secondary self-center">
           {t("wordOfTheDay.back")}
         </Link>
-      </div>
+      </FocusLayout>
     );
   }
 
   if (!game) {
-    return <p className="text-center text-slate-400 dark:text-slate-500">{t("common.loading")}</p>;
+    return <FocusLayout className="items-center text-center text-slate-400 dark:text-slate-500">{t("common.loading")}</FocusLayout>;
   }
 
   const finished = game.status !== "IN_PROGRESS";
@@ -187,7 +188,7 @@ export default function WordGameClient() {
   }
 
   return (
-    <div className="max-w-md mx-auto flex flex-col gap-6">
+    <FocusLayout className="max-w-2xl gap-6">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold text-brand-800 dark:text-brand-300">🔤 {t("pages.wordOfTheDay")}</h1>
@@ -364,6 +365,6 @@ export default function WordGameClient() {
           </p>
         )}
       </div>
-    </div>
+    </FocusLayout>
   );
 }

@@ -33,11 +33,13 @@ const PROFILE_SUBPAGES: Record<string, MessageKey> = {
   "/change-password": "profile.changePassword",
 };
 
-// De spellen op Spelen (/live, zie LiveLobbyForm.tsx). Een lopend spel
-// (/live/<code>) bewust niet: daar leidt een terugbalk alleen af.
+// De spellen op Spelen (/live, zie LiveLobbyForm.tsx). Een lopend spel houdt
+// dezelfde contextbalk als andere focusflows zodat de gebruiker veilig kan
+// terugkeren zonder de globale navigatie te hoeven openen.
 const GAME_PAGES: Record<string, MessageKey> = {
   "/jigsaw": "jigsaw.title",
   "/word-game": "pages.wordOfTheDay",
+  "/word-search": "pages.wordSearch",
   "/scrabble": "pages.wordGame",
   "/alleskenner": "pages.alleskenner",
   "/gezinsavond": "pages.familyNight",
@@ -72,10 +74,13 @@ function detailPageFor(pathname: string, profileView: string | null): DetailPage
   if (groupSettings) return { fallback: `/groups/${groupSettings[1]}`, title: "together.pages.groupSettings" };
   if (/^\/groups\/[^/]+$/.test(pathname)) return { fallback: "/groups", title: "together.pages.group" };
   if (pathname === "/alleskenner/alleen") return { fallback: "/alleskenner", title: "pages.playAlone" };
+  if (/^\/alleskenner\/alleen\/[^/]+$/.test(pathname)) return { fallback: "/alleskenner/alleen", title: "pages.playAlone" };
   if (pathname === "/alleskenner/seizoen") return { fallback: "/alleskenner", title: "pages.seasons" };
   if (/^\/alleskenner\/seizoen\/[^/]+$/.test(pathname)) return { fallback: "/alleskenner/seizoen", title: "pages.season" };
   if (/^\/chapter-guess\/solo\/[^/]+$/.test(pathname)) return { fallback: "/chapter-guess", title: "pages.playAlone" };
   if (/^\/scrabble\/[^/]+$/.test(pathname)) return { fallback: "/scrabble", title: "pages.wordGame" };
+  if (/^\/word-search\/[^/]+$/.test(pathname)) return { fallback: "/word-search", title: "pages.wordSearch" };
+  if (/^\/live\/[^/]+$/.test(pathname)) return { fallback: "/live", title: "pages.play" };
   if (/^\/fsy\/[^/]+$/.test(pathname)) return { fallback: "/courses", title: "pages.lesson" };
   // Lessen uit een cursus. Weet de pagina uit welke cursus de les komt, dan
   // geeft hij die door (zie CourseBackTarget) als terugval en ondertitel.
@@ -110,7 +115,7 @@ export default function SubpageBackBar() {
   const subtitle = override?.parent ?? (page.subtitle ? t(page.subtitle) : null);
 
   return (
-    <div className="border-b border-vs-line bg-vs-elevated">
+    <div data-subpage-back-bar className="border-b border-vs-line bg-vs-elevated">
       <div className="mx-auto flex max-w-5xl min-w-0 items-center gap-1 px-4 py-1">
         <button
           type="button"

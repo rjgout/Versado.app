@@ -25,6 +25,7 @@ import NotificationCenter from "@/components/NotificationCenter";
 import EdgeSwipeGuard from "@/components/EdgeSwipeGuard";
 import SubpageBackBar from "@/components/SubpageBackBar";
 import NavigationScroll from "@/components/shell/NavigationScroll";
+import FocusModeController from "@/components/shell/FocusModeController";
 import PodcastMiniPlayer from "@/components/PodcastMiniPlayer";
 import HeaderInstallHint from "@/components/HeaderInstallHint";
 import PublicLanguageSwitcher from "@/components/PublicLanguageSwitcher";
@@ -172,7 +173,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             rechts reeks, XP en divisie, meldingen en de avatar (ingang naar
             profiel). Op telefoon en tablet staat de navigatie onderaan
             (BottomNav). Zie docs/VERSADO-DESIGN.md. */}
-        <header className="border-b border-vs-line bg-vs-elevated pt-[env(safe-area-inset-top)]">
+        <header data-app-global-header className="border-b border-vs-line bg-vs-elevated pt-[env(safe-area-inset-top)]">
           {/* Vanaf xl iets breder dan de pagina: logo, contentkiezer, navigatie en
             status passen anders niet naast elkaar. */}
           <div className="relative mx-auto flex h-14 max-w-5xl min-w-0 items-center gap-2 px-4 sm:h-16 sm:gap-3 xl:max-w-6xl">
@@ -228,6 +229,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {user && <ActivityTracker />}
         {user && <TimeZoneSync known={user.timeZone} />}
         </StickyHeader>
+        <FocusModeController />
         <Suspense fallback={null}><NavigationScroll /></Suspense>
         <main className="mx-auto max-w-5xl px-4 pb-[var(--main-pad-bottom)] pt-[var(--main-pad-top)]">
           {user && <SocialTabs />}

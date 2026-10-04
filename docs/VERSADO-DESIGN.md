@@ -64,6 +64,7 @@ lijst hierboven nog volledig.
   venster is de scrollcontainer: zet `overflow` dus niet op `html` (zie
   `globals.css`). Onderdelen van het profiel hebben een eigen adres
   (`/profile?view=...`, `src/lib/profileViews.ts`).
+- **Activiteitscontexten**: iedere nieuwe interactieve ervaring kiest bewust één van drie shellvarianten. **Normal** is voor ontdekken, navigeren en kiezen: globale header en bottomnav blijven zichtbaar en kaarten mogen groeperen. **Focus** is voor lezen, leren, oefenen, puzzelen en spelen: de globale statusheader en bottomnav verdwijnen, terwijl `SubpageBackBar` als oriëntatiepunt blijft staan; `src/components/versado/FocusLayout.tsx` is het inhoudelijke canvas en `src/lib/focusMode.ts` bepaalt centraal welke routes focus zijn. **Celebration** is voor tijdelijke betekenisvolle prestaties en mag als immersive fullscreen-laag bovenop een focusflow verschijnen, zoals `StreakCelebrationFlow`. Gebruik geen losse `hideHeader`/`hideBottomNav`-props per pagina; voeg een route toe aan de centrale focuslijst en gebruik `FocusLayout` voor de activiteit.
 - **Vandaag**: `src/app/dashboard/page.tsx` met de data uit
   `src/lib/today.ts` (`getTodayData`) en de blokken in
   `src/components/today/`. Gedeelde serverlogica staat in

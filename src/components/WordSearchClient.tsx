@@ -7,6 +7,7 @@ import { useConfirm } from "@/components/ConfirmProvider";
 import { useT } from "@/components/I18nProvider";
 import { lineCoordinates, type WordSearchDifficulty, type WordSearchPlacedWord, type WordSearchPosition } from "@/lib/wordSearch/generator";
 import type { WordSearchView } from "@/lib/wordSearch/game";
+import FocusLayout from "@/components/versado/FocusLayout";
 
 interface Props {
   initialGame?: WordSearchView | null;
@@ -165,7 +166,7 @@ export default function WordSearchClient({ initialGame = null }: Props) {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-5">
+    <FocusLayout className="max-w-5xl gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black dark:text-slate-100">{t("wordSearch.title")}</h1>
@@ -234,6 +235,6 @@ export default function WordSearchClient({ initialGame = null }: Props) {
           )}
         </aside>
       </div>
-    </main>
+    </FocusLayout>
   );
 }

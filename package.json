@@ -20,6 +20,7 @@
     "test:word-search": "tsx --test tests/word-search.test.ts",
     "test:study": "tsx --test tests/study-scoring.test.ts",
     "test:mascots": "tsx --test tests/mascots.test.ts tests/divisions.test.ts",
+    "test:focus": "tsx --test tests/focus-mode.test.ts",
     "test:artwork": "tsx --test tests/artwork.test.ts",
     "test:leagues": "tsx --test tests/leagues.test.ts",
     "test:profile": "tsx --test tests/profile-settings.test.ts",
