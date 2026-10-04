@@ -73,6 +73,10 @@ gebruikt `<PersonalMascot state />`: de gebruiker kiest zijn gids (Novi, Varo
 of Vera, `User.companion`, standaard Novi), de feature alleen de state. Zie de
 sectie "Mascottes" in `docs/VERSADO-DESIGN.md` voor de character canon.
 
+Snelle Zendeling gebruikt specifieke glide/boost-gameplaysprites; die zijn
+geen nieuwe globale mascotstates. De serverstatus, reviveflow, rankingdag en
+fair-play-afspraken staan in `docs/SNELLE-ZENDELING.md`.
+
 ## Platformfundering: web/PWA, iOS en Android
 
 Versado blijft één product en één gedeelde codebase. De definitieve native

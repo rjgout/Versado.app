@@ -18,6 +18,7 @@ const FOCUS_ROUTES = [
   /^\/alleskenner\/seizoen\/[^/]+$/,
   /^\/word-game$/,
   /^\/jigsaw$/,
+  /^\/snelle-zendeling\/run\/[^/]+$/,
 ] as const;
 
 export function isFocusRoute(pathname: string): boolean {

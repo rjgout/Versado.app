@@ -11,6 +11,7 @@ test("actieve leer- en spelroutes gebruiken focus mode", () => {
   assert.equal(isFocusRoute("/word-game"), true);
   assert.equal(isFocusRoute("/jigsaw"), true);
   assert.equal(isFocusRoute("/alleskenner/alleen/run-1"), true);
+  assert.equal(isFocusRoute("/snelle-zendeling/run/run-1"), true);
 });
 
 test("overzichtspagina's behouden de normale shell", () => {
@@ -19,4 +20,5 @@ test("overzichtspagina's behouden de normale shell", () => {
   assert.equal(isFocusRoute("/live"), false);
   assert.equal(isFocusRoute("/word-search"), false);
   assert.equal(isFocusRoute("/friends"), false);
+  assert.equal(isFocusRoute("/snelle-zendeling"), false);
 });

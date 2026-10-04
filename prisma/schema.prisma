@@ -99,6 +99,8 @@ model User {
   // metgezel op de persoonlijke momenten was.
   companion          Companion @default(NOVI)
 
+  quickMissionaryRuns QuickMissionaryRun[]
+
   // De actieve contentcollectie voor de contentswitcher. Null betekent dat de gebruiker
   // nog geen expliciete keuze heeft gemaakt; de app gebruikt dan de standaardcollectie.
   activeContentCollectionId String?
@@ -2290,6 +2292,37 @@ model GameSettings {
   alleskennerEnabled   Boolean @default(false)
   jigsawEnabled        Boolean @default(false)
   wordSearchEnabled    Boolean @default(true)
+  // Standaard uit: eerst inhoud, scoring en anti-cheat door een beheerder laten testen.
+  quickMissionaryEnabled Boolean @default(false)
+}
+
+enum QuickMissionaryRunStatus {
+  IN_PROGRESS
+  DEAD_AWAITING_REVIVE
+  REVIVE_READY
+  FINISHED
+}
+
+// Serverregistratie van één arcade-run. De client rendert de wereld, maar
+// alleen dit record bepaalt welke score ooit in een klassement kan komen.
+model QuickMissionaryRun {
+  id              String                    @id @default(cuid())
+  userId          String
+  user            User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt       DateTime                  @default(now())
+  finishedAt      DateTime?
+  dayKey          String
+  score           Int                       @default(0)
+  status          QuickMissionaryRunStatus  @default(IN_PROGRESS)
+  reviveUsed      Boolean                   @default(false)
+  reviveExerciseId String?
+  reviveOptionIds String?
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  @@index([userId, status])
+  @@index([userId, score])
+  @@index([dayKey, status, score])
 }
 
 // --- De Alleskenner ----------------------------------------------------------

@@ -95,6 +95,7 @@ const GAME_COVERS: Partial<Record<GameId, ArtworkAsset>> = {
   "chapter-guess": { src: "/images/games/raad-het-hoofdstuk.png", tone: "#9d6e49" },
   gezinsavond: { src: "/images/games/gezinsavond.png", tone: "#a27141" },
   challenges: { src: "/images/games/uitdagingen.png", tone: "#996638" },
+  "quick-missionary": { src: "/games/snelle-zendeling/varo-snelle-zendeling-glide.png", fit: "contain", tone: "#8ebfd0" },
 };
 
 const PODCASTS: Record<string, ArtworkAsset> = {

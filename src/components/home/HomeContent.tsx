@@ -16,6 +16,7 @@ import {
   Medal,
   Mic,
   PencilLine,
+  Plane,
   Puzzle,
   Search,
   Smartphone,
@@ -102,6 +103,7 @@ const GAME_ICONS: Record<GameId, LucideIcon> = {
   challenges: Swords,
   alleskenner: Brain,
   jigsaw: Puzzle,
+  "quick-missionary": Plane,
 };
 
 function IconTile({ visual }: { visual: Visual }) {

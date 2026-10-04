@@ -15,6 +15,7 @@ interface SettingsView {
   alleskennerEnabled: boolean;
   jigsawEnabled: boolean;
   wordSearchEnabled: boolean;
+  quickMissionaryEnabled: boolean;
 }
 
 // Icoon los van de naam: de naam is dezelfde vertaling als elders in de app.
@@ -29,6 +30,7 @@ const GAMES: { key: keyof SettingsView; gameKey: string; icon: string; labelKey:
   { key: "challengesEnabled", gameKey: "challenges", icon: "⚔️", labelKey: "pages.challenges" },
   { key: "liveExercisesEnabled", gameKey: "live-exercises", icon: "", labelKey: "adminGames.liveExercises" },
   { key: "alleskennerEnabled", gameKey: "alleskenner", icon: "🧠", labelKey: "pages.alleskenner" },
+  { key: "quickMissionaryEnabled", gameKey: "quick-missionary", icon: "", labelKey: "pages.quickMissionary" },
 ];
 
 interface ScopesView {

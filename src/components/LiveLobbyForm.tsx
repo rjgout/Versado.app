@@ -29,6 +29,7 @@ interface GameSettings {
   alleskennerEnabled: boolean;
   jigsawEnabled: boolean;
   wordSearchEnabled: boolean;
+  quickMissionaryEnabled: boolean;
 }
 
 interface Props {

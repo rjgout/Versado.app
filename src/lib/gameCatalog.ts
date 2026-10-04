@@ -7,7 +7,7 @@ import type { MessageKey } from "@/lib/i18n/core";
 // worden per scherm gekozen (zie docs/VERSADO-DESIGN.md). Geen server-
 // imports: ook bruikbaar in client components.
 
-export type GameTextKey = "wordGame" | "scrabble" | "alleskenner" | "gezinsavond" | "chapterGuess" | "challenges" | "jigsaw" | "wordSearch";
+export type GameTextKey = "wordGame" | "scrabble" | "alleskenner" | "gezinsavond" | "chapterGuess" | "challenges" | "jigsaw" | "wordSearch" | "quickMissionary";
 
 export type GameEnabledKey =
   | "wordGameEnabled"
@@ -17,9 +17,10 @@ export type GameEnabledKey =
   | "chapterGuessEnabled"
   | "challengesEnabled"
   | "jigsawEnabled"
-  | "wordSearchEnabled";
+  | "wordSearchEnabled"
+  | "quickMissionaryEnabled";
 
-export type GameId = "jigsaw" | "word-search" | "word-game" | "scrabble" | "alleskenner" | "gezinsavond" | "chapter-guess" | "challenges";
+export type GameId = "jigsaw" | "word-search" | "word-game" | "scrabble" | "alleskenner" | "gezinsavond" | "chapter-guess" | "challenges" | "quick-missionary";
 
 export interface GameCatalogEntry {
   id: GameId;
@@ -39,6 +40,7 @@ export const GAME_CATALOG: GameCatalogEntry[] = [
   { id: "gezinsavond", enabledKey: "gezinsavondEnabled", textKey: "gezinsavond", titleKey: "pages.familyNight", href: "/gezinsavond" },
   { id: "chapter-guess", enabledKey: "chapterGuessEnabled", textKey: "chapterGuess", titleKey: "pages.chapterGuess", href: "/chapter-guess" },
   { id: "challenges", enabledKey: "challengesEnabled", textKey: "challenges", titleKey: "pages.challenges", href: "/challenges" },
+  { id: "quick-missionary", enabledKey: "quickMissionaryEnabled", textKey: "quickMissionary", titleKey: "pages.quickMissionary", href: "/snelle-zendeling" },
 ];
 
 /** Zelfde regel als het spellenoverzicht: toegestaan bij de actieve content én aangezet (of beheerder). */

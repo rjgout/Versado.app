@@ -44,3 +44,7 @@ test("een cursus volgt het boek waar je bent, anders het begin of de keuzeroute"
   // Een podcastcursus krijgt hier geen schriftbeeld.
   assert.equal(first(courseArtworkKeys({ slug: "podcast", type: "PODCAST", work: "podcasts" })), undefined);
 });
+
+test("Snelle Zendeling heeft een echte spelcover", () => {
+  assertFile("game:quick-missionary");
+});

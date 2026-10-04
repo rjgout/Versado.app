@@ -171,6 +171,7 @@ export const es: PartialMessages = {
     "familyNight": "Noche de hogar",
     "chapterGuess": "Adivina el capítulo",
     "challenges": "Desafíos",
+    "quickMissionary": "Misionero veloz",
     "playAlone": "Juega solo",
     "seasons": "Temporadas",
     "season": "Temporada",
@@ -677,7 +678,48 @@ export const es: PartialMessages = {
       "rule1": "Elige un capítulo y desafía a un amigo.",
       "rule2": "Ambos juegan cuando les conviene y responden las mismas preguntas de práctica.",
       "rule3": "Después puedes comparar las puntuaciones."
+    },
+    "quickMissionary": {
+      "description": "Vuela con tu guía por un mundo colorido y consigue tu mejor puntuación.",
+      "linkLabel": "Abrir Misionero veloz",
+      "rule1": "Toca, haz clic o pulsa Espacio para dar un breve impulso hacia arriba.",
+      "rule2": "Vuela por las aberturas fijas entre rocas y muros de la ciudad.",
+      "rule3": "Tu puntuación cuenta para Hoy y Todo el tiempo. El juego no da XP ni racha."
     }
+  },
+  "quickMissionary": {
+    "eyebrow": "Juego arcade",
+    "intro": "Vuela con tu guía personal por el mundo de Versado. Cada toque te da un breve impulso.",
+    "controls": "Toca, haz clic o pulsa Espacio para volar.",
+    "start": "Iniciar partida",
+    "starting": "Iniciando…",
+    "startFailed": "No se ha podido iniciar la partida.",
+    "viewRanking": "Ver clasificación",
+    "leaderboard": "Clasificación",
+    "leaderboardTabs": "Periodo de clasificación",
+    "today": "Hoy",
+    "allTime": "Histórico",
+    "dailyExplain": "La puntuación válida más alta de cada usuario en su día natural local.",
+    "allTimeExplain": "La puntuación válida más alta de cada usuario de todos los tiempos.",
+    "emptyLeaderboard": "Todavía no hay puntuaciones válidas.",
+    "gameArea": "Zona de juego de Misionero veloz",
+    "tapToFly": "Toca para volar",
+    "readyHint": "La partida empieza con tu primera acción.",
+    "runningHint": "Toca, haz clic o pulsa Espacio para dirigir.",
+    "noXp": "Este juego arcade no da XP ni racha.",
+    "secondChance": "¿Segunda oportunidad?",
+    "scoreLabel": "Puntuación: {n}",
+    "reviveQuestion": "Responde bien una pregunta para continuar.",
+    "revive": "Segunda oportunidad",
+    "endRun": "Terminar partida",
+    "reviveCorrect": "¡Correcto!",
+    "tapToContinue": "Toca para continuar.",
+    "gameOver": "Fin de la partida",
+    "dailyBest": "Mejor hoy: {n}",
+    "allTimeBest": "Récord: {n}",
+    "playAgain": "Jugar de nuevo",
+    "connectionError": "El servidor no ha podido confirmar esta partida.",
+    "noQuestion": "No hay una pregunta adecuada disponible ahora."
   },
   "chapterGuessLevels": {
     "beginner": "Principiante",
@@ -1799,7 +1841,8 @@ export const es: PartialMessages = {
       "alleskenner": "Una noche de concurso para cuando estáis juntos: cada uno juega en su propio teléfono, con o sin presentador. Gana segundos y deja a tu rival a cero en la final.",
       "gezinsavond": "Un juego de mesa lleno de aventura sobre las Escrituras para toda la familia, juntos en la mesa con un solo dispositivo o cada uno en su teléfono. Divertido incluso sin muchos conocimientos previos.",
       "chapterGuess": "Lee el primer versículo de un capítulo y adivina de qué capítulo se trata. Elige tu nivel, solo o en directo con amigos.",
-      "challenges": "Reta a un amigo en un capítulo: los dos jugáis cuando os venga bien, y luego veis quién ha puntuado mejor."
+      "challenges": "Reta a un amigo en un capítulo: los dos jugáis cuando os venga bien, y luego veis quién ha puntuado mejor.",
+      "quickMissionary": "Vuela por un mundo colorido con tu guía personal y consigue tu mejor puntuación."
     },
     "features": {
       "routes": {
