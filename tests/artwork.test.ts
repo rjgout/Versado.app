@@ -46,5 +46,5 @@ test("een cursus volgt het boek waar je bent, anders het begin of de keuzeroute"
 });
 
 test("Snelle Zendeling heeft een echte spelcover", () => {
-  assertFile("game:quick-missionary");
+  assert.equal(assertFile("game:quick-missionary").src, "/images/games/snelle-zendeling.png");
 });

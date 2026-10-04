@@ -92,8 +92,10 @@ export function passedPair(bodyX: number, pair: ObstaclePair, alreadyScored: boo
   return !alreadyScored && bodyX > pair.x + OBSTACLE_WIDTH;
 }
 
-export function stepPhysics(y: number, velocity: number, deltaSeconds: number, boosted: boolean): { y: number; velocity: number } {
+export function stepPhysics(y: number, velocity: number, deltaSeconds: number): { y: number; velocity: number } {
   const dt = Math.max(0, Math.min(deltaSeconds, 0.05));
-  const nextVelocity = boosted ? BOOST_VELOCITY : Math.min(MAX_FALL_SPEED, velocity + GRAVITY * dt);
+  // De tik zet de snelheid eenmalig op BOOST_VELOCITY. De boostsprite blijft
+  // kort zichtbaar, maar mag de impuls niet elk frame opnieuw toepassen.
+  const nextVelocity = Math.min(MAX_FALL_SPEED, velocity + GRAVITY * dt);
   return { y: y + nextVelocity * dt, velocity: nextVelocity };
 }

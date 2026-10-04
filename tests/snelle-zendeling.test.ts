@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
+  BOOST_VELOCITY,
   GAP_HEIGHT,
   MAX_GAP_Y,
   MAX_GAP_STEP,
@@ -14,6 +15,7 @@ import {
   mascotHitbox,
   obstacleRects,
   passedPair,
+  stepPhysics,
 } from "@/lib/snelleZendeling/gameplay";
 import { maxPlausibleScore, validateReportedScore } from "@/lib/snelleZendeling/validation";
 import { applyReviveAnswer, selectReviveOptions } from "@/lib/snelleZendeling/rules";
@@ -58,6 +60,13 @@ describe("Snelle Zendeling gameplay", () => {
     assert.equal(collidesWithObstacle({ x: 105, y: pair.gapY + GAP_HEIGHT + 2 }, pair), true);
     assert.equal(collidesWithObstacle({ x: 105, y: pair.gapY - 40 }, pair), true);
     assert.equal(collidesWithObstacle({ x: 105, y: pair.gapY + 50 }, pair), false);
+  });
+
+  it("past een boost als één impuls toe en niet opnieuw per animatieframe", () => {
+    const first = stepPhysics(270, BOOST_VELOCITY, 1 / 60);
+    const second = stepPhysics(first.y, first.velocity, 1 / 60);
+    assert.ok(first.velocity > BOOST_VELOCITY);
+    assert.ok(second.velocity > first.velocity);
   });
 
   it("begrensd server-side scoretempo weigert een willekeurige score", () => {

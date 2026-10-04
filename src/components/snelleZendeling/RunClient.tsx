@@ -8,7 +8,7 @@ import { useCompanion } from "@/components/versado/PersonalMascot";
 import QuickMissionaryLeaderboard from "./Leaderboard";
 import { useT } from "@/components/I18nProvider";
 import {
-  FIRST_OBSTACLE_X, GAP_HEIGHT, HORIZONTAL_SPEED, MASCOT_X,
+  BOOST_VELOCITY, FIRST_OBSTACLE_X, GAP_HEIGHT, HORIZONTAL_SPEED, MASCOT_X,
   OBSTACLE_WIDTH, PAIR_SPACING, PLAY_BOTTOM, PLAY_TOP, WORLD_HEIGHT, WORLD_WIDTH,
   collidesWithObstacle, createObstaclePair, isOutOfPlayZone, passedPair, stepPhysics,
   type ObstaclePair,
@@ -123,8 +123,7 @@ export default function QuickMissionaryRunClient({ runId }: { runId: string }) {
     const dt = Math.min(0.05, Math.max(0, (timestamp - previous) / 1000));
     lastFrameRef.current = timestamp;
     if (phaseRef.current === "running") {
-      const boosted = timestamp < boostUntilRef.current;
-      const next = stepPhysics(yRef.current, velocityRef.current, dt, boosted);
+      const next = stepPhysics(yRef.current, velocityRef.current, dt);
       yRef.current = next.y;
       velocityRef.current = next.velocity;
       worldOffsetRef.current += HORIZONTAL_SPEED * dt;
@@ -159,10 +158,21 @@ export default function QuickMissionaryRunClient({ runId }: { runId: string }) {
   }, []);
 
   const action = useCallback(async () => {
-    if (phaseRef.current === "ready") { resetLocalRun(); setCurrentPhase("running"); boostUntilRef.current = performance.now() + 180; velocityRef.current = -285; return; }
+    if (phaseRef.current === "ready") {
+      resetLocalRun();
+      setCurrentPhase("running");
+      boostUntilRef.current = performance.now() + 180;
+      velocityRef.current = BOOST_VELOCITY;
+      return;
+    }
+    if (phaseRef.current === "running") {
+      boostUntilRef.current = performance.now() + 180;
+      velocityRef.current = BOOST_VELOCITY;
+      return;
+    }
     if (phaseRef.current === "revive-ready") {
       const response = await fetch(`/api/snelle-zendeling/runs/${runId}/resume`, { method: "POST" });
-      if (response.ok) { safeUntilRef.current = performance.now() + 3000; setCurrentPhase("running"); boostUntilRef.current = performance.now() + 180; velocityRef.current = -285; }
+      if (response.ok) { safeUntilRef.current = performance.now() + 3000; setCurrentPhase("running"); boostUntilRef.current = performance.now() + 180; velocityRef.current = BOOST_VELOCITY; }
     }
   }, [resetLocalRun, runId, setCurrentPhase]);
 
@@ -182,10 +192,10 @@ export default function QuickMissionaryRunClient({ runId }: { runId: string }) {
       <div className="flex w-full items-center justify-between gap-3 px-1"><h1 className="truncate text-lg font-black text-vs-fg">{title}</h1><span className="rounded-full bg-vs-accent-soft px-4 py-1.5 text-xl font-black tabular-nums text-vs-accent" aria-live="polite">{score}</span></div>
       <div className="relative w-full max-w-[min(90vw,28rem)] overflow-hidden rounded-[2rem] border-4 border-vs-line-strong bg-sky-100 shadow-xl dark:bg-sky-950" style={{ aspectRatio: `${WORLD_WIDTH}/${WORLD_HEIGHT}` }}>
         <canvas ref={canvasRef} width={WORLD_WIDTH} height={WORLD_HEIGHT} aria-label={t("quickMissionary.gameArea")} className="block h-full w-full touch-none" onPointerDown={(event) => { event.preventDefault(); void action(); }} />
-        {phase === "ready" && <Overlay><p className="text-lg font-black">{t("quickMissionary.tapToFly")}</p><p className="text-sm">{t("quickMissionary.readyHint")}</p></Overlay>}
+        {phase === "ready" && <ActionOverlay label={t("quickMissionary.tapToFly")} onAction={() => void action()}><p className="text-lg font-black">{t("quickMissionary.tapToFly")}</p><p className="text-sm">{t("quickMissionary.readyHint")}</p></ActionOverlay>}
         {phase === "dead" && <Overlay><p className="text-2xl font-black">{t("quickMissionary.secondChance")}</p><p>{t("quickMissionary.scoreLabel", { n: score })}</p><div className="flex flex-wrap justify-center gap-2"><button type="button" className="btn-primary" onClick={() => void requestRevive()} disabled={view?.reviveUsed}>{t("quickMissionary.revive")}</button><button type="button" className="btn-secondary" onClick={() => void finishFromDeath()}>{t("quickMissionary.endRun")}</button></div></Overlay>}
         {phase === "revive-question" && view?.reviveQuestion && <Overlay><p className="text-lg font-black">{t("quickMissionary.reviveQuestion")}</p><p className="text-sm">{view.reviveQuestion.prompt}</p><div className="grid w-full gap-2">{view.reviveQuestion.options.map((option) => <button key={option.id} type="button" className="btn-secondary !justify-start !text-left" onClick={() => void answer(option.id)}>{option.label}</button>)}</div></Overlay>}
-        {phase === "revive-ready" && <Overlay><p className="text-lg font-black text-vs-success">{t("quickMissionary.reviveCorrect")}</p><p>{t("quickMissionary.tapToContinue")}</p></Overlay>}
+        {phase === "revive-ready" && <ActionOverlay label={t("quickMissionary.tapToContinue")} onAction={() => void action()}><p className="text-lg font-black text-vs-success">{t("quickMissionary.reviveCorrect")}</p><p>{t("quickMissionary.tapToContinue")}</p></ActionOverlay>}
         {phase === "finished" && <Overlay><p className="text-2xl font-black">{t("quickMissionary.gameOver")}</p><p>{t("quickMissionary.scoreLabel", { n: view?.score ?? score })}</p><p className="text-sm">{t("quickMissionary.dailyBest", { n: view?.dailyBest ?? 0 })} · {t("quickMissionary.allTimeBest", { n: view?.allTimeBest ?? 0 })}</p><div className="flex flex-wrap justify-center gap-2"><button type="button" className="btn-primary" onClick={() => void playAgain()}>{t("quickMissionary.playAgain")}</button><Link className="btn-secondary" href="/snelle-zendeling">{t("quickMissionary.viewRanking")}</Link></div></Overlay>}
       </div>
       {error && <p className="text-sm font-semibold text-red-600 dark:text-red-400">{t("quickMissionary.connectionError")}</p>}
@@ -196,3 +206,7 @@ export default function QuickMissionaryRunClient({ runId }: { runId: string }) {
 }
 
 function Overlay({ children }: { children: ReactNode }) { return <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/50 p-5 text-center text-white backdrop-blur-[2px]">{children}</div>; }
+
+function ActionOverlay({ children, label, onAction }: { children: ReactNode; label: string; onAction: () => void }) {
+  return <button type="button" aria-label={label} className="absolute inset-0 flex w-full flex-col items-center justify-center gap-3 bg-slate-950/50 p-5 text-center text-white backdrop-blur-[2px] focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-[-6px] focus-visible:outline-white" onClick={onAction}>{children}</button>;
+}
