@@ -104,6 +104,7 @@ const GAME_ICONS: Record<GameId, LucideIcon> = {
   alleskenner: Brain,
   jigsaw: Puzzle,
   "quick-missionary": Plane,
+  "mystery-001a": Brain,
 };
 
 function IconTile({ visual }: { visual: Visual }) {

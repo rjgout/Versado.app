@@ -1,0 +1,115 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { MYSTERY_001A, emptyMysteryPlacements } from "@/lib/mysteries/mystery001a";
+import {
+  allCharactersPlaced,
+  cellFromBoardPoint,
+  countSolutions,
+  hintFor,
+  isHardConstraintValid,
+  isSolutionCorrect,
+  placeCharacter,
+  publicSolutionResult,
+} from "@/lib/mysteries/logic";
+import { firstCompletionUpdate } from "@/lib/mysteries/progressRules";
+import { parseBoardManifest, type BoardGeometry } from "@/lib/mysteries/manifest";
+import type { Placements } from "@/lib/mysteries/types";
+
+const solution: Placements = {
+  laman: { row: 1, column: 3 },
+  lemuel: { row: 2, column: 1 },
+  sariah: { row: 3, column: 4 },
+  lehi: { row: 4, column: 2 },
+};
+
+const geometry: BoardGeometry = {
+  imageWidth: 1254,
+  imageHeight: 1254,
+  bounds: { left: 0.09, top: 0.13, right: 0.91, bottom: 0.87 },
+  rows: 4,
+  columns: 4,
+  cellWidthNormalized: 0.205,
+  cellHeightNormalized: 0.185,
+  footAnchorInCell: { x: 0.5, y: 0.8 },
+  footAnchorPixels: { x: 627, y: 1149 },
+  maxVisibleCharacterHeight: 0.65,
+  visibleCharacterHeightPixels: undefined,
+};
+
+describe("Mysterie 001A", () => {
+  it("accepteert uitsluitend de exacte oplossing", () => {
+    assert.equal(isSolutionCorrect(MYSTERY_001A, solution), true);
+    assert.equal(isSolutionCorrect(MYSTERY_001A, { ...solution, laman: solution.lemuel!, lemuel: solution.laman! }), false);
+    assert.equal(isSolutionCorrect(MYSTERY_001A, {
+      lehi: { row: 1, column: 1 }, sariah: { row: 2, column: 2 }, laman: { row: 3, column: 3 }, lemuel: { row: 4, column: 4 },
+    }), false);
+  });
+
+  it("dwingt één persoon per rij en kolom af", () => {
+    const placed = { ...emptyMysteryPlacements(), lehi: { row: 4, column: 2 } };
+    assert.equal(isHardConstraintValid(MYSTERY_001A, placed, "sariah", { row: 4, column: 1 }), false);
+    assert.equal(isHardConstraintValid(MYSTERY_001A, placed, "sariah", { row: 1, column: 2 }), false);
+    assert.equal(isHardConstraintValid(MYSTERY_001A, placed, "sariah", { row: 1, column: 1 }), true);
+  });
+
+  it("activeert controleren pas bij vier plaatsingen", () => {
+    assert.equal(allCharactersPlaced(MYSTERY_001A, solution), true);
+    assert.equal(allCharactersPlaced(MYSTERY_001A, { ...solution, lemuel: null }), false);
+  });
+
+  it("onthult bij een fout geen specifiek personage of vak", () => {
+    const result = publicSolutionResult(MYSTERY_001A, { ...solution, laman: solution.lemuel!, lemuel: solution.laman! });
+    assert.deepEqual(result, { correct: false, messageKey: "mystery001a.wrongText" });
+    assert.equal(JSON.stringify(result).includes("laman"), false);
+    assert.equal(JSON.stringify(result).includes("R1C3"), false);
+  });
+
+  it("bewaart alleen de eerste completion en negeert replay", () => {
+    const at = new Date("2026-10-04T12:00:00Z");
+    assert.deepEqual(firstCompletionUpdate(false, 2, at), { completed: true, completedAt: at, hintCount: 2, tutorialSeenAt: at });
+    assert.equal(firstCompletionUpdate(true, 0, at), null);
+  });
+
+  it("kiest alleen vooraf geschreven, state-aware hints", () => {
+    assert.equal(hintFor(MYSTERY_001A, emptyMysteryPlacements()), "mystery001a.hintA");
+    assert.equal(hintFor(MYSTERY_001A, { ...emptyMysteryPlacements(), lehi: solution.lehi }), "mystery001a.hintB");
+    assert.equal(hintFor(MYSTERY_001A, { ...emptyMysteryPlacements(), lehi: solution.lehi, sariah: solution.sariah }), "mystery001a.hintC");
+    assert.equal(hintFor(MYSTERY_001A, { ...solution, laman: solution.lemuel, lemuel: solution.laman }), "mystery001a.hintD");
+  });
+
+  it("controleert inhoudelijk alleen de begeleide eerste zet", () => {
+    const start = emptyMysteryPlacements();
+    assert.equal(placeCharacter(MYSTERY_001A, start, "lehi", { row: 1, column: 1 }, true).accepted, false);
+    const tutorial = placeCharacter(MYSTERY_001A, start, "lehi", solution.lehi!, true);
+    assert.equal(tutorial.accepted, true);
+    assert.equal(tutorial.tutorialCorrect, true);
+    const wrongButHardValid = placeCharacter(MYSTERY_001A, tutorial.placements, "sariah", { row: 1, column: 1 }, false);
+    assert.equal(wrongButHardValid.accepted, true);
+    assert.deepEqual(wrongButHardValid.placements.sariah, { row: 1, column: 1 });
+  });
+
+  it("mapt coördinaten via de 9/13/91/87%-bounds en niet via het hele canvas", () => {
+    const rect = { left: 100, top: 50, width: 1000, height: 1000 };
+    assert.equal(cellFromBoardPoint({ x: 150, y: 100 }, rect, geometry), null);
+    assert.deepEqual(cellFromBoardPoint({ x: 100 + 0.09 * 1000 + 0.1025 * 1000, y: 50 + 0.13 * 1000 + 0.0925 * 1000 }, rect, geometry), { row: 1, column: 1 });
+    assert.deepEqual(cellFromBoardPoint({ x: 100 + (0.09 + 3.5 * 0.205) * 1000, y: 50 + (0.13 + 2.5 * 0.185) * 1000 }, rect, geometry), { row: 3, column: 4 });
+  });
+
+  it("leest de opgegeven rastergeometrie uit het manifestformaat", () => {
+    const parsed = parseBoardManifest({
+      board: { width: 1254, height: 1254 },
+      logicalPlayfield: { left: 0.09, top: 0.13, right: 0.91, bottom: 0.87 },
+      grid: { rows: 4, columns: 4, cellWidthNormalized: 0.205, cellHeightNormalized: 0.185 },
+      footAnchorWithinCell: { x: 0.5, y: 0.8 },
+      footAnchorPixels: [627, 1149],
+      maxVisibleCharacterHeight: 0.65,
+    });
+    assert.deepEqual(parsed, geometry);
+  });
+
+  it("heeft onder harde regels en vastgelegde clues exact één oplossing", () => {
+    const found = countSolutions();
+    assert.equal(found.length, 1);
+    assert.deepEqual(found[0], solution);
+  });
+});

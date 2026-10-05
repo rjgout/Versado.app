@@ -33,6 +33,7 @@
     "test:focus": "tsx --test tests/focus-mode.test.ts",
     "test:exercise-feedback": "tsx --test tests/exercise-feedback.test.ts",
     "test:snelle-zendeling": "tsx --test tests/snelle-zendeling.test.ts",
+    "test:mystery": "tsx --test tests/mystery001a.test.ts tests/focus-mode.test.ts",
     "test:artwork": "tsx --test tests/artwork.test.ts",
     "test:leagues": "tsx --test tests/leagues.test.ts",
     "test:profile": "tsx --test tests/profile-settings.test.ts",

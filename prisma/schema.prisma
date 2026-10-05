@@ -100,6 +100,7 @@ model User {
   companion          Companion @default(NOVI)
 
   quickMissionaryRuns QuickMissionaryRun[]
+  mysteryProgress     MysteryProgress[]
 
   // De actieve contentcollectie voor de contentswitcher. Null betekent dat de gebruiker
   // nog geen expliciete keuze heeft gemaakt; de app gebruikt dan de standaardcollectie.
@@ -2336,6 +2337,35 @@ model GameSettings {
   wordSearchEnabled    Boolean @default(true)
   // Standaard uit: eerst inhoud, scoring en anti-cheat door een beheerder laten testen.
   quickMissionaryEnabled Boolean @default(false)
+  // Eerste handgemaakte logicamysterie; los schakelbaar volgens hetzelfde
+  // patroon als de andere spellen op /live.
+  mystery001aEnabled Boolean @default(true)
+}
+
+enum MysteryDifficulty {
+  DISCOVERER
+  INVESTIGATOR
+  SCRIPTURE_SCHOLAR
+}
+
+// Historische voortgang van een vooraf ontworpen mysterie. Een poging zelf
+// blijft client-state; deze rij bewaart alleen wat refresh en opnieuw spelen
+// moet overleven. mysteryId en difficulty zijn stabiele interne sleutels.
+model MysteryProgress {
+  id             String            @id @default(cuid())
+  userId         String
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mysteryId      String
+  difficulty     MysteryDifficulty
+  completed      Boolean           @default(false)
+  completedAt    DateTime?
+  hintCount      Int?
+  tutorialSeenAt DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([userId, mysteryId, difficulty])
+  @@index([userId, completed])
 }
 
 enum QuickMissionaryRunStatus {

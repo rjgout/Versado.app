@@ -27,7 +27,7 @@ export const PRIMARY_NAV: PrimaryNavItem[] = [
     id: "play",
     href: "/live",
     labelKey: "nav.play",
-    match: ["/live", "/scrabble", "/word-game", "/word-search", "/jigsaw", "/alleskenner", "/chapter-guess", "/gezinsavond", "/snelle-zendeling"],
+    match: ["/live", "/scrabble", "/word-game", "/word-search", "/jigsaw", "/alleskenner", "/chapter-guess", "/gezinsavond", "/snelle-zendeling", "/mysteries"],
   },
   { id: "friends", href: "/friends", labelKey: "nav.friends", match: ["/friends", "/groups", "/competition", "/activity", "/challenges"] },
 ];

@@ -46,6 +46,7 @@ const GAME_PAGES: Record<string, MessageKey> = {
   "/chapter-guess": "pages.chapterGuess",
   "/challenges": "pages.challenges",
   "/snelle-zendeling": "pages.quickMissionary",
+  "/mysteries/001a": "pages.mystery001a",
 };
 
 const LESSON_PAGES: [RegExp, MessageKey][] = [
@@ -80,6 +81,7 @@ function detailPageFor(pathname: string, profileView: string | null): DetailPage
   if (/^\/alleskenner\/seizoen\/[^/]+$/.test(pathname)) return { fallback: "/alleskenner/seizoen", title: "pages.season" };
   if (/^\/chapter-guess\/solo\/[^/]+$/.test(pathname)) return { fallback: "/chapter-guess", title: "pages.playAlone" };
   if (/^\/snelle-zendeling\/run\/[^/]+$/.test(pathname)) return { fallback: "/snelle-zendeling", title: "pages.quickMissionary" };
+  if (pathname === "/mysteries/001a/play") return { fallback: "/mysteries/001a", title: "pages.mystery001a" };
   if (/^\/scrabble\/[^/]+$/.test(pathname)) return { fallback: "/scrabble", title: "pages.wordGame" };
   if (/^\/word-search\/[^/]+$/.test(pathname)) return { fallback: "/word-search", title: "pages.wordSearch" };
   if (/^\/live\/[^/]+$/.test(pathname)) return { fallback: "/live", title: "pages.play" };
