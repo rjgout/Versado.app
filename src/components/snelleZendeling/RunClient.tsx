@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import FocusLayout from "@/components/versado/FocusLayout";
-import QuickMissionaryLeaderboard from "./Leaderboard";
+import ImmersiveLayout from "@/components/versado/ImmersiveLayout";
 import { useT } from "@/components/I18nProvider";
 import type { PersonalMascotCharacter } from "@/lib/mascots";
+import { quickMissionaryTitle } from "@/lib/gameCatalog";
 import { quickMissionaryMascotSprite } from "@/lib/snelleZendeling/assets";
 import {
   BOOST_VELOCITY, FIRST_OBSTACLE_X, GAP_HEIGHT, HORIZONTAL_SPEED, MASCOT_X,
@@ -22,7 +22,7 @@ const LAYER_CONFIG = [
 ] as const;
 
 type Phase = "ready" | "running" | "dead" | "revive-question" | "revive-ready" | "finished";
-interface RunView { runId: string; status: "IN_PROGRESS" | "DEAD_AWAITING_REVIVE" | "REVIVE_READY" | "FINISHED"; score: number; reviveUsed: boolean; reviveAvailable: boolean; reviveQuestion: { exerciseId: string; prompt: string; options: { id: string; label: string }[] } | null; dailyBest: number; allTimeBest: number }
+interface RunView { runId: string; status: "IN_PROGRESS" | "DEAD_AWAITING_REVIVE" | "REVIVE_READY" | "FINISHED"; score: number; reviveUsed: boolean; reviveAvailable: boolean; reviveQuestion: { exerciseId: string; context: { kind: "chapter"; label: string } | null; prompt: string; options: { id: string; label: string }[] } | null; dailyBest: number; allTimeBest: number }
 
 function image(src: string) { const img = new Image(); img.src = `${ASSET_BASE}/${src}`; return img; }
 
@@ -41,10 +41,12 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
   const scoredRef = useRef(new Set<number>());
   const boostUntilRef = useRef(0);
   const safeUntilRef = useRef(0);
+  const abandonSentRef = useRef(false);
   const imagesRef = useRef<Record<string, HTMLImageElement>>({});
   const [phase, setPhase] = useState<Phase>("ready");
   const [score, setScore] = useState(0);
   const [view, setView] = useState<RunView | null>(null);
+  const [initialAllTimeBest, setInitialAllTimeBest] = useState<number | null>(null);
   const [error, setError] = useState(false);
 
   const setCurrentPhase = useCallback((next: Phase) => { phaseRef.current = next; setPhase(next); }, []);
@@ -54,6 +56,7 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((data: RunView) => {
         setView(data);
+        setInitialAllTimeBest((current) => current ?? data.allTimeBest);
         scoreRef.current = data.score;
         setScore(data.score);
         if (data.status === "DEAD_AWAITING_REVIVE") setCurrentPhase("dead");
@@ -62,6 +65,34 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
       })
       .catch(() => setError(true));
   }, [runId, setCurrentPhase]);
+
+  // Browser- en native systeem-back lopen allebei via de geschiedenis. Een
+  // keepalive-finish sluit de serverrun idempotent af zonder de navigatie te
+  // vertragen; de server valideert score en eigenaarschap zoals altijd.
+  useEffect(() => {
+    const abandon = () => {
+      if (phaseRef.current === "finished" || abandonSentRef.current) return;
+      abandonSentRef.current = true;
+      void fetch(`/api/snelle-zendeling/runs/${runId}/finish`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ score: scoreRef.current }),
+        keepalive: true,
+      });
+    };
+    window.addEventListener("pagehide", abandon);
+    window.addEventListener("popstate", abandon);
+    return () => {
+      window.removeEventListener("pagehide", abandon);
+      window.removeEventListener("popstate", abandon);
+      // Next kan zijn popstate-listener eerder uitvoeren en deze component al
+      // ontkoppelen. Wacht één taak: bij Reacts ontwikkel-remount staat exact
+      // dezelfde runstage dan alweer in de DOM; bij echte navigatie niet.
+      window.setTimeout(() => {
+        if (!document.querySelector(`[data-quick-missionary-run="${runId}"]`)) abandon();
+      }, 0);
+    };
+  }, [runId]);
 
   useEffect(() => {
     const names = [...LAYER_CONFIG.map(([name]) => name), "foreground-ground.png", "obstacle-wall.png", "obstacle-rock.png", quickMissionaryMascotSprite(character, "glide"), quickMissionaryMascotSprite(character, "boost")];
@@ -105,6 +136,7 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
     if (!response.ok) setError(true);
     const viewResponse = await fetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" });
     if (viewResponse.ok) setView(await viewResponse.json());
+    abandonSentRef.current = true;
     setCurrentPhase("finished");
   }, [runId, setCurrentPhase]);
 
@@ -183,30 +215,37 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
   }, [action]);
 
   async function requestRevive() { const response = await fetch(`/api/snelle-zendeling/runs/${runId}/revive`, { method: "POST" }); if (response.ok) { setView(await response.json()); setCurrentPhase("revive-question"); } else setError(true); }
-  async function answer(optionId: string) { if (!view?.reviveQuestion) return; const response = await fetch(`/api/snelle-zendeling/runs/${runId}/revive/answer`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ exerciseId: view.reviveQuestion.exerciseId, optionId }) }); if (!response.ok) { setError(true); return; } const result = await response.json() as { correct: boolean; view: RunView }; setView(result.view); if (result.correct) { repositionAfterRevive(); setCurrentPhase("revive-ready"); } else setCurrentPhase("finished"); }
+  async function answer(optionId: string) { if (!view?.reviveQuestion) return; const response = await fetch(`/api/snelle-zendeling/runs/${runId}/revive/answer`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ exerciseId: view.reviveQuestion.exerciseId, optionId }) }); if (!response.ok) { setError(true); return; } const result = await response.json() as { correct: boolean; view: RunView }; setView(result.view); if (result.correct) { repositionAfterRevive(); setCurrentPhase("revive-ready"); } else { abandonSentRef.current = true; setCurrentPhase("finished"); } }
   async function playAgain() { const response = await fetch("/api/snelle-zendeling/runs", { method: "POST" }); const data = await response.json().catch(() => ({})); if (response.ok && data.runId) router.push(`/snelle-zendeling/run/${data.runId}`); }
 
-  const title = t("pages.quickMissionary");
+  const title = quickMissionaryTitle(t, character);
+  const finalScore = view?.score ?? score;
+  const newRecord = phase === "finished" && initialAllTimeBest !== null && finalScore > initialAllTimeBest;
   return (
-    <FocusLayout className="max-w-3xl items-center gap-3 py-2 sm:gap-4 sm:py-4">
-      <div className="flex w-full items-center justify-between gap-3 px-1"><h1 className="truncate text-lg font-black text-vs-fg">{title}</h1><span className="rounded-full bg-vs-accent-soft px-4 py-1.5 text-xl font-black tabular-nums text-vs-accent" aria-live="polite">{score}</span></div>
-      <div className="relative w-full max-w-[min(90vw,28rem)] overflow-hidden rounded-[2rem] border-4 border-vs-line-strong bg-sky-100 shadow-xl dark:bg-sky-950" style={{ aspectRatio: `${WORLD_WIDTH}/${WORLD_HEIGHT}` }}>
-        <canvas ref={canvasRef} width={WORLD_WIDTH} height={WORLD_HEIGHT} data-mascot={character} aria-label={t("quickMissionary.gameArea")} className="block h-full w-full touch-none" onPointerDown={(event) => { event.preventDefault(); void action(); }} />
-        {phase === "ready" && <ActionOverlay label={t("quickMissionary.tapToFly")} onAction={() => void action()}><p className="text-lg font-black">{t("quickMissionary.tapToFly")}</p><p className="text-sm">{t("quickMissionary.readyHint")}</p></ActionOverlay>}
-        {phase === "dead" && <Overlay><p className="text-2xl font-black">{t("quickMissionary.secondChance")}</p><p>{t("quickMissionary.scoreLabel", { n: score })}</p><div className="flex flex-wrap justify-center gap-2"><button type="button" className="btn-primary" onClick={() => void requestRevive()} disabled={view?.reviveUsed}>{t("quickMissionary.revive")}</button><button type="button" className="btn-secondary" onClick={() => void finishFromDeath()}>{t("quickMissionary.endRun")}</button></div></Overlay>}
-        {phase === "revive-question" && view?.reviveQuestion && <Overlay><p className="text-lg font-black">{t("quickMissionary.reviveQuestion")}</p><p className="text-sm">{view.reviveQuestion.prompt}</p><div className="grid w-full gap-2">{view.reviveQuestion.options.map((option) => <button key={option.id} type="button" className="btn-secondary !justify-start !text-left" onClick={() => void answer(option.id)}>{option.label}</button>)}</div></Overlay>}
-        {phase === "revive-ready" && <ActionOverlay label={t("quickMissionary.tapToContinue")} onAction={() => void action()}><p className="text-lg font-black text-vs-success">{t("quickMissionary.reviveCorrect")}</p><p>{t("quickMissionary.tapToContinue")}</p></ActionOverlay>}
-        {phase === "finished" && <Overlay><p className="text-2xl font-black">{t("quickMissionary.gameOver")}</p><p>{t("quickMissionary.scoreLabel", { n: view?.score ?? score })}</p><p className="text-sm">{t("quickMissionary.dailyBest", { n: view?.dailyBest ?? 0 })} · {t("quickMissionary.allTimeBest", { n: view?.allTimeBest ?? 0 })}</p><div className="flex flex-wrap justify-center gap-2"><button type="button" className="btn-primary" onClick={() => void playAgain()}>{t("quickMissionary.playAgain")}</button><Link className="btn-secondary" href="/snelle-zendeling">{t("quickMissionary.viewRanking")}</Link></div></Overlay>}
+    <ImmersiveLayout className="items-center justify-center bg-slate-950 sm:p-4">
+      <div
+        className="relative h-[100dvh] w-full overflow-hidden bg-sky-100 dark:bg-sky-950 sm:h-[min(48rem,calc(100dvh-2rem))] sm:w-auto sm:max-w-[calc(100vw-2rem)] sm:aspect-[9/16] sm:rounded-[2rem] sm:border-4 sm:border-vs-line-strong sm:shadow-xl"
+        data-quick-missionary-stage
+        data-quick-missionary-run={runId}
+        data-client-ready={view ? "true" : "false"}
+      >
+        <canvas ref={canvasRef} width={WORLD_WIDTH} height={WORLD_HEIGHT} data-mascot={character} aria-label={t("quickMissionary.gameArea", { title })} className="block h-full w-full touch-none" onPointerDown={(event) => { event.preventDefault(); void action(); }} />
+        <span className="pointer-events-none absolute right-[calc(var(--vs-safe-area-right)+1rem)] top-[calc(var(--vs-safe-area-top)+0.75rem)] z-30 min-w-10 rounded-full bg-slate-950/45 px-3 py-1.5 text-center text-xl font-black tabular-nums text-white shadow-sm backdrop-blur-sm" aria-live="polite" data-game-score>{score}</span>
+        {phase === "ready" && <ActionOverlay label={t("quickMissionary.tapToFly")} onAction={() => void action()}><p className="text-xl font-black">{t("quickMissionary.tapToFly")}</p><p className="text-sm sm:hidden">{t("quickMissionary.readyHint")}</p><p className="hidden text-sm sm:block">{t("quickMissionary.readyHintDesktop")}</p></ActionOverlay>}
+        {phase === "dead" && <Overlay><p className="text-2xl font-black">{t("quickMissionary.heal")}</p><p>{t("quickMissionary.scoreLabel", { n: score })}</p><p className="max-w-sm text-sm">{t("quickMissionary.healIntro")}</p><div className="flex flex-wrap justify-center gap-2"><button type="button" className="btn-primary" onClick={() => void requestRevive()} disabled={view?.reviveUsed}>{t("quickMissionary.heal")}</button><button type="button" className="btn-secondary" onClick={() => void finishFromDeath()}>{t("quickMissionary.endRun")}</button></div></Overlay>}
+        {phase === "revive-question" && view?.reviveQuestion && <Overlay><p className="text-2xl font-black">{t("quickMissionary.heal")}</p>{view.reviveQuestion.context && <p className="rounded-full bg-white/15 px-3 py-1 text-sm font-extrabold">{view.reviveQuestion.context.label}</p>}<p className="max-w-sm text-sm font-semibold">{t("quickMissionary.reviveQuestion")}</p><p className="max-w-sm text-base font-bold leading-snug">{view.reviveQuestion.prompt}</p><div className="grid w-full max-w-sm gap-3">{view.reviveQuestion.options.map((option) => <button key={option.id} type="button" className="btn-secondary min-h-12 w-full !h-auto !justify-start !whitespace-normal !px-4 !py-3 !text-left !text-sm !leading-snug !normal-case" onClick={() => void answer(option.id)}>{option.label}</button>)}</div></Overlay>}
+        {phase === "revive-ready" && <ActionOverlay label={t("quickMissionary.tapToContinue")} onAction={() => void action()}><p className="text-xl font-black text-emerald-300">{t("quickMissionary.reviveCorrect")}</p><p>{t("quickMissionary.tapToContinue")}</p></ActionOverlay>}
+        {phase === "finished" && <Overlay><p className="text-sm font-extrabold uppercase tracking-wide text-white/75">{title}</p><p className="text-3xl font-black">{t("quickMissionary.gameOver")}</p>{newRecord && <p className="rounded-full bg-amber-300 px-3 py-1 text-sm font-black text-amber-950">{t("quickMissionary.newRecord")}</p>}<p className="text-xl font-black">{t("quickMissionary.scoreLabel", { n: finalScore })}</p><div className="text-sm"><p>{t("quickMissionary.dailyBest", { n: view?.dailyBest ?? 0 })}</p><p>{t("quickMissionary.allTimeBest", { n: view?.allTimeBest ?? 0 })}</p></div><div className="grid w-full max-w-xs gap-3"><button type="button" className="btn-primary w-full" onClick={() => void playAgain()}>{t("quickMissionary.playAgain")}</button><Link className="btn-secondary w-full" href="/snelle-zendeling#quick-missionary-leaderboard">{t("quickMissionary.viewRanking")}</Link><Link className="btn-secondary w-full" href="/live">{t("quickMissionary.backToGames")}</Link></div></Overlay>}
+        {error && <p className="absolute inset-x-4 bottom-[calc(var(--vs-safe-area-bottom)+1rem)] z-40 rounded-xl bg-red-950/90 p-3 text-center text-sm font-semibold text-white">{t("quickMissionary.connectionError")}</p>}
       </div>
-      {error && <p className="text-sm font-semibold text-red-600 dark:text-red-400">{t("quickMissionary.connectionError")}</p>}
-      <p className="text-center text-xs text-vs-fg-3">{phase === "running" ? t("quickMissionary.runningHint") : t("quickMissionary.noXp")}</p>
-      {phase === "finished" && <QuickMissionaryLeaderboard compact />}
-    </FocusLayout>
+    </ImmersiveLayout>
   );
 }
 
-function Overlay({ children }: { children: ReactNode }) { return <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/50 p-5 text-center text-white backdrop-blur-[2px]">{children}</div>; }
+function Overlay({ children }: { children: ReactNode }) {
+  return <div className="absolute inset-0 z-20 overflow-y-auto overscroll-contain bg-slate-950/70 text-white backdrop-blur-[2px]" data-game-overlay><div className="flex min-h-full flex-col items-center justify-center gap-3 px-5 pb-[calc(var(--vs-safe-area-bottom)+1.25rem)] pt-[calc(var(--vs-safe-area-top)+4.25rem)] text-center">{children}</div></div>;
+}
 
 function ActionOverlay({ children, label, onAction }: { children: ReactNode; label: string; onAction: () => void }) {
-  return <button type="button" aria-label={label} className="absolute inset-0 flex w-full flex-col items-center justify-center gap-3 bg-slate-950/50 p-5 text-center text-white backdrop-blur-[2px] focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-[-6px] focus-visible:outline-white" onClick={onAction}>{children}</button>;
+  return <button type="button" aria-label={label} className="absolute inset-0 z-20 flex w-full flex-col items-center justify-center gap-3 bg-slate-950/50 px-5 pb-[calc(var(--vs-safe-area-bottom)+1rem)] pt-[calc(var(--vs-safe-area-top)+3.5rem)] text-center text-white backdrop-blur-[2px] focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-[-6px] focus-visible:outline-white" onClick={onAction}>{children}</button>;
 }

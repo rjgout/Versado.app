@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import type { TFunction } from "@/lib/i18n/core";
 import type { GameSettingsView } from "@/lib/gameSettings";
-import { GAME_CATALOG, type GameId } from "@/lib/gameCatalog";
+import { GAME_CATALOG, gameTitle, type GameId } from "@/lib/gameCatalog";
 import { APP_NAME } from "@/lib/brand";
 import MascotSlot from "@/components/versado/MascotSlot";
 import { nextFamilyWelcomeVariant } from "@/lib/mascotRotation";
@@ -228,7 +228,7 @@ export default function HomeContent({ t, displayName, games, signUpHref, loginHr
       {enabledGames.length > 0 && (
         <Section id="home-play" title={t("home.sections.play.title")} intro={t("home.sections.play.intro")}>
           {enabledGames.map((game) => (
-            <FeatureCard key={game.id} visual={GAME_ICONS[game.id]} title={t(game.titleKey)}>
+            <FeatureCard key={game.id} visual={GAME_ICONS[game.id]} title={gameTitle(t, game)}>
               {t(`home.games.${game.textKey}`)}
             </FeatureCard>
           ))}

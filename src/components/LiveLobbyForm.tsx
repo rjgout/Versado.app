@@ -8,10 +8,10 @@ import { SortableList } from "@/components/SortableList";
 import { applyPersonalOrder, fetchListState, saveListOrder } from "@/lib/listOrder";
 import { useT } from "@/components/I18nProvider";
 import AppSelect from "@/components/AppSelect";
-import { GAME_CATALOG, isGameVisible, type GameCatalogEntry } from "@/lib/gameCatalog";
+import { GAME_CATALOG, gameTitle, isGameVisible, type GameCatalogEntry } from "@/lib/gameCatalog";
 import { gameArtworkKeys } from "@/lib/artwork";
 import { CardPicker, ContentCard, StatusChip, cardActions, type PickerItem } from "@/components/versado/ContentCard";
-import PersonalMascot from "@/components/versado/PersonalMascot";
+import PersonalMascot, { useCompanion } from "@/components/versado/PersonalMascot";
 
 interface ChapterOption {
   id: string;
@@ -56,6 +56,7 @@ type GameEntry = GameCatalogEntry;
 export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, contentName }: Props) {
   const t = useT();
   const router = useRouter();
+  const { character } = useCompanion();
   const [chapters, setChapters] = useState<ChapterOption[]>([]);
   const [chapterId, setChapterId] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -145,9 +146,9 @@ export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, cont
   const text = (game: GameEntry, part: "description" | "linkLabel" | "rule1" | "rule2" | "rule3") => t(`gamesHub.${game.textKey}.${part}`);
   const pickerItems: PickerItem[] = hiddenGames.map((game) => ({
     id: game.id,
-    title: t(game.titleKey),
+    title: gameTitle(t, game, character),
     description: text(game, "description"),
-    artwork: { kind: "game", keys: gameArtworkKeys(game.id) },
+    artwork: { kind: "game", keys: gameArtworkKeys(game.id, character) },
   }));
 
   return (
@@ -206,16 +207,16 @@ export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, cont
           dndId="games-list"
           items={games}
           onReorder={(next) => save(next, hidden)}
-          getItemLabel={(game) => t(game.titleKey)}
+          getItemLabel={(game) => gameTitle(t, game, character)}
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
           renderItem={(game, handle) => {
             const enabled = settings[game.enabledKey];
-            const title = t(game.titleKey);
+            const title = gameTitle(t, game, character);
             return (
               <ContentCard
                 title={title}
                 href={game.href}
-                artwork={{ kind: "game", keys: gameArtworkKeys(game.id), sizes: "(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw" }}
+                artwork={{ kind: "game", keys: gameArtworkKeys(game.id, character), sizes: "(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw" }}
                 chips={
                   <>
                     {/* Uitgezet in /adminbackend: alleen een beheerder ziet het spel nog, met dit label. */}
@@ -238,7 +239,7 @@ export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, cont
         <CardPicker addLabel={t("gamesHub.addGame")} emptyText={t("gamesHub.allAdded")} items={order ? pickerItems : null} onAdd={add} />
       )}
 
-      {rulesFor && <GameRules title={t(rulesFor.titleKey)} rules={(["rule1", "rule2", "rule3"] as const).map((rule) => text(rulesFor, rule))} onClose={() => setRulesFor(null)} />}
+      {rulesFor && <GameRules title={gameTitle(t, rulesFor, character)} rules={(["rule1", "rule2", "rule3"] as const).map((rule) => text(rulesFor, rule))} onClose={() => setRulesFor(null)} />}
     </div>
   );
 }

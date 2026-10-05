@@ -66,9 +66,9 @@ const comprehensionByChapter: Record<string, ComprehensionExercise[]> = {
       prompt: "Wat is de kernboodschap van dit hoofdstuk?",
       options: [
         "Nephi legt uit waarom hij dit verslag schrijft en vertelt over de roeping van zijn vader Lehi als profeet.",
-        "Nephi beschrijft een oorlog tussen twee koninkrijken.",
-        "Nephi vertelt over een groot feest in Jeruzalem.",
-        "Nephi geeft een overzicht van de wetten van Mozes.",
+        "Nephi beschrijft hoe een oorlog tussen twee koninkrijken Jeruzalem bedreigt en zijn familie tot handelen dwingt.",
+        "Nephi vertelt hoe een groot feest in Jeruzalem zijn familie samenbrengt en aanleiding geeft om hun geschiedenis vast te leggen.",
+        "Nephi geeft een overzicht van de wetten van Mozes en legt uit hoe zijn volk die wetten in Jeruzalem naleeft.",
       ],
       correctIndex: 0,
     },

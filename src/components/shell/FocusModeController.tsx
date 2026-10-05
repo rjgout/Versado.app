@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { isFocusRoute } from "@/lib/focusMode";
+import { shellModeForRoute } from "@/lib/focusMode";
 
 /**
  * Zet de centrale shellvariant op de body. De vaste shell blijft daardoor op
@@ -11,10 +11,10 @@ import { isFocusRoute } from "@/lib/focusMode";
  */
 export default function FocusModeController({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const focus = isFocusRoute(pathname);
+  const mode = shellModeForRoute(pathname);
 
   return (
-    <div data-shell-mode={focus ? "focus" : "normal"} className="contents">
+    <div data-shell-mode={mode} className="contents">
       {children}
     </div>
   );

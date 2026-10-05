@@ -73,6 +73,11 @@ export function isPersonalMascot(value: unknown): value is PersonalMascotCharact
   return typeof value === "string" && (PERSONAL_MASCOTS as readonly string[]).includes(value);
 }
 
+/** De canonieke, onvertaalde eigennaam van een persoonlijke gids. */
+export function personalMascotName(character: PersonalMascotCharacter): string {
+  return character[0].toUpperCase() + character.slice(1);
+}
+
 export type MascotStateOf<C extends MascotCharacter> = MascotStatesByCharacter[C];
 
 /** Elke geldige combinatie van personage en state, als één union. */

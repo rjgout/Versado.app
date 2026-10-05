@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import type { MessageKey } from "@/lib/i18n/core";
 import ToggleSwitch from "@/components/versado/ToggleSwitch";
+import { useCompanion } from "@/components/versado/PersonalMascot";
+import { quickMissionaryTitle } from "@/lib/gameCatalog";
 
 interface SettingsView {
   wordGameEnabled: boolean;
@@ -42,6 +44,7 @@ interface ScopesView {
 
 export default function AdminGameSettingsClient() {
   const t = useT();
+  const { character } = useCompanion();
   const [settings, setSettings] = useState<SettingsView | null>(null);
   const [saving, setSaving] = useState(false);
   const [scopes, setScopes] = useState<ScopesView | null>(null);
@@ -80,6 +83,8 @@ export default function AdminGameSettingsClient() {
     setSaving(false);
   }
 
+  const labelFor = (game: (typeof GAMES)[number]) => game.gameKey === "quick-missionary" ? quickMissionaryTitle(t, character) : t(game.labelKey);
+
   return (
     <details className="group card flex flex-col gap-4">
       <summary className="font-extrabold text-lg dark:text-slate-100 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center justify-between">
@@ -99,7 +104,7 @@ export default function AdminGameSettingsClient() {
         <div className="flex flex-col gap-2">
           {GAMES.map((g) => (
             <label key={g.key} className="flex min-h-11 cursor-pointer items-center gap-3">
-              <span className="min-w-0 flex-1 text-sm dark:text-slate-200">{g.icon ? `${g.icon} ${t(g.labelKey)}` : t(g.labelKey)}</span>
+              <span className="min-w-0 flex-1 text-sm dark:text-slate-200">{g.icon ? `${g.icon} ${labelFor(g)}` : labelFor(g)}</span>
               {!settings[g.key] && (
                 <span className="text-xs font-bold uppercase text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded-full px-2 py-0.5">
                   {t("adminContent.disabled")}
@@ -117,7 +122,7 @@ export default function AdminGameSettingsClient() {
           <p className="text-xs text-slate-500 dark:text-slate-400">{t("adminGames.perContentHint")}</p>
           {GAMES.map((g) => (
             <div key={g.gameKey} className="flex flex-col gap-1.5">
-              <span className="text-sm font-semibold dark:text-slate-200">{g.icon ? `${g.icon} ${t(g.labelKey)}` : t(g.labelKey)}</span>
+              <span className="text-sm font-semibold dark:text-slate-200">{g.icon ? `${g.icon} ${labelFor(g)}` : labelFor(g)}</span>
               <div className="flex flex-wrap gap-2">
                 {scopes.collections.map((collection) => {
                   const on = scopes.scopes.some((s) => s.gameKey === g.gameKey && s.contentCollectionId === collection.id);

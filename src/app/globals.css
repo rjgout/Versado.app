@@ -96,6 +96,27 @@ body {
   padding-bottom: calc(1rem + var(--vs-safe-area-bottom)) !important;
 }
 
+/* Immersive mode is voor een activiteit die zelf de volledige viewport en
+ * veilige exitmomenten beheert. Anders dan Focus blijft ook de terugbalk weg.
+ * Dit is routegestuurd via focusMode.ts, niet door feature-specifieke
+ * hide-klassen op losse shellonderdelen. */
+[data-shell-mode="immersive"] [data-sticky-header],
+[data-shell-mode="immersive"] nav[data-main-nav] {
+  display: none;
+}
+
+[data-shell-mode="immersive"] main {
+  margin: 0 !important;
+  min-height: 100dvh;
+  max-width: none !important;
+  width: 100%;
+  padding: 0 !important;
+}
+
+.vs-immersive-layout {
+  padding: 0;
+}
+
 /* --- Versado-designtokens ---------------------------------------------------
  *
  * Semantische kleuren voor de nieuwe app-shell en Vandaag (zie

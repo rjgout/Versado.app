@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
   BOOST_VELOCITY,
@@ -20,11 +20,17 @@ import {
   stepPhysics,
 } from "@/lib/snelleZendeling/gameplay";
 import { maxPlausibleScore, validateReportedScore } from "@/lib/snelleZendeling/validation";
-import { applyReviveAnswer, selectReviveOptions } from "@/lib/snelleZendeling/rules";
+import { applyReviveAnswer, reviveOptionsAreComparable, reviveQuestionContext, selectReviveOptions } from "@/lib/snelleZendeling/rules";
 import { rankScores } from "@/lib/snelleZendeling/ranking";
-import { GAME_CATALOG } from "@/lib/gameCatalog";
+import { GAME_CATALOG, gameTitle } from "@/lib/gameCatalog";
 import { PERSONAL_MASCOTS } from "@/lib/mascots";
 import { quickMissionaryMascotSprite } from "@/lib/snelleZendeling/assets";
+import { gameArtworkKeys, artworkFor } from "@/lib/artwork";
+import { translateWith } from "@/lib/i18n/core";
+import { en } from "@/lib/i18n/messages/en";
+import { de } from "@/lib/i18n/messages/de";
+import { fr } from "@/lib/i18n/messages/fr";
+import { es } from "@/lib/i18n/messages/es";
 
 describe("Snelle Zendeling gameplay", () => {
   it("houdt obstakelbreedte, gaphoogte en paarafstand constant", () => {
@@ -105,6 +111,29 @@ describe("Snelle Zendeling gameplay", () => {
     assert.equal(applyReviveAnswer("DEAD_AWAITING_REVIVE", true, true), null);
   });
 
+  it("kiest alleen antwoordsets waarvan lengte het juiste antwoord niet verraadt", () => {
+    const balanced = selectReviveOptions([
+      { id: "good", label: "Hij vraagt de Heer om hulp", isCorrect: true },
+      { id: "short", label: "Hij vertrekt", isCorrect: false },
+      { id: "close-1", label: "Hij vertrouwt op zijn eigen kracht", isCorrect: false },
+      { id: "close-2", label: "Hij luistert naar raad van zijn familie", isCorrect: false },
+    ]);
+    assert.equal(balanced?.length, 3);
+    assert.equal(reviveOptionsAreComparable(balanced ?? []), true);
+    assert.equal(balanced?.some((option) => option.id === "short"), false);
+    assert.equal(selectReviveOptions([
+      { id: "good", label: "Een uitvoerig en zeer specifiek correct antwoord met veel inhoud", isCorrect: true },
+      { id: "wrong-1", label: "Nee", isCorrect: false },
+      { id: "wrong-2", label: "Ja", isCorrect: false },
+    ]), null);
+  });
+
+  it("toont echte hoofdstukcontext en verzint geen context zonder metadata", () => {
+    assert.deepEqual(reviveQuestionContext({ chapter: { number: 32, book: { name: "Alma" } } }), { kind: "chapter", label: "Alma 32" });
+    assert.equal(reviveQuestionContext({}), null);
+    assert.equal(reviveQuestionContext({ chapter: { number: 1, book: null } }), null);
+  });
+
   it("kiest per gebruiker de beste score en breekt gelijke scores deterministisch", () => {
     const early = new Date("2026-01-01T00:00:01Z");
     const late = new Date("2026-01-01T00:00:02Z");
@@ -119,5 +148,38 @@ describe("Snelle Zendeling gameplay", () => {
   it("staat als uitgeschakeld spel met stabiele route in de catalogus", () => {
     const game = GAME_CATALOG.find((entry) => entry.id === "quick-missionary");
     assert.deepEqual(game && { enabledKey: game.enabledKey, href: game.href }, { enabledKey: "quickMissionaryEnabled", href: "/snelle-zendeling" });
+  });
+
+  it("gebruikt de persoonlijke gids voor naam en cover zonder een nieuw spel te maken", () => {
+    const game = GAME_CATALOG.find((entry) => entry.id === "quick-missionary")!;
+    const t = (key: Parameters<typeof translateWith>[1], vars?: Parameters<typeof translateWith>[2]) => translateWith(undefined, key, vars);
+    assert.equal(gameTitle(t, game, "novi"), "Vliegende Novi");
+    assert.equal(gameTitle(t, game, "varo"), "Vliegende Varo");
+    assert.equal(gameTitle(t, game, "vera"), "Vliegende Vera");
+    assert.equal(gameTitle((key, vars) => translateWith(en, key, vars), game, "vera"), "Flying Vera");
+    assert.equal(gameTitle((key, vars) => translateWith(de, key, vars), game, "vera"), "Mit Vera fliegen");
+    assert.equal(gameTitle((key, vars) => translateWith(fr, key, vars), game, "vera"), "Vera prend son envol");
+    assert.equal(gameTitle((key, vars) => translateWith(es, key, vars), game, "vera"), "Vuela con Vera");
+    assert.equal(GAME_CATALOG.filter((entry) => entry.id === "quick-missionary").length, 1);
+    assert.equal(artworkFor(gameArtworkKeys(game.id, "varo")), null);
+    assert.equal(artworkFor(gameArtworkKeys(game.id, "vera")), null);
+    const page = readFileSync(path.join(process.cwd(), "src/app/snelle-zendeling/run/[runId]/page.tsx"), "utf8");
+    assert.match(page, /companionToMascot\(user\.companion\)/);
+    assert.doesNotMatch(page, /preference|localStorage/);
+  });
+
+  it("houdt score, instructie, Genees en veilige exits binnen de immersive game-area", () => {
+    const source = readFileSync(path.join(process.cwd(), "src/components/snelleZendeling/RunClient.tsx"), "utf8");
+    const server = readFileSync(path.join(process.cwd(), "src/lib/snelleZendeling/runs.ts"), "utf8");
+    assert.match(source, /ImmersiveLayout/);
+    assert.match(source, /data-game-score/);
+    assert.match(source, /data-game-overlay/);
+    assert.match(source, /quickMissionary\.heal/);
+    assert.match(source, /overflow-y-auto/);
+    assert.match(source, /!whitespace-normal/);
+    assert.match(source, /quickMissionary\.backToGames/);
+    assert.match(source, /keepalive: true/);
+    assert.doesNotMatch(source, /SubpageBackBar|FocusLayout/);
+    assert.doesNotMatch(server, /recordLearningActivity|competitionXp|awardXp/);
   });
 });

@@ -1,4 +1,6 @@
 import type { MessageKey } from "@/lib/i18n/core";
+import type { TFunction } from "@/lib/i18n/core";
+import { DEFAULT_PERSONAL_MASCOT, personalMascotName, type PersonalMascotCharacter } from "@/lib/mascots";
 
 // Vaste spelcatalogus: sleutel (ook voor de sleepvolgorde, UserListOrder),
 // instelling in GameSettings, route en teksten. Gedeeld door het
@@ -44,6 +46,26 @@ export const GAME_CATALOG: GameCatalogEntry[] = [
   { id: "quick-missionary", enabledKey: "quickMissionaryEnabled", textKey: "quickMissionary", titleKey: "pages.quickMissionary", href: "/snelle-zendeling" },
   { id: "mystery", enabledKey: "mysteryEnabled", textKey: "mystery", titleKey: "pages.mystery", href: "/mysteries" },
 ];
+
+/**
+ * Zichtbare spelnamen lopen via één resolver. Alleen Vliegende {gids} heeft
+ * een persoonlijke titel; de technische catalogus-id blijft voor iedereen
+ * gelijk, zodat wisselen van gids nooit een nieuw spel of klassement maakt.
+ */
+export function gameTitle(
+  t: TFunction,
+  game: Pick<GameCatalogEntry, "id" | "titleKey">,
+  character: PersonalMascotCharacter = DEFAULT_PERSONAL_MASCOT
+): string {
+  if (game.id === "quick-missionary") {
+    return quickMissionaryTitle(t, character);
+  }
+  return t(game.titleKey);
+}
+
+export function quickMissionaryTitle(t: TFunction, character: PersonalMascotCharacter = DEFAULT_PERSONAL_MASCOT): string {
+  return t("quickMissionary.title", { mascot: personalMascotName(character) });
+}
 
 /** Zelfde regel als het spellenoverzicht: toegestaan bij de actieve content én aangezet (of beheerder). */
 export function isGameVisible(

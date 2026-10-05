@@ -4,12 +4,15 @@ import { useEffect, useState } from "react";
 import UserAvatar from "@/components/UserAvatar";
 import UserTag from "@/components/UserTag";
 import { useT } from "@/components/I18nProvider";
+import { useCompanion } from "@/components/versado/PersonalMascot";
+import { quickMissionaryTitle } from "@/lib/gameCatalog";
 
 interface Entry { rank: number; userId: string; handle: string; discriminator: string; score: number }
 type Board = "today" | "all-time";
 
 export default function QuickMissionaryLeaderboard({ compact = false }: { compact?: boolean }) {
   const t = useT();
+  const { character } = useCompanion();
   const [board, setBoard] = useState<Board>("today");
   const [entries, setEntries] = useState<Entry[] | null>(null);
   useEffect(() => {
@@ -22,7 +25,10 @@ export default function QuickMissionaryLeaderboard({ compact = false }: { compac
   return (
     <section className="card flex flex-col gap-3" aria-labelledby="quick-missionary-leaderboard">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="quick-missionary-leaderboard" className="text-lg font-extrabold text-vs-fg">{t("quickMissionary.leaderboard")}</h2>
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-wide text-vs-fg-3">{quickMissionaryTitle(t, character)}</p>
+          <h2 id="quick-missionary-leaderboard" className="text-lg font-extrabold text-vs-fg">{t("quickMissionary.leaderboard")}</h2>
+        </div>
         <div className="flex rounded-full bg-vs-subtle p-1" role="tablist" aria-label={t("quickMissionary.leaderboardTabs")}>
           {(["today", "all-time"] as Board[]).map((value) => (
             <button key={value} type="button" role="tab" aria-selected={board === value} onClick={() => setBoard(value)} className={`rounded-full px-3 py-1 text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent ${board === value ? "bg-vs-surface text-vs-accent shadow-sm" : "text-vs-fg-3"}`}>

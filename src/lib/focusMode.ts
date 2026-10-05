@@ -18,10 +18,25 @@ const FOCUS_ROUTES = [
   /^\/alleskenner\/seizoen\/[^/]+$/,
   /^\/word-game$/,
   /^\/jigsaw$/,
-  /^\/snelle-zendeling\/run\/[^/]+$/,
   /^\/mysteries\/001a\/play$/,
 ] as const;
 
+const IMMERSIVE_ROUTES = [
+  /^\/snelle-zendeling\/run\/[^/]+$/,
+] as const;
+
+export type ShellMode = "normal" | "focus" | "immersive";
+
 export function isFocusRoute(pathname: string): boolean {
   return FOCUS_ROUTES.some((pattern) => pattern.test(pathname));
+}
+
+export function isImmersiveRoute(pathname: string): boolean {
+  return IMMERSIVE_ROUTES.some((pattern) => pattern.test(pathname));
+}
+
+export function shellModeForRoute(pathname: string): ShellMode {
+  if (isImmersiveRoute(pathname)) return "immersive";
+  if (isFocusRoute(pathname)) return "focus";
+  return "normal";
 }

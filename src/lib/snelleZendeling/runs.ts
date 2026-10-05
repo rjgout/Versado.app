@@ -3,7 +3,7 @@ import { getContentContext } from "@/lib/contentCollections";
 import { dayKeyInZone, resolveTimeZone } from "@/lib/timeZone";
 import { shuffleForDisplay } from "@/lib/exerciseGen";
 import { validateReportedScore } from "./validation";
-import { applyReviveAnswer, selectReviveOptions } from "./rules";
+import { applyReviveAnswer, reviveQuestionContext, selectReviveOptions } from "./rules";
 import { rankScores } from "./ranking";
 
 const TOP_SIZE = 50;
@@ -12,6 +12,7 @@ export type RunStatus = "IN_PROGRESS" | "DEAD_AWAITING_REVIVE" | "REVIVE_READY" 
 
 export interface ReviveQuestion {
   exerciseId: string;
+  context: { kind: "chapter"; label: string } | null;
   prompt: string;
   options: { id: string; label: string }[];
 }
@@ -64,11 +65,19 @@ async function reviveQuestionForRun(run: { reviveExerciseId: string | null; revi
   if (!run.reviveExerciseId) return null;
   const ids = optionIdsFromRun(run);
   if (ids.length !== 3) return null;
-  const exercise = await prisma.exercise.findUnique({ where: { id: run.reviveExerciseId }, select: { id: true, prompt: true, options: { where: { id: { in: ids } }, select: { id: true, label: true } } } });
+  const exercise = await prisma.exercise.findUnique({
+    where: { id: run.reviveExerciseId },
+    select: {
+      id: true,
+      prompt: true,
+      chapter: { select: { number: true, book: { select: { name: true } } } },
+      options: { where: { id: { in: ids } }, select: { id: true, label: true } },
+    },
+  });
   if (!exercise || exercise.options.length !== 3) return null;
   const byId = new Map(exercise.options.map((option) => [option.id, option]));
   const options = ids.map((id) => byId.get(id)).filter((option): option is { id: string; label: string } => !!option);
-  return options.length === 3 ? { exerciseId: exercise.id, prompt: exercise.prompt, options } : null;
+  return options.length === 3 ? { exerciseId: exercise.id, context: reviveQuestionContext(exercise), prompt: exercise.prompt, options } : null;
 }
 
 async function bestScores(userId: string, dayKey: string): Promise<{ dailyBest: number; allTimeBest: number }> {
@@ -139,12 +148,19 @@ export async function requestReviveQuestion(runId: string, userId: string): Prom
     const collectionId = await activeCollectionId(userId);
     const candidates = await prisma.exercise.findMany({
       where: { status: "APPROVED", type: "MULTIPLE_CHOICE", chapter: { book: { contentCollectionId: collectionId } }, options: { some: {} } },
-      include: { options: { orderBy: { order: "asc" } }, attempts: { where: { userId }, select: { id: true } } },
+      include: {
+        chapter: { select: { number: true, book: { select: { name: true } } } },
+        options: { orderBy: { order: "asc" } },
+        attempts: { where: { userId }, select: { id: true } },
+      },
       take: 200,
     });
     const seen = candidates.filter((candidate) => candidate.attempts.length > 0);
     const selected = [...shuffleForDisplay(seen), ...shuffleForDisplay(candidates.filter((candidate) => candidate.attempts.length === 0))]
-      .map((candidate) => ({ candidate, options: selectReviveOptions(candidate.options) ? shuffleForDisplay(selectReviveOptions(candidate.options)!) : null }))
+      .map((candidate) => {
+        const options = selectReviveOptions(candidate.options);
+        return { candidate, options: options ? shuffleForDisplay(options) : null };
+      })
       .find((entry): entry is { candidate: typeof candidates[number]; options: { id: string; label: string; isCorrect: boolean }[] } => !!entry.options);
     if (!selected) throw new Error("NO_QUESTION");
     await prisma.quickMissionaryRun.update({ where: { id: runId }, data: { reviveExerciseId: selected.candidate.id, reviveOptionIds: JSON.stringify(selected.options.map((option) => option.id)) } });

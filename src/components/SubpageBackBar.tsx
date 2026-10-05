@@ -7,6 +7,8 @@ import { useBackNavigation } from "@/lib/navigationHistory";
 import { parseProfileView, PROFILE_VIEWS } from "@/lib/profileViews";
 import { useT } from "@/components/I18nProvider";
 import type { MessageKey } from "@/lib/i18n/core";
+import { useCompanion } from "@/components/versado/PersonalMascot";
+import { quickMissionaryTitle } from "@/lib/gameCatalog";
 
 interface DetailPage {
   /** Alleen gebruikt zonder vorige pagina in de app (een deeplink). */
@@ -112,12 +114,14 @@ export default function SubpageBackBar() {
   const pathname = usePathname();
   const profileView = useSearchParams().get("view");
   const t = useT();
+  const { character } = useCompanion();
   const override = useBackTargetOverride(pathname);
   const page = detailPageFor(pathname, profileView);
   const goBack = useBackNavigation(override?.href ?? page?.fallback ?? "/dashboard");
   if (!page) return null;
   // Een cursusnaam (override) komt al als tekst uit de database.
   const subtitle = override?.parent ?? (page.subtitle ? t(page.subtitle) : null);
+  const title = pathname === "/snelle-zendeling" ? quickMissionaryTitle(t, character) : t(page.title);
 
   return (
     <div data-subpage-back-bar className="border-b border-vs-line bg-vs-elevated">
@@ -132,7 +136,7 @@ export default function SubpageBackBar() {
             <ArrowLeft className="h-5 w-5" strokeWidth={2.25} />
           </span>
           <span className="min-w-0 leading-tight">
-            <span className="block truncate font-extrabold text-vs-fg">{t(page.title)}</span>
+            <span className="block truncate font-extrabold text-vs-fg">{title}</span>
             {subtitle && <span className="block truncate text-xs font-semibold text-vs-fg-2">{subtitle}</span>}
           </span>
         </button>

@@ -21,6 +21,7 @@
 // (Achievement.icon, ContentCollection.icon) als bron.
 
 import type { GameId } from "@/lib/gameCatalog";
+import { DEFAULT_PERSONAL_MASCOT, PERSONAL_MASCOTS, type PersonalMascotCharacter } from "@/lib/mascots";
 
 export type ArtworkKind = "course" | "podcast" | "game" | "daily" | "reading" | "quiz" | "social";
 
@@ -95,9 +96,24 @@ const GAME_COVERS: Partial<Record<GameId, ArtworkAsset>> = {
   "chapter-guess": { src: "/images/games/raad-het-hoofdstuk.png", tone: "#9d6e49" },
   gezinsavond: { src: "/images/games/gezinsavond.png", tone: "#a27141" },
   challenges: { src: "/images/games/uitdagingen.png", tone: "#996638" },
-  "quick-missionary": { src: "/images/games/snelle-zendeling.png", tone: "#8ebfd0" },
   // Tijdelijke prototype-cover voor Het Mysterie; later krijgt het spel een eigen algemene cover.
   mystery: { src: "/mysterie-001a-ontdekker/board.png", fit: "contain", tone: "#9b7b55" },
+};
+
+/**
+ * Optionele persoonlijke spelcovers. `null` is bewust: MediaArtwork toont dan
+ * zijn bestaande neutrale placeholder in plaats van een verkeerde mascotte.
+ * Zodra de definitieve bestanden er zijn, hoeft alleen dit register te worden
+ * aangevuld; kaartcomponenten kennen geen paden of uitzonderingen.
+ */
+const GAME_MASCOT_COVERS: Partial<Record<GameId, Record<PersonalMascotCharacter, ArtworkAsset | null>>> = {
+  "quick-missionary": {
+    novi: { src: "/images/games/snelle-zendeling.png", tone: "#8ebfd0" },
+    // Verwacht: public/images/games/vliegende-varo.png; na levering deze null vervangen door de asset.
+    varo: null,
+    // Verwacht: public/images/games/vliegende-vera.png; na levering deze null vervangen door de asset.
+    vera: null,
+  },
 };
 
 const PODCASTS: Record<string, ArtworkAsset> = {
@@ -115,6 +131,12 @@ const ARTWORK: Record<string, ArtworkAsset> = Object.fromEntries([
   ...Object.entries(COURSE_WORKS).map(([key, asset]) => [`course-work:${key}`, asset]),
   ...Object.entries(COURSE_TYPES).map(([key, asset]) => [`course-type:${key}`, asset]),
   ...Object.entries(GAME_COVERS).map(([key, asset]) => [`game:${key}`, asset]),
+  ...Object.entries(GAME_MASCOT_COVERS).flatMap(([gameId, covers]) =>
+    PERSONAL_MASCOTS.flatMap((character) => {
+      const asset = covers?.[character];
+      return asset ? [[`game:${gameId}:${character}`, asset] as const] : [];
+    })
+  ),
   ...Object.entries(PODCASTS).map(([key, asset]) => [`podcast:${key}`, asset]),
   ...Object.entries(DAILY).map(([key, asset]) => [`daily:${key}`, asset]),
 ]);
@@ -160,6 +182,6 @@ export function podcastArtworkKeys(podcastId: string | null | undefined): string
   return [...(podcastId ? [`podcast:${podcastId}`] : []), "podcast:default"];
 }
 
-export function gameArtworkKeys(gameId: GameId): string[] {
-  return [`game:${gameId}`];
+export function gameArtworkKeys(gameId: GameId, character: PersonalMascotCharacter = DEFAULT_PERSONAL_MASCOT): string[] {
+  return GAME_MASCOT_COVERS[gameId] ? [`game:${gameId}:${character}`] : [`game:${gameId}`];
 }

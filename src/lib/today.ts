@@ -9,13 +9,14 @@ import { getActiveGameStatus, type ActivityItem } from "@/lib/activeGames";
 import { getSubscribedCourseSummaries } from "@/lib/courseSummaries";
 import { BOFM_WORK, getContentContext } from "@/lib/contentCollections";
 import { getGameSettings } from "@/lib/gameSettings";
-import { GAME_CATALOG, isGameVisible, type GameCatalogEntry } from "@/lib/gameCatalog";
+import { GAME_CATALOG, gameTitle, isGameVisible, type GameCatalogEntry } from "@/lib/gameCatalog";
 import { getFriendStatusMap } from "@/lib/presence";
 import { applyPersonalOrder } from "@/lib/listOrder";
 import { localizedCourse } from "@/lib/courseText";
 import { chapterTerm, localizeTerm } from "@/lib/chapterTerm";
 import { getT } from "@/lib/i18n";
 import { courseArtworkKeys, gameArtworkKeys, podcastArtworkKeys } from "@/lib/artwork";
+import { companionToMascot } from "@/lib/companion";
 import { getTogetherSummary, type TogetherSummary } from "@/lib/social/together";
 
 // Alle gegevens voor Vandaag (src/app/dashboard/page.tsx), in één keer en
@@ -171,6 +172,7 @@ function openActions(status: Awaited<ReturnType<typeof getActiveGameStatus>>, fr
 export async function getTodayData(user: User): Promise<TodayData> {
   const continuation = await getStreakContinuation(user.id);
   const t = getT(user.uiLanguage);
+  const character = companionToMascot(user.companion);
   // De dagelijkse Alleskenner is voor iedereen dezelfde, met één vaste
   // daggrens (UTC); de persoonlijke dag (reeks, begroeting) volgt hieronder
   // de tijdzone van de gebruiker.
@@ -344,12 +346,12 @@ export async function getTodayData(user: User): Promise<TodayData> {
   const gameCards: DiscoverItem[] = games.map((game) => ({
       key: `game-${game.id}`,
       kind: "game" as const,
-      title: t(game.titleKey),
+      title: gameTitle(t, game, character),
       description: null,
       href: game.href,
       meta: null,
       gameTextKey: game.textKey,
-      artwork: gameArtworkKeys(game.id),
+      artwork: gameArtworkKeys(game.id, character),
     }));
   // Afwisselend een cursus en een spel, zodat beide soorten zichtbaar zijn
   // ook als er van één soort veel is.

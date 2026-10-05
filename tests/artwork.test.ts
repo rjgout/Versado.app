@@ -6,13 +6,13 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { artworkFor, courseArtworkKeys } from "../src/lib/artwork";
+import { artworkFor, courseArtworkKeys, gameArtworkKeys, type ArtworkKeys } from "../src/lib/artwork";
 import { BOOK_KEYS_BY_SLUG } from "../prisma/bookKeys";
 import { INTRO_SLUG, KIDS_SLUG, FSY_SLUG } from "../src/lib/courses";
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
 
-function assertFile(key: string) {
+function assertFile(key: ArtworkKeys) {
   const asset = artworkFor(key);
   assert.ok(asset, `${key} heeft geen beeld`);
   assert.ok(existsSync(path.join(PUBLIC, asset.src)), `${asset.src} ontbreekt`);
@@ -45,6 +45,9 @@ test("een cursus volgt het boek waar je bent, anders het begin of de keuzeroute"
   assert.equal(first(courseArtworkKeys({ slug: "podcast", type: "PODCAST", work: "podcasts" })), undefined);
 });
 
-test("Snelle Zendeling heeft een echte spelcover", () => {
-  assert.equal(assertFile("game:quick-missionary").src, "/images/games/snelle-zendeling.png");
+test("het vliegspel kiest een cover per persoonlijke gids en valt veilig terug", () => {
+  assert.equal(assertFile(gameArtworkKeys("quick-missionary", "novi")).src, "/images/games/snelle-zendeling.png");
+  assert.equal(artworkFor(gameArtworkKeys("quick-missionary", "varo")), null);
+  assert.equal(artworkFor(gameArtworkKeys("quick-missionary", "vera")), null);
+  assert.notDeepEqual(gameArtworkKeys("quick-missionary", "novi"), gameArtworkKeys("quick-missionary", "varo"));
 });
