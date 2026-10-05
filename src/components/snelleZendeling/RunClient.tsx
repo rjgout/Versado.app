@@ -4,9 +4,10 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import FocusLayout from "@/components/versado/FocusLayout";
-import { useCompanion } from "@/components/versado/PersonalMascot";
 import QuickMissionaryLeaderboard from "./Leaderboard";
 import { useT } from "@/components/I18nProvider";
+import type { PersonalMascotCharacter } from "@/lib/mascots";
+import { quickMissionaryMascotSprite } from "@/lib/snelleZendeling/assets";
 import {
   BOOST_VELOCITY, FIRST_OBSTACLE_X, GAP_HEIGHT, HORIZONTAL_SPEED, MASCOT_X,
   OBSTACLE_WIDTH, PAIR_SPACING, PLAY_BOTTOM, PLAY_TOP, WORLD_HEIGHT, WORLD_WIDTH,
@@ -25,10 +26,9 @@ interface RunView { runId: string; status: "IN_PROGRESS" | "DEAD_AWAITING_REVIVE
 
 function image(src: string) { const img = new Image(); img.src = `${ASSET_BASE}/${src}`; return img; }
 
-export default function QuickMissionaryRunClient({ runId }: { runId: string }) {
+export default function QuickMissionaryRunClient({ runId, character }: { runId: string; character: PersonalMascotCharacter }) {
   const t = useT();
   const router = useRouter();
-  const { character } = useCompanion();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<number | null>(null);
   const lastFrameRef = useRef<number | null>(null);
@@ -64,7 +64,7 @@ export default function QuickMissionaryRunClient({ runId }: { runId: string }) {
   }, [runId, setCurrentPhase]);
 
   useEffect(() => {
-    const names = [...LAYER_CONFIG.map(([name]) => name), "foreground-ground.png", "obstacle-wall.png", "obstacle-rock.png", `${character}-snelle-zendeling-glide.png`, `${character}-snelle-zendeling-boost.png`];
+    const names = [...LAYER_CONFIG.map(([name]) => name), "foreground-ground.png", "obstacle-wall.png", "obstacle-rock.png", quickMissionaryMascotSprite(character, "glide"), quickMissionaryMascotSprite(character, "boost")];
     const loaded: Record<string, HTMLImageElement> = {};
     names.forEach((name) => { loaded[name] = image(name); });
     imagesRef.current = loaded;
@@ -95,7 +95,7 @@ export default function QuickMissionaryRunClient({ runId }: { runId: string }) {
       if (rock?.complete && rock.naturalWidth) { const h = OBSTACLE_WIDTH * rock.naturalHeight / rock.naturalWidth; ctx.drawImage(rock, pair.x, pair.gapY - h, OBSTACLE_WIDTH, h); }
       if (wall?.complete && wall.naturalWidth) { const h = OBSTACLE_WIDTH * wall.naturalHeight / wall.naturalWidth; ctx.drawImage(wall, pair.x, pair.gapY + GAP_HEIGHT, OBSTACLE_WIDTH, h); }
     }
-    const mascotName = `${character}-snelle-zendeling-${timestamp < boostUntilRef.current ? "boost" : "glide"}.png`;
+    const mascotName = quickMissionaryMascotSprite(character, timestamp < boostUntilRef.current ? "boost" : "glide");
     const mascot = imagesRef.current[mascotName];
     if (mascot?.complete && mascot.naturalWidth) ctx.drawImage(mascot, MASCOT_X, yRef.current, MASCOT_RENDER_SIZE, MASCOT_RENDER_SIZE);
   }, [character]);
@@ -191,7 +191,7 @@ export default function QuickMissionaryRunClient({ runId }: { runId: string }) {
     <FocusLayout className="max-w-3xl items-center gap-3 py-2 sm:gap-4 sm:py-4">
       <div className="flex w-full items-center justify-between gap-3 px-1"><h1 className="truncate text-lg font-black text-vs-fg">{title}</h1><span className="rounded-full bg-vs-accent-soft px-4 py-1.5 text-xl font-black tabular-nums text-vs-accent" aria-live="polite">{score}</span></div>
       <div className="relative w-full max-w-[min(90vw,28rem)] overflow-hidden rounded-[2rem] border-4 border-vs-line-strong bg-sky-100 shadow-xl dark:bg-sky-950" style={{ aspectRatio: `${WORLD_WIDTH}/${WORLD_HEIGHT}` }}>
-        <canvas ref={canvasRef} width={WORLD_WIDTH} height={WORLD_HEIGHT} aria-label={t("quickMissionary.gameArea")} className="block h-full w-full touch-none" onPointerDown={(event) => { event.preventDefault(); void action(); }} />
+        <canvas ref={canvasRef} width={WORLD_WIDTH} height={WORLD_HEIGHT} data-mascot={character} aria-label={t("quickMissionary.gameArea")} className="block h-full w-full touch-none" onPointerDown={(event) => { event.preventDefault(); void action(); }} />
         {phase === "ready" && <ActionOverlay label={t("quickMissionary.tapToFly")} onAction={() => void action()}><p className="text-lg font-black">{t("quickMissionary.tapToFly")}</p><p className="text-sm">{t("quickMissionary.readyHint")}</p></ActionOverlay>}
         {phase === "dead" && <Overlay><p className="text-2xl font-black">{t("quickMissionary.secondChance")}</p><p>{t("quickMissionary.scoreLabel", { n: score })}</p><div className="flex flex-wrap justify-center gap-2"><button type="button" className="btn-primary" onClick={() => void requestRevive()} disabled={view?.reviveUsed}>{t("quickMissionary.revive")}</button><button type="button" className="btn-secondary" onClick={() => void finishFromDeath()}>{t("quickMissionary.endRun")}</button></div></Overlay>}
         {phase === "revive-question" && view?.reviveQuestion && <Overlay><p className="text-lg font-black">{t("quickMissionary.reviveQuestion")}</p><p className="text-sm">{view.reviveQuestion.prompt}</p><div className="grid w-full gap-2">{view.reviveQuestion.options.map((option) => <button key={option.id} type="button" className="btn-secondary !justify-start !text-left" onClick={() => void answer(option.id)}>{option.label}</button>)}</div></Overlay>}

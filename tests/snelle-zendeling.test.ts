@@ -1,5 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
+import path from "node:path";
 import {
   BOOST_VELOCITY,
   GAP_HEIGHT,
@@ -21,6 +23,8 @@ import { maxPlausibleScore, validateReportedScore } from "@/lib/snelleZendeling/
 import { applyReviveAnswer, selectReviveOptions } from "@/lib/snelleZendeling/rules";
 import { rankScores } from "@/lib/snelleZendeling/ranking";
 import { GAME_CATALOG } from "@/lib/gameCatalog";
+import { PERSONAL_MASCOTS } from "@/lib/mascots";
+import { quickMissionaryMascotSprite } from "@/lib/snelleZendeling/assets";
 
 describe("Snelle Zendeling gameplay", () => {
   it("houdt obstakelbreedte, gaphoogte en paarafstand constant", () => {
@@ -53,6 +57,16 @@ describe("Snelle Zendeling gameplay", () => {
     assert.equal(hitbox.width, MASCOT_HITBOX_WIDTH);
     assert.equal(hitbox.height, MASCOT_HITBOX_HEIGHT);
     assert.ok(hitbox.width < 1254 && hitbox.height < 1254);
+  });
+
+  it("heeft glide en boost voor iedere persoonlijke gids", () => {
+    const spriteNames = PERSONAL_MASCOTS.flatMap((character) =>
+      (["glide", "boost"] as const).map((pose) => quickMissionaryMascotSprite(character, pose))
+    );
+    assert.equal(new Set(spriteNames).size, PERSONAL_MASCOTS.length * 2);
+    for (const sprite of spriteNames) {
+      assert.equal(existsSync(path.join(process.cwd(), "public", "games", "snelle-zendeling", sprite)), true, `${sprite} ontbreekt`);
+    }
   });
 
   it("raakt de vaste muur en rots, niet alleen hun alpha-silhouet", () => {
