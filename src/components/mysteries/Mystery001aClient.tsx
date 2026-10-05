@@ -24,7 +24,8 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
   const gesture = useRef<Gesture | null>(null);
   const suppressClick = useRef(false);
   const [geometry, setGeometry] = useState<BoardGeometry | null>(null);
-  const [assetError, setAssetError] = useState(false);
+  const [boardAssetError, setBoardAssetError] = useState(false);
+  const [characterAssetErrors, setCharacterAssetErrors] = useState<Partial<Record<CharacterId, true>>>({});
   const [placements, setPlacements] = useState<Placements>(emptyMysteryPlacements);
   const [selected, setSelected] = useState<CharacterId | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -45,6 +46,10 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
   const canCheck = allCharactersPlaced(MYSTERY_001A, placements);
   const selectedCharacter = MYSTERY_001A.characters.find((character) => character.id === selected) ?? null;
 
+  const markCharacterAssetError = useCallback((characterId: CharacterId) => {
+    setCharacterAssetErrors((current) => current[characterId] ? current : { ...current, [characterId]: true });
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     fetch(MYSTERY_001A.assets.manifest, { cache: "force-cache" })
@@ -58,7 +63,7 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
         if (!parsed || parsed.rows !== MYSTERY_001A.grid.rows || parsed.columns !== MYSTERY_001A.grid.columns) throw new Error("geometry");
         setGeometry(parsed);
       })
-      .catch(() => { if (!cancelled) setAssetError(true); });
+      .catch(() => { if (!cancelled) setBoardAssetError(true); });
     return () => { cancelled = true; };
   }, []);
 
@@ -244,7 +249,7 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
     <FocusLayout className="max-w-5xl gap-4 pb-[calc(5.5rem+var(--vs-safe-area-bottom))]">
       <header className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="truncate text-lg font-black text-vs-fg sm:text-xl">{t("mystery001a.title")}</h1>
+          <h1 className="sr-only">{t("mystery001a.title")}</h1>
           <p className="text-xs font-extrabold uppercase tracking-wider text-vs-accent">{t("mystery001a.difficulty")}</p>
         </div>
         <button type="button" onClick={restart} className={`${secondaryButton} min-h-11`}>
@@ -257,7 +262,7 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
         <section className="min-w-0 space-y-3">
           <p className="text-sm font-semibold text-vs-fg-2">{tutorialActive ? t("mystery001a.tutorial") : t("mystery001a.placementHelp")}</p>
           {tutorialFeedback && <p className="rounded-xl bg-vs-success-soft px-3 py-2 text-sm font-bold text-vs-success" role="status">{tutorialFeedback}</p>}
-          {assetError ? (
+          {boardAssetError ? (
             <div className={`${surfaceCard} flex aspect-square items-center justify-center p-6 text-center text-vs-danger`} role="alert">{t("mystery001a.assetsMissing")}</div>
           ) : !geometry ? (
             <div className={`${surfaceCard} flex aspect-square items-center justify-center text-vs-fg-2`} role="status">{t("mystery001a.boardLoading")}</div>
@@ -270,7 +275,9 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
               constraintPulse={constraintPulse}
               tutorialActive={tutorialActive}
               boardRef={boardRef}
-              onAssetError={() => setAssetError(true)}
+              onBoardAssetError={() => setBoardAssetError(true)}
+              characterAssetErrors={characterAssetErrors}
+              onCharacterAssetError={markCharacterAssetError}
               onCell={(cell) => { if (selected) tryPlace(selected, cell); }}
               onCharacterClick={characterClick}
               onPointerDown={pointerDown}
@@ -284,6 +291,8 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
             placements={placements}
             selected={selected}
             tutorialActive={tutorialActive}
+            characterAssetErrors={characterAssetErrors}
+            onCharacterAssetError={markCharacterAssetError}
             onClick={characterClick}
             onPointerDown={pointerDown}
             onPointerMove={pointerMove}
@@ -305,7 +314,7 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
 
       {saveError && <p className="text-center text-sm font-bold text-vs-danger" role="alert">{t("mystery001a.saveFailed")}</p>}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-vs-line bg-vs-elevated/95 px-4 pt-3 pb-[max(1rem,var(--vs-safe-area-bottom))] backdrop-blur">
-        <button type="button" className="btn-primary mx-auto min-h-12 w-full max-w-5xl" disabled={!canCheck || checking || assetError} onClick={checkSolution}>
+        <button type="button" className="btn-primary mx-auto min-h-12 w-full max-w-5xl" disabled={!canCheck || checking || boardAssetError} onClick={checkSolution}>
           {checking ? t("mystery001a.checking") : t("mystery001a.check")}
         </button>
       </div>
@@ -327,7 +336,7 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
   );
 }
 
-function MysteryBoard({ geometry, placements, selected, dragTarget, constraintPulse, tutorialActive, boardRef, onAssetError, onCell, onCharacterClick, onPointerDown, onPointerMove, onPointerUp }: {
+function MysteryBoard({ geometry, placements, selected, dragTarget, constraintPulse, tutorialActive, boardRef, onBoardAssetError, characterAssetErrors, onCharacterAssetError, onCell, onCharacterClick, onPointerDown, onPointerMove, onPointerUp }: {
   geometry: BoardGeometry;
   placements: Placements;
   selected: CharacterId | null;
@@ -335,7 +344,9 @@ function MysteryBoard({ geometry, placements, selected, dragTarget, constraintPu
   constraintPulse: boolean;
   tutorialActive: boolean;
   boardRef: React.RefObject<HTMLDivElement | null>;
-  onAssetError: () => void;
+  onBoardAssetError: () => void;
+  characterAssetErrors: Partial<Record<CharacterId, true>>;
+  onCharacterAssetError: (id: CharacterId) => void;
   onCell: (cell: GridCell) => void;
   onCharacterClick: (id: CharacterId) => void;
   onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>, id: CharacterId) => void;
@@ -351,7 +362,7 @@ function MysteryBoard({ geometry, placements, selected, dragTarget, constraintPu
     <div ref={boardRef} role="grid" aria-label={t("mystery001a.board")} aria-rowcount={geometry.rows} aria-colcount={geometry.columns} className="relative aspect-square w-full touch-none overflow-hidden rounded-2xl bg-vs-subtle shadow-sm select-none">
       {/* Het volledige vierkante bronbeeld blijft zichtbaar; geen object-cover of uitsnede. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={MYSTERY_001A.assets.board} alt="" draggable={false} onError={onAssetError} className="pointer-events-none absolute inset-0 h-full w-full object-contain" />
+      <img src={MYSTERY_001A.assets.board} alt="" draggable={false} onError={onBoardAssetError} className="pointer-events-none absolute inset-0 h-full w-full object-contain" />
       <div
         className="absolute grid"
         style={{
@@ -406,7 +417,7 @@ function MysteryBoard({ geometry, placements, selected, dragTarget, constraintPu
           >
             {/* De transparante bron blijft volledig intact; de voetpixel is het positioneringsanker. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={character.asset} alt="" draggable={false} className="pointer-events-none h-full w-full object-contain" />
+            <img src={character.asset} alt="" draggable={false} onError={() => onCharacterAssetError(character.id)} className={`pointer-events-none h-full w-full object-contain ${characterAssetErrors[character.id] ? "opacity-0" : ""}`} />
             <span className="absolute left-1/2 top-full -translate-x-1/2 rounded-full bg-vs-elevated/90 px-1.5 py-0.5 text-[10px] font-extrabold text-vs-fg shadow-sm">{character.name}</span>
           </button>
         );
@@ -415,11 +426,13 @@ function MysteryBoard({ geometry, placements, selected, dragTarget, constraintPu
   );
 }
 
-function CharacterTray({ trayRef, placements, selected, tutorialActive, onClick, onPointerDown, onPointerMove, onPointerUp }: {
+function CharacterTray({ trayRef, placements, selected, tutorialActive, characterAssetErrors, onCharacterAssetError, onClick, onPointerDown, onPointerMove, onPointerUp }: {
   trayRef: React.RefObject<HTMLDivElement | null>;
   placements: Placements;
   selected: CharacterId | null;
   tutorialActive: boolean;
+  characterAssetErrors: Partial<Record<CharacterId, true>>;
+  onCharacterAssetError: (id: CharacterId) => void;
   onClick: (id: CharacterId) => void;
   onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>, id: CharacterId) => void;
   onPointerMove: (event: ReactPointerEvent<HTMLButtonElement>) => void;
@@ -449,7 +462,7 @@ function CharacterTray({ trayRef, placements, selected, tutorialActive, onClick,
                 className={`flex min-h-16 touch-none items-center gap-2 rounded-xl border bg-vs-surface px-2 text-left transition disabled:opacity-40 ${selected === character.id ? "border-vs-accent ring-2 ring-vs-accent" : "border-vs-line hover:border-vs-line-strong"} ${focusRing}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={character.asset} alt="" draggable={false} className="pointer-events-none h-12 w-12 shrink-0 object-contain" />
+                <img src={character.asset} alt="" draggable={false} onError={() => onCharacterAssetError(character.id)} className={`pointer-events-none h-12 w-12 shrink-0 object-contain ${characterAssetErrors[character.id] ? "opacity-0" : ""}`} />
                 <span className="text-sm font-extrabold text-vs-fg">{character.name}</span>
               </button>
             );

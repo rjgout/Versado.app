@@ -19,7 +19,7 @@ export default async function Mystery001aPage() {
         <div className="grid md:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.95fr)]">
           <MediaArtwork
             kind="game"
-            artworkKey="game:mystery-001a"
+            artworkKey="game:mystery"
             ratio="1/1"
             sizes="(min-width: 768px) 45vw, 100vw"
             priority
@@ -52,4 +52,3 @@ export default async function Mystery001aPage() {
     </div>
   );
 }
-

@@ -8,7 +8,7 @@ import { apiError } from "@/lib/apiError";
 // staat alleen in /live bij de uitgaven die hier aan staan. Los van het aan-
 // of uitzetten van een spel voor de hele app (/api/admin/game-settings).
 const SCRIPTURE_WORKS = ["bofm", "dc-testament", "pgp"];
-const GAME_KEYS = ["word-game", "scrabble", "gezinsavond", "chapter-guess", "challenges", "live-exercises", "alleskenner", "jigsaw", "quick-missionary", "mystery-001a"] as const;
+const GAME_KEYS = ["word-game", "scrabble", "gezinsavond", "chapter-guess", "challenges", "live-exercises", "alleskenner", "jigsaw", "quick-missionary", "mystery"] as const;
 
 const schema = z.object({
   gameKey: z.enum(GAME_KEYS),

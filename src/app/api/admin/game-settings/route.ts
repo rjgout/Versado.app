@@ -15,7 +15,7 @@ const schema = z.object({
   jigsawEnabled: z.boolean().optional(),
   wordSearchEnabled: z.boolean().optional(),
   quickMissionaryEnabled: z.boolean().optional(),
-  mystery001aEnabled: z.boolean().optional(),
+  mysteryEnabled: z.boolean().optional(),
 });
 
 export async function GET() {

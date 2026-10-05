@@ -2339,7 +2339,7 @@ model GameSettings {
   quickMissionaryEnabled Boolean @default(false)
   // Eerste handgemaakte logicamysterie; los schakelbaar volgens hetzelfde
   // patroon als de andere spellen op /live.
-  mystery001aEnabled Boolean @default(true)
+  mysteryEnabled Boolean @default(true)
 }
 
 enum MysteryDifficulty {

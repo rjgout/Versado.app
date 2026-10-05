@@ -11,7 +11,7 @@ export interface GameSettingsView {
   jigsawEnabled: boolean;
   wordSearchEnabled: boolean;
   quickMissionaryEnabled: boolean;
-  mystery001aEnabled: boolean;
+  mysteryEnabled: boolean;
 }
 
 const DEFAULTS: GameSettingsView = {
@@ -25,7 +25,7 @@ const DEFAULTS: GameSettingsView = {
   jigsawEnabled: false,
   wordSearchEnabled: true,
   quickMissionaryEnabled: false,
-  mystery001aEnabled: true,
+  mysteryEnabled: true,
 };
 
 export async function getGameSettings(): Promise<GameSettingsView> {

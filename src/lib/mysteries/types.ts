@@ -38,6 +38,7 @@ export interface ScriptureStory {
 
 export interface MysteryDefinition {
   id: string;
+  mysteryNumber: number;
   routeId: string;
   titleKey: MessageKey;
   difficulty: MysteryDifficultyId;

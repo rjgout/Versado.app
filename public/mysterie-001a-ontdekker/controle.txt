@@ -1,0 +1,21 @@
+Mysterie 001A — Vertrek uit Jeruzalem — Ontdekker
+STATUS: COMPLEET. Alle vijf productiebeelden aanwezig.
+
+1. Board.png vierkant: JA, 1254 × 1254 px, oorspronkelijke gegenereerde resolutie. De aanbevolen 1536 × 1536 is niet de native output van deze generator.
+2. Geen personages op het bord: JA, visueel gecontroleerd.
+3. Altaar functioneel gekoppeld aan R4C1: JA, met de in manifest.json vastgelegde speelveldgrenzen. Het is een laag vrijstaand stenen altaar, links onder.
+4. R4C2 vrij: JA, zandvloer rechts van het altaar; Lehi-plaatsing intern bekeken op 400 × 400.
+5. Tent functioneel in R3C3: JA, compact, voorzijde binnen de derde rij en derde kolom.
+6. R3C4 vrij: JA, droge rustige vloer rechts van de tent; rivier langs de buitenrand.
+7. Rechte 4 × 4 indeling zonder sterke perspectiefvervorming: JA. Speelveld is een rechthoek binnen het beeld, niet het volledige canvas. Bounds: links 9%, boven 13%, rechts 91%, onder 87%. Alle ankers liggen op land. Perimeterdecor is geen speelruimte.
+8. Alle vier personages volledig en transparant uitgesneden: JA. Alle voeten zichtbaar, dezelfde canvasmaat. Echte alpha technisch gemeten: circa 82–85% volledig transparante pixels.
+9. Zelfde camerahoek en schaal: alle vier figuren visueel consistent, mild verhoogde frontale driekwartblik, warm licht linksboven; technisch dezelfde 1254 × 1254 canvasmaat, 1050 px zichtbare hoogte, onderste voetenbaseline y=1149. Artistieke cameramatching is visueel beoordeeld, geen gemeten 3D-cameragarantie.
+10. Laman en Lemuel onderscheidbaar op klein formaat: JA. Laman: oker/bruin, baard, breed silhouet; Lemuel: blauw/crème, gladgeschoren, slanker. Naast elkaar gecontroleerd op 180 px canvas en in het bord op circa 48 px zichtbare hoogte.
+11. Visuele consistentie: JA voor alle vijf beelden. Warme 3D/cartoon-rendering en geweven materialen. Referentie uit bestaande Versado-bibliotheek gebruikt; geen bestaande assets overschreven. Alle vier samen gecontroleerd in de oplossingsposities op een bord van 400 × 400 px. Sariah staat op droge vrije vloer direct rechts van de tent.
+
+Puzzelcontrole: exact één oplossing met één personage per rij/kolom en de drie aanwijzingen. Lehi R4C2, Sariah R3C4; resterende kolommen 1 en 3, resterende rijen 1 en 2. Laman hoger en rechts van Lemuel dwingt Laman R1C3 en Lemuel R2C1.
+De opstelling is uitsluitend puzzellogica, geen historische of Schriftuurlijke bewering.
+
+Herkomst: ingebouwde imagegen. Bordpositie na eerste generatie gecorrigeerd via imagegen. Technische export van personages: alleen proportioneel schalen en transparante canvasmarge voor gelijke baseline. Prompts staan in prompts.json.
+Sariah: succesvol gegenereerd op effen achtergrond, daarna via imagegen transparant uitgesneden en technisch op dezelfde schaal en baseline geëxporteerd. De eerdere weigeringen zijn opgelost; geen placeholder gebruikt.
+Geen UI, rasteroverlay, extra mysteries, Nephi, Sam of andere spelassets gemaakt. Tijdelijke plaatsingscontrole is niet onderdeel van het productiepak.

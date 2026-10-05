@@ -46,6 +46,7 @@ const GAME_PAGES: Record<string, MessageKey> = {
   "/chapter-guess": "pages.chapterGuess",
   "/challenges": "pages.challenges",
   "/snelle-zendeling": "pages.quickMissionary",
+  "/mysteries": "pages.mystery",
   "/mysteries/001a": "pages.mystery001a",
 };
 

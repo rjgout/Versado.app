@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { MYSTERY_001A, emptyMysteryPlacements } from "@/lib/mysteries/mystery001a";
+import { MYSTERY_GAME } from "@/lib/mysteries/game";
+import { GAME_CATALOG } from "@/lib/gameCatalog";
 import {
   allCharactersPlaced,
   cellFromBoardPoint,
@@ -37,6 +41,22 @@ const geometry: BoardGeometry = {
 };
 
 describe("Mysterie 001A", () => {
+  it("scheidt de spelidentiteit van de eerste puzzel", () => {
+    assert.equal(MYSTERY_GAME.id, "mystery");
+    assert.equal(MYSTERY_GAME.puzzles[0].id, "mystery-001a");
+    assert.equal(GAME_CATALOG.find((game) => game.id === "mystery")?.href, "/mysteries");
+    assert.equal(GAME_CATALOG.some((game) => (game.id as string) === "mystery-001a"), false);
+  });
+
+  it("heeft alle productie-assets op de public-runtimepaden", () => {
+    const root = join(process.cwd(), "public", "mysterie-001a-ontdekker");
+    for (const file of ["board.png", "lehi.png", "sariah.png", "laman.png", "lemuel.png", "manifest.json"]) {
+      assert.equal(existsSync(join(root, file)), true, file);
+    }
+    const manifest = JSON.parse(readFileSync(join(root, "manifest.json"), "utf8"));
+    assert.deepEqual(parseBoardManifest(manifest)?.bounds, geometry.bounds);
+  });
+
   it("accepteert uitsluitend de exacte oplossing", () => {
     assert.equal(isSolutionCorrect(MYSTERY_001A, solution), true);
     assert.equal(isSolutionCorrect(MYSTERY_001A, { ...solution, laman: solution.lemuel!, lemuel: solution.laman! }), false);

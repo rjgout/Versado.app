@@ -18,12 +18,12 @@ export interface MysteryProgressView {
 
 export async function canUseMystery001a(userId: string, isAdmin: boolean): Promise<boolean> {
   const [settings, context] = await Promise.all([
-    prisma.gameSettings.findUnique({ where: { id: "singleton" }, select: { mystery001aEnabled: true } }),
+    prisma.gameSettings.findUnique({ where: { id: "singleton" }, select: { mysteryEnabled: true } }),
     getContentContext(userId),
   ]);
-  return ((settings?.mystery001aEnabled ?? true) || isAdmin)
+  return ((settings?.mysteryEnabled ?? true) || isAdmin)
     && context.active.work === BOFM_WORK
-    && context.gameKeys.includes("mystery-001a");
+    && context.gameKeys.includes("mystery");
 }
 
 export async function getMystery001aProgress(userId: string): Promise<MysteryProgressView> {

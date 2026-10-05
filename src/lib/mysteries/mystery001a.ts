@@ -4,6 +4,7 @@ const ASSET_ROOT = "/mysterie-001a-ontdekker";
 
 export const MYSTERY_001A = {
   id: "mystery-001a",
+  mysteryNumber: 1,
   routeId: "001a",
   titleKey: "pages.mystery001a",
   difficulty: "discoverer",

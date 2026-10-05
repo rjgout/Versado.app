@@ -30,7 +30,7 @@ interface GameSettings {
   jigsawEnabled: boolean;
   wordSearchEnabled: boolean;
   quickMissionaryEnabled: boolean;
-  mystery001aEnabled: boolean;
+  mysteryEnabled: boolean;
 }
 
 interface Props {
