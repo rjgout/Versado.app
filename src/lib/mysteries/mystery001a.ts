@@ -5,9 +5,12 @@ const ASSET_ROOT = "/mysterie-001a-ontdekker";
 export const MYSTERY_001A = {
   id: "mystery-001a",
   mysteryNumber: 1,
+  mysteryId: "mystery-001",
   routeId: "001a",
   titleKey: "pages.mystery001a",
   difficulty: "discoverer",
+  difficultyLabelKey: "mystery001a.difficulty",
+  completionLabelKey: "mystery001a.discovererComplete",
   grid: { rows: 4, columns: 4 },
   assets: {
     board: `${ASSET_ROOT}/board.png`,
@@ -36,11 +39,13 @@ export const MYSTERY_001A = {
     { id: "clue-3", kind: "PUZZLE_FICTION", textKey: "mystery001a.clue3" },
   ],
   hints: {
+    mode: "discoverer",
     lehiMissing: "mystery001a.hintA",
     sariahMissing: "mystery001a.hintB",
     remainingPair: "mystery001a.hintC",
     comparePair: "mystery001a.hintD",
   },
+  tutorial: { characterId: "lehi", cell: { row: 4, column: 2 } },
   story: {
     kind: "SCRIPTURE_STORY",
     summaryKey: "mystery001a.story",
@@ -48,6 +53,6 @@ export const MYSTERY_001A = {
   },
 } as const satisfies MysteryDefinition;
 
-export function emptyMysteryPlacements(): Placements {
-  return { lehi: null, sariah: null, laman: null, lemuel: null };
+export function emptyMysteryPlacements(definition: { characters: readonly { id: import("./types").CharacterId }[] } = MYSTERY_001A): Placements {
+  return Object.fromEntries(definition.characters.map((character) => [character.id, null])) as Placements;
 }

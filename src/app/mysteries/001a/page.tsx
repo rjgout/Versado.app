@@ -2,16 +2,17 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Brain, CheckCircle2 } from "lucide-react";
 import { getCurrentUser } from "@/lib/session";
-import { canUseMystery001a, getMystery001aProgress } from "@/lib/mysteries/progress";
+import { canUseMystery001a, getMystery001aProgress, getMysteryProgress } from "@/lib/mysteries/progress";
+import { MYSTERY_001B } from "@/lib/mysteries/mystery001b";
 import { getT } from "@/lib/i18n";
 import MediaArtwork from "@/components/versado/MediaArtwork";
-import { primaryButton, surfaceCard } from "@/components/versado/styles";
+import { surfaceCard } from "@/components/versado/styles";
 
 export default async function Mystery001aPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (!(await canUseMystery001a(user.id, user.isAdmin))) redirect("/live");
-  const [progress, t] = await Promise.all([getMystery001aProgress(user.id), Promise.resolve(getT(user.uiLanguage))]);
+  const [progress, investigatorProgress, t] = await Promise.all([getMystery001aProgress(user.id), getMysteryProgress(user.id, MYSTERY_001B), Promise.resolve(getT(user.uiLanguage))]);
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
@@ -32,20 +33,18 @@ export default async function Mystery001aPage() {
                 {t("mystery001a.eyebrow")}
               </p>
               <h1 className="mt-2 text-3xl font-black text-vs-fg">{t("mystery001a.title")}</h1>
-              <span className="mt-3 inline-flex rounded-full bg-vs-accent-soft px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-vs-accent">
-                {t("mystery001a.difficulty")}
-              </span>
             </div>
             <p className="text-vs-fg-2">{t("mystery001a.intro")}</p>
-            {progress.completed && (
-              <p className="flex items-center gap-2 text-sm font-bold text-vs-success">
-                <CheckCircle2 className="h-5 w-5" aria-hidden />
-                {t("mystery001a.completed")}
-              </p>
-            )}
-            <Link href="/mysteries/001a/play" className={`${primaryButton} min-h-12 self-start px-6`}>
-              {progress.completed ? t("mystery001a.replay") : t("mystery001a.start")}
-            </Link>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Link href="/mysteries/001a/play" className={`${surfaceCard} border p-4 transition hover:border-vs-accent ${progress.completed ? "!border-vs-success" : "!border-vs-line"}`}>
+                <span className="flex items-center justify-between gap-2 text-sm font-extrabold text-vs-fg"><span>{t("mystery001a.difficulty")}</span>{progress.completed ? <CheckCircle2 className="h-5 w-5 text-vs-success" aria-label={t("mystery001a.completed")} /> : <span aria-label={t("mystery001a.notCompleted")}>○</span>}</span>
+                <span className="mt-2 block text-sm font-bold text-vs-accent">{progress.completed ? t("mystery001a.replay") : t("mystery001a.start")}</span>
+              </Link>
+              <Link href="/mysteries/001b/play" className={`${surfaceCard} border p-4 transition hover:border-vs-accent ${investigatorProgress.completed ? "!border-vs-success" : "!border-vs-line"}`}>
+                <span className="flex items-center justify-between gap-2 text-sm font-extrabold text-vs-fg"><span>{t("mystery001b.difficulty")}</span>{investigatorProgress.completed ? <CheckCircle2 className="h-5 w-5 text-vs-success" aria-label={t("mystery001a.completed")} /> : <span aria-label={t("mystery001a.notCompleted")}>○</span>}</span>
+                <span className="mt-2 block text-sm font-bold text-vs-accent">{investigatorProgress.completed ? t("mystery001a.replay") : t("mystery001a.start")}</span>
+              </Link>
+            </div>
           </div>
         </div>
       </section>

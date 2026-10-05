@@ -1,5 +1,6 @@
 import type { MessageKey } from "@/lib/i18n/core";
 import { MYSTERY_001A } from "./mystery001a";
+import { MYSTERY_001B } from "./mystery001b";
 
 /**
  * De spelidentiteit staat los van de eerste puzzel. Zo blijft "mystery" de
@@ -12,5 +13,14 @@ export const MYSTERY_GAME = {
   subtitleKey: "mysteryGame.subtitle" as MessageKey,
   introKey: "mysteryGame.intro" as MessageKey,
   coverArtworkKey: "game:mystery",
-  puzzles: [MYSTERY_001A],
+  puzzles: [MYSTERY_001A, MYSTERY_001B],
 } as const;
+
+export const MYSTERY_DEFINITIONS = {
+  discoverer: MYSTERY_001A,
+  investigator: MYSTERY_001B,
+} as const;
+
+export function mysteryDefinitionForDifficulty(difficulty: "discoverer" | "investigator") {
+  return MYSTERY_DEFINITIONS[difficulty];
+}

@@ -10,13 +10,17 @@ import { focusRing, primaryButton, secondaryButton, surfaceCard } from "@/compon
 import { MYSTERY_001A, emptyMysteryPlacements } from "@/lib/mysteries/mystery001a";
 import { allCharactersPlaced, cellFootAnchor, cellFromBoardPoint, characterImageMetrics, hintFor, isHardConstraintValid, occupantAt, placeCharacter, sameCell } from "@/lib/mysteries/logic";
 import { parseBoardManifest, type BoardGeometry } from "@/lib/mysteries/manifest";
-import type { CharacterId, GridCell, Placements } from "@/lib/mysteries/types";
+import type { CharacterId, GridCell, MysteryDefinition, Placements } from "@/lib/mysteries/types";
 import type { MysteryProgressView } from "@/lib/mysteries/progress";
+import type { MessageKey } from "@/lib/i18n/core";
 
 type Gesture = { pointerId: number; characterId: CharacterId; startX: number; startY: number; moved: boolean };
 type DragState = { characterId: CharacterId; x: number; y: number };
 
-export default function Mystery001aClient({ initialProgress, readerHref }: { initialProgress: MysteryProgressView; readerHref: string }) {
+export function MysteryClient({ initialProgress, readerHref, definition, progressEndpoint, hintEndpoint }: { initialProgress: MysteryProgressView; readerHref: string; definition: MysteryDefinition; progressEndpoint: string; hintEndpoint: string }) {
+  // De bestaande component blijft de gedeelde renderer; deze lokale alias
+  // beperkt de refactor tot data-invoer en laat de bestaande interactie intact.
+  const MYSTERY_001A = definition;
   const t = useT();
   const confirm = useConfirm();
   const boardRef = useRef<HTMLDivElement>(null);
@@ -26,23 +30,26 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
   const [geometry, setGeometry] = useState<BoardGeometry | null>(null);
   const [boardAssetError, setBoardAssetError] = useState(false);
   const [characterAssetErrors, setCharacterAssetErrors] = useState<Partial<Record<CharacterId, true>>>({});
-  const [placements, setPlacements] = useState<Placements>(emptyMysteryPlacements);
+  const [placements, setPlacements] = useState<Placements>(() => emptyMysteryPlacements(definition));
   const [selected, setSelected] = useState<CharacterId | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [dragTarget, setDragTarget] = useState<GridCell | null>(null);
   const [clueIndex, setClueIndex] = useState(0);
-  const [clueNotes, setClueNotes] = useState([false, false, false]);
+  const [clueNotes, setClueNotes] = useState(() => definition.clues.map(() => false));
   const [allCluesOpen, setAllCluesOpen] = useState(false);
   const [wrongOpen, setWrongOpen] = useState(false);
   const [hintKey, setHintKey] = useState<ReturnType<typeof hintFor> | null>(null);
   const [hintCount, setHintCount] = useState(0);
+  const [hintBalance, setHintBalance] = useState<number | null>(null);
+  const [hintLoading, setHintLoading] = useState(false);
+  const [hintError, setHintError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
   const [solved, setSolved] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const [tutorialDone, setTutorialDone] = useState(initialProgress.tutorialSeen);
   const [tutorialFeedback, setTutorialFeedback] = useState<string | null>(null);
   const [constraintPulse, setConstraintPulse] = useState(false);
-  const tutorialActive = !tutorialDone;
+  const tutorialActive = !!definition.tutorial && !tutorialDone;
   const canCheck = allCharactersPlaced(MYSTERY_001A, placements);
   const selectedCharacter = MYSTERY_001A.characters.find((character) => character.id === selected) ?? null;
 
@@ -65,6 +72,13 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
       })
       .catch(() => { if (!cancelled) setBoardAssetError(true); });
     return () => { cancelled = true; };
+  }, [MYSTERY_001A.assets.manifest, MYSTERY_001A.grid.columns, MYSTERY_001A.grid.rows]);
+
+  useEffect(() => {
+    fetch("/api/hints", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => { if (typeof data?.hintBalance === "number") setHintBalance(data.hintBalance); })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -78,21 +92,22 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
   }, []);
 
   const resetAttempt = useCallback(() => {
-    setPlacements(emptyMysteryPlacements());
+    setPlacements(emptyMysteryPlacements(definition));
     setSelected(null);
     setDrag(null);
     setDragTarget(null);
-    setClueNotes([false, false, false]);
+    setClueNotes(definition.clues.map(() => false));
     setClueIndex(0);
     setHintCount(0);
     setHintKey(null);
+    setHintError(null);
     setWrongOpen(false);
     setSolved(false);
     setSaveError(false);
     setTutorialFeedback(null);
     // Historische tutorialstatus wordt bij replay/reset nooit verwijderd.
-    setTutorialDone(initialProgress.tutorialSeen || tutorialDone);
-  }, [initialProgress.tutorialSeen, tutorialDone]);
+    setTutorialDone(!!definition.tutorial && (initialProgress.tutorialSeen || tutorialDone));
+  }, [definition, initialProgress.tutorialSeen, tutorialDone]);
 
   async function restart() {
     if (Object.values(placements).some(Boolean) || hintCount > 0 || clueNotes.some(Boolean)) {
@@ -114,7 +129,7 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
     setTutorialFeedback(t("mystery001a.tutorialGood"));
     setConstraintPulse(true);
     setSelected(null);
-    fetch("/api/mysteries/001a/progress", {
+    fetch(progressEndpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "tutorial-seen" }),
@@ -196,7 +211,7 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
     setChecking(true);
     setSaveError(false);
     try {
-      const response = await fetch("/api/mysteries/001a/progress", {
+      const response = await fetch(progressEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "complete", placements, hintCount }),
@@ -215,10 +230,28 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
     }
   }
 
-  function useHint() {
-    setHintKey(hintFor(MYSTERY_001A, placements));
-    setHintCount((count) => count + 1);
-    setWrongOpen(false);
+  async function useHint() {
+    if (hintLoading || hintBalance === 0) return;
+    setHintLoading(true);
+    setHintError(null);
+    try {
+      const response = await fetch(hintEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ difficulty: definition.difficulty, placements }),
+      });
+      const data = await response.json().catch(() => null);
+      if (response.ok && typeof data?.hint === "string") {
+        setHintKey(data.hint as MessageKey);
+        setHintCount((count) => count + 1);
+        if (typeof data.hintBalance === "number") setHintBalance(data.hintBalance);
+        setWrongOpen(false);
+      } else setHintError(typeof data?.error === "string" ? data.error : t("mystery001a.hintFailed"));
+    } catch {
+      setHintError(t("mystery001a.hintFailed"));
+    } finally {
+      setHintLoading(false);
+    }
   }
 
   if (solved) {
@@ -228,7 +261,7 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
           <CheckCircle2 className="h-14 w-14 text-vs-success" strokeWidth={2.25} aria-hidden />
         </div>
         <div>
-          <p className="text-sm font-extrabold uppercase tracking-wider text-vs-success">{t("mystery001a.discovererComplete")}</p>
+          <p className="text-sm font-extrabold uppercase tracking-wider text-vs-success">{t(definition.completionLabelKey)}</p>
           <h1 className="mt-1 text-3xl font-black text-vs-fg">{t("mystery001a.solved")}</h1>
           <p className="mt-3 font-bold text-vs-fg-2">{hintCount === 0 ? t("mystery001a.solvedWithoutHints") : t("mystery001a.solvedWithHints", { count: hintCount })}</p>
         </div>
@@ -250,7 +283,7 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
       <header className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h1 className="sr-only">{t("mystery001a.title")}</h1>
-          <p className="text-xs font-extrabold uppercase tracking-wider text-vs-accent">{t("mystery001a.difficulty")}</p>
+          <p className="text-xs font-extrabold uppercase tracking-wider text-vs-accent">{t(definition.difficultyLabelKey)}</p>
         </div>
         <button type="button" onClick={restart} className={`${secondaryButton} min-h-11`}>
           <RotateCcw className="h-4 w-4" aria-hidden />
@@ -260,7 +293,7 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <section className="min-w-0 space-y-3">
-          <p className="text-sm font-semibold text-vs-fg-2">{tutorialActive ? t("mystery001a.tutorial") : t("mystery001a.placementHelp")}</p>
+          <p className="text-sm font-semibold text-vs-fg-2">{tutorialActive ? t("mystery001a.tutorial") : definition.hints.mode === "investigator" ? t("mystery001b.playIntro") : t("mystery001a.placementHelp")}</p>
           {tutorialFeedback && <p className="rounded-xl bg-vs-success-soft px-3 py-2 text-sm font-bold text-vs-success" role="status">{tutorialFeedback}</p>}
           {boardAssetError ? (
             <div className={`${surfaceCard} flex aspect-square items-center justify-center p-6 text-center text-vs-danger`} role="alert">{t("mystery001a.assetsMissing")}</div>
@@ -268,6 +301,7 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
             <div className={`${surfaceCard} flex aspect-square items-center justify-center text-vs-fg-2`} role="status">{t("mystery001a.boardLoading")}</div>
           ) : (
             <MysteryBoard
+              definition={definition}
               geometry={geometry}
               placements={placements}
               selected={selected}
@@ -287,6 +321,7 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
           )}
 
           <CharacterTray
+            definition={definition}
             trayRef={trayRef}
             placements={placements}
             selected={selected}
@@ -304,11 +339,11 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
             </button>
           )}
           <div className="lg:hidden">
-            <CluePanel clueIndex={clueIndex} notes={clueNotes} onIndex={setClueIndex} onToggle={(index) => setClueNotes((notes) => notes.map((value, at) => at === index ? !value : value))} onAll={() => setAllCluesOpen(true)} />
+            <CluePanel definition={definition} clueIndex={clueIndex} notes={clueNotes} onIndex={setClueIndex} onToggle={(index) => setClueNotes((notes) => notes.map((value, at) => at === index ? !value : value))} onAll={() => setAllCluesOpen(true)} />
           </div>
         </section>
         <aside className="hidden lg:block">
-          <CluePanel clueIndex={clueIndex} notes={clueNotes} onIndex={setClueIndex} onToggle={(index) => setClueNotes((notes) => notes.map((value, at) => at === index ? !value : value))} onAll={() => setAllCluesOpen(true)} />
+          <CluePanel definition={definition} clueIndex={clueIndex} notes={clueNotes} onIndex={setClueIndex} onToggle={(index) => setClueNotes((notes) => notes.map((value, at) => at === index ? !value : value))} onAll={() => setAllCluesOpen(true)} />
         </aside>
       </div>
 
@@ -319,24 +354,32 @@ export default function Mystery001aClient({ initialProgress, readerHref }: { ini
         </button>
       </div>
 
-      {drag && <DragPreview drag={drag} />}
-      {allCluesOpen && <AllCluesSheet notes={clueNotes} onToggle={(index) => setClueNotes((notes) => notes.map((value, at) => at === index ? !value : value))} onClose={() => setAllCluesOpen(false)} />}
+      {drag && <DragPreview definition={definition} drag={drag} />}
+      {allCluesOpen && <AllCluesSheet definition={definition} notes={clueNotes} onToggle={(index) => setClueNotes((notes) => notes.map((value, at) => at === index ? !value : value))} onClose={() => setAllCluesOpen(false)} />}
       {wrongOpen && <BottomSheet title={t("mystery001a.wrongTitle")} onClose={() => setWrongOpen(false)}>
         <p className="text-vs-fg-2">{t("mystery001a.wrongText")}</p>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <button type="button" className={`${primaryButton} min-h-12`} onClick={() => setWrongOpen(false)}>{t("mystery001a.continue")}</button>
-          <button type="button" className={`${secondaryButton} min-h-12`} onClick={useHint}><Lightbulb className="h-4 w-4" aria-hidden />{t("mystery001a.useHint")}</button>
+          <button type="button" className={`${secondaryButton} min-h-12`} disabled={hintLoading || hintBalance === 0} onClick={useHint}><Lightbulb className="h-4 w-4" aria-hidden />{hintLoading ? t("mystery001a.checking") : t("mystery001a.useHint")}</button>
         </div>
+        {hintBalance !== null && <p className="mt-3 text-xs font-bold text-vs-fg-3">{hintBalance === 1 ? t("mystery001a.hintsLeftOne", { count: hintBalance }) : t("mystery001a.hintsLeftMany", { count: hintBalance })}</p>}
+        {hintError && <p className="mt-2 text-sm font-bold text-vs-danger" role="alert">{hintError}</p>}
       </BottomSheet>}
       {hintKey && <BottomSheet title={t("mystery001a.hintTitle")} onClose={() => setHintKey(null)}>
         <p className="text-lg font-bold text-vs-fg">{t(hintKey)}</p>
+        {hintBalance !== null && <p className="mt-2 text-xs font-bold text-vs-fg-3">{hintBalance === 1 ? t("mystery001a.hintsLeftOne", { count: hintBalance }) : t("mystery001a.hintsLeftMany", { count: hintBalance })}</p>}
         <button type="button" className={`${primaryButton} mt-5 min-h-12 w-full`} onClick={() => setHintKey(null)}>{t("mystery001a.continue")}</button>
       </BottomSheet>}
     </FocusLayout>
   );
 }
 
-function MysteryBoard({ geometry, placements, selected, dragTarget, constraintPulse, tutorialActive, boardRef, onBoardAssetError, characterAssetErrors, onCharacterAssetError, onCell, onCharacterClick, onPointerDown, onPointerMove, onPointerUp }: {
+export default function Mystery001aClient({ initialProgress, readerHref }: { initialProgress: MysteryProgressView; readerHref: string }) {
+  return <MysteryClient initialProgress={initialProgress} readerHref={readerHref} definition={MYSTERY_001A} progressEndpoint="/api/mysteries/001a/progress" hintEndpoint="/api/mysteries/001/hint" />;
+}
+
+function MysteryBoard({ definition, geometry, placements, selected, dragTarget, constraintPulse, tutorialActive, boardRef, onBoardAssetError, characterAssetErrors, onCharacterAssetError, onCell, onCharacterClick, onPointerDown, onPointerMove, onPointerUp }: {
+  definition: MysteryDefinition;
   geometry: BoardGeometry;
   placements: Placements;
   selected: CharacterId | null;
@@ -362,7 +405,7 @@ function MysteryBoard({ geometry, placements, selected, dragTarget, constraintPu
     <div ref={boardRef} role="grid" aria-label={t("mystery001a.board")} aria-rowcount={geometry.rows} aria-colcount={geometry.columns} className="relative aspect-square w-full touch-none overflow-hidden rounded-2xl bg-vs-subtle shadow-sm select-none">
       {/* Het volledige vierkante bronbeeld blijft zichtbaar; geen object-cover of uitsnede. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={MYSTERY_001A.assets.board} alt="" draggable={false} onError={onBoardAssetError} className="pointer-events-none absolute inset-0 h-full w-full object-contain" />
+      <img src={definition.assets.board} alt="" draggable={false} onError={onBoardAssetError} className="pointer-events-none absolute inset-0 h-full w-full object-contain" />
       <div
         className="absolute grid"
         style={{
@@ -373,10 +416,10 @@ function MysteryBoard({ geometry, placements, selected, dragTarget, constraintPu
       >
         {cells.map((cell) => {
           const occupant = occupantAt(placements, cell);
-          const valid = selected ? isHardConstraintValid(MYSTERY_001A, placements, selected, cell) : true;
-          const tutorialTarget = tutorialActive && sameCell(cell, MYSTERY_001A.solution.lehi);
-          const pulsed = constraintPulse && (cell.row === 4 || cell.column === 2) && !sameCell(cell, MYSTERY_001A.solution.lehi);
-          const label = occupant ? t("mystery001a.cellOccupied", { row: cell.row, column: cell.column, name: MYSTERY_001A.characters.find((character) => character.id === occupant)?.name ?? occupant }) : t("mystery001a.cellEmpty", { row: cell.row, column: cell.column });
+          const valid = selected ? isHardConstraintValid(definition, placements, selected, cell) : true;
+          const tutorialTarget = tutorialActive && definition.tutorial && sameCell(cell, definition.tutorial.cell);
+          const pulsed = constraintPulse && definition.tutorial && (cell.row === definition.tutorial.cell.row || cell.column === definition.tutorial.cell.column) && !sameCell(cell, definition.tutorial.cell);
+          const label = occupant ? t("mystery001a.cellOccupied", { row: cell.row, column: cell.column, name: definition.characters.find((character) => character.id === occupant)?.name ?? occupant }) : t("mystery001a.cellEmpty", { row: cell.row, column: cell.column });
           return (
             <button
               key={`${cell.row}-${cell.column}`}
@@ -392,7 +435,7 @@ function MysteryBoard({ geometry, placements, selected, dragTarget, constraintPu
           );
         })}
       </div>
-      {MYSTERY_001A.characters.map((character) => {
+      {definition.characters.map((character) => {
         const cell = placements[character.id];
         if (!cell) return null;
         const anchor = cellFootAnchor(cell, geometry);
@@ -426,7 +469,8 @@ function MysteryBoard({ geometry, placements, selected, dragTarget, constraintPu
   );
 }
 
-function CharacterTray({ trayRef, placements, selected, tutorialActive, characterAssetErrors, onCharacterAssetError, onClick, onPointerDown, onPointerMove, onPointerUp }: {
+function CharacterTray({ definition, trayRef, placements, selected, tutorialActive, characterAssetErrors, onCharacterAssetError, onClick, onPointerDown, onPointerMove, onPointerUp }: {
+  definition: MysteryDefinition;
   trayRef: React.RefObject<HTMLDivElement | null>;
   placements: Placements;
   selected: CharacterId | null;
@@ -439,7 +483,7 @@ function CharacterTray({ trayRef, placements, selected, tutorialActive, characte
   onPointerUp: (event: ReactPointerEvent<HTMLButtonElement>) => void;
 }) {
   const t = useT();
-  const remaining = MYSTERY_001A.characters.filter((character) => !placements[character.id]);
+  const remaining = definition.characters.filter((character) => !placements[character.id]);
   return (
     <div ref={trayRef} className={`${surfaceCard} min-h-20 p-3`} aria-label={t("mystery001a.tray")}>
       <p className="mb-2 text-xs font-extrabold uppercase tracking-wider text-vs-fg-3">{t("mystery001a.tray")}</p>
@@ -473,13 +517,13 @@ function CharacterTray({ trayRef, placements, selected, tutorialActive, characte
   );
 }
 
-function CluePanel({ clueIndex, notes, onIndex, onToggle, onAll }: { clueIndex: number; notes: boolean[]; onIndex: (index: number) => void; onToggle: (index: number) => void; onAll: () => void }) {
+function CluePanel({ definition, clueIndex, notes, onIndex, onToggle, onAll }: { definition: MysteryDefinition; clueIndex: number; notes: boolean[]; onIndex: (index: number) => void; onToggle: (index: number) => void; onAll: () => void }) {
   const t = useT();
-  const clue = MYSTERY_001A.clues[clueIndex];
+  const clue = definition.clues[clueIndex];
   return (
     <section className={`${surfaceCard} p-4`} aria-labelledby="mystery-clue-title">
       <div className="flex items-center justify-between gap-2">
-        <p id="mystery-clue-title" className="text-xs font-extrabold uppercase tracking-wider text-vs-accent">{t("mystery001a.clueProgress", { current: clueIndex + 1, total: MYSTERY_001A.clues.length })}</p>
+        <p id="mystery-clue-title" className="text-xs font-extrabold uppercase tracking-wider text-vs-accent">{t("mystery001a.clueProgress", { current: clueIndex + 1, total: definition.clues.length })}</p>
         <button type="button" className={`h-10 w-10 rounded-full text-vs-fg-2 hover:bg-vs-subtle ${focusRing}`} onClick={onAll} aria-label={t("mystery001a.allClues")}><List className="mx-auto h-5 w-5" aria-hidden /></button>
       </div>
       <p className="mt-3 min-h-14 font-extrabold text-vs-fg">{t(clue.textKey)}</p>
@@ -489,18 +533,18 @@ function CluePanel({ clueIndex, notes, onIndex, onToggle, onAll }: { clueIndex: 
       </button>
       <div className="mt-3 flex items-center justify-between gap-2">
         <button type="button" className={`${secondaryButton} min-h-11`} disabled={clueIndex === 0} onClick={() => onIndex(clueIndex - 1)}><ChevronLeft className="h-4 w-4" aria-hidden />{t("mystery001a.previousClue")}</button>
-        <button type="button" className={`${secondaryButton} min-h-11`} disabled={clueIndex + 1 === MYSTERY_001A.clues.length} onClick={() => onIndex(clueIndex + 1)}>{t("mystery001a.nextClue")}<ChevronRight className="h-4 w-4" aria-hidden /></button>
+        <button type="button" className={`${secondaryButton} min-h-11`} disabled={clueIndex + 1 === definition.clues.length} onClick={() => onIndex(clueIndex + 1)}>{t("mystery001a.nextClue")}<ChevronRight className="h-4 w-4" aria-hidden /></button>
       </div>
       <button type="button" onClick={onAll} className="mt-3 w-full text-sm font-extrabold text-vs-accent underline-offset-4 hover:underline">{t("mystery001a.allClues")}</button>
     </section>
   );
 }
 
-function AllCluesSheet({ notes, onToggle, onClose }: { notes: boolean[]; onToggle: (index: number) => void; onClose: () => void }) {
+function AllCluesSheet({ definition, notes, onToggle, onClose }: { definition: MysteryDefinition; notes: boolean[]; onToggle: (index: number) => void; onClose: () => void }) {
   const t = useT();
   return <BottomSheet title={t("mystery001a.allClues")} onClose={onClose}>
     <ol className="space-y-3">
-      {MYSTERY_001A.clues.map((clue, index) => <li key={clue.id} className="rounded-xl bg-vs-subtle p-3">
+      {definition.clues.map((clue, index) => <li key={clue.id} className="rounded-xl bg-vs-subtle p-3">
         <p className="font-bold text-vs-fg">{index + 1}. {t(clue.textKey)}</p>
         <button type="button" aria-pressed={notes[index]} onClick={() => onToggle(index)} className={`mt-2 flex min-h-10 items-center gap-2 text-sm font-bold ${notes[index] ? "text-vs-success" : "text-vs-fg-2"}`}>
           {notes[index] ? <Check className="h-5 w-5" aria-hidden /> : <span className="h-5 w-5 rounded-full border-2 border-current" aria-hidden />}
@@ -538,8 +582,8 @@ function BottomSheet({ title, onClose, children }: { title: string; onClose: () 
   );
 }
 
-function DragPreview({ drag }: { drag: DragState }) {
-  const character = MYSTERY_001A.characters.find((item) => item.id === drag.characterId)!;
+function DragPreview({ definition, drag }: { definition: MysteryDefinition; drag: DragState }) {
+  const character = definition.characters.find((item) => item.id === drag.characterId)!;
   return (
     <div className="pointer-events-none fixed z-[70] h-24 w-24 -translate-x-1/2 -translate-y-1/2" style={{ left: drag.x, top: drag.y }} aria-hidden>
       {/* eslint-disable-next-line @next/next/no-img-element */}

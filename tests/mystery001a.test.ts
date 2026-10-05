@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { MYSTERY_001A, emptyMysteryPlacements } from "@/lib/mysteries/mystery001a";
 import { MYSTERY_GAME } from "@/lib/mysteries/game";
+import { MYSTERY_001B } from "@/lib/mysteries/mystery001b";
 import { GAME_CATALOG } from "@/lib/gameCatalog";
 import {
   allCharactersPlaced,
@@ -131,5 +132,52 @@ describe("Mysterie 001A", () => {
     const found = countSolutions();
     assert.equal(found.length, 1);
     assert.deepEqual(found[0], solution);
+  });
+});
+
+describe("Mysterie 001B Onderzoeker", () => {
+  const solutionB: Placements = {
+    laman: { row: 1, column: 5 },
+    sam: { row: 2, column: 3 },
+    lemuel: { row: 3, column: 1 },
+    sariah: { row: 4, column: 4 },
+    lehi: { row: 5, column: 2 },
+  };
+
+  it("accepteert de unieke 5x5-oplossing en geen verwisseling", () => {
+    assert.equal(MYSTERY_001A.mysteryId, MYSTERY_001B.mysteryId);
+    assert.equal(MYSTERY_GAME.puzzles.length, 2);
+    assert.equal(isSolutionCorrect(MYSTERY_001B, solutionB), true);
+    assert.equal(isSolutionCorrect(MYSTERY_001B, { ...solutionB, laman: solutionB.lemuel, lemuel: solutionB.laman }), false);
+    assert.equal(countSolutions(MYSTERY_001B).length, 1);
+  });
+
+  it("dwingt rij- en kolomregels af voor vijf personages", () => {
+    const placed = { ...solutionB, sam: null };
+    assert.equal(isHardConstraintValid(MYSTERY_001B, placed, "sam", { row: 5, column: 1 }), false);
+    assert.equal(isHardConstraintValid(MYSTERY_001B, placed, "sam", { row: 1, column: 1 }), false);
+    assert.equal(isHardConstraintValid(MYSTERY_001B, placed, "sam", { row: 2, column: 3 }), true);
+    assert.equal(allCharactersPlaced(MYSTERY_001B, solutionB), true);
+    assert.equal(allCharactersPlaced(MYSTERY_001B, { ...solutionB, sam: null }), false);
+  });
+
+  it("leest de exacte 5x5-geometrie en productie-assets", () => {
+    const root = join(process.cwd(), "public", "mysterie-001b-onderzoeker");
+    assert.equal(existsSync(join(root, "board.png")), true);
+    assert.equal(existsSync(join(root, "sam.png")), true);
+    assert.equal(MYSTERY_001B.assets.board, "/mysterie-001b-onderzoeker/board.png");
+    assert.equal(MYSTERY_001B.characters.find((character) => character.id === "sam")?.asset, "/mysterie-001b-onderzoeker/sam.png");
+    assert.deepEqual(MYSTERY_001B.grid, { rows: 5, columns: 5 });
+    const manifest = JSON.parse(readFileSync(join(root, "manifest.json"), "utf8"));
+    const parsed = parseBoardManifest(manifest);
+    assert.deepEqual(parsed?.bounds, { left: 0.08, top: 0.14, right: 0.92, bottom: 0.86 });
+    assert.equal(parsed?.rows, 5);
+    assert.equal(parsed?.columns, 5);
+  });
+
+  it("kiest de vooraf geschreven investigator-hints op basis van state", () => {
+    assert.equal(hintFor(MYSTERY_001B, emptyMysteryPlacements(MYSTERY_001B)), "mystery001b.hint1");
+    assert.equal(hintFor(MYSTERY_001B, { ...emptyMysteryPlacements(MYSTERY_001B), laman: solutionB.laman, lemuel: solutionB.lemuel, sariah: solutionB.sariah }), "mystery001b.hint3");
+    assert.equal(hintFor(MYSTERY_001B, { ...solutionB, lehi: { row: 4, column: 2 } }), "mystery001b.hint4Lehi");
   });
 });

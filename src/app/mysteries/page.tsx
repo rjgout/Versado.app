@@ -49,7 +49,7 @@ export default async function MysteryGamePage() {
             <h2 id="available-mystery-title" className="text-2xl font-black text-vs-fg">Mysterie {puzzle.mysteryNumber}</h2>
             <p className="mt-1 text-lg font-bold text-vs-fg-2">{t("mystery001a.title")}</p>
             <span className="mt-2 inline-flex rounded-full bg-vs-accent-soft px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-vs-accent">
-              {t("mystery001a.difficulty")}
+              {t("mysteryGame.levelsAvailable")}
             </span>
           </div>
           <Link href="/mysteries/001a" className={`${primaryButton} min-h-12 self-start px-6 sm:self-center`}>

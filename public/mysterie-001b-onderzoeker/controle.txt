@@ -1,0 +1,31 @@
+Het Mysterie — Mysterie 001 — Vertrek uit Jeruzalem
+Variant 001B — Onderzoeker
+STATUS: COMPLEET
+Doelmap: public/mysterie-001b-onderzoeker/
+
+1. Board.png is vierkant: JA. Native output 1254 × 1254 px, ongewijzigde resolutie, niet kunstmatig vergroot naar 1536.
+2. Geen personages op board.png: JA, visueel gecontroleerd. De vijf personages worden dynamisch geplaatst.
+3. Rechte 5 × 5 indeling toepasbaar: JA. Verhoogd frontaal perspectief, zonder sterke diamant-isometrie. Exacte genormaliseerde speelveldgrenzen: left 0.08, top 0.14, right 0.92, bottom 0.86. Celbreedte 0.168, celhoogte 0.144. De onderste grens is 0.04 hoger dan de richtwaarde om het compacte altaar en het randdecor correct te koppelen.
+4. Alle 25 cellen hebben bruikbare landruimte waar relevant: JA, visueel beoordeeld. Droge open zandvloer op alle personageankers; alleen de fysieke tent-/altaarruimte is bezet. Rotsen en begroeiing staan langs de perimeter. Geen extra clue-objecten. De bovenrand van de eerste rij grenst aan achtergronddecor; behoud daarom de vastgelegde ankers en maximale personagehoogte.
+5. Altaar hoort bij R5C1: JA. Compact laag vrijstaand gestapeld stenen altaar binnen de onderste rij links. Geen vuur of symbolen. Geschatte zichtbare objectgrenzen: x 0.115–0.225, y 0.733–0.800; dit zijn visuele schattingen, geen pixelmasker.
+6. R5C2 volledig vrij: JA. Open zandvloer rechts van het altaar, Lehi zonder overlap gecontroleerd op een bord van 400 × 400 px.
+7. Tent hoort bij R3C3: JA. Compacte herkenbare tent in het midden. Geschatte zichtbare objectgrenzen inclusief stokken: x 0.435–0.560, y 0.449–0.541. R3 loopt van y 0.428 tot 0.572.
+8. R2C3 volledig vrij: JA. Droge vloer direct boven de tent. R2 loopt van y 0.284 tot 0.428; de tentpiek blijft daaronder. Sam in deze cel gecontroleerd zonder overlap.
+9. R1C5 geschikt voor Laman: JA. Vrije droge grond links van het randdecor; volledige figuur zichtbaar.
+10. R3C1 geschikt voor Lemuel: JA. Open zandvloer rechts van de perimeterrotsen; figuur niet bedekt.
+11. R4C4 geschikt voor Sariah: JA. Vrije droge zandvloer; geen tent-, rots- of wateroverlap.
+12. Rivier belemmert geen oplossingcellen: JA. Water langs de uiterste rechter-/onderrand, buiten alle vijf personageankers en silhouetten.
+13. Sam is echte transparante PNG: JA. RGBA gecontroleerd; circa 86.48% van de geëxporteerde pixels heeft alpha 0. Geen achtergrond of vloer toegevoegd.
+14. Voeten Sam volledig zichtbaar: JA. Beide sandalen compleet, inclusief transparante ondermarge.
+15. Sam dezelfde schaal/camerahoek als bestaande personages: JA, visueel dezelfde verhoogde frontale driekwartblik, warme belichting linksboven en geweven materialen. Artistieke cameramatching is visueel beoordeeld, geen gemeten 3D-cameragarantie. Technisch exact 1254 × 1254 canvas, 1050 px zichtbare hoogte, voetenbaseline y=1149 en horizontaal anker x=627, gelijk aan 001A.
+16. Sam op klein formaat onderscheidbaar van Laman en Lemuel: JA. Terracotta tuniek met crème rand, geen mantel/vest, kort zijwaarts gekamd haar. Laman draagt oker/bruin en heeft een baard; Lemuel blauw/crème met sjerp en langer golvend haar. Drie zonen naast elkaar bekeken op 120 px canvas; in bordweergave circa 37 px zichtbare hoogte.
+17. Stijl sluit aan op 001A: JA. Bestaand bord en Laman/Lemuel als directe imagegen-referenties gebruikt. Dezelfde zand-/terracottawereld, vegetatie, turquoise water, stad in de verte, licht en volwassen 3D/cartoon-vormtaal. Bestaande personagebestanden niet gewijzigd of opnieuw gegenereerd.
+18. Exact één geldige oplossing: JA. Alle 14.400 combinaties van rij- en kolompermutaties exhaustief beoordeeld met de zes aanwijzingen. Alleen Laman R1C5, Sam R2C3, Lemuel R3C1, Sariah R4C4, Lehi R5C2 is geldig.
+
+Plaatsing: gebruik het volledige bord zonder uitsnede. Voetpositie binnen iedere cel (0.5,0.8). Maximaal 65% van de celhoogte voor de zichtbare figuur. Bij schalen van het hele transparante canvas moet de factor 1254/1050 worden meegenomen. Zo behouden alle vijf figuren dezelfde schaal en baseline.
+
+De personageposities zijn uitsluitend puzzellogica en geen historische of Schriftuurlijke beweringen.
+
+Herkomst: ingebouwde imagegen. Het bord is via imagegen gecorrigeerd voor compactere clue-objecten. Sam is met echte transparantie gegenereerd; technische export beperkt tot proportioneel schalen en transparante canvasuitlijning. De gebruikte prompts staan in manifest.json onder provenance.generationPrompts.
+
+Productiepak bevat uitsluitend board.png, sam.png, manifest.json en controle.txt. Lehi, Sariah, Laman en Lemuel worden via de bestaande /mysterie-001a-ontdekker/-paden hergebruikt. Geen UI, rasteroverlay of overige assets geleverd. Interne plaatsingsbeelden behoren niet tot het productiepak. Visuele controle is op samengestelde beelden uitgevoerd; integratie in een draaiende app valt buiten deze assetopdracht.

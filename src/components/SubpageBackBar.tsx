@@ -85,6 +85,7 @@ function detailPageFor(pathname: string, profileView: string | null): DetailPage
   if (/^\/chapter-guess\/solo\/[^/]+$/.test(pathname)) return { fallback: "/chapter-guess", title: "pages.playAlone" };
   if (/^\/snelle-zendeling\/run\/[^/]+$/.test(pathname)) return { fallback: "/snelle-zendeling", title: "pages.quickMissionary" };
   if (pathname === "/mysteries/001a/play") return { fallback: "/mysteries/001a", title: "pages.mystery001a" };
+  if (pathname === "/mysteries/001b/play") return { fallback: "/mysteries/001a", title: "pages.mystery001a" };
   if (/^\/scrabble\/[^/]+$/.test(pathname)) return { fallback: "/scrabble", title: "pages.wordGame" };
   if (/^\/word-search\/[^/]+$/.test(pathname)) return { fallback: "/word-search", title: "pages.wordSearch" };
   if (/^\/live\/[^/]+$/.test(pathname)) return { fallback: "/live", title: "pages.play" };

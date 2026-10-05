@@ -1,7 +1,7 @@
 import type { MessageKey } from "@/lib/i18n/core";
 
 export type MysteryDifficultyId = "discoverer" | "investigator" | "scripture-scholar";
-export type CharacterId = "lehi" | "sariah" | "laman" | "lemuel";
+export type CharacterId = "lehi" | "sariah" | "laman" | "lemuel" | "sam";
 
 export interface GridCell {
   row: number;
@@ -39,22 +39,37 @@ export interface ScriptureStory {
 export interface MysteryDefinition {
   id: string;
   mysteryNumber: number;
+  mysteryId: string;
   routeId: string;
   titleKey: MessageKey;
   difficulty: MysteryDifficultyId;
+  difficultyLabelKey: MessageKey;
+  completionLabelKey: MessageKey;
   grid: { rows: number; columns: number };
   assets: { board: string; manifest: string };
   characters: readonly MysteryCharacter[];
-  solution: Readonly<Record<CharacterId, GridCell>>;
+  solution: Readonly<Partial<Record<CharacterId, GridCell>>>;
   landmarks: Readonly<Record<"stone-altar" | "tent", GridCell>>;
   clues: readonly PuzzleClue[];
-  hints: {
-    lehiMissing: MessageKey;
-    sariahMissing: MessageKey;
-    remainingPair: MessageKey;
-    comparePair: MessageKey;
-  };
+  hints:
+    | {
+        mode: "discoverer";
+        lehiMissing: MessageKey;
+        sariahMissing: MessageKey;
+        remainingPair: MessageKey;
+        comparePair: MessageKey;
+      }
+    | {
+        mode: "investigator";
+        softDirection: MessageKey;
+        ranking: MessageKey;
+        columns: MessageKey;
+        nextLehi: MessageKey;
+        nextSam: MessageKey;
+        nextRelation: MessageKey;
+      };
+  tutorial?: { characterId: CharacterId; cell: GridCell };
   story: ScriptureStory;
 }
 
-export type Placements = Record<CharacterId, GridCell | null>;
+export type Placements = Partial<Record<CharacterId, GridCell | null>>;

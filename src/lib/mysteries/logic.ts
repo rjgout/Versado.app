@@ -34,16 +34,18 @@ export function placeCharacter(
   cell: GridCell,
   tutorialActive = false
 ): { accepted: boolean; placements: Placements; tutorialCorrect: boolean } {
-  const tutorialCorrect = characterId === "lehi" && sameCell(cell, definition.solution.lehi);
+  const tutorialCorrect = !!definition.tutorial
+    && characterId === definition.tutorial.characterId
+    && sameCell(cell, definition.tutorial.cell);
   if (!isHardConstraintValid(definition, placements, characterId, cell)) return { accepted: false, placements, tutorialCorrect: false };
   // Alleen de eerste begeleide zet toetst inhoudelijk. Hierna blijven alle
   // rij-/kolomgeldige hypotheses staan, ook als een clue ze later uitsluit.
-  if (tutorialActive && !tutorialCorrect) return { accepted: false, placements, tutorialCorrect: false };
+  if (tutorialActive && definition.tutorial && !tutorialCorrect) return { accepted: false, placements, tutorialCorrect: false };
   return { accepted: true, placements: { ...placements, [characterId]: cell }, tutorialCorrect };
 }
 
 export function allCharactersPlaced(definition: MysteryDefinition, placements: Placements): boolean {
-  return definition.characters.every((character) => placements[character.id] !== null);
+  return definition.characters.every((character) => !!placements[character.id]);
 }
 
 export function isSolutionCorrect(definition: MysteryDefinition, placements: Placements): boolean {
@@ -56,10 +58,18 @@ export function publicSolutionResult(definition: MysteryDefinition, placements: 
 }
 
 export function hintFor(definition: MysteryDefinition, placements: Placements): MessageKey {
-  if (!sameCell(placements.lehi, definition.solution.lehi)) return definition.hints.lehiMissing;
-  if (!sameCell(placements.sariah, definition.solution.sariah)) return definition.hints.sariahMissing;
-  if (!placements.laman || !placements.lemuel) return definition.hints.remainingPair;
-  return definition.hints.comparePair;
+  if (definition.hints.mode === "discoverer") {
+    if (!sameCell(placements.lehi, definition.solution.lehi)) return definition.hints.lehiMissing;
+    if (!sameCell(placements.sariah, definition.solution.sariah)) return definition.hints.sariahMissing;
+    if (!placements.laman || !placements.lemuel) return definition.hints.remainingPair;
+    return definition.hints.comparePair;
+  }
+  if (!placements.lehi && !placements.sam && !placements.laman && !placements.lemuel && !placements.sariah) return definition.hints.softDirection;
+  if (!placements.laman || !placements.lemuel || !placements.sariah) return definition.hints.ranking;
+  if (!sameCell(placements.sam, definition.solution.sam) || !sameCell(placements.sariah, definition.solution.sariah) || !sameCell(placements.laman, definition.solution.laman)) return definition.hints.columns;
+  if (!sameCell(placements.lehi, definition.solution.lehi)) return definition.hints.nextLehi;
+  if (!sameCell(placements.sam, definition.solution.sam)) return definition.hints.nextSam;
+  return definition.hints.nextRelation;
 }
 
 export function cellFromBoardPoint(
@@ -92,32 +102,41 @@ export function characterImageMetrics(geometry: BoardGeometry): { height: number
 }
 
 /** Pure controle voor de handmatig ontworpen clue-set; gebruikt door tests. */
-export function satisfiesPuzzleClues(placements: Placements): boolean {
-  const { lehi, sariah, laman, lemuel } = placements;
+export function satisfiesPuzzleClues(definition: MysteryDefinition, placements: Placements): boolean {
+  const { lehi, sariah, laman, lemuel, sam } = placements;
   if (!lehi || !sariah || !laman || !lemuel) return false;
-  const altar = MYSTERY_001A.landmarks["stone-altar"];
-  const tent = MYSTERY_001A.landmarks.tent;
+  const altar = definition.landmarks["stone-altar"];
+  const tent = definition.landmarks.tent;
+  if (definition.hints.mode === "discoverer") {
+    return lehi.row === altar.row && lehi.column === altar.column + 1
+      && sariah.row === tent.row && sariah.column === tent.column + 1
+      && laman.row < lemuel.row && laman.column > lemuel.column;
+  }
+  if (!sam) return false;
   return lehi.row === altar.row && lehi.column === altar.column + 1
-    && sariah.row === tent.row && sariah.column === tent.column + 1
-    && laman.row < lemuel.row && laman.column > lemuel.column;
+    && sam.row === tent.row - 1 && sam.column === tent.column
+    && laman.row < lemuel.row && laman.column > lemuel.column
+    && lemuel.row < sariah.row
+    && sariah.column > sam.column
+    && sariah.column < laman.column;
 }
 
-export function countSolutions(): Placements[] {
-  const cells: GridCell[] = Array.from({ length: 4 }, (_, row) => Array.from({ length: 4 }, (_, column) => ({ row: row + 1, column: column + 1 }))).flat();
-  const characters = MYSTERY_001A.characters.map((character) => character.id);
+export function countSolutions(definition: MysteryDefinition = MYSTERY_001A): Placements[] {
+  const cells: GridCell[] = Array.from({ length: definition.grid.rows }, (_, row) => Array.from({ length: definition.grid.columns }, (_, column) => ({ row: row + 1, column: column + 1 }))).flat();
+  const characters = definition.characters.map((character) => character.id);
   const found: Placements[] = [];
   function visit(index: number, placements: Placements) {
     if (index === characters.length) {
-      if (satisfiesPuzzleClues(placements)) found.push(placements);
+      if (satisfiesPuzzleClues(definition, placements)) found.push(placements);
       return;
     }
     const character = characters[index];
     for (const cell of cells) {
-      if (!isHardConstraintValid(MYSTERY_001A, placements, character, cell)) continue;
+      if (!isHardConstraintValid(definition, placements, character, cell)) continue;
       visit(index + 1, { ...placements, [character]: cell });
     }
   }
-  visit(0, { lehi: null, sariah: null, laman: null, lemuel: null });
+  visit(0, Object.fromEntries(characters.map((character) => [character, null])) as Placements);
   return found;
 }
 
