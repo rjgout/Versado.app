@@ -115,15 +115,20 @@ export function canGoBackInApp(): boolean {
   return inAppNavigations > 0;
 }
 
+/** Een expliciete semantische parent wint van toevallige browserhistorie. */
+export function shouldUseFallback(canGoBack: boolean, forceFallback = false): boolean {
+  return forceFallback || !canGoBack;
+}
+
 /**
  * Terug zoals de terugknop van de browser. Alleen zonder bruikbare vorige
  * pagina (een deeplink) gaat hij naar `fallbackHref`, en dan met replace: de
  * detailpagina blijft dan niet als extra stap in de geschiedenis staan.
  */
-export function useBackNavigation(fallbackHref: string): () => void {
+export function useBackNavigation(fallbackHref: string, options: { forceFallback?: boolean } = {}): () => void {
   const router = useRouter();
   return useCallback(() => {
-    if (canGoBackInApp()) router.back();
-    else router.replace(fallbackHref);
-  }, [router, fallbackHref]);
+    if (shouldUseFallback(canGoBackInApp(), options.forceFallback)) router.replace(fallbackHref);
+    else router.back();
+  }, [router, fallbackHref, options.forceFallback]);
 }

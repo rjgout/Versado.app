@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useBackTargetOverride } from "@/lib/backTarget";
@@ -9,12 +10,15 @@ import { useT } from "@/components/I18nProvider";
 import type { MessageKey } from "@/lib/i18n/core";
 import { useCompanion } from "@/components/versado/PersonalMascot";
 import { quickMissionaryTitle } from "@/lib/gameCatalog";
+import { PLAY_ROUTE } from "@/lib/navigation";
 
 interface DetailPage {
   /** Alleen gebruikt zonder vorige pagina in de app (een deeplink). */
   fallback: string;
   title: MessageKey;
   subtitle?: MessageKey;
+  /** Gebruik de semantische parent, ook als toevallige history beschikbaar is. */
+  forceFallback?: boolean;
 }
 
 // De onderliggende pagina's van Hulpmiddelen. Bladwijzers staat bewust op
@@ -60,7 +64,7 @@ const LESSON_PAGES: [RegExp, MessageKey][] = [
   [/^\/intro\/[^/]+$/, "pages.introLesson"],
 ];
 
-function detailPageFor(pathname: string, profileView: string | null): DetailPage | null {
+function detailPageFor(pathname: string, profileView: string | null, hash: string): DetailPage | null {
   if (pathname === "/profile") {
     const view = parseProfileView(profileView);
     return view ? { fallback: "/profile", ...PROFILE_VIEWS[view] } : null;
@@ -70,7 +74,10 @@ function detailPageFor(pathname: string, profileView: string | null): DetailPage
   const tool = TOOL_SUBPAGES[pathname];
   if (tool) return { fallback: "/tools", title: tool };
   const game = GAME_PAGES[pathname];
-  if (game) return { fallback: "/live", title: game };
+  if (game) {
+    const isLeaderboard = pathname === "/snelle-zendeling" && (profileView === "leaderboard" || hash === "#quick-missionary-leaderboard");
+    return { fallback: PLAY_ROUTE, title: game, forceFallback: isLeaderboard };
+  }
   // Groepen (Samen) horen bij Vrienden.
   if (pathname === "/groups") return { fallback: "/friends", title: "together.pages.groups" };
   if (pathname === "/groups/new") return { fallback: "/groups", title: "together.pages.newGroup" };
@@ -114,11 +121,19 @@ function detailPageFor(pathname: string, profileView: string | null): DetailPage
 export default function SubpageBackBar() {
   const pathname = usePathname();
   const profileView = useSearchParams().get("view");
+  const hash = useSyncExternalStore(
+    (onChange) => {
+      window.addEventListener("hashchange", onChange);
+      return () => window.removeEventListener("hashchange", onChange);
+    },
+    () => window.location.hash,
+    () => "",
+  );
   const t = useT();
   const { character } = useCompanion();
   const override = useBackTargetOverride(pathname);
-  const page = detailPageFor(pathname, profileView);
-  const goBack = useBackNavigation(override?.href ?? page?.fallback ?? "/dashboard");
+  const page = detailPageFor(pathname, profileView, hash);
+  const goBack = useBackNavigation(override?.href ?? page?.fallback ?? "/dashboard", { forceFallback: page?.forceFallback });
   if (!page) return null;
   // Een cursusnaam (override) komt al als tekst uit de database.
   const subtitle = override?.parent ?? (page.subtitle ? t(page.subtitle) : null);

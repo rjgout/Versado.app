@@ -109,9 +109,17 @@ een rustige scrim. Bij lange inhoud scrolt alleen de overlay; antwoorden houden
 hun volledige tekst en natuurlijke hoogte.
 
 Na definitief game-over zijn Opnieuw, Ranglijst en Terug naar Spelen zichtbaar.
-Browserback en native systeem-back sturen een idempotente keepalive-finish naar
-de bestaande server-lifecycle. De server blijft beslissen of score en status
-geldig zijn, zodat geen herbruikbare halfopen run ontstaat.
+De startpagina wordt bij het openen van een run vervangen door de runroute; een
+beëindigde run wordt bij Ranglijst op dezelfde manier vervangen door
+`/snelle-zendeling?view=leaderboard#quick-missionary-leaderboard`. Daardoor blijft
+de afgesloten immersive run niet als back-bestemming bestaan en is de stack
+normaal `Spelen → run → ranking`. De leaderboardweergave heeft `/live` als
+expliciete semantische parent: de centrale `SubpageBackBar` gebruikt daar een
+replace naar Spelen, ook als toevallige history beschikbaar is. Browserback en
+native systeem-back gaan na game-over → ranking door de opgeschoonde stack naar
+Spelen. De run-cleanup blijft een idempotente keepalive-finish sturen bij andere
+verlatingen; de server blijft beslissen of score en status geldig zijn, zodat
+geen herbruikbare halfopen run ontstaat.
 
 ## Ranking en tijd
 

@@ -7,6 +7,12 @@ import type { MessageKey } from "@/lib/i18n/core";
 
 export type PrimaryDestination = "today" | "learn" | "play" | "friends";
 
+/** Centrale parentroute voor pagina's die vanuit Spelen worden geopend. */
+export const PLAY_ROUTE = "/live" as const;
+
+/** De normale leaderboardweergave van het persoonlijke vliegspel. */
+export const QUICK_MISSIONARY_RANKING_HREF = "/snelle-zendeling?view=leaderboard#quick-missionary-leaderboard" as const;
+
 export interface PrimaryNavItem {
   id: PrimaryDestination;
   href: string;
@@ -25,7 +31,7 @@ export const PRIMARY_NAV: PrimaryNavItem[] = [
   },
   {
     id: "play",
-    href: "/live",
+    href: PLAY_ROUTE,
     labelKey: "nav.play",
     match: ["/live", "/scrabble", "/word-game", "/word-search", "/jigsaw", "/alleskenner", "/chapter-guess", "/gezinsavond", "/snelle-zendeling", "/mysteries"],
   },

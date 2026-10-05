@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PersonalMascot, { useCompanion } from "@/components/versado/PersonalMascot";
 import { primaryButton, secondaryButton } from "@/components/versado/styles";
 import { useT } from "@/components/I18nProvider";
 import QuickMissionaryLeaderboard from "./Leaderboard";
 import { quickMissionaryTitle } from "@/lib/gameCatalog";
+import { QUICK_MISSIONARY_RANKING_HREF } from "@/lib/navigation";
 
 export default function QuickMissionaryStartClient() {
   const t = useT();
@@ -31,7 +33,9 @@ export default function QuickMissionaryStartClient() {
         setError(true);
         return;
       }
-      router.push(`/snelle-zendeling/run/${data.runId}`);
+      // De startpagina is geen gewenste back-bestemming achter een lopende
+      // run: Spelen moet na een beëindigde run de eerstvolgende parent zijn.
+      router.replace(`/snelle-zendeling/run/${data.runId}`);
     } catch {
       setError(true);
     } finally {
@@ -47,7 +51,7 @@ export default function QuickMissionaryStartClient() {
             <div><p className="text-sm font-bold uppercase tracking-wider text-vs-accent">{t("quickMissionary.eyebrow")}</p><h1 className="mt-1 text-3xl font-black text-vs-fg">{quickMissionaryTitle(t, character)}</h1></div>
             <p className="max-w-xl text-vs-fg-2">{t("quickMissionary.intro")}</p>
             <p className="text-sm font-semibold text-vs-fg-2">{t("quickMissionary.controls")}</p>
-            <div className="flex flex-wrap gap-2"><button type="button" className={primaryButton} onClick={start} disabled={starting}>{starting ? t("quickMissionary.starting") : t("quickMissionary.start")}</button><a href="#quick-missionary-leaderboard" className={secondaryButton}>{t("quickMissionary.viewRanking")}</a></div>
+            <div className="flex flex-wrap gap-2"><button type="button" className={primaryButton} onClick={start} disabled={starting}>{starting ? t("quickMissionary.starting") : t("quickMissionary.start")}</button><Link href={QUICK_MISSIONARY_RANKING_HREF} replace className={secondaryButton}>{t("quickMissionary.viewRanking")}</Link></div>
             {error && <p className="text-sm font-semibold text-red-600 dark:text-red-400">{t("quickMissionary.startFailed")}</p>}
           </div>
           <div className="mx-auto flex aspect-square w-52 items-center justify-center rounded-[2rem] bg-sky-200/70 dark:bg-sky-900/50"><PersonalMascot state="playing" size={190} /></div>
