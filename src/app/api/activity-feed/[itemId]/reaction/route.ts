@@ -50,8 +50,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ite
     let notificationBatchId: string | null = null;
     if (lockedItem.user.notifyActivityReactions) {
       const now = new Date();
+      // Een batch hoort bij de ontvanger, niet bij het feed-item. De
+      // advisory lock sluit gelijktijdige reacties op verschillende items
+      // voor dezelfde ontvanger uit; de unieke index is de databasegarantie.
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockedItem.userId}, 0))`;
       const activeBatch = await tx.activityReactionNotificationBatch.findFirst({
-        where: { itemId, sentAt: null, sendAfter: { gt: now } },
+        where: { recipientUserId: lockedItem.userId, sentAt: null },
         orderBy: { createdAt: "desc" },
         select: { id: true },
       });
@@ -60,8 +64,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ite
           data: {
             itemId,
             recipientUserId: lockedItem.userId,
-            firstReactionAt: new Date(),
-            sendAfter: new Date(Date.now() + ACTIVITY_REACTION_BATCH_WINDOW_MS),
+            firstReactionAt: now,
+            sendAfter: new Date(now.getTime() + ACTIVITY_REACTION_BATCH_WINDOW_MS),
           },
           select: { id: true },
         })

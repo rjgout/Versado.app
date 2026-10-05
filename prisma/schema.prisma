@@ -1475,7 +1475,6 @@ model ActivityFeedItem {
   updatedAt       DateTime     @updatedAt
 
   reactions ActivityFeedReaction[]
-  reactionNotificationBatches ActivityReactionNotificationBatch[]
 
   @@index([userId, updatedAt])
   @@index([userId, kind, groupKey, createdAt])
@@ -1497,13 +1496,11 @@ model ActivityFeedReaction {
   @@index([notificationBatchId])
 }
 
-// Een batch verzamelt nieuwe reacties op één activiteit tot het venster is
+// Een batch verzamelt nieuwe reacties van één ontvanger tot het venster is
 // verstreken. De scheduler verstuurt hem server-side; de client is nooit de
 // timer of bron van waarheid voor reactiemeldingen.
 model ActivityReactionNotificationBatch {
   id              String                   @id @default(cuid())
-  itemId          String
-  item            ActivityFeedItem         @relation(fields: [itemId], references: [id], onDelete: Cascade)
   recipientUserId String
   recipient       User                     @relation("ActivityReactionNotificationRecipient", fields: [recipientUserId], references: [id], onDelete: Cascade)
   firstReactionAt DateTime
@@ -1512,8 +1509,7 @@ model ActivityReactionNotificationBatch {
   createdAt       DateTime                 @default(now())
   reactions       ActivityFeedReaction[]
 
-  @@index([sendAfter, sentAt])
-  @@index([itemId, sentAt])
+  @@index([sentAt, sendAfter])
   @@index([recipientUserId, sentAt])
 }
 

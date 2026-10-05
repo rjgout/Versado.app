@@ -23,7 +23,7 @@ after(async () => {
   await db.user.deleteMany({ where: { id: { in: userIds } } });
 });
 
-test("reactiebatch: geen directe melding, één batch per activiteit en nieuwe batch na verzending", { skip }, async () => {
+test("reactiebatch: één ontvangerbatch over activiteiten heen en nieuwe batch na verzending", { skip }, async () => {
   const { run } = await load();
   const owner = await db.user.create({
     data: { email: `reaction-owner-${Date.now()}@test.invalid`, passwordHash: "x", handle: "Owner", discriminator: "01", uiLanguage: "nl", notifyActivityReactions: true },
@@ -35,7 +35,7 @@ test("reactiebatch: geen directe melding, één batch per activiteit en nieuwe b
   itemIds.push(item.id);
   const first = new Date("2032-01-01T12:00:00Z");
   const batch = await db.activityReactionNotificationBatch.create({
-    data: { itemId: item.id, recipientUserId: owner.id, firstReactionAt: first, sendAfter: new Date(first.getTime() + 15 * 60 * 1000) },
+    data: { recipientUserId: owner.id, firstReactionAt: first, sendAfter: new Date(first.getTime() + 30 * 60 * 1000) },
   });
   await db.activityFeedReaction.createMany({
     data: [
@@ -43,13 +43,20 @@ test("reactiebatch: geen directe melding, één batch per activiteit en nieuwe b
       { itemId: item.id, userId: peter.id, emoji: "🎉", notificationBatchId: batch.id },
     ],
   });
+  const secondItemInBatch = await db.activityFeedItem.create({ data: { userId: owner.id, kind: "ACHIEVEMENT", groupKey: "test-2", xpAmount: 0 } });
+  itemIds.push(secondItemInBatch.id);
+  await db.activityFeedReaction.create({
+    data: { itemId: secondItemInBatch.id, userId: anna.id, emoji: "🔥", notificationBatchId: batch.id },
+  });
 
   assert.equal(await db.notification.count({ where: { userId: owner.id } }), 0);
-  await run(new Date("2032-01-01T12:16:00Z"));
+  await run(new Date("2032-01-01T12:31:00Z"));
   const notifications = await db.notification.findMany({ where: { userId: owner.id } });
   assert.equal(notifications.length, 1);
   assert.match(notifications[0].body, /Anna#02/);
   assert.match(notifications[0].body, /Peter#03/);
+  assert.match(notifications[0].body, /activiteiten/);
+  assert.equal(notifications[0].url, "/activity");
 
   await run(new Date("2032-01-01T12:17:00Z"));
   assert.equal(await db.notification.count({ where: { userId: owner.id } }), 1);
@@ -57,7 +64,7 @@ test("reactiebatch: geen directe melding, één batch per activiteit en nieuwe b
   const secondItem = await db.activityFeedItem.create({ data: { userId: owner.id, kind: "XP", groupKey: "other", xpAmount: 2 } });
   itemIds.push(secondItem.id);
   const secondBatch = await db.activityReactionNotificationBatch.create({
-    data: { itemId: secondItem.id, recipientUserId: owner.id, firstReactionAt: first, sendAfter: new Date(first.getTime() + 15 * 60 * 1000) },
+    data: { recipientUserId: owner.id, firstReactionAt: first, sendAfter: new Date(first.getTime() + 30 * 60 * 1000) },
   });
   await db.activityFeedReaction.create({ data: { itemId: secondItem.id, userId: anna.id, emoji: "❤️", notificationBatchId: secondBatch.id } });
   await run(new Date("2032-01-01T12:32:00Z"));
@@ -74,7 +81,7 @@ test("reactiebatch: uitgeschakelde voorkeur maakt geen melding", { skip }, async
   const item = await db.activityFeedItem.create({ data: { userId: owner.id, kind: "XP", groupKey: "test", xpAmount: 1 } });
   itemIds.push(item.id);
   const at = new Date("2032-02-01T12:00:00Z");
-  const batch = await db.activityReactionNotificationBatch.create({ data: { itemId: item.id, recipientUserId: owner.id, firstReactionAt: at, sendAfter: new Date(at.getTime() - 1) } });
+  const batch = await db.activityReactionNotificationBatch.create({ data: { recipientUserId: owner.id, firstReactionAt: at, sendAfter: new Date(at.getTime() - 1) } });
   await db.activityFeedReaction.create({ data: { itemId: item.id, userId: actor.id, emoji: "🙌", notificationBatchId: batch.id } });
   await run(new Date("2032-02-01T12:01:00Z"));
   assert.equal(await db.notification.count({ where: { userId: owner.id } }), 0);

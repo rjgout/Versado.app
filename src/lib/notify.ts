@@ -227,18 +227,28 @@ export async function notifyInviteAccepted(
   });
 }
 
-export async function notifyActivityReactionBatch(ownerUserId: string, names: string[], url: string): Promise<void> {
+export async function notifyActivityReactionBatch(ownerUserId: string, names: string[], activityCount: number, url: string): Promise<void> {
   const text = (t: TFunction): string => {
-    if (names.length === 1) return t("notify.activityReactionBatchOne", { name: names[0] });
-    if (names.length === 2) return t("notify.activityReactionBatchTwo", { first: names[0], second: names[1] });
-    return t("notify.activityReactionBatchMany", { first: names[0], second: names[1], others: names.length - 2 });
+    if (activityCount === 1) {
+      if (names.length === 1) return t("notify.activityReactionBatchOne", { name: names[0] });
+      if (names.length === 2) return t("notify.activityReactionBatchTwo", { first: names[0], second: names[1] });
+      return t("notify.activityReactionBatchMany", { first: names[0], second: names[1], others: names.length - 2 });
+    }
+    if (names.length === 1) return t("notify.activityReactionBatchOneActivities", { name: names[0] });
+    if (names.length === 2) return t("notify.activityReactionBatchTwoActivities", { first: names[0], second: names[1] });
+    return t("notify.activityReactionBatchManyActivities", { first: names[0], second: names[1], others: names.length - 2 });
   };
   await notifyUser({
     userId: ownerUserId,
     category: "activityReactions",
     kind: "friends",
     url,
-    content: (t) => simple(t("notify.activityReactionBatchTitle"), t("notify.activityReactionBatchTitle"), text(t), t("notify.ctaActivity")),
+    content: (t) => simple(
+      t(activityCount === 1 ? "notify.activityReactionBatchTitle" : "notify.activityReactionBatchTitleActivities"),
+      t(activityCount === 1 ? "notify.activityReactionBatchTitle" : "notify.activityReactionBatchTitleActivities"),
+      text(t),
+      t("notify.ctaActivity")
+    ),
   });
 }
 

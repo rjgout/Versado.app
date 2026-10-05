@@ -12,8 +12,8 @@ test("reactiebatch: één persoon staat maar één keer in de namenlijst", () =>
   assert.deepEqual(names, ["Anna#01", "Peter#02"]);
 });
 
-test("reactiebatch: het bundelingsvenster is vijftien minuten", () => {
-  assert.equal(ACTIVITY_REACTION_BATCH_WINDOW_MS, 15 * 60 * 1000);
+test("reactiebatch: het bundelingsvenster is dertig minuten", () => {
+  assert.equal(ACTIVITY_REACTION_BATCH_WINDOW_MS, 30 * 60 * 1000);
 });
 
 test("reactiepreview: maximaal vijf, vrienden eerst en chronologisch binnen beide groepen", () => {

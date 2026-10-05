@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { notifyActivityReactionBatch } from "@/lib/notify";
 
-export const ACTIVITY_REACTION_BATCH_WINDOW_MS = 15 * 60 * 1000;
+export const ACTIVITY_REACTION_BATCH_WINDOW_MS = 30 * 60 * 1000;
 
 type ReactionName = { userId: string; name: string; createdAt: Date };
 
@@ -19,6 +19,16 @@ export function uniqueReactionNames(reactions: ReactionName[]): string[] {
 
 async function processBatch(batchId: string, now: Date): Promise<void> {
   await prisma.$transaction(async (tx) => {
+    const candidate = await tx.activityReactionNotificationBatch.findUnique({
+      where: { id: batchId },
+      select: { recipientUserId: true },
+    });
+    if (!candidate) return;
+
+    // Dezelfde ontvanger is de kritieke sleutel. Dit sluit een reactie-route
+    // uit terwijl een scheduler de batch leest en verzendt, ook over meerdere
+    // feed-items en meerdere app-instanties heen.
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${candidate.recipientUserId}, 0))`;
     const locked = await tx.$queryRaw<{ id: string }[]>`
       SELECT "id" FROM "ActivityReactionNotificationBatch"
       WHERE "id" = ${batchId} AND "sentAt" IS NULL
@@ -28,10 +38,10 @@ async function processBatch(batchId: string, now: Date): Promise<void> {
     const batch = await tx.activityReactionNotificationBatch.findUnique({
       where: { id: batchId },
       include: {
-        item: { select: { id: true } },
         reactions: {
           orderBy: { createdAt: "asc" },
           select: {
+            itemId: true,
             userId: true,
             createdAt: true,
             user: { select: { handle: true, discriminator: true } },
@@ -52,7 +62,9 @@ async function processBatch(batchId: string, now: Date): Promise<void> {
     // De gemarkeerde batch wordt pas na notifyUser afgerond. De rijlock
     // voorkomt dat twee scheduler-instanties dezelfde batch tegelijk claimen.
     if (names.length > 0) {
-      await notifyActivityReactionBatch(batch.recipientUserId, names, `/activity#activity-${batch.item.id}`);
+      const activityIds = new Set(batch.reactions.map((reaction) => reaction.itemId));
+      const url = activityIds.size === 1 ? `/activity#activity-${[...activityIds][0]}` : "/activity";
+      await notifyActivityReactionBatch(batch.recipientUserId, names, activityIds.size, url);
     }
     await tx.activityReactionNotificationBatch.update({ where: { id: batch.id }, data: { sentAt: now } });
   }, { timeout: 30_000 });
