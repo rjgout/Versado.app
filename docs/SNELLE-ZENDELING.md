@@ -28,14 +28,13 @@ boost hebben hetzelfde canvas en dezelfde rendermaat.
 
 Spelcovers lopen generiek via de mascottevariant in `src/lib/artwork.ts`:
 
-- Novi: `public/images/games/snelle-zendeling.png` (aanwezig);
-- Varo: `public/images/games/vliegende-varo.png` (nog aan te leveren);
-- Vera: `public/images/games/vliegende-vera.png` (nog aan te leveren).
+- Novi: `public/images/games/snelle-zendeling.png`;
+- Varo: `public/images/games/vliegende-varo.png`;
+- Vera: `public/images/games/vliegende-vera.png`.
 
-Zolang Varo/Vera ontbreken toont `MediaArtwork` zijn neutrale gameplaceholder,
-niet de Novi-cover onder een verkeerde naam. Na levering hoeft in
-`GAME_MASCOT_COVERS` alleen de betreffende `null` door een `ArtworkAsset` met
-het genoemde pad te worden vervangen; kaartcomponenten veranderen niet.
+`GAME_MASCOT_COVERS` koppelt deze drie covers centraal aan de companion. De
+kaartcomponenten kennen geen bestandspaden of spelvarianten: de covers delen
+dezelfde `quick-missionary`-identiteit en dus dezelfde scores en klassementen.
 
 ## Vaste spelregels
 
@@ -55,9 +54,22 @@ canvas getoond. Physics is frame-rate-onafhankelijk:
 Deze waarden staan centraal in `src/lib/snelleZendeling/gameplay.ts`. Ieder
 paar gebruikt exact dezelfde breedte, gaphoogte en horizontale afstand. Alleen
 `gapY` wordt gekozen; de veilige grenzen zijn vast en opeenvolgende gaps mogen
-maximaal 105 logische pixels verschillen. Muur en rots worden proportioneel
-geschaald vanuit hun gelijke effectieve bronbreedte van 384 px; hun uiteinden
-worden niet uitgerekt.
+maximaal 105 logische pixels verschillen. De runtime gebruikt
+`obstacle-wall-long.png` en `obstacle-rock-long.png` (beide 384×16384
+bronpixels). Ze worden uitsluitend uniform geschaald met
+`OBSTACLE_WIDTH / 384`: de hoogte volgt dus altijd uit die breedteschaal en
+wordt nooit naar de opening uitgerekt. De bovenkant van de muur wordt exact op
+`gapBottom` geplaatst en loopt onder het canvas door; de onderkant van de rots
+wordt exact op `gapTop` geplaatst en loopt boven het canvas door. Het canvas
+clipt alleen het overtollige lichaam. Daardoor is er bij iedere geldige gapY
+geen lucht tussen een obstacle en de bijbehorende viewport-rand.
+
+`obstacle-wall-stem.png` (384×960) en `obstacle-rock-stem.png` (384×912)
+blijven als tileable productiereserve bewaard. De vaste wereld van 360×640
+valt ruim binnen de lange assets, zodat een losse cap/stem-compositor — die
+volgens de assetdocumentatie zorgvuldig op de capfase moet aansluiten — nu
+niet nodig is. De lange offscreen-bitmapdelen veranderen de abstracte
+collisionrechthoeken niet.
 
 De collision gebruikt een vaste rechthoekige hitbox van 42×42 rond het lichaam.
 De 1254×1254 transparante sprite, staart en losse haren zijn dus geen
@@ -142,8 +154,9 @@ de noodzakelijke physics blijven actief.
 
 ## Tests
 
-`tests/snelle-zendeling.test.ts` dekt vaste maten, gapgrenzen, score-eenmalig,
-collision, gelijke hitboxen, Genees-opties/-status, vraagcontext,
+`tests/snelle-zendeling.test.ts` dekt vaste maten, bronafmetingen en uniforme
+obstacleschaal, gap-ankers en dekking van beide wereldranden, gapgrenzen,
+score-eenmalig, collision, gelijke hitboxen, Genees-opties/-status, vraagcontext,
 antwoordbalans, dynamische identiteit, immersive overlays, ranking-ties en
 server-side scoretempo. Shellmodi staan in `tests/focus-mode.test.ts` en de
 coverresolver in `tests/artwork.test.ts`.

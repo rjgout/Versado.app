@@ -8,8 +8,9 @@ import { useT } from "@/components/I18nProvider";
 import type { PersonalMascotCharacter } from "@/lib/mascots";
 import { quickMissionaryTitle } from "@/lib/gameCatalog";
 import { quickMissionaryMascotSprite } from "@/lib/snelleZendeling/assets";
+import { rockRenderRect, wallRenderRect } from "@/lib/snelleZendeling/obstacles";
 import {
-  BOOST_VELOCITY, FIRST_OBSTACLE_X, GAP_HEIGHT, HORIZONTAL_SPEED, MASCOT_X,
+  BOOST_VELOCITY, FIRST_OBSTACLE_X, HORIZONTAL_SPEED, MASCOT_X,
   OBSTACLE_WIDTH, PAIR_SPACING, PLAY_BOTTOM, PLAY_TOP, WORLD_HEIGHT, WORLD_WIDTH,
   collidesWithObstacle, createObstaclePair, isOutOfPlayZone, passedPair, stepPhysics,
   type ObstaclePair,
@@ -95,7 +96,7 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
   }, [runId]);
 
   useEffect(() => {
-    const names = [...LAYER_CONFIG.map(([name]) => name), "foreground-ground.png", "obstacle-wall.png", "obstacle-rock.png", quickMissionaryMascotSprite(character, "glide"), quickMissionaryMascotSprite(character, "boost")];
+    const names = [...LAYER_CONFIG.map(([name]) => name), "foreground-ground.png", "obstacle-wall-long.png", "obstacle-rock-long.png", quickMissionaryMascotSprite(character, "glide"), quickMissionaryMascotSprite(character, "boost")];
     const loaded: Record<string, HTMLImageElement> = {};
     names.forEach((name) => { loaded[name] = image(name); });
     imagesRef.current = loaded;
@@ -121,10 +122,12 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
     for (const [name, factor] of LAYER_CONFIG) drawRepeating(name, factor);
     drawRepeating("foreground-ground.png", 0.75, 0.08);
     for (const pair of obstaclesRef.current) {
-      const rock = imagesRef.current["obstacle-rock.png"];
-      const wall = imagesRef.current["obstacle-wall.png"];
-      if (rock?.complete && rock.naturalWidth) { const h = OBSTACLE_WIDTH * rock.naturalHeight / rock.naturalWidth; ctx.drawImage(rock, pair.x, pair.gapY - h, OBSTACLE_WIDTH, h); }
-      if (wall?.complete && wall.naturalWidth) { const h = OBSTACLE_WIDTH * wall.naturalHeight / wall.naturalWidth; ctx.drawImage(wall, pair.x, pair.gapY + GAP_HEIGHT, OBSTACLE_WIDTH, h); }
+      const rock = imagesRef.current["obstacle-rock-long.png"];
+      const wall = imagesRef.current["obstacle-wall-long.png"];
+      // Canvas clipt de lange lichamen buiten de wereld. De renderer berekent
+      // beide afmetingen uit dezelfde schaal, zodat geen steen wordt vervormd.
+      if (rock?.complete && rock.naturalWidth) { const rect = rockRenderRect(pair, rock.naturalHeight); ctx.drawImage(rock, rect.x, rect.y, rect.width, rect.height); }
+      if (wall?.complete && wall.naturalWidth) { const rect = wallRenderRect(pair, wall.naturalHeight); ctx.drawImage(wall, rect.x, rect.y, rect.width, rect.height); }
     }
     const mascotName = quickMissionaryMascotSprite(character, timestamp < boostUntilRef.current ? "boost" : "glide");
     const mascot = imagesRef.current[mascotName];

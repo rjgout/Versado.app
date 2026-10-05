@@ -12,6 +12,8 @@ import {
   MIN_GAP_Y,
   OBSTACLE_WIDTH,
   PAIR_SPACING,
+  PLAY_TOP,
+  WORLD_HEIGHT,
   collidesWithObstacle,
   createObstaclePair,
   mascotHitbox,
@@ -19,6 +21,15 @@ import {
   passedPair,
   stepPhysics,
 } from "@/lib/snelleZendeling/gameplay";
+import {
+  LONG_OBSTACLE_SOURCE_HEIGHT,
+  OBSTACLE_SOURCE_WIDTH,
+  obstacleDisplayScale,
+  rockCoversWorldTop,
+  rockRenderRect,
+  wallCoversWorldBottom,
+  wallRenderRect,
+} from "@/lib/snelleZendeling/obstacles";
 import { maxPlausibleScore, validateReportedScore } from "@/lib/snelleZendeling/validation";
 import { applyReviveAnswer, reviveOptionsAreComparable, reviveQuestionContext, selectReviveOptions } from "@/lib/snelleZendeling/rules";
 import { rankScores } from "@/lib/snelleZendeling/ranking";
@@ -50,6 +61,43 @@ describe("Snelle Zendeling gameplay", () => {
       if (previous !== undefined) assert.ok(Math.abs(pair.gapY - previous) <= MAX_GAP_STEP);
       previous = pair.gapY;
     }
+  });
+
+  it("gebruikt gelijkbrede lange bronassets voor muur en rots", () => {
+    const pngSize = (name: string) => {
+      const png = readFileSync(path.join(process.cwd(), "public", "games", "snelle-zendeling", name));
+      return { width: png.readUInt32BE(16), height: png.readUInt32BE(20) };
+    };
+    assert.deepEqual(pngSize("obstacle-wall-long.png"), { width: OBSTACLE_SOURCE_WIDTH, height: LONG_OBSTACLE_SOURCE_HEIGHT });
+    assert.deepEqual(pngSize("obstacle-rock-long.png"), { width: OBSTACLE_SOURCE_WIDTH, height: LONG_OBSTACLE_SOURCE_HEIGHT });
+    assert.deepEqual(pngSize("obstacle-wall-stem.png"), { width: OBSTACLE_SOURCE_WIDTH, height: 960 });
+    assert.deepEqual(pngSize("obstacle-rock-stem.png"), { width: OBSTACLE_SOURCE_WIDTH, height: 912 });
+  });
+
+  it("verankert de lange muur en rots exact aan de vaste gapranden", () => {
+    for (const gapY of [MIN_GAP_Y, MAX_GAP_Y]) {
+      const pair = { id: 1, x: 200, gapY };
+      const wall = wallRenderRect(pair);
+      const rock = rockRenderRect(pair);
+      assert.equal(wall.width, OBSTACLE_WIDTH);
+      assert.equal(rock.width, OBSTACLE_WIDTH);
+      assert.equal(wall.y, gapY + GAP_HEIGHT, "muur begint bij gapBottom");
+      assert.equal(rock.y + rock.height, gapY, "rots eindigt bij gapTop");
+      assert.equal(wallCoversWorldBottom(pair), true, "muur loopt voorbij de onderkant");
+      assert.equal(rockCoversWorldTop(pair), true, "rots loopt voorbij de bovenkant");
+      assert.ok(wall.y + wall.height >= WORLD_HEIGHT);
+      assert.ok(rock.y <= 0);
+    }
+  });
+
+  it("schaalt lange obstakels uniform en verandert collision niet met bitmaphoogte", () => {
+    const pair = { id: 1, x: 100, gapY: MIN_GAP_Y };
+    const wall = wallRenderRect(pair);
+    const rock = rockRenderRect(pair);
+    assert.equal(wall.height, LONG_OBSTACLE_SOURCE_HEIGHT * obstacleDisplayScale());
+    assert.equal(rock.height, LONG_OBSTACLE_SOURCE_HEIGHT * obstacleDisplayScale());
+    assert.equal(obstacleRects(pair).bottom.y, pair.gapY + GAP_HEIGHT);
+    assert.equal(obstacleRects(pair).top.height, pair.gapY - PLAY_TOP);
   });
 
   it("scoort elk paar maar één keer", () => {
@@ -161,8 +209,9 @@ describe("Snelle Zendeling gameplay", () => {
     assert.equal(gameTitle((key, vars) => translateWith(fr, key, vars), game, "vera"), "Vera prend son envol");
     assert.equal(gameTitle((key, vars) => translateWith(es, key, vars), game, "vera"), "Vuela con Vera");
     assert.equal(GAME_CATALOG.filter((entry) => entry.id === "quick-missionary").length, 1);
-    assert.equal(artworkFor(gameArtworkKeys(game.id, "varo")), null);
-    assert.equal(artworkFor(gameArtworkKeys(game.id, "vera")), null);
+    assert.equal(artworkFor(gameArtworkKeys(game.id, "novi"))?.src, "/images/games/snelle-zendeling.png");
+    assert.equal(artworkFor(gameArtworkKeys(game.id, "varo"))?.src, "/images/games/vliegende-varo.png");
+    assert.equal(artworkFor(gameArtworkKeys(game.id, "vera"))?.src, "/images/games/vliegende-vera.png");
     const page = readFileSync(path.join(process.cwd(), "src/app/snelle-zendeling/run/[runId]/page.tsx"), "utf8");
     assert.match(page, /companionToMascot\(user\.companion\)/);
     assert.doesNotMatch(page, /preference|localStorage/);

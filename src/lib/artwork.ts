@@ -101,18 +101,14 @@ const GAME_COVERS: Partial<Record<GameId, ArtworkAsset>> = {
 };
 
 /**
- * Optionele persoonlijke spelcovers. `null` is bewust: MediaArtwork toont dan
- * zijn bestaande neutrale placeholder in plaats van een verkeerde mascotte.
- * Zodra de definitieve bestanden er zijn, hoeft alleen dit register te worden
- * aangevuld; kaartcomponenten kennen geen paden of uitzonderingen.
+ * Persoonlijke spelcovers blijven een presentatielaag: alle varianten gebruiken
+ * dezelfde technische spelidentiteit, instellingen en klassementen.
  */
 const GAME_MASCOT_COVERS: Partial<Record<GameId, Record<PersonalMascotCharacter, ArtworkAsset | null>>> = {
   "quick-missionary": {
     novi: { src: "/images/games/snelle-zendeling.png", tone: "#8ebfd0" },
-    // Verwacht: public/images/games/vliegende-varo.png; na levering deze null vervangen door de asset.
-    varo: null,
-    // Verwacht: public/images/games/vliegende-vera.png; na levering deze null vervangen door de asset.
-    vera: null,
+    varo: { src: "/images/games/vliegende-varo.png", tone: "#c78945" },
+    vera: { src: "/images/games/vliegende-vera.png", tone: "#c78945" },
   },
 };
 
