@@ -13,7 +13,9 @@ export const MYSTERY_001B = {
   difficulty: "investigator",
   difficultyLabelKey: "mystery001b.difficulty",
   completionLabelKey: "mystery001b.investigatorComplete",
-  grid: { rows: 5, columns: 5 },
+  // De assetmetadata blijft beschikbaar voor controle; deze bounds zijn op
+  // de zichtbare zandvlakte van board.png gekalibreerd.
+  grid: { rows: 5, columns: 5, calibratedBounds: { left: 0.10, top: 0.16, right: 0.90, bottom: 0.84 } },
   assets: {
     board: `${ASSET_ROOT}/board.png`,
     manifest: `${ASSET_ROOT}/manifest.json`,

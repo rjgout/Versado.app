@@ -13,6 +13,23 @@ export interface BoardGeometry {
   visibleCharacterHeightPixels?: number;
 }
 
+/**
+ * Een handmatig ontworpen bord kan een ruimer technisch speelveld in het
+ * manifest hebben dan de feitelijke zandvlakte. De celverdeling blijft altijd
+ * rechthoekig en gelijkmatig; alleen de buitenrand wordt gekalibreerd.
+ */
+export function calibrateBoardGeometry(
+  geometry: BoardGeometry,
+  bounds: BoardGeometry["bounds"]
+): BoardGeometry {
+  return {
+    ...geometry,
+    bounds,
+    cellWidthNormalized: (bounds.right - bounds.left) / geometry.columns,
+    cellHeightNormalized: (bounds.bottom - bounds.top) / geometry.rows,
+  };
+}
+
 function object(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
 }

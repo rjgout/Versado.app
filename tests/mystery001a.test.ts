@@ -17,7 +17,7 @@ import {
   publicSolutionResult,
 } from "@/lib/mysteries/logic";
 import { firstCompletionUpdate } from "@/lib/mysteries/progressRules";
-import { parseBoardManifest, type BoardGeometry } from "@/lib/mysteries/manifest";
+import { calibrateBoardGeometry, parseBoardManifest, type BoardGeometry } from "@/lib/mysteries/manifest";
 import type { Placements } from "@/lib/mysteries/types";
 
 const solution: Placements = {
@@ -167,12 +167,17 @@ describe("Mysterie 001B Onderzoeker", () => {
     assert.equal(existsSync(join(root, "sam.png")), true);
     assert.equal(MYSTERY_001B.assets.board, "/mysterie-001b-onderzoeker/board.png");
     assert.equal(MYSTERY_001B.characters.find((character) => character.id === "sam")?.asset, "/mysterie-001b-onderzoeker/sam.png");
-    assert.deepEqual(MYSTERY_001B.grid, { rows: 5, columns: 5 });
+    assert.deepEqual(MYSTERY_001B.grid, { rows: 5, columns: 5, calibratedBounds: { left: 0.10, top: 0.16, right: 0.90, bottom: 0.84 } });
     const manifest = JSON.parse(readFileSync(join(root, "manifest.json"), "utf8"));
     const parsed = parseBoardManifest(manifest);
     assert.deepEqual(parsed?.bounds, { left: 0.08, top: 0.14, right: 0.92, bottom: 0.86 });
     assert.equal(parsed?.rows, 5);
     assert.equal(parsed?.columns, 5);
+    const calibrated = calibrateBoardGeometry(parsed!, MYSTERY_001B.grid.calibratedBounds!);
+    assert.deepEqual(calibrated.bounds, { left: 0.10, top: 0.16, right: 0.90, bottom: 0.84 });
+    assert.equal(calibrated.cellWidthNormalized, 0.16);
+    assert.ok(Math.abs(calibrated.cellHeightNormalized - 0.136) < 1e-12);
+    assert.deepEqual(cellFromBoardPoint({ x: 100 + 0.5 * 1000, y: 50 + 0.5 * 1000 }, { left: 100, top: 50, width: 1000, height: 1000 }, calibrated), { row: 3, column: 3 });
   });
 
   it("kiest de vooraf geschreven investigator-hints op basis van state", () => {

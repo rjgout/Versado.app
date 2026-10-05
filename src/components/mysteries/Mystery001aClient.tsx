@@ -9,7 +9,7 @@ import { useConfirm } from "@/components/ConfirmProvider";
 import { focusRing, primaryButton, secondaryButton, surfaceCard } from "@/components/versado/styles";
 import { MYSTERY_001A, emptyMysteryPlacements } from "@/lib/mysteries/mystery001a";
 import { allCharactersPlaced, cellFootAnchor, cellFromBoardPoint, characterImageMetrics, hintFor, isHardConstraintValid, occupantAt, placeCharacter, sameCell } from "@/lib/mysteries/logic";
-import { parseBoardManifest, type BoardGeometry } from "@/lib/mysteries/manifest";
+import { calibrateBoardGeometry, parseBoardManifest, type BoardGeometry } from "@/lib/mysteries/manifest";
 import type { CharacterId, GridCell, MysteryDefinition, Placements } from "@/lib/mysteries/types";
 import type { MysteryProgressView } from "@/lib/mysteries/progress";
 import type { MessageKey } from "@/lib/i18n/core";
@@ -68,11 +68,11 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
         if (cancelled) return;
         const parsed = parseBoardManifest(manifest);
         if (!parsed || parsed.rows !== MYSTERY_001A.grid.rows || parsed.columns !== MYSTERY_001A.grid.columns) throw new Error("geometry");
-        setGeometry(parsed);
+        setGeometry(MYSTERY_001A.grid.calibratedBounds ? calibrateBoardGeometry(parsed, MYSTERY_001A.grid.calibratedBounds) : parsed);
       })
       .catch(() => { if (!cancelled) setBoardAssetError(true); });
     return () => { cancelled = true; };
-  }, [MYSTERY_001A.assets.manifest, MYSTERY_001A.grid.columns, MYSTERY_001A.grid.rows]);
+  }, [MYSTERY_001A.assets.manifest, MYSTERY_001A.grid.calibratedBounds, MYSTERY_001A.grid.columns, MYSTERY_001A.grid.rows]);
 
   useEffect(() => {
     fetch("/api/hints", { cache: "no-store" })
@@ -400,6 +400,14 @@ function MysteryBoard({ definition, geometry, placements, selected, dragTarget, 
   const cells = useMemo(() => Array.from({ length: geometry.rows * geometry.columns }, (_, index) => ({ row: Math.floor(index / geometry.columns) + 1, column: index % geometry.columns + 1 })), [geometry]);
   const metrics = characterImageMetrics(geometry);
   const showGrid = selected !== null || dragTarget !== null || tutorialActive || constraintPulse;
+  const [debugGrid, setDebugGrid] = useState(false);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    // Alleen de ontwikkeloverlay leest de querystring na hydration.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDebugGrid(new URLSearchParams(window.location.search).get("debugGrid") === "1");
+  }, []);
 
   return (
     <div ref={boardRef} role="grid" aria-label={t("mystery001a.board")} aria-rowcount={geometry.rows} aria-colcount={geometry.columns} className="relative aspect-square w-full touch-none overflow-hidden rounded-2xl bg-vs-subtle shadow-sm select-none">
@@ -435,6 +443,41 @@ function MysteryBoard({ definition, geometry, placements, selected, dragTarget, 
           );
         })}
       </div>
+      {debugGrid && (
+        <div className="pointer-events-none absolute inset-0 z-40" aria-hidden>
+          <div
+            className="absolute border-2 border-fuchsia-500/90"
+            style={{
+              left: `${geometry.bounds.left * 100}%`, top: `${geometry.bounds.top * 100}%`,
+              width: `${(geometry.bounds.right - geometry.bounds.left) * 100}%`, height: `${(geometry.bounds.bottom - geometry.bounds.top) * 100}%`,
+            }}
+          />
+          <div
+            className="absolute grid"
+            style={{
+              left: `${geometry.bounds.left * 100}%`, top: `${geometry.bounds.top * 100}%`,
+              width: `${(geometry.bounds.right - geometry.bounds.left) * 100}%`, height: `${(geometry.bounds.bottom - geometry.bounds.top) * 100}%`,
+              gridTemplateColumns: `repeat(${geometry.columns}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${geometry.rows}, minmax(0, 1fr))`,
+            }}
+          >
+            {cells.map((cell) => (
+              <div key={`debug-${cell.row}-${cell.column}`} className="relative border border-fuchsia-400/70 bg-fuchsia-300/5">
+                <span className="absolute left-1 top-1 rounded bg-black/70 px-1 text-[9px] font-bold text-white">R{cell.row}C{cell.column}</span>
+                <span
+                  className="absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-cyan-400"
+                  style={{ left: "50%", top: "80%" }}
+                />
+              </div>
+            ))}
+          </div>
+          {definition.characters.map((character) => {
+            const cell = placements[character.id];
+            if (!cell) return null;
+            const anchor = cellFootAnchor(cell, geometry);
+            return <span key={`debug-foot-${character.id}`} className="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-yellow-300" style={{ left: `${anchor.x * 100}%`, top: `${anchor.y * 100}%` }} />;
+          })}
+        </div>
+      )}
       {definition.characters.map((character) => {
         const cell = placements[character.id];
         if (!cell) return null;
