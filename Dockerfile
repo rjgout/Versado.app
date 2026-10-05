@@ -55,9 +55,13 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
 # Retry rond 'migrate deploy': depends_on/service_healthy laat de database-
 # container meestal op tijd klaarstaan, maar dit vangt de korte race op
 # tussen "pg_isready" en "daadwerkelijk klaar voor migraties" op.
+# recoverFailedMigrations.ts maakt vooraf alleen bekende, veilig herhaalbare
+# mislukte migraties vrij (zie dat bestand); anders blijft P3009 elke start
+# blokkeren, ook nadat de migratie gerepareerd is.
 CMD ["sh", "-c", "\
   ok=0; \
   for i in $(seq 1 10); do \
+    npx tsx prisma/recoverFailedMigrations.ts; \
     npx prisma migrate deploy && ok=1 && break; \
     echo 'Database nog niet klaar, opnieuw proberen...'; sleep 3; \
   done; \

@@ -53,7 +53,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ite
       // Een batch hoort bij de ontvanger, niet bij het feed-item. De
       // advisory lock sluit gelijktijdige reacties op verschillende items
       // voor dezelfde ontvanger uit; de unieke index is de databasegarantie.
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockedItem.userId}, 0))`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockedItem.userId}, 0))`;
       const activeBatch = await tx.activityReactionNotificationBatch.findFirst({
         where: { recipientUserId: lockedItem.userId, sentAt: null },
         orderBy: { createdAt: "desc" },
@@ -62,7 +62,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ite
       notificationBatchId = activeBatch?.id ?? (
         await tx.activityReactionNotificationBatch.create({
           data: {
-            itemId,
             recipientUserId: lockedItem.userId,
             firstReactionAt: now,
             sendAfter: new Date(now.getTime() + ACTIVITY_REACTION_BATCH_WINDOW_MS),

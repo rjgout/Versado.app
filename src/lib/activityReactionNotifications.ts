@@ -28,7 +28,7 @@ async function processBatch(batchId: string, now: Date): Promise<void> {
     // Dezelfde ontvanger is de kritieke sleutel. Dit sluit een reactie-route
     // uit terwijl een scheduler de batch leest en verzendt, ook over meerdere
     // feed-items en meerdere app-instanties heen.
-    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${candidate.recipientUserId}, 0))`;
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${candidate.recipientUserId}, 0))`;
     const locked = await tx.$queryRaw<{ id: string }[]>`
       SELECT "id" FROM "ActivityReactionNotificationBatch"
       WHERE "id" = ${batchId} AND "sentAt" IS NULL
