@@ -1,0 +1,104 @@
+{
+  "id": "mysterie-001b-onderzoeker",
+  "title": "Vertrek uit Jeruzalem",
+  "difficulty": "onderzoeker",
+  "status": "complete",
+  "nativeResolution": [
+    1254,
+    1254
+  ],
+  "grid": {
+    "rows": 5,
+    "columns": 5,
+    "boundsNormalized": {
+      "left": 0.08,
+      "top": 0.14,
+      "right": 0.92,
+      "bottom": 0.86
+    },
+    "cellWidthNormalized": 0.168,
+    "cellHeightNormalized": 0.144,
+    "feetWithinCell": [
+      0.5,
+      0.8
+    ],
+    "maximumCharacterHeightCellFraction": 0.65,
+    "altarCell": "R5C1",
+    "tentCell": "R3C3",
+    "boundsAdjustment": "Ondergrens 0.86 in plaats van de richtwaarde 0.90: sluit aan op het uiteindelijke compacte altaar en behoudt droge, rustige personageankers.",
+    "renderInstruction": "Toon het volledige board.png zonder uitsnede. Voetanker op cel-local (0.5,0.8). Schaal zichtbare figuurhoogte tot maximaal 65% van celhoogte; alle vijf personages gebruiken canvas 1254x1254, zichtbare hoogte 1050px, voetanker (627,1149)."
+  },
+  "assets": [
+    {
+      "filename": "board.png",
+      "width": 1254,
+      "height": 1254,
+      "description": "Rustig 5x5-wildernisbord met klein Jeruzalem, laag stenen altaar en centrale tent.",
+      "transparent": false,
+      "transparentPixelFraction": 0,
+      "designedForGrid": [
+        5,
+        5
+      ]
+    },
+    {
+      "filename": "sam.png",
+      "width": 1254,
+      "height": 1254,
+      "description": "Sam: jonge volwassen zoon, kort zijwaarts gekamd haar, terracotta tuniek met crème afwerking, geen mantel.",
+      "transparent": true,
+      "transparentPixelFraction": 0.8648070989420775,
+      "footAnchorPixels": [
+        627,
+        1149
+      ],
+      "visibleHeightPixels": 1050,
+      "sourceResolution": [
+        1254,
+        1254
+      ]
+    }
+  ],
+  "reusedCharacterAssets": [
+    "/mysterie-001a-ontdekker/lehi.png",
+    "/mysterie-001a-ontdekker/sariah.png",
+    "/mysterie-001a-ontdekker/laman.png",
+    "/mysterie-001a-ontdekker/lemuel.png"
+  ],
+  "solution": {
+    "laman": "R1C5",
+    "sam": "R2C3",
+    "lemuel": "R3C1",
+    "sariah": "R4C4",
+    "lehi": "R5C2"
+  },
+  "logicValidation": {
+    "uniqueSolutionCount": 1,
+    "examinedPermutations": 14400,
+    "method": "Exhaustieve controle van alle rij- en kolompermutaties voor vijf personages, plus de zes aanwijzingen.",
+    "matchesDeclaredSolution": true
+  },
+  "note": "De personageposities zijn uitsluitend puzzellogica en geen historische of Schriftuurlijke beweringen.",
+  "provenance": {
+    "generator": "built-in imagegen",
+    "referenceSet": "Bestaande Mysterie 001A board.png, laman.png, lemuel.png.",
+    "technicalExport": "Bord blijft native. Sam wordt alleen proportioneel geschaald en op transparant canvas uitgelijnd; geen hertekening bij export.",
+    "generationPrompts": {
+      "board": "Use case: stylized-concept. Create a NEW square 1536x1536 game board for Versado Mysterie 001B Onderzoeker using attached 001A board as exact art direction and location reference. No characters. Same warm premium 3D/cartoon, warm upper-left daylight, ochre sand, terracotta rocks, sparse sage vegetation, turquoise narrow river, gently elevated frontal near-orthographic camera, NOT diamond isometric, no strong perspective. A much calmer open level sandy game field. Tiny distant Jerusalem city along TOP EDGE y<.13, decorative non-dominant. Critical functional geometry: invisible 5 rows x 5 columns straight rectangular grid x=.08 to .92,y=.14 to .90. Cell width .168,height .152. Entire rectangular gameplay area clear dry sand except TWO tiny clue objects. ONE compact low freestanding stacked-stone ALTAR in R5C1, center x=.164,y=.824, including silhouette entirely within x=.10.. .235,y=.755.. .88. Keep R5C2 x=.248.. .416,y=.748.. .90 completely clear. ONE compact cream cloth triangular TENT in R3C3, center x=.50,y=.52, entire silhouette and stakes within x=.43.. .57,y=.458.. .592. Keep R2C3 x=.416.. .584,y=.292.. .444 absolutely empty dry sand; tent apex never extends above y=.458. Tent directly below this empty cell. No other tents, clue-like objects, big shadows, animals, people, carts. Perimeter rocks and tiny plants OUTSIDE grid, especially protect dry landing sites centers (x=.836,y=.262) R1C5, (.50,.414) R2C3, (.164,.566) R3C1, (.668,.718) R4C4, (.332,.87) R5C2. River confined extreme right x>.94 and lower edge y>.94, dry ground across all 25 cells. Flat sand, minimal tiny scattered texture, no big stones in field. Same game world as reference but altar LOWER and tent centered precisely for 5x5. No text, labels, grid lines, checkerboard, UI, logos, arrows, numbers, border. Generate a playable landscape with exact object layout, not geographic map.",
+      "boardCorrection": "Edit this board only. Preserve all art style, lighting, camera, Jerusalem and perimeter exactly. Two precise geometry fixes for invisible 5x5 rectangular grid bounds x=.08-.92,y=.14-.90. 1) Existing altar currently too large and too high. Reduce altar silhouette to 65% of current size, MOVE DOWN and slightly LEFT: exact center at x=.164,y=.824 of full square image. All stone silhouette entirely x=.10-.232, y=.765-.884. Restore old location with seamless calm sand. Empty adjacent cell to right x=.248-.416,y=.748-.90. 2) Reduce existing tent to 75% of current size, move a little DOWN: center of complete tent silhouette x=.50,y=.525. Entire tent including peak and stakes within x=.435-.565,y=.465-.585. Tent peak must be below image y=.46, preserving fully clear dry cell immediately above x=.416-.584,y=.292-.444. Restore old tent footprint with seamless calm sand. No extra objects, no characters, no grid, no text or UI. Keep everything else unchanged.",
+      "sam": "Use case: stylized-concept. Create one NEW transparent full-body game-piece PNG: SAM, a calm warm reliable young adult son in the same ancient Near Eastern family as the two attached references. References are Laman in mustard/brown and Lemuel in blue/cream: exact rendering style, camera, material, proportions and lighting guide, do NOT recreate either face or costume. Sam distinctive oval face with gentle broad nose, warm olive skin, dark straight short hair swept neatly sideways (not their wavy curls), clean-shaven with friendly restrained smile. Muted brick-red/terracotta knee-length woven tunic, cream narrow neckline and sleeve trim, simple brown belt, no mantle or vest, visible lower legs, leather sandals. Natural mature adult proportions, no child/chibi. Neutral upright pose, arms close to torso, both hands visible. Same gently elevated front three-quarter view toward viewer right and upper-left warm daylight as references. Full body including both sandals visible. Square canvas 1254x1254 if possible, centered, visible head-to-foot height1050px from y100 to baseline1149; actual true alpha transparent background with margin. No ground, cast floor shadow, scenery, props, weapons, staff, bag, text, border or UI. Premium warm modern 3D cartoon same family art direction."
+    }
+  },
+  "validation": {
+    "characterPlacementPreviewPixels": [
+      400,
+      400
+    ],
+    "familyComparisonCanvasPixels": [
+      120,
+      120
+    ],
+    "checksDocument": "controle.txt",
+    "inAppIntegrationTested": false
+  }
+}
