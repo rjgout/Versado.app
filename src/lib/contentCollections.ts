@@ -10,8 +10,14 @@ export interface ContentCollectionView {
   visibleToUsers: boolean;
   /** Welk werk (bv. "bofm"), los van de taal; zie ContentCollection.work. */
   work: string | null;
+  /** Vertaling-/uitgavefamilie binnen het werk, bv. "otb". */
+  editionKey: string;
   /** Taal van deze uitgave (src/lib/languages.ts). */
   language: string;
+  sourceName: string | null;
+  sourceUrl: string | null;
+  licenseName: string | null;
+  licenseUrl: string | null;
 }
 
 export interface AdminContentCollection extends ContentCollectionView {
@@ -86,10 +92,29 @@ const DEFAULT_COLLECTION: ContentCollectionView = {
   order: 0,
   visibleToUsers: true,
   work: BOFM_WORK,
+  editionKey: "bofm",
   language: DEFAULT_LANGUAGE,
+  sourceName: null,
+  sourceUrl: null,
+  licenseName: null,
+  licenseUrl: null,
 };
 
-const VIEW_SELECT = { id: true, slug: true, name: true, icon: true, order: true, visibleToUsers: true, work: true, language: true } as const;
+const VIEW_SELECT = {
+  id: true,
+  slug: true,
+  name: true,
+  icon: true,
+  order: true,
+  visibleToUsers: true,
+  work: true,
+  editionKey: true,
+  language: true,
+  sourceName: true,
+  sourceUrl: true,
+  licenseName: true,
+  licenseUrl: true,
+} as const;
 
 /** Welke collecties iemand mag kiezen: beheerders ook de verborgen. */
 function selectableWhere(isAdmin: boolean) {
@@ -162,7 +187,11 @@ export async function setContentLanguage(userId: string, isAdmin: boolean, langu
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { activeContentCollectionId: true } });
   const active = collections.find((collection) => collection.id === user?.activeContentCollectionId);
   const sameWork = active
-    ? collections.find((collection) => workOf(collection) === workOf(active) && collection.language === language)
+    ? collections.find((collection) =>
+        workOf(collection) === workOf(active) &&
+        collection.editionKey === active.editionKey &&
+        collection.language === language
+      ) ?? collections.find((collection) => workOf(collection) === workOf(active) && collection.language === language)
     : undefined;
   await prisma.user.update({
     where: { id: userId },
@@ -254,9 +283,22 @@ export async function isContentCollectionSelectable(contentCollectionId: string 
  * valt dit uiteindelijk terug op de vaste collectie, ook op een lege database.
  */
 export async function resolveEditionId(work: string, language?: string | null): Promise<string | null> {
+  return resolveEditionIdForFamily(work, language);
+}
+
+/**
+ * Resolves een uitgave binnen een expliciete vertaling-/uitgavefamilie.
+ * Zonder editionKey blijft de historische work+language-fallback beschikbaar
+ * voor bestaande aanroepers.
+ */
+export async function resolveEditionIdForFamily(
+  work: string,
+  language?: string | null,
+  editionKey?: string | null,
+): Promise<string | null> {
   const editions = await prisma.contentCollection.findMany({
-    where: { work, ...selectableWhere(false) },
-    select: { id: true, language: true },
+    where: { work, ...(editionKey ? { editionKey } : {}), ...selectableWhere(false) },
+    select: { id: true, language: true, editionKey: true },
   });
   const edition = fallbackChain(language)
     .map((code) => editions.find((candidate) => candidate.language === code))

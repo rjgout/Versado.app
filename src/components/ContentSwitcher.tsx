@@ -15,6 +15,7 @@ interface Collection {
   order: number;
   visibleToUsers: boolean;
   work: string | null;
+  editionKey: string;
   language: string;
 }
 
@@ -116,7 +117,14 @@ export default function ContentSwitcher({
   // alleen deze ene uitgave.
   async function selectLanguage(edition: Collection) {
     if (edition.id === active.id) return;
-    await save({ contentLanguage: edition.language });
+    // Bij meerdere vertalingen in dezelfde taal moet een taalknop ook de
+    // gekozen uitgavefamilie kunnen vastleggen; met één collectie per taal
+    // blijft de bestaande contentLanguage-flow ongewijzigd.
+    if (edition.language === active.language && edition.editionKey !== active.editionKey) {
+      await save({ contentCollectionId: edition.id });
+    } else {
+      await save({ contentLanguage: edition.language });
+    }
   }
 
   async function save(body: { contentCollectionId: string } | { contentLanguage: string }) {
@@ -141,6 +149,8 @@ export default function ContentSwitcher({
     ...works.filter((option) => option.work === activeWork),
     ...works.filter((option) => option.work !== activeWork),
   ];
+  const languageCounts = new Map<string, number>();
+  for (const edition of activeEditions) languageCounts.set(edition.language, (languageCounts.get(edition.language) ?? 0) + 1);
   return (
     // Het menu blijft links staan op ieder scherm; de items rechts worden
     // nooit weggedrukt. Telefoon en tablet: alle ruimte tot de items rechts. Desktop: de
@@ -221,6 +231,7 @@ export default function ContentSwitcher({
                 {activeEditions.map((edition) => {
                   const language = getLanguage(edition.language);
                   const selected = edition.id === active.id;
+                  const duplicateLanguage = (languageCounts.get(edition.language) ?? 0) > 1;
                   return (
                     <button
                       key={edition.id}
@@ -242,7 +253,7 @@ export default function ContentSwitcher({
                       {/* Smal scherm: alleen de code; breder: alleen de naam. Allebei
                           tegelijk zonder ruimte ertussen gaf "NLNederlands". */}
                       <span className="sm:hidden">{language.badge}</span>
-                      <span className="hidden sm:inline">{language.nativeName}</span>
+                      <span className="hidden sm:inline">{duplicateLanguage ? edition.name : language.nativeName}</span>
                     </button>
                   );
                 })}

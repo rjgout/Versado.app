@@ -486,12 +486,19 @@ model ContentCollection {
   // Beheerders zien altijd alle collecties, zodat ze nieuwe content kunnen
   // bekijken voordat die voor iedereen beschikbaar is.
   visibleToUsers Boolean @default(true)
-  // Welk werk dit is, los van de taal (kerk-URI-deel: "bofm",
-  // "dc-testament", "pgp"; eigen content: "fsy", "podcasts"). Samen met
-  // language vormt dit één uitgave; dezelfde verzen in een andere taal
-  // vind je via hetzelfde werk en dezelfde Book.key.
+  // Welk schriftwerk dit is, los van de uitgave en de taal (bv. "bofm",
+  // "dc-testament", "pgp"; eigen content: "fsy", "podcasts").
   work      String?
+  // Stabiele identiteit van de vertaling/uitgavefamilie binnen een werk.
+  // Bijvoorbeeld "otb" voor alle talen van Open Translation Bible.
+  editionKey String  @default("default")
   language  String   @default("nl")
+  // Eenvoudige herkomstinformatie voor toekomstige imports; dit vervangt
+  // geen afzonderlijke controle van auteursrecht of licentievoorwaarden.
+  sourceName  String?
+  sourceUrl   String?
+  licenseName String?
+  licenseUrl  String?
   books     Book[]
   courses   Course[]
   gameScopes GameContentScope[]
@@ -499,6 +506,8 @@ model ContentCollection {
   fsyLessons FsyLesson[]
   persons   Person[]
   wordSearchGames WordSearchGame[]
+
+  @@unique([work, editionKey, language])
 }
 
 // Koppelt een spel aan één of meer contentcollecties. gameKey is de stabiele

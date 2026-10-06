@@ -5,6 +5,7 @@ import { apiError } from "@/lib/apiError";
 import { prisma } from "@/lib/db";
 import { playableAudioUrl } from "@/lib/audioMirror";
 import { LANGUAGES } from "@/lib/languages";
+import { pickEditionInFamily } from "@/lib/contentEdition";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ chapterId: string }> }) {
   const user = await getCurrentUser();
@@ -21,22 +22,26 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ cha
   const { key, contentCollection } = chapter.book;
   if (!key || !contentCollection.work) return NextResponse.json({ editions: [] });
 
-  // Dezelfde verwijzing in de andere uitgave; nooit een andere taal laten
-  // voorlezen met de tekst of tijdstippen van de zichtbare uitgave.
+  // Dezelfde canonieke verwijzing in dezelfde uitgavefamilie; zo wordt bij
+  // meerdere vertalingen niet stilzwijgend audio uit een andere vertaling gekozen.
   const chapters = await prisma.chapter.findMany({
     where: {
       number: chapter.number,
-      book: { key, contentCollection: { ...selectable, work: contentCollection.work } },
+      book: { key, contentCollection: { ...selectable, work: contentCollection.work, editionKey: contentCollection.editionKey } },
     },
     select: {
       audioUrl: true,
-      book: { select: { contentCollection: { select: { language: true } } } },
+      book: { select: { contentCollection: { select: { language: true, work: true, editionKey: true } } } },
       verses: { orderBy: { number: "asc" }, select: { number: true, text: true, audioStart: true } },
     },
   });
   return NextResponse.json({
     editions: LANGUAGES.flatMap(({ code }) => {
-      const edition = chapters.find((item) => item.book.contentCollection.language === code);
+      const edition = pickEditionInFamily(
+        chapters.map((item) => ({ ...item, ...item.book.contentCollection })),
+        contentCollection,
+        code,
+      );
       return edition?.verses.length ? [{ language: code, url: playableAudioUrl(edition.audioUrl), verses: edition.verses }] : [];
     }),
   });

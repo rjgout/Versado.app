@@ -473,18 +473,34 @@ het hoofdstuk). Het fundament ligt er; zichtbaar is alles nog Nederlands.
   actieve werk mee). Een app-taal is pas kiesbaar als `uiReady` in
   `languages.ts` aan staat; beheerders kunnen elke taal kiezen om een
   vertaling te bekijken.
-- **Een collectie is één uitgave**: `ContentCollection.work` (bv. `bofm`,
-  `dc-testament`, `pgp`) + `language`. Een Engelse uitgave van het Boek van
-  Mormon wordt een eigen collectie met hetzelfde `work`. Zoek een uitgave op
-  met `resolveEditionId(work, taal)` (`src/lib/contentCollections.ts`); die
-  valt terug volgens `fallbackChain` (eigen taal → Engels → Nederlands;
-  Nederlands zelf valt nooit terug). Nieuwe code filtert dus op werk + taal, niet
-  op een vaste collectie-id als `BOM_COLLECTION_ID`.
-- **Dezelfde tekst in elke taal**: `Book.key` is het pad dat de kerk gebruikt
-  (`bofm/alma`, zie `prisma/bookKeys.ts`); sleutel + hoofdstuk + vers is in
-  elke uitgave hetzelfde. Helpers in `src/lib/scriptureRefs.ts`. Een spel
-  tussen talen kiest één verwijzing en laat die elke speler in de eigen
-  contenttaal zien; scores tellen op de vraag, niet op de tekst.
+- **Drie losse schriftidentiteiten**: `ContentCollection.work` is het
+  schriftwerk, `ContentCollection.editionKey` de vertaling-/uitgavefamilie en
+  `ContentCollection.language` de taal. Een Engelse OTB-uitgave kan dus naast
+  een Nederlandse OTB-uitgave en een Nederlandse HSV-uitgave bestaan. Gebruik
+  `resolveEditionId(work, taal)` voor bestaand fallbackgedrag of
+  `resolveEditionIdForFamily(work, taal, editionKey)` wanneer de familie vastligt;
+  de fallback blijft eigen taal → Engels → Nederlands. Nieuwe Bijbelimporters
+  zetten altijd expliciet de editionKey en bouwen geen parallel contentmodel.
+- **Canonieke schriftlocatie**: `Book.key` is taalonafhankelijk en mag nooit
+  van de weergegeven boeknaam afhangen (`bofm/alma`, zie
+  `prisma/bookKeys.ts`). `Book.key + Chapter.number + Verse.number` identificeert
+  dezelfde canonieke locatie binnen één werk, ook over talen heen. Een spel
+  kiest één verwijzing en toont die in de contenttaal van elke speler.
+- **Tekst- en audiotaal**: die mogen verschillen. Cross-language audio zoekt
+  standaard binnen dezelfde `work + editionKey`-familie, nooit willekeurig op
+  alleen werk en taal. Audio blijft voorlopig `Chapter.audioUrl` met
+  `Verse.audioStart` (en de bestaande hoofdstukkop-tijden); toekomstige
+  Bijbelimporters leveren hun bestanden en tijdstippen in precies dit model.
+- **Bronmetadata**: `ContentCollection.sourceName`/`sourceUrl` en
+  `licenseName`/`licenseUrl` zijn eenvoudige context voor een import; ze zijn
+  geen vervanging voor een daadwerkelijke rechtencontrole.
+- **Cursussen en Samen**: bestaande cursussen blijven aan hun collectie
+  gekoppeld en bestaande oefenrecords veranderen niet. Een toekomstige cursus
+  die dezelfde canonieke locaties over meerdere talen of vertalingen aanbiedt,
+  hoort inhoudelijke identiteit (`Book.key` + hoofdstuk/vers) los te houden van
+  de tekstweergave. In Samen/study kunnen deelnemers hun eigen contenttaal
+  blijven gebruiken; een latere gedeelde Bijbelcursus moet dus op canonieke
+  verwijzingen synchroniseren, niet op letterlijk vertaalde tekst.
 - **Uitgaven in andere talen**: `scripts/church-text/fetch_scripture.py <en|de|fr|es>`
   haalt Boek van Mormon, Leer en Verbonden en Parel van Grote Waarde op
   (verzen + opschriften, met `key` per boek; stopt als het aantal verzen
