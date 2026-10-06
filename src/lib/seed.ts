@@ -44,6 +44,8 @@ import { alleskennerItems } from "../../prisma/alleskennerContent";
 import { generatedAlleskennerItems } from "../../prisma/alleskennerGenerated";
 import { importAlleskennerItems, importAlleskennerTranslations } from "../../prisma/importAlleskenner";
 import { alleskennerTranslations } from "../../prisma/alleskennerTranslate";
+import { preparePinnedOtbSource } from "../../scripts/otb/source";
+import { importOtbTrial } from "../../scripts/otb/import-core";
 
 // Namen/omschrijvingen bij de achievement-slugs uit src/lib/achievements.ts.
 const achievementDefs = [
@@ -105,6 +107,10 @@ export async function runSeed(client: PrismaClient, log: (msg: string) => void =
   log("Seeding boeken, hoofdstukken, verzen en oefeningen...");
   await importBooks(client, seedBooks, log);
   await importChapterAudio(client, bomAudio as ChapterAudioSeed[], BOM_COLLECTION_ID, log);
+
+  log("Open Translation Bible voorbereiden...");
+  const otbSource = await preparePinnedOtbSource(log);
+  await importOtbTrial(client, otbSource, log);
 
   // Leer en Verbonden en de Parel van Grote Waarde, en de Engelse uitgaven
   // van alle drie, elk in een eigen collectie. Alleen als die collectie

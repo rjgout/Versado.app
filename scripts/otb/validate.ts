@@ -249,10 +249,14 @@ const execFileAsync = promisify(execFile);
 
 export async function assertPinnedSource(sourceRoot: string): Promise<void> {
   const lock = JSON.parse(await readFile(join(process.cwd(), "scripts/otb/source-lock.json"), "utf8")) as { upstreamCommit: string };
-  const { stdout } = await execFileAsync("git", ["-C", sourceRoot, "rev-parse", "HEAD"]);
-  const actual = stdout.trim();
-  if (actual !== lock.upstreamCommit) {
-    throw new Error(`OTB-bron is niet gepind op ${lock.upstreamCommit}; gevonden: ${actual || "geen git-commit"}.`);
+  try {
+    const { stdout } = await execFileAsync("git", ["-C", sourceRoot, "rev-parse", "HEAD"]);
+    const actual = stdout.trim();
+    if (actual !== lock.upstreamCommit) throw new Error(`OTB-bron is niet gepind op ${lock.upstreamCommit}; gevonden: ${actual || "geen git-commit"}.`);
+    return;
+  } catch (error) {
+    const marker = await readFile(join(sourceRoot, ".otb-upstream-commit"), "utf8").catch(() => "");
+    if (marker.trim() !== lock.upstreamCommit) throw error;
   }
 }
 

@@ -6,7 +6,9 @@ import { OTB_TRIAL_BOOK_NUMBERS, OTB_TRIAL_COLLECTIONS, otbWorkForBookNumber } f
 import { otbCollectionName } from "../scripts/otb/collectionNames";
 import { sameCanonicalLocation } from "../scripts/otb/canonical";
 import { contentAbbreviation } from "../src/lib/contentMetadata";
-import { compareSkeletons, scanLocale } from "../scripts/otb/validate";
+import { compareSkeletons, scanLocale, assertPinnedSource } from "../scripts/otb/validate";
+import { pinnedArchiveUrl } from "../scripts/otb/source";
+import { importOtbTrial } from "../scripts/otb/import-core";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -62,10 +64,37 @@ test("canonical matching gebruikt werk, editionKey, Book.key, hoofdstuk en vers"
   assert.ok(locations.every((location) => sameCanonicalLocation(locations[0], location)));
   assert.equal(sameCanonicalLocation(locations[0], { ...locations[0], editionKey: "hsv" }), false);
   assert.equal(sameCanonicalLocation(locations[0], { ...locations[0], bookKey: "exo" }), false);
-  assert.ok(["nl", "en", "es", "fr", "de"].every((language) => sameCanonicalLocation(
+  assert.ok(sameCanonicalLocation(
     { work: "new-testament", editionKey: "otb", bookKey: "jhn", chapter: 1, verse: 1 },
     { work: "new-testament", editionKey: "otb", bookKey: "jhn", chapter: 1, verse: 1 },
-  )));
+  ));
+});
+
+test("OTB gebruikt alleen de gepinde snapshot-URL en accepteert de downloadmarker", async () => {
+  const commit = "31d411ac1c2d277242a3bd85697f354eaa11526b";
+  assert.equal(pinnedArchiveUrl({ repository: "OpenTranslationBible/open-bible", upstreamCommit: commit }), `https://github.com/OpenTranslationBible/open-bible/archive/${commit}.tar.gz`);
+  const root = await mkdtemp(join(tmpdir(), "otb-lock-test-"));
+  try {
+    await writeFile(join(root, ".otb-upstream-commit"), `${commit}\n`);
+    await assertPinnedSource(root);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("OTB-validatiefout bereikt geen databasewrite", async () => {
+  const root = await mkdtemp(join(tmpdir(), "otb-invalid-test-"));
+  let writes = 0;
+  try {
+    await writeFile(join(root, ".otb-upstream-commit"), "31d411ac1c2d277242a3bd85697f354eaa11526b\n");
+    const client = {
+      $transaction: async () => { writes++; },
+    } as never;
+    await assert.rejects(() => importOtbTrial(client, root), /OTB-validatie faalt/);
+    assert.equal(writes, 0);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test("skeletonvergelijking detecteert ontbrekende en extra locaties", () => {

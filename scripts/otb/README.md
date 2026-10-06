@@ -30,6 +30,14 @@ collecties zijn vijf talen voor `old-testament` (boeken 01–39) en vijf talen
 voor `new-testament` (boeken 40–66); er wordt geen `work=bible`-collectie
 gemaakt.
 
+Dezelfde importer draait ook vanuit de bestaande beheeractie **Nieuwe content
+laden**. Zonder `--source` haalt die flow de archive-URL van exact de SHA uit
+`source-lock.json` op en cachet de uitgepakte snapshot onder
+`OTB_CACHE_DIR/<SHA>` (standaard `/tmp/versado-otb/<SHA>`). Eerst worden de
+bronmarker en de volledige skeleton gevalideerd; pas daarna volgen de
+idempotente upserts. Een download- of validatiefout verwijdert geen bestaande
+OTB-data.
+
 `text[]` wordt centraal naar `Verse.text` genormaliseerd: array-elementen
 blijven afzonderlijke regels, één voorloop-`> ` uit Markdown wordt verwijderd
 en de regels worden met `\n` verbonden. Het separatorobject `text: ["---"]`
