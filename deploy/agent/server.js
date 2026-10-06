@@ -31,6 +31,8 @@ const APP_BRANDING_VOLUME = process.env.APP_BRANDING_VOLUME || "";
 const APP_BRANDING_DESTINATION = process.env.APP_BRANDING_DESTINATION || "/data/branding";
 const FLAG_DIR = "/flag";
 const FLAG_PATH = `${FLAG_DIR}/maintenance.on`;
+const DEPLOY_FLAG_PATH = `${FLAG_DIR}/maintenance.deploy`;
+const MANUAL_FLAG_PATH = `${FLAG_DIR}/maintenance.manual`;
 const STATE_DIR = "/state";
 const LAST_GOOD_IMAGE_PATH = `${STATE_DIR}/last-good-image`;
 
@@ -41,6 +43,7 @@ const PULL_TIMEOUT_MS = 10 * 60 * 1000;
 // interval 30s * retries 3 = ~110s) met ruime marge voor een trage opstart.
 const HEALTH_TIMEOUT_MS = 5 * 60 * 1000;
 const HEALTH_POLL_INTERVAL_MS = 3000;
+const MAINTENANCE_RECOVERY_INTERVAL_MS = 30 * 1000;
 
 if (!AGENT_TOKEN) {
   console.error("AGENT_TOKEN ontbreekt — de agent weigert zonder dit geheim te starten.");
@@ -88,12 +91,34 @@ function writeLastGoodImage(id) {
 
 function touchMaintenanceFlag() {
   writeFileSync(FLAG_PATH, "");
+  rmSync(MANUAL_FLAG_PATH, { force: true });
+  writeFileSync(DEPLOY_FLAG_PATH, "");
+}
+function touchManualMaintenanceFlag() {
+  writeFileSync(FLAG_PATH, "");
+  rmSync(DEPLOY_FLAG_PATH, { force: true });
+  writeFileSync(MANUAL_FLAG_PATH, "");
 }
 function clearMaintenanceFlag() {
   rmSync(FLAG_PATH, { force: true });
+  rmSync(DEPLOY_FLAG_PATH, { force: true });
+  rmSync(MANUAL_FLAG_PATH, { force: true });
 }
 function maintenanceIsOn() {
   return existsSync(FLAG_PATH);
+}
+
+/**
+ * Een eerdere agentversie kende geen eigenaarsbestand. Zo'n oude vlag wordt
+ * bewust als deployvlag behandeld: zodra de app gezond is, mag de site niet
+ * onnodig in onderhoud blijven staan.
+ */
+async function recoverMaintenanceIfHealthy() {
+  if (!maintenanceIsOn() || busy || existsSync(MANUAL_FLAG_PATH)) return;
+  const healthy = await getHealthStatus(APP_CONTAINER_NAME).catch(() => null);
+  if (healthy !== "healthy") return;
+  clearMaintenanceFlag();
+  log("Achtergebleven onderhoudsvlag automatisch verwijderd: de app is gezond.");
 }
 
 function safeDockerArgs(args) {
@@ -361,7 +386,7 @@ const server = createServer(async (req, res) => {
         sendJson(res, 409, { error: "Er loopt een deploy — die bestuurt de onderhoudsmodus zelf al." });
         return;
       }
-      touchMaintenanceFlag();
+      touchManualMaintenanceFlag();
       log("Onderhoudsmodus handmatig aangezet.");
       sendJson(res, 200, { ok: true });
       return;
@@ -386,4 +411,14 @@ const server = createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`Deploy-agent luistert intern op poort ${PORT}.`);
+  // Herstelt een vlag die bleef staan na een agentcrash of een deployfout,
+  // maar laat bewust door een beheerder aangezette onderhoudsmodus staan.
+  recoverMaintenanceIfHealthy().catch((err) => log(`Onderhoudsherstel mislukt: ${err.message}`));
 });
+
+// De app kan gezond worden nadat de agent al is gestart. Daarom is één check
+// bij startup niet genoeg; deze lichte controle voorkomt een permanente
+// onderhoudspagina na een tijdelijke Docker- of databasehapering.
+setInterval(() => {
+  recoverMaintenanceIfHealthy().catch((err) => log(`Onderhoudsherstel mislukt: ${err.message}`));
+}, MAINTENANCE_RECOVERY_INTERVAL_MS).unref();
