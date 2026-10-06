@@ -35,6 +35,7 @@ test("OTB gebruikt de vijf gevraagde locales en alleen de drie proefhoofdstukken
   assert.ok(OTB_TRIAL_COLLECTIONS.every((collection) => collection.language && collection.editionKey === "otb" && collection.visibleToUsers === false));
   assert.equal(OTB_TRIAL_COLLECTIONS.filter((collection) => collection.work === "old-testament").length, 5);
   assert.equal(OTB_TRIAL_COLLECTIONS.filter((collection) => collection.work === "new-testament").length, 5);
+  assert.ok(OTB_TRIAL_COLLECTIONS.every((collection) => String(collection.work) !== "bible"));
   assert.ok(OTB_TRIAL_COLLECTIONS.every((collection) => collection.id.startsWith("content_old_testament_otb_") || collection.id.startsWith("content_new_testament_otb_")));
 });
 
