@@ -37,7 +37,7 @@ export interface Exercise {
   options?: string[];
 }
 
-interface VerseView {
+export interface ReaderVerseView {
   id: string;
   number: number;
   text: string;
@@ -46,6 +46,8 @@ interface VerseView {
   note: string;
   audioStart?: number | null;
 }
+
+type VerseView = ReaderVerseView;
 
 /** Voorgelezen audio van het hoofdstuk, zie ReadAloudSource.audio. */
 export interface ChapterAudio {
@@ -330,6 +332,7 @@ export function ReaderView({
   focusVerse,
   language,
   focus = false,
+  preview = false,
 }: {
   chapterId: string;
   bookName: string;
@@ -340,6 +343,8 @@ export function ReaderView({
   focusVerse?: number;
   language?: string;
   focus?: boolean;
+  /** Alleen lezen: geen audio-opvraag of gebruikersacties die data opslaan. */
+  preview?: boolean;
 }) {
   const t = useT();
   const [scale, setScale] = useState(1);
@@ -428,14 +433,14 @@ export function ReaderView({
         </div>
       </div>
 
-      <ReadAloudPlayer
-        sourceId={chapterId}
-        title={`${bookName} ${chapterNumber}`}
-        verses={verseState.map((v) => ({ number: v.number, text: v.text, audioStart: v.audioStart }))}
-        audio={audio}
-        subtitle={t("lesson.listenTo", { thisOne: term.thisOne })}
-        language={language}
-      />
+      {!preview && <ReadAloudPlayer
+          sourceId={chapterId}
+          title={`${bookName} ${chapterNumber}`}
+          verses={verseState.map((v) => ({ number: v.number, text: v.text, audioStart: v.audioStart }))}
+          audio={audio}
+          subtitle={t("lesson.listenTo", { thisOne: term.thisOne })}
+          language={language}
+        />}
 
       <div className={`${focus ? "" : "card "}flex flex-col gap-4`} style={{ "--reader-font-scale": scale } as React.CSSProperties}>
         {verseState.map((v) => (
@@ -452,11 +457,11 @@ export function ReaderView({
                   : ""
             }`}
           >
-            <p>
+            <p className="whitespace-pre-line">
               <span className="text-brand-400 dark:text-brand-500 font-bold mr-2 select-none">{v.number}</span>
               {v.text}
             </p>
-            <div className="flex items-center gap-3 text-sm">
+            {!preview && <div className="flex items-center gap-3 text-sm">
               <button
                 aria-label={v.bookmarked ? t("lesson.bookmarkRemove") : t("lesson.bookmarkAdd")}
                 onClick={() => toggleBookmark(v.id)}
@@ -478,8 +483,8 @@ export function ReaderView({
               >
                 📝
               </button>
-            </div>
-            {openNoteFor === v.id && (
+            </div>}
+            {!preview && openNoteFor === v.id && (
               <NoteEditor initialText={v.note} onSave={(text) => saveNote(v.id, text)} />
             )}
           </div>

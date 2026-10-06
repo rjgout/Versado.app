@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { formatElapsedDutch } from "@/lib/dates";
@@ -83,6 +84,14 @@ export default async function AdminBackendPage() {
         <StatCard label={t("adminPage.chapters")} value={chapterCount} />
         <StatCard label={t("adminPage.exercises")} value={exerciseCount} className="col-span-2 sm:col-span-1" />
       </div>
+
+      <Link href="/adminbackend/content-preview" className="card flex items-center justify-between gap-4 transition hover:border-brand-300 dark:hover:border-brand-700">
+        <div>
+          <h2 className="font-extrabold text-brand-800 dark:text-brand-300">OTB-schriftpreview</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Bekijk verborgen proefhoofdstukken als alleen-lezenbeheerder.</p>
+        </div>
+        <span className="text-sm font-bold text-vs-accent">Openen →</span>
+      </Link>
 
       <AdminDeployClient configured={isDeployAgentConfigured()} onlineUserCount={onlineUserCount} />
 

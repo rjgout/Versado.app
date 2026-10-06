@@ -20,6 +20,8 @@ const CONTENT_METADATA: Record<string, ContentMetadata> = {
   bofm: { icon: BookOpen, abbreviations: { nl: "BvM", en: "BoM", de: "BM", fr: "LdM", es: "LdM" } },
   "dc-testament": { icon: ScrollText, abbreviations: { nl: "LV", en: "D&C", de: "LuB", fr: "D&A", es: "DyC" } },
   pgp: { icon: Gem, abbreviations: { nl: "PGW", en: "PoGP", de: "KP", fr: "PGP", es: "PGP" } },
+  "old-testament": { icon: ScrollText, abbreviations: { nl: "OT", en: "OT", de: "AT", fr: "AT", es: "AT" } },
+  "new-testament": { icon: BookOpen, abbreviations: { nl: "NT", en: "NT", de: "NT", fr: "NT", es: "NT" } },
   fsy: { icon: BookMarked },
   podcasts: { icon: Mic2 },
 };

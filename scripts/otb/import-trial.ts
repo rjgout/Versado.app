@@ -6,6 +6,7 @@ import { OTB_BOOK_KEY_BY_NUMBER, OTB_LOCALES, type OtbLocale } from "./bookMappi
 import { normalizeOtbText } from "./normalize";
 import { assertPinnedSource, validateSource } from "./validate";
 import { OTB_TRIAL_BOOK_NUMBERS, OTB_TRIAL_COLLECTIONS, otbWorkForBookNumber } from "./trialConfig";
+import { otbCollectionName } from "./collectionNames";
 
 interface OtbChapter {
   book: string;
@@ -61,7 +62,7 @@ async function main(): Promise<void> {
         where: { id: collection.id },
         update: {
           slug: collection.slug,
-          name: `Open Translation Bible (${collection.locale})`,
+          name: otbCollectionName(collection.work, collection.language),
           icon: "📖",
           order: collection.order,
           enabled: true,
@@ -77,7 +78,7 @@ async function main(): Promise<void> {
         create: {
           id: collection.id,
           slug: collection.slug,
-          name: `Open Translation Bible (${collection.locale})`,
+          name: otbCollectionName(collection.work, collection.language),
           icon: "📖",
           order: collection.order,
           enabled: true,

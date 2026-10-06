@@ -3,7 +3,9 @@ import test from "node:test";
 import { OTB_BOOK_KEY_BY_NUMBER, OTB_BOOKS, OTB_LOCALES, type OtbLocale } from "../scripts/otb/bookMapping";
 import { normalizeOtbText } from "../scripts/otb/normalize";
 import { OTB_TRIAL_BOOK_NUMBERS, OTB_TRIAL_COLLECTIONS, otbWorkForBookNumber } from "../scripts/otb/trialConfig";
+import { otbCollectionName } from "../scripts/otb/collectionNames";
 import { sameCanonicalLocation } from "../scripts/otb/canonical";
+import { contentAbbreviation } from "../src/lib/contentMetadata";
 import { compareSkeletons, scanLocale } from "../scripts/otb/validate";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -39,6 +41,14 @@ test("OTB gebruikt de vijf gevraagde locales en alleen de drie proefhoofdstukken
   assert.ok(OTB_TRIAL_COLLECTIONS.every((collection) => collection.id.startsWith("content_old_testament_otb_") || collection.id.startsWith("content_new_testament_otb_")));
 });
 
+test("OTB gebruikt vertaalde testamentnamen en generieke contentmetadata", () => {
+  assert.equal(otbCollectionName("old-testament", "nl"), "Oude Testament");
+  assert.equal(otbCollectionName("old-testament", "de"), "Altes Testament");
+  assert.equal(otbCollectionName("new-testament", "es"), "Nuevo Testamento");
+  assert.equal(contentAbbreviation({ id: "ot", work: "old-testament" }, "nl"), "OT");
+  assert.equal(contentAbbreviation({ id: "nt", work: "new-testament" }, "fr"), "NT");
+});
+
 test("canonical matching gebruikt werk, editionKey, Book.key, hoofdstuk en vers", () => {
   const locations = ["nl", "en", "es", "fr", "de"].map((language) => ({
     language,
@@ -48,6 +58,7 @@ test("canonical matching gebruikt werk, editionKey, Book.key, hoofdstuk en vers"
     chapter: 1,
     verse: 1,
   }));
+  assert.equal(new Set(locations.map((location) => location.language)).size, 5);
   assert.ok(locations.every((location) => sameCanonicalLocation(locations[0], location)));
   assert.equal(sameCanonicalLocation(locations[0], { ...locations[0], editionKey: "hsv" }), false);
   assert.equal(sameCanonicalLocation(locations[0], { ...locations[0], bookKey: "exo" }), false);
