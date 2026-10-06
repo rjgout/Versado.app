@@ -17,8 +17,11 @@ export function createPrismaClient(options: { url?: string; log?: ("error" | "wa
   }
   const adapter = new PrismaPg({
     connectionString: options.url ?? process.env.DATABASE_URL,
-    // pg wacht standaard eindeloos op een verbinding; Prisma 5 gaf na 5 s op.
-    connectionTimeoutMillis: 5_000,
+    // pg wacht standaard eindeloos op een verbinding. Deze ene grens geldt
+    // voor zowel opbouwen als wachten op een vrije verbinding; Prisma 5 gaf
+    // daar samen 15 s voor (5 + 10). Met 5 s faalde bij het opstarten op de
+    // NAS al eens de eerste query, terwijl de database gewoon bereikbaar was.
+    connectionTimeoutMillis: 15_000,
   });
   return new PrismaClient({ adapter, log: options.log ?? ["error"] });
 }
