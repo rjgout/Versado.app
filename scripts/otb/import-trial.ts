@@ -5,7 +5,7 @@ import { createPrismaClient } from "../../src/lib/db";
 import { OTB_BOOK_KEY_BY_NUMBER, OTB_LOCALES, type OtbLocale } from "./bookMapping";
 import { normalizeOtbText } from "./normalize";
 import { assertPinnedSource, validateSource } from "./validate";
-import { OTB_TRIAL_BOOK_NUMBERS, OTB_TRIAL_COLLECTIONS } from "./trialConfig";
+import { OTB_TRIAL_BOOK_NUMBERS, OTB_TRIAL_COLLECTIONS, otbWorkForBookNumber } from "./trialConfig";
 
 interface OtbChapter {
   book: string;
@@ -66,8 +66,8 @@ async function main(): Promise<void> {
           order: collection.order,
           enabled: true,
           visibleToUsers: collection.visibleToUsers,
-          work: "bible",
-          editionKey: "otb",
+          work: collection.work,
+          editionKey: collection.editionKey,
           language: collection.language,
           sourceName: "Open Translation Bible",
           sourceUrl,
@@ -82,8 +82,8 @@ async function main(): Promise<void> {
           order: collection.order,
           enabled: true,
           visibleToUsers: collection.visibleToUsers,
-          work: "bible",
-          editionKey: "otb",
+          work: collection.work,
+          editionKey: collection.editionKey,
           language: collection.language,
           sourceName: "Open Translation Bible",
           sourceUrl,
@@ -92,13 +92,13 @@ async function main(): Promise<void> {
         },
       });
 
-      for (const bookNumber of OTB_TRIAL_BOOK_NUMBERS) {
+      for (const bookNumber of OTB_TRIAL_BOOK_NUMBERS.filter((number) => otbWorkForBookNumber(number) === collection.work)) {
         const chapter = chapters.get(`${collection.locale}:${bookNumber}`)!;
         const bookKey = OTB_BOOK_KEY_BY_NUMBER.get(bookNumber)!;
         const book = await prisma.book.upsert({
-          where: { slug: `bible-otb-${collection.language}-${bookKey}` },
+          where: { slug: `${collection.work}-otb-${collection.language}-${bookKey}` },
           update: { name: chapter.book, order: bookNumber - 1, key: bookKey, contentCollectionId: collection.id },
-          create: { slug: `bible-otb-${collection.language}-${bookKey}`, name: chapter.book, order: bookNumber - 1, key: bookKey, contentCollectionId: collection.id },
+          create: { slug: `${collection.work}-otb-${collection.language}-${bookKey}`, name: chapter.book, order: bookNumber - 1, key: bookKey, contentCollectionId: collection.id },
         });
         const chapterRow = await prisma.chapter.upsert({
           where: { bookId_number: { bookId: book.id, number: chapter.chapter } },
@@ -118,7 +118,7 @@ async function main(): Promise<void> {
     await prisma.$disconnect();
   }
 
-  console.log("OTB-proefimport klaar: 5 verborgen collecties, Genesis 1, Psalm 23 en Johannes 1.");
+  console.log("OTB-proefimport klaar: 10 verborgen collecties, Genesis 1, Psalm 23 en Johannes 1.");
 }
 
 main().catch((error) => {

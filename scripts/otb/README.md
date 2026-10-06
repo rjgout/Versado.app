@@ -25,7 +25,10 @@ npm run otb:import-trial -- --source /pad/naar/open-bible
 
 De importer valideert nogmaals vóór de eerste databasewrite en importeert
 alleen Genesis 1, Psalm 23 en Johannes 1 in vijf verborgen collecties. Er
-worden geen audio-, oefen-, cursus- of spelrecords gemaakt.
+worden geen audio-, oefen-, cursus- of spelrecords gemaakt. De tien verborgen
+collecties zijn vijf talen voor `old-testament` (boeken 01–39) en vijf talen
+voor `new-testament` (boeken 40–66); er wordt geen `work=bible`-collectie
+gemaakt.
 
 `text[]` wordt centraal naar `Verse.text` genormaliseerd: array-elementen
 blijven afzonderlijke regels, één voorloop-`> ` uit Markdown wordt verwijderd
