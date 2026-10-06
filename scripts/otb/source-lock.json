@@ -1,0 +1,10 @@
+{
+  "repository": "OpenTranslationBible/open-bible",
+  "upstreamCommit": "31d411ac1c2d277242a3bd85697f354eaa11526b",
+  "sourceUrl": "https://github.com/OpenTranslationBible/open-bible/tree/31d411ac1c2d277242a3bd85697f354eaa11526b",
+  "editionKey": "otb",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "locales": ["nl-NL", "en-GB", "es-ES", "fr-FR", "de-DE"],
+  "preparedAt": "2026-10-06"
+}
