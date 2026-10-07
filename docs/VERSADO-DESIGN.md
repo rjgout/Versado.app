@@ -403,6 +403,16 @@ Alle nieuwe UI-tekst via `useT()`/`getT()`, in alle talen met
 scripts/i18n/check.ts`). Geen vaste Nederlandse UI-tekst. Details in
 CLAUDE.md ("Talen").
 
+### Content- en taalwissel
+
+De contentswitcher houdt je op dezelfde plek: bij een wissel zoekt de server het
+equivalent van de huidige pagina in de nieuwe content of taal (zelfde sectie,
+zelfde hoofdstuk of les waar dat bestaat). Bestaat dat niet, dan verschijnt een
+melding in de nieuwe contenttaal met "blijf" en "toch wisselen"; er is geen
+lege pagina, geen halfvertaalde UI en geen stille sprong naar de startpagina.
+Het ontwerp van de switcher zelf blijft ongewijzigd. Zie CLAUDE.md ("Talen")
+voor de bestanden en de regels.
+
 ## Upcoming design assets
 
 De definitieve visuele assets worden **later aangeleverd** en zitten nu niet

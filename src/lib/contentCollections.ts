@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { DEFAULT_LANGUAGE, LANGUAGES, fallbackChain } from "@/lib/languages";
+import { pickTargetCollection } from "@/lib/contentRouting";
 
 export interface ContentCollectionView {
   id: string;
@@ -186,13 +187,7 @@ export async function setContentLanguage(userId: string, isAdmin: boolean, langu
   }
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { activeContentCollectionId: true } });
   const active = collections.find((collection) => collection.id === user?.activeContentCollectionId);
-  const sameWork = active
-    ? collections.find((collection) =>
-        workOf(collection) === workOf(active) &&
-        collection.editionKey === active.editionKey &&
-        collection.language === language
-      ) ?? collections.find((collection) => workOf(collection) === workOf(active) && collection.language === language)
-    : undefined;
+  const sameWork = pickTargetCollection(collections, active, { contentLanguage: language });
   await prisma.user.update({
     where: { id: userId },
     data: { contentLanguage: language, ...(sameWork ? { activeContentCollectionId: sameWork.id } : {}) },

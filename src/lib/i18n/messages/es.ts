@@ -228,7 +228,15 @@ export const es: PartialMessages = {
     "available": "Contenido disponible",
     "hidden": "Oculto",
     "hiddenTitle": "Oculto para los usuarios",
-    "textLanguage": "Idioma del texto"
+    "textLanguage": "Idioma del texto",
+    "unavailable": {
+      "titleLanguage": "No disponible en {language}",
+      "bodyLanguage": "Esta página aún no está disponible en {language}. Te quedas en {current}, a menos que decidas cambiar de todos modos.",
+      "titleSection": "Aún no disponible para {content}",
+      "bodySection": "Esta sección aún no está disponible para {content}. Te quedas en {current}, a menos que decidas cambiar de todos modos.",
+      "stay": "Quedarme en {current}",
+      "proceed": "Cambiar a {content} de todos modos",
+    },
   },
   "terms": {
     "chapter": {

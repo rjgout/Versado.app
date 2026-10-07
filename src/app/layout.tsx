@@ -3,7 +3,7 @@ import { StreakContinuationProvider } from "@/components/StreakContinuation";
 import { ConfirmProvider } from "@/components/ConfirmProvider";
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Fragment, Suspense } from "react";
 import { headers } from "next/headers";
 import "./globals.css";
 import { getCurrentUser } from "@/lib/session";
@@ -234,7 +234,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Suspense fallback={null}><NavigationScroll /></Suspense>
         <main className="mx-auto max-w-5xl px-4 pb-[var(--main-pad-bottom)] pt-[var(--main-pad-top)]">
           {user && <SocialTabs />}
-          {children}
+          {/* De sleutel is de gekozen content + contenttaal. Wisselt een van beide, dan
+              begint alles hieronder opnieuw en haalt het zijn data opnieuw op, ook
+              als de route gelijk blijft. Zo bewaart geen component content van de
+              vorige keuze (zie src/lib/contentSwitch.ts). */}
+          <Fragment key={contentContext ? `${contentContext.active.id}:${contentContext.contentLanguage}` : "anonymous"}>
+            {children}
+          </Fragment>
         </main>
         {user && <BottomNav />}
         {user && <InviteListener />}

@@ -534,6 +534,22 @@ het hoofdstuk). Het fundament ligt er; zichtbaar is alles nog Nederlands.
   `src/components/I18nProvider.tsx`. Voortgang: `npx tsx scripts/i18n/check.ts`.
   Zet teksten per onderdeel om (niet alles tegelijk) en groepeer sleutels per
   onderdeel van de app. Codecommentaar en commitmessages blijven Nederlands.
+- **Content- en taalwissel (contentswitcher)**: een wissel van contentbron of
+  contenttaal wordt altijd centraal verwerkt, nooit per pagina of component.
+  `src/lib/contentRouting.ts` (puur) bepaalt de doelcollectie en classificeert
+  de huidige route; `src/lib/contentSwitch.ts` zoekt het equivalent van de
+  huidige pagina in de doelcollectie (zelfde cursustype, `Book.key` +
+  hoofdstuk, les, spel) en geeft `stay`, `redirect` of `unavailable`.
+  `PUT /api/content-context` met `location` gebruikt dit; bij `unavailable` wordt
+  niets opgeslagen en komt de melding in de nieuw gekozen contenttaal (server,
+  `getT(contentLanguage)`). Geen `window.location.reload()` en geen stille
+  redirect naar een startpagina: de client doet `router.replace` +
+  `router.refresh()`, en `layout.tsx` geeft de paginakinderen de key
+  `active.id:contentLanguage`, zodat clientdata nooit van de vorige combinatie
+  blijft staan. Een nieuw contentgebonden paginatype krijgt een eigen
+  `ContentRoute` in `classifyContentRoute` en een tak in `resolveContentSwitch`,
+  met een test in `tests/content-switch*.test.ts`. Persistentie blijft
+  `User.activeContentCollectionId` + `User.contentLanguage`.
 - **Vertalingen bij iedere wijziging**: elke nieuwe of gewijzigde zichtbare
   tekst moet via het i18n-systeem lopen en worden meegenomen in alle talen die
   als `uiReady` beschikbaar zijn. Dit geldt ook voor foutmeldingen, API-responsen

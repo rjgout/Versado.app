@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { getLanguage } from "@/lib/languages";
 import { useT } from "@/components/I18nProvider";
 import ContentIcon from "@/components/versado/ContentIcon";
 import { contentAbbreviation } from "@/lib/contentMetadata";
+import type { SwitchResult, UnavailableNotice } from "@/lib/contentSwitch";
 
 interface Collection {
   id: string;
@@ -39,8 +41,14 @@ export default function ContentSwitcher({
   showLanguage: boolean;
 }) {
   const t = useT();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  // De wissel die niet kan, met de uitleg in de taal van de nieuwe content.
+  const [pending, setPending] = useState<{ body: { contentCollectionId: string } | { contentLanguage: string }; notice: UnavailableNotice } | null>(null);
+  const noticeRef = useRef<HTMLDialogElement>(null);
   const ref = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const iconRef = useRef<HTMLSpanElement>(null);
@@ -103,6 +111,12 @@ export default function ContentSwitcher({
     };
   }, [active.id, active.name, active.language, shortName]);
 
+  useEffect(() => {
+    const element = noticeRef.current;
+    if (pending && element && !element.open) element.showModal();
+    if (!pending && element?.open) element.close();
+  }, [pending]);
+
   if (!enabled) return null;
 
   async function selectCollection(collection: Collection) {
@@ -127,18 +141,31 @@ export default function ContentSwitcher({
     }
   }
 
-  async function save(body: { contentCollectionId: string } | { contentLanguage: string }) {
+  // De wissel gaat met de huidige pagina mee: de server zoekt het equivalent in
+  // de nieuwe content/taal. Geen volledige reload: de layout krijgt de nieuwe
+  // keuze via router.refresh() en bouwt de pagina eronder opnieuw op.
+  async function save(body: { contentCollectionId: string } | { contentLanguage: string }, force = false) {
     setBusy(true);
     try {
       const response = await fetch("/api/content-context", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          ...body,
+          location: { pathname, search: searchParams.toString() ? `?${searchParams.toString()}` : "" },
+          ...(force ? { force: true } : {}),
+        }),
       });
       if (!response.ok) return;
+      const result = (await response.json()) as SwitchResult;
       setOpen(false);
-      // Een volledige reload zorgt dat ook client components hun content opnieuw ophalen.
-      window.location.reload();
+      if (!result.applied) {
+        setPending({ body, notice: result.notice });
+        return;
+      }
+      setPending(null);
+      if (result.outcome.kind === "redirect") router.replace(result.outcome.href);
+      router.refresh();
     } finally {
       setBusy(false);
     }
@@ -262,6 +289,26 @@ export default function ContentSwitcher({
           )}
         </div>
       )}
+
+      <dialog
+        ref={noticeRef}
+        lang={pending?.notice.language}
+        aria-labelledby="content-unavailable-title"
+        onCancel={() => setPending(null)}
+        onClose={() => setPending(null)}
+        className="m-auto max-h-[85dvh] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-3xl border border-vs-line bg-vs-surface p-5 text-vs-fg shadow-xl backdrop:bg-black/50 sm:p-6"
+      >
+        {pending && (
+          <>
+            <h2 id="content-unavailable-title" className="text-xl font-extrabold">{pending.notice.title}</h2>
+            <p className="mb-5 mt-2 text-sm leading-relaxed text-vs-fg-2">{pending.notice.body}</p>
+            <div className="flex flex-col gap-2 sm:flex-row-reverse">
+              <button type="button" className="btn-secondary w-full" autoFocus onClick={() => setPending(null)}>{pending.notice.stay}</button>
+              <button type="button" className="btn-primary w-full" disabled={busy} onClick={() => save(pending.body, true)}>{pending.notice.proceed}</button>
+            </div>
+          </>
+        )}
+      </dialog>
     </div>
   );
 }

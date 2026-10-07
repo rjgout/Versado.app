@@ -229,6 +229,14 @@ export const en: PartialMessages = {
     hidden: "Hidden",
     hiddenTitle: "Hidden from users",
     textLanguage: "Language of the text",
+    unavailable: {
+      titleLanguage: "Not available in {language}",
+      bodyLanguage: "This page isn't available in {language} yet. You'll stay with {current} unless you choose to switch anyway.",
+      titleSection: "Not available for {content} yet",
+      bodySection: "This section isn't available for {content} yet. You'll stay with {current} unless you choose to switch anyway.",
+      stay: "Stay with {current}",
+      proceed: "Switch to {content} anyway",
+    },
   },
   terms: {
     chapter: { singular: "chapter", plural: "chapters", thisOne: "this chapter", next: "Next chapter →" },

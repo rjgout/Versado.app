@@ -178,6 +178,14 @@ export const nl = {
     hidden: "Verborgen",
     hiddenTitle: "Verborgen voor gebruikers",
     textLanguage: "Taal van de tekst",
+    unavailable: {
+      titleLanguage: "Niet beschikbaar in {language}",
+      bodyLanguage: "Deze pagina is nog niet beschikbaar in {language}. Je blijft bij {current}, tenzij je toch wilt wisselen.",
+      titleSection: "Nog niet beschikbaar voor {content}",
+      bodySection: "Dit onderdeel is voor {content} nog niet beschikbaar. Je blijft bij {current}, tenzij je toch wilt wisselen.",
+      stay: "Blijf bij {current}",
+      proceed: "Toch wisselen naar {content}",
+    },
   },
   terms: {
     chapter: { singular: "hoofdstuk", plural: "hoofdstukken", thisOne: "dit hoofdstuk", next: "Volgend hoofdstuk →" },

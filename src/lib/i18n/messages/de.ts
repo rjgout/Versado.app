@@ -229,6 +229,14 @@ export const de: PartialMessages = {
     hidden: "Verborgen",
     hiddenTitle: "Für Benutzer verborgen",
     textLanguage: "Sprache des Textes",
+    unavailable: {
+      titleLanguage: "Auf {language} nicht verfügbar",
+      bodyLanguage: "Diese Seite ist noch nicht auf {language} verfügbar. Du bleibst bei {current}, es sei denn, du wechselst trotzdem.",
+      titleSection: "Für {content} noch nicht verfügbar",
+      bodySection: "Dieser Bereich ist für {content} noch nicht verfügbar. Du bleibst bei {current}, es sei denn, du wechselst trotzdem.",
+      stay: "Bei {current} bleiben",
+      proceed: "Trotzdem zu {content} wechseln",
+    },
   },
   terms: {
     chapter: { singular: "Kapitel", plural: "Kapitel", thisOne: "dieses Kapitel", next: "Nächstes Kapitel →" },
