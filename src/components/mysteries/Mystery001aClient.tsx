@@ -346,8 +346,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
           <p className="mt-3 font-bold text-vs-fg-2">{resultHintCount === 0 ? t("mystery001a.solvedWithoutHints") : t("mystery001a.solvedWithHints", { count: resultHintCount })}</p>
         </div>
         <section className={`${surfaceCard} p-5 text-left sm:p-6`}>
-          <p className="font-extrabold text-vs-accent">{t("mysteryGame.puzzleFictionDisclaimer")}</p>
-          <p className="mt-3 text-vs-fg-2">{t(definition.story.summaryKey)}</p>
+          <p className="text-vs-fg-2">{t(definition.story.summaryKey)}</p>
         </section>
         <p className="text-sm font-bold text-vs-fg-2">{t("mysteryClosing.intro")}</p>
         <section className={`${surfaceCard} p-5 text-left sm:p-6`} aria-labelledby="mystery-closing-question">
