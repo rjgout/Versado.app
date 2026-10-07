@@ -2,18 +2,12 @@ import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { PrismaClient } from "../../src/generated/prisma/client";
 import { OTB_BOOK_KEY_BY_NUMBER, OTB_LOCALES, type OtbLocale } from "./bookMapping";
-import { normalizeOtbText } from "./normalize";
+import { parseOtbChapter, type ParsedOtbChapter } from "./chapterParser";
 import { assertPinnedSource, validateSource } from "./validate";
 import { OTB_TRIAL_BOOK_NUMBERS, OTB_TRIAL_COLLECTIONS, otbWorkForBookNumber } from "./trialConfig";
 import { otbCollectionName } from "./collectionNames";
 
-interface OtbChapter {
-  book: string;
-  chapter: number;
-  verses: { verse: number; text: unknown }[];
-}
-
-async function readTrialChapter(sourceRoot: string, locale: OtbLocale, bookNumber: number, chapterNumber: number): Promise<OtbChapter> {
+async function readTrialChapter(sourceRoot: string, locale: OtbLocale, bookNumber: number, chapterNumber: number): Promise<ParsedOtbChapter> {
   const localeRoot = join(sourceRoot, "lang", locale);
   const directories = await readdir(localeRoot, { withFileTypes: true });
   const directory = directories.find((entry) => entry.isDirectory() && entry.name.startsWith(`${String(bookNumber).padStart(2, "0")}.`));
@@ -21,8 +15,13 @@ async function readTrialChapter(sourceRoot: string, locale: OtbLocale, bookNumbe
   const jsonRoot = join(localeRoot, directory.name, "json");
   const files = (await readdir(jsonRoot)).filter((file) => file.endsWith(".json"));
   for (const file of files) {
-    const chapter = JSON.parse(await readFile(join(jsonRoot, file), "utf8")) as OtbChapter;
-    if (chapter.chapter === chapterNumber) return chapter;
+    const chapter = parseOtbChapter(JSON.parse(await readFile(join(jsonRoot, file), "utf8")), `${locale} boek ${bookNumber} hoofdstuk ${chapterNumber}`);
+    if (chapter.chapter === chapterNumber) {
+      if (chapter.issues.length > 0) {
+        throw new Error(`OTB-proefhoofdstuk bevat ongeldige data (${locale}, boek ${bookNumber}, hoofdstuk ${chapterNumber}): ${chapter.issues.map((item) => item.type).join(", ")}.`);
+      }
+      return chapter;
+    }
   }
   throw new Error(`Geen OTB-hoofdstuk ${bookNumber}:${chapterNumber} voor ${locale}.`);
 }
@@ -41,7 +40,7 @@ export async function importOtbTrial(client: PrismaClient, sourceRoot: string, l
     license: string;
     licenseUrl: string;
   };
-  const chapters = new Map<string, OtbChapter>();
+  const chapters = new Map<string, ParsedOtbChapter>();
   for (const locale of OTB_LOCALES) {
     for (const bookNumber of OTB_TRIAL_BOOK_NUMBERS) {
       const chapter = await readTrialChapter(sourceRoot, locale, bookNumber, bookNumber === 19 ? 23 : 1);
@@ -80,11 +79,14 @@ export async function importOtbTrial(client: PrismaClient, sourceRoot: string, l
         update: { order: chapter.chapter - 1 },
         create: { bookId: book.id, number: chapter.chapter, order: chapter.chapter - 1 },
       });
-      for (const verse of chapter.verses) {
+      for (const [verseNumber, text] of chapter.verses) {
+        if (!Number.isInteger(verseNumber) || verseNumber <= 0) {
+          throw new Error(`OTB-proefimport bevat een ongeldig versnummer (${collection.locale}, ${bookKey}, hoofdstuk ${chapter.chapter}).`);
+        }
         await tx.verse.upsert({
-          where: { chapterId_number: { chapterId: chapterRow.id, number: verse.verse } },
-          update: { text: normalizeOtbText(verse.text), audioStart: null },
-          create: { chapterId: chapterRow.id, number: verse.verse, text: normalizeOtbText(verse.text) },
+          where: { chapterId_number: { chapterId: chapterRow.id, number: verseNumber } },
+          update: { text, audioStart: null },
+          create: { chapterId: chapterRow.id, number: verseNumber, text },
         });
       }
     }
