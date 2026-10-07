@@ -1,0 +1,25 @@
+mysterie-002c-schriftkenner — De koperen platen
+
+Raster 6 × 6; bronresolutie 1254 × 1254 behouden.
+Definitieve bounds: links 0.09, boven 0.1, rechts 0.95, onder 0.88.
+Alle rijen even hoog; alle kolommen even breed.
+Een tijdelijke zichtbare overlay met celcoördinaten is daadwerkelijk bekeken.
+Individueel bekeken cellen: R1C1, R1C2, R1C3, R1C4, R1C5, R1C6, R2C1, R2C2, R2C3, R2C4, R2C5, R2C6, R3C1, R3C2, R3C3, R3C4, R3C5, R3C6, R4C1, R4C2, R4C3, R4C4, R4C5, R4C6, R5C1, R5C2, R5C3, R5C4, R5C5, R5C6, R6C1, R6C2, R6C3, R6C4, R6C5, R6C6.
+
+Kostbaarheden: R2C1. Huis van Laban: R6C2.
+Beide objecten passen binnen hun cel; de cellen direct rechts zijn vrij.
+Alle oplossingpersonages zijn tijdelijk geplaatst en visueel gecontroleerd.
+Voeten zichtbaar, voetenanker (0.5, 0.8), geen objecten door het lichaam, ruimte onder de voeten voor een naamlabel.
+Alle oplossingcellen zijn vrij van obstakels. De figuren behouden hun eigen kledingkleur en silhouet bij kleine weergave.
+Warme premium 3D/cartoonstijl, Jeruzalem-architectuur, rustige natuurlijke grond.
+Geen zwaar stenen raster. Geen digitale lijnen of labels in board.png.
+Bestaande Nephi, Laman, Lemuel en Sam ongewijzigd hergebruikt.
+Nieuwe zoram: echte alpha; beide voeten zichtbaar; canvas 1254 × 1254, zichtbare hoogte 1050, bovenrand 100, voetenbaseline 1149. Visueel afgestemd op de bestaande camera en lichtbron.
+
+Exhaustieve controle: 518400 combinaties van rij- en kolompermutaties.
+Unieke oplossingen: 1. Gevonden oplossing komt exact overeen met de opdracht.
+
+De personageposities zijn uitsluitend puzzellogica en geen historische of Schriftuurlijke beweringen.
+
+Alleen assetvalidatie: geen app-repository beschikbaar, dus geen integratie in de app getest.
+Generatie met ingebouwde imagegen; gebruikte prompts staan in manifest.json.

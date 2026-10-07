@@ -16,6 +16,9 @@ test("actieve leer- en spelroutes gebruiken focus mode", () => {
   assert.equal(isFocusRoute("/snelle-zendeling/run/run-1"), false);
   assert.equal(isFocusRoute("/mysteries/001a/play"), true);
   assert.equal(isFocusRoute("/mysteries/001b/play"), true);
+  assert.equal(isFocusRoute("/mysteries/002a/play"), true);
+  assert.equal(isFocusRoute("/mysteries/002b/play"), true);
+  assert.equal(isFocusRoute("/mysteries/002c/play"), true);
 });
 
 test("arcadegameplay gebruikt de centrale immersive mode", () => {

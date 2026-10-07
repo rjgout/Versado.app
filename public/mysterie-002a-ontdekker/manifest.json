@@ -1,0 +1,93 @@
+{
+  "id": "mysterie-002a-ontdekker",
+  "title": "De koperen platen",
+  "difficulty": "ontdekker",
+  "status": "complete",
+  "book": "1 Nephi",
+  "sourceArea": "1 Nephi 3–4",
+  "nativeResolution": [
+    1254,
+    1254
+  ],
+  "grid": {
+    "rows": 4,
+    "columns": 4,
+    "boundsNormalized": {
+      "left": 0.08,
+      "top": 0.14,
+      "right": 0.92,
+      "bottom": 0.9
+    },
+    "cellWidthNormalized": 0.21000000000000002,
+    "cellHeightNormalized": 0.19,
+    "feetWithinCell": {
+      "x": 0.5,
+      "y": 0.8
+    },
+    "maximumCharacterHeightCellFraction": 0.65,
+    "functionalObjectCells": {
+      "valuables": "R2C1",
+      "houseOfLaban": "R4C2"
+    }
+  },
+  "assets": {
+    "board": {
+      "file": "board.png",
+      "width": 1254,
+      "height": 1254,
+      "transparent": false
+    }
+  },
+  "reusedCharacterAssets": {
+    "nephi": "/mysterie-001c-schriftkenner/nephi.png",
+    "laman": "/mysterie-001a-ontdekker/laman.png",
+    "lemuel": "/mysterie-001a-ontdekker/lemuel.png",
+    "sam": "/mysterie-001b-onderzoeker/sam.png"
+  },
+  "solution": {
+    "laman": "R1C4",
+    "sam": "R2C2",
+    "lemuel": "R3C1",
+    "nephi": "R4C3"
+  },
+  "logicValidation": {
+    "uniqueSolutionCount": 1,
+    "method": "Exhaustive row and column permutations; one person per row and column, all supplied clues.",
+    "examinedPermutations": 576
+  },
+  "note": "De personageposities zijn uitsluitend puzzellogica en geen historische of Schriftuurlijke beweringen.",
+  "validation": {
+    "temporaryGridOverlayUsed": true,
+    "temporarySolutionCharactersUsed": true,
+    "individuallyReviewedCells": [
+      "R1C1",
+      "R1C2",
+      "R1C3",
+      "R1C4",
+      "R2C1",
+      "R2C2",
+      "R2C3",
+      "R2C4",
+      "R3C1",
+      "R3C2",
+      "R3C3",
+      "R3C4",
+      "R4C1",
+      "R4C2",
+      "R4C3",
+      "R4C4"
+    ],
+    "clueObjectsWithinCells": true,
+    "solutionCellsClear": true,
+    "inAppTested": false
+  },
+  "provenance": {
+    "imageTool": "Built-in imagegen",
+    "prompts": {
+      "002aPrompt": "Use case stylized-concept. NEW square game board Mysterie002A De koperen platen, Jerusalem environment. Reference only for premium warm natural3D/cartoon art style, NOT desert layout: replace wilderness with old limestone architecture. Quiet broad level sandy ancient Jerusalem courtyard/broad street, nearorthographic elevated FRONTcamera, rectangle no trapezoid. Tiny citywall/buildings at TOP y<.12, side facades only x<.065 or>.935, sparse green plants in corners, no people/water/animals. Warm pale limestone/sand, terracotta accents, warm light upperleft. Invisible4x4 playable grid bounds x.08-.92,y.14-.90,cellwidth.21,height.19. 16 calm soft rectangular ground zones suggested only by subtle wear/texture, NO circles, gridlines, stonesrows, tiledcheckerboard, walls between cells or labels. Exact clue objects: small precious items group in R2C1 centered(.185,.425), entirety x.12-.24,y.38-.46: two gold cups, silver shallow plate, few golden jewelry pieces on small dark red folded cloth, recognizable shiny gold/silver, no fantasychest. ONE identifiable HOUSE OF LABAN miniature low freestanding limestone house with flat roof, stone arched dark wooden doorway, one little window, no text: entirely R4C2 x.29-.50,y.71-.90, silhouette x.325-.465,y.745-.86, centered(.395,.80). Compact house, no walls/garden projecting into neighbor. EmptyR4C3 immediately right, emptyR2C2 immediately right of valuables, emptyR1C4 andR3C1. All16 landing spaces dry and clear except2clue objects. Only cluehouse within field; no altar/tent. Landscape first, faint grid second. Square native ideally1536.",
+      "002aEditPrompt": "Edit only the freestanding lower house in this board. It is too large: reduce entire house INCLUDING steps,pots,plants,shadow to60% of current width andheight, relocate to centerx39.5%,y80%. Entire silhouette and all attachments must lie x32.5%-46.5%,y74.5%-86%. It belongs bottomrowR4C2; yabove71% must remain emptyfloor. Restore old house footprint with seamless sand. Keep valuables atR2C1 exactlyunchanged. Keep entire scenery,camera,render unchanged. No additional house objects or people. Invisible4x4boundsx8%-92%,y14%-90%.",
+      "002aFinalPrompt": "Move ONLY the small lower house DOWN by3% of totalimageheight, preserving exact same scale,shape,materials and xposition. Wholehouse includingroofchimney starts belowy74% andendsbeforey86%. Restore oldfootprint with seamless sand. Keep valuables unchanged. Everything else unchanged. No newobjects."
+    },
+    "technicalExport": "Native board resolution preserved; new characters normalized to existing 1254 canvas, 1050 visible height, top 100, feet baseline 1149. No existing character files modified."
+  }
+}

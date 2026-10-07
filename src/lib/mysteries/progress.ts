@@ -32,6 +32,13 @@ export async function canUseMystery(userId: string, isAdmin: boolean): Promise<b
     && context.gameKeys.includes("mystery");
 }
 
+/** Mysterie 002 volgt de eerste voltooide variant van Mysterie 001. */
+export async function canUseMystery002(userId: string, isAdmin: boolean): Promise<boolean> {
+  if (!(await canUseMystery(userId, isAdmin))) return false;
+  const previous = await prisma.mysteryProgress.findFirst({ where: { userId, mysteryId: "mystery-001", completed: true }, select: { id: true } });
+  return previous !== null;
+}
+
 export async function getMysteryProgress(userId: string, definition: MysteryDefinition): Promise<MysteryProgressView> {
   const [progress, mysteryCompletion] = await Promise.all([
     prisma.mysteryProgress.findUnique({

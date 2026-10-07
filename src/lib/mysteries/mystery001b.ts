@@ -9,10 +9,14 @@ export const MYSTERY_001B = {
   mysteryNumber: 1,
   mysteryId: "mystery-001",
   routeId: "001b",
+  logicId: "mystery-001b",
   titleKey: "pages.mystery001a",
   difficulty: "investigator",
   difficultyLabelKey: "mystery001b.difficulty",
+  difficultyDescriptionKey: "mystery001b.difficultyDescription",
   completionLabelKey: "mystery001b.investigatorComplete",
+  playIntroKey: "mystery001b.playIntro",
+  readerLabelKey: "mystery001a.read",
   // De assetmetadata blijft beschikbaar voor controle; deze bounds zijn op
   // de zichtbare zandvlakte van board.png gekalibreerd.
   grid: { rows: 5, columns: 5, calibratedBounds: { left: 0.10, top: 0.16, right: 0.90, bottom: 0.84 } },

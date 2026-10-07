@@ -58,6 +58,29 @@ export function publicSolutionResult(definition: MysteryDefinition, placements: 
 }
 
 export function hintFor(definition: MysteryDefinition, placements: Placements): MessageKey {
+  if (definition.logicId === "mystery-002a" && definition.hints.mode === "discoverer") {
+    if (!placements.nephi && !placements.sam) return definition.hints.lehiMissing;
+    if (!placements.nephi || !placements.sam) return definition.hints.sariahMissing;
+    if (!placements.laman || !placements.lemuel) return definition.hints.remainingPair;
+    return definition.hints.comparePair;
+  }
+  if (definition.logicId === "mystery-002b" && definition.hints.mode === "investigator") {
+    if (!placements.nephi && !placements.laban) return definition.hints.softDirection;
+    if (!placements.laman || !placements.sam || !placements.lemuel) return definition.hints.ranking;
+    if (!sameCell(placements.sam, definition.solution.sam)
+      || !sameCell(placements.lemuel, definition.solution.lemuel)
+      || !sameCell(placements.laman, definition.solution.laman)) return definition.hints.columns;
+    return definition.hints.nextRelation;
+  }
+  if (definition.logicId === "mystery-002c" && definition.hints.mode === "scripture-scholar") {
+    if (!placements.nephi && !placements.laban) return definition.hints.softDirection;
+    if (!placements.laman || !placements.zoram || !placements.sam || !placements.lemuel) return definition.hints.ranking;
+    if (!sameCell(placements.sam, definition.solution.sam)
+      || !sameCell(placements.lemuel, definition.solution.lemuel)
+      || !sameCell(placements.zoram, definition.solution.zoram)
+      || !sameCell(placements.laman, definition.solution.laman)) return definition.hints.columns;
+    return definition.hints.final;
+  }
   if (definition.hints.mode === "discoverer") {
     if (!sameCell(placements.lehi, definition.solution.lehi)) return definition.hints.lehiMissing;
     if (!sameCell(placements.sariah, definition.solution.sariah)) return definition.hints.sariahMissing;
@@ -109,7 +132,33 @@ export function characterImageMetrics(geometry: BoardGeometry): { height: number
 
 /** Pure controle voor de handmatig ontworpen clue-set; gebruikt door tests. */
 export function satisfiesPuzzleClues(definition: MysteryDefinition, placements: Placements): boolean {
-  const { lehi, sariah, laman, lemuel, sam, nephi } = placements;
+  const { lehi, sariah, laman, lemuel, sam, nephi, laban, zoram } = placements;
+  if (definition.logicId === "mystery-002a") {
+    const house = definition.landmarks["house-of-laban"];
+    const valuables = definition.landmarks.valuables;
+    return !!nephi && !!sam && !!laman && !!lemuel
+      && nephi.row === house.row && nephi.column === house.column + 1
+      && sam.row === valuables.row && sam.column === valuables.column + 1
+      && laman.row < lemuel.row && laman.column > lemuel.column;
+  }
+  if (definition.logicId === "mystery-002b") {
+    const house = definition.landmarks["house-of-laban"];
+    const valuables = definition.landmarks.valuables;
+    return !!nephi && !!laban && !!sam && !!laman && !!lemuel
+      && nephi.row === house.row && nephi.column === house.column + 1
+      && laban.row === valuables.row && laban.column === valuables.column + 1
+      && laman.row < sam.row && sam.row < lemuel.row
+      && sam.column < lemuel.column && lemuel.column < laman.column;
+  }
+  if (definition.logicId === "mystery-002c") {
+    const house = definition.landmarks["house-of-laban"];
+    const valuables = definition.landmarks.valuables;
+    return !!nephi && !!laban && !!zoram && !!sam && !!laman && !!lemuel
+      && nephi.row === house.row && nephi.column === house.column + 1
+      && laban.row === valuables.row && laban.column === valuables.column + 1
+      && laman.row < zoram.row && zoram.row < sam.row && sam.row < lemuel.row
+      && sam.column < lemuel.column && lemuel.column < zoram.column && zoram.column < laman.column;
+  }
   if (!lehi || !sariah || !laman || !lemuel) return false;
   const altar = definition.landmarks["stone-altar"];
   const tent = definition.landmarks.tent;
