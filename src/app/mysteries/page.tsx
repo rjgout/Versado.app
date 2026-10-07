@@ -5,8 +5,6 @@ import { canUseMystery, getMysteryProgress } from "@/lib/mysteries/progress";
 import { getCurrentUser } from "@/lib/session";
 import { MYSTERY_GAME } from "@/lib/mysteries/game";
 import { getT } from "@/lib/i18n";
-import { MYSTERY_002A } from "@/lib/mysteries/mystery002a";
-import { MYSTERY_001A } from "@/lib/mysteries/mystery001a";
 import MediaArtwork from "@/components/versado/MediaArtwork";
 import { surfaceCard } from "@/components/versado/styles";
 
@@ -14,12 +12,10 @@ export default async function MysteryGamePage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (!(await canUseMystery(user.id, user.isAdmin))) redirect("/live");
-  const [mystery001Progress, mystery002Progress, t] = await Promise.all([
-    getMysteryProgress(user.id, MYSTERY_001A),
-    getMysteryProgress(user.id, MYSTERY_002A),
+  const [progress, t] = await Promise.all([
+    Promise.all(MYSTERY_GAME.mysteries.map(({ definition }) => getMysteryProgress(user.id, definition))),
     Promise.resolve(getT(user.uiLanguage)),
   ]);
-  const progress = [mystery001Progress, mystery002Progress];
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
@@ -52,7 +48,7 @@ export default async function MysteryGamePage() {
                   </div>
                   {current.mysteryCompleted ? <CheckCircle2 className="h-6 w-6 shrink-0 text-vs-success" aria-label={t("mystery001a.completed")} /> : !available ? <LockKeyhole className="h-6 w-6 shrink-0 text-vs-fg-3" aria-label={t("mysteryGame.locked")} /> : null}
                 </div>
-                <p className="mt-3 text-sm text-vs-fg-2">{t(index === 0 ? "mystery001a.intro" : "mystery002a.intro")}</p>
+                <p className="mt-3 text-sm text-vs-fg-2">{t(mystery.introKey)}</p>
                 <p className="mt-3 text-xs font-extrabold uppercase tracking-wide text-vs-accent">{available ? t("mysteryGame.levelsAvailable") : t("mysteryGame.locked")}</p>
                 {available && <span className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-vs-accent">{t("mystery001a.open")}<ArrowRight className="h-4 w-4" aria-hidden /></span>}
               </div>

@@ -1,0 +1,113 @@
+{
+  "id": "mysterie006-ontdekker",
+  "mysteryId": "006",
+  "title": "De overtocht",
+  "difficulty": "ontdekker",
+  "status": "complete",
+  "rows": 4,
+  "columns": 4,
+  "boundsNormalized": {
+    "left": 0.08,
+    "top": 0.1,
+    "right": 0.92,
+    "bottom": 0.88
+  },
+  "canvas": {
+    "width": 1254,
+    "height": 1254
+  },
+  "grid": {
+    "rows": 4,
+    "columns": 4,
+    "boundsNormalized": {
+      "left": 0.08,
+      "top": 0.1,
+      "right": 0.92,
+      "bottom": 0.88
+    },
+    "cellWidthNormalized": 0.21000000000000002,
+    "cellHeightNormalized": 0.195,
+    "feetWithinCell": {
+      "x": 0.5,
+      "y": 0.8
+    },
+    "maximumCharacterHeightCellFraction": 0.65
+  },
+  "functionalObjects": [
+    {
+      "id": "mast",
+      "row": 2,
+      "column": 3,
+      "visuallyChecked": true
+    },
+    {
+      "id": "ropeCoil",
+      "row": 4,
+      "column": 2,
+      "visuallyChecked": true
+    }
+  ],
+  "solution": {
+    "laman": {
+      "row": 1,
+      "column": 2
+    },
+    "lemuel": {
+      "row": 2,
+      "column": 4
+    },
+    "sam": {
+      "row": 3,
+      "column": 1
+    },
+    "nephi": {
+      "row": 4,
+      "column": 3
+    }
+  },
+  "logicValidation": {
+    "uniqueSolutionCount": 1,
+    "exhaustivePermutationCount": 576,
+    "onePersonPerRow": true,
+    "onePersonPerColumn": true,
+    "allSuppliedCluesSatisfied": true
+  },
+  "validation": {
+    "temporaryGridOverlayUsed": true,
+    "temporarySolutionPreviewUsed": true,
+    "individuallyCheckedCells": [
+      "R1C1",
+      "R1C2",
+      "R1C3",
+      "R1C4",
+      "R2C1",
+      "R2C2",
+      "R2C3",
+      "R2C4",
+      "R3C1",
+      "R3C2",
+      "R3C3",
+      "R3C4",
+      "R4C1",
+      "R4C2",
+      "R4C3",
+      "R4C4"
+    ],
+    "finalOverlayRemoved": true,
+    "finalBoardReviewed": true,
+    "inAppTested": false
+  },
+  "characterAssets": [
+    "laman.png (existing asset, unchanged)",
+    "lemuel.png (existing asset, unchanged)",
+    "sam.png (existing asset, unchanged)",
+    "nephi.png (existing asset, unchanged)"
+  ],
+  "note": "De exacte rasterposities zijn puzzelfictie, geen historische of Schriftuurlijke reconstructie.",
+  "provenance": {
+    "tool": "Built-in imagegen",
+    "prompt": "Create ONE square premium Versado3D cartoon game board, native1536 square or nearest square. Reference image ONLY artdirection, not composition. Warm upperleft light, natural adult-friendly modern polished3D textures no photoreal/chibi. Elevated front nearorthographic camera: PLAYFIELD rectangular in image, rows horizontal columns vertical no diamond or taper, scenery at perimeter. No people, no text numbers UI overlay or hard grid. True playable bounds left.08 top.14 right.92 bottom.90. Natural SUBTLE row/column cues: worn ground transitions and small edge markers, never checkerboard stone walls sudoku; landscape first. Each required object must be SMALL including shadow/attachments and entirely within its assigned cell, central60% of cell. All other cells calm empty standable terrain. No other functional clue duplicates. Design for given N rows and N columns separately.\nN=4. Mystery006: Clearly ship deck AT SEA, NO landpuzzle. Broad rectangular honey-brown wooden deck nearorthographic elevatedfront no perspective taper, ocean andsky beyond perimeterrail. Planks vertical fine seams, subtly varied broad transverse constructionjoinery indicates rows naturally not sudoku. All cells solid standablewood noholesexceptspecifiedhatch. Railing entirelyoutsidebounds. Mast is SHORT visible low mast footing/stub and neat rigging detail strictly withinonecell, mastcontinues outofview conceptually NO tallpole reachingotherrows, no rigging acrossfreecells. Rope small hempcoil. Hatch SMALL closed wooden hatch with slight darkrecess lip no large cabin. No extra mast/hatch/rope clues.\nEXACT FUNCTIONALOBJECTS: mast R2C3, center(0.6050,0.4250), maxsize(0.1260,0.1140); ropeCoil R4C2, center(0.3950,0.8050), maxsize(0.1260,0.1140)\nKeep solution cells clear: R1C2,R2C4,R3C1,R4C3",
+    "correctionPrompt": null
+  },
+  "assetNotes": "Compact mastdetail, geen volledige mast: zo blijven andere rijen vrij. Planknaden en dwarsbalken suggereren natuurlijke dekzones; niet iedere bouwnaad is een celgrens."
+}

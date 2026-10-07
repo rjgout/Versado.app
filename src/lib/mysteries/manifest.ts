@@ -51,6 +51,7 @@ export function parseBoardManifest(input: unknown): BoardGeometry | null {
   const root = object(input);
   const board = object(root?.board);
   const grid = object(root?.grid) ?? object(board?.grid);
+  const canvas = object(root?.canvas) ?? object(board?.canvas);
   const nativeResolution = Array.isArray(root?.nativeResolution) ? root?.nativeResolution : null;
   const assets = Array.isArray(root?.assets)
     ? root.assets.map(object).filter((value): value is Record<string, unknown> => value !== null)
@@ -67,8 +68,8 @@ export function parseBoardManifest(input: unknown): BoardGeometry | null {
     : object(anchorPixelsRaw) ?? object(root?.characterFootAnchorPixels);
   const visibleBounds = object(root?.visibleBounds) ?? object(root?.characterVisibleBounds) ?? object(character?.visibleBounds);
 
-  const imageWidth = numberAt(board?.width, root?.boardWidth, nativeResolution?.[0]) ?? NaN;
-  const imageHeight = numberAt(board?.height, root?.boardHeight, nativeResolution?.[1]) ?? NaN;
+  const imageWidth = numberAt(board?.width, root?.boardWidth, canvas?.width, nativeResolution?.[0]) ?? NaN;
+  const imageHeight = numberAt(board?.height, root?.boardHeight, canvas?.height, nativeResolution?.[1]) ?? NaN;
   const geometry: BoardGeometry = {
     imageWidth,
     imageHeight,

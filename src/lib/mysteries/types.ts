@@ -1,14 +1,26 @@
 import type { MessageKey } from "@/lib/i18n/core";
 
 export type MysteryDifficultyId = "discoverer" | "investigator" | "scripture-scholar";
-export type CharacterId = "lehi" | "sariah" | "laman" | "lemuel" | "sam" | "nephi" | "laban" | "zoram";
+export type CharacterId = "lehi" | "sariah" | "laman" | "lemuel" | "sam" | "nephi" | "laban" | "zoram" | "ismael";
 export type MysteryLogicId =
   | "mystery-001a"
   | "mystery-001b"
   | "mystery-001c"
   | "mystery-002a"
   | "mystery-002b"
-  | "mystery-002c";
+  | "mystery-002c"
+  | "mystery-003a"
+  | "mystery-003b"
+  | "mystery-003c"
+  | "mystery-004a"
+  | "mystery-004b"
+  | "mystery-004c"
+  | "mystery-005a"
+  | "mystery-005b"
+  | "mystery-005c"
+  | "mystery-006a"
+  | "mystery-006b"
+  | "mystery-006c";
 
 export interface GridCell {
   row: number;
@@ -90,6 +102,13 @@ export interface MysteryDefinition {
         ranking: MessageKey;
         columns: MessageKey;
         final: MessageKey;
+      }
+    | {
+        mode: "sequence";
+        softDirection: MessageKey;
+        reasoning: MessageKey;
+        stronger: MessageKey;
+        final?: MessageKey;
       };
   tutorial?: { characterId: CharacterId; cell: GridCell };
   tutorialCopyKey?: MessageKey;

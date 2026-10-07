@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Brain, CheckCircle2 } from "lucide-react";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { canUseMystery, canUseMystery002, getMysteryProgress } from "@/lib/mysteries/progress";
+import { canUseMystery, canUseMysteryNumber, getMysteryProgress } from "@/lib/mysteries/progress";
 import { getT } from "@/lib/i18n";
 import MediaArtwork from "@/components/versado/MediaArtwork";
 import { surfaceCard } from "@/components/versado/styles";
@@ -24,7 +24,7 @@ export default async function MysteryDetailPage({ config }: { config: MysteryDet
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (!(await canUseMystery(user.id, user.isAdmin))) redirect("/live");
-  if (config.number === 2 && !(await canUseMystery002(user.id, user.isAdmin))) redirect("/mysteries");
+  if (!(await canUseMysteryNumber(user.id, user.isAdmin, config.number))) redirect("/mysteries");
   const [first, second, third, t] = await Promise.all([
     getMysteryProgress(user.id, config.definitions[0]),
     getMysteryProgress(user.id, config.definitions[1]),

@@ -32,12 +32,20 @@ export async function canUseMystery(userId: string, isAdmin: boolean): Promise<b
     && context.gameKeys.includes("mystery");
 }
 
-/** Mysterie 002 volgt de eerste voltooide variant van Mysterie 001. */
-export async function canUseMystery002(userId: string, isAdmin: boolean): Promise<boolean> {
+/** Iedere volgende mystery volgt de eerste voltooide variant van de vorige. */
+export async function canUseMysteryNumber(userId: string, isAdmin: boolean, number: number): Promise<boolean> {
   if (!(await canUseMystery(userId, isAdmin))) return false;
-  const previous = await prisma.mysteryProgress.findFirst({ where: { userId, mysteryId: "mystery-001", completed: true }, select: { id: true } });
+  if (number <= 1) return true;
+  const previousId = `mystery-${String(number - 1).padStart(3, "0")}`;
+  const previous = await prisma.mysteryProgress.findFirst({ where: { userId, mysteryId: previousId, completed: true }, select: { id: true } });
   return previous !== null;
 }
+
+export const canUseMystery002 = (userId: string, isAdmin: boolean) => canUseMysteryNumber(userId, isAdmin, 2);
+export const canUseMystery003 = (userId: string, isAdmin: boolean) => canUseMysteryNumber(userId, isAdmin, 3);
+export const canUseMystery004 = (userId: string, isAdmin: boolean) => canUseMysteryNumber(userId, isAdmin, 4);
+export const canUseMystery005 = (userId: string, isAdmin: boolean) => canUseMysteryNumber(userId, isAdmin, 5);
+export const canUseMystery006 = (userId: string, isAdmin: boolean) => canUseMysteryNumber(userId, isAdmin, 6);
 
 export async function getMysteryProgress(userId: string, definition: MysteryDefinition): Promise<MysteryProgressView> {
   const [progress, mysteryCompletion] = await Promise.all([

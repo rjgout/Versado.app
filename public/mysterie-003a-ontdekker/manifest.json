@@ -1,0 +1,107 @@
+{
+  "id": "mysterie003-ontdekker",
+  "mysteryId": "003",
+  "title": "Ismaëls gezin",
+  "difficulty": "ontdekker",
+  "status": "complete",
+  "rows": 4,
+  "columns": 4,
+  "boundsNormalized": {
+    "left": 0.08,
+    "top": 0.14,
+    "right": 0.92,
+    "bottom": 0.9
+  },
+  "canvas": {
+    "width": 1254,
+    "height": 1254
+  },
+  "grid": {
+    "rows": 4,
+    "columns": 4,
+    "boundsNormalized": {
+      "left": 0.08,
+      "top": 0.14,
+      "right": 0.92,
+      "bottom": 0.9
+    },
+    "cellWidthNormalized": 0.21000000000000002,
+    "cellHeightNormalized": 0.19,
+    "feetWithinCell": {
+      "x": 0.5,
+      "y": 0.8
+    },
+    "maximumCharacterHeightCellFraction": 0.65
+  },
+  "functionalObjects": [
+    {
+      "id": "ropeCoil",
+      "row": 2,
+      "column": 2,
+      "visuallyChecked": true
+    }
+  ],
+  "solution": {
+    "nephi": {
+      "row": 1,
+      "column": 2
+    },
+    "sam": {
+      "row": 2,
+      "column": 4
+    },
+    "laman": {
+      "row": 3,
+      "column": 1
+    },
+    "lemuel": {
+      "row": 4,
+      "column": 3
+    }
+  },
+  "logicValidation": {
+    "uniqueSolutionCount": 1,
+    "exhaustivePermutationCount": 576,
+    "onePersonPerRow": true,
+    "onePersonPerColumn": true,
+    "allSuppliedCluesSatisfied": true
+  },
+  "validation": {
+    "temporaryGridOverlayUsed": true,
+    "temporarySolutionPreviewUsed": true,
+    "individuallyCheckedCells": [
+      "R1C1",
+      "R1C2",
+      "R1C3",
+      "R1C4",
+      "R2C1",
+      "R2C2",
+      "R2C3",
+      "R2C4",
+      "R3C1",
+      "R3C2",
+      "R3C3",
+      "R3C4",
+      "R4C1",
+      "R4C2",
+      "R4C3",
+      "R4C4"
+    ],
+    "finalOverlayRemoved": true,
+    "finalBoardReviewed": true,
+    "inAppTested": false
+  },
+  "characterAssets": [
+    "nephi.png (existing asset, unchanged)",
+    "sam.png (existing asset, unchanged)",
+    "laman.png (existing asset, unchanged)",
+    "lemuel.png (existing asset, unchanged)"
+  ],
+  "note": "De exacte rasterposities zijn puzzelfictie, geen historische of Schriftuurlijke reconstructie.",
+  "provenance": {
+    "tool": "Built-in imagegen",
+    "prompt": "Create ONE square premium Versado3D cartoon game board, native1536 square or nearest square. Reference image ONLY artdirection, not composition. Warm upperleft light, natural adult-friendly modern polished3D textures no photoreal/chibi. Elevated front nearorthographic camera: PLAYFIELD rectangular in image, rows horizontal columns vertical no diamond or taper, scenery at perimeter. No people, no text numbers UI overlay or hard grid. True playable bounds left.08 top.14 right.92 bottom.90. Natural SUBTLE row/column cues: worn ground transitions and small edge markers, never checkerboard stone walls sudoku; landscape first. Each required object must be SMALL including shadow/attachments and entirely within its assigned cell, central60% of cell. All other cells calm empty standable terrain. No other functional clue duplicates. Design for given N rows and N columns separately.\nN=4. Mystery003: Rocky returning wilderness trail clearing, sage shrubs and rust-red canyon ledges at perimeter, small campdetails beyondfield. Distinct from first open yellowplain, no city or water withinfield. Ropecoil recognizable natural hemp spiral. Smalltent folded beigecloth pitched tent no huge protrudingposts. Rockmarker tiny stack of3stones.\nEXACT FUNCTIONALOBJECTS: ropeCoil R2C2, center normalized(0.3950,0.4250), maximum size 0.1260 width x 0.1140 height.\nKeep solution cells clear: R1C2,R2C4,R3C1,R4C3",
+    "correctionPrompt": null
+  },
+  "assetNotes": "Natuurlijke grondslijtage en verspreide kleine stenen/vegetatie suggereren celovergangen; geen dikke technische rasterlijnen."
+}
