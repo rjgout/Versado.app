@@ -232,11 +232,13 @@ migratie zelf draait bij het starten van de container. De Engelse
 uitgave (`prisma/genees/bofm-en/`) heeft dezelfde 717 vragen als het
 Nederlands: zelfde vraag-id, hoofdstuk en verzen, met Engelse tekst en
 controlewoorden die in de Engelse brontekst staan. Hetzelfde geldt voor de
-Duitse uitgave (`prisma/genees/bofm-de/`) en de Franse uitgave
-(`prisma/genees/bofm-fr/`), met Duitse respectievelijk Franse tekst en
-controlewoorden uit de eigen brontekst. De Spaanse bank is nog niet vertaald;
-zolang ze Nederlandse tekst bevat hoort ze niet in een uitrol (zie
-`GENEES_BANKS`). Een nieuwe taal of werk krijgt
+Duitse (`prisma/genees/bofm-de/`), de Franse (`prisma/genees/bofm-fr/`) en de
+Spaanse uitgave (`prisma/genees/bofm-es/`), met tekst en controlewoorden uit
+de eigen brontekst. Alle vijf de banken zijn volledig vertaald en komen
+groen door `npm run genees:check`. Waar de brontekst van een uitgave een
+andere term gebruikt dan het Nederlands (bijvoorbeeld edelstenen in 3 Nephi
+22:12), volgt het antwoord de eigen uitgave; vraag-id, hoofdstuk en verzen
+blijven gelijk. Een nieuwe taal of werk krijgt
 een eigen bankbestand in `prisma/genees/index.ts`.
 
 ## Immersive UX en exit
