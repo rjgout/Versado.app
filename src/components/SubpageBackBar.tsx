@@ -53,6 +53,7 @@ const GAME_PAGES: Record<string, MessageKey> = {
   "/challenges": "pages.challenges",
   "/snelle-zendeling": "pages.quickMissionary",
   "/mysteries": "pages.mystery",
+  "/mysteries/001": "pages.mystery001a",
   "/mysteries/001a": "pages.mystery001a",
   "/mysteries/002": "pages.mystery002",
 };
@@ -64,6 +65,15 @@ const LESSON_PAGES: [RegExp, MessageKey][] = [
   [/^\/kids\/[^/]+$/, "pages.kidsStory"],
   [/^\/intro\/[^/]+$/, "pages.introLesson"],
 ];
+
+const MYSTERY_PLAY_TITLES: Record<string, MessageKey> = {
+  "001": "pages.mystery001a",
+  "002": "pages.mystery002",
+  "003": "mystery003.title",
+  "004": "mystery004.title",
+  "005": "mystery005.title",
+  "006": "mystery006.title",
+};
 
 function detailPageFor(pathname: string, profileView: string | null, hash: string): DetailPage | null {
   if (pathname === "/profile") {
@@ -79,6 +89,14 @@ function detailPageFor(pathname: string, profileView: string | null, hash: strin
     const isLeaderboard = pathname === "/snelle-zendeling" && (profileView === "leaderboard" || hash === "#quick-missionary-leaderboard");
     return { fallback: PLAY_ROUTE, title: game, forceFallback: isLeaderboard };
   }
+  const mysteryPlay = /^\/mysteries\/(\d{3})[a-z]\/play$/.exec(pathname);
+  if (mysteryPlay) {
+    const number = mysteryPlay[1];
+    // Een toekomstige mystery krijgt direct dezelfde terugbalk; zolang er
+    // nog geen vertaalde titel in de catalogus staat, blijft de game-identiteit
+    // zichtbaar in plaats van dat focus mode zonder terugnavigatie opent.
+    return { fallback: `/mysteries/${number}`, title: MYSTERY_PLAY_TITLES[number] ?? "pages.mystery" };
+  }
   // Groepen (Samen) horen bij Vrienden.
   if (pathname === "/groups") return { fallback: "/friends", title: "together.pages.groups" };
   if (pathname === "/groups/new") return { fallback: "/groups", title: "together.pages.newGroup" };
@@ -92,12 +110,6 @@ function detailPageFor(pathname: string, profileView: string | null, hash: strin
   if (/^\/alleskenner\/seizoen\/[^/]+$/.test(pathname)) return { fallback: "/alleskenner/seizoen", title: "pages.season" };
   if (/^\/chapter-guess\/solo\/[^/]+$/.test(pathname)) return { fallback: "/chapter-guess", title: "pages.playAlone" };
   if (/^\/snelle-zendeling\/run\/[^/]+$/.test(pathname)) return { fallback: "/snelle-zendeling", title: "pages.quickMissionary" };
-  if (pathname === "/mysteries/001a/play") return { fallback: "/mysteries/001a", title: "pages.mystery001a" };
-  if (pathname === "/mysteries/001b/play") return { fallback: "/mysteries/001a", title: "pages.mystery001a" };
-  if (pathname === "/mysteries/001c/play") return { fallback: "/mysteries/001a", title: "pages.mystery001a" };
-  if (pathname === "/mysteries/002a/play") return { fallback: "/mysteries/002", title: "pages.mystery002" };
-  if (pathname === "/mysteries/002b/play") return { fallback: "/mysteries/002", title: "pages.mystery002" };
-  if (pathname === "/mysteries/002c/play") return { fallback: "/mysteries/002", title: "pages.mystery002" };
   if (/^\/scrabble\/[^/]+$/.test(pathname)) return { fallback: "/scrabble", title: "pages.wordGame" };
   if (/^\/word-search\/[^/]+$/.test(pathname)) return { fallback: "/word-search", title: "pages.wordSearch" };
   if (/^\/live\/[^/]+$/.test(pathname)) return { fallback: "/live", title: "pages.play" };
@@ -138,7 +150,7 @@ export default function SubpageBackBar() {
   const { character } = useCompanion();
   const override = useBackTargetOverride(pathname);
   const page = detailPageFor(pathname, profileView, hash);
-  const goBack = useBackNavigation(override?.href ?? page?.fallback ?? "/dashboard", { forceFallback: page?.forceFallback });
+  const goBack = useBackNavigation(override?.href ?? page?.fallback ?? "/dashboard", { forceFallback: page?.forceFallback || Boolean(override) });
   if (!page) return null;
   // Een cursusnaam (override) komt al als tekst uit de database.
   const subtitle = override?.parent ?? (page.subtitle ? t(page.subtitle) : null);

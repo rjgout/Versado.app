@@ -18,12 +18,10 @@ const FOCUS_ROUTES = [
   /^\/alleskenner\/seizoen\/[^/]+$/,
   /^\/word-game$/,
   /^\/jigsaw$/,
-  /^\/mysteries\/001a\/play$/,
-  /^\/mysteries\/001b\/play$/,
-  /^\/mysteries\/001c\/play$/,
-  /^\/mysteries\/002a\/play$/,
-  /^\/mysteries\/002b\/play$/,
-  /^\/mysteries\/002c\/play$/,
+  // Alle vooraf ontworpen Het Mysterie-varianten delen dezelfde focus-shell.
+  // Het routepatroon voorkomt dat ieder nieuw mystery handmatig moet worden
+  // toegevoegd en voorkomt dat latere varianten terugvallen op de normale app-shell.
+  /^\/mysteries\/\d{3}[a-z]\/play$/,
 ] as const;
 
 const IMMERSIVE_ROUTES = [
@@ -37,8 +35,6 @@ const IMMERSIVE_ROUTES = [
  */
 const ACTIVITY_IN_NORMAL_SHELL = [
   /^\/practice$/,
-  // Speelroutes van alle mysteries, ook die nog niet in FOCUS_ROUTES staan.
-  /^\/mysteries\/\d{3}[a-z]\/play$/,
 ] as const;
 
 export type ShellMode = "normal" | "focus" | "immersive";

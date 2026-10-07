@@ -7,6 +7,8 @@ import LessonFlow from "@/components/LessonFlow";
 import { chapterTerm, localizeTerm } from "@/lib/chapterTerm";
 import { getT } from "@/lib/i18n";
 import CourseBackTarget from "@/components/CourseBackTarget";
+import ReaderBackTarget from "@/components/ReaderBackTarget";
+import { safeReturnPath } from "@/lib/returnTo";
 import { getChapterState, issueExerciseSession } from "@/lib/learning/contentProgress";
 import { countWords, estimateReadingMinutes, isLongChapter } from "@/lib/learning/readingTime";
 import { isReadingRoute, ROUTE_PRESENTATION } from "@/lib/learning/routes";
@@ -20,13 +22,14 @@ export default async function LessonPage({
   searchParams,
 }: {
   params: Promise<{ chapterId: string }>;
-  searchParams: Promise<{ challengeId?: string; cursus?: string; vers?: string }>;
+  searchParams: Promise<{ challengeId?: string; cursus?: string; vers?: string; returnTo?: string }>;
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
   const { chapterId } = await params;
-  const { challengeId, cursus, vers } = await searchParams;
+  const { challengeId, cursus, vers, returnTo } = await searchParams;
+  const readerReturn = safeReturnPath(returnTo);
   const chapter = await prisma.chapter.findUnique({
     where: { id: chapterId },
     include: {
@@ -89,7 +92,7 @@ export default async function LessonPage({
 
   return (
     <>
-    {course && <CourseBackTarget href={`/courses/${course.id}`} parent={course.name} />}
+    {readerReturn ? <ReaderBackTarget href={readerReturn} parent="Het Mysterie" /> : course && <CourseBackTarget href={`/courses/${course.id}`} parent={course.name} />}
     <LessonFlow
       chapterId={chapter.id}
       bookName={chapter.book.name}

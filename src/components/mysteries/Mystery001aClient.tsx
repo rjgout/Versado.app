@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { Check, CheckCircle2, Eraser, Lightbulb, Undo2, X } from "lucide-react";
 import FocusLayout from "@/components/versado/FocusLayout";
@@ -12,6 +13,7 @@ import { allCharactersPlaced, cellFootAnchor, cellFromBoardPoint, characterImage
 import { calibrateBoardGeometry, parseBoardManifest, type BoardGeometry } from "@/lib/mysteries/manifest";
 import { characterCluesFor } from "@/lib/mysteries/characterClues";
 import { closingQuestionFor } from "@/lib/mysteries/closingQuestions";
+import { nextMysteryHrefFor } from "@/lib/mysteries/game";
 import type { CharacterId, GridCell, MysteryDefinition, Placements } from "@/lib/mysteries/types";
 import type { MysteryProgressView } from "@/lib/mysteries/progress";
 import type { MessageKey } from "@/lib/i18n/core";
@@ -24,6 +26,8 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   // beperkt de refactor tot data-invoer en laat de bestaande interactie intact.
   const MYSTERY_001A = definition;
   const t = useT();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const confirm = useConfirm();
   const boardRef = useRef<HTMLDivElement>(null);
   const trayRef = useRef<HTMLDivElement>(null);
@@ -58,6 +62,13 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   const canClear = Object.values(placements).some(Boolean);
   const canUndo = placementHistory.length > 0;
   const closingQuestion = closingQuestionFor(definition);
+  const resumeCompleted = searchParams.get("resume") === "completed" && initialProgress.completed;
+  const resultVisible = solved || resumeCompleted;
+  const nextMysteryHref = nextMysteryHrefFor(definition);
+  const playHref = `/mysteries/${definition.routeId}/play`;
+  const readerReturnHref = `${playHref}?resume=completed`;
+  const readerLink = withReturnContext(readerHref, readerReturnHref);
+  const resultHintCount = resumeCompleted ? (initialProgress.hintCount ?? 0) : hintCount;
   const selectedCharacter = MYSTERY_001A.characters.find((character) => character.id === selected) ?? null;
 
   const markCharacterAssetError = useCallback((characterId: CharacterId) => {
@@ -291,9 +302,37 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   function submitClosingQuestion() {
     if (closingAnswer === null) return;
     setClosingSubmitted(true);
+    rememberClosingState(definition.id, { answer: closingAnswer });
   }
 
-  if (solved) {
+  function dismissClosingQuestion() {
+    setClosingDismissed(true);
+    rememberClosingState(definition.id, { dismissed: true });
+  }
+
+  function replay() {
+    forgetClosingState(definition.id);
+    if (resumeCompleted) router.replace(playHref);
+    else resetAttempt();
+  }
+
+  // Herstel de vrijblijvende slotvraag na een reader-roundtrip; dit is
+  // bewust een eenmalige synchronisatie met sessionStorage.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (!resultVisible) return;
+    const state = readClosingState(definition.id);
+    if (state?.dismissed) {
+      setClosingDismissed(true);
+    }
+    else if (typeof state?.answer === "number") {
+      setClosingAnswer(state.answer);
+      setClosingSubmitted(true);
+    }
+  }, [definition.id, resultVisible]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  if (resultVisible) {
     const closingDone = closingSubmitted || closingDismissed;
     const closingCorrect = closingAnswer === closingQuestion.correctOption;
     return (
@@ -304,7 +343,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
         <div>
           <p className="text-sm font-extrabold uppercase tracking-wider text-vs-success">{t(definition.completionLabelKey)}</p>
           <h1 className="mt-1 text-3xl font-black text-vs-fg">{t("mystery001a.solved")}</h1>
-          <p className="mt-3 font-bold text-vs-fg-2">{hintCount === 0 ? t("mystery001a.solvedWithoutHints") : t("mystery001a.solvedWithHints", { count: hintCount })}</p>
+          <p className="mt-3 font-bold text-vs-fg-2">{resultHintCount === 0 ? t("mystery001a.solvedWithoutHints") : t("mystery001a.solvedWithHints", { count: resultHintCount })}</p>
         </div>
         <section className={`${surfaceCard} p-5 text-left sm:p-6`}>
           <p className="font-extrabold text-vs-accent">{t("mysteryGame.puzzleFictionDisclaimer")}</p>
@@ -327,7 +366,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
               </fieldset>
               <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                 <button type="button" className={`${primaryButton} min-h-11 flex-1`} disabled={closingAnswer === null} onClick={submitClosingQuestion}>{t("mysteryClosing.continue")}</button>
-                <button type="button" className={`${secondaryButton} min-h-11 flex-1`} onClick={() => setClosingDismissed(true)}>{t("mysteryClosing.skip")}</button>
+                <button type="button" className={`${secondaryButton} min-h-11 flex-1`} onClick={dismissClosingQuestion}>{t("mysteryClosing.skip")}</button>
               </div>
             </>
           ) : closingDismissed ? (
@@ -342,17 +381,18 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
           )}
         </section>
         {closingDone && <p className="text-sm font-extrabold text-vs-success">{t("mysteryClosing.solved")}</p>}
-        <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Link href={readerHref} className={`${primaryButton} min-h-12 px-6`}>{t(definition.readerLabelKey)}</Link>
-          <Link href="/mysteries" className={`${secondaryButton} min-h-12 px-6`}>{t("mystery001a.backToGames")}</Link>
-          <button type="button" className={`${secondaryButton} min-h-12 px-6`} onClick={resetAttempt}>{t("mystery001a.replay")}</button>
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+          {nextMysteryHref ? <Link href={nextMysteryHref} className={`${primaryButton} min-h-12 px-6`}>{t("mysteryClosing.nextMystery")}</Link> : null}
+          <Link href={readerLink} className={`${nextMysteryHref ? secondaryButton : primaryButton} min-h-12 px-6`}>{t(definition.readerLabelKey)}</Link>
+          <Link href="/mysteries" className={`${secondaryButton} min-h-12 px-6`}>{t("mysteryClosing.backToMysteries")}</Link>
+          <button type="button" className={`${secondaryButton} min-h-12 px-6`} onClick={replay}>{t("mystery001a.replay")}</button>
         </div>
       </FocusLayout>
     );
   }
 
   return (
-    <FocusLayout className="mystery-game-layout max-w-5xl gap-4 pb-[calc(4.5rem+var(--vs-safe-area-bottom))]">
+    <FocusLayout className="mystery-game-layout max-w-5xl gap-4">
       <header className="hidden shrink-0 items-center lg:flex">
         <div className="min-w-0">
           <h1 className="sr-only">{t(definition.titleKey)}</h1>
@@ -425,7 +465,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
         </aside>
       </div>
 
-      <div className="mystery-action-bar fixed inset-x-0 bottom-0 z-30 border-t border-vs-line bg-vs-elevated/95 px-3 pt-2 backdrop-blur" aria-label={t("mystery001a.gameActions")}>
+      <div className="mystery-action-bar z-30 w-full shrink-0 border-t border-vs-line bg-vs-elevated/95 px-3 pt-2 backdrop-blur" aria-label={t("mystery001a.gameActions")}>
         <div className="mx-auto flex w-full max-w-5xl items-center gap-1.5">
           <button type="button" className={`${secondaryButton} h-11 w-11 !px-0`} disabled={!canClear} onClick={clearBoard} aria-label={t("mystery001a.clearBoard")} title={t("mystery001a.clearBoard")}><Eraser className="h-4 w-4" aria-hidden /></button>
           <button type="button" className={`${secondaryButton} h-11 w-11 !px-0`} disabled={!canUndo} onClick={undoPlacement} aria-label={t("mystery001a.undo")} title={t("mystery001a.undo")}><Undo2 className="h-4 w-4" aria-hidden /></button>
@@ -698,4 +738,41 @@ function DragPreview({ definition, drag }: { definition: MysteryDefinition; drag
       <img src={character.asset} alt="" className="h-full w-full object-contain drop-shadow-xl" />
     </div>
   );
+}
+
+type ClosingState = { answer?: number; dismissed?: boolean };
+const CLOSING_STATE_PREFIX = "versado.mystery.closing.";
+
+function closingStorageKey(id: string): string {
+  return `${CLOSING_STATE_PREFIX}${id}`;
+}
+
+function rememberClosingState(id: string, state: ClosingState): void {
+  try {
+    window.sessionStorage.setItem(closingStorageKey(id), JSON.stringify(state));
+  } catch {
+    // Privémodus mag de resultaatsflow niet blokkeren.
+  }
+}
+
+function readClosingState(id: string): ClosingState | null {
+  try {
+    const raw = window.sessionStorage.getItem(closingStorageKey(id));
+    return raw ? JSON.parse(raw) as ClosingState : null;
+  } catch {
+    return null;
+  }
+}
+
+function forgetClosingState(id: string): void {
+  try {
+    window.sessionStorage.removeItem(closingStorageKey(id));
+  } catch {
+    // Zie rememberClosingState().
+  }
+}
+
+function withReturnContext(href: string, returnTo: string): string {
+  const separator = href.includes("?") ? "&" : "?";
+  return `${href}${separator}returnTo=${encodeURIComponent(returnTo)}`;
 }

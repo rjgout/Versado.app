@@ -692,6 +692,8 @@ export const nl = {
     continue: "Ga verder",
     skip: "Verder zonder antwoord",
     readStory: "Lees het verhaal",
+    nextMystery: "Ga verder",
+    backToMysteries: "Terug naar mysteries",
     questionTitle: "Slotvraag",
     explanationTitle: "In het verhaal",
     "001": {

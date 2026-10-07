@@ -123,11 +123,11 @@ body {
  * wordt nooit via een cover-crop aangepast. */
 @media (max-width: 1023px) {
   .mystery-game-layout {
-    height: calc(100dvh - var(--header-height, 4.5rem) - 1rem);
+    height: calc(100dvh - var(--header-height, 4.5rem) - 2rem - var(--vs-safe-area-bottom));
     min-height: 0 !important;
     overflow: hidden;
     gap: 0.5rem;
-    padding-bottom: calc(4.5rem + var(--vs-safe-area-bottom));
+    padding-bottom: 0 !important;
   }
 
   .mystery-mobile-play-column {
@@ -148,7 +148,7 @@ body {
   }
 
   .mystery-board-frame {
-    width: min(100%, calc(100dvh - 17rem));
+    width: min(100%, calc(100dvh - var(--header-height, 4.5rem) - 14rem - var(--vs-safe-area-bottom)));
     max-width: 100%;
   }
 
@@ -162,12 +162,14 @@ body {
   }
 
   .mystery-action-bar {
+    flex: 0 0 auto;
     padding-bottom: max(0.55rem, var(--vs-safe-area-bottom));
   }
 }
 
 @media (min-width: 1024px) {
   .mystery-action-bar {
+    flex: 0 0 auto;
     padding-bottom: 1rem;
   }
 }

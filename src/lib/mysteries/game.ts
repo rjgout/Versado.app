@@ -31,7 +31,7 @@ export const MYSTERY_GAME = {
   introKey: "mysteryGame.intro" as MessageKey,
   coverArtworkKey: "game:mystery",
   mysteries: [
-    { id: "mystery-001", number: 1, titleKey: "pages.mystery001a" as MessageKey, introKey: "mystery001a.intro" as MessageKey, href: "/mysteries/001a", definition: MYSTERY_001A },
+    { id: "mystery-001", number: 1, titleKey: "pages.mystery001a" as MessageKey, introKey: "mystery001a.intro" as MessageKey, href: "/mysteries/001", definition: MYSTERY_001A },
     { id: "mystery-002", number: 2, titleKey: "pages.mystery002" as MessageKey, introKey: "mystery002a.intro" as MessageKey, href: "/mysteries/002", definition: MYSTERY_002A },
     { id: "mystery-003", number: 3, titleKey: "mystery003.title" as MessageKey, introKey: "mystery003.intro" as MessageKey, href: "/mysteries/003", definition: MYSTERY_003A },
     { id: "mystery-004", number: 4, titleKey: "mystery004.title" as MessageKey, introKey: "mystery004.intro" as MessageKey, href: "/mysteries/004", definition: MYSTERY_004A },
@@ -106,4 +106,9 @@ export function mysteryDefinitionFor(mysteryId: MysteryId, difficulty: MysteryDi
 export function mysteryDefinitionForVariant(mysteryId: MysteryId, variant: string) {
   const definitions = DEFINITIONS_BY_MYSTERY[mysteryId];
   return Object.values(definitions).find((definition) => definition.routeId === variant) ?? null;
+}
+
+/** Volgende detailpagina uit de centrale mysterycatalogus, niet via id+1. */
+export function nextMysteryHrefFor(definition: MysteryDefinition): string | null {
+  return MYSTERY_GAME.mysteries.find((mystery) => mystery.number === definition.mysteryNumber + 1)?.href ?? null;
 }
