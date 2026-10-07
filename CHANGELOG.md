@@ -4,6 +4,14 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Vliegende Versado: bij Genees krijg je altijd een nieuwe vraag, in de
+  volgorde van het boek. Antwoord je goed, dan gaat de volgende Genees naar
+  het volgende hoofdstuk; antwoord je fout, dan blijf je bij hetzelfde
+  hoofdstuk met een andere vraag. Het hoofdstuk staat boven de vraag en bij
+  een fout antwoord lees je welk hoofdstuk je kunt lezen, zonder dat het
+  antwoord wordt verklapt. Ook is de botsing eerlijker: alleen de gids zelf
+  raakt een obstakel, voor Varo, Vera en Novi op dezelfde manier.
+
 - Je persoonlijke reeks blijft voortaan bewaard na een onderbreking.
   Reeksbevriezingen worden eerst automatisch gebruikt; daarna kun je op je
   eigen moment verdergaan met 3–12 afgeronde leeractiviteiten op één dag.

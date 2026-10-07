@@ -112,17 +112,66 @@ de status naar `REVIVE_READY`; de wereld blijft gepauzeerd totdat de gebruiker
 tikt, waarna drie seconden veilige collisionbescherming actief zijn. Een fout
 antwoord of weigeren beëindigt de run.
 
-Genees gebruikt bestaande goedgekeurde `Exercise`-records van type
-`MULTIPLE_CHOICE` met `QuestionOption`. Eerst worden vragen geprobeerd die de
-gebruiker al eerder heeft beantwoord; anders volgt een vraag uit de actieve
-contentcollectie/contenttaal. De server toont echte context uit
-`Exercise.chapter.book`, bijvoorbeeld `Alma 32`; zonder betrouwbare metadata
-wordt niets verzonnen. Hij kiest exact drie opties met precies één correct
-antwoord. Alleen antwoordsets met vergelijkbare woord-/tekenlengte zijn
-geschikt; daarna wint de combinatie die qua lengte het dichtst bij het goede
-antwoord ligt. De cursusvragenbank wordt niet afgekapt, aangevuld of
-herschreven. De client ontvangt geen correctheidsvlag. Dit pad schrijft geen
-oefenpoging en geeft geen XP, reeks of competitie-XP.
+### Genees-vragen
+
+Elke Genees-poging krijgt een nieuwe vraag, ook na een fout antwoord. De vragen
+staan in een eigen, gecureerde bank (`QuickMissionaryReviveQuestion` met
+`QuickMissionaryReviveOption`), los van de oefeningen van de cursussen: een
+vraag hoort bij één hoofdstuk, heeft precies drie antwoorden (één goed, geen
+lengtehint) en wordt nooit tijdens het spelen bedacht. Een bestaande
+`Exercise` wordt dus niet meer gebruikt; de enige oude vraag (1 Nephi 1) is in
+de migratie overgenomen als `legacy:`-vraag.
+
+**Volgorde.** Hoofdstukken worden doorlopen in de echte volgorde van de
+actieve uitgave: `(Book.order, Chapter.order)`, zonder vaste lijst. De plek
+van de speler staat per gebruiker en per contentcollectie in
+`QuickMissionaryReviveProgress` (`cursorBookOrder`/`cursorChapterOrder`,
+`cycle`) en is dus server-side en gelijk op elk toestel en in elke run.
+
+**Wat gebeurt er na een antwoord** (`reviveSelection.ts`):
+
+- Goed: de plek gaat naar het volgende hoofdstuk, daar wordt de volgende
+  Genees gesteld.
+- Fout: de run eindigt zoals altijd en de plek blijft staan. De volgende Genees
+  blijft bij hetzelfde hoofdstuk met een andere, nog niet geziene variant;
+  heeft dat hoofdstuk er geen meer, dan gaat het naar het volgende hoofdstuk.
+- Maximaal één Genees per run blijft ongewijzigd.
+
+**Geen herhaling.** Een vraag wordt vastgelegd in `QuickMissionaryReviveSeen`
+op het moment dat hij wordt uitgegeven (status `SHOWN`, daarna `CORRECT` of
+`WRONG`), per cyclus en onder een per-gebruiker-lock met een unieke sleutel op
+`(userId, questionId, cycle)`. Verlaten, verversen of een ander toestel levert
+daardoor dezelfde vraag niet opnieuw op als een nog niet geziene beschikbaar is.
+
+**Na het laatste hoofdstuk** zoekt de selectie opnieuw vanaf het begin, eerst
+naar ongeziene varianten. Zijn alle vragen van de uitgave gezien, dan volgt een
+gecontroleerde reset: `cycle` loopt op, het geheugen is weer leeg en het eerste
+hoofdstuk komt weer aan de beurt (zonder de laatst geziene vraag als er een
+alternatief is). Heeft een uitgave helemaal geen vragen, dan is
+`reviveAvailable` onwaar en eindigt de run direct, zonder een andere regel te
+verzinnen.
+
+**Feedback.** De client ontvangt nooit een correctheidsvlag en bij een fout
+antwoord ook niet het goede antwoord. Het scherm toont "Niet helemaal." met
+"Lees {hoofdstuk} om het antwoord te ontdekken." en, als de leesroute bekend
+is, een knop daarheen (`chapterReadHref`). Boven de vraag staat altijd het
+hoofdstuk (`data-revive-chapter`). Dit pad schrijft geen oefenpoging en geeft
+geen XP, reeks of competitie-XP.
+
+**Vragenbank.** De Nederlandse bank voor het Boek van Mormon staat in
+`prisma/genees/bofm-nl/` (één bestand per groep boeken, formaat en regels in
+`src/lib/snelleZendeling/reviveBank.ts`): drie varianten voor ieder van de 239
+hoofdstukken. Elke vraag noemt de verzen waar het antwoord staat en
+controlewoorden (`check`) die letterlijk in die verzen en in het goede antwoord
+moeten voorkomen. `npm run genees:check` valideert dit (drie antwoorden,
+lengtehint, te veel op elkaar lijkende vragen, ontbrekende bronwoorden) en
+rapporteert per boek de dekking en de hoofdstukken onder het doel van
+`TARGET_VARIANTS` (3). De seed (`importGeneesBank`) laadt de bank idempotent op
+`contentKey`; een admin-reseed van de content is dus nodig na de uitrol, de
+migratie zelf draait bij het starten van de container. De Engelse, Duitse,
+Franse en Spaanse uitgaven hebben nog geen Genees-vragen: daar eindigt de run
+direct. Een nieuwe taal of werk krijgt een eigen bankbestand in
+`prisma/genees/index.ts`.
 
 ## Immersive UX en exit
 
@@ -172,7 +221,9 @@ en content-scopes beheren via de bestaande admincomponent. Het runmodel heeft
 indexen op gebruiker/status, gebruiker/score en day/status/score. De gerichte
 datamigratie `20261014100000_balance_quick_missionary_answers` maakt alleen de
 drie afleiders van de bestaande Nederlandse vraag bij 1 Nephi 1 inhoudelijk
-vergelijkbaarder; schema en correct antwoord veranderen niet.
+vergelijkbaarder; schema en correct antwoord veranderen niet. De migratie
+`20261016100000_quick_missionary_revive_bank` voegt de Genees-tabellen toe en
+neemt die ene vraag over; bestaande spelers beginnen bij het eerste hoofdstuk.
 
 ## Platform en toegankelijkheid
 
@@ -190,5 +241,11 @@ de noodzakelijke physics blijven actief.
 obstacleschaal, gap-ankers en dekking van beide wereldranden, gapgrenzen,
 score-eenmalig, collision, gelijke hitboxen, Genees-opties/-status, vraagcontext,
 antwoordbalans, dynamische identiteit, immersive overlays, ranking-ties en
-server-side scoretempo. Shellmodi staan in `tests/focus-mode.test.ts` en de
+server-side scoretempo. `tests/snelle-zendeling-genees.test.ts` dekt de
+selectieregels, het hoofdstuk boven de vraag, het foutscherm zonder goed
+antwoord en de bankvalidatie; `tests/snelle-zendeling-genees.integration.test.ts`
+(15 databasetests, via `LEARNING_TEST_DATABASE_URL`) dekt de voortgang per
+gebruiker, geen herhaling, de cyclusreset en de lege bank. De hitbox heeft
+`tests/snelle-zendeling-hitbox.test.ts`. Alles samen: `npm run
+test:snelle-zendeling`. Shellmodi staan in `tests/focus-mode.test.ts` en de
 coverresolver in `tests/artwork.test.ts`.

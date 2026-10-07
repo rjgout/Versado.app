@@ -219,13 +219,14 @@ describe("Snelle Zendeling gameplay", () => {
 
   it("houdt score, instructie, Genees en veilige exits binnen de immersive game-area", () => {
     const source = readFileSync(path.join(process.cwd(), "src/components/snelleZendeling/RunClient.tsx"), "utf8");
+    const panels = readFileSync(path.join(process.cwd(), "src/components/snelleZendeling/RevivePanels.tsx"), "utf8");
     const server = readFileSync(path.join(process.cwd(), "src/lib/snelleZendeling/runs.ts"), "utf8");
     assert.match(source, /ImmersiveLayout/);
     assert.match(source, /data-game-score/);
     assert.match(source, /data-game-overlay/);
     assert.match(source, /quickMissionary\.heal/);
     assert.match(source, /overflow-y-auto/);
-    assert.match(source, /!whitespace-normal/);
+    assert.match(panels, /!whitespace-normal/);
     assert.match(source, /quickMissionary\.backToGames/);
     assert.match(source, /keepalive: true/);
     assert.doesNotMatch(source, /SubpageBackBar|FocusLayout/);
