@@ -117,6 +117,61 @@ body {
   padding: 0;
 }
 
+/* Het Mysterie is op een telefoon een compacte speelviewport: alleen de
+ * personage-informatie scrollt, zodat het bord en de acties nooit uit beeld
+ * verdwijnen tijdens een touch-drag. De board-afbeelding blijft vierkant en
+ * wordt nooit via een cover-crop aangepast. */
+@media (max-width: 1023px) {
+  .mystery-game-layout {
+    height: calc(100dvh - var(--header-height, 4.5rem) - 1rem);
+    min-height: 0 !important;
+    overflow: hidden;
+    gap: 0.5rem;
+    padding-bottom: calc(4.5rem + var(--vs-safe-area-bottom));
+  }
+
+  .mystery-mobile-play-column {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1 1 0%;
+    gap: 0.5rem;
+  }
+
+  .mystery-mobile-board-slot {
+    position: relative;
+    display: flex;
+    min-height: 0;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mystery-board-frame {
+    width: min(100%, calc(100dvh - 17rem));
+    max-width: 100%;
+  }
+
+  .mystery-character-pane {
+    min-height: 6.5rem;
+    flex: 1 1 0%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+  }
+
+  .mystery-action-bar {
+    padding-bottom: max(0.55rem, var(--vs-safe-area-bottom));
+  }
+}
+
+@media (min-width: 1024px) {
+  .mystery-action-bar {
+    padding-bottom: 1rem;
+  }
+}
+
 /* --- Versado-designtokens ---------------------------------------------------
  *
  * Semantische kleuren voor de nieuwe app-shell en Vandaag (zie
