@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
-import { Check, CheckCircle2, ChevronLeft, ChevronRight, Lightbulb, List, RotateCcw, X } from "lucide-react";
+import { Check, CheckCircle2, Lightbulb, RotateCcw, X } from "lucide-react";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { useT } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
@@ -10,6 +10,8 @@ import { focusRing, primaryButton, secondaryButton, surfaceCard } from "@/compon
 import { MYSTERY_001A, emptyMysteryPlacements } from "@/lib/mysteries/mystery001a";
 import { allCharactersPlaced, cellFootAnchor, cellFromBoardPoint, characterImageMetrics, hintFor, isHardConstraintValid, occupantAt, placeCharacter, sameCell } from "@/lib/mysteries/logic";
 import { calibrateBoardGeometry, parseBoardManifest, type BoardGeometry } from "@/lib/mysteries/manifest";
+import { characterCluesFor } from "@/lib/mysteries/characterClues";
+import { closingQuestionFor } from "@/lib/mysteries/closingQuestions";
 import type { CharacterId, GridCell, MysteryDefinition, Placements } from "@/lib/mysteries/types";
 import type { MysteryProgressView } from "@/lib/mysteries/progress";
 import type { MessageKey } from "@/lib/i18n/core";
@@ -34,9 +36,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   const [selected, setSelected] = useState<CharacterId | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [dragTarget, setDragTarget] = useState<GridCell | null>(null);
-  const [clueIndex, setClueIndex] = useState(0);
-  const [clueNotes, setClueNotes] = useState(() => definition.clues.map(() => false));
-  const [allCluesOpen, setAllCluesOpen] = useState(false);
+  const [clueNotes, setClueNotes] = useState<Record<string, boolean>>(() => initialCharacterClueNotes(definition));
   const [wrongOpen, setWrongOpen] = useState(false);
   const [hintKey, setHintKey] = useState<ReturnType<typeof hintFor> | null>(null);
   const [hintCount, setHintCount] = useState(0);
@@ -45,12 +45,16 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   const [hintError, setHintError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
   const [solved, setSolved] = useState(false);
+  const [closingAnswer, setClosingAnswer] = useState<number | null>(null);
+  const [closingSubmitted, setClosingSubmitted] = useState(false);
+  const [closingDismissed, setClosingDismissed] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const [tutorialDone, setTutorialDone] = useState(initialProgress.tutorialSeen);
   const [tutorialFeedback, setTutorialFeedback] = useState<string | null>(null);
   const [constraintPulse, setConstraintPulse] = useState(false);
   const tutorialActive = !!definition.tutorial && !tutorialDone;
   const canCheck = allCharactersPlaced(MYSTERY_001A, placements);
+  const closingQuestion = closingQuestionFor(definition);
   const selectedCharacter = MYSTERY_001A.characters.find((character) => character.id === selected) ?? null;
 
   const markCharacterAssetError = useCallback((characterId: CharacterId) => {
@@ -96,13 +100,15 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
     setSelected(null);
     setDrag(null);
     setDragTarget(null);
-    setClueNotes(definition.clues.map(() => false));
-    setClueIndex(0);
+    setClueNotes(initialCharacterClueNotes(definition));
     setHintCount(0);
     setHintKey(null);
     setHintError(null);
     setWrongOpen(false);
     setSolved(false);
+    setClosingAnswer(null);
+    setClosingSubmitted(false);
+    setClosingDismissed(false);
     setSaveError(false);
     setTutorialFeedback(null);
     // Historische tutorialstatus wordt bij replay/reset nooit verwijderd.
@@ -110,7 +116,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   }, [definition, initialProgress.tutorialSeen, tutorialDone]);
 
   async function restart() {
-    if (Object.values(placements).some(Boolean) || hintCount > 0 || clueNotes.some(Boolean)) {
+    if (Object.values(placements).some(Boolean) || hintCount > 0 || Object.values(clueNotes).some(Boolean)) {
       const accepted = await confirm(t("mystery001a.restartConfirm"), { title: t("mystery001a.restart"), confirmLabel: t("mystery001a.restart") });
       if (!accepted) return;
     }
@@ -118,7 +124,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   }
 
   function unplace(characterId: CharacterId) {
-    if (tutorialActive && characterId === "lehi") return;
+    if (tutorialActive && characterId === definition.tutorial?.characterId) return;
     setPlacements((current) => ({ ...current, [characterId]: null }));
     setSelected(null);
   }
@@ -158,7 +164,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   }
 
   function pointerDown(event: ReactPointerEvent<HTMLButtonElement>, characterId: CharacterId) {
-    if (!event.isPrimary || event.button !== 0 || (tutorialActive && characterId !== "lehi")) return;
+    if (!event.isPrimary || event.button !== 0 || (tutorialActive && characterId !== definition.tutorial?.characterId)) return;
     suppressClick.current = false;
     setSelected(characterId);
     gesture.current = { pointerId: event.pointerId, characterId, startX: event.clientX, startY: event.clientY, moved: false };
@@ -202,7 +208,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
       suppressClick.current = false;
       return;
     }
-    if (tutorialActive && characterId !== "lehi") return;
+    if (tutorialActive && characterId !== definition.tutorial?.characterId) return;
     setSelected((current) => current === characterId ? null : characterId);
   }
 
@@ -254,7 +260,14 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
     }
   }
 
+  function submitClosingQuestion() {
+    if (closingAnswer === null) return;
+    setClosingSubmitted(true);
+  }
+
   if (solved) {
+    const closingDone = closingSubmitted || closingDismissed;
+    const closingCorrect = closingAnswer === closingQuestion.correctOption;
     return (
       <FocusLayout className="max-w-2xl justify-center gap-6 py-4 text-center">
         <div className="vs-rise mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-vs-success-soft motion-reduce:animate-none">
@@ -269,9 +282,41 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
           <p className="font-extrabold text-vs-accent">{t("mysteryGame.puzzleFictionDisclaimer")}</p>
           <p className="mt-3 text-vs-fg-2">{t(definition.story.summaryKey)}</p>
         </section>
+        <p className="text-sm font-bold text-vs-fg-2">{t("mysteryClosing.intro")}</p>
+        <section className={`${surfaceCard} p-5 text-left sm:p-6`} aria-labelledby="mystery-closing-question">
+          <p className="text-xs font-extrabold uppercase tracking-wider text-vs-accent">{t("mysteryClosing.questionTitle")}</p>
+          <p id="mystery-closing-question" className="mt-2 text-lg font-black text-vs-fg">{t(closingQuestion.questionKey)}</p>
+          {!closingDone ? (
+            <>
+              <fieldset className="mt-4 space-y-2">
+                <legend className="sr-only">{t(closingQuestion.questionKey)}</legend>
+                {closingQuestion.optionKeys.map((optionKey, index) => (
+                  <label key={optionKey} className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 text-sm font-bold transition ${closingAnswer === index ? "border-vs-accent bg-vs-accent/10" : "border-vs-line hover:border-vs-line-strong"}`}>
+                    <input type="radio" name="mystery-closing-answer" value={index} checked={closingAnswer === index} onChange={() => setClosingAnswer(index)} className="mt-0.5 h-4 w-4 accent-[var(--vs-accent)]" />
+                    <span>{t(optionKey)}</span>
+                  </label>
+                ))}
+              </fieldset>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <button type="button" className={`${primaryButton} min-h-11 flex-1`} disabled={closingAnswer === null} onClick={submitClosingQuestion}>{t("mysteryClosing.continue")}</button>
+                <button type="button" className={`${secondaryButton} min-h-11 flex-1`} onClick={() => setClosingDismissed(true)}>{t("mysteryClosing.skip")}</button>
+              </div>
+            </>
+          ) : closingDismissed ? (
+            <p className="mt-4 text-sm font-bold text-vs-fg-2">{t("mysteryClosing.solved")}</p>
+          ) : (
+            <div className="mt-4 rounded-xl bg-vs-subtle p-4" role="status">
+              <p className={`font-black ${closingCorrect ? "text-vs-success" : "text-vs-fg"}`}>{t(closingCorrect ? "mysteryClosing.correct" : "mysteryClosing.incorrect")}</p>
+              {!closingCorrect && <p className="mt-2 text-sm font-bold text-vs-fg">{t("mysteryClosing.correctAnswer", { answer: t(closingQuestion.optionKeys[closingQuestion.correctOption]) })}</p>}
+              <p className="mt-3 text-sm text-vs-fg-2"><span className="font-extrabold text-vs-fg">{t("mysteryClosing.explanationTitle")}: </span>{t(closingQuestion.explanationKey)}</p>
+              <p className="mt-2 text-xs font-extrabold uppercase tracking-wider text-vs-fg-3">{t(closingQuestion.scriptureReferenceKey)}</p>
+            </div>
+          )}
+        </section>
+        {closingDone && <p className="text-sm font-extrabold text-vs-success">{t("mysteryClosing.solved")}</p>}
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link href={readerHref} className={`${primaryButton} min-h-12 px-6`}>{t(definition.readerLabelKey)}</Link>
-          <Link href="/live" className={`${secondaryButton} min-h-12 px-6`}>{t("mystery001a.backToGames")}</Link>
+          <Link href="/mysteries" className={`${secondaryButton} min-h-12 px-6`}>{t("mystery001a.backToGames")}</Link>
           <button type="button" className={`${secondaryButton} min-h-12 px-6`} onClick={resetAttempt}>{t("mystery001a.replay")}</button>
         </div>
       </FocusLayout>
@@ -326,8 +371,10 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
             placements={placements}
             selected={selected}
             tutorialActive={tutorialActive}
+            clueNotes={clueNotes}
             characterAssetErrors={characterAssetErrors}
             onCharacterAssetError={markCharacterAssetError}
+            onToggleClue={(key) => setClueNotes((notes) => ({ ...notes, [key]: !notes[key] }))}
             onClick={characterClick}
             onPointerDown={pointerDown}
             onPointerMove={pointerMove}
@@ -338,12 +385,14 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
               {t("mystery001a.returnToTray", { name: selectedCharacter.name })}
             </button>
           )}
-          <div className="lg:hidden">
-            <CluePanel definition={definition} clueIndex={clueIndex} notes={clueNotes} onIndex={setClueIndex} onToggle={(index) => setClueNotes((notes) => notes.map((value, at) => at === index ? !value : value))} onAll={() => setAllCluesOpen(true)} />
-          </div>
         </section>
-        <aside className="hidden lg:block">
-          <CluePanel definition={definition} clueIndex={clueIndex} notes={clueNotes} onIndex={setClueIndex} onToggle={(index) => setClueNotes((notes) => notes.map((value, at) => at === index ? !value : value))} onAll={() => setAllCluesOpen(true)} />
+        <aside className="hidden lg:block" aria-label={t("mystery001a.spatialTitle")}>
+          <section className={`${surfaceCard} p-4`}>
+            <h2 className="font-extrabold text-vs-fg">{t("mystery001a.spatialTitle")}</h2>
+            <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.directRight")}</p>
+            <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.higherRight")}</p>
+            <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.directAbove")}</p>
+          </section>
         </aside>
       </div>
 
@@ -355,7 +404,6 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
       </div>
 
       {drag && <DragPreview definition={definition} drag={drag} />}
-      {allCluesOpen && <AllCluesSheet definition={definition} notes={clueNotes} onToggle={(index) => setClueNotes((notes) => notes.map((value, at) => at === index ? !value : value))} onClose={() => setAllCluesOpen(false)} />}
       {wrongOpen && <BottomSheet title={t("mystery001a.wrongTitle")} onClose={() => setWrongOpen(false)}>
         <p className="text-vs-fg-2">{t("mystery001a.wrongText")}</p>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -376,6 +424,10 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
 
 export default function Mystery001aClient({ initialProgress, readerHref }: { initialProgress: MysteryProgressView; readerHref: string }) {
   return <MysteryClient initialProgress={initialProgress} readerHref={readerHref} definition={MYSTERY_001A} progressEndpoint="/api/mysteries/001a/progress" hintEndpoint="/api/mysteries/001/hint" />;
+}
+
+function initialCharacterClueNotes(definition: MysteryDefinition): Record<string, boolean> {
+  return Object.fromEntries(definition.characters.flatMap((character) => characterCluesFor(definition, character.id).map((_, index) => [`${character.id}-${index}`, false]))) as Record<string, boolean>;
 }
 
 function MysteryBoard({ definition, geometry, placements, selected, dragTarget, constraintPulse, tutorialActive, boardRef, onBoardAssetError, characterAssetErrors, onCharacterAssetError, onCell, onCharacterClick, onPointerDown, onPointerMove, onPointerUp }: {
@@ -512,98 +564,73 @@ function MysteryBoard({ definition, geometry, placements, selected, dragTarget, 
   );
 }
 
-function CharacterTray({ definition, trayRef, placements, selected, tutorialActive, characterAssetErrors, onCharacterAssetError, onClick, onPointerDown, onPointerMove, onPointerUp }: {
+function CharacterTray({ definition, trayRef, placements, selected, tutorialActive, clueNotes, characterAssetErrors, onCharacterAssetError, onToggleClue, onClick, onPointerDown, onPointerMove, onPointerUp }: {
   definition: MysteryDefinition;
   trayRef: React.RefObject<HTMLDivElement | null>;
   placements: Placements;
   selected: CharacterId | null;
   tutorialActive: boolean;
+  clueNotes: Record<string, boolean>;
   characterAssetErrors: Partial<Record<CharacterId, true>>;
   onCharacterAssetError: (id: CharacterId) => void;
+  onToggleClue: (key: string) => void;
   onClick: (id: CharacterId) => void;
   onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>, id: CharacterId) => void;
   onPointerMove: (event: ReactPointerEvent<HTMLButtonElement>) => void;
   onPointerUp: (event: ReactPointerEvent<HTMLButtonElement>) => void;
 }) {
   const t = useT();
-  const remaining = definition.characters.filter((character) => !placements[character.id]);
   return (
-    <div ref={trayRef} className={`${surfaceCard} min-h-20 p-3`} aria-label={t("mystery001a.tray")}>
+    <div ref={trayRef} className={`${surfaceCard} p-3`} aria-label={t("mystery001a.tray")}>
       <p className="mb-2 text-xs font-extrabold uppercase tracking-wider text-vs-fg-3">{t("mystery001a.tray")}</p>
-      {remaining.length === 0 ? <p className="text-sm text-vs-fg-2">{t("mystery001a.placedTray")}</p> : (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {remaining.map((character) => {
-            const disabled = tutorialActive && character.id !== "lehi";
-            return (
-              <button
-                key={character.id}
-                type="button"
-                disabled={disabled}
-                aria-label={character.name}
-                aria-pressed={selected === character.id}
-                onClick={() => onClick(character.id)}
-                onPointerDown={(event) => onPointerDown(event, character.id)}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
-                onPointerCancel={onPointerUp}
-                className={`flex min-h-16 touch-none items-center gap-2 rounded-xl border bg-vs-surface px-2 text-left transition disabled:opacity-40 ${selected === character.id ? "border-vs-accent ring-2 ring-vs-accent" : "border-vs-line hover:border-vs-line-strong"} ${focusRing}`}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={character.asset} alt="" draggable={false} onError={() => onCharacterAssetError(character.id)} className={`pointer-events-none h-12 w-12 shrink-0 object-contain ${characterAssetErrors[character.id] ? "opacity-0" : ""}`} />
-                <span className="text-sm font-extrabold text-vs-fg">{character.name}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
+      <div className="grid gap-2 sm:grid-cols-2">
+        {definition.characters.map((character) => {
+          const placed = Boolean(placements[character.id]);
+          const disabled = placed || (tutorialActive && character.id !== definition.tutorial?.characterId);
+          const clues = characterCluesFor(definition, character.id);
+          return (
+            <article key={character.id} className={`rounded-xl border p-2.5 transition ${placed ? "border-vs-line bg-vs-subtle/70" : "border-vs-line bg-vs-surface"}`}>
+              <div className="flex items-start gap-2">
+                <button
+                  type="button"
+                  disabled={disabled}
+                  aria-label={`${character.name}${placed ? `, ${t("mystery001a.placedStatus")}` : ""}`}
+                  aria-pressed={selected === character.id}
+                  onClick={() => onClick(character.id)}
+                  onPointerDown={(event) => onPointerDown(event, character.id)}
+                  onPointerMove={onPointerMove}
+                  onPointerUp={onPointerUp}
+                  onPointerCancel={onPointerUp}
+                  className={`flex min-h-14 min-w-0 flex-1 touch-none items-center gap-2 rounded-lg text-left transition disabled:cursor-default ${selected === character.id ? "ring-2 ring-vs-accent" : ""} ${focusRing}`}
+                >
+                  {/* De aanwijzing blijft helder leesbaar; alleen het speelstuk krijgt een zachte inactieve behandeling. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={character.asset} alt="" draggable={false} onError={() => onCharacterAssetError(character.id)} className={`pointer-events-none h-12 w-12 shrink-0 object-contain ${characterAssetErrors[character.id] ? "opacity-0" : ""} ${placed ? "opacity-55" : ""}`} />
+                  <span className="min-w-0 text-sm font-extrabold text-vs-fg">{character.name}</span>
+                </button>
+                {placed && <span className="shrink-0 rounded-full bg-vs-subtle px-2 py-1 text-[11px] font-extrabold text-vs-fg-2">✓ {t("mystery001a.placedStatus")}</span>}
+              </div>
+              <div className="mt-2 space-y-1.5 border-t border-vs-line pt-2">
+                {clues.map((clue, index) => {
+                  const key = `${character.id}-${index}`;
+                  const processed = Boolean(clueNotes[key]);
+                  return (
+                    <div key={key} className="rounded-lg bg-vs-subtle/60 p-2">
+                      <p className="text-xs font-bold leading-snug text-vs-fg">{t(clue.textKey, clue.vars)}</p>
+                      <button type="button" aria-pressed={processed} onClick={() => onToggleClue(key)} className={`mt-1 flex min-h-8 items-center gap-1.5 text-[11px] font-extrabold ${processed ? "text-vs-success" : "text-vs-fg-3"} ${focusRing}`}>
+                        {processed ? <Check className="h-3.5 w-3.5" aria-hidden /> : <span className="h-3.5 w-3.5 rounded-full border border-current" aria-hidden />}
+                        {t(processed ? "mystery001a.processed" : "mystery001a.unprocessed")}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </article>
+          );
+        })}
+      </div>
     </div>
   );
-}
-
-function CluePanel({ definition, clueIndex, notes, onIndex, onToggle, onAll }: { definition: MysteryDefinition; clueIndex: number; notes: boolean[]; onIndex: (index: number) => void; onToggle: (index: number) => void; onAll: () => void }) {
-  const t = useT();
-  const clue = definition.clues[clueIndex];
-  return (
-    <section className={`${surfaceCard} p-4`} aria-labelledby="mystery-clue-title">
-      <div className="flex items-center justify-between gap-2">
-        <p id="mystery-clue-title" className="text-xs font-extrabold uppercase tracking-wider text-vs-accent">{t("mystery001a.clueProgress", { current: clueIndex + 1, total: definition.clues.length })}</p>
-        <button type="button" className={`h-10 w-10 rounded-full text-vs-fg-2 hover:bg-vs-subtle ${focusRing}`} onClick={onAll} aria-label={t("mystery001a.allClues")}><List className="mx-auto h-5 w-5" aria-hidden /></button>
-      </div>
-      <p className="mt-3 min-h-14 font-extrabold text-vs-fg">{t(clue.textKey)}</p>
-      <button type="button" onClick={() => onToggle(clueIndex)} aria-pressed={notes[clueIndex]} className={`mt-3 flex min-h-11 w-full items-center gap-2 rounded-xl border px-3 text-left text-sm font-bold ${notes[clueIndex] ? "border-vs-success bg-vs-success-soft text-vs-success" : "border-vs-line text-vs-fg-2"} ${focusRing}`}>
-        {notes[clueIndex] ? <Check className="h-5 w-5" aria-hidden /> : <span className="h-5 w-5 rounded-full border-2 border-current" aria-hidden />}
-        {t(notes[clueIndex] ? "mystery001a.processed" : "mystery001a.unprocessed")}
-      </button>
-      <div className="mt-3 flex items-center justify-between gap-2">
-        <button type="button" className={`${secondaryButton} min-h-11`} disabled={clueIndex === 0} onClick={() => onIndex(clueIndex - 1)}><ChevronLeft className="h-4 w-4" aria-hidden />{t("mystery001a.previousClue")}</button>
-        <button type="button" className={`${secondaryButton} min-h-11`} disabled={clueIndex + 1 === definition.clues.length} onClick={() => onIndex(clueIndex + 1)}>{t("mystery001a.nextClue")}<ChevronRight className="h-4 w-4" aria-hidden /></button>
-      </div>
-      <button type="button" onClick={onAll} className="mt-3 w-full text-sm font-extrabold text-vs-accent underline-offset-4 hover:underline">{t("mystery001a.allClues")}</button>
-    </section>
-  );
-}
-
-function AllCluesSheet({ definition, notes, onToggle, onClose }: { definition: MysteryDefinition; notes: boolean[]; onToggle: (index: number) => void; onClose: () => void }) {
-  const t = useT();
-  return <BottomSheet title={t("mystery001a.allClues")} onClose={onClose}>
-    <ol className="space-y-3">
-      {definition.clues.map((clue, index) => <li key={clue.id} className="rounded-xl bg-vs-subtle p-3">
-        <p className="font-bold text-vs-fg">{index + 1}. {t(clue.textKey)}</p>
-        <button type="button" aria-pressed={notes[index]} onClick={() => onToggle(index)} className={`mt-2 flex min-h-10 items-center gap-2 text-sm font-bold ${notes[index] ? "text-vs-success" : "text-vs-fg-2"}`}>
-          {notes[index] ? <Check className="h-5 w-5" aria-hidden /> : <span className="h-5 w-5 rounded-full border-2 border-current" aria-hidden />}
-          {t(notes[index] ? "mystery001a.processed" : "mystery001a.unprocessed")}
-        </button>
-      </li>)}
-    </ol>
-    <div className="mt-5 border-t border-vs-line pt-4">
-      <h3 className="font-extrabold text-vs-fg">{t("mystery001a.spatialTitle")}</h3>
-      <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.directRight")}</p>
-      <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.higherRight")}</p>
-      <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.directAbove")}</p>
-      <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.diagonalRight")}</p>
-      <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.twoColumnsRight")}</p>
-    </div>
-  </BottomSheet>;
 }
 
 function BottomSheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {

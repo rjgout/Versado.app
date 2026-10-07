@@ -34,6 +34,25 @@ export interface MysteryCharacter {
 }
 
 /**
+ * Presentatietekst die aan een personagekaart hangt. De engine gebruikt deze
+ * tekst nooit om de oplossing te berekenen; de gestructureerde clues en
+ * solution blijven daarvoor de enige bron.
+ */
+export interface CharacterClue {
+  textKey: MessageKey;
+  vars?: Record<string, string | number>;
+}
+
+/** Een korte verhaalvraag na de logicapuzzel; dit is geen tweede slaagvoorwaarde. */
+export interface ClosingQuestion {
+  questionKey: MessageKey;
+  optionKeys: readonly MessageKey[];
+  correctOption: number;
+  explanationKey: MessageKey;
+  scriptureReferenceKey: MessageKey;
+}
+
+/**
  * Een clue is bewust als PUZZLE_FICTION getagd. Deze kunstmatige relaties
  * mogen nooit als bronfeit of historische reconstructie worden hergebruikt.
  */
