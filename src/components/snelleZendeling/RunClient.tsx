@@ -10,15 +10,15 @@ import { quickMissionaryTitle } from "@/lib/gameCatalog";
 import { PLAY_ROUTE, QUICK_MISSIONARY_RANKING_HREF } from "@/lib/navigation";
 import { quickMissionaryMascotSprite } from "@/lib/snelleZendeling/assets";
 import { rockRenderRect, wallRenderRect } from "@/lib/snelleZendeling/obstacles";
+import { drawHitboxDebug } from "@/components/snelleZendeling/hitboxDebug";
 import {
-  BOOST_VELOCITY, FIRST_OBSTACLE_X, HORIZONTAL_SPEED, MASCOT_X,
+  BOOST_VELOCITY, FIRST_OBSTACLE_X, HORIZONTAL_SPEED, MASCOT_RENDER_SIZE, MASCOT_X,
   OBSTACLE_WIDTH, PAIR_SPACING, PLAY_BOTTOM, PLAY_TOP, WORLD_HEIGHT, WORLD_WIDTH,
   collidesWithObstacle, createObstaclePair, isOutOfPlayZone, passedPair, stepPhysics,
   type ObstaclePair,
 } from "@/lib/snelleZendeling/gameplay";
 
 const ASSET_BASE = "/games/snelle-zendeling";
-const MASCOT_RENDER_SIZE = 74;
 const LAYER_CONFIG = [
   ["background-sky.png", 0], ["background-hills.png", 0.12], ["background-city.png", 0.2], ["background-landscape.png", 0.35],
 ] as const;
@@ -45,6 +45,7 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
   const safeUntilRef = useRef(0);
   const abandonSentRef = useRef(false);
   const imagesRef = useRef<Record<string, HTMLImageElement>>({});
+  const debugHitboxRef = useRef(false);
   const [phase, setPhase] = useState<Phase>("ready");
   const [score, setScore] = useState(0);
   const [view, setView] = useState<RunView | null>(null);
@@ -96,6 +97,13 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
     };
   }, [runId]);
 
+  // Alleen in ontwikkeling: ?debugHitbox=1 toont de echte hitbox. In een
+  // productiebuild wordt deze tak bij het bouwen weggehaald.
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    debugHitboxRef.current = new URLSearchParams(window.location.search).get("debugHitbox") === "1";
+  }, []);
+
   useEffect(() => {
     const names = [...LAYER_CONFIG.map(([name]) => name), "foreground-ground.png", "obstacle-wall-long.png", "obstacle-rock-long.png", quickMissionaryMascotSprite(character, "glide"), quickMissionaryMascotSprite(character, "boost")];
     const loaded: Record<string, HTMLImageElement> = {};
@@ -133,6 +141,7 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
     const mascotName = quickMissionaryMascotSprite(character, timestamp < boostUntilRef.current ? "boost" : "glide");
     const mascot = imagesRef.current[mascotName];
     if (mascot?.complete && mascot.naturalWidth) ctx.drawImage(mascot, MASCOT_X, yRef.current, MASCOT_RENDER_SIZE, MASCOT_RENDER_SIZE);
+    if (process.env.NODE_ENV !== "production" && debugHitboxRef.current) drawHitboxDebug(ctx, { x: MASCOT_X, y: yRef.current }, obstaclesRef.current);
   }, [character]);
 
   const finishFromDeath = useCallback(async () => {

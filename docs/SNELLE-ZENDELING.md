@@ -71,9 +71,33 @@ volgens de assetdocumentatie zorgvuldig op de capfase moet aansluiten — nu
 niet nodig is. De lange offscreen-bitmapdelen veranderen de abstracte
 collisionrechthoeken niet.
 
-De collision gebruikt een vaste rechthoekige hitbox van 42×42 rond het lichaam.
-De 1254×1254 transparante sprite, staart en losse haren zijn dus geen
-collisionzone. Glide en boost, en alle drie gidsen, gebruiken dezelfde hitbox.
+### Hitbox
+
+De mascotte wordt op 74×74 wereldpixels getekend (`MASCOT_RENDER_SIZE`). De
+botsing gebruikt één vaste ellips van 32×24 met de linkerbovenhoek van haar
+omsluitende rechthoek op (26, 26) binnen die sprite (`MASCOT_HITBOX_*` in
+`gameplay.ts`). Ellips tegen asgelijnde rechthoek is exact te toetsen door x
+en y door de stralen te delen; alleen raken telt niet. `mascotHitbox()` geeft
+de omsluitende rechthoek, onder meer voor de speelzone.
+
+Waarom deze maat: de vorige box (42×42 op 5,5) hing 24–28 px los van het dier,
+10–14 px boven de oren en 11–14 px achter de neus, dus de gids stierf in de
+lucht en de kop mocht ruim in een obstakel. De nieuwe maat is gemeten aan de
+zes echte sprites (drie gidsen, glide en boost): de rand ligt overal hooguit
+4–6 px van zichtbaar lichaam; oorpunten en haartoefjes (7–10 px boven de
+ellips), staart en de transparante rand tellen niet mee; onder en voor wijkt
+de ellips 0–4,5 px af van het silhouet. De tests lezen de PNG's zelf, zodat een
+vervangen sprite of een verschoven box direct opvalt.
+
+Novi, Varo en Vera, en glide en boost, hebben exact dezelfde hitbox: de
+functies kennen geen gids of pose, de pose kiest alleen de afbeelding. Obstakels,
+gap, afstanden en physics zijn bij deze aanpassing niet veranderd.
+
+Ontwikkelen: `?debugHitbox=1` tekent de werkelijke geometrie over het spel
+(rood = hitbox, wit = spritegrenzen, geel = botsrechthoeken van de obstakels,
+groen = de opening). De code staat achter `process.env.NODE_ENV` en wordt in
+een productiebuild niet meegebouwd.
+
 De lage voorgrond wordt vóór de obstakels getekend en blijft maximaal 8% van
 de wereldhoogte zichtbaar.
 

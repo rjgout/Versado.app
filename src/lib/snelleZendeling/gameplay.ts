@@ -19,10 +19,21 @@ export const GAP_HEIGHT = 182;
 export const PAIR_SPACING = 220;
 export const FIRST_OBSTACLE_X = WORLD_WIDTH + 105;
 export const MASCOT_X = 94;
-export const MASCOT_HITBOX_WIDTH = 42;
-export const MASCOT_HITBOX_HEIGHT = 42;
-export const MASCOT_HITBOX_OFFSET_X = 5;
-export const MASCOT_HITBOX_OFFSET_Y = 5;
+/** Getekende maat van de mascotte in wereldpixels (de 1254x1254-sprite wordt hiernaartoe geschaald). */
+export const MASCOT_RENDER_SIZE = 74;
+
+// Eén vaste gameplay-hitbox voor elke gids en elke pose (glide én boost): een
+// ellips op romp en kop, relatief aan de linkerbovenhoek van de getekende
+// sprite. De staart, losse haartoefjes, oorpunten en de transparante rand van
+// de sprite tellen bewust niet mee. De maten zijn gemeten aan de zes echte
+// sprites (tests/snelle-zendeling.test.ts leest ze opnieuw uit de PNG's): de
+// rand van de ellips ligt overal hooguit enkele pixels van zichtbaar lichaam,
+// terwijl de vorige box 24-28 px los van het dier zweefde (10-14 px boven de
+// oren en 11-14 px achter de neus).
+export const MASCOT_HITBOX_WIDTH = 32;
+export const MASCOT_HITBOX_HEIGHT = 24;
+export const MASCOT_HITBOX_OFFSET_X = 26;
+export const MASCOT_HITBOX_OFFSET_Y = 26;
 
 export const MIN_GAP_Y = PLAY_TOP + 24;
 export const MAX_GAP_Y = PLAY_BOTTOM - GAP_HEIGHT - 24;
@@ -56,6 +67,7 @@ export function createObstaclePair(id: number, x: number, random: () => number, 
   return { id, x, gapY: nextGapY(random, previousGapY) };
 }
 
+/** Omsluitende rechthoek van de hitbox; voor de speelzone en de debugweergave. */
 export function mascotHitbox(body: MascotBody): { x: number; y: number; width: number; height: number } {
   return {
     x: body.x + MASCOT_HITBOX_OFFSET_X,
@@ -65,8 +77,30 @@ export function mascotHitbox(body: MascotBody): { x: number; y: number; width: n
   };
 }
 
-function overlaps(a: { x: number; y: number; width: number; height: number }, b: { x: number; y: number; width: number; height: number }): boolean {
-  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+export interface HitboxEllipse {
+  cx: number;
+  cy: number;
+  rx: number;
+  ry: number;
+}
+
+export function mascotHitboxEllipse(body: MascotBody): HitboxEllipse {
+  const box = mascotHitbox(body);
+  return { cx: box.x + box.width / 2, cy: box.y + box.height / 2, rx: box.width / 2, ry: box.height / 2 };
+}
+
+type Rect = { x: number; y: number; width: number; height: number };
+
+/**
+ * Exacte ellips-rechthoektest: deel x en y door de stralen, dan is de ellips
+ * een eenheidscirkel en blijft de rechthoek asgelijnd. Alleen raken telt niet.
+ */
+function ellipseOverlapsRect(ellipse: HitboxEllipse, rect: Rect): boolean {
+  const nearestX = Math.max(rect.x, Math.min(ellipse.cx, rect.x + rect.width));
+  const nearestY = Math.max(rect.y, Math.min(ellipse.cy, rect.y + rect.height));
+  const dx = (nearestX - ellipse.cx) / ellipse.rx;
+  const dy = (nearestY - ellipse.cy) / ellipse.ry;
+  return dx * dx + dy * dy < 1;
 }
 
 export function obstacleRects(pair: ObstaclePair): { top: { x: number; y: number; width: number; height: number }; bottom: { x: number; y: number; width: number; height: number } } {
@@ -77,9 +111,9 @@ export function obstacleRects(pair: ObstaclePair): { top: { x: number; y: number
 }
 
 export function collidesWithObstacle(body: MascotBody, pair: ObstaclePair): boolean {
-  const hitbox = mascotHitbox(body);
+  const ellipse = mascotHitboxEllipse(body);
   const rects = obstacleRects(pair);
-  return overlaps(hitbox, rects.top) || overlaps(hitbox, rects.bottom);
+  return ellipseOverlapsRect(ellipse, rects.top) || ellipseOverlapsRect(ellipse, rects.bottom);
 }
 
 export function isOutOfPlayZone(body: MascotBody): boolean {
