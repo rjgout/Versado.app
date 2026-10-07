@@ -10,7 +10,7 @@ import { helaman } from "./helaman";
 import { nephi3 } from "./3-ne";
 import { slot } from "./slot";
 
-// Book of Mormon, German edition. Generated from Dutch master.
+// Das Buch Mormon, deutsche Ausgabe. Eine Datei pro Buch; gleiche Frage-IDs und Versangaben wie die niederländische Vorlage.
 export const bofmDe: GeneesBankSeed = {
   id: "bofm-de",
   work: "bofm",
