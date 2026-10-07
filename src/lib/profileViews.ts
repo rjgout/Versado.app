@@ -27,3 +27,14 @@ export function parseProfileView(value: string | null | undefined): ProfileView 
 export function profileViewHref(view: ProfileView): string {
   return `/profile?view=${view}`;
 }
+
+/**
+ * Alleen het overzicht (/profile zonder onderdeel) is de hoofdprofielpagina.
+ * Elke andere pagina binnen de profielshell is een onderliggende pagina: een
+ * onderdeel (?view=...) of een losse route zoals /feedback. Daarom is dit de
+ * enige plek die bepaalt of de profielfooter getoond wordt, en tonen nieuwe
+ * profielonderdelen hem standaard niet.
+ */
+export function isProfileOverview(pathname: string | null | undefined, view: ProfileView | null): boolean {
+  return pathname === "/profile" && view === null;
+}

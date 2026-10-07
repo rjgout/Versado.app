@@ -38,7 +38,7 @@
     "test:mystery": "tsx --test tests/mystery001a.test.ts tests/mystery002.test.ts tests/mystery003-006.test.ts tests/focus-mode.test.ts",
     "test:artwork": "tsx --test tests/artwork.test.ts",
     "test:leagues": "tsx --test tests/leagues.test.ts",
-    "test:profile": "tsx --test tests/profile-settings.test.ts",
+    "test:profile": "tsx --test tests/profile-settings.test.ts tests/profile-footer.test.ts",
     "test:cards": "tsx --test tests/cards.test.ts",
     "test:conference": "tsx --test tests/generalConference.test.ts",
     "test:streak-calendar": "tsx --test tests/streak-calendar.test.ts",

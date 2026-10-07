@@ -11,7 +11,12 @@ layout-CSS.
 - **Shell**: elke profielpagina rendert binnen `ProfilePage`
   (`src/components/profile/ProfilePage.tsx`). Die regelt de breedte
   (`max-w-3xl`, voor overzicht en onderdelen gelijk), de afstand tussen
-  blokken en de footer: onderaan het scherm op een korte pagina, na de inhoud
+  blokken en de footer. De footer (disclaimer met privacy en cookies) staat
+  alleen op het overzicht `/profile`; onderdelen (`?view=...`) en losse
+  profielpagina's tonen hem niet. Dat volgt uit de route
+  (`isProfileOverview` in `src/lib/profileViews.ts`), dus een nieuw onderdeel
+  begint zonder footer en heeft geen eigen uitzondering nodig. Op het
+  overzicht staat hij onderaan het scherm op een korte pagina, na de inhoud
   op een lange (`.page-fill` + `mt-auto`, zie `globals.css`). Ruimte voor de
   vaste bovenbalk en de onderbalk (met safe-area) komt van `<main>` via
   `--main-pad-top`/`--main-pad-bottom`; een pagina zet daar zelf niets voor.
