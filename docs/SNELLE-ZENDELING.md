@@ -166,11 +166,34 @@ de wereldhoogte zichtbaar.
 De server maakt eerst een `QuickMissionaryRun` aan. De client meldt alleen de
 score bij een botsing of einde; de server controleert run-eigenaarschap,
 status, monotone score, maximale score en het hoogst mogelijke tempo op basis
-van de servertijd. Een run kan maar één keer Genezen; intern blijven de
-stabiele `revive*`-namen bestaan. Na een goede vraag gaat
-de status naar `REVIVE_READY`; de wereld blijft gepauzeerd totdat de gebruiker
-tikt, waarna drie seconden veilige collisionbescherming actief zijn. Een fout
-antwoord of weigeren beëindigt de run.
+van de servertijd. Intern blijven de stabiele `revive*`-namen bestaan. Na een
+goede vraag gaat de status naar `REVIVE_READY`; de wereld blijft gepauzeerd
+totdat de gebruiker tikt, waarna drie seconden veilige collisionbescherming
+actief zijn. Een fout antwoord of weigeren beëindigt de run.
+
+### Genees als voorraad en de prijs
+
+Elke run heeft één **gratis** Genees (`reviveUsed`); die raakt de voorraad niet.
+Daarna kost elke poging één Genees uit de **accountgebonden voorraad**
+(`User.geneesBalance`, nooit negatief: CHECK-constraint). De poging is verbruikt
+zodra de vraag wordt uitgegeven, ook bij een fout antwoord, en nooit dubbel bij
+verversen of een tweede toestel. Elke Genees blijft een vraag uit de bank: de
+vraagvolgorde en de gezien-geschiedenis veranderen niet.
+
+De prijs komt uit één functie, `geneesPriceXp(voorraad)` in
+`src/lib/genees/pricing.ts`: **100 + huidige voorraad × 25** (0 → 100, 1 → 125,
+2 → 150). Winkel, in-game noodkoop en alle weergaven gebruiken alleen die functie.
+Een aankoop (`src/lib/genees/inventory.ts`) neemt eerst een rijvergrendeling op
+de gebruiker, rekent de prijs op de actuele voorraad, boekt de XP via de gewone
+ledger (`XPReason.GENEES_PURCHASED`) en de divisiestand (`applyWeeklyXp`, zoals
+hints en freezes: een aankoop kan de weekstand verlagen, er is geen verborgen
+bescherming), en verhoogt de voorraad, atomair. `GeneesPurchase` is de
+audittrail en maakt een herhaald verzoek met dezelfde sleutel idempotent.
+
+De **in-game noodkoop** (alleen als de gratis Genees is gebruikt en de voorraad
+leeg is) mag maximaal één keer per run en per speler, server-side afgedwongen
+onder een rijvergrendeling op de run (`inGamePurchaseUsed`). In de winkel kun je
+onbeperkt kopen. Solo en samen gebruiken dezelfde economie.
 
 ### Genees-vragen
 
@@ -281,6 +304,84 @@ Novi, Varo en Vera delen exact deze ene Vandaag- en All-time-ranking. Naam,
 sprite en cover zijn presentatielaag en worden niet als rankingcategorie
 opgeslagen.
 
+## Samen spelen (gezamenlijke run)
+
+De host maakt vanaf de startpagina een lobby (`POST /api/snelle-zendeling/together`,
+een `LiveGame` met mode `QUICK_MISSIONARY`) en nodigt vrienden uit via het
+bestaande vriendenpaneel, de bestaande uitnodigingsmeldingen en de bestaande
+Socket.io-infrastructuur (`src/server/quickMissionary.ts`, events `qm:*`).
+Uitnodigingslinks wijzen naar `/live/<code>`, dat voor deze mode doorverwijst
+naar de schermvullende route `/snelle-zendeling/samen/<code>`. Er is **geen
+bovengrens** op het aantal spelers; vanaf twee spelers kan de host starten.
+
+**Eén wereld voor iedereen.** Bij de start legt de server een `seed` en een
+`startsAt` (servertijd, na het aftellen) vast in `QuickMissionaryMatch`.
+Obstakels volgen deterministisch uit de seed (`createSharedWorld`, geen
+`Math.random`), de wereld loopt op een gezamenlijke tijdlijn (`distanceAt(t)`)
+en de moeilijkheid hangt af van de voortgang van die tijdlijn (het aantal
+gepasseerde paren), niet van de eigen score: wie Geneest vliegt verder in
+dezelfde wereld. Dezelfde curve als solo (`difficulty.ts`). De client corrigeert
+zijn klok naar servertijd (`clock.ts`, kortste rondreis wint). Latency, een
+herverbinding of een ander toestel veranderen de wereld dus nooit.
+
+**Ghosts.** De anderen zijn doorzichtige mascotten (hun eigen gids, cosmetisch);
+je botst alleen tegen de wereld, nooit tegen elkaar, en ghosts geven geen score.
+Posities gaan vluchtig via `qm:pos`/`qm:ghosts` en bepalen nooit iets in de
+uitslag. Bij heel veel spelers dunt de server de ghostupdates uit; er wordt
+niemand geweigerd.
+
+**Deelnemerstoestanden** (`matchRules.ts`, afgeleid van `QuickMissionaryRun`):
+`ACTIVE` (vliegt), `REVIVE_PENDING` (gebotst, wacht op of beantwoordt een Genees;
+telt nog mee), `ELIMINATED` (definitief af, met volgnummer `eliminatedSeq`) en
+`FINISHED` (de overlevende). Elke wijziging loopt via `runs.ts` in één
+transactie met vaste vergrendelingsvolgorde **wedstrijd → run → gebruiker**,
+zodat elke eliminatie een eigen volgnummer krijgt en de beslissing "is de run
+voorbij" altijd een consistente stand ziet.
+
+**Einde van de run** (`decideMatch`, `settleMatch` in `match.ts`): zodra er nog
+één deelnemer meedoet stopt de run voor iedereen; scores blijven zoals ze waren
+(geen bonuspunten).
+- Eén speler vliegt (of heeft een goed Genees-antwoord al verdiend): hij blijft
+  over, `LAST_STANDING`.
+- Blijft alleen iemand over die nog op een Genees wacht, dan vliegt er niemand
+  meer: `NOBODY_FLYING`, zijn Genees vervalt. Daarna is elke Genees-actie
+  `INVALID_STATE`: een correct antwoord brengt nooit iemand terug na afsluiting
+  (de run is dan `FINISHED`, dat is structureel, geen aparte controle).
+- Alle spelers tegelijk dood is hetzelfde geval: zodra niemand meer vliegt of kan
+  terugkeren is de run definitief voorbij.
+
+**De laatste twee (Duo).** Bij afsluiten legt de server precies één
+`QuickMissionaryDuoResult` vast (`matchId` is uniek; `settleMatch` is idempotent):
+de laatste twee in overlevingsvolgorde, ook bij precies twee spelers, met ruwe
+scores en `participantCount`. De **scoreformule en ranking van het duo zijn nog
+niet vastgelegd**; zie "Open productbeslissing: Duo-score" hieronder.
+
+**Verbinding.** Elke client stuurt een hartslag (`qm:pos`/`qm:beat`, bewaard
+hooguit eens per seconde in `QuickMissionaryRun.lastSeenAt`). Wie langer dan
+`ACTIVE_GRACE_MS` (vliegend) of `PENDING_GRACE_MS` (Genees) stil is, valt af
+(`DISCONNECT`); een herverbinding daarbinnen verandert niets, want gratis-Genees,
+noodkoopvlag, voorraad en score staan in de database. Een frame dat langer dan
+een seconde wegblijft (verborgen tabblad) telt als botsing, zodat niemand door
+wanden "teleporteert". Na een herstart van de server krijgt iedereen een verse
+wachttijd.
+
+**Ranking.** Gezamenlijke runs tellen **niet** mee in Vandaag en All-time van de
+solo-ranking (`matchId IS NULL`): de wereld is anders (moeilijkheid volgt de
+gedeelde tijdlijn) en de run stopt door anderen, dus scores zijn niet
+vergelijkbaar. Een toekomstig gezamenlijk klassement is een aparte keuze.
+
+**Beperking.** Net als solo draait de physics op de client; de server valideert
+score en tempo tegen de gezamenlijke tijdlijn (`validateSharedScore`), maar kan
+niet zien of iemand een botsing heeft overgeslagen. De hartslag en de tijdlijn
+begrenzen dat, ze lossen het niet op.
+
+### Open productbeslissing: Duo-score
+
+Er bestaat geen definitie van een duo-score. Opties: (1) **som** van beide
+scores (aanbevolen), (2) **laagste** van de twee, (3) **hoogste** van de twee.
+Ruwe gegevens worden al vastgelegd; de gekozen formule hoeft dus alleen bij het
+opvragen toegepast te worden.
+
 ## Database en beheer
 
 `GameSettings.quickMissionaryEnabled` is standaard uit. De migratie maakt ook
@@ -292,6 +393,9 @@ drie afleiders van de bestaande Nederlandse vraag bij 1 Nephi 1 inhoudelijk
 vergelijkbaarder; schema en correct antwoord veranderen niet. De migratie
 `20261016100000_quick_missionary_revive_bank` voegt de Genees-tabellen toe en
 neemt die ene vraag over; bestaande spelers beginnen bij het eerste hoofdstuk.
+`20261017100000_genees_inventory` voegt de Genees-voorraad toe (standaard 0, geen
+terugwerkende kracht) en `20261018100000_quick_missionary_matches` de
+gezamenlijke runs en het duo-resultaat (bestaande runs hebben geen `matchId`).
 
 ## Platform en toegankelijkheid
 
@@ -319,3 +423,12 @@ gebruiker, geen herhaling, de cyclusreset en de lege bank. De hitbox heeft
 `tests/snelle-zendeling-hitbox.test.ts`. Alles samen: `npm run
 test:snelle-zendeling`. Shellmodi staan in `tests/focus-mode.test.ts` en de
 coverresolver in `tests/artwork.test.ts`.
+
+De Genees-economie staat in `tests/genees-economy.test.ts` en
+`tests/genees-economy.integration.test.ts` (`npm run test:genees-economy`).
+Samen spelen: `tests/snelle-zendeling-match.test.ts` (gedeelde wereld, tijdlijn,
+klok, toestanden en beslissingen) en
+`tests/snelle-zendeling-match.integration.test.ts` (levenscyclus, 2/3/12
+spelers, samenloop, geen resurrectie, hartslag en wegvallen, economie in een
+wedstrijd, uitsluiting van de solo-ranking), beide in `npm run
+test:snelle-zendeling`. De integratietests vragen `LEARNING_TEST_DATABASE_URL`.

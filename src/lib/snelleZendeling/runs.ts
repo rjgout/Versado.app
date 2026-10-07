@@ -5,7 +5,7 @@ import { shuffleForDisplay } from "@/lib/exerciseGen";
 import type { Prisma } from "@/generated/prisma/client";
 import { validateReportedScore } from "./validation";
 import { validateSharedScore } from "./sharedWorld";
-import { eliminateRun, lockMatch, settleMatch, announceMatchChanged, type EliminationHow } from "./match";
+import { eliminateRun, lockMatch, settleMatch, announceMatchChanged, type EliminationHow, type MatchAnnouncement } from "./match";
 import { applyReviveAnswer, reviveQuestionContext, selectReviveOptions } from "./rules";
 import { REVIVE_START, cursorAfterAnswer, pickReviveQuestion, type ReviveChapterEntry } from "./reviveSelection";
 import { rankScores } from "./ranking";
@@ -176,11 +176,11 @@ async function checkScore(tx: Tx, run: { matchId: string | null; startedAt: Date
 }
 
 /** Na een wijziging in een wedstrijd: afsluiten als dat moet en de deelnemers laten verversen. */
-async function afterMatchChange(tx: Tx, matchId: string | null, at: Date): Promise<string | null> {
+async function afterMatchChange(tx: Tx, matchId: string | null, at: Date): Promise<MatchAnnouncement | null> {
   if (!matchId) return null;
-  await settleMatch(tx, matchId, at);
-  const game = await tx.quickMissionaryMatch.findUniqueOrThrow({ where: { id: matchId }, select: { liveGame: { select: { code: true } } } });
-  return game.liveGame.code;
+  const { ended } = await settleMatch(tx, matchId, at);
+  const game = await tx.quickMissionaryMatch.findUniqueOrThrow({ where: { id: matchId }, select: { liveGame: { select: { code: true } }, runs: { select: { userId: true } } } });
+  return { code: game.liveGame.code, endedFor: ended ? game.runs.map((run) => run.userId) : null };
 }
 
 /**
@@ -356,7 +356,7 @@ export async function requestReviveQuestion(runId: string, userId: string): Prom
 }
 
 export async function answerReviveQuestion(runId: string, userId: string, exerciseId: string, optionId: string): Promise<{ correct: boolean; view: QuickMissionaryRunView }> {
-  let announce: string | null = null;
+  let announce: MatchAnnouncement | null = null;
   const result = await prisma.$transaction(async (tx) => {
     const run = await lockRun(tx, runId, userId);
     // Na afsluiting van de wedstrijd is de run FINISHED: een goed antwoord brengt
@@ -410,7 +410,7 @@ export async function resumeAfterRevive(runId: string, userId: string): Promise<
     // Een run die de wedstrijd al heeft afgesloten is FINISHED: geen resurrectie.
     if (run.status !== "REVIVE_READY") return null;
     await tx.quickMissionaryRun.update({ where: { id: runId }, data: { status: "IN_PROGRESS", reviveExerciseId: null, reviveOptionIds: null, lastSeenAt: now() } });
-    return run.matchId ? (await tx.quickMissionaryMatch.findUniqueOrThrow({ where: { id: run.matchId }, select: { liveGame: { select: { code: true } } } })).liveGame.code : null;
+    return run.matchId ? { code: (await tx.quickMissionaryMatch.findUniqueOrThrow({ where: { id: run.matchId }, select: { liveGame: { select: { code: true } } } })).liveGame.code, endedFor: null } : null;
   });
   announceMatchChanged(code);
 }

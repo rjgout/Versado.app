@@ -82,7 +82,11 @@ als de gebruiker de activiteit verlaat. Gebruik daarvoor
 
 Snelle Zendeling gebruikt specifieke glide/boost-gameplaysprites; die zijn
 geen nieuwe globale mascotstates. De serverstatus, reviveflow, rankingdag en
-fair-play-afspraken staan in `docs/SNELLE-ZENDELING.md`.
+fair-play-afspraken staan in `docs/SNELLE-ZENDELING.md`. Dat document beschrijft
+ook Genees als voorraad (prijs uitsluitend via `geneesPriceXp`,
+`src/lib/genees/pricing.ts`) en Samen spelen (gezamenlijke run: één wereld uit
+seed + servertijd, uitslag alleen server-side in `match.ts`/`runs.ts` met
+vergrendelingsvolgorde wedstrijd → run → gebruiker).
 
 ## Platformfundering: web/PWA, iOS en Android
 

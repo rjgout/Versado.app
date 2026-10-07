@@ -26,6 +26,7 @@ const FOCUS_ROUTES = [
 
 const IMMERSIVE_ROUTES = [
   /^\/snelle-zendeling\/run\/[^/]+$/,
+  /^\/snelle-zendeling\/samen\/[^/]+$/,
 ] as const;
 
 /**

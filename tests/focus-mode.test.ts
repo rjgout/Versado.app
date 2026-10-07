@@ -26,6 +26,8 @@ test("actieve leer- en spelroutes gebruiken focus mode", () => {
 test("arcadegameplay gebruikt de centrale immersive mode", () => {
   assert.equal(isImmersiveRoute("/snelle-zendeling/run/run-1"), true);
   assert.equal(shellModeForRoute("/snelle-zendeling/run/run-1"), "immersive");
+  assert.equal(isImmersiveRoute("/snelle-zendeling/samen/ABCDE"), true);
+  assert.equal(shellModeForRoute("/snelle-zendeling/samen/ABCDE"), "immersive");
   assert.equal(isImmersiveRoute("/snelle-zendeling"), false);
   assert.equal(shellModeForRoute("/snelle-zendeling"), "normal");
   const css = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");

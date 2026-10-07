@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { estimateClockOffset } from "../src/lib/snelleZendeling/clock";
 import { FIRST_OBSTACLE_X, MASCOT_X, MAX_GAP_STEP, OBSTACLE_WIDTH, PAIR_SPACING, PLAY_BOTTOM, WORLD_WIDTH, effectiveGapHeight, gapYBounds, passedPair, worldSpeed } from "../src/lib/snelleZendeling/gameplay";
 import {
   SHARED_SCORE_GRACE_SECONDS,
@@ -226,4 +227,25 @@ test("een wachtende die bij het afsluiten vervalt krijgt de hoogste eliminatievo
     { userId: "B", score: 20, eliminatedSeq: 1 },
   ])!;
   assert.deepEqual([duo.a.userId, duo.b.userId], ["A", "B"]);
+});
+
+test("klokcorrectie: de meting met de kortste rondreis wint en een afwijkende klok wordt rechtgezet", () => {
+  // Toestel loopt 5 s achter op de server; rondreizen van 400, 60 en 200 ms.
+  const serverAt = (clientTime: number) => clientTime + 5_000;
+  const samples = [
+    { sentAt: 1000, receivedAt: 1400, serverNow: serverAt(1000 + 100) },
+    { sentAt: 2000, receivedAt: 2060, serverNow: serverAt(2000 + 30) },
+    { sentAt: 3000, receivedAt: 3200, serverNow: serverAt(3000 + 150) },
+  ];
+  const offset = estimateClockOffset(samples);
+  assert.ok(offset !== null);
+  assert.ok(Math.abs(offset - 5_000) <= 30, `offset ${offset}`);
+  assert.equal(estimateClockOffset([]), null);
+  assert.equal(estimateClockOffset([{ sentAt: 10, receivedAt: 5, serverNow: 0 }]), null, "negatieve rondreis is onbruikbaar");
+});
+
+test("beslissing: een verdiend Genees-antwoord wint van een tegenstander die afvalt; zonder antwoord vervalt de Genees", () => {
+  assert.deepEqual(decideMatch([{ userId: "a", state: "REVIVE_PENDING", reviveGranted: true }, { userId: "b", state: "ELIMINATED" }]), { over: true, reason: "LAST_STANDING", survivorId: "a", voidedIds: [] });
+  assert.deepEqual(decideMatch([{ userId: "a", state: "REVIVE_PENDING" }, { userId: "b", state: "ELIMINATED" }]), { over: true, reason: "NOBODY_FLYING", survivorId: null, voidedIds: ["a"] });
+  assert.deepEqual(decideMatch([{ userId: "a", state: "REVIVE_PENDING" }, { userId: "b", state: "REVIVE_PENDING" }]), { over: false });
 });

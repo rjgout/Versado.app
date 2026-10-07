@@ -17,9 +17,20 @@ export function emitToUser(userId: string, event: string, payload?: unknown): vo
   realtimeGlobal.__versadoRealtimeServer?.to(`user:${userId}`).emit(event, payload);
 }
 
-/** Een room (bv. een lopende gezamenlijke run) laten weten dat er iets veranderd is; de client haalt zelf opnieuw op. */
-export function emitToRoom(room: string, event: string, payload?: unknown): void {
-  realtimeGlobal.__versadoRealtimeServer?.to(room).emit(event, payload);
+// Gezamenlijke runs (Samen spelen): de toestand verandert via gewone API-routes
+// (dood, Genees, opgeven), maar de room staat in de socketmodule
+// (src/server/quickMissionary.ts). Die meldt zich hier aan; een route meldt
+// alleen de spelcode, de module haalt de nieuwe stand zelf op en stuurt hem naar
+// de room. Zonder luisteraar (bv. in een test) gebeurt er niets.
+type MatchChangeListener = (gameCode: string) => void;
+const matchGlobal = globalThis as typeof globalThis & { __versadoMatchChangeListener?: MatchChangeListener };
+
+export function setMatchChangeListener(listener: MatchChangeListener): void {
+  matchGlobal.__versadoMatchChangeListener = listener;
+}
+
+export function notifyMatchChanged(gameCode: string): void {
+  matchGlobal.__versadoMatchChangeListener?.(gameCode);
 }
 
 // Realtime-onderwerpen (zie LIVE_TOPICS in src/lib/data/scopes.ts): alleen

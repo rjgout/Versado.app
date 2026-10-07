@@ -213,6 +213,8 @@ export async function getActiveGameStatus(user: { id: string; uiLanguage: string
         ? `${t("activeGames.liveGame", { name: t("pages.chapterGuess") })}${suffix}`
         : lg.mode === "ALLESKENNER"
           ? `${t("pages.alleskenner")}${suffix}`
+        : lg.mode === "QUICK_MISSIONARY"
+          ? `${t("quickMissionary.together.inviteLabel")}${suffix}`
         : lg.mode === "FAMILY_GAME"
           ? `${t("pages.familyNight")}${suffix}`
           : `${t("activeGames.liveGame", { name: `${lg.chapter?.book.name} ${lg.chapter?.number}` })}${suffix}`;
@@ -296,6 +298,8 @@ export async function getActiveGameStatus(user: { id: string; uiLanguage: string
         ? t("pages.chapterGuess")
         : game.mode === "ALLESKENNER"
           ? t("pages.alleskenner")
+        : game.mode === "QUICK_MISSIONARY"
+          ? t("quickMissionary.together.inviteLabel")
         : game.mode === "FAMILY_GAME"
           ? t("pages.familyNight")
           : `${game.chapter?.book.name} ${game.chapter?.number}`,

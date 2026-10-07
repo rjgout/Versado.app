@@ -1,7 +1,9 @@
 import { randomBytes } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import { emitToRoom } from "@/lib/realtime";
+import { emitToUser, notifyMatchChanged } from "@/lib/realtime";
+import { companionToMascot } from "@/lib/companion";
+import type { PersonalMascotCharacter } from "@/lib/mascots";
 import { dayKeyInZone, resolveTimeZone } from "@/lib/timeZone";
 import { MATCH_COUNTDOWN_MS, validateSharedScore } from "./sharedWorld";
 import { decideMatch, deriveDuo, participantState, type MatchDecision, type ParticipantState } from "./matchRules";
@@ -30,9 +32,20 @@ export function matchChannel(gameCode: string): string {
   return `qm:${gameCode}`;
 }
 
-/** Laat de deelnemers hun wedstrijdstand opnieuw ophalen (alleen de naam van de gebeurtenis, nooit gegevens). */
-export function announceMatchChanged(gameCode: string | null): void {
-  if (gameCode) emitToRoom(matchChannel(gameCode), "qm:changed");
+export interface MatchAnnouncement {
+  code: string;
+  /** Gezet zodra de wedstrijd is afgesloten: wie "actief spel" moet laten verdwijnen. */
+  endedFor: string[] | null;
+}
+
+/**
+ * Laat de socketmodule de nieuwe wedstrijdstand naar de room sturen en laat bij
+ * een afsluiting de actieve-spellenlijst van de deelnemers verversen.
+ */
+export function announceMatchChanged(announcement: MatchAnnouncement | null): void {
+  if (!announcement) return;
+  notifyMatchChanged(announcement.code);
+  for (const userId of announcement.endedFor ?? []) emitToUser(userId, "game_left", { code: announcement.code });
 }
 
 export async function lockMatch(tx: Tx, matchId: string): Promise<void> {
@@ -94,6 +107,8 @@ export async function settleMatch(tx: Tx, matchId: string, at: Date): Promise<Se
 
   const finalRuns = await tx.quickMissionaryRun.findMany({ where: { matchId }, select: { userId: true, score: true, eliminatedSeq: true } });
   await tx.quickMissionaryMatch.update({ where: { id: matchId }, data: { status: "ENDED", endedAt: at, endReason: decision.reason } });
+  // Het lobbyrecord sluit mee, zodat de run niet eindeloos als "actief spel" blijft staan.
+  await tx.liveGame.update({ where: { id: match.liveGameId }, data: { status: "FINISHED" } });
   const duo = deriveDuo(finalRuns);
   if (duo) {
     await tx.quickMissionaryDuoResult.create({
@@ -195,7 +210,8 @@ export interface MatchParticipantView {
   userId: string;
   handle: string;
   discriminator: string;
-  companion: string | null;
+  /** De gids van deze speler (cosmetisch): iedereen vliegt met zijn eigen gids. */
+  character: PersonalMascotCharacter;
   state: ParticipantState;
   score: number;
   /** Plaats in de volgorde van afvallen (1 = eerst); null zolang hij meedoet of als overlevende. */
@@ -216,6 +232,15 @@ export interface MatchView {
   participants: MatchParticipantView[];
   /** De laatste twee (alleen na afloop). */
   duo: { userAId: string; userBId: string; scoreA: number; scoreB: number } | null;
+}
+
+/** Wat de socketmodule naar iedereen in de room stuurt (lobby en wedstrijd). */
+export interface RoomPayload {
+  phase: "lobby" | "running" | "ended";
+  hostId: string;
+  code: string;
+  players: { id: string; handle: string; discriminator: string }[];
+  match: MatchView | null;
 }
 
 export async function getMatchView(matchId: string, at: Date = new Date()): Promise<MatchView | null> {
@@ -243,7 +268,7 @@ export async function getMatchView(matchId: string, at: Date = new Date()): Prom
       userId: run.userId,
       handle: run.user.handle,
       discriminator: run.user.discriminator,
-      companion: run.user.companion,
+      character: companionToMascot(run.user.companion),
       state: participantState(run),
       score: run.score,
       eliminatedSeq: run.eliminatedSeq,

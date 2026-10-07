@@ -38,6 +38,7 @@ import {
 } from "@/lib/familyGame";
 import { forgetAlleskennerRoom, registerAlleskennerHandlers } from "@/server/alleskenner";
 import { forgetStudyRoom, registerStudyHandlers } from "@/server/study";
+import { forgetQuickMissionaryRoom, registerQuickMissionaryHandlers } from "@/server/quickMissionary";
 
 const EXERCISES_TIME_MS = 20_000;
 // "Raad het hoofdstuk" krijgt bewust ruim meer tijd (1 minuut, zoals
@@ -207,6 +208,7 @@ function liveGameLabel(game: { mode: string; chapter?: { number: number; book: {
   if (game.mode === "CHAPTER_GUESS") return t("pages.chapterGuess");
   if (game.mode === "FAMILY_GAME") return t("pages.familyNight");
   if (game.mode === "ALLESKENNER") return t("pages.alleskenner");
+  if (game.mode === "QUICK_MISSIONARY") return t("quickMissionary.together.inviteLabel");
   return game.chapter ? `${game.chapter.book.name} ${game.chapter.number}` : t("notify.aLiveGame");
 }
 
@@ -670,6 +672,7 @@ export function initGameServer(httpServer: HttpServer) {
     socket.join(`user:${user.id}`);
     registerAlleskennerHandlers(ioInstance!, socket, user);
     registerStudyHandlers(ioInstance!, socket, user);
+    registerQuickMissionaryHandlers(ioInstance!, socket, user);
 
     // Aanwezigheid voor het adminoverzicht (/adminbackend): zie de opmerking
     // bij User.onlineSocketCount in schema.prisma voor waarom dit in de
@@ -1157,6 +1160,7 @@ export function initGameServer(httpServer: HttpServer) {
       rooms.delete(upperCode);
       forgetAlleskennerRoom(upperCode);
       forgetStudyRoom(upperCode);
+      forgetQuickMissionaryRoom(upperCode);
       for (const playerId of new Set([...playerIds, user.id])) {
         ioInstance?.to(`user:${playerId}`).emit("game_cancelled", { code: upperCode });
       }

@@ -354,3 +354,38 @@ test("weergave: de stand is voor alle deelnemers gelijk en bevat alleen wat nodi
   assert.equal(view.duo, null);
   assert.equal(JSON.stringify(view).includes("@test.invalid"), false, "geen e-mailadressen in de stand");
 });
+
+test("herverbinden: gratis Genees, noodkoopvlag, voorraad en score blijven zoals ze waren", { skip }, async () => {
+  const m = await startedMatch(3, { xp: 1000 });
+  const [a] = m.userIds;
+  const runId = m.runOf(a);
+  await L.match.recordBeat(m.matchId, a, 20);
+  await L.runs.reportDeath(runId, a, 25);
+  await reviveAndAnswer(a, runId, true);
+  await L.runs.resumeAfterRevive(runId, a);
+  await L.runs.reportDeath(runId, a, 30);
+  const bought = await L.runs.buyGeneesInRun(runId, a);
+  assert.ok(bought.result.ok);
+
+  // "Herverbinden" = alles opnieuw opvragen: geen enkele teller mag teruggezet zijn.
+  const view = await L.runs.getQuickMissionaryRunView(runId, a);
+  assert.deepEqual([view.reviveUsed, view.inGamePurchaseUsed, view.geneesBalance, view.score], [true, true, 1, 30]);
+  const match = await L.match.getMatchView(m.matchId);
+  assert.equal(match?.participants.find((p) => p.userId === a)?.score, 30);
+  // Een tweede noodkoop (ook van een tweede toestel) wordt geweigerd en kost niets extra.
+  const again = await L.runs.buyGeneesInRun(runId, a);
+  assert.equal(again.result.ok, false);
+  assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: a } })).xpTotal, 900);
+});
+
+test("twee toestellen: tegelijk dezelfde Genees-vraag aanvragen verbruikt precies één poging", { skip }, async () => {
+  const m = await startedMatch(3, { stock: 3 });
+  const [a] = m.userIds;
+  const runId = m.runOf(a);
+  await L.runs.reportDeath(runId, a, 0);
+  await reviveAndAnswer(a, runId, true); // de gratis Genees
+  await L.runs.resumeAfterRevive(runId, a);
+  await L.runs.reportDeath(runId, a, 0);
+  await Promise.allSettled([L.runs.requestReviveQuestion(runId, a), L.runs.requestReviveQuestion(runId, a)]);
+  assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: a } })).geneesBalance, 2);
+});

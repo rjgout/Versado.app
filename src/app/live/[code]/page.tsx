@@ -27,6 +27,10 @@ export default async function LiveGamePage({ params }: { params: Promise<{ code:
     },
   });
 
+  // Samen spelen met Vliegende {gids} heeft een eigen schermvullende route; de
+  // uitnodigingslinks wijzen naar /live/<code> en komen zo vanzelf op de juiste plek.
+  if (game?.mode === "QUICK_MISSIONARY") redirect(`/snelle-zendeling/samen/${upperCode}`);
+
   let content;
   if (game?.mode === "CHAPTER_GUESS") {
     content = <ChapterGuessGameRoom code={upperCode} myUserId={user.id} />;
