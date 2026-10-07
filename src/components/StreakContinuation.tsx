@@ -11,6 +11,7 @@ import { onXpChanged } from "@/lib/xpBroadcast";
 import { getSocket } from "@/lib/socketClient";
 import type { StreakContinuationView } from "@/lib/learning/streakReturnRules";
 import StreakCelebrationFlow, { type StreakCelebrationValue } from "@/components/StreakCelebrationFlow";
+import { shouldClaimStreakCelebration, visibleCelebration } from "@/lib/celebrationGate";
 
 const Context = createContext<StreakContinuationView | null>(null);
 export const useStreakContinuation = () => useContext(Context);
@@ -52,9 +53,17 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
   const shown = useRef(new Set<string>());
   const dialog = useRef<HTMLDialogElement>(null);
   const claimingCelebration = useRef(false);
+  const pathnameRef = useRef(pathname);
 
+  // De viering wordt pas geclaimd en getoond buiten een activiteit; zie celebrationGate.
   const claimCelebration = useCallback(async () => {
-    if (!userId || claimingCelebration.current) return;
+    const view = latest.current;
+    if (!userId || !shouldClaimStreakCelebration({
+      pathname: pathnameRef.current,
+      status: view?.status ?? null,
+      studiedToday: view?.studiedToday ?? false,
+      claiming: claimingCelebration.current,
+    })) return;
     claimingCelebration.current = true;
     try {
       const response = await fetch("/api/streak/celebration", { method: "POST", cache: "no-store" });
@@ -67,6 +76,13 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
       claimingCelebration.current = false;
     }
   }, [userId]);
+
+  // Staat vóór het verversen, zodat claimen altijd de actuele route leest. Bij elke
+  // routewissel ververst het effect hieronder opnieuw: verlaat de gebruiker een
+  // activiteit, dan wordt een openstaande viering op dat moment geclaimd.
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
 
   useEffect(() => {
     if (!userId) return;
@@ -88,7 +104,7 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
         }
         latest.current = next;
         setValue(next);
-        if (next.status === "ACTIVE" && next.studiedToday) void claimCelebration();
+        void claimCelebration();
         if (next.status === "INTERRUPTED") {
           const key = `streak-return:${userId}:${next.interruptedDay}`;
           let alreadyShown = shown.current.has(key);
@@ -129,6 +145,8 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
     if (!welcome && element?.open) element.close();
   }, [welcome]);
 
+  const shownCelebration = visibleCelebration(celebration, pathname);
+
   return <Context.Provider value={value}>
     {children}
     {success !== null && <div role="status" className="fixed inset-x-4 top-[calc(var(--header-height,4.5rem)+1rem)] z-50 mx-auto flex max-w-lg items-center gap-3 rounded-2xl border border-vs-line bg-vs-surface p-4 text-vs-fg shadow-lg">
@@ -158,6 +176,6 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
         <button type="button" className="btn-primary mt-5 w-full" onClick={() => setWelcome(false)}>{t("streakReturn.continue")}</button>
       </>}
     </dialog>
-    {celebration && <StreakCelebrationFlow value={celebration} onDone={() => setCelebration(null)} />}
+    {shownCelebration && <StreakCelebrationFlow value={shownCelebration} onDone={() => setCelebration(null)} />}
   </Context.Provider>;
 }

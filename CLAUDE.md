@@ -73,6 +73,13 @@ gebruikt `<PersonalMascot state />`: de gebruiker kiest zijn gids (Novi, Varo
 of Vera, `User.companion`, standaard Novi), de feature alleen de state. Zie de
 sectie "Mascottes" in `docs/VERSADO-DESIGN.md` voor de character canon.
 
+Een celebration die volgt uit het afronden van een activiteit (reeksviering,
+mijlpaal, beloning) verdringt nooit de resultaatkaart van die activiteit: de
+primaire completion-flow heeft voorrang en secundaire vieringen verschijnen pas
+als de gebruiker de activiteit verlaat. Gebruik daarvoor
+`src/lib/celebrationGate.ts`; zie "Voorrangsregel voor vieringen" in
+`docs/VERSADO-DESIGN.md`.
+
 Snelle Zendeling gebruikt specifieke glide/boost-gameplaysprites; die zijn
 geen nieuwe globale mascotstates. De serverstatus, reviveflow, rankingdag en
 fair-play-afspraken staan in `docs/SNELLE-ZENDELING.md`.

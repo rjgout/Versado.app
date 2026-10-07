@@ -30,6 +30,15 @@ const IMMERSIVE_ROUTES = [
   /^\/snelle-zendeling\/run\/[^/]+$/,
 ] as const;
 
+/**
+ * Activiteiten die hun eigen resultaatkaart tonen maar bewust de normale
+ * shell houden. Ze veranderen niets aan header of bottomnav; ze tellen alleen
+ * mee voor `isActivityRoute`.
+ */
+const ACTIVITY_IN_NORMAL_SHELL = [
+  /^\/practice$/,
+] as const;
+
 export type ShellMode = "normal" | "focus" | "immersive";
 
 export function isFocusRoute(pathname: string): boolean {
@@ -44,4 +53,14 @@ export function shellModeForRoute(pathname: string): ShellMode {
   if (isImmersiveRoute(pathname)) return "immersive";
   if (isFocusRoute(pathname)) return "focus";
   return "normal";
+}
+
+/**
+ * Is de gebruiker nu in een activiteit, inclusief het resultaatscherm en de
+ * stap "verder gaan" naar een volgende activiteit? Secundaire vieringen
+ * (bijvoorbeeld de reeksviering) wachten tot deze waarde false is, zodat de
+ * resultaatkaart van de activiteit nooit wordt verdrongen.
+ */
+export function isActivityRoute(pathname: string): boolean {
+  return isFocusRoute(pathname) || isImmersiveRoute(pathname) || ACTIVITY_IN_NORMAL_SHELL.some((pattern) => pattern.test(pathname));
 }
