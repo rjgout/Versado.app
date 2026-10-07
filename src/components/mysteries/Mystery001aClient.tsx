@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
-import { Check, CheckCircle2, Lightbulb, RotateCcw, X } from "lucide-react";
+import { Check, CheckCircle2, Eraser, Lightbulb, Undo2, X } from "lucide-react";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { useT } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
@@ -33,6 +33,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   const [boardAssetError, setBoardAssetError] = useState(false);
   const [characterAssetErrors, setCharacterAssetErrors] = useState<Partial<Record<CharacterId, true>>>({});
   const [placements, setPlacements] = useState<Placements>(() => emptyMysteryPlacements(definition));
+  const [placementHistory, setPlacementHistory] = useState<Placements[]>([]);
   const [selected, setSelected] = useState<CharacterId | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [dragTarget, setDragTarget] = useState<GridCell | null>(null);
@@ -54,6 +55,8 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   const [constraintPulse, setConstraintPulse] = useState(false);
   const tutorialActive = !!definition.tutorial && !tutorialDone;
   const canCheck = allCharactersPlaced(MYSTERY_001A, placements);
+  const canClear = Object.values(placements).some(Boolean);
+  const canUndo = placementHistory.length > 0;
   const closingQuestion = closingQuestionFor(definition);
   const selectedCharacter = MYSTERY_001A.characters.find((character) => character.id === selected) ?? null;
 
@@ -97,6 +100,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
 
   const resetAttempt = useCallback(() => {
     setPlacements(emptyMysteryPlacements(definition));
+    setPlacementHistory([]);
     setSelected(null);
     setDrag(null);
     setDragTarget(null);
@@ -115,22 +119,46 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
     setTutorialDone(!!definition.tutorial && (initialProgress.tutorialSeen || tutorialDone));
   }, [definition, initialProgress.tutorialSeen, tutorialDone]);
 
-  async function restart() {
-    if (Object.values(placements).some(Boolean) || hintCount > 0 || Object.values(clueNotes).some(Boolean)) {
-      const accepted = await confirm(t("mystery001a.restartConfirm"), { title: t("mystery001a.restart"), confirmLabel: t("mystery001a.restart") });
-      if (!accepted) return;
-    }
-    resetAttempt();
+  async function clearBoard() {
+    if (!canClear) return;
+    const accepted = await confirm(t("mystery001a.clearBoardConfirm"), { title: t("mystery001a.clearBoard"), confirmLabel: t("mystery001a.clearBoard") });
+    if (!accepted) return;
+    setPlacements(emptyMysteryPlacements(definition));
+    setPlacementHistory([]);
+    setSelected(null);
+    setDrag(null);
+    setDragTarget(null);
+    setWrongOpen(false);
+  }
+
+  function applyPlacement(next: Placements) {
+    setPlacementHistory((history) => [...history, placements]);
+    setPlacements(next);
+    setSelected(null);
+  }
+
+  function undoPlacement() {
+    const previous = placementHistory.at(-1);
+    if (!previous) return;
+    setPlacementHistory((history) => history.slice(0, -1));
+    setPlacements(previous);
+    setSelected(null);
+    setDrag(null);
+    setDragTarget(null);
+  }
+
+  function showTransientTutorialFeedback(message: string) {
+    setTutorialFeedback(message);
+    window.setTimeout(() => setTutorialFeedback(null), 1800);
   }
 
   function unplace(characterId: CharacterId) {
     if (tutorialActive && characterId === definition.tutorial?.characterId) return;
-    setPlacements((current) => ({ ...current, [characterId]: null }));
-    setSelected(null);
+    applyPlacement({ ...placements, [characterId]: null });
   }
 
   function finishTutorial(nextPlacements: Placements) {
-    setPlacements(nextPlacements);
+    applyPlacement(nextPlacements);
     setTutorialDone(true);
     setTutorialFeedback(t("mystery001a.tutorialGood"));
     setConstraintPulse(true);
@@ -140,20 +168,20 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "tutorial-seen" }),
     }).catch(() => {});
-    window.setTimeout(() => setConstraintPulse(false), 1800);
+    window.setTimeout(() => {
+      setConstraintPulse(false);
+      setTutorialFeedback(null);
+    }, 1800);
   }
 
   function tryPlace(characterId: CharacterId, cell: GridCell) {
     const result = placeCharacter(MYSTERY_001A, placements, characterId, cell, tutorialActive);
     if (!result.accepted) {
-      if (tutorialActive) setTutorialFeedback(t(definition.tutorialTryAgainKey ?? "mystery001a.tutorialTryAgain"));
+      if (tutorialActive) showTransientTutorialFeedback(t(definition.tutorialTryAgainKey ?? "mystery001a.tutorialTryAgain"));
       return;
     }
     if (tutorialActive && result.tutorialCorrect) finishTutorial(result.placements);
-    else {
-      setPlacements(result.placements);
-      setSelected(null);
-    }
+    else applyPlacement(result.placements);
   }
 
   function targetAt(clientX: number, clientY: number): GridCell | null {
@@ -324,46 +352,47 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   }
 
   return (
-    <FocusLayout className="max-w-5xl gap-4 pb-[calc(5.5rem+var(--vs-safe-area-bottom))]">
-      <header className="flex items-center justify-between gap-3">
+    <FocusLayout className="mystery-game-layout max-w-5xl gap-4 pb-[calc(4.5rem+var(--vs-safe-area-bottom))]">
+      <header className="hidden shrink-0 items-center lg:flex">
         <div className="min-w-0">
           <h1 className="sr-only">{t(definition.titleKey)}</h1>
           <p className="text-xs font-extrabold uppercase tracking-wider text-vs-accent">{t(definition.difficultyLabelKey)}</p>
         </div>
-        <button type="button" onClick={restart} className={`${secondaryButton} min-h-11`}>
-          <RotateCcw className="h-4 w-4" aria-hidden />
-          <span className="hidden sm:inline">{t("mystery001a.restart")}</span>
-        </button>
       </header>
 
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <section className="min-w-0 space-y-3">
-          <p className="text-sm font-semibold text-vs-fg-2">{tutorialActive ? t(definition.tutorialCopyKey ?? "mystery001a.tutorial") : t(definition.playIntroKey)}</p>
-          {tutorialFeedback && <p className="rounded-xl bg-vs-success-soft px-3 py-2 text-sm font-bold text-vs-success" role="status">{tutorialFeedback}</p>}
-          {boardAssetError ? (
-            <div className={`${surfaceCard} flex aspect-square items-center justify-center p-6 text-center text-vs-danger`} role="alert">{t("mystery001a.assetsMissing")}</div>
-          ) : !geometry ? (
-            <div className={`${surfaceCard} flex aspect-square items-center justify-center text-vs-fg-2`} role="status">{t("mystery001a.boardLoading")}</div>
-          ) : (
-            <MysteryBoard
-              definition={definition}
-              geometry={geometry}
-              placements={placements}
-              selected={selected}
-              dragTarget={dragTarget}
-              constraintPulse={constraintPulse}
-              tutorialActive={tutorialActive}
-              boardRef={boardRef}
-              onBoardAssetError={() => setBoardAssetError(true)}
-              characterAssetErrors={characterAssetErrors}
-              onCharacterAssetError={markCharacterAssetError}
-              onCell={(cell) => { if (selected) tryPlace(selected, cell); }}
-              onCharacterClick={characterClick}
-              onPointerDown={pointerDown}
-              onPointerMove={pointerMove}
-              onPointerUp={pointerUp}
-            />
-          )}
+      <div className="mystery-mobile-play-column grid min-h-0 flex-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 lg:gap-3">
+          <div className="mystery-mobile-board-slot">
+            {boardAssetError ? (
+              <div className={`${surfaceCard} mystery-board-frame flex aspect-square items-center justify-center p-6 text-center text-vs-danger`} role="alert">{t("mystery001a.assetsMissing")}</div>
+            ) : !geometry ? (
+              <div className={`${surfaceCard} mystery-board-frame flex aspect-square items-center justify-center text-vs-fg-2`} role="status">{t("mystery001a.boardLoading")}</div>
+            ) : (
+              <MysteryBoard
+                definition={definition}
+                geometry={geometry}
+                placements={placements}
+                selected={selected}
+                dragTarget={dragTarget}
+                constraintPulse={constraintPulse}
+                tutorialActive={tutorialActive}
+                boardRef={boardRef}
+                onBoardAssetError={() => setBoardAssetError(true)}
+                characterAssetErrors={characterAssetErrors}
+                onCharacterAssetError={markCharacterAssetError}
+                onCell={(cell) => { if (selected) tryPlace(selected, cell); }}
+                onCharacterClick={characterClick}
+                onPointerDown={pointerDown}
+                onPointerMove={pointerMove}
+                onPointerUp={pointerUp}
+              />
+            )}
+            {(tutorialActive || tutorialFeedback || saveError || (hintError && !hintKey)) && (
+              <div className={`pointer-events-none absolute inset-x-2 top-2 z-30 rounded-xl px-3 py-2 text-center text-xs font-extrabold shadow-lg ${tutorialFeedback ? "bg-vs-success-soft text-vs-success" : "bg-vs-elevated/95 text-vs-fg"}`} role={saveError || hintError ? "alert" : "status"}>
+                {tutorialActive ? t(definition.tutorialCopyKey ?? "mystery001a.tutorial") : tutorialFeedback ? tutorialFeedback : saveError ? t("mystery001a.saveFailed") : t("mystery001a.hintFailed")}
+              </div>
+            )}
+          </div>
 
           <CharacterTray
             definition={definition}
@@ -381,7 +410,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
             onPointerUp={pointerUp}
           />
           {selectedCharacter && placements[selectedCharacter.id] && !tutorialActive && (
-            <button type="button" className="text-sm font-bold text-vs-accent underline-offset-4 hover:underline" onClick={() => unplace(selectedCharacter.id)}>
+            <button type="button" className="shrink-0 text-left text-sm font-bold text-vs-accent underline-offset-4 hover:underline" onClick={() => unplace(selectedCharacter.id)}>
               {t("mystery001a.returnToTray", { name: selectedCharacter.name })}
             </button>
           )}
@@ -396,11 +425,15 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
         </aside>
       </div>
 
-      {saveError && <p className="text-center text-sm font-bold text-vs-danger" role="alert">{t("mystery001a.saveFailed")}</p>}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-vs-line bg-vs-elevated/95 px-4 pt-3 pb-[max(1rem,var(--vs-safe-area-bottom))] backdrop-blur">
-        <button type="button" className="btn-primary mx-auto min-h-12 w-full max-w-5xl" disabled={!canCheck || checking || boardAssetError} onClick={checkSolution}>
-          {checking ? t("mystery001a.checking") : t("mystery001a.check")}
-        </button>
+      <div className="mystery-action-bar fixed inset-x-0 bottom-0 z-30 border-t border-vs-line bg-vs-elevated/95 px-3 pt-2 backdrop-blur" aria-label={t("mystery001a.gameActions")}>
+        <div className="mx-auto flex w-full max-w-5xl items-center gap-1.5">
+          <button type="button" className={`${secondaryButton} h-11 w-11 !px-0`} disabled={!canClear} onClick={clearBoard} aria-label={t("mystery001a.clearBoard")} title={t("mystery001a.clearBoard")}><Eraser className="h-4 w-4" aria-hidden /></button>
+          <button type="button" className={`${secondaryButton} h-11 w-11 !px-0`} disabled={!canUndo} onClick={undoPlacement} aria-label={t("mystery001a.undo")} title={t("mystery001a.undo")}><Undo2 className="h-4 w-4" aria-hidden /></button>
+          <button type="button" className={`${secondaryButton} h-11 w-11 !px-0`} disabled={hintLoading || hintBalance === 0} onClick={useHint} aria-label={t("mystery001a.useHint")} title={t("mystery001a.useHint")}><Lightbulb className="h-4 w-4" aria-hidden /></button>
+          <button type="button" className={`${primaryButton} min-w-0 flex-1`} disabled={!canCheck || checking || boardAssetError} onClick={checkSolution}>
+            {checking ? t("mystery001a.checking") : <><span className="hidden sm:inline">{t("mystery001a.check")}</span><span className="sm:hidden">{t("mystery001a.checkShort")}</span></>}
+          </button>
+        </div>
       </div>
 
       {drag && <DragPreview definition={definition} drag={drag} />}
@@ -462,7 +495,7 @@ function MysteryBoard({ definition, geometry, placements, selected, dragTarget, 
   }, []);
 
   return (
-    <div ref={boardRef} role="grid" aria-label={t("mystery001a.board")} aria-rowcount={geometry.rows} aria-colcount={geometry.columns} className="relative aspect-square w-full touch-none overflow-hidden rounded-2xl bg-vs-subtle shadow-sm select-none">
+    <div ref={boardRef} role="grid" aria-label={t("mystery001a.board")} aria-rowcount={geometry.rows} aria-colcount={geometry.columns} className="mystery-board-frame relative aspect-square w-full touch-none overflow-hidden rounded-2xl bg-vs-subtle shadow-sm select-none">
       {/* Het volledige vierkante bronbeeld blijft zichtbaar; geen object-cover of uitsnede. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={definition.assets.board} alt="" draggable={false} onError={onBoardAssetError} className="pointer-events-none absolute inset-0 h-full w-full object-contain" />
@@ -581,8 +614,8 @@ function CharacterTray({ definition, trayRef, placements, selected, tutorialActi
 }) {
   const t = useT();
   return (
-    <div ref={trayRef} className={`${surfaceCard} p-3`} aria-label={t("mystery001a.tray")}>
-      <p className="mb-2 text-xs font-extrabold uppercase tracking-wider text-vs-fg-3">{t("mystery001a.tray")}</p>
+    <div ref={trayRef} className={`${surfaceCard} mystery-character-pane min-h-0 p-2.5`} aria-label={t("mystery001a.tray")}>
+      <p className="mb-1.5 shrink-0 text-xs font-extrabold uppercase tracking-wider text-vs-fg-3">{t("mystery001a.tray")}</p>
       <div className="grid gap-2 sm:grid-cols-2">
         {definition.characters.map((character) => {
           const placed = Boolean(placements[character.id]);
@@ -594,19 +627,21 @@ function CharacterTray({ definition, trayRef, placements, selected, tutorialActi
                 <button
                   type="button"
                   disabled={disabled}
-                  aria-label={`${character.name}${placed ? `, ${t("mystery001a.placedStatus")}` : ""}`}
-                  aria-pressed={selected === character.id}
-                  onClick={() => onClick(character.id)}
+                  aria-label={`${character.name}, ${placed ? t("mystery001a.placedStatus") : t("mystery001a.dragCharacter")}`}
                   onPointerDown={(event) => onPointerDown(event, character.id)}
                   onPointerMove={onPointerMove}
                   onPointerUp={onPointerUp}
                   onPointerCancel={onPointerUp}
-                  className={`flex min-h-14 min-w-0 flex-1 touch-none items-center gap-2 rounded-lg text-left transition disabled:cursor-default ${selected === character.id ? "ring-2 ring-vs-accent" : ""} ${focusRing}`}
+                  onClick={() => onClick(character.id)}
+                  className={`flex h-12 w-12 shrink-0 touch-none items-center justify-center rounded-lg text-left transition disabled:cursor-default ${selected === character.id ? "ring-2 ring-vs-accent" : ""} ${focusRing}`}
                 >
-                  {/* De aanwijzing blijft helder leesbaar; alleen het speelstuk krijgt een zachte inactieve behandeling. */}
+                  {/* Alleen het artwork start een touch-drag; tekst en status blijven rustig scroll- en leesbaar. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={character.asset} alt="" draggable={false} onError={() => onCharacterAssetError(character.id)} className={`pointer-events-none h-12 w-12 shrink-0 object-contain ${characterAssetErrors[character.id] ? "opacity-0" : ""} ${placed ? "opacity-55" : ""}`} />
-                  <span className="min-w-0 text-sm font-extrabold text-vs-fg">{character.name}</span>
+                  <img src={character.asset} alt="" draggable={false} onError={() => onCharacterAssetError(character.id)} className={`pointer-events-none h-12 w-12 object-contain ${characterAssetErrors[character.id] ? "opacity-0" : ""} ${placed ? "opacity-55" : ""}`} />
+                </button>
+                <button type="button" disabled={disabled} onClick={() => onClick(character.id)} className={`min-w-0 flex-1 rounded-lg text-left ${focusRing}`} aria-label={`${character.name}${placed ? `, ${t("mystery001a.placedStatus")}` : ""}`}>
+                  <span className="block truncate text-sm font-extrabold text-vs-fg">{character.name}</span>
+                  <span className="block text-[11px] font-semibold text-vs-fg-3">{placed ? t("mystery001a.placedHint") : t("mystery001a.selectCharacter")}</span>
                 </button>
                 {placed && <span className="shrink-0 rounded-full bg-vs-subtle px-2 py-1 text-[11px] font-extrabold text-vs-fg-2">✓ {t("mystery001a.placedStatus")}</span>}
               </div>
