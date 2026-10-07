@@ -17,6 +17,11 @@ export function emitToUser(userId: string, event: string, payload?: unknown): vo
   realtimeGlobal.__versadoRealtimeServer?.to(`user:${userId}`).emit(event, payload);
 }
 
+/** Een room (bv. een lopende gezamenlijke run) laten weten dat er iets veranderd is; de client haalt zelf opnieuw op. */
+export function emitToRoom(room: string, event: string, payload?: unknown): void {
+  realtimeGlobal.__versadoRealtimeServer?.to(room).emit(event, payload);
+}
+
 // Realtime-onderwerpen (zie LIVE_TOPICS in src/lib/data/scopes.ts): alleen
 // clients die het onderwerp volgen (klassement in beeld) ontvangen dit, en
 // alleen de naam van de gebeurtenis, nooit gegevens: de client haalt zelf

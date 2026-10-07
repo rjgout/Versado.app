@@ -103,6 +103,8 @@ model User {
   quickMissionaryReviveProgress QuickMissionaryReviveProgress[]
   quickMissionaryReviveSeen QuickMissionaryReviveSeen[]
   geneesPurchases GeneesPurchase[]
+  duoResultsA QuickMissionaryDuoResult[] @relation("DuoUserA")
+  duoResultsB QuickMissionaryDuoResult[] @relation("DuoUserB")
   mysteryProgress     MysteryProgress[]
 
   // De actieve contentcollectie voor de contentswitcher. Null betekent dat de gebruiker
@@ -1805,6 +1807,9 @@ enum LiveGameMode {
   // Samen studeren: een cursus met vrienden, stap voor stap (zie
   // StudySession hieronder en src/server/study.ts).
   STUDY
+  // Samen spelen met Vliegende {gids}: één gezamenlijke run voor onbeperkt veel
+  // vrienden (zie QuickMissionaryMatch hieronder en src/server/quickMissionary.ts).
+  QUICK_MISSIONARY
 }
 
 // Alleen relevant bij mode FAMILY_GAME. DIGITAL = de app gooit (server-
@@ -1838,6 +1843,8 @@ model LiveGame {
   alleskennerEvening AlleskennerEvening?
   // Alleen bij mode STUDY.
   studySession StudySession?
+  // Alleen bij mode QUICK_MISSIONARY, zodra de host gestart is.
+  quickMissionaryMatch QuickMissionaryMatch?
 
   @@index([chapterId])
 }
@@ -2411,12 +2418,84 @@ model QuickMissionaryRun {
   inGamePurchaseUsed Boolean                @default(false)
   reviveExerciseId String?
   reviveOptionIds String?
+  // Gezamenlijke run (Samen spelen): elke deelnemer heeft zijn eigen run-rij met
+  // eigen score, Genees en dayKey, maar ze delen één wereld en één tijdlijn (zie
+  // QuickMissionaryMatch). Solo-runs hebben geen matchId en alleen die tellen mee
+  // in de bestaande Vandaag- en All-time-ranking.
+  matchId         String?
+  match           QuickMissionaryMatch?     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  // Volgorde waarin deze speler definitief afviel (1 = eerste). Leeg zolang hij
+  // meedoet of als laatste overblijft. Bepaalt de laatste twee (Duo).
+  eliminatedSeq   Int?
+  // Waarom definitief afgevallen (audit): CRASH, GENEES_WRONG, GAVE_UP, DISCONNECT, RUN_ENDED.
+  eliminatedHow   String?
+  // Laatste teken van leven van de client (alleen gezamenlijke runs): wie te lang
+  // wegblijft valt af, zodat de rest niet op een verdwenen speler wacht.
+  lastSeenAt      DateTime?
   createdAt       DateTime                  @default(now())
   updatedAt       DateTime                  @updatedAt
 
   @@index([userId, status])
   @@index([userId, score])
   @@index([dayKey, status, score])
+  @@index([matchId, status])
+}
+
+enum QuickMissionaryMatchStatus {
+  RUNNING
+  ENDED
+}
+
+// Eén gezamenlijke run. De lobby, uitnodigingen en spelers lopen via LiveGame
+// (mode QUICK_MISSIONARY); dit record bestaat vanaf de start. Alle deelnemers
+// spelen exact dezelfde wereld: de obstakels volgen uit `seed` (deterministisch)
+// en de tijdlijn uit `startsAt` (servertijd), nooit uit lokale willekeur of
+// lokale klokken. De server legt de eindstand precies één keer vast.
+model QuickMissionaryMatch {
+  id               String                     @id @default(cuid())
+  liveGameId       String                     @unique
+  liveGame         LiveGame                   @relation(fields: [liveGameId], references: [id], onDelete: Cascade)
+  seed             String
+  // Servertijd waarop de gezamenlijke tijdlijn begint (na het aftellen).
+  startsAt         DateTime
+  status           QuickMissionaryMatchStatus @default(RUNNING)
+  endedAt          DateTime?
+  // LAST_STANDING: één speler over. NOBODY_FLYING: niemand meer in de lucht, de laatste wacht op een Genees die niet meer kan.
+  endReason        String?
+  eliminationCount Int                        @default(0)
+  participantCount Int
+  createdAt        DateTime                   @default(now())
+
+  runs QuickMissionaryRun[]
+  duo  QuickMissionaryDuoResult?
+
+  @@index([status])
+}
+
+// De laatste twee deelnemers van een afgesloten gezamenlijke run (ook bij precies
+// twee spelers). Wordt exact één keer aangemaakt bij het afsluiten (matchId is
+// uniek). De ruwe gegevens staan er, de ranking-score is bewust nog geen opgeslagen
+// kolom: de scoreformule van de Duo-ranking is een productbeslissing.
+model QuickMissionaryDuoResult {
+  id               String               @id @default(cuid())
+  matchId          String               @unique
+  match            QuickMissionaryMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  // Gesorteerd op userId, zodat hetzelfde duo altijd dezelfde A/B heeft.
+  userAId          String
+  userBId          String
+  scoreA           Int
+  scoreB           Int
+  participantCount Int
+  finishedAt       DateTime
+  // Lokale kalenderdag van de start (zoals bij solo-runs), voor een Vandaag-weergave.
+  dayKey           String
+
+  userA User @relation("DuoUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB User @relation("DuoUserB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  @@index([userAId])
+  @@index([userBId])
+  @@index([dayKey])
 }
 
 // Elke aankoop van een Genees (winkel of in-game): audittrail en idempotentie.

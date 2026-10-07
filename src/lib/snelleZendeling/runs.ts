@@ -2,7 +2,10 @@ import { prisma } from "@/lib/db";
 import { getContentContext } from "@/lib/contentCollections";
 import { dayKeyInZone, resolveTimeZone } from "@/lib/timeZone";
 import { shuffleForDisplay } from "@/lib/exerciseGen";
+import type { Prisma } from "@/generated/prisma/client";
 import { validateReportedScore } from "./validation";
+import { validateSharedScore } from "./sharedWorld";
+import { eliminateRun, lockMatch, settleMatch, announceMatchChanged, type EliminationHow } from "./match";
 import { applyReviveAnswer, reviveQuestionContext, selectReviveOptions } from "./rules";
 import { REVIVE_START, cursorAfterAnswer, pickReviveQuestion, type ReviveChapterEntry } from "./reviveSelection";
 import { rankScores } from "./ranking";
@@ -129,8 +132,8 @@ async function hasReviveQuestions(userId: string): Promise<boolean> {
 
 async function bestScores(userId: string, dayKey: string): Promise<{ dailyBest: number; allTimeBest: number }> {
   const [daily, allTime] = await Promise.all([
-    prisma.quickMissionaryRun.findFirst({ where: { userId, dayKey, status: "FINISHED" }, orderBy: [{ score: "desc" }, { finishedAt: "asc" }], select: { score: true } }),
-    prisma.quickMissionaryRun.findFirst({ where: { userId, status: "FINISHED" }, orderBy: [{ score: "desc" }, { finishedAt: "asc" }], select: { score: true } }),
+    prisma.quickMissionaryRun.findFirst({ where: { userId, dayKey, status: "FINISHED", matchId: null }, orderBy: [{ score: "desc" }, { finishedAt: "asc" }], select: { score: true } }),
+    prisma.quickMissionaryRun.findFirst({ where: { userId, status: "FINISHED", matchId: null }, orderBy: [{ score: "desc" }, { finishedAt: "asc" }], select: { score: true } }),
   ]);
   return { dailyBest: daily?.score ?? 0, allTimeBest: allTime?.score ?? 0 };
 }
@@ -145,6 +148,39 @@ async function getOwnedRun(runId: string, userId: string) {
   const run = await prisma.quickMissionaryRun.findUnique({ where: { id: runId } });
   if (!run || run.userId !== userId) throw new Error("NOT_FOUND");
   return run;
+}
+
+type Tx = Prisma.TransactionClient;
+
+/**
+ * Vergrendelt de run voor een wijziging. Bij een gezamenlijke run eerst de
+ * wedstrijd, dan de run (en pas daarna eventueel de gebruiker): één vaste
+ * volgorde, dus geen deadlocks, en elke eliminatie ziet een consistente stand.
+ */
+async function lockRun(tx: Tx, runId: string, userId: string) {
+  const head = await tx.quickMissionaryRun.findUnique({ where: { id: runId }, select: { userId: true, matchId: true } });
+  if (!head || head.userId !== userId) throw new Error("NOT_FOUND");
+  if (head.matchId) await lockMatch(tx, head.matchId);
+  await tx.$queryRaw`SELECT "id" FROM "QuickMissionaryRun" WHERE "id" = ${runId} AND "userId" = ${userId} FOR UPDATE`;
+  const run = await tx.quickMissionaryRun.findUnique({ where: { id: runId } });
+  if (!run || run.userId !== userId) throw new Error("NOT_FOUND");
+  return run;
+}
+
+/** Score controleren tegen de eigen tijd (solo) of de gezamenlijke tijdlijn (wedstrijd). */
+async function checkScore(tx: Tx, run: { matchId: string | null; startedAt: Date; score: number }, reported: number, at: Date) {
+  if (!run.matchId) return validateReportedScore(run.startedAt, at, run.score, reported);
+  const match = await tx.quickMissionaryMatch.findUniqueOrThrow({ where: { id: run.matchId }, select: { startsAt: true, status: true } });
+  if (match.status !== "RUNNING") return { ok: false as const, reason: "MATCH_ENDED" };
+  return validateSharedScore(match.startsAt, at, run.score, reported);
+}
+
+/** Na een wijziging in een wedstrijd: afsluiten als dat moet en de deelnemers laten verversen. */
+async function afterMatchChange(tx: Tx, matchId: string | null, at: Date): Promise<string | null> {
+  if (!matchId) return null;
+  await settleMatch(tx, matchId, at);
+  const game = await tx.quickMissionaryMatch.findUniqueOrThrow({ where: { id: matchId }, select: { liveGame: { select: { code: true } } } });
+  return game.liveGame.code;
 }
 
 /**
@@ -192,29 +228,39 @@ export async function getQuickMissionaryRunView(runId: string, userId: string): 
 }
 
 export async function reportDeath(runId: string, userId: string, score: number): Promise<void> {
-  await prisma.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT "id" FROM "QuickMissionaryRun" WHERE "id" = ${runId} AND "userId" = ${userId} FOR UPDATE`;
-    const run = await tx.quickMissionaryRun.findUnique({ where: { id: runId } });
-    if (!run || run.userId !== userId) throw new Error("NOT_FOUND");
-    if (run.status === "DEAD_AWAITING_REVIVE" || run.status === "FINISHED") return;
+  const code = await prisma.$transaction(async (tx) => {
+    const run = await lockRun(tx, runId, userId);
+    if (run.status === "DEAD_AWAITING_REVIVE" || run.status === "FINISHED") return null;
     if (run.status !== "IN_PROGRESS") throw new Error("INVALID_STATE");
-    const check = validateReportedScore(run.startedAt, now(), run.score, score);
+    const at = now();
+    const check = await checkScore(tx, run, score, at);
     if (!check.ok) throw new Error(check.reason);
-    await tx.quickMissionaryRun.update({ where: { id: run.id }, data: { score: check.score, status: "DEAD_AWAITING_REVIVE" } });
+    await tx.quickMissionaryRun.update({ where: { id: run.id }, data: { score: check.score, status: "DEAD_AWAITING_REVIVE", lastSeenAt: at } });
+    return afterMatchChange(tx, run.matchId, at);
   });
+  announceMatchChanged(code);
 }
 
 export async function finishQuickMissionaryRun(runId: string, userId: string, score: number): Promise<void> {
-  await prisma.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT "id" FROM "QuickMissionaryRun" WHERE "id" = ${runId} AND "userId" = ${userId} FOR UPDATE`;
-    const run = await tx.quickMissionaryRun.findUnique({ where: { id: runId } });
-    if (!run || run.userId !== userId) throw new Error("NOT_FOUND");
-    if (run.status === "FINISHED") return;
+  const code = await prisma.$transaction(async (tx) => {
+    const run = await lockRun(tx, runId, userId);
+    if (run.status === "FINISHED") return null;
     if (!["IN_PROGRESS", "DEAD_AWAITING_REVIVE", "REVIVE_READY"].includes(run.status)) throw new Error("INVALID_STATE");
-    const check = validateReportedScore(run.startedAt, now(), run.score, score);
+    const at = now();
+    const check = await checkScore(tx, run, score, at);
     if (!check.ok) throw new Error(check.reason);
-    await tx.quickMissionaryRun.update({ where: { id: run.id }, data: { score: check.score, status: "FINISHED", finishedAt: now() } });
+    if (!run.matchId) {
+      await tx.quickMissionaryRun.update({ where: { id: run.id }, data: { score: check.score, status: "FINISHED", finishedAt: at } });
+      return null;
+    }
+    // In een wedstrijd is afsluiten een definitieve eliminatie: opgegeven of
+    // geen Genees meer die kan.
+    const how: EliminationHow = run.status === "DEAD_AWAITING_REVIVE" ? "CRASH" : "GAVE_UP";
+    await tx.quickMissionaryRun.update({ where: { id: run.id }, data: { score: check.score } });
+    await eliminateRun(tx, run.matchId, run.id, how, at);
+    return afterMatchChange(tx, run.matchId, at);
   });
+  announceMatchChanged(code);
 }
 
 const MAX_UNUSABLE_QUESTIONS = 50;
@@ -231,9 +277,7 @@ export async function requestReviveQuestion(runId: string, userId: string): Prom
   if (!run.reviveExerciseId) {
     const collectionId = await activeCollectionId(userId);
     await prisma.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT "id" FROM "QuickMissionaryRun" WHERE "id" = ${runId} AND "userId" = ${userId} FOR UPDATE`;
-      const locked = await tx.quickMissionaryRun.findUnique({ where: { id: runId } });
-      if (!locked || locked.userId !== userId) throw new Error("NOT_FOUND");
+      const locked = await lockRun(tx, runId, userId);
       if (locked.status !== "DEAD_AWAITING_REVIVE") throw new Error("INVALID_STATE");
       // Een al uitgegeven vraag is dezelfde poging (verversen, tweede toestel): niets opnieuw verbruiken.
       if (locked.reviveExerciseId) return;
@@ -312,10 +356,11 @@ export async function requestReviveQuestion(runId: string, userId: string): Prom
 }
 
 export async function answerReviveQuestion(runId: string, userId: string, exerciseId: string, optionId: string): Promise<{ correct: boolean; view: QuickMissionaryRunView }> {
+  let announce: string | null = null;
   const result = await prisma.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT "id" FROM "QuickMissionaryRun" WHERE "id" = ${runId} AND "userId" = ${userId} FOR UPDATE`;
-    const run = await tx.quickMissionaryRun.findUnique({ where: { id: runId } });
-    if (!run || run.userId !== userId) throw new Error("NOT_FOUND");
+    const run = await lockRun(tx, runId, userId);
+    // Na afsluiting van de wedstrijd is de run FINISHED: een goed antwoord brengt
+    // nooit meer iemand terug.
     if (run.status !== "DEAD_AWAITING_REVIVE" || run.reviveExerciseId !== exerciseId) throw new Error("INVALID_STATE");
     if (!optionIdsFromRun(run).includes(optionId)) throw new Error("INVALID_OPTION");
     const option = await tx.quickMissionaryReviveOption.findUnique({
@@ -329,7 +374,14 @@ export async function answerReviveQuestion(runId: string, userId: string, exerci
     if (!option || option.questionId !== exerciseId) throw new Error("INVALID_OPTION");
     const nextStatus = applyReviveAnswer(run.status, option.isCorrect);
     if (!nextStatus) throw new Error("INVALID_STATE");
-    await tx.quickMissionaryRun.update({ where: { id: run.id }, data: option.isCorrect ? { status: nextStatus } : { status: nextStatus, finishedAt: now() } });
+    const at = now();
+    if (option.isCorrect) {
+      await tx.quickMissionaryRun.update({ where: { id: run.id }, data: { status: nextStatus, lastSeenAt: at } });
+    } else if (run.matchId) {
+      await eliminateRun(tx, run.matchId, run.id, "GENEES_WRONG", at);
+    } else {
+      await tx.quickMissionaryRun.update({ where: { id: run.id }, data: { status: nextStatus, finishedAt: at } });
+    }
 
     // Geschiedenis en plek: goed -> volgend hoofdstuk, fout -> hetzelfde
     // hoofdstuk blijft staan (met een andere vraag). De vraag zelf stond al als gezien.
@@ -345,13 +397,22 @@ export async function answerReviveQuestion(runId: string, userId: string, exerci
       create: { userId, contentCollectionId, cursorBookOrder: cursor.bookOrder, cursorChapterOrder: cursor.chapterOrder },
       update: { cursorBookOrder: cursor.bookOrder, cursorChapterOrder: cursor.chapterOrder },
     });
+    announce = await afterMatchChange(tx, run.matchId, at);
     return option.isCorrect;
   });
+  announceMatchChanged(announce);
   return { correct: result, view: await getQuickMissionaryRunView(runId, userId) };
 }
 
 export async function resumeAfterRevive(runId: string, userId: string): Promise<void> {
-  await prisma.quickMissionaryRun.updateMany({ where: { id: runId, userId, status: "REVIVE_READY" }, data: { status: "IN_PROGRESS", reviveExerciseId: null, reviveOptionIds: null } });
+  const code = await prisma.$transaction(async (tx) => {
+    const run = await lockRun(tx, runId, userId);
+    // Een run die de wedstrijd al heeft afgesloten is FINISHED: geen resurrectie.
+    if (run.status !== "REVIVE_READY") return null;
+    await tx.quickMissionaryRun.update({ where: { id: runId }, data: { status: "IN_PROGRESS", reviveExerciseId: null, reviveOptionIds: null, lastSeenAt: now() } });
+    return run.matchId ? (await tx.quickMissionaryMatch.findUniqueOrThrow({ where: { id: run.matchId }, select: { liveGame: { select: { code: true } } } })).liveGame.code : null;
+  });
+  announceMatchChanged(code);
 }
 
 /**
@@ -362,10 +423,8 @@ export async function resumeAfterRevive(runId: string, userId: string): Promise<
  */
 export async function buyGeneesInRun(runId: string, userId: string): Promise<{ result: BuyGeneesResult; view: QuickMissionaryRunView }> {
   const result = await prisma.$transaction(async (tx): Promise<BuyGeneesResult> => {
-    // Altijd eerst de run, dan de gebruiker: dezelfde volgorde als requestReviveQuestion.
-    await tx.$queryRaw`SELECT "id" FROM "QuickMissionaryRun" WHERE "id" = ${runId} AND "userId" = ${userId} FOR UPDATE`;
-    const run = await tx.quickMissionaryRun.findUnique({ where: { id: runId } });
-    if (!run || run.userId !== userId) throw new Error("NOT_FOUND");
+    // Altijd eerst (de wedstrijd en) de run, dan de gebruiker: dezelfde volgorde als requestReviveQuestion.
+    const run = await lockRun(tx, runId, userId);
     if (run.status !== "DEAD_AWAITING_REVIVE" || run.reviveExerciseId || !run.reviveUsed) return { ok: false, error: "INVALID_STATE" };
     if (run.inGamePurchaseUsed) return { ok: false, error: "PURCHASE_LIMIT" };
     await lockUser(tx, userId);
@@ -387,7 +446,7 @@ export async function getQuickMissionaryLeaderboard(userId: string, board: "toda
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { timeZone: true } });
   const dayKey = runDayKey(user, now());
   const runs = await prisma.quickMissionaryRun.findMany({
-    where: { status: "FINISHED", ...(board === "today" ? { dayKey } : {}) },
+    where: { status: "FINISHED", matchId: null, ...(board === "today" ? { dayKey } : {}) },
     select: { userId: true, score: true, finishedAt: true },
   });
   const ranked = rankScores(runs.flatMap((run) => run.finishedAt ? [{ userId: run.userId, score: run.score, finishedAt: run.finishedAt }] : []));
