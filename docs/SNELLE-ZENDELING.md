@@ -45,16 +45,18 @@ canvas getoond. Physics is frame-rate-onafhankelijk:
 |---|---:|
 | `GRAVITY` | 820 |
 | `BOOST_VELOCITY` | -285 |
-| `HORIZONTAL_SPEED` | 150 |
+| `HORIZONTAL_SPEED` (basis, 100%) | 150 |
 | `MAX_FALL_SPEED` | 430 |
 | `OBSTACLE_WIDTH` | 58 |
-| `GAP_HEIGHT` | 182 |
+| `GAP_HEIGHT` (basis, 100%) | 182 |
 | `PAIR_SPACING` | 220 |
 
 Deze waarden staan centraal in `src/lib/snelleZendeling/gameplay.ts`. Ieder
-paar gebruikt exact dezelfde breedte, gaphoogte en horizontale afstand. Alleen
-`gapY` wordt gekozen; de veilige grenzen zijn vast en opeenvolgende gaps mogen
-maximaal 105 logische pixels verschillen. De runtime gebruikt
+paar gebruikt exact dezelfde breedte en horizontale afstand; de opening en de
+wereldsnelheid volgen de difficulty-curve hieronder. Alleen `gapY` wordt
+willekeurig gekozen, binnen veilige grenzen (met de werkelijke opening van het
+paar, `gapYBounds`); opeenvolgende gaps mogen maximaal 105 logische pixels
+verschillen. De runtime gebruikt
 `obstacle-wall-long.png` en `obstacle-rock-long.png` (beide 384×16384
 bronpixels). Ze worden uitsluitend uniform geschaald met
 `OBSTACLE_WIDTH / 384`: de hoogte volgt dus altijd uit die breedteschaal en
@@ -63,6 +65,64 @@ wordt nooit naar de opening uitgerekt. De bovenkant van de muur wordt exact op
 wordt exact op `gapTop` geplaatst en loopt boven het canvas door. Het canvas
 clipt alleen het overtollige lichaam. Daardoor is er bij iedere geldige gapY
 geen lucht tussen een obstacle en de bijbehorende viewport-rand.
+
+### Difficulty curve
+
+Een run begint op 100% opening en 100% snelheid en wordt daarna geleidelijk
+moeilijker op basis van de **actuele score van die run** (niet record, XP,
+mascotte of vaardigheid). De opening is de primaire moeilijkheid; de snelheid
+stijgt hooguit 5%, zodat de besturing hetzelfde blijft voelen. Zwaartekracht,
+boost, hitbox, obstakelbreedte en paarafstand veranderen niet.
+
+| Score | Opening | Snelheid | Opening (px) | Snelheid (u/s) |
+|---:|---:|---:|---:|---:|
+| 0 | 100% | 100% | 182,0 | 150,0 |
+| 50 | 96% | 100,5% | 174,7 | 150,8 |
+| 100 | 92% | 101% | 167,4 | 151,5 |
+| 200 | 88% | 101,5% | 160,2 | 152,3 |
+| 300 | 84% | 102% | 152,9 | 153,0 |
+| 400 | 81% | 102,5% | 147,4 | 153,8 |
+| 500 | 78% | 103% | 142,0 | 154,5 |
+| 600 | 76% | 103,5% | 138,3 | 155,3 |
+| 700 | 74% | 104% | 134,7 | 156,0 |
+| 800 | 72% | 104,5% | 131,0 | 156,8 |
+| 1000 | 70% | 105% | 127,4 | 157,5 |
+
+- De waarden staan één keer in `DIFFICULTY_POINTS` (`difficulty.ts`) en
+  `getDifficulty(score)` interpoleert stuksgewijs lineair ertussen: geen
+  stappen, geen toeval, geen tijd. Client en server gebruiken dezelfde functie.
+- Vanaf score 1000 blijft alles constant: de opening is nooit kleiner dan 70%
+  en de snelheid nooit hoger dan 105%. Een hogere score maakt het spel dus niet
+  fysiek moeilijker; de uitdaging is het volhouden.
+- De opening wordt per nieuw paar bepaald uit de score op dat moment en blijft
+  daarna vast (`pair.gapHeight`); een zichtbaar paar verandert nooit. De
+  snelheid is één wereldsnelheid voor alle obstakels (`worldSpeed(score)`),
+  dus `PAIR_SPACING` blijft gelijk. De grote lange obstakels blijven aan
+  `gapTop`/`gapBottom` hangen: de opening wordt alleen kleiner doordat die twee
+  dichter bij elkaar liggen, er wordt niets uitgerekt.
+- `gapY` blijft willekeurig met dezelfde marges (24 px boven en onder) en
+  dezelfde maximale stap; alleen de ondergrens volgt de werkelijke opening.
+  De hoogste bovenrand en laagste onderrand van de opening liggen dus nooit
+  verder dan bij de basisopening.
+- Eén punt per volledig gepasseerd paar, zonder bonus voor een kleinere opening.
+- Er is geen adaptieve of persoonlijke moeilijkheid: alle gidsen en spelers
+  gebruiken dezelfde curve, zodat Vandaag en All-time vergelijkbaar blijven.
+- Genees behoudt de score en daarmee de moeilijkheid; na het herstel komen drie
+  nieuwe paren op de opening die bij de actuele score hoort.
+- Er is bewust geen level-indicator of melding; de score is de enige indicator.
+- De server houdt rekening met de snellere wereld: `maxPlausibleScore` telt de
+  minimale tijd per punt op met dezelfde curve (`minSecondsToReachScore`). Een
+  vaste ondergrens van 220/150 seconden per punt zou een run die het
+  maximale tempo vliegt vanaf ongeveer 200 punten onterecht afwijzen.
+- Alleen in ontwikkeling laat `?debugDifficulty=700` opening en snelheid spelen
+  alsof de score zo hoog is, zonder de echte score te veranderen (de server
+  weigert dan na enkele punten een te snelle score; dit is alleen om te
+  bekijken). In productie bestaat deze code niet.
+- Bij 70% blijft er 103,4 px verticale speling over rond de hitbox van 24 px;
+  een tik tilt de gids ongeveer 49 px.
+
+Wijzig de punten alleen na bewuste playtesting, en pas dan ook de tests in
+`tests/snelle-zendeling-difficulty.test.ts` aan.
 
 `obstacle-wall-stem.png` (384×960) en `obstacle-rock-stem.png` (384×912)
 blijven als tileable productiereserve bewaard. De vaste wereld van 360×640
@@ -236,6 +296,8 @@ worden decoratieve bewegingen beperkt door de bestaande Versado-motionregels;
 de noodzakelijke physics blijven actief.
 
 ## Tests
+
+`tests/snelle-zendeling-difficulty.test.ts` dekt de exacte targets, de interpolatie, de opening per paar, de gapY-grenzen, de servervalidatie en de invarianten.
 
 `tests/snelle-zendeling.test.ts` dekt vaste maten, bronafmetingen en uniforme
 obstacleschaal, gap-ankers en dekking van beide wereldranden, gapgrenzen,

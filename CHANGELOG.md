@@ -4,6 +4,11 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Vliegende Versado wordt tijdens een lange run geleidelijk moeilijker: de
+  opening tussen de obstakels wordt kleiner naarmate je score oploopt (tot
+  70% vanaf score 1000) en de wereld gaat heel licht sneller (hooguit 5%). De
+  besturing blijft hetzelfde en een Genees behoudt je score en moeilijkheid.
+
 - Vliegende Versado: bij Genees krijg je altijd een nieuwe vraag, in de
   volgorde van het boek. Antwoord je goed, dan gaat de volgende Genees naar
   het volgende hoofdstuk; antwoord je fout, dan blijf je bij hetzelfde

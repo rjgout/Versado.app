@@ -1,3 +1,5 @@
+import { getDifficulty } from "./difficulty";
+
 /**
  * Pure spelregels voor Snelle Zendeling. De renderer gebruikt deze logische
  * wereld, zodat een telefoon, tablet en desktop exact dezelfde physics delen.
@@ -10,11 +12,15 @@ export const PLAY_BOTTOM = WORLD_HEIGHT - GROUND_HEIGHT;
 
 export const GRAVITY = 820;
 export const BOOST_VELOCITY = -285;
+/** Basissnelheid (100%) van de wereld; de difficulty-curve verhoogt hem hooguit 5%. */
 export const HORIZONTAL_SPEED = 150;
 export const MAX_FALL_SPEED = 430;
 
-// Deze drie maten vormen het vaste fair-play contract: alleen gapY mag variëren.
+// Breedte en paarafstand zijn vast; de opening start op GAP_HEIGHT (100%) en
+// wordt per nieuw paar kleiner volgens de difficulty-curve (difficulty.ts).
+// Daarnaast varieert alleen gapY.
 export const OBSTACLE_WIDTH = 58;
+/** Basisopening (100%) aan het begin van iedere run. */
 export const GAP_HEIGHT = 182;
 export const PAIR_SPACING = 220;
 export const FIRST_OBSTACLE_X = WORLD_WIDTH + 105;
@@ -35,9 +41,29 @@ export const MASCOT_HITBOX_HEIGHT = 24;
 export const MASCOT_HITBOX_OFFSET_X = 26;
 export const MASCOT_HITBOX_OFFSET_Y = 26;
 
-export const MIN_GAP_Y = PLAY_TOP + 24;
-export const MAX_GAP_Y = PLAY_BOTTOM - GAP_HEIGHT - 24;
+const GAP_MARGIN = 24;
+export const MIN_GAP_Y = PLAY_TOP + GAP_MARGIN;
+/** Onderste gapY bij de basisopening; zie gapYBounds voor een kleinere opening. */
+export const MAX_GAP_Y = PLAY_BOTTOM - GAP_HEIGHT - GAP_MARGIN;
 export const MAX_GAP_STEP = 105;
+
+/** Opening van een nieuw paar bij deze runscore (zie difficulty.ts). */
+export function effectiveGapHeight(score: number): number {
+  return GAP_HEIGHT * getDifficulty(score).gapMultiplier;
+}
+
+/** Wereldsnelheid bij deze runscore; alle obstakels delen haar, dus de paarafstand blijft PAIR_SPACING. */
+export function worldSpeed(score: number): number {
+  return HORIZONTAL_SPEED * getDifficulty(score).speedMultiplier;
+}
+
+/**
+ * Geldige gapY voor een opening van deze hoogte, met dezelfde veiligheidsmarges
+ * boven en onder als bij de basisopening: de opening blijft volledig in de speelzone.
+ */
+export function gapYBounds(gapHeight: number): { min: number; max: number } {
+  return { min: MIN_GAP_Y, max: PLAY_BOTTOM - gapHeight - GAP_MARGIN };
+}
 
 export interface MascotBody {
   x: number;
@@ -50,21 +76,36 @@ export interface ObstaclePair {
   id: number;
   x: number;
   gapY: number;
+  /** Opening van dit paar; ligt vast bij het aanmaken en verandert daarna niet meer. */
+  gapHeight: number;
 }
 
-export function clampGapY(value: number): number {
-  return Math.max(MIN_GAP_Y, Math.min(MAX_GAP_Y, value));
+export function clampGapY(value: number, gapHeight: number): number {
+  const bounds = gapYBounds(gapHeight);
+  return Math.max(bounds.min, Math.min(bounds.max, value));
 }
 
-/** Alleen verticale openingposities worden willekeurig gekozen. */
-export function nextGapY(random: () => number, previousGapY?: number): number {
-  const candidate = MIN_GAP_Y + random() * (MAX_GAP_Y - MIN_GAP_Y);
+/** Alleen verticale openingposities worden willekeurig gekozen, nooit extremer door de score. */
+export function nextGapY(random: () => number, previousGapY: number | undefined, gapHeight: number): number {
+  const bounds = gapYBounds(gapHeight);
+  const candidate = bounds.min + random() * (bounds.max - bounds.min);
   if (previousGapY === undefined) return Math.round(candidate);
-  return Math.round(clampGapY(previousGapY + Math.max(-MAX_GAP_STEP, Math.min(MAX_GAP_STEP, candidate - previousGapY))));
+  return Math.round(clampGapY(previousGapY + Math.max(-MAX_GAP_STEP, Math.min(MAX_GAP_STEP, candidate - previousGapY)), gapHeight));
 }
 
-export function createObstaclePair(id: number, x: number, random: () => number, previousGapY?: number): ObstaclePair {
-  return { id, x, gapY: nextGapY(random, previousGapY) };
+/** `score` is de actuele score van deze run op het moment dat het paar ontstaat. */
+export function createObstaclePair(id: number, x: number, random: () => number, previousGapY: number | undefined, score: number): ObstaclePair {
+  const gapHeight = effectiveGapHeight(score);
+  return { id, x, gapY: nextGapY(random, previousGapY, gapHeight), gapHeight };
+}
+
+/** Drie paren voor de start of na een Genees, allemaal op de moeilijkheid van de actuele score. */
+export function createPairSequence(firstId: number, firstX: number, random: () => number, score: number, count = 3): ObstaclePair[] {
+  const pairs: ObstaclePair[] = [];
+  for (let index = 0; index < count; index++) {
+    pairs.push(createObstaclePair(firstId + index, firstX + PAIR_SPACING * index, random, pairs[index - 1]?.gapY, score));
+  }
+  return pairs;
 }
 
 /** Omsluitende rechthoek van de hitbox; voor de speelzone en de debugweergave. */
@@ -106,7 +147,7 @@ function ellipseOverlapsRect(ellipse: HitboxEllipse, rect: Rect): boolean {
 export function obstacleRects(pair: ObstaclePair): { top: { x: number; y: number; width: number; height: number }; bottom: { x: number; y: number; width: number; height: number } } {
   return {
     top: { x: pair.x, y: PLAY_TOP, width: OBSTACLE_WIDTH, height: pair.gapY - PLAY_TOP },
-    bottom: { x: pair.x, y: pair.gapY + GAP_HEIGHT, width: OBSTACLE_WIDTH, height: WORLD_HEIGHT },
+    bottom: { x: pair.x, y: pair.gapY + pair.gapHeight, width: OBSTACLE_WIDTH, height: WORLD_HEIGHT },
   };
 }
 

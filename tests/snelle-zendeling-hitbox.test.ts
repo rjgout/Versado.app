@@ -64,7 +64,7 @@ function deadSpace(shape: Shape, sprite: (typeof sprites)[number]): number {
 
 const body = (y: number) => ({ x: MASCOT_X, y });
 /** Een obstakel dat horizontaal precies over het midden van de hitbox valt; alleen gapY verschilt. */
-const pairOverHitbox = (y: number, gapY: number): ObstaclePair => ({ id: 1, x: mascotHitboxEllipse(body(y)).cx - OBSTACLE_WIDTH / 2, gapY });
+const pairOverHitbox = (y: number, gapY: number): ObstaclePair => ({ id: 1, x: mascotHitboxEllipse(body(y)).cx - OBSTACLE_WIDTH / 2, gapY, gapHeight: GAP_HEIGHT });
 
 describe("Snelle Zendeling hitbox", () => {
   it("meet alle zes de sprites (drie gidsen, glide en boost)", () => {
@@ -141,9 +141,9 @@ describe("Snelle Zendeling hitbox", () => {
     const y = 300;
     const hitbox = mascotHitbox(body(y));
     // de linkerrand van de rots/muur raakt de neus nét niet; gap ver weg zodat het lichaam in de rots-/muurhoogte ligt
-    const wall: ObstaclePair = { id: 1, x: hitbox.x + hitbox.width + 0.5, gapY: y - GAP_HEIGHT - 80 };
+    const wall: ObstaclePair = { id: 1, x: hitbox.x + hitbox.width + 0.5, gapY: y - GAP_HEIGHT - 80, gapHeight: GAP_HEIGHT };
     assert.equal(collidesWithObstacle(body(y), wall), false);
-    const rock: ObstaclePair = { id: 2, x: hitbox.x + hitbox.width + 0.5, gapY: y + 200 };
+    const rock: ObstaclePair = { id: 2, x: hitbox.x + hitbox.width + 0.5, gapY: y + 200, gapHeight: GAP_HEIGHT };
     assert.equal(collidesWithObstacle(body(y), rock), false);
   });
 
@@ -165,7 +165,7 @@ describe("Snelle Zendeling hitbox", () => {
   it("botst wanneer de neus voorin een obstakel steekt", () => {
     const y = 300;
     const ellipse = mascotHitboxEllipse(body(y));
-    const wall: ObstaclePair = { id: 1, x: ellipse.cx + ellipse.rx - 3, gapY: y - GAP_HEIGHT - 80 };
+    const wall: ObstaclePair = { id: 1, x: ellipse.cx + ellipse.rx - 3, gapY: y - GAP_HEIGHT - 80, gapHeight: GAP_HEIGHT };
     assert.equal(collidesWithObstacle(body(y), wall), true);
   });
 
@@ -173,7 +173,7 @@ describe("Snelle Zendeling hitbox", () => {
     const y = 300;
     const box = mascotHitbox(body(y));
     // rotsrand die alleen de hoek van de omsluitende rechthoek zou raken
-    const cornerRock: ObstaclePair = { id: 1, x: box.x + box.width - 3, gapY: box.y + 3 };
+    const cornerRock: ObstaclePair = { id: 1, x: box.x + box.width - 3, gapY: box.y + 3, gapHeight: GAP_HEIGHT };
     assert.equal(collidesWithObstacle(body(y), cornerRock), false);
   });
 

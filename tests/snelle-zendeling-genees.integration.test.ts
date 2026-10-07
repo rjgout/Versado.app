@@ -309,3 +309,22 @@ test("een antwoord op een andere vraag of een vreemde optie wordt geweigerd", { 
   await assert.rejects(() => L.runs.answerReviveQuestion(runId, userId, view.reviveQuestion!.exerciseId, foreign.id), /INVALID_OPTION/);
   await assert.rejects(() => L.runs.answerReviveQuestion(runId, userId, foreign.questionId, foreign.id), /INVALID_STATE/);
 });
+
+test("Genees op score 700 behoudt de score en dus de difficulty van die run", { skip }, async () => {
+  const { minSecondsToReachScore } = await import("../src/lib/snelleZendeling/validation");
+  const { getDifficulty } = await import("../src/lib/snelleZendeling/difficulty");
+  const userId = await makeUser();
+  const { runId } = await L.runs.startQuickMissionaryRun(userId);
+  // Een echte run van 700 punten duurt minstens zo lang als de curve toestaat.
+  await L.db.quickMissionaryRun.update({ where: { id: runId }, data: { startedAt: new Date(Date.now() - (minSecondsToReachScore(700) + 5) * 1000) } });
+  await L.runs.reportDeath(runId, userId, 700);
+  const view = await L.runs.requestReviveQuestion(runId, userId);
+  assert.equal(view.score, 700);
+  const result = await answer(userId, runId, view, true);
+  assert.equal(result.correct, true);
+  await L.runs.resumeAfterRevive(runId, userId);
+  const resumed = await L.runs.getQuickMissionaryRunView(runId, userId);
+  assert.equal(resumed.score, 700, "Genees zet de score niet terug");
+  assert.equal(getDifficulty(resumed.score).gapMultiplier, 0.74);
+  assert.equal(getDifficulty(resumed.score).speedMultiplier, 1.04);
+});

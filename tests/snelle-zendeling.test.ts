@@ -45,8 +45,8 @@ import { es } from "@/lib/i18n/messages/es";
 
 describe("Snelle Zendeling gameplay", () => {
   it("houdt obstakelbreedte, gaphoogte en paarafstand constant", () => {
-    const first = createObstaclePair(1, 500, () => 0.1);
-    const second = createObstaclePair(2, first.x + PAIR_SPACING, () => 0.9, first.gapY);
+    const first = createObstaclePair(1, 500, () => 0.1, undefined, 0);
+    const second = createObstaclePair(2, first.x + PAIR_SPACING, () => 0.9, first.gapY, 0);
     assert.equal(second.x - first.x, PAIR_SPACING);
     assert.equal(obstacleRects(first).bottom.y - first.gapY, GAP_HEIGHT);
     assert.equal(obstacleRects(second).bottom.y - second.gapY, GAP_HEIGHT);
@@ -56,7 +56,7 @@ describe("Snelle Zendeling gameplay", () => {
   it("varieert alleen gapY binnen veilige grenzen", () => {
     let previous: number | undefined;
     for (const random of [0, 0.2, 0.8, 1]) {
-      const pair = createObstaclePair(1, 400, () => random, previous);
+      const pair = createObstaclePair(1, 400, () => random, previous, 0);
       assert.ok(pair.gapY >= MIN_GAP_Y && pair.gapY <= MAX_GAP_Y);
       if (previous !== undefined) assert.ok(Math.abs(pair.gapY - previous) <= MAX_GAP_STEP);
       previous = pair.gapY;
@@ -76,7 +76,7 @@ describe("Snelle Zendeling gameplay", () => {
 
   it("verankert de lange muur en rots exact aan de vaste gapranden", () => {
     for (const gapY of [MIN_GAP_Y, MAX_GAP_Y]) {
-      const pair = { id: 1, x: 200, gapY };
+      const pair = { id: 1, x: 200, gapY, gapHeight: GAP_HEIGHT };
       const wall = wallRenderRect(pair);
       const rock = rockRenderRect(pair);
       assert.equal(wall.width, OBSTACLE_WIDTH);
@@ -91,7 +91,7 @@ describe("Snelle Zendeling gameplay", () => {
   });
 
   it("schaalt lange obstakels uniform en verandert collision niet met bitmaphoogte", () => {
-    const pair = { id: 1, x: 100, gapY: MIN_GAP_Y };
+    const pair = { id: 1, x: 100, gapY: MIN_GAP_Y, gapHeight: GAP_HEIGHT };
     const wall = wallRenderRect(pair);
     const rock = rockRenderRect(pair);
     assert.equal(wall.height, LONG_OBSTACLE_SOURCE_HEIGHT * obstacleDisplayScale());
@@ -101,7 +101,7 @@ describe("Snelle Zendeling gameplay", () => {
   });
 
   it("scoort elk paar maar één keer", () => {
-    const pair = createObstaclePair(1, 100, () => 0.5);
+    const pair = createObstaclePair(1, 100, () => 0.5, undefined, 0);
     assert.equal(passedPair(200, pair, false), true);
     assert.equal(passedPair(200, pair, true), false);
   });
@@ -124,7 +124,7 @@ describe("Snelle Zendeling gameplay", () => {
   });
 
   it("raakt de vaste muur en rots, niet alleen hun alpha-silhouet", () => {
-    const pair = createObstaclePair(1, 100, () => 0.5);
+    const pair = createObstaclePair(1, 100, () => 0.5, undefined, 0);
     assert.equal(collidesWithObstacle({ x: 105, y: pair.gapY + GAP_HEIGHT + 2 }, pair), true);
     assert.equal(collidesWithObstacle({ x: 105, y: pair.gapY - 40 }, pair), true);
     assert.equal(collidesWithObstacle({ x: 105, y: pair.gapY + 50 }, pair), false);

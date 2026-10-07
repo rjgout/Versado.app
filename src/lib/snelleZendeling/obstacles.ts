@@ -1,4 +1,4 @@
-import { GAP_HEIGHT, OBSTACLE_WIDTH, WORLD_HEIGHT, type ObstaclePair } from "@/lib/snelleZendeling/gameplay";
+import { OBSTACLE_WIDTH, WORLD_HEIGHT, type ObstaclePair } from "@/lib/snelleZendeling/gameplay";
 
 /** De bronassets delen deze breedte; gameplay blijft van de bitmap onafhankelijk. */
 export const OBSTACLE_SOURCE_WIDTH = 384;
@@ -27,7 +27,7 @@ export function uniformlyScaledObstacleHeight(sourceHeight: number, width = OBST
 export function wallRenderRect(pair: ObstaclePair, sourceHeight = LONG_OBSTACLE_SOURCE_HEIGHT): ObstacleRenderRect {
   return {
     x: pair.x,
-    y: pair.gapY + GAP_HEIGHT,
+    y: pair.gapY + pair.gapHeight,
     width: OBSTACLE_WIDTH,
     height: uniformlyScaledObstacleHeight(sourceHeight),
   };

@@ -12,10 +12,11 @@ import { ReviveFailurePanel, ReviveQuestionPanel, type ReviveQuestionView, type 
 import { quickMissionaryMascotSprite } from "@/lib/snelleZendeling/assets";
 import { rockRenderRect, wallRenderRect } from "@/lib/snelleZendeling/obstacles";
 import { drawHitboxDebug } from "@/components/snelleZendeling/hitboxDebug";
+import { parseDebugDifficultyScore } from "@/components/snelleZendeling/difficultyDebug";
 import {
-  BOOST_VELOCITY, FIRST_OBSTACLE_X, HORIZONTAL_SPEED, MASCOT_RENDER_SIZE, MASCOT_X,
+  BOOST_VELOCITY, FIRST_OBSTACLE_X, MASCOT_RENDER_SIZE, MASCOT_X,
   OBSTACLE_WIDTH, PAIR_SPACING, PLAY_BOTTOM, PLAY_TOP, WORLD_HEIGHT, WORLD_WIDTH,
-  collidesWithObstacle, createObstaclePair, isOutOfPlayZone, passedPair, stepPhysics,
+  collidesWithObstacle, createObstaclePair, createPairSequence, isOutOfPlayZone, passedPair, stepPhysics, worldSpeed,
   type ObstaclePair,
 } from "@/lib/snelleZendeling/gameplay";
 
@@ -47,6 +48,7 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
   const abandonSentRef = useRef(false);
   const imagesRef = useRef<Record<string, HTMLImageElement>>({});
   const debugHitboxRef = useRef(false);
+  const debugDifficultyRef = useRef<number | null>(null);
   const [phase, setPhase] = useState<Phase>("ready");
   const [score, setScore] = useState(0);
   const [view, setView] = useState<RunView | null>(null);
@@ -103,6 +105,7 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     debugHitboxRef.current = new URLSearchParams(window.location.search).get("debugHitbox") === "1";
+    debugDifficultyRef.current = parseDebugDifficultyScore(window.location.search);
   }, []);
 
   useEffect(() => {
@@ -182,10 +185,15 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
       const next = stepPhysics(yRef.current, velocityRef.current, dt);
       yRef.current = next.y;
       velocityRef.current = next.velocity;
-      worldOffsetRef.current += HORIZONTAL_SPEED * dt;
-      obstaclesRef.current = obstaclesRef.current.map((pair) => ({ ...pair, x: pair.x - HORIZONTAL_SPEED * dt }));
+      // Opening en snelheid volgen de score van déze run (difficulty.ts). Alle
+      // obstakels delen dezelfde snelheid, dus de paarafstand blijft gelijk; de
+      // opening van een bestaand paar verandert nooit meer.
+      const difficultyScore = debugDifficultyRef.current ?? scoreRef.current;
+      const speed = worldSpeed(difficultyScore);
+      worldOffsetRef.current += speed * dt;
+      obstaclesRef.current = obstaclesRef.current.map((pair) => ({ ...pair, x: pair.x - speed * dt }));
       const last = obstaclesRef.current.at(-1);
-      if (last && last.x < WORLD_WIDTH - PAIR_SPACING) obstaclesRef.current.push(createObstaclePair(last.id + 1, last.x + PAIR_SPACING, Math.random, last.gapY));
+      if (last && last.x < WORLD_WIDTH - PAIR_SPACING) obstaclesRef.current.push(createObstaclePair(last.id + 1, last.x + PAIR_SPACING, Math.random, last.gapY, difficultyScore));
       for (const pair of obstaclesRef.current) {
         if (passedPair(MASCOT_X, pair, scoredRef.current.has(pair.id))) { scoredRef.current.add(pair.id); scoreRef.current += 1; setScore(scoreRef.current); }
         if (timestamp >= safeUntilRef.current && (collidesWithObstacle({ x: MASCOT_X, y: yRef.current }, pair) || isOutOfPlayZone({ x: MASCOT_X, y: yRef.current }))) { void die(); break; }
@@ -200,17 +208,14 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
 
   const resetLocalRun = useCallback(() => {
     yRef.current = 270; velocityRef.current = 0; worldOffsetRef.current = 0; scoreRef.current = 0; setScore(0); scoredRef.current = new Set();
-    const first = createObstaclePair(1, FIRST_OBSTACLE_X, Math.random);
-    const second = createObstaclePair(2, FIRST_OBSTACLE_X + PAIR_SPACING, Math.random, first.gapY);
-    obstaclesRef.current = [first, second, createObstaclePair(3, FIRST_OBSTACLE_X + PAIR_SPACING * 2, Math.random, second.gapY)];
+    obstaclesRef.current = createPairSequence(1, FIRST_OBSTACLE_X, Math.random, debugDifficultyRef.current ?? 0);
   }, []);
 
   const repositionAfterRevive = useCallback(() => {
     yRef.current = (PLAY_TOP + PLAY_BOTTOM) / 2 - MASCOT_RENDER_SIZE / 2;
     velocityRef.current = 0;
-    const first = createObstaclePair(1001, MASCOT_X + 170, () => 0.5);
-    const second = createObstaclePair(1002, MASCOT_X + 170 + PAIR_SPACING, () => 0.5, first.gapY);
-    obstaclesRef.current = [first, second, createObstaclePair(1003, MASCOT_X + 170 + PAIR_SPACING * 2, () => 0.5, second.gapY)];
+    // De score blijft na Genees staan en daarmee ook de moeilijkheid.
+    obstaclesRef.current = createPairSequence(1001, MASCOT_X + 170, () => 0.5, debugDifficultyRef.current ?? scoreRef.current);
   }, []);
 
   const action = useCallback(async () => {

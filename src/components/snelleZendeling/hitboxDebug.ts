@@ -1,5 +1,5 @@
 import {
-  GAP_HEIGHT, MASCOT_RENDER_SIZE, WORLD_HEIGHT, mascotHitbox, mascotHitboxEllipse, obstacleRects,
+  MASCOT_RENDER_SIZE, WORLD_HEIGHT, mascotHitbox, mascotHitboxEllipse, obstacleRects,
   type MascotBody, type ObstaclePair,
 } from "@/lib/snelleZendeling/gameplay";
 
@@ -20,7 +20,7 @@ export function drawHitboxDebug(ctx: CanvasRenderingContext2D, body: MascotBody,
     ctx.strokeRect(rects.bottom.x + 0.5, rects.bottom.y + 0.5, rects.bottom.width, Math.min(rects.bottom.height, WORLD_HEIGHT - rects.bottom.y));
     ctx.strokeStyle = "rgba(34, 197, 94, 0.95)";
     ctx.setLineDash([4, 3]);
-    ctx.strokeRect(pair.x + 0.5, pair.gapY + 0.5, rects.top.width, GAP_HEIGHT);
+    ctx.strokeRect(pair.x + 0.5, pair.gapY + 0.5, rects.top.width, pair.gapHeight);
     ctx.setLineDash([]);
   }
 
