@@ -819,6 +819,11 @@ export const nl = {
     newRecord: "Nieuw persoonlijk record",
     connectionError: "De server kon deze run niet bevestigen. Je score is niet opgeslagen.",
     noQuestion: "Er is nu geen geschikte Genees-vraag beschikbaar.",
+    reviveQuestionAbout: "Beantwoord deze vraag over {chapter} goed om verder te gaan.",
+    reviveWrong: "Niet helemaal.",
+    reviveReadHint: "Lees {chapter} om het antwoord te ontdekken.",
+    reviveRead: "Lees {chapter}",
+    healUsed: "Je hebt Genees in deze run al gebruikt.",
   },
   chapterGuessLevels: {
     beginner: "Beginner",

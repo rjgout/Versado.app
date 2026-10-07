@@ -719,6 +719,11 @@ export const fr: PartialMessages = {
     newRecord: "Nouveau record personnel",
     connectionError: "Le serveur n’a pas pu confirmer cette partie.",
     noQuestion: "Aucune question adaptée n’est disponible pour le moment.",
+    reviveQuestionAbout: "Réponds correctement à cette question sur {chapter} pour continuer.",
+    reviveWrong: "Pas tout à fait.",
+    reviveReadHint: "Lis {chapter} pour découvrir la réponse.",
+    reviveRead: "Lire {chapter}",
+    healUsed: "Tu as déjà repris ton vol dans cette partie.",
   },
   chapterGuessLevels: {
     beginner: "Débutant",

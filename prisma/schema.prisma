@@ -100,6 +100,8 @@ model User {
   companion          Companion @default(NOVI)
 
   quickMissionaryRuns QuickMissionaryRun[]
+  quickMissionaryReviveProgress QuickMissionaryReviveProgress[]
+  quickMissionaryReviveSeen QuickMissionaryReviveSeen[]
   mysteryProgress     MysteryProgress[]
 
   // De actieve contentcollectie voor de contentswitcher. Null betekent dat de gebruiker
@@ -464,6 +466,7 @@ model Chapter {
   courseLessons        CourseLesson[]
   courseProgressCursor UserCourseProgress[]
   challenges           Challenge[]
+  reviveQuestions      QuickMissionaryReviveQuestion[]
 
   @@unique([bookId, number])
 }
@@ -502,6 +505,7 @@ model ContentCollection {
   books     Book[]
   courses   Course[]
   gameScopes GameContentScope[]
+  reviveProgress QuickMissionaryReviveProgress[]
   users     User[]   @relation("ActiveContentCollection")
   fsyLessons FsyLesson[]
   persons   Person[]
@@ -2400,6 +2404,94 @@ model QuickMissionaryRun {
   @@index([userId, status])
   @@index([userId, score])
   @@index([dayKey, status, score])
+}
+
+// --- Genees: vragenbank en voortgang (Vliegende {gids}) ------------------------
+//
+// Zie docs/SNELLE-ZENDELING.md. De vragen zijn gecureerde inhoud (prisma/genees/)
+// en bewust LOS van Exercise: Exercise wordt door lessen, oefenen, het
+// familiespel en de live-spellen gelezen, en Genees-vragen horen daar niet te
+// verschijnen. De server bepaalt welke vraag aan de beurt is; de client weet
+// niets van volgorde of geschiedenis.
+
+// SHOWN = aan de speler getoond maar niet beantwoord (bv. de run is verlaten);
+// zo'n vraag telt als gezien en komt niet meteen terug.
+enum QuickMissionaryReviveOutcome {
+  SHOWN
+  CORRECT
+  WRONG
+}
+
+model QuickMissionaryReviveQuestion {
+  id         String        @id @default(cuid())
+  // Stabiele sleutel uit het contentbestand (bv. "bofm-nl:1-ne:1:a"), zodat een
+  // herlading dezelfde rij bijwerkt en de geschiedenis van spelers blijft staan.
+  // "legacy:<id>" = overgenomen uit de eerdere Exercise-vraag.
+  contentKey String        @unique
+  chapterId  String
+  chapter    Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  // Volgorde van de variant binnen het hoofdstuk; alleen voor stabiele sortering.
+  variant    Int           @default(1)
+  prompt     String
+  status     ContentStatus @default(APPROVED)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  options QuickMissionaryReviveOption[]
+  seen    QuickMissionaryReviveSeen[]
+
+  @@index([chapterId, status])
+}
+
+model QuickMissionaryReviveOption {
+  id         String                        @id @default(cuid())
+  questionId String
+  question   QuickMissionaryReviveQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  label      String
+  isCorrect  Boolean                       @default(false)
+  order      Int                           @default(0)
+
+  @@index([questionId])
+}
+
+// Waar de speler in een uitgave is: het hoofdstuk dat bij de volgende Genees
+// aan de beurt is. De positie is (Book.order, Chapter.order) in plaats van een
+// hoofdstuk-id, zodat nieuwe of opnieuw ingelezen hoofdstukken de plek niet
+// kwijtraken. Per uitgave een eigen voortgang: elke uitgave heeft eigen vragen.
+model QuickMissionaryReviveProgress {
+  userId              String
+  user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentCollectionId String
+  contentCollection   ContentCollection @relation(fields: [contentCollectionId], references: [id], onDelete: Cascade)
+  // Eerste hoofdstuk (positie) vanaf waar naar de volgende vraag wordt gezocht.
+  cursorBookOrder     Int               @default(0)
+  cursorChapterOrder  Int               @default(0)
+  // Geschiedenisronde: begint bij 1 en loopt op wanneer alle vragen van de
+  // uitgave gezien zijn en het geheugen gecontroleerd wordt teruggezet.
+  cycle               Int               @default(1)
+  updatedAt           DateTime          @updatedAt
+
+  @@id([userId, contentCollectionId])
+}
+
+// Elke vraag die een speler te zien kreeg, per geschiedenisronde. Wordt op het
+// moment van uitgeven vastgelegd (niet pas bij het antwoord), zodat verlaten,
+// verversen of een ander toestel dezelfde vraag niet opnieuw oplevert.
+model QuickMissionaryReviveSeen {
+  id         String                        @id @default(cuid())
+  userId     String
+  user       User                          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String
+  question   QuickMissionaryReviveQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  cycle      Int
+  runId      String?
+  outcome    QuickMissionaryReviveOutcome  @default(SHOWN)
+  seenAt     DateTime                      @default(now())
+  answeredAt DateTime?
+
+  @@unique([userId, questionId, cycle])
+  @@index([userId, cycle])
+  @@index([runId])
 }
 
 // --- De Alleskenner ----------------------------------------------------------

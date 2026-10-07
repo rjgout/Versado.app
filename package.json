@@ -34,7 +34,7 @@
     "test:mascots": "tsx --test tests/mascots.test.ts tests/divisions.test.ts",
     "test:focus": "tsx --test tests/focus-mode.test.ts",
     "test:exercise-feedback": "tsx --test tests/exercise-feedback.test.ts",
-    "test:snelle-zendeling": "tsx --test tests/snelle-zendeling.test.ts tests/snelle-zendeling-hitbox.test.ts",
+    "test:snelle-zendeling": "tsx --test tests/snelle-zendeling.test.ts tests/snelle-zendeling-hitbox.test.ts tests/snelle-zendeling-genees.test.ts tests/snelle-zendeling-genees.integration.test.ts",
     "test:mystery": "tsx --test tests/mystery001a.test.ts tests/focus-mode.test.ts",
     "test:artwork": "tsx --test tests/artwork.test.ts",
     "test:leagues": "tsx --test tests/leagues.test.ts",
@@ -51,7 +51,8 @@
     "test:learning": "tsx --test tests/learning-rules.test.ts tests/learning-progress.integration.test.ts",
     "audio:mirror": "tsx scripts/mirrorAudio.ts",
     "otb:validate": "tsx scripts/otb/validate.ts",
-    "otb:import-trial": "tsx scripts/otb/import-trial.ts"
+    "otb:import-trial": "tsx scripts/otb/import-trial.ts",
+    "genees:check": "tsx scripts/genees/check.ts"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

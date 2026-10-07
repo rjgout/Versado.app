@@ -46,6 +46,8 @@ import { importAlleskennerItems, importAlleskennerTranslations } from "../../pri
 import { alleskennerTranslations } from "../../prisma/alleskennerTranslate";
 import { preparePinnedOtbSource } from "../../scripts/otb/source";
 import { importOtbTrial } from "../../scripts/otb/import-core";
+import { importGeneesBank } from "../../prisma/importGenees";
+import { GENEES_BANKS } from "../../prisma/genees";
 
 // Namen/omschrijvingen bij de achievement-slugs uit src/lib/achievements.ts.
 const achievementDefs = [
@@ -156,6 +158,9 @@ export async function runSeed(client: PrismaClient, log: (msg: string) => void =
 
   log("Seeding introductiecursus (Ontdek het Boek van Mormon)...");
   await importIntroLessons(client, introLessons, log);
+
+  log("Seeding Genees-vragen (Vliegende Versado)...");
+  for (const bank of GENEES_BANKS) await importGeneesBank(client, bank, log);
 
   log("Seeding De Slimste Heilige...");
   const alleskennerAll = [...alleskennerItems, ...generatedAlleskennerItems()];

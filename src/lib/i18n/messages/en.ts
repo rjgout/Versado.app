@@ -719,6 +719,11 @@ export const en: PartialMessages = {
     newRecord: "New personal record",
     connectionError: "The server could not confirm this run.",
     noQuestion: "No suitable question is available right now.",
+    reviveQuestionAbout: "Answer this question about {chapter} correctly to continue.",
+    reviveWrong: "Not quite.",
+    reviveReadHint: "Read {chapter} to discover the answer.",
+    reviveRead: "Read {chapter}",
+    healUsed: "You already used Recover in this run.",
   },
   chapterGuessLevels: {
     beginner: "Beginner",

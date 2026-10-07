@@ -4,6 +4,7 @@ import { dayKeyInZone, resolveTimeZone } from "@/lib/timeZone";
 import { shuffleForDisplay } from "@/lib/exerciseGen";
 import { validateReportedScore } from "./validation";
 import { applyReviveAnswer, reviveQuestionContext, selectReviveOptions } from "./rules";
+import { REVIVE_START, cursorAfterAnswer, pickReviveQuestion, type ReviveChapterEntry } from "./reviveSelection";
 import { rankScores } from "./ranking";
 
 const TOP_SIZE = 50;
@@ -17,6 +18,12 @@ export interface ReviveQuestion {
   options: { id: string; label: string }[];
 }
 
+/** Na een fout Genees-antwoord: welk hoofdstuk de speler kan lezen. Nooit het antwoord zelf. */
+export interface ReviveReading {
+  chapterId: string;
+  label: string;
+}
+
 export interface QuickMissionaryRunView {
   runId: string;
   status: RunStatus;
@@ -24,6 +31,7 @@ export interface QuickMissionaryRunView {
   reviveUsed: boolean;
   reviveAvailable: boolean;
   reviveQuestion: ReviveQuestion | null;
+  reviveReading: ReviveReading | null;
   dailyBest: number;
   allTimeBest: number;
 }
@@ -65,7 +73,7 @@ async function reviveQuestionForRun(run: { reviveExerciseId: string | null; revi
   if (!run.reviveExerciseId) return null;
   const ids = optionIdsFromRun(run);
   if (ids.length !== 3) return null;
-  const exercise = await prisma.exercise.findUnique({
+  const question = await prisma.quickMissionaryReviveQuestion.findUnique({
     where: { id: run.reviveExerciseId },
     select: {
       id: true,
@@ -74,10 +82,34 @@ async function reviveQuestionForRun(run: { reviveExerciseId: string | null; revi
       options: { where: { id: { in: ids } }, select: { id: true, label: true } },
     },
   });
-  if (!exercise || exercise.options.length !== 3) return null;
-  const byId = new Map(exercise.options.map((option) => [option.id, option]));
+  if (!question || question.options.length !== 3) return null;
+  const byId = new Map(question.options.map((option) => [option.id, option]));
   const options = ids.map((id) => byId.get(id)).filter((option): option is { id: string; label: string } => !!option);
-  return options.length === 3 ? { exerciseId: exercise.id, context: reviveQuestionContext(exercise), prompt: exercise.prompt, options } : null;
+  // De wire-naam blijft exerciseId: een nog openstaande client van vóór deze
+  // wijziging stuurt dat veld terug, en lopende runs bewaren deze id al.
+  return options.length === 3 ? { exerciseId: question.id, context: reviveQuestionContext(question), prompt: question.prompt, options } : null;
+}
+
+/** Na een fout antwoord het hoofdstuk om te lezen; alleen voor een afgesloten run. */
+async function reviveReadingForRun(run: { id: string; status: RunStatus; userId: string }): Promise<ReviveReading | null> {
+  if (run.status !== "FINISHED") return null;
+  const wrong = await prisma.quickMissionaryReviveSeen.findFirst({
+    where: { runId: run.id, userId: run.userId, outcome: "WRONG" },
+    select: { question: { select: { chapter: { select: { id: true, number: true, book: { select: { name: true } } } } } } },
+  });
+  const chapter = wrong?.question.chapter;
+  const context = chapter ? reviveQuestionContext({ chapter }) : null;
+  return chapter && context ? { chapterId: chapter.id, label: context.label } : null;
+}
+
+/** Zonder geschikte vragen in de actieve uitgave wordt Genees niet aangeboden. */
+async function hasReviveQuestions(userId: string): Promise<boolean> {
+  const collectionId = await activeCollectionId(userId);
+  const any = await prisma.quickMissionaryReviveQuestion.findFirst({
+    where: { status: "APPROVED", chapter: { book: { contentCollectionId: collectionId } } },
+    select: { id: true },
+  });
+  return !!any;
 }
 
 async function bestScores(userId: string, dayKey: string): Promise<{ dailyBest: number; allTimeBest: number }> {
@@ -102,15 +134,21 @@ async function getOwnedRun(runId: string, userId: string) {
 
 export async function getQuickMissionaryRunView(runId: string, userId: string): Promise<QuickMissionaryRunView> {
   const run = await getOwnedRun(runId, userId);
+  const awaiting = run.status === "DEAD_AWAITING_REVIVE" && !run.reviveUsed;
   const question = run.status === "DEAD_AWAITING_REVIVE" ? await reviveQuestionForRun(run) : null;
-  const scores = await bestScores(userId, run.dayKey);
+  const [scores, reviveReading, canRevive] = await Promise.all([
+    bestScores(userId, run.dayKey),
+    reviveReadingForRun(run),
+    awaiting ? (run.reviveExerciseId ? Promise.resolve(true) : hasReviveQuestions(userId)) : Promise.resolve(false),
+  ]);
   return {
     runId: run.id,
     status: run.status,
     score: run.score,
     reviveUsed: run.reviveUsed,
-    reviveAvailable: run.status === "DEAD_AWAITING_REVIVE" && !run.reviveUsed,
+    reviveAvailable: canRevive,
     reviveQuestion: question,
+    reviveReading,
     ...scores,
   };
 }
@@ -141,29 +179,80 @@ export async function finishQuickMissionaryRun(runId: string, userId: string, sc
   });
 }
 
+const MAX_UNUSABLE_QUESTIONS = 50;
+
+/**
+ * Geeft de Genees-vraag van deze run uit. Dezelfde run krijgt bij verversen
+ * dezelfde vraag terug; een nieuwe run krijgt per regel in reviveSelection.ts
+ * een nieuwe. De vraag staat al als gezien geregistreerd vóórdat de speler
+ * hem krijgt, zodat verlaten of verversen hem niet opnieuw oplevert.
+ */
 export async function requestReviveQuestion(runId: string, userId: string): Promise<QuickMissionaryRunView> {
   const run = await getOwnedRun(runId, userId);
   if (run.status !== "DEAD_AWAITING_REVIVE" || run.reviveUsed) throw new Error("INVALID_STATE");
   if (!run.reviveExerciseId) {
     const collectionId = await activeCollectionId(userId);
-    const candidates = await prisma.exercise.findMany({
-      where: { status: "APPROVED", type: "MULTIPLE_CHOICE", chapter: { book: { contentCollectionId: collectionId } }, options: { some: {} } },
-      include: {
-        chapter: { select: { number: true, book: { select: { name: true } } } },
-        options: { orderBy: { order: "asc" } },
-        attempts: { where: { userId }, select: { id: true } },
-      },
-      take: 200,
+    await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "QuickMissionaryRun" WHERE "id" = ${runId} AND "userId" = ${userId} FOR UPDATE`;
+      const locked = await tx.quickMissionaryRun.findUnique({ where: { id: runId } });
+      if (!locked || locked.userId !== userId) throw new Error("NOT_FOUND");
+      if (locked.status !== "DEAD_AWAITING_REVIVE" || locked.reviveUsed) throw new Error("INVALID_STATE");
+      if (locked.reviveExerciseId) return;
+      // Twee runs van dezelfde speler tegelijk mogen niet dezelfde vraag uitgeven.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`genees:${userId}`}, 0))`;
+
+      const progress = await tx.quickMissionaryReviveProgress.findUnique({ where: { userId_contentCollectionId: { userId, contentCollectionId: collectionId } } });
+      const cycle = progress?.cycle ?? 1;
+      const cursor = progress ? { bookOrder: progress.cursorBookOrder, chapterOrder: progress.cursorChapterOrder } : REVIVE_START;
+      const inCollection = { chapter: { book: { contentCollectionId: collectionId } } };
+      const [rows, seenRows] = await Promise.all([
+        tx.quickMissionaryReviveQuestion.findMany({
+          where: { status: "APPROVED", ...inCollection },
+          select: { id: true, chapterId: true, chapter: { select: { order: true, book: { select: { order: true } } } } },
+        }),
+        tx.quickMissionaryReviveSeen.findMany({ where: { userId, cycle, question: inCollection }, select: { questionId: true }, orderBy: { seenAt: "desc" } }),
+      ]);
+      const seen = new Set(seenRows.map((row) => row.questionId));
+      const unusable = new Set<string>();
+
+      for (let attempt = 0; attempt < MAX_UNUSABLE_QUESTIONS; attempt++) {
+        const byChapter = new Map<string, ReviveChapterEntry>();
+        for (const row of rows) {
+          if (unusable.has(row.id)) continue;
+          const entry = byChapter.get(row.chapterId) ?? { chapterId: row.chapterId, bookOrder: row.chapter.book.order, chapterOrder: row.chapter.order, questionIds: [] };
+          entry.questionIds.push(row.id);
+          byChapter.set(row.chapterId, entry);
+        }
+        const pick = pickReviveQuestion({ chapters: [...byChapter.values()], seen, cursor, lastSeenQuestionId: seenRows[0]?.questionId ?? null });
+        if (!pick) throw new Error("NO_QUESTION");
+
+        const question = await tx.quickMissionaryReviveQuestion.findUniqueOrThrow({
+          where: { id: pick.questionId },
+          select: { id: true, options: { orderBy: { order: "asc" }, select: { id: true, label: true, isCorrect: true } } },
+        });
+        const options = selectReviveOptions(question.options);
+        if (!options) {
+          unusable.add(question.id);
+          continue;
+        }
+
+        const nextCycle = pick.cycleReset ? cycle + 1 : cycle;
+        const chosen = byChapter.get(pick.chapterId)!;
+        await tx.quickMissionaryReviveSeen.create({ data: { userId, questionId: question.id, cycle: nextCycle, runId, outcome: "SHOWN" } });
+        await tx.quickMissionaryReviveProgress.upsert({
+          where: { userId_contentCollectionId: { userId, contentCollectionId: collectionId } },
+          create: { userId, contentCollectionId: collectionId, cycle: nextCycle, cursorBookOrder: cursor.bookOrder, cursorChapterOrder: cursor.chapterOrder },
+          // Na een reset begint de uitgave opnieuw bij het eerste hoofdstuk.
+          update: pick.cycleReset ? { cycle: nextCycle, cursorBookOrder: chosen.bookOrder, cursorChapterOrder: chosen.chapterOrder } : {},
+        });
+        await tx.quickMissionaryRun.update({
+          where: { id: runId },
+          data: { reviveExerciseId: question.id, reviveOptionIds: JSON.stringify(shuffleForDisplay(options).map((option) => option.id)) },
+        });
+        return;
+      }
+      throw new Error("NO_QUESTION");
     });
-    const seen = candidates.filter((candidate) => candidate.attempts.length > 0);
-    const selected = [...shuffleForDisplay(seen), ...shuffleForDisplay(candidates.filter((candidate) => candidate.attempts.length === 0))]
-      .map((candidate) => {
-        const options = selectReviveOptions(candidate.options);
-        return { candidate, options: options ? shuffleForDisplay(options) : null };
-      })
-      .find((entry): entry is { candidate: typeof candidates[number]; options: { id: string; label: string; isCorrect: boolean }[] } => !!entry.options);
-    if (!selected) throw new Error("NO_QUESTION");
-    await prisma.quickMissionaryRun.update({ where: { id: runId }, data: { reviveExerciseId: selected.candidate.id, reviveOptionIds: JSON.stringify(selected.options.map((option) => option.id)) } });
   }
   return getQuickMissionaryRunView(runId, userId);
 }
@@ -175,11 +264,33 @@ export async function answerReviveQuestion(runId: string, userId: string, exerci
     if (!run || run.userId !== userId) throw new Error("NOT_FOUND");
     if (run.status !== "DEAD_AWAITING_REVIVE" || run.reviveUsed || run.reviveExerciseId !== exerciseId) throw new Error("INVALID_STATE");
     if (!optionIdsFromRun(run).includes(optionId)) throw new Error("INVALID_OPTION");
-    const option = await tx.questionOption.findUnique({ where: { id: optionId }, select: { exerciseId: true, isCorrect: true } });
-    if (!option || option.exerciseId !== exerciseId) throw new Error("INVALID_OPTION");
+    const option = await tx.quickMissionaryReviveOption.findUnique({
+      where: { id: optionId },
+      select: {
+        questionId: true,
+        isCorrect: true,
+        question: { select: { chapter: { select: { order: true, book: { select: { order: true, contentCollectionId: true } } } } } },
+      },
+    });
+    if (!option || option.questionId !== exerciseId) throw new Error("INVALID_OPTION");
     const nextStatus = applyReviveAnswer(run.status, run.reviveUsed, option.isCorrect);
     if (!nextStatus) throw new Error("INVALID_STATE");
     await tx.quickMissionaryRun.update({ where: { id: run.id }, data: option.isCorrect ? { reviveUsed: true, status: nextStatus } : { status: nextStatus, finishedAt: now() } });
+
+    // Geschiedenis en plek: goed -> volgend hoofdstuk, fout -> hetzelfde
+    // hoofdstuk blijft staan (met een andere vraag). De vraag zelf stond al als gezien.
+    await tx.quickMissionaryReviveSeen.updateMany({
+      where: { userId, questionId: exerciseId, runId },
+      data: { outcome: option.isCorrect ? "CORRECT" : "WRONG", answeredAt: now() },
+    });
+    const { chapter } = option.question;
+    const cursor = cursorAfterAnswer({ bookOrder: chapter.book.order, chapterOrder: chapter.order }, option.isCorrect);
+    const contentCollectionId = chapter.book.contentCollectionId;
+    await tx.quickMissionaryReviveProgress.upsert({
+      where: { userId_contentCollectionId: { userId, contentCollectionId } },
+      create: { userId, contentCollectionId, cursorBookOrder: cursor.bookOrder, cursorChapterOrder: cursor.chapterOrder },
+      update: { cursorBookOrder: cursor.bookOrder, cursorChapterOrder: cursor.chapterOrder },
+    });
     return option.isCorrect;
   });
   return { correct: result, view: await getQuickMissionaryRunView(runId, userId) };

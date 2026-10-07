@@ -13,6 +13,11 @@ export const PLAY_ROUTE = "/live" as const;
 /** De normale leaderboardweergave van het persoonlijke vliegspel. */
 export const QUICK_MISSIONARY_RANKING_HREF = "/snelle-zendeling?view=leaderboard#quick-missionary-leaderboard" as const;
 
+/** Het hoofdstuk lezen (zonder een cursus te starten): de bestaande lesroute opent in de leesfase. */
+export function chapterReadHref(chapterId: string): string {
+  return `/lesson/${chapterId}`;
+}
+
 export interface PrimaryNavItem {
   id: PrimaryDestination;
   href: string;

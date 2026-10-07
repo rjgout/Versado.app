@@ -719,6 +719,11 @@ export const de: PartialMessages = {
     newRecord: "Neuer persönlicher Rekord",
     connectionError: "Der Server konnte diesen Run nicht bestätigen.",
     noQuestion: "Zurzeit ist keine passende Frage verfügbar.",
+    reviveQuestionAbout: "Beantworte diese Frage zu {chapter} richtig, um weiterzumachen.",
+    reviveWrong: "Nicht ganz.",
+    reviveReadHint: "Lies {chapter}, um die Antwort selbst zu entdecken.",
+    reviveRead: "{chapter} lesen",
+    healUsed: "Du hast „Rette dich“ in diesem Run schon genutzt.",
   },
   chapterGuessLevels: {
     beginner: "Anfänger",

@@ -728,7 +728,12 @@ export const es: PartialMessages = {
     "backToGames": "Volver a los juegos",
     "newRecord": "Nuevo récord personal",
     "connectionError": "El servidor no ha podido confirmar esta partida.",
-    "noQuestion": "No hay una pregunta adecuada disponible ahora."
+    "noQuestion": "No hay una pregunta adecuada disponible ahora.",
+    "reviveQuestionAbout": "Responde bien esta pregunta sobre {chapter} para continuar.",
+    "reviveWrong": "No del todo.",
+    "reviveReadHint": "Lee {chapter} para descubrir la respuesta.",
+    "reviveRead": "Leer {chapter}",
+    "healUsed": "Ya has usado Recupérate en esta partida."
   },
   "chapterGuessLevels": {
     "beginner": "Principiante",
