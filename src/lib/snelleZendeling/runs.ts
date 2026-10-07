@@ -9,6 +9,7 @@ import { eliminateRun, lockMatch, settleMatch, announceMatchChanged, type Elimin
 import { applyReviveAnswer, reviveQuestionContext, selectReviveOptions } from "./rules";
 import { REVIVE_START, cursorAfterAnswer, pickReviveQuestion, type ReviveChapterEntry } from "./reviveSelection";
 import { rankScores } from "./ranking";
+import { SOLO_RUNS } from "./soloScope";
 import { applyGeneesPurchase, lockUser, type BuyGeneesResult } from "@/lib/genees/inventory";
 import { geneesPriceXp } from "@/lib/genees/pricing";
 
@@ -132,8 +133,8 @@ async function hasReviveQuestions(userId: string): Promise<boolean> {
 
 async function bestScores(userId: string, dayKey: string): Promise<{ dailyBest: number; allTimeBest: number }> {
   const [daily, allTime] = await Promise.all([
-    prisma.quickMissionaryRun.findFirst({ where: { userId, dayKey, status: "FINISHED", matchId: null }, orderBy: [{ score: "desc" }, { finishedAt: "asc" }], select: { score: true } }),
-    prisma.quickMissionaryRun.findFirst({ where: { userId, status: "FINISHED", matchId: null }, orderBy: [{ score: "desc" }, { finishedAt: "asc" }], select: { score: true } }),
+    prisma.quickMissionaryRun.findFirst({ where: { userId, dayKey, status: "FINISHED", ...SOLO_RUNS }, orderBy: [{ score: "desc" }, { finishedAt: "asc" }], select: { score: true } }),
+    prisma.quickMissionaryRun.findFirst({ where: { userId, status: "FINISHED", ...SOLO_RUNS }, orderBy: [{ score: "desc" }, { finishedAt: "asc" }], select: { score: true } }),
   ]);
   return { dailyBest: daily?.score ?? 0, allTimeBest: allTime?.score ?? 0 };
 }
@@ -446,7 +447,7 @@ export async function getQuickMissionaryLeaderboard(userId: string, board: "toda
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { timeZone: true } });
   const dayKey = runDayKey(user, now());
   const runs = await prisma.quickMissionaryRun.findMany({
-    where: { status: "FINISHED", matchId: null, ...(board === "today" ? { dayKey } : {}) },
+    where: { status: "FINISHED", ...SOLO_RUNS, ...(board === "today" ? { dayKey } : {}) },
     select: { userId: true, score: true, finishedAt: true },
   });
   const ranked = rankScores(runs.flatMap((run) => run.finishedAt ? [{ userId: run.userId, score: run.score, finishedAt: run.finishedAt }] : []));

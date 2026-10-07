@@ -13,6 +13,7 @@ import { invalidateData } from "@/lib/data/client";
 import { announceXpChanged } from "@/lib/xpBroadcast";
 import { DeathPanel, ReviveFailurePanel, ReviveQuestionPanel, type DeathOptionView, type ReviveQuestionView, type ReviveReadingView } from "@/components/snelleZendeling/RevivePanels";
 import { drawScene, loadSceneImages, type SceneImages, type SceneMascot } from "@/components/snelleZendeling/scene";
+import { applyGhostSnapshot, applyGhostState, newGhost, remainingOthers, stepGhost, viewModeFor, type GhostPose } from "@/lib/snelleZendeling/ghostState";
 import { estimateClockOffset, type ClockSample } from "@/lib/snelleZendeling/clock";
 import { survivalOrder } from "@/lib/snelleZendeling/matchRules";
 import type { MatchView } from "@/lib/snelleZendeling/match";
@@ -43,13 +44,6 @@ interface RunView {
   reviveReading: ReviveReadingView | null;
 }
 
-interface Ghost {
-  y: number;
-  targetY: number;
-  boost: boolean;
-  seenAt: number;
-}
-
 const CLOCK_SAMPLES = 5;
 const CLOCK_RESYNC_MS = 30_000;
 const POS_INTERVAL_MS = 100;
@@ -58,7 +52,9 @@ const BEAT_INTERVAL_MS = 2_000;
 const STALL_SECONDS = 1;
 const SAFE_SECONDS_AFTER_REVIVE = 3;
 const SUBSTEP_SECONDS = 1 / 60;
-const GHOST_STALE_MS = 1_500;
+/** Dekking van een ghost naast je eigen mascotte, en als je zelf alleen kijkt (dan zijn zij de hoofdzaak). */
+const GHOST_OPACITY = 0.4;
+const SPECTATOR_GHOST_OPACITY = 0.85;
 
 export default function TogetherRun({ match, myUserId, character, socket }: { match: MatchView; myUserId: string; character: PersonalMascotCharacter; socket: Socket }) {
   const t = useT();
@@ -80,14 +76,19 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
   const clockSyncingRef = useRef(false);
   const lastPosRef = useRef(0);
   const lastBeatRef = useRef(0);
-  const ghostsRef = useRef(new Map<string, Ghost>());
+  const ghostsRef = useRef(new Map<string, GhostPose>());
+  const lifeRef = useRef(0);
+  const lastFrameRef = useRef<number | null>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const shownGhostsRef = useRef(-1);
   const startsAtRef = useRef(Date.parse(match.startsAt));
   const world = useMemo(() => createSharedWorld(match.seed), [match.seed]);
 
   const me = match.participants.find((p) => p.userId === myUserId) ?? null;
   const runId = me?.runId ?? null;
-  const ended = match.status === "ENDED";
-  const out = ended || !me || me.state === "ELIMINATED" || me.state === "FINISHED";
+  const mode = viewModeFor(me?.state, match.status);
+  const ended = mode === "result";
+  const out = mode !== "play" || !me;
 
   const [phase, setPhase] = useState<LocalPhase>("countdown");
   const [score, setScore] = useState(me?.score ?? 0);
@@ -112,18 +113,13 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
   }, [match, out]);
 
   // Nieuwe/andere gids-sprites voor iedereen die meedoet.
-  const characters = useMemo(() => {
-    const set = new Set<PersonalMascotCharacter>([character]);
-    for (const p of match.participants) set.add(p.character);
-    return [...set];
-  }, [character, match.participants]);
+  // De sprites worden alleen opnieuw bepaald als de verzameling gidsen echt verandert; elke
+  // statuswijziging van een speler geeft een nieuwe participantenlijst en mag de wereld
+  // nooit laten flitsen doordat afbeeldingen opnieuw geladen worden.
+  const charactersKey = useMemo(() => [...new Set<PersonalMascotCharacter>([character, ...match.participants.map((p) => p.character)])].sort().join(","), [character, match.participants]);
   useEffect(() => {
-    imagesRef.current = loadSceneImages(characters);
-  }, [characters]);
-
-  const characterOf = useCallback((userId: string): PersonalMascotCharacter => {
-    return matchRef.current.participants.find((p) => p.userId === userId)?.character ?? character;
-  }, [character]);
+    imagesRef.current = loadSceneImages(charactersKey.split(",") as PersonalMascotCharacter[]);
+  }, [charactersKey]);
 
   // --- Klok -------------------------------------------------------------------------
   const syncClock = useCallback(() => {
@@ -154,12 +150,13 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
 
   // --- Ghosts -------------------------------------------------------------------------
   useEffect(() => {
-    const onGhosts = ({ g }: { g: [string, number, number, number][] }) => {
+    const onGhosts = ({ g }: { g: [string, number, number, number, number][] }) => {
       const now = performance.now();
-      for (const [userId, y, , boost] of g) {
+      for (const [userId, y, , boost, life] of g) {
         if (userId === myUserId) continue;
         const known = ghostsRef.current.get(userId);
-        ghostsRef.current.set(userId, { y: known?.y ?? y, targetY: y, boost: boost === 1, seenAt: now });
+        // Zonder bekende deelnemer (nog) geen ghost; de toestand beslist of een momentopname telt.
+        if (known) ghostsRef.current.set(userId, applyGhostSnapshot(known, { y, boost: boost === 1, life }, now));
       }
     };
     socket.on("qm:ghosts", onGhosts);
@@ -174,6 +171,8 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
       yRef.current = (PLAY_TOP + PLAY_BOTTOM) / 2 - MASCOT_RENDER_SIZE / 2;
       velocityRef.current = 0;
       lastTimelineRef.current = timeline;
+      // Een nieuw life-nummer laat de anderen deze mascotte als verse start tonen (geen doorschuiven vanaf een oude positie).
+      lifeRef.current += 1;
       // Wat de wereld al gepasseerd is levert nooit punten op: de score telt alleen wat je zelf vliegt.
       const passed = passedPairsAtDistance(distanceAt(timeline));
       for (let id = 1; id <= passed; id++) scoredRef.current.add(id);
@@ -380,7 +379,7 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
       if (!outRef.current && current.status === "RUNNING") {
         if (phaseRef.current === "running" && timestamp - lastPosRef.current >= POS_INTERVAL_MS) {
           lastPosRef.current = timestamp;
-          socket.volatile.emit("qm:pos", { y: yRef.current, score: scoreRef.current, boost: timestamp < boostUntilRef.current });
+          socket.volatile.emit("qm:pos", { y: yRef.current, score: scoreRef.current, boost: timestamp < boostUntilRef.current, life: lifeRef.current });
         } else if (phaseRef.current !== "running" && timestamp - lastBeatRef.current >= BEAT_INTERVAL_MS) {
           lastBeatRef.current = timestamp;
           socket.emit("qm:beat");
@@ -390,12 +389,19 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
       if (ctx) {
         const distance = distanceAt(Math.max(0, timeline));
         const ghosts: SceneMascot[] = [];
-        for (const [userId, ghost] of ghostsRef.current) {
-          const participant = current.participants.find((p) => p.userId === userId);
-          if (!participant || participant.state !== "ACTIVE" || timestamp - ghost.seenAt > GHOST_STALE_MS) continue;
-          const smoothed = { ...ghost, y: ghost.y + (ghost.targetY - ghost.y) * 0.35 };
-          ghostsRef.current.set(userId, smoothed);
-          ghosts.push({ character: characterOf(userId), y: smoothed.y, boost: smoothed.boost });
+        const dt = lastFrameRef.current === null ? 0 : (timestamp - lastFrameRef.current) / 1000;
+        const spectating = outRef.current && current.status === "RUNNING";
+        for (const p of current.participants) {
+          if (p.userId === myUserId) continue;
+          // Eén ghost per deelnemer voor de hele wedstrijd; de toestand bepaalt alleen de weergave.
+          let ghost = ghostsRef.current.get(p.userId) ?? newGhost(p.state);
+          ghost = stepGhost(applyGhostState(ghost, p.state), dt, timestamp);
+          ghostsRef.current.set(p.userId, ghost);
+          if (ghost.alpha > 0.01) ghosts.push({ character: p.character, y: ghost.y, boost: ghost.boost, alpha: ghost.alpha * (spectating ? SPECTATOR_GHOST_OPACITY : GHOST_OPACITY) });
+        }
+        if (stageRef.current && shownGhostsRef.current !== ghosts.length) {
+          shownGhostsRef.current = ghosts.length;
+          stageRef.current.dataset.togetherGhosts = String(ghosts.length);
         }
         const showMe = !outRef.current && phaseRef.current === "running";
         drawScene(ctx, imagesRef.current, {
@@ -405,9 +411,10 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
           me: showMe ? { character, y: yRef.current, boost: timestamp < boostUntilRef.current } : null,
         });
       }
+      lastFrameRef.current = timestamp;
       requestAnimationFrame(loopRef.current);
     },
-    [character, characterOf, die, enterRunning, socket, syncClock, world]
+    [character, die, enterRunning, myUserId, socket, syncClock, world]
   );
   useEffect(() => {
     loopRef.current = loop;
@@ -422,25 +429,28 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
     if (response.ok && typeof data.code === "string") router.replace(`/live/${data.code}`);
   }
 
-  const others = match.participants.filter((p) => p.userId !== myUserId);
+  // Stabiele volgorde en geen sortering op score: wisselen tussen vliegen en Genees verspringt niets.
+  const flyingOthers = remainingOthers(match.participants, myUserId);
   const flying = match.participants.filter((p) => p.state === "ACTIVE" || p.state === "REVIVE_PENDING").length;
-  const flyingOthers = others.filter((p) => p.state === "ACTIVE").sort((a, b) => b.score - a.score);
+  const spectating = mode === "spectate";
+  const displayScore = out && me ? me.score : score;
 
   return (
     <ImmersiveLayout className="items-center justify-center bg-slate-950 sm:p-4">
       <div
         className="relative h-[100dvh] w-full overflow-hidden bg-sky-100 dark:bg-sky-950 sm:h-[min(48rem,calc(100dvh-2rem))] sm:w-auto sm:max-w-[calc(100vw-2rem)] sm:aspect-[9/16] sm:rounded-[2rem] sm:border-4 sm:border-vs-line-strong sm:shadow-xl"
+        ref={stageRef}
         data-together-stage
-        data-together-phase={out ? "out" : phase}
+        data-together-phase={ended ? "ended" : spectating ? "spectator" : phase}
         data-together-match={match.matchId}
         data-client-ready={view || out ? "true" : "false"}
       >
         <canvas ref={canvasRef} width={WORLD_WIDTH} height={WORLD_HEIGHT} data-mascot={character} className="block h-full w-full touch-none" onPointerDown={(event) => { event.preventDefault(); action(); }} />
-        <span className="pointer-events-none absolute right-[calc(var(--vs-safe-area-right)+1rem)] top-[calc(var(--vs-safe-area-top)+0.75rem)] z-30 min-w-10 rounded-full bg-slate-950/45 px-3 py-1.5 text-center text-xl font-black tabular-nums text-white shadow-sm backdrop-blur-sm" aria-live="polite" data-game-score>{score}</span>
+        <span className="pointer-events-none absolute right-[calc(var(--vs-safe-area-right)+1rem)] top-[calc(var(--vs-safe-area-top)+0.75rem)] z-30 min-w-10 rounded-full bg-slate-950/45 px-3 py-1.5 text-center text-xl font-black tabular-nums text-white shadow-sm backdrop-blur-sm" aria-live="polite" data-game-score>{displayScore}</span>
         <div className="pointer-events-none absolute left-[calc(var(--vs-safe-area-left)+0.75rem)] top-[calc(var(--vs-safe-area-top)+0.75rem)] z-30 flex max-w-[55%] flex-col gap-1" data-together-hud>
           {!ended && <span className="w-fit rounded-full bg-slate-950/45 px-2.5 py-1 text-xs font-extrabold text-white backdrop-blur-sm" data-together-flying>{t("quickMissionary.together.flyingCount", { n: flying })}</span>}
           {flyingOthers.slice(0, 4).map((p) => (
-            <span key={p.userId} className="flex w-fit items-center gap-1.5 rounded-full bg-slate-950/35 py-0.5 pl-0.5 pr-2 text-[0.7rem] font-bold text-white/90 backdrop-blur-sm">
+            <span key={p.userId} data-together-chip={p.userId} className={`flex w-fit items-center gap-1.5 rounded-full bg-slate-950/35 py-0.5 pl-0.5 pr-2 text-[0.7rem] font-bold text-white/90 backdrop-blur-sm transition-opacity duration-300 ${p.state === "ACTIVE" ? "" : "opacity-50"}`}>
               <UserAvatar id={p.userId} handle={p.handle} size="xs" />
               <span className="max-w-[6rem] truncate">{p.handle}</span>
               <span className="tabular-nums">{p.score}</span>
@@ -465,14 +475,23 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
             <p>{t("quickMissionary.tapToContinue")}</p>
           </button>
         )}
-        {out && (
-          <Overlay>
-            {!ended && me && <p className="text-3xl font-black" data-together-out>{t("quickMissionary.together.outTitle")}</p>}
+        {spectating && (
+          <div className="absolute inset-x-3 bottom-[calc(var(--vs-safe-area-bottom)+0.75rem)] z-30 flex flex-col gap-2 rounded-2xl bg-slate-950/70 p-3 text-white backdrop-blur-sm" data-together-spectator>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-black leading-tight" data-together-out>{t("quickMissionary.together.outTitle")}</p>
+                <p className="text-xs leading-snug text-white/85">{t("quickMissionary.together.outHint")}</p>
+                <p className="text-xs font-bold text-white/85" aria-live="polite">{t("quickMissionary.together.finalScore", { n: displayScore })} · {t("quickMissionary.together.flyingCount", { n: flying })}</p>
+              </div>
+              <Link replace className="btn-secondary shrink-0 !px-3 !py-1.5 !text-sm" href={PLAY_ROUTE}>{t("quickMissionary.together.stopWatching")}</Link>
+            </div>
             {view?.reviveReading && <ReviveFailurePanel reading={view.reviveReading} />}
-            {!ended && <p className="text-sm">{t("quickMissionary.together.outHint")}</p>}
-            {!ended && <p className="text-sm font-bold" aria-live="polite">{t("quickMissionary.together.flyingCount", { n: flying })}</p>}
-            {ended && <Results match={match} myUserId={myUserId} onPlayAgain={() => void playAgain()} />}
-            {!ended && <Link replace className="btn-secondary w-full max-w-xs" href={PLAY_ROUTE}>{t("quickMissionary.backToGames")}</Link>}
+          </div>
+        )}
+        {ended && (
+          <Overlay>
+            {view?.reviveReading && <ReviveFailurePanel reading={view.reviveReading} />}
+            <Results match={match} myUserId={myUserId} onPlayAgain={() => void playAgain()} />
           </Overlay>
         )}
         {error && <p className="absolute inset-x-4 bottom-[calc(var(--vs-safe-area-bottom)+1rem)] z-40 rounded-xl bg-red-950/90 p-3 text-center text-sm font-semibold text-white">{t("quickMissionary.connectionError")}</p>}
@@ -491,8 +510,7 @@ function Overlay({ children, passive = false }: { children: ReactNode; passive?:
 
 /**
  * Uitslag: wie het langst meedeed staat vooraan; de laatste twee zijn gemarkeerd.
- * De Duo-ranking zelf (een score voor het paar) is een aparte productbeslissing
- * en wordt hier bewust niet berekend.
+ * De Duo-score en -ranking staan in duoRanking.ts en bij de ranking van het spel.
  */
 function Results({ match, myUserId, onPlayAgain }: { match: MatchView; myUserId: string; onPlayAgain: () => void }) {
   const t = useT();

@@ -356,6 +356,54 @@ de laatste twee in overlevingsvolgorde, ook bij precies twee spelers, met ruwe
 scores en `participantCount`. De **scoreformule en ranking van het duo zijn nog
 niet vastgelegd**; zie "Open productbeslissing: Duo-score" hieronder.
 
+**Spectator.** Spectator is geen spelstatus maar de weergave van een definitief
+afgevallen deelnemer: de server houdt `ELIMINATED` (of `FINISHED`) en
+`viewModeFor` (`ghostState.ts`) maakt daar uit de server-stand `play`,
+`spectate` (afgevallen terwijl de run nog loopt) of `result` (de run is
+afgesloten) van. Wie definitief afvalt (fout antwoord, bewust geen Genees,
+opgeven, geen Genees meer) blijft in dezelfde room en ziet dezelfde wereld,
+dezelfde seed, tijdlijn en live ghosts; de camera is de vaste wereld en springt
+nooit tussen spelers. Een compacte balk toont "Je bent uitgeschakeld", "Je kijkt
+nu live mee", de vaste eindscore en hoeveel er nog meedoen, met "Stop met
+kijken". Een spectator stuurt geen positie of hartslag, kan niet scoren,
+botsen, Genezen, Genees kopen of zichzelf activeren: elke actie op een
+afgesloten run is server-side een no-op of `INVALID_STATE`, en `qm:pos` van wie
+volgens de server niet vliegt wordt genegeerd. Herladen of herverbinden geeft uit
+dezelfde stand opnieuw `spectate` (nooit ACTIVE, geen gratis Genees, geen nieuwe
+run); is de run intussen afgesloten, dan volgt rechtstreeks de uitslag. Een
+spectator die vertrekt verandert niets: eliminatie, score en duo blijven staan en
+de hartslagcontrole laat afgesloten runs met rust. Spectators tellen niet mee bij
+"hoeveel spelers zijn er nog" en hebben dus geen invloed op de laatste twee.
+Bij precies twee spelers eindigt de run direct, zonder spectatorfase.
+
+**Ghosts en volgorde van berichten.** Elke deelnemer heeft de hele wedstrijd één
+ghost (`GhostPose`, sleutel `userId`); de toestand bepaalt alleen de weergave:
+wie botst of Geneest vervaagt rustig op de laatst geldige plek, de eerste
+momentopname na terugkeer is de startpositie (snap, nooit doorschuiven vanaf een
+oude positie), daarna vloeiend. Elke (her)start van een speler krijgt een hoger
+`life`-nummer; een bericht met een lager nummer of van iemand die volgens de
+server niet vliegt wordt genegeerd. `RoomPayload.seq` loopt per room op in
+verzendvolgorde en de server bouwt en verstuurt standen één voor één, zodat een
+oudere stand een nieuwere niet overschrijft; de client voegt standen samen
+(`roomMerge.ts`) en ELIMINATED/FINISHED blijven definitief. De deelnemerslijst
+komt in vaste volgorde (run-id). De glitch zat in (1) het opnieuw laden van alle
+sprites bij elke statuswijziging (nieuwe participantenlijst gaf een nieuwe
+`characters`-verzameling), (2) ghosts die bij een andere status verwijderd en
+met een verouderde positie weer toegevoegd werden, en (3) een score-gesorteerde
+lijst die verspringt. Sprites staan nu in een cache en de wereld blijft één
+levenscyclus houden.
+
+**Solo-isolatie.** De solo-ranking en de persoonlijke records lezen uitsluitend
+via `SOLO_RUNS` (`soloScope.ts`, `matchId IS NULL`); de server bepaalt dat uit de
+database, nooit uit een clientparameter, en `tests/snelle-zendeling-solo-isolation.test.ts`
+laat elke nieuwe lezing zonder die definitie falen. Alle runs van een wedstrijd
+(eerste afvaller, tussenspelers, laatste twee, overlevende, met of zonder Genees)
+hebben een `matchId`. Controle op bestaande gegevens (diagnose, geen correctie):
+runs zonder `matchId` van spelers die in hetzelfde tijdvenster aan een wedstrijd
+deden, `select r.* from "QuickMissionaryRun" r join "QuickMissionaryMatch" m on r."matchId" is null and r."createdAt" between m."createdAt" and coalesce(m."endedAt", now()) join "QuickMissionaryRun" mr on mr."matchId" = m.id and mr."userId" = r."userId"`.
+Een overlap bewijst niets (iemand kan zowel solo als samen spelen) maar is de enige
+betrouwbare aanwijzing; scorehoogte is geen criterium.
+
 **Verbinding.** Elke client stuurt een hartslag (`qm:pos`/`qm:beat`, bewaard
 hooguit eens per seconde in `QuickMissionaryRun.lastSeenAt`). Wie langer dan
 `ACTIVE_GRACE_MS` (vliegend) of `PENDING_GRACE_MS` (Genees) stil is, valt af

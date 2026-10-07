@@ -315,3 +315,106 @@ test("scherm: duo toont alleen All-time (geen Vandaag-keuze); solo behoudt beide
   assert.equal(effectiveBoard("solo", "today"), "today");
   assert.equal(effectiveBoard("solo", "all-time"), "all-time");
 });
+
+// --- Ghost-levenscyclus, samenvoegen van standen en spectator-weergave ----------------------
+
+import { GHOST_MAX_JUMP, GHOST_STALE_MS, applyGhostSnapshot, applyGhostState, isTerminalState, mergeParticipantState, newGhost, remainingOthers, stepGhost, viewModeFor, type GhostPose } from "../src/lib/snelleZendeling/ghostState";
+import { mergeRoomPayload } from "../src/lib/snelleZendeling/roomMerge";
+import type { MatchParticipantView, RoomPayload } from "../src/lib/snelleZendeling/match";
+
+function flyingGhost(y = 300, now = 1_000): GhostPose {
+  return applyGhostSnapshot(applyGhostState(newGhost("ACTIVE"), "ACTIVE"), { y, boost: false, life: 1 }, now);
+}
+
+test("ghost: ACTIVE -> REVIVE_PENDING -> ACTIVE behoudt de identiteit en laatste positie; de eerste nieuwe momentopname is de startpositie (geen sprong)", () => {
+  let ghost = flyingGhost(300);
+  ghost = stepGhost(ghost, 0.5, 1_100);
+  assert.ok(ghost.alpha > 0);
+  const lastY = ghost.y;
+  ghost = applyGhostState(ghost, "REVIVE_PENDING");
+  // Positie blijft staan op de laatst geldige plek; niets teleporteert naar 0.
+  assert.equal(ghost.y, lastY);
+  // Tijdens Genees vervaagt hij rustig, hij verdwijnt niet in één frame.
+  let faded = stepGhost(ghost, 1 / 60, 1_200);
+  assert.ok(faded.alpha < ghost.alpha && faded.alpha > 0, "vervaagt geleidelijk");
+  assert.equal(faded.y, lastY);
+  // Een laat positie-event voor een speler die niet vliegt, verandert niets.
+  assert.equal(applyGhostSnapshot(faded, { y: 50, boost: true, life: 1 }, 1_250), faded);
+  // Terug: pas de eerste momentopname (nieuw life) bepaalt waar hij hervat; geen interpolatie vanaf de oude positie.
+  faded = applyGhostState(faded, "ACTIVE");
+  const resumed = applyGhostSnapshot(faded, { y: 500, boost: false, life: 2 }, 2_000);
+  assert.deepEqual([resumed.y, resumed.targetY, resumed.life], [500, 500, 2]);
+  // Daarna vloeiend verder.
+  const next = applyGhostSnapshot(resumed, { y: 480, boost: true, life: 2 }, 2_100);
+  assert.equal(next.y, 500);
+  assert.equal(next.targetY, 480);
+});
+
+test("ghost: fade-in en fade-out per frame begrensd; een ghost knalt nooit in één frame aan of uit", () => {
+  let ghost = flyingGhost(300, 0);
+  let previous = ghost.alpha;
+  for (let frame = 1; frame <= 60; frame++) {
+    ghost = stepGhost(ghost, 1 / 60, frame * 16);
+    assert.ok(ghost.alpha - previous <= 4 / 60 + 1e-9, "fade-in is geleidelijk");
+    previous = ghost.alpha;
+  }
+  assert.equal(ghost.alpha, 1);
+  ghost = applyGhostState(ghost, "ELIMINATED");
+  const drop = ghost.alpha - stepGhost(ghost, 1 / 60, 2_000).alpha;
+  assert.ok(drop > 0 && drop <= 2.5 / 60 + 1e-9);
+});
+
+test("ghost: een verouderde, verre of oude momentopname wordt nooit een zichtbare sprong of terugval", () => {
+  const ghost = flyingGhost(300, 1_000);
+  // Verouderd: vervaagt, verdwijnt niet abrupt.
+  const stale = stepGhost({ ...ghost, alpha: 1 }, 1 / 60, 1_000 + GHOST_STALE_MS + 10);
+  assert.ok(stale.alpha < 1 && stale.alpha > 0.9);
+  // Te grote delta bij gelijk life: snap in plaats van door het scherm slepen.
+  const far = applyGhostSnapshot(ghost, { y: 300 + GHOST_MAX_JUMP + 50, boost: false, life: 1 }, 1_100);
+  assert.equal(far.y, far.targetY);
+  // Klein verschil: gewoon doorschuiven naar het doel.
+  const near = applyGhostSnapshot(ghost, { y: 330, boost: false, life: 1 }, 1_100);
+  assert.deepEqual([near.y, near.targetY], [300, 330]);
+  // Oud life-nummer (van vóór de laatste dood) wordt genegeerd.
+  assert.equal(applyGhostSnapshot({ ...ghost, life: 3 }, { y: 100, boost: false, life: 2 }, 1_100).targetY, 300);
+});
+
+test("standen: ELIMINATED/FINISHED zijn definitief en een oudere room-stand draait niets terug", () => {
+  assert.equal(isTerminalState("ELIMINATED"), true);
+  assert.equal(mergeParticipantState("ELIMINATED", "ACTIVE"), "ELIMINATED");
+  assert.equal(mergeParticipantState("REVIVE_PENDING", "ACTIVE"), "ACTIVE");
+  const participant = (userId: string, state: MatchParticipantView["state"], eliminatedSeq: number | null = null): MatchParticipantView => ({ userId, handle: userId, discriminator: "11", character: "novi", state, score: 0, eliminatedSeq, runId: `r-${userId}` });
+  const payload = (seq: number, phase: RoomPayload["phase"], participants: MatchParticipantView[]): RoomPayload => ({
+    seq, phase, hostId: "a", code: "ABCDE", players: [],
+    match: { matchId: "m", gameCode: "ABCDE", hostId: "a", seed: "s", startsAt: "2026-01-01T00:00:00.000Z", serverNow: "2026-01-01T00:00:00.000Z", status: phase === "ended" ? "ENDED" : "RUNNING", endReason: null, participantCount: participants.length, participants, duo: null },
+  });
+  const newer = payload(5, "running", [participant("a", "ELIMINATED", 1), participant("b", "ACTIVE")]);
+  // Een late stand (lager seq) wordt genegeerd.
+  assert.equal(mergeRoomPayload(newer, payload(4, "running", [participant("a", "ACTIVE"), participant("b", "ACTIVE")])), newer);
+  // Zelfs met een hoger seq maakt een tegenstrijdige stand een eliminatie niet ongedaan.
+  const merged = mergeRoomPayload(newer, payload(6, "running", [participant("a", "ACTIVE"), participant("b", "REVIVE_PENDING")]));
+  assert.deepEqual(merged.match?.participants.map((p) => [p.userId, p.state, p.eliminatedSeq]), [["a", "ELIMINATED", 1], ["b", "REVIVE_PENDING", null]]);
+  // Een afgesloten wedstrijd blijft afgesloten.
+  const ended = payload(7, "ended", [participant("a", "ELIMINATED", 1), participant("b", "FINISHED")]);
+  assert.equal(mergeRoomPayload(ended, payload(8, "running", [participant("a", "ELIMINATED", 1), participant("b", "ACTIVE")])), ended);
+});
+
+test("weergave: ELIMINATED in een lopende run kijkt mee, in een afgesloten run volgt de uitslag; actieve spelers spelen", () => {
+  assert.equal(viewModeFor("ACTIVE", "RUNNING"), "play");
+  assert.equal(viewModeFor("REVIVE_PENDING", "RUNNING"), "play");
+  assert.equal(viewModeFor("ELIMINATED", "RUNNING"), "spectate");
+  assert.equal(viewModeFor("FINISHED", "RUNNING"), "spectate");
+  assert.equal(viewModeFor("ELIMINATED", "ENDED"), "result");
+  assert.equal(viewModeFor("ACTIVE", "ENDED"), "result");
+});
+
+test("12 spelers: de lijst van anderen verspringt niet bij Genees-wissels en verliest alleen definitief afgevallen spelers", () => {
+  const ids = Array.from({ length: 12 }, (_, i) => `u${String(i).padStart(2, "0")}`);
+  const make = (states: Record<string, ParticipantState>) => ids.map((userId) => ({ userId, state: states[userId] ?? ("ACTIVE" as ParticipantState) }));
+  const base = remainingOthers(make({}), "u00").map((p) => p.userId);
+  // Spelers die wisselen tussen vliegen en Genees blijven op dezelfde plek.
+  const flapping = remainingOthers(make({ u03: "REVIVE_PENDING", u07: "REVIVE_PENDING", u09: "REVIVE_PENDING" }), "u00").map((p) => p.userId);
+  assert.deepEqual(flapping, base);
+  const afterElimination = remainingOthers(make({ u03: "ELIMINATED", u05: "ELIMINATED" }), "u00").map((p) => p.userId);
+  assert.deepEqual(afterElimination, base.filter((id) => id !== "u03" && id !== "u05"));
+});

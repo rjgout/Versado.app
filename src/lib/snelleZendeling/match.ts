@@ -234,6 +234,8 @@ export interface MatchView {
 
 /** Wat de socketmodule naar iedereen in de room stuurt (lobby en wedstrijd). */
 export interface RoomPayload {
+  /** Oplopend per room, op het moment van versturen: een oudere stand overschrijft nooit een nieuwere. */
+  seq: number;
   phase: "lobby" | "running" | "ended";
   hostId: string;
   code: string;
@@ -248,7 +250,8 @@ export async function getMatchView(matchId: string, at: Date = new Date()): Prom
       id: true, seed: true, startsAt: true, status: true, endReason: true, participantCount: true,
       liveGame: { select: { code: true, hostId: true } },
       duo: { select: { userAId: true, userBId: true, scoreA: true, scoreB: true } },
-      runs: { select: { id: true, userId: true, status: true, score: true, eliminatedSeq: true, user: { select: { handle: true, discriminator: true, companion: true } } } },
+      // Vaste volgorde: de renderlijst van de clients springt niet door een wisselende query-volgorde.
+      runs: { orderBy: { id: "asc" }, select: { id: true, userId: true, status: true, score: true, eliminatedSeq: true, user: { select: { handle: true, discriminator: true, companion: true } } } },
     },
   });
   if (!match) return null;

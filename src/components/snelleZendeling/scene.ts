@@ -20,6 +20,10 @@ export const GHOST_ALPHA = 0.4;
 
 export type SceneImages = Record<string, HTMLImageElement>;
 
+// Eén Image per bestand voor de hele pagina: een nieuwe aanroep (bv. door een andere
+// verzameling gidsen) hergebruikt wat al geladen is en laat de wereld nooit even leeg.
+const imageCache = new Map<string, HTMLImageElement>();
+
 export function loadSceneImages(characters: PersonalMascotCharacter[]): SceneImages {
   const names = [
     ...LAYERS.map(([name]) => name),
@@ -30,8 +34,12 @@ export function loadSceneImages(characters: PersonalMascotCharacter[]): SceneIma
   ];
   const images: SceneImages = {};
   for (const name of names) {
-    const img = new Image();
-    img.src = `${ASSET_BASE}/${name}`;
+    let img = imageCache.get(name);
+    if (!img) {
+      img = new Image();
+      img.src = `${ASSET_BASE}/${name}`;
+      imageCache.set(name, img);
+    }
     images[name] = img;
   }
   return images;

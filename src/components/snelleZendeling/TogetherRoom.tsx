@@ -16,6 +16,7 @@ import TogetherRun from "@/components/snelleZendeling/TogetherRun";
 import { PLAY_ROUTE } from "@/lib/navigation";
 import type { PersonalMascotCharacter } from "@/lib/mascots";
 import type { RoomPayload } from "@/lib/snelleZendeling/match";
+import { mergeRoomPayload } from "@/lib/snelleZendeling/roomMerge";
 import type { MessageKey } from "@/lib/i18n/core";
 
 // Samen spelen met Vliegende {gids}: de lobby en de overgang naar de run. De
@@ -36,7 +37,8 @@ export default function TogetherRoom({ code, myUserId, character }: { code: stri
     const join = () => socket.emit("qm:join", { code });
     const onRoom = (next: RoomPayload) => {
       if (next.code !== code) return;
-      setRoom(next);
+      // Een oudere stand of een terugval van "definitief af" wordt genegeerd (zie roomMerge.ts).
+      setRoom((previous) => mergeRoomPayload(previous, next));
       setErrorKey(null);
     };
     const onError = ({ key }: { key: string }) => setErrorKey(key);

@@ -38,6 +38,8 @@ interface Ghost {
   y: number;
   score: number;
   boost: boolean;
+  /** Hoeveel keer de speler de wereld betrad; een lager nummer is een oud bericht. */
+  life: number;
   dirty: boolean;
 }
 
@@ -52,6 +54,13 @@ interface Room {
   lastFlush: Map<string, number>;
   ghostTimer?: NodeJS.Timeout;
   pushTimer?: NodeJS.Timeout;
+  /** Wie volgens de laatst opgebouwde stand vliegt; onbekend (undefined) tot de eerste opbouw. */
+  activeIds?: Set<string>;
+  /** Wie definitief af is (ELIMINATED/FINISHED): kijkt hooguit mee en stuurt geen spelacties. */
+  eliminatedIds?: Set<string>;
+  seq: number;
+  /** Stand opbouwen en versturen gebeurt één voor één: de volgorde van versturen is dan ook de volgorde van versheid. */
+  chain: Promise<void>;
 }
 
 const rooms = new Map<string, Room>();
@@ -86,6 +95,8 @@ async function loadRoom(code: string): Promise<Room | string> {
     members: new Map(game.players.map((p) => [p.userId, { userId: p.userId, handle: p.user.handle, socketIds: new Set<string>() }])),
     ghosts: new Map(),
     lastFlush: new Map(),
+    seq: 0,
+    chain: Promise.resolve(),
   };
   return room;
 }
@@ -128,7 +139,7 @@ function stopTimers(room: Room): void {
 
 // --- Staat naar de clients ----------------------------------------------------------
 
-async function buildPayload(room: Room): Promise<RoomPayload | null> {
+async function buildPayload(room: Room): Promise<Omit<RoomPayload, "seq"> | null> {
   const game = await prisma.liveGame.findUnique({
     where: { id: room.gameId },
     select: { hostId: true, players: { select: { user: { select: { id: true, handle: true, discriminator: true } } } } },
@@ -147,6 +158,8 @@ async function buildPayload(room: Room): Promise<RoomPayload | null> {
   if (match) {
     // Alleen wie nog vliegt heeft een ghost.
     const flying = new Set(match.participants.filter((p) => p.state === "ACTIVE").map((p) => p.userId));
+    room.activeIds = flying;
+    room.eliminatedIds = new Set(match.participants.filter((p) => p.state === "ELIMINATED" || p.state === "FINISHED").map((p) => p.userId));
     for (const userId of [...room.ghosts.keys()]) if (!flying.has(userId)) room.ghosts.delete(userId);
   }
   return {
@@ -159,10 +172,16 @@ async function buildPayload(room: Room): Promise<RoomPayload | null> {
 }
 
 async function pushRoom(room: Room, only?: Socket): Promise<void> {
-  const payload = await buildPayload(room).catch(() => null);
-  if (!payload) return;
-  if (only) only.emit("qm:room", payload);
-  else io?.to(channel(room.code)).emit("qm:room", payload);
+  const job = async () => {
+    const built = await buildPayload(room).catch(() => null);
+    if (!built) return;
+    // Het volgnummer krijgt hij pas bij het versturen: een client negeert een lager nummer.
+    const payload: RoomPayload = { ...built, seq: ++room.seq };
+    if (only) only.emit("qm:room", payload);
+    else io?.to(channel(room.code)).emit("qm:room", payload);
+  };
+  room.chain = room.chain.then(job, job);
+  await room.chain;
 }
 
 /** Meerdere wijzigingen kort na elkaar geven één push, ook bij heel veel spelers. */
@@ -182,11 +201,11 @@ function startGhostTimer(room: Room): void {
     const now = Date.now();
     if (room.ghosts.size > LARGE_ROOM && now - lastTick < GHOST_TICK_LARGE_MS) return;
     lastTick = now;
-    const updates: [string, number, number, number][] = [];
+    const updates: [string, number, number, number, number][] = [];
     for (const [userId, ghost] of room.ghosts) {
       if (!ghost.dirty) continue;
       ghost.dirty = false;
-      updates.push([userId, Math.round(ghost.y * 10) / 10, ghost.score, ghost.boost ? 1 : 0]);
+      updates.push([userId, Math.round(ghost.y * 10) / 10, ghost.score, ghost.boost ? 1 : 0, ghost.life]);
     }
     if (updates.length > 0) io?.to(channel(room.code)).volatile.emit("qm:ghosts", { t: now, g: updates });
   }, GHOST_TICK_MS);
@@ -350,13 +369,20 @@ export function registerQuickMissionaryHandlers(server: SocketIOServer, socket: 
   });
 
   // Positie van de eigen mascotte, voor de ghosts bij de anderen. Alleen visueel.
-  socket.on("qm:pos", (data: { y?: unknown; score?: unknown; boost?: unknown }) => {
+  // Wie volgens de server niet vliegt (Genees, definitief af, spectator) of een
+  // oud bericht stuurt (lager life-nummer dan al bekend), wordt genegeerd: een
+  // laat positie-event draait een nieuwere toestand nooit terug.
+  socket.on("qm:pos", (data: { y?: unknown; score?: unknown; boost?: unknown; life?: unknown }) => {
     const room = current();
     if (!room || room.status !== "running" || !room.members.has(user.id)) return;
+    if (room.activeIds && !room.activeIds.has(user.id)) return;
     const y = finiteNumber(data?.y, -300, 1000);
     const score = finiteNumber(data?.score, 0, 10_000);
-    if (y === null || score === null) return;
-    room.ghosts.set(user.id, { y, score: Math.floor(score), boost: data.boost === true, dirty: true });
+    const life = finiteNumber(data?.life, 0, 10_000);
+    if (y === null || score === null || life === null) return;
+    const known = room.ghosts.get(user.id);
+    if (known && Math.floor(life) < known.life) return;
+    room.ghosts.set(user.id, { y, score: Math.floor(score), boost: data.boost === true, life: Math.floor(life), dirty: true });
     touch(room, Math.floor(score));
   });
 
@@ -364,6 +390,8 @@ export function registerQuickMissionaryHandlers(server: SocketIOServer, socket: 
   socket.on("qm:beat", () => {
     const room = current();
     if (!room || room.status !== "running" || !room.members.has(user.id)) return;
+    // Een spectator (definitief af) stuurt niets meer; de server neemt het ook niet over.
+    if (room.activeIds && !room.activeIds.has(user.id) && room.eliminatedIds?.has(user.id)) return;
     touch(room, null);
   });
 
