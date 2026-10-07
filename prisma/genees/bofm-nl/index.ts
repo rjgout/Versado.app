@@ -8,6 +8,7 @@ import { mosiah } from "./mosiah";
 import { alma } from "./alma";
 import { helaman } from "./helaman";
 import { nephi3 } from "./3-ne";
+import { slot } from "./slot";
 
 // Het Boek van Mormon, Nederlandse uitgave. Eén bestand per boek; de volgorde
 // hier is niet van belang (Genees volgt Book.order en Chapter.order uit de
@@ -16,5 +17,5 @@ export const bofmNl: GeneesBankSeed = {
   id: "bofm-nl",
   work: "bofm",
   collectionId: BOM_COLLECTION_ID,
-  chapters: [...nephi1, ...nephi2, ...jakob, ...kleineBoeken, ...mosiah, ...alma, ...helaman, ...nephi3],
+  chapters: [...nephi1, ...nephi2, ...jakob, ...kleineBoeken, ...mosiah, ...alma, ...helaman, ...nephi3, ...slot],
 };
