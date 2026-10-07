@@ -37,6 +37,8 @@ const IMMERSIVE_ROUTES = [
  */
 const ACTIVITY_IN_NORMAL_SHELL = [
   /^\/practice$/,
+  // Speelroutes van alle mysteries, ook die nog niet in FOCUS_ROUTES staan.
+  /^\/mysteries\/\d{3}[a-z]\/play$/,
 ] as const;
 
 export type ShellMode = "normal" | "focus" | "immersive";
