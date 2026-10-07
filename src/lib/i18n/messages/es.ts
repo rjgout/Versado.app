@@ -758,7 +758,7 @@ export const es: PartialMessages = {
       "tab": "Dúo",
       "solo": "Solo",
       "kinds": "Tipo de clasificación",
-      "explain": "Los dos últimos de una partida conjunta. La puntuación del dúo es la más alta de las dos al terminar la partida; de cada dúo cuenta su mejor resultado.",
+      "explain": "Histórico: los dos últimos de una partida conjunta. La puntuación del dúo es la más alta de las dos al terminar la partida; de cada dúo cuenta su mejor resultado de siempre.",
       "empty": "Todavía no hay resultados de dúo.",
       "entry": "{a} + {b}: {score}",
     },

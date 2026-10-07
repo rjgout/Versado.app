@@ -748,7 +748,7 @@ export const en: PartialMessages = {
       tab: "Duo",
       solo: "Solo",
       kinds: "Ranking type",
-      explain: "The last two players of a joint run. The Duo score is the higher of their two scores at the moment the run ends; each duo’s best result counts.",
+      explain: "All-time: the last two players of a joint run. The Duo score is the higher of their two scores at the moment the run ends; each duo’s best result ever counts.",
       empty: "There are no Duo results yet.",
       entry: "{a} + {b}: {score}",
     },

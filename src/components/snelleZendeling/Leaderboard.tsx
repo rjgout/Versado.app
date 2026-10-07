@@ -9,10 +9,11 @@ import { quickMissionaryTitle } from "@/lib/gameCatalog";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
 import type { QuickMissionaryDuoEntry } from "@/lib/snelleZendeling/duoLeaderboard";
+import { boardsFor, effectiveBoard, type LeaderboardBoard, type LeaderboardKind } from "@/lib/snelleZendeling/leaderboardQuery";
 
 interface Entry { rank: number; userId: string; handle: string; discriminator: string; score: number }
-type Board = "today" | "all-time";
-type Kind = "solo" | "duo";
+type Board = LeaderboardBoard;
+type Kind = LeaderboardKind;
 
 export default function QuickMissionaryLeaderboard({ compact = false }: { compact?: boolean }) {
   const t = useT();
@@ -21,7 +22,7 @@ export default function QuickMissionaryLeaderboard({ compact = false }: { compac
   const [kind, setKind] = useState<Kind>("solo");
   const [entries, setEntries] = useState<Entry[] | null>(null);
   // De Duo-ranking verandert ook buiten dit scherm (een gezamenlijke run eindigt): via de centrale live-data-laag.
-  const duo = useLiveQuery<{ entries: QuickMissionaryDuoEntry[] }>(["quick-missionary-duo", board], () => fetchJson(`/api/snelle-zendeling/leaderboard?type=duo&board=${board}`), { scopes: ["games"], staleTime: 1_000 });
+  const duo = useLiveQuery<{ entries: QuickMissionaryDuoEntry[] }>(["quick-missionary-duo"], () => fetchJson("/api/snelle-zendeling/leaderboard?type=duo&board=all-time"), { scopes: ["games"], staleTime: 1_000 });
   useEffect(() => {
     if (kind !== "solo") return;
     fetch(`/api/snelle-zendeling/leaderboard?board=${board}`, { cache: "no-store" })
@@ -45,13 +46,15 @@ export default function QuickMissionaryLeaderboard({ compact = false }: { compac
             </button>
           ))}
         </div>
+        {boardsFor(kind).length > 1 && (
         <div className="flex rounded-full bg-vs-subtle p-1" role="tablist" aria-label={t("quickMissionary.leaderboardTabs")}>
-          {(["today", "all-time"] as Board[]).map((value) => (
-            <button key={value} type="button" role="tab" aria-selected={board === value} onClick={() => setBoard(value)} className={`rounded-full px-3 py-1 text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent ${board === value ? "bg-vs-surface text-vs-accent shadow-sm" : "text-vs-fg-3"}`}>
+          {boardsFor(kind).map((value) => (
+            <button key={value} type="button" role="tab" aria-selected={effectiveBoard(kind, board) === value} onClick={() => setBoard(value)} className={`rounded-full px-3 py-1 text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent ${effectiveBoard(kind, board) === value ? "bg-vs-surface text-vs-accent shadow-sm" : "text-vs-fg-3"}`}>
               {t(value === "today" ? "quickMissionary.today" : "quickMissionary.allTime")}
             </button>
           ))}
         </div>
+        )}
         </div>
       </div>
       {!compact && <p className="text-sm text-vs-fg-2">{kind === "duo" ? t("quickMissionary.duo.explain") : t(board === "today" ? "quickMissionary.dailyExplain" : "quickMissionary.allTimeExplain")}</p>}

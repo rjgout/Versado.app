@@ -120,8 +120,6 @@ export async function settleMatch(tx: Tx, matchId: string, at: Date): Promise<Se
         scoreB: duo.b.score,
         participantCount: finalRuns.length,
         finishedAt: at,
-        // Het duo is van twee mensen met mogelijk verschillende tijdzones: een vaste, gedeelde grens (zie docs/TIJD.md).
-        dayKey: dayKeyInZone(match.startsAt, resolveTimeZone(null)),
       },
     });
   }

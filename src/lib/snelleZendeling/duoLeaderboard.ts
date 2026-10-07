@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/db";
-import { dayKeyInZone, resolveTimeZone } from "@/lib/timeZone";
 import { rankDuos } from "./duoRanking";
 
 const TOP_SIZE = 50;
@@ -21,16 +20,15 @@ export interface DuoPlayer {
 }
 
 /**
- * De Duo-ranking uit de reeds vastgelegde ruwe duo-resultaten; de score wordt
- * hier afgeleid (max van beide scores), er is geen redundante opslag. Een duo is
- * van twee mensen met mogelijk verschillende tijdzones: "Vandaag" gebruikt de
- * vaste, gedeelde dagGrens waarmee het resultaat is vastgelegd (zie docs/TIJD.md).
- * De uitslag komt alleen uit server-side afgesloten wedstrijden.
+ * De Duo-ranking (alleen All-time) uit de reeds vastgelegde ruwe duo-resultaten;
+ * de score wordt hier afgeleid (max van beide scores), er is geen redundante
+ * opslag. Er is bewust geen "Vandaag": een duo bestaat uit twee mensen met
+ * mogelijk verschillende tijdzones, dus er bestaat geen gezamenlijke lokale dag,
+ * en tijdzones hebben hier geen enkele invloed. De uitslag komt alleen uit
+ * server-side afgesloten wedstrijden.
  */
-export async function getQuickMissionaryDuoLeaderboard(viewerId: string, board: "today" | "all-time", at: Date = new Date()): Promise<QuickMissionaryDuoEntry[]> {
-  const dayKey = dayKeyInZone(at, resolveTimeZone(null));
+export async function getQuickMissionaryDuoLeaderboard(viewerId: string): Promise<QuickMissionaryDuoEntry[]> {
   const rows = await prisma.quickMissionaryDuoResult.findMany({
-    where: board === "today" ? { dayKey } : {},
     select: { matchId: true, userAId: true, userBId: true, scoreA: true, scoreB: true, finishedAt: true },
   });
   const ranked = rankDuos(rows);

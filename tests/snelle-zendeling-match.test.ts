@@ -288,3 +288,30 @@ test("duo-ranking: bij gelijke score wint het duo dat die score het eerst behaal
   const tied = rankDuos([row("x", "c", "d", 10, 0, 5), row("y", "a", "b", 10, 0, 5)]);
   assert.deepEqual(tied.map((duo) => duo.key), ["a+b", "c+d"]);
 });
+
+// --- Welke rankings bestaan: solo (Vandaag + All-time), duo (alleen All-time) -------------------
+
+import { boardsFor, effectiveBoard, parseLeaderboardQuery } from "../src/lib/snelleZendeling/leaderboardQuery";
+
+test("rankingcombinaties: solo + today, solo + all-time en duo + all-time bestaan", () => {
+  assert.deepEqual(parseLeaderboardQuery(null, "today"), { ok: true, kind: "solo", board: "today" });
+  assert.deepEqual(parseLeaderboardQuery("solo", "all-time"), { ok: true, kind: "solo", board: "all-time" });
+  assert.deepEqual(parseLeaderboardQuery(null, "onzin"), { ok: true, kind: "solo", board: "today" }, "solo houdt de bestaande terugval op Vandaag");
+  assert.deepEqual(parseLeaderboardQuery("duo", "all-time"), { ok: true, kind: "duo", board: "all-time" });
+  assert.deepEqual(parseLeaderboardQuery("duo", null), { ok: true, kind: "duo", board: "all-time" });
+});
+
+test("rankingcombinaties: duo + today (of een ander bord) bestaat niet en wordt nooit stilletjes omgezet", () => {
+  assert.deepEqual(parseLeaderboardQuery("duo", "today"), { ok: false });
+  assert.deepEqual(parseLeaderboardQuery("duo", "onzin"), { ok: false });
+});
+
+test("scherm: duo toont alleen All-time (geen Vandaag-keuze); solo behoudt beide en onthoudt zijn keuze", () => {
+  assert.deepEqual(boardsFor("solo"), ["today", "all-time"]);
+  assert.deepEqual(boardsFor("duo"), ["all-time"]);
+  // Solo staat op Vandaag, de speler kiest Duo: All-time, nooit een verborgen "today"-state.
+  assert.equal(effectiveBoard("duo", "today"), "all-time");
+  // Terug naar Solo: de eerdere solo-keuze is er nog.
+  assert.equal(effectiveBoard("solo", "today"), "today");
+  assert.equal(effectiveBoard("solo", "all-time"), "all-time");
+});

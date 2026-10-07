@@ -1233,7 +1233,7 @@ export const nl = {
       tab: "Duo",
       solo: "Solo",
       kinds: "Soort ranking",
-      explain: "De laatste twee van een gezamenlijke run. De Duo-score is de hoogste score van die twee op het moment dat de run eindigt; per duo telt het beste resultaat.",
+      explain: "All-time: de laatste twee van een gezamenlijke run. De Duo-score is de hoogste score van die twee op het moment dat de run eindigt; per duo telt het beste resultaat ooit.",
       empty: "Er zijn nog geen Duo-resultaten.",
       entry: "{a} + {b}: {score}",
     },

@@ -395,12 +395,20 @@ niet als "A won".
   run verlaagt niets en alle ruwe resultaten blijven bewaard. Volgorde: hoogste
   Duo-score, dan wie die score het eerst behaalde (zoals de solo-ranking), dan de
   duo-sleutel. Een later gelijk resultaat verdringt het eerdere niet.
+- **Alleen All-time:** een duo bestaat uit twee mensen met mogelijk verschillende
+  tijdzones, dus er bestaat geen gezamenlijke "vandaag". Er is daarom bewust geen
+  Duo-Vandaag en geen vervangende daggrens; tijdzones hebben geen invloed op de
+  Duo-ranking. Resultaten van alle dagen tellen mee voor het beste resultaat ooit.
 - **Query:** `getQuickMissionaryDuoLeaderboard` (`duoLeaderboard.ts`) leidt de
-  score bij het opvragen af uit de ruwe resultaten; er is geen extra kolom en
-  geen migratie. `GET /api/snelle-zendeling/leaderboard?type=duo&board=today|all-time`.
-  "Vandaag" gebruikt de vaste gedeelde dagGrens van het duo-resultaat (een duo
-  heeft twee tijdzones; zie docs/TIJD.md).
-- **UI:** de bestaande ranking heeft een Solo/Duo-keuze; een duo-entry toont beide
+  score bij het opvragen af uit de ruwe resultaten; er is geen opgeslagen score.
+  Ondersteunde combinaties van `GET /api/snelle-zendeling/leaderboard`
+  (`parseLeaderboardQuery`): solo + `today`, solo + `all-time`, duo + `all-time`
+  (`type=duo`); duo + `today` is een 400. De migratie
+  `20261019100000_drop_duo_result_daykey` verwijdert de daggrenskolom van
+  `QuickMissionaryDuoResult`; de ruwe resultaten blijven bewaard.
+- **UI:** de bestaande ranking heeft een Solo/Duo-keuze. Solo toont Vandaag en
+  All-time; bij Duo verdwijnt de bordkeuze (er is er maar één) en de Solo-keuze
+  blijft onthouden voor als je terugkeert. Een duo-entry toont beide
   avatars, beide namen en één Duo-score. Een gebruiker kan met verschillende
   partners meermaals voorkomen.
 - Gezamenlijke runs staan nooit in de solo-ranking.

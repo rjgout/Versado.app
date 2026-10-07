@@ -748,7 +748,7 @@ export const de: PartialMessages = {
       tab: "Duo",
       solo: "Solo",
       kinds: "Art der Rangliste",
-      explain: "Die letzten zwei einer gemeinsamen Runde. Die Duo-Punktzahl ist die höhere der beiden Punktzahlen, wenn die Runde endet; pro Duo zählt das beste Ergebnis.",
+      explain: "Allzeit: die letzten zwei einer gemeinsamen Runde. Die Duo-Punktzahl ist die höhere der beiden Punktzahlen, wenn die Runde endet; pro Duo zählt das beste Ergebnis aller Zeiten.",
       empty: "Es gibt noch keine Duo-Ergebnisse.",
       entry: "{a} + {b}: {score}",
     },

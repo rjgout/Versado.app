@@ -2487,15 +2487,12 @@ model QuickMissionaryDuoResult {
   scoreB           Int
   participantCount Int
   finishedAt       DateTime
-  // Lokale kalenderdag van de start (zoals bij solo-runs), voor een Vandaag-weergave.
-  dayKey           String
 
   userA User @relation("DuoUserA", fields: [userAId], references: [id], onDelete: Cascade)
   userB User @relation("DuoUserB", fields: [userBId], references: [id], onDelete: Cascade)
 
   @@index([userAId])
   @@index([userBId])
-  @@index([dayKey])
 }
 
 // Elke aankoop van een Genees (winkel of in-game): audittrail en idempotentie.

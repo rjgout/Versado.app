@@ -748,7 +748,7 @@ export const fr: PartialMessages = {
       tab: "Duo",
       solo: "Solo",
       kinds: "Type de classement",
-      explain: "Les deux derniers d’une partie commune. Le score du duo est le plus élevé des deux scores à la fin de la partie ; pour chaque duo, le meilleur résultat compte.",
+      explain: "Tous les temps : les deux derniers d’une partie commune. Le score du duo est le plus élevé des deux scores à la fin de la partie ; pour chaque duo, le meilleur résultat de tous les temps compte.",
       empty: "Il n’y a pas encore de résultats en duo.",
       entry: "{a} + {b} : {score}",
     },

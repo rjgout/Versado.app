@@ -398,7 +398,7 @@ test("twee toestellen: tegelijk dezelfde Genees-vraag aanvragen verbruikt precie
 const LONG = 1_500;
 const duoRow = (matchId: string) => L.db.quickMissionaryDuoResult.findUniqueOrThrow({ where: { matchId } });
 async function duoEntry(viewer: string, a: string, b: string) {
-  const entries = await L.duo.getQuickMissionaryDuoLeaderboard(viewer, "all-time");
+  const entries = await L.duo.getQuickMissionaryDuoLeaderboard(viewer);
   return entries.find((entry) => entry.key === L.duoRules.duoKey(a, b));
 }
 
@@ -478,7 +478,7 @@ test("duo E: het beste resultaat per duo telt (300, 450, 400 geeft 450); een sle
     await L.runs.finishQuickMissionaryRun(m.runOf(index % 2 === 0 ? b : a), index % 2 === 0 ? b : a, index % 2 === 0 ? score - 50 : score);
     assert.equal((await matchRow(m.matchId)).status, "ENDED");
   }
-  const entries = (await L.duo.getQuickMissionaryDuoLeaderboard(a, "all-time")).filter((entry) => entry.key === L.duoRules.duoKey(a, b));
+  const entries = (await L.duo.getQuickMissionaryDuoLeaderboard(a)).filter((entry) => entry.key === L.duoRules.duoKey(a, b));
   assert.equal(entries.length, 1, "één entry per duo");
   assert.equal(entries[0].score, 450);
   // De ruwe resultaten blijven allemaal bewaard.
@@ -492,7 +492,7 @@ test("duo F: dezelfde gebruiker met verschillende partners staat er meerdere ker
     await L.match.recordBeat(m.matchId, a, score);
     await L.runs.finishQuickMissionaryRun(m.runOf(partner), partner, 0);
   }
-  const board = await L.duo.getQuickMissionaryDuoLeaderboard(a, "all-time");
+  const board = await L.duo.getQuickMissionaryDuoLeaderboard(a);
   const mine = board.filter((entry) => entry.mine);
   assert.equal(mine.find((entry) => entry.key === L.duoRules.duoKey(a, b))?.score, 500);
   assert.equal(mine.find((entry) => entry.key === L.duoRules.duoKey(a, c))?.score, 600);
@@ -549,7 +549,7 @@ test("duo I: bijna gelijktijdige eliminaties en dubbele finalisatie geven precie
     L.match.sweepStalePlayers(m.matchId).catch(() => {}),
   ]);
   assert.equal(await L.db.quickMissionaryDuoResult.count({ where: { matchId: m.matchId } }), 1);
-  const board = await L.duo.getQuickMissionaryDuoLeaderboard(a, "all-time");
+  const board = await L.duo.getQuickMissionaryDuoLeaderboard(a);
   assert.equal(board.filter((entry) => entry.key === L.duoRules.duoKey(a, b)).length, 1);
 });
 
@@ -565,4 +565,29 @@ test("duo J: de solo-ranking blijft ongewijzigd; Duo-scores verschijnen daar nie
   assert.equal(mine?.score, 1, "alleen de echte solo-run telt, niet de 480 uit de gezamenlijke run");
   assert.equal(board.some((entry) => entry.userId === b), false);
   assert.equal((await L.runs.getQuickMissionaryRunView(solo.runId, a)).allTimeBest, 1);
+});
+
+test("duo G/H: resultaten van verschillende dagen tellen samen (550 ongeacht dag) en tijdzones van A en B hebben geen invloed", { skip }, async () => {
+  const [a, b] = [await makeUser(), await makeUser()];
+  await L.db.user.update({ where: { id: a }, data: { timeZone: "Pacific/Auckland" } });
+  await L.db.user.update({ where: { id: b }, data: { timeZone: "America/Mexico_City" } });
+  const matchIds: string[] = [];
+  for (const score of [400, 550, 500]) {
+    const m = await startedMatch(2, { players: [a, b], ageSeconds: LONG });
+    await L.match.recordBeat(m.matchId, a, score);
+    await L.runs.finishQuickMissionaryRun(m.runOf(b), b, 0);
+    matchIds.push(m.matchId);
+  }
+  // Drie verschillende dagen, ook ver uit elkaar.
+  for (const [index, matchId] of matchIds.entries()) {
+    await L.db.quickMissionaryDuoResult.update({ where: { matchId }, data: { finishedAt: new Date(Date.UTC(2026, 0, 1 + index * 40, 23, 30)) } });
+  }
+  const before = await duoEntry(a, a, b);
+  assert.equal(before?.score, 550);
+  // Andere tijdzones veranderen niets aan de uitkomst.
+  await L.db.user.update({ where: { id: a }, data: { timeZone: "Asia/Tokyo" } });
+  await L.db.user.update({ where: { id: b }, data: { timeZone: "Pacific/Honolulu" } });
+  const after = await duoEntry(b, a, b);
+  assert.deepEqual([after?.score, after?.rank], [before?.score, before?.rank]);
+  assert.equal(await L.db.quickMissionaryDuoResult.count({ where: { OR: [{ userAId: a, userBId: b }, { userAId: b, userBId: a }] } }), 3, "alle ruwe resultaten blijven bewaard");
 });
