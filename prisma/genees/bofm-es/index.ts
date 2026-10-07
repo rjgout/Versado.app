@@ -10,7 +10,7 @@ import { helaman } from "./helaman";
 import { nephi3 } from "./3-ne";
 import { slot } from "./slot";
 
-// Book of Mormon, Spanish edition. Generated from Dutch master.
+// El Libro de Mormón, edición en español. Un archivo por libro; mismos identificadores de pregunta y mismos versículos que el modelo neerlandés.
 export const bofmEs: GeneesBankSeed = {
   id: "bofm-es",
   work: "bofm",

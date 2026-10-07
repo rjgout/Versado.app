@@ -1,42 +1,7 @@
 import type { GeneesChapterSeed } from "../../../src/lib/snelleZendeling/reviveBank";
 import { ch, q } from "../helpers";
 
-// Jakob. Spanish edition - generated from Dutch master.
+// Jacob (edición en español). Cada hecho está ligado a los versículos indicados en `verses`; `npm run genees:check` lo verifica.
 export const jakob: GeneesChapterSeed[] = [
-  ch("jacob", 1,
-    q("a", "1", "Hoeveel jaar waren er verstreken sinds Lehi Jeruzalem had verlaten toen Nephi Jakob een gebod gaf?", "Vijfenvijftig jaar", ["Vijfendertig jaar", "Vijfenzeventig jaar"], ["vijfenvijftig jaar"]),
-    q("b", "11", "Hoe werd de koning na Nephi door het volk genoemd?", "Nephi de Tweede", ["Nephi de Jongere", "Lehi de Tweede"], ["Nephi de Tweede"]),
-    q("c", "18", "Door wiens hand werden Jakob en Jozef tot priester en leraar gewijd?", "Door de hand van Nephi", ["Door de hand van Lehi", "Door de hand van Sam"], ["hand van Nephi"]),
-  ),
-  ch("jacob", 2,
-    q("a", "12", "Wat begonnen velen van het volk volgens Jakob te zoeken?", "Goud en zilver", ["Land en vee", "Macht en roem"], ["goud", "zilver"]),
-    q("b", "27", "Hoeveel vrouwen mag een man onder dit volk volgens de Heer hebben?", "Niet meer dan één vrouw", ["Niet meer dan twee vrouwen", "Niet meer dan zeven vrouwen"], ["meer dan één vrouw"]),
-    q("c", "18", "Wat moet men volgens Jakob zoeken voordat men naar rijkdom streeft?", "Het koninkrijk van God", ["De gunst van de koning", "Een eigen stuk grond"], ["koninkrijk van God"]),
-  ),
-  ch("jacob", 3,
-    q("a", "14", "Hoe worden de platen genoemd waarop Jakob schrijft?", "De platen van Jakob", ["De platen van Sam", "De platen van Jozef"], ["platen van Jakob"]),
-    q("b", "9", "Wat gebiedt Jakob het volk over de Lamanieten?", "Hen niet te beschimpen om hun huid", ["Hen te verdrijven uit het land", "Hen te leren lezen en schrijven"], ["beschimpen"]),
-    q("c", "1", "Tot wie wil Jakob in dit hoofdstuk eerst spreken?", "Tot hen die rein van hart zijn", ["Tot hen die rijk zijn aan goud", "Tot hen die de wet hebben verlaten"], ["rein van hart"]),
-  ),
-  ch("jacob", 4,
-    q("a", "5", "Waarom bewaren Jakob en zijn volk de wet van Mozes?", "Omdat die hun ziel op Christus richt", ["Omdat de koning dat van hen eist", "Omdat zij anders hun land verliezen"], ["ziel op"]),
-    q("b", "9", "Waardoor is de aarde volgens Jakob geschapen?", "Door de kracht van zijn woord", ["Door de kracht van zijn arm", "Door de hulp van de engelen"], ["kracht van zijn woord"]),
-    q("c", "16", "Wat zal de steen die de Joden verwerpen volgens de Schriften worden?", "De enige vaste fundering", ["Een sieraad voor de koning", "De poort van de tempel"], ["vaste fundering"]),
-  ),
-  ch("jacob", 5,
-    q("a", "3", "Waarmee vergelijkt de Heer volgens Zenos het huis van Israël?", "Met een tamme olijfboom", ["Met een wilde wijnstok", "Met een tamme vijgenboom"], ["tamme olijfboom"]),
-    q("b", "41", "Wat vroeg de heer van de wijngaard huilend aan zijn knecht?", "Wat had ik nog meer kunnen doen?", ["Waarom hebt u mij niet gewaarschuwd?", "Wie heeft deze bomen geplant?"], ["nog meer"]),
-    q("c", "50", "Wat zei de knecht toen de heer de bomen wilde omhakken?", "Spaar hem nog wat langer", ["Haal de nieuwe knechten erbij", "Hak ze dan nu allemaal om"], ["Spaar hem nog wat langer"]),
-  ),
-  ch("jacob", 6,
-    q("a", "6", "Welke vraag stelt Jakob aan het volk dat zijn hart verstokt?", "Waarom wilt u sterven?", ["Waarom wilt u vertrekken?", "Waarom wilt u vechten?"], ["waarom wilt u sterven"]),
-    q("b", "11", "Door welke poort moet men volgens Jakob ingaan?", "Door de nauwe poort", ["Door de gouden poort", "Door de oostelijke poort"], ["nauwe poort"]),
-    q("c", "3", "Wat zal er volgens Jakob met de wereld gebeuren?", "Ze zal met vuur worden verbrand", ["Ze zal door water worden overspoeld", "Ze zal door storm worden verwoest"], ["met vuur worden verbrand"]),
-  ),
-  ch("jacob", 7,
-    q("a", "1", "Hoe heette de man die onder het volk predikte dat er geen Christus zou zijn?", "Sherem", ["Korihor", "Zeezrom"], ["Sherem"]),
-    q("b", "15", "Wat gebeurde er met Sherem nadat Jakob zijn woorden had gesproken?", "Hij viel door Gods kracht ter aarde", ["Hij vluchtte 's nachts het land uit", "Hij werd door het volk gevangengezet"], ["ter aarde"]),
-    q("c", "27", "Aan wie gaf Jakob de platen?", "Aan zijn zoon Enos", ["Aan zijn broer Jozef", "Aan zijn zoon Jarom"], ["Enos"]),
-  ),
   // ===== EINDE =====
 ];
