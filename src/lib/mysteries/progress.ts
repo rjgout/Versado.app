@@ -9,7 +9,9 @@ import { firstCompletionUpdate } from "./progressRules";
 import type { Placements } from "./types";
 
 function dbDifficulty(difficulty: MysteryDifficultyId) {
-  return difficulty === "discoverer" ? "DISCOVERER" as const : "INVESTIGATOR" as const;
+  if (difficulty === "discoverer") return "DISCOVERER" as const;
+  if (difficulty === "investigator") return "INVESTIGATOR" as const;
+  return "SCRIPTURE_SCHOLAR" as const;
 }
 
 export interface MysteryProgressView {

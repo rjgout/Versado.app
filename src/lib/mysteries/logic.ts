@@ -64,12 +64,18 @@ export function hintFor(definition: MysteryDefinition, placements: Placements): 
     if (!placements.laman || !placements.lemuel) return definition.hints.remainingPair;
     return definition.hints.comparePair;
   }
-  if (!placements.lehi && !placements.sam && !placements.laman && !placements.lemuel && !placements.sariah) return definition.hints.softDirection;
-  if (!placements.laman || !placements.lemuel || !placements.sariah) return definition.hints.ranking;
-  if (!sameCell(placements.sam, definition.solution.sam) || !sameCell(placements.sariah, definition.solution.sariah) || !sameCell(placements.laman, definition.solution.laman)) return definition.hints.columns;
-  if (!sameCell(placements.lehi, definition.solution.lehi)) return definition.hints.nextLehi;
-  if (!sameCell(placements.sam, definition.solution.sam)) return definition.hints.nextSam;
-  return definition.hints.nextRelation;
+  if (definition.hints.mode === "investigator") {
+    if (!placements.lehi && !placements.sam && !placements.laman && !placements.lemuel && !placements.sariah) return definition.hints.softDirection;
+    if (!placements.laman || !placements.lemuel || !placements.sariah) return definition.hints.ranking;
+    if (!sameCell(placements.sam, definition.solution.sam) || !sameCell(placements.sariah, definition.solution.sariah) || !sameCell(placements.laman, definition.solution.laman)) return definition.hints.columns;
+    if (!sameCell(placements.lehi, definition.solution.lehi)) return definition.hints.nextLehi;
+    if (!sameCell(placements.sam, definition.solution.sam)) return definition.hints.nextSam;
+    return definition.hints.nextRelation;
+  }
+  if (!placements.lehi && !placements.sam && !placements.nephi && !placements.laman && !placements.lemuel && !placements.sariah) return definition.hints.softDirection;
+  if (!placements.laman || !placements.nephi || !placements.lemuel || !placements.sariah) return definition.hints.ranking;
+  if (!sameCell(placements.nephi, definition.solution.nephi) || !sameCell(placements.lemuel, definition.solution.lemuel) || !sameCell(placements.sariah, definition.solution.sariah)) return definition.hints.columns;
+  return definition.hints.final;
 }
 
 export function cellFromBoardPoint(
@@ -103,7 +109,7 @@ export function characterImageMetrics(geometry: BoardGeometry): { height: number
 
 /** Pure controle voor de handmatig ontworpen clue-set; gebruikt door tests. */
 export function satisfiesPuzzleClues(definition: MysteryDefinition, placements: Placements): boolean {
-  const { lehi, sariah, laman, lemuel, sam } = placements;
+  const { lehi, sariah, laman, lemuel, sam, nephi } = placements;
   if (!lehi || !sariah || !laman || !lemuel) return false;
   const altar = definition.landmarks["stone-altar"];
   const tent = definition.landmarks.tent;
@@ -112,13 +118,24 @@ export function satisfiesPuzzleClues(definition: MysteryDefinition, placements: 
       && sariah.row === tent.row && sariah.column === tent.column + 1
       && laman.row < lemuel.row && laman.column > lemuel.column;
   }
-  if (!sam) return false;
+  if (definition.hints.mode === "investigator") {
+    if (!sam) return false;
+    return lehi.row === altar.row && lehi.column === altar.column + 1
+      && sam.row === tent.row - 1 && sam.column === tent.column
+      && laman.row < lemuel.row && laman.column > lemuel.column
+      && lemuel.row < sariah.row
+      && sariah.column > sam.column
+      && sariah.column < laman.column;
+  }
+  if (!sam || !nephi) return false;
   return lehi.row === altar.row && lehi.column === altar.column + 1
-    && sam.row === tent.row - 1 && sam.column === tent.column
-    && laman.row < lemuel.row && laman.column > lemuel.column
+    && sam.row === tent.row - 1 && sam.column === tent.column + 1
+    && laman.row < nephi.row
+    && nephi.row < lemuel.row
     && lemuel.row < sariah.row
-    && sariah.column > sam.column
-    && sariah.column < laman.column;
+    && nephi.column === lemuel.column + 2
+    && sariah.column === nephi.column + 1
+    && laman.column > sariah.column;
 }
 
 export function countSolutions(definition: MysteryDefinition = MYSTERY_001A): Placements[] {

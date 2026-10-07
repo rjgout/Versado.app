@@ -20,6 +20,7 @@ const FOCUS_ROUTES = [
   /^\/jigsaw$/,
   /^\/mysteries\/001a\/play$/,
   /^\/mysteries\/001b\/play$/,
+  /^\/mysteries\/001c\/play$/,
 ] as const;
 
 const IMMERSIVE_ROUTES = [

@@ -1,7 +1,7 @@
 import type { MessageKey } from "@/lib/i18n/core";
 
 export type MysteryDifficultyId = "discoverer" | "investigator" | "scripture-scholar";
-export type CharacterId = "lehi" | "sariah" | "laman" | "lemuel" | "sam";
+export type CharacterId = "lehi" | "sariah" | "laman" | "lemuel" | "sam" | "nephi";
 
 export interface GridCell {
   row: number;
@@ -72,6 +72,13 @@ export interface MysteryDefinition {
         nextLehi: MessageKey;
         nextSam: MessageKey;
         nextRelation: MessageKey;
+      }
+    | {
+        mode: "scripture-scholar";
+        softDirection: MessageKey;
+        ranking: MessageKey;
+        columns: MessageKey;
+        final: MessageKey;
       };
   tutorial?: { characterId: CharacterId; cell: GridCell };
   story: ScriptureStory;

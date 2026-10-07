@@ -7,15 +7,16 @@ import { mysteryDefinitionForDifficulty } from "@/lib/mysteries/game";
 import { consumeMysteryHint } from "@/lib/mysteries/hints";
 import type { Placements } from "@/lib/mysteries/types";
 
-const cell = z.object({ row: z.number().int().min(1).max(5), column: z.number().int().min(1).max(5) });
+const cell = z.object({ row: z.number().int().min(1).max(6), column: z.number().int().min(1).max(6) });
 const requestSchema = z.object({
-  difficulty: z.enum(["discoverer", "investigator"]),
+  difficulty: z.enum(["discoverer", "investigator", "scripture-scholar"]),
   placements: z.object({
     lehi: cell.nullable().optional(),
     sariah: cell.nullable().optional(),
     laman: cell.nullable().optional(),
     lemuel: cell.nullable().optional(),
     sam: cell.nullable().optional(),
+    nephi: cell.nullable().optional(),
   }),
 });
 

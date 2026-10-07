@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { MYSTERY_001A, emptyMysteryPlacements } from "@/lib/mysteries/mystery001a";
 import { MYSTERY_GAME } from "@/lib/mysteries/game";
 import { MYSTERY_001B } from "@/lib/mysteries/mystery001b";
+import { MYSTERY_001C } from "@/lib/mysteries/mystery001c";
 import { GAME_CATALOG } from "@/lib/gameCatalog";
 import {
   allCharactersPlaced,
@@ -146,7 +147,7 @@ describe("Mysterie 001B Onderzoeker", () => {
 
   it("accepteert de unieke 5x5-oplossing en geen verwisseling", () => {
     assert.equal(MYSTERY_001A.mysteryId, MYSTERY_001B.mysteryId);
-    assert.equal(MYSTERY_GAME.puzzles.length, 2);
+    assert.equal(MYSTERY_GAME.puzzles.length, 3);
     assert.equal(isSolutionCorrect(MYSTERY_001B, solutionB), true);
     assert.equal(isSolutionCorrect(MYSTERY_001B, { ...solutionB, laman: solutionB.lemuel, lemuel: solutionB.laman }), false);
     assert.equal(countSolutions(MYSTERY_001B).length, 1);
@@ -184,5 +185,48 @@ describe("Mysterie 001B Onderzoeker", () => {
     assert.equal(hintFor(MYSTERY_001B, emptyMysteryPlacements(MYSTERY_001B)), "mystery001b.hint1");
     assert.equal(hintFor(MYSTERY_001B, { ...emptyMysteryPlacements(MYSTERY_001B), laman: solutionB.laman, lemuel: solutionB.lemuel, sariah: solutionB.sariah }), "mystery001b.hint3");
     assert.equal(hintFor(MYSTERY_001B, { ...solutionB, lehi: { row: 4, column: 2 } }), "mystery001b.hint4Lehi");
+  });
+});
+
+describe("Mysterie 001C Schriftkenner", () => {
+  const solutionC: Placements = {
+    laman: { row: 1, column: 6 },
+    nephi: { row: 2, column: 3 },
+    sam: { row: 3, column: 5 },
+    lemuel: { row: 4, column: 1 },
+    sariah: { row: 5, column: 4 },
+    lehi: { row: 6, column: 2 },
+  };
+
+  it("accepteert de unieke 6x6-oplossing en geen verwisseling", () => {
+    assert.equal(isSolutionCorrect(MYSTERY_001C, solutionC), true);
+    assert.equal(isSolutionCorrect(MYSTERY_001C, { ...solutionC, nephi: solutionC.sam, sam: solutionC.nephi }), false);
+    assert.equal(countSolutions(MYSTERY_001C).length, 1);
+  });
+
+  it("dwingt rij- en kolomregels af voor zes personages", () => {
+    const placed = { ...solutionC, nephi: null };
+    assert.equal(isHardConstraintValid(MYSTERY_001C, placed, "nephi", { row: 6, column: 1 }), false);
+    assert.equal(isHardConstraintValid(MYSTERY_001C, placed, "nephi", { row: 2, column: 6 }), false);
+    assert.equal(isHardConstraintValid(MYSTERY_001C, placed, "nephi", { row: 2, column: 3 }), true);
+    assert.equal(allCharactersPlaced(MYSTERY_001C, solutionC), true);
+    assert.equal(allCharactersPlaced(MYSTERY_001C, { ...solutionC, nephi: null }), false);
+  });
+
+  it("gebruikt de actuele 6x6-manifestgeometrie en Nephi-assets", () => {
+    const root = join(process.cwd(), "public", "mysterie-001c-schriftkenner");
+    for (const file of ["board.png", "nephi.png", "manifest.json", "controle.txt"]) assert.equal(existsSync(join(root, file)), true, file);
+    assert.equal(MYSTERY_001C.assets.board, "/mysterie-001c-schriftkenner/board.png");
+    assert.equal(MYSTERY_001C.characters.find((character) => character.id === "nephi")?.asset, "/mysterie-001c-schriftkenner/nephi.png");
+    assert.deepEqual(MYSTERY_001C.grid, { rows: 6, columns: 6 });
+    const parsed = parseBoardManifest(JSON.parse(readFileSync(join(root, "manifest.json"), "utf8")));
+    assert.deepEqual(parsed?.bounds, { left: 0.08, top: 0.13, right: 0.92, bottom: 0.91 });
+    assert.equal(parsed?.rows, 6);
+    assert.equal(parsed?.columns, 6);
+  });
+
+  it("kiest de vooraf geschreven Schriftkenner-hints", () => {
+    assert.equal(hintFor(MYSTERY_001C, { lehi: null, sariah: null, laman: null, lemuel: null, sam: null, nephi: null }), "mystery001c.hint1");
+    assert.equal(hintFor(MYSTERY_001C, { ...solutionC, lehi: null }), "mystery001c.hint4");
   });
 });

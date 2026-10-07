@@ -293,7 +293,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <section className="min-w-0 space-y-3">
-          <p className="text-sm font-semibold text-vs-fg-2">{tutorialActive ? t("mystery001a.tutorial") : definition.hints.mode === "investigator" ? t("mystery001b.playIntro") : t("mystery001a.placementHelp")}</p>
+          <p className="text-sm font-semibold text-vs-fg-2">{tutorialActive ? t("mystery001a.tutorial") : definition.hints.mode === "investigator" ? t("mystery001b.playIntro") : definition.hints.mode === "scripture-scholar" ? t("mystery001c.playIntro") : t("mystery001a.placementHelp")}</p>
           {tutorialFeedback && <p className="rounded-xl bg-vs-success-soft px-3 py-2 text-sm font-bold text-vs-success" role="status">{tutorialFeedback}</p>}
           {boardAssetError ? (
             <div className={`${surfaceCard} flex aspect-square items-center justify-center p-6 text-center text-vs-danger`} role="alert">{t("mystery001a.assetsMissing")}</div>
@@ -599,6 +599,9 @@ function AllCluesSheet({ definition, notes, onToggle, onClose }: { definition: M
       <h3 className="font-extrabold text-vs-fg">{t("mystery001a.spatialTitle")}</h3>
       <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.directRight")}</p>
       <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.higherRight")}</p>
+      <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.directAbove")}</p>
+      <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.diagonalRight")}</p>
+      <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.twoColumnsRight")}</p>
     </div>
   </BottomSheet>;
 }
