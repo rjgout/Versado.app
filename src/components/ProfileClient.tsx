@@ -9,6 +9,11 @@ import DivisionEmblem from "@/components/versado/DivisionEmblem";
 import { formatTag, firstGrapheme, isSingleEmoji } from "@/lib/handle";
 import { enableBrowserPush, disableBrowserPush } from "@/lib/pushClient";
 import { getSocket } from "@/lib/socketClient";
+import { useLiveQuery } from "@/lib/data/hooks";
+import { fetchJson } from "@/lib/data/fetchJson";
+import { liveMutation } from "@/lib/data/mutation";
+import { invalidateData } from "@/lib/data/client";
+import { startCountdown } from "@/lib/countdown";
 import ThemePreference from "@/components/ThemePreference";
 import { DEFAULT_TIME_ZONE, isValidTimeZone } from "@/lib/timeZone";
 import TwoFactorSettings from "@/components/TwoFactorSettings";
@@ -67,7 +72,14 @@ export default function ProfileClient() {
   const t = useT();
   const confirm = useConfirm();
   const tier = (value: LeagueTier) => t(`tiers.${value}`);
-  const [data, setData] = useState<ProfileData | null>(null);
+  // Profielgegevens, statistieken, XP, reeks en badges veranderen door activiteiten elders: de live-data-laag
+  // ververst ze bij openen, terugnavigeren, focus en na XP-/activiteitsgebeurtenissen (scope profile, xp,
+  // streak en competition). Eigen instellingen zetten we direct lokaal (setData) en valideren we daarna.
+  const profile = useLiveQuery<ProfileData>(["profile", "me"], () => fetchJson<ProfileData>("/api/profile"), {
+    scopes: ["profile", "xp", "streak", "competition"],
+  });
+  const data = profile.data ?? null;
+  const setData = profile.setData;
   const [deleting, setDeleting] = useState(false);
   const [resettingReadingProgress, setResettingReadingProgress] = useState(false);
   const [resetReadingMessage, setResetReadingMessage] = useState<string | null>(null);
@@ -113,12 +125,6 @@ export default function ProfileClient() {
     };
   }, []);
 
-  useEffect(() => {
-    fetch("/api/profile")
-      .then((r) => r.json())
-      .then(setData);
-  }, []);
-
   async function toggleSearchableByEmail() {
     if (!data) return;
     const next = !data.searchableByEmail;
@@ -129,7 +135,14 @@ export default function ProfileClient() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ searchableByEmail: next }),
     }).catch(() => {});
+    afterAccountChange();
     setSavingPrivacy(false);
+  }
+
+  // Het profiel zelf is al lokaal bijgewerkt (optimistisch), dus niet opnieuw ophalen; wel de schermen waar
+  // deze instellingen doorwerken (Vandaag toont bv. begroeting, afteltimer en spelkaarten) als verouderd markeren.
+  function afterAccountChange() {
+    invalidateData(["today"]);
   }
 
   async function saveAccountPatch(patch: Record<string, boolean | string | number | null>) {
@@ -138,6 +151,7 @@ export default function ProfileClient() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(patch),
     }).catch(() => {});
+    afterAccountChange();
   }
 
   const [savingPresence, setSavingPresence] = useState(false);
@@ -232,33 +246,28 @@ export default function ProfileClient() {
 
     // Aftellen tot de server de melding verstuurt; sluit de app in de
     // tussentijd om ook de badge op het app-icoon te kunnen zien.
-    let remaining: number = body.delaySeconds ?? 5;
-    setPushCountdown(remaining);
-    const timer = setInterval(() => {
-      remaining -= 1;
-      if (remaining > 0) {
-        setPushCountdown(remaining);
-        return;
+    startCountdown(
+      body.delaySeconds ?? 5,
+      (remaining) => setPushCountdown(remaining),
+      () => {
+        setPushCountdown(null);
+        setTestingPush(false);
+        setPushTestMessage(t("profile.testPushSent"));
       }
-      clearInterval(timer);
-      setPushCountdown(null);
-      setTestingPush(false);
-      setPushTestMessage(
-        t("profile.testPushSent")
-      );
-    }, 1000);
+    );
   }
 
   async function resetReadingProgress() {
     if (!(await confirm(t("profile.readingResetConfirm"), { title: t("profile.readingReset"), confirmLabel: t("profile.readingReset"), destructive: true }))) return;
     setResettingReadingProgress(true);
     setResetReadingError(null);
-    const response = await fetch("/api/progress/reset-reading", { method: "POST" }).catch(() => null);
-    setResettingReadingProgress(false);
-    if (response?.ok) {
+    try {
+      // Leesvoortgang hoort bij de inhoud: cursussen, voortgang, Vandaag en de profielstatistieken kloppen daarna niet meer.
+      await liveMutation(() => fetchJson("/api/progress/reset-reading", { method: "POST" }), { invalidates: ["progress", "courses", "profile", "today"] });
+      setResettingReadingProgress(false);
       setResetReadingMessage(t("profile.readingResetDone"));
-      router.refresh();
-    } else {
+    } catch {
+      setResettingReadingProgress(false);
       setResetReadingError(t("wordOfTheDay.somethingWrong"));
     }
   }
@@ -304,6 +313,8 @@ export default function ProfileClient() {
     // nummer waar mogelijk, of loot een nieuwe bij een botsing (zie
     // /api/account). Hier gewoon overnemen wat de server teruggeeft.
     setData({ ...data, handle: body.handle, discriminator: body.discriminator });
+    // Je naam staat ook op Vandaag, in klassementen en in de activiteit van vrienden.
+    invalidateData(["today", "competition", "activity"]);
     setEditingHandle(false);
   }
 
@@ -323,6 +334,7 @@ export default function ProfileClient() {
       return;
     }
     setData({ ...data, avatarEmoji: emoji });
+    invalidateData(["today", "competition", "activity"]);
     setAvatarPickerOpen(false);
     setAvatarInput("");
   }
@@ -611,6 +623,7 @@ function CompanionSection({ current, onChanged }: { current: PersonalMascotChara
     }
     setCharacter(choice);
     onChanged(choice);
+    invalidateData(["today"]);
     setStatus({ kind: "saved", text: t("companion.saved", { name: companionName(choice) }) });
   }
 

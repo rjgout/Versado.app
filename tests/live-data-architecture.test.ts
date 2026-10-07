@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
-import { DATA_EVENTS, DATA_SCOPES, LIVE_TOPICS, SOCKET_EVENT_TO_DATA_EVENT } from "../src/lib/data/scopes";
+import { DATA_EVENTS, DATA_SCOPES, LIVE_TOPICS, SOCKET_EVENT_TO_DATA_EVENT, dataEventsForSocketEvent } from "../src/lib/data/scopes";
 
 // Afdwingbare grenzen voor de live-data-standaard (docs/DATA-REFRESH.md). Dit
 // is bewust een gewone test: nieuwe code die eigen focus-, polling- of
@@ -35,12 +35,8 @@ const OWN_FETCH = /\bfetch\(|fetchJson\(|router\.refresh\(|\.refresh\(\)/;
  * ze gebruiken useLiveQuery, LiveRefresh en liveMutation.
  */
 const LEGACY: Record<string, string> = {
-  "src/components/ActiveGamesBanner.tsx": "te migreren: hervatlink van lopende spellen",
-  "src/components/FriendsClient.tsx": "te migreren: vriendenlijst en -reeksen",
-  "src/components/social/GroupDetailClient.tsx": "te migreren: groepsdetail",
   "src/components/StreakContinuation.tsx": "eigen claim-logica (POST met bijwerking), bewust apart",
   "src/components/TimeZoneSync.tsx": "stuurt de tijdzone van het toestel; leest geen data",
-  "src/components/ProfileClient.tsx": "timer voor het testbericht; profielgegevens volgen later",
   "src/components/GameRoom.tsx": "socket-gedreven spelsessie met eigen timers",
   "src/components/ChapterGuessGameRoom.tsx": "socket-gedreven spelsessie met eigen timers",
   "src/components/ScrabbleBoardClient.tsx": "socket-gedreven spelsessie met eigen timers",
@@ -49,6 +45,21 @@ const LEGACY: Record<string, string> = {
   "src/components/ReseedClient.tsx": "beheer: voortgang van een lopende taak",
   "src/lib/podcastPlayerContext.tsx": "afspeelstatus van de speler, geen servergegevens",
 };
+
+test("de overgebleven uitzonderingen zijn precies de bewust speciale componenten", () => {
+  // ActiveGamesBanner, FriendsClient, GroupDetailClient en ProfileClient zijn gemigreerd en staan hier niet meer.
+  assert.deepEqual(Object.keys(LEGACY).sort(), [
+    "src/components/AdminDeployClient.tsx",
+    "src/components/ChapterGuessGameRoom.tsx",
+    "src/components/GameRoom.tsx",
+    "src/components/ReseedClient.tsx",
+    "src/components/ScrabbleBoardClient.tsx",
+    "src/components/StreakContinuation.tsx",
+    "src/components/TimeZoneSync.tsx",
+    "src/components/study/StudyRoom.tsx",
+    "src/lib/podcastPlayerContext.tsx",
+  ]);
+});
 
 test("geen nieuwe eigen verversingslogica buiten de centrale laag", () => {
   const offenders = sources
@@ -116,8 +127,8 @@ test("de server stuurt alleen onderwerpen en gebeurtenissen die de client kent",
   for (const [topic, event] of Object.entries(LIVE_TOPICS)) {
     assert.ok(event in DATA_EVENTS, `${topic} → ${event}`);
   }
-  for (const [socketEvent, event] of Object.entries(SOCKET_EVENT_TO_DATA_EVENT)) {
-    assert.ok(event in DATA_EVENTS, `${socketEvent} → ${event}`);
+  for (const socketEvent of Object.keys(SOCKET_EVENT_TO_DATA_EVENT) as Array<keyof typeof SOCKET_EVENT_TO_DATA_EVENT>) {
+    for (const event of dataEventsForSocketEvent(socketEvent)) assert.ok(event in DATA_EVENTS, `${socketEvent} → ${event}`);
   }
 });
 

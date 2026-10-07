@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { Award, Check, Clock3, LogOut, Settings, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
@@ -14,6 +14,9 @@ import GroupTodayLine, { type GroupTodayData } from "@/components/social/GroupTo
 import { NudgeButton, SocialHeading, socialRequest, type Person } from "@/components/social/shared";
 import { getLanguage } from "@/lib/languages";
 import type { MessageKey } from "@/lib/i18n/core";
+import { useLiveQuery } from "@/lib/data/hooks";
+import { ApiRequestError, fetchJson } from "@/lib/data/fetchJson";
+import { invalidateData } from "@/lib/data/client";
 
 interface MemberView {
   person: Person;
@@ -63,31 +66,31 @@ const MEMBER_PREVIEW = 30;
 
 export default function GroupDetailClient({ groupId }: { groupId: string }) {
   const t = useT();
-  const [data, setData] = useState<Loaded | null>(null);
-  const [state, setState] = useState<"loading" | "missing" | "error" | "ready">("loading");
-
-  const load = useCallback(async () => {
-    const res = await fetch(`/api/groups/${groupId}`).catch(() => null);
-    if (!res) return setState("error");
-    if (res.status === 404) return setState("missing");
-    if (!res.ok) return setState("error");
-    setData(await res.json());
-    setState("ready");
-  }, [groupId]);
-
-  useEffect(() => {
-    load();
-    const onVisible = () => document.visibilityState === "visible" && load();
-    document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
-  }, [load]);
+  // Groepsgegevens (leden, reeks, uitnodigingen, verzoeken) veranderen door eigen acties en door andere
+  // leden. Eigen acties maken `groups` ongeldig; wat anderen doen komt binnen bij openen, terugnavigeren en
+  // focus, en bij activiteit (`streak`: de groepsreeks hangt aan ieders dag). Geen aparte realtime nodig.
+  const query = useLiveQuery<Loaded>(["groups", "detail", groupId], () => fetchJson<Loaded>(`/api/groups/${groupId}`), {
+    scopes: ["groups", "streak"],
+    staleTime: 1_000,
+  });
+  const data = query.data;
+  const state: "loading" | "missing" | "error" | "ready" = data
+    ? "ready"
+    : query.error
+      ? query.error instanceof ApiRequestError && query.error.status === 404
+        ? "missing"
+        : "error"
+      : "loading";
 
   if (state === "loading") return <p className="text-sm text-vs-fg-3">{t("common.loading")}</p>;
   if (state === "missing") return <p className={`${surfaceCard} mx-auto max-w-md p-4 text-sm text-vs-fg-2`}>{t("together.errors.groupNotFound")}</p>;
   if (state === "error" || !data) return <p className="text-sm text-vs-danger">{t("together.common.error")}</p>;
   if (!data.member) return <PublicGroupView group={data.group} />;
-  return <MemberGroupView group={data.group} reload={load} />;
+  return <MemberGroupView group={data.group} />;
 }
+
+/** Wat een ledenactie ongeldig maakt: de groep zelf plus waar de groepsactiviteit zichtbaar is. */
+const GROUP_CHANGED = "groupsChanged" as const;
 
 function membersLabel(t: ReturnType<typeof useT>, n: number) {
   return n === 1 ? t("together.common.membersOne") : t("together.common.membersMany", { n });
@@ -153,7 +156,8 @@ function PublicGroupView({ group }: { group: PublicGroup }) {
   );
 }
 
-function MemberGroupView({ group, reload }: { group: MemberGroup; reload: () => Promise<unknown> }) {
+function MemberGroupView({ group }: { group: MemberGroup }) {
+  const reload = () => invalidateData(GROUP_CHANGED);
   const t = useT();
   const confirm = useConfirm();
   const router = useRouter();
@@ -175,19 +179,27 @@ function MemberGroupView({ group, reload }: { group: MemberGroup; reload: () => 
     setOffering(false);
     setConfirmOffer(false);
     if (!result.ok) setMessage(result.error ?? t("together.common.error"));
-    reload();
+    // Een aangeboden bevriezing kost jou er één: reeks en profiel kloppen daarna niet meer.
+    invalidateData(["groups", "today", "activity", "streak", "profile"]);
   }
 
   async function sendFriendRequest(person: Person) {
     const res = await fetch("/api/friends/request", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ targetUserId: person.id }) });
-    if (res.ok) setRequested((prev) => new Set(prev).add(person.id));
+    if (res.ok) {
+      setRequested((prev) => new Set(prev).add(person.id));
+      // Het vriendschapsverzoek staat ook in de ledenlijst ("in afwachting").
+      invalidateData(["friends", "groups", "today", "activity", "notifications"]);
+    }
     else setMessage(((await res.json().catch(() => ({}))) as { error?: string }).error ?? t("together.common.error"));
   }
 
   async function leave() {
     if (!(await confirm(t("together.group.leaveConfirm")))) return;
     const result = await socialRequest(`/api/groups/${group.id}/leave`);
-    if (result.ok) router.replace("/groups");
+    if (result.ok) {
+      invalidateData(GROUP_CHANGED);
+      router.replace("/groups");
+    }
     else setMessage(result.error ?? t("together.common.error"));
   }
 

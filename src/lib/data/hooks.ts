@@ -55,7 +55,7 @@ export interface LiveQueryResult<T> {
   status: QuerySnapshot["status"];
   refetch: () => Promise<void>;
   /** Toon een antwoord of optimistische waarde direct; valideer daarna met invalidateData(). */
-  setData: (update: T | ((previous: T | undefined) => T)) => void;
+  setData: (update: T | ((previous: T | undefined) => T | undefined)) => void;
 }
 
 /**
@@ -108,7 +108,7 @@ export function useLiveQuery<T>(key: QueryKey, fetcher: () => Promise<T>, option
   // Stabiele functies: componenten mogen ze in effecten en dependency-lijsten gebruiken.
   const refetch = useCallback(() => liveData.refetch(entryKey), [entryKey]);
   const setData = useCallback(
-    (update: T | ((previous: T | undefined) => T)) => liveData.setData(JSON.parse(entryKey) as QueryKey, update),
+    (update: T | ((previous: T | undefined) => T | undefined)) => liveData.setData(JSON.parse(entryKey) as QueryKey, update),
     [entryKey]
   );
 

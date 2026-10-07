@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { LiveDataStore, DEFAULT_STALE_TIME, GC_TIME, PAGE_MIN_REFRESH_INTERVAL, type LiveEnvironment } from "../src/lib/data/store";
-import { DATA_EVENTS, DATA_SCOPES, LIVE_TOPICS, SOCKET_EVENT_TO_DATA_EVENT, isDataEvent, isLiveTopic, scopesForEvent } from "../src/lib/data/scopes";
+import { DATA_EVENTS, DATA_SCOPES, LIVE_TOPICS, SOCKET_EVENT_TO_DATA_EVENT, dataEventsForSocketEvent, isDataEvent, isLiveTopic, scopesForEvent } from "../src/lib/data/scopes";
 
 // Een nepomgeving: eigen klok, zichtbaarheid, netwerk en timers, zodat het
 // gedrag van de store (focus, offline, verborgen tab) deterministisch te testen is.
@@ -47,7 +47,9 @@ test("de gebeurtenistabel verwijst alleen naar bestaande datasets", () => {
     for (const scope of scopes) assert.ok((DATA_SCOPES as readonly string[]).includes(scope), `${event}: onbekende scope ${scope}`);
   }
   for (const event of Object.values(LIVE_TOPICS)) assert.ok(isDataEvent(event));
-  for (const event of Object.values(SOCKET_EVENT_TO_DATA_EVENT)) assert.ok(isDataEvent(event));
+  for (const socketEvent of Object.keys(SOCKET_EVENT_TO_DATA_EVENT) as Array<keyof typeof SOCKET_EVENT_TO_DATA_EVENT>) {
+    for (const event of dataEventsForSocketEvent(socketEvent)) assert.ok(isDataEvent(event));
+  }
   assert.equal(isLiveTopic("word-game-ranking"), true);
   assert.equal(isLiveTopic("admin-secrets"), false);
   assert.equal(isDataEvent("__proto__"), false);

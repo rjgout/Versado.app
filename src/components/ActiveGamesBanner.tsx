@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState, type MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { ArrowRight, Gamepad2, X } from "lucide-react";
 import { getSocket } from "@/lib/socketClient";
 import UserAvatar from "@/components/UserAvatar";
 import { useT } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
+import { useLiveQuery } from "@/lib/data/hooks";
+import { ApiRequestError, fetchJson } from "@/lib/data/fetchJson";
+import { liveMutation } from "@/lib/data/mutation";
 
 interface ActivityItem {
   kind: "challenge" | "scrabble" | "live" | "chapter-guess-solo";
@@ -37,51 +40,29 @@ interface ActivityStatus {
 export default function ActiveGamesBanner() {
   const t = useT();
   const confirm = useConfirm();
-  const [status, setStatus] = useState<ActivityStatus | null>(null);
-  const [error, setError] = useState<string | null>(null);
   // Voorkomt dubbel annuleren terwijl het verzoek nog loopt.
   const [cancelling, setCancelling] = useState<string | null>(null);
 
-  function reload() {
-    void load();
-  }
-
-  function load() {
-    // no-store: de API stuurt geen cacheheaders mee, en een geïnstalleerde
-    // webapp mag hier nooit een oud antwoord uit zijn HTTP-cache gebruiken.
-    return fetch("/api/activity-status", { cache: "no-store" })
-      .then(async (r) => {
-        if (!r.ok) throw new Error(t("activeGames.errorStatus", { status: r.status }));
-        return r.json();
-      })
-      .then((d) => {
-        setStatus(d);
-        setError(null);
-      })
-      .catch((e) => setError(e instanceof Error ? e.message : t("activeGames.unknownError")));
-  }
-
-  useEffect(reload, []);
-
-  useEffect(() => {
-    const socket = getSocket();
-    socket.on("game_cancelled", reload);
-    socket.on("game_left", reload);
-    // Een nieuwe of vervallen live-uitnodiging meteen tonen/weghalen.
-    socket.on("game_invite", reload);
-    socket.on("game_invite_revoked", reload);
-    const onVisible = () => {
-      if (document.visibilityState === "visible") reload();
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => {
-      socket.off("game_cancelled", reload);
-      socket.off("game_left", reload);
-      socket.off("game_invite", reload);
-      socket.off("game_invite_revoked", reload);
-      document.removeEventListener("visibilitychange", onVisible);
-    };
-  }, []);
+  // Lopende spellen en uitnodigingen veranderen buiten deze pagina om (de ander accepteert, een
+  // beurt, een ingetrokken uitnodiging). De server meldt dat via de bestaande socket-gebeurtenissen
+  // (game_invite, game_cancelled, game_left, game_invite_revoked, scrabble_updated), die de
+  // live-data-laag naar `gamesChanged` vertaalt; verder ververst de laag bij openen, terugnavigeren en
+  // focus. Korte staleTime: andere spelpagina's starten spellen zonder deze dataset te kennen.
+  const query = useLiveQuery<ActivityStatus>(["games", "activity"], () => fetchJson<ActivityStatus>("/api/activity-status"), {
+    scopes: ["games"],
+    contentScoped: true,
+    staleTime: 1_000,
+  });
+  const status = query.data ?? null;
+  // Alleen een foutmelding als er nog niets te tonen is; een mislukte stille controle laat de laatste stand staan.
+  const error = !status && query.error
+    ? query.error instanceof ApiRequestError && query.error.message.startsWith("HTTP ")
+      ? t("activeGames.errorStatus", { status: query.error.status })
+      : query.error instanceof Error
+        ? query.error.message
+        : t("activeGames.unknownError")
+    : null;
+  const reload = () => void query.refetch();
 
   async function openGame(item: ActivityItem, event: MouseEvent<HTMLAnchorElement>) {
     if (!item.contentCollectionId || item.contentCollectionId === status?.activeContentCollectionId) return;
@@ -111,13 +92,14 @@ export default function ActiveGamesBanner() {
     if (!(await confirm(t("activeGames.confirmCancel", { name: item.opponentName ?? "" })))) return;
     setCancelling(item.id);
     const url = item.kind === "scrabble" ? `/api/scrabble/${item.id}/cancel` : `/api/challenges/${item.id}/cancel`;
-    const response = await fetch(url, { method: "POST" }).catch(() => null);
-    if (!response?.ok) {
+    try {
+      await liveMutation(() => fetchJson(url, { method: "POST" }), { invalidates: "gamesChanged" });
+    } catch (error) {
       // Meestal: de ander heeft net geaccepteerd. Toon dan de actuele stand.
-      const data = await response?.json().catch(() => null);
-      window.alert(data?.error ?? t("activeGames.cancelFailed"));
+      const message = error instanceof ApiRequestError && !error.message.startsWith("HTTP ") ? error.message : null;
+      window.alert(message ?? t("activeGames.cancelFailed"));
+      void query.refetch();
     }
-    await load();
     setCancelling(null);
   }
 

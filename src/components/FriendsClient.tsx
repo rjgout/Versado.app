@@ -16,6 +16,10 @@ import SystemIcon from "@/components/versado/SystemIcon";
 import GroupsEntryCard from "@/components/social/GroupsEntryCard";
 import FriendStreaksSection, { type FriendStreaksData } from "@/components/social/FriendStreaksSection";
 import { socialRequest } from "@/components/social/shared";
+import { useLiveQuery } from "@/lib/data/hooks";
+import { ApiRequestError, fetchJson } from "@/lib/data/fetchJson";
+import { liveMutation } from "@/lib/data/mutation";
+import { invalidateData } from "@/lib/data/client";
 
 interface FriendUser {
   id: string;
@@ -118,10 +122,14 @@ function FriendOverflowMenu({ actions, onRemove }: { actions: MenuAction[]; onRe
   );
 }
 
+/** De foutmelding van de server (al vertaald), of niets bij een technische fout. */
+function serverMessage(error: unknown): string | null {
+  return error instanceof ApiRequestError && !error.message.startsWith("HTTP ") ? error.message : null;
+}
+
 export default function FriendsClient({ appName }: { appName: string }) {
   const t = useT();
   const confirm = useConfirm();
-  const [data, setData] = useState<FriendsData | null>(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[] | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -129,39 +137,34 @@ export default function FriendsClient({ appName }: { appName: string }) {
   const [giftedTo, setGiftedTo] = useState<string | null>(null);
   const [pendingFreeze, setPendingFreeze] = useState<FriendUser | null>(null);
   const [confirmingFreeze, setConfirmingFreeze] = useState(false);
-  const [streaks, setStreaks] = useState<FriendStreaksData | null>(null);
 
-  async function loadStreaks() {
-    const res = await fetch("/api/friend-streaks");
-    if (res.ok) setStreaks(await res.json());
-  }
+  // Vriendenlijst en vriendenreeksen zijn twee datasets van dezelfde scope: een vriendschapswijziging
+  // (eigen actie, of een seintje van de server via friends_changed) ververst ze, en de live-data-laag
+  // controleert ze bij openen, terugnavigeren en focus. Korte staleTime: verzoeken worden ook elders
+  // (Vandaag, meldingen) afgehandeld zonder deze dataset te kennen. Een iPhone-app die je terughaalt laadt
+  // de pagina niet opnieuw; de laag vangt dat op.
+  const friendsQuery = useLiveQuery<FriendsData>(
+    ["friends", "list"],
+    async () => {
+      const result = await fetchJson<FriendsData>("/api/friends");
+      // /api/friends kent de huidige activiteit van vrienden niet (die leeft
+      // alleen in de socketserver); die vult hem via friend_status_update aan.
+      getSocket().emit("friend_statuses_request");
+      return result;
+    },
+    { scopes: ["friends"], staleTime: 1_000 }
+  );
+  const streaksQuery = useLiveQuery<FriendStreaksData>(["friends", "streaks"], () => fetchJson<FriendStreaksData>("/api/friend-streaks"), {
+    scopes: ["friends", "streak"],
+    staleTime: 1_000,
+  });
+  const data = friendsQuery.data ?? null;
+  const streaks = streaksQuery.data ?? null;
+  const setData = friendsQuery.setData;
 
-  async function load() {
-    loadStreaks();
-    const res = await fetch("/api/friends");
-    if (!res.ok) return;
-    setData(await res.json());
-    // /api/friends kent de huidige activiteit van vrienden niet (die leeft
-    // alleen in de socketserver); die vult hem via friend_status_update aan.
-    getSocket().emit("friend_statuses_request");
-  }
-
-  useEffect(() => {
-    load();
-    // Een iPhone-app die je terughaalt laadt de pagina niet opnieuw; zonder
-    // dit bleef bv. "Wachten op ..." staan nadat de ander had geaccepteerd.
-    const onVisible = () => {
-      if (document.visibilityState === "visible") load();
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
-  }, []);
-
-  // Live updates: dezelfde altijd-open socketverbinding die ook
-  // uitnodigingen binnenkrijgt (zie InviteListener.tsx) — de server pusht
-  // hierop al naar `user:${jouwId}` zodra een vriend van status verandert,
-  // dus alleen luisteren en de kaart bijwerken hoeft hier verder niets te
-  // abonneren/joinen.
+  // Live aanwezigheid: dezelfde altijd-open socketverbinding die ook uitnodigingen binnenkrijgt
+  // (zie InviteListener.tsx) — de server pusht hierop al naar `user:${jouwId}` zodra een vriend van
+  // status verandert. Dit is geen verversing van de lijst maar een directe statusupdate erin.
   useEffect(() => {
     const socket = getSocket();
     function onStatusUpdate(payload: { userId: string; hidden: boolean } & Partial<FriendStatus>) {
@@ -183,20 +186,13 @@ export default function FriendsClient({ appName }: { appName: string }) {
     function onStatusReset() {
       setData((prev) => (prev ? { ...prev, statusByUserId: {} } : prev));
     }
-    // Seintje van de server dat de ander een verzoek stuurde of accepteerde
-    // (zie "friendship_changed" in gameServer.ts): lijst opnieuw ophalen.
-    function onFriendsChanged() {
-      load();
-    }
     socket.on("friend_status_update", onStatusUpdate);
     socket.on("friend_status_reset", onStatusReset);
-    socket.on("friends_changed", onFriendsChanged);
     return () => {
       socket.off("friend_status_update", onStatusUpdate);
       socket.off("friend_status_reset", onStatusReset);
-      socket.off("friends_changed", onFriendsChanged);
     };
-  }, []);
+  }, [setData]);
 
   useEffect(() => {
     if (query.trim().length < 2) {
@@ -213,50 +209,61 @@ export default function FriendsClient({ appName }: { appName: string }) {
 
   async function sendRequest(target: SearchResult) {
     setMessage(null);
-    const res = await fetch("/api/friends/request", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ targetUserId: target.id }),
-    });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setMessage(body.error ?? t("wordOfTheDay.somethingWrong"));
-    } else {
+    try {
+      await liveMutation(
+        () =>
+          fetchJson("/api/friends/request", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ targetUserId: target.id }),
+          }),
+        { invalidates: "friendsChanged" }
+      );
       setMessage(t("friends.requestSent", { tag: formatTag(target.handle, target.discriminator) }));
       setSentTo((prev) => new Set(prev).add(target.id));
       getSocket().emit("friendship_changed", { otherUserId: target.id });
-      load();
+    } catch (error) {
+      setMessage(serverMessage(error) ?? t("wordOfTheDay.somethingWrong"));
     }
   }
 
   async function respond(friendshipId: string, action: "accept" | "decline", otherUserId: string) {
-    const res = await fetch(`/api/friends/${friendshipId}/${action}`, { method: "POST" });
-    if (res.ok && action === "accept") getSocket().emit("friendship_changed", { otherUserId });
-    load();
+    try {
+      await liveMutation(() => fetchJson(`/api/friends/${friendshipId}/${action}`, { method: "POST" }), { invalidates: "friendsChanged" });
+      if (action === "accept") getSocket().emit("friendship_changed", { otherUserId });
+    } catch {
+      // De lijst toont de werkelijke stand (bv. de ander had het verzoek al ingetrokken).
+      invalidateData("friendsChanged");
+    }
   }
 
   async function removeFriendship(friendshipId: string, kind: "request" | "friendship") {
     if (!(await confirm(t(kind === "request" ? "friends.confirmRemoveRequest" : "friends.confirmRemoveFriendship")))) return;
-    const res = await fetch(`/api/friends/${friendshipId}`, { method: "DELETE" });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) { setMessage(body.error ?? t("friends.removeFailed")); return; }
-    load();
+    try {
+      await liveMutation(() => fetchJson(`/api/friends/${friendshipId}`, { method: "DELETE" }), { invalidates: "friendsChanged" });
+    } catch (error) {
+      setMessage(serverMessage(error) ?? t("friends.removeFailed"));
+    }
   }
 
   async function giftFreeze(toUserId: string) {
     setMessage(null);
-    const res = await fetch("/api/freezes/gift", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ toUserId }),
-    });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setMessage(body.error ?? t("friends.freezeFailed"));
-    } else {
+    try {
+      // Een geschonken bevriezing kost jou er één: reeks en profiel kloppen daarna niet meer.
+      await liveMutation(
+        () =>
+          fetchJson("/api/freezes/gift", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ toUserId }),
+          }),
+        { invalidates: ["streak", "profile", "today"] }
+      );
       setGiftedTo(toUserId);
       setMessage(t("friends.freezeSent"));
       setTimeout(() => setGiftedTo(null), 2000);
+    } catch (error) {
+      setMessage(serverMessage(error) ?? t("friends.freezeFailed"));
     }
   }
 
@@ -264,14 +271,15 @@ export default function FriendsClient({ appName }: { appName: string }) {
     setMessage(null);
     const result = await socialRequest("/api/friend-streaks", { friendId: friend.id });
     setMessage(result.ok ? t("together.friendStreaks.started") : (result.error ?? t("together.common.error")));
-    loadStreaks();
+    // Ook bij een fout de werkelijke stand tonen (bv. de limiet was net bereikt).
+    invalidateData(["friends", "today", "activity"]);
   }
 
   async function nudgeFriend(friend: FriendUser) {
     setMessage(null);
     const result = await socialRequest("/api/nudges", { recipientId: friend.id, context: { kind: "general" } });
     setMessage(result.ok ? t("together.nudge.given") : (result.error ?? t("together.common.error")));
-    if (result.ok) load();
+    if (result.ok) invalidateData("friendsChanged");
   }
 
   if (!data) return <p className="text-slate-400 dark:text-slate-500">{t("common.loading")}</p>;
@@ -430,7 +438,7 @@ export default function FriendsClient({ appName }: { appName: string }) {
       )}
 
       {streaks && (data.friends.length > 0 || streaks.streaks.length > 0) && (
-        <FriendStreaksSection data={streaks} nudge={data.nudge} onChanged={load} />
+        <FriendStreaksSection data={streaks} nudge={data.nudge} onChanged={() => invalidateData(["friends", "today", "activity"])} />
       )}
 
       <section className="flex flex-col gap-2">

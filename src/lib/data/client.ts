@@ -6,7 +6,7 @@
 // hooks (useLiveQuery, LiveRefresh) en liveMutation, niet dit bestand direct.
 import { getSocket } from "@/lib/socketClient";
 import { LiveDataStore, type LiveEnvironment } from "./store";
-import { DATA_EVENT_SOCKET_NAME, SOCKET_EVENT_TO_DATA_EVENT, isDataEvent, type DataEvent, type DataScope } from "./scopes";
+import { DATA_EVENT_SOCKET_NAME, SOCKET_EVENT_TO_DATA_EVENT, dataEventsForSocketEvent, isDataEvent, type DataEvent, type DataScope } from "./scopes";
 
 const browserEnvironment: LiveEnvironment = {
   now: () => Date.now(),
@@ -89,8 +89,10 @@ export function startLiveDataListeners(): () => void {
     socket.off(DATA_EVENT_SOCKET_NAME, onDataEvent);
   });
   // Gebeurtenissen die de server al per gebruiker stuurt (eigen apparaten, vrienden, meldingen).
-  for (const [socketEvent, dataEvent] of Object.entries(SOCKET_EVENT_TO_DATA_EVENT)) {
-    const handler = () => liveData.invalidate(dataEvent);
+  for (const socketEvent of Object.keys(SOCKET_EVENT_TO_DATA_EVENT) as Array<keyof typeof SOCKET_EVENT_TO_DATA_EVENT>) {
+    const handler = () => {
+      for (const dataEvent of dataEventsForSocketEvent(socketEvent)) liveData.invalidate(dataEvent);
+    };
     socket.on(socketEvent, handler);
     cleanups.push(() => socket.off(socketEvent, handler));
   }

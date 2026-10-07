@@ -42,6 +42,8 @@ export const DATA_EVENTS = {
   friendsChanged: ["friends", "today", "activity", "notifications"],
   groupsChanged: ["groups", "today", "activity"],
   notificationsChanged: ["notifications", "today"],
+  // Een uitdaging, woordspel of live spel is gestart, geannuleerd of verlaten, of een uitnodiging is ingetrokken.
+  gamesChanged: ["games", "today"],
   // Cursus toegevoegd, verborgen of van volgorde gewisseld.
   coursesChanged: ["courses", "today"],
   // Profiel- of accountinstelling gewijzigd.
@@ -77,14 +79,26 @@ export function topicRoom(topic: LiveTopic): string {
   return `topic:${topic}`;
 }
 
-/** Socket.io-gebeurtenissen van de server naar de client die iets ongeldig maken. */
+/**
+ * Socket.io-gebeurtenissen van de server naar de client die iets ongeldig maken.
+ * Eén gebeurtenis kan meerdere datasets raken (een spel-uitnodiging is ook een melding).
+ */
 export const SOCKET_EVENT_TO_DATA_EVENT = {
   streak_changed: "activityCompleted",
   notifications_changed: "notificationsChanged",
   friends_changed: "friendsChanged",
-  game_invite: "notificationsChanged",
-  scrabble_updated: "notificationsChanged",
-} as const satisfies Record<string, DataEvent>;
+  game_invite: ["notificationsChanged", "gamesChanged"],
+  scrabble_updated: ["notificationsChanged", "gamesChanged"],
+  game_invite_revoked: "gamesChanged",
+  game_cancelled: "gamesChanged",
+  game_left: "gamesChanged",
+} as const satisfies Record<string, DataEvent | readonly DataEvent[]>;
+
+/** De gebeurtenissen achter een socket-gebeurtenis, altijd als lijst. */
+export function dataEventsForSocketEvent(socketEvent: keyof typeof SOCKET_EVENT_TO_DATA_EVENT): readonly DataEvent[] {
+  const mapped: DataEvent | readonly DataEvent[] = SOCKET_EVENT_TO_DATA_EVENT[socketEvent];
+  return typeof mapped === "string" ? [mapped] : mapped;
+}
 
 /** Naam van de generieke servergebeurtenis: payload { event: DataEvent }. */
 export const DATA_EVENT_SOCKET_NAME = "data_event";

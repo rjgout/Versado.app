@@ -223,10 +223,12 @@ export class LiveDataStore {
   }
 
   /** Vervangt de data direct (antwoord van een mutation, optimistische update). */
-  setData<T>(key: QueryKey, update: T | ((previous: T | undefined) => T)): void {
+  setData<T>(key: QueryKey, update: T | ((previous: T | undefined) => T | undefined)): void {
     const entry = this.entries.get(serializeKey(key));
     if (!entry) return;
-    const next = typeof update === "function" ? (update as (previous: T | undefined) => T)(entry.snapshot.data as T | undefined) : update;
+    const next = typeof update === "function" ? (update as (previous: T | undefined) => T | undefined)(entry.snapshot.data as T | undefined) : update;
+    // Een updater zonder resultaat (er was nog niets om bij te werken) laat de data zoals ze is.
+    if (next === undefined) return;
     this.patch(entry, { data: next, status: "success", error: null, fetchedAt: this.env.now() });
   }
 

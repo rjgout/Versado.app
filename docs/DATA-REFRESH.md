@@ -51,6 +51,7 @@ Datasets (scopes): `today`, `progress`, `courses`, `xp`, `streak`, `profile`,
 | `friendsChanged` | vriendschap of verzoek gewijzigd (`friends_changed`) | friends, today, activity, notifications |
 | `groupsChanged` | groep of lidmaatschap gewijzigd | groups, today, activity |
 | `notificationsChanged` | nieuwe of gewiste melding (`notifications_changed`, `game_invite`, `scrabble_updated`) | notifications, today |
+| `gamesChanged` | uitdaging/woordspel/live spel gestart, geannuleerd of verlaten, uitnodiging ingetrokken (`game_invite`, `scrabble_updated`, `game_invite_revoked`, `game_cancelled`, `game_left`) | games, today |
 | `coursesChanged` | cursus toegevoegd of verborgen | courses, today |
 | `settingsChanged` | profiel- of accountinstelling gewijzigd | profile, today |
 
@@ -109,8 +110,15 @@ tests in `tests/live-data.test.ts` als sjabloon.
 
 ## Bekende uitzonderingen (nog niet gemigreerd)
 
-Oudere componenten met eigen triggers staan in `LEGACY` (zie de test): de spelsessies
-(socket-gedreven, eigen timers), beheerschermen met voortgang van een taak, `StreakContinuation`
-(claimt met een POST), `TimeZoneSync`, de podcastspeler, en nog te migreren: `ActiveGamesBanner`,
-`FriendsClient`, `GroupDetailClient` en het profielscherm. Raak je een van die aan, migreer
-dan mee en haal het bestand uit `LEGACY`.
+Oudere componenten met eigen triggers staan in `LEGACY` (zie de test). Dat zijn bewust speciale
+onderdelen: de vier spelsessies (`GameRoom`, `ChapterGuessGameRoom`, `ScrabbleBoardClient`,
+`StudyRoom`; socket-gedreven met eigen timers), de twee beheerschermen met voortgang van een taak
+(`AdminDeployClient`, `ReseedClient`), `StreakContinuation` (claimt met een POST), `TimeZoneSync` en de
+podcastspeler. `ActiveGamesBanner`, `FriendsClient`, `GroupDetailClient` en `ProfileClient` zijn
+gemigreerd (keys `["games","activity"]`, `["friends","list"]`, `["friends","streaks"]`,
+`["groups","detail",id]`, `["profile","me"]`). Raak je een legacy-bestand aan, beoordeel dan eerst
+of de centrale laag het kan overnemen en haal het bestand uit `LEGACY` als het gemigreerd is; migreer
+nooit alleen om de lijst te verkleinen.
+
+Een UI-timer zonder dataverversing (bv. een seconden-aftelling) hoort niet in een component met
+data-fetching: zet hem in een eigen bestand zoals `src/lib/countdown.ts`.
