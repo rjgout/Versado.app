@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { announceXpChanged } from "@/lib/xpBroadcast";
 import { useT } from "@/components/I18nProvider";
 import AppSelect from "@/components/AppSelect";
 import SystemIcon from "@/components/versado/SystemIcon";
+import { useLiveQuery } from "@/lib/data/hooks";
+import { fetchJson } from "@/lib/data/fetchJson";
+import { liveMutation } from "@/lib/data/mutation";
 
 
 interface ShopData {
@@ -13,11 +16,27 @@ interface ShopData {
   hintPriceXp: number;
   freezeCount: number;
   freezePriceXp: number;
+  geneesBalance: number;
+  /** Prijs van de volgende Genees: 100 + voorraad × 25, bepaald door de server. */
+  geneesPriceXp: number;
+}
+
+interface GeneesPurchaseResult {
+  xpTotal: number;
+  geneesBalance: number;
+  priceXp: number;
+  nextPriceXp: number;
 }
 
 export default function ShopClient() {
   const t = useT();
-  const [data, setData] = useState<ShopData | null>(null);
+  // XP en voorraad komen van de server; ze veranderen ook buiten de winkel (een Genees gebruiken of kopen
+  // in het spel, XP verdienen). Korte staleTime: bij terugkomen altijd actueel. Zie docs/DATA-REFRESH.md.
+  const shop = useLiveQuery<ShopData>(["shop"], () => fetchJson<ShopData>("/api/shop"), { scopes: ["xp", "games"], staleTime: 1_000 });
+  const data = shop.data ?? null;
+  const setData = shop.setData;
+  const [buyingGenees, setBuyingGenees] = useState(false);
+  const [geneesMessage, setGeneesMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
   const [hintQuantity, setHintQuantity] = useState(1);
   const [buyingHints, setBuyingHints] = useState(false);
   const [hintMessage, setHintMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
@@ -25,13 +44,36 @@ export default function ShopClient() {
   const [buyingFreezes, setBuyingFreezes] = useState(false);
   const [freezeMessage, setFreezeMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
 
-  function load() {
-    fetch("/api/shop")
-      .then((r) => r.json())
-      .then(setData);
+  /**
+   * Eén Genees per klik. Het resultaat komt van de server (saldo, voorraad en de nieuwe prijs):
+   * er is geen optimistische tussenstand die kan afwijken. De sleutel maakt een dubbele klik of een
+   * netwerkherhaling onschadelijk.
+   */
+  async function buyGenees() {
+    if (!data || buyingGenees) return;
+    setBuyingGenees(true);
+    setGeneesMessage(null);
+    try {
+      const result = await liveMutation(
+        () =>
+          fetchJson<GeneesPurchaseResult>("/api/shop/genees", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idempotencyKey: crypto.randomUUID() }),
+          }),
+        {
+          invalidates: "xpChanged",
+          onSuccess: (r) => setData((current) => (current ? { ...current, xpTotal: r.xpTotal, geneesBalance: r.geneesBalance, geneesPriceXp: r.nextPriceXp } : current)),
+        }
+      );
+      setGeneesMessage({ type: "ok", text: t("shop.geneesBought", { n: result.geneesBalance }) });
+      announceXpChanged();
+    } catch (error) {
+      setGeneesMessage({ type: "error", text: error instanceof Error && !error.message.startsWith("HTTP ") ? error.message : t("shop.buyFailed") });
+    } finally {
+      setBuyingGenees(false);
+    }
   }
-
-  useEffect(load, []);
 
   async function buyHints() {
     if (!data) return;
@@ -79,6 +121,7 @@ export default function ShopClient() {
   const canAffordHints = data.xpTotal >= hintCost;
   const freezeCost = freezeQuantity * data.freezePriceXp;
   const canAffordFreezes = data.xpTotal >= freezeCost;
+  const canAffordGenees = data.xpTotal >= data.geneesPriceXp;
 
   return (
     <div className="max-w-xl mx-auto flex flex-col gap-6">
@@ -99,7 +142,7 @@ export default function ShopClient() {
         </ul>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 text-center">
+      <div className="grid grid-cols-3 gap-4 text-center">
         <div className="card !py-3 !px-5 !bg-brand-50 dark:!bg-slate-800 !border-brand-100 dark:!border-slate-700">
           <div className="text-xl font-extrabold text-brand-600 dark:text-brand-300">💡 {data.hintBalance}</div>
           <div className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{t("shop.hints")}</div>
@@ -107,6 +150,10 @@ export default function ShopClient() {
         <div className="card !py-3 !px-5 !bg-ice-50 dark:!bg-slate-800 !border-ice-400/30 dark:!border-slate-700">
           <div className="flex items-center gap-1 text-xl font-extrabold text-ice-600 dark:text-ice-400"><SystemIcon kind="freeze" className="h-5 w-5" aria-hidden />{data.freezeCount}</div>
           <div className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{t("lesson.freezes")}</div>
+        </div>
+        <div className="card !py-3 !px-5 !bg-gold-50 dark:!bg-slate-800 !border-gold-400/30 dark:!border-slate-700">
+          <div className="text-xl font-extrabold text-gold-600 dark:text-gold-400" data-genees-stock>{data.geneesBalance}</div>
+          <div className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{t("shop.geneesStockLabel")}</div>
         </div>
       </div>
 
@@ -194,6 +241,29 @@ export default function ShopClient() {
           >
             {freezeMessage.text}
           </p>
+        )}
+      </div>
+
+      <div className="card flex flex-col gap-3" data-shop-genees>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="font-extrabold text-lg dark:text-slate-100">{t("shop.geneesTitle")}</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{t("shop.geneesText")}</p>
+            <p className="mt-1 text-sm font-bold text-slate-700 dark:text-slate-200">{t("shop.geneesStock", { n: data.geneesBalance })}</p>
+          </div>
+          <span className="text-sm font-extrabold text-gold-600 dark:text-gold-400 whitespace-nowrap bg-gold-50 dark:bg-slate-700 rounded-full px-3 py-1" data-genees-price>
+            {data.geneesPriceXp} XP
+          </span>
+        </div>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{t("shop.geneesPriceRule")}</p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button className="btn-primary !px-4 !py-2" disabled={buyingGenees || !canAffordGenees} onClick={buyGenees}>
+            {buyingGenees ? t("courses.busy") : t("shop.buyFor", { xp: data.geneesPriceXp })}
+          </button>
+        </div>
+        {!canAffordGenees && <p className="text-xs text-red-500 dark:text-red-400">{t("shop.notEnough")}</p>}
+        {geneesMessage && (
+          <p className={`text-sm font-semibold ${geneesMessage.type === "ok" ? "text-brand-600 dark:text-brand-300" : "text-red-600 dark:text-red-400"}`}>{geneesMessage.text}</p>
         )}
       </div>
     </div>

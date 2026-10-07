@@ -61,7 +61,11 @@ export function reviveQuestionContext(source: ReviveQuestionContextSource): { ki
   return chapter && name ? { kind: "chapter", label: `${name} ${chapter.number}` } : null;
 }
 
-export function applyReviveAnswer(status: ReviveRunStatus, reviveUsed: boolean, correct: boolean): ReviveRunStatus | null {
-  if (status !== "DEAD_AWAITING_REVIVE" || reviveUsed) return null;
+/**
+ * Een Genees-antwoord. Of de poging gratis was of uit voorraad komt, is al bij
+ * het uitgeven van de vraag afgehandeld; hier telt alleen goed of fout.
+ */
+export function applyReviveAnswer(status: ReviveRunStatus, correct: boolean): ReviveRunStatus | null {
+  if (status !== "DEAD_AWAITING_REVIVE") return null;
   return correct ? "REVIVE_READY" : "FINISHED";
 }

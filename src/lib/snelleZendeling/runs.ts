@@ -6,6 +6,8 @@ import { validateReportedScore } from "./validation";
 import { applyReviveAnswer, reviveQuestionContext, selectReviveOptions } from "./rules";
 import { REVIVE_START, cursorAfterAnswer, pickReviveQuestion, type ReviveChapterEntry } from "./reviveSelection";
 import { rankScores } from "./ranking";
+import { applyGeneesPurchase, lockUser, type BuyGeneesResult } from "@/lib/genees/inventory";
+import { geneesPriceXp } from "@/lib/genees/pricing";
 
 const TOP_SIZE = 50;
 
@@ -24,12 +26,25 @@ export interface ReviveReading {
   label: string;
 }
 
+/** Wat een speler na een botsing kan doen om door te gaan (zie deathOptions in runs.ts). */
+export type DeathOption = "free" | "stock" | "buy" | "none";
+
 export interface QuickMissionaryRunView {
   runId: string;
   status: RunStatus;
   score: number;
+  /** De gratis Genees van deze run is al ingezet. */
   reviveUsed: boolean;
   reviveAvailable: boolean;
+  /** Eerste keuze na een botsing: gratis, uit voorraad, kopen (noodkoop) of niets. */
+  deathOption: DeathOption;
+  geneesBalance: number;
+  /** Actuele prijs van de volgende Genees (canonical: src/lib/genees/pricing.ts). */
+  geneesPriceXp: number;
+  xpTotal: number;
+  canAffordGenees: boolean;
+  /** De in-game noodkoop is in deze run al gebruikt (maximaal één per speler per run). */
+  inGamePurchaseUsed: boolean;
   reviveQuestion: ReviveQuestion | null;
   reviveReading: ReviveReading | null;
   dailyBest: number;
@@ -132,25 +147,48 @@ async function getOwnedRun(runId: string, userId: string) {
   return run;
 }
 
+/**
+ * Wat kan de speler na een botsing? Gratis Genees eerst, daarna voorraad, daarna
+ * (één keer per run) de in-game noodkoop. Zonder vragen in de actieve uitgave is
+ * er helemaal geen Genees: dan is de dood direct definitief.
+ */
+export function deathOptionFor(input: { hasQuestions: boolean; freeUsed: boolean; stock: number; purchaseUsed: boolean }): DeathOption {
+  if (!input.hasQuestions) return "none";
+  if (!input.freeUsed) return "free";
+  if (input.stock > 0) return "stock";
+  if (!input.purchaseUsed) return "buy";
+  return "none";
+}
+
 export async function getQuickMissionaryRunView(runId: string, userId: string): Promise<QuickMissionaryRunView> {
   const run = await getOwnedRun(runId, userId);
-  const awaiting = run.status === "DEAD_AWAITING_REVIVE" && !run.reviveUsed;
-  const question = run.status === "DEAD_AWAITING_REVIVE" ? await reviveQuestionForRun(run) : null;
-  const [scores, reviveReading, canRevive] = await Promise.all([
+  const dead = run.status === "DEAD_AWAITING_REVIVE";
+  const question = dead ? await reviveQuestionForRun(run) : null;
+  const [scores, reviveReading, hasQuestions, account] = await Promise.all([
     bestScores(userId, run.dayKey),
     reviveReadingForRun(run),
-    awaiting ? (run.reviveExerciseId ? Promise.resolve(true) : hasReviveQuestions(userId)) : Promise.resolve(false),
+    dead ? (run.reviveExerciseId ? Promise.resolve(true) : hasReviveQuestions(userId)) : Promise.resolve(false),
+    prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { xpTotal: true, geneesBalance: true } }),
   ]);
+  const price = geneesPriceXp(account.geneesBalance);
+  // Een al uitgegeven vraag is een lopende poging: die gaat gewoon door.
+  const deathOption: DeathOption = !dead ? "none" : run.reviveExerciseId ? "free" : deathOptionFor({ hasQuestions, freeUsed: run.reviveUsed, stock: account.geneesBalance, purchaseUsed: run.inGamePurchaseUsed });
   return {
     runId: run.id,
     status: run.status,
     score: run.score,
     reviveUsed: run.reviveUsed,
-    reviveAvailable: canRevive,
+    reviveAvailable: deathOption !== "none",
+    deathOption,
+    geneesBalance: account.geneesBalance,
+    geneesPriceXp: price,
+    xpTotal: account.xpTotal,
+    canAffordGenees: account.xpTotal >= price,
+    inGamePurchaseUsed: run.inGamePurchaseUsed,
     reviveQuestion: question,
     reviveReading,
     ...scores,
-  };
+  } as QuickMissionaryRunView;
 }
 
 export async function reportDeath(runId: string, userId: string, score: number): Promise<void> {
@@ -189,15 +227,25 @@ const MAX_UNUSABLE_QUESTIONS = 50;
  */
 export async function requestReviveQuestion(runId: string, userId: string): Promise<QuickMissionaryRunView> {
   const run = await getOwnedRun(runId, userId);
-  if (run.status !== "DEAD_AWAITING_REVIVE" || run.reviveUsed) throw new Error("INVALID_STATE");
+  if (run.status !== "DEAD_AWAITING_REVIVE") throw new Error("INVALID_STATE");
   if (!run.reviveExerciseId) {
     const collectionId = await activeCollectionId(userId);
     await prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT "id" FROM "QuickMissionaryRun" WHERE "id" = ${runId} AND "userId" = ${userId} FOR UPDATE`;
       const locked = await tx.quickMissionaryRun.findUnique({ where: { id: runId } });
       if (!locked || locked.userId !== userId) throw new Error("NOT_FOUND");
-      if (locked.status !== "DEAD_AWAITING_REVIVE" || locked.reviveUsed) throw new Error("INVALID_STATE");
+      if (locked.status !== "DEAD_AWAITING_REVIVE") throw new Error("INVALID_STATE");
+      // Een al uitgegeven vraag is dezelfde poging (verversen, tweede toestel): niets opnieuw verbruiken.
       if (locked.reviveExerciseId) return;
+      // Bron van deze poging: eerst de gratis Genees van de run, daarna de voorraad.
+      // Pas verbruikt als er echt een vraag is (hieronder), zodat een run zonder
+      // bruikbare vraag niets kost.
+      const source: "FREE" | "STOCK" = locked.reviveUsed ? "STOCK" : "FREE";
+      if (source === "STOCK") {
+        await lockUser(tx, userId);
+        const account = await tx.user.findUniqueOrThrow({ where: { id: userId }, select: { geneesBalance: true } });
+        if (account.geneesBalance < 1) throw new Error("NO_GENEES");
+      }
       // Twee runs van dezelfde speler tegelijk mogen niet dezelfde vraag uitgeven.
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`genees:${userId}`}, 0))`;
 
@@ -245,9 +293,15 @@ export async function requestReviveQuestion(runId: string, userId: string): Prom
           // Na een reset begint de uitgave opnieuw bij het eerste hoofdstuk.
           update: pick.cycleReset ? { cycle: nextCycle, cursorBookOrder: chosen.bookOrder, cursorChapterOrder: chosen.chapterOrder } : {},
         });
+        // De poging is nu uitgegeven en dus verbruikt, ook als het antwoord fout is of de speler vertrekt.
+        if (source === "STOCK") await tx.user.update({ where: { id: userId }, data: { geneesBalance: { decrement: 1 } } });
         await tx.quickMissionaryRun.update({
           where: { id: runId },
-          data: { reviveExerciseId: question.id, reviveOptionIds: JSON.stringify(shuffleForDisplay(options).map((option) => option.id)) },
+          data: {
+            reviveExerciseId: question.id,
+            reviveOptionIds: JSON.stringify(shuffleForDisplay(options).map((option) => option.id)),
+            ...(source === "FREE" ? { reviveUsed: true } : { stockRevivesUsed: { increment: 1 } }),
+          },
         });
         return;
       }
@@ -262,7 +316,7 @@ export async function answerReviveQuestion(runId: string, userId: string, exerci
     await tx.$queryRaw`SELECT "id" FROM "QuickMissionaryRun" WHERE "id" = ${runId} AND "userId" = ${userId} FOR UPDATE`;
     const run = await tx.quickMissionaryRun.findUnique({ where: { id: runId } });
     if (!run || run.userId !== userId) throw new Error("NOT_FOUND");
-    if (run.status !== "DEAD_AWAITING_REVIVE" || run.reviveUsed || run.reviveExerciseId !== exerciseId) throw new Error("INVALID_STATE");
+    if (run.status !== "DEAD_AWAITING_REVIVE" || run.reviveExerciseId !== exerciseId) throw new Error("INVALID_STATE");
     if (!optionIdsFromRun(run).includes(optionId)) throw new Error("INVALID_OPTION");
     const option = await tx.quickMissionaryReviveOption.findUnique({
       where: { id: optionId },
@@ -273,9 +327,9 @@ export async function answerReviveQuestion(runId: string, userId: string, exerci
       },
     });
     if (!option || option.questionId !== exerciseId) throw new Error("INVALID_OPTION");
-    const nextStatus = applyReviveAnswer(run.status, run.reviveUsed, option.isCorrect);
+    const nextStatus = applyReviveAnswer(run.status, option.isCorrect);
     if (!nextStatus) throw new Error("INVALID_STATE");
-    await tx.quickMissionaryRun.update({ where: { id: run.id }, data: option.isCorrect ? { reviveUsed: true, status: nextStatus } : { status: nextStatus, finishedAt: now() } });
+    await tx.quickMissionaryRun.update({ where: { id: run.id }, data: option.isCorrect ? { status: nextStatus } : { status: nextStatus, finishedAt: now() } });
 
     // Geschiedenis en plek: goed -> volgend hoofdstuk, fout -> hetzelfde
     // hoofdstuk blijft staan (met een andere vraag). De vraag zelf stond al als gezien.
@@ -297,7 +351,36 @@ export async function answerReviveQuestion(runId: string, userId: string, exerci
 }
 
 export async function resumeAfterRevive(runId: string, userId: string): Promise<void> {
-  await prisma.quickMissionaryRun.updateMany({ where: { id: runId, userId, status: "REVIVE_READY", reviveUsed: true }, data: { status: "IN_PROGRESS", reviveExerciseId: null, reviveOptionIds: null } });
+  await prisma.quickMissionaryRun.updateMany({ where: { id: runId, userId, status: "REVIVE_READY" }, data: { status: "IN_PROGRESS", reviveExerciseId: null, reviveOptionIds: null } });
+}
+
+/**
+ * In-game noodkoop: na de gratis Genees en met lege voorraad kan de speler één
+ * Genees kopen, maximaal één keer per run. De regel zit hier (server-side, onder
+ * een rijvergrendeling op de run), niet in de client. Prijs, XP-afschrijving en
+ * voorraad lopen via dezelfde aankoopfunctie als de winkel.
+ */
+export async function buyGeneesInRun(runId: string, userId: string): Promise<{ result: BuyGeneesResult; view: QuickMissionaryRunView }> {
+  const result = await prisma.$transaction(async (tx): Promise<BuyGeneesResult> => {
+    // Altijd eerst de run, dan de gebruiker: dezelfde volgorde als requestReviveQuestion.
+    await tx.$queryRaw`SELECT "id" FROM "QuickMissionaryRun" WHERE "id" = ${runId} AND "userId" = ${userId} FOR UPDATE`;
+    const run = await tx.quickMissionaryRun.findUnique({ where: { id: runId } });
+    if (!run || run.userId !== userId) throw new Error("NOT_FOUND");
+    if (run.status !== "DEAD_AWAITING_REVIVE" || run.reviveExerciseId || !run.reviveUsed) return { ok: false, error: "INVALID_STATE" };
+    if (run.inGamePurchaseUsed) return { ok: false, error: "PURCHASE_LIMIT" };
+    await lockUser(tx, userId);
+    const account = await tx.user.findUniqueOrThrow({ where: { id: userId }, select: { geneesBalance: true } });
+    // Alleen een noodkoop als de voorraad echt leeg is: anders gebruik je die.
+    if (account.geneesBalance > 0) return { ok: false, error: "INVALID_STATE" };
+    const collectionId = await activeCollectionId(userId);
+    const anyQuestion = await tx.quickMissionaryReviveQuestion.findFirst({ where: { status: "APPROVED", chapter: { book: { contentCollectionId: collectionId } } }, select: { id: true } });
+    if (!anyQuestion) return { ok: false, error: "NO_QUESTIONS" };
+    const bought = await applyGeneesPurchase(tx, userId, { source: "GAME", runId });
+    if (!bought.ok) return bought;
+    await tx.quickMissionaryRun.update({ where: { id: runId }, data: { inGamePurchaseUsed: true } });
+    return bought;
+  });
+  return { result, view: await getQuickMissionaryRunView(runId, userId) };
 }
 
 export async function getQuickMissionaryLeaderboard(userId: string, board: "today" | "all-time") {

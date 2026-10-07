@@ -6,6 +6,7 @@ import { fetchJson } from "@/lib/data/fetchJson";
 import Link from "next/link";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { getLanguage } from "@/lib/languages";
+import { HeartPulse } from "lucide-react";
 import SystemIcon from "@/components/versado/SystemIcon";
 
 
@@ -19,6 +20,7 @@ type XPReason =
   | "PODCAST_LESSON_COMPLETED"
   | "KIDS_STORY_COMPLETED"
   | "HINT_PURCHASED"
+  | "GENEES_PURCHASED"
   | "FREEZE_PURCHASED"
   | "CHAPTER_GUESS_COMPLETED"
   | "WORD_GAME_WON"
@@ -51,6 +53,7 @@ const REASON_ICONS: Record<XPReason, ReactNode> = {
   PODCAST_LESSON_COMPLETED: "🎙️",
   KIDS_STORY_COMPLETED: "🧒",
   HINT_PURCHASED: "💡",
+  GENEES_PURCHASED: <HeartPulse className="h-4 w-4 text-vs-league" aria-hidden />,
   FREEZE_PURCHASED: <SystemIcon kind="freeze" className="h-4 w-4 text-ice-500" aria-hidden />,
   CHAPTER_GUESS_COMPLETED: "🔍",
   WORD_GAME_WON: "🔤",

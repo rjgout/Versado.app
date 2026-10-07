@@ -191,7 +191,7 @@ test("verversen geeft in dezelfde run dezelfde vraag en registreert niet nog een
   assert.equal(await L.db.quickMissionaryReviveSeen.count({ where: { userId } }), 1);
 });
 
-test("een goed antwoord geeft één Genees per run: een tweede dood biedt er geen aan", { skip }, async () => {
+test("na de gratis Genees biedt een tweede dood zonder voorraad alleen de noodkoop aan, nooit een gratis tweede", { skip }, async () => {
   const userId = await makeUser();
   const { runId, view } = await death(userId);
   const result = await answer(userId, runId, view, true);
@@ -201,8 +201,10 @@ test("een goed antwoord geeft één Genees per run: een tweede dood biedt er gee
   await L.runs.reportDeath(runId, userId, 0);
   const second = await L.runs.getQuickMissionaryRunView(runId, userId);
   assert.equal(second.status, "DEAD_AWAITING_REVIVE");
-  assert.equal(second.reviveAvailable, false);
-  await assert.rejects(() => L.runs.requestReviveQuestion(runId, userId), /INVALID_STATE/);
+  assert.equal(second.deathOption, "buy");
+  assert.equal(second.reviveUsed, true);
+  // Zonder voorraad kan er geen nieuwe vraag worden uitgegeven.
+  await assert.rejects(() => L.runs.requestReviveQuestion(runId, userId), /NO_GENEES/);
   assert.equal(await L.db.quickMissionaryReviveSeen.count({ where: { userId } }), 1);
 });
 

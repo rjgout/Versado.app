@@ -9,6 +9,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ runId:
   try {
     return NextResponse.json(await requestReviveQuestion((await params).runId, user.id));
   } catch (error) {
-    return await apiError(error instanceof Error && error.message === "NO_QUESTION" ? "quickMissionary.noQuestion" : "apiErrors.invalidInput", 409);
+    const message = error instanceof Error ? error.message : "";
+    return await apiError(message === "NO_QUESTION" ? "quickMissionary.noQuestion" : message === "NO_GENEES" ? "quickMissionary.noGenees" : "apiErrors.invalidInput", 409);
   }
 }

@@ -154,9 +154,11 @@ describe("Snelle Zendeling gameplay", () => {
     ]);
     assert.equal(options?.length, 3);
     assert.equal(options?.filter((option) => option.isCorrect).length, 1);
-    assert.equal(applyReviveAnswer("DEAD_AWAITING_REVIVE", false, true), "REVIVE_READY");
-    assert.equal(applyReviveAnswer("DEAD_AWAITING_REVIVE", false, false), "FINISHED");
-    assert.equal(applyReviveAnswer("DEAD_AWAITING_REVIVE", true, true), null);
+    assert.equal(applyReviveAnswer("DEAD_AWAITING_REVIVE", true), "REVIVE_READY");
+    assert.equal(applyReviveAnswer("DEAD_AWAITING_REVIVE", false), "FINISHED");
+    // Alleen een openstaande poging kan beantwoord worden.
+    assert.equal(applyReviveAnswer("REVIVE_READY", true), null);
+    assert.equal(applyReviveAnswer("FINISHED", true), null);
   });
 
   it("kiest alleen antwoordsets waarvan lengte het juiste antwoord niet verraadt", () => {

@@ -59,3 +59,54 @@ export function ReviveFailurePanel({ reading }: { reading: ReviveReadingView }) 
     </div>
   );
 }
+
+export type DeathOptionView = "free" | "stock" | "buy" | "none";
+
+export interface DeathChoiceView {
+  deathOption: DeathOptionView;
+  geneesBalance: number;
+  geneesPriceXp: number;
+  canAffordGenees: boolean;
+}
+
+/**
+ * Het keuzescherm na een botsing. Gratis Genees eerst, daarna Genees uit voorraad,
+ * en bij lege voorraad (één keer per run) de noodkoop. Alle regels komen van de
+ * server (deathOption); dit scherm toont ze alleen. Zonder keuze ("none") wordt de
+ * run door de aanroeper al beëindigd.
+ */
+export function DeathPanel({ score, choice, busy, error, onUse, onBuy, onEnd }: {
+  score: number;
+  choice: DeathChoiceView;
+  busy: boolean;
+  error: string | null;
+  onUse: () => void;
+  onBuy: () => void;
+  onEnd: () => void;
+}) {
+  const t = useT();
+  const buying = choice.deathOption === "buy";
+  const intro = choice.deathOption === "free" ? t("quickMissionary.healFreeIntro") : choice.deathOption === "stock" ? t("quickMissionary.healStockIntro") : t("quickMissionary.healBuyIntro");
+  return (
+    <>
+      <p className="text-2xl font-black">{t("quickMissionary.heal")}</p>
+      <p>{t("quickMissionary.scoreLabel", { n: score })}</p>
+      {choice.deathOption === "stock" && <p className="rounded-full bg-white/15 px-3 py-1 text-sm font-black" data-genees-stock>{t("quickMissionary.healStockCount", { n: choice.geneesBalance })}</p>}
+      <p className="max-w-sm text-sm">{intro}</p>
+      {buying && !choice.canAffordGenees && <p className="max-w-sm text-sm font-bold text-amber-200" data-genees-insufficient>{t("quickMissionary.healBuyNotEnough", { xp: choice.geneesPriceXp })}</p>}
+      {error && <p className="max-w-sm text-sm font-bold text-red-200" role="alert">{error}</p>}
+      <div className="flex flex-wrap justify-center gap-2">
+        {buying ? (
+          <button type="button" className="btn-primary" disabled={busy || !choice.canAffordGenees} onClick={onBuy} data-genees-buy>
+            {busy ? t("quickMissionary.healBuying") : t("quickMissionary.healBuy", { xp: choice.geneesPriceXp })}
+          </button>
+        ) : (
+          <button type="button" className="btn-primary" disabled={busy} onClick={onUse}>
+            {choice.deathOption === "free" ? t("quickMissionary.healFree") : t("quickMissionary.healFromStock")}
+          </button>
+        )}
+        <button type="button" className="btn-secondary" disabled={busy} onClick={onEnd}>{t("quickMissionary.endRun")}</button>
+      </div>
+    </>
+  );
+}

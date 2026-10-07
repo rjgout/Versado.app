@@ -102,6 +102,7 @@ model User {
   quickMissionaryRuns QuickMissionaryRun[]
   quickMissionaryReviveProgress QuickMissionaryReviveProgress[]
   quickMissionaryReviveSeen QuickMissionaryReviveSeen[]
+  geneesPurchases GeneesPurchase[]
   mysteryProgress     MysteryProgress[]
 
   // De actieve contentcollectie voor de contentswitcher. Null betekent dat de gebruiker
@@ -190,6 +191,10 @@ model User {
   // die pas bij uitputting dit tegoed aanspraken — dat gaf per scherm een
   // ander getal te zien, dus vervangen door dit ene gedeelde tegoed.
   hintBalance   Int     @default(0)
+  // Voorraad Genees (Vliegende {gids}): bezitbaar, onbeperkt, accountgebonden.
+  // Alleen te wijzigen via src/lib/genees/inventory.ts (winkel en in-game
+  // noodkoop); de database dwingt af dat hij nooit negatief wordt.
+  geneesBalance Int     @default(0)
 
   // Niet meer gebruikt: de badge van de webapp is nu het aantal meldingen in
   // het meldingencentrum (Notification). Blijft staan om geen data te laten vallen.
@@ -1419,6 +1424,8 @@ enum XPReason {
   KIDS_STORY_COMPLETED
   // Negatief bedrag: XP ingewisseld voor hints in de winkel. Zie src/lib/shop.ts.
   HINT_PURCHASED
+  // Negatief bedrag: XP ingewisseld voor een Genees (winkel of in-game). Zie src/lib/genees/inventory.ts.
+  GENEES_PURCHASED
   // Negatief bedrag: XP ingewisseld voor streak freezes in de winkel. Zie src/lib/shop.ts.
   FREEZE_PURCHASED
   // "Raad het hoofdstuk" — zowel alleen als live met vrienden. Zie
@@ -2395,7 +2402,13 @@ model QuickMissionaryRun {
   dayKey          String
   score           Int                       @default(0)
   status          QuickMissionaryRunStatus  @default(IN_PROGRESS)
+  // De gratis Genees van deze run is ingezet (op het moment dat de vraag wordt
+  // uitgegeven, niet pas bij het antwoord). Zie src/lib/snelleZendeling/runs.ts.
   reviveUsed      Boolean                   @default(false)
+  // Hoeveel Genezen uit de voorraad in deze run zijn ingezet (audit).
+  stockRevivesUsed Int                      @default(0)
+  // De in-game noodkoop is per run en per speler maximaal één keer toegestaan.
+  inGamePurchaseUsed Boolean                @default(false)
   reviveExerciseId String?
   reviveOptionIds String?
   createdAt       DateTime                  @default(now())
@@ -2404,6 +2417,26 @@ model QuickMissionaryRun {
   @@index([userId, status])
   @@index([userId, score])
   @@index([dayKey, status, score])
+}
+
+// Elke aankoop van een Genees (winkel of in-game): audittrail en idempotentie.
+// De prijs staat vast op het moment van kopen (100 + voorraad × 25); een
+// herhaald verzoek met dezelfde sleutel geeft het eerdere resultaat terug.
+model GeneesPurchase {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  priceXp        Int
+  stockBefore    Int
+  // "SHOP" of "GAME" (in-game noodkoop, dan met runId).
+  source         String
+  runId          String?
+  idempotencyKey String?
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, createdAt])
+  @@index([runId])
 }
 
 // --- Genees: vragenbank en voortgang (Vliegende {gids}) ------------------------
