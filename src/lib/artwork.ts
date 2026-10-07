@@ -96,8 +96,7 @@ const GAME_COVERS: Partial<Record<GameId, ArtworkAsset>> = {
   "chapter-guess": { src: "/images/games/raad-het-hoofdstuk.png", tone: "#9d6e49" },
   gezinsavond: { src: "/images/games/gezinsavond.png", tone: "#a27141" },
   challenges: { src: "/images/games/uitdagingen.png", tone: "#996638" },
-  // Tijdelijke prototype-cover voor Het Mysterie; later krijgt het spel een eigen algemene cover.
-  mystery: { src: "/mysterie-001a-ontdekker/board.png", fit: "contain", tone: "#9b7b55" },
+  mystery: { src: "/images/games/het-mysterie.png", alt: "Cover van Het Mysterie", tone: "#d18b45" },
 };
 
 /**

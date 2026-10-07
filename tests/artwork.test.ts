@@ -60,3 +60,9 @@ test("het vliegspel kiest een bestaande cover per persoonlijke gids", () => {
   assert.deepEqual(pngSize(vera.src), { width: 1672, height: 941 });
   assert.notDeepEqual(gameArtworkKeys("quick-missionary", "novi"), gameArtworkKeys("quick-missionary", "varo"));
 });
+
+test("Het Mysterie gebruikt de algemene horizontale game-cover", () => {
+  const mystery = assertFile(gameArtworkKeys("mystery"));
+  assert.equal(mystery.src, "/images/games/het-mysterie.png");
+  assert.deepEqual(pngSize(mystery.src), { width: 1664, height: 936 });
+});

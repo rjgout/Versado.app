@@ -37,7 +37,7 @@ export default async function MysteryDetailPage({ config }: { config: MysteryDet
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <section className={`${surfaceCard} overflow-hidden`}>
         <div className="grid md:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.95fr)]">
-          <MediaArtwork kind="game" artworkKey="game:mystery" ratio="1/1" sizes="(min-width: 768px) 45vw, 100vw" priority className="border-b border-vs-line md:border-b-0 md:border-r" />
+          <MediaArtwork kind="game" artworkKey="game:mystery" ratio="16/9" sizes="(min-width: 768px) 45vw, 100vw" priority className="border-b border-vs-line md:border-b-0 md:border-r" />
           <div className="flex flex-col justify-center gap-4 p-5 sm:p-7">
             <div>
               <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-vs-accent"><Brain className="h-4 w-4" aria-hidden />{t(config.eyebrowKey)}</p>
