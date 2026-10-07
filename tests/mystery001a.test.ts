@@ -147,7 +147,7 @@ describe("Mysterie 001B Onderzoeker", () => {
 
   it("accepteert de unieke 5x5-oplossing en geen verwisseling", () => {
     assert.equal(MYSTERY_001A.mysteryId, MYSTERY_001B.mysteryId);
-    assert.equal(MYSTERY_GAME.puzzles.length, 6);
+    assert.equal(MYSTERY_GAME.puzzles.length, 18);
     assert.equal(isSolutionCorrect(MYSTERY_001B, solutionB), true);
     assert.equal(isSolutionCorrect(MYSTERY_001B, { ...solutionB, laman: solutionB.lemuel, lemuel: solutionB.laman }), false);
     assert.equal(countSolutions(MYSTERY_001B).length, 1);

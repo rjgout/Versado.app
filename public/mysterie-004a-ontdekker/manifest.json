@@ -1,0 +1,113 @@
+{
+  "id": "mysterie004-ontdekker",
+  "mysteryId": "004",
+  "title": "De gebroken boog",
+  "difficulty": "ontdekker",
+  "status": "complete",
+  "rows": 4,
+  "columns": 4,
+  "boundsNormalized": {
+    "left": 0.08,
+    "top": 0.14,
+    "right": 0.92,
+    "bottom": 0.9
+  },
+  "canvas": {
+    "width": 1254,
+    "height": 1254
+  },
+  "grid": {
+    "rows": 4,
+    "columns": 4,
+    "boundsNormalized": {
+      "left": 0.08,
+      "top": 0.14,
+      "right": 0.92,
+      "bottom": 0.9
+    },
+    "cellWidthNormalized": 0.21000000000000002,
+    "cellHeightNormalized": 0.19,
+    "feetWithinCell": {
+      "x": 0.5,
+      "y": 0.8
+    },
+    "maximumCharacterHeightCellFraction": 0.65
+  },
+  "functionalObjects": [
+    {
+      "id": "liahona",
+      "row": 1,
+      "column": 2,
+      "visuallyChecked": true
+    },
+    {
+      "id": "brokenBow",
+      "row": 4,
+      "column": 1,
+      "visuallyChecked": true
+    }
+  ],
+  "solution": {
+    "lehi": {
+      "row": 1,
+      "column": 3
+    },
+    "laman": {
+      "row": 2,
+      "column": 1
+    },
+    "lemuel": {
+      "row": 3,
+      "column": 4
+    },
+    "nephi": {
+      "row": 4,
+      "column": 2
+    }
+  },
+  "logicValidation": {
+    "uniqueSolutionCount": 1,
+    "exhaustivePermutationCount": 576,
+    "onePersonPerRow": true,
+    "onePersonPerColumn": true,
+    "allSuppliedCluesSatisfied": true
+  },
+  "validation": {
+    "temporaryGridOverlayUsed": true,
+    "temporarySolutionPreviewUsed": true,
+    "individuallyCheckedCells": [
+      "R1C1",
+      "R1C2",
+      "R1C3",
+      "R1C4",
+      "R2C1",
+      "R2C2",
+      "R2C3",
+      "R2C4",
+      "R3C1",
+      "R3C2",
+      "R3C3",
+      "R3C4",
+      "R4C1",
+      "R4C2",
+      "R4C3",
+      "R4C4"
+    ],
+    "finalOverlayRemoved": true,
+    "finalBoardReviewed": true,
+    "inAppTested": false
+  },
+  "characterAssets": [
+    "lehi.png (existing asset, unchanged)",
+    "laman.png (existing asset, unchanged)",
+    "lemuel.png (existing asset, unchanged)",
+    "nephi.png (existing asset, unchanged)"
+  ],
+  "note": "De exacte rasterposities zijn puzzelfictie, geen historische of Schriftuurlijke reconstructie.",
+  "provenance": {
+    "tool": "Built-in imagegen",
+    "prompt": "Create ONE square premium Versado3D cartoon game board, native1536 square or nearest square. Reference image ONLY artdirection, not composition. Warm upperleft light, natural adult-friendly modern polished3D textures no photoreal/chibi. Elevated front nearorthographic camera: PLAYFIELD rectangular in image, rows horizontal columns vertical no diamond or taper, scenery at perimeter. No people, no text numbers UI overlay or hard grid. True playable bounds left.08 top.14 right.92 bottom.90. Natural SUBTLE row/column cues: worn ground transitions and small edge markers, never checkerboard stone walls sudoku; landscape first. Each required object must be SMALL including shadow/attachments and entirely within its assigned cell, central60% of cell. All other cells calm empty standable terrain. No other functional clue duplicates. Design for given N rows and N columns separately.\nN=4. Mystery004: Dry hunting wilderness clearing, pale cracked ochre soil, layered limestone desert crags at edge, sparse dry grasses, distant rugged hills, no city. Liahona small brass spherical instrument with subtle openwork ribs and two slender pointer details, grounded tangible ancient object NOT glowing magic. Brokenbow unmistakable two fractured curved wooden pieces with loose snapped string. Arrowbundle3wooden arrows with pale fletching, laid horizontally.\nEXACT FUNCTIONALOBJECTS: liahona R1C2, center(0.3950,0.2350), maxsize(0.1260,0.1140); brokenBow R4C1, center(0.1850,0.8050), maxsize(0.1260,0.1140)\nKeep solution cells clear: R1C3,R2C1,R3C4,R4C2",
+    "correctionPrompt": "Edit ONLY specified functional objects: shrink BOTH fragments of broken bow and its snapped string to70percent, reposition them centered(.18,.80), entirely within x.11-.25 y.74-.86 R4C1. Do not alter brass Liahona. Preserve all other scene elements camera lighting rendering terrain and subtle grid cues. Restore old footprint naturally. Complete objects plus shadows within given bounds. No people text UI. Square."
+  },
+  "assetNotes": "Natuurlijke grondslijtage en verspreide kleine stenen/vegetatie suggereren celovergangen; geen dikke technische rasterlijnen."
+}

@@ -1,0 +1,127 @@
+{
+  "id": "mysterie006-onderzoeker",
+  "mysteryId": "006",
+  "title": "De overtocht",
+  "difficulty": "onderzoeker",
+  "status": "complete",
+  "rows": 5,
+  "columns": 5,
+  "boundsNormalized": {
+    "left": 0.08,
+    "top": 0.14,
+    "right": 0.92,
+    "bottom": 0.9
+  },
+  "canvas": {
+    "width": 1254,
+    "height": 1254
+  },
+  "grid": {
+    "rows": 5,
+    "columns": 5,
+    "boundsNormalized": {
+      "left": 0.08,
+      "top": 0.14,
+      "right": 0.92,
+      "bottom": 0.9
+    },
+    "cellWidthNormalized": 0.168,
+    "cellHeightNormalized": 0.152,
+    "feetWithinCell": {
+      "x": 0.5,
+      "y": 0.8
+    },
+    "maximumCharacterHeightCellFraction": 0.65
+  },
+  "functionalObjects": [
+    {
+      "id": "ropeCoil",
+      "row": 2,
+      "column": 3,
+      "visuallyChecked": true
+    },
+    {
+      "id": "mast",
+      "row": 3,
+      "column": 3,
+      "visuallyChecked": true
+    }
+  ],
+  "solution": {
+    "nephi": {
+      "row": 1,
+      "column": 5
+    },
+    "sam": {
+      "row": 2,
+      "column": 2
+    },
+    "lehi": {
+      "row": 3,
+      "column": 4
+    },
+    "laman": {
+      "row": 4,
+      "column": 1
+    },
+    "lemuel": {
+      "row": 5,
+      "column": 3
+    }
+  },
+  "logicValidation": {
+    "uniqueSolutionCount": 1,
+    "exhaustivePermutationCount": 14400,
+    "onePersonPerRow": true,
+    "onePersonPerColumn": true,
+    "allSuppliedCluesSatisfied": true
+  },
+  "validation": {
+    "temporaryGridOverlayUsed": true,
+    "temporarySolutionPreviewUsed": true,
+    "individuallyCheckedCells": [
+      "R1C1",
+      "R1C2",
+      "R1C3",
+      "R1C4",
+      "R1C5",
+      "R2C1",
+      "R2C2",
+      "R2C3",
+      "R2C4",
+      "R2C5",
+      "R3C1",
+      "R3C2",
+      "R3C3",
+      "R3C4",
+      "R3C5",
+      "R4C1",
+      "R4C2",
+      "R4C3",
+      "R4C4",
+      "R4C5",
+      "R5C1",
+      "R5C2",
+      "R5C3",
+      "R5C4",
+      "R5C5"
+    ],
+    "finalOverlayRemoved": true,
+    "finalBoardReviewed": true,
+    "inAppTested": false
+  },
+  "characterAssets": [
+    "nephi.png (existing asset, unchanged)",
+    "sam.png (existing asset, unchanged)",
+    "lehi.png (existing asset, unchanged)",
+    "laman.png (existing asset, unchanged)",
+    "lemuel.png (existing asset, unchanged)"
+  ],
+  "note": "De exacte rasterposities zijn puzzelfictie, geen historische of Schriftuurlijke reconstructie.",
+  "provenance": {
+    "tool": "Built-in imagegen",
+    "prompt": "Create ONE square premium Versado3D cartoon game board, native1536 square or nearest square. Reference image ONLY artdirection, not composition. Warm upperleft light, natural adult-friendly modern polished3D textures no photoreal/chibi. Elevated front nearorthographic camera: PLAYFIELD rectangular in image, rows horizontal columns vertical no diamond or taper, scenery at perimeter. No people, no text numbers UI overlay or hard grid. True playable bounds left.08 top.14 right.92 bottom.90. Natural SUBTLE row/column cues: worn ground transitions and small edge markers, never checkerboard stone walls sudoku; landscape first. Each required object must be SMALL including shadow/attachments and entirely within its assigned cell, central60% of cell. All other cells calm empty standable terrain. No other functional clue duplicates. Design for given N rows and N columns separately.\nN=5. Mystery006: Clearly ship deck AT SEA, NO landpuzzle. Broad rectangular honey-brown wooden deck nearorthographic elevatedfront no perspective taper, ocean andsky beyond perimeterrail. Planks vertical fine seams, subtly varied broad transverse constructionjoinery indicates rows naturally not sudoku. All cells solid standablewood noholesexceptspecifiedhatch. Railing entirelyoutsidebounds. Mast is SHORT visible low mast footing/stub and neat rigging detail strictly withinonecell, mastcontinues outofview conceptually NO tallpole reachingotherrows, no rigging acrossfreecells. Rope small hempcoil. Hatch SMALL closed wooden hatch with slight darkrecess lip no large cabin. No extra mast/hatch/rope clues.\nEXACT FUNCTIONALOBJECTS: ropeCoil R2C3, center(0.5000,0.3680), maxsize(0.1008,0.0912); mast R3C3, center(0.5000,0.5200), maxsize(0.1008,0.0912)\nKeep solution cells clear: R1C5,R2C2,R3C4,R4C1,R5C3",
+    "correctionPrompt": "Edit ONLY specified functional objects: move ONLY compact central mast footing vertically DOWN by0.035 fullimageheight. Preserve size and xposition. Alltip base rigging shadow must be within x.445-.555 y.465-.565, R3C3. Ropecoil unchanged.. Preserve all other scene elements camera lighting rendering terrain and subtle grid cues. Restore old footprint naturally. Complete objects plus shadows within given bounds. No people text UI. Square."
+  },
+  "assetNotes": "Compact mastdetail, geen volledige mast: zo blijven andere rijen vrij. Planknaden en dwarsbalken suggereren natuurlijke dekzones; niet iedere bouwnaad is een celgrens."
+}

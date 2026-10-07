@@ -58,6 +58,12 @@ export function publicSolutionResult(definition: MysteryDefinition, placements: 
 }
 
 export function hintFor(definition: MysteryDefinition, placements: Placements): MessageKey {
+  if (definition.hints.mode === "sequence") {
+    const placed = definition.characters.filter((character) => !!placements[character.id]).length;
+    if (placed === 0) return definition.hints.softDirection;
+    if (placed < 2) return definition.hints.reasoning;
+    return definition.hints.stronger;
+  }
   if (definition.logicId === "mystery-002a" && definition.hints.mode === "discoverer") {
     if (!placements.nephi && !placements.sam) return definition.hints.lehiMissing;
     if (!placements.nephi || !placements.sam) return definition.hints.sariahMissing;
@@ -132,7 +138,7 @@ export function characterImageMetrics(geometry: BoardGeometry): { height: number
 
 /** Pure controle voor de handmatig ontworpen clue-set; gebruikt door tests. */
 export function satisfiesPuzzleClues(definition: MysteryDefinition, placements: Placements): boolean {
-  const { lehi, sariah, laman, lemuel, sam, nephi, laban, zoram } = placements;
+  const { lehi, sariah, laman, lemuel, sam, nephi, laban, zoram, ismael } = placements;
   if (definition.logicId === "mystery-002a") {
     const house = definition.landmarks["house-of-laban"];
     const valuables = definition.landmarks.valuables;
@@ -158,6 +164,129 @@ export function satisfiesPuzzleClues(definition: MysteryDefinition, placements: 
       && laban.row === valuables.row && laban.column === valuables.column + 1
       && laman.row < zoram.row && zoram.row < sam.row && sam.row < lemuel.row
       && sam.column < lemuel.column && lemuel.column < zoram.column && zoram.column < laman.column;
+  }
+  if (definition.logicId === "mystery-003a") {
+    const ropes = definition.landmarks.ropes;
+    return !!nephi && !!sam && !!laman && !!lemuel
+      && nephi.row === ropes.row - 1 && nephi.column === ropes.column
+      && sam.column === nephi.column + 2
+      && sam.row === laman.row - 1
+      && lemuel.row === laman.row + 1 && lemuel.column === laman.column + 2;
+  }
+  if (definition.logicId === "mystery-003b") {
+    const ropes = definition.landmarks.ropes;
+    const tent = definition.landmarks.smallTent;
+    return !!nephi && !!ismael && !!sam && !!laman && !!lemuel
+      && nephi.row === ropes.row - 1 && nephi.column === ropes.column
+      && ismael.row === tent.row && ismael.column === tent.column + 1
+      && laman.row > sam.row && laman.row < lemuel.row
+      && sam.row < lemuel.row
+      && lemuel.column === sam.column + 1
+      && laman.column === lemuel.column + 2;
+  }
+  if (definition.logicId === "mystery-003c") {
+    const ropes = definition.landmarks.ropes;
+    const marker = definition.landmarks.smallRockMarker;
+    const tent = definition.landmarks.tent;
+    return !!nephi && !!ismael && !!sam && !!laman && !!lemuel && !!lehi
+      && nephi.row === ropes.row - 1 && nephi.column === ropes.column
+      && lehi.row === tent.row && lehi.column === tent.column + 1
+      && ismael.row === marker.row && ismael.column === marker.column - 1
+      && laman.row > sam.row && laman.row < lemuel.row
+      && sam.row < lemuel.row
+      && lemuel.column === laman.column + 2
+      && sam.column > lemuel.column;
+  }
+  if (definition.logicId === "mystery-004a") {
+    const liahona = definition.landmarks.liahona;
+    const brokenBow = definition.landmarks.brokenBow;
+    return !!lehi && !!laman && !!lemuel && !!nephi
+      && lehi.row === liahona.row && lehi.column === liahona.column + 1
+      && nephi.row === brokenBow.row && nephi.column === brokenBow.column + 1
+      && laman.row < lemuel.row && laman.column < lemuel.column;
+  }
+  if (definition.logicId === "mystery-004b") {
+    const brokenBow = definition.landmarks.brokenBow;
+    const liahona = definition.landmarks.liahona;
+    return !!nephi && !!lehi && !!sam && !!laman && !!lemuel
+      && nephi.row === brokenBow.row && nephi.column === brokenBow.column + 1
+      && lehi.row === liahona.row && lehi.column === liahona.column + 1
+      && sam.column === lemuel.column + 2
+      && laman.row === lemuel.row - 1
+      && laman.column < lemuel.column
+      && sam.row < laman.row;
+  }
+  if (definition.logicId === "mystery-004c") {
+    const arrows = definition.landmarks.arrowBundle;
+    const brokenBow = definition.landmarks.brokenBow;
+    const liahona = definition.landmarks.liahona;
+    return !!sariah && !!nephi && !!lehi && !!sam && !!laman && !!lemuel
+      && sariah.row === arrows.row && sariah.column === arrows.column + 1
+      && nephi.row === brokenBow.row && nephi.column === brokenBow.column + 1
+      && lehi.row === liahona.row && lehi.column === liahona.column - 1
+      && lemuel.column === laman.column + 2
+      && sam.column > lemuel.column
+      && sam.row < laman.row
+      && laman.row < lemuel.row;
+  }
+  if (definition.logicId === "mystery-005a") {
+    const fire = definition.landmarks.smithFire;
+    return !!nephi && !!sam && !!laman && !!lemuel
+      && nephi.row === fire.row - 1 && nephi.column === fire.column + 1
+      && sam.row === fire.row && sam.column === fire.column - 1
+      && laman.row === lemuel.row - 1 && laman.column === lemuel.column + 2;
+  }
+  if (definition.logicId === "mystery-005b") {
+    const fire = definition.landmarks.smithFire;
+    const timber = definition.landmarks.timberPile;
+    return !!nephi && !!sam && !!lehi && !!laman && !!lemuel
+      && nephi.row === fire.row - 1 && nephi.column === fire.column + 1
+      && sam.row === fire.row && sam.column === fire.column - 1
+      && lehi.row === timber.row && lehi.column === timber.column + 1
+      && lemuel.row === laman.row + 1 && lemuel.column === laman.column + 2;
+  }
+  if (definition.logicId === "mystery-005c") {
+    const fire = definition.landmarks.smithFire;
+    const timber = definition.landmarks.timberPile;
+    return !!nephi && !!sam && !!lehi && !!sariah && !!laman && !!lemuel
+      && nephi.row === fire.row - 1 && nephi.column === fire.column + 1
+      && sam.row === fire.row && sam.column === fire.column - 1
+      && lehi.row === timber.row && lehi.column === timber.column + 1
+      && sariah.row < laman.row
+      && laman.column < sariah.column
+      && lemuel.row > laman.row
+      && lemuel.column === sariah.column + 2;
+  }
+  if (definition.logicId === "mystery-006a") {
+    const mast = definition.landmarks.mast;
+    const rope = definition.landmarks.ropeCoil;
+    return !!laman && !!lemuel && !!sam && !!nephi
+      && lemuel.row === mast.row && lemuel.column === mast.column + 1
+      && nephi.row === rope.row && nephi.column === rope.column + 1
+      && laman.row < sam.row && laman.column > sam.column;
+  }
+  if (definition.logicId === "mystery-006b") {
+    const rope = definition.landmarks.ropeCoil;
+    const mast = definition.landmarks.mast;
+    return !!nephi && !!sam && !!lehi && !!laman && !!lemuel
+      && lehi.row === mast.row && lehi.column === mast.column + 1
+      && sam.row === rope.row && sam.column === rope.column - 1
+      && nephi.row === lehi.row - 2 && nephi.column === lehi.column + 1
+      && laman.row < lemuel.row
+      && lemuel.column === laman.column + 2;
+  }
+  if (definition.logicId === "mystery-006c") {
+    const rope = definition.landmarks.ropeCoil;
+    const mast = definition.landmarks.mast;
+    const hatch = definition.landmarks.hatch;
+    return !!nephi && !!laman && !!sam && !!lehi && !!lemuel && !!sariah
+      && nephi.row === rope.row && nephi.column === rope.column + 1
+      && sam.row === mast.row - 1 && sam.column === mast.column + 1
+      && lehi.row === hatch.row && lehi.column === hatch.column + 1
+      && laman.row < lemuel.row
+      && sariah.row > lemuel.row
+      && sariah.column === lemuel.column - 2
+      && laman.column < lehi.column;
   }
   if (!lehi || !sariah || !laman || !lemuel) return false;
   const altar = definition.landmarks["stone-altar"];

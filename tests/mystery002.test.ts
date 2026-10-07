@@ -35,8 +35,10 @@ const solutionC: Placements = {
 
 describe("Mysterie 002", () => {
   it("staat als tweede mysterie in Het Mysterie", () => {
-    assert.deepEqual(MYSTERY_GAME.mysteries.map((mystery) => mystery.id), ["mystery-001", "mystery-002"]);
-    assert.equal(MYSTERY_GAME.puzzles.length, 6);
+    assert.deepEqual(MYSTERY_GAME.mysteries.map((mystery) => mystery.id), [
+      "mystery-001", "mystery-002", "mystery-003", "mystery-004", "mystery-005", "mystery-006",
+    ]);
+    assert.equal(MYSTERY_GAME.puzzles.length, 18);
     assert.equal(MYSTERY_002A.mysteryNumber, 2);
     assert.equal(MYSTERY_002A.story.source.chapterStart, 3);
     assert.equal(MYSTERY_002A.story.source.chapterEnd, 4);
