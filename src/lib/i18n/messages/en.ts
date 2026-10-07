@@ -744,6 +744,14 @@ export const en: PartialMessages = {
     purchaseLimit: "You already bought a Recover in this run.",
     noGenees: "You have no Recover left.",
     healUsed: "You already used Recover in this run.",
+    duo: {
+      tab: "Duo",
+      solo: "Solo",
+      kinds: "Ranking type",
+      explain: "The last two players of a joint run. The Duo score is the higher of their two scores at the moment the run ends; each duo’s best result counts.",
+      empty: "There are no Duo results yet.",
+      entry: "{a} + {b}: {score}",
+    },
     together: {
       open: "Fly together",
       openHint: "Fly through the same world with friends. The last one standing wins.",

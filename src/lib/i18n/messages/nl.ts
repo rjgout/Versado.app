@@ -1229,6 +1229,14 @@ export const nl = {
     purchaseLimit: "Je hebt in deze run al een Genees gekocht.",
     noGenees: "Je hebt geen Genees meer.",
     healUsed: "Je hebt Genees in deze run al gebruikt.",
+    duo: {
+      tab: "Duo",
+      solo: "Solo",
+      kinds: "Soort ranking",
+      explain: "De laatste twee van een gezamenlijke run. De Duo-score is de hoogste score van die twee op het moment dat de run eindigt; per duo telt het beste resultaat.",
+      empty: "Er zijn nog geen Duo-resultaten.",
+      entry: "{a} + {b}: {score}",
+    },
     together: {
       open: "Samen vliegen",
       openHint: "Vlieg met vrienden door dezelfde wereld. Wie als laatste overblijft, wint.",

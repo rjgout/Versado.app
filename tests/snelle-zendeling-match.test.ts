@@ -249,3 +249,42 @@ test("beslissing: een verdiend Genees-antwoord wint van een tegenstander die afv
   assert.deepEqual(decideMatch([{ userId: "a", state: "REVIVE_PENDING" }, { userId: "b", state: "ELIMINATED" }]), { over: true, reason: "NOBODY_FLYING", survivorId: null, voidedIds: ["a"] });
   assert.deepEqual(decideMatch([{ userId: "a", state: "REVIVE_PENDING" }, { userId: "b", state: "REVIVE_PENDING" }]), { over: false });
 });
+
+// --- Duo-ranking (puur) -----------------------------------------------------------------
+
+import { duoKey, duoScore, rankDuos } from "../src/lib/snelleZendeling/duoRanking";
+
+const row = (matchId: string, a: string, b: string, scoreA: number, scoreB: number, minute = 0) => ({ matchId, userAId: a, userBId: b, scoreA, scoreB, finishedAt: new Date(Date.UTC(2026, 9, 1, 12, minute)) });
+
+test("duo-score: het maximum van de twee, nooit de som, laagste of een bonus", () => {
+  assert.equal(duoScore(100, 150), 150);
+  assert.equal(duoScore(150, 100), 150);
+  assert.equal(duoScore(487, 490), 490);
+  assert.equal(duoScore(0, 0), 0);
+});
+
+test("duo-identiteit: A+B == B+A en A+B != A+C", () => {
+  assert.equal(duoKey("a", "b"), duoKey("b", "a"));
+  assert.notEqual(duoKey("a", "b"), duoKey("a", "c"));
+});
+
+test("duo-ranking: per duo het beste resultaat, ook als de opslagvolgorde omgekeerd is", () => {
+  const ranked = rankDuos([row("m1", "a", "b", 100, 300), row("m2", "b", "a", 450, 10, 1), row("m3", "a", "b", 400, 400, 2)]);
+  assert.equal(ranked.length, 1);
+  assert.equal(ranked[0].score, 450);
+  assert.equal(ranked[0].matchId, "m2");
+});
+
+test("duo-ranking: dezelfde gebruiker met verschillende partners = verschillende entries", () => {
+  const ranked = rankDuos([row("m1", "a", "b", 500, 1), row("m2", "a", "c", 600, 1)]);
+  assert.deepEqual(ranked.map((duo) => [duo.key, duo.score]), [["a+c", 600], ["a+b", 500]]);
+});
+
+test("duo-ranking: bij gelijke score wint het duo dat die score het eerst behaalde; een later gelijk resultaat verdringt niemand", () => {
+  const ranked = rankDuos([row("late", "c", "d", 300, 1, 9), row("early", "a", "b", 300, 1, 1), row("same", "a", "b", 300, 5, 20)]);
+  assert.deepEqual(ranked.map((duo) => duo.key), ["a+b", "c+d"]);
+  assert.equal(ranked[0].matchId, "early", "een later gelijk resultaat vervangt het eerdere niet");
+  // Volledig gelijk tijdstip: de sleutel beslist, dus de volgorde is stabiel.
+  const tied = rankDuos([row("x", "c", "d", 10, 0, 5), row("y", "a", "b", 10, 0, 5)]);
+  assert.deepEqual(tied.map((duo) => duo.key), ["a+b", "c+d"]);
+});

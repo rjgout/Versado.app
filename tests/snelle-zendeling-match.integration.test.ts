@@ -16,6 +16,8 @@ const load = async () => ({
   db: (await import("../src/lib/db")).prisma,
   runs: await import("../src/lib/snelleZendeling/runs"),
   match: await import("../src/lib/snelleZendeling/match"),
+  duo: await import("../src/lib/snelleZendeling/duoLeaderboard"),
+  duoRules: await import("../src/lib/snelleZendeling/duoRanking"),
 });
 let L: Awaited<ReturnType<typeof load>>;
 
@@ -62,16 +64,16 @@ after(async () => {
 });
 
 /** Een lobby met n spelers, gestart; de tijdlijn begon 120 s geleden zodat scores plausibel zijn. */
-async function startedMatch(n: number, options: { stock?: number; xp?: number } = {}) {
-  const userIds: string[] = [];
-  for (let i = 0; i < n; i++) userIds.push(await makeUser(options));
+async function startedMatch(n: number, options: { stock?: number; xp?: number; ageSeconds?: number; players?: string[] } = {}) {
+  const userIds: string[] = options.players ?? [];
+  for (let i = userIds.length; i < n; i++) userIds.push(await makeUser(options));
   const game = await L.db.liveGame.create({
-    data: { code: `Q${stamp.slice(-4)}${seq}`.slice(0, 8), hostId: userIds[0], mode: "QUICK_MISSIONARY", status: "LOBBY", players: { create: userIds.map((userId) => ({ userId })) } },
+    data: { code: `Q${stamp.slice(-4)}${seq}${Math.floor(Math.random() * 1e6)}`.slice(0, 12), hostId: userIds[0], mode: "QUICK_MISSIONARY", status: "LOBBY", players: { create: userIds.map((userId) => ({ userId })) } },
   });
   const started = await L.match.startMatch(game.id, userIds[0]);
   assert.ok(started.ok, "wedstrijd hoort te starten");
   if (!started.ok) throw new Error("niet gestart");
-  await L.db.quickMissionaryMatch.update({ where: { id: started.matchId }, data: { startsAt: new Date(Date.now() - 120_000) } });
+  await L.db.quickMissionaryMatch.update({ where: { id: started.matchId }, data: { startsAt: new Date(Date.now() - (options.ageSeconds ?? 120) * 1_000) } });
   await L.db.quickMissionaryRun.updateMany({ where: { matchId: started.matchId }, data: { lastSeenAt: new Date() } });
   const runs = await L.db.quickMissionaryRun.findMany({ where: { matchId: started.matchId } });
   const runOf = (userId: string) => runs.find((run) => run.userId === userId)!.id;
@@ -388,4 +390,179 @@ test("twee toestellen: tegelijk dezelfde Genees-vraag aanvragen verbruikt precie
   await L.runs.reportDeath(runId, a, 0);
   await Promise.allSettled([L.runs.requestReviveQuestion(runId, a), L.runs.requestReviveQuestion(runId, a)]);
   assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: a } })).geneesBalance, 2);
+});
+
+// --- Duo-ranking: Duo-score = max(scoreA, scoreB) van de laatste twee ------------------------
+
+/** Genoeg tijdlijn voor scores tot ruim 500 (ongeveer 750 s). */
+const LONG = 1_500;
+const duoRow = (matchId: string) => L.db.quickMissionaryDuoResult.findUniqueOrThrow({ where: { matchId } });
+async function duoEntry(viewer: string, a: string, b: string) {
+  const entries = await L.duo.getQuickMissionaryDuoLeaderboard(viewer, "all-time");
+  return entries.find((entry) => entry.key === L.duoRules.duoKey(a, b));
+}
+
+test("duo A: twee spelers, hoogste telt (150), niet de som (250) — ongeacht wie afvalt", { skip }, async () => {
+  for (const loser of [0, 1]) {
+    const m = await startedMatch(2, { ageSeconds: LONG });
+    const [a, b] = m.userIds;
+    await L.match.recordBeat(m.matchId, a, 100);
+    await L.match.recordBeat(m.matchId, b, 150);
+    await L.runs.finishQuickMissionaryRun(m.runOf(m.userIds[loser]), m.userIds[loser], [100, 150][loser]);
+    assert.equal((await matchRow(m.matchId)).status, "ENDED");
+    const row = await duoRow(m.matchId);
+    assert.equal(L.duoRules.duoScore(row.scoreA, row.scoreB), 150);
+    const entry = await duoEntry(a, a, b);
+    assert.equal(entry?.score, 150, "niet 250");
+    assert.deepEqual(new Set(entry?.players.map((p) => p.userId)), new Set([a, b]));
+  }
+});
+
+test("duo B: laatste twee uit vijf spelers, score 490 (de hoogste van 487 en 490)", { skip }, async () => {
+  for (const loser of ["D", "E"]) {
+    const m = await startedMatch(5, { ageSeconds: LONG });
+    const [a, b, c, d, e] = m.userIds;
+    for (const id of [a, b, c]) await L.runs.finishQuickMissionaryRun(m.runOf(id), id, 0);
+    await L.match.recordBeat(m.matchId, d, 487);
+    await L.match.recordBeat(m.matchId, e, 490);
+    assert.equal((await matchRow(m.matchId)).status, "RUNNING");
+    const fallen = loser === "D" ? d : e;
+    await L.runs.finishQuickMissionaryRun(m.runOf(fallen), fallen, loser === "D" ? 487 : 490);
+    const row = await duoRow(m.matchId);
+    assert.deepEqual(new Set([row.userAId, row.userBId]), new Set([d, e]), "A, B en C zitten er niet in");
+    assert.equal((await duoEntry(d, d, e))?.score, 490);
+    assert.equal(await duoEntry(a, a, b), undefined);
+  }
+});
+
+test("duo C: geen doorspelen — na het uiteenvallen kan de laatste speler de score niet meer verhogen", { skip }, async () => {
+  const m = await startedMatch(2, { ageSeconds: LONG });
+  const [a, b] = m.userIds;
+  await L.match.recordBeat(m.matchId, a, 200);
+  await L.match.recordBeat(m.matchId, b, 180);
+  await L.runs.finishQuickMissionaryRun(m.runOf(b), b, 180);
+  const frozen = await duoRow(m.matchId);
+  assert.equal((await runRow(m.runOf(a))).status, "FINISHED", "de overlevende is direct gefinaliseerd");
+
+  // Late score-events, late dood, late afsluiting en late hartslag veranderen niets.
+  await L.match.recordBeat(m.matchId, a, 400);
+  await L.runs.reportDeath(m.runOf(a), a, 400);
+  await L.runs.finishQuickMissionaryRun(m.runOf(a), a, 400);
+  await assert.rejects(() => L.runs.requestReviveQuestion(m.runOf(a), a), /INVALID_STATE/);
+  assert.equal((await runRow(m.runOf(a))).score, 200);
+  const after = await duoRow(m.matchId);
+  assert.deepEqual([after.scoreA + after.scoreB, after.id], [frozen.scoreA + frozen.scoreB, frozen.id]);
+  assert.equal((await duoEntry(a, a, b))?.score, 200);
+});
+
+test("duo D: A+B en B+A zijn hetzelfde duo; A+B en A+C verschillen", { skip }, async () => {
+  const [a, b, c] = [await makeUser(), await makeUser(), await makeUser()];
+  assert.equal(L.duoRules.duoKey(a, b), L.duoRules.duoKey(b, a));
+  assert.notEqual(L.duoRules.duoKey(a, b), L.duoRules.duoKey(a, c));
+  // Ook in de database: de opgeslagen A/B is altijd gesorteerd, dus bij omgekeerde lobbyvolgorde ook.
+  const m = await startedMatch(2, { players: [b, a], ageSeconds: LONG });
+  await L.runs.finishQuickMissionaryRun(m.runOf(a), a, 0);
+  const row = await duoRow(m.matchId);
+  assert.deepEqual([row.userAId, row.userBId], [a, b].sort());
+});
+
+test("duo E: het beste resultaat per duo telt (300, 450, 400 geeft 450); een slechtere run verlaagt niets", { skip }, async () => {
+  const [a, b] = [await makeUser(), await makeUser()];
+  const scores = [300, 450, 400];
+  for (const [index, score] of scores.entries()) {
+    // Afwisselend A of B als host, en een andere van de twee valt af.
+    const players = index % 2 === 0 ? [a, b] : [b, a];
+    const m = await startedMatch(2, { players, ageSeconds: LONG });
+    await L.match.recordBeat(m.matchId, a, score);
+    await L.match.recordBeat(m.matchId, b, score - 50);
+    await L.runs.finishQuickMissionaryRun(m.runOf(index % 2 === 0 ? b : a), index % 2 === 0 ? b : a, index % 2 === 0 ? score - 50 : score);
+    assert.equal((await matchRow(m.matchId)).status, "ENDED");
+  }
+  const entries = (await L.duo.getQuickMissionaryDuoLeaderboard(a, "all-time")).filter((entry) => entry.key === L.duoRules.duoKey(a, b));
+  assert.equal(entries.length, 1, "één entry per duo");
+  assert.equal(entries[0].score, 450);
+  // De ruwe resultaten blijven allemaal bewaard.
+  assert.equal(await L.db.quickMissionaryDuoResult.count({ where: { OR: [{ userAId: a, userBId: b }, { userAId: b, userBId: a }] } }), 3);
+});
+
+test("duo F: dezelfde gebruiker met verschillende partners staat er meerdere keren in", { skip }, async () => {
+  const [a, b, c] = [await makeUser(), await makeUser(), await makeUser()];
+  for (const [partner, score] of [[b, 500], [c, 600]] as const) {
+    const m = await startedMatch(2, { players: [a, partner], ageSeconds: LONG });
+    await L.match.recordBeat(m.matchId, a, score);
+    await L.runs.finishQuickMissionaryRun(m.runOf(partner), partner, 0);
+  }
+  const board = await L.duo.getQuickMissionaryDuoLeaderboard(a, "all-time");
+  const mine = board.filter((entry) => entry.mine);
+  assert.equal(mine.find((entry) => entry.key === L.duoRules.duoKey(a, b))?.score, 500);
+  assert.equal(mine.find((entry) => entry.key === L.duoRules.duoKey(a, c))?.score, 600);
+  assert.ok(board.findIndex((e) => e.key === L.duoRules.duoKey(a, c)) < board.findIndex((e) => e.key === L.duoRules.duoKey(a, b)), "hoogste score eerst");
+});
+
+test("duo G: Genees houdt het duo in leven; pas bij definitief afvallen telt de volgorde", { skip }, async () => {
+  const m = await startedMatch(3, { ageSeconds: LONG });
+  const [a, b, c] = m.userIds;
+  await L.runs.finishQuickMissionaryRun(m.runOf(c), c, 0); // C valt eerst af: A en B zijn de laatste twee
+  await L.match.recordBeat(m.matchId, a, 120);
+  await L.match.recordBeat(m.matchId, b, 90);
+  await L.runs.reportDeath(m.runOf(a), a, 125);
+  await reviveAndAnswer(a, m.runOf(a), true);
+  await L.runs.resumeAfterRevive(m.runOf(a), a);
+  assert.equal((await matchRow(m.matchId)).status, "RUNNING", "duo nog niet beëindigd");
+  assert.equal(await L.db.quickMissionaryDuoResult.count({ where: { matchId: m.matchId } }), 0);
+
+  await L.match.recordBeat(m.matchId, a, 140);
+  await L.runs.finishQuickMissionaryRun(m.runOf(b), b, 90);
+  const row = await duoRow(m.matchId);
+  assert.deepEqual(new Set([row.userAId, row.userBId]), new Set([a, b]));
+  assert.equal((await duoEntry(a, a, b))?.score, 140, "scores zoals ze bij de finalisatie waren");
+});
+
+test("duo H: geen resurrectie — een late correcte Genees-reactie verandert het afgesloten duo niet", { skip }, async () => {
+  const m = await startedMatch(2, { ageSeconds: LONG });
+  const [a, b] = m.userIds;
+  await L.match.recordBeat(m.matchId, a, 210);
+  await L.runs.reportDeath(m.runOf(a), a, 210);
+  await L.runs.reportDeath(m.runOf(b), b, 0);
+  const asked = await L.runs.requestReviveQuestion(m.runOf(b), b); // B heeft al een vraag
+  await L.runs.finishQuickMissionaryRun(m.runOf(a), a, 210); // A valt af: B wacht alleen nog op een Genees
+  assert.equal((await matchRow(m.matchId)).status, "ENDED");
+  const before = await duoRow(m.matchId);
+
+  const question = await L.db.quickMissionaryReviveQuestion.findUniqueOrThrow({ where: { id: asked.reviveQuestion!.exerciseId }, select: { options: true } });
+  const correct = question.options.find((o) => o.isCorrect)!;
+  await assert.rejects(() => L.runs.answerReviveQuestion(m.runOf(b), b, asked.reviveQuestion!.exerciseId, correct.id), /INVALID_STATE/);
+  await L.runs.resumeAfterRevive(m.runOf(b), b);
+  assert.equal((await runRow(m.runOf(b))).status, "FINISHED");
+  const after = await duoRow(m.matchId);
+  assert.deepEqual([after.id, after.scoreA, after.scoreB], [before.id, before.scoreA, before.scoreB]);
+  assert.equal(await L.db.quickMissionaryDuoResult.count({ where: { matchId: m.matchId } }), 1);
+});
+
+test("duo I: bijna gelijktijdige eliminaties en dubbele finalisatie geven precies één duo-resultaat", { skip }, async () => {
+  const m = await startedMatch(2, { ageSeconds: LONG });
+  const [a, b] = m.userIds;
+  await Promise.all([
+    L.runs.finishQuickMissionaryRun(m.runOf(a), a, 0).catch(() => {}),
+    L.runs.finishQuickMissionaryRun(m.runOf(b), b, 0).catch(() => {}),
+    L.db.$transaction(async (tx) => { await L.match.lockMatch(tx, m.matchId); await L.match.settleMatch(tx, m.matchId, new Date()); }).catch(() => {}),
+    L.match.sweepStalePlayers(m.matchId).catch(() => {}),
+  ]);
+  assert.equal(await L.db.quickMissionaryDuoResult.count({ where: { matchId: m.matchId } }), 1);
+  const board = await L.duo.getQuickMissionaryDuoLeaderboard(a, "all-time");
+  assert.equal(board.filter((entry) => entry.key === L.duoRules.duoKey(a, b)).length, 1);
+});
+
+test("duo J: de solo-ranking blijft ongewijzigd; Duo-scores verschijnen daar niet", { skip }, async () => {
+  const m = await startedMatch(2, { ageSeconds: LONG });
+  const [a, b] = m.userIds;
+  await L.match.recordBeat(m.matchId, a, 480);
+  await L.runs.finishQuickMissionaryRun(m.runOf(b), b, 0);
+  const solo = await L.runs.startQuickMissionaryRun(a);
+  await L.runs.finishQuickMissionaryRun(solo.runId, a, 1);
+  const board = await L.runs.getQuickMissionaryLeaderboard(a, "all-time");
+  const mine = board.find((entry) => entry.userId === a);
+  assert.equal(mine?.score, 1, "alleen de echte solo-run telt, niet de 480 uit de gezamenlijke run");
+  assert.equal(board.some((entry) => entry.userId === b), false);
+  assert.equal((await L.runs.getQuickMissionaryRunView(solo.runId, a)).allTimeBest, 1);
 });

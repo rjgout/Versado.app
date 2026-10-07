@@ -754,6 +754,14 @@ export const es: PartialMessages = {
     "purchaseLimit": "Ya compraste un Recupérate en esta partida.",
     "noGenees": "Ya no tienes Recupérate.",
     "healUsed": "Ya has usado Recupérate en esta partida.",
+    "duo": {
+      "tab": "Dúo",
+      "solo": "Solo",
+      "kinds": "Tipo de clasificación",
+      "explain": "Los dos últimos de una partida conjunta. La puntuación del dúo es la más alta de las dos al terminar la partida; de cada dúo cuenta su mejor resultado.",
+      "empty": "Todavía no hay resultados de dúo.",
+      "entry": "{a} + {b}: {score}",
+    },
     "together": {
       "open": "Volar juntos",
       "openHint": "Vuela con tus amigos por el mismo mundo. Gana el último que siga volando.",

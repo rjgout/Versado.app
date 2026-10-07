@@ -744,6 +744,14 @@ export const fr: PartialMessages = {
     purchaseLimit: "Tu as déjà acheté une reprise dans cette partie.",
     noGenees: "Tu n’as plus de reprise.",
     healUsed: "Tu as déjà repris ton vol dans cette partie.",
+    duo: {
+      tab: "Duo",
+      solo: "Solo",
+      kinds: "Type de classement",
+      explain: "Les deux derniers d’une partie commune. Le score du duo est le plus élevé des deux scores à la fin de la partie ; pour chaque duo, le meilleur résultat compte.",
+      empty: "Il n’y a pas encore de résultats en duo.",
+      entry: "{a} + {b} : {score}",
+    },
     together: {
       open: "Voler ensemble",
       openHint: "Vole avec tes amis dans le même monde. Le dernier en vol gagne.",

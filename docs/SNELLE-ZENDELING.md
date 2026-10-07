@@ -375,12 +375,35 @@ score en tempo tegen de gezamenlijke tijdlijn (`validateSharedScore`), maar kan
 niet zien of iemand een botsing heeft overgeslagen. De hartslag en de tijdlijn
 begrenzen dat, ze lossen het niet op.
 
-### Open productbeslissing: Duo-score
+### Duo-ranking
 
-Er bestaat geen definitie van een duo-score. Opties: (1) **som** van beide
-scores (aanbevolen), (2) **laagste** van de twee, (3) **hoogste** van de twee.
-Ruwe gegevens worden al vastgelegd; de gekozen formule hoeft dus alleen bij het
-opvragen toegepast te worden.
+**Duo-score = de hoogste individuele score van de laatste twee spelers op het
+moment dat de gezamenlijke run definitief eindigt**: `max(scoreA, scoreB)`
+(`duoScore` in `src/lib/snelleZendeling/duoRanking.ts`). Geen som, gemiddelde of
+bonus (deelnemers, plaatsing, Genezen, XP, duur, moeilijkheid). Omdat de run stopt
+zodra er nog één deelnemer overblijft, kan na het uiteenvallen van het duo geen
+van beiden de score nog verhogen. Een duo wordt getoond als één entry ("A + B"),
+niet als "A won".
+
+- **Wie zijn de laatste twee:** `deriveDuo` uit de server-side eliminatievolgorde
+  (overlevende + laatst afgevallene; bij twee spelers beiden). Een Genees houdt
+  iemand deelnemer; pas definitief afvallen telt.
+- **Identiteit:** `duoKey` sorteert de twee gebruikers-id's, dus A+B == B+A en
+  A+B != A+C. `deriveDuo` slaat de twee ids gesorteerd op in
+  `QuickMissionaryDuoResult` (A < B) en `rankDuos` sorteert zelf nogmaals.
+- **Beste per duo, tie-break:** per duo telt het beste resultaat; een slechtere
+  run verlaagt niets en alle ruwe resultaten blijven bewaard. Volgorde: hoogste
+  Duo-score, dan wie die score het eerst behaalde (zoals de solo-ranking), dan de
+  duo-sleutel. Een later gelijk resultaat verdringt het eerdere niet.
+- **Query:** `getQuickMissionaryDuoLeaderboard` (`duoLeaderboard.ts`) leidt de
+  score bij het opvragen af uit de ruwe resultaten; er is geen extra kolom en
+  geen migratie. `GET /api/snelle-zendeling/leaderboard?type=duo&board=today|all-time`.
+  "Vandaag" gebruikt de vaste gedeelde dagGrens van het duo-resultaat (een duo
+  heeft twee tijdzones; zie docs/TIJD.md).
+- **UI:** de bestaande ranking heeft een Solo/Duo-keuze; een duo-entry toont beide
+  avatars, beide namen en één Duo-score. Een gebruiker kan met verschillende
+  partners meermaals voorkomen.
+- Gezamenlijke runs staan nooit in de solo-ranking.
 
 ## Database en beheer
 
@@ -427,8 +450,8 @@ coverresolver in `tests/artwork.test.ts`.
 De Genees-economie staat in `tests/genees-economy.test.ts` en
 `tests/genees-economy.integration.test.ts` (`npm run test:genees-economy`).
 Samen spelen: `tests/snelle-zendeling-match.test.ts` (gedeelde wereld, tijdlijn,
-klok, toestanden en beslissingen) en
+klok, toestanden, beslissingen en duo-regels) en
 `tests/snelle-zendeling-match.integration.test.ts` (levenscyclus, 2/3/12
 spelers, samenloop, geen resurrectie, hartslag en wegvallen, economie in een
-wedstrijd, uitsluiting van de solo-ranking), beide in `npm run
+wedstrijd, uitsluiting van de solo-ranking, Duo-ranking), beide in `npm run
 test:snelle-zendeling`. De integratietests vragen `LEARNING_TEST_DATABASE_URL`.

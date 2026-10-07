@@ -744,6 +744,14 @@ export const de: PartialMessages = {
     purchaseLimit: "Du hast in diesem Run schon ein „Rette dich“ gekauft.",
     noGenees: "Du hast kein „Rette dich“ mehr.",
     healUsed: "Du hast „Rette dich“ in diesem Run schon genutzt.",
+    duo: {
+      tab: "Duo",
+      solo: "Solo",
+      kinds: "Art der Rangliste",
+      explain: "Die letzten zwei einer gemeinsamen Runde. Die Duo-Punktzahl ist die höhere der beiden Punktzahlen, wenn die Runde endet; pro Duo zählt das beste Ergebnis.",
+      empty: "Es gibt noch keine Duo-Ergebnisse.",
+      entry: "{a} + {b}: {score}",
+    },
     together: {
       open: "Gemeinsam fliegen",
       openHint: "Fliege mit Freunden durch dieselbe Welt. Wer als Letzter übrig bleibt, gewinnt.",
