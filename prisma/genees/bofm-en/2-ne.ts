@@ -110,7 +110,7 @@ export const nephi2: GeneesChapterSeed[] = [
   ),
   ch("2-ne", 22,
     q("a", "2", "What is the Lord Jehovah, according to this song?", "My strength and my song", ["My fortress and my shield", "My shepherd and my rock"], ["strength", "song"]),
-    q("b", "3", "From where will you draw water with joy?", "From the wells of salvation", ["From the river Jordan", "From the well of Jacob"], ["wells of salvation"]),
+    q("b", "3", "From where will you draw water with joy?", "From the wells of salvation", ["From the river of Jordan", "From the well of Jacob"], ["wells of salvation"]),
     q("c", "6", "Who is great in the midst of the inhabitants of Zion?", "The Holy One of Israel", ["The king who rules Judah", "The prophet Isaiah himself"], ["Holy One of Israel"]),
   ),
   ch("2-ne", 23,
