@@ -1,0 +1,170 @@
+{
+  "id": "mysterie-001c-schriftkenner",
+  "title": "Vertrek uit Jeruzalem",
+  "difficulty": "schriftkenner",
+  "status": "complete",
+  "nativeResolution": [
+    1254,
+    1254
+  ],
+  "grid": {
+    "rows": 6,
+    "columns": 6,
+    "boundsNormalized": {
+      "left": 0.08,
+      "top": 0.13,
+      "right": 0.92,
+      "bottom": 0.91
+    },
+    "cellWidthNormalized": 0.14,
+    "cellHeightNormalized": 0.13,
+    "feetWithinCell": [
+      0.5,
+      0.8
+    ],
+    "maximumCharacterHeightCellFraction": 0.65,
+    "altarCell": "R6C1",
+    "tentCell": "R4C4",
+    "visibleGridLines": false,
+    "renderInstruction": "Gebruik het volledige board.png zonder crop. Voeten op cel-local (0.5,0.8). Zichtbare personagehoogte maximaal 65% van celhoogte. Personagecanvas1254x1254, zichtbare hoogte1050px, voetanker(627,1149).",
+    "visualDesign": "Zes bij zes rustige rechthoekige zandzones met zachte natuurlijke textuurvariatie, zonder ingetekende rasterlijnen of stenenrijraster.",
+    "objectBoundsNormalizedApproximate": {
+      "altar": {
+        "left": 0.1,
+        "top": 0.79,
+        "right": 0.205,
+        "bottom": 0.852
+      },
+      "tent": {
+        "left": 0.505,
+        "top": 0.533,
+        "right": 0.639,
+        "bottom": 0.637
+      }
+    }
+  },
+  "assets": [
+    {
+      "filename": "board.png",
+      "width": 1254,
+      "height": 1254,
+      "description": "Natuurlijk 6x6-wildernisbord, tent R4C4 en stenen altaar R6C1, zonder zichtbare rasterlijnen.",
+      "transparent": false,
+      "transparentPixelFraction": 0,
+      "designedForGrid": [
+        6,
+        6
+      ]
+    },
+    {
+      "filename": "nephi.png",
+      "width": 1254,
+      "height": 1254,
+      "description": "Nephi: jonge volwassen zoon, groene tuniek, korte krullen, neutrale staande houding.",
+      "transparent": true,
+      "transparentPixelFraction": 0.8475735699986519,
+      "footAnchorPixels": [
+        627,
+        1149
+      ],
+      "visibleHeightPixels": 1050
+    }
+  ],
+  "reusedCharacterAssets": [
+    "/mysterie-001a-ontdekker/lehi.png",
+    "/mysterie-001a-ontdekker/sariah.png",
+    "/mysterie-001a-ontdekker/laman.png",
+    "/mysterie-001a-ontdekker/lemuel.png",
+    "/mysterie-001b-onderzoeker/sam.png"
+  ],
+  "solution": {
+    "laman": "R1C6",
+    "nephi": "R2C3",
+    "sam": "R3C5",
+    "lemuel": "R4C1",
+    "sariah": "R5C4",
+    "lehi": "R6C2"
+  },
+  "logicValidation": {
+    "uniqueSolutionCount": 1,
+    "examinedPermutations": 518400,
+    "method": "Exhaustief alle rij- en kolompermutaties voor zes personages met de acht aanwijzingen."
+  },
+  "note": "De personageposities zijn uitsluitend puzzellogica en geen historische of Schriftuurlijke beweringen.",
+  "provenance": {
+    "generator": "built-in imagegen",
+    "generationPrompts": {
+      "board": "Use case: stylized-concept. NEW square Versado Mysterie001C Schriftkenner game landscape. Strict art style of supplied FIRST001A board: warm premium natural 3D cartoon illustration, detailed sandy ground with tiny grains/pebbles, terracotta perimeter rocks, sage small vegetation, turquoise water, golden light upper left, adult/youth friendly. Do not copy reference layout. Elevated FRONT near-orthographic camera no convergence, no diamond isometry. Six equal rows and six equal columns of calm sandy playable space,36 soft RECTANGULAR landing clearings, defined ONLY by faint broad organic sand tone/textural changes, NO circular patches, NO hard borders or visible lines, NO rows of stones, NO checkerboard. Precise gameplay bounds x=.08-.92,y=.13-.91. Each cell .14 wide,.13 high. Column centers x=.15,.29,.43,.57,.71,.85. Row centers y=.195,.325,.455,.585,.715,.845. Six level dry clearings on each of six rows, six columns same scale front to back. Entire playable rectangle flat dry ground. All big rock/plant decor outside x<.065,x>.935,y<.115,y>.93. Tiny distant Jerusalem above y=.11, decorative and non-dominant. Narrow river only x>.965 and bottom y>.965. Critical objects exactly TWO: compact low weathered stacked-stone altar entirely R6C1 x=.08-.22,y=.78-.91, silhouette x=.105-.195,y=.80-.875, centered (.15,.84). ONE compact beige tent entirely R4C4 x=.50-.64,y=.52-.65, silhouette x=.525-.615,y=.54-.625, center(.57,.585). Tent peak must not extend above .54; no ropes/stakes/shadow beyond .64 or into cell R3C5 x=.64-.78,y=.39-.52. R6C2 right of altar fully clear. R1C6,R2C3,R3C5,R4C1,R5C4,R6C2 fully open dry. No large shadows. Board must read SIX by SIX terrain zones without literal gridlines, not 4x4 or5x5 or uniform unstructured desert. No people/animals/text/UI/labels/numbers/arrows/logo. Source ideally1536 square, preserve native.",
+      "boardCorrection": "Edit ONLY clue-object positions and top perimeter intrusions. Preserve exactly the SIX rows x SIX columns of sandy landing zones and existing art style. Existing altar at UPPER LEFT is wrong: remove it completely there restoring calm sand. Move same altar to VERY LOWER LEFT: center x15%,y84% full image, reduce size20%, complete silhouette x10.5%-19.5%,y80%-87.5% (bottom rowR6C1). Tent currently too high: move it DOWN to center x57%,y58.5%; entire peak, cloth, stakes and shadow inside x52.5%-61.5%,y54%-62.5%. Restore old tent area with sand. Ensure no shadow/tent/stakes in R3C5 x64%-78%,y39%-52%. Upper city/rocks/plants should be confined ABOVE y12%; calm playable first row starts y13%, especially x78%-92% must be clear for R1C6. Lower/right river outside x92%,y91%; small foreground plants below y93%. Other terrain preserved. No hard visible gridlines, no stones grid, no circularpatches, people,text,UI. Exact6x6 bounds x8%-92%,y13%-91%,each cell14%x13%.",
+      "nephi": "Create one full-body friendly premium 3D cartoon game character, Nephi, a strong kind young adult man in ancient Near Eastern woven clothing. Natural adult proportions, sturdy average athletic physique. Warm olive complexion, broad distinct jaw, short close-cropped tightly curly dark hair, clean-shaven, calm reliable expression. Sage olive green knee-length tunic, cream sleeve cuffs and neckline, plain brown belt, leather sandals and visible lower legs. Neutral upright standing pose, arms near torso, hands visible, entire feet visible. No props, weapons or bags. Slightly elevated front three-quarter camera, warm upper-left light. Match supplied Sam reference's textured materials, body proportions, family rendering style; create a distinct man with green outfit and short curls. Square composition with clear margins around full body, simple solid light grey background, no floor shadow, no text or UI.",
+      "nephiCutout": "Remove only the plain grey background from this existing full-body Nephi game piece. Deliver genuine transparent-alpha PNG. Preserve the man exactly: face, age, short curls, olive green outfit, woven texture, warm lighting, pose, proportions, hands and both complete sandals. Clean antialiased edges, no grey halo, no floor or cast shadow. No new elements or text."
+    },
+    "technicalExport": "Native canvasmaat behouden. Bord per grondstrook technisch uitgelijnd op gelijke cellen. Nephi proportioneel geschaald en op dezelfde transparante canvasbaseline geplaatst."
+  },
+  "validation": {
+    "temporaryGridOverlayUsed": true,
+    "temporaryPreviewIncludesAllSixCharacters": true,
+    "checkedCells": [
+      "R1C1",
+      "R1C2",
+      "R1C3",
+      "R1C4",
+      "R1C5",
+      "R1C6",
+      "R2C1",
+      "R2C2",
+      "R2C3",
+      "R2C4",
+      "R2C5",
+      "R2C6",
+      "R3C1",
+      "R3C2",
+      "R3C3",
+      "R3C4",
+      "R3C5",
+      "R3C6",
+      "R4C1",
+      "R4C2",
+      "R4C3",
+      "R4C4",
+      "R4C5",
+      "R4C6",
+      "R5C1",
+      "R5C2",
+      "R5C3",
+      "R5C4",
+      "R5C5",
+      "R5C6",
+      "R6C1",
+      "R6C2",
+      "R6C3",
+      "R6C4",
+      "R6C5",
+      "R6C6"
+    ],
+    "solutionCellsChecked": [
+      "R1C6",
+      "R2C3",
+      "R3C5",
+      "R4C1",
+      "R5C4",
+      "R6C2"
+    ],
+    "previewPixels": [
+      850,
+      850
+    ],
+    "brotherComparisonCanvasPixels": [
+      120,
+      120
+    ],
+    "inAppIntegrationTested": false
+  },
+  "reusedAssetSha256": {
+    "/mysterie-001a-ontdekker/lehi.png": "eb5fe734863e850ced026581b51358c316bdec518977bcf6f94fe1b88088bcda",
+    "/mysterie-001a-ontdekker/sariah.png": "12b1f097f9243490d97819cd7e58109853fb896fce1282c4664a03b92224c63b",
+    "/mysterie-001a-ontdekker/laman.png": "c93886188edc6bcebe937c9f9eb70fad1f239b8967eb9ea1f38ff32c78b4979d",
+    "/mysterie-001a-ontdekker/lemuel.png": "9f85d19f2c9ac26c2928f06418d0def2ddfbe2ade0e6b8d5bb422a0ace5e2ec5",
+    "/mysterie-001b-onderzoeker/sam.png": "5286f23c4e5127b7a072efeb1e02da1e0d3421d114d4e01774ec15f84303cb6d"
+  }
+}

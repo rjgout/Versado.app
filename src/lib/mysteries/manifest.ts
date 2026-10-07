@@ -52,12 +52,14 @@ export function parseBoardManifest(input: unknown): BoardGeometry | null {
   const board = object(root?.board);
   const grid = object(root?.grid) ?? object(board?.grid);
   const nativeResolution = Array.isArray(root?.nativeResolution) ? root?.nativeResolution : null;
-  const assets = Array.isArray(root?.assets) ? root.assets.map(object).filter((value): value is Record<string, unknown> => value !== null) : [];
-  const firstCharacterAsset = assets.find((asset) => asset.filename !== "board.png") ?? assets[0];
+  const assets = Array.isArray(root?.assets)
+    ? root.assets.map(object).filter((value): value is Record<string, unknown> => value !== null)
+    : Object.values(object(root?.assets) ?? {}).map(object).filter((value): value is Record<string, unknown> => value !== null);
+  const firstCharacterAsset = assets.find((asset) => asset.filename !== "board.png" && (asset.footAnchorPixels || asset.feetBaselinePixel || asset.visibleHeight)) ?? assets.find((asset) => asset.filename !== "board.png") ?? assets[0];
   const character = object(root?.character) ?? object(root?.characters) ?? object(board?.character);
   const placement = object(root?.characterPlacement) ?? object(root?.placement) ?? object(board?.characterPlacement);
   const bounds = object(root?.logicalPlayfield) ?? object(root?.logicalBounds) ?? object(root?.playfield) ?? object(root?.logicalPlayArea) ?? object(board?.logicalPlayfield) ?? object(board?.playfield) ?? object(grid?.bounds) ?? object(grid?.boundsNormalized);
-  const anchor = object(root?.footAnchorWithinCell) ?? object(root?.footAnchor) ?? object(grid?.footAnchor) ?? object(root?.characterFootAnchor) ?? object(character?.footAnchorWithinCell) ?? object(placement?.footAnchorWithinCell) ?? object(placement?.footAnchor);
+  const anchor = object(root?.footAnchorWithinCell) ?? object(root?.footAnchor) ?? object(grid?.footAnchor) ?? object(grid?.feetWithinCell) ?? object(root?.characterFootAnchor) ?? object(character?.footAnchorWithinCell) ?? object(placement?.footAnchorWithinCell) ?? object(placement?.footAnchor);
   const feetWithinCell = Array.isArray(grid?.feetWithinCell) ? grid.feetWithinCell : null;
   const anchorPixelsRaw = root?.footAnchorPixels ?? character?.footAnchorPixels ?? placement?.footAnchorPixels ?? placement?.anchorPixels ?? firstCharacterAsset?.footAnchorPixels;
   const anchorPixels = Array.isArray(anchorPixelsRaw)
@@ -65,9 +67,11 @@ export function parseBoardManifest(input: unknown): BoardGeometry | null {
     : object(anchorPixelsRaw) ?? object(root?.characterFootAnchorPixels);
   const visibleBounds = object(root?.visibleBounds) ?? object(root?.characterVisibleBounds) ?? object(character?.visibleBounds);
 
+  const imageWidth = numberAt(board?.width, root?.boardWidth, nativeResolution?.[0]) ?? NaN;
+  const imageHeight = numberAt(board?.height, root?.boardHeight, nativeResolution?.[1]) ?? NaN;
   const geometry: BoardGeometry = {
-    imageWidth: numberAt(board?.width, root?.boardWidth, nativeResolution?.[0]) ?? NaN,
-    imageHeight: numberAt(board?.height, root?.boardHeight, nativeResolution?.[1]) ?? NaN,
+    imageWidth,
+    imageHeight,
     bounds: {
       left: normalized(numberAt(bounds?.left)) ?? NaN,
       top: normalized(numberAt(bounds?.top)) ?? NaN,
@@ -83,11 +87,15 @@ export function parseBoardManifest(input: unknown): BoardGeometry | null {
       y: numberAt(anchor?.y, feetWithinCell?.[1]) ?? NaN,
     },
     footAnchorPixels: {
-      x: numberAt(anchorPixels?.x) ?? NaN,
-      y: numberAt(anchorPixels?.y) ?? NaN,
+      // De nieuwe board-manifests herhalen de gestandaardiseerde character-
+      // canvasmetadata niet. De bestaande transparante assets delen één
+      // voetenbaseline; gebruik die alleen als manifestmetadata ontbreekt.
+      x: numberAt(anchorPixels?.x) ?? imageWidth / 2,
+      y: numberAt(anchorPixels?.y, firstCharacterAsset?.feetBaselinePixel) ?? imageHeight * (1149 / 1254),
     },
     maxVisibleCharacterHeight: normalized(numberAt(root?.maxVisibleCharacterHeight, root?.maxVisibleCharacterHeightRatio, character?.maxVisibleCharacterHeight, character?.maxVisibleHeight, placement?.maxVisibleCharacterHeight, placement?.maxVisibleHeight, board?.maxVisibleCharacterHeight, grid?.maximumCharacterHeightCellFraction)) ?? NaN,
-    visibleCharacterHeightPixels: numberAt(visibleBounds?.height, root?.visibleCharacterHeightPixels, character?.visibleCharacterHeightPixels, firstCharacterAsset?.visibleHeightPixels),
+    visibleCharacterHeightPixels: numberAt(visibleBounds?.height, root?.visibleCharacterHeightPixels, character?.visibleCharacterHeightPixels, firstCharacterAsset?.visibleHeightPixels, firstCharacterAsset?.visibleHeight)
+      ?? (!Array.isArray(root?.assets) && object(root?.assets) ? imageHeight * (1050 / 1254) : undefined),
   };
   const values = [
     geometry.imageWidth, geometry.imageHeight, geometry.bounds.left, geometry.bounds.top,

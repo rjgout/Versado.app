@@ -9,7 +9,9 @@ import { firstCompletionUpdate } from "./progressRules";
 import type { Placements } from "./types";
 
 function dbDifficulty(difficulty: MysteryDifficultyId) {
-  return difficulty === "discoverer" ? "DISCOVERER" as const : "INVESTIGATOR" as const;
+  if (difficulty === "discoverer") return "DISCOVERER" as const;
+  if (difficulty === "investigator") return "INVESTIGATOR" as const;
+  return "SCRIPTURE_SCHOLAR" as const;
 }
 
 export interface MysteryProgressView {
@@ -28,6 +30,13 @@ export async function canUseMystery(userId: string, isAdmin: boolean): Promise<b
   return ((settings?.mysteryEnabled ?? true) || isAdmin)
     && context.active.work === BOFM_WORK
     && context.gameKeys.includes("mystery");
+}
+
+/** Mysterie 002 volgt de eerste voltooide variant van Mysterie 001. */
+export async function canUseMystery002(userId: string, isAdmin: boolean): Promise<boolean> {
+  if (!(await canUseMystery(userId, isAdmin))) return false;
+  const previous = await prisma.mysteryProgress.findFirst({ where: { userId, mysteryId: "mystery-001", completed: true }, select: { id: true } });
+  return previous !== null;
 }
 
 export async function getMysteryProgress(userId: string, definition: MysteryDefinition): Promise<MysteryProgressView> {

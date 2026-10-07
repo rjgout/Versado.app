@@ -1,0 +1,84 @@
+Het Mysterie — Mysterie 001 — Vertrek uit Jeruzalem
+Variant 001 C — Schriftkenner
+STATUS: COMPLEET
+
+1. Board vierkant: JA, native canvas 1254 x 1254 behouden.
+2. Geen personages op board: JA.
+3. Werkelijk ontworpen voor 6 x 6: JA,36 rustige zandzones, clue-objecten doelgericht geplaatst.
+4. Tijdelijke 6 x 6-overlay gebruikt: JA, met R 1 C 1 t/mR 6 C 6 en alle zes tijdelijke solution characters.
+5. Alle 36 cellen individueel bekeken: JA, celrapport hieronder.
+6. Geen 4 x 4-/5 x 5-compositie: JA, zes zandstroken horizontaal en verticaal.
+7. Alle rijen gelijk: JA, ieder 0.13 hoog binnen y 0.13–0.91.
+8. Alle kolommen gelijk: JA, ieder 0.14 breed binnen x 0.08–0.92.
+9. Geen sterke perspectiefvervorming: JA, verhoogde near-orthographic frontale camera; technisch per grondstrook op rechte bounds uitgelijnd.
+10. Altaar volledigR 6 C 1: JA, geschat x 0.10–0.205,y 0.79–0.852, binnen x 0.08–0.22,y 0.78–0.91.
+11. R 6 C 2 volledig vrij: JA, Lehi staat op droge grond.
+12. Tent volledigR 4 C 4: JA, geschat x 0.505–0.639,y 0.533–0.637, binnen x 0.50–0.64,y 0.52–0.65. Randen zijn visueel geschat, geen segmentatiemasker.
+13. R 3 C 5 volledig vrij: JA, tent, stokken, touwen en schaduw lopen niet naar dit vak door.
+14. R 1 C 6 geschiktLaman: JA, vrije droge grond, geen bedekking.
+15. R 2 C 3 geschiktNephi: JA, vrije droge grond.
+16. R 3 C 5 geschiktSam: JA, vrije droge grond diagonaal boven/rechts van tent.
+17. R 4 C 1 geschiktLemuel: JA, vrije droge grond rechts van perimeter.
+18. R 5 C 4 geschiktSariah: JA, vrije droge grond onder tentvak.
+19. R 6 C 2 geschiktLehi: JA, vrije droge grond rechts van altaar.
+20. Rivier belemmert geen solution cells: JA, buiten personageankers en silhouettes.
+21. Nephi echte transparante PNG: JA, RGBA gemeten; circa 84.76% pixels volledig transparant.
+22. VoetenNephi volledig zichtbaar: JA, beide sandalen compleet.
+23. Nephi camera/schaal passend: JA, visueel dezelfde mild verhoogde frontale driekwartblik en warm licht linksboven. Technisch 1254 x 1254 canvas,1050 px zichtbare hoogte,voetanker(627,1149), gelijk bestaande set. Cameramatching visueel beoordeeld, geen gemeten 3 D-cameragarantie.
+24. Nephi klein onderscheidbaar: JA, groene tuniek, kortere krullen, stevig silhouet; Laman oker/baard, Lemuel blauw/sjerp, Sam terracotta. Vier zonen naast elkaar op 120 px canvas bekeken.
+25. Stijl sluit aan 001 A/001 B: JA, eerste kaart als directe stijlbron en bestaande zonen als characterreferentie. Warm zand, terracotta, natuurlijke steenmaterialen, turquoise rivier, dezelfde familie-rendering. Nieuwe opdracht bepaalt onzichtbaar raster: geen stenenrijraster in deze variant.
+26. Exact één oplossing: JA, alle 518400 rij-/kolompermutaties gecontroleerd met acht aanwijzingen.
+
+INDIVIDUELE CELCONTROLE
+R 1 C 1: bruikbare droge zandvloer en vrij personageanker.
+R 1 C 2: bruikbare droge zandvloer en vrij personageanker.
+R 1 C 3: bruikbare droge zandvloer en vrij personageanker.
+R 1 C 4: bruikbare droge zandvloer en vrij personageanker.
+R 1 C 5: bruikbare droge zandvloer en vrij personageanker.
+R 1 C 6: bruikbare droge zandvloer en vrij personageanker.
+R 2 C 1: bruikbare droge zandvloer en vrij personageanker.
+R 2 C 2: bruikbare droge zandvloer en vrij personageanker.
+R 2 C 3: bruikbare droge zandvloer en vrij personageanker.
+R 2 C 4: bruikbare droge zandvloer en vrij personageanker.
+R 2 C 5: bruikbare droge zandvloer en vrij personageanker.
+R 2 C 6: bruikbare droge zandvloer en vrij personageanker.
+R 3 C 1: bruikbare droge zandvloer en vrij personageanker.
+R 3 C 2: bruikbare droge zandvloer en vrij personageanker.
+R 3 C 3: bruikbare droge zandvloer en vrij personageanker.
+R 3 C 4: bruikbare droge zandvloer en vrij personageanker.
+R 3 C 5: bruikbare droge zandvloer en vrij personageanker.
+R 3 C 6: bruikbare droge zandvloer en vrij personageanker.
+R 4 C 1: bruikbare droge zandvloer en vrij personageanker.
+R 4 C 2: bruikbare droge zandvloer en vrij personageanker.
+R 4 C 3: bruikbare droge zandvloer en vrij personageanker.
+R 4 C 4: compacte tent binnen cel, zandruimte eromheen; bedoelde objectuitzondering.
+R 4 C 5: bruikbare droge zandvloer en vrij personageanker.
+R 4 C 6: bruikbare droge zandvloer en vrij personageanker.
+R 5 C 1: bruikbare droge zandvloer en vrij personageanker.
+R 5 C 2: bruikbare droge zandvloer en vrij personageanker.
+R 5 C 3: bruikbare droge zandvloer en vrij personageanker.
+R 5 C 4: bruikbare droge zandvloer en vrij personageanker.
+R 5 C 5: bruikbare droge zandvloer en vrij personageanker.
+R 5 C 6: bruikbare droge zandvloer en vrij personageanker.
+R 6 C 1: compact altaar binnen cel, zandruimte eromheen; bedoelde objectuitzondering.
+R 6 C 2: bruikbare droge zandvloer en vrij personageanker.
+R 6 C 3: bruikbare droge zandvloer en vrij personageanker.
+R 6 C 4: bruikbare droge zandvloer en vrij personageanker.
+R 6 C 5: bruikbare droge zandvloer en vrij personageanker.
+R 6 C 6: bruikbare droge zandvloer en vrij personageanker.
+
+EXACTE GEOMETRIE
+Bounds left 0.08,top 0.13,right 0.92,bottom 0.91.
+Kolomgrenzen:0.08,0.22,0.36,0.50,0.64,0.78,0.92.
+Rijgrenzen:0.13,0.26,0.39,0.52,0.65,0.78,0.91.
+Volledige board zonder crop. Voetanker binnen cel(0.5,0.8),zichtbare personagehoogte maximaal 65% van celhoogte.
+
+OPLOSSING
+LamanR 1 C 6,NephiR 2 C 3,SamR 3 C 5,LemuelR 4 C 1,SariahR 5 C 4,LehiR 6 C 2.
+De personageposities zijn uitsluitend puzzellogica en geen historische of Schriftuurlijke beweringen.
+
+HERKOMST
+Ingebouwde imagegen; stijlreferentie eerste 001 A-board en bestaande familiefiguren. Bordclue-objecten via imagegen gecorrigeerd. Technische export: native 1254 x 1254 canvas behouden, grondstroken licht geschaald naar vaste celgrenzen. Nephi eerst op effen achtergrond gegenereerd, vervolgens via imagegen transparant uitgesneden; export uitsluitend proportioneel schalen en canvasbaseline afstemmen. Prompts in manifest.json. Bestaande Lehi,Sariah,Laman,Lemuel,Sam niet gewijzigd; hergebruikpaden en hashes in manifest.
+
+LEVERING
+Uitsluitend board.png,nephi.png,manifest.json,controle.txt. Geen tijdelijke overlays/previews in productiepak. Geen personages,rasterlijnen,tekst/UI op board. Alleen tent en altaar als clue-objecten. Geen overige mysteries of assets gemaakt. Controle op beeldcompositie en tijdelijke plaatsingspreview; geen draaiende-appcontrole omdat appcode hier ontbreekt.

@@ -140,7 +140,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   function tryPlace(characterId: CharacterId, cell: GridCell) {
     const result = placeCharacter(MYSTERY_001A, placements, characterId, cell, tutorialActive);
     if (!result.accepted) {
-      if (tutorialActive) setTutorialFeedback(t("mystery001a.tutorialTryAgain"));
+      if (tutorialActive) setTutorialFeedback(t(definition.tutorialTryAgainKey ?? "mystery001a.tutorialTryAgain"));
       return;
     }
     if (tutorialActive && result.tutorialCorrect) finishTutorial(result.placements);
@@ -266,11 +266,11 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
           <p className="mt-3 font-bold text-vs-fg-2">{hintCount === 0 ? t("mystery001a.solvedWithoutHints") : t("mystery001a.solvedWithHints", { count: hintCount })}</p>
         </div>
         <section className={`${surfaceCard} p-5 text-left sm:p-6`}>
-          <p className="font-extrabold text-vs-accent">{t("mystery001a.puzzleDisclaimer")}</p>
-          <p className="mt-3 text-vs-fg-2">{t("mystery001a.story")}</p>
+          <p className="font-extrabold text-vs-accent">{t("mysteryGame.puzzleFictionDisclaimer")}</p>
+          <p className="mt-3 text-vs-fg-2">{t(definition.story.summaryKey)}</p>
         </section>
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Link href={readerHref} className={`${primaryButton} min-h-12 px-6`}>{t("mystery001a.read")}</Link>
+          <Link href={readerHref} className={`${primaryButton} min-h-12 px-6`}>{t(definition.readerLabelKey)}</Link>
           <Link href="/live" className={`${secondaryButton} min-h-12 px-6`}>{t("mystery001a.backToGames")}</Link>
           <button type="button" className={`${secondaryButton} min-h-12 px-6`} onClick={resetAttempt}>{t("mystery001a.replay")}</button>
         </div>
@@ -282,7 +282,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
     <FocusLayout className="max-w-5xl gap-4 pb-[calc(5.5rem+var(--vs-safe-area-bottom))]">
       <header className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="sr-only">{t("mystery001a.title")}</h1>
+          <h1 className="sr-only">{t(definition.titleKey)}</h1>
           <p className="text-xs font-extrabold uppercase tracking-wider text-vs-accent">{t(definition.difficultyLabelKey)}</p>
         </div>
         <button type="button" onClick={restart} className={`${secondaryButton} min-h-11`}>
@@ -293,7 +293,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <section className="min-w-0 space-y-3">
-          <p className="text-sm font-semibold text-vs-fg-2">{tutorialActive ? t("mystery001a.tutorial") : definition.hints.mode === "investigator" ? t("mystery001b.playIntro") : t("mystery001a.placementHelp")}</p>
+          <p className="text-sm font-semibold text-vs-fg-2">{tutorialActive ? t(definition.tutorialCopyKey ?? "mystery001a.tutorial") : t(definition.playIntroKey)}</p>
           {tutorialFeedback && <p className="rounded-xl bg-vs-success-soft px-3 py-2 text-sm font-bold text-vs-success" role="status">{tutorialFeedback}</p>}
           {boardAssetError ? (
             <div className={`${surfaceCard} flex aspect-square items-center justify-center p-6 text-center text-vs-danger`} role="alert">{t("mystery001a.assetsMissing")}</div>
@@ -599,6 +599,9 @@ function AllCluesSheet({ definition, notes, onToggle, onClose }: { definition: M
       <h3 className="font-extrabold text-vs-fg">{t("mystery001a.spatialTitle")}</h3>
       <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.directRight")}</p>
       <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.higherRight")}</p>
+      <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.directAbove")}</p>
+      <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.diagonalRight")}</p>
+      <p className="mt-2 text-sm text-vs-fg-2">{t("mystery001a.twoColumnsRight")}</p>
     </div>
   </BottomSheet>;
 }

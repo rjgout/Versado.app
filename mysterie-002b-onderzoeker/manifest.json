@@ -1,0 +1,113 @@
+{
+  "id": "mysterie-002b-onderzoeker",
+  "title": "De koperen platen",
+  "difficulty": "onderzoeker",
+  "status": "complete",
+  "book": "1 Nephi",
+  "sourceArea": "1 Nephi 3–4",
+  "nativeResolution": [
+    1254,
+    1254
+  ],
+  "grid": {
+    "rows": 5,
+    "columns": 5,
+    "boundsNormalized": {
+      "left": 0.08,
+      "top": 0.13,
+      "right": 0.92,
+      "bottom": 0.88
+    },
+    "cellWidthNormalized": 0.168,
+    "cellHeightNormalized": 0.15,
+    "feetWithinCell": {
+      "x": 0.5,
+      "y": 0.8
+    },
+    "maximumCharacterHeightCellFraction": 0.65,
+    "functionalObjectCells": {
+      "valuables": "R2C2",
+      "houseOfLaban": "R5C1"
+    }
+  },
+  "assets": {
+    "board": {
+      "file": "board.png",
+      "width": 1254,
+      "height": 1254,
+      "transparent": false
+    },
+    "laban": {
+      "file": "laban.png",
+      "width": 1254,
+      "height": 1254,
+      "transparent": true,
+      "zeroAlphaPixelFraction": 0.8408505859399841,
+      "visibleHeight": 1050,
+      "feetBaselinePixel": 1149,
+      "topPixel": 100
+    }
+  },
+  "reusedCharacterAssets": {
+    "nephi": "/mysterie-001c-schriftkenner/nephi.png",
+    "laman": "/mysterie-001a-ontdekker/laman.png",
+    "lemuel": "/mysterie-001a-ontdekker/lemuel.png",
+    "sam": "/mysterie-001b-onderzoeker/sam.png"
+  },
+  "solution": {
+    "laman": "R1C5",
+    "laban": "R2C3",
+    "sam": "R3C1",
+    "lemuel": "R4C4",
+    "nephi": "R5C2"
+  },
+  "logicValidation": {
+    "uniqueSolutionCount": 1,
+    "method": "Exhaustive row and column permutations; one person per row and column, all supplied clues.",
+    "examinedPermutations": 14400
+  },
+  "note": "De personageposities zijn uitsluitend puzzellogica en geen historische of Schriftuurlijke beweringen.",
+  "validation": {
+    "temporaryGridOverlayUsed": true,
+    "temporarySolutionCharactersUsed": true,
+    "individuallyReviewedCells": [
+      "R1C1",
+      "R1C2",
+      "R1C3",
+      "R1C4",
+      "R1C5",
+      "R2C1",
+      "R2C2",
+      "R2C3",
+      "R2C4",
+      "R2C5",
+      "R3C1",
+      "R3C2",
+      "R3C3",
+      "R3C4",
+      "R3C5",
+      "R4C1",
+      "R4C2",
+      "R4C3",
+      "R4C4",
+      "R4C5",
+      "R5C1",
+      "R5C2",
+      "R5C3",
+      "R5C4",
+      "R5C5"
+    ],
+    "clueObjectsWithinCells": true,
+    "solutionCellsClear": true,
+    "inAppTested": false
+  },
+  "provenance": {
+    "imageTool": "Built-in imagegen",
+    "prompts": {
+      "002bPrompt": "Keep exactly same Jerusalem courtyard world, premium warm natural3D/cartoon render, pale limestone architecture confined top and sides, open dusty sand street, warm upper-leftlight, elevated front nearorthographic camera. No people/water/text/UI. No hard stonesgrid or pavingcheckerboard. Faint natural rectangular wear zones only, landscape dominates. Buildings/perimeter props outside main field. Only ONE small freestanding Labanhouse clue building and ONE valuables grouping inside field; background facades decorative. Make NEW5x5 board, not4x4 with metadata. Boundsx.08-.92,y.14-.90. Five equal rows.152 high,columns.168 wide.25 calm subtle rectangular wear zones, no circles or lines. Valuables atR2C2, centerx.332,y.368: two goldcups,silverplate,jewelry on small darkred foldedcloth, ALLinside x.293-.371,y.338-.405. Miniature low flatroof limestone HOUSE at VERY BOTTOMLEFT R5C1, centeredx.164,y.824, ALLhouse/roof/steps/shadow/pots silhouette inside x.11-.218,y.777-.875. House has archedwooddoor,onewindow, terracottaawning; no garden/largeprops. Not on upperleft. Keep R5C2 directlyright completely clear. R2C3 directlyright ofvaluables clear. Other clear solutioncellsR1C5,R3C1,R4C4. Native square1254 ideally. All25 theoretical landingcells dry exceptclues. Backgroundtopabove.12 sidesx<.065or>.935.",
+      "002bFinalPrompt": "Correct ONLY freestanding lowerleft house. Reduce ENTIRE house including roof,chimney,steps,pots,plants,shadow to60% original widthheight. Center x16.4%,y82.4%. All visiblehouse andattachments inside x11%-21.8%,y77.7%-87.5%. Remove oldlarge footprint restore seamless quiet sand, including oldshadow. House must notcrossleftx8% or neighboringcolumnx24.8% or rowtop74.8%. Keep valuables/scenery/light/camera exactlyunchanged. No newobjects,characters,text.",
+      "labanPrompt": "Warm premium modern Versado3D/cartoon, natural mature adult proportions, textured woven cloth, warm upper-leftlight, slightly elevated front three-quarter nearorthographic view toward viewer right. Same rendering and proportions as attached Laman gamepiece. Single full-body person, neutral standing pose, arms close torso, both hands and entire sandaled feet visible. Square canvas centered, comfortable transparent margins. No scenery, ground, floor shadow, text, UI, border, props, weapons, bags or staff. True alpha transparent PNG. New LABAN: mature prosperous authoritative Jerusalem man about45-50, clearly older than young sons. Broad calm confident face, medium dark beard with subtle gray, neatly combed black hair. Fine deep plum/burgundy knee-length woven robe with narrow muted gold embroidered edge, tidy dark brown belt, modest cream underlayer, brown sandals. Clothing rich but no crown, royalty costume, exaggerated villainexpression or violent action. Distinct body and face from reference young son."
+    },
+    "technicalExport": "Native board resolution preserved; new characters normalized to existing 1254 canvas, 1050 visible height, top 100, feet baseline 1149. No existing character files modified."
+  }
+}

@@ -4,7 +4,7 @@ import { join, relative } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { OTB_BOOK_KEY_BY_NUMBER, OTB_BOOKS, OTB_LOCALES, type OtbLocale } from "./bookMapping";
-import { normalizeOtbText } from "./normalize";
+import { parseOtbChapter } from "./chapterParser";
 
 export interface OngoingIssue {
   locale: string;
@@ -109,17 +109,13 @@ export async function scanLocale(sourceRoot: string, locale: OtbLocale): Promise
         issues.push(issue(locale, bookKey, null, null, "invalid_json", `${formatPath(sourceRoot, path)}: ${String(error)}`));
         continue;
       }
-      if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
-        issues.push(issue(locale, bookKey, null, null, "invalid_chapter_file", formatPath(sourceRoot, path)));
-        continue;
+      const parsed = parseOtbChapter(raw, formatPath(sourceRoot, path));
+      for (const parsedIssue of parsed.issues) {
+        issues.push(issue(locale, bookKey, parsed.chapter || null, parsedIssue.verse, parsedIssue.type, parsedIssue.detail));
       }
-      const chapterFile = raw as { chapter?: unknown; book?: unknown; verses?: unknown };
-      if (!Number.isInteger(chapterFile.chapter) || typeof chapterFile.book !== "string" || !Array.isArray(chapterFile.verses)) {
-        issues.push(issue(locale, bookKey, null, null, "invalid_chapter_file", formatPath(sourceRoot, path)));
-        continue;
-      }
-      const chapterNumber = chapterFile.chapter as number;
-      bookName = chapterFile.book;
+      if (parsed.issues.some((parsedIssue) => parsedIssue.type === "invalid_chapter_file")) continue;
+      const chapterNumber = parsed.chapter;
+      bookName = parsed.book;
       if (chapterNumber <= 0) {
         issues.push(issue(locale, bookKey, chapterNumber, null, "invalid_chapter_number", formatPath(sourceRoot, path)));
         continue;
@@ -129,46 +125,8 @@ export async function scanLocale(sourceRoot: string, locale: OtbLocale): Promise
         continue;
       }
 
-      const verses = new Map<number, string>();
-      for (const rawEntry of chapterFile.verses) {
-        const entry = rawEntry && typeof rawEntry === "object" && !Array.isArray(rawEntry)
-          ? rawEntry as { verse?: unknown; text?: unknown }
-          : null;
-        if (!entry || typeof entry !== "object") {
-          issues.push(issue(locale, bookKey, chapterNumber, null, "invalid_verse_entry", formatPath(sourceRoot, path)));
-          continue;
-        }
-        if (!("verse" in entry)) {
-          // OTB gebruikt dit ook voor psalmopschriften, alfabetletters en
-          // historische tekstnotities. Ze zijn geen canonieke verspositie en
-          // horen daarom niet in Verse terecht, maar mogen de skeleton niet
-          // ongeldig maken.
-          try {
-            normalizeOtbText(entry.text);
-          } catch (error) {
-            issues.push(issue(locale, bookKey, chapterNumber, null, "invalid_metadata_text", String(error)));
-          }
-          unlabeledEntryCount += 1;
-          continue;
-        }
-        const verseNumber = typeof entry.verse === "number" ? entry.verse : null;
-        if (verseNumber === null || !Number.isInteger(verseNumber) || verseNumber <= 0) {
-          issues.push(issue(locale, bookKey, chapterNumber, verseNumber, "invalid_verse_number", formatPath(sourceRoot, path)));
-          continue;
-        }
-        if (verses.has(verseNumber)) {
-          issues.push(issue(locale, bookKey, chapterNumber, verseNumber, "duplicate_verse", formatPath(sourceRoot, path)));
-          continue;
-        }
-        try {
-          const text = normalizeOtbText(entry.text);
-          if (!text) issues.push(issue(locale, bookKey, chapterNumber, verseNumber, "empty_verse_text", formatPath(sourceRoot, path)));
-          verses.set(verseNumber, text);
-        } catch (error) {
-          issues.push(issue(locale, bookKey, chapterNumber, verseNumber, "invalid_verse_text", `${formatPath(sourceRoot, path)}: ${String(error)}`));
-        }
-      }
-      chapters.set(chapterNumber, verses);
+      unlabeledEntryCount += parsed.metadata.length;
+      chapters.set(chapterNumber, parsed.verses);
     }
 
     const chapterNumbers = sortedNumbers(chapters.keys());

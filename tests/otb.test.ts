@@ -9,6 +9,7 @@ import { contentAbbreviation } from "../src/lib/contentMetadata";
 import { compareSkeletons, scanLocale, assertPinnedSource } from "../scripts/otb/validate";
 import { pinnedArchiveUrl } from "../scripts/otb/source";
 import { importOtbTrial } from "../scripts/otb/import-core";
+import { parseOtbChapter } from "../scripts/otb/chapterParser";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -95,6 +96,22 @@ test("OTB-validatiefout bereikt geen databasewrite", async () => {
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test("OTB chapter-parser slaat separators over en bewaart echte multiline verzen", () => {
+  const parsed = parseOtbChapter({
+    book: "Genesis",
+    chapter: 1,
+    verses: [
+      { verse: 1, text: ["Eerste regel", "Tweede regel"] },
+      { text: ["---"] },
+      { verse: 2, text: ["Tweede vers"] },
+    ],
+  }, "nl-NL Genesis 1");
+  assert.deepEqual([...parsed.verses.keys()], [1, 2]);
+  assert.equal(parsed.verses.get(1), "Eerste regel\nTweede regel");
+  assert.deepEqual(parsed.metadata, [{ kind: "separator", text: "---" }]);
+  assert.deepEqual(parsed.issues, []);
 });
 
 test("skeletonvergelijking detecteert ontbrekende en extra locaties", () => {
