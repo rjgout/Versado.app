@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLiveQuery } from "@/lib/data/hooks";
+import { fetchJson } from "@/lib/data/fetchJson";
+import { liveMutation } from "@/lib/data/mutation";
 import UserAvatar from "@/components/UserAvatar";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { getLanguage } from "@/lib/languages";
@@ -27,29 +30,18 @@ interface FeedItem {
 export default function ActivityFeedClient() {
   const t = useT();
   const uiLanguage = useUiLanguage();
-  const [items, setItems] = useState<FeedItem[] | null>(null);
   const [openReactions, setOpenReactions] = useState<string | null>(null);
   const [reactionDetailsItemId, setReactionDetailsItemId] = useState<string | null>(null);
   const [expandedReactions, setExpandedReactions] = useState<Record<string, { reactions: Reaction[]; nextCursor: string | null; loading: boolean }>>({});
-  const [error, setError] = useState<string | null>(null);
 
-  async function load() {
-    const response = await fetch("/api/activity-feed", { cache: "no-store" });
-    if (!response.ok) {
-      setError(t("activityFeed.loadFailed"));
-      return;
-    }
-    setItems((await response.json()).items);
-  }
-
-  useEffect(() => {
-    load();
-    const onVisible = () => {
-      if (document.visibilityState === "visible") load();
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
-  }, []);
+  // Reacties en nieuwe activiteit van vrienden: realtime (friendsChanged) is er niet voor, dus
+  // fetch bij openen, bij terugkeer (staleTime) en na eigen reacties; geen polling.
+  const feed = useLiveQuery<{ items: FeedItem[] }>(["activity", "feed"], () => fetchJson<{ items: FeedItem[] }>("/api/activity-feed"), {
+    scopes: ["activity"],
+    staleTime: 30_000,
+  });
+  const items = feed.data?.items ?? null;
+  const error = !items && feed.error ? t("activityFeed.loadFailed") : null;
 
   useEffect(() => {
     if (!reactionDetailsItemId) return;
@@ -63,18 +55,24 @@ export default function ActivityFeedClient() {
   async function react(item: FeedItem, emoji: string) {
     if (!item.canReact) return;
     setOpenReactions(null);
-    const response = await fetch(`/api/activity-feed/${encodeURIComponent(item.id)}/reaction`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ emoji }),
-    });
-    if (!response.ok) return;
+    try {
+      await liveMutation(
+        () =>
+          fetchJson(`/api/activity-feed/${encodeURIComponent(item.id)}/reaction`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ emoji }),
+          }),
+        { invalidates: ["activity"] }
+      );
+    } catch {
+      return;
+    }
     setExpandedReactions((current) => {
       const next = { ...current };
       delete next[item.id];
       return next;
     });
-    await load();
   }
 
   async function loadAllReactions(itemId: string, cursor?: string | null) {

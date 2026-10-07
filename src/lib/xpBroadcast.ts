@@ -9,10 +9,18 @@
 // kinderverhaal afgerond, hints/freezes gekocht) roept na een geslaagde
 // aanroep announceXpChanged() aan; de badge luistert daarop en haalt de
 // verse waarde zelf op (zie /api/user-badges).
+//
+// Dit is ook het centrale mutatiemoment voor de live-data-laag (src/lib/data):
+// een afgeronde activiteit of aankoop maakt zo Vandaag, voortgang, XP, reeks,
+// profiel en competitie ongeldig (DATA_EVENTS.xpChanged), zonder dat elke
+// aanroeper dat zelf hoeft te weten.
+import { invalidateData } from "@/lib/data/client";
+
 const EVENT_NAME = "xp-changed";
 
 export function announceXpChanged(): void {
   window.dispatchEvent(new Event(EVENT_NAME));
+  invalidateData("xpChanged");
 }
 
 export function onXpChanged(callback: () => void): () => void {

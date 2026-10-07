@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, EyeOff } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import type { MessageKey } from "@/lib/i18n/core";
 import { SortableList } from "@/components/SortableList";
 import { applyPersonalOrder, fetchListOrder, saveListOrder } from "@/lib/listOrder";
+import { useLiveQuery } from "@/lib/data/hooks";
+import { fetchJson } from "@/lib/data/fetchJson";
+import { liveMutation } from "@/lib/data/mutation";
 import { CardPicker, CardProgress, ContentCard, StatusChip, cardActions, type PickerItem } from "@/components/versado/ContentCard";
 
 // Leren: je eigen cursussen als kaarten (zie docs/KAARTEN.md). De huidige
@@ -57,27 +60,35 @@ const CARD_SIZES = "(min-width: 1024px) 320px, (min-width: 768px) 50vw, 100vw";
 
 export default function CoursesClient() {
   const t = useT();
-  const [courses, setCourses] = useState<CourseView[] | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [catalog, setCatalog] = useState<CatalogCourseView[] | null>(null);
   const [addingId, setAddingId] = useState<string | null>(null);
+  /** Een volgorde die net lokaal is gekozen (na toevoegen), voordat de opgeslagen volgorde bijgewerkt is. */
+  const orderOverride = useRef<string[] | null>(null);
 
-  /** `order`: een volgorde die net lokaal is gekozen (na toevoegen), anders de opgeslagen. */
-  function loadCourses(order?: string[]) {
-    Promise.all([
-      fetch("/api/courses").then(async (r) => {
-        const data = await r.json().catch(() => null);
-        if (!r.ok) throw new Error(data?.error ?? t("courses.errorStatus", { status: r.status }));
-        return data;
-      }),
-      order ? Promise.resolve(order) : fetchListOrder("courses"),
-    ])
-      .then(([d, savedOrder]) => setCourses(applyPersonalOrder(d.courses ?? [], savedOrder)))
-      .catch((e) => setLoadError(e instanceof Error ? e.message : t("courses.error")));
-  }
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => loadCourses(), []);
+  // Cursussen horen bij de gekozen content en taal: de key krijgt die automatisch mee
+  // (contentScoped), dus na een wissel verschijnt nooit de lijst van de vorige content.
+  // Voortgang verandert door afgeronde activiteiten (scope progress), de lijst door
+  // toevoegen/verbergen (scope courses); zie DATA_EVENTS in src/lib/data/scopes.ts.
+  const coursesQuery = useLiveQuery<CourseView[]>(
+    ["courses", "list"],
+    async () => {
+      const order = orderOverride.current;
+      orderOverride.current = null;
+      const [data, savedOrder] = await Promise.all([
+        fetchJson<{ courses?: CourseView[] }>("/api/courses"),
+        order ? Promise.resolve(order) : fetchListOrder("courses"),
+      ]);
+      return applyPersonalOrder(data.courses ?? [], savedOrder);
+    },
+    { scopes: ["courses", "progress"], contentScoped: true }
+  );
+  const courses = coursesQuery.data ?? null;
+  const setCourses = coursesQuery.setData;
+  const loadError = !courses && coursesQuery.error
+    ? coursesQuery.error instanceof Error && !coursesQuery.error.message.startsWith("HTTP ")
+      ? coursesQuery.error.message
+      : t("courses.error")
+    : null;
 
   async function loadCatalog() {
     const res = await fetch("/api/courses/catalog");
@@ -124,22 +135,34 @@ export default function CoursesClient() {
   // Verbergen uit het overzicht: de voortgang blijft (unsubscribe zet alleen
   // subscribed uit), dus geen bevestiging nodig; terugzetten kan altijd.
   async function hide(courseId: string) {
-    const res = await fetch(`/api/courses/${courseId}/unsubscribe`, { method: "POST" });
-    if (!res.ok) return;
-    setCourses((cur) => cur?.filter((c) => c.id !== courseId) ?? null);
+    try {
+      await liveMutation(() => fetchJson(`/api/courses/${courseId}/unsubscribe`, { method: "POST" }), {
+        invalidates: "coursesChanged",
+        onSuccess: () => setCourses((cur) => cur?.filter((c) => c.id !== courseId) ?? []),
+      });
+    } catch {
+      return;
+    }
     setCatalog(null);
   }
 
   async function add(courseId: string) {
     setAddingId(courseId);
-    const res = await fetch(`/api/courses/${courseId}/subscribe`, { method: "POST" });
-    setAddingId(null);
-    if (!res.ok) return;
     // Achteraan, ook als de cursus eerder al eens ergens anders stond.
-    const order = [...courses!.map((c) => c.id), courseId];
+    const order = [...(courses ?? []).map((c) => c.id), courseId];
+    orderOverride.current = order;
+    try {
+      await liveMutation(() => fetchJson(`/api/courses/${courseId}/subscribe`, { method: "POST" }), {
+        invalidates: "coursesChanged",
+      });
+    } catch {
+      orderOverride.current = null;
+      return;
+    } finally {
+      setAddingId(null);
+    }
     saveListOrder("courses", order);
     setCatalog((cur) => cur?.filter((c) => c.id !== courseId) ?? null);
-    loadCourses(order);
   }
 
   const progressText = (course: CourseView) =>

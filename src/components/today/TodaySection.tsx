@@ -8,7 +8,6 @@ import { interactiveCard, secondaryButton, surfaceCard } from "@/components/vers
 import type { DailyGameState, TodayData } from "@/lib/today";
 import { gameArtworkKeys } from "@/lib/artwork";
 import type { MessageKey } from "@/lib/i18n/core";
-import DailyWordRollover from "@/components/today/DailyWordRollover";
 
 // Dagelijkse content: de tekst van de dag, het woord van de dag en De
 // Slimste Heilige van de dag. Rustig bij de tekst, iets meer energie bij de
@@ -113,7 +112,6 @@ export default function TodaySection({ data, language, dayComplete = false }: { 
         )}
         {wordGame && wordStatus && (
           <>
-            {wordGame.nextReleaseAt && <DailyWordRollover nextReleaseAt={wordGame.nextReleaseAt} serverNow={Date.now()} />}
             <DailyGameCard state={wordGame} kind="game" artwork={gameArtworkKeys("word-game")} title={t("pages.wordOfTheDay")} statusKey={wordStatus} language={language} />
           </>
         )}

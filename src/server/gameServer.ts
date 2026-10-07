@@ -6,6 +6,7 @@ import { randomUUID } from "crypto";
 import type { ChapterGuessLevel, FamilyGameDiceMode } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth";
+import { isLiveTopic, topicRoom } from "@/lib/data/scopes";
 import { parseCookieHeader } from "@/lib/parseCookieHeader";
 import { isExerciseCorrect } from "@/lib/exerciseGen";
 import { completeLiveQuiz, completeChapterGuess } from "@/lib/streak";
@@ -732,6 +733,16 @@ export function initGameServer(httpServer: HttpServer) {
     // vraagt de pagina daarom hier de actuele statussen op, mét activiteit.
     socket.on("friend_statuses_request", () => {
       sendFriendStatusesToUser(ioInstance, user.id).catch(() => {});
+    });
+
+    // Live-data (src/lib/data): een client volgt een onderwerp alleen zolang de
+    // gegevens in beeld zijn (bv. het klassement van het woord van de dag). Alleen
+    // onderwerpen uit de vaste lijst; er gaat nooit data mee, alleen "ververs".
+    socket.on("data_subscribe", (payload: { topic?: unknown } | null) => {
+      if (isLiveTopic(payload?.topic)) socket.join(topicRoom(payload.topic));
+    });
+    socket.on("data_unsubscribe", (payload: { topic?: unknown } | null) => {
+      if (isLiveTopic(payload?.topic)) socket.leave(topicRoom(payload.topic));
     });
 
     // Zelfde reden als hierboven: de accept-/verzoekroutes draaien in Next's

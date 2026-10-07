@@ -31,6 +31,7 @@ import PodcastMiniPlayer from "@/components/PodcastMiniPlayer";
 import HeaderInstallHint from "@/components/HeaderInstallHint";
 import PublicLanguageSwitcher from "@/components/PublicLanguageSwitcher";
 import ContentSwitcher from "@/components/ContentSwitcher";
+import LiveDataProvider from "@/components/LiveDataProvider";
 import { getContentContext } from "@/lib/contentCollections";
 import StickyHeader from "@/components/StickyHeader";
 import { PodcastPlayerProvider } from "@/lib/podcastPlayerContext";
@@ -159,6 +160,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         <I18nProvider language={uiLanguage} messages={messagesFor(uiLanguage)}>
+        <LiveDataProvider userId={user?.id} collectionId={contentContext?.active.id} language={contentContext?.contentLanguage}>
         <CompanionProvider character={companionToMascot(user?.companion)}>
         <StreakContinuationProvider userId={user?.id}>
         <ConfirmProvider>
@@ -255,6 +257,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </ConfirmProvider>
         </StreakContinuationProvider>
         </CompanionProvider>
+        </LiveDataProvider>
         </I18nProvider>
       </body>
     </html>

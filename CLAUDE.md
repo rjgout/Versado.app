@@ -189,6 +189,8 @@ Controleer bij twijfel: `grep -rn "next/headers" src/lib src/server server.ts`
   uit `src/components/profile/` (`ProfilePage`, `SettingsSection`,
   `SettingsToggleRow`, ...). Geen eigen kaart-, rij- of formulierstijl en
   geen dubbele titel; zie `docs/PROFIEL.md`.
+- `src/lib/data/` — live-data-laag (ophalen, verversen, invalidatie, realtime-onderwerpen);
+  zie `docs/DATA-REFRESH.md` en de harde regel hieronder. Getest met `npm run test:live-data`
 - `src/lib/learning/` — leervoortgang per inhoud (lezen, oefenplan, XP-
   begrenzing, reeksregel, leestijd); zie `docs/LEERVOORTGANG.md` en de harde
   regel hieronder. Getest met `npm run test:learning`
@@ -239,6 +241,31 @@ de eigen tijdzone (`wordGamePeriod`), met dezelfde woordvolgorde voor
 iedereen. Gedeelde dingen (tekst van de dag, weekcompetitie, dagelijkse
 Alleskenner, XP-daglimieten) houden hun vaste grens. Nooit de toestelklok vertrouwen voor XP of reeks, nooit losse
 UTC-offsets, en geen eigen tijdzonerekensom in componenten.
+
+## ⚠️ Harde regel: live data en verversen
+
+Zie `docs/DATA-REFRESH.md`. Dynamische data houdt zichzelf actueel zonder
+handmatig verversen en zonder agressief pollen: **ophalen bij openen + opnieuw bij
+focus/terugkeer + opnieuw na eigen mutations + gerichte realtime-signalen**. Alles loopt
+via de centrale laag in `src/lib/data/` (`useLiveQuery`, `useLiveTopic`, `liveMutation`)
+en `LiveRefresh` voor server-pagina's; de bestaande Socket.io-infrastructuur is de
+realtime-bron.
+
+- Elke nieuwe pagina of feature met dynamische data MOET deze laag gebruiken.
+- Geen eigen polling-, focus-, reconnect- of invalidatielogica in componenten waar een
+  centrale hook bestaat (geen eigen `visibilitychange`, `online`, `setInterval` + `fetch`,
+  of losse `window.location.reload()`). `npm run test:live-data` laat nieuwe uitzonderingen falen.
+- Een nieuwe mutation legt vast welke datasets ze ongeldig maakt: `invalidates` is verplicht
+  (`liveMutation`/`jsonMutation`), met een gebeurtenis uit `DATA_EVENTS` of een nieuwe, beschreven
+  in `docs/DATA-REFRESH.md`. XP-opleverende acties roepen `announceXpChanged()` aan.
+- Realtime alleen na beoordeling dat ophalen bij openen + focus + invalidatie niet volstaat,
+  dan per onderwerp (`LIVE_TOPICS`), alleen de naam van de gebeurtenis versturen, nooit gegevens.
+  Polling (`pollMs`) alleen als er geen signaal bestaat, rustig en alleen bij een zichtbare tab.
+- Contentgebonden data is altijd `contentScoped: true`, zodat een wissel van content of taal
+  nooit data van de vorige keuze toont.
+- Acceptatiecriterium voor elk nieuw dynamisch onderdeel: correct bij openen, terugnavigeren,
+  tab-/app-focus, reconnect, eigen mutations en (waar relevant) wijzigingen van andere
+  gebruikers, zonder losse refresh-oplossing per pagina.
 
 ## Database & migraties
 

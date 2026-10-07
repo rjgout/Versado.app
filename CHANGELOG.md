@@ -4,6 +4,14 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Pagina's houden zichzelf actueel, zonder dat je hoeft te verversen. Een
+  afgeronde activiteit staat direct goed op Vandaag, je voortgang, XP, reeks en
+  competitie, ook als je met de terugknop terugkomt of de app weer opent. Het
+  klassement van het woord van de dag laat nieuwe scores van anderen vanzelf
+  zien, en na een wissel van content of taal blijft er niets van de vorige
+  keuze staan. Dit gebeurt zuinig: alleen wat in beeld en verouderd is wordt
+  opnieuw opgehaald, niets terwijl de app op de achtergrond staat.
+
 - Vliegende Versado wordt tijdens een lange run geleidelijk moeilijker: de
   opening tussen de obstakels wordt kleiner naarmate je score oploopt (tot
   70% vanaf score 1000) en de wereld gaat heel licht sneller (hooguit 5%). De

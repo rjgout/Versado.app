@@ -1,6 +1,8 @@
 "use client";
 
 import { Fragment, useEffect, useState } from "react";
+import { useLiveQuery } from "@/lib/data/hooks";
+import { fetchJson } from "@/lib/data/fetchJson";
 import { ArrowDown, ArrowUp, Clock } from "lucide-react";
 import type { LeagueTier } from "@/generated/prisma/client";
 import DivisionEmblem from "@/components/versado/DivisionEmblem";
@@ -146,20 +148,22 @@ function movementText(data: LeagueData, t: TFunction): string {
 export default function LeaderboardClient() {
   const t = useT();
   const [scope, setScope] = useState<"league" | "friends" | "national">("league");
-  const [data, setData] = useState<LeagueData | NationalData | null>(null);
   // Blijft staan bij het wisselen van tabblad, zodat de divisiebalk niet
   // leeg wordt terwijl de nieuwe lijst laadt.
   const [tiers, setTiers] = useState<{ current: LeagueTier; highest: LeagueTier; weekEndsAt: string } | null>(null);
 
-  useEffect(() => {
-    setData(null);
-    fetch(`/api/leaderboard?scope=${scope}`)
-      .then((r) => r.json())
-      .then((next: LeagueData | NationalData) => {
-        setData(next);
-        if (next.scope !== "national") setTiers({ current: next.myTier, highest: next.highestTier, weekEndsAt: next.weekEndsAt });
-      });
-  }, [scope]);
+  // De stand verandert door afgeronde activiteiten (XP) van jou en anderen: ophalen bij openen,
+  // bij terugkeer en na eigen XP; geen polling (de weekstand is geen seconde-nauwkeurig live-onderdeel).
+  const query = useLiveQuery<LeagueData | NationalData>(
+    ["competition", "leaderboard", scope],
+    () => fetchJson<LeagueData | NationalData>(`/api/leaderboard?scope=${scope}`),
+    { scopes: ["competition"], staleTime: 30_000 }
+  );
+  const data = query.data ?? null;
+  if (data && data.scope !== "national") {
+    const next = { current: data.myTier, highest: data.highestTier, weekEndsAt: data.weekEndsAt };
+    if (!tiers || tiers.current !== next.current || tiers.highest !== next.highest || tiers.weekEndsAt !== next.weekEndsAt) setTiers(next);
+  }
 
   const leagueData = data && data.scope !== "national" ? (data as LeagueData) : null;
   const nationalData = data && data.scope === "national" ? (data as NationalData) : null;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { getLanguage } from "@/lib/languages";
 import Link from "next/link";
@@ -8,6 +8,8 @@ import SystemIcon from "@/components/versado/SystemIcon";
 import { StreakContinuationCard, useStreakContinuation } from "@/components/StreakContinuation";
 import StreakDayIndicator from "@/components/versado/StreakDayIndicator";
 import type { StreakOverview, StreakDayView } from "@/lib/streakCalendar";
+import { useLiveQuery } from "@/lib/data/hooks";
+import { fetchJson } from "@/lib/data/fetchJson";
 
 
 
@@ -26,26 +28,27 @@ export default function StreakClient() {
   const t = useT();
   const continuation = useStreakContinuation();
   const intlLocale = getLanguage(useUiLanguage()).intlLocale;
-  const [overview, setOverview] = useState<StreakOverview | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [period, setPeriod] = useState<{ year?: number; month?: number }>({});
 
-  function load(year?: number, month?: number) {
-    const params = new URLSearchParams();
-    if (year !== undefined) params.set("year", String(year));
-    if (month !== undefined) params.set("month", String(month));
-    const qs = params.toString();
-    fetch(`/api/streak${qs ? `?${qs}` : ""}`)
-      .then(async (r) => {
-        const data = await r.json();
-        if (!r.ok) throw new Error(data.error ?? t("streakPage.loadFailed"));
-        setOverview(data);
-      })
-      .catch((e) => setError(e instanceof Error ? e.message : t("wordOfTheDay.somethingWrong")));
-  }
-
-  useEffect(() => {
-    load();
-  }, [continuation?.day, continuation?.status, continuation?.currentStreak]);
+  // De reeks verandert door afgeronde activiteiten (scope streak). Een nieuwe kalenderdag
+  // (continuation.day) is een andere key, dus de pagina is ook na middernacht actueel.
+  const query = useLiveQuery<StreakOverview>(
+    ["streak", "overview", period.year ?? null, period.month ?? null, continuation?.day ?? null],
+    () => {
+      const params = new URLSearchParams();
+      if (period.year !== undefined) params.set("year", String(period.year));
+      if (period.month !== undefined) params.set("month", String(period.month));
+      const qs = params.toString();
+      return fetchJson<StreakOverview>(`/api/streak${qs ? `?${qs}` : ""}`);
+    },
+    { scopes: ["streak"], keepPreviousData: true }
+  );
+  const overview = query.data ?? null;
+  const error = !overview && query.error
+    ? query.error instanceof Error && !query.error.message.startsWith("HTTP ")
+      ? query.error.message
+      : t("streakPage.loadFailed")
+    : null;
 
   if (error) {
     return (
@@ -78,7 +81,7 @@ export default function StreakClient() {
       m = 1;
       y += 1;
     }
-    load(y, m);
+    setPeriod({ year: y, month: m });
   }
 
   // Kalendergrid: eerste week vullen met lege cellen tot aan de weekdag van

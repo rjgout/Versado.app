@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { useLiveQuery } from "@/lib/data/hooks";
+import { fetchJson } from "@/lib/data/fetchJson";
 import Link from "next/link";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { getLanguage } from "@/lib/languages";
@@ -24,6 +26,13 @@ type XPReason =
   | "ALLESKENNER_SOLO"
   | "WORD_SEARCH_COMPLETED"
   | "STUDY_TOGETHER";
+
+interface XpPage {
+  xpTotal: number;
+  xpThisWeek?: number;
+  hasMore: boolean;
+  transactions: XpTransaction[];
+}
 
 interface XpTransaction {
   id: string;
@@ -110,34 +119,35 @@ function formatRowTime(iso: string, bucket: Bucket, locale: string): string {
 export default function XpHistoryClient() {
   const t = useT();
   const intlLocale = getLanguage(useUiLanguage()).intlLocale;
-  const [transactions, setTransactions] = useState<XpTransaction[]>([]);
-  const [xpTotal, setXpTotal] = useState<number | null>(null);
-  const [xpThisWeek, setXpThisWeek] = useState<number>(0);
-  const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [moreError, setMoreError] = useState<string | null>(null);
 
-  function load(skip: number) {
-    fetch(`/api/xp-history?skip=${skip}`)
-      .then(async (r) => {
-        const data = await r.json();
-        if (!r.ok) throw new Error(data.error ?? t("xpHistory.loadFailed"));
-        setXpTotal(data.xpTotal);
-        if (typeof data.xpThisWeek === "number") setXpThisWeek(data.xpThisWeek);
-        setHasMore(data.hasMore);
-        setTransactions((prev) => (skip === 0 ? data.transactions : [...prev, ...data.transactions]));
-      })
-      .catch((e) => setError(e instanceof Error ? e.message : t("wordOfTheDay.somethingWrong")))
-      .finally(() => setLoadingMore(false));
-  }
+  // De eerste pagina is live (nieuwe XP verschijnt vanzelf, ook van een ander apparaat); verder
+  // terugbladeren haalt oudere pagina's op die bij de eerste pagina horen. Verandert de eerste
+  // pagina, dan begint het bladeren opnieuw: oudere pagina's schuiven anders van plek.
+  const first = useLiveQuery<XpPage>(["xp", "history", "first"], () => fetchJson<XpPage>("/api/xp-history?skip=0"), {
+    scopes: ["xp"],
+  });
+  const [older, setOlder] = useState<{ base: XpPage; transactions: XpTransaction[]; hasMore: boolean } | null>(null);
+  const page = first.data;
+  const olderForPage = page && older && older.base === page ? older : null;
+  const transactions = page ? [...page.transactions, ...(olderForPage?.transactions ?? [])] : [];
+  const xpTotal = page?.xpTotal ?? null;
+  const xpThisWeek = page?.xpThisWeek ?? 0;
+  const hasMore = olderForPage ? olderForPage.hasMore : (page?.hasMore ?? false);
+  const error = moreError ?? (!page && first.error ? (first.error instanceof Error && !first.error.message.startsWith("HTTP ") ? first.error.message : t("xpHistory.loadFailed")) : null);
 
-  useEffect(() => {
-    load(0);
-  }, []);
-
-  function loadMore() {
+  async function loadMore() {
+    if (!page || loadingMore) return;
     setLoadingMore(true);
-    load(transactions.length);
+    try {
+      const next = await fetchJson<XpPage>(`/api/xp-history?skip=${transactions.length}`);
+      setOlder({ base: page, transactions: [...(olderForPage?.transactions ?? []), ...next.transactions], hasMore: next.hasMore });
+    } catch (e) {
+      setMoreError(e instanceof Error && !e.message.startsWith("HTTP ") ? e.message : t("xpHistory.loadFailed"));
+    } finally {
+      setLoadingMore(false);
+    }
   }
 
   if (error) {

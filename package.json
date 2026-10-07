@@ -52,7 +52,8 @@
     "audio:mirror": "tsx scripts/mirrorAudio.ts",
     "otb:validate": "tsx scripts/otb/validate.ts",
     "otb:import-trial": "tsx scripts/otb/import-trial.ts",
-    "genees:check": "tsx scripts/genees/check.ts"
+    "genees:check": "tsx scripts/genees/check.ts",
+    "test:live-data": "tsx --test tests/live-data.test.ts tests/live-data-architecture.test.ts"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

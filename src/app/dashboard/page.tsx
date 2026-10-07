@@ -12,6 +12,7 @@ import DiscoverySection from "@/components/today/DiscoverySection";
 import GeneralConferenceCountdown from "@/components/today/GeneralConferenceCountdown";
 import { shouldShowGeneralConferenceCountdown } from "@/lib/generalConference";
 import { userTimeZone } from "@/lib/timeZone";
+import LiveRefresh from "@/components/LiveRefresh";
 
 // Vandaag: de persoonlijke startpagina (zie docs/VERSADO-DESIGN.md). Eerst
 // wat op je wacht, dan waar je gebleven was, de dagelijkse content, je
@@ -43,6 +44,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="vs-motion mx-auto flex max-w-5xl flex-col gap-8 sm:gap-10">
+      {/* Vandaag is server-gerenderd: een afgeronde activiteit, nieuwe XP of een vriend die iets
+          doet ververst deze pagina vanzelf (focus, terugnavigeren, realtime). Zie docs/DATA-REFRESH.md. */}
+      <LiveRefresh scopes={["today"]} token={String(serverNow)} serverNow={serverNow} expiresAt={data.wordGame?.nextReleaseAt ?? null} />
       <Greeting data={data} language={language} showMascot={!showRestState} />
       <StreakContinuationCard />
       <div className="grid grid-cols-1 gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-x-8 lg:gap-y-10">

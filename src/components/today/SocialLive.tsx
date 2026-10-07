@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { UserPlus } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import UserAvatar from "@/components/UserAvatar";
@@ -25,7 +24,6 @@ interface StatusUpdate {
 
 export default function SocialLive({ social }: { social: TodayData["social"] }) {
   const t = useT();
-  const router = useRouter();
   const [online, setOnline] = useState(social.online);
 
   // Na router.refresh (bv. een nieuwe vriend) komt er een nieuwe beginstand.
@@ -44,11 +42,8 @@ export default function SocialLive({ social }: { social: TodayData["social"] }) 
     function onStatusReset() {
       setOnline({});
     }
-    // Een nieuw verzoek of een geaccepteerde vriendschap: de hele pagina
-    // opnieuw, zodat ook "Wacht op jou" en deze lijst kloppen.
-    function onFriendsChanged() {
-      router.refresh();
-    }
+    // Een nieuw verzoek of een geaccepteerde vriendschap ververst de hele pagina via de
+    // live-data-laag (friends_changed → friendsChanged → LiveRefresh op Vandaag).
     // De activiteit van vrienden kent alleen de socketserver; vraag de
     // actuele stand op bij openen en bij terugkeren naar de app.
     function requestStatuses() {
@@ -56,18 +51,16 @@ export default function SocialLive({ social }: { social: TodayData["social"] }) 
     }
     socket.on("friend_status_update", onStatusUpdate);
     socket.on("friend_status_reset", onStatusReset);
-    socket.on("friends_changed", onFriendsChanged);
     socket.on("connect", requestStatuses);
     document.addEventListener("visibilitychange", requestStatuses);
     requestStatuses();
     return () => {
       socket.off("friend_status_update", onStatusUpdate);
       socket.off("friend_status_reset", onStatusReset);
-      socket.off("friends_changed", onFriendsChanged);
       socket.off("connect", requestStatuses);
       document.removeEventListener("visibilitychange", requestStatuses);
     };
-  }, [router]);
+  }, []);
 
   if (social.friends.length === 0) {
     return (

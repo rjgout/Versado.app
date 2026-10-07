@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { announceXpChanged } from "@/lib/xpBroadcast";
 import UserTag from "@/components/UserTag";
@@ -11,6 +11,9 @@ import PersonalMascot from "@/components/versado/PersonalMascot";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { futureTime } from "@/lib/timeFormat";
 import { StreakContinuationCard } from "@/components/StreakContinuation";
+import { useLiveQuery, useLiveTopic } from "@/lib/data/hooks";
+import { fetchJson } from "@/lib/data/fetchJson";
+import { liveMutation } from "@/lib/data/mutation";
 
 type LetterState = "correct" | "present" | "absent";
 
@@ -54,6 +57,14 @@ interface GameView {
   settled: boolean;
   provisionalRank: number | null;
   previousResult: { dayKey: string; rank: number; xp: number } | null;
+  /** Toestelklok op het moment dat dit antwoord binnenkwam (voor het verschil met serverNow). */
+  receivedAt: number;
+}
+
+type ServerGameView = Omit<GameView, "receivedAt">;
+
+function stamp(view: GameView | ServerGameView): GameView {
+  return { ...view, receivedAt: Date.now() };
 }
 
 const TILE_STYLES: Record<LetterState, string> = {
@@ -66,61 +77,67 @@ const TILE_STYLES: Record<LetterState, string> = {
   absent: "bg-slate-400 dark:bg-slate-600 border-slate-400 dark:border-slate-600 text-white",
 };
 
+// Het klassement is een eigen, lichte dataset: die kan live veranderen terwijl jij
+// kijkt (iemand anders raadt het woord), het potje zelf alleen door jouw eigen gok.
+interface RankingView {
+  dayKey: string;
+  leaderboard: LeaderboardEntry[];
+  settled: boolean;
+  provisionalRank: number | null;
+}
+
 export default function WordGameClient() {
   const t = useT();
   const uiLanguage = useUiLanguage();
-  const [game, setGame] = useState<GameView | null>(null);
-  const [serverOffset, setServerOffset] = useState(0);
   const [clockNow, setClockNow] = useState(() => Date.now());
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [guess, setGuess] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [shake, setShake] = useState(false);
 
-  function load() {
-    fetch("/api/word-game")
-      .then(async (r) => {
-        const data = await r.json();
-        if (!r.ok) throw new Error(data.error ?? t("wordOfTheDay.loadFailed"));
-        setServerOffset(data.serverNow - Date.now());
-        setClockNow(Date.now());
-        setGame(data);
-      })
-      .catch((e) => setLoadError(e instanceof Error ? e.message : t("wordOfTheDay.somethingWrong")));
+  const gameQuery = useLiveQuery<GameView>(["wordGame", "today"], async () => stamp(await fetchJson<GameView>("/api/word-game")), {
+    scopes: ["wordGame"],
+    staleTime: 60_000,
+    // Om 18:00 (eigen tijdzone) komt een nieuw woord; de server zegt wanneer (nextReleaseAt).
+    // De client telt alleen de verstreken tijd sinds serverNow, dus een verzette toestelklok
+    // vervroegt niets. Dit vervangt de eigen timer en zichtbaarheidscontrole van vroeger.
+    validUntil: (view, fetchedAt) => fetchedAt + (Date.parse(view.nextReleaseAt) - view.serverNow),
+  });
+  const baseGame = gameQuery.data;
+  const rankingQuery = useLiveQuery<RankingView>(["wordGame", "ranking"], () => fetchJson<RankingView>("/api/word-game/ranking"), {
+    scopes: ["wordGameRanking"],
+    staleTime: 60_000,
+    enabled: baseGame !== undefined,
+  });
+  // Live: iemand anders raadt het woord → de server meldt dat, en alleen dan halen we het klassement opnieuw op.
+  useLiveTopic("word-game-ranking", baseGame !== undefined);
+
+  const ranking = rankingQuery.data;
+  const game = useMemo<GameView | null>(() => {
+    if (!baseGame) return null;
+    // Een klassement van een andere woorddag (net om 18:00 omgeslagen) hoort hier niet.
+    return ranking && ranking.dayKey === baseGame.dayKey
+      ? { ...baseGame, leaderboard: ranking.leaderboard, settled: ranking.settled, provisionalRank: ranking.provisionalRank }
+      : baseGame;
+  }, [baseGame, ranking]);
+
+  const loadError = !baseGame && gameQuery.error
+    ? gameQuery.error instanceof Error && !gameQuery.error.message.startsWith("HTTP ")
+      ? gameQuery.error.message
+      : t("wordOfTheDay.loadFailed")
+    : null;
+
+  // Een nieuw woord (nieuwe woorddag): begin met een leeg invoerveld.
+  const dayKey = baseGame?.dayKey;
+  const [seenDayKey, setSeenDayKey] = useState(dayKey);
+  if (dayKey !== seenDayKey) {
+    setSeenDayKey(dayKey);
+    setGuess("");
+    setFormError(null);
   }
 
-  useEffect(load, []);
-
-  // Pagina open om 18:00 (lokaal): het volgende woord laden zonder herladen.
-  // Wanneer dat is, zegt de server (nextReleaseAt); de client telt alleen de
-  // verstreken tijd sinds serverNow, dus een verzette toestelklok vervroegt
-  // niets.
-  const nextReleaseAt = game?.nextReleaseAt;
-  const serverNow = game?.serverNow;
-  useEffect(() => {
-    if (!nextReleaseAt || serverNow === undefined) return;
-    const offset = serverNow - Date.now();
-    const due = Date.parse(nextReleaseAt);
-    let done = false;
-    const check = () => {
-      if (!done && Date.now() + offset >= due) {
-        done = true;
-        setGuess("");
-        setFormError(null);
-        load();
-      }
-    };
-    const timer = window.setInterval(check, 30_000);
-    const onVisible = () => {
-      if (document.visibilityState === "visible") check();
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => {
-      window.clearInterval(timer);
-      document.removeEventListener("visibilitychange", onVisible);
-    };
-  }, [nextReleaseAt, serverNow]);
+  // Het verschil tussen servertijd en toestelklok is vastgelegd op het moment van binnenkomen.
+  const serverOffset = baseGame ? baseGame.serverNow - baseGame.receivedAt : 0;
 
   useEffect(() => {
     if (!game || game.settled || game.status !== "WON") return;
@@ -138,24 +155,38 @@ export default function WordGameClient() {
     }
     setSubmitting(true);
     setFormError(null);
-    const res = await fetch("/api/word-game/guess", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ guess }),
-    });
-    const data = await res.json().catch(() => ({}));
-    setSubmitting(false);
-    if (!res.ok) {
-      setFormError(data.error ?? t("wordOfTheDay.somethingWrong"));
+    try {
+      const data = await liveMutation(
+        () =>
+          fetchJson<GameView>("/api/word-game/guess", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ guess }),
+          }).then(stamp),
+        {
+          // Een gok raakt het potje (direct uit het antwoord), het klassement en wat op Vandaag staat.
+          invalidates: ["wordGameRanking", "today"],
+          onSuccess: (view) => {
+            gameQuery.setData(view);
+            rankingQuery.setData({
+              dayKey: view.dayKey,
+              leaderboard: view.leaderboard,
+              settled: view.settled,
+              provisionalRank: view.provisionalRank,
+            });
+          },
+        }
+      );
+      setGuess("");
+      if (data.status !== "IN_PROGRESS") announceXpChanged();
+    } catch (error) {
+      const message = error instanceof Error && !error.message.startsWith("HTTP ") ? error.message : null;
+      setFormError(message ?? t("wordOfTheDay.somethingWrong"));
       setShake(true);
       setTimeout(() => setShake(false), 350);
-      return;
+    } finally {
+      setSubmitting(false);
     }
-    setServerOffset(data.serverNow - Date.now());
-    setClockNow(Date.now());
-    setGame(data);
-    setGuess("");
-    if (data.status !== "IN_PROGRESS") announceXpChanged();
   }
 
   if (loadError) {
@@ -174,7 +205,7 @@ export default function WordGameClient() {
   }
 
   const finished = game.status !== "IN_PROGRESS";
-  const bonusWait = futureTime(game.bonusSettlesAt, uiLanguage, clockNow + serverOffset);
+  const bonusWait = futureTime(game.bonusSettlesAt, uiLanguage, Math.max(clockNow, game.receivedAt) + serverOffset);
   const rows: GuessView[] = [...game.guesses];
   const emptyRows = game.maxGuesses - rows.length - (finished ? 0 : 1);
 

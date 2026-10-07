@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { getSocket } from "@/lib/socketClient";
+import { useLiveQuery } from "@/lib/data/hooks";
+import { fetchJson } from "@/lib/data/fetchJson";
+import { invalidateData } from "@/lib/data/client";
 import { notificationGroup } from "@/lib/notificationGroups";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { getLanguage } from "@/lib/languages";
@@ -13,7 +15,14 @@ import {
   type InAppNotification as NotificationItem,
 } from "@/lib/notificationEvents";
 
-const POLL_MS = 30_000;
+// Vangnet voor een gemist realtime-bericht; het eigenlijke ververs-ritme (focus, terugkeer,
+// socket, verborgen tab) beheert de live-data-laag.
+const POLL_MS = 60_000;
+interface NotificationsView {
+  notifications: NotificationItem[];
+  count: number;
+}
+
 const DISMISS_DISTANCE_PX = 90;
 const TAP_TOLERANCE_PX = 6;
 
@@ -41,79 +50,68 @@ function syncAppBadge(count: number) {
  * ingeklapt als stapel; tikken klapt hem uit. Tikken op een melding opent
  * hem en haalt hem weg; opzij vegen of ✕ wist hem zonder iets te doen.
  *
- * Nieuwe meldingen komen live binnen via de socket. Bij openen, terugkeren
- * naar de app en uiterlijk elke 30 seconden synchroniseren we ook, zodat een
- * tijdelijk gemist realtime-event vanzelf wordt hersteld.
+ * Nieuwe meldingen komen live binnen via de socket (DATA_EVENTS.notificationsChanged
+ * in de live-data-laag). Bij openen, terugkeren naar de app en met een rustig
+ * vangnet synchroniseren we ook, zodat een tijdelijk gemist realtime-event
+ * vanzelf wordt hersteld.
  */
 export default function NotificationCenter() {
   const t = useT();
   const router = useRouter();
-  const [items, setItems] = useState<NotificationItem[]>([]);
-  const [count, setCount] = useState(0);
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [mounted, setMounted] = useState(false);
-  const [now, setNow] = useState(() => Date.now());
   const seenNotificationIds = useRef<Set<string> | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch("/api/notifications", { cache: "no-store" });
-      if (!res.ok) return;
-      const data = (await res.json()) as { notifications: NotificationItem[]; count: number };
-      if (seenNotificationIds.current === null) {
-        // Bestaande meldingen bij het openen van de app zijn geen nieuwe
-        // banners; alleen wat daarna binnenkomt krijgt de live presentatie.
-        seenNotificationIds.current = new Set(data.notifications.map((item) => item.id));
-      } else {
-        const seen = seenNotificationIds.current;
-        const newestUnseen = data.notifications.find((item) => !seen.has(item.id));
-        for (const item of data.notifications) seen.add(item.id);
-        if (newestUnseen) {
-          window.dispatchEvent(new CustomEvent(IN_APP_NOTIFICATION_EVENT, { detail: newestUnseen }));
-        }
+  const query = useLiveQuery<NotificationsView>(["notifications"], () => fetchJson<NotificationsView>("/api/notifications"), {
+    scopes: ["notifications"],
+    staleTime: 30_000,
+    pollMs: POLL_MS,
+  });
+  const { data, setData, refetch } = query;
+  // De tijdlabels rekenen vanaf het moment van de laatste synchronisatie.
+  const now = query.updatedAt ?? 0;
+  const items = useMemo(() => data?.notifications ?? [], [data]);
+  const count = data?.count ?? 0;
+
+  // Een nieuw binnengekomen melding krijgt de live presentatie; wat er al was bij het
+  // openen van de app niet, en het app-icoon volgt het aantal.
+  useEffect(() => {
+    if (!data) return;
+    if (seenNotificationIds.current === null) {
+      // Bestaande meldingen bij het openen van de app zijn geen nieuwe
+      // banners; alleen wat daarna binnenkomt krijgt de live presentatie.
+      seenNotificationIds.current = new Set(data.notifications.map((item) => item.id));
+    } else {
+      const seen = seenNotificationIds.current;
+      const newestUnseen = data.notifications.find((item) => !seen.has(item.id));
+      for (const item of data.notifications) seen.add(item.id);
+      if (newestUnseen) {
+        window.dispatchEvent(new CustomEvent(IN_APP_NOTIFICATION_EVENT, { detail: newestUnseen }));
       }
-      setItems(data.notifications);
-      setCount(data.count);
-      setNow(Date.now());
-      syncAppBadge(data.count);
-    } catch {
-      // Geen verbinding: de volgende keer opnieuw.
     }
-  }, []);
+    syncAppBadge(data.count);
+  }, [data]);
 
   useEffect(() => {
     setMounted(true);
-    load();
-    const socket = getSocket();
-    const events = ["notifications_changed", "game_invite", "scrabble_updated", "friends_changed"];
-    for (const event of events) socket.on(event, load);
-    const onVisible = () => {
-      if (document.visibilityState === "visible") load();
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    const interval = setInterval(() => {
-      if (document.visibilityState === "visible") load();
-    }, POLL_MS);
     // Een push die binnenkomt terwijl de app open is (zie public/sw.js).
     const onMessage = (event: MessageEvent) => {
-      if (event.data?.type === "jehova:notifications-changed") load();
+      if (event.data?.type === "jehova:notifications-changed") invalidateData("notificationsChanged");
     };
     navigator.serviceWorker?.addEventListener("message", onMessage);
     // Elders in de app afgehandeld (bv. de uitnodiging bovenin geopend).
-    window.addEventListener("jehova:notifications-changed", load);
+    const onLocalChange = () => invalidateData("notificationsChanged");
+    window.addEventListener("jehova:notifications-changed", onLocalChange);
     return () => {
-      window.removeEventListener("jehova:notifications-changed", load);
-      for (const event of events) socket.off(event, load);
-      document.removeEventListener("visibilitychange", onVisible);
-      clearInterval(interval);
+      window.removeEventListener("jehova:notifications-changed", onLocalChange);
       navigator.serviceWorker?.removeEventListener("message", onMessage);
     };
-  }, [load]);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
-    load();
+    void refetch();
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
@@ -124,7 +122,7 @@ export default function NotificationCenter() {
       document.body.style.overflow = previous;
       document.removeEventListener("keydown", onKey);
     };
-  }, [open, load]);
+  }, [open, refetch]);
 
   async function remove(body: { ids: string[] } | { kind: string } | { all: true }) {
     // Meteen uit beeld; de server bevestigt het aantal.
@@ -134,22 +132,18 @@ export default function NotificationCenter() {
         : "kind" in body
           ? items.filter((n) => n.kind !== body.kind)
           : items.filter((n) => !body.ids.includes(n.id));
-    setItems(next);
-    setCount(next.length);
+    setData({ notifications: next, count: next.length });
     syncAppBadge(next.length);
     try {
-      const res = await fetch("/api/notifications", {
+      const result = await fetchJson<{ count: number }>("/api/notifications", {
         method: "DELETE",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (res.ok) {
-        const data = (await res.json()) as { count: number };
-        setCount(data.count);
-        syncAppBadge(data.count);
-      }
+      setData({ notifications: next, count: result.count });
+      syncAppBadge(result.count);
     } catch {
-      load();
+      void refetch();
     }
   }
 

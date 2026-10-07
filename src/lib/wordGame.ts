@@ -8,6 +8,7 @@ import { awardXp } from "@/lib/xp";
 import { awardCompetitionXp } from "@/lib/competitionXp";
 import { checkAndAwardAchievements } from "@/lib/achievements";
 import { findVersesContainingWord, type VerseMatch } from "@/lib/dictionary";
+import { emitTopicEvent } from "@/lib/realtime";
 
 export const WORD_LENGTH = 5;
 export const MAX_GUESSES = 6;
@@ -284,7 +285,40 @@ export async function settleWordGameBonuses(now: Date = new Date()): Promise<Set
     });
     settled.push(...paid);
   }
+  // De stand is nu definitief; wie het klassement open heeft ziet dat zonder verversen.
+  if (settled.length > 0) emitTopicEvent("word-game-ranking");
   return settled;
+}
+
+export interface WordGameRanking {
+  dayKey: string;
+  leaderboard: WordGameLeaderboardEntry[];
+  settled: boolean;
+  /** Eigen plek in de (voorlopige) stand, als je het woord geraden hebt. */
+  provisionalRank: number | null;
+}
+
+async function rankingFor(dayKey: string, userId: string): Promise<WordGameRanking> {
+  const [ranked, daily] = await Promise.all([
+    rankedWinners(dayKey),
+    prisma.dailyWord.findUnique({ where: { dayKey }, select: { bonusSettledAt: true } }),
+  ]);
+  const ownIndex = ranked.findIndex((g) => g.userId === userId);
+  return {
+    dayKey,
+    leaderboard: toLeaderboard(ranked),
+    settled: !!daily?.bonusSettledAt,
+    provisionalRank: ownIndex === -1 ? null : ownIndex + 1,
+  };
+}
+
+/**
+ * Alleen het klassement van de woorddag van deze gebruiker, zonder het potje
+ * zelf: de lichte aanvraag waarmee een open klassement live blijft (geen
+ * verzoek om het woord, de verzen of een nieuw potje aan te maken).
+ */
+export async function getWordGameRanking(userId: string, timeZone: string | null, now: Date = new Date()): Promise<WordGameRanking> {
+  return rankingFor(wordGamePeriod(now, resolveTimeZone(timeZone)).dayKey, userId);
 }
 
 async function buildView(period: WordGamePeriod, now: Date, game: {
@@ -303,15 +337,13 @@ async function buildView(period: WordGamePeriod, now: Date, game: {
   }));
   const finished = game.status !== "IN_PROGRESS";
   const previousDay = addDays(game.dayKey, -1);
-  const [ranked, daily, previous] = await Promise.all([
-    rankedWinners(game.dayKey),
-    prisma.dailyWord.findUnique({ where: { dayKey: game.dayKey }, select: { bonusSettledAt: true } }),
+  const [ranking, previous] = await Promise.all([
+    rankingFor(game.dayKey, game.userId),
     prisma.wordGame.findUnique({
       where: { userId_dayKey: { userId: game.userId, dayKey: previousDay } },
       select: { leaderboardRank: true, leaderboardXpBonus: true },
     }),
   ]);
-  const ownIndex = ranked.findIndex((g) => g.userId === game.userId);
   return {
     dayKey: game.dayKey,
     nextReleaseAt: period.nextReleaseAt.toISOString(),
@@ -325,9 +357,9 @@ async function buildView(period: WordGamePeriod, now: Date, game: {
     xpEarned: game.xpEarned,
     word: finished ? game.word : null,
     verses: finished ? await findVersesContainingWord(game.word) : [],
-    leaderboard: toLeaderboard(ranked),
-    settled: !!daily?.bonusSettledAt,
-    provisionalRank: ownIndex === -1 ? null : ownIndex + 1,
+    leaderboard: ranking.leaderboard,
+    settled: ranking.settled,
+    provisionalRank: ranking.provisionalRank,
     leaderboardRank: game.leaderboardRank,
     leaderboardXpBonus: game.leaderboardXpBonus,
     previousResult:
@@ -419,6 +451,8 @@ export async function submitGuess(
   const updated = await prisma.wordGame.findUniqueOrThrow({ where: { id: game.id } });
 
   const newAchievements = finished ? (await completeWordGame(userId, xpEarned, `word:${game.id}`)).newAchievements : [];
+  // Alleen winnaars staan in het klassement; wie het klassement open heeft ververst vanzelf.
+  if (won) emitTopicEvent("word-game-ranking");
 
   return { ...(await buildView(period, now, updated)), newAchievements };
 }
