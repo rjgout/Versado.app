@@ -1,0 +1,4634 @@
+{
+  "schemaVersion": 1,
+  "generatedCount": 216,
+  "integrationStrategy": "Replace image bytes at existing URLs; preserve manifests, tokens, image-choice answers and user progress.",
+  "masterSize": [
+    1536,
+    1024
+  ],
+  "appSize": [
+    1200,
+    800
+  ],
+  "format": "JPEG",
+  "images": [
+    {
+      "id": "bom-classic-001-00",
+      "imageIndex": 0,
+      "puzzleNumber": 1,
+      "url": "/kids/images/story-1-0.jpg",
+      "path": "public/kids/images/story-1-0.jpg",
+      "sha256": "862a3057b61ef2dbb783f7e5cd9d0ff32f114d6a049259d6cf9139722dbb0065",
+      "bytes": 329795,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "joseph-smith"
+      ],
+      "characterVersions": {
+        "joseph-smith": "joseph-smith-young-reference-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-1-how-we-got-the-book-of-mormon?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-001-01",
+      "imageIndex": 1,
+      "puzzleNumber": 2,
+      "url": "/kids/images/story-1-1.jpg",
+      "path": "public/kids/images/story-1-1.jpg",
+      "sha256": "a700cc893af40cedbd4c60e7d629c43185f08b88ee65e536e7c53768f8fa9823",
+      "bytes": 221639,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "joseph-smith"
+      ],
+      "characterVersions": {
+        "joseph-smith": "joseph-smith-young-reference-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-1-how-we-got-the-book-of-mormon?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-001-02",
+      "imageIndex": 2,
+      "puzzleNumber": 3,
+      "url": "/kids/images/story-1-2.jpg",
+      "path": "public/kids/images/story-1-2.jpg",
+      "sha256": "06646861c1388495ddd59d57515da69601070562d6b9dd5522a69fa59a9547bf",
+      "bytes": 322345,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "joseph-smith"
+      ],
+      "characterVersions": {
+        "joseph-smith": "joseph-smith-young-reference-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-1-how-we-got-the-book-of-mormon?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-001-03",
+      "imageIndex": 3,
+      "puzzleNumber": 4,
+      "url": "/kids/images/story-1-3.jpg",
+      "path": "public/kids/images/story-1-3.jpg",
+      "sha256": "4564d4db41c44aaa7bc9650ecbbf725b600e560cac8af5f867d563ff8b1803ed",
+      "bytes": 298040,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "joseph-smith",
+        "heavenly-father",
+        "jesus-christ"
+      ],
+      "characterVersions": {
+        "joseph-smith": "joseph-smith-young-reference-v1",
+        "heavenly-father": "heavenly-father-reference-v1",
+        "jesus-christ": "jesus-christ-adult-reference-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-1-how-we-got-the-book-of-mormon?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-002-00",
+      "imageIndex": 4,
+      "puzzleNumber": 5,
+      "url": "/kids/images/story-2-0.jpg",
+      "path": "public/kids/images/story-2-0.jpg",
+      "sha256": "4c71282c100e8718dff457d24dc5fec1591325211e1fdcf1b8041e42cc875bae",
+      "bytes": 323296,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-2-lehi-warns-the-people?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-002-01",
+      "imageIndex": 5,
+      "puzzleNumber": 6,
+      "url": "/kids/images/story-2-1.jpg",
+      "path": "public/kids/images/story-2-1.jpg",
+      "sha256": "e4ab728a632f545ec69bc251e2d84ec3d308ff8030b619ce17248e32ac49421b",
+      "bytes": 241390,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi",
+        "heavenly-father"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-existing-master",
+        "heavenly-father": "heavenly-father-reference-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-2-lehi-warns-the-people?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-002-02",
+      "imageIndex": 6,
+      "puzzleNumber": 7,
+      "url": "/kids/images/story-2-2.jpg",
+      "path": "public/kids/images/story-2-2.jpg",
+      "sha256": "a96448bfb48c080a80623b53aebc86a1e7134e2bf6994336a69348a1cfbbb5a1",
+      "bytes": 300538,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-2-lehi-warns-the-people?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-002-03",
+      "imageIndex": 7,
+      "puzzleNumber": 8,
+      "url": "/kids/images/story-2-3.jpg",
+      "path": "public/kids/images/story-2-3.jpg",
+      "sha256": "6c8b69cd374c9ac48c0cfe2c860d76a52be009a66c95b86357d3a217f11f9b89",
+      "bytes": 239322,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-2-lehi-warns-the-people?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-003-00",
+      "imageIndex": 8,
+      "puzzleNumber": 9,
+      "url": "/kids/images/story-3-0.jpg",
+      "path": "public/kids/images/story-3-0.jpg",
+      "sha256": "c8ad915e8094b25569c0f5f39ace1f4b75dbbd031d77527327c38d1820267abe",
+      "bytes": 295878,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi",
+        "sariah",
+        "laman",
+        "lemuel",
+        "sam",
+        "nephi"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-existing-master",
+        "sariah": "sariah-existing-master",
+        "laman": "laman-existing-master",
+        "lemuel": "lemuel-existing-master",
+        "sam": "sam-existing-master",
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-3-lehi-leaves-jerusalem?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-003-01",
+      "imageIndex": 9,
+      "puzzleNumber": 10,
+      "url": "/kids/images/story-3-1.jpg",
+      "path": "public/kids/images/story-3-1.jpg",
+      "sha256": "faf78fbeedf174b40bf3ed0ed0b7d39596f296b535a94db7ca2a120d5679d79a",
+      "bytes": 302480,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi",
+        "sariah",
+        "laman",
+        "lemuel",
+        "sam",
+        "nephi"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-existing-master",
+        "sariah": "sariah-existing-master",
+        "laman": "laman-existing-master",
+        "lemuel": "lemuel-existing-master",
+        "sam": "sam-existing-master",
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-3-lehi-leaves-jerusalem?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-003-02",
+      "imageIndex": 10,
+      "puzzleNumber": 11,
+      "url": "/kids/images/story-3-2.jpg",
+      "path": "public/kids/images/story-3-2.jpg",
+      "sha256": "d560ea684e950524d1ae2091f6cc9b5ce1b68cad2b3a4a7fa374b578a4e21550",
+      "bytes": 320869,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi",
+        "sariah",
+        "laman",
+        "lemuel",
+        "sam",
+        "nephi"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-existing-master",
+        "sariah": "sariah-existing-master",
+        "laman": "laman-existing-master",
+        "lemuel": "lemuel-existing-master",
+        "sam": "sam-existing-master",
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-3-lehi-leaves-jerusalem?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-003-03",
+      "imageIndex": 11,
+      "puzzleNumber": 12,
+      "url": "/kids/images/story-3-3.jpg",
+      "path": "public/kids/images/story-3-3.jpg",
+      "sha256": "b26331d11c0ce9234504317b4265a629b842097dd157161ff0cecc386238dc78",
+      "bytes": 291026,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-3-lehi-leaves-jerusalem?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-004-00",
+      "imageIndex": 12,
+      "puzzleNumber": 13,
+      "url": "/kids/images/story-4-0.jpg",
+      "path": "public/kids/images/story-4-0.jpg",
+      "sha256": "a8c73c330c5a99e536b1180844b04cbecce176554ce198409ac5cc683631950d",
+      "bytes": 292154,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi",
+        "nephi"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-existing-master",
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-4-the-brass-plates?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-004-01",
+      "imageIndex": 13,
+      "puzzleNumber": 14,
+      "url": "/kids/images/story-4-1.jpg",
+      "path": "public/kids/images/story-4-1.jpg",
+      "sha256": "02284d4dc2873a37d321a1db7203d4dbe01addffe1f2381283a4a5858957877b",
+      "bytes": 267784,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-4-the-brass-plates?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-004-02",
+      "imageIndex": 14,
+      "puzzleNumber": 15,
+      "url": "/kids/images/story-4-2.jpg",
+      "path": "public/kids/images/story-4-2.jpg",
+      "sha256": "e828ad4bb63a0e579ce8a7b482da75284ae842acf05f373042f6ea73ee8d7772",
+      "bytes": 322281,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi",
+        "nephi"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-existing-master",
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-4-the-brass-plates?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-004-03",
+      "imageIndex": 15,
+      "puzzleNumber": 16,
+      "url": "/kids/images/story-4-3.jpg",
+      "path": "public/kids/images/story-4-3.jpg",
+      "sha256": "fd5b9e9141ad03112d9d284b6634d5a09f1a3420fdef59639800bbc33959beb1",
+      "bytes": 309217,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "laman",
+        "lemuel",
+        "sam",
+        "nephi"
+      ],
+      "characterVersions": {
+        "laman": "laman-existing-master",
+        "lemuel": "lemuel-existing-master",
+        "sam": "sam-existing-master",
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-4-the-brass-plates?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-005-00",
+      "imageIndex": 16,
+      "puzzleNumber": 17,
+      "url": "/kids/images/story-5-0.jpg",
+      "path": "public/kids/images/story-5-0.jpg",
+      "sha256": "0fc1aa8c295eb3ce96742d5da0963cf512467ca9cebf96703a58561b8726cb09",
+      "bytes": 314764,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "laman",
+        "lemuel",
+        "sam",
+        "nephi"
+      ],
+      "characterVersions": {
+        "laman": "laman-existing-master",
+        "lemuel": "lemuel-existing-master",
+        "sam": "sam-existing-master",
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-5-traveling-in-the-wilderness?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-005-01",
+      "imageIndex": 17,
+      "puzzleNumber": 18,
+      "url": "/kids/images/story-5-1.jpg",
+      "path": "public/kids/images/story-5-1.jpg",
+      "sha256": "4a740e14914c06cbbb29d51d89556e5546d68c56c379ffa59c3997942e9d7b85",
+      "bytes": 282896,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi",
+        "ismael"
+      ],
+      "characterVersions": {
+        "nephi": "nephi-existing-master",
+        "ismael": "ismael-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-5-traveling-in-the-wilderness?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-005-02",
+      "imageIndex": 18,
+      "puzzleNumber": 19,
+      "url": "/kids/images/story-5-2.jpg",
+      "path": "public/kids/images/story-5-2.jpg",
+      "sha256": "4c8c1b72a0299a93bb01ca3966c93cfc8f9e10cdb81321be879d322b1e23a7c1",
+      "bytes": 276711,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi",
+        "nephi",
+        "nephi-wife",
+        "ismael"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-existing-master",
+        "nephi": "nephi-existing-master",
+        "nephi-wife": "nephi-wife-adult-reference-v1",
+        "ismael": "ismael-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-5-traveling-in-the-wilderness?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-005-03",
+      "imageIndex": 19,
+      "puzzleNumber": 20,
+      "url": "/kids/images/story-5-3.jpg",
+      "path": "public/kids/images/story-5-3.jpg",
+      "sha256": "214d59caccaa2db7cc09d8e8d5e3ef7e40d6777c368ab2bfbfd4468cee5a2c06",
+      "bytes": 304932,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "laman",
+        "lemuel",
+        "sam",
+        "nephi"
+      ],
+      "characterVersions": {
+        "laman": "laman-existing-master",
+        "lemuel": "lemuel-existing-master",
+        "sam": "sam-existing-master",
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-5-traveling-in-the-wilderness?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-006-00",
+      "imageIndex": 20,
+      "puzzleNumber": 21,
+      "url": "/kids/images/story-6-0.jpg",
+      "path": "public/kids/images/story-6-0.jpg",
+      "sha256": "faed441d9b4c43d27d02733c06368969d97b0e9d7787ecdf336a903c7470be7f",
+      "bytes": 289746,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi",
+        "sariah",
+        "laman",
+        "lemuel",
+        "sam",
+        "nephi"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-existing-master",
+        "sariah": "sariah-existing-master",
+        "laman": "laman-existing-master",
+        "lemuel": "lemuel-existing-master",
+        "sam": "sam-existing-master",
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-6-lehis-dream?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-006-01",
+      "imageIndex": 21,
+      "puzzleNumber": 22,
+      "url": "/kids/images/story-6-1.jpg",
+      "path": "public/kids/images/story-6-1.jpg",
+      "sha256": "fb90d513f906e77f5c0491cae073ce0af92b86dc02670f089eea78d3feac045b",
+      "bytes": 262079,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi",
+        "lehi-dream-guide"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-existing-master",
+        "lehi-dream-guide": "lehi-dream-guide-reference-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-6-lehis-dream?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-006-02",
+      "imageIndex": 22,
+      "puzzleNumber": 23,
+      "url": "/kids/images/story-6-2.jpg",
+      "path": "public/kids/images/story-6-2.jpg",
+      "sha256": "376beb5213bd528cee55ec276030594f72030c3be79d865a002c3d00484a173c",
+      "bytes": 387555,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-6-lehis-dream?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-006-03",
+      "imageIndex": 23,
+      "puzzleNumber": 24,
+      "url": "/kids/images/story-6-3.jpg",
+      "path": "public/kids/images/story-6-3.jpg",
+      "sha256": "2a6ca5b14db507996f26e61d40977f414886b038ffa4a9f6e5b65bf0b6b0e41f",
+      "bytes": 383620,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-6-lehis-dream?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-007-00",
+      "imageIndex": 24,
+      "puzzleNumber": 25,
+      "url": "/kids/images/story-7-0.jpg",
+      "path": "public/kids/images/story-7-0.jpg",
+      "sha256": "ad53e7395f810953c57d11508ac929295b1000b60572d675dc441b4e64c064cf",
+      "bytes": 296133,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi"
+      ],
+      "characterVersions": {
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-7-building-the-ship?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-007-01",
+      "imageIndex": 25,
+      "puzzleNumber": 26,
+      "url": "/kids/images/story-7-1.jpg",
+      "path": "public/kids/images/story-7-1.jpg",
+      "sha256": "2cd3d328eed03a399cb51b3776e74d3a0a0a540b59a311ac5f37f93782a87944",
+      "bytes": 282453,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "laman",
+        "lemuel",
+        "nephi"
+      ],
+      "characterVersions": {
+        "laman": "laman-existing-master",
+        "lemuel": "lemuel-existing-master",
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-7-building-the-ship?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-007-02",
+      "imageIndex": 26,
+      "puzzleNumber": 27,
+      "url": "/kids/images/story-7-2.jpg",
+      "path": "public/kids/images/story-7-2.jpg",
+      "sha256": "50fd9903fc6d4b42a74eb33676861b1a2821dadf9958404a255562664f70e988",
+      "bytes": 331910,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "laman",
+        "lemuel",
+        "nephi"
+      ],
+      "characterVersions": {
+        "laman": "laman-existing-master",
+        "lemuel": "lemuel-existing-master",
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-7-building-the-ship?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-007-03",
+      "imageIndex": 27,
+      "puzzleNumber": 28,
+      "url": "/kids/images/story-7-3.jpg",
+      "path": "public/kids/images/story-7-3.jpg",
+      "sha256": "a0cf532e2336606f850361b145d8cadebb3701f622a36aed5ba7b5509df0799c",
+      "bytes": 282365,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "laman",
+        "lemuel",
+        "nephi"
+      ],
+      "characterVersions": {
+        "laman": "laman-existing-master",
+        "lemuel": "lemuel-existing-master",
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-7-building-the-ship?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-008-00",
+      "imageIndex": 28,
+      "puzzleNumber": 29,
+      "url": "/kids/images/story-8-0.jpg",
+      "path": "public/kids/images/story-8-0.jpg",
+      "sha256": "26ba7c8f24aa1130bd6770a0580e98259cbda18ee26f372ef38efd9fb42fad20",
+      "bytes": 310040,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "laman",
+        "lemuel",
+        "nephi"
+      ],
+      "characterVersions": {
+        "laman": "laman-existing-master",
+        "lemuel": "lemuel-existing-master",
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-8-crossing-the-sea?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-008-01",
+      "imageIndex": 29,
+      "puzzleNumber": 30,
+      "url": "/kids/images/story-8-1.jpg",
+      "path": "public/kids/images/story-8-1.jpg",
+      "sha256": "a4bc0b53e2c890830aeafe3a4d7123f27342aea20412a647a7615f543c3e78aa",
+      "bytes": 282966,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-8-crossing-the-sea?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-008-02",
+      "imageIndex": 30,
+      "puzzleNumber": 31,
+      "url": "/kids/images/story-8-2.jpg",
+      "path": "public/kids/images/story-8-2.jpg",
+      "sha256": "0df203643d094fb27d8558f95b7f002c6ec93ebcdcdf75ccb61eb95a12d634a3",
+      "bytes": 256533,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi",
+        "sariah"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-existing-master",
+        "sariah": "sariah-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-8-crossing-the-sea?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-008-03",
+      "imageIndex": 31,
+      "puzzleNumber": 32,
+      "url": "/kids/images/story-8-3.jpg",
+      "path": "public/kids/images/story-8-3.jpg",
+      "sha256": "d5324cccf163179d465745e4359d394d1b010fdbc5515ded0455d49e3d718359",
+      "bytes": 294604,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "laman",
+        "lemuel",
+        "nephi"
+      ],
+      "characterVersions": {
+        "laman": "laman-existing-master",
+        "lemuel": "lemuel-existing-master",
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-8-crossing-the-sea?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-009-00",
+      "imageIndex": 32,
+      "puzzleNumber": 33,
+      "url": "/kids/images/story-9-0.jpg",
+      "path": "public/kids/images/story-9-0.jpg",
+      "sha256": "2905d6760158bfb2360668b1438dcffab265cbc7f441b78e8e973987b0b78f07",
+      "bytes": 311577,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi",
+        "sariah",
+        "laman",
+        "lemuel",
+        "sam",
+        "nephi",
+        "nephi-wife"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-existing-master",
+        "sariah": "sariah-existing-master",
+        "laman": "laman-existing-master",
+        "lemuel": "lemuel-existing-master",
+        "sam": "sam-existing-master",
+        "nephi": "nephi-existing-master",
+        "nephi-wife": "nephi-wife-adult-reference-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-9-a-new-home-in-the-promised-land?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-009-01",
+      "imageIndex": 33,
+      "puzzleNumber": 34,
+      "url": "/kids/images/story-9-1.jpg",
+      "path": "public/kids/images/story-9-1.jpg",
+      "sha256": "8c3d25606ea2b3e0247a8b95b6a63e221b717237abd98b6938086de715d2aaf4",
+      "bytes": 280279,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi"
+      ],
+      "characterVersions": {
+        "nephi": "nephi-existing-master"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-9-a-new-home-in-the-promised-land?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-009-02",
+      "imageIndex": 34,
+      "puzzleNumber": 35,
+      "url": "/kids/images/story-9-2.jpg",
+      "path": "public/kids/images/story-9-2.jpg",
+      "sha256": "5b6b6ec3c16f1020439661669a56f96509076a40d57713f53eabbd24bdb750a5",
+      "bytes": 291950,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lehi",
+        "sariah",
+        "laman",
+        "lemuel",
+        "sam",
+        "nephi",
+        "nephi-wife"
+      ],
+      "characterVersions": {
+        "lehi": "lehi-older-master-v1",
+        "sariah": "sariah-existing-master",
+        "laman": "laman-existing-master",
+        "lemuel": "lemuel-existing-master",
+        "sam": "sam-existing-master",
+        "nephi": "nephi-existing-master",
+        "nephi-wife": "nephi-wife-adult-reference-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-9-a-new-home-in-the-promised-land?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-009-03",
+      "imageIndex": 35,
+      "puzzleNumber": 36,
+      "url": "/kids/images/story-9-3.jpg",
+      "path": "public/kids/images/story-9-3.jpg",
+      "sha256": "526b8688b9c0b1db130b3abfafd5e58da7a3548b28c35123203cbb003cf9a489",
+      "bytes": 360159,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi",
+        "sam",
+        "zoram",
+        "nephi-wife"
+      ],
+      "characterVersions": {
+        "nephi": "nephi-existing-master",
+        "sam": "sam-existing-master",
+        "zoram": "zoram-existing-master",
+        "nephi-wife": "nephi-wife-adult-reference-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-9-a-new-home-in-the-promised-land?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-010-00",
+      "imageIndex": 36,
+      "puzzleNumber": 37,
+      "url": "/kids/images/story-10-0.jpg",
+      "path": "public/kids/images/story-10-0.jpg",
+      "sha256": "b6e6d878c675a6663cef5e92fc3566e69b19a56ec789ee662df8ed1754bdfd46",
+      "bytes": 254961,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi",
+        "jacob-son-lehi"
+      ],
+      "characterVersions": {
+        "nephi": "nephi-older-master-v1",
+        "jacob-son-lehi": "jacob-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-10-jacob-and-sherem?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-010-01",
+      "imageIndex": 37,
+      "puzzleNumber": 38,
+      "url": "/kids/images/story-10-1.jpg",
+      "path": "public/kids/images/story-10-1.jpg",
+      "sha256": "dd03adaf8b5e973f3bf6ea38d3f953af8db05a3ec8017ed1854e1bcb9e9333ad",
+      "bytes": 274780,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jacob-son-lehi"
+      ],
+      "characterVersions": {
+        "jacob-son-lehi": "jacob-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-10-jacob-and-sherem?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-010-02",
+      "imageIndex": 38,
+      "puzzleNumber": 39,
+      "url": "/kids/images/story-10-2.jpg",
+      "path": "public/kids/images/story-10-2.jpg",
+      "sha256": "ce446c22d7f25fa7c7a0f7fc9792e58298190a7585e9bdb352aa4e2aac2b9b46",
+      "bytes": 314117,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "sherem"
+      ],
+      "characterVersions": {
+        "sherem": "sherem-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-10-jacob-and-sherem?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-010-03",
+      "imageIndex": 39,
+      "puzzleNumber": 40,
+      "url": "/kids/images/story-10-3.jpg",
+      "path": "public/kids/images/story-10-3.jpg",
+      "sha256": "f0ebe7d4d21e48c65d2add4d55d324d4eacbeac0c8d409f73f59123737c1c911",
+      "bytes": 266186,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi",
+        "jacob-son-lehi",
+        "joseph-son-lehi"
+      ],
+      "characterVersions": {
+        "nephi": "nephi-older-master-v1",
+        "jacob-son-lehi": "jacob-master-v1",
+        "joseph-son-lehi": "joseph-son-lehi-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-10-jacob-and-sherem?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-011-00",
+      "imageIndex": 40,
+      "puzzleNumber": 41,
+      "url": "/kids/images/story-11-0.jpg",
+      "path": "public/kids/images/story-11-0.jpg",
+      "sha256": "6a373ac41c638fe712107b8d09a73ecf34e2798c6ccb229dd5e6acd189d07a39",
+      "bytes": 271793,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jacob-son-lehi",
+        "enos"
+      ],
+      "characterVersions": {
+        "jacob-son-lehi": "jacob-older-master-v1",
+        "enos": "enos-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-11-enos?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-011-01",
+      "imageIndex": 41,
+      "puzzleNumber": 42,
+      "url": "/kids/images/story-11-1.jpg",
+      "path": "public/kids/images/story-11-1.jpg",
+      "sha256": "102a8c0fc7d064ba35f89f494ee0e99a94c065097a17fd2d1373347c1aaa7c60",
+      "bytes": 357910,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "enos"
+      ],
+      "characterVersions": {
+        "enos": "enos-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-11-enos?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-011-02",
+      "imageIndex": 42,
+      "puzzleNumber": 43,
+      "url": "/kids/images/story-11-2.jpg",
+      "path": "public/kids/images/story-11-2.jpg",
+      "sha256": "7e6e8c88b15d410f6836ca700a7481ef252257ac09a89a0ffb81b8c1dd274d48",
+      "bytes": 345156,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "enos"
+      ],
+      "characterVersions": {
+        "enos": "enos-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-11-enos?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-011-03",
+      "imageIndex": 43,
+      "puzzleNumber": 44,
+      "url": "/kids/images/story-11-3.jpg",
+      "path": "public/kids/images/story-11-3.jpg",
+      "sha256": "e45ad73e443fba6e5f470a2a4a6e7a361ee650d369188c756b6cb42fa5e3af71",
+      "bytes": 311406,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "enos"
+      ],
+      "characterVersions": {
+        "enos": "enos-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-11-enos?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-012-00",
+      "imageIndex": 44,
+      "puzzleNumber": 45,
+      "url": "/kids/images/story-12-0.jpg",
+      "path": "public/kids/images/story-12-0.jpg",
+      "sha256": "11bd843d8a5dc360eb3559788cf4f29861c02779938f7968c5856babeb962dfb",
+      "bytes": 298622,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "king-benjamin"
+      ],
+      "characterVersions": {
+        "king-benjamin": "king-benjamin-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-12-king-benjamin?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-012-01",
+      "imageIndex": 45,
+      "puzzleNumber": 46,
+      "url": "/kids/images/story-12-1.jpg",
+      "path": "public/kids/images/story-12-1.jpg",
+      "sha256": "cd596582266de88bf85a8262c89665f4f766ab2d5513b23c2039f2dbc23623c4",
+      "bytes": 285202,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "king-benjamin",
+        "mosiah-son-benjamin"
+      ],
+      "characterVersions": {
+        "king-benjamin": "king-benjamin-master-v1",
+        "mosiah-son-benjamin": "mosiah-son-benjamin-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-12-king-benjamin?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-012-02",
+      "imageIndex": 46,
+      "puzzleNumber": 47,
+      "url": "/kids/images/story-12-2.jpg",
+      "path": "public/kids/images/story-12-2.jpg",
+      "sha256": "34feb625c77d2780cd656258a7f8890c6d716f77d3c9056706e6889e478b64e3",
+      "bytes": 304195,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "king-benjamin",
+        "mosiah-son-benjamin"
+      ],
+      "characterVersions": {
+        "king-benjamin": "king-benjamin-master-v1",
+        "mosiah-son-benjamin": "mosiah-son-benjamin-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-12-king-benjamin?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-012-03",
+      "imageIndex": 47,
+      "puzzleNumber": 48,
+      "url": "/kids/images/story-12-3.jpg",
+      "path": "public/kids/images/story-12-3.jpg",
+      "sha256": "3598aeaa678645b09c082b705b5b39ddaba304376022aece65f0f17e2ef3867a",
+      "bytes": 357762,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "mosiah-son-benjamin"
+      ],
+      "characterVersions": {
+        "mosiah-son-benjamin": "mosiah-son-benjamin-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-12-king-benjamin?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-013-00",
+      "imageIndex": 48,
+      "puzzleNumber": 49,
+      "url": "/kids/images/story-13-0.jpg",
+      "path": "public/kids/images/story-13-0.jpg",
+      "sha256": "fa970cce7159907691d9dafcb89b62d404652819edf650420609d269dc04bcee",
+      "bytes": 321250,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "zeniff"
+      ],
+      "characterVersions": {
+        "zeniff": "zeniff-adult-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-13-zeniff?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-013-01",
+      "imageIndex": 49,
+      "puzzleNumber": 50,
+      "url": "/kids/images/story-13-1.jpg",
+      "path": "public/kids/images/story-13-1.jpg",
+      "sha256": "ccfe3f275cc5b423942d74d7832023eacaa68f1c069c0f5a9129c81a4696ade3",
+      "bytes": 304003,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "zeniff",
+        "king-laman"
+      ],
+      "characterVersions": {
+        "zeniff": "zeniff-adult-master-v1",
+        "king-laman": "king-laman-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-13-zeniff?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-013-02",
+      "imageIndex": 50,
+      "puzzleNumber": 51,
+      "url": "/kids/images/story-13-2.jpg",
+      "path": "public/kids/images/story-13-2.jpg",
+      "sha256": "5699bbca5cd6d109ad213742c9af3e7ec3429acf92c41ecdde8238a9d24dacaa",
+      "bytes": 290839,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-13-zeniff?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-013-03",
+      "imageIndex": 51,
+      "puzzleNumber": 52,
+      "url": "/kids/images/story-13-3.jpg",
+      "path": "public/kids/images/story-13-3.jpg",
+      "sha256": "96b65c8b97dacf248c740423fe16d77d3d4367ed90a096e16d9229ebc05a309a",
+      "bytes": 331582,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-13-zeniff?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-014-00",
+      "imageIndex": 52,
+      "puzzleNumber": 53,
+      "url": "/kids/images/story-14-0.jpg",
+      "path": "public/kids/images/story-14-0.jpg",
+      "sha256": "c8fe45a012b58ffaa812fe6ed6e8e48a2baf25a4e3374b6490c62f6261c4a154",
+      "bytes": 267556,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "zeniff",
+        "king-noah"
+      ],
+      "characterVersions": {
+        "zeniff": "zeniff-older-master-v1",
+        "king-noah": "king-noah-adult-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-14-abinadi-and-king-noah?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-014-01",
+      "imageIndex": 53,
+      "puzzleNumber": 54,
+      "url": "/kids/images/story-14-1.jpg",
+      "path": "public/kids/images/story-14-1.jpg",
+      "sha256": "c7e4a31a54e0b11c90868575f1cc263f84bf8133f88b4da1a0659589153fe5f3",
+      "bytes": 283575,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "king-noah"
+      ],
+      "characterVersions": {
+        "king-noah": "king-noah-adult-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-14-abinadi-and-king-noah?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-014-02",
+      "imageIndex": 54,
+      "puzzleNumber": 55,
+      "url": "/kids/images/story-14-2.jpg",
+      "path": "public/kids/images/story-14-2.jpg",
+      "sha256": "ee3acbd5bb0cd478d1639ffa16abbd9f1e83e51fb3aa55117f66a9e30162376f",
+      "bytes": 278403,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "king-noah"
+      ],
+      "characterVersions": {
+        "king-noah": "king-noah-adult-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-14-abinadi-and-king-noah?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-014-03",
+      "imageIndex": 55,
+      "puzzleNumber": 56,
+      "url": "/kids/images/story-14-3.jpg",
+      "path": "public/kids/images/story-14-3.jpg",
+      "sha256": "e5a4bbf1a51695f2e659eb812f79dda0241eccd65ab89b1d940756dd65b7a468",
+      "bytes": 299973,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "king-noah"
+      ],
+      "characterVersions": {
+        "king-noah": "king-noah-adult-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-14-abinadi-and-king-noah?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-015-00",
+      "imageIndex": 56,
+      "puzzleNumber": 57,
+      "url": "/kids/images/story-15-0.jpg",
+      "path": "public/kids/images/story-15-0.jpg",
+      "sha256": "8bd6078b2904c2baf30234d2d2d4e2e4cb14520b5349874fb121304f739bf200",
+      "bytes": 331513,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-elder"
+      ],
+      "characterVersions": {
+        "alma-elder": "alma-elder-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-15-alma-teaches-and-baptizes?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-015-01",
+      "imageIndex": 57,
+      "puzzleNumber": 58,
+      "url": "/kids/images/story-15-1.jpg",
+      "path": "public/kids/images/story-15-1.jpg",
+      "sha256": "596bda893a7f3db31d6bf72c2fa33d938ff8edf5f75d38fb606ed97c8ee7512e",
+      "bytes": 271746,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-elder"
+      ],
+      "characterVersions": {
+        "alma-elder": "alma-elder-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-15-alma-teaches-and-baptizes?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-015-02",
+      "imageIndex": 58,
+      "puzzleNumber": 59,
+      "url": "/kids/images/story-15-2.jpg",
+      "path": "public/kids/images/story-15-2.jpg",
+      "sha256": "ef8ba451c37534a5b2c30c7dc0bc5cff7603e33ea2303260e6a0a1266001b43d",
+      "bytes": 309988,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-elder"
+      ],
+      "characterVersions": {
+        "alma-elder": "alma-elder-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-15-alma-teaches-and-baptizes?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-015-03",
+      "imageIndex": 59,
+      "puzzleNumber": 60,
+      "url": "/kids/images/story-15-3.jpg",
+      "path": "public/kids/images/story-15-3.jpg",
+      "sha256": "bc7ba596c627955bb8ba64b31445522d3dcb324f6f7cd1a07d9cd71903f050b1",
+      "bytes": 320026,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-elder"
+      ],
+      "characterVersions": {
+        "alma-elder": "alma-elder-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-15-alma-teaches-and-baptizes?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-016-00",
+      "imageIndex": 60,
+      "puzzleNumber": 61,
+      "url": "/kids/images/story-16-0.jpg",
+      "path": "public/kids/images/story-16-0.jpg",
+      "sha256": "e204a3b5e517e715216eda299cdc5e397c081495b8e64210258ee059bf9ffdd8",
+      "bytes": 353874,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-16-king-limhi-and-his-people-escape?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-016-01",
+      "imageIndex": 61,
+      "puzzleNumber": 62,
+      "url": "/kids/images/story-16-1.jpg",
+      "path": "public/kids/images/story-16-1.jpg",
+      "sha256": "0abd87502c17eda286c65280621384191ad59100720388be68ff55ee9a405c62",
+      "bytes": 273044,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "king-limhi",
+        "ammon-expedition"
+      ],
+      "characterVersions": {
+        "king-limhi": "king-limhi-master-v1",
+        "ammon-expedition": "ammon-expedition-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-16-king-limhi-and-his-people-escape?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-016-02",
+      "imageIndex": 62,
+      "puzzleNumber": 63,
+      "url": "/kids/images/story-16-2.jpg",
+      "path": "public/kids/images/story-16-2.jpg",
+      "sha256": "22e9508081dc1ef72613394299e0f86277b00f4c14711897c763140476dcf2d8",
+      "bytes": 278346,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "king-limhi",
+        "ammon-expedition"
+      ],
+      "characterVersions": {
+        "king-limhi": "king-limhi-master-v1",
+        "ammon-expedition": "ammon-expedition-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-16-king-limhi-and-his-people-escape?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-016-03",
+      "imageIndex": 63,
+      "puzzleNumber": 64,
+      "url": "/kids/images/story-16-3.jpg",
+      "path": "public/kids/images/story-16-3.jpg",
+      "sha256": "ce7f9870751e26f3f2964eca3d87974c513f038a74f69f733bc5a398c0a552e5",
+      "bytes": 279808,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-16-king-limhi-and-his-people-escape?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-017-00",
+      "imageIndex": 64,
+      "puzzleNumber": 65,
+      "url": "/kids/images/story-17-0.jpg",
+      "path": "public/kids/images/story-17-0.jpg",
+      "sha256": "97f7709a6858558e3b6ebce0f560e0c4943227db6d6d2d517d637519351b81b9",
+      "bytes": 342309,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-17-alma-and-his-people-escape?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-017-01",
+      "imageIndex": 65,
+      "puzzleNumber": 66,
+      "url": "/kids/images/story-17-1.jpg",
+      "path": "public/kids/images/story-17-1.jpg",
+      "sha256": "de749dd46d371cb4af70548e7b63519996d1ec8facd5022aff62965e13239609",
+      "bytes": 270190,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-elder",
+        "amulon"
+      ],
+      "characterVersions": {
+        "alma-elder": "alma-elder-master-v1",
+        "amulon": "amulon-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-17-alma-and-his-people-escape?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-017-02",
+      "imageIndex": 66,
+      "puzzleNumber": 67,
+      "url": "/kids/images/story-17-2.jpg",
+      "path": "public/kids/images/story-17-2.jpg",
+      "sha256": "a964f4d14b9e3c6199759f19d662d50c7a75a5791748a5f8befe07d6ed19fdab",
+      "bytes": 334427,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-elder"
+      ],
+      "characterVersions": {
+        "alma-elder": "alma-elder-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-17-alma-and-his-people-escape?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-017-03",
+      "imageIndex": 67,
+      "puzzleNumber": 68,
+      "url": "/kids/images/story-17-3.jpg",
+      "path": "public/kids/images/story-17-3.jpg",
+      "sha256": "9794decf4a2d16043f2668cd7c64b514c1b248aa018e58a66f246e850b923f4d",
+      "bytes": 359102,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-elder"
+      ],
+      "characterVersions": {
+        "alma-elder": "alma-elder-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-17-alma-and-his-people-escape?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-018-00",
+      "imageIndex": 68,
+      "puzzleNumber": 69,
+      "url": "/kids/images/story-18-0.jpg",
+      "path": "public/kids/images/story-18-0.jpg",
+      "sha256": "81368862576e41928703feabd64476bbfaed46ecb124ca238a8c11bab00b30a3",
+      "bytes": 278011,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-elder"
+      ],
+      "characterVersions": {
+        "alma-elder": "alma-elder-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-18-alma-the-younger-repents?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-018-01",
+      "imageIndex": 69,
+      "puzzleNumber": 70,
+      "url": "/kids/images/story-18-1.jpg",
+      "path": "public/kids/images/story-18-1.jpg",
+      "sha256": "f240ad7009dd466d0e6884b5ff8004b97d3e074f44327f0c7989f1b83fa73ccd",
+      "bytes": 335728,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-younger",
+        "ammon-missionary",
+        "aaron",
+        "omner",
+        "himni"
+      ],
+      "characterVersions": {
+        "alma-younger": "alma-younger-master-v1",
+        "ammon-missionary": "ammon-missionary-master-v1",
+        "aaron": "aaron-master-v1",
+        "omner": "omner-master-v1",
+        "himni": "himni-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-18-alma-the-younger-repents?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-018-02",
+      "imageIndex": 70,
+      "puzzleNumber": 71,
+      "url": "/kids/images/story-18-2.jpg",
+      "path": "public/kids/images/story-18-2.jpg",
+      "sha256": "02a600216ab9490aada8d9bc55f42b67b4ada537748f922b3107183c10ec3e2a",
+      "bytes": 264076,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-elder"
+      ],
+      "characterVersions": {
+        "alma-elder": "alma-elder-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-18-alma-the-younger-repents?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-018-03",
+      "imageIndex": 71,
+      "puzzleNumber": 72,
+      "url": "/kids/images/story-18-3.jpg",
+      "path": "public/kids/images/story-18-3.jpg",
+      "sha256": "3bd87d3bb6593b19ad23cd613eac39ecbec871726feadebe34b5dac1c36ef8f1",
+      "bytes": 303774,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-younger",
+        "alma-elder"
+      ],
+      "characterVersions": {
+        "alma-younger": "alma-younger-master-v1",
+        "alma-elder": "alma-elder-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-18-alma-the-younger-repents?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-019-00",
+      "imageIndex": 72,
+      "puzzleNumber": 73,
+      "url": "/kids/images/story-19-0.jpg",
+      "path": "public/kids/images/story-19-0.jpg",
+      "sha256": "d0ecd2198662f1cac5b8d512323f39bb1b2200bcbc33fe54e5c6e37ac98cf9f0",
+      "bytes": 325085,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-younger",
+        "ammon-missionary",
+        "aaron",
+        "omner",
+        "himni"
+      ],
+      "characterVersions": {
+        "alma-younger": "alma-younger-master-v1",
+        "ammon-missionary": "ammon-missionary-master-v1",
+        "aaron": "aaron-master-v1",
+        "omner": "omner-master-v1",
+        "himni": "himni-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-19-the-sons-of-mosiah-become-missionaries?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-019-01",
+      "imageIndex": 73,
+      "puzzleNumber": 74,
+      "url": "/kids/images/story-19-1.jpg",
+      "path": "public/kids/images/story-19-1.jpg",
+      "sha256": "b6532eba4c4ed7af9a8f7b4ee99a798d5ddca8dbd731cc124858acf1c1003094",
+      "bytes": 265551,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "mosiah-son-benjamin"
+      ],
+      "characterVersions": {
+        "mosiah-son-benjamin": "mosiah-son-benjamin-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-19-the-sons-of-mosiah-become-missionaries?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-019-02",
+      "imageIndex": 74,
+      "puzzleNumber": 75,
+      "url": "/kids/images/story-19-2.jpg",
+      "path": "public/kids/images/story-19-2.jpg",
+      "sha256": "cf65313626dcb7d9b73e3b764bfbb418a21c7d49d99eb34a6248574a8fd690d9",
+      "bytes": 339959,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "ammon-missionary",
+        "aaron",
+        "omner",
+        "himni"
+      ],
+      "characterVersions": {
+        "ammon-missionary": "ammon-missionary-master-v1",
+        "aaron": "aaron-master-v1",
+        "omner": "omner-master-v1",
+        "himni": "himni-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-19-the-sons-of-mosiah-become-missionaries?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-019-03",
+      "imageIndex": 75,
+      "puzzleNumber": 76,
+      "url": "/kids/images/story-19-3.jpg",
+      "path": "public/kids/images/story-19-3.jpg",
+      "sha256": "f12774d8c4235c1db6f6e198507d6a5ab70f4f85def273cd2d385c777ed4a136",
+      "bytes": 284375,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "ammon-missionary",
+        "aaron",
+        "omner",
+        "himni",
+        "mosiah-son-benjamin"
+      ],
+      "characterVersions": {
+        "ammon-missionary": "ammon-missionary-master-v1",
+        "aaron": "aaron-master-v1",
+        "omner": "omner-master-v1",
+        "himni": "himni-master-v1",
+        "mosiah-son-benjamin": "mosiah-son-benjamin-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-19-the-sons-of-mosiah-become-missionaries?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-020-00",
+      "imageIndex": 76,
+      "puzzleNumber": 77,
+      "url": "/kids/images/story-20-0.jpg",
+      "path": "public/kids/images/story-20-0.jpg",
+      "sha256": "06d6b7a3187d6633a07a1eaf0b43083c8c6faea7ef134e00d7c741f3d4ff1bdf",
+      "bytes": 295934,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-younger"
+      ],
+      "characterVersions": {
+        "alma-younger": "alma-younger-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-20-alma-and-nehor?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-020-01",
+      "imageIndex": 77,
+      "puzzleNumber": 78,
+      "url": "/kids/images/story-20-1.jpg",
+      "path": "public/kids/images/story-20-1.jpg",
+      "sha256": "48167bda053ba108bc87bfa08bc8473aa19ec1d44337c5bb10699df01b8bbf4b",
+      "bytes": 299364,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nehor"
+      ],
+      "characterVersions": {
+        "nehor": "nehor-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-20-alma-and-nehor?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-020-02",
+      "imageIndex": 78,
+      "puzzleNumber": 79,
+      "url": "/kids/images/story-20-2.jpg",
+      "path": "public/kids/images/story-20-2.jpg",
+      "sha256": "c1aef3be81b2a91b4cb8ab76f827646362753dacfad93b5df4e5e56df2d113d3",
+      "bytes": 307736,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nehor",
+        "gideon"
+      ],
+      "characterVersions": {
+        "nehor": "nehor-master-v1",
+        "gideon": "gideon-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-20-alma-and-nehor?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-020-03",
+      "imageIndex": 79,
+      "puzzleNumber": 80,
+      "url": "/kids/images/story-20-3.jpg",
+      "path": "public/kids/images/story-20-3.jpg",
+      "sha256": "87c49e6e2fa3abbf00438098ed21d90aec097e74aa2dfb9a6f80bc1f791baaac",
+      "bytes": 299026,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nehor"
+      ],
+      "characterVersions": {
+        "nehor": "nehor-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-20-alma-and-nehor?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-021-00",
+      "imageIndex": 80,
+      "puzzleNumber": 81,
+      "url": "/kids/images/story-21-0.jpg",
+      "path": "public/kids/images/story-21-0.jpg",
+      "sha256": "cfea6436358bd65e00b8eacd9d32451f4577215619688912dfd39260cde1c7fd",
+      "bytes": 293435,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "amlici"
+      ],
+      "characterVersions": {
+        "amlici": "amlici-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-21-the-amlicites?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-021-01",
+      "imageIndex": 81,
+      "puzzleNumber": 82,
+      "url": "/kids/images/story-21-1.jpg",
+      "path": "public/kids/images/story-21-1.jpg",
+      "sha256": "bc51f4d704773fc97ae087fe3852c83cfc14c98eb093e80fbafe7f6537b53a0a",
+      "bytes": 305723,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "amlici"
+      ],
+      "characterVersions": {
+        "amlici": "amlici-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-21-the-amlicites?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-021-02",
+      "imageIndex": 82,
+      "puzzleNumber": 83,
+      "url": "/kids/images/story-21-2.jpg",
+      "path": "public/kids/images/story-21-2.jpg",
+      "sha256": "c722eb91b3a68f0e5f348153457063dc34b133e95576d9f5ad29a298a14c4fbf",
+      "bytes": 322371,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "amlici"
+      ],
+      "characterVersions": {
+        "amlici": "amlici-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-21-the-amlicites?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-021-03",
+      "imageIndex": 83,
+      "puzzleNumber": 84,
+      "url": "/kids/images/story-21-3.jpg",
+      "path": "public/kids/images/story-21-3.jpg",
+      "sha256": "5fa9433de5f3e0622c47d3b218c7ab03255304ac801006ad44f888ebb0c67cf2",
+      "bytes": 311215,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-21-the-amlicites?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-022-00",
+      "imageIndex": 84,
+      "puzzleNumber": 85,
+      "url": "/kids/images/story-22-0.jpg",
+      "path": "public/kids/images/story-22-0.jpg",
+      "sha256": "a2eda2bda7fb21e4eea39696a495e47a01852ec351d50f6da5b639cf7d802bf4",
+      "bytes": 274430,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-younger",
+        "nephihah"
+      ],
+      "characterVersions": {
+        "alma-younger": "alma-younger-master-v1",
+        "nephihah": "nephihah-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-22-almas-mission-to-ammonihah?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-022-01",
+      "imageIndex": 85,
+      "puzzleNumber": 86,
+      "url": "/kids/images/story-22-1.jpg",
+      "path": "public/kids/images/story-22-1.jpg",
+      "sha256": "e53fba67df4ee4ec71dbfc9edcad9f84439a83697d024f5662134d63bc3c4e06",
+      "bytes": 295795,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-younger"
+      ],
+      "characterVersions": {
+        "alma-younger": "alma-younger-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-22-almas-mission-to-ammonihah?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-022-02",
+      "imageIndex": 86,
+      "puzzleNumber": 87,
+      "url": "/kids/images/story-22-2.jpg",
+      "path": "public/kids/images/story-22-2.jpg",
+      "sha256": "5cacc6ebcd271704ad5f1fc72acf4d04e7555212b9d0014eb5fd7b9052147384",
+      "bytes": 319895,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-younger",
+        "angel-alma"
+      ],
+      "characterVersions": {
+        "alma-younger": "alma-younger-master-v1",
+        "angel-alma": "angel-alma-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-22-almas-mission-to-ammonihah?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-022-03",
+      "imageIndex": 87,
+      "puzzleNumber": 88,
+      "url": "/kids/images/story-22-3.jpg",
+      "path": "public/kids/images/story-22-3.jpg",
+      "sha256": "a7e13bb2aab6413743209f1954bcbfa484332da92b60b3b80f18d4e77a1b6ab1",
+      "bytes": 286664,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-younger",
+        "amulek"
+      ],
+      "characterVersions": {
+        "alma-younger": "alma-younger-master-v1",
+        "amulek": "amulek-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-22-almas-mission-to-ammonihah?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-023-00",
+      "imageIndex": 88,
+      "puzzleNumber": 89,
+      "url": "/kids/images/story-23-0.jpg",
+      "path": "public/kids/images/story-23-0.jpg",
+      "sha256": "144b875d293e05b79dfd51190b26522adbbb34555a8d1f197afd0f0c433667af",
+      "bytes": 322377,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "ammon-missionary",
+        "aaron",
+        "omner",
+        "himni"
+      ],
+      "characterVersions": {
+        "ammon-missionary": "ammon-missionary-master-v1",
+        "aaron": "aaron-master-v1",
+        "omner": "omner-master-v1",
+        "himni": "himni-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-23-ammon-a-great-servant?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-023-01",
+      "imageIndex": 89,
+      "puzzleNumber": 90,
+      "url": "/kids/images/story-23-1.jpg",
+      "path": "public/kids/images/story-23-1.jpg",
+      "sha256": "493f85c19c79583571948c3b7cc656d1d5a65740115af43361a69a49864f32c7",
+      "bytes": 318478,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "ammon-missionary"
+      ],
+      "characterVersions": {
+        "ammon-missionary": "ammon-missionary-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-23-ammon-a-great-servant?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-023-02",
+      "imageIndex": 90,
+      "puzzleNumber": 91,
+      "url": "/kids/images/story-23-2.jpg",
+      "path": "public/kids/images/story-23-2.jpg",
+      "sha256": "dc65404afe7d8408a8847f4d63f2ad25544c1e09fb2f331190c32fa596078651",
+      "bytes": 350653,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "ammon-missionary"
+      ],
+      "characterVersions": {
+        "ammon-missionary": "ammon-missionary-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-23-ammon-a-great-servant?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-023-03",
+      "imageIndex": 91,
+      "puzzleNumber": 92,
+      "url": "/kids/images/story-23-3.jpg",
+      "path": "public/kids/images/story-23-3.jpg",
+      "sha256": "a58f8759ce270021b36ca88785dbc2eed2388ab01fdcadf2fe9386ac4048f39e",
+      "bytes": 322098,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "ammon-missionary"
+      ],
+      "characterVersions": {
+        "ammon-missionary": "ammon-missionary-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-23-ammon-a-great-servant?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-024-00",
+      "imageIndex": 92,
+      "puzzleNumber": 93,
+      "url": "/kids/images/story-24-0.jpg",
+      "path": "public/kids/images/story-24-0.jpg",
+      "sha256": "7f6f70b74fae472735909c026584a2b344bd4d5d4864f19de6805ff8fc7c5465",
+      "bytes": 337463,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lamoni",
+        "ammon-missionary"
+      ],
+      "characterVersions": {
+        "lamoni": "lamoni-master-v1",
+        "ammon-missionary": "ammon-missionary-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-24-ammon-meets-king-lamonis-father?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-024-01",
+      "imageIndex": 93,
+      "puzzleNumber": 94,
+      "url": "/kids/images/story-24-1.jpg",
+      "path": "public/kids/images/story-24-1.jpg",
+      "sha256": "9d4e52c2cc0850108129ad285049088b15289d3fb1ba52cb3e5cf4d249999df9",
+      "bytes": 320620,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lamoni",
+        "ammon-missionary",
+        "lamoni-father"
+      ],
+      "characterVersions": {
+        "lamoni": "lamoni-master-v1",
+        "ammon-missionary": "ammon-missionary-master-v1",
+        "lamoni-father": "lamoni-father-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-24-ammon-meets-king-lamonis-father?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-024-02",
+      "imageIndex": 94,
+      "puzzleNumber": 95,
+      "url": "/kids/images/story-24-2.jpg",
+      "path": "public/kids/images/story-24-2.jpg",
+      "sha256": "c5ce2089027b5e6f4d67242150c3d527f6193dc2a33421e00ff8e8dbc9baab65",
+      "bytes": 327942,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lamoni",
+        "lamoni-father"
+      ],
+      "characterVersions": {
+        "lamoni": "lamoni-master-v1",
+        "lamoni-father": "lamoni-father-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-24-ammon-meets-king-lamonis-father?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-024-03",
+      "imageIndex": 95,
+      "puzzleNumber": 96,
+      "url": "/kids/images/story-24-3.jpg",
+      "path": "public/kids/images/story-24-3.jpg",
+      "sha256": "36f3c97221b5f6aaede308eafb140bdc7dcc76468ceeaa56ac31402629a50149",
+      "bytes": 318694,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "lamoni",
+        "ammon-missionary",
+        "lamoni-father"
+      ],
+      "characterVersions": {
+        "lamoni": "lamoni-master-v1",
+        "ammon-missionary": "ammon-missionary-master-v1",
+        "lamoni-father": "lamoni-father-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-24-ammon-meets-king-lamonis-father?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-025-00",
+      "imageIndex": 96,
+      "puzzleNumber": 97,
+      "url": "/kids/images/story-25-0.jpg",
+      "path": "public/kids/images/story-25-0.jpg",
+      "sha256": "08ffaef9d08ce9ad573cdc0d50cdbb64339c97e4a078ef7bf5ec523a8508ff45",
+      "bytes": 330448,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "aaron",
+        "omner",
+        "himni"
+      ],
+      "characterVersions": {
+        "aaron": "aaron-master-v1",
+        "omner": "omner-master-v1",
+        "himni": "himni-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-25-aaron-teaches-king-lamonis-father?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-025-01",
+      "imageIndex": 97,
+      "puzzleNumber": 98,
+      "url": "/kids/images/story-25-1.jpg",
+      "path": "public/kids/images/story-25-1.jpg",
+      "sha256": "e76beaf2f1be29155f3f80e915ff0415378409faf50ee51a7b87cea5b30ea720",
+      "bytes": 292696,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "aaron",
+        "lamoni-father"
+      ],
+      "characterVersions": {
+        "aaron": "aaron-master-v1",
+        "lamoni-father": "lamoni-father-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-25-aaron-teaches-king-lamonis-father?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-025-02",
+      "imageIndex": 98,
+      "puzzleNumber": 99,
+      "url": "/kids/images/story-25-2.jpg",
+      "path": "public/kids/images/story-25-2.jpg",
+      "sha256": "d3d4099771108e4d1ab404bbfc58742fc16afb712106ade01a6cc59199e428ba",
+      "bytes": 290966,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "aaron",
+        "lamoni-father"
+      ],
+      "characterVersions": {
+        "aaron": "aaron-master-v1",
+        "lamoni-father": "lamoni-father-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-25-aaron-teaches-king-lamonis-father?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-025-03",
+      "imageIndex": 99,
+      "puzzleNumber": 100,
+      "url": "/kids/images/story-25-3.jpg",
+      "path": "public/kids/images/story-25-3.jpg",
+      "sha256": "5fb863480642a388d2ec4e4e1978ebf43310577af104744533793f5d40c6a014",
+      "bytes": 283091,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "aaron",
+        "lamoni-father"
+      ],
+      "characterVersions": {
+        "aaron": "aaron-master-v1",
+        "lamoni-father": "lamoni-father-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-25-aaron-teaches-king-lamonis-father?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-026-00",
+      "imageIndex": 100,
+      "puzzleNumber": 101,
+      "url": "/kids/images/story-26-0.jpg",
+      "path": "public/kids/images/story-26-0.jpg",
+      "sha256": "a218279b322e9914fb304e4034da5fc971225560c185b9dcd76330ba503515e1",
+      "bytes": 364731,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "ammon-missionary"
+      ],
+      "characterVersions": {
+        "ammon-missionary": "ammon-missionary-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-26-the-people-of-ammon?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-026-01",
+      "imageIndex": 101,
+      "puzzleNumber": 102,
+      "url": "/kids/images/story-26-1.jpg",
+      "path": "public/kids/images/story-26-1.jpg",
+      "sha256": "6fded920b7eb69e14967cb59651ddd75172ba2af40ac26dd8747fd40c7ab3baa",
+      "bytes": 306914,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-26-the-people-of-ammon?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-026-02",
+      "imageIndex": 102,
+      "puzzleNumber": 103,
+      "url": "/kids/images/story-26-2.jpg",
+      "path": "public/kids/images/story-26-2.jpg",
+      "sha256": "b34ab7c2bac92ba1175cdb61f679c9c2ef96afa0de4feaa9cc4d3a9123376f64",
+      "bytes": 312221,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-26-the-people-of-ammon?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-026-03",
+      "imageIndex": 103,
+      "puzzleNumber": 104,
+      "url": "/kids/images/story-26-3.jpg",
+      "path": "public/kids/images/story-26-3.jpg",
+      "sha256": "3c4f82a95d92623d8e8a1ccb5d47066aa484eeaf7ea0f09632ee0c0f352ee9da",
+      "bytes": 330080,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-26-the-people-of-ammon?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-027-00",
+      "imageIndex": 104,
+      "puzzleNumber": 105,
+      "url": "/kids/images/story-27-0.jpg",
+      "path": "public/kids/images/story-27-0.jpg",
+      "sha256": "acf53e673e13236c4374b750f949ef6324d5f1358bf114d92571f8250a457bfc",
+      "bytes": 352651,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "korihor"
+      ],
+      "characterVersions": {
+        "korihor": "korihor-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-27-korihor?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-027-01",
+      "imageIndex": 105,
+      "puzzleNumber": 106,
+      "url": "/kids/images/story-27-1.jpg",
+      "path": "public/kids/images/story-27-1.jpg",
+      "sha256": "7add4c4d7a4e36ce927962adb22fcca2b8722a46c968587a89149bd1e63cc601",
+      "bytes": 319672,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "korihor"
+      ],
+      "characterVersions": {
+        "korihor": "korihor-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-27-korihor?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-027-02",
+      "imageIndex": 106,
+      "puzzleNumber": 107,
+      "url": "/kids/images/story-27-2.jpg",
+      "path": "public/kids/images/story-27-2.jpg",
+      "sha256": "ee4b7194e936e830e95c557bb67bb2967491cac213f7f1d8bee9c5dbb1be79c2",
+      "bytes": 306427,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "korihor"
+      ],
+      "characterVersions": {
+        "korihor": "korihor-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-27-korihor?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-027-03",
+      "imageIndex": 107,
+      "puzzleNumber": 108,
+      "url": "/kids/images/story-27-3.jpg",
+      "path": "public/kids/images/story-27-3.jpg",
+      "sha256": "5c89d70e90508a680daacd15b79d1bb940b0663f126d6c94e9e4af297f3c2109",
+      "bytes": 270038,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-27-korihor?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-028-00",
+      "imageIndex": 108,
+      "puzzleNumber": 109,
+      "url": "/kids/images/story-28-0.jpg",
+      "path": "public/kids/images/story-28-0.jpg",
+      "sha256": "699ce67633058cdea76e47df9e5673a7b23b760748599d862a5e1bcf418f641f",
+      "bytes": 257906,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-28-the-zoramites-and-the-rameumptom?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-028-01",
+      "imageIndex": 109,
+      "puzzleNumber": 110,
+      "url": "/kids/images/story-28-1.jpg",
+      "path": "public/kids/images/story-28-1.jpg",
+      "sha256": "daf62f5cb5381f5280ac99d2b0869e23453aee4a7326624b4f292f8d4b7ea138",
+      "bytes": 338605,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-younger",
+        "amulek",
+        "ammon-missionary"
+      ],
+      "characterVersions": {
+        "alma-younger": "alma-younger-older-master-v1",
+        "amulek": "amulek-master-v1",
+        "ammon-missionary": "ammon-missionary-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-28-the-zoramites-and-the-rameumptom?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-028-02",
+      "imageIndex": 110,
+      "puzzleNumber": 111,
+      "url": "/kids/images/story-28-2.jpg",
+      "path": "public/kids/images/story-28-2.jpg",
+      "sha256": "e0dbccb5031fb23227508edbe1ac52e6522c86f7c2915b3e968e0f495ce58baa",
+      "bytes": 313166,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-younger",
+        "amulek",
+        "zoramite-worshipper"
+      ],
+      "characterVersions": {
+        "alma-younger": "alma-younger-older-master-v1",
+        "amulek": "amulek-master-v1",
+        "zoramite-worshipper": "zoramite-worshipper-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-28-the-zoramites-and-the-rameumptom?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-028-03",
+      "imageIndex": 111,
+      "puzzleNumber": 112,
+      "url": "/kids/images/story-28-3.jpg",
+      "path": "public/kids/images/story-28-3.jpg",
+      "sha256": "af986c346c83cc39e3171b311cbba4efa1e1e204e4db62046510d2cc6b789162",
+      "bytes": 253514,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "zoramite-worshipper"
+      ],
+      "characterVersions": {
+        "zoramite-worshipper": "zoramite-worshipper-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-28-the-zoramites-and-the-rameumptom?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-029-00",
+      "imageIndex": 112,
+      "puzzleNumber": 113,
+      "url": "/kids/images/story-29-0.jpg",
+      "path": "public/kids/images/story-29-0.jpg",
+      "sha256": "9ae116273640487ac799b4ba9232767dd2370daed6b8cab86f1e1aa3d91eb3cb",
+      "bytes": 351396,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-younger"
+      ],
+      "characterVersions": {
+        "alma-younger": "alma-younger-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-29-alma-teaches-about-faith-and-the-word-of-god?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-029-01",
+      "imageIndex": 113,
+      "puzzleNumber": 114,
+      "url": "/kids/images/story-29-1.jpg",
+      "path": "public/kids/images/story-29-1.jpg",
+      "sha256": "88ae71b544024099dafe686db7dbeafdc12270260cca6f3e76e78b3bcc228a01",
+      "bytes": 348995,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-29-alma-teaches-about-faith-and-the-word-of-god?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-029-02",
+      "imageIndex": 114,
+      "puzzleNumber": 115,
+      "url": "/kids/images/story-29-2.jpg",
+      "path": "public/kids/images/story-29-2.jpg",
+      "sha256": "cf060e898460e5291af7bf3ac4c357a04457f7081bce9182dfa856fb4e959563",
+      "bytes": 351613,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-29-alma-teaches-about-faith-and-the-word-of-god?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-029-03",
+      "imageIndex": 115,
+      "puzzleNumber": 116,
+      "url": "/kids/images/story-29-3.jpg",
+      "path": "public/kids/images/story-29-3.jpg",
+      "sha256": "48609c4903fa6aa3ef687bb25376482889e805f1ce45c6c982aa36f6b5d76bcb",
+      "bytes": 293103,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-29-alma-teaches-about-faith-and-the-word-of-god?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-030-00",
+      "imageIndex": 116,
+      "puzzleNumber": 117,
+      "url": "/kids/images/story-30-0.jpg",
+      "path": "public/kids/images/story-30-0.jpg",
+      "sha256": "a575885ed60a2cbabd49f0eaef04d6f7cbf62c7ba8af13432bd2b7c9c390e85a",
+      "bytes": 274890,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-younger",
+        "helaman-son-alma",
+        "shiblon",
+        "corianton"
+      ],
+      "characterVersions": {
+        "alma-younger": "alma-younger-older-master-v1",
+        "helaman-son-alma": "helaman-son-alma-master-v1",
+        "shiblon": "shiblon-master-v1",
+        "corianton": "corianton-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-30-alma-counsels-his-sons?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-030-01",
+      "imageIndex": 117,
+      "puzzleNumber": 118,
+      "url": "/kids/images/story-30-1.jpg",
+      "path": "public/kids/images/story-30-1.jpg",
+      "sha256": "666510145b59e26df8a4503393eefa078c2e26418ed80b6d03b65d4d39a9b855",
+      "bytes": 308993,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-younger",
+        "ammon-missionary",
+        "aaron",
+        "omner",
+        "himni",
+        "angel-alma"
+      ],
+      "characterVersions": {
+        "alma-younger": "alma-younger-master-v1",
+        "ammon-missionary": "ammon-missionary-master-v1",
+        "aaron": "aaron-master-v1",
+        "omner": "omner-master-v1",
+        "himni": "himni-master-v1",
+        "angel-alma": "angel-alma-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-30-alma-counsels-his-sons?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-030-02",
+      "imageIndex": 118,
+      "puzzleNumber": 119,
+      "url": "/kids/images/story-30-2.jpg",
+      "path": "public/kids/images/story-30-2.jpg",
+      "sha256": "3063070532369626a70e69c72d56892c249ff43564c33402e3f70d91807e3321",
+      "bytes": 251474,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-younger",
+        "alma-elder"
+      ],
+      "characterVersions": {
+        "alma-younger": "alma-younger-master-v1",
+        "alma-elder": "alma-elder-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-30-alma-counsels-his-sons?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-030-03",
+      "imageIndex": 119,
+      "puzzleNumber": 120,
+      "url": "/kids/images/story-30-3.jpg",
+      "path": "public/kids/images/story-30-3.jpg",
+      "sha256": "4246e9493eb0ed457ab9f7e7d6247bd42b2380345ebee9beaee8ffda06c9df1a",
+      "bytes": 306049,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "alma-younger"
+      ],
+      "characterVersions": {
+        "alma-younger": "alma-younger-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-30-alma-counsels-his-sons?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-031-00",
+      "imageIndex": 120,
+      "puzzleNumber": 121,
+      "url": "/kids/images/story-31-0.jpg",
+      "path": "public/kids/images/story-31-0.jpg",
+      "sha256": "64f2cb02bb5914d09b71f76de3be901b39ee3d0d692c42b16314d9085ec0b70d",
+      "bytes": 325119,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "zerahemnah"
+      ],
+      "characterVersions": {
+        "zerahemnah": "zerahemnah-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-31-captain-moroni-defeats-zerahemnah?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-031-01",
+      "imageIndex": 121,
+      "puzzleNumber": 122,
+      "url": "/kids/images/story-31-1.jpg",
+      "path": "public/kids/images/story-31-1.jpg",
+      "sha256": "a7f51d3dba5852d78398ad213df9d710172516c1d3a08f54402348e16e4d53ff",
+      "bytes": 295663,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-31-captain-moroni-defeats-zerahemnah?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-031-02",
+      "imageIndex": 122,
+      "puzzleNumber": 123,
+      "url": "/kids/images/story-31-2.jpg",
+      "path": "public/kids/images/story-31-2.jpg",
+      "sha256": "b3cf48f6a6309b755089616cbfc7280fcd1097bdfac0160d02c8a7576d023574",
+      "bytes": 331225,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-31-captain-moroni-defeats-zerahemnah?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-031-03",
+      "imageIndex": 123,
+      "puzzleNumber": 124,
+      "url": "/kids/images/story-31-3.jpg",
+      "path": "public/kids/images/story-31-3.jpg",
+      "sha256": "affd3e97b9292fbe51ec4c91a15fdb8a1159fd4893837699cb491393f6f79bed",
+      "bytes": 283300,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "captain-moroni"
+      ],
+      "characterVersions": {
+        "captain-moroni": "captain-moroni-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-31-captain-moroni-defeats-zerahemnah?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-032-00",
+      "imageIndex": 124,
+      "puzzleNumber": 125,
+      "url": "/kids/images/story-32-0.jpg",
+      "path": "public/kids/images/story-32-0.jpg",
+      "sha256": "896c07c3800a766faa1b526195f5a72dfac18893246126878dadf4701ab9ab85",
+      "bytes": 281623,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "amalickiah"
+      ],
+      "characterVersions": {
+        "amalickiah": "amalickiah-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-32-captain-moroni-and-the-title-of-liberty?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-032-01",
+      "imageIndex": 125,
+      "puzzleNumber": 126,
+      "url": "/kids/images/story-32-1.jpg",
+      "path": "public/kids/images/story-32-1.jpg",
+      "sha256": "6f6756dd6cb768ce983ddaf88956dc8aa9162d510d8c05d0eb59e1f92b7c2147",
+      "bytes": 275293,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "captain-moroni"
+      ],
+      "characterVersions": {
+        "captain-moroni": "captain-moroni-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-32-captain-moroni-and-the-title-of-liberty?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-032-02",
+      "imageIndex": 126,
+      "puzzleNumber": 127,
+      "url": "/kids/images/story-32-2.jpg",
+      "path": "public/kids/images/story-32-2.jpg",
+      "sha256": "f225dfe64a77fd5e04e6a599a1966dacbe0e03ad77759fc994473bb448b91c8e",
+      "bytes": 304608,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "captain-moroni"
+      ],
+      "characterVersions": {
+        "captain-moroni": "captain-moroni-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-32-captain-moroni-and-the-title-of-liberty?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-032-03",
+      "imageIndex": 127,
+      "puzzleNumber": 128,
+      "url": "/kids/images/story-32-3.jpg",
+      "path": "public/kids/images/story-32-3.jpg",
+      "sha256": "4e39d1a4f34c6c86cd138030fd2fa864bebca8bd9ef1026ed43854bef4e20485",
+      "bytes": 284409,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "captain-moroni",
+        "amalickiah"
+      ],
+      "characterVersions": {
+        "captain-moroni": "captain-moroni-master-v1",
+        "amalickiah": "amalickiah-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-32-captain-moroni-and-the-title-of-liberty?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-033-00",
+      "imageIndex": 128,
+      "puzzleNumber": 129,
+      "url": "/kids/images/story-33-0.jpg",
+      "path": "public/kids/images/story-33-0.jpg",
+      "sha256": "f6f48900e1bbe3747d0d34a274d30aece17671aeecb84786fdb48744287ab5b3",
+      "bytes": 269479,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "pahoran"
+      ],
+      "characterVersions": {
+        "pahoran": "pahoran-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-33-king-men-versus-freemen?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-033-01",
+      "imageIndex": 129,
+      "puzzleNumber": 130,
+      "url": "/kids/images/story-33-1.jpg",
+      "path": "public/kids/images/story-33-1.jpg",
+      "sha256": "5a48756282fe74eb7925697f4e18767088fe45561e8d1282a55380c05ca09d4d",
+      "bytes": 314961,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-33-king-men-versus-freemen?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-033-02",
+      "imageIndex": 130,
+      "puzzleNumber": 131,
+      "url": "/kids/images/story-33-2.jpg",
+      "path": "public/kids/images/story-33-2.jpg",
+      "sha256": "4f9596f41fa95242a290da8391a22ebb57889e17b9e9b20b38f1a82073b46078",
+      "bytes": 281322,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-33-king-men-versus-freemen?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-033-03",
+      "imageIndex": 131,
+      "puzzleNumber": 132,
+      "url": "/kids/images/story-33-3.jpg",
+      "path": "public/kids/images/story-33-3.jpg",
+      "sha256": "63781c5d926499154d29576511430b3e92a779e3a0a5e1b1d356a962fc661cc3",
+      "bytes": 269582,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-33-king-men-versus-freemen?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-034-00",
+      "imageIndex": 132,
+      "puzzleNumber": 133,
+      "url": "/kids/images/story-34-0.jpg",
+      "path": "public/kids/images/story-34-0.jpg",
+      "sha256": "fe7ff9e3b536e4f660d317397bb91484e8f418b285db4efdb192d38980ed68fa",
+      "bytes": 307982,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-34-helaman-and-the-2000-young-warriors?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-034-01",
+      "imageIndex": 133,
+      "puzzleNumber": 134,
+      "url": "/kids/images/story-34-1.jpg",
+      "path": "public/kids/images/story-34-1.jpg",
+      "sha256": "a5ba089ad7efa12e119f9cd42bc4b962f2a172b88ff0f1951d636f7a466468bd",
+      "bytes": 306765,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-34-helaman-and-the-2000-young-warriors?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-034-02",
+      "imageIndex": 134,
+      "puzzleNumber": 135,
+      "url": "/kids/images/story-34-2.jpg",
+      "path": "public/kids/images/story-34-2.jpg",
+      "sha256": "82251ad005e58c9f760c7314e8f8167020d2ccb12913cc3dbf7a5f48da6f214d",
+      "bytes": 292733,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "helaman-son-alma"
+      ],
+      "characterVersions": {
+        "helaman-son-alma": "helaman-son-alma-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-34-helaman-and-the-2000-young-warriors?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-034-03",
+      "imageIndex": 135,
+      "puzzleNumber": 136,
+      "url": "/kids/images/story-34-3.jpg",
+      "path": "public/kids/images/story-34-3.jpg",
+      "sha256": "9b05e70bb27d723c7a9cf6783e2cc94a959a5483774b0669e3d32fade3b879b2",
+      "bytes": 293056,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "helaman-son-alma"
+      ],
+      "characterVersions": {
+        "helaman-son-alma": "helaman-son-alma-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-34-helaman-and-the-2000-young-warriors?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-035-00",
+      "imageIndex": 136,
+      "puzzleNumber": 137,
+      "url": "/kids/images/story-35-0.jpg",
+      "path": "public/kids/images/story-35-0.jpg",
+      "sha256": "485c6da0a2eb9c6629135f5300e1f763b328eb1f4627be09b5cb6ea8f5db3e07",
+      "bytes": 290169,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "captain-moroni"
+      ],
+      "characterVersions": {
+        "captain-moroni": "captain-moroni-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-35-captain-moroni-and-pahoran?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-035-01",
+      "imageIndex": 137,
+      "puzzleNumber": 138,
+      "url": "/kids/images/story-35-1.jpg",
+      "path": "public/kids/images/story-35-1.jpg",
+      "sha256": "29d8ae8714718a7b27e23e2d0910012b7ac63172545dce245229d40a5d1695d3",
+      "bytes": 324933,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-35-captain-moroni-and-pahoran?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-035-02",
+      "imageIndex": 138,
+      "puzzleNumber": 139,
+      "url": "/kids/images/story-35-2.jpg",
+      "path": "public/kids/images/story-35-2.jpg",
+      "sha256": "cb3bc78321fe8613743a9b7673f409a06e6916fc451c6aa862c8e50e91ff3840",
+      "bytes": 318777,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "captain-moroni"
+      ],
+      "characterVersions": {
+        "captain-moroni": "captain-moroni-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-35-captain-moroni-and-pahoran?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-035-03",
+      "imageIndex": 139,
+      "puzzleNumber": 140,
+      "url": "/kids/images/story-35-3.jpg",
+      "path": "public/kids/images/story-35-3.jpg",
+      "sha256": "37d68ac017a286991caba70762299897f221161b877ccad833d31f510e8bd5a9",
+      "bytes": 310128,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "captain-moroni"
+      ],
+      "characterVersions": {
+        "captain-moroni": "captain-moroni-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-35-captain-moroni-and-pahoran?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-036-00",
+      "imageIndex": 140,
+      "puzzleNumber": 141,
+      "url": "/kids/images/story-36-0.jpg",
+      "path": "public/kids/images/story-36-0.jpg",
+      "sha256": "b43a3307c4076984ad54bfaaba826212cfb4678103d618a987a0dcc0daea5f3c",
+      "bytes": 336443,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-36-hagoth?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-036-01",
+      "imageIndex": 141,
+      "puzzleNumber": 142,
+      "url": "/kids/images/story-36-1.jpg",
+      "path": "public/kids/images/story-36-1.jpg",
+      "sha256": "8ac73d2fe64e19916dde4eb8e3a0f5fa92b4e0b8733111270fcbdb06e5a025bb",
+      "bytes": 284118,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "hagoth"
+      ],
+      "characterVersions": {
+        "hagoth": "hagoth-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-36-hagoth?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-036-02",
+      "imageIndex": 142,
+      "puzzleNumber": 143,
+      "url": "/kids/images/story-36-2.jpg",
+      "path": "public/kids/images/story-36-2.jpg",
+      "sha256": "9f0428cf03df18d13bdb3e20a2514b44393ae04603a00cbbed03caf58e7b0bef",
+      "bytes": 305139,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-36-hagoth?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-036-03",
+      "imageIndex": 143,
+      "puzzleNumber": 144,
+      "url": "/kids/images/story-36-3.jpg",
+      "path": "public/kids/images/story-36-3.jpg",
+      "sha256": "5b69323bd18c4bde1a629cd5f1e9cb2f088e4b22e878a958907e3701de8fbbf0",
+      "bytes": 339154,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-36-hagoth?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-037-00",
+      "imageIndex": 144,
+      "puzzleNumber": 145,
+      "url": "/kids/images/story-37-0.jpg",
+      "path": "public/kids/images/story-37-0.jpg",
+      "sha256": "023533ddf6ea4ea757108892f90196d35f237c47641934277e3851e6115f1720",
+      "bytes": 284511,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "helaman-son-helaman",
+        "nephi-son-helaman",
+        "lehi-son-helaman"
+      ],
+      "characterVersions": {
+        "helaman-son-helaman": "helaman-son-helaman-master-v1",
+        "nephi-son-helaman": "nephi-son-helaman-master-v1",
+        "lehi-son-helaman": "lehi-son-helaman-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-37-nephi-and-lehi-in-prison?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-037-01",
+      "imageIndex": 145,
+      "puzzleNumber": 146,
+      "url": "/kids/images/story-37-1.jpg",
+      "path": "public/kids/images/story-37-1.jpg",
+      "sha256": "c23c7f61bb7d68f9cda6cdeb7563ed4e907b013f7edb156fb43080cc91ac4205",
+      "bytes": 269168,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi-son-helaman",
+        "lehi-son-helaman"
+      ],
+      "characterVersions": {
+        "nephi-son-helaman": "nephi-son-helaman-master-v1",
+        "lehi-son-helaman": "lehi-son-helaman-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-37-nephi-and-lehi-in-prison?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-037-02",
+      "imageIndex": 146,
+      "puzzleNumber": 147,
+      "url": "/kids/images/story-37-2.jpg",
+      "path": "public/kids/images/story-37-2.jpg",
+      "sha256": "09e08edaa782ba1ec6fd7d380b131f5c0f445d8d95e0dd7bce6a8bb228bc27c8",
+      "bytes": 309452,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi-son-helaman",
+        "lehi-son-helaman"
+      ],
+      "characterVersions": {
+        "nephi-son-helaman": "nephi-son-helaman-master-v1",
+        "lehi-son-helaman": "lehi-son-helaman-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-37-nephi-and-lehi-in-prison?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-037-03",
+      "imageIndex": 147,
+      "puzzleNumber": 148,
+      "url": "/kids/images/story-37-3.jpg",
+      "path": "public/kids/images/story-37-3.jpg",
+      "sha256": "0e1a2dcdab4c40a69be29e940fbab1e2e4456c254a7f4d3e1cce03a45a5f24cd",
+      "bytes": 332964,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi-son-helaman",
+        "lehi-son-helaman"
+      ],
+      "characterVersions": {
+        "nephi-son-helaman": "nephi-son-helaman-master-v1",
+        "lehi-son-helaman": "lehi-son-helaman-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-37-nephi-and-lehi-in-prison?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-038-00",
+      "imageIndex": 148,
+      "puzzleNumber": 149,
+      "url": "/kids/images/story-38-0.jpg",
+      "path": "public/kids/images/story-38-0.jpg",
+      "sha256": "bd8acc021919761d344d17feddc96c440200f70f42423f4ecff88dcc817cc305",
+      "bytes": 295449,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-38-the-murder-of-the-chief-judge?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-038-01",
+      "imageIndex": 149,
+      "puzzleNumber": 150,
+      "url": "/kids/images/story-38-1.jpg",
+      "path": "public/kids/images/story-38-1.jpg",
+      "sha256": "c3380ce361637c153f58da1e500f66670f9891699f813f5f676d5ae34dcff043",
+      "bytes": 365855,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi-son-helaman"
+      ],
+      "characterVersions": {
+        "nephi-son-helaman": "nephi-son-helaman-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-38-the-murder-of-the-chief-judge?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-038-02",
+      "imageIndex": 150,
+      "puzzleNumber": 151,
+      "url": "/kids/images/story-38-2.jpg",
+      "path": "public/kids/images/story-38-2.jpg",
+      "sha256": "c4271dac1d18b6ff830a7e0718ec9ad9c3bec022b5b2653655714d6516ffca8f",
+      "bytes": 371454,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi-son-helaman"
+      ],
+      "characterVersions": {
+        "nephi-son-helaman": "nephi-son-helaman-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-38-the-murder-of-the-chief-judge?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-038-03",
+      "imageIndex": 151,
+      "puzzleNumber": 152,
+      "url": "/kids/images/story-38-3.jpg",
+      "path": "public/kids/images/story-38-3.jpg",
+      "sha256": "1577ec0ec067be0a353f5270335e1a2fd1e61b1008183bd56d6dbe419016852e",
+      "bytes": 329072,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-38-the-murder-of-the-chief-judge?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-039-00",
+      "imageIndex": 152,
+      "puzzleNumber": 153,
+      "url": "/kids/images/story-39-0.jpg",
+      "path": "public/kids/images/story-39-0.jpg",
+      "sha256": "321e51e5ea1643bad645a58605a551af8c6ce89928e77d3a2a2c02638c5ce839",
+      "bytes": 301141,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi-son-helaman"
+      ],
+      "characterVersions": {
+        "nephi-son-helaman": "nephi-son-helaman-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-39-nephi-receives-great-power?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-039-01",
+      "imageIndex": 153,
+      "puzzleNumber": 154,
+      "url": "/kids/images/story-39-1.jpg",
+      "path": "public/kids/images/story-39-1.jpg",
+      "sha256": "cf150b164fbc3fb62e933a97664855ff753815452c606cf6eeab2671eff26577",
+      "bytes": 362655,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi-son-helaman"
+      ],
+      "characterVersions": {
+        "nephi-son-helaman": "nephi-son-helaman-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-39-nephi-receives-great-power?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-039-02",
+      "imageIndex": 154,
+      "puzzleNumber": 155,
+      "url": "/kids/images/story-39-2.jpg",
+      "path": "public/kids/images/story-39-2.jpg",
+      "sha256": "646d7ae8aeceb4c4260ffb0259919ab6ccff8e32aa18f472d2aa436f37a6c127",
+      "bytes": 329393,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi-son-helaman"
+      ],
+      "characterVersions": {
+        "nephi-son-helaman": "nephi-son-helaman-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-39-nephi-receives-great-power?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-039-03",
+      "imageIndex": 155,
+      "puzzleNumber": 156,
+      "url": "/kids/images/story-39-3.jpg",
+      "path": "public/kids/images/story-39-3.jpg",
+      "sha256": "c4c53cf58b84e96928d9cb2dd4d9f53facfba61e2c07c5f1b53e59d941c69a5e",
+      "bytes": 327306,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi-son-helaman"
+      ],
+      "characterVersions": {
+        "nephi-son-helaman": "nephi-son-helaman-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-39-nephi-receives-great-power?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-040-00",
+      "imageIndex": 156,
+      "puzzleNumber": 157,
+      "url": "/kids/images/story-40-0.jpg",
+      "path": "public/kids/images/story-40-0.jpg",
+      "sha256": "9b34a8f23f22996677bee7e7ac8fbb7a2562de33ec49776a1b1a36d9639b837d",
+      "bytes": 316367,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-40-samuel-the-lamanite-tells-about-jesus-christ?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-040-01",
+      "imageIndex": 157,
+      "puzzleNumber": 158,
+      "url": "/kids/images/story-40-1.jpg",
+      "path": "public/kids/images/story-40-1.jpg",
+      "sha256": "e1de53046923b2d6da5768c6a820b394aff3ef9b76bc2e7e19b8c706d8232b09",
+      "bytes": 296160,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "samuel-lamanite"
+      ],
+      "characterVersions": {
+        "samuel-lamanite": "samuel-lamanite-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-40-samuel-the-lamanite-tells-about-jesus-christ?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-040-02",
+      "imageIndex": 158,
+      "puzzleNumber": 159,
+      "url": "/kids/images/story-40-2.jpg",
+      "path": "public/kids/images/story-40-2.jpg",
+      "sha256": "cec734f25e49a56de9cc1f61c730a17dc8fe9377c2acf60d23e9c8e874df5704",
+      "bytes": 302334,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "samuel-lamanite"
+      ],
+      "characterVersions": {
+        "samuel-lamanite": "samuel-lamanite-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-40-samuel-the-lamanite-tells-about-jesus-christ?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-040-03",
+      "imageIndex": 159,
+      "puzzleNumber": 160,
+      "url": "/kids/images/story-40-3.jpg",
+      "path": "public/kids/images/story-40-3.jpg",
+      "sha256": "c02771b82823fb66a72c23e4f3a802eeb88f2f29732a80c09eb2fe7679531726",
+      "bytes": 278885,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "samuel-lamanite"
+      ],
+      "characterVersions": {
+        "samuel-lamanite": "samuel-lamanite-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-40-samuel-the-lamanite-tells-about-jesus-christ?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-041-00",
+      "imageIndex": 160,
+      "puzzleNumber": 161,
+      "url": "/kids/images/story-41-0.jpg",
+      "path": "public/kids/images/story-41-0.jpg",
+      "sha256": "c64e8876eecebfeac041926bb035c6307253ab28c86b7e9b8f78d7f45fe7c315",
+      "bytes": 260484,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi-son-helaman",
+        "nephi-son-nephi"
+      ],
+      "characterVersions": {
+        "nephi-son-helaman": "nephi-son-helaman-older-master-v1",
+        "nephi-son-nephi": "nephi-son-nephi-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-41-the-signs-of-christs-birth?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-041-01",
+      "imageIndex": 161,
+      "puzzleNumber": 162,
+      "url": "/kids/images/story-41-1.jpg",
+      "path": "public/kids/images/story-41-1.jpg",
+      "sha256": "45e4cfb45adc42f176f79a0da5681b5e170f9d745d149ccbab983357c7f038d5",
+      "bytes": 297330,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-41-the-signs-of-christs-birth?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-041-02",
+      "imageIndex": 162,
+      "puzzleNumber": 163,
+      "url": "/kids/images/story-41-2.jpg",
+      "path": "public/kids/images/story-41-2.jpg",
+      "sha256": "b035bcf0e34836d5b771ffd37caf0c36bf27cb3013bd5a13092b19b17bd6eca7",
+      "bytes": 294225,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-41-the-signs-of-christs-birth?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-041-03",
+      "imageIndex": 163,
+      "puzzleNumber": 164,
+      "url": "/kids/images/story-41-3.jpg",
+      "path": "public/kids/images/story-41-3.jpg",
+      "sha256": "7ed48eb14861c48c54f60d97b1b10f43ebfdbbf15802fc8ca48a8053e81b0193",
+      "bytes": 283860,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-41-the-signs-of-christs-birth?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-042-00",
+      "imageIndex": 164,
+      "puzzleNumber": 165,
+      "url": "/kids/images/story-42-0.jpg",
+      "path": "public/kids/images/story-42-0.jpg",
+      "sha256": "884d7f9f051d64f11602b918bf6bfe893560c8839bedec5d50c2218d686de6c4",
+      "bytes": 317599,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-42-the-signs-of-christs-crucifixion?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-042-01",
+      "imageIndex": 165,
+      "puzzleNumber": 166,
+      "url": "/kids/images/story-42-1.jpg",
+      "path": "public/kids/images/story-42-1.jpg",
+      "sha256": "14dace9a640cd923f825e395e94ebf15a8e7b954600bae49cf1c260c1cae7c08",
+      "bytes": 311062,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-42-the-signs-of-christs-crucifixion?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-042-02",
+      "imageIndex": 166,
+      "puzzleNumber": 167,
+      "url": "/kids/images/story-42-2.jpg",
+      "path": "public/kids/images/story-42-2.jpg",
+      "sha256": "260d1689ae0fae85ee1be4dcb6a15add4f01776e803e802a118cde9f9b3456e4",
+      "bytes": 270807,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-42-the-signs-of-christs-crucifixion?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-042-03",
+      "imageIndex": 167,
+      "puzzleNumber": 168,
+      "url": "/kids/images/story-42-3.jpg",
+      "path": "public/kids/images/story-42-3.jpg",
+      "sha256": "2341e4137ae887f993c488c33c5c2b45395655bac4f40f9f0aeb1972befac9bc",
+      "bytes": 301914,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-42-the-signs-of-christs-crucifixion?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-043-00",
+      "imageIndex": 168,
+      "puzzleNumber": 169,
+      "url": "/kids/images/story-43-0.jpg",
+      "path": "public/kids/images/story-43-0.jpg",
+      "sha256": "d174beca6121958e5d19728ff3a0cf1334498a9a49f0565db3359c2d39da4f1a",
+      "bytes": 315588,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-43-jesus-christ-appears-to-the-nephites?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-043-01",
+      "imageIndex": 169,
+      "puzzleNumber": 170,
+      "url": "/kids/images/story-43-1.jpg",
+      "path": "public/kids/images/story-43-1.jpg",
+      "sha256": "0fb1c1013f8761ab425f33fda87b6355298fa18a262b32921d28d2380d594cf4",
+      "bytes": 294282,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-43-jesus-christ-appears-to-the-nephites?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-043-02",
+      "imageIndex": 170,
+      "puzzleNumber": 171,
+      "url": "/kids/images/story-43-2.jpg",
+      "path": "public/kids/images/story-43-2.jpg",
+      "sha256": "a1f217ba0045b457e048f20a60d89440fe787c4ede5d8d6f525448fd97d7e8fb",
+      "bytes": 267456,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-43-jesus-christ-appears-to-the-nephites?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-043-03",
+      "imageIndex": 171,
+      "puzzleNumber": 172,
+      "url": "/kids/images/story-43-3.jpg",
+      "path": "public/kids/images/story-43-3.jpg",
+      "sha256": "17e0f8ca96ddf32f6d000220edd47bb8e1b0eb1fbee3f93a4a1dbebc41670aef",
+      "bytes": 262510,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-43-jesus-christ-appears-to-the-nephites?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-044-00",
+      "imageIndex": 172,
+      "puzzleNumber": 173,
+      "url": "/kids/images/story-44-0.jpg",
+      "path": "public/kids/images/story-44-0.jpg",
+      "sha256": "138efe1574a7150ef8dd31207d50f40867b5d573ee68fdf5c36a5dd14220c4d1",
+      "bytes": 307761,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jesus-christ"
+      ],
+      "characterVersions": {
+        "jesus-christ": "jesus-christ-adult-reference-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-44-jesus-christ-blesses-the-children?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-044-01",
+      "imageIndex": 173,
+      "puzzleNumber": 174,
+      "url": "/kids/images/story-44-1.jpg",
+      "path": "public/kids/images/story-44-1.jpg",
+      "sha256": "1972eaee162728ddd0f2aa2858a4154e4505f45ad484ec9d79c15c25d2d4efd6",
+      "bytes": 302912,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jesus-christ"
+      ],
+      "characterVersions": {
+        "jesus-christ": "jesus-christ-adult-reference-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-44-jesus-christ-blesses-the-children?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-044-02",
+      "imageIndex": 174,
+      "puzzleNumber": 175,
+      "url": "/kids/images/story-44-2.jpg",
+      "path": "public/kids/images/story-44-2.jpg",
+      "sha256": "2bbd4dccf790802c3075bdacd0a720be8fa0ef6cad727fd921b9bb1001d31636",
+      "bytes": 257151,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jesus-christ"
+      ],
+      "characterVersions": {
+        "jesus-christ": "jesus-christ-adult-reference-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-44-jesus-christ-blesses-the-children?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-044-03",
+      "imageIndex": 175,
+      "puzzleNumber": 176,
+      "url": "/kids/images/story-44-3.jpg",
+      "path": "public/kids/images/story-44-3.jpg",
+      "sha256": "186b877d339c50c7e0da92fda67fbee878b9ba48b8eaf8606b2f369730daaab1",
+      "bytes": 337278,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jesus-christ"
+      ],
+      "characterVersions": {
+        "jesus-christ": "jesus-christ-adult-reference-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-44-jesus-christ-blesses-the-children?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-045-00",
+      "imageIndex": 176,
+      "puzzleNumber": 177,
+      "url": "/kids/images/story-45-0.jpg",
+      "path": "public/kids/images/story-45-0.jpg",
+      "sha256": "245a8ed29ab9f8a25aa2ac52f07c5faac66f87016d14e675617d6f989792dcd8",
+      "bytes": 297904,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi-son-nephi"
+      ],
+      "characterVersions": {
+        "nephi-son-nephi": "nephi-son-nephi-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-45-jesus-christ-teaches-about-the-sacrament-and-prayer?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-045-01",
+      "imageIndex": 177,
+      "puzzleNumber": 178,
+      "url": "/kids/images/story-45-1.jpg",
+      "path": "public/kids/images/story-45-1.jpg",
+      "sha256": "c0d1bdd2a14f9fd1e75af6ef59298029a7328d6cbb3d7b565a4d407ac2825a43",
+      "bytes": 280664,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jesus-christ",
+        "nephi-son-nephi"
+      ],
+      "characterVersions": {
+        "jesus-christ": "jesus-christ-adult-reference-v1",
+        "nephi-son-nephi": "nephi-son-nephi-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-45-jesus-christ-teaches-about-the-sacrament-and-prayer?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-045-02",
+      "imageIndex": 178,
+      "puzzleNumber": 179,
+      "url": "/kids/images/story-45-2.jpg",
+      "path": "public/kids/images/story-45-2.jpg",
+      "sha256": "42fbb12d2cb65c06edede643555c9dd07f245c05fe8bf67be83c4408fea9f071",
+      "bytes": 298292,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi-son-nephi"
+      ],
+      "characterVersions": {
+        "nephi-son-nephi": "nephi-son-nephi-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-45-jesus-christ-teaches-about-the-sacrament-and-prayer?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-045-03",
+      "imageIndex": 179,
+      "puzzleNumber": 180,
+      "url": "/kids/images/story-45-3.jpg",
+      "path": "public/kids/images/story-45-3.jpg",
+      "sha256": "adc349b14e7790a279a1a5e0489ca3c640cf26a8ae389198f2a5ef03c3d3bd72",
+      "bytes": 323372,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jesus-christ",
+        "nephi-son-nephi"
+      ],
+      "characterVersions": {
+        "jesus-christ": "jesus-christ-adult-reference-v1",
+        "nephi-son-nephi": "nephi-son-nephi-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-45-jesus-christ-teaches-about-the-sacrament-and-prayer?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-046-00",
+      "imageIndex": 180,
+      "puzzleNumber": 181,
+      "url": "/kids/images/story-46-0.jpg",
+      "path": "public/kids/images/story-46-0.jpg",
+      "sha256": "38dd7915ef5c87a5d42559cd86a494d38dd2dcc5e83f2cc52e18ea162dd10c82",
+      "bytes": 291335,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-46-jesus-christ-teaches-and-prays-with-the-nephites?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-046-01",
+      "imageIndex": 181,
+      "puzzleNumber": 182,
+      "url": "/kids/images/story-46-1.jpg",
+      "path": "public/kids/images/story-46-1.jpg",
+      "sha256": "6912865206469dc3699f88618357b7ee35fe4877604c90d615c0ba4d7ec3d825",
+      "bytes": 284183,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi-son-nephi"
+      ],
+      "characterVersions": {
+        "nephi-son-nephi": "nephi-son-nephi-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-46-jesus-christ-teaches-and-prays-with-the-nephites?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-046-02",
+      "imageIndex": 182,
+      "puzzleNumber": 183,
+      "url": "/kids/images/story-46-2.jpg",
+      "path": "public/kids/images/story-46-2.jpg",
+      "sha256": "64ebae2f4409d8ca92a886468f6b0360b04a5e634182c567f64258bcb76b830c",
+      "bytes": 304819,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "nephi-son-nephi"
+      ],
+      "characterVersions": {
+        "nephi-son-nephi": "nephi-son-nephi-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-46-jesus-christ-teaches-and-prays-with-the-nephites?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-046-03",
+      "imageIndex": 183,
+      "puzzleNumber": 184,
+      "url": "/kids/images/story-46-3.jpg",
+      "path": "public/kids/images/story-46-3.jpg",
+      "sha256": "a9b3d90f5417e3713e16cbe1207571c81faa9aa5adfd024286dfaafe39f1cca1",
+      "bytes": 325058,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jesus-christ",
+        "nephi-son-nephi"
+      ],
+      "characterVersions": {
+        "jesus-christ": "jesus-christ-adult-reference-v1",
+        "nephi-son-nephi": "nephi-son-nephi-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-46-jesus-christ-teaches-and-prays-with-the-nephites?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-047-00",
+      "imageIndex": 184,
+      "puzzleNumber": 185,
+      "url": "/kids/images/story-47-0.jpg",
+      "path": "public/kids/images/story-47-0.jpg",
+      "sha256": "f2c404986ddcc29b35c9511a72007c5a71f8fa12a8762aa11e82f21e765b222a",
+      "bytes": 291555,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jesus-christ",
+        "nephi-son-nephi"
+      ],
+      "characterVersions": {
+        "jesus-christ": "jesus-christ-adult-reference-v1",
+        "nephi-son-nephi": "nephi-son-nephi-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-47-jesus-christ-blesses-his-disciples?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-047-01",
+      "imageIndex": 185,
+      "puzzleNumber": 186,
+      "url": "/kids/images/story-47-1.jpg",
+      "path": "public/kids/images/story-47-1.jpg",
+      "sha256": "f48aeabaec3d6ddaec4bc14c261795125b934d2140c1e9b91a900ccc696ef390",
+      "bytes": 281954,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jesus-christ",
+        "nephi-son-nephi"
+      ],
+      "characterVersions": {
+        "jesus-christ": "jesus-christ-adult-reference-v1",
+        "nephi-son-nephi": "nephi-son-nephi-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-47-jesus-christ-blesses-his-disciples?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-047-02",
+      "imageIndex": 186,
+      "puzzleNumber": 187,
+      "url": "/kids/images/story-47-2.jpg",
+      "path": "public/kids/images/story-47-2.jpg",
+      "sha256": "a9e6f5b7d8d5fb2c2dd0e4ab92ba32c6b4918e6f261d6f0d69035867cbcfb8b3",
+      "bytes": 262268,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jesus-christ",
+        "nephi-son-nephi"
+      ],
+      "characterVersions": {
+        "jesus-christ": "jesus-christ-adult-reference-v1",
+        "nephi-son-nephi": "nephi-son-nephi-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-47-jesus-christ-blesses-his-disciples?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-047-03",
+      "imageIndex": 187,
+      "puzzleNumber": 188,
+      "url": "/kids/images/story-47-3.jpg",
+      "path": "public/kids/images/story-47-3.jpg",
+      "sha256": "3067265b480ef56b109d8fb050cc61f7bc762e3b0497b5eb9d85940511d2f8aa",
+      "bytes": 270581,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jesus-christ",
+        "nephi-son-nephi"
+      ],
+      "characterVersions": {
+        "jesus-christ": "jesus-christ-adult-reference-v1",
+        "nephi-son-nephi": "nephi-son-nephi-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-47-jesus-christ-blesses-his-disciples?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-048-00",
+      "imageIndex": 188,
+      "puzzleNumber": 189,
+      "url": "/kids/images/story-48-0.jpg",
+      "path": "public/kids/images/story-48-0.jpg",
+      "sha256": "0c7eab10f2de130205981cb27bb6224814bf1d5b7f1c5ff90e1e00f9bb137950",
+      "bytes": 343591,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "church-disciple"
+      ],
+      "characterVersions": {
+        "church-disciple": "church-disciple-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-48-peace-in-america?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-048-01",
+      "imageIndex": 189,
+      "puzzleNumber": 190,
+      "url": "/kids/images/story-48-1.jpg",
+      "path": "public/kids/images/story-48-1.jpg",
+      "sha256": "e0507c01e2e2fc34f5eda74fbd6328bfd7af12751d78835ea0cd9f04b4235bf7",
+      "bytes": 311053,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "church-disciple"
+      ],
+      "characterVersions": {
+        "church-disciple": "church-disciple-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-48-peace-in-america?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-048-02",
+      "imageIndex": 190,
+      "puzzleNumber": 191,
+      "url": "/kids/images/story-48-2.jpg",
+      "path": "public/kids/images/story-48-2.jpg",
+      "sha256": "523fce7b1e2dcb201d4b8eb3b0e299d773b682a8cfe5ac2333f7448f4c9162d4",
+      "bytes": 331626,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-48-peace-in-america?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-048-03",
+      "imageIndex": 191,
+      "puzzleNumber": 192,
+      "url": "/kids/images/story-48-3.jpg",
+      "path": "public/kids/images/story-48-3.jpg",
+      "sha256": "55b9985c534f0033c1850858760b137ed73b9b0ff09ed9d27759f484981c9489",
+      "bytes": 263635,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "church-disciple"
+      ],
+      "characterVersions": {
+        "church-disciple": "church-disciple-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-48-peace-in-america?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-049-00",
+      "imageIndex": 192,
+      "puzzleNumber": 193,
+      "url": "/kids/images/story-49-0.jpg",
+      "path": "public/kids/images/story-49-0.jpg",
+      "sha256": "6464f9c3cdef808d535968101260151b43a53a7f7bc4880a45d855508430af81",
+      "bytes": 294882,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-49-mormon-and-his-teachings?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-049-01",
+      "imageIndex": 193,
+      "puzzleNumber": 194,
+      "url": "/kids/images/story-49-1.jpg",
+      "path": "public/kids/images/story-49-1.jpg",
+      "sha256": "1a371f01f11deb526b7d49a481157c423af8a3a58a98ff737a1d7c57875f15fd",
+      "bytes": 305717,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-49-mormon-and-his-teachings?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-049-02",
+      "imageIndex": 194,
+      "puzzleNumber": 195,
+      "url": "/kids/images/story-49-2.jpg",
+      "path": "public/kids/images/story-49-2.jpg",
+      "sha256": "0a1c82efd3c1e52e07ba19c58621934de89bb458ebe57713e10ff28f53103f89",
+      "bytes": 300333,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "ammaron",
+        "mormon"
+      ],
+      "characterVersions": {
+        "ammaron": "ammaron-master-v1",
+        "mormon": "mormon-child-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-49-mormon-and-his-teachings?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-049-03",
+      "imageIndex": 195,
+      "puzzleNumber": 196,
+      "url": "/kids/images/story-49-3.jpg",
+      "path": "public/kids/images/story-49-3.jpg",
+      "sha256": "e666a7a0c7fa8f48f55005291d6ef7b33f9765989fc334f35923e4dec9e60a46",
+      "bytes": 302971,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "ammaron",
+        "mormon"
+      ],
+      "characterVersions": {
+        "ammaron": "ammaron-master-v1",
+        "mormon": "mormon-child-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-49-mormon-and-his-teachings?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-050-00",
+      "imageIndex": 196,
+      "puzzleNumber": 197,
+      "url": "/kids/images/story-50-0.jpg",
+      "path": "public/kids/images/story-50-0.jpg",
+      "sha256": "365be8e8abdfbcce65d3b7435fdcdb8fcb4999de8ee28565dcd64a8fc3f695d2",
+      "bytes": 268938,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jared",
+        "brother-of-jared"
+      ],
+      "characterVersions": {
+        "jared": "jared-master-v1",
+        "brother-of-jared": "brother-of-jared-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-50-the-jaredites-leave-babel?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-050-01",
+      "imageIndex": 197,
+      "puzzleNumber": 198,
+      "url": "/kids/images/story-50-1.jpg",
+      "path": "public/kids/images/story-50-1.jpg",
+      "sha256": "0e54e808aa799236027cf7a54365ebd6c5f8861ba9111895d20b7ff902b6f43c",
+      "bytes": 301238,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "brother-of-jared"
+      ],
+      "characterVersions": {
+        "brother-of-jared": "brother-of-jared-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-50-the-jaredites-leave-babel?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-050-02",
+      "imageIndex": 198,
+      "puzzleNumber": 199,
+      "url": "/kids/images/story-50-2.jpg",
+      "path": "public/kids/images/story-50-2.jpg",
+      "sha256": "892f11ca18b40601bf4a459c09e9c0d4bcab6b20a072beb5ec8373644d861b5b",
+      "bytes": 348440,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jared",
+        "brother-of-jared"
+      ],
+      "characterVersions": {
+        "jared": "jared-master-v1",
+        "brother-of-jared": "brother-of-jared-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-50-the-jaredites-leave-babel?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-050-03",
+      "imageIndex": 199,
+      "puzzleNumber": 200,
+      "url": "/kids/images/story-50-3.jpg",
+      "path": "public/kids/images/story-50-3.jpg",
+      "sha256": "43e5d583f48f190b4493ed4435a5482e87996f4299662a8253e717c2f61b12fa",
+      "bytes": 294119,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jared",
+        "brother-of-jared"
+      ],
+      "characterVersions": {
+        "jared": "jared-master-v1",
+        "brother-of-jared": "brother-of-jared-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-50-the-jaredites-leave-babel?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-051-00",
+      "imageIndex": 200,
+      "puzzleNumber": 201,
+      "url": "/kids/images/story-51-0.jpg",
+      "path": "public/kids/images/story-51-0.jpg",
+      "sha256": "03dcc038024a4ea40d782c24efa628b5bcee2f264c58c44884678cdd98c551b5",
+      "bytes": 295340,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "brother-of-jared"
+      ],
+      "characterVersions": {
+        "brother-of-jared": "brother-of-jared-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-51-the-jaredites-travel-to-the-promised-land?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-051-01",
+      "imageIndex": 201,
+      "puzzleNumber": 202,
+      "url": "/kids/images/story-51-1.jpg",
+      "path": "public/kids/images/story-51-1.jpg",
+      "sha256": "70543a9be588aba79873f2c1e0b6dce13391f5f988f08c3427647448316d33fd",
+      "bytes": 280945,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "brother-of-jared"
+      ],
+      "characterVersions": {
+        "brother-of-jared": "brother-of-jared-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-51-the-jaredites-travel-to-the-promised-land?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-051-02",
+      "imageIndex": 202,
+      "puzzleNumber": 203,
+      "url": "/kids/images/story-51-2.jpg",
+      "path": "public/kids/images/story-51-2.jpg",
+      "sha256": "083c0404fdcded168996e3ba02ab3b446387ca89425c736711bf1a8d7f2cfbba",
+      "bytes": 290591,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-51-the-jaredites-travel-to-the-promised-land?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-051-03",
+      "imageIndex": 203,
+      "puzzleNumber": 204,
+      "url": "/kids/images/story-51-3.jpg",
+      "path": "public/kids/images/story-51-3.jpg",
+      "sha256": "aab7c39c620482ae11437856034353a0af73e149146e8671498d0ab02c530e40",
+      "bytes": 287165,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "brother-of-jared"
+      ],
+      "characterVersions": {
+        "brother-of-jared": "brother-of-jared-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-51-the-jaredites-travel-to-the-promised-land?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-052-00",
+      "imageIndex": 204,
+      "puzzleNumber": 205,
+      "url": "/kids/images/story-52-0.jpg",
+      "path": "public/kids/images/story-52-0.jpg",
+      "sha256": "81d73aa70d46a4a281c4fdb2e46a101d48b394c741350d09d0b2b0423dee482e",
+      "bytes": 315188,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jaredite-king-role"
+      ],
+      "characterVersions": {
+        "jaredite-king-role": "jaredite-king-role-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-52-the-destruction-of-the-jaredites?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-052-01",
+      "imageIndex": 205,
+      "puzzleNumber": 206,
+      "url": "/kids/images/story-52-1.jpg",
+      "path": "public/kids/images/story-52-1.jpg",
+      "sha256": "55a8fc72f66e652116bacb9077af0936673da5dbf817f51164b764c0852cdbf6",
+      "bytes": 395384,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-52-the-destruction-of-the-jaredites?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-052-02",
+      "imageIndex": 206,
+      "puzzleNumber": 207,
+      "url": "/kids/images/story-52-2.jpg",
+      "path": "public/kids/images/story-52-2.jpg",
+      "sha256": "8db8a5729004a838bbd794db22ee8a5c7b329096ddf33f42f3a1d9f2006e41d0",
+      "bytes": 309237,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jaredite-prophet-role"
+      ],
+      "characterVersions": {
+        "jaredite-prophet-role": "jaredite-prophet-role-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-52-the-destruction-of-the-jaredites?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-052-03",
+      "imageIndex": 207,
+      "puzzleNumber": 208,
+      "url": "/kids/images/story-52-3.jpg",
+      "path": "public/kids/images/story-52-3.jpg",
+      "sha256": "0699df24090fde3bbdf342f86bffe5934cc18fa1e4f9c284ee2cfbc0de1377a9",
+      "bytes": 290916,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "jaredite-prophet-role"
+      ],
+      "characterVersions": {
+        "jaredite-prophet-role": "jaredite-prophet-role-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-52-the-destruction-of-the-jaredites?lang=nld",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-053-00",
+      "imageIndex": 208,
+      "puzzleNumber": 209,
+      "url": "/kids/images/story-53-0.jpg",
+      "path": "public/kids/images/story-53-0.jpg",
+      "sha256": "89f0164cdd3e66075f7ea06f3748a746c757d5dd01e436a031bdd4466d6113dc",
+      "bytes": 265808,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "moroni-son-mormon"
+      ],
+      "characterVersions": {
+        "moroni-son-mormon": "moroni-son-mormon-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-53-moroni-and-his-teachings?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-053-01",
+      "imageIndex": 209,
+      "puzzleNumber": 210,
+      "url": "/kids/images/story-53-1.jpg",
+      "path": "public/kids/images/story-53-1.jpg",
+      "sha256": "6db3408676ca334a745f8107bde5abfd1106839db5ed8b146e4a11c8c9a08618",
+      "bytes": 280640,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "moroni-son-mormon",
+        "joseph-smith"
+      ],
+      "characterVersions": {
+        "moroni-son-mormon": "moroni-son-mormon-master-v1",
+        "joseph-smith": "joseph-smith-young-reference-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-53-moroni-and-his-teachings?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-053-02",
+      "imageIndex": 210,
+      "puzzleNumber": 211,
+      "url": "/kids/images/story-53-2.jpg",
+      "path": "public/kids/images/story-53-2.jpg",
+      "sha256": "04143e9a4f448100e44edf9e0d72f05b7de06a00cb97b5605db982788f2e26d9",
+      "bytes": 298050,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-53-moroni-and-his-teachings?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-053-03",
+      "imageIndex": 211,
+      "puzzleNumber": 212,
+      "url": "/kids/images/story-53-3.jpg",
+      "path": "public/kids/images/story-53-3.jpg",
+      "sha256": "20fb484344de018e5599f6b93f42d95c311d33832e650193b92b75db530e6476",
+      "bytes": 299624,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "moroni-son-mormon"
+      ],
+      "characterVersions": {
+        "moroni-son-mormon": "moroni-son-mormon-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-53-moroni-and-his-teachings?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-054-00",
+      "imageIndex": 212,
+      "puzzleNumber": 213,
+      "url": "/kids/images/story-54-0.jpg",
+      "path": "public/kids/images/story-54-0.jpg",
+      "sha256": "54a1473d24d439cbe00c6d25d8f0a4ebd989b96e0c348bf353df8a5ef6fc7298",
+      "bytes": 342703,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "moroni-son-mormon"
+      ],
+      "characterVersions": {
+        "moroni-son-mormon": "moroni-son-mormon-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-54-the-promise-of-the-book-of-mormon?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-054-01",
+      "imageIndex": 213,
+      "puzzleNumber": 214,
+      "url": "/kids/images/story-54-1.jpg",
+      "path": "public/kids/images/story-54-1.jpg",
+      "sha256": "3b64e0b333870b2958c0ac6f9d60d399f47a2e0871f3777bc7a674bd62469d21",
+      "bytes": 228418,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [],
+      "characterVersions": {},
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-54-the-promise-of-the-book-of-mormon?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-054-02",
+      "imageIndex": 214,
+      "puzzleNumber": 215,
+      "url": "/kids/images/story-54-2.jpg",
+      "path": "public/kids/images/story-54-2.jpg",
+      "sha256": "92ac82d08e62d4a7fdf9810c356e77b4d71cc08abb0908464aed6c1cf2269316",
+      "bytes": 279502,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "moroni-son-mormon"
+      ],
+      "characterVersions": {
+        "moroni-son-mormon": "moroni-son-mormon-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-54-the-promise-of-the-book-of-mormon?lang=eng",
+      "review": "visual-pass"
+    },
+    {
+      "id": "bom-classic-054-03",
+      "imageIndex": 215,
+      "puzzleNumber": 216,
+      "url": "/kids/images/story-54-3.jpg",
+      "path": "public/kids/images/story-54-3.jpg",
+      "sha256": "486c68be2b53118cb276d3c241f21ebc084e48d4af7a9d9a78e74d61140eccbe",
+      "bytes": 308752,
+      "pixels": [
+        1200,
+        800
+      ],
+      "characters": [
+        "moroni-son-mormon"
+      ],
+      "characterVersions": {
+        "moroni-son-mormon": "moroni-son-mormon-older-master-v1"
+      },
+      "sourcePage": "https://www.churchofjesuschrist.org/study/manual/book-of-mormon-stories/chapter-54-the-promise-of-the-book-of-mormon?lang=eng",
+      "review": "visual-pass"
+    }
+  ]
+}

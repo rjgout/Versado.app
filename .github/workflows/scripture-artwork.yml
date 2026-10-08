@@ -1,0 +1,28 @@
+name: Schriftillustraties typecontrole
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'public/kids/images/**'
+      - 'public/scripture/**'
+      - 'docs/scripture/**'
+      - '.github/workflows/scripture-artwork.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx next typegen
+      - run: npx tsc --noEmit
