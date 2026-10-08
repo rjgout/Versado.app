@@ -216,7 +216,7 @@ export function NotificationsView({
   );
 }
 
-export function PrivacyView({ data, saving, onToggle }: { data: ProfileData; saving: boolean; onToggle: () => void }) {
+export function PrivacyView({ data, saving, onToggleSearchable, onToggleAchievements }: { data: ProfileData; saving: boolean; onToggleSearchable: () => void; onToggleAchievements: () => void }) {
   const t = useT();
   return (
     <SettingsSection>
@@ -225,7 +225,14 @@ export function PrivacyView({ data, saving, onToggle }: { data: ProfileData; sav
         description={`${t("profile.searchableDesc", { email: data.email })} ${t("profile.searchableHint", { tag: formatTag(data.handle, data.discriminator) })}`}
         checked={data.searchableByEmail}
         busy={saving}
-        onChange={onToggle}
+        onChange={onToggleSearchable}
+      />
+      <SettingsToggleRow
+        label={t("profile.shareAchievementsLabel")}
+        description={t("profile.shareAchievementsDesc")}
+        checked={data.shareAchievements}
+        busy={saving}
+        onChange={onToggleAchievements}
       />
     </SettingsSection>
   );

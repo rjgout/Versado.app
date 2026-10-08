@@ -5,6 +5,7 @@ import type { PersonalMascotCharacter } from "@/lib/mascots";
 // het profieloverzicht en de onderdelen.
 
 export interface AchievementView {
+  id: string;
   slug: string;
   name: string;
   description: string;
@@ -20,6 +21,7 @@ export interface ProfileData {
   avatarEmoji: string | null;
   email: string;
   searchableByEmail: boolean;
+  shareAchievements: boolean;
   shareOnlineStatus: boolean;
   shareCurrentActivity: boolean;
   incognitoActive: boolean;
@@ -62,6 +64,7 @@ export interface ProfileData {
   bestNationalRank: number | null;
   seasons: { seasonIndex: number; highestTier: LeagueTier; finalTier: LeagueTier; finalGroupPosition: number | null }[];
   achievements: AchievementView[];
+  featuredAchievementIds: string[];
 }
 
 /** Instellingen die als losse aan/uit-waarde via PATCH /api/account gaan. */

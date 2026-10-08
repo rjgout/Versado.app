@@ -141,6 +141,32 @@ export default function ProfileClient() {
     setSavingPrivacy(false);
   }
 
+  async function toggleShareAchievements() {
+    if (!data) return;
+    const next = !data.shareAchievements;
+    setData({ ...data, shareAchievements: next });
+    setSavingPrivacy(true);
+    await saveAccountPatch({ shareAchievements: next });
+    setSavingPrivacy(false);
+    // Vrienden met dit profiel open halen na de serverwijziging vers op.
+    getSocket().emit("friend_profile_changed");
+  }
+
+  async function saveFeaturedAchievements(achievementIds: string[]) {
+    try {
+      await liveMutation(
+        () => fetchJson("/api/profile/featured-achievements", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ achievementIds }) }),
+        { invalidates: ["profile", "friends"] }
+      );
+      setData((current) => (current ? { ...current, featuredAchievementIds: achievementIds } : current));
+      getSocket().emit("friend_profile_changed");
+    } catch {
+      // De beheerweergave laat de onopgeslagen keuze staan zodat iemand hem
+      // opnieuw kan bewaren zonder zijn werk kwijt te raken.
+      throw new Error(t("wordOfTheDay.somethingWrong"));
+    }
+  }
+
   // Het profiel zelf is al lokaal bijgewerkt (optimistisch), dus niet opnieuw ophalen; wel de schermen waar
   // deze instellingen doorwerken (Vandaag toont bv. begroeting, afteltimer en spelkaarten) als verouderd markeren.
   function afterAccountChange() {
@@ -444,12 +470,12 @@ export default function ProfileClient() {
     return (
       <ProfilePage title={t(PROFILE_VIEWS[view].title)}>
         {view === "competition" && <CompetitionView data={data} />}
-        {view === "achievements" && <AchievementsView data={data} />}
+        {view === "achievements" && <AchievementsView data={data} onSaveFeatured={saveFeaturedAchievements} />}
         {view === "reading" && <ReadingView resetting={resettingReadingProgress} message={resetReadingMessage} error={resetReadingError} onReset={resetReadingProgress} />}
         {view === "language" && <LanguageSettings uiLanguage={data.uiLanguage} isAdmin={data.isAdmin} />}
         {view === "readAloud" && <ReadAloudView voices={readAloudVoices} selectedVoice={selectedReadAloudVoice} speed={readAloudSpeed} testing={testingReadAloudVoice} onVoice={changeReadAloudVoice} onSpeed={changeReadAloudSpeed} onTest={testReadAloudVoice} />}
         {view === "notifications" && <NotificationsView data={data} saving={savingNotifications} pushError={pushError} testingPush={testingPush} pushCountdown={pushCountdown} pushTestMessage={pushTestMessage} onEmail={toggleEmailNotifications} onPush={togglePushNotifications} onTest={sendTestPush} onCategory={toggleCategory} onReminder={changeReminderTime} onDailyText={(time) => saveAccountPatch({ dailyTextTime: time }).then(() => setData((current) => current ? { ...current, dailyTextTime: time } : current))} />}
-        {view === "privacy" && <PrivacyView data={data} saving={savingPrivacy} onToggle={toggleSearchableByEmail} />}
+        {view === "privacy" && <PrivacyView data={data} saving={savingPrivacy} onToggleSearchable={toggleSearchableByEmail} onToggleAchievements={toggleShareAchievements} />}
         {view === "presence" && <PresenceView data={data} saving={savingPresence} onOnline={toggleShareOnlineStatus} onActivity={toggleShareCurrentActivity} onIncognito={activateIncognito} onIncognitoOff={deactivateIncognito} />}
         {view === "about" && <WhatsNewView enabled={data.changelogEnabled} saving={savingNotifications} onToggle={() => toggleCategory("changelogEnabled")} />}
         {view === "twoFactor" && <TwoFactorSettings isAdmin={data.isAdmin} />}

@@ -183,7 +183,8 @@ export const es: PartialMessages = {
     "podcastLesson": "Lección de podcast",
     "kidsStory": "Cuento infantil",
     "introLesson": "Lección de introducción",
-    "chapter": "Capítulo"
+    "chapter": "Capítulo",
+    "friendProfile": "Perfil de amistad"
   },
   "header": {
     "streak": "Racha",
@@ -1518,7 +1519,15 @@ export const es: PartialMessages = {
     "listenVoiceLabel": "Escuchar la voz",
     "earnedOf": "{earned} de {total} conseguidos",
     "achievementEarned": "Conseguido",
-    "achievementLocked": "Aún no conseguido"
+    "achievementLocked": "Aún no conseguido",
+    "shareAchievementsLabel": "Compartir logros con amigos",
+    "shareAchievementsDesc": "Permite que tus amigos vean tu racha, XP, división y logros destacados en tu perfil de amistad.",
+    "featuredAchievements": "Logros destacados",
+    "featuredAchievementsHint": "Elige hasta cinco logros conseguidos en el orden en que los ven tus amigos.",
+    "featuredAchievementsCount": "{selected} de {max} seleccionados",
+    "removeFeaturedAchievement": "Quitar {name} de los logros destacados",
+    "saveFeaturedAchievements": "Guardar selección",
+    "yourFeaturedAchievements": "Tus logros destacados"
   },
   "twoFactor": {
     "setupFailed": "No se pudo configurar 2FA.",
@@ -1577,7 +1586,18 @@ export const es: PartialMessages = {
     "freezeTitle": "¿Dar una congelación?",
     "freezeConfirm": "¿Estás seguro de que quieres congelar una racha? ¿{tag}?",
     "sending": "Enviando...",
-    "yesGiveFreeze": "Sí, congela"
+    "yesGiveFreeze": "Sí, congela",
+    "openProfile": "Abrir perfil de {name}",
+    "profileUnavailable": "Este perfil de amistad no está disponible.",
+    "friendProfileStatus": "Sois amigos",
+    "sharedProgress": "Logros compartidos",
+    "profileNoAchievements": "Este amigo no comparte logros actualmente.",
+    "division": "División",
+    "togetherTitle": "Juntos",
+    "groupStreak": "{n} días",
+    "activeGame": "Partida activa juntos",
+    "gameLobby": "Sala",
+    "gameInProgress": "En curso"
   },
   "friendInvite": {
     "shareText": "¿Quieres unirte a mí en {app}? Con este enlace somos amigos de inmediato.",

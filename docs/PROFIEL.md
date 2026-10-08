@@ -67,3 +67,17 @@ layout-CSS.
   shell en `gap` regelen de ruimte.
 - Alle zichtbare tekst via i18n, in elke taal (zie CLAUDE.md, "Talen").
 - Getest met `npm run test:profile` (toegankelijkheid van de bouwstenen).
+
+## Vriendenprofielen en prestaties
+
+- Een vriendenprofiel bestaat alleen onder `/friends/[userId]` en is uitsluitend
+  bereikbaar vanuit een geaccepteerde vriendenkaart. De server controleert de
+  vriendschap bij elke aanvraag; een openstaand of verwijderd verzoek geeft
+  hetzelfde niet-beschikbare antwoord als een onbekend profiel.
+- `User.shareAchievements` staat standaard uit. Alleen wanneer de eigenaar dit
+  bewust inschakelt, levert de profiel-API reeks, XP, divisie en maximaal vijf
+  geselecteerde prestaties. De vriendenlijst bevat die gegevens niet.
+- De eigenaar beheert zijn uitgelichte prestaties vanuit het bestaande
+  prestatiesonderdeel. Alleen ids van werkelijk behaalde prestaties en hun
+  volgorde worden opgeslagen in `FeaturedAchievement`; de selectie blijft
+  bestaan wanneer delen tijdelijk wordt uitgeschakeld.

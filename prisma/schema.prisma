@@ -25,6 +25,10 @@ model User {
   // exacte e-mailadres gebruikt worden om ze te vinden bij het toevoegen
   // van vrienden (zie /api/users/search).
   searchableByEmail  Boolean   @default(false)
+  // Persoonlijke prestaties zijn niet impliciet sociaal. Alleen als iemand
+  // dit zelf aanzet, mogen geaccepteerde vrienden reeks, XP, divisie en de
+  // bewust gekozen uitgelichte prestaties op het vriendenprofiel zien.
+  shareAchievements  Boolean   @default(false)
   passwordHash       String
   // Verhoogd bij een wachtwoordreset/-wijziging zodat alle eerder uitgegeven sessietokens direct ongeldig worden.
   sessionVersion     Int       @default(0)
@@ -275,6 +279,7 @@ model User {
   highlights      Highlight[]
   notes           Note[]
   achievements    UserAchievement[]
+  featuredAchievements FeaturedAchievement[]
 
   sentFriendReqs     Friendship[] @relation("FriendSender")
   receivedFriendReqs Friendship[] @relation("FriendReceiver")
@@ -1474,6 +1479,7 @@ model Achievement {
   description      String
   icon             String // emoji
   userAchievements UserAchievement[]
+  featuredBy       FeaturedAchievement[]
 }
 
 model UserAchievement {
@@ -1485,6 +1491,22 @@ model UserAchievement {
   earnedAt      DateTime    @default(now())
 
   @@unique([userId, achievementId])
+}
+
+// De persoonlijke etalage op een vriendenprofiel. Alleen ids en de
+// gebruikersvolgorde worden opgeslagen; of iets werkelijk behaald is blijft
+// altijd bepaald door UserAchievement.
+model FeaturedAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  position      Int
+
+  @@unique([userId, achievementId])
+  @@unique([userId, position])
+  @@index([achievementId])
 }
 
 // Sociale feed-items worden server-side aangemaakt bij XP en prestaties.

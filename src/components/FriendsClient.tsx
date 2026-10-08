@@ -26,8 +26,6 @@ interface FriendUser {
   id: string;
   handle: string;
   discriminator: string;
-  xpTotal: number;
-  currentStreak: number;
   avatarEmoji: string | null;
 }
 
@@ -437,42 +435,21 @@ export default function FriendsClient({ appName }: { appName: string }) {
             return (
               <div key={f.id} className="card !p-3 sm:!p-4">
                 <div className="flex min-w-0 items-start gap-3">
-                  <span className="relative shrink-0">
-                    <UserAvatar id={f.id} handle={f.handle} avatarEmoji={f.avatarEmoji} size="md" />
-                    {status?.online && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-slate-800" aria-label={t("friendPicker.online")} />}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate font-bold dark:text-slate-100">
-                      <UserTag handle={f.handle} discriminator={f.discriminator} className="truncate" />
-                    </div>
-                    {status?.online ? (
-                      <div className="truncate text-xs font-semibold text-green-600 dark:text-green-400">
-                        {status.activity ? `${t("friendPicker.online")} · ${status.activity.icon} ${translateServerText(status.activity.label, t)}` : t("friendPicker.online")}
-                      </div>
-                    ) : status?.lastSeenLabel ? (
-                      <div className="flex min-w-0 items-center gap-1 truncate text-xs text-slate-500 dark:text-slate-400">
-                        <Clock3 className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                        <span className="truncate">{t("friends.lastActive", { when: translateServerText(status.lastSeenLabel, t) })}</span>
-                      </div>
-                    ) : null}
-                    <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-1.5">
-                      <span className="no-select inline-flex items-center gap-1 rounded-full bg-gold-50 px-2 py-0.5 text-xs font-bold text-gold-700 dark:bg-slate-700 dark:text-gold-400">
-                        <SystemIcon kind="streak" className="h-3.5 w-3.5" aria-hidden /> {f.currentStreak}
-                      </span>
-                      <span className="no-select inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700 dark:bg-slate-700 dark:text-brand-300">
-                        <SystemIcon kind="xp" className="h-3.5 w-3.5" fill="currentColor" aria-hidden /> {f.xpTotal} XP
-                      </span>
-                      <button
-                        className="btn-ice inline-flex !min-h-9 shrink-0 items-center gap-1 !px-2 !py-1 !text-xs"
-                        onClick={() => setPendingFreeze(f)}
-                        disabled={giftedTo === f.id}
-                        aria-label={giftedTo === f.id ? t("friends.sentExcl") : t("friends.giveFreeze")}
-                      >
-                        <SystemIcon kind="freeze" className="h-3.5 w-3.5" aria-hidden />
-                        {giftedTo === f.id ? t("friends.sentExcl") : t("friends.giveFreeze")}
-                      </button>
-                    </div>
-                  </div>
+                  <Link href={`/friends/${f.id}`} aria-label={t("friends.openProfile", { name: formatTag(f.handle, f.discriminator) })} className="flex min-w-0 flex-1 items-start gap-3 rounded-xl p-1 -m-1 transition hover:bg-vs-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent">
+                    <span className="relative shrink-0">
+                      <UserAvatar id={f.id} handle={f.handle} avatarEmoji={f.avatarEmoji} size="md" />
+                      {status?.online && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-slate-800" aria-label={t("friendPicker.online")} />}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-bold dark:text-slate-100"><UserTag handle={f.handle} discriminator={f.discriminator} className="truncate" /></span>
+                      {status?.online ? (
+                        <span className="block truncate text-xs font-semibold text-green-600 dark:text-green-400">{status.activity ? `${t("friendPicker.online")} · ${status.activity.icon} ${translateServerText(status.activity.label, t)}` : t("friendPicker.online")}</span>
+                      ) : status?.lastSeenLabel ? (
+                        <span className="flex min-w-0 items-center gap-1 truncate text-xs text-slate-500 dark:text-slate-400"><Clock3 className="h-3.5 w-3.5 shrink-0" aria-hidden /><span className="truncate">{t("friends.lastActive", { when: translateServerText(status.lastSeenLabel, t) })}</span></span>
+                      ) : null}
+                    </span>
+                  </Link>
+                  <button className="btn-ice inline-flex !min-h-9 shrink-0 items-center gap-1 !px-2 !py-1 !text-xs" onClick={() => setPendingFreeze(f)} disabled={giftedTo === f.id} aria-label={giftedTo === f.id ? t("friends.sentExcl") : t("friends.giveFreeze")}><SystemIcon kind="freeze" className="h-3.5 w-3.5" aria-hidden />{giftedTo === f.id ? t("friends.sentExcl") : t("friends.giveFreeze")}</button>
                   <FriendOverflowMenu actions={menuActions(f)} onRemove={() => removeFriendship(friendshipId, "friendship")} />
                 </div>
               </div>

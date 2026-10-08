@@ -10,7 +10,7 @@ export async function GET() {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
 
-  const [chaptersCompleted, versesTotal, duelsWon, duelsPlayed, allAchievements, earned, weeklyScore, seasonResults, activeSeasonScore] =
+  const [chaptersCompleted, versesTotal, duelsWon, duelsPlayed, allAchievements, earned, featuredAchievements, weeklyScore, seasonResults, activeSeasonScore] =
     await Promise.all([
       // Leesvoortgang: gelezen hoofdstukken, en hoeveel er in totaal begonnen zijn.
       prisma.contentProgress.count({ where: { userId: user.id, readStatus: "READ" } }),
@@ -22,6 +22,14 @@ export async function GET() {
       prisma.liveGamePlayer.count({ where: { userId: user.id, game: { status: "FINISHED" } } }),
       prisma.achievement.findMany({ orderBy: { name: "asc" } }),
       prisma.userAchievement.findMany({ where: { userId: user.id } }),
+      // Een selectie is geen bewijs dat een prestatie nog bestaat of behaald
+      // is; alleen UserAchievement is dat. Zo verschijnt een oude verwijzing
+      // nooit alsnog als verdiende badge.
+      prisma.featuredAchievement.findMany({
+        where: { userId: user.id, achievement: { userAchievements: { some: { userId: user.id } } } },
+        orderBy: { position: "asc" },
+        select: { achievementId: true },
+      }),
       prisma.weeklyScore.findUnique({ where: { userId_weekStart: { userId: user.id, weekStart: weekStartKey() } } }),
       // Seizoensgeschiedenis (sectie 10/11 van het productplan) — één rij per
       // afgesloten seizoen waarin deze gebruiker actief was, zie
@@ -70,6 +78,7 @@ export async function GET() {
     avatarEmoji: user.avatarEmoji,
     email: user.email,
     searchableByEmail: user.searchableByEmail,
+    shareAchievements: user.shareAchievements,
     shareOnlineStatus: user.shareOnlineStatus,
     shareCurrentActivity: user.shareCurrentActivity,
     // Alleen of het (nog) actief is, nooit het exacte tijdstip — de client
@@ -119,11 +128,13 @@ export async function GET() {
       finalGroupPosition: r.finalGroupPosition,
     })),
     achievements: allAchievements.map((a) => ({
+      id: a.id,
       slug: a.slug,
       name: a.name,
       description: a.description,
       icon: a.icon,
       earnedAt: earnedByAchievementId.get(a.id) ?? null,
     })),
+    featuredAchievementIds: featuredAchievements.map((row) => row.achievementId),
   });
 }
