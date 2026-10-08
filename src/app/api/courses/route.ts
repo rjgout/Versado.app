@@ -8,6 +8,7 @@ import { localizedCourse } from "@/lib/courseText";
 import { getT } from "@/lib/i18n";
 import { apiError } from "@/lib/apiError";
 import { courseArtworkKeys } from "@/lib/artwork";
+import { readingResumeHref } from "@/lib/courseResume";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -68,12 +69,12 @@ export async function GET() {
         // "Ga verder": meteen naar de volgende stap of het volgende
         // hoofdstuk, anders naar het cursusoverzicht (dat zelf de volgende
         // les aanwijst, bv. bij kinderverhalen of podcasts).
-        resumeHref:
-          course.type === "READING_LESSONS" && progress?.currentLesson
-            ? `/reading-lesson/${progress.currentLesson.id}`
-            : progress?.currentChapter
-              ? `/lesson/${progress.currentChapter.id}?cursus=${course.id}`
-              : `/courses/${course.id}`,
+        resumeHref: readingResumeHref({
+          courseId: course.id,
+          type: course.type,
+          currentChapterId: progress?.currentChapter?.id ?? null,
+          currentLessonId: progress?.currentLesson?.id ?? null,
+        }) ?? `/courses/${course.id}`,
         // Het beeld volgt het boek waar je nu bent, net als op Vandaag.
         artwork: courseArtworkKeys({
           slug: course.slug,

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { DICTIONARY_COLLECTION_IDS, getDictionaryEntries } from "@/lib/dictionary";
 import {
   getContentContext,
   setActiveContentCollection,
@@ -118,6 +119,13 @@ export async function resolveContentSwitch(
     case "persons": {
       const count = await prisma.person.count({ where: { contentCollectionId: target.id } });
       return count > 0 ? { kind: "stay" } : missing;
+    }
+    case "dictionary": {
+      // Elke uitgave heeft een eigen woordenlijst: een woord blijft staan als het ook in de nieuwe lijst zit,
+      // anders gaat de gebruiker naar het woordenboek van die uitgave (nooit naar een lege woordpagina).
+      if (!DICTIONARY_COLLECTION_IDS.includes(target.id)) return missing;
+      if (!route.word || getDictionaryEntries(target.id).some((entry) => entry.word === route.word)) return { kind: "stay" };
+      return { kind: "redirect", href: "/tools/dictionary" };
     }
     case "game": {
       const scope = await prisma.gameContentScope.count({ where: { contentCollectionId: target.id, gameKey: route.gameId } });

@@ -48,6 +48,10 @@ test("contentgebonden routes worden herkend, de rest is neutraal", () => {
   assert.deepEqual(classifyContentRoute("/fsy/f1"), { kind: "fsy", lessonId: "f1" });
   assert.deepEqual(classifyContentRoute("/podcast/e1/luisteren"), { kind: "podcast", episodeId: "e1" });
   assert.deepEqual(classifyContentRoute("/tools/persons"), { kind: "persons" });
+  assert.deepEqual(classifyContentRoute("/tools/dictionary"), { kind: "dictionary", word: null });
+  assert.deepEqual(classifyContentRoute("/tools/dictionary/geloof"), { kind: "dictionary", word: "geloof" });
+  assert.deepEqual(classifyContentRoute("/tools/dictionary/a%20b"), { kind: "dictionary", word: "a b" });
+  assert.equal(contentHubHref(classifyContentRoute("/tools/dictionary/geloof")), "/tools");
   for (const route of ["/dashboard", "/profile", "/friends", "/streak", "/xp", "/tools", "/groups/g1", "/"]) {
     assert.deepEqual(classifyContentRoute(route), { kind: "neutral" }, route);
   }

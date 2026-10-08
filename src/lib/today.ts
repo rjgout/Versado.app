@@ -18,6 +18,7 @@ import { courseArtworkKeys, gameArtworkKeys, podcastArtworkKeys } from "@/lib/ar
 import { companionToMascot } from "@/lib/companion";
 import { getTogetherSummary, type TogetherSummary } from "@/lib/social/together";
 import { compactOpenActions, getOpenActions, type OpenAction } from "@/lib/openActions";
+import { introResumeHref, kidsResumeHref, podcastResumeHref, readingResumeHref } from "@/lib/courseResume";
 
 // Alle gegevens voor Vandaag (src/app/dashboard/page.tsx), in één keer en
 // parallel opgehaald. Elke bron is bestaande functionaliteit: de open
@@ -30,6 +31,8 @@ export type { OpenAction } from "@/lib/openActions";
 
 export interface ContinueItem {
   key: string;
+  /** Persoonlijke zichtbaarheid geldt voor deze voortgangstoestand, niet voor de inhoud zelf. */
+  visibilityKey: string;
   kind: "course" | "podcast";
   title: string;
   /** Plek in de inhoud: "Alma 32", "Alma 32:1-10" of de luisterpositie in seconden. */
@@ -101,8 +104,25 @@ export function isTodayComplete(data: Pick<TodayData, "streak" | "actions" | "ac
   );
 }
 
-const MAX_CONTINUE = 8;
+const MAX_CONTINUE = 3;
 const MAX_DISCOVER = 6;
+
+/** Een verborgen kaart blijft weg tot de gebruiker deze inhoud opnieuw gebruikt. */
+export function continueVisibilityKey(key: string, activityAt: string): string {
+  return `${key}:${activityAt}`;
+}
+
+/** De volgorde van Vandaag blijft van de server; dit filtert uitsluitend persoonlijke zichtbaarheid. */
+export function visibleContinueItems(items: ContinueItem[], hiddenKeys: ReadonlySet<string>): ContinueItem[] {
+  return items.filter((item) => !hiddenKeys.has(item.visibilityKey));
+}
+
+/** De server bepaalt relevantie en volgorde; verbergen haalt alleen persoonlijke kaarten weg. */
+export function compactContinueItems(items: ContinueItem[], hiddenKeys: ReadonlySet<string>): ContinueItem[] {
+  return visibleContinueItems(items, hiddenKeys)
+    .sort((a, b) => b.at.localeCompare(a.at) || a.key.localeCompare(b.key))
+    .slice(0, MAX_CONTINUE);
+}
 
 function partOfDay(timeZone: string): TodayData["partOfDay"] {
   const hour = zonedParts(new Date(), timeZone).hour;
@@ -139,25 +159,46 @@ export async function getTodayData(user: User): Promise<TodayData> {
     friendships,
     catalog,
     gameOrder,
+    continueOrder,
   ] = await Promise.all([
     getOpenActions(user),
     getSubscribedCourseSummaries(user, contentContext.active.id, t),
     // De kleine leeslessen houden hun plek bij als les, niet als hoofdstuk.
+    // Alleen de actieve contentcollectie kan op Vandaag worden hervat.
     prisma.userCourseProgress.findMany({
-      where: { userId: user.id, subscribed: true, currentLessonId: { not: null } },
+      where: { userId: user.id, subscribed: true, currentLessonId: { not: null }, course: { contentCollectionId: contentContext.active.id } },
       select: {
         courseId: true,
-        currentLesson: { select: { startVerse: true, endVerse: true, chapter: { select: { number: true, book: { select: { name: true, key: true } } } } } },
+        currentLesson: { select: { id: true, startVerse: true, endVerse: true, chapter: { select: { number: true, book: { select: { name: true, key: true } } } } } },
       },
     }),
     prisma.podcastPlaybackProgress.findMany({
-      where: { userId: user.id, positionSeconds: { gt: 0 } },
+      where: {
+        userId: user.id,
+        positionSeconds: { gt: 0 },
+        episode: { podcast: { courses: { some: { contentCollectionId: contentContext.active.id, type: "PODCAST", enabled: true } } } },
+      },
       orderBy: { updatedAt: "desc" },
-      take: 3,
+      take: 12,
       select: {
         positionSeconds: true,
         updatedAt: true,
-        episode: { select: { id: true, number: true, title: true, podcastId: true, podcast: { select: { name: true, courses: { select: { id: true }, take: 1 } } } } },
+        episode: {
+          select: {
+            id: true,
+            number: true,
+            title: true,
+            podcastId: true,
+            exercises: { select: { mode: true } },
+            progress: { where: { userId: user.id }, select: { mode: true, completed: true } },
+            podcast: {
+              select: {
+                name: true,
+                courses: { where: { contentCollectionId: contentContext.active.id, type: "PODCAST", enabled: true }, select: { id: true } },
+              },
+            },
+          },
+        },
       },
     }),
     // Gebruik de werkelijk actieve uitgave. Die is de bron van waarheid nadat
@@ -186,6 +227,7 @@ export async function getTodayData(user: User): Promise<TodayData> {
       include: { _count: { select: { chapters: true } }, book: { select: { slug: true } }, contentCollection: { select: { work: true } } },
     }),
     prisma.userListOrder.findMany({ where: { userId: user.id, listKey: "games" }, orderBy: { order: "asc" }, select: { itemKey: true, hidden: true } }),
+    prisma.userListOrder.findMany({ where: { userId: user.id, listKey: "today-continue", hidden: true }, select: { itemKey: true } }),
   ]);
 
   const visibleGame = (id: string) => {
@@ -193,47 +235,135 @@ export async function getTodayData(user: User): Promise<TodayData> {
     return game && isGameVisible(game, settings, contentContext.gameKeys, user.isAdmin) ? game : null;
   };
 
-  // Ga verder: cursussen waar je al mee bezig bent, en podcasts die je half
-  // beluisterd hebt, samen op laatste activiteit.
+  // Ga verder heeft alleen concrete persoonlijke vervolgstappen. Voor de
+  // leesroutes komt de cursor uit UserCourseProgress; kinderverhalen en
+  // introlessen volgen hun eigen centrale voortgangsmodellen.
   const lessonByCourse = new Map(readingPositions.map((p) => [p.courseId, p.currentLesson]));
-  const courseItems: ContinueItem[] = courses
-    .filter((course) => course.lastActivityAt && (course.completedCount > 0 || course.currentChapter || lessonByCourse.get(course.id)))
-    .map((course) => {
-      const lesson = lessonByCourse.get(course.id);
-      const position = lesson
-        ? `${lesson.chapter.book.name} ${lesson.chapter.number}:${lesson.startVerse}-${lesson.endVerse}`
-        : course.currentChapter
-          ? `${course.currentChapter.bookName} ${course.currentChapter.number}`
-          : null;
-      return {
-        key: `course-${course.id}`,
-        kind: "course",
-        title: course.name,
-        position,
-        positionSeconds: null,
-        progress: course.totalChapters > 0 ? { done: course.completedCount, total: course.totalChapters, unitPlural: course.unitPlural } : null,
-        href: `/courses/${course.id}`,
-        context: contentContext.active.name,
-        at: course.lastActivityAt!,
-        // Het beeld volgt het boek waar je nu bent (bv. Alma), niet alleen de cursus.
-        artwork: courseArtworkKeys({ slug: course.slug, type: course.type, work: course.work, bookKey: lesson?.chapter.book.key ?? course.currentChapter?.bookKey }),
-      };
+  const courseById = new Map(courses.map((course) => [course.id, course]));
+  const kidsCourseIds = courses.filter((course) => course.type === "KIDS").map((course) => course.id);
+  const introCourse = courses.find((course) => course.type === "INTRO") ?? null;
+  const [kidsStories, introLessons] = await Promise.all([
+    kidsCourseIds.length > 0
+      ? prisma.kidsStory.findMany({
+          where: { courseId: { in: kidsCourseIds } },
+          orderBy: [{ courseId: "asc" }, { order: "asc" }],
+          include: { progress: { where: { userId: user.id }, select: { completed: true, completedAt: true } } },
+        })
+      : Promise.resolve([]),
+    introCourse
+      ? prisma.introLesson.findMany({
+          orderBy: { number: "asc" },
+          include: { progress: { where: { userId: user.id }, select: { completed: true, completedAt: true } } },
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const courseItems: ContinueItem[] = courses.flatMap((course) => {
+    const lesson = lessonByCourse.get(course.id);
+    const href = readingResumeHref({
+      courseId: course.id,
+      type: course.type,
+      currentChapterId: course.currentChapter?.id ?? null,
+      currentLessonId: lesson?.id ?? null,
     });
-  const podcastItems: ContinueItem[] = podcastPositions
-    .filter((p) => p.episode.podcast.courses[0])
-    .map((p) => ({
-      key: `podcast-${p.episode.id}`,
-      kind: "podcast",
-      title: t("player.episode", { n: p.episode.number, title: p.episode.title }),
-      position: null,
-      positionSeconds: Math.round(p.positionSeconds),
+    // Een nieuw abonnement zet wel een cursor klaar, maar is nog geen echte
+    // leeractiviteit. Minstens één afgeronde inhoudsstap houdt deze lijst
+    // daarom compact en voorkomt een tweede cursusoverzicht.
+    if (!course.lastActivityAt || course.completedCount === 0 || !href) return [];
+    const position = lesson
+      ? `${lesson.chapter.book.name} ${lesson.chapter.number}:${lesson.startVerse}-${lesson.endVerse}`
+      : course.currentChapter
+        ? `${course.currentChapter.bookName} ${course.currentChapter.number}`
+        : null;
+    return [{
+      key: `course-${course.id}`,
+      visibilityKey: continueVisibilityKey(`course-${course.id}`, course.lastActivityAt),
+      kind: "course" as const,
+      title: course.name,
+      position,
+      positionSeconds: null,
+      progress: course.totalChapters > 0 ? { done: course.completedCount, total: course.totalChapters, unitPlural: course.unitPlural } : null,
+      href,
+      context: contentContext.active.name,
+      at: course.lastActivityAt,
+      // Het beeld volgt het boek waar je nu bent (bv. Alma), niet alleen de cursus.
+      artwork: courseArtworkKeys({ slug: course.slug, type: course.type, work: course.work, bookKey: lesson?.chapter.book.key ?? course.currentChapter?.bookKey }),
+    }];
+  });
+
+  const kidsItems: ContinueItem[] = kidsCourseIds.flatMap((courseId) => {
+    const course = courseById.get(courseId);
+    const stories = kidsStories.filter((story) => story.courseId === courseId);
+    const completed = stories.filter((story) => story.progress[0]?.completed);
+    const lastCompletedAt = completed.reduce<Date | null>((latest, story) => {
+      const at = story.progress[0]?.completedAt ?? null;
+      return at && (!latest || at > latest) ? at : latest;
+    }, null);
+    const next = stories.find((story) => !story.progress[0]?.completed);
+    if (!course || !lastCompletedAt || !next) return [];
+    const at = lastCompletedAt.toISOString();
+    return [{
+      key: `kids-${course.id}`,
+      visibilityKey: continueVisibilityKey(`kids-${course.id}`, at),
+      kind: "course",
+      title: course.name,
+      position: `${t("misc.storyN", { n: next.number })} — ${next.title}`,
+      positionSeconds: null,
       progress: null,
-      href: `/courses/${p.episode.podcast.courses[0].id}`,
-      context: p.episode.podcast.name,
-      at: p.updatedAt.toISOString(),
-      artwork: podcastArtworkKeys(p.episode.podcastId),
-    }));
-  const continueItems = [...courseItems, ...podcastItems].sort((a, b) => b.at.localeCompare(a.at)).slice(0, MAX_CONTINUE);
+      href: kidsResumeHref(next.id)!,
+      context: contentContext.active.name,
+      at,
+      artwork: courseArtworkKeys({ slug: course.slug, type: course.type, work: course.work }),
+    }];
+  });
+
+  const introItems: ContinueItem[] = introCourse ? (() => {
+    const completed = introLessons.filter((lesson) => lesson.progress[0]?.completed);
+    const lastCompletedAt = completed.reduce<Date | null>((latest, lesson) => {
+      const at = lesson.progress[0]?.completedAt ?? null;
+      return at && (!latest || at > latest) ? at : latest;
+    }, null);
+    const next = introLessons.find((lesson) => !lesson.progress[0]?.completed);
+    if (!lastCompletedAt || !next) return [];
+    const at = lastCompletedAt.toISOString();
+    return [{
+      key: `intro-${introCourse.id}`,
+      visibilityKey: continueVisibilityKey(`intro-${introCourse.id}`, at),
+      kind: "course",
+      title: introCourse.name,
+      position: `${t("lessonFlows.lessonNumber", { n: next.number })} — ${next.title}`,
+      positionSeconds: null,
+      progress: null,
+      href: introResumeHref(next.id)!,
+      context: contentContext.active.name,
+      at,
+      artwork: courseArtworkKeys({ slug: introCourse.slug, type: introCourse.type, work: introCourse.work }),
+    }];
+  })() : [];
+
+  const podcastItems: ContinueItem[] = podcastPositions.flatMap((playback) => {
+    const course = playback.episode.podcast.courses.map((candidate) => courseById.get(candidate.id)).find(Boolean);
+    const availableModes = new Set(playback.episode.exercises.map((exercise) => exercise.mode));
+    const completedModes = new Set(playback.episode.progress.filter((progress) => progress.completed).map((progress) => progress.mode));
+    const mode = (["CONTENT", "BOM_CONNECTION"] as const).find((candidate) => availableModes.has(candidate) && !completedModes.has(candidate));
+    if (!course || !mode) return [];
+    const at = playback.updatedAt.toISOString();
+    return [{
+      key: `podcast-${playback.episode.id}`,
+      visibilityKey: continueVisibilityKey(`podcast-${playback.episode.id}`, at),
+      kind: "podcast",
+      title: course.name,
+      position: t("player.episode", { n: playback.episode.number, title: playback.episode.title }),
+      positionSeconds: Math.round(playback.positionSeconds),
+      progress: null,
+      href: podcastResumeHref(playback.episode.id, mode)!,
+      context: playback.episode.podcast.name,
+      at,
+      artwork: podcastArtworkKeys(playback.episode.podcastId),
+    }];
+  });
+  const hiddenContinue = new Set(continueOrder.map((row) => row.itemKey));
+  const continueItems = compactContinueItems([...courseItems, ...kidsItems, ...introItems, ...podcastItems], hiddenContinue);
 
   const wordGameEntry = visibleGame("word-game");
   const quizEntry = visibleGame("alleskenner");

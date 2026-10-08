@@ -1053,20 +1053,20 @@ enum Companion {
 }
 
 // Persoonlijke volgorde van cursussen/spelletjes (sleep-en-herordenen op
-// /courses en /live) — één generiek mechanisme voor beide lijsten i.p.v. twee
-// losse ad-hoc kolommen. Geen rij voor een item = gebruik de standaardvolgorde
-// (Course.order, resp. de vaste volgorde in de spelletjeslijst) — dus een
-// gebruiker die nooit herordent, merkt nooit iets van deze tabel.
+// /courses en /live) en zichtbaarheid op Vandaag — één generiek mechanisme
+// i.p.v. losse ad-hoc kolommen. Geen rij voor een item = gebruik de
+// standaardvolgorde (Course.order, resp. de vaste volgorde in de
+// spelletjeslijst) — dus een gebruiker die nooit personaliseert, merkt nooit
+// iets van deze tabel.
 model UserListOrder {
   id      String @id @default(cuid())
   userId  String
   user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listKey String // "courses" | "games"
+  listKey String // "courses" | "games" | "today-continue"
   itemKey String // Course.id, resp. een vaste spelletjes-slug
   order   Int
-  // Door de gebruiker verborgen uit het eigen overzicht (alleen spellen;
-  // bij cursussen is dat UserCourseProgress.subscribed). Zegt niets over
-  // of iets beschikbaar is: dat blijft bij GameSettings/de content.
+  // Door de gebruiker verborgen uit het eigen overzicht. Zegt niets over
+  // beschikbaarheid, voortgang of inhoud: dat blijft bij de eigen bron.
   hidden  Boolean @default(false)
 
   @@unique([userId, listKey, itemKey])
