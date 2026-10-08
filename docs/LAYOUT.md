@@ -50,6 +50,27 @@ Vóór de eerste meting gelden `--header-default` en `--nav-default` (in
 staan in `src/lib/shellMetrics.ts` (getest). Geen component meet of zet deze
 variabelen zelf (`tests/shell-layout.test.ts` controleert dat).
 
+**Volgorde bovenin.** Van boven naar beneden, altijd binnen de ene vaste wrapper:
+de header (met de contentkiezer links in de headerrij, nooit als eigen
+`fixed`/`sticky` element), daaronder de terugbalk als de pagina er een heeft,
+daaronder de spelers, en dan pas `<main>`. De kiezer heeft dus geen eigen
+offset: hij volgt de header. Zijn menu (`absolute top-full`) is begrensd op de
+zichtbare hoogte min `--header-height` en `--nav-height` en scrolt zelf, zodat
+de onderste taalknoppen op een lage viewport of bij grote tekst bereikbaar
+blijven (de wrapper is vast, dus de pagina eronder kan dat niet opvangen).
+
+**Standaard vóór de meting.** Tot `ShellMetrics` gemeten heeft (server-HTML,
+eerste paint) rekent `<main>` met `--header-default`. Die is
+`--header-row-default` (3,5625 rem, vanaf sm 4,0625 rem) +
+`--header-back-default` + de safe area bovenin. De terugbalk telt mee via
+`:root:has([data-subpage-back-bar])`: het DOM bepaalt zelf of die er is, er is
+geen paginalijst of vaste offset per route. Een vaste `4.5rem` (de oude
+waarde) liet op een iPhone met notch en terugbalk 53 px inhoud onder de balken
+vallen tot na hydratie. Wijzig je de hoogte van de headerrij of de terugbalk,
+pas dan ook deze standaarden aan; `tests/shell-layout.test.ts` bewaakt de
+vorm en `scripts/layout-audit/switcher.mjs` meet het verschil met de
+gemeten waarde.
+
 **Safe areas.** Altijd via `--vs-safe-area-top/right/bottom/left` (web, PWA en
 Capacitor/Android), nooit rechtstreeks `env(...)` in een component. De vaste
 balken en `<main>` houden links en rechts rekening met een inkeping (landscape).
@@ -120,6 +141,17 @@ Het script meldt per pagina, breedte, tekstgrootte en taal: horizontale
 overflow, uitgezoomde viewport, positie van header en onderbalk (ook na
 scrollen), inhoud onder de header of onder de onderbalk, en een terugbalk die
 bij scrollen wegloopt.
+
+`scripts/layout-audit/switcher.mjs` meet in een echte browser (licht en donker,
+meerdere breedtes) de volgorde header → contentkiezer → terugbalk → inhoud, dat de
+kiezer zichtbaar en niet bedekt is, scrollen, terugnavigeren (scrollpositie), het
+menu, content wisselen, de onderbalk onderaan, en de staat vóór hydratie met een
+inkeping:
+
+```bash
+PLAYWRIGHT_MODULE=/pad/naar/playwright AUDIT_IDENTIFIER=mail AUDIT_PASSWORD=wachtwoord \
+  node scripts/layout-audit/switcher.mjs '{"widths":[320,390,768,1200]}'
+```
 
 ## Native (Capacitor)
 

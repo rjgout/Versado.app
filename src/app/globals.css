@@ -79,7 +79,13 @@ body {
  * Op het moment dat de balk bij zeer grote tekst meescrolt (data-header-tall)
  * is --header-offset 0 en blijft --header-height gelijk. */
 :root {
-  --header-default: 4.5rem;
+  /* Standaardhoogte van de vaste bovenbalk tot ShellMetrics gemeten heeft (server-HTML,
+   * eerste paint, trage telefoon). Moet gelijk zijn aan wat later gemeten wordt, anders
+   * verspringt de pagina of valt inhoud onder de balken: headerrij (min-h-14, sm: min-h-16,
+   * plus 1px rand), de safe area bovenin, en de terugbalk als die in de pagina staat. */
+  --header-row-default: 3.5625rem;
+  --header-back-default: 0rem;
+  --header-default: calc(var(--header-row-default) + var(--header-back-default) + var(--vs-safe-area-top));
   --nav-default: 4.5rem;
   --main-pad-top: calc(var(--header-height, var(--header-default)) + 2rem);
   /* Onderbalk (alleen onder lg) plus ademruimte; de balk telt zijn eigen safe area al mee. */
@@ -89,6 +95,16 @@ body {
   :root {
     --main-pad-bottom: 4rem;
   }
+}
+@media (min-width: 640px) {
+  :root {
+    --header-row-default: 4.0625rem;
+  }
+}
+/* De terugbalk (min-h-11 + py-1 + rand) staat al in de server-HTML; het DOM bepaalt dus
+ * zelf of zijn ruimte meetelt, zonder paginalijst of vaste offset per route. */
+:root:has([data-subpage-back-bar]) {
+  --header-back-default: 3.3125rem;
 }
 
 /* Focus mode: alleen de terugbalk staat bovenaan (header en onderbalk zijn weg). */

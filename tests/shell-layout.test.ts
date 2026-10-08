@@ -128,3 +128,47 @@ test("Capacitor: toetsenbord en systeembalken lopen via de centrale variabelen",
   assert.match(config, /insetsHandling: "css"/);
   assert.match(css, /--vs-safe-area-bottom: max\(env\(safe-area-inset-bottom, 0px\), var\(--safe-area-inset-bottom, 0px\)\)/);
 });
+
+// Contentkiezer, header en terugbalk (docs/LAYOUT.md, "Volgorde bovenin").
+const layoutSource = read("src/app/layout.tsx");
+const switcherSource = read("src/components/ContentSwitcher.tsx");
+
+test("de contentkiezer staat in de headerrij binnen de ene vaste wrapper, vóór de terugbalk", () => {
+  const wrapperStart = layoutSource.indexOf("<StickyHeader>");
+  const wrapperEnd = layoutSource.indexOf("</StickyHeader>");
+  const header = layoutSource.indexOf("<header data-app-global-header");
+  const headerEnd = layoutSource.indexOf("</header>");
+  const switcher = layoutSource.indexOf("<ContentSwitcher");
+  const backBar = layoutSource.indexOf("<SubpageBackBar");
+  assert.ok(wrapperStart >= 0 && wrapperEnd > wrapperStart, "geen vaste wrapper gevonden");
+  // Volgorde van boven naar beneden: header (met de kiezer erin), dan de terugbalk, allemaal in dezelfde wrapper.
+  assert.ok(wrapperStart < header && header < switcher && switcher < headerEnd, "contentkiezer hoort in de header");
+  assert.ok(headerEnd < backBar && backBar < wrapperEnd, "terugbalk hoort na de header, in dezelfde wrapper");
+  // De kiezer krijgt nooit een eigen fixed/sticky positie: die bepaalt alleen de wrapper.
+  const rootLine = switcherSource.split("\n").find((line) => line.includes('className="relative -ml-2'));
+  assert.ok(rootLine, "wortel van de contentkiezer niet gevonden");
+  assert.doesNotMatch(rootLine!, /\b(fixed|sticky|absolute)\b/);
+});
+
+test("de standaardhoogte vóór de meting kent de safe area en de terugbalk", () => {
+  // Zonder dit valt inhoud vóór hydratie onder de balken (53 px op een iPhone met notch en terugbalk).
+  assert.match(css, /--header-default: calc\(var\(--header-row-default\) \+ var\(--header-back-default\) \+ var\(--vs-safe-area-top\)\)/);
+  assert.match(css, /:root:has\(\[data-subpage-back-bar\]\) \{\s*--header-back-default: 3\.3125rem/);
+  assert.match(css, /@media \(min-width: 640px\) \{\s*:root \{\s*--header-row-default: 4\.0625rem/);
+  // Geen terugval op de oude vaste 4.5rem.
+  assert.doesNotMatch(css, /--header-default: 4\.5rem/);
+  // De terugbalk heeft het attribuut waar de CSS op rekent.
+  assert.match(read("src/components/SubpageBackBar.tsx"), /data-subpage-back-bar/);
+});
+
+test("het menu van de contentkiezer is begrensd en scrolt zelf, nooit buiten beeld", () => {
+  const panel = switcherSource.split("\n").find((line) => line.includes("absolute top-full"));
+  assert.ok(panel, "menupaneel niet gevonden");
+  assert.match(panel!, /max-h-\[calc\(100dvh-var\(--header-height,var\(--header-default\)\)-var\(--nav-height,0px\)\)\]/);
+  assert.match(panel!, /overflow-y-auto/);
+  assert.doesNotMatch(panel!, /overflow-hidden/);
+});
+
+test("de shell-modi laten de standaardhoogte voor focus ongemoeid", () => {
+  assert.match(css, /\[data-shell-mode="focus"\] \{\s*--header-default: calc\(3\.3125rem \+ var\(--vs-safe-area-top\)\)/);
+});

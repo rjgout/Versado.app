@@ -212,7 +212,7 @@ export default function ContentSwitcher({
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 w-[min(32rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] overflow-hidden rounded-b-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900 z-50">
+        <div className="absolute top-full left-0 w-[min(32rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-var(--header-height,var(--header-default))-var(--nav-height,0px))] overflow-y-auto overscroll-contain rounded-b-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900 z-50">
           <div className="mx-auto max-w-2xl px-4 py-2" role="listbox" aria-label={t("contentSwitcher.available")}>
             {ordered.map(({ work, edition: collection }, index) => {
               const selected = work === activeWork;
