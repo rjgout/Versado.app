@@ -2476,7 +2476,9 @@ export const es: PartialMessages = {
     "bookmarksText": "Los versos que guardaste mientras leyendo.",
     "xpGuideText": "Una descripción general de cada actividad y cuánto XP gana.",
     "personsText": "Quién es quién en el texto, incluidos los vínculos familiares.",
-    "moreElsewhere": "Encontrarás más herramientas con {names}. Cambie de contenido en la parte superior."
+    "moreElsewhere": "Encontrarás más herramientas con {names}. Cambie de contenido en la parte superior.",
+    "dictionaryCount": "{n} palabras",
+    "personsCount": "{n} personas"
   },
   "xpGuide": {
     "title": "¿Qué genera XP?",
@@ -2530,7 +2532,7 @@ export const es: PartialMessages = {
     "future": "Si eso cambia en el futuro (por ejemplo, agregando análisis), actualizaremos esta política y, cuando sea legalmente necesario, solicitaremos su consentimiento primero."
   },
   "dictionary": {
-    "intro": "Todas las palabras {n} de {source}. El número entre paréntesis indica la frecuencia con la que aparece la palabra; también es útil para juegos de palabras.",
+    "intro": "Las {n} palabras de {source}. Busca una palabra, explora por letra y descubre dónde aparece — útil también para juegos de palabras.",
     "theText": "el texto",
     "search": "Buscar una palabra...",
     "searchLabel": "Buscar una palabra",
@@ -2539,17 +2541,32 @@ export const es: PartialMessages = {
     "all": "Todos",
     "wordsOne": "palabra {n}",
     "wordsMany": "palabras {n}",
-    "noWords": "No se encontraron palabras.",
-    "whereTitle": "📖 Donde aparece “{word}”",
-    "spreadOne": "{total}x en total, repartidos en el verso {n} (más de una vez en algunos versos).",
-    "spreadMany": "{total}x en total, repartidos en los versos {n} (más de una vez en algunos versos).",
-    "noVerses": "No se encontraron versos."
+    "noVerses": "No se encontraron versos.",
+    "clear": "Borrar la búsqueda",
+    "recent": "Vistos recientemente",
+    "browse": "Explorar por primera letra",
+    "letterNav": "Primera letra",
+    "showMore": "Mostrar más ({n})",
+    "noWordsFor": "No se encontraron palabras para «{q}»",
+    "noWordsHint": "Revisa la ortografía o busca una parte de la palabra.",
+    "timesOne": "1 vez en el texto",
+    "timesMany": "{n} veces en el texto",
+    "versesHeading": "Dónde aparece",
+    "versesOne": "{n} versículo",
+    "versesMany": "{n} versículos",
+    "openChapter": "Leer el capítulo",
+    "similar": "Palabras parecidas",
+    "notFoundTitle": "Esta palabra no está en el diccionario",
+    "backToDictionary": "Ir al diccionario",
+    "loadFailed": "No se pudo cargar el diccionario."
   },
   "bookmarks": {
-    "empty": "Aún no hay marcadores. Toca 🔖 junto a un versículo mientras lees para encontrarlo aquí."
+    "empty": "Aún no hay marcadores. Toca 🔖 junto a un versículo mientras lees para encontrarlo aquí.",
+    "loadFailed": "No se pudieron cargar tus marcadores.",
+    "subtitle": "Los versículos que has guardado. Toca uno para leer su capítulo."
   },
   "persons": {
-    "title": "👤 Personas",
+    "title": "Personas",
     "introBofm": "Todas las personas {n} del Libro de Mormón. Buscar por nombre o descripción.",
     "introDc": "Todas las personas {n} de Doctrina y Convenios. Buscar por nombre o descripción.",
     "search": "Buscar personas por nombre o descripción...",
@@ -2560,7 +2577,9 @@ export const es: PartialMessages = {
     "father": "Padre:",
     "mother": "Madre:",
     "children": "Niños:",
-    "notFound": "No encontrado."
+    "notFound": "No encontrado.",
+    "clear": "Borrar la búsqueda",
+    "loadFailed": "No se pudieron cargar las personas."
   },
   "player": {
     "audioLanguage": "Idioma de audio",

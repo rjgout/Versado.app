@@ -63,6 +63,7 @@ export function getDictionaryEntries(collectionId: string = BOM_COLLECTION_ID): 
 }
 
 export interface VerseMatch {
+  chapterId: string;
   bookName: string;
   chapterNumber: number;
   verseNumber: number;
@@ -96,7 +97,7 @@ export async function findVersesContainingWord(word: string, collectionId: strin
     select: {
       number: true,
       text: true,
-      chapter: { select: { number: true, book: { select: { name: true, order: true } } } },
+      chapter: { select: { id: true, number: true, book: { select: { name: true, order: true } } } },
     },
   });
 
@@ -104,6 +105,7 @@ export async function findVersesContainingWord(word: string, collectionId: strin
     .filter((v) => (v.text.match(/[A-Za-zÀ-ÿ]+/g) ?? []).some((token) => normalizeToken(token) === target))
     .sort((a, b) => a.chapter.book.order - b.chapter.book.order || a.chapter.number - b.chapter.number || a.number - b.number)
     .map((v) => ({
+      chapterId: v.chapter.id,
       bookName: v.chapter.book.name,
       chapterNumber: v.chapter.number,
       verseNumber: v.number,

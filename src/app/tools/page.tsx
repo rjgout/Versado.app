@@ -4,20 +4,40 @@ import { getCurrentUser } from "@/lib/session";
 import { BOM_COLLECTION_ID, DC_COLLECTION_ID, getContentContext, type ContentCollectionView } from "@/lib/contentCollections";
 import { DICTIONARY_COLLECTION_IDS } from "@/lib/dictionary";
 import { getT } from "@/lib/i18n";
+import { getLanguage } from "@/lib/languages";
 import type { MessageKey } from "@/lib/i18n/core";
+import { Bookmark, BookText, ChevronRight, Users, type LucideIcon } from "lucide-react";
+import { prisma } from "@/lib/db";
+import { getDictionaryEntries } from "@/lib/dictionary";
 import SystemIcon from "@/components/versado/SystemIcon";
+import PageIntro from "@/components/versado/PageIntro";
+import { interactiveCard } from "@/components/versado/styles";
+
+type ToolTone = "accent" | "league" | "xp" | "streak";
 
 interface Tool {
   href: string;
   titleKey: MessageKey;
   textKey: MessageKey;
-  icon: string;
-  iconKind?: "streak" | "xp";
+  /** Eigen herkenbaar icoon: een lijnicoon of de XP-illustratie, nooit een emoji. */
+  icon: LucideIcon | "xp";
+  tone: ToolTone;
+  /** Het woordenboek is het hoofdhulpmiddel en krijgt de volle breedte. */
+  featured?: boolean;
   /** Alleen bij deze uitgaven tonen (inhoud die per taal apart bestaat). */
   collectionIds?: string[];
   /** Alleen bij deze werken tonen, in elke taal (zie ContentCollection.work). */
   works?: string[];
 }
+
+// Zachte tint per hulpmiddel uit de bestaande Versado-tokens: elk een eigen
+// kleurfamilie, zonder grote gekleurde vlakken.
+const TONES: Record<ToolTone, { tile: string; icon: string }> = {
+  accent: { tile: "bg-vs-accent-soft", icon: "text-vs-accent" },
+  league: { tile: "bg-vs-league-soft", icon: "text-vs-league" },
+  xp: { tile: "bg-vs-xp-soft", icon: "text-vs-xp" },
+  streak: { tile: "bg-vs-streak-soft", icon: "text-vs-streak" },
+};
 
 function toolFits(tool: Tool, collection: ContentCollectionView): boolean {
   if (tool.collectionIds && !tool.collectionIds.includes(collection.id)) return false;
@@ -30,35 +50,14 @@ function toolFits(tool: Tool, collection: ContentCollectionView): boolean {
 // werken bij elk schrift in elke taal (per werk). Woordenboek en personages
 // bestaan per uitgave: een woordenlijst en beschrijvingen zijn taalgebonden,
 // dus die tonen we alleen waar ze echt voor gemaakt zijn.
+// Personages bestaan voor deze collecties; bij andere content valt de pagina terug op het Boek van Mormon.
+const PERSON_COLLECTIONS: Record<string, true> = { [BOM_COLLECTION_ID]: true, [DC_COLLECTION_ID]: true };
+
 const TOOLS: Tool[] = [
-  {
-    href: "/tools/dictionary",
-    titleKey: "pages.dictionary",
-    textKey: "tools.dictionaryText",
-    icon: "📚",
-    collectionIds: DICTIONARY_COLLECTION_IDS,
-  },
-  {
-    href: "/bookmarks",
-    titleKey: "pages.bookmarks",
-    textKey: "tools.bookmarksText",
-    icon: "🔖",
-    works: ["bofm", "dc-testament", "pgp"],
-  },
-  {
-    href: "/tools/xp-guide",
-    titleKey: "pages.xpGuide",
-    textKey: "tools.xpGuideText",
-    icon: "",
-    iconKind: "xp",
-  },
-  {
-    href: "/tools/persons",
-    titleKey: "pages.persons",
-    textKey: "tools.personsText",
-    icon: "👤",
-    collectionIds: [BOM_COLLECTION_ID, DC_COLLECTION_ID],
-  },
+  { href: "/tools/dictionary", titleKey: "pages.dictionary", textKey: "tools.dictionaryText", icon: BookText, tone: "accent", featured: true, collectionIds: DICTIONARY_COLLECTION_IDS },
+  { href: "/bookmarks", titleKey: "pages.bookmarks", textKey: "tools.bookmarksText", icon: Bookmark, tone: "league", works: ["bofm", "dc-testament", "pgp"] },
+  { href: "/tools/xp-guide", titleKey: "pages.xpGuide", textKey: "tools.xpGuideText", icon: "xp", tone: "xp" },
+  { href: "/tools/persons", titleKey: "pages.persons", textKey: "tools.personsText", icon: Users, tone: "streak", collectionIds: [BOM_COLLECTION_ID, DC_COLLECTION_ID] },
 ];
 
 export default async function ToolsPage() {
@@ -75,29 +74,44 @@ export default async function ToolsPage() {
       collection.id !== active.id && TOOLS.some((tool) => (tool.collectionIds || tool.works) && toolFits(tool, collection))
   );
 
-  return (
-    <div className="max-w-2xl mx-auto flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-brand-800 dark:text-brand-300">{t("pages.tools")}</h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">{t("tools.subtitle")}</p>
-      </div>
+  // Echte aantallen uit dezelfde bronnen als de hulpmiddelen zelf; geen verzonnen cijfers.
+  const meta = new Map<string, string>();
+  if (visible.some((tool) => tool.href === "/tools/dictionary")) {
+    meta.set("/tools/dictionary", t("tools.dictionaryCount", { n: getDictionaryEntries(active.id).length.toLocaleString(getLanguage(user.uiLanguage).intlLocale) }));
+  }
+  if (visible.some((tool) => tool.href === "/tools/persons")) {
+    const persons = await prisma.person.count({ where: { contentCollectionId: active.id in PERSON_COLLECTIONS ? active.id : BOM_COLLECTION_ID } });
+    meta.set("/tools/persons", t("tools.personsCount", { n: persons.toLocaleString(getLanguage(user.uiLanguage).intlLocale) }));
+  }
 
-      <div className="flex flex-col gap-3">
-        {visible.map((tool) => (
-          <Link key={tool.href} href={tool.href} className="card flex items-center justify-between gap-3 hover:ring-2 hover:ring-brand-400">
-            <div>
-              <h2 className="font-extrabold text-lg dark:text-slate-100">{t(tool.titleKey)}</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">{t(tool.textKey)}</p>
-            </div>
-            <span className="text-2xl" aria-hidden>
-              {tool.iconKind ? <SystemIcon kind={tool.iconKind} className="h-7 w-7" fill="currentColor" aria-hidden /> : tool.icon}
-            </span>
-          </Link>
-        ))}
-      </div>
+  return (
+    <div className="mx-auto flex max-w-5xl flex-col gap-6">
+      <PageIntro title={t("pages.tools")} text={t("tools.subtitle")} />
+
+      <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+        {visible.map((tool) => {
+          const tone = TONES[tool.tone];
+          const Icon = tool.icon;
+          return (
+            <li key={tool.href} className={tool.featured ? "sm:col-span-2" : ""}>
+              <Link href={tool.href} className={`${interactiveCard} group flex h-full items-center gap-4 p-4 ${tool.featured ? "sm:gap-6 sm:p-6" : ""}`}>
+                <span className={`flex shrink-0 items-center justify-center rounded-2xl ${tone.tile} ${tone.icon} ${tool.featured ? "h-14 w-14 sm:h-20 sm:w-20" : "h-14 w-14"}`} aria-hidden>
+                  {Icon === "xp" ? <SystemIcon kind="xp" className={tool.featured ? "h-10 w-10" : "h-8 w-8"} aria-hidden /> : <Icon className={tool.featured ? "h-7 w-7 sm:h-10 sm:w-10" : "h-7 w-7"} strokeWidth={1.75} />}
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className={`font-extrabold leading-tight text-vs-fg ${tool.featured ? "text-xl sm:text-2xl" : "text-lg"}`}>{t(tool.titleKey)}</span>
+                  <span className="text-sm leading-snug text-vs-fg-3">{t(tool.textKey)}</span>
+                  {meta.get(tool.href) && <span className={`mt-1 w-fit rounded-full px-2.5 py-0.5 text-xs font-bold ${tone.tile} ${tone.icon}`}>{meta.get(tool.href)}</span>}
+                </span>
+                <ChevronRight className="h-5 w-5 shrink-0 text-vs-fg-3 transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none" aria-hidden />
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
 
       {visible.length < TOOLS.length && elsewhere.length > 0 && (
-        <p className="text-sm text-slate-500 dark:text-slate-400 text-center">
+        <p className="text-center text-sm text-vs-fg-3">
           {t("tools.moreElsewhere", { names: elsewhere.map((collection) => collection.name).join(` ${t("akGame.listAnd")} `) })}
         </p>
       )}

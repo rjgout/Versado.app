@@ -60,6 +60,8 @@ export type ContentRoute =
   | { kind: "fsy"; lessonId: string }
   | { kind: "podcast"; episodeId: string }
   | { kind: "persons" }
+  /** Het woordenboek (word = leeg) of één woord daarin: een woordenlijst hoort bij één uitgave. */
+  | { kind: "dictionary"; word: string | null }
   | { kind: "game"; gameId: GameId };
 
 const SEGMENT = "([^/]+)";
@@ -85,6 +87,17 @@ export function classifyContentRoute(pathname: string): ContentRoute {
   match = new RegExp(`^/podcast/${SEGMENT}(?:/[^/]+)?$`).exec(path);
   if (match) return { kind: "podcast", episodeId: match[1] };
   if (path === "/tools/persons") return { kind: "persons" };
+  if (path === "/tools/dictionary") return { kind: "dictionary", word: null };
+  match = new RegExp(`^/tools/dictionary/${SEGMENT}$`).exec(path);
+  if (match) {
+    let word = match[1];
+    try {
+      word = decodeURIComponent(word);
+    } catch {
+      /* ongeldige %-reeks: het ruwe segment blijft staan */
+    }
+    return { kind: "dictionary", word };
+  }
   // Spellen: de catalogus is de bron, zodat een nieuw spel niets extra's nodig heeft.
   const game = GAME_CATALOG.find((entry) => path === entry.href || path.startsWith(`${entry.href}/`));
   if (game) return { kind: "game", gameId: game.id };
@@ -97,6 +110,8 @@ export function contentHubHref(route: ContentRoute): string {
     case "game":
       return "/live";
     case "persons":
+      return "/tools";
+    case "dictionary":
       return "/tools";
     case "neutral":
       return "/dashboard";

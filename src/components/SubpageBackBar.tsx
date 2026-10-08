@@ -82,6 +82,8 @@ function detailPageFor(pathname: string, profileView: string | null, hash: strin
   }
   const profileSubpage = PROFILE_SUBPAGES[pathname];
   if (profileSubpage) return { fallback: "/profile", title: profileSubpage };
+  // Een woord in het woordenboek: terug naar de lijst (met dezelfde zoekstand), ook via een deeplink.
+  if (/^\/tools\/dictionary\/[^/]+$/.test(pathname)) return { fallback: "/tools/dictionary", title: "pages.dictionary" };
   const tool = TOOL_SUBPAGES[pathname];
   if (tool) return { fallback: "/tools", title: tool };
   const game = GAME_PAGES[pathname];

@@ -677,3 +677,17 @@ Gevonden bij dit onderzoek; niet aangepast, want buiten deze opdracht:
   die de Figma-ontwerpen voor de voeten lopen.
 - Werk dit document bij als de richting verandert of een deel van het
   redesign is uitgevoerd.
+
+## Hulpmiddelen en Woordenboek
+
+Het overzicht (`/tools`), het woordenboek, personages, bladwijzers en de XP-gids delen
+dezelfde bouwstenen: `PageIntro` (kop), `SearchField` (zoekveld, ook voor personages),
+`StateMessage` (laden, leeg, fout) en `interactiveCard`/`surfaceCard` uit
+`versado/styles.ts`. Een lijst met veel items is één kaart met gescheiden rijen, nooit een
+kaart per item. Het woordenboek bewaart zoekterm, letter en lengte in de URL
+(`?q=`, `letter`, `lengte`), zodat browser-terug dezelfde lijst toont; `NavigationScroll`
+herstelt de scrollpositie. Een woord heeft een eigen pagina
+(`/tools/dictionary/<woord>`, content-wissel-bewust via `contentRouting`). Er zijn geen
+definities of verwante woorden opgeslagen: de woordpagina toont alleen wat er echt is
+(aantal, verzen per boek met markering, afgeleide gelijkende woorden). Recent bekeken
+woorden staan alleen lokaal op het toestel (`useRecentWords`).

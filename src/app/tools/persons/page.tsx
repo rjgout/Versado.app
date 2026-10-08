@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { BOM_COLLECTION_ID, DC_COLLECTION_ID, getContentContext } from "@/lib/contentCollections";
 import PersonsSearch from "./persons-search";
+import PageIntro from "@/components/versado/PageIntro";
 import { getT } from "@/lib/i18n";
 import type { MessageKey } from "@/lib/i18n/core";
 
@@ -34,18 +35,9 @@ export default async function PersonsToolPage() {
   });
 
   return (
-    <div className="max-w-4xl mx-auto flex flex-col gap-6">
-
-      <div>
-        <h1 className="text-2xl font-extrabold text-brand-800 dark:text-brand-300">{t("persons.title")}</h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">
-          {t(PERSON_COLLECTIONS[collectionId], { n: persons.length })}
-        </p>
-      </div>
-
+    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+      <PageIntro title={t("persons.title")} text={t(PERSON_COLLECTIONS[collectionId], { n: persons.length })} />
       <PersonsSearch persons={persons} />
-
-
     </div>
   );
 }
