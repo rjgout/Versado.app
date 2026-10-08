@@ -4,6 +4,19 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Nieuw: Ontdek Versado (Versado Kompas). Op Vandaag en in je profiel vind je
+  een vaste ingang naar korte, eenvoudige uitleg over Leren, Spelen, Samen,
+  je voortgang, je profiel en het kiezen van Schriften en taal. Elke uitleg
+  volgt de Schriften die je gekozen hebt en staat in de taal van je app.
+  Je kunt een korte rondleiding volgen die echte onderdelen van het scherm
+  aanwijst; overslaan, stoppen en later opnieuw starten kan altijd. Bij een
+  onderdeel dat je voor het eerst opent kan Versado hoogstens één keer per
+  bezoek vragen of je uitleg wilt; nieuwe accounts krijgen dat standaard,
+  bestaande accounts niet, en je kunt het in je profiel aan- of uitzetten. De
+  kennismaking bij een nieuw account is aangevuld met één korte stap. Het
+  lezen van uitleg of het volgen van een rondleiding verandert nooit je XP,
+  reeks of resultaten.
+
 - Betere weergave bij grotere tekst en op kleine schermen. De bovenbalk en
   onderste navigatie blijven bij 150% en 200% tekst op hun plek en lopen niet
   meer buiten het scherm (de pagina zoomde daardoor soms uit en de onderste

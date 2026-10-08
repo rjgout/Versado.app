@@ -30,6 +30,7 @@ export default function BottomNav() {
             <Link
               key={item.id}
               href={item.href}
+              data-kompas-target={`nav-${item.id}`}
               aria-current={isActive ? "page" : undefined}
               className={`group flex min-h-[3.25rem] min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-0.5 text-center text-[0.6875rem] font-bold leading-tight tracking-wide transition-colors vs-wrap ${
                 isActive ? "text-vs-accent" : "text-vs-fg-3 hover:text-vs-fg-2"

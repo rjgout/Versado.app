@@ -1,4 +1,5 @@
 import type { PartialMessages } from "../core";
+import { kompasDe } from "./kompas/de";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const de: PartialMessages = {
@@ -3213,4 +3214,5 @@ export const de: PartialMessages = {
     allCaughtUp: "Du bist auf dem neuesten Stand!", allCaughtUpHint: "Keine Aktion benötigt deine Aufmerksamkeit.", empty: "Keine offenen Aktivitäten.", loadMore: "Mehr laden",
     viewAllRequests: "Alle {n} Anfragen anzeigen", viewAllGroupActions: "Alle {n} Gruppenaktionen anzeigen",
   },
+  kompas: kompasDe,
 };

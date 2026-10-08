@@ -37,6 +37,7 @@ export interface ProfileData {
   notifyFriendOnline: boolean;
   changelogEnabled: boolean;
   conferenceCountdownEnabled: boolean;
+  kompasOffersEnabled: boolean;
   nudgesEnabled: boolean;
   timeZone: string | null;
   uiLanguage: string;
@@ -75,4 +76,5 @@ export type ProfileToggleField =
   | "notifyFriendOnline"
   | "changelogEnabled"
   | "conferenceCountdownEnabled"
+  | "kompasOffersEnabled"
   | "nudgesEnabled";

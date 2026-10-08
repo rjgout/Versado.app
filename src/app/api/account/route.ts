@@ -51,6 +51,8 @@ const patchSchema = z.object({
   notifyFriendOnline: z.boolean().optional(),
   changelogEnabled: z.boolean().optional(),
   conferenceCountdownEnabled: z.boolean().optional(),
+  // Mag Versado Kompas uitleg aanbieden bij een onderdeel dat je voor het eerst opent?
+  kompasOffersEnabled: z.boolean().optional(),
   // Seintjes van vrienden (src/lib/social/nudges.ts).
   nudgesEnabled: z.boolean().optional(),
   // Door de browser gedetecteerde IANA-tijdzone (TimeZoneSync.tsx). Alleen

@@ -2,6 +2,8 @@
 // structuur; een tekst die daar (nog) ontbreekt, valt terug op deze.
 // Sleutels groeperen per onderdeel van de app, niet per bestand, zodat
 // dezelfde tekst op meerdere plekken één vertaling houdt.
+import { kompasNl } from "./kompas/nl";
+
 export const nl = {
   streakReturn: {
     title: "Reeks voortzetten",
@@ -3691,4 +3693,5 @@ export const nl = {
       rescued: { name: "Samen gered", description: "Een geschonken reeksbevriezing beschermde de groepsreeks." },
     },
   },
+  kompas: kompasNl,
 };

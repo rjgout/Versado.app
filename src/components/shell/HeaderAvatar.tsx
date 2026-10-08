@@ -13,6 +13,7 @@ export default function HeaderAvatar({ id, handle, avatarEmoji }: { id: string; 
   return (
     <Link
       href="/profile"
+      data-kompas-target="profile"
       aria-label={t("nav.profile")}
       aria-current={active ? "page" : undefined}
       className={`vs-motion flex h-10 w-10 items-center justify-center rounded-full transition ring-offset-2 ring-offset-vs-elevated hover:ring-2 hover:ring-vs-line-strong ${

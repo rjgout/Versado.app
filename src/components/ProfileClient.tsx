@@ -27,6 +27,8 @@ import { useCompanion } from "@/components/versado/PersonalMascot";
 import type { PersonalMascotCharacter } from "@/lib/mascots";
 import { parseProfileView, profileViewHref, PROFILE_VIEWS, type ProfileView } from "@/lib/profileViews";
 import ProfilePage from "@/components/profile/ProfilePage";
+import KompasEntryCard from "@/components/kompas/KompasEntryCard";
+import { KompasIcon } from "@/components/kompas/KompasIcon";
 import { ProfileCard, SettingsButton, SettingsInfoRow, SettingsRow, SettingsSection, SettingsToggleRow } from "@/components/profile/settings";
 import { AchievementsView, CompetitionView } from "@/components/profile/ProfileContentViews";
 import { NotificationsView, PresenceView, PrivacyView, ReadAloudView, ReadingView, WhatsNewView } from "@/components/profile/ProfileSettingsViews";
@@ -501,6 +503,8 @@ export default function ProfileClient() {
         <ProfileAction icon={<MessageSquare className="h-5 w-5 text-vs-accent" aria-hidden />} label={t("pages.feedback")} href="/feedback" />
       </div>
 
+      <KompasEntryCard />
+
       <CompanionSection
         current={data.companion}
         onChanged={(companion) => setData((current) => (current ? { ...current, companion } : current))}
@@ -536,6 +540,7 @@ export default function ProfileClient() {
         <SettingsRow icon={<LockKeyhole className="h-5 w-5 text-vs-accent" aria-hidden />} label={t("profile.privacy")} onClick={() => openView("privacy")} />
         <TimeZoneRow known={data.timeZone} label={t("profile.timeZone")} format={(zone) => t("profile.timeZoneAuto", { zone })} locale={getLanguage(data.uiLanguage).intlLocale} />
         <SettingsToggleRow icon={<CalendarDays className="h-5 w-5 text-vs-accent" aria-hidden />} label={t("profile.conferenceCountdown")} description={t("profile.conferenceCountdownHint")} checked={data.conferenceCountdownEnabled} busy={savingNotifications} onChange={() => toggleCategory("conferenceCountdownEnabled")} />
+        <SettingsToggleRow icon={<KompasIcon className="h-5 w-5 text-vs-accent" />} label={t("kompas.settings.offersTitle")} description={t("kompas.settings.offersHint")} checked={data.kompasOffersEnabled} busy={savingNotifications} onChange={() => toggleCategory("kompasOffersEnabled")} />
       </SettingsSection>
 
       <SettingsSection title={t("profile.aboutSection")}>

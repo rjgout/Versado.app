@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { kompasHref } from "@/lib/kompas/registry";
 import { X } from "lucide-react";
 import ActiveGamesBanner from "@/components/ActiveGamesBanner";
 import { SortableList } from "@/components/SortableList";
@@ -203,6 +205,7 @@ export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, cont
       {available.length > 0 && order && games.length === 0 && <p className="text-sm text-vs-fg-2">{t("gamesHub.allHidden")}</p>}
 
       {order && (
+        <div data-kompas-target="play-games">
         <SortableList
           dndId="games-list"
           items={games}
@@ -233,19 +236,20 @@ export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, cont
             );
           }}
         />
+        </div>
       )}
 
       {available.length > 0 && (
         <CardPicker addLabel={t("gamesHub.addGame")} emptyText={t("gamesHub.allAdded")} items={order ? pickerItems : null} onAdd={add} />
       )}
 
-      {rulesFor && <GameRules title={gameTitle(t, rulesFor, character)} rules={(["rule1", "rule2", "rule3"] as const).map((rule) => text(rulesFor, rule))} onClose={() => setRulesFor(null)} />}
+      {rulesFor && <GameRules title={gameTitle(t, rulesFor, character)} rules={(["rule1", "rule2", "rule3"] as const).map((rule) => text(rulesFor, rule))} moreHref={kompasHref(`play.${rulesFor.id}`)} onClose={() => setRulesFor(null)} />}
     </div>
   );
 }
 
 /** Speluitleg: de unieke informatie achter de ⓘ op een spelkaart. */
-function GameRules({ title, rules, onClose }: { title: string; rules: string[]; onClose: () => void }) {
+function GameRules({ title, rules, moreHref, onClose }: { title: string; rules: string[]; moreHref: string; onClose: () => void }) {
   const t = useT();
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -280,6 +284,10 @@ function GameRules({ title, rules, onClose }: { title: string; rules: string[]; 
             <li key={rule}>{rule}</li>
           ))}
         </ul>
+        {/* De volledige uitleg staat in Ontdek Versado; de speluitleg hierboven blijft de snelle versie. */}
+        <Link href={moreHref} className="mt-4 inline-flex min-h-11 items-center text-sm font-bold text-vs-accent underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent">
+          {t("kompas.topic.moreInKompas")}
+        </Link>
       </div>
     </div>
   );

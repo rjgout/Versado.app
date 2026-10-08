@@ -186,6 +186,7 @@ export default function ContentSwitcher({
     // (de navigatie houdt haar eigen minimale breedte) en volgt de afkorting.
     <div
       ref={ref}
+      data-kompas-target="content-switcher"
       className="relative -ml-2 self-stretch flex min-w-[4.5rem] max-w-full flex-1 lg:max-w-[18rem] lg:flex-[0_1_var(--vs-switcher-full,18rem)]"
       style={fullTriggerWidth ? ({ "--vs-switcher-full": `${fullTriggerWidth}px` } as CSSProperties) : undefined}
     >

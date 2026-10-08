@@ -109,6 +109,44 @@ componenten:
 - getest worden op 320 px breed, 200% tekst en een lange vertaling
   (`scripts/layout-audit`, `npm run test:focus`).
 
+## Versado Kompas: uitleg, rondleidingen en begeleiding
+
+Gebruikers leren Versado zelfstandig begrijpen via **Ontdek Versado**
+(`/kompas`, vaste ingang op Vandaag en in het profiel, bewust geen extra tab):
+korte uitleg per onderdeel, optionele rondleidingen over echte interface-
+onderdelen, een subtiele uitnodiging bij een eerste bezoek en één korte stap
+in de onboarding. Alles staat in `src/lib/kompas/` (register, uitlegkeuze,
+status, rondleidingen) en `src/components/kompas/`; teksten staan in
+`src/lib/i18n/messages/kompas/` (nl is de bron). Zie `docs/KOMPAS.md`, met de
+fallbackvolgorde (activiteit + schriftbron → activiteit → onderdeel → Versado),
+de regels voor uitnodigingen en rondleidingen en hoe je een schriftbron, spel,
+onderdeel, rondleiding of taal toevoegt.
+
+Harde regels:
+- Kompas raakt nooit XP, reeksen, divisies, scores, groepsvoortgang, dagelijkse
+  doelen of cursus-/spelresultaten (`tests/kompas.test.ts` bewaakt dit). Geen
+  imports uit die modules in `src/lib/kompas/` of `src/components/kompas/`.
+- Geen eigen helpsysteem, onboardingtour of "?"-overlay per feature: gebruik
+  het register. Een spel uit `GAME_CATALOG` komt vanzelf onder Spelen, met zijn
+  bestaande speluitleg (`gamesHub.*`).
+- Noem het Boek van Mormon alleen in uitleg die over dat schriftwerk gaat
+  (`kompas.work.bofm`); voor algemene uitleg: "de Schriften".
+- Een rondleidingsdoel is `data-kompas-target="<naam>"`; positionering gaat
+  uitsluitend via `src/lib/kompas/tourLayout.ts` en `dom.ts`, nooit met eigen
+  hoogtes of z-index per pagina.
+
+**Bij elke nieuwe of wezenlijk gewijzigde, voor gebruikers zichtbare functie
+(niet bij triviale wijzigingen of bugfixes) controleer je:** heeft ze uitleg
+nodig; moet ze in Ontdek Versado verschijnen; is een rondleiding nuttig; hangt de
+uitleg af van de schriftbron; zijn alle vertalingen aanwezig; moet een bestaande
+uitlegversie (`KompasTopic.version`) omhoog; werkt ze met de Kompas-architectuur;
+zijn bestaande helpteksten (`gamesHub.*`, `xpGuide`, `kompas.topics.*`) nog correct.
+Een nieuwe schriftbron (contentcollectie), activiteit of spel moet vóór oplevering
+met de contentkiezer worden nagelopen in Ontdek Versado: de algemene uitleg moet
+kloppen voor die bron en mag geen functie beloven die er voor die bron niet is
+(beschikbaarheid komt uit de echte gegevens, zie "Beschikbaarheid per bron" in
+`docs/KOMPAS.md`). Teststap: `npm run test:kompas`.
+
 ## Platformfundering: web/PWA, iOS en Android
 
 Versado blijft één product en één gedeelde codebase. De definitieve native
@@ -218,6 +256,8 @@ Controleer bij twijfel: `grep -rn "next/headers" src/lib src/server server.ts`
   geen dubbele titel; zie `docs/PROFIEL.md`.
 - `src/lib/data/` — live-data-laag (ophalen, verversen, invalidatie, realtime-onderwerpen);
   zie `docs/DATA-REFRESH.md` en de harde regel hieronder. Getest met `npm run test:live-data`
+- `src/lib/kompas/` + `src/components/kompas/` — Versado Kompas (uitleg, rondleidingen,
+  uitnodigingen); zie de sectie hierboven en `docs/KOMPAS.md`. Getest met `npm run test:kompas`
 - `src/lib/learning/` — leervoortgang per inhoud (lezen, oefenplan, XP-
   begrenzing, reeksregel, leestijd); zie `docs/LEERVOORTGANG.md` en de harde
   regel hieronder. Getest met `npm run test:learning`

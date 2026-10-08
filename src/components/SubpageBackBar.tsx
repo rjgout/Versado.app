@@ -99,6 +99,9 @@ function detailPageFor(pathname: string, profileView: string | null, hash: strin
   }
   // Groepen (Samen) horen bij Vrienden.
   if (pathname === "/groups") return { fallback: "/friends", title: "together.pages.groups" };
+  // Ontdek Versado (Versado Kompas): het overzicht komt van Vandaag of het profiel, een onderdeel van het overzicht.
+  if (pathname === "/kompas") return { fallback: "/dashboard", title: "kompas.title" };
+  if (/^\/kompas\/[^/]+$/.test(pathname)) return { fallback: "/kompas", title: "kompas.title" };
   if (pathname === "/acties") return { fallback: "/dashboard", title: "actionCenter.title" };
   if (pathname === "/groups/new") return { fallback: "/groups", title: "together.pages.newGroup" };
   if (pathname === "/groups/leaderboard") return { fallback: "/groups", title: "together.pages.groupLeaderboard" };

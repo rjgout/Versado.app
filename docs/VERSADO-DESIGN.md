@@ -392,9 +392,25 @@ bij de invoering een backfill). Stappen nu: kennisniveau
 geïnstalleerd draait), uitleg, vrienden zoeken en vindbaarheid, online-status,
 notificaties. Opnieuw te openen via Profiel ("rondleiding").
 
-Mag later uitgebreider worden (kennismaken met Versado, persoonlijke
-metgezel, uitleg XP/reeks/divisies, contentvoorkeuren). Bouw voort op de
-bestaande flow in plaats van een nieuwe ernaast.
+De stappen zijn nu: kennisniveau, persoonlijke gids, **kennismaking met Versado**
+(`KompasStep`: wat Versado is, Leren, Spelen, de contentkiezer, waar uitleg
+staat, met twee knoppen om meteen iets te proberen), webapp, uitleg, vrienden,
+online-status, notificaties. Wat de kennismaking toont wordt als gezien
+vastgelegd (`/api/onboarding/complete` met `kompasSeen`), zodat Kompas dezelfde
+uitleg niet nogmaals vanzelf aanbiedt. Verdere uitleg staat in Ontdek Versado
+(`docs/KOMPAS.md`); bouw voort op de bestaande flow in plaats van een nieuwe ernaast.
+
+### Ontdek Versado (Versado Kompas)
+
+`/kompas` (overzicht) en `/kompas/<onderdeel>` (uitleg) zijn gewone pagina's in
+de normale shell, met de terugbalk van `SubpageBackBar` ("← Ontdek Versado"). De
+ingang is een rij op Vandaag en op het profiel; er is geen vijfde bestemming in
+de onderbalk. Het overzicht toont eerst Leren en Spelen, dan Samen, Mijn
+voortgang, Mijn profiel en instellingen en Aan de slag. Het Kompas-icoon is een
+afgeleide van het kompas van Varo (`KompasIcon`); mascottes alleen via
+`PersonalMascot`. Rondleidingen en uitnodigingen gebruiken dezelfde `vs`-tokens
+en respecteren de vaste bovenbalk, onderbalk en safe areas (geen eigen
+positioneringslogica). Zie `docs/KOMPAS.md`.
 
 ## Talen
 
