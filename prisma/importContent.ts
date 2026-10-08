@@ -9,6 +9,7 @@ import {
 } from "../src/lib/exerciseGen";
 import { generateExerciseHint } from "../src/lib/exerciseHints";
 import { syncCourses } from "../src/lib/courses";
+import { inPhase } from "../src/lib/importPhase";
 import type { SeedBook } from "./content";
 import { BOOK_KEYS_BY_SLUG } from "./bookKeys";
 import { toLanguageCode, type LanguageCode } from "../src/lib/languages";
@@ -296,5 +297,5 @@ export async function importBooks(
   // Pas na de nieuwe oefeningen: die verwijzen alleen nog naar bestaande verzen.
   if (verseDeletes.length > 0) await prisma.verse.deleteMany({ where: { id: { in: verseDeletes } } });
 
-  await syncCourses(prisma);
+  await inPhase("Cursussen", () => syncCourses(prisma));
 }

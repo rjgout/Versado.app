@@ -30,6 +30,7 @@
     "test:word-search": "tsx --test tests/word-search.test.ts",
     "test:study": "tsx --test tests/study-scoring.test.ts",
     "test:content-edition": "tsx --test tests/content-edition.test.ts tests/content-switch.test.ts tests/content-switch.integration.test.ts",
+    "test:course-sync": "tsx --test tests/course-sync.integration.test.ts",
     "test:otb": "tsx --test tests/otb.test.ts",
     "test:mascots": "tsx --test tests/mascots.test.ts tests/divisions.test.ts",
     "test:focus": "tsx --test tests/focus-mode.test.ts",

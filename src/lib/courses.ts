@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@/generated/prisma/client";
+import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { capitalize, chapterTerm } from "./chapterTerm";
 import { ensurePodcasts, PODCASTS, PODCASTS_COLLECTION_ID } from "./podcasts";
 import { splitVerseRange } from "./learning/exercisePlan";
@@ -15,6 +15,99 @@ export const FSY_SLUG = "voor-de-kracht-van-de-jeugd";
 // De stappen van Stap voor stap zijn de delen van het oefenplan (zie
 // src/lib/learning/exercisePlan.ts): één indeling voor elke route.
 export { splitVerseRange } from "./learning/exercisePlan";
+
+export interface PlannedLesson {
+  chapterId: string;
+  startVerse: number;
+  endVerse: number;
+  order: number;
+  exerciseIds: string[];
+}
+
+export interface LessonSyncResult {
+  created: number;
+  updated: number;
+  reordered: number;
+  removed: number;
+  /** Voortgang/sessies van verdwenen lessen die naar een les in hetzelfde hoofdstuk zijn overgezet. */
+  remapped: number;
+}
+
+/**
+ * Past het lessenplan van een leescursus toe. Een les wordt geïdentificeerd door
+ * (cursus, hoofdstuk, beginvers) en nooit door zijn volgorde: bestaande lessen
+ * behouden hun id, en daarmee hun voortgang, sessies en "huidige les".
+ *
+ * De volgorde heeft een unieke constraint (courseId, order). Een les een andere
+ * plek geven botst daarom tijdelijk met de les die daar nu nog staat (wisselen,
+ * invoegen, verplaatsen, of lessen verdwijnen). Daarom, in één transactie:
+ * 1. alle bestaande lessen van de cursus gaan naar een tijdelijke, unieke
+ *    negatieve volgorde (een-op-een, dus zonder botsing met elkaar of met de
+ *    definitieve volgorde, die nooit negatief is);
+ * 2. elke geplande les krijgt zijn definitieve volgorde (of wordt aangemaakt);
+ * 3. lessen die niet meer in het plan staan worden pas daarna opgeruimd, en hun
+ *    voortgang, oefensessies en "huidige les" gaan eerst naar de les die dat
+ *    beginvers nu dekt, zodat niets van een gebruiker meeverdwijnt.
+ * Een fout laat de oude toestand volledig staan. Opnieuw draaien met hetzelfde
+ * plan verandert niets (idempotent).
+ */
+export async function applyLessonPlan(tx: Prisma.TransactionClient, courseId: string, plan: PlannedLesson[]): Promise<LessonSyncResult> {
+  const keyOf = (chapterId: string, startVerse: number) => `${chapterId}:${startVerse}`;
+  const planned = new Map(plan.map((lesson) => [keyOf(lesson.chapterId, lesson.startVerse), lesson]));
+  if (planned.size !== plan.length) throw new Error("Het lessenplan bevat dezelfde les twee keer (hoofdstuk en beginvers).");
+  if (new Set(plan.map((lesson) => lesson.order)).size !== plan.length || plan.some((lesson) => lesson.order < 0)) throw new Error("Het lessenplan heeft een dubbele of negatieve volgorde.");
+
+  const existing = await tx.courseLesson.findMany({ where: { courseId }, select: { id: true, chapterId: true, startVerse: true, endVerse: true, order: true } });
+  const result: LessonSyncResult = { created: 0, updated: 0, reordered: 0, removed: 0, remapped: 0 };
+  const existingByKey = new Map(existing.map((lesson) => [keyOf(lesson.chapterId, lesson.startVerse), lesson]));
+
+  if (existing.length > 0) await tx.$executeRaw`UPDATE "CourseLesson" SET "order" = -"order" - 1 WHERE "courseId" = ${courseId} AND "order" >= 0`;
+
+  const idByKey = new Map<string, string>();
+  for (const lesson of plan) {
+    const key = keyOf(lesson.chapterId, lesson.startVerse);
+    const known = existingByKey.get(key);
+    let id: string;
+    if (known) {
+      await tx.courseLesson.update({ where: { id: known.id }, data: { order: lesson.order, endVerse: lesson.endVerse } });
+      id = known.id;
+      if (known.order !== lesson.order) result.reordered++;
+      else if (known.endVerse !== lesson.endVerse) result.updated++;
+    } else {
+      id = (await tx.courseLesson.create({ data: { courseId, chapterId: lesson.chapterId, startVerse: lesson.startVerse, endVerse: lesson.endVerse, order: lesson.order } })).id;
+      result.created++;
+    }
+    idByKey.set(key, id);
+    await tx.courseLessonExercise.deleteMany({ where: { lessonId: id } });
+    if (lesson.exerciseIds.length > 0) {
+      await tx.courseLessonExercise.createMany({ data: lesson.exerciseIds.map((exerciseId, index) => ({ lessonId: id, exerciseId, order: index })) });
+    }
+  }
+
+  const stale = existing.filter((lesson) => !planned.has(keyOf(lesson.chapterId, lesson.startVerse)));
+  for (const lesson of stale) {
+    // De les in hetzelfde hoofdstuk die het beginvers van de verdwenen les nu dekt (anders de eerste van dat hoofdstuk).
+    const candidates = plan.filter((p) => p.chapterId === lesson.chapterId).sort((x, y) => x.startVerse - y.startVerse);
+    const target = [...candidates].reverse().find((p) => p.startVerse <= lesson.startVerse) ?? candidates[0];
+    const targetId = target ? idByKey.get(keyOf(target.chapterId, target.startVerse)) : undefined;
+    if (targetId) {
+      const progress = await tx.userCourseLessonProgress.findMany({ where: { lessonId: lesson.id }, select: { id: true, userId: true } });
+      const taken = new Set((await tx.userCourseLessonProgress.findMany({ where: { lessonId: targetId, userId: { in: progress.map((row) => row.userId) } }, select: { userId: true } })).map((row) => row.userId));
+      for (const row of progress) {
+        if (taken.has(row.userId)) continue;
+        await tx.userCourseLessonProgress.update({ where: { id: row.id }, data: { lessonId: targetId } });
+        result.remapped++;
+      }
+      result.remapped += (await tx.exerciseSession.updateMany({ where: { courseLessonId: lesson.id }, data: { courseLessonId: targetId } })).count;
+      await tx.userCourseProgress.updateMany({ where: { currentLessonId: lesson.id }, data: { currentLessonId: targetId } });
+    }
+  }
+  if (stale.length > 0) {
+    await tx.courseLesson.deleteMany({ where: { id: { in: stale.map((lesson) => lesson.id) } } });
+    result.removed = stale.length;
+  }
+  return result;
+}
 
 async function syncReadingLessons(
   db: PrismaClient,
@@ -38,51 +131,26 @@ async function syncReadingLessons(
     exercisesByChapter.set(exercise.chapterId, list);
   }
 
-  const expectedLessonIds: string[] = [];
-  let lessonOrder = 0;
+  const verseCounts = chapterIds.length === 0 ? [] : await db.verse.groupBy({ by: ["chapterId"], where: { chapterId: { in: chapterIds } }, _count: { _all: true } });
+  const countByChapter = new Map(verseCounts.map((row) => [row.chapterId, row._count._all]));
 
+  const plan: PlannedLesson[] = [];
   for (const chapter of chapters) {
-    const verseCount = await db.verse.count({ where: { chapterId: chapter.id } });
-    const ranges = splitVerseRange(verseCount);
     const chapterExercises = exercisesByChapter.get(chapter.id) ?? [];
-
-    for (const range of ranges) {
-      const lesson = await db.courseLesson.upsert({
-        where: {
-          courseId_chapterId_startVerse: {
-            courseId,
-            chapterId: chapter.id,
-            startVerse: range.startVerse,
-          },
-        },
-        update: { order: lessonOrder, endVerse: range.endVerse },
-        create: {
-          courseId,
-          chapterId: chapter.id,
-          order: lessonOrder,
-          startVerse: range.startVerse,
-          endVerse: range.endVerse,
-        },
+    for (const range of splitVerseRange(countByChapter.get(chapter.id) ?? 0)) {
+      plan.push({
+        chapterId: chapter.id,
+        startVerse: range.startVerse,
+        endVerse: range.endVerse,
+        order: plan.length,
+        exerciseIds: chapterExercises
+          .filter((exercise) => exercise.verseNumber !== null && exercise.verseNumber >= range.startVerse && exercise.verseNumber <= range.endVerse)
+          .map((exercise) => exercise.id),
       });
-      expectedLessonIds.push(lesson.id);
-      lessonOrder++;
-
-      await db.courseLessonExercise.deleteMany({ where: { lessonId: lesson.id } });
-
-      const inRange = chapterExercises.filter(
-        (exercise) => exercise.verseNumber !== null && exercise.verseNumber >= range.startVerse && exercise.verseNumber <= range.endVerse
-      );
-      if (inRange.length > 0) {
-        await db.courseLessonExercise.createMany({
-          data: inRange.map((exercise, index) => ({ lessonId: lesson.id, exerciseId: exercise.id, order: index })),
-        });
-      }
     }
   }
 
-  await db.courseLesson.deleteMany({
-    where: { courseId, id: { notIn: expectedLessonIds.length > 0 ? expectedLessonIds : ["__geen_lessens__"] } },
-  });
+  await db.$transaction((tx) => applyLessonPlan(tx, courseId, plan), { maxWait: 30_000, timeout: 10 * 60_000 });
 }
 
 // Collectienamen zoals ze midden in een zin staan ("Lees de Leer en

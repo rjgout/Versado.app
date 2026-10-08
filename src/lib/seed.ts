@@ -44,6 +44,7 @@ import { alleskennerItems } from "../../prisma/alleskennerContent";
 import { generatedAlleskennerItems } from "../../prisma/alleskennerGenerated";
 import { importAlleskennerItems, importAlleskennerTranslations } from "../../prisma/importAlleskenner";
 import { alleskennerTranslations } from "../../prisma/alleskennerTranslate";
+import { inPhase } from "./importPhase";
 import { preparePinnedOtbSource } from "../../scripts/otb/source";
 import { importOtbTrial, type OtbImportProgress } from "../../scripts/otb/import-core";
 import { importGeneesBank } from "../../prisma/importGenees";
@@ -111,12 +112,17 @@ export async function runSeed(
   progress?: (progress: OtbImportProgress) => void,
 ): Promise<void> {
   log("Seeding boeken, hoofdstukken, verzen en oefeningen...");
-  await importBooks(client, seedBooks, log);
-  await importChapterAudio(client, bomAudio as ChapterAudioSeed[], BOM_COLLECTION_ID, log);
+  await inPhase("Boeken", () => importBooks(client, seedBooks, log));
+  await inPhase("Voorgelezen hoofdstukken", () => importChapterAudio(client, bomAudio as ChapterAudioSeed[], BOM_COLLECTION_ID, log));
 
+  // De OTB-import staat los van de cursussen: hij gebruikt geen syncCourses en
+  // draait pas na de eerste cursussynchronisatie, maar een fout daarin blijft
+  // een Bijbelfout en een cursusfout hierboven blijft een cursusfout.
   log("Open Translation Bible voorbereiden...");
-  const otbSource = await preparePinnedOtbSource(log);
-  await importOtbTrial(client, otbSource, log, progress);
+  await inPhase("Bijbel (OTB)", async () => {
+    const otbSource = await preparePinnedOtbSource(log);
+    await importOtbTrial(client, otbSource, log, progress);
+  });
 
   // Leer en Verbonden en de Parel van Grote Waarde, en de Engelse uitgaven
   // van alle drie, elk in een eigen collectie. Alleen als die collectie
@@ -136,40 +142,47 @@ export async function runSeed(
   ] as const) {
     if (!(await client.contentCollection.findUnique({ where: { id: collectionId }, select: { id: true } }))) continue;
     log(`Seeding ${label}...`);
-    await importBooks(client, books, log, collectionId);
-    const audio = audioByCollection[collectionId];
-    if (audio) await importChapterAudio(client, audio, collectionId, log);
+    await inPhase(`Boeken (${label})`, async () => {
+      await importBooks(client, books, log, collectionId);
+      const audio = audioByCollection[collectionId];
+      if (audio) await importChapterAudio(client, audio, collectionId, log);
+    });
   }
 
   log("Seeding podcastafleveringen...");
-  await importPodcastEpisodes(client, GJDO_PODCAST_ID, podcastEpisodes, log);
-  await importPodcastEpisodes(client, KAST_PODCAST_ID, kastVanMormonEpisodes, log);
-
-  log("Podcastfeed ophalen voor titels/omschrijvingen en nieuwe afleveringen...");
-  await syncPodcastFeed(client, log);
+  await inPhase("Podcasts", async () => {
+    await importPodcastEpisodes(client, GJDO_PODCAST_ID, podcastEpisodes, log);
+    await importPodcastEpisodes(client, KAST_PODCAST_ID, kastVanMormonEpisodes, log);
+    log("Podcastfeed ophalen voor titels/omschrijvingen en nieuwe afleveringen...");
+    await syncPodcastFeed(client, log);
+  });
 
   log("FSY-content controleren op nieuwe lessen...");
-  await syncFsyContent(client, log);
+  await inPhase("FSY", () => syncFsyContent(client, log));
 
   log("Seeding kindercursus (Verhalen uit het Boek van Mormon)...");
-  await importKidsStories(client, kidsManifest as KidsStorySeed[], log);
+  await inPhase("Kindercursus", () => importKidsStories(client, kidsManifest as KidsStorySeed[], log));
 
   log("Seeding personen voor de introductiecursus...");
-  await importIntroPersons(client, introPersons, log);
-
-  log("Seeding personen uit de Leer en Verbonden...");
-  await importIntroPersons(client, dcPersons, log, DC_COLLECTION_ID);
-
-  log("Seeding introductiecursus (Ontdek het Boek van Mormon)...");
-  await importIntroLessons(client, introLessons, log);
+  await inPhase("Introductiecursus", async () => {
+    await importIntroPersons(client, introPersons, log);
+    log("Seeding personen uit de Leer en Verbonden...");
+    await importIntroPersons(client, dcPersons, log, DC_COLLECTION_ID);
+    log("Seeding introductiecursus (Ontdek het Boek van Mormon)...");
+    await importIntroLessons(client, introLessons, log);
+  });
 
   log("Seeding Genees-vragen (Vliegende Versado)...");
-  for (const bank of GENEES_BANKS) await importGeneesBank(client, bank, log);
+  await inPhase("Genees-vragen", async () => {
+    for (const bank of GENEES_BANKS) await importGeneesBank(client, bank, log);
+  });
 
   log("Seeding De Slimste Heilige...");
   const alleskennerAll = [...alleskennerItems, ...generatedAlleskennerItems()];
-  await importAlleskennerItems(client, alleskennerAll, log);
-  await importAlleskennerTranslations(client, alleskennerTranslations(alleskennerAll), log);
+  await inPhase("De Slimste Heilige", async () => {
+    await importAlleskennerItems(client, alleskennerAll, log);
+    await importAlleskennerTranslations(client, alleskennerTranslations(alleskennerAll), log);
+  });
 
   log("Seeding achievements...");
   for (const def of achievementDefs) {
@@ -184,7 +197,7 @@ export async function runSeed(
   // (ruim een gigabyte per taal), en de content hierboven hoort daar niet op
   // te wachten. Hoofdstukken zonder kopie spelen intussen van de bron.
   log("Voorgelezen hoofdstukken spiegelen...");
-  await mirrorChapterAudio(client, log);
+  await inPhase("Audio spiegelen", () => mirrorChapterAudio(client, log));
 
   log("Seed klaar.");
 }
