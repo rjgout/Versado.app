@@ -4,7 +4,7 @@
 // op de server gebruikt (Vandaag), en de fetch-helpers roep je alleen vanuit
 // de browser aan.
 
-export type ListKey = "courses" | "games";
+export type ListKey = "courses" | "games" | "today-continue";
 
 /** Past een eerder opgeslagen volgorde toe; nieuwe/onbekende items komen achteraan, in hun oorspronkelijke volgorde. */
 export function applyPersonalOrder<T extends { id: string }>(items: T[], order: string[]): T[] {
@@ -50,4 +50,14 @@ export function saveListOrder(listKey: ListKey, itemKeys: string[], hiddenKeys?:
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ listKey, itemKeys, hiddenKeys }),
   }).catch(() => {});
+}
+
+/** Verbergt één item zonder een eventueel opgeslagen volgorde te wijzigen. */
+export async function hideListItem(listKey: ListKey, itemKey: string): Promise<void> {
+  const res = await fetch("/api/list-order", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ listKey, hideKeys: [itemKey] }),
+  });
+  if (!res.ok) throw new Error("Kon de kaart niet verbergen.");
 }

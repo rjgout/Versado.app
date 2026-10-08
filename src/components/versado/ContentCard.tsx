@@ -53,7 +53,7 @@ export function CardProgress({ done, total, text }: { done: number; total: numbe
  * losse ✕: verbergen gebeurt nooit per ongeluk, en verplaatsen kan hier ook
  * zonder slepen (toegankelijk alternatief voor de greep).
  */
-function CardMenu({ title, actions }: { title: string; actions: CardMenuAction[] }) {
+export function CardMenu({ title, actions }: { title: string; actions: CardMenuAction[] }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);

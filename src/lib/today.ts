@@ -30,6 +30,8 @@ export type { OpenAction } from "@/lib/openActions";
 
 export interface ContinueItem {
   key: string;
+  /** Persoonlijke zichtbaarheid geldt voor deze voortgangstoestand, niet voor de inhoud zelf. */
+  visibilityKey: string;
   kind: "course" | "podcast";
   title: string;
   /** Plek in de inhoud: "Alma 32", "Alma 32:1-10" of de luisterpositie in seconden. */
@@ -104,6 +106,16 @@ export function isTodayComplete(data: Pick<TodayData, "streak" | "actions" | "ac
 const MAX_CONTINUE = 8;
 const MAX_DISCOVER = 6;
 
+/** Een verborgen kaart blijft weg tot de gebruiker deze inhoud opnieuw gebruikt. */
+export function continueVisibilityKey(key: string, activityAt: string): string {
+  return `${key}:${activityAt}`;
+}
+
+/** De volgorde van Vandaag blijft van de server; dit filtert uitsluitend persoonlijke zichtbaarheid. */
+export function visibleContinueItems(items: ContinueItem[], hiddenKeys: ReadonlySet<string>): ContinueItem[] {
+  return items.filter((item) => !hiddenKeys.has(item.visibilityKey));
+}
+
 function partOfDay(timeZone: string): TodayData["partOfDay"] {
   const hour = zonedParts(new Date(), timeZone).hour;
   if (hour < 6) return "night";
@@ -139,6 +151,7 @@ export async function getTodayData(user: User): Promise<TodayData> {
     friendships,
     catalog,
     gameOrder,
+    continueOrder,
   ] = await Promise.all([
     getOpenActions(user),
     getSubscribedCourseSummaries(user, contentContext.active.id, t),
@@ -186,6 +199,7 @@ export async function getTodayData(user: User): Promise<TodayData> {
       include: { _count: { select: { chapters: true } }, book: { select: { slug: true } }, contentCollection: { select: { work: true } } },
     }),
     prisma.userListOrder.findMany({ where: { userId: user.id, listKey: "games" }, orderBy: { order: "asc" }, select: { itemKey: true, hidden: true } }),
+    prisma.userListOrder.findMany({ where: { userId: user.id, listKey: "today-continue", hidden: true }, select: { itemKey: true } }),
   ]);
 
   const visibleGame = (id: string) => {
@@ -207,6 +221,7 @@ export async function getTodayData(user: User): Promise<TodayData> {
           : null;
       return {
         key: `course-${course.id}`,
+        visibilityKey: continueVisibilityKey(`course-${course.id}`, course.lastActivityAt!),
         kind: "course",
         title: course.name,
         position,
@@ -223,6 +238,7 @@ export async function getTodayData(user: User): Promise<TodayData> {
     .filter((p) => p.episode.podcast.courses[0])
     .map((p) => ({
       key: `podcast-${p.episode.id}`,
+      visibilityKey: continueVisibilityKey(`podcast-${p.episode.id}`, p.updatedAt.toISOString()),
       kind: "podcast",
       title: t("player.episode", { n: p.episode.number, title: p.episode.title }),
       position: null,
@@ -233,7 +249,10 @@ export async function getTodayData(user: User): Promise<TodayData> {
       at: p.updatedAt.toISOString(),
       artwork: podcastArtworkKeys(p.episode.podcastId),
     }));
-  const continueItems = [...courseItems, ...podcastItems].sort((a, b) => b.at.localeCompare(a.at)).slice(0, MAX_CONTINUE);
+  const hiddenContinue = new Set(continueOrder.map((row) => row.itemKey));
+  const continueItems = visibleContinueItems([...courseItems, ...podcastItems], hiddenContinue)
+    .sort((a, b) => b.at.localeCompare(a.at))
+    .slice(0, MAX_CONTINUE);
 
   const wordGameEntry = visibleGame("word-game");
   const quizEntry = visibleGame("alleskenner");
