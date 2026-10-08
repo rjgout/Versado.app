@@ -6,8 +6,9 @@ import { completeStudyRound } from "@/lib/streak";
 import { notifyGameInvite, notifyNewAchievements, removeNotificationsByUrl } from "@/lib/notify";
 import { getT } from "@/lib/i18n";
 import { localizedCourse } from "@/lib/courseText";
-import { loadStudyQuestions, publicQuestion, type StudyQuestion } from "@/lib/study/units";
+import { loadStudyContent, loadStudyQuestions, publicQuestion, type StudyQuestion, type StudyUnitContent } from "@/lib/study/units";
 import { buildStandings, scoreRound, type StudyAnswerRow, type StudyRoundResult } from "@/lib/study/scoring";
+import { markChapterRead, markStepRead } from "@/lib/learning/contentProgress";
 
 // Samen studeren (LiveGame mode STUDY, zie StudySession in schema.prisma).
 // Anders dan de live-quiz (gameServer.ts) beantwoordt hier iedereen de
@@ -37,10 +38,13 @@ interface Member {
 interface ActiveRound {
   id: string;
   number: number;
+  unitKey: string;
   label: string;
+  phase: "READING" | "QUESTIONS";
+  content: StudyUnitContent;
   questions: StudyQuestion[];
   /** Tijdstip waarop de vragen opengaan (na het aftellen). */
-  startsAt: number;
+  startsAt: number | null;
   answers: Map<string, Map<number, { correct: boolean; at: number }>>;
   /** Wie er bij de start bij was; alleen zij spelen deze stap mee. */
   expected: Set<string>;
@@ -104,8 +108,10 @@ async function loadRoom(code: string): Promise<Room | string> {
             select: {
               id: true,
               number: true,
+              unitKey: true,
               unitLabel: true,
               questions: true,
+              phase: true,
               startedAt: true,
               closedAt: true,
               answers: { select: { userId: true, index: true, correct: true, answeredAt: true, user: { select: { handle: true } } } },
@@ -136,13 +142,34 @@ async function loadRoom(code: string): Promise<Room | string> {
   for (const round of session.rounds) {
     for (const a of round.answers) room.handles.set(a.userId, a.user.handle);
     const questions = JSON.parse(round.questions) as StudyQuestion[];
-    // Na een herstart kan er een stap open staan: die ronden we af met wat er
-    // al beantwoord was, zodat niemand vast blijft zitten.
+    // Een leesfase heeft nog geen punten of antwoorden. Die laden we precies
+    // terug, zodat een reconnect of serverherstart de groep niet terugstuurt
+    // naar de stapkiezer.
+    if (!round.closedAt && round.phase === "READING") {
+      const content = await loadStudyContent(room.course, round.unitKey).catch(() => null);
+      if (content) {
+        room.round = {
+          id: round.id,
+          number: round.number,
+          unitKey: round.unitKey,
+          label: round.unitLabel,
+          phase: "READING",
+          content,
+          questions,
+          startsAt: null,
+          answers: new Map(),
+          expected: new Set(),
+        };
+        continue;
+      }
+    }
+    // Een bestaande vraagronde wordt na een serverherstart net als voorheen
+    // afgesloten met wat al beantwoord is.
     if (!round.closedAt) {
       await prisma.studyRound.update({ where: { id: round.id }, data: { closedAt: new Date() } }).catch(() => {});
-      await awardRound(questions.length, round.startedAt, round.answers, round.id).catch(() => {});
+      if (round.startedAt) await awardRound(questions.length, round.startedAt, round.answers, round.id).catch(() => {});
     }
-    const results = scoreRound(questions.length, round.startedAt, round.answers);
+    const results = scoreRound(questions.length, round.startedAt ?? new Date(), round.answers);
     room.history.push(results);
     room.lastResults = { number: round.number, label: round.unitLabel, results };
   }
@@ -188,7 +215,7 @@ function progressOf(round: ActiveRound, total: number) {
 function stateFor(room: Room, userId: string) {
   const name = (id: string) => room.handles.get(id) ?? "?";
   const round = room.round;
-  const total = round?.questions.length ?? 0;
+  const total = round?.phase === "QUESTIONS" ? round.questions.length : 0;
   const standings = buildStandings(room.history).map((s) => ({ ...s, handle: name(s.userId) }));
   return {
     code: room.code,
@@ -201,10 +228,12 @@ function stateFor(room: Room, userId: string) {
           id: round.id,
           number: round.number,
           label: round.label,
+          phase: round.phase,
+          content: round.phase === "READING" ? round.content : null,
           total,
-          startsInMs: Math.max(0, round.startsAt - Date.now()),
-          participating: round.expected.has(userId),
-          questions: round.expected.has(userId) ? round.questions.map(publicQuestion) : [],
+          startsInMs: round.startsAt ? Math.max(0, round.startsAt - Date.now()) : 0,
+          participating: round.phase === "QUESTIONS" && round.expected.has(userId),
+          questions: round.phase === "QUESTIONS" && round.expected.has(userId) ? round.questions.map(publicQuestion) : [],
           myAnswers: [...(round.answers.get(userId)?.entries() ?? [])].map(([index, a]) => ({ index, correct: a.correct })),
           progress: progressOf(round, total).map((p) => ({ ...p, handle: name(p.userId) })),
         }
@@ -238,7 +267,7 @@ async function awardRound(total: number, startedAt: Date, answers: StudyAnswerRo
 
 async function closeRound(room: Room) {
   const round = room.round;
-  if (!round || room.closing) return;
+  if (!round || round.phase !== "QUESTIONS" || round.startsAt === null || room.closing) return;
   room.closing = true;
   if (round.timer) clearTimeout(round.timer);
   try {
@@ -264,7 +293,7 @@ async function closeRound(room: Room) {
 /** Klaar als iedereen die meedoet en nog verbonden is alles beantwoord heeft. */
 function maybeClose(room: Room) {
   const round = room.round;
-  if (!round) return;
+  if (!round || round.phase !== "QUESTIONS") return;
   const total = round.questions.length;
   const stillPlaying = [...round.expected].filter((id) => isOnline(room, id));
   const anyAnswer = round.answers.size > 0;
@@ -277,12 +306,14 @@ async function startRound(room: Room, userId: string, unitKey: string): Promise<
   if (room.status !== "open") return "study.errors.notFound";
   if (room.hostId !== userId || room.round || room.closing) return null;
   const host = await prisma.user.findUnique({ where: { id: userId }, select: { uiLanguage: true } });
-  const loaded = await loadStudyQuestions(room.course, unitKey, getT(host?.uiLanguage));
-  if (!loaded || loaded.questions.length === 0) return "study.errors.noQuestions";
+  const [loaded, content] = await Promise.all([
+    loadStudyQuestions(room.course, unitKey, getT(host?.uiLanguage)),
+    loadStudyContent(room.course, unitKey),
+  ]);
+  if (!loaded || loaded.questions.length === 0 || !content) return "study.errors.noQuestions";
   if (room.round) return null; // intussen al gestart (dubbelklik)
 
   const number = room.history.length + 1;
-  const startsAt = Date.now() + COUNTDOWN_MS;
   const row = await prisma.studyRound.create({
     data: {
       sessionId: room.sessionId,
@@ -290,30 +321,67 @@ async function startRound(room: Room, userId: string, unitKey: string): Promise<
       unitKey,
       unitLabel: loaded.label,
       questions: JSON.stringify(loaded.questions),
-      startedAt: new Date(startsAt),
+      phase: "READING",
     },
   });
   if (room.history.length === 0) {
     await prisma.liveGame.update({ where: { id: room.gameId }, data: { status: "IN_PROGRESS" } }).catch(() => {});
   }
-  const expected = new Set([...room.members.values()].filter((m) => m.socketIds.size > 0).map((m) => m.userId));
   room.round = {
     id: row.id,
     number,
+    unitKey,
     label: loaded.label,
+    phase: "READING",
+    content,
     questions: loaded.questions,
-    startsAt,
+    startsAt: null,
     answers: new Map(),
-    expected,
-    timer: setTimeout(() => closeRound(room).catch(() => {}), COUNTDOWN_MS + loaded.questions.length * SECONDS_PER_QUESTION * 1000),
+    expected: new Set(),
   };
   broadcast(room);
   return null;
 }
 
+async function recordSharedReading(round: ActiveRound, userIds: Set<string>) {
+  const content = round.content;
+  if (content.kind !== "scripture") return;
+  const [, unitId] = round.unitKey.split(":");
+  if (!unitId) return;
+  await Promise.all(
+    [...userIds].map(async (userId) => {
+      // Een leesles telt tot en met het eindvers; een hoofdstukstap is het
+      // hele hoofdstuk. Beide gebruiken precies dezelfde centrale bron als
+      // de individuele leesroutes en kennen nooit XP of een reeks toe.
+      if (round.unitKey.startsWith("rl:")) await markStepRead(prisma, userId, unitId);
+      else await markChapterRead(userId, content.chapterId);
+    })
+  ).catch(() => {});
+}
+
+async function startQuestions(room: Room, userId: string, recordReading: boolean) {
+  const round = room.round;
+  if (!round || round.phase !== "READING" || room.hostId !== userId || room.closing) return;
+  const expected = new Set([...room.members.values()].filter((member) => member.socketIds.size > 0).map((member) => member.userId));
+  const startsAt = Date.now() + COUNTDOWN_MS;
+  await prisma.studyRound
+    .update({ where: { id: round.id }, data: { phase: "QUESTIONS", startedAt: new Date(startsAt) } })
+    .catch(() => {});
+  if (recordReading) await recordSharedReading(round, expected);
+  round.phase = "QUESTIONS";
+  round.startsAt = startsAt;
+  round.expected = expected;
+  round.timer = setTimeout(() => closeRound(room).catch(() => {}), COUNTDOWN_MS + round.questions.length * SECONDS_PER_QUESTION * 1000);
+  broadcast(room);
+}
+
 async function endSession(room: Room) {
   if (room.status === "ended") return;
-  if (room.round) await closeRound(room);
+  if (room.round?.phase === "QUESTIONS") await closeRound(room);
+  if (room.round?.phase === "READING") {
+    await prisma.studyRound.delete({ where: { id: room.round.id } }).catch(() => {});
+    room.round = null;
+  }
   const invites = await prisma.liveGameInvite.findMany({ where: { gameId: room.gameId }, select: { userId: true } }).catch(() => []);
   await removeNotificationsByUrl(
     invites.map((i) => i.userId),
@@ -407,6 +475,18 @@ export function registerStudyHandlers(server: SocketIOServer, socket: Socket, us
     if (error) fail(error);
   });
 
+  socket.on("st:begin_questions", () => {
+    const room = current();
+    if (!room) return;
+    startQuestions(room, user.id, true).catch(() => {});
+  });
+
+  socket.on("st:skip_reading", () => {
+    const room = current();
+    if (!room) return;
+    startQuestions(room, user.id, false).catch(() => {});
+  });
+
   socket.on(
     "st:answer",
     async (
@@ -416,12 +496,12 @@ export function registerStudyHandlers(server: SocketIOServer, socket: Socket, us
       const reply = typeof ack === "function" ? ack : () => {};
       const room = current();
       const round = room?.round;
-      if (!room || !round || round.id !== roundId || !round.expected.has(user.id)) return reply({ ok: false });
+      if (!room || !round || round.phase !== "QUESTIONS" || round.id !== roundId || !round.expected.has(user.id)) return reply({ ok: false });
       if (typeof index !== "number" || !Number.isInteger(index) || index < 0 || index >= round.questions.length) return reply({ ok: false });
       if (!Array.isArray(given) || given.length === 0 || given.length > MAX_GIVEN_ITEMS) return reply({ ok: false });
       if (!given.every((g) => typeof g === "string" && g.length <= MAX_GIVEN_LENGTH)) return reply({ ok: false });
       // Een kleine marge voor klokverschil; eerder antwoorden kan niet.
-      if (Date.now() < round.startsAt - 500) return reply({ ok: false });
+      if (round.startsAt === null || Date.now() < round.startsAt - 500) return reply({ ok: false });
 
       const question = round.questions[index];
       const mine = round.answers.get(user.id) ?? new Map<number, { correct: boolean; at: number }>();
@@ -443,7 +523,7 @@ export function registerStudyHandlers(server: SocketIOServer, socket: Socket, us
 
   socket.on("st:close_round", () => {
     const room = current();
-    if (!room || room.hostId !== user.id || !room.round) return;
+    if (!room || room.hostId !== user.id || !room.round || room.round.phase !== "QUESTIONS") return;
     closeRound(room).catch(() => {});
   });
 

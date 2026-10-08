@@ -1913,11 +1913,21 @@ model StudyRound {
   // JSON: de vragen zoals iedereen ze kreeg (bron, id, en de geschudde
   // opties), zodat antwoorden later nog tegen dezelfde vraag kloppen.
   questions String
-  startedAt DateTime
+  // De host kiest eerst een stap om samen te lezen. Pas in QUESTIONS mag de
+  // client antwoorden indienen; de server blijft dus de fase bewaken.
+  phase     StudyRoundPhase @default(READING)
+  // Null zolang de groep samen leest. Bij de vraagfase is dit het eerlijke
+  // gezamenlijke startmoment voor tijd- en scoreberekening.
+  startedAt DateTime?
   closedAt  DateTime?
   answers   StudyAnswer[]
 
   @@unique([sessionId, number])
+}
+
+enum StudyRoundPhase {
+  READING
+  QUESTIONS
 }
 
 model StudyAnswer {

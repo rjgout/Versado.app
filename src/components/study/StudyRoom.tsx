@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Crown, LogOut, Play, Square, Trophy, Users } from "lucide-react";
+import { BookOpen, CheckCircle2, Crown, Headphones, LogOut, Play, SkipForward, Square, Trophy, Users } from "lucide-react";
 import { getSocket } from "@/lib/socketClient";
 import { useT } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
-import { ExerciseCard, type Exercise } from "@/components/LessonFlow";
+import { ExerciseCard, ReaderView, type Exercise } from "@/components/LessonFlow";
 import LobbyInviteCard from "@/components/LobbyInviteCard";
 import LobbyClosedNotice from "@/components/LobbyClosedNotice";
 import UserAvatar from "@/components/UserAvatar";
@@ -14,6 +14,9 @@ import { announceXpChanged } from "@/lib/xpBroadcast";
 import { clockDuration } from "@/lib/timeFormat";
 import { primaryButton, secondaryButton, surfaceCard } from "@/components/versado/styles";
 import type { MessageKey } from "@/lib/i18n/core";
+import type { StudyUnitContent } from "@/lib/study/units";
+import { usePodcastPlayer } from "@/lib/podcastPlayerContext";
+import type { PodcastChapter } from "@/lib/podcastChapters";
 
 // Samen studeren (zie src/server/study.ts): de lobby tussen de stappen, het
 // aftellen, de vragen in eigen tempo met de voortgang van de anderen, en de
@@ -51,6 +54,8 @@ interface RoundState {
   id: string;
   number: number;
   label: string;
+  phase: "READING" | "QUESTIONS";
+  content: StudyUnitContent | null;
   total: number;
   startsInMs: number;
   participating: boolean;
@@ -101,18 +106,18 @@ export default function StudyRoom({ code, myUserId, courseName }: { code: string
     const join = () => socket.emit("st:join", { code });
     function onState(next: StudyState) {
       if (next.code !== code) return;
-      if (next.round) lastRound.current = next.round;
+      if (next.round?.phase === "QUESTIONS") lastRound.current = next.round;
       setState(next);
       setErrorKey(null);
       if (!next.round) {
         startRoundId.current = null;
         setStartAt(null);
-      } else if (startRoundId.current !== next.round.id) {
+      } else if (next.round.phase === "QUESTIONS" && startRoundId.current !== next.round.id) {
         startRoundId.current = next.round.id;
         setStartAt(Date.now() + next.round.startsInMs);
         setNow(Date.now());
       }
-      // Bij een nieuwe stap (of na opnieuw verbinden) verder waar je was.
+      // Bij een nieuwe vraagronde (of na opnieuw verbinden) verder waar je was.
       setViewIndex((prev) => (next.round && prev?.roundId !== next.round.id ? { roundId: next.round.id, index: next.round.myAnswers.length } : prev));
     }
     function onError({ key }: { key: string }) {
@@ -221,6 +226,9 @@ export default function StudyRoom({ code, myUserId, courseName }: { code: string
 
   // --- Een stap is bezig -----------------------------------------------------------
   if (round) {
+    if (round.phase === "READING" && round.content) {
+      return <SharedReading round={round} isHost={isHost} hostName={host?.handle ?? ""} code={code} courseName={courseName} />;
+    }
     const index = viewIndex?.roundId === round.id ? viewIndex.index : round.myAnswers.length;
     const question = round.questions[index];
     const iAmDone = round.participating && index >= round.total;
@@ -349,6 +357,172 @@ export default function StudyRoom({ code, myUserId, courseName }: { code: string
       )}
     </div>
   );
+}
+
+function SharedReading({
+  round,
+  isHost,
+  hostName,
+  code,
+  courseName,
+}: {
+  round: RoundState;
+  isHost: boolean;
+  hostName: string;
+  code: string;
+  courseName: string;
+}) {
+  const t = useT();
+  const confirm = useConfirm();
+  const socket = getSocket();
+  const content = round.content!;
+  const listening = content.kind === "podcast";
+
+  return (
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
+      <header className="flex flex-col gap-1">
+        <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-vs-accent">
+          {listening ? <Headphones className="h-4 w-4" aria-hidden /> : <BookOpen className="h-4 w-4" aria-hidden />}
+          {listening ? t("study.listening") : t("study.reading")}
+        </p>
+        <h1 className="text-2xl font-extrabold text-vs-fg">{round.label}</h1>
+        <p className="text-sm font-bold text-vs-fg-2">{courseName}</p>
+      </header>
+
+      <StudyContentView content={content} courseName={courseName} />
+
+      <div className="sticky bottom-0 z-10 -mx-4 border-t border-vs-line bg-vs-surface px-4 pb-[calc(1rem+var(--vs-safe-area-bottom))] pt-3">
+        {isHost ? (
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <button
+              type="button"
+              className={`${primaryButton} w-full sm:w-auto`}
+              onClick={async () => {
+                if (await confirm(t("study.confirmToQuestions"))) socket.emit("st:begin_questions", { code });
+              }}
+            >
+              <Play className="h-4 w-4" aria-hidden />
+              {t("study.toQuestions")}
+            </button>
+            <button
+              type="button"
+              className={`${secondaryButton} w-full sm:w-auto`}
+              onClick={async () => {
+                if (await confirm(t("study.confirmSkipReading"))) socket.emit("st:skip_reading", { code });
+              }}
+            >
+              <SkipForward className="h-4 w-4" aria-hidden />
+              {t("study.skipReading")}
+            </button>
+          </div>
+        ) : (
+          <p className={`${surfaceCard} p-3 text-sm font-bold text-vs-fg-2`} role="status">
+            {t("study.waitingForQuestions", { name: hostName })}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StudyContentView({ content, courseName }: { content: StudyUnitContent; courseName: string }) {
+  const t = useT();
+  if (content.kind === "scripture") {
+    return (
+      <ReaderView
+        chapterId={content.chapterId}
+        bookName={content.bookName}
+        chapterNumber={content.chapterNumber}
+        verses={content.verses.map((verse) => ({ ...verse, bookmarked: false, highlighted: false, note: "" }))}
+        language={content.language}
+        focus
+        preview
+      />
+    );
+  }
+  if (content.kind === "kids") {
+    return (
+      <section className={`${surfaceCard} flex flex-col gap-5 p-4 sm:p-6`}>
+        <p className="text-xs font-bold uppercase tracking-wide text-vs-accent">{t("misc.storyN", { n: content.number })}</p>
+        {content.images.length > 0 && (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {content.images.map((src) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={src} src={src} alt="" className="h-auto w-full rounded-xl" />
+            ))}
+          </div>
+        )}
+        <p className="whitespace-pre-line text-lg leading-relaxed text-vs-fg">{content.text}</p>
+      </section>
+    );
+  }
+  if (content.kind === "podcast") return <StudyPodcastContent content={content} courseName={courseName} />;
+
+  return <StudyIntroContent content={content} />;
+}
+
+function StudyPodcastContent({ content, courseName }: { content: Extract<StudyUnitContent, { kind: "podcast" }>; courseName: string }) {
+  const t = useT();
+  const player = usePodcastPlayer();
+  const chapters = (() => {
+    try {
+      return content.chapters ? (JSON.parse(content.chapters) as PodcastChapter[]) : [];
+    } catch {
+      return [];
+    }
+  })();
+  const isCurrent = player.episode?.id === content.episodeId;
+  return (
+    <section className={`${surfaceCard} flex flex-col gap-4 p-4 sm:p-6`}>
+      <p className="text-xs font-bold uppercase tracking-wide text-vs-accent">{t("courseViews.podcast.episode", { n: content.number })}</p>
+      <h2 className="text-xl font-extrabold text-vs-fg">{content.title}</h2>
+      {content.summary && <p className="whitespace-pre-line leading-relaxed text-vs-fg-2">{content.summary}</p>}
+      {content.audioUrl ? (
+        <button
+          type="button"
+          className={`${secondaryButton} self-start`}
+          onClick={() => {
+            if (isCurrent) player.togglePlay();
+            else player.playEpisode({ id: content.episodeId, number: content.number, title: content.title, audioUrl: content.audioUrl!, podcastName: courseName, chapters });
+          }}
+        >
+          <Headphones className="h-4 w-4" aria-hidden />
+          {isCurrent && player.isPlaying ? t("courseViews.podcast.pause") : t("courseViews.podcast.play")}
+        </button>
+      ) : (
+        <p className="text-sm text-vs-fg-3">{t("study.noAudio")}</p>
+      )}
+    </section>
+  );
+}
+
+function StudyIntroContent({ content }: { content: Extract<StudyUnitContent, { kind: "intro" }> }) {
+  const t = useT();
+  const blocks: { type?: string; [key: string]: unknown }[] = (() => {
+    try {
+      const parsed = JSON.parse(content.content);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  })();
+  return (
+    <section className={`${surfaceCard} flex flex-col gap-4 p-4 sm:p-6`}>
+      <p className="text-xs font-bold uppercase tracking-wide text-vs-accent">{t("lessonFlows.lessonNumber", { n: content.number })}</p>
+      <h2 className="text-xl font-extrabold text-vs-fg">{content.title}</h2>
+      {blocks.map((block, index) => <IntroBlock key={index} block={block} />)}
+    </section>
+  );
+}
+
+function IntroBlock({ block }: { block: { type?: string; [key: string]: unknown } }) {
+  if (block.type === "text" && typeof block.body === "string") return <p className="whitespace-pre-line leading-relaxed text-vs-fg">{block.body}</p>;
+  if ((block.type === "poll" || block.type === "reflection") && typeof block.question === "string") return <p className="rounded-xl bg-vs-subtle p-4 font-bold text-vs-fg">{block.question}</p>;
+  if (block.type === "steps" && Array.isArray(block.steps)) {
+    return <ol className="flex list-decimal flex-col gap-2 pl-5 text-vs-fg">{block.steps.map((step, index) => <li key={index}>{typeof step === "object" && step && "label" in step ? String(step.label) : ""}</li>)}</ol>;
+  }
+  if (block.type === "scripture" && typeof block.label === "string") return <p className="rounded-xl border border-vs-line p-4 font-bold text-vs-fg">{block.label}</p>;
+  return null;
 }
 
 function StepPicker({ code, roundsPlayed, soloHint, onStart }: { code: string; roundsPlayed: number; soloHint: boolean; onStart: (unitKey: string) => void }) {
