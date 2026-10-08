@@ -415,6 +415,7 @@ export const de: PartialMessages = {
     },
     declineAria: "Anfrage von {name} ablehnen",
     continueTitle: "Weitermachen",
+    hideContinue: "Aus Weitermachen ausblenden",
     kind: {
       course: "Kurs",
       podcast: "Podcast",

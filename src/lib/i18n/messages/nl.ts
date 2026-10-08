@@ -366,6 +366,7 @@ export const nl = {
     },
     declineAria: "Verzoek van {name} weigeren",
     continueTitle: "Ga verder",
+    hideContinue: "Verbergen uit Ga verder",
     kind: {
       course: "Cursus",
       podcast: "Podcast",

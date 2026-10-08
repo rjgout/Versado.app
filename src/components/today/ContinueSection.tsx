@@ -1,18 +1,26 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, EyeOff } from "lucide-react";
 import { getT } from "@/lib/i18n";
 import { getLanguage } from "@/lib/languages";
 import { clockDuration, relativeTime } from "@/lib/timeFormat";
+import { hideListItem } from "@/lib/listOrder";
+import { liveMutation } from "@/lib/data/mutation";
 import Carousel from "@/components/versado/Carousel";
 import MediaArtwork from "@/components/versado/MediaArtwork";
+import { CardMenu } from "@/components/versado/ContentCard";
 import SectionHeader from "@/components/today/SectionHeader";
 import { interactiveCard } from "@/components/versado/styles";
 import type { ContinueItem } from "@/lib/today";
 
 // Lopende cursussen en half beluisterde podcasts, op laatste activiteit.
-// Hergebruikt de voortgang van de cursuslijst (courseSummaries.ts).
+// De server bepaalt de volgorde; de gebruiker kan hier alleen een kaart uit
+// zijn eigen overzicht verbergen. Nieuwe activiteit maakt die inhoud weer
+// relevant en toont hem daarom opnieuw.
 
-function ContinueCard({ item, language }: { item: ContinueItem; language: string }) {
+function ContinueCard({ item, language, hiding, onHide }: { item: ContinueItem; language: string; hiding: boolean; onHide: () => void }) {
   const t = getT(language);
   const locale = getLanguage(language).intlLocale;
   const percent = item.progress && item.progress.total > 0 ? Math.round((item.progress.done / item.progress.total) * 100) : null;
@@ -21,21 +29,30 @@ function ContinueCard({ item, language }: { item: ContinueItem; language: string
       ? t("today.listenedTo", { time: clockDuration(item.positionSeconds) })
       : item.position;
   return (
-    <Link href={item.href} className={`${interactiveCard} flex h-full flex-col overflow-hidden`}>
-      <MediaArtwork
-        kind={item.kind === "podcast" ? "podcast" : "reading"}
-        artworkKey={item.artwork}
-        ratio="21/9"
-        sizes="(min-width: 1024px) 300px, (min-width: 768px) 42vw, (min-width: 640px) 46vw, 82vw"
-      >
-        <span className="absolute left-3 top-3 rounded-full bg-vs-elevated/90 px-2.5 py-1 text-xs font-bold text-vs-fg-2 backdrop-blur">
-          {item.kind === "podcast" ? t("today.kind.podcast") : t("today.kind.course")}
-        </span>
-      </MediaArtwork>
+    <article className={`${interactiveCard} relative flex h-full flex-col overflow-visible has-[.card-title-link:focus-visible]:ring-2 has-[.card-title-link:focus-visible]:ring-vs-accent`}>
+      <div className="relative">
+        <div className="overflow-hidden rounded-t-2xl">
+          <Link href={item.href} tabIndex={-1} aria-hidden className="block">
+            <MediaArtwork
+              kind={item.kind === "podcast" ? "podcast" : "reading"}
+              artworkKey={item.artwork}
+              ratio="21/9"
+              sizes="(min-width: 1024px) 300px, (min-width: 768px) 42vw, (min-width: 640px) 46vw, 82vw"
+            >
+              <span className="absolute left-3 top-3 rounded-full bg-vs-elevated/90 px-2.5 py-1 text-xs font-bold text-vs-fg-2 backdrop-blur">
+                {item.kind === "podcast" ? t("today.kind.podcast") : t("today.kind.course")}
+              </span>
+            </MediaArtwork>
+          </Link>
+        </div>
+        <CardMenu title={item.title} actions={[{ label: t("today.hideContinue"), icon: EyeOff, onSelect: onHide, disabled: hiding }]} />
+      </div>
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="min-w-0">
           <p className="truncate text-xs font-bold uppercase tracking-wide text-vs-fg-3">{item.context}</p>
-          <h3 className="mt-0.5 line-clamp-2 text-base font-extrabold leading-snug text-vs-fg">{item.title}</h3>
+          <h3 className="mt-0.5 line-clamp-2 text-base font-extrabold leading-snug text-vs-fg">
+            <Link href={item.href} className="card-title-link rounded hover:text-vs-accent focus-visible:outline-none">{item.title}</Link>
+          </h3>
           {position && <p className="mt-1 truncate text-sm font-semibold text-vs-fg-2">{position}</p>}
         </div>
         {item.progress && percent !== null && (
@@ -63,26 +80,54 @@ function ContinueCard({ item, language }: { item: ContinueItem; language: string
           </span>
         </div>
       </div>
-    </Link>
+    </article>
   );
 }
 
-export default function ContinueSection({ items, language }: { items: ContinueItem[]; language: string }) {
+function ContinueSectionContent({ initialItems, language }: { initialItems: ContinueItem[]; language: string }) {
   const t = getT(language);
+  const [items, setItems] = useState(initialItems);
+  const [hidingKey, setHidingKey] = useState<string | null>(null);
+
+  async function hide(item: ContinueItem) {
+    if (hidingKey) return;
+    setHidingKey(item.visibilityKey);
+    try {
+      await liveMutation(() => hideListItem("today-continue", item.visibilityKey), {
+        invalidates: ["today"],
+        onSuccess: () => setItems((current) => current.filter((candidate) => candidate.key !== item.key)),
+      });
+    } catch {
+      // De kaart blijft staan als de persoonlijke voorkeur niet kon opslaan.
+    } finally {
+      setHidingKey(null);
+    }
+  }
+
+  if (items.length === 0) return null;
+
   return (
     <section aria-labelledby="today-continue" className="vs-rise min-w-0">
       <SectionHeader id="today-continue" title={t("today.continueTitle")} href="/courses" linkLabel={t("nav.learn")} />
       {items.length === 1 ? (
         <div className="sm:max-w-md">
-          <ContinueCard item={items[0]} language={language} />
+          <ContinueCard item={items[0]} language={language} hiding={hidingKey === items[0].visibilityKey} onHide={() => void hide(items[0])} />
         </div>
       ) : (
         <Carousel label={t("today.continueTitle")}>
           {items.map((item) => (
-            <ContinueCard key={item.key} item={item} language={language} />
+            <ContinueCard key={item.key} item={item} language={language} hiding={hidingKey === item.visibilityKey} onHide={() => void hide(item)} />
           ))}
         </Carousel>
       )}
     </section>
   );
+}
+
+export default function ContinueSection({ items, language }: { items: ContinueItem[]; language: string }) {
+  // Bij wisselen van contentcontext of nieuwe voortgang komt een verse
+  // serverlijst binnen. Door de inhoudssleutels als key te gebruiken nemen we
+  // die over zonder de lokale hide-state van de vorige context mee te nemen.
+  const stateKey = items.map((item) => item.visibilityKey).join("|");
+  return <ContinueSectionContent key={stateKey} initialItems={items} language={language} />;
 }
