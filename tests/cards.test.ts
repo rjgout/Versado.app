@@ -113,3 +113,24 @@ test("bekijken of toevoegen maakt een cursus niet actief, een les openen wel", {
   assert.equal(progress.subscribed, true);
   assert.equal(progress.comboCount, 3);
 });
+
+// "Cursus toevoegen" en "Spel toevoegen" zijn een kaart in dezelfde taal als de cursus- en spelkaarten,
+// geen losse gestippelde knop (de gestippelde rand is voorbehouden aan de plek waar je iets neerzet).
+test("de toevoegkaart gebruikt de gedeelde kaartstijl en een groot aantikbaar vlak", async () => {
+  const { readFileSync } = await import("node:fs");
+  const source = readFileSync("src/components/versado/ContentCard.tsx", "utf8");
+  const picker = source.slice(source.indexOf("export function CardPicker"));
+  const closed = picker.slice(0, picker.indexOf("<section aria-labelledby"));
+  assert.match(closed, /interactiveCard/);
+  assert.match(closed, /min-h-16/);
+  assert.doesNotMatch(closed, /border-dashed/);
+  assert.match(closed, /addHint/);
+  // Leren en Spelen gebruiken hetzelfde onderdeel met een uitleg in alle talen.
+  assert.match(readFileSync("src/components/CoursesClient.tsx", "utf8"), /addHint=\{t\("courses\.addCourseHint"\)\}/);
+  assert.match(readFileSync("src/components/LiveLobbyForm.tsx", "utf8"), /addHint=\{t\("gamesHub\.addGameHint"\)\}/);
+  for (const lang of ["nl", "en", "de", "fr", "es"]) {
+    const messages = readFileSync(`src/lib/i18n/messages/${lang}.ts`, "utf8");
+    assert.match(messages, /"?addCourseHint"?: "/, `${lang}: courses.addCourseHint ontbreekt`);
+    assert.match(messages, /"?addGameHint"?: "/, `${lang}: gamesHub.addGameHint ontbreekt`);
+  }
+});

@@ -30,6 +30,15 @@ const TOOL_SUBPAGES: Record<string, MessageKey> = {
   "/tools/persons": "pages.persons",
 };
 
+// De beheergroepen onder /adminbackend (src/app/adminbackend).
+const ADMIN_SUBPAGES: Record<string, MessageKey> = {
+  "/adminbackend/gebruikers": "adminHub.usersTitle",
+  "/adminbackend/content": "adminHub.contentTitle",
+  "/adminbackend/spellen": "adminHub.gamesTitle",
+  "/adminbackend/communicatie": "adminHub.commsTitle",
+  "/adminbackend/systeem": "adminHub.systemTitle",
+};
+
 // Pagina's die je vanuit het profiel opent (zie docs/VERSADO-DESIGN.md).
 const PROFILE_SUBPAGES: Record<string, MessageKey> = {
   "/feedback": "pages.feedback",
@@ -82,6 +91,11 @@ function detailPageFor(pathname: string, profileView: string | null, hash: strin
   }
   const profileSubpage = PROFILE_SUBPAGES[pathname];
   if (profileSubpage) return { fallback: "/profile", title: profileSubpage };
+  // Beheer: de hoofdpagina komt uit het profiel, elke groep is een onderdeel daarvan.
+  if (pathname === "/adminbackend") return { fallback: "/profile", title: "adminPage.title" };
+  const adminSubpage = ADMIN_SUBPAGES[pathname];
+  if (adminSubpage) return { fallback: "/adminbackend", title: adminSubpage };
+  if (pathname === "/adminbackend/content-preview") return { fallback: "/adminbackend/content", title: "adminHub.previewTitle" };
   // Een woord in het woordenboek: terug naar de lijst (met dezelfde zoekstand), ook via een deeplink.
   if (/^\/tools\/dictionary\/[^/]+$/.test(pathname)) return { fallback: "/tools/dictionary", title: "pages.dictionary" };
   const tool = TOOL_SUBPAGES[pathname];

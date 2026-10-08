@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import ToggleSwitch from "@/components/versado/ToggleSwitch";
+import AdminSection from "@/components/admin/AdminSection";
 
 interface Collection {
   id: string;
@@ -57,24 +58,20 @@ export default function AdminContentSwitcherClient() {
   const visibleCount = collections.filter((collection) => collection.visibleToUsers).length;
 
   return (
-    <details className="group card flex flex-col gap-4">
-      <summary className="font-extrabold text-lg dark:text-slate-100 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center justify-between">
-        {t("adminContent.title")}
-        <span className="text-slate-400 transition-transform group-open:rotate-180" aria-hidden>▾</span>
-      </summary>
+    <AdminSection title={t("adminContent.title")}>
 
-      <p className="text-sm text-slate-500 dark:text-slate-400">
+      <p className="text-sm text-vs-fg-2">
         {t("adminContent.intro")}
       </p>
 
       {!data ? (
-        <p className="text-slate-400 dark:text-slate-500">{t("common.loading")}</p>
+        <p className="text-vs-fg-3">{t("common.loading")}</p>
       ) : (
         <>
           <label className="flex min-h-11 cursor-pointer items-center gap-3">
-            <span className="min-w-0 flex-1 text-sm dark:text-slate-200">{t("adminContent.available")}</span>
+            <span className="min-w-0 flex-1 text-sm text-vs-fg">{t("adminContent.available")}</span>
             {!data.enabled && (
-              <span className="text-xs font-bold uppercase text-slate-500 bg-slate-100 dark:bg-slate-700 dark:text-slate-300 rounded-full px-2 py-0.5">
+              <span className="text-xs font-bold uppercase text-vs-fg-2 bg-vs-subtle rounded-full px-2 py-0.5">
                 {t("adminContent.disabled")}
               </span>
             )}
@@ -82,8 +79,8 @@ export default function AdminContentSwitcherClient() {
           </label>
 
           <div className="mt-2 flex flex-col gap-2">
-            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">{t("adminContent.visible")}</h3>
-            <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-700 rounded-xl border border-slate-100 dark:border-slate-700">
+            <h3 className="text-sm font-bold text-vs-fg">{t("adminContent.visible")}</h3>
+            <div className="flex flex-col divide-y divide-vs-line rounded-xl border border-vs-line">
               {collections.map((collection) => {
                 const lastVisible = collection.visibleToUsers && visibleCount === 1;
                 return (
@@ -92,9 +89,9 @@ export default function AdminContentSwitcherClient() {
                     className={`flex items-center gap-3 px-3 py-2.5 ${lastVisible ? "cursor-not-allowed" : "cursor-pointer"}`}
                   >
                     <span className="text-xl shrink-0" aria-hidden>{collection.icon}</span>
-                    <span className="min-w-0 flex-1 text-sm font-semibold dark:text-slate-200">{collection.name}</span>
+                    <span className="min-w-0 flex-1 text-sm font-semibold text-vs-fg">{collection.name}</span>
                     {!collection.visibleToUsers && (
-                      <span className="shrink-0 text-xs font-bold uppercase text-slate-500 bg-slate-100 dark:bg-slate-700 dark:text-slate-300 rounded-full px-2 py-0.5">
+                      <span className="shrink-0 text-xs font-bold uppercase text-vs-fg-2 bg-vs-subtle rounded-full px-2 py-0.5">
                         {t("adminContent.hidden")}
                       </span>
                     )}
@@ -103,14 +100,14 @@ export default function AdminContentSwitcherClient() {
                 );
               })}
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-vs-fg-2">
               {t("adminContent.note")}
             </p>
           </div>
 
-          {error && <p className="text-sm font-semibold text-red-600 dark:text-red-400">{error}</p>}
+          {error && <p className="text-sm font-semibold text-vs-danger">{error}</p>}
         </>
       )}
-    </details>
+    </AdminSection>
   );
 }

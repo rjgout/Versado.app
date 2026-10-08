@@ -19,3 +19,9 @@ export const primaryButton = `vs-motion inline-flex min-h-10 max-w-full shrink-0
 export const secondaryButton = `vs-motion inline-flex min-h-10 max-w-full shrink-0 items-center justify-center gap-1.5 rounded-full py-1.5 text-center border border-vs-line-strong bg-vs-surface px-4 text-sm font-bold text-vs-fg transition hover:bg-vs-subtle active:scale-[0.97] disabled:opacity-50 ${focusRing}`;
 
 export const iconButton = `vs-motion inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-vs-fg-3 transition hover:bg-vs-subtle hover:text-vs-fg active:scale-[0.95] disabled:opacity-50 ${focusRing}`;
+
+/** Onomkeerbare of productie-ingrijpende actie (admin): altijd zichtbaar anders dan een gewone knop. */
+export const dangerButton = `vs-motion inline-flex min-h-10 max-w-full shrink-0 items-center justify-center gap-1.5 rounded-full py-1.5 text-center bg-vs-danger px-4 text-sm font-bold text-vs-on-accent transition hover:brightness-110 active:scale-[0.97] disabled:opacity-50 ${focusRing}`;
+
+/** Zachtere variant voor een destructieve actie in een lijst (bijvoorbeeld een gebruiker verwijderen). */
+export const dangerOutlineButton = `vs-motion inline-flex min-h-10 max-w-full shrink-0 items-center justify-center gap-1.5 rounded-full py-1.5 text-center border border-vs-danger/40 bg-vs-surface px-3 text-sm font-bold text-vs-danger transition hover:bg-vs-danger-soft active:scale-[0.97] disabled:opacity-50 ${focusRing}`;

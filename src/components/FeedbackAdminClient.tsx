@@ -5,13 +5,14 @@ import UserTag from "@/components/UserTag";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import AppSelect from "@/components/AppSelect";
 import { getLanguage } from "@/lib/languages";
+import AdminSection from "@/components/admin/AdminSection";
 
 const STATUS_OPTIONS = ["NEW", "IN_PROGRESS", "DONE", "WONT_DO"] as const;
 const STATUS_CLASSES: Record<string, string> = {
-  NEW: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300",
-  IN_PROGRESS: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-200",
-  DONE: "bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-200",
-  WONT_DO: "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300",
+  NEW: "bg-vs-subtle text-vs-fg-2",
+  IN_PROGRESS: "bg-vs-warning-soft text-vs-warning",
+  DONE: "bg-vs-accent-soft text-vs-accent",
+  WONT_DO: "bg-vs-danger-soft text-vs-danger",
 };
 
 interface ReportView {
@@ -50,29 +51,23 @@ export default function FeedbackAdminClient() {
   }
 
   return (
-    <details className="group card flex flex-col gap-4">
-      <summary className="font-extrabold text-lg dark:text-slate-100 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center justify-between">
-        {t("pages.feedback")}
-        <span className="text-slate-400 transition-transform group-open:rotate-180" aria-hidden>
-          ▾
-        </span>
-      </summary>
+    <AdminSection title={t("pages.feedback")}>
 
       {!reports ? (
-        <p className="text-slate-400 dark:text-slate-500">{t("common.loading")}</p>
+        <p className="text-vs-fg-3">{t("common.loading")}</p>
       ) : reports.length === 0 ? (
-        <p className="text-slate-400 dark:text-slate-500">{t("adminFeedback.none")}</p>
+        <p className="text-vs-fg-3">{t("adminFeedback.none")}</p>
       ) : (
         <div className="flex flex-col gap-3">
           {reports.map((r) => (
-            <div key={r.id} className="border border-slate-100 dark:border-slate-700 rounded-xl p-3 flex flex-col gap-2">
+            <div key={r.id} className="border border-vs-line rounded-xl p-3 flex flex-col gap-2">
               <div className="flex items-start justify-between gap-2 flex-wrap">
                 <div>
-                  <p className="font-bold text-sm dark:text-slate-100">
+                  <p className="font-bold text-sm text-vs-fg">
                     <UserTag handle={r.user.handle} discriminator={r.user.discriminator} />{" "}
-                    <span className="font-normal text-slate-400 dark:text-slate-500">({r.user.email})</span>
+                    <span className="font-normal text-vs-fg-3">({r.user.email})</span>
                   </p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">
+                  <p className="text-xs text-vs-fg-3">
                     {new Date(r.createdAt).toLocaleString(intlLocale)}
                   </p>
                 </div>
@@ -85,19 +80,19 @@ export default function FeedbackAdminClient() {
                   options={STATUS_OPTIONS.map((s) => ({ value: s, label: t(`feedback.status.${s}`) }))}
                 />
               </div>
-              <p className="text-sm whitespace-pre-wrap dark:text-slate-200">{r.message}</p>
+              <p className="text-sm whitespace-pre-wrap text-vs-fg">{r.message}</p>
               {r.screenshot && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={r.screenshot}
                   alt={t("feedback.screenshot")}
-                  className="max-h-40 rounded-lg border border-slate-200 dark:border-slate-700 self-start"
+                  className="max-h-40 rounded-lg border border-vs-line self-start"
                 />
               )}
             </div>
           ))}
         </div>
       )}
-    </details>
+    </AdminSection>
   );
 }

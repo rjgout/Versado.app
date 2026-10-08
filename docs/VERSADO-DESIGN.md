@@ -709,3 +709,35 @@ herstelt de scrollpositie. Een woord heeft een eigen pagina
 definities of verwante woorden opgeslagen: de woordpagina toont alleen wat er echt is
 (aantal, verzen per boek met markering, afgeleide gelijkende woorden). Recent bekeken
 woorden staan alleen lokaal op het toestel (`useRecentWords`).
+
+
+## Beheer (`/adminbackend`)
+
+Het beheer is geen eigen shell: het gebruikt dezelfde header, terugbalk en onderbalk
+als de rest van de app (docs/LAYOUT.md) en dezelfde `vs`-tokens. De structuur:
+
+- `/adminbackend` is alleen een overzicht: één kaart per beheergroep
+  (`AdminCategoryCard`) met titel, uitleg en **echte** tellingen of statussen
+  (gebruikers, online, boeken, hoofdstukken, oefeningen, contentkiezer aan/uit,
+  nieuwe feedback, e-mail aan/uit, deploy gekoppeld). Geen verzonnen cijfers of
+  grafieken; ontbreekt een gegeven, dan staat het er niet.
+- Elke groep is een eigen pagina met de bestaande beheerblokken: `gebruikers`,
+  `content` (contentkiezer, cursussen, FSY, schriftpreview), `spellen`
+  (live-spellen, spelinstellingen, Alleskenner, competitie), `communicatie`
+  (feedback, e-mail, wat-is-nieuw) en `systeem` (deploy, content opnieuw laden,
+  uiterlijk). De terugbalk (`SubpageBackBar`, `ADMIN_SUBPAGES`) brengt je terug naar
+  het overzicht, het overzicht naar het profiel.
+- Een beheerblok is een `AdminSection` (inklapbare kaart met titel, uitleg en een
+  korte status). Meldingen zijn `AdminNotice`, brede tabellen staan in `AdminTable`
+  (scrollt binnen een eigen, focusbaar vak en maakt de pagina nooit breder). Alle
+  bouwstenen staan in `src/components/admin/`; kleuren alleen via tokens, knoppen via
+  `primaryButton`, `secondaryButton`, `dangerButton` en `dangerOutlineButton`.
+- **Ingrijpende acties** (content opnieuw laden, deployen, een gebruiker
+  verwijderen of een wachtwoord resetten) staan in een `tone="danger"`-blok of in
+  een rode knop en vragen altijd om bevestiging via `useConfirm` (`destructive`).
+- **Beveiliging verandert niet door vormgeving.** Elke beheerpagina begint met
+  `requireAdminPage()` (`src/lib/adminGuard.ts`): geen sessie naar inloggen, geen
+  beheerder naar het dashboard. De echte beveiliging blijft de `isAdmin`-controle
+  in elke `/api/admin/**`-route; `tests/admin-layout.test.ts` bewaakt beide.
+- Een nieuw beheerblok komt als `AdminSection` op de passende groepspagina en krijgt
+  alleen teksten via i18n (alle vijf de talen).

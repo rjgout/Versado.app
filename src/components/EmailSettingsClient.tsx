@@ -3,6 +3,8 @@
 import { useState, FormEvent } from "react";
 import { useT } from "@/components/I18nProvider";
 import ToggleSwitch from "@/components/versado/ToggleSwitch";
+import AdminSection from "@/components/admin/AdminSection";
+import { primaryButton, secondaryButton } from "@/components/versado/styles";
 
 interface EmailSettingsView {
   enabled: boolean;
@@ -64,20 +66,14 @@ export default function EmailSettingsClient({ initial }: { initial: EmailSetting
   }
 
   return (
-    <details className="group card flex flex-col gap-4">
-      <summary className="font-extrabold cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center justify-between">
-        {t("adminEmail.title")}
-        <span className="text-slate-400 transition-transform group-open:rotate-180" aria-hidden>
-          ▾
-        </span>
-      </summary>
+    <AdminSection title={t("adminEmail.title")}>
 
-      <p className="text-sm text-slate-500 dark:text-slate-400">
+      <p className="text-sm text-vs-fg-2">
         {t("adminEmail.intro")}
       </p>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-3">
-        <label className="flex min-h-11 items-center gap-2 text-sm font-bold dark:text-slate-200">
+        <label className="flex min-h-11 items-center gap-2 text-sm font-bold text-vs-fg">
           <span className="min-w-0 flex-1">{t("adminEmail.enable")}</span>
           <ToggleSwitch checked={form.enabled} onChange={(enabled) => setForm({ ...form, enabled })} compact />
         </label>
@@ -123,26 +119,26 @@ export default function EmailSettingsClient({ initial }: { initial: EmailSetting
           />
         </div>
 
-        <label className="flex min-h-11 items-center gap-2 text-sm dark:text-slate-200">
+        <label className="flex min-h-11 items-center gap-2 text-sm text-vs-fg">
           <span className="min-w-0 flex-1">{t("adminEmail.implicitTls")}</span>
           <ToggleSwitch checked={form.smtpSecure} onChange={(smtpSecure) => setForm({ ...form, smtpSecure })} compact />
         </label>
 
         {message && (
-          <p className={`text-sm font-semibold ${message.type === "ok" ? "text-brand-600 dark:text-brand-300" : "text-red-600 dark:text-red-400"}`}>
+          <p className={`text-sm font-semibold ${message.type === "ok" ? "text-vs-accent" : "text-vs-danger"}`}>
             {message.text}
           </p>
         )}
 
         <div className="flex gap-3">
-          <button type="submit" className="btn-primary" disabled={saving}>
+          <button type="submit" className={primaryButton} disabled={saving}>
             {saving ? t("adminCommon.busy") : t("adminCommon.save")}
           </button>
-          <button type="button" className="btn-secondary" onClick={sendTest} disabled={testing || !form.enabled}>
+          <button type="button" className={secondaryButton} onClick={sendTest} disabled={testing || !form.enabled}>
             {testing ? t("adminCommon.busy") : t("adminEmail.sendTest")}
           </button>
         </div>
       </form>
-    </details>
+    </AdminSection>
   );
 }

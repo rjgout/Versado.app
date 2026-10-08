@@ -7,6 +7,8 @@ import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { getLanguage } from "@/lib/languages";
 import { FSY_CATEGORY_KEYS } from "@/components/FsyLessonView";
 import ToggleSwitch from "@/components/versado/ToggleSwitch";
+import AdminSection from "@/components/admin/AdminSection";
+import { primaryButton, secondaryButton } from "@/components/versado/styles";
 
 interface Lesson {
   id: string;
@@ -85,30 +87,24 @@ export default function AdminFsyClient() {
   }
 
   if (!data) {
-    return <section className="card">{t("adminFsy.loading")}</section>;
+    return <section className="rounded-2xl border border-vs-line bg-vs-surface p-4 text-vs-fg-2">{t("adminFsy.loading")}</section>;
   }
 
   const drafts = data.lessons.filter((lesson) => lesson.status === "DRAFT");
   const published = data.lessons.filter((lesson) => lesson.publishedAt !== null);
 
   return (
-    <details className="group card flex flex-col gap-4">
-      <summary className="font-extrabold text-lg dark:text-slate-100 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center justify-between">
-        {t("courseNames.fsy")}
-        <span className="text-slate-400 transition-transform group-open:rotate-180" aria-hidden>
-          ▾
-        </span>
-      </summary>
+    <AdminSection title={t("courseNames.fsy")}>
       <div>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-vs-fg-2">
           {t("adminFsy.intro")}
         </p>
       </div>
 
-      <label className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+      <label className="flex items-center justify-between gap-4 rounded-xl border border-vs-line p-3">
         <span>
-          <span className="block font-bold dark:text-slate-100">{t("adminFsy.autoPublish")}</span>
-          <span className="block text-xs text-slate-500 dark:text-slate-400">
+          <span className="block font-bold text-vs-fg">{t("adminFsy.autoPublish")}</span>
+          <span className="block text-xs text-vs-fg-2">
             {t("adminFsy.autoPublishText")}
           </span>
         </span>
@@ -116,54 +112,54 @@ export default function AdminFsyClient() {
       </label>
 
       <div className="flex flex-wrap gap-3 text-sm">
-        <span className="rounded-full bg-gold-50 dark:bg-slate-800 px-3 py-1 font-bold">
+        <span className="rounded-full bg-vs-warning-soft px-3 py-1 font-bold">
           {t(drafts.length === 1 ? "adminFsy.draftsOne" : "adminFsy.draftsMany", { n: drafts.length })}
         </span>
-        <span className="rounded-full bg-brand-50 dark:bg-slate-800 px-3 py-1 font-bold">
+        <span className="rounded-full bg-vs-accent-soft px-3 py-1 font-bold">
           {t("adminFsy.published", { n: published.length })}
         </span>
       </div>
 
       {data.settings.lastCheckedAt && (
-        <p className="text-xs text-slate-400 dark:text-slate-500">
+        <p className="text-xs text-vs-fg-3">
           {t("adminFsy.lastCheck", { when: new Date(data.settings.lastCheckedAt).toLocaleString(intlLocale) })}
         </p>
       )}
       {data.settings.lastError && (
-        <p className="text-sm font-semibold text-red-600 dark:text-red-400">
+        <p className="text-sm font-semibold text-vs-danger">
           {t("adminFsy.lastError", { error: data.settings.lastError })}
         </p>
       )}
-      {error && <p className="text-sm font-semibold text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="text-sm font-semibold text-vs-danger">{error}</p>}
 
       {drafts.length > 0 && (
         <div className="flex flex-col gap-3">
-          <h3 className="font-extrabold dark:text-slate-100">{t("adminFsy.awaiting")}</h3>
+          <h3 className="font-extrabold text-vs-fg">{t("adminFsy.awaiting")}</h3>
           {drafts.map((lesson) => (
-            <details key={lesson.id} className="rounded-xl border border-gold-300/50 dark:border-slate-700 p-3">
+            <details key={lesson.id} className="rounded-xl border border-vs-line p-3">
               <summary className="cursor-pointer list-none flex items-center justify-between gap-3">
                 <span className="min-w-0">
-                  <span className="block text-xs font-bold uppercase text-slate-400 dark:text-slate-500">
+                  <span className="block text-xs font-bold uppercase text-vs-fg-3">
                     {lesson.category in FSY_CATEGORY_KEYS
                       ? t(FSY_CATEGORY_KEYS[lesson.category as keyof typeof FSY_CATEGORY_KEYS])
                       : t("courseViews.fsy.lesson")} · {lesson.month}/{lesson.year}
                   </span>
-                  <span className="block font-extrabold dark:text-slate-100">{lesson.title}</span>
+                  <span className="block font-extrabold text-vs-fg">{lesson.title}</span>
                 </span>
-                <span className="shrink-0 text-brand-600 dark:text-brand-300">{t("adminFsy.view")}</span>
+                <span className="shrink-0 text-vs-accent">{t("adminFsy.view")}</span>
               </summary>
 
               <div className="mt-4 flex flex-col gap-4">
                 <FsyContentBlocks blocks={JSON.parse(lesson.content) as FsyContentBlock[]} />
                 <div className="flex flex-wrap gap-3">
                   <button
-                    className="btn-primary"
+                    className={primaryButton}
                     disabled={publishingId === lesson.id}
                     onClick={() => publish(lesson.id)}
                   >
                     {publishingId === lesson.id ? t("adminCommon.busy") : t("adminFsy.publish")}
                   </button>
-                  <a href={lesson.sourceUrl} target="_blank" rel="noreferrer" className="btn-secondary">
+                  <a href={lesson.sourceUrl} target="_blank" rel="noreferrer" className={secondaryButton}>
                     {t("adminFsy.openSource")}
                   </a>
                 </div>
@@ -173,7 +169,7 @@ export default function AdminFsyClient() {
         </div>
       )}
 
-      {drafts.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-400">{t("adminFsy.noDrafts")}</p>}
-    </details>
+      {drafts.length === 0 && <p className="text-sm text-vs-fg-2">{t("adminFsy.noDrafts")}</p>}
+    </AdminSection>
   );
 }

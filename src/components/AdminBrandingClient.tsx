@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import type { TFunction } from "@/lib/i18n/core";
+import AdminSection from "@/components/admin/AdminSection";
+import { secondaryButton } from "@/components/versado/styles";
 
 interface BrandingView {
   logoDataUrl: string | null;
@@ -101,30 +103,30 @@ function ImageSlot({
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="font-bold text-sm dark:text-slate-100">{label}</p>
-      <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>
+      <p className="font-bold text-sm text-vs-fg">{label}</p>
+      <p className="text-xs text-vs-fg-2">{description}</p>
       <div className="flex items-center gap-3">
-        <div className={`flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 ${previewClassName}`}>
+        <div className={`flex items-center justify-center bg-vs-subtle rounded-lg border border-vs-line ${previewClassName}`}>
           {value ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={value} alt={label} className="max-h-full max-w-full object-contain" />
           ) : (
-            <span className="text-xs text-slate-400 dark:text-slate-500">{t("adminBranding.none")}</span>
+            <span className="text-xs text-vs-fg-3">{t("adminBranding.none")}</span>
           )}
         </div>
         <div className="flex flex-col gap-2">
           <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
-          <button className="btn-secondary !px-3 !py-1.5 !text-xs self-start" disabled={busy} onClick={() => inputRef.current?.click()}>
+          <button className={`${secondaryButton} self-start`} disabled={busy} onClick={() => inputRef.current?.click()}>
             {busy ? t("adminCommon.busy") : value ? t("adminBranding.replace") : t("adminBranding.upload")}
           </button>
           {value && (
-            <button className="text-xs text-red-500 hover:underline self-start" disabled={busy} onClick={remove}>
+            <button className="text-xs text-vs-danger hover:underline self-start" disabled={busy} onClick={remove}>
               {t("adminCommon.delete")}
             </button>
           )}
         </div>
       </div>
-      {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="text-xs text-vs-danger">{error}</p>}
     </div>
   );
 }
@@ -157,24 +159,18 @@ export default function AdminBrandingClient() {
     }
   }
 
-  if (!branding) return <p className="text-slate-400 dark:text-slate-500">{t("common.loading")}</p>;
+  if (!branding) return <p className="text-vs-fg-3">{t("common.loading")}</p>;
 
   return (
-    <details className="group card flex flex-col gap-4">
-      <summary className="font-extrabold cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center justify-between">
-        {t("adminBranding.title")}
-        <span className="text-slate-400 transition-transform group-open:rotate-180" aria-hidden>
-          ▾
-        </span>
-      </summary>
+    <AdminSection title={t("adminBranding.title")}>
 
-      <p className="text-sm text-slate-500 dark:text-slate-400">
+      <p className="text-sm text-vs-fg-2">
         {t("adminBranding.intro")}
       </p>
 
       <div className="flex flex-col gap-2">
-        <p className="font-bold text-sm dark:text-slate-100">{t("adminBranding.appName")}</p>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="font-bold text-sm text-vs-fg">{t("adminBranding.appName")}</p>
+        <p className="text-xs text-vs-fg-2">
           {t("adminBranding.appNameText")}
         </p>
         <form
@@ -192,7 +188,7 @@ export default function AdminBrandingClient() {
             value={appNameInput}
             onChange={(e) => setAppNameInput(e.target.value)}
           />
-          <button type="submit" className="btn-secondary !px-3 !py-1.5 !text-xs">
+          <button type="submit" className={secondaryButton}>
             {t("adminCommon.save")}
           </button>
         </form>
@@ -217,7 +213,7 @@ export default function AdminBrandingClient() {
         onChange={(faviconDataUrl) => save({ faviconDataUrl })}
       />
 
-      {savedMessage && <p className="text-sm font-semibold text-brand-600 dark:text-brand-300">{savedMessage}</p>}
-    </details>
+      {savedMessage && <p className="text-sm font-semibold text-vs-accent">{savedMessage}</p>}
+    </AdminSection>
   );
 }

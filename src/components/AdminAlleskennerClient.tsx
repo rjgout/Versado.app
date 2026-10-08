@@ -6,6 +6,8 @@ import AppSelect from "@/components/AppSelect";
 import { useConfirm } from "@/components/ConfirmProvider";
 import type { TFunction } from "@/lib/i18n/core";
 import ToggleSwitch from "@/components/versado/ToggleSwitch";
+import AdminSection from "@/components/admin/AdminSection";
+import { primaryButton, secondaryButton } from "@/components/versado/styles";
 
 type Kind = "QUESTION" | "TOPIC" | "PUZZLE" | "GALLERY" | "MEMORY";
 
@@ -119,15 +121,9 @@ export default function AdminAlleskennerClient() {
   }
 
   return (
-    <details className="group card flex flex-col gap-4">
-      <summary className="font-extrabold text-lg dark:text-slate-100 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center justify-between">
-        {t("adminAk.title")}
-        <span className="text-slate-400 transition-transform group-open:rotate-180" aria-hidden>
-          ▾
-        </span>
-      </summary>
+    <AdminSection title={t("adminAk.title")}>
       <div>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-vs-fg-2">
           {t("adminAk.intro")}
         </p>
       </div>
@@ -144,27 +140,27 @@ export default function AdminAlleskennerClient() {
       </div>
 
       {items === null ? (
-        <p className="text-sm text-slate-400">{t("common.loading")}</p>
+        <p className="text-sm text-vs-fg-3">{t("common.loading")}</p>
       ) : (
-        <ul className="flex flex-col divide-y divide-slate-100 dark:divide-slate-700 max-h-[36rem] overflow-y-auto">
+        <ul className="flex flex-col divide-y divide-vs-line max-h-[36rem] overflow-y-auto">
           {visible.map((item) => (
             <li key={item.id} className="py-2">
               <div className="flex items-center gap-2">
                 <button className="flex-1 min-w-0 text-left" onClick={() => open(item)}>
-                  <span className="text-xs font-mono text-slate-400">{item.id}</span>{" "}
-                  <span className="rounded-full bg-slate-100 dark:bg-slate-700 px-2 py-0.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                  <span className="text-xs font-mono text-vs-fg-3">{item.id}</span>{" "}
+                  <span className="rounded-full bg-vs-subtle px-2 py-0.5 text-[11px] font-bold text-vs-fg-2">
                     {t(`adminAk.kinds.${item.kind}`)}
                   </span>
                   {item.editedByAdmin && (
-                    <span className="ml-1 rounded-full bg-gold-50 dark:bg-slate-700 px-2 py-0.5 text-[11px] font-bold text-gold-700 dark:text-gold-400">
+                    <span className="ml-1 rounded-full bg-vs-warning-soft px-2 py-0.5 text-[11px] font-bold text-vs-warning">
                       {t("adminAk.edited")}
                     </span>
                   )}
-                  <span className={`block truncate text-sm ${item.enabled ? "dark:text-slate-100" : "text-slate-400 line-through"}`}>
+                  <span className={`block truncate text-sm ${item.enabled ? "text-vs-fg" : "text-vs-fg-3 line-through"}`}>
                     {summary(item, t)}
                   </span>
                 </button>
-                <label className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 shrink-0">
+                <label className="flex items-center gap-1 text-xs text-vs-fg-2 shrink-0">
                   {t("adminAk.on")}
                   <ToggleSwitch
                     checked={item.enabled}
@@ -184,19 +180,19 @@ export default function AdminAlleskennerClient() {
                     onChange={(e) => setDraft(e.target.value)}
                   />
                   {errors.length > 0 && (
-                    <ul className="text-sm text-red-600 dark:text-red-400 list-disc pl-5">
+                    <ul className="text-sm text-vs-danger list-disc pl-5">
                       {errors.map((e) => (
                         <li key={e}>{e}</li>
                       ))}
                     </ul>
                   )}
-                  {message && <p className="text-sm font-semibold text-green-600 dark:text-green-400">{message}</p>}
+                  {message && <p className="text-sm font-semibold text-vs-accent">{message}</p>}
                   <div className="flex flex-wrap gap-2">
-                    <button className="btn-primary !py-1.5 !text-sm" disabled={busy} onClick={() => save(item)}>
+                    <button className={primaryButton} disabled={busy} onClick={() => save(item)}>
                       {t("adminCommon.save")}
                     </button>
                     {item.editedByAdmin && item.inFile && (
-                      <button className="btn-secondary !py-1.5 !text-sm" disabled={busy} onClick={() => reset(item)}>
+                      <button className={secondaryButton} disabled={busy} onClick={() => reset(item)}>
                         {t("adminAk.resetToFile")}
                       </button>
                     )}
@@ -207,6 +203,6 @@ export default function AdminAlleskennerClient() {
           ))}
         </ul>
       )}
-    </details>
+    </AdminSection>
   );
 }

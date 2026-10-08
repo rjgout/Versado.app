@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import ToggleSwitch from "@/components/versado/ToggleSwitch";
+import AdminSection from "@/components/admin/AdminSection";
 
 interface CourseView {
   id: string;
@@ -21,16 +22,16 @@ function CourseRow({ course, onToggle, saving }: { course: CourseView; onToggle:
     <label
       className={`flex items-center gap-3 rounded-xl p-3 border cursor-pointer ${
         course.enabled
-          ? "border-slate-100 dark:border-slate-700"
-          : "border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40"
+          ? "border-vs-line"
+          : "border-vs-danger/30 bg-vs-danger-soft"
       }`}
     >
       <div className="flex-1">
-        <p className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{(COURSE_TYPES as readonly string[]).includes(course.type) ? t(`adminCourses.types.${course.type as (typeof COURSE_TYPES)[number]}`) : course.type}</p>
-        <p className="font-bold dark:text-slate-100">{course.name}</p>
+        <p className="text-xs font-bold uppercase text-vs-fg-3">{(COURSE_TYPES as readonly string[]).includes(course.type) ? t(`adminCourses.types.${course.type as (typeof COURSE_TYPES)[number]}`) : course.type}</p>
+        <p className="font-bold text-vs-fg">{course.name}</p>
       </div>
       {!course.enabled && (
-        <span className="text-xs font-bold uppercase text-red-500 dark:text-red-400 shrink-0">{t("adminContent.disabled")}</span>
+        <span className="text-xs font-bold uppercase text-vs-danger shrink-0">{t("adminContent.disabled")}</span>
       )}
       <ToggleSwitch checked={course.enabled} onChange={onToggle} disabled={saving} compact />
     </label>
@@ -61,26 +62,20 @@ export default function AdminCoursesClient() {
   }
 
   return (
-    <details className="group card flex flex-col gap-4">
-      <summary className="font-extrabold text-lg dark:text-slate-100 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center justify-between">
-        {t("adminCourses.title")}
-        <span className="text-slate-400 transition-transform group-open:rotate-180" aria-hidden>
-          ▾
-        </span>
-      </summary>
+    <AdminSection title={t("adminCourses.title")}>
 
-      <p className="text-sm text-slate-500 dark:text-slate-400">
+      <p className="text-sm text-vs-fg-2">
         {t("adminCourses.intro")}
       </p>
 
       {!courses ? (
-        <p className="text-slate-400 dark:text-slate-500">{t("common.loading")}</p>
+        <p className="text-vs-fg-3">{t("common.loading")}</p>
       ) : (
         <div className="flex flex-col gap-4">
           {/* Per collectie: elke schriftcollectie heeft cursussen met dezelfde naam. */}
           {Array.from(new Set(courses.map((c) => c.collectionName))).map((collectionName) => (
             <div key={collectionName} className="flex flex-col gap-2">
-              <h3 className="text-sm font-extrabold text-slate-500 dark:text-slate-400">{collectionName}</h3>
+              <h3 className="text-sm font-extrabold text-vs-fg-2">{collectionName}</h3>
               {courses
                 .filter((c) => c.collectionName === collectionName)
                 .map((course) => (
@@ -90,6 +85,6 @@ export default function AdminCoursesClient() {
           ))}
         </div>
       )}
-    </details>
+    </AdminSection>
   );
 }

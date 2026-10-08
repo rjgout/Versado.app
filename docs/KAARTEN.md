@@ -56,6 +56,14 @@ erbij komt zonder opnieuw te ontwerpen. Code: `src/components/versado/ContentCar
 
 ## Toevoegen, verbergen en volgorde
 
+- De ingang "Cursus toevoegen" / "Spel toevoegen" (`CardPicker`, gesloten) is een
+  kaart in dezelfde taal als de cursus- en spelkaarten: afgeronde rand, vlak en
+  schaduw uit `interactiveCard`, een icoon in een accenttegel, het label en één
+  regel uitleg (`addHint`), minimaal 4 rem hoog en als geheel aantikbaar. De
+  gestippelde rand is voorbehouden aan de plek waar je een kaart neerzet (slepen),
+  niet aan een knop. De gesloten kaart is er voor Leren en Spelen hetzelfde;
+  alleen het label en de uitleg verschillen. Getest in `tests/cards.test.ts`.
+
 - Verbergen haalt een kaart alleen uit het eigen overzicht; er gaat nooit
   voortgang, score of geschiedenis verloren. Toevoegen (`CardPicker`)
   toont alleen wat nu verborgen is en zet het achteraan.

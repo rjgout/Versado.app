@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { getLanguage } from "@/lib/languages";
@@ -51,6 +52,10 @@ export default function ContentSwitcher({
   const noticeRef = useRef<HTMLDialogElement>(null);
   const ref = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
+  // Waar het menu staat: gemeten ten opzichte van de kiezer, zie placeMenu().
+  const [menuBox, setMenuBox] = useState<{ top: number; left: number; width: number; maxHeight: number } | null>(null);
   const iconRef = useRef<HTMLSpanElement>(null);
   const chevronRef = useRef<SVGSVGElement>(null);
   const fullLabelRef = useRef<HTMLSpanElement>(null);
@@ -60,14 +65,66 @@ export default function ContentSwitcher({
   // basisbreedte van de kiezer (zie hieronder).
   const [fullTriggerWidth, setFullTriggerWidth] = useState<number | null>(null);
 
+  // Het menu hangt niet in de header maar in een portal op <body> met position: fixed.
+  // Binnen de vaste bovenbalk werd het afgekapt door de rand van die balk
+  // (overflow-x: clip) en deelde het diens stackinglaag, waardoor elk latere element
+  // met z-index in de pagina eroverheen kon schilderen. Zie docs/LAYOUT.md ("Lagen").
+  const placeMenu = useCallback(() => {
+    const anchor = ref.current;
+    if (!anchor) return;
+    const rect = anchor.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    // De onderbalk (alleen onder lg) blijft vrij: het menu eindigt erboven.
+    const nav = document.querySelector<HTMLElement>("[data-main-nav]");
+    const navTop = nav && nav.getBoundingClientRect().height > 0 ? nav.getBoundingClientRect().top : viewportHeight;
+    const width = Math.min(512, viewportWidth - 16);
+    const left = Math.min(Math.max(rect.left, 8), viewportWidth - width - 8);
+    setMenuBox({ top: rect.bottom, left, width, maxHeight: Math.max(Math.min(viewportHeight, navTop) - rect.bottom - 8, 128) });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    placeMenu();
+    // De kiezer kan bewegen (adresbalk, draaien, een bovenbalk die bij grote tekst meescrolt).
+    window.addEventListener("resize", placeMenu);
+    window.addEventListener("scroll", placeMenu, { passive: true });
+    window.visualViewport?.addEventListener("resize", placeMenu);
+    return () => {
+      window.removeEventListener("resize", placeMenu);
+      window.removeEventListener("scroll", placeMenu);
+      window.visualViewport?.removeEventListener("resize", placeMenu);
+    };
+  }, [open, placeMenu]);
+
+  // Toetsenbord: Escape sluit en geeft de focus terug; pijlen lopen door de opties.
   useEffect(() => {
     if (!open) return;
-    function onPointerDown(event: PointerEvent) {
-      if (!ref.current?.contains(event.target as Node)) setOpen(false);
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+        buttonRef.current?.focus();
+        return;
+      }
+      if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+      const options = Array.from(menuRef.current?.querySelectorAll<HTMLElement>("[role=option]:not(:disabled)") ?? []);
+      if (options.length === 0) return;
+      event.preventDefault();
+      const current = options.indexOf(document.activeElement as HTMLElement);
+      const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : (current + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length;
+      options[next].focus();
     }
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
   }, [open]);
+
+  // Bij openen staat de focus op de huidige keuze.
+  useEffect(() => {
+    if (!open || !menuBox) return;
+    const selected = menuRef.current?.querySelector<HTMLElement>("[role=option][aria-selected=true]") ?? menuRef.current?.querySelector<HTMLElement>("[role=option]");
+    if (selected && !menuRef.current?.contains(document.activeElement)) selected.focus({ preventScroll: true });
+  }, [open, menuBox]);
 
   const shortName = contentAbbreviation(active, active.language);
 
@@ -196,6 +253,7 @@ export default function ContentSwitcher({
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-haspopup="listbox"
+        aria-controls={open ? menuId : undefined}
         title={active.name}
         aria-label={t("contentSwitcher.activeAria", {
           name: active.name + (showLanguage ? ` (${getLanguage(active.language).nativeName})` : ""),
@@ -208,88 +266,101 @@ export default function ContentSwitcher({
           {shortName && <span ref={shortLabelRef} className="block w-max">{shortName}</span>}
         </span>
         {labelMode !== "icon" && <span className="block shrink-0 whitespace-nowrap">{labelMode === "short" && shortName ? shortName : active.name}</span>}
-        <ChevronDown ref={chevronRef} className={`h-4 w-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
+        <ChevronDown ref={chevronRef} className={`h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none ${open ? "rotate-180" : ""}`} aria-hidden />
       </button>
 
-      {open && (
-        <div className="absolute top-full left-0 w-[min(32rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-var(--header-height,var(--header-default))-var(--nav-height,0px))] overflow-y-auto overscroll-contain rounded-b-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900 z-50">
-          <div className="mx-auto max-w-2xl px-4 py-2" role="listbox" aria-label={t("contentSwitcher.available")}>
-            {ordered.map(({ work, edition: collection }, index) => {
-              const selected = work === activeWork;
-              return (
-                <button
-                  key={work}
-                  type="button"
-                  role="option"
-                  aria-selected={selected}
-                  disabled={busy}
-                  onClick={() => selectCollection(collection)}
-                  className={[
-                    "w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left transition",
-                    selected
-                      ? "bg-brand-50 text-brand-800 dark:!bg-brand-900 dark:!text-brand-100"
-                      : "text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800",
-                    index === 0 ? "font-extrabold" : "font-semibold",
-                  ].join(" ")}
-                >
-                  <span className="w-7 shrink-0 text-center" aria-hidden>{selected ? "✓" : ""}</span>
-                  <ContentIcon collection={collection} className="h-5 w-5 shrink-0" />
-                  <span className="min-w-0 truncate">{collection.name}</span>
-                  {showLanguage && (
-                    <span className="shrink-0 text-[10px] font-extrabold text-slate-400 dark:text-slate-500">
-                      {getLanguage(collection.language).badge}
-                    </span>
-                  )}
-                  {/* Alleen beheerders krijgen verborgen content in dit menu. */}
-                  {!collection.visibleToUsers && (
-                    <span className="ml-auto shrink-0 text-[10px] font-bold uppercase text-slate-500 bg-slate-100 dark:bg-slate-800 dark:text-slate-400 rounded-full px-2 py-0.5">
-                      {t("contentSwitcher.hidden")}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          {activeEditions.length > 1 && (
-            <div className="mx-auto max-w-2xl px-4 pb-3 pt-1 border-t border-slate-100 dark:border-slate-800">
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 pt-2 pb-1.5">
-                {t("contentSwitcher.textLanguage")}
-              </p>
-              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t("contentSwitcher.textLanguage")}>
-                {activeEditions.map((edition) => {
-                  const language = getLanguage(edition.language);
-                  const selected = edition.id === active.id;
-                  const duplicateLanguage = (languageCounts.get(edition.language) ?? 0) > 1;
+      {open &&
+        menuBox &&
+        createPortal(
+          <>
+            {/* Onzichtbare laag: een tik buiten het menu sluit alleen het menu en raakt niets eronder. */}
+            <button type="button" tabIndex={-1} aria-hidden className="fixed inset-0 z-40 cursor-default" onClick={() => setOpen(false)} />
+            <div
+              ref={menuRef}
+              id={menuId}
+              data-content-menu
+              style={{ top: menuBox.top, left: `max(var(--vs-safe-area-left), ${menuBox.left}px)`, width: menuBox.width, maxHeight: menuBox.maxHeight }}
+              className="fixed z-40 max-w-[calc(100vw-var(--vs-safe-area-left)-var(--vs-safe-area-right)-1rem)] overflow-y-auto overscroll-contain rounded-b-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900"
+            >
+              <div className="mx-auto max-w-2xl px-4 py-2" role="listbox" aria-label={t("contentSwitcher.available")}>
+                {ordered.map(({ work, edition: collection }, index) => {
+                  const selected = work === activeWork;
                   return (
                     <button
-                      key={edition.id}
+                      key={work}
                       type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      aria-label={language.nativeName}
+                      role="option"
+                      aria-selected={selected}
                       disabled={busy}
-                      onClick={() => selectLanguage(edition)}
-                      title={edition.visibleToUsers ? undefined : t("contentSwitcher.hiddenTitle")}
+                      onClick={() => selectCollection(collection)}
                       className={[
-                        "rounded-full px-3 py-1.5 text-sm font-bold border-2 transition",
+                        "w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left transition",
                         selected
-                          ? "border-brand-500 bg-brand-50 text-brand-800 dark:bg-brand-900 dark:text-brand-100"
-                          : "border-slate-200 text-slate-600 hover:border-brand-300 dark:border-slate-700 dark:text-slate-300",
-                        edition.visibleToUsers ? "" : "border-dashed",
+                          ? "bg-brand-50 text-brand-800 dark:!bg-brand-900 dark:!text-brand-100"
+                          : "text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800",
+                        index === 0 ? "font-extrabold" : "font-semibold",
                       ].join(" ")}
                     >
-                      {/* Smal scherm: alleen de code; breder: alleen de naam. Allebei
-                          tegelijk zonder ruimte ertussen gaf "NLNederlands". */}
-                      <span className="sm:hidden">{language.badge}</span>
-                      <span className="hidden sm:inline">{duplicateLanguage ? edition.name : language.nativeName}</span>
+                      <span className="w-7 shrink-0 text-center" aria-hidden>{selected ? "✓" : ""}</span>
+                      <ContentIcon collection={collection} className="h-5 w-5 shrink-0" />
+                      <span className="min-w-0 truncate">{collection.name}</span>
+                      {showLanguage && (
+                        <span className="shrink-0 text-[10px] font-extrabold text-slate-400 dark:text-slate-500">
+                          {getLanguage(collection.language).badge}
+                        </span>
+                      )}
+                      {/* Alleen beheerders krijgen verborgen content in dit menu. */}
+                      {!collection.visibleToUsers && (
+                        <span className="ml-auto shrink-0 text-[10px] font-bold uppercase text-slate-500 bg-slate-100 dark:bg-slate-800 dark:text-slate-400 rounded-full px-2 py-0.5">
+                          {t("contentSwitcher.hidden")}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
               </div>
+              {activeEditions.length > 1 && (
+                <div className="mx-auto max-w-2xl px-4 pb-3 pt-1 border-t border-slate-100 dark:border-slate-800">
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 pt-2 pb-1.5">
+                    {t("contentSwitcher.textLanguage")}
+                  </p>
+                  <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t("contentSwitcher.textLanguage")}>
+                    {activeEditions.map((edition) => {
+                      const language = getLanguage(edition.language);
+                      const selected = edition.id === active.id;
+                      const duplicateLanguage = (languageCounts.get(edition.language) ?? 0) > 1;
+                      return (
+                        <button
+                          key={edition.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          aria-label={language.nativeName}
+                          disabled={busy}
+                          onClick={() => selectLanguage(edition)}
+                          title={edition.visibleToUsers ? undefined : t("contentSwitcher.hiddenTitle")}
+                          className={[
+                            "rounded-full px-3 py-1.5 text-sm font-bold border-2 transition",
+                            selected
+                              ? "border-brand-500 bg-brand-50 text-brand-800 dark:bg-brand-900 dark:text-brand-100"
+                              : "border-slate-200 text-slate-600 hover:border-brand-300 dark:border-slate-700 dark:text-slate-300",
+                            edition.visibleToUsers ? "" : "border-dashed",
+                          ].join(" ")}
+                        >
+                          {/* Smal scherm: alleen de code; breder: alleen de naam. Allebei
+                              tegelijk zonder ruimte ertussen gaf "NLNederlands". */}
+                          <span className="sm:hidden">{language.badge}</span>
+                          <span className="hidden sm:inline">{duplicateLanguage ? edition.name : language.nativeName}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      )}
+          </>,
+          document.body,
+        )}
 
       <dialog
         ref={noticeRef}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
 import { getLanguage } from "@/lib/languages";
+import AdminSection from "@/components/admin/AdminSection";
 
 interface GameView {
   id: string;
@@ -40,42 +41,36 @@ export default function AdminLiveGamesClient() {
   }
 
   return (
-    <details className="group card flex flex-col gap-4">
-      <summary className="font-extrabold text-lg dark:text-slate-100 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center justify-between">
-        {t("adminLive.title")}
-        <span className="text-slate-400 transition-transform group-open:rotate-180" aria-hidden>
-          ▾
-        </span>
-      </summary>
+    <AdminSection title={t("adminLive.title")}>
 
-      <p className="text-sm text-slate-500 dark:text-slate-400">
+      <p className="text-sm text-vs-fg-2">
         {t("adminLive.intro")}
       </p>
 
       {!games ? (
-        <p className="text-slate-400 dark:text-slate-500">{t("common.loading")}</p>
+        <p className="text-vs-fg-3">{t("common.loading")}</p>
       ) : games.length === 0 ? (
-        <p className="text-slate-400 dark:text-slate-500">{t("adminLive.none")}</p>
+        <p className="text-vs-fg-3">{t("adminLive.none")}</p>
       ) : (
         <div className="flex flex-col gap-2">
           {games.map((g) => (
             <div
               key={g.id}
-              className="border border-slate-100 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between gap-2 flex-wrap"
+              className="border border-vs-line rounded-xl p-3 flex items-center justify-between gap-2 flex-wrap"
             >
               <div>
-                <p className="font-bold text-sm dark:text-slate-100">
+                <p className="font-bold text-sm text-vs-fg">
                   {g.label}{" "}
-                  <span className="font-normal text-slate-400 dark:text-slate-500">
+                  <span className="font-normal text-vs-fg-3">
                     ({t(g.playerCount === 1 ? "adminLive.playersOne" : "adminLive.playersMany", { status: t(`adminLive.status.${g.status}`), n: g.playerCount })})
                   </span>
                 </p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">
+                <p className="text-xs text-vs-fg-3">
                   {t("adminLive.meta", { code: g.code, host: g.hostLabel, when: new Date(g.createdAt).toLocaleString(intlLocale) })}
                 </p>
               </div>
               <button
-                className="text-xs font-semibold text-red-500 dark:text-red-400 hover:underline shrink-0"
+                className="text-xs font-semibold text-vs-danger hover:underline shrink-0"
                 disabled={endingId === g.id}
                 onClick={() => endGame(g.id, g.code)}
               >
@@ -85,6 +80,6 @@ export default function AdminLiveGamesClient() {
           ))}
         </div>
       )}
-    </details>
+    </AdminSection>
   );
 }

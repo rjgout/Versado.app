@@ -246,6 +246,8 @@ Controleer bij twijfel: `grep -rn "next/headers" src/lib src/server server.ts`
   `window.scrollTo(0, 0)` per pagina, en geen `overflow` op `html` (dan
   scrolt het venster niet meer, zie `globals.css`). Zie
   `docs/VERSADO-DESIGN.md`.
+- Beheer (`/adminbackend`): een overzicht met beheergroepen (`gebruikers`, `content`, `spellen`, `communicatie`, `systeem`), elk een eigen pagina met `AdminSection`-blokken uit `src/components/admin/`. Elke beheerpagina begint met `requireAdminPage()` (`src/lib/adminGuard.ts`); de API-routes blijven zelf `isAdmin` controleren. Ingrijpende acties vragen altijd om bevestiging (`useConfirm`, `destructive`). Zie "Beheer" in `docs/VERSADO-DESIGN.md`.
+- Menu's en popovers die aan een vaste balk hangen (zoals de contentkiezer) gaan via een portal op `<body>` met eigen `z-40`, nooit in de vaste bovenbalk (afgekapt en op de laag van de balk); zie "Lagen" in `docs/LAYOUT.md`.
 - Leren en Spelen: cursus- en spelkaarten gebruiken `ContentCard` en
   `SortableList` (greep links, afbeelding en titel openen, ⋯ om te verbergen,
   "toevoegen" onderaan). Verbergen verwijdert nooit gegevens, personaliseren

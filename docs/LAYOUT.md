@@ -53,11 +53,31 @@ variabelen zelf (`tests/shell-layout.test.ts` controleert dat).
 **Volgorde bovenin.** Van boven naar beneden, altijd binnen de ene vaste wrapper:
 de header (met de contentkiezer links in de headerrij, nooit als eigen
 `fixed`/`sticky` element), daaronder de terugbalk als de pagina er een heeft,
-daaronder de spelers, en dan pas `<main>`. De kiezer heeft dus geen eigen
-offset: hij volgt de header. Zijn menu (`absolute top-full`) is begrensd op de
-zichtbare hoogte min `--header-height` en `--nav-height` en scrolt zelf, zodat
-de onderste taalknoppen op een lage viewport of bij grote tekst bereikbaar
-blijven (de wrapper is vast, dus de pagina eronder kan dat niet opvangen).
+daaronder de spelers, en dan pas `<main>`. De kiezer zelf heeft dus geen eigen
+offset: hij volgt de header.
+
+**Lagen (z-index).** Een dropdown of popover hoort nooit *in* de vaste bovenbalk
+te hangen. Die balk heeft `overflow-x: clip` en vormt één stackinglaag (z-20):
+alles erin wordt op de rand van de balk afgekapt en schildert effectief op
+laag 20, waardoor elk later element in de pagina met `z-20` of hoger (zoals de ⋯
+op een cursuskaart) er overheen kan. De schaal is daarom:
+
+| Laag | Wat | z |
+|---|---|---|
+| pagina | gewone inhoud en lokale knoppen | ≤ 20, binnen `<main>` |
+| balken | `[data-sticky-header]`, `[data-main-nav]` | 20 |
+| popovers en menu's | contentkiezer (portal op `<body>`) | 40 |
+| dialogen en sheets | `ChapterPopup` | 50 |
+| volledige overlays | `FriendPicker`, `NotificationCenter` | 75–80 |
+
+Een nieuw menu of popover gaat met `createPortal` naar `document.body`,
+`position: fixed`, een eigen `z-40`, een onzichtbare achterlaag (`fixed inset-0
+z-40`) zodat een tik erbuiten alleen het menu sluit, en meet zijn plek aan het
+anker (`getBoundingClientRect`). Zijn maximale hoogte is de ruimte tot de
+onderbalk (`[data-main-nav]`, alleen als die zichtbaar is) of de viewport, met
+`overflow-y: auto`. Zo is het menu een echte overlay: het wordt niet afgekapt
+door de balk, niet bedekt door de pagina en nooit door de pagina weggedrukt.
+`ContentSwitcher.tsx` is het voorbeeld; `tests/shell-layout.test.ts` bewaakt het.
 
 **Standaard vóór de meting.** Tot `ShellMetrics` gemeten heeft (server-HTML,
 eerste paint) rekent `<main>` met `--header-default`. Die is
@@ -143,10 +163,13 @@ scrollen), inhoud onder de header of onder de onderbalk, en een terugbalk die
 bij scrollen wegloopt.
 
 `scripts/layout-audit/switcher.mjs` meet in een echte browser (licht en donker,
-meerdere breedtes) de volgorde header → contentkiezer → terugbalk → inhoud, dat de
-kiezer zichtbaar en niet bedekt is, scrollen, terugnavigeren (scrollpositie), het
-menu, content wisselen, de onderbalk onderaan, en de staat vóór hydratie met een
-inkeping:
+meerdere breedtes, touch-emulatie voor de telefoonbreedtes en landscape) de volgorde
+header → contentkiezer → terugbalk → inhoud, dat de kiezer zichtbaar en niet
+bedekt is, scrollen, terugnavigeren (scrollpositie), dat het menu volledig zichtbaar
+is (raster van meetpunten: het bovenste element op elk punt hoort bij het menu),
+niet geclipt wordt en boven de onderbalk eindigt, sluiten met Escape en een tik
+buiten het menu, content wisselen, de onderbalk onderaan, en de staat vóór hydratie
+met een inkeping. Echte iOS-WebKit meet het niet (alleen Chromium is beschikbaar):
 
 ```bash
 PLAYWRIGHT_MODULE=/pad/naar/playwright AUDIT_IDENTIFIER=mail AUDIT_PASSWORD=wachtwoord \

@@ -5,6 +5,9 @@ import { useT } from "@/components/I18nProvider";
 import { useUiLanguage } from "@/components/I18nProvider";
 import { getLanguage } from "@/lib/languages";
 import { rich } from "@/lib/i18n/rich";
+import AdminSection from "@/components/admin/AdminSection";
+import { dangerButton } from "@/components/versado/styles";
+import { useConfirm } from "@/components/ConfirmProvider";
 
 interface DeployStatus {
   phase: "idle" | "pulling" | "stopping" | "starting" | "healthchecking" | "success" | "failed_rolled_back" | "failed_critical";
@@ -20,6 +23,7 @@ const BUSY_PHASES = ["pulling", "stopping", "starting", "healthchecking"];
 
 export default function AdminDeployClient({ configured, onlineUserCount }: { configured: boolean; onlineUserCount: number }) {
   const t = useT();
+  const confirm = useConfirm();
   const intlLocale = getLanguage(useUiLanguage()).intlLocale;
   const [status, setStatus] = useState<DeployStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -124,14 +128,8 @@ export default function AdminDeployClient({ configured, onlineUserCount }: { con
   if (!configured) {
     return (
       // Bovenste kaart van /adminbackend: standaard open, net als de variant hieronder.
-      <details className="group card flex flex-col gap-3" open>
-        <summary className="font-extrabold cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center justify-between">
-          {t("adminDeploy.title")}
-          <span className="text-slate-400 transition-transform group-open:rotate-180" aria-hidden>
-            ▾
-          </span>
-        </summary>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+      <AdminSection title={t("adminDeploy.title")} defaultOpen>
+        <p className="text-sm text-vs-fg-2">
           {rich(t("adminDeploy.notConfigured"), {
             vars: (
               <>
@@ -141,43 +139,37 @@ export default function AdminDeployClient({ configured, onlineUserCount }: { con
             doc: <code>docs/DEPLOY-SYNOLOGY.md</code>,
           })}
         </p>
-      </details>
+      </AdminSection>
     );
   }
 
   const isBusy = actionBusy || (status ? BUSY_PHASES.includes(status.phase) : false);
 
   return (
-    <details className="group card flex flex-col gap-4" open>
-      <summary className="font-extrabold cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center justify-between">
-        {t("adminDeploy.title")}
-        <span className="text-slate-400 transition-transform group-open:rotate-180" aria-hidden>
-          ▾
-        </span>
-      </summary>
+    <AdminSection title={t("adminDeploy.title")} defaultOpen tone="danger" badge={t("adminHub.dangerBadge")}>
 
       {status && (
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2 flex-wrap">
             <span
               className={`inline-block w-2.5 h-2.5 rounded-full ${
-                status.maintenanceOn ? "bg-gold-500" : "bg-brand-500"
+                status.maintenanceOn ? "bg-vs-warning" : "bg-vs-accent"
               }`}
               aria-hidden
             />
-            <span className="font-bold text-sm dark:text-slate-100">{t(`adminDeploy.phases.${status.phase}`)}</span>
+            <span className="font-bold text-sm text-vs-fg">{t(`adminDeploy.phases.${status.phase}`)}</span>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400">{status.message}</p>
+          <p className="text-sm text-vs-fg-2">{status.message}</p>
         </div>
       )}
 
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-2">
           <span
-            className={"inline-block w-3 h-3 rounded-full " + (onlineUserCount === 0 ? "bg-green-500" : onlineUserCount === 1 ? "bg-yellow-400" : "bg-orange-500")}
+            className={"inline-block w-3 h-3 rounded-full " + (onlineUserCount === 0 ? "bg-vs-accent" : onlineUserCount === 1 ? "bg-vs-warning" : "bg-vs-danger")}
             aria-hidden
           />
-          <span className="font-bold text-sm dark:text-slate-100">
+          <span className="font-bold text-sm text-vs-fg">
             {onlineUserCount === 0
               ? t("adminDeploy.nobodyOnline")
               : onlineUserCount === 1
@@ -185,25 +177,32 @@ export default function AdminDeployClient({ configured, onlineUserCount }: { con
                 : t("adminDeploy.manyOnline", { n: onlineUserCount })}
           </span>
         </div>
-        <button className="btn-secondary !px-3 !py-1.5 !text-sm" disabled={isBusy} onClick={() => callAction("/api/admin/deploy/start")}>
+        <button
+          className={dangerButton}
+          disabled={isBusy}
+          onClick={async () => {
+            // Een deploy vervangt de app-container en maakt hem even onbereikbaar voor iedereen.
+            if (await confirm(t("adminHub.deployConfirm", { n: onlineUserCount }), { destructive: true, confirmLabel: t("adminDeploy.deployNow") })) callAction("/api/admin/deploy/start");
+          }}
+        >
           {t("adminDeploy.deployNow")}
         </button>
       </div>
-      {reloadPending && <p className="text-sm font-semibold text-brand-700 dark:text-brand-300">{t("adminDeploy.reloadNotice")}</p>}
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {reloadPending && <p className="text-sm font-semibold text-vs-accent">{t("adminDeploy.reloadNotice")}</p>}
+      {error && <p className="text-sm text-vs-danger">{error}</p>}
 
       {status && status.logs.length > 0 && (
-        <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 max-h-48 overflow-y-auto text-xs font-mono text-slate-600 dark:text-slate-300 flex flex-col gap-1">
+        <div className="bg-vs-subtle rounded-lg p-3 max-h-48 overflow-y-auto text-xs font-mono text-vs-fg-2 flex flex-col gap-1">
           {status.logs
             .slice()
             .reverse()
             .map((l, i) => (
               <div key={i}>
-                <span className="text-slate-400 dark:text-slate-500">{new Date(l.ts).toLocaleTimeString(intlLocale)}</span> {l.message}
+                <span className="text-vs-fg-3">{new Date(l.ts).toLocaleTimeString(intlLocale)}</span> {l.message}
               </div>
             ))}
         </div>
       )}
-    </details>
+    </AdminSection>
   );
 }

@@ -2,6 +2,8 @@
 
 import { useState, FormEvent } from "react";
 import { useT } from "@/components/I18nProvider";
+import AdminSection from "@/components/admin/AdminSection";
+import { primaryButton } from "@/components/versado/styles";
 
 interface LeagueSettingsView {
   groupSize: number;
@@ -46,24 +48,18 @@ export default function AdminLeagueSettingsClient({ initial }: { initial: League
   }
 
   return (
-    <details className="group card flex flex-col gap-4">
-      <summary className="font-extrabold cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center justify-between">
-        {t("adminLeague.title")}
-        <span className="text-slate-400 transition-transform group-open:rotate-180" aria-hidden>
-          ▾
-        </span>
-      </summary>
+    <AdminSection title={t("adminLeague.title")}>
 
-      <p className="text-sm text-slate-500 dark:text-slate-400">
+      <p className="text-sm text-vs-fg-2">
         {t("adminLeague.intro1")}
       </p>
-      <p className="text-sm text-slate-500 dark:text-slate-400">
+      <p className="text-sm text-vs-fg-2">
         {t("adminLeague.intro2")}
       </p>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-3">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <label className="flex flex-col gap-1 text-sm font-bold dark:text-slate-200">
+          <label className="flex flex-col gap-1 text-sm font-bold text-vs-fg">
             {t("adminLeague.groupSize")}
             <input
               type="number"
@@ -73,7 +69,7 @@ export default function AdminLeagueSettingsClient({ initial }: { initial: League
               onChange={(e) => setForm({ ...form, groupSize: Number(e.target.value) })}
             />
           </label>
-          <label className="flex flex-col gap-1 text-sm font-bold dark:text-slate-200">
+          <label className="flex flex-col gap-1 text-sm font-bold text-vs-fg">
             {t("adminLeague.promote")}
             <input
               type="number"
@@ -84,7 +80,7 @@ export default function AdminLeagueSettingsClient({ initial }: { initial: League
               onChange={(e) => setForm({ ...form, promotePercent: Number(e.target.value) })}
             />
           </label>
-          <label className="flex flex-col gap-1 text-sm font-bold dark:text-slate-200">
+          <label className="flex flex-col gap-1 text-sm font-bold text-vs-fg">
             {t("adminLeague.demote")}
             <input
               type="number"
@@ -94,7 +90,7 @@ export default function AdminLeagueSettingsClient({ initial }: { initial: League
               onChange={(e) => setForm({ ...form, demoteCount: Number(e.target.value) })}
             />
           </label>
-          <label className="flex flex-col gap-1 text-sm font-bold dark:text-slate-200">
+          <label className="flex flex-col gap-1 text-sm font-bold text-vs-fg">
             {t("adminLeague.seasonWeeks")}
             <input
               type="number"
@@ -104,7 +100,7 @@ export default function AdminLeagueSettingsClient({ initial }: { initial: League
               onChange={(e) => setForm({ ...form, seasonWeekCount: Number(e.target.value) })}
             />
           </label>
-          <label className="flex flex-col gap-1 text-sm font-bold dark:text-slate-200">
+          <label className="flex flex-col gap-1 text-sm font-bold text-vs-fg">
             {t("adminLeague.localeCode")}
             <input
               type="text"
@@ -115,7 +111,7 @@ export default function AdminLeagueSettingsClient({ initial }: { initial: League
           </label>
         </div>
 
-        <label className="flex flex-col gap-1 text-sm font-bold dark:text-slate-200">
+        <label className="flex flex-col gap-1 text-sm font-bold text-vs-fg">
           {t("adminLeague.rules")}
           <textarea
             className="input font-mono text-xs !h-48"
@@ -124,15 +120,15 @@ export default function AdminLeagueSettingsClient({ initial }: { initial: League
           />
         </label>
 
-        <button className="btn-primary self-start" disabled={saving} type="submit">
+        <button className={`${primaryButton} self-start`} disabled={saving} type="submit">
           {saving ? t("adminCommon.busy") : t("adminCommon.save")}
         </button>
         {message && (
-          <p className={`text-sm font-semibold ${message.type === "ok" ? "text-brand-600 dark:text-brand-300" : "text-red-600 dark:text-red-400"}`}>
+          <p className={`text-sm font-semibold ${message.type === "ok" ? "text-vs-accent" : "text-vs-danger"}`}>
             {message.text}
           </p>
         )}
       </form>
-    </details>
+    </AdminSection>
   );
 }

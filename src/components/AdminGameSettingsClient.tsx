@@ -6,6 +6,7 @@ import type { MessageKey } from "@/lib/i18n/core";
 import ToggleSwitch from "@/components/versado/ToggleSwitch";
 import { useCompanion } from "@/components/versado/PersonalMascot";
 import { quickMissionaryTitle } from "@/lib/gameCatalog";
+import AdminSection from "@/components/admin/AdminSection";
 
 interface SettingsView {
   wordGameEnabled: boolean;
@@ -86,27 +87,21 @@ export default function AdminGameSettingsClient() {
   const labelFor = (game: (typeof GAMES)[number]) => game.gameKey === "quick-missionary" ? quickMissionaryTitle(t, character) : t(game.labelKey);
 
   return (
-    <details className="group card flex flex-col gap-4">
-      <summary className="font-extrabold text-lg dark:text-slate-100 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center justify-between">
-        {t("adminGames.title")}
-        <span className="text-slate-400 transition-transform group-open:rotate-180" aria-hidden>
-          ▾
-        </span>
-      </summary>
+    <AdminSection title={t("adminGames.title")}>
 
-      <p className="text-sm text-slate-500 dark:text-slate-400">
+      <p className="text-sm text-vs-fg-2">
         {t("adminGames.intro")}
       </p>
 
       {!settings ? (
-        <p className="text-slate-400 dark:text-slate-500">{t("common.loading")}</p>
+        <p className="text-vs-fg-3">{t("common.loading")}</p>
       ) : (
         <div className="flex flex-col gap-2">
           {GAMES.map((g) => (
             <label key={g.key} className="flex min-h-11 cursor-pointer items-center gap-3">
-              <span className="min-w-0 flex-1 text-sm dark:text-slate-200">{g.icon ? `${g.icon} ${labelFor(g)}` : labelFor(g)}</span>
+              <span className="min-w-0 flex-1 text-sm text-vs-fg">{g.icon ? `${g.icon} ${labelFor(g)}` : labelFor(g)}</span>
               {!settings[g.key] && (
-                <span className="text-xs font-bold uppercase text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded-full px-2 py-0.5">
+                <span className="text-xs font-bold uppercase text-vs-danger bg-vs-danger-soft rounded-full px-2 py-0.5">
                   {t("adminContent.disabled")}
                 </span>
               )}
@@ -117,12 +112,12 @@ export default function AdminGameSettingsClient() {
       )}
 
       {scopes && (
-        <div className="flex flex-col gap-3 border-t border-slate-100 dark:border-slate-700 pt-4">
-          <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">{t("adminGames.perContent")}</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{t("adminGames.perContentHint")}</p>
+        <div className="flex flex-col gap-3 border-t border-vs-line pt-4">
+          <h3 className="text-sm font-bold text-vs-fg">{t("adminGames.perContent")}</h3>
+          <p className="text-xs text-vs-fg-2">{t("adminGames.perContentHint")}</p>
           {GAMES.map((g) => (
             <div key={g.gameKey} className="flex flex-col gap-1.5">
-              <span className="text-sm font-semibold dark:text-slate-200">{g.icon ? `${g.icon} ${labelFor(g)}` : labelFor(g)}</span>
+              <span className="text-sm font-semibold text-vs-fg">{g.icon ? `${g.icon} ${labelFor(g)}` : labelFor(g)}</span>
               <div className="flex flex-wrap gap-2">
                 {scopes.collections.map((collection) => {
                   const on = scopes.scopes.some((s) => s.gameKey === g.gameKey && s.contentCollectionId === collection.id);
@@ -131,8 +126,8 @@ export default function AdminGameSettingsClient() {
                       key={collection.id}
                       className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs cursor-pointer ${
                         on
-                          ? "border-brand-300 bg-brand-50 text-brand-800 dark:border-brand-700 dark:bg-slate-700 dark:text-brand-200"
-                          : "border-slate-200 text-slate-500 dark:border-slate-700 dark:text-slate-400"
+                          ? "border-vs-accent bg-vs-accent-soft text-vs-accent"
+                          : "border-vs-line text-vs-fg-2"
                       }`}
                     >
                       <ToggleSwitch checked={on} disabled={saving} onChange={(enabled) => toggleScope(g.gameKey, collection.id, enabled)} compact />
@@ -147,6 +142,6 @@ export default function AdminGameSettingsClient() {
           ))}
         </div>
       )}
-    </details>
+    </AdminSection>
   );
 }

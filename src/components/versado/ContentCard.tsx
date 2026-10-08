@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowDown, ArrowUp, EyeOff, Info, MoreHorizontal, Plus, X, type LucideIcon } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import MediaArtwork from "@/components/versado/MediaArtwork";
+import { interactiveCard } from "@/components/versado/styles";
 import { DragHandle, type DragHandleProps } from "@/components/SortableList";
 import type { ArtworkKeys, ArtworkKind } from "@/lib/artwork";
 
@@ -269,6 +270,7 @@ export interface PickerItem {
  */
 export function CardPicker({
   addLabel,
+  addHint,
   emptyText,
   items,
   busyId,
@@ -276,6 +278,8 @@ export function CardPicker({
   onAdd,
 }: {
   addLabel: string;
+  /** Eén regel uitleg onder het label van de toevoegkaart. */
+  addHint?: string;
   emptyText: string;
   /** null = nog aan het laden. */
   items: PickerItem[] | null;
@@ -289,16 +293,23 @@ export function CardPicker({
 
   if (!open) {
     return (
+      // Dezelfde kaart als een cursus of spel (afgeronde rand, vlak, schaduw), geen losse
+      // gestippelde knop: de gestippelde rand is voorbehouden aan de plek waar je iets neerzet.
       <button
         type="button"
         onClick={() => {
           setOpen(true);
           onOpen?.();
         }}
-        className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-vs-line-strong text-sm font-extrabold text-vs-fg-2 transition hover:border-vs-accent hover:text-vs-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent"
+        className={`group flex min-h-16 w-full items-center gap-3 p-3 text-left sm:p-4 ${interactiveCard} hover:!border-vs-accent`}
       >
-        <Plus className="h-4 w-4" aria-hidden />
-        {addLabel}
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-vs-accent-soft text-vs-accent" aria-hidden>
+          <Plus className="h-5 w-5" strokeWidth={2.5} />
+        </span>
+        <span className="min-w-0">
+          <span className="block font-extrabold text-vs-fg">{addLabel}</span>
+          {addHint && <span className="block text-xs text-vs-fg-2">{addHint}</span>}
+        </span>
       </button>
     );
   }

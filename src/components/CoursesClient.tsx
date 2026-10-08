@@ -264,6 +264,7 @@ export default function CoursesClient() {
       <div data-kompas-target="learn-add">
       <CardPicker
         addLabel={t("courses.addCourse")}
+        addHint={t("courses.addCourseHint")}
         emptyText={t("courses.allAdded")}
         items={pickerItems}
         busyId={addingId}

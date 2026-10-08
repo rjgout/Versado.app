@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { ReaderView, type ReaderVerseView } from "@/components/LessonFlow";
+import PageIntro from "@/components/versado/PageIntro";
 import type { OtbWork } from "../../../../scripts/otb/trialConfig";
 
 const LANGUAGES = [
@@ -86,11 +87,8 @@ export default async function ContentPreviewPage({
   return (
     <PreviewShell>
       <div className="flex flex-col gap-6">
-        <div>
-          <Link href="/adminbackend" className="text-sm font-bold text-vs-accent hover:underline">← Beheer</Link>
-          <h1 className="mt-3 text-2xl font-extrabold text-brand-800 dark:text-brand-300">Schriftpreview</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Alleen-lezenweergave van de verborgen volledige OTB-content.</p>
-        </div>
+        {/* De terugknop komt uit SubpageBackBar (terug naar Content en cursussen). */}
+        <PageIntro title="Schriftpreview" text="Alleen-lezenweergave van de verborgen volledige OTB-content." />
 
         <form method="get" className="card grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <label className="flex flex-col gap-1 text-sm font-bold">Schriftwerk

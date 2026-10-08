@@ -26,6 +26,15 @@ if (!login.ok()) { console.error(`inloggen mislukt (${login.status()})`); proces
 const state = await boot.storageState();
 await boot.close();
 
+
+// Wachten op "gehydrateerd" in plaats van op netwerkstilte: de afbeeldingsoptimalisatie van Next kan
+// op een koude cache lang doorlopen, en ShellMetrics zet --header-height pas nadat de pagina leeft.
+async function gotoReady(page, url) {
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+  await page.waitForFunction(() => getComputedStyle(document.documentElement).getPropertyValue("--header-height").trim() !== "", null, { timeout: 30000 });
+  await page.waitForTimeout(300);
+}
+
 // Geometrie van de bovenbalk in de pagina zelf.
 function snapshot() {
   const r = (s) => { const e = document.querySelector(s); if (!e) return null; const b = e.getBoundingClientRect(); return { top: b.top, bottom: b.bottom, left: b.left, right: b.right, width: b.width, height: b.height }; };
@@ -62,10 +71,12 @@ function checkBars(ctx, s, expectBack, { scrolled = false } = {}) {
 for (const scheme of ["light", "dark"]) {
   for (const width of WIDTHS) {
     const tag = (p) => `${scheme} ${width}px ${p}`;
-    const ctx = await browser.newContext({ viewport: { width, height: H }, colorScheme: scheme, storageState: state });
+    const phone = width <= 430;
+    const ctx = await browser.newContext({ viewport: { width, height: H }, colorScheme: scheme, storageState: state, isMobile: phone, hasTouch: phone, deviceScaleFactor: phone ? 3 : 1 });
     const page = await ctx.newPage();
+    const press = (locator) => (phone ? locator.tap() : locator.click());
     for (const [path, expectBack] of [[WITHOUT_BACK, false], [WITH_BACK, true]]) {
-      await page.goto(BASE + path, { waitUntil: "networkidle" });
+      await gotoReady(page, BASE + path);
       await page.waitForTimeout(400);
       const top = await page.evaluate(snapshot);
       checkBars(tag(path), top, expectBack);
@@ -75,15 +86,51 @@ for (const scheme of ["light", "dark"]) {
       const scrolled = await page.evaluate(snapshot);
       checkBars(tag(`${path} (gescrold)`), scrolled, expectBack, { scrolled: true });
       if (scrolled.wrapperPos === "fixed" && Math.abs(scrolled.sw.top - top.sw.top) > 0.5) fail(tag(path), "contentkiezer verschuift bij scrollen");
-      // Menu: binnen beeld en bedienbaar.
+      // Menu: volledig zichtbaar (raster van meetpunten), niet geclipt, boven de onderbalk, en sluitbaar.
       await page.evaluate(() => scrollTo(0, 0));
-      await page.click('[data-kompas-target="content-switcher"] button');
-      await page.waitForTimeout(250);
-      const panel = await page.evaluate(() => { const l = document.querySelector("[role=listbox]"); if (!l) return null; const b = l.parentElement.getBoundingClientRect(); return { top: b.top, bottom: b.bottom, left: b.left, right: b.right, vh: innerHeight }; });
-      if (!panel) fail(tag(path), "menu opent niet");
-      else if (panel.bottom > panel.vh + 1 || panel.left < -0.5 || panel.right > width + 0.5) fail(tag(path), `menu valt buiten beeld ${JSON.stringify(panel)}`);
-      // Sluiten via de knop zelf: een klik ergens anders kan op de onderbalk landen en wegnavigeren.
-      await page.click('[data-kompas-target="content-switcher"] > button');
+      const trigger = page.locator('[data-kompas-target="content-switcher"] > button');
+      const openMenu = async () => { await press(trigger); await page.waitForSelector("[data-content-menu]", { timeout: 3000 }); await page.waitForTimeout(150); };
+      const menuProbe = () => page.evaluate(() => {
+        const m = document.querySelector("[data-content-menu]");
+        if (!m) return null;
+        const b = m.getBoundingClientRect();
+        let hits = 0, total = 0;
+        for (const fx of [0.1, 0.3, 0.5, 0.7, 0.9]) for (const fy of [0.1, 0.3, 0.5, 0.7, 0.9]) { total++; const el = document.elementFromPoint(b.left + b.width * fx, Math.min(b.top + b.height * fy, innerHeight - 2)); if (el && m.contains(el)) hits++; }
+        const nav = document.querySelector("[data-main-nav]");
+        const nb = nav && nav.getBoundingClientRect().height > 0 ? nav.getBoundingClientRect() : null;
+        return { top: b.top, bottom: b.bottom, left: b.left, right: b.right, height: b.height, hits, total, vh: innerHeight, navTop: nb ? nb.top : null, position: getComputedStyle(m).position, parent: m.parentElement === document.body };
+      });
+      const probeMenu = async (label) => {
+        const m = await menuProbe();
+        if (!m) return fail(tag(label), "menu opent niet");
+        if (m.hits !== m.total) fail(tag(label), `menu wordt bedekt (${m.total - m.hits} van ${m.total} meetpunten)`);
+        if (m.height < 100) fail(tag(label), `menu is bijna onzichtbaar (hoogte ${Math.round(m.height)})`);
+        if (m.bottom > m.vh + 1 || m.left < -0.5 || m.right > width + 0.5) fail(tag(label), `menu valt buiten beeld ${JSON.stringify(m)}`);
+        if (m.navTop !== null && m.bottom > m.navTop + 1) fail(tag(label), "menu overlapt de onderbalk");
+        if (m.position !== "fixed" || !m.parent) fail(tag(label), "menu is geen fixed portal op <body>");
+      };
+      await openMenu();
+      await probeMenu(`${path} menu`);
+      // Sluiten: Escape (focus terug op de kiezer), een tik buiten het menu, en een tweede tik op de kiezer.
+      await page.keyboard.press("Escape");
+      if (await page.locator("[data-content-menu]").count()) fail(tag(path), "Escape sluit het menu niet");
+      if (!(await trigger.evaluate((el) => document.activeElement === el))) fail(tag(path), "focus keert na Escape niet terug naar de kiezer");
+      await openMenu();
+      const urlBefore = page.url();
+      if (phone) await page.touchscreen.tap(width / 2, H - 6); else await page.mouse.click(width / 2, H - 6);
+      await page.waitForTimeout(200);
+      if (await page.locator("[data-content-menu]").count()) fail(tag(path), "een tik buiten het menu sluit het menu niet");
+      if (page.url() !== urlBefore) fail(tag(path), "een tik buiten het menu activeerde iets eronder");
+      await openMenu();
+      const box = await trigger.boundingBox();
+      if (phone) await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2); else await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await page.waitForTimeout(200);
+      if (await page.locator("[data-content-menu]").count()) fail(tag(path), "een tweede tik op de kiezer sluit het menu niet");
+      // Stresstest: een afkappende voorouder (zoals WebKit de balk kan behandelen) mag het menu niet raken.
+      await page.addStyleTag({ content: "[data-sticky-header]{overflow:hidden !important;contain:paint !important;transform:translateZ(0)}" });
+      await openMenu();
+      await probeMenu(`${path} menu met afkappende balk`);
+      await page.keyboard.press("Escape");
     }
     // Pre-hydratie, met een inkeping: de standaardhoogte moet kloppen vóór de meting.
     for (const [path, expectBack] of [[WITHOUT_BACK, false], [WITH_BACK, true]]) {
@@ -99,7 +146,7 @@ for (const scheme of ["light", "dark"]) {
       await bare.close();
     }
     // Terugnavigeren: zelfde lijst, zelfde scrollpositie, balken ongewijzigd.
-    await page.goto(`${BASE}${WITH_BACK}?q=gel`, { waitUntil: "networkidle" });
+    await gotoReady(page, `${BASE}${WITH_BACK}?q=gel`);
     await page.evaluate(() => scrollTo(0, 300));
     await page.waitForTimeout(300);
     const before = (await page.evaluate(() => scrollY));
@@ -121,7 +168,7 @@ for (const scheme of ["light", "dark"]) {
 {
   const ctx = await browser.newContext({ viewport: { width: 390, height: H }, storageState: state });
   const page = await ctx.newPage();
-  await page.goto(BASE + WITH_BACK, { waitUntil: "networkidle" });
+  await gotoReady(page, BASE + WITH_BACK);
   const options = page.locator("[role=option]");
   await page.click('[data-kompas-target="content-switcher"] button');
   const count = await options.count();

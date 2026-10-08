@@ -240,7 +240,7 @@ export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, cont
       )}
 
       {available.length > 0 && (
-        <CardPicker addLabel={t("gamesHub.addGame")} emptyText={t("gamesHub.allAdded")} items={order ? pickerItems : null} onAdd={add} />
+        <CardPicker addLabel={t("gamesHub.addGame")} addHint={t("gamesHub.addGameHint")} emptyText={t("gamesHub.allAdded")} items={order ? pickerItems : null} onAdd={add} />
       )}
 
       {rulesFor && <GameRules title={gameTitle(t, rulesFor, character)} rules={(["rule1", "rule2", "rule3"] as const).map((rule) => text(rulesFor, rule))} moreHref={kompasHref(`play.${rulesFor.id}`)} onClose={() => setRulesFor(null)} />}
