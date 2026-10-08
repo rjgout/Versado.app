@@ -149,7 +149,7 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
 
   return <Context.Provider value={value}>
     {children}
-    {success !== null && <div role="status" className="fixed inset-x-4 top-[calc(var(--header-height,4.5rem)+1rem)] z-50 mx-auto flex max-w-lg items-center gap-3 rounded-2xl border border-vs-line bg-vs-surface p-4 text-vs-fg shadow-lg">
+    {success !== null && <div role="status" className="fixed inset-x-4 top-[calc(var(--header-offset,var(--header-default))+1rem)] z-50 mx-auto flex max-w-lg items-center gap-3 rounded-2xl border border-vs-line bg-vs-surface p-4 text-vs-fg shadow-lg">
       <p className="flex-1 text-sm font-semibold">{t("streakReturn.success", { n: success })}</p>
       <button type="button" onClick={() => setSuccess(null)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-vs-subtle" aria-label={t("common.close")}><X className="h-5 w-5" /></button>
     </div>}

@@ -67,7 +67,7 @@ export default async function DashboardPage() {
           <TodaySection data={data} language={language} dayComplete={showRestState} />
         </div>
         <div
-          className={`min-w-0 lg:col-start-2 lg:row-start-1 lg:self-start lg:sticky lg:top-[calc(var(--header-height,4.5rem)+1.5rem)] ${ROW_SPANS[mainBlocks]}`}
+          className={`min-w-0 lg:col-start-2 lg:row-start-1 lg:self-start lg:sticky lg:top-[calc(var(--header-offset,var(--header-default))+1.5rem)] ${ROW_SPANS[mainBlocks]}`}
         >
           <SocialPreview social={data.social} together={data.together} language={language} />
         </div>

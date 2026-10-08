@@ -32,7 +32,7 @@
     "test:content-edition": "tsx --test tests/content-edition.test.ts tests/content-switch.test.ts tests/content-switch.integration.test.ts",
     "test:otb": "tsx --test tests/otb.test.ts",
     "test:mascots": "tsx --test tests/mascots.test.ts tests/divisions.test.ts",
-    "test:focus": "tsx --test tests/focus-mode.test.ts",
+    "test:focus": "tsx --test tests/focus-mode.test.ts tests/shell-layout.test.ts",
     "test:exercise-feedback": "tsx --test tests/exercise-feedback.test.ts",
     "test:snelle-zendeling": "tsx --test tests/snelle-zendeling.test.ts tests/snelle-zendeling-hitbox.test.ts tests/snelle-zendeling-difficulty.test.ts tests/snelle-zendeling-genees.test.ts tests/snelle-zendeling-genees.integration.test.ts tests/snelle-zendeling-match.test.ts tests/snelle-zendeling-match.integration.test.ts",
     "test:mystery": "tsx --test tests/mystery001a.test.ts tests/mystery002.test.ts tests/mystery003-006.test.ts tests/mystery-character-closing.test.ts tests/mystery-mobile-layout.test.ts tests/focus-mode.test.ts",

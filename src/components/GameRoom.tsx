@@ -338,7 +338,7 @@ export default function GameRoom({ code, myUserId }: { code: string; myUserId: s
     const resultState = players[0]?.userId === myUserId && forfeitedBy !== myUserId ? "celebrate" : "encourage";
     return (
       <div className="max-w-xl mx-auto flex flex-col gap-6 items-center">
-        <div className="aspect-square w-[clamp(6.875rem,30vw,8.125rem)] shrink-0 sm:w-36">
+        <div className="aspect-square w-[clamp(110px,30vw,8.125rem)] shrink-0 sm:w-36">
           <PersonalMascot state={resultState} size={144} fill />
         </div>
         <h1 className="text-3xl font-extrabold text-brand-800 dark:text-brand-300">{t("lobby.gameOver")}</h1>

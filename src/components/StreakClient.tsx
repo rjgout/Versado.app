@@ -172,7 +172,7 @@ export default function StreakClient() {
         </div>
 
         <div>
-          <div className="grid grid-cols-7 text-center text-xs font-bold text-slate-400 dark:text-slate-500 mb-2">
+          <div className="grid grid-cols-[repeat(7,minmax(0,1fr))] text-center text-xs font-bold text-slate-400 dark:text-slate-500 mb-2">
             {t("streakPage.weekdays").split(",").map((d) => (
               <div key={d}>{d}</div>
             ))}
@@ -181,7 +181,7 @@ export default function StreakClient() {
             {weeks.map((w, i) => (
               <div key={i} className="flex h-10">
                 {w.map((d, j) => {
-                  if (!d) return <div key={j} className="flex-1" />;
+                  if (!d) return <div key={j} className="min-w-0 flex-1" />;
 
                   const active = isActive(d);
                   const prevActive = j > 0 ? isActive(w[j - 1]) : false;
@@ -191,7 +191,7 @@ export default function StreakClient() {
 
                   if (active) {
                     return (
-                      <div key={j} className="flex-1 relative" aria-label={label} title={label}>
+                      <div key={j} className="min-w-0 flex-1 relative" aria-label={label} title={label}>
                         <div
                           className={`absolute inset-y-0.5 flex items-center justify-center bg-gradient-to-b from-orange-400 to-red-500 text-white font-extrabold text-sm ${
                             prevActive ? "left-0" : "left-1 rounded-l-full"
@@ -208,7 +208,7 @@ export default function StreakClient() {
                   }
 
                   return (
-                    <div key={j} className="flex-1 flex items-center justify-center" aria-label={label} title={label}>
+                    <div key={j} className="min-w-0 flex-1 flex items-center justify-center" aria-label={label} title={label}>
                       <div
                         className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold ${
                           isToday

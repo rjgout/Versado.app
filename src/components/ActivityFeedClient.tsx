@@ -122,7 +122,7 @@ export default function ActivityFeedClient() {
 
       {items.length === 0 ? (
         <div className="card flex flex-col items-center gap-2 text-center text-slate-500 dark:text-slate-400">
-          <div className="aspect-square w-[clamp(6rem,28vw,7.5rem)] shrink-0 sm:w-32">
+          <div className="aspect-square w-[clamp(96px,28vw,7.5rem)] shrink-0 sm:w-32">
             <PersonalMascot state="idle" size={128} fill />
           </div>
           <p>{t("activityFeed.empty")}</p>

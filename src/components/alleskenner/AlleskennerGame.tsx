@@ -945,7 +945,7 @@ function Feedback({ state }: { state: AkStateView }) {
   const mine = visible.contestantId !== null && visible.contestantId === state.me.contestantId;
   return (
     <div
-      className={`fixed left-1/2 -translate-x-1/2 top-[calc(var(--header-height,4.5rem)+0.75rem)] z-40 w-max max-w-[90vw] text-center rounded-2xl px-5 py-2.5 font-extrabold shadow-lg animate-pop pointer-events-none ${
+      className={`fixed left-1/2 -translate-x-1/2 top-[calc(var(--header-offset,var(--header-default))+0.75rem)] z-40 w-max max-w-[90vw] text-center rounded-2xl px-5 py-2.5 font-extrabold shadow-lg animate-pop pointer-events-none ${
         visible.kind === "good" ? "bg-green-600 text-white" : visible.kind === "bad" ? "bg-red-500 text-white" : "bg-slate-800 text-white"
       }`}
     >

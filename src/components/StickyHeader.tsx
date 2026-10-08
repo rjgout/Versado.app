@@ -1,34 +1,16 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-
 /**
- * `position: sticky` heeft op iOS Safari een bekende weergavefout: zodra
- * Safari's eigen adresbalk bij het naar beneden scrollen inklapt, verdwijnt
- * de sticky header mee en komt hij pas terug zodra je weer omhoog scrolt en
- * de adresbalk (en daarmee het echte viewport) weer verschijnt — een fout in
- * Safari's eigen sticky-herberekening bij die overgang, niet iets wat met
- * CSS op de sticky-eigenschap zelf te fixen is. `position: fixed` heeft die
- * fout niet, maar valt daardoor wel uit de normale documentflow — de hoogte
- * (die meebeweegt met de mini-player, zie PodcastMiniPlayer.tsx) wordt hier
- * gemeten en als CSS-variabele doorgegeven, zodat <main> in layout.tsx altijd
- * evenveel ruimte vrijhoudt als de header daadwerkelijk inneemt.
+ * De vaste bovenbalk van de shell: header, terugbalk en spelers samen in één
+ * wrapper. Bewust `position: fixed` en geen `sticky`: sticky heeft op iOS
+ * Safari een bekende weergavefout zodra de adresbalk inklapt (de balk
+ * verdwijnt dan mee tot je weer omhoog scrolt), en fixed valt niet buiten een
+ * te kort omvattend blok (body). De hoogte meet ShellMetrics en zet hij als
+ * --header-height; <main> houdt daarmee precies evenveel ruimte vrij als de
+ * balk inneemt. Bij zeer grote tekst (html[data-header-tall]) scrolt de balk
+ * mee, zie globals.css. Alle schermen, ook focus mode, gebruiken dit ene model.
  */
 export default function StickyHeader({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const setHeight = () => document.documentElement.style.setProperty("--header-height", `${el.offsetHeight}px`);
-    setHeight();
-    const observer = new ResizeObserver(setHeight);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <div ref={ref} data-sticky-header className="fixed top-0 inset-x-0 z-20">
+    <div data-sticky-header className="fixed top-0 inset-x-0 z-20">
       {children}
     </div>
   );

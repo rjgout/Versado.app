@@ -88,6 +88,27 @@ ook Genees als voorraad (prijs uitsluitend via `geneesPriceXp`,
 seed + servertijd, uitslag alleen server-side in `match.ts`/`runs.ts` met
 vergrendelingsvolgorde wedstrijd → run → gebruiker).
 
+## ⚠️ Harde regel: shell-layout, safe areas en tekstschaling
+
+Zie `docs/LAYOUT.md`. Er is één shell: een `fixed` bovenbalk
+(`[data-sticky-header]`, ook de terugbalk in focus mode), een `fixed` onderbalk
+(`[data-main-nav]`, onder `lg`) en `<main>` met gemeten ruimte. Nieuwe pagina's en
+componenten:
+
+- begin in `<main>`; geen eigen padding voor de header en geen eigen fixed/sticky
+  model. Plakt iets aan de bovenbalk, gebruik `--header-offset`; houd je ruimte
+  vrij, gebruik `--header-height`/`--nav-height`. Alleen `ShellMetrics.tsx` meet
+  en zet die variabelen.
+- rekenen met `--vs-safe-area-*`, nooit rechtstreeks met `env()`;
+- werken bij grotere tekst: rem-maten, `min-h-*` in plaats van `h-*` voor alles
+  met tekst, geen vaste breedtes, geen `text-[…px]` voor leesbare tekst, decoratieve
+  mascottes met een px-minimum, nooit zoom of tekstgrootte beperken;
+- geen horizontale overflow: een vaste balk die breder wordt dan het scherm laat
+  mobiele browsers uitzoomen en de onderbalk uit beeld vallen;
+- focus mode/immersive via `focusMode.ts`, niet met eigen hide-klassen;
+- getest worden op 320 px breed, 200% tekst en een lange vertaling
+  (`scripts/layout-audit`, `npm run test:focus`).
+
 ## Platformfundering: web/PWA, iOS en Android
 
 Versado blijft één product en één gedeelde codebase. De definitieve native
@@ -177,6 +198,8 @@ Controleer bij twijfel: `grep -rn "next/headers" src/lib src/server server.ts`
   `notify.ts`, `email.ts`, `auth.ts`, `session.ts`, `baseUrl.ts`, `dates.ts`, ...)
 - `src/components/**` — client components (`"use client"`), meestal één
   `<Feature>Client.tsx` per pagina die de eigen data fetcht
+- Shell-layout (vaste balken, safe areas, tekstschaling, toetsenbord): `docs/LAYOUT.md`,
+  `components/shell/ShellMetrics.tsx`, `lib/shellMetrics.ts`.
 - Terug en scrollen zijn centraal geregeld: de kop van een detailpagina
   ("← Titel") komt uit `SubpageBackBar.tsx`, de pijl werkt als browser-terug
   (`useBackNavigation`, `src/lib/navigationHistory.ts`), en

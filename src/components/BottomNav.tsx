@@ -23,7 +23,7 @@ export default function BottomNav() {
       data-main-nav
       aria-label={t("nav.main")}
     >
-      <div className="mx-auto grid w-full max-w-xl grid-cols-4 px-2 pt-1.5 pb-[calc(0.375rem+var(--vs-safe-area-bottom))]">
+      <div className="mx-auto grid w-full max-w-xl grid-cols-4 gap-x-1 px-2 pt-1.5 pb-[calc(0.375rem+var(--vs-safe-area-bottom))]">
         {PRIMARY_NAV.map((item) => {
           const isActive = item.id === active;
           return (
@@ -31,12 +31,12 @@ export default function BottomNav() {
               key={item.id}
               href={item.href}
               aria-current={isActive ? "page" : undefined}
-              className={`group flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-bold tracking-wide transition-colors ${
+              className={`group flex min-h-[3.25rem] min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-0.5 text-center text-[0.6875rem] font-bold leading-tight tracking-wide transition-colors vs-wrap ${
                 isActive ? "text-vs-accent" : "text-vs-fg-3 hover:text-vs-fg-2"
               }`}
             >
               <span
-                className={`flex h-8 w-14 items-center justify-center rounded-full transition-colors duration-200 ${
+                className={`flex h-8 w-14 max-w-full items-center justify-center rounded-full transition-colors duration-200 ${
                   isActive ? "bg-vs-accent-soft" : "group-active:bg-vs-subtle"
                 }`}
               >

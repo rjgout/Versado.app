@@ -158,7 +158,7 @@ export default function ShopClient() {
       </div>
 
       <div className="card flex flex-col gap-3">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="font-extrabold text-lg dark:text-slate-100">{t("shop.hintTitle")}</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -171,7 +171,7 @@ export default function ShopClient() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <label className="flex items-center gap-2 text-sm dark:text-slate-200">
+          <label className="flex max-w-full flex-wrap items-center gap-2 text-sm dark:text-slate-200">
             {t("shop.quantity")}
             <AppSelect
               className="input !w-20 text-center"
@@ -198,7 +198,7 @@ export default function ShopClient() {
       </div>
 
       <div className="card flex flex-col gap-3">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="flex items-center gap-2 font-extrabold text-lg dark:text-slate-100">
               <SystemIcon kind="freeze" className="h-6 w-6" />
@@ -214,7 +214,7 @@ export default function ShopClient() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <label className="flex items-center gap-2 text-sm dark:text-slate-200">
+          <label className="flex max-w-full flex-wrap items-center gap-2 text-sm dark:text-slate-200">
             {t("shop.quantity")}
             <AppSelect
               className="input !w-20 text-center"
@@ -245,7 +245,7 @@ export default function ShopClient() {
       </div>
 
       <div className="card flex flex-col gap-3" data-shop-genees>
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="font-extrabold text-lg dark:text-slate-100">{t("shop.geneesTitle")}</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">{t("shop.geneesText")}</p>
