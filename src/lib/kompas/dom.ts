@@ -52,7 +52,9 @@ function safeAreaBottom(): number {
 export function measureInsets(): Insets {
   const header = document.querySelector<HTMLElement>("[data-sticky-header]");
   const nav = document.querySelector<HTMLElement>("[data-main-nav]");
-  const top = header ? header.getBoundingClientRect().bottom : 0;
+  // Een bovenbalk die met de pagina meescrolt (bij zeer grote tekst, html[data-header-tall]) neemt geen vaste ruimte in.
+  const headerFixed = header ? getComputedStyle(header).position === "fixed" : false;
+  const top = header && headerFixed ? header.getBoundingClientRect().bottom : 0;
   const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
   const navVisible = nav && isVisible(nav);
   const bottom = navVisible ? Math.max(viewportHeight - nav.getBoundingClientRect().top, 0) : safeAreaBottom();

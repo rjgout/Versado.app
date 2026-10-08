@@ -276,12 +276,12 @@ export default function TourOverlay({ tour, onEnd, onStarted }: { tour: KompasTo
               )}
               <div className="flex items-center gap-2">
                 {index > 0 && (
-                  <button type="button" onClick={() => go(-1)} className={`${secondaryButton} !h-11`}>
+                  <button type="button" onClick={() => go(-1)} className={`${secondaryButton} !min-h-11`}>
                     <ChevronLeft className="h-4 w-4" aria-hidden />
                     {t("kompas.tour.back")}
                   </button>
                 )}
-                <button type="button" onClick={() => go(1)} className={`${primaryButton} !h-11`}>
+                <button type="button" onClick={() => go(1)} className={`${primaryButton} !min-h-11`}>
                   {isLast ? t("kompas.tour.done") : t("kompas.tour.next")}
                   {!isLast && <ChevronRight className="h-4 w-4" aria-hidden />}
                 </button>

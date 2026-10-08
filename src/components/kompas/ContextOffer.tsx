@@ -122,7 +122,7 @@ export default function ContextOffer({ work }: { work: string | null }) {
       role="region"
       aria-label={t("kompas.offer.region")}
       aria-live="polite"
-      className="vs-motion pointer-events-none fixed inset-x-0 bottom-[calc(4.75rem+var(--vs-safe-area-bottom))] z-30 px-4 lg:bottom-6"
+      className="vs-motion pointer-events-none fixed inset-x-0 bottom-[calc(var(--nav-height,4.5rem)+0.75rem)] z-30 px-4 lg:bottom-6"
     >
       <div className="vs-rise pointer-events-auto mx-auto flex w-full max-w-md flex-col gap-3 rounded-2xl border border-vs-line bg-vs-elevated p-4 shadow-[0_12px_40px_-12px_rgb(var(--vs-shadow)/0.45)]">
         <div className="flex items-start gap-3">
@@ -141,7 +141,7 @@ export default function ContextOffer({ work }: { work: string | null }) {
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            className={`${primaryButton} !h-11`}
+            className={`${primaryButton} !min-h-11`}
             onClick={() => {
               const current = shown;
               setShown(null);
@@ -150,7 +150,7 @@ export default function ContextOffer({ work }: { work: string | null }) {
           >
             {t("kompas.offer.show")}
           </button>
-          <button type="button" className={`${secondaryButton} !h-11`} onClick={() => dismiss(false)}>
+          <button type="button" className={`${secondaryButton} !min-h-11`} onClick={() => dismiss(false)}>
             {t("kompas.offer.dismiss")}
           </button>
           <button type="button" className={`min-h-11 rounded-full px-3 text-sm font-bold text-vs-fg-2 underline-offset-2 hover:underline ${focusRing}`} onClick={() => dismiss(true)}>

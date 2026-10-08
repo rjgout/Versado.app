@@ -31,8 +31,8 @@ export default function OffersOptIn() {
         <>
           <p className="text-base text-vs-fg-2">{t("kompas.hub.offersText")}</p>
           <div className="flex flex-wrap gap-2">
-            <button type="button" className={`${primaryButton} !h-11 !px-5`} onClick={yes}>{t("kompas.hub.offersYes")}</button>
-            <button type="button" className={`${secondaryButton} !h-11 !px-5`} onClick={() => setAnswer("no")}>{t("kompas.hub.offersNo")}</button>
+            <button type="button" className={`${primaryButton} !min-h-11 !px-5`} onClick={yes}>{t("kompas.hub.offersYes")}</button>
+            <button type="button" className={`${secondaryButton} !min-h-11 !px-5`} onClick={() => setAnswer("no")}>{t("kompas.hub.offersNo")}</button>
           </div>
         </>
       )}

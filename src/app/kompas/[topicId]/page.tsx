@@ -94,7 +94,7 @@ export default async function KompasTopicPage({ params }: { params: Promise<{ to
           <h2 id="kompas-try" className={sectionTitle}>{t("kompas.topic.try")}</h2>
           <div className="flex flex-wrap items-center gap-3">
             {topic.href && (
-              <Link href={topic.href} className={`${primaryButton} !h-11 !px-5`}>
+              <Link href={topic.href} className={`${primaryButton} !min-h-11 !px-5`}>
                 {t("kompas.topic.open", { name: title })}
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>

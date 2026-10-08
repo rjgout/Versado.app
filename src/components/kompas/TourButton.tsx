@@ -19,7 +19,7 @@ export default function TourButton({ tourId, topicId, done = false, variant = "s
   const state = useLiveQuery<{ rows: KompasRow[] }>(["kompas", "state"], () => fetchJson<{ rows: KompasRow[] }>("/api/kompas/state"), { scopes: ["kompas"], staleTime: 60_000 });
   const finished = state.data ? state.data.rows.some((row) => row.topicId === topicId && row.kind === "TOUR" && row.status === "COMPLETED") : done;
   return (
-    <button type="button" onClick={() => startTour(tourId)} className={`${variant === "primary" ? primaryButton : secondaryButton} !h-11 !px-5`}>
+    <button type="button" onClick={() => startTour(tourId)} className={`${variant === "primary" ? primaryButton : secondaryButton} !min-h-11 !px-5`}>
       <KompasIcon className="h-4 w-4" />
       {finished ? t("kompas.topic.tourAgain") : t("kompas.topic.tourStart")}
     </button>
