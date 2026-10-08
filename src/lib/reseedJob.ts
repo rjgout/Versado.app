@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@/generated/prisma/client";
 import { runSeed } from "@/lib/seed";
+import type { OtbImportProgress } from "../../scripts/otb/import-core";
 
 export type ReseedJobStatus = "idle" | "running" | "done" | "error";
 
@@ -9,6 +10,7 @@ export interface ReseedJobState {
   error: string | null;
   startedAt: string | null;
   finishedAt: string | null;
+  progress: OtbImportProgress | null;
 }
 
 // Eén in-memory jobstatus voor het hele proces — geen losse queue-infra
@@ -24,7 +26,7 @@ export interface ReseedJobState {
 // POST de job en antwoordt meteen; de adminpagina pollt de status hieronder
 // totdat de job niet meer "running" is, ongeacht of daartussen genavigeerd
 // wordt (de voortgang leeft op de server, niet in React-state).
-let job: ReseedJobState = { status: "idle", logs: [], error: null, startedAt: null, finishedAt: null };
+let job: ReseedJobState = { status: "idle", logs: [], error: null, startedAt: null, finishedAt: null, progress: null };
 
 export function getReseedJob(): ReseedJobState {
   return job;
@@ -34,11 +36,13 @@ export function getReseedJob(): ReseedJobState {
 export function startReseedJob(prisma: PrismaClient): { started: boolean; job: ReseedJobState } {
   if (job.status === "running") return { started: false, job };
 
-  job = { status: "running", logs: [], error: null, startedAt: new Date().toISOString(), finishedAt: null };
+  job = { status: "running", logs: [], error: null, startedAt: new Date().toISOString(), finishedAt: null, progress: null };
   const current = job; // stabiele referentie voor de duur van deze run
 
   runSeed(prisma, (msg) => {
     current.logs.push(msg);
+  }, (progress) => {
+    current.progress = progress;
   })
     .then(() => {
       current.status = "done";

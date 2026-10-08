@@ -188,8 +188,8 @@ export const nl = {
     },
   },
   terms: {
-    chapter: { singular: "hoofdstuk", plural: "hoofdstukken", thisOne: "dit hoofdstuk", next: "Volgend hoofdstuk →" },
-    section: { singular: "afdeling", plural: "afdelingen", thisOne: "deze afdeling", next: "Volgende afdeling →" },
+    chapter: { singular: "hoofdstuk", plural: "hoofdstukken", thisOne: "dit hoofdstuk", previous: "Vorig hoofdstuk", next: "Volgend hoofdstuk →" },
+    section: { singular: "afdeling", plural: "afdelingen", thisOne: "deze afdeling", previous: "Vorige afdeling", next: "Volgende afdeling →" },
   },
   // Alleen gebruikt voor andere talen dan Nederlands (zie src/lib/courseText.ts):
   // in het Nederlands tonen we de namen uit de database.

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { OTB_BOOK_KEY_BY_NUMBER, OTB_BOOKS, OTB_LOCALES, type OtbLocale } from "../scripts/otb/bookMapping";
 import { normalizeOtbText } from "../scripts/otb/normalize";
-import { OTB_TRIAL_BOOK_NUMBERS, OTB_TRIAL_COLLECTIONS, otbWorkForBookNumber } from "../scripts/otb/trialConfig";
+import { OTB_BOOK_NUMBERS, OTB_COLLECTIONS, otbWorkForBookNumber } from "../scripts/otb/trialConfig";
 import { otbCollectionName } from "../scripts/otb/collectionNames";
 import { sameCanonicalLocation } from "../scripts/otb/canonical";
 import { contentAbbreviation } from "../src/lib/contentMetadata";
@@ -33,15 +33,15 @@ test("OTB text-arraynormalisatie bewaart prose en meerdere regels", () => {
   assert.equal(normalizeOtbText(["Eerste", "Tweede", "Derde"]), "Eerste\nTweede\nDerde");
 });
 
-test("OTB gebruikt de vijf gevraagde locales en alleen de drie proefhoofdstukken", () => {
+test("OTB gebruikt de vijf gevraagde locales en de volledige boekset", () => {
   assert.deepEqual(OTB_LOCALES, ["nl-NL", "en-GB", "es-ES", "fr-FR", "de-DE"]);
-  assert.deepEqual(OTB_TRIAL_BOOK_NUMBERS, [1, 19, 43]);
-  assert.equal(OTB_TRIAL_COLLECTIONS.length, 10);
-  assert.ok(OTB_TRIAL_COLLECTIONS.every((collection) => collection.language && collection.editionKey === "otb" && collection.visibleToUsers === false));
-  assert.equal(OTB_TRIAL_COLLECTIONS.filter((collection) => collection.work === "old-testament").length, 5);
-  assert.equal(OTB_TRIAL_COLLECTIONS.filter((collection) => collection.work === "new-testament").length, 5);
-  assert.ok(OTB_TRIAL_COLLECTIONS.every((collection) => String(collection.work) !== "bible"));
-  assert.ok(OTB_TRIAL_COLLECTIONS.every((collection) => collection.id.startsWith("content_old_testament_otb_") || collection.id.startsWith("content_new_testament_otb_")));
+  assert.deepEqual(OTB_BOOK_NUMBERS, Array.from({ length: 66 }, (_, index) => index + 1));
+  assert.equal(OTB_COLLECTIONS.length, 10);
+  assert.ok(OTB_COLLECTIONS.every((collection) => collection.language && collection.editionKey === "otb" && collection.visibleToUsers === false));
+  assert.equal(OTB_COLLECTIONS.filter((collection) => collection.work === "old-testament").length, 5);
+  assert.equal(OTB_COLLECTIONS.filter((collection) => collection.work === "new-testament").length, 5);
+  assert.ok(OTB_COLLECTIONS.every((collection) => String(collection.work) !== "bible"));
+  assert.ok(OTB_COLLECTIONS.every((collection) => collection.id.startsWith("content_old_testament_otb_") || collection.id.startsWith("content_new_testament_otb_")));
 });
 
 test("OTB gebruikt vertaalde testamentnamen en generieke contentmetadata", () => {

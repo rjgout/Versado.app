@@ -12,6 +12,7 @@ interface ReseedJobState {
   error: string | null;
   startedAt: string | null;
   finishedAt: string | null;
+  progress: { current: number; total: number; label: string; language: string; work: string } | null;
 }
 
 const POLL_MS = 1500;
@@ -102,8 +103,11 @@ export default function ReseedClient() {
       </button>
 
       {running && (
-        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700" aria-hidden>
-          <div className="h-full w-1/3 rounded-full bg-brand-500 animate-indeterminate" />
+        <div className="flex flex-col gap-2">
+          {job.progress && <p className="text-sm text-slate-600 dark:text-slate-300">{job.progress.work === "old-testament" ? "Oude Testament" : "Nieuwe Testament"} — {job.progress.language} · {job.progress.current}/{job.progress.total} hoofdstukken · {job.progress.label}</p>}
+          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700" aria-label="Importvoortgang" role="progressbar" aria-valuemin={0} aria-valuemax={job.progress?.total ?? 0} aria-valuenow={job.progress?.current ?? 0}>
+            <div className="h-full rounded-full bg-brand-500 transition-all" style={{ width: `${job.progress ? Math.round((job.progress.current / job.progress.total) * 100) : 5}%` }} />
+          </div>
         </div>
       )}
 

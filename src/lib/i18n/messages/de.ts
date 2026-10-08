@@ -239,8 +239,8 @@ export const de: PartialMessages = {
     },
   },
   terms: {
-    chapter: { singular: "Kapitel", plural: "Kapitel", thisOne: "dieses Kapitel", next: "Nächstes Kapitel →" },
-    section: { singular: "Abschnitt", plural: "Abschnitte", thisOne: "diesen Abschnitt", next: "Nächster Abschnitt →" },
+    chapter: { singular: "Kapitel", plural: "Kapitel", thisOne: "dieses Kapitel", previous: "Vorheriges Kapitel", next: "Nächstes Kapitel →" },
+    section: { singular: "Abschnitt", plural: "Abschnitte", thisOne: "diesen Abschnitt", previous: "Vorheriger Abschnitt", next: "Nächster Abschnitt →" },
   },
   courseNames: {
     freeChoice: "Freie Wahl",

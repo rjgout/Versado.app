@@ -4,8 +4,7 @@ import type { ReactNode } from "react";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { ReaderView, type ReaderVerseView } from "@/components/LessonFlow";
-import { OTB_TRIAL_BOOK_NUMBERS, otbWorkForBookNumber, type OtbWork } from "../../../../scripts/otb/trialConfig";
-import { OTB_BOOK_KEY_BY_NUMBER } from "../../../../scripts/otb/bookMapping";
+import type { OtbWork } from "../../../../scripts/otb/trialConfig";
 
 const LANGUAGES = [
   { code: "nl", label: "Nederlands" },
@@ -43,7 +42,7 @@ export default async function ContentPreviewPage({
   const language = LANGUAGES.some((item) => item.code === query.language) ? query.language! : "nl";
   const collection = await prisma.contentCollection.findFirst({
     where: { work, editionKey: "otb", language, enabled: true },
-    select: { id: true, name: true, sourceName: true, sourceUrl: true, licenseName: true, licenseUrl: true },
+    select: { id: true, name: true },
   });
 
   if (!collection) {
@@ -55,8 +54,7 @@ export default async function ContentPreviewPage({
     orderBy: { order: "asc" },
     select: { id: true, key: true, name: true, order: true },
   });
-  const trialBooks = books.filter((book) => OTB_TRIAL_BOOK_NUMBERS.some((number) => OTB_BOOK_KEY_BY_NUMBER.get(number) === book.key && otbWorkForBookNumber(number) === work));
-  const selectedBook = trialBooks.find((book) => book.key === query.book) ?? trialBooks[0];
+  const selectedBook = books.find((book) => book.key === query.book) ?? books[0];
   const chapters = selectedBook
     ? await prisma.chapter.findMany({ where: { book: { contentCollectionId: collection.id, key: selectedBook.key } }, orderBy: { number: "asc" }, select: { number: true } })
     : [];
@@ -68,6 +66,16 @@ export default async function ContentPreviewPage({
         select: { id: true, number: true, verses: { orderBy: { number: "asc" }, select: { id: true, number: true, text: true } } },
       })
     : null;
+  const navigationChapters = await prisma.chapter.findMany({
+    where: { book: { contentCollectionId: collection.id } },
+    orderBy: [{ book: { order: "asc" } }, { number: "asc" }],
+    select: { number: true, book: { select: { key: true } } },
+  });
+  const navigationIndex = selectedBook && chapterNumber !== undefined
+    ? navigationChapters.findIndex((item) => item.book.key === selectedBook.key && item.number === chapterNumber)
+    : -1;
+  const previous = navigationIndex > 0 ? navigationChapters[navigationIndex - 1] : null;
+  const next = navigationIndex >= 0 ? navigationChapters[navigationIndex + 1] ?? null : null;
   const verses: ReaderVerseView[] = chapter?.verses.map((verse) => ({
     ...verse,
     bookmarked: false,
@@ -81,7 +89,7 @@ export default async function ContentPreviewPage({
         <div>
           <Link href="/adminbackend" className="text-sm font-bold text-vs-accent hover:underline">← Beheer</Link>
           <h1 className="mt-3 text-2xl font-extrabold text-brand-800 dark:text-brand-300">Schriftpreview</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Alleen-lezenweergave van verborgen OTB-proefcontent.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Alleen-lezenweergave van de verborgen volledige OTB-content.</p>
         </div>
 
         <form method="get" className="card grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -92,7 +100,7 @@ export default async function ContentPreviewPage({
             <select className="input" name="language" defaultValue={language}>{LANGUAGES.map((item) => <option key={item.code} value={item.code}>{item.label}</option>)}</select>
           </label>
           <label className="flex flex-col gap-1 text-sm font-bold">Boek
-            <select className="input" name="book" defaultValue={selectedBook && selectedBook.key ? selectedBook.key : undefined}>{trialBooks.map((book) => <option key={book.key ?? book.name} value={book.key ?? ""}>{book.name}</option>)}</select>
+            <select className="input" name="book" defaultValue={selectedBook?.key ?? ""}>{books.map((book) => <option key={book.key ?? book.name} value={book.key ?? ""}>{book.name}</option>)}</select>
           </label>
           <label className="flex flex-col gap-1 text-sm font-bold">Hoofdstuk
             <select className="input" name="chapter" defaultValue={chapterNumber ?? ""}>{chapters.map((item) => <option key={item.number} value={item.number}>{item.number}</option>)}</select>
@@ -102,11 +110,6 @@ export default async function ContentPreviewPage({
 
         {chapter && selectedBook ? (
           <section className="flex flex-col gap-3">
-            <div className="rounded-xl border border-vs-line bg-vs-subtle px-4 py-3 text-xs text-vs-fg-2">
-              <strong>{collection.sourceName}</strong> · {collection.licenseName}
-              {collection.sourceUrl && <> · <a className="underline" href={collection.sourceUrl} target="_blank" rel="noreferrer">bron</a></>}
-              {collection.licenseUrl && <> · <a className="underline" href={collection.licenseUrl} target="_blank" rel="noreferrer">licentie</a></>}
-            </div>
             <ReaderView
               chapterId={chapter.id}
               bookName={selectedBook.name}
@@ -115,8 +118,12 @@ export default async function ContentPreviewPage({
               language={language}
               preview
             />
+            <div className="flex items-center justify-between gap-3">
+              {previous ? <Link className="btn-secondary" href={`/adminbackend/content-preview?work=${work}&language=${language}&book=${previous.book.key}&chapter=${previous.number}`}>← Vorig hoofdstuk</Link> : <span />}
+              {next ? <Link className="btn-primary" href={`/adminbackend/content-preview?work=${work}&language=${language}&book=${next.book.key}&chapter=${next.number}`}>Volgend hoofdstuk →</Link> : <span />}
+            </div>
           </section>
-        ) : <p className="card text-sm text-slate-500 dark:text-slate-400">Deze proefcollectie of dit hoofdstuk is nog niet geïmporteerd.</p>}
+        ) : <p className="card text-sm text-slate-500 dark:text-slate-400">Deze verborgen collectie of dit hoofdstuk is nog niet geïmporteerd.</p>}
       </div>
     </PreviewShell>
   );

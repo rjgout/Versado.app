@@ -57,6 +57,7 @@ export default async function LessonPage({
   const notesByVerseId = Object.fromEntries(notes.map((n) => [n.verseId, n.text]));
 
   const currentIndex = allChapters.findIndex((c) => c.id === chapter.id);
+  const previousChapterId = currentIndex > 0 ? allChapters[currentIndex - 1]?.id ?? null : null;
   const nextChapterId = currentIndex >= 0 ? allChapters[currentIndex + 1]?.id ?? null : null;
 
   const [issued, content] = await Promise.all([
@@ -97,6 +98,7 @@ export default async function LessonPage({
       chapterId={chapter.id}
       bookName={chapter.book.name}
       chapterNumber={chapter.number}
+      previousChapterId={previousChapterId}
       nextChapterId={nextChapterId}
       verses={chapter.verses.map((v) => ({
         id: v.id,

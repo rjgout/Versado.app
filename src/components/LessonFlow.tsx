@@ -59,6 +59,7 @@ interface Props {
   chapterId: string;
   bookName: string;
   chapterNumber: number;
+  previousChapterId: string | null;
   nextChapterId: string | null;
   verses: VerseView[];
   audio?: ChapterAudio | null;
@@ -120,7 +121,7 @@ const FONT_SCALE_KEY = "bom-reader-font-scale";
 const MIN_SCALE = 0.85;
 const MAX_SCALE = 1.5;
 
-export default function LessonFlow({ chapterId, bookName, chapterNumber, nextChapterId, verses, audio, term = chapterTerm(null), exercises, sessionId, content, route, readingMinutes, stepsHref, challengeId, courseId, focusVerse, language, contentKey }: Props) {
+export default function LessonFlow({ chapterId, bookName, chapterNumber, previousChapterId, nextChapterId, verses, audio, term = chapterTerm(null), exercises, sessionId, content, route, readingMinutes, stepsHref, challengeId, courseId, focusVerse, language, contentKey }: Props) {
   const t = useT();
   const [phase, setPhase] = useState<Phase>("read");
   const [read, setRead] = useState<ReadState>(content.read);
@@ -235,6 +236,9 @@ export default function LessonFlow({ chapterId, bookName, chapterNumber, nextCha
         <div className="flex flex-col gap-3">
           {justMarkedRead && <p className="text-sm text-vs-fg-2">{t("progress.readingNoXp")}</p>}
           <div className="flex flex-wrap items-center gap-3">
+            {previousChapterId && <Link href={`/lesson/${previousChapterId}${courseId ? `?cursus=${courseId}` : ""}`} className="btn-secondary">
+              ← {t(`terms.${term.kind}.previous`)}
+            </Link>}
             {read !== "READ" && afterReading && hasExercises && (
               <button className="btn-primary" onClick={async () => { if (await markRead()) setPhase("exercises"); }}>
                 {t("progress.readAndPractice", { n: exercises.length })}

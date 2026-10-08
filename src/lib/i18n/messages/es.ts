@@ -243,12 +243,14 @@ export const es: PartialMessages = {
       "singular": "capítulo",
       "plural": "capítulos",
       "thisOne": "este capítulo",
+      "previous": "Capítulo anterior",
       "next": "Siguiente capítulo →"
     },
     "section": {
       "singular": "sección",
       "plural": "secciones",
       "thisOne": "esta sección",
+      "previous": "Sección anterior",
       "next": "Siguiente sección →"
     }
   },

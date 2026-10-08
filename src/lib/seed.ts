@@ -45,7 +45,7 @@ import { generatedAlleskennerItems } from "../../prisma/alleskennerGenerated";
 import { importAlleskennerItems, importAlleskennerTranslations } from "../../prisma/importAlleskenner";
 import { alleskennerTranslations } from "../../prisma/alleskennerTranslate";
 import { preparePinnedOtbSource } from "../../scripts/otb/source";
-import { importOtbTrial } from "../../scripts/otb/import-core";
+import { importOtbTrial, type OtbImportProgress } from "../../scripts/otb/import-core";
 import { importGeneesBank } from "../../prisma/importGenees";
 import { GENEES_BANKS } from "../../prisma/genees";
 
@@ -105,14 +105,18 @@ const audioByCollection: Partial<Record<string, ChapterAudioSeed[]>> = {
   [BOM_ES_COLLECTION_ID]: bomAudioEs as ChapterAudioSeed[],
 };
 
-export async function runSeed(client: PrismaClient, log: (msg: string) => void = console.log): Promise<void> {
+export async function runSeed(
+  client: PrismaClient,
+  log: (msg: string) => void = console.log,
+  progress?: (progress: OtbImportProgress) => void,
+): Promise<void> {
   log("Seeding boeken, hoofdstukken, verzen en oefeningen...");
   await importBooks(client, seedBooks, log);
   await importChapterAudio(client, bomAudio as ChapterAudioSeed[], BOM_COLLECTION_ID, log);
 
   log("Open Translation Bible voorbereiden...");
   const otbSource = await preparePinnedOtbSource(log);
-  await importOtbTrial(client, otbSource, log);
+  await importOtbTrial(client, otbSource, log, progress);
 
   // Leer en Verbonden en de Parel van Grote Waarde, en de Engelse uitgaven
   // van alle drie, elk in een eigen collectie. Alleen als die collectie

@@ -1,32 +1,79 @@
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { PrismaClient } from "../../src/generated/prisma/client";
-import { OTB_BOOK_KEY_BY_NUMBER, OTB_LOCALES, type OtbLocale } from "./bookMapping";
+import { OTB_BOOK_KEY_BY_NUMBER, OTB_LANGUAGE_BY_LOCALE, OTB_LOCALES, type OtbLocale } from "./bookMapping";
 import { parseOtbChapter, type ParsedOtbChapter } from "./chapterParser";
 import { assertPinnedSource, validateSource } from "./validate";
-import { OTB_TRIAL_BOOK_NUMBERS, OTB_TRIAL_COLLECTIONS, otbWorkForBookNumber } from "./trialConfig";
+import { OTB_BOOK_NUMBERS, OTB_COLLECTIONS, otbWorkForBookNumber, type OtbWork } from "./trialConfig";
 import { otbCollectionName } from "./collectionNames";
 
-async function readTrialChapter(sourceRoot: string, locale: OtbLocale, bookNumber: number, chapterNumber: number): Promise<ParsedOtbChapter> {
-  const localeRoot = join(sourceRoot, "lang", locale);
-  const directories = await readdir(localeRoot, { withFileTypes: true });
-  const directory = directories.find((entry) => entry.isDirectory() && entry.name.startsWith(`${String(bookNumber).padStart(2, "0")}.`));
-  if (!directory) throw new Error(`Geen OTB-boek ${bookNumber} voor ${locale}.`);
-  const jsonRoot = join(localeRoot, directory.name, "json");
-  const files = (await readdir(jsonRoot)).filter((file) => file.endsWith(".json"));
-  for (const file of files) {
-    const chapter = parseOtbChapter(JSON.parse(await readFile(join(jsonRoot, file), "utf8")), `${locale} boek ${bookNumber} hoofdstuk ${chapterNumber}`);
-    if (chapter.chapter === chapterNumber) {
-      if (chapter.issues.length > 0) {
-        throw new Error(`OTB-proefhoofdstuk bevat ongeldige data (${locale}, boek ${bookNumber}, hoofdstuk ${chapterNumber}): ${chapter.issues.map((item) => item.type).join(", ")}.`);
-      }
-      return chapter;
-    }
-  }
-  throw new Error(`Geen OTB-hoofdstuk ${bookNumber}:${chapterNumber} voor ${locale}.`);
+export interface OtbImportProgress {
+  current: number;
+  total: number;
+  label: string;
+  work: OtbWork;
+  language: string;
+  bookNumber: number;
+  bookCount: number;
+  chapterNumber: number;
+  chapterCount: number;
 }
 
-export async function importOtbTrial(client: PrismaClient, sourceRoot: string, log: (message: string) => void = console.log): Promise<void> {
+type ProgressCallback = (progress: OtbImportProgress) => void;
+
+/** Leest één locale één keer; writes blijven per hoofdstuk klein en hervatbaar. */
+async function readLocale(sourceRoot: string, locale: OtbLocale): Promise<Map<number, Map<number, ParsedOtbChapter>>> {
+  const localeRoot = join(sourceRoot, "lang", locale);
+  const result = new Map<number, Map<number, ParsedOtbChapter>>();
+  const directories = (await readdir(localeRoot, { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+
+  for (const bookNumber of OTB_BOOK_NUMBERS) {
+    const directory = directories.find((entry) => entry.startsWith(`${String(bookNumber).padStart(2, "0")}.`));
+    if (!directory) throw new Error(`Geen OTB-boek ${bookNumber} voor ${locale}.`);
+    const jsonRoot = join(localeRoot, directory, "json");
+    const files = (await readdir(jsonRoot, { withFileTypes: true }))
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
+      .map((entry) => entry.name)
+      .sort();
+    const chapters = new Map<number, ParsedOtbChapter>();
+    for (const file of files) {
+      const parsed = parseOtbChapter(JSON.parse(await readFile(join(jsonRoot, file), "utf8")), `${locale} boek ${bookNumber} (${file})`);
+      if (parsed.issues.length > 0) {
+        throw new Error(`OTB-hoofdstuk bevat ongeldige data (${locale}, boek ${bookNumber}, ${file}): ${parsed.issues.map((item) => item.type).join(", ")}.`);
+      }
+      if (chapters.has(parsed.chapter)) throw new Error(`Dubbel OTB-hoofdstuk (${locale}, boek ${bookNumber}, hoofdstuk ${parsed.chapter}).`);
+      chapters.set(parsed.chapter, parsed);
+    }
+    result.set(bookNumber, chapters);
+  }
+  return result;
+}
+
+async function upsertCollection(client: PrismaClient, collection: typeof OTB_COLLECTIONS[number], sourceUrl: string, license: string, licenseUrl: string): Promise<void> {
+  await client.contentCollection.upsert({
+    where: { id: collection.id },
+    update: {
+      slug: collection.slug, name: otbCollectionName(collection.work, collection.language), icon: "📖", order: collection.order,
+      enabled: true, visibleToUsers: false, work: collection.work, editionKey: collection.editionKey, language: collection.language,
+      sourceName: "Open Translation Bible", sourceUrl, licenseName: license, licenseUrl,
+    },
+    create: {
+      id: collection.id, slug: collection.slug, name: otbCollectionName(collection.work, collection.language), icon: "📖", order: collection.order,
+      enabled: true, visibleToUsers: false, work: collection.work, editionKey: collection.editionKey, language: collection.language,
+      sourceName: "Open Translation Bible", sourceUrl, licenseName: license, licenseUrl,
+    },
+  });
+}
+
+/** Importeert de volledige gepinde OTB-bron in hoofdstukbatches. */
+export async function importOtbFull(
+  client: PrismaClient,
+  sourceRoot: string,
+  log: (message: string) => void = console.log,
+  onProgress?: ProgressCallback,
+): Promise<void> {
   log("OTB-bronversie controleren...");
   await assertPinnedSource(sourceRoot);
   log("Bijbelstructuur valideren...");
@@ -40,57 +87,81 @@ export async function importOtbTrial(client: PrismaClient, sourceRoot: string, l
     license: string;
     licenseUrl: string;
   };
-  const chapters = new Map<string, ParsedOtbChapter>();
+  const totalChapters = validation.scans[0]?.chapterCount ?? 0;
+  const totalImportChapters = validation.scans.reduce((total, scan) => total + scan.chapterCount, 0);
+  let completedChapters = 0;
+
   for (const locale of OTB_LOCALES) {
-    for (const bookNumber of OTB_TRIAL_BOOK_NUMBERS) {
-      const chapter = await readTrialChapter(sourceRoot, locale, bookNumber, bookNumber === 19 ? 23 : 1);
-      chapters.set(`${locale}:${bookNumber}`, chapter);
-    }
-  }
+    const chaptersByBook = await readLocale(sourceRoot, locale);
+    const language = OTB_LANGUAGE_BY_LOCALE[locale];
+    for (const collection of OTB_COLLECTIONS.filter((item) => item.locale === locale)) {
+      const sourceUrl = `https://github.com/OpenTranslationBible/open-bible/tree/${lock.upstreamCommit}/lang/${collection.locale}`;
+      await upsertCollection(client, collection, sourceUrl, lock.license, lock.licenseUrl);
+      const bookNumbers = OTB_BOOK_NUMBERS.filter((number) => otbWorkForBookNumber(number) === collection.work);
+      log(`${collection.work === "old-testament" ? "Oude Testament" : "Nieuwe Testament"} — ${language}: ${bookNumbers.length} boeken laden...`);
 
-  await client.$transaction(async (tx) => {
-    for (const collection of OTB_TRIAL_COLLECTIONS) {
-    const sourceUrl = `https://github.com/OpenTranslationBible/open-bible/tree/${lock.upstreamCommit}/lang/${collection.locale}`;
-    log(`${collection.work === "old-testament" ? "Oude Testament" : "Nieuwe Testament"} (${collection.language}) importeren...`);
-    await tx.contentCollection.upsert({
-      where: { id: collection.id },
-      update: {
-        slug: collection.slug, name: otbCollectionName(collection.work, collection.language), icon: "📖", order: collection.order,
-        enabled: true, visibleToUsers: collection.visibleToUsers, work: collection.work, editionKey: collection.editionKey,
-        language: collection.language, sourceName: "Open Translation Bible", sourceUrl, licenseName: lock.license, licenseUrl: lock.licenseUrl,
-      },
-      create: {
-        id: collection.id, slug: collection.slug, name: otbCollectionName(collection.work, collection.language), icon: "📖", order: collection.order,
-        enabled: true, visibleToUsers: collection.visibleToUsers, work: collection.work, editionKey: collection.editionKey,
-        language: collection.language, sourceName: "Open Translation Bible", sourceUrl, licenseName: lock.license, licenseUrl: lock.licenseUrl,
-      },
-    });
+      for (const [bookIndex, bookNumber] of bookNumbers.entries()) {
+        const chapters = chaptersByBook.get(bookNumber);
+        if (!chapters) throw new Error(`Geen hoofdstukken voor OTB-boek ${bookNumber} (${locale}).`);
+        const bookKey = OTB_BOOK_KEY_BY_NUMBER.get(bookNumber)!;
+        const bookInfo = validation.scans.find((scan) => scan.locale === locale)?.books.get(bookKey);
+        const bookName = bookInfo?.name ?? chapters.values().next().value?.book ?? bookKey;
+        log(`${collection.work === "old-testament" ? "Oude Testament" : "Nieuwe Testament"} — ${language}: boek ${bookIndex + 1}/${bookNumbers.length}: ${bookName}`);
 
-    for (const bookNumber of OTB_TRIAL_BOOK_NUMBERS.filter((number) => otbWorkForBookNumber(number) === collection.work)) {
-      const chapter = chapters.get(`${collection.locale}:${bookNumber}`)!;
-      const bookKey = OTB_BOOK_KEY_BY_NUMBER.get(bookNumber)!;
-      const book = await tx.book.upsert({
-        where: { slug: `${collection.work}-otb-${collection.language}-${bookKey}` },
-        update: { name: chapter.book, order: bookNumber - 1, key: bookKey, contentCollectionId: collection.id },
-        create: { slug: `${collection.work}-otb-${collection.language}-${bookKey}`, name: chapter.book, order: bookNumber - 1, contentCollectionId: collection.id, key: bookKey },
-      });
-      const chapterRow = await tx.chapter.upsert({
-        where: { bookId_number: { bookId: book.id, number: chapter.chapter } },
-        update: { order: chapter.chapter - 1 },
-        create: { bookId: book.id, number: chapter.chapter, order: chapter.chapter - 1 },
-      });
-      for (const [verseNumber, text] of chapter.verses) {
-        if (!Number.isInteger(verseNumber) || verseNumber <= 0) {
-          throw new Error(`OTB-proefimport bevat een ongeldig versnummer (${collection.locale}, ${bookKey}, hoofdstuk ${chapter.chapter}).`);
+        for (const chapterNumber of [...chapters.keys()].sort((a, b) => a - b)) {
+          const chapter = chapters.get(chapterNumber)!;
+          completedChapters += 1;
+          onProgress?.({
+            current: completedChapters,
+            total: totalImportChapters,
+            label: `${bookName} ${chapterNumber}`,
+            work: collection.work,
+            language,
+            bookNumber,
+            bookCount: bookNumbers.length,
+            chapterNumber,
+            chapterCount: chapters.size,
+          });
+
+          // Elke hoofdstukbatch is atomair; eerdere batches blijven staan en
+          // een volgende reload kan ontbrekende batches veilig aanvullen.
+          await client.$transaction(async (tx) => {
+            const book = await tx.book.upsert({
+              where: { slug: `${collection.work}-otb-${collection.language}-${bookKey}` },
+              update: { name: bookName, order: bookNumber - 1, key: bookKey, contentCollectionId: collection.id },
+              create: { slug: `${collection.work}-otb-${collection.language}-${bookKey}`, name: bookName, order: bookNumber - 1, contentCollectionId: collection.id, key: bookKey },
+            });
+            const chapterRow = await tx.chapter.upsert({
+              where: { bookId_number: { bookId: book.id, number: chapter.chapter } },
+              update: { order: chapter.chapter - 1 },
+              create: { bookId: book.id, number: chapter.chapter, order: chapter.chapter - 1 },
+            });
+            const existingVerses = await tx.verse.findMany({ where: { chapterId: chapterRow.id }, select: { id: true, number: true, text: true } });
+            const existingByNumber = new Map(existingVerses.map((verse) => [verse.number, verse]));
+            const missingVerses: { chapterId: string; number: number; text: string }[] = [];
+            for (const [verseNumber, text] of chapter.verses) {
+              if (!Number.isInteger(verseNumber) || verseNumber <= 0 || !text) {
+                throw new Error(`Ongeldig OTB-vers vóór databasewrite (${locale}, ${bookKey}, ${chapter.chapter}:${verseNumber}).`);
+              }
+              const existing = existingByNumber.get(verseNumber);
+              if (existing) {
+                if (existing.text !== text) await tx.verse.update({ where: { id: existing.id }, data: { text } });
+              } else {
+                missingVerses.push({ chapterId: chapterRow.id, number: verseNumber, text });
+              }
+            }
+            // Eén batchinsert per hoofdstuk voorkomt honderdduizenden losse
+            // writes bij de eerste volledige import. Bestaande records worden
+            // hierboven gericht bijgewerkt, zodat hun IDs en audiovelden intact
+            // blijven.
+            if (missingVerses.length > 0) await tx.verse.createMany({ data: missingVerses });
+          });
         }
-        await tx.verse.upsert({
-          where: { chapterId_number: { chapterId: chapterRow.id, number: verseNumber } },
-          update: { text, audioStart: null },
-          create: { chapterId: chapterRow.id, number: verseNumber, text },
-        });
       }
     }
-    }
-  });
-  log("OTB-content bijgewerkt.");
+  }
+  log(`OTB-content bijgewerkt: ${totalChapters * OTB_LOCALES.length} hoofdstukken verwerkt.`);
 }
+
+// De CLI-naam blijft bestaan voor de bestaande workflow; de inhoud is nu volledig.
+export const importOtbTrial = importOtbFull;
