@@ -89,6 +89,11 @@ test("de gebruikerslijst scrolt binnen een eigen vak en is doorzoekbaar", () => 
   assert.match(table, /overflow-x-auto/);
   assert.match(table, /tabIndex=\{0\}/);
   assert.match(table, /role="region"/);
+  // Eén regel per gebruiker: cellen en knoppen breken nooit af, de naam blijft links staan tijdens het schuiven.
+  assert.match(users, /w-max min-w-full/);
+  assert.match(users, /\[&_td\]:whitespace-nowrap/);
+  assert.match(users, /\[&_button\]:whitespace-nowrap/);
+  assert.equal(users.split("sticky left-0 z-[1]").length - 1, 2, "kop en naamcel van de eerste kolom blijven staan");
 });
 
 test("elke beheergroep heeft een terugbalk naar de hoofdpagina en de hoofdpagina naar het profiel", () => {

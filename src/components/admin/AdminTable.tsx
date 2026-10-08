@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
  */
 export default function AdminTable({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div role="region" aria-label={label} tabIndex={0} className="-mx-4 max-w-[calc(100%+2rem)] overflow-x-auto px-4 outline-none focus-visible:ring-2 focus-visible:ring-vs-accent">
+    <div role="region" aria-label={label} tabIndex={0} className="max-w-full overflow-x-auto rounded-xl border border-vs-line outline-none focus-visible:ring-2 focus-visible:ring-vs-accent">
       {children}
     </div>
   );

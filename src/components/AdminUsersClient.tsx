@@ -111,24 +111,26 @@ export default function AdminUsersClient({
       <SearchField value={query} onChange={setQuery} placeholder={t("adminUsers.search")} label={t("adminUsers.search")} clearLabel={t("dictionary.clear")} />
       {visibleUsers.length === 0 && <AdminNotice kind="info">{t("adminUsers.noMatches")}</AdminNotice>}
       <AdminTable label={t("adminUsers.tableLabel")}>
-      <table className="w-full min-w-[44rem] text-sm">
+      {/* Eén regel per gebruiker: niets breekt af, de tabel is zo breed als zijn inhoud en
+          schuift zijwaarts binnen het vak. De naam blijft links staan tijdens het schuiven. */}
+      <table className="w-max min-w-full text-sm [&_button]:whitespace-nowrap [&_td]:whitespace-nowrap [&_th]:whitespace-nowrap">
         <thead>
           <tr className="text-left text-xs font-bold uppercase text-vs-fg-3 border-b border-vs-line">
-            <th className="py-2 pr-3">{t("adminUsers.username")}</th>
+            <th className="sticky left-0 z-[1] bg-vs-surface shadow-[4px_0_6px_-4px_rgb(var(--vs-shadow)/0.18)] py-2 pl-3 pr-3">{t("adminUsers.username")}</th>
             <th className="py-2 pr-3">{t("adminUsers.email")}</th>
             <th className="py-2 pr-3">{t("adminUsers.status")}</th>
             <th className="py-2 pr-3">XP</th>
             <th className="py-2 pr-3">{t("adminUsers.streak")}</th>
             <th className="py-2 pr-3">{t("adminUsers.freezes")}</th>
             <th className="py-2 pr-3">{t("adminUsers.admin")}</th>
-            <th className="py-2" colSpan={3} />
+            <th className="py-2 pr-3" colSpan={3} />
           </tr>
         </thead>
         <tbody>
           {visibleUsers.map((u) => (
             <Fragment key={u.id}>
               <tr className="border-b border-vs-line">
-                <td className="py-2 pr-3 font-bold text-vs-fg">
+                <td className="sticky left-0 z-[1] bg-vs-surface shadow-[4px_0_6px_-4px_rgb(var(--vs-shadow)/0.18)] py-2 pl-3 pr-3 font-bold text-vs-fg">
                   <UserTag handle={u.handle} discriminator={u.discriminator} />
                   {u.id === currentUserId && <span className="text-vs-accent font-normal">{t("adminUsers.you")}</span>}
                 </td>
@@ -175,7 +177,7 @@ export default function AdminUsersClient({
                     {busyId === u.id ? t("adminCommon.busy") : t("adminUsers.resetPassword")}
                   </button>
                 </td>
-                <td className="py-2">
+                <td className="py-2 pr-3">
                   {u.id === currentUserId ? (
                     <span className="text-xs text-vs-fg-3">—</span>
                   ) : (
@@ -191,7 +193,7 @@ export default function AdminUsersClient({
               </tr>
               {revealedPasswords[u.id] && (
                 <tr className="bg-vs-warning-soft">
-                  <td colSpan={10} className="py-2 px-3 text-sm">
+                  <td colSpan={10} className="p-0 text-sm"><div className="sticky left-0 box-border w-[min(calc(100vw-3rem),40rem)] whitespace-normal px-3 py-2">
                     {rich(t("adminUsers.tempPassword"), {
                       name: <strong>{u.handle}</strong>,
                       code: (
@@ -212,12 +214,12 @@ export default function AdminUsersClient({
                     >
                       {t("common.close")}
                     </button>
-                  </td>
+                  </div></td>
                 </tr>
               )}
               {emailedResets[u.id] && (
                 <tr className="bg-vs-warning-soft">
-                  <td colSpan={10} className="py-2 px-3 text-sm">
+                  <td colSpan={10} className="p-0 text-sm"><div className="sticky left-0 box-border w-[min(calc(100vw-3rem),40rem)] whitespace-normal px-3 py-2">
                     {rich(t("adminUsers.resetEmailed"), { email: <strong>{emailedResets[u.id]}</strong> })}{" "}
                     <button
                       className="text-vs-fg-3 hover:text-vs-fg font-bold ml-2"
@@ -231,7 +233,7 @@ export default function AdminUsersClient({
                     >
                       {t("common.close")}
                     </button>
-                  </td>
+                  </div></td>
                 </tr>
               )}
             </Fragment>
