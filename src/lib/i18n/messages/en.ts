@@ -3288,7 +3288,7 @@ export const en: PartialMessages = {
   },
   actionCenter: {
     title: "Open actions",
-    tabs: { required: "Action needed", continue: "Continue", waiting: "Waiting" },
+    tabs: { required: "Action needed", continue: "Active games", waiting: "Waiting" },
     friendRequest: "{name} wants to be friends",
     groupInvite: "Group invitation: {name}", groupRequest: "Join request from {name}",
     liveInvite: "{name} invited you", gameInvite: "{name} challenged you",

@@ -1340,7 +1340,7 @@ export const nl = {
   },
   actionCenter: {
     title: "Openstaande acties",
-    tabs: { required: "Actie vereist", continue: "Verdergaan", waiting: "Wachten" },
+    tabs: { required: "Actie vereist", continue: "Actieve spellen", waiting: "Wachten" },
     friendRequest: "{name} wil vrienden worden",
     groupInvite: "Groepsuitnodiging: {name}",
     groupRequest: "Toegangsverzoek van {name}",

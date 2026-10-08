@@ -3287,7 +3287,7 @@ export const fr: PartialMessages = {
     },
   },
   actionCenter: {
-    title: "Actions en attente", tabs: { required: "Action requise", continue: "Continuer", waiting: "Attendre" },
+    title: "Actions en attente", tabs: { required: "Action requise", continue: "Jeux actifs", waiting: "Attendre" },
     friendRequest: "{name} veut devenir ami", groupInvite: "Invitation de groupe : {name}", groupRequest: "Demande d’accès de {name}",
     liveInvite: "{name} vous a invité", gameInvite: "{name} vous a défié", continue: "Continuer", waiting: "En attente de l’adversaire",
     allCaughtUp: "Vous êtes à jour !", allCaughtUpHint: "Aucune action ne demande votre attention.", empty: "Aucune activité en attente.", loadMore: "Charger plus",

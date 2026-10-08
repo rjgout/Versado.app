@@ -3299,7 +3299,7 @@ export const es: PartialMessages = {
     },
   },
   actionCenter: {
-    title: "Acciones pendientes", tabs: { required: "Acción requerida", continue: "Continuar", waiting: "Esperar" },
+    title: "Acciones pendientes", tabs: { required: "Acción requerida", continue: "Partidas activas", waiting: "Esperar" },
     friendRequest: "{name} quiere ser tu amigo", groupInvite: "Invitación al grupo: {name}", groupRequest: "Solicitud de acceso de {name}",
     liveInvite: "{name} te ha invitado", gameInvite: "{name} te ha desafiado", continue: "Continuar", waiting: "Esperando al oponente",
     allCaughtUp: "¡Estás al día!", allCaughtUpHint: "No hay acciones que requieran tu atención.", empty: "No hay actividades pendientes.", loadMore: "Cargar más",

@@ -3,14 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState, type MouseEvent } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, Check, Gamepad2, UsersRound, X } from "lucide-react";
+import { ArrowRight, Check, Gamepad2, Hand, UsersRound, X } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
-import { useConfirm } from "@/components/ConfirmProvider";
 import { useT } from "@/components/I18nProvider";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
 import { liveMutation } from "@/lib/data/mutation";
-import { getSocket } from "@/lib/socketClient";
 import type { OpenAction, OpenActionTab } from "@/lib/openActions";
 import { primaryButton, secondaryButton, surfaceCard } from "@/components/versado/styles";
 
@@ -37,7 +35,6 @@ function actionText(action: OpenAction, t: ReturnType<typeof useT>) {
 
 export default function ActionsClient() {
   const t = useT();
-  const confirm = useConfirm();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -49,6 +46,8 @@ export default function ActionsClient() {
   const [more, setMore] = useState<OpenAction[]>([]);
   const [nextOffset, setNextOffset] = useState<number | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [nudged, setNudged] = useState<Set<string>>(() => new Set());
+  const [nudgeError, setNudgeError] = useState<string | null>(null);
   useEffect(() => { setMore([]); setNextOffset(query.data?.nextOffset ?? null); }, [tab, query.updatedAt, query.data?.nextOffset]);
   const data = query.data;
   const items = [...(data?.items ?? []), ...more];
@@ -75,14 +74,23 @@ export default function ActionsClient() {
     }
   }
 
-  async function cancel(action: OpenAction) {
-    if (!action.actionId || !(await confirm(action.game === "live" ? t("activeGames.confirmEnd") : t("activeGames.confirmCancel", { name: action.person?.handle ?? "" })))) return;
-    if (action.game === "live") {
-      getSocket().emit("cancel_game", { code: action.gameCode });
-      return;
+  async function nudge(action: OpenAction) {
+    const recipient = action.person;
+    if (!recipient || nudged.has(action.key)) return;
+    setNudgeError(null);
+    try {
+      await liveMutation(
+        () => fetchJson<{ availableAt: string }>("/api/nudges", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recipientId: recipient.id, context: { kind: "general" } }),
+        }),
+        { invalidates: "friendsChanged" },
+      );
+      setNudged((previous) => new Set(previous).add(action.key));
+    } catch (error) {
+      setNudgeError(error instanceof Error ? error.message : t("together.common.error"));
     }
-    const url = action.game === "scrabble" ? `/api/scrabble/${action.actionId}/cancel` : `/api/challenges/${action.actionId}/cancel`;
-    await liveMutation(() => fetchJson(url, { method: "POST" }), { invalidates: "gamesChanged" });
   }
 
   async function loadMore() {
@@ -115,11 +123,36 @@ export default function ActionsClient() {
             return <li key={action.key} className="flex min-w-0 items-center gap-3 px-4 py-3">
               {action.person ? <UserAvatar id={action.person.id} handle={action.person.handle} size="md" /> : action.kind.startsWith("group") ? <UsersRound className="h-10 w-10 shrink-0 rounded-full bg-vs-accent-soft p-2 text-vs-accent" /> : <Gamepad2 className="h-10 w-10 shrink-0 rounded-full bg-vs-accent-soft p-2 text-vs-accent" />}
               <div className="min-w-0 flex-1"><p className="truncate text-sm font-extrabold text-vs-fg">{text.title}</p>{text.detail && <p className="truncate text-sm text-vs-fg-2">{text.detail}</p>}</div>
-              {action.kind === "friend-request" || action.kind === "group-invite" ? <div className="flex shrink-0 gap-1"><button className={primaryButton} onClick={() => respond(action, true)} aria-label={t("challenges.accept")}><Check className="h-4 w-4" /></button><button className={secondaryButton} onClick={() => respond(action, false)} aria-label={t("challenges.decline")}><X className="h-4 w-4" /></button></div> : <div className="flex shrink-0 gap-1"><Link href={action.href} onClick={(event) => openGame(action, event)} className={primaryButton}>{action.kind === "game-turn" || action.kind === "game-continue" ? t("today.cta.continue") : t("today.cta.view")}<ArrowRight className="h-4 w-4" /></Link>{action.kind === "game-waiting" && <button className={secondaryButton} onClick={() => cancel(action)} aria-label={t("activeGames.cancel")}><X className="h-4 w-4" /></button>}</div>}
+              {action.kind === "friend-request" || action.kind === "group-invite" ? (
+                <div className="flex shrink-0 gap-1">
+                  <button className={primaryButton} onClick={() => respond(action, true)} aria-label={t("challenges.accept")}><Check className="h-4 w-4" /></button>
+                  <button className={secondaryButton} onClick={() => respond(action, false)} aria-label={t("challenges.decline")}><X className="h-4 w-4" /></button>
+                </div>
+              ) : (
+                <div className="flex shrink-0 gap-1">
+                  <Link href={action.href} onClick={(event) => openGame(action, event)} className={primaryButton}>
+                    {action.kind === "game-turn" || action.kind === "game-continue" ? t("today.cta.continue") : t("today.cta.view")}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  {action.kind === "game-waiting" && action.person && (
+                    <button
+                      type="button"
+                      className={secondaryButton}
+                      onClick={() => nudge(action)}
+                      disabled={nudged.has(action.key)}
+                      aria-label={nudged.has(action.key) ? t("together.nudge.given") : t("together.nudge.giveTo", { name: action.person.handle })}
+                      title={nudged.has(action.key) ? t("together.nudge.given") : t("together.nudge.give")}
+                    >
+                      {nudged.has(action.key) ? <Check className="h-4 w-4" /> : <Hand className="h-4 w-4" />}
+                    </button>
+                  )}
+                </div>
+              )}
             </li>;
           })}
         </ul>
       )}
+      {nudgeError && <p role="alert" className="text-sm font-semibold text-vs-danger">{nudgeError}</p>}
       {nextOffset !== null && <button type="button" className={`${secondaryButton} self-center`} disabled={loadingMore} onClick={loadMore}>{loadingMore ? t("common.loading") : t("actionCenter.loadMore")}</button>}
     </div>
   );
