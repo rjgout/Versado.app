@@ -36,7 +36,7 @@ export default function CompanionPicker({
   size?: "large" | "compact";
 }) {
   const t = useT();
-  const mascotWidth = size === "large" ? "w-[clamp(7.5rem,32vw,9rem)] sm:w-36 lg:w-40" : "w-[clamp(7.5rem,32vw,8.5rem)] sm:w-32 lg:w-36";
+  const mascotWidth = size === "large" ? "w-[clamp(120px,32vw,9rem)] sm:w-36 lg:w-40" : "w-[clamp(120px,32vw,8.5rem)] sm:w-32 lg:w-36";
   return (
     <fieldset className="min-w-0" disabled={disabled}>
       <legend className="sr-only">{legend}</legend>

@@ -105,7 +105,10 @@ systeembrowser; alleen dezelfde Versado-origin wordt aan de interne router
 doorgegeven. Interne browserback, `SubpageBackBar` en
 `NavigationScroll` blijven de webbron van waarheid.
 
-Safe areas lopen centraal via `--vs-safe-area-*`. De huidige native projecten
+Safe areas lopen centraal via `--vs-safe-area-*`; de vaste balken, het
+toetsenbord (`data-keyboard`) en grote tekst volgen `docs/LAYOUT.md`. Het
+layoutgedrag is alleen in Chromium op de web-build gemeten; een WKWebView of
+Android WebView is niet getest. De huidige native projecten
 vragen alleen internettoegang; er zijn geen camera-, locatie-, tracking- of
 pushpermissies toegevoegd.
 

@@ -16,7 +16,7 @@ import ToggleSwitch from "@/components/versado/ToggleSwitch";
 // loopt dan bijna tot de rand, de tekst staat op één lijn met de kop.
 
 const FIELD_BASE =
-  "block min-h-11 rounded-xl border border-vs-line-strong bg-vs-surface px-3 py-2 text-base text-vs-fg placeholder:text-vs-fg-3 transition focus:border-vs-accent focus:outline-none focus:ring-2 focus:ring-vs-accent/25 disabled:cursor-not-allowed disabled:opacity-60 dark:[color-scheme:dark] sm:text-sm";
+  "block max-w-full min-h-11 rounded-xl border border-vs-line-strong bg-vs-surface px-3 py-2 text-base text-vs-fg placeholder:text-vs-fg-3 transition focus:border-vs-accent focus:outline-none focus:ring-2 focus:ring-vs-accent/25 disabled:cursor-not-allowed disabled:opacity-60 dark:[color-scheme:dark] sm:text-sm";
 
 /** Veldstijl voor invoer, tekstvakken en keuzelijsten (AppSelect): volle breedte. */
 export const settingsFieldClass = `${FIELD_BASE} w-full`;
@@ -209,12 +209,13 @@ export function SettingsField({
   );
   if (inline) {
     return (
-      <div className="flex min-h-14 items-center gap-3 px-2 py-2">
-        <div className="min-w-0 flex-1">
+      // Bij grotere tekst past de bediening niet meer naast het label: dan komt ze eronder (reflow).
+      <div className="flex min-h-14 flex-wrap items-center gap-x-3 gap-y-1 px-2 py-2">
+        <div className="min-w-[min(100%,9rem)] flex-1">
           {labelNode}
           {description && <p className="text-sm text-vs-fg-2">{description}</p>}
         </div>
-        <div className="shrink-0">{children}</div>
+        <div className="max-w-full shrink-0">{children}</div>
       </div>
     );
   }

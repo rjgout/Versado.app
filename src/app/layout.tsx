@@ -34,6 +34,7 @@ import ContentSwitcher from "@/components/ContentSwitcher";
 import LiveDataProvider from "@/components/LiveDataProvider";
 import { getContentContext } from "@/lib/contentCollections";
 import StickyHeader from "@/components/StickyHeader";
+import ShellMetrics from "@/components/shell/ShellMetrics";
 import { PodcastPlayerProvider } from "@/lib/podcastPlayerContext";
 import { ReadAloudPlayerProvider } from "@/lib/readAloudPlayerContext";
 import ReadAloudMiniPlayer from "@/components/ReadAloudMiniPlayer";
@@ -171,6 +172,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             zie StickyHeader.tsx voor waarom) zodat ze bij het scrollen als
             één geheel bovenaan blijven staan, ongeacht de exacte hoogte van
             de header — zie PodcastMiniPlayer.tsx. */}
+        <ShellMetrics />
         <StickyHeader>
         {/* Compacte header (vaste hoogte, geen groot logo): links de
             contentkiezer, op desktop de primaire navigatie in het midden,
@@ -180,7 +182,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <header data-app-global-header className="border-b border-vs-line bg-vs-elevated pt-[var(--vs-safe-area-top)]">
           {/* Vanaf xl iets breder dan de pagina: logo, contentkiezer, navigatie en
             status passen anders niet naast elkaar. */}
-          <div className="relative mx-auto flex h-14 max-w-5xl min-w-0 items-center gap-2 px-4 sm:h-16 sm:gap-3 xl:max-w-6xl">
+          {/* Minstens 3,5 rem hoog maar nooit een vaste hoogte, en de onderdelen mogen
+              wrappen: bij grotere tekst loopt de header over meerdere regels in
+              plaats van breder te worden dan het scherm (docs/LAYOUT.md). */}
+          <div className="relative mx-auto flex min-h-14 max-w-5xl min-w-0 flex-wrap items-center gap-x-2 gap-y-1 px-4 py-1 sm:min-h-16 sm:gap-x-3 xl:max-w-6xl">
             <Link
               href={user ? "/dashboard" : "/"}
               className={`${user ? "hidden xl:flex mr-3" : "flex"} shrink-0 items-center gap-2 text-lg font-extrabold text-vs-accent`}
@@ -210,7 +215,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <div className="hidden flex-1 justify-center lg:flex">
                   <PrimaryNav />
                 </div>
-                <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+                <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-0.5 sm:gap-1">
                   <div className="hidden xl:block"><HeaderInstallHint /></div>
                   <NavUserBadges
                     streak={user.currentStreak}
@@ -234,7 +239,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {user && <TimeZoneSync known={user.timeZone} />}
         </StickyHeader>
         <Suspense fallback={null}><NavigationScroll /></Suspense>
-        <main className="mx-auto max-w-5xl px-4 pb-[var(--main-pad-bottom)] pt-[var(--main-pad-top)]">
+        <main className="mx-auto max-w-5xl pb-[var(--main-pad-bottom)] pl-[max(1rem,var(--vs-safe-area-left))] pr-[max(1rem,var(--vs-safe-area-right))] pt-[var(--main-pad-top)]">
           {user && <SocialTabs />}
           {/* De sleutel is de gekozen content + contenttaal. Wisselt een van beide, dan
               begint alles hieronder opnieuw en haalt het zijn data opnieuw op, ook

@@ -53,6 +53,8 @@ lijst hierboven nog volledig.
   `/activity`, en `shell/HeaderAvatar.tsx` als ingang naar het profiel. Reeks,
   XP en divisie staan in `NavUserBadges.tsx`. Alle bestaande routes werken
   ongewijzigd.
+- **Shell-layout**: vaste balken, safe areas, tekstschaling en toetsenbord volgen één
+  architectuur, zie `docs/LAYOUT.md` (`ShellMetrics.tsx`).
 - **Terug en scrollen**: één centrale laag, geen code per pagina.
   Detailpagina's krijgen hun kop ("← Titel", optioneel een ondertitel) uit
   `SubpageBackBar.tsx` (lijst van pagina's met titel en terugval). De pijl

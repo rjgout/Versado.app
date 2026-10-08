@@ -4,6 +4,13 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Betere weergave bij grotere tekst en op kleine schermen. De bovenbalk en
+  onderste navigatie blijven bij 150% en 200% tekst op hun plek en lopen niet
+  meer buiten het scherm (de pagina zoomde daardoor soms uit en de onderste
+  navigatie viel weg). In een les blijft de terugbalk bovenaan staan terwijl je
+  scrolt. De onderste navigatie verdwijnt zolang het toetsenbord open is, en
+  lange woorden, namen en knoppen breken af in plaats van de pagina breder te maken.
+
 - Pagina's houden zichzelf actueel, zonder dat je hoeft te verversen. Een
   afgeronde activiteit staat direct goed op Vandaag, je voortgang, XP, reeks en
   competitie, ook als je met de terugknop terugkomt of de app weer opent. Het

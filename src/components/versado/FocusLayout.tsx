@@ -12,7 +12,7 @@ interface FocusLayoutProps {
  */
 export default function FocusLayout({ children, className = "" }: FocusLayoutProps) {
   return (
-    <div className={`vs-focus-layout vs-motion mx-auto flex min-h-[calc(100dvh-var(--header-height,4.5rem)-1rem)] w-full max-w-4xl flex-col ${className}`}>
+    <div className={`vs-focus-layout vs-motion mx-auto flex min-h-[calc(100dvh-var(--header-height,var(--header-default))-1rem)] w-full max-w-4xl flex-col ${className}`}>
       {children}
     </div>
   );

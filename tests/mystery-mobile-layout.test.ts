@@ -9,7 +9,7 @@ const mysteryClient = readFileSync(path.join(process.cwd(), "src/components/myst
 test("mobiele mystery-shell is viewportbreed en houdt de actiebalk buiten het scrollpane", () => {
   assert.match(css, /main:has\(\.mystery-game-layout\)/);
   assert.match(css, /max-width: none !important;/);
-  assert.match(css, /padding: 1rem 0 0 !important;/);
+  assert.match(css, /padding: var\(--main-pad-top\) 0 0 !important;/);
   assert.match(css, /\.mystery-game-layout[\s\S]*?height: calc\(100svh - var\(--mystery-focus-header-height\) - 1rem\)/);
   assert.match(css, /\.mystery-action-bar[\s\S]*?padding-bottom: max\(0\.55rem, var\(--vs-safe-area-bottom\)\)/);
   assert.match(css, /\.mystery-character-pane[\s\S]*?overflow-y: auto/);

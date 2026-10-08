@@ -60,7 +60,7 @@ export default function NavUserBadges({
   const chip = "vs-motion flex h-10 items-center gap-1.5 rounded-full px-2.5 text-sm font-extrabold tabular-nums transition-colors";
 
   return (
-    <div className="flex items-center gap-0.5 sm:gap-1">
+    <div className="flex flex-wrap items-center justify-end gap-0.5 sm:gap-1">
       <Link
         href="/streak"
         title={t("header.streak")}

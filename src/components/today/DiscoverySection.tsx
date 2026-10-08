@@ -21,7 +21,7 @@ export default function DiscoverySection({ items, language, showMascot = true }:
           <SectionHeader id="today-discover" title={t("today.discoverTitle")} />
         </div>
         {showMascot && (
-          <div className="-mb-1 aspect-square w-[clamp(5.5rem,24vw,6.5rem)] shrink-0 sm:w-28 lg:w-32">
+          <div className="-mb-1 aspect-square w-[clamp(88px,24vw,6.5rem)] shrink-0 sm:w-28 lg:w-32 vs-decor">
             <PersonalMascot state="discovery" size={128} fill />
           </div>
         )}

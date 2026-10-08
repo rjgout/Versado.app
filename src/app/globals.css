@@ -4,11 +4,11 @@
 
 html,
 body {
-  height: 100%;
   /* Alle browser-scrolling (ankers, scrollIntoView en navigatie naar een
-     vers) houdt rekening met de dynamische vaste bovenbalk. Die bevat naast
-     de header ook eventuele minispelers en de terugbalk. */
-  scroll-padding-top: calc(var(--header-height, 4.5rem) + 1rem);
+     vers) houdt rekening met de vaste bovenbalk (--header-offset, zie
+     ShellMetrics en docs/LAYOUT.md). Die bevat naast de header ook eventuele
+     minispelers en de terugbalk. */
+  scroll-padding-top: calc(var(--header-offset, var(--header-default)) + 1rem);
   /* Voorkomt dat een horizontale swipe (iOS Safari/PWA: edge-swipe terug/
      verder, Chrome/Android: overscroll-navigatie) als browsernavigatie wordt
      opgevat — "pan-y pinch-zoom" i.p.v. kaal "pan-y" houdt zowel verticaal
@@ -21,7 +21,26 @@ body {
   overscroll-behavior-x: none;
 }
 
+html {
+  height: 100%;
+  /* Geen rubberband-effect aan de onderkant: op iOS beweegt een vaste
+     onderbalk daar anders een stukje met de pagina mee. Het scherm ververst
+     zichzelf al (docs/DATA-REFRESH.md), een pull-to-refresh is niet nodig. */
+  overscroll-behavior-y: none;
+  /* Tekst volgt de instelling van de gebruiker; nooit kunstmatig klein of vast. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
+  /* Een woord dat niet in zijn vak past (grote tekst, lange vertaling of
+     naam) breekt af in plaats van de pagina breder te maken. Dat laatste laat
+     mobiele browsers de hele pagina uitzoomen en de onderbalk buiten beeld vallen. */
+  overflow-wrap: anywhere;
+  /* Minstens het scherm, nooit vast op schermhoogte: een vaste hoogte maakte
+     van body het omvattende blok voor alles wat sticky is, zodat dat na één
+     schermhoogte scrollen loskwam (de terugbalk in focus mode). */
+  min-height: 100%;
   /* Vangnet: geen enkel element hoort de pagina breder dan het scherm te
      maken, maar mocht dat toch gebeuren dan voorkomt dit alsnog dat dat een
      horizontale scrollruimte (en daarmee een edge-swipe-aangrijpingspunt)
@@ -47,19 +66,78 @@ body {
   --vs-safe-area-left: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
 }
 
-/* Ruimte boven en onder <main> (layout.tsx): onder de vaste bovenbalk, en
- * onderaan vrij van de onderbalk op telefoon en tablet (inclusief de
- * homeindicator van een geïnstalleerde iOS-PWA). Als variabelen, zodat een
- * pagina die het scherm moet vullen (.page-fill) met precies dezelfde maten
- * rekent in plaats van met eigen getallen. */
+/* --- Shell-maten (docs/LAYOUT.md) -------------------------------------------
+ *
+ * ShellMetrics.tsx meet de vaste bovenbalk en onderbalk en zet
+ * --header-height, --header-offset en --nav-height op <html>. Tot die meting
+ * er is (eerste paint) gelden de standaardwaarden hieronder, zodat de inhoud
+ * niet onder de balk begint of verspringt. Alles in rem: de maten schalen mee
+ * met de tekstgrootte van de gebruiker.
+ *
+ * Wie iets tegen de bovenbalk wil plakken (sticky of fixed top) gebruikt
+ * --header-offset; wie ruimte vrijhoudt voor de balk gebruikt --header-height.
+ * Op het moment dat de balk bij zeer grote tekst meescrolt (data-header-tall)
+ * is --header-offset 0 en blijft --header-height gelijk. */
 :root {
-  --main-pad-top: calc(var(--header-height, 4.5rem) + 2rem);
-  --main-pad-bottom: calc(6rem + var(--vs-safe-area-bottom));
+  --header-default: 4.5rem;
+  --nav-default: 4.5rem;
+  --main-pad-top: calc(var(--header-height, var(--header-default)) + 2rem);
+  /* Onderbalk (alleen onder lg) plus ademruimte; de balk telt zijn eigen safe area al mee. */
+  --main-pad-bottom: calc(var(--nav-height, calc(var(--nav-default) + var(--vs-safe-area-bottom))) + 1.5rem);
 }
 @media (min-width: 1024px) {
   :root {
     --main-pad-bottom: 4rem;
   }
+}
+
+/* Focus mode: alleen de terugbalk staat bovenaan (header en onderbalk zijn weg). */
+[data-shell-mode="focus"] {
+  --header-default: calc(3.3125rem + var(--vs-safe-area-top));
+  --main-pad-top: calc(var(--header-height, var(--header-default)) + 1rem);
+  --main-pad-bottom: calc(1rem + var(--vs-safe-area-bottom));
+}
+
+/* Zeer grote tekst: de header beslaat dan te veel van het scherm om vast te
+ * blijven staan. Hij scrolt dan met de pagina mee (ShellMetrics zet het
+ * attribuut); de inhoud houdt zijn ruimte, want <main> rekent met --header-height. */
+html[data-header-tall] [data-sticky-header] {
+  position: absolute;
+}
+html[data-header-tall] {
+  scroll-padding-top: 1rem;
+}
+
+/* Vaste delen mogen nooit breder worden dan het scherm: een vaste balk die
+ * overloopt laat mobiele browsers de hele pagina uitzoomen, waardoor de
+ * onderbalk buiten beeld valt. `clip` knipt zonder scrollruimte te maken. */
+[data-sticky-header],
+[data-main-nav] {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* Decoratieve beelden naast tekst (mascottes) verdwijnen bij grote tekst: de
+ * tekst heeft dan de volle breedte nodig en het beeld voegt geen informatie toe
+ * (het is altijd decoratief, zie docs/VERSADO-DESIGN.md). */
+html[data-text-large] .vs-decor {
+  display: none;
+}
+
+/* Landscape: een inkeping links of rechts valt nooit over inhoud of balken. */
+[data-sticky-header] > *,
+[data-main-nav] {
+  padding-left: var(--vs-safe-area-left);
+  padding-right: var(--vs-safe-area-right);
+}
+
+/* Schermtoetsenbord open: de onderbalk verdwijnt (hij staat anders midden in
+ * beeld of boven het toetsenbord) en de pagina houdt alleen een kleine rand. */
+html[data-keyboard] [data-main-nav] {
+  display: none;
+}
+html[data-keyboard] main {
+  padding-bottom: 1rem;
 }
 
 /* Minstens de zichtbare hoogte tussen bovenbalk en onderbalk, zodat een
@@ -69,31 +147,36 @@ body {
   min-height: calc(100dvh - var(--main-pad-top) - var(--main-pad-bottom));
 }
 
+/* Zeer grote letters: lange woorden breken en worden afgebroken in plaats van
+ * uit hun vak te lopen (taal staat op <html lang>). */
+.vs-wrap {
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
 /* Focus mode gebruikt dezelfde vaste terugbalk als normale detailpagina's,
  * maar laat de globale statusheader en mobiele ondernavigatie tijdelijk weg.
  * De routegestuurde shell-wrapper houdt dit centraal zodat pagina's geen eigen
- * hideHeader/hideBottomNav-props nodig hebben. */
+ * hideHeader/hideBottomNav-props nodig hebben. De terugbalk is dezelfde vaste
+ * wrapper als overal (één positioneringsmodel); alleen de maten verschillen,
+ * zie de shell-maten hierboven. */
 [data-shell-mode="focus"] [data-app-global-header],
 [data-shell-mode="focus"] nav[data-main-nav] {
   display: none;
 }
 
-/* In focus mode bevat de shell alleen de terugbalk. Laat die balk zelf in de
- * layout-ruimte staan zodat <main> er niet achter begint. Sticky houdt de
- * bestaande oriëntatie tijdens scrollen vast zonder een aparte hoogte-offset
- * of een pagina-specifieke marge nodig te maken. */
-[data-shell-mode="focus"] [data-sticky-header] {
-  position: sticky;
-}
-
+/* In focus mode bevat de shell alleen de terugbalk. Die staat vast bovenaan
+ * (net als de bovenbalk op gewone pagina's) en <main> houdt er via
+ * --main-pad-top precies ruimte voor vrij. Sticky was hier een fout: het
+ * omvattende blok (body) was maar een schermhoogte, waardoor de balk bij een
+ * lange les wegscrolde. */
 [data-shell-mode="focus"] [data-subpage-back-bar] {
   padding-top: var(--vs-safe-area-top);
 }
 
 [data-shell-mode="focus"] main {
-  /* De terugbalk staat in focus mode weer in de normale layout-flow. */
-  padding-top: 1rem !important;
-  padding-bottom: calc(1rem + var(--vs-safe-area-bottom)) !important;
+  padding-top: var(--main-pad-top) !important;
+  padding-bottom: var(--main-pad-bottom) !important;
 }
 
 /* Immersive mode is voor een activiteit die zelf de volledige viewport en
@@ -131,7 +214,7 @@ body {
     max-width: none !important;
     min-height: 0;
     overflow: hidden;
-    padding: 1rem 0 0 !important;
+    padding: var(--main-pad-top) 0 0 !important;
   }
 
   .mystery-game-layout {

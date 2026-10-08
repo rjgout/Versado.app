@@ -695,7 +695,7 @@ export function ExerciseCard({
   }
 
   const mascotReaction = <ExerciseMascotReaction checked={checked} correct={wasCorrect} />;
-  const surfaceClass = focus ? "flex min-h-[calc(100dvh-var(--header-height,4.5rem)-2rem)] flex-col gap-5" : "card flex flex-col gap-5";
+  const surfaceClass = focus ? "flex min-h-[calc(100dvh-var(--header-height,var(--header-default))-2rem)] flex-col gap-5" : "card flex flex-col gap-5";
   const givenFeedbackContext = feedbackContext
     ? { ...feedbackContext, givenAnswer }
     : undefined;
@@ -721,7 +721,7 @@ export function ExerciseCard({
   );
 
   const progressHeader = progressState && (
-    <div className="sticky top-[var(--header-height,4.5rem)] z-10 -mx-1 bg-vs-app/95 py-2 backdrop-blur sm:-mx-2" data-exercise-progress>
+    <div className="sticky top-[var(--header-offset,var(--header-default))] z-10 -mx-1 bg-vs-app/95 py-2 backdrop-blur sm:-mx-2" data-exercise-progress>
       <div className="mb-1 flex items-center justify-between gap-3 text-xs font-extrabold uppercase tracking-wide text-vs-fg-3">
         <span>{t("lesson.exerciseProgress")}</span>
         <span>{progressState.answered}/{progressState.total}</span>
@@ -985,7 +985,7 @@ function ExerciseMascotReaction({ checked, correct }: { checked: boolean; correc
 export function LessonResultMascot({ scorePercent, celebrate = false, successThreshold = 50 }: { scorePercent: number; celebrate?: boolean; successThreshold?: number }) {
   const state = celebrate ? "celebrate" : scorePercent >= successThreshold ? "success" : "encourage";
   return (
-    <div className="aspect-square w-[clamp(6.875rem,30vw,8.125rem)] shrink-0 sm:w-36">
+    <div className="aspect-square w-[clamp(110px,30vw,8.125rem)] shrink-0 sm:w-36 vs-decor">
       <PersonalMascot state={state} size={144} fill />
     </div>
   );
