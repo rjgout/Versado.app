@@ -15,6 +15,13 @@ export function isHeaderTall(headerPx: number, viewportPx: number): boolean {
   return viewportPx > 0 && headerPx / viewportPx > TALL_HEADER_RATIO;
 }
 
+/** Vanaf deze tekstschaal (1 = standaard) maken decoratieve beelden plaats voor de tekst. */
+export const LARGE_TEXT_SCALE = 1.4;
+
+export function isLargeText(scale: number): boolean {
+  return scale >= LARGE_TEXT_SCALE;
+}
+
 /** Een element waarin je typt (en waarvoor dus een schermtoetsenbord opent). */
 export interface EditableLike {
   tagName: string;

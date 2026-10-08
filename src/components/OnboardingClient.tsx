@@ -204,7 +204,7 @@ function KennisStep({ onNext }: { onNext: () => void }) {
   return (
     <div className="flex flex-col gap-4">
       {/* Gezamenlijk welkom van de familie; de eigen gids wordt in de volgende stap gekozen. */}
-      <div className="mx-auto aspect-square w-[clamp(160px,48vw,13rem)]">
+      <div className="mx-auto aspect-square w-[clamp(160px,48vw,13rem)] vs-decor">
         <MascotSlot character="family" state="huddle" size={208} fill />
       </div>
       <h1 className="text-xl font-extrabold text-brand-800 dark:text-brand-300 text-center">{t("onboarding.welcome")}</h1>

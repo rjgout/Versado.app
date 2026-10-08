@@ -46,7 +46,7 @@ function measure() {
   if (main) { const kids = [...main.querySelectorAll("h1,h2,p,button,a,img,section,div")].filter((e) => r(e).height > 4 && r(e).width > 4); if (kids.length) firstTop = Math.min(...kids.slice(0, 40).map((e) => r(e).top)) + 0; }
   return {
     vw, vh, clientW: doc.clientWidth, scrollW: doc.scrollWidth, vvScale: visualViewport.scale, vvW: visualViewport.width, vvH: visualViewport.height,
-    hdr: hr && { top: hr.top, bottom: hr.bottom, pos: getComputedStyle(hdr).position }, mainTop: main ? r(main).top : null, firstTop,
+    switcher: (() => { const e = document.querySelector('header button[aria-haspopup=listbox]'); if (!e) return null; const x = e.getBoundingClientRect(); return { w: x.width, h: x.height, right: x.right }; })(), hdr: hr && { top: hr.top, bottom: hr.bottom, pos: getComputedStyle(hdr).position }, mainTop: main ? r(main).top : null, firstTop,
     nav: navVisible ? { top: r(nav).top, bottom: r(nav).bottom, scrollW: nav.scrollWidth, clientW: nav.clientWidth } : null,
     wide, scrollY: scrollY, docH: doc.scrollHeight,
   };
@@ -71,10 +71,11 @@ for (const lang of LANGS) for (const font of FONTS) for (const width of WIDTHS) 
       if (!m.hdr) bad.push("geen header");
       else {
         if (m.hdr.top !== 0 && m.hdr.pos === "fixed") bad.push(`header top ${m.hdr.top}`);
-        if (m.hdr.bottom > m.vh * 0.45) bad.push(`header neemt ${Math.round((m.hdr.bottom / m.vh) * 100)}% van het scherm`);
+        if (m.hdr.pos === "fixed" && m.hdr.bottom > m.vh * 0.45) bad.push(`header neemt ${Math.round((m.hdr.bottom / m.vh) * 100)}% van het scherm`);
         if (m.firstTop !== null && m.firstTop < m.hdr.bottom - 1 && m.scrollY === 0) bad.push(`inhoud (${Math.round(m.firstTop)}) onder header (${Math.round(m.hdr.bottom)})`);
         if (m.firstTop !== null && m.firstTop - m.hdr.bottom > 90 && m.scrollY === 0) bad.push(`lege ruimte ${Math.round(m.firstTop - m.hdr.bottom)}px onder header`);
       }
+      if (m.switcher && (m.switcher.w < 36 || m.switcher.h < 30)) bad.push(`contentkiezer te klein (${Math.round(m.switcher.w)}×${Math.round(m.switcher.h)})`);
       if (!m.nav) bad.push("geen onderbalk");
       else {
         if (Math.abs(m.nav.bottom - m.vvH) > 1.5) bad.push(`onderbalk bottom ${Math.round(m.nav.bottom)} ≠ scherm ${Math.round(m.vvH)}`);

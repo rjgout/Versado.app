@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { isEditableElement, isHeaderTall, isKeyboardOpen } from "@/lib/shellMetrics";
+import { isEditableElement, isHeaderTall, isKeyboardOpen, isLargeText } from "@/lib/shellMetrics";
 
 /**
  * De ene plek die de vaste delen van de shell meet en als CSS-variabelen en
@@ -17,6 +17,8 @@ import { isEditableElement, isHeaderTall, isKeyboardOpen } from "@/lib/shellMetr
  *   desktop en in focus mode). <main> houdt er zijn onderruimte mee vrij.
  * - data-header-tall: bij zeer grote tekst loopt de header over meerdere
  *   regels; dan scrolt hij mee in plaats van het scherm te vullen.
+ * - data-text-large: de tekst staat op 140% of groter; decoratieve beelden
+ *   (.vs-decor) maken dan plaats voor de tekst.
  * - data-keyboard: het schermtoetsenbord is open; de onderbalk verdwijnt dan
  *   (anders staat hij op iOS midden in beeld en op Android boven het toetsenbord).
  */
@@ -40,6 +42,10 @@ export default function ShellMetrics() {
       root.style.setProperty("--header-height", `${headerPx}px`);
       root.style.setProperty("--header-offset", tall ? "0px" : `${headerPx}px`);
       root.style.setProperty("--nav-height", `${navPx}px`);
+      // Tekstgrootte van de gebruiker (root-font-size); vanaf 140% maken we ruimte voor de tekst.
+      const textScale = parseFloat(getComputedStyle(root).fontSize) / 16;
+      if (isLargeText(textScale)) root.setAttribute("data-text-large", "");
+      else root.removeAttribute("data-text-large");
       if (tall) root.setAttribute("data-header-tall", "");
       else root.removeAttribute("data-header-tall");
       const keyboard = isKeyboardOpen({
@@ -75,6 +81,7 @@ export default function ShellMetrics() {
       document.removeEventListener("focusin", schedule);
       document.removeEventListener("focusout", schedule);
       root.removeAttribute("data-header-tall");
+      root.removeAttribute("data-text-large");
       root.removeAttribute("data-keyboard");
     };
   }, []);

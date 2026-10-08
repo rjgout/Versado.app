@@ -117,6 +117,13 @@ html[data-header-tall] {
   overflow-x: clip;
 }
 
+/* Decoratieve beelden naast tekst (mascottes) verdwijnen bij grote tekst: de
+ * tekst heeft dan de volle breedte nodig en het beeld voegt geen informatie toe
+ * (het is altijd decoratief, zie docs/VERSADO-DESIGN.md). */
+html[data-text-large] .vs-decor {
+  display: none;
+}
+
 /* Landscape: een inkeping links of rechts valt nooit over inhoud of balken. */
 [data-sticky-header] > *,
 [data-main-nav] {

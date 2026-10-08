@@ -35,7 +35,7 @@ export default function Greeting({ data, language, showMascot = true }: { data: 
       </div>
       {showMascot && (
         // Het vaste canvas houdt de compositie stabiel; de gids zelf blijft volledig in beeld.
-        <div className="aspect-square w-[clamp(88px,26vw,7rem)] shrink-0 sm:w-32 lg:w-36">
+        <div className="aspect-square w-[clamp(88px,26vw,7rem)] shrink-0 sm:w-32 lg:w-36 vs-decor">
           <PersonalMascot state="greeting" size={144} fill />
         </div>
       )}

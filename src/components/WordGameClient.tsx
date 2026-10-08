@@ -301,7 +301,7 @@ export default function WordGameClient() {
 
       {finished && (
         <div className="card flex flex-col items-center gap-3 text-center animate-pop">
-          <div className="aspect-square w-[clamp(110px,30vw,8.125rem)] shrink-0 sm:w-36">
+          <div className="aspect-square w-[clamp(110px,30vw,8.125rem)] shrink-0 sm:w-36 vs-decor">
             <PersonalMascot state={game.status === "WON" ? "success" : "encourage"} size={144} fill />
           </div>
           <p className="text-lg font-extrabold dark:text-slate-100">

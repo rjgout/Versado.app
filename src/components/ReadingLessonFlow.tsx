@@ -131,7 +131,7 @@ export default function ReadingLessonFlow({
               {startVerse}–{endVerse}
             </p>
           </div>
-          <div className="aspect-square w-[clamp(88px,24vw,6.75rem)] shrink-0 sm:w-28 lg:w-32">
+          <div className="aspect-square w-[clamp(88px,24vw,6.75rem)] shrink-0 sm:w-28 lg:w-32 vs-decor">
             <PersonalMascot state="reading" size={128} fill />
           </div>
         </div>

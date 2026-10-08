@@ -160,7 +160,7 @@ export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, cont
           <h1 className="text-2xl font-extrabold text-brand-800 dark:text-brand-300">{t("gamesHub.title")}</h1>
           <p className="text-sm text-vs-fg-2">{t("gamesHub.intro")}</p>
         </div>
-        <div className="aspect-square w-[clamp(96px,27vw,7.25rem)] shrink-0 sm:w-32 lg:w-36">
+        <div className="aspect-square w-[clamp(96px,27vw,7.25rem)] shrink-0 sm:w-32 lg:w-36 vs-decor">
           <PersonalMascot state="playing" size={144} fill />
         </div>
       </div>

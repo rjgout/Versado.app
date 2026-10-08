@@ -985,7 +985,7 @@ function ExerciseMascotReaction({ checked, correct }: { checked: boolean; correc
 export function LessonResultMascot({ scorePercent, celebrate = false, successThreshold = 50 }: { scorePercent: number; celebrate?: boolean; successThreshold?: number }) {
   const state = celebrate ? "celebrate" : scorePercent >= successThreshold ? "success" : "encourage";
   return (
-    <div className="aspect-square w-[clamp(110px,30vw,8.125rem)] shrink-0 sm:w-36">
+    <div className="aspect-square w-[clamp(110px,30vw,8.125rem)] shrink-0 sm:w-36 vs-decor">
       <PersonalMascot state={state} size={144} fill />
     </div>
   );

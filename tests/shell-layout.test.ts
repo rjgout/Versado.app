@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
-import { TALL_HEADER_RATIO, isEditableElement, isHeaderTall, isKeyboardOpen } from "../src/lib/shellMetrics";
+import { TALL_HEADER_RATIO, isEditableElement, isHeaderTall, isKeyboardOpen, isLargeText } from "../src/lib/shellMetrics";
 
 const root = process.cwd();
 const read = (file: string) => readFileSync(path.join(root, file), "utf8");
@@ -25,6 +25,20 @@ test("een te grote header blijft niet vast staan", () => {
   assert.equal(isHeaderTall(Math.ceil(700 * TALL_HEADER_RATIO) + 1, 700), true);
   assert.equal(isHeaderTall(250, 568), true);
   assert.equal(isHeaderTall(100, 0), false);
+});
+
+test("grote tekst wordt herkend vanaf 140% en decoratieve beelden wijken dan", () => {
+  assert.equal(isLargeText(1), false);
+  assert.equal(isLargeText(1.25), false);
+  assert.equal(isLargeText(1.4), true);
+  assert.equal(isLargeText(2), true);
+  assert.match(css, /html\[data-text-large\] \.vs-decor \{\s*display: none/);
+  // Elk decoratief beeld naast tekst (rem-vrije clamp) draagt de klasse.
+  for (const file of walk(path.join(root, "src"))) {
+    for (const line of readFileSync(file, "utf8").split("\n")) {
+      if (/aspect-square w-\[clamp\(\d+px/.test(line)) assert.ok(line.includes("vs-decor"), `${file}: mist vs-decor: ${line.trim().slice(0, 80)}`);
+    }
+  }
 });
 
 test("het toetsenbord wordt alleen herkend bij een tekstveld én een kleinere zichtbare hoogte", () => {

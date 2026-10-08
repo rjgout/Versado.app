@@ -122,7 +122,7 @@ export default function TodaySection({ data, language, dayComplete = false }: { 
       {dayComplete && (
         <div className={`${surfaceCard} mt-3 flex items-center justify-between gap-4 p-4 sm:mt-4 sm:p-5`}>
           <p className="max-w-md text-sm font-semibold leading-relaxed text-vs-fg-2 sm:text-base">{t("today.dayComplete")}</p>
-          <div className="aspect-square w-[clamp(96px,28vw,7.5rem)] shrink-0 sm:w-32">
+          <div className="aspect-square w-[clamp(96px,28vw,7.5rem)] shrink-0 sm:w-32 vs-decor">
             <PersonalMascot state="sleep" size={128} fill />
           </div>
         </div>
