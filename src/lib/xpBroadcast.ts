@@ -15,12 +15,17 @@
 // profiel en competitie ongeldig (DATA_EVENTS.xpChanged), zonder dat elke
 // aanroeper dat zelf hoeft te weten.
 import { invalidateData } from "@/lib/data/client";
+import { getSocket } from "@/lib/socketClient";
 
 const EVENT_NAME = "xp-changed";
 
 export function announceXpChanged(): void {
   window.dispatchEvent(new Event(EVENT_NAME));
   invalidateData("xpChanged");
+  // XP, divisies en nieuw behaalde prestaties kunnen deel uitmaken van een
+  // expliciet gedeeld vriendenprofiel. De server bepaalt opnieuw wie vriend
+  // is; dit signaal bevat zelf geen profiel- of beloningsgegevens.
+  getSocket().emit("friend_profile_changed");
 }
 
 export function onXpChanged(callback: () => void): () => void {

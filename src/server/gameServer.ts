@@ -21,6 +21,7 @@ import {
   sendFriendStatusesToUser,
   setCurrentActivity,
   clearCurrentActivity,
+  getAcceptedFriendIds,
 } from "@/lib/presence";
 import { generateChapterGuessQuestions, labelsFor, computeHintEffect, type LiveQuestionSeed, type ChapterLabel } from "@/lib/chapterGuess";
 import {
@@ -775,6 +776,15 @@ export function initGameServer(httpServer: HttpServer) {
         // ander niet live bijwerken; dat gebeurt hier.
         ioInstance?.to(`user:${otherUserId}`).emit("notifications_changed");
       }
+    });
+
+    // Profielprivacy en uitgelichte prestaties zijn alleen zichtbaar voor
+    // geaccepteerde vrienden. Na een eigen wijziging laat de eigenaar die
+    // vrienden uitsluitend opnieuw ophalen; er gaan geen profielgegevens via
+    // Socket.io en ingetrokken toestemming blijft dus niet in een cache staan.
+    socket.on("friend_profile_changed", async () => {
+      const friendIds = await getAcceptedFriendIds(user.id).catch(() => []);
+      for (const friendId of friendIds) ioInstance?.to(`user:${friendId}`).emit("friends_changed");
     });
 
     // Woordspel: de routes draaien in Next's eigen bundel en kunnen deze

@@ -31,6 +31,7 @@ const patchSchema = z.object({
     .nullable()
     .optional(),
   searchableByEmail: z.boolean().optional(),
+  shareAchievements: z.boolean().optional(),
   emailNotificationsEnabled: z.boolean().optional(),
   pushNotificationsEnabled: z.boolean().optional(),
   dailyReminderTime: z
