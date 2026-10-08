@@ -120,7 +120,11 @@ nodig; moet ze in Ontdek Versado verschijnen; is een rondleiding nuttig; hangt d
 uitleg af van de schriftbron; zijn alle vertalingen aanwezig; moet een bestaande
 uitlegversie (`KompasTopic.version`) omhoog; werkt ze met de Kompas-architectuur;
 zijn bestaande helpteksten (`gamesHub.*`, `xpGuide`, `kompas.topics.*`) nog correct.
-Teststap: `npm run test:kompas`.
+Een nieuwe schriftbron (contentcollectie), activiteit of spel moet vóór oplevering
+met de contentkiezer worden nagelopen in Ontdek Versado: de algemene uitleg moet
+kloppen voor die bron en mag geen functie beloven die er voor die bron niet is
+(beschikbaarheid komt uit de echte gegevens, zie "Beschikbaarheid per bron" in
+`docs/KOMPAS.md`). Teststap: `npm run test:kompas`.
 
 ## Platformfundering: web/PWA, iOS en Android
 

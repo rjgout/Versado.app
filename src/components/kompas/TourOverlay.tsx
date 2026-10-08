@@ -37,7 +37,8 @@ export default function TourOverlay({ tour, onEnd, onStarted }: { tour: KompasTo
   const returnFocus = useRef<Element | null>(null);
   const [plan, setPlan] = useState<KompasTourStep[] | null>(null);
   const [index, setIndex] = useState(0);
-  const [layout, setLayout] = useState<TourLayout | null>(null);
+  // measured: de plaatsing is met de echte hoogte van de kaart berekend; eerder blijft de kaart onzichtbaar (geen verspringen).
+  const [layout, setLayout] = useState<(TourLayout & { measured: boolean }) | null>(null);
 
   const endRef = useRef(onEnd);
   const startedRef = useRef(onStarted);
@@ -82,15 +83,16 @@ export default function TourOverlay({ tour, onEnd, onStarted }: { tour: KompasTo
     const delta = scrollDeltaFor(rect, viewport, insets, cardHeight, fixed);
     if (Math.abs(delta) > 1) window.scrollBy({ top: delta, behavior: "auto" });
     const placed = delta !== 0 ? element.getBoundingClientRect() : rect;
-    setLayout(
-      computeTourLayout({
+    setLayout({
+      ...computeTourLayout({
         target: { top: placed.top, left: placed.left, width: placed.width, height: placed.height },
         viewport,
         insets,
         card: { width: CARD_MAX_WIDTH, height: cardHeight },
         fixed,
       }),
-    );
+      measured: card !== null,
+    });
   }, [step, cardEl]);
 
   // Bij elke stap: meten, scrollen, plaatsen en de aandacht naar de kaart.
@@ -99,17 +101,31 @@ export default function TourOverlay({ tour, onEnd, onStarted }: { tour: KompasTo
     if (!findTarget(step.target)) {
       // Het doel verdween tussen twee stappen: veilig doorgaan of stoppen.
       const next = plan ? nextTourIndex(plan, index, 1, (target) => findTarget(target) !== null) : null;
-      if (next === null) endRef.current("COMPLETED");
-      else setIndex(next);
+      // Uitgesteld: een stap overslaan is een reactie op het DOM, geen gevolg van deze render.
+      queueMicrotask(() => (next === null ? endRef.current("COMPLETED") : setIndex(next)));
       return;
     }
-    measure();
+    // Meten leest de pagina (en scrolt); een frame uitstellen houdt dat los van de render.
+    const frame = requestAnimationFrame(measure);
+    return () => cancelAnimationFrame(frame);
   }, [step, index, plan, measure]);
 
   // De kaart bestaat pas als de plaatsing klaar is; dan krijgt de kop de aandacht (en leest een schermlezer hem voor).
-  const placed = layout !== null;
-  useEffect(() => {
-    if (step && placed) headingRef.current?.focus({ preventScroll: true });
+  const placed = layout?.measured === true;
+  useLayoutEffect(() => {
+    if (!step || !placed) return;
+    const heading = headingRef.current;
+    heading?.focus({ preventScroll: true });
+    // Een element dat nog niet zichtbaar is kan geen focus krijgen: probeer het een paar frames opnieuw.
+    let frame = 0;
+    let tries = 0;
+    const retry = () => {
+      if (!heading || document.activeElement === heading || tries++ > 20) return;
+      heading.focus({ preventScroll: true });
+      frame = requestAnimationFrame(retry);
+    };
+    if (heading && document.activeElement !== heading) frame = requestAnimationFrame(retry);
+    return () => cancelAnimationFrame(frame);
   }, [step, placed]);
 
   // De markering volgt het doel bij scrollen, draaien, het toetsenbord en een kaart die van hoogte verandert.
@@ -124,15 +140,16 @@ export default function TourOverlay({ tour, onEnd, onStarted }: { tour: KompasTo
         const card = cardEl;
         const viewport = { width: document.documentElement.clientWidth, height: window.visualViewport?.height ?? window.innerHeight };
         const rect = element.getBoundingClientRect();
-        setLayout(
-          computeTourLayout({
+        setLayout({
+          ...computeTourLayout({
             target: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
             viewport,
             insets: measureInsets(),
             card: { width: CARD_MAX_WIDTH, height: card?.offsetHeight ?? 180 },
             fixed: isFixedTarget(element),
           }),
-        );
+          measured: card !== null,
+        });
       });
     };
     window.addEventListener("scroll", schedule, { passive: true });
@@ -225,7 +242,7 @@ export default function TourOverlay({ tour, onEnd, onStarted }: { tour: KompasTo
             aria-labelledby={titleId}
             aria-describedby={textId}
             className="fixed flex flex-col gap-3 overflow-y-auto rounded-2xl border border-vs-line bg-vs-elevated p-4 text-vs-fg shadow-[0_12px_40px_-12px_rgb(var(--vs-shadow)/0.45)]"
-            style={{ top: layout.card.top, left: layout.card.left, width: layout.card.width, maxHeight: layout.card.maxHeight }}
+            style={{ top: layout.card.top, left: layout.card.left, width: layout.card.width, maxHeight: layout.card.maxHeight, visibility: layout.measured ? "visible" : "hidden" }}
           >
             <div className="flex items-start justify-between gap-2">
               <p className="pt-2.5 text-xs font-extrabold uppercase tracking-wide text-vs-fg-2" role="status">

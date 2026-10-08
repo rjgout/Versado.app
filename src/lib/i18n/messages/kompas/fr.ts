@@ -4,10 +4,16 @@ import type { PartialMessages } from "../../core";
 export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
   title: "Découvrir Versado",
   entry: {
+    new: "Nouveau",
     title: "Découvrir Versado",
     text: "De courtes explications sur Apprendre, Jouer et plus encore. Ouvre-les quand tu veux.",
   },
   hub: {
+    offersTitle: "Versado peut-il parfois proposer une explication ?",
+    offersText: "Pour quelque chose que tu ouvres pour la première fois, Versado peut demander, au plus une fois par visite, si tu veux une explication. Tu peux toujours l’activer ou le désactiver dans ton profil.",
+    offersYes: "Oui, de temps en temps",
+    offersNo: "Non, merci",
+    offersOn: "D’accord. Tu recevras de temps en temps une invitation.",
     intro: "Ici, tu découvres comment fonctionne Versado. Choisis un sujet, lis une courte explication et essaie tout de suite.",
     mainTitle: "Sur quoi veux-tu en savoir plus ?",
     supportTitle: "Plus sur Versado",
@@ -89,7 +95,7 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
     },
     learn: {
       title: "Apprendre",
-      what: "Apprendre, c’est là que tu suis des cours. Tu lis les Écritures par petits morceaux, puis tu réponds à des questions sur ce que tu as lu.",
+      what: "Apprendre, c’est là que tu suis des cours. Tu avances par petits morceaux, puis tu réponds à des questions sur ce que tu as lu ou entendu.",
       benefit: "Tu retiens mieux ce que tu lis. Tu gagnes des XP pour les bonnes réponses.",
       step1: "Ouvre Apprendre et choisis un cours.",
       step2: "Lis le morceau suivant.",
@@ -131,7 +137,7 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
     together: {
       title: "Ensemble",
       what: "Ensemble, ça parle d’amis et de groupes. Tu vois comment vont tes amis et vous pouvez tenir bon ensemble.",
-      benefit: "À plusieurs, il est plus facile de continuer chaque jour. Vous pouvez vous envoyer un petit signe et construire une série ensemble.",
+      benefit: "À plusieurs, il est plus facile de continuer chaque jour. Vous pouvez vous envoyer un petit signe (un petit coup de pouce, pas un message de chat) et construire une série ensemble.",
       step1: "Ouvre Amis et cherche quelqu’un par son nom, par exemple Jan#83.",
       step2: "Lance une série d’amis avec un ami, ou crée un groupe.",
       step3: "Chacun contribue en s’exerçant le jour qui lui convient. Les contributions et les petits signes ne rapportent pas d’XP.",
@@ -176,7 +182,7 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
       what: "Ta série compte combien de jours d’affilée tu t’es exercé.",
       benefit: "Une série t’aide à en faire un peu chaque jour.",
       step1: "Termine chaque jour un exercice ou un jeu qui compte.",
-      step2: "Si tu manques un jour, Versado utilise automatiquement un gel de série si tu en as un.",
+      step2: "Si tu manques un jour, Versado utilise automatiquement un gel de série si tu en as un. Il préserve ta série.",
       step3: "Si tu n’as plus de gel de série, ta série s’interrompt.",
       more: "Seules les activités terminées comptent. Lire seulement ne compte pas. Une journée suit le fuseau horaire de ton compte.",
     },

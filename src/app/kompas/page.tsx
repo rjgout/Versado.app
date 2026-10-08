@@ -12,6 +12,8 @@ import { KompasIcon } from "@/components/kompas/KompasIcon";
 import { guideMascotState } from "@/lib/kompas/mascot";
 import { surfaceCard } from "@/components/versado/styles";
 import Link from "next/link";
+import MarkViewed from "@/components/kompas/MarkViewed";
+import OffersOptIn from "@/components/kompas/OffersOptIn";
 
 // Ontdek Versado: de permanente plek voor uitleg (Versado Kompas, docs/KOMPAS.md).
 // Eerst de twee hoofdactiviteiten, Leren en Spelen, daaronder de
@@ -29,6 +31,10 @@ export default async function KompasPage() {
   const viewed = (id: string) => Boolean(findRow(rows, { topicId: id, scope: "", kind: "GUIDE" }));
   const tourDone = rows.some((row) => row.topicId === "start" && row.kind === "TOUR" && row.status === "COMPLETED");
 
+  // Alleen bij de eerste keer openen: bestaande accounts hebben uitnodigingen uit en krijgen hier één rustige vraag.
+  const firstVisit = !viewed("versado");
+  const noGames = context.visibleGameIds.length === 0;
+
   const card = (id: string, prominent = false) => {
     const topic = KOMPAS_TOPICS.find((entry) => entry.id === id)!;
     return (
@@ -37,7 +43,7 @@ export default async function KompasPage() {
         href={kompasHref(topic.id)}
         icon={topic.icon}
         title={topicTitle(topic, t, character)}
-        teaser={topicTeaser(topic, t)}
+        teaser={topic.id === "play" && noGames ? t("gamesHub.noGames", { name: active.name }) : topicTeaser(topic, t)}
         viewedLabel={viewed(topic.id) ? t("kompas.topic.viewed") : undefined}
         prominent={prominent}
       />
@@ -46,6 +52,7 @@ export default async function KompasPage() {
 
   return (
     <div className="vs-motion mx-auto flex max-w-5xl flex-col gap-8 sm:gap-10">
+      {firstVisit && <MarkViewed topicId="versado" scope="" />}
       <section aria-labelledby="kompas-intro" className="flex items-center gap-4">
         <div className="min-w-0 flex-1">
           <h1 id="kompas-intro" className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-vs-fg sm:text-3xl">
@@ -97,6 +104,8 @@ export default async function KompasPage() {
           ))}
         </ul>
       </section>
+
+      {firstVisit && !user.kompasOffersEnabled && <OffersOptIn />}
 
       <section aria-labelledby="kompas-tour" className={`${surfaceCard} flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5`}>
         <div className="min-w-0">

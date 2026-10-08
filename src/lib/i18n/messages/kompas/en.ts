@@ -4,10 +4,16 @@ import type { PartialMessages } from "../../core";
 export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
   title: "Discover Versado",
   entry: {
+    new: "New",
     title: "Discover Versado",
     text: "Short explanations of Learn, Play and more. Open it whenever you like.",
   },
   hub: {
+    offersTitle: "Should Versado sometimes offer an explanation?",
+    offersText: "For something you open for the first time, Versado may ask, at most once per visit, whether you would like an explanation. You can always turn this on or off in your profile.",
+    offersYes: "Yes, now and then",
+    offersNo: "No, thanks",
+    offersOn: "Fine. You will get an invitation now and then.",
     intro: "Here you learn how Versado works. Pick a topic, read a short explanation and try it right away.",
     mainTitle: "What would you like to know more about?",
     supportTitle: "More about Versado",
@@ -89,7 +95,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
     },
     learn: {
       title: "Learn",
-      what: "Learn is where you follow courses. You read the Scriptures in small pieces and then answer questions about what you read.",
+      what: "Learn is where you follow courses. You work in small pieces and then answer questions about what you read or heard.",
       benefit: "You remember more of what you read. You earn XP for good answers.",
       step1: "Open Learn and pick a course.",
       step2: "Read the next piece.",
@@ -131,7 +137,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
     together: {
       title: "Together",
       what: "Together is about friends and groups. You see how your friends are doing and you can keep going together.",
-      benefit: "Together it is easier to carry on every day. You can nudge each other and build a streak together.",
+      benefit: "Together it is easier to carry on every day. You can nudge each other (a gentle push, not a chat message) and build a streak together.",
       step1: "Open Friends and look someone up by name, for example Jan#83.",
       step2: "Start a friend streak with a friend, or create a group.",
       step3: "Everyone contributes by practising on their own day. Contributions and nudges earn no XP.",
@@ -176,7 +182,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
       what: "Your streak counts how many days in a row you have practised.",
       benefit: "A streak helps you do a little every day.",
       step1: "Complete an exercise or game that counts every day.",
-      step2: "If you miss a day, Versado automatically uses a streak freeze if you have one.",
+      step2: "If you miss a day, Versado automatically uses a streak freeze if you have one. It keeps your streak.",
       step3: "If you have no streak freeze left, your streak breaks.",
       more: "Only completed activities count. Reading alone does not. A day follows the time zone of your account.",
     },

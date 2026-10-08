@@ -4,10 +4,16 @@ import type { PartialMessages } from "../../core";
 export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
   title: "Descubre Versado",
   entry: {
+    new: "Nuevo",
     title: "Descubre Versado",
     text: "Explicaciones breves sobre Aprender, Jugar y más. Ábrelas cuando quieras.",
   },
   hub: {
+    offersTitle: "¿Puede Versado ofrecerte a veces una explicación?",
+    offersText: "Con algo que abres por primera vez, Versado puede preguntarte, como máximo una vez por visita, si quieres una explicación. Siempre puedes activarlo o desactivarlo en tu perfil.",
+    offersYes: "Sí, de vez en cuando",
+    offersNo: "No, gracias",
+    offersOn: "De acuerdo. Recibirás una invitación de vez en cuando.",
     intro: "Aquí aprendes cómo funciona Versado. Elige un tema, lee una explicación breve y pruébalo enseguida.",
     mainTitle: "¿Sobre qué quieres saber más?",
     supportTitle: "Más sobre Versado",
@@ -89,7 +95,7 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
     },
     learn: {
       title: "Aprender",
-      what: "Aprender es donde sigues cursos. Lees las Escrituras en trozos pequeños y después respondes preguntas sobre lo que leíste.",
+      what: "Aprender es donde sigues cursos. Avanzas en trozos pequeños y después respondes preguntas sobre lo que leíste o escuchaste.",
       benefit: "Recuerdas más de lo que lees. Ganas XP por las buenas respuestas.",
       step1: "Abre Aprender y elige un curso.",
       step2: "Lee el siguiente trozo.",
@@ -131,7 +137,7 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
     together: {
       title: "Juntos",
       what: "Juntos trata de amigos y grupos. Ves cómo les va a tus amigos y pueden seguir adelante juntos.",
-      benefit: "En compañía es más fácil continuar cada día. Pueden darse un toque y construir una racha juntos.",
+      benefit: "En compañía es más fácil continuar cada día. Pueden darse un toque (un empujoncito, no un mensaje de chat) y construir una racha juntos.",
       step1: "Abre Amigos y busca a alguien por su nombre, por ejemplo Jan#83.",
       step2: "Empieza una racha de amigos con un amigo, o crea un grupo.",
       step3: "Cada uno contribuye practicando en su propio día. Las contribuciones y los toques no dan XP.",
@@ -176,7 +182,7 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
       what: "Tu racha cuenta cuántos días seguidos has practicado.",
       benefit: "Una racha te ayuda a hacer un poco cada día.",
       step1: "Completa cada día un ejercicio o juego que cuente.",
-      step2: "Si pierdes un día, Versado usa automáticamente una congelación de racha si tienes una.",
+      step2: "Si pierdes un día, Versado usa automáticamente una congelación de racha si tienes una. Conserva tu racha.",
       step3: "Si ya no tienes congelaciones de racha, tu racha se rompe.",
       more: "Solo cuentan las actividades completadas. Leer solamente no cuenta. Un día sigue la zona horaria de tu cuenta.",
     },

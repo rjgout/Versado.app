@@ -10,10 +10,16 @@
 export const kompasNl = {
   title: "Ontdek Versado",
   entry: {
+    new: "Nieuw",
     title: "Ontdek Versado",
     text: "Korte uitleg over Leren, Spelen en meer. Open het wanneer je wilt.",
   },
   hub: {
+    offersTitle: "Zal Versado soms uitleg aanbieden?",
+    offersText: "Bij een onderdeel dat je voor het eerst opent, kan Versado hoogstens één keer per bezoek vragen of je uitleg wilt. Je kunt dit altijd aan- of uitzetten in je profiel.",
+    offersYes: "Ja, af en toe",
+    offersNo: "Nee, bedankt",
+    offersOn: "Prima. Je krijgt af en toe een uitnodiging.",
     intro: "Hier leer je hoe Versado werkt. Kies een onderdeel, lees een korte uitleg en probeer het meteen zelf.",
     mainTitle: "Waar wil je meer over weten?",
     supportTitle: "Meer over Versado",
@@ -95,7 +101,7 @@ export const kompasNl = {
     },
     learn: {
       title: "Leren",
-      what: "Leren is waar je cursussen volgt. Je leest de Schriften in kleine stukken en beantwoordt daarna vragen over wat je las.",
+      what: "Leren is waar je cursussen volgt. Je werkt in kleine stukken en beantwoordt daarna vragen over wat je las of hoorde.",
       benefit: "Je onthoudt meer van wat je leest. Voor goede antwoorden verdien je XP.",
       step1: "Open Leren en kies een cursus.",
       step2: "Lees het volgende stuk.",
@@ -137,7 +143,7 @@ export const kompasNl = {
     together: {
       title: "Samen",
       what: "Samen gaat over vrienden en groepen. Je ziet hoe het met je vrienden gaat en je kunt samen volhouden.",
-      benefit: "Samen is het makkelijker om elke dag door te gaan. Je kunt elkaar een seintje geven en samen een reeks opbouwen.",
+      benefit: "Samen is het makkelijker om elke dag door te gaan. Je kunt elkaar een seintje geven (een zetje, geen chatbericht) en samen een reeks opbouwen.",
       step1: "Open Vrienden en zoek iemand op met zijn of haar naam, bijvoorbeeld Jan#83.",
       step2: "Start een vriendenreeks met een vriend, of maak een groep.",
       step3: "Iedereen draagt bij door op de eigen dag te oefenen. Bijdragen en seintjes leveren geen XP op.",
@@ -182,7 +188,7 @@ export const kompasNl = {
       what: "Je reeks telt hoeveel dagen op rij je geoefend hebt.",
       benefit: "Een reeks helpt je om elke dag een beetje te doen.",
       step1: "Rond elke dag een oefening of spel af dat meetelt.",
-      step2: "Mis je een dag, dan gebruikt Versado automatisch een reeksbevriezing als je er een hebt.",
+      step2: "Mis je een dag, dan gebruikt Versado automatisch een reeksbevriezing als je er een hebt. Die bewaart je reeks.",
       step3: "Heb je geen reeksbevriezing meer, dan breekt je reeks.",
       more: "Alleen afgeronde activiteiten tellen. Alleen lezen telt niet. Een dag loopt volgens de tijdzone van je account.",
     },

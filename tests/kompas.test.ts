@@ -645,3 +645,47 @@ test("elke visuele Kompas-pagina gebruikt de semantische Versado-tokens en geen 
     assert.ok(!/(aria-label|title|placeholder)="[A-Z][a-zé]+/.test(source), `${file}: vaste tekst in een attribuut`);
   }
 });
+
+// --- Nieuwe schriftbronnen en beschikbaarheid ----------------------------------
+
+test("een nieuwe contentcollectie krijgt zonder codewijziging de algemene uitleg voor elk onderdeel", () => {
+  for (const topic of KOMPAS_TOPICS) {
+    const general = resolveExplanation(nl, topic.id);
+    const fresh = resolveExplanation(nl, topic.id, { work: "nieuw-schriftwerk-zonder-uitleg" });
+    assert.equal(fresh.scope, "", topic.id);
+    assert.deepEqual(fresh.entry, general.entry, topic.id);
+  }
+  assert.deepEqual(resolveWorkIntro(nl, "nieuw-schriftwerk-zonder-uitleg"), { intro: undefined, contents: undefined });
+});
+
+test("de algemene uitleg belooft geen schriftwerk-specifieke functies en bronuitleg belooft geen spellen", () => {
+  const texts = (tree: unknown): string[] => flatten(tree).map((key) => key.split(".").reduce<unknown>((node, part) => (node as Record<string, unknown>)[part], tree) as string);
+  const games = /\b(spel|spellen|game|games|spiel|spiele|jeu|jeux|juego|juegos|jugar|spielen|jouer|play)\b/i;
+  for (const bundle of [kompasNl, kompasEn, kompasDe, kompasFr, kompasEs]) {
+    for (const text of texts(bundle.work)) assert.ok(!games.test(text), `bronuitleg noemt spellen: ${text}`);
+  }
+  // Wat bij een bron hoort aan spellen komt uit de echte gegevens: zonder spellen toont Spelen de bestaande melding.
+  const page = read("src/app/kompas/[topicId]/page.tsx");
+  assert.match(page, /gamesHub\.noGames/);
+  assert.match(read("src/app/kompas/page.tsx"), /noGames/);
+  const none: KompasContext = { work: "podcasts", switcherEnabled: true, visibleGameIds: [] };
+  assert.deepEqual(visibleChildren("play", none), []);
+});
+
+test("bestaande accounts: één rustig label en één eenmalige vraag, geen pop-up en geen nieuwe onboarding", () => {
+  const entry = read("src/components/kompas/KompasEntryCard.tsx");
+  assert.match(entry, /kompas\.entry\.new/);
+  const hub = read("src/app/kompas/page.tsx");
+  assert.match(hub, /firstVisit && !user\.kompasOffersEnabled/);
+  assert.match(hub, /<MarkViewed topicId="versado"/);
+  // De onboarding wordt niet opnieuw afgedwongen: de redirect hangt nog steeds alleen aan onboardingSeenAt.
+  assert.doesNotMatch(read("src/app/dashboard/page.tsx"), /redirect\("\/kompas/);
+});
+
+test("toegankelijkheid van de rondleiding en uitnodiging: dialoog, focus, Escape, live-regio, reduced motion", () => {
+  const overlay = read("src/components/kompas/TourOverlay.tsx");
+  for (const needle of ['role="dialog"', 'aria-modal="true"', "aria-labelledby", "aria-describedby", "Escape", 'role="status"', "returnFocus", "vs-motion", "h-11"]) assert.ok(overlay.includes(needle), needle);
+  const offer = read("src/components/kompas/ContextOffer.tsx");
+  assert.match(offer, /aria-live="polite"/);
+  assert.match(offer, /Escape/);
+});

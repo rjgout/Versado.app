@@ -89,6 +89,19 @@ export default function ContextOffer({ work }: { work: string | null }) {
     return () => window.clearTimeout(timer);
   }, [decision, topicId, scope, shown]);
 
+  // Escape wijst de uitnodiging af, zoals "Nu niet".
+  const open = Boolean(shown && topic && shown.topicId === topic.id);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || !shown) return;
+      setShown(null);
+      void recordKompasState({ topicId: shown.topicId, scope: shown.scope, kind: "GUIDE", status: "SKIPPED" });
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, shown]);
+
   if (!shown || !topic || shown.topicId !== topic.id || !explanation) return null;
 
   const title = topicTitle(topic, t, character);
@@ -108,6 +121,7 @@ export default function ContextOffer({ work }: { work: string | null }) {
     <div
       role="region"
       aria-label={t("kompas.offer.region")}
+      aria-live="polite"
       className="vs-motion pointer-events-none fixed inset-x-0 bottom-[calc(4.75rem+var(--vs-safe-area-bottom))] z-30 px-4 lg:bottom-6"
     >
       <div className="vs-rise pointer-events-auto mx-auto flex w-full max-w-md flex-col gap-3 rounded-2xl border border-vs-line bg-vs-elevated p-4 shadow-[0_12px_40px_-12px_rgb(var(--vs-shadow)/0.45)]">

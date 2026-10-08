@@ -4,10 +4,16 @@ import type { PartialMessages } from "../../core";
 export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
   title: "Versado entdecken",
   entry: {
+    new: "Neu",
     title: "Versado entdecken",
     text: "Kurze Erklärungen zu Lernen, Spielen und mehr. Öffne sie, wann immer du willst.",
   },
   hub: {
+    offersTitle: "Soll Versado dir manchmal eine Erklärung anbieten?",
+    offersText: "Bei etwas, das du zum ersten Mal öffnest, darf Versado höchstens einmal pro Besuch fragen, ob du eine Erklärung möchtest. Du kannst das jederzeit in deinem Profil ein- oder ausschalten.",
+    offersYes: "Ja, ab und zu",
+    offersNo: "Nein, danke",
+    offersOn: "Gut. Du bekommst ab und zu eine Einladung.",
     intro: "Hier lernst du, wie Versado funktioniert. Wähle ein Thema, lies eine kurze Erklärung und probiere es gleich selbst aus.",
     mainTitle: "Worüber möchtest du mehr wissen?",
     supportTitle: "Mehr über Versado",
@@ -89,7 +95,7 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
     },
     learn: {
       title: "Lernen",
-      what: "Bei Lernen folgst du Kursen. Du liest die heiligen Schriften in kleinen Abschnitten und beantwortest danach Fragen zu dem, was du gelesen hast.",
+      what: "Bei Lernen folgst du Kursen. Du arbeitest in kleinen Abschnitten und beantwortest danach Fragen zu dem, was du gelesen oder gehört hast.",
       benefit: "Du behältst mehr von dem, was du liest. Für gute Antworten bekommst du XP.",
       step1: "Öffne Lernen und wähle einen Kurs.",
       step2: "Lies den nächsten Abschnitt.",
@@ -131,7 +137,7 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
     together: {
       title: "Gemeinsam",
       what: "Gemeinsam geht es um Freunde und Gruppen. Du siehst, wie es deinen Freunden geht, und ihr könnt zusammen durchhalten.",
-      benefit: "Gemeinsam fällt es leichter, jeden Tag weiterzumachen. Ihr könnt euch einen Stups geben und zusammen eine Serie aufbauen.",
+      benefit: "Gemeinsam fällt es leichter, jeden Tag weiterzumachen. Ihr könnt euch einen Stups geben (ein kleiner Anstoß, keine Chatnachricht) und zusammen eine Serie aufbauen.",
       step1: "Öffne Freunde und suche jemanden mit dem Namen, zum Beispiel Jan#83.",
       step2: "Starte mit einem Freund eine Freundesserie oder erstelle eine Gruppe.",
       step3: "Alle tragen bei, indem sie an ihrem eigenen Tag üben. Beiträge und Stupser bringen keine XP.",
@@ -176,7 +182,7 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
       what: "Deine Serie zählt, an wie vielen Tagen in Folge du geübt hast.",
       benefit: "Eine Serie hilft dir, jeden Tag ein bisschen zu tun.",
       step1: "Schließe jeden Tag eine Übung oder ein Spiel ab, das zählt.",
-      step2: "Verpasst du einen Tag, setzt Versado automatisch einen Serien-Freeze ein, wenn du einen hast.",
+      step2: "Verpasst du einen Tag, setzt Versado automatisch einen Serien-Freeze ein, wenn du einen hast. Er bewahrt deine Serie.",
       step3: "Hast du keinen Serien-Freeze mehr, bricht deine Serie ab.",
       more: "Nur abgeschlossene Aktivitäten zählen. Reines Lesen nicht. Ein Tag richtet sich nach der Zeitzone deines Kontos.",
     },

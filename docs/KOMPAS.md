@@ -178,6 +178,43 @@ vierpuntige ster) in de stijl van de lucide-iconen; geen nieuw mascotontwerp.
 Animatie of audio is niet nodig; een latere uitbreiding past in `guideMascotState`
 en de kaart.
 
+## Beschikbaarheid per bron: uitleg belooft nooit wat er niet is
+
+Uitleg mag alleen beloven wat de gebruiker met de gekozen bron echt kan. Hoe dat
+wordt bewaakt:
+
+- **Algemene uitleg is bronneutraal.** `kompas.topics.*` noemt geen schriftwerk
+  en praat over "cursussen" en "de Schriften"; schriftwerk-specifieke dingen
+  (zoals "afdeling" bij de Leer en Verbonden) staan alleen onder `kompas.work.<werk>`.
+  Een nieuwe collectie krijgt dus zonder codewijziging de algemene uitleg
+  (`resolveExplanation` geeft `scope: ""`; getest voor elk onderdeel).
+- **Bronuitleg noemt geen spellen.** Welke spellen er zijn hangt af van de
+  gekozen content (`GameContentScope`) en de spelinstellingen. Daarom komt de
+  spellenlijst uit de echte gegevens (`getKompasPageData` → `visibleGameIds` via
+  `isGameVisible`), en toont Spelen bij een bron zonder spellen de bestaande
+  melding (`gamesHub.noGames`) in plaats van een belofte. `tests/kompas.test.ts`
+  weigert spelwoorden in `kompas.work.*`.
+- **Functies die er niet altijd zijn** hebben `requires` in het register (nu
+  `switcher`: alleen als de contentkiezer aanstaat of voor beheerders), en
+  rondleidingsstappen met een ontbrekend doel worden overgeslagen. Voeg je een
+  functie toe die niet voor elke bron of gebruiker bestaat, geef die dan een
+  eigen `requires`-voorwaarde in `KompasRequirement`/`isTopicVisible` en vul die
+  in `getKompasPageData` uit de echte bron van waarheid, nooit uit een vaste lijst.
+- **Controleer bij een nieuwe bron** op de Leren- en Spelen-pagina met de
+  contentkiezer: staat er niets beloofd wat deze bron niet heeft?
+
+## Bestaande en nieuwe accounts
+
+- Nieuw account: de kennismaking staat in de onboarding; uitnodigingen staan aan.
+- Bestaand account: geen onboarding opnieuw, geen pop-up. `kompasOffersEnabled`
+  is `false` (migratiebeleid: geen terugwerkend gedrag). De kennismaking is
+  eenmalig en rustig: een label "Nieuw" op de ingang `KompasEntryCard` tot
+  Ontdek Versado voor het eerst is geopend, en op die eerste keer één vraag
+  (`OffersOptIn`) of Versado soms uitleg mag aanbieden. Daarna komt noch label
+  noch vraag terug (`versado` staat dan als bekeken); het antwoord is altijd te
+  wijzigen in het profiel. Eerdere keuzes worden gerespecteerd: een expliciet
+  uitgezette schakelaar wordt nooit zonder vraag aangezet.
+
 ## Een nieuwe functie, schriftbron, activiteit of taal toevoegen
 
 **Checklist bij elke nieuwe of wezenlijk gewijzigde, voor gebruikers zichtbare
