@@ -5,9 +5,10 @@ import assert from "node:assert/strict";
 import Module from "node:module";
 import { createElement as h } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { continueVisibilityKey, visibleContinueItems, type ContinueItem } from "../src/lib/today";
+import { compactContinueItems, continueVisibilityKey, visibleContinueItems, type ContinueItem } from "../src/lib/today";
+import { introResumeHref, kidsResumeHref, podcastResumeHref, readingResumeHref } from "../src/lib/courseResume";
 import { I18nProvider } from "../src/components/I18nProvider";
-import { messagesFor } from "../src/lib/i18n";
+import { getT, messagesFor } from "../src/lib/i18n";
 
 const localRequire = Module.createRequire(import.meta.url);
 localRequire.cache[localRequire.resolve("next/image")] = {
@@ -44,6 +45,43 @@ test("nieuwe activiteit maakt dezelfde inhoud weer relevant", () => {
   assert.deepEqual(visibleContinueItems([resumed], new Set([oldState.visibilityKey])).map((item) => item.key), ["course-a"]);
 });
 
+test("Ga verder houdt maximaal drie meest recente kaarten over en laat na verbergen de volgende doorschuiven", () => {
+  const items = [
+    sample("course-old", "2026-10-01T12:00:00.000Z"),
+    sample("course-second", "2026-10-02T12:00:00.000Z"),
+    sample("course-third", "2026-10-03T12:00:00.000Z"),
+    sample("course-new", "2026-10-04T12:00:00.000Z"),
+  ];
+
+  assert.deepEqual(compactContinueItems(items, new Set()).map((item) => item.key), ["course-new", "course-third", "course-second"]);
+  assert.deepEqual(
+    compactContinueItems(items, new Set([items[3].visibilityKey])).map((item) => item.key),
+    ["course-third", "course-second", "course-old"]
+  );
+});
+
+test("alleen bestaande concrete detailroutes gelden als hervatpunt", () => {
+  assert.equal(
+    readingResumeHref({ courseId: "course", type: "FRONT_TO_BACK", currentChapterId: "alma-32", currentLessonId: null }),
+    "/lesson/alma-32?cursus=course"
+  );
+  assert.equal(
+    readingResumeHref({ courseId: "course", type: "BY_BOOK", currentChapterId: "alma-32", currentLessonId: null }),
+    "/lesson/alma-32?cursus=course"
+  );
+  assert.equal(
+    readingResumeHref({ courseId: "course", type: "READING_LESSONS", currentChapterId: null, currentLessonId: "lesson-32" }),
+    "/reading-lesson/lesson-32"
+  );
+  assert.equal(readingResumeHref({ courseId: "course", type: "READING_LESSONS", currentChapterId: null, currentLessonId: null }), null);
+  assert.equal(readingResumeHref({ courseId: "course", type: "KIDS", currentChapterId: null, currentLessonId: null }), null);
+  assert.equal(kidsResumeHref("story-1"), "/kids/story-1");
+  assert.equal(introResumeHref("intro-1"), "/intro/intro-1");
+  assert.equal(podcastResumeHref("episode-1", "CONTENT"), "/podcast/episode-1/CONTENT");
+  assert.equal(podcastResumeHref("episode-1", "BOM_CONNECTION"), "/podcast/episode-1/BOM_CONNECTION");
+  assert.equal(podcastResumeHref("episode-1", null), null);
+});
+
 test("Ga verder hergebruikt het kaartmenu zonder sleepbediening", () => {
   const item = sample("course-a");
   const html = renderToStaticMarkup(
@@ -54,6 +92,7 @@ test("Ga verder hergebruikt het kaartmenu zonder sleepbediening", () => {
     })
   );
   assert.match(html, /aria-label="Beheer course-a"[^>]*aria-haspopup="menu"/);
+  assert.equal(getT("nl")("today.hideContinue"), "Verbergen uit Ga verder");
   assert.match(html, /card-title-link/);
   assert.doesNotMatch(html, /course-a verplaatsen/);
 });

@@ -45,7 +45,7 @@ function ContinueCard({ item, language, hiding, onHide }: { item: ContinueItem; 
             </MediaArtwork>
           </Link>
         </div>
-        <CardMenu title={item.title} actions={[{ label: t("cards.hide"), icon: EyeOff, onSelect: onHide, disabled: hiding }]} />
+        <CardMenu title={item.title} actions={[{ label: t("today.hideContinue"), icon: EyeOff, onSelect: onHide, disabled: hiding }]} />
       </div>
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="min-w-0">
@@ -84,7 +84,7 @@ function ContinueCard({ item, language, hiding, onHide }: { item: ContinueItem; 
   );
 }
 
-export default function ContinueSection({ items: initialItems, language }: { items: ContinueItem[]; language: string }) {
+function ContinueSectionContent({ initialItems, language }: { initialItems: ContinueItem[]; language: string }) {
   const t = getT(language);
   const [items, setItems] = useState(initialItems);
   const [hidingKey, setHidingKey] = useState<string | null>(null);
@@ -122,4 +122,12 @@ export default function ContinueSection({ items: initialItems, language }: { ite
       )}
     </section>
   );
+}
+
+export default function ContinueSection({ items, language }: { items: ContinueItem[]; language: string }) {
+  // Bij wisselen van contentcontext of nieuwe voortgang komt een verse
+  // serverlijst binnen. Door de inhoudssleutels als key te gebruiken nemen we
+  // die over zonder de lokale hide-state van de vorige context mee te nemen.
+  const stateKey = items.map((item) => item.visibilityKey).join("|");
+  return <ContinueSectionContent key={stateKey} initialItems={items} language={language} />;
 }

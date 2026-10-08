@@ -427,6 +427,7 @@ export const es: PartialMessages = {
     },
     "declineAria": "Rechazar la solicitud de {name}",
     "continueTitle": "Continúa",
+    "hideContinue": "Ocultar de Continúa",
     "kind": {
       "course": "Curso",
       "podcast": "Pódcast",
