@@ -61,7 +61,7 @@ export default async function KompasPage() {
           </h1>
           <p className="mt-2 max-w-prose text-base leading-relaxed text-vs-fg-2 sm:text-lg">{t("kompas.hub.intro")}</p>
         </div>
-        <div className="aspect-square w-[clamp(5.5rem,24vw,8rem)] shrink-0">
+        <div className="aspect-square w-[clamp(88px,24vw,8rem)] shrink-0 vs-decor">
           <PersonalMascot state={guideMascotState(character)} size={128} fill />
         </div>
       </section>

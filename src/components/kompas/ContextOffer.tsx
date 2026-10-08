@@ -126,7 +126,7 @@ export default function ContextOffer({ work }: { work: string | null }) {
     >
       <div className="vs-rise pointer-events-auto mx-auto flex w-full max-w-md flex-col gap-3 rounded-2xl border border-vs-line bg-vs-elevated p-4 shadow-[0_12px_40px_-12px_rgb(var(--vs-shadow)/0.45)]">
         <div className="flex items-start gap-3">
-          <div className="aspect-square w-14 shrink-0">
+          <div className="aspect-square w-[56px] shrink-0 vs-decor">
             <PersonalMascot state={guideMascotState(character)} size={56} fill />
           </div>
           <div className="min-w-0 flex-1">

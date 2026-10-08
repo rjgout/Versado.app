@@ -259,7 +259,7 @@ function KompasStep({ switcherEnabled, onNext, onTry, busy }: { switcherEnabled:
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
-        <div className="aspect-square w-[clamp(5rem,22vw,6.5rem)] shrink-0">
+        <div className="aspect-square w-[clamp(80px,22vw,6.5rem)] shrink-0 vs-decor">
           <PersonalMascot state={guideMascotState(character)} size={104} fill />
         </div>
         <div className="min-w-0">
