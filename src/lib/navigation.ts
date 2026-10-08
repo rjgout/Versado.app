@@ -27,7 +27,7 @@ export interface PrimaryNavItem {
 }
 
 export const PRIMARY_NAV: PrimaryNavItem[] = [
-  { id: "today", href: "/dashboard", labelKey: "nav.today", match: ["/dashboard"] },
+  { id: "today", href: "/dashboard", labelKey: "nav.today", match: ["/dashboard", "/acties"] },
   {
     id: "learn",
     href: "/courses",

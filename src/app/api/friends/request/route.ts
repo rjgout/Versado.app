@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { notifyFriendRequest } from "@/lib/notify";
 import { apiError } from "@/lib/apiError";
+import { emitToUser } from "@/lib/realtime";
 
 const schema = z.object({ targetUserId: z.string().trim().min(1) });
 
@@ -38,6 +39,7 @@ export async function POST(req: NextRequest) {
   });
 
   notifyFriendRequest(target.id, user.handle).catch(() => {});
+  emitToUser(target.id, "friends_changed");
 
   return NextResponse.json({ id: friendship.id });
 }

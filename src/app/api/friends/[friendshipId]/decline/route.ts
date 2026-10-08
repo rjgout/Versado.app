@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
+import { emitToUser } from "@/lib/realtime";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ friendshipId: string }> }) {
   const user = await getCurrentUser();
@@ -14,5 +15,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ fr
   }
 
   await prisma.friendship.delete({ where: { id: friendshipId } });
+  const otherUserId = friendship.senderId === user.id ? friendship.receiverId : friendship.senderId;
+  emitToUser(otherUserId, "friends_changed");
   return NextResponse.json({ ok: true });
 }

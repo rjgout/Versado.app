@@ -1,15 +1,12 @@
 "use client";
 
-import { useState, type MouseEvent } from "react";
+import { type MouseEvent } from "react";
 import Link from "next/link";
-import { ArrowRight, Gamepad2, X } from "lucide-react";
-import { getSocket } from "@/lib/socketClient";
+import { ArrowRight, Gamepad2 } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
 import { useT } from "@/components/I18nProvider";
-import { useConfirm } from "@/components/ConfirmProvider";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { ApiRequestError, fetchJson } from "@/lib/data/fetchJson";
-import { liveMutation } from "@/lib/data/mutation";
 
 interface ActivityItem {
   kind: "challenge" | "scrabble" | "live" | "chapter-guess-solo";
@@ -37,11 +34,11 @@ interface ActivityStatus {
 // ook een lege staat en een foutmelding: voorheen verdween het blok stil bij
 // een mislukte fetch, waardoor "geen spellen" en "kon niet laden" (zoals in
 // de geïnstalleerde webapp) niet van elkaar te onderscheiden waren.
+// Intrekken gebeurt vanuit /acties via liveMutation({ invalidates: "gamesChanged" });
+// De compacte kaart houdt daardoor hooguit drie rijen zonder functionaliteit
+// te dupliceren.
 export default function ActiveGamesBanner() {
   const t = useT();
-  const confirm = useConfirm();
-  // Voorkomt dubbel annuleren terwijl het verzoek nog loopt.
-  const [cancelling, setCancelling] = useState<string | null>(null);
 
   // Lopende spellen en uitnodigingen veranderen buiten deze pagina om (de ander accepteert, een
   // beurt, een ingetrokken uitnodiging). De server meldt dat via de bestaande socket-gebeurtenissen
@@ -79,28 +76,6 @@ export default function ActiveGamesBanner() {
     // serverdata ook welke cursussen, spellen en andere menu's zichtbaar zijn.
     // router.refresh() alleen kan bestaande client-state laten staan.
     window.location.assign(item.link);
-  }
-
-  async function cancelInvite(item: ActivityItem) {
-    if (item.kind === "live") {
-      if (!(await confirm(t("activeGames.confirmEnd")))) return;
-      // De banner ververst zichzelf pas via het "game_cancelled"-event
-      // hierboven, zodra de server het spel écht heeft verwijderd.
-      getSocket().emit("cancel_game", { code: item.code });
-      return;
-    }
-    if (!(await confirm(t("activeGames.confirmCancel", { name: item.opponentName ?? "" })))) return;
-    setCancelling(item.id);
-    const url = item.kind === "scrabble" ? `/api/scrabble/${item.id}/cancel` : `/api/challenges/${item.id}/cancel`;
-    try {
-      await liveMutation(() => fetchJson(url, { method: "POST" }), { invalidates: "gamesChanged" });
-    } catch (error) {
-      // Meestal: de ander heeft net geaccepteerd. Toon dan de actuele stand.
-      const message = error instanceof ApiRequestError && !error.message.startsWith("HTTP ") ? error.message : null;
-      window.alert(message ?? t("activeGames.cancelFailed"));
-      void query.refetch();
-    }
-    setCancelling(null);
   }
 
   const heading = <h2 className="text-sm font-extrabold text-vs-fg">{t("activeGames.title")}</h2>;
@@ -170,88 +145,23 @@ export default function ActiveGamesBanner() {
     );
   }
 
+  const actionItems = [
+    ...liveInvitesReceived.map((item) => ({ item, invitation: true })),
+    ...invitesReceived.map((item) => ({ item, invitation: true })),
+    ...activeGames.filter((item) => item.myTurn === true).map((item) => ({ item, invitation: false })),
+  ];
+  const otherCount = invitesSent.length + activeGames.filter((item) => item.myTurn !== true).length;
   return (
     <div className="flex flex-col gap-2 rounded-2xl border border-vs-line bg-vs-surface px-4 py-3 shadow-sm">
       {heading}
-      {liveInvitesReceived.length > 0 && (
-        <div className="flex flex-col gap-1">
-          {liveInvitesReceived.map((item) => (
-            <Link
-              key={`live-invite-${item.id}`}
-              href={item.link}
-              onClick={(event) => openGame(item, event)}
-              className="animate-invite-glow flex min-h-14 items-center gap-3 rounded-2xl border border-brand-300 bg-gradient-to-r from-brand-50 to-gold-50 px-2.5 py-2 transition active:scale-[0.99] dark:from-slate-800 dark:to-slate-800 dark:border-brand-600"
-            >
-              {item.opponentId ? (
-                <UserAvatar id={item.opponentId} handle={item.opponentName ?? ""} />
-              ) : (
-                <Gamepad2 className="h-8 w-8 shrink-0 rounded-full bg-white/60 p-1.5 text-brand-700 dark:bg-slate-700 dark:text-brand-300" aria-hidden />
-              )}
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-extrabold text-brand-800 dark:text-brand-200 leading-snug">{item.opponentName ?? item.label}</span>
-                <span className="block truncate text-xs text-slate-500 dark:text-slate-400 leading-snug">{t("activeGames.invitedLabel")} · {item.label}</span>
-              </span>
-              <span className="btn-primary !px-3 !py-1.5 !text-xs shrink-0">{t("activeGames.join")}</span>
-            </Link>
-          ))}
-        </div>
-      )}
-
-      {invitesReceived.length > 0 && (
-        <div className="flex flex-col gap-1">
-          {invitesReceived.map((item) => (
-            <ActivityRow key={`${item.kind}-${item.id}`} item={item} invitation />
-          ))}
-        </div>
-      )}
-
-      {activeGames.length > 0 && (
-        <div className="flex flex-col gap-1">
-          {[...activeGames].sort((a, b) => Number(b.myTurn === true) - Number(a.myTurn === true)).map((item) => (
-            <ActivityRow key={`${item.kind}-${item.id}`} item={item} />
-          ))}
-        </div>
-      )}
-
-      {invitesSent.length > 0 && (
-        <div className="flex flex-col gap-1">
-          {invitesSent.map((item) => (
-            // Een verstuurde uitnodiging blijft anders eindeloos wachten; daarom
-            // naast de knop naar het spel altijd een knop om in te trekken.
-            <div key={`sent-${item.kind}-${item.id}-${item.opponentId}`} className="flex min-h-14 items-center gap-2 rounded-2xl px-2.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/70">
-              <Link
-                href={item.link}
-                onClick={(event) => openGame(item, event)}
-                className="flex min-w-0 flex-1 items-center gap-3"
-              >
-                {item.opponentId ? (
-                  <UserAvatar id={item.opponentId} handle={item.opponentName ?? ""} size="sm" />
-                ) : (
-                  <Gamepad2 className="h-8 w-8 shrink-0 rounded-full bg-slate-100 p-1.5 text-slate-500 dark:bg-slate-700 dark:text-slate-300" aria-hidden />
-                )}
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-extrabold text-slate-800 dark:text-slate-100">{item.opponentName ?? item.label}</span>
-                  <span className="block truncate text-xs text-slate-500 dark:text-slate-400">{t("activeGames.waitingLabel", { name: item.opponentName ?? "" })} · {item.label}</span>
-                </span>
-                <ArrowRight className="ml-auto h-4 w-4 shrink-0 text-slate-400 dark:text-slate-500" aria-hidden />
-              </Link>
-              <button
-                onClick={() => cancelInvite(item)}
-                disabled={cancelling === item.id}
-                aria-label={
-                  item.kind === "live"
-                    ? t("activeGames.endAria", { name: item.opponentName ?? "" })
-                    : t("activeGames.cancelAria", { name: item.opponentName ?? "" })
-                }
-                title={item.kind === "live" ? t("activeGames.end") : t("activeGames.cancel")}
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-red-500 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
-              >
-                <X className="h-4 w-4" aria-hidden />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+      {actionItems.length > 0 ? (
+        <>
+          <p className="text-sm font-bold text-vs-fg-2">{t("activeGames.attentionCount", { n: actionItems.length })}</p>
+          <div className="flex flex-col gap-1">{actionItems.slice(0, 3).map(({ item, invitation }) => <ActivityRow key={`${item.kind}-${item.id}`} item={item} invitation={invitation} />)}</div>
+          <Link href="/acties" className="inline-flex items-center gap-1 self-start text-sm font-extrabold text-vs-accent">{t("activeGames.viewAllActions", { n: actionItems.length })}<ArrowRight className="h-4 w-4" /></Link>
+        </>
+      ) : <p className="text-sm font-bold text-vs-fg">{t("activeGames.allCaughtUp")}</p>}
+      {otherCount > 0 && <><p className="text-sm text-vs-fg-2">{t("activeGames.otherActive", { n: otherCount })}</p><Link href="/acties?tab=continue" className="inline-flex items-center gap-1 self-start text-sm font-extrabold text-vs-accent">{t("activeGames.viewAllActive")}<ArrowRight className="h-4 w-4" /></Link></>}
     </div>
   );
 }

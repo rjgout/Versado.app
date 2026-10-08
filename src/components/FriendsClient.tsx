@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Clock3, MoreHorizontal } from "lucide-react";
 import { formatTag } from "@/lib/handle";
 import { getSocket } from "@/lib/socketClient";
@@ -227,16 +228,6 @@ export default function FriendsClient({ appName }: { appName: string }) {
     }
   }
 
-  async function respond(friendshipId: string, action: "accept" | "decline", otherUserId: string) {
-    try {
-      await liveMutation(() => fetchJson(`/api/friends/${friendshipId}/${action}`, { method: "POST" }), { invalidates: "friendsChanged" });
-      if (action === "accept") getSocket().emit("friendship_changed", { otherUserId });
-    } catch {
-      // De lijst toont de werkelijke stand (bv. de ander had het verzoek al ingetrokken).
-      invalidateData("friendsChanged");
-    }
-  }
-
   async function removeFriendship(friendshipId: string, kind: "request" | "friendship") {
     if (!(await confirm(t(kind === "request" ? "friends.confirmRemoveRequest" : "friends.confirmRemoveFriendship")))) return;
     try {
@@ -396,7 +387,7 @@ export default function FriendsClient({ appName }: { appName: string }) {
             </span>
           </h2>
           <div className="flex flex-col gap-2">
-            {data.incoming.map(({ friendshipId, from }) => (
+            {data.incoming.slice(0, 3).map(({ friendshipId, from }) => (
               <div
                 key={friendshipId}
                 className="card !py-3 !bg-gold-50 dark:!bg-slate-800 !border-gold-400/30 dark:!border-slate-700 flex items-center justify-between gap-3 flex-wrap"
@@ -405,17 +396,11 @@ export default function FriendsClient({ appName }: { appName: string }) {
                   <UserAvatar id={from.id} handle={from.handle} avatarEmoji={from.avatarEmoji} size="md" />
                   <UserTag handle={from.handle} discriminator={from.discriminator} />
                 </span>
-                <div className="flex gap-2">
-                  <button className="btn-primary !px-3 !py-1.5" onClick={() => respond(friendshipId, "accept", from.id)}>
-                    {t("challenges.accept")}
-                  </button>
-                  <button className="btn-secondary !px-3 !py-1.5" onClick={() => respond(friendshipId, "decline", from.id)}>
-                    {t("challenges.decline")}
-                  </button>
-                </div>
+                <Link href="/acties" className="btn-primary !px-3 !py-1.5">{t("today.cta.view")}</Link>
               </div>
             ))}
           </div>
+          <Link href="/acties" className="self-start text-sm font-extrabold text-vs-accent hover:underline">{t("actionCenter.viewAllRequests", { n: data.incoming.length })}</Link>
         </section>
       )}
 

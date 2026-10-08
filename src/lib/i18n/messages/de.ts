@@ -3198,4 +3198,11 @@ export const de: PartialMessages = {
       },
     },
   },
+  actionCenter: {
+    title: "Offene Aktionen", tabs: { required: "Aktion erforderlich", continue: "Fortsetzen", waiting: "Warten" },
+    friendRequest: "{name} möchte befreundet sein", groupInvite: "Gruppeneinladung: {name}", groupRequest: "Beitrittsanfrage von {name}",
+    liveInvite: "{name} hat dich eingeladen", gameInvite: "{name} hat dich herausgefordert", continue: "Fortsetzen", waiting: "Warten auf Gegner",
+    allCaughtUp: "Du bist auf dem neuesten Stand!", allCaughtUpHint: "Keine Aktion benötigt deine Aufmerksamkeit.", empty: "Keine offenen Aktivitäten.", loadMore: "Mehr laden",
+    viewAllRequests: "Alle {n} Anfragen anzeigen", viewAllGroupActions: "Alle {n} Gruppenaktionen anzeigen",
+  },
 };

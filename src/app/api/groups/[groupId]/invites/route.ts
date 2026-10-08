@@ -6,6 +6,7 @@ import { activeMembership, inviteToGroup } from "@/lib/social/groups";
 import { invitableFriends } from "@/lib/social/groupViews";
 import { socialError } from "@/lib/social/http";
 import { prisma } from "@/lib/db";
+import { emitToUser } from "@/lib/realtime";
 
 /** Eigen vrienden die je voor deze groep kunt uitnodigen. */
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ groupId: string }> }) {
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gro
   const { groupId } = await params;
   try {
     await inviteToGroup(user.id, groupId, parsed.data.userId);
+    emitToUser(parsed.data.userId, "data_event", { event: "groupsChanged" });
     return NextResponse.json({ ok: true });
   } catch (error) {
     return socialError(error);

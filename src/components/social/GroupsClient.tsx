@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
 import { ChevronRight, Plus, ShieldCheck, Trophy, UsersRound } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import UserAvatar from "@/components/UserAvatar";
 import { interactiveCard, primaryButton, secondaryButton, surfaceCard } from "@/components/versado/styles";
 import GroupTodayLine, { type GroupTodayData } from "@/components/social/GroupTodayLine";
-import { SocialHeading, StreakBadge, socialRequest, type Person } from "@/components/social/shared";
+import { SocialHeading, StreakBadge, type Person } from "@/components/social/shared";
+import { useLiveQuery } from "@/lib/data/hooks";
+import { fetchJson } from "@/lib/data/fetchJson";
 
 interface GroupsData {
   groups: { id: string; name: string; memberCount: number; currentStreak: number; streakInterruptedDay: string | null; role: "ADMIN" | "MEMBER"; today: GroupTodayData }[];
@@ -18,30 +19,8 @@ interface GroupsData {
 /** Groepenoverzicht: uitnodigingen, je eigen groepen met de stand van vandaag, aanmaken en de ranglijst. */
 export default function GroupsClient() {
   const t = useT();
-  const [data, setData] = useState<GroupsData | null>(null);
-  const [failed, setFailed] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    const res = await fetch("/api/groups").catch(() => null);
-    if (!res?.ok) {
-      setFailed(true);
-      return;
-    }
-    setFailed(false);
-    setData(await res.json());
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  async function respond(inviteId: string, accept: boolean) {
-    setMessage(null);
-    const result = await socialRequest(`/api/group-invites/${inviteId}`, { accept });
-    if (!result.ok) setMessage(result.error ?? t("together.common.error"));
-    load();
-  }
+  const query = useLiveQuery<GroupsData>(["groups", "list"], () => fetchJson<GroupsData>("/api/groups"), { scopes: ["groups"], staleTime: 1_000 });
+  const data = query.data ?? null;
 
   const members = (n: number) => (n === 1 ? t("together.common.membersOne") : t("together.common.membersMany", { n }));
   const full = !!data && data.groups.length >= data.limit;
@@ -73,18 +52,13 @@ export default function GroupsClient() {
         </div>
       </header>
 
-      {message && (
-        <p role="status" className="text-sm font-semibold text-vs-danger">
-          {message}
-        </p>
-      )}
-      {failed && !data && <p className="text-sm text-vs-danger">{t("together.common.error")}</p>}
-      {!data && !failed && <p className="text-sm text-vs-fg-3">{t("common.loading")}</p>}
+      {!data && Boolean(query.error) && <p className="text-sm text-vs-danger">{t("together.common.error")}</p>}
+      {!data && !query.error && <p className="text-sm text-vs-fg-3">{t("common.loading")}</p>}
 
       {data && data.invites.length > 0 && (
         <section aria-labelledby="group-invites" className="flex flex-col gap-2.5">
           <SocialHeading id="group-invites" title={t("together.groupsPage.invitesTitle")} />
-          {data.invites.map((invite) => (
+          {data.invites.slice(0, 3).map((invite) => (
             <div key={invite.id} className={`${surfaceCard} flex flex-wrap items-center gap-3 p-4`}>
               <UserAvatar id={invite.inviter.id} handle={invite.inviter.handle} avatarEmoji={invite.inviter.avatarEmoji} size="md" />
               <div className="min-w-[12rem] flex-1">
@@ -95,16 +69,10 @@ export default function GroupsClient() {
                   <StreakBadge days={invite.group.currentStreak} />
                 </p>
               </div>
-              <div className="flex gap-2">
-                <button type="button" className={primaryButton} onClick={() => respond(invite.id, true)}>
-                  {t("together.groupsPage.join")}
-                </button>
-                <button type="button" className={secondaryButton} onClick={() => respond(invite.id, false)}>
-                  {t("together.groupsPage.decline")}
-                </button>
-              </div>
+              <Link href="/acties" className={primaryButton}>{t("today.cta.view")}</Link>
             </div>
           ))}
+          <Link href="/acties" className="self-start text-sm font-extrabold text-vs-accent hover:underline">{t("actionCenter.viewAllGroupActions", { n: data.invites.length })}</Link>
         </section>
       )}
 

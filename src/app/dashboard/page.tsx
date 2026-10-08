@@ -53,9 +53,9 @@ export default async function DashboardPage() {
         {/* Vaste plek: direct boven "Wacht op jou". Rendert zelf niets (dus
             ook geen lege rij of marge) als hij niet zichtbaar is. */}
         {user.conferenceCountdownEnabled && <GeneralConferenceCountdown serverNow={serverNow} timeZone={timeZone} className="min-w-0 lg:col-start-1" />}
-        {data.actions.length > 0 && (
+        {data.actionTotal > 0 && (
           <div className="min-w-0 lg:col-start-1">
-            <OpenActions actions={data.actions} language={language} />
+            <OpenActions actions={data.actions} total={data.actionTotal} language={language} />
           </div>
         )}
         {data.continueItems.length > 0 && (

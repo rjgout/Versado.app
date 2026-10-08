@@ -17,27 +17,30 @@ function describe(action: OpenAction): { titleKey: MessageKey; ctaKey: MessageKe
   switch (action.kind) {
     case "friend-request":
       return { titleKey: "today.action.friendRequest", ctaKey: "today.cta.accept" };
+    case "group-invite":
+    case "group-request":
+      return { titleKey: "today.action.gameInvite", ctaKey: "today.cta.view" };
     case "live-invite":
       return { titleKey: "today.action.liveInvite", ctaKey: "today.cta.join" };
-    case "invite":
+    case "game-invite":
       return action.game === "challenge"
         ? { titleKey: "today.action.challengeInvite", ctaKey: "today.cta.play" }
         : { titleKey: "today.action.gameInvite", ctaKey: "today.cta.view" };
-    case "turn":
+    case "game-turn":
       return { titleKey: "today.action.yourTurn", ctaKey: "today.cta.continue" };
-    case "live":
-      return { titleKey: "today.action.liveActive", ctaKey: "today.cta.backToGame" };
-    case "solo":
+    case "game-continue":
       return { titleKey: "today.action.soloActive", ctaKey: "today.cta.continue" };
+    case "game-waiting":
+      return { titleKey: "today.action.gameInvite", ctaKey: "today.cta.view" };
   }
 }
 
-export default function OpenActions({ actions, language }: { actions: OpenAction[]; language: string }) {
+export default function OpenActions({ actions, total, language }: { actions: OpenAction[]; total: number; language: string }) {
   const t = getT(language);
   const locale = getLanguage(language).intlLocale;
   return (
     <section aria-labelledby="today-actions" className="vs-rise">
-      <SectionHeader id="today-actions" title={t("today.actionsTitle")} count={actions.length} href="/live" linkLabel={t("today.allGames")} />
+      <SectionHeader id="today-actions" title={t("today.actionsTitle")} count={total} href="/acties" linkLabel={t("activeGames.viewAllActions", { n: total })} />
       <ul className={`${surfaceCard} divide-y divide-vs-line overflow-hidden`}>
         {actions.map((action) => {
           const { titleKey, ctaKey } = describe(action);
@@ -57,8 +60,8 @@ export default function OpenActions({ actions, language }: { actions: OpenAction
                 <p className="line-clamp-2 text-[15px] font-bold leading-snug text-vs-fg">{t(titleKey, { name })}</p>
                 {detail && <p className="truncate text-sm text-vs-fg-3">{detail}</p>}
               </div>
-              {action.kind === "friend-request" && action.friendshipId && action.person ? (
-                <FriendRequestButtons friendshipId={action.friendshipId} otherUserId={action.person.id} name={name} />
+              {action.kind === "friend-request" && action.actionId && action.person ? (
+                <FriendRequestButtons friendshipId={action.actionId} otherUserId={action.person.id} name={name} />
               ) : (
                 <Link href={action.href} className={primaryButton}>
                   <span className="hidden min-[400px]:inline">{t(ctaKey)}</span>

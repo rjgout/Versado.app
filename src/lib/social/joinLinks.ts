@@ -205,7 +205,7 @@ export async function requestToJoin(userId: string, token: string, now: Date = n
     throw new SocialError("together.errors.groupRejoinCooldown", 409, { date: membership.rejoinAfter.toISOString().slice(0, 10) });
   }
   const state = await joinRequestState(group.id, userId, now);
-  if (state.status === "pending") return { status: "pending" };
+  if (state.status === "pending") return { status: "pending", groupId: group.id };
   if (state.status === "cooldown") throw new SocialError("together.errors.joinRequestCooldown", 409, { date: state.until.slice(0, 10) });
   if ((await prisma.groupMembership.count({ where: { userId, leftAt: null } })) >= GROUP_LIMIT_PER_USER) {
     throw new SocialError("together.errors.groupUserLimit", 409, { n: GROUP_LIMIT_PER_USER });
@@ -220,7 +220,7 @@ export async function requestToJoin(userId: string, token: string, now: Date = n
       await recordSocialEvent(tx, { kind: "JOIN_REQUESTED", groupId: group.id, userId });
     });
   } catch (error) {
-    if (isUniqueViolation(error)) return { status: "pending" };
+    if (isUniqueViolation(error)) return { status: "pending", groupId: group.id };
     throw error;
   }
 
@@ -229,7 +229,7 @@ export async function requestToJoin(userId: string, token: string, now: Date = n
     joinRequestRecipients(prisma, group.id, userId),
   ]);
   for (const id of recipients) notifyGroupJoinRequest(id, requester?.handle ?? "", group.id, group.name).catch(() => {});
-  return { status: "pending" };
+  return { status: "pending", groupId: group.id };
 }
 
 /**

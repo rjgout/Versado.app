@@ -99,6 +99,7 @@ function detailPageFor(pathname: string, profileView: string | null, hash: strin
   }
   // Groepen (Samen) horen bij Vrienden.
   if (pathname === "/groups") return { fallback: "/friends", title: "together.pages.groups" };
+  if (pathname === "/acties") return { fallback: "/dashboard", title: "actionCenter.title" };
   if (pathname === "/groups/new") return { fallback: "/groups", title: "together.pages.newGroup" };
   if (pathname === "/groups/leaderboard") return { fallback: "/groups", title: "together.pages.groupLeaderboard" };
   const groupSettings = /^\/groups\/([^/]+)\/settings$/.exec(pathname);

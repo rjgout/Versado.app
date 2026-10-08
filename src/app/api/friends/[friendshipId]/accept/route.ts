@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { checkAndAwardAchievements } from "@/lib/achievements";
 import { apiError } from "@/lib/apiError";
+import { emitToUser } from "@/lib/realtime";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ friendshipId: string }> }) {
   const user = await getCurrentUser();
@@ -19,5 +20,6 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ fr
     await checkAndAwardAchievements(tx, friendship.senderId);
     await checkAndAwardAchievements(tx, friendship.receiverId);
   });
+  emitToUser(friendship.senderId, "friends_changed");
   return NextResponse.json({ ok: true });
 }

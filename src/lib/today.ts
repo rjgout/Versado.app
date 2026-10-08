@@ -5,7 +5,6 @@ import { userTimeZone, zonedParts } from "@/lib/timeZone";
 import { getStreakContinuation } from "@/lib/streakContinuation";
 import { getTextOfTheDay, type DailyText } from "@/lib/dailyText";
 import { wordGamePeriod } from "@/lib/wordGame";
-import { getActiveGameStatus, type ActivityItem } from "@/lib/activeGames";
 import { getSubscribedCourseSummaries } from "@/lib/courseSummaries";
 import { BOFM_WORK, getContentContext } from "@/lib/contentCollections";
 import { getGameSettings } from "@/lib/gameSettings";
@@ -18,6 +17,7 @@ import { getT } from "@/lib/i18n";
 import { courseArtworkKeys, gameArtworkKeys, podcastArtworkKeys } from "@/lib/artwork";
 import { companionToMascot } from "@/lib/companion";
 import { getTogetherSummary, type TogetherSummary } from "@/lib/social/together";
+import { compactOpenActions, getOpenActions, type OpenAction } from "@/lib/openActions";
 
 // Alle gegevens voor Vandaag (src/app/dashboard/page.tsx), in één keer en
 // parallel opgehaald. Elke bron is bestaande functionaliteit: de open
@@ -26,19 +26,7 @@ import { getTogetherSummary, type TogetherSummary } from "@/lib/social/together"
 // spellen uit hun eigen tabellen. Hier komt niets bij dat een andere pagina
 // anders zou laten zien.
 
-export type OpenActionKind = "friend-request" | "invite" | "live-invite" | "turn" | "live" | "solo";
-
-export interface OpenAction {
-  key: string;
-  kind: OpenActionKind;
-  game: ActivityItem["kind"] | null;
-  person: { id: string; handle: string } | null;
-  /** Waar het over gaat: een hoofdstuk ("Alma 32") of de naam van het spel. */
-  subject: string;
-  at: string | null;
-  href: string;
-  friendshipId?: string;
-}
+export type { OpenAction } from "@/lib/openActions";
 
 export interface ContinueItem {
   key: string;
@@ -91,6 +79,8 @@ export interface TodayData {
   partOfDay: "morning" | "afternoon" | "evening" | "night";
   streak: { current: number; studiedToday: boolean; interrupted?: boolean };
   actions: OpenAction[];
+  /** Het werkelijke aantal verplichte acties, ook als de compacte kaart er drie toont. */
+  actionTotal: number;
   continueItems: ContinueItem[];
   dailyText: DailyText | null;
   wordGame: DailyGameState | null;
@@ -103,15 +93,14 @@ export interface TodayData {
 }
 
 /** Alleen afgerond als alle expliciete dagelijkse verplichtingen klaar zijn. */
-export function isTodayComplete(data: Pick<TodayData, "streak" | "actions" | "wordGame" | "dailyQuiz">): boolean {
+export function isTodayComplete(data: Pick<TodayData, "streak" | "actions" | "actionTotal" | "wordGame" | "dailyQuiz">): boolean {
   return (
     data.streak.studiedToday &&
-    data.actions.length === 0 &&
+    data.actionTotal === 0 &&
     [data.wordGame, data.dailyQuiz].every((game) => game === null || game.status === "done")
   );
 }
 
-const MAX_ACTIONS = 6;
 const MAX_CONTINUE = 8;
 const MAX_DISCOVER = 6;
 
@@ -121,52 +110,6 @@ function partOfDay(timeZone: string): TodayData["partOfDay"] {
   if (hour < 12) return "morning";
   if (hour < 18) return "afternoon";
   return "evening";
-}
-
-function byNewest<T extends { at: string | null }>(a: T, b: T): number {
-  return (b.at ?? "").localeCompare(a.at ?? "");
-}
-
-function openActions(status: Awaited<ReturnType<typeof getActiveGameStatus>>, friendRequests: { id: string; createdAt: Date; sender: { id: string; handle: string } }[]): OpenAction[] {
-  const person = (item: ActivityItem) => (item.opponentId && item.opponentName ? { id: item.opponentId, handle: item.opponentName } : null);
-  const requests: OpenAction[] = friendRequests.map((request) => ({
-    key: `friend-${request.id}`,
-    kind: "friend-request",
-    game: null,
-    person: request.sender,
-    subject: "",
-    at: request.createdAt.toISOString(),
-    href: "/friends",
-    friendshipId: request.id,
-  }));
-  const invites: OpenAction[] = [
-    ...status.liveInvitesReceived.map((item) => ({ item, kind: "live-invite" as const })),
-    ...status.invitesReceived.map((item) => ({ item, kind: "invite" as const })),
-  ]
-    .map(({ item, kind }) => ({
-      key: `${kind}-${item.kind}-${item.id}`,
-      kind,
-      game: item.kind,
-      person: person(item),
-      subject: item.label,
-      at: item.at,
-      href: item.playLink ?? item.link,
-    }))
-    .sort(byNewest);
-  // Alleen wat op jou wacht: een beurt bij een tegenstander is geen actie.
-  const turns: OpenAction[] = status.activeGames
-    .filter((item) => item.myTurn === true || item.kind === "live" || item.kind === "chapter-guess-solo")
-    .map((item) => ({
-      key: `turn-${item.kind}-${item.id}`,
-      kind: item.kind === "live" ? ("live" as const) : item.kind === "chapter-guess-solo" ? ("solo" as const) : ("turn" as const),
-      game: item.kind,
-      person: person(item),
-      subject: item.label,
-      at: item.at,
-      href: item.playLink ?? item.link,
-    }))
-    .sort(byNewest);
-  return [...requests, ...invites, ...turns].slice(0, MAX_ACTIONS);
 }
 
 export async function getTodayData(user: User): Promise<TodayData> {
@@ -185,8 +128,7 @@ export async function getTodayData(user: User): Promise<TodayData> {
   const contentContext = await getContentContext(user.id);
 
   const [
-    gameStatus,
-    friendRequests,
+    openActionsData,
     courses,
     readingPositions,
     podcastPositions,
@@ -198,13 +140,7 @@ export async function getTodayData(user: User): Promise<TodayData> {
     catalog,
     gameOrder,
   ] = await Promise.all([
-    getActiveGameStatus(user),
-    prisma.friendship.findMany({
-      where: { receiverId: user.id, status: "PENDING" },
-      orderBy: { createdAt: "desc" },
-      take: MAX_ACTIONS,
-      select: { id: true, createdAt: true, sender: { select: { id: true, handle: true } } },
-    }),
+    getOpenActions(user),
     getSubscribedCourseSummaries(user, contentContext.active.id, t),
     // De kleine leeslessen houden hun plek bij als les, niet als hoofdstuk.
     prisma.userCourseProgress.findMany({
@@ -360,13 +296,15 @@ export async function getTodayData(user: User): Promise<TodayData> {
     if (courseCards[i]) discover.push(courseCards[i]);
     if (gameCards[i] && discover.length < MAX_DISCOVER) discover.push(gameCards[i]);
   }
+  const compactActions = compactOpenActions(openActionsData, "required");
 
   return {
     firstName: user.handle,
     timeZone,
     partOfDay: partOfDay(timeZone),
     streak: { current: continuation.currentStreak, studiedToday: continuation.studiedToday, interrupted: continuation.status === "INTERRUPTED" },
-    actions: openActions(gameStatus, friendRequests),
+    actions: compactActions.actions,
+    actionTotal: compactActions.total,
     continueItems,
     dailyText,
     wordGame: wordGameEntry
