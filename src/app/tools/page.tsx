@@ -88,7 +88,7 @@ export default async function ToolsPage() {
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
       <PageIntro title={t("pages.tools")} text={t("tools.subtitle")} />
 
-      <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         {visible.map((tool) => {
           const tone = TONES[tool.tone];
           const Icon = tool.icon;
