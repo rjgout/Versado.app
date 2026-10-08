@@ -20,6 +20,7 @@ export const DATA_SCOPES = [
   "notifications",
   "content",
   "games",
+  "kompas",
 ] as const;
 
 export type DataScope = (typeof DATA_SCOPES)[number];
@@ -47,7 +48,9 @@ export const DATA_EVENTS = {
   // Cursus toegevoegd, verborgen of van volgorde gewisseld.
   coursesChanged: ["courses", "today"],
   // Profiel- of accountinstelling gewijzigd.
-  settingsChanged: ["profile", "today"],
+  settingsChanged: ["profile", "today", "kompas"],
+  // Versado Kompas: een uitleg of rondleiding bekeken, overgeslagen of afgerond.
+  kompasChanged: ["kompas"],
 } as const satisfies Record<string, readonly DataScope[]>;
 
 export type DataEvent = keyof typeof DATA_EVENTS;

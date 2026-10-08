@@ -11,8 +11,11 @@ import { useT } from "@/components/I18nProvider";
 import SystemIcon from "@/components/versado/SystemIcon";
 import CompanionPicker, { companionName } from "@/components/versado/CompanionPicker";
 import MascotSlot from "@/components/versado/MascotSlot";
-import { useCompanion } from "@/components/versado/PersonalMascot";
+import PersonalMascot, { useCompanion } from "@/components/versado/PersonalMascot";
+import { guideMascotState } from "@/lib/kompas/mascot";
 import ToggleSwitch from "@/components/versado/ToggleSwitch";
+import { KompasIcon } from "@/components/kompas/KompasIcon";
+import { BookOpen, Gamepad2, Layers } from "lucide-react";
 import type { PersonalMascotCharacter } from "@/lib/mascots";
 
 interface OnboardingClientProps {
@@ -28,11 +31,15 @@ interface OnboardingClientProps {
   companion: PersonalMascotCharacter;
   /** Rondleiding al eens gezien (opnieuw geopend via het profiel): de gids is dan al gekozen. */
   alreadyOnboarded: boolean;
+  /** Is de contentkiezer er voor deze gebruiker? Zo niet, dan noemt de kennismaking hem ook niet. */
+  switcherEnabled: boolean;
 }
 
-type StepId = "kennis" | "gids" | "webapp" | "uitleg" | "vrienden" | "online-status" | "notificaties";
+type StepId = "kennis" | "gids" | "kompas" | "webapp" | "uitleg" | "vrienden" | "online-status" | "notificaties";
 
-const ALL_STEPS: StepId[] = ["kennis", "gids", "webapp", "uitleg", "vrienden", "online-status", "notificaties"];
+// "kompas" is de korte kennismaking met Versado (Versado Kompas, docs/KOMPAS.md):
+// één stap, direct na de keuze van de gids, met de mogelijkheid om meteen iets te proberen.
+const ALL_STEPS: StepId[] = ["kennis", "gids", "kompas", "webapp", "uitleg", "vrienden", "online-status", "notificaties"];
 
 /**
  * Vierstaps onboarding: webapp-installatie (overgeslagen als de app al
@@ -53,6 +60,7 @@ export default function OnboardingClient({
   emailConfigured,
   companion,
   alreadyOnboarded,
+  switcherEnabled,
 }: OnboardingClientProps) {
   const router = useRouter();
   const t = useT();
@@ -69,10 +77,15 @@ export default function OnboardingClient({
     setReady(true);
   }, []);
 
-  async function finish() {
+  // Kompas bewaart of de kennismaking getoond is, zodat dezelfde uitleg daarna niet nogmaals vanzelf verschijnt.
+  async function finish(destination = "/dashboard") {
     setFinishing(true);
-    await fetch("/api/onboarding/complete", { method: "POST" }).catch(() => {});
-    router.push("/dashboard");
+    await fetch("/api/onboarding/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kompasSeen: steps.indexOf("kompas") <= index }),
+    }).catch(() => {});
+    router.push(destination);
     router.refresh();
   }
 
@@ -109,6 +122,7 @@ export default function OnboardingClient({
           }}
         />
       )}
+      {step === "kompas" && <KompasStep switcherEnabled={switcherEnabled} onNext={next} onTry={(href) => finish(href)} busy={finishing} />}
       {step === "webapp" && <WebappStep onNext={next} />}
       {step === "uitleg" && <UitlegStep onNext={next} />}
       {step === "vrienden" && <VriendenStep email={email} initialSearchable={searchableByEmail} onNext={next} />}
@@ -126,7 +140,7 @@ export default function OnboardingClient({
       )}
 
       {companionChosen && (
-        <button className="text-sm text-slate-400 dark:text-slate-500 underline self-center" onClick={finish} disabled={finishing}>
+        <button className="text-sm text-slate-400 dark:text-slate-500 underline self-center" onClick={() => finish()} disabled={finishing}>
           {t("onboarding.skip")}
         </button>
       )}
@@ -223,6 +237,62 @@ function KennisStep({ onNext }: { onNext: () => void }) {
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+/**
+ * De korte kennismaking: wat Versado is, Leren, Spelen, de contentkiezer en
+ * waar je verdere uitleg vindt. De twee knoppen onderaan sluiten de
+ * kennismaking af en openen meteen een echte pagina: de rest (vrienden,
+ * meldingen) blijft te vinden in het profiel.
+ */
+function KompasStep({ switcherEnabled, onNext, onTry, busy }: { switcherEnabled: boolean; onNext: () => void; onTry: (href: string) => void; busy: boolean }) {
+  const t = useT();
+  const { character } = useCompanion();
+  const rows = [
+    { icon: <BookOpen className="h-6 w-6" aria-hidden />, title: t("kompas.onboarding.learnTitle"), text: t("kompas.onboarding.learnText") },
+    { icon: <Gamepad2 className="h-6 w-6" aria-hidden />, title: t("kompas.onboarding.playTitle"), text: t("kompas.onboarding.playText") },
+    ...(switcherEnabled ? [{ icon: <Layers className="h-6 w-6" aria-hidden />, title: t("kompas.onboarding.switcherTitle"), text: t("kompas.onboarding.switcherText") }] : []),
+    { icon: <KompasIcon className="h-6 w-6" />, title: t("kompas.onboarding.helpTitle"), text: t("kompas.onboarding.helpText") },
+  ];
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <div className="aspect-square w-[clamp(5rem,22vw,6.5rem)] shrink-0">
+          <PersonalMascot state={guideMascotState(character)} size={104} fill />
+        </div>
+        <div className="min-w-0">
+          <h1 className="text-xl font-extrabold text-brand-800 dark:text-brand-300">{t("kompas.onboarding.title")}</h1>
+          <p className="text-base text-slate-600 dark:text-slate-300">{t("kompas.onboarding.intro")}</p>
+        </div>
+      </div>
+      <ul className="card flex flex-col gap-4 text-left">
+        {rows.map((row) => (
+          <li key={row.title} className="flex items-start gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-vs-accent-soft text-vs-accent">{row.icon}</span>
+            <div className="min-w-0">
+              <h2 className="text-base font-extrabold dark:text-slate-100">{row.title}</h2>
+              <p className="text-base text-slate-600 dark:text-slate-300">{row.text}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <div className="flex flex-col gap-2">
+        <p className="text-center text-sm font-bold text-slate-600 dark:text-slate-300">{t("kompas.onboarding.tryTitle")}</p>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <button className="btn-secondary w-full" disabled={busy} onClick={() => onTry("/courses")}>
+            {t("kompas.onboarding.tryLearn")}
+          </button>
+          <button className="btn-secondary w-full" disabled={busy} onClick={() => onTry("/live")}>
+            {t("kompas.onboarding.tryPlay")}
+          </button>
+        </div>
+        <p className="text-center text-xs text-slate-500 dark:text-slate-400">{t("kompas.onboarding.tryLater")}</p>
+      </div>
+      <button className="btn-primary self-center" onClick={onNext} disabled={busy}>
+        {t("onboarding.next")}
+      </button>
     </div>
   );
 }

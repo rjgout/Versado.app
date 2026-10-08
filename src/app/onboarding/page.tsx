@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/session";
 import { isEmailConfigured } from "@/lib/email";
 import OnboardingClient from "@/components/OnboardingClient";
 import { companionToMascot } from "@/lib/companion";
+import { getContentContext } from "@/lib/contentCollections";
 
 // Bereikbaar op twee manieren: automatisch vanuit de !onboardingSeenAt-redirect
 // in dashboard/page.tsx (nieuwe gebruikers), of handmatig via de
@@ -13,7 +14,7 @@ export default async function OnboardingPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const emailConfigured = await isEmailConfigured();
+  const [emailConfigured, contentContext] = await Promise.all([isEmailConfigured(), getContentContext(user.id)]);
 
   return (
     <OnboardingClient
@@ -27,6 +28,7 @@ export default async function OnboardingPage() {
       emailConfigured={emailConfigured}
       companion={companionToMascot(user.companion)}
       alreadyOnboarded={!!user.onboardingSeenAt}
+      switcherEnabled={contentContext.switcherEnabled || user.isAdmin}
     />
   );
 }

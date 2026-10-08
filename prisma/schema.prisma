@@ -98,6 +98,14 @@ model User {
   // src/lib/companion.ts. Bestaande accounts krijgen Novi, die al de
   // metgezel op de persoonlijke momenten was.
   companion          Companion @default(NOVI)
+  // Versado Kompas (src/lib/kompas/): mag Kompas zelf, hoogstens één keer per
+  // sessie, uitleg aanbieden bij een onderdeel dat je voor het eerst opent?
+  // Standaard aan voor nieuwe accounts. Bestaande accounts kregen bij de
+  // migratie false, zodat zij niet met terugwerkende kracht uitnodigingen
+  // krijgen; de uitleg zelf staat voor iedereen altijd open via "Ontdek
+  // Versado". Aan te zetten op het profiel.
+  kompasOffersEnabled Boolean @default(true)
+  kompasProgress     KompasProgress[]
 
   quickMissionaryRuns QuickMissionaryRun[]
   quickMissionaryReviveProgress QuickMissionaryReviveProgress[]
@@ -3064,4 +3072,42 @@ model GroupJoinRequest {
 
   @@index([groupId, status])
   @@index([userId, createdAt])
+}
+
+
+// --- Versado Kompas: gebruikersstatus van uitleg en rondleidingen --------------
+//
+// De uitleg zelf staat in code (src/lib/kompas/registry.ts) en in de
+// vertalingen; hier staat alleen wat een gebruiker ermee deed. Geen rij = nog
+// niet gezien. topicId is een stabiele onderdeel-id uit het register (geen
+// foreign key: het register is code). scope is de schriftbron (ContentCollection
+// .work) waarvoor er een eigen uitleg bestond, of "" voor de algemene uitleg:
+// zo activeert wisselen tussen bronnen dezelfde uitleg nooit opnieuw. version is
+// de uitlegversie die de gebruiker het laatst zag. Raakt nooit XP, reeksen,
+// scores of voortgang.
+enum KompasItemKind {
+  GUIDE
+  TOUR
+}
+
+enum KompasStatus {
+  VIEWED
+  SKIPPED
+  COMPLETED
+}
+
+model KompasProgress {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId   String
+  scope     String         @default("")
+  kind      KompasItemKind
+  status    KompasStatus
+  version   Int
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@unique([userId, topicId, scope, kind])
+  @@index([userId])
 }

@@ -40,7 +40,7 @@ is wordt meteen opnieuw opgehaald (de rest wordt alleen als verouderd gemarkeerd
 
 Datasets (scopes): `today`, `progress`, `courses`, `xp`, `streak`, `profile`,
 `competition`, `wordGame`, `wordGameRanking`, `friends`, `activity`, `groups`,
-`notifications`, `content`, `games`.
+`notifications`, `content`, `games`, `kompas`.
 
 | Gebeurtenis | Wanneer | Maakt ongeldig |
 |---|---|---|
@@ -53,7 +53,8 @@ Datasets (scopes): `today`, `progress`, `courses`, `xp`, `streak`, `profile`,
 | `notificationsChanged` | nieuwe of gewiste melding (`notifications_changed`, `game_invite`, `scrabble_updated`) | notifications, today |
 | `gamesChanged` | uitdaging/woordspel/live spel gestart, geannuleerd of verlaten, uitnodiging ingetrokken (`game_invite`, `scrabble_updated`, `game_invite_revoked`, `game_cancelled`, `game_left`) | games, today |
 | `coursesChanged` | cursus toegevoegd of verborgen | courses, today |
-| `settingsChanged` | profiel- of accountinstelling gewijzigd | profile, today |
+| `settingsChanged` | profiel- of accountinstelling gewijzigd (ook de schakelaar voor uitnodigingen van Kompas) | profile, today, kompas |
+| `kompasChanged` | een uitleg of rondleiding van Versado Kompas bekeken, overgeslagen of afgerond; raakt nooit XP, reeks of resultaten | kompas |
 
 `announceXpChanged()` (`src/lib/xpBroadcast.ts`) is het centrale moment voor alles wat XP
 oplevert: een nieuwe activiteit die XP geeft, hoeft daarom niets extra's te doen om Vandaag,

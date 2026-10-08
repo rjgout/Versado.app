@@ -18,6 +18,9 @@ import { displayTierFor } from "@/lib/leagues";
 import { hasStudiedToday } from "@/lib/learning/streakRules";
 import InviteListener from "@/components/InviteListener";
 import ChangelogPopup from "@/components/ChangelogPopup";
+import KompasProvider from "@/components/kompas/KompasProvider";
+import ContextOffer from "@/components/kompas/ContextOffer";
+import { workOf } from "@/lib/contentRouting";
 import ThemeScript from "@/components/ThemeScript";
 import BottomNav from "@/components/BottomNav";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
@@ -164,6 +167,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <CompanionProvider character={companionToMascot(user?.companion)}>
         <StreakContinuationProvider userId={user?.id}>
         <ConfirmProvider>
+        <KompasProvider>
         <PodcastPlayerProvider>
         <ReadAloudPlayerProvider>
         <FocusModeController>
@@ -248,12 +252,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {user && <InviteListener />}
         {user && <ChangelogPopup />}
         {user && <FreezeGiftPopup />}
+        {user && contentContext && <ContextOffer work={workOf(contentContext.active)} />}
         <ServiceWorkerRegister />
         <NativeAppBridge />
         <EdgeSwipeGuard />
         </FocusModeController>
         </ReadAloudPlayerProvider>
         </PodcastPlayerProvider>
+        </KompasProvider>
         </ConfirmProvider>
         </StreakContinuationProvider>
         </CompanionProvider>

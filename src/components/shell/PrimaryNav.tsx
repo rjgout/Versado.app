@@ -19,6 +19,7 @@ export default function PrimaryNav() {
           <Link
             key={item.id}
             href={item.href}
+            data-kompas-target={`nav-${item.id}`}
             aria-current={isActive ? "page" : undefined}
             className={`flex h-10 items-center gap-2 rounded-full px-3.5 text-sm font-bold transition-colors ${
               isActive ? "bg-vs-accent-soft text-vs-accent" : "text-vs-fg-2 hover:bg-vs-subtle hover:text-vs-fg"

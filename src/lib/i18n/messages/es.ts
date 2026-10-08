@@ -1,4 +1,5 @@
 import type { PartialMessages } from "../core";
+import { kompasEs } from "./kompas/es";
 
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
@@ -3217,4 +3218,5 @@ export const es: PartialMessages = {
     allCaughtUp: "¡Estás al día!", allCaughtUpHint: "No hay acciones que requieran tu atención.", empty: "No hay actividades pendientes.", loadMore: "Cargar más",
     viewAllRequests: "Ver las {n} solicitudes", viewAllGroupActions: "Ver las {n} acciones de grupo",
   },
+  "kompas": kompasEs,
 };

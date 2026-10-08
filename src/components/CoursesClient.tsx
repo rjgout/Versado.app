@@ -188,7 +188,7 @@ export default function CoursesClient() {
 
   return (
     <div className="max-w-5xl mx-auto flex flex-col gap-5 sm:gap-6">
-      <div>
+      <div data-kompas-target="learn-intro">
         <h1 className="text-2xl font-extrabold text-brand-800 dark:text-brand-300">{t("pages.courses")}</h1>
         <p className="text-sm text-vs-fg-2">{t("courses.intro")}</p>
       </div>
@@ -261,6 +261,7 @@ export default function CoursesClient() {
         </section>
       )}
 
+      <div data-kompas-target="learn-add">
       <CardPicker
         addLabel={t("courses.addCourse")}
         emptyText={t("courses.allAdded")}
@@ -271,6 +272,7 @@ export default function CoursesClient() {
         }}
         onAdd={add}
       />
+      </div>
 
       <Link href="/tools" className="card !py-3 flex items-center justify-between gap-3 text-sm font-extrabold text-slate-600 dark:text-slate-300 hover:!border-brand-300 dark:hover:!border-brand-700 transition-colors">
         <span>🧰 {t("pages.tools")}</span>
