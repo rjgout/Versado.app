@@ -26,6 +26,10 @@ function initialsFor(handle: string): string {
 // /api/users/avatars). Schermen die de emoji al in hun eigen data hebben,
 // geven hem mee als prop en slaan dit over.
 const cache = new Map<string, AvatarAppearance>();
+// Een server-rendered layout geeft de actuele eigen avatar al mee. Die waarde
+// moet niet worden overschreven door een oudere batchrespons of door een
+// tijdelijke fallback die tijdens een netwerkfout in de cache belandt.
+const localOverrides = new Map<string, AvatarAppearance>();
 const waiting = new Set<string>();
 const listeners = new Set<() => void>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -44,19 +48,31 @@ function requestAvatar(id: string) {
       });
       const data = res.ok ? ((await res.json()) as { avatars: Record<string, AvatarAppearance | string | null> }) : { avatars: {} };
       for (const id of ids) {
+        const override = localOverrides.get(id);
+        if (override) {
+          cache.set(id, override);
+          continue;
+        }
         const value = data.avatars[id];
         cache.set(id, typeof value === "object" && value !== null ? value : { avatarEmoji: typeof value === "string" ? value : null, avatarCharacterId: null, avatarBackgroundId: null, avatarFrameId: null, avatarDecorationId: null, avatarLightAccentId: null });
       }
     } catch {
-      for (const id of ids) cache.set(id, { avatarEmoji: null, avatarCharacterId: null, avatarBackgroundId: null, avatarFrameId: null, avatarDecorationId: null, avatarLightAccentId: null });
+      for (const id of ids) {
+        if (!localOverrides.has(id)) cache.set(id, { avatarEmoji: null, avatarCharacterId: null, avatarBackgroundId: null, avatarFrameId: null, avatarDecorationId: null, avatarLightAccentId: null });
+      }
     }
     for (const listener of listeners) listener();
   }, 30);
 }
 
 export function invalidateAvatarCache(id?: string): void {
-  if (id) cache.delete(id);
-  else cache.clear();
+  if (id) {
+    cache.delete(id);
+    localOverrides.delete(id);
+  } else {
+    cache.clear();
+    localOverrides.clear();
+  }
   for (const listener of listeners) listener();
 }
 
@@ -64,6 +80,7 @@ export function invalidateAvatarCache(id?: string): void {
  * Zo hoeven header, profiel en sociale lijsten niet op een volledige reload
  * of een nieuwe sessie te wachten. */
 export function setAvatarAppearance(id: string, appearance: AvatarAppearance): void {
+  localOverrides.set(id, appearance);
   cache.set(id, appearance);
   for (const listener of listeners) listener();
 }
@@ -78,7 +95,7 @@ function useAvatarAppearance(id: string, known: AvatarAppearance | undefined): A
       listeners.delete(listener);
     };
   }, [id, known]);
-  return cache.get(id) ?? known ?? { avatarEmoji: null, avatarCharacterId: null, avatarBackgroundId: null, avatarFrameId: null, avatarDecorationId: null, avatarLightAccentId: null };
+  return localOverrides.get(id) ?? known ?? cache.get(id) ?? { avatarEmoji: null, avatarCharacterId: null, avatarBackgroundId: null, avatarFrameId: null, avatarDecorationId: null, avatarLightAccentId: null };
 }
 
 const SIZES = {

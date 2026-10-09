@@ -195,17 +195,20 @@ export default function AvatarEditorClient() {
     accessories: t("profile.avatarAccessories"),
     emoji: t("profile.avatarEmoji"),
   };
+  const previewPosition = previewCompact ? "sticky top-[var(--header-offset)] z-10" : "relative z-0";
 
   return (
     <ProfilePage title={t("profile.avatarEditorTitle")}>
-      <div className="pb-[calc(7rem+var(--nav-height,0px)+var(--vs-safe-area-bottom))]">
+      <div className="pb-[calc(5.5rem+var(--vs-safe-area-bottom))]">
         <div ref={previewSentinel} className="h-px" aria-hidden="true" />
-        <section className={`sticky top-[var(--header-offset)] z-10 -mx-1 overflow-hidden rounded-3xl border border-vs-line bg-vs-surface shadow-sm transition-[height] duration-300 ease-out motion-reduce:transition-none sm:mx-0 ${previewCompact ? "h-24" : "h-[min(70vw,22rem)] min-h-64"}`} aria-labelledby="avatar-preview-title">
-          <div className={`flex h-full items-center justify-center bg-vs-subtle transition-[transform] duration-300 ease-out motion-reduce:transition-none ${previewCompact ? "scale-75" : "scale-100"}`}>
-            <ScriptureAvatar appearance={draft} handle={data.handle} label={t("profile.avatarPreview")} className={`aspect-square ${previewCompact ? "h-20 w-20 text-3xl" : "h-[min(62vw,18rem)] w-[min(62vw,18rem)] text-6xl"}`} />
-          </div>
-          <h2 id="avatar-preview-title" className="sr-only">{t("profile.avatarPreview")}</h2>
-        </section>
+        <div className="relative h-[min(70vw,22rem)] min-h-64 -mx-1 sm:mx-0">
+          <section className={`${previewPosition} pointer-events-none overflow-hidden rounded-3xl border border-vs-line bg-vs-surface shadow-sm transition-[height] duration-300 ease-out motion-reduce:transition-none ${previewCompact ? "h-24" : "h-full"}`} aria-labelledby="avatar-preview-title">
+            <div className={`flex h-full items-center justify-center bg-vs-subtle transition-[transform] duration-300 ease-out motion-reduce:transition-none ${previewCompact ? "scale-75" : "scale-100"}`}>
+              <ScriptureAvatar appearance={draft} handle={data.handle} label={t("profile.avatarPreview")} className={`aspect-square ${previewCompact ? "h-20 w-20 text-3xl" : "h-[min(62vw,18rem)] w-[min(62vw,18rem)] text-6xl"}`} />
+            </div>
+            <h2 id="avatar-preview-title" className="sr-only">{t("profile.avatarPreview")}</h2>
+          </section>
+        </div>
 
         <div className="mt-5 border-b border-vs-line" role="tablist" aria-label={t("profile.avatarEditorTitle")}>
           {(Object.keys(tabLabels) as EditorTab[]).map((key) => (
@@ -324,7 +327,7 @@ export default function AvatarEditorClient() {
         {error && <p className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-3 text-sm font-semibold text-red-700 dark:text-red-300" role="alert">{error}</p>}
       </div>
 
-      <div className="fixed inset-x-0 bottom-[var(--nav-height,0px)] z-10 border-t border-vs-line bg-vs-surface/95 pb-[max(0.75rem,var(--vs-safe-area-bottom))] pt-3 shadow-[0_-4px_18px_rgba(0,0,0,0.08)] backdrop-blur supports-[backdrop-filter]:bg-vs-surface/85">
+      <div data-avatar-editor-save-bar className="fixed inset-x-0 bottom-0 z-10 border-t border-vs-line bg-vs-surface/95 pb-[max(0.75rem,var(--vs-safe-area-bottom))] pt-3 shadow-[0_-4px_18px_rgba(0,0,0,0.08)] backdrop-blur supports-[backdrop-filter]:bg-vs-surface/85">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-[max(1rem,var(--vs-safe-area-left))] pr-[max(1rem,var(--vs-safe-area-right))]">
           <p className="min-w-0 truncate text-sm font-semibold text-vs-fg-2">{dirty ? t("profile.avatarUnsaved") : t("profile.avatarNoChanges")}</p>
           <button type="button" className="btn-primary min-h-12 shrink-0 !px-6" disabled={!dirty || saving} onClick={save}>{saving ? t("courses.busy") : t("profile.save")}</button>
