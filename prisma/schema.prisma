@@ -89,6 +89,10 @@ model User {
   // migratie met terugwerkende kracht gevuld, zodat zij 'm nooit te zien
   // krijgen — alleen nieuwe registraties na deze wijziging doorlopen 'm.
   onboardingSeenAt   DateTime?
+  // Alleen de onboarding-vraag over profielprestaties is hiermee bevestigd.
+  // Dit is flowstatus, geen tweede privacy-instelling: de werkelijke keuze
+  // staat in shareAchievements. Null blijft voor bestaande accounts null.
+  onboardingProfilePrivacyAt DateTime?
   // Zelfgerapporteerd tijdens de onboarding ("Hoeveel ken je het Boek van
   // Mormon al?") — bepaalt alleen de standaardvolgorde van cursussen/
   // spelletjes (zie UserListOrder hieronder), nooit een harde blokkade.
@@ -131,16 +135,15 @@ model User {
   uiLanguage      String @default("nl")
   contentLanguage String @default("nl")
 
-  // Eigen emoji voor het avatar-rondje (zie ProfileClient.tsx — klik op het
-  // rondje op je profielpagina om 'm te zetten), los van de gebruikersnaam:
-  // een naam die met een emoji begint, wordt daar bewust NIET automatisch
-  // voor gebruikt. Null = toon de eerste letter van de gebruikersnaam
-  // i.p.v. een emoji (het gedrag van vóór deze kolom, dus geen backfill nodig).
+  // Legacy eigen emoji voor het avatar-rondje. Het veld blijft voor bestaande
+  // gegevens en migratiecompatibiliteit bestaan, maar nieuwe avatarweergaven
+  // gebruiken uitsluitend een personage of de centrale letterfallback.
   avatarEmoji        String?
 
-  // Optionele Schriftavatar. Null behoudt de bestaande emoji/initialen-fallback
-  // voor accounts die nog geen personage hebben gekozen. Alle waarden zijn
-  // canonieke ids; servervalidatie bepaalt of een keuze vrijgespeeld is.
+  // Optionele Schriftavatar. Null betekent dat de gebruiker nog moet kiezen;
+  // de renderer gebruikt dan tijdelijk de centrale letterfallback. Alle
+  // waarden zijn canonieke ids; servervalidatie bepaalt of een keuze
+  // vrijgespeeld is.
   avatarCharacterId   String?
   avatarBackgroundId  String?
   avatarFrameId       String?

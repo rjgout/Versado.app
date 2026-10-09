@@ -12,20 +12,13 @@ import { fetchJson } from "@/lib/data/fetchJson";
 import { liveMutation } from "@/lib/data/mutation";
 import { avatarOptions, accessoryOptions } from "@/lib/avatarUnlocks";
 import { getCharacterAsset } from "@/lib/characterAssets";
-import { isSingleEmoji } from "@/lib/handle";
 import { setAvatarAppearance } from "@/components/UserAvatar";
 import { avatarAppearancePatch, avatarAppearancesEqual, filterAvatarOptions, type AvatarCharacterFilter } from "@/lib/avatarEditor";
 import type { AvatarAppearance } from "@/lib/avatarTypes";
 import type { AvatarAccessoryKind } from "@/lib/avatarAccessories";
 import type { ProfileData } from "@/components/profile/profileData";
 
-type EditorTab = "characters" | "accessories" | "emoji";
-
-const AVATAR_EMOJI_OPTIONS = [
-  "😀", "😎", "🤓", "🥳", "😇", "🙂", "🚀", "⭐", "🔥", "💪",
-  "🎉", "🎮", "📖", "🐶", "🐱", "🦁", "🐸", "🦄", "🌈", "⚡",
-  "🍕", "⚽", "🎸", "🌻", "🌊", "🏔️",
-];
+type EditorTab = "characters" | "accessories";
 
 const ACCESSORY_SLOTS = [
   { kind: "background" as const, field: "avatarBackgroundId" as const },
@@ -47,7 +40,6 @@ export default function AvatarEditorClient() {
   const [tab, setTab] = useState<EditorTab>("characters");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<AvatarCharacterFilter>("all");
-  const [customEmoji, setCustomEmoji] = useState("");
   const [previewCompact, setPreviewCompact] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -144,20 +136,6 @@ export default function AvatarEditorClient() {
     setDraft((current) => current ? { ...current, [field]: id } : current);
   }
 
-  function selectEmoji(emoji: string) {
-    setDraft((current) => current ? { ...current, avatarEmoji: emoji, avatarCharacterId: null } : current);
-  }
-
-  function selectCustomEmoji() {
-    const emoji = customEmoji.trim();
-    if (!isSingleEmoji(emoji)) {
-      setError(t("profile.oneEmoji"));
-      return;
-    }
-    setError(null);
-    selectEmoji(emoji);
-  }
-
   async function save() {
     if (!data || !savedAppearance || !draft || !dirty) return;
     setSaving(true);
@@ -193,7 +171,6 @@ export default function AvatarEditorClient() {
   const tabLabels: Record<EditorTab, string> = {
     characters: t("profile.avatarCharacters"),
     accessories: t("profile.avatarAccessories"),
-    emoji: t("profile.avatarEmoji"),
   };
   const previewPosition = previewCompact ? "sticky top-[var(--header-offset)] z-10" : "relative z-0";
 
@@ -308,19 +285,6 @@ export default function AvatarEditorClient() {
                 </section>
               );
             })}
-          </section>
-        )}
-
-        {tab === "emoji" && (
-          <section id="avatar-panel-emoji" role="tabpanel" aria-labelledby="avatar-tab-emoji" className="mt-5">
-            <p className="text-sm text-vs-fg-2">{t("profile.avatarEmojiHint")}</p>
-            <div className="mt-4 grid grid-cols-6 gap-2 sm:grid-cols-9">
-              {AVATAR_EMOJI_OPTIONS.map((emoji) => <button key={emoji} type="button" disabled={saving} aria-label={emoji} aria-pressed={draft.avatarCharacterId === null && draft.avatarEmoji === emoji} onClick={() => selectEmoji(emoji)} className={`flex aspect-square items-center justify-center rounded-2xl border text-2xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent ${draft.avatarCharacterId === null && draft.avatarEmoji === emoji ? "!border-vs-accent !bg-vs-accent-soft" : "border-vs-line bg-vs-surface hover:bg-vs-subtle"}`}>{emoji}</button>)}
-            </div>
-            <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
-              <label className="min-w-0 flex-1"><span className="sr-only">{t("profile.avatarCustomEmoji")}</span><input className="input min-h-12 text-center text-2xl" placeholder="🙂" value={customEmoji} onChange={(event) => setCustomEmoji(event.target.value)} maxLength={8} /></label>
-              <button type="button" className="btn-secondary min-h-12 shrink-0" disabled={saving || !customEmoji.trim()} onClick={selectCustomEmoji}>{t("profile.avatarUseEmoji")}</button>
-            </div>
           </section>
         )}
 

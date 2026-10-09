@@ -15,16 +15,10 @@ function avatarColorFor(id: string): string {
   return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 }
 
-// Array.from in plaats van slice: een naam die met een emoji begint, wordt
-// anders midden in de emoji doorgeknipt.
-function initialsFor(handle: string): string {
-  return Array.from(handle.trim()).slice(0, 2).join("").toUpperCase();
-}
-
-// Eigen avatar-emoji's worden per pagina één keer opgehaald, voor alle
+// Compacte avatarinstellingen worden per pagina één keer opgehaald, voor alle
 // avatars die tegelijk in beeld komen in één verzoek (zie
-// /api/users/avatars). Schermen die de emoji al in hun eigen data hebben,
-// geven hem mee als prop en slaan dit over.
+// /api/users/avatars). Het legacy emoji-veld blijft in de payload staan voor
+// compatibiliteit, maar wordt nooit door deze renderer gebruikt.
 const cache = new Map<string, AvatarAppearance>();
 // Een server-rendered layout geeft de actuele eigen avatar al mee. Die waarde
 // moet niet worden overschreven door een oudere batchrespons of door een
@@ -103,18 +97,16 @@ const SIZES = {
   sm: "w-9 h-9",
   md: "w-11 h-11",
 } as const;
-// Twee letters moeten klein om in het rondje te passen; één emoji juist
-// groot, anders is hij nauwelijks te zien.
 const TEXT_SIZES = {
-  xs: { letters: "text-[11px]", emoji: "text-base" },
-  sm: { letters: "text-xs", emoji: "text-xl" },
-  md: { letters: "text-sm", emoji: "text-2xl" },
+  xs: "text-[11px]",
+  sm: "text-xs",
+  md: "text-sm",
 } as const;
 
 /**
- * Avatar-rondje van een gebruiker: zijn eigen emoji, anders de eerste twee
- * letters van zijn naam. `avatarEmoji` weglaten = zelf ophalen; `null` =
- * bekend dat hij er geen heeft.
+ * Avatar-rondje van een gebruiker. `avatarEmoji` blijft als optionele legacy-
+ * prop bestaan, zodat bestaande callers en API-antwoorden compatibel blijven;
+ * nieuwe en bestaande gebruikers zien altijd een personage of letterfallback.
  */
 export default function UserAvatar({
   id,
@@ -145,10 +137,10 @@ export default function UserAvatar({
   const appearance = useAvatarAppearance(id, known);
   return (
     <span
-      className={`relative shrink-0 ${SIZES[size]} ${appearance.avatarCharacterId ? "" : `${appearance.avatarEmoji ? TEXT_SIZES[size].emoji : TEXT_SIZES[size].letters} ${avatarColorFor(id)} text-white`} font-extrabold leading-none ${className}`}
+      className={`relative shrink-0 ${SIZES[size]} ${appearance.avatarCharacterId ? "" : `${TEXT_SIZES[size]} ${avatarColorFor(id)} text-white`} font-extrabold leading-none ${className}`}
       aria-hidden
     >
-      <ScriptureAvatar appearance={{ ...appearance, avatarEmoji: appearance.avatarEmoji || initialsFor(handle) }} handle={handle} className="h-full w-full" />
+      <ScriptureAvatar appearance={appearance} handle={handle} className={`h-full w-full ${appearance.avatarCharacterId ? "" : TEXT_SIZES[size]}`} />
     </span>
   );
 }

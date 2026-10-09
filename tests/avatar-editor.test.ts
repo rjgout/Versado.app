@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { avatarAppearancePatch, avatarAppearancesEqual, filterAvatarOptions } from "@/lib/avatarEditor";
-import { avatarOptions } from "@/lib/avatarUnlocks";
+import { avatarOptions, START_AVATAR_CHARACTER_IDS } from "@/lib/avatarUnlocks";
 import { PROFILE_CHARACTER_FRAMING } from "@/lib/profileCharacterFraming";
 import { profileCameraOriginY } from "@/lib/profileCamera";
-import type { AvatarAppearance } from "@/lib/avatarTypes";
+import { avatarFallbackText, type AvatarAppearance } from "@/lib/avatarTypes";
 
 const empty: AvatarAppearance = {
   avatarEmoji: null,
@@ -35,9 +35,22 @@ test("avatarfilter sorteert beschikbare personages eerst zonder de catalogus te 
 test("avatarpatch wijzigt alleen de editorkeuze en behoudt losse accessoirelagen", () => {
   const saved = { ...empty, avatarBackgroundId: "background-stars", avatarFrameId: "frame-bronze" };
   const draft = { ...saved, avatarCharacterId: "sariah", avatarEmoji: "🌻" };
-  assert.deepEqual(avatarAppearancePatch(saved, draft), { avatarEmoji: "🌻", avatarCharacterId: "sariah" });
+  assert.deepEqual(avatarAppearancePatch(saved, draft), { avatarCharacterId: "sariah" });
   assert.equal(avatarAppearancesEqual(saved, draft), false);
   assert.equal(avatarAppearancesEqual(saved, { ...saved }), true);
+});
+
+test("de vaste onboardingselectie bevat exact twee vrouwen en twee mannen", () => {
+  const options = avatarOptions([]).filter((option) => START_AVATAR_CHARACTER_IDS.includes(option.id as typeof START_AVATAR_CHARACTER_IDS[number]));
+  assert.deepEqual(options.map((option) => option.id).sort(), [...START_AVATAR_CHARACTER_IDS].sort());
+  assert.equal(options.filter((option) => option.gender === "female").length, 2);
+  assert.equal(options.filter((option) => option.gender === "male").length, 2);
+  assert.ok(options.every((option) => option.available));
+});
+
+test("de legacy emoji wordt niet gebruikt als tijdelijke avatarfallback", () => {
+  assert.equal(avatarFallbackText("😀Sariah"), "SA");
+  assert.equal(avatarFallbackText("🌟"), "?");
 });
 
 test("profielcamera houdt de zichtbare bovenrand binnen de zoomviewport voor alle personages", () => {
@@ -52,6 +65,8 @@ test("editor en profiel gebruiken één veilige avatar-ingang", () => {
   const editor = readFileSync("src/components/AvatarEditorClient.tsx", "utf8");
   const profile = readFileSync("src/components/ProfileClient.tsx", "utf8");
   assert.match(editor, /role="tablist"/);
+  assert.match(editor, /type EditorTab = "characters" \| "accessories"/);
+  assert.doesNotMatch(editor, /AVATAR_EMOJI_OPTIONS/);
   assert.match(editor, /data-avatar-editor-save-bar/);
   assert.match(editor, /pointer-events-none[^\n]*overflow-hidden/);
   assert.match(profile, /changeHref="\/profile\/avatar"/);

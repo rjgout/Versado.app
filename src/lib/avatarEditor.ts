@@ -4,7 +4,6 @@ import type { AvatarAppearance } from "@/lib/avatarTypes";
 export type AvatarCharacterFilter = "all" | "available" | "locked" | "male" | "female";
 
 const AVATAR_APPEARANCE_FIELDS = [
-  "avatarEmoji",
   "avatarCharacterId",
   "avatarBackgroundId",
   "avatarFrameId",
