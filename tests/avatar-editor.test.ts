@@ -52,9 +52,27 @@ test("editor en profiel gebruiken één veilige avatar-ingang", () => {
   const editor = readFileSync("src/components/AvatarEditorClient.tsx", "utf8");
   const profile = readFileSync("src/components/ProfileClient.tsx", "utf8");
   assert.match(editor, /role="tablist"/);
-  assert.match(editor, /fixed inset-x-0 bottom-\[var\(--nav-height/);
+  assert.match(editor, /data-avatar-editor-save-bar/);
+  assert.match(editor, /pointer-events-none[^\n]*overflow-hidden/);
   assert.match(profile, /changeHref="\/profile\/avatar"/);
   assert.doesNotMatch(profile, /avatarPicker/);
+});
+
+test("avatarlagen blijven bruikbaar bij kleine formaten en een kapotte karakterafbeelding", () => {
+  const avatar = readFileSync("src/components/ScriptureAvatar.tsx", "utf8");
+  const userAvatar = readFileSync("src/components/UserAvatar.tsx", "utf8");
+  assert.match(avatar, /scale-\[1\.08\].*object-cover/);
+  assert.match(avatar, /scale-\[1\.08\].*object-contain/);
+  assert.match(avatar, /onError=\{\(\) => setFailedCharacterSource/);
+  assert.match(avatar, /!showCharacter && !hasAccessory/);
+  assert.match(userAvatar, /localOverrides/);
+  assert.match(userAvatar, /localOverrides\.get\(id\) \?\? known \?\? cache\.get\(id\)/);
+});
+
+test("de profielhero gebruikt geen kader rond het full-body-personage", () => {
+  const hero = readFileSync("src/components/ProfileCharacterHero.tsx", "utf8");
+  assert.match(hero, /avatarFrameId: null/);
+  assert.doesNotMatch(hero, /ring-2 ring-white/);
 });
 
 test("Mysterie-labels blijven leesbaar en de visuele schaal raakt de geometrie niet", () => {

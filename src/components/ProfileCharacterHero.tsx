@@ -53,9 +53,16 @@ export default function ProfileCharacterHero({ appearance, handle, zoomInLabel, 
         </div>
       )}
 
-      {/* Vierkante lagen blijven in een kleine badge; ze worden nooit over de
-          rechthoekige full-body-header uitgerekt. */}
-      {character && <ScriptureAvatar appearance={appearance} handle={handle} className="absolute left-3 top-3 h-16 w-16 bg-black/20 shadow-lg ring-2 ring-white/30 sm:left-5 sm:top-5" />}
+      {/* Een kader is uitsluitend voor compacte avatars. Achtergrond/decoratie
+          kunnen wel in een kleine badge mee zichtbaar blijven, maar nooit als
+          ring rond het full-body-personage of diens hoofd. */}
+      {character && (appearance.avatarBackgroundId || appearance.avatarDecorationId || appearance.avatarLightAccentId) && (
+        <ScriptureAvatar
+          appearance={{ ...appearance, avatarFrameId: null }}
+          handle={handle}
+          className="absolute left-3 top-3 h-16 w-16 bg-black/20 shadow-lg sm:left-5 sm:top-5"
+        />
+      )}
       {changeHref && changeLabel && <Link href={changeHref} className="absolute bottom-3 right-3 inline-flex min-h-10 items-center rounded-full bg-black/45 px-3 text-xs font-extrabold text-white backdrop-blur transition hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:bottom-5 sm:right-5">
         {changeLabel}
       </Link>}

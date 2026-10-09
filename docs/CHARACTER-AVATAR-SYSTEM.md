@@ -56,6 +56,17 @@ gebruikerslijsten niet op een nieuwe login hoeven te wachten. Bij een emoji als
 basis blijven geselecteerde accessoirelagen behouden en worden ze boven de
 emoji gerenderd.
 
+Compacte gebruikersavatars gebruiken alle vierkante lagen samen: achtergrond,
+personage, decoratie/lichtaccent en kader. De transparante marges van de
+accessoirebestanden worden in `ScriptureAvatar` gecompenseerd met een kleine
+visuele schaal, zodat achtergrond en kader de buitenrand van het ronde vak
+daadwerkelijk bereiken zonder de bronassets te wijzigen. Een profielhero
+gebruikt daarentegen het onafhankelijke full-body-raster; het ronde kader wordt
+daar nooit als halo rond het hoofd geplaatst. Een toekomstige profielscène kan
+als afzonderlijke rechthoekige achtergrondlaag in `ProfileCharacterHero` worden
+aangesloten, zonder de huidige vierkante avatarachtergrond of databasevelden te
+hergebruiken.
+
 ## Ontgrendelingen
 
 Er is geen nieuwe valuta of tijdelijke teller. Bestaande `UserAchievement`-
