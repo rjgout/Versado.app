@@ -1,0 +1,498 @@
+{
+  "schemaVersion": 1,
+  "scope": "documentation-only; implementation later by Claude Code",
+  "coordinateSystem": {
+    "canvas": [
+      1024,
+      1024
+    ],
+    "center": [
+      512,
+      512
+    ],
+    "diameter": 1024,
+    "faceSafeCircleDiameter": 860
+  },
+  "layerOrder": [
+    "background",
+    "character-portrait",
+    "decorative-overlay",
+    "frame"
+  ],
+  "placement": "Every layer fills the same square. Do not crop transparent margins or fit to its visible bounding box.",
+  "overlaySlot": "one lower-shoulder decoration at a time; optional light accent; position already baked into the full square layer",
+  "assets": [
+    {
+      "id": "frame-bronze",
+      "kind": "frames",
+      "detail": {
+        "url": "/scripture/accessories/frames/frame-bronze-1024-v1.webp",
+        "pixels": [
+          1024,
+          1024
+        ],
+        "bytes": 199690,
+        "sha256": "6e6df4c9110c191fd46196b5b218fe1ca04ba10b81d02857a32c978298e254d5",
+        "sourcePngSha256": "e0e7ce7beab021dd1ad863c6354711ecc6a54bbe5e2b5e41c449ef311cde7fba",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          23,
+          26,
+          1000,
+          974
+        ],
+        "alphaRange": [
+          0,
+          255
+        ]
+      },
+      "compact": {
+        "url": "/scripture/accessories/frames/frame-bronze-256-v1.webp",
+        "pixels": [
+          256,
+          256
+        ],
+        "bytes": 21150,
+        "sha256": "c95d46a4a16d1a62cfb8aa3cd263042f394aa181d1cf2539e68e792ad55017df",
+        "sourcePngSha256": "e0e7ce7beab021dd1ad863c6354711ecc6a54bbe5e2b5e41c449ef311cde7fba",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          6,
+          7,
+          250,
+          243
+        ],
+        "alphaRange": [
+          0,
+          255
+        ]
+      },
+      "anchorPixels": {
+        "canvasCenter": [
+          512,
+          512
+        ],
+        "visibleBoundsCenter": [
+          512,
+          500
+        ]
+      },
+      "faceSafe": "Keep the inner face area clear; checked visually in combinations. Glow/stars are peripheral.",
+      "layer": "frame",
+      "exception": "Use only one compass/scroll/mystery decoration at a time; light may accompany one. At 32px a frame and one simple accent remain preferable."
+    },
+    {
+      "id": "frame-silver",
+      "kind": "frames",
+      "detail": {
+        "url": "/scripture/accessories/frames/frame-silver-1024-v1.webp",
+        "pixels": [
+          1024,
+          1024
+        ],
+        "bytes": 185990,
+        "sha256": "f20eb7ae2ef30313ff15836df819f49119d132bb5eaf1bee259f4bdc5f52edd8",
+        "sourcePngSha256": "63b3b4d268aa9071cc5d4d46c8fb33d641ffa72d612065c744716ceba17912cc",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          23,
+          23,
+          1000,
+          991
+        ],
+        "alphaRange": [
+          0,
+          255
+        ]
+      },
+      "compact": {
+        "url": "/scripture/accessories/frames/frame-silver-256-v1.webp",
+        "pixels": [
+          256,
+          256
+        ],
+        "bytes": 20944,
+        "sha256": "d4879786b7387ecb164aef1104850598115ba4f85f6a41fdc5314770fa5120c9",
+        "sourcePngSha256": "63b3b4d268aa9071cc5d4d46c8fb33d641ffa72d612065c744716ceba17912cc",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          6,
+          6,
+          250,
+          248
+        ],
+        "alphaRange": [
+          0,
+          255
+        ]
+      },
+      "anchorPixels": {
+        "canvasCenter": [
+          512,
+          512
+        ],
+        "visibleBoundsCenter": [
+          512,
+          507
+        ]
+      },
+      "faceSafe": "Keep the inner face area clear; checked visually in combinations. Glow/stars are peripheral.",
+      "layer": "frame",
+      "exception": "Use only one compass/scroll/mystery decoration at a time; light may accompany one. At 32px a frame and one simple accent remain preferable."
+    },
+    {
+      "id": "frame-gold",
+      "kind": "frames",
+      "detail": {
+        "url": "/scripture/accessories/frames/frame-gold-1024-v1.webp",
+        "pixels": [
+          1024,
+          1024
+        ],
+        "bytes": 187420,
+        "sha256": "639a5ac23116490b73adf58f51fa420ddf2f980714c34b3eab6d6e7fd2584ec5",
+        "sourcePngSha256": "d117b054074d97f7ce75c320552da2e2b46f4e7d26f7b3a031387ab016fce3d2",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          34,
+          28,
+          989,
+          978
+        ],
+        "alphaRange": [
+          0,
+          255
+        ]
+      },
+      "compact": {
+        "url": "/scripture/accessories/frames/frame-gold-256-v1.webp",
+        "pixels": [
+          256,
+          256
+        ],
+        "bytes": 21106,
+        "sha256": "83a406e77c6a1661c9830f0caf79fda44e144e967001a42793494ae1d855d7fc",
+        "sourcePngSha256": "d117b054074d97f7ce75c320552da2e2b46f4e7d26f7b3a031387ab016fce3d2",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          9,
+          7,
+          247,
+          244
+        ],
+        "alphaRange": [
+          0,
+          255
+        ]
+      },
+      "anchorPixels": {
+        "canvasCenter": [
+          512,
+          512
+        ],
+        "visibleBoundsCenter": [
+          512,
+          503
+        ]
+      },
+      "faceSafe": "Keep the inner face area clear; checked visually in combinations. Glow/stars are peripheral.",
+      "layer": "frame",
+      "exception": "Use only one compass/scroll/mystery decoration at a time; light may accompany one. At 32px a frame and one simple accent remain preferable."
+    },
+    {
+      "id": "background-stars",
+      "kind": "backgrounds",
+      "detail": {
+        "url": "/scripture/accessories/backgrounds/background-stars-1024-v1.webp",
+        "pixels": [
+          1024,
+          1024
+        ],
+        "bytes": 202782,
+        "sha256": "e3fefe21c6a80bf00c7b6b1123fcd3322e501635455cab2f7aad42425d4c7aab",
+        "sourcePngSha256": "a952b1aef7604aee1b2b71a0f5d364fb1b67de7e1f6abf6a4f6329872d998116",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          50,
+          86,
+          973,
+          928
+        ],
+        "alphaRange": [
+          0,
+          255
+        ]
+      },
+      "compact": {
+        "url": "/scripture/accessories/backgrounds/background-stars-256-v1.webp",
+        "pixels": [
+          256,
+          256
+        ],
+        "bytes": 20154,
+        "sha256": "a9c5468b46c0a99773009105c428e11b925c5a5aba934c965b3d2ce83ae22c58",
+        "sourcePngSha256": "a952b1aef7604aee1b2b71a0f5d364fb1b67de7e1f6abf6a4f6329872d998116",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          13,
+          22,
+          243,
+          232
+        ],
+        "alphaRange": [
+          0,
+          255
+        ]
+      },
+      "anchorPixels": {
+        "canvasCenter": [
+          512,
+          512
+        ],
+        "visibleBoundsCenter": [
+          512,
+          507
+        ]
+      },
+      "faceSafe": "Keep the inner face area clear; checked visually in combinations. Glow/stars are peripheral.",
+      "layer": "background",
+      "exception": "Use only one compass/scroll/mystery decoration at a time; light may accompany one. At 32px a frame and one simple accent remain preferable."
+    },
+    {
+      "id": "overlay-compass",
+      "kind": "overlays",
+      "detail": {
+        "url": "/scripture/accessories/overlays/overlay-compass-1024-v1.webp",
+        "pixels": [
+          1024,
+          1024
+        ],
+        "bytes": 46920,
+        "sha256": "efa96648e09b586a769f10cb879141a90f5c36372a60bfbbe42e0e7bcf7cf013",
+        "sourcePngSha256": "85509993e834bc25afc56b3e7baad5853ffdad7eae92690c84a9d18a300cd096",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          544,
+          631,
+          836,
+          916
+        ],
+        "alphaRange": [
+          0,
+          255
+        ]
+      },
+      "compact": {
+        "url": "/scripture/accessories/overlays/overlay-compass-256-v1.webp",
+        "pixels": [
+          256,
+          256
+        ],
+        "bytes": 5724,
+        "sha256": "05c7f343d3d9e11c6d7052142687bd55a36e952f14e398d5d023b09437dd4feb",
+        "sourcePngSha256": "85509993e834bc25afc56b3e7baad5853ffdad7eae92690c84a9d18a300cd096",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          136,
+          158,
+          209,
+          229
+        ],
+        "alphaRange": [
+          0,
+          255
+        ]
+      },
+      "anchorPixels": {
+        "canvasCenter": [
+          512,
+          512
+        ],
+        "visibleBoundsCenter": [
+          690,
+          774
+        ]
+      },
+      "faceSafe": "Keep the inner face area clear; checked visually in combinations. Glow/stars are peripheral.",
+      "layer": "decorative-overlay",
+      "exception": "Use only one compass/scroll/mystery decoration at a time; light may accompany one. At 32px a frame and one simple accent remain preferable."
+    },
+    {
+      "id": "overlay-light",
+      "kind": "overlays",
+      "detail": {
+        "url": "/scripture/accessories/overlays/overlay-light-1024-v1.webp",
+        "pixels": [
+          1024,
+          1024
+        ],
+        "bytes": 99388,
+        "sha256": "a3efdf4cd03b2c4e7a8ed7640ba2f9adb5af16a77c53809d83dfddf71a1effb6",
+        "sourcePngSha256": "eef34aa3aa4971220f7bd4dcd1de450a4df3ca9640c17c73deef4b561ba4414b",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          29,
+          373,
+          547,
+          963
+        ],
+        "alphaRange": [
+          0,
+          253
+        ]
+      },
+      "compact": {
+        "url": "/scripture/accessories/overlays/overlay-light-256-v1.webp",
+        "pixels": [
+          256,
+          256
+        ],
+        "bytes": 9148,
+        "sha256": "097baa8081f7b365eeac370fac5771f5ab5958175b9b55f26595d574b75b4550",
+        "sourcePngSha256": "eef34aa3aa4971220f7bd4dcd1de450a4df3ca9640c17c73deef4b561ba4414b",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          7,
+          97,
+          134,
+          241
+        ],
+        "alphaRange": [
+          0,
+          254
+        ]
+      },
+      "anchorPixels": {
+        "canvasCenter": [
+          512,
+          512
+        ],
+        "visibleBoundsCenter": [
+          288,
+          668
+        ]
+      },
+      "faceSafe": "Keep the inner face area clear; checked visually in combinations. Glow/stars are peripheral.",
+      "layer": "decorative-overlay",
+      "exception": "Use only one compass/scroll/mystery decoration at a time; light may accompany one. At 32px a frame and one simple accent remain preferable."
+    },
+    {
+      "id": "overlay-scroll",
+      "kind": "overlays",
+      "detail": {
+        "url": "/scripture/accessories/overlays/overlay-scroll-1024-v1.webp",
+        "pixels": [
+          1024,
+          1024
+        ],
+        "bytes": 60964,
+        "sha256": "22b0f78d6223fc3aa95bcd8060d335b35d43b0c2ab2293bbac5fe7dc9c39ef52",
+        "sourcePngSha256": "93756170580a6e6e198f6816ec788fd6351ed5d0bd573c362f3bc77748138512",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          507,
+          633,
+          957,
+          929
+        ],
+        "alphaRange": [
+          0,
+          255
+        ]
+      },
+      "compact": {
+        "url": "/scripture/accessories/overlays/overlay-scroll-256-v1.webp",
+        "pixels": [
+          256,
+          256
+        ],
+        "bytes": 7330,
+        "sha256": "709bcd407f3459831f66b35ddfb54caa32eab85094568d0d61c4a92170c9d2c3",
+        "sourcePngSha256": "93756170580a6e6e198f6816ec788fd6351ed5d0bd573c362f3bc77748138512",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          127,
+          158,
+          240,
+          232
+        ],
+        "alphaRange": [
+          0,
+          255
+        ]
+      },
+      "anchorPixels": {
+        "canvasCenter": [
+          512,
+          512
+        ],
+        "visibleBoundsCenter": [
+          732,
+          781
+        ]
+      },
+      "faceSafe": "Keep the inner face area clear; checked visually in combinations. Glow/stars are peripheral.",
+      "layer": "decorative-overlay",
+      "exception": "Use only one compass/scroll/mystery decoration at a time; light may accompany one. At 32px a frame and one simple accent remain preferable."
+    },
+    {
+      "id": "overlay-mystery",
+      "kind": "overlays",
+      "detail": {
+        "url": "/scripture/accessories/overlays/overlay-mystery-1024-v1.webp",
+        "pixels": [
+          1024,
+          1024
+        ],
+        "bytes": 44904,
+        "sha256": "9bf30921bd32380e27fbd971ec55d614c96de09b7158062bdd8e3706e94e0c18",
+        "sourcePngSha256": "e3f65e667aa3081b97d00e9bace438ddac5eda1265b062d3f8084e26ddacba10",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          628,
+          647,
+          909,
+          956
+        ],
+        "alphaRange": [
+          0,
+          255
+        ]
+      },
+      "compact": {
+        "url": "/scripture/accessories/overlays/overlay-mystery-256-v1.webp",
+        "pixels": [
+          256,
+          256
+        ],
+        "bytes": 5716,
+        "sha256": "14e98ed2e30c9d82fc8a380b113fa97dd0e7ea156103e2ca08e0affd1514b08f",
+        "sourcePngSha256": "e3f65e667aa3081b97d00e9bace438ddac5eda1265b062d3f8084e26ddacba10",
+        "transparentBackground": true,
+        "visibleBoundsPixels": [
+          157,
+          162,
+          227,
+          239
+        ],
+        "alphaRange": [
+          0,
+          255
+        ]
+      },
+      "anchorPixels": {
+        "canvasCenter": [
+          512,
+          512
+        ],
+        "visibleBoundsCenter": [
+          768,
+          802
+        ]
+      },
+      "faceSafe": "Keep the inner face area clear; checked visually in combinations. Glow/stars are peripheral.",
+      "layer": "decorative-overlay",
+      "exception": "Use only one compass/scroll/mystery decoration at a time; light may accompany one. At 32px a frame and one simple accent remain preferable."
+    }
+  ]
+}
