@@ -31,13 +31,24 @@ export default async function PersonsToolPage() {
       father: { select: { slug: true, name: true } },
       mother: { select: { slug: true, name: true } },
       children: { select: { slug: true, name: true }, orderBy: { name: "asc" } },
+      verses: {
+        take: 48,
+        select: { verse: { select: { chapter: { select: { id: true, number: true, book: { select: { name: true } } } } } } },
+      },
     },
   });
+
+  const personEntries = persons.map(({ verses, ...person }) => ({
+    ...person,
+    // Eén persoon kan in veel verzen voorkomen; toon elk bronhoofdstuk maar
+    // één keer en begrens de lijst zodat de detailkaart leesbaar blijft.
+    chapterRefs: [...new Map(verses.map(({ verse }) => [verse.chapter.id, { id: verse.chapter.id, label: `${verse.chapter.book.name} ${verse.chapter.number}` }])).values()].slice(0, 12),
+  }));
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <PageIntro title={t("persons.title")} text={t(PERSON_COLLECTIONS[collectionId], { n: persons.length })} />
-      <PersonsSearch persons={persons} />
+      <PersonsSearch persons={personEntries} collectionId={collectionId} />
     </div>
   );
 }

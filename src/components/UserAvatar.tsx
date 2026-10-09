@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ScriptureAvatar from "@/components/ScriptureAvatar";
+import type { AvatarAppearance } from "@/lib/avatarTypes";
 
 // Puur decoratief: elke gebruiker krijgt een stabiele (niet-willekeurige,
 // dus niet bij elke render andere) avatarkleur uit het bestaande
@@ -23,7 +25,7 @@ function initialsFor(handle: string): string {
 // avatars die tegelijk in beeld komen in één verzoek (zie
 // /api/users/avatars). Schermen die de emoji al in hun eigen data hebben,
 // geven hem mee als prop en slaan dit over.
-const cache = new Map<string, string | null>();
+const cache = new Map<string, AvatarAppearance>();
 const waiting = new Set<string>();
 const listeners = new Set<() => void>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -37,17 +39,28 @@ function requestAvatar(id: string) {
     const ids = [...waiting];
     waiting.clear();
     try {
-      const res = await fetch(`/api/users/avatars?ids=${encodeURIComponent(ids.join(","))}`);
-      const data = res.ok ? ((await res.json()) as { avatars: Record<string, string | null> }) : { avatars: {} };
-      for (const id of ids) cache.set(id, data.avatars[id] ?? null);
+      const res = await fetch(`/api/users/avatars?ids=${encodeURIComponent(ids.join(","))}`, {
+        cache: "no-store",
+      });
+      const data = res.ok ? ((await res.json()) as { avatars: Record<string, AvatarAppearance | string | null> }) : { avatars: {} };
+      for (const id of ids) {
+        const value = data.avatars[id];
+        cache.set(id, typeof value === "object" && value !== null ? value : { avatarEmoji: typeof value === "string" ? value : null, avatarCharacterId: null, avatarBackgroundId: null, avatarFrameId: null, avatarDecorationId: null, avatarLightAccentId: null });
+      }
     } catch {
-      for (const id of ids) cache.set(id, null);
+      for (const id of ids) cache.set(id, { avatarEmoji: null, avatarCharacterId: null, avatarBackgroundId: null, avatarFrameId: null, avatarDecorationId: null, avatarLightAccentId: null });
     }
     for (const listener of listeners) listener();
   }, 30);
 }
 
-function useAvatarEmoji(id: string, known: string | null | undefined): string | null {
+export function invalidateAvatarCache(id?: string): void {
+  if (id) cache.delete(id);
+  else cache.clear();
+  for (const listener of listeners) listener();
+}
+
+function useAvatarAppearance(id: string, known: AvatarAppearance | undefined): AvatarAppearance {
   const [, rerender] = useState(0);
   useEffect(() => {
     if (known !== undefined || !id) return;
@@ -58,7 +71,7 @@ function useAvatarEmoji(id: string, known: string | null | undefined): string | 
       listeners.delete(listener);
     };
   }, [id, known]);
-  return known !== undefined ? known : (cache.get(id) ?? null);
+  return known !== undefined ? known : (cache.get(id) ?? { avatarEmoji: null, avatarCharacterId: null, avatarBackgroundId: null, avatarFrameId: null, avatarDecorationId: null, avatarLightAccentId: null });
 }
 
 const SIZES = {
@@ -83,22 +96,35 @@ export default function UserAvatar({
   id,
   handle,
   avatarEmoji,
+  avatarCharacterId,
+  avatarBackgroundId,
+  avatarFrameId,
+  avatarDecorationId,
+  avatarLightAccentId,
   size = "sm",
   className = "",
 }: {
   id: string;
   handle: string;
   avatarEmoji?: string | null;
+  avatarCharacterId?: string | null;
+  avatarBackgroundId?: string | null;
+  avatarFrameId?: string | null;
+  avatarDecorationId?: string | null;
+  avatarLightAccentId?: string | null;
   size?: keyof typeof SIZES;
   className?: string;
 }) {
-  const emoji = useAvatarEmoji(id, avatarEmoji);
+  const known = avatarCharacterId !== undefined
+    ? { avatarEmoji: avatarEmoji ?? null, avatarCharacterId, avatarBackgroundId: avatarBackgroundId ?? null, avatarFrameId: avatarFrameId ?? null, avatarDecorationId: avatarDecorationId ?? null, avatarLightAccentId: avatarLightAccentId ?? null }
+    : undefined;
+  const appearance = useAvatarAppearance(id, known);
   return (
     <span
-      className={`shrink-0 ${SIZES[size]} ${emoji ? TEXT_SIZES[size].emoji : TEXT_SIZES[size].letters} rounded-full ${avatarColorFor(id)} text-white font-extrabold flex items-center justify-center leading-none ${className}`}
+      className={`relative shrink-0 ${SIZES[size]} ${appearance.avatarCharacterId ? "" : `${appearance.avatarEmoji ? TEXT_SIZES[size].emoji : TEXT_SIZES[size].letters} ${avatarColorFor(id)} text-white`} font-extrabold leading-none ${className}`}
       aria-hidden
     >
-      {emoji || initialsFor(handle)}
+      <ScriptureAvatar appearance={{ ...appearance, avatarEmoji: appearance.avatarEmoji || initialsFor(handle) }} handle={handle} className="h-full w-full" />
     </span>
   );
 }

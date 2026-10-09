@@ -17,6 +17,7 @@ import { nextMysteryHrefFor } from "@/lib/mysteries/game";
 import type { CharacterId, GridCell, MysteryDefinition, Placements } from "@/lib/mysteries/types";
 import type { MysteryProgressView } from "@/lib/mysteries/progress";
 import type { MessageKey } from "@/lib/i18n/core";
+import { getCharacterAsset } from "@/lib/characterAssets";
 
 type Gesture = { pointerId: number; characterId: CharacterId; startX: number; startY: number; moved: boolean };
 type DragState = { characterId: CharacterId; x: number; y: number };
@@ -673,6 +674,7 @@ function CharacterTray({ definition, trayRef, placements, selected, tutorialActi
           const placed = Boolean(placements[character.id]);
           const disabled = placed || (tutorialActive && character.id !== definition.tutorial?.characterId);
           const clues = characterCluesFor(definition, character.id);
+          const bust = getCharacterAsset(character.id)?.bustCompact;
           return (
             <article key={character.id} className={`rounded-xl border p-2.5 transition ${placed ? "border-vs-line bg-vs-subtle/70" : "border-vs-line bg-vs-surface"}`}>
               <div className="flex items-start gap-2">
@@ -689,7 +691,7 @@ function CharacterTray({ definition, trayRef, placements, selected, tutorialActi
                 >
                   {/* Alleen het artwork start een touch-drag; tekst en status blijven rustig scroll- en leesbaar. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={character.asset} alt="" draggable={false} onError={() => onCharacterAssetError(character.id)} className={`pointer-events-none h-12 w-12 object-contain ${characterAssetErrors[character.id] ? "opacity-0" : ""} ${placed ? "opacity-55" : ""}`} />
+                  <img src={bust ?? character.asset} alt="" draggable={false} onError={() => onCharacterAssetError(character.id)} className={`pointer-events-none h-12 w-12 object-contain ${characterAssetErrors[character.id] ? "opacity-0" : ""} ${placed ? "opacity-55" : ""}`} />
                 </button>
                 <button type="button" disabled={disabled} onClick={() => onClick(character.id)} className={`min-w-0 flex-1 rounded-lg text-left ${focusRing}`} aria-label={`${character.name}${placed ? `, ${t("mystery001a.placedStatus")}` : ""}`}>
                   <span className="block truncate text-sm font-extrabold text-vs-fg">{character.name}</span>

@@ -6,7 +6,7 @@ import LanguageSettings from "@/components/LanguageSettings";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { LeagueTier } from "@/generated/prisma/client";
 import DivisionEmblem from "@/components/versado/DivisionEmblem";
-import { formatTag, firstGrapheme, isSingleEmoji } from "@/lib/handle";
+import { formatTag, isSingleEmoji } from "@/lib/handle";
 import { enableBrowserPush, disableBrowserPush } from "@/lib/pushClient";
 import { getSocket } from "@/lib/socketClient";
 import { useLiveQuery } from "@/lib/data/hooks";
@@ -20,6 +20,11 @@ import TwoFactorSettings from "@/components/TwoFactorSettings";
 import { getDutchVoices, saveSelectedDutchVoice } from "@/lib/readAloud";
 import { useT } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
+import ProfileCharacterHero from "@/components/ProfileCharacterHero";
+import ScriptureAvatar from "@/components/ScriptureAvatar";
+import { invalidateAvatarCache } from "@/components/UserAvatar";
+import { avatarOptions, accessoryOptions } from "@/lib/avatarUnlocks";
+import type { AvatarAccessoryKind } from "@/lib/avatarAccessories";
 import { getLanguage } from "@/lib/languages";
 import SystemIcon from "@/components/versado/SystemIcon";
 import CompanionPicker, { companionName } from "@/components/versado/CompanionPicker";
@@ -369,21 +374,39 @@ export default function ProfileClient() {
     if (!data) return;
     setSavingAvatarEmoji(true);
     setAvatarError(null);
-    const res = await fetch("/api/account", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ avatarEmoji: emoji }),
-    });
-    const body = await res.json().catch(() => ({}));
-    setSavingAvatarEmoji(false);
-    if (!res.ok) {
-      setAvatarError(body.error ?? t("profile.emojiSaveFailed"));
+    try {
+      await liveMutation(
+        () => fetchJson("/api/account", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ avatarEmoji: emoji, avatarCharacterId: null }) }),
+        { invalidates: ["profile", "friends", "today", "competition", "activity"] }
+      );
+    } catch (error) {
+      setSavingAvatarEmoji(false);
+      setAvatarError(error instanceof Error ? error.message : t("profile.emojiSaveFailed"));
       return;
     }
-    setData({ ...data, avatarEmoji: emoji });
-    invalidateData(["today", "competition", "activity"]);
+    setSavingAvatarEmoji(false);
+    setData({ ...data, avatarEmoji: emoji, avatarCharacterId: null });
+    invalidateAvatarCache();
     setAvatarPickerOpen(false);
     setAvatarInput("");
+  }
+
+  async function saveAvatarSelection(patch: Partial<Pick<ProfileData, "avatarCharacterId" | "avatarBackgroundId" | "avatarFrameId" | "avatarDecorationId" | "avatarLightAccentId">>) {
+    if (!data) return;
+    setSavingAvatarEmoji(true);
+    setAvatarError(null);
+    try {
+      await liveMutation(
+        () => fetchJson("/api/account", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) }),
+        { invalidates: ["profile", "friends", "today", "competition", "activity"] }
+      );
+      setData({ ...data, ...patch });
+      invalidateAvatarCache();
+    } catch (error) {
+      setAvatarError(error instanceof Error ? error.message : t("profile.emojiSaveFailed"));
+    } finally {
+      setSavingAvatarEmoji(false);
+    }
   }
 
   function saveCustomAvatarEmoji() {
@@ -454,26 +477,100 @@ export default function ProfileClient() {
   }
 
   const earnedCount = data.achievements.filter((a) => a.earnedAt).length;
-  const initial = firstGrapheme(data.displayName).toUpperCase() || "?";
-
+  const earnedAchievementSlugs = data.achievements.filter((achievement) => achievement.earnedAt).map((achievement) => achievement.slug);
+  const characterOptions = avatarOptions(earnedAchievementSlugs);
+  const availableCharacters = characterOptions.filter((option) => option.available);
+  const lockedCharacters = characterOptions.filter((option) => !option.available);
+  const accessorySlotLabels: Record<AvatarAccessoryKind, string> = {
+    background: "Achtergrond",
+    frame: "Kader",
+    decoration: "Decoratie",
+    lightAccent: "Lichtaccent",
+  };
+  const accessorySlots = [
+    { kind: "background" as const, field: "avatarBackgroundId" as const },
+    { kind: "frame" as const, field: "avatarFrameId" as const },
+    { kind: "decoration" as const, field: "avatarDecorationId" as const },
+    { kind: "lightAccent" as const, field: "avatarLightAccentId" as const },
+  ];
+  const accessoryChoices = accessoryOptions(earnedAchievementSlugs);
+  const achievementName = (slug: string | null) => data.achievements.find((achievement) => achievement.slug === slug)?.name ?? slug ?? "—";
   const avatarPicker = avatarPickerOpen ? (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setAvatarPickerOpen(false)}>
-      <div className="card flex w-full max-w-xs flex-col gap-3 !p-4 text-slate-800 shadow-xl dark:text-slate-100" onClick={(event) => event.stopPropagation()}>
-        <p className="text-sm font-bold">{t("profile.chooseAvatar")}</p>
-        <div className="grid grid-cols-6 gap-1.5">
-          {AVATAR_EMOJI_OPTIONS.map((emoji) => (
-            <button key={emoji} type="button" className="flex h-9 w-9 items-center justify-center rounded-lg text-xl hover:bg-slate-100 dark:hover:bg-slate-700" disabled={savingAvatarEmoji} onClick={() => saveAvatarEmoji(emoji)}>{emoji}</button>
-          ))}
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 pt-[calc(1rem+var(--header-offset))] pb-[calc(1rem+var(--nav-height)+var(--vs-safe-area-bottom))]" onClick={() => setAvatarPickerOpen(false)}>
+      <div className="card flex w-full max-w-2xl flex-col gap-5 !p-4 text-slate-800 shadow-xl dark:text-slate-100 sm:!p-6" role="dialog" aria-modal="true" aria-labelledby="avatar-picker-title" onClick={(event) => event.stopPropagation()}>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p id="avatar-picker-title" className="text-lg font-black">{t("profile.chooseAvatar")}</p>
+            <p className="mt-1 text-sm text-vs-fg-2">Kies een personage en stel de losse cosmetische lagen samen.</p>
+          </div>
+          <button type="button" autoFocus onClick={() => setAvatarPickerOpen(false)} className="h-10 w-10 rounded-full text-xl text-vs-fg-2 hover:bg-vs-subtle" aria-label={t("common.close")}>×</button>
         </div>
-        <div className="flex items-center gap-2">
-          <input className="input !w-16 text-center text-xl" placeholder="🙂" value={avatarInput} onChange={(event) => setAvatarInput(event.target.value)} maxLength={8} />
-          <button className="btn-primary shrink-0 !px-3 !py-1.5 !text-xs" disabled={savingAvatarEmoji || !avatarInput} onClick={saveCustomAvatarEmoji}>{t("profile.save")}</button>
+        <div className="flex items-center gap-3 rounded-2xl bg-vs-subtle p-3">
+          <ScriptureAvatar appearance={{ avatarEmoji: data.avatarEmoji, avatarCharacterId: data.avatarCharacterId, avatarBackgroundId: data.avatarBackgroundId, avatarFrameId: data.avatarFrameId, avatarDecorationId: data.avatarDecorationId, avatarLightAccentId: data.avatarLightAccentId }} handle={data.handle} className="h-20 w-20 shrink-0 text-3xl" />
+          <p className="min-w-0 text-sm font-bold text-vs-fg-2">Je huidige keuze blijft staan totdat je een nieuwe keuze opslaat.</p>
         </div>
-        {avatarError && <p className="text-xs text-red-600 dark:text-red-400">{avatarError}</p>}
-        <div className="flex items-center gap-3 border-t border-slate-100 pt-2 dark:border-slate-700">
-          {data.avatarEmoji && <button className="text-xs text-red-500 hover:underline" disabled={savingAvatarEmoji} onClick={() => saveAvatarEmoji(null)}>{t("season.remove")}</button>}
-          <button className="ml-auto text-xs text-slate-400 hover:underline" onClick={() => setAvatarPickerOpen(false)}>{t("common.close")}</button>
-        </div>
+        <section aria-labelledby="avatar-characters-title">
+          <h2 id="avatar-characters-title" className="text-sm font-extrabold uppercase tracking-wide text-vs-fg-2">Personage</h2>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {availableCharacters.map((option) => (
+              <button key={option.id} type="button" disabled={savingAvatarEmoji} onClick={() => saveAvatarSelection({ avatarCharacterId: option.id })} className={`flex min-h-20 min-w-0 items-center gap-2 rounded-2xl border p-2 text-left transition ${data.avatarCharacterId === option.id ? "!border-vs-accent !bg-vs-accent-soft" : "border-vs-line hover:bg-vs-subtle"}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={option.avatar} alt="" className="h-14 w-14 shrink-0 object-contain" />
+                <span className="min-w-0 text-sm font-bold leading-tight text-vs-fg [overflow-wrap:anywhere]">{option.name}</span>
+              </button>
+            ))}
+          </div>
+          {lockedCharacters.length > 0 && (
+            <details className="mt-3 rounded-2xl border border-vs-line p-3">
+              <summary className="cursor-pointer text-sm font-bold text-vs-fg">Meer personages bekijken ({lockedCharacters.length})</summary>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {lockedCharacters.map((option) => (
+                  <div key={option.id} className="flex min-w-0 items-center gap-2 rounded-xl border border-vs-line p-2 opacity-65">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={option.avatar} alt="" className="h-12 w-12 shrink-0 object-contain grayscale" />
+                    <span className="min-w-0 text-xs font-bold leading-tight text-vs-fg [overflow-wrap:anywhere]">{option.name}<span className="mt-1 block font-semibold text-vs-fg-3">{achievementName(option.unlockAchievementSlug)}</span></span>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+        </section>
+        <section aria-labelledby="avatar-accessories-title">
+          <h2 id="avatar-accessories-title" className="text-sm font-extrabold uppercase tracking-wide text-vs-fg-2">Accessoires</h2>
+          <div className="mt-2 grid gap-3 sm:grid-cols-2">
+            {accessorySlots.map((slot) => {
+              const selected = data[slot.field];
+              const choices = accessoryChoices.filter((item) => item.kind === slot.kind);
+              return (
+                <div key={slot.kind} className="rounded-2xl border border-vs-line p-3">
+                  <p className="text-sm font-bold text-vs-fg">{accessorySlotLabels[slot.kind]}</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button type="button" disabled={savingAvatarEmoji} onClick={() => saveAvatarSelection({ [slot.field]: null })} className={`rounded-xl border px-3 py-2 text-xs font-bold ${selected === null ? "!border-vs-accent !bg-vs-accent-soft" : "border-vs-line"}`}>Geen</button>
+                    {choices.map((item) => (
+                      <button key={item.id} type="button" disabled={!item.available || savingAvatarEmoji} onClick={() => saveAvatarSelection({ [slot.field]: item.id })} className={`flex min-h-12 items-center gap-1.5 rounded-xl border px-2 py-1.5 text-left ${selected === item.id ? "!border-vs-accent !bg-vs-accent-soft" : "border-vs-line"} ${!item.available ? "cursor-not-allowed opacity-50" : "hover:bg-vs-subtle"}`}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={item.compact} alt="" className="h-8 w-8 object-contain" />
+                        <span className="max-w-24 text-xs font-bold leading-tight [overflow-wrap:anywhere]">{item.name}{!item.available && <span className="block font-semibold text-vs-fg-3">{achievementName(item.achievementSlug)}</span>}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+        <section className="border-t border-vs-line pt-3" aria-labelledby="emoji-avatar-title">
+          <h2 id="emoji-avatar-title" className="text-sm font-extrabold text-vs-fg">Emoji als fallback</h2>
+          <div className="mt-2 grid grid-cols-8 gap-1.5 sm:grid-cols-12">
+            {AVATAR_EMOJI_OPTIONS.map((emoji) => <button key={emoji} type="button" className="flex h-9 w-9 items-center justify-center rounded-lg text-xl hover:bg-vs-subtle" disabled={savingAvatarEmoji} onClick={() => saveAvatarEmoji(emoji)}>{emoji}</button>)}
+          </div>
+          <div className="mt-2 flex items-center gap-2">
+            <input className="input !w-16 text-center text-xl" placeholder="🙂" value={avatarInput} onChange={(event) => setAvatarInput(event.target.value)} maxLength={8} />
+            <button className="btn-primary shrink-0 !px-3 !py-1.5 !text-xs" disabled={savingAvatarEmoji || !avatarInput} onClick={saveCustomAvatarEmoji}>{t("profile.save")}</button>
+            {data.avatarEmoji && <button className="text-xs text-red-500 hover:underline" disabled={savingAvatarEmoji} onClick={() => saveAvatarEmoji(null)}>{t("season.remove")}</button>}
+          </div>
+        </section>
+        {avatarError && <p className="text-sm text-red-600 dark:text-red-400" role="alert">{avatarError}</p>}
       </div>
     </div>
   ) : null;
@@ -506,20 +603,22 @@ export default function ProfileClient() {
     <ProfilePage>
       {data.isAdmin && <Link href="/adminbackend" className="flex items-center gap-2 rounded-xl border border-vs-line bg-vs-surface px-4 py-3 text-sm font-bold text-vs-accent transition hover:bg-vs-subtle"><ShieldCheck className="h-5 w-5" aria-hidden />{t("profile.toAdmin")}</Link>}
 
-      <section className="overflow-hidden rounded-3xl border border-vs-line bg-gradient-to-br from-brand-500 to-brand-700 p-4 text-white shadow-sm dark:from-brand-600 dark:to-brand-900 sm:p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <button type="button" onClick={() => { setAvatarError(null); setAvatarInput(""); setAvatarPickerOpen(true); }} className="group relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-black/15 text-2xl font-extrabold text-gold-400 transition hover:bg-black/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" title={t("profile.changeAvatar")} aria-label={t("profile.changeAvatar")}>
-              {data.avatarEmoji || initial}
-              <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-brand-600 bg-white text-brand-600 shadow-sm transition group-hover:scale-105 dark:border-brand-700 dark:bg-slate-900 dark:text-brand-300" aria-hidden>
-                <Pencil className="h-3 w-3" strokeWidth={2.5} />
-              </span>
-            </button>
+      <section className="overflow-hidden rounded-3xl border border-vs-line bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-sm dark:from-brand-600 dark:to-brand-900">
+        <ProfileCharacterHero
+          appearance={{ avatarEmoji: data.avatarEmoji, avatarCharacterId: data.avatarCharacterId, avatarBackgroundId: data.avatarBackgroundId, avatarFrameId: data.avatarFrameId, avatarDecorationId: data.avatarDecorationId, avatarLightAccentId: data.avatarLightAccentId }}
+          handle={data.handle}
+          zoomInLabel={t("profile.zoomIn")}
+          zoomOutLabel={t("profile.zoomOut")}
+          changeLabel={t("profile.changeAvatar")}
+          onChange={() => { setAvatarError(null); setAvatarInput(""); setAvatarPickerOpen(true); }}
+        />
+        <div className="p-4 sm:p-6">
+          <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               {!editingHandle ? <>
                 <h1 className="flex min-w-0 items-center gap-1.5 text-xl font-extrabold"><span className="truncate">{data.displayName}</span><button type="button" onClick={startEditingHandle} className="shrink-0 opacity-80 hover:opacity-100" title={t("profile.changeHandle")} aria-label={t("profile.changeHandle")}><Pencil className="h-4 w-4" aria-hidden /></button></h1>
                 <p className="truncate text-sm text-brand-100">{formatTag(data.handle, data.discriminator)}</p>
-                <button type="button" onClick={() => { setAvatarError(null); setAvatarInput(""); setAvatarPickerOpen(true); }} className="mt-0.5 inline-flex min-h-7 items-center gap-1 text-xs font-bold text-brand-100 transition hover:text-white focus-visible:outline-none focus-visible:underline">
+                <button type="button" onClick={() => { setAvatarError(null); setAvatarInput(""); setAvatarPickerOpen(true); }} className="mt-0.5 inline-flex min-h-8 items-center gap-1 text-xs font-bold text-brand-100 transition hover:text-white focus-visible:outline-none focus-visible:underline">
                   <Pencil className="h-3 w-3" aria-hidden />
                   {t("profile.changeAvatar")}
                 </button>
@@ -529,14 +628,14 @@ export default function ProfileClient() {
                 <div className="flex gap-2"><button className="btn-primary !px-3 !py-1 !text-xs" disabled={savingHandle} onClick={saveHandle}>{savingHandle ? t("courses.busy") : t("profile.save")}</button><button className="btn-secondary !px-3 !py-1 !text-xs" onClick={() => setEditingHandle(false)}>{t("activeGames.cancel")}</button></div>
               </div>}
             </div>
+            {data.tier && <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-black/15 py-1 pl-1.5 pr-3 text-sm font-bold text-gold-400"><DivisionEmblem tier={data.tier} className="h-7 w-7" />{tier(data.tier)}</span>}
           </div>
-          {data.tier && <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-black/15 py-1 pl-1.5 pr-3 text-sm font-bold text-gold-400"><DivisionEmblem tier={data.tier} className="h-7 w-7" />{tier(data.tier)}</span>}
-        </div>
         <div className="mt-5 grid grid-cols-4 divide-x divide-white/15 rounded-2xl bg-black/10 py-2">
           <CompactHeroStat value={<><SystemIcon kind="streak" className="h-4 w-4" fill="currentColor" aria-hidden /> {data.currentStreak}</>} label={t("profile.streak")} href="/streak" />
           <CompactHeroStat value={<><SystemIcon kind="xp" className="h-4 w-4" fill="currentColor" aria-hidden /> {data.xpTotal}</>} label="XP" href="/xp" />
           <CompactHeroStat value={<><SystemIcon kind="freeze" className="h-4 w-4" aria-hidden /> {data.freezeCount}</>} label={t("lesson.freezes")} />
           <CompactHeroStat value={<><BookOpen className="h-4 w-4" aria-hidden /> {data.chaptersCompleted}</>} label={t("profile.chapters")} />
+        </div>
         </div>
       </section>
       {avatarPicker}

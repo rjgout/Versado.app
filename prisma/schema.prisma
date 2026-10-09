@@ -138,6 +138,15 @@ model User {
   // i.p.v. een emoji (het gedrag van vóór deze kolom, dus geen backfill nodig).
   avatarEmoji        String?
 
+  // Optionele Schriftavatar. Null behoudt de bestaande emoji/initialen-fallback
+  // voor accounts die nog geen personage hebben gekozen. Alle waarden zijn
+  // canonieke ids; servervalidatie bepaalt of een keuze vrijgespeeld is.
+  avatarCharacterId   String?
+  avatarBackgroundId  String?
+  avatarFrameId       String?
+  avatarDecorationId  String?
+  avatarLightAccentId String?
+
   // Persoonlijke uitnodigingslink (/uitnodiging/<code>, zie
   // src/lib/friendInvite.ts): wie via die link een account maakt of op
   // "Word vrienden" tikt, is meteen bevriend. Pas aangemaakt als iemand de

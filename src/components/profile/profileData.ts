@@ -19,6 +19,11 @@ export interface ProfileData {
   handle: string;
   discriminator: string;
   avatarEmoji: string | null;
+  avatarCharacterId: string | null;
+  avatarBackgroundId: string | null;
+  avatarFrameId: string | null;
+  avatarDecorationId: string | null;
+  avatarLightAccentId: string | null;
   email: string;
   searchableByEmail: boolean;
   shareAchievements: boolean;

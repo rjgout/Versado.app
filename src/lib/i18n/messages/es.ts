@@ -1448,6 +1448,8 @@ export const es: PartialMessages = {
     "changeHandle": "Cambiar nombre de usuario",
     "save": "Guardar",
     "chooseAvatar": "Elegir un emoji de avatar",
+    "zoomIn": "Acercar al rostro",
+    "zoomOut": "Mostrar el personaje completo",
     "streak": "Racha",
     "chapters": "Capítulos",
     "longestStreak": "Racha más larga",
@@ -2635,6 +2637,7 @@ export const es: PartialMessages = {
     "father": "Padre:",
     "mother": "Madre:",
     "children": "Niños:",
+    "chapters": "Capítulos:",
     "notFound": "No encontrado.",
     "clear": "Borrar la búsqueda",
     "loadFailed": "No se pudieron cargar las personas."
