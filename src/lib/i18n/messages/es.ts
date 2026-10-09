@@ -458,7 +458,7 @@ export const es: PartialMessages = {
     "wordGame": {
       "todo": "Adivina la palabra de hoy.",
       "inProgress": "Ya has empezado.",
-      "won": "¡Acertaste! La palabra cambia cada día a las 18:00 (hora neerlandesa).",
+      "won": "¡Acertaste!",
       "lost": "Mañana, otra oportunidad.",
       "nextIn": "Nueva palabra en {duration}"
     },

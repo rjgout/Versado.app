@@ -386,7 +386,7 @@ export const nl = {
     wordGame: {
       todo: "Raad het woord van vandaag.",
       inProgress: "Je bent al begonnen.",
-      won: "Geraden! Het woord wisselt elke dag om 18:00 uur.",
+      won: "Geraden!",
       lost: "Morgen een nieuwe kans.",
       nextIn: "Nieuw woord over {duration}"
     },
