@@ -16,8 +16,10 @@ import { runGroupAdminMaintenance } from "@/lib/social/groups";
 import { getStreakContinuation } from "@/lib/streakContinuation";
 import { runStreakReturnReminders } from "@/lib/streakReturnNotifications";
 import { runActivityReactionNotificationTick } from "@/lib/activityReactionNotifications";
+import { syncPodcastFeed } from "@/lib/podcastFeed";
 
 const TICK_MS = 60_000;
+export const PODCAST_FEED_SYNC_INTERVAL_MS = 60 * 60_000;
 // Vast (niet instelbaar) moment voor de wekelijkse uitslag — dit is geen
 // per-gebruiker voorkeur zoals de dagelijkse herinnering, maar één
 // systeemmoment vlak na het einde van de vorige week.
@@ -409,6 +411,39 @@ async function runRegistrationCleanupTick(): Promise<void> {
   if (pending || accounts) console.log(`Opgeruimd: ${pending} aanmelding(en), ${accounts} onbevestigd(e) account(s).`);
 }
 
+/**
+ * Klein, geheugenlokaal ritme voor de externe podcastfeeds. De scheduler
+ * roept dit elke minuut aan, maar een poging telt meteen mee zodat een trage
+ * of falende feed niet bij elke minuut opnieuw wordt belast. De vlag blijft
+ * los van de tijdstempel: een volgende, verschuldigde poging mag na een fout
+ * gewoon weer starten zodra de eerdere promise is afgerond.
+ */
+export function createPodcastFeedSyncTicker(sync: () => Promise<void>, intervalMs = PODCAST_FEED_SYNC_INTERVAL_MS) {
+  let lastSyncAt: number | null = null;
+  let running = false;
+
+  return {
+    async run(now = Date.now()): Promise<boolean> {
+      if (running || (lastSyncAt !== null && now - lastSyncAt < intervalMs)) return false;
+      running = true;
+      lastSyncAt = now;
+      try {
+        await sync();
+        return true;
+      } finally {
+        running = false;
+      }
+    },
+  };
+}
+
+const podcastFeedTicker = createPodcastFeedSyncTicker(() => syncPodcastFeed(prisma));
+
+/** De eerste minuuttick na een serverstart synchroniseert meteen; daarna hooguit elk uur. */
+export function runPodcastFeedSyncTick(): Promise<boolean> {
+  return podcastFeedTicker.run();
+}
+
 let started = false;
 
 /** Start de in-process schedulers — bewust geen losse cron-infrastructuur (zie ook src/lib/leagues.ts). Eenmalig aan te roepen vanuit server.ts. */
@@ -430,5 +465,6 @@ export function startNotificationSchedulers(): void {
     runRegistrationCleanupTick().catch((e) => console.error("Aanmeldingen opruimen mislukt:", e));
     runActivityReactionNotificationTick().catch((e) => console.error("Reactiemeldingen bundelen mislukt:", e));
     runFsyWeeklyCheckIfDue(prisma).catch((e) => console.error("FSY-weekcontrole mislukt:", e));
+    runPodcastFeedSyncTick().catch((e) => console.error("Podcastfeed-synchronisatie mislukt:", e instanceof Error ? e.message : String(e)));
   }, TICK_MS);
 }

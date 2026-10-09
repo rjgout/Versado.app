@@ -188,7 +188,7 @@ async function syncOnePodcast(
     const xml = await fetchFeedXml(podcast.feedUrl);
     feed = await parser.parseString(xml);
   } catch (e) {
-    log(`Feed van ${podcast.name} ophalen mislukt (${podcast.feedUrl}): ${e instanceof Error ? e.message : String(e)} — overgeslagen.`);
+    log(`Feed van ${podcast.name} ophalen mislukt: ${e instanceof Error ? e.message : String(e)} — overgeslagen.`);
     return;
   }
 
