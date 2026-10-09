@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { accessoryFor } from "@/lib/avatarAccessories";
 import { getCharacterAsset } from "@/lib/characterAssets";
-import type { AvatarAppearance } from "@/lib/avatarTypes";
+import { avatarFallbackText, type AvatarAppearance } from "@/lib/avatarTypes";
 
 export function ScriptureAvatar({ appearance, handle, className = "", label }: { appearance: AvatarAppearance; handle: string; className?: string; label?: string }) {
   const character = getCharacterAsset(appearance.avatarCharacterId);
@@ -10,7 +10,7 @@ export function ScriptureAvatar({ appearance, handle, className = "", label }: {
   const decoration = accessoryFor(appearance.avatarDecorationId);
   const light = accessoryFor(appearance.avatarLightAccentId);
   const hasAccessory = Boolean(background || frame || decoration || light);
-  const fallbackText = appearance.avatarEmoji || Array.from(handle.trim()).slice(0, 2).join("").toUpperCase();
+  const fallbackText = avatarFallbackText(handle);
   const characterSource = character?.avatar ?? null;
   const [failedCharacterSource, setFailedCharacterSource] = useState<string | null>(null);
 

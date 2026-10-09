@@ -1,6 +1,18 @@
 import { avatarCharacterAssets, getCharacterAsset, type CanonicalCharacterId } from "@/lib/characterAssets";
 import { accessoryUnlocksFor, allAvatarAccessories, type AvatarAccessory } from "@/lib/avatarAccessories";
 
+/**
+ * De eerste personagekeuze is voor iedereen hetzelfde. Deze lijst staat hier
+ * naast de bestaande unlockregels, zodat onboarding en de avatar-editor nooit
+ * ieder een eigen startselectie kunnen gaan gebruiken.
+ */
+export const START_AVATAR_CHARACTER_IDS = [
+  "sariah",
+  "abish",
+  "nephi",
+  "ammon-missionary",
+] as const satisfies readonly CanonicalCharacterId[];
+
 /** Bestaande prestaties zijn de duurzame unlockregistratie: UserAchievement
  * blijft staan bij een verbroken reeks, degradatie of een latere herberekening. */
 export const CHARACTER_UNLOCK_ACHIEVEMENTS: Readonly<Record<string, string | null>> = Object.fromEntries(
