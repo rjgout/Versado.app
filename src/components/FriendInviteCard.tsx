@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
 import { canShareContent, shareContent } from "@/lib/platform";
+import VisualIdentityIcon from "@/components/versado/VisualIdentityIcon";
 
 /**
  * Persoonlijke uitnodigingslink op de Vrienden-pagina (zie
@@ -67,7 +68,8 @@ export default function FriendInviteCard({ appName }: { appName: string }) {
   return (
     <div className="card flex flex-col gap-2.5 !p-4 sm:gap-3 sm:!p-5">
       <p className="font-bold text-sm dark:text-slate-100 flex items-center gap-2">
-        <span aria-hidden>💌</span> {t("friendInvite.title")}
+        <VisualIdentityIcon asset="invite" className="h-7 w-7" sizes="28px" />
+        {t("friendInvite.title")}
       </p>
       <p className="text-sm text-slate-500 dark:text-slate-400">
         {t("friendInvite.text")}

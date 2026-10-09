@@ -11,6 +11,7 @@ import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
 import { liveMutation } from "@/lib/data/mutation";
 import { CardPicker, CardProgress, ContentCard, StatusChip, cardActions, type PickerItem } from "@/components/versado/ContentCard";
+import VisualIdentityIcon from "@/components/versado/VisualIdentityIcon";
 
 // Leren: je eigen cursussen als kaarten (zie docs/KAARTEN.md). De huidige
 // cursus staat los bovenaan; de rest kun je verslepen, verbergen en via
@@ -276,7 +277,7 @@ export default function CoursesClient() {
       </div>
 
       <Link href="/tools" className="card !py-3 flex items-center justify-between gap-3 text-sm font-extrabold text-slate-600 dark:text-slate-300 hover:!border-brand-300 dark:hover:!border-brand-700 transition-colors">
-        <span>🧰 {t("pages.tools")}</span>
+        <span className="flex items-center gap-2"><VisualIdentityIcon asset="tools" className="h-8 w-8" sizes="32px" />{t("pages.tools")}</span>
         <span aria-hidden className="text-slate-400 dark:text-slate-500">→</span>
       </Link>
     </div>

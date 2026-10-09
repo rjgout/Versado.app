@@ -8,6 +8,7 @@ import { findInviter } from "@/lib/friendInvite";
 import { getT } from "@/lib/i18n";
 import { requestLanguage } from "@/lib/requestLanguage";
 import UserAvatar from "@/components/UserAvatar";
+import VisualIdentityIcon from "@/components/versado/VisualIdentityIcon";
 import InviteAcceptButton from "@/components/InviteAcceptButton";
 import HomeContent from "@/components/home/HomeContent";
 import { getGameSettings } from "@/lib/gameSettings";
@@ -99,6 +100,7 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
 
   const hero = (
     <div className="w-full max-w-md card flex flex-col items-center gap-4 text-center">
+      <VisualIdentityIcon asset="invite" className="h-16 w-16" sizes="64px" />
       <UserAvatar id={inviter.id} handle={inviter.handle} avatarEmoji={inviter.avatarEmoji} size="md" />
       <h1 className="text-xl font-extrabold text-brand-800 dark:text-brand-300">
         {t("invitePage.invitesYou", { tag: inviterTag, app: appName })}

@@ -10,6 +10,7 @@ import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
 import type { QuickMissionaryDuoEntry } from "@/lib/snelleZendeling/duoLeaderboard";
 import { boardsFor, effectiveBoard, type LeaderboardBoard, type LeaderboardKind } from "@/lib/snelleZendeling/leaderboardQuery";
+import RankMedal from "@/components/versado/RankMedal";
 
 interface Entry { rank: number; userId: string; handle: string; discriminator: string; score: number }
 type Board = LeaderboardBoard;
@@ -62,7 +63,12 @@ export default function QuickMissionaryLeaderboard({ compact = false }: { compac
         <ol className="flex flex-col divide-y divide-vs-line">
           {entries.map((entry) => (
             <li key={entry.userId} className={`flex items-center gap-3 py-2 ${entry.rank > 50 ? "rounded-xl bg-vs-accent-soft px-2" : ""}`}>
-              <span className="w-7 text-center font-extrabold tabular-nums text-vs-fg-3">{entry.rank}</span>
+              {entry.rank <= 3 ? (
+                <RankMedal
+                  rank={entry.rank as 1 | 2 | 3}
+                  label={entry.rank === 1 ? t("profile.medalGold") : entry.rank === 2 ? t("profile.medalSilver") : t("profile.medalBronze")}
+                />
+              ) : <span className="w-7 text-center font-extrabold tabular-nums text-vs-fg-3">{entry.rank}</span>}
               <UserAvatar id={entry.userId} handle={entry.handle} />
               <span className="min-w-0 flex-1 truncate font-semibold text-vs-fg"><UserTag handle={entry.handle} discriminator={entry.discriminator} /></span>
               <span className="font-extrabold tabular-nums text-vs-fg">{entry.score}</span>
@@ -83,7 +89,12 @@ function DuoList({ entries }: { entries: QuickMissionaryDuoEntry[] | null }) {
     <ol className="flex flex-col divide-y divide-vs-line" data-duo-leaderboard>
       {entries.map((entry) => (
         <li key={entry.key} data-duo-entry={entry.key} aria-label={t("quickMissionary.duo.entry", { a: entry.players[0].handle, b: entry.players[1].handle, score: entry.score })} className={`flex items-center gap-3 py-2 ${entry.rank > 50 || entry.mine ? "rounded-xl bg-vs-accent-soft px-2" : ""}`}>
-          <span className="w-7 shrink-0 text-center font-extrabold tabular-nums text-vs-fg-3">{entry.rank}</span>
+          {entry.rank <= 3 ? (
+            <RankMedal
+              rank={entry.rank as 1 | 2 | 3}
+              label={entry.rank === 1 ? t("profile.medalGold") : entry.rank === 2 ? t("profile.medalSilver") : t("profile.medalBronze")}
+            />
+          ) : <span className="w-7 shrink-0 text-center font-extrabold tabular-nums text-vs-fg-3">{entry.rank}</span>}
           <span className="flex min-w-0 flex-1 items-center gap-2">
             <span className="flex shrink-0 -space-x-2">
               {entry.players.map((player) => <UserAvatar key={player.userId} id={player.userId} handle={player.handle} className="ring-2 ring-vs-surface" />)}
