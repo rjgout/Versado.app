@@ -8,11 +8,13 @@ export function ScriptureAvatar({ appearance, handle, className = "", label }: {
   const frame = accessoryFor(appearance.avatarFrameId);
   const decoration = accessoryFor(appearance.avatarDecorationId);
   const light = accessoryFor(appearance.avatarLightAccentId);
+  const hasAccessory = Boolean(background || frame || decoration || light);
+  const fallbackText = appearance.avatarEmoji || Array.from(handle.trim()).slice(0, 2).join("").toUpperCase();
 
-  if (!character?.avatarAllowed) {
+  if (!character?.avatarAllowed && !hasAccessory) {
     return (
       <span className={`flex items-center justify-center rounded-full font-extrabold leading-none ${className}`} aria-hidden={label ? undefined : true} aria-label={label}>
-        {appearance.avatarEmoji || Array.from(handle.trim()).slice(0, 2).join("").toUpperCase()}
+        {fallbackText}
       </span>
     );
   }
@@ -20,7 +22,7 @@ export function ScriptureAvatar({ appearance, handle, className = "", label }: {
   return (
     <span className={`relative isolate overflow-hidden rounded-full bg-vs-subtle ${className}`} aria-hidden={label ? undefined : true} aria-label={label}>
       {background && <Layer src={background.compact} alt="" className="z-0 object-cover" />}
-      <Layer src={character.avatar} alt="" className="z-10 object-contain" />
+      {character?.avatarAllowed ? <Layer src={character.avatar} alt="" className="z-10 object-contain" /> : <span className="absolute inset-0 z-10 flex items-center justify-center font-extrabold leading-none">{fallbackText}</span>}
       {light && <Layer src={light.compact} alt="" className="z-20 object-contain" />}
       {decoration && <Layer src={decoration.compact} alt="" className="z-30 object-contain" />}
       {frame && <Layer src={frame.compact} alt="" className="z-40 object-contain" />}

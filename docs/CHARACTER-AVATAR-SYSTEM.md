@@ -44,9 +44,17 @@ De bestaande `User.avatarEmoji` blijft behouden als fallback. Nieuwe velden op
 
 De route `/api/account` normaliseert aliases, controleert de canonieke
 personage-ID, de avatargeschiktheid en de verdiende prestatie voordat een keuze
-wordt opgeslagen. Een wijziging maakt de centrale avatarcache ongeldig en
+wordt opgeslagen. Een wijziging actualiseert de centrale avatarcache en
 wordt via de bestaande live-data-mutatie aangekondigd. De batchroute voor
 compacte avatars blijft sessiebeveiligd.
+
+De fullscreen editor staat op `/profile/avatar`. De keuze blijft lokaal in
+de live preview totdat de gebruiker Opslaan kiest; daarna gebruikt de editor
+dezelfde `/api/account`-validatie. `setAvatarAppearance()` zet een geslaagde
+keuze direct in de gedeelde clientcache, zodat de header en reeds gemonteerde
+gebruikerslijsten niet op een nieuwe login hoeven te wachten. Bij een emoji als
+basis blijven geselecteerde accessoirelagen behouden en worden ze boven de
+emoji gerenderd.
 
 ## Ontgrendelingen
 

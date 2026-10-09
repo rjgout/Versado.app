@@ -39,6 +39,7 @@
     "test:mystery": "tsx --test tests/mystery001a.test.ts tests/mystery002.test.ts tests/mystery003-006.test.ts tests/mystery-character-closing.test.ts tests/mystery-mobile-layout.test.ts tests/focus-mode.test.ts",
     "test:artwork": "tsx --test tests/artwork.test.ts",
     "test:character-assets": "tsx --test tests/character-assets.test.ts",
+    "test:avatar-editor": "tsx --test tests/avatar-editor.test.ts",
     "test:leagues": "tsx --test tests/leagues.test.ts",
     "test:profile": "tsx --test tests/profile-settings.test.ts tests/profile-footer.test.ts",
     "test:cards": "tsx --test tests/cards.test.ts",

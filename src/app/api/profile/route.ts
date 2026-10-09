@@ -81,6 +81,7 @@ export async function GET() {
   const seasonCount = seasonResults.length + (activeSeasonScore ? 1 : 0);
 
   return NextResponse.json({
+    id: user.id,
     displayName: user.handle,
     isAdmin: user.isAdmin,
     handle: user.handle,
