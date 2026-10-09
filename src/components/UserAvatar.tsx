@@ -60,18 +60,25 @@ export function invalidateAvatarCache(id?: string): void {
   for (const listener of listeners) listener();
 }
 
+/** Zet een net opgeslagen eigen avatar direct in de gedeelde clientcache.
+ * Zo hoeven header, profiel en sociale lijsten niet op een volledige reload
+ * of een nieuwe sessie te wachten. */
+export function setAvatarAppearance(id: string, appearance: AvatarAppearance): void {
+  cache.set(id, appearance);
+  for (const listener of listeners) listener();
+}
+
 function useAvatarAppearance(id: string, known: AvatarAppearance | undefined): AvatarAppearance {
   const [, rerender] = useState(0);
   useEffect(() => {
-    if (known !== undefined || !id) return;
     const listener = () => rerender((n) => n + 1);
     listeners.add(listener);
-    requestAvatar(id);
+    if (known === undefined && id) requestAvatar(id);
     return () => {
       listeners.delete(listener);
     };
   }, [id, known]);
-  return known !== undefined ? known : (cache.get(id) ?? { avatarEmoji: null, avatarCharacterId: null, avatarBackgroundId: null, avatarFrameId: null, avatarDecorationId: null, avatarLightAccentId: null });
+  return cache.get(id) ?? known ?? { avatarEmoji: null, avatarCharacterId: null, avatarBackgroundId: null, avatarFrameId: null, avatarDecorationId: null, avatarLightAccentId: null };
 }
 
 const SIZES = {

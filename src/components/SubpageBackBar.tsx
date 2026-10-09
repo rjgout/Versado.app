@@ -41,6 +41,7 @@ const ADMIN_SUBPAGES: Record<string, MessageKey> = {
 
 // Pagina's die je vanuit het profiel opent (zie docs/VERSADO-DESIGN.md).
 const PROFILE_SUBPAGES: Record<string, MessageKey> = {
+  "/profile/avatar": "profile.avatarEditorTitle",
   "/feedback": "pages.feedback",
   "/shop": "nav.shop",
   "/xp": "header.xp",

@@ -6,7 +6,7 @@ import LanguageSettings from "@/components/LanguageSettings";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { LeagueTier } from "@/generated/prisma/client";
 import DivisionEmblem from "@/components/versado/DivisionEmblem";
-import { formatTag, isSingleEmoji } from "@/lib/handle";
+import { formatTag } from "@/lib/handle";
 import { enableBrowserPush, disableBrowserPush } from "@/lib/pushClient";
 import { getSocket } from "@/lib/socketClient";
 import { useLiveQuery } from "@/lib/data/hooks";
@@ -21,10 +21,6 @@ import { getDutchVoices, saveSelectedDutchVoice } from "@/lib/readAloud";
 import { useT } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
 import ProfileCharacterHero from "@/components/ProfileCharacterHero";
-import ScriptureAvatar from "@/components/ScriptureAvatar";
-import { invalidateAvatarCache } from "@/components/UserAvatar";
-import { avatarOptions, accessoryOptions } from "@/lib/avatarUnlocks";
-import type { AvatarAccessoryKind } from "@/lib/avatarAccessories";
 import { getLanguage } from "@/lib/languages";
 import SystemIcon from "@/components/versado/SystemIcon";
 import CompanionPicker, { companionName } from "@/components/versado/CompanionPicker";
@@ -66,15 +62,6 @@ import {
 // van de onderdelen in src/components/profile/. Alles binnen ProfilePage en
 // met de gedeelde componenten uit profile/settings.tsx: zie docs/PROFIEL.md.
 
-// Kleine, willekeurige greep uit veelgebruikte emoji — puur een handig
-// startpunt, geen uitputtende lijst; het invoerveld ernaast accepteert
-// elke andere emoji (behalve de geweerde, zie isSingleEmoji/containsForbiddenEmoji).
-const AVATAR_EMOJI_OPTIONS = [
-  "😀", "😎", "🤓", "🥳", "😇", "🙂", "🚀", "⭐", "🔥", "💪",
-  "🎉", "🎮", "📖", "🐶", "🐱", "🦁", "🐸", "🦄", "🌈", "⚡",
-  "🍕", "⚽", "🎸", "🌻", "🌊", "🏔️",
-];
-
 export default function ProfileClient() {
   const t = useT();
   const confirm = useConfirm();
@@ -101,10 +88,6 @@ export default function ProfileClient() {
   const [handleInput, setHandleInput] = useState("");
   const [savingHandle, setSavingHandle] = useState(false);
   const [handleError, setHandleError] = useState<string | null>(null);
-  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
-  const [avatarInput, setAvatarInput] = useState("");
-  const [savingAvatarEmoji, setSavingAvatarEmoji] = useState(false);
-  const [avatarError, setAvatarError] = useState<string | null>(null);
   const [readAloudVoices, setReadAloudVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedReadAloudVoice, setSelectedReadAloudVoice] = useState("");
   const [testingReadAloudVoice, setTestingReadAloudVoice] = useState(false);
@@ -370,53 +353,6 @@ export default function ProfileClient() {
     setEditingHandle(false);
   }
 
-  async function saveAvatarEmoji(emoji: string | null) {
-    if (!data) return;
-    setSavingAvatarEmoji(true);
-    setAvatarError(null);
-    try {
-      await liveMutation(
-        () => fetchJson("/api/account", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ avatarEmoji: emoji, avatarCharacterId: null }) }),
-        { invalidates: ["profile", "friends", "today", "competition", "activity"] }
-      );
-    } catch (error) {
-      setSavingAvatarEmoji(false);
-      setAvatarError(error instanceof Error ? error.message : t("profile.emojiSaveFailed"));
-      return;
-    }
-    setSavingAvatarEmoji(false);
-    setData({ ...data, avatarEmoji: emoji, avatarCharacterId: null });
-    invalidateAvatarCache();
-    setAvatarPickerOpen(false);
-    setAvatarInput("");
-  }
-
-  async function saveAvatarSelection(patch: Partial<Pick<ProfileData, "avatarCharacterId" | "avatarBackgroundId" | "avatarFrameId" | "avatarDecorationId" | "avatarLightAccentId">>) {
-    if (!data) return;
-    setSavingAvatarEmoji(true);
-    setAvatarError(null);
-    try {
-      await liveMutation(
-        () => fetchJson("/api/account", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) }),
-        { invalidates: ["profile", "friends", "today", "competition", "activity"] }
-      );
-      setData({ ...data, ...patch });
-      invalidateAvatarCache();
-    } catch (error) {
-      setAvatarError(error instanceof Error ? error.message : t("profile.emojiSaveFailed"));
-    } finally {
-      setSavingAvatarEmoji(false);
-    }
-  }
-
-  function saveCustomAvatarEmoji() {
-    if (!isSingleEmoji(avatarInput)) {
-      setAvatarError(t("profile.oneEmoji"));
-      return;
-    }
-    saveAvatarEmoji(avatarInput.trim());
-  }
-
   function changeReadAloudSpeed(nextSpeed: number) {
     setReadAloudSpeed(nextSpeed);
     window.localStorage.setItem("jehovaapp-read-aloud-speed", String(nextSpeed));
@@ -477,104 +413,6 @@ export default function ProfileClient() {
   }
 
   const earnedCount = data.achievements.filter((a) => a.earnedAt).length;
-  const earnedAchievementSlugs = data.achievements.filter((achievement) => achievement.earnedAt).map((achievement) => achievement.slug);
-  const characterOptions = avatarOptions(earnedAchievementSlugs);
-  const availableCharacters = characterOptions.filter((option) => option.available);
-  const lockedCharacters = characterOptions.filter((option) => !option.available);
-  const accessorySlotLabels: Record<AvatarAccessoryKind, string> = {
-    background: "Achtergrond",
-    frame: "Kader",
-    decoration: "Decoratie",
-    lightAccent: "Lichtaccent",
-  };
-  const accessorySlots = [
-    { kind: "background" as const, field: "avatarBackgroundId" as const },
-    { kind: "frame" as const, field: "avatarFrameId" as const },
-    { kind: "decoration" as const, field: "avatarDecorationId" as const },
-    { kind: "lightAccent" as const, field: "avatarLightAccentId" as const },
-  ];
-  const accessoryChoices = accessoryOptions(earnedAchievementSlugs);
-  const achievementName = (slug: string | null) => data.achievements.find((achievement) => achievement.slug === slug)?.name ?? slug ?? "—";
-  const avatarPicker = avatarPickerOpen ? (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 pt-[calc(1rem+var(--header-offset))] pb-[calc(1rem+var(--nav-height)+var(--vs-safe-area-bottom))]" onClick={() => setAvatarPickerOpen(false)}>
-      <div className="card flex w-full max-w-2xl flex-col gap-5 !p-4 text-slate-800 shadow-xl dark:text-slate-100 sm:!p-6" role="dialog" aria-modal="true" aria-labelledby="avatar-picker-title" onClick={(event) => event.stopPropagation()}>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p id="avatar-picker-title" className="text-lg font-black">{t("profile.chooseAvatar")}</p>
-            <p className="mt-1 text-sm text-vs-fg-2">Kies een personage en stel de losse cosmetische lagen samen.</p>
-          </div>
-          <button type="button" autoFocus onClick={() => setAvatarPickerOpen(false)} className="h-10 w-10 rounded-full text-xl text-vs-fg-2 hover:bg-vs-subtle" aria-label={t("common.close")}>×</button>
-        </div>
-        <div className="flex items-center gap-3 rounded-2xl bg-vs-subtle p-3">
-          <ScriptureAvatar appearance={{ avatarEmoji: data.avatarEmoji, avatarCharacterId: data.avatarCharacterId, avatarBackgroundId: data.avatarBackgroundId, avatarFrameId: data.avatarFrameId, avatarDecorationId: data.avatarDecorationId, avatarLightAccentId: data.avatarLightAccentId }} handle={data.handle} className="h-20 w-20 shrink-0 text-3xl" />
-          <p className="min-w-0 text-sm font-bold text-vs-fg-2">Je huidige keuze blijft staan totdat je een nieuwe keuze opslaat.</p>
-        </div>
-        <section aria-labelledby="avatar-characters-title">
-          <h2 id="avatar-characters-title" className="text-sm font-extrabold uppercase tracking-wide text-vs-fg-2">Personage</h2>
-          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {availableCharacters.map((option) => (
-              <button key={option.id} type="button" disabled={savingAvatarEmoji} onClick={() => saveAvatarSelection({ avatarCharacterId: option.id })} className={`flex min-h-20 min-w-0 items-center gap-2 rounded-2xl border p-2 text-left transition ${data.avatarCharacterId === option.id ? "!border-vs-accent !bg-vs-accent-soft" : "border-vs-line hover:bg-vs-subtle"}`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={option.avatar} alt="" className="h-14 w-14 shrink-0 object-contain" />
-                <span className="min-w-0 text-sm font-bold leading-tight text-vs-fg [overflow-wrap:anywhere]">{option.name}</span>
-              </button>
-            ))}
-          </div>
-          {lockedCharacters.length > 0 && (
-            <details className="mt-3 rounded-2xl border border-vs-line p-3">
-              <summary className="cursor-pointer text-sm font-bold text-vs-fg">Meer personages bekijken ({lockedCharacters.length})</summary>
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {lockedCharacters.map((option) => (
-                  <div key={option.id} className="flex min-w-0 items-center gap-2 rounded-xl border border-vs-line p-2 opacity-65">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={option.avatar} alt="" className="h-12 w-12 shrink-0 object-contain grayscale" />
-                    <span className="min-w-0 text-xs font-bold leading-tight text-vs-fg [overflow-wrap:anywhere]">{option.name}<span className="mt-1 block font-semibold text-vs-fg-3">{achievementName(option.unlockAchievementSlug)}</span></span>
-                  </div>
-                ))}
-              </div>
-            </details>
-          )}
-        </section>
-        <section aria-labelledby="avatar-accessories-title">
-          <h2 id="avatar-accessories-title" className="text-sm font-extrabold uppercase tracking-wide text-vs-fg-2">Accessoires</h2>
-          <div className="mt-2 grid gap-3 sm:grid-cols-2">
-            {accessorySlots.map((slot) => {
-              const selected = data[slot.field];
-              const choices = accessoryChoices.filter((item) => item.kind === slot.kind);
-              return (
-                <div key={slot.kind} className="rounded-2xl border border-vs-line p-3">
-                  <p className="text-sm font-bold text-vs-fg">{accessorySlotLabels[slot.kind]}</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <button type="button" disabled={savingAvatarEmoji} onClick={() => saveAvatarSelection({ [slot.field]: null })} className={`rounded-xl border px-3 py-2 text-xs font-bold ${selected === null ? "!border-vs-accent !bg-vs-accent-soft" : "border-vs-line"}`}>Geen</button>
-                    {choices.map((item) => (
-                      <button key={item.id} type="button" disabled={!item.available || savingAvatarEmoji} onClick={() => saveAvatarSelection({ [slot.field]: item.id })} className={`flex min-h-12 items-center gap-1.5 rounded-xl border px-2 py-1.5 text-left ${selected === item.id ? "!border-vs-accent !bg-vs-accent-soft" : "border-vs-line"} ${!item.available ? "cursor-not-allowed opacity-50" : "hover:bg-vs-subtle"}`}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={item.compact} alt="" className="h-8 w-8 object-contain" />
-                        <span className="max-w-24 text-xs font-bold leading-tight [overflow-wrap:anywhere]">{item.name}{!item.available && <span className="block font-semibold text-vs-fg-3">{achievementName(item.achievementSlug)}</span>}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-        <section className="border-t border-vs-line pt-3" aria-labelledby="emoji-avatar-title">
-          <h2 id="emoji-avatar-title" className="text-sm font-extrabold text-vs-fg">Emoji als fallback</h2>
-          <div className="mt-2 grid grid-cols-8 gap-1.5 sm:grid-cols-12">
-            {AVATAR_EMOJI_OPTIONS.map((emoji) => <button key={emoji} type="button" className="flex h-9 w-9 items-center justify-center rounded-lg text-xl hover:bg-vs-subtle" disabled={savingAvatarEmoji} onClick={() => saveAvatarEmoji(emoji)}>{emoji}</button>)}
-          </div>
-          <div className="mt-2 flex items-center gap-2">
-            <input className="input !w-16 text-center text-xl" placeholder="🙂" value={avatarInput} onChange={(event) => setAvatarInput(event.target.value)} maxLength={8} />
-            <button className="btn-primary shrink-0 !px-3 !py-1.5 !text-xs" disabled={savingAvatarEmoji || !avatarInput} onClick={saveCustomAvatarEmoji}>{t("profile.save")}</button>
-            {data.avatarEmoji && <button className="text-xs text-red-500 hover:underline" disabled={savingAvatarEmoji} onClick={() => saveAvatarEmoji(null)}>{t("season.remove")}</button>}
-          </div>
-        </section>
-        {avatarError && <p className="text-sm text-red-600 dark:text-red-400" role="alert">{avatarError}</p>}
-      </div>
-    </div>
-  ) : null;
-
   // Een gewone pushState in plaats van router.push: Next.js houdt dan
   // useSearchParams bij zonder de pagina opnieuw te laden, zodat het
   // overzicht bij terug meteen (en op dezelfde hoogte) weer klaarstaat.
@@ -610,7 +448,7 @@ export default function ProfileClient() {
           zoomInLabel={t("profile.zoomIn")}
           zoomOutLabel={t("profile.zoomOut")}
           changeLabel={t("profile.changeAvatar")}
-          onChange={() => { setAvatarError(null); setAvatarInput(""); setAvatarPickerOpen(true); }}
+          changeHref="/profile/avatar"
         />
         <div className="p-4 sm:p-6">
           <div className="flex items-start justify-between gap-4">
@@ -618,10 +456,6 @@ export default function ProfileClient() {
               {!editingHandle ? <>
                 <h1 className="flex min-w-0 items-center gap-1.5 text-xl font-extrabold"><span className="truncate">{data.displayName}</span><button type="button" onClick={startEditingHandle} className="shrink-0 opacity-80 hover:opacity-100" title={t("profile.changeHandle")} aria-label={t("profile.changeHandle")}><Pencil className="h-4 w-4" aria-hidden /></button></h1>
                 <p className="truncate text-sm text-brand-100">{formatTag(data.handle, data.discriminator)}</p>
-                <button type="button" onClick={() => { setAvatarError(null); setAvatarInput(""); setAvatarPickerOpen(true); }} className="mt-0.5 inline-flex min-h-8 items-center gap-1 text-xs font-bold text-brand-100 transition hover:text-white focus-visible:outline-none focus-visible:underline">
-                  <Pencil className="h-3 w-3" aria-hidden />
-                  {t("profile.changeAvatar")}
-                </button>
               </> : <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2"><input className="input !w-auto !py-1 !text-sm" value={handleInput} onChange={(event) => setHandleInput(event.target.value)} maxLength={24} autoFocus aria-label={t("profile.changeHandle")} /><span className="text-sm text-brand-100">#{data.discriminator}</span></label>
                 {handleError && <p className="text-xs text-red-100">{handleError}</p>}
@@ -634,11 +468,10 @@ export default function ProfileClient() {
           <CompactHeroStat value={<><SystemIcon kind="streak" className="h-4 w-4" fill="currentColor" aria-hidden /> {data.currentStreak}</>} label={t("profile.streak")} href="/streak" />
           <CompactHeroStat value={<><SystemIcon kind="xp" className="h-4 w-4" fill="currentColor" aria-hidden /> {data.xpTotal}</>} label="XP" href="/xp" />
           <CompactHeroStat value={<><SystemIcon kind="freeze" className="h-4 w-4" aria-hidden /> {data.freezeCount}</>} label={t("lesson.freezes")} />
-          <CompactHeroStat value={<><BookOpen className="h-4 w-4" aria-hidden /> {data.chaptersCompleted}</>} label={t("profile.chapters")} />
+          <CompactHeroStat value={<><BookOpen className="h-4 w-4" aria-hidden /> {data.chaptersCompleted}</>} label={t("profile.chaptersShort")} />
         </div>
         </div>
       </section>
-      {avatarPicker}
 
       {/* Acties direct onder de statistieken. Dit is de enige ingang naar
           de winkel; feedback staat er bewust naast. */}
@@ -741,7 +574,7 @@ function ProfileAction({ icon, label, href }: { icon: ReactNode; label: string; 
 }
 
 function CompactHeroStat({ value, label, href }: { value: ReactNode; label: string; href?: string }) {
-  const content = <div className="flex flex-col items-center gap-0.5 px-1 text-center"><div className="flex items-center gap-1 text-sm font-extrabold text-white">{value}</div><div className="text-[10px] font-bold uppercase text-brand-100">{label}</div></div>;
+  const content = <div className="flex min-w-0 flex-col items-center gap-0.5 px-1 text-center"><div className="flex items-center gap-1 text-sm font-extrabold text-white">{value}</div><div className="whitespace-nowrap text-[0.625rem] font-bold uppercase leading-tight text-brand-100">{label}</div></div>;
   return href ? <Link href={href} className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">{content}</Link> : content;
 }
 

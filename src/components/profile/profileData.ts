@@ -14,6 +14,7 @@ export interface AchievementView {
 }
 
 export interface ProfileData {
+  id: string;
   displayName: string;
   isAdmin: boolean;
   handle: string;
