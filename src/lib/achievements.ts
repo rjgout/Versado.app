@@ -195,3 +195,26 @@ export async function checkAndAwardAchievements(tx: Prisma.TransactionClient, us
   }
   return newlyEarned;
 }
+
+/**
+ * Herstelt alleen duurzame UserAchievement-rijen voor bestaande prestaties.
+ * Dit wordt gebruikt bij een avatarwijziging/profielopening, zodat historische
+ * voortgang ook unlocks geeft zonder opnieuw een activiteit of teller te maken.
+ * De normale activiteitspaden blijven verantwoordelijk voor feed en melding.
+ */
+export async function ensureAchievementRecords(tx: Prisma.TransactionClient, userId: string, slugs: Iterable<string>): Promise<void> {
+  const wanted = new Set(slugs);
+  if (wanted.size === 0) return;
+  const earned = await tx.userAchievement.findMany({ where: { userId }, select: { achievementId: true, achievement: { select: { slug: true } } } });
+  const earnedSlugs = new Set(earned.map((row) => row.achievement.slug));
+  for (const def of ACHIEVEMENTS) {
+    if (!wanted.has(def.slug) || earnedSlugs.has(def.slug) || !(await def.check(tx, userId))) continue;
+    const achievement = await tx.achievement.findUnique({ where: { slug: def.slug }, select: { id: true } });
+    if (!achievement) continue;
+    await tx.userAchievement.upsert({
+      where: { userId_achievementId: { userId, achievementId: achievement.id } },
+      update: {},
+      create: { userId, achievementId: achievement.id },
+    });
+  }
+}

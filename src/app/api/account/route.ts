@@ -13,8 +13,9 @@ import { isValidTimeZone } from "@/lib/timeZone";
 import { PERSONAL_MASCOTS } from "@/lib/mascots";
 import { mascotToCompanion } from "@/lib/companion";
 import { accessoryFor, accessoryIsValidForSlot } from "@/lib/avatarAccessories";
-import { canUseAccessory, canUseAvatarCharacter } from "@/lib/avatarUnlocks";
+import { AVATAR_UNLOCK_ACHIEVEMENT_SLUGS, canUseAccessory, canUseAvatarCharacter } from "@/lib/avatarUnlocks";
 import { normalizeCharacterId } from "@/lib/characterAssets";
+import { ensureAchievementRecords } from "@/lib/achievements";
 
 const patchSchema = z.object({
   handle: z
@@ -140,6 +141,7 @@ export async function PATCH(req: NextRequest) {
   const hasAvatarChanges = Object.values(avatarFields).some((value) => value !== undefined);
   let canonicalAvatarFields: Partial<typeof avatarFields> = {};
   if (hasAvatarChanges) {
+    await prisma.$transaction((tx) => ensureAchievementRecords(tx, user.id, AVATAR_UNLOCK_ACHIEVEMENT_SLUGS));
     const earned = await prisma.userAchievement.findMany({ where: { userId: user.id }, select: { achievement: { select: { slug: true } } } });
     const earnedSlugs = earned.map((row) => row.achievement.slug);
     const normalizedCharacterId = avatarCharacterId === undefined ? undefined : normalizeCharacterId(avatarCharacterId);

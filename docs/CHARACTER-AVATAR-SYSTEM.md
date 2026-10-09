@@ -51,7 +51,10 @@ compacte avatars blijft sessiebeveiligd.
 ## Ontgrendelingen
 
 Er is geen nieuwe valuta of tijdelijke teller. Bestaande `UserAchievement`-
-records fungeren als duurzame unlockregistratie. De acht A-personages zijn
+records fungeren als duurzame unlockregistratie. Bij het openen van het profiel
+of opslaan van een avatar worden de bestaande achievement-definities gericht
+opnieuw gecontroleerd, zodat historische voortgang niet wordt gemist. De acht
+A-personages zijn
 direct beschikbaar. De vier B-personages vragen `first-chapter`; C-personages
 vragen `chapters-5`. De bestaande betekenis van die prestaties blijft
 ongewijzigd: hoofdstukprestaties tellen afgeronde oefeningen, niet gelezen

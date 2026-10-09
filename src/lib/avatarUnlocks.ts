@@ -10,6 +10,13 @@ export const CHARACTER_UNLOCK_ACHIEVEMENTS: Readonly<Record<string, string | nul
   ])
 );
 
+/** Alleen bestaande prestaties; dit is de lijst die bij profielopening
+ * historisch opnieuw mag worden gecontroleerd voor avatarcosmetica. */
+export const AVATAR_UNLOCK_ACHIEVEMENT_SLUGS = [...new Set([
+  ...Object.values(CHARACTER_UNLOCK_ACHIEVEMENTS),
+  ...allAvatarAccessories().map((accessory) => accessory.achievementSlug),
+].filter((slug): slug is string => slug !== null))];
+
 export interface AvatarOption {
   id: CanonicalCharacterId;
   name: string;

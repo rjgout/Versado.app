@@ -5,10 +5,16 @@ import { weekStartKey } from "@/lib/dates";
 import { medalCountsFor, TIER_ORDER } from "@/lib/leagues";
 import { companionToMascot } from "@/lib/companion";
 import { apiError } from "@/lib/apiError";
+import { ensureAchievementRecords } from "@/lib/achievements";
+import { AVATAR_UNLOCK_ACHIEVEMENT_SLUGS } from "@/lib/avatarUnlocks";
 
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
+
+  // Een gebruiker kan de onderliggende voortgang al hebben behaald voordat
+  // het achievement-record of het avatarsysteem bestond.
+  await prisma.$transaction((tx) => ensureAchievementRecords(tx, user.id, AVATAR_UNLOCK_ACHIEVEMENT_SLUGS));
 
   const [chaptersCompleted, versesTotal, duelsWon, duelsPlayed, allAchievements, earned, featuredAchievements, weeklyScore, seasonResults, activeSeasonScore, podcasts] =
     await Promise.all([
