@@ -1,0 +1,18 @@
+{
+  "status": "pass",
+  "errors": [],
+  "nativeSourcesVisuallyReviewed": 101,
+  "nativePortraits": 73,
+  "productionImageExports": 255,
+  "trueAlphaPortraitExports": 219,
+  "trueAlphaAccessoryExports": 16,
+  "trueAlphaNewFullBodies": 10,
+  "referenceSheets": 10,
+  "existing63IdentityFieldsAndNativeSourcesPreserved": true,
+  "allPublicUrlsResolvable": true,
+  "appCodeModified": false,
+  "mysteryManifestsModified": false,
+  "headerPreview": "8 full-body/zoom pairs in fixed280px header, static visual-pass; no animation made",
+  "roundPreview": "all73 identities at32/48/96px;8 independent-layer combinations visual-pass",
+  "sourceCropCaveat": "17 exact crops329–484px;1024 export enlarged, not new source detail"
+}

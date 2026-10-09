@@ -1,0 +1,2636 @@
+{
+  "schemaVersion": 1,
+  "scope": "documentation-only profile camera preparation; no animations or code changes",
+  "background": "fixed independent layer",
+  "transition": "transform the same full-body source in a fixed header; separate portrait source is not an automatic pixel-aligned morph",
+  "characters": [
+    {
+      "id": "aaron",
+      "fullBodyUrl": "/scripture/characters/aaron/master/aaron-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        204,
+        19,
+        802,
+        1507
+      ],
+      "profileFootAnchorPixels": [
+        503,
+        1507
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        486,
+        182
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "abinadi",
+      "fullBodyUrl": "/scripture/characters/abinadi/master/abinadi-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        238,
+        37,
+        755,
+        1503
+      ],
+      "profileFootAnchorPixels": [
+        496,
+        1503
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        501,
+        198
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "abish",
+      "fullBodyUrl": "/scripture/characters/abish/master/abish-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        281,
+        15,
+        738,
+        1513
+      ],
+      "profileFootAnchorPixels": [
+        509,
+        1513
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        483,
+        179
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "alma-elder",
+      "fullBodyUrl": "/scripture/characters/alma-elder/master/alma-elder-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        243,
+        46,
+        779,
+        1504
+      ],
+      "profileFootAnchorPixels": [
+        511,
+        1504
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        512,
+        206
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "alma-younger",
+      "fullBodyUrl": "/scripture/characters/alma-younger/master/alma-younger-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        195,
+        24,
+        787,
+        1506
+      ],
+      "profileFootAnchorPixels": [
+        491,
+        1506
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        500,
+        187
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "amalickiah",
+      "fullBodyUrl": "/scripture/characters/amalickiah/master/amalickiah-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        234,
+        19,
+        827,
+        1494
+      ],
+      "profileFootAnchorPixels": [
+        530,
+        1494
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        482,
+        181
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "amlici",
+      "fullBodyUrl": "/scripture/characters/amlici/master/amlici-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        229,
+        17,
+        823,
+        1491
+      ],
+      "profileFootAnchorPixels": [
+        526,
+        1491
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        484,
+        179
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "ammaron",
+      "fullBodyUrl": "/scripture/characters/ammaron/master/ammaron-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        270,
+        7,
+        732,
+        1524
+      ],
+      "profileFootAnchorPixels": [
+        501,
+        1524
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        478,
+        173
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "ammon-expedition",
+      "fullBodyUrl": "/scripture/characters/ammon-expedition/master/ammon-expedition-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        214,
+        31,
+        781,
+        1480
+      ],
+      "profileFootAnchorPixels": [
+        497,
+        1480
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        480,
+        190
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "ammon-missionary",
+      "fullBodyUrl": "/scripture/characters/ammon-missionary/master/ammon-missionary-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        185,
+        16,
+        814,
+        1503
+      ],
+      "profileFootAnchorPixels": [
+        499,
+        1503
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        487,
+        179
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "amulek",
+      "fullBodyUrl": "/scripture/characters/amulek/master/amulek-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        238,
+        22,
+        803,
+        1486
+      ],
+      "profileFootAnchorPixels": [
+        520,
+        1486
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        504,
+        183
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "amulon",
+      "fullBodyUrl": "/scripture/characters/amulon/master/amulon-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        196,
+        7,
+        826,
+        1505
+      ],
+      "profileFootAnchorPixels": [
+        511,
+        1505
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        459,
+        171
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "angel-alma",
+      "fullBodyUrl": "/scripture/characters/angel-alma/master/angel-alma-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        232,
+        18,
+        747,
+        1491
+      ],
+      "profileFootAnchorPixels": [
+        489,
+        1491
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        472,
+        180
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "brother-of-jared",
+      "fullBodyUrl": "/scripture/characters/brother-of-jared/master/brother-of-jared-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        251,
+        7,
+        774,
+        1522
+      ],
+      "profileFootAnchorPixels": [
+        512,
+        1522
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        487,
+        173
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "captain-moroni",
+      "fullBodyUrl": "/scripture/characters/captain-moroni/master/captain-moroni-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        195,
+        15,
+        939,
+        1509
+      ],
+      "profileFootAnchorPixels": [
+        567,
+        1509
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        471,
+        179
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "church-disciple",
+      "fullBodyUrl": "/scripture/characters/church-disciple/master/church-disciple-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        253,
+        10,
+        733,
+        1523
+      ],
+      "profileFootAnchorPixels": [
+        493,
+        1523
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        478,
+        176
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "corianton",
+      "fullBodyUrl": "/scripture/characters/corianton/master/corianton-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        199,
+        30,
+        804,
+        1508
+      ],
+      "profileFootAnchorPixels": [
+        501,
+        1508
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        490,
+        192
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "coriantumr",
+      "fullBodyUrl": "/scripture/characters/coriantumr/master/coriantumr-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        197,
+        25,
+        782,
+        1475
+      ],
+      "profileFootAnchorPixels": [
+        489,
+        1475
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        480,
+        184
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "enos",
+      "fullBodyUrl": "/scripture/characters/enos/master/enos-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        219,
+        8,
+        753,
+        1519
+      ],
+      "profileFootAnchorPixels": [
+        486,
+        1519
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        470,
+        174
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "ether",
+      "fullBodyUrl": "/scripture/characters/ether/master/ether-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        243,
+        34,
+        759,
+        1504
+      ],
+      "profileFootAnchorPixels": [
+        501,
+        1504
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        496,
+        195
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "gideon",
+      "fullBodyUrl": "/scripture/characters/gideon/master/gideon-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        216,
+        19,
+        777,
+        1503
+      ],
+      "profileFootAnchorPixels": [
+        496,
+        1503
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        465,
+        182
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "hagoth",
+      "fullBodyUrl": "/scripture/characters/hagoth/master/hagoth-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        203,
+        13,
+        838,
+        1496
+      ],
+      "profileFootAnchorPixels": [
+        520,
+        1496
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        490,
+        176
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "heavenly-father",
+      "fullBodyUrl": "/scripture/characters/heavenly-father/master/heavenly-father-cutout-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        196,
+        23,
+        745,
+        1485
+      ],
+      "profileFootAnchorPixels": [
+        470,
+        1485
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        458,
+        183
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "helam",
+      "fullBodyUrl": "/scripture/characters/helam/master/helam-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        228,
+        19,
+        774,
+        1502
+      ],
+      "profileFootAnchorPixels": [
+        501,
+        1502
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        478,
+        182
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "helaman-son-alma",
+      "fullBodyUrl": "/scripture/characters/helaman-son-alma/master/helaman-son-alma-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        194,
+        24,
+        793,
+        1508
+      ],
+      "profileFootAnchorPixels": [
+        493,
+        1508
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        506,
+        187
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "helaman-son-helaman",
+      "fullBodyUrl": "/scripture/characters/helaman-son-helaman/master/helaman-son-helaman-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        235,
+        14,
+        815,
+        1512
+      ],
+      "profileFootAnchorPixels": [
+        525,
+        1512
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        502,
+        178
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "himni",
+      "fullBodyUrl": "/scripture/characters/himni/master/himni-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        194,
+        17,
+        803,
+        1502
+      ],
+      "profileFootAnchorPixels": [
+        498,
+        1502
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        492,
+        180
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "ismael",
+      "fullBodyUrl": "/mysterie-003b-onderzoeker/ismael.png",
+      "sourcePixels": [
+        1254,
+        1254
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        404,
+        117,
+        781,
+        1145
+      ],
+      "profileFootAnchorPixels": [
+        592,
+        1145
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        593,
+        230
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "ismael-wife",
+      "fullBodyUrl": "/scripture/characters/ismael-wife/master/ismael-wife-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        257,
+        17,
+        769,
+        1515
+      ],
+      "profileFootAnchorPixels": [
+        513,
+        1515
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        484,
+        181
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "jacob-son-lehi",
+      "fullBodyUrl": "/scripture/characters/jacob-son-lehi/master/jacob-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        216,
+        26,
+        765,
+        1524
+      ],
+      "profileFootAnchorPixels": [
+        490,
+        1524
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        493,
+        190
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "jared",
+      "fullBodyUrl": "/scripture/characters/jared/master/jared-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        160,
+        13,
+        849,
+        1521
+      ],
+      "profileFootAnchorPixels": [
+        504,
+        1521
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        448,
+        178
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "jaredite-king-role",
+      "fullBodyUrl": "/scripture/characters/jaredite-king-role/master/jaredite-king-role-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        196,
+        9,
+        868,
+        1523
+      ],
+      "profileFootAnchorPixels": [
+        532,
+        1523
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        532,
+        175
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "jaredite-prophet-role",
+      "fullBodyUrl": "/scripture/characters/jaredite-prophet-role/master/jaredite-prophet-role-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        212,
+        10,
+        745,
+        1520
+      ],
+      "profileFootAnchorPixels": [
+        478,
+        1520
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        462,
+        176
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "jesus-christ",
+      "fullBodyUrl": "/scripture/characters/jesus-christ/master/jesus-christ-cutout-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        223,
+        38,
+        722,
+        1477
+      ],
+      "profileFootAnchorPixels": [
+        472,
+        1477
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        458,
+        196
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "joseph-smith",
+      "fullBodyUrl": "/scripture/characters/joseph-smith/master/joseph-smith-cutout-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        277,
+        29,
+        777,
+        1440
+      ],
+      "profileFootAnchorPixels": [
+        527,
+        1440
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        475,
+        184
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "joseph-son-lehi",
+      "fullBodyUrl": "/scripture/characters/joseph-son-lehi/master/joseph-son-lehi-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        251,
+        40,
+        783,
+        1499
+      ],
+      "profileFootAnchorPixels": [
+        517,
+        1499
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        517,
+        200
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "king-benjamin",
+      "fullBodyUrl": "/scripture/characters/king-benjamin/master/king-benjamin-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        243,
+        33,
+        780,
+        1507
+      ],
+      "profileFootAnchorPixels": [
+        511,
+        1507
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        492,
+        195
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "king-laman",
+      "fullBodyUrl": "/scripture/characters/king-laman/master/king-laman-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        208,
+        32,
+        867,
+        1492
+      ],
+      "profileFootAnchorPixels": [
+        537,
+        1492
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        452,
+        192
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "king-limhi",
+      "fullBodyUrl": "/scripture/characters/king-limhi/master/king-limhi-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        205,
+        12,
+        819,
+        1492
+      ],
+      "profileFootAnchorPixels": [
+        512,
+        1492
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        476,
+        174
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "king-noah",
+      "fullBodyUrl": "/scripture/characters/king-noah/master/king-noah-adult-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        194,
+        35,
+        819,
+        1488
+      ],
+      "profileFootAnchorPixels": [
+        506,
+        1488
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        462,
+        194
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "korihor",
+      "fullBodyUrl": "/scripture/characters/korihor/master/korihor-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        245,
+        21,
+        793,
+        1496
+      ],
+      "profileFootAnchorPixels": [
+        519,
+        1496
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        488,
+        183
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "laban",
+      "fullBodyUrl": "/mysterie-002b-onderzoeker/laban.png",
+      "sourcePixels": [
+        1254,
+        1254
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        413,
+        134,
+        822,
+        1144
+      ],
+      "profileFootAnchorPixels": [
+        617,
+        1144
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        622,
+        245
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "laman",
+      "fullBodyUrl": "/mysterie-001a-ontdekker/laman.png",
+      "sourcePixels": [
+        1254,
+        1254
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        412,
+        102,
+        802,
+        1138
+      ],
+      "profileFootAnchorPixels": [
+        607,
+        1138
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        620,
+        215
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "lamoni",
+      "fullBodyUrl": "/scripture/characters/lamoni/master/lamoni-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        201,
+        22,
+        896,
+        1492
+      ],
+      "profileFootAnchorPixels": [
+        548,
+        1492
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        469,
+        183
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "lamoni-father",
+      "fullBodyUrl": "/scripture/characters/lamoni-father/master/lamoni-father-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        215,
+        27,
+        829,
+        1493
+      ],
+      "profileFootAnchorPixels": [
+        522,
+        1493
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        456,
+        188
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "lamoni-father-wife",
+      "fullBodyUrl": "/scripture/characters/lamoni-father-wife/master/lamoni-father-wife-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        260,
+        23,
+        742,
+        1513
+      ],
+      "profileFootAnchorPixels": [
+        501,
+        1513
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        498,
+        186
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "lamoni-wife",
+      "fullBodyUrl": "/scripture/characters/lamoni-wife/master/lamoni-wife-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        220,
+        19,
+        765,
+        1516
+      ],
+      "profileFootAnchorPixels": [
+        492,
+        1516
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        497,
+        183
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "lehi",
+      "fullBodyUrl": "/mysterie-001a-ontdekker/lehi.png",
+      "sourcePixels": [
+        1254,
+        1254
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        398,
+        104,
+        797,
+        1140
+      ],
+      "profileFootAnchorPixels": [
+        597,
+        1140
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        616,
+        217
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "lehi-dream-guide",
+      "fullBodyUrl": "/scripture/characters/lehi-dream-guide/master/lehi-dream-guide-cutout-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        234,
+        26,
+        741,
+        1486
+      ],
+      "profileFootAnchorPixels": [
+        487,
+        1486
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        458,
+        186
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "lehi-son-helaman",
+      "fullBodyUrl": "/scripture/characters/lehi-son-helaman/master/lehi-son-helaman-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        228,
+        13,
+        827,
+        1512
+      ],
+      "profileFootAnchorPixels": [
+        527,
+        1512
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        493,
+        177
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "lemuel",
+      "fullBodyUrl": "/mysterie-001a-ontdekker/lemuel.png",
+      "sourcePixels": [
+        1254,
+        1254
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        429,
+        110,
+        791,
+        1142
+      ],
+      "profileFootAnchorPixels": [
+        610,
+        1142
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        630,
+        223
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "mormon",
+      "fullBodyUrl": "/scripture/characters/mormon/master/mormon-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        229,
+        22,
+        775,
+        1516
+      ],
+      "profileFootAnchorPixels": [
+        502,
+        1516
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        486,
+        186
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "moroni-son-mormon",
+      "fullBodyUrl": "/scripture/characters/moroni-son-mormon/master/moroni-son-mormon-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        274,
+        8,
+        752,
+        1509
+      ],
+      "profileFootAnchorPixels": [
+        513,
+        1509
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        490,
+        173
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "mosiah-son-benjamin",
+      "fullBodyUrl": "/scripture/characters/mosiah-son-benjamin/master/mosiah-son-benjamin-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        203,
+        19,
+        794,
+        1502
+      ],
+      "profileFootAnchorPixels": [
+        498,
+        1502
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        502,
+        182
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "nehor",
+      "fullBodyUrl": "/scripture/characters/nehor/master/nehor-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        184,
+        16,
+        851,
+        1499
+      ],
+      "profileFootAnchorPixels": [
+        517,
+        1499
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        457,
+        179
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "nephi",
+      "fullBodyUrl": "/mysterie-001c-schriftkenner/nephi.png",
+      "sourcePixels": [
+        1254,
+        1254
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        427,
+        102,
+        815,
+        1148
+      ],
+      "profileFootAnchorPixels": [
+        621,
+        1148
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        632,
+        217
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "nephi-son-helaman",
+      "fullBodyUrl": "/scripture/characters/nephi-son-helaman/master/nephi-son-helaman-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        231,
+        15,
+        812,
+        1511
+      ],
+      "profileFootAnchorPixels": [
+        521,
+        1511
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        496,
+        179
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "nephi-son-nephi",
+      "fullBodyUrl": "/scripture/characters/nephi-son-nephi/master/nephi-son-nephi-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        232,
+        9,
+        776,
+        1516
+      ],
+      "profileFootAnchorPixels": [
+        504,
+        1516
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        460,
+        174
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "nephi-wife",
+      "fullBodyUrl": "/scripture/characters/nephi-wife/master/nephi-wife-cutout-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        242,
+        44,
+        716,
+        1487
+      ],
+      "profileFootAnchorPixels": [
+        479,
+        1487
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        472,
+        202
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "nephihah",
+      "fullBodyUrl": "/scripture/characters/nephihah/master/nephihah-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        230,
+        25,
+        810,
+        1506
+      ],
+      "profileFootAnchorPixels": [
+        520,
+        1506
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        509,
+        187
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "omner",
+      "fullBodyUrl": "/scripture/characters/omner/master/omner-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        189,
+        9,
+        801,
+        1502
+      ],
+      "profileFootAnchorPixels": [
+        495,
+        1502
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        493,
+        173
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "pahoran",
+      "fullBodyUrl": "/scripture/characters/pahoran/master/pahoran-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        233,
+        12,
+        808,
+        1508
+      ],
+      "profileFootAnchorPixels": [
+        520,
+        1508
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        502,
+        176
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "sam",
+      "fullBodyUrl": "/mysterie-001b-onderzoeker/sam.png",
+      "sourcePixels": [
+        1254,
+        1254
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        434,
+        119,
+        799,
+        1103
+      ],
+      "profileFootAnchorPixels": [
+        616,
+        1103
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        636,
+        227
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "samuel-lamanite",
+      "fullBodyUrl": "/scripture/characters/samuel-lamanite/master/samuel-lamanite-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        235,
+        10,
+        744,
+        1507
+      ],
+      "profileFootAnchorPixels": [
+        489,
+        1507
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        472,
+        174
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "sariah",
+      "fullBodyUrl": "/mysterie-001a-ontdekker/sariah.png",
+      "sourcePixels": [
+        1254,
+        1254
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        391,
+        106,
+        769,
+        1148
+      ],
+      "profileFootAnchorPixels": [
+        580,
+        1148
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        576,
+        220
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "sherem",
+      "fullBodyUrl": "/scripture/characters/sherem/master/sherem-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        247,
+        26,
+        793,
+        1497
+      ],
+      "profileFootAnchorPixels": [
+        520,
+        1497
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        493,
+        187
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "shiblon",
+      "fullBodyUrl": "/scripture/characters/shiblon/master/shiblon-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        179,
+        22,
+        798,
+        1509
+      ],
+      "profileFootAnchorPixels": [
+        488,
+        1509
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        477,
+        185
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "shiz",
+      "fullBodyUrl": "/scripture/characters/shiz/master/shiz-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        194,
+        35,
+        789,
+        1481
+      ],
+      "profileFootAnchorPixels": [
+        491,
+        1481
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        492,
+        194
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "zeezrom",
+      "fullBodyUrl": "/scripture/characters/zeezrom/master/zeezrom-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        262,
+        16,
+        761,
+        1463
+      ],
+      "profileFootAnchorPixels": [
+        511,
+        1463
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        491,
+        175
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "zeniff",
+      "fullBodyUrl": "/scripture/characters/zeniff/master/zeniff-older-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        215,
+        27,
+        788,
+        1503
+      ],
+      "profileFootAnchorPixels": [
+        501,
+        1503
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        484,
+        189
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "zerahemnah",
+      "fullBodyUrl": "/scripture/characters/zerahemnah/master/zerahemnah-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        226,
+        25,
+        888,
+        1507
+      ],
+      "profileFootAnchorPixels": [
+        557,
+        1507
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        481,
+        188
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "zoram",
+      "fullBodyUrl": "/mysterie-002c-schriftkenner/zoram.png",
+      "sourcePixels": [
+        1254,
+        1254
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        405,
+        114,
+        792,
+        1143
+      ],
+      "profileFootAnchorPixels": [
+        598,
+        1143
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        612,
+        227
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    },
+    {
+      "id": "zoramite-worshipper",
+      "fullBodyUrl": "/scripture/characters/zoramite-worshipper/master/zoramite-worshipper-master-v1.webp",
+      "sourcePixels": [
+        1024,
+        1536
+      ],
+      "visibleBoundsPixelsAlpha32": [
+        240,
+        19,
+        798,
+        1506
+      ],
+      "profileFootAnchorPixels": [
+        519,
+        1506
+      ],
+      "profileHeadAnchorPixelsProvisional": [
+        508,
+        182
+      ],
+      "headAnchorStatus": "silhouette-based proposal; visual calibration in actual profile header still required",
+      "headerHeightCssPx": [
+        240,
+        300
+      ],
+      "previewHeaderHeightCssPx": 280,
+      "profileBottomMarginCssPx": 16,
+      "fullBodyFit": "visible body height = header height minus32px; foot anchor at bottom margin",
+      "bustZoomFactorProposal": 2.45,
+      "bustHeadTargetCssPx": [
+        160,
+        84
+      ],
+      "mysteryAuthority": "This profile-only anchor is not a replacement for existing Mysterie geometry."
+    }
+  ]
+}

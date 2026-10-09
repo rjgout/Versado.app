@@ -1,0 +1,1035 @@
+{
+  "tool": "built-in-imagegen and user-authorized exact raster cropping with Pillow",
+  "policy": "Existing identity reference before prose; new physical traits are artistic interpretations only. Native files preserved.",
+  "records": [
+    {
+      "id": "aaron",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Aäron (stableID:aaron). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/aaron/references/aaron-character-sheet-v1.png",
+        "characters/aaron/master/aaron-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "abinadi",
+      "prompt": "One transparent square head-and-shoulders avatar of the same person in the attached full-body artwork. Preserve exactly this face, hairstyle, facial hair, age, skin, clothes and colors. Enlarged face, shoulders and upper chest, comfortable margin above hair, no full body miniature. Same polished warm 3D, no background, circle, text or accessories.",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "abish",
+      "prompt": "Use case: identity-preserve. Produce ONE dedicated square1024x1024 transparent avatar portrait bust of abish for Versado. Input1 is her new canonical character sheet, neutral portrait is primaryface source. Input2 authoritativefullbodymaster confirms exact hair, face, age, skin, neckline, shawl and colors. Preserve EXACT same person and garments; no redesign orre-aging. Head plus shoulders and upperchest only, nohands orlegs. Large readable head centered x512 crown y100 eye-line400 chin660, shoulders end950; allmainfacehair/headwear insidecircularsafearea diameter900 centered512,512. Natural mature facialproportions asreference, frontview gentle calm expression. True transparentalpha background, no coloredcircle, text, frame, accessories, floor orgraybacking. Same warm polishedfriendly3D render. The single sourceportrait supplies large/smallbust and face-focused useravatar exports.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "alma-elder",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/alma-elder-master-v1.png",
+      "sourceSha256": "91da0309d5bf5fa96ecc40fa29e5b67a4a75708017311f47ead54337a6aef89f",
+      "cropBoxPixels": [
+        279,
+        -5,
+        746,
+        462
+      ],
+      "nativeCropPixels": [
+        467,
+        467
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "alma-younger",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/alma-younger-master-v1.png",
+      "sourceSha256": "c482b1ff95d1ccef94882059f0c81ed07587d5185fa99466a4a0f62cd97e2bdf",
+      "cropBoxPixels": [
+        262,
+        -28,
+        736,
+        446
+      ],
+      "nativeCropPixels": [
+        474,
+        474
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "amalickiah",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/amalickiah-master-v1.png",
+      "sourceSha256": "ff548df47e4c4ee953fa5b3a6d9e21a8c1e43483a61f7eafd317b9866a17dc67",
+      "cropBoxPixels": [
+        246,
+        -33,
+        718,
+        439
+      ],
+      "nativeCropPixels": [
+        472,
+        472
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "amlici",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Amlici (stableID:amlici). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/amlici/references/amlici-character-sheet-v1.png",
+        "characters/amlici/master/amlici-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "ammaron",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Ammaron (stableID:ammaron). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/ammaron/references/ammaron-character-sheet-v1.png",
+        "characters/ammaron/master/ammaron-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "ammon-expedition",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Ammon, leider van de expeditie (stableID:ammon-expedition). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/ammon-expedition/references/ammon-expedition-character-sheet-v1.png",
+        "characters/ammon-expedition/master/ammon-expedition-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "ammon-missionary",
+      "prompt": "Create one square transparent friendly3D portrait of Ammon for the Versado educational character library. Use the attached character sheet as exact identity reference: same face, hair, eyes, age and existing clothes. Show the head and clothed shoulders only, front view, calm gentle expression. Large centered face, complete hair with clear space above head, readable in a round avatar crop. No background, lettering, decorations or other people. Preserve the existing character design exactly.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen",
+      "attempt": 2
+    },
+    {
+      "id": "amulek",
+      "prompt": "One square transparent head-and-shoulders portrait. Extract the lower-left neutral portrait from this character sheet, keeping the exact same person, face, hair, beard and clothed shoulders. Center the head with generous space above the hair, show shoulders and upper chest, preserve the original warm 3D rendering. One person only, no sheet grid, no labels, no frame, no background.",
+      "referencePath": "characters/amulek/references/amulek-character-sheet-v1.png",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "amulon",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of amulon (stableID:amulon). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/amulon/references/amulon-character-sheet-v1.png",
+        "characters/amulon/master/amulon-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "angel-alma",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Engel die Alma bezocht, rolcanon (stableID:angel-alma). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/angel-alma/references/angel-alma-character-sheet-v1.png",
+        "characters/angel-alma/master/angel-alma-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "background-stars",
+      "kind": "backgrounds",
+      "spec": "ONE transparent decorative stars BACKGROUND LAYER on1024square. Only a sparse balanced scatter of eight small warm gold/orange four-point polished3D stars and tiny soft light sparkles near outer ring radius400-450 centered512,512, all within canvas circle diameter960. Central disc radius340 stays entirely empty/transparent for avatar face. Stars small30-70px, evenly spread around perimeter, readable restrained grouping. No filledbackground, coloredcircle, largecentralstar, sky, person, frame or text. Realalpha; this decorative layer sits BEHIND character.",
+      "prompt": "Use case: stylized-concept. Asset type: ONE independent avatar-accessory layer for Versado, square1024x1024 PNG, genuine transparent background. ONE transparent decorative stars BACKGROUND LAYER on1024square. Only a sparse balanced scatter of eight small warm gold/orange four-point polished3D stars and tiny soft light sparkles near outer ring radius400-450 centered512,512, all within canvas circle diameter960. Central disc radius340 stays entirely empty/transparent for avatar face. Stars small30-70px, evenly spread around perimeter, readable restrained grouping. No filledbackground, coloredcircle, largecentralstar, sky, person, frame or text. Realalpha; this decorative layer sits BEHIND character. Warm polished premium friendly3D style, palette deepnavy#061A45 secondaryblue#133677 vivid orange#F8730C cream#F9DCC8 with metal as specified. Supportingreference images for existing Versado visual language only. Produce only this ONE layer, no preview/mockup or combinations. No opaque backing, checkerboard renderedasimage, labels, watermark, collage.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "brother-of-jared",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of De broer van Jared (stableID:brother-of-jared). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/brother-of-jared/references/brother-of-jared-character-sheet-v1.png",
+        "characters/brother-of-jared/master/brother-of-jared-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "captain-moroni",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Aanvoerder Moroni (stableID:captain-moroni). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/captain-moroni/references/captain-moroni-character-sheet-v1.png",
+        "characters/captain-moroni/master/captain-moroni-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "church-disciple",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/church-disciple-master-v1.png",
+      "sourceSha256": "d2e3081ccf8323521f5fcfa843943284e585412a51ee3f46c683bf8be2c4c485",
+      "cropBoxPixels": [
+        236,
+        -43,
+        720,
+        441
+      ],
+      "nativeCropPixels": [
+        484,
+        484
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "corianton",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/corianton-master-v1.png",
+      "sourceSha256": "02dc32b75d743bda0ece25dbbc2c7af1e8e5fb60bb1adddf7091cb51468c1e23",
+      "cropBoxPixels": [
+        254,
+        -22,
+        727,
+        451
+      ],
+      "nativeCropPixels": [
+        473,
+        473
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "coriantumr",
+      "prompt": "One transparent square head-and-shoulders avatar of the same person in the attached full-body artwork. Preserve exactly this face, hairstyle, facial hair, age, skin, clothes and colors. Enlarged face, shoulders and upper chest, comfortable margin above hair, no full body miniature. Same polished warm 3D, no background, circle, text or accessories.",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "enos",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/enos-master-v1.png",
+      "sourceSha256": "148ef51529e1b1ff467c07301da3b2ca3767047a1889d293c8476ed4cfb1453e",
+      "cropBoxPixels": [
+        228,
+        -45,
+        712,
+        439
+      ],
+      "nativeCropPixels": [
+        484,
+        484
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "ether",
+      "prompt": "One transparent square head-and-shoulders avatar of the same person in the attached full-body artwork. Preserve exactly this face, hairstyle, facial hair, age, skin, clothes and colors. Enlarged face, shoulders and upper chest, comfortable margin above hair, no full body miniature. Same polished warm 3D, no background, circle, text or accessories.",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "frame-bronze",
+      "kind": "frames",
+      "spec": "ONE circular bronze avatar frame viewed perfectly front-on, mathematically circular concentric ring centered512,512 on1024square canvas. Outer diameter944px inner diameter860px so slim42px beveled ring, genuine empty transparent hole. Rich warm brushed bronze with restrained polished edges, subtly embossed tiny Versado compass ticks at cardinal points all on ring. Reference navy-gold emblem gives polished3D finish only. No emblem inside the hole, no disks, no face or character, no text. No shadow or glow inside center.",
+      "prompt": "Use case: stylized-concept. Asset type: ONE independent avatar-accessory layer for Versado, square1024x1024 PNG, genuine transparent background. ONE circular bronze avatar frame viewed perfectly front-on, mathematically circular concentric ring centered512,512 on1024square canvas. Outer diameter944px inner diameter860px so slim42px beveled ring, genuine empty transparent hole. Rich warm brushed bronze with restrained polished edges, subtly embossed tiny Versado compass ticks at cardinal points all on ring. Reference navy-gold emblem gives polished3D finish only. No emblem inside the hole, no disks, no face or character, no text. No shadow or glow inside center. Warm polished premium friendly3D style, palette deepnavy#061A45 secondaryblue#133677 vivid orange#F8730C cream#F9DCC8 with metal as specified. Supportingreference images for existing Versado visual language only. Produce only this ONE layer, no preview/mockup or combinations. No opaque backing, checkerboard renderedasimage, labels, watermark, collage.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "frame-gold",
+      "kind": "frames",
+      "spec": "ONE circular gold avatar frame perfectly front-on, concentric ring centered512,512 on1024square canvas. Outer diameter944px inner diameter860px so slim42px beveled ring, genuine empty transparent hole. Rich soft golden bronze-gold highlights with restrained deepnavy tiny compass ticks at cardinal points on ring, polished highquality3D beveled finish matching emblem. No emblem inside hole, no disks, no face, no text, no shadow/glow inside center.",
+      "prompt": "Use case: stylized-concept. Asset type: ONE independent avatar-accessory layer for Versado, square1024x1024 PNG, genuine transparent background. ONE circular gold avatar frame perfectly front-on, concentric ring centered512,512 on1024square canvas. Outer diameter944px inner diameter860px so slim42px beveled ring, genuine empty transparent hole. Rich soft golden bronze-gold highlights with restrained deepnavy tiny compass ticks at cardinal points on ring, polished highquality3D beveled finish matching emblem. No emblem inside hole, no disks, no face, no text, no shadow/glow inside center. Warm polished premium friendly3D style, palette deepnavy#061A45 secondaryblue#133677 vivid orange#F8730C cream#F9DCC8 with metal as specified. Supportingreference images for existing Versado visual language only. Produce only this ONE layer, no preview/mockup or combinations. No opaque backing, checkerboard renderedasimage, labels, watermark, collage.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "frame-silver",
+      "kind": "frames",
+      "spec": "ONE circular silver avatar frame perfectly front-on, concentric ring centered512,512 on1024square canvas. Outer diameter944px inner diameter860px so slim42px beveled ring, genuine empty transparent hole. Warm luminous silver, restrained polished edges and small deepnavy inset compass ticks at cardinal points entirely on ring. Reference emblem gives polished3D finish only. No emblem inside hole, no disks, no face, no text, no shadow/glow inside center.",
+      "prompt": "Use case: stylized-concept. Asset type: ONE independent avatar-accessory layer for Versado, square1024x1024 PNG, genuine transparent background. ONE circular silver avatar frame perfectly front-on, concentric ring centered512,512 on1024square canvas. Outer diameter944px inner diameter860px so slim42px beveled ring, genuine empty transparent hole. Warm luminous silver, restrained polished edges and small deepnavy inset compass ticks at cardinal points entirely on ring. Reference emblem gives polished3D finish only. No emblem inside hole, no disks, no face, no text, no shadow/glow inside center. Warm polished premium friendly3D style, palette deepnavy#061A45 secondaryblue#133677 vivid orange#F8730C cream#F9DCC8 with metal as specified. Supportingreference images for existing Versado visual language only. Produce only this ONE layer, no preview/mockup or combinations. No opaque backing, checkerboard renderedasimage, labels, watermark, collage.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "gideon",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Gideon (stableID:gideon). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/gideon/references/gideon-character-sheet-v1.png",
+        "characters/gideon/master/gideon-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "hagoth",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Hagoth (stableID:hagoth). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/hagoth/references/hagoth-character-sheet-v1.png",
+        "characters/hagoth/master/hagoth-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "heavenly-father",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Onze hemelse Vader (stableID:heavenly-father). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/heavenly-father/references/heavenly-father-character-sheet-v1.png",
+        "characters/heavenly-father/master/heavenly-father-cutout-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "helam",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/helam-master-v1.png",
+      "sourceSha256": "3e96cfb48d4290630281a313f94807f338eafc5d30ea7c28f753d8aebdd3ae21",
+      "cropBoxPixels": [
+        240,
+        -33,
+        715,
+        442
+      ],
+      "nativeCropPixels": [
+        475,
+        475
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "helaman-son-alma",
+      "prompt": "One square transparent head-and-shoulders portrait. Extract the lower-left neutral portrait from this character sheet, keeping the exact same person, face, hair, beard and clothed shoulders. Center the head with generous space above the hair, show shoulders and upper chest, preserve the original warm 3D rendering. One person only, no sheet grid, no labels, no frame, no background.",
+      "referencePath": "characters/helaman-son-alma/references/helaman-son-alma-character-sheet-v1.png",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "helaman-son-helaman",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Helaman, zoon van Helaman (stableID:helaman-son-helaman). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/helaman-son-helaman/references/helaman-son-helaman-character-sheet-v1.png",
+        "characters/helaman-son-helaman/master/helaman-son-helaman-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "himni",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/himni-master-v1.png",
+      "sourceSha256": "a68bc405b6d2332138bee9bb2afb78b47b1da1bdbe72bc0e0547712aaad6d371",
+      "cropBoxPixels": [
+        254,
+        -35,
+        729,
+        440
+      ],
+      "nativeCropPixels": [
+        475,
+        475
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "ismael-wife",
+      "prompt": "Background extraction from existing Versado artwork. Return ONLY the lower-left neutral head-and-clothed-shoulders portrait from the attached character sheet as one separate square transparent PNG, with clear margin around the hair and headwear. Remove the studio backdrop and exclude the other five views. Keep the drawn person's exact face, age, hair, eyes, expression, headwear, shawl and dress as already shown. No new interpretation, pose, accessories or text. A clean cutout of this existing friendly educational3D illustration.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen",
+      "attempt": 2
+    },
+    {
+      "id": "ismael",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Ismaël (stableID:ismael). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/ismael/references/ismael-character-sheet-v1.png",
+        "characters/ismael/master/ismael-existing-master.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "jacob-son-lehi",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Jakob, zoon van Lehi (stableID:jacob-son-lehi). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/jacob-son-lehi/references/jacob-son-lehi-character-sheet-v1.png",
+        "characters/jacob-son-lehi/master/jacob-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "jared",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Jared (stableID:jared). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/jared/references/jared-character-sheet-v1.png",
+        "characters/jared/master/jared-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "jaredite-king-role",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Naamloze vroege Jaredietische koning, rolcanon (stableID:jaredite-king-role). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/jaredite-king-role/references/jaredite-king-role-character-sheet-v1.png",
+        "characters/jaredite-king-role/master/jaredite-king-role-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "jaredite-prophet-role",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Naamloze Jaredietische profeet, rolcanon (stableID:jaredite-prophet-role). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/jaredite-prophet-role/references/jaredite-prophet-role-character-sheet-v1.png",
+        "characters/jaredite-prophet-role/master/jaredite-prophet-role-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "jesus-christ",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Jezus Christus (stableID:jesus-christ). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/jesus-christ/references/jesus-christ-character-sheet-v1.png",
+        "characters/jesus-christ/master/jesus-christ-cutout-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "joseph-smith",
+      "prompt": "One square transparent head-and-shoulders portrait. Extract the lower-left neutral portrait from this character sheet, keeping the exact same person, face, hair, beard and clothed shoulders. Center the head with generous space above the hair, show shoulders and upper chest, preserve the original warm 3D rendering. One person only, no sheet grid, no labels, no frame, no background.",
+      "referencePath": "characters/joseph-smith/references/joseph-smith-character-sheet-v1.png",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "joseph-son-lehi",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/joseph-son-lehi-master-v1.png",
+      "sourceSha256": "1e86c15d46c2ca9e4dc4be36adb81114b9a1d15196cea4151f936931fc167fc9",
+      "cropBoxPixels": [
+        284,
+        -11,
+        751,
+        456
+      ],
+      "nativeCropPixels": [
+        467,
+        467
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "king-benjamin",
+      "prompt": "Use case: identity-preserve. ONE specific square1024x1024 transparent avatar portrait bust for Versado of Koning Benjamin. Input1 is the definitive character sheet: lower-left neutral facial portrait is PRIMARY source; input2 definitive full-body confirms exact wardrobe and identity. Preserve EXACT face, age, skin, eyes, haircut, facial hair, clothing colors, neck edging, shawl and proportions from these sources. No new interpretation, no re-aging. Show only head, shoulders and upper chest, not hands, legs or full body. Near-front view, calm natural gentle expression faithful to source. Large readable head: top at y100, eye-line around400, chin around660; upper chest ends near950. Face center x512, all important face/hair/beard features inside round-crop safe circle diameter900 centered512,512, head width roughly530-620. Transparent breathing room above head; no chopped hair/beard. Friendly warm polished3D same source lighting and woven materials. Genuine transparent alpha background, no backgroundcircle, gray backing, frame, decoration, objects or text. Preserve adult anatomy; don't enlarge eyes or make child proportions. The same asset is a dedicated face/shoulders avatar and high-resolution compact upper-chest bust.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "king-laman",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Koning Laman (stableID:king-laman). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/king-laman/references/king-laman-character-sheet-v1.png",
+        "characters/king-laman/master/king-laman-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "king-limhi",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Koning Limhi (stableID:king-limhi). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/king-limhi/references/king-limhi-character-sheet-v1.png",
+        "characters/king-limhi/master/king-limhi-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "king-noah",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Koning Noah (stableID:king-noah). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/king-noah/references/king-noah-character-sheet-v1.png",
+        "characters/king-noah/master/king-noah-adult-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "korihor",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/korihor-master-v1.png",
+      "sourceSha256": "b2087a5c152c7b861d2835b38da7c3338deec0574f16c2f700ae89bab729d028",
+      "cropBoxPixels": [
+        252,
+        -31,
+        724,
+        441
+      ],
+      "nativeCropPixels": [
+        472,
+        472
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "laban",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Laban (stableID:laban). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/laban/references/laban-character-sheet-v1.png",
+        "characters/laban/master/laban-existing-master.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "laman",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Laman (stableID:laman). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/laman/references/laman-character-sheet-v1.png",
+        "characters/laman/master/laman-existing-master.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "lamoni-father-wife",
+      "prompt": "Background extraction from existing Versado artwork. Return ONLY the lower-left neutral head-and-clothed-shoulders portrait from the attached character sheet as one separate square transparent PNG, with clear margin around the hair and headwear. Remove the studio backdrop and exclude the other five views. Keep the drawn person's exact face, age, hair, eyes, expression, headwear, shawl and dress as already shown. No new interpretation, pose, accessories or text. A clean cutout of this existing friendly educational3D illustration.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen",
+      "attempt": 2
+    },
+    {
+      "id": "lamoni-father",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Lamoni’s vader (stableID:lamoni-father). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/lamoni-father/references/lamoni-father-character-sheet-v1.png",
+        "characters/lamoni-father/master/lamoni-father-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "lamoni-wife",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/lamoni-wife-master-v1.png",
+      "sourceSha256": "256b66211ad74a587ee19d8332d021cccfa76da614ba6ebe1e7f929a7f36a155",
+      "cropBoxPixels": [
+        258,
+        -33,
+        737,
+        446
+      ],
+      "nativeCropPixels": [
+        479,
+        479
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "lamoni",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Lamoni (stableID:lamoni). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/lamoni/references/lamoni-character-sheet-v1.png",
+        "characters/lamoni/master/lamoni-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "lehi-dream-guide",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Man in wit gewaad uit Lehi’s droom (stableID:lehi-dream-guide). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/lehi-dream-guide/references/lehi-dream-guide-character-sheet-v1.png",
+        "characters/lehi-dream-guide/master/lehi-dream-guide-cutout-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "lehi-son-helaman",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Lehi, zoon van Helaman (stableID:lehi-son-helaman). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/lehi-son-helaman/references/lehi-son-helaman-character-sheet-v1.png",
+        "characters/lehi-son-helaman/master/lehi-son-helaman-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "lehi",
+      "prompt": "Use case: identity-preserve. ONE specific square1024x1024 transparent avatar portrait bust for Versado of Lehi. Input1 is the definitive character sheet: lower-left neutral facial portrait is PRIMARY source; input2 definitive full-body confirms exact wardrobe and identity. Preserve EXACT face, age, skin, eyes, haircut, facial hair, clothing colors, neck edging, shawl and proportions from these sources. No new interpretation, no re-aging. Show only head, shoulders and upper chest, not hands, legs or full body. Near-front view, calm natural gentle expression faithful to source. Large readable head: top at y100, eye-line around400, chin around660; upper chest ends near950. Face center x512, all important face/hair/beard features inside round-crop safe circle diameter900 centered512,512, head width roughly530-620. Transparent breathing room above head; no chopped hair/beard. Friendly warm polished3D same source lighting and woven materials. Genuine transparent alpha background, no backgroundcircle, gray backing, frame, decoration, objects or text. Preserve adult anatomy; don't enlarge eyes or make child proportions. The same asset is a dedicated face/shoulders avatar and high-resolution compact upper-chest bust.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "lemuel",
+      "prompt": "Edit this image: retain only the existing head and the top of the clothed shoulders, with the original exact appearance unchanged. Place that portrait centrally on a transparent square canvas. Keep hair inside the canvas. No additional elements.",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "abinadi",
+      "displayName": "Abinadi",
+      "scripture": "Mosiah11–17",
+      "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/bofm/mosiah/11?lang=eng",
+      "role": "Profeet die voor koning Noach getuigt.",
+      "spec": "Older lean man artistic age seventy, warm olive long narrow face, brown eyes, long silver hair to shoulders with high forehead, full narrow white beard and moustache. Simple warm ivory ankle-length longsleeve woven robe, muted brown one-shoulder wrap, tan woven belt and brown sandals. Distinct from Gideon (not bald), Zeniff (longer white beard) and Heavenly Father (brown wrap).",
+      "prompt": "Create ONE new canonical full-body male character for the Versado educational scripture library: Abinadi. Warm polished friendly3D animationrender matching the attached character sheet's STYLE ONLY. Do not copy Lehi's face or outfit. Appearance and exact age are artistic interpretations, never historical facts. Older lean man artistic age seventy, warm olive long narrow face, brown eyes, long silver hair to shoulders with high forehead, full narrow white beard and moustache. Simple warm ivory ankle-length longsleeve woven robe, muted brown one-shoulder wrap, tan woven belt and brown sandals. Distinct from Gideon (not bald), Zeniff (longer white beard) and Heavenly Father (brown wrap). Fulladult anatomy andproportions, wholeheadhandsfeet visibleinsideportrait1024x1536 canvas with generousmargins; standing calm gentlynearfront3/4 view, hands emptyat sides. Realtransparentalpha background no floor or scenery, labels, words orotherpeople. Singlefigure, not character sheet. Thisidentity willremainfixed.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "coriantumr",
+      "displayName": "Coriantumr",
+      "scripture": "Ether13–15",
+      "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/bofm/ether/15?lang=eng",
+      "role": "Jareditische koning in het slot van Ether.",
+      "spec": "Mature sturdy man artisticagefifty-five, warm mediumbrown broad square adultface, browneyes, thick straight black necklength hair with graytemples, short square darkgray beard. Deep rust knee-length tunic, simple bronze flat chestplate over modest tunic, mutednavy shoulder cape, ochre woven belt, brownleather sandals, low narrow ochre wovenheadband. Relaxed calm neutral standing pose, no weapon, conflict or injuries. Clearlydistinct from KingNoah stockycurlyhair and genericJarediteking blueanklerobe.",
+      "prompt": "Create ONE new canonical full-body male character for the Versado educational scripture library: Coriantumr. Warm polished friendly3D animationrender matching the attached character sheet's STYLE ONLY. Do not copy Lehi's face or outfit. Appearance and exact age are artistic interpretations, never historical facts. Mature sturdy man artisticagefifty-five, warm mediumbrown broad square adultface, browneyes, thick straight black necklength hair with graytemples, short square darkgray beard. Deep rust knee-length tunic, simple bronze flat chestplate over modest tunic, mutednavy shoulder cape, ochre woven belt, brownleather sandals, low narrow ochre wovenheadband. Relaxed calm neutral standing pose, no weapon, conflict or injuries. Clearlydistinct from KingNoah stockycurlyhair and genericJarediteking blueanklerobe. Fulladult anatomy andproportions, wholeheadhandsfeet visibleinsideportrait1024x1536 canvas with generousmargins; standing calm gentlynearfront3/4 view, hands emptyat sides. Realtransparentalpha background no floor or scenery, labels, words orotherpeople. Singlefigure, not character sheet. Thisidentity willremainfixed.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "ether",
+      "displayName": "Ether",
+      "scripture": "Ether12–15",
+      "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/bofm/ether/13?lang=eng",
+      "role": "Jareditische profeet en schrijver.",
+      "spec": "Lean mature man artistic age forty, warm medium olive long angular face, brown eyes, straight darkblack hair sideparted to nape, short neat darkblack beard and moustache. Slate-gray ankle-length longsleeve woven robe with cream edging, subdued mossgreen wrap crossing one shoulder, ochre woven belt, brown sandals. Quiet thoughtful expression. Distinct from unnamed whitebearded Jarediteprophet role.",
+      "prompt": "Create ONE new canonical full-body male character for the Versado educational scripture library: Ether. Warm polished friendly3D animationrender matching the attached character sheet's STYLE ONLY. Do not copy Lehi's face or outfit. Appearance and exact age are artistic interpretations, never historical facts. Lean mature man artistic age forty, warm medium olive long angular face, brown eyes, straight darkblack hair sideparted to nape, short neat darkblack beard and moustache. Slate-gray ankle-length longsleeve woven robe with cream edging, subdued mossgreen wrap crossing one shoulder, ochre woven belt, brown sandals. Quiet thoughtful expression. Distinct from unnamed whitebearded Jarediteprophet role. Fulladult anatomy andproportions, wholeheadhandsfeet visibleinsideportrait1024x1536 canvas with generousmargins; standing calm gentlynearfront3/4 view, hands emptyat sides. Realtransparentalpha background no floor or scenery, labels, words orotherpeople. Singlefigure, not character sheet. Thisidentity willremainfixed.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "helam",
+      "displayName": "Helam",
+      "scripture": "Mosiah18:12–14",
+      "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/bofm/mosiah/18?lang=eng",
+      "role": "Wordt door Alma gedoopt in de wateren van Mormon.",
+      "spec": "Adult man artistic age thirty-two, warm olive broad rounded face, brown eyes, short tightly waved lightbrown hair, clean-shaven. Pale blue knee-length short-sleeve woven tunic with cream trim, mossgreen woven shoulder wrap, tan woven belt, brown sandals. Natural modest averagebuild, friendlycalm face. Distinct from existingSam/Lemuel and Alma.",
+      "prompt": "Create ONE new canonical full-body male character for the Versado educational scripture library: Helam. Warm polished friendly3D animationrender matching the attached character sheet's STYLE ONLY. Do not copy Lehi's face or outfit. Appearance and exact age are artistic interpretations, never historical facts. Adult man artistic age thirty-two, warm olive broad rounded face, brown eyes, short tightly waved lightbrown hair, clean-shaven. Pale blue knee-length short-sleeve woven tunic with cream trim, mossgreen woven shoulder wrap, tan woven belt, brown sandals. Natural modest averagebuild, friendlycalm face. Distinct from existingSam/Lemuel and Alma. Fulladult anatomy andproportions, wholeheadhandsfeet visibleinsideportrait1024x1536 canvas with generousmargins; standing calm gentlynearfront3/4 view, hands emptyat sides. Realtransparentalpha background no floor or scenery, labels, words orotherpeople. Singlefigure, not character sheet. Thisidentity willremainfixed.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "shiz",
+      "displayName": "Shiz",
+      "scripture": "Ether14–15",
+      "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/bofm/ether/15?lang=eng",
+      "role": "Jareditische legeraanvoerder tegenover Coriantumr.",
+      "spec": "Adult robust tall man artisticageforty-five, warm mediumbrown long angularface with prominentcheekbones, browneyes, straightblack hair worn in two narrow sidebraids toshoulders, short neat blackbeard. Deepteal knee-length shortsleeve tunic, simple dullbronze flat chestplate over modest tunic, muted burgundy shoulder cape, cream wovenbelt, brown sandals. Calm neutral relaxed pose, no weapon, conflict or injuries. Distinct from Coriantumr broadgraybeard and Zerahemnah cleanface rustcloth.",
+      "prompt": "Create ONE new canonical full-body male character for the Versado educational scripture library: Shiz. Warm polished friendly3D animationrender matching the attached character sheet's STYLE ONLY. Do not copy Lehi's face or outfit. Appearance and exact age are artistic interpretations, never historical facts. Adult robust tall man artisticageforty-five, warm mediumbrown long angularface with prominentcheekbones, browneyes, straightblack hair worn in two narrow sidebraids toshoulders, short neat blackbeard. Deepteal knee-length shortsleeve tunic, simple dullbronze flat chestplate over modest tunic, muted burgundy shoulder cape, cream wovenbelt, brown sandals. Calm neutral relaxed pose, no weapon, conflict or injuries. Distinct from Coriantumr broadgraybeard and Zerahemnah cleanface rustcloth. Fulladult anatomy andproportions, wholeheadhandsfeet visibleinsideportrait1024x1536 canvas with generousmargins; standing calm gentlynearfront3/4 view, hands emptyat sides. Realtransparentalpha background no floor or scenery, labels, words orotherpeople. Singlefigure, not character sheet. Thisidentity willremainfixed.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "zeezrom",
+      "displayName": "Zeezrom",
+      "scripture": "Alma11;15:3–12",
+      "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/bofm/alma/15?lang=eng",
+      "role": "Ondervraagt Amulek; wordt later door Alma genezen en gedoopt.",
+      "spec": "Adult man artisticageforty, warmolive slimangular face with gently aquiline nose, browneyes, darkbrown slick sideparted necklength hair with short neat darkbeard. Deep muted violet knee-length shortsleeve tunic with creamtrim, slateblue one-shoulder drape, ochre woven belt, brownsandals. Reflective calm neutralexpression, matureleanbuild. Distinct from Korihor cleanface and Laban fullbeardmaroonvest. No coins or props.",
+      "prompt": "Create ONE new canonical full-body male character for the Versado educational scripture library: Zeezrom. Warm polished friendly3D animationrender matching the attached character sheet's STYLE ONLY. Do not copy Lehi's face or outfit. Appearance and exact age are artistic interpretations, never historical facts. Adult man artisticageforty, warmolive slimangular face with gently aquiline nose, browneyes, darkbrown slick sideparted necklength hair with short neat darkbeard. Deep muted violet knee-length shortsleeve tunic with creamtrim, slateblue one-shoulder drape, ochre woven belt, brownsandals. Reflective calm neutralexpression, matureleanbuild. Distinct from Korihor cleanface and Laban fullbeardmaroonvest. No coins or props. Fulladult anatomy andproportions, wholeheadhandsfeet visibleinsideportrait1024x1536 canvas with generousmargins; standing calm gentlynearfront3/4 view, hands emptyat sides. Realtransparentalpha background no floor or scenery, labels, words orotherpeople. Singlefigure, not character sheet. Thisidentity willremainfixed.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "mormon",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Mormon (stableID:mormon). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/mormon/references/mormon-character-sheet-v1.png",
+        "characters/mormon/master/mormon-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "moroni-son-mormon",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/moroni-son-mormon-master-v1.png",
+      "sourceSha256": "80309f888bd4423a445fa899384b619828783753b7de1d6b0b556642c6d2cbd4",
+      "cropBoxPixels": [
+        250,
+        -45,
+        730,
+        435
+      ],
+      "nativeCropPixels": [
+        480,
+        480
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "mosiah-son-benjamin",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/mosiah-son-benjamin-master-v1.png",
+      "sourceSha256": "040ee0b2125ed6d522002f8aa503e83a86f4387e5d7909685d50b69ae53b2a5a",
+      "cropBoxPixels": [
+        264,
+        -33,
+        739,
+        442
+      ],
+      "nativeCropPixels": [
+        475,
+        475
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "nehor",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Nehor (stableID:nehor). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/nehor/references/nehor-character-sheet-v1.png",
+        "characters/nehor/master/nehor-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "nephi-son-helaman",
+      "prompt": "Make one transparent square portrait using the neutral bottom-left head and clothed shoulders in this sheet. Keep the exact same face, hair, beard and clothing. Enlarge the head, center with comfortable top margin. One head and shoulders only, no full body, no labels, background or frame. Preserve warm 3D appearance.",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "nephi-son-nephi",
+      "prompt": "Make one transparent square portrait using the neutral bottom-left head and clothed shoulders in this sheet. Keep the exact same face, hair, beard and clothing. Enlarge the head, center with comfortable top margin. One head and shoulders only, no full body, no labels, background or frame. Preserve warm 3D appearance.",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "nephi-wife",
+      "prompt": "Use case: identity-preserve. ONE specific square1024x1024 transparent avatar portrait bust for Versado of Nephi’s vrouw (naam niet vermeld). Input1 is the definitive character sheet: lower-left neutral facial portrait is PRIMARY source; input2 definitive full-body confirms exact wardrobe and identity. Preserve EXACT face, age, skin, eyes, haircut, facial hair, clothing colors, neck edging, shawl and proportions from these sources. No new interpretation, no re-aging. Show only head, shoulders and upper chest, not hands, legs or full body. Near-front view, calm natural gentle expression faithful to source. Large readable head: top at y100, eye-line around400, chin around660; upper chest ends near950. Face center x512, all important face/hair/beard features inside round-crop safe circle diameter900 centered512,512, head width roughly530-620. Transparent breathing room above head; no chopped hair/beard. Friendly warm polished3D same source lighting and woven materials. Genuine transparent alpha background, no backgroundcircle, gray backing, frame, decoration, objects or text. Preserve adult anatomy; don't enlarge eyes or make child proportions. The same asset is a dedicated face/shoulders avatar and high-resolution compact upper-chest bust.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "nephi",
+      "prompt": "Use case: identity-preserve. ONE specific square1024x1024 transparent avatar portrait bust for Versado of Nephi. Input1 is the definitive character sheet: lower-left neutral facial portrait is PRIMARY source; input2 definitive full-body confirms exact wardrobe and identity. Preserve EXACT face, age, skin, eyes, haircut, facial hair, clothing colors, neck edging, shawl and proportions from these sources. No new interpretation, no re-aging. Show only head, shoulders and upper chest, not hands, legs or full body. Near-front view, calm natural gentle expression faithful to source. Large readable head: top at y100, eye-line around400, chin around660; upper chest ends near950. Face center x512, all important face/hair/beard features inside round-crop safe circle diameter900 centered512,512, head width roughly530-620. Transparent breathing room above head; no chopped hair/beard. Friendly warm polished3D same source lighting and woven materials. Genuine transparent alpha background, no backgroundcircle, gray backing, frame, decoration, objects or text. Preserve adult anatomy; don't enlarge eyes or make child proportions. The same asset is a dedicated face/shoulders avatar and high-resolution compact upper-chest bust.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "nephihah",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/nephihah-master-v1.png",
+      "sourceSha256": "86c0b36cabefaa54fb7875d88db996bfe7eb2d338ef209ac731f5264c641c8f0",
+      "cropBoxPixels": [
+        272,
+        -27,
+        746,
+        447
+      ],
+      "nativeCropPixels": [
+        474,
+        474
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "omner",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/omner-master-v1.png",
+      "sourceSha256": "b45624295b70d74c2fa5759f87a81311bc3d922057218da2d606142160863b30",
+      "cropBoxPixels": [
+        254,
+        -43,
+        732,
+        435
+      ],
+      "nativeCropPixels": [
+        478,
+        478
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "overlay-compass",
+      "kind": "overlays",
+      "spec": "ONE small circular Versado compass medallion decoration near bottom-right on an otherwise empty1024square transparent canvas. Exact medallion center760,790 diameter190px occupying x665..855 y695..885; DO NOT CENTER OR ENLARGE IT ON CANVAS. Match Varo's fixed compass design: deepnavy round enamel face, gold/orange compassstar, warmgold bevelrim, simple clear fourlong and fourshort points, no letters. Supportingmascot referenceforcompassonly, no mascot or chain/person. Front-on polished3D medallion. Allotherpixels emptytransparent. Noframebackground.",
+      "prompt": "Use case: stylized-concept. Asset type: ONE independent avatar-accessory layer for Versado, square1024x1024 PNG, genuine transparent background. ONE small circular Versado compass medallion decoration near bottom-right on an otherwise empty1024square transparent canvas. Exact medallion center760,790 diameter190px occupying x665..855 y695..885; DO NOT CENTER OR ENLARGE IT ON CANVAS. Match Varo's fixed compass design: deepnavy round enamel face, gold/orange compassstar, warmgold bevelrim, simple clear fourlong and fourshort points, no letters. Supportingmascot referenceforcompassonly, no mascot or chain/person. Front-on polished3D medallion. Allotherpixels emptytransparent. Noframebackground. Warm polished premium friendly3D style, palette deepnavy#061A45 secondaryblue#133677 vivid orange#F8730C cream#F9DCC8 with metal as specified. Supportingreference images for existing Versado visual language only. Produce only this ONE layer, no preview/mockup or combinations. No opaque backing, checkerboard renderedasimage, labels, watermark, collage.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "overlay-light",
+      "kind": "overlays",
+      "spec": "ONE restrained soft warmgold light accent on otherwise empty transparent1024square canvas, a delicate curved warmgold rim glow near LOWER LEFT EDGE x160..360 y700..880 with two tiny sparkles. Centralface region x340..700 y140..660 stays entirelyemptytransparent. Smallcontrolled3Dlightingaccent, not a halo onhead and not a cosmic scene. Noobjects,text,character,frame,disk. Genuinealpha foroverlays. Keep all luminouspixels within circle diameter960 centered512,512.",
+      "prompt": "Use case: stylized-concept. Asset type: ONE independent avatar-accessory layer for Versado, square1024x1024 PNG, genuine transparent background. ONE restrained soft warmgold light accent on otherwise empty transparent1024square canvas, a delicate curved warmgold rim glow near LOWER LEFT EDGE x160..360 y700..880 with two tiny sparkles. Centralface region x340..700 y140..660 stays entirelyemptytransparent. Smallcontrolled3Dlightingaccent, not a halo onhead and not a cosmic scene. Noobjects,text,character,frame,disk. Genuinealpha foroverlays. Keep all luminouspixels within circle diameter960 centered512,512. Warm polished premium friendly3D style, palette deepnavy#061A45 secondaryblue#133677 vivid orange#F8730C cream#F9DCC8 with metal as specified. Supportingreference images for existing Versado visual language only. Produce only this ONE layer, no preview/mockup or combinations. No opaque backing, checkerboard renderedasimage, labels, watermark, collage.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "overlay-mystery",
+      "kind": "overlays",
+      "spec": "ONE small Mysterie achievement badge near bottom-right on otherwise empty1024square transparentcanvas. Badgecenter760,790,width190height190 bounding x665..855 y695..885; DO NOT CENTER OR ENLARGE ON CANVAS. Compactdeepnavy polished3D shield withgoldbevelededge, simple orange compass-fourpointstar with SMALLkeyholecutout at center, noletters/numbers or questionmark. Match officialgolddivision emblemfinishbut distinctmysterysymbol, notclaimingofficialdivision. Noavatar/person,frame,background or extraobjects; realalpha elsewhereempty.",
+      "prompt": "Use case: stylized-concept. Asset type: ONE independent avatar-accessory layer for Versado, square1024x1024 PNG, genuine transparent background. ONE small Mysterie achievement badge near bottom-right on otherwise empty1024square transparentcanvas. Badgecenter760,790,width190height190 bounding x665..855 y695..885; DO NOT CENTER OR ENLARGE ON CANVAS. Compactdeepnavy polished3D shield withgoldbevelededge, simple orange compass-fourpointstar with SMALLkeyholecutout at center, noletters/numbers or questionmark. Match officialgolddivision emblemfinishbut distinctmysterysymbol, notclaimingofficialdivision. Noavatar/person,frame,background or extraobjects; realalpha elsewhereempty. Warm polished premium friendly3D style, palette deepnavy#061A45 secondaryblue#133677 vivid orange#F8730C cream#F9DCC8 with metal as specified. Supportingreference images for existing Versado visual language only. Produce only this ONE layer, no preview/mockup or combinations. No opaque backing, checkerboard renderedasimage, labels, watermark, collage.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "overlay-scroll",
+      "kind": "overlays",
+      "spec": "ONE tiny warmcream rolled scripture scroll decoration near bottom-right on otherwise empty1024square transparentcanvas. Scroll center740,795, overallwidth220height145px, bounding x630..850 y722..868; DO NOT CENTER OR ENLARGE IT ON CANVAS. Front-facing slight diagonal15degrees, two small rolledparchmentedges soft3Dwoven papertexture, smalldeepnavy ribbon with orangeedge. Blankpaper no text or inventedscript. Nohand,person,frame,background,otherobjects. Realalpha elsewhereempty.",
+      "prompt": "Use case: stylized-concept. Asset type: ONE independent avatar-accessory layer for Versado, square1024x1024 PNG, genuine transparent background. ONE tiny warmcream rolled scripture scroll decoration near bottom-right on otherwise empty1024square transparentcanvas. Scroll center740,795, overallwidth220height145px, bounding x630..850 y722..868; DO NOT CENTER OR ENLARGE IT ON CANVAS. Front-facing slight diagonal15degrees, two small rolledparchmentedges soft3Dwoven papertexture, smalldeepnavy ribbon with orangeedge. Blankpaper no text or inventedscript. Nohand,person,frame,background,otherobjects. Realalpha elsewhereempty. Warm polished premium friendly3D style, palette deepnavy#061A45 secondaryblue#133677 vivid orange#F8730C cream#F9DCC8 with metal as specified. Supportingreference images for existing Versado visual language only. Produce only this ONE layer, no preview/mockup or combinations. No opaque backing, checkerboard renderedasimage, labels, watermark, collage.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "pahoran",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Pahoran (stableID:pahoran). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/pahoran/references/pahoran-character-sheet-v1.png",
+        "characters/pahoran/master/pahoran-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "sam",
+      "prompt": "Background extraction from the attached existing artwork: return only the lower-left neutral head-and-clothed-shoulders portrait as one separate square transparent PNG. Remove its gray studio background and exclude the other five views. Keep this drawn person's face, hair, expression and red woven tunic exactly as they already appear. Leave comfortable transparent margin around the hair and shoulders. No new design, pose, accessories or text. This is a clean cutout of the existing educational illustration.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen",
+      "attempt": 3
+    },
+    {
+      "id": "samuel-lamanite",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Samuël de Lamaniet (stableID:samuel-lamanite). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/samuel-lamanite/references/samuel-lamanite-character-sheet-v1.png",
+        "characters/samuel-lamanite/master/samuel-lamanite-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "abinadi",
+      "displayName": "Abinadi",
+      "scripture": "Mosiah11–17",
+      "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/bofm/mosiah/11?lang=eng",
+      "role": "Profeet die voor koning Noach getuigt.",
+      "spec": "Older lean man artistic age seventy, warm olive long narrow face, brown eyes, long silver hair to shoulders with high forehead, full narrow white beard and moustache. Simple warm ivory ankle-length longsleeve woven robe, muted brown one-shoulder wrap, tan woven belt and brown sandals. Distinct from Gideon (not bald), Zeniff (longer white beard) and Heavenly Father (brown wrap).",
+      "prompt": "ONE reference character sheet, two rows three columns on light neutral studio background. Use the attached abinadi full-body master as exact identity authority. Top row full body front, three quarter, side, including feet. Bottom row head and clothed shoulders neutral, friendly smile, reflective. Preserve the attached exact face, hair, beard, clothing colors and adult proportions in all six views. Warm polished 3D as source. No labels or new accessories.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "abish",
+      "spec": "Abish, a named Lamanite woman and servant of Lamoni's queen in Alma19:16-17,29. Artistic age thirty; warm medium brown skin, long oval face with gently broad nose, warm brown eyes, straight dark black hair in a single thick braid over her RIGHT shoulder, small loose temple strands. Deep teal ankle-length short-sleeve woven dress with cream edging, simple ochre woven belt and short cream shoulder wrap, brown leather sandals. No crown or jewelry; alert confident kind expression. Distinct face from Sariah and queens.",
+      "prompt": "Use case: identity-preserve. ONE 1536x1024 CHARACTER SHEET reference for Versado. Edit target is the attached new definitive full-body abish master, exactly same identity and outfit in every view. Preserve face/age/skin/hair/eyes/headcover orheadband/clothingbuild. Two rows and three columns on simple warm light neutralgray studio background: TOP full-body front, three-quarter right, strictside; BOTTOM enlarged head/shoulders neutral gentle expression, slight friendly smile, reflective concerned. Natural adultproportions, feetfullyinside topviews. Exactconsistentfacial anatomy andhair across allsix views, samewardrobe colors/neckline/trim/headwear. No new accessories oridentity, no textlabels/letters/numbers, noothercharacters. Fullbody masterauthoritative ifpromptambiguous. Faceage and physicaltraits are artisticcanon, nothistoricfacts. Warm polished friendly3D same asmaster.",
+      "masterPrompt": "Use case: stylized-concept. ONE new canonical full-body female scripture character for Versado. Portrait1024x1536. Supporting reference image is Sariah character sheet for warm polished friendly high-quality3D animation rendering and woven cloth style ONLY; do not copy her face, identity or clothes. Subject: Abish, a named Lamanite woman and servant of Lamoni's queen in Alma19:16-17,29. Artistic age thirty; warm medium brown skin, long oval face with gently broad nose, warm brown eyes, straight dark black hair in a single thick braid over her RIGHT shoulder, small loose temple strands. Deep teal ankle-length short-sleeve woven dress with cream edging, simple ochre woven belt and short cream shoulder wrap, brown leather sandals. No crown or jewelry; alert confident kind expression. Distinct face from Sariah and queens. Historical presence and role are grounded in the given scripture; physical appearance is an artistic interpretation, never a historical fact. Natural mature adult body with head smaller relative to body, relaxed standing pose, empty hands naturally at sides, full body including sandals fully inside canvas generous margins. Real transparent alpha background. No floor or scenery, halo, text, labels, objects, collage or other people. Produce a single identity master, no alternate views.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "coriantumr",
+      "displayName": "Coriantumr",
+      "scripture": "Ether13–15",
+      "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/bofm/ether/15?lang=eng",
+      "role": "Jareditische koning in het slot van Ether.",
+      "spec": "Mature sturdy man artisticagefifty-five, warm mediumbrown broad square adultface, browneyes, thick straight black necklength hair with graytemples, short square darkgray beard. Deep rust knee-length tunic, simple bronze flat chestplate over modest tunic, mutednavy shoulder cape, ochre woven belt, brownleather sandals, low narrow ochre wovenheadband. Relaxed calm neutral standing pose, no weapon, conflict or injuries. Clearlydistinct from KingNoah stockycurlyhair and genericJarediteking blueanklerobe.",
+      "prompt": "ONE reference character sheet, two rows three columns on light neutral studio background. Use the attached coriantumr full-body master as exact identity authority. Top row full body front, three quarter, side, including feet. Bottom row head and clothed shoulders neutral, friendly smile, reflective. Preserve the attached exact face, hair, beard, clothing colors and adult proportions in all six views. Warm polished 3D as source. No labels or new accessories.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "ether",
+      "displayName": "Ether",
+      "scripture": "Ether12–15",
+      "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/bofm/ether/13?lang=eng",
+      "role": "Jareditische profeet en schrijver.",
+      "spec": "Lean mature man artistic age forty, warm medium olive long angular face, brown eyes, straight darkblack hair sideparted to nape, short neat darkblack beard and moustache. Slate-gray ankle-length longsleeve woven robe with cream edging, subdued mossgreen wrap crossing one shoulder, ochre woven belt, brown sandals. Quiet thoughtful expression. Distinct from unnamed whitebearded Jarediteprophet role.",
+      "prompt": "ONE reference character sheet, two rows three columns on light neutral studio background. Use the attached ether full-body master as exact identity authority. Top row full body front, three quarter, side, including feet. Bottom row head and clothed shoulders neutral, friendly smile, reflective. Preserve the attached exact face, hair, beard, clothing colors and adult proportions in all six views. Warm polished 3D as source. No labels or new accessories.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "helam",
+      "displayName": "Helam",
+      "scripture": "Mosiah18:12–14",
+      "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/bofm/mosiah/18?lang=eng",
+      "role": "Wordt door Alma gedoopt in de wateren van Mormon.",
+      "spec": "Adult man artistic age thirty-two, warm olive broad rounded face, brown eyes, short tightly waved lightbrown hair, clean-shaven. Pale blue knee-length short-sleeve woven tunic with cream trim, mossgreen woven shoulder wrap, tan woven belt, brown sandals. Natural modest averagebuild, friendlycalm face. Distinct from existingSam/Lemuel and Alma.",
+      "prompt": "ONE reference character sheet, two rows three columns on light neutral studio background. Use the attached helam full-body master as exact identity authority. Top row full body front, three quarter, side, including feet. Bottom row head and clothed shoulders neutral, friendly smile, reflective. Preserve the attached exact face, hair, beard, clothing colors and adult proportions in all six views. Warm polished 3D as source. No labels or new accessories.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "ismael-wife",
+      "spec": "The unnamed wife of Ishmael explicitly present in 1Nephi7:6. Artistic age late-fifties, warm olive skin, mature long oval face, brown eyes, dark brown hair streaked silver parted slightly left and braided neatly beneath ivory head covering, visible gentle age lines. Muted mauve/plum ankle-length long-sleeved woven dress, slate olive draped shoulder scarf over ivory head covering, brown woven belt and brown sandals. Warm patient calm expression. Different identifiable face and wardrobe from Sariah. No regal jewelry.",
+      "prompt": "Use case: identity-preserve. ONE 1536x1024 CHARACTER SHEET reference for Versado. Edit target is the attached new definitive full-body ismael-wife master, exactly same identity and outfit in every view. Preserve face/age/skin/hair/eyes/headcover orheadband/clothingbuild. Two rows and three columns on simple warm light neutralgray studio background: TOP full-body front, three-quarter right, strictside; BOTTOM enlarged head/shoulders neutral gentle expression, slight friendly smile, reflective concerned. Natural adultproportions, feetfullyinside topviews. Exactconsistentfacial anatomy andhair across allsix views, samewardrobe colors/neckline/trim/headwear. No new accessories oridentity, no textlabels/letters/numbers, noothercharacters. Fullbody masterauthoritative ifpromptambiguous. Faceage and physicaltraits are artisticcanon, nothistoricfacts. Warm polished friendly3D same asmaster.",
+      "masterPrompt": "Use case: stylized-concept. ONE new canonical full-body female scripture character for Versado. Portrait1024x1536. Supporting reference image is Sariah character sheet for warm polished friendly high-quality3D animation rendering and woven cloth style ONLY; do not copy her face, identity or clothes. Subject: The unnamed wife of Ishmael explicitly present in 1Nephi7:6. Artistic age late-fifties, warm olive skin, mature long oval face, brown eyes, dark brown hair streaked silver parted slightly left and braided neatly beneath ivory head covering, visible gentle age lines. Muted mauve/plum ankle-length long-sleeved woven dress, slate olive draped shoulder scarf over ivory head covering, brown woven belt and brown sandals. Warm patient calm expression. Different identifiable face and wardrobe from Sariah. No regal jewelry. Historical presence and role are grounded in the given scripture; physical appearance is an artistic interpretation, never a historical fact. Natural mature adult body with head smaller relative to body, relaxed standing pose, empty hands naturally at sides, full body including sandals fully inside canvas generous margins. Real transparent alpha background. No floor or scenery, halo, text, labels, objects, collage or other people. Produce a single identity master, no alternate views.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "lamoni-father-wife",
+      "spec": "The unnamed wife of Lamoni's father, a queen in Alma22:19-23. Artistic age late-fifties, warm medium brown skin, mature angular oval face with gently high cheekbones, brown eyes, straight black hair with subtle silver temple strands gathered into low bun, low narrow ochre headband with muted green trim. Burnt terracotta ankle-length long-sleeve woven dress, dark navy draped shawl with restrained ochre edging, cream woven belt, brown sandals. Reflective composed neutral kind expression. Clearly older than Lamoni's wife and distinctly different face. No European crown.",
+      "prompt": "Use case: identity-preserve. ONE 1536x1024 CHARACTER SHEET reference for Versado. Edit target is the attached new definitive full-body lamoni-father-wife master, exactly same identity and outfit in every view. Preserve face/age/skin/hair/eyes/headcover orheadband/clothingbuild. Two rows and three columns on simple warm light neutralgray studio background: TOP full-body front, three-quarter right, strictside; BOTTOM enlarged head/shoulders neutral gentle expression, slight friendly smile, reflective concerned. Natural adultproportions, feetfullyinside topviews. Exactconsistentfacial anatomy andhair across allsix views, samewardrobe colors/neckline/trim/headwear. No new accessories oridentity, no textlabels/letters/numbers, noothercharacters. Fullbody masterauthoritative ifpromptambiguous. Faceage and physicaltraits are artisticcanon, nothistoricfacts. Warm polished friendly3D same asmaster.",
+      "masterPrompt": "Use case: stylized-concept. ONE new canonical full-body female scripture character for Versado. Portrait1024x1536. Supporting reference image is Sariah character sheet for warm polished friendly high-quality3D animation rendering and woven cloth style ONLY; do not copy her face, identity or clothes. Subject: The unnamed wife of Lamoni's father, a queen in Alma22:19-23. Artistic age late-fifties, warm medium brown skin, mature angular oval face with gently high cheekbones, brown eyes, straight black hair with subtle silver temple strands gathered into low bun, low narrow ochre headband with muted green trim. Burnt terracotta ankle-length long-sleeve woven dress, dark navy draped shawl with restrained ochre edging, cream woven belt, brown sandals. Reflective composed neutral kind expression. Clearly older than Lamoni's wife and distinctly different face. No European crown. Historical presence and role are grounded in the given scripture; physical appearance is an artistic interpretation, never a historical fact. Natural mature adult body with head smaller relative to body, relaxed standing pose, empty hands naturally at sides, full body including sandals fully inside canvas generous margins. Real transparent alpha background. No floor or scenery, halo, text, labels, objects, collage or other people. Produce a single identity master, no alternate views.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "lamoni-wife",
+      "spec": "The unnamed wife of King Lamoni, a queen in Alma19:2-11,29. Artistic age mid-thirties, warm medium brown skin, soft round adult face, brown eyes, dark black center-parted shoulder-length waves, low narrow ochre woven headband with one teal accent, no European crown. Muted rich plum ankle-length woven dress with subtle ochre trim, dark teal shoulder shawl, ochre woven belt and brown sandals. Calm thoughtful friendly expression, mature natural proportions. Distinct from Sariah and Abish.",
+      "prompt": "Use case: identity-preserve. ONE 1536x1024 CHARACTER SHEET reference for Versado. Edit target is the attached new definitive full-body lamoni-wife master, exactly same identity and outfit in every view. Preserve face/age/skin/hair/eyes/headcover orheadband/clothingbuild. Two rows and three columns on simple warm light neutralgray studio background: TOP full-body front, three-quarter right, strictside; BOTTOM enlarged head/shoulders neutral gentle expression, slight friendly smile, reflective concerned. Natural adultproportions, feetfullyinside topviews. Exactconsistentfacial anatomy andhair across allsix views, samewardrobe colors/neckline/trim/headwear. No new accessories oridentity, no textlabels/letters/numbers, noothercharacters. Fullbody masterauthoritative ifpromptambiguous. Faceage and physicaltraits are artisticcanon, nothistoricfacts. Warm polished friendly3D same asmaster.",
+      "masterPrompt": "Use case: stylized-concept. ONE new canonical full-body female scripture character for Versado. Portrait1024x1536. Supporting reference image is Sariah character sheet for warm polished friendly high-quality3D animation rendering and woven cloth style ONLY; do not copy her face, identity or clothes. Subject: The unnamed wife of King Lamoni, a queen in Alma19:2-11,29. Artistic age mid-thirties, warm medium brown skin, soft round adult face, brown eyes, dark black center-parted shoulder-length waves, low narrow ochre woven headband with one teal accent, no European crown. Muted rich plum ankle-length woven dress with subtle ochre trim, dark teal shoulder shawl, ochre woven belt and brown sandals. Calm thoughtful friendly expression, mature natural proportions. Distinct from Sariah and Abish. Historical presence and role are grounded in the given scripture; physical appearance is an artistic interpretation, never a historical fact. Natural mature adult body with head smaller relative to body, relaxed standing pose, empty hands naturally at sides, full body including sandals fully inside canvas generous margins. Real transparent alpha background. No floor or scenery, halo, text, labels, objects, collage or other people. Produce a single identity master, no alternate views.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "shiz",
+      "displayName": "Shiz",
+      "scripture": "Ether14–15",
+      "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/bofm/ether/15?lang=eng",
+      "role": "Jareditische legeraanvoerder tegenover Coriantumr.",
+      "spec": "Adult robust tall man artisticageforty-five, warm mediumbrown long angularface with prominentcheekbones, browneyes, straightblack hair worn in two narrow sidebraids toshoulders, short neat blackbeard. Deepteal knee-length shortsleeve tunic, simple dullbronze flat chestplate over modest tunic, muted burgundy shoulder cape, cream wovenbelt, brown sandals. Calm neutral relaxed pose, no weapon, conflict or injuries. Distinct from Coriantumr broadgraybeard and Zerahemnah cleanface rustcloth.",
+      "prompt": "ONE reference character sheet, two rows three columns on light neutral studio background. Use the attached shiz full-body master as exact identity authority. Top row full body front, three quarter, side, including feet. Bottom row head and clothed shoulders neutral, friendly smile, reflective. Preserve the attached exact face, hair, beard, clothing colors and adult proportions in all six views. Warm polished 3D as source. No labels or new accessories.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "zeezrom",
+      "displayName": "Zeezrom",
+      "scripture": "Alma11;15:3–12",
+      "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/bofm/alma/15?lang=eng",
+      "role": "Ondervraagt Amulek; wordt later door Alma genezen en gedoopt.",
+      "spec": "Adult man artisticageforty, warmolive slimangular face with gently aquiline nose, browneyes, darkbrown slick sideparted necklength hair with short neat darkbeard. Deep muted violet knee-length shortsleeve tunic with creamtrim, slateblue one-shoulder drape, ochre woven belt, brownsandals. Reflective calm neutralexpression, matureleanbuild. Distinct from Korihor cleanface and Laban fullbeardmaroonvest. No coins or props.",
+      "prompt": "ONE reference character sheet, two rows three columns on light neutral studio background. Use the attached zeezrom full-body master as exact identity authority. Top row full body front, three quarter, side, including feet. Bottom row head and clothed shoulders neutral, friendly smile, reflective. Preserve the attached exact face, hair, beard, clothing colors and adult proportions in all six views. Warm polished 3D as source. No labels or new accessories.",
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "sherem",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Sherem (stableID:sherem). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/sherem/references/sherem-character-sheet-v1.png",
+        "characters/sherem/master/sherem-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "shiblon",
+      "prompt": "Make one transparent square portrait using the neutral bottom-left head and clothed shoulders in this sheet. Keep the exact same face, hair, beard and clothing. Enlarge the head, center with comfortable top margin. One head and shoulders only, no full body, no labels, background or frame. Preserve warm 3D appearance.",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "shiz",
+      "prompt": "One transparent square head-and-shoulders avatar of the same person in the attached full-body artwork. Preserve exactly this face, hairstyle, facial hair, age, skin, clothes and colors. Enlarged face, shoulders and upper chest, comfortable margin above hair, no full body miniature. Same polished warm 3D, no background, circle, text or accessories.",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "zeezrom",
+      "prompt": "One transparent square head-and-shoulders avatar of the same person in the attached full-body artwork. Preserve exactly this face, hairstyle, facial hair, age, skin, clothes and colors. Enlarged face, shoulders and upper chest, comfortable margin above hair, no full body miniature. Same polished warm 3D, no background, circle, text or accessories.",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "zeniff",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Zeniff (stableID:zeniff). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/zeniff/references/zeniff-character-sheet-v1.png",
+        "characters/zeniff/master/zeniff-older-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "zerahemnah",
+      "prompt": "Use case: identity-preserve. ONE dedicated square1024x1024 transparent avatar portrait bust for Versado of Zerahemnah (stableID:zerahemnah). Input1 definitivecharacter sheet: lower-left neutral facial portrait is PRIMARY source. Input2 canonical fullbody confirms exact identity and clothing. Preserve EXACT existing face, age, skin, brown eyes, hairstyle/color/length, facialhair, neckwear, outfit colors, shawl and necktrim. No new interpretation or re-aging, no clothing changes, no enlargement of eyes. Head plus shoulders and upper chest ONLY, no hands or legs, no miniature fullbody. Calm faithful natural expression, near-front-facing. Centerface x512, crown aroundy100, eyesy400, chin~660, upperchestending~950. Head width~550-620, allmainfacehairbeard within circular safe region diameter900 centered512,512. Transparentmarginabovehead, no choppedimportantfeatures. Same warm polished friendly3D source rendering and wovencloth. Genuine transparentalpha background, no coloredcircle, graybacking, pedestal, frame, decorations, objects, labels or text. Natural source age/proportions. One sourceportrait supports compact and largebust plus specificface/shouldersavatar; clear at32px.",
+      "inputImages": [
+        "characters/zerahemnah/references/zerahemnah-character-sheet-v1.png",
+        "characters/zerahemnah/master/zerahemnah-master-v1.png"
+      ],
+      "status": "generated-awaiting-visual-review",
+      "tool": "built-in-imagegen"
+    },
+    {
+      "id": "zoram",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/zoram-existing-master.png",
+      "sourceSha256": "c34d8d4be0930daa1d2fb74b831b78b455853d165dc7f90f0a083c42516586e9",
+      "cropBoxPixels": [
+        447,
+        78,
+        776,
+        407
+      ],
+      "nativeCropPixels": [
+        329,
+        329
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    },
+    {
+      "id": "zoramite-worshipper",
+      "tool": "user-authorized exact raster extraction with Pillow",
+      "authorization": "User reply: Ja, gebruik de bestaande beelden",
+      "sourcePath": "retained-native-source/zoramite-worshipper-master-v1.png",
+      "sourceSha256": "ef8805f438e0e84a201fb84a8b7a15ac3190a19a1778cf29a9b38b47d968b323",
+      "cropBoxPixels": [
+        270,
+        -33,
+        746,
+        443
+      ],
+      "nativeCropPixels": [
+        476,
+        476
+      ],
+      "facePixelsRepainted": false,
+      "transparentBackground": true,
+      "qualityNote": "A faithful crop at native resolution. 1024 export may be enlarged; it does not add source detail. Use the original full-body for the profile zoom."
+    }
+  ]
+}

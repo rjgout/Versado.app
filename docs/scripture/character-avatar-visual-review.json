@@ -1,0 +1,709 @@
+{
+  "aaron-portrait-v1.png": {
+    "sha256": "912aca0c2cc865786e470036338ed15dcf50a36d0d59a1700a13b445bddc7e1f",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "abish-portrait-v1.png": {
+    "sha256": "cde0e5d62c756c8e856487723cacc83fd0a20edeb6c44dbedcfc641245246a40",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "amlici-portrait-v1.png": {
+    "sha256": "d566c47d7143f7e5f9c64bebb0b4c1e66308ffab955a76b9437e0ddf266ea1a7",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "ammaron-portrait-v1.png": {
+    "sha256": "11d09ab33002b0a049fbee5cabc5037e14a09b2ad39469f60f57066aac0b09ad",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "ammon-expedition-portrait-v1.png": {
+    "sha256": "ee4c34a22e029062c90853e61309444969a4fddcc452d15f81069739365a0c4e",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "ammon-missionary-portrait-v1.png": {
+    "sha256": "d1c3c9b2f1c6696c643332fe6ca509a967f1d57280102c442bf2323974907f95",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "amulek-portrait-v1.png": {
+    "sha256": "a8160fe45401165b98aa55a84201c6d4f2b0a22fd9baf6e178c9621db6219834",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "captain-moroni-portrait-v1.png": {
+    "sha256": "bc859eec567aa3b41a2af1365f9af0c51cea4fbc3fba84e277eab02be8f38574",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "gideon-portrait-v1.png": {
+    "sha256": "44d2cd1f1a7e2387fb861bc47f75909874a304b53ec32e297e24e9022c3ac7f3",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "hagoth-portrait-v1.png": {
+    "sha256": "04a6e48252a7b19be3d99e858624442e5d2bcdd1c09916d5af69ed9f8bc443d2",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "heavenly-father-portrait-v1.png": {
+    "sha256": "110375c3132cd76632b3662129d6ba873f16fbf1ee96dc8b1bdf3caaa83a87a0",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "helaman-son-helaman-portrait-v1.png": {
+    "sha256": "90259acbf0962011b3c68289b2320e379ee3a32a170e5f584b46db32036e068a",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "ismael-portrait-v1.png": {
+    "sha256": "87130934570dd6b4b690744e3c59afe9b56eff25741859556aba7a58d63db69b",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "ismael-wife-portrait-v1.png": {
+    "sha256": "7bdf8a7e1d2707ba5e7758629905ddd5ab9c55cb592d77cd65b9be1bf33bac2a",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "jacob-son-lehi-portrait-v1.png": {
+    "sha256": "12a219333dae0cb28eb2d191c6522bc33c36151b4a872a695fac5c74b6fad232",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "jared-portrait-v1.png": {
+    "sha256": "a2d911afef42110365823bfbb866e317f1683029864215f3394bfa2958726827",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "jesus-christ-portrait-v1.png": {
+    "sha256": "bb5305943a030d9f76d75623bb3215f176cb573dcf3a47445285cee48d6c76af",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "king-benjamin-portrait-v1.png": {
+    "sha256": "f032822dbb924d5840459fbe9399974e770a92a690e6d073509ddc9ee715972f",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "king-limhi-portrait-v1.png": {
+    "sha256": "481c99841cd985811908b437504c8b5c9c3a1ee949be78f8a25d780f3ef5f0f4",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "king-noah-portrait-v1.png": {
+    "sha256": "a9b545e69165ea9c958025dba3827fdc57e89b98ada58e249927a788d384283c",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "laban-portrait-v1.png": {
+    "sha256": "b4c508f2470482e794d7b9f1ff06c0663cca8af21861cb049281a59d0f8325a1",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "laman-portrait-v1.png": {
+    "sha256": "5495648c221334291111a7304d0717f1aca1a8c43611b3f8d716d833ab7bce71",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "lamoni-portrait-v1.png": {
+    "sha256": "20ecadea9a9cd6c0fc106cef3e23ecb22425abcd131d44649e9fa1c5e17ca396",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "lamoni-father-portrait-v1.png": {
+    "sha256": "0beae01c58ce7321e294cc73d56bea5d4fed968e9869ba2e608e4cabc0c958b1",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "lamoni-father-wife-portrait-v1.png": {
+    "sha256": "0bd09606e42051058c2147f995ba063bbdc9bbac9e3b39fb90aa29103da01d99",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "lehi-portrait-v1.png": {
+    "sha256": "512cb95f22d92f9750b4336b5a571d5462e914c21a86e10d44ce6b4149d759f6",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "lehi-son-helaman-portrait-v1.png": {
+    "sha256": "8f1d8a51b38db345dcd993bd1f5e98f5e9441ba325006b0cd2f163905fff2ad0",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "mormon-portrait-v1.png": {
+    "sha256": "9260f3cc5e0382a3b4c2e5b706abe57ab8d89e09475a0216e17367f496f35f85",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "nehor-portrait-v1.png": {
+    "sha256": "aafe14b06563b53c3f95acc4d92cb1dbdce1747be5bedd3c962a4004a446b4c0",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "nephi-portrait-v1.png": {
+    "sha256": "70ae9bbb5b7395fc6902ee6046ab8eb7eb8cf3cc209ed4ab79051bc0d51c417c",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "nephi-wife-portrait-v1.png": {
+    "sha256": "e06e02ac7084548b89881be64efc8650fb175941edd2888e139f97dddc428254",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "pahoran-portrait-v1.png": {
+    "sha256": "1b394ed2c68819ed4fd8daf8a5034607ec4bd9f8d8c7654481c861624f70bda6",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "sam-portrait-v1.png": {
+    "sha256": "20883ec68cc3b713394f1c99a5004f81a1190513e9f389b65e0ed669e128b283",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "samuel-lamanite-portrait-v1.png": {
+    "sha256": "52289b39407c55d46e32186e59587e4a9435865b22c3d69e0ebd1de9b44db198",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "sariah-portrait-v1.png": {
+    "sha256": "d91ddf814997c24a56e460d1c8d9db581a6402fa5de730ca83e07fab042a7d82",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "sherem-portrait-v1.png": {
+    "sha256": "8b3780349ce33298e423d78fd3968ea0f62af5c255ac1701055b615e81fb5b22",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "frame-bronze-v1.png": {
+    "sha256": "e0e7ce7beab021dd1ad863c6354711ecc6a54bbe5e2b5e41c449ef311cde7fba",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "frame-silver-v1.png": {
+    "sha256": "63b3b4d268aa9071cc5d4d46c8fb33d641ffa72d612065c744716ceba17912cc",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "frame-gold-v1.png": {
+    "sha256": "d117b054074d97f7ce75c320552da2e2b46f4e7d26f7b3a031387ab016fce3d2",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "background-stars-v1.png": {
+    "sha256": "a952b1aef7604aee1b2b71a0f5d364fb1b67de7e1f6abf6a4f6329872d998116",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "overlay-compass-v1.png": {
+    "sha256": "85509993e834bc25afc56b3e7baad5853ffdad7eae92690c84a9d18a300cd096",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "overlay-light-v1.png": {
+    "sha256": "eef34aa3aa4971220f7bd4dcd1de450a4df3ca9640c17c73deef4b561ba4414b",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "overlay-scroll-v1.png": {
+    "sha256": "93756170580a6e6e198f6816ec788fd6351ed5d0bd573c362f3bc77748138512",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "overlay-mystery-v1.png": {
+    "sha256": "e3f65e667aa3081b97d00e9bace438ddac5eda1265b062d3f8084e26ddacba10",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "zeezrom-master-v1.png": {
+    "sha256": "7417a438647d7bee7216589f890fb288530a6e49c005f0e6e1c7ef3fd670c617",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "helam-master-v1.png": {
+    "sha256": "3e96cfb48d4290630281a313f94807f338eafc5d30ea7c28f753d8aebdd3ae21",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "ether-master-v1.png": {
+    "sha256": "4c656a2e5e024f592ea415396a28cc98c9bc3d7032899a023a091f9f14d01e89",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "abinadi-master-v1.png": {
+    "sha256": "44718e113b33395fb89ea156693d191cf8d077396996418e99b5fee58ca5de88",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "lamoni-wife-master-v1.png": {
+    "sha256": "256b66211ad74a587ee19d8332d021cccfa76da614ba6ebe1e7f929a7f36a155",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "ismael-wife-master-v1.png": {
+    "sha256": "89dbb2164ffae6ce8234b090b35dffd6675d5b8a7bf0e4ccd508828299487972",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "lamoni-father-wife-master-v1.png": {
+    "sha256": "36ce83b72d8cc56e4ea80476dd8d6433a800d5383bd46d791f071eb9e7903d5d",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "shiz-master-v1.png": {
+    "sha256": "674f2c93d404f4bbea637602ed8e6ea4d90d8e66322e4d5b477b73b5a12b5121",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "abish-master-v1.png": {
+    "sha256": "41893ab52a40c6774dd41dd5e55a928ece1c603aaa1bb466c2445e35bda52f11",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "coriantumr-master-v1.png": {
+    "sha256": "d2c56422519d1d8adbba80958ff54d7a767b4dc313b312180e1566b3e809468d",
+    "identityAndAnatomy": "visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "shiz-character-sheet-v1.png": {
+    "sha256": "bc57156f50ed7627d6d38b9c33d408af6ec6bfa81fb893385e515087929926da",
+    "identityAndAnatomy": "visual-pass",
+    "background": "sheet-studio-background",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "ether-character-sheet-v1.png": {
+    "sha256": "399311c2469d0b129c2ef9b23f5014989e509a2671b4ae10770a516e204220e8",
+    "identityAndAnatomy": "visual-pass",
+    "background": "sheet-studio-background",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "lamoni-father-wife-character-sheet-v1.png": {
+    "sha256": "9538f8ba1d20413c78cdde741b7a094a3b9c08b4cf898e5ab6e19a209c859225",
+    "identityAndAnatomy": "visual-pass",
+    "background": "sheet-studio-background",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "abish-character-sheet-v1.png": {
+    "sha256": "123427302517a2cb96a532a67c92343fe3de55531cce6410c3bd3c4b8c4bfe38",
+    "identityAndAnatomy": "visual-pass",
+    "background": "sheet-studio-background",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "coriantumr-character-sheet-v1.png": {
+    "sha256": "e86bd17c8344f4cacdb4f48e3586c346887aef26dba51126dbac3f67795838f4",
+    "identityAndAnatomy": "visual-pass",
+    "background": "sheet-studio-background",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "zeezrom-character-sheet-v1.png": {
+    "sha256": "8dc3beaf6afffa4c927d4b6f625b11f258df55f686dd17921588fd5c0791d1d0",
+    "identityAndAnatomy": "visual-pass",
+    "background": "sheet-studio-background",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "ismael-wife-character-sheet-v1.png": {
+    "sha256": "c063db8c4c2cc0b39997eaf6a05ffc828ce575b778ba792868e72a6737ca9921",
+    "identityAndAnatomy": "visual-pass",
+    "background": "sheet-studio-background",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "helam-character-sheet-v1.png": {
+    "sha256": "16e5fe6977cc09b123d1a493bdfd16ad633b8c309b5fe1dd5daae36c65ced3c1",
+    "identityAndAnatomy": "visual-pass",
+    "background": "sheet-studio-background",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "abinadi-character-sheet-v1.png": {
+    "sha256": "74b445eca5c90b22c8c27662ddeb7e0d9cf691bdd9776bb93846a8709cb4ddeb",
+    "identityAndAnatomy": "visual-pass",
+    "background": "sheet-studio-background",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "lamoni-wife-character-sheet-v1.png": {
+    "sha256": "000572d08d80cc79e6925ca4e34dbcbeb642b4604f72b253c54b822953a612c6",
+    "identityAndAnatomy": "visual-pass",
+    "background": "sheet-studio-background",
+    "checkedAgainst": "authoritative existing sheet/master or new approved master",
+    "roundSmallSizes": "not-applicable"
+  },
+  "abinadi-portrait-v1.png": {
+    "sha256": "1ba4a893d2d88aa005ea187209d29b335e7908070523c9b41ab52fdcba57e4d9",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "amulon-portrait-v1.png": {
+    "sha256": "a1f4c5fbeb11bcdd008259aa7b29f3037d730e9200677a0172b38a3a0990e94c",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "angel-alma-portrait-v1.png": {
+    "sha256": "c791afcaee3c4bb092f5b1d0171a36bf678a0fa50d29d831195c3671c74f17de",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "brother-of-jared-portrait-v1.png": {
+    "sha256": "1db7916c1d48c236ca4442192da8039047e2152d06d163f15413cff86f48ea18",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "coriantumr-portrait-v1.png": {
+    "sha256": "d08a93eec73c3a29a631acf43931448c18eb3096b2eec4cb0dd17f6e4a949e1b",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "ether-portrait-v1.png": {
+    "sha256": "369027582aae5a839abc7c1c59ddee85068a7589403f8f26e4c220c1977f4ff0",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "helaman-son-alma-portrait-v1.png": {
+    "sha256": "862d322ec01b79675495f2eec2302329c0ce1353c827c04f87a437410415e21f",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "jaredite-king-role-portrait-v1.png": {
+    "sha256": "5bef9875039e6dfdb2b13698d31c22f8d184abf10c5c5ab0fb166ba886c1755a",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "jaredite-prophet-role-portrait-v1.png": {
+    "sha256": "e3217b3659d0611cf101e44b895a70d5e7002a466b23487e1fbfc05172151c8b",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "joseph-smith-portrait-v1.png": {
+    "sha256": "e6f0585a65cfd41b6b494aa8556633605a2a1c9eaae66652f2a94db5abbd2ab8",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "king-laman-portrait-v1.png": {
+    "sha256": "1e6ada7b5d5a69c8c3c4a80ee595b63a042af3bfd0213faec30f9d6c2977e87d",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "lehi-dream-guide-portrait-v1.png": {
+    "sha256": "0ca4d8164a4d624d0108093081e1a81a077b6d056a29d4e905fc3e9e257dca47",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "lemuel-portrait-v1.png": {
+    "sha256": "353c6e7c7fb7aee2a30af4ebc95a03de1f033941232c075a7384c19588d99bf5",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "nephi-son-helaman-portrait-v1.png": {
+    "sha256": "d58f9d7bd2b678aac2bdcf65c90f49289c843652ff94ed5aafc8286eb4f7b104",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "nephi-son-nephi-portrait-v1.png": {
+    "sha256": "f58011eab54056b7dd87af97b0fa340fa353f46ac66b0f3f986c033dc3e1c72c",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "shiblon-portrait-v1.png": {
+    "sha256": "91b5b94b3040738faed9c8f587327b1b35f317b7f241981b5eecbdbe6ebf4813",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "shiz-portrait-v1.png": {
+    "sha256": "9a6af4bc4d0adadd4565a2d74bfaae387d91e0bc3c2f4f0d047f2069b2c77482",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "zeezrom-portrait-v1.png": {
+    "sha256": "2a375002b098c3089e638e2f2620859aea3b8d04aaa27e38929175026febdce6",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "zeniff-portrait-v1.png": {
+    "sha256": "bb8ef249fc23fce20da1ef9558b8e0248a006d7faf0c3f0f1e0cf02baf60445b",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "zerahemnah-portrait-v1.png": {
+    "sha256": "bb667c468a72d7771c974f374479c61637cc1fb8fa9dad55ae6af6d2b5e42883",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "omner-portrait-v1.png": {
+    "sha256": "eb16586bb7cb2520f60e541b0d6e39f9dc68c281fc2504d7a1d4b6efa5e7c8a4",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "lamoni-wife-portrait-v1.png": {
+    "sha256": "ff4dc8aee52f7711aa48f3e85596db76cafb168da09210935874f10bf5c8a78b",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "church-disciple-portrait-v1.png": {
+    "sha256": "97fecdeb8ebd53f5fbf8e3328fa0fb7c201793f4d18a3e7b62f30a90f3d99d8a",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "zoram-portrait-v1.png": {
+    "sha256": "5fa4e315104c0685c9009f87416db9fc4fe374218540bac7951924fbf3889d34",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "zoramite-worshipper-portrait-v1.png": {
+    "sha256": "f17dfc9409ceca08229871bc819ad8a7a438748bbccfae118c6c95b78d3c9ed8",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "korihor-portrait-v1.png": {
+    "sha256": "23fa213a56e38dbce7027ec7692f8fca261011324d99ece37a947c4952250c01",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "corianton-portrait-v1.png": {
+    "sha256": "1647057cc32af5cf6c738884ad6de40be5ea83554788ca723c4839af72ff100d",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "amalickiah-portrait-v1.png": {
+    "sha256": "cff978f8d5a8a7b1eac7a30b85d6b69ad105e96f7a2567fa4b37d6789292b1eb",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "himni-portrait-v1.png": {
+    "sha256": "9d9da6237cefe72ed8bddf7fdfa4a9a98c08f0dd5d9badf652a4b7b0e57d18b2",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "joseph-son-lehi-portrait-v1.png": {
+    "sha256": "8d1cbe57a7ecc3eac0a92425f6279e0b4c9a0ee36efb75912c7180e3302e3610",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "mosiah-son-benjamin-portrait-v1.png": {
+    "sha256": "032217b04fe28e246e5cf307b7952df3bb8c7da11f68b73b7909255b4479524c",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "alma-younger-portrait-v1.png": {
+    "sha256": "9c6b468cc65a50f880a92da1d513b0c30fb45ea8d068a900d1c614ecc2eced96",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "moroni-son-mormon-portrait-v1.png": {
+    "sha256": "1c983853c83d9be53f4c763ca011b3a7cb17ef1ee99736df2c3eb17e10089743",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "enos-portrait-v1.png": {
+    "sha256": "c837b2081441fd21e60bd3028ec6b2504f0f32d57f7775f8b144db816b9866fc",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "alma-elder-portrait-v1.png": {
+    "sha256": "b531d3c1cb7604ca0751f83ddc48a2d17e8619ff5c4c670285cbb2b702970431",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "helam-portrait-v1.png": {
+    "sha256": "92ecb185cc4151795e1d72ed21991cdf0eca0902af751cfadbf88e9523babce7",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  },
+  "nephihah-portrait-v1.png": {
+    "sha256": "0ce38c424dfb4979dfcf58c4b638653d3ce0d098d84a5268415515e989c9d183",
+    "identityAndAnatomy": "visual-pass",
+    "roundSmallSizes": "32/48/96 visual-pass",
+    "background": "true-alpha-checked",
+    "checkedAgainst": "existing canonical master/reference"
+  }
+}
