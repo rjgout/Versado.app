@@ -49,6 +49,14 @@ bestaande speluitleg onder `gamesHub.*`), het vertaalsysteem (`getT`/`useT`,
 live-data-laag (`useLiveQuery`, `jsonMutation`) en de onboarding
 (`OnboardingClient`, `onboardingSeenAt`).
 
+## Accountonboarding en vrijwillige rondleiding
+
+`/onboarding` is uitsluitend voor een nieuw account en de eenmalige gerichte
+personagekeuze voor een bestaand account zonder personage. Een voltooid account
+dat die route opnieuw opent, gaat naar `/kompas`. Ontdek Versado is een
+vrijwillige rondleiding: de profieluitleg wijst op avatar- en
+prestatieprivacy-instellingen, maar wijzigt geen keuze van de gebruiker.
+
 ## Uitleg: de vaste structuur
 
 Elke uitleg heeft maximaal deze secties; toon alleen wat relevant is:

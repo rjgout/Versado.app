@@ -45,7 +45,6 @@ import {
   LockKeyhole,
   LogOut,
   MessageSquare,
-  MoreHorizontal,
   Pencil,
   ShieldCheck,
   ShoppingBag,
@@ -522,7 +521,7 @@ export default function ProfileClient() {
 
       <SettingsSection title={t("profile.aboutSection")}>
         <SettingsRow icon={<Sparkles className="h-5 w-5 text-vs-xp" aria-hidden />} label={t("profile.whatsNew")} onClick={() => openView("about")} />
-        <SettingsRow icon={<MoreHorizontal className="h-5 w-5 text-vs-fg-2" aria-hidden />} label={t("profile.tour")} href="/onboarding" />
+        <SettingsRow icon={<KompasIcon className="h-5 w-5 text-vs-accent" />} label={t("kompas.entry.title")} href="/kompas" />
       </SettingsSection>
 
       <SettingsSection title={t("profile.accountSecuritySection")}>

@@ -80,6 +80,9 @@ test("avatarlagen blijven bruikbaar bij kleine formaten en een kapotte karaktera
   assert.match(avatar, /scale-\[1\.08\].*object-contain/);
   assert.match(avatar, /onError=\{\(\) => setFailedCharacterSource/);
   assert.match(avatar, /!showCharacter && !hasAccessory/);
+  // HeaderAvatar nest de renderer in een span. Zonder eigen display-box
+  // klappen uitsluitend absoluut gepositioneerde lagen in Safari in tot nul.
+  assert.match(avatar, /relative isolate inline-block overflow-hidden/);
   assert.match(userAvatar, /localOverrides/);
   assert.match(userAvatar, /localOverrides\.get\(id\) \?\? known \?\? cache\.get\(id\)/);
 });

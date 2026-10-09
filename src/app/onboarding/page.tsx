@@ -5,17 +5,20 @@ import OnboardingClient from "@/components/OnboardingClient";
 import { companionToMascot } from "@/lib/companion";
 import { getContentContext } from "@/lib/contentCollections";
 
-// Bereikbaar op twee manieren: automatisch vanuit de !onboardingSeenAt-redirect
-// in dashboard/page.tsx (nieuwe gebruikers), of handmatig via de
-// "Rondleiding opnieuw bekijken"-knop op het profiel (ProfileClient.tsx) —
-// in dat laatste geval mag deze pagina gewoon opnieuw doorlopen worden, ook
-// al is onboardingSeenAt al gezet.
+// Deze route is uitsluitend voor de echte accountonboarding en de gerichte
+// legacy-personagekeuze. De vrijwillige productrondleiding leeft in Kompas;
+// die mag bestaande instellingen nooit opnieuw aanbieden of overschrijven.
 export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ avatar?: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
   const params = await searchParams;
-  const avatarOnly = params.avatar === "1" || (!!user.onboardingSeenAt && !user.avatarCharacterId);
+  const avatarOnly = !user.avatarCharacterId && (params.avatar === "1" || !!user.onboardingSeenAt);
+
+  // Een afgeronde accountonboarding opnieuw openen is geen tweede
+  // onboardingflow. Kompas biedt daarvoor de vrijwillige, niet-mutatieve
+  // productuitleg en de bestaande rondleiding.
+  if (user.onboardingSeenAt && !avatarOnly) redirect("/kompas");
 
   const [emailConfigured, contentContext] = await Promise.all([isEmailConfigured(), getContentContext(user.id)]);
 

@@ -196,10 +196,11 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
     },
     profile: {
       title: "My profile and settings",
-      what: "Your profile is your personal place. Your settings are here.",
-      benefit: "Here you choose your guide, your language, your notifications, the look of the app and who can see you online.",
+      what: "Your profile is your personal place. This is where you choose your avatar and find your settings.",
+      benefit: "Here you choose your character avatar, guide, language and notifications. Under Privacy you decide whether friends may view your streak, XP, division and featured achievements.",
       step1: "Tap your avatar at the top right.",
-      step2: "Choose a section, such as Language or Notifications.",
+      step2: "Choose Change avatar to pick another character or your unlocked accessories.",
+      step3: "Open Privacy to decide whether friends may view your achievements.",
       more: "The language of the app and the language of the Scripture text are two separate choices. You choose both in your profile; the text language also at the top, next to the Scriptures.",
     },
     start: {
@@ -210,7 +211,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
       step2: "Start with Learn and do an exercise.",
       step3: "Then try a game under Play.",
       step4: "Stuck? Open Discover Versado.",
-      more: "You can take the introduction from the start again via your profile, under Tour.",
+      more: "You can always reopen this voluntary product guide and its tour in Discover Versado. It does not change your settings.",
     },
     switcher: {
       title: "Choosing Scriptures and language",
@@ -274,7 +275,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
       learn: { title: "Learn", text: "Here you follow courses: read and answer questions." },
       play: { title: "Play", text: "Here you find games and puzzles, alone or with others." },
       friends: { title: "Friends", text: "Here you add friends and see how you are doing together." },
-      profile: { title: "Your profile", text: "Here you find your settings, your guide and this tour." },
+      profile: { title: "Your profile", text: "Here you find your avatar, settings and guide." },
     },
     learn: {
       intro: { title: "Your courses", text: "These are your courses. Open one to read and answer questions. Your progress is saved." },

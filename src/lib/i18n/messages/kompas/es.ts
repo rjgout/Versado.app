@@ -196,10 +196,11 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
     },
     profile: {
       title: "Mi perfil y ajustes",
-      what: "Tu perfil es tu lugar personal. Aquí están tus ajustes.",
-      benefit: "Aquí eliges tu guía, tu idioma, tus notificaciones, el aspecto de la aplicación y quién puede ver que estás en línea.",
+      what: "Tu perfil es tu lugar personal. Aquí eliges tu avatar y encuentras tus ajustes.",
+      benefit: "Aquí eliges tu avatar de personaje, guía, idioma y notificaciones. En Privacidad decides si tus amigos pueden ver tu racha, XP, división y logros destacados.",
       step1: "Toca tu avatar arriba a la derecha.",
-      step2: "Elige una sección, como Idioma o Notificaciones.",
+      step2: "Elige Cambiar avatar para seleccionar otro personaje o tus accesorios desbloqueados.",
+      step3: "Abre Privacidad para decidir si tus amigos pueden ver tus logros.",
       more: "El idioma de la aplicación y el idioma del texto de las Escrituras son dos elecciones distintas. Eliges ambos en tu perfil; el idioma del texto también arriba, junto a las Escrituras.",
     },
     start: {
@@ -210,7 +211,7 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
       step2: "Empieza con Aprender y haz un ejercicio.",
       step3: "Después prueba un juego en Jugar.",
       step4: "¿No sabes cómo seguir? Abre «Descubre Versado».",
-      more: "Puedes repetir la introducción del principio desde tu perfil, en «Recorrido».",
+      more: "Siempre puedes volver a abrir esta guía voluntaria del producto y su recorrido en Descubre Versado. Tus ajustes no cambian.",
     },
     switcher: {
       title: "Elegir las Escrituras y el idioma",
@@ -274,7 +275,7 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
       learn: { title: "Aprender", text: "Aquí sigues cursos: leer y responder preguntas." },
       play: { title: "Jugar", text: "Aquí encuentras juegos y acertijos, solo o con otros." },
       friends: { title: "Amigos", text: "Aquí añades amigos y ves cómo van juntos." },
-      profile: { title: "Tu perfil", text: "Aquí encuentras tus ajustes, tu guía y este recorrido." },
+      profile: { title: "Tu perfil", text: "Aquí encuentras tu avatar, ajustes y guía." },
     },
     learn: {
       intro: { title: "Tus cursos", text: "Estos son tus cursos. Abre uno para leer y responder preguntas. Tu progreso se guarda." },
