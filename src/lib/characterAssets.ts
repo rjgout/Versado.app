@@ -1053,7 +1053,6 @@ export type CanonicalCharacterId = keyof typeof CHARACTER_ASSETS;
 const CHARACTER_ALIASES: Record<string, CanonicalCharacterId> = {
   "brother-jared": "brother-of-jared",
 };
-
 export function normalizeCharacterId(id: string | null | undefined): CanonicalCharacterId | null {
   if (!id) return null;
   const normalized = CHARACTER_ALIASES[id] ?? id;
@@ -1089,4 +1088,3 @@ export const MYSTERY_BODY_ASSETS: Readonly<Record<string, string>> = {
   zoram: "/mysterie-002c-schriftkenner/zoram.png",
   ismael: "/mysterie-003b-onderzoeker/ismael.png",
 };
-

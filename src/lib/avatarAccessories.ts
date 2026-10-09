@@ -9,7 +9,6 @@ export interface AvatarAccessory {
   readonly detail: string;
   readonly achievementSlug: string | null;
 }
-
 export const AVATAR_ACCESSORIES = {
   "frame-bronze": { id: "frame-bronze", kind: "frame", name: "Koperen kader", compact: "/scripture/accessories/frames/frame-bronze-256-v1.webp", detail: "/scripture/accessories/frames/frame-bronze-1024-v1.webp", achievementSlug: "first-chapter" },
   "frame-silver": { id: "frame-silver", kind: "frame", name: "Zilveren kader", compact: "/scripture/accessories/frames/frame-silver-256-v1.webp", detail: "/scripture/accessories/frames/frame-silver-1024-v1.webp", achievementSlug: "chapters-10" },
@@ -49,4 +48,3 @@ export function accessoryUnlocksFor(earnedAchievementSlugs: Iterable<string>): S
   const earned = new Set(earnedAchievementSlugs);
   return new Set(allAvatarAccessories().filter((item) => item.achievementSlug && earned.has(item.achievementSlug)).map((item) => item.id));
 }
-
