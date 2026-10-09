@@ -1,8 +1,10 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, Check, Quote } from "lucide-react";
 import { getT } from "@/lib/i18n";
 import MediaArtwork from "@/components/versado/MediaArtwork";
 import PersonalMascot from "@/components/versado/PersonalMascot";
+import WordGameCountdown from "@/components/today/WordGameCountdown";
 import SectionHeader from "@/components/today/SectionHeader";
 import { interactiveCard, secondaryButton, surfaceCard } from "@/components/versado/styles";
 import type { DailyGameState, TodayData } from "@/lib/today";
@@ -20,6 +22,7 @@ function DailyGameCard({
   title,
   statusKey,
   language,
+  countdown,
 }: {
   state: DailyGameState;
   kind: "game" | "quiz";
@@ -27,6 +30,8 @@ function DailyGameCard({
   title: string;
   statusKey: MessageKey;
   language: string;
+  /** Extra regel onder de status, bv. de aftelling naar het volgende woord. */
+  countdown?: ReactNode;
 }) {
   const t = getT(language);
   const done = state.status === "done";
@@ -52,6 +57,7 @@ function DailyGameCard({
             {done && <Check className="h-4 w-4 shrink-0" strokeWidth={3} aria-hidden />}
             <span className="line-clamp-2">{t(statusKey)}</span>
           </p>
+          {countdown && <p className="mt-0.5 text-sm font-semibold text-vs-fg-2">{countdown}</p>}
         </div>
         <ArrowRight className="h-5 w-5 shrink-0 text-vs-fg-3" aria-hidden />
       </div>
@@ -59,7 +65,7 @@ function DailyGameCard({
   );
 }
 
-export default function TodaySection({ data, language, dayComplete = false }: { data: TodayData; language: string; dayComplete?: boolean }) {
+export default function TodaySection({ data, language, dayComplete = false, serverNow }: { data: TodayData; language: string; dayComplete?: boolean; serverNow: number }) {
   const t = getT(language);
   const { dailyText, wordGame, dailyQuiz } = data;
   if (!dailyText && !wordGame && !dailyQuiz) return null;
@@ -112,7 +118,8 @@ export default function TodaySection({ data, language, dayComplete = false }: { 
         )}
         {wordGame && wordStatus && (
           <>
-            <DailyGameCard state={wordGame} kind="game" artwork={gameArtworkKeys("word-game")} title={t("pages.wordOfTheDay")} statusKey={wordStatus} language={language} />
+            <DailyGameCard state={wordGame} kind="game" artwork={gameArtworkKeys("word-game")} title={t("pages.wordOfTheDay")} statusKey={wordStatus} language={language}
+              countdown={wordGame.status === "done" && wordGame.nextReleaseAt ? <WordGameCountdown serverNow={serverNow} nextReleaseAt={wordGame.nextReleaseAt} /> : undefined} />
           </>
         )}
         {dailyQuiz && quizStatus && (

@@ -448,6 +448,7 @@ export const fr: PartialMessages = {
       inProgress: "Tu as déjà commencé.",
       won: "Trouvé ! Le mot change chaque jour à 18 h (heure néerlandaise).",
       lost: "Nouvelle chance demain.",
+      nextIn: "Nouveau mot dans {duration}"
     },
     dailyQuiz: {
       title: "{name} du jour",

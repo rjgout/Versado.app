@@ -459,7 +459,8 @@ export const es: PartialMessages = {
       "todo": "Adivina la palabra de hoy.",
       "inProgress": "Ya has empezado.",
       "won": "¡Acertaste! La palabra cambia cada día a las 18:00 (hora neerlandesa).",
-      "lost": "Mañana, otra oportunidad."
+      "lost": "Mañana, otra oportunidad.",
+      "nextIn": "Nueva palabra en {duration}"
     },
     "dailyQuiz": {
       "title": "{name} del día",

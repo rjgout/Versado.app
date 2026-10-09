@@ -67,7 +67,7 @@ export default async function DashboardPage() {
           </div>
         )}
         <div className="min-w-0 lg:col-start-1">
-          <TodaySection data={data} language={language} dayComplete={showRestState} />
+          <TodaySection data={data} language={language} dayComplete={showRestState} serverNow={serverNow} />
         </div>
         <div
           className={`min-w-0 lg:col-start-2 lg:row-start-1 lg:self-start lg:sticky lg:top-[calc(var(--header-offset,var(--header-default))+1.5rem)] ${ROW_SPANS[mainBlocks]}`}
