@@ -550,7 +550,7 @@ Behouden legacy-alias van `brother-of-jared`. Gebruik diens bestaande assets en 
 - Hulpmiddelen: geschikt, met correcte rol/naam. Mysterie: visueel gekoppeld; bestaand speelbaar model, huidige geometrie behouden. Avatar: voorgesteld; fase `C`.
 - Hulpmiddelen-slug: `laban` (seed-verified-live-record-review-required); alleen BOM-collectie, live record vóór implementatie controleren.
 - Ontbrekend na levering: geen voor dit buste/avatar/full-body-paar. Verbetering: bestaande definitieve full-body/sheet behouden; los portret toegevoegd.
-- Verhaalbron: 
+- Verhaalbron:
 - Poses: Reuse existing full-body, explicit age variants and reference-sheet expressions; no new pose collection in this delivery.
 
 ### Laman — `laman`
