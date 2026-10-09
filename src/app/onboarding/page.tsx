@@ -10,9 +10,12 @@ import { getContentContext } from "@/lib/contentCollections";
 // "Rondleiding opnieuw bekijken"-knop op het profiel (ProfileClient.tsx) —
 // in dat laatste geval mag deze pagina gewoon opnieuw doorlopen worden, ook
 // al is onboardingSeenAt al gezet.
-export default async function OnboardingPage() {
+export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ avatar?: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+
+  const params = await searchParams;
+  const avatarOnly = params.avatar === "1" || (!!user.onboardingSeenAt && !user.avatarCharacterId);
 
   const [emailConfigured, contentContext] = await Promise.all([isEmailConfigured(), getContentContext(user.id)]);
 
@@ -28,6 +31,9 @@ export default async function OnboardingPage() {
       emailConfigured={emailConfigured}
       companion={companionToMascot(user.companion)}
       alreadyOnboarded={!!user.onboardingSeenAt}
+      avatarCharacterId={user.avatarCharacterId}
+      profilePrivacyChosen={!!user.onboardingProfilePrivacyAt}
+      avatarOnly={avatarOnly}
       switcherEnabled={contentContext.switcherEnabled || user.isAdmin}
     />
   );

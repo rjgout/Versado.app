@@ -33,8 +33,11 @@ terug op tekst.
 
 ## Gebruikersavatar
 
-De bestaande `User.avatarEmoji` blijft behouden als fallback. Nieuwe velden op
-`User` zijn nullable:
+De bestaande `User.avatarEmoji` blijft behouden voor oude gegevens en API-
+compatibiliteit, maar wordt niet meer als gebruikersavatar gerenderd. Accounts
+zonder personage krijgen tijdelijk een centrale letterfallback uit de naam;
+een ontbrekende asset levert dus geen lege cirkel op. Nieuwe velden op `User`
+zijn nullable:
 
 - `avatarCharacterId`
 - `avatarBackgroundId`
@@ -48,13 +51,23 @@ wordt opgeslagen. Een wijziging actualiseert de centrale avatarcache en
 wordt via de bestaande live-data-mutatie aangekondigd. De batchroute voor
 compacte avatars blijft sessiebeveiligd.
 
-De fullscreen editor staat op `/profile/avatar`. De keuze blijft lokaal in
+De fullscreen editor staat op `/profile/avatar` en bevat alleen de tabs
+Personages en Accessoires. De keuze blijft lokaal in
 de live preview totdat de gebruiker Opslaan kiest; daarna gebruikt de editor
 dezelfde `/api/account`-validatie. `setAvatarAppearance()` zet een geslaagde
 keuze direct in de gedeelde clientcache, zodat de header en reeds gemonteerde
 gebruikerslijsten niet op een nieuwe login hoeven te wachten. Bij een emoji als
-basis blijven geselecteerde accessoirelagen behouden en worden ze boven de
-emoji gerenderd.
+basis blijft het oude databaseveld behouden, maar nieuwe keuzes gaan altijd
+naar een canoniek personage. Bestaande accessoires blijven onafhankelijke
+lagen en worden niet door die compatibiliteit gewist.
+
+Nieuwe accounts kiezen tijdens onboarding uit de vaste selectie
+`sariah`, `abish`, `nephi` en `ammon-missionary`. Dezelfde centrale lijst wordt
+gebruikt voor de gerichte keuze van bestaande accounts zonder personage.
+Profielprivacy gebruikt de bestaande `User.shareAchievements`-instelling; de
+onboardingdatum `onboardingProfilePrivacyAt` is alleen hervatstatus en geen
+tweede privacybeleid. De server levert gedeelde prestaties uitsluitend via de
+bestaande vriendenprofielcontrole.
 
 Compacte gebruikersavatars gebruiken alle vierkante lagen samen: achtergrond,
 personage, decoratie/lichtaccent en kader. De transparante marges van de
@@ -101,5 +114,6 @@ toegevoegd.
 ## Compatibiliteit
 
 De mascottekeuze (`User.companion`) staat los van de schriftavatar. Bestaande
-gebruikers krijgen geen automatische personagekeuze; zolang zij niets kiezen,
-blijven emoji of initialen zichtbaar.
+gebruikers met alleen legacy emoji-data krijgen geen automatische opgeslagen
+personagekeuze: na inloggen krijgen zij één gerichte keuze uit de vier
+startpersonages. Tot die keuze blijft de neutrale letterfallback zichtbaar.

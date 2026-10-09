@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
-import { apiError } from "@/lib/apiError";
+import { apiError, apiErrorText } from "@/lib/apiError";
 import { recordOnboardingIntro } from "@/lib/kompas/store";
 
 // Wordt zowel aangeroepen bij "overslaan" als bij het volledig doorlopen van
@@ -16,6 +16,14 @@ import { recordOnboardingIntro } from "@/lib/kompas/store";
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
+
+  // Ook een directe API-aanroep mag de verplichte personage- en privacykeuze
+  // van een nieuwe onboarding niet omzeilen. Bestaande accounts hebben door
+  // de onboarding-migratie al onboardingSeenAt en blijven hiermee compatibel.
+  if (!user.avatarCharacterId) return await apiErrorText("Kies eerst een personage.", 400);
+  if (!user.onboardingSeenAt && !user.onboardingProfilePrivacyAt) {
+    return await apiErrorText("Bevestig eerst je profielprivacy.", 400);
+  }
 
   const body: unknown = await req.json().catch(() => null);
   const kompasSeen = body && typeof body === "object" && typeof (body as { kompasSeen?: unknown }).kompasSeen === "boolean"

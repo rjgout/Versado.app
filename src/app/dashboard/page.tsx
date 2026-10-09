@@ -28,6 +28,10 @@ export default async function DashboardPage() {
   if (user.mustChangePassword) redirect("/change-password");
   if (!user.emailVerifiedAt && (await isEmailConfigured())) redirect("/verify-email");
   if (!user.onboardingSeenAt) redirect("/onboarding");
+  // Oudere accounts hebben nog geen personagekeuze. Zij krijgen één gerichte
+  // stap, niet de volledige onboarding opnieuw; na de keuze wordt de normale
+  // dashboardroute weer vrijgegeven.
+  if (!user.avatarCharacterId) redirect("/onboarding?avatar=1");
 
   const data = await getTodayData(user);
   const language = user.uiLanguage;
