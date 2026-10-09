@@ -36,6 +36,7 @@ interface LeaderboardEntry {
   userId: string;
   finishedAt: string;
   minutesAfterRelease: number;
+  solvedClock: string;
 }
 
 interface GameView {
@@ -209,15 +210,6 @@ export default function WordGameClient() {
   const rows: GuessView[] = [...game.guesses];
   const emptyRows = game.maxGuesses - rows.length - (finished ? 0 : 1);
 
-  // Iedereen krijgt het woord om 18:00 in de eigen tijdzone; het klassement
-  // toont (en rangschikt op) hoe lang na dat moment het woord geraden is.
-  function formatSolveTime(minutes: number): string {
-    const hours = Math.floor(minutes / 60);
-    return hours > 0
-      ? t("wordOfTheDay.solvedAfterHours", { h: hours, m: minutes % 60 })
-      : t("wordOfTheDay.solvedAfterMinutes", { m: minutes });
-  }
-
   return (
     <FocusLayout className="max-w-2xl gap-6">
       <div className="flex items-start justify-between gap-3">
@@ -385,7 +377,7 @@ export default function WordGameClient() {
                   </p>
                 </div>
                 <span className="text-sm font-bold text-slate-500 dark:text-slate-400 shrink-0">
-                  {formatSolveTime(entry.minutesAfterRelease)}
+                  {entry.solvedClock}
                 </span>
               </div>
             ))}

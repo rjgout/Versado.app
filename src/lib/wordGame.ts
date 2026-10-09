@@ -159,6 +159,8 @@ export interface WordGameLeaderboardEntry {
   finishedAt: string;
   /** Hoeveel minuten na de eigen 18:00 het woord geraden werd (de rangorde). */
   minutesAfterRelease: number;
+  /** Dezelfde tijd als klokslag op de eigen klok van de speler (18:00 + minuten), bv. "20:22". */
+  solvedClock: string;
 }
 
 // Het klassement rangschikt op tijd ná de eigen 18:00, niet op het absolute
@@ -219,6 +221,15 @@ export interface WordGameView {
   previousResult: { dayKey: string; rank: number; xp: number } | null;
 }
 
+// Het klassement toont de klokslag in de eigen tijdzone van de speler (zijn
+// 18:00 plus de tijd die het kostte), niet de absolute tijd: wie in Australië om
+// 19:01 lokaal raadt, staat er als 19:01, ook al is het in Nederland veel later.
+// De rangorde blijft op de verstreken tijd (zie hierboven).
+function solvedClock(minutesAfterRelease: number): string {
+  const total = (RELEASE_HOUR * 60 + minutesAfterRelease) % (24 * 60);
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
 function toLeaderboard(games: Awaited<ReturnType<typeof rankedWinners>>): WordGameLeaderboardEntry[] {
   return games.slice(0, 10).map((game, index) => ({
     rank: index + 1,
@@ -227,6 +238,7 @@ function toLeaderboard(games: Awaited<ReturnType<typeof rankedWinners>>): WordGa
     discriminator: game.user.discriminator,
     finishedAt: game.finishedAt!.toISOString(),
     minutesAfterRelease: Math.max(0, Math.floor(solveMs(game) / 60_000)),
+    solvedClock: solvedClock(Math.max(0, Math.floor(solveMs(game) / 60_000))),
   }));
 }
 

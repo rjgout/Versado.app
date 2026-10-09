@@ -82,6 +82,8 @@ test("klassement en rangbonus: tijd na de eigen 18:00, pas uitbetaald na afloop"
   assert.equal(nl.leaderboardRank, null);
   assert.equal(nl.xpEarned, L.game.xpForWin(1));
   assert.deepEqual(nl.leaderboard.map((e) => [e.userId, e.minutesAfterRelease]), [[users.nl, 5], [users.tokio, 90]]);
+  // De tijd staat als klokslag op de eigen klok van de speler (18:00 + minuten), los van de tijdzone.
+  assert.deepEqual(nl.leaderboard.map((e) => e.solvedClock), ["18:05", "19:30"]);
 
   // Vóór het sluiten van de woorddag (D+2 06:00 UTC): nog niets uitbetaald.
   assert.equal(L.game.wordDayClosesAt(DAY).toISOString(), "2031-03-06T06:00:00.000Z");
