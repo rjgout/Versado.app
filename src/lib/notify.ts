@@ -8,21 +8,14 @@ import type { NotificationKind } from "@/lib/notificationGroups";
 import type { LeagueTier } from "@/generated/prisma/client";
 import { getT } from "@/lib/i18n";
 import { translateOr, type TFunction } from "@/lib/i18n/core";
+import { CATEGORY_FIELD, type NotifyCategory } from "@/lib/notifyCategories";
+import { createUnsubscribeToken, unsubscribeOneClickUrl, unsubscribePageUrl } from "@/lib/unsubscribe";
 
 // Elke gebeurtenis valt in één categorie, die de gebruiker in zijn profiel
 // apart aan/uit kan zetten (zie User.notify* in schema.prisma) — bovenop,
 // niet in plaats van, de kanaalschakelaars (email/pushNotificationsEnabled).
-type NotifyCategory = "dailyReminder" | "dailyText" | "social" | "activityReactions" | "achievements" | "wordGame" | "streakReturn";
-
-const CATEGORY_FIELD: Record<NotifyCategory, "notifyDailyReminder" | "notifyDailyText" | "notifySocial" | "notifyActivityReactions" | "notifyAchievements" | "notifyWordGame" | "notifyStreakReturn"> = {
-  streakReturn: "notifyStreakReturn",
-  dailyReminder: "notifyDailyReminder",
-  dailyText: "notifyDailyText",
-  social: "notifySocial",
-  activityReactions: "notifyActivityReactions",
-  achievements: "notifyAchievements",
-  wordGame: "notifyWordGame",
-};
+// De categorieën en hun mapping naar die velden staan in notifyCategories.ts, zodat de
+// uitschrijflink in de e-mail (unsubscribeActions.ts) exact dezelfde velden gebruikt.
 
 /** Wat de ontvanger te zien krijgt, in de taal van diens app (User.uiLanguage). */
 interface NotifyContent {
@@ -130,12 +123,23 @@ async function notifyUser(input: NotifyInput): Promise<void> {
 
   const jobs: Promise<unknown>[] = [];
   if (user.emailNotificationsEnabled && !input.pushOnly) {
+    // Elke optionele notificatiemail krijgt hier, centraal, zijn uitschrijfopties; een
+    // aanroeper bouwt die nooit zelf. Transactionele mail (verifiëren, wachtwoord) loopt
+    // niet via deze dispatcher en krijgt ze dus bewust niet.
+    const baseUrl = await getAppUrl();
+    const token = createUnsubscribeToken(input.userId, input.category);
+    const unsubscribe = {
+      category: unsubscribePageUrl(baseUrl, token, "category"),
+      all: unsubscribePageUrl(baseUrl, token, "all"),
+      oneClick: unsubscribeOneClickUrl(baseUrl, token),
+    };
     jobs.push(
       sendMail({
         to: user.email,
         subject: content.subject,
-        html: emailWrap(t, content.emailBody, absoluteUrl, content.ctaLabel),
-        text: `${content.emailText} ${absoluteUrl}`,
+        html: emailWrap(t, content.emailBody, absoluteUrl, content.ctaLabel, unsubscribe),
+        text: `${content.emailText} ${absoluteUrl}${emailTextFooter(t, unsubscribe)}`,
+        headers: unsubscribeHeaders(unsubscribe.oneClick),
       })
     );
   }
@@ -154,8 +158,25 @@ async function notifyUser(input: NotifyInput): Promise<void> {
   await Promise.allSettled(jobs);
 }
 
-function emailWrap(t: TFunction, bodyHtml: string, ctaUrl: string, ctaLabel: string): string {
-  return `<p>${bodyHtml}</p><p><a href="${ctaUrl}">${ctaLabel} →</a></p><p style="color:#94a3b8;font-size:12px">${t("notify.emailFooter", { app: APP_NAME })}</p>`;
+interface UnsubscribeLinks {
+  category: string;
+  all: string;
+  oneClick: string;
+}
+
+/** List-Unsubscribe (RFC 8058): mailclients tonen "uitschrijven" en doen een POST op de één-klik-URL. */
+export function unsubscribeHeaders(oneClickUrl: string): Record<string, string> {
+  return { "List-Unsubscribe": `<${oneClickUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" };
+}
+
+export function emailTextFooter(t: TFunction, links: UnsubscribeLinks): string {
+  return `\n\n--\n${t("notify.unsubscribeCategory")}: ${links.category}\n${t("notify.unsubscribeAll")}: ${links.all}`;
+}
+
+export function emailWrap(t: TFunction, bodyHtml: string, ctaUrl: string, ctaLabel: string, links: UnsubscribeLinks): string {
+  // De knop van de melding blijft prominent; de uitschrijfopties zijn bewust een subtiele voettekst.
+  const link = (href: string, label: string) => `<a href="${href}" style="color:#94a3b8;text-decoration:underline">${label}</a>`;
+  return `<p>${bodyHtml}</p><p><a href="${ctaUrl}">${ctaLabel} →</a></p><p style="color:#94a3b8;font-size:12px">${t("notify.emailFooter", { app: APP_NAME })}<br>${link(links.category, t("notify.unsubscribeCategory"))} · ${link(links.all, t("notify.unsubscribeAll"))}</p>`;
 }
 
 /** Zelfde tekst voor e-mail en push; alleen de onderwerpregel/titel en de knop verschillen. */

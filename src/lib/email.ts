@@ -98,6 +98,8 @@ interface SendMailInput {
   text: string;
   // Voor bv. een bijgevoegde screenshot bij feedback (zie src/lib/feedback.ts).
   attachments?: { filename: string; content: Buffer; contentType?: string }[];
+  // Extra mailheaders, bv. List-Unsubscribe voor notificatiemails (zie notify.ts).
+  headers?: Record<string, string>;
 }
 
 /** Geeft {ok:false} terug (i.p.v. te gooien) als er geen werkende configuratie is — de aanroeper beslist dan zelf hoe daarmee om te gaan. */
@@ -113,6 +115,7 @@ export async function sendMail(input: SendMailInput): Promise<{ ok: boolean; err
       html: input.html,
       text: input.text,
       attachments: input.attachments,
+      headers: input.headers,
     });
     return { ok: true };
   } catch (e) {

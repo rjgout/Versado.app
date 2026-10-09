@@ -423,6 +423,15 @@ Bij iedere wijziging aan de database moeten **schema, migratie en gebruikende co
 - E-mail is optioneel en admin-configureerbaar (`/adminbackend`, generieke
   SMTP); check altijd `isEmailConfigured()` voordat je een flow laat
   blokkeren op e-mail — zonder configuratie moet de app blijven werken.
+- **Notificatiemails lopen altijd via `notifyUser` (`src/lib/notify.ts`)**: die voegt centraal de
+  uitschrijfopties toe (footer in HTML en tekst, plus `List-Unsubscribe`-headers). Bouw nooit zelf
+  uitschrijf-HTML in een `notifyX()` en stuur een optionele notificatie nooit direct met `sendMail`.
+  De link is een ondertekend token (`src/lib/unsubscribe.ts`, HMAC over gebruiker + categorie, geen
+  database) naar de publieke pagina `/uitschrijven/[token]`; een GET wijzigt nooit iets, alleen de
+  bevestigde POST naar `/api/unsubscribe` (`unsubscribeActions.ts`): "dit soort meldingen" zet alleen
+  het bijbehorende `User.notify*`-veld uit (mapping in `notifyCategories.ts`), "alles" alleen
+  `emailNotificationsEnabled`. Het e-mailadres staat daar alleen gemaskeerd (`maskEmail`).
+  Transactionele mail (verifiëren, wachtwoord resetten) en beheerdersmail krijgen dit bewust niet.
 - **Keuzeopties van oefeningen altijd geschud tonen, nooit de opslagvolgorde
   direct.** Voor automatisch gegenereerde hoofdstukoefeningen
   (`src/lib/exerciseGen.ts`) gebeurt dit al bij het genereren zelf
