@@ -16,7 +16,9 @@ import { isNotifyCategory, type NotifyCategory } from "@/lib/notifyCategories";
 // Mag nooit next/headers of de database importeren (eager-keten van server.ts).
 
 const VERSION = "u1";
+const PODCAST_VERSION = "u2";
 const USER_ID = /^[a-z0-9]{8,64}$/i;
+const PODCAST_ID = /^[a-z0-9_-]{1,128}$/i;
 
 function key(): Buffer {
   const secret = process.env.SESSION_SECRET;
@@ -28,8 +30,17 @@ function sign(userId: string, category: NotifyCategory): string {
   return createHmac("sha256", key()).update(`${VERSION}:${userId}:${category}`).digest("base64url");
 }
 
+function signPodcast(userId: string, podcastId: string): string {
+  return createHmac("sha256", key()).update(`${PODCAST_VERSION}:${userId}:podcast:${podcastId}`).digest("base64url");
+}
+
 export function createUnsubscribeToken(userId: string, category: NotifyCategory): string {
   return `${VERSION}.${userId}.${category}.${sign(userId, category)}`;
+}
+
+/** Een podcastkeuze is geen algemene meldingscategorie: de token bevat daarom ook het vaste podcast-id. */
+export function createPodcastUnsubscribeToken(userId: string, podcastId: string): string {
+  return `${PODCAST_VERSION}.${userId}.podcast.${podcastId}.${signPodcast(userId, podcastId)}`;
 }
 
 /** Geeft gebruiker en categorie terug als het token echt van ons is, anders null. Gooit nooit en logt niets. */
@@ -49,6 +60,24 @@ export function verifyUnsubscribeToken(raw: unknown): { userId: string; category
   }
   if (expected.length !== given.length || !timingSafeEqual(expected, given)) return null;
   return { userId, category };
+}
+
+export function verifyPodcastUnsubscribeToken(raw: unknown): { userId: string; podcastId: string } | null {
+  if (typeof raw !== "string" || raw.length > 384) return null;
+  const parts = raw.split(".");
+  if (parts.length !== 5 || parts[0] !== PODCAST_VERSION || parts[2] !== "podcast") return null;
+  const [, userId, , podcastId, signature] = parts;
+  if (!USER_ID.test(userId) || !PODCAST_ID.test(podcastId)) return null;
+  let expected: Buffer;
+  let given: Buffer;
+  try {
+    expected = Buffer.from(signPodcast(userId, podcastId));
+    given = Buffer.from(signature);
+  } catch {
+    return null;
+  }
+  if (expected.length !== given.length || !timingSafeEqual(expected, given)) return null;
+  return { userId, podcastId };
 }
 
 /** De pagina die de gebruiker te zien krijgt; een GET hierop wijzigt nooit iets. */

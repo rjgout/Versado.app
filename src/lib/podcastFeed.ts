@@ -171,17 +171,27 @@ async function syncChapters(
  * mislukken: dit is een aanvulling op db:seed, geen vereiste stap. Een
  * mislukte feed slaat ook de andere podcasts niet over.
  */
-export async function syncPodcastFeed(client: PrismaClient, log: (msg: string) => void = console.log): Promise<void> {
+export interface PodcastFeedSyncOptions {
+  /** Alleen de scheduler geeft dit mee: handmatige contentimport mag geen meldingen uitsturen. */
+  onEpisodeCreated?: (podcast: PodcastDefinition, episode: { id: string; number: number; title: string }) => Promise<void>;
+}
+
+export async function syncPodcastFeed(
+  client: PrismaClient,
+  log: (msg: string) => void = console.log,
+  options: PodcastFeedSyncOptions = {}
+): Promise<void> {
   await ensurePodcasts(client);
   for (const podcast of PODCASTS) {
-    await syncOnePodcast(client, podcast, log);
+    await syncOnePodcast(client, podcast, log, options);
   }
 }
 
 async function syncOnePodcast(
   client: PrismaClient,
   podcast: PodcastDefinition,
-  log: (msg: string) => void
+  log: (msg: string) => void,
+  options: PodcastFeedSyncOptions
 ): Promise<void> {
   let feed;
   try {
@@ -225,7 +235,15 @@ async function syncOnePodcast(
     });
     chapterWork.push({ id: saved.id, url: extractChaptersUrl(item), storedUrl: existing?.chaptersUrl ?? null, hasChapters: !!existing?.chapters });
     if (existing) updated++;
-    else created++;
+    else {
+      created++;
+      // Een mislukte afleveringmelding mag de feed nooit vertragen of de
+      // overige metadata-updates verhinderen. De volgende RSS-sync blijft
+      // daardoor altijd bruikbaar, ook als e-mail tijdelijk niet werkt.
+      await options.onEpisodeCreated?.(podcast, { id: saved.id, number, title }).catch((error) => {
+        log(`  Melding voor nieuwe aflevering van ${podcast.name} mislukt: ${error instanceof Error ? error.message : String(error)}.`);
+      });
+    }
   }
 
   log(`Feed van ${podcast.name} gesynchroniseerd: ${created} nieuw, ${updated} bijgewerkt.`);

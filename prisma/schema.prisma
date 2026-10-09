@@ -312,6 +312,7 @@ model User {
   podcastAttempts        PodcastExerciseAttempt[]
   podcastProgress        PodcastEpisodeProgress[]
   podcastPlaybackHistory PodcastPlaybackProgress[]
+  podcastNotificationPreferences PodcastNotificationPreference[]
   kidsAttempts           KidsExerciseAttempt[]
   kidsProgress           KidsStoryProgress[]
   introAttempts          IntroExerciseAttempt[]
@@ -735,6 +736,26 @@ model Podcast {
 
   episodes PodcastEpisode[]
   courses  Course[]
+  notificationPreferences PodcastNotificationPreference[]
+}
+
+// Per podcast en bewust standaard uit: een algemene e-mail- of pushkeuze is
+// geen toestemming voor een afzonderlijke podcastreeks. promptedAt voorkomt
+// dat de cursus bij elke opening opnieuw om dezelfde keuze vraagt.
+model PodcastNotificationPreference {
+  id          String   @id @default(cuid())
+  userId      String
+  podcastId   String
+  enabled     Boolean  @default(false)
+  promptedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  podcast Podcast @relation(fields: [podcastId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, podcastId])
+  @@index([podcastId, enabled])
 }
 
 model PodcastEpisode {

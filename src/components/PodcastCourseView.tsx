@@ -7,6 +7,7 @@ import { useT } from "@/components/I18nProvider";
 import { isNativeApp, openExternalUrl } from "@/lib/platform";
 import AppSelect from "@/components/AppSelect";
 import type { PodcastChapter } from "@/lib/podcastChapters";
+import { jsonMutation } from "@/lib/data/mutation";
 
 interface EpisodeView {
   id: string;
@@ -30,6 +31,8 @@ interface Props {
   studyAction?: React.ReactNode;
   courseName: string;
   podcastName: string;
+  podcastId: string | null;
+  askForNotifications: boolean;
   episodes: EpisodeView[];
 }
 
@@ -53,10 +56,23 @@ function episodeStatus(episode: EpisodeView): StatusFilter {
   return "TODO";
 }
 
-export default function PodcastCourseView({ courseName, podcastName, episodes, studyAction }: Props) {
+export default function PodcastCourseView({ courseName, podcastName, podcastId, askForNotifications, episodes, studyAction }: Props) {
   const t = useT();
   const [filter, setFilter] = useState<StatusFilter>("ALL");
   const [page, setPage] = useState(1);
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(askForNotifications);
+  const [savingNotification, setSavingNotification] = useState(false);
+
+  async function chooseNotifications(enabled: boolean) {
+    if (!podcastId || savingNotification) return;
+    setSavingNotification(true);
+    try {
+      await jsonMutation(`/api/podcast-notifications/${encodeURIComponent(podcastId)}`, { method: "PATCH", json: { enabled } }, { invalidates: "settingsChanged" });
+      setShowNotificationPrompt(false);
+    } finally {
+      setSavingNotification(false);
+    }
+  }
 
   const filtered = useMemo(() => {
     if (filter === "ALL") return episodes;
@@ -87,6 +103,18 @@ export default function PodcastCourseView({ courseName, podcastName, episodes, s
             {t("courseViews.podcast.aboutAfter")}
           </p>
         </div>
+        {showNotificationPrompt && (
+          <section className="card flex flex-col gap-3" aria-labelledby="podcast-notification-title">
+            <div>
+              <h2 id="podcast-notification-title" className="font-extrabold text-vs-fg">{t("courseViews.podcast.notificationsTitle")}</h2>
+              <p className="mt-1 text-sm text-vs-fg-2">{t("courseViews.podcast.notificationsText", { podcast: podcastName })}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button className="btn-primary" disabled={savingNotification} onClick={() => void chooseNotifications(true)}>{t("courseViews.podcast.notificationsEnable")}</button>
+              <button className="btn-secondary" disabled={savingNotification} onClick={() => void chooseNotifications(false)}>{t("courseViews.podcast.notificationsLater")}</button>
+            </div>
+          </section>
+        )}
       </div>
 
       <div className="flex flex-col gap-6">

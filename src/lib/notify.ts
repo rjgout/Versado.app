@@ -9,7 +9,7 @@ import type { LeagueTier } from "@/generated/prisma/client";
 import { getT } from "@/lib/i18n";
 import { translateOr, type TFunction } from "@/lib/i18n/core";
 import { CATEGORY_FIELD, type NotifyCategory } from "@/lib/notifyCategories";
-import { createUnsubscribeToken, unsubscribeOneClickUrl, unsubscribePageUrl } from "@/lib/unsubscribe";
+import { createPodcastUnsubscribeToken, createUnsubscribeToken, unsubscribeOneClickUrl, unsubscribePageUrl } from "@/lib/unsubscribe";
 
 // Elke gebeurtenis valt in één categorie, die de gebruiker in zijn profiel
 // apart aan/uit kan zetten (zie User.notify* in schema.prisma) — bovenop,
@@ -31,7 +31,7 @@ interface NotifyContent {
 interface NotifyInput {
   interruptedDay?: string;
   userId: string;
-  category: NotifyCategory;
+  category?: NotifyCategory;
   content: (t: TFunction) => NotifyContent;
   url: string;
   // Voor meldingen die alleen op dat moment zin hebben (bv. een live-
@@ -41,6 +41,8 @@ interface NotifyInput {
   // (herinneringen zoals "je hebt vandaag nog niet geoefend": die zijn er
   // juist voor als je de app niet open hebt).
   kind?: NotificationKind;
+  /** Afwijkende, gerichte uitschrijving voor een opt-in die geen User.notify*-veld heeft. */
+  unsubscribe?: (baseUrl: string, t: TFunction) => UnsubscribeLinks;
 }
 
 const NOTIFICATION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
@@ -107,7 +109,7 @@ async function notifyUser(input: NotifyInput): Promise<void> {
     },
   });
   if (!user) return;
-  if (!user[CATEGORY_FIELD[input.category]]) return;
+  if (input.category && !user[CATEGORY_FIELD[input.category]]) return;
   if (input.category === "streakReturn" && (user.streakInterruptedDay !== input.interruptedDay || user.streakReturnSeenAt || user.onlineSocketCount > 0)) return;
   const t = getT(user.uiLanguage);
   const content = input.content(t);
@@ -127,11 +129,11 @@ async function notifyUser(input: NotifyInput): Promise<void> {
     // aanroeper bouwt die nooit zelf. Transactionele mail (verifiëren, wachtwoord) loopt
     // niet via deze dispatcher en krijgt ze dus bewust niet.
     const baseUrl = await getAppUrl();
-    const token = createUnsubscribeToken(input.userId, input.category);
-    const unsubscribe = {
-      category: unsubscribePageUrl(baseUrl, token, "category"),
-      all: unsubscribePageUrl(baseUrl, token, "all"),
-      oneClick: unsubscribeOneClickUrl(baseUrl, token),
+    const token = input.category ? createUnsubscribeToken(input.userId, input.category) : null;
+    const unsubscribe = input.unsubscribe ? input.unsubscribe(baseUrl, t) : {
+      category: unsubscribePageUrl(baseUrl, token!, "category"),
+      all: unsubscribePageUrl(baseUrl, token!, "all"),
+      oneClick: unsubscribeOneClickUrl(baseUrl, token!),
     };
     jobs.push(
       sendMail({
@@ -162,6 +164,7 @@ interface UnsubscribeLinks {
   category: string;
   all: string;
   oneClick: string;
+  categoryLabel?: string;
 }
 
 /** List-Unsubscribe (RFC 8058): mailclients tonen "uitschrijven" en doen een POST op de één-klik-URL. */
@@ -170,13 +173,47 @@ export function unsubscribeHeaders(oneClickUrl: string): Record<string, string> 
 }
 
 export function emailTextFooter(t: TFunction, links: UnsubscribeLinks): string {
-  return `\n\n--\n${t("notify.unsubscribeCategory")}: ${links.category}\n${t("notify.unsubscribeAll")}: ${links.all}`;
+  return `\n\n--\n${links.categoryLabel ?? t("notify.unsubscribeCategory")}: ${links.category}\n${t("notify.unsubscribeAll")}: ${links.all}`;
 }
 
 export function emailWrap(t: TFunction, bodyHtml: string, ctaUrl: string, ctaLabel: string, links: UnsubscribeLinks): string {
   // De knop van de melding blijft prominent; de uitschrijfopties zijn bewust een subtiele voettekst.
   const link = (href: string, label: string) => `<a href="${href}" style="color:#94a3b8;text-decoration:underline">${label}</a>`;
-  return `<p>${bodyHtml}</p><p><a href="${ctaUrl}">${ctaLabel} →</a></p><p style="color:#94a3b8;font-size:12px">${t("notify.emailFooter", { app: APP_NAME })}<br>${link(links.category, t("notify.unsubscribeCategory"))} · ${link(links.all, t("notify.unsubscribeAll"))}</p>`;
+  return `<p>${bodyHtml}</p><p><a href="${ctaUrl}">${ctaLabel} →</a></p><p style="color:#94a3b8;font-size:12px">${t("notify.emailFooter", { app: APP_NAME })}<br>${link(links.category, links.categoryLabel ?? t("notify.unsubscribeCategory"))} · ${link(links.all, t("notify.unsubscribeAll"))}</p>`;
+}
+
+/**
+ * Wordt uitsluitend aangeroepen door de scheduler nadat RSS een nieuwe rij
+ * heeft aangemaakt. De keuze per podcast is de extra opt-in; de gewone
+ * e-mail- en pushschakelaars blijven vervolgens de afleverkanalen bepalen.
+ */
+export async function notifyPodcastEpisode(podcastId: string, podcastName: string, episode: { id: string; number: number; title: string }): Promise<void> {
+  const [subscriptions, course] = await Promise.all([
+    prisma.podcastNotificationPreference.findMany({ where: { podcastId, enabled: true }, select: { userId: true } }),
+    prisma.course.findFirst({ where: { podcastId }, select: { id: true } }),
+  ]);
+  if (subscriptions.length === 0) return;
+  const url = course ? `/courses/${course.id}` : "/courses";
+  await Promise.allSettled(subscriptions.map(({ userId }) =>
+    notifyUser({
+      userId,
+      kind: "podcasts",
+      url,
+      unsubscribe: (baseUrl, t) => {
+        const token = createPodcastUnsubscribeToken(userId, podcastId);
+        return {
+          category: unsubscribePageUrl(baseUrl, token),
+          all: unsubscribePageUrl(baseUrl, token, "all"),
+          oneClick: unsubscribeOneClickUrl(baseUrl, token),
+          categoryLabel: t("notify.unsubscribePodcast", { podcast: podcastName }),
+        };
+      },
+      content: (t) => {
+        const text = t("notify.podcastEpisodeText", { podcast: podcastName, n: episode.number });
+        return simple(t("notify.podcastEpisodeSubject", { podcast: podcastName }), t("notify.podcastEpisodeTitle"), text, t("notify.ctaPodcast"));
+      },
+    })
+  ));
 }
 
 /** Zelfde tekst voor e-mail en push; alleen de onderwerpregel/titel en de knop verschillen. */

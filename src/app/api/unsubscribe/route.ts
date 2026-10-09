@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBaseUrl } from "@/lib/baseUrl";
-import { verifyUnsubscribeToken, unsubscribePageUrl } from "@/lib/unsubscribe";
-import { applyUnsubscribe, type UnsubscribeAction } from "@/lib/unsubscribeActions";
+import { verifyPodcastUnsubscribeToken, verifyUnsubscribeToken, unsubscribePageUrl } from "@/lib/unsubscribe";
+import { applyPodcastUnsubscribe, applyUnsubscribe, type UnsubscribeAction } from "@/lib/unsubscribeActions";
 
 // Het enige adres dat een uitschrijving doorvoert. Bewust alleen POST: een GET (een mailscanner,
 // een voorbeeldweergave) wijzigt nooit iets en stuurt door naar de bevestigingspagina.
@@ -32,21 +32,26 @@ export async function POST(req: NextRequest) {
   // RFC 8058: de mailclient stuurt "List-Unsubscribe=One-Click" en verwacht een gewoon antwoord, geen doorverwijzing.
   const oneClick = form?.get("List-Unsubscribe") === "One-Click";
   const verified = verifyUnsubscribeToken(token);
+  const podcastVerified = verified ? null : verifyPodcastUnsubscribeToken(token);
 
-  if (!verified) {
+  if (!verified && !podcastVerified) {
     return oneClick ? new NextResponse(null, { status: 400 }) : NextResponse.redirect(token ? unsubscribePageUrl(base, token) : base, 303);
   }
 
   // De handeling komt uit het formulier en wordt streng gevalideerd; een één-klik vanuit de
-  // mailclient betekent "dit soort meldingen". De categorie zelf komt uitsluitend uit het token.
+  // mailclient betekent alleen deze categorie of podcast. Het doel komt uitsluitend uit het token.
   const requested = form?.get("actie");
   const action: UnsubscribeAction = requested === "all" ? "all" : "category";
+  const podcastAction = requested === "all" ? "all" : "podcast";
+  const pageMode = (verified ? action : podcastAction === "all" ? "all" : "category") as "category" | "all";
+  const resultUrl = (key: "fout" | "klaar") => `${unsubscribePageUrl(base, token, pageMode)}${pageMode === "all" ? "&" : "?"}${key}=1`;
 
   try {
-    await applyUnsubscribe(verified.userId, verified.category, action);
+    if (verified) await applyUnsubscribe(verified.userId, verified.category, action);
+    else if (podcastVerified) await applyPodcastUnsubscribe(podcastVerified.userId, podcastVerified.podcastId, podcastAction);
   } catch {
-    return oneClick ? new NextResponse(null, { status: 500 }) : NextResponse.redirect(`${unsubscribePageUrl(base, token, action)}${action === "all" ? "&" : "?"}fout=1`, 303);
+    return oneClick ? new NextResponse(null, { status: 500 }) : NextResponse.redirect(resultUrl("fout"), 303);
   }
   if (oneClick) return new NextResponse("OK", { status: 200 });
-  return NextResponse.redirect(`${unsubscribePageUrl(base, token, action)}${action === "all" ? "&" : "?"}klaar=1`, 303);
+  return NextResponse.redirect(resultUrl("klaar"), 303);
 }

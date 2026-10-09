@@ -137,6 +137,20 @@ test("RSS-sync werkt bestaande aflevering bij zonder een duplicaat of oefeningen
   assert.equal(db.exerciseCalls(), 0);
 });
 
+test("RSS-sync meldt alleen werkelijk nieuwe afleveringen aan de schedulerlaag", async () => {
+  const db = makePodcastDb();
+  const created: { podcastId: string; number: number }[] = [];
+  const options = { onEpisodeCreated: async (podcast: (typeof PODCASTS)[number], episode: { number: number }) => { created.push({ podcastId: podcast.id, number: episode.number }); } };
+  await withFeedFetch(feeds(xmlEpisode("127", "127: Nieuwe aflevering"), xmlEpisode("8", "8: Andere podcast")), async () => {
+    await syncPodcastFeed(db.client, console.log, options);
+  });
+  await withFeedFetch(feeds(xmlEpisode("127", "127: Nieuwe aflevering", "Bijgewerkte omschrijving"), xmlEpisode("8", "8: Andere podcast")), async () => {
+    await syncPodcastFeed(db.client, console.log, options);
+  });
+  assert.deepEqual(created, [{ podcastId: PODCASTS[0].id, number: 127 }, { podcastId: PODCASTS[1].id, number: 8 }]);
+  assert.equal(db.exerciseCalls(), 0);
+});
+
 test("RSS-sync slaat afleveringen zonder nummer over en laat een andere feed doorgaan", async () => {
   const db = makePodcastDb();
   const logs: string[] = [];

@@ -12,6 +12,7 @@ export const NOTIFICATION_GROUPS = {
   groups: { labelKey: "together.notificationGroup", icon: "🤝" },
   achievements: { labelKey: "notifications.groups.achievements", icon: "🏅" },
   competition: { labelKey: "notifications.groups.competition", icon: "🏆" },
+  podcasts: { labelKey: "notifications.groups.podcasts", icon: "🎙️" },
 } as const satisfies Record<string, { labelKey: MessageKey; icon: string }>;
 
 export type NotificationKind = keyof typeof NOTIFICATION_GROUPS;

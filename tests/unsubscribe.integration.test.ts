@@ -113,6 +113,29 @@ test("geen mail, dus ook geen footer, als e-mail uit staat of de melding alleen 
   assert.equal(sent.length, 0);
 });
 
+test("nieuwe podcastaflevering volgt alleen de per-podcastopt-in en de mail-link schakelt uitsluitend die podcast uit", { skip }, async () => {
+  const notify = localRequire("../src/lib/notify") as typeof import("../src/lib/notify");
+  const user = await makeUser(`podcast.${EMAIL_B}`, "Podcastluisteraar", "nl");
+  const podcast = await db.podcast.findFirst({ orderBy: { order: "asc" }, select: { id: true, name: true } });
+  assert.ok(podcast, "de veilige testdatabase bevat een podcast");
+  await db.podcastNotificationPreference.create({ data: { userId: user.id, podcastId: podcast!.id, enabled: true, promptedAt: new Date() } });
+
+  sent.length = 0;
+  await notify.notifyPodcastEpisode(podcast!.id, podcast!.name, { id: "alleen-voor-de-test", number: 999, title: "Niet in de mail opnemen" });
+  assert.equal(sent.length, 1);
+  const tokenMatch = /\/uitschrijven\/([^"?\s]+)/.exec(sent[0].html);
+  assert.ok(tokenMatch);
+  const token = decodeURIComponent(tokenMatch![1]);
+  assert.deepEqual(lib().verifyPodcastUnsubscribeToken(token), { userId: user.id, podcastId: podcast!.id });
+  assert.doesNotMatch(sent[0].html, /Niet in de mail opnemen/, "externe RSS-titel hoort niet als HTML in de mail");
+
+  const response = await post({ "List-Unsubscribe": "One-Click" }, `?t=${encodeURIComponent(token)}`);
+  assert.equal(response.status, 200);
+  const preference = await db.podcastNotificationPreference.findUniqueOrThrow({ where: { userId_podcastId: { userId: user.id, podcastId: podcast!.id } } });
+  assert.equal(preference.enabled, false);
+  assert.equal((await settings(user.id)).emailNotificationsEnabled, true, "alleen deze podcast is uitgeschakeld");
+});
+
 test("specifiek uitschrijven wijzigt alleen dat ene notify*-veld (dailyText en nog een categorie)", { skip }, async () => {
   const user = await makeUser(`spec.${EMAIL_B}`, "Specifiek", "nl");
   for (const [category, field] of [["dailyText", "notifyDailyText"], ["achievements", "notifyAchievements"], ["social", "notifySocial"]] as const) {

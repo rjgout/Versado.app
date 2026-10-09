@@ -10,7 +10,7 @@ export async function GET() {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
 
-  const [chaptersCompleted, versesTotal, duelsWon, duelsPlayed, allAchievements, earned, featuredAchievements, weeklyScore, seasonResults, activeSeasonScore] =
+  const [chaptersCompleted, versesTotal, duelsWon, duelsPlayed, allAchievements, earned, featuredAchievements, weeklyScore, seasonResults, activeSeasonScore, podcasts] =
     await Promise.all([
       // Leesvoortgang: gelezen hoofdstukken, en hoeveel er in totaal begonnen zijn.
       prisma.contentProgress.count({ where: { userId: user.id, readStatus: "READ" } }),
@@ -40,6 +40,10 @@ export async function GET() {
         orderBy: { season: { index: "desc" } },
       }),
       prisma.weeklyScore.findFirst({ where: { userId: user.id, season: { status: "ACTIVE" } }, select: { id: true } }),
+      prisma.podcast.findMany({
+        orderBy: { order: "asc" },
+        select: { id: true, name: true, notificationPreferences: { where: { userId: user.id }, select: { enabled: true } } },
+      }),
     ]);
 
   const wins = duelsWon.filter(
@@ -136,5 +140,10 @@ export async function GET() {
       earnedAt: earnedByAchievementId.get(a.id) ?? null,
     })),
     featuredAchievementIds: featuredAchievements.map((row) => row.achievementId),
+    podcastNotifications: podcasts.map((podcast) => ({
+      podcastId: podcast.id,
+      podcastName: podcast.name,
+      enabled: podcast.notificationPreferences[0]?.enabled ?? false,
+    })),
   });
 }

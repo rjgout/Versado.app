@@ -17,6 +17,7 @@ import { getStreakContinuation } from "@/lib/streakContinuation";
 import { runStreakReturnReminders } from "@/lib/streakReturnNotifications";
 import { runActivityReactionNotificationTick } from "@/lib/activityReactionNotifications";
 import { syncPodcastFeed } from "@/lib/podcastFeed";
+import { notifyPodcastEpisode } from "@/lib/notify";
 
 const TICK_MS = 60_000;
 export const PODCAST_FEED_SYNC_INTERVAL_MS = 60 * 60_000;
@@ -437,7 +438,11 @@ export function createPodcastFeedSyncTicker(sync: () => Promise<void>, intervalM
   };
 }
 
-const podcastFeedTicker = createPodcastFeedSyncTicker(() => syncPodcastFeed(prisma));
+const podcastFeedTicker = createPodcastFeedSyncTicker(() =>
+  syncPodcastFeed(prisma, console.log, {
+    onEpisodeCreated: (podcast, episode) => notifyPodcastEpisode(podcast.id, podcast.name, episode),
+  })
+);
 
 /** De eerste minuuttick na een serverstart synchroniseert meteen; daarna hooguit elk uur. */
 export function runPodcastFeedSyncTick(): Promise<boolean> {

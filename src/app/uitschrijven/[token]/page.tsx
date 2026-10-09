@@ -6,8 +6,8 @@ import { anonymousLanguage } from "@/lib/requestLanguage";
 import { toLanguageCode } from "@/lib/languages";
 import { maskEmail } from "@/lib/mailAddress";
 import { CATEGORY_LABEL_KEY } from "@/lib/notifyCategories";
-import { verifyUnsubscribeToken } from "@/lib/unsubscribe";
-import { getUnsubscribeState } from "@/lib/unsubscribeActions";
+import { verifyPodcastUnsubscribeToken, verifyUnsubscribeToken } from "@/lib/unsubscribe";
+import { getPodcastUnsubscribeState, getUnsubscribeState } from "@/lib/unsubscribeActions";
 import { primaryButton, secondaryButton, surfaceCard } from "@/components/versado/styles";
 
 // Publieke pagina, ook zonder login (de link komt uit een e-mail en kan op een ander
@@ -37,13 +37,17 @@ export default async function UnsubscribePage({
     token = "";
   }
   const verified = verifyUnsubscribeToken(token);
-  const state = verified ? await getUnsubscribeState(verified.userId, verified.category) : null;
-  const language = state ? toLanguageCode(state.uiLanguage) : await anonymousLanguage();
+  const podcastVerified = verified ? null : verifyPodcastUnsubscribeToken(token);
+  const [state, podcastState] = await Promise.all([
+    verified ? getUnsubscribeState(verified.userId, verified.category) : null,
+    podcastVerified ? getPodcastUnsubscribeState(podcastVerified.userId, podcastVerified.podcastId) : null,
+  ]);
+  const language = state ? toLanguageCode(state.uiLanguage) : podcastState ? toLanguageCode(podcastState.uiLanguage) : await anonymousLanguage();
   const t = getT(language);
 
   // Een ongeldig, gemanipuleerd of verouderd token (of een verwijderd account) geeft altijd
   // dezelfde neutrale pagina, zonder te verraden wat er niet klopt.
-  if (!verified || !state) {
+  if ((!verified || !state) && (!podcastVerified || !podcastState)) {
     return (
       <Shell lang={language}>
         <h1 className="text-xl font-extrabold text-vs-fg">{t("unsubscribe.invalidTitle")}</h1>
@@ -51,6 +55,12 @@ export default async function UnsubscribePage({
       </Shell>
     );
   }
+
+  if (podcastVerified && podcastState) {
+    return <PodcastUnsubscribePage token={token} state={podcastState} language={language} all={actie === "alles"} done={klaar === "1"} failed={fout === "1"} />;
+  }
+
+  if (!verified || !state) return null;
 
   const user = await getCurrentUser();
   const email = maskEmail(state.email);
@@ -111,5 +121,31 @@ function Shell({ lang, children }: { lang: string; children: React.ReactNode }) 
     <div lang={lang} className={`mx-auto flex max-w-md flex-col gap-4 p-5 sm:p-6 ${surfaceCard}`}>
       {children}
     </div>
+  );
+}
+
+function PodcastUnsubscribePage({ token, state, language, all, done, failed }: { token: string; state: NonNullable<Awaited<ReturnType<typeof getPodcastUnsubscribeState>>>; language: string; all: boolean; done: boolean; failed: boolean }) {
+  const t = getT(language);
+  const email = maskEmail(state.email);
+  const vars = { email, podcast: state.podcastName };
+  const off = all ? !state.emailEnabled : !state.enabled;
+  if (off) {
+    const title = all ? t(done ? "unsubscribe.doneAllTitle" : "unsubscribe.alreadyAllTitle") : t(done ? "unsubscribe.podcastDoneTitle" : "unsubscribe.podcastAlreadyTitle");
+    const text = all ? t(done ? "unsubscribe.doneAllText" : "unsubscribe.alreadyAllText", vars) : t(done ? "unsubscribe.podcastDoneText" : "unsubscribe.podcastAlreadyText", vars);
+    return <Shell lang={language}><h1 className="text-xl font-extrabold text-vs-fg">{title}</h1><p role="status" className="text-sm text-vs-fg-2">{text}</p></Shell>;
+  }
+  return (
+    <Shell lang={language}>
+      <h1 className="text-xl font-extrabold text-vs-fg">{t(all ? "unsubscribe.allTitle" : "unsubscribe.podcastTitle")}</h1>
+      {failed && <p role="alert" className="rounded-xl bg-vs-danger-soft px-3 py-2 text-sm font-semibold text-vs-danger">{t("unsubscribe.failed")}</p>}
+      <p className="text-sm text-vs-fg-2">{t(all ? "unsubscribe.allText" : "unsubscribe.podcastText", vars)}</p>
+      <form method="post" action="/api/unsubscribe" className="flex flex-col gap-3">
+        <input type="hidden" name="token" value={token} />
+        <input type="hidden" name="actie" value={all ? "all" : "podcast"} />
+        <button type="submit" className={primaryButton}>{t(all ? "unsubscribe.allButton" : "unsubscribe.podcastButton")}</button>
+      </form>
+      {all ? <Link href={`/uitschrijven/${encodeURIComponent(token)}`} className={secondaryButton}>{t("unsubscribe.backToCategory")}</Link> : <p className="text-sm text-vs-fg-2">{t("unsubscribe.orAll")} <Link href={`/uitschrijven/${encodeURIComponent(token)}?actie=alles`} className="font-bold text-vs-accent hover:underline">{t("unsubscribe.allButton")}</Link></p>}
+      <Link href="/profile?view=notifications" className="text-sm font-bold text-vs-accent hover:underline">{t("unsubscribe.settingsLink")}</Link>
+    </Shell>
   );
 }

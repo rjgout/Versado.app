@@ -56,8 +56,8 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
   const studyAction = supportsStudy(course.type) ? <StudyTogetherButton courseId={course.id} /> : null;
 
   if (course.type === "PODCAST") {
-    const [podcast, episodes] = await Promise.all([
-      course.podcastId ? prisma.podcast.findUnique({ where: { id: course.podcastId }, select: { name: true } }) : null,
+    const [podcast, episodes, notificationPreference] = await Promise.all([
+      course.podcastId ? prisma.podcast.findUnique({ where: { id: course.podcastId }, select: { id: true, name: true } }) : null,
       prisma.podcastEpisode.findMany({
         // Een cursus zonder podcastId bestaat na de migratie niet meer; dan
         // liever geen afleveringen dan die van alle podcasts door elkaar.
@@ -69,6 +69,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
           playbackProgress: { where: { userId: user.id }, select: { positionSeconds: true } },
         },
       }),
+      course.podcastId
+        ? prisma.podcastNotificationPreference.findUnique({ where: { userId_podcastId: { userId: user.id, podcastId: course.podcastId } }, select: { enabled: true, promptedAt: true } })
+        : null,
     ]);
 
     return (
@@ -76,6 +79,8 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
         studyAction={studyAction}
         courseName={courseName}
         podcastName={podcast?.name ?? courseName}
+        podcastId={podcast?.id ?? null}
+        askForNotifications={!!podcast && !notificationPreference?.enabled && !notificationPreference?.promptedAt}
         episodes={episodes.map((episode) => {
           const contentProgress = episode.progress.find((p) => p.mode === "CONTENT");
           const bomProgress = episode.progress.find((p) => p.mode === "BOM_CONNECTION");

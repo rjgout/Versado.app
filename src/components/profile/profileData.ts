@@ -65,6 +65,7 @@ export interface ProfileData {
   seasons: { seasonIndex: number; highestTier: LeagueTier; finalTier: LeagueTier; finalGroupPosition: number | null }[];
   achievements: AchievementView[];
   featuredAchievementIds: string[];
+  podcastNotifications: { podcastId: string; podcastName: string; enabled: boolean }[];
 }
 
 /** Instellingen die als losse aan/uit-waarde via PATCH /api/account gaan. */

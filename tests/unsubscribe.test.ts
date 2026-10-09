@@ -49,6 +49,17 @@ test("token: rondreis en strikte controle", async () => {
   assert.match(token, /^u1\.clx1abc2def3ghi4jkl5mno6p\.dailyText\.[A-Za-z0-9_-]{43}$/);
 });
 
+test("podcasttoken: rondreis is per gebruiker én podcast en kan geen categorie-token vervangen", async () => {
+  const { createPodcastUnsubscribeToken, verifyPodcastUnsubscribeToken, verifyUnsubscribeToken } = await lib();
+  const userId = "clx1abc2def3ghi4jkl5mno6p";
+  const token = createPodcastUnsubscribeToken(userId, "podcast_gjdo");
+  assert.deepEqual(verifyPodcastUnsubscribeToken(token), { userId, podcastId: "podcast_gjdo" });
+  assert.equal(verifyUnsubscribeToken(token), null);
+  const [version, user, type, , signature] = token.split(".");
+  assert.equal(verifyPodcastUnsubscribeToken([version, user, type, "podcast_kast", signature].join(".")), null);
+  assert.equal(verifyPodcastUnsubscribeToken([version, "clx1abc2def3ghi4jkl5mno6q", type, "podcast_gjdo", signature].join(".")), null);
+});
+
 test("token: gemanipuleerde en willekeurige tokens werken niet", async () => {
   const { createUnsubscribeToken, verifyUnsubscribeToken } = await lib();
   const a = "clxaaaaaaaaaaaaaaaaaaaaaa";

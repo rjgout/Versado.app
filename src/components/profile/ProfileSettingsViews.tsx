@@ -117,6 +117,7 @@ export function NotificationsView({
   onCategory,
   onReminder,
   onDailyText,
+  onPodcast,
 }: {
   data: ProfileData;
   saving: boolean;
@@ -130,6 +131,7 @@ export function NotificationsView({
   onCategory: (field: ProfileToggleField) => void;
   onReminder: (value: string) => void;
   onDailyText: (value: string) => void;
+  onPodcast: (podcastId: string) => void;
 }) {
   const t = useT();
   const dailyTextTimeId = useId();
@@ -212,6 +214,21 @@ export function NotificationsView({
         {kind("notifyFriendOnline", t("profile.friendOnlineLabel"), t("profile.friendOnlineHint"))}
         {kind("nudgesEnabled", t("together.profile.nudges"))}
       </SettingsSection>
+
+      {data.podcastNotifications.length > 0 && (
+        <SettingsSection title={t("profile.podcastNotificationsTitle")} description={t("profile.podcastNotificationsText")}>
+          {data.podcastNotifications.map((podcast) => (
+            <SettingsToggleRow
+              key={podcast.podcastId}
+              label={podcast.podcastName}
+              description={t("profile.podcastNotificationsHint")}
+              checked={podcast.enabled}
+              busy={saving}
+              onChange={() => onPodcast(podcast.podcastId)}
+            />
+          ))}
+        </SettingsSection>
+      )}
     </>
   );
 }

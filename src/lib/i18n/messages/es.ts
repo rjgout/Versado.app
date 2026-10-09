@@ -234,6 +234,7 @@ export const es: PartialMessages = {
       "friends": "Amigos",
       "achievements": "Logros",
       "competition": "Liga",
+      "podcasts": "Podcasts",
       "other": "Notificaciones"
     }
   },
@@ -628,7 +629,11 @@ export const es: PartialMessages = {
       "play": "Jugar",
       "readLess": "Leer menos",
       "readMore": "Más información",
-      "comingSoon": "{label} — ejercicios próximamente"
+      "comingSoon": "{label} — ejercicios próximamente",
+      "notificationsTitle": "Nuevos episodios",
+      "notificationsText": "¿Quieres recibir una notificación cuando {podcast} tenga un episodio nuevo?",
+      "notificationsEnable": "Sí, mantenme al tanto",
+      "notificationsLater": "Ahora no"
     }
   },
   "cards": {
@@ -1507,6 +1512,9 @@ export const es: PartialMessages = {
     "channelsSection": "Canales de notificación",
     "dailySection": "Notificaciones diarias",
     "kindsSection": "Tipos de notificaciones",
+    "podcastNotificationsTitle": "Episodios de podcast",
+    "podcastNotificationsText": "Elige para cada podcast si quieres recibir una notificación por un episodio nuevo.",
+    "podcastNotificationsHint": "Nuevos episodios",
     "emailLabel": "Notificaciones por correo",
     "emailTo": "A {email}",
     "pushLabel": "Notificaciones push",
@@ -2140,6 +2148,7 @@ export const es: PartialMessages = {
     "aLiveGame": "un juego en vivo",
     "emailFooter": "{app}: puedes desactivar las notificaciones por correo electrónico en tu perfil.",
     "unsubscribeCategory": "Darte de baja de este tipo de notificaciones",
+    "unsubscribePodcast": "Desactivar episodios nuevos de {podcast}",
     "unsubscribeAll": "Desactivar todas las notificaciones por correo",
     "ctaFriends": "Ver a tus amigos",
     "ctaRequest": "Ver solicitud",
@@ -2148,6 +2157,10 @@ export const es: PartialMessages = {
     "ctaCompetition": "Ver la competencia",
     "ctaReadMore": "Leer más",
     "ctaPractice": "Practicar ahora",
+    "ctaPodcast": "Abrir el podcast",
+    "podcastEpisodeSubject": "Nuevo episodio de {podcast}",
+    "podcastEpisodeTitle": "Nuevo episodio de podcast",
+    "podcastEpisodeText": "El episodio {n} de {podcast} está listo para ti.",
     "ctaChallenge": "Ver el desafío",
     "ctaChallenges": "Ver desafíos",
     "ctaPlayTurn": "Juega tu turno",
@@ -2310,6 +2323,7 @@ export const es: PartialMessages = {
     "uniqueHandleFailed": "No se pudo crear un nombre de usuario único, pruebe con un nombre de usuario diferente.",
     "lessonNotFound": "Lección no encontrada",
     "notificationNotFound": "Notificación no encontrada.",
+    "podcastNotFound": "Podcast no encontrado.",
     "finaleNoNewMembers": "Después de que haya comenzado la final de la temporada, no pueden ingresar más miembros. únete.",
     "notLoggedIn": "No has iniciado sesión",
     "notSaved": "No guardado.",
@@ -2744,6 +2758,13 @@ export const es: PartialMessages = {
     "alreadyAllText": "Versado ya no envía correos de notificación a {email}. No se cambió nada.",
     "settingsLink": "Ajustes de notificaciones",
     "failed": "No se pudo guardar. Inténtalo de nuevo más tarde.",
+    "podcastTitle": "Desactivar notificaciones de episodios nuevos",
+    "podcastText": "Estás a punto de desactivar las notificaciones de episodios nuevos de {podcast} para {email}.",
+    "podcastButton": "Desactivar notificaciones de este podcast",
+    "podcastDoneTitle": "Notificaciones del podcast desactivadas",
+    "podcastDoneText": "Ya no recibirás notificaciones de episodios nuevos de {podcast} en {email}.",
+    "podcastAlreadyTitle": "Las notificaciones del podcast ya están desactivadas",
+    "podcastAlreadyText": "Las notificaciones de episodios nuevos de {podcast} ya están desactivadas para {email}.",
   },
   "adminHub": {
     "usersTitle": "Usuarios",
