@@ -28,6 +28,7 @@
     "db:backfill-hints": "tsx prisma/backfillExerciseHints.ts",
     "alleskenner:check": "tsx prisma/checkAlleskenner.ts",
     "test:word-search": "tsx --test tests/word-search.test.ts",
+    "test:puzzle": "tsx --test tests/puzzle-engine.test.ts tests/jigsaw.test.ts",
     "test:study": "tsx --test tests/study-scoring.test.ts",
     "test:content-edition": "tsx --test tests/content-edition.test.ts tests/content-switch.test.ts tests/content-switch.integration.test.ts",
     "test:course-sync": "tsx --test tests/course-sync.integration.test.ts",
