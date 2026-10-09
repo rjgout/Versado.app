@@ -202,10 +202,11 @@ export const kompasNl = {
     },
     profile: {
       title: "Mijn profiel en instellingen",
-      what: "Je profiel is jouw persoonlijke plek. Hier staan je instellingen.",
-      benefit: "Je kiest hier je gids, je taal, je meldingen, het uiterlijk van de app en wie jou online ziet.",
+      what: "Je profiel is jouw persoonlijke plek. Hier kies je je avatar en staan je instellingen.",
+      benefit: "Je kiest hier je personageavatar, gids, taal en meldingen. Bij Privacy bepaal je of vrienden je reeks, XP, divisie en uitgelichte prestaties mogen bekijken.",
       step1: "Tik rechtsboven op je avatar.",
-      step2: "Kies een onderdeel, zoals Taal of Meldingen.",
+      step2: "Kies Avatar wijzigen om een ander personage of je vrijgespeelde accessoires te kiezen.",
+      step3: "Open Privacy om te bepalen of vrienden je prestaties mogen zien.",
       more: "De taal van de app en de taal van de tekst van de Schriften zijn twee aparte keuzes. Je kiest ze allebei in je profiel; de taal van de tekst ook bovenaan bij de Schriften.",
     },
     start: {
@@ -216,7 +217,7 @@ export const kompasNl = {
       step2: "Begin met Leren en doe een oefening.",
       step3: "Probeer daarna een spel bij Spelen.",
       step4: "Kom je er niet uit? Open Ontdek Versado.",
-      more: "De kennismaking van het begin kun je opnieuw doen via je profiel, onder Rondleiding.",
+      more: "Je kunt deze vrijwillige productuitleg en de rondleiding altijd opnieuw openen via Ontdek Versado. Je instellingen veranderen daardoor niet.",
     },
     switcher: {
       title: "Schriften en taal kiezen",
@@ -280,7 +281,7 @@ export const kompasNl = {
       learn: { title: "Leren", text: "Hier volg je cursussen: lezen en vragen beantwoorden." },
       play: { title: "Spelen", text: "Hier vind je spellen en puzzels, alleen of met anderen." },
       friends: { title: "Vrienden", text: "Hier voeg je vrienden toe en zie je hoe jullie samen bezig zijn." },
-      profile: { title: "Jouw profiel", text: "Hier vind je je instellingen, je gids en deze rondleiding." },
+      profile: { title: "Jouw profiel", text: "Hier vind je je avatar, instellingen en gids." },
     },
     learn: {
       intro: { title: "Je cursussen", text: "Dit zijn je cursussen. Open er een om te lezen en vragen te beantwoorden. Je voortgang blijft bewaard." },

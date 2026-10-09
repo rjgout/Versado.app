@@ -196,10 +196,11 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
     },
     profile: {
       title: "Mein Profil und Einstellungen",
-      what: "Dein Profil ist dein persönlicher Ort. Hier stehen deine Einstellungen.",
-      benefit: "Hier wählst du deinen Begleiter, deine Sprache, deine Benachrichtigungen, das Aussehen der App und wer sehen kann, dass du online bist.",
+      what: "Dein Profil ist dein persönlicher Ort. Hier wählst du deinen Avatar und findest deine Einstellungen.",
+      benefit: "Hier wählst du deinen Figurenavatar, Begleiter, Sprache und Benachrichtigungen. Unter Datenschutz entscheidest du, ob Freunde deine Serie, XP, Division und hervorgehobenen Erfolge sehen dürfen.",
       step1: "Tippe oben rechts auf deinen Avatar.",
-      step2: "Wähle einen Bereich, zum Beispiel Sprache oder Benachrichtigungen.",
+      step2: "Wähle Avatar ändern, um eine andere Figur oder freigeschaltete Accessoires zu wählen.",
+      step3: "Öffne Datenschutz, um festzulegen, ob Freunde deine Erfolge sehen dürfen.",
       more: "Die Sprache der App und die Sprache des Schrifttextes sind zwei getrennte Entscheidungen. Beide wählst du in deinem Profil; die Sprache des Textes auch oben bei den Schriften.",
     },
     start: {
@@ -210,7 +211,7 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
       step2: "Beginne mit Lernen und mache eine Übung.",
       step3: "Probiere danach ein Spiel unter Spielen aus.",
       step4: "Kommst du nicht weiter? Öffne „Versado entdecken“.",
-      more: "Die Einführung vom Anfang kannst du über dein Profil unter „Rundgang“ noch einmal machen.",
+      more: "Diese freiwillige Produktübersicht und den Rundgang kannst du jederzeit in „Versado entdecken“ erneut öffnen. Deine Einstellungen werden dadurch nicht geändert.",
     },
     switcher: {
       title: "Schriften und Sprache wählen",
@@ -274,7 +275,7 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
       learn: { title: "Lernen", text: "Hier folgst du Kursen: lesen und Fragen beantworten." },
       play: { title: "Spielen", text: "Hier findest du Spiele und Rätsel, allein oder mit anderen." },
       friends: { title: "Freunde", text: "Hier fügst du Freunde hinzu und siehst, wie es euch zusammen geht." },
-      profile: { title: "Dein Profil", text: "Hier findest du deine Einstellungen, deinen Begleiter und diesen Rundgang." },
+      profile: { title: "Dein Profil", text: "Hier findest du deinen Avatar, Einstellungen und Begleiter." },
     },
     learn: {
       intro: { title: "Deine Kurse", text: "Das sind deine Kurse. Öffne einen, um zu lesen und Fragen zu beantworten. Dein Fortschritt bleibt gespeichert." },

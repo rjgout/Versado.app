@@ -68,6 +68,8 @@ Profielprivacy gebruikt de bestaande `User.shareAchievements`-instelling; de
 onboardingdatum `onboardingProfilePrivacyAt` is alleen hervatstatus en geen
 tweede privacybeleid. De server levert gedeelde prestaties uitsluitend via de
 bestaande vriendenprofielcontrole.
+De vrijwillige profieluitleg staat in Ontdek Versado en wijzigt deze keuzes
+niet.
 
 Compacte gebruikersavatars gebruiken alle vierkante lagen samen: achtergrond,
 personage, decoratie/lichtaccent en kader. De transparante marges van de

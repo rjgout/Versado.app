@@ -19,7 +19,19 @@ test("bestaande accounts zonder personage krijgen geen volledige onboardinglus",
   const dashboard = read("src/app/dashboard/page.tsx");
   const page = read("src/app/onboarding/page.tsx");
   assert.match(dashboard, /if \(!user\.avatarCharacterId\) redirect\("\/onboarding\?avatar=1"\)/);
-  assert.match(page, /const avatarOnly = params\.avatar === "1"/);
+  assert.match(page, /const avatarOnly = !user\.avatarCharacterId/);
+  assert.match(page, /if \(user\.onboardingSeenAt && !avatarOnly\) redirect\("\/kompas"\)/);
+});
+
+test("vrijwillige productuitleg herhaalt geen accountonboarding of instellingen", () => {
+  const profile = read("src/components/ProfileClient.tsx");
+  const page = read("src/app/onboarding/page.tsx");
+  const kompas = read("src/lib/i18n/messages/kompas/nl.ts");
+  assert.match(profile, /label=\{t\("kompas\.entry\.title"\)\} href="\/kompas"/);
+  assert.doesNotMatch(profile, /href="\/onboarding"/);
+  assert.match(page, /vrijwillige productrondleiding/);
+  assert.match(kompas, /personageavatar/);
+  assert.match(kompas, /Je instellingen veranderen daardoor niet/);
 });
 
 test("onboardingprivacy gebruikt bestaande serverprivacy en volledige serverbescherming", () => {
@@ -31,6 +43,8 @@ test("onboardingprivacy gebruikt bestaande serverprivacy en volledige serverbesc
   assert.match(complete, /!user\.onboardingProfilePrivacyAt/);
   assert.match(profiles, /target\.shareAchievements/);
   assert.match(profiles, /stats: target\.shareAchievements/);
+  assert.match(read("src/lib/i18n/messages/nl.ts"), /Wie mag jouw prestaties bekijken/);
+  assert.match(read("src/lib/i18n/messages/nl.ts"), /reeks, XP, divisie en uitgelichte prestaties/);
 });
 
 test("emoji-keuze is uit de editor verwijderd, legacy opslag blijft in het schema", () => {

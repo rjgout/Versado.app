@@ -556,19 +556,24 @@ test("Kompas-pagina's zijn neutraal voor de contentroutering en horen bij de gew
   assert.equal(classifyContentRoute("/word-search").kind, "game");
 });
 
-test("de bestaande onboarding blijft: statusveld, redirect, herstart via het profiel en overslaan", () => {
+test("accountonboarding en vrijwillige Kompas-rondleiding blijven gescheiden", () => {
   const dashboard = read("src/app/dashboard/page.tsx");
   assert.match(dashboard, /if \(!user\.onboardingSeenAt\) redirect\("\/onboarding"\)/);
-  assert.match(read("src/components/ProfileClient.tsx"), /label=\{t\("profile\.tour"\)\} href="\/onboarding"/);
+  const profile = read("src/components/ProfileClient.tsx");
+  assert.match(profile, /label=\{t\("kompas\.entry\.title"\)\} href="\/kompas"/);
+  assert.doesNotMatch(profile, /href="\/onboarding"/);
+  const onboarding = read("src/app/onboarding/page.tsx");
+  assert.match(onboarding, /if \(user\.onboardingSeenAt && !avatarOnly\) redirect\("\/kompas"\)/);
   const complete = read("src/app/api/onboarding/complete/route.ts");
   assert.match(complete, /onboardingSeenAt: new Date\(\)/);
   const client = read("src/components/OnboardingClient.tsx");
-  const steps = /const ALL_STEPS: StepId\[\] = (\[[^\]]+\])/.exec(client)?.[1] ?? "";
-  for (const step of ["kennis", "gids", "kompas", "webapp", "uitleg", "vrienden", "online-status", "notificaties"]) assert.ok(steps.includes(`"${step}"`), step);
-  // Overslaan kan pas na de keuze van de gids, zoals voorheen.
-  assert.match(client, /companionChosen && \(/);
+  const baseSteps = /const BASE_STEPS: StepId\[\] = (\[[^\]]+\])/.exec(client)?.[1] ?? "";
+  for (const step of ["gids", "kompas", "webapp", "uitleg", "vrienden", "online-status", "notificaties"]) assert.ok(baseSteps.includes(`"${step}"`), step);
+  assert.match(client, /"kennis"/);
+  // Overslaan volgt pas na de verplichte keuzes voor gids, avatar en privacy.
+  assert.match(client, /companionChosen && avatarChosen && privacyChosen && \(/);
   // De kennismaking staat vroeg (direct na de gids), zodat de rest niet langer wordt.
-  assert.ok(steps.indexOf('"kompas"') > steps.indexOf('"gids"') && steps.indexOf('"kompas"') < steps.indexOf('"webapp"'));
+  assert.ok(baseSteps.indexOf('"kompas"') > baseSteps.indexOf('"gids"') && baseSteps.indexOf('"kompas"') < baseSteps.indexOf('"webapp"'));
 });
 
 test("de migratie geeft bestaande accounts geen automatische uitnodigingen en nieuwe accounts wel", () => {

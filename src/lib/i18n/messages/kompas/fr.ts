@@ -196,10 +196,11 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
     },
     profile: {
       title: "Mon profil et mes réglages",
-      what: "Ton profil est ton espace personnel. Tes réglages s’y trouvent.",
-      benefit: "Tu y choisis ton guide, ta langue, tes notifications, l’apparence de l’application et qui peut voir que tu es en ligne.",
+      what: "Ton profil est ton espace personnel. Tu y choisis ton avatar et trouves tes réglages.",
+      benefit: "Tu y choisis ton avatar de personnage, ton guide, ta langue et tes notifications. Dans Confidentialité, tu décides si tes amis peuvent voir ta série, tes XP, ta division et tes réussites mises en avant.",
       step1: "Touche ton avatar en haut à droite.",
-      step2: "Choisis une rubrique, comme Langue ou Notifications.",
+      step2: "Choisis Modifier l’avatar pour choisir un autre personnage ou tes accessoires débloqués.",
+      step3: "Ouvre Confidentialité pour décider si tes amis peuvent voir tes réussites.",
       more: "La langue de l’application et la langue du texte des Écritures sont deux choix distincts. Tu fais les deux dans ton profil ; la langue du texte aussi en haut, à côté des Écritures.",
     },
     start: {
@@ -210,7 +211,7 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
       step2: "Commence par Apprendre et fais un exercice.",
       step3: "Essaie ensuite un jeu dans Jouer.",
       step4: "Tu es perdu ? Ouvre « Découvrir Versado ».",
-      more: "Tu peux refaire la présentation du début via ton profil, sous « Visite guidée ».",
+      more: "Tu peux toujours rouvrir cette présentation volontaire du produit et sa visite guidée dans Découvrir Versado. Tes réglages ne changent pas.",
     },
     switcher: {
       title: "Choisir les Écritures et la langue",
@@ -274,7 +275,7 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
       learn: { title: "Apprendre", text: "Ici, tu suis des cours : lire et répondre à des questions." },
       play: { title: "Jouer", text: "Ici, tu trouves des jeux et des énigmes, seul ou avec d’autres." },
       friends: { title: "Amis", text: "Ici, tu ajoutes des amis et tu vois comment vous avancez ensemble." },
-      profile: { title: "Ton profil", text: "Ici, tu trouves tes réglages, ton guide et cette visite guidée." },
+      profile: { title: "Ton profil", text: "Ici, tu trouves ton avatar, tes réglages et ton guide." },
     },
     learn: {
       intro: { title: "Tes cours", text: "Ce sont tes cours. Ouvre-en un pour lire et répondre à des questions. Ta progression est enregistrée." },
