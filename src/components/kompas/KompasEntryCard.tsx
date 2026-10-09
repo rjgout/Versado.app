@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
-import { KompasIcon } from "@/components/kompas/KompasIcon";
+import VisualIdentityIcon from "@/components/versado/VisualIdentityIcon";
 import { interactiveCard } from "@/components/versado/styles";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
@@ -23,7 +23,7 @@ export default function KompasEntryCard({ className = "" }: { className?: string
   return (
     <Link href="/kompas" data-kompas-target="kompas-entry" className={`${interactiveCard} flex min-h-[4.5rem] items-center gap-3 p-3 sm:p-4 ${className}`}>
       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-vs-accent-soft text-vs-accent">
-        <KompasIcon className="h-7 w-7" />
+        <VisualIdentityIcon asset="kompas" className="h-12 w-12" sizes="48px" />
       </span>
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="flex flex-wrap items-center gap-2 text-lg font-extrabold leading-tight text-vs-fg">

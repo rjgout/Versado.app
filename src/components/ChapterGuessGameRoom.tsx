@@ -13,6 +13,7 @@ import AppSelect from "@/components/AppSelect";
 import { useConfirm } from "@/components/ConfirmProvider";
 import { translateServerText } from "@/lib/i18n/serverTexts";
 import IntroAudioButton from "@/components/IntroAudioButton";
+import RankMedal from "@/components/versado/RankMedal";
 
 interface LobbyPlayer {
   userId: string;
@@ -439,14 +440,18 @@ function CountdownBar({ timeLimitMs, active }: { timeLimitMs: number; active: bo
 }
 
 function Scoreboard({ players, myUserId, showMedals }: { players: LobbyPlayer[]; myUserId: string; showMedals?: boolean }) {
-  const medals = ["🥇", "🥈", "🥉"];
   const t = useT();
   return (
     <div className="card flex flex-col divide-y divide-slate-100 w-full">
       {players.map((p, i) => (
         <div key={p.userId} className={`flex items-center justify-between py-2 ${p.userId === myUserId ? "font-extrabold" : ""}`}>
           <span className="flex items-center gap-2">
-            {showMedals ? medals[i] ?? i + 1 : i + 1}.
+            {showMedals && i < 3 ? (
+              <RankMedal
+                rank={(i + 1) as 1 | 2 | 3}
+                label={i === 0 ? t("profile.medalGold") : i === 1 ? t("profile.medalSilver") : t("profile.medalBronze")}
+              />
+            ) : <span>{i + 1}.</span>}
             <UserAvatar id={p.userId} handle={p.displayName} size="xs" />
             {p.displayName} {p.userId === myUserId && t("lobby.you")}
           </span>

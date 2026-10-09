@@ -1,6 +1,7 @@
 "use client";
 
 import SystemIcon from "@/components/versado/SystemIcon";
+import AchievementIcon from "@/components/versado/AchievementIcon";
 import { StreakContinuationCard } from "@/components/StreakContinuation";
 
 import { useMemo, useState } from "react";
@@ -232,7 +233,7 @@ export default function ReadingLessonFlow({
                 const display = ACHIEVEMENT_DISPLAY[slug];
                 return display ? (
                   <div key={slug} className="flex flex-col items-center gap-1">
-                    <span className="text-3xl">{display.icon}</span>
+                    <AchievementIcon slug={slug} fallbackIcon={display.icon} className="h-9 w-9" />
                     <span className="text-xs font-bold dark:text-slate-200">{translateOr(t, `achievements.${slug}.name`, display.name)}</span>
                   </div>
                 ) : null;

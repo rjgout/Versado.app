@@ -10,6 +10,7 @@ import { notificationGroup } from "@/lib/notificationGroups";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { getLanguage } from "@/lib/languages";
 import type { TFunction } from "@/lib/i18n/core";
+import VisualIdentityIcon from "@/components/versado/VisualIdentityIcon";
 import {
   IN_APP_NOTIFICATION_EVENT,
   type InAppNotification as NotificationItem,
@@ -232,9 +233,7 @@ export default function NotificationCenter() {
               >
                 {groups.length === 0 ? (
                   <div className="mt-20 flex flex-col items-center gap-2 text-center text-white/80" onClick={(e) => e.stopPropagation()}>
-                    <span className="text-4xl" aria-hidden>
-                      🔔
-                    </span>
+                    <VisualIdentityIcon asset="notifications-empty" className="h-28 w-28 sm:h-32 sm:w-32" sizes="128px" />
                     <p className="font-bold">{t("notifications.empty")}</p>
                     <p className="text-sm text-white/60">{t("notifications.emptyHint")}</p>
                   </div>

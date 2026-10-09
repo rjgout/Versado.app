@@ -121,6 +121,7 @@ export async function GET() {
         reason,
         achievementName,
         achievementIcon: item.achievementIcon,
+        achievementSlug: item.achievementSlug,
         createdAt: item.updatedAt,
         actor: item.user,
         reactionCount,

@@ -6,6 +6,7 @@ import { Award, Trophy } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import { surfaceCard } from "@/components/versado/styles";
 import { StreakBadge } from "@/components/social/shared";
+import RankMedal from "@/components/versado/RankMedal";
 
 interface Row {
   rank: number;
@@ -75,7 +76,12 @@ export default function GroupLeaderboardClient() {
           {rows.map((row) => {
             const body = (
               <>
-                <span className="w-8 shrink-0 text-right text-sm font-extrabold tabular-nums text-vs-fg-3">{row.rank}</span>
+                {row.rank <= 3 ? (
+                  <RankMedal
+                    rank={row.rank as 1 | 2 | 3}
+                    label={row.rank === 1 ? t("profile.medalGold") : row.rank === 2 ? t("profile.medalSilver") : t("profile.medalBronze")}
+                  />
+                ) : <span className="w-8 shrink-0 text-right text-sm font-extrabold tabular-nums text-vs-fg-3">{row.rank}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-bold text-vs-fg">{row.name}</span>
                   <span className="flex flex-wrap items-center gap-x-2 text-xs font-semibold text-vs-fg-3">
