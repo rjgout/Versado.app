@@ -566,6 +566,8 @@ export const es: PartialMessages = {
     "backToCourses": "Volver a los cursos",
     "nextLesson": "Próxima lección →",
     "startQuestions": "Empieza las preguntas →",
+    "zoomImage": "Ampliar imagen",
+    "unzoomImage": "Reducir imagen",
     "toStories": "A las historias",
     "nextStory": "Siguiente historia →",
     "toEpisodes": "A los episodios",

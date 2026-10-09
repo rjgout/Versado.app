@@ -506,6 +506,8 @@ export const nl = {
     backToCourses: "Terug naar cursussen",
     nextLesson: "Volgende les →",
     startQuestions: "Begin met de vragen →",
+    zoomImage: "Afbeelding vergroten",
+    unzoomImage: "Afbeelding verkleinen",
     toStories: "Naar de verhalen",
     nextStory: "Volgend verhaal →",
     toEpisodes: "Naar de afleveringen",

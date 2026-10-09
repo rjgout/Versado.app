@@ -134,3 +134,19 @@ test("de toevoegkaart gebruikt de gedeelde kaartstijl en een groot aantikbaar vl
     assert.match(messages, /"?addGameHint"?: "/, `${lang}: gamesHub.addGameHint ontbreekt`);
   }
 });
+
+// Kinderverhalen: een tik op een plaatje vergroot het over de volle breedte, nog een tik zet het terug.
+test("een plaatje in een kinderverhaal wisselt tussen klein en vergroot en heeft een toegankelijke naam", async () => {
+  const { readFileSync } = await import("node:fs");
+  const source = readFileSync("src/components/KidsLessonFlow.tsx", "utf8");
+  assert.match(source, /aria-pressed=\{zoomed\}/);
+  assert.match(source, /setZoomedImage\(zoomed \? null : src\)/);
+  assert.match(source, /col-span-full/);
+  assert.match(source, /t\("lessonFlows\.zoomImage"\)/);
+  assert.match(source, /t\("lessonFlows\.unzoomImage"\)/);
+  for (const lang of ["nl", "en", "de", "fr", "es"]) {
+    const messages = readFileSync(`src/lib/i18n/messages/${lang}.ts`, "utf8");
+    assert.match(messages, /"?zoomImage"?: "/, `${lang}: zoomImage ontbreekt`);
+    assert.match(messages, /"?unzoomImage"?: "/, `${lang}: unzoomImage ontbreekt`);
+  }
+});

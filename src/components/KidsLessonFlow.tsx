@@ -54,6 +54,7 @@ export default function KidsLessonFlow({
 }) {
   const t = useT();
   const [phase, setPhase] = useState<Phase>("read");
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -92,10 +93,23 @@ export default function KidsLessonFlow({
         <h1 className="text-2xl font-extrabold text-brand-800 dark:text-brand-300">{title}</h1>
         {images.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {images.map((src) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={src} src={src} alt="" className="rounded-xl w-full h-auto" />
-            ))}
+            {images.map((src) => {
+              const zoomed = zoomedImage === src;
+              // Een tik vergroot het plaatje over de volle breedte, nog een tik zet het terug op zijn plek.
+              return (
+                <button
+                  key={src}
+                  type="button"
+                  aria-pressed={zoomed}
+                  aria-label={zoomed ? t("lessonFlows.unzoomImage") : t("lessonFlows.zoomImage")}
+                  onClick={() => setZoomedImage(zoomed ? null : src)}
+                  className={`block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-vs-accent ${zoomed ? "col-span-full cursor-zoom-out" : "cursor-zoom-in"}`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt="" className="rounded-xl w-full h-auto" />
+                </button>
+              );
+            })}
           </div>
         )}
         <p className="text-lg leading-relaxed dark:text-slate-100 whitespace-pre-line">{text}</p>

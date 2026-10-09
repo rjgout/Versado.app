@@ -554,6 +554,8 @@ export const fr: PartialMessages = {
     backToCourses: "Retour aux cours",
     nextLesson: "Leçon suivante →",
     startQuestions: "Commencer les questions →",
+    zoomImage: "Agrandir l'image",
+    unzoomImage: "Réduire l'image",
     toStories: "Aux histoires",
     nextStory: "Histoire suivante →",
     toEpisodes: "Aux épisodes",
