@@ -6,6 +6,7 @@ import type { SoloLeaderboardEntry, SoloOverview } from "@/lib/alleskenner/solo"
 import UserTag from "@/components/UserTag";
 import UserAvatar from "@/components/UserAvatar";
 import { useT } from "@/components/I18nProvider";
+import RankMedal from "@/components/versado/RankMedal";
 
 type Board = "today" | "week" | "friends";
 
@@ -164,11 +165,15 @@ export default function SoloClient({ myUserId }: { myUserId: string }) {
 }
 
 function LeaderboardRow({ entry, mine, board }: { entry: SoloLeaderboardEntry; mine: boolean; board: Board }) {
-  const medal = entry.rank === 1 ? "🥇" : entry.rank === 2 ? "🥈" : entry.rank === 3 ? "🥉" : null;
   const t = useT();
   return (
     <li className={`flex items-center gap-3 py-2 ${mine ? "rounded-xl bg-brand-50 dark:bg-slate-700/60 px-2 -mx-2" : ""}`}>
-      <span className="w-7 text-center font-extrabold text-slate-400">{medal ?? entry.rank}</span>
+      {entry.rank <= 3 ? (
+        <RankMedal
+          rank={entry.rank as 1 | 2 | 3}
+          label={entry.rank === 1 ? t("profile.medalGold") : entry.rank === 2 ? t("profile.medalSilver") : t("profile.medalBronze")}
+        />
+      ) : <span className="w-7 text-center font-extrabold text-slate-400">{entry.rank}</span>}
       <UserAvatar id={entry.userId} handle={entry.handle} />
       <span className="flex-1 min-w-0 truncate font-semibold dark:text-slate-100">
         <UserTag handle={entry.handle} discriminator={entry.discriminator} />

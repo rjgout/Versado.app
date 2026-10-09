@@ -54,6 +54,13 @@ lijst hierboven nog volledig.
   gebruikt `source-generic.webp`; een ontbrekend beeld valt daarna terug op het
   bestaande functionele Lucide-icoon. De bronnaam blijft altijd echte,
   gelokaliseerde UI-tekst.
+- **Visuele identiteit V2**: de elf definitieve WebP-assets staan onder
+  `public/icons/versado/`. Alleen `src/lib/visualIdentityAssets.ts` kent hun
+  paden; `VisualIdentityIcon` rendert ze decoratief met een Lucidefallback en
+  `AchievementIcon` koppelt expliciete achievement-slugs aan de badgefamilie.
+  Nieuwe publieke merkbeelden worden daar geregistreerd, nooit met losse
+  paden in pagina's. Kleine bedieningsiconen en het headerbelletje blijven
+  functionele Lucide-iconen; de profielavatar valt buiten dit assetsysteem.
 - **Shell**: vier hoofdbestemmingen in `src/lib/navigation.ts`
   (`PRIMARY_NAV`, met per bestemming de routes die erbij horen);
   `BottomNav.tsx` op telefoon en tablet, `shell/PrimaryNav.tsx` op desktop,

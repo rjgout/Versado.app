@@ -11,6 +11,7 @@ import ProfileCharacterHero from "@/components/ProfileCharacterHero";
 import UserTag from "@/components/UserTag";
 import SystemIcon from "@/components/versado/SystemIcon";
 import DivisionEmblem from "@/components/versado/DivisionEmblem";
+import AchievementIcon from "@/components/versado/AchievementIcon";
 import { ProfileCard } from "@/components/profile/settings";
 
 type FriendProfile = {
@@ -44,7 +45,7 @@ function FeaturedAchievement({ achievement }: { achievement: NonNullable<FriendP
   const description = translateOr(t, `achievements.${achievement.slug}.description`, achievement.description);
   return (
     <div title={description} className="flex min-h-24 flex-col items-center justify-center gap-1.5 rounded-xl border border-vs-xp/30 bg-vs-xp-soft p-3 text-center">
-      <span className="text-3xl leading-none" aria-hidden>{achievement.icon}</span>
+      <AchievementIcon slug={achievement.slug} fallbackIcon={achievement.icon} className="h-9 w-9" />
       <span className="text-xs font-bold leading-snug text-vs-fg">{name}</span>
       <span className="sr-only">{description}</span>
     </div>

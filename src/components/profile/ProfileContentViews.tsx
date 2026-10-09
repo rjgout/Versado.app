@@ -5,6 +5,7 @@ import type { LeagueTier } from "@/generated/prisma/client";
 import { ArrowDown, ArrowUp, Lock, Plus, X } from "lucide-react";
 import DivisionEmblem from "@/components/versado/DivisionEmblem";
 import RankMedal from "@/components/versado/RankMedal";
+import AchievementIcon from "@/components/versado/AchievementIcon";
 import { useT } from "@/components/I18nProvider";
 import { translateOr } from "@/lib/i18n/core";
 import { ProfileCard } from "@/components/profile/settings";
@@ -99,7 +100,7 @@ function AchievementTile({ achievement, compact = false }: { achievement: Achiev
   const description = translateOr(t, `achievements.${achievement.slug}.description`, achievement.description);
   return (
     <div title={description} className={`relative flex flex-col items-center justify-center gap-1.5 rounded-xl border border-vs-xp/30 bg-vs-xp-soft p-3 text-center ${compact ? "min-h-24" : "min-h-28"}`}>
-      <span className="text-3xl leading-none" aria-hidden>{achievement.icon}</span>
+      <AchievementIcon slug={achievement.slug} fallbackIcon={achievement.icon} className="h-9 w-9" />
       <span className="text-xs font-bold leading-snug text-vs-fg">{name}</span>
       <span className="sr-only">{t("profile.achievementEarned")}. {description}</span>
     </div>
@@ -158,7 +159,7 @@ function FeaturedAchievementsManager({ achievements, initialIds, onSave }: { ach
             return (
               <div className="flex min-h-14 items-center gap-2 rounded-xl border border-vs-line bg-vs-surface p-2">
                 <DragHandle {...handle} />
-                <span className="text-2xl" aria-hidden>{achievement.icon}</span>
+                <AchievementIcon slug={achievement.slug} fallbackIcon={achievement.icon} className="h-7 w-7" />
                 <span className="min-w-0 flex-1 truncate font-bold text-vs-fg">{label}</span>
                 {!handle.isOverlay && <div className="flex shrink-0 items-center gap-0.5">
                   <button type="button" onClick={() => move(achievement.id, -1)} disabled={index === 0} aria-label={t("cards.moveUp")} className="flex h-10 w-10 items-center justify-center rounded-lg text-vs-fg-2 hover:bg-vs-subtle disabled:opacity-35"><ArrowUp className="h-4 w-4" aria-hidden /></button>
@@ -176,7 +177,7 @@ function FeaturedAchievementsManager({ achievements, initialIds, onSave }: { ach
             const label = translateOr(t, `achievements.${achievement.slug}.name`, achievement.name);
             return (
               <button key={achievement.id} type="button" disabled={selected.length >= 5} onClick={() => setSelectedIds((current) => [...current, achievement.id])} className="flex min-h-12 items-center gap-2 rounded-xl border border-vs-line px-3 text-left transition hover:bg-vs-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent disabled:cursor-not-allowed disabled:opacity-45">
-                <span className="text-xl" aria-hidden>{achievement.icon}</span>
+                <AchievementIcon slug={achievement.slug} fallbackIcon={achievement.icon} className="h-6 w-6" />
                 <span className="min-w-0 flex-1 truncate text-sm font-bold text-vs-fg">{label}</span>
                 <Plus className="h-4 w-4 shrink-0 text-vs-accent" aria-hidden />
               </button>
@@ -229,7 +230,7 @@ export function AchievementsView({ data, onSaveFeatured }: { data: ProfileData; 
               }`}
             >
               {!done && <Lock className="absolute right-2 top-2 h-3.5 w-3.5 text-vs-fg-3" aria-hidden />}
-              <span className={`text-3xl leading-none ${done ? "" : "opacity-40 grayscale"}`} aria-hidden>{achievement.icon}</span>
+              <AchievementIcon slug={achievement.slug} fallbackIcon={achievement.icon} className={`h-9 w-9 ${done ? "" : "opacity-40 grayscale"}`} />
               <span className={`text-xs font-bold leading-snug ${done ? "text-vs-fg" : "text-vs-fg-3"}`}>{name}</span>
               <span className="sr-only">
                 {done ? t("profile.achievementEarned") : t("profile.achievementLocked")}. {description}

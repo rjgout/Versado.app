@@ -8,7 +8,7 @@ import { findRow } from "@/lib/kompas/state";
 import PersonalMascot from "@/components/versado/PersonalMascot";
 import TopicCard from "@/components/kompas/TopicCard";
 import TourButton from "@/components/kompas/TourButton";
-import { KompasIcon } from "@/components/kompas/KompasIcon";
+import VisualIdentityIcon from "@/components/versado/VisualIdentityIcon";
 import { guideMascotState } from "@/lib/kompas/mascot";
 import { surfaceCard } from "@/components/versado/styles";
 import Link from "next/link";
@@ -56,7 +56,7 @@ export default async function KompasPage() {
       <section aria-labelledby="kompas-intro" className="flex items-center gap-4">
         <div className="min-w-0 flex-1">
           <h1 id="kompas-intro" className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-vs-fg sm:text-3xl">
-            <KompasIcon className="h-7 w-7 shrink-0 text-vs-accent" />
+            <VisualIdentityIcon asset="kompas" className="h-9 w-9" sizes="36px" />
             {t("kompas.title")}
           </h1>
           <p className="mt-2 max-w-prose text-base leading-relaxed text-vs-fg-2 sm:text-lg">{t("kompas.hub.intro")}</p>

@@ -14,6 +14,7 @@ import { StreakContinuationCard } from "@/components/StreakContinuation";
 import { useLiveQuery, useLiveTopic } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
 import { liveMutation } from "@/lib/data/mutation";
+import RankMedal from "@/components/versado/RankMedal";
 
 type LetterState = "correct" | "present" | "absent";
 
@@ -367,9 +368,12 @@ export default function WordGameClient() {
           <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-700">
             {game.leaderboard.map((entry) => (
               <div key={entry.rank} className="flex items-center gap-3 py-2 first:pt-0 last:pb-0">
-                <span className="w-7 text-center font-extrabold text-slate-500 dark:text-slate-400">
-                  {entry.rank <= 3 ? ["🥇", "🥈", "🥉"][entry.rank - 1] : entry.rank}
-                </span>
+                {entry.rank <= 3 ? (
+                  <RankMedal
+                    rank={entry.rank as 1 | 2 | 3}
+                    label={entry.rank === 1 ? t("profile.medalGold") : entry.rank === 2 ? t("profile.medalSilver") : t("profile.medalBronze")}
+                  />
+                ) : <span className="w-7 text-center font-extrabold text-slate-500 dark:text-slate-400">{entry.rank}</span>}
                 <UserAvatar id={entry.userId} handle={entry.handle} />
                 <div className="min-w-0 flex-1">
                   <p className="font-bold truncate dark:text-slate-100">

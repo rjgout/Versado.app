@@ -8,6 +8,7 @@ import UserAvatar from "@/components/UserAvatar";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { getLanguage } from "@/lib/languages";
 import PersonalMascot from "@/components/versado/PersonalMascot";
+import AchievementIcon from "@/components/versado/AchievementIcon";
 
 const REACTIONS = ["🫶🏻", "❤️", "🎉", "🔥", "🙌"] as const;
 type Reaction = { id: string; handle: string; discriminator: string; avatarEmoji: string | null; emoji: string; createdAt: string };
@@ -17,6 +18,7 @@ interface FeedItem {
   kind: "XP" | "ACHIEVEMENT";
   xpAmount: number;
   achievementIcon: string | null;
+  achievementSlug: string | null;
   createdAt: string;
   actor: { id: string; handle: string; discriminator: string; avatarEmoji: string | null };
   text: string;
@@ -159,7 +161,7 @@ export default function ActivityFeedClient() {
                       {new Date(item.createdAt).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" })}
                     </time>
                   </div>
-                  {item.achievementIcon && <span className="text-2xl" aria-hidden>{item.achievementIcon}</span>}
+                  {(item.achievementIcon || item.achievementSlug) && <AchievementIcon slug={item.achievementSlug ?? ""} fallbackIcon={item.achievementIcon} className="h-7 w-7" />}
                 </div>
 
                 <div className="flex min-w-0 items-center gap-2">

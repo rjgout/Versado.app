@@ -6,6 +6,7 @@ import { StreakContinuationCard } from "@/components/StreakContinuation";
 import { useState } from "react";
 import Link from "next/link";
 import { ExerciseCard, LessonResultMascot, type Exercise } from "@/components/LessonFlow";
+import AchievementIcon from "@/components/versado/AchievementIcon";
 import { ACHIEVEMENT_DISPLAY } from "@/lib/achievementDisplay";
 import { announceXpChanged } from "@/lib/xpBroadcast";
 import { useT } from "@/components/I18nProvider";
@@ -158,7 +159,7 @@ export default function KidsLessonFlow({
                 if (!display) return null;
                 return (
                   <div key={slug} className="flex flex-col items-center gap-1">
-                    <span className="text-3xl">{display.icon}</span>
+                    <AchievementIcon slug={slug} fallbackIcon={display.icon} className="h-9 w-9" />
                     <span className="text-xs font-bold dark:text-slate-200">{translateOr(t, `achievements.${slug}.name`, display.name)}</span>
                   </div>
                 );
