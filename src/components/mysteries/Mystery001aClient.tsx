@@ -22,6 +22,10 @@ import { getCharacterAsset } from "@/lib/characterAssets";
 type Gesture = { pointerId: number; characterId: CharacterId; startX: number; startY: number; moved: boolean };
 type DragState = { characterId: CharacterId; x: number; y: number };
 
+// Alleen het artwork wordt iets ruimer getekend. De bestaande button-metrics,
+// voetankers en plaatsingstransform blijven ongewijzigd.
+const VISUAL_CHARACTER_SCALE = 1.15;
+
 export function MysteryClient({ initialProgress, readerHref, definition, progressEndpoint, hintEndpoint }: { initialProgress: MysteryProgressView; readerHref: string; definition: MysteryDefinition; progressEndpoint: string; hintEndpoint: string }) {
   // De bestaande component blijft de gedeelde renderer; deze lokale alias
   // beperkt de refactor tot data-invoer en laat de bestaande interactie intact.
@@ -640,8 +644,8 @@ function MysteryBoard({ definition, geometry, placements, selected, dragTarget, 
           >
             {/* De transparante bron blijft volledig intact; de voetpixel is het positioneringsanker. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={character.asset} alt="" draggable={false} onError={() => onCharacterAssetError(character.id)} className={`pointer-events-none h-full w-full object-contain ${characterAssetErrors[character.id] ? "opacity-0" : ""}`} />
-            <span className="absolute left-1/2 top-full -translate-x-1/2 rounded-full bg-vs-elevated/90 px-1.5 py-0.5 text-[10px] font-extrabold text-vs-fg shadow-sm">{character.name}</span>
+            <img src={character.asset} alt="" draggable={false} onError={() => onCharacterAssetError(character.id)} className={`pointer-events-none h-full w-full object-contain ${characterAssetErrors[character.id] ? "opacity-0" : ""}`} style={{ transformOrigin: `${metrics.anchorX * 100}% ${metrics.anchorY * 100}%`, transform: `scale(${VISUAL_CHARACTER_SCALE})` }} />
+            <span className="pointer-events-none absolute left-1/2 top-full -translate-x-1/2 whitespace-nowrap rounded-full bg-vs-elevated/90 px-1.5 py-0.5 text-xs font-extrabold leading-none text-vs-fg shadow-sm">{character.name}</span>
           </button>
         );
       })}
