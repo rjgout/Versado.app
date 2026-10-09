@@ -3,6 +3,15 @@ import { MYSTERY_001A } from "./mystery001a";
 import type { BoardGeometry } from "./manifest";
 import type { CharacterId, GridCell, MysteryDefinition, Placements } from "./types";
 
+export interface BoardRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+export type GridRect = BoardRect;
+
 export function sameCell(a: GridCell | null | undefined, b: GridCell | null | undefined): boolean {
   return !!a && !!b && a.row === b.row && a.column === b.column;
 }
@@ -109,28 +118,61 @@ export function hintFor(definition: MysteryDefinition, placements: Placements): 
 
 export function cellFromBoardPoint(
   point: { x: number; y: number },
-  boardRect: { left: number; top: number; width: number; height: number },
+  boardRect: BoardRect,
   geometry: BoardGeometry
 ): GridCell | null {
-  const x = (point.x - boardRect.left) / boardRect.width;
-  const y = (point.y - boardRect.top) / boardRect.height;
-  if (x < geometry.bounds.left || x >= geometry.bounds.right || y < geometry.bounds.top || y >= geometry.bounds.bottom) return null;
-  const column = Math.floor((x - geometry.bounds.left) / geometry.cellWidthNormalized) + 1;
-  const row = Math.floor((y - geometry.bounds.top) / geometry.cellHeightNormalized) + 1;
+  const grid = gridPixelRect(boardRect, geometry);
+  if (point.x < grid.left || point.x >= grid.left + grid.width || point.y < grid.top || point.y >= grid.top + grid.height) return null;
+  const column = Math.floor((point.x - grid.left) / (grid.width / geometry.columns)) + 1;
+  const row = Math.floor((point.y - grid.top) / (grid.height / geometry.rows)) + 1;
   return row <= geometry.rows && column <= geometry.columns ? { row, column } : null;
 }
 
-export function cellFootAnchor(cell: GridCell, geometry: BoardGeometry): { x: number; y: number } {
+/** De genormaliseerde rasterrechthoek komt uitsluitend uit manifest-bounds. */
+export function gridNormalizedRect(geometry: BoardGeometry): GridRect {
   return {
-    x: geometry.bounds.left + (cell.column - 1 + geometry.footAnchorInCell.x) * geometry.cellWidthNormalized,
-    y: geometry.bounds.top + (cell.row - 1 + geometry.footAnchorInCell.y) * geometry.cellHeightNormalized,
+    left: geometry.bounds.left,
+    top: geometry.bounds.top,
+    width: geometry.bounds.right - geometry.bounds.left,
+    height: geometry.bounds.bottom - geometry.bounds.top,
+  };
+}
+
+/** Zet dezelfde manifestgeometrie om naar pixels in het echte boardbeeld. */
+export function gridPixelRect(boardRect: BoardRect, geometry: BoardGeometry): GridRect {
+  const grid = gridNormalizedRect(geometry);
+  return {
+    left: boardRect.left + grid.left * boardRect.width,
+    top: boardRect.top + grid.top * boardRect.height,
+    width: grid.width * boardRect.width,
+    height: grid.height * boardRect.height,
+  };
+}
+
+/** Een cel deelt de geometry-bron met rasterlijnen, anchors en hit testing. */
+export function cellNormalizedRect(cell: GridCell, geometry: BoardGeometry): GridRect {
+  const grid = gridNormalizedRect(geometry);
+  return {
+    left: grid.left + (cell.column - 1) * (grid.width / geometry.columns),
+    top: grid.top + (cell.row - 1) * (grid.height / geometry.rows),
+    width: grid.width / geometry.columns,
+    height: grid.height / geometry.rows,
+  };
+}
+
+export function cellFootAnchor(cell: GridCell, geometry: BoardGeometry): { x: number; y: number } {
+  const rect = cellNormalizedRect(cell, geometry);
+  return {
+    x: rect.left + geometry.footAnchorInCell.x * rect.width,
+    y: rect.top + geometry.footAnchorInCell.y * rect.height,
   };
 }
 
 export function characterImageMetrics(geometry: BoardGeometry): { height: number; anchorX: number; anchorY: number } {
   const visibleRatio = (geometry.visibleCharacterHeightPixels ?? geometry.imageHeight) / geometry.imageHeight;
+  const grid = gridNormalizedRect(geometry);
   return {
-    height: geometry.cellHeightNormalized * geometry.maxVisibleCharacterHeight / visibleRatio,
+    height: (grid.height / geometry.rows) * geometry.maxVisibleCharacterHeight / visibleRatio,
     anchorX: geometry.footAnchorPixels.x / geometry.imageWidth,
     anchorY: geometry.footAnchorPixels.y / geometry.imageHeight,
   };

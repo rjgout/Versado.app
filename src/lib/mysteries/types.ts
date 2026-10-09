@@ -90,8 +90,6 @@ export interface MysteryDefinition {
   grid: {
     rows: number;
     columns: number;
-    /** Optionele visuele kalibratie bovenop het technische asset-manifest. */
-    calibratedBounds?: { left: number; top: number; right: number; bottom: number };
   };
   assets: { board: string; manifest: string };
   characters: readonly MysteryCharacter[];

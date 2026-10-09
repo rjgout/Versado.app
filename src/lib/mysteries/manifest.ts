@@ -13,23 +13,6 @@ export interface BoardGeometry {
   visibleCharacterHeightPixels?: number;
 }
 
-/**
- * Een handmatig ontworpen bord kan een ruimer technisch speelveld in het
- * manifest hebben dan de feitelijke zandvlakte. De celverdeling blijft altijd
- * rechthoekig en gelijkmatig; alleen de buitenrand wordt gekalibreerd.
- */
-export function calibrateBoardGeometry(
-  geometry: BoardGeometry,
-  bounds: BoardGeometry["bounds"]
-): BoardGeometry {
-  return {
-    ...geometry,
-    bounds,
-    cellWidthNormalized: (bounds.right - bounds.left) / geometry.columns,
-    cellHeightNormalized: (bounds.bottom - bounds.top) / geometry.rows,
-  };
-}
-
 function object(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
 }
@@ -107,6 +90,18 @@ export function parseBoardManifest(input: unknown): BoardGeometry | null {
     geometry.maxVisibleCharacterHeight,
   ];
   if (values.some((value) => !Number.isFinite(value))) return null;
-  if (geometry.rows < 1 || geometry.columns < 1 || geometry.bounds.right <= geometry.bounds.left || geometry.bounds.bottom <= geometry.bounds.top) return null;
+  if (
+    geometry.imageWidth <= 0 || geometry.imageHeight <= 0
+    || geometry.rows < 1 || geometry.columns < 1
+    || geometry.bounds.left < 0 || geometry.bounds.top < 0 || geometry.bounds.right > 1 || geometry.bounds.bottom > 1
+    || geometry.bounds.right <= geometry.bounds.left || geometry.bounds.bottom <= geometry.bounds.top
+    || geometry.footAnchorInCell.x < 0 || geometry.footAnchorInCell.x > 1 || geometry.footAnchorInCell.y < 0 || geometry.footAnchorInCell.y > 1
+    || geometry.maxVisibleCharacterHeight <= 0
+  ) return null;
+  // Bounds zijn de primaire geometrie. Een afwijkende celmaat introduceert
+  // anders een tweede coördinatensysteem voor renderer en hit testing.
+  const expectedCellWidth = (geometry.bounds.right - geometry.bounds.left) / geometry.columns;
+  const expectedCellHeight = (geometry.bounds.bottom - geometry.bounds.top) / geometry.rows;
+  if (Math.abs(geometry.cellWidthNormalized - expectedCellWidth) > 1e-9 || Math.abs(geometry.cellHeightNormalized - expectedCellHeight) > 1e-9) return null;
   return geometry;
 }

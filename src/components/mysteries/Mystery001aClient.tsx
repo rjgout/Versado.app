@@ -9,8 +9,8 @@ import { useT } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
 import { focusRing, primaryButton, secondaryButton, surfaceCard } from "@/components/versado/styles";
 import { MYSTERY_001A, emptyMysteryPlacements } from "@/lib/mysteries/mystery001a";
-import { allCharactersPlaced, cellFootAnchor, cellFromBoardPoint, characterImageMetrics, hintFor, isHardConstraintValid, occupantAt, placeCharacter, sameCell } from "@/lib/mysteries/logic";
-import { calibrateBoardGeometry, parseBoardManifest, type BoardGeometry } from "@/lib/mysteries/manifest";
+import { allCharactersPlaced, cellFootAnchor, cellFromBoardPoint, characterImageMetrics, gridNormalizedRect, hintFor, isHardConstraintValid, occupantAt, placeCharacter, sameCell } from "@/lib/mysteries/logic";
+import { parseBoardManifest, type BoardGeometry } from "@/lib/mysteries/manifest";
 import { characterCluesFor } from "@/lib/mysteries/characterClues";
 import { closingQuestionFor } from "@/lib/mysteries/closingQuestions";
 import { nextMysteryHrefFor } from "@/lib/mysteries/game";
@@ -86,11 +86,11 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
         if (cancelled) return;
         const parsed = parseBoardManifest(manifest);
         if (!parsed || parsed.rows !== MYSTERY_001A.grid.rows || parsed.columns !== MYSTERY_001A.grid.columns) throw new Error("geometry");
-        setGeometry(MYSTERY_001A.grid.calibratedBounds ? calibrateBoardGeometry(parsed, MYSTERY_001A.grid.calibratedBounds) : parsed);
+        setGeometry(parsed);
       })
       .catch(() => { if (!cancelled) setBoardAssetError(true); });
     return () => { cancelled = true; };
-  }, [MYSTERY_001A.assets.manifest, MYSTERY_001A.grid.calibratedBounds, MYSTERY_001A.grid.columns, MYSTERY_001A.grid.rows]);
+  }, [MYSTERY_001A.assets.manifest, MYSTERY_001A.grid.columns, MYSTERY_001A.grid.rows]);
 
   useEffect(() => {
     fetch("/api/hints", { cache: "no-store" })
@@ -217,7 +217,9 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
     current.moved = true;
     event.preventDefault();
     setDrag({ characterId: current.characterId, x: event.clientX, y: event.clientY - (event.pointerType === "touch" ? 36 : 10) });
-    setDragTarget(targetAt(event.clientX, event.clientY - (event.pointerType === "touch" ? 36 : 10)));
+    // De preview hangt iets boven de vinger, maar de drop raakt altijd de
+    // zichtbare cel onder de werkelijke pointerpositie.
+    setDragTarget(targetAt(event.clientX, event.clientY));
   }
 
   function pointerUp(event: ReactPointerEvent<HTMLButtonElement>) {
@@ -228,18 +230,27 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
     setDragTarget(null);
     suppressClick.current = current.moved;
     if (!current.moved) return;
-    const y = event.clientY - (event.pointerType === "touch" ? 36 : 10);
     const cell = geometry && boardRef.current
-      ? cellFromBoardPoint({ x: event.clientX, y }, boardRef.current.getBoundingClientRect(), geometry)
+      ? cellFromBoardPoint({ x: event.clientX, y: event.clientY }, boardRef.current.getBoundingClientRect(), geometry)
       : null;
     if (cell && isHardConstraintValid(MYSTERY_001A, placements, current.characterId, cell)) {
       tryPlace(current.characterId, cell);
       return;
     }
     const tray = trayRef.current?.getBoundingClientRect();
-    if (tray && event.clientX >= tray.left && event.clientX <= tray.right && y >= tray.top && y <= tray.bottom && placements[current.characterId]) {
+    if (tray && event.clientX >= tray.left && event.clientX <= tray.right && event.clientY >= tray.top && event.clientY <= tray.bottom && placements[current.characterId]) {
       unplace(current.characterId);
     }
+  }
+
+  function pointerCancel(event: ReactPointerEvent<HTMLButtonElement>) {
+    const current = gesture.current;
+    if (!current || current.pointerId !== event.pointerId) return;
+    // Een door browser/scroll geannuleerde pointer mag nooit als drop tellen.
+    gesture.current = null;
+    suppressClick.current = true;
+    setDrag(null);
+    setDragTarget(null);
   }
 
   function characterClick(characterId: CharacterId) {
@@ -424,6 +435,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
                 onPointerDown={pointerDown}
                 onPointerMove={pointerMove}
                 onPointerUp={pointerUp}
+                onPointerCancel={pointerCancel}
               />
             )}
             {(tutorialActive || tutorialFeedback || saveError || (hintError && !hintKey)) && (
@@ -447,6 +459,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
             onPointerDown={pointerDown}
             onPointerMove={pointerMove}
             onPointerUp={pointerUp}
+            onPointerCancel={pointerCancel}
           />
           {selectedCharacter && placements[selectedCharacter.id] && !tutorialActive && (
             <button type="button" className="shrink-0 text-left text-sm font-bold text-vs-accent underline-offset-4 hover:underline" onClick={() => unplace(selectedCharacter.id)}>
@@ -502,7 +515,7 @@ function initialCharacterClueNotes(definition: MysteryDefinition): Record<string
   return Object.fromEntries(definition.characters.flatMap((character) => characterCluesFor(definition, character.id).map((_, index) => [`${character.id}-${index}`, false]))) as Record<string, boolean>;
 }
 
-function MysteryBoard({ definition, geometry, placements, selected, dragTarget, constraintPulse, tutorialActive, boardRef, onBoardAssetError, characterAssetErrors, onCharacterAssetError, onCell, onCharacterClick, onPointerDown, onPointerMove, onPointerUp }: {
+function MysteryBoard({ definition, geometry, placements, selected, dragTarget, constraintPulse, tutorialActive, boardRef, onBoardAssetError, characterAssetErrors, onCharacterAssetError, onCell, onCharacterClick, onPointerDown, onPointerMove, onPointerUp, onPointerCancel }: {
   definition: MysteryDefinition;
   geometry: BoardGeometry;
   placements: Placements;
@@ -519,9 +532,16 @@ function MysteryBoard({ definition, geometry, placements, selected, dragTarget, 
   onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>, id: CharacterId) => void;
   onPointerMove: (event: ReactPointerEvent<HTMLButtonElement>) => void;
   onPointerUp: (event: ReactPointerEvent<HTMLButtonElement>) => void;
+  onPointerCancel: (event: ReactPointerEvent<HTMLButtonElement>) => void;
 }) {
   const t = useT();
   const cells = useMemo(() => Array.from({ length: geometry.rows * geometry.columns }, (_, index) => ({ row: Math.floor(index / geometry.columns) + 1, column: index % geometry.columns + 1 })), [geometry]);
+  const grid = gridNormalizedRect(geometry);
+  const gridStyle = {
+    left: `${grid.left * 100}%`, top: `${grid.top * 100}%`,
+    width: `${grid.width * 100}%`, height: `${grid.height * 100}%`,
+    gridTemplateColumns: `repeat(${geometry.columns}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${geometry.rows}, minmax(0, 1fr))`,
+  };
   const metrics = characterImageMetrics(geometry);
   const showGrid = selected !== null || dragTarget !== null || tutorialActive || constraintPulse;
   const [debugGrid, setDebugGrid] = useState(false);
@@ -534,17 +554,13 @@ function MysteryBoard({ definition, geometry, placements, selected, dragTarget, 
   }, []);
 
   return (
-    <div ref={boardRef} role="grid" aria-label={t("mystery001a.board")} aria-rowcount={geometry.rows} aria-colcount={geometry.columns} className="mystery-board-frame relative aspect-square w-full touch-none overflow-hidden rounded-2xl bg-vs-subtle shadow-sm select-none">
+    <div ref={boardRef} role="grid" aria-label={t("mystery001a.board")} aria-rowcount={geometry.rows} aria-colcount={geometry.columns} className="mystery-board-frame relative aspect-square w-full touch-none overflow-hidden rounded-2xl bg-vs-subtle shadow-sm select-none" style={{ aspectRatio: `${geometry.imageWidth} / ${geometry.imageHeight}` }}>
       {/* Het volledige vierkante bronbeeld blijft zichtbaar; geen object-cover of uitsnede. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={definition.assets.board} alt="" draggable={false} onError={onBoardAssetError} className="pointer-events-none absolute inset-0 h-full w-full object-contain" />
+      <img src={definition.assets.board} alt="" width={geometry.imageWidth} height={geometry.imageHeight} draggable={false} onError={onBoardAssetError} className="pointer-events-none absolute inset-0 h-full w-full object-contain" />
       <div
         className="absolute grid"
-        style={{
-          left: `${geometry.bounds.left * 100}%`, top: `${geometry.bounds.top * 100}%`,
-          width: `${(geometry.bounds.right - geometry.bounds.left) * 100}%`, height: `${(geometry.bounds.bottom - geometry.bounds.top) * 100}%`,
-          gridTemplateColumns: `repeat(${geometry.columns}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${geometry.rows}, minmax(0, 1fr))`,
-        }}
+        style={gridStyle}
       >
         {cells.map((cell) => {
           const occupant = occupantAt(placements, cell);
@@ -572,28 +588,24 @@ function MysteryBoard({ definition, geometry, placements, selected, dragTarget, 
           <div
             className="absolute border-2 border-fuchsia-500/90"
             style={{
-              left: `${geometry.bounds.left * 100}%`, top: `${geometry.bounds.top * 100}%`,
-              width: `${(geometry.bounds.right - geometry.bounds.left) * 100}%`, height: `${(geometry.bounds.bottom - geometry.bounds.top) * 100}%`,
+              left: `${grid.left * 100}%`, top: `${grid.top * 100}%`,
+              width: `${grid.width * 100}%`, height: `${grid.height * 100}%`,
             }}
           />
           <div
             className="absolute grid"
-            style={{
-              left: `${geometry.bounds.left * 100}%`, top: `${geometry.bounds.top * 100}%`,
-              width: `${(geometry.bounds.right - geometry.bounds.left) * 100}%`, height: `${(geometry.bounds.bottom - geometry.bounds.top) * 100}%`,
-              gridTemplateColumns: `repeat(${geometry.columns}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${geometry.rows}, minmax(0, 1fr))`,
-            }}
+            style={gridStyle}
           >
             {cells.map((cell) => (
               <div key={`debug-${cell.row}-${cell.column}`} className="relative border border-fuchsia-400/70 bg-fuchsia-300/5">
                 <span className="absolute left-1 top-1 rounded bg-black/70 px-1 text-[9px] font-bold text-white">R{cell.row}C{cell.column}</span>
-                <span
-                  className="absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-cyan-400"
-                  style={{ left: "50%", top: "80%" }}
-                />
               </div>
             ))}
           </div>
+          {cells.map((cell) => {
+            const anchor = cellFootAnchor(cell, geometry);
+            return <span key={`debug-anchor-${cell.row}-${cell.column}`} className="absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-cyan-400" style={{ left: `${anchor.x * 100}%`, top: `${anchor.y * 100}%` }} />;
+          })}
           {definition.characters.map((character) => {
             const cell = placements[character.id];
             if (!cell) return null;
@@ -616,7 +628,7 @@ function MysteryBoard({ definition, geometry, placements, selected, dragTarget, 
             onPointerDown={(event) => onPointerDown(event, character.id)}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
+            onPointerCancel={onPointerCancel}
             className={`absolute z-20 touch-none rounded-xl ${focusRing} ${selected === character.id ? "ring-4 ring-vs-accent" : ""}`}
             style={{
               left: `${anchor.x * 100}%`, top: `${anchor.y * 100}%`,
@@ -636,7 +648,7 @@ function MysteryBoard({ definition, geometry, placements, selected, dragTarget, 
   );
 }
 
-function CharacterTray({ definition, trayRef, placements, selected, tutorialActive, clueNotes, characterAssetErrors, onCharacterAssetError, onToggleClue, onClick, onPointerDown, onPointerMove, onPointerUp }: {
+function CharacterTray({ definition, trayRef, placements, selected, tutorialActive, clueNotes, characterAssetErrors, onCharacterAssetError, onToggleClue, onClick, onPointerDown, onPointerMove, onPointerUp, onPointerCancel }: {
   definition: MysteryDefinition;
   trayRef: React.RefObject<HTMLDivElement | null>;
   placements: Placements;
@@ -650,6 +662,7 @@ function CharacterTray({ definition, trayRef, placements, selected, tutorialActi
   onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>, id: CharacterId) => void;
   onPointerMove: (event: ReactPointerEvent<HTMLButtonElement>) => void;
   onPointerUp: (event: ReactPointerEvent<HTMLButtonElement>) => void;
+  onPointerCancel: (event: ReactPointerEvent<HTMLButtonElement>) => void;
 }) {
   const t = useT();
   return (
@@ -670,7 +683,7 @@ function CharacterTray({ definition, trayRef, placements, selected, tutorialActi
                   onPointerDown={(event) => onPointerDown(event, character.id)}
                   onPointerMove={onPointerMove}
                   onPointerUp={onPointerUp}
-                  onPointerCancel={onPointerUp}
+                  onPointerCancel={onPointerCancel}
                   onClick={() => onClick(character.id)}
                   className={`flex h-12 w-12 shrink-0 touch-none items-center justify-center rounded-lg text-left transition disabled:cursor-default ${selected === character.id ? "ring-2 ring-vs-accent" : ""} ${focusRing}`}
                 >

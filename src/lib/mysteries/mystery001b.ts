@@ -17,9 +17,8 @@ export const MYSTERY_001B = {
   completionLabelKey: "mystery001b.investigatorComplete",
   playIntroKey: "mystery001b.playIntro",
   readerLabelKey: "mystery001a.read",
-  // De assetmetadata blijft beschikbaar voor controle; deze bounds zijn op
-  // de zichtbare zandvlakte van board.png gekalibreerd.
-  grid: { rows: 5, columns: 5, calibratedBounds: { left: 0.10, top: 0.16, right: 0.90, bottom: 0.84 } },
+  // De actuele Work-manifest is de enige bron voor board-geometrie.
+  grid: { rows: 5, columns: 5 },
   assets: {
     board: `${ASSET_ROOT}/board.png`,
     manifest: `${ASSET_ROOT}/manifest.json`,

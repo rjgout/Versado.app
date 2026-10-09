@@ -9,8 +9,11 @@ import { MYSTERY_001C } from "@/lib/mysteries/mystery001c";
 import { GAME_CATALOG } from "@/lib/gameCatalog";
 import {
   allCharactersPlaced,
+  cellFootAnchor,
   cellFromBoardPoint,
+  cellNormalizedRect,
   countSolutions,
+  gridPixelRect,
   hintFor,
   isHardConstraintValid,
   isSolutionCorrect,
@@ -18,7 +21,7 @@ import {
   publicSolutionResult,
 } from "@/lib/mysteries/logic";
 import { firstCompletionUpdate } from "@/lib/mysteries/progressRules";
-import { calibrateBoardGeometry, parseBoardManifest, type BoardGeometry } from "@/lib/mysteries/manifest";
+import { parseBoardManifest, type BoardGeometry } from "@/lib/mysteries/manifest";
 import type { Placements } from "@/lib/mysteries/types";
 
 const solution: Placements = {
@@ -41,6 +44,12 @@ const geometry: BoardGeometry = {
   maxVisibleCharacterHeight: 0.65,
   visibleCharacterHeightPixels: undefined,
 };
+
+function pngDimensions(filePath: string): { width: number; height: number } {
+  const image = readFileSync(filePath);
+  assert.equal(image.subarray(0, 8).toString("hex"), "89504e470d0a1a0a", `${filePath}: geen PNG`);
+  return { width: image.readUInt32BE(16), height: image.readUInt32BE(20) };
+}
 
 describe("Mysterie 001A", () => {
   it("scheidt de spelidentiteit van de eerste puzzel", () => {
@@ -117,6 +126,25 @@ describe("Mysterie 001A", () => {
     assert.deepEqual(cellFromBoardPoint({ x: 100 + (0.09 + 3.5 * 0.205) * 1000, y: 50 + (0.13 + 2.5 * 0.185) * 1000 }, rect, geometry), { row: 3, column: 4 });
   });
 
+  it("schaalt grid, cellen en voetankers vanuit één image-rechthoek", () => {
+    const small = { left: 10, top: 20, width: 250, height: 250 };
+    const large = { left: 40, top: 80, width: 1000, height: 1000 };
+    const smallGrid = gridPixelRect(small, geometry);
+    const largeGrid = gridPixelRect(large, geometry);
+    for (const [actual, expected] of [[smallGrid, { left: 32.5, top: 52.5, width: 205, height: 185 }], [largeGrid, { left: 130, top: 210, width: 820, height: 740 }]] as const) {
+      for (const key of ["left", "top", "width", "height"] as const) assert.ok(Math.abs(actual[key] - expected[key]) < 1e-9, key);
+    }
+    const cell = cellNormalizedRect({ row: 3, column: 4 }, geometry);
+    for (const [key, expected] of Object.entries({ left: 0.705, top: 0.5, width: 0.205, height: 0.185 }) as [keyof typeof cell, number][]) assert.ok(Math.abs(cell[key] - expected) < 1e-9, key);
+    const foot = cellFootAnchor({ row: 3, column: 4 }, geometry);
+    assert.ok(Math.abs(foot.x - 0.8075) < 1e-9);
+    assert.ok(Math.abs(foot.y - 0.648) < 1e-9);
+    for (const rect of [small, large]) {
+      const anchor = cellFootAnchor({ row: 3, column: 4 }, geometry);
+      assert.deepEqual(cellFromBoardPoint({ x: rect.left + anchor.x * rect.width, y: rect.top + anchor.y * rect.height }, rect, geometry), { row: 3, column: 4 });
+    }
+  });
+
   it("leest de opgegeven rastergeometrie uit het manifestformaat", () => {
     const parsed = parseBoardManifest({
       board: { width: 1254, height: 1254 },
@@ -129,10 +157,46 @@ describe("Mysterie 001A", () => {
     assert.deepEqual(parsed, geometry);
   });
 
+  it("weigert een manifest waarvan celmaat en buitenbounds niet overeenkomen", () => {
+    const invalid = parseBoardManifest({
+      board: { width: 1254, height: 1254 },
+      logicalPlayfield: { left: 0.09, top: 0.13, right: 0.91, bottom: 0.87 },
+      grid: { rows: 4, columns: 4, cellWidthNormalized: 0.2, cellHeightNormalized: 0.185 },
+      footAnchorWithinCell: { x: 0.5, y: 0.8 },
+      footAnchorPixels: [627, 1149],
+      maxVisibleCharacterHeight: 0.65,
+    });
+    assert.equal(invalid, null);
+  });
+
   it("heeft onder harde regels en vastgelegde clues exact één oplossing", () => {
     const found = countSolutions();
     assert.equal(found.length, 1);
     assert.deepEqual(found[0], solution);
+  });
+
+  it("leidt voor iedere bestaande variant grid, oplossingen en landmarks uit het actuele manifest af", () => {
+    const boardRect = { left: 37, top: 71, width: 913, height: 641 };
+    for (const definition of MYSTERY_GAME.puzzles) {
+      const manifestPath = join(process.cwd(), "public", definition.assets.manifest.replace(/^\//, ""));
+      const boardPath = join(process.cwd(), "public", definition.assets.board.replace(/^\//, ""));
+      const geometryForDefinition = parseBoardManifest(JSON.parse(readFileSync(manifestPath, "utf8")));
+      assert.ok(geometryForDefinition, `${definition.id}: manifest`);
+      assert.deepEqual(pngDimensions(boardPath), { width: geometryForDefinition.imageWidth, height: geometryForDefinition.imageHeight }, `${definition.id}: boardratio`);
+      assert.equal(geometryForDefinition.rows, definition.grid.rows, `${definition.id}: rows`);
+      assert.equal(geometryForDefinition.columns, definition.grid.columns, `${definition.id}: columns`);
+      for (const cell of [...Object.values(definition.solution), ...Object.values(definition.landmarks)]) {
+        if (!cell) continue;
+        assert.ok(cell.row >= 1 && cell.row <= geometryForDefinition.rows, `${definition.id}: rij`);
+        assert.ok(cell.column >= 1 && cell.column <= geometryForDefinition.columns, `${definition.id}: kolom`);
+        const anchor = cellFootAnchor(cell, geometryForDefinition);
+        assert.deepEqual(
+          cellFromBoardPoint({ x: boardRect.left + anchor.x * boardRect.width, y: boardRect.top + anchor.y * boardRect.height }, boardRect, geometryForDefinition),
+          cell,
+          `${definition.id}: anchor ${cell.row}/${cell.column}`,
+        );
+      }
+    }
   });
 });
 
@@ -168,17 +232,13 @@ describe("Mysterie 001B Onderzoeker", () => {
     assert.equal(existsSync(join(root, "sam.png")), true);
     assert.equal(MYSTERY_001B.assets.board, "/mysterie-001b-onderzoeker/board.png");
     assert.equal(MYSTERY_001B.characters.find((character) => character.id === "sam")?.asset, "/mysterie-001b-onderzoeker/sam.png");
-    assert.deepEqual(MYSTERY_001B.grid, { rows: 5, columns: 5, calibratedBounds: { left: 0.10, top: 0.16, right: 0.90, bottom: 0.84 } });
+    assert.deepEqual(MYSTERY_001B.grid, { rows: 5, columns: 5 });
     const manifest = JSON.parse(readFileSync(join(root, "manifest.json"), "utf8"));
     const parsed = parseBoardManifest(manifest);
     assert.deepEqual(parsed?.bounds, { left: 0.08, top: 0.14, right: 0.92, bottom: 0.86 });
     assert.equal(parsed?.rows, 5);
     assert.equal(parsed?.columns, 5);
-    const calibrated = calibrateBoardGeometry(parsed!, MYSTERY_001B.grid.calibratedBounds!);
-    assert.deepEqual(calibrated.bounds, { left: 0.10, top: 0.16, right: 0.90, bottom: 0.84 });
-    assert.equal(calibrated.cellWidthNormalized, 0.16);
-    assert.ok(Math.abs(calibrated.cellHeightNormalized - 0.136) < 1e-12);
-    assert.deepEqual(cellFromBoardPoint({ x: 100 + 0.5 * 1000, y: 50 + 0.5 * 1000 }, { left: 100, top: 50, width: 1000, height: 1000 }, calibrated), { row: 3, column: 3 });
+    assert.deepEqual(cellFromBoardPoint({ x: 100 + 0.5 * 1000, y: 50 + 0.5 * 1000 }, { left: 100, top: 50, width: 1000, height: 1000 }, parsed!), { row: 3, column: 3 });
   });
 
   it("kiest de vooraf geschreven investigator-hints op basis van state", () => {
