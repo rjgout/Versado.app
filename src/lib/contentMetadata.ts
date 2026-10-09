@@ -13,17 +13,30 @@ type ContentCollectionIdentity = { id: string; work: string | null };
 // afkorting: fsy (Voor de kracht van de jeugd) en podcasts.
 interface ContentMetadata {
   icon: LucideIcon;
+  /** Officieel bronbeeld; de naam en afkorting blijven echte UI-tekst. */
+  asset?: string;
   abbreviations?: Partial<Record<LanguageCode, string>>;
 }
 
+export const CONTENT_SOURCE_ICON_PATHS = {
+  bofm: "/icons/content-sources/bofm.webp",
+  "dc-testament": "/icons/content-sources/dc-testament.webp",
+  pgp: "/icons/content-sources/pgp.webp",
+  "old-testament": "/icons/content-sources/old-testament.webp",
+  "new-testament": "/icons/content-sources/new-testament.webp",
+  fsy: "/icons/content-sources/fsy.webp",
+  podcasts: "/icons/content-sources/podcasts.webp",
+  generic: "/icons/content-sources/source-generic.webp",
+} as const;
+
 const CONTENT_METADATA: Record<string, ContentMetadata> = {
-  bofm: { icon: BookOpen, abbreviations: { nl: "BvM", en: "BoM", de: "BM", fr: "LdM", es: "LdM" } },
-  "dc-testament": { icon: ScrollText, abbreviations: { nl: "LV", en: "D&C", de: "LuB", fr: "D&A", es: "DyC" } },
-  pgp: { icon: Gem, abbreviations: { nl: "PGW", en: "PoGP", de: "KP", fr: "PGP", es: "PGP" } },
-  "old-testament": { icon: ScrollText, abbreviations: { nl: "OT", en: "OT", de: "AT", fr: "AT", es: "AT" } },
-  "new-testament": { icon: BookOpen, abbreviations: { nl: "NT", en: "NT", de: "NT", fr: "NT", es: "NT" } },
-  fsy: { icon: BookMarked },
-  podcasts: { icon: Mic2 },
+  bofm: { asset: CONTENT_SOURCE_ICON_PATHS.bofm, icon: BookOpen, abbreviations: { nl: "BvM", en: "BoM", de: "BM", fr: "LdM", es: "LdM" } },
+  "dc-testament": { asset: CONTENT_SOURCE_ICON_PATHS["dc-testament"], icon: ScrollText, abbreviations: { nl: "LV", en: "D&C", de: "LuB", fr: "D&A", es: "DyC" } },
+  pgp: { asset: CONTENT_SOURCE_ICON_PATHS.pgp, icon: Gem, abbreviations: { nl: "PGW", en: "PoGP", de: "KP", fr: "PGP", es: "PGP" } },
+  "old-testament": { asset: CONTENT_SOURCE_ICON_PATHS["old-testament"], icon: ScrollText, abbreviations: { nl: "OT", en: "OT", de: "AT", fr: "AT", es: "AT" } },
+  "new-testament": { asset: CONTENT_SOURCE_ICON_PATHS["new-testament"], icon: BookOpen, abbreviations: { nl: "NT", en: "NT", de: "NT", fr: "NT", es: "NT" } },
+  fsy: { asset: CONTENT_SOURCE_ICON_PATHS.fsy, icon: BookMarked },
+  podcasts: { asset: CONTENT_SOURCE_ICON_PATHS.podcasts, icon: Mic2 },
 };
 
 function metadataFor(collection: ContentCollectionIdentity): ContentMetadata | undefined {
@@ -32,6 +45,12 @@ function metadataFor(collection: ContentCollectionIdentity): ContentMetadata | u
 
 export function contentIcon(collection: ContentCollectionIdentity): LucideIcon {
   return metadataFor(collection)?.icon ?? LibraryBig;
+}
+
+/** Geeft eerst het specifieke bronbeeld en daarna de neutrale toekomstfallback. */
+export function contentIconSources(collection: ContentCollectionIdentity): readonly string[] {
+  const specific = metadataFor(collection)?.asset;
+  return specific ? [specific, CONTENT_SOURCE_ICON_PATHS.generic] : [CONTENT_SOURCE_ICON_PATHS.generic];
 }
 
 /** De afkorting in de taal van de uitgave, of null als er (nog) geen is. */
