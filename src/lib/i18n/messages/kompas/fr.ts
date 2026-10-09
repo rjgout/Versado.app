@@ -100,7 +100,7 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
       step1: "Ouvre Apprendre et choisis un cours.",
       step2: "Lis le morceau suivant.",
       step3: "Réponds aux questions. Ta progression est enregistrée, tu peux donc toujours continuer.",
-      more: "Lire seulement ne rapporte pas d’XP et ne compte pas pour ta série quotidienne. Les exercices terminés, si.",
+      more: "Lire seul ne rapporte pas d’XP. Un chapitre ou une étape de lecture que tu termines explicitement compte en revanche comme activité pour ta série, comme un exercice terminé.",
       faq1: {
         q: "Est-ce important de choisir tel ou tel cours ?",
         a: "Chaque cours propose le même contenu d’une autre façon, par exemple en petites étapes ou chapitre par chapitre. Pour un même contenu, tu ne gagnes pas plus d’XP dans un cours que dans un autre.",
@@ -179,12 +179,12 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
     },
     progressStreak: {
       title: "Série",
-      what: "Ta série compte combien de jours d’affilée tu t’es exercé.",
-      benefit: "Une série t’aide à en faire un peu chaque jour.",
-      step1: "Termine chaque jour un exercice ou un jeu qui compte.",
+      what: "Ta série compte combien de jours de suite tu as terminé au moins une vraie activité dans Versado.",
+      benefit: "Une série t’aide à en faire un peu chaque jour, même si c’est court.",
+      step1: "Termine au moins une activité chaque jour, par exemple une leçon, une ronde d’entraînement, un jeu ou une étape de lecture terminée. Sa durée n’a pas d’importance.",
       step2: "Si tu manques un jour, Versado utilise automatiquement un gel de série si tu en as un. Il préserve ta série.",
       step3: "Si tu n’as plus de gel de série, ta série s’interrompt.",
-      more: "Seules les activités terminées comptent. Lire seulement ne compte pas. Une journée suit le fuseau horaire de ton compte.",
+      more: "La première activité terminée de la journée prolonge ta série ; une deuxième le même jour ne donne pas de jour de plus. XP et série sont séparés : une activité sans XP peut aussi compter. Ouvrir, parcourir ou commencer ne suffit pas : il faut vraiment terminer. Un jour suit le fuseau horaire de ton compte.",
     },
     progressDivisions: {
       title: "Division",

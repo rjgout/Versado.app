@@ -113,8 +113,13 @@ test("oude voortgang telt als al beloond: geen dubbele XP na de migratie", () =>
   assert.deepEqual(withLegacy(empty, { legacyXp: 0, legacyCompleted: false }, 12), empty);
 });
 
-test("reeks: lezen telt nooit, een afgeronde activiteit wel", () => {
-  assert.equal(qualifiesForStreak({ kind: "READING", answered: 50, required: 0 }), false);
+test("reeks: elke echt afgeronde activiteit telt, ook een korte of een uitdrukkelijk afgeronde leesstap", () => {
+  // Een uitdrukkelijke leesafronding is één afronding; alleen openen/scrollen heeft geen afronding.
+  assert.equal(qualifiesForStreak({ kind: "READING", answered: 1, required: 1 }), true);
+  assert.equal(qualifiesForStreak({ kind: "READING", answered: 0, required: 1 }), false, "niets afgerond");
+  assert.equal(qualifiesForStreak({ kind: "GAME", answered: 1, required: 1 }), true, "ook zonder XP of score");
+  assert.equal(qualifiesForStreak({ kind: "PRACTICE", answered: 1, required: 1 }), true, "een korte ronde telt");
+  assert.equal(qualifiesForStreak({ kind: "COURSE_LESSON", answered: 1, required: 1 }), true);
   assert.equal(qualifiesForStreak({ kind: "CONTENT_EXERCISES", answered: 12, required: 12 }), true);
   assert.equal(qualifiesForStreak({ kind: "CONTENT_EXERCISES", answered: 0, required: 0 }), false, "lege inzending");
   assert.equal(qualifiesForStreak({ kind: "CONTENT_EXERCISES", answered: 2, required: 3 }), false, "niet afgemaakt");

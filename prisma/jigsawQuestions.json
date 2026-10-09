@@ -1,0 +1,6161 @@
+{
+ "version": 1,
+ "questions": [
+  {
+   "id": "v01-1",
+   "story": 1,
+   "text": {
+    "nl": "Hoe oud was Joseph Smith toen hij zich afvroeg welke kerk de ware was?",
+    "en": "How old was Joseph Smith when he wondered which church was true?",
+    "de": "Wie alt war Joseph Smith, als er sich fragte, welche Kirche die wahre sei?",
+    "fr": "Quel âge avait Joseph Smith lorsqu’il s’est demandé quelle Église était la vraie ?",
+    "es": "¿Cuántos años tenía Joseph Smith cuando se preguntó cuál iglesia era la verdadera?"
+   },
+   "options": {
+    "nl": [
+     "Veertien jaar",
+     "Tien jaar",
+     "Twintig jaar"
+    ],
+    "en": [
+     "Fourteen years old",
+     "Ten years old",
+     "Twenty years old"
+    ],
+    "de": [
+     "Vierzehn Jahre",
+     "Zehn Jahre",
+     "Zwanzig Jahre"
+    ],
+    "fr": [
+     "Quatorze ans",
+     "Dix ans",
+     "Vingt ans"
+    ],
+    "es": [
+     "Catorce años",
+     "Diez años",
+     "Veinte años"
+    ]
+   }
+  },
+  {
+   "id": "v01-2",
+   "story": 1,
+   "text": {
+    "nl": "Welke engel vertelde Joseph over de gouden platen?",
+    "en": "Which angel told Joseph about the gold plates?",
+    "de": "Welcher Engel erzählte Joseph von den goldenen Platten?",
+    "fr": "Quel ange a parlé à Joseph des plaques d’or ?",
+    "es": "¿Qué ángel le habló a Joseph de las planchas de oro?"
+   },
+   "options": {
+    "nl": [
+     "Moroni",
+     "Mormon",
+     "Nephi"
+    ],
+    "en": [
+     "Moroni",
+     "Mormon",
+     "Nephi"
+    ],
+    "de": [
+     "Moroni",
+     "Mormon",
+     "Nephi"
+    ],
+    "fr": [
+     "Moroni",
+     "Mormon",
+     "Néphi"
+    ],
+    "es": [
+     "Moroni",
+     "Mormón",
+     "Nefi"
+    ]
+   }
+  },
+  {
+   "id": "v01-3",
+   "story": 1,
+   "text": {
+    "nl": "Waar vond Joseph de gouden platen?",
+    "en": "Where did Joseph find the gold plates?",
+    "de": "Wo fand Joseph die goldenen Platten?",
+    "fr": "Où Joseph a-t-il trouvé les plaques d’or ?",
+    "es": "¿Dónde encontró Joseph las planchas de oro?"
+   },
+   "options": {
+    "nl": [
+     "In een stenen kist onder een grote kei op de heuvel Cumorah",
+     "In een grot aan de zee",
+     "In een kist onder zijn huis"
+    ],
+    "en": [
+     "In a stone box under a large rock on the hill Cumorah",
+     "In a cave by the sea",
+     "In a chest under his house"
+    ],
+    "de": [
+     "In einem Steinkasten unter einem großen Felsen auf dem Hügel Cumorah",
+     "In einer Höhle am Meer",
+     "In einer Truhe unter seinem Haus"
+    ],
+    "fr": [
+     "Dans une boîte en pierre sous un gros rocher sur la colline Cumorah",
+     "Dans une grotte au bord de la mer",
+     "Dans un coffre sous sa maison"
+    ],
+    "es": [
+     "En una caja de piedra bajo una gran roca en el cerro Cumorah",
+     "En una cueva junto al mar",
+     "En un baúl debajo de su casa"
+    ]
+   }
+  },
+  {
+   "id": "v02-1",
+   "story": 2,
+   "text": {
+    "nl": "Wat zag Lehi toen hij aan het bidden was?",
+    "en": "What did Lehi see while he was praying?",
+    "de": "Was sah Lehi, als er betete?",
+    "fr": "Que vit Léhi pendant qu’il priait ?",
+    "es": "¿Qué vio Lehi mientras oraba?"
+   },
+   "options": {
+    "nl": [
+     "Een kolom van vuur",
+     "Een brandende berg",
+     "Een grote storm"
+    ],
+    "en": [
+     "A pillar of fire",
+     "A burning mountain",
+     "A great storm"
+    ],
+    "de": [
+     "Eine Feuersäule",
+     "Einen brennenden Berg",
+     "Einen großen Sturm"
+    ],
+    "fr": [
+     "Une colonne de feu",
+     "Une montagne en feu",
+     "Une grande tempête"
+    ],
+    "es": [
+     "Una columna de fuego",
+     "Una montaña en llamas",
+     "Una gran tormenta"
+    ]
+   }
+  },
+  {
+   "id": "v02-2",
+   "story": 2,
+   "text": {
+    "nl": "Wat las Lehi in het boek uit zijn visioen?",
+    "en": "What did Lehi read in the book from his vision?",
+    "de": "Was las Lehi in dem Buch aus seiner Vision?",
+    "fr": "Que lut Léhi dans le livre de sa vision ?",
+    "es": "¿Qué leyó Lehi en el libro de su visión?"
+   },
+   "options": {
+    "nl": [
+     "Dat Jeruzalem verwoest zou worden",
+     "Dat hij koning zou worden",
+     "Dat er een grote overstroming zou komen"
+    ],
+    "en": [
+     "That Jerusalem would be destroyed",
+     "That he would become king",
+     "That a great flood would come"
+    ],
+    "de": [
+     "Dass Jerusalem zerstört werden würde",
+     "Dass er König werden würde",
+     "Dass eine große Flut kommen würde"
+    ],
+    "fr": [
+     "Que Jérusalem serait détruite",
+     "Qu’il deviendrait roi",
+     "Qu’un grand déluge viendrait"
+    ],
+    "es": [
+     "Que Jerusalén sería destruida",
+     "Que él llegaría a ser rey",
+     "Que vendría un gran diluvio"
+    ]
+   }
+  },
+  {
+   "id": "v02-3",
+   "story": 2,
+   "text": {
+    "nl": "Hoe reageerden de mensen op Lehi’s waarschuwing?",
+    "en": "How did the people react to Lehi’s warning?",
+    "de": "Wie reagierten die Menschen auf Lehis Warnung?",
+    "fr": "Comment les gens réagirent-ils à l’avertissement de Léhi ?",
+    "es": "¿Cómo reaccionó la gente a la advertencia de Lehi?"
+   },
+   "options": {
+    "nl": [
+     "Ze werden boos en probeerden hem te doden",
+     "Ze bekeerden zich meteen",
+     "Ze maakten hem tot hun leider"
+    ],
+    "en": [
+     "They became angry and tried to kill him",
+     "They repented right away",
+     "They made him their leader"
+    ],
+    "de": [
+     "Sie wurden zornig und versuchten, ihn zu töten",
+     "Sie kehrten sofort um",
+     "Sie machten ihn zu ihrem Anführer"
+    ],
+    "fr": [
+     "Ils se mirent en colère et essayèrent de le tuer",
+     "Ils se repentirent aussitôt",
+     "Ils firent de lui leur chef"
+    ],
+    "es": [
+     "Se enojaron e intentaron matarlo",
+     "Se arrepintieron de inmediato",
+     "Lo hicieron su líder"
+    ]
+   }
+  },
+  {
+   "id": "v03-1",
+   "story": 3,
+   "text": {
+    "nl": "Hoe vertelde de Heer aan Lehi dat hij Jeruzalem moest verlaten?",
+    "en": "How did the Lord tell Lehi to leave Jerusalem?",
+    "de": "Wie sagte der Herr Lehi, dass er Jerusalem verlassen solle?",
+    "fr": "Comment le Seigneur dit-il à Léhi de quitter Jérusalem ?",
+    "es": "¿Cómo le dijo el Señor a Lehi que saliera de Jerusalén?"
+   },
+   "options": {
+    "nl": [
+     "In een droom",
+     "Door een brief",
+     "Door een vreemdeling op de weg"
+    ],
+    "en": [
+     "In a dream",
+     "By a letter",
+     "By a stranger on the road"
+    ],
+    "de": [
+     "In einem Traum",
+     "Durch einen Brief",
+     "Durch einen Fremden auf der Straße"
+    ],
+    "fr": [
+     "Dans un songe",
+     "Par une lettre",
+     "Par un inconnu sur la route"
+    ],
+    "es": [
+     "En un sueño",
+     "Por una carta",
+     "Por un extraño en el camino"
+    ]
+   }
+  },
+  {
+   "id": "v03-2",
+   "story": 3,
+   "text": {
+    "nl": "Hoe heetten Lehi’s vier zoons?",
+    "en": "What were the names of Lehi’s four sons?",
+    "de": "Wie hießen Lehis vier Söhne?",
+    "fr": "Comment s’appelaient les quatre fils de Léhi ?",
+    "es": "¿Cómo se llamaban los cuatro hijos de Lehi?"
+   },
+   "options": {
+    "nl": [
+     "Laman, Lemuël, Sam en Nephi",
+     "Laman, Jakob, Sam en Nephi",
+     "Laban, Lemuël, Sam en Nephi"
+    ],
+    "en": [
+     "Laman, Lemuel, Sam and Nephi",
+     "Laman, Jacob, Sam and Nephi",
+     "Laban, Lemuel, Sam and Nephi"
+    ],
+    "de": [
+     "Laman, Lemuel, Sam und Nephi",
+     "Laman, Jakob, Sam und Nephi",
+     "Laban, Lemuel, Sam und Nephi"
+    ],
+    "fr": [
+     "Laman, Lémuel, Sam et Néphi",
+     "Laman, Jacob, Sam et Néphi",
+     "Laban, Lémuel, Sam et Néphi"
+    ],
+    "es": [
+     "Lamán, Lemuel, Sam y Nefi",
+     "Lamán, Jacob, Sam y Nefi",
+     "Labán, Lemuel, Sam y Nefi"
+    ]
+   }
+  },
+  {
+   "id": "v03-3",
+   "story": 3,
+   "text": {
+    "nl": "Wie vonden het dom van hun vader om uit Jeruzalem weg te gaan?",
+    "en": "Who thought it was foolish of their father to leave Jerusalem?",
+    "de": "Wer hielt es für töricht, dass ihr Vater Jerusalem verließ?",
+    "fr": "Qui trouvait insensé que leur père quitte Jérusalem ?",
+    "es": "¿Quiénes pensaban que era una necedad que su padre dejara Jerusalén?"
+   },
+   "options": {
+    "nl": [
+     "Laman en Lemuël",
+     "Sam en Nephi",
+     "Alleen Nephi"
+    ],
+    "en": [
+     "Laman and Lemuel",
+     "Sam and Nephi",
+     "Only Nephi"
+    ],
+    "de": [
+     "Laman und Lemuel",
+     "Sam und Nephi",
+     "Nur Nephi"
+    ],
+    "fr": [
+     "Laman et Lémuel",
+     "Sam et Néphi",
+     "Seulement Néphi"
+    ],
+    "es": [
+     "Lamán y Lemuel",
+     "Sam y Nefi",
+     "Solo Nefi"
+    ]
+   }
+  },
+  {
+   "id": "v04-1",
+   "story": 4,
+   "text": {
+    "nl": "Van wie moesten Lehi’s zoons de koperen platen halen?",
+    "en": "From whom did Lehi’s sons have to get the brass plates?",
+    "de": "Von wem sollten Lehis Söhne die Messingplatten holen?",
+    "fr": "À qui les fils de Léhi devaient-ils prendre les plaques d’airain ?",
+    "es": "¿A quién debían ir a buscar los hijos de Lehi las planchas de bronce?"
+   },
+   "options": {
+    "nl": [
+     "Laban",
+     "Zoram",
+     "Ismaël"
+    ],
+    "en": [
+     "Laban",
+     "Zoram",
+     "Ishmael"
+    ],
+    "de": [
+     "Laban",
+     "Zoram",
+     "Ismael"
+    ],
+    "fr": [
+     "Laban",
+     "Zoram",
+     "Ismaël"
+    ],
+    "es": [
+     "Labán",
+     "Zoram",
+     "Ismael"
+    ]
+   }
+  },
+  {
+   "id": "v04-2",
+   "story": 4,
+   "text": {
+    "nl": "Waarom gaf Zoram de koperen platen aan Nephi?",
+    "en": "Why did Zoram give the brass plates to Nephi?",
+    "de": "Warum gab Zoram Nephi die Messingplatten?",
+    "fr": "Pourquoi Zoram donna-t-il les plaques d’airain à Néphi ?",
+    "es": "¿Por qué le dio Zoram las planchas de bronce a Nefi?"
+   },
+   "options": {
+    "nl": [
+     "Hij dacht dat Nephi Laban was",
+     "Nephi betaalde met goud en zilver",
+     "Een engel zei dat hij het moest doen"
+    ],
+    "en": [
+     "He thought Nephi was Laban",
+     "Nephi paid with gold and silver",
+     "An angel told him to"
+    ],
+    "de": [
+     "Er hielt Nephi für Laban",
+     "Nephi bezahlte mit Gold und Silber",
+     "Ein Engel sagte es ihm"
+    ],
+    "fr": [
+     "Il croyait que Néphi était Laban",
+     "Néphi paya avec de l’or et de l’argent",
+     "Un ange le lui dit"
+    ],
+    "es": [
+     "Pensó que Nefi era Labán",
+     "Nefi pagó con oro y plata",
+     "Un ángel se lo dijo"
+    ]
+   }
+  },
+  {
+   "id": "v04-3",
+   "story": 4,
+   "text": {
+    "nl": "Wat stond er onder meer op de koperen platen?",
+    "en": "What was on the brass plates?",
+    "de": "Was stand unter anderem auf den Messingplatten?",
+    "fr": "Qu’y avait-il, entre autres, sur les plaques d’airain ?",
+    "es": "¿Qué había, entre otras cosas, en las planchas de bronce?"
+   },
+   "options": {
+    "nl": [
+     "De geboden van God en de woorden van profeten",
+     "Een landkaart van de wildernis",
+     "De bouwtekening van een boot"
+    ],
+    "en": [
+     "The commandments of God and the words of prophets",
+     "A map of the wilderness",
+     "The plans for building a ship"
+    ],
+    "de": [
+     "Die Gebote Gottes und die Worte der Propheten",
+     "Eine Karte der Wildnis",
+     "Der Bauplan für ein Schiff"
+    ],
+    "fr": [
+     "Les commandements de Dieu et les paroles des prophètes",
+     "Une carte du désert",
+     "Les plans d’un bateau"
+    ],
+    "es": [
+     "Los mandamientos de Dios y las palabras de profetas",
+     "Un mapa del desierto",
+     "Los planos para construir un barco"
+    ]
+   }
+  },
+  {
+   "id": "v05-1",
+   "story": 5,
+   "text": {
+    "nl": "Met wie trouwden Nephi, zijn broers en Zoram?",
+    "en": "Whom did Nephi, his brothers and Zoram marry?",
+    "de": "Wen heirateten Nephi, seine Brüder und Zoram?",
+    "fr": "Qui Néphi, ses frères et Zoram épousèrent-ils ?",
+    "es": "¿Con quiénes se casaron Nefi, sus hermanos y Zoram?"
+   },
+   "options": {
+    "nl": [
+     "Met de dochters van Ismaël",
+     "Met de dochters van Laban",
+     "Met de dochters van Zarahemla"
+    ],
+    "en": [
+     "The daughters of Ishmael",
+     "The daughters of Laban",
+     "The daughters of Zarahemla"
+    ],
+    "de": [
+     "Die Töchter Ismaels",
+     "Die Töchter Labans",
+     "Die Töchter Zarahemlas"
+    ],
+    "fr": [
+     "Les filles d’Ismaël",
+     "Les filles de Laban",
+     "Les filles de Zarahemla"
+    ],
+    "es": [
+     "Con las hijas de Ismael",
+     "Con las hijas de Labán",
+     "Con las hijas de Zarahemla"
+    ]
+   }
+  },
+  {
+   "id": "v05-2",
+   "story": 5,
+   "text": {
+    "nl": "Wat gaf onderweg de richting aan?",
+    "en": "What showed them the way during the journey?",
+    "de": "Was zeigte ihnen unterwegs den Weg?",
+    "fr": "Qu’est-ce qui leur indiquait la direction en chemin ?",
+    "es": "¿Qué les indicaba el camino durante el viaje?"
+   },
+   "options": {
+    "nl": [
+     "De liahona",
+     "Een kaart op de koperen platen",
+     "De ijzeren leuning"
+    ],
+    "en": [
+     "The Liahona",
+     "A map on the brass plates",
+     "The iron rod"
+    ],
+    "de": [
+     "Der Liahona",
+     "Eine Karte auf den Messingplatten",
+     "Das eiserne Geländer"
+    ],
+    "fr": [
+     "Le Liahona",
+     "Une carte sur les plaques d’airain",
+     "La barre de fer"
+    ],
+    "es": [
+     "El Liahona",
+     "Un mapa en las planchas de bronce",
+     "La barra de hierro"
+    ]
+   }
+  },
+  {
+   "id": "v05-3",
+   "story": 5,
+   "text": {
+    "nl": "Hoe noemden ze het land aan de kust met vruchten en honing?",
+    "en": "What did they call the land by the sea with fruit and honey?",
+    "de": "Wie nannten sie das Land am Meer mit Früchten und Honig?",
+    "fr": "Comment appelèrent-ils le pays au bord de la mer, avec des fruits et du miel ?",
+    "es": "¿Cómo llamaron a la tierra junto al mar donde había fruta y miel?"
+   },
+   "options": {
+    "nl": [
+     "Overvloed",
+     "Jershon",
+     "Zarahemla"
+    ],
+    "en": [
+     "Bountiful",
+     "Jershon",
+     "Zarahemla"
+    ],
+    "de": [
+     "Überfluss",
+     "Jerson",
+     "Zarahemla"
+    ],
+    "fr": [
+     "Abondance",
+     "Jershon",
+     "Zarahemla"
+    ],
+    "es": [
+     "Abundancia",
+     "Jersón",
+     "Zarahemla"
+    ]
+   }
+  },
+  {
+   "id": "v06-1",
+   "story": 6,
+   "text": {
+    "nl": "Wat hing er in de boom in Lehi’s droom?",
+    "en": "What hung on the tree in Lehi’s dream?",
+    "de": "Was hing in Lehis Traum am Baum?",
+    "fr": "Qu’y avait-il dans l’arbre du rêve de Léhi ?",
+    "es": "¿Qué colgaba del árbol en el sueño de Lehi?"
+   },
+   "options": {
+    "nl": [
+     "Witte vruchten",
+     "Rode appels",
+     "Gouden bladeren"
+    ],
+    "en": [
+     "White fruit",
+     "Red apples",
+     "Golden leaves"
+    ],
+    "de": [
+     "Weiße Früchte",
+     "Rote Äpfel",
+     "Goldene Blätter"
+    ],
+    "fr": [
+     "Des fruits blancs",
+     "Des pommes rouges",
+     "Des feuilles dorées"
+    ],
+    "es": [
+     "Fruto blanco",
+     "Manzanas rojas",
+     "Hojas doradas"
+    ]
+   }
+  },
+  {
+   "id": "v06-2",
+   "story": 6,
+   "text": {
+    "nl": "Wat hielden de mensen vast om bij de boom te komen?",
+    "en": "What did people hold on to in order to reach the tree?",
+    "de": "Woran hielten sich die Menschen fest, um zum Baum zu gelangen?",
+    "fr": "À quoi les gens s’accrochaient-ils pour atteindre l’arbre ?",
+    "es": "¿De qué se sujetaban las personas para llegar al árbol?"
+   },
+   "options": {
+    "nl": [
+     "De ijzeren leuning",
+     "Een touw van wol",
+     "Een houten stok"
+    ],
+    "en": [
+     "The iron rod",
+     "A rope of wool",
+     "A wooden stick"
+    ],
+    "de": [
+     "Am eisernen Geländer",
+     "An einem Wollseil",
+     "An einem Holzstock"
+    ],
+    "fr": [
+     "À la barre de fer",
+     "À une corde de laine",
+     "À un bâton de bois"
+    ],
+    "es": [
+     "De la barra de hierro",
+     "De una cuerda de lana",
+     "De un palo de madera"
+    ]
+   }
+  },
+  {
+   "id": "v06-3",
+   "story": 6,
+   "text": {
+    "nl": "Wie wilden niet komen om van de vruchten te eten?",
+    "en": "Who did not want to come and eat the fruit?",
+    "de": "Wer wollte nicht kommen und von den Früchten essen?",
+    "fr": "Qui ne voulut pas venir manger du fruit ?",
+    "es": "¿Quiénes no quisieron venir a comer del fruto?"
+   },
+   "options": {
+    "nl": [
+     "Laman en Lemuël",
+     "Sam en Nephi",
+     "Sariah"
+    ],
+    "en": [
+     "Laman and Lemuel",
+     "Sam and Nephi",
+     "Sariah"
+    ],
+    "de": [
+     "Laman und Lemuel",
+     "Sam und Nephi",
+     "Sariah"
+    ],
+    "fr": [
+     "Laman et Lémuel",
+     "Sam et Néphi",
+     "Sariah"
+    ],
+    "es": [
+     "Lamán y Lemuel",
+     "Sam y Nefi",
+     "Saría"
+    ]
+   }
+  },
+  {
+   "id": "v07-1",
+   "story": 7,
+   "text": {
+    "nl": "Wat moest Nephi van de Heer bouwen?",
+    "en": "What did the Lord tell Nephi to build?",
+    "de": "Was sollte Nephi auf Geheiß des Herrn bauen?",
+    "fr": "Que le Seigneur dit-il à Néphi de construire ?",
+    "es": "¿Qué le dijo el Señor a Nefi que construyera?"
+   },
+   "options": {
+    "nl": [
+     "Een boot",
+     "Een tempel",
+     "Een toren"
+    ],
+    "en": [
+     "A ship",
+     "A temple",
+     "A tower"
+    ],
+    "de": [
+     "Ein Schiff",
+     "Einen Tempel",
+     "Einen Turm"
+    ],
+    "fr": [
+     "Un bateau",
+     "Un temple",
+     "Une tour"
+    ],
+    "es": [
+     "Un barco",
+     "Un templo",
+     "Una torre"
+    ]
+   }
+  },
+  {
+   "id": "v07-2",
+   "story": 7,
+   "text": {
+    "nl": "Hoe reageerden Laman en Lemuël eerst op het bouwen van de boot?",
+    "en": "How did Laman and Lemuel first react to the building of the ship?",
+    "de": "Wie reagierten Laman und Lemuel zuerst auf den Bau des Schiffes?",
+    "fr": "Comment Laman et Lémuel réagirent-ils d’abord à la construction du bateau ?",
+    "es": "¿Cómo reaccionaron primero Lamán y Lemuel a la construcción del barco?"
+   },
+   "options": {
+    "nl": [
+     "Ze lachten Nephi uit",
+     "Ze hielpen meteen mee",
+     "Ze bouwden zelf een grotere boot"
+    ],
+    "en": [
+     "They laughed at Nephi",
+     "They helped right away",
+     "They built a bigger ship themselves"
+    ],
+    "de": [
+     "Sie lachten Nephi aus",
+     "Sie halfen sofort mit",
+     "Sie bauten selbst ein größeres Schiff"
+    ],
+    "fr": [
+     "Ils se moquèrent de Néphi",
+     "Ils aidèrent tout de suite",
+     "Ils construisirent eux-mêmes un plus grand bateau"
+    ],
+    "es": [
+     "Se burlaron de Nefi",
+     "Ayudaron de inmediato",
+     "Construyeron ellos un barco más grande"
+    ]
+   }
+  },
+  {
+   "id": "v07-3",
+   "story": 7,
+   "text": {
+    "nl": "Wat gebeurde er toen Nephi hen aanraakte op bevel van de Heer?",
+    "en": "What happened when Nephi touched them at the Lord’s command?",
+    "de": "Was geschah, als Nephi sie auf Geheiß des Herrn berührte?",
+    "fr": "Que se passa-t-il quand Néphi les toucha sur l’ordre du Seigneur ?",
+    "es": "¿Qué pasó cuando Nefi los tocó por mandato del Señor?"
+   },
+   "options": {
+    "nl": [
+     "Ze kregen een schok",
+     "Ze vielen in slaap",
+     "Ze werden ziek"
+    ],
+    "en": [
+     "They received a shock",
+     "They fell asleep",
+     "They became sick"
+    ],
+    "de": [
+     "Sie bekamen einen Schock",
+     "Sie schliefen ein",
+     "Sie wurden krank"
+    ],
+    "fr": [
+     "Ils reçurent une secousse",
+     "Ils s’endormirent",
+     "Ils tombèrent malades"
+    ],
+    "es": [
+     "Sintieron una sacudida",
+     "Se durmieron",
+     "Se enfermaron"
+    ]
+   }
+  },
+  {
+   "id": "v08-1",
+   "story": 8,
+   "text": {
+    "nl": "Waarom werkte de liahona onderweg niet meer?",
+    "en": "Why did the Liahona stop working during the crossing?",
+    "de": "Warum funktionierte der Liahona auf der Überfahrt nicht mehr?",
+    "fr": "Pourquoi le Liahona cessa-t-il de fonctionner pendant la traversée ?",
+    "es": "¿Por qué dejó de funcionar el Liahona durante la travesía?"
+   },
+   "options": {
+    "nl": [
+     "Laman en Lemuël deden verkeerde dingen",
+     "De bal was kapotgegaan",
+     "Nephi was de bal kwijt"
+    ],
+    "en": [
+     "Laman and Lemuel did wrong things",
+     "The ball was broken",
+     "Nephi had lost the ball"
+    ],
+    "de": [
+     "Laman und Lemuel taten Unrechtes",
+     "Die Kugel war kaputtgegangen",
+     "Nephi hatte die Kugel verloren"
+    ],
+    "fr": [
+     "Laman et Lémuel faisaient de mauvaises choses",
+     "La boule était cassée",
+     "Néphi avait perdu la boule"
+    ],
+    "es": [
+     "Lamán y Lemuel hacían cosas malas",
+     "La esfera se había roto",
+     "Nefi había perdido la esfera"
+    ]
+   }
+  },
+  {
+   "id": "v08-2",
+   "story": 8,
+   "text": {
+    "nl": "Wat deden Laman en Lemuël met Nephi omdat hij hen wilde laten ophouden?",
+    "en": "What did Laman and Lemuel do to Nephi when he told them to stop?",
+    "de": "Was taten Laman und Lemuel mit Nephi, als er sie zum Aufhören mahnte?",
+    "fr": "Que firent Laman et Lémuel à Néphi quand il leur dit d’arrêter ?",
+    "es": "¿Qué le hicieron Lamán y Lemuel a Nefi cuando les dijo que pararan?"
+   },
+   "options": {
+    "nl": [
+     "Ze bonden hem vast met touwen",
+     "Ze lieten hem op het land achter",
+     "Ze maakten hem kapitein"
+    ],
+    "en": [
+     "They tied him up with ropes",
+     "They left him on the shore",
+     "They made him captain"
+    ],
+    "de": [
+     "Sie banden ihn mit Seilen fest",
+     "Sie ließen ihn am Ufer zurück",
+     "Sie machten ihn zum Kapitän"
+    ],
+    "fr": [
+     "Ils l’attachèrent avec des cordes",
+     "Ils le laissèrent sur la rive",
+     "Ils le firent capitaine"
+    ],
+    "es": [
+     "Lo ataron con cuerdas",
+     "Lo dejaron en la orilla",
+     "Lo hicieron capitán"
+    ]
+   }
+  },
+  {
+   "id": "v08-3",
+   "story": 8,
+   "text": {
+    "nl": "Wat gebeurde er nadat Nephi bad?",
+    "en": "What happened after Nephi prayed?",
+    "de": "Was geschah, nachdem Nephi gebetet hatte?",
+    "fr": "Que se passa-t-il après la prière de Néphi ?",
+    "es": "¿Qué pasó después de que Nefi oró?"
+   },
+   "options": {
+    "nl": [
+     "De storm ging liggen en de zee werd rustig",
+     "De boot zonk",
+     "De wind draaide en blies harder"
+    ],
+    "en": [
+     "The storm calmed and the sea became still",
+     "The ship sank",
+     "The wind blew even harder"
+    ],
+    "de": [
+     "Der Sturm legte sich und das Meer wurde ruhig",
+     "Das Schiff sank",
+     "Der Wind wurde noch stärker"
+    ],
+    "fr": [
+     "La tempête s’apaisa et la mer devint calme",
+     "Le bateau coula",
+     "Le vent souffla encore plus fort"
+    ],
+    "es": [
+     "La tormenta se calmó y el mar quedó tranquilo",
+     "El barco se hundió",
+     "El viento sopló aún más fuerte"
+    ]
+   }
+  },
+  {
+   "id": "v09-1",
+   "story": 9,
+   "text": {
+    "nl": "Wat deed de familie met de zaadjes die ze hadden meegebracht?",
+    "en": "What did the family do with the seeds they had brought?",
+    "de": "Was tat die Familie mit den mitgebrachten Samen?",
+    "fr": "Que fit la famille des graines qu’elle avait apportées ?",
+    "es": "¿Qué hizo la familia con las semillas que había traído?"
+   },
+   "options": {
+    "nl": [
+     "Ze plantten ze in de grond",
+     "Ze gooiden ze in zee",
+     "Ze gaven ze aan de Lamanieten"
+    ],
+    "en": [
+     "They planted them in the ground",
+     "They threw them into the sea",
+     "They gave them to the Lamanites"
+    ],
+    "de": [
+     "Sie pflanzte sie in die Erde",
+     "Sie warf sie ins Meer",
+     "Sie gab sie den Lamaniten"
+    ],
+    "fr": [
+     "Elle les planta dans la terre",
+     "Elle les jeta à la mer",
+     "Elle les donna aux Lamanites"
+    ],
+    "es": [
+     "Las plantó en la tierra",
+     "Las echó al mar",
+     "Se las dio a los lamanitas"
+    ]
+   }
+  },
+  {
+   "id": "v09-2",
+   "story": 9,
+   "text": {
+    "nl": "Wat moest Nephi op metalen platen schrijven?",
+    "en": "What did Nephi have to write on metal plates?",
+    "de": "Was sollte Nephi auf Metallplatten schreiben?",
+    "fr": "Que Néphi devait-il écrire sur des plaques de métal ?",
+    "es": "¿Qué debía escribir Nefi en planchas de metal?"
+   },
+   "options": {
+    "nl": [
+     "Over zijn familie en hun reizen en de woorden van God",
+     "Recepten voor het koken",
+     "Hoe je een boot bouwt"
+    ],
+    "en": [
+     "About his family and their journeys and the words of God",
+     "Recipes for cooking",
+     "How to build a ship"
+    ],
+    "de": [
+     "Über seine Familie und ihre Reisen und die Worte Gottes",
+     "Kochrezepte",
+     "Wie man ein Schiff baut"
+    ],
+    "fr": [
+     "Sur sa famille, leurs voyages et les paroles de Dieu",
+     "Des recettes de cuisine",
+     "Comment construire un bateau"
+    ],
+    "es": [
+     "Sobre su familia y sus viajes y las palabras de Dios",
+     "Recetas de cocina",
+     "Cómo construir un barco"
+    ]
+   }
+  },
+  {
+   "id": "v09-3",
+   "story": 9,
+   "text": {
+    "nl": "Hoe noemden de mensen die met Nephi waren meegegaan zich?",
+    "en": "What did the people who went with Nephi call themselves?",
+    "de": "Wie nannten sich die Menschen, die mit Nephi gegangen waren?",
+    "fr": "Comment les gens qui avaient suivi Néphi s’appelèrent-ils ?",
+    "es": "¿Cómo se llamaron las personas que fueron con Nefi?"
+   },
+   "options": {
+    "nl": [
+     "Nephieten",
+     "Lamanieten",
+     "Jaredieten"
+    ],
+    "en": [
+     "Nephites",
+     "Lamanites",
+     "Jaredites"
+    ],
+    "de": [
+     "Nephiten",
+     "Lamaniten",
+     "Jarediten"
+    ],
+    "fr": [
+     "Néphites",
+     "Lamanites",
+     "Jarédites"
+    ],
+    "es": [
+     "Nefitas",
+     "Lamanitas",
+     "Jareditas"
+    ]
+   }
+  },
+  {
+   "id": "v10-1",
+   "story": 10,
+   "text": {
+    "nl": "Aan wie gaf Nephi de platen voordat hij doodging?",
+    "en": "To whom did Nephi give the plates before he died?",
+    "de": "Wem gab Nephi die Platten, bevor er starb?",
+    "fr": "À qui Néphi donna-t-il les plaques avant de mourir ?",
+    "es": "¿A quién dio Nefi las planchas antes de morir?"
+   },
+   "options": {
+    "nl": [
+     "Aan zijn jongere broer Jakob",
+     "Aan zijn zoon Enos",
+     "Aan Mormon"
+    ],
+    "en": [
+     "To his younger brother Jacob",
+     "To his son Enos",
+     "To Mormon"
+    ],
+    "de": [
+     "Seinem jüngeren Bruder Jakob",
+     "Seinem Sohn Enos",
+     "Mormon"
+    ],
+    "fr": [
+     "À son jeune frère Jacob",
+     "À son fils Énos",
+     "À Mormon"
+    ],
+    "es": [
+     "A su hermano menor Jacob",
+     "A su hijo Enós",
+     "A Mormón"
+    ]
+   }
+  },
+  {
+   "id": "v10-2",
+   "story": 10,
+   "text": {
+    "nl": "Wat leerde de slechte man Sherem de mensen?",
+    "en": "What did the wicked man Sherem teach the people?",
+    "de": "Was lehrte der schlechte Mann Scherem die Menschen?",
+    "fr": "Qu’enseigna le méchant Shérem aux gens ?",
+    "es": "¿Qué enseñó el hombre malo Sherem a la gente?"
+   },
+   "options": {
+    "nl": [
+     "Dat er nooit een Verlosser zou komen",
+     "Dat ze Jakob moesten volgen",
+     "Dat ze naar Jeruzalem terug moesten"
+    ],
+    "en": [
+     "That there would never be a Savior",
+     "That they should follow Jacob",
+     "That they should return to Jerusalem"
+    ],
+    "de": [
+     "Dass es nie einen Erlöser geben würde",
+     "Dass sie Jakob folgen sollten",
+     "Dass sie nach Jerusalem zurückkehren sollten"
+    ],
+    "fr": [
+     "Qu’il n’y aurait jamais de Sauveur",
+     "Qu’ils devaient suivre Jacob",
+     "Qu’ils devaient retourner à Jérusalem"
+    ],
+    "es": [
+     "Que nunca habría un Salvador",
+     "Que debían seguir a Jacob",
+     "Que debían volver a Jerusalén"
+    ]
+   }
+  },
+  {
+   "id": "v10-3",
+   "story": 10,
+   "text": {
+    "nl": "Wat gebeurde er nadat Jakob zei dat God Sherem tegen de grond kon slaan?",
+    "en": "What happened after Jacob said God could strike Sherem to the earth?",
+    "de": "Was geschah, nachdem Jakob sagte, Gott könne Scherem zu Boden schlagen?",
+    "fr": "Que se passa-t-il après que Jacob eut dit que Dieu pouvait frapper Shérem ?",
+    "es": "¿Qué pasó después de que Jacob dijo que Dios podía derribar a Sherem?"
+   },
+   "options": {
+    "nl": [
+     "Sherem viel op de grond en kon dagenlang niet opstaan",
+     "Sherem rende weg",
+     "Sherem werd tot koning gekozen"
+    ],
+    "en": [
+     "Sherem fell to the ground and could not get up for days",
+     "Sherem ran away",
+     "Sherem was chosen as king"
+    ],
+    "de": [
+     "Scherem fiel zu Boden und konnte tagelang nicht aufstehen",
+     "Scherem rannte davon",
+     "Scherem wurde zum König gewählt"
+    ],
+    "fr": [
+     "Shérem tomba et ne put se relever pendant des jours",
+     "Shérem s’enfuit",
+     "Shérem fut choisi comme roi"
+    ],
+    "es": [
+     "Sherem cayó al suelo y no pudo levantarse por días",
+     "Sherem salió corriendo",
+     "Sherem fue elegido rey"
+    ]
+   }
+  },
+  {
+   "id": "v11-1",
+   "story": 11,
+   "text": {
+    "nl": "Wat deed Enos toen hij ging nadenken over wat zijn vader hem geleerd had?",
+    "en": "Where was Enos when he thought about what his father had taught him?",
+    "de": "Wo war Enos, als er über die Lehren seines Vaters nachdachte?",
+    "fr": "Où était Énos quand il réfléchit à ce que son père lui avait enseigné ?",
+    "es": "¿Dónde estaba Enós cuando pensó en lo que su padre le había enseñado?"
+   },
+   "options": {
+    "nl": [
+     "Hij ging jagen in het bos",
+     "Hij bouwde een boot",
+     "Hij kopieerde de platen"
+    ],
+    "en": [
+     "Hunting in the forest",
+     "Building a ship",
+     "Copying the plates"
+    ],
+    "de": [
+     "Auf der Jagd im Wald",
+     "Beim Schiffbau",
+     "Beim Abschreiben der Platten"
+    ],
+    "fr": [
+     "À la chasse dans la forêt",
+     "En train de construire un bateau",
+     "En train de copier les plaques"
+    ],
+    "es": [
+     "Cazando en el bosque",
+     "Construyendo un barco",
+     "Copiando las planchas"
+    ]
+   }
+  },
+  {
+   "id": "v11-2",
+   "story": 11,
+   "text": {
+    "nl": "Hoe lang bad Enos?",
+    "en": "How long did Enos pray?",
+    "de": "Wie lange betete Enos?",
+    "fr": "Combien de temps Énos pria-t-il ?",
+    "es": "¿Cuánto tiempo oró Enós?"
+   },
+   "options": {
+    "nl": [
+     "De hele dag en tot het avond werd",
+     "Een paar minuten",
+     "Drie dagen"
+    ],
+    "en": [
+     "All day and into the evening",
+     "A few minutes",
+     "Three days"
+    ],
+    "de": [
+     "Den ganzen Tag und bis in den Abend",
+     "Ein paar Minuten",
+     "Drei Tage"
+    ],
+    "fr": [
+     "Toute la journée jusqu’au soir",
+     "Quelques minutes",
+     "Trois jours"
+    ],
+    "es": [
+     "Todo el día hasta la noche",
+     "Unos minutos",
+     "Tres días"
+    ]
+   }
+  },
+  {
+   "id": "v11-3",
+   "story": 11,
+   "text": {
+    "nl": "Voor wie bad Enos behalve voor zichzelf?",
+    "en": "Besides himself, for whom did Enos pray?",
+    "de": "Für wen betete Enos außer für sich selbst?",
+    "fr": "Pour qui Énos pria-t-il, en plus de lui-même ?",
+    "es": "Además de por sí mismo, ¿por quién oró Enós?"
+   },
+   "options": {
+    "nl": [
+     "Voor de Nephieten en de Lamanieten",
+     "Alleen voor zijn vader",
+     "Alleen voor de koning"
+    ],
+    "en": [
+     "For the Nephites and the Lamanites",
+     "Only for his father",
+     "Only for the king"
+    ],
+    "de": [
+     "Für die Nephiten und die Lamaniten",
+     "Nur für seinen Vater",
+     "Nur für den König"
+    ],
+    "fr": [
+     "Pour les Néphites et les Lamanites",
+     "Seulement pour son père",
+     "Seulement pour le roi"
+    ],
+    "es": [
+     "Por los nefitas y los lamanitas",
+     "Solo por su padre",
+     "Solo por el rey"
+    ]
+   }
+  },
+  {
+   "id": "v12-1",
+   "story": 12,
+   "text": {
+    "nl": "Waar stond koning Benjamin toen hij tot zijn volk sprak?",
+    "en": "Where did King Benjamin stand when he spoke to his people?",
+    "de": "Wo stand König Benjamin, als er zu seinem Volk sprach?",
+    "fr": "Où le roi Benjamin se tenait-il quand il parla à son peuple ?",
+    "es": "¿Dónde estaba el rey Benjamín cuando habló a su pueblo?"
+   },
+   "options": {
+    "nl": [
+     "Op een toren",
+     "In de tempel",
+     "Op een berg"
+    ],
+    "en": [
+     "On a tower",
+     "In the temple",
+     "On a mountain"
+    ],
+    "de": [
+     "Auf einem Turm",
+     "Im Tempel",
+     "Auf einem Berg"
+    ],
+    "fr": [
+     "Sur une tour",
+     "Dans le temple",
+     "Sur une montagne"
+    ],
+    "es": [
+     "Sobre una torre",
+     "En el templo",
+     "Sobre una montaña"
+    ]
+   }
+  },
+  {
+   "id": "v12-2",
+   "story": 12,
+   "text": {
+    "nl": "Wie werd de volgende koning na koning Benjamin?",
+    "en": "Who became king after King Benjamin?",
+    "de": "Wer wurde nach König Benjamin der nächste König?",
+    "fr": "Qui devint roi après le roi Benjamin ?",
+    "es": "¿Quién llegó a ser rey después del rey Benjamín?"
+   },
+   "options": {
+    "nl": [
+     "Zijn zoon Mosiah",
+     "Zijn zoon Helaman",
+     "Limhi"
+    ],
+    "en": [
+     "His son Mosiah",
+     "His son Helaman",
+     "Limhi"
+    ],
+    "de": [
+     "Sein Sohn Mosia",
+     "Sein Sohn Helaman",
+     "Limhi"
+    ],
+    "fr": [
+     "Son fils Mosiah",
+     "Son fils Hélaman",
+     "Limhi"
+    ],
+    "es": [
+     "Su hijo Mosíah",
+     "Su hijo Helamán",
+     "Limhi"
+    ]
+   }
+  },
+  {
+   "id": "v12-3",
+   "story": 12,
+   "text": {
+    "nl": "Hoe dienen we God volgens koning Benjamin?",
+    "en": "According to King Benjamin, how do we serve God?",
+    "de": "Wie dienen wir Gott laut König Benjamin?",
+    "fr": "Selon le roi Benjamin, comment servons-nous Dieu ?",
+    "es": "Según el rey Benjamín, ¿cómo servimos a Dios?"
+   },
+   "options": {
+    "nl": [
+     "Door elkaar te dienen",
+     "Door veel offers te brengen",
+     "Door alleen in de tempel te zijn"
+    ],
+    "en": [
+     "By serving each other",
+     "By making many sacrifices",
+     "By staying only in the temple"
+    ],
+    "de": [
+     "Indem wir einander dienen",
+     "Indem wir viele Opfer bringen",
+     "Indem wir nur im Tempel sind"
+    ],
+    "fr": [
+     "En nous servant les uns les autres",
+     "En faisant beaucoup de sacrifices",
+     "En restant seulement au temple"
+    ],
+    "es": [
+     "Sirviéndonos unos a otros",
+     "Ofreciendo muchos sacrificios",
+     "Estando solo en el templo"
+    ]
+   }
+  },
+  {
+   "id": "v13-1",
+   "story": 13,
+   "text": {
+    "nl": "Naar welk land reisde Zeniff met zijn groep?",
+    "en": "To which land did Zeniff travel with his group?",
+    "de": "In welches Land reiste Zeniff mit seiner Gruppe?",
+    "fr": "Dans quel pays Zénif voyagea-t-il avec son groupe ?",
+    "es": "¿A qué tierra viajó Zeniff con su grupo?"
+   },
+   "options": {
+    "nl": [
+     "Het land Nephi",
+     "Het land Jershon",
+     "Het land Middoni"
+    ],
+    "en": [
+     "The land of Nephi",
+     "The land of Jershon",
+     "The land of Middoni"
+    ],
+    "de": [
+     "Das Land Nephi",
+     "Das Land Jerson",
+     "Das Land Middoni"
+    ],
+    "fr": [
+     "Le pays de Néphi",
+     "Le pays de Jershon",
+     "Le pays de Middoni"
+    ],
+    "es": [
+     "A la tierra de Nefi",
+     "A la tierra de Jersón",
+     "A la tierra de Middoni"
+    ]
+   }
+  },
+  {
+   "id": "v13-2",
+   "story": 13,
+   "text": {
+    "nl": "Waarom liet koning Laman de Nephieten in zijn land wonen?",
+    "en": "Why did King Laman let the Nephites live in his land?",
+    "de": "Warum ließ König Laman die Nephiten in seinem Land wohnen?",
+    "fr": "Pourquoi le roi Laman laissa-t-il les Néphites habiter dans son pays ?",
+    "es": "¿Por qué dejó el rey Lamán que los nefitas vivieran en su tierra?"
+   },
+   "options": {
+    "nl": [
+     "Hij wilde slaven van hen maken",
+     "Hij wilde vrienden worden",
+     "Hij wilde een tempel laten bouwen"
+    ],
+    "en": [
+     "He wanted to make slaves of them",
+     "He wanted to be friends",
+     "He wanted a temple built"
+    ],
+    "de": [
+     "Er wollte sie zu Sklaven machen",
+     "Er wollte Freunde werden",
+     "Er wollte einen Tempel bauen lassen"
+    ],
+    "fr": [
+     "Il voulait faire d’eux des esclaves",
+     "Il voulait devenir leur ami",
+     "Il voulait faire construire un temple"
+    ],
+    "es": [
+     "Quería hacerlos esclavos",
+     "Quería ser su amigo",
+     "Quería que construyeran un templo"
+    ]
+   }
+  },
+  {
+   "id": "v13-3",
+   "story": 13,
+   "text": {
+    "nl": "Wat deden de Nephieten voordat ze gingen vechten?",
+    "en": "What did the Nephites do before they went to fight?",
+    "de": "Was taten die Nephiten, bevor sie kämpften?",
+    "fr": "Que firent les Néphites avant d’aller se battre ?",
+    "es": "¿Qué hicieron los nefitas antes de ir a pelear?"
+   },
+   "options": {
+    "nl": [
+     "Ze baden God om hulp",
+     "Ze vluchtten naar de wildernis",
+     "Ze vroegen om vrede"
+    ],
+    "en": [
+     "They prayed to God for help",
+     "They fled into the wilderness",
+     "They asked for peace"
+    ],
+    "de": [
+     "Sie baten Gott um Hilfe",
+     "Sie flohen in die Wildnis",
+     "Sie baten um Frieden"
+    ],
+    "fr": [
+     "Ils prièrent Dieu de les aider",
+     "Ils s’enfuirent dans le désert",
+     "Ils demandèrent la paix"
+    ],
+    "es": [
+     "Le pidieron ayuda a Dios",
+     "Huyeron al desierto",
+     "Pidieron la paz"
+    ]
+   }
+  },
+  {
+   "id": "v14-1",
+   "story": 14,
+   "text": {
+    "nl": "Waarom werd Abinadi gedood?",
+    "en": "Why was Abinadi put to death?",
+    "de": "Warum wurde Abinadi getötet?",
+    "fr": "Pourquoi Abinadi fut-il mis à mort ?",
+    "es": "¿Por qué mataron a Abinadí?"
+   },
+   "options": {
+    "nl": [
+     "Hij wilde zijn boodschap van God niet terugnemen",
+     "Hij had goud van de koning gestolen",
+     "Hij wilde zelf koning worden"
+    ],
+    "en": [
+     "He would not take back his message from God",
+     "He had stolen gold from the king",
+     "He wanted to be king himself"
+    ],
+    "de": [
+     "Er wollte seine Botschaft von Gott nicht zurücknehmen",
+     "Er hatte Gold vom König gestohlen",
+     "Er wollte selbst König werden"
+    ],
+    "fr": [
+     "Il refusa de retirer son message de la part de Dieu",
+     "Il avait volé de l’or au roi",
+     "Il voulait devenir roi lui-même"
+    ],
+    "es": [
+     "No quiso retractarse de su mensaje de Dios",
+     "Había robado oro al rey",
+     "Quería ser rey él mismo"
+    ]
+   }
+  },
+  {
+   "id": "v14-2",
+   "story": 14,
+   "text": {
+    "nl": "Welke priester van koning Noach geloofde Abinadi?",
+    "en": "Which of King Noah’s priests believed Abinadi?",
+    "de": "Welcher Priester von König Noa glaubte Abinadi?",
+    "fr": "Lequel des prêtres du roi Noé crut Abinadi ?",
+    "es": "¿Cuál de los sacerdotes del rey Noé creyó a Abinadí?"
+   },
+   "options": {
+    "nl": [
+     "Alma",
+     "Amulek",
+     "Gideon"
+    ],
+    "en": [
+     "Alma",
+     "Amulek",
+     "Gideon"
+    ],
+    "de": [
+     "Alma",
+     "Amulek",
+     "Gideon"
+    ],
+    "fr": [
+     "Alma",
+     "Amulek",
+     "Gédéon"
+    ],
+    "es": [
+     "Alma",
+     "Amulek",
+     "Gedeón"
+    ]
+   }
+  },
+  {
+   "id": "v14-3",
+   "story": 14,
+   "text": {
+    "nl": "Hoe stierf koning Noach?",
+    "en": "How did King Noah die?",
+    "de": "Wie starb König Noa?",
+    "fr": "Comment le roi Noé mourut-il ?",
+    "es": "¿Cómo murió el rey Noé?"
+   },
+   "options": {
+    "nl": [
+     "Zijn eigen mannen verbrandden hem",
+     "Hij sneuvelde in een veldslag",
+     "De Lamanieten gooiden hem in de gevangenis"
+    ],
+    "en": [
+     "His own men burned him",
+     "He died in battle",
+     "The Lamanites put him in prison"
+    ],
+    "de": [
+     "Seine eigenen Männer verbrannten ihn",
+     "Er fiel in einer Schlacht",
+     "Die Lamaniten warfen ihn ins Gefängnis"
+    ],
+    "fr": [
+     "Ses propres hommes le brûlèrent",
+     "Il mourut au combat",
+     "Les Lamanites le jetèrent en prison"
+    ],
+    "es": [
+     "Sus propios hombres lo quemaron",
+     "Murió en una batalla",
+     "Los lamanitas lo metieron en la cárcel"
+    ]
+   }
+  },
+  {
+   "id": "v15-1",
+   "story": 15,
+   "text": {
+    "nl": "Waar doopte Alma de mensen?",
+    "en": "Where did Alma baptize the people?",
+    "de": "Wo taufte Alma die Menschen?",
+    "fr": "Où Alma baptisa-t-il les gens ?",
+    "es": "¿Dónde bautizó Alma a la gente?"
+   },
+   "options": {
+    "nl": [
+     "Bij de wateren van Mormon",
+     "In de rivier Sidon",
+     "In de zee"
+    ],
+    "en": [
+     "At the waters of Mormon",
+     "In the river Sidon",
+     "In the sea"
+    ],
+    "de": [
+     "Bei den Wassern Mormons",
+     "Im Fluss Sidon",
+     "Im Meer"
+    ],
+    "fr": [
+     "Aux eaux de Mormon",
+     "Dans le fleuve Sidon",
+     "Dans la mer"
+    ],
+    "es": [
+     "En las aguas de Mormón",
+     "En el río Sidón",
+     "En el mar"
+    ]
+   }
+  },
+  {
+   "id": "v15-2",
+   "story": 15,
+   "text": {
+    "nl": "Hoeveel mensen doopte Alma bij de wateren van Mormon?",
+    "en": "How many people did Alma baptize at the waters of Mormon?",
+    "de": "Wie viele Menschen taufte Alma bei den Wassern Mormons?",
+    "fr": "Combien de personnes Alma baptisa-t-il aux eaux de Mormon ?",
+    "es": "¿A cuántas personas bautizó Alma en las aguas de Mormón?"
+   },
+   "options": {
+    "nl": [
+     "204",
+     "24",
+     "2000"
+    ],
+    "en": [
+     "204",
+     "24",
+     "2,000"
+    ],
+    "de": [
+     "204",
+     "24",
+     "2000"
+    ],
+    "fr": [
+     "204",
+     "24",
+     "2 000"
+    ],
+    "es": [
+     "204",
+     "24",
+     "2000"
+    ]
+   }
+  },
+  {
+   "id": "v15-3",
+   "story": 15,
+   "text": {
+    "nl": "Wat zei Alma toen het volk wilde dat hij hun koning werd?",
+    "en": "What did Alma say when the people wanted him to be their king?",
+    "de": "Was sagte Alma, als das Volk ihn zum König haben wollte?",
+    "fr": "Que dit Alma quand le peuple voulut qu’il devienne roi ?",
+    "es": "¿Qué dijo Alma cuando el pueblo quiso que fuera su rey?"
+   },
+   "options": {
+    "nl": [
+     "Dat God niet wilde dat ze een koning hadden",
+     "Dat hij graag koning wilde worden",
+     "Dat Limhi koning moest worden"
+    ],
+    "en": [
+     "That God did not want them to have a king",
+     "That he would gladly be king",
+     "That Limhi should be king"
+    ],
+    "de": [
+     "Dass Gott nicht wollte, dass sie einen König hatten",
+     "Dass er gern König werden wollte",
+     "Dass Limhi König werden sollte"
+    ],
+    "fr": [
+     "Que Dieu ne voulait pas qu’ils aient un roi",
+     "Qu’il voulait bien être roi",
+     "Que Limhi devait être roi"
+    ],
+    "es": [
+     "Que Dios no quería que tuvieran rey",
+     "Que con gusto sería rey",
+     "Que Limhi debía ser rey"
+    ]
+   }
+  },
+  {
+   "id": "v16-1",
+   "story": 16,
+   "text": {
+    "nl": "Hoe heette de leider van de vreemdelingen uit Zarahemla?",
+    "en": "What was the name of the leader of the strangers from Zarahemla?",
+    "de": "Wie hieß der Anführer der Fremden aus Zarahemla?",
+    "fr": "Comment s’appelait le chef des étrangers venus de Zarahemla ?",
+    "es": "¿Cómo se llamaba el líder de los extranjeros de Zarahemla?"
+   },
+   "options": {
+    "nl": [
+     "Ammon",
+     "Gideon",
+     "Helaman"
+    ],
+    "en": [
+     "Ammon",
+     "Gideon",
+     "Helaman"
+    ],
+    "de": [
+     "Ammon",
+     "Gideon",
+     "Helaman"
+    ],
+    "fr": [
+     "Ammon",
+     "Gédéon",
+     "Hélaman"
+    ],
+    "es": [
+     "Amón",
+     "Gedeón",
+     "Helamán"
+    ]
+   }
+  },
+  {
+   "id": "v16-2",
+   "story": 16,
+   "text": {
+    "nl": "Hoe kwam Limhi’s volk langs de Lamanitische wachten?",
+    "en": "How did Limhi’s people get past the Lamanite guards?",
+    "de": "Wie kam Limhis Volk an den lamanitischen Wachen vorbei?",
+    "fr": "Comment le peuple de Limhi passa-t-il devant les gardes lamanites ?",
+    "es": "¿Cómo pasó el pueblo de Limhi frente a los guardias lamanitas?"
+   },
+   "options": {
+    "nl": [
+     "De wachten waren dronken",
+     "Ze groeven een tunnel",
+     "Ze versloegen de wachten in een gevecht"
+    ],
+    "en": [
+     "The guards were drunk",
+     "They dug a tunnel",
+     "They defeated the guards in a fight"
+    ],
+    "de": [
+     "Die Wachen waren betrunken",
+     "Sie gruben einen Tunnel",
+     "Sie besiegten die Wachen im Kampf"
+    ],
+    "fr": [
+     "Les gardes étaient ivres",
+     "Ils creusèrent un tunnel",
+     "Ils vainquirent les gardes au combat"
+    ],
+    "es": [
+     "Los guardias estaban borrachos",
+     "Cavaron un túnel",
+     "Vencieron a los guardias en una pelea"
+    ]
+   }
+  },
+  {
+   "id": "v16-3",
+   "story": 16,
+   "text": {
+    "nl": "Naar welk land bracht Ammon Limhi’s volk?",
+    "en": "To which land did Ammon bring Limhi’s people?",
+    "de": "In welches Land brachte Ammon Limhis Volk?",
+    "fr": "Dans quel pays Ammon conduisit-il le peuple de Limhi ?",
+    "es": "¿A qué tierra llevó Amón al pueblo de Limhi?"
+   },
+   "options": {
+    "nl": [
+     "Zarahemla",
+     "Jershon",
+     "Babel"
+    ],
+    "en": [
+     "Zarahemla",
+     "Jershon",
+     "Babel"
+    ],
+    "de": [
+     "Zarahemla",
+     "Jerson",
+     "Babel"
+    ],
+    "fr": [
+     "Zarahemla",
+     "Jershon",
+     "Babel"
+    ],
+    "es": [
+     "Zarahemla",
+     "Jersón",
+     "Babel"
+    ]
+   }
+  },
+  {
+   "id": "v17-1",
+   "story": 17,
+   "text": {
+    "nl": "Wat zei Amulon dat er zou gebeuren met iedereen die bad?",
+    "en": "What did Amulon say would happen to anyone who prayed?",
+    "de": "Was sagte Amulon, würde mit jedem geschehen, der betete?",
+    "fr": "Que dit Amulon qu’il arriverait à quiconque prierait ?",
+    "es": "¿Qué dijo Amulón que le pasaría a quien orara?"
+   },
+   "options": {
+    "nl": [
+     "Hij zou gedood worden",
+     "Hij mocht naar huis",
+     "Hij kreeg extra eten"
+    ],
+    "en": [
+     "He would be put to death",
+     "He could go home",
+     "He would get extra food"
+    ],
+    "de": [
+     "Er würde getötet werden",
+     "Er dürfe nach Hause gehen",
+     "Er bekäme zusätzliches Essen"
+    ],
+    "fr": [
+     "Il serait mis à mort",
+     "Il pourrait rentrer chez lui",
+     "Il recevrait plus de nourriture"
+    ],
+    "es": [
+     "Sería muerto",
+     "Podría irse a casa",
+     "Recibiría más comida"
+    ]
+   }
+  },
+  {
+   "id": "v17-2",
+   "story": 17,
+   "text": {
+    "nl": "Hoe baden de mensen van Alma toen?",
+    "en": "How did Alma’s people pray then?",
+    "de": "Wie beteten Almas Leute da?",
+    "fr": "Comment le peuple d’Alma pria-t-il alors ?",
+    "es": "¿Cómo oraba entonces el pueblo de Alma?"
+   },
+   "options": {
+    "nl": [
+     "Alleen in hun hart",
+     "Hardop op straat",
+     "Ze hielden helemaal op met bidden"
+    ],
+    "en": [
+     "Only in their hearts",
+     "Aloud in the street",
+     "They stopped praying altogether"
+    ],
+    "de": [
+     "Nur in ihrem Herzen",
+     "Laut auf der Straße",
+     "Sie hörten ganz auf zu beten"
+    ],
+    "fr": [
+     "Seulement dans son cœur",
+     "À haute voix dans la rue",
+     "Il cessa complètement de prier"
+    ],
+    "es": [
+     "Solo en su corazón",
+     "En voz alta en la calle",
+     "Dejaron de orar por completo"
+    ]
+   }
+  },
+  {
+   "id": "v17-3",
+   "story": 17,
+   "text": {
+    "nl": "Hoe lang reisden Alma en zijn volk naar Zarahemla?",
+    "en": "How long did Alma and his people travel to Zarahemla?",
+    "de": "Wie lange reisten Alma und sein Volk nach Zarahemla?",
+    "fr": "Combien de temps Alma et son peuple voyagèrent-ils jusqu’à Zarahemla ?",
+    "es": "¿Cuánto tiempo viajaron Alma y su pueblo hasta Zarahemla?"
+   },
+   "options": {
+    "nl": [
+     "Twaalf dagen",
+     "Drie dagen",
+     "Veertig dagen"
+    ],
+    "en": [
+     "Twelve days",
+     "Three days",
+     "Forty days"
+    ],
+    "de": [
+     "Zwölf Tage",
+     "Drei Tage",
+     "Vierzig Tage"
+    ],
+    "fr": [
+     "Douze jours",
+     "Trois jours",
+     "Quarante jours"
+    ],
+    "es": [
+     "Doce días",
+     "Tres días",
+     "Cuarenta días"
+    ]
+   }
+  },
+  {
+   "id": "v18-1",
+   "story": 18,
+   "text": {
+    "nl": "Wie verscheen er aan Alma de jonge en de zoons van Mosiah?",
+    "en": "Who appeared to Alma the Younger and the sons of Mosiah?",
+    "de": "Wer erschien Alma dem Jüngeren und den Söhnen Mosias?",
+    "fr": "Qui apparut à Alma le jeune et aux fils de Mosiah ?",
+    "es": "¿Quién se apareció a Alma el joven y a los hijos de Mosíah?"
+   },
+   "options": {
+    "nl": [
+     "Een engel",
+     "Jezus Christus zelf",
+     "Nephi"
+    ],
+    "en": [
+     "An angel",
+     "Jesus Christ Himself",
+     "Nephi"
+    ],
+    "de": [
+     "Ein Engel",
+     "Jesus Christus selbst",
+     "Nephi"
+    ],
+    "fr": [
+     "Un ange",
+     "Jésus-Christ en personne",
+     "Néphi"
+    ],
+    "es": [
+     "Un ángel",
+     "Jesucristo mismo",
+     "Nefi"
+    ]
+   }
+  },
+  {
+   "id": "v18-2",
+   "story": 18,
+   "text": {
+    "nl": "Waarom was de engel gekomen?",
+    "en": "Why had the angel come?",
+    "de": "Warum war der Engel gekommen?",
+    "fr": "Pourquoi l’ange était-il venu ?",
+    "es": "¿Por qué había venido el ángel?"
+   },
+   "options": {
+    "nl": [
+     "Omdat de kerkleden gebeden hadden",
+     "Omdat Alma de jonge om hulp riep",
+     "Omdat koning Mosiah erom vroeg"
+    ],
+    "en": [
+     "Because the members of the Church had prayed",
+     "Because Alma the Younger called for help",
+     "Because King Mosiah asked for it"
+    ],
+    "de": [
+     "Weil die Kirchenmitglieder gebetet hatten",
+     "Weil Alma der Jüngere um Hilfe rief",
+     "Weil König Mosia darum bat"
+    ],
+    "fr": [
+     "Parce que les membres de l’Église avaient prié",
+     "Parce qu’Alma le jeune avait appelé à l’aide",
+     "Parce que le roi Mosiah l’avait demandé"
+    ],
+    "es": [
+     "Porque los miembros de la Iglesia habían orado",
+     "Porque Alma el joven pidió ayuda",
+     "Porque el rey Mosíah lo pidió"
+    ]
+   }
+  },
+  {
+   "id": "v18-3",
+   "story": 18,
+   "text": {
+    "nl": "Hoe lang kon Alma de jonge niet praten of bewegen?",
+    "en": "How long could Alma the Younger not speak or move?",
+    "de": "Wie lange konnte Alma der Jüngere nicht sprechen oder sich bewegen?",
+    "fr": "Combien de temps Alma le jeune ne put-il ni parler ni bouger ?",
+    "es": "¿Cuánto tiempo no pudo hablar ni moverse Alma el joven?"
+   },
+   "options": {
+    "nl": [
+     "Twee dagen en nachten",
+     "Een uur",
+     "Een heel jaar"
+    ],
+    "en": [
+     "Two days and nights",
+     "One hour",
+     "A whole year"
+    ],
+    "de": [
+     "Zwei Tage und Nächte",
+     "Eine Stunde",
+     "Ein ganzes Jahr"
+    ],
+    "fr": [
+     "Deux jours et deux nuits",
+     "Une heure",
+     "Une année entière"
+    ],
+    "es": [
+     "Dos días y dos noches",
+     "Una hora",
+     "Un año entero"
+    ]
+   }
+  },
+  {
+   "id": "v19-1",
+   "story": 19,
+   "text": {
+    "nl": "Wat wilden de zoons van Mosiah liever dan koning worden?",
+    "en": "What did the sons of Mosiah want to do rather than be king?",
+    "de": "Was wollten die Söhne Mosias lieber tun, als König zu werden?",
+    "fr": "Que voulaient faire les fils de Mosiah plutôt que devenir roi ?",
+    "es": "¿Qué querían hacer los hijos de Mosíah en lugar de ser rey?"
+   },
+   "options": {
+    "nl": [
+     "Op zending gaan naar de Lamanieten",
+     "Soldaat worden",
+     "Handelaar worden"
+    ],
+    "en": [
+     "Go on a mission to the Lamanites",
+     "Become soldiers",
+     "Become merchants"
+    ],
+    "de": [
+     "Auf Mission zu den Lamaniten gehen",
+     "Soldaten werden",
+     "Händler werden"
+    ],
+    "fr": [
+     "Aller en mission chez les Lamanites",
+     "Devenir soldats",
+     "Devenir marchands"
+    ],
+    "es": [
+     "Ir a una misión entre los lamanitas",
+     "Ser soldados",
+     "Ser comerciantes"
+    ]
+   }
+  },
+  {
+   "id": "v19-2",
+   "story": 19,
+   "text": {
+    "nl": "Hoeveel zoons had koning Mosiah in dit verhaal?",
+    "en": "How many sons of King Mosiah are in this story?",
+    "de": "Wie viele Söhne von König Mosia kommen in dieser Geschichte vor?",
+    "fr": "Combien de fils du roi Mosiah y a-t-il dans cette histoire ?",
+    "es": "¿Cuántos hijos del rey Mosíah aparecen en esta historia?"
+   },
+   "options": {
+    "nl": [
+     "Vier",
+     "Twee",
+     "Zeven"
+    ],
+    "en": [
+     "Four",
+     "Two",
+     "Seven"
+    ],
+    "de": [
+     "Vier",
+     "Zwei",
+     "Sieben"
+    ],
+    "fr": [
+     "Quatre",
+     "Deux",
+     "Sept"
+    ],
+    "es": [
+     "Cuatro",
+     "Dos",
+     "Siete"
+    ]
+   }
+  },
+  {
+   "id": "v19-3",
+   "story": 19,
+   "text": {
+    "nl": "Wat deden de zoons van Mosiah voordat ze op zending gingen?",
+    "en": "What did the sons of Mosiah do before they went on their mission?",
+    "de": "Was taten die Söhne Mosias, bevor sie auf Mission gingen?",
+    "fr": "Que firent les fils de Mosiah avant de partir en mission ?",
+    "es": "¿Qué hicieron los hijos de Mosíah antes de irse en su misión?"
+   },
+   "options": {
+    "nl": [
+     "Ze vastten en baden",
+     "Ze verkochten hun bezittingen",
+     "Ze bouwden een boot"
+    ],
+    "en": [
+     "They fasted and prayed",
+     "They sold their belongings",
+     "They built a ship"
+    ],
+    "de": [
+     "Sie fasteten und beteten",
+     "Sie verkauften ihren Besitz",
+     "Sie bauten ein Schiff"
+    ],
+    "fr": [
+     "Ils jeûnèrent et prièrent",
+     "Ils vendirent leurs biens",
+     "Ils construisirent un bateau"
+    ],
+    "es": [
+     "Ayunaron y oraron",
+     "Vendieron sus pertenencias",
+     "Construyeron un barco"
+    ]
+   }
+  },
+  {
+   "id": "v20-1",
+   "story": 20,
+   "text": {
+    "nl": "Wat werd Alma de jonge toen de Nephieten rechters kozen?",
+    "en": "What did Alma the Younger become when the Nephites chose judges?",
+    "de": "Was wurde Alma der Jüngere, als die Nephiten Richter wählten?",
+    "fr": "Que devint Alma le jeune quand les Néphites choisirent des juges ?",
+    "es": "¿Qué llegó a ser Alma el joven cuando los nefitas escogieron jueces?"
+   },
+   "options": {
+    "nl": [
+     "De eerste hoofdrechter",
+     "Koning",
+     "Legerleider"
+    ],
+    "en": [
+     "The first chief judge",
+     "King",
+     "Army commander"
+    ],
+    "de": [
+     "Der erste oberste Richter",
+     "König",
+     "Heerführer"
+    ],
+    "fr": [
+     "Le premier grand juge",
+     "Roi",
+     "Chef de l’armée"
+    ],
+    "es": [
+     "El primer juez superior",
+     "Rey",
+     "Jefe del ejército"
+    ]
+   }
+  },
+  {
+   "id": "v20-2",
+   "story": 20,
+   "text": {
+    "nl": "Wat leerde Nehor de mensen?",
+    "en": "What did Nehor teach the people?",
+    "de": "Was lehrte Nehor die Menschen?",
+    "fr": "Qu’enseigna Néhor aux gens ?",
+    "es": "¿Qué enseñó Nehor a la gente?"
+   },
+   "options": {
+    "nl": [
+     "Dat iedereen toch wel verlost zou worden",
+     "Dat niemand verlost kon worden",
+     "Dat alleen rijke mensen verlost werden"
+    ],
+    "en": [
+     "That everyone would be saved anyway",
+     "That no one could be saved",
+     "That only rich people would be saved"
+    ],
+    "de": [
+     "Dass ohnehin jeder erlöst werde",
+     "Dass niemand erlöst werden könne",
+     "Dass nur reiche Menschen erlöst würden"
+    ],
+    "fr": [
+     "Que tout le monde serait sauvé de toute façon",
+     "Que personne ne pouvait être sauvé",
+     "Que seuls les riches seraient sauvés"
+    ],
+    "es": [
+     "Que todos se salvarían de todos modos",
+     "Que nadie podía salvarse",
+     "Que solo los ricos se salvarían"
+    ]
+   }
+  },
+  {
+   "id": "v20-3",
+   "story": 20,
+   "text": {
+    "nl": "Wie werd door Nehor gedood?",
+    "en": "Whom did Nehor kill?",
+    "de": "Wen tötete Nehor?",
+    "fr": "Qui Néhor tua-t-il ?",
+    "es": "¿A quién mató Nehor?"
+   },
+   "options": {
+    "nl": [
+     "Gideon",
+     "Amlici",
+     "Sherem"
+    ],
+    "en": [
+     "Gideon",
+     "Amlici",
+     "Sherem"
+    ],
+    "de": [
+     "Gideon",
+     "Amlici",
+     "Scherem"
+    ],
+    "fr": [
+     "Gédéon",
+     "Amlici",
+     "Shérem"
+    ],
+    "es": [
+     "A Gedeón",
+     "A Amlici",
+     "A Sherem"
+    ]
+   }
+  },
+  {
+   "id": "v21-1",
+   "story": 21,
+   "text": {
+    "nl": "Wat wilde Amlici worden?",
+    "en": "What did Amlici want to become?",
+    "de": "Was wollte Amlici werden?",
+    "fr": "Que voulait devenir Amlici ?",
+    "es": "¿Qué quería llegar a ser Amlici?"
+   },
+   "options": {
+    "nl": [
+     "Koning van de Nephieten",
+     "Priester",
+     "Leraar"
+    ],
+    "en": [
+     "King of the Nephites",
+     "A priest",
+     "A teacher"
+    ],
+    "de": [
+     "König der Nephiten",
+     "Priester",
+     "Lehrer"
+    ],
+    "fr": [
+     "Roi des Néphites",
+     "Prêtre",
+     "Instituteur"
+    ],
+    "es": [
+     "Rey de los nefitas",
+     "Sacerdote",
+     "Maestro"
+    ]
+   }
+  },
+  {
+   "id": "v21-2",
+   "story": 21,
+   "text": {
+    "nl": "Hoe noemden Amlici en zijn volgelingen zichzelf?",
+    "en": "What did Amlici and his followers call themselves?",
+    "de": "Wie nannten sich Amlici und seine Anhänger?",
+    "fr": "Comment Amlici et ses partisans s’appelèrent-ils ?",
+    "es": "¿Cómo se llamaron Amlici y sus seguidores?"
+   },
+   "options": {
+    "nl": [
+     "Amlicieten",
+     "Zoramieten",
+     "Jaredieten"
+    ],
+    "en": [
+     "Amlicites",
+     "Zoramites",
+     "Jaredites"
+    ],
+    "de": [
+     "Amliziten",
+     "Zoramiten",
+     "Jarediten"
+    ],
+    "fr": [
+     "Amlicites",
+     "Zoramites",
+     "Jarédites"
+    ],
+    "es": [
+     "Amlicitas",
+     "Zoramitas",
+     "Jareditas"
+    ]
+   }
+  },
+  {
+   "id": "v21-3",
+   "story": 21,
+   "text": {
+    "nl": "Wie doodde Amlici in de strijd?",
+    "en": "Who killed Amlici in the battle?",
+    "de": "Wer tötete Amlici in der Schlacht?",
+    "fr": "Qui tua Amlici dans la bataille ?",
+    "es": "¿Quién mató a Amlici en la batalla?"
+   },
+   "options": {
+    "nl": [
+     "Alma, met de kracht van God",
+     "Moroni",
+     "Ammon"
+    ],
+    "en": [
+     "Alma, with the power of God",
+     "Moroni",
+     "Ammon"
+    ],
+    "de": [
+     "Alma, mit der Kraft Gottes",
+     "Moroni",
+     "Ammon"
+    ],
+    "fr": [
+     "Alma, avec la force de Dieu",
+     "Moroni",
+     "Ammon"
+    ],
+    "es": [
+     "Alma, con el poder de Dios",
+     "Moroni",
+     "Amón"
+    ]
+   }
+  },
+  {
+   "id": "v22-1",
+   "story": 22,
+   "text": {
+    "nl": "Wie gaf Alma te eten toen hij terugkwam in Ammonihah?",
+    "en": "Who gave Alma food when he returned to Ammonihah?",
+    "de": "Wer gab Alma zu essen, als er nach Ammoniha zurückkehrte?",
+    "fr": "Qui donna à manger à Alma quand il revint à Ammonihah ?",
+    "es": "¿Quién le dio de comer a Alma cuando regresó a Ammoníah?"
+   },
+   "options": {
+    "nl": [
+     "Amulek",
+     "Zeezrom",
+     "Nephihah"
+    ],
+    "en": [
+     "Amulek",
+     "Zeezrom",
+     "Nephihah"
+    ],
+    "de": [
+     "Amulek",
+     "Zeezrom",
+     "Nephiha"
+    ],
+    "fr": [
+     "Amulek",
+     "Zeezrom",
+     "Néphihah"
+    ],
+    "es": [
+     "Amulek",
+     "Zeezrom",
+     "Nefíah"
+    ]
+   }
+  },
+  {
+   "id": "v22-2",
+   "story": 22,
+   "text": {
+    "nl": "Wie bood Amulek geld aan als hij zou zeggen dat er geen God was?",
+    "en": "Who offered Amulek money to say there was no God?",
+    "de": "Wer bot Amulek Geld an, wenn er sagte, es gebe keinen Gott?",
+    "fr": "Qui offrit de l’argent à Amulek pour qu’il dise qu’il n’y avait pas de Dieu ?",
+    "es": "¿Quién le ofreció dinero a Amulek para que dijera que no había Dios?"
+   },
+   "options": {
+    "nl": [
+     "Zeezrom",
+     "De hoofdrechter",
+     "Alma"
+    ],
+    "en": [
+     "Zeezrom",
+     "The chief judge",
+     "Alma"
+    ],
+    "de": [
+     "Zeezrom",
+     "Der oberste Richter",
+     "Alma"
+    ],
+    "fr": [
+     "Zeezrom",
+     "Le grand juge",
+     "Alma"
+    ],
+    "es": [
+     "Zeezrom",
+     "El juez superior",
+     "Alma"
+    ]
+   }
+  },
+  {
+   "id": "v22-3",
+   "story": 22,
+   "text": {
+    "nl": "Wat gebeurde er met de muren van de gevangenis toen Alma en Amulek de touwen braken?",
+    "en": "What happened to the prison walls when Alma and Amulek broke their ropes?",
+    "de": "Was geschah mit den Gefängnismauern, als Alma und Amulek die Seile zerrissen?",
+    "fr": "Que devinrent les murs de la prison quand Alma et Amulek rompirent leurs cordes ?",
+    "es": "¿Qué les pasó a los muros de la cárcel cuando Alma y Amulek rompieron las cuerdas?"
+   },
+   "options": {
+    "nl": [
+     "Ze vielen om",
+     "Ze werden hoger",
+     "Er gebeurde niets met de muren"
+    ],
+    "en": [
+     "They fell down",
+     "They grew taller",
+     "Nothing happened to the walls"
+    ],
+    "de": [
+     "Sie stürzten ein",
+     "Sie wurden höher",
+     "Mit den Mauern geschah nichts"
+    ],
+    "fr": [
+     "Ils s’écroulèrent",
+     "Ils devinrent plus hauts",
+     "Rien n’arriva aux murs"
+    ],
+    "es": [
+     "Se derrumbaron",
+     "Se hicieron más altos",
+     "No les pasó nada a los muros"
+    ]
+   }
+  },
+  {
+   "id": "v23-1",
+   "story": 23,
+   "text": {
+    "nl": "Wat moest Ammon doen als dienstknecht van koning Lamoni?",
+    "en": "What did Ammon have to do as King Lamoni’s servant?",
+    "de": "Was musste Ammon als Diener von König Lamoni tun?",
+    "fr": "Que devait faire Ammon comme serviteur du roi Lamoni ?",
+    "es": "¿Qué debía hacer Amón como siervo del rey Lamoni?"
+   },
+   "options": {
+    "nl": [
+     "De kudden van de koning bewaken",
+     "De poorten van de stad bewaken",
+     "De tempel bouwen"
+    ],
+    "en": [
+     "Guard the king’s flocks",
+     "Guard the city gates",
+     "Build the temple"
+    ],
+    "de": [
+     "Die Herden des Königs bewachen",
+     "Die Stadttore bewachen",
+     "Den Tempel bauen"
+    ],
+    "fr": [
+     "Garder les troupeaux du roi",
+     "Garder les portes de la ville",
+     "Construire le temple"
+    ],
+    "es": [
+     "Cuidar los rebaños del rey",
+     "Cuidar las puertas de la ciudad",
+     "Construir el templo"
+    ]
+   }
+  },
+  {
+   "id": "v23-2",
+   "story": 23,
+   "text": {
+    "nl": "Waarmee verdreef Ammon de rovers onder meer?",
+    "en": "What did Ammon use to drive off the robbers?",
+    "de": "Womit vertrieb Ammon die Räuber unter anderem?",
+    "fr": "Avec quoi Ammon chassa-t-il notamment les voleurs ?",
+    "es": "¿Con qué ahuyentó Amón, entre otras cosas, a los ladrones?"
+   },
+   "options": {
+    "nl": [
+     "Met stenen die hij slingerde en met zijn knuppel",
+     "Met een speer",
+     "Met pijl en boog"
+    ],
+    "en": [
+     "Stones he slung and his club",
+     "A spear",
+     "A bow and arrows"
+    ],
+    "de": [
+     "Mit Steinen, die er schleuderte, und mit seiner Keule",
+     "Mit einem Speer",
+     "Mit Pfeil und Bogen"
+    ],
+    "fr": [
+     "Des pierres lancées avec une fronde et son gourdin",
+     "Une lance",
+     "Un arc et des flèches"
+    ],
+    "es": [
+     "Con piedras que lanzó con honda y con su garrote",
+     "Con una lanza",
+     "Con arco y flechas"
+    ]
+   }
+  },
+  {
+   "id": "v23-3",
+   "story": 23,
+   "text": {
+    "nl": "Waarom was koning Lamoni bang om met Ammon te praten?",
+    "en": "Why was King Lamoni afraid to speak with Ammon?",
+    "de": "Warum hatte König Lamoni Angst, mit Ammon zu sprechen?",
+    "fr": "Pourquoi le roi Lamoni avait-il peur de parler à Ammon ?",
+    "es": "¿Por qué tenía miedo el rey Lamoni de hablar con Amón?"
+   },
+   "options": {
+    "nl": [
+     "Hij dacht dat Ammon de Grote Geest was",
+     "Hij dacht dat Ammon een spion was",
+     "Hij dacht dat Ammon zijn koninkrijk wilde"
+    ],
+    "en": [
+     "He thought Ammon was the Great Spirit",
+     "He thought Ammon was a spy",
+     "He thought Ammon wanted his kingdom"
+    ],
+    "de": [
+     "Er hielt Ammon für den Großen Geist",
+     "Er hielt Ammon für einen Spion",
+     "Er dachte, Ammon wolle sein Königreich"
+    ],
+    "fr": [
+     "Il pensait qu’Ammon était le Grand Esprit",
+     "Il pensait qu’Ammon était un espion",
+     "Il pensait qu’Ammon voulait son royaume"
+    ],
+    "es": [
+     "Pensaba que Amón era el Gran Espíritu",
+     "Pensaba que Amón era un espía",
+     "Pensaba que Amón quería su reino"
+    ]
+   }
+  },
+  {
+   "id": "v24-1",
+   "story": 24,
+   "text": {
+    "nl": "In welk land zat Aäron gevangen?",
+    "en": "In which land was Aaron in prison?",
+    "de": "In welchem Land war Aaron im Gefängnis?",
+    "fr": "Dans quel pays Aaron était-il en prison ?",
+    "es": "¿En qué tierra estaba preso Aarón?"
+   },
+   "options": {
+    "nl": [
+     "Middoni",
+     "Jershon",
+     "Zarahemla"
+    ],
+    "en": [
+     "Middoni",
+     "Jershon",
+     "Zarahemla"
+    ],
+    "de": [
+     "Middoni",
+     "Jerson",
+     "Zarahemla"
+    ],
+    "fr": [
+     "Middoni",
+     "Jershon",
+     "Zarahemla"
+    ],
+    "es": [
+     "Middoni",
+     "Jersón",
+     "Zarahemla"
+    ]
+   }
+  },
+  {
+   "id": "v24-2",
+   "story": 24,
+   "text": {
+    "nl": "Waarom waarschuwde de Heer Ammon om niet naar de vader van Lamoni te gaan?",
+    "en": "Why did the Lord warn Ammon not to go to Lamoni’s father?",
+    "de": "Warum warnte der Herr Ammon davor, zu Lamonis Vater zu gehen?",
+    "fr": "Pourquoi le Seigneur avertit-il Ammon de ne pas aller chez le père de Lamoni ?",
+    "es": "¿Por qué advirtió el Señor a Amón que no fuera donde el padre de Lamoni?"
+   },
+   "options": {
+    "nl": [
+     "De vader zou proberen hem te doden",
+     "Het was te ver weg",
+     "Er was een grote overstroming"
+    ],
+    "en": [
+     "The father would try to kill him",
+     "It was too far away",
+     "There was a great flood"
+    ],
+    "de": [
+     "Der Vater würde versuchen, ihn zu töten",
+     "Es war zu weit weg",
+     "Es gab eine große Überschwemmung"
+    ],
+    "fr": [
+     "Le père essaierait de le tuer",
+     "C’était trop loin",
+     "Il y avait une grande inondation"
+    ],
+    "es": [
+     "El padre intentaría matarlo",
+     "Estaba demasiado lejos",
+     "Había una gran inundación"
+    ]
+   }
+  },
+  {
+   "id": "v24-3",
+   "story": 24,
+   "text": {
+    "nl": "Wat bood de vader van Lamoni Ammon aan als hij zijn leven zou sparen?",
+    "en": "What did Lamoni’s father offer Ammon if he would spare his life?",
+    "de": "Was bot Lamonis Vater Ammon an, wenn er sein Leben verschonte?",
+    "fr": "Qu’offrit le père de Lamoni à Ammon s’il épargnait sa vie ?",
+    "es": "¿Qué le ofreció el padre de Lamoni a Amón si le perdonaba la vida?"
+   },
+   "options": {
+    "nl": [
+     "De helft van zijn koninkrijk",
+     "Al zijn schapen",
+     "Zijn dochter"
+    ],
+    "en": [
+     "Half of his kingdom",
+     "All his sheep",
+     "His daughter"
+    ],
+    "de": [
+     "Die Hälfte seines Königreichs",
+     "Alle seine Schafe",
+     "Seine Tochter"
+    ],
+    "fr": [
+     "La moitié de son royaume",
+     "Tous ses moutons",
+     "Sa fille"
+    ],
+    "es": [
+     "La mitad de su reino",
+     "Todas sus ovejas",
+     "A su hija"
+    ]
+   }
+  },
+  {
+   "id": "v25-1",
+   "story": 25,
+   "text": {
+    "nl": "Wie was Aäron voor Ammon?",
+    "en": "Who was Aaron to Ammon?",
+    "de": "Wer war Aaron für Ammon?",
+    "fr": "Qui était Aaron pour Ammon ?",
+    "es": "¿Quién era Aarón para Amón?"
+   },
+   "options": {
+    "nl": [
+     "Zijn broer",
+     "Zijn zoon",
+     "Zijn koning"
+    ],
+    "en": [
+     "His brother",
+     "His son",
+     "His king"
+    ],
+    "de": [
+     "Sein Bruder",
+     "Sein Sohn",
+     "Sein König"
+    ],
+    "fr": [
+     "Son frère",
+     "Son fils",
+     "Son roi"
+    ],
+    "es": [
+     "Su hermano",
+     "Su hijo",
+     "Su rey"
+    ]
+   }
+  },
+  {
+   "id": "v25-2",
+   "story": 25,
+   "text": {
+    "nl": "Wat zei Aäron dat de koning moest doen om de Heilige Geest te ontvangen?",
+    "en": "What did Aaron say the king must do to receive the Holy Ghost?",
+    "de": "Was sagte Aaron, was der König tun müsse, um den Heiligen Geist zu empfangen?",
+    "fr": "Que dit Aaron que le roi devait faire pour recevoir le Saint-Esprit ?",
+    "es": "¿Qué dijo Aarón que debía hacer el rey para recibir el Espíritu Santo?"
+   },
+   "options": {
+    "nl": [
+     "Bidden, geloof hebben en zich bekeren",
+     "Zijn koninkrijk aan Aäron geven",
+     "Een offer van schapen brengen"
+    ],
+    "en": [
+     "Pray, have faith and repent",
+     "Give his kingdom to Aaron",
+     "Bring a sacrifice of sheep"
+    ],
+    "de": [
+     "Beten, Glauben haben und umkehren",
+     "Sein Königreich an Aaron geben",
+     "Ein Schafopfer bringen"
+    ],
+    "fr": [
+     "Prier, avoir la foi et se repentir",
+     "Donner son royaume à Aaron",
+     "Offrir un sacrifice de moutons"
+    ],
+    "es": [
+     "Orar, tener fe y arrepentirse",
+     "Darle su reino a Aarón",
+     "Ofrecer un sacrificio de ovejas"
+    ]
+   }
+  },
+  {
+   "id": "v25-3",
+   "story": 25,
+   "text": {
+    "nl": "Wat zei Aäron toen hij de hand van de koning nam?",
+    "en": "What did Aaron say when he took the king’s hand?",
+    "de": "Was sagte Aaron, als er die Hand des Königs nahm?",
+    "fr": "Que dit Aaron en prenant la main du roi ?",
+    "es": "¿Qué dijo Aarón cuando tomó la mano del rey?"
+   },
+   "options": {
+    "nl": [
+     "Sta op",
+     "Wees stil",
+     "Ga weg"
+    ],
+    "en": [
+     "Arise",
+     "Be quiet",
+     "Go away"
+    ],
+    "de": [
+     "Steh auf",
+     "Sei still",
+     "Geh weg"
+    ],
+    "fr": [
+     "Lève-toi",
+     "Tais-toi",
+     "Va-t’en"
+    ],
+    "es": [
+     "Levántate",
+     "Cállate",
+     "Vete"
+    ]
+   }
+  },
+  {
+   "id": "v26-1",
+   "story": 26,
+   "text": {
+    "nl": "Hoe noemden de bekeerde Lamanieten zich?",
+    "en": "What did the converted Lamanites call themselves?",
+    "de": "Wie nannten sich die bekehrten Lamaniten?",
+    "fr": "Comment les Lamanites convertis s’appelèrent-ils ?",
+    "es": "¿Cómo se llamaron los lamanitas convertidos?"
+   },
+   "options": {
+    "nl": [
+     "Anti-Nephi-Lehieten, het volk van Ammon",
+     "Zoramieten",
+     "Nehorieten"
+    ],
+    "en": [
+     "Anti-Nephi-Lehies, the people of Ammon",
+     "Zoramites",
+     "Nehors"
+    ],
+    "de": [
+     "Anti-Nephi-Lehier, das Volk Ammons",
+     "Zoramiten",
+     "Nehorianer"
+    ],
+    "fr": [
+     "Anti-Néphi-Léhis, le peuple d’Ammon",
+     "Zoramites",
+     "Néhorites"
+    ],
+    "es": [
+     "Anti-Nefi-Lehis, el pueblo de Amón",
+     "Zoramitas",
+     "Nehoritas"
+    ]
+   }
+  },
+  {
+   "id": "v26-2",
+   "story": 26,
+   "text": {
+    "nl": "Wat deed het volk van Ammon met hun wapens?",
+    "en": "What did the people of Ammon do with their weapons?",
+    "de": "Was tat das Volk Ammons mit seinen Waffen?",
+    "fr": "Que fit le peuple d’Ammon de ses armes ?",
+    "es": "¿Qué hizo el pueblo de Amón con sus armas?"
+   },
+   "options": {
+    "nl": [
+     "Ze begroeven ze diep in de grond",
+     "Ze verkochten ze",
+     "Ze bewaarden ze voor het geval dat"
+    ],
+    "en": [
+     "They buried them deep in the ground",
+     "They sold them",
+     "They kept them just in case"
+    ],
+    "de": [
+     "Es vergrub sie tief in der Erde",
+     "Es verkaufte sie",
+     "Es behielt sie für alle Fälle"
+    ],
+    "fr": [
+     "Il les enterra profondément dans le sol",
+     "Il les vendit",
+     "Il les garda au cas où"
+    ],
+    "es": [
+     "Las enterraron muy hondo en la tierra",
+     "Las vendieron",
+     "Las guardaron por si acaso"
+    ]
+   }
+  },
+  {
+   "id": "v26-3",
+   "story": 26,
+   "text": {
+    "nl": "Welk land gaven de Nephieten aan het volk van Ammon?",
+    "en": "Which land did the Nephites give to the people of Ammon?",
+    "de": "Welches Land gaben die Nephiten dem Volk Ammons?",
+    "fr": "Quel pays les Néphites donnèrent-ils au peuple d’Ammon ?",
+    "es": "¿Qué tierra dieron los nefitas al pueblo de Amón?"
+   },
+   "options": {
+    "nl": [
+     "Jershon",
+     "Gideon",
+     "Middoni"
+    ],
+    "en": [
+     "Jershon",
+     "Gideon",
+     "Middoni"
+    ],
+    "de": [
+     "Jerson",
+     "Gideon",
+     "Middoni"
+    ],
+    "fr": [
+     "Jershon",
+     "Gédéon",
+     "Middoni"
+    ],
+    "es": [
+     "Jersón",
+     "Gedeón",
+     "Middoni"
+    ]
+   }
+  },
+  {
+   "id": "v27-1",
+   "story": 27,
+   "text": {
+    "nl": "Wat gebeurde er met Korihor nadat Alma zei dat hij met stomheid geslagen zou worden?",
+    "en": "What happened to Korihor after Alma said he would be struck dumb?",
+    "de": "Was geschah mit Korihor, nachdem Alma sagte, er werde stumm geschlagen?",
+    "fr": "Que devint Korihor après qu’Alma eut dit qu’il serait frappé de mutisme ?",
+    "es": "¿Qué le pasó a Korihor después de que Alma dijo que quedaría mudo?"
+   },
+   "options": {
+    "nl": [
+     "Hij kon ineens niet meer praten",
+     "Hij werd blind",
+     "Hij verdween spoorloos"
+    ],
+    "en": [
+     "He suddenly could not speak",
+     "He became blind",
+     "He disappeared without a trace"
+    ],
+    "de": [
+     "Er konnte plötzlich nicht mehr sprechen",
+     "Er wurde blind",
+     "Er verschwand spurlos"
+    ],
+    "fr": [
+     "Il ne put soudain plus parler",
+     "Il devint aveugle",
+     "Il disparut sans laisser de trace"
+    ],
+    "es": [
+     "De pronto no pudo hablar",
+     "Quedó ciego",
+     "Desapareció sin dejar rastro"
+    ]
+   }
+  },
+  {
+   "id": "v27-2",
+   "story": 27,
+   "text": {
+    "nl": "Wie liet Korihor uit het land Jershon zetten?",
+    "en": "Who had Korihor removed from the land of Jershon?",
+    "de": "Wer ließ Korihor aus dem Land Jerson ausweisen?",
+    "fr": "Qui fit chasser Korihor du pays de Jershon ?",
+    "es": "¿Quién hizo que echaran a Korihor de la tierra de Jersón?"
+   },
+   "options": {
+    "nl": [
+     "Ammon",
+     "Alma",
+     "Koning Mosiah"
+    ],
+    "en": [
+     "Ammon",
+     "Alma",
+     "King Mosiah"
+    ],
+    "de": [
+     "Ammon",
+     "Alma",
+     "König Mosia"
+    ],
+    "fr": [
+     "Ammon",
+     "Alma",
+     "Le roi Mosiah"
+    ],
+    "es": [
+     "Amón",
+     "Alma",
+     "El rey Mosíah"
+    ]
+   }
+  },
+  {
+   "id": "v27-3",
+   "story": 27,
+   "text": {
+    "nl": "Hoe kwam Korihor daarna aan zijn eten?",
+    "en": "How did Korihor get his food afterwards?",
+    "de": "Wie kam Korihor danach an sein Essen?",
+    "fr": "Comment Korihor obtint-il ensuite sa nourriture ?",
+    "es": "¿Cómo conseguía Korihor su comida después?"
+   },
+   "options": {
+    "nl": [
+     "Hij moest langs de deuren gaan om te bedelen",
+     "Hij werkte als herder",
+     "Hij kreeg het van de koning"
+    ],
+    "en": [
+     "He had to go door to door begging",
+     "He worked as a shepherd",
+     "The king gave it to him"
+    ],
+    "de": [
+     "Er musste von Tür zu Tür betteln gehen",
+     "Er arbeitete als Hirte",
+     "Der König gab es ihm"
+    ],
+    "fr": [
+     "Il dut mendier de porte en porte",
+     "Il travaillait comme berger",
+     "Le roi la lui donnait"
+    ],
+    "es": [
+     "Tenía que ir de puerta en puerta mendigando",
+     "Trabajaba como pastor",
+     "El rey se la daba"
+    ]
+   }
+  },
+  {
+   "id": "v28-1",
+   "story": 28,
+   "text": {
+    "nl": "Hoe heette de verhoging in het midden van de Zoramitische kerk?",
+    "en": "What was the platform in the middle of the Zoramite church called?",
+    "de": "Wie hieß das Podest in der Mitte der zoramitischen Kirche?",
+    "fr": "Comment s’appelait l’estrade au milieu de l’église des Zoramites ?",
+    "es": "¿Cómo se llamaba la plataforma en medio de la iglesia de los zoramitas?"
+   },
+   "options": {
+    "nl": [
+     "De Rameumptom",
+     "De Liahona",
+     "De Banier"
+    ],
+    "en": [
+     "The Rameumptom",
+     "The Liahona",
+     "The Banner"
+    ],
+    "de": [
+     "Der Rameumptom",
+     "Der Liahona",
+     "Das Banner"
+    ],
+    "fr": [
+     "Le Rameumptom",
+     "Le Liahona",
+     "L’étendard"
+    ],
+    "es": [
+     "El Rameumptom",
+     "El Liahona",
+     "El estandarte"
+    ]
+   }
+  },
+  {
+   "id": "v28-2",
+   "story": 28,
+   "text": {
+    "nl": "Hoeveel personen konden tegelijk op de Rameumptom staan?",
+    "en": "How many people could stand on the Rameumptom at once?",
+    "de": "Wie viele Personen konnten gleichzeitig auf dem Rameumptom stehen?",
+    "fr": "Combien de personnes pouvaient se tenir sur le Rameumptom en même temps ?",
+    "es": "¿Cuántas personas podían estar a la vez en el Rameumptom?"
+   },
+   "options": {
+    "nl": [
+     "Eén",
+     "Tien",
+     "Honderd"
+    ],
+    "en": [
+     "One",
+     "Ten",
+     "A hundred"
+    ],
+    "de": [
+     "Eine",
+     "Zehn",
+     "Hundert"
+    ],
+    "fr": [
+     "Une",
+     "Dix",
+     "Cent"
+    ],
+    "es": [
+     "Una",
+     "Diez",
+     "Cien"
+    ]
+   }
+  },
+  {
+   "id": "v28-3",
+   "story": 28,
+   "text": {
+    "nl": "Waar gingen de Zoramieten die geloofden wonen?",
+    "en": "Where did the believing Zoramites go to live?",
+    "de": "Wo wohnten die gläubigen Zoramiten danach?",
+    "fr": "Où les Zoramites qui crurent allèrent-ils vivre ?",
+    "es": "¿Adónde fueron a vivir los zoramitas que creyeron?"
+   },
+   "options": {
+    "nl": [
+     "In het land Jershon bij het volk van Ammon",
+     "In Zarahemla in de tempel",
+     "In de wildernis bij de zee"
+    ],
+    "en": [
+     "In the land of Jershon with the people of Ammon",
+     "In Zarahemla in the temple",
+     "In the wilderness by the sea"
+    ],
+    "de": [
+     "Im Land Jerson beim Volk Ammons",
+     "In Zarahemla im Tempel",
+     "In der Wildnis am Meer"
+    ],
+    "fr": [
+     "Dans le pays de Jershon avec le peuple d’Ammon",
+     "À Zarahemla dans le temple",
+     "Dans le désert au bord de la mer"
+    ],
+    "es": [
+     "A la tierra de Jersón con el pueblo de Amón",
+     "A Zarahemla, en el templo",
+     "Al desierto junto al mar"
+    ]
+   }
+  },
+  {
+   "id": "v29-1",
+   "story": 29,
+   "text": {
+    "nl": "Waarmee vergeleek Alma geloof dat groeit?",
+    "en": "What did Alma compare growing faith to?",
+    "de": "Womit verglich Alma wachsenden Glauben?",
+    "fr": "À quoi Alma compara-t-il la foi qui grandit ?",
+    "es": "¿Con qué comparó Alma la fe que crece?"
+   },
+   "options": {
+    "nl": [
+     "Met een zaadkorrel",
+     "Met een boot",
+     "Met een berg"
+    ],
+    "en": [
+     "A seed",
+     "A ship",
+     "A mountain"
+    ],
+    "de": [
+     "Mit einem Samenkorn",
+     "Mit einem Schiff",
+     "Mit einem Berg"
+    ],
+    "fr": [
+     "À une graine",
+     "À un bateau",
+     "À une montagne"
+    ],
+    "es": [
+     "Con una semilla",
+     "Con un barco",
+     "Con una montaña"
+    ]
+   }
+  },
+  {
+   "id": "v29-2",
+   "story": 29,
+   "text": {
+    "nl": "Wat is geloof volgens Alma?",
+    "en": "According to Alma, what is faith?",
+    "de": "Was ist Glaube laut Alma?",
+    "fr": "Selon Alma, qu’est-ce que la foi ?",
+    "es": "Según Alma, ¿qué es la fe?"
+   },
+   "options": {
+    "nl": [
+     "Iets aannemen wat waar is zonder het te zien",
+     "Alleen geloven wat je kunt zien",
+     "Een teken vragen"
+    ],
+    "en": [
+     "Accepting what is true without seeing it",
+     "Believing only what you can see",
+     "Asking for a sign"
+    ],
+    "de": [
+     "Etwas Wahres annehmen, ohne es zu sehen",
+     "Nur glauben, was man sehen kann",
+     "Um ein Zeichen bitten"
+    ],
+    "fr": [
+     "Accepter ce qui est vrai sans le voir",
+     "Croire seulement ce qu’on peut voir",
+     "Demander un signe"
+    ],
+    "es": [
+     "Aceptar lo que es verdad sin verlo",
+     "Creer solo lo que se puede ver",
+     "Pedir una señal"
+    ]
+   }
+  },
+  {
+   "id": "v29-3",
+   "story": 29,
+   "text": {
+    "nl": "Wat gebeurt er met het woord van God als we het echt willen geloven?",
+    "en": "What happens to the word of God if we truly want to believe?",
+    "de": "Was geschieht mit dem Wort Gottes, wenn wir wirklich glauben wollen?",
+    "fr": "Que devient la parole de Dieu si nous voulons vraiment croire ?",
+    "es": "¿Qué le sucede a la palabra de Dios si de verdad queremos creer?"
+   },
+   "options": {
+    "nl": [
+     "Het groeit in ons hart, zoals een zaadje",
+     "Het verdwijnt snel",
+     "Het wordt een gebod dat we vergeten"
+    ],
+    "en": [
+     "It grows in our hearts like a seed",
+     "It quickly disappears",
+     "It becomes a commandment we forget"
+    ],
+    "de": [
+     "Es wächst in unserem Herzen wie ein Samenkorn",
+     "Es verschwindet schnell",
+     "Es wird zu einem Gebot, das wir vergessen"
+    ],
+    "fr": [
+     "Elle grandit dans notre cœur comme une graine",
+     "Elle disparaît vite",
+     "Elle devient un commandement que nous oublions"
+    ],
+    "es": [
+     "Crece en nuestro corazón como una semilla",
+     "Desaparece rápido",
+     "Se vuelve un mandamiento que olvidamos"
+    ]
+   }
+  },
+  {
+   "id": "v30-1",
+   "story": 30,
+   "text": {
+    "nl": "Aan wie gaf Alma de heilige verslagen op metalen platen?",
+    "en": "To whom did Alma give the sacred records on metal plates?",
+    "de": "Wem gab Alma die heiligen Aufzeichnungen auf Metallplatten?",
+    "fr": "À qui Alma donna-t-il les annales sacrées sur des plaques de métal ?",
+    "es": "¿A quién le dio Alma los anales sagrados en planchas de metal?"
+   },
+   "options": {
+    "nl": [
+     "Helaman",
+     "Shiblon",
+     "Corianton"
+    ],
+    "en": [
+     "Helaman",
+     "Shiblon",
+     "Corianton"
+    ],
+    "de": [
+     "Helaman",
+     "Schiblon",
+     "Korianton"
+    ],
+    "fr": [
+     "Hélaman",
+     "Shiblon",
+     "Corianton"
+    ],
+    "es": [
+     "A Helamán",
+     "A Shiblón",
+     "A Coriantón"
+    ]
+   }
+  },
+  {
+   "id": "v30-2",
+   "story": 30,
+   "text": {
+    "nl": "Welke zoon van Alma was moedig onder de Zoramieten en werd gestenigd?",
+    "en": "Which of Alma’s sons was brave among the Zoramites and was stoned?",
+    "de": "Welcher Sohn Almas war mutig unter den Zoramiten und wurde gesteinigt?",
+    "fr": "Lequel des fils d’Alma fut courageux chez les Zoramites et fut lapidé ?",
+    "es": "¿Cuál de los hijos de Alma fue valiente entre los zoramitas y fue apedreado?"
+   },
+   "options": {
+    "nl": [
+     "Shiblon",
+     "Corianton",
+     "Helaman"
+    ],
+    "en": [
+     "Shiblon",
+     "Corianton",
+     "Helaman"
+    ],
+    "de": [
+     "Schiblon",
+     "Korianton",
+     "Helaman"
+    ],
+    "fr": [
+     "Shiblon",
+     "Corianton",
+     "Hélaman"
+    ],
+    "es": [
+     "Shiblón",
+     "Coriantón",
+     "Helamán"
+    ]
+   }
+  },
+  {
+   "id": "v30-3",
+   "story": 30,
+   "text": {
+    "nl": "Waarom geloofden veel Zoramieten de leringen van Alma niet?",
+    "en": "Why did many Zoramites not believe Alma’s teachings?",
+    "de": "Warum glaubten viele Zoramiten Almas Lehren nicht?",
+    "fr": "Pourquoi beaucoup de Zoramites ne crurent-ils pas les enseignements d’Alma ?",
+    "es": "¿Por qué muchos zoramitas no creyeron las enseñanzas de Alma?"
+   },
+   "options": {
+    "nl": [
+     "Corianton gedroeg zich niet goed",
+     "Ze spraken een andere taal",
+     "Alma was te jong"
+    ],
+    "en": [
+     "Corianton had not behaved well",
+     "They spoke a different language",
+     "Alma was too young"
+    ],
+    "de": [
+     "Korianton hatte sich nicht gut verhalten",
+     "Sie sprachen eine andere Sprache",
+     "Alma war zu jung"
+    ],
+    "fr": [
+     "Corianton ne s’était pas bien conduit",
+     "Ils parlaient une autre langue",
+     "Alma était trop jeune"
+    ],
+    "es": [
+     "Coriantón no se había comportado bien",
+     "Hablaban otro idioma",
+     "Alma era demasiado joven"
+    ]
+   }
+  },
+  {
+   "id": "v31-1",
+   "story": 31,
+   "text": {
+    "nl": "Waarom waren de Lamanieten bang toen ze de Nephieten zagen?",
+    "en": "Why were the Lamanites afraid when they saw the Nephites?",
+    "de": "Warum hatten die Lamaniten Angst, als sie die Nephiten sahen?",
+    "fr": "Pourquoi les Lamanites eurent-ils peur en voyant les Néphites ?",
+    "es": "¿Por qué tuvieron miedo los lamanitas al ver a los nefitas?"
+   },
+   "options": {
+    "nl": [
+     "De Nephieten droegen harnassen en schilden",
+     "De Nephieten hadden olifanten",
+     "De Nephieten waren met veel meer mensen"
+    ],
+    "en": [
+     "The Nephites wore armor and shields",
+     "The Nephites had elephants",
+     "The Nephites had many more people"
+    ],
+    "de": [
+     "Die Nephiten trugen Rüstungen und Schilde",
+     "Die Nephiten hatten Elefanten",
+     "Die Nephiten waren viel mehr"
+    ],
+    "fr": [
+     "Les Néphites portaient des armures et des boucliers",
+     "Les Néphites avaient des éléphants",
+     "Les Néphites étaient bien plus nombreux"
+    ],
+    "es": [
+     "Los nefitas llevaban armaduras y escudos",
+     "Los nefitas tenían elefantes",
+     "Los nefitas eran muchos más"
+    ]
+   }
+  },
+  {
+   "id": "v31-2",
+   "story": 31,
+   "text": {
+    "nl": "Waar verstopten de soldaten van Moroni zich?",
+    "en": "Where did Moroni’s soldiers hide?",
+    "de": "Wo versteckten sich Moronis Soldaten?",
+    "fr": "Où les soldats de Moroni se cachèrent-ils ?",
+    "es": "¿Dónde se escondieron los soldados de Moroni?"
+   },
+   "options": {
+    "nl": [
+     "Aan beide kanten van de rivier Sidon",
+     "In de bergen",
+     "In een grot"
+    ],
+    "en": [
+     "On both sides of the river Sidon",
+     "In the mountains",
+     "In a cave"
+    ],
+    "de": [
+     "Auf beiden Seiten des Flusses Sidon",
+     "In den Bergen",
+     "In einer Höhle"
+    ],
+    "fr": [
+     "Des deux côtés du fleuve Sidon",
+     "Dans les montagnes",
+     "Dans une grotte"
+    ],
+    "es": [
+     "A ambos lados del río Sidón",
+     "En las montañas",
+     "En una cueva"
+    ]
+   }
+  },
+  {
+   "id": "v31-3",
+   "story": 31,
+   "text": {
+    "nl": "Wat moest Zerahemnah van Moroni inleveren?",
+    "en": "What did Moroni tell Zerahemnah to hand over?",
+    "de": "Was sollte Zerahemna laut Moroni abgeben?",
+    "fr": "Que Moroni demanda-t-il à Zérahemna de rendre ?",
+    "es": "¿Qué le pidió Moroni a Zerahemna que entregara?"
+   },
+   "options": {
+    "nl": [
+     "Zijn wapens",
+     "Zijn paarden",
+     "Zijn gouden kroon"
+    ],
+    "en": [
+     "His weapons",
+     "His horses",
+     "His golden crown"
+    ],
+    "de": [
+     "Seine Waffen",
+     "Seine Pferde",
+     "Seine goldene Krone"
+    ],
+    "fr": [
+     "Ses armes",
+     "Ses chevaux",
+     "Sa couronne d’or"
+    ],
+    "es": [
+     "Sus armas",
+     "Sus caballos",
+     "Su corona de oro"
+    ]
+   }
+  },
+  {
+   "id": "v32-1",
+   "story": 32,
+   "text": {
+    "nl": "Waarvan maakte Moroni zijn vlag?",
+    "en": "What did Moroni make his flag from?",
+    "de": "Woraus machte Moroni seine Fahne?",
+    "fr": "De quoi Moroni fit-il son étendard ?",
+    "es": "¿De qué hizo Moroni su estandarte?"
+   },
+   "options": {
+    "nl": [
+     "Van zijn gescheurde kleed",
+     "Van een tentdoek",
+     "Van een zeil"
+    ],
+    "en": [
+     "From his torn garment",
+     "From a tent cloth",
+     "From a sail"
+    ],
+    "de": [
+     "Aus seinem zerrissenen Gewand",
+     "Aus einer Zeltplane",
+     "Aus einem Segel"
+    ],
+    "fr": [
+     "De son vêtement déchiré",
+     "D’une toile de tente",
+     "D’une voile"
+    ],
+    "es": [
+     "De su manto rasgado",
+     "De una tela de tienda",
+     "De una vela"
+    ]
+   }
+  },
+  {
+   "id": "v32-2",
+   "story": 32,
+   "text": {
+    "nl": "Hoe noemde Moroni zijn vlag?",
+    "en": "What did Moroni call his flag?",
+    "de": "Wie nannte Moroni seine Fahne?",
+    "fr": "Comment Moroni appela-t-il son étendard ?",
+    "es": "¿Cómo llamó Moroni a su estandarte?"
+   },
+   "options": {
+    "nl": [
+     "De banier der vrijheid",
+     "De banier der overwinning",
+     "De vlag van de kerk"
+    ],
+    "en": [
+     "The title of liberty",
+     "The banner of victory",
+     "The flag of the church"
+    ],
+    "de": [
+     "Das Banner der Freiheit",
+     "Das Banner des Sieges",
+     "Die Fahne der Kirche"
+    ],
+    "fr": [
+     "L’étendard de la liberté",
+     "L’étendard de la victoire",
+     "Le drapeau de l’Église"
+    ],
+    "es": [
+     "El estandarte de la libertad",
+     "El estandarte de la victoria",
+     "La bandera de la Iglesia"
+    ]
+   }
+  },
+  {
+   "id": "v32-3",
+   "story": 32,
+   "text": {
+    "nl": "Wat deed Amalickiah toen hij zag hoeveel Nephieten voor hun vrijheid wilden vechten?",
+    "en": "What did Amalickiah do when he saw how many Nephites came to fight for freedom?",
+    "de": "Was tat Amalickiah, als er sah, wie viele Nephiten für ihre Freiheit kämpfen wollten?",
+    "fr": "Que fit Amalickiah en voyant combien de Néphites voulaient se battre pour la liberté ?",
+    "es": "¿Qué hizo Amalickíah al ver cuántos nefitas querían luchar por la libertad?"
+   },
+   "options": {
+    "nl": [
+     "Hij werd bang en ging naar de Lamanieten",
+     "Hij sloot zich bij Moroni aan",
+     "Hij werd rechter"
+    ],
+    "en": [
+     "He became afraid and went to the Lamanites",
+     "He joined Moroni",
+     "He became a judge"
+    ],
+    "de": [
+     "Er bekam Angst und ging zu den Lamaniten",
+     "Er schloss sich Moroni an",
+     "Er wurde Richter"
+    ],
+    "fr": [
+     "Il eut peur et alla chez les Lamanites",
+     "Il rejoignit Moroni",
+     "Il devint juge"
+    ],
+    "es": [
+     "Tuvo miedo y se fue con los lamanitas",
+     "Se unió a Moroni",
+     "Se hizo juez"
+    ]
+   }
+  },
+  {
+   "id": "v33-1",
+   "story": 33,
+   "text": {
+    "nl": "Wie was de hoofdrechter in dit verhaal?",
+    "en": "Who was the chief judge in this story?",
+    "de": "Wer war in dieser Geschichte der oberste Richter?",
+    "fr": "Qui était le grand juge dans cette histoire ?",
+    "es": "¿Quién era el juez superior en esta historia?"
+   },
+   "options": {
+    "nl": [
+     "Pahoran",
+     "Alma",
+     "Helaman"
+    ],
+    "en": [
+     "Pahoran",
+     "Alma",
+     "Helaman"
+    ],
+    "de": [
+     "Pahoran",
+     "Alma",
+     "Helaman"
+    ],
+    "fr": [
+     "Pahoran",
+     "Alma",
+     "Hélaman"
+    ],
+    "es": [
+     "Pahorán",
+     "Alma",
+     "Helamán"
+    ]
+   }
+  },
+  {
+   "id": "v33-2",
+   "story": 33,
+   "text": {
+    "nl": "Wat wilden de koningsgezinden?",
+    "en": "What did the king-men want?",
+    "de": "Was wollten die Königsmänner?",
+    "fr": "Que voulaient les partisans du roi ?",
+    "es": "¿Qué querían los realistas?"
+   },
+   "options": {
+    "nl": [
+     "Een koning in plaats van rechters",
+     "Geen oorlogen meer",
+     "Meer tempels bouwen"
+    ],
+    "en": [
+     "A king instead of judges",
+     "No more wars",
+     "To build more temples"
+    ],
+    "de": [
+     "Einen König statt Richter",
+     "Keine Kriege mehr",
+     "Mehr Tempel bauen"
+    ],
+    "fr": [
+     "Un roi à la place des juges",
+     "Plus de guerres",
+     "Construire plus de temples"
+    ],
+    "es": [
+     "Un rey en lugar de jueces",
+     "Que no hubiera más guerras",
+     "Construir más templos"
+    ]
+   }
+  },
+  {
+   "id": "v33-3",
+   "story": 33,
+   "text": {
+    "nl": "Hoe liep de stemming af?",
+    "en": "How did the vote turn out?",
+    "de": "Wie ging die Abstimmung aus?",
+    "fr": "Quel fut le résultat du vote ?",
+    "es": "¿Cómo resultó la votación?"
+   },
+   "options": {
+    "nl": [
+     "De meesten stemden voor de vrijen",
+     "De meesten stemden voor de koningsgezinden",
+     "De stemming werd uitgesteld"
+    ],
+    "en": [
+     "Most voted for the freemen",
+     "Most voted for the king-men",
+     "The vote was postponed"
+    ],
+    "de": [
+     "Die meisten stimmten für die Freien",
+     "Die meisten stimmten für die Königsmänner",
+     "Die Abstimmung wurde verschoben"
+    ],
+    "fr": [
+     "La plupart votèrent pour les hommes libres",
+     "La plupart votèrent pour les partisans du roi",
+     "Le vote fut reporté"
+    ],
+    "es": [
+     "La mayoría votó por los libres",
+     "La mayoría votó por los realistas",
+     "La votación se aplazó"
+    ]
+   }
+  },
+  {
+   "id": "v34-1",
+   "story": 34,
+   "text": {
+    "nl": "Hoeveel jongemannen volgden Helaman in de strijd?",
+    "en": "How many young men followed Helaman into battle?",
+    "de": "Wie viele junge Männer folgten Helaman in die Schlacht?",
+    "fr": "Combien de jeunes hommes suivirent Hélaman au combat ?",
+    "es": "¿Cuántos jóvenes siguieron a Helamán a la batalla?"
+   },
+   "options": {
+    "nl": [
+     "Tweeduizend",
+     "Duizend",
+     "Tweehonderd"
+    ],
+    "en": [
+     "Two thousand",
+     "One thousand",
+     "Two hundred"
+    ],
+    "de": [
+     "Zweitausend",
+     "Tausend",
+     "Zweihundert"
+    ],
+    "fr": [
+     "Deux mille",
+     "Mille",
+     "Deux cents"
+    ],
+    "es": [
+     "Dos mil",
+     "Mil",
+     "Doscientos"
+    ]
+   }
+  },
+  {
+   "id": "v34-2",
+   "story": 34,
+   "text": {
+    "nl": "Van wie hadden de jongemannen geleerd dat God hen zou helpen?",
+    "en": "From whom had the young men learned that God would help them?",
+    "de": "Von wem hatten die jungen Männer gelernt, dass Gott ihnen helfen würde?",
+    "fr": "De qui les jeunes hommes avaient-ils appris que Dieu les aiderait ?",
+    "es": "¿De quién habían aprendido los jóvenes que Dios los ayudaría?"
+   },
+   "options": {
+    "nl": [
+     "Van hun moeders",
+     "Van koning Mosiah",
+     "Van de rechters"
+    ],
+    "en": [
+     "From their mothers",
+     "From King Mosiah",
+     "From the judges"
+    ],
+    "de": [
+     "Von ihren Müttern",
+     "Von König Mosia",
+     "Von den Richtern"
+    ],
+    "fr": [
+     "De leurs mères",
+     "Du roi Mosiah",
+     "Des juges"
+    ],
+    "es": [
+     "De sus madres",
+     "Del rey Mosíah",
+     "De los jueces"
+    ]
+   }
+  },
+  {
+   "id": "v34-3",
+   "story": 34,
+   "text": {
+    "nl": "Wat was er een wonder aan de strijd van de jongemannen?",
+    "en": "What was miraculous about the young men’s battle?",
+    "de": "Was war am Kampf der jungen Männer ein Wunder?",
+    "fr": "Qu’y eut-il de miraculeux dans le combat des jeunes hommes ?",
+    "es": "¿Qué tuvo de milagroso la batalla de los jóvenes?"
+   },
+   "options": {
+    "nl": [
+     "Ze raakten gewond, maar er werd er niet één gedood",
+     "Ze wonnen zonder te vechten",
+     "Ze kregen nieuwe wapens van een engel"
+    ],
+    "en": [
+     "They were wounded, but not one was killed",
+     "They won without fighting",
+     "They received new weapons from an angel"
+    ],
+    "de": [
+     "Sie wurden verwundet, aber keiner wurde getötet",
+     "Sie siegten ohne zu kämpfen",
+     "Sie bekamen von einem Engel neue Waffen"
+    ],
+    "fr": [
+     "Ils furent blessés, mais aucun ne fut tué",
+     "Ils gagnèrent sans combattre",
+     "Ils reçurent de nouvelles armes d’un ange"
+    ],
+    "es": [
+     "Quedaron heridos, pero ninguno murió",
+     "Ganaron sin pelear",
+     "Recibieron armas nuevas de un ángel"
+    ]
+   }
+  },
+  {
+   "id": "v35-1",
+   "story": 35,
+   "text": {
+    "nl": "Aan wie schreef opperbevelhebber Moroni zijn brieven?",
+    "en": "To whom did Captain Moroni write his letters?",
+    "de": "An wen schrieb Heerführer Moroni seine Briefe?",
+    "fr": "À qui le capitaine Moroni écrivit-il ses lettres ?",
+    "es": "¿A quién escribió el capitán Moroni sus cartas?"
+   },
+   "options": {
+    "nl": [
+     "Pahoran",
+     "Helaman",
+     "Ammon"
+    ],
+    "en": [
+     "Pahoran",
+     "Helaman",
+     "Ammon"
+    ],
+    "de": [
+     "Pahoran",
+     "Helaman",
+     "Ammon"
+    ],
+    "fr": [
+     "Pahoran",
+     "Hélaman",
+     "Ammon"
+    ],
+    "es": [
+     "A Pahorán",
+     "A Helamán",
+     "A Amón"
+    ]
+   }
+  },
+  {
+   "id": "v35-2",
+   "story": 35,
+   "text": {
+    "nl": "Waarom had Pahoran geen hulp gestuurd?",
+    "en": "Why had Pahoran not sent help?",
+    "de": "Warum hatte Pahoran keine Hilfe geschickt?",
+    "fr": "Pourquoi Pahoran n’avait-il pas envoyé d’aide ?",
+    "es": "¿Por qué no había enviado ayuda Pahorán?"
+   },
+   "options": {
+    "nl": [
+     "Koningsgezinden hadden hem uit Zarahemla gejaagd",
+     "Hij vond Moroni een slechte leider",
+     "Hij had geen soldaten meer"
+    ],
+    "en": [
+     "King-men had driven him out of Zarahemla",
+     "He thought Moroni was a bad leader",
+     "He had no soldiers left"
+    ],
+    "de": [
+     "Königsmänner hatten ihn aus Zarahemla vertrieben",
+     "Er hielt Moroni für einen schlechten Anführer",
+     "Er hatte keine Soldaten mehr"
+    ],
+    "fr": [
+     "Des partisans du roi l’avaient chassé de Zarahemla",
+     "Il trouvait Moroni mauvais chef",
+     "Il n’avait plus de soldats"
+    ],
+    "es": [
+     "Los realistas lo habían echado de Zarahemla",
+     "Pensaba que Moroni era un mal líder",
+     "Ya no tenía soldados"
+    ]
+   }
+  },
+  {
+   "id": "v35-3",
+   "story": 35,
+   "text": {
+    "nl": "Wat droegen Moroni en zijn mannen met zich mee onderweg naar Pahoran?",
+    "en": "What did Moroni and his men carry on their way to Pahoran?",
+    "de": "Was trugen Moroni und seine Männer auf dem Weg zu Pahoran mit sich?",
+    "fr": "Que portaient Moroni et ses hommes en chemin vers Pahoran ?",
+    "es": "¿Qué llevaban consigo Moroni y sus hombres en el camino hacia Pahorán?"
+   },
+   "options": {
+    "nl": [
+     "De banier der vrijheid",
+     "Een witte vlag",
+     "De koperen platen"
+    ],
+    "en": [
+     "The title of liberty",
+     "A white flag",
+     "The brass plates"
+    ],
+    "de": [
+     "Das Banner der Freiheit",
+     "Eine weiße Fahne",
+     "Die Messingplatten"
+    ],
+    "fr": [
+     "L’étendard de la liberté",
+     "Un drapeau blanc",
+     "Les plaques d’airain"
+    ],
+    "es": [
+     "El estandarte de la libertad",
+     "Una bandera blanca",
+     "Las planchas de bronce"
+    ]
+   }
+  },
+  {
+   "id": "v36-1",
+   "story": 36,
+   "text": {
+    "nl": "Wat bouwde Hagoth?",
+    "en": "What did Hagoth build?",
+    "de": "Was baute Hagoth?",
+    "fr": "Que construisit Hagoth ?",
+    "es": "¿Qué construyó Hagot?"
+   },
+   "options": {
+    "nl": [
+     "Een groot schip",
+     "Een tempel",
+     "Een toren"
+    ],
+    "en": [
+     "A large ship",
+     "A temple",
+     "A tower"
+    ],
+    "de": [
+     "Ein großes Schiff",
+     "Einen Tempel",
+     "Einen Turm"
+    ],
+    "fr": [
+     "Un grand bateau",
+     "Un temple",
+     "Une tour"
+    ],
+    "es": [
+     "Un gran barco",
+     "Un templo",
+     "Una torre"
+    ]
+   }
+  },
+  {
+   "id": "v36-2",
+   "story": 36,
+   "text": {
+    "nl": "In welke richting zeilden de schepen van Hagoth?",
+    "en": "In which direction did Hagoth’s ships sail?",
+    "de": "In welche Richtung segelten Hagoths Schiffe?",
+    "fr": "Dans quelle direction les bateaux de Hagoth naviguèrent-ils ?",
+    "es": "¿En qué dirección navegaron los barcos de Hagot?"
+   },
+   "options": {
+    "nl": [
+     "Naar het noorden",
+     "Naar het zuiden",
+     "Naar het oosten"
+    ],
+    "en": [
+     "North",
+     "South",
+     "East"
+    ],
+    "de": [
+     "Nach Norden",
+     "Nach Süden",
+     "Nach Osten"
+    ],
+    "fr": [
+     "Vers le nord",
+     "Vers le sud",
+     "Vers l’est"
+    ],
+    "es": [
+     "Hacia el norte",
+     "Hacia el sur",
+     "Hacia el este"
+    ]
+   }
+  },
+  {
+   "id": "v36-3",
+   "story": 36,
+   "text": {
+    "nl": "Hoeveel Nephitische mannen verlieten Zarahemla met hun gezinnen?",
+    "en": "How many Nephite men left Zarahemla with their families?",
+    "de": "Wie viele nephitische Männer verließen mit ihren Familien Zarahemla?",
+    "fr": "Combien d’hommes néphites quittèrent Zarahemla avec leur famille ?",
+    "es": "¿Cuántos hombres nefitas salieron de Zarahemla con sus familias?"
+   },
+   "options": {
+    "nl": [
+     "Vijfduizend vierhonderd",
+     "Tweeduizend",
+     "Honderd"
+    ],
+    "en": [
+     "Five thousand four hundred",
+     "Two thousand",
+     "One hundred"
+    ],
+    "de": [
+     "Fünftausendvierhundert",
+     "Zweitausend",
+     "Hundert"
+    ],
+    "fr": [
+     "Cinq mille quatre cents",
+     "Deux mille",
+     "Cent"
+    ],
+    "es": [
+     "Cinco mil cuatrocientos",
+     "Dos mil",
+     "Cien"
+    ]
+   }
+  },
+  {
+   "id": "v37-1",
+   "story": 37,
+   "text": {
+    "nl": "Wat beschermde Nephi en Lehi in de gevangenis?",
+    "en": "What protected Nephi and Lehi in the prison?",
+    "de": "Was beschützte Nephi und Lehi im Gefängnis?",
+    "fr": "Qu’est-ce qui protégea Néphi et Léhi dans la prison ?",
+    "es": "¿Qué protegió a Nefi y a Lehi en la cárcel?"
+   },
+   "options": {
+    "nl": [
+     "Een kring van vuur",
+     "Een stenen muur",
+     "Een groep soldaten"
+    ],
+    "en": [
+     "A circle of fire",
+     "A stone wall",
+     "A group of soldiers"
+    ],
+    "de": [
+     "Ein Feuerkreis",
+     "Eine Steinmauer",
+     "Eine Gruppe Soldaten"
+    ],
+    "fr": [
+     "Un cercle de feu",
+     "Un mur de pierre",
+     "Un groupe de soldats"
+    ],
+    "es": [
+     "Un círculo de fuego",
+     "Un muro de piedra",
+     "Un grupo de soldados"
+    ]
+   }
+  },
+  {
+   "id": "v37-2",
+   "story": 37,
+   "text": {
+    "nl": "Hoe klonk de stem die in het donker sprak?",
+    "en": "What did the voice that spoke in the darkness sound like?",
+    "de": "Wie klang die Stimme, die in der Dunkelheit sprach?",
+    "fr": "Comment sonnait la voix qui parla dans l’obscurité ?",
+    "es": "¿Cómo sonaba la voz que habló en la oscuridad?"
+   },
+   "options": {
+    "nl": [
+     "Zacht, als een fluistering",
+     "Luid als donder",
+     "Als een trompet"
+    ],
+    "en": [
+     "Soft, like a whisper",
+     "Loud like thunder",
+     "Like a trumpet"
+    ],
+    "de": [
+     "Leise, wie ein Flüstern",
+     "Laut wie Donner",
+     "Wie eine Trompete"
+    ],
+    "fr": [
+     "Douce, comme un murmure",
+     "Forte comme le tonnerre",
+     "Comme une trompette"
+    ],
+    "es": [
+     "Suave, como un susurro",
+     "Fuerte como un trueno",
+     "Como una trompeta"
+    ]
+   }
+  },
+  {
+   "id": "v37-3",
+   "story": 37,
+   "text": {
+    "nl": "Hoe heette de man die zei dat Nephi en Lehi met engelen praatten?",
+    "en": "What was the name of the man who said Nephi and Lehi were talking with angels?",
+    "de": "Wie hieß der Mann, der sagte, Nephi und Lehi sprächen mit Engeln?",
+    "fr": "Comment s’appelait l’homme qui dit que Néphi et Léhi parlaient avec des anges ?",
+    "es": "¿Cómo se llamaba el hombre que dijo que Nefi y Lehi hablaban con ángeles?"
+   },
+   "options": {
+    "nl": [
+     "Aminadab",
+     "Zoram",
+     "Gideon"
+    ],
+    "en": [
+     "Aminadab",
+     "Zoram",
+     "Gideon"
+    ],
+    "de": [
+     "Aminadab",
+     "Zoram",
+     "Gideon"
+    ],
+    "fr": [
+     "Aminadab",
+     "Zoram",
+     "Gédéon"
+    ],
+    "es": [
+     "Aminadab",
+     "Zoram",
+     "Gedeón"
+    ]
+   }
+  },
+  {
+   "id": "v38-1",
+   "story": 38,
+   "text": {
+    "nl": "Waar bad Nephi toen de mensen hem hoorden?",
+    "en": "Where was Nephi praying when the people heard him?",
+    "de": "Wo betete Nephi, als die Leute ihn hörten?",
+    "fr": "Où Néphi priait-il quand les gens l’entendirent ?",
+    "es": "¿Dónde oraba Nefi cuando la gente lo oyó?"
+   },
+   "options": {
+    "nl": [
+     "In de toren in zijn tuin",
+     "In de tempel",
+     "Op een berg"
+    ],
+    "en": [
+     "In the tower in his garden",
+     "In the temple",
+     "On a mountain"
+    ],
+    "de": [
+     "Im Turm in seinem Garten",
+     "Im Tempel",
+     "Auf einem Berg"
+    ],
+    "fr": [
+     "Dans la tour de son jardin",
+     "Dans le temple",
+     "Sur une montagne"
+    ],
+    "es": [
+     "En la torre de su jardín",
+     "En el templo",
+     "En una montaña"
+    ]
+   }
+  },
+  {
+   "id": "v38-2",
+   "story": 38,
+   "text": {
+    "nl": "Wie had de hoofdrechter Seezoram vermoord?",
+    "en": "Who had murdered the chief judge Seezoram?",
+    "de": "Wer hatte den obersten Richter Seezoram ermordet?",
+    "fr": "Qui avait assassiné le grand juge Séézoram ?",
+    "es": "¿Quién había asesinado al juez superior Seezoram?"
+   },
+   "options": {
+    "nl": [
+     "Zijn broer Seantum",
+     "Een Lamaniet",
+     "Nephi"
+    ],
+    "en": [
+     "His brother Seantum",
+     "A Lamanite",
+     "Nephi"
+    ],
+    "de": [
+     "Sein Bruder Seantum",
+     "Ein Lamanit",
+     "Nephi"
+    ],
+    "fr": [
+     "Son frère Séantum",
+     "Un Lamanite",
+     "Néphi"
+    ],
+    "es": [
+     "Su hermano Seantum",
+     "Un lamanita",
+     "Nefi"
+    ]
+   }
+  },
+  {
+   "id": "v38-3",
+   "story": 38,
+   "text": {
+    "nl": "Waaraan zagen de rechters dat Seantum schuldig was?",
+    "en": "How did the judges see that Seantum was guilty?",
+    "de": "Woran erkannten die Richter, dass Seantum schuldig war?",
+    "fr": "À quoi les juges virent-ils que Séantum était coupable ?",
+    "es": "¿En qué notaron los jueces que Seantum era culpable?"
+   },
+   "options": {
+    "nl": [
+     "Er zat bloed op zijn mantel",
+     "Hij had het zwaard bij zich",
+     "Hij rende weg"
+    ],
+    "en": [
+     "There was blood on his cloak",
+     "He had the sword with him",
+     "He ran away"
+    ],
+    "de": [
+     "An seinem Mantel war Blut",
+     "Er hatte das Schwert bei sich",
+     "Er rannte davon"
+    ],
+    "fr": [
+     "Il y avait du sang sur son manteau",
+     "Il avait l’épée sur lui",
+     "Il s’enfuit en courant"
+    ],
+    "es": [
+     "Había sangre en su manto",
+     "Tenía la espada consigo",
+     "Salió corriendo"
+    ]
+   }
+  },
+  {
+   "id": "v39-1",
+   "story": 39,
+   "text": {
+    "nl": "Waarom bad Nephi om hongersnood?",
+    "en": "Why did Nephi pray for a famine?",
+    "de": "Warum betete Nephi um eine Hungersnot?",
+    "fr": "Pourquoi Néphi pria-t-il pour qu’il y ait une famine ?",
+    "es": "¿Por qué oró Nefi pidiendo hambre?"
+   },
+   "options": {
+    "nl": [
+     "Zodat de mensen nederig zouden worden en zich bekeerden",
+     "Zodat de Lamanieten zouden vluchten",
+     "Zodat er meer graan zou groeien"
+    ],
+    "en": [
+     "So that people would become humble and repent",
+     "So that the Lamanites would flee",
+     "So that more grain would grow"
+    ],
+    "de": [
+     "Damit die Menschen demütig würden und umkehrten",
+     "Damit die Lamaniten flohen",
+     "Damit mehr Getreide wuchs"
+    ],
+    "fr": [
+     "Pour que les gens deviennent humbles et se repentent",
+     "Pour que les Lamanites s’enfuient",
+     "Pour que plus de blé pousse"
+    ],
+    "es": [
+     "Para que la gente se humillara y se arrepintiera",
+     "Para que los lamanitas huyeran",
+     "Para que creciera más grano"
+    ]
+   }
+  },
+  {
+   "id": "v39-2",
+   "story": 39,
+   "text": {
+    "nl": "Wat gebeurde er nadat Nephi de Heer vroeg de hongersnood te beëindigen?",
+    "en": "What happened after Nephi asked the Lord to end the famine?",
+    "de": "Was geschah, nachdem Nephi den Herrn bat, die Hungersnot zu beenden?",
+    "fr": "Que se passa-t-il après que Néphi eut demandé au Seigneur de faire cesser la famine ?",
+    "es": "¿Qué pasó después de que Nefi le pidió al Señor que terminara el hambre?"
+   },
+   "options": {
+    "nl": [
+     "De vruchten en het graan begonnen weer te groeien",
+     "De hongersnood werd erger",
+     "De rivier overstroomde"
+    ],
+    "en": [
+     "The fruit and grain began to grow again",
+     "The famine got worse",
+     "The river flooded"
+    ],
+    "de": [
+     "Die Früchte und das Getreide wuchsen wieder",
+     "Die Hungersnot wurde schlimmer",
+     "Der Fluss trat über die Ufer"
+    ],
+    "fr": [
+     "Les fruits et le blé recommencèrent à pousser",
+     "La famine empira",
+     "Le fleuve déborda"
+    ],
+    "es": [
+     "Los frutos y el grano volvieron a crecer",
+     "El hambre empeoró",
+     "El río se desbordó"
+    ]
+   }
+  },
+  {
+   "id": "v39-3",
+   "story": 39,
+   "text": {
+    "nl": "Waarom kreeg Nephi grote macht van de Heer?",
+    "en": "Why did the Lord give Nephi great power?",
+    "de": "Warum gab der Herr Nephi große Macht?",
+    "fr": "Pourquoi le Seigneur donna-t-il un grand pouvoir à Néphi ?",
+    "es": "¿Por qué le dio el Señor a Nefi gran poder?"
+   },
+   "options": {
+    "nl": [
+     "De Heer wist dat hij die op een goede manier zou gebruiken",
+     "Omdat hij de rijkste man was",
+     "Omdat hij koning was"
+    ],
+    "en": [
+     "The Lord knew he would use it in a good way",
+     "Because he was the richest man",
+     "Because he was king"
+    ],
+    "de": [
+     "Der Herr wusste, dass er sie auf gute Weise gebrauchen würde",
+     "Weil er der reichste Mann war",
+     "Weil er König war"
+    ],
+    "fr": [
+     "Le Seigneur savait qu’il l’utiliserait de bonne manière",
+     "Parce qu’il était l’homme le plus riche",
+     "Parce qu’il était roi"
+    ],
+    "es": [
+     "El Señor sabía que lo usaría de buena manera",
+     "Porque era el hombre más rico",
+     "Porque era rey"
+    ]
+   }
+  },
+  {
+   "id": "v40-1",
+   "story": 40,
+   "text": {
+    "nl": "Vanaf waar predikte Samuël de Lamaniet tot de Nephieten?",
+    "en": "From where did Samuel the Lamanite preach to the Nephites?",
+    "de": "Von wo aus predigte Samuel der Lamanit den Nephiten?",
+    "fr": "D’où Samuel le Lamanite prêcha-t-il aux Néphites ?",
+    "es": "¿Desde dónde predicó Samuel el lamanita a los nefitas?"
+   },
+   "options": {
+    "nl": [
+     "Vanaf de stadsmuur",
+     "Vanaf een boot",
+     "Vanaf een berg"
+    ],
+    "en": [
+     "From the city wall",
+     "From a boat",
+     "From a mountain"
+    ],
+    "de": [
+     "Von der Stadtmauer",
+     "Von einem Boot",
+     "Von einem Berg"
+    ],
+    "fr": [
+     "Du haut du mur de la ville",
+     "D’un bateau",
+     "D’une montagne"
+    ],
+    "es": [
+     "Desde el muro de la ciudad",
+     "Desde un barco",
+     "Desde una montaña"
+    ]
+   }
+  },
+  {
+   "id": "v40-2",
+   "story": 40,
+   "text": {
+    "nl": "Welk teken zou er gegeven worden van de geboorte van Christus?",
+    "en": "What sign would be given of Christ’s birth?",
+    "de": "Welches Zeichen sollte für die Geburt Christi gegeben werden?",
+    "fr": "Quel signe serait donné pour la naissance du Christ ?",
+    "es": "¿Qué señal se daría del nacimiento de Cristo?"
+   },
+   "options": {
+    "nl": [
+     "Een nacht zonder donker en een nieuwe ster",
+     "Drie dagen donker",
+     "Een regenboog boven Jeruzalem"
+    ],
+    "en": [
+     "A night without darkness and a new star",
+     "Three days of darkness",
+     "A rainbow over Jerusalem"
+    ],
+    "de": [
+     "Eine Nacht ohne Dunkelheit und ein neuer Stern",
+     "Drei Tage Dunkelheit",
+     "Ein Regenbogen über Jerusalem"
+    ],
+    "fr": [
+     "Une nuit sans obscurité et une nouvelle étoile",
+     "Trois jours d’obscurité",
+     "Un arc-en-ciel au-dessus de Jérusalem"
+    ],
+    "es": [
+     "Una noche sin oscuridad y una nueva estrella",
+     "Tres días de oscuridad",
+     "Un arcoíris sobre Jerusalén"
+    ]
+   }
+  },
+  {
+   "id": "v40-3",
+   "story": 40,
+   "text": {
+    "nl": "Wat gebeurde er toen de Nephieten pijlen en stenen naar Samuël gooiden?",
+    "en": "What happened when the Nephites threw stones and shot arrows at Samuel?",
+    "de": "Was geschah, als die Nephiten Steine und Pfeile auf Samuel warfen?",
+    "fr": "Que se passa-t-il quand les Néphites jetèrent des pierres et tirèrent des flèches sur Samuel ?",
+    "es": "¿Qué pasó cuando los nefitas le lanzaron piedras y flechas a Samuel?"
+   },
+   "options": {
+    "nl": [
+     "Hij werd niet geraakt, want de Heer beschermde hem",
+     "Hij werd gewond",
+     "Hij viel van de muur"
+    ],
+    "en": [
+     "He was not hit, because the Lord protected him",
+     "He was wounded",
+     "He fell off the wall"
+    ],
+    "de": [
+     "Er wurde nicht getroffen, denn der Herr beschützte ihn",
+     "Er wurde verwundet",
+     "Er fiel von der Mauer"
+    ],
+    "fr": [
+     "Il ne fut pas touché, car le Seigneur le protégea",
+     "Il fut blessé",
+     "Il tomba du mur"
+    ],
+    "es": [
+     "No lo alcanzaron, porque el Señor lo protegió",
+     "Quedó herido",
+     "Se cayó del muro"
+    ]
+   }
+  },
+  {
+   "id": "v41-1",
+   "story": 41,
+   "text": {
+    "nl": "Wat gebeurde er die avond toen de zon onderging?",
+    "en": "What happened that evening when the sun set?",
+    "de": "Was geschah an jenem Abend, als die Sonne unterging?",
+    "fr": "Que se passa-t-il ce soir-là quand le soleil se coucha ?",
+    "es": "¿Qué pasó esa noche cuando se puso el sol?"
+   },
+   "options": {
+    "nl": [
+     "Het werd niet donker",
+     "Het begon te sneeuwen",
+     "Het werd drie dagen donker"
+    ],
+    "en": [
+     "It did not get dark",
+     "It began to snow",
+     "It was dark for three days"
+    ],
+    "de": [
+     "Es wurde nicht dunkel",
+     "Es begann zu schneien",
+     "Es wurde drei Tage lang dunkel"
+    ],
+    "fr": [
+     "Il ne fit pas nuit",
+     "Il se mit à neiger",
+     "Il fit nuit pendant trois jours"
+    ],
+    "es": [
+     "No oscureció",
+     "Empezó a nevar",
+     "Estuvo oscuro tres días"
+    ]
+   }
+  },
+  {
+   "id": "v41-2",
+   "story": 41,
+   "text": {
+    "nl": "Wat zouden de ongelovigen doen met de gelovigen als het teken niet kwam?",
+    "en": "What would the unbelievers do to the believers if the sign did not come?",
+    "de": "Was würden die Ungläubigen den Gläubigen antun, wenn das Zeichen nicht käme?",
+    "fr": "Que feraient les incroyants aux croyants si le signe ne venait pas ?",
+    "es": "¿Qué harían los incrédulos con los creyentes si la señal no llegaba?"
+   },
+   "options": {
+    "nl": [
+     "Ze ter dood brengen",
+     "Ze uit het land zetten",
+     "Ze rijk maken"
+    ],
+    "en": [
+     "Put them to death",
+     "Send them out of the land",
+     "Make them rich"
+    ],
+    "de": [
+     "Sie töten",
+     "Sie aus dem Land vertreiben",
+     "Sie reich machen"
+    ],
+    "fr": [
+     "Les mettre à mort",
+     "Les chasser du pays",
+     "Les rendre riches"
+    ],
+    "es": [
+     "Matarlos",
+     "Echarlos de la tierra",
+     "Hacerlos ricos"
+    ]
+   }
+  },
+  {
+   "id": "v41-3",
+   "story": 41,
+   "text": {
+    "nl": "Wie bad een hele dag voor de mensen die gedood zouden worden?",
+    "en": "Who prayed all day for the people who were going to be killed?",
+    "de": "Wer betete den ganzen Tag für die Menschen, die getötet werden sollten?",
+    "fr": "Qui pria toute la journée pour les gens qui allaient être tués ?",
+    "es": "¿Quién oró todo el día por las personas que iban a ser muertas?"
+   },
+   "options": {
+    "nl": [
+     "Nephi",
+     "Samuël",
+     "Helaman"
+    ],
+    "en": [
+     "Nephi",
+     "Samuel",
+     "Helaman"
+    ],
+    "de": [
+     "Nephi",
+     "Samuel",
+     "Helaman"
+    ],
+    "fr": [
+     "Néphi",
+     "Samuel",
+     "Hélaman"
+    ],
+    "es": [
+     "Nefi",
+     "Samuel",
+     "Helamán"
+    ]
+   }
+  },
+  {
+   "id": "v42-1",
+   "story": 42,
+   "text": {
+    "nl": "Hoeveel jaar na de tekens van Jezus’ geboorte kwamen de tekens van zijn dood?",
+    "en": "How many years after the signs of Jesus’ birth came the signs of His death?",
+    "de": "Wie viele Jahre nach den Zeichen der Geburt Jesu kamen die Zeichen seines Todes?",
+    "fr": "Combien d’années après les signes de la naissance de Jésus vinrent les signes de sa mort ?",
+    "es": "¿Cuántos años después de las señales del nacimiento de Jesús llegaron las señales de su muerte?"
+   },
+   "options": {
+    "nl": [
+     "Drieëndertig jaar",
+     "Drie jaar",
+     "Driehonderd jaar"
+    ],
+    "en": [
+     "Thirty-three years",
+     "Three years",
+     "Three hundred years"
+    ],
+    "de": [
+     "Dreiunddreißig Jahre",
+     "Drei Jahre",
+     "Dreihundert Jahre"
+    ],
+    "fr": [
+     "Trente-trois ans",
+     "Trois ans",
+     "Trois cents ans"
+    ],
+    "es": [
+     "Treinta y tres años",
+     "Tres años",
+     "Trescientos años"
+    ]
+   }
+  },
+  {
+   "id": "v42-2",
+   "story": 42,
+   "text": {
+    "nl": "Hoe lang was het donker in het land?",
+    "en": "How long was it dark in the land?",
+    "de": "Wie lange war es im Land dunkel?",
+    "fr": "Combien de temps fit-il noir dans le pays ?",
+    "es": "¿Cuánto tiempo estuvo oscuro en la tierra?"
+   },
+   "options": {
+    "nl": [
+     "Drie dagen",
+     "Drie uur",
+     "Een week"
+    ],
+    "en": [
+     "Three days",
+     "Three hours",
+     "A week"
+    ],
+    "de": [
+     "Drei Tage",
+     "Drei Stunden",
+     "Eine Woche"
+    ],
+    "fr": [
+     "Trois jours",
+     "Trois heures",
+     "Une semaine"
+    ],
+    "es": [
+     "Tres días",
+     "Tres horas",
+     "Una semana"
+    ]
+   }
+  },
+  {
+   "id": "v42-3",
+   "story": 42,
+   "text": {
+    "nl": "Wie sprak er uit het donker?",
+    "en": "Who spoke out of the darkness?",
+    "de": "Wer sprach aus der Dunkelheit?",
+    "fr": "Qui parla depuis l’obscurité ?",
+    "es": "¿Quién habló desde la oscuridad?"
+   },
+   "options": {
+    "nl": [
+     "Jezus Christus",
+     "Samuël de Lamaniet",
+     "Nephi"
+    ],
+    "en": [
+     "Jesus Christ",
+     "Samuel the Lamanite",
+     "Nephi"
+    ],
+    "de": [
+     "Jesus Christus",
+     "Samuel der Lamanit",
+     "Nephi"
+    ],
+    "fr": [
+     "Jésus-Christ",
+     "Samuel le Lamanite",
+     "Néphi"
+    ],
+    "es": [
+     "Jesucristo",
+     "Samuel el lamanita",
+     "Nefi"
+    ]
+   }
+  },
+  {
+   "id": "v43-1",
+   "story": 43,
+   "text": {
+    "nl": "Waar kwamen de Nephieten bijeen toen Jezus verscheen?",
+    "en": "Where were the Nephites gathered when Jesus appeared?",
+    "de": "Wo waren die Nephiten versammelt, als Jesus erschien?",
+    "fr": "Où les Néphites étaient-ils rassemblés quand Jésus apparut ?",
+    "es": "¿Dónde estaban reunidos los nefitas cuando se apareció Jesús?"
+   },
+   "options": {
+    "nl": [
+     "Bij de tempel in het land Overvloed",
+     "Bij de rivier Sidon",
+     "Op de heuvel Cumorah"
+    ],
+    "en": [
+     "At the temple in the land Bountiful",
+     "At the river Sidon",
+     "On the hill Cumorah"
+    ],
+    "de": [
+     "Beim Tempel im Land Überfluss",
+     "Am Fluss Sidon",
+     "Auf dem Hügel Cumorah"
+    ],
+    "fr": [
+     "Près du temple dans le pays d’Abondance",
+     "Près du fleuve Sidon",
+     "Sur la colline Cumorah"
+    ],
+    "es": [
+     "En el templo de la tierra de Abundancia",
+     "En el río Sidón",
+     "En el cerro Cumorah"
+    ]
+   }
+  },
+  {
+   "id": "v43-2",
+   "story": 43,
+   "text": {
+    "nl": "Wat deden de mensen een voor een bij Jezus?",
+    "en": "What did the people do one by one with Jesus?",
+    "de": "Was taten die Menschen nacheinander bei Jesus?",
+    "fr": "Que fit chacun des gens, l’un après l’autre, auprès de Jésus ?",
+    "es": "¿Qué hizo la gente, uno por uno, con Jesús?"
+   },
+   "options": {
+    "nl": [
+     "Ze voelden de littekens van de spijkers in zijn handen en voeten",
+     "Ze gaven Hem geschenken",
+     "Ze schreven zijn woorden op"
+    ],
+    "en": [
+     "They felt the marks of the nails in His hands and feet",
+     "They gave Him gifts",
+     "They wrote down His words"
+    ],
+    "de": [
+     "Sie fühlten die Nägelmale in seinen Händen und Füßen",
+     "Sie gaben ihm Geschenke",
+     "Sie schrieben seine Worte auf"
+    ],
+    "fr": [
+     "Ils sentirent les marques des clous dans ses mains et ses pieds",
+     "Ils lui offrirent des cadeaux",
+     "Ils écrivirent ses paroles"
+    ],
+    "es": [
+     "Palparon las marcas de los clavos en sus manos y pies",
+     "Le dieron regalos",
+     "Escribieron sus palabras"
+    ]
+   }
+  },
+  {
+   "id": "v43-3",
+   "story": 43,
+   "text": {
+    "nl": "Welke macht gaf Jezus aan Nephi en elf andere mannen?",
+    "en": "What power did Jesus give to Nephi and eleven other men?",
+    "de": "Welche Vollmacht gab Jesus Nephi und elf anderen Männern?",
+    "fr": "Quelle autorité Jésus donna-t-il à Néphi et à onze autres hommes ?",
+    "es": "¿Qué poder dio Jesús a Nefi y a otros once hombres?"
+   },
+   "options": {
+    "nl": [
+     "De macht om te dopen",
+     "De macht om te regeren",
+     "De macht om oorlog te voeren"
+    ],
+    "en": [
+     "The power to baptize",
+     "The power to rule",
+     "The power to wage war"
+    ],
+    "de": [
+     "Die Vollmacht zu taufen",
+     "Die Macht zu herrschen",
+     "Die Macht, Krieg zu führen"
+    ],
+    "fr": [
+     "Le pouvoir de baptiser",
+     "Le pouvoir de gouverner",
+     "Le pouvoir de faire la guerre"
+    ],
+    "es": [
+     "El poder de bautizar",
+     "El poder de gobernar",
+     "El poder de hacer la guerra"
+    ]
+   }
+  },
+  {
+   "id": "v44-1",
+   "story": 44,
+   "text": {
+    "nl": "Wat deed Jezus met de kleine kinderen?",
+    "en": "What did Jesus do with the little children?",
+    "de": "Was tat Jesus mit den kleinen Kindern?",
+    "fr": "Que fit Jésus avec les petits enfants ?",
+    "es": "¿Qué hizo Jesús con los niños pequeños?"
+   },
+   "options": {
+    "nl": [
+     "Hij nam ze één voor één en zegende ze",
+     "Hij liet ze naar huis gaan",
+     "Hij gaf ze brood"
+    ],
+    "en": [
+     "He took them one by one and blessed them",
+     "He sent them home",
+     "He gave them bread"
+    ],
+    "de": [
+     "Er nahm sie einzeln und segnete sie",
+     "Er schickte sie nach Hause",
+     "Er gab ihnen Brot"
+    ],
+    "fr": [
+     "Il les prit un par un et les bénit",
+     "Il les renvoya chez eux",
+     "Il leur donna du pain"
+    ],
+    "es": [
+     "Los tomó uno por uno y los bendijo",
+     "Los mandó a casa",
+     "Les dio pan"
+    ]
+   }
+  },
+  {
+   "id": "v44-2",
+   "story": 44,
+   "text": {
+    "nl": "Wat gebeurde er met Jezus omdat er zoveel liefde en blijdschap in zijn hart was?",
+    "en": "What happened to Jesus because there was so much love and joy in His heart?",
+    "de": "Was geschah mit Jesus, weil so viel Liebe und Freude in seinem Herzen war?",
+    "fr": "Que fit Jésus parce qu’il y avait tant d’amour et de joie dans son cœur ?",
+    "es": "¿Qué le pasó a Jesús porque había tanto amor y gozo en su corazón?"
+   },
+   "options": {
+    "nl": [
+     "Hij moest huilen",
+     "Hij ging zingen",
+     "Hij werd moe"
+    ],
+    "en": [
+     "He wept",
+     "He began to sing",
+     "He became tired"
+    ],
+    "de": [
+     "Er musste weinen",
+     "Er begann zu singen",
+     "Er wurde müde"
+    ],
+    "fr": [
+     "Il pleura",
+     "Il se mit à chanter",
+     "Il devint fatigué"
+    ],
+    "es": [
+     "Lloró",
+     "Empezó a cantar",
+     "Se cansó"
+    ]
+   }
+  },
+  {
+   "id": "v44-3",
+   "story": 44,
+   "text": {
+    "nl": "Wie kwamen er uit de hemel om de kinderen heen staan?",
+    "en": "Who came down from heaven and stood around the children?",
+    "de": "Wer kam vom Himmel und stellte sich um die Kinder?",
+    "fr": "Qui descendit du ciel et se tint autour des enfants ?",
+    "es": "¿Quiénes bajaron del cielo y rodearon a los niños?"
+   },
+   "options": {
+    "nl": [
+     "Engelen",
+     "Profeten",
+     "Soldaten"
+    ],
+    "en": [
+     "Angels",
+     "Prophets",
+     "Soldiers"
+    ],
+    "de": [
+     "Engel",
+     "Propheten",
+     "Soldaten"
+    ],
+    "fr": [
+     "Des anges",
+     "Des prophètes",
+     "Des soldats"
+    ],
+    "es": [
+     "Ángeles",
+     "Profetas",
+     "Soldados"
+    ]
+   }
+  },
+  {
+   "id": "v45-1",
+   "story": 45,
+   "text": {
+    "nl": "Wie kregen het brood van het avondmaal eerst van Jezus?",
+    "en": "Who received the bread of the sacrament from Jesus first?",
+    "de": "Wer bekam das Brot des Abendmahls zuerst von Jesus?",
+    "fr": "Qui reçut d’abord de Jésus le pain de la Sainte-Cène ?",
+    "es": "¿Quiénes recibieron primero de Jesús el pan de la Santa Cena?"
+   },
+   "options": {
+    "nl": [
+     "Zijn discipelen",
+     "De kinderen",
+     "De zieken"
+    ],
+    "en": [
+     "His disciples",
+     "The children",
+     "The sick"
+    ],
+    "de": [
+     "Seine Jünger",
+     "Die Kinder",
+     "Die Kranken"
+    ],
+    "fr": [
+     "Ses disciples",
+     "Les enfants",
+     "Les malades"
+    ],
+    "es": [
+     "Sus discípulos",
+     "Los niños",
+     "Los enfermos"
+    ]
+   }
+  },
+  {
+   "id": "v45-2",
+   "story": 45,
+   "text": {
+    "nl": "Wat beloven we als we van het brood nemen?",
+    "en": "What do we promise when we take the bread?",
+    "de": "Was versprechen wir, wenn wir vom Brot nehmen?",
+    "fr": "Que promettons-nous quand nous prenons le pain ?",
+    "es": "¿Qué prometemos cuando tomamos el pan?"
+   },
+   "options": {
+    "nl": [
+     "Altijd aan Jezus en zijn offer te denken",
+     "Elke dag te vasten",
+     "Nooit meer ruzie te maken"
+    ],
+    "en": [
+     "To always remember Jesus and His sacrifice",
+     "To fast every day",
+     "To never argue again"
+    ],
+    "de": [
+     "Immer an Jesus und sein Opfer zu denken",
+     "Jeden Tag zu fasten",
+     "Nie mehr zu streiten"
+    ],
+    "fr": [
+     "De toujours nous souvenir de Jésus et de son sacrifice",
+     "De jeûner chaque jour",
+     "De ne plus jamais nous disputer"
+    ],
+    "es": [
+     "Recordar siempre a Jesús y su sacrificio",
+     "Ayunar todos los días",
+     "No volver a discutir nunca"
+    ]
+   }
+  },
+  {
+   "id": "v45-3",
+   "story": 45,
+   "text": {
+    "nl": "Wat gebeurde er aan het eind met de wolk?",
+    "en": "What happened with the cloud at the end?",
+    "de": "Was geschah am Ende mit der Wolke?",
+    "fr": "Que se passa-t-il à la fin avec le nuage ?",
+    "es": "¿Qué pasó al final con la nube?"
+   },
+   "options": {
+    "nl": [
+     "Er kwam een wolk om de mensen heen, zodat alleen de discipelen Jezus naar de hemel zagen gaan",
+     "De wolk verdween en iedereen zag Jezus vertrekken",
+     "Er viel regen uit de wolk"
+    ],
+    "en": [
+     "A cloud came around the people, so that only the disciples saw Jesus go up to heaven",
+     "The cloud disappeared and everyone saw Jesus leave",
+     "Rain fell from the cloud"
+    ],
+    "de": [
+     "Eine Wolke umgab die Menschen, sodass nur die Jünger Jesus in den Himmel gehen sahen",
+     "Die Wolke verschwand und alle sahen Jesus gehen",
+     "Aus der Wolke fiel Regen"
+    ],
+    "fr": [
+     "Un nuage entoura les gens, si bien que seuls les disciples virent Jésus monter au ciel",
+     "Le nuage disparut et tous virent Jésus partir",
+     "De la pluie tomba du nuage"
+    ],
+    "es": [
+     "Una nube rodeó a la gente, de modo que solo los discípulos vieron a Jesús subir al cielo",
+     "La nube desapareció y todos vieron irse a Jesús",
+     "De la nube cayó lluvia"
+    ]
+   }
+  },
+  {
+   "id": "v46-1",
+   "story": 46,
+   "text": {
+    "nl": "Wie doopte de andere discipelen?",
+    "en": "Who baptized the other disciples?",
+    "de": "Wer taufte die anderen Jünger?",
+    "fr": "Qui baptisa les autres disciples ?",
+    "es": "¿Quién bautizó a los otros discípulos?"
+   },
+   "options": {
+    "nl": [
+     "Nephi",
+     "Jezus Christus",
+     "Alma"
+    ],
+    "en": [
+     "Nephi",
+     "Jesus Christ",
+     "Alma"
+    ],
+    "de": [
+     "Nephi",
+     "Jesus Christus",
+     "Alma"
+    ],
+    "fr": [
+     "Néphi",
+     "Jésus-Christ",
+     "Alma"
+    ],
+    "es": [
+     "Nefi",
+     "Jesucristo",
+     "Alma"
+    ]
+   }
+  },
+  {
+   "id": "v46-2",
+   "story": 46,
+   "text": {
+    "nl": "Hoe kwam het avondmaal toen er niemand brood en wijn had meegebracht?",
+    "en": "How did the sacrament come about when no one had brought bread and wine?",
+    "de": "Wie kam es zum Abendmahl, als niemand Brot und Wein mitgebracht hatte?",
+    "fr": "Comment la Sainte-Cène eut-elle lieu alors que personne n’avait apporté de pain ni de vin ?",
+    "es": "¿Cómo se hizo la Santa Cena cuando nadie había traído pan ni vino?"
+   },
+   "options": {
+    "nl": [
+     "De Heiland zorgde er op een wonderbaarlijke manier voor",
+     "De discipelen haalden het in de stad",
+     "De Nephieten bakten het ter plekke"
+    ],
+    "en": [
+     "The Savior provided it in a miraculous way",
+     "The disciples fetched it from the city",
+     "The Nephites baked it on the spot"
+    ],
+    "de": [
+     "Der Heiland sorgte auf wunderbare Weise dafür",
+     "Die Jünger holten es aus der Stadt",
+     "Die Nephiten buken es an Ort und Stelle"
+    ],
+    "fr": [
+     "Le Sauveur y pourvut d’une manière miraculeuse",
+     "Les disciples allèrent en chercher en ville",
+     "Les Néphites en firent cuire sur place"
+    ],
+    "es": [
+     "El Salvador lo proveyó de manera milagrosa",
+     "Los discípulos lo fueron a buscar a la ciudad",
+     "Los nefitas lo hornearon allí mismo"
+    ]
+   }
+  },
+  {
+   "id": "v46-3",
+   "story": 46,
+   "text": {
+    "nl": "Wat werden de discipelen toen Jezus hen zegende en vriendelijk aankeek?",
+    "en": "What did the disciples become when Jesus blessed them and looked kindly at them?",
+    "de": "Was wurden die Jünger, als Jesus sie segnete und freundlich ansah?",
+    "fr": "Que devinrent les disciples quand Jésus les bénit et les regarda avec bonté ?",
+    "es": "¿En qué se convirtieron los discípulos cuando Jesús los bendijo y los miró con bondad?"
+   },
+   "options": {
+    "nl": [
+     "Net zo wit als het gezicht en het kleed van de Heiland",
+     "Rood van schaamte",
+     "Heel zwak"
+    ],
+    "en": [
+     "As white as the Savior’s face and garment",
+     "Red with shame",
+     "Very weak"
+    ],
+    "de": [
+     "So weiß wie das Gesicht und das Gewand des Heilands",
+     "Rot vor Scham",
+     "Sehr schwach"
+    ],
+    "fr": [
+     "Aussi blancs que le visage et le vêtement du Sauveur",
+     "Rouges de honte",
+     "Très faibles"
+    ],
+    "es": [
+     "Tan blancos como el rostro y la ropa del Salvador",
+     "Rojos de vergüenza",
+     "Muy débiles"
+    ]
+   }
+  },
+  {
+   "id": "v47-1",
+   "story": 47,
+   "text": {
+    "nl": "Hoe moest de kerk heten volgens Jezus?",
+    "en": "What did Jesus say the church should be called?",
+    "de": "Wie sollte die Kirche nach den Worten Jesu heißen?",
+    "fr": "Comment Jésus dit-il que l’Église devait s’appeler ?",
+    "es": "¿Cómo dijo Jesús que debía llamarse la Iglesia?"
+   },
+   "options": {
+    "nl": [
+     "Naar Hem genoemd, omdat het zijn kerk is",
+     "Naar Nephi genoemd",
+     "De kerk van de discipelen"
+    ],
+    "en": [
+     "After Him, because it is His church",
+     "After Nephi",
+     "The church of the disciples"
+    ],
+    "de": [
+     "Nach ihm benannt, weil es seine Kirche ist",
+     "Nach Nephi benannt",
+     "Die Kirche der Jünger"
+    ],
+    "fr": [
+     "Du nom de Jésus, parce que c’est son Église",
+     "Du nom de Néphi",
+     "L’Église des disciples"
+    ],
+    "es": [
+     "Con su nombre, porque es su Iglesia",
+     "Con el nombre de Nefi",
+     "La iglesia de los discípulos"
+    ]
+   }
+  },
+  {
+   "id": "v47-2",
+   "story": 47,
+   "text": {
+    "nl": "Hoeveel van de twaalf discipelen wilden na hun leven op aarde bij Jezus wonen?",
+    "en": "How many of the twelve disciples wanted to live with Jesus after their life on earth?",
+    "de": "Wie viele der zwölf Jünger wollten nach ihrem Leben auf der Erde bei Jesus wohnen?",
+    "fr": "Combien des douze disciples voulaient vivre avec Jésus après leur vie sur terre ?",
+    "es": "¿Cuántos de los doce discípulos querían vivir con Jesús después de su vida en la tierra?"
+   },
+   "options": {
+    "nl": [
+     "Negen",
+     "Twaalf",
+     "Drie"
+    ],
+    "en": [
+     "Nine",
+     "Twelve",
+     "Three"
+    ],
+    "de": [
+     "Neun",
+     "Zwölf",
+     "Drei"
+    ],
+    "fr": [
+     "Neuf",
+     "Douze",
+     "Trois"
+    ],
+    "es": [
+     "Nueve",
+     "Doce",
+     "Tres"
+    ]
+   }
+  },
+  {
+   "id": "v47-3",
+   "story": 47,
+   "text": {
+    "nl": "Wat gebeurde er met de drie discipelen die op aarde bleven?",
+    "en": "What happened to the three disciples who stayed on earth?",
+    "de": "Was geschah mit den drei Jüngern, die auf der Erde blieben?",
+    "fr": "Que devint-il des trois disciples qui restèrent sur terre ?",
+    "es": "¿Qué les pasó a los tres discípulos que se quedaron en la tierra?"
+   },
+   "options": {
+    "nl": [
+     "Hun lichaam werd veranderd zodat ze niet doodgingen",
+     "Ze werden koning",
+     "Ze gingen terug naar Jeruzalem"
+    ],
+    "en": [
+     "Their bodies were changed so they would not die",
+     "They became kings",
+     "They went back to Jerusalem"
+    ],
+    "de": [
+     "Ihr Körper wurde verändert, sodass sie nicht starben",
+     "Sie wurden Könige",
+     "Sie gingen nach Jerusalem zurück"
+    ],
+    "fr": [
+     "Leur corps fut changé pour qu’ils ne meurent pas",
+     "Ils devinrent rois",
+     "Ils retournèrent à Jérusalem"
+    ],
+    "es": [
+     "Su cuerpo fue cambiado para que no murieran",
+     "Se hicieron reyes",
+     "Volvieron a Jerusalén"
+    ]
+   }
+  },
+  {
+   "id": "v48-1",
+   "story": 48,
+   "text": {
+    "nl": "Hoe lang was er vrede in het land?",
+    "en": "How long was there peace in the land?",
+    "de": "Wie lange herrschte Frieden im Land?",
+    "fr": "Combien de temps y eut-il la paix dans le pays ?",
+    "es": "¿Cuánto tiempo hubo paz en la tierra?"
+   },
+   "options": {
+    "nl": [
+     "Tweehonderd jaar",
+     "Twintig jaar",
+     "Tien jaar"
+    ],
+    "en": [
+     "Two hundred years",
+     "Twenty years",
+     "Ten years"
+    ],
+    "de": [
+     "Zweihundert Jahre",
+     "Zwanzig Jahre",
+     "Zehn Jahre"
+    ],
+    "fr": [
+     "Deux cents ans",
+     "Vingt ans",
+     "Dix ans"
+    ],
+    "es": [
+     "Doscientos años",
+     "Veinte años",
+     "Diez años"
+    ]
+   }
+  },
+  {
+   "id": "v48-2",
+   "story": 48,
+   "text": {
+    "nl": "Wat deden de mensen met alles wat ze hadden?",
+    "en": "What did the people do with everything they had?",
+    "de": "Was taten die Menschen mit allem, was sie hatten?",
+    "fr": "Que firent les gens de tout ce qu’ils avaient ?",
+    "es": "¿Qué hacía la gente con todo lo que tenía?"
+   },
+   "options": {
+    "nl": [
+     "Ze deelden het met elkaar, zodat niemand iets tekortkwam",
+     "Ze bewaarden het voor zichzelf",
+     "Ze verkochten het aan de rijken"
+    ],
+    "en": [
+     "They shared it so that no one lacked anything",
+     "They kept it for themselves",
+     "They sold it to the rich"
+    ],
+    "de": [
+     "Sie teilten es miteinander, sodass niemand Mangel litt",
+     "Sie behielten es für sich",
+     "Sie verkauften es an die Reichen"
+    ],
+    "fr": [
+     "Ils le partagèrent pour que personne ne manque de rien",
+     "Ils le gardèrent pour eux",
+     "Ils le vendirent aux riches"
+    ],
+    "es": [
+     "Lo compartía, para que nadie careciera de nada",
+     "Lo guardaba para sí",
+     "Se lo vendía a los ricos"
+    ]
+   }
+  },
+  {
+   "id": "v48-3",
+   "story": 48,
+   "text": {
+    "nl": "In welke twee groepen waren de mensen niet meer verdeeld?",
+    "en": "Which two groups were the people no longer divided into?",
+    "de": "In welche zwei Gruppen waren die Menschen nicht mehr geteilt?",
+    "fr": "En quels deux groupes les gens n’étaient-ils plus divisés ?",
+    "es": "¿En qué dos grupos ya no estaba dividida la gente?"
+   },
+   "options": {
+    "nl": [
+     "Nephieten en Lamanieten",
+     "Rijken en armen alleen",
+     "Jaredieten en Nephieten"
+    ],
+    "en": [
+     "Nephites and Lamanites",
+     "Only rich and poor",
+     "Jaredites and Nephites"
+    ],
+    "de": [
+     "Nephiten und Lamaniten",
+     "Nur Reiche und Arme",
+     "Jarediten und Nephiten"
+    ],
+    "fr": [
+     "Néphites et Lamanites",
+     "Seulement riches et pauvres",
+     "Jarédites et Néphites"
+    ],
+    "es": [
+     "Nefitas y lamanitas",
+     "Solo ricos y pobres",
+     "Jareditas y nefitas"
+    ]
+   }
+  },
+  {
+   "id": "v49-1",
+   "story": 49,
+   "text": {
+    "nl": "Wie vertelde Mormon waar de heilige verslagen verborgen waren?",
+    "en": "Who told Mormon where the sacred records were hidden?",
+    "de": "Wer sagte Mormon, wo die heiligen Aufzeichnungen versteckt waren?",
+    "fr": "Qui dit à Mormon où les annales sacrées étaient cachées ?",
+    "es": "¿Quién le dijo a Mormón dónde estaban escondidos los anales sagrados?"
+   },
+   "options": {
+    "nl": [
+     "Ammaron",
+     "Nephi",
+     "Moroni"
+    ],
+    "en": [
+     "Ammaron",
+     "Nephi",
+     "Moroni"
+    ],
+    "de": [
+     "Ammaron",
+     "Nephi",
+     "Moroni"
+    ],
+    "fr": [
+     "Ammaron",
+     "Néphi",
+     "Moroni"
+    ],
+    "es": [
+     "Ammarón",
+     "Nefi",
+     "Moroni"
+    ]
+   }
+  },
+  {
+   "id": "v49-2",
+   "story": 49,
+   "text": {
+    "nl": "Hoe oud was Mormon toen de Nephieten hem vroegen aanvoerder van het leger te worden?",
+    "en": "How old was Mormon when the Nephites asked him to lead the army?",
+    "de": "Wie alt war Mormon, als die Nephiten ihn baten, das Heer anzuführen?",
+    "fr": "Quel âge avait Mormon quand les Néphites lui demandèrent de diriger l’armée ?",
+    "es": "¿Cuántos años tenía Mormón cuando los nefitas le pidieron que dirigiera el ejército?"
+   },
+   "options": {
+    "nl": [
+     "Zestien jaar",
+     "Zes jaar",
+     "Zestig jaar"
+    ],
+    "en": [
+     "Sixteen years old",
+     "Six years old",
+     "Sixty years old"
+    ],
+    "de": [
+     "Sechzehn Jahre",
+     "Sechs Jahre",
+     "Sechzig Jahre"
+    ],
+    "fr": [
+     "Seize ans",
+     "Six ans",
+     "Soixante ans"
+    ],
+    "es": [
+     "Dieciséis años",
+     "Seis años",
+     "Sesenta años"
+    ]
+   }
+  },
+  {
+   "id": "v49-3",
+   "story": 49,
+   "text": {
+    "nl": "Aan wie gaf Mormon de platen van Mormon?",
+    "en": "To whom did Mormon give the plates of Mormon?",
+    "de": "Wem gab Mormon die Platten Mormons?",
+    "fr": "À qui Mormon donna-t-il les plaques de Mormon ?",
+    "es": "¿A quién le dio Mormón las planchas de Mormón?"
+   },
+   "options": {
+    "nl": [
+     "Aan zijn zoon Moroni",
+     "Aan zijn zoon Helaman",
+     "Aan Ammaron"
+    ],
+    "en": [
+     "To his son Moroni",
+     "To his son Helaman",
+     "To Ammaron"
+    ],
+    "de": [
+     "Seinem Sohn Moroni",
+     "Seinem Sohn Helaman",
+     "Ammaron"
+    ],
+    "fr": [
+     "À son fils Moroni",
+     "À son fils Hélaman",
+     "À Ammaron"
+    ],
+    "es": [
+     "A su hijo Moroni",
+     "A su hijo Helamán",
+     "A Ammarón"
+    ]
+   }
+  },
+  {
+   "id": "v50-1",
+   "story": 50,
+   "text": {
+    "nl": "Wat bouwden de mensen in Babel om in de hemel te komen?",
+    "en": "What did the people in Babel build to try to reach heaven?",
+    "de": "Was bauten die Menschen in Babel, um in den Himmel zu kommen?",
+    "fr": "Que construisirent les gens de Babel pour essayer d’atteindre le ciel ?",
+    "es": "¿Qué construyó la gente de Babel para tratar de llegar al cielo?"
+   },
+   "options": {
+    "nl": [
+     "Een toren",
+     "Een tempel",
+     "Een brug"
+    ],
+    "en": [
+     "A tower",
+     "A temple",
+     "A bridge"
+    ],
+    "de": [
+     "Einen Turm",
+     "Einen Tempel",
+     "Eine Brücke"
+    ],
+    "fr": [
+     "Une tour",
+     "Un temple",
+     "Un pont"
+    ],
+    "es": [
+     "Una torre",
+     "Un templo",
+     "Un puente"
+    ]
+   }
+  },
+  {
+   "id": "v50-2",
+   "story": 50,
+   "text": {
+    "nl": "Wat namen de Jaredieten onder meer mee op hun reis?",
+    "en": "What did the Jaredites take with them on their journey?",
+    "de": "Was nahmen die Jarediten unter anderem auf ihre Reise mit?",
+    "fr": "Qu’emportèrent notamment les Jarédites dans leur voyage ?",
+    "es": "¿Qué llevaron consigo los jareditas en su viaje, entre otras cosas?"
+   },
+   "options": {
+    "nl": [
+     "Zwermen honingbijen, vogels en vissen",
+     "Kamelen en paarden",
+     "Een koperen bal"
+    ],
+    "en": [
+     "Swarms of honeybees, birds and fish",
+     "Camels and horses",
+     "A brass ball"
+    ],
+    "de": [
+     "Bienenschwärme, Vögel und Fische",
+     "Kamele und Pferde",
+     "Eine Messingkugel"
+    ],
+    "fr": [
+     "Des essaims d’abeilles, des oiseaux et des poissons",
+     "Des chameaux et des chevaux",
+     "Une boule de cuivre"
+    ],
+    "es": [
+     "Enjambres de abejas, aves y peces",
+     "Camellos y caballos",
+     "Una esfera de bronce"
+    ]
+   }
+  },
+  {
+   "id": "v50-3",
+   "story": 50,
+   "text": {
+    "nl": "Hoe lang bleven de Jaredieten bij de zee?",
+    "en": "How long did the Jaredites stay by the sea?",
+    "de": "Wie lange blieben die Jarediten am Meer?",
+    "fr": "Combien de temps les Jarédites restèrent-ils au bord de la mer ?",
+    "es": "¿Cuánto tiempo se quedaron los jareditas junto al mar?"
+   },
+   "options": {
+    "nl": [
+     "Vier jaar",
+     "Vier dagen",
+     "Veertig jaar"
+    ],
+    "en": [
+     "Four years",
+     "Four days",
+     "Forty years"
+    ],
+    "de": [
+     "Vier Jahre",
+     "Vier Tage",
+     "Vierzig Jahre"
+    ],
+    "fr": [
+     "Quatre ans",
+     "Quatre jours",
+     "Quarante ans"
+    ],
+    "es": [
+     "Cuatro años",
+     "Cuatro días",
+     "Cuarenta años"
+    ]
+   }
+  },
+  {
+   "id": "v51-1",
+   "story": 51,
+   "text": {
+    "nl": "Hoe kregen de boten frisse lucht?",
+    "en": "How did the boats get fresh air?",
+    "de": "Wie bekamen die Boote frische Luft?",
+    "fr": "Comment les bateaux recevaient-ils de l’air frais ?",
+    "es": "¿Cómo recibían aire fresco los barcos?"
+   },
+   "options": {
+    "nl": [
+     "Door een gat in de bovenkant en de onderkant dat ze konden openen",
+     "Door grote ramen",
+     "Door de boten open te laten"
+    ],
+    "en": [
+     "Through a hole in the top and bottom that they could open",
+     "Through large windows",
+     "By leaving the boats open"
+    ],
+    "de": [
+     "Durch ein Loch oben und unten, das sie öffnen konnten",
+     "Durch große Fenster",
+     "Indem man die Boote offen ließ"
+    ],
+    "fr": [
+     "Par un trou en haut et en bas qu’on pouvait ouvrir",
+     "Par de grandes fenêtres",
+     "En laissant les bateaux ouverts"
+    ],
+    "es": [
+     "Por un agujero arriba y otro abajo que podían abrir",
+     "Por grandes ventanas",
+     "Dejando los barcos abiertos"
+    ]
+   }
+  },
+  {
+   "id": "v51-2",
+   "story": 51,
+   "text": {
+    "nl": "Waarmee kregen de boten licht?",
+    "en": "How did the boats get light?",
+    "de": "Womit bekamen die Boote Licht?",
+    "fr": "Comment les bateaux furent-ils éclairés ?",
+    "es": "¿Cómo recibieron luz los barcos?"
+   },
+   "options": {
+    "nl": [
+     "Met zestien glasachtige stenen die de Heer aanraakte",
+     "Met kaarsen",
+     "Met olielampen"
+    ],
+    "en": [
+     "With sixteen clear stones that the Lord touched",
+     "With candles",
+     "With oil lamps"
+    ],
+    "de": [
+     "Mit sechzehn glasartigen Steinen, die der Herr berührte",
+     "Mit Kerzen",
+     "Mit Öllampen"
+    ],
+    "fr": [
+     "Avec seize pierres transparentes que le Seigneur toucha",
+     "Avec des bougies",
+     "Avec des lampes à huile"
+    ],
+    "es": [
+     "Con dieciséis piedras transparentes que el Señor tocó",
+     "Con velas",
+     "Con lámparas de aceite"
+    ]
+   }
+  },
+  {
+   "id": "v51-3",
+   "story": 51,
+   "text": {
+    "nl": "Hoeveel dagen waren de Jaredieten op het water?",
+    "en": "How many days were the Jaredites on the water?",
+    "de": "Wie viele Tage waren die Jarediten auf dem Wasser?",
+    "fr": "Combien de jours les Jarédites furent-ils sur l’eau ?",
+    "es": "¿Cuántos días estuvieron los jareditas sobre el agua?"
+   },
+   "options": {
+    "nl": [
+     "344 dagen",
+     "34 dagen",
+     "3 dagen"
+    ],
+    "en": [
+     "344 days",
+     "34 days",
+     "3 days"
+    ],
+    "de": [
+     "344 Tage",
+     "34 Tage",
+     "3 Tage"
+    ],
+    "fr": [
+     "344 jours",
+     "34 jours",
+     "3 jours"
+    ],
+    "es": [
+     "344 días",
+     "34 días",
+     "3 días"
+    ]
+   }
+  },
+  {
+   "id": "v52-1",
+   "story": 52,
+   "text": {
+    "nl": "Hoe heette de profeet die de Jaredieten waarschuwde?",
+    "en": "What was the name of the prophet who warned the Jaredites?",
+    "de": "Wie hieß der Prophet, der die Jarediten warnte?",
+    "fr": "Comment s’appelait le prophète qui avertit les Jarédites ?",
+    "es": "¿Cómo se llamaba el profeta que advirtió a los jareditas?"
+   },
+   "options": {
+    "nl": [
+     "Ether",
+     "Abinadi",
+     "Samuël"
+    ],
+    "en": [
+     "Ether",
+     "Abinadi",
+     "Samuel"
+    ],
+    "de": [
+     "Ether",
+     "Abinadi",
+     "Samuel"
+    ],
+    "fr": [
+     "Éther",
+     "Abinadi",
+     "Samuel"
+    ],
+    "es": [
+     "Éter",
+     "Abinadí",
+     "Samuel"
+    ]
+   }
+  },
+  {
+   "id": "v52-2",
+   "story": 52,
+   "text": {
+    "nl": "Waar verborg Ether zich overdag?",
+    "en": "Where did Ether hide during the day?",
+    "de": "Wo versteckte sich Ether tagsüber?",
+    "fr": "Où Éther se cachait-il pendant la journée ?",
+    "es": "¿Dónde se escondía Éter durante el día?"
+   },
+   "options": {
+    "nl": [
+     "In een rotsholte",
+     "In een boom",
+     "In de tempel"
+    ],
+    "en": [
+     "In the cavity of a rock",
+     "In a tree",
+     "In the temple"
+    ],
+    "de": [
+     "In einer Felsenhöhle",
+     "In einem Baum",
+     "Im Tempel"
+    ],
+    "fr": [
+     "Dans la cavité d’un rocher",
+     "Dans un arbre",
+     "Dans le temple"
+    ],
+    "es": [
+     "En la cavidad de una roca",
+     "En un árbol",
+     "En el templo"
+    ]
+   }
+  },
+  {
+   "id": "v52-3",
+   "story": 52,
+   "text": {
+    "nl": "Wie was de laatste Jarediet die nog leefde?",
+    "en": "Who was the last Jaredite still alive?",
+    "de": "Wer war der letzte Jaredit, der noch lebte?",
+    "fr": "Qui était le dernier Jarédite encore en vie ?",
+    "es": "¿Quién era el último jaredita que seguía con vida?"
+   },
+   "options": {
+    "nl": [
+     "Coriantumr",
+     "Shiz",
+     "Ether"
+    ],
+    "en": [
+     "Coriantumr",
+     "Shiz",
+     "Ether"
+    ],
+    "de": [
+     "Coriantumr",
+     "Schiz",
+     "Ether"
+    ],
+    "fr": [
+     "Coriantumr",
+     "Shiz",
+     "Éther"
+    ],
+    "es": [
+     "Coriántumr",
+     "Shiz",
+     "Éter"
+    ]
+   }
+  },
+  {
+   "id": "v53-1",
+   "story": 53,
+   "text": {
+    "nl": "Wat bleef Moroni doen toen zijn vader Mormon stierf?",
+    "en": "What did Moroni do after his father Mormon died?",
+    "de": "Was tat Moroni, nachdem sein Vater Mormon gestorben war?",
+    "fr": "Que fit Moroni après la mort de son père Mormon ?",
+    "es": "¿Qué hizo Moroni después de que murió su padre Mormón?"
+   },
+   "options": {
+    "nl": [
+     "Hij maakte de verslagen af",
+     "Hij werd koning",
+     "Hij bouwde een boot"
+    ],
+    "en": [
+     "He finished the records",
+     "He became king",
+     "He built a ship"
+    ],
+    "de": [
+     "Er vollendete die Aufzeichnungen",
+     "Er wurde König",
+     "Er baute ein Schiff"
+    ],
+    "fr": [
+     "Il termina les annales",
+     "Il devint roi",
+     "Il construisit un bateau"
+    ],
+    "es": [
+     "Terminó los anales",
+     "Se hizo rey",
+     "Construyó un barco"
+    ]
+   }
+  },
+  {
+   "id": "v53-2",
+   "story": 53,
+   "text": {
+    "nl": "Waarover schreef Moroni onder meer?",
+    "en": "What did Moroni write about?",
+    "de": "Worüber schrieb Moroni unter anderem?",
+    "fr": "De quoi Moroni écrivit-il notamment ?",
+    "es": "¿Sobre qué escribió Moroni, entre otras cosas?"
+   },
+   "options": {
+    "nl": [
+     "Over het zegenen van het avondmaal en de avondmaalsgebeden",
+     "Over de bouw van schepen",
+     "Over de geschiedenis van Jeruzalem"
+    ],
+    "en": [
+     "About blessing the sacrament and the sacrament prayers",
+     "About building ships",
+     "About the history of Jerusalem"
+    ],
+    "de": [
+     "Über das Segnen des Abendmahls und die Abendmahlsgebete",
+     "Über den Schiffbau",
+     "Über die Geschichte Jerusalems"
+    ],
+    "fr": [
+     "De la bénédiction de la Sainte-Cène et des prières de la Sainte-Cène",
+     "De la construction de bateaux",
+     "De l’histoire de Jérusalem"
+    ],
+    "es": [
+     "Sobre cómo bendecir la Santa Cena y las oraciones sacramentales",
+     "Sobre la construcción de barcos",
+     "Sobre la historia de Jerusalén"
+    ]
+   }
+  },
+  {
+   "id": "v53-3",
+   "story": 53,
+   "text": {
+    "nl": "Waarom moest Moroni zich verborgen houden?",
+    "en": "Why did Moroni have to stay hidden?",
+    "de": "Warum musste sich Moroni verborgen halten?",
+    "fr": "Pourquoi Moroni devait-il rester caché ?",
+    "es": "¿Por qué tuvo que esconderse Moroni?"
+   },
+   "options": {
+    "nl": [
+     "De Lamanieten vermoordden alle Nephieten die in Jezus geloofden",
+     "Hij was ziek",
+     "Hij wilde een ontdekkingsreis maken"
+    ],
+    "en": [
+     "The Lamanites killed every Nephite who believed in Jesus",
+     "He was sick",
+     "He wanted to go exploring"
+    ],
+    "de": [
+     "Die Lamaniten töteten alle Nephiten, die an Jesus glaubten",
+     "Er war krank",
+     "Er wollte auf Entdeckungsreise gehen"
+    ],
+    "fr": [
+     "Les Lamanites tuaient tous les Néphites qui croyaient en Jésus",
+     "Il était malade",
+     "Il voulait partir en exploration"
+    ],
+    "es": [
+     "Los lamanitas mataban a todos los nefitas que creían en Jesús",
+     "Estaba enfermo",
+     "Quería salir de exploración"
+    ]
+   }
+  },
+  {
+   "id": "v54-1",
+   "story": 54,
+   "text": {
+    "nl": "Waar verborg Moroni de platen voor de laatste keer?",
+    "en": "Where did Moroni hide the plates for the last time?",
+    "de": "Wo verbarg Moroni die Platten zum letzten Mal?",
+    "fr": "Où Moroni cacha-t-il les plaques pour la dernière fois ?",
+    "es": "¿Dónde escondió Moroni las planchas por última vez?"
+   },
+   "options": {
+    "nl": [
+     "In een stenen kist in de heuvel Cumorah",
+     "In een grot bij de zee",
+     "In een tent in de wildernis"
+    ],
+    "en": [
+     "In a stone box in the hill Cumorah",
+     "In a cave by the sea",
+     "In a tent in the wilderness"
+    ],
+    "de": [
+     "In einem Steinkasten im Hügel Cumorah",
+     "In einer Höhle am Meer",
+     "In einem Zelt in der Wildnis"
+    ],
+    "fr": [
+     "Dans une boîte en pierre dans la colline Cumorah",
+     "Dans une grotte au bord de la mer",
+     "Dans une tente dans le désert"
+    ],
+    "es": [
+     "En una caja de piedra en el cerro Cumorah",
+     "En una cueva junto al mar",
+     "En una tienda en el desierto"
+    ]
+   }
+  },
+  {
+   "id": "v54-2",
+   "story": 54,
+   "text": {
+    "nl": "Wie laat ons weten dat het Boek van Mormon waar is, als we het eerlijk willen weten?",
+    "en": "Who will let us know the Book of Mormon is true if we sincerely want to know?",
+    "de": "Wer lässt uns wissen, dass das Buch Mormon wahr ist, wenn wir es aufrichtig wissen wollen?",
+    "fr": "Qui nous fera savoir que le Livre de Mormon est vrai si nous voulons sincèrement le savoir ?",
+    "es": "¿Quién nos hará saber que el Libro de Mormón es verdadero si de veras queremos saberlo?"
+   },
+   "options": {
+    "nl": [
+     "De Heilige Geest",
+     "Een engel uit het boek",
+     "De profeet van die tijd"
+    ],
+    "en": [
+     "The Holy Ghost",
+     "An angel from the book",
+     "The prophet of that time"
+    ],
+    "de": [
+     "Der Heilige Geist",
+     "Ein Engel aus dem Buch",
+     "Der Prophet jener Zeit"
+    ],
+    "fr": [
+     "Le Saint-Esprit",
+     "Un ange du livre",
+     "Le prophète de l’époque"
+    ],
+    "es": [
+     "El Espíritu Santo",
+     "Un ángel del libro",
+     "El profeta de aquel tiempo"
+    ]
+   }
+  },
+  {
+   "id": "v54-3",
+   "story": 54,
+   "text": {
+    "nl": "Wat zei Moroni dat we moeten doen met de verslagen, voordat we God vragen of ze waar zijn?",
+    "en": "What did Moroni say we should do with the records before asking God if they are true?",
+    "de": "Was sollen wir laut Moroni mit den Aufzeichnungen tun, bevor wir Gott fragen, ob sie wahr sind?",
+    "fr": "Que Moroni dit-il que nous devions faire des annales avant de demander à Dieu si elles sont vraies ?",
+    "es": "¿Qué dijo Moroni que debemos hacer con los anales antes de preguntar a Dios si son verdaderos?"
+   },
+   "options": {
+    "nl": [
+     "Ze lezen en er diep over nadenken",
+     "Ze verbranden",
+     "Ze aan iemand anders geven"
+    ],
+    "en": [
+     "Read them and think deeply about them",
+     "Burn them",
+     "Give them to someone else"
+    ],
+    "de": [
+     "Sie lesen und gründlich darüber nachdenken",
+     "Sie verbrennen",
+     "Sie jemand anderem geben"
+    ],
+    "fr": [
+     "Les lire et y réfléchir profondément",
+     "Les brûler",
+     "Les donner à quelqu’un d’autre"
+    ],
+    "es": [
+     "Leerlos y meditar profundamente en ellos",
+     "Quemarlos",
+     "Dárselos a otra persona"
+    ]
+   }
+  }
+ ]
+}

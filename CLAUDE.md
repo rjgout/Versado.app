@@ -272,8 +272,11 @@ Controleer bij twijfel: `grep -rn "next/headers" src/lib src/server server.ts`
 Zie `docs/LEERVOORTGANG.md`. De invariant:
 
 > Leesvoortgang hoort bij de inhoud, niet bij de cursus.
-> Lezen levert geen XP op en verlengt geen reeks.
-> XP en reeks worden verdiend door betekenisvolle afgeronde leeractiviteiten.
+> Lezen levert geen XP op. Openen of doorscrollen verlengt geen reeks; een
+> uitdrukkelijk afgeronde leesactiviteit telt wel als activiteit.
+> De reeksregel is: "Ik heb vandaag minimaal één echte inhoudelijke activiteit
+> in Versado afgerond." De eerste afronding van de dag telt, lengte en XP niet.
+> XP en reeks zijn twee aparte dingen.
 > Voor dezelfde onderliggende inhoud zijn oefenbelasting en maximale
 > basis-XP route-onafhankelijk gelijkwaardig.
 > Routes bepalen hoe de inhoud wordt aangeboden, niet hoeveel de inhoud

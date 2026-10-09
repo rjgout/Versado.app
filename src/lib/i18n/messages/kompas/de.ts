@@ -100,7 +100,7 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
       step1: "Öffne Lernen und wähle einen Kurs.",
       step2: "Lies den nächsten Abschnitt.",
       step3: "Beantworte die Fragen. Dein Fortschritt bleibt gespeichert, du kannst also jederzeit weitermachen.",
-      more: "Reines Lesen bringt keine XP und zählt nicht für deine tägliche Serie. Abgeschlossene Übungen schon.",
+      more: "Lesen allein bringt keine XP. Ein Kapitel oder Leseschritt, den du ausdrücklich abschließt, zählt aber als Aktivität für deine Serie, genau wie eine abgeschlossene Übung.",
       faq1: {
         q: "Spielt es eine Rolle, welchen Kurs ich wähle?",
         a: "Jeder Kurs bietet denselben Inhalt auf andere Weise an, zum Beispiel in kurzen Schritten oder Kapitel für Kapitel. Für denselben Inhalt bekommst du in einem Kurs nicht mehr XP als in einem anderen.",
@@ -179,12 +179,12 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
     },
     progressStreak: {
       title: "Serie",
-      what: "Deine Serie zählt, an wie vielen Tagen in Folge du geübt hast.",
-      benefit: "Eine Serie hilft dir, jeden Tag ein bisschen zu tun.",
-      step1: "Schließe jeden Tag eine Übung oder ein Spiel ab, das zählt.",
+      what: "Deine Serie zählt, an wie vielen Tagen in Folge du mindestens eine echte Aktivität in Versado abgeschlossen hast.",
+      benefit: "Eine Serie hilft dir, jeden Tag ein bisschen zu tun, auch wenn es nur kurz ist.",
+      step1: "Schließe jeden Tag mindestens eine Aktivität ab, etwa eine Lektion, eine Übungsrunde, ein Spiel oder einen abgeschlossenen Leseschritt. Wie kurz oder lang sie ist, spielt keine Rolle.",
       step2: "Verpasst du einen Tag, setzt Versado automatisch einen Serien-Freeze ein, wenn du einen hast. Er bewahrt deine Serie.",
       step3: "Hast du keinen Serien-Freeze mehr, bricht deine Serie ab.",
-      more: "Nur abgeschlossene Aktivitäten zählen. Reines Lesen nicht. Ein Tag richtet sich nach der Zeitzone deines Kontos.",
+      more: "Die erste abgeschlossene Aktivität des Tages setzt deine Serie fort; eine zweite am selben Tag gibt keinen zusätzlichen Serientag. XP und Serie sind getrennt: Auch eine Aktivität ohne XP kann zählen. Nur öffnen, stöbern oder beginnen zählt nicht, sie muss wirklich abgeschlossen sein. Ein Tag richtet sich nach der Zeitzone deines Kontos.",
     },
     progressDivisions: {
       title: "Liga",

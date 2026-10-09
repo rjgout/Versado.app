@@ -5,7 +5,7 @@ import { kompasEs } from "./kompas/es";
 export const es: PartialMessages = {
   "jigsaw": {
     "title": "Rompecabezas",
-    "intro": "Disfrute de rompecabezas con ilustraciones de las historias del Libro de Mormón para niños.",
+    "intro": "Disfruta de rompecabezas con ilustraciones de las historias del Libro de Mormón para niños y luego responde una pregunta sobre la historia.",
     "chooseImage": "Elige una imagen",
     "image": "Imagen {n}",
     "level": "Número de piezas",
@@ -23,7 +23,19 @@ export const es: PartialMessages = {
     "cell": "Fila {row}, columna {column}",
     "placed": "¡Esa pieza encaja!",
     "wrong": "Eso aún no encaja aquí. Prueba con otro lugar.",
-    "complete": "¡Bien hecho! El rompecabezas está completo.",
+    "complete": "¡Rompecabezas completo!",
+    "questionIntro": "Una pregunta más",
+    "questionHint": "Elige la respuesta que corresponde a la historia de esta imagen. Solo puedes responder una vez.",
+    "questionLabel": "Pregunta sobre la historia",
+    "confirmAnswer": "Confirmar respuesta",
+    "answering": "Comprobando la respuesta…",
+    "correct": "¡Correcto! Este rompecabezas cuenta para tu racha.",
+    "correctAlready": "¡Correcto! Tu racha de hoy ya estaba asegurada.",
+    "incorrect": "Lo siento, esa no era la respuesta correcta. El rompecabezas está completo, pero no cuenta para tu racha.",
+    "correctWas": "La respuesta correcta era: {answer}",
+    "alreadyAnswered": "Ya has respondido esta pregunta.",
+    "notComplete": "Primero termina el rompecabezas.",
+    "another": "Otro rompecabezas",
     "chooseAnother": "Elige otro rompecabezas",
     "leaveConfirm": "¿Dejar este rompecabezas? Tu progreso no se guardará.",
     "failed": "Algo ha salido mal. Comprueba tu conexión e inténtalo de nuevo.",
@@ -391,9 +403,9 @@ export const es: PartialMessages = {
     },
     "streakDone": "Tu racha está asegurada por hoy.",
     "dayComplete": "Todo está listo por hoy. Es hora de descansar un poco.",
-    "streakKeep": "Estudia hoy para mantener tu racha de {n} días.",
-    "streakKeepOne": "Estudia hoy y serán dos días seguidos.",
-    "streakStart": "Empieza hoy una nueva racha.",
+    "streakKeep": "Completa una actividad hoy para mantener tu racha de {n} días.",
+    "streakKeepOne": "Completa una actividad hoy y haz que sean dos días.",
+    "streakStart": "Completa una actividad hoy y empieza una nueva racha.",
     "actionsTitle": "Te está esperando",
     "conference": {
       "title": "Conferencia General",
@@ -637,11 +649,11 @@ export const es: PartialMessages = {
     "allAdded": "Todos los juegos ya están en tu resumen.",
     "allHidden": "Has ocultado todos los juegos. Vuelve a añadirlos abajo.",
     "jigsaw": {
-      "description": "Haga un rompecabezas con ilustraciones de las historias del Libro de Mormón para niños. Elige cuántas piezas usar.",
+      "description": "Haz un rompecabezas con ilustraciones de las historias del Libro de Mormón para niños. Elige cuántas piezas usar y luego responde una pregunta sobre la historia.",
       "linkLabel": "Rompecabezas abierto",
-      "rule1": "Elige una imagen y 6, 12, 24 o 48 piezas.",
+      "rule1": "Elige una imagen y 6, 12, 24 o 48 piezas. El número de piezas no importa para tu racha.",
       "rule2": "Arrastra una pieza al tablero o toca una pieza y luego su lugar. Las piezas correctas encajan en su lugar.",
-      "rule3": "Utiliza la vista previa para obtener ayuda. Juega a tu propio ritmo, sin límite de tiempo ni XP."
+      "rule3": "Después del rompecabezas viene una pregunta sobre la historia. Una respuesta correcta cuenta como actividad para tu racha; una incorrecta no deshace el rompecabezas. El rompecabezas no da XP."
     },
     "title": "Juegos y desafíos",
     "intro": "Juega solo, en grupo o contra un amigo. Ordena los juegos como quieras.",
@@ -1717,7 +1729,7 @@ export const es: PartialMessages = {
     "title": "¡Racha",
     "daysInARow": "días de práctica seguidos!",
     "longest": "🏆 Racha más larga: {n} días",
-    "explain": "¡Mantén tu {streak} practicando todos los días! Si te saltas un día, se utiliza automáticamente una congelación disponible; si no te quedan congelaciones, tu racha se rompe.",
+    "explain": "Mantén tu {streak} completando al menos una actividad cada día, por corta que sea. Si pierdes un día, se usa automáticamente una congelación disponible; si ya no tienes, tu racha se rompe. Una segunda actividad el mismo día no cuenta como un día más.",
     "streakWord": "racha",
     "daysThisMonth": "Días de este mes",
     "prevMonth": "Mes anterior",
@@ -1973,7 +1985,7 @@ export const es: PartialMessages = {
       }
     },
     "games": {
-      "jigsaw": "Haz un rompecabezas con ilustraciones de historias de las Escrituras. Elige cuántas piezas quieres.",
+      "jigsaw": "Haz un rompecabezas con ilustraciones de historias de las Escrituras y luego responde una pregunta sobre la historia. Elige cuántas piezas quieres.",
       "wordSearch": "Encuentra palabras ocultas de las Escrituras en una cuadrícula siempre nueva. Juega sin límites ni prisas.",
       "wordGame": "Adivina cada día una palabra de cinco letras de las Escrituras. A las 18:00 llega una palabra nueva, y cuenta para tu racha.",
       "scrabble": "Un juego de formar palabras con palabras de las Escrituras. Reta a un amigo y jugad por turnos, cada uno a su ritmo.",
@@ -2018,11 +2030,11 @@ export const es: PartialMessages = {
       },
       "friendStreaks": {
         "title": "Rachas con amigos",
-        "description": "Empieza una racha con un amigo. Crece mientras los dos estudiéis cada día."
+        "description": "Empieza una racha con un amigo. Crece mientras ambos completen una actividad cada día."
       },
       "groups": {
         "title": "Grupos",
-        "description": "Crea un grupo para tu familia, tu clase o tu barrio. La racha del grupo crece cuando suficientes miembros estudian ese día. Invita a otros con un enlace o un código QR."
+        "description": "Crea un grupo para tu familia, clase o barrio. La racha del grupo crece cuando suficientes miembros completan una actividad ese día. Invita a personas con un enlace o código QR."
       },
       "studyTogether": {
         "title": "Estudiar juntos",
@@ -2034,7 +2046,7 @@ export const es: PartialMessages = {
       },
       "streaks": {
         "title": "Racha diaria",
-        "description": "Estudia un poco cada día y construye una racha. ¿Te saltaste un día? Una congelación salva tu racha."
+        "description": "Completa al menos una actividad cada día y desarrolla una racha. ¿Perdiste un día? Una congelación salva tu racha."
       },
       "divisions": {
         "title": "XP y divisiones",
@@ -2081,7 +2093,7 @@ export const es: PartialMessages = {
     "welcomeFirst": "¡Bienvenido! Primero esto...",
     "next": "Siguiente",
     "howItWorks": "Cómo funciona",
-    "streakText": "Practica un poco cada día para desarrollar tu racha. ¿Se perdió un día? Una congelación de racha ganada se activa automáticamente: si ya no tienes congelaciones, tu racha se rompe después de todo.",
+    "streakText": "Completa al menos una actividad real cada día, por corta que sea, para desarrollar tu racha. ¿Se perdió un día? Una congelación de racha ganada se activa automáticamente: si ya no tienes congelaciones, tu racha se rompe después de todo.",
     "xpText": "Ganas XP por cada lección, ejercicio y juego. Con él, también podrás ascender en la competición de división semanal contra otros jugadores.",
     "hintsText": "¿Atascado en un ejercicio? Compra una pista con tu XP.",
     "requestSent": "¡Solicitud enviada a {tag}!",
@@ -2515,7 +2527,7 @@ export const es: PartialMessages = {
     "title": "¿Qué genera XP?",
     "subtitle": "Una descripción general de cada actividad en la aplicación.",
     "chapter": "Ejercicios de un capítulo",
-    "chapterText": "{n} XP por respuesta correcta en la serie de ejercicios del capítulo, más {bonus} XP si toda la serie es correcta. Lo mismo en cada ruta de lectura; leer por sí solo no da XP ni alarga tu racha.",
+    "chapterText": "{n} XP por respuesta correcta en el conjunto de ejercicios del capítulo, más {bonus} XP si todo el conjunto es correcto. Igual en cada ruta de lectura; leer por sí solo no da XP.",
     "intro": "Curso de introducción",
     "kids": "Niños historia",
     "podcast": "Lección de podcast",
@@ -2989,7 +3001,7 @@ export const es: PartialMessages = {
     "readAndPractice": "Leído, a los ejercicios ({n} preguntas)",
     "practice": "Hacer los ejercicios · {n} preguntas",
     "practiceAgain": "Practicar de nuevo · {n} preguntas",
-    "readingNoXp": "¡Leído! La lectura cuenta para tu progreso; los XP y tu racha los ganas con los ejercicios.",
+    "readingNoXp": "¡Leído! Leer no da XP. Un capítulo que terminas sí cuenta como actividad para tu racha.",
     "sharedInfo": "Tu progreso de lectura se actualiza automáticamente en todas las rutas de lectura.",
     "longTitle": "Este es un capítulo más largo",
     "longText": "Puedes leerlo de una vez, pero Paso a paso lo divide en partes más pequeñas con ejercicios entre medias.",
@@ -2997,7 +3009,7 @@ export const es: PartialMessages = {
     "longFull": "Leer el capítulo completo de todos modos",
     "repeatNote": "Repaso: ya habías ganado los XP de estas preguntas.",
     "stepRead": "Paso leído",
-    "stepReadText": "Este paso no tiene preguntas. La lectura cuenta para tu progreso, no para los XP ni tu racha.",
+    "stepReadText": "Este paso no tiene preguntas. Leer no da XP; terminar el paso sí cuenta como actividad para tu racha.",
     "dismiss": "Entendido"
   },
   "together": {
@@ -3165,7 +3177,7 @@ export const es: PartialMessages = {
       "pausedTomorrow": "Los nuevos miembros cuentan a partir de mañana. Entonces la racha continúa.",
       "notStarted": "La racha empieza en cuanto participen al menos 3 miembros.",
       "meDone": "Contribuiste hoy",
-      "meOpen": "Estudia hoy para ayudar",
+      "meOpen": "Completa una actividad hoy para ayudar",
       "protectedBy": "Racha protegida por {name}",
       "protectedHint": "Solo se usa si hace falta hoy.",
       "protectedByMe": "Ofreciste una congelación de racha",

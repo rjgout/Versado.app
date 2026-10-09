@@ -111,15 +111,16 @@ test("dubbele en gelijktijdige events geven geen dubbele voortgang, XP, freezes 
   assert.equal((await activity(u.id, "2026-01-04T12:00Z", "same", 3)).duplicate, true);
   assert.equal((await get(u.id)).currentStreak, 185);
 });
-test("lezen en app openen verdienen geen terugkeeractiviteit; openen stopt herinneringen", { skip }, async () => {
+test("app openen verdient geen terugkeeractiviteit, een afgeronde leesactiviteit wel; openen stopt herinneringen", { skip }, async () => {
   const u = await account();
   const now = new Date("2026-01-03T12:00Z");
   const status = await L.continuation.getStreakContinuation(u.id, now, true);
   assert.equal(status.completed, 0);
   assert.equal(status.status, "INTERRUPTED");
   assert.ok((await get(u.id)).streakReturnSeenAt);
+  assert.equal((await get(u.id)).streakReturnCount, 0, "alleen openen levert niets op");
   await activity(u.id, "2026-01-03T12:00Z", randomUUID(), 0, "READING");
-  assert.equal((await get(u.id)).streakReturnCount, 0);
+  assert.equal((await get(u.id)).streakReturnCount, 1, "een uitdrukkelijk afgeronde leesstap telt als activiteit");
 });
 test("jaren weg: behoud reeks en maximaal twaalf activiteiten", { skip }, async () => {
   const u = await account();

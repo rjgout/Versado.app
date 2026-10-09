@@ -8,8 +8,10 @@ Grote Waarde, in elke taal) en elke leesroute.
 ## De invariant
 
 > Leesvoortgang hoort bij de inhoud, niet bij de cursus.
-> Lezen levert geen XP op en verlengt geen reeks.
-> XP en reeks worden verdiend door betekenisvolle afgeronde leeractiviteiten.
+> Lezen levert geen XP op. Openen, bladeren of doorscrollen verlengt geen
+> reeks; een uitdrukkelijk afgeronde leesactiviteit telt wel als activiteit.
+> XP en reeks zijn twee aparte dingen. De reeks volgt de centrale regel
+> hieronder, XP wordt verdiend door betekenisvolle afgeronde oefeningen.
 > Voor dezelfde onderliggende inhoud zijn oefenbelasting en maximale
 > basis-XP route-onafhankelijk gelijkwaardig.
 > Routes bepalen hoe de inhoud wordt aangeboden, niet hoeveel de inhoud
@@ -22,8 +24,71 @@ Vier aparte dingen, die niet meer hetzelfde mogen betekenen:
 | Leesvoortgang | niet gelezen / bezig / gelezen | `ContentProgress.readStatus`, `readVerse` |
 | Oefenvoortgang | hoeveel vragen van de oefenset gemaakt zijn ("8/12") | `ContentProgress.exerciseAnswered`, `exercisesCompletedAt` |
 | XP | basis-XP per inhoud, begrensd | `ContentProgress.rewardCorrect`, `rewardBonusAt` + `XPTransaction` |
-| Reeks | een dag met een afgeronde leeractiviteit | `recordLearningActivity` in `src/lib/streak.ts` |
+| Reeks | een dag met minstens één echt afgeronde inhoudelijke activiteit | `recordLearningActivity` in `src/lib/streak.ts` |
 
+## De reeksregel
+
+> **Ik heb vandaag minimaal één echte inhoudelijke activiteit in Versado afgerond.**
+
+- Moeilijkheid, lengte, score, XP en aantal minuten maken niet uit. Een korte
+  activiteit zonder XP telt ook.
+- De **eerste** meetellende afronding van de kalenderdag (tijdzone van de
+  gebruiker, zie `docs/TIJD.md`) verlengt de reeks; latere afrondingen
+  diezelfde dag geven geen extra reeksdag.
+- Alleen openen, bladeren, scrollen, een podcast starten of een instelling
+  wijzigen telt niet. De afronding moet echt zijn, op de server gecontroleerd
+  en een vaste, idempotente activiteitssleutel hebben (retries tellen niet
+  opnieuw, ook niet op een latere dag).
+- Er is één ingang: `recordLearningActivity`. Geen spel schrijft een eigen
+  `StreakDay`, verhoogt zelf `currentStreak` of laat de client dat doen
+  (`tests/streak-central.test.ts` bewaakt dit). Terugkeer na een onderbreking,
+  bevriezingen, tijdzones en de bestaande viering blijven ongewijzigd; de
+  groepsreeks gebruikt de persoonlijke reeks zonder strengere eigen regel.
+
+### Welke activiteiten tellen
+
+| Activiteit | Telt voor de reeks? | Afrondvoorwaarde |
+|---|---|---|
+| Oefenset bij een hoofdstuk/stap (alle leesroutes) | Ja | Volledig ingeleverde, door de server uitgedeelde set (`content:<sessie>`) |
+| Leesstap zonder vragen | Ja (nieuw) | Stap uitdrukkelijk afgerond, één keer per stap (`read-step:<les>`) |
+| "Markeer als gelezen" | Ja (nieuw) | Hoofdstuk voor het eerst als gelezen geregistreerd, één keer per inhoud (`read:<contentKey>`) |
+| Openen/scrollen/begonnen met lezen | Nee | Geen afronding |
+| Samen studeren: gezamenlijk lezen | Nee | De host start de vragen; niemand rondde het lezen uitdrukkelijk af. De afgeronde stap zelf telt wel |
+| Introductie-, kinder- en podcastles | Ja | Les ingeleverd met de slaagvoorwaarde van de les |
+| Snelle ronde, Samen studeren (stap), live quiz | Ja | Afgeronde ronde/stap |
+| Raad het hoofdstuk, Woord van de dag, De Slimste Heilige | Ja | Afgerond potje/dag |
+| Het Mysterie | Ja | Eerste voltooiing per mysterie en moeilijkheid |
+| **Legpuzzel** | Ja (nieuw) | Puzzel compleet **en** de inhoudsvraag goed beantwoord (`jigsaw:<poging>`) |
+| Woordzoeker | Nee (tijdelijke uitzondering) | Ongewijzigd gelaten: geeft nog XP maar geen reeks. Eerst apart beoordelen |
+| Scrabble | Nee | Geen betrouwbare afrondingsregistratie per gebruiker (beurtspel, opgeven) |
+| Uitdagingen | Nee | Opgeven en tegenstander-afhankelijke afronding maken de afronding niet betrouwbaar per dag; scoort via de onderliggende oefenset, die zelf telt |
+| Gezinsavond | Nee | Geen afrondingsregistratie per gebruiker |
+| Snelle Zendeling | Nee | Arcadespel zonder afronding; bewust geen XP of reeks |
+| Uitleg lezen, rondleidingen (Kompas), instellingen | Nee | Geen leeractiviteit |
+
+**Woordzoeker is een expliciete, tijdelijke uitzondering.** Hij blijft zoals
+hij was (XP, geen reeks) en zijn uitleg belooft geen reeks. Zodra hij een
+betrouwbare serverafronding heeft die we bewust willen laten tellen, voegt hij
+zich via `recordLearningActivity` bij de rest; tot dan is dit geen vergeten gat.
+
+### Legpuzzel: afbeelding → verhaal → vraag
+
+- Elke afbeelding hoort bij precies één verhaal van `prisma/kidsManifest.json`
+  (`jigsawCatalog` in `src/lib/jigsawGame.ts`; nooit een bestandsnaam parsen).
+- De vragenbank staat in `prisma/jigsawQuestions.json` (type `src/lib/jigsawQuestions.ts`):
+  drie vragen per verhaal, vijf talen, drie opties waarvan de eerste het goede
+  antwoord is. De bestaande `KidsExercise`-oefeningen zijn niet geschikt: ze
+  zijn automatisch uit zinnen gegenereerd en hebben geen eenduidig antwoord op
+  verhaalniveau. Een extra databasemodel is niet nodig: de inhoud is vast en
+  versiebeheerd (tests: `tests/jigsaw.test.ts`).
+- De ondertekende staat krijgt een `attempt`-id. Pas als alle stukjes liggen kiest
+  de server één vraag en een optievolgorde en legt die vast in het token; een
+  refresh (`resume`) en elke herhaalde aanvraag geven dezelfde vraag.
+- Het antwoord is definitief: `completeJigsaw` claimt `jigsaw-answer:<poging>`
+  in `StreakActivity`. Alleen een goed antwoord start daarna
+  `recordLearningActivity` met `jigsaw:<poging>`. Het goede antwoord verlaat de
+  server pas na het antwoord. 6, 12, 24 en 48 stukjes tellen gelijk en de
+  puzzel geeft geen XP.
 ## Bouwstenen (`src/lib/learning/`)
 
 - **`contentIdentity.ts`**: welke inhoud "hetzelfde" is.
@@ -39,8 +104,8 @@ Vier aparte dingen, die niet meer hetzelfde mogen betekenen:
   - Daarna levert herhalen alleen de herhalingskorting (10%).
   - `withLegacy` rekent voortgang van vóór dit systeem om.
 - **`streakRules.ts`**: de enige regel voor de reeks.
-  - Lezen (`READING`) telt nooit.
   - Een activiteit telt alleen als hij afgerond is, met minstens één beantwoorde vraag of zet.
+  - Lezen (`READING`) telt alleen als uitdrukkelijke afronding (`answered: 1`): een gemarkeerd hoofdstuk of afgeronde leesstap, nooit openen of scrollen.
 - **`readingTime.ts`**: leestijd uit het aantal woorden (130 per minuut). Vanaf 15 minuten raden we Stap voor stap aan.
 - **`progressState.ts`**: de zichtbare status (gelezen, oefeningen x/N, afgerond = gelezen én geoefend), puur en voor elke weergave gelijk.
 - **`routes.ts`**: hoe elke leesroute de inhoud aanbiedt (volgorde, wanneer de oefeningen komen, tip bij lange hoofdstukken). Alleen presentatie.
@@ -73,7 +138,7 @@ Vier aparte dingen, die niet meer hetzelfde mogen betekenen:
 - **Wat al gelezen of geoefend is, telt in elke route.**
   - Een hoofdstuk dat ergens gelezen én geoefend is, telt in Stap voor stap als gedaan.
   - Een hoofdstuk waar je in een andere route mee begonnen bent, is in Stap voor stap open, zodat je een lang hoofdstuk alsnog in stappen kunt doen.
-- **Een stap zonder vragen** is alleen lezen: afgevinkt, maar zonder XP en zonder reeks.
+- **Een stap zonder vragen** is alleen lezen: afgevinkt, zonder XP; het afronden telt wel eenmalig voor de reeks.
 - **Live-quiz, Samen studeren, snelle ronde en raad het hoofdstuk** zijn spellen of losse oefenvormen met hun eigen (lichte) XP. Ze tellen voor de reeks, maar raken de leesvoortgang en de basisbeloning van een hoofdstuk niet.
 
 ## Een nieuwe cursus of contentbron toevoegen
@@ -84,7 +149,7 @@ Een nieuw boek met hoofdstukken valt vanzelf onder dit systeem. Zorg alleen voor
 2. Goedgekeurde `Exercise`-rijen met `sourceVerseId`, zodat elke vraag in het juiste deel valt.
 3. Een nieuwe leesroute? Voeg die toe aan `ROUTE_PRESENTATION` in `routes.ts`.
    - Deel uit met `issueExerciseSession` en lever in met `submitExerciseSession` (eventueel met hooks).
-   - Lezen schrijf je met `markChapterRead`, `markStepRead` of `markReadingStarted`.
+   - Lezen schrijf je met `markChapterRead`, `markStepRead` of `markReadingStarted`; een uitdrukkelijke afronding door de speler loopt via `completeChapterReading`/`completeReadingOnlyStep`.
 
 Niet doen:
 
@@ -168,7 +233,7 @@ kalender, meldingen en de SQL-backfill op bestaande gebruikers.
 - `npm run test:learning` draait de pure regels (`tests/learning-rules.test.ts`).
 - Met `LEARNING_TEST_DATABASE_URL` (een database met content, bv. een kopie van een geseede database) draaien ook de integratietests (`tests/learning-progress.integration.test.ts`). Die dekken:
   - lezen in de ene route en zichtbaar in de andere;
-  - geen XP of reeks voor lezen;
+  - geen XP voor lezen, en een reeksactiviteit alleen bij uitdrukkelijk afronden (één keer per inhoud);
   - gelijke XP per route;
   - geen dubbele basis-XP via een andere route of taal;
   - dubbelklikken en gelijktijdige inzendingen;

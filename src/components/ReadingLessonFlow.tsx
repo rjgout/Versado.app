@@ -46,7 +46,7 @@ interface Props {
 }
 
 interface Result {
-  /** Een stap zonder vragen: alleen gelezen, geen XP en geen reeks. */
+  /** Een stap zonder vragen: alleen gelezen, geen XP; het afronden telt wel als activiteit voor de reeks. */
   readOnly?: boolean;
   correctCount: number;
   total: number;

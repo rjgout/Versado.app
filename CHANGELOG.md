@@ -4,6 +4,19 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Nieuw: je dagelijkse reeks volgt nu één duidelijke regel: je hebt vandaag
+  minstens één echte activiteit in Versado afgerond. Hoe kort de activiteit is
+  of er XP bij hoort, maakt niet uit; de eerste afronding van de dag telt,
+  een tweede activiteit diezelfde dag geeft geen extra reeksdag. Alleen
+  openen of bladeren telt niet. Ook een hoofdstuk dat je uitdrukkelijk als
+  gelezen markeert en een leesstap zonder vragen die je afrondt tellen nu mee.
+  De uitleg in de app is in alle talen aangepast.
+
+- Nieuw: de Legpuzzel heeft nu twee delen. Leg eerst de puzzel (6, 12, 24 of 48
+  stukjes) en beantwoord daarna één vraag over het verhaal bij de afbeelding.
+  Een goed antwoord telt als activiteit voor je reeks; een fout antwoord maakt
+  de puzzel niet ongedaan, maar telt niet mee. De puzzel geeft geen XP.
+
 - Nieuw: Ontdek Versado (Versado Kompas). Op Vandaag en in je profiel vind je
   een vaste ingang naar korte, eenvoudige uitleg over Leren, Spelen, Samen,
   je voortgang, je profiel en het kiezen van Schriften en taal. Elke uitleg

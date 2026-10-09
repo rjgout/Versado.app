@@ -258,3 +258,76 @@ test("een nieuw boek zonder kerksleutel valt vanzelf onder hetzelfde systeem", {
   assert.equal(result.content.contentKey, `chapter:${chapter.id}`);
   assert.equal(result.xpEarned, L.rewards.maxContentBaseXp(9));
 });
+
+async function freshUser(tag: string) {
+  const stamp = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
+  const created = await L.db.user.create({
+    data: { email: `lezen-${tag}-${stamp}@test.invalid`, handle: `Lees${stamp.slice(-8)}`, discriminator: "00", passwordHash: "x" },
+  });
+  return created.id;
+}
+
+test("uitdrukkelijk als gelezen markeren telt één keer als reeksactiviteit, zonder XP", { skip }, async () => {
+  const id = await freshUser("hoofdstuk");
+  try {
+    const chapter = await chapterId("bofm/1-ne", 6);
+    // Openen, beginnen en doorlezen zonder af te ronden verdient niets.
+    await L.service.markReadingStarted(id, chapter);
+    assert.equal((await L.db.user.findUniqueOrThrow({ where: { id } })).currentStreak, 0);
+    const first = await L.service.completeChapterReading(id, chapter);
+    assert.equal(first.counted, true);
+    assert.equal(first.content.read, "READ");
+    const afterFirst = await L.db.user.findUniqueOrThrow({ where: { id } });
+    assert.equal(afterFirst.currentStreak, 1);
+    assert.equal(afterFirst.xpTotal, 0, "lezen geeft geen XP");
+    // Nogmaals markeren (of via een andere taal) telt niet opnieuw.
+    const again = await L.service.completeChapterReading(id, chapter);
+    assert.equal(again.counted, false);
+    const en = await chapterId("bofm/1-ne", 6, "content_bom_en");
+    assert.equal((await L.service.completeChapterReading(id, en)).counted, false);
+    assert.equal((await L.db.user.findUniqueOrThrow({ where: { id } })).currentStreak, 1);
+    // Een tweede hoofdstuk dezelfde dag is een activiteit, maar geen extra reeksdag.
+    const second = await L.service.completeChapterReading(id, await chapterId("bofm/1-ne", 7));
+    assert.equal(second.counted, true);
+    assert.equal((await L.db.user.findUniqueOrThrow({ where: { id } })).currentStreak, 1);
+  } finally {
+    await L.db.user.delete({ where: { id } }).catch(() => {});
+  }
+});
+
+test("samen lezen (markChapterRead/markStepRead) blijft zonder reeks", { skip }, async () => {
+  const id = await freshUser("samen");
+  try {
+    const chapter = await chapterId("bofm/1-ne", 8);
+    await L.service.markChapterRead(id, chapter);
+    assert.equal((await L.db.user.findUniqueOrThrow({ where: { id } })).currentStreak, 0);
+  } finally {
+    await L.db.user.delete({ where: { id } }).catch(() => {});
+  }
+});
+
+test("een leesstap zonder vragen telt na afronden eenmalig als reeksactiviteit", { skip }, async (t) => {
+  const lessons = await L.db.courseLesson.findMany({ where: { course: { type: "READING_LESSONS", contentCollectionId: "content_bom" } }, orderBy: [{ chapterId: "asc" }, { order: "asc" }], take: 400 });
+  const id = await freshUser("stap");
+  try {
+    for (const lesson of lessons) {
+      const issued = await L.service.issueExerciseSession(id, lesson.chapterId, { lessonId: lesson.id, startVerse: lesson.startVerse, endVerse: lesson.endVerse });
+      if (issued.sessionId) continue;
+      await L.service.markReadingStarted(id, lesson.chapterId);
+      const before = await L.db.user.findUniqueOrThrow({ where: { id } });
+      assert.equal(before.currentStreak, 0);
+      const step = await L.db.courseLesson.findFirstOrThrow({ where: { chapterId: lesson.chapterId, course: { type: "READING_LESSONS" } }, orderBy: { order: "asc" } });
+      if (step.id !== lesson.id) continue; // alleen de eerste stap van een hoofdstuk is direct beschikbaar
+      await L.steps.completeReadingOnlyStep(id, lesson.id);
+      const after = await L.db.user.findUniqueOrThrow({ where: { id } });
+      assert.equal(after.currentStreak, 1);
+      assert.equal(after.xpTotal, 0);
+      await L.steps.completeReadingOnlyStep(id, lesson.id);
+      assert.equal((await L.db.user.findUniqueOrThrow({ where: { id } })).currentStreak, 1, "tweede keer telt niet opnieuw");
+      return;
+    }
+    t.skip("geen beschikbare leesstap zonder vragen in de testdatabase");
+  } finally {
+    await L.db.user.delete({ where: { id } }).catch(() => {});
+  }
+});

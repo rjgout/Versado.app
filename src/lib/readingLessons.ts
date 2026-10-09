@@ -1,5 +1,7 @@
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { emitToUser } from "@/lib/realtime";
+import { recordLearningActivity } from "@/lib/streak";
 import {
   ExerciseSessionError,
   getChapterStates,
@@ -140,13 +142,18 @@ export async function completeReadingLesson(userId: string, lessonId: string, se
 
 /**
  * Een stap zonder vragen: alleen lezen. De stap is af en het leesgedeelte
- * gelezen, maar dit levert geen XP op en telt niet voor de reeks.
+ * gelezen. Dit levert geen XP op, maar de uitdrukkelijk afgeronde stap telt
+ * wel (één keer per stap) als activiteit voor de reeks.
  */
 export async function completeReadingOnlyStep(userId: string, lessonId: string): Promise<{ nextLessonId: string | null }> {
-  return prisma.$transaction(async (tx) => {
+  const { nextLessonId, streak } = await prisma.$transaction(async (tx) => {
     const { courseId, available } = await stepAvailable(tx, userId, lessonId);
     if (!available) throw new ExerciseSessionError("LOCKED");
     await markStepRead(tx, userId, lessonId);
-    return { nextLessonId: await recordStepDone(tx, userId, lessonId, courseId, 100, 0) };
+    const nextLessonId = await recordStepDone(tx, userId, lessonId, courseId, 100, 0);
+    const streak = await recordLearningActivity(tx, userId, { kind: "READING", answered: 1, required: 1, key: `read-step:${lessonId}` });
+    return { nextLessonId, streak };
   });
+  if (streak.counted) emitToUser(userId, "streak_changed", { dayEarned: streak.dayEarned, currentStreak: streak.currentStreak });
+  return { nextLessonId };
 }

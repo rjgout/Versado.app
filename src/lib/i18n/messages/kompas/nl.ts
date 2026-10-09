@@ -106,7 +106,7 @@ export const kompasNl = {
       step1: "Open Leren en kies een cursus.",
       step2: "Lees het volgende stuk.",
       step3: "Beantwoord de vragen. Je voortgang blijft bewaard, dus je kunt altijd verdergaan.",
-      more: "Lezen alleen levert geen XP op en telt niet mee voor je dagelijkse reeks. Dat doen afgeronde oefeningen wel.",
+      more: "Lezen alleen levert geen XP op. Een hoofdstuk of leesstap dat je uitdrukkelijk afrondt telt wel als activiteit voor je reeks, net als een afgeronde oefening.",
       faq1: {
         q: "Maakt het uit welke cursus ik kies?",
         a: "Elke cursus biedt dezelfde inhoud op een andere manier aan, bijvoorbeeld in korte stappen of per hoofdstuk. Voor dezelfde inhoud kun je er niet meer XP mee verdienen dan met een andere cursus.",
@@ -185,12 +185,12 @@ export const kompasNl = {
     },
     progressStreak: {
       title: "Reeks",
-      what: "Je reeks telt hoeveel dagen op rij je geoefend hebt.",
-      benefit: "Een reeks helpt je om elke dag een beetje te doen.",
-      step1: "Rond elke dag een oefening of spel af dat meetelt.",
+      what: "Je reeks telt hoeveel dagen op rij je minstens één echte activiteit in Versado hebt afgerond.",
+      benefit: "Een reeks helpt je om elke dag een beetje te doen, ook als dat maar kort is.",
+      step1: "Rond elke dag minstens één activiteit af, zoals een les, een oefenronde, een spel of een afgeronde leesstap. Hoe kort of lang die is, maakt niet uit.",
       step2: "Mis je een dag, dan gebruikt Versado automatisch een reeksbevriezing als je er een hebt. Die bewaart je reeks.",
       step3: "Heb je geen reeksbevriezing meer, dan breekt je reeks.",
-      more: "Alleen afgeronde activiteiten tellen. Alleen lezen telt niet. Een dag loopt volgens de tijdzone van je account.",
+      more: "De eerste afgeronde activiteit van de dag zet je reeks voort; een tweede activiteit diezelfde dag geeft geen extra reeksdag. XP en reeks zijn los van elkaar: ook een activiteit zonder XP kan meetellen. Alleen openen, bladeren of beginnen telt niet, het moet echt afgerond zijn. Een dag loopt volgens de tijdzone van je account.",
     },
     progressDivisions: {
       title: "Divisie",

@@ -100,7 +100,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
       step1: "Open Learn and pick a course.",
       step2: "Read the next piece.",
       step3: "Answer the questions. Your progress is saved, so you can always continue.",
-      more: "Reading alone earns no XP and does not count towards your daily streak. Completed exercises do.",
+      more: "Reading alone earns no XP. A chapter or reading step you explicitly finish does count as an activity for your streak, just like a completed exercise.",
       faq1: {
         q: "Does it matter which course I choose?",
         a: "Every course offers the same content in a different way, for example in short steps or chapter by chapter. For the same content you cannot earn more XP in one course than in another.",
@@ -179,12 +179,12 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
     },
     progressStreak: {
       title: "Streak",
-      what: "Your streak counts how many days in a row you have practised.",
-      benefit: "A streak helps you do a little every day.",
-      step1: "Complete an exercise or game that counts every day.",
+      what: "Your streak counts how many days in a row you have completed at least one real activity in Versado.",
+      benefit: "A streak helps you do a little every day, even if it is short.",
+      step1: "Complete at least one activity every day, such as a lesson, a practice round, a game or a finished reading step. How short or long it is does not matter.",
       step2: "If you miss a day, Versado automatically uses a streak freeze if you have one. It keeps your streak.",
       step3: "If you have no streak freeze left, your streak breaks.",
-      more: "Only completed activities count. Reading alone does not. A day follows the time zone of your account.",
+      more: "The first completed activity of the day continues your streak; a second activity the same day gives no extra streak day. XP and streak are separate: an activity without XP can count too. Just opening, browsing or starting does not count; it has to be truly completed. A day follows the time zone of your account.",
     },
     progressDivisions: {
       title: "Division",

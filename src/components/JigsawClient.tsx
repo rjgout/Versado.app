@@ -5,9 +5,22 @@ import { useT } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
 import ToggleSwitch from "@/components/versado/ToggleSwitch";
 import FocusLayout from "@/components/versado/FocusLayout";
-import { JIGSAW_LEVELS, jigsawGrid, jigsawPiecePath, type JigsawLevel, type JigsawState } from "@/lib/jigsaw";
+import { StreakContinuationCard } from "@/components/StreakContinuation";
+import { announceXpChanged } from "@/lib/xpBroadcast";
+import { JIGSAW_LEVELS, jigsawGrid, jigsawPiecePath, type JigsawAnswerResult, type JigsawLevel, type JigsawState } from "@/lib/jigsaw";
 
-async function requestGame(body: object, fallback: string): Promise<JigsawState & { accepted?: boolean }> {
+// Alleen een convenience: na verversen komt de speler terug bij dezelfde
+// puzzel (en dezelfde vraag, die de server vastlegt). Zonder opslag begint de
+// speler gewoon opnieuw.
+const RESUME_KEY = "versado:jigsaw-token";
+function rememberToken(token: string | null) {
+  try {
+    if (token) sessionStorage.setItem(RESUME_KEY, token);
+    else sessionStorage.removeItem(RESUME_KEY);
+  } catch { /* Privémodus mag het spel niet blokkeren. */ }
+}
+
+async function requestGame<T = JigsawState & { accepted?: boolean }>(body: object, fallback: string): Promise<T> {
   const response = await fetch("/api/jigsaw", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   }).catch(() => { throw new Error(fallback); });
@@ -28,13 +41,26 @@ export default function JigsawClient({ images }: { images: string[] }) {
   const starting = useRef(false);
   const pages = Math.ceil(images.length / 12);
 
+  useEffect(() => {
+    let token: string | null = null;
+    try { token = sessionStorage.getItem(RESUME_KEY); } catch { /* geen opslag beschikbaar */ }
+    if (!token) return;
+    let cancelled = false;
+    requestGame<JigsawState>({ action: "resume", token }, "")
+      .then((state) => { if (!cancelled) setGame(state); })
+      .catch(() => rememberToken(null));
+    return () => { cancelled = true; };
+  }, []);
+
   async function start() {
     if (starting.current) return;
     starting.current = true;
     setBusy(true);
     setError("");
     try {
-      setGame(await requestGame({ action: "start", imageIndex, pieces }, t("jigsaw.failed")));
+      const started = await requestGame({ action: "start", imageIndex, pieces }, t("jigsaw.failed"));
+      rememberToken(started.token);
+      setGame(started);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("jigsaw.failed"));
     } finally {
@@ -43,7 +69,7 @@ export default function JigsawClient({ images }: { images: string[] }) {
     }
   }
 
-  if (game) return <Puzzle initial={game} image={images[game.imageIndex]} onExit={() => setGame(null)} />;
+  if (game) return <Puzzle initial={game} image={images[game.imageIndex]} onExit={() => { rememberToken(null); setGame(null); }} />;
 
   return (
     <div className="max-w-5xl mx-auto flex flex-col gap-6">
@@ -122,6 +148,10 @@ function Puzzle({ initial, image, onExit }: { initial: JigsawState; image: strin
   const [error, setError] = useState("");
   const [preview, setPreview] = useState(false);
   const [ghost, setGhost] = useState(false);
+  const [choice, setChoice] = useState<number | null>(null);
+  const [answer, setAnswer] = useState<JigsawAnswerResult | null>(null);
+  const [answering, setAnswering] = useState(false);
+  const answerPending = useRef(false);
   const board = useRef<HTMLDivElement>(null);
   const tray = useRef<HTMLDivElement>(null);
   const pending = useRef(false);
@@ -164,6 +194,7 @@ function Puzzle({ initial, image, onExit }: { initial: JigsawState; image: strin
     try {
       const result = await requestGame({ action: "place", token: game.token, piece, x, y }, t("jigsaw.failed"));
       setGame(result);
+      rememberToken(result.token);
       if (result.accepted) setSelected(null);
       setMessage(t(result.complete ? "jigsaw.complete" : result.accepted ? "jigsaw.placed" : "jigsaw.wrong"));
     } catch (err) {
@@ -211,8 +242,28 @@ function Puzzle({ initial, image, onExit }: { initial: JigsawState; image: strin
     void place(current.piece, (x - rect.left) / rect.width, (y - rect.top) / rect.height);
   }
 
+  // Een definitief antwoord: de server accepteert er per puzzel maar één.
+  async function submitAnswer() {
+    if (answerPending.current || choice === null || answer) return;
+    answerPending.current = true;
+    setAnswering(true);
+    setError("");
+    try {
+      const result = await requestGame<JigsawAnswerResult>({ action: "answer", token: game.token, choice }, t("jigsaw.failed"));
+      setAnswer(result);
+      rememberToken(null);
+      if (result.counted) announceXpChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("jigsaw.failed"));
+    } finally {
+      answerPending.current = false;
+      setAnswering(false);
+    }
+  }
+
   async function exit() {
-    if (!game.complete && game.placed.length > 0 && !(await confirm(t("jigsaw.leaveConfirm")))) return;
+    const unfinished = !game.complete ? game.placed.length > 0 : Boolean(game.question) && !answer;
+    if (unfinished && !(await confirm(t("jigsaw.leaveConfirm")))) return;
     onExit();
   }
 
@@ -264,6 +315,45 @@ function Puzzle({ initial, image, onExit }: { initial: JigsawState; image: strin
         <div role="status" aria-live="polite" className={`min-h-6 text-center text-sm font-semibold ${game.complete ? "text-brand-700 dark:text-brand-300" : ""}`}>
           {busy ? t("jigsaw.checking") : message || "\u00a0"}
         </div>
+        {game.complete && game.question && (
+          <section aria-labelledby={`${clipPrefix}-question`} className="card flex flex-col gap-3">
+            <div>
+              <h2 id={`${clipPrefix}-question`} className="text-lg font-extrabold text-brand-800 dark:text-brand-300">{t("jigsaw.questionIntro")}</h2>
+              {!answer && <p className="text-sm text-slate-600 dark:text-slate-300">{t("jigsaw.questionHint")}</p>}
+            </div>
+            <p className="font-semibold" aria-label={t("jigsaw.questionLabel")}>{game.question.text}</p>
+            <div role="group" aria-label={t("jigsaw.questionLabel")} className="flex flex-col gap-2">
+              {game.question.options.map((option, index) => {
+                const isCorrect = answer?.correctChoice === index;
+                const isWrongPick = answer !== null && !answer.correct && choice === index;
+                return (
+                  <button key={index} type="button" aria-pressed={choice === index} disabled={answering || answer !== null}
+                    onClick={() => setChoice(index)}
+                    className={`min-h-12 rounded-xl border-2 px-4 py-2 text-left font-semibold focus-visible:outline focus-visible:outline-4 focus-visible:outline-brand-500 ${
+                      isCorrect ? "border-green-600 bg-green-50 dark:bg-green-950"
+                        : isWrongPick ? "border-red-600 bg-red-50 dark:bg-red-950"
+                        : choice === index ? "border-brand-500 bg-brand-100 dark:bg-brand-900"
+                        : "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"}`}>
+                    {isCorrect ? "✓ " : isWrongPick ? "✗ " : ""}{option}
+                  </button>
+                );
+              })}
+            </div>
+            {!answer && <button type="button" className="btn-primary min-h-12" disabled={choice === null || answering} onClick={submitAnswer}>
+              {answering ? t("jigsaw.answering") : t("jigsaw.confirmAnswer")}
+            </button>}
+            {answer && <div role="status" aria-live="polite" className="flex flex-col gap-3">
+              <p className="font-semibold">
+                {answer.correct
+                  ? t(answer.streak?.alreadyStudiedToday && !answer.streak.dayEarned ? "jigsaw.correctAlready" : "jigsaw.correct")
+                  : t("jigsaw.incorrect")}
+              </p>
+              {!answer.correct && <p>{t("jigsaw.correctWas", { answer: game.question.options[answer.correctChoice] })}</p>}
+              <StreakContinuationCard />
+              <button type="button" className="btn-primary min-h-12" onClick={onExit}>{t("jigsaw.another")}</button>
+            </div>}
+          </section>
+        )}
         {!game.complete && <div className="flex items-center gap-1 rounded-2xl bg-slate-100 dark:bg-slate-800 p-1">
           <button type="button" className="shrink-0 w-11 h-24 rounded-xl text-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700"
             aria-label={t("jigsaw.previousPieces")} onClick={() => tray.current?.scrollBy({ left: -tray.current.clientWidth * 0.8, behavior: "smooth" })}>←</button>

@@ -3,15 +3,26 @@
 // hier na voordat de reeks wordt bijgewerkt, en geen pagina past de reeks
 // zelf aan.
 //
-// Lezen telt nooit: anders bouw je een reeks op door alleen op knoppen te
-// drukken. Een activiteit telt pas als hij is afgerond, met minstens één
-// beantwoorde vraag (of zet) en alles wat de activiteit vraagt.
+// De regel: "Ik heb vandaag minimaal één echte inhoudelijke activiteit in
+// Versado afgerond." Moeilijkheid, lengte, XP, score en aantal minuten
+// maken niet uit; wel dat de activiteit echt is afgerond, op de server is
+// gecontroleerd en een vaste activiteitssleutel heeft (zie
+// recordLearningActivity). Alleen openen, bladeren, scrollen, een podcast
+// starten of een instelling wijzigen telt niet. De eerste afronding van de
+// kalenderdag verlengt de reeks, latere afrondingen diezelfde dag niet.
+//
+// Lezen telt alleen als een uitdrukkelijke afronding (hoofdstuk als gelezen
+// geregistreerd, leesstap zonder vragen afgerond): één afronding van één
+// stuk inhoud, nooit het openen of doorscrollen. Een activiteit met vragen
+// of zetten telt pas als hij is afgerond, met minstens één beantwoorde vraag
+// (of zet) en alles wat de activiteit vraagt.
 
 import { daysBetween } from "@/lib/dates";
 import { dayKeyInZone, LEGACY_DAY_TIME_ZONE, resolveTimeZone } from "@/lib/timeZone";
 
 export type LearningActivityKind =
-  // Een hoofdstuk lezen, een leesgedeelte doorlopen, als gelezen markeren.
+  // Een uitdrukkelijk afgeronde leesactiviteit: hoofdstuk als gelezen
+  // geregistreerd of een leesstap zonder vragen afgerond (answered = 1).
   | "READING"
   // Oefeningen bij inhoud: een oefenset of een stap van een leesroute.
   | "CONTENT_EXERCISES"
@@ -31,7 +42,6 @@ export interface LearningActivity {
 }
 
 export function qualifiesForStreak(activity: LearningActivity): boolean {
-  if (activity.kind === "READING") return false;
   return activity.answered >= 1 && activity.answered >= activity.required;
 }
 

@@ -211,7 +211,7 @@ export default function LessonFlow({ chapterId, bookName, chapterNumber, previou
     finishExercises(answers);
   }
 
-  // Lezen levert geen XP en geen reeks op; het hoofdstuk staat daarna wel
+  // Lezen levert geen XP op; het uitdrukkelijk markeren als gelezen telt wel één keer als activiteit voor de reeks. Het hoofdstuk staat daarna wel
   // als gelezen in elke leesroute.
   async function markRead(): Promise<boolean> {
     const res = await fetch(`/api/chapters/${chapterId}/read`, { method: "POST" }).catch(() => null);

@@ -6,6 +6,12 @@ export function jigsawGrid(pieces: JigsawLevel) {
   return { columns, rows: pieces / columns };
 }
 
+/** De vraag die pas verschijnt als de puzzel compleet is. Nooit met het goede antwoord. */
+export interface JigsawQuestionView {
+  text: string;
+  options: string[];
+}
+
 export interface JigsawState {
   token: string;
   imageIndex: number;
@@ -13,6 +19,16 @@ export interface JigsawState {
   order: number[];
   placed: number[];
   complete: boolean;
+  question?: JigsawQuestionView;
+}
+
+export interface JigsawAnswerResult {
+  correct: boolean;
+  /** Positie (zoals getoond) van het juiste antwoord, pas na het definitieve antwoord. */
+  correctChoice: number;
+  /** Telde dit antwoord als afgeronde activiteit voor de reeks? */
+  counted: boolean;
+  streak: { currentStreak: number; dayEarned: boolean; alreadyStudiedToday: boolean } | null;
 }
 
 // Alle stukjes gebruiken dezelfde beeldcoördinaten. Daardoor sluiten zowel

@@ -100,7 +100,7 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
       step1: "Abre Aprender y elige un curso.",
       step2: "Lee el siguiente trozo.",
       step3: "Responde las preguntas. Tu progreso se guarda, así que siempre puedes continuar.",
-      more: "Leer solamente no da XP ni cuenta para tu racha diaria. Los ejercicios completados sí.",
+      more: "Leer por sí solo no da XP. Un capítulo o paso de lectura que terminas de forma explícita sí cuenta como actividad para tu racha, igual que un ejercicio completado.",
       faq1: {
         q: "¿Importa qué curso elija?",
         a: "Cada curso ofrece el mismo contenido de otra manera, por ejemplo en pasos cortos o capítulo por capítulo. Con el mismo contenido no ganas más XP en un curso que en otro.",
@@ -179,12 +179,12 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
     },
     progressStreak: {
       title: "Racha",
-      what: "Tu racha cuenta cuántos días seguidos has practicado.",
-      benefit: "Una racha te ayuda a hacer un poco cada día.",
-      step1: "Completa cada día un ejercicio o juego que cuente.",
+      what: "Tu racha cuenta cuántos días seguidos has completado al menos una actividad real en Versado.",
+      benefit: "Una racha te ayuda a hacer un poco cada día, aunque sea breve.",
+      step1: "Completa al menos una actividad cada día, como una lección, una ronda de práctica, un juego o un paso de lectura terminado. No importa si es corta o larga.",
       step2: "Si pierdes un día, Versado usa automáticamente una congelación de racha si tienes una. Conserva tu racha.",
       step3: "Si ya no tienes congelaciones de racha, tu racha se rompe.",
-      more: "Solo cuentan las actividades completadas. Leer solamente no cuenta. Un día sigue la zona horaria de tu cuenta.",
+      more: "La primera actividad completada del día continúa tu racha; una segunda el mismo día no da un día extra. XP y racha son independientes: una actividad sin XP también puede contar. Solo abrir, explorar o empezar no cuenta; tiene que estar realmente completada. Un día sigue la zona horaria de tu cuenta.",
     },
     progressDivisions: {
       title: "Liga",

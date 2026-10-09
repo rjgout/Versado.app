@@ -61,9 +61,10 @@ export interface StreakSnapshot {
 /**
  * De enige ingang om de dagelijkse reeks bij te werken. Elke afgeronde
  * leeractiviteit meldt zich hier; of hij meetelt, beslist uitsluitend
- * qualifiesForStreak (src/lib/learning/streakRules.ts). Lezen telt nooit,
- * een lege of half afgemaakte inzending ook niet: dan blijft de reeks zoals
- * hij was.
+ * qualifiesForStreak (src/lib/learning/streakRules.ts): één echt afgeronde
+ * inhoudelijke activiteit per dag verlengt de reeks, ongeacht lengte of XP.
+ * Een lege of half afgemaakte inzending telt niet: dan blijft de reeks zoals
+ * hij was. Openen of doorscrollen is nooit een activiteit.
  */
 export async function recordLearningActivity(
   tx: Tx,
@@ -183,6 +184,40 @@ async function finishActivity(
 
 function percent(correct: number, total: number): number {
   return total === 0 ? 0 : Math.round((correct / total) * 100);
+}
+
+export interface JigsawCompletion {
+  alreadyAnswered: boolean;
+  counted: boolean;
+  result: StudyResult | null;
+}
+
+/**
+ * Het definitieve antwoord op de inhoudsvraag van een legpuzzel. Het antwoord
+ * wordt per poging precies één keer geclaimd (een tweede poging met dezelfde
+ * puzzel kan dus niet alsnog goed zijn). Alleen een juist antwoord telt als
+ * afgeronde activiteit; de puzzel geeft bewust geen XP.
+ */
+export async function completeJigsaw(userId: string, attemptId: string, correct: boolean): Promise<JigsawCompletion> {
+  const outcome = await prisma.$transaction(async (tx): Promise<JigsawCompletion> => {
+    const claimed = await tx.streakActivity.createMany({
+      data: [{ userId, key: `jigsaw-answer:${attemptId}` }], skipDuplicates: true,
+    });
+    if (!claimed.count) return { alreadyAnswered: true, counted: false, result: null };
+    if (!correct) return { alreadyAnswered: false, counted: false, result: null };
+    const result = await finishActivity(
+      tx,
+      userId,
+      { kind: "GAME", answered: 1, required: 1, key: `jigsaw:${attemptId}` },
+      null,
+      { chapterCompleted: false, scorePercent: 100 }
+    );
+    return { alreadyAnswered: false, counted: !result.duplicate, result };
+  });
+  if (outcome.result) {
+    emitToUser(userId, "streak_changed", { dayEarned: outcome.result.dayEarned === true, currentStreak: outcome.result.currentStreak });
+  }
+  return outcome;
 }
 
 /**

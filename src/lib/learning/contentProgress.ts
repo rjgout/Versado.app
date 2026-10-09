@@ -4,7 +4,9 @@
 // aan, ongeacht de leesroute of het boek.
 //
 // - Lezen (markReadingStarted, markChapterRead, de leesgedeelten van een
-//   stap) geeft nooit XP en verlengt nooit de reeks.
+//   stap) geeft nooit XP. Openen of beginnen verlengt de reeks nooit; een
+//   uitdrukkelijk "Markeer als gelezen" (completeChapterReading) telt als
+//   afgeronde activiteit, één keer per inhoud (docs/LEERVOORTGANG.md).
 // - Oefenen gaat altijd via een door de server uitgedeelde set
 //   (issueExerciseSession/submitExerciseSession): alleen die vragen tellen,
 //   alles moet beantwoord zijn, een set telt één keer, en de basis-XP per
@@ -171,7 +173,7 @@ export async function countDoneChapters(db: Db, userId: string, chapters: Chapte
   return [...states.values()].filter((state) => state.done).length;
 }
 
-// --- Lezen: nooit XP, nooit reeks ------------------------------------------------
+// --- Lezen: nooit XP; alleen een uitdrukkelijke afronding telt voor de reeks ---
 
 /** Iemand is in een hoofdstuk begonnen: "bezig", tenzij het al gelezen is. */
 export async function markReadingStarted(userId: string, chapterId: string): Promise<void> {
@@ -194,6 +196,26 @@ export async function markChapterRead(userId: string, chapterId: string): Promis
   const chapter = await loadChapter(prisma, chapterId);
   await recordReadThrough(prisma, userId, contentKeyOf(chapter), chapterId, chapter.verseCount, chapter.verseCount);
   return getChapterState(prisma, userId, chapterId);
+}
+
+/**
+ * De speler markeert het hoofdstuk uitdrukkelijk als gelezen. Dat is een
+ * afgeronde leesactiviteit voor de reeks, maar alleen op het moment dat het
+ * hoofdstuk voor het eerst gelezen is (en de sleutel hoort bij de inhoud, dus
+ * herhaald klikken of een andere leesroute telt niet opnieuw). Samen studeren
+ * gebruikt bewust markChapterRead: de host start daar de vragen, niemand
+ * heeft het hoofdstuk daarmee uitdrukkelijk afgerond.
+ */
+export async function completeChapterReading(userId: string, chapterId: string): Promise<{ content: ChapterContentState; counted: boolean }> {
+  const before = await getChapterState(prisma, userId, chapterId);
+  const content = await markChapterRead(userId, chapterId);
+  if (before.read === "READ") return { content, counted: false };
+  const chapter = await loadChapter(prisma, chapterId);
+  const streak = await prisma.$transaction((tx) =>
+    recordLearningActivity(tx, userId, { kind: "READING", answered: 1, required: 1, key: `read:${contentKeyOf(chapter)}` })
+  );
+  if (streak.counted) emitToUser(userId, "streak_changed", { dayEarned: streak.dayEarned, currentStreak: streak.currentStreak });
+  return { content, counted: streak.counted };
 }
 
 /** Het leesgedeelte van een stap (Stap voor stap) is gelezen. */
