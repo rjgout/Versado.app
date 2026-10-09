@@ -7,6 +7,7 @@ import type { Socket } from "socket.io-client";
 import ImmersiveLayout from "@/components/versado/ImmersiveLayout";
 import UserAvatar from "@/components/UserAvatar";
 import { useT } from "@/components/I18nProvider";
+import { useConfirm } from "@/components/ConfirmProvider";
 import type { PersonalMascotCharacter } from "@/lib/mascots";
 import { PLAY_ROUTE } from "@/lib/navigation";
 import { invalidateData } from "@/lib/data/client";
@@ -58,6 +59,7 @@ const SPECTATOR_GHOST_OPACITY = 0.85;
 
 export default function TogetherRun({ match, myUserId, character, socket }: { match: MatchView; myUserId: string; character: PersonalMascotCharacter; socket: Socket }) {
   const t = useT();
+  const confirm = useConfirm();
   const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imagesRef = useRef<SceneImages>({});
@@ -82,6 +84,7 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
   const stageRef = useRef<HTMLDivElement>(null);
   const shownGhostsRef = useRef(-1);
   const startsAtRef = useRef(Date.parse(match.startsAt));
+  const purchaseConfirmationRef = useRef(false);
   const world = useMemo(() => createSharedWorld(match.seed), [match.seed]);
 
   const me = match.participants.find((p) => p.userId === myUserId) ?? null;
@@ -291,7 +294,7 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
   }
 
   async function buyGeneesAndRevive() {
-    if (!runId) return;
+    if (!runId || geneesBusy) return;
     setGeneesBusy(true);
     setGeneesError(null);
     try {
@@ -308,6 +311,20 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
       setGeneesBusy(false);
     }
     await requestRevive();
+  }
+
+  async function confirmGeneesPurchase() {
+    if (!view || geneesBusy || purchaseConfirmationRef.current) return;
+    purchaseConfirmationRef.current = true;
+    try {
+      const accepted = await confirm(t("quickMissionary.healBuyConfirm", { xp: view.geneesPriceXp }), {
+        title: t("quickMissionary.healBuyConfirmTitle"),
+        confirmLabel: t("quickMissionary.healBuyConfirmAction", { xp: view.geneesPriceXp }),
+      });
+      if (accepted) await buyGeneesAndRevive();
+    } finally {
+      purchaseConfirmationRef.current = false;
+    }
   }
 
   async function answer(optionId: string) {
@@ -466,7 +483,7 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
           </Overlay>
         )}
         {!out && phase === "dead" && view?.reviveAvailable && (
-          <Overlay><DeathPanel score={score} choice={view} busy={geneesBusy} error={geneesError} onUse={() => void requestRevive()} onBuy={() => void buyGeneesAndRevive()} onEnd={() => void finishFromDeath()} /></Overlay>
+          <Overlay><DeathPanel score={score} choice={view} busy={geneesBusy} error={geneesError} onUse={() => void requestRevive()} onBuy={() => void confirmGeneesPurchase()} onEnd={() => void finishFromDeath()} /></Overlay>
         )}
         {!out && phase === "revive-question" && view?.reviveQuestion && <Overlay><ReviveQuestionPanel question={view.reviveQuestion} onAnswer={(optionId) => void answer(optionId)} /></Overlay>}
         {!out && phase === "revive-ready" && (
@@ -499,6 +516,7 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
     </ImmersiveLayout>
   );
 }
+
 
 function Overlay({ children, passive = false }: { children: ReactNode; passive?: boolean }) {
   return (
@@ -541,4 +559,3 @@ function Results({ match, myUserId, onPlayAgain }: { match: MatchView; myUserId:
     </div>
   );
 }
-

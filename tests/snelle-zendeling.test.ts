@@ -234,4 +234,16 @@ describe("Snelle Zendeling gameplay", () => {
     assert.doesNotMatch(source, /SubpageBackBar|FocusLayout/);
     assert.doesNotMatch(server, /recordLearningActivity|competitionXp|awardXp/);
   });
+
+  it("vraagt bevestiging vóór een Genees-noodkoop in solo en samen spelen", () => {
+    const solo = readFileSync(path.join(process.cwd(), "src/components/snelleZendeling/RunClient.tsx"), "utf8");
+    const together = readFileSync(path.join(process.cwd(), "src/components/snelleZendeling/TogetherRun.tsx"), "utf8");
+    for (const source of [solo, together]) {
+      assert.match(source, /useConfirm/);
+      assert.match(source, /confirmGeneesPurchase/);
+      assert.match(source, /quickMissionary\.healBuyConfirm/);
+      assert.match(source, /onBuy=\{\(\) => void confirmGeneesPurchase\(\)\}/);
+      assert.doesNotMatch(source, /onBuy=\{\(\) => void buyGeneesAndRevive\(\)\}/);
+    }
+  });
 });
