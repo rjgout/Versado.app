@@ -310,6 +310,8 @@ model User {
   chapterGuessGames ChapterGuessGame[]
   wordGames         WordGame[]
   wordSearchGames   WordSearchGame[]
+  puzzleSessions    PuzzleSession[] @relation("PuzzleSessionOwner")
+  puzzleRecords     PuzzlePersonalRecord[]
 
   authTokens AuthToken[]
 
@@ -3159,6 +3161,96 @@ enum KompasStatus {
   VIEWED
   SKIPPED
   COMPLETED
+}
+
+// --- Legpuzzel 2.0 -----------------------------------------------------------
+// De geometrie zelf is volledig deterministisch uit versie+seed af te leiden.
+// Alleen de sessiesnapshot en auditgegevens worden opgeslagen, zodat fase 3
+// dezelfde action/version-contracten kan gebruiken zonder aparte engine.
+enum PuzzleSessionMode {
+  SOLO
+  COOP
+}
+
+enum PuzzleSessionStatus {
+  ACTIVE
+  COMPLETED
+  ANSWERED
+  ABANDONED
+}
+
+model PuzzleDefinition {
+  id              String @id @default(cuid())
+  contentKey      String @unique
+  imageUrl        String
+  storyNumber     Int
+  aspectRatio     Float
+  geometryVersion Int
+  seed            String
+  definitionHash  String
+  createdAt       DateTime @default(now())
+  variants        PuzzleVariant[]
+}
+
+model PuzzleVariant {
+  id           String @id @default(cuid())
+  definitionId String
+  definition   PuzzleDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  pieceCount   Int
+  difficulty   String
+  rulesVersion Int
+  createdAt    DateTime @default(now())
+  sessions     PuzzleSession[]
+  records      PuzzlePersonalRecord[]
+  @@unique([definitionId, pieceCount, difficulty, rulesVersion])
+}
+
+model PuzzleSession {
+  id            String @id @default(cuid())
+  ownerId       String
+  owner         User @relation("PuzzleSessionOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  variantId     String
+  variant       PuzzleVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  mode          PuzzleSessionMode @default(SOLO)
+  status        PuzzleSessionStatus @default(ACTIVE)
+  snapshot      String
+  version       Int @default(1)
+  questionId    String?
+  optionOrder   String?
+  startedAt     DateTime @default(now())
+  completedAt   DateTime?
+  answeredAt    DateTime?
+  lastActivityAt DateTime @default(now())
+  actions       PuzzleAction[]
+  @@index([ownerId, status, lastActivityAt])
+}
+
+model PuzzleAction {
+  id        String @id @default(cuid())
+  sessionId String
+  session   PuzzleSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  actionId  String
+  type      String
+  payload   String
+  version   Int
+  createdAt DateTime @default(now())
+  @@unique([sessionId, actionId])
+  @@index([sessionId, version])
+}
+
+model PuzzlePersonalRecord {
+  id                String @id @default(cuid())
+  userId            String
+  user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variantId         String
+  variant           PuzzleVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  sessionId         String @unique
+  elapsedMs         Int
+  hintsUsed         Int
+  extraHintsUsed    Int
+  completedAt       DateTime
+  @@unique([userId, variantId])
+  @@index([variantId, elapsedMs])
 }
 
 model KompasProgress {
