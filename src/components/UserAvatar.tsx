@@ -137,10 +137,10 @@ export default function UserAvatar({
   const appearance = useAvatarAppearance(id, known);
   return (
     <span
-      className={`relative shrink-0 ${SIZES[size]} ${appearance.avatarCharacterId ? "" : `${TEXT_SIZES[size]} ${avatarColorFor(id)} text-white`} font-extrabold leading-none ${className}`}
+      className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full ${SIZES[size]} ${appearance.avatarCharacterId ? "" : `${TEXT_SIZES[size]} ${avatarColorFor(id)} text-white`} font-extrabold leading-none ${className}`}
       aria-hidden
     >
-      <ScriptureAvatar appearance={appearance} handle={handle} className={`h-full w-full ${appearance.avatarCharacterId ? "" : TEXT_SIZES[size]}`} />
+      <ScriptureAvatar appearance={appearance} handle={handle} className={`block h-full w-full shrink-0 ${appearance.avatarCharacterId ? "" : TEXT_SIZES[size]}`} />
     </span>
   );
 }

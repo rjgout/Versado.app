@@ -260,7 +260,7 @@ export default function ContentSwitcher({
         })}
         className="h-full w-fit max-w-full min-w-0 inline-flex items-center justify-start gap-1.5 px-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-300"
       >
-        <span ref={iconRef} className="shrink-0"><ContentIcon collection={active} className="h-5 w-5" /></span>
+        <span ref={iconRef} className="shrink-0"><ContentIcon collection={active} className="h-7 w-7" /></span>
         <span className="pointer-events-none absolute -left-[9999px] whitespace-nowrap" aria-hidden>
           <span ref={fullLabelRef} className="block w-max">{active.name}</span>
           {shortName && <span ref={shortLabelRef} className="block w-max">{shortName}</span>}
