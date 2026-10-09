@@ -46,6 +46,14 @@ lijst hierboven nog volledig.
   | "xp" | "freeze"` (`fill="none"` = de lege vlam), nooit los. Ze nemen geen
   tekstkleur over. In pushmeldingen, e-mails en toasts kan geen afbeelding:
   daar blijft het emoji in de tekst staan.
+- **Broniconen**: de publieke contentkiezer gebruikt voor bekende bronnen de
+  officiële WebP-assets uit `public/icons/content-sources/`. De canonieke
+  mapping staat naast de bestaande Lucidefallbacks in
+  `src/lib/contentMetadata.ts` en de renderlaag in
+  `src/components/versado/ContentIcon.tsx`. Een onbekende toekomstige bron
+  gebruikt `source-generic.webp`; een ontbrekend beeld valt daarna terug op het
+  bestaande functionele Lucide-icoon. De bronnaam blijft altijd echte,
+  gelokaliseerde UI-tekst.
 - **Shell**: vier hoofdbestemmingen in `src/lib/navigation.ts`
   (`PRIMARY_NAV`, met per bestemming de routes die erbij horen);
   `BottomNav.tsx` op telefoon en tablet, `shell/PrimaryNav.tsx` op desktop,
@@ -471,7 +479,8 @@ Gecontroleerd in de code; bestandsnamen om snel terug te vinden.
 - Contentkiezer gesloten: volledige naam, anders de afkorting, anders alleen
   het icoon, gekozen op de gemeten vrije ruimte in de header (niet op een
   breakpoint). Icoon en afkorting per taal staan per contentbron in
-  `src/lib/contentMetadata.ts`; de volledige naam is de naam van de uitgave.
+  `src/lib/contentMetadata.ts`; bekende broniconen staan in
+  `public/icons/content-sources/`; de volledige naam is de naam van de uitgave.
   Het geopende menu en het aria-label tonen altijd de volledige naam.
 - Daaronder in dezelfde vaste balk: kop van detailpagina's met terugpijl
   (`SubpageBackBar`), podcast- en voorlees-minispeler. `--header-height` wordt gemeten en door `<main>`

@@ -658,6 +658,14 @@ het hoofdstuk). Het fundament ligt er; zichtbaar is alles nog Nederlands.
   `ContentRoute` in `classifyContentRoute` en een tak in `resolveContentSwitch`,
   met een test in `tests/content-switch*.test.ts`. Persistentie blijft
   `User.activeContentCollectionId` + `User.contentLanguage`.
+- **Broniconen van de publieke contentkiezer**: de canonieke mapping staat in
+  `src/lib/contentMetadata.ts` en wordt gerenderd door
+  `src/components/versado/ContentIcon.tsx`. Bekende bronnen gebruiken de
+  definitieve WebP-bestanden onder `public/icons/content-sources/`; een
+  onbekende toekomstige bron gebruikt `source-generic.webp` en een ontbrekend
+  beeld valt terug op het bestaande Lucide-icoon. Voeg een nieuwe bron alleen
+  toe via deze mapping; gebruik geen database-emoji, gedeeltelijke
+  naamherkenning of vrije asset-URL in de publieke UI.
 - **Vertalingen bij iedere wijziging**: elke nieuwe of gewijzigde zichtbare
   tekst moet via het i18n-systeem lopen en worden meegenomen in alle talen die
   als `uiReady` beschikbaar zijn. Dit geldt ook voor foutmeldingen, API-responsen
