@@ -29,7 +29,7 @@ export function ScriptureAvatar({ appearance, handle, className = "", label }: {
   }
 
   return (
-    <span className={`relative isolate inline-block overflow-hidden rounded-full bg-vs-subtle ${className}`} aria-hidden={label ? undefined : true} aria-label={label}>
+    <span className={`relative isolate block overflow-hidden rounded-full bg-vs-subtle ${className}`} aria-hidden={label ? undefined : true} aria-label={label}>
       {background && <Layer src={background.compact} alt="" className="z-0 scale-[1.08] object-cover" />}
       {showCharacter ? <Layer src={characterSource ?? ""} alt="" className="z-10 scale-[1.06] object-contain" onError={() => setFailedCharacterSource(characterSource)} /> : <span className="absolute inset-0 z-10 flex items-center justify-center font-extrabold leading-none">{fallbackText}</span>}
       {light && <Layer src={light.compact} alt="" className="z-20 object-contain" />}
