@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import test from "node:test";
-import { allCharacterAssets, getCharacterAsset, normalizeCharacterId } from "../src/lib/characterAssets";
+import { allCharacterAssets, getCharacterAsset, MYSTERY_BODY_ASSETS, normalizeCharacterId } from "../src/lib/characterAssets";
 import { allAvatarAccessories } from "../src/lib/avatarAccessories";
 import { avatarOptions, canUseAvatarCharacter } from "../src/lib/avatarUnlocks";
 import { characterIdForPerson } from "../src/lib/personCharacterMapping";
@@ -22,10 +23,27 @@ test("alle avatarafbeeldingen gebruiken runtimepaden en uitgesloten rollen zijn 
     assert.match(character.avatar, /^\/scripture\//, character.id);
     assert.match(character.bustCompact, /^\/scripture\//, character.id);
     assert.match(character.bustDetail, /^\/scripture\//, character.id);
+    for (const assetPath of [character.avatar, character.bustCompact, character.bustDetail, character.fullBody]) {
+      assert.ok(existsSync(`${process.cwd()}/public${assetPath.startsWith("/scripture/") ? assetPath : assetPath}`), `${character.id}: ${assetPath}`);
+    }
   }
   assert.ok(!getCharacterAsset("jesus-christ")?.avatarAllowed);
   assert.ok(!getCharacterAsset("church-disciple")?.avatarAllowed);
   assert.ok(!getCharacterAsset("heavenly-father")?.avatarAllowed);
+});
+
+test("Mysterie behoudt de negen bestaande gekalibreerde full-body-assets", () => {
+  assert.deepEqual(MYSTERY_BODY_ASSETS, {
+    lehi: "/mysterie-001a-ontdekker/lehi.png",
+    sariah: "/mysterie-001a-ontdekker/sariah.png",
+    laman: "/mysterie-001a-ontdekker/laman.png",
+    lemuel: "/mysterie-001a-ontdekker/lemuel.png",
+    sam: "/mysterie-001b-onderzoeker/sam.png",
+    nephi: "/mysterie-001c-schriftkenner/nephi.png",
+    laban: "/mysterie-002b-onderzoeker/laban.png",
+    zoram: "/mysterie-002c-schriftkenner/zoram.png",
+    ismael: "/mysterie-003b-onderzoeker/ismael.png",
+  });
 });
 
 test("de basis- en vroege avatarselectie houdt vrouwen en mannen in evenwicht", () => {
