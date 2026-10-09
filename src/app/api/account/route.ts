@@ -12,6 +12,9 @@ import { leaveAllGroups } from "@/lib/social/groups";
 import { isValidTimeZone } from "@/lib/timeZone";
 import { PERSONAL_MASCOTS } from "@/lib/mascots";
 import { mascotToCompanion } from "@/lib/companion";
+import { accessoryFor, accessoryIsValidForSlot } from "@/lib/avatarAccessories";
+import { canUseAccessory, canUseAvatarCharacter } from "@/lib/avatarUnlocks";
+import { normalizeCharacterId } from "@/lib/characterAssets";
 
 const patchSchema = z.object({
   handle: z
@@ -30,6 +33,11 @@ const patchSchema = z.object({
     .refine((v) => !containsForbiddenEmoji(v), "Deze emoji is niet toegestaan.")
     .nullable()
     .optional(),
+  avatarCharacterId: z.string().nullable().optional(),
+  avatarBackgroundId: z.string().nullable().optional(),
+  avatarFrameId: z.string().nullable().optional(),
+  avatarDecorationId: z.string().nullable().optional(),
+  avatarLightAccentId: z.string().nullable().optional(),
   searchableByEmail: z.boolean().optional(),
   shareAchievements: z.boolean().optional(),
   emailNotificationsEnabled: z.boolean().optional(),
@@ -127,8 +135,38 @@ export async function PATCH(req: NextRequest) {
   if (Object.keys(parsed.data).length === 0) {
     return await apiError("apiErrors.nothingToSave", 400);
   }
-  const { handle, incognitoHours, companion: companionChoice, ...fields } = parsed.data;
-  const rest = { ...fields, ...(companionChoice ? { companion: mascotToCompanion(companionChoice) } : {}) };
+  const { handle, incognitoHours, companion: companionChoice, avatarCharacterId, avatarBackgroundId, avatarFrameId, avatarDecorationId, avatarLightAccentId, ...fields } = parsed.data;
+  const avatarFields = { avatarCharacterId, avatarBackgroundId, avatarFrameId, avatarDecorationId, avatarLightAccentId };
+  const hasAvatarChanges = Object.values(avatarFields).some((value) => value !== undefined);
+  let canonicalAvatarFields: Partial<typeof avatarFields> = {};
+  if (hasAvatarChanges) {
+    const earned = await prisma.userAchievement.findMany({ where: { userId: user.id }, select: { achievement: { select: { slug: true } } } });
+    const earnedSlugs = earned.map((row) => row.achievement.slug);
+    const normalizedCharacterId = avatarCharacterId === undefined ? undefined : normalizeCharacterId(avatarCharacterId);
+    if (avatarCharacterId !== undefined && avatarCharacterId !== null && (!normalizedCharacterId || !canUseAvatarCharacter(normalizedCharacterId, earnedSlugs))) {
+      return await apiErrorText("Deze personage-avatar is nog niet vrijgespeeld.", 400);
+    }
+    const slots = [
+      [avatarBackgroundId, "background", "achtergrond"],
+      [avatarFrameId, "frame", "kader"],
+      [avatarDecorationId, "decoration", "decoratie"],
+      [avatarLightAccentId, "lightAccent", "lichtaccent"],
+    ] as const;
+    for (const [id, kind, label] of slots) {
+      if (id === undefined || id === null) continue;
+      if (!accessoryFor(id) || !accessoryIsValidForSlot(id, kind) || !canUseAccessory(id, earnedSlugs)) {
+        return await apiErrorText(`Dit ${label} is nog niet vrijgespeeld.`, 400);
+      }
+    }
+    canonicalAvatarFields = {
+      ...(avatarCharacterId !== undefined ? { avatarCharacterId: avatarCharacterId === null ? null : normalizedCharacterId } : {}),
+      ...(avatarBackgroundId !== undefined ? { avatarBackgroundId } : {}),
+      ...(avatarFrameId !== undefined ? { avatarFrameId } : {}),
+      ...(avatarDecorationId !== undefined ? { avatarDecorationId } : {}),
+      ...(avatarLightAccentId !== undefined ? { avatarLightAccentId } : {}),
+    };
+  }
+  const rest = { ...fields, ...canonicalAvatarFields, ...(companionChoice ? { companion: mascotToCompanion(companionChoice) } : {}) };
   // Een taal waarvan de app-teksten nog niet af zijn, alleen voor beheerders
   // (om de vertaling te bekijken).
   if (rest.uiLanguage && !getLanguage(rest.uiLanguage).uiReady && !user.isAdmin) {

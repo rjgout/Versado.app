@@ -228,7 +228,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     tier={tier}
                   />
                   <NotificationCenter />
-                  <HeaderAvatar id={user.id} handle={user.handle} avatarEmoji={user.avatarEmoji} />
+                  <HeaderAvatar id={user.id} handle={user.handle} avatarEmoji={user.avatarEmoji} avatarCharacterId={user.avatarCharacterId} avatarBackgroundId={user.avatarBackgroundId} avatarFrameId={user.avatarFrameId} avatarDecorationId={user.avatarDecorationId} avatarLightAccentId={user.avatarLightAccentId} />
                 </div>
               </>
             ) : null}

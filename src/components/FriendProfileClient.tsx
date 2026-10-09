@@ -7,14 +7,24 @@ import { useT } from "@/components/I18nProvider";
 import { fetchJson } from "@/lib/data/fetchJson";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { translateOr } from "@/lib/i18n/core";
-import UserAvatar from "@/components/UserAvatar";
+import ProfileCharacterHero from "@/components/ProfileCharacterHero";
 import UserTag from "@/components/UserTag";
 import SystemIcon from "@/components/versado/SystemIcon";
 import DivisionEmblem from "@/components/versado/DivisionEmblem";
 import { ProfileCard } from "@/components/profile/settings";
 
 type FriendProfile = {
-  friend: { id: string; handle: string; discriminator: string; avatarEmoji: string | null };
+  friend: {
+    id: string;
+    handle: string;
+    discriminator: string;
+    avatarEmoji: string | null;
+    avatarCharacterId: string | null;
+    avatarBackgroundId: string | null;
+    avatarFrameId: string | null;
+    avatarDecorationId: string | null;
+    avatarLightAccentId: string | null;
+  };
   sharesAchievements: boolean;
   stats: null | {
     currentStreak: number;
@@ -53,11 +63,16 @@ export default function FriendProfileClient({ userId }: { userId: string }) {
   const { friend, stats, together } = query.data;
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4 pb-6">
-      <section className="flex items-center gap-4 rounded-2xl border border-vs-line bg-vs-surface p-4 sm:p-5">
-        <UserAvatar id={friend.id} handle={friend.handle} avatarEmoji={friend.avatarEmoji} size="md" className="h-16 w-16 text-xl" />
-        <div className="min-w-0">
-          <UserTag handle={friend.handle} discriminator={friend.discriminator} className="block truncate text-xl font-extrabold text-vs-fg" />
-          <p className="mt-1 text-sm font-semibold text-vs-fg-2">{t("friends.friendProfileStatus")}</p>
+      <section className="overflow-hidden rounded-3xl border border-vs-line bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-sm dark:from-brand-600 dark:to-brand-900">
+        <ProfileCharacterHero
+          appearance={{ avatarEmoji: friend.avatarEmoji, avatarCharacterId: friend.avatarCharacterId, avatarBackgroundId: friend.avatarBackgroundId, avatarFrameId: friend.avatarFrameId, avatarDecorationId: friend.avatarDecorationId, avatarLightAccentId: friend.avatarLightAccentId }}
+          handle={friend.handle}
+          zoomInLabel={t("profile.zoomIn")}
+          zoomOutLabel={t("profile.zoomOut")}
+        />
+        <div className="p-4 sm:p-5">
+          <UserTag handle={friend.handle} discriminator={friend.discriminator} className="block [overflow-wrap:anywhere] text-xl font-extrabold text-white" />
+          <p className="mt-1 text-sm font-semibold text-brand-100">{t("friends.friendProfileStatus")}</p>
         </div>
       </section>
 
