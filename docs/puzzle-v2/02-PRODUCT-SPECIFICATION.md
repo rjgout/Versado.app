@@ -13,7 +13,26 @@ Een variant is minimaal `(puzzleContentId, pieceCount, difficulty, geometryVersi
 | Expert | buitencontour | nauw, voorbeeld/filter via hint | alleen na UX-validatie / 2 |
 | Meester | geen | nauw, beperkt | vereist / 1 |
 
-Hint A toont vijf seconden voorbeeld; B markeert doelpositie geselecteerd stuk; C een echte complementaire buur; D filtert persoonlijke bak tijdelijk. Extra hints blijven mogelijk en worden geregistreerd. `extraHintsUsed` is zichtbaar in record/ranglijst en staat onder een gelijkwaardige hulpvrije tijd.
+Hint A toont vijf seconden voorbeeld; B markeert doelpositie geselecteerd stuk; C een echte complementaire buur; D filtert persoonlijke bak tijdelijk. Extra hints blijven mogelijk en worden geregistreerd. `extraHintsUsed` is zichtbaar in record/ranglijst en staat onder een gelijkwaardige hulpvrije tijd. **Deze paragraaf beschrijft de toekomstige herintroductie; hints zijn in de actieve fase-2 Solo-interface bewust uitgeschakeld.**
+
+## Fase-2-correctie: huidige solo-ervaring
+
+**BEVESTIGD (correctieronde):** de actieve Solo-interface heeft geen hints,
+filters, permanente zoomknoppen of losse stukjesbak. Onder de vaste
+terugbalk vult één begrensd Canvas-bord de beschikbare focusruimte. Een
+discreet bordmenu bevat alleen `alles passend tonen` en `andere puzzel
+kiezen`; bij Meester verschijnt draaien uitsluitend contextueel na selectie.
+Hints blijven als geïsoleerd toekomstig datacontract bestaan, maar de v2 API
+accepteert geen hintactie zolang ze niet opnieuw productmatig zijn ingevoerd.
+
+Nieuwe sessies gebruiken geometryVersion 2 met traditionele afgeronde
+tab-/slotverbindingen. Sessies met geometryVersion 1 behouden hun bestaande
+golvende definitie; de nieuwe definition-key voorkomt stille vormwijziging.
+
+Na de laatste verbinding toont de activiteit eerst een volledige, naadloze
+afbeelding en een knop `Verder`. Pas daarna staat de inhoudelijke vraag op
+een afzonderlijke focusstap. Een eerdere antwoordclaim markeert de actuele
+sessie als afgehandeld, zonder een nieuwe reeks- of XP-beloning te maken.
 
 ## Modes en acceptatie
 

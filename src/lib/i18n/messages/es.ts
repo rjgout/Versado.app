@@ -8,6 +8,7 @@ export const es: PartialMessages = {
     "intro": "Disfruta de rompecabezas con ilustraciones de las historias del Libro de Mormón para niños y luego responde una pregunta sobre la historia.",
     "chooseImage": "Elige una imagen",
     "image": "Imagen {n}",
+    "story": "Historia infantil {n}",
     "level": "Número de piezas",
     "pieces": "piezas {n}",
     "start": "Iniciar rompecabezas",
@@ -57,6 +58,17 @@ export const es: PartialMessages = {
     "piecesConnected": "Piezas conectadas.",
     "hintUsed": "Pista utilizada.",
     "checking": "Comprobando...",
+    "difficulty": "Dificultad",
+    "catalogCount": "{n} imágenes disponibles",
+    "searchImages": "Buscar una imagen",
+    "noImages": "No se encontraron imágenes.",
+    "imagePages": "Páginas de imágenes",
+    "boardHelp": "Arrastra una pieza para moverla. Arrastra espacio vacío para desplazar el tablero; pellizca con dos dedos para ampliar. Selecciona una pieza y usa las flechas para moverla. Pulsa cero para ajustar todo.",
+    "boardMenu": "Menú del tablero",
+    "completedImage": "Rompecabezas terminado",
+    "completeHint": "La imagen está completa. Continúa a la pregunta sobre la historia.",
+    "continue": "Continuar",
+    "answerRecorded": "Esta sesión de rompecabezas ya se ha terminado.",
     "retry": "Inténtalo de nuevo"
   },
   "wordSearch": {
@@ -667,8 +679,8 @@ export const es: PartialMessages = {
     "jigsaw": {
       "description": "Haz un rompecabezas con ilustraciones de las historias del Libro de Mormón para niños. Elige cuántas piezas usar y luego responde una pregunta sobre la historia.",
       "linkLabel": "Rompecabezas abierto",
-      "rule1": "Elige una imagen y 6, 12, 24 o 48 piezas. El número de piezas no importa para tu racha.",
-      "rule2": "Arrastra una pieza al tablero o toca una pieza y luego su lugar. Las piezas correctas encajan en su lugar.",
+      "rule1": "Elige una imagen y 6, 12, 24, 48 o 96 piezas. El número de piezas no importa para tu racha.",
+      "rule2": "Arrastra piezas sueltas y grupos conectados por la mesa de trabajo. Desplazar y ampliar con dos dedos siempre está disponible; las piezas que encajan se unen.",
       "rule3": "Después del rompecabezas viene una pregunta sobre la historia. Una respuesta correcta cuenta como actividad para tu racha; una incorrecta no deshace el rompecabezas. El rompecabezas no da XP."
     },
     "title": "Juegos y desafíos",

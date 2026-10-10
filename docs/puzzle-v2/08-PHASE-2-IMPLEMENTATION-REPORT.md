@@ -65,3 +65,30 @@ multiplayer-viewports toevoegen. De huidige v2 Canvas-input ondersteunt
 muis/touch-drag, pan, pinch, wielzoom en fit. Een volledige
 screenreader-verplaatsingsdialoog en metingen op fysieke mobiele apparaten
 blijven vóór een brede release nodig.
+
+## Definitieve fase-2-correctie (geometry, fullscreen en voltooiing)
+
+- `PUZZLE_GEOMETRY_VERSION` is 2. Nieuwe definitions gebruiken een eigen
+  versioneerde contentkey; bestaande geometry-v1-sessies renderen dus met hun
+  oorspronkelijke generator. V2-randen zijn traditionele, afgeronde tabs en
+  slots met per gedeelde rand één canonieke descriptor voor hals en kop.
+- Snaptoleranties zijn in world-units verruimd en dus zoom-onafhankelijk. Na
+  een groepsfusie wordt de grotere bounding box opnieuw tegen de eindige tafel
+  geklemd; de groep blijft één object met hetzelfde stabiele anker.
+- De actieve Solo-UI is een fullscreen focusbord onder de bestaande terugbalk.
+  Hint-, filter- en permanente zoombediening zijn verwijderd. Alleen een
+  toegankelijk bordmenu bevat fit/andere puzzel; Meester draaien verschijnt
+  uitsluitend bij selectie. Pinch, pan, sleep, wiel/trackpad en toetsenbord
+  gebruiken dezelfde world-transformatie.
+- Voltooiing is nu een eigen stap: het Canvas verdwijnt, de naadloze
+  afbeelding verschijnt, daarna brengt `Verder` de gebruiker naar een aparte
+  vraagstap. Een al geclaimd antwoord sluit de huidige sessie alsnog af en
+  blokkeert een nieuwe speelsessie niet; `completeJigsaw` blijft de enige
+  idempotente reeksclaim en kent geen XP toe.
+- De kiezer toont de hele bestaande catalogus in pagina's van 24, met zoeken
+  en lazy thumbnails, in plaats van een client-side beperking tot de eerste 20.
+
+Uitgevoerd: gerichte ESLint, TypeScript, Prisma-validatie, i18n-validatie,
+`test:puzzle` (25 tests), `test:focus` en `test:kompas`. Er is geen fysiek
+iOS- of Android-apparaat gebruikt; pinch/safe-area-prestaties zijn daarom
+niet als apparaatmeting geclaimd.
