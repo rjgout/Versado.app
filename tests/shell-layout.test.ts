@@ -209,14 +209,9 @@ test("het menu sluit met Escape, een tik buiten het menu en na kiezen, en is toe
   assert.match(switcherSource, /setOpen\(false\)/);
 });
 
-test("woordknoppen behouden de natuurlijke woordbreedte en ruimte voor reflow", () => {
-  // Body blijft een vangnet; de knop gebruikt de min-content-vriendelijkere break-word.
+test("een kort actielabel breekt niet; invoer houdt ruimte vrij voor de knop", () => {
+  // De bestaande body-regel beschermt juist smalle vakken met lange vertalingen.
   assert.match(css, /body \{[\s\S]*?overflow-wrap: anywhere/);
-  assert.match(css, /\.btn,[\s\S]*?\.vs-action-text \{\s*overflow-wrap: break-word;\s*word-break: normal;\s*hyphens: manual/);
-  const tokens = read("src/components/versado/styles.ts");
-  for (const name of ["primaryButton", "secondaryButton", "dangerButton", "dangerOutlineButton"]) {
-    assert.ok(tokens.includes("export const " + name + " = `vs-motion vs-action-text "), name);
-  }
   const wordGame = read("src/components/WordGameClient.tsx");
   assert.match(wordGame, /flex flex-wrap items-stretch gap-2/);
   assert.match(wordGame, /min-w-\[min\(100%,8rem\)\] flex-1/);

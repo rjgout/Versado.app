@@ -108,12 +108,8 @@ balken en `<main>` houden links en rechts rekening met een inkeping (landscape).
 - `body` heeft `overflow-wrap: anywhere` als vangnet: een woord dat niet past
   breekt af in plaats van de pagina breder te maken. De vaste delen hebben
   `overflow-x: clip` zodat ze nooit zelf de viewport kunnen laten uitzoomen.
-- Knoppen (`primaryButton`, `secondaryButton` en de bestaande `.btn`-familie)
-  gebruiken `overflow-wrap: break-word` in plaats van de geërfde `anywhere`:
-  woorden tellen als geheel mee voor de benodigde breedte, maar bij extreme
-  tekstzoom mogen ze alsnog afbreken. Geef tekstknoppen nooit een vaste hoogte
-  (`h-*`). In een smalle invoerrij moet het veld kunnen krimpen terwijl een
-  kort actielabel zijn breedte behoudt; bij onvoldoende ruimte mag de rij wrappen.
+- Knoppen (`primaryButton`, `secondaryButton`) hebben een `min-h` en mogen
+  afbreken. Geef een knop met tekst nooit een vaste hoogte (`h-*`).
 - Lange labels in smalle vakken: `vs-wrap` (breken + afbreken volgens `lang`).
 
 **Scrollen.**

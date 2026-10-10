@@ -451,19 +451,6 @@ html[data-keyboard] main {
   @apply btn bg-ice-500 text-white shadow-[0_4px_0_0_theme(colors.ice.600)] hover:bg-ice-400 active:shadow-none active:translate-y-1;
 }
 
-/* Actieknoppen behouden natuurlijke woordgrenzen. 'break-word' houdt het
- * langste woord bij de intrinsieke breedteberekening intact (anders dan
- * body's 'anywhere'), maar staat noodafbreking toe bij extreme tekstzoom. */
-.btn,
-.btn-primary,
-.btn-secondary,
-.btn-ice,
-.vs-action-text {
-  overflow-wrap: break-word;
-  word-break: normal;
-  hyphens: manual;
-}
-
 .card {
   @apply bg-white rounded-3xl shadow-sm border border-slate-100 p-6 transition-colors;
   @apply dark:bg-slate-800 dark:border-slate-700;
