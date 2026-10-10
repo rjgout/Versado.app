@@ -40,6 +40,12 @@ export function puzzleWorktable(geometry: PuzzleGeometry): PuzzleWorktable {
 
 export function groupAnchor(geometry: PuzzleGeometry, group: PuzzleGroup) { return geometry.pieces[group.pieceIds[0]]; }
 
+/** Sleepprioriteit is tijdelijk; de opgeslagen groepsvolgorde blijft intact. */
+export function puzzleRenderOrder(groups: readonly PuzzleGroup[], draggedGroupId: string | null): readonly PuzzleGroup[] {
+  const dragged = groups.find((group) => group.id === draggedGroupId);
+  return dragged ? [...groups.filter((group) => group !== dragged), dragged] : groups;
+}
+
 function rotate(point: { x: number; y: number }, degrees: PuzzleGroup["rotation"]) {
   if (degrees === 0) return point;
   const radians = degrees * Math.PI / 180; const cosine = Math.cos(radians); const sine = Math.sin(radians);
