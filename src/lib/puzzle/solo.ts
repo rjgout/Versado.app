@@ -60,6 +60,10 @@ export async function applySoloAction(userId: string, sessionId: string, expecte
     if (action.hint === "CONNECTION" && action.pieceId !== undefined) { const piece = geometry.pieces[action.pieceId]; hintTarget = piece && geometry.pieces.find((candidate) => Math.abs(candidate.column - piece.column) + Math.abs(candidate.row - piece.row) === 1)?.id; }
     if (action.hint === "FILTER") hintTarget = geometry.pieces.filter((piece) => !action.filter || pieceKind(piece) === action.filter).map((piece) => piece.id);
   }
+  // Een mislukte verbindingspoging is een normale clientinteractie, geen
+  // spelactie. Door hem niet op te slaan blijft de sessieversie stabiel als
+  // de client de mogelijke naburen na een drop controleert.
+  if (action.kind === "connect" && next === snapshot) return publicState(row, language);
   const completed = next.completedAt && !row.completedAt ? new Date(next.completedAt) : row.completedAt;
   let questionId = row.questionId; let order = row.optionOrder;
   if (completed && !questionId) { const choices = jigsawQuestionsForStory(row.variant.definition.storyNumber); const chosen = choices[randomInt(choices.length)]; questionId = chosen?.id ?? null; order = questionId ? JSON.stringify(optionOrder()) : null; }
