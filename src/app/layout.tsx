@@ -216,7 +216,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
             {user ? (
               <>
-                <div className="hidden flex-1 justify-center lg:flex">
+                <div className="hidden min-w-[min(100%,18rem)] flex-[1_1_18rem] justify-center lg:flex">
                   <PrimaryNav />
                 </div>
                 <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-0.5 sm:gap-1">

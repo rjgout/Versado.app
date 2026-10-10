@@ -209,6 +209,29 @@ test("het menu sluit met Escape, een tik buiten het menu en na kiezen, en is toe
   assert.match(switcherSource, /setOpen\(false\)/);
 });
 
+test("woordknoppen behouden de natuurlijke woordbreedte en ruimte voor reflow", () => {
+  // Body blijft een vangnet; de knop gebruikt de min-content-vriendelijkere break-word.
+  assert.match(css, /body \{[\s\S]*?overflow-wrap: anywhere/);
+  assert.match(css, /\.btn,[\s\S]*?\.vs-action-text \{\s*overflow-wrap: break-word;\s*word-break: normal;\s*hyphens: manual/);
+  const tokens = read("src/components/versado/styles.ts");
+  for (const name of ["primaryButton", "secondaryButton", "dangerButton", "dangerOutlineButton"]) {
+    assert.ok(tokens.includes("export const " + name + " = `vs-motion vs-action-text "), name);
+  }
+  const wordGame = read("src/components/WordGameClient.tsx");
+  assert.match(wordGame, /flex flex-wrap items-stretch gap-2/);
+  assert.match(wordGame, /min-w-\[min\(100%,8rem\)\] flex-1/);
+  assert.match(wordGame, /btn-primary shrink-0 whitespace-nowrap/);
+});
+
+test("desktopnavigatie houdt labels heel en mag als groep wrappen", () => {
+  const nav = read("src/components/shell/PrimaryNav.tsx");
+  const layout = read("src/app/layout.tsx");
+  assert.match(nav, /lg:flex flex-wrap items-center justify-center/);
+  assert.match(nav, /min-h-10 shrink-0 items-center gap-2 whitespace-nowrap/);
+  assert.match(layout, /min-w-\[min\(100%,18rem\)\] flex-\[1_1_18rem\] justify-center lg:flex/);
+  assert.match(layout, /min-h-14[^"]*flex-wrap/);
+});
+
 test("de shell-modi laten de standaardhoogte voor focus ongemoeid", () => {
   assert.match(css, /\[data-shell-mode="focus"\] \{\s*--header-default: calc\(3\.3125rem \+ var\(--vs-safe-area-top\)\)/);
 });
