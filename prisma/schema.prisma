@@ -3217,6 +3217,7 @@ model PuzzleSession {
   version       Int @default(1)
   questionId    String?
   optionOrder   String?
+  answerResult  String?
   startedAt     DateTime @default(now())
   completedAt   DateTime?
   answeredAt    DateTime?
@@ -3245,7 +3246,7 @@ model PuzzlePersonalRecord {
   variantId         String
   variant           PuzzleVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
   sessionId         String @unique
-  elapsedMs         Int
+  elapsedMs         Float
   hintsUsed         Int
   extraHintsUsed    Int
   completedAt       DateTime

@@ -4,6 +4,12 @@ import { kompasDe } from "./kompas/de";
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const de: PartialMessages = {
   jigsaw: {
+    changed: "Dein Puzzle hat sich geändert. Der gespeicherte Fortschritt wurde wiederhergestellt; versuche es erneut.",
+    replay: "Dieses Puzzle erneut spielen",
+    discoverer: "Entdecker",
+    adventurer: "Abenteurer",
+    expert: "Experte",
+    master: "Meister",
     title: "Puzzle",
     intro: "Puzzle mit den Bildern aus den Geschichten aus dem Buch Mormon für Kinder – danach beantwortest du eine Frage zur Geschichte.",
     chooseImage: "Wähle ein Bild",

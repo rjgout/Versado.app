@@ -198,8 +198,10 @@ export interface JigsawCompletion {
  * puzzel kan dus niet alsnog goed zijn). Alleen een juist antwoord telt als
  * afgeronde activiteit; de puzzel geeft bewust geen XP.
  */
-export async function completeJigsaw(userId: string, attemptId: string, correct: boolean): Promise<JigsawCompletion> {
-  const outcome = await prisma.$transaction(async (tx): Promise<JigsawCompletion> => {
+export async function completeJigsaw(userId: string, attemptId: string, correct: boolean, transaction?: Tx): Promise<JigsawCompletion> {
+  // V2 schrijft het sessieantwoord in dezelfde transactie als de centrale claim.
+  // Legacy callers behouden precies hun bestaande transactie en dagregels.
+  const work = async (tx: Tx): Promise<JigsawCompletion> => {
     const claimed = await tx.streakActivity.createMany({
       data: [{ userId, key: `jigsaw-answer:${attemptId}` }], skipDuplicates: true,
     });
@@ -213,8 +215,9 @@ export async function completeJigsaw(userId: string, attemptId: string, correct:
       { chapterCompleted: false, scorePercent: 100 }
     );
     return { alreadyAnswered: false, counted: !result.duplicate, result };
-  });
-  if (outcome.result) {
+  };
+  const outcome = transaction ? await work(transaction) : await prisma.$transaction(work);
+  if (outcome.result && !transaction) {
     emitToUser(userId, "streak_changed", { dayEarned: outcome.result.dayEarned === true, currentStreak: outcome.result.currentStreak });
   }
   return outcome;

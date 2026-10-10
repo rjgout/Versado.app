@@ -31,8 +31,10 @@ golvende definitie; de nieuwe definition-key voorkomt stille vormwijziging.
 
 Na de laatste verbinding toont de activiteit eerst een volledige, naadloze
 afbeelding en een knop `Verder`. Pas daarna staat de inhoudelijke vraag op
-een afzonderlijke focusstap. Een eerdere antwoordclaim markeert de actuele
-sessie als afgehandeld, zonder een nieuwe reeks- of XP-beloning te maken.
+een afzonderlijke focusstap. Een eerdere antwoordclaim voor dezelfde speelsessie
+geeft de opgeslagen uitslag terug, zonder opnieuw te belonen. Een nieuwe poging
+mag dezelfde vraagcontent opnieuw beantwoorden; haar geldige voltooiing loopt
+door de centrale activiteit- en kalenderdagregels. Puzzelen geeft geen XP.
 
 ## Modes en acceptatie
 

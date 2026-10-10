@@ -4,6 +4,12 @@ import { kompasEn } from "./kompas/en";
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const en: PartialMessages = {
   jigsaw: {
+    changed: "Your puzzle changed. Saved progress has been restored; try again.",
+    replay: "Play this puzzle again",
+    discoverer: "Discoverer",
+    adventurer: "Adventurer",
+    expert: "Expert",
+    master: "Master",
     title: "Jigsaw puzzle",
     intro: "Enjoy puzzles with illustrations from the Book of Mormon stories for children, then answer one question about the story.",
     chooseImage: "Choose a picture",
