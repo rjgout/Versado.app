@@ -50,8 +50,8 @@ export async function applySoloAction(userId: string, sessionId: string, expecte
   const snapshot = snapshotSchema.parse(JSON.parse(row.snapshot)) as PuzzleSnapshot; const difficulty = row.variant.difficulty as PuzzleDifficulty;
   const geometry = createPuzzleGeometry(row.variant.pieceCount as z.infer<typeof countSchema>, row.variant.definition.seed, row.variant.definition.geometryVersion);
   let next = snapshot; let hintTarget: unknown = undefined;
-  if (action.kind === "move") next = moveGroup(snapshot, action.groupId, action.x, action.y);
-  if (action.kind === "rotate") next = rotateGroup(snapshot, action.groupId);
+  if (action.kind === "move") next = moveGroup(snapshot, geometry, action.groupId, action.x, action.y);
+  if (action.kind === "rotate") next = rotateGroup(snapshot, geometry, action.groupId);
   if (action.kind === "connect") next = connectGroups(snapshot, geometry, difficulty, action.a, action.b);
   if (action.kind === "hint") {
     const included = PUZZLE_DIFFICULTIES[difficulty].includedHints; const extra = included !== null && snapshot.hints.length >= included;
