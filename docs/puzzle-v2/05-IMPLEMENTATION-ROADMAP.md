@@ -4,7 +4,7 @@
 
 1. Pure geometry/engine, generatorversie en tests.
 2. Additief schema, contentimport, v2 session-API, legacy-tokencompatibiliteit.
-3. Canvas world, DOM-bak/HUD, keyboard, touch/muis/zoom/pan.
+3. Canvas world met begrensde werktafel, DOM-HUD, keyboard, touch/muis/zoom/pan.
 4. Difficulty-policy, hints, autosave, huidige vraag en `completeJigsaw`.
 5. Kompas/i18n/focus/safe-area/layoutaudit.
 

@@ -17,7 +17,15 @@ Hint A toont vijf seconden voorbeeld; B markeert doelpositie geselecteerd stuk; 
 
 ## Modes en acceptatie
 
-Mobiel: safe-area-veilige focuskop, groot veld, native horizontaal scrollbare bak, direct drag met vinger-offset, feedback, edge-autopan; twee vingers zonder vast stuk pannen/pinchen. Desktop: centraal veld, zijbak, muisdrag, cursorzoom, trackpad/wiel, pan, +/-/fit/reset. Keyboard biedt dezelfde plaatsactie. Gebruik één shell/focusmodel uit `docs/LAYOUT.md`.
+Mobiel en desktop gebruiken één eindige werktafel: een herkenbaar centraal
+puzzelgebied met daaromheen vrije, directe ruimte voor losse stukken en
+groepen. Er is geen tweede permanente stukjesbak en geen dubbele representatie
+van stukken. De startverdeling is deterministisch, niet-overlappend en schaalt
+tot 96 stukken. De camera past de volledige tafel in beeld en kan niet buiten
+de bruikbare wereld raken. Direct drag gebruikt een vinger-offset; twee vingers
+schakelen veilig naar pan/pinch. Muisdrag, cursorzoom, trackpad/wiel,
+plus/min/fit/reset en een toetsenbordpad gebruiken dezelfde world-coördinaten.
+Gebruik één shell/focusmodel uit `docs/LAYOUT.md`.
 
 Solo bewaart automatisch, behoudt vraag en huidige regel: alleen correct antwoord verlengt reeks, nooit XP. Samen: rechtstreekse vriendenuitnodiging, maximaal vier, gedeelde voortgang, persoonlijke bak/viewport/hints. Alleen server-gevalideerde nieuwe verbinding is betekenisvolle bijdrage; uitnodiging, openen, presence en lock nooit. Per volgende kalenderdag kan een werkelijke bijdrage opnieuw volgens centrale reeksregels tellen. Vraag is optioneel en nooit voorwaarde in Samen.
 
