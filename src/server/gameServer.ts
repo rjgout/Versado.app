@@ -43,8 +43,8 @@ import { forgetQuickMissionaryRoom, registerQuickMissionaryHandlers } from "@/se
 
 const EXERCISES_TIME_MS = 20_000;
 // "Raad het hoofdstuk" krijgt bewust ruim meer tijd (1 minuut, zoals
-// gevraagd) dan de bestaande oefeningen-race: je moet eerst het introvers
-// lezen vóór je kan antwoorden, dat kost meer tijd dan een invuloefening.
+// gevraagd) dan de bestaande oefeningen-race: je moet eerst de
+// hoofdstuksamenvatting lezen, dat kost meer tijd dan een invuloefening.
 const CHAPTER_GUESS_TIME_MS = 60_000;
 const REVEAL_PAUSE_MS = 3_500;
 // Punten per goed kennisvraag/vul-aan/waar-in-boek-antwoord — bewust een vast

@@ -740,9 +740,9 @@ export const es: PartialMessages = {
       "rule3": "El objetivo es terminar el juego juntos y aprender tanto como sea posible sobre el Libro de Mormón."
     },
     "chapterGuess": {
-      "description": "Lee el primer versículo de un capítulo y adivina de qué capítulo se trata: elige tu propio nivel, solo o vive con amigos.",
+      "description": "Lee el resumen oficial al comienzo de un capítulo del Libro de Mormón y adivina a qué capítulo pertenece. Elige tu nivel y juega solo o en directo con amigos.",
       "linkLabel": "Abre Adivina el capítulo",
-      "rule1": "Lee la pista y elige a qué capítulo pertenece.",
+      "rule1": "Lee el resumen del capítulo y elige a qué capítulo corresponde.",
       "rule2": "Elige tu nivel y juega solo o con amigos.",
       "rule3": "Las pistas pueden ayudar, pero usan el crédito de la pista. Ganas XP cuando terminas una ronda con éxito."
     },
@@ -992,8 +992,8 @@ export const es: PartialMessages = {
   },
   "chapterGuess": {
     "stopAudio": "Detener",
-    "listenIntro": "Escucha el encabezado",
-    "intro": "Lees el primer versículo de un capítulo y luego adivinas de qué capítulo se trata.",
+    "listenIntro": "Escuchar el resumen",
+    "intro": "Lees el resumen oficial de un capítulo. Adivina a qué capítulo pertenece.",
     "level": "Nivel",
     "questionCount": "Número de preguntas",
     "withFriends": "Con amigos (en vivo)",
@@ -2054,7 +2054,7 @@ export const es: PartialMessages = {
       "scrabble": "Un juego de formar palabras con palabras de las Escrituras. Reta a un amigo y jugad por turnos, cada uno a su ritmo.",
       "alleskenner": "Una noche de concurso para cuando estáis juntos: cada uno juega en su propio teléfono, con o sin presentador. Gana segundos y deja a tu rival a cero en la final.",
       "gezinsavond": "Un juego de mesa lleno de aventura sobre las Escrituras para toda la familia, juntos en la mesa con un solo dispositivo o cada uno en su teléfono. Divertido incluso sin muchos conocimientos previos.",
-      "chapterGuess": "Lee el primer versículo de un capítulo y adivina de qué capítulo se trata. Elige tu nivel, solo o en directo con amigos.",
+      "chapterGuess": "Lee el resumen oficial de un capítulo y adivina a qué capítulo corresponde. Elige tu nivel y juega solo o en directo con amigos.",
       "challenges": "Reta a un amigo en un capítulo: los dos jugáis cuando os venga bien, y luego veis quién ha puntuado mejor.",
       "quickMissionary": "Vuela por un mundo colorido con tu guía personal y consigue tu mejor puntuación."
     },

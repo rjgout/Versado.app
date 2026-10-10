@@ -2011,8 +2011,9 @@ model StudyAnswer {
 
 // --- Raad het hoofdstuk ------------------------------------------------------
 //
-// Je krijgt het eerste vers van een willekeurig hoofdstuk te lezen en moet
-// raden welk hoofdstuk dat is. BEGINNER kiest uit 4 opties, ADVANCED/EXPERT
+// Je krijgt de officiële hoofdstukkop (samenvatting) van een willekeurig
+// hoofdstuk te lezen en moet raden welk hoofdstuk dat is. BEGINNER kiest uit
+// 4 opties, ADVANCED/EXPERT
 // selecteert zelf boek + hoofdstuknummer (en bevestigt die keuze) — EXPERT is
 // verder gelijk aan ADVANCED maar zonder hints. Speelbaar alleen (dit model)
 // of live met vrienden (zie LiveGame.mode CHAPTER_GUESS, dat dezelfde
