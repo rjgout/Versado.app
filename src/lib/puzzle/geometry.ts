@@ -22,7 +22,7 @@ export function createPuzzleGeometry(pieceCount: PuzzlePieceCount, seed: string,
   return { version, seed, grid, pieces };
 }
 
-export function pieceKind(piece: PuzzlePieceGeometry, geometry: PuzzleGeometry): "CORNERS" | "EDGES" | "MIDDLES" {
+export function pieceKind(piece: PuzzlePieceGeometry): "CORNERS" | "EDGES" | "MIDDLES" {
   const boundary = [piece.top, piece.right, piece.bottom, piece.left].filter((edge) => edge === null).length;
   return boundary > 1 ? "CORNERS" : boundary === 1 ? "EDGES" : "MIDDLES";
 }

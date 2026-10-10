@@ -15,9 +15,9 @@ test("geometrie is deterministisch en gedeelde randen zijn complementair", () =>
 test("alle groottes hebben herkenbare hoek-, rand- en middenstukken", () => {
   for (const count of [6, 12, 24, 48, 96] as const) {
     const geometry = createPuzzleGeometry(count, "vormen");
-    assert.equal(geometry.pieces.filter((p) => pieceKind(p, geometry) === "CORNERS").length, 4);
-    assert.ok(geometry.pieces.some((p) => pieceKind(p, geometry) === "EDGES"));
-    if (count >= 12) assert.ok(geometry.pieces.some((p) => pieceKind(p, geometry) === "MIDDLES"));
+    assert.equal(geometry.pieces.filter((p) => pieceKind(p) === "CORNERS").length, 4);
+    assert.ok(geometry.pieces.some((p) => pieceKind(p) === "EDGES"));
+    if (count >= 12) assert.ok(geometry.pieces.some((p) => pieceKind(p) === "MIDDLES"));
   }
 });
 

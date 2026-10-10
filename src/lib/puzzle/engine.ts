@@ -1,5 +1,5 @@
 import { areNeighbours } from "@/lib/puzzle/geometry";
-import { PUZZLE_DIFFICULTIES, type PuzzleConnection, type PuzzleDifficulty, type PuzzleGeometry, type PuzzleGroup, type PuzzleSnapshot } from "@/lib/puzzle/types";
+import { PUZZLE_DIFFICULTIES, type PuzzleDifficulty, type PuzzleGeometry, type PuzzleGroup, type PuzzleSnapshot } from "@/lib/puzzle/types";
 
 const connectionKey = (a: number, b: number) => a < b ? `${a}:${b}` : `${b}:${a}`;
 export function newPuzzleSnapshot(geometry: PuzzleGeometry, difficulty: PuzzleDifficulty): PuzzleSnapshot {

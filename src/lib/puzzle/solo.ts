@@ -1,4 +1,4 @@
-import { createHash, randomBytes, randomInt } from "node:crypto";
+import { createHash, randomInt } from "node:crypto";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { jigsawCatalog } from "@/lib/jigsawGame";
@@ -58,7 +58,7 @@ export async function applySoloAction(userId: string, sessionId: string, expecte
     next = { ...snapshot, filter: action.hint === "FILTER" ? action.filter ?? null : snapshot.filter, hints: [...snapshot.hints, { type: action.hint, at: new Date().toISOString(), extra }] };
     if (action.hint === "LOCATION" && action.pieceId !== undefined) { const piece = geometry.pieces[action.pieceId]; hintTarget = piece && { x: piece.column, y: piece.row }; }
     if (action.hint === "CONNECTION" && action.pieceId !== undefined) { const piece = geometry.pieces[action.pieceId]; hintTarget = piece && geometry.pieces.find((candidate) => Math.abs(candidate.column - piece.column) + Math.abs(candidate.row - piece.row) === 1)?.id; }
-    if (action.hint === "FILTER") hintTarget = geometry.pieces.filter((piece) => !action.filter || pieceKind(piece, geometry) === action.filter).map((piece) => piece.id);
+    if (action.hint === "FILTER") hintTarget = geometry.pieces.filter((piece) => !action.filter || pieceKind(piece) === action.filter).map((piece) => piece.id);
   }
   const completed = next.completedAt && !row.completedAt ? new Date(next.completedAt) : row.completedAt;
   let questionId = row.questionId; let order = row.optionOrder;
