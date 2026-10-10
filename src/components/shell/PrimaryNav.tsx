@@ -12,7 +12,7 @@ export default function PrimaryNav() {
   const t = useT();
   const active = activeDestination(usePathname());
   return (
-    <nav aria-label={t("nav.main")} className="vs-motion hidden lg:flex items-center gap-1">
+    <nav aria-label={t("nav.main")} className="vs-motion hidden lg:flex flex-wrap items-center justify-center gap-1">
       {PRIMARY_NAV.map((item) => {
         const isActive = item.id === active;
         return (
@@ -21,7 +21,7 @@ export default function PrimaryNav() {
             href={item.href}
             data-kompas-target={`nav-${item.id}`}
             aria-current={isActive ? "page" : undefined}
-            className={`flex h-10 items-center gap-2 rounded-full px-3.5 text-sm font-bold transition-colors ${
+            className={`flex min-h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-bold transition-colors ${
               isActive ? "bg-vs-accent-soft text-vs-accent" : "text-vs-fg-2 hover:bg-vs-subtle hover:text-vs-fg"
             }`}
           >

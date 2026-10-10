@@ -271,20 +271,24 @@ export default function WordGameClient() {
 
       {!finished && (
         <div className="flex flex-col gap-2">
-          <div className="flex gap-2">
-            <input
-              className="input text-center uppercase tracking-widest font-extrabold"
-              value={guess}
-              maxLength={game.wordLength}
-              disabled={submitting}
-              onChange={(e) => setGuess(e.target.value.replace(/[^a-zA-Zà-ÿÀ-Ÿ]/g, "").toLowerCase())}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") submitGuess();
-              }}
-              placeholder={t("wordOfTheDay.placeholder", { n: game.wordLength })}
-              autoFocus
-            />
-            <button className="btn-primary" disabled={submitting} onClick={submitGuess}>
+          <div className="flex flex-wrap items-stretch gap-2">
+            {/* .input gebruikt w-full: de krimpbare wrapper houdt ruimte vrij
+                voor de knop. Bij sterke tekstzoom mag de knop doorschuiven. */}
+            <div className="min-w-[min(100%,8rem)] flex-1">
+              <input
+                className="input text-center uppercase tracking-widest font-extrabold"
+                value={guess}
+                maxLength={game.wordLength}
+                disabled={submitting}
+                onChange={(e) => setGuess(e.target.value.replace(/[^a-zA-Zà-ÿÀ-Ÿ]/g, "").toLowerCase())}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") submitGuess();
+                }}
+                placeholder={t("wordOfTheDay.placeholder", { n: game.wordLength })}
+                autoFocus
+              />
+            </div>
+            <button className="btn-primary shrink-0 whitespace-nowrap" disabled={submitting} onClick={submitGuess}>
               {submitting ? "..." : t("wordOfTheDay.guess")}
             </button>
           </div>

@@ -209,6 +209,24 @@ test("het menu sluit met Escape, een tik buiten het menu en na kiezen, en is toe
   assert.match(switcherSource, /setOpen\(false\)/);
 });
 
+test("een kort actielabel breekt niet; invoer houdt ruimte vrij voor de knop", () => {
+  // De bestaande body-regel beschermt juist smalle vakken met lange vertalingen.
+  assert.match(css, /body \{[\s\S]*?overflow-wrap: anywhere/);
+  const wordGame = read("src/components/WordGameClient.tsx");
+  assert.match(wordGame, /flex flex-wrap items-stretch gap-2/);
+  assert.match(wordGame, /min-w-\[min\(100%,8rem\)\] flex-1/);
+  assert.match(wordGame, /btn-primary shrink-0 whitespace-nowrap/);
+});
+
+test("desktopnavigatie houdt labels heel en mag als groep wrappen", () => {
+  const nav = read("src/components/shell/PrimaryNav.tsx");
+  const layout = read("src/app/layout.tsx");
+  assert.match(nav, /lg:flex flex-wrap items-center justify-center/);
+  assert.match(nav, /min-h-10 shrink-0 items-center gap-2 whitespace-nowrap/);
+  assert.match(layout, /min-w-\[min\(100%,18rem\)\] flex-\[1_1_18rem\] justify-center lg:flex/);
+  assert.match(layout, /min-h-14[^"]*flex-wrap/);
+});
+
 test("de shell-modi laten de standaardhoogte voor focus ongemoeid", () => {
   assert.match(css, /\[data-shell-mode="focus"\] \{\s*--header-default: calc\(3\.3125rem \+ var\(--vs-safe-area-top\)\)/);
 });
