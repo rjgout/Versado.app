@@ -11,6 +11,8 @@ export interface BackTargetOverride {
   pathname: string;
   href: string;
   parent: string;
+  /** Een lokale activiteitstap kan teruggaan zonder de route te verlaten. */
+  onBack?: () => void;
 }
 
 let current: BackTargetOverride | null = null;
@@ -27,9 +29,9 @@ function subscribe(listener: () => void) {
   };
 }
 
-export function useSetBackTarget(pathname: string, href: string, parent: string): void {
+export function useSetBackTarget(pathname: string, href: string, parent: string, onBack?: () => void): void {
   useEffect(() => {
-    const target = { pathname, href, parent };
+    const target = { pathname, href, parent, onBack };
     current = target;
     emit();
     return () => {
@@ -38,7 +40,7 @@ export function useSetBackTarget(pathname: string, href: string, parent: string)
         emit();
       }
     };
-  }, [pathname, href, parent]);
+  }, [pathname, href, parent, onBack]);
 }
 
 /** Alleen de doorgegeven cursus van déze pagina: bij het wisselen van pagina geldt die niet meer. */

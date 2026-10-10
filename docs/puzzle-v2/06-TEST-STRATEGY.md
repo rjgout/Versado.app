@@ -30,10 +30,24 @@ nieuwe poging, vervolgnavigatie en bestaande API-toegangsvoorwaarden. Ook
 390px/nl en 320px/de met 200% tekst worden gecontroleerd op horizontale overflow.
 Playwright wordt extern geïnstalleerd; stel PLAYWRIGHT_MODULE in naar zijn
 modulepad en installeer Chromium. De nieuwe GitHub Actions-workflow voert
-dezelfde runner uit en bewaart de browserscreenshots.
+dezelfde runner na een productiebuild uit met NODE_ENV=production en bewaart
+de browserscreenshots. Lokaal kan dezelfde productiecontrole met
+`NODE_ENV=production npm run test:puzzle:integration -- --browser` na een
+schone build worden uitgevoerd; zonder deze env blijft de ontwikkelmodus
+beschikbaar om dubbele mounts te testen.
 
-Voor overige E2E blijven toetsenbord, touch/pinch, wheel/trackpad, pan/zoom/reset,
-focus, 768px, dark/reduced motion aanvullende controles. Draai ook `test:focus`,
+De mobiele afwerking voegt werkelijke complementaire Bézier-paden toe voor
+v1/v2 over meerdere seeds en rasters; groepscontouren met gaten/hoekraakpunten;
+los-los, los-groep en groep-groep snaps met een stilstaand anker; en een
+bruikbare startcamera met zoombehoud bij resize. De echte browser controleert
+de centrale terugknop in iedere Solo-stap, positieve resultaatteksten, zes
+viewportmaten (320–1440px, portrait/landscape), fullscreen zonder extra scroll,
+veilige randen, naadpixels tegenover de oorspronkelijke afbeelding, echte
+tweevinger-pinch/pan, server-geaccepteerde groep-groep snap, vier moeilijkheden,
+contextueel draaien, oude v1/hintvoortgang en Duits/320px/200% tekst.
+
+Voor overige E2E blijven toetsenbord, wheel/trackpad, focus en dark/reduced
+motion aanvullende controles. Draai ook `test:focus`,
 `test:learning`, `test:live-data`, `test:kompas` en bestaande jigsawtests.
 
 Handmatig op iOS Safari/Capacitor en Android WebView: pinch-vs-drag, notch/keyboard, background/resume, VoiceOver/TalkBack, latency en 96/150/300-stuksprofielen. Meet FPS, geheugen, commitlatency/payload en databasegroei vóór definitieve limieten.

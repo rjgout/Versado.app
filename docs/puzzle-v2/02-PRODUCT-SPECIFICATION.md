@@ -42,10 +42,12 @@ Mobiel en desktop gebruiken één eindige werktafel: een herkenbaar centraal
 puzzelgebied met daaromheen vrije, directe ruimte voor losse stukken en
 groepen. Er is geen tweede permanente stukjesbak en geen dubbele representatie
 van stukken. De startverdeling is deterministisch, niet-overlappend en schaalt
-tot 96 stukken. De camera past de volledige tafel in beeld en kan niet buiten
-de bruikbare wereld raken. Direct drag gebruikt een vinger-offset; twee vingers
+tot 96 stukken. Het speelviewport vult het scherm onder de gemeten terugbalk,
+met veilige randen. De startcamera toont bruikbare stukken en bestaande groepen;
+alle stukken tegelijk zien kan via het bordmenu. Viewportwijzigingen behouden
+zoom en wereldmidden. De camera kan niet buiten de bruikbare wereld raken. Direct drag gebruikt een vinger-offset; twee vingers
 schakelen veilig naar pan/pinch. Muisdrag, cursorzoom, trackpad/wiel,
-plus/min/fit/reset en een toetsenbordpad gebruiken dezelfde world-coördinaten.
+het bordmenu en een toetsenbordpad gebruiken dezelfde world-coördinaten.
 Gebruik één shell/focusmodel uit `docs/LAYOUT.md`.
 
 Solo bewaart automatisch, behoudt vraag en huidige regel: alleen correct antwoord verlengt reeks, nooit XP. Samen: rechtstreekse vriendenuitnodiging, maximaal vier, gedeelde voortgang, persoonlijke bak/viewport/hints. Alleen server-gevalideerde nieuwe verbinding is betekenisvolle bijdrage; uitnodiging, openen, presence en lock nooit. Per volgende kalenderdag kan een werkelijke bijdrage opnieuw volgens centrale reeksregels tellen. Vraag is optioneel en nooit voorwaarde in Samen.
@@ -54,4 +56,10 @@ Tegen elkaar geeft iedere speler dezelfde variant, eigen bord; server-eindtijd p
 
 Nieuwe zichtbare uitleg loopt via Kompas, met alle vertalingen. Geen groepsstart voor Samen en geen wereld- of groepsranglijsten.
 
-De renderer geeft een rustige magnetische snap, geldige-verbindingfeedback en tijdelijke hintmarkering; bij voltooiing verdwijnen de naden en verschijnt eerst de bestaande resultaat/vraagflow, pas daarna een eventuele secundaire viering via `celebrationGate.ts`. Geluid is opt-in via bestaande instellingen zodra die voor spellen beschikbaar zijn; reduced motion zet beweging om naar directe, leesbare statusfeedback. Er wordt geen zelfstandig designsysteem toegevoegd: `--vs-*`-tokens, Lucide en de bestaande shell blijven leidend.
+De renderer geeft een rustige magnetische snap, geldige-verbindingfeedback en contextueel draaien uitsluitend bij Meester; bij voltooiing verdwijnen de contouren en verschijnt eerst de bestaande resultaat/vraagflow, pas daarna een eventuele secundaire viering via `celebrationGate.ts`. Geluid is opt-in via bestaande instellingen zodra die voor spellen beschikbaar zijn; reduced motion zet beweging om naar directe, leesbare statusfeedback. Er wordt geen zelfstandig designsysteem toegevoegd: `--vs-*`-tokens, Lucide en de bestaande shell blijven leidend.
+
+Binnen Solo gaat de centrale terugbalk vanuit bord, voltooiing, resultaat en
+opnieuw spelen naar de puzzelkeuze. Vanuit de vraag gaat hij naar de volledige
+afbeelding met Verder. Alleen de catalogus is de uitgang naar de bovenliggende
+appcontext. Resultaatteksten vieren de puzzel en vraag; reeksafhandeling blijft
+server-side en krijgt geen prominente melding op deze stap.

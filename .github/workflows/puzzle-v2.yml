@@ -8,6 +8,9 @@ on:
       - 'src/lib/jigsaw*'
       - 'src/lib/streak.ts'
       - 'src/components/JigsawV2Client.tsx'
+      - 'src/components/SubpageBackBar.tsx'
+      - 'src/lib/backTarget.ts'
+      - 'src/app/globals.css'
       - 'src/app/api/jigsaw-v2/**'
       - 'prisma/**'
       - 'tests/puzzle*'
@@ -35,12 +38,18 @@ jobs:
       - run: npm ci
       # Dezelfde geïsoleerde runner als lokaal: maakt en verwijdert zijn eigen
       # Postgres-container en past alle migraties toe. Geen externe DB-secrets.
+      - name: Prisma en productiebuild
+        run: |
+          npm run db:generate
+          npm run build
       - name: Browser klaarzetten
         run: |
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
           node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
-      - name: Sessies, vraag, reeks, content en echte browserflow
+      - name: Sessies, vraag, reeks, content en echte productie-browserflow
+        env:
+          NODE_ENV: production
         run: npm run test:puzzle:integration -- --browser
       - name: Engine en legacy-regressies
         run: npm run test:puzzle

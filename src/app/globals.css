@@ -195,6 +195,25 @@ html[data-keyboard] main {
   padding-bottom: var(--main-pad-bottom) !important;
 }
 
+/* Alleen het actieve legpuzzelbord is een speelviewport. Dezelfde gemeten
+ * terugbalk blijft staan; catalogus/vraag/resultaat houden hun paginalayout. */
+[data-shell-mode="focus"] main:has(.puzzle-workspace) {
+  --main-pad-top: var(--header-height, var(--header-default));
+  --main-pad-bottom: 0px;
+  max-width: none;
+  width: 100%;
+  padding: var(--main-pad-top) 0 0 !important;
+}
+
+.vs-focus-layout.puzzle-workspace {
+  height: calc(100dvh - var(--header-height, var(--header-default)));
+  min-height: 0;
+  max-width: none;
+  padding-left: var(--vs-safe-area-left);
+  padding-right: var(--vs-safe-area-right);
+  padding-bottom: var(--vs-safe-area-bottom);
+}
+
 /* Immersive mode is voor een activiteit die zelf de volledige viewport en
  * veilige exitmomenten beheert. Anders dan Focus blijft ook de terugbalk weg.
  * Dit is routegestuurd via focusMode.ts, niet door feature-specifieke

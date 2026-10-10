@@ -1,19 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import NextImage from "next/image";
-import Link from "next/link";
 import { Ellipsis, RotateCw } from "lucide-react";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { useT } from "@/components/I18nProvider";
-import { createPuzzleGeometry, tracePuzzlePiece } from "@/lib/puzzle/geometry";
-import { connectedPieces, findSnapConnection, groupFor } from "@/lib/puzzle/engine";
+import { createPuzzleGeometry, tracePuzzleGroup } from "@/lib/puzzle/geometry";
+import { connectedPieces, findSnapConnection, groupFor, worldOf } from "@/lib/puzzle/engine";
 import { clampGroupPosition, groupAnchor, groupMemberAt, puzzleWorktable } from "@/lib/puzzle/worktable";
-import { constrainCamera as constrainViewport, fitCamera, screenToWorld, zoomCamera, type PuzzleCamera } from "@/lib/puzzle/viewport";
+import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
 import { PUZZLE_DIFFICULTIES, type PuzzleDifficulty, type PuzzlePieceCount, type PuzzleSnapshot } from "@/lib/puzzle/types";
 import { filterPuzzleCatalog, puzzleCatalogPage } from "@/lib/puzzle/catalog";
 import type { JigsawAnswerResult } from "@/lib/jigsaw";
-import { StreakContinuationCard } from "@/components/StreakContinuation";
+import { useSetBackTarget } from "@/lib/backTarget";
 
 type State = { id: string; version: number; status: string; image: string; seed: string; geometryVersion: number; pieceCount: PuzzlePieceCount; difficulty: PuzzleDifficulty; snapshot: PuzzleSnapshot; question?: { text: string; options: string[] }; answer?: Answer };
 type Answer = JigsawAnswerResult | { alreadyAnswered: true };
@@ -61,6 +60,7 @@ export default function JigsawV2Client({ images }: { images: Array<{ url: string
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const starting = useRef(false);
+  const chooseAnother = useCallback(() => { remember(null); setState(null); }, []);
 
   useEffect(() => {
     let gone = false; let id: string | null = null;
@@ -92,7 +92,7 @@ export default function JigsawV2Client({ images }: { images: Array<{ url: string
     finally { starting.current = false; setLoading(false); }
   }
 
-  if (state) return <Puzzle key={state.id} initial={state} setOuter={setState} onReplay={() => { const previous = state; setState(null); void start(previous); }} onChooseAnother={() => { remember(null); setState(null); }} />;
+  if (state) return <Puzzle key={state.id} initial={state} setOuter={(next) => setState((current) => current?.id === next.id ? next : current)} onReplay={() => { const previous = state; setState(null); void start(previous); }} onChooseAnother={chooseAnother} />;
   if (loading) return <FocusLayout><p role="status">{t("common.loading")}</p></FocusLayout>;
   return <FocusLayout className="max-w-5xl gap-5">
     <header><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.title")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.intro")}</p></header>
@@ -106,13 +106,21 @@ export default function JigsawV2Client({ images }: { images: Array<{ url: string
   </FocusLayout>;
 }
 
-function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: State; setOuter: (state: State | null) => void; onChooseAnother: () => void; onReplay: () => void }) {
+function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: State; setOuter: (state: State) => void; onChooseAnother: () => void; onReplay: () => void }) {
   const t = useT(); const [state, setState] = useState(initial); const [stage, setStage] = useState<Stage>(() => { if (initial.status === "ANSWERED") return "RESULT"; if (initial.status !== "COMPLETED") return "BOARD"; try { if (localStorage.getItem(`${KEY}:question`) === initial.id) return "QUESTION"; } catch {} return "COMPLETE"; });
   const shown = useRef(initial); const saved = useRef(initial); const [selected, setSelected] = useState<number | null>(null); const [message, setMessage] = useState(""); const [answer, setAnswer] = useState<Answer | null>(initial.answer ?? null); const [menuOpen, setMenuOpen] = useState(false);
   const pending = useRef(false); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null); const image = useRef<HTMLImageElement | null>(null); const camera = useRef<PuzzleCamera>({ scale: 60, x: 0, y: 0 }); const frame = useRef<number | null>(null);
+  const mounted = useRef(true); const stopAnimation = useRef<(() => void) | null>(null);
+  const viewport = useRef<ViewportSize | null>(null); const paths = useRef(new Map<string, Path2D>());
   const pointers = useRef(new Map<number, Point>()); const drag = useRef<Drag | null>(null); const pan = useRef<Pan | null>(null); const pinch = useRef<Pinch | null>(null);
-  const geometry = createPuzzleGeometry(state.pieceCount, state.seed, state.geometryVersion); const table = puzzleWorktable(geometry); const policy = PUZZLE_DIFFICULTIES[state.difficulty];
+  const geometry = useMemo(() => createPuzzleGeometry(initial.pieceCount, initial.seed, initial.geometryVersion), [initial.pieceCount, initial.seed, initial.geometryVersion]); const table = useMemo(() => puzzleWorktable(geometry), [geometry]); const policy = PUZZLE_DIFFICULTIES[state.difficulty];
+
+  const back = useCallback(() => {
+    if (stage === "QUESTION") { try { localStorage.removeItem(`${KEY}:question`); } catch {} setStage("COMPLETE"); }
+    else onChooseAnother();
+  }, [stage, onChooseAnother]);
+  useSetBackTarget("/jigsaw", "/jigsaw", "", back);
 
   function schedulePaint() { if (frame.current === null) frame.current = requestAnimationFrame(() => { frame.current = null; paint(); }); }
   function constrainCamera() { const canvas = canvasRef.current; if (canvas) camera.current = constrainViewport(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds); }
@@ -124,21 +132,56 @@ function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: Sta
     context.fillStyle = "#dbe6e6"; context.fillRect(table.bounds.minX, table.bounds.minY, table.bounds.maxX - table.bounds.minX, table.bounds.maxY - table.bounds.minY); context.strokeStyle = "rgba(42, 68, 74, .45)"; context.lineWidth = 2 / camera.current.scale; context.strokeRect(table.bounds.minX, table.bounds.minY, table.bounds.maxX - table.bounds.minX, table.bounds.maxY - table.bounds.minY);
     context.fillStyle = "rgba(255, 255, 255, .74)"; context.fillRect(table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); if (policy.showGhost && image.current) { context.globalAlpha = .18; context.drawImage(image.current, table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); context.globalAlpha = 1; }
     if (policy.showOutline) { context.strokeStyle = "rgba(64, 87, 94, .46)"; context.setLineDash([.12, .1]); context.strokeRect(table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); context.setLineDash([]); }
-    for (const group of shown.current.snapshot.groups) { const anchor = groupAnchor(geometry, group); context.save(); context.translate(group.x + .5, group.y + .5); context.rotate(group.rotation * Math.PI / 180); context.translate(-.5, -.5); for (const id of group.pieceIds) { const piece = geometry.pieces[id]; context.save(); context.translate(piece.column - anchor.column, piece.row - anchor.row); context.beginPath(); tracePuzzlePiece(context, piece); context.save(); context.clip(); if (image.current) context.drawImage(image.current, -piece.column, -piece.row, geometry.grid.columns, geometry.grid.rows); else { context.fillStyle = "#b9d5d7"; context.fillRect(0, 0, 1, 1); } context.restore(); const active = selected !== null && group.pieceIds.includes(selected); context.strokeStyle = active ? "#d97716" : "rgba(29, 42, 60, .60)"; context.lineWidth = (active ? 3 : 1) / camera.current.scale; context.stroke(); context.restore(); } context.restore(); }
+    for (const group of shown.current.snapshot.groups) {
+      const anchor = groupAnchor(geometry, group); const key = group.pieceIds.join(",");
+      let path = paths.current.get(key);
+      if (!path) { path = new Path2D(); tracePuzzleGroup(path, geometry, group.pieceIds); paths.current.set(key, path); }
+      context.save(); context.translate(group.x + .5, group.y + .5); context.rotate(group.rotation * Math.PI / 180); context.translate(-.5, -.5);
+      // Eén echte groepscontour en één beelduitsnede: geen afzonderlijke clips
+      // met antialias-kieren of dubbel gestrokte interne aansluitingen.
+      context.save(); context.clip(path);
+      if (image.current) context.drawImage(image.current, -anchor.column, -anchor.row, geometry.grid.columns, geometry.grid.rows);
+      else { context.fillStyle = "#b9d5d7"; context.fill(path); }
+      context.restore();
+      const active = selected !== null && group.pieceIds.includes(selected);
+      context.strokeStyle = active ? "#d97716" : "rgba(29, 42, 60, .60)"; context.lineWidth = (active ? 3 : 1) / camera.current.scale;
+      context.stroke(path); context.restore();
+    }
     context.restore();
   }
-  function update(next: State) { saved.current = next; shown.current = next; setState(next); setOuter(next); remember(next.id); if (next.status === "COMPLETED") setStage("COMPLETE"); if (next.status === "ANSWERED") setStage("RESULT"); schedulePaint(); }
-  async function action(operation: object) { const current = saved.current; const next = await request({ action: "act", sessionId: current.id, version: current.version, actionId: crypto.randomUUID(), operation }) as State; update(next); return next; }
+  function update(next: State) { saved.current = next; if (!mounted.current) return; shown.current = next; setState(next); setOuter(next); remember(next.id); if (next.status === "COMPLETED") setStage("COMPLETE"); if (next.status === "ANSWERED") setStage("RESULT"); schedulePaint(); }
+  async function animateSnap(before: State, next: State, groupId: string) {
+    const moving = before.snapshot.groups.find((group) => group.id === groupId);
+    const target = moving && groupFor(next.snapshot, moving.pieceIds[0]);
+    if (!moving || !target || next.version === before.version || !mounted.current || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const to = worldOf(geometry, target, moving.pieceIds[0]);
+    if (Math.hypot(to.x - moving.x, to.y - moving.y) < 1e-9) return;
+    await new Promise<void>((resolve) => {
+      const start = performance.now(); let animation = 0;
+      const finish = () => { cancelAnimationFrame(animation); stopAnimation.current = null; resolve(); };
+      stopAnimation.current = finish;
+      const step = (now: number) => {
+        if (!mounted.current) { finish(); return; }
+        const progress = Math.min(1, (now - start) / 140); const eased = 1 - (1 - progress) ** 3;
+        shown.current = { ...before, snapshot: { ...before.snapshot, groups: before.snapshot.groups.map((group) => group.id === groupId ? { ...group, x: moving.x + (to.x - moving.x) * eased, y: moving.y + (to.y - moving.y) * eased } : group) } };
+        paint();
+        if (progress < 1) animation = requestAnimationFrame(step); else finish();
+      };
+      animation = requestAnimationFrame(step);
+    });
+  }
+  async function action(operation: object, movedGroupId?: string) { const current = saved.current; const next = await request({ action: "act", sessionId: current.id, version: current.version, actionId: crypto.randomUUID(), operation }) as State; if (movedGroupId) await animateSnap(current, next, movedGroupId); update(next); return next; }
   async function runBoard(work: () => Promise<void>) {
-    if (pending.current || saved.current.status !== "ACTIVE") return;
+    if (!mounted.current || pending.current || saved.current.status !== "ACTIVE") return;
     pending.current = true; setBusy(true); setError("");
     try { await work(); }
     catch (cause) {
+      if (!mounted.current) return;
       setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed"));
       // Ook na een verloren completion-response de autoritatieve fase herstellen.
       try { update(await request({ action: "resume", sessionId: saved.current.id }) as State); }
       catch { shown.current = saved.current; setState(saved.current); schedulePaint(); }
-    } finally { pending.current = false; setBusy(false); }
+    } finally { pending.current = false; if (mounted.current) setBusy(false); }
   }
   function fit() { const canvas = canvasRef.current; if (!canvas) return; camera.current = fitCamera({ width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds); schedulePaint(); }
   function screenPoint(event: { clientX: number; clientY: number }) { const rect = canvasRef.current?.getBoundingClientRect(); return rect ? { x: event.clientX - rect.left, y: event.clientY - rect.top } : { x: 0, y: 0 }; }
@@ -146,8 +189,22 @@ function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: Sta
   function picked(point: Point) { for (const group of [...shown.current.snapshot.groups].reverse()) { const id = groupMemberAt(geometry, group, point); if (id !== null) return { group, id }; } return null; }
   function transientMove(groupId: string, x: number, y: number) { const base = saved.current; const group = base.snapshot.groups.find((candidate) => candidate.id === groupId); if (!group) return; const position = clampGroupPosition(geometry, group, x, y); const next = { ...base, snapshot: { ...base.snapshot, groups: base.snapshot.groups.map((candidate) => candidate.id === groupId ? { ...candidate, ...position } : candidate) } }; shown.current = next; setState(next); schedulePaint(); }
   function beginPinch() { const fingers = [...pointers.current.values()]; if (fingers.length < 2) return; if (drag.current) { drag.current = null; shown.current = saved.current; setState(saved.current); } pan.current = null; const center = { x: (fingers[0].x + fingers[1].x) / 2, y: (fingers[0].y + fingers[1].y) / 2 }; pinch.current = { distance: Math.max(1, distance(fingers[0], fingers[1])), world: worldPoint(center), scale: camera.current.scale }; }
-  function updatePinch() { const active = pinch.current; const fingers = [...pointers.current.values()]; if (!active || fingers.length < 2) return; const center = { x: (fingers[0].x + fingers[1].x) / 2, y: (fingers[0].y + fingers[1].y) / 2 }; camera.current.scale = Math.max(12, Math.min(240, active.scale * distance(fingers[0], fingers[1]) / active.distance)); camera.current.x = center.x - active.world.x * camera.current.scale; camera.current.y = center.y - active.world.y * camera.current.scale; constrainCamera(); schedulePaint(); }
-  async function snapAfterMove(next: State, groupId: string) { let current = next; for (let count = 0; count < state.pieceCount; count++) { const connection = findSnapConnection(current.snapshot, geometry, current.difficulty, groupId); if (!connection) break; const joined = await action({ kind: "connect", a: connection.a, b: connection.b }); if (joined.version === current.version) break; current = joined; setMessage(t("jigsaw.piecesConnected")); } }
+  function updatePinch() { const active = pinch.current; const fingers = [...pointers.current.values()]; if (!active || fingers.length < 2) return; const center = { x: (fingers[0].x + fingers[1].x) / 2, y: (fingers[0].y + fingers[1].y) / 2 }; camera.current.scale = Math.max(8, Math.min(240, active.scale * distance(fingers[0], fingers[1]) / active.distance)); camera.current.x = center.x - active.world.x * camera.current.scale; camera.current.y = center.y - active.world.y * camera.current.scale; constrainCamera(); schedulePaint(); }
+  async function snapAfterMove(next: State, groupId: string) {
+    let current = next; const piece = next.snapshot.groups.find((group) => group.id === groupId)?.pieceIds[0];
+    if (piece === undefined) return;
+    for (let count = 0; count < state.pieceCount && mounted.current; count++) {
+      const moved = groupFor(current.snapshot, piece); if (!moved) break;
+      const connection = findSnapConnection(current.snapshot, geometry, current.difficulty, moved.id); if (!connection) break;
+      // Na de eerste snap staat het nieuwe geheel vast: volgende buren worden
+      // naar dit anker getrokken, niet andersom.
+      const a = count === 0 ? connection.a : connection.b;
+      const b = count === 0 ? connection.b : connection.a;
+      const joined = await action({ kind: "connect", a, b }, groupFor(current.snapshot, b)?.id);
+      if (joined.version === current.version) break;
+      current = joined; if (mounted.current) setMessage(t("jigsaw.piecesConnected"));
+    }
+  }
   async function finishDrag(active: Drag, point: Point) { const next = await action({ kind: "move", groupId: active.groupId, x: point.x - active.offset.x, y: point.y - active.offset.y }); await snapAfterMove(next, active.groupId); }
   function boardDown(event: ReactPointerEvent<HTMLCanvasElement>) { if (pending.current) return; const point = screenPoint(event); pointers.current.set(event.pointerId, point); event.currentTarget.setPointerCapture(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } const hit = picked(worldPoint(point)); if (hit) { setSelected(hit.id); drag.current = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: worldPoint(point).x - hit.group.x, y: worldPoint(point).y - hit.group.y } }; } else { setSelected(null); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; } }
   function boardMove(event: ReactPointerEvent<HTMLCanvasElement>) { if (!pointers.current.has(event.pointerId)) return; const point = screenPoint(event); pointers.current.set(event.pointerId, point); if (pointers.current.size >= 2) { updatePinch(); return; } if (drag.current?.pointer === event.pointerId) { const world = worldPoint(point); transientMove(drag.current.groupId, world.x - drag.current.offset.x, world.y - drag.current.offset.y); } else if (pan.current?.pointer === event.pointerId) { camera.current.x = pan.current.camera.x + point.x - pan.current.point.x; camera.current.y = pan.current.camera.y + point.y - pan.current.point.y; constrainCamera(); schedulePaint(); } }
@@ -156,10 +213,25 @@ function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: Sta
   function zoom(factor: number, around?: Point) { const canvas = canvasRef.current; if (!canvas) return; const center = around ?? { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 }; camera.current = zoomCamera(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds, factor, center); schedulePaint(); }
   async function rotateSelected() { if (selected === null || state.difficulty !== "MASTER") return; await runBoard(async () => { const group = groupFor(saved.current.snapshot, selected); if (group) await action({ kind: "rotate", groupId: group.id }); }); }
   async function moveSelectedBy(dx: number, dy: number) { if (selected === null) return; await runBoard(async () => { const group = groupFor(saved.current.snapshot, selected); if (group) { const next = await action({ kind: "move", groupId: group.id, x: group.x + dx, y: group.y + dy }); await snapAfterMove(next, group.id); } }); }
-  async function submit(choice: number) { const result = await request({ action: "answer", sessionId: saved.current.id, choice }) as Answer; setAnswer(result); const next = { ...saved.current, status: "ANSWERED", answer: result }; saved.current = next; setState(next); setOuter(next); remember(null); setStage("RESULT"); }
+  async function submit(choice: number) { const result = await request({ action: "answer", sessionId: saved.current.id, choice }) as Answer; if (!mounted.current) return; setAnswer(result); const next = { ...saved.current, status: "ANSWERED", answer: result }; saved.current = next; setState(next); setOuter(next); remember(null); setStage("RESULT"); }
   function continueToQuestion() { try { localStorage.setItem(`${KEY}:question`, state.id); } catch {} setStage("QUESTION"); }
 
-  useEffect(() => { const picture = new Image(); picture.onload = () => { image.current = picture; fit(); }; picture.src = initial.image; const canvas = canvasRef.current; const observer = canvas ? new ResizeObserver(fit) : null; if (observer && canvas) observer.observe(canvas); return () => { observer?.disconnect(); if (frame.current !== null) cancelAnimationFrame(frame.current); }; // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    mounted.current = true;
+    const picture = new Image(); picture.onload = () => { image.current = picture; schedulePaint(); }; picture.src = initial.image;
+    const canvas = canvasRef.current;
+    const resize = () => {
+      if (!canvas || canvas.clientWidth <= 0 || canvas.clientHeight <= 0) return;
+      const next = { width: canvas.clientWidth, height: canvas.clientHeight };
+      const previous = viewport.current;
+      if (previous && next.width === previous.width && next.height === previous.height) return;
+      camera.current = previous ? resizeCamera(camera.current, previous, next, table.bounds) : initialPuzzleCamera(next, geometry, saved.current.snapshot);
+      viewport.current = next; schedulePaint();
+    };
+    const observer = canvas ? new ResizeObserver(resize) : null; if (canvas) { observer?.observe(canvas); resize(); }
+    return () => { mounted.current = false; picture.onload = null; observer?.disconnect(); stopAnimation.current?.(); if (frame.current !== null) cancelAnimationFrame(frame.current); frame.current = null; };
+    // De camera hoort bij deze ge-keyde sessie; een actie reset hem nooit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => { schedulePaint(); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, selected]);
@@ -168,7 +240,7 @@ function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: Sta
   if (stage === "QUESTION") return <Question state={state} onSubmit={submit} t={t} />;
   if (stage === "RESULT") return <Result answer={answer} question={state.question} onChooseAnother={onChooseAnother} onReplay={onReplay} t={t} />;
   const selectedGroup = selected === null ? null : groupFor(state.snapshot, selected);
-  return <FocusLayout className="max-w-none gap-0"><section aria-busy={busy} className="page-fill relative min-h-0 overflow-hidden rounded-2xl border border-vs-line bg-vs-surface shadow-sm"><canvas ref={canvasRef} aria-label={t("jigsaw.board")} aria-describedby="jigsaw-board-help" tabIndex={0} className="h-full min-h-[calc(100dvh-var(--main-pad-top)-var(--main-pad-bottom))] w-full touch-none outline-none focus-visible:ring-4 focus-visible:ring-vs-xp" onPointerDown={boardDown} onPointerMove={boardMove} onPointerUp={boardUp} onPointerCancel={boardCancel} onWheel={(event) => { event.preventDefault(); zoom(event.deltaY > 0 ? .9 : 1.1, screenPoint(event)); }} onKeyDown={async (event) => { if (event.key === "0") { event.preventDefault(); fit(); } if ((event.key === "r" || event.key === "R") && state.difficulty === "MASTER") { event.preventDefault(); await rotateSelected(); } if (event.key === "ArrowLeft") { event.preventDefault(); await moveSelectedBy(-.2, 0); } if (event.key === "ArrowRight") { event.preventDefault(); await moveSelectedBy(.2, 0); } if (event.key === "ArrowUp") { event.preventDefault(); await moveSelectedBy(0, -.2); } if (event.key === "ArrowDown") { event.preventDefault(); await moveSelectedBy(0, .2); } }} /><p id="jigsaw-board-help" className="sr-only">{t("jigsaw.boardHelp")}</p>{state.difficulty === "MASTER" && selectedGroup && <button type="button" className="btn-primary absolute bottom-3 left-1/2 min-h-11 -translate-x-1/2 shadow-lg" disabled={busy} onClick={rotateSelected}><RotateCw size={18} />{t("jigsaw.rotate")}</button>}<div className="absolute bottom-3 right-3"><button type="button" className="btn-secondary min-h-10 min-w-10 px-2 shadow-sm" aria-label={t("jigsaw.boardMenu")} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><Ellipsis size={18} /></button>{menuOpen && <div className="absolute bottom-12 right-0 z-10 w-52 rounded-xl border border-vs-line !bg-vs-surface p-1 shadow-lg"><button type="button" className="btn-secondary w-full min-h-11 justify-start text-left" onClick={() => { fit(); setMenuOpen(false); }}>{t("jigsaw.fitBoard")}</button><button type="button" className="btn-secondary mt-1 w-full min-h-11 justify-start text-left" disabled={busy} onClick={onChooseAnother}>{t("jigsaw.chooseAnother")}</button></div>}</div><p aria-live="polite" className="sr-only">{message || t("jigsaw.connected", { n: connectedPieces(state.snapshot), total: state.pieceCount })}</p>{error && <p role="alert" className="absolute inset-x-3 top-3 rounded-xl bg-vs-surface p-3 text-vs-fg">{error}</p>}</section></FocusLayout>;
+  return <FocusLayout className="puzzle-workspace gap-0"><section aria-busy={busy} className="relative min-h-0 flex-1 overflow-hidden bg-vs-surface"><canvas ref={canvasRef} aria-label={t("jigsaw.board")} aria-describedby="jigsaw-board-help" tabIndex={0} className="block h-full w-full touch-none outline-none focus-visible:ring-4 focus-visible:ring-vs-xp" onPointerDown={boardDown} onPointerMove={boardMove} onPointerUp={boardUp} onPointerCancel={boardCancel} onWheel={(event) => { event.preventDefault(); zoom(event.deltaY > 0 ? .9 : 1.1, screenPoint(event)); }} onKeyDown={async (event) => { if (event.key === "0") { event.preventDefault(); fit(); } if ((event.key === "r" || event.key === "R") && state.difficulty === "MASTER") { event.preventDefault(); await rotateSelected(); } if (event.key === "ArrowLeft") { event.preventDefault(); await moveSelectedBy(-.2, 0); } if (event.key === "ArrowRight") { event.preventDefault(); await moveSelectedBy(.2, 0); } if (event.key === "ArrowUp") { event.preventDefault(); await moveSelectedBy(0, -.2); } if (event.key === "ArrowDown") { event.preventDefault(); await moveSelectedBy(0, .2); } }} /><p id="jigsaw-board-help" className="sr-only">{t("jigsaw.boardHelp")}</p>{state.difficulty === "MASTER" && selectedGroup && <button type="button" aria-label={t("jigsaw.rotate")} title={t("jigsaw.rotate")} className="btn-primary absolute bottom-3 left-3 min-h-11 min-w-11 !px-2 shadow-lg" disabled={busy} onClick={rotateSelected}><RotateCw size={18} /></button>}<div className="absolute bottom-3 right-3"><button type="button" className="btn-secondary min-h-11 min-w-11 !px-2 shadow-sm" aria-label={t("jigsaw.boardMenu")} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><Ellipsis size={18} /></button>{menuOpen && <div className="absolute bottom-12 right-0 z-10 w-52 max-w-[calc(100vw-1.5rem-var(--vs-safe-area-left)-var(--vs-safe-area-right))] max-h-[calc(100dvh-var(--header-height,var(--header-default))-4.5rem-var(--vs-safe-area-bottom))] overflow-y-auto rounded-xl border border-vs-line !bg-vs-surface p-1 shadow-lg"><button type="button" className="btn-secondary w-full min-h-11 justify-start text-left" onClick={() => { fit(); setMenuOpen(false); }}>{t("jigsaw.fitBoard")}</button><button type="button" className="btn-secondary mt-1 w-full min-h-11 justify-start text-left" disabled={busy} onClick={onChooseAnother}>{t("jigsaw.chooseAnother")}</button></div>}</div><p aria-live="polite" className="sr-only">{message || t("jigsaw.connected", { n: connectedPieces(state.snapshot), total: state.pieceCount })}</p>{error && <p role="alert" className="absolute inset-x-3 top-3 rounded-xl bg-vs-surface p-3 text-vs-fg">{error}</p>}</section></FocusLayout>;
 }
 
 function Completion({ image, onContinue, t }: { image: string; onContinue: () => void; t: ReturnType<typeof useT> }) { return <FocusLayout className="page-fill max-w-none items-center justify-center gap-5 py-4 text-center"><div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-vs-surface shadow-lg"><NextImage src={image} alt={t("jigsaw.completedImage")} width={1440} height={960} unoptimized priority className="h-auto max-h-[68dvh] w-full object-contain" /></div><div><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.complete")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.completeHint")}</p></div><button type="button" className="btn-primary min-h-12" onClick={onContinue}>{t("jigsaw.continue")}</button></FocusLayout>; }
@@ -177,14 +249,12 @@ function Question({ state, onSubmit, t }: { state: State; onSubmit: (choice: num
 
 function Result({ answer, question, onChooseAnother, onReplay, t }: { answer: Answer | null; question: State["question"]; onChooseAnother: () => void; onReplay: () => void; t: ReturnType<typeof useT> }) {
   const result = answer && "correct" in answer ? answer : null;
-  const text = result ? result.correct ? t(result.streak?.alreadyStudiedToday && !result.streak.dayEarned ? "jigsaw.correctAlready" : "jigsaw.correct") : t("jigsaw.incorrect") : t("jigsaw.answerRecorded");
+  const text = result ? result.correct ? t("jigsaw.correct") : t("jigsaw.incorrect") : t("jigsaw.answerRecorded");
   return <FocusLayout className="page-fill mx-auto max-w-2xl items-center justify-center gap-5 py-4 text-center">
     <h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.complete")}</h1>
     <p role="status" className="text-vs-fg-2">{text}</p>
     {result && !result.correct && question && <p>{t("jigsaw.correctWas", { answer: question.options[result.correctChoice] })}</p>}
-    <StreakContinuationCard />
     <button type="button" className="btn-primary min-h-12" onClick={onChooseAnother}>{t("jigsaw.another")}</button>
     <button type="button" className="btn-secondary min-h-12" onClick={onReplay}>{t("jigsaw.replay")}</button>
-    <Link className="btn-secondary min-h-12" href="/live">{t("wordSearch.backToGames")}</Link>
   </FocusLayout>;
 }

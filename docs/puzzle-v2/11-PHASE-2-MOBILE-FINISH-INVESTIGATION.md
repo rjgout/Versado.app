@@ -69,3 +69,13 @@ resize/resume, pinch/pan, echte snaps en pixelvergelijking langs verbonden
 randen, terug in alle stappen, resultaatteksten, alle difficulty-controls.
 TypeScript na samenhangende TS-wijzigingen; lint/i18n en schone build vóór PR.
 Fysieke iOS/Android/WebView-acceptatie wordt onderscheiden van browseremulatie.
+
+## Aanvullende browserbevinding
+
+De pixeltest ontdekte tijdens uitvoering een leeg canvas bij de dubbele mount
+van de ontwikkelmodus: cleanup annuleerde requestAnimationFrame, maar liet het
+frame-id in de ref staan. schedulePaint zag daardoor blijvend een ingepland
+frame. Cleanup wist nu ook de ref. De test leest de echte canvaspixels en kan
+hierdoor niet groen worden met uitsluitend correcte canvasafmetingen.
+Bij een reeks snaps blijft ook na de eerste verbinding het gevonden anker vast;
+volgende nabijgelegen buren worden ernaartoe getrokken.

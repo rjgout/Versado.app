@@ -48,6 +48,7 @@ try {
     }
     if (!available) throw new Error("Testapp werd niet beschikbaar");
     await run("npx", ["tsx", "tests/puzzle-flow.browser.mjs"], env);
+    await run("npx", ["tsx", "tests/puzzle-mobile.browser.mjs"], env);
   }
 } catch (error) {
   console.error(error); process.exitCode = 1;
