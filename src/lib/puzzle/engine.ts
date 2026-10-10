@@ -58,7 +58,9 @@ export function findSnapConnection(snapshot: PuzzleSnapshot, geometry: PuzzleGeo
     const other = groupFor(snapshot, b); if (!other || other.id === moved.id || other.rotation !== 0) continue;
     const aw = worldOf(geometry, moved, a); const bw = worldOf(geometry, other, b); const pa = geometry.pieces[a]; const pb = geometry.pieces[b];
     const error = Math.hypot((bw.x - aw.x) - (pb.column - pa.column), (bw.y - aw.y) - (pb.row - pa.row));
-    if (error <= PUZZLE_DIFFICULTIES[difficulty].snap && (!candidate || error < candidate.error)) candidate = { a, b, error };
+    // merge behoudt groep a. De stilstaande buur is dus het anker; het
+    // versleepte stuk/de groep valt daarna exact naar zijn canonieke positie.
+    if (error <= PUZZLE_DIFFICULTIES[difficulty].snap && (!candidate || error < candidate.error)) candidate = { a: b, b: a, error };
   }
   return candidate;
 }

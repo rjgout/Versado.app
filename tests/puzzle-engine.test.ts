@@ -108,7 +108,7 @@ test("fit houdt de volledige begrensde werktafel bereikbaar op een klein scherm"
 test("snap kiest alleen de beste geldige buur, onafhankelijk van camera-zoom", () => {
   const geometry = createPuzzleGeometry(6, "snapgroep"); let state = newPuzzleSnapshot(geometry, "EXPERT");
   state = placed(geometry, state, 0, 3, 3); state = placed(geometry, state, 1, 4.06, 3.02);
-  const candidate = findSnapConnection(state, geometry, "EXPERT", "p1"); assert.equal(candidate?.a, 1); assert.equal(candidate?.b, 0); assert.ok(candidate && candidate.error < .07);
+  const candidate = findSnapConnection(state, geometry, "EXPERT", "p1"); assert.equal(candidate?.a, 0); assert.equal(candidate?.b, 1); assert.ok(candidate && candidate.error < .07);
   state = placed(geometry, state, 1, 4.3, 3); assert.equal(findSnapConnection(state, geometry, "EXPERT", "p1"), null);
 });
 
@@ -119,8 +119,8 @@ test("een comfortabele snap richt groepen exact uit en blijft ongeldig buiten de
   assert.ok(candidate, "een aanraakvriendelijke marge accepteert de canonieke buur");
   state = connectGroups(state, geometry, "ADVENTURER", candidate!.a, candidate!.b);
   const joined = groupFor(state, 0)!;
-  assert.deepEqual(worldOf(geometry, joined, 1), { x: joined.x, y: joined.y });
-  assert.deepEqual(worldOf(geometry, joined, 0), { x: joined.x - 1, y: joined.y });
+  assert.deepEqual(worldOf(geometry, joined, 1), { x: 4, y: 3 });
+  assert.deepEqual(worldOf(geometry, joined, 0), { x: 3, y: 3 });
   state = placed(geometry, state, 2, 8, 8);
   assert.equal(findSnapConnection(state, geometry, "ADVENTURER", "p2"), null);
 });

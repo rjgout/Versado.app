@@ -12,6 +12,7 @@ import { fitCamera } from "../src/lib/puzzle/viewport.ts";
 import { dayKeyInZone } from "../src/lib/timeZone.ts";
 import { addDays } from "../src/lib/dates.ts";
 import { jigsawCatalog } from "../src/lib/jigsawGame.ts";
+import { nl } from "../src/lib/i18n/messages/nl.ts";
 import { de } from "../src/lib/i18n/messages/de.ts";
 
 if (!process.env.LEARNING_TEST_DATABASE_URL || process.env.DATABASE_URL !== process.env.LEARNING_TEST_DATABASE_URL) throw new Error("Een expliciete geïsoleerde testdatabase is verplicht");
@@ -45,13 +46,16 @@ try {
   const search = page.getByRole("textbox", { name: "Zoek een afbeelding" });
   const start = page.getByRole("button", { name: "Start de puzzel", exact: true });
   const canvas = page.locator("canvas");
+  const back = page.locator("[data-subpage-back-bar] button");
   async function choose(number) {
     await search.fill(String(number));
     await tiles.filter({ has: page.getByText(`Afbeelding ${number}`, { exact: true }) }).click();
     await page.getByRole("button", { name: "6", exact: true }).click();
     const response = page.waitForResponse((r) => r.url().endsWith("/api/jigsaw-v2") && r.request().postDataJSON()?.action === "start");
     await start.click(); const state = await (await response).json();
-    await canvas.waitFor(); return state;
+    if (state.status === "ACTIVE") await canvas.waitFor();
+    else await page.getByRole("img", { name: "Voltooide legpuzzel" }).waitFor();
+    return state;
   }
   await page.goto(`${base}/jigsaw`); await search.waitFor();
   assert.equal(await tiles.count(), 24); assert.equal(await start.isDisabled(), true);
@@ -75,6 +79,9 @@ try {
   await search.fill("216"); assert.equal(await tiles.count(), 1); assert.equal(await start.isDisabled(), true);
   let state = await choose(216); assert.equal(state.image, jigsawCatalog[215].url);
   const firstId = state.id;
+  await back.click(); await search.waitFor();
+  assert.equal(new URL(page.url()).pathname, "/jigsaw");
+  state = await choose(216); assert.equal(state.id, firstId, "terug vanuit bord bewaart voortgang");
   await page.getByRole("button", { name: "Puzzelbordmenu" }).click();
   await page.getByRole("button", { name: "Andere puzzel kiezen" }).click();
   await search.waitFor(); const different = await choose(30);
@@ -92,7 +99,7 @@ try {
   }
   async function finalDrag(state, geometry) {
     const bounds = await canvas.boundingBox(); assert.ok(bounds);
-    // Image.onload doet fit; wacht op de echte geladen bordafbeelding en expliciet fit.
+    // Alleen de expliciete menuactie past de hele werktafel in beeld.
     await page.getByRole("button", { name: "Puzzelbordmenu" }).click();
     await page.getByRole("button", { name: "Alles passend tonen" }).click();
     const camera = fitCamera({ width: bounds.width, height: bounds.height }, puzzleWorktable(geometry).bounds);
@@ -113,6 +120,12 @@ try {
   await finalDrag(prepared.state, prepared.geometry); assert.equal(lostCompletion, true);
   await page.unroute("**/api/jigsaw-v2");
   await page.reload(); await page.getByRole("img", { name: "Voltooide legpuzzel" }).waitFor();
+  await back.click(); await search.waitFor();
+  state = await choose(216);
+  await page.getByRole("img", { name: "Voltooide legpuzzel" }).waitFor();
+  await page.getByRole("button", { name: "Verder", exact: true }).click();
+  await page.getByRole("heading", { name: "Nog één vraag" }).waitFor();
+  await back.click(); await page.getByRole("heading", { name: "Puzzel compleet!" }).waitFor();
   await page.getByRole("button", { name: "Verder", exact: true }).click();
   await page.getByRole("heading", { name: "Nog één vraag" }).waitFor();
   await page.reload(); await page.getByRole("heading", { name: "Nog één vraag" }).waitFor();
@@ -136,18 +149,22 @@ try {
   await page.getByRole("button", { name: "Dezelfde puzzel opnieuw spelen" }).click();
   const replay = await (await replayResponse).json(); assert.notEqual(replay.id, firstId); assert.equal(replay.status, "ACTIVE");
   assert.equal(replay.image, state.image); assert.equal(replay.snapshot.connections.length, 0);
+  await back.click(); await search.waitFor();
+  state = await choose(216); assert.equal(state.id, replay.id, "terug vanuit replay hervat nieuwe poging");
   prepared = await prepareFinalDrag(replay); await finalDrag(prepared.state, prepared.geometry);
   // Historisch exact dezelfde vraag opnieuw: kies opnieuw in de nieuwe sessie.
   await prisma.puzzleSession.update({ where: { id: replay.id }, data: { questionId: firstRow.questionId, optionOrder: firstRow.optionOrder } });
   await page.reload(); await page.getByRole("button", { name: "Verder", exact: true }).click();
   await options.nth(correct).click(); await page.getByRole("button", { name: "Antwoord bevestigen" }).click();
   await page.getByRole("button", { name: "Nog een puzzel", exact: true }).waitFor();
-  assert.ok((await page.getByRole("status").allTextContents()).some((text) => text.includes("Je reeks stond vandaag al goed")));
+  assert.ok((await page.getByRole("status").allTextContents()).includes(nl.jigsaw.correct));
+  assert.equal(await page.getByText(/Je reeks stond vandaag al goed/).count(), 0);
   assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).currentStreak, 5);
   assert.equal(await prisma.streakActivity.count({ where: { userId: user.id, key: { startsWith: "jigsaw:v2:" } } }), 2);
   mkdirSync("/tmp/versado-puzzle-browser", { recursive: true });
   await page.screenshot({ path: "/tmp/versado-puzzle-browser/result.png", fullPage: true });
-  await page.getByRole("link", { name: "Terug naar spellen" }).click(); await page.waitForURL("**/live");
+  await back.click(); await search.waitFor();
+  assert.equal(new URL(page.url()).pathname, "/jigsaw", "terug vanuit resultaat blijft in puzzelkeuze");
   await page.goto(`${base}/jigsaw`); await search.waitFor(); assert.equal(await canvas.count(), 0, "afgeronde lokale sessie opent de kiezer");
   await page.setViewportSize({ width: 390, height: 844 });
   await choose(31); await canvas.waitFor();
