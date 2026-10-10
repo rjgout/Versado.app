@@ -25,31 +25,36 @@ records bevatten variantregels, geometrieversie en hinttellers voor fase 4.
 
 ## UX en toegankelijkheid
 
-De mobiele herstelronde houdt het speelveld, de viewportbediening en de
-stukjesbak bewust los van elkaar. De canvascontainer reserveert vanaf rendering
-minimaal 48svh en de `fit`-camera centreert de puzzel meteen. Bovenaan staan
-alleen terug, context/voortgang en voorbeeld; onder het veld staan compacte
-icoonknoppen voor zoom/fit en niet-afbrekende filterchips; daaronder staat een
-afzonderlijke horizontale stukjesbak met grote afbeeldingsstukken. Er zijn geen
-pijlen of dominante technische stuklabels meer.
+De verplichte engine- en UX-correctie heeft de permanente stukjesbak verwijderd.
+Alle stukken liggen nu eenmaal, direct en zonder duplicaat op een begrensde
+werktafel. De centrale puzzelzone is zichtbaar maar geen kunstmatige barrière;
+eromheen liggen losse stukken in deterministische, niet-overlappende posities.
+De tafel en de camera gebruiken dezelfde world-coördinaten, zodat `fit` altijd
+alle relevante stukken bevat en pan niet naar lege wereldruimte verdwijnt.
+
+Een groepsfusie behoudt nu het bestaande groepsanker in plaats van de leden te
+sorteren en daarna een andere ankerbetekenis aan dezelfde coördinaten te geven.
+Daardoor renderen, hitdetectie, opslag en servervalidatie dezelfde groepsdefinitie.
+De renderer draait een hele groep rond dat anker, in plaats van losse leden
+onafhankelijk te draaien. Canvasresolutie wordt alleen bij echte resize vernieuwd
+en tekenen wordt per animation frame samengevoegd; dit voorkomt het eerdere
+flikkeren tijdens drag.
 
 De canvas gebruikt Pointer Events en `touch-action: none`: één aanraking op een
-stuk sleept de groep, één aanraking op lege ruimte pant het veld en twee
-aanrakingen schakelen gecontroleerd naar pinch-to-zoom. Bij het loslaten van
-een vinger blijft de andere vinger een panbeweging; een drag wordt dan niet
-alsnog opgeslagen. Hetzelfde wereldcoördinatenmodel wordt voor muiswiel,
-trackpad en de plus/min/fit-knoppen gebruikt. Een stuk kan rechtstreeks vanuit
-de bak naar het veld worden gesleept. De canvas is focusbaar; geselecteerde
-stukken hebben zichtbare feedback, Master kan via knop of `R` draaien en
-hints/acties geven live feedback. Reduced motion veroorzaakt geen automatische
-animatielus.
+stuk sleept de hele groep, één aanraking op lege ruimte pant het veld en twee
+aanrakingen annuleren een onvoltooide drag gecontroleerd en schakelen naar
+pinch-to-zoom. Hetzelfde wereldcoördinatenmodel wordt voor muiswiel, trackpad
+en plus/min/fit gebruikt. De canvas is focusbaar; Master heeft een zichtbare
+draaiknop (en `R`), en hints/acties geven live feedback. Reduced motion
+veroorzaakt geen automatische animatielus.
 
 ## Validatie
 
 Uitgevoerd in de herstelronde: Prisma generate, gerichte ESLint-controle en
-`npm run test:puzzle` (17 tests, groen; bestaande vraag/reeks- en nieuwe
-geometrietests). Er is geen echt iOS- of Android-apparaat beschikbaar; mobiele
-FPS, pinch en safe-area-gedrag zijn dus niet als apparaatmeting geclaimd.
+`npm run test:puzzle` (22 tests, groen; bestaande vraag/reeks- en nieuwe
+geometrie-, groeps-, worktable-, camera- en snaptests). Er is geen echt iOS- of
+Android-apparaat beschikbaar; mobiele FPS, pinch en safe-area-gedrag zijn dus
+niet als apparaatmeting geclaimd.
 
 ## Beperkingen/voor fase 3
 

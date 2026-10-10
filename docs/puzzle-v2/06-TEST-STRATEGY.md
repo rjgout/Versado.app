@@ -1,6 +1,12 @@
 # Legpuzzel 2.0 — teststrategie
 
-Automatiseer met bestaande `node:test`: deterministische geometry/seed/version, complementen, rand/hoek, overlap, rotatie, group merge, foute snap, completion en snapshot roundtrip. Database-integratie test auth, idempotency, optimistic-version conflict, autosave, vraag/reeks, persoonlijke tijdzonedag, records en Friendship-filter.
+Automatiseer met bestaande `node:test`: deterministische geometry/seed/version,
+complementen, rand/hoek, beginopstelling zonder overlap, eindige werktafel,
+camera-fit/clamping, rotatie, group merge met stabiel anker, verplaatsen via
+ieder groepslid, verplaatsen na pan/zoom, foute en geldige snap, completion en
+snapshot roundtrip. Database-integratie test auth, idempotency,
+optimistic-version conflict, autosave, vraag/reeks, persoonlijke tijdzonedag,
+records en Friendship-filter.
 
 Sockettests gebruiken twee clients en twee serverprocessen met Redis: gelijktijdige commits, TTL/disconnect, reconnectsnapshot, async hervatting, limiet vier, uitnodiging, niet-lid en dubbele actionId. Competitietests: gelijke variant/hash, uitsluitend servertijd, achtergrond/verlies, vraag, forfeit en tie-break. Migratietests: bestaand manifest, historische `StreakActivity`, legacy-tokenafronding.
 
