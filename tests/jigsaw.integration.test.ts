@@ -123,12 +123,8 @@ test("6 en 48 stukjes leveren dezelfde reeksactiviteit op", { skip }, async () =
   }
 });
 
-test("een v2-sessie sluit na een herhaald antwoord af en een historische vraag blokkeert een nieuwe poging niet", { skip }, async (t) => {
-  const tables = await L.db.$queryRaw<Array<{ exists: boolean }>>`SELECT to_regclass('public."PuzzleDefinition"') IS NOT NULL AS "exists"`;
-  // De gedeelde testdatabase kan bewust nog vóór de additive fase-2-migratie
-  // staan. Sla uitsluitend deze v2-integratietest dan over; de oude
-  // jigsawintegraties blijven een geldige baseline.
-  if (!tables[0]?.exists) { t.skip("Puzzle v2-migratie ontbreekt in de testdatabase."); return; }
+test("een v2-sessie sluit na een herhaald antwoord af en een historische vraag blokkeert een nieuwe poging niet", { skip }, async () => {
+  await L.db.puzzleSession.count(); // Ontbrekende V2-migraties falen de integratie.
   const u = await account();
   let state = await L.solo.startSoloPuzzle(u.id, 0, 6, "ADVENTURER", "nl");
   const geometry = L.geometry.createPuzzleGeometry(6, state.seed, state.geometryVersion);
@@ -150,9 +146,9 @@ test("een v2-sessie sluit na een herhaald antwoord af en een historische vraag b
   const question = L.bank.jigsawQuestionsForStory(state.story).find((item) => item.text.nl === state.question!.text)!;
   const right = state.question!.options.indexOf(question.options.nl[0]);
   const firstAnswer = await L.solo.answerSoloPuzzle(u.id, state.id, right); if (!firstAnswer) throw new Error("Het eerste antwoord werd onverwacht afgewezen.");
-  assert.equal(firstAnswer.alreadyAnswered, false);
+  assert.ok("correct" in firstAnswer && firstAnswer.correct);
   const repeatedAnswer = await L.solo.answerSoloPuzzle(u.id, state.id, right); if (!repeatedAnswer) throw new Error("Het herhaalde antwoord werd onverwacht afgewezen.");
-  assert.equal(repeatedAnswer.alreadyAnswered, true, "een herhaalde aanvraag laat de sessie niet vastlopen");
+  assert.deepEqual(repeatedAnswer, firstAnswer, "een herhaalde aanvraag herstelt de oorspronkelijke uitslag");
   const replay = await L.solo.startSoloPuzzle(u.id, 0, 6, "ADVENTURER", "nl");
   assert.notEqual(replay.id, state.id); assert.equal(replay.status, "ACTIVE", "historische beantwoording blokkeert een nieuwe sessie niet");
 });

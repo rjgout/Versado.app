@@ -1140,6 +1140,12 @@ export const nl = {
     read: "Lees 1 Nephi 18",
   },
   jigsaw: {
+    changed: "Je puzzel is veranderd. De opgeslagen voortgang is hersteld; probeer opnieuw.",
+    replay: "Dezelfde puzzel opnieuw spelen",
+    discoverer: "Ontdekker",
+    adventurer: "Avonturier",
+    expert: "Expert",
+    master: "Meester",
     title: "Legpuzzel",
     intro: "Puzzel met de illustraties uit de kinderverhalen van het Boek van Mormon en beantwoord daarna één vraag over het verhaal.",
     chooseImage: "Kies een afbeelding",

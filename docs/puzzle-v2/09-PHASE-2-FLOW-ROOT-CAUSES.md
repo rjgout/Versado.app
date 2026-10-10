@@ -76,3 +76,18 @@ bedienen. De bestaande 25 engine/catalogus/legacy-tests zijn groen op baseline,
 maar bewijzen bovenstaande gebruikersscenario's niet. De precieze live-events
 zijn zonder productietrace niet bekend; dit rapport onderscheidt codefouten van
 een niet-waargenomen productiegebeurtenis.
+
+## Aanvullend bewijs uit de verse integratiedatabase
+
+De uitgebreide test met vier gelijktijdige starts op nog niet geïmporteerde
+content faalde daadwerkelijk met `PuzzleDefinition_contentKey_key`: Prisma's
+lege-update-upsert is hier geen betrouwbare gelijktijdige create-claim.
+Dezelfde constructie bestaat voor PuzzleVariant. Deze oorzaak wordt aanvullend
+vastgelegd vóór de factorycorrectie: gebruik createMany/ON CONFLICT met behoud
+van de unieke constraints, gevolgd door uitlezen van de canonieke rij.
+
+Ook het bestaande Int-tijdrecord is een aantoonbare afhankelijkheid van de
+antwoordflow: milliseconden passen na 24,8 dagen niet meer in PostgreSQL Int.
+Een 30 dagen oude hervatte sessie moet mogen afronden. Verbreding naar double
+precision bewaart de bestaande waarden exact en voorkomt afkappen of overslaan
+van records; het verandert geen record-, reeks- of beloningsregels.

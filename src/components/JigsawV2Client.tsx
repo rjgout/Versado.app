@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import NextImage from "next/image";
+import Link from "next/link";
 import { Ellipsis, RotateCw } from "lucide-react";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { useT } from "@/components/I18nProvider";
@@ -12,8 +13,9 @@ import { constrainCamera as constrainViewport, fitCamera, screenToWorld, zoomCam
 import { PUZZLE_DIFFICULTIES, type PuzzleDifficulty, type PuzzlePieceCount, type PuzzleSnapshot } from "@/lib/puzzle/types";
 import { filterPuzzleCatalog, puzzleCatalogPage } from "@/lib/puzzle/catalog";
 import type { JigsawAnswerResult } from "@/lib/jigsaw";
+import { StreakContinuationCard } from "@/components/StreakContinuation";
 
-type State = { id: string; version: number; status: string; image: string; seed: string; geometryVersion: number; pieceCount: PuzzlePieceCount; difficulty: PuzzleDifficulty; snapshot: PuzzleSnapshot; question?: { text: string; options: string[] } };
+type State = { id: string; version: number; status: string; image: string; seed: string; geometryVersion: number; pieceCount: PuzzlePieceCount; difficulty: PuzzleDifficulty; snapshot: PuzzleSnapshot; question?: { text: string; options: string[] }; answer?: Answer };
 type Answer = JigsawAnswerResult | { alreadyAnswered: true };
 type Point = { x: number; y: number };
 type Drag = { pointer: number; groupId: string; offset: Point };
@@ -24,13 +26,25 @@ type Stage = "BOARD" | "COMPLETE" | "QUESTION" | "RESULT";
 const KEY = "versado:jigsaw-v2-session";
 const PAGE_SIZE = 24;
 const difficulties: PuzzleDifficulty[] = ["DISCOVERER", "ADVENTURER", "EXPERT", "MASTER"];
-const labels: Record<PuzzleDifficulty, string> = { DISCOVERER: "Ontdekker", ADVENTURER: "Avonturier", EXPERT: "Expert", MASTER: "Meester" };
+const levelKeys = { DISCOVERER: "jigsaw.discoverer", ADVENTURER: "jigsaw.adventurer", EXPERT: "jigsaw.expert", MASTER: "jigsaw.master" } as const;
+
+class RequestError extends Error {
+  constructor(message: string, public status: number) { super(message); }
+}
 
 async function request(body: object) {
-  const response = await fetch("/api/jigsaw-v2", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  const data: unknown = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(typeof data === "object" && data && "error" in data && typeof data.error === "string" ? data.error : "Dat lukte niet.");
-  return data;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const response = await fetch("/api/jigsaw-v2", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok || !data) throw new RequestError(typeof data === "object" && data && "error" in data && typeof data.error === "string" ? data.error : "", response.status);
+      return data;
+    } catch (cause) {
+      // Dezelfde body/actionId opnieuw: verloren responses zijn veilig herhaalbaar.
+      if (attempt === 0 && (!(cause instanceof RequestError) || cause.status >= 500)) continue;
+      throw cause;
+    }
+  }
 }
 
 function remember(id: string | null) { try { if (id) localStorage.setItem(KEY, id); else localStorage.removeItem(KEY); } catch { /* opslag kan bewust uitstaan */ } }
@@ -39,46 +53,63 @@ function distance(one: Point, two: Point) { return Math.hypot(one.x - two.x, one
 export default function JigsawV2Client({ images }: { images: Array<{ url: string; story: number }> }) {
   const t = useT();
   const [state, setState] = useState<State | null>(null);
-  const [imageIndex, setImageIndex] = useState(0);
+  const [imageId, setImageId] = useState<string | null>(null);
   const [pieceCount, setPieceCount] = useState<PuzzlePieceCount>(24);
   const [difficulty, setDifficulty] = useState<PuzzleDifficulty>("ADVENTURER");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(0);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const starting = useRef(false);
 
   useEffect(() => {
     let gone = false; let id: string | null = null;
     try { id = localStorage.getItem(KEY); } catch { /* zie remember */ }
-    if (id) request({ action: "resume", sessionId: id }).then((value) => { if (!gone && value) setState(value as State); }).catch(() => remember(null));
+    if (id) request({ action: "resume", sessionId: id }).then((value) => {
+      if (gone || !value) return;
+      const next = value as State;
+      if (next.status === "ANSWERED" || next.status === "ABANDONED") { remember(null); setImageId(next.image); setPieceCount(next.pieceCount); setDifficulty(next.difficulty); }
+      else setState(next);
+    }).catch((cause) => {
+      if (gone) return;
+      if (cause instanceof RequestError && (cause.status === 404 || cause.status === 401)) remember(null);
+      setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed"));
+    }).finally(() => { if (!gone) setLoading(false); });
+    else queueMicrotask(() => { if (!gone) setLoading(false); });
     return () => { gone = true; };
-  }, []);
+  }, [t]);
 
   const catalog = useMemo(() => images.map((image, index) => ({ src: image.url, index, label: t("jigsaw.image", { n: index + 1 }), category: t("jigsaw.story", { n: image.story }) })), [images, t]);
   const filtered = useMemo(() => filterPuzzleCatalog(catalog, query, (image) => `${image.label} ${image.category} ${image.index + 1}`), [catalog, query]);
   const { pages, currentPage: activePage, items: visible } = puzzleCatalogPage(filtered, page, PAGE_SIZE);
+  const selectedImage = visible.find((image) => image.src === imageId);
 
-  async function start() {
-    setError("");
-    try { const next = await request({ action: "start", imageIndex, pieceCount, difficulty }) as State; remember(next.id); setState(next); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : "Dat lukte niet."); }
+  async function start(previous?: State) {
+    if (starting.current || (!previous && !selectedImage)) return;
+    starting.current = true; setLoading(true); setError("");
+    try { const next = await request({ action: "start", imageId: previous?.image ?? selectedImage!.src, pieceCount: previous?.pieceCount ?? pieceCount, difficulty: previous?.difficulty ?? difficulty }) as State; remember(next.id); setState(next); }
+    catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed")); }
+    finally { starting.current = false; setLoading(false); }
   }
 
-  if (state) return <Puzzle initial={state} setOuter={setState} onChooseAnother={() => { remember(null); setState(null); }} />;
+  if (state) return <Puzzle key={state.id} initial={state} setOuter={setState} onReplay={() => { const previous = state; setState(null); void start(previous); }} onChooseAnother={() => { remember(null); setState(null); }} />;
+  if (loading) return <FocusLayout><p role="status">{t("common.loading")}</p></FocusLayout>;
   return <FocusLayout className="max-w-5xl gap-5">
     <header><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.title")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.intro")}</p></header>
     <section aria-labelledby="jigsaw-image-choice"><div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="jigsaw-image-choice" className="font-bold">{t("jigsaw.chooseImage")}</h2><p className="text-sm text-vs-fg-2">{t("jigsaw.catalogCount", { n: images.length })}</p></div><label className="min-w-[min(100%,16rem)] text-sm font-semibold">{t("jigsaw.searchImages")}<input value={query} onChange={(event) => { setQuery(event.target.value); setPage(0); }} className="input mt-1 w-full" /></label></div>
-      {visible.length ? <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">{visible.map(({ src, index, label, category }) => <button key={src} type="button" onClick={() => setImageIndex(index)} aria-pressed={imageIndex === index} className={`min-w-0 overflow-hidden rounded-xl border-2 text-left ${imageIndex === index ? "border-vs-xp" : "border-vs-line"}`}><NextImage src={src} alt="" width={240} height={180} unoptimized loading="lazy" className="aspect-[4/3] w-full object-cover" /><span className="block vs-wrap px-2 pt-2 text-sm font-semibold">{label}</span><span className="block vs-wrap px-2 pb-2 text-xs text-vs-fg-2">{category}</span></button>)}</div> : <p className="mt-3 text-vs-fg-2">{t("jigsaw.noImages")}</p>}
+      {visible.length ? <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">{visible.map(({ src, label, category }) => <button key={src} type="button" onClick={() => setImageId(src)} aria-pressed={imageId === src} className={`min-w-0 overflow-hidden rounded-xl border-2 text-left ${imageId === src ? "border-vs-xp" : "border-vs-line"}`}><NextImage src={src} alt="" width={240} height={180} unoptimized loading="lazy" className="aspect-[4/3] w-full object-cover" /><span className="block vs-wrap px-2 pt-2 text-sm font-semibold">{label}</span><span className="block vs-wrap px-2 pb-2 text-xs text-vs-fg-2">{category}</span></button>)}</div> : <p className="mt-3 text-vs-fg-2">{t("jigsaw.noImages")}</p>}
       {pages > 1 && <nav className="mt-3 flex flex-wrap items-center justify-between gap-2" aria-label={t("jigsaw.imagePages")}><button type="button" className="btn-secondary min-h-11" disabled={activePage === 0} onClick={() => setPage(activePage - 1)}>{t("jigsaw.previous")}</button><span className="text-sm font-semibold">{t("jigsaw.page", { n: activePage + 1, total: pages })}</span><button type="button" className="btn-secondary min-h-11" disabled={activePage + 1 >= pages} onClick={() => setPage(activePage + 1)}>{t("jigsaw.next")}</button></nav>}
     </section>
     <section><h2 className="font-bold">{t("jigsaw.pieces", { n: pieceCount })}</h2><div className="mt-3 flex flex-wrap gap-2">{[6, 12, 24, 48, 96].map((count) => <button type="button" className={`btn-secondary min-h-11 ${count === pieceCount ? "!border-vs-xp !bg-vs-xp/15" : ""}`} onClick={() => setPieceCount(count as PuzzlePieceCount)} key={count}>{count}</button>)}</div></section>
-    <section><h2 className="font-bold">{t("jigsaw.difficulty")}</h2><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{difficulties.map((level) => <button type="button" className={`btn-secondary min-h-11 ${difficulty === level ? "!border-vs-xp !bg-vs-xp/15" : ""}`} aria-pressed={difficulty === level} onClick={() => setDifficulty(level)} key={level}>{labels[level]}</button>)}</div></section>
-    <button type="button" className="btn-primary min-h-12 self-start" onClick={start}>{t("jigsaw.start")}</button>{error && <p role="alert">{error}</p>}
+    <section><h2 className="font-bold">{t("jigsaw.difficulty")}</h2><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{difficulties.map((level) => <button type="button" className={`btn-secondary min-h-11 ${difficulty === level ? "!border-vs-xp !bg-vs-xp/15" : ""}`} aria-pressed={difficulty === level} onClick={() => setDifficulty(level)} key={level}>{t(levelKeys[level])}</button>)}</div></section>
+    <p role="status">{selectedImage ? selectedImage.label : t("jigsaw.chooseImage")}</p><button type="button" className="btn-primary min-h-12 self-start" disabled={!selectedImage || loading} onClick={() => void start()}>{t("jigsaw.start")}</button>{error && <p role="alert">{error}</p>}
   </FocusLayout>;
 }
 
-function Puzzle({ initial, setOuter, onChooseAnother }: { initial: State; setOuter: (state: State | null) => void; onChooseAnother: () => void }) {
-  const t = useT(); const [state, setState] = useState(initial); const [stage, setStage] = useState<Stage>(initial.status === "ANSWERED" ? "RESULT" : initial.status === "COMPLETED" ? "COMPLETE" : "BOARD");
-  const shown = useRef(initial); const saved = useRef(initial); const [selected, setSelected] = useState<number | null>(null); const [message, setMessage] = useState(""); const [answer, setAnswer] = useState<Answer | null>(null); const [menuOpen, setMenuOpen] = useState(false);
+function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: State; setOuter: (state: State | null) => void; onChooseAnother: () => void; onReplay: () => void }) {
+  const t = useT(); const [state, setState] = useState(initial); const [stage, setStage] = useState<Stage>(() => { if (initial.status === "ANSWERED") return "RESULT"; if (initial.status !== "COMPLETED") return "BOARD"; try { if (localStorage.getItem(`${KEY}:question`) === initial.id) return "QUESTION"; } catch {} return "COMPLETE"; });
+  const shown = useRef(initial); const saved = useRef(initial); const [selected, setSelected] = useState<number | null>(null); const [message, setMessage] = useState(""); const [answer, setAnswer] = useState<Answer | null>(initial.answer ?? null); const [menuOpen, setMenuOpen] = useState(false);
+  const pending = useRef(false); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null); const image = useRef<HTMLImageElement | null>(null); const camera = useRef<PuzzleCamera>({ scale: 60, x: 0, y: 0 }); const frame = useRef<number | null>(null);
   const pointers = useRef(new Map<number, Point>()); const drag = useRef<Drag | null>(null); const pan = useRef<Pan | null>(null); const pinch = useRef<Pinch | null>(null);
   const geometry = createPuzzleGeometry(state.pieceCount, state.seed, state.geometryVersion); const table = puzzleWorktable(geometry); const policy = PUZZLE_DIFFICULTIES[state.difficulty];
@@ -98,6 +129,17 @@ function Puzzle({ initial, setOuter, onChooseAnother }: { initial: State; setOut
   }
   function update(next: State) { saved.current = next; shown.current = next; setState(next); setOuter(next); remember(next.id); if (next.status === "COMPLETED") setStage("COMPLETE"); if (next.status === "ANSWERED") setStage("RESULT"); schedulePaint(); }
   async function action(operation: object) { const current = saved.current; const next = await request({ action: "act", sessionId: current.id, version: current.version, actionId: crypto.randomUUID(), operation }) as State; update(next); return next; }
+  async function runBoard(work: () => Promise<void>) {
+    if (pending.current || saved.current.status !== "ACTIVE") return;
+    pending.current = true; setBusy(true); setError("");
+    try { await work(); }
+    catch (cause) {
+      setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed"));
+      // Ook na een verloren completion-response de autoritatieve fase herstellen.
+      try { update(await request({ action: "resume", sessionId: saved.current.id }) as State); }
+      catch { shown.current = saved.current; setState(saved.current); schedulePaint(); }
+    } finally { pending.current = false; setBusy(false); }
+  }
   function fit() { const canvas = canvasRef.current; if (!canvas) return; camera.current = fitCamera({ width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds); schedulePaint(); }
   function screenPoint(event: { clientX: number; clientY: number }) { const rect = canvasRef.current?.getBoundingClientRect(); return rect ? { x: event.clientX - rect.left, y: event.clientY - rect.top } : { x: 0, y: 0 }; }
   function worldPoint(point: Point) { return screenToWorld(camera.current, point); }
@@ -107,29 +149,42 @@ function Puzzle({ initial, setOuter, onChooseAnother }: { initial: State; setOut
   function updatePinch() { const active = pinch.current; const fingers = [...pointers.current.values()]; if (!active || fingers.length < 2) return; const center = { x: (fingers[0].x + fingers[1].x) / 2, y: (fingers[0].y + fingers[1].y) / 2 }; camera.current.scale = Math.max(12, Math.min(240, active.scale * distance(fingers[0], fingers[1]) / active.distance)); camera.current.x = center.x - active.world.x * camera.current.scale; camera.current.y = center.y - active.world.y * camera.current.scale; constrainCamera(); schedulePaint(); }
   async function snapAfterMove(next: State, groupId: string) { let current = next; for (let count = 0; count < state.pieceCount; count++) { const connection = findSnapConnection(current.snapshot, geometry, current.difficulty, groupId); if (!connection) break; const joined = await action({ kind: "connect", a: connection.a, b: connection.b }); if (joined.version === current.version) break; current = joined; setMessage(t("jigsaw.piecesConnected")); } }
   async function finishDrag(active: Drag, point: Point) { const next = await action({ kind: "move", groupId: active.groupId, x: point.x - active.offset.x, y: point.y - active.offset.y }); await snapAfterMove(next, active.groupId); }
-  function boardDown(event: ReactPointerEvent<HTMLCanvasElement>) { const point = screenPoint(event); pointers.current.set(event.pointerId, point); event.currentTarget.setPointerCapture(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } const hit = picked(worldPoint(point)); if (hit) { setSelected(hit.id); drag.current = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: worldPoint(point).x - hit.group.x, y: worldPoint(point).y - hit.group.y } }; } else { setSelected(null); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; } }
+  function boardDown(event: ReactPointerEvent<HTMLCanvasElement>) { if (pending.current) return; const point = screenPoint(event); pointers.current.set(event.pointerId, point); event.currentTarget.setPointerCapture(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } const hit = picked(worldPoint(point)); if (hit) { setSelected(hit.id); drag.current = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: worldPoint(point).x - hit.group.x, y: worldPoint(point).y - hit.group.y } }; } else { setSelected(null); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; } }
   function boardMove(event: ReactPointerEvent<HTMLCanvasElement>) { if (!pointers.current.has(event.pointerId)) return; const point = screenPoint(event); pointers.current.set(event.pointerId, point); if (pointers.current.size >= 2) { updatePinch(); return; } if (drag.current?.pointer === event.pointerId) { const world = worldPoint(point); transientMove(drag.current.groupId, world.x - drag.current.offset.x, world.y - drag.current.offset.y); } else if (pan.current?.pointer === event.pointerId) { camera.current.x = pan.current.camera.x + point.x - pan.current.point.x; camera.current.y = pan.current.camera.y + point.y - pan.current.point.y; constrainCamera(); schedulePaint(); } }
-  async function boardUp(event: ReactPointerEvent<HTMLCanvasElement>) { const point = screenPoint(event); const activeDrag = drag.current; pointers.current.delete(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } if (pinch.current) { pinch.current = null; const remaining = [...pointers.current.entries()][0]; if (remaining) pan.current = { pointer: remaining[0], point: remaining[1], camera: { ...camera.current } }; return; } if (activeDrag?.pointer === event.pointerId) { drag.current = null; await finishDrag(activeDrag, worldPoint(point)); } if (pan.current?.pointer === event.pointerId) pan.current = null; }
+  async function boardUp(event: ReactPointerEvent<HTMLCanvasElement>) { const point = screenPoint(event); const activeDrag = drag.current; pointers.current.delete(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } if (pinch.current) { pinch.current = null; const remaining = [...pointers.current.entries()][0]; if (remaining) pan.current = { pointer: remaining[0], point: remaining[1], camera: { ...camera.current } }; return; } if (activeDrag?.pointer === event.pointerId) { drag.current = null; await runBoard(() => finishDrag(activeDrag, worldPoint(point))); } if (pan.current?.pointer === event.pointerId) pan.current = null; }
   function boardCancel(event: ReactPointerEvent<HTMLCanvasElement>) { pointers.current.delete(event.pointerId); drag.current = null; pan.current = null; pinch.current = null; shown.current = saved.current; setState(saved.current); schedulePaint(); }
   function zoom(factor: number, around?: Point) { const canvas = canvasRef.current; if (!canvas) return; const center = around ?? { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 }; camera.current = zoomCamera(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds, factor, center); schedulePaint(); }
-  async function rotateSelected() { if (selected === null || state.difficulty !== "MASTER") return; const group = groupFor(saved.current.snapshot, selected); if (group) await action({ kind: "rotate", groupId: group.id }); }
-  async function moveSelectedBy(dx: number, dy: number) { if (selected === null) return; const group = groupFor(saved.current.snapshot, selected); if (group) await action({ kind: "move", groupId: group.id, x: group.x + dx, y: group.y + dy }); }
-  async function submit(choice: number) { const result = await request({ action: "answer", sessionId: saved.current.id, choice }) as Answer; setAnswer(result); remember(null); setStage("RESULT"); }
+  async function rotateSelected() { if (selected === null || state.difficulty !== "MASTER") return; await runBoard(async () => { const group = groupFor(saved.current.snapshot, selected); if (group) await action({ kind: "rotate", groupId: group.id }); }); }
+  async function moveSelectedBy(dx: number, dy: number) { if (selected === null) return; await runBoard(async () => { const group = groupFor(saved.current.snapshot, selected); if (group) { const next = await action({ kind: "move", groupId: group.id, x: group.x + dx, y: group.y + dy }); await snapAfterMove(next, group.id); } }); }
+  async function submit(choice: number) { const result = await request({ action: "answer", sessionId: saved.current.id, choice }) as Answer; setAnswer(result); const next = { ...saved.current, status: "ANSWERED", answer: result }; saved.current = next; setState(next); setOuter(next); remember(null); setStage("RESULT"); }
+  function continueToQuestion() { try { localStorage.setItem(`${KEY}:question`, state.id); } catch {} setStage("QUESTION"); }
 
   useEffect(() => { const picture = new Image(); picture.onload = () => { image.current = picture; fit(); }; picture.src = initial.image; const canvas = canvasRef.current; const observer = canvas ? new ResizeObserver(fit) : null; if (observer && canvas) observer.observe(canvas); return () => { observer?.disconnect(); if (frame.current !== null) cancelAnimationFrame(frame.current); }; // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => { schedulePaint(); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, selected]);
 
-  if (stage === "COMPLETE") return <Completion image={state.image} onContinue={() => setStage("QUESTION")} t={t} />;
+  if (stage === "COMPLETE") return <Completion image={state.image} onContinue={continueToQuestion} t={t} />;
   if (stage === "QUESTION") return <Question state={state} onSubmit={submit} t={t} />;
-  if (stage === "RESULT") return <Result answer={answer} onChooseAnother={onChooseAnother} t={t} />;
+  if (stage === "RESULT") return <Result answer={answer} question={state.question} onChooseAnother={onChooseAnother} onReplay={onReplay} t={t} />;
   const selectedGroup = selected === null ? null : groupFor(state.snapshot, selected);
-  return <FocusLayout className="max-w-none gap-0"><section className="page-fill relative min-h-0 overflow-hidden rounded-2xl border border-vs-line bg-vs-surface shadow-sm"><canvas ref={canvasRef} aria-label={t("jigsaw.board")} aria-describedby="jigsaw-board-help" tabIndex={0} className="h-full min-h-[calc(100dvh-var(--main-pad-top)-var(--main-pad-bottom))] w-full touch-none outline-none focus-visible:ring-4 focus-visible:ring-vs-xp" onPointerDown={boardDown} onPointerMove={boardMove} onPointerUp={boardUp} onPointerCancel={boardCancel} onWheel={(event) => { event.preventDefault(); zoom(event.deltaY > 0 ? .9 : 1.1, screenPoint(event)); }} onKeyDown={async (event) => { if (event.key === "0") { event.preventDefault(); fit(); } if ((event.key === "r" || event.key === "R") && state.difficulty === "MASTER") { event.preventDefault(); await rotateSelected(); } if (event.key === "ArrowLeft") { event.preventDefault(); await moveSelectedBy(-.2, 0); } if (event.key === "ArrowRight") { event.preventDefault(); await moveSelectedBy(.2, 0); } if (event.key === "ArrowUp") { event.preventDefault(); await moveSelectedBy(0, -.2); } if (event.key === "ArrowDown") { event.preventDefault(); await moveSelectedBy(0, .2); } }} /><p id="jigsaw-board-help" className="sr-only">{t("jigsaw.boardHelp")}</p>{state.difficulty === "MASTER" && selectedGroup && <button type="button" className="btn-primary absolute bottom-3 left-1/2 min-h-11 -translate-x-1/2 shadow-lg" onClick={rotateSelected}><RotateCw size={18} />{t("jigsaw.rotate")}</button>}<div className="absolute bottom-3 right-3"><button type="button" className="btn-secondary min-h-10 min-w-10 px-2 shadow-sm" aria-label={t("jigsaw.boardMenu")} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><Ellipsis size={18} /></button>{menuOpen && <div className="absolute bottom-12 right-0 z-10 w-52 rounded-xl border border-vs-line !bg-vs-surface p-1 shadow-lg"><button type="button" className="btn-secondary w-full min-h-11 justify-start text-left" onClick={() => { fit(); setMenuOpen(false); }}>{t("jigsaw.fitBoard")}</button><button type="button" className="btn-secondary mt-1 w-full min-h-11 justify-start text-left" onClick={onChooseAnother}>{t("jigsaw.chooseAnother")}</button></div>}</div><p aria-live="polite" className="sr-only">{message || t("jigsaw.connected", { n: connectedPieces(state.snapshot), total: state.pieceCount })}</p></section></FocusLayout>;
+  return <FocusLayout className="max-w-none gap-0"><section aria-busy={busy} className="page-fill relative min-h-0 overflow-hidden rounded-2xl border border-vs-line bg-vs-surface shadow-sm"><canvas ref={canvasRef} aria-label={t("jigsaw.board")} aria-describedby="jigsaw-board-help" tabIndex={0} className="h-full min-h-[calc(100dvh-var(--main-pad-top)-var(--main-pad-bottom))] w-full touch-none outline-none focus-visible:ring-4 focus-visible:ring-vs-xp" onPointerDown={boardDown} onPointerMove={boardMove} onPointerUp={boardUp} onPointerCancel={boardCancel} onWheel={(event) => { event.preventDefault(); zoom(event.deltaY > 0 ? .9 : 1.1, screenPoint(event)); }} onKeyDown={async (event) => { if (event.key === "0") { event.preventDefault(); fit(); } if ((event.key === "r" || event.key === "R") && state.difficulty === "MASTER") { event.preventDefault(); await rotateSelected(); } if (event.key === "ArrowLeft") { event.preventDefault(); await moveSelectedBy(-.2, 0); } if (event.key === "ArrowRight") { event.preventDefault(); await moveSelectedBy(.2, 0); } if (event.key === "ArrowUp") { event.preventDefault(); await moveSelectedBy(0, -.2); } if (event.key === "ArrowDown") { event.preventDefault(); await moveSelectedBy(0, .2); } }} /><p id="jigsaw-board-help" className="sr-only">{t("jigsaw.boardHelp")}</p>{state.difficulty === "MASTER" && selectedGroup && <button type="button" className="btn-primary absolute bottom-3 left-1/2 min-h-11 -translate-x-1/2 shadow-lg" disabled={busy} onClick={rotateSelected}><RotateCw size={18} />{t("jigsaw.rotate")}</button>}<div className="absolute bottom-3 right-3"><button type="button" className="btn-secondary min-h-10 min-w-10 px-2 shadow-sm" aria-label={t("jigsaw.boardMenu")} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><Ellipsis size={18} /></button>{menuOpen && <div className="absolute bottom-12 right-0 z-10 w-52 rounded-xl border border-vs-line !bg-vs-surface p-1 shadow-lg"><button type="button" className="btn-secondary w-full min-h-11 justify-start text-left" onClick={() => { fit(); setMenuOpen(false); }}>{t("jigsaw.fitBoard")}</button><button type="button" className="btn-secondary mt-1 w-full min-h-11 justify-start text-left" disabled={busy} onClick={onChooseAnother}>{t("jigsaw.chooseAnother")}</button></div>}</div><p aria-live="polite" className="sr-only">{message || t("jigsaw.connected", { n: connectedPieces(state.snapshot), total: state.pieceCount })}</p>{error && <p role="alert" className="absolute inset-x-3 top-3 rounded-xl bg-vs-surface p-3 text-vs-fg">{error}</p>}</section></FocusLayout>;
 }
 
 function Completion({ image, onContinue, t }: { image: string; onContinue: () => void; t: ReturnType<typeof useT> }) { return <FocusLayout className="page-fill max-w-none items-center justify-center gap-5 py-4 text-center"><div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-vs-surface shadow-lg"><NextImage src={image} alt={t("jigsaw.completedImage")} width={1440} height={960} unoptimized priority className="h-auto max-h-[68dvh] w-full object-contain" /></div><div><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.complete")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.completeHint")}</p></div><button type="button" className="btn-primary min-h-12" onClick={onContinue}>{t("jigsaw.continue")}</button></FocusLayout>; }
 
-function Question({ state, onSubmit, t }: { state: State; onSubmit: (choice: number) => Promise<void>; t: ReturnType<typeof useT> }) { const [choice, setChoice] = useState<number | null>(null); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); async function submit() { if (choice === null || busy) return; setBusy(true); setError(""); try { await onSubmit(choice); } catch (cause) { setError(cause instanceof Error ? cause.message : "Dat lukte niet."); } finally { setBusy(false); } } return <FocusLayout className="page-fill mx-auto max-w-2xl justify-center gap-5 py-4"><header><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.questionIntro")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.questionHint")}</p></header><section className="card"><p className="font-semibold">{state.question?.text}</p><div className="mt-4 grid gap-2">{state.question?.options.map((option, index) => <button key={option} type="button" className={`btn-secondary min-h-12 justify-start text-left ${choice === index ? "!border-vs-xp !bg-vs-xp/15" : ""}`} aria-pressed={choice === index} onClick={() => setChoice(index)}>{option}</button>)}</div></section><button type="button" className="btn-primary min-h-12 self-start" disabled={choice === null || busy} onClick={submit}>{busy ? t("jigsaw.answering") : t("jigsaw.confirmAnswer")}</button>{error && <p role="alert">{error}</p>}</FocusLayout>; }
+function Question({ state, onSubmit, t }: { state: State; onSubmit: (choice: number) => Promise<void>; t: ReturnType<typeof useT> }) { const [choice, setChoice] = useState<number | null>(null); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); async function submit() { if (choice === null || busy) return; setBusy(true); setError(""); try { await onSubmit(choice); } catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed")); } finally { setBusy(false); } } return <FocusLayout className="page-fill mx-auto max-w-2xl justify-center gap-5 py-4"><header><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.questionIntro")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.questionHint")}</p></header><section className="card"><p className="font-semibold">{state.question?.text}</p><div className="mt-4 grid gap-2">{state.question?.options.map((option, index) => <button key={option} type="button" className={`btn-secondary min-h-12 justify-start text-left ${choice === index ? "!border-vs-xp !bg-vs-xp/15" : ""}`} aria-pressed={choice === index} disabled={busy} onClick={() => setChoice(index)}>{option}</button>)}</div></section><button type="button" className="btn-primary min-h-12 self-start" disabled={choice === null || busy} onClick={submit}>{busy ? t("jigsaw.answering") : t("jigsaw.confirmAnswer")}</button>{error && <p role="alert">{error}</p>}</FocusLayout>; }
 
-function Result({ answer, onChooseAnother, t }: { answer: Answer | null; onChooseAnother: () => void; t: ReturnType<typeof useT> }) { const text = answer && "alreadyAnswered" in answer ? t("jigsaw.answerRecorded") : answer?.correct ? t("jigsaw.correct") : answer ? t("jigsaw.incorrect") : t("jigsaw.answerRecorded"); return <FocusLayout className="page-fill mx-auto max-w-2xl items-center justify-center gap-5 py-4 text-center"><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.complete")}</h1><p className="text-vs-fg-2">{text}</p><button type="button" className="btn-primary min-h-12" onClick={onChooseAnother}>{t("jigsaw.another")}</button></FocusLayout>; }
+function Result({ answer, question, onChooseAnother, onReplay, t }: { answer: Answer | null; question: State["question"]; onChooseAnother: () => void; onReplay: () => void; t: ReturnType<typeof useT> }) {
+  const result = answer && "correct" in answer ? answer : null;
+  const text = result ? result.correct ? t(result.streak?.alreadyStudiedToday && !result.streak.dayEarned ? "jigsaw.correctAlready" : "jigsaw.correct") : t("jigsaw.incorrect") : t("jigsaw.answerRecorded");
+  return <FocusLayout className="page-fill mx-auto max-w-2xl items-center justify-center gap-5 py-4 text-center">
+    <h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.complete")}</h1>
+    <p role="status" className="text-vs-fg-2">{text}</p>
+    {result && !result.correct && question && <p>{t("jigsaw.correctWas", { answer: question.options[result.correctChoice] })}</p>}
+    <StreakContinuationCard />
+    <button type="button" className="btn-primary min-h-12" onClick={onChooseAnother}>{t("jigsaw.another")}</button>
+    <button type="button" className="btn-secondary min-h-12" onClick={onReplay}>{t("jigsaw.replay")}</button>
+    <Link className="btn-secondary min-h-12" href="/live">{t("wordSearch.backToGames")}</Link>
+  </FocusLayout>;
+}

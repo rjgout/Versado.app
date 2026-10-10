@@ -59,7 +59,8 @@
     "otb:import-trial": "tsx scripts/otb/import-trial.ts",
     "genees:check": "tsx scripts/genees/check.ts",
     "test:live-data": "tsx --test tests/live-data.test.ts tests/live-data-architecture.test.ts tests/live-data-migration.test.ts",
-    "test:genees-economy": "tsx --test tests/genees-economy.test.ts tests/genees-economy.integration.test.ts tests/snelle-zendeling-genees.integration.test.ts tests/snelle-zendeling.test.ts"
+    "test:genees-economy": "tsx --test tests/genees-economy.test.ts tests/genees-economy.integration.test.ts tests/snelle-zendeling-genees.integration.test.ts tests/snelle-zendeling.test.ts",
+    "test:puzzle:integration": "node scripts/puzzle/test-isolated.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

@@ -1,0 +1,56 @@
+name: Legpuzzel V2 integratie en browser
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/lib/puzzle/**'
+      - 'src/lib/jigsaw*'
+      - 'src/lib/streak.ts'
+      - 'src/components/JigsawV2Client.tsx'
+      - 'src/app/api/jigsaw-v2/**'
+      - 'prisma/**'
+      - 'tests/puzzle*'
+      - 'tests/jigsaw*'
+      - 'scripts/puzzle/**'
+      - 'package*.json'
+      - '.github/workflows/puzzle-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  puzzle-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Dezelfde geïsoleerde runner als lokaal: maakt en verwijdert zijn eigen
+      # Postgres-container en past alle migraties toe. Geen externe DB-secrets.
+      - name: Browser klaarzetten
+        run: |
+          npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
+          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Sessies, vraag, reeks, content en echte browserflow
+        run: npm run test:puzzle:integration -- --browser
+      - name: Engine en legacy-regressies
+        run: npm run test:puzzle
+      - name: TypeScript
+        run: npx tsc --noEmit
+      - name: Browserscreenshots bewaren
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: puzzle-v2-browser
+          path: /tmp/versado-puzzle-browser
+          if-no-files-found: warn
+          retention-days: 7

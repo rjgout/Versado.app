@@ -4,6 +4,12 @@ import { kompasEs } from "./kompas/es";
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
   "jigsaw": {
+    "changed": "Tu puzle ha cambiado. Se ha restaurado el progreso guardado; inténtalo de nuevo.",
+    "replay": "Volver a jugar este puzle",
+    "discoverer": "Explorador",
+    "adventurer": "Aventurero",
+    "expert": "Experto",
+    "master": "Maestro",
     "title": "Rompecabezas",
     "intro": "Disfruta de rompecabezas con ilustraciones de las historias del Libro de Mormón para niños y luego responde una pregunta sobre la historia.",
     "chooseImage": "Elige una imagen",
