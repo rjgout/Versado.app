@@ -24,7 +24,7 @@ Gebruik DPR-begrensde backingstore, `ImageBitmap` waar beschikbaar, `Path2D`-cac
 5. Renderer/input: lokale viewport, pointer-world mapping, keyboardalternatief.
 6. Sync: Socket.IO-events, REST start/snapshot/reconnect.
 
-Iedere gedeelde rand bestaat eenmaal en wordt door beide buren met inverse oriëntatie gelezen. Een descriptor bevat vormfamilie, positie, breedte, diepte, asymmetrie en tab/slot; buitenranden zijn vlak. Een seeded PRNG met vaste integer/fixed-point parameters maakt output reproduceerbaar. Nieuwe generator = nieuwe `geometryVersion`; oude definitie+seed blijft onveranderd. Validatie test complementen, rand/hoek, minimumafstand tot hoeken, self-intersection en grenzen.
+Iedere gedeelde rand bestaat eenmaal en wordt door beide buren met inverse oriëntatie gelezen. Een descriptor bevat vormfamilie, positie, breedte, diepte, asymmetrie en tab/slot; buitenranden zijn vlak. Een seeded PRNG met vaste integer/fixed-point parameters maakt output reproduceerbaar. Nieuwe generator = nieuwe `geometryVersion`; oude definitie+seed blijft onveranderd. Geometry v2 bewaart per gedeelde rand naast positie/breedte/diepte een hals- en rondheidsparameter en tekent vier Bézier-segmenten (hals → ronde kop → hals). Beide kanten lezen één descriptor met omgekeerde looprichting. Validatie test complementen, rand/hoek, minimumafstand tot hoeken, self-intersection en grenzen.
 
 ## Server-authoritative multiplayer
 

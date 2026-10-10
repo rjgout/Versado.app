@@ -25,7 +25,10 @@ function publicState(row: { id: string; version: number; status: string; snapsho
 
 async function definitionFor(imageIndex: number) {
   const image = jigsawCatalog[imageIndex]; if (!image) throw new Error("Ongeldige puzzelafbeelding.");
-  const contentKey = `kids:${image.story}:${image.url}`; const seed = seedFor(contentKey);
+  // Geometry v1-definities kunnen actieve of historische sessies hebben.
+  // Een eigen v2-key houdt die sessies onveranderd leesbaar in plaats van
+  // hun vorm stilzwijgend te vervangen.
+  const contentKey = `kids:v${PUZZLE_GEOMETRY_VERSION}:${image.story}:${image.url}`; const seed = seedFor(contentKey);
   return prisma.puzzleDefinition.upsert({ where: { contentKey }, create: { contentKey, imageUrl: image.url, storyNumber: image.story, aspectRatio: 1.5, geometryVersion: PUZZLE_GEOMETRY_VERSION, seed, definitionHash: hash(`${image.url}:${image.story}`) }, update: {} });
 }
 
@@ -51,7 +54,10 @@ export async function applySoloAction(userId: string, sessionId: string, expecte
   const geometry = createPuzzleGeometry(row.variant.pieceCount as z.infer<typeof countSchema>, row.variant.definition.seed, row.variant.definition.geometryVersion);
   let next = snapshot; let hintTarget: unknown = undefined;
   if (action.kind === "move") next = moveGroup(snapshot, geometry, action.groupId, action.x, action.y);
-  if (action.kind === "rotate") next = rotateGroup(snapshot, geometry, action.groupId);
+  // Alleen Meester vraagt om rotatie. De route valideert dit ook server-side,
+  // zodat een verborgen clientcontrol geen andere moeilijkheid kan veranderen.
+  if (action.kind === "rotate" && difficulty === "MASTER") next = rotateGroup(snapshot, geometry, action.groupId);
+  if (action.kind === "rotate" && difficulty !== "MASTER") return publicState(row, language);
   if (action.kind === "connect") next = connectGroups(snapshot, geometry, difficulty, action.a, action.b);
   if (action.kind === "hint") {
     const included = PUZZLE_DIFFICULTIES[difficulty].includedHints; const extra = included !== null && snapshot.hints.length >= included;
@@ -77,11 +83,14 @@ export async function applySoloAction(userId: string, sessionId: string, expecte
 
 export async function answerSoloPuzzle(userId: string, sessionId: string, choice: number) {
   const row = await prisma.puzzleSession.findFirst({ where: { id: sessionId, ownerId: userId, mode: "SOLO" }, include: { variant: { include: { definition: true } } } });
-  if (!row || row.status !== "COMPLETED" || !row.questionId || !row.optionOrder) return null;
+  if (!row || (row.status !== "COMPLETED" && row.status !== "ANSWERED") || !row.questionId || !row.optionOrder) return null;
   const order = JSON.parse(row.optionOrder) as number[]; if (!Number.isInteger(choice) || choice < 0 || choice >= JIGSAW_OPTION_COUNT) return null;
+  // Een eerder verstuurde keuze mag een sessie nooit in de voltooiingsstap
+  // laten hangen. De activiteitclaim blijft centraal en idempotent.
+  if (row.status === "ANSWERED") return { alreadyAnswered: true };
   const correct = order[choice] === 0; const outcome = await completeJigsaw(userId, `v2:${row.id}`, correct);
-  if (outcome.alreadyAnswered) return { alreadyAnswered: true };
   await prisma.puzzleSession.update({ where: { id: row.id }, data: { status: "ANSWERED", answeredAt: new Date() } });
+  if (outcome.alreadyAnswered) return { alreadyAnswered: true };
   if (correct && row.completedAt) { const hints = snapshotSchema.parse(JSON.parse(row.snapshot)).hints; const elapsedMs = Math.max(0, row.completedAt.getTime() - row.startedAt.getTime()); await prisma.puzzlePersonalRecord.upsert({ where: { userId_variantId: { userId, variantId: row.variantId } }, create: { userId, variantId: row.variantId, sessionId: row.id, elapsedMs, hintsUsed: hints.length, extraHintsUsed: hints.filter((hint) => hint.extra).length, completedAt: row.completedAt }, update: {} }); }
   return { alreadyAnswered: false, correct, correctChoice: order.indexOf(0), counted: outcome.counted, streak: outcome.result ? { currentStreak: outcome.result.currentStreak, dayEarned: outcome.result.dayEarned === true, alreadyStudiedToday: outcome.result.alreadyStudiedToday } : null };
 }
