@@ -31,6 +31,11 @@ function merge(snapshot: PuzzleSnapshot, one: PuzzleGroup, two: PuzzleGroup, a: 
   // De eerste entry is het anker van de groep. Sorteer hem nooit tijdens een
   // fusie: dat zou dezelfde x/y daarna aan een ander stuk koppelen.
   target.pieceIds = [...target.pieceIds, ...removed.pieceIds]; target.rotation = 0;
+  // De drag kan een los stuk tot aan de tafelrand brengen. Na de fusie is de
+  // relatieve bounding box groter; klem hem opnieuw zodat de nieuw gevormde
+  // groep niet deels buiten de enige bereikbare wereld terechtkomt.
+  const position = clampGroupPosition(geometry, target, target.x, target.y);
+  target.x = position.x; target.y = position.y;
   next.groups = next.groups.filter((g) => g.id !== removed.id);
   next.connections.push({ a: Math.min(a, b), b: Math.max(a, b) });
   if (next.groups.length === 1 && next.connections.length === geometry.pieces.length - 1) next.completedAt = new Date().toISOString();

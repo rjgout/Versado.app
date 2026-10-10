@@ -1,9 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createPuzzleGeometry, pieceKind } from "../src/lib/puzzle/geometry";
+import { createPuzzleGeometry, pieceKind, tracePuzzlePiece } from "../src/lib/puzzle/geometry";
 import { connectGroups, connectedPieces, findSnapConnection, groupFor, moveGroup, newPuzzleSnapshot, rotateGroup, worldOf } from "../src/lib/puzzle/engine";
 import { groupBounds, groupMemberAt, puzzleWorktable } from "../src/lib/puzzle/worktable";
 import { constrainCamera, fitCamera, screenToWorld, zoomCamera } from "../src/lib/puzzle/viewport";
+import { filterPuzzleCatalog, puzzleCatalogPage } from "../src/lib/puzzle/catalog";
 
 function placed(geometry: ReturnType<typeof createPuzzleGeometry>, state: ReturnType<typeof newPuzzleSnapshot>, id: number, x: number, y: number) {
   return moveGroup(state, geometry, `p${id}`, x, y);
@@ -16,6 +17,25 @@ test("geometrie is deterministisch en gedeelde randen zijn complementair", () =>
     if (piece.right) assert.equal(piece.right, first.pieces[piece.id + 1].left);
     if (piece.bottom) assert.equal(piece.bottom, first.pieces[piece.id + first.grid.columns].top);
   }
+});
+
+test("geometry v2 gebruikt klassieke tabben en houdt versie 1 leesbaar", () => {
+  const current = createPuzzleGeometry(24, "klassiek");
+  const legacy = createPuzzleGeometry(24, "klassiek", 1);
+  const edge = current.pieces.find((piece) => piece.right)?.right;
+  assert.ok(edge?.neck && edge.roundness, "v2 beschrijft hals en ronde kop");
+  assert.equal(legacy.pieces.find((piece) => piece.right)?.right?.neck, undefined, "v1 krijgt geen nieuwe vorm");
+  assert.notDeepEqual(current, legacy);
+
+  const commands: string[] = [];
+  const path = {
+    moveTo: () => commands.push("M"), lineTo: () => commands.push("L"),
+    bezierCurveTo: () => commands.push("C"), closePath: () => commands.push("Z"),
+  };
+  tracePuzzlePiece(path, current.pieces[0]);
+  // Twee binnenranden bevatten elk vier afgeronde segmenten: geen hoekige of
+  // generieke enkele golf, maar hals + kop + hals.
+  assert.equal(commands.filter((command) => command === "C").length, 8);
 });
 
 test("alle groottes hebben herkenbare hoek-, rand- en middenstukken zonder beginoverlap", () => {
@@ -92,6 +112,19 @@ test("snap kiest alleen de beste geldige buur, onafhankelijk van camera-zoom", (
   state = placed(geometry, state, 1, 4.3, 3); assert.equal(findSnapConnection(state, geometry, "EXPERT", "p1"), null);
 });
 
+test("een comfortabele snap richt groepen exact uit en blijft ongeldig buiten de tolerantie", () => {
+  const geometry = createPuzzleGeometry(12, "magnetisch"); let state = newPuzzleSnapshot(geometry, "ADVENTURER");
+  state = placed(geometry, state, 0, 3, 3); state = placed(geometry, state, 1, 4.28, 3.12);
+  const candidate = findSnapConnection(state, geometry, "ADVENTURER", "p1");
+  assert.ok(candidate, "een aanraakvriendelijke marge accepteert de canonieke buur");
+  state = connectGroups(state, geometry, "ADVENTURER", candidate!.a, candidate!.b);
+  const joined = groupFor(state, 0)!;
+  assert.deepEqual(worldOf(geometry, joined, 1), { x: joined.x, y: joined.y });
+  assert.deepEqual(worldOf(geometry, joined, 0), { x: joined.x - 1, y: joined.y });
+  state = placed(geometry, state, 2, 8, 8);
+  assert.equal(findSnapConnection(state, geometry, "ADVENTURER", "p2"), null);
+});
+
 test("rotatie voorkomt een verbinding totdat de groep recht staat", () => {
   const geometry = createPuzzleGeometry(6, "rotatie"); let state = newPuzzleSnapshot(geometry, "MASTER");
   state = placed(geometry, state, 0, 2, 2); state = placed(geometry, state, 1, 3, 2);
@@ -99,4 +132,13 @@ test("rotatie voorkomt een verbinding totdat de groep recht staat", () => {
   state = rotateGroup(state, geometry, "p0"); state = rotateGroup(state, geometry, "p0"); state = rotateGroup(state, geometry, "p0");
   state = rotateGroup(state, geometry, "p1"); state = rotateGroup(state, geometry, "p1"); state = rotateGroup(state, geometry, "p1");
   assert.equal(connectGroups(state, geometry, "MASTER", 0, 1).connections.length, 1);
+});
+
+test("de puzzelkeuze pagineert de hele catalogus en zoekt zonder dubbelen", () => {
+  const catalog = Array.from({ length: 216 }, (_, index) => ({ id: index, title: `Afbeelding ${index + 1}` }));
+  const last = puzzleCatalogPage(catalog, 99);
+  assert.equal(last.pages, 9); assert.equal(last.currentPage, 8); assert.equal(last.items.length, 24); assert.equal(last.items[0].id, 192);
+  const found = filterPuzzleCatalog(catalog, "216", (item) => item.title);
+  assert.deepEqual(found.map((item) => item.id), [215]);
+  assert.equal(new Set(catalog.map((item) => item.id)).size, catalog.length);
 });
