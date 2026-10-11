@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
 import { prisma } from "@/lib/db";
+import { readingAccessWhere } from "@/lib/contentAccess";
 import { playableAudioUrl } from "@/lib/audioMirror";
 import { LANGUAGES } from "@/lib/languages";
 import { pickEditionInFamily } from "@/lib/contentEdition";
@@ -13,7 +14,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ cha
   const parsed = z.object({ chapterId: z.string().min(1).max(200) }).safeParse(await params);
   if (!parsed.success) return await apiError("apiErrors.invalidInput", 400);
 
-  const selectable = { enabled: true, ...(user.isAdmin ? {} : { visibleToUsers: true }) };
+  const selectable = readingAccessWhere(user);
   const chapter = await prisma.chapter.findFirst({
     where: { id: parsed.data.chapterId, book: { contentCollection: selectable } },
     include: { book: { include: { contentCollection: true } } },

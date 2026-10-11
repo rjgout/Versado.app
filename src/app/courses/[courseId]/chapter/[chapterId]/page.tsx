@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
+import { readingAccessWhere } from "@/lib/contentAccess";
 import ReadingChapterView from "@/components/ReadingChapterView";
 import { chapterTerm, localizeTerm } from "@/lib/chapterTerm";
 import { getT } from "@/lib/i18n";
@@ -16,14 +17,14 @@ export default async function ReadingChapterPage({
   if (!user) redirect("/login");
 
   const { courseId, chapterId } = await params;
-  const course = await prisma.course.findUnique({
-    where: { id: courseId },
+  const course = await prisma.course.findFirst({
+    where: { id: courseId, contentCollection: readingAccessWhere(user) },
     select: { id: true, type: true },
   });
   if (!course || course.type !== "READING_LESSONS") redirect("/courses");
 
-  const chapter = await prisma.chapter.findUnique({
-    where: { id: chapterId },
+  const chapter = await prisma.chapter.findFirst({
+    where: { id: chapterId, book: { contentCollection: readingAccessWhere(user) } },
     include: { book: true },
   });
   if (!chapter) redirect(`/courses/${courseId}`);

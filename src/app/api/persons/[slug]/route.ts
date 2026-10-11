@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { readingAccessWhere } from "@/lib/contentAccess";
 import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
 
@@ -12,11 +13,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
 
   const { slug } = await params;
-  const person = await prisma.person.findUnique({
-    where: { slug },
+  const person = await prisma.person.findFirst({
+    where: { slug, contentCollection: readingAccessWhere(user) },
     include: {
-      father: { select: { slug: true, name: true } },
-      children: { select: { slug: true, name: true } },
+      father: { where: { contentCollection: readingAccessWhere(user) }, select: { slug: true, name: true } },
+      children: { where: { contentCollection: readingAccessWhere(user) }, select: { slug: true, name: true } },
     },
   });
   if (!person) return await apiError("apiErrors.personNotFound", 404);

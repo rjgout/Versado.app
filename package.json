@@ -63,7 +63,9 @@
     "test:puzzle:integration": "node scripts/puzzle/test-isolated.mjs",
     "test:layout:browser": "node scripts/layout-audit/test-isolated.mjs",
     "test:word-game-hints": "tsx --test tests/word-game-hints.test.ts",
-    "test:word-game-hints:integration": "node scripts/word-game/test-isolated.mjs"
+    "test:word-game-hints:integration": "node scripts/word-game/test-isolated.mjs",
+    "test:content-access": "tsx --test tests/content-access.test.ts tests/content-inventory.test.mjs",
+    "test:content-access:integration": "node scripts/content-architecture/test-isolated.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

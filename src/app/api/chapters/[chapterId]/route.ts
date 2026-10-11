@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { readingAccessWhere } from "@/lib/contentAccess";
 import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
 
@@ -8,8 +9,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ cha
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
 
   const { chapterId } = await params;
-  const chapter = await prisma.chapter.findUnique({
-    where: { id: chapterId },
+  const chapter = await prisma.chapter.findFirst({
+    where: { id: chapterId, book: { contentCollection: readingAccessWhere(user) } },
     include: {
       book: true,
       verses: { orderBy: { number: "asc" } },

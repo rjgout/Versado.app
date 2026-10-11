@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { customAlphabet } from "nanoid";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { readingAccessWhere } from "@/lib/contentAccess";
 import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
 
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return await apiError("apiErrors.chooseChapter", 400);
 
-  const chapter = await prisma.chapter.findUnique({ where: { id: parsed.data.chapterId } });
+  const chapter = await prisma.chapter.findFirst({ where: { id: parsed.data.chapterId, book: { contentCollection: readingAccessWhere(user) } } });
   if (!chapter) return await apiError("apiErrors.chapterNotFoundDot", 404);
 
   let code = generateCode();

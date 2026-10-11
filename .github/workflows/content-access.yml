@@ -1,0 +1,64 @@
+name: Contentarchitectuur 1A toegangsbeveiliging
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/lib/contentAccess.ts'
+      - 'src/lib/contentCollections.ts'
+      - 'src/app/api/chapters/**'
+      - 'src/app/api/verses/**'
+      - 'src/app/api/reading*/**'
+      - 'src/app/api/bookmarks/**'
+      - 'src/app/api/exercises/**'
+      - 'src/app/api/practice/**'
+      - 'src/app/api/live/create/**'
+      - 'src/app/api/dictionary/**'
+      - 'src/app/api/persons/**'
+      - 'src/app/lesson/**'
+      - 'src/app/reading-lesson/**'
+      - 'src/app/courses/**'
+      - 'tests/content-access*'
+      - 'tests/content-inventory*'
+      - 'scripts/content-architecture/**'
+      - 'package*.json'
+      - '.github/workflows/content-access.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: content-access-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  content-access:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Prisma, types en schone productiebuild
+        run: |
+          npx prisma validate
+          npm run db:generate
+          npx tsc --noEmit
+          rm -rf .next
+          npm run build
+      - name: Echte HTTP-toegang, eigen PostgreSQL en fixtureherstel
+        run: npm run test:content-access:integration
+      - name: Regressie, lint en vertalingen
+        run: |
+          npx tsx --test tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/streak-central.test.ts
+          npm run test:focus
+          npm run test:live-data
+          npm run lint
+          npx tsx scripts/i18n/check.ts

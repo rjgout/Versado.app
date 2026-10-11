@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
+import { readingAccessWhere } from "@/lib/contentAccess";
 import { markCourseStarted } from "@/lib/courses";
 import { playableAudioUrl } from "@/lib/audioMirror";
 import { getStepOverview } from "@/lib/readingLessons";
@@ -19,8 +20,8 @@ export default async function ReadingLessonPage({
   if (!user) redirect("/login");
 
   const { lessonId } = await params;
-  const lesson = await prisma.courseLesson.findUnique({
-    where: { id: lessonId },
+  const lesson = await prisma.courseLesson.findFirst({
+    where: { id: lessonId, course: { contentCollection: readingAccessWhere(user) }, chapter: { book: { contentCollection: readingAccessWhere(user) } } },
     include: {
       course: true,
       chapter: {

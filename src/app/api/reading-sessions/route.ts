@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { readingAccessWhere } from "@/lib/contentAccess";
 import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
 import { markReadingStarted } from "@/lib/learning/contentProgress";
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return await apiError("apiErrors.invalidInput", 400);
 
-  const chapter = await prisma.chapter.findUnique({ where: { id: parsed.data.chapterId }, select: { id: true } });
+  const chapter = await prisma.chapter.findFirst({ where: { id: parsed.data.chapterId, book: { contentCollection: readingAccessWhere(user) } }, select: { id: true } });
   if (!chapter) return await apiError("apiErrors.chapterNotFound", 404);
   const session = await prisma.readingSession.create({
     data: { userId: user.id, chapterId: chapter.id },

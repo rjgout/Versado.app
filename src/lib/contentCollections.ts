@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { collectionAccessWhere, getContentAvailability } from "@/lib/contentAccess";
 import { DEFAULT_LANGUAGE, LANGUAGES, fallbackChain } from "@/lib/languages";
 import { pickTargetCollection } from "@/lib/contentRouting";
 
@@ -119,7 +120,7 @@ const VIEW_SELECT = {
 
 /** Welke collecties iemand mag kiezen: beheerders ook de verborgen. */
 function selectableWhere(isAdmin: boolean) {
-  return isAdmin ? { enabled: true } : { enabled: true, visibleToUsers: true };
+  return collectionAccessWhere({ isAdmin }, "catalog");
 }
 
 export async function getContentSwitcherSettings(): Promise<{ enabled: boolean }> {
@@ -263,11 +264,7 @@ export async function setContentCollectionVisibility(
  * verborgen content blijft dan ook echt verborgen voor gewone gebruikers.
  */
 export async function isContentCollectionSelectable(contentCollectionId: string | null, isAdmin: boolean): Promise<boolean> {
-  if (!contentCollectionId || isAdmin) return true;
-  const count = await prisma.contentCollection.count({
-    where: { id: contentCollectionId, ...selectableWhere(false) },
-  });
-  return count > 0;
+  return getContentAvailability({ isAdmin }, contentCollectionId, isAdmin ? "admin-preview" : "read");
 }
 
 /**
