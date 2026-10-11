@@ -1,185 +1,251 @@
-# Fase 1A — gedeeltelijke implementatie en migratieblokkade
+# Fase 1A — ContentWork, publicatiecompatibiliteit en centrale toegang
 
-## Status en beginsituatie
+Deze PR is voorbereid voor beoordeling; **geen productie-uitrol uitgevoerd of toegestaan**.
+Fase 1B, 1C en 1D zijn niet gestart. De afzonderlijk te beoordelen additieve
+migratie wordt automatisch uitgevoerd zodra deze code via het deploypaneel
+in productie start. Een merge of groene test is geen toestemming voor die deploy.
 
-PR #84 is verwerkt in main via `715c18adf62a379bf623efd02894a8bd6a34b307`.
-Besluitcommit `7651e166dbd9750ebccd5ca604e531275de8c081` is een ancestor van
-die main. Deze werkbranch, `codex/content-architecture-v2-1a`, is daarvan
-gestart. Tussen de auditbasis en deze main zijn alleen de zeven goedgekeurde
-architectuurdocumenten gewijzigd.
+## Beginsituatie en synchronisatie
 
-**Fase 1A is niet volledig afgerond.** De eigenaar heeft bij de hervatting
-uitdrukkelijk toestemming gegeven voor uitsluitend lezende productie-
-inventarisatie van Docker-container `jehova-db` op zijn Synology NAS.
-Dagelijkse volledige backup is door de eigenaar bevestigd; hij noemt Synology
-Hyper Backup als oplossing. Hij heeft de aanvullende geïsoleerde herstelproef
-bewust overgeslagen en het risico expliciet geaccepteerd. De oude herstelgate
-is voor deze hervatting dus geen opnieuw te vragen productbeslissing.
+PR #84 inclusief besluitcommit `7651e16` staat in main. PR #85 begon op
+`715c18a`; de bestaande commits `f1ed318`, `2b4c631` en `612d566` zijn behouden.
+PR #86 is op 11 oktober gemerged via `e8e922a`. Mergecommit `9fc5e55` synchroniseert
+1A met die main, zonder rebase of force-push. Conflicten betroffen uitsluitend
+`inventory.mjs` en `test-isolated.mjs`: main levert de gedeelde inventarisatie-CLI
+en adminrunner; de 1A-runner heet nu `test-access-isolated.mjs`. De oude zes
+inventarisatietests zijn vervangen door de uitgebreidere gedeelde TS-suite.
+Alle centrale guards en de scheiding normaal lezen/beheerpreview blijven behouden.
 
-De daadwerkelijke inventarisatie blijft technisch geblokkeerd: de werkruimte
-heeft geen geconfigureerde NAS-verbinding, VPN/TCP-grant, SSH-configuratie of
-productiedatabasebinding. De eigenaar heeft aangegeven een beveiligde verbinding
-te zullen koppelen; deze is nog niet als beschikbaar waargenomen. Er zijn
-geen productiequery's uitgevoerd en geen productie-aantallen vastgesteld.
-ContentWork, publicatiestatus en backfill wachten op die inventaris en een
-conflictvrije mapping; geen schemawijziging of productieactie uitgevoerd.
+## Echte inventaris en checksumbewijs
 
-Wel uitgevoerd: centrale legacy-toegangsbeveiliging, de correctie die normale
-beheerdersverzoeken van expliciete preview scheidt, HTTP-/DB-regressietests en
-veilige inventarisatievoorbereiding. Geen fase 1B, 1C of 1D is gestart.
+Bron: door de eigenaar aangeleverd JSON-rapport, **2026-10-11T18:51:50.752Z**.
+SHA-256: `68d526b4bb103acc6d60172c5d0b7787060fe8ee4dd1a6def88c57f14b208131`.
+Het originele rapport wordt niet in Git opgeslagen. De werkruimte heeft geen
+nieuwe productiequeries uitgevoerd; een NAS-koppeling is geen resterende blokkade.
 
-## Centrale legacy-toegangsservice
+`validate-inventory.mjs` valideert offline via de Zod-allowlist uit
+`src/lib/content-inventory/core.ts` en herberekent dezelfde identiteitsanalyse.
+Bewezen: 21 ingeschakelde collecties, zeven werken, nul null-workwaarden en
+identiteitsconflicten, zes zichtbaar/vijftien verborgen, tien integriteitsmetingen
+allemaal nul. `publicationFieldPresent=false`. Users: 28. FSY: 37 lessen,
+16 gepubliceerd en 21 concept, nul concepten met oudere gepubliceerde kopie.
+De inventaris heeft geen privénotitieteksten of gebruikersprofielen.
 
-`src/lib/contentAccess.ts` centraliseert de bestaande flags:
+Migratiecontrole op de 136 registraties:
 
-| Doel | Gewone gebruiker | Server-geauthenticeerde beheerder |
+- **133 succesvolle registraties** matchen de huidige SQL-bestanden byte voor
+  byte via SHA-256. Geen bestaand migratiebestand is in deze PR veranderd.
+- **Twee succesvolle historische namen** zijn bewezen hernoemingen uit
+  commit `48c5384`: `1789767235_add_person_fields` →
+  `20260918213534_add_person_fields` en `1789831396_add_user_avatar_emoji` →
+  `20260919152904_add_user_avatar_emoji`. De opgeslagen checksums matchen de
+  oorspronkelijke bestanden uit `48c5384^`; ook beide huidige vervangende
+  migraties zijn succesvol geregistreerd met de huidige checksum.
+- **Eén historische rollback** van
+  `20261015120000_recipient_activity_reaction_batches` is gevolgd door een
+  succesvolle registratie van dezelfde naam met de huidige checksum.
+  Dit is geen actuele mislukte migratie. Het oude mislukte SQL-bestand wordt
+  niet als huidig toegepast bestand behandeld.
+- Geen onvoltooide registratie of onverklaarde afwijking. De nieuwe 1A-migratie
+  staat vanzelfsprekend nog niet in de productiemomentopname.
+
+De verifier heeft alleen deze twee expliciet bewezen naamuitzonderingen; andere
+ontbrekende SQL-bestanden, drift, onvoltooide migraties en rollbacks zonder
+bewezen later succes vereisen beoordeling.
+
+## Definitieve mapping: 21 collecties, zeven werken
+
+| Werk | Soort | Editiefamilie | Collectie-ID’s en talen |
+| --- | --- | --- | --- |
+| bofm | SCRIPTURE | bofm | content_bom (nl), content_bom_de (de), content_bom_en (en), content_bom_es (es), content_bom_fr (fr) |
+| old-testament | SCRIPTURE | otb | content_old_testament_otb_de/en/es/fr/nl (respectieve taal) |
+| new-testament | SCRIPTURE | otb | content_new_testament_otb_de/en/es/fr/nl (respectieve taal) |
+| dc-testament | SCRIPTURE | dc-testament | content_dc (nl), content_dc_en (en) |
+| pgp | SCRIPTURE | pgp | content_pgp (nl), content_pgp_en (en) |
+| fsy | STUDY_PROGRAM | fsy | content_fsy (nl) |
+| podcasts | OTHER | podcasts | content_podcasts (nl) |
+
+De vijf bofm-edities en podcasts zijn zichtbaar; alle overige collecties zijn
+verborgen. Alle enabled-/visibilitywaarden worden behouden. De exacte metadata
+staat als veilige content-only fixture in `tests/fixtures/content-1a-catalog.json`.
+Geen CFM-collectie, nieuwe FSY-les of dubbele editie wordt aangemaakt.
+
+## Modellen en migratie
+
+`ContentWork` bevat uitsluitend `key` (PK) en `kind`
+(`SCRIPTURE`, `STUDY_PROGRAM`, `OTHER`). De relatie gebruikt het bestaande
+nullable `ContentCollection.work`, met FK RESTRICT voor verwijderen én
+hernoemen van een gerefereerd werk. Er komt geen tweede workId. De bestaande
+unieke `(work,editionKey,language)` blijft behouden en indexeert ook de FK.
+Nullable opslag blijft compatibel; een ontbrekende werkrelatie geeft geen toegang.
+
+`ContentPublicationState` heeft `LEGACY`, `DRAFT`, `PUBLISHED`.
+Migratie `20261020120000_content_work_publication`:
+
+1. Vergrendelt ContentCollection met een vijf seconden lock-timeout en
+   controleert lege/null/conflicterende identiteiten.
+2. Registreert exact de zeven geverifieerde werken, zonder conflict-updates.
+   Onbekend werk vereist vooraf expliciete registratie/beoordeling; een
+   afwijkende soort voor een bekend werk stopt de migratie.
+3. Voegt publicationState eenmalig toe met LEGACY voor bestaande rijen.
+   Zet daarna de insertdefault DRAFT en visibleToUsers-default false.
+   Bestaande rijen/vlaggen veranderen niet.
+4. Voegt de gevalideerde FK toe. Eén DO-statement maakt alle stappen atomisch.
+
+Heruitvoering maakt geen dubbele werken en verheft latere DRAFT-rijen niet tot
+LEGACY. Een later expliciet geregistreerd OTHER-werk wordt behouden.
+Nieuwe collecties kunnen een bekende werkidentiteit gebruiken of vragen een
+expliciet nieuw ContentWork-record; er is geen classificatie op titel/slug.
+Geen schema voor lessen/revisies, UserStudyContext of nieuwe publicatie-editor.
+
+## Toegangsbeleid en API-impact
+
+| Doel | Gewone gebruiker | Beheerder |
 | --- | --- | --- |
-| Catalogus | enabled én visibleToUsers | enabled; verborgen collecties mogen zichtbaar zijn |
-| Gewoon lezen | enabled én visibleToUsers | dezelfde regel |
-| Expliciete beheerpreview | geweigerd | bestaande collectie, ook hidden/disabled |
+| Normaal lezen/muteren | werkrelatie + LEGACY/PUBLISHED + enabled + zichtbaar | dezelfde regel |
+| Bestaande catalogus | dezelfde regel | LEGACY/PUBLISHED + enabled; bestaande verborgen bronnen blijven herkenbaar |
+| Expliciete adminpreview | geweigerd | werkrelatie vereist; mag concept/verborgen bron inspecteren |
 
-`readingAccessWhere(actor)` geeft nu altijd normale leesrechten, óók als de
-server-geauthenticeerde gebruiker beheerder is. Alleen een expliciete
-serveraanroep met `"admin-preview"` verruimt de scope; de service controleert
-daarbij de adminrol. De bestaande `/adminbackend/content-preview` doet deze
-expliciete aanroep na zijn login-/rolcontrole en blijft een alleen-lezenpreview.
-Een queryparameter `preview=true` of clientpayload met `isAdmin: true` geeft
-geen uitgebreide rechten op gewone API's.
+`collectionAccessWhere`, `readingAccessWhere`, `canAccessCollection` en
+`getContentAvailability` vormen één centrale service. Een gewone beheerdersrequest,
+`preview=true` of een payload met `isAdmin:true` verruimt geen leesrechten.
+Publicatie betekent geen automatische zichtbaarheid; enabled alleen betekent
+evenmin publicatie. De relationele identiteitsfilter overschrijft geen bestaande
+work-/editiefilters, ook niet op de OTB-previewpagina.
 
-Ook `isContentCollectionSelectable`, de woordenboek-API's en conceptoefening-
-check/hint geven geen automatische adminbypass meer. Normale oefen-API's
-vereisen voor beide rollen APPROVED. Ontbrekende actor of collectie geeft
-geen toegang; nullable collectie-ID's geven ook admins geen bypass.
-De bestaande adminbeheer-API's behouden hun afzonderlijke serverrolcontrole.
+Bestaande guards krijgen dezelfde publicatiecontrole vóór reads/mutaties:
 
-Dit is **nog geen publicatiebeleid voor nieuwe bronnen**. De bestaande schema-
-defaults en bestaande enabled/visibleToUsers-waarden zijn ongewijzigd.
-ContentWork en opgeslagen LEGACY/DRAFT/PUBLISHED ontbreken nog. Nieuwe
-contentbronnen mogen daarom niet via deze gedeeltelijke oplevering worden
-geïntroduceerd. De vereiste veilige DRAFT-default en werkrelatie volgen pas
-na het migratiebewijs; het complete fase-1A-acceptatiecriterium is niet gehaald.
-
-## Beveiligde toegangspaden
-
-De controle vindt plaats vóór brontekst uitlezen of de bestaande mutatie:
-
-- `/api/chapters/[chapterId]`, `/read`, `/submit`, `/audio-languages` en
-  `/api/chapters`.
+- `/api/chapters`, `/api/chapters/[chapterId]`, `/read`, `/submit`, `/audio-languages`.
 - `/api/reading-sessions`, `/api/reading-lessons/submit`, `/api/live/create`.
-- `/api/verses/[verseId]/bookmark`, `/highlight` en `/note`.
-- `/api/bookmarks`: bestaande privérecords blijven opgeslagen, maar records
-  uit verborgen/uitgeschakelde bronnen worden niet met hun volledige
-  brontekst aan een gewone gebruiker teruggegeven.
-- `/api/exercises/[exerciseId]/check`, `/hint` en `/api/practice/submit`:
-  toegang tot de bron én APPROVED-status vereist voor beide rollen.
-  Ook de optionele bronvers-relatie van een oefenhint is gefilterd.
-- `/api/dictionary`, `/api/dictionary/[word]` en `/api/persons/[slug]`;
-  bij personen ook gerelateerde vader/kinderen.
-- Leespagina's `/lesson/[chapterId]`, `/reading-lesson/[lessonId]` en
-  `/courses/[courseId]/chapter/[chapterId]`, inclusief zowel cursusbron als
-  hoofdstukbron bij een leesles.
+- `/api/verses/[verseId]/bookmark`, `/highlight`, `/note` en `/api/bookmarks`.
+- `/api/exercises/[exerciseId]/check`, `/hint`, `/api/practice/submit`;
+  APPROVED blijft verplicht, ook voor admins.
+- `/api/dictionary`, `/api/dictionary/[word]`, `/api/persons/[slug]`.
+- `/lesson/[chapterId]`, `/reading-lesson/[lessonId]`,
+  `/courses/[courseId]/chapter/[chapterId]` en bestaande selectability-consumenten
+  voor cursus-/FSY-/studietoegang.
+- Expliciete `/adminbackend/content-preview`, na sessie-/admincontrole.
 
-Bestaande FSY-/cursus-/abonneer-/studiepaden die al
-`isContentCollectionSelectable` gebruiken, krijgen daarmee dezelfde centrale
-controle. De audit beschreef sommige leespagina's als reeds beschermd; de
-actuele codecontrole vond daar nog ontbrekende guards en corrigeert die
-vaststelling in deze implementatiestatus.
+Verborgen privéannotaties worden niet verwijderd; `/api/bookmarks` levert geen
+volledige verborgen brontekst via een persoonlijke lijst. De integere records
+blijven aanwezig en komen terug bij herstelde toegang. De adminbeheer-API’s
+blijven afzonderlijk rolbeveiligd. Er is geen nieuwe gewone preview-API.
 
-De oorspronkelijke contentswitcher, taal- en editie-routing, progressiesleutels,
-FSY-publicatiekopieën, podcastmodellen en beloningsservices blijven bestaan.
-De bestaande synthetische fallback in contentcontext wordt niet herschreven;
-de beveiligde data-API's controleren de daadwerkelijke collectie alsnog.
-Dit is geen volledige spelcontentresolver of audit van ieder bestaand spelpad.
+De huidige contentswitcher, editie-/taalkeuze, FSY-kopieën, podcasts en
+voortgangssleutels blijven bestaan. Defaultcollectie en zichtbaarheidstellers
+gebruiken nu eveneens het publicatiebeleid. De bestaande synthetische lege-
+catalogus-contextfallback wordt niet in 1A herschreven; beschermde leespaden
+controleren altijd de echte collectie. Een volledige spelresolver blijft 1D/5A.
 
-## Databescherming en voorbereiding
+## Testbewijs en databehoud
 
-`scripts/content-architecture/inventory.mjs` levert een expliciet aangevraagde,
-read-only inventaris met werk-/editie-/taalidentiteiten, nulls, conflicten,
-recordaantallen, relatiecontroles, FSY-kopieën en migratiechecksums. Het script
-is uitsluitend op synthetische testdata uitgevoerd. Bekende werksleutels
-krijgen een classificatieadvies; onbekende bronnen en null-workwaarden worden
-niet automatisch Schriftuur of Studieprogramma. Podcasts blijven OTHER.
+De 1A-runner creëert uitsluitend zijn eigen lokale PostgreSQL 16-container.
+Prisma past eerst de 133 oude migraties toe. Daarna worden synthetische
+bestaande records geladen, dan past **prisma migrate deploy** de nieuwe
+migratie toe. Geen algemene seed, scheduler, import of FSY-sync.
 
-`scripts/content-architecture/test-isolated.mjs` past uitsluitend de bestaande
-migraties toe op een eigen lege PostgreSQL-container. De productie-HTTP-handler
-start zonder seed, scheduler of FSY-sync. De runner controleert de echte
-routes en de inventaris op synthetische fixtures. Hij maakt voortaan **geen
-backup of herstelproef**. De uitvoer meldt expliciet dat productie-inventaris,
-backupcreatie en herstel niet zijn uitgevoerd.
+De fixture gebruikt de echte collectie-ID’s/edities en relevante aantallen:
+28 synthetische users, 37 FSY-lessen (16/21), 60 cursusvoortgangsrecords,
+29 lesvoortgangen, 44 legacy-hoofdstukvoortgangen, 8 kinder-/24 introvoortgangen,
+113 inhoudsvoortgangen, 60 credits, 89 oefensessies, 260 leesessies,
+12 podcastposities, 11 podcastresultaten, 370 XP-transacties,
+149 reeksactiviteiten en 148 reeksdagen. Daarnaast synthetische privéannotaties,
+woordspel met betaalde hints en een lopende puzzelsnapshot. Het rapport had nul
+notities; bewust wordt één synthetische notitie toegevoegd voor behoudsbewijs.
+Grote leesteksttabellen zijn representatief verkleind; geen productiegebruikers
+of volledige productieteksten worden gekopieerd.
 
-De read-only inventaris gebruikt naast BEGIN/COMMIT/ROLLBACK uitsluitend SELECT,
-ook voor `transaction_read_only`. Verbindingsfouten worden uitsluitend met
-een veilige foutcode gemeld; driverdetails, gebruikersnaam en URL verschijnen
-niet in gedeelde logs. FSY-conceptaantallen en alle migratiestatussen,
-inclusief onvoltooide/teruggedraaide migraties zonder logs, zijn opgenomen.
-De actuele handleiding staat in
-[de voorbereidingshandleiding](../../scripts/content-architecture/README.md).
+Alle bestaande **126 tabellen** worden vóór/na vergeleken met rij-aantallen en
+geordende JSONB-fingerprints. Alleen het nieuwe publicatieveld, de nieuwe tabel
+en de Prisma-migratieregistratie worden buiten die vergelijking gehouden.
+Bewezen: exacte collectie-ID’s, editie-identiteiten, 6/15-vlaggen en alle
+synthetische bestaande rijen blijven gelijk; FSY-content/status/kopieën en
+persoonlijke voortgang/timestamps wijzigen niet. Dit bewijst de geteste
+migratie, geen uitgevoerde productiebackfill of herstelbaarheid van de NAS-backup.
 
-### Backupmetadata en geaccepteerde risico's
+Ook getest: heruitvoering van SQL én Prisma deploy, latere DRAFT-rij behouden,
+FK tegen onbekend werk, werk verwijderen/hernoemen, nul/lege/dubbele identiteit,
+conflicterende kind, lock-timeout en expliciet afbreken/rollback vóór commit.
+Alle mislukte migraties laten de bestaande fixture intact; geen gedeeltelijke DDL.
 
-| Onderdeel | Vastgesteld | Onbewezen |
-| --- | --- | --- |
-| Backupbeleid | Eigenaarsbevestiging: dagelijks volledige NAS-backup via Hyper Backup | Laatste succesvolle uitvoering, timestamp, omvang en taakstatus |
-| Database | Eigenaar noemt jehova-db; repository noemt /volume1/docker/jehova-app/postgres | Werkelijke NAS-mount en opname in de backuptaak; consistente backup van draaiend PostgreSQL/WAL |
-| Media | Repository noemt /volume1/docker/jehova-app/audio en Docker-volume branding_assets | Werkelijke volumes, gerefereerde media en Hyper Backup-selectie |
-| Herstel | Bewust overgeslagen; expliciet geaccepteerd door eigenaar | Leesbaarheid/volledigheid van backup, werkende decryptie/sleutels, database-/mediaherstel en daadwerkelijke hersteltijd |
-
-De repositorypaden zijn aanwijzingen voor een latere metadata-/mountcontrole,
-geen bewijs van live configuratie of backupdekking. Geen nieuwe NAS-backup,
-restore, containerherstart of productie-DDL uitvoeren. Recente bestandsmetadata
-alleen bewijst bovendien geen consistente of succesvol terugzetbare database.
-De oorspronkelijke synthetische fixtureherstelproef bij `f1ed318` was geslaagd,
-maar was nooit een NAS-herstelbewijs; die wordt niet opnieuw uitgevoerd.
-De uitzondering geldt voor deze fase-1A-hervatting, niet automatisch voor latere
-migraties of destructieve contractacties.
-
-Geen bestaande content-, cursus- of annotatierecords worden verwijderd. De
-integratietests vergelijken verborgen privérecords vóór/na geweigerde requests
-voor beide rollen; ook een lege notitiemutatie kan niets ongemerkt verwijderen.
-
-## Validatie en resterende voorwaarden
-
-Uitgevoerd op deze werkbranch:
+Uitgevoerd op de gesynchroniseerde werkbranch:
 
 | Controle | Resultaat |
 | --- | --- |
-| Gerichte toegang/inventaris/HTTP-DB-tests | 24 geslaagd, 0 overgeslagen |
-| Bestaande editie-, wissel-, leer- en reeksregels | 31 geslaagd (47 inclusief 10 toegang- en 6 inventaris-unittests) |
+| Geïsoleerde migratie | 126 bestaande tabellen behouden; exacte 21/7-mapping; conflict/abort/lock/retry bewezen |
+| Toegang/inventaris/offlinevalidatie/contentwissel | 59 geslaagd, 0 skipped; echte HTTP/DB-tests in eigen container |
+| Gerichte unit-run | 40 geslaagd, 0 skipped (ook onderdeel van de 59) |
+| Admininventarisatie | echte HTTP/read-only/CSRF/privacy/timeouttests geslaagd |
+| Adminbrowser | 20 combinaties + vier vertalingen; 320/390/768/1280 en 844×390 landscape, licht/donker, 100/200% tekst, download/toetsenbord |
+| Editie/wissel/leer/reeks/bron/OTB/studie-regressies | 53 geslaagd, 0 skipped |
 | Focus/shell | 23 geslaagd |
 | Live data | 51 geslaagd |
-| TypeScript | geslaagd |
-| Prisma-validatie | geslaagd; dummy-URL, geen databasequery |
-| Volledige ESLint | 0 fouten; 132 bestaande waarschuwingen |
-| ESLint nieuwe service/tests/scripts | 0 fouten, 0 waarschuwingen |
-| i18n | geslaagd met bestaande dekking: en/de/fr/es 3261/3684; geen UI-teksten gewijzigd |
-| Schone lokale productiebuild | geslaagd; vorige .next buiten de repository bewaard |
-| Backup/herstel | niet opnieuw uitgevoerd; herstelproef bewust overgeslagen |
+| Puzzelintegratie + Kompas DB-subset | 40 geslaagd, 0 skipped, eigen PostgreSQL |
+| Woord-van-de-Dag-integratie/hints | 29 geslaagd, 0 skipped, eigen PostgreSQL |
+| Puzzel / woordhints / woordzoeker unit | respectievelijk 41 / 5 / 4 geslaagd |
+| Kompas totaalscript zonder DB-binding | 60 geslaagd, 9 DB-tests skipped; DB-subset apart in puzzelrunner, geen claim dat skipped tests zijn uitgevoerd |
+| TypeScript en Prisma | geslaagd |
+| ESLint | 0 fouten, 132 bestaande waarschuwingen; gerichte gewijzigde code 0 waarschuwingen |
+| i18n | geslaagd; en/de/fr/es elk 3303/3726, bestaande achterstand 423 sleutels; geen nieuwe UI-teksten |
+| Schone lokale productiebuild | geslaagd met onbruikbare dummy-DB-URL; geen productiebinding |
 
-De HTTP-tests omvatten gewone API's en leespagina's voor beide rollen, een
-expliciete beheerpreview, echte eerder uitgegeven
-oefensessies, verborgen personen, twee talen en een null-work-legacycollectie.
-De tests bewijzen geen volledig browser-/Capacitor-regressieonderzoek en geen
-prodmedia-herstel. Buildbevestiging voor de definitieve commit wordt daarnaast
-via de nieuwe concept-PR-workflow `content-access.yml` gecontroleerd.
-De runner rapporteert `productionInventoryPerformed: false`,
-`backupCreated: false`, `restorePerformed: false`, `productionBackupVerified: false`.
+GitHub Actions op de gepushte commit wordt afzonderlijk vóór de chatoplevering
+gecontroleerd; actuele runs staan bij [PR #85](https://github.com/rjgout/Versado.app/pull/85/checks).
+De gecontroleerd uitgelokte PostgreSQL-errors 42P01/42703/55P03/57014 in de
+adminintegratielog zijn geslaagde fout-/timeouttests, geen resterende failures.
+Browserartefacten blijven buiten Git en zijn via de inventory-workflow downloadbaar.
+Geen fysieke Safari/iOS/Android/Capacitor- of live-productiesmokecheck uitgevoerd.
 
-Gewijzigde bestanden: de hierboven genoemde routes/pagina's,
-`src/lib/contentAccess.ts`, `src/lib/contentCollections.ts`, `package.json`,
-de drie `tests/content-access*`/`content-inventory.test.mjs`-bestanden,
-`scripts/content-architecture/{inventory,test-isolated,test-server}.mjs`, hun
-README, `.github/workflows/content-access.yml` en dit statusdocument.
-Ook de bestaande beheerpreviewpagina en documenten 03/05/06 zijn gericht
-aangepast. `prisma/schema.prisma`, migraties, spel-UI en vertalingen zijn ongewijzigd.
+## Backupbesluit en veilige productie-uitrol
 
-Collection-DRAFT-tests en ContentWork-DB-tests zijn niet
-uitvoerbaar zolang de bijbehorende schemawijziging terecht geblokkeerd is.
-Conceptoefening-tests mogen niet als vervanging daarvan worden geïnterpreteerd.
+Dagelijkse volledige Synology Hyper Backup is door de eigenaar bevestigd.
+Laatste succesvolle uitvoering, taakmetadata, database-/WAL-consistentie,
+media-volume-dekking en daadwerkelijke terugzetbaarheid zijn hier **niet bewezen**.
+De eigenaar heeft de aanvullende productiebackup-herstelproef bewust overgeslagen
+als geaccepteerd risico. Er is geen nieuwe backup of restore uitgevoerd.
 
-Voor afronding van 1A blijven nodig: de beschikbare beveiligde NAS-verbinding,
-daadwerkelijke inventaris en waar mogelijk bestaande backupmetadata, beoordeelde
-risicoregistratie, gecontroleerde mapping, additief ContentWork-model en
-publicatiestatus, compatibele backfill en bijbehorende legacy/nieuwe-bron/
-conflict-/conceptintegratietests. De goedgekeurde verwijzingseditievoorwaarden
-van fase 2D blokkeren 1A niet. Fase 1B kan pas na beoordeling en afronding van
-dit bronfundament starten; hier is geen UserStudyContext toegevoegd.
+Uitrol vereist een afzonderlijk expliciet besluit; deze PR blijft concept en ongemerged:
+
+1. Review mapping, SQL, checksumuitzonderingen, databehoudsbewijs en risicoacceptatie.
+   Beoordeel vlak vóór de daadwerkelijke uitrol opnieuw de actualiteit van de
+   momentopname via de bestaande admininventarisatie; de huidige opdracht voert
+   die nieuwe productiequery niet uit. Onbekende nieuwe bronnen vereisen beoordeling.
+2. Eigenaar controleert binnen zijn eigen beheer de recentheid/taakdekking van
+   Hyper Backup. Geen herstelclaim en geen nieuwe backupactie vanuit deze opdracht.
+3. Leg de goedgekeurde image-digest/SHA en een **publicatiebewuste compatibele
+   rollbackimage** vast. Een oude image zonder DRAFT-guards is geen veilig
+   algemeen rollbackpad wanneer later DRAFT-content zichtbaar is ingesteld.
+4. Na afzonderlijke merge-/deploytoestemming: beheerder gebruikt het bestaande
+   Versado-deploypaneel. Docker CMD draait recovery-check → prisma migrate deploy →
+   appstart. Eén nieuwe migratie; geen seed/import/backfillknop of live DDL vanuit Codex.
+   Reserveer een kort onderhoudsvenster en voorkom gelijktijdige schema-/contentwrites.
+5. Bij preflight-/lockfout: stop uitrol, behoud oude app en gegevens, onderzoek de
+   oorzaak. De DO-transactie rolt terug; Prisma kan een mislukte registratie
+   achterlaten. De bestaande recovery-allowlist autoriseert deze nieuwe migratie
+   **niet** automatisch. Eventueel migrate resolve vereist gecontroleerde,
+   afzonderlijk geautoriseerde opvolging na bewezen rollback; geen automatische retrypatch.
+6. Na succesvolle migratie: via beveiligde admininventarisatie 21 collecties met
+   LEGACY, onveranderde flags/IDs en integriteit controleren; geen vergelijking van
+   vóór/na-totalen die normale concurrente gebruikersactiviteit als verlies behandelt.
+   Smokecheck normale leestoegang, verborgen/DRAFT-blokkade, expliciete preview,
+   cursussen, annotaties en podcastpositie. Geen beloning of voortgang resetten.
+7. Bij approllback blijft het additieve schema behouden. Gebruik een compatibele
+   publicatiebewuste image; geen tabellen/kolommen verwijderen, geen backuprestore
+   die nieuwere voortgang wist. Destructieve contractstappen vallen buiten scope.
+
+Voor fase 1B: eerst beoordeling van dit werkpakket, daarna afzonderlijke opdracht
+voor UserStudyContext. Geen nieuwe bron publiceren voordat de relevante content-
+validatie en vervolg-gates zijn uitgevoerd.
+
+## Gewijzigde bestanden
+
+Nieuwe 1A-uitwerking: `prisma/schema.prisma`, de genoemde nieuwe `migration.sql`,
+`src/lib/contentAccess.ts`, `src/lib/contentCollections.ts`,
+`scripts/content-architecture/{test-access-isolated,validate-inventory}.mjs`,
+`tests/content-work-migration.mjs`, `tests/content-inventory-validation.test.mjs`,
+`tests/fixtures/content-1a-catalog.json`, toegang-/contentwissel-/inventarisatie-
+fixtures, `package.json` en `.github/workflows/content-access.yml`.
+Documentatie: 02/03/04/05/06, dit statusrapport en scripts-README.
+De bestaande PR-85-guards in de hierboven opgesomde API’s/leespagina’s zijn
+behouden; main’s `core.ts`, CLI-wrapper, admin-UI en inventarisatierunner zijn
+niet door parallelle implementaties vervangen. Geen oude migratie gewijzigd.

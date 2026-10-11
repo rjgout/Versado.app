@@ -1,8 +1,8 @@
 # Veilige voorbereiding van Contentarchitectuur V2 — 1A
 
-Deze hulpmiddelen veranderen geen werkidentiteiten, publicatiestatussen of
-productiegegevens. ContentWork en de bijbehorende backfill mogen pas worden
-uitgevoerd nadat de daadwerkelijke inventarisatie is beoordeeld. De eigenaar
+Deze hulpmiddelen wijzigen geen productiegegevens. De inventarisatie is
+uitsluitend lezend; de 1A-runner test ContentWork/publicatie-DDL alleen op
+zijn eigen wegwerpdatabase. De daadwerkelijke inventarisatie is beoordeeld. De eigenaar
 heeft dagelijkse Hyper Backup bevestigd en de aanvullende herstelproef bewust
 overgeslagen. Die risicoacceptatie is geen bewijs van getest herstel.
 
@@ -42,8 +42,8 @@ npm run test:content-access:integration
 
 De runner maakt zijn eigen lokale PostgreSQL-container met een willekeurige
 naam en poort. Hij gebruikt uitsluitend de lokale Docker-socket en overschrijft
-de databaseconfiguratie. Alleen bestaande main-migraties worden op deze lege
-database toegepast. Geen algemene seed, scheduler of FSY-sync draait.
+de databaseconfiguratie. Eerst bestaande main-migraties, daarna synthetische records op basis van de
+geverifieerde catalogus en vervolgens de nieuwe additieve 1A-migratie via Prisma. Geen algemene seed, scheduler of FSY-sync draait.
 
 De tests spreken de echte productie-HTTP-routehandlers aan en vergelijken
 privérecords vóór/na geweigerde mutaties. Daarna draait de read-only inventaris
@@ -75,6 +75,20 @@ hervattingsopdracht.
   garbage collection.
 
 Leg bewijsreferenties vast zonder persoonsgegevens of verbindingsgeheimen in
-de repository te plaatsen. Zonder daadwerkelijke productie-inventaris blijft de schemawijziging
-geblokkeerd. Ontbrekend herstelbewijs is binnen deze hervatting een vastgelegd
+de repository te plaatsen. De productie-inventaris van 2026-10-11 is aangeleverd en offline gevalideerd. Ontbrekend herstelbewijs is binnen deze hervatting een vastgelegd
 geaccepteerd risico, geen opnieuw te stellen productvraag.
+
+## Aangeleverd rapport offline controleren
+
+```sh
+node scripts/content-architecture/validate-inventory.mjs /veilig/pad/inventaris.json
+```
+
+Dit gebruikt de Zod-allowlist en identiteitsanalyse uit main. Geen databasequery.
+Alleen een samenvatting en technische checksumafwijkingen worden getoond.
+De twee bewezen historische migratiehernoemingen zijn expliciete uitzonderingen,
+een teruggedraaide poging vereist later succesvol checksumbewijs. Het originele
+rapport hoort niet in Git. De gedeelde adminrunner blijft `test-isolated.mjs`;
+1A gebruikt `test-access-isolated.mjs` en heeft geen eigen inventarisatieservice.
+Productie-deploy voert de migratie automatisch uit en vraagt daarom afzonderlijke
+uitroltoestemming. Zie het [status- en uitrolplan](../../docs/content-architecture-v2/07-PHASE-1A-STATUS.md).

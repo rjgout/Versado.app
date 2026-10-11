@@ -58,7 +58,9 @@ Geen nieuwe shellcomponent. Metadataregister blijft plek voor iconen.
 M1 uit document 03. ContentWork/publicatiecompatibiliteit en UserStudyContext
 met nullable legacy-leskey; FK naar de echte les pas in fase 2. Geen andere
 tabellen aanpassen alleen om toekomstige features klaar te leggen.
-Vooraf: fase-0-goedkeuring, alleen-lezen inventaris en herstelproef. De vier
+Vooraf: fase-0-goedkeuring en alleen-lezen inventaris. Voor de hervatting van
+1A vervangt de expliciete risicoacceptatie D5 de aanvullende herstelproef;
+geïsoleerde migratie-/databehoudtests en afzonderlijke uitroltoestemming blijven vereist. De vier
 aanvullende productbesluiten D1–D4 in document 06 zijn vastgesteld en geen
 open afhankelijkheid. Betrouwbare verwijzingsedities/mappings worden bij
 fase 2D en latere lespublicatie gevalideerd; ze blokkeren fase 1A niet.
@@ -396,3 +398,13 @@ fase-1-scope afzonderlijk autoriseren; daarna pas 1A starten. De vier
 aanvullende productbesluiten zijn genomen. Technische inventaris, bronvalidatie,
 herstelproeven en fasegebonden tests blijven noodzakelijke uitrolvoorwaarden.
 Alle latere fasen hebben een eigen beoordeling en merge-/uitrolbesluit.
+
+### Actuele 1A-uitwerking
+
+PR #85 is gesynchroniseerd met PR #86/main. De aangeleverde productie-inventaris
+van 2026-10-11T18:51:50.752Z is beschikbaar; een NAS-koppeling is geen gate meer.
+1A bevat alleen ContentWork.key/kind, FK via bestaand work, LEGACY/DRAFT/PUBLISHED,
+DRAFT/onzichtbare insertdefaults en gedeelde normale/expliciete-previewguards.
+Geen UserStudyContext, nieuwe kiezer, CFM-content of volledige spelresolver.
+Het automatische prisma migrate deploy bij appstart vereist afzonderlijk
+goedgekeurde uitrol ondanks groene tests; zie [uitrolplan](07-PHASE-1A-STATUS.md).

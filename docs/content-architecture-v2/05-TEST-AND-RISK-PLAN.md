@@ -60,7 +60,7 @@ vervangt die herstelgate voor de voorbereiding van de 1A-PR; de daadwerkelijke
 productie-inventarisatie en geïsoleerde migratie-/databehoudtests blijven nodig.
 Dagelijkse Hyper Backup is door de eigenaar bevestigd, maar bewijst geen
 geslaagde restore, backupconsistentie of gecontroleerde mediadekking.
-Document 07 houdt de werkelijk gecontroleerde status bij. Geen nieuwe backup
+De [fase-1A-status](07-PHASE-1A-STATUS.md) houdt de werkelijk gecontroleerde status bij. Geen nieuwe backup
 of herstelactie uitvoeren en geen productie-uitrol afleiden uit deze uitzondering.
 
 ## 2. Testlagen voor de implementatiefasen
@@ -286,3 +286,15 @@ volgens document 03; geen tweede 'fix'-import op productie stapelen.
 
 Geen oude FSY-/annotatie-/routecode verwijderen tot de contractgates uit
 document 03 en een afgesproken observatieperiode aantoonbaar gehaald zijn.
+
+### Bewijstoestand hervatting 1A
+
+De eigenaar heeft de echte admininventarisatie van 2026-10-11T18:51:50.752Z
+aangeleverd. Zod, identiteitsanalyse en migratiechecksums zijn offline gecontroleerd:
+21 collecties, zeven werken, geen null-work/conflicten of gemeten relatiegaten.
+De inventarisatieblokkade is opgeheven. De additieve 1A-migratie wordt uitsluitend
+in een wegwerpdatabase getest. Het overslaan van de aanvullende backupherstelproef
+blijft expliciete risicoacceptatie; backupmetadata en herstelbaarheid zijn niet
+bewezen. Geen nieuwe productiequery, migratie, seed, import, restart of deploy
+in deze opdracht. Afzonderlijke productie-uitroltoestemming blijft nodig wegens
+automatische Prisma-migraties bij appstart. Details: [status](07-PHASE-1A-STATUS.md).
