@@ -4,10 +4,30 @@ import { createPuzzleGeometry, tracePuzzleGroup, tracePuzzlePiece } from "../src
 import { connectGroups, findSnapConnection, groupFor, moveGroup, newPuzzleSnapshot, worldOf } from "../src/lib/puzzle/engine";
 import type { PuzzlePieceGeometry } from "../src/lib/puzzle/types";
 import { initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera } from "../src/lib/puzzle/viewport";
-import { puzzleWorktable } from "../src/lib/puzzle/worktable";
+import { puzzleRenderOrder, puzzleWorktable } from "../src/lib/puzzle/worktable";
 
 type Point = [number, number];
 type Segment = { from: Point; to: Point; controls?: [Point, Point] };
+
+test("sleepprioriteit geldt voor de hele groep en verandert de opgeslagen volgorde niet", () => {
+  const geometry = createPuzzleGeometry(12, "sleepvolgorde");
+  let snapshot = newPuzzleSnapshot(geometry, "ADVENTURER");
+  for (const id of [0, 1]) snapshot = moveGroup(snapshot, geometry, `p${id}`, 4 + id, 4);
+  snapshot = connectGroups(snapshot, geometry, "ADVENTURER", 0, 1);
+  const before = structuredClone(snapshot);
+  const groups = Object.freeze(snapshot.groups);
+  for (const group of groups) {
+    const order = puzzleRenderOrder(groups, group.id);
+    assert.equal(order.at(-1), group);
+    assert.deepEqual(order.slice(0, -1), groups.filter((candidate) => candidate.id !== group.id));
+    assert.deepEqual(order.at(-1)!.pieceIds, group.pieceIds);
+    assert.equal(new Set(order).size, groups.length);
+  }
+  assert.deepEqual(puzzleRenderOrder(groups, null), before.groups, "loslaten herstelt de volgorde");
+  assert.deepEqual(puzzleRenderOrder(groups, "verdwenen-groep"), before.groups);
+  assert.deepEqual(puzzleRenderOrder([], null), []);
+  assert.deepEqual(snapshot, before, "renderprioriteit wijzigt geen spelstatus");
+});
 function sides(piece: PuzzlePieceGeometry) {
   const paths: Segment[][] = [[], [], [], []]; let side = 0; let current: Point = [0, 0];
   const point = (x: number, y: number): Point => [piece.column + x, piece.row + y];
