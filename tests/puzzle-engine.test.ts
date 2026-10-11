@@ -109,7 +109,7 @@ test("snap kiest alleen de beste geldige buur, onafhankelijk van camera-zoom", (
   const geometry = createPuzzleGeometry(6, "snapgroep"); let state = newPuzzleSnapshot(geometry, "EXPERT");
   state = placed(geometry, state, 0, 3, 3); state = placed(geometry, state, 1, 4.06, 3.02);
   const candidate = findSnapConnection(state, geometry, "EXPERT", "p1"); assert.equal(candidate?.a, 0); assert.equal(candidate?.b, 1); assert.ok(candidate && candidate.error < .07);
-  state = placed(geometry, state, 1, 4.3, 3); assert.equal(findSnapConnection(state, geometry, "EXPERT", "p1"), null);
+  state = placed(geometry, state, 1, 4.4, 3); assert.equal(findSnapConnection(state, geometry, "EXPERT", "p1"), null);
 });
 
 test("een comfortabele snap richt groepen exact uit en blijft ongeldig buiten de tolerantie", () => {

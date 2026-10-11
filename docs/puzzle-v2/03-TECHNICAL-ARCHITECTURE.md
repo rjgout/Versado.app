@@ -12,7 +12,7 @@ uitsneden; WebGL en een nieuwe library zijn onnodig. `@dnd-kit` bestaat, maar
 is voor sorteerkaarten, niet voor vrije world-coördinaten/groepen/pinch/serverlocks.
 Canvas 2D werkt in moderne browsers en Capacitor WebViews.
 
-Gebruik DPR-begrensde backingstore, `ImageBitmap` waar beschikbaar, `Path2D`-cache, requestAnimationFrame en zichtbare-bounds culling. Virtualiseer de bak. De keyboardmodus roept dezelfde engineacties aan; canvas is dus geen ontoegankelijke black box.
+Gebruik DPR-begrensde backingstore, `ImageBitmap` waar beschikbaar, `Path2D`-cache, requestAnimationFrame en zichtbare-bounds culling. De keyboardmodus roept dezelfde engineacties aan; canvas is dus geen ontoegankelijke black box.
 
 ## Lagen
 
@@ -26,7 +26,34 @@ Gebruik DPR-begrensde backingstore, `ImageBitmap` waar beschikbaar, `Path2D`-cac
 
 Iedere gedeelde rand bestaat eenmaal en wordt door beide buren met inverse oriëntatie gelezen. Een descriptor bevat vormfamilie, positie, breedte, diepte, asymmetrie en tab/slot; buitenranden zijn vlak. Een seeded PRNG met vaste integer/fixed-point parameters maakt output reproduceerbaar. Nieuwe generator = nieuwe `geometryVersion`; oude definitie+seed blijft onveranderd. Geometry v2 bewaart per gedeelde rand naast positie/breedte/diepte een hals- en rondheidsparameter en tekent vier Bézier-segmenten (hals → ronde kop → hals). Beide kanten lezen één descriptor met omgekeerde looprichting. Validatie test complementen, rand/hoek, minimumafstand tot hoeken, self-intersection en grenzen.
 
-## Server-authoritative multiplayer
+## Geïmplementeerd: Solo, spelregelversie 2
+
+`puzzlePolicy(difficulty, rulesVersion)` bewaart oude ondersteuning en geeft
+nieuwe niveaus een gelijke wereldtolerantie. `connect` en `anchor` zijn aparte
+acties. `anchorGroup` leidt de positie af uit definitie/werktafel en het stabiele
+groepsanker, valideert tolerantie, rotatie en unieke volledige stukdekking.
+Elke groep heeft aantoonbare boomverbindingen; cycli, dubbele leden of
+niet-aangrenzende edges zijn ongeldig. Bordankers staan exact canoniek en zijn
+immobiel. Merge behoudt een bestaand bordanker, ook bij omgekeerde inputs.
+Aangrenzende verankerde groepen groeien deterministisch met een geldige edge.
+
+`isPuzzleComplete` bewijst structuur en oriëntatie; één volledige vrije groep
+of volledige geldige verankering kan voltooien. Dezelfde validator bewaakt
+hervatten, statusherstel en antwoorden; een timestamp/statusclaim is onvoldoende.
+De sessieservice lockt een eigen SOLO-sessie met `FOR UPDATE`, controleert
+versie/actionId en schrijft actie + snapshot atomisch. Er zijn geen client-
+aangeleverde transforms of leden in een anchoractie. De drop behoudt bestaande
+stuk-/groep-snaps en probeert daarna bordplaatsing van het nieuwe geheel.
+
+Hints zijn serverberekende, tijdelijke targets in `snapshot.hints`, met
+`actionId`, `at`, `expiresAt`, `extra` en type. Locatie geldt voor alle
+selectieleden; verbinding kiest een echte externe buur. Filtering dimt alleen
+weergave, inclusief niet-geselecteerde soorten binnen verbonden groepen.
+Het permanente snapshot-filter blijft onaangeraakt. Een lopende hint en de
+sessielock voorkomen snel dubbel afschrijven; retries met dezelfde actionId
+geven de huidige autoritatieve snapshot. Nooit een hintspecifieke reeksactie.
+
+## Toekomstig, buiten fase 2: server-authoritative multiplayer
 
 Nieuwe handler onder `src/server/`, geregistreerd in `gameServer.ts` analoog aan study/quickMissionary, maar database is bron van waarheid. Room `puzzle:<sessionId>`; events `join`, `sync`, `lock`, throttled ephemeral `move`, `commit`, `unlock`, `completed`.
 

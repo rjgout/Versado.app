@@ -8,6 +8,9 @@ on:
       - 'src/lib/jigsaw*'
       - 'src/lib/streak.ts'
       - 'src/components/JigsawV2Client.tsx'
+      - 'src/components/PuzzleHintPanel.tsx'
+      - 'src/lib/kompas/**'
+      - 'src/lib/i18n/messages/**'
       - 'src/components/SubpageBackBar.tsx'
       - 'src/lib/backTarget.ts'
       - 'src/app/globals.css'
@@ -40,6 +43,7 @@ jobs:
       # Postgres-container en past alle migraties toe. Geen externe DB-secrets.
       - name: Prisma en productiebuild
         run: |
+          npx prisma validate
           npm run db:generate
           npm run build
       - name: Browser klaarzetten
@@ -51,8 +55,13 @@ jobs:
         env:
           NODE_ENV: production
         run: npm run test:puzzle:integration -- --browser
-      - name: Engine en legacy-regressies
-        run: npm run test:puzzle
+      - name: Engine, spelregels, vertalingen en legacy-regressies
+        run: |
+          npm run test:puzzle
+          npm run test:focus
+          npx tsx --test tests/kompas.test.ts tests/kompas-layout-integration.test.ts
+          npx tsx scripts/i18n/check.ts
+          npm run lint
       - name: TypeScript
         run: npx tsc --noEmit
       - name: Browserscreenshots bewaren

@@ -51,3 +51,23 @@ motion aanvullende controles. Draai ook `test:focus`,
 `test:learning`, `test:live-data`, `test:kompas` en bestaande jigsawtests.
 
 Handmatig op iOS Safari/Capacitor en Android WebView: pinch-vs-drag, notch/keyboard, background/resume, VoiceOver/TalkBack, latency en 96/150/300-stuksprofielen. Meet FPS, geheugen, commitlatency/payload en databasegroei vóór definitieve limieten.
+
+## Spelregelversie 2: bordplaatsing en hints
+
+`puzzle-rules.test.ts` bewijst de policy-matrix, uniforme tolerantie, losse en
+gegroepeerde verankering, immobiele ankers, omgekeerde verbindingen, bruggen
+van twee bordgroepen en voltooiing in verschillende volgordes. Valse bomen,
+dubbele leden en verschoven ankers zijn geen bewijs. Hints hebben geldige
+externe targets, tijdelijke effecten en veranderen geen spelstatus.
+
+De geïsoleerde service-integratie controleert opgeslagen/hervatte verankering,
+concurrent anchor/autosave, rechten en versieconflicten, alle hints, budget/extra,
+retries en snelle herhalingen, oude geometry 1/2 met rules 1 en replay onder
+rules 2. De vraag blijft verplicht; hintgebruik maakt geen reeksclaim/XP.
+
+`puzzle-difficulty.browser.mjs` controleert echte desktop/touch-drops voor ieder
+niveau, canvaspixels zonder oplossingsvlak bij Expert/Meester, immobiele
+verankering, rotatie, vier visuele hints met verval en herstel na herladen,
+budgetwaarschuwing vóór de extra hint, knoppen ≥60px en panelen op klein,
+landscape, safe areas en 200% tekst. Bestaande flow-, naad-, pan/pinch-,
+groep-snap- en dragprioriteit-browsertests blijven onderdeel van dezelfde runner.

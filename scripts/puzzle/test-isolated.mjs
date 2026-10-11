@@ -50,6 +50,7 @@ try {
     await run("npx", ["tsx", "tests/puzzle-flow.browser.mjs"], env);
     await run("npx", ["tsx", "tests/puzzle-mobile.browser.mjs"], env);
     await run("npx", ["tsx", "tests/puzzle-drag.browser.mjs"], env);
+    await run("npx", ["tsx", "tests/puzzle-difficulty.browser.mjs"], env);
   }
 } catch (error) {
   console.error(error); process.exitCode = 1;

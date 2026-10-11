@@ -84,7 +84,7 @@ const STATIC_TOPICS: readonly KompasTopic[] = [
 
 /** Elk spel uit de catalogus is vanzelf een onderdeel onder Spelen: een nieuw spel hoeft hier niets te registreren. */
 function gameTopic(game: GameCatalogEntry): KompasTopic {
-  return { id: `play.${game.id}`, parent: "play", icon: "play", version: 1, href: game.href, routes: [game.href], game };
+  return { id: `play.${game.id}`, parent: "play", icon: "play", version: game.id === "jigsaw" ? 2 : 1, href: game.href, routes: [game.href], game };
 }
 
 export const KOMPAS_TOPICS: readonly KompasTopic[] = [...STATIC_TOPICS, ...GAME_CATALOG.map(gameTopic)];

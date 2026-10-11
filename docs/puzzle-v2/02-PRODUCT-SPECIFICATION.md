@@ -2,28 +2,47 @@
 
 ## Vastgelegd
 
-**VOORGESTELD:** één vrije legpuzzelervaring met losse stukken, geldige verbindingen en verplaatsbare groepen. Voltooid betekent één groep in canonieke geometrie; een geldige verbinding blijft vast. Zoom en pan zijn altijd beschikbaar en persoonlijk, nooit een hint.
+**Fase 2, rulesVersion 2:** één fullscreen Solo-ervaring met losse stukken,
+geldige verbindingen en verplaatsbare groepen. Vrij puzzelen voltooit met één
+bewezen verbonden groep. Op eenvoudige niveaus geldt ook volledige geldige
+bordverankering, onafhankelijk van de volgorde van plaatsingen. Zoom en pan
+blijven op ieder niveau beschikbaar en kosten geen hint.
 
-Een variant is minimaal `(puzzleContentId, pieceCount, difficulty, geometryVersion, rulesVersion)`. Alleen dezelfde variant is vergelijkbaar voor records en wedstrijden.
+Een variant is minimaal `(puzzleContentId, pieceCount, difficulty, geometryVersion, rulesVersion)`.
+Stukaantal (6/12/24/48/96) is onafhankelijk van moeilijkheid. Alleen dezelfde
+variant is vergelijkbaar voor toekomstige records en wedstrijden.
 
-| Niveau | Permanent | Snapping/hulp | Rotatie/hints |
+| Niveau | Permanent | Stukken / bord | Rotatie / inbegrepen hints |
 | --- | --- | --- | --- |
-| Ontdekker | transparant voorbeeld, contouren | ruim, randfilter | geen / onbeperkt |
-| Avonturier | buitencontour | normaal, voorbeeld op verzoek, randfilter | geen / 3 |
-| Expert | buitencontour | nauw, voorbeeld/filter via hint | alleen na UX-validatie / 2 |
-| Meester | geen | nauw, beperkt | vereist / 1 |
+| Ontdekker | transparant voorbeeld, buitencontour | onderling + bordverankering | geen / onbeperkt |
+| Avonturier | buitencontour | onderling + bordverankering | geen / 3 |
+| Expert | geen oplossingsvlak of contour | uitsluitend onderling | geen / 2 |
+| Meester | geen oplossingsvlak of contour | uitsluitend onderling | vereist / 1 |
 
-Hint A toont vijf seconden voorbeeld; B markeert doelpositie geselecteerd stuk; C een echte complementaire buur; D filtert persoonlijke bak tijdelijk. Extra hints blijven mogelijk en worden geregistreerd. `extraHintsUsed` is zichtbaar in record/ranglijst en staat onder een gelijkwaardige hulpvrije tijd. **Deze paragraaf beschrijft de toekomstige herintroductie; hints zijn in de actieve fase-2 Solo-interface bewust uitgeschakeld.**
+Alle nieuwe niveaus gebruiken dezelfde stuk-snapafstand (.36 world-unit).
+Verankerde groepen blijven liggen, maar kunnen via passende buren groeien.
 
-## Fase-2-correctie: huidige solo-ervaring
+## Fase-2-interface en hints
 
-**BEVESTIGD (correctieronde):** de actieve Solo-interface heeft geen hints,
-filters, permanente zoomknoppen of losse stukjesbak. Onder de vaste
-terugbalk vult één begrensd Canvas-bord de beschikbare focusruimte. Een
-discreet bordmenu bevat alleen `alles passend tonen` en `andere puzzel
-kiezen`; bij Meester verschijnt draaien uitsluitend contextueel na selectie.
-Hints blijven als geïsoleerd toekomstig datacontract bestaan, maar de v2 API
-accepteert geen hintactie zolang ze niet opnieuw productmatig zijn ingevoerd.
+Onder de vaste terugbalk vult één begrensd Canvas de beschikbare focusruimte.
+Geen permanente toolbar of stukjesbak. Het menu rechtsonder bevat `Hint
+gebruiken`, `alles passend tonen` en `andere puzzel kiezen`. Contextueel draaien
+staat linksonder bij Meester. Beide knoppen zijn minimaal 60×60 CSS-pixels met
+26px-iconen; veilige randen, text scaling en reduced motion blijven behouden.
+
+Het hintpaneel toont budget en extra-uitleg vooraf. PREVIEW toont vijf seconden
+de volledige afbeelding; LOCATION markeert de canonieke plek van de selectie;
+CONNECTION markeert één echte externe buur; FILTER benadrukt hoek-, rand- of
+middenstukken op hun huidige positie. Alle hulp is vijf seconden tijdelijk en
+maakt geen plaatsing/verbinding aan. Extra hints zijn toegestaan en apart
+registreerbaar voor latere records; er wordt nu geen ranglijst gebouwd.
+Hints hebben geen invloed op de reeks of XP. Tijdelijke targets en hun absolute
+vervaltijd zijn opgeslagen; herladen speelt uitsluitend de resterende tijd.
+
+Bestaande rulesVersion-1-sessies hervatten met hun eerdere ondersteuning en
+snapafstand, zonder bordverankering. Het menu vermeldt dit. Historische hints,
+filters, antwoorden en records worden niet herschreven; oude filters zijn geen
+permanente UI meer. Een nieuwe poging na afronding gebruikt rulesVersion 2.
 
 Nieuwe sessies gebruiken geometryVersion 2 met traditionele afgeronde
 tab-/slotverbindingen. Sessies met geometryVersion 1 behouden hun bestaande
@@ -38,8 +57,7 @@ door de centrale activiteit- en kalenderdagregels. Puzzelen geeft geen XP.
 
 ## Modes en acceptatie
 
-Mobiel en desktop gebruiken één eindige werktafel: een herkenbaar centraal
-puzzelgebied met daaromheen vrije, directe ruimte voor losse stukken en
+Mobiel en desktop gebruiken één eindige werktafel: een centrale puzzelzone (alleen op de eenvoudige niveaus zichtbaar) met daaromheen vrije, directe ruimte voor losse stukken en
 groepen. Er is geen tweede permanente stukjesbak en geen dubbele representatie
 van stukken. De startverdeling is deterministisch, niet-overlappend en schaalt
 tot 96 stukken. Het speelviewport vult het scherm onder de gemeten terugbalk,
