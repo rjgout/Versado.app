@@ -73,7 +73,7 @@ test("dubbele actionId, verschillende gelijktijdige requests en verloren respons
   assert.equal(await L.db.puzzleAction.count({where:{sessionId:state.id,actionId:id}}),1);
   assert.equal(await L.solo.applySoloAction(user.id,state.id,state.version,id,preview,"nl"),null);
   const expired = await expire(next); await L.db.user.update({where:{id:user.id},data:{hintBalance:1}});
-  const concurrent = await Promise.all([act(user.id,expired,personal),L.solo.applySoloAction(user.id,expired.id,expired.version,randomUUID(),personal,"nl")]);
+  const concurrent = await Promise.all(Array.from({length:2},()=>L.solo.applySoloAction(user.id,expired.id,expired.version,randomUUID(),personal,"nl")));
   assert.equal(concurrent.filter(Boolean).length,1); assert.equal((await L.solo.resumeSoloPuzzle(user.id,state.id,"nl"))!.hintBalance,0);
 });
 

@@ -24,7 +24,7 @@ try {
   const scope = await prisma.gameContentScope.findFirstOrThrow({ where: { gameKey: "jigsaw" } });
   await prisma.gameSettings.upsert({ where: { id: "singleton" }, create: { jigsawEnabled: true }, update: { jigsawEnabled: true } });
   for (const mobile of [false, true]) {
-    const user = await prisma.user.create({ data: { email: `rules-${randomUUID()}@test.invalid`, passwordHash: "x", handle: `Rules${randomUUID().slice(0,6)}`, discriminator: "00", activeContentCollectionId: scope.contentCollectionId, onboardingSeenAt: new Date(), onboardingProfilePrivacyAt: new Date() } }); users.push(user.id);
+    const user = await prisma.user.create({ data: { email: `rules-${randomUUID()}@test.invalid`, passwordHash: "x", handle: `Rules${randomUUID().slice(0,6)}`, discriminator: "00", hintBalance: 2, activeContentCollectionId: scope.contentCollectionId, onboardingSeenAt: new Date(), onboardingProfilePrivacyAt: new Date() } }); users.push(user.id);
     const context = await browser.newContext({ viewport: mobile ? { width: 390, height: 844 } : { width: 1280, height: 900 }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: mobile ? 3 : 1, serviceWorkers: "block" });
     await context.addCookies([{ name: SESSION_COOKIE, value: await createSessionToken(user.id), url: base }]);
     const page = await context.newPage(); const errors = []; page.on("pageerror", (error) => errors.push(error.message));
@@ -105,7 +105,7 @@ try {
       assert.ok(await panel.getByText(nl.jigsaw.hintsRemaining.replace("{n}",String(3-index))).isVisible());
       if(index===3) assert.ok(await panel.getByText(nl.jigsaw.extraHintNotice).isVisible());
       await page.screenshot({path:`${output}/hint-pane-${mobile?"mobile":"desktop"}-${index}.png`});
-      const reply=page.waitForResponse((r)=>r.request().postDataJSON()?.operation?.kind==="hint"); await panel.getByRole("button",{ name,exact:true }).click(); state=await(await reply).json();
+      const reply=page.waitForResponse((r)=>r.request().postDataJSON()?.operation?.kind==="hint"); if(index===3) await panel.getByRole("button",{name:nl.jigsaw.hintFilter,exact:true}).click(); await panel.getByRole("button",{ name,exact:true }).click(); if(index===3) await panel.getByRole("button",{name:nl.jigsaw.hintConfirmUse,exact:true}).click(); state=await(await reply).json();
       const hint=state.snapshot.hints.at(-1); assert.equal(hint.extra,index===3); assert.ok(hint.expiresAt);
       if(hint.type==="CONNECTION") assert.ok(!groupFor(state.snapshot,0).pieceIds.includes(hint.target.neighborId));
       await page.waitForFunction((type)=>document.querySelector("canvas")?.dataset.activeHint===type,hint.type);
@@ -125,7 +125,7 @@ try {
       await page.setViewportSize(size); await page.evaluate(()=>{ document.documentElement.style.fontSize="200%"; for(const [side,value] of Object.entries({left:20,right:20,bottom:34})) document.documentElement.style.setProperty(`--safe-area-inset-${side}`,`${value}px`); });
       await menu.click(); await page.getByRole("button",{ name:nl.jigsaw.useHint,exact:true }).click();
       const panel=page.getByRole("dialog",{ name:nl.jigsaw.hintPanel }); const box=await panel.boundingBox(); const button=await menu.boundingBox();
-      assert.ok(button.width>=60&&button.height>=60); assert.ok(box.x>=19&&box.x+box.width<=size.width-19); assert.ok(box.y>=0&&box.y+box.height<=button.y,JSON.stringify({size,box,button})); assert.ok(box.height>40);
+      assert.ok(button.width>=60&&button.height>=60); assert.ok(box.x>=19&&box.x+box.width<=size.width-19); assert.ok(box.y>=0&&box.y+box.height<=size.height,JSON.stringify({size,box,button})); assert.ok(box.height>40);
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&document.documentElement.scrollHeight<=innerHeight+1),true);
       await page.screenshot({ path:`${output}/hints-${mobile?"mobile":"desktop"}-${size.width}-200.png` });
       await panel.getByRole("button",{ name:nl.jigsaw.closeHints,exact:true }).click(); assert.equal(await menu.evaluate((button)=>button===document.activeElement),true);

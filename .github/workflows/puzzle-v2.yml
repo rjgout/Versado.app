@@ -5,6 +5,12 @@ on:
     branches: [main]
     paths:
       - 'src/lib/puzzle/**'
+      - 'src/lib/shop.ts'
+      - 'src/lib/data/**'
+      - 'src/lib/chapterGuess.ts'
+      - 'src/lib/scrabbleGame.ts'
+      - 'src/components/ChapterGuessSoloClient.tsx'
+      - 'src/components/ScrabbleBoardClient.tsx'
       - 'src/lib/jigsaw*'
       - 'src/lib/streak.ts'
       - 'src/components/JigsawV2Client.tsx'
@@ -58,6 +64,7 @@ jobs:
       - name: Engine, spelregels, vertalingen en legacy-regressies
         run: |
           npm run test:puzzle
+          npm run test:live-data
           npm run test:focus
           npx tsx --test tests/kompas.test.ts tests/kompas-layout-integration.test.ts
           npx tsx scripts/i18n/check.ts

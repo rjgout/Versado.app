@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useRouter } from "next/navigation";
+import { useHintInventory } from "@/lib/data/hints";
+import { liveMutation } from "@/lib/data/mutation";
 import NextImage from "next/image";
 import { Ellipsis, RotateCw, Lightbulb } from "lucide-react";
 import PuzzleHintPanel from "@/components/PuzzleHintPanel";
@@ -11,12 +14,12 @@ import { boardSnapTarget, connectedPieces, findSnapConnection, groupFor, worldOf
 import { clampGroupPosition, groupAnchor, groupMemberAt, puzzleRenderOrder, puzzleWorktable } from "@/lib/puzzle/worktable";
 import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
 import { puzzlePolicy, type PuzzleFilter, type PuzzleHintType, type PuzzleHint, type PuzzleDifficulty, type PuzzlePieceCount, type PuzzleSnapshot } from "@/lib/puzzle/types";
-import { activePuzzleHint } from "@/lib/puzzle/hints";
+import { activePuzzleHint, puzzleHintTarget } from "@/lib/puzzle/hints";
 import { filterPuzzleCatalog, puzzleCatalogPage } from "@/lib/puzzle/catalog";
 import type { JigsawAnswerResult } from "@/lib/jigsaw";
 import { useSetBackTarget } from "@/lib/backTarget";
 
-type State = { id: string; version: number; status: string; image: string; seed: string; geometryVersion: number; pieceCount: PuzzlePieceCount; difficulty: PuzzleDifficulty; rulesVersion: number; snapshot: PuzzleSnapshot; question?: { text: string; options: string[] }; answer?: Answer };
+type State = { hintBalance: number; id: string; version: number; status: string; image: string; seed: string; geometryVersion: number; pieceCount: PuzzlePieceCount; difficulty: PuzzleDifficulty; rulesVersion: number; snapshot: PuzzleSnapshot; question?: { text: string; options: string[] }; answer?: Answer };
 type Answer = JigsawAnswerResult | { alreadyAnswered: true };
 type Point = { x: number; y: number };
 type Drag = { pointer: number; groupId: string; offset: Point };
@@ -62,7 +65,7 @@ export default function JigsawV2Client({ images }: { images: Array<{ url: string
   const [page, setPage] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const starting = useRef(false);
+  const starting = useRef(false); const [isStarting, setIsStarting] = useState(false);
   const chooseAnother = useCallback(() => { remember(null); setState(null); }, []);
 
   useEffect(() => {
@@ -89,14 +92,14 @@ export default function JigsawV2Client({ images }: { images: Array<{ url: string
 
   async function start(previous?: State) {
     if (starting.current || (!previous && !selectedImage)) return;
-    starting.current = true; setLoading(true); setError("");
+    starting.current = true; setIsStarting(true); setLoading(true); setError("");
     try { const next = await request({ action: "start", imageId: previous?.image ?? selectedImage!.src, pieceCount: previous?.pieceCount ?? pieceCount, difficulty: previous?.difficulty ?? difficulty }) as State; remember(next.id); setState(next); }
     catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed")); }
-    finally { starting.current = false; setLoading(false); }
+    finally { starting.current = false; setIsStarting(false); setLoading(false); }
   }
 
   if (state) return <Puzzle key={state.id} initial={state} setOuter={(next) => setState((current) => current?.id === next.id ? next : current)} onReplay={() => { const previous = state; setState(null); void start(previous); }} onChooseAnother={chooseAnother} />;
-  if (loading) return <FocusLayout><p role="status">{t("common.loading")}</p></FocusLayout>;
+  if (loading && !isStarting) return <FocusLayout><p role="status">{t("common.loading")}</p></FocusLayout>;
   return <FocusLayout className="max-w-5xl gap-5">
     <header><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.title")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.intro")}</p></header>
     <section aria-labelledby="jigsaw-image-choice"><div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="jigsaw-image-choice" className="font-bold">{t("jigsaw.chooseImage")}</h2><p className="text-sm text-vs-fg-2">{t("jigsaw.catalogCount", { n: images.length })}</p></div><label className="min-w-[min(100%,16rem)] text-sm font-semibold">{t("jigsaw.searchImages")}<input value={query} onChange={(event) => { setQuery(event.target.value); setPage(0); }} className="input mt-1 w-full" /></label></div>
@@ -105,12 +108,12 @@ export default function JigsawV2Client({ images }: { images: Array<{ url: string
     </section>
     <section><h2 className="font-bold">{t("jigsaw.pieces", { n: pieceCount })}</h2><p className="mt-1 text-sm text-vs-fg-2">{t("jigsaw.pieceCountHelp")}</p><div className="mt-3 flex flex-wrap gap-2">{[6, 12, 24, 48, 96].map((count) => <button type="button" className={`btn-secondary min-h-11 ${count === pieceCount ? "!border-vs-xp !bg-vs-xp/15" : ""}`} onClick={() => setPieceCount(count as PuzzlePieceCount)} key={count}>{count}</button>)}</div></section>
     <section><h2 className="font-bold">{t("jigsaw.difficulty")}</h2><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{difficulties.map((level) => <button type="button" className={`btn-secondary min-h-11 flex-col items-start text-left ${difficulty === level ? "!border-vs-xp !bg-vs-xp/15" : ""}`} aria-label={t(levelKeys[level])} aria-describedby={`difficulty-${level}`} aria-pressed={difficulty === level} onClick={() => setDifficulty(level)} key={level}><span className="block font-semibold">{t(levelKeys[level])}</span><span id={`difficulty-${level}`} className="mt-1 block text-sm font-normal normal-case tracking-normal">{t(levelDescriptions[level])}</span></button>)}</div></section>
-    <p role="status">{selectedImage ? selectedImage.label : t("jigsaw.chooseImage")}</p><button type="button" className="btn-primary min-h-12 self-start" disabled={!selectedImage || loading} onClick={() => void start()}>{t("jigsaw.start")}</button>{error && <p role="alert">{error}</p>}
+    <p role="status">{selectedImage ? selectedImage.label : t("jigsaw.chooseImage")}</p><button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" disabled={!selectedImage || loading} onClick={() => void start()}>{loading ? t("common.loading") : t("jigsaw.start")}</button>{error && <p role="alert">{error}</p>}
   </FocusLayout>;
 }
 
 function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: State; setOuter: (state: State) => void; onChooseAnother: () => void; onReplay: () => void }) {
-  const t = useT(); const [state, setState] = useState(initial); const [stage, setStage] = useState<Stage>(() => { if (initial.status === "ANSWERED") return "RESULT"; if (initial.status !== "COMPLETED") return "BOARD"; try { if (localStorage.getItem(`${KEY}:question`) === initial.id) return "QUESTION"; } catch {} return "COMPLETE"; });
+  const t = useT(); const router = useRouter(); const inventory = useHintInventory(initial.hintBalance); const [state, setState] = useState(initial); const [stage, setStage] = useState<Stage>(() => { if (initial.status === "ANSWERED") return "RESULT"; if (initial.status !== "COMPLETED") return "BOARD"; try { if (localStorage.getItem(`${KEY}:question`) === initial.id) return "QUESTION"; } catch {} return "COMPLETE"; });
   const shown = useRef(initial); const saved = useRef(initial); const [selected, setSelected] = useState<number | null>(null); const [message, setMessage] = useState(""); const [answer, setAnswer] = useState<Answer | null>(initial.answer ?? null); const [menuOpen, setMenuOpen] = useState(false); const [hintsOpen, setHintsOpen] = useState(false);
   const [hint, setHint] = useState<PuzzleHint | null>(() => activePuzzleHint(initial.snapshot)); const hintRef = useRef(hint); const selectedRef = useRef(selected); const menuButton = useRef<HTMLButtonElement>(null);
   const pending = useRef(false); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
@@ -184,7 +187,7 @@ function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: Sta
     }
     context.restore();
   }
-  function update(next: State) { saved.current = next; if (!mounted.current) return; shown.current = next; setState(next); setOuter(next); remember(next.id); if (next.status === "COMPLETED") setStage("COMPLETE"); if (next.status === "ANSWERED") setStage("RESULT"); schedulePaint(); }
+  function update(next: State) { inventory.setData({ hintBalance: next.hintBalance }); saved.current = next; if (!mounted.current) return; shown.current = next; setState(next); setOuter(next); remember(next.id); if (next.status === "COMPLETED") setStage("COMPLETE"); if (next.status === "ANSWERED") setStage("RESULT"); schedulePaint(); }
   async function animateSnap(before: State, next: State, groupId: string) {
     const moving = before.snapshot.groups.find((group) => group.id === groupId);
     const target = moving && groupFor(next.snapshot, moving.pieceIds[0]);
@@ -205,7 +208,17 @@ function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: Sta
       animation = requestAnimationFrame(step);
     });
   }
-  async function action(operation: object, movedGroupId?: string) { const current = saved.current; const next = await request({ action: "act", sessionId: current.id, version: current.version, actionId: crypto.randomUUID(), operation }) as State; if (movedGroupId) await animateSnap(current, next, movedGroupId); update(next); return next; }
+  async function action(operation: object, movedGroupId?: string) {
+    const current = saved.current; const body = { action: "act", sessionId: current.id, version: current.version, actionId: crypto.randomUUID(), operation };
+    if ("kind" in operation && operation.kind === "hint") {
+      // Toon het serverantwoord vóór invalidatie. Een snellere voorraad-refetch
+      // mag niet daarna worden overschreven door een oudere actie-response.
+      return await liveMutation(() => request(body) as Promise<State>, { invalidates: "hintsChanged", onSuccess: update });
+    }
+    const next = await request(body) as State;
+    if (movedGroupId) await animateSnap(current, next, movedGroupId);
+    update(next); return next;
+  }
   async function runBoard(work: () => Promise<void>) {
     if (!mounted.current || pending.current || saved.current.status !== "ACTIVE") return;
     pending.current = true; setBusy(true); setError("");
@@ -281,15 +294,22 @@ function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: Sta
     // De marker leest actuele refs; de absolute eindtijd wordt nooit verlengd.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.snapshot.hints]);
-  async function requestHint(type: PuzzleHintType, filter?: Exclude<PuzzleFilter, null>) {
+  async function requestHint(type: PuzzleHintType, filter?: Exclude<PuzzleFilter, null>, confirmPersonal = false) {
     await runBoard(async () => {
-      const next = await action({ kind: "hint", hint: type, ...(selected !== null ? { pieceId: selected } : {}), ...(filter ? { filter } : {}) });
+      const next = await action({ kind: "hint", hint: type, confirmPersonal, ...(selected !== null ? { pieceId: selected } : {}), ...(filter ? { filter } : {}) });
       const active = activePuzzleHint(next.snapshot);
       if (active) {
         hintRef.current = active; setHint(active); setHintsOpen(false);
-        // De locatie wordt zichtbaar zonder stukken te verplaatsen. De camera
-        // mag veranderen; opgeslagen voortgang en verbindingen blijven intact.
-        if (active.target?.type === "LOCATION" || active.target?.type === "CONNECTION") fit();
+        // Behoud zoom en zichtbare markeringen. Alleen naar een onzichtbaar
+        // hintdoel pannen; fit blijft een bewuste menuactie van de gebruiker.
+        const target = active.target; const canvas = canvasRef.current;
+        if (canvas && target && (target.type === "LOCATION" || target.type === "CONNECTION")) {
+          const point = target.type === "LOCATION" ? { x: target.x + .5, y: target.y + .5 } : (() => { const group = groupFor(next.snapshot, target.neighborId)!; const point = worldOf(geometry, group, target.neighborId); return { x: point.x + .5, y: point.y + .5 }; })();
+          const margin = 32; const screen = { x: camera.current.x + point.x * camera.current.scale, y: camera.current.y + point.y * camera.current.scale };
+          camera.current.x += Math.max(margin, Math.min(canvas.clientWidth - margin, screen.x)) - screen.x;
+          camera.current.y += Math.max(margin, Math.min(canvas.clientHeight - margin, screen.y)) - screen.y;
+          constrainCamera();
+        }
         schedulePaint();
       }
     });
@@ -302,12 +322,12 @@ function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: Sta
   if (stage === "QUESTION") return <Question state={state} onSubmit={submit} t={t} />;
   if (stage === "RESULT") return <Result answer={answer} question={state.question} onChooseAnother={onChooseAnother} onReplay={onReplay} t={t} />;
   const selectedGroup = selected === null ? null : groupFor(state.snapshot, selected);
-  return <FocusLayout className="puzzle-workspace gap-0"><section aria-busy={busy} className="relative min-h-0 flex-1 overflow-hidden bg-vs-surface"><canvas ref={canvasRef} data-active-hint={hint?.type ?? ""} aria-label={t("jigsaw.board")} aria-describedby="jigsaw-board-help" tabIndex={0} className="block h-full w-full touch-none outline-none focus-visible:ring-4 focus-visible:ring-vs-xp" onPointerDown={boardDown} onPointerMove={boardMove} onPointerUp={boardUp} onPointerCancel={boardCancel} onWheel={(event) => { event.preventDefault(); zoom(event.deltaY > 0 ? .9 : 1.1, screenPoint(event)); }} onKeyDown={async (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); const pieces = state.snapshot.groups.flatMap((group) => group.pieceIds); setSelected(pieces[(pieces.indexOf(selected ?? -1) + 1) % pieces.length]); } if (event.key === "0") { event.preventDefault(); fit(); } if ((event.key === "r" || event.key === "R") && state.difficulty === "MASTER") { event.preventDefault(); await rotateSelected(); } if (event.key === "ArrowLeft") { event.preventDefault(); await moveSelectedBy(-.2, 0); } if (event.key === "ArrowRight") { event.preventDefault(); await moveSelectedBy(.2, 0); } if (event.key === "ArrowUp") { event.preventDefault(); await moveSelectedBy(0, -.2); } if (event.key === "ArrowDown") { event.preventDefault(); await moveSelectedBy(0, .2); } }} />{hint?.type === "PREVIEW" && <div className="pointer-events-none absolute inset-3 rounded-xl bg-vs-surface/95 p-2"><NextImage src={state.image} alt={t("jigsaw.hintPreview")} fill unoptimized className="object-contain p-2" /></div>}<p id="jigsaw-board-help" className="sr-only">{t("jigsaw.boardHelp")}</p>{state.difficulty === "MASTER" && selectedGroup && !selectedGroup.anchored && <button type="button" aria-label={t("jigsaw.rotate")} title={t("jigsaw.rotate")} className="btn-primary absolute bottom-3 left-3 min-h-[60px] min-w-[60px] rounded-2xl !p-[12px] shadow-md" disabled={busy} onClick={rotateSelected}><RotateCw size={26} /></button>}<div className="absolute bottom-3 right-3"><button ref={menuButton} type="button" className="btn-secondary min-h-[60px] min-w-[60px] rounded-2xl !p-[12px] shadow-md" aria-label={t("jigsaw.boardMenu")} aria-expanded={menuOpen || hintsOpen} onClick={() => { setHintsOpen(false); setMenuOpen(!menuOpen); }}><Ellipsis size={26} /></button>{menuOpen && <div className="absolute bottom-full right-0 z-10 mb-3 w-64 max-w-[calc(100vw-1.5rem-var(--vs-safe-area-left)-var(--vs-safe-area-right))] max-h-[calc(100dvh-var(--header-height,var(--header-default))-60px-2.25rem-var(--vs-safe-area-bottom))] overflow-y-auto rounded-xl border border-vs-line !bg-vs-surface p-1 shadow-lg"><button type="button" className="btn-secondary min-h-11 w-full justify-start gap-2 text-left" disabled={busy} onClick={() => { setMenuOpen(false); setHintsOpen(true); }}><Lightbulb size={22} className="shrink-0" />{t("jigsaw.useHint")}</button>{state.rulesVersion === 1 && <p className="p-2 text-sm text-vs-fg-2">{t("jigsaw.legacyRules")}</p>}<button type="button" className="btn-secondary w-full min-h-11 justify-start text-left" onClick={() => { fit(); setMenuOpen(false); }}>{t("jigsaw.fitBoard")}</button><button type="button" className="btn-secondary mt-1 w-full min-h-11 justify-start text-left" disabled={busy} onClick={onChooseAnother}>{t("jigsaw.chooseAnother")}</button></div>}{hintsOpen && <PuzzleHintPanel snapshot={state.snapshot} difficulty={state.difficulty} rulesVersion={state.rulesVersion} selected={selected} busy={busy} active={hint !== null} onUse={(type, filter) => void requestHint(type, filter)} onClose={closeHints} />}</div><p aria-live="polite" className="sr-only">{message || t("jigsaw.connected", { n: connectedPieces(state.snapshot), total: state.pieceCount })}</p>{error && <p role="alert" className="absolute inset-x-3 top-3 rounded-xl bg-vs-surface p-3 text-vs-fg">{error}</p>}</section></FocusLayout>;
+  return <FocusLayout className="puzzle-workspace gap-0"><section aria-busy={busy} className="relative min-h-0 flex-1 overflow-hidden bg-vs-surface"><canvas ref={canvasRef} data-active-hint={hint?.type ?? ""} aria-label={t("jigsaw.board")} aria-describedby="jigsaw-board-help" tabIndex={0} className="block h-full w-full touch-none outline-none focus-visible:ring-4 focus-visible:ring-vs-xp" onPointerDown={boardDown} onPointerMove={boardMove} onPointerUp={boardUp} onPointerCancel={boardCancel} onWheel={(event) => { event.preventDefault(); zoom(event.deltaY > 0 ? .9 : 1.1, screenPoint(event)); }} onKeyDown={async (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); const pieces = state.snapshot.groups.flatMap((group) => group.pieceIds); setSelected(pieces[(pieces.indexOf(selected ?? -1) + 1) % pieces.length]); } if (event.key === "0") { event.preventDefault(); fit(); } if ((event.key === "r" || event.key === "R") && state.difficulty === "MASTER") { event.preventDefault(); await rotateSelected(); } if (event.key === "ArrowLeft") { event.preventDefault(); await moveSelectedBy(-.2, 0); } if (event.key === "ArrowRight") { event.preventDefault(); await moveSelectedBy(.2, 0); } if (event.key === "ArrowUp") { event.preventDefault(); await moveSelectedBy(0, -.2); } if (event.key === "ArrowDown") { event.preventDefault(); await moveSelectedBy(0, .2); } }} />{hint?.type === "PREVIEW" && <div className="pointer-events-none absolute inset-3 rounded-xl bg-vs-surface/95 p-2"><NextImage src={state.image} alt={t("jigsaw.hintPreview")} fill unoptimized className="object-contain p-2" /></div>}<p id="jigsaw-board-help" className="sr-only">{t("jigsaw.boardHelp")}</p>{state.difficulty === "MASTER" && selectedGroup && !selectedGroup.anchored && <button type="button" aria-label={t("jigsaw.rotate")} title={t("jigsaw.rotate")} className="btn-primary absolute bottom-3 left-3 min-h-[60px] min-w-[60px] rounded-2xl !p-[12px] shadow-md" disabled={busy} onClick={rotateSelected}><RotateCw size={26} /></button>}<div className="absolute bottom-3 right-3"><button ref={menuButton} type="button" className="btn-secondary min-h-[60px] min-w-[60px] rounded-2xl !p-[12px] shadow-md" aria-label={t("jigsaw.boardMenu")} aria-expanded={menuOpen || hintsOpen} onClick={() => { setHintsOpen(false); setMenuOpen(!menuOpen); }}><Ellipsis size={26} /></button>{menuOpen && <div className="absolute bottom-full right-0 z-10 mb-3 w-64 max-w-[calc(100vw-1.5rem-var(--vs-safe-area-left)-var(--vs-safe-area-right))] max-h-[calc(100dvh-var(--header-height,var(--header-default))-60px-2.25rem-var(--vs-safe-area-bottom))] overflow-y-auto rounded-xl border border-vs-line !bg-vs-surface p-1 shadow-lg"><button type="button" className="btn-secondary min-h-11 w-full justify-start gap-2 text-left" disabled={busy} onClick={() => { setMenuOpen(false); setError(""); setHintsOpen(true); void inventory.refetch(); }}><Lightbulb size={22} className="shrink-0" />{t("jigsaw.useHint")}</button>{state.rulesVersion === 1 && <p className="p-2 text-sm text-vs-fg-2">{t("jigsaw.legacyRules")}</p>}<button type="button" className="btn-secondary w-full min-h-11 justify-start text-left" onClick={() => { fit(); setMenuOpen(false); }}>{t("jigsaw.fitBoard")}</button><button type="button" className="btn-secondary mt-1 w-full min-h-11 justify-start text-left" disabled={busy} onClick={onChooseAnother}>{t("jigsaw.chooseAnother")}</button></div>}{hintsOpen && <PuzzleHintPanel returnFocus={menuButton} snapshot={state.snapshot} difficulty={state.difficulty} rulesVersion={state.rulesVersion} selected={selected} canConnect={puzzleHintTarget(state.snapshot, geometry, "CONNECTION", selected ?? undefined) !== null} hintBalance={inventory.data?.hintBalance ?? null} inventoryBusy={inventory.isFetching} inventoryError={!!inventory.error} busy={busy} active={hint !== null} error={error} onRefresh={() => void inventory.refetch()} onShop={() => { if (!pending.current) { remember(saved.current.id); router.push("/shop"); } }} onUse={(type, filter, confirmed) => void requestHint(type, filter, confirmed)} onClose={closeHints} />}</div><p aria-live="polite" className="sr-only">{message || t("jigsaw.connected", { n: connectedPieces(state.snapshot), total: state.pieceCount })}</p>{error && <p role="alert" className="absolute inset-x-3 top-3 rounded-xl bg-vs-surface p-3 text-vs-fg">{error}</p>}</section></FocusLayout>;
 }
 
-function Completion({ image, onContinue, t }: { image: string; onContinue: () => void; t: ReturnType<typeof useT> }) { return <FocusLayout className="page-fill max-w-none items-center justify-center gap-5 py-4 text-center"><div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-vs-surface shadow-lg"><NextImage src={image} alt={t("jigsaw.completedImage")} width={1440} height={960} unoptimized priority className="h-auto max-h-[68dvh] w-full object-contain" /></div><div><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.complete")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.completeHint")}</p></div><button type="button" className="btn-primary min-h-12" onClick={onContinue}>{t("jigsaw.continue")}</button></FocusLayout>; }
+function Completion({ image, onContinue, t }: { image: string; onContinue: () => void; t: ReturnType<typeof useT> }) { return <FocusLayout className="page-fill max-w-none items-center justify-center gap-5 py-4 text-center"><div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-vs-surface shadow-lg"><NextImage src={image} alt={t("jigsaw.completedImage")} width={1440} height={960} unoptimized priority className="h-auto max-h-[68dvh] w-full object-contain" /></div><div><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.complete")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.completeHint")}</p></div><button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" onClick={onContinue}>{t("jigsaw.continue")}</button></FocusLayout>; }
 
-function Question({ state, onSubmit, t }: { state: State; onSubmit: (choice: number) => Promise<void>; t: ReturnType<typeof useT> }) { const [choice, setChoice] = useState<number | null>(null); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); async function submit() { if (choice === null || busy) return; setBusy(true); setError(""); try { await onSubmit(choice); } catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed")); } finally { setBusy(false); } } return <FocusLayout className="page-fill mx-auto max-w-2xl justify-center gap-5 py-4"><header><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.questionIntro")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.questionHint")}</p></header><section className="card"><p className="font-semibold">{state.question?.text}</p><div className="mt-4 grid gap-2">{state.question?.options.map((option, index) => <button key={option} type="button" className={`btn-secondary min-h-12 justify-start text-left ${choice === index ? "!border-vs-xp !bg-vs-xp/15" : ""}`} aria-pressed={choice === index} disabled={busy} onClick={() => setChoice(index)}>{option}</button>)}</div></section><button type="button" className="btn-primary min-h-12 self-start" disabled={choice === null || busy} onClick={submit}>{busy ? t("jigsaw.answering") : t("jigsaw.confirmAnswer")}</button>{error && <p role="alert">{error}</p>}</FocusLayout>; }
+function Question({ state, onSubmit, t }: { state: State; onSubmit: (choice: number) => Promise<void>; t: ReturnType<typeof useT> }) { const [choice, setChoice] = useState<number | null>(null); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); async function submit() { if (choice === null || busy) return; setBusy(true); setError(""); try { await onSubmit(choice); } catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed")); } finally { setBusy(false); } } return <FocusLayout className="page-fill mx-auto max-w-2xl justify-center gap-5 py-4"><header><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.questionIntro")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.questionHint")}</p></header><section className="card"><p className="font-semibold">{state.question?.text}</p><div className="mt-4 grid gap-2">{state.question?.options.map((option, index) => <button key={option} type="button" className={`btn-secondary min-h-12 justify-start text-left ${choice === index ? "!border-vs-xp !bg-vs-xp/15" : ""}`} aria-pressed={choice === index} disabled={busy} onClick={() => setChoice(index)}>{option}</button>)}</div></section><button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" disabled={choice === null || busy} onClick={submit}>{busy ? t("jigsaw.answering") : t("jigsaw.confirmAnswer")}</button>{error && <p role="alert">{error}</p>}</FocusLayout>; }
 
 function Result({ answer, question, onChooseAnother, onReplay, t }: { answer: Answer | null; question: State["question"]; onChooseAnother: () => void; onReplay: () => void; t: ReturnType<typeof useT> }) {
   const result = answer && "correct" in answer ? answer : null;
@@ -316,7 +336,7 @@ function Result({ answer, question, onChooseAnother, onReplay, t }: { answer: An
     <h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.complete")}</h1>
     <p role="status" className="text-vs-fg-2">{text}</p>
     {result && !result.correct && question && <p>{t("jigsaw.correctWas", { answer: question.options[result.correctChoice] })}</p>}
-    <button type="button" className="btn-primary min-h-12" onClick={onChooseAnother}>{t("jigsaw.another")}</button>
-    <button type="button" className="btn-secondary min-h-12" onClick={onReplay}>{t("jigsaw.replay")}</button>
+    <button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" onClick={onChooseAnother}>{t("jigsaw.another")}</button>
+    <button type="button" className="btn-secondary min-h-12 w-full max-w-[440px] self-center" onClick={onReplay}>{t("jigsaw.replay")}</button>
   </FocusLayout>;
 }

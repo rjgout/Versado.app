@@ -33,7 +33,7 @@ try {
   const env = { ...process.env, DATABASE_URL: url, LEARNING_TEST_DATABASE_URL: url, SESSION_SECRET: "puzzle-isolated-test-secret-only", NEXT_TELEMETRY_DISABLED: "1" };
   await run("npm", ["run", "db:migrate:deploy"], env);
   await run("npm", ["run", "db:generate"], env);
-  await run("npx", ["tsx", "--test", "tests/jigsaw.integration.test.ts", "tests/puzzle-solo.integration.test.ts"], env);
+  await run("npx", ["tsx", "--test", "tests/jigsaw.integration.test.ts", "tests/puzzle-solo.integration.test.ts", "tests/puzzle-hint-inventory.integration.test.ts", "tests/kompas.integration.test.ts"], env);
   if (process.argv.includes("--browser")) {
     const base = process.env.PUZZLE_TEST_BASE_URL ?? "http://localhost:3107";
     env.PUZZLE_TEST_BASE_URL = base;
@@ -51,6 +51,7 @@ try {
     await run("npx", ["tsx", "tests/puzzle-mobile.browser.mjs"], env);
     await run("npx", ["tsx", "tests/puzzle-drag.browser.mjs"], env);
     await run("npx", ["tsx", "tests/puzzle-difficulty.browser.mjs"], env);
+    await run("npx", ["tsx", "tests/puzzle-hint-inventory.browser.mjs"], env);
   }
 } catch (error) {
   console.error(error); process.exitCode = 1;
