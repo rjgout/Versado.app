@@ -1,8 +1,10 @@
-# 06 — Besluiten, aanbevelingen en echte open punten
+# 06 — Besluiten, aanbevelingen en technische uitrolvoorwaarden
 
-Status: fase-0-review. Vastgelegde UX-besluiten worden niet opnieuw ter
-discussie gesteld. Technische modelnamen/interfaces zijn voorstellen en
-vormen geen reeds uitgevoerde implementatie.
+Status: de vier resterende productbesluiten voor fase 0 zijn vastgesteld door
+de producteigenaar. Er staan hierover geen productvragen meer open.
+Vastgelegde UX-besluiten worden niet opnieuw ter discussie gesteld.
+Technische modelnamen/interfaces blijven voorstellen, geen reeds uitgevoerde
+implementatie. Deze afronding autoriseert geen fase 1.
 
 ## 1. Besluiten van de producteigenaar
 
@@ -29,6 +31,10 @@ vormen geen reeds uitgevoerde implementatie.
 | P19 | Eigenaar heeft toestemming voor volledige teksten/afbeeldingen | Volledige integratie ontwerpen, interne herkomst/rechten, footer alleen indien concrete voorwaarde |
 | P20 | Gefaseerde implementatie met aparte beoordelingen | Geen toekomstige functionaliteit bouwen zonder goedgekeurde scope |
 | P21 | Het Verborgen Woord later Solo/accounts/klassikale host/presentatiescherm | Geen gastaccounts bij netwerkspel; publieke broncontext nu ontwerpen, spelregels later |
+| P22 | Podcasts als herkenbare aparte rij onder Studieprogramma’s | Technisch OTHER; geen wekelijkse leslogica; bestaande functies behouden |
+| P23 | Interne previews alleen bij bewezen canonieke én editie-equivalentie | Anders bekende officiële externe bron of nette melding; geen stille vertalingssubstitutie |
+| P24 | Eerste CFM-content: volledig gecontroleerd Nederlands, 2026 | Meertalig ontwerp en vijf bestaande UI-talen behouden; andere contenttalen alleen beschikbaar én gepubliceerd aanbieden |
+| P25 | Bestaande publicaties, relevante revisies, snapshots, gerefereerde media en persoonlijke annotaties behouden | Geen automatische garbage collection of destructieve contractmigratie zonder afzonderlijk goedgekeurd beleid |
 
 Deze besluiten zijn uitgangspunt, geen vragenlijst. Ook de huidige XP- en
 reeksregels, zes pogingen bij Woord van de Dag, betaalde hints en puzzelarchitectuur
@@ -58,55 +64,70 @@ worden niet in dit project heronderhandeld.
 | T18 | Eerst veilige compatibele rollbackversie vóór nullable verseId-gebruik | Volledig oude annotatiejoins kunnen nieuwe null-targets niet lezen |
 
 Deze besluiten voegen alleen complexiteit toe waar een concrete eis die nodig
-maakt. Geen generieke generieke documentdatabase, workflowdesigner, herbouw van alle
+maakt. Geen generieke documentdatabase, workflowdesigner, herbouw van alle
 Schrifturenlezers, zoekservice, offlineplatform of toekomstige ranglijst.
 
-## 3. Werkelijk benodigde productbeslissingen
+## 3. Definitief vastgestelde aanvullende productbesluiten
 
-Er hoeft voor fase 0 geen antwoord te worden afgewacht. De volgende keuzes
-moeten vóór de genoemde implementatiegate expliciet zijn:
+De voormalige open punten Q1–Q4 zijn gesloten. Hieronder staan de concrete
+keuzes en hun gevolgen voor de planning. Bronvalidatie en uitvoeringsbewijs
+blijven technische uitrolvoorwaarden; ze heropenen deze productbesluiten niet.
 
-### Q1 — Bestaande podcastbron in de nieuwe kiezer (vóór fase 1C)
+### D1 — Podcasts in de contentkiezer (voorheen Q1, vastgesteld)
 
-Feit: podcasts zijn nu een eigen selecteerbare collectie, met eigen cursussen,
-afleveringen en voortgang. De nieuwe UX-beschrijving noemt twee groepen en
-CFM/FSY, maar geeft geen bestemming voor deze bestaande bron.
+Podcasts blijven een herkenbare aparte rij onder de **visuele groep
+Studieprogramma’s** in de fullscreen contentkiezer. Technisch blijft de
+bronsoort `OTHER`; de visuele indeling maakt podcasts niet tot een programma
+met wekelijkse leslogica. Bestaande selectie, cursussen, afleveringen,
+voortgang en navigatie blijven behouden. Geen derde primaire navigatiegroep.
+Dit is een vaste eis voor fase 1C, geen nog te beoordelen plaatsingsvoorstel.
 
-Advies: podcasts als herkenbare extra rij binnen de tweede groep behouden,
-zonder studiespecifieke week-/lescontrols. De technische bronsoort blijft
-OTHER, niet een geforceerd CFM-programma. Als de eigenaar een andere plek
-bedoelt, moet de huidige bronselectie en bereikbaarheid behouden blijven.
-Deze audit verwijdert of verbergt niets. Geen derde primaire navgroep bouwen.
+### D2 — Betrouwbare verwijzingsedities (voorheen Q2, vastgesteld)
 
-### Q2 — Editiebeleid voor verwijzingen met meerdere beschikbare families (vóór fase 2D)
+Interne previews zijn uitsluitend toegestaan bij **bewezen canonieke én
+editie-equivalentie**. De bronadapter bewaart bedoelde canon, editie, taal en
+nummering waar bekend. Zonder betrouwbare mapping gebruikt de resolver een
+bekende officiële externe bron; als ook die ontbreekt, een nette melding en
+beheerdersdiagnose. Geen stilzwijgende substitutie van vertalingen of edities.
 
-Feit: OTB is een bestaande Bijbelimportfamilie, terwijl officiële programma-
-verwijzingen mogelijk een andere teksteditie/nummering bedoelen. Deze audit
-heeft de concrete bronverwijzingen niet live gecontroleerd.
+De concrete keuze en technische onderbouwing van ondersteunde
+verwijzingsedities/mappings is een noodzakelijke voorwaarde voor **fase 2D**
+en latere publicatie van lessen. De referentievalidatie toont per verwijzing
+een bewezen intern doel, betrouwbare externe fallback of expliciet ontbrekend
+doel. Een ontbrekende interne mapping wordt niet als equivalent gepresenteerd.
 
-Advies: bronadapter bewaart de bedoelde canon/familie waar bekend. Interne
-preview alleen bij een goedgekeurde canonieke mapping; anders bekende
-officiële externe fallback. UI mag een beschikbare afwijkende editie niet
-stilzwijgend presenteren als dezelfde tekst. Welke editie standaard voor
-officiële CFM-citaten gebruikt mag worden, moet vóór publicatie vaststaan.
-Er wordt geen nieuwe Bijbelvertaling geïmporteerd in dit besluit.
+Dit blokkeert **fase 1A niet**: het bronfundament kan bestaande identiteit en
+toegang vastleggen zonder al alle officiële lesverwijzingen te resolveren.
+De officiële bronstructuur en concrete mappings zijn in fase 0 niet extern
+gevalideerd; die technische controle blijft vereist. Er wordt met dit besluit
+geen andere Bijbelvertaling geselecteerd of geïmporteerd.
 
-### Q3 — Eerste contenttalen/publicatieomvang (vóór fase 3A)
+### D3 — Eerste contenttaal en omvang (voorheen Q3, vastgesteld)
 
-Vijf UI-vertalingen zijn verplicht voor de implementatie. Dat bepaalt niet
-automatisch welke officiële CFM-/FSY-teksttalen direct geïmporteerd/gepubliceerd
-moeten worden. Kies de eerste bronedities en completenessgate per taal.
-Advies: één volledige, gecontroleerde editie als eerste uitrol; aanvullende
-edities op hetzelfde schema. Alleen echt gepubliceerde talen aanbieden,
-nooit een lege taaloptie of vertaalde UI als vertaalde broninhoud voorstellen.
+Begin met de **volledige, gecontroleerde Nederlandse Kom dan en volg Mij
+2026-content — Oude Testament**. Het bronmanifest en de volledigheidscontrole
+voor fase 3A/3B omvatten de echte officiële leskalender, teksten, betekenisvolle
+media en verwijzingen. Geen aanname van een vast aantal weken of lessen.
 
-### Q4 — Bewaar- en herstelbeleid vóór contract/mediaopruiming
+Het ontwerp blijft meertalig; de vijf bestaande UI-talen nl/en/de/fr/es
+blijven behouden. Aanvullende contenttalen verschijnen pas als die werkelijk
+beschikbaar, gecontroleerd en gepubliceerd zijn. Een vertaalde interface is
+geen bewijs van vertaalde lesinhoud. Bestaande FSY- en podcastinhoud blijft
+onder het compatibiliteits- en bewaarbeleid behouden.
 
-Advies voor eerste uitrol: alle gerefereerde revisies en legacy-FSY-snapshots
-behouden; geen automatische media-GC. Bepaal later bewaartermijn van
-niet-gerefereerde imports/revisies en de observatieperiode vóór legacycontract.
-Privéannotaties behouden totdat eigenaar ze verwijdert of accountdeletebeleid
-geldt. Dit blokkeert fase 1/2 niet, wel het definitief wissen van oude inhoud.
+### D4 — Bewaarbeleid (voorheen Q4, vastgesteld)
+
+Behoud alle bestaande publicaties, relevante revisies, snapshots,
+gerefereerde media en persoonlijke annotaties. Rollback wisselt de
+publicatiepointer en verwijdert geen historische of persoonlijke gegevens.
+Er komt **geen automatische garbage collection of destructieve
+contractmigratie zonder afzonderlijk goedgekeurd beleid**. Een observatieperiode
+of geslaagde back-up is op zichzelf geen toestemming voor verwijdering.
+
+Dit beleid is definitief voor de huidige planning. Alleen een toekomstige
+afzonderlijke opruim-/contractopdracht kan een wijziging toestaan; daar wordt
+nu geen bewaartermijn voor ingevuld. Bewuste verwijdering van een eigen
+annotatie blijft de bestaande gebruikersactie, geen migratie of garbage collection.
 
 De precieze spel-, score- en klassikale regels van Het Verborgen Woord horen bij fase 5,
 niet bij goedkeuring van het contentfundament. Beurtvolgorde, gezamenlijk
@@ -121,6 +142,7 @@ al vaste eisen; scoring en latere concurrencydetails worden daar concreet.
 | Officiële CFM-kalender 2026 en stabiele leskeys | Gecontroleerd bronmanifest; geen URL-/weekmodelgok | Vóór fase 3A/import |
 | FSY-maand/categorie/lesstructuur en talen | Nieuwe bronfixtures, oude→officiële mapping met ambiguïteitsrapport | Vóór fase 3C |
 | Concrete tekst-/mediarechten en verplichte zichtbare attributie | Toestemming als gegeven; exacte voorwaarden per bron/media vastleggen | Vóór import/publicatie |
+| Betrouwbare canonieke en editie-equivalente verwijzingsmappings | Bedoelde bron/taal/nummering bewijzen; intern/externe fallback/melding met fixtures controleren | Vóór fase 2D en latere lespublicatie; geen gate voor fase 1A |
 | Oude collecties met null work en sleutelconflicten | Catalogus/legacy-key-inventaris | Vóór M1/FK |
 | Gelijke logische les tussen vertalingen | Officiële id-/sectiemapping, geen titel/offsetheuristiek | Vóór taalpublicatie |
 | Image/mime/grootte en ondersteunde bloktypen | Echte lesfixtures en mediavalidatie | Vóór fase 2B/3A |
@@ -132,11 +154,13 @@ Er is geen aanwijzing dat deze onzekerheden een nieuw framework vereisen.
 Wel mogen onbewezen bron-/gegevensaannames niet in migratie-defaults of
 publicatie-automatisering terechtkomen.
 
-## 5. Fase-0-reviewbesluit
+## 5. Afronding van fase 0
 
-Te beoordelen: behoudende uitbreidingsrichting, de toegang/identiteitgates,
-gescheiden drie statussen, minimale schema-uitbreidingen per fase,
-annotatiebehoud en veilige rollback. De zeven documenten zijn één consistent
-voorstel; goedkeuring hiervan start geen fase 1 zonder concrete nieuwe opdracht.
+De vier resterende productbesluiten zijn definitief verwerkt. De zeven
+documenten vormen het fase-0-ontwerp met gescheiden lees-/oefenstatus,
+behoudende schema-uitbreidingen, annotatiebehoud en veilige rollback.
+Technische bronvalidatie, inventaris, herstelproeven en fasegebonden tests
+blijven vereist. Fase 1 begint uitsluitend na een concrete nieuwe opdracht;
+deze documentatieafronding start geen implementatie en merge naar main.
 
 Gereed voor beoordeling van fase 0. Er zijn nog geen functionele wijzigingen aan Versado uitgevoerd.

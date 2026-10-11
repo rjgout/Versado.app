@@ -58,8 +58,10 @@ Geen nieuwe shellcomponent. Metadataregister blijft plek voor iconen.
 M1 uit document 03. ContentWork/publicatiecompatibiliteit en UserStudyContext
 met nullable legacy-leskey; FK naar de echte les pas in fase 2. Geen andere
 tabellen aanpassen alleen om toekomstige features klaar te leggen.
-Vooraf: fase-0-goedkeuring, alleen-lezen inventaris, herstelproef en Q1/Q2 uit
-document 06. CFM-/FSY-keuzeregels zijn al vastgelegd en geen open UX-vraag.
+Vooraf: fase-0-goedkeuring, alleen-lezen inventaris en herstelproef. De vier
+aanvullende productbesluiten D1–D4 in document 06 zijn vastgesteld en geen
+open afhankelijkheid. Betrouwbare verwijzingsedities/mappings worden bij
+fase 2D en latere lespublicatie gevalideerd; ze blokkeren fase 1A niet.
 
 ### Acceptatiecriteria
 
@@ -67,6 +69,9 @@ document 06. CFM-/FSY-keuzeregels zijn al vastgelegd en geen open UX-vraag.
   adminconcept via expliciete preview. Hidden/disabled ook via API/deeplink afwijzen.
 - Twee groepen, actieve bron herkenbaar, één tik wisselt direct; taal blijft
   afzonderlijk van uiLanguage. Geen stilzwijgende wissel van editie-familie.
+- Podcasts staan herkenbaar als aparte rij onder de visuele groep
+  Studieprogramma’s; technisch OTHER, zonder wekelijkse leslogica en met
+  behoud van bestaande podcastfunctionaliteit en voortgang.
 - De voorafgaande route wordt equivalent geremapt; ontbrekend equivalent
   opent een bruikbaar onderdeel van de gekozen bron, zonder lege cursuskaart.
 - Terug vanuit kiezer zonder selectie wijzigt niets. Reopen/focus/ander apparaat
@@ -104,7 +109,7 @@ CFM-kalender-import. Bestaande Schrifturen-reader blijft staan.
 | 2A | StudyPeriod/Lesson/Edition/Revision + rich schema | Stabiele identiteit, Zod-validator, readonly published DTO en immutable revisie |
 | 2B | ContentImportRun, media en concept/adminpreview | Hervatbare import naar concept, secure media, diff en atomische publish/rollback |
 | 2C | StudyReader, secties en ReadingPosition | Doorlopend lezen, stabiele ankers, bewaren/hervatten/naar boven zonder afronding |
-| 2D | Reference resolver en veilige preview/Meer lezen | Preview zonder contextmutatie; bewuste bronwissel en gebonden Terug naar les |
+| 2D | Reference resolver, gevalideerde verwijzingsedities en veilige preview/Meer lezen | Intern alleen bij bewezen canonieke én editie-equivalentie; anders officiële externe bron of melding; bewuste bronwissel en gebonden Terug naar les |
 | 2E | ContentProgress-studieadapter en expliciete afronding | READ + eenmalige centrale activity in één transactie, geen XP |
 
 ### Bestaande bestanden en componenten
@@ -126,10 +131,18 @@ nieuwe permanente toolbar of bronfooter zonder concrete voorwaarde.
 
 M2: lesfamilie, position, references/media/importlogs en nullable progressvelden.
 UserStudyContext-FK wordt gekoppeld zodra een gemigreerde les bestaat.
-Alleen publicatiepointer/teller zijn wijzigbaar;, inhoudsrevisies zijn onveranderlijk.
+Alleen publicatiepointer/teller zijn wijzigbaar; inhoudsrevisies zijn onveranderlijk.
 Afhankelijk: fase 1, echte bron-/licentie-/kalendermonsters voor adapters,
 media-volume/backup en goedgekeurde blokkenschema's. Geen productie-seed
 om fixtures te verkrijgen; in testomgeving fixtures laden.
+
+Specifiek vóór fase 2D: kies en valideer de concrete betrouwbare
+verwijzingsedities/mappings met bronbewijs en fixtures voor canon, nummering
+en teksteditie. Zonder bewezen equivalentie werkt uitsluitend een bekende
+officiële externe fallback of nette melding. Dezelfde referentievalidatie
+is verplicht vóór latere lespublicatie; dit is geen gate voor fase 1A.
+Bewaarbeleid D4 geldt vanaf de importbasis: geen automatische garbage
+collection of destructieve contractmigratie zonder afzonderlijk goedgekeurd beleid.
 
 ### Acceptatiecriteria
 
@@ -145,6 +158,10 @@ om fixtures te verkrijgen; in testomgeving fixtures laden.
 - Preview wijzigt geen selectie/positie/reeks. Meer lezen en Terug naar les
   herstellen de oorspronkelijke context; zelfstandig verder lezen wisselt
   de bron niet automatisch terug.
+- Interne previews hebben bewezen canonieke én editie-equivalentie; bij
+  ontbrekende mapping een bekende officiële externe bron of nette melding.
+  Geen stilzwijgende substitutie van vertalingen. Voor publicatie zijn alle
+  verwijzingsuitkomsten gevalideerd en ontbrekende doelen inzichtelijk.
 - Nieuwe providerkeys bevatten echte les/editie/revisie; autosave remount niet.
 
 ### Regressietests en risico's
@@ -162,17 +179,21 @@ spellen, video-ecosysteem zonder concrete bron.
 
 ### Doel en concrete scope
 
-De echte CFM 2026-OT-bron en FSY op dezelfde engine publiceren. CFM heeft
+De volledige, gecontroleerde **Nederlandse CFM 2026-content — Oude Testament**
+en FSY op dezelfde engine publiceren. CFM heeft
 officiële leskalender en eerdere/toekomstige lessen; FSY behoudt echte maand,
 categorie en meerdere lessen. Volledige tekst en betekenisvolle media, geen
 metadata-only of automatisch gegenereerde quiz.
+Het model blijft meertalig en de vijf bestaande UI-talen blijven behouden;
+andere contenttalen verschijnen pas bij daadwerkelijk beschikbare en
+gepubliceerde inhoud. De eerste CFM-contenttaal is geen open productkeuze.
 
 ### Kleine PR's
 
 | PR | Werkpakket | Reviewbaar resultaat |
 |---|---|---|
-| 3A | Bronvoorbereiding en contentmanifesten | Echte ids/calendar/rights/links en completeness-checks gecontroleerd |
-| 3B | CFM 2026-adapter, conceptimport en leskeuze | Alle manifestlessen traceerbaar; gepubliceerde inhoud doorlopend leesbaar |
+| 3A | Bronvoorbereiding en volledig Nederlands CFM 2026-manifest | Echte ids/kalender/rechten/verwijzingen en volledigheidscontroles gecontroleerd |
+| 3B | CFM 2026-adapter, volledige Nederlandse conceptimport en leskeuze | Alle manifestlessen traceerbaar; gecontroleerde teksten/media doorlopend leesbaar |
 | 3C | FSY-conversie en nieuwe adapter, writerhandover | Oude publicaties/drafts/ids/cursuslinks behouden; één schrijver |
 | 3D | Programma-aanbod in Vandaag/Leren/Spelen en admin | Gedeelde actieve les, expliciete huidige-weekactie, correct beschikbare kaarten |
 
@@ -197,11 +218,19 @@ identiteiten, geen overschrijving van 2026 bij 2027.
 Afhankelijk: alle fase-2-gates; FSY-counts en gecontroleerde bestaande
 publicatie-/draft hashes; bevestigde bronvoorwaarden. Uitrol alleen na
 previewreview per bron/taal en volledigheidsrapport.
+De concrete verwijzingsedities/mappings en fallbackuitkomsten moeten conform
+fase 2D vóór publicatie gevalideerd zijn. Bestaande publicaties, relevante
+revisies, snapshots, gerefereerde media en persoonlijke annotaties blijven
+behouden; geslaagde migratie is geen toestemming voor destructieve contractstappen.
 
 ### Acceptatiecriteria
 
 - CFM 2026 is selecteerbaar zodra toegankelijk en daadwerkelijk gepubliceerd;
   kalender toont de officiële perioden, inclusief afwijkende intervallen.
+- De eerste uitrol bevat de volledige gecontroleerde Nederlandse CFM
+  2026-content volgens het officiële manifest. De vijf bestaande UI-talen
+  blijven werken; andere contenttalen zijn alleen zichtbaar bij werkelijk
+  beschikbare en gepubliceerde inhoud.
 - Les van drie weken geleden blijft actief in Vandaag/Leren/Spelen na nieuwe
   kalenderweek, logout/login en andere bron. Huidige-weekactie is expliciet.
 - FSY-maand heeft zoveel lessen/categorieën als de echte bron; geen weekmodel.
@@ -363,5 +392,7 @@ te voorkomen. Het nieuwe spel heeft alleen die publieke fundamenten nodig.
 ## Fase-0-gate
 
 Goedkeuring van dit ontwerp autoriseert nog geen codewerk. Eerst de concrete
-fase-1-scope en resterende beslispunten bespreken; daarna pas 1A starten.
+fase-1-scope afzonderlijk autoriseren; daarna pas 1A starten. De vier
+aanvullende productbesluiten zijn genomen. Technische inventaris, bronvalidatie,
+herstelproeven en fasegebonden tests blijven noodzakelijke uitrolvoorwaarden.
 Alle latere fasen hebben een eigen beoordeling en merge-/uitrolbesluit.

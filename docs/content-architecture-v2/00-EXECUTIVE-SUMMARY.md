@@ -87,6 +87,29 @@ Fase 1 legt alleen de actieve-lesopslag en resolvercontracten klaar. De
 volledige lesrevisies volgen in fase 2. Minimale speltoegang/afwijzing hoort
 al bij fase 1; de daadwerkelijke nieuwe speladapters horen bij fase 5.
 
+## Definitief vastgestelde aanvullende besluiten
+
+De vier resterende productbesluiten zijn genomen en in alle relevante
+plannen verwerkt:
+
+- Podcasts blijven een aparte herkenbare rij onder de visuele groep
+  Studieprogramma’s, technisch `OTHER`, zonder wekelijkse leslogica.
+  Bestaande podcastfunctionaliteit blijft behouden.
+- Interne verwijzingspreviews vereisen bewezen canonieke én editie-equivalentie.
+  Anders een bekende officiële externe bron of nette melding; geen stille
+  vertalingssubstitutie. Concrete edities/mappings worden vóór fase 2D en
+  latere lespublicatie technisch gevalideerd; dit blokkeert fase 1A niet.
+- De eerste CFM-uitrol bevat de volledige, gecontroleerde Nederlandse
+  Kom dan en volg Mij 2026-content. Het meertalige ontwerp en vijf bestaande
+  UI-talen blijven behouden; andere contenttalen alleen bij echte publicatie.
+- Bestaande publicaties, relevante revisies, snapshots, gerefereerde media
+  en persoonlijke annotaties blijven behouden. Geen automatische garbage
+  collection of destructieve contractmigratie zonder afzonderlijk goedgekeurd beleid.
+
+Er staan hierover geen productvragen meer open. Technische bronvalidatie,
+inventaris, herstelproeven en fasegebonden acceptatietests blijven vereist.
+Deze documentatieafronding start geen fase 1 en voert geen merge naar main uit.
+
 ## Onderbouwing en beoordeling
 
 - [01 — Audit](01-CURRENT-STATE-AUDIT.md): feiten, codepaden en beperkingen.
@@ -94,7 +117,7 @@ al bij fase 1; de daadwerkelijke nieuwe speladapters horen bij fase 5.
 - [03 — Migratie](03-MIGRATION-STRATEGY.md): gegevensbehoud en rollback.
 - [04 — Roadmap](04-IMPLEMENTATION-ROADMAP.md): kleine werkpakketten per fase.
 - [05 — Test- en risicoplan](05-TEST-AND-RISK-PLAN.md): huidige controles en uitrolgates.
-- [06 — Besluiten](06-DECISIONS-AND-OPEN-QUESTIONS.md): vastgelegde UX, advies en echte onzekerheden.
+- [06 — Besluiten](06-DECISIONS-AND-OPEN-QUESTIONS.md): vastgelegde productbesluiten, technisch advies en uitrolvoorwaarden.
 
 De uitgevoerde databasevrije controles slagen: 53 content/leer/import/studie-
 tests, 23 focus/shell-tests, 51 live-data-tests en TypeScript. De i18n-check

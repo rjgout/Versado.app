@@ -30,6 +30,12 @@ zijn aanwezig, de elf lokale Markdown-links wijzen naar bestaande documenten
 en de codeblokken zijn gesloten. Er zijn drie Mermaid-diagrammen opgenomen;
 de diagrammen zijn op structuur nagelezen, niet in een browser gerenderd.
 
+Bij de aanvullende vastlegging van besluiten D1–D4 zijn de documentconsistentie,
+lokale links, codeblokken, diff en documentatie-only scope opnieuw gecontroleerd.
+De applicatiechecks hierboven horen bij de oorspronkelijke audit en zijn voor
+deze aanvullende documentatiewijziging niet opnieuw uitgevoerd. Er zijn geen
+productiegegevens benaderd en geen technische bronvalidaties vervroegd uitgevoerd.
+
 ### Niet uitgevoerd en niet geclaimd
 
 - Productie-inventaris/DB-readback, migratie, seed, scraper of adminpublicatie.
@@ -118,6 +124,9 @@ Onopgeslagen positie krijgt een herstelbare status, nooit schijnbaar 'bewaard'.
    nieuw account zonder lesinstelling werkt; double taps/twee apparaten veilig.
 6. Geen datavervuiling met late fetchresponses. Cardmenus/sleepkaart onder
    header en contentkiezer niet afgekapt; terug en bottomnav blijven werken.
+7. Podcasts als herkenbare aparte rij onder Studieprogramma’s, type OTHER;
+   geen wekelijkse leslogica, bestaande podcastfuncties/voortgang behouden.
+   Verwijzingsmapping is geen voorwaarde voor fase 1A.
 
 ### Fase 2 — Lezen, verwijzingen en publicatie
 
@@ -139,10 +148,18 @@ Onopgeslagen positie krijgt een herstelbare status, nooit schijnbaar 'bewaard'.
 8. Onbekende/missing/verborgen reference geeft officiële fallback als bekend,
    anders unavailable en admindiagnose. Nieuwe import maakt logische link
    oplosbaar zonder bestaande lesbody's te herschrijven.
+9. Vóór fase 2D en latere publicatie: canonieke én editie-equivalentie van
+   interne previews bewijzen met bronfixtures. Onzekere mapping geeft externe
+   officiële fallback of melding; nooit stille vertalingssubstitutie.
+10. Imports, updates en rollback behouden bestaande publicaties, relevante
+    revisies, snapshots, gerefereerde media en persoonlijke annotaties.
+    Geen automatische garbage collection of destructieve contractstap zonder
+    afzonderlijk goedgekeurd beleid.
 
 ### Fase 3 — Kalender en FSY-legacy
 
-1. Volledig officieel CFM 2026-manifest; echte start/einddata en afwijkende
+1. Volledig gecontroleerd Nederlands CFM 2026-manifest met teksten en media;
+   echte start/einddata en afwijkende
    intervallen; current-weeklookup in verschillende IANA-zones/DST/jaargrens.
 2. Geen beschikbare huidige les: bestaande actieve keuze blijft, leskeuze
    beschikbaar; geen lege kaart. Naar 2027 gaan overschrijft 2026 niet.
@@ -153,6 +170,9 @@ Onopgeslagen positie krijgt een herstelbare status, nooit schijnbaar 'bewaard'.
    Cursusstart wordt nooit inferred READ. Eén actieve scraperwriter.
 6. Officiële opdrachten worden tekst, geen automatic Exercise/XP; publicatie
    buiten adminrechten afwijzen; alle contenttalen correct onderscheiden.
+7. Vijf bestaande UI-talen behouden. Andere contenttalen zijn uitsluitend
+   zichtbaar als hun inhoud daadwerkelijk beschikbaar en gepubliceerd is;
+   een UI-vertaling biedt geen ongepubliceerde lesvertaling aan.
 
 ### Fase 4 — Annotaties en studiemap
 
@@ -234,10 +254,11 @@ slechts het documentatievoorstel of CSS-klassennamen kopieert.
 | R24 | SSRF/path traversal/onjuiste mediabestanden | Kritiek, fase 2 | HTTPS-allowlist voor redirects, MIME/bytegrenzen, checksum/storageKey, kwaadaardige testfixtures |
 | R25 | Offline verwachtingen groter dan huidige app | Hoog, UX-communicatie | Herstelbare fout/local pendingpositie; geen nieuwe offlinebelofte |
 | R26 | Oud FSY-ontwerp/media ontbreken bij conversie | Hoog, fase 3 | Legacybody behouden, nieuwe volledige bronreview, completenessmanifest |
-| R27 | Retentiebeleid/mediaGC wist gerefereerde revisie | Kritiek vóór contract/GC | Referentieanalyse/backup/bewaarbesluit; GC pas later |
+| R27 | Opruiming/contract wist publicaties of persoonlijke gegevens | Kritiek vóór iedere destructieve stap | Bewaarbeleid D4 handhaven; geen automatische GC of destructieve contractmigratie zonder afzonderlijk goedgekeurd beleid |
 
 Latere optimalisaties: fulltext-index als SQL-zoekmetingen dat vragen,
-aanvullende videoadapters, bulkeditiemapping en media-GC. Geen blokkade voor
+aanvullende videoadapters en bulkeditiemapping. Mediaopruiming is geen gepland
+automatisme en vereist eerst afzonderlijk goedgekeurd beleid. Geen blokkade voor
 de eerste bron-/leesfase zolang gates voor correctheid, privacy en herstel blijven staan.
 
 ## 5. Gates vóór productie en na uitrol

@@ -146,6 +146,13 @@ equivalentie bewijst; anders krijgt de gebruiker het begin van de les of het
 eigen hervatpunt in die taal. Geen automatische vertaling van notities of
 projectie van character offsets op een andere taal.
 
+De eerste CFM-uitrol omvat de volledige, gecontroleerde Nederlandse
+Kom dan en volg Mij 2026-content — Oude Testament. Het model blijft
+meertalig en de vijf bestaande UI-talen nl/en/de/fr/es blijven behouden.
+Andere contenttalen worden alleen aangeboden als de bijbehorende inhoud
+daadwerkelijk beschikbaar, gecontroleerd en gepubliceerd is. Dit is het
+vastgestelde besluit D3 in document 06; geen nog open taalkeuze.
+
 ## 4. Toegang, publicatie en fullscreen contentkiezer
 
 Eén `getContentAvailability(actor,target,purpose)`-service wordt gebruikt door
@@ -184,10 +191,11 @@ taal maar andere familie is een bewuste editiechoice, geen stilzwijgende
 taal-fallback. Na wissel: nieuwe context, gerichte invalidatie en refresh.
 Een mislukte servermutatie laat de oude keuze staan en toont herstelbare fout.
 
-Bestaande podcasts blijven bereikbaar. Voorgestelde tijdelijke presentatie:
-een herkenbare Podcasts-rij binnen de tweede groep, zonder week-/lescontrols.
-Dat is een compatibiliteitsvoorstel dat de eigenaar nog kan aanpassen;
-zie besluit Q1 in document 06. Geen bron verdwijnt door deze audit.
+Bestaande podcasts blijven als herkenbare aparte rij onder de **visuele
+groep Studieprogramma’s** bereikbaar. Technisch blijft hun type `OTHER`;
+pas geen wekelijkse leslogica toe. Bestaande podcastfunctionaliteit,
+voortgang en navigatie blijven behouden. Dit is definitief vastgesteld
+in besluit D1 in document 06.
 
 ## 5. Gebruikerscontext en datastromen
 
@@ -318,11 +326,21 @@ resolveReference(actor, referenceId, { preferredLanguage, editionFamily }): Refe
 
 Normalisatie herkent bekende bron-URL's, aliases en bronankers via gecontroleerde
 adaptertabellen. Geen losse regex in iedere les. Schriftuurverzen/ranges worden
-gevalideerd. Editie-/canonmapping is expliciet; bron-URL of mapping kan een
-voorkeursfamilie vastleggen. Als de gewenste tekst niet beschikbaar is, geef
-een bekende officiële fallback of een nette unavailable; nooit ongezien een
-andere taal/familie of verborgen collectie gebruiken. Diagnostiek bevat geen
-persoonlijke notities.
+gevalideerd. Editie-/canonmapping is expliciet; bron-URL of mapping legt de
+bedoelde teksteditie, taal en nummering vast waar bekend. Een interne preview
+mag uitsluitend bij **bewezen canonieke én editie-equivalentie**. Bij
+ontbrekende betrouwbare mapping of onbeschikbare tekst: een bekende officiële
+externe bron, anders een nette melding. Geen stilzwijgende substitutie van
+vertalingen, andere families of verborgen collecties. Diagnostiek bevat geen
+persoonlijke notities. Dit is het vastgestelde besluit D2 in document 06.
+
+De concrete ondersteunde verwijzingsedities en hun bewijs/mappings worden
+technisch gevalideerd als voorwaarde voor **fase 2D en latere lespublicatie**.
+De publicatiecontrole registreert per verwijzing een bewezen intern doel,
+betrouwbare externe fallback of expliciet ontbrekend doel. Dit is geen
+voorwaarde voor fase 1A: die legt het bronfundament en de toegang vast,
+zonder al de officiële leslinks te resolveren. Bronvalidatie blijft verplicht;
+dit document claimt geen extern gecontroleerde editie-equivalentie.
 
 Opslag van logische targets in plaats van alleen database-id's maakt nieuwe
 imports vanzelf vindbaar. Publicatie en lookup veranderen de resolver-uitkomst,
@@ -446,8 +464,10 @@ Media eerst veilig downloaden naar quarantaine/temp en met checksum/MIME/
 bytegrens/afmetingen valideren; redirects ook op allowlist controleren tegen
 SSRF. Na atomische rename zijn assets immutable. De DB-transactie publiceert
 alleen een revisie met READY-media en complete references. DB en filesystem
-hebben geen gedeelde transactie: ongebruikte bestanden worden later veilig
-opgeruimd, nooit vóór de publicatiecommit. Persistent lesmediavolume naast
+hebben geen gedeelde transactie: ongebruikte bestanden worden als zodanig
+geregistreerd en niet automatisch opgeruimd. Opruiming vereist afzonderlijk
+goedgekeurd beleid, nooit verwijdering vóór de publicatiecommit of van
+gerefereerde media. Persistent lesmediavolume naast
 bestaande audio; backups omvatten beide. Hergebruik Next-image pipeline voor
 renditions waar mogelijk; geen nieuw imageframework.
 
@@ -457,6 +477,13 @@ links en calendar, niet alleen een totaalhash. Een verwijderd officieel item
 wordt retired of als verdwenen concept gemarkeerd; geen delete van private
 gegevens. Rollback verandert de pointer, niet UserStudyContext, READ of XP.
 Een les als geheel intrekken is een andere actie dan een nieuwe conceptversie.
+
+Bewaar alle bestaande publicaties, relevante revisies, snapshots,
+gerefereerde media en persoonlijke annotaties. Er is geen automatische
+garbage collection of destructieve contractmigratie zonder afzonderlijk
+goedgekeurd beleid. Dit is besluit D4 in document 06, geen nog te kiezen
+bewaartermijn. Pointerrollback en het vervangen van UI-code geven geen
+toestemming voor het verwijderen van inhoud of gebruikersgegevens.
 
 Herkomst/licentie intern per bron/revisie/medium bewaren. Eigenaar meldt
 toestemming voor volledige integratie; dit ontwerp neemt dat als uitgangspunt.

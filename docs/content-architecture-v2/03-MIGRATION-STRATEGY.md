@@ -4,6 +4,12 @@ Dit document beschrijft toekomstige migraties. In fase 0 is geen schema
 gewijzigd, migratie uitgevoerd of database aangeraakt. Uitgangspunt:
 main `b5aafbf`; doelmodel in [02](02-TARGET-ARCHITECTURE.md).
 
+Vastgesteld bewaarbeleid D4: alle bestaande publicaties, relevante revisies,
+snapshots, gerefereerde media en persoonlijke annotaties blijven behouden.
+Geen automatische garbage collection of destructieve contractmigratie zonder
+afzonderlijk goedgekeurd beleid. De onderstaande contractgates zijn
+technische voorwaarden, geen toestemming om gegevens te verwijderen.
+
 ## 1. Vóór de eerste implementatie-uitrol
 
 Maak een toegestane alleen-lezen inventaris, zonder privéteksten in logs:
@@ -135,10 +141,16 @@ het nieuwe publicatiesysteem; behoud de historische instelling maar migreer
 nieuwe publicatie naar gecontroleerde review. Overlap tussen twee scrapers is
 een stopcriterium, niet iets om achteraf te repareren.
 
-CFM 2026 begint als nieuwe bron/period met echte officiële ids en kalender.
+CFM 2026 begint als nieuwe bron/period met echte officiële ids en kalender;
+de eerste uitrol is de volledige, gecontroleerde Nederlandse content.
 Geen voortgangsbackfill, geen import naar FSY en geen 52-wekengenerator.
 Publiceer alleen volledig gevalideerde lesedities. Een manifest kan ontbrekende
 lessen registreren, maar de UI mag geen niet-functionele leeskaart aanbieden.
+Andere contenttalen verschijnen pas wanneer werkelijk beschikbaar en
+gepubliceerd; de vijf bestaande UI-talen blijven behouden. Verwijzingen
+worden vóór publicatie volgens fase 2D gevalideerd: intern uitsluitend bij
+bewezen canonieke én editie-equivalentie, anders bekende officiële externe
+bron of nette melding. Dit blokkeert M1/fase 1A niet.
 
 ### M4 — Annotaties en studiemap (fase 4)
 
@@ -242,8 +254,12 @@ uitsluitend de nieuwe feature uitschakelen, niet naar een ongeschikte oude
 binary gaan. Dit is een expliciete releasegate.
 
 Voor inhoud is rollback een atomische publicatiepointer naar een eerdere
-gevalideerde revisie; originele selectors worden bewaard. Media pas opruimen
-na de vastgestelde bewaartermijn en analyse van alle revisie-/privéreferenties.
+gevalideerde revisie; originele selectors worden bewaard. Bestaande
+publicaties, relevante revisies, snapshots, gerefereerde media en persoonlijke
+annotaties worden niet als onderdeel van rollback verwijderd. Opruiming is
+nu niet toegestaan: een toekomstige opruimactie vereist afzonderlijk
+goedgekeurd beleid én analyse van alle revisie-/privéreferenties. Geen
+automatische garbage collection of vooraf ingevulde bewaartermijn.
 Voor DDL blijft de expand-fase staan; geen down-migration die nieuwe
 gebruikersgegevens weggooit. Alleen bij werkelijk beschadigde data een
 gecontroleerd backupherstel, met write-stop en export/replay van sinds de
@@ -264,6 +280,9 @@ Oude implementaties mogen pas verdwijnen als:
    dalingen in counts, failed requests of content-scoping tonen.
 7. Herstel/rollback met recente backup én nieuwe annotation-targets slaagt.
 8. Eigenaar de concrete contract-PR afzonderlijk heeft goedgekeurd.
+9. Voor iedere destructieve datastap een afzonderlijk goedgekeurd beleid
+   bestaat. Codecontract of een geslaagde observatie-/herstelproef vervangt
+   dat besluit niet; zonder dit beleid alle genoemde gegevens behouden.
 
 Bewaar routeadapters waar externe links bestaan ook na codecontract. Geen
 contract-delete in fase 0 of als onderdeel van een 'opruim'-PR zonder bewijs.
