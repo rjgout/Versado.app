@@ -217,6 +217,8 @@ model User {
   // die pas bij uitputting dit tegoed aanspraken — dat gaf per scherm een
   // ander getal te zien, dus vervangen door dit ene gedeelde tegoed.
   hintBalance   Int     @default(0)
+  // Accountbrede wachttijd voor betaalde Woord-van-de-Dag-hints, ook over 18:00.
+  wordGameLastHintAt DateTime?
   // Voorraad Genees (Vliegende {gids}): bezitbaar, onbeperkt, accountgebonden.
   // Alleen te wijzigen via src/lib/genees/inventory.ts (winkel en in-game
   // noodkoop); de database dwingt af dat hij nooit negatief wordt.
@@ -2086,6 +2088,11 @@ model WordGame {
   // dayKey (zie wordGamePeriod). Het klassement telt de tijd daarna. Null =
   // potje van vóór de tijdzones, toen was dat 18:00 Nederlandse tijd.
   releasedAt DateTime?
+  hintLevel     Int     @default(0)
+  // Bevroren woordenlijst en alle opvolgende subsets; alleen server-side.
+  hintPools     String?
+  // Maximaal vijf aankopen met actionId, niveau en UTC-tijd voor retries/audit.
+  hintPurchases String @default("[]")
 
   @@unique([userId, dayKey])
   @@index([dayKey, status, finishedAt])

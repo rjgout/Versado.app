@@ -1,0 +1,5 @@
+ALTER TABLE "User" ADD COLUMN "wordGameLastHintAt" TIMESTAMP(3);
+ALTER TABLE "WordGame"
+  ADD COLUMN "hintLevel" INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN "hintPools" TEXT,
+  ADD COLUMN "hintPurchases" TEXT NOT NULL DEFAULT '[]';

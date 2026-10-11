@@ -9,6 +9,7 @@ import { awardCompetitionXp } from "@/lib/competitionXp";
 import { checkAndAwardAchievements } from "@/lib/achievements";
 import { findVersesContainingWord, type VerseMatch } from "@/lib/dictionary";
 import { emitTopicEvent } from "@/lib/realtime";
+import { readWordGameHintPools, wordGameHintsView, type WordGameHintsView } from "@/lib/wordGameHintRules";
 
 export const WORD_LENGTH = 5;
 export const MAX_GUESSES = 6;
@@ -16,7 +17,8 @@ export const MAX_GUESSES = 6;
 // Alleen woorden uit het Boek van Mormon (zelfde bron als het Woordspel,
 // zie src/lib/scrabble/dictionary.ts) van precies 5 letters — zowel de
 // antwoorden als de toegestane gok-woorden komen uit deze lijst.
-const WORDS: readonly string[] = (bomWords as string[]).filter((w) => w.length === WORD_LENGTH);
+export const WORD_GAME_WORDS: readonly string[] = (bomWords as string[]).filter((w) => w.length === WORD_LENGTH);
+const WORDS = WORD_GAME_WORDS;
 
 export function isValidGuess(word: string): boolean {
   return WORDS.includes(word.toLowerCase());
@@ -192,6 +194,8 @@ async function rankedWinners(dayKey: string, db: Prisma.TransactionClient = pris
 }
 
 export interface WordGameView {
+  id: string;
+  hints: WordGameHintsView;
   dayKey: string;
   /** Wanneer het volgende woord beschikbaar komt (absoluut), en de servertijd: de client ververst daarop zonder eigen tijdzonerekensom. */
   nextReleaseAt: string;
@@ -334,6 +338,9 @@ export async function getWordGameRanking(userId: string, timeZone: string | null
 }
 
 async function buildView(period: WordGamePeriod, now: Date, game: {
+  id: string;
+  hintLevel: number;
+  hintPools: string | null;
   userId: string;
   dayKey: string;
   word: string;
@@ -349,14 +356,17 @@ async function buildView(period: WordGamePeriod, now: Date, game: {
   }));
   const finished = game.status !== "IN_PROGRESS";
   const previousDay = addDays(game.dayKey, -1);
-  const [ranking, previous] = await Promise.all([
+  const [ranking, previous, user] = await Promise.all([
     rankingFor(game.dayKey, game.userId),
     prisma.wordGame.findUnique({
       where: { userId_dayKey: { userId: game.userId, dayKey: previousDay } },
       select: { leaderboardRank: true, leaderboardXpBonus: true },
     }),
+    prisma.user.findUniqueOrThrow({ where: { id: game.userId }, select: { wordGameLastHintAt: true } }),
   ]);
   return {
+    id: game.id,
+    hints: wordGameHintsView(game, user.wordGameLastHintAt, WORDS.length),
     dayKey: game.dayKey,
     nextReleaseAt: period.nextReleaseAt.toISOString(),
     nextReleaseDay: period.nextReleaseDay,
@@ -426,13 +436,16 @@ export async function submitGuess(
 ): Promise<(WordGameView & { newAchievements: string[] }) | { error: string }> {
   const guess = rawGuess.trim().toLowerCase();
   if (guess.length !== WORD_LENGTH) return { error: `Het woord moet ${WORD_LENGTH} letters hebben.` };
-  if (!isValidGuess(guess)) return { error: "Dat woord ken ik niet uit het Boek van Mormon." };
 
   const period = wordGamePeriod(now, resolveTimeZone(timeZone));
   const { dayKey } = period;
   const game = await prisma.wordGame.findUnique({ where: { userId_dayKey: { userId, dayKey } } });
   if (!game) return { error: "Er is nog geen potje voor vandaag — begin eerst een nieuw spel." };
   if (game.status !== "IN_PROGRESS") return { error: "Je hebt het woord van vandaag al gespeeld." };
+  // Een betaalde woordenlijst blijft ook na een woordenboekrelease bruikbaar.
+  // Geen wijziging voor bestaande potjes zonder betaalde hints.
+  const frozenWords = game.hintPools ? readWordGameHintPools(game.hintPools, game.word).lists[0] : [];
+  if (!isValidGuess(guess) && !frozenWords.includes(guess)) return { error: "Dat woord ken ik niet uit het Boek van Mormon." };
 
   const priorGuesses = JSON.parse(game.guesses) as string[];
   if (priorGuesses.length >= MAX_GUESSES) return { error: "Je hebt geen pogingen meer over." };
