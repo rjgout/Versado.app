@@ -1,0 +1,71 @@
+name: Woord van de Dag betaalde hints
+
+on:
+  push:
+    branches: ['feature/word-game-paid-hints']
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/lib/wordGame*'
+      - 'src/lib/useServerCountdown.ts'
+      - 'src/lib/data/**'
+      - 'src/components/WordGame*'
+      - 'src/app/api/word-game/**'
+      - 'src/lib/i18n/messages/**'
+      - 'src/lib/kompas/**'
+      - 'prisma/schema.prisma'
+      - 'prisma/migrations/**'
+      - 'prisma/bomWords.json'
+      - 'tests/word-game-hints*'
+      - 'scripts/word-game/**'
+      - 'package*.json'
+      - '.github/workflows/word-game-hints.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: word-game-hints-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  word-game-hints:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Prisma en schone productiebuild
+        run: |
+          npx prisma validate
+          npm run db:generate
+          npm run build
+      - name: Browser klaarzetten
+        run: |
+          npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
+          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Betalingen, tijdzones en echte mobiele betaalflow
+        env:
+          WORD_HINT_TEST_OUTPUT: artifacts/word-game-hints
+        run: npm run test:word-game-hints:integration -- --browser
+      - name: Types, live data, FocusLayout, Kompas, lint en vertalingen
+        run: |
+          npx tsc --noEmit
+          npm run test:live-data
+          npm run test:focus
+          npx tsx --test tests/kompas.test.ts tests/kompas-layout-integration.test.ts
+          npm run lint
+          npx tsx scripts/i18n/check.ts
+      - name: Browserbewijs bewaren
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: word-game-hints-browser
+          path: artifacts/word-game-hints
+          retention-days: 7
