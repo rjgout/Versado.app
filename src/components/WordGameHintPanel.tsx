@@ -28,6 +28,7 @@ export default function WordGameHintPanel({ gameId, hints, finished, serverNow, 
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const trigger = useRef<HTMLButtonElement>(null);
+  const dictionaryTitle = useRef<HTMLHeadingElement>(null);
   const buying = useRef(false);
   const pending = useRef<WordGameHintRequest | null>(null);
   const storageKey = `word-game-hint:${gameId}`;
@@ -81,7 +82,7 @@ export default function WordGameHintPanel({ gameId, hints, finished, serverNow, 
   const canBuy = !finished && hints.nextCount !== null;
   return <section className="card flex min-w-0 flex-col gap-3 !p-[12px] text-vs-fg sm:!p-4" aria-labelledby="word-hints-title" data-word-hints>
     <div className="flex flex-wrap items-start justify-between gap-2">
-      <div className="min-w-0"><h2 id="word-hints-title" className="flex flex-wrap items-center gap-2 text-sm font-extrabold [overflow-wrap:normal]"><BookOpen size={22} className="shrink-0 text-vs-accent" aria-hidden />{t("wordOfTheDay.hintTitle")}</h2>
+      <div className="min-w-0"><h2 ref={dictionaryTitle} tabIndex={-1} id="word-hints-title" className="flex flex-wrap items-center gap-2 text-sm font-extrabold [overflow-wrap:normal]"><BookOpen size={22} className="shrink-0 text-vs-accent" aria-hidden />{t("wordOfTheDay.hintTitle")}</h2>
         <p className="mt-1 text-sm text-vs-fg-2">{hints.level > 0 ? t("wordOfTheDay.hintCount", { n: hints.candidates.length }) : t("wordOfTheDay.hintLocked")}</p></div>
       <p className="text-sm font-semibold" data-word-hint-stock>{balance === undefined ? t("common.loading") : t("wordOfTheDay.hintStock", { n: balance })}</p>
     </div>
@@ -101,24 +102,25 @@ export default function WordGameHintPanel({ gameId, hints, finished, serverNow, 
         {words.length === 0 && <p className="p-2 text-sm text-vs-fg-2">{t("wordOfTheDay.hintNoResults")}</p>}
       </div>
     </div>}
-    {confirmation !== null && confirmation === hints.level && canBuy && <HintConfirmation level={hints.level} count={hints.nextCount!} balance={balance ?? 0} busy={busy} error={message} returnFocus={trigger} onConfirm={() => void buy()} onClose={() => { if (!buying.current) { setConfirmation(null); setMessage(""); } }} />}
+    {confirmation !== null && confirmation === hints.level && canBuy && <HintConfirmation level={hints.level} count={hints.nextCount!} balance={balance ?? 0} busy={busy} error={message} returnFocus={trigger} fallbackFocus={dictionaryTitle} onConfirm={() => void buy()} onClose={() => { if (!buying.current) { setConfirmation(null); setMessage(""); } }} />}
   </section>;
 }
 
-function HintConfirmation({ level, count, balance, busy, error, returnFocus, onConfirm, onClose }: {
-  level: number; count: number; balance: number; busy: boolean; error: string; returnFocus: RefObject<HTMLButtonElement | null>; onConfirm: () => void; onClose: () => void;
+function HintConfirmation({ level, count, balance, busy, error, returnFocus, fallbackFocus, onConfirm, onClose }: {
+  level: number; count: number; balance: number; busy: boolean; error: string; returnFocus: RefObject<HTMLButtonElement | null>; fallbackFocus: RefObject<HTMLHeadingElement | null>; onConfirm: () => void; onClose: () => void;
 }) {
   const t = useT(); const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const node = dialog.current; if (!node) return;
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const restore = returnFocus.current ?? previous;
+    const fallback = fallbackFocus.current;
     const overflow = document.body.style.overflow; document.body.style.overflow = "hidden";
     // Sluit een eventueel schermtoetsenbord vóór de sheet verschijnt.
     if (previous instanceof HTMLInputElement) previous.blur();
     node.showModal();
-    return () => { node.close(); document.body.style.overflow = overflow; restore?.focus(); };
-  }, [returnFocus]);
+    return () => { node.close(); document.body.style.overflow = overflow; (restore?.isConnected ? restore : fallback)?.focus(); };
+  }, [returnFocus, fallbackFocus]);
   return createPortal(<dialog ref={dialog} aria-modal="true" aria-labelledby="word-hint-confirm-title" aria-describedby="word-hint-confirm-description" onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }}
     className="vs-motion fixed inset-x-0 bottom-0 top-auto z-50 m-auto mb-0 flex max-h-[calc(100dvh-1rem-var(--vs-safe-area-top))] w-[calc(100%-var(--vs-safe-area-left)-var(--vs-safe-area-right))] max-w-[440px] flex-col overflow-hidden rounded-t-3xl border-0 bg-vs-elevated p-0 text-vs-fg shadow-xl [overflow-wrap:normal] backdrop:bg-vs-overlay/40 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 sm:rounded-3xl">
     <header className="flow-root shrink-0 border-b border-vs-line px-4 py-3"><button type="button" autoFocus aria-label={t("wordOfTheDay.hintClose")} disabled={busy} className="float-right ml-2 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full hover:bg-vs-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent" onClick={onClose}><X size={22} aria-hidden /></button><h2 id="word-hint-confirm-title" className="text-base font-extrabold">{t("wordOfTheDay.hintConfirmTitle")}</h2></header>

@@ -170,8 +170,22 @@ try {
   const next = await a.request.post(`${base}/api/word-game/hint`, { data: { gameId: readerGame.id, expectedLevel: 1, actionId: randomUUID() } }); assert.equal(next.status(), 200);
   await pageB.waitForFunction(() => document.querySelector("[data-word-hint-stock]")?.textContent.includes("6") && document.querySelector("[data-word-hints]")?.textContent.includes("180"), { timeout: 15000 });
   await a.close(); await b.close();
+  // Na de vijfde aankoop verdwijnt de trigger. Focus blijft dan in de
+  // woordenboekcontext, niet op de documentbody of verdwenen bediening.
+  const finalPlayer = await account(5); const finalGame = await getOrCreateTodayGame(finalPlayer.id, timeZone);
+  const released = wordGamePeriod(new Date(), timeZone).releasedAt.getTime();
+  for (let level = 0; level < 4; level++) await buyWordGameHint(finalPlayer.id, { gameId: finalGame.id, expectedLevel: level, actionId: randomUUID() }, new Date(released + level * 3_600_000));
+  await prisma.user.update({ where: { id: finalPlayer.id }, data: { wordGameLastHintAt: new Date(Date.now() - 3_600_001) } });
+  const finalContext = await contextFor(finalPlayer); await ready(finalContext);
+  await hintButton().click(); assert.ok((await dialog().innerText()).includes(t("wordOfTheDay.hintNextList", { n: 5 })));
+  await dialog().getByRole("button", { name: t("wordOfTheDay.hintConfirm"), exact: true }).click();
+  await page.waitForFunction(() => document.querySelectorAll("[data-word-dictionary] li").length === 5 && document.activeElement?.id === "word-hints-title");
+  assert.equal(await hintButton().count(), 0); assert.equal(await balance(finalPlayer.id), 0);
+  assert.equal(JSON.parse((await gameRecord(finalPlayer.id)).guesses).length, 0);
+  assert.equal((await finalContext.request.get(`${base}/api/word-game`)).status(), 200);
+  await finalContext.close();
   assert.deepEqual(errors, []);
-  writeFileSync(`${output}/results.json`, JSON.stringify({ results, functional: ["cancel", "escape", "focus", "lost-response", "double-click", "same-actionId", "cooldown", "guess-during-cooldown", "reload", "login", "shop", "completion", "realtime-two-devices", "all-translations"], errors }, null, 2));
+  writeFileSync(`${output}/results.json`, JSON.stringify({ results, functional: ["cancel", "escape", "focus", "lost-response", "double-click", "same-actionId", "cooldown", "guess-during-cooldown", "reload", "login", "shop", "completion", "realtime-two-devices", "all-translations", "final-level-focus"], errors }, null, 2));
   console.log(`Woordhints: ${results.length} viewport/thema/tekstcombinaties, vier andere talen en volledige betaal-/speelflow geslaagd.`);
 } catch (error) {
   if (page && !page.isClosed()) {

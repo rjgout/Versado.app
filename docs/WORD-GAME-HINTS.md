@@ -91,6 +91,8 @@ de hele pagina te breed. Alleen die rij mag nu wrappen; de ranking blijft
 ongewijzigd. Hintacties schuiven eveneens naar een eigen regel wanneer nodig.
 De modal breekt op woordgrenzen en behoudt bereikbare, intern scrollbare
 knoppen; zijn bodyportal volgt ook de bestaande `vs-motion`-regel.
+Na niveau 5 verdwijnt de aankoopknop. De modal herstelt de focus in dat geval
+naar de woordenboektitel; gewone annuleringen herstellen de hintknop.
 De titel loopt rond de sluitknop, zodat een lang woord op een volgende regel
 de volledige breedte krijgt. De kandidatenkolommen reserveren ook bij 200%
 tekst voldoende breedte voor vijfletterwoorden met bredere fallback-fonts.
@@ -147,7 +149,8 @@ Uitgevoerd op 11 oktober 2026, met nul overgeslagen databasecontroles:
 | ESLint | nul fouten; 132 bestaande waarschuwingen, geen nieuwe in gewijzigde hintcode |
 | i18n | geslaagd; alle nieuwe teksten vertaald, bestaande 423 ontbrekende vertalingen per andere taal ongewijzigd |
 
-De browser test ook de daadwerkelijke tekstregels, modalpositie, focus,
+De browser test ook de daadwerkelijke tekstregels, modalpositie, focus (ook
+na een echte vijfde aankoop),
 begrensde woordenlijst en reduced motion; niet alleen CSS-klassen.
 Visueel gecontroleerde beelden staan in [evidence/word-game-hints](evidence/word-game-hints/):
 `dictionary-390.png`, `confirmation-390-100-light.png`,
