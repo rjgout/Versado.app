@@ -74,7 +74,9 @@ sessietokens, hashes en verbindingsstrings worden niet geselecteerd/geëxporteer
 Het huidige schema heeft geen collectie-publicatieveld. Het rapport toont dat
 expliciet; `enabled` en `visibleToUsers` zijn geen nieuw bewijs van publicatie.
 Als later `publicationState` bestaat, kan het rapport dat veld via een vaste
-SELECT uitlezen zonder een nieuwe migratie. FSY telt concepten, status PUBLISHED,
+SELECT uitlezen zonder een nieuwe migratie. De tellingen bevatten ook de bestaande ChapterProgress-, KidsStoryProgress- en
+IntroLessonProgress-records, naast de huidige inhouds- en cursusvoortgang.
+FSY telt concepten, status PUBLISHED,
 gepubliceerde kopieën en concepten met een bestaande publicatie afzonderlijk.
 Een werksoort is slechts een mappingvoorstel; onbekende bronnen en podcasts zijn
 OTHER. Conflicten worden gemeld, niet automatisch gecorrigeerd.

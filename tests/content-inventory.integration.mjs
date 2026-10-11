@@ -31,7 +31,7 @@ async function post(user, origin = base, extra = {}) {
 }
 async function recordSnapshot() {
   // Uitsluitend eigen testrecords; private velden blijven in het testproces.
-  return { collections: await prisma.contentCollection.findMany({ orderBy: { id: "asc" } }), users: await prisma.user.findMany({ orderBy: { id: "asc" } }), notes: await prisma.note.findMany(), bookmarks: await prisma.bookmark.findMany(), highlights: await prisma.highlight.findMany(), progress: await prisma.contentProgress.findMany(), sessions: await prisma.readingSession.findMany(), fsy: await prisma.fsyLesson.findMany(), migration: (await client.query('SELECT * FROM "_prisma_migrations" ORDER BY migration_name')).rows };
+  return { collections: await prisma.contentCollection.findMany({ orderBy: { id: "asc" } }), users: await prisma.user.findMany({ orderBy: { id: "asc" } }), notes: await prisma.note.findMany(), bookmarks: await prisma.bookmark.findMany(), highlights: await prisma.highlight.findMany(), legacyProgress: await prisma.chapterProgress.findMany(), progress: await prisma.contentProgress.findMany(), sessions: await prisma.readingSession.findMany(), fsy: await prisma.fsyLesson.findMany(), migration: (await client.query('SELECT * FROM "_prisma_migrations" ORDER BY migration_name')).rows };
 }
 try {
   const anonymous = await post(); assert.equal(anonymous.status, 401); assert.match(anonymous.headers.get("cache-control"), /no-store/);
@@ -57,6 +57,7 @@ try {
   await prisma.bookmark.create({ data: { userId: admin.id, verseId: verse.id } });
   await prisma.highlight.create({ data: { userId: admin.id, verseId: verse.id } });
   await prisma.contentProgress.create({ data: { userId: admin.id, contentKey: "inventory:chapter", readVerse: 1 } });
+  await prisma.chapterProgress.create({ data: { userId: admin.id, chapterId: chapter.id } });
   await prisma.readingSession.create({ data: { userId: admin.id, chapterId: chapter.id } });
   await prisma.fsyLesson.create({ data: { contentCollectionId: "content_bom", year: 2026, month: 1, category: "test", slug: "inventory-fsy", title: "Private draft", content: JSON.stringify([{ type: "paragraph", text: "PRIVATE_DRAFT" }]), images: "[]", sourceUrl: "https://test.invalid/lesson", sourceHash: "test", status: "DRAFT", publishedContent: JSON.stringify([{ type: "paragraph", text: "PRIVATE_PUBLICATION" }]), publishedTitle: "Publication" } });
   const before = await recordSnapshot();
@@ -65,6 +66,7 @@ try {
   const report = await response.json(); assert.equal(report.readOnly, true); assert.equal(report.formatVersion, 3);
   assert.equal(report.collections.length, before.collections.length);
   assert.equal(report.fsy.draftWithPublishedCopy, "1"); assert.equal(report.fsy.published, "1");
+  assert.equal(report.counts.ChapterProgress, "1");
   assert.equal(report.counts.Note, "1"); assert.equal(report.counts.Bookmark, "1"); assert.equal(report.counts.Highlight, "1"); assert.equal(report.counts.ContentProgress, "1"); assert.equal(report.counts.ReadingSession, "1");
   assert.ok(report.identities.nullWorkCollectionIds.includes("inventory-null")); assert.ok(report.identities.issues.some((i) => i.type === "ambiguous-work-key"));
   for (const forbidden of ["PRIVATE_", "@private.invalid", admin.id, "postgresql://", "passwordHash", "sourceUrl", "logs", "sessionVersion"]) assert.equal(JSON.stringify(report).includes(forbidden), false, forbidden);

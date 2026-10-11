@@ -35,7 +35,7 @@ export function analyseIdentities(collections: Pick<InventoryCollection, "id" | 
   return { works: [...works.values()].sort((a, b) => a.key.localeCompare(b.key)), nullWorkCollectionIds: collections.filter((c) => c.work === null).map((c) => c.id), issues };
 }
 
-export const INVENTORY_TABLES = ["ContentCollection", "Book", "Chapter", "Verse", "Course", "CourseChapter", "CourseLesson", "User", "UserCourseProgress", "UserCourseLessonProgress", "ContentProgress", "ContentExerciseCredit", "ExerciseSession", "ReadingSession", "Bookmark", "Highlight", "Note", "PodcastPlaybackProgress", "PodcastEpisodeProgress", "FsyLesson", "GameContentScope", "XPTransaction", "StreakActivity", "StreakDay"] as const;
+export const INVENTORY_TABLES = ["ContentCollection", "Book", "Chapter", "Verse", "Course", "CourseChapter", "CourseLesson", "User", "UserCourseProgress", "UserCourseLessonProgress", "ChapterProgress", "KidsStoryProgress", "IntroLessonProgress", "ContentProgress", "ContentExerciseCredit", "ExerciseSession", "ReadingSession", "Bookmark", "Highlight", "Note", "PodcastPlaybackProgress", "PodcastEpisodeProgress", "FsyLesson", "GameContentScope", "XPTransaction", "StreakActivity", "StreakDay"] as const;
 export const INTEGRITY_KEYS = ["booksWithoutCollection", "coursesWithoutCollection", "usersWithoutActiveCollection", "bookmarksWithoutVerse", "highlightsWithoutVerse", "notesWithoutVerse", "chaptersWithoutBook", "versesWithoutChapter", "readingSessionsWithoutChapter", "fsyWithoutCollection"] as const;
 const fields = <T extends string>(keys: readonly T[]) => Object.fromEntries(keys.map((key) => [key, count])) as Record<T, typeof count>;
 const date = z.iso.datetime();
