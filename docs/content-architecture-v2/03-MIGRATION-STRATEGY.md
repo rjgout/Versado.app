@@ -36,6 +36,16 @@ Test herstel in een geïsoleerde database, met schema- en bronversies vastgelegd
 Test ook rollback van de appimage; alleen een geslaagde pg_dump is geen
 bewezen herstel. Bij rollout geen algemene runSeed starten.
 
+**Expliciete uitzondering voor de hervatting van fase 1A:** de eigenaar heeft
+uitsluitend lezende productie-inventarisatie toegestaan, dagelijkse volledige
+Synology Hyper Backup bevestigd en besloten de aanvullende geïsoleerde
+herstelproef over te slaan. Maak voor deze opdracht geen nieuwe backup of
+herstelproef. De onbewezen herstelbaarheid en mogelijk onbewezen database-/
+mediadekking worden als geaccepteerd risico geregistreerd in document 07.
+De werkelijke inventarisatie en conflictbeoordeling blijven vereist vóór de
+additieve schema-PR. Dit geeft geen toestemming voor productie-DDL, backfill,
+containerherstart, import of verwijdering en is geen vrijstelling voor latere fasen.
+
 ## 2. Tabelbeleid
 
 | Groep | Behandeling | Bescherming |

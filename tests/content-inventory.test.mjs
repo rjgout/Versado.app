@@ -26,3 +26,16 @@ test("inventaris weigert een schrijfbare transactie en rolt die terug", async ()
   assert.equal(calls[0], "BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
   assert.equal(calls.at(-1), "ROLLBACK");
 });
+test("inventaris gebruikt uitsluitend SELECT binnen een read-only transactie", async () => {
+  const calls = [];
+  await collectInventory({ query: async sql => {
+    calls.push(sql);
+    if (sql.includes("current_setting")) return { rows: [{ transaction_read_only: "on" }] };
+    if (sql.includes("count(*)::text AS count")) return { rows: [{ count: "0" }] };
+    if (sql.includes('FROM "FsyLesson"') || sql.includes("booksWithoutCollection")) return { rows: [{}] };
+    return { rows: [] };
+  } });
+  assert.equal(calls[0], "BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
+  assert.equal(calls.at(-1), "COMMIT");
+  assert.ok(calls.slice(1, -1).every(sql => /^SELECT\b/.test(sql)));
+});

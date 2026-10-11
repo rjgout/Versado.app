@@ -54,6 +54,15 @@ Deze beperkingen blokkeren het **ontwerp** niet. Echte data-inventaris,
 fixturebroncontrole en herstelproef zijn verplichte gates vóór implementatie-
 uitrol; browser-/DB-bewijs is per fase verplicht.
 
+Bij de hervatting van fase 1A heeft de eigenaar de aanvullende geïsoleerde
+backupherstelproef expliciet overgeslagen. Deze specifieke risicoacceptatie
+vervangt die herstelgate voor de voorbereiding van de 1A-PR; de daadwerkelijke
+productie-inventarisatie en geïsoleerde migratie-/databehoudtests blijven nodig.
+Dagelijkse Hyper Backup is door de eigenaar bevestigd, maar bewijst geen
+geslaagde restore, backupconsistentie of gecontroleerde mediadekking.
+Document 07 houdt de werkelijk gecontroleerde status bij. Geen nieuwe backup
+of herstelactie uitvoeren en geen productie-uitrol afleiden uit deze uitzondering.
+
 ## 2. Testlagen voor de implementatiefasen
 
 ### A. Pure regels en schema's

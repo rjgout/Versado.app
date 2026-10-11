@@ -11,6 +11,6 @@ export async function GET() {
 
   // Het woordenboek van de gekozen collectie (Boek van Mormon, Leer en Verbonden, ...).
   const { active } = await getContentContext(user.id);
-  if (!(await getContentAvailability(user, active.id, user.isAdmin ? "admin-preview" : "read"))) return await apiError("apiErrors.itemNotFound", 404);
+  if (!(await getContentAvailability(user, active.id))) return await apiError("apiErrors.itemNotFound", 404);
   return NextResponse.json({ collectionName: active.name, entries: getDictionaryEntries(active.id) });
 }

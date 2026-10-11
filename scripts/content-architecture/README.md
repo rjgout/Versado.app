@@ -2,8 +2,9 @@
 
 Deze hulpmiddelen veranderen geen werkidentiteiten, publicatiestatussen of
 productiegegevens. ContentWork en de bijbehorende backfill mogen pas worden
-uitgevoerd nadat de inventarisatie en een geschikte backup/herstelproef zijn
-beoordeeld. Een test met synthetische fixtures vervangt dat bewijs niet.
+uitgevoerd nadat de daadwerkelijke inventarisatie is beoordeeld. De eigenaar
+heeft dagelijkse Hyper Backup bevestigd en de aanvullende herstelproef bewust
+overgeslagen. Die risicoacceptatie is geen bewijs van getest herstel.
 
 ## Alleen-lezen inventarisatie
 
@@ -18,7 +19,8 @@ Het script gebruikt geen `DATABASE_URL`-fallback. Het leest in een
 repeatable-read, read-only transactie en schrijft een nieuw bestand met modus
 0600. Het bestand bevat collectie-identiteiten, editie/taal, bestaande flags,
 null-workwaarden, mogelijke identiteitconflicten, aantallen, relatiecontroles,
-FSY-publicatiekopieën en migratiechecksums. Geen privénotitieteksten of
+FSY-publicatiekopieën/conceptaantallen en migratiestatus, inclusief
+onvoltooide/teruggedraaide migraties zonder logteksten. Geen privénotitieteksten of
 gebruikersidentiteiten worden geëxporteerd. De verbindingsstring hoort niet in
 Git, een PR of een gedeeld logbestand.
 
@@ -29,7 +31,7 @@ botst met een expliciete werksleutel, lege identiteit of dubbele editie/taal
 vereist beoordeling. Ook probleemloze output bewijst niet dat de officiële
 bron of editie-equivalentie inhoudelijk is gecontroleerd.
 
-## Wegwerpdatabase en fixtureherstel
+## Wegwerpdatabase zonder backup of herstel
 
 Na een schone productiebuild:
 
@@ -42,27 +44,28 @@ naam en poort. Hij gebruikt uitsluitend de lokale Docker-socket en overschrijft
 de databaseconfiguratie. Alleen bestaande main-migraties worden op deze lege
 database toegepast. Geen algemene seed, scheduler of FSY-sync draait.
 
-De tests spreken de echte productie-HTTP-routehandlers aan. Daarna maakt de
-runner een custom-format dump van uitsluitend de synthetische testdatabase,
-herstelt die in een tweede database in dezelfde eigen container en vergelijkt
-schema-inventaris, aantallen en fingerprints van beschermde records.
-De dump blijft buiten Git. Alleen deze eigen container wordt opgeruimd.
+De tests spreken de echte productie-HTTP-routehandlers aan en vergelijken
+privérecords vóór/na geweigerde mutaties. Daarna draait de read-only inventaris
+op de synthetische fixtures. De runner maakt geen dump of restore; alleen de
+eigen wegwerpcontainer wordt opgeruimd.
 
-`productionBackupVerified: false` blijft uitdrukkelijk onderdeel van de
-rapportage. Dit is geen herstelbewijs van de bestaande live collectiegegevens
-of mediavolumes. Gebruik bestaande `scripts/backup.sh` en `scripts/restore.sh`
-niet met hun standaard productiecontainer om deze tests uit te voeren.
+De uitvoer meldt `productionInventoryPerformed: false`, `backupCreated: false`,
+`restorePerformed: false` en `productionBackupVerified: false`. Dit is geen
+productie-inventaris of backupcontrole. Gebruik `scripts/backup.sh` en
+`scripts/restore.sh` niet: nieuwe backups en herstelacties vallen buiten deze
+hervattingsopdracht.
 
 ## Bewijs vereist vóór ContentWork-DDL/backfill
 
 - Toestemming, bronomgeving, tijdstip en schema-/commitreferentie van de
   inventarisatie; beoordeelde null-workwaarden, conflictsituaties en
   edition families. Geen stilzwijgende samenvoegingen.
-- Recente databasebackup en consistente media-snapshot, met private
-  opslagreferentie, timestamp, checksums en relatie tot de inventarisatie.
-- Bewezen herstel op een geïsoleerde kopie: schema/migratieversies, aantallen,
-  relaties, collectie-ID's, flags, FSY-publicatiekopieën, gebruikersvoortgang en
-  persoonlijke annotaties aantoonbaar behouden; gerefereerde media beschikbaar.
+- Dagelijkse Hyper Backup is een eigenaarsbevestiging. Controleer waar mogelijk
+  bestaande taak-/bestandsmetadata: laatste geslaagde backup, tijdstip en
+  database-/mediabereik. Geen private backupinhoud of credentials publiceren.
+- Voor deze hervatting is de aanvullende herstelproef expliciet overgeslagen.
+  Leg de onbewezen herstelbaarheid, consistentie en onbekende dekking vast;
+  claim geen geslaagde restore. Geïsoleerde migratie-/databehoudtests blijven vereist.
 - Afzonderlijk gereviewde additieve migratie met één werkidentiteit, bestaande
   collecties LEGACY en nieuwe collecties DRAFT/onzichtbaar. Geen aanscherping
   van constraints voordat veilige mapping is bewezen.
@@ -71,5 +74,6 @@ niet met hun standaard productiecontainer om deze tests uit te voeren.
   garbage collection.
 
 Leg bewijsreferenties vast zonder persoonsgegevens of verbindingsgeheimen in
-de repository te plaatsen. Zonder deze voorwaarden blijft de schemawijziging
-geblokkeerd.
+de repository te plaatsen. Zonder daadwerkelijke productie-inventaris blijft de schemawijziging
+geblokkeerd. Ontbrekend herstelbewijs is binnen deze hervatting een vastgelegd
+geaccepteerd risico, geen opnieuw te stellen productvraag.

@@ -34,7 +34,7 @@ export function analyseIdentities(collections) {
 export async function collectInventory(client) {
   await client.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
   try {
-    const setting = await client.query("SHOW transaction_read_only");
+    const setting = await client.query("SELECT current_setting('transaction_read_only') AS transaction_read_only");
     if (setting.rows[0].transaction_read_only !== "on") throw new Error("Inventaris vereist een alleen-lezen transactie");
     const collections = (await client.query('SELECT id, slug, work, "editionKey", language, enabled, "visibleToUsers" FROM "ContentCollection" ORDER BY id')).rows;
     const tables = ["ContentCollection", "Book", "Chapter", "Verse", "Course", "CourseChapter", "CourseLesson", "User", "UserCourseProgress", "UserCourseLessonProgress", "ContentProgress", "ContentExerciseCredit", "ExerciseSession", "ReadingSession", "Bookmark", "Highlight", "Note", "PodcastPlaybackProgress", "PodcastEpisodeProgress", "FsyLesson", "GameContentScope", "XPTransaction", "StreakActivity", "StreakDay"];
@@ -47,10 +47,11 @@ export async function collectInventory(client) {
       (SELECT count(*)::text FROM "Bookmark" b LEFT JOIN "Verse" v ON v.id = b."verseId" WHERE v.id IS NULL) AS "bookmarksWithoutVerse",
       (SELECT count(*)::text FROM "Highlight" b LEFT JOIN "Verse" v ON v.id = b."verseId" WHERE v.id IS NULL) AS "highlightsWithoutVerse",
       (SELECT count(*)::text FROM "Note" b LEFT JOIN "Verse" v ON v.id = b."verseId" WHERE v.id IS NULL) AS "notesWithoutVerse"`)).rows[0];
-    const fsy = (await client.query('SELECT count(*)::text AS total, count("publishedContent")::text AS published, count(*) FILTER (WHERE status = \'DRAFT\' AND "publishedContent" IS NOT NULL)::text AS "draftWithPublishedCopy" FROM "FsyLesson"')).rows[0];
-    const migrations = (await client.query('SELECT migration_name, checksum FROM "_prisma_migrations" WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL ORDER BY migration_name')).rows;
+    const fsy = (await client.query('SELECT count(*)::text AS total, count("publishedContent")::text AS published, count(*) FILTER (WHERE status = \'DRAFT\')::text AS drafts, count(*) FILTER (WHERE status = \'DRAFT\' AND "publishedContent" IS NOT NULL)::text AS "draftWithPublishedCopy" FROM "FsyLesson"')).rows[0];
+    // Inclusief onvoltooide/mislukte en teruggedraaide migraties, zonder logs.
+    const migrations = (await client.query('SELECT migration_name, checksum, started_at, finished_at, rolled_back_at, applied_steps_count FROM "_prisma_migrations" ORDER BY migration_name, started_at')).rows;
     await client.query("COMMIT");
-    return { formatVersion: 1, collections, identities: analyseIdentities(collections), counts, integrity, fsy, migrations };
+    return { formatVersion: 2, collections, identities: analyseIdentities(collections), counts, integrity, fsy, migrations };
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;

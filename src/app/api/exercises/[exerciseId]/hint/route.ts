@@ -20,7 +20,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ ex
 
   const { exerciseId } = await params;
   const exercise = await prisma.exercise.findFirst({
-    where: { id: exerciseId, chapter: { book: { contentCollection: readingAccessWhere(user) } }, ...(user.isAdmin ? {} : { status: "APPROVED" }) },
+    where: { id: exerciseId, chapter: { book: { contentCollection: readingAccessWhere(user) } }, status: "APPROVED" },
     include: {
       sourceVerse: { where: { chapter: { book: { contentCollection: readingAccessWhere(user) } } }, select: { text: true } },
       chapter: { select: { book: { select: { contentCollection: { select: { language: true } } } } } },

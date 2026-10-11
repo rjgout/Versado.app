@@ -264,7 +264,7 @@ export async function setContentCollectionVisibility(
  * verborgen content blijft dan ook echt verborgen voor gewone gebruikers.
  */
 export async function isContentCollectionSelectable(contentCollectionId: string | null, isAdmin: boolean): Promise<boolean> {
-  return getContentAvailability({ isAdmin }, contentCollectionId, isAdmin ? "admin-preview" : "read");
+  return getContentAvailability({ isAdmin }, contentCollectionId, "read");
 }
 
 /**

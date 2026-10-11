@@ -8,15 +8,25 @@ die main. Deze werkbranch, `codex/content-architecture-v2-1a`, is daarvan
 gestart. Tussen de auditbasis en deze main zijn alleen de zeven goedgekeurde
 architectuurdocumenten gewijzigd.
 
-**Fase 1A is niet volledig afgerond.** Een inventarisatie van de bestaande
-live collecties en bewijs van een geschikte recente backup met geïsoleerde
-herstelproef zijn niet aangeleverd of uitgevoerd. Er is geen toestemming voor
-productiequery's of backupacties. Conform document 03 en 05 zijn daarom geen
-schemawijziging, ContentWork-backfill of productieactie uitgevoerd.
+**Fase 1A is niet volledig afgerond.** De eigenaar heeft bij de hervatting
+uitdrukkelijk toestemming gegeven voor uitsluitend lezende productie-
+inventarisatie van Docker-container `jehova-db` op zijn Synology NAS.
+Dagelijkse volledige backup is door de eigenaar bevestigd; hij noemt Synology
+Hyper Backup als oplossing. Hij heeft de aanvullende geïsoleerde herstelproef
+bewust overgeslagen en het risico expliciet geaccepteerd. De oude herstelgate
+is voor deze hervatting dus geen opnieuw te vragen productbeslissing.
 
-Wel uitgevoerd: onafhankelijke toegangsbeveiliging op het bestaande schema,
-automatische HTTP-/DB-regressietests en veilige voorbereiding van de
-inventarisatie en herstelvalidatie. Geen fase 1B, 1C of 1D is gestart.
+De daadwerkelijke inventarisatie blijft technisch geblokkeerd: de werkruimte
+heeft geen geconfigureerde NAS-verbinding, VPN/TCP-grant, SSH-configuratie of
+productiedatabasebinding. De eigenaar heeft aangegeven een beveiligde verbinding
+te zullen koppelen; deze is nog niet als beschikbaar waargenomen. Er zijn
+geen productiequery's uitgevoerd en geen productie-aantallen vastgesteld.
+ContentWork, publicatiestatus en backfill wachten op die inventaris en een
+conflictvrije mapping; geen schemawijziging of productieactie uitgevoerd.
+
+Wel uitgevoerd: centrale legacy-toegangsbeveiliging, de correctie die normale
+beheerdersverzoeken van expliciete preview scheidt, HTTP-/DB-regressietests en
+veilige inventarisatievoorbereiding. Geen fase 1B, 1C of 1D is gestart.
 
 ## Centrale legacy-toegangsservice
 
@@ -28,12 +38,19 @@ inventarisatie en herstelvalidatie. Geen fase 1B, 1C of 1D is gestart.
 | Gewoon lezen | enabled én visibleToUsers | dezelfde regel |
 | Expliciete beheerpreview | geweigerd | bestaande collectie, ook hidden/disabled |
 
-`readingAccessWhere` kiest de bestaande beheerpreview uitsluitend op basis
-van de door `getCurrentUser` verkregen adminrol. Een clientpayload met
-`isAdmin: true` heeft geen invloed. Ontbrekende actor of collectie geeft geen
-toegang; een nullable collectie-ID geeft ook voor een beheerder geen bypass.
-`contentCollections.ts` gebruikt dezelfde service voor het catalogusfilter
-en de bestaande directe collectiecontrole.
+`readingAccessWhere(actor)` geeft nu altijd normale leesrechten, óók als de
+server-geauthenticeerde gebruiker beheerder is. Alleen een expliciete
+serveraanroep met `"admin-preview"` verruimt de scope; de service controleert
+daarbij de adminrol. De bestaande `/adminbackend/content-preview` doet deze
+expliciete aanroep na zijn login-/rolcontrole en blijft een alleen-lezenpreview.
+Een queryparameter `preview=true` of clientpayload met `isAdmin: true` geeft
+geen uitgebreide rechten op gewone API's.
+
+Ook `isContentCollectionSelectable`, de woordenboek-API's en conceptoefening-
+check/hint geven geen automatische adminbypass meer. Normale oefen-API's
+vereisen voor beide rollen APPROVED. Ontbrekende actor of collectie geeft
+geen toegang; nullable collectie-ID's geven ook admins geen bypass.
+De bestaande adminbeheer-API's behouden hun afzonderlijke serverrolcontrole.
 
 Dit is **nog geen publicatiebeleid voor nieuwe bronnen**. De bestaande schema-
 defaults en bestaande enabled/visibleToUsers-waarden zijn ongewijzigd.
@@ -54,7 +71,7 @@ De controle vindt plaats vóór brontekst uitlezen of de bestaande mutatie:
   uit verborgen/uitgeschakelde bronnen worden niet met hun volledige
   brontekst aan een gewone gebruiker teruggegeven.
 - `/api/exercises/[exerciseId]/check`, `/hint` en `/api/practice/submit`:
-  toegang tot de bron én bestaande APPROVED-status vereist voor gewone users.
+  toegang tot de bron én APPROVED-status vereist voor beide rollen.
   Ook de optionele bronvers-relatie van een oefenhint is gefilterd.
 - `/api/dictionary`, `/api/dictionary/[word]` en `/api/persons/[slug]`;
   bij personen ook gerelateerde vader/kinderen.
@@ -83,17 +100,40 @@ is uitsluitend op synthetische testdata uitgevoerd. Bekende werksleutels
 krijgen een classificatieadvies; onbekende bronnen en null-workwaarden worden
 niet automatisch Schriftuur of Studieprogramma. Podcasts blijven OTHER.
 
-`scripts/content-architecture/test-isolated.mjs` past alleen de bestaande
+`scripts/content-architecture/test-isolated.mjs` past uitsluitend de bestaande
 migraties toe op een eigen lege PostgreSQL-container. De productie-HTTP-handler
-start zonder seed, scheduler of FSY-sync. De runner controleert daarna een
-dump/herstel van uitsluitend de synthetische fixtures. Dit bewijst de
-voorbereidingsprocedure, **niet een geschikte productiebackup**.
+start zonder seed, scheduler of FSY-sync. De runner controleert de echte
+routes en de inventaris op synthetische fixtures. Hij maakt voortaan **geen
+backup of herstelproef**. De uitvoer meldt expliciet dat productie-inventaris,
+backupcreatie en herstel niet zijn uitgevoerd.
 
-De uitvoerprocedure en verplichte bewijsstukken staan in
+De read-only inventaris gebruikt naast BEGIN/COMMIT/ROLLBACK uitsluitend SELECT,
+ook voor `transaction_read_only`. FSY-conceptaantallen en alle migratiestatussen,
+inclusief onvoltooide/teruggedraaide migraties zonder logs, zijn opgenomen.
+De actuele handleiding staat in
 [de voorbereidingshandleiding](../../scripts/content-architecture/README.md).
-Geen bestaande content-, cursus- of annotatierecords worden verwijderd.
-De integratietests vergelijken verborgen privérecords vóór en na geweigerde
-requests; ook een lege notitiemutatie kan die niet ongemerkt verwijderen.
+
+### Backupmetadata en geaccepteerde risico's
+
+| Onderdeel | Vastgesteld | Onbewezen |
+| --- | --- | --- |
+| Backupbeleid | Eigenaarsbevestiging: dagelijks volledige NAS-backup via Hyper Backup | Laatste succesvolle uitvoering, timestamp, omvang en taakstatus |
+| Database | Eigenaar noemt jehova-db; repository noemt /volume1/docker/jehova-app/postgres | Werkelijke NAS-mount en opname in de backuptaak; consistente backup van draaiend PostgreSQL/WAL |
+| Media | Repository noemt /volume1/docker/jehova-app/audio en Docker-volume branding_assets | Werkelijke volumes, gerefereerde media en Hyper Backup-selectie |
+| Herstel | Bewust overgeslagen; expliciet geaccepteerd door eigenaar | Leesbaarheid/volledigheid van backup, werkende decryptie/sleutels, database-/mediaherstel en daadwerkelijke hersteltijd |
+
+De repositorypaden zijn aanwijzingen voor een latere metadata-/mountcontrole,
+geen bewijs van live configuratie of backupdekking. Geen nieuwe NAS-backup,
+restore, containerherstart of productie-DDL uitvoeren. Recente bestandsmetadata
+alleen bewijst bovendien geen consistente of succesvol terugzetbare database.
+De oorspronkelijke synthetische fixtureherstelproef bij `f1ed318` was geslaagd,
+maar was nooit een NAS-herstelbewijs; die wordt niet opnieuw uitgevoerd.
+De uitzondering geldt voor deze fase-1A-hervatting, niet automatisch voor latere
+migraties of destructieve contractacties.
+
+Geen bestaande content-, cursus- of annotatierecords worden verwijderd. De
+integratietests vergelijken verborgen privérecords vóór/na geweigerde requests
+voor beide rollen; ook een lege notitiemutatie kan niets ongemerkt verwijderen.
 
 ## Validatie en resterende voorwaarden
 
@@ -101,8 +141,8 @@ Uitgevoerd op deze werkbranch:
 
 | Controle | Resultaat |
 | --- | --- |
-| Gerichte toegang/inventaris/HTTP-DB-tests | 19 geslaagd, 0 overgeslagen |
-| Bestaande editie-, wissel-, leer- en reeksregels | 31 geslaagd (41 inclusief 10 toegangs-unittests) |
+| Gerichte toegang/inventaris/HTTP-DB-tests | 23 geslaagd, 0 overgeslagen |
+| Bestaande editie-, wissel-, leer- en reeksregels | 31 geslaagd (46 inclusief 10 toegang- en 5 inventaris-unittests) |
 | Focus/shell | 23 geslaagd |
 | Live data | 51 geslaagd |
 | TypeScript | geslaagd |
@@ -111,28 +151,32 @@ Uitgevoerd op deze werkbranch:
 | ESLint nieuwe service/tests/scripts | 0 fouten, 0 waarschuwingen |
 | i18n | geslaagd met bestaande dekking: en/de/fr/es 3261/3684; geen UI-teksten gewijzigd |
 | Schone lokale productiebuild | geslaagd; vorige .next buiten de repository bewaard |
-| Fixture-dump/herstel | geslaagd, schema/aantallen en beschermde records identiek |
+| Backup/herstel | niet opnieuw uitgevoerd; herstelproef bewust overgeslagen |
 
-De HTTP-tests omvatten de drie beveiligde leespagina's, echte eerder uitgegeven
+De HTTP-tests omvatten gewone API's en leespagina's voor beide rollen, een
+expliciete beheerpreview, echte eerder uitgegeven
 oefensessies, verborgen personen, twee talen en een null-work-legacycollectie.
 De tests bewijzen geen volledig browser-/Capacitor-regressieonderzoek en geen
 prodmedia-herstel. Buildbevestiging voor de definitieve commit wordt daarnaast
 via de nieuwe concept-PR-workflow `content-access.yml` gecontroleerd.
-De fixtureherstelproef rapporteert expliciet `productionBackupVerified: false`.
+De runner rapporteert `productionInventoryPerformed: false`,
+`backupCreated: false`, `restorePerformed: false`, `productionBackupVerified: false`.
 
 Gewijzigde bestanden: de hierboven genoemde routes/pagina's,
 `src/lib/contentAccess.ts`, `src/lib/contentCollections.ts`, `package.json`,
 de drie `tests/content-access*`/`content-inventory.test.mjs`-bestanden,
 `scripts/content-architecture/{inventory,test-isolated,test-server}.mjs`, hun
 README, `.github/workflows/content-access.yml` en dit statusdocument.
-`prisma/schema.prisma`, migraties, UI-componenten en vertalingen zijn ongewijzigd.
+Ook de bestaande beheerpreviewpagina en documenten 03/05/06 zijn gericht
+aangepast. `prisma/schema.prisma`, migraties, spel-UI en vertalingen zijn ongewijzigd.
 
 Collection-DRAFT-tests en ContentWork-DB-tests zijn niet
 uitvoerbaar zolang de bijbehorende schemawijziging terecht geblokkeerd is.
 Conceptoefening-tests mogen niet als vervanging daarvan worden geïnterpreteerd.
 
-Voor afronding van 1A blijven nodig: daadwerkelijke inventaris en geschikte
-backup/herstelbewijzen, gecontroleerde mapping, additief ContentWork-model en
+Voor afronding van 1A blijven nodig: de beschikbare beveiligde NAS-verbinding,
+daadwerkelijke inventaris en waar mogelijk bestaande backupmetadata, beoordeelde
+risicoregistratie, gecontroleerde mapping, additief ContentWork-model en
 publicatiestatus, compatibele backfill en bijbehorende legacy/nieuwe-bron/
 conflict-/conceptintegratietests. De goedgekeurde verwijzingseditievoorwaarden
 van fase 2D blokkeren 1A niet. Fase 1B kan pas na beoordeling en afronding van

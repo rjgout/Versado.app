@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { prisma } from "../src/lib/db";
 import { createSessionToken, SESSION_COOKIE } from "../src/lib/auth";
 import { getContentAvailability } from "../src/lib/contentAccess";
+import { isContentCollectionSelectable } from "../src/lib/contentCollections";
 
 const database = new URL(process.env.CONTENT_ACCESS_TEST_DATABASE_URL ?? "http://invalid");
 const base = new URL(process.env.CONTENT_ACCESS_TEST_BASE_URL ?? "http://invalid");
@@ -22,7 +23,7 @@ async function request(path: string, method = "GET", body?: unknown, auth: strin
 }
 async function fixture(name: string, enabled: boolean, visibleToUsers: boolean, language = "nl") {
   const collectionId = `content-access-${prefix}-${name}`;
-  await prisma.contentCollection.create({ data: { id: collectionId, slug: collectionId, name, icon: "", enabled, visibleToUsers, work: name === "english" ? null : `access-${prefix}`, editionKey: name, language } });
+  await prisma.contentCollection.create({ data: { id: collectionId, slug: collectionId, name, icon: "", enabled, visibleToUsers, work: name === "english" ? null : name === "hidden" ? "old-testament" : `access-${prefix}`, editionKey: name === "hidden" ? "otb" : name, language } });
   const book = await prisma.book.create({ data: { slug: collectionId, name, key: collectionId, order: 1, contentCollectionId: collectionId } });
   const chapter = await prisma.chapter.create({ data: { bookId: book.id, number: 1, order: 1 } });
   const verse = await prisma.verse.create({ data: { chapterId: chapter.id, number: 1, text: `PRIVETEKST-${name}-${prefix}` } });
@@ -43,8 +44,8 @@ before(async () => {
   await fixture("disabled", false, true);
   await fixture("english", true, true, "en");
 });
-// De runner bewaart deze uitsluitend synthetische fixtures tot de dump-/herstelproef
-// en verwijdert daarna zijn eigen volledige wegwerpcontainer.
+// De runner verwijdert na de tests uitsluitend zijn eigen wegwerpcontainer.
+// Er wordt geen NAS-backup of herstelproef gemaakt.
 after(async () => { await prisma.$disconnect(); });
 
 test("normale legacytekst en tweede taal blijven bereikbaar; ontbrekende bronnen niet", async () => {
@@ -59,23 +60,25 @@ test("normale legacytekst en tweede taal blijven bereikbaar; ontbrekende bronnen
   assert.equal((await request(`/api/chapters/${cases.get("visible")!.chapterId}`, "GET", undefined, null)).status, 401);
 });
 
-for (const name of ["hidden", "disabled"]) test(`${name}: directe reads en mutations geweigerd; privégegevens blijven byte-identiek`, async () => {
+for (const name of ["hidden", "disabled"]) for (const isAdmin of [false, true]) test(`${name}, admin=${isAdmin}: directe reads en mutations geweigerd; privégegevens blijven byte-identiek`, async () => {
   const f = cases.get(name)!;
-  await prisma.bookmark.create({ data: { userId: normal, verseId: f.verseId } });
-  await prisma.highlight.create({ data: { userId: normal, verseId: f.verseId, color: "yellow" } });
-  await prisma.note.create({ data: { userId: normal, verseId: f.verseId, text: "Privénotitie die behouden moet blijven" } });
-  const issued = await prisma.exerciseSession.create({ data: { userId: normal, chapterId: f.chapterId, contentKey: `${f.collectionId}#1`, exerciseIds: JSON.stringify([f.exerciseId]) } });
+  const userId = isAdmin ? admin : normal;
+  const requestAs = (path: string, method = "GET", body?: unknown) => request(path, method, body, isAdmin ? adminCookie : cookie);
+  await prisma.bookmark.create({ data: { userId, verseId: f.verseId } });
+  await prisma.highlight.create({ data: { userId, verseId: f.verseId, color: "yellow" } });
+  await prisma.note.create({ data: { userId, verseId: f.verseId, text: "Privénotitie die behouden moet blijven" } });
+  const issued = await prisma.exerciseSession.create({ data: { userId, chapterId: f.chapterId, contentKey: `${f.collectionId}#1`, exerciseIds: JSON.stringify([f.exerciseId]) } });
   const snapshot = async () => ({
-    bookmarks: await prisma.bookmark.findMany({ where: { userId: normal, verseId: f.verseId } }),
-    highlights: await prisma.highlight.findMany({ where: { userId: normal, verseId: f.verseId } }),
-    notes: await prisma.note.findMany({ where: { userId: normal, verseId: f.verseId } }),
-    progress: await prisma.contentProgress.findMany({ where: { userId: normal } }),
-    sessions: await prisma.readingSession.count({ where: { userId: normal } }),
-    issued: await prisma.exerciseSession.findMany({ where: { userId: normal } }),
-    attempts: await prisma.exerciseAttempt.count({ where: { userId: normal } }),
-    xp: await prisma.xPTransaction.count({ where: { userId: normal } }),
-    streak: await prisma.streakActivity.count({ where: { userId: normal } }),
-    hints: (await prisma.user.findUniqueOrThrow({ where: { id: normal } })).hintBalance,
+    bookmarks: await prisma.bookmark.findMany({ where: { userId, verseId: f.verseId } }),
+    highlights: await prisma.highlight.findMany({ where: { userId, verseId: f.verseId } }),
+    notes: await prisma.note.findMany({ where: { userId, verseId: f.verseId } }),
+    progress: await prisma.contentProgress.findMany({ where: { userId } }),
+    sessions: await prisma.readingSession.count({ where: { userId } }),
+    issued: await prisma.exerciseSession.findMany({ where: { userId } }),
+    attempts: await prisma.exerciseAttempt.count({ where: { userId } }),
+    xp: await prisma.xPTransaction.count({ where: { userId } }),
+    streak: await prisma.streakActivity.count({ where: { userId } }),
+    hints: (await prisma.user.findUniqueOrThrow({ where: { id: userId } })).hintBalance,
   });
   const before = await snapshot();
   const probes: [string, string, unknown?][] = [
@@ -89,31 +92,50 @@ for (const name of ["hidden", "disabled"]) test(`${name}: directe reads en mutat
     ["/api/reading-lessons/submit", "POST", { lessonId: f.lessonId, sessionId: null, answers: [] }],
   ];
   for (const [path, method, body] of probes) {
-    const response = await request(path, method, body); assert.equal(response.status, 404, path);
+    const response = await requestAs(path, method, body); assert.equal(response.status, 404, path);
     assert.ok(!(await response.text()).includes(`PRIVETEKST-${name}`), path);
   }
   for (const path of [`/lesson/${f.chapterId}`, `/reading-lesson/${f.lessonId}`, `/courses/${f.courseId}/chapter/${f.chapterId}`]) {
-    const response = await request(path);
+    const response = await requestAs(path);
     assert.ok(response.status < 400, path);
     const html = await response.text();
     assert.ok(response.headers.has("location") || html.includes("NEXT_REDIRECT"), `Leesroute moet navigeren: ${path}`);
     assert.ok(!html.includes(`PRIVETEKST-${name}`), path);
   }
-  assert.equal((await request("/api/practice/submit", "POST", { answers: [{ exerciseId: f.exerciseId, given: ["antwoord"] }] })).status, 400);
-  const bookmarks = await request("/api/bookmarks"); assert.equal(bookmarks.status, 200);
+  assert.equal((await requestAs("/api/practice/submit", "POST", { answers: [{ exerciseId: f.exerciseId, given: ["antwoord"] }] })).status, 400);
+  const bookmarks = await requestAs("/api/bookmarks"); assert.equal(bookmarks.status, 200);
   assert.ok(!JSON.stringify(await bookmarks.json()).includes(f.verseId));
   assert.deepEqual(await snapshot(), before);
   assert.equal(await getContentAvailability({ isAdmin: false }, f.collectionId, "admin-preview"), false);
-  assert.equal((await request(`/api/chapters/${f.chapterId}`, "GET", undefined, adminCookie)).status, 200);
+  assert.equal(await getContentAvailability({ isAdmin: true }, f.collectionId), false);
+  assert.equal(await getContentAvailability({ isAdmin: true }, f.collectionId, "admin-preview"), true);
+  assert.equal(await isContentCollectionSelectable(f.collectionId, true), false);
+  assert.equal((await requestAs(`/api/chapters/${f.chapterId}?preview=true`)).status, 404);
 });
 
-test("conceptoefeningen lekken geen antwoord of betaalde hint", async () => {
+test("conceptoefeningen lekken geen antwoord of betaalde hint, ook niet aan admins via gewone routes", async () => {
   const f = cases.get("visible")!;
-  const balance = (await prisma.user.findUniqueOrThrow({ where: { id: normal } })).hintBalance;
-  for (const suffix of ["check", "hint"]) assert.equal((await request(`/api/exercises/${f.draftId}/${suffix}`, "POST", suffix === "check" ? { given: ["geheim"] } : undefined)).status, 404);
-  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: normal } })).hintBalance, balance);
-  const response = await request(`/api/chapters/${f.chapterId}`);
-  const view = await response.json(); assert.equal(view.exercises.length, 1); assert.ok(!JSON.stringify(view).includes("geheim"));
+  for (const [userId, auth] of [[normal, cookie], [admin, adminCookie]]) {
+    const balance = (await prisma.user.findUniqueOrThrow({ where: { id: userId } })).hintBalance;
+    for (const suffix of ["check", "hint"]) assert.equal((await request(`/api/exercises/${f.draftId}/${suffix}`, "POST", suffix === "check" ? { given: ["geheim"] } : undefined, auth)).status, 404);
+    assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: userId } })).hintBalance, balance);
+    const view = await (await request(`/api/chapters/${f.chapterId}`, "GET", undefined, auth)).json();
+    assert.equal(view.exercises.length, 1); assert.ok(!JSON.stringify(view).includes("geheim"));
+  }
+});
+
+test("expliciete beheerpreview blijft leesbaar voor admins, zonder gewone toegang of mutaties", async () => {
+  const f = cases.get("hidden")!;
+  const path = `/adminbackend/content-preview?work=old-testament&language=nl&book=${f.collectionId}&chapter=1`;
+  const before = await prisma.streakActivity.count({ where: { userId: admin } });
+  const adminView = await request(path, "GET", undefined, adminCookie);
+  assert.equal(adminView.status, 200);
+  assert.ok((await adminView.text()).includes("PRIVETEKST-hidden"));
+  const userView = await request(path);
+  const html = await userView.text();
+  assert.ok(userView.headers.has("location") || html.includes("NEXT_REDIRECT"));
+  assert.ok(!html.includes("PRIVETEKST-hidden"));
+  assert.equal(await prisma.streakActivity.count({ where: { userId: admin } }), before);
 });
 
 test("bestaande zichtbare annotaties, bewaren en expliciet lezen blijven werken zonder extra XP", async () => {

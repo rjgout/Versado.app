@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
+import { readingAccessWhere } from "@/lib/contentAccess";
 import { ReaderView, type ReaderVerseView } from "@/components/LessonFlow";
 import PageIntro from "@/components/versado/PageIntro";
 import type { OtbWork } from "../../../../scripts/otb/trialConfig";
@@ -42,7 +43,7 @@ export default async function ContentPreviewPage({
   const work = isWork(query.work) ? query.work : "old-testament";
   const language = LANGUAGES.some((item) => item.code === query.language) ? query.language! : "nl";
   const collection = await prisma.contentCollection.findFirst({
-    where: { work, editionKey: "otb", language, enabled: true },
+    where: { work, editionKey: "otb", language, enabled: true, ...readingAccessWhere(user, "admin-preview") },
     select: { id: true, name: true },
   });
 

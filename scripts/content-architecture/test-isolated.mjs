@@ -1,6 +1,6 @@
 // Alleen eigen lokale containers. Omgevings-DATABASE_URL, Docker-context en proddata worden niet gebruikt.
 import { spawn, spawnSync } from "node:child_process";
-import { randomUUID, createHash } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import { createServer } from "node:net";
 import pg from "pg";
@@ -27,14 +27,7 @@ async function freePort() {
   const port = probe.address().port;
   await new Promise(resolve => probe.close(resolve)); return port;
 }
-async function fingerprint(client) {
-  const result = {};
-  for (const table of ["User", "Book", "Chapter", "Verse", "Course", "ContentProgress", "Bookmark", "Highlight", "Note", "ReadingSession", "StreakActivity", "StreakDay", "XPTransaction", "FsyLesson", "PodcastPlaybackProgress", "PodcastEpisodeProgress"]) {
-    result[table] = (await client.query(`SELECT md5(coalesce(string_agg(md5(row_to_json(t)::text), '' ORDER BY t.id), '')) AS hash FROM "${table}" t`)).rows[0].hash;
-  }
-  return result;
-}
-let server, source, restored;
+let server, source;
 try {
   docker(["run", "--rm", "-d", "--name", container, "-p", "127.0.0.1::5432", "-e", "POSTGRES_USER=content_access_test", "-e", "POSTGRES_PASSWORD=content_access_test", "-e", "POSTGRES_DB=versado_content_access_test", "postgres:16-alpine"]);
   let ready = false;
@@ -59,19 +52,17 @@ try {
   if (!healthy) throw new Error("Productie-routehandler niet beschikbaar");
   await run("npx", ["tsx", "--test", "tests/content-access.test.ts", "tests/content-inventory.test.mjs", "tests/content-access.integration.test.ts"], env);
   source = new pg.Client({ connectionString: database }); await source.connect();
-  const before = await collectInventory(source), protectedBefore = await fingerprint(source);
-  assert.equal(before.identities.issues.length, 0);
-  assert.ok(Number(before.counts.Note) > 0, "Herstelproef bevat daadwerkelijk privénotities");
-  const dump = docker(["exec", container, "pg_dump", "-U", "content_access_test", "-d", "versado_content_access_test", "--format=custom", "--no-owner", "--no-privileges"], undefined, true);
-  docker(["exec", container, "createdb", "-U", "content_access_test", "versado_content_access_restore"]);
-  docker(["exec", "-i", container, "pg_restore", "-U", "content_access_test", "-d", "versado_content_access_restore", "--exit-on-error", "--no-owner", "--no-privileges"], dump);
-  restored = new pg.Client({ connectionString: database.replace("/versado_content_access_test", "/versado_content_access_restore") }); await restored.connect();
-  assert.deepEqual(await collectInventory(restored), before);
-  assert.deepEqual(await fingerprint(restored), protectedBefore);
-  console.log(JSON.stringify({ isolatedFixtureRestore: "passed", dumpSha256: createHash("sha256").update(dump).digest("hex"), schemaAndCountsEqual: true, protectedRecordsEqual: true, productionBackupVerified: false }));
+  const inventory = await collectInventory(source);
+  assert.equal(inventory.identities.issues.length, 0);
+  assert.ok(Number(inventory.counts.Note) > 0, "Tests bevatten synthetische privénotities");
+  assert.ok(Object.values(inventory.integrity).every(count => count === "0"));
+  // De eigenaar heeft de aanvullende herstelproef bewust overgeslagen.
+  // Ook deze runner maakt voortaan geen dump of herstelactie.
+  console.log(JSON.stringify({ isolatedFixtureInventory: "passed", productionInventoryPerformed: false,
+    backupCreated: false, restorePerformed: false, productionBackupVerified: false }));
 } catch (error) { console.error(error); process.exitCode = 1; }
 finally {
-  await source?.end(); await restored?.end();
+  await source?.end();
   if (server?.pid) { try { process.kill(-server.pid, "SIGTERM"); } catch {} }
   try { docker(["rm", "-f", container]); } catch {}
 }

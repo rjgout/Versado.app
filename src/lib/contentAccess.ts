@@ -6,8 +6,8 @@ export type ContentAccessPurpose = "catalog" | "read" | "admin-preview";
 export type LegacyContentAccess = { enabled: boolean; visibleToUsers: boolean };
 
 /**
- * Eén toegangspoort op het bestaande schema. Publicatiecompatibiliteit en
- * ContentWork-DDL blijven geblokkeerd totdat inventaris/herstel bewezen zijn.
+ * Eén toegangspoort op het bestaande schema. ContentWork/publicatie-DDL
+ * wachten op de daadwerkelijke inventaris; herstel is een geaccepteerd risico.
  * De actor komt uitsluitend uit de serverauthenticatie, nooit uit een payload.
  */
 export function collectionAccessWhere(
@@ -29,9 +29,12 @@ export function canAccessLegacyCollection(
   return collection.enabled && (collection.visibleToUsers || (purpose === "catalog" && actor.isAdmin));
 }
 
-/** De bestaande beheerpreview vereist een door de server vastgestelde adminrol. */
-export function readingAccessWhere(actor: ContentActor): Prisma.ContentCollectionWhereInput {
-  return collectionAccessWhere(actor, actor.isAdmin ? "admin-preview" : "read");
+/** Normale routes houden normale rechten, ook voor beheerders. */
+export function readingAccessWhere(
+  actor: ContentActor,
+  purpose: "read" | "admin-preview" = "read",
+): Prisma.ContentCollectionWhereInput {
+  return collectionAccessWhere(actor, purpose);
 }
 
 export async function getContentAvailability(

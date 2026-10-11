@@ -18,6 +18,8 @@ test("ontbrekende actor of collectie krijgt geen toegang, ook geen admin-bypass"
 });
 test("leesqueries en catalogus houden beheerpreview expliciet gescheiden", () => {
   assert.deepEqual(readingAccessWhere({ isAdmin: false }), { enabled: true, visibleToUsers: true });
-  assert.deepEqual(readingAccessWhere({ isAdmin: true }), {});
+  assert.deepEqual(readingAccessWhere({ isAdmin: true }), { enabled: true, visibleToUsers: true });
+  assert.deepEqual(readingAccessWhere({ isAdmin: true }, "admin-preview"), {});
+  assert.deepEqual(readingAccessWhere({ isAdmin: false }, "admin-preview"), { id: { in: [] } });
   assert.deepEqual(collectionAccessWhere({ isAdmin: true }, "catalog"), { enabled: true });
 });

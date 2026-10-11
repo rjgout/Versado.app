@@ -28,7 +28,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ exe
     where: {
       id: exerciseId,
       chapter: { book: { contentCollection: readingAccessWhere(user) } },
-      ...(user.isAdmin ? {} : { status: "APPROVED" }),
+      status: "APPROVED",
     },
   });
   if (!exercise) {
