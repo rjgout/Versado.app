@@ -2,6 +2,8 @@ import { prisma } from "@/lib/db";
 import { collectionAccessWhere, getContentAvailability } from "@/lib/contentAccess";
 import { DEFAULT_LANGUAGE, LANGUAGES, fallbackChain } from "@/lib/languages";
 import { pickTargetCollection } from "@/lib/contentRouting";
+import { getStudyContexts } from "@/lib/studyContext";
+import type { StudyContextView } from "@/lib/studyContextContract";
 
 export interface ContentCollectionView {
   id: string;
@@ -34,6 +36,8 @@ export interface WorkOption {
 }
 
 export interface ContentContext {
+  /** Additief voor /content; oude clients blijven de bestaande velden gebruiken. */
+  studyContexts?: StudyContextView[];
   switcherEnabled: boolean;
   active: ContentCollectionView;
   collections: ContentCollectionView[];
@@ -160,6 +164,7 @@ export async function getContentContext(userId: string): Promise<ContentContext>
 
   return {
     // Met maar één zichtbare collectie valt er niets te wisselen.
+    studyContexts: user ? await getStudyContexts({ id: userId, isAdmin: user.isAdmin }) : [],
     switcherEnabled: settings.enabled && available.length > 1,
     active: selected,
     collections: available,
