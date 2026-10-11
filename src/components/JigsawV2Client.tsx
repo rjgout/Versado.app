@@ -2,19 +2,21 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import NextImage from "next/image";
-import { Ellipsis, RotateCw } from "lucide-react";
+import { Ellipsis, RotateCw, Lightbulb } from "lucide-react";
+import PuzzleHintPanel from "@/components/PuzzleHintPanel";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { useT } from "@/components/I18nProvider";
 import { createPuzzleGeometry, tracePuzzleGroup } from "@/lib/puzzle/geometry";
-import { connectedPieces, findSnapConnection, groupFor, worldOf } from "@/lib/puzzle/engine";
+import { boardSnapTarget, connectedPieces, findSnapConnection, groupFor, worldOf } from "@/lib/puzzle/engine";
 import { clampGroupPosition, groupAnchor, groupMemberAt, puzzleRenderOrder, puzzleWorktable } from "@/lib/puzzle/worktable";
 import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
-import { PUZZLE_DIFFICULTIES, type PuzzleDifficulty, type PuzzlePieceCount, type PuzzleSnapshot } from "@/lib/puzzle/types";
+import { puzzlePolicy, type PuzzleFilter, type PuzzleHintType, type PuzzleHint, type PuzzleDifficulty, type PuzzlePieceCount, type PuzzleSnapshot } from "@/lib/puzzle/types";
+import { activePuzzleHint } from "@/lib/puzzle/hints";
 import { filterPuzzleCatalog, puzzleCatalogPage } from "@/lib/puzzle/catalog";
 import type { JigsawAnswerResult } from "@/lib/jigsaw";
 import { useSetBackTarget } from "@/lib/backTarget";
 
-type State = { id: string; version: number; status: string; image: string; seed: string; geometryVersion: number; pieceCount: PuzzlePieceCount; difficulty: PuzzleDifficulty; snapshot: PuzzleSnapshot; question?: { text: string; options: string[] }; answer?: Answer };
+type State = { id: string; version: number; status: string; image: string; seed: string; geometryVersion: number; pieceCount: PuzzlePieceCount; difficulty: PuzzleDifficulty; rulesVersion: number; snapshot: PuzzleSnapshot; question?: { text: string; options: string[] }; answer?: Answer };
 type Answer = JigsawAnswerResult | { alreadyAnswered: true };
 type Point = { x: number; y: number };
 type Drag = { pointer: number; groupId: string; offset: Point };
@@ -25,6 +27,7 @@ type Stage = "BOARD" | "COMPLETE" | "QUESTION" | "RESULT";
 const KEY = "versado:jigsaw-v2-session";
 const PAGE_SIZE = 24;
 const difficulties: PuzzleDifficulty[] = ["DISCOVERER", "ADVENTURER", "EXPERT", "MASTER"];
+const levelDescriptions = { DISCOVERER: "jigsaw.discovererDescription", ADVENTURER: "jigsaw.adventurerDescription", EXPERT: "jigsaw.expertDescription", MASTER: "jigsaw.masterDescription" } as const;
 const levelKeys = { DISCOVERER: "jigsaw.discoverer", ADVENTURER: "jigsaw.adventurer", EXPERT: "jigsaw.expert", MASTER: "jigsaw.master" } as const;
 
 class RequestError extends Error {
@@ -100,21 +103,22 @@ export default function JigsawV2Client({ images }: { images: Array<{ url: string
       {visible.length ? <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">{visible.map(({ src, label, category }) => <button key={src} type="button" onClick={() => setImageId(src)} aria-pressed={imageId === src} className={`min-w-0 overflow-hidden rounded-xl border-2 text-left ${imageId === src ? "border-vs-xp" : "border-vs-line"}`}><NextImage src={src} alt="" width={240} height={180} unoptimized loading="lazy" className="aspect-[4/3] w-full object-cover" /><span className="block vs-wrap px-2 pt-2 text-sm font-semibold">{label}</span><span className="block vs-wrap px-2 pb-2 text-xs text-vs-fg-2">{category}</span></button>)}</div> : <p className="mt-3 text-vs-fg-2">{t("jigsaw.noImages")}</p>}
       {pages > 1 && <nav className="mt-3 flex flex-wrap items-center justify-between gap-2" aria-label={t("jigsaw.imagePages")}><button type="button" className="btn-secondary min-h-11" disabled={activePage === 0} onClick={() => setPage(activePage - 1)}>{t("jigsaw.previous")}</button><span className="text-sm font-semibold">{t("jigsaw.page", { n: activePage + 1, total: pages })}</span><button type="button" className="btn-secondary min-h-11" disabled={activePage + 1 >= pages} onClick={() => setPage(activePage + 1)}>{t("jigsaw.next")}</button></nav>}
     </section>
-    <section><h2 className="font-bold">{t("jigsaw.pieces", { n: pieceCount })}</h2><div className="mt-3 flex flex-wrap gap-2">{[6, 12, 24, 48, 96].map((count) => <button type="button" className={`btn-secondary min-h-11 ${count === pieceCount ? "!border-vs-xp !bg-vs-xp/15" : ""}`} onClick={() => setPieceCount(count as PuzzlePieceCount)} key={count}>{count}</button>)}</div></section>
-    <section><h2 className="font-bold">{t("jigsaw.difficulty")}</h2><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{difficulties.map((level) => <button type="button" className={`btn-secondary min-h-11 ${difficulty === level ? "!border-vs-xp !bg-vs-xp/15" : ""}`} aria-pressed={difficulty === level} onClick={() => setDifficulty(level)} key={level}>{t(levelKeys[level])}</button>)}</div></section>
+    <section><h2 className="font-bold">{t("jigsaw.pieces", { n: pieceCount })}</h2><p className="mt-1 text-sm text-vs-fg-2">{t("jigsaw.pieceCountHelp")}</p><div className="mt-3 flex flex-wrap gap-2">{[6, 12, 24, 48, 96].map((count) => <button type="button" className={`btn-secondary min-h-11 ${count === pieceCount ? "!border-vs-xp !bg-vs-xp/15" : ""}`} onClick={() => setPieceCount(count as PuzzlePieceCount)} key={count}>{count}</button>)}</div></section>
+    <section><h2 className="font-bold">{t("jigsaw.difficulty")}</h2><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{difficulties.map((level) => <button type="button" className={`btn-secondary min-h-11 flex-col items-start text-left ${difficulty === level ? "!border-vs-xp !bg-vs-xp/15" : ""}`} aria-label={t(levelKeys[level])} aria-describedby={`difficulty-${level}`} aria-pressed={difficulty === level} onClick={() => setDifficulty(level)} key={level}><span className="block font-semibold">{t(levelKeys[level])}</span><span id={`difficulty-${level}`} className="mt-1 block text-sm font-normal normal-case tracking-normal">{t(levelDescriptions[level])}</span></button>)}</div></section>
     <p role="status">{selectedImage ? selectedImage.label : t("jigsaw.chooseImage")}</p><button type="button" className="btn-primary min-h-12 self-start" disabled={!selectedImage || loading} onClick={() => void start()}>{t("jigsaw.start")}</button>{error && <p role="alert">{error}</p>}
   </FocusLayout>;
 }
 
 function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: State; setOuter: (state: State) => void; onChooseAnother: () => void; onReplay: () => void }) {
   const t = useT(); const [state, setState] = useState(initial); const [stage, setStage] = useState<Stage>(() => { if (initial.status === "ANSWERED") return "RESULT"; if (initial.status !== "COMPLETED") return "BOARD"; try { if (localStorage.getItem(`${KEY}:question`) === initial.id) return "QUESTION"; } catch {} return "COMPLETE"; });
-  const shown = useRef(initial); const saved = useRef(initial); const [selected, setSelected] = useState<number | null>(null); const [message, setMessage] = useState(""); const [answer, setAnswer] = useState<Answer | null>(initial.answer ?? null); const [menuOpen, setMenuOpen] = useState(false);
+  const shown = useRef(initial); const saved = useRef(initial); const [selected, setSelected] = useState<number | null>(null); const [message, setMessage] = useState(""); const [answer, setAnswer] = useState<Answer | null>(initial.answer ?? null); const [menuOpen, setMenuOpen] = useState(false); const [hintsOpen, setHintsOpen] = useState(false);
+  const [hint, setHint] = useState<PuzzleHint | null>(() => activePuzzleHint(initial.snapshot)); const hintRef = useRef(hint); const selectedRef = useRef(selected); const menuButton = useRef<HTMLButtonElement>(null);
   const pending = useRef(false); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null); const image = useRef<HTMLImageElement | null>(null); const camera = useRef<PuzzleCamera>({ scale: 60, x: 0, y: 0 }); const frame = useRef<number | null>(null);
   const mounted = useRef(true); const stopAnimation = useRef<(() => void) | null>(null);
   const viewport = useRef<ViewportSize | null>(null); const paths = useRef(new Map<string, Path2D>());
   const pointers = useRef(new Map<number, Point>()); const drag = useRef<Drag | null>(null); const pan = useRef<Pan | null>(null); const pinch = useRef<Pinch | null>(null);
-  const geometry = useMemo(() => createPuzzleGeometry(initial.pieceCount, initial.seed, initial.geometryVersion), [initial.pieceCount, initial.seed, initial.geometryVersion]); const table = useMemo(() => puzzleWorktable(geometry), [geometry]); const policy = PUZZLE_DIFFICULTIES[state.difficulty];
+  const geometry = useMemo(() => createPuzzleGeometry(initial.pieceCount, initial.seed, initial.geometryVersion), [initial.pieceCount, initial.seed, initial.geometryVersion]); const table = useMemo(() => puzzleWorktable(geometry), [geometry]); const policy = puzzlePolicy(state.difficulty, state.rulesVersion);
 
   const back = useCallback(() => {
     if (stage === "QUESTION") { try { localStorage.removeItem(`${KEY}:question`); } catch {} setStage("COMPLETE"); }
@@ -130,16 +134,18 @@ function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: Sta
     const context = canvas.getContext("2d"); if (!context) return; context.setTransform(ratio, 0, 0, ratio, 0, 0); context.clearRect(0, 0, rect.width, rect.height); context.fillStyle = "#edf1f2"; context.fillRect(0, 0, rect.width, rect.height);
     context.save(); context.translate(camera.current.x, camera.current.y); context.scale(camera.current.scale, camera.current.scale);
     context.fillStyle = "#dbe6e6"; context.fillRect(table.bounds.minX, table.bounds.minY, table.bounds.maxX - table.bounds.minX, table.bounds.maxY - table.bounds.minY); context.strokeStyle = "rgba(42, 68, 74, .45)"; context.lineWidth = 2 / camera.current.scale; context.strokeRect(table.bounds.minX, table.bounds.minY, table.bounds.maxX - table.bounds.minX, table.bounds.maxY - table.bounds.minY);
-    context.fillStyle = "rgba(255, 255, 255, .74)"; context.fillRect(table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); if (policy.showGhost && image.current) { context.globalAlpha = .18; context.drawImage(image.current, table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); context.globalAlpha = 1; }
+    if (state.rulesVersion === 1 || policy.showOutline || policy.showGhost) { context.fillStyle = "rgba(255, 255, 255, .74)"; context.fillRect(table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); } if (policy.showGhost && image.current) { context.globalAlpha = .18; context.drawImage(image.current, table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); context.globalAlpha = 1; }
     if (policy.showOutline) { context.strokeStyle = "rgba(64, 87, 94, .46)"; context.setLineDash([.12, .1]); context.strokeRect(table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); context.setLineDash([]); }
+    const target = hintRef.current?.target;
     const draggedGroupId = drag.current?.groupId ?? null;
     for (const group of puzzleRenderOrder(shown.current.snapshot.groups, draggedGroupId)) {
       const dragging = group.id === draggedGroupId;
+      const dim = target?.type === "FILTER";
       const anchor = groupAnchor(geometry, group); const key = group.pieceIds.join(",");
       let path = paths.current.get(key);
       if (!path) { path = new Path2D(); tracePuzzleGroup(path, geometry, group.pieceIds); paths.current.set(key, path); }
       // Twee schermpixels lift, ook bij zoom/rotatie. Wereldpositie en snap blijven exact.
-      context.save(); context.translate(group.x + .5, group.y + .5 - (dragging ? 2 / camera.current.scale : 0)); context.rotate(group.rotation * Math.PI / 180); context.translate(-.5, -.5);
+      context.save(); if (dim) context.globalAlpha = .2; context.translate(group.x + .5, group.y + .5 - (dragging ? 2 / camera.current.scale : 0)); context.rotate(group.rotation * Math.PI / 180); context.translate(-.5, -.5);
       if (dragging) {
         // De echte groepscontour werpt schaduw, buiten de beeldclip en zonder interne randen.
         context.save(); context.shadowColor = "rgba(29, 42, 60, .28)"; context.shadowBlur = 10 * ratio; context.shadowOffsetY = 5 * ratio;
@@ -151,9 +157,30 @@ function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: Sta
       if (image.current) context.drawImage(image.current, -anchor.column, -anchor.row, geometry.grid.columns, geometry.grid.rows);
       else { context.fillStyle = "#b9d5d7"; context.fill(path); }
       context.restore();
-      const active = selected !== null && group.pieceIds.includes(selected);
-      context.strokeStyle = active ? "#d97716" : "rgba(29, 42, 60, .60)"; context.lineWidth = (active ? 3 : 1) / camera.current.scale;
+      if (target?.type === "FILTER" && image.current) {
+        const members = group.pieceIds.filter((id) => target.pieceIds.includes(id));
+        if (members.length) {
+          const first = geometry.pieces[members[0]]; const key = `filter:${members.join(",")}`;
+          let highlight = paths.current.get(key);
+          if (!highlight) { highlight = new Path2D(); tracePuzzleGroup(highlight, geometry, members); paths.current.set(key, highlight); }
+          context.save(); context.globalAlpha = 1; context.translate(first.column - anchor.column, first.row - anchor.row); context.clip(highlight);
+          context.drawImage(image.current, -first.column, -first.row, geometry.grid.columns, geometry.grid.rows); context.restore();
+        }
+      }
+      const active = selectedRef.current !== null && group.pieceIds.includes(selectedRef.current);
+      context.strokeStyle = active ? "#d97716" : group.anchored ? "rgba(43, 103, 99, .70)" : "rgba(29, 42, 60, .60)"; context.lineWidth = (active ? 3 : 1) / camera.current.scale;
       context.stroke(path); context.restore();
+    }
+    // Tijdelijke markers gebruiken de echte canonieke paden. Geen statusmutatie.
+    if (target?.type === "LOCATION") {
+      const path = new Path2D(); tracePuzzleGroup(path, geometry, target.pieceIds);
+      context.save(); context.translate(target.x, target.y); context.fillStyle = "rgba(217,119,22,.16)"; context.fill(path); context.strokeStyle = "#d97716"; context.lineWidth = 3 / camera.current.scale; context.stroke(path); context.restore();
+    }
+    const marked = target?.type === "CONNECTION" ? [target.pieceId, target.neighborId] : target?.type === "FILTER" ? target.pieceIds : [];
+    for (const id of marked) {
+      const group = groupFor(shown.current.snapshot, id); if (!group) continue;
+      const anchor = groupAnchor(geometry, group); const piece = geometry.pieces[id]; const path = new Path2D(); tracePuzzleGroup(path, geometry, [id]);
+      context.save(); context.translate(group.x + .5, group.y + .5); context.rotate(group.rotation * Math.PI / 180); context.translate(piece.column - anchor.column - .5, piece.row - anchor.row - .5); context.strokeStyle = "#d97716"; context.lineWidth = 4 / camera.current.scale; context.stroke(path); context.restore();
     }
     context.restore();
   }
@@ -195,15 +222,15 @@ function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: Sta
   function screenPoint(event: { clientX: number; clientY: number }) { const rect = canvasRef.current?.getBoundingClientRect(); return rect ? { x: event.clientX - rect.left, y: event.clientY - rect.top } : { x: 0, y: 0 }; }
   function worldPoint(point: Point) { return screenToWorld(camera.current, point); }
   function picked(point: Point) { for (const group of [...shown.current.snapshot.groups].reverse()) { const id = groupMemberAt(geometry, group, point); if (id !== null) return { group, id }; } return null; }
-  function transientMove(groupId: string, x: number, y: number) { const base = saved.current; const group = base.snapshot.groups.find((candidate) => candidate.id === groupId); if (!group) return; const position = clampGroupPosition(geometry, group, x, y); const next = { ...base, snapshot: { ...base.snapshot, groups: base.snapshot.groups.map((candidate) => candidate.id === groupId ? { ...candidate, ...position } : candidate) } }; shown.current = next; setState(next); schedulePaint(); }
+  function transientMove(groupId: string, x: number, y: number) { const base = saved.current; const group = base.snapshot.groups.find((candidate) => candidate.id === groupId); if (!group || group.anchored) return; const position = clampGroupPosition(geometry, group, x, y); const next = { ...base, snapshot: { ...base.snapshot, groups: base.snapshot.groups.map((candidate) => candidate.id === groupId ? { ...candidate, ...position } : candidate) } }; shown.current = next; setState(next); schedulePaint(); }
   function beginPinch() { const fingers = [...pointers.current.values()]; if (fingers.length < 2) return; if (drag.current) { drag.current = null; shown.current = saved.current; setState(saved.current); } pan.current = null; const center = { x: (fingers[0].x + fingers[1].x) / 2, y: (fingers[0].y + fingers[1].y) / 2 }; pinch.current = { distance: Math.max(1, distance(fingers[0], fingers[1])), world: worldPoint(center), scale: camera.current.scale }; schedulePaint(); }
   function updatePinch() { const active = pinch.current; const fingers = [...pointers.current.values()]; if (!active || fingers.length < 2) return; const center = { x: (fingers[0].x + fingers[1].x) / 2, y: (fingers[0].y + fingers[1].y) / 2 }; camera.current.scale = Math.max(8, Math.min(240, active.scale * distance(fingers[0], fingers[1]) / active.distance)); camera.current.x = center.x - active.world.x * camera.current.scale; camera.current.y = center.y - active.world.y * camera.current.scale; constrainCamera(); schedulePaint(); }
   async function snapAfterMove(next: State, groupId: string) {
     let current = next; const piece = next.snapshot.groups.find((group) => group.id === groupId)?.pieceIds[0];
     if (piece === undefined) return;
     for (let count = 0; count < state.pieceCount && mounted.current; count++) {
-      const moved = groupFor(current.snapshot, piece); if (!moved) break;
-      const connection = findSnapConnection(current.snapshot, geometry, current.difficulty, moved.id); if (!connection) break;
+      const moved = groupFor(current.snapshot, piece); if (!moved || current.status !== "ACTIVE") break;
+      const connection = findSnapConnection(current.snapshot, geometry, current.difficulty, moved.id, current.rulesVersion); if (!connection) break;
       // Na de eerste snap staat het nieuwe geheel vast: volgende buren worden
       // naar dit anker getrokken, niet andersom.
       const a = count === 0 ? connection.a : connection.b;
@@ -212,15 +239,17 @@ function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: Sta
       if (joined.version === current.version) break;
       current = joined; if (mounted.current) setMessage(t("jigsaw.piecesConnected"));
     }
+    const moved = groupFor(current.snapshot, piece);
+    if (current.status === "ACTIVE" && moved && boardSnapTarget(current.snapshot, geometry, current.difficulty, moved.id, current.rulesVersion)) await action({ kind: "anchor", groupId: moved.id }, moved.id);
   }
   async function finishDrag(active: Drag, point: Point) { const next = await action({ kind: "move", groupId: active.groupId, x: point.x - active.offset.x, y: point.y - active.offset.y }); await snapAfterMove(next, active.groupId); }
-  function boardDown(event: ReactPointerEvent<HTMLCanvasElement>) { if (pending.current) return; const point = screenPoint(event); pointers.current.set(event.pointerId, point); event.currentTarget.setPointerCapture(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } const hit = picked(worldPoint(point)); if (hit) { setSelected(hit.id); drag.current = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: worldPoint(point).x - hit.group.x, y: worldPoint(point).y - hit.group.y } }; } else { setSelected(null); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; } schedulePaint(); }
+  function boardDown(event: ReactPointerEvent<HTMLCanvasElement>) { if (pending.current) return; setMenuOpen(false); setHintsOpen(false); const point = screenPoint(event); pointers.current.set(event.pointerId, point); event.currentTarget.setPointerCapture(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } const hit = picked(worldPoint(point)); if (hit) { setSelected(hit.id); if (hit.group.anchored) { schedulePaint(); return; } drag.current = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: worldPoint(point).x - hit.group.x, y: worldPoint(point).y - hit.group.y } }; } else { setSelected(null); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; } schedulePaint(); }
   function boardMove(event: ReactPointerEvent<HTMLCanvasElement>) { if (!pointers.current.has(event.pointerId)) return; const point = screenPoint(event); pointers.current.set(event.pointerId, point); if (pointers.current.size >= 2) { updatePinch(); return; } if (drag.current?.pointer === event.pointerId) { const world = worldPoint(point); transientMove(drag.current.groupId, world.x - drag.current.offset.x, world.y - drag.current.offset.y); } else if (pan.current?.pointer === event.pointerId) { camera.current.x = pan.current.camera.x + point.x - pan.current.point.x; camera.current.y = pan.current.camera.y + point.y - pan.current.point.y; constrainCamera(); schedulePaint(); } }
   async function boardUp(event: ReactPointerEvent<HTMLCanvasElement>) { const point = screenPoint(event); const activeDrag = drag.current; pointers.current.delete(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } if (pinch.current) { pinch.current = null; const remaining = [...pointers.current.entries()][0]; if (remaining) pan.current = { pointer: remaining[0], point: remaining[1], camera: { ...camera.current } }; return; } if (activeDrag?.pointer === event.pointerId) { drag.current = null; schedulePaint(); await runBoard(() => finishDrag(activeDrag, worldPoint(point))); } if (pan.current?.pointer === event.pointerId) pan.current = null; }
   function boardCancel(event: ReactPointerEvent<HTMLCanvasElement>) { pointers.current.delete(event.pointerId); drag.current = null; pan.current = null; pinch.current = null; shown.current = saved.current; setState(saved.current); schedulePaint(); }
   function zoom(factor: number, around?: Point) { const canvas = canvasRef.current; if (!canvas) return; const center = around ?? { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 }; camera.current = zoomCamera(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds, factor, center); schedulePaint(); }
-  async function rotateSelected() { if (selected === null || state.difficulty !== "MASTER") return; await runBoard(async () => { const group = groupFor(saved.current.snapshot, selected); if (group) await action({ kind: "rotate", groupId: group.id }); }); }
-  async function moveSelectedBy(dx: number, dy: number) { if (selected === null) return; await runBoard(async () => { const group = groupFor(saved.current.snapshot, selected); if (group) { const next = await action({ kind: "move", groupId: group.id, x: group.x + dx, y: group.y + dy }); await snapAfterMove(next, group.id); } }); }
+  async function rotateSelected() { if (selected === null || state.difficulty !== "MASTER") return; await runBoard(async () => { const group = groupFor(saved.current.snapshot, selected); if (group && !group.anchored) await action({ kind: "rotate", groupId: group.id }); }); }
+  async function moveSelectedBy(dx: number, dy: number) { if (selected === null) return; await runBoard(async () => { const group = groupFor(saved.current.snapshot, selected); if (group && !group.anchored) { const next = await action({ kind: "move", groupId: group.id, x: group.x + dx, y: group.y + dy }); await snapAfterMove(next, group.id); } }); }
   async function submit(choice: number) { const result = await request({ action: "answer", sessionId: saved.current.id, choice }) as Answer; if (!mounted.current) return; setAnswer(result); const next = { ...saved.current, status: "ANSWERED", answer: result }; saved.current = next; setState(next); setOuter(next); remember(null); setStage("RESULT"); }
   function continueToQuestion() { try { localStorage.setItem(`${KEY}:question`, state.id); } catch {} setStage("QUESTION"); }
 
@@ -241,14 +270,39 @@ function Puzzle({ initial, setOuter, onChooseAnother, onReplay }: { initial: Sta
     // De camera hoort bij deze ge-keyde sessie; een actie reset hem nooit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  useEffect(() => { schedulePaint(); // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const active = activePuzzleHint(state.snapshot);
+    hintRef.current = active;
+    queueMicrotask(() => { if (mounted.current) setHint(active); });
+    schedulePaint();
+    if (!active?.expiresAt) return;
+    const timeout = setTimeout(() => { hintRef.current = null; setHint(null); schedulePaint(); }, Math.max(0, Date.parse(active.expiresAt) - Date.now()));
+    return () => clearTimeout(timeout);
+    // De marker leest actuele refs; de absolute eindtijd wordt nooit verlengd.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.snapshot.hints]);
+  async function requestHint(type: PuzzleHintType, filter?: Exclude<PuzzleFilter, null>) {
+    await runBoard(async () => {
+      const next = await action({ kind: "hint", hint: type, ...(selected !== null ? { pieceId: selected } : {}), ...(filter ? { filter } : {}) });
+      const active = activePuzzleHint(next.snapshot);
+      if (active) {
+        hintRef.current = active; setHint(active); setHintsOpen(false);
+        // De locatie wordt zichtbaar zonder stukken te verplaatsen. De camera
+        // mag veranderen; opgeslagen voortgang en verbindingen blijven intact.
+        if (active.target?.type === "LOCATION" || active.target?.type === "CONNECTION") fit();
+        schedulePaint();
+      }
+    });
+  }
+  function closeHints() { setHintsOpen(false); menuButton.current?.focus(); }
+  useEffect(() => { selectedRef.current = selected; schedulePaint(); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, selected]);
 
   if (stage === "COMPLETE") return <Completion image={state.image} onContinue={continueToQuestion} t={t} />;
   if (stage === "QUESTION") return <Question state={state} onSubmit={submit} t={t} />;
   if (stage === "RESULT") return <Result answer={answer} question={state.question} onChooseAnother={onChooseAnother} onReplay={onReplay} t={t} />;
   const selectedGroup = selected === null ? null : groupFor(state.snapshot, selected);
-  return <FocusLayout className="puzzle-workspace gap-0"><section aria-busy={busy} className="relative min-h-0 flex-1 overflow-hidden bg-vs-surface"><canvas ref={canvasRef} aria-label={t("jigsaw.board")} aria-describedby="jigsaw-board-help" tabIndex={0} className="block h-full w-full touch-none outline-none focus-visible:ring-4 focus-visible:ring-vs-xp" onPointerDown={boardDown} onPointerMove={boardMove} onPointerUp={boardUp} onPointerCancel={boardCancel} onWheel={(event) => { event.preventDefault(); zoom(event.deltaY > 0 ? .9 : 1.1, screenPoint(event)); }} onKeyDown={async (event) => { if (event.key === "0") { event.preventDefault(); fit(); } if ((event.key === "r" || event.key === "R") && state.difficulty === "MASTER") { event.preventDefault(); await rotateSelected(); } if (event.key === "ArrowLeft") { event.preventDefault(); await moveSelectedBy(-.2, 0); } if (event.key === "ArrowRight") { event.preventDefault(); await moveSelectedBy(.2, 0); } if (event.key === "ArrowUp") { event.preventDefault(); await moveSelectedBy(0, -.2); } if (event.key === "ArrowDown") { event.preventDefault(); await moveSelectedBy(0, .2); } }} /><p id="jigsaw-board-help" className="sr-only">{t("jigsaw.boardHelp")}</p>{state.difficulty === "MASTER" && selectedGroup && <button type="button" aria-label={t("jigsaw.rotate")} title={t("jigsaw.rotate")} className="btn-primary absolute bottom-3 left-3 min-h-11 min-w-11 !px-2 shadow-lg" disabled={busy} onClick={rotateSelected}><RotateCw size={18} /></button>}<div className="absolute bottom-3 right-3"><button type="button" className="btn-secondary min-h-11 min-w-11 !px-2 shadow-sm" aria-label={t("jigsaw.boardMenu")} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><Ellipsis size={18} /></button>{menuOpen && <div className="absolute bottom-12 right-0 z-10 w-52 max-w-[calc(100vw-1.5rem-var(--vs-safe-area-left)-var(--vs-safe-area-right))] max-h-[calc(100dvh-var(--header-height,var(--header-default))-4.5rem-var(--vs-safe-area-bottom))] overflow-y-auto rounded-xl border border-vs-line !bg-vs-surface p-1 shadow-lg"><button type="button" className="btn-secondary w-full min-h-11 justify-start text-left" onClick={() => { fit(); setMenuOpen(false); }}>{t("jigsaw.fitBoard")}</button><button type="button" className="btn-secondary mt-1 w-full min-h-11 justify-start text-left" disabled={busy} onClick={onChooseAnother}>{t("jigsaw.chooseAnother")}</button></div>}</div><p aria-live="polite" className="sr-only">{message || t("jigsaw.connected", { n: connectedPieces(state.snapshot), total: state.pieceCount })}</p>{error && <p role="alert" className="absolute inset-x-3 top-3 rounded-xl bg-vs-surface p-3 text-vs-fg">{error}</p>}</section></FocusLayout>;
+  return <FocusLayout className="puzzle-workspace gap-0"><section aria-busy={busy} className="relative min-h-0 flex-1 overflow-hidden bg-vs-surface"><canvas ref={canvasRef} data-active-hint={hint?.type ?? ""} aria-label={t("jigsaw.board")} aria-describedby="jigsaw-board-help" tabIndex={0} className="block h-full w-full touch-none outline-none focus-visible:ring-4 focus-visible:ring-vs-xp" onPointerDown={boardDown} onPointerMove={boardMove} onPointerUp={boardUp} onPointerCancel={boardCancel} onWheel={(event) => { event.preventDefault(); zoom(event.deltaY > 0 ? .9 : 1.1, screenPoint(event)); }} onKeyDown={async (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); const pieces = state.snapshot.groups.flatMap((group) => group.pieceIds); setSelected(pieces[(pieces.indexOf(selected ?? -1) + 1) % pieces.length]); } if (event.key === "0") { event.preventDefault(); fit(); } if ((event.key === "r" || event.key === "R") && state.difficulty === "MASTER") { event.preventDefault(); await rotateSelected(); } if (event.key === "ArrowLeft") { event.preventDefault(); await moveSelectedBy(-.2, 0); } if (event.key === "ArrowRight") { event.preventDefault(); await moveSelectedBy(.2, 0); } if (event.key === "ArrowUp") { event.preventDefault(); await moveSelectedBy(0, -.2); } if (event.key === "ArrowDown") { event.preventDefault(); await moveSelectedBy(0, .2); } }} />{hint?.type === "PREVIEW" && <div className="pointer-events-none absolute inset-3 rounded-xl bg-vs-surface/95 p-2"><NextImage src={state.image} alt={t("jigsaw.hintPreview")} fill unoptimized className="object-contain p-2" /></div>}<p id="jigsaw-board-help" className="sr-only">{t("jigsaw.boardHelp")}</p>{state.difficulty === "MASTER" && selectedGroup && !selectedGroup.anchored && <button type="button" aria-label={t("jigsaw.rotate")} title={t("jigsaw.rotate")} className="btn-primary absolute bottom-3 left-3 min-h-[60px] min-w-[60px] rounded-2xl !p-[12px] shadow-md" disabled={busy} onClick={rotateSelected}><RotateCw size={26} /></button>}<div className="absolute bottom-3 right-3"><button ref={menuButton} type="button" className="btn-secondary min-h-[60px] min-w-[60px] rounded-2xl !p-[12px] shadow-md" aria-label={t("jigsaw.boardMenu")} aria-expanded={menuOpen || hintsOpen} onClick={() => { setHintsOpen(false); setMenuOpen(!menuOpen); }}><Ellipsis size={26} /></button>{menuOpen && <div className="absolute bottom-full right-0 z-10 mb-3 w-64 max-w-[calc(100vw-1.5rem-var(--vs-safe-area-left)-var(--vs-safe-area-right))] max-h-[calc(100dvh-var(--header-height,var(--header-default))-60px-2.25rem-var(--vs-safe-area-bottom))] overflow-y-auto rounded-xl border border-vs-line !bg-vs-surface p-1 shadow-lg"><button type="button" className="btn-secondary min-h-11 w-full justify-start gap-2 text-left" disabled={busy} onClick={() => { setMenuOpen(false); setHintsOpen(true); }}><Lightbulb size={22} className="shrink-0" />{t("jigsaw.useHint")}</button>{state.rulesVersion === 1 && <p className="p-2 text-sm text-vs-fg-2">{t("jigsaw.legacyRules")}</p>}<button type="button" className="btn-secondary w-full min-h-11 justify-start text-left" onClick={() => { fit(); setMenuOpen(false); }}>{t("jigsaw.fitBoard")}</button><button type="button" className="btn-secondary mt-1 w-full min-h-11 justify-start text-left" disabled={busy} onClick={onChooseAnother}>{t("jigsaw.chooseAnother")}</button></div>}{hintsOpen && <PuzzleHintPanel snapshot={state.snapshot} difficulty={state.difficulty} rulesVersion={state.rulesVersion} selected={selected} busy={busy} active={hint !== null} onUse={(type, filter) => void requestHint(type, filter)} onClose={closeHints} />}</div><p aria-live="polite" className="sr-only">{message || t("jigsaw.connected", { n: connectedPieces(state.snapshot), total: state.pieceCount })}</p>{error && <p role="alert" className="absolute inset-x-3 top-3 rounded-xl bg-vs-surface p-3 text-vs-fg">{error}</p>}</section></FocusLayout>;
 }
 
 function Completion({ image, onContinue, t }: { image: string; onContinue: () => void; t: ReturnType<typeof useT> }) { return <FocusLayout className="page-fill max-w-none items-center justify-center gap-5 py-4 text-center"><div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-vs-surface shadow-lg"><NextImage src={image} alt={t("jigsaw.completedImage")} width={1440} height={960} unoptimized priority className="h-auto max-h-[68dvh] w-full object-contain" /></div><div><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.complete")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.completeHint")}</p></div><button type="button" className="btn-primary min-h-12" onClick={onContinue}>{t("jigsaw.continue")}</button></FocusLayout>; }
