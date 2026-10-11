@@ -1,0 +1,58 @@
+name: Veilige admin database-inventarisatie
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/lib/content-inventory/**'
+      - 'src/app/api/admin/content-inventory/**'
+      - 'src/components/AdminContentInventoryClient.tsx'
+      - 'src/app/adminbackend/content/page.tsx'
+      - 'src/lib/i18n/messages/**'
+      - 'tests/content-inventory*'
+      - 'scripts/content-architecture/**'
+      - '.github/workflows/content-inventory.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://build:build@127.0.0.1:1/inventory_build
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Schema, types, unit- en beheerregressies
+        run: |
+          npx prisma validate
+          npm run db:generate
+          npx tsc --noEmit
+          npx tsx --test tests/content-inventory.test.ts tests/admin-layout.test.ts
+          npm run test:focus
+          npm run test:live-data
+          npm run lint
+          npx tsx scripts/i18n/check.ts
+      - name: Schone productiebuild
+        run: npm run build
+      - name: Browser klaarzetten
+        run: |
+          npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
+          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Geïsoleerde database, echte API en mobiele/desktopbrowser
+        env:
+          INVENTORY_TEST_OUTPUT: artifacts/content-inventory
+        run: node scripts/content-architecture/test-isolated.mjs
+      - name: Browserbewijs bewaren
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: content-inventory-browser
+          path: artifacts/content-inventory
+          retention-days: 7
