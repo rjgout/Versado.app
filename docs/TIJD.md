@@ -72,6 +72,15 @@ kalenderdag; vóór 18:00 hoort een moment nog bij de woorddag ervoor.
 - Alleen het woord van de dag wisselt om 18:00; reeks, Vandaag en XP houden
   de gewone kalenderdag (00:00).
 
+Betaalde woordenboekhints gebruiken een aparte voortschrijdende wachttijd:
+`User.wordGameLastHintAt + 3.600.000 ms`, in UTC. De aankoop lockt eerst het
+potje en daarna het account en bepaalt pas dan de servertijd. Vanaf precies
+60 minuten is de volgende aankoop toegestaan. Een nieuw potje om 18:00 begint
+met hintniveau 0, maar verandert dit accounttijdstip niet. De zichtbare
+secondenklok telt monotone verstreken tijd vanaf het ontvangen serveranker;
+een aangepaste toestelklok kan de servercontrole niet omzeilen. Zie
+`docs/WORD-GAME-HINTS.md`.
+
 ## Reeks: reizen en tijdzonewissels
 
 Een reeksdag is een kalenderdag in de tijdzone van de gebruiker. Naast

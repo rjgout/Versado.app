@@ -136,6 +136,15 @@ duidelijk kleiner wordt, krijgt `<html>` `data-keyboard` en verdwijnt de
 onderbalk. Plaats geen eigen vaste balk onderaan zonder dat ook te
 respecteren.
 
+Het betaalde Woord-van-de-Dag-woordenboek gebruikt een begrensde woordenlijst
+onder het raadveld (maximaal 45svh/24rem), zodat 716 kandidaten niet de hele
+pagina verlengen. De bevestiging volgt het PuzzleHintPanel-patroon: een native
+`dialog.showModal()` in een bodyportal, met safe areas, intern scrollen en
+focusherstel. De browser-toplaag maakt de achtergrond inert en houdt de
+bevestiging boven de terugbalk, ook binnen stacking contexts. Er is geen eigen
+header, navigatie of shell-offset toegevoegd. De echte browsercontrole staat
+in `tests/word-game-hints.browser.mjs`.
+
 ## Een nieuwe pagina of component bouwen
 
 - Plaats inhoud in `<main>` (de layout geeft de ruimte); nooit eigen
