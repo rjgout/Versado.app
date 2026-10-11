@@ -57,15 +57,18 @@ daaronder de spelers, en dan pas `<main>`. De kiezer zelf heeft dus geen eigen
 offset: hij volgt de header.
 
 **Lagen (z-index).** Een dropdown of popover hoort nooit *in* de vaste bovenbalk
-te hangen. Die balk heeft `overflow-x: clip` en vormt één stackinglaag (z-20):
+te hangen. Die balk heeft `overflow-x: clip` en vormt één stackinglaag (z-30):
 alles erin wordt op de rand van de balk afgekapt en schildert effectief op
-laag 20, waardoor elk later element in de pagina met `z-20` of hoger (zoals de ⋯
-op een cursuskaart) er overheen kan. De schaal is daarom:
+laag 30. Kaartmenu's op laag 20 en de sleepkaart op laag 25 blijven eronder,
+ongeacht DOM-volgorde of tijdelijke FLIP-transforms. Gelijke lagen voor balken
+en kaartmenu's lieten het later gerenderde kaartmenu juist boven de header komen.
+De standaardlaag 999 van `DragOverlay` wordt daarom expliciet begrensd. De schaal:
 
 | Laag | Wat | z |
 |---|---|---|
 | pagina | gewone inhoud en lokale knoppen | ≤ 20, binnen `<main>` |
-| balken | `[data-sticky-header]`, `[data-main-nav]` | 20 |
+| sleepkaart | `SortableList` / `DragOverlay`, boven andere kaarten | 25 |
+| balken | `[data-sticky-header]`, `[data-main-nav]` | 30 |
 | popovers en menu's | contentkiezer (portal op `<body>`) | 40 |
 | dialogen en sheets | `ChapterPopup` | 50 |
 | volledige overlays | `FriendPicker`, `NotificationCenter` | 75–80 |

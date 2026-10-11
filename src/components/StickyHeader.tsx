@@ -10,7 +10,7 @@
  */
 export default function StickyHeader({ children }: { children: React.ReactNode }) {
   return (
-    <div data-sticky-header className="fixed top-0 inset-x-0 z-20">
+    <div data-sticky-header className="fixed top-0 inset-x-0 z-30">
       {children}
     </div>
   );

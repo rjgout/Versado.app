@@ -190,8 +190,11 @@ test("het menu ligt op een eigen laag boven de vaste balken maar onder dialogen"
   const nav = z(read("src/components/BottomNav.tsx"), /\bz-(\d+)\b/);
   const menu = z(switcherSource, /className="fixed z-(\d+)/);
   const backdrop = z(switcherSource, /className="fixed inset-0 z-(\d+)/);
-  assert.equal(bars, 20);
-  assert.equal(nav, 20);
+  assert.equal(bars, 30);
+  assert.equal(nav, bars);
+  const cardMenu = z(read("src/components/versado/ContentCard.tsx"), /right-2 top-2 z-(\d+)/);
+  const drag = z(read("src/components/SortableList.tsx"), /<DragOverlay[^>]*zIndex=\{(\d+)\}/);
+  assert.ok(cardMenu < drag && drag < bars, `kaartmenu ${cardMenu}, sleepkaart ${drag}, balken ${bars}`);
   assert.ok(menu > bars && backdrop >= bars && backdrop <= menu, `menu z-${menu}, achterlaag z-${backdrop}`);
   // Dialogen en volledige overlays (ChapterPopup z-50 en hoger) blijven erboven.
   assert.ok(menu < 50);
