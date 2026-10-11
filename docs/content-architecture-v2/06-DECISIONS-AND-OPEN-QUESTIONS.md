@@ -134,6 +134,24 @@ niet bij goedkeuring van het contentfundament. Beurtvolgorde, gezamenlijk
 foutenbudget, pogingen met het hele woord, presentatiescherm en geen gasten bij netwerkspel zijn
 al vaste eisen; scoring en latere concurrencydetails worden daar concreet.
 
+### D5 — Risicoacceptatie bij hervatting fase 1A (vastgesteld na fase 0)
+
+De eigenaar heeft expliciet uitsluitend lezende inventarisatie van de
+NAS-productiedatabase in Docker-container `jehova-db` toegestaan. Dagelijkse
+volledige Synology Hyper Backup is door de eigenaar bevestigd. Hij kiest
+bewust de aanvullende geïsoleerde herstelproef over te slaan. Dit is een
+geaccepteerd risico, geen bewijs van daadwerkelijk getest herstel.
+
+Controleer bestaande backupmetadata en database-/mediabereik waar toegang dat
+mogelijk maakt; noteer onbekende dekking expliciet. Geen nieuwe backup,
+herstelproef, productie-DDL, backfill, seed, import of containerherstart.
+De daadwerkelijke inventaris moet nog steeds worden beoordeeld voordat de
+additieve ContentWork/publicatie-migratie in de PR wordt uitgewerkt. De
+migratie wordt uitsluitend geïsoleerd getest; productie-uitrol vereist
+afzonderlijke beoordeling. Normale API's geven ook beheerders normale
+leesrechten; uitgebreide previewrechten vereisen een expliciete beheerroute.
+De actuele bewijstoestand en technische blokkades staan in [fase-1A-status](07-PHASE-1A-STATUS.md).
+
 ## 4. Aannames die technisch gevalideerd moeten worden
 
 | Aanname/onzekerheid | Noodzakelijke verificatie | Moment |
@@ -164,3 +182,15 @@ blijven vereist. Fase 1 begint uitsluitend na een concrete nieuwe opdracht;
 deze documentatieafronding start geen implementatie en merge naar main.
 
 Gereed voor beoordeling van fase 0. Er zijn nog geen functionele wijzigingen aan Versado uitgevoerd.
+
+### Bewijstoestand hervatting 1A
+
+De eigenaar heeft de echte admininventarisatie van 2026-10-11T18:51:50.752Z
+aangeleverd. Zod, identiteitsanalyse en migratiechecksums zijn offline gecontroleerd:
+21 collecties, zeven werken, geen null-work/conflicten of gemeten relatiegaten.
+De inventarisatieblokkade is opgeheven. De additieve 1A-migratie wordt uitsluitend
+in een wegwerpdatabase getest. Het overslaan van de aanvullende backupherstelproef
+blijft expliciete risicoacceptatie; backupmetadata en herstelbaarheid zijn niet
+bewezen. Geen nieuwe productiequery, migratie, seed, import, restart of deploy
+in deze opdracht. Afzonderlijke productie-uitroltoestemming blijft nodig wegens
+automatische Prisma-migraties bij appstart. Details: [status](07-PHASE-1A-STATUS.md).

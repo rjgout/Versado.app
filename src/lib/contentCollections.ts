@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { collectionAccessWhere, getContentAvailability } from "@/lib/contentAccess";
 import { DEFAULT_LANGUAGE, LANGUAGES, fallbackChain } from "@/lib/languages";
 import { pickTargetCollection } from "@/lib/contentRouting";
 
@@ -119,7 +120,7 @@ const VIEW_SELECT = {
 
 /** Welke collecties iemand mag kiezen: beheerders ook de verborgen. */
 function selectableWhere(isAdmin: boolean) {
-  return isAdmin ? { enabled: true } : { enabled: true, visibleToUsers: true };
+  return collectionAccessWhere({ isAdmin }, "catalog");
 }
 
 export async function getContentSwitcherSettings(): Promise<{ enabled: boolean }> {
@@ -215,8 +216,8 @@ export async function setActiveContentCollection(
 
 export async function getDefaultContentCollectionId(): Promise<string | null> {
   const collection = await prisma.contentCollection.findFirst({
-    where: { enabled: true },
-    orderBy: { order: "asc" },
+    where: collectionAccessWhere({ isAdmin: false }),
+    orderBy: [{ order: "asc" }, { id: "asc" }],
     select: { id: true },
   });
   return collection?.id ?? null;
@@ -250,7 +251,7 @@ export async function setContentCollectionVisibility(
 ): Promise<AdminContentCollection[]> {
   if (!visibleToUsers) {
     const othersVisible = await prisma.contentCollection.count({
-      where: { enabled: true, visibleToUsers: true, id: { not: contentCollectionId } },
+      where: { ...collectionAccessWhere({ isAdmin: false }), id: { not: contentCollectionId } },
     });
     if (othersVisible === 0) throw new Error("Er moet minstens één content zichtbaar blijven voor gebruikers.");
   }
@@ -263,11 +264,7 @@ export async function setContentCollectionVisibility(
  * verborgen content blijft dan ook echt verborgen voor gewone gebruikers.
  */
 export async function isContentCollectionSelectable(contentCollectionId: string | null, isAdmin: boolean): Promise<boolean> {
-  if (!contentCollectionId || isAdmin) return true;
-  const count = await prisma.contentCollection.count({
-    where: { id: contentCollectionId, ...selectableWhere(false) },
-  });
-  return count > 0;
+  return getContentAvailability({ isAdmin }, contentCollectionId, "read");
 }
 
 /**

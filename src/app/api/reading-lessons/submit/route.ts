@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/session";
+import { prisma } from "@/lib/db";
+import { readingAccessWhere } from "@/lib/contentAccess";
 import { completeReadingLesson, completeReadingOnlyStep } from "@/lib/readingLessons";
 import { notifyNewAchievements } from "@/lib/notify";
 import { apiError } from "@/lib/apiError";
@@ -24,6 +26,12 @@ export async function POST(req: NextRequest) {
 
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return await apiError("apiErrors.invalidInput", 400);
+
+  const accessible = await prisma.courseLesson.findFirst({
+    where: { id: parsed.data.lessonId, course: { contentCollection: readingAccessWhere(user) }, chapter: { book: { contentCollection: readingAccessWhere(user) } } },
+    select: { id: true },
+  });
+  if (!accessible) return await apiError("apiErrors.lessonNotFound", 404);
 
   try {
     if (parsed.data.sessionId === null) {

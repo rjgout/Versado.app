@@ -560,3 +560,14 @@ is geen layout-key. Les/bronwissel wel atomisch naar nieuwe view. Race met
 late requests wordt op full query-key en abort/discard afgehandeld. De
 bestaande tienminutencache van exercise plans krijgt import-invalidatie bij
 daadwerkelijke vraagupdates. Geen eigen polling/focusarchitectuur.
+
+## Uitwerking fase 1A (PR #85)
+
+Het kleine geïmplementeerde fundament bevat uitsluitend ContentWork.key/kind
+en de relatie via ContentCollection.work. Order/displayGroup/labels en nieuwe
+les-/revisiemodellen uit het volledige voorstel worden nu niet toegevoegd.
+De geverifieerde zeven werken krijgen een expliciete soort; podcasts blijven OTHER.
+LEGACY bewaart de 21 bestaande collectie-identiteiten en enabled/visible-vlaggen;
+nieuwe collecties starten DRAFT/onzichtbaar. Gewone reads/mutaties hebben ook
+voor admins normale rechten; concepten zijn uitsluitend expliciete beheerpreview.
+Details en bewijs: [fase-1A-status](07-PHASE-1A-STATUS.md).

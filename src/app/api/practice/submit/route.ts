@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { readingAccessWhere } from "@/lib/contentAccess";
 import { getCurrentUser } from "@/lib/session";
 import { isExerciseCorrect } from "@/lib/exerciseGen";
 import { completeQuickPractice } from "@/lib/streak";
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
   }
 
   const exerciseIds = parsed.data.answers.map((a) => a.exerciseId);
-  const exercises = await prisma.exercise.findMany({ where: { id: { in: exerciseIds }, status: "APPROVED" } });
+  const exercises = await prisma.exercise.findMany({ where: { id: { in: exerciseIds }, status: "APPROVED", chapter: { book: { contentCollection: readingAccessWhere(user) } } } });
   if (new Set(exerciseIds).size !== exerciseIds.length || exercises.length !== exerciseIds.length) {
     return await apiError("apiErrors.invalidInput", 400);
   }

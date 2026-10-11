@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { readingAccessWhere } from "@/lib/contentAccess";
 import { getCurrentUser } from "@/lib/session";
 import { generateExerciseHint } from "@/lib/exerciseHints";
 import { toLanguageCode } from "@/lib/languages";
@@ -18,10 +19,10 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ ex
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
 
   const { exerciseId } = await params;
-  const exercise = await prisma.exercise.findUnique({
-    where: { id: exerciseId },
+  const exercise = await prisma.exercise.findFirst({
+    where: { id: exerciseId, chapter: { book: { contentCollection: readingAccessWhere(user) } }, status: "APPROVED" },
     include: {
-      sourceVerse: { select: { text: true } },
+      sourceVerse: { where: { chapter: { book: { contentCollection: readingAccessWhere(user) } } }, select: { text: true } },
       chapter: { select: { book: { select: { contentCollection: { select: { language: true } } } } } },
     },
   });

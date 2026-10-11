@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
+import { readingAccessWhere } from "@/lib/contentAccess";
 import { markCourseStarted } from "@/lib/courses";
 import { playableAudioUrl } from "@/lib/audioMirror";
 import LessonFlow from "@/components/LessonFlow";
@@ -30,8 +31,8 @@ export default async function LessonPage({
   const { chapterId } = await params;
   const { challengeId, cursus, vers, returnTo } = await searchParams;
   const readerReturn = safeReturnPath(returnTo);
-  const chapter = await prisma.chapter.findUnique({
-    where: { id: chapterId },
+  const chapter = await prisma.chapter.findFirst({
+    where: { id: chapterId, book: { contentCollection: readingAccessWhere(user) } },
     include: {
       book: { include: { contentCollection: { select: { language: true } } } },
       verses: { orderBy: { number: "asc" } },

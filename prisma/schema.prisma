@@ -513,6 +513,25 @@ model Chapter {
 // Boek van Mormon, Leer en Verbonden of een later eigen lesboek). Book blijft
 // de bestaande onderliggende boek/hoofdstukstructuur; de collectie bepaalt
 // welke cursussen en spellen in de app-context beschikbaar zijn.
+enum ContentWorkKind {
+  SCRIPTURE
+  STUDY_PROGRAM
+  OTHER
+}
+
+enum ContentPublicationState {
+  LEGACY
+  DRAFT
+  PUBLISHED
+}
+
+// Alleen het bestaande work-veld draagt de werkidentiteit.
+model ContentWork {
+  key         String @id
+  kind        ContentWorkKind
+  collections ContentCollection[]
+}
+
 model ContentCollection {
   id        String   @id
   slug      String   @unique
@@ -523,12 +542,14 @@ model ContentCollection {
   // Wat gewone gebruikers in het contentmenu zien, is bewust een apart veld,
   // zodat een collectie verbergen nooit de cursusopbouw verandert.
   enabled   Boolean  @default(true)
-  // Beheerders zien altijd alle collecties, zodat ze nieuwe content kunnen
-  // bekijken voordat die voor iedereen beschikbaar is.
-  visibleToUsers Boolean @default(true)
+  // Nieuwe bronnen worden pas na expliciete publicatie en vrijgave aangeboden.
+  // Concepttekst is uitsluitend beschikbaar via geautoriseerde beheerpreview.
+  visibleToUsers Boolean @default(false)
+  publicationState ContentPublicationState @default(DRAFT)
   // Welk schriftwerk dit is, los van de uitgave en de taal (bv. "bofm",
   // "dc-testament", "pgp"; eigen content: "fsy", "podcasts").
   work      String?
+  contentWork ContentWork? @relation(fields: [work], references: [key], onDelete: Restrict, onUpdate: Restrict)
   // Stabiele identiteit van de vertaling/uitgavefamilie binnen een werk.
   // Bijvoorbeeld "otb" voor alle talen van Open Translation Bible.
   editionKey String  @default("default")

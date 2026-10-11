@@ -36,6 +36,16 @@ Test herstel in een geïsoleerde database, met schema- en bronversies vastgelegd
 Test ook rollback van de appimage; alleen een geslaagde pg_dump is geen
 bewezen herstel. Bij rollout geen algemene runSeed starten.
 
+**Expliciete uitzondering voor de hervatting van fase 1A:** de eigenaar heeft
+uitsluitend lezende productie-inventarisatie toegestaan, dagelijkse volledige
+Synology Hyper Backup bevestigd en besloten de aanvullende geïsoleerde
+herstelproef over te slaan. Maak voor deze opdracht geen nieuwe backup of
+herstelproef. De onbewezen herstelbaarheid en mogelijk onbewezen database-/
+mediadekking worden als geaccepteerd risico geregistreerd in [fase-1A-status](07-PHASE-1A-STATUS.md).
+De werkelijke inventarisatie en conflictbeoordeling blijven vereist vóór de
+additieve schema-PR. Dit geeft geen toestemming voor productie-DDL, backfill,
+containerherstart, import of verwijdering en is geen vrijstelling voor latere fasen.
+
 ## 2. Tabelbeleid
 
 | Groep | Behandeling | Bescherming |
@@ -286,3 +296,15 @@ Oude implementaties mogen pas verdwijnen als:
 
 Bewaar routeadapters waar externe links bestaan ook na codecontract. Geen
 contract-delete in fase 0 of als onderdeel van een 'opruim'-PR zonder bewijs.
+
+### Bewijstoestand hervatting 1A
+
+De eigenaar heeft de echte admininventarisatie van 2026-10-11T18:51:50.752Z
+aangeleverd. Zod, identiteitsanalyse en migratiechecksums zijn offline gecontroleerd:
+21 collecties, zeven werken, geen null-work/conflicten of gemeten relatiegaten.
+De inventarisatieblokkade is opgeheven. De additieve 1A-migratie wordt uitsluitend
+in een wegwerpdatabase getest. Het overslaan van de aanvullende backupherstelproef
+blijft expliciete risicoacceptatie; backupmetadata en herstelbaarheid zijn niet
+bewezen. Geen nieuwe productiequery, migratie, seed, import, restart of deploy
+in deze opdracht. Afzonderlijke productie-uitroltoestemming blijft nodig wegens
+automatische Prisma-migraties bij appstart. Details: [status](07-PHASE-1A-STATUS.md).

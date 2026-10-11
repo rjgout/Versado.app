@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { readingAccessWhere } from "@/lib/contentAccess";
 import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
 
@@ -15,15 +16,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ vers
   const parsed = schema.safeParse(body);
   if (!parsed.success) return await apiError("apiErrors.invalidInput", 400);
 
+  const verse = await prisma.verse.findFirst({
+    where: { id: verseId, chapter: { book: { contentCollection: readingAccessWhere(user) } } },
+    select: { id: true },
+  });
+  if (!verse) return await apiError("apiErrors.verseNotFound", 404);
+
   const text = parsed.data.text.trim();
 
   if (text.length === 0) {
     await prisma.note.deleteMany({ where: { userId: user.id, verseId } });
     return NextResponse.json({ note: null });
   }
-
-  const verse = await prisma.verse.findUnique({ where: { id: verseId } });
-  if (!verse) return await apiError("apiErrors.verseNotFound", 404);
 
   const note = await prisma.note.upsert({
     where: { userId_verseId: { userId: user.id, verseId } },

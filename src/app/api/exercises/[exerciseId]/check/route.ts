@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { readingAccessWhere } from "@/lib/contentAccess";
 import { getCurrentUser } from "@/lib/session";
 import { isExerciseCorrect } from "@/lib/exerciseGen";
 import { apiError } from "@/lib/apiError";
@@ -23,7 +24,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ exe
     return await apiError("apiErrors.invalidInput", 400);
   }
 
-  const exercise = await prisma.exercise.findUnique({ where: { id: exerciseId } });
+  const exercise = await prisma.exercise.findFirst({
+    where: {
+      id: exerciseId,
+      chapter: { book: { contentCollection: readingAccessWhere(user) } },
+      status: "APPROVED",
+    },
+  });
   if (!exercise) {
     return await apiError("apiErrors.exerciseNotFound", 404);
   }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { readingAccessWhere } from "@/lib/contentAccess";
 import { getCurrentUser } from "@/lib/session";
 import { advanceCourseProgress } from "@/lib/courses";
 import { notifyNewAchievements } from "@/lib/notify";
@@ -33,6 +34,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cha
   const { chapterId } = await params;
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return await apiError("apiErrors.invalidInput", 400);
+
+  const accessible = await prisma.chapter.findFirst({
+    where: { id: chapterId, book: { contentCollection: readingAccessWhere(user) } }, select: { id: true },
+  });
+  if (!accessible) return await apiError("apiErrors.chapterNotFound", 404);
 
   let result;
   try {
