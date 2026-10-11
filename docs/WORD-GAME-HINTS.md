@@ -91,6 +91,9 @@ de hele pagina te breed. Alleen die rij mag nu wrappen; de ranking blijft
 ongewijzigd. Hintacties schuiven eveneens naar een eigen regel wanneer nodig.
 De modal breekt op woordgrenzen en behoudt bereikbare, intern scrollbare
 knoppen; zijn bodyportal volgt ook de bestaande `vs-motion`-regel.
+De titel loopt rond de sluitknop, zodat een lang woord op een volgende regel
+de volledige breedte krijgt. De kandidatenkolommen reserveren ook bij 200%
+tekst voldoende breedte voor vijfletterwoorden met bredere fallback-fonts.
 
 ## Aangepaste onderdelen
 
@@ -123,7 +126,10 @@ ook tijdzones, zomertijd, het klassement en eenmalige rangbonus.
 De browsercontrole dekt 320/375/390/430/768/1280 px en 844×390 landscape,
 licht/donker, 100/200% tekst, andere talen, focus/annuleren, dubbelklik,
 verloren betaalresponse, cooldown, kiezen versus raden, hervatten/inloggen,
-winkel, afronden en realtime tussen twee apparaten. Native iOS/Android en
+winkel, afronden en realtime tussen twee apparaten. De uitgebreide
+tekstcontrole gebruikt daarnaast een breed DejaVu Sans-fallback-font, omdat
+het smallere systeemfont van de cloudruntime een breedteprobleem bij andere
+systeemfonts anders niet blootlegt. Native iOS/Android en
 Safari zijn hiermee niet fysiek getest; dit is Chromium met touch-emulatie.
 
 Uitgevoerd op 11 oktober 2026, met nul overgeslagen databasecontroles:
@@ -136,7 +142,7 @@ Uitgevoerd op 11 oktober 2026, met nul overgeslagen databasecontroles:
 | `npm run test:live-data` | 51 geslaagd |
 | `npm run test:focus` | 23 geslaagd |
 | Kompas unit/layout | 60 geslaagd |
-| Productie-browser | 28 viewport/thema/tekstcombinaties, vier aanvullende talen en volledige betaalflow geslaagd |
+| Productie-browser | 42 viewport/thema/tekst/fontcombinaties, vier aanvullende talen en volledige betaalflow geslaagd |
 | TypeScript, Prisma-validatie, schone productiebuild | geslaagd |
 | ESLint | nul fouten; 132 bestaande waarschuwingen, geen nieuwe in gewijzigde hintcode |
 | i18n | geslaagd; alle nieuwe teksten vertaald, bestaande 423 ontbrekende vertalingen per andere taal ongewijzigd |

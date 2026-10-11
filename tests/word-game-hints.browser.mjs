@@ -39,8 +39,8 @@ async function ready(context) {
 }
 async function balance(userId) { return (await prisma.user.findUniqueOrThrow({ where: { id: userId } })).hintBalance; }
 async function gameRecord(userId) { return prisma.wordGame.findFirstOrThrow({ where: { userId }, orderBy: { createdAt: "desc" } }); }
-async function readableModal() {
-  const words = await page.getByRole("dialog").evaluate((node) => {
+async function readableControls(root) {
+  const words = await root.evaluate((node) => {
     const broken = [];
     for (const element of node.querySelectorAll("h2, button")) {
       const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
@@ -52,7 +52,7 @@ async function readableModal() {
     }
     return broken;
   });
-  assert.deepEqual(words, [], "Modalwoorden blijven heel en binnen hun element bij tekstvergroting");
+  assert.deepEqual(words, [], "Woorden in bediening blijven heel en binnen hun element bij tekstvergroting");
 }
 try {
   await prisma.contentCollection.update({ where: { id: "content_bom" }, data: { enabled: true, visibleToUsers: true } });
@@ -123,13 +123,16 @@ try {
   const reader = await account(8); const readerGame = await getOrCreateTodayGame(reader.id, timeZone);
   await buyWordGameHint(reader.id, { gameId: readerGame.id, expectedLevel: 0, actionId: randomUUID() }, wordGamePeriod(new Date(), timeZone).releasedAt);
   const viewports = [[320, 844], [375, 844], [390, 844], [430, 932], [768, 1024], [1280, 900], [844, 390]];
-  for (const [width, height] of viewports) for (const dark of [false, true]) for (const font of [100, 200]) {
+  for (const [width, height] of viewports) for (const dark of [false, true]) for (const font of [100, 200, "fallback"]) {
     await prisma.user.update({ where: { id: reader.id }, data: { uiLanguage: "nl" } });
     const ctx = await contextFor(reader, { width, height }, dark); await ready(ctx);
-    await page.addStyleTag({ content: `html{font-size:${font}%}` });
+    // De cloudruntime heeft een smal systeemfont; Ubuntu/andere apparaten
+    // kunnen een breder fallback-font gebruiken. Beide echte layouts testen.
+    await page.addStyleTag({ content: `html{font-size:${font === "fallback" ? 200 : font}%}${font === "fallback" ? 'body{font-family:"DejaVu Sans",sans-serif}' : ""}` });
     await page.getByRole("button", { name: t("wordOfTheDay.hintOpen"), exact: true }).click();
     const list = page.locator("[data-word-dictionary] > div");
     assert.equal(await page.locator("[data-word-dictionary] li button").evaluateAll((nodes) => new Set(nodes.map((node) => node.className)).size), 1);
+    await readableControls(page.locator("[data-word-hints]"));
     const bounded = await list.evaluate((node) => ({ height: node.clientHeight, total: node.scrollHeight, overflow: getComputedStyle(node).overflowY }));
     assert.ok(bounded.total > bounded.height); assert.equal(bounded.overflow, "auto");
     const before = await list.evaluate((node) => node.scrollTop); await list.focus(); await page.keyboard.press("PageDown");
@@ -141,7 +144,7 @@ try {
     });
     assert.ok(layout.x >= -1 && layout.right <= width + 1 && layout.y >= -1 && layout.bottom <= height + 1, JSON.stringify({ width, height, dark, font, layout }));
     assert.ok(layout.width <= width + 1); assert.equal(layout.modalOnTop, true); assert.equal(layout.focusInside, true);
-    await readableModal();
+    await readableControls(dialog());
     const confirm = dialog().getByRole("button", { name: t("wordOfTheDay.hintConfirm"), exact: true }); await confirm.scrollIntoViewIfNeeded();
     assert.equal(await confirm.evaluate((node) => { const r = node.getBoundingClientRect(); return node.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)); }), true);
     results.push({ width, height, dark, font, layout, bounded });
@@ -150,10 +153,11 @@ try {
   }
   for (const lang of ["en", "de", "fr", "es"]) {
     await prisma.user.update({ where: { id: reader.id }, data: { uiLanguage: lang } });
-    const ctx = await contextFor(reader, { width: 320, height: 844 }); await ready(ctx); await page.addStyleTag({ content: "html{font-size:200%}" }); const translate = getT(lang);
+    const ctx = await contextFor(reader, { width: 320, height: 844 }); await ready(ctx); await page.addStyleTag({ content: 'html{font-size:200%}body{font-family:"DejaVu Sans",sans-serif}' }); const translate = getT(lang);
+    await readableControls(page.locator("[data-word-hints]"));
     await page.getByRole("button", { name: translate("wordOfTheDay.hintUse"), exact: true }).click(); await dialog().waitFor();
     assert.ok((await dialog().innerText()).includes("180")); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= 321), true, `Geen overflow bij ${lang} op 320 px met 200% tekst`);
-    await readableModal();
+    await readableControls(dialog());
     await page.emulateMedia({ reducedMotion: "reduce" });
     assert.equal(await dialog().getByRole("button", { name: translate("wordOfTheDay.hintConfirm"), exact: true }).evaluate((node) => getComputedStyle(node).transitionDuration), "1e-05s");
     await page.keyboard.press("Escape"); await ctx.close();

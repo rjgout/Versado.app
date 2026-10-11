@@ -79,15 +79,15 @@ export default function WordGameHintPanel({ gameId, hints, finished, serverNow, 
     } finally { buying.current = false; setBusy(false); }
   }
   const canBuy = !finished && hints.nextCount !== null;
-  return <section className="card flex min-w-0 flex-col gap-3 !p-3 text-vs-fg sm:!p-4" aria-labelledby="word-hints-title" data-word-hints>
+  return <section className="card flex min-w-0 flex-col gap-3 !p-[12px] text-vs-fg sm:!p-4" aria-labelledby="word-hints-title" data-word-hints>
     <div className="flex flex-wrap items-start justify-between gap-2">
-      <div className="min-w-0"><h2 id="word-hints-title" className="flex items-center gap-2 font-extrabold"><BookOpen size={22} className="shrink-0 text-vs-accent" aria-hidden />{t("wordOfTheDay.hintTitle")}</h2>
+      <div className="min-w-0"><h2 id="word-hints-title" className="flex flex-wrap items-center gap-2 text-sm font-extrabold [overflow-wrap:normal]"><BookOpen size={22} className="shrink-0 text-vs-accent" aria-hidden />{t("wordOfTheDay.hintTitle")}</h2>
         <p className="mt-1 text-sm text-vs-fg-2">{hints.level > 0 ? t("wordOfTheDay.hintCount", { n: hints.candidates.length }) : t("wordOfTheDay.hintLocked")}</p></div>
       <p className="text-sm font-semibold" data-word-hint-stock>{balance === undefined ? t("common.loading") : t("wordOfTheDay.hintStock", { n: balance })}</p>
     </div>
     <div className="flex flex-wrap gap-2">
       {hints.level > 0 && <button type="button" className="btn-secondary min-h-12 min-w-[min(100%,9rem)] flex-1 !px-2" aria-expanded={open} onClick={() => setOpen(!open)}>{t(open ? "wordOfTheDay.hintClose" : "wordOfTheDay.hintOpen")}</button>}
-      {canBuy && <button ref={trigger} type="button" className="btn-primary min-h-12 min-w-[min(100%,9rem)] flex-1 gap-2 !px-2" disabled={busy} onClick={ask}><Lightbulb size={22} className="hidden shrink-0 sm:block" aria-hidden />{t("wordOfTheDay.hintUse")}</button>}
+      {canBuy && <button ref={trigger} type="button" className="btn-primary min-h-12 min-w-[min(100%,9rem)] flex-1 gap-2 !px-1 [overflow-wrap:normal]" disabled={busy} onClick={ask}><Lightbulb size={22} className="hidden shrink-0 sm:block" aria-hidden />{t("wordOfTheDay.hintUse")}</button>}
     </div>
     {canBuy && remaining > 0 && <p className="text-sm text-vs-fg-2" data-word-hint-countdown>{cooldownText}</p>}
     {!finished && hints.nextCount === null && <p className="text-sm text-vs-fg-2">{t("wordOfTheDay.hintMax")}</p>}
@@ -97,7 +97,7 @@ export default function WordGameHintPanel({ gameId, hints, finished, serverNow, 
     {open && hints.level > 0 && <div className="space-y-3" data-word-dictionary>
       <label className="flex items-center gap-2"><Search size={20} className="shrink-0 text-vs-fg-2" aria-hidden /><input type="search" className="input min-w-0" aria-label={t("wordOfTheDay.hintSearch")} placeholder={t("wordOfTheDay.hintSearch")} value={search} onChange={(event) => setSearch(event.target.value)} /></label>
       <div className="max-h-[min(45svh,24rem)] overflow-y-auto overscroll-contain rounded-xl border border-vs-line p-2" tabIndex={0} aria-label={t("wordOfTheDay.hintCount", { n: words.length })}>
-        <ul className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,6rem),1fr))] gap-1">{words.map((word) => <li key={word}>{finished ? <span className="block p-2 text-center font-semibold uppercase">{word}</span> : <button type="button" className="min-h-11 w-full rounded-lg p-2 text-center font-semibold uppercase hover:bg-vs-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent" aria-label={t("wordOfTheDay.hintSelect", { word })} onClick={() => { onFill(word); setMessage(t("wordOfTheDay.hintSelected", { word })); }}>{word}</button>}</li>)}</ul>
+        <ul className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,7rem),1fr))] gap-1">{words.map((word) => <li key={word}>{finished ? <span className="block p-2 text-center font-semibold uppercase">{word}</span> : <button type="button" className="min-h-11 w-full rounded-lg p-2 text-center font-semibold uppercase hover:bg-vs-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent" aria-label={t("wordOfTheDay.hintSelect", { word })} onClick={() => { onFill(word); setMessage(t("wordOfTheDay.hintSelected", { word })); }}>{word}</button>}</li>)}</ul>
         {words.length === 0 && <p className="p-2 text-sm text-vs-fg-2">{t("wordOfTheDay.hintNoResults")}</p>}
       </div>
     </div>}
@@ -121,7 +121,7 @@ function HintConfirmation({ level, count, balance, busy, error, returnFocus, onC
   }, [returnFocus]);
   return createPortal(<dialog ref={dialog} aria-modal="true" aria-labelledby="word-hint-confirm-title" aria-describedby="word-hint-confirm-description" onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }}
     className="vs-motion fixed inset-x-0 bottom-0 top-auto z-50 m-auto mb-0 flex max-h-[calc(100dvh-1rem-var(--vs-safe-area-top))] w-[calc(100%-var(--vs-safe-area-left)-var(--vs-safe-area-right))] max-w-[440px] flex-col overflow-hidden rounded-t-3xl border-0 bg-vs-elevated p-0 text-vs-fg shadow-xl [overflow-wrap:normal] backdrop:bg-vs-overlay/40 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 sm:rounded-3xl">
-    <header className="flex shrink-0 items-start justify-between gap-2 border-b border-vs-line px-4 py-3"><h2 id="word-hint-confirm-title" className="min-w-0 text-base font-extrabold">{t("wordOfTheDay.hintConfirmTitle")}</h2><button type="button" autoFocus aria-label={t("wordOfTheDay.hintClose")} disabled={busy} className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full hover:bg-vs-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent" onClick={onClose}><X size={22} aria-hidden /></button></header>
+    <header className="flow-root shrink-0 border-b border-vs-line px-4 py-3"><button type="button" autoFocus aria-label={t("wordOfTheDay.hintClose")} disabled={busy} className="float-right ml-2 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full hover:bg-vs-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent" onClick={onClose}><X size={22} aria-hidden /></button><h2 id="word-hint-confirm-title" className="text-base font-extrabold">{t("wordOfTheDay.hintConfirmTitle")}</h2></header>
     <div className="min-h-0 space-y-4 overflow-y-auto overscroll-contain px-4 pb-[calc(1rem+var(--vs-safe-area-bottom))] pt-4 sm:pb-4">
       <p id="word-hint-confirm-description" className="text-sm text-vs-fg-2">{t(level === 0 ? "wordOfTheDay.hintUnlockDescription" : "wordOfTheDay.hintNarrowDescription")}</p>
       <div className="space-y-2 rounded-2xl bg-vs-subtle p-3 text-sm font-semibold"><p>{t("wordOfTheDay.hintCost")}</p><p>{t("wordOfTheDay.hintStockAfter", { before: balance, after: Math.max(0, balance - 1) })}</p><p>{t("wordOfTheDay.hintNextList", { n: count })}</p><p>{t("wordOfTheDay.hintNextAvailable")}</p></div>
