@@ -1,32 +1,35 @@
-import type { Prisma } from "@/generated/prisma/client";
+import type { ContentCollection, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 
 export type ContentActor = { isAdmin: boolean };
 export type ContentAccessPurpose = "catalog" | "read" | "admin-preview";
-export type LegacyContentAccess = { enabled: boolean; visibleToUsers: boolean };
+type CollectionAccess = Pick<ContentCollection, "enabled" | "visibleToUsers" | "publicationState" | "work">;
 
-/**
- * Eén toegangspoort op het bestaande schema. ContentWork/publicatie-DDL
- * wachten op de daadwerkelijke inventaris; herstel is een geaccepteerd risico.
- * De actor komt uitsluitend uit de serverauthenticatie, nooit uit een payload.
- */
+/** Actor komt uit serverauthenticatie; gewone API's krijgen nooit previewrechten. */
 export function collectionAccessWhere(
   actor: ContentActor | null,
   purpose: ContentAccessPurpose = "read",
 ): Prisma.ContentCollectionWhereInput {
   if (!actor || (purpose === "admin-preview" && !actor.isAdmin)) return { id: { in: [] } };
-  if (purpose === "admin-preview") return {};
-  return { enabled: true, ...(purpose === "catalog" && actor.isAdmin ? {} : { visibleToUsers: true }) };
+  // De FK valideert iedere niet-null werkidentiteit. Null blijft uitsluitend
+  // voor compatibele opslag mogelijk; ongeclassificeerde inhoud wordt niet aangeboden.
+  const identity = { contentWork: { isNot: null } };
+  if (purpose === "admin-preview") return identity;
+  return {
+    ...identity, publicationState: { in: ["LEGACY", "PUBLISHED"] }, enabled: true,
+    ...(purpose === "catalog" && actor.isAdmin ? {} : { visibleToUsers: true }),
+  };
 }
 
-export function canAccessLegacyCollection(
+export function canAccessCollection(
   actor: ContentActor | null,
-  collection: LegacyContentAccess | null,
+  collection: CollectionAccess | null,
   purpose: ContentAccessPurpose = "read",
 ): boolean {
-  if (!actor || !collection) return false;
+  if (!actor || !collection || !collection.work) return false;
   if (purpose === "admin-preview") return actor.isAdmin;
-  return collection.enabled && (collection.visibleToUsers || (purpose === "catalog" && actor.isAdmin));
+  return ["LEGACY", "PUBLISHED"].includes(collection.publicationState)
+    && collection.enabled && (collection.visibleToUsers || (purpose === "catalog" && actor.isAdmin));
 }
 
 /** Normale routes houden normale rechten, ook voor beheerders. */
@@ -46,7 +49,7 @@ export async function getContentAvailability(
   if (!actor || !collectionId) return false;
   const collection = await db.contentCollection.findUnique({
     where: { id: collectionId },
-    select: { enabled: true, visibleToUsers: true },
+    select: { enabled: true, visibleToUsers: true, publicationState: true, work: true },
   });
-  return canAccessLegacyCollection(actor, collection, purpose);
+  return canAccessCollection(actor, collection, purpose);
 }

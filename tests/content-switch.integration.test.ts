@@ -25,8 +25,9 @@ before(async () => {
   if (skip) return;
   L = await load();
   const { db } = L;
+  await db.contentWork.createMany({ data: Object.values(works).map(key => ({ key, kind: "OTHER" as const })) });
   const collection = (id: string, work: string, language: string, name: string, order: number) => db.contentCollection.create({
-    data: { id, slug: id, name, icon: "📖", order: 900 + order, work, editionKey: "test", language },
+    data: { id, slug: id, name, icon: "📖", order: 900 + order, work, publicationState: "PUBLISHED", visibleToUsers: true, editionKey: "test", language },
   });
   await collection(ids.A, works.one, "nl", "Werk een", 1);
   await collection(ids.B, works.one, "en", "Work one", 2);

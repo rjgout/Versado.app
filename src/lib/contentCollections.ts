@@ -216,8 +216,8 @@ export async function setActiveContentCollection(
 
 export async function getDefaultContentCollectionId(): Promise<string | null> {
   const collection = await prisma.contentCollection.findFirst({
-    where: { enabled: true },
-    orderBy: { order: "asc" },
+    where: collectionAccessWhere({ isAdmin: false }),
+    orderBy: [{ order: "asc" }, { id: "asc" }],
     select: { id: true },
   });
   return collection?.id ?? null;
@@ -251,7 +251,7 @@ export async function setContentCollectionVisibility(
 ): Promise<AdminContentCollection[]> {
   if (!visibleToUsers) {
     const othersVisible = await prisma.contentCollection.count({
-      where: { enabled: true, visibleToUsers: true, id: { not: contentCollectionId } },
+      where: { ...collectionAccessWhere({ isAdmin: false }), id: { not: contentCollectionId } },
     });
     if (othersVisible === 0) throw new Error("Er moet minstens één content zichtbaar blijven voor gebruikers.");
   }

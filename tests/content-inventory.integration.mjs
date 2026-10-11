@@ -44,6 +44,7 @@ try {
   assert.equal((await fetch(endpoint)).status, 405);
 
   await prisma.contentCollection.update({ where: { id: "content_bom" }, data: { enabled: true, visibleToUsers: true } });
+  await prisma.contentWork.create({ data: { key: "inventory-null", kind: "OTHER" } });
   await prisma.contentCollection.createMany({ data: [
     { id: "inventory-en", slug: "inventory-en", name: "Inventory English", icon: "", work: "bofm", editionKey: "default", language: "en", visibleToUsers: false },
     { id: "inventory-edition", slug: "inventory-edition", name: "Inventory edition", icon: "", work: "bofm", editionKey: "alternate", language: "nl", enabled: false },

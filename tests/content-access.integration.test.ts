@@ -9,7 +9,7 @@ import { isContentCollectionSelectable } from "../src/lib/contentCollections";
 
 const database = new URL(process.env.CONTENT_ACCESS_TEST_DATABASE_URL ?? "http://invalid");
 const base = new URL(process.env.CONTENT_ACCESS_TEST_BASE_URL ?? "http://invalid");
-if (database.hostname !== "127.0.0.1" || database.pathname !== "/versado_content_access_test" || !["127.0.0.1", "localhost"].includes(base.hostname) || process.env.DATABASE_URL !== database.href) throw new Error("Gebruik uitsluitend scripts/content-architecture/test-isolated.mjs");
+if (database.hostname !== "127.0.0.1" || database.pathname !== "/versado_content_access_test" || !["127.0.0.1", "localhost"].includes(base.hostname) || process.env.DATABASE_URL !== database.href) throw new Error("Gebruik uitsluitend scripts/content-architecture/test-access-isolated.mjs");
 const prefix = randomUUID();
 let normal: string, admin: string, cookie: string, adminCookie: string;
 type Fixture = { collectionId: string; courseId: string; chapterId: string; verseId: string; exerciseId: string; draftId: string; lessonId: string };
@@ -21,9 +21,12 @@ async function account(isAdmin: boolean) {
 async function request(path: string, method = "GET", body?: unknown, auth: string | null = cookie) {
   return fetch(new URL(path, base), { method, headers: { ...(auth ? { Cookie: auth } : {}), ...(body ? { "Content-Type": "application/json" } : {}) }, body: body ? JSON.stringify(body) : undefined, redirect: "manual" });
 }
-async function fixture(name: string, enabled: boolean, visibleToUsers: boolean, language = "nl") {
-  const collectionId = `content-access-${prefix}-${name}`;
-  await prisma.contentCollection.create({ data: { id: collectionId, slug: collectionId, name, icon: "", enabled, visibleToUsers, work: name === "english" ? null : name === "hidden" ? "old-testament" : `access-${prefix}`, editionKey: name === "hidden" ? "otb" : name, language } });
+async function fixture(name: string, enabled: boolean, visibleToUsers: boolean, language = "nl", publicationState: "LEGACY" | "DRAFT" | "PUBLISHED" = "LEGACY") {
+  const collectionId = name === "hidden" ? "content_old_testament_otb_nl" : name === "draft" ? "content_new_testament_otb_nl" : `content-access-${prefix}-${name}`;
+  const data = { id: collectionId, slug: collectionId, name, icon: "", enabled, visibleToUsers,
+    work: name === "hidden" ? "old-testament" : name === "draft" ? "new-testament" : `access-${prefix}`,
+    publicationState, editionKey: name === "hidden" || name === "draft" ? "otb" : name, language };
+  await prisma.contentCollection.upsert({ where: { id: collectionId }, create: data, update: data });
   const book = await prisma.book.create({ data: { slug: collectionId, name, key: collectionId, order: 1, contentCollectionId: collectionId } });
   const chapter = await prisma.chapter.create({ data: { bookId: book.id, number: 1, order: 1 } });
   const verse = await prisma.verse.create({ data: { chapterId: chapter.id, number: 1, text: `PRIVETEKST-${name}-${prefix}` } });
@@ -39,10 +42,12 @@ before(async () => {
   normal = await account(false); admin = await account(true);
   cookie = `${SESSION_COOKIE}=${await createSessionToken(normal)}`;
   adminCookie = `${SESSION_COOKIE}=${await createSessionToken(admin)}`;
+  await prisma.contentWork.create({ data: { key: `access-${prefix}`, kind: "OTHER" } });
   await fixture("visible", true, true);
   await fixture("hidden", true, false);
   await fixture("disabled", false, true);
-  await fixture("english", true, true, "en");
+  await fixture("english", true, true, "en", "PUBLISHED");
+  await fixture("draft", true, true, "nl", "DRAFT");
 });
 // De runner verwijdert na de tests uitsluitend zijn eigen wegwerpcontainer.
 // Er wordt geen NAS-backup of herstelproef gemaakt.
@@ -60,7 +65,7 @@ test("normale legacytekst en tweede taal blijven bereikbaar; ontbrekende bronnen
   assert.equal((await request(`/api/chapters/${cases.get("visible")!.chapterId}`, "GET", undefined, null)).status, 401);
 });
 
-for (const name of ["hidden", "disabled"]) for (const isAdmin of [false, true]) test(`${name}, admin=${isAdmin}: directe reads en mutations geweigerd; privégegevens blijven byte-identiek`, async () => {
+for (const name of ["hidden", "disabled", "draft"]) for (const isAdmin of [false, true]) test(`${name}, admin=${isAdmin}: directe reads en mutations geweigerd; privégegevens blijven byte-identiek`, async () => {
   const f = cases.get(name)!;
   const userId = isAdmin ? admin : normal;
   const requestAs = (path: string, method = "GET", body?: unknown) => request(path, method, body, isAdmin ? adminCookie : cookie);
@@ -125,17 +130,20 @@ test("conceptoefeningen lekken geen antwoord of betaalde hint, ook niet aan admi
 });
 
 test("expliciete beheerpreview blijft leesbaar voor admins, zonder gewone toegang of mutaties", async () => {
-  const f = cases.get("hidden")!;
-  const path = `/adminbackend/content-preview?work=old-testament&language=nl&book=${f.collectionId}&chapter=1`;
+  for (const name of ["hidden", "draft"]) {
+  const f = cases.get(name)!;
+  const work = name === "hidden" ? "old-testament" : "new-testament";
+  const path = `/adminbackend/content-preview?work=${work}&language=nl&book=${f.collectionId}&chapter=1`;
   const before = await prisma.streakActivity.count({ where: { userId: admin } });
   const adminView = await request(path, "GET", undefined, adminCookie);
   assert.equal(adminView.status, 200);
-  assert.ok((await adminView.text()).includes("PRIVETEKST-hidden"));
+  assert.ok((await adminView.text()).includes(`PRIVETEKST-${name}`));
   const userView = await request(path);
   const html = await userView.text();
   assert.ok(userView.headers.has("location") || html.includes("NEXT_REDIRECT"));
-  assert.ok(!html.includes("PRIVETEKST-hidden"));
+  assert.ok(!html.includes(`PRIVETEKST-${name}`));
   assert.equal(await prisma.streakActivity.count({ where: { userId: admin } }), before);
+  }
 });
 
 test("bestaande zichtbare annotaties, bewaren en expliciet lezen blijven werken zonder extra XP", async () => {

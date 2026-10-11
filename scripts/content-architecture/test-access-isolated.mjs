@@ -5,6 +5,10 @@ import { setTimeout as delay } from "node:timers/promises";
 import { createServer } from "node:net";
 import pg from "pg";
 import assert from "node:assert/strict";
+import { mkdtempSync, cpSync, readdirSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { resolve, join } from "node:path";
+import { createRequire } from "node:module";
 import { collectInventory } from "./inventory.mjs";
 
 const container = `versado-content-access-${randomUUID()}`;
@@ -27,6 +31,7 @@ async function freePort() {
   const port = probe.address().port;
   await new Promise(resolve => probe.close(resolve)); return port;
 }
+const temporary = mkdtempSync(join(tmpdir(), "versado-content-migration-"));
 let server, source;
 try {
   docker(["run", "--rm", "-d", "--name", container, "-p", "127.0.0.1::5432", "-e", "POSTGRES_USER=content_access_test", "-e", "POSTGRES_PASSWORD=content_access_test", "-e", "POSTGRES_DB=versado_content_access_test", "postgres:16-alpine"]);
@@ -39,8 +44,18 @@ try {
   const database = `postgresql://content_access_test:content_access_test@127.0.0.1:${port}/versado_content_access_test`;
   const base = `http://127.0.0.1:${await freePort()}`;
   const env = { ...process.env, NODE_ENV: "production", DATABASE_URL: database, CONTENT_ACCESS_TEST_DATABASE_URL: database,
-    CONTENT_ACCESS_TEST_BASE_URL: base, APP_URL: base, REDIS_URL: "", SESSION_SECRET: "content-access-isolated-secret-only", NEXT_TELEMETRY_DISABLED: "1" };
-  // Alleen bestaande main-migraties op een verse eigen database. Geen nieuwe ContentWork-DDL.
+    CONTENT_ACCESS_TEST_BASE_URL: base, LEARNING_TEST_DATABASE_URL: database, CONTENT_MIGRATION_TEST_STATE: join(temporary, "proof.json"), APP_URL: base, REDIS_URL: "", SESSION_SECRET: "content-access-isolated-secret-only", NEXT_TELEMETRY_DISABLED: "1" };
+  // Eerst dezelfde 133 historische migraties via Prisma op de eigen lege DB.
+  // Daarna synthetische bestaande records vóór de nieuwe additieve migratie.
+  const migrationPath = join(temporary, "migrations");
+  for (const name of readdirSync("prisma/migrations")) if (name !== "20261020120000_content_work_publication") cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
+  const config = join(temporary,"prisma.config.mjs");
+  const require = createRequire(import.meta.url);
+  writeFileSync(config, `import {defineConfig} from ${JSON.stringify(require.resolve("prisma/config"))}; export default defineConfig({schema:${JSON.stringify(resolve("prisma/schema.prisma"))},migrations:{path:${JSON.stringify(migrationPath)}},datasource:{url:process.env.DATABASE_URL}});`);
+  await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
+  await run("node", ["tests/content-work-migration.mjs", "prepare"], env);
+  await run("npm", ["run", "db:migrate:deploy"], env);
+  await run("node", ["tests/content-work-migration.mjs", "verify"], env);
   await run("npm", ["run", "db:migrate:deploy"], env);
   server = spawn("node", ["scripts/content-architecture/test-server.mjs"], { env, stdio: "inherit", detached: true });
   let healthy = false;
@@ -50,7 +65,7 @@ try {
     await delay(500);
   }
   if (!healthy) throw new Error("Productie-routehandler niet beschikbaar");
-  await run("npx", ["tsx", "--test", "tests/content-access.test.ts", "tests/content-inventory.test.ts", "tests/content-access.integration.test.ts"], env);
+  await run("npx", ["tsx", "--test", "tests/content-access.test.ts", "tests/content-inventory.test.ts", "tests/content-inventory-validation.test.mjs", "tests/content-access.integration.test.ts", "tests/content-switch.integration.test.ts"], env);
   source = new pg.Client({ connectionString: database }); await source.connect();
   const inventory = await collectInventory(source);
   assert.equal(inventory.identities.issues.length, 0);
@@ -65,4 +80,5 @@ finally {
   await source?.end();
   if (server?.pid) { try { process.kill(-server.pid, "SIGTERM"); } catch {} }
   try { docker(["rm", "-f", container]); } catch {}
+  rmSync(temporary,{recursive:true,force:true});
 }

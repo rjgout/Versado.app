@@ -1,0 +1,230 @@
+{
+  "capturedAt": "2026-10-11T18:51:50.752Z",
+  "collections": [
+    {
+      "id": "content_bom",
+      "slug": "boek-van-mormon",
+      "work": "bofm",
+      "editionKey": "bofm",
+      "language": "nl",
+      "enabled": true,
+      "visibleToUsers": true
+    },
+    {
+      "id": "content_bom_de",
+      "slug": "book-of-mormon-de",
+      "work": "bofm",
+      "editionKey": "bofm",
+      "language": "de",
+      "enabled": true,
+      "visibleToUsers": true
+    },
+    {
+      "id": "content_bom_en",
+      "slug": "book-of-mormon",
+      "work": "bofm",
+      "editionKey": "bofm",
+      "language": "en",
+      "enabled": true,
+      "visibleToUsers": true
+    },
+    {
+      "id": "content_bom_es",
+      "slug": "book-of-mormon-es",
+      "work": "bofm",
+      "editionKey": "bofm",
+      "language": "es",
+      "enabled": true,
+      "visibleToUsers": true
+    },
+    {
+      "id": "content_bom_fr",
+      "slug": "book-of-mormon-fr",
+      "work": "bofm",
+      "editionKey": "bofm",
+      "language": "fr",
+      "enabled": true,
+      "visibleToUsers": true
+    },
+    {
+      "id": "content_dc",
+      "slug": "leer-en-verbonden",
+      "work": "dc-testament",
+      "editionKey": "dc-testament",
+      "language": "nl",
+      "enabled": true,
+      "visibleToUsers": false
+    },
+    {
+      "id": "content_dc_en",
+      "slug": "doctrine-and-covenants",
+      "work": "dc-testament",
+      "editionKey": "dc-testament",
+      "language": "en",
+      "enabled": true,
+      "visibleToUsers": false
+    },
+    {
+      "id": "content_fsy",
+      "slug": "voor-de-kracht-van-de-jeugd",
+      "work": "fsy",
+      "editionKey": "fsy",
+      "language": "nl",
+      "enabled": true,
+      "visibleToUsers": false
+    },
+    {
+      "id": "content_new_testament_otb_de",
+      "slug": "new-testament-otb-de",
+      "work": "new-testament",
+      "editionKey": "otb",
+      "language": "de",
+      "enabled": true,
+      "visibleToUsers": false
+    },
+    {
+      "id": "content_new_testament_otb_en",
+      "slug": "new-testament-otb-en",
+      "work": "new-testament",
+      "editionKey": "otb",
+      "language": "en",
+      "enabled": true,
+      "visibleToUsers": false
+    },
+    {
+      "id": "content_new_testament_otb_es",
+      "slug": "new-testament-otb-es",
+      "work": "new-testament",
+      "editionKey": "otb",
+      "language": "es",
+      "enabled": true,
+      "visibleToUsers": false
+    },
+    {
+      "id": "content_new_testament_otb_fr",
+      "slug": "new-testament-otb-fr",
+      "work": "new-testament",
+      "editionKey": "otb",
+      "language": "fr",
+      "enabled": true,
+      "visibleToUsers": false
+    },
+    {
+      "id": "content_new_testament_otb_nl",
+      "slug": "new-testament-otb-nl",
+      "work": "new-testament",
+      "editionKey": "otb",
+      "language": "nl",
+      "enabled": true,
+      "visibleToUsers": false
+    },
+    {
+      "id": "content_old_testament_otb_de",
+      "slug": "old-testament-otb-de",
+      "work": "old-testament",
+      "editionKey": "otb",
+      "language": "de",
+      "enabled": true,
+      "visibleToUsers": false
+    },
+    {
+      "id": "content_old_testament_otb_en",
+      "slug": "old-testament-otb-en",
+      "work": "old-testament",
+      "editionKey": "otb",
+      "language": "en",
+      "enabled": true,
+      "visibleToUsers": false
+    },
+    {
+      "id": "content_old_testament_otb_es",
+      "slug": "old-testament-otb-es",
+      "work": "old-testament",
+      "editionKey": "otb",
+      "language": "es",
+      "enabled": true,
+      "visibleToUsers": false
+    },
+    {
+      "id": "content_old_testament_otb_fr",
+      "slug": "old-testament-otb-fr",
+      "work": "old-testament",
+      "editionKey": "otb",
+      "language": "fr",
+      "enabled": true,
+      "visibleToUsers": false
+    },
+    {
+      "id": "content_old_testament_otb_nl",
+      "slug": "old-testament-otb-nl",
+      "work": "old-testament",
+      "editionKey": "otb",
+      "language": "nl",
+      "enabled": true,
+      "visibleToUsers": false
+    },
+    {
+      "id": "content_pgp",
+      "slug": "parel-van-grote-waarde",
+      "work": "pgp",
+      "editionKey": "pgp",
+      "language": "nl",
+      "enabled": true,
+      "visibleToUsers": false
+    },
+    {
+      "id": "content_pgp_en",
+      "slug": "pearl-of-great-price",
+      "work": "pgp",
+      "editionKey": "pgp",
+      "language": "en",
+      "enabled": true,
+      "visibleToUsers": false
+    },
+    {
+      "id": "content_podcasts",
+      "slug": "podcasts",
+      "work": "podcasts",
+      "editionKey": "podcasts",
+      "language": "nl",
+      "enabled": true,
+      "visibleToUsers": true
+    }
+  ],
+  "counts": {
+    "ContentCollection": "21",
+    "Book": "417",
+    "Chapter": "7448",
+    "Verse": "197113",
+    "Course": "62",
+    "CourseChapter": "14896",
+    "CourseLesson": "23166",
+    "User": "28",
+    "UserCourseProgress": "60",
+    "UserCourseLessonProgress": "29",
+    "ChapterProgress": "44",
+    "KidsStoryProgress": "8",
+    "IntroLessonProgress": "24",
+    "ContentProgress": "113",
+    "ContentExerciseCredit": "60",
+    "ExerciseSession": "89",
+    "ReadingSession": "260",
+    "Bookmark": "1",
+    "Highlight": "1",
+    "Note": "0",
+    "PodcastPlaybackProgress": "12",
+    "PodcastEpisodeProgress": "11",
+    "FsyLesson": "37",
+    "GameContentScope": "33",
+    "XPTransaction": "370",
+    "StreakActivity": "149",
+    "StreakDay": "148"
+  },
+  "fsy": {
+    "total": "37",
+    "published": "16",
+    "publishedStatus": "16",
+    "drafts": "21",
+    "draftWithPublishedCopy": "0"
+  }
+}

@@ -4,6 +4,8 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - 'prisma/schema.prisma'
+      - 'prisma/migrations/**'
       - 'src/lib/contentAccess.ts'
       - 'src/lib/contentCollections.ts'
       - 'src/app/api/chapters/**'
@@ -19,6 +21,8 @@ on:
       - 'src/app/reading-lesson/**'
       - 'src/app/courses/**'
       - 'src/app/adminbackend/content-preview/**'
+      - 'tests/content-work*'
+      - 'tests/fixtures/content-1a-catalog.json'
       - 'tests/content-access*'
       - 'tests/content-inventory*'
       - 'scripts/content-architecture/**'
