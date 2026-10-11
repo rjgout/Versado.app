@@ -2,6 +2,20 @@
 
 Geen migratie is uitgevoerd in fase 1.
 
+**Huidige fase 2:** de additieve puzzeltabellen zijn inmiddels gemigreerd.
+Deze uitbreiding vereist geen schema- of datamigratie: `anchored` en tijdelijke
+hintmetadata zijn optionele JSON-velden; nieuwe varianten krijgen rulesVersion 2.
+Start zoekt open pogingen op eigenaar/content/aantal/moeilijkheid, over bestaande
+regels- en geometrieversies heen. Oude open pogingen worden hervat, nooit
+stilzwijgend vervangen. Na beantwoorden ontstaat een nieuwe versie-2-poging.
+Historische sessies, antwoorden, contentrechten en persoonlijke records blijven
+behouden. Records zijn al aan de variant gekoppeld; toekomstige vergelijking
+moet geometryVersion/rulesVersion en extraHintsUsed meenemen. Een oud permanent
+filter blijft auditbaar opgeslagen, maar wordt niet permanent gerenderd.
+
+De rest hieronder is het oorspronkelijke fase-1-migratieontwerp, met toekomstige
+multiplayer/ranglijsten nadrukkelijk buiten deze implementatie.
+
 **VOORGESTELD:** `PuzzleDefinition` (bestaande contentkey/url/story/aspect, geometryVersion, seed, config JSON, hash); `PuzzleVariant` (definition, pieceCount, difficulty, rulesVersion, unieke combinatie); `PuzzleSession` (variant, SOLO/COOP, status, snapshot JSON, version, eigenaar, timestamps); `PuzzleSessionParticipant`; `PuzzleInvite`; append-only `PuzzleAction`; TTL `PuzzleLock`; `PuzzleMatch` + `PuzzleMatchParticipant`; `PuzzlePersonalRecord`.
 
 Geometrie/stukken/viewport zijn afleidbaar en niet per rij opgeslagen. Snapshot wordt bij commit en periodiek geschreven; actionlog is audit/recovery. Nodige indices: actieve sessie per deelnemer/status, invite per ontvanger/status, action `(session,version)`, record `(variant,time)`, matchdeelnemer/status. Ranglijst is query op records plus geaccepteerde `Friendship`, geen duplicatietabel.

@@ -200,3 +200,133 @@ test("V2 start alle werkelijke 216 catalogusafbeeldingen met de juiste unieke id
   }
   assert.equal(await L.db.puzzleSession.count({ where: { ownerId: u.id } }), 216);
 });
+
+test("regels 2: server verankert, bewaart, hervat en voltooit losse bordplaatsingen", { skip }, async () => {
+  const u = await account(); const other = await account();
+  let state = await L.solo.startSoloPuzzle(u.id, 110, 12, "ADVENTURER", "nl");
+  const engine = await import("../src/lib/puzzle/engine"); const geometry = L.geometry.createPuzzleGeometry(12, state.seed, state.geometryVersion);
+  assert.equal(state.rulesVersion, 2);
+  const noPlacement = await act(u.id, state, { kind: "anchor", groupId: "p0" }); assert.deepEqual(noPlacement, state);
+  for (const [index, piece] of [0,2,8,10,5,7,1,3,4,6,9,11].entries()) {
+    const group = engine.groupFor(state.snapshot, piece)!; const to = engine.boardPosition(geometry, group);
+    state = await act(u.id, state, { kind: "move", groupId: group.id, x: to.x + .2, y: to.y });
+    const id = randomUUID(); const before = state;
+    state = await act(u.id, state, { kind: "anchor", groupId: group.id }, id);
+    assert.ok(engine.groupFor(state.snapshot, piece)!.anchored);
+    assert.deepEqual(await act(u.id, before, { kind: "anchor", groupId: group.id }, id), state);
+    assert.deepEqual(await L.solo.resumeSoloPuzzle(u.id, state.id, "nl"), state);
+    assert.equal(state.status, index === 11 ? "COMPLETED" : "ACTIVE");
+    if (index === 0) {
+      assert.equal(await L.solo.applySoloAction(other.id, state.id, state.version, randomUUID(), { kind: "anchor", groupId: group.id }, "nl"), null);
+      assert.deepEqual(await act(u.id, state, { kind: "move", groupId: group.id, x: to.x + 1, y: to.y }), state);
+      assert.equal(await L.solo.answerSoloPuzzle(u.id, state.id, 0), null);
+    }
+  }
+  assert.ok(state.question); assert.equal(state.snapshot.connections.length, 11);
+  assert.deepEqual(await L.solo.startSoloPuzzle(u.id, 110, 12, "ADVENTURER", "nl"), state);
+  const answer = await L.solo.answerSoloPuzzle(u.id, state.id, right(state)); assert.ok(answer && "correct" in answer && answer.correct);
+  assert.notEqual((await L.solo.startSoloPuzzle(u.id, 110, 12, "ADVENTURER", "nl")).id, state.id);
+});
+
+test("regels 2: concurrent bordplaatsing/autosave heeft één winnaar; omgekeerde verbinding verplaatst anker niet", { skip }, async () => {
+  const u = await account(); const engine = await import("../src/lib/puzzle/engine");
+  let state = await L.solo.startSoloPuzzle(u.id, 111, 12, "DISCOVERER", "nl");
+  const geometry = L.geometry.createPuzzleGeometry(12, state.seed, state.geometryVersion);
+  const to = engine.boardPosition(geometry, state.snapshot.groups[0]);
+  state = await act(u.id, state, { kind: "move", groupId: "p0", x: to.x + .1, y: to.y });
+  const results = await Promise.all([
+    L.solo.applySoloAction(u.id, state.id, state.version, randomUUID(), { kind: "anchor", groupId: "p0" }, "nl"),
+    L.solo.applySoloAction(u.id, state.id, state.version, randomUUID(), { kind: "move", groupId: "p0", x: to.x + .2, y: to.y }, "nl"),
+  ]);
+  assert.equal(results.filter(Boolean).length, 1); state = results.find(Boolean)!;
+  if (!engine.groupFor(state.snapshot, 0)!.anchored) state = await act(u.id, state, { kind: "anchor", groupId: "p0" });
+  const fixed = engine.groupFor(state.snapshot, 0)!;
+  const p1 = engine.boardPosition(geometry, engine.groupFor(state.snapshot, 1)!);
+  state = await act(u.id, state, { kind: "move", groupId: "p1", x: p1.x + .2, y: p1.y });
+  state = await act(u.id, state, { kind: "connect", a: 1, b: 0 });
+  const grown = engine.groupFor(state.snapshot, 1)!;
+  assert.equal(grown.x, fixed.x); assert.equal(grown.y, fixed.y); assert.ok(grown.anchored);
+  assert.deepEqual(await act(u.id, state, { kind: "move", groupId: grown.id, x: 0, y: 0 }), state);
+});
+
+test("regels 2: server weigert bordankers op Expert/Meester en onbewezen voltooiing", { skip }, async () => {
+  const u = await account(); const engine = await import("../src/lib/puzzle/engine");
+  for (const difficulty of ["EXPERT", "MASTER"] as const) {
+    let state = await L.solo.startSoloPuzzle(u.id, 112, 12, difficulty, "nl");
+    const geometry = L.geometry.createPuzzleGeometry(12, state.seed, state.geometryVersion); const to = engine.boardPosition(geometry, state.snapshot.groups[0]);
+    state = await act(u.id, state, { kind: "move", groupId: "p0", ...to });
+    assert.deepEqual(await act(u.id, state, { kind: "anchor", groupId: "p0" }), state);
+    const q = L.bank.jigsawQuestionsForStory(state.story)[0];
+    await L.db.puzzleSession.update({ where: { id: state.id }, data: { status: "COMPLETED", completedAt: new Date(), questionId: q.id, optionOrder: "[0,1,2]", snapshot: JSON.stringify({ ...state.snapshot, completedAt: new Date().toISOString() }) } });
+    assert.equal(await L.solo.answerSoloPuzzle(u.id, state.id, 0), null, "status en timestamp zijn geen geometrisch bewijs");
+  }
+  assert.equal(await L.db.streakActivity.count({ where: { userId: u.id } }), 0);
+});
+
+test("regels 2: vier hints registreren budget/extra/tijd/target zonder plaatsing of reeks; retries kosten eenmaal", { skip }, async (t) => {
+  const u = await account(); const engine = await import("../src/lib/puzzle/engine");
+  let state = await L.solo.startSoloPuzzle(u.id, 113, 12, "ADVENTURER", "nl"); const before = structuredClone(state.snapshot);
+  t.mock.timers.enable({ apis: ["Date"], now: Date.now() });
+  const operations = [{ kind: "hint", hint: "PREVIEW" }, { kind: "hint", hint: "LOCATION", pieceId: 0 }, { kind: "hint", hint: "CONNECTION", pieceId: 0 }, { kind: "hint", hint: "FILTER", filter: "MIDDLES" }] as const;
+  for (const [index, operation] of operations.entries()) {
+    const id = randomUUID(); const previous = state;
+    state = await act(u.id, state, operation, id);
+    assert.equal(state.snapshot.hints.length, index + 1); const hint = state.snapshot.hints.at(-1)!;
+    assert.equal(hint.type, operation.hint); assert.equal(hint.actionId, id); assert.equal(hint.extra, index === 3);
+    assert.equal(Date.parse(hint.expiresAt!) - Date.parse(hint.at), 5000); assert.ok(hint.target);
+    if (hint.target.type === "CONNECTION") assert.ok(L.geometry.areNeighbours(L.geometry.createPuzzleGeometry(12, state.seed, state.geometryVersion), hint.target.pieceId, hint.target.neighborId));
+    assert.deepEqual(await act(u.id, previous, operation, id), state);
+    assert.deepEqual(await act(u.id, state, operation), state, "snel herhaald indrukken schrijft niets extra af");
+    assert.deepEqual(await L.solo.resumeSoloPuzzle(u.id, state.id, "nl"), state);
+    assert.deepEqual(state.snapshot.groups, before.groups); assert.deepEqual(state.snapshot.connections, before.connections); assert.equal(state.snapshot.filter, null); assert.equal(state.status, "ACTIVE");
+    t.mock.timers.tick(6000);
+  }
+  assert.equal(await L.db.puzzleAction.count({ where: { sessionId: state.id, type: "hint" } }), 4);
+  assert.equal(await L.db.streakActivity.count({ where: { userId: u.id } }), 0); assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: u.id } })).xpTotal, 0);
+  const invalid = await act(u.id, state, { kind: "hint", hint: "CONNECTION", pieceId: 95 }); assert.deepEqual(invalid, state);
+  const geometry = L.geometry.createPuzzleGeometry(12, state.seed, state.geometryVersion);
+  for (const piece of geometry.pieces) {
+    const group = engine.groupFor(state.snapshot, piece.id)!; const to = engine.boardPosition(geometry, group);
+    if (!group.anchored) { state = await act(u.id, state, { kind: "move", groupId: group.id, ...to }); state = await act(u.id, state, { kind: "anchor", groupId: group.id }); }
+  }
+  const answer = await L.solo.answerSoloPuzzle(u.id, state.id, right(state)); assert.ok(answer && "correct" in answer && answer.correct && answer.streak?.dayEarned);
+  const record = await L.db.puzzlePersonalRecord.findUniqueOrThrow({ where: { sessionId: state.id } }); assert.equal(record.hintsUsed, 4); assert.equal(record.extraHintsUsed, 1);
+  assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: u.id } })).currentStreak, 5);
+});
+
+test("regels 2: concurrent hintrequests schrijven één hint af, Ontdekker houdt onbeperkt inbegrepen hulp", { skip }, async (t) => {
+  const u = await account(); let state = await L.solo.startSoloPuzzle(u.id, 114, 6, "DISCOVERER", "nl");
+  const operation = { kind: "hint", hint: "PREVIEW" } as const; const id = randomUUID();
+  const replies = await Promise.all(Array.from({ length: 4 }, () => L.solo.applySoloAction(u.id, state.id, state.version, id, operation, "nl")));
+  assert.ok(replies.every(Boolean)); assert.ok(replies.every((value) => value!.snapshot.hints.length === 1)); state = replies[0]!;
+  assert.equal(await L.db.puzzleAction.count({ where: { sessionId: state.id, actionId: id } }), 1);
+  assert.equal(await L.solo.applySoloAction(u.id, state.id, 1, id, { kind: "hint", hint: "FILTER", filter: "CORNERS" }, "nl"), null);
+  t.mock.timers.enable({ apis: ["Date"], now: Date.now() + 6000 });
+  for (let i = 0; i < 5; i++) { state = await act(u.id, state, operation); t.mock.timers.tick(6000); }
+  assert.equal(state.snapshot.hints.length, 6); assert.ok(state.snapshot.hints.every((hint) => !hint.extra));
+});
+
+test("versieovergang: geometry 1/2 en rules 1 hervatten exact; replay wordt rules 2 zonder historie te wijzigen", { skip }, async () => {
+  for (const geometryVersion of [1, 2]) {
+    const u = await account(); const index = 115 + geometryVersion;
+    const current = await L.solo.startSoloPuzzle(u.id, index, 6, "ADVENTURER", "nl");
+    const row = await L.db.puzzleSession.findUniqueOrThrow({ where: { id: current.id }, include: { variant: { include: { definition: true } } } });
+    let definition = row.variant.definition;
+    if (geometryVersion === 1) { definition = await L.db.puzzleDefinition.create({ data: { imageUrl: definition.imageUrl, storyNumber: definition.storyNumber, aspectRatio: definition.aspectRatio, seed: definition.seed, definitionHash: definition.definitionHash, contentKey: `test-geometry1-${randomUUID()}`, geometryVersion: 1 } }); }
+    const variant = await L.db.puzzleVariant.create({ data: { definitionId: definition.id, pieceCount: 6, difficulty: "ADVENTURER", rulesVersion: 1 } });
+    const engine = await import("../src/lib/puzzle/engine"); const geometry = L.geometry.createPuzzleGeometry(6, definition.seed, geometryVersion); const snapshot = engine.newPuzzleSnapshot(geometry, "ADVENTURER");
+    snapshot.hints.push({ type: "LOCATION", at: new Date().toISOString(), extra: false }); snapshot.filter = "EDGES";
+    await L.db.puzzleSession.update({ where: { id: current.id }, data: { variantId: variant.id, snapshot: JSON.stringify(snapshot) } });
+    let old = await L.solo.startSoloPuzzle(u.id, index, 6, "ADVENTURER", "nl");
+    assert.equal(old.id, current.id); assert.equal(old.rulesVersion, 1); assert.equal(old.geometryVersion, geometryVersion); assert.deepEqual(old.snapshot, snapshot);
+    assert.deepEqual(await act(u.id, old, { kind: "anchor", groupId: "p0" }), old);
+    for (const piece of geometry.pieces) old = await act(u.id, old, { kind: "move", groupId: `p${piece.id}`, x: 3 + piece.column, y: 3 + piece.row });
+    for (const [a,b] of [[0,1],[1,2],[0,3],[3,4],[4,5]]) old = await act(u.id, old, { kind: "connect", a, b });
+    assert.equal(old.status, "COMPLETED"); assert.equal((await L.solo.startSoloPuzzle(u.id, index, 6, "ADVENTURER", "nl")).id, old.id);
+    await L.solo.answerSoloPuzzle(u.id, old.id, right(old)); const historical = await L.db.puzzleSession.findUniqueOrThrow({ where: { id: old.id } });
+    const replay = await L.solo.startSoloPuzzle(u.id, index, 6, "ADVENTURER", "nl");
+    assert.notEqual(replay.id, old.id); assert.equal(replay.rulesVersion, 2); assert.equal(replay.geometryVersion, 2); assert.equal(replay.snapshot.hints.length, 0);
+    assert.deepEqual(await L.db.puzzleSession.findUniqueOrThrow({ where: { id: old.id } }), historical);
+    assert.equal((await L.db.puzzlePersonalRecord.findUniqueOrThrow({ where: { sessionId: old.id }, include: { variant: true } })).variant.rulesVersion, 1);
+  }
+});
