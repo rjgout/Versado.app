@@ -25,11 +25,11 @@ const snapshotSchema = z.object({
   version: z.number(),
   groups: z.array(z.object({ id: z.string(), pieceIds: z.array(z.number()), x: z.number(), y: z.number(), rotation: z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]), anchored: z.boolean().optional() })),
   connections: z.array(z.object({ a: z.number(), b: z.number() })),
-  hints: z.array(z.object({ type: z.enum(["PREVIEW", "LOCATION", "CONNECTION", "FILTER"]), at: z.string(), extra: z.boolean(), actionId: z.string().optional(), expiresAt: z.string().optional(), target: hintTargetSchema.optional() })),
+  hints: z.array(z.object({ type: z.enum(["PREVIEW", "LOCATION", "CONNECTION", "FILTER"]), at: z.string(), extra: z.boolean(), source: z.enum(["INCLUDED", "PERSONAL"]).optional(), actionId: z.string().optional(), expiresAt: z.string().optional(), target: hintTargetSchema.optional() })),
   filter: z.enum(["CORNERS", "EDGES", "MIDDLES"]).nullable(), completedAt: z.string().nullable(),
 });
 
-export type SoloAction = { kind: "move"; groupId: string; x: number; y: number } | { kind: "rotate"; groupId: string } | { kind: "connect"; a: number; b: number } | { kind: "anchor"; groupId: string } | { kind: "hint"; hint: PuzzleHintType; pieceId?: number; filter?: "CORNERS" | "EDGES" | "MIDDLES" | null };
+export type SoloAction = { kind: "move"; groupId: string; x: number; y: number } | { kind: "rotate"; groupId: string } | { kind: "connect"; a: number; b: number } | { kind: "anchor"; groupId: string } | { kind: "hint"; hint: PuzzleHintType; confirmPersonal?: boolean; pieceId?: number; filter?: "CORNERS" | "EDGES" | "MIDDLES" | null };
 const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 const seedFor = (contentKey: string) => hash(`puzzle-v${PUZZLE_GEOMETRY_VERSION}:${contentKey}`).slice(0, 32);
 
@@ -38,10 +38,11 @@ export type SoloAnswer = JigsawAnswerResult | { alreadyAnswered: true };
 const sessionInclude = { variant: { include: { definition: true } } } as const;
 type Session = Prisma.PuzzleSessionGetPayload<{ include: typeof sessionInclude }>;
 
-function publicState(row: Session, language: string | null | undefined) {
+async function publicState(row: Session, language: string | null | undefined, tx: Prisma.TransactionClient) {
+  const { hintBalance } = await tx.user.findUniqueOrThrow({ where: { id: row.ownerId }, select: { hintBalance: true } });
   const snapshot = snapshotSchema.parse(JSON.parse(row.snapshot)) as PuzzleSnapshot; const lang = jigsawQuestionLanguage(language);
   const question = row.questionId && row.optionOrder ? jigsawQuestionById(row.questionId) : undefined; const order = row.optionOrder ? JSON.parse(row.optionOrder) as number[] : [];
-  return { id: row.id, version: row.version, status: row.status, image: row.variant.definition.imageUrl, story: row.variant.definition.storyNumber, seed: row.variant.definition.seed, geometryVersion: row.variant.definition.geometryVersion, pieceCount: row.variant.pieceCount, difficulty: row.variant.difficulty as PuzzleDifficulty, rulesVersion: row.variant.rulesVersion, snapshot, ...(question ? { question: { text: question.text[lang], options: order.map((index) => question.options[lang][index]) } } : {}), ...(row.status === "ANSWERED" ? { answer: row.answerResult ? JSON.parse(row.answerResult) as SoloAnswer : { alreadyAnswered: true } as const } : {}) };
+  return { hintBalance, id: row.id, version: row.version, status: row.status, image: row.variant.definition.imageUrl, story: row.variant.definition.storyNumber, seed: row.variant.definition.seed, geometryVersion: row.variant.definition.geometryVersion, pieceCount: row.variant.pieceCount, difficulty: row.variant.difficulty as PuzzleDifficulty, rulesVersion: row.variant.rulesVersion, snapshot, ...(question ? { question: { text: question.text[lang], options: order.map((index) => question.options[lang][index]) } } : {}), ...(row.status === "ANSWERED" ? { answer: row.answerResult ? JSON.parse(row.answerResult) as SoloAnswer : { alreadyAnswered: true } as const } : {}) };
 }
 
 async function lockSession(tx: Prisma.TransactionClient, userId: string, sessionId: string) {
@@ -96,16 +97,21 @@ export async function startSoloPuzzle(userId: string, content: number | string, 
 export async function resumeSoloPuzzle(userId: string, id: string, language: string | null | undefined) {
   return prisma.$transaction(async (tx) => {
     const row = await lockSession(tx, userId, id);
-    return row ? publicState(row, language) : null;
+    return row ? publicState(row, language, tx) : null;
   });
 }
 
+export class PuzzleHintError extends Error {
+  constructor(readonly code: "EMPTY" | "CONFIRM", readonly hintBalance: number) { super(code); }
+}
+
 export async function applySoloAction(userId: string, sessionId: string, expectedVersion: number, actionId: string, action: SoloAction, language: string | null | undefined) {
-  return prisma.$transaction(async (tx) => {
+  let inventoryChanged = false;
+  const result = await prisma.$transaction(async (tx) => {
     const row = await lockSession(tx, userId, sessionId);
     if (!row) return null;
     const prior = await tx.puzzleAction.findUnique({ where: { sessionId_actionId: { sessionId, actionId } } });
-    if (prior) return prior.payload === JSON.stringify(action) ? publicState(row, language) : null;
+    if (prior) return prior.payload === JSON.stringify(action) ? publicState(row, language, tx) : null;
     if (row.status !== "ACTIVE" || row.version !== expectedVersion) return null;
     const snapshot = snapshotSchema.parse(JSON.parse(row.snapshot)) as PuzzleSnapshot; const difficulty = row.variant.difficulty as PuzzleDifficulty;
     const geometry = createPuzzleGeometry(row.variant.pieceCount as z.infer<typeof countSchema>, row.variant.definition.seed, row.variant.definition.geometryVersion);
@@ -115,22 +121,32 @@ export async function applySoloAction(userId: string, sessionId: string, expecte
     // Alleen Meester vraagt om rotatie. De route valideert dit ook server-side,
     // zodat een verborgen clientcontrol geen andere moeilijkheid kan veranderen.
     if (action.kind === "rotate" && difficulty === "MASTER") next = rotateGroup(snapshot, geometry, action.groupId);
-    if (action.kind === "rotate" && difficulty !== "MASTER") return publicState(row, language);
+    if (action.kind === "rotate" && difficulty !== "MASTER") return publicState(row, language, tx);
     if (action.kind === "connect") next = connectGroups(snapshot, geometry, difficulty, action.a, action.b, row.variant.rulesVersion);
     if (action.kind === "anchor") next = anchorGroup(snapshot, geometry, difficulty, action.groupId, row.variant.rulesVersion);
     if (action.kind === "hint") {
       // Een lopende hint beschermt ook tegen snelle herhaalde klikken met
       // verschillende actionIds. Herladen gebruikt dezelfde absolute eindtijd.
-      if (activePuzzleHint(snapshot)) return publicState(row, language);
+      if (activePuzzleHint(snapshot)) return publicState(row, language, tx);
       const target = puzzleHintTarget(snapshot, geometry, action.hint, action.pieceId, action.filter);
-      if (!target || (target.type === "FILTER" && !target.pieceIds.length)) return publicState(row, language);
+      if (!target || (target.type === "FILTER" && !target.pieceIds.length)) return publicState(row, language, tx);
       const included = puzzlePolicy(difficulty, row.variant.rulesVersion).includedHints;
       const now = new Date(); const extra = included !== null && snapshot.hints.length >= included;
-      next = { ...snapshot, hints: [...snapshot.hints, { type: action.hint, at: now.toISOString(), extra, actionId, expiresAt: new Date(now.getTime() + PUZZLE_HINT_DURATION_MS).toISOString(), target }] };
+      if (extra) {
+        // Dezelfde lockvolgorde als antwoorden: sessie → gebruiker. De startlock
+        // is al vrij. UPDATE ... WHERE balance > 0 beschermt alle hintactiviteiten.
+        const user = await tx.user.findUniqueOrThrow({ where: { id: userId }, select: { hintBalance: true } });
+        if (user.hintBalance <= 0) throw new PuzzleHintError("EMPTY", user.hintBalance);
+        if (!action.confirmPersonal) throw new PuzzleHintError("CONFIRM", user.hintBalance);
+        const consumed = await tx.user.updateMany({ where: { id: userId, hintBalance: { gt: 0 } }, data: { hintBalance: { decrement: 1 } } });
+        if (consumed.count !== 1) throw new PuzzleHintError("EMPTY", 0);
+        inventoryChanged = true;
+      }
+      next = { ...snapshot, hints: [...snapshot.hints, { source: extra ? "PERSONAL" : "INCLUDED", type: action.hint, at: now.toISOString(), extra, actionId, expiresAt: new Date(now.getTime() + PUZZLE_HINT_DURATION_MS).toISOString(), target }] };
     }
     // Ongeldige plaatsing/verbinding of verplaatsing van een bordanker is
     // geen actie: geen versieophoging, logrecord of verandering van voortgang.
-    if (next === snapshot) return publicState(row, language);
+    if (next === snapshot) return publicState(row, language, tx);
     next = { ...next, version: row.version + 1 };
     const completed = isPuzzleComplete(next, geometry, difficulty, row.variant.rulesVersion) ? row.completedAt ?? new Date(next.completedAt ?? Date.now()) : null;
     next.completedAt = completed?.toISOString() ?? null;
@@ -138,8 +154,11 @@ export async function applySoloAction(userId: string, sessionId: string, expecte
     if (completed && !questionId) { const choices = jigsawQuestionsForStory(row.variant.definition.storyNumber); const chosen = choices[randomInt(choices.length)]; questionId = chosen?.id ?? null; order = questionId ? JSON.stringify(optionOrder()) : null; }
     await tx.puzzleAction.create({ data: { sessionId, actionId, type: action.kind, payload: JSON.stringify(action), version: row.version + 1 } });
     const updated = await tx.puzzleSession.update({ where: { id: sessionId }, data: { snapshot: JSON.stringify(next), version: { increment: 1 }, lastActivityAt: new Date(), completedAt: completed, status: completed ? "COMPLETED" : "ACTIVE", questionId, optionOrder: order }, include: sessionInclude });
-    return publicState(updated, language);
+    return publicState(updated, language, tx);
   });
+  // Pas na commit; een retry van dezelfde actionId zendt geen nieuw verbruik.
+  if (inventoryChanged) emitToUser(userId, "hints_changed");
+  return result;
 }
 
 export async function answerSoloPuzzle(userId: string, sessionId: string, choice: number): Promise<SoloAnswer | null> {

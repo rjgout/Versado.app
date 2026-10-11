@@ -1,3 +1,4 @@
+import { emitToUser } from "@/lib/realtime";
 import { prisma } from "@/lib/db";
 import { emptyBoard, type Board } from "@/lib/scrabble/board";
 import { createBag, drawTiles, consumeFromRack, letterValue, shuffle, RACK_SIZE, BLANK } from "@/lib/scrabble/tiles";
@@ -425,5 +426,6 @@ export async function scrabbleHint(gameId: string, userId: string): Promise<Hint
   }
 
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { hintBalance: true } });
+  emitToUser(userId, "hints_changed");
   return { ok: true, word: hint.word, usedIndices: hint.usedIndices, hintBalance: user.hintBalance };
 }

@@ -1,3 +1,4 @@
+import { emitToUser } from "@/lib/realtime";
 import { prisma } from "@/lib/db";
 import { awardXp } from "@/lib/xp";
 import { applyWeeklyXp } from "@/lib/leagues";
@@ -35,6 +36,7 @@ export async function buyHints(userId: string, quantity: number): Promise<BuyHin
         data: { hintBalance: { increment: quantity } },
       });
     });
+    emitToUser(userId, "hints_changed");
     return { ok: true, xpTotal: updated.xpTotal, hintBalance: updated.hintBalance };
   } catch (e) {
     if (e instanceof InsufficientXpError) {

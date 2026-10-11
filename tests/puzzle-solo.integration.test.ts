@@ -264,10 +264,10 @@ test("regels 2: server weigert bordankers op Expert/Meester en onbewezen voltooi
 });
 
 test("regels 2: vier hints registreren budget/extra/tijd/target zonder plaatsing of reeks; retries kosten eenmaal", { skip }, async (t) => {
-  const u = await account(); const engine = await import("../src/lib/puzzle/engine");
+  const u = await account(); await L.db.user.update({ where: { id: u.id }, data: { hintBalance: 1 } }); const engine = await import("../src/lib/puzzle/engine");
   let state = await L.solo.startSoloPuzzle(u.id, 113, 12, "ADVENTURER", "nl"); const before = structuredClone(state.snapshot);
   t.mock.timers.enable({ apis: ["Date"], now: Date.now() });
-  const operations = [{ kind: "hint", hint: "PREVIEW" }, { kind: "hint", hint: "LOCATION", pieceId: 0 }, { kind: "hint", hint: "CONNECTION", pieceId: 0 }, { kind: "hint", hint: "FILTER", filter: "MIDDLES" }] as const;
+  const operations = [{ kind: "hint", hint: "PREVIEW" }, { kind: "hint", hint: "LOCATION", pieceId: 0 }, { kind: "hint", hint: "CONNECTION", pieceId: 0 }, { kind: "hint", hint: "FILTER", filter: "MIDDLES", confirmPersonal: true }] as const;
   for (const [index, operation] of operations.entries()) {
     const id = randomUUID(); const previous = state;
     state = await act(u.id, state, operation, id);

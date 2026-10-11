@@ -1,5 +1,7 @@
 "use client";
 
+import { useHintInventory } from "@/lib/data/hints";
+
 import { StreakContinuationCard } from "@/components/StreakContinuation";
 
 import { useEffect, useState } from "react";
@@ -74,7 +76,7 @@ interface HintResult {
 }
 
 export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
-  const t = useT();
+  const t = useT(); const inventory = useHintInventory();
   const [game, setGame] = useState<GameView | null>(null);
   const [chapters, setChapters] = useState<ChapterOption[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -128,6 +130,7 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
       setError(data.error ?? t("wordOfTheDay.somethingWrong"));
       return;
     }
+    inventory.setData({ hintBalance: data.hintCredits }); void inventory.refetch();
     setFeedback(data);
     setGame((g) => (g ? { ...g, hintCredits: data.hintCredits } : g));
     if (data.finished) {
@@ -154,6 +157,7 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
       setError(data.error ?? t("chapterGuess.noHint"));
       return;
     }
+    inventory.setData({ hintBalance: data.hintCredits }); void inventory.refetch();
     setHint(data);
     setGame((g) => (g ? { ...g, hintCredits: data.hintCredits } : g));
     if (data.bookId) setPickedBookId(data.bookId);
@@ -246,7 +250,7 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
         <div className="flex items-center gap-2">
           {game.level !== "EXPERT" && (
             <button className="btn-secondary !px-3 !py-1.5 !text-xs" disabled={hintLoading || hint !== null || answered} onClick={requestHint}>
-              {t("chapterGuess.hintButton", { n: game.hintCredits })}
+              {t("chapterGuess.hintButton", { n: inventory.data?.hintBalance ?? game.hintCredits })}
             </button>
           )}
           <button

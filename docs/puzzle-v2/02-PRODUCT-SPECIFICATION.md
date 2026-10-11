@@ -30,12 +30,22 @@ gebruiken`, `alles passend tonen` en `andere puzzel kiezen`. Contextueel draaien
 staat linksonder bij Meester. Beide knoppen zijn minimaal 60×60 CSS-pixels met
 26px-iconen; veilige randen, text scaling en reduced motion blijven behouden.
 
-Het hintpaneel toont budget en extra-uitleg vooraf. PREVIEW toont vijf seconden
+Het hintpaneel is een modal sheet in de bestaande Versado-stijl, met beide
+budgetten bovenaan: Inbegrepen en Mijn voorraad. PREVIEW toont vijf seconden
 de volledige afbeelding; LOCATION markeert de canonieke plek van de selectie;
 CONNECTION markeert één echte externe buur; FILTER benadrukt hoek-, rand- of
 middenstukken op hun huidige positie. Alle hulp is vijf seconden tijdelijk en
-maakt geen plaatsing/verbinding aan. Extra hints zijn toegestaan en apart
-registreerbaar voor latere records; er wordt nu geen ranglijst gebouwd.
+maakt geen plaatsing/verbinding aan. Eerst geldt het inbegrepen sessiebudget.
+Daarna kost iedere hint, na bevestiging, exact één persoonlijke hint uit
+`User.hintBalance`. Zonder voorraad wordt geen hint gegeven en biedt de sheet
+de bestaande winkel aan. Ontdekker gebruikt nooit persoonlijke hints.
+Sorteerhulp openen kost niets; uitsluitend Hoek/Rand/Midden is een hintactie.
+Historische hints blijven ongewijzigd en veroorzaken geen afschrijving achteraf.
+Extra hints blijven herkenbaar voor latere records; er wordt nu geen ranglijst
+gebouwd. Locatie- en verbindingshints behouden zoom en pannen alleen minimaal
+naar een onzichtbaar doel. De sheet sluit met Escape, houdt focus binnen en
+maakt het bord tijdelijk inert; sluiten herstelt focus naar de vaste menuknop.
+Primaire Solo-CTA’s zijn lokaal volle breedte, maximaal 440px en minimaal 48px.
 Hints hebben geen invloed op de reeks of XP. Tijdelijke targets en hun absolute
 vervaltijd zijn opgeslagen; herladen speelt uitsluitend de resterende tijd.
 

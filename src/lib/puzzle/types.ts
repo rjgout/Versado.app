@@ -43,7 +43,7 @@ export type PuzzleHintTarget =
   | { type: "LOCATION"; groupId: string; pieceIds: number[]; x: number; y: number }
   | { type: "CONNECTION"; groupId: string; pieceId: number; neighborId: number; neighborGroupId: string }
   | { type: "FILTER"; filter: Exclude<PuzzleFilter, null>; pieceIds: number[] };
-export interface PuzzleHint { type: PuzzleHintType; at: string; extra: boolean; actionId?: string; expiresAt?: string; target?: PuzzleHintTarget; }
+export interface PuzzleHint { type: PuzzleHintType; at: string; extra: boolean; source?: "INCLUDED" | "PERSONAL"; actionId?: string; expiresAt?: string; target?: PuzzleHintTarget; }
 export const PUZZLE_HINT_DURATION_MS = 5000;
 export const PUZZLE_SNAP_DISTANCE = .36;
 export type PuzzlePolicy = { includedHints: number | null; snap: number; boardSnap: boolean; boardSnapDistance: number; showGhost: boolean; showOutline: boolean; showPieceContours: boolean; rotationRequired: boolean };

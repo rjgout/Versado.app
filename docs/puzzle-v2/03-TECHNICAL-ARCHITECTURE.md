@@ -46,12 +46,24 @@ aangeleverde transforms of leden in een anchoractie. De drop behoudt bestaande
 stuk-/groep-snaps en probeert daarna bordplaatsing van het nieuwe geheel.
 
 Hints zijn serverberekende, tijdelijke targets in `snapshot.hints`, met
-`actionId`, `at`, `expiresAt`, `extra` en type. Locatie geldt voor alle
+`actionId`, `at`, `expiresAt`, `extra`, `source` (INCLUDED/PERSONAL) en type. Locatie geldt voor alle
 selectieleden; verbinding kiest een echte externe buur. Filtering dimt alleen
 weergave, inclusief niet-geselecteerde soorten binnen verbonden groepen.
 Het permanente snapshot-filter blijft onaangeraakt. Een lopende hint en de
 sessielock voorkomen snel dubbel afschrijven; retries met dezelfde actionId
-geven de huidige autoritatieve snapshot. Nooit een hintspecifieke reeksactie.
+geven de huidige autoritatieve snapshot. Targetvalidatie gebeurt vóór betaling.
+Na het inbegrepen budget is `confirmPersonal: true` nodig. Dezelfde transactie
+lockt sessie → gebruiker (conditionele update met `hintBalance > 0`), schrijft
+hintlog/snapshot/versie en geeft het actuele hintsaldo terug. Fouten rollen alles
+terug; nooit negatieve voorraad. Een bestaande actionId wordt vóór status en
+versie gecontroleerd en kost niets opnieuw. Ontbrekende `source` is historische
+registratie en wordt niet terugwerkend betaald. Spelregel- en geometrieversies
+blijven intact; alleen nieuwe hintaanvragen volgen de afschrijving.
+`useHintInventory` gebruikt `/api/hints` via de centrale live-data-laag met
+focus-/reconnect-verversing. De sheet vraagt bij openen opnieuw voorraad op;
+acties gebruiken `liveMutation`/`hintsChanged`, de server meldt `hints_changed`
+pas na commit. Winkel, Woordspel en Raad het hoofdstuk lezen dezelfde voorraad.
+Nooit een hintspecifieke reeksactie of XP-award.
 
 ## Toekomstig, buiten fase 2: server-authoritative multiplayer
 

@@ -71,3 +71,29 @@ verankering, rotatie, vier visuele hints met verval en herstel na herladen,
 budgetwaarschuwing vóór de extra hint, knoppen ≥60px en panelen op klein,
 landscape, safe areas en 200% tekst. Bestaande flow-, naad-, pan/pinch-,
 groep-snap- en dragprioriteit-browsertests blijven onderdeel van dezelfde runner.
+
+
+## Persoonlijke hintvoorraad en modal sheet
+
+`puzzle-hint-inventory.integration.test.ts` draait in dezelfde wegwerpdatabase
+met alle migraties. Het bewijst inbegrepen hints op ieder niveau, behoud bij
+hervatten en replay, betaling uit de centrale voorraad, saldo 1→0, onvoldoende
+saldo, bevestiging, ongeldige targets, actieve/afgeronde sessie, eigenaar/versie,
+idempotente actionIds en meerdere apparaten/sessies. Een echte DB-trigger laat
+het hintlog na de afschrijving falen en bewijst volledige rollback. Aankopen,
+Raad het hoofdstuk en Woordspel delen aantoonbaar dezelfde `User.hintBalance` en
+de bestaande winkelprijs; hintgebruik maakt geen XP of reeksactiviteit.
+
+`puzzle-hint-inventory.browser.mjs` gebruikt de echte productie-app/API/DB op
+desktop en touch-mobiel. Het controleert beide budgetten, gratis derde en
+betaalde vierde hint, sorteer-submenu zonder verbruik, annuleren, verloren
+betaalresponse met dezelfde actionId, blokkering tijdens actieve hints en
+voorraadverversing na winkelaankoop via realtime. Leegsaldo → winkel → aankoop →
+dezelfde puzzel hervatten bewaart de snapshot. Native modal + Tab/Shift+Tab,
+inert bord, Escape, focusherstel en intern scrollen worden getest, inclusief
+320px, landschap, veilige randen, 200% tekst, dark mode en Duits. Een werkelijk
+gezoomde Canvas-camera blijft gelijk bij een zichtbare locatiehint.
+CTA-breedte en hoogte worden gemeten voor starten, Verder, antwoord, nog een
+puzzel en replay. Uitgestelde echte requests bewijzen disabled/loading bij
+start en antwoord. De vijf browsersuites blijven in één CI-run draaien; beelden
+worden als artifact bewaard.

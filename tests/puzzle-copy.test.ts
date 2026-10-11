@@ -9,7 +9,7 @@ import { es } from "../src/lib/i18n/messages/es";
 import { KOMPAS_TOPICS } from "../src/lib/kompas/registry";
 import { generalEntry } from "../src/lib/kompas/resolve";
 
-const keys = ["discovererDescription", "adventurerDescription", "expertDescription", "masterDescription", "pieceCountHelp", "useHint", "hintPanel", "hintsUnlimited", "hintsRemaining", "extraHintNotice", "hintPreview", "hintPreviewDescription", "hintLocation", "hintLocationDescription", "hintConnection", "hintConnectionDescription", "hintFilter", "hintFilterDescription", "hintCorners", "hintEdges", "hintMiddles", "hintSelectFirst", "hintActive", "closeHints", "legacyRules", "boardHelp"] as const;
+const keys = ["discovererDescription", "adventurerDescription", "expertDescription", "masterDescription", "pieceCountHelp", "useHint", "hintPanel", "hintsUnlimited", "hintsRemaining", "extraHintNotice", "hintPreview", "hintPreviewDescription", "hintLocation", "hintLocationDescription", "hintConnection", "hintConnectionDescription", "hintFilter", "hintFilterDescription", "hintCorners", "hintEdges", "hintMiddles", "hintSelectFirst", "hintActive", "closeHints", "legacyRules", "boardHelp", "hintStock", "hintPersonalCost", "hintConfirmUse", "hintEmpty", "hintShop", "hintNoConnection", "hintNoPieces", "hintInventoryFailed", "hintBack", "hintRefresh"] as const;
 
 test("nieuwe Solo-uitleg en hintbediening zijn expliciet vertaald in alle vijf talen", () => {
   for (const messages of [nl,en,de,fr,es]) {
@@ -23,7 +23,7 @@ test("nieuwe Solo-uitleg en hintbediening zijn expliciet vertaald in alle vijf t
 
 test("Kompas toont bijgewerkte spelregels en houdt centrale vraag/reeks/geen-XP-uitleg", () => {
   const topic = KOMPAS_TOPICS.find((topic) => topic.id === "play.jigsaw")!;
-  assert.equal(topic.version,2);
+  assert.equal(topic.version,3);
   for (const language of ["nl","en","de","fr","es"] as const) {
     const t = getT(language); const entry = generalEntry(t,topic);
     assert.equal(entry.steps.length,3);

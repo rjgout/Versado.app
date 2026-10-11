@@ -1,5 +1,7 @@
 "use client";
 
+import { useHintInventory } from "@/lib/data/hints";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import UserAvatar from "@/components/UserAvatar";
@@ -109,7 +111,7 @@ interface GameState {
 const FLASH_DURATION_MS = 2800;
 
 export default function ScrabbleBoardClient({ gameId }: { gameId: string }) {
-  const t = useT();
+  const t = useT(); const inventory = useHintInventory(); const setInventory = inventory.setData;
   const confirm = useConfirm();
   const [game, setGame] = useState<GameState | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -140,6 +142,7 @@ export default function ScrabbleBoardClient({ gameId }: { gameId: string }) {
       return;
     }
     const data: GameState = await res.json();
+    setInventory({ hintBalance: data.myHintCredits });
     setGame(data);
     const signature = (data.recentTileKeys ?? []).join("|");
     if (signature && signature !== lastRecentSignature.current) {
@@ -156,7 +159,7 @@ export default function ScrabbleBoardClient({ gameId }: { gameId: string }) {
       setHintIndices([]);
       setHintSecondsLeft(0);
     }
-  }, [gameId]);
+  }, [gameId, setInventory, t]);
 
   // Telt de 10 seconden af waarin de hint zichtbaar blijft; daarna
   // verdwijnt de highlight vanzelf weer (de knop blijft verder gewoon
@@ -311,6 +314,7 @@ export default function ScrabbleBoardClient({ gameId }: { gameId: string }) {
       setMessage(body.error ?? t("scrabble.hintFailed"));
       return;
     }
+    if (typeof body.hintBalance === "number") inventory.setData({ hintBalance: body.hintBalance }); void inventory.refetch();
     setHintIndices(body.usedIndices ?? []);
     setHintSecondsLeft(10);
     // Eén gedeeld tegoed (zie scrabbleHint in scrabbleGame.ts) dat overal
@@ -510,11 +514,11 @@ export default function ScrabbleBoardClient({ gameId }: { gameId: string }) {
           <div className="flex justify-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-700 mt-2">
             <button
               className="btn-secondary !px-3 !py-1.5"
-              disabled={busy || hintSecondsLeft > 0 || game.myHintCredits <= 0}
+              disabled={busy || hintSecondsLeft > 0 || (inventory.data?.hintBalance ?? game.myHintCredits) <= 0}
               onClick={requestHint}
               title={t("scrabble.hintTitle")}
             >
-              💡 {hintSecondsLeft > 0 ? t("scrabble.hintActive", { s: hintSecondsLeft }) : t("scrabble.hintN", { n: game.myHintCredits })}
+              💡 {hintSecondsLeft > 0 ? t("scrabble.hintActive", { s: hintSecondsLeft }) : t("scrabble.hintN", { n: inventory.data?.hintBalance ?? game.myHintCredits })}
             </button>
             <button className="btn-secondary !px-3 !py-1.5 !text-red-500 !border-red-200" disabled={busy} onClick={submitForfeit}>
               {t("challenges.forfeit")}
