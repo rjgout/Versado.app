@@ -1,8 +1,6 @@
 name: Woord van de Dag betaalde hints
 
 on:
-  push:
-    branches: ['feature/word-game-paid-hints']
   pull_request:
     branches: [main]
     paths:
