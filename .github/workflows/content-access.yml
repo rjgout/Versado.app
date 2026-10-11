@@ -1,4 +1,4 @@
-name: Contentarchitectuur 1A toegangsbeveiliging
+name: Contentarchitectuur 1A/1B toegang en studiecontext
 
 on:
   pull_request:
@@ -8,6 +8,13 @@ on:
       - 'prisma/migrations/**'
       - 'src/lib/contentAccess.ts'
       - 'src/lib/contentCollections.ts'
+      - 'src/lib/studyContext*.ts'
+      - 'src/lib/data/studyContext.ts'
+      - 'src/lib/data/scopes.ts'
+      - 'src/app/api/study-context/**'
+      - 'src/app/api/content-context/**'
+      - 'tests/study-context*'
+      - 'docs/DATA-REFRESH.md'
       - 'src/app/api/chapters/**'
       - 'src/app/api/verses/**'
       - 'src/app/api/reading*/**'
@@ -58,7 +65,7 @@ jobs:
           npx tsc --noEmit
           rm -rf .next
           npm run build
-      - name: Echte HTTP-toegang en eigen PostgreSQL zonder backup of herstel
+      - name: Echte HTTP-toegang, studiecontext en migratiebehoud op eigen PostgreSQL
         run: npm run test:content-access:integration
       - name: Regressie, lint en vertalingen
         run: |

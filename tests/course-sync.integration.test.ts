@@ -49,6 +49,7 @@ before(async () => {
   if (skip) return;
   L = await load();
   collectionId = `coursesync-${stamp}`;
+  await L.db.contentWork.create({ data: { key: collectionId, kind: "OTHER" } });
   await L.db.contentCollection.create({ data: { id: collectionId, slug: collectionId, name: collectionId, icon: "book", work: collectionId, language: "nl", order: 903 } });
   const book = await L.db.book.create({ data: { slug: `${collectionId}-b`, name: "Boek", order: 0, contentCollectionId: collectionId } });
   for (let i = 0; i < 3; i++) chapterIds.push((await L.db.chapter.create({ data: { bookId: book.id, number: i + 1, order: i } })).id);
@@ -59,6 +60,7 @@ after(async () => {
   if (skip) return;
   await L.db.user.deleteMany({ where: { email: { in: emails } } });
   await L.db.contentCollection.deleteMany({ where: { id: collectionId } });
+  await L.db.contentWork.deleteMany({ where: { key: collectionId } });
   await L.db.$disconnect();
 });
 
@@ -164,6 +166,9 @@ test("een foutief plan (dubbele volgorde of dubbele les) laat de bestaande lesse
 test("syncCourses zelf: tweemaal achter elkaar draaien verandert geen les-id's en geeft geen constraintfout", { skip }, async () => {
   const sibling = await L.db.courseLesson.count();
   const { syncCourses } = L.courses;
+  // Deze test had impliciet een al gesynchroniseerde seed nodig. Ook de
+  // kleine synthetische wegwerpfixture expliciet op dat vertrekpunt brengen.
+  await syncCourses(L.db);
   // Alleen zinvol als de testdatabase al content heeft (de seed); anders geen cursus om te vergelijken.
   if ((await L.db.contentCollection.count({ where: { enabled: true } })) === 0 || sibling === 0) return;
   const snapshot = async () => (await L.db.courseLesson.findMany({ orderBy: [{ courseId: "asc" }, { order: "asc" }], select: { id: true, courseId: true, order: true, chapterId: true, startVerse: true } })).filter((l) => l.courseId !== courseId);
