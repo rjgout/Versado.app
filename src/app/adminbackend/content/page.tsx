@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import AdminContentInventoryClient from "@/components/AdminContentInventoryClient";
 import AdminContentSwitcherClient from "@/components/AdminContentSwitcherClient";
 import AdminCoursesClient from "@/components/AdminCoursesClient";
 import AdminFsyClient from "@/components/AdminFsyClient";
@@ -24,6 +25,7 @@ export default async function AdminContentPage() {
           <ChevronRight className="h-4 w-4" aria-hidden />
         </span>
       </Link>
+      <AdminContentInventoryClient />
       <AdminContentSwitcherClient />
       <AdminCoursesClient />
       <AdminFsyClient />
