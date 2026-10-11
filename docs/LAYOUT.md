@@ -179,6 +179,25 @@ PLAYWRIGHT_MODULE=/pad/naar/playwright AUDIT_IDENTIFIER=mail AUDIT_PASSWORD=wach
   node scripts/layout-audit/switcher.mjs '{"widths":[320,390,768,1200]}'
 ```
 
+`npm run test:layout:browser` test de daadwerkelijk gerenderde productie-interface
+van Vandaag, Leren, Spelen en Woordzoeker op een eigen tijdelijke PostgreSQL 16-
+database met alle migraties. Vooraf: `npm run build`; Playwright staat buiten de
+app-dependencies en wordt opgegeven met `PLAYWRIGHT_MODULE`. De workflow
+`header-wordsearch.yml` voert dezelfde controle uit en bewaart screenshots.
+Geen productieaccounts of externe database nodig.
+
+De suite vergelijkt hit-tests en computed layers tijdens scrollen, FLIP en
+slepen; controleert contentkiezer en kaartacties; en meet echte tekstregels,
+knopbreedtes en overflow op 320/375/390/430px, tablet, desktop en landscape,
+licht/donker, 100/200% tekst en de vijf UI-talen. Alle drie Woordzoeker-niveaus
+worden via de echte API gestart, gespeeld en afgerond, inclusief touchselectie,
+terugnavigatie en belonings-idempotentie. Er wordt niets aan spelregels veranderd.
+
+Woordzoeker gebruikt lokaal `auto-fit` met een rem-minimum dat maximaal de volle
+beschikbare breedte is: één, twee of drie gelijkwaardige kolommen. De korte
+moeilijkheidslabels blijven op één regel. Het globale `overflow-wrap: anywhere`
+vangnet blijft voor gewone paginainhoud behouden.
+
 ## Native (Capacitor)
 
 De WebView gebruikt dezelfde CSS: safe areas via `--vs-safe-area-*`
