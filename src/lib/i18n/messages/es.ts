@@ -4,6 +4,16 @@ import { kompasEs } from "./kompas/es";
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
   "jigsaw": {
+    "hintRefresh": "Actualizar la reserva",
+    "hintBack": "Volver a las pistas",
+    "hintInventoryFailed": "No se pudo cargar tu reserva. Inténtalo de nuevo.",
+    "hintNoPieces": "Este puzle no tiene piezas de este tipo.",
+    "hintNoConnection": "No hay una pieza vecina que encaje fuera de este grupo.",
+    "hintShop": "Ir a la tienda",
+    "hintEmpty": "No tienes más pistas disponibles.",
+    "hintConfirmUse": "Usar 1 pista",
+    "hintPersonalCost": "Esta pista cuesta 1 pista de tu reserva.",
+    "hintStock": "Mi reserva: {n}",
     "discovererDescription": "Con imagen de referencia y ayuda para colocar.",
     "adventurerDescription": "Con contorno y encaje automático en el tablero.",
     "expertDescription": "Constrúyelo tú, sin ayuda para colocar.",
@@ -11,9 +21,9 @@ export const es: PartialMessages = {
     "pieceCountHelp": "Elige el número de piezas independientemente de la dificultad.",
     "useHint": "Usar una pista",
     "hintPanel": "Elegir una pista",
-    "hintsUnlimited": "Pistas incluidas ilimitadas",
-    "hintsRemaining": "Quedan {n} pistas incluidas",
-    "extraHintNotice": "Has usado tus pistas incluidas. La siguiente contará como pista extra. Tu racha no cambia.",
+    "hintsUnlimited": "Incluidas: ilimitadas",
+    "hintsRemaining": "Incluidas: {n}",
+    "extraHintNotice": "Has usado tus pistas incluidas. La siguiente cuesta 1 pista de tu reserva.",
     "hintPreview": "Ver la imagen",
     "hintPreviewDescription": "Mira la imagen completa durante cinco segundos.",
     "hintLocation": "¿Dónde va esta pieza?",
@@ -712,7 +722,7 @@ export const es: PartialMessages = {
       "description": "Haz un rompecabezas con ilustraciones de las historias del Libro de Mormón para niños. Elige cuántas piezas usar y luego responde una pregunta sobre la historia.",
       "linkLabel": "Rompecabezas abierto",
       "rule1": "Elige una imagen y 6, 12, 24, 48 o 96 piezas independientemente de la dificultad. Explorador tiene imagen y colocación en el tablero; Aventurero tiene contorno y colocación. Experto construye libremente sin ayuda; Maestro también gira piezas.",
-      "rule2": "Arrastra piezas y grupos; desplaza y amplía en cualquier nivel. Las piezas bien colocadas quedan ancladas en Explorador y Aventurero. Pistas en el menú: imagen, ubicación, conexión o clasificación temporal. Incluidas: ilimitadas / 3 / 2 / 1. Puedes usar pistas extra, registradas por separado; no cambian tu racha.",
+      "rule2": "Arrastra piezas y grupos; desplaza la vista y amplía en cualquier nivel. Las piezas bien colocadas quedan ancladas en Explorador y Aventurero. Pistas en el menú: imagen, ubicación, conexión o clasificación temporal. Cada intento incluye pistas ilimitadas / 3 / 2 / 1. Después, tras tu confirmación, una pista cuesta 1 pista de Mi reserva. Si está vacía, puedes ir a la tienda; al reanudar se conservan el puzle y las pistas usadas. Las pistas no cambian tu racha.",
       "rule3": "Después del rompecabezas viene una pregunta sobre la historia. Una respuesta correcta cuenta como actividad para tu racha; una incorrecta no deshace el rompecabezas. El rompecabezas no da XP."
     },
     "title": "Juegos y desafíos",

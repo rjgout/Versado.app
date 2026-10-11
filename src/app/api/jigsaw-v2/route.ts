@@ -6,13 +6,13 @@ import { getGameSettings } from "@/lib/gameSettings";
 import { apiError } from "@/lib/apiError";
 import { getT } from "@/lib/i18n";
 import { jigsawCatalog } from "@/lib/jigsawGame";
-import { answerSoloPuzzle, applySoloAction, countSchema, difficultySchema, resumeSoloPuzzle, startSoloPuzzle } from "@/lib/puzzle/solo";
+import { answerSoloPuzzle, applySoloAction, countSchema, difficultySchema, PuzzleHintError, resumeSoloPuzzle, startSoloPuzzle } from "@/lib/puzzle/solo";
 
 const actionSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("move"), groupId: z.string().min(1).max(64), x: z.number().finite().min(-100).max(100), y: z.number().finite().min(-100).max(100) }),
   z.object({ kind: z.literal("rotate"), groupId: z.string().min(1).max(64) }),
   z.object({ kind: z.literal("anchor"), groupId: z.string().min(1).max(64) }),
-  z.object({ kind: z.literal("hint"), hint: z.enum(["PREVIEW", "LOCATION", "CONNECTION", "FILTER"]), pieceId: z.number().int().min(0).max(95).optional(), filter: z.enum(["CORNERS", "EDGES", "MIDDLES"]).optional() }).refine((input) => input.hint === "PREVIEW" || (input.hint === "FILTER" ? input.filter !== undefined : input.pieceId !== undefined)),
+  z.object({ kind: z.literal("hint"), hint: z.enum(["PREVIEW", "LOCATION", "CONNECTION", "FILTER"]), confirmPersonal: z.boolean().optional(), pieceId: z.number().int().min(0).max(95).optional(), filter: z.enum(["CORNERS", "EDGES", "MIDDLES"]).optional() }).refine((input) => input.hint === "PREVIEW" || (input.hint === "FILTER" ? input.filter !== undefined : input.pieceId !== undefined)),
   z.object({ kind: z.literal("connect"), a: z.number().int().min(0).max(95), b: z.number().int().min(0).max(95) }),
 ]);
 const schema = z.discriminatedUnion("action", [
@@ -34,5 +34,7 @@ export async function POST(req: NextRequest) {
     if (input.action === "resume") { const state = await resumeSoloPuzzle(user.id, input.sessionId, user.uiLanguage); return state ? NextResponse.json(state) : NextResponse.json({ error: t("jigsaw.expired") }, { status: 404 }); }
     if (input.action === "act") { const state = await applySoloAction(user.id, input.sessionId, input.version, input.actionId, input.operation, user.uiLanguage); return state ? NextResponse.json(state) : NextResponse.json({ error: t("jigsaw.changed") }, { status: 409 }); }
     const result = await answerSoloPuzzle(user.id, input.sessionId, input.choice); return result ? NextResponse.json(result) : NextResponse.json({ error: t("jigsaw.notComplete") }, { status: 400 });
-  } catch (error) { console.error("Legpuzzel v2:", error); return NextResponse.json({ error: t("jigsaw.failed") }, { status: 500 }); }
+  } catch (error) {
+    if (error instanceof PuzzleHintError) return NextResponse.json({ error: t(error.code === "EMPTY" ? "jigsaw.hintEmpty" : "jigsaw.hintPersonalCost"), code: error.code, hintBalance: error.hintBalance }, { status: error.code === "EMPTY" ? 402 : 409 });
+    console.error("Legpuzzel v2:", error); return NextResponse.json({ error: t("jigsaw.failed") }, { status: 500 }); }
 }

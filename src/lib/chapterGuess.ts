@@ -1,3 +1,4 @@
+import { emitToUser } from "@/lib/realtime";
 import { prisma } from "@/lib/db";
 import { playableAudioUrl } from "@/lib/audioMirror";
 import { BOFM_WORK, resolveEditionId } from "@/lib/contentCollections";
@@ -362,6 +363,7 @@ export async function chapterGuessHint(
     throw e;
   }
 
+  emitToUser(userId, "hints_changed");
   const hintCredits = await getHintBalance(userId);
 
   const optionIds = question.optionIds ? (JSON.parse(question.optionIds) as string[]) : null;

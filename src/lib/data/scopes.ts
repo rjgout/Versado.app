@@ -49,6 +49,7 @@ export const DATA_EVENTS = {
   coursesChanged: ["courses", "today"],
   // Profiel- of accountinstelling gewijzigd.
   settingsChanged: ["profile", "today", "kompas"],
+  hintsChanged: ["games"],
   // Versado Kompas: een uitleg of rondleiding bekeken, overgeslagen of afgerond.
   kompasChanged: ["kompas"],
 } as const satisfies Record<string, readonly DataScope[]>;
@@ -87,6 +88,7 @@ export function topicRoom(topic: LiveTopic): string {
  * Eén gebeurtenis kan meerdere datasets raken (een spel-uitnodiging is ook een melding).
  */
 export const SOCKET_EVENT_TO_DATA_EVENT = {
+  hints_changed: "hintsChanged",
   streak_changed: "activityCompleted",
   notifications_changed: "notificationsChanged",
   friends_changed: "friendsChanged",
