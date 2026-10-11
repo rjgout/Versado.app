@@ -132,15 +132,17 @@ export default function WordSearchClient({ initialGame = null }: Props) {
           <h1 className="text-2xl font-black dark:text-slate-100">{t("wordSearch.title")}</h1>
           <p className="mt-2 text-slate-600 dark:text-slate-300">{t("wordSearch.intro")}</p>
         </div>
-        <div className="card flex flex-col gap-5">
+        <div className="card flex flex-col gap-5 !px-3 sm:!px-6">
           <div>
             <h2 className="font-extrabold dark:text-slate-100">{t("wordSearch.title")}</h2>
-            <div className="mt-3 grid grid-cols-3 gap-2" role="radiogroup" aria-label={t("wordSearch.title")}>
+            {/* De rem-minimummaat schaalt met de tekst; op smalle schermen
+                past het raster zich aan in plaats van woorden af te breken. */}
+            <div className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] gap-2" role="radiogroup" aria-label={t("wordSearch.title")}>
               {(["EASY", "MEDIUM", "HARD"] as const).map((level) => (
                 <button
                   key={level}
                   type="button"
-                  className={`btn ${difficulty === level ? "!border-gold-400 !bg-gold-50 dark:!bg-slate-700" : "btn-secondary"}`}
+                  className={`btn min-h-12 min-w-0 !px-1.5 whitespace-nowrap ${difficulty === level ? "!border-gold-400 !bg-gold-50 dark:!bg-slate-700" : "btn-secondary"}`}
                   onClick={() => setDifficulty(level)}
                   aria-pressed={difficulty === level}
                 >
