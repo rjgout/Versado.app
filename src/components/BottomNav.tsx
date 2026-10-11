@@ -18,7 +18,7 @@ export default function BottomNav() {
       // pb-[...]: telt de homeindicator-ruimte van een geïnstalleerde
       // iOS-PWA op (env(safe-area-inset-bottom), zie viewportFit: "cover"
       // in layout.tsx), zodat de navigatie daar nooit onder valt.
-      className="vs-motion fixed bottom-0 inset-x-0 z-20 border-t border-vs-line bg-vs-elevated/95 backdrop-blur-md lg:hidden"
+      className="vs-motion fixed bottom-0 inset-x-0 z-30 border-t border-vs-line bg-vs-elevated/95 backdrop-blur-md lg:hidden"
       // data-main-nav voor de CSS in globals.css: het aria-label is vertaald.
       data-main-nav
       aria-label={t("nav.main")}

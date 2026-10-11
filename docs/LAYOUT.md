@@ -57,15 +57,18 @@ daaronder de spelers, en dan pas `<main>`. De kiezer zelf heeft dus geen eigen
 offset: hij volgt de header.
 
 **Lagen (z-index).** Een dropdown of popover hoort nooit *in* de vaste bovenbalk
-te hangen. Die balk heeft `overflow-x: clip` en vormt één stackinglaag (z-20):
+te hangen. Die balk heeft `overflow-x: clip` en vormt één stackinglaag (z-30):
 alles erin wordt op de rand van de balk afgekapt en schildert effectief op
-laag 20, waardoor elk later element in de pagina met `z-20` of hoger (zoals de ⋯
-op een cursuskaart) er overheen kan. De schaal is daarom:
+laag 30. Kaartmenu's op laag 20 en de sleepkaart op laag 25 blijven eronder,
+ongeacht DOM-volgorde of tijdelijke FLIP-transforms. Gelijke lagen voor balken
+en kaartmenu's lieten het later gerenderde kaartmenu juist boven de header komen.
+De standaardlaag 999 van `DragOverlay` wordt daarom expliciet begrensd. De schaal:
 
 | Laag | Wat | z |
 |---|---|---|
 | pagina | gewone inhoud en lokale knoppen | ≤ 20, binnen `<main>` |
-| balken | `[data-sticky-header]`, `[data-main-nav]` | 20 |
+| sleepkaart | `SortableList` / `DragOverlay`, boven andere kaarten | 25 |
+| balken | `[data-sticky-header]`, `[data-main-nav]` | 30 |
 | popovers en menu's | contentkiezer (portal op `<body>`) | 40 |
 | dialogen en sheets | `ChapterPopup` | 50 |
 | volledige overlays | `FriendPicker`, `NotificationCenter` | 75–80 |
@@ -175,6 +178,25 @@ met een inkeping. Echte iOS-WebKit meet het niet (alleen Chromium is beschikbaar
 PLAYWRIGHT_MODULE=/pad/naar/playwright AUDIT_IDENTIFIER=mail AUDIT_PASSWORD=wachtwoord \
   node scripts/layout-audit/switcher.mjs '{"widths":[320,390,768,1200]}'
 ```
+
+`npm run test:layout:browser` test de daadwerkelijk gerenderde productie-interface
+van Vandaag, Leren, Spelen en Woordzoeker op een eigen tijdelijke PostgreSQL 16-
+database met alle migraties. Vooraf: `npm run build`; Playwright staat buiten de
+app-dependencies en wordt opgegeven met `PLAYWRIGHT_MODULE`. De workflow
+`header-wordsearch.yml` voert dezelfde controle uit en bewaart screenshots.
+Geen productieaccounts of externe database nodig.
+
+De suite vergelijkt hit-tests en computed layers tijdens scrollen, FLIP en
+slepen; controleert contentkiezer en kaartacties; en meet echte tekstregels,
+knopbreedtes en overflow op 320/375/390/430px, tablet, desktop en landscape,
+licht/donker, 100/200% tekst en de vijf UI-talen. Alle drie Woordzoeker-niveaus
+worden via de echte API gestart, gespeeld en afgerond, inclusief touchselectie,
+terugnavigatie en belonings-idempotentie. Er wordt niets aan spelregels veranderd.
+
+Woordzoeker gebruikt lokaal `auto-fit` met een rem-minimum dat maximaal de volle
+beschikbare breedte is: één, twee of drie gelijkwaardige kolommen. De korte
+moeilijkheidslabels blijven op één regel. Het globale `overflow-wrap: anywhere`
+vangnet blijft voor gewone paginainhoud behouden.
 
 ## Native (Capacitor)
 

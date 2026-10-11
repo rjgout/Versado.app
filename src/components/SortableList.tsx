@@ -222,7 +222,9 @@ export function SortableList<T extends { id: string }>({
           ))}
         </div>
       </SortableContext>
-      <DragOverlay dropAnimation={null}>
+      {/* Boven lokale kaartmenu's (20), onder de vaste navigatie (30).
+          De standaard 999 van dnd-kit bedekte anders de shell. */}
+      <DragOverlay dropAnimation={null} zIndex={25}>
         {activeItem && (
           <div className="pointer-events-none h-full scale-[1.02] cursor-grabbing rounded-2xl shadow-2xl ring-2 ring-vs-accent/40 motion-reduce:scale-100">
             {renderItem(activeItem, {
