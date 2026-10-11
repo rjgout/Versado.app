@@ -54,7 +54,7 @@ Datasets (scopes): `today`, `progress`, `courses`, `xp`, `streak`, `profile`,
 | `gamesChanged` | uitdaging/woordspel/live spel gestart, geannuleerd of verlaten, uitnodiging ingetrokken (`game_invite`, `scrabble_updated`, `game_invite_revoked`, `game_cancelled`, `game_left`) | games, today |
 | `coursesChanged` | cursus toegevoegd of verborgen | courses, today |
 | `settingsChanged` | profiel- of accountinstelling gewijzigd (ook de schakelaar voor uitnodigingen van Kompas) | profile, today, kompas |
-| `hintsChanged` | persoonlijke hintvoorraad verbruikt of gekocht; `/api/hints` is de gedeelde voorraadquery, winkel en speldata verversen via games. `hints_changed` informeert andere apparaten na commit | games |
+| `hintsChanged` | persoonlijke hintvoorraad verbruikt of gekocht; `/api/hints` is de gedeelde voorraadquery. `hints_changed` informeert andere apparaten na commit; ook betaalde Woord-van-de-Dag-kandidaten en de accountbrede cooldown verversen | games, wordGame |
 | `kompasChanged` | een uitleg of rondleiding van Versado Kompas bekeken, overgeslagen of afgerond; raakt nooit XP, reeks of resultaten | kompas |
 
 `announceXpChanged()` (`src/lib/xpBroadcast.ts`) is het centrale moment voor alles wat XP

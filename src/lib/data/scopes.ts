@@ -49,7 +49,7 @@ export const DATA_EVENTS = {
   coursesChanged: ["courses", "today"],
   // Profiel- of accountinstelling gewijzigd.
   settingsChanged: ["profile", "today", "kompas"],
-  hintsChanged: ["games"],
+  hintsChanged: ["games", "wordGame"],
   // Versado Kompas: een uitleg of rondleiding bekeken, overgeslagen of afgerond.
   kompasChanged: ["kompas"],
 } as const satisfies Record<string, readonly DataScope[]>;

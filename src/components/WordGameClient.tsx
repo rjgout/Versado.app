@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { announceXpChanged } from "@/lib/xpBroadcast";
 import UserTag from "@/components/UserTag";
@@ -15,6 +15,8 @@ import { useLiveQuery, useLiveTopic } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
 import { liveMutation } from "@/lib/data/mutation";
 import RankMedal from "@/components/versado/RankMedal";
+import WordGameHintPanel from "@/components/WordGameHintPanel";
+import type { WordGameHintsView } from "@/lib/wordGameHintRules";
 
 type LetterState = "correct" | "present" | "absent";
 
@@ -41,6 +43,8 @@ interface LeaderboardEntry {
 }
 
 interface GameView {
+  id: string;
+  hints: WordGameHintsView;
   dayKey: string;
   nextReleaseAt: string;
   nextReleaseDay: "today" | "tomorrow";
@@ -61,12 +65,13 @@ interface GameView {
   previousResult: { dayKey: string; rank: number; xp: number } | null;
   /** Toestelklok op het moment dat dit antwoord binnenkwam (voor het verschil met serverNow). */
   receivedAt: number;
+  receivedMonotonicAt: number;
 }
 
-type ServerGameView = Omit<GameView, "receivedAt">;
+type ServerGameView = Omit<GameView, "receivedAt" | "receivedMonotonicAt">;
 
 function stamp(view: GameView | ServerGameView): GameView {
-  return { ...view, receivedAt: Date.now() };
+  return { ...view, receivedAt: Date.now(), receivedMonotonicAt: performance.now() };
 }
 
 const TILE_STYLES: Record<LetterState, string> = {
@@ -96,6 +101,7 @@ export default function WordGameClient() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [shake, setShake] = useState(false);
+  const guessInput = useRef<HTMLInputElement>(null);
 
   const gameQuery = useLiveQuery<GameView>(["wordGame", "today"], async () => stamp(await fetchJson<GameView>("/api/word-game")), {
     scopes: ["wordGame"],
@@ -276,6 +282,7 @@ export default function WordGameClient() {
                 voor de knop. Bij sterke tekstzoom mag de knop doorschuiven. */}
             <div className="min-w-[min(100%,8rem)] flex-1">
               <input
+                ref={guessInput}
                 className="input text-center uppercase tracking-widest font-extrabold"
                 value={guess}
                 maxLength={game.wordLength}
@@ -295,6 +302,9 @@ export default function WordGameClient() {
           {formError && <p className="text-red-600 dark:text-red-400 text-sm font-semibold">{formError}</p>}
         </div>
       )}
+
+      <WordGameHintPanel key={game.id} gameId={game.id} hints={game.hints} finished={finished} serverNow={game.serverNow} receivedAt={game.receivedMonotonicAt}
+        onUpdate={(view) => gameQuery.setData(stamp(view))} onRefresh={gameQuery.refetch} onFill={(word) => { setGuess(word); guessInput.current?.focus(); }} />
 
       {finished && (
         <div className="card flex flex-col items-center gap-3 text-center animate-pop">
@@ -371,7 +381,7 @@ export default function WordGameClient() {
         {game.leaderboard.length > 0 ? (
           <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-700">
             {game.leaderboard.map((entry) => (
-              <div key={entry.rank} className="flex items-center gap-3 py-2 first:pt-0 last:pb-0">
+              <div key={entry.rank} className="flex flex-wrap items-center gap-3 py-2 first:pt-0 last:pb-0">
                 {entry.rank <= 3 ? (
                   <RankMedal
                     rank={entry.rank as 1 | 2 | 3}

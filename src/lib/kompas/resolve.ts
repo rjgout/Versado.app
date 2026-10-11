@@ -96,7 +96,7 @@ export function generalEntry(t: TFunction, topic: KompasTopic): KompasEntry {
   return overlay(
     {
       what: read(t, `${base}.description`),
-      steps: readSteps(t, ["rule1", "rule2", "rule3"].map((rule) => `${base}.${rule}`)),
+      steps: readSteps(t, ["rule1", "rule2", "rule3", ...(topic.game.id === "word-game" ? ["rule4"] : [])].map((rule) => `${base}.${rule}`)),
       faq: [],
     },
     own,
