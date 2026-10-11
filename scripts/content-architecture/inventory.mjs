@@ -62,11 +62,17 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const url = process.env.CONTENT_INVENTORY_DATABASE_URL;
   const destination = process.argv[2];
   if (!url || !destination) throw new Error("Vereist: expliciet geautoriseerde CONTENT_INVENTORY_DATABASE_URL en uitvoerbestand; geen DATABASE_URL-fallback");
-  const client = new pg.Client({ connectionString: url, statement_timeout: 30_000, connectionTimeoutMillis: 5000 });
+  let client;
   try {
+    client = new pg.Client({ connectionString: url, statement_timeout: 30_000, connectionTimeoutMillis: 5000 });
     await client.connect();
     const inventory = await collectInventory(client);
     await writeFile(destination, JSON.stringify({ capturedAt: new Date().toISOString(), ...inventory }, null, 2), { mode: 0o600, flag: "wx" });
     console.log(`Inventaris geschreven; ${inventory.collections.length} collecties, ${inventory.identities.issues.length} identiteitsproblemen. Geen gegevens gewijzigd.`);
-  } finally { await client.end(); }
+  } catch (error) {
+    // Driverfouten kunnen host, rol of verbindingsgegevens bevatten. Geen raw error loggen.
+    const code = typeof error.code === "string" && /^[A-Z0-9_]{1,64}$/.test(error.code) ? error.code : "UNKNOWN";
+    console.error(`Inventarisatie mislukt (${code}); geen gegevens gewijzigd.`);
+    process.exitCode = 1;
+  } finally { await client?.end(); }
 }

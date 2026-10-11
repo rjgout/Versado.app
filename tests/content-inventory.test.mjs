@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { analyseIdentities, collectInventory } from "../scripts/content-architecture/inventory.mjs";
 const collection = (id, work, editionKey = "default", language = "nl") => ({ id, work, editionKey, language });
 test("bekende werken, talen en editie-families worden zonder recreatie geïnventariseerd", () => {
@@ -38,4 +39,14 @@ test("inventaris gebruikt uitsluitend SELECT binnen een read-only transactie", a
   assert.equal(calls[0], "BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
   assert.equal(calls.at(-1), "COMMIT");
   assert.ok(calls.slice(1, -1).every(sql => /^SELECT\b/.test(sql)));
+});
+test("een verbindingsfout exporteert geen URL, gebruikersnaam of wachtwoord", () => {
+  const result = spawnSync(process.execPath, ["scripts/content-architecture/inventory.mjs", "/tmp/unused-content-inventory.json"], {
+    env: { ...process.env, CONTENT_INVENTORY_DATABASE_URL: "postgresql://secret-user:secret-password@127.0.0.1:1/not-real" },
+    encoding: "utf8", timeout: 10_000,
+  });
+  assert.equal(result.status, 1);
+  const output = result.stdout + result.stderr;
+  assert.match(output, /Inventarisatie mislukt/);
+  for (const secret of ["secret-user", "secret-password", "postgresql://"]) assert.ok(!output.includes(secret));
 });

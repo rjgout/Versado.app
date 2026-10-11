@@ -108,7 +108,9 @@ backup of herstelproef**. De uitvoer meldt expliciet dat productie-inventaris,
 backupcreatie en herstel niet zijn uitgevoerd.
 
 De read-only inventaris gebruikt naast BEGIN/COMMIT/ROLLBACK uitsluitend SELECT,
-ook voor `transaction_read_only`. FSY-conceptaantallen en alle migratiestatussen,
+ook voor `transaction_read_only`. Verbindingsfouten worden uitsluitend met
+een veilige foutcode gemeld; driverdetails, gebruikersnaam en URL verschijnen
+niet in gedeelde logs. FSY-conceptaantallen en alle migratiestatussen,
 inclusief onvoltooide/teruggedraaide migraties zonder logs, zijn opgenomen.
 De actuele handleiding staat in
 [de voorbereidingshandleiding](../../scripts/content-architecture/README.md).
@@ -141,8 +143,8 @@ Uitgevoerd op deze werkbranch:
 
 | Controle | Resultaat |
 | --- | --- |
-| Gerichte toegang/inventaris/HTTP-DB-tests | 23 geslaagd, 0 overgeslagen |
-| Bestaande editie-, wissel-, leer- en reeksregels | 31 geslaagd (46 inclusief 10 toegang- en 5 inventaris-unittests) |
+| Gerichte toegang/inventaris/HTTP-DB-tests | 24 geslaagd, 0 overgeslagen |
+| Bestaande editie-, wissel-, leer- en reeksregels | 31 geslaagd (47 inclusief 10 toegang- en 6 inventaris-unittests) |
 | Focus/shell | 23 geslaagd |
 | Live data | 51 geslaagd |
 | TypeScript | geslaagd |

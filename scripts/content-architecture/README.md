@@ -22,7 +22,8 @@ null-workwaarden, mogelijke identiteitconflicten, aantallen, relatiecontroles,
 FSY-publicatiekopieën/conceptaantallen en migratiestatus, inclusief
 onvoltooide/teruggedraaide migraties zonder logteksten. Geen privénotitieteksten of
 gebruikersidentiteiten worden geëxporteerd. De verbindingsstring hoort niet in
-Git, een PR of een gedeeld logbestand.
+Git, een PR of een gedeeld logbestand. Bij een fout toont het script alleen
+een veilige foutcode, geen ruwe driverdetails of verbindingsgegevens.
 
 `suggestedKind` is uitsluitend een voorbereidingsadvies op basis van bekende
 werksleutels. Null-work en onbekende bronnen blijven OTHER in dit advies; er
