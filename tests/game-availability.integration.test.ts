@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { prisma } from "../src/lib/db";
 import { createSessionToken, SESSION_COOKIE } from "../src/lib/auth";
-import { checkGameAvailability, canResumeLiveGame } from "../src/lib/gameAvailability";
+import { availableGameKeys, canStartGame, checkGameAvailability, canResumeLiveGame } from "../src/lib/gameAvailability";
 import { canStartStudy } from "../src/lib/study/startAvailability";
 import { getContentContext } from "../src/lib/contentCollections";
 const database = new URL(process.env.CONTENT_ACCESS_TEST_DATABASE_URL ?? "http://invalid");
@@ -190,4 +190,54 @@ test("Woordzoeker: dubbele eerste creatie, oorspronkelijke collectie bij hervatt
   assert.equal((await request(`/api/word-search/${a.id}`)).status, 200);
   assert.equal((await request(`/api/word-search/${a.id}`, "GET", undefined, adminCookie)).status, 404);
   await setSource("content_bom"); assert.deepEqual(await preserved(userId), before);
+});
+
+test("directe starts beoordelen alleen eigen geldige keuze: geen BOM-fallback of impliciete adminpreview", async () => {
+  const before = await preserved(userId);
+  for (const id of [hiddenId, "content_podcasts"]) {
+    await setSource(id);
+    await prisma.user.update({ where: { id: adminId }, data: { activeContentCollectionId: id } });
+    assert.deepEqual(await Promise.all([canStartGame(userId,"jigsaw"), canStartGame(adminId,"jigsaw")]), [false,false]);
+  }
+  await setSource("content_bom");
+  await prisma.user.update({ where: { id: adminId }, data: { activeContentCollectionId: "content_bom" } });
+  assert.deepEqual(await Promise.all([canStartGame(userId,"jigsaw"), canStartGame(adminId,"jigsaw")]), [true,true]);
+  await setSource("content_podcasts");
+  assert.deepEqual(await Promise.all([canStartGame(userId,"jigsaw"), canStartGame(adminId,"jigsaw")]), [false,true]);
+  await setSource("content_bom");
+  assert.equal(await canStartGame("missing-user", "jigsaw"), false);
+  assert.deepEqual(await preserved(userId), before);
+});
+
+test("request-local aanbod deelt voorwaarden zonder stale rechten, settings, scopes of pools", async () => {
+  const before = await preserved(userId);
+  assert.ok((await availableGameKeys("content_bom")).includes("jigsaw"));
+  await prisma.gameSettings.update({ where: { id: "singleton" }, data: { jigsawEnabled: false } });
+  assert.ok(!(await availableGameKeys("content_bom")).includes("jigsaw"));
+  assert.equal(await canStartGame(userId, "jigsaw"),false);
+  await prisma.gameSettings.update({ where: { id: "singleton" }, data: { jigsawEnabled: true } });
+  await prisma.gameContentScope.deleteMany({ where: { gameKey: "jigsaw", contentCollectionId: "content_bom" } });
+  assert.ok(!(await availableGameKeys("content_bom")).includes("jigsaw"));
+  await scope("jigsaw");
+  for (const patch of [{ enabled: false },{ visibleToUsers: false },{ publicationState: "DRAFT" as const }]) {
+    await prisma.contentCollection.update({ where: { id: "content_bom" }, data: patch });
+    assert.deepEqual(await availableGameKeys("content_bom"),[]);
+    assert.equal(await canStartGame(userId, "jigsaw"), false);
+    await prisma.contentCollection.update({ where: { id: "content_bom" }, data: { enabled: true, visibleToUsers: true, publicationState: "LEGACY" } });
+  }
+  // Losse check en het gedeelde overzicht behouden dezelfde inhoudsvalidatie.
+  const keys = await availableGameKeys("content_bom");
+  for (const game of ["jigsaw","word-search","word-game","chapter-guess","live-exercises"] as const) {
+    assert.equal(keys.includes(game), (await checkGameAvailability(game,"content_bom")).available);
+  }
+  assert.deepEqual(await preserved(userId),before);
+});
+
+test("oude gebruiker zonder voorkeur krijgt dezelfde echte editie, zonder registratie of synthetische fallback", async () => {
+  await prisma.user.update({ where: { id: userId }, data: { activeContentCollectionId: null } });
+  const before = await preserved(userId);
+  const context = await getContentContext(userId);
+  assert.equal(await canStartGame(userId,"jigsaw"),(await checkGameAvailability("jigsaw",context.active.id)).available);
+  assert.deepEqual(await preserved(userId),before);
+  await setSource("content_bom");
 });

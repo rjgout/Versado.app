@@ -199,6 +199,129 @@ synthetische uitgave voor de expliciete editie-keuzetest; screenshots zijn
 geen nieuwe productie-inventaris. Alleen Chromium is uitgevoerd, geen
 fysieke iPhone/Android of WebKit/Capacitor-uitrol.
 
+## Aanvullende performancereview — 12 oktober 2026
+
+Naar aanleiding van de [review bij PR #90](https://github.com/rjgout/Versado.app/pull/90#issuecomment-6126061450)
+is vóór de applicatiewijziging een nulmeting uitgevoerd op `ca1f58d`.
+De extra belasting was daarmee gemeten, niet uitsluitend vermoed:
+`canStartGame()` bouwde eerst de volledige contentcontext met alle pools op
+en controleerde vervolgens de gevraagde game nogmaals.
+
+### Meetmethode en resultaten
+
+De bestaande geïsoleerde PostgreSQL-16-runner bouwt de synthetische 21-collectie/
+zeven-werkenfixture met de bestaande migraties. De benchmark voegt 250
+hoofdstukken, 1.500 oefeningen en 553 vormgeldige Alleskenner-onderdelen toe.
+BOM en Podcasts zijn voor deze test expliciet toegankelijk. Het brede
+scenario heeft alle elf bekende scopes en alle GameSettings aan; daarnaast
+zijn één scope en geen scopes afzonderlijk gemeten. Dezelfde fixture,
+Node-versie (24.19.0), Prisma-client, PostgreSQL-versie en `NODE_ENV=production`
+zijn vóór en na gebruikt; geen productiebenchmark of productiegegevens.
+
+Per scenario: tien opwarmingen, daarna tachtig sequentiële serviceaanroepen.
+Queryaantallen zijn echte Prisma-SQL-queryevents, inclusief afzonderlijke
+relatiequeries; geen geschatte telling van delegate-aanroepen. Mediaan is
+het gemiddelde van de middelste twee gesorteerde samples, p95 de 76e sample.
+Uitvoering via dezelfde TSX-serviceomgeving als de integratietests; tijden
+sluiten HTTP, authenticatie, Next-rendering en netwerk naar een NAS uit.
+De oorspronkelijke productiebuild was aanwezig; na de wijziging is opnieuw
+schoon gebouwd en de echte Next-productiebuild apart met HTTP/browser/socket
+getest. Dit zijn servicemetingen, geen beloofde gebruikerslatenties.
+
+| Scenario | Queries vóór → na | Mediaan vóór → na (ms) | p95 vóór → na (ms) |
+| --- | ---: | ---: | ---: |
+| `getContentContext`, BOM / alle scopes | 47 → 16 | 23,791 → 16,793 | 33,111 → 25,442 |
+| `getContentContext`, Podcasts / alle scopes | 29 → 7 | 7,822 → 3,468 | 10,054 → 4,511 |
+| `getContentContext`, BOM / één scope | 10 → 8 | 3,856 → 3,672 | 5,383 → 4,777 |
+| `getContentContext`, BOM / geen scopes | 5 → 5 | 2,039 → 2,259 | 2,482 → 3,041 |
+| `canStartGame`, toegestane jigsaw / BOM met alle scopes | 53 → 5 | 25,023 → 2,146 | 37,725 → 2,784 |
+| `canStartGame`, geweigerde jigsaw / Podcasts | 34 → 3 | 9,811 → 1,173 | 19,205 → 1,502 |
+
+De toegestane directe start gebruikt circa 91% minder queries en heeft in
+deze fixture circa 91% lagere mediane servicetijd. Het brede BOM-overzicht
+gebruikt circa 66% minder queries. Het scenario zonder scopes houdt precies
+dezelfde vijf queries; de lichte tijdstijging (0,22 ms mediaan) is afzonderlijk
+vermeld. Er is geen betrouwbaarheidsinterval of productiecapaciteitsclaim;
+kleine tijdverschillen en p95 zijn gevoelig voor hostbelasting. Een tweede
+nameting en de CI-budgetcontrole bevestigen de queryaantallen, zonder
+flaky harde tijdgrenzen te introduceren.
+
+### Gerichte wijziging en beveiliging
+
+- `getActiveGameCollection()` hergebruikt de bestaande bron-/taalkeuze in
+  `contentCollections.ts`, met normale serverrechten. Een expliciete,
+  verborgen, DRAFT, uitgeschakelde of ontbrekende actieve collectie geeft
+  geen vervangende BOM. Oude gebruikers zonder expliciete voorkeur behouden
+  de bestaande eerste-werk/taalkeuze uit echte toegankelijke edities,
+  zonder voorkeurmutatie of synthetische collectie.
+- `canStartGame()` controleert uitsluitend de gevraagde game. Het roept geen
+  `getContentContext()` aan en laadt geen andere spelpools, switcherinstellingen
+  of studiecontext. Rechten op de vaste BOM-bron blijven vereist waar de
+  bestaande adapter die gebruikt.
+- `availableGameKeys()` deelt één collectie-/rechtenresultaat, GameSettings
+  en scopeverzameling per aanroep. Dezelfde hoofdstuktelling en oefenpool
+  worden intern gedeeld. Niet-ondersteunde/uitgeschakelde/ongescopeerde games
+  bereiken hun pools niet. Een lege scopelijst veroorzaakt geen extra
+  collectie- of poolqueries.
+- De interne promises leven alleen tijdens deze aanroep. Geen globale,
+  React- of langdurige toestemmingscache; na adminwijzigingen worden rechten,
+  publicatie, settings, scopes en pools bij de volgende aanvraag opnieuw
+  gelezen. De normale adminrechten blijven gescheiden van expliciete preview.
+- Resume-, spelregel-, belonings-, bronselectie-, studiecontext- en preview-
+  contracten zijn behouden. Geen migratie, adapter, Genees-wijziging of
+  wijziging van lokale Mysterie-concepten.
+
+### Reproduceerbaarheid en regressiebescherming
+
+```sh
+AVAILABILITY_PERFORMANCE_REPORT=/tmp/versado-availability.json \
+  node scripts/content-architecture/test-access-isolated.mjs \
+  --availability-performance --assert-budget
+```
+
+Voor de nulmeting vervalt `--assert-budget`. De runner negeert een externe
+databasebinding, start uitsluitend zijn eigen lokale Docker-container,
+controleert host/database, gebruikt synthetische inhoud en ruimt die database
+weer op. Alleen aantallen/modelnamen en runtimes worden geëxporteerd, geen
+SQL, credentials, gebruikersgegevens of privétekst. Rapporten blijven buiten
+Git. De reguliere `test:content-access:integration` voert deze querybudget-
+en versheidscontrole automatisch uit in de bestaande GitHub Actions-job.
+
+Nieuwe regressies controleren normale versus adminrechten, twee onafhankelijke
+gebruikers, geen fallback bij ingetrokken toegang, gebruikers zonder voorkeur,
+verse settings/scopes/publicatie, gelijkheid tussen losse checks en gedeeld
+aanbod en behoud van economie/voortgang. SQL-budgetten zijn maximaal
+16/7/8/5 queries voor de vier contextscenario's en 5/3 voor de directe starts.
+Voor jigsaw worden bovendien nul hoofdstuk-, oefen-, Alleskenner-, naam-,
+switcher- of studiecontextqueries geëist.
+
+Hercontrole: TypeScript, Prisma en schone productiebuild geslaagd; 169
+basisregressies, 284 aanvullende spel/tijd/economie/navigatieregressies en
+130 content/API/contextintegratiechecks geslaagd, zonder skips. ESLint:
+nul fouten, dezelfde 132 bestaande waarschuwingen. Geen i18n-wijzigingen;
+de bestaande 423 ontbrekende sleutels per secundaire taal blijven zichtbaar.
+De volledige productie-browsermatrix is opnieuw geslaagd: 28 bestaande
+shell/Woordzoeker-combinaties en 48 contentkiezer/beheercombinaties, vijf
+talen, 320–1280 px, portrait/landscape, licht/donker en 100/200% tekst.
+Ook alle 37 echte socketcontroles, 40 puzzel-DB-tests en alle vijf
+productie-puzzelbrowsercases en 43 woordspelhint-/tijd-/gameplaychecks zijn
+opnieuw geslaagd. Geen tests overgeslagen. De negen Actions op de exact
+gepushte nieuwe HEAD worden bij oplevering in PR #90 gerapporteerd.
+De synthetische browserserver logde ook afgebroken responsestreams, mislukte
+testfeedrequests en twee `user.update`-fouten; alle browserasserties en
+runners slaagden. Deze afzonderlijke testserverlogs zijn niet als succesvolle
+productievalidatie geïnterpreteerd en hun oorzaak is niet aanvullend onderzocht.
+
+### Resterende prestatierisico's
+
+Een breed BOM-overzicht controleert nog steeds echte pools: Alleskenner
+leest en valideert de beschikbare onderdelen; Woordzoeker leest brongebonden
+namen. Grotere toekomstige pools en echte NAS-/netwerklatenties zijn niet
+gemeten. Request-local hergebruik is geen snapshotgarantie bij wijzigingen
+tijdens dezelfde aanvraag; het bestaande TOCTOU-risico is niet verruimd en
+geen recht wordt langdurig vastgezet. De afzonderlijk te beoordelen bronopslag
+voor Snelle Zendeling/Genees en lokale Mysterie-drafts blijven open.
+
 ## Databehoud en privacy
 
 Geen migraties of wijziging van bestaande sleutels/relaties. Geen nieuw User-
@@ -265,6 +388,9 @@ of spelregels zijn niet gestart.
 - `/api/admin/game-scopes`, normale spelstart-/hervat-API's en setup-/sessiepagina's;
   `src/server/gameServer.ts`, `alleskenner.ts`, `study.ts`, `quickMissionary.ts`:
   serverautoriteit en bestaande realtime-resources.
+- Aanvullende review: `scripts/content-architecture/benchmark-availability.mjs`,
+  de bestaande `test-access-isolated.mjs`-runner en drie extra
+  `game-availability.integration.test.ts`-regressies.
 - Alle vijf i18n-bestanden, gerichte nieuwe API/policy/sockettests,
   bestaande contentwissel-/pickerbrowsertests en twee bestaande CI-workflows.
 

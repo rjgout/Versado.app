@@ -61,21 +61,26 @@ try {
   await run("npm", ["run", "db:migrate:deploy"], env);
   await run("node", ["tests/study-context-migration.mjs", "verify"], env);
   await run("npm", ["run", "db:migrate:deploy"], env);
-  server = spawn("node", ["scripts/content-architecture/test-server.mjs"], { env, stdio: "inherit", detached: true });
-  let healthy = false;
-  for (let i = 0; i < 90; i++) {
-    try { if ((await fetch(`${base}/api/health`)).ok) { healthy = true; break; } } catch {}
-    if (server.exitCode !== null) throw new Error("Geïsoleerde testserver gestopt");
-    await delay(500);
+  if (process.argv.includes("--availability-performance")) {
+    await run("npx", ["tsx", "scripts/content-architecture/benchmark-availability.mjs", ...(process.argv.includes("--assert-budget") ? ["--assert-budget"] : [])], env);
+  } else {
+    server = spawn("node", ["scripts/content-architecture/test-server.mjs"], { env, stdio: "inherit", detached: true });
+    let healthy = false;
+    for (let i = 0; i < 90; i++) {
+      try { if ((await fetch(`${base}/api/health`)).ok) { healthy = true; break; } } catch {}
+      if (server.exitCode !== null) throw new Error("Geïsoleerde testserver gestopt");
+      await delay(500);
+    }
+    if (!healthy) throw new Error("Productie-routehandler niet beschikbaar");
+    await run("npx", ["tsx", "--test", "tests/content-access.test.ts", "tests/content-inventory.test.ts", "tests/content-inventory-validation.test.mjs", "tests/content-access.integration.test.ts", "tests/content-switch.integration.test.ts"], env);
+    await run("npx", ["tsx", "--test", "tests/course-sync.integration.test.ts"], env);
+    // Apart: fingerprints over alle oude tabellen en een tijdelijke fouttrigger mogen
+    // niet samenvallen met fixtures van andere testprocessen.
+    await run("npx", ["tsx", "--test", "tests/study-context.test.ts", "tests/study-context.integration.test.ts"], env);
+    await run("npx", ["tsx", "--test", "tests/content-picker.test.ts", "tests/content-picker.integration.test.ts"], env);
+    await run("npx", ["tsx", "--test", "tests/game-availability.test.ts", "tests/game-availability.integration.test.ts"], env);
   }
-  if (!healthy) throw new Error("Productie-routehandler niet beschikbaar");
-  await run("npx", ["tsx", "--test", "tests/content-access.test.ts", "tests/content-inventory.test.ts", "tests/content-inventory-validation.test.mjs", "tests/content-access.integration.test.ts", "tests/content-switch.integration.test.ts"], env);
-  await run("npx", ["tsx", "--test", "tests/course-sync.integration.test.ts"], env);
-  // Apart: fingerprints over alle oude tabellen en een tijdelijke fouttrigger mogen
-  // niet samenvallen met fixtures van andere testprocessen.
-  await run("npx", ["tsx", "--test", "tests/study-context.test.ts", "tests/study-context.integration.test.ts"], env);
-  await run("npx", ["tsx", "--test", "tests/content-picker.test.ts", "tests/content-picker.integration.test.ts"], env);
-  await run("npx", ["tsx", "--test", "tests/game-availability.test.ts", "tests/game-availability.integration.test.ts"], env);
+  if (!process.argv.includes("--availability-performance")) await run("npx", ["tsx", "scripts/content-architecture/benchmark-availability.mjs", "--assert-budget"], env);
   source = new pg.Client({ connectionString: database }); await source.connect();
   const inventory = await collectInventory(source);
   assert.equal(inventory.identities.issues.length, 0);
