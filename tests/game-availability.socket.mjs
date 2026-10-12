@@ -55,6 +55,26 @@ try {
   await prisma.gameSettings.upsert({ where: { id: "singleton" }, create: { id: "singleton", liveExercisesEnabled: false }, update: { liveExercisesEnabled: false } });
   const existing = games.find(game => game.mode === "EXERCISES");
   assert.equal((await join(owner, "join_game", { code: existing.code }, ["error_message"], ["lobby_update"])).kind, "allowed"); checks++;
+  // Nieuwe multiplayertransporten delen normale vaste bronrechten; hervatten
+  // vereist geen huidige jigsaw-startscope of jigsawEnabled.
+  const { createCoopSession } = await import("../src/lib/puzzle/coop.ts");
+  await prisma.user.update({ where: { id: owner.id },data: { activeContentCollectionId: "content_bom" } });
+  await prisma.gameSettings.update({ where: { id: "singleton" },data: { jigsawEnabled: true } });
+  await prisma.gameContentScope.upsert({ where: { gameKey_contentCollectionId: { gameKey: "jigsaw",contentCollectionId: "content_bom" } }, create: { gameKey: "jigsaw",contentCollectionId: "content_bom" },update: {} });
+  const puzzleId = await createCoopSession(owner.id,0,24,"ADVENTURER",[]);
+  await prisma.user.update({ where: { id: owner.id },data: { activeContentCollectionId: "content_podcasts" } });
+  await prisma.gameSettings.update({ where: { id: "singleton" },data: { jigsawEnabled: false } });
+  const askPuzzle = async (actor) => {
+    const socket = io(base.origin,{ transports:["websocket"],reconnection:false,extraHeaders:{ Cookie:actor.cookie } });
+    try { await new Promise((resolve,reject) => { socket.once("connect",resolve);socket.once("connect_error",reject); }); return await socket.timeout(8000).emitWithAck("puzzle:join",{ sessionId:puzzleId }); } finally { socket.disconnect(); }
+  };
+  assert.equal((await askPuzzle(owner)).ok,true); checks++;
+  assert.equal((await askPuzzle(admin)).ok,false); checks++;
+  for (const patch of [{ visibleToUsers:false },{ enabled:false },{ publicationState:"DRAFT" }]) {
+    await prisma.contentCollection.update({ where:{id:"content_bom"},data:{ enabled:true,visibleToUsers:true,publicationState:"LEGACY",...patch } });
+    for (const actor of [owner,admin]) { const response=await askPuzzle(actor);assert.equal(response.ok,false);assert.equal(response.code,"FORBIDDEN");checks++; }
+  }
+  await prisma.contentCollection.update({ where:{id:"content_bom"},data:{ enabled:true,visibleToUsers:true,publicationState:"LEGACY" } });
   const after = await prisma.user.findUniqueOrThrow({ where: { id: owner.id } });
   assert.equal(after.activeContentCollectionId, "content_podcasts"); assert.equal(after.xpTotal,100); assert.equal(after.hintBalance,8);
   console.log(`Realtime: ${checks} echte socketcontroles; bronrechten, adminisolatie en hervatten zonder nieuwe-startscope geslaagd.`);

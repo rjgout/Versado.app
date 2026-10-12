@@ -6,7 +6,11 @@
 export const PUZZLE_GEOMETRY_VERSION = 2;
 export const PUZZLE_RULES_VERSION = 2;
 export const SOLO_PIECE_COUNTS = [6, 12, 24, 48, 96] as const;
-export type PuzzlePieceCount = (typeof SOLO_PIECE_COUNTS)[number];
+/** Samen: grotere puzzels, omdat meerdere spelers tegelijk of verspreid over dagen puzzelen. */
+export const COOP_PIECE_COUNTS = [24, 48, 96, 150, 300] as const;
+/** Tegen elkaar: dezelfde tijdvergelijkbare maten als Solo. */
+export const MATCH_PIECE_COUNTS = [6, 12, 24, 48, 96] as const;
+export type PuzzlePieceCount = (typeof SOLO_PIECE_COUNTS)[number] | (typeof COOP_PIECE_COUNTS)[number];
 export type PuzzleDifficulty = "DISCOVERER" | "ADVENTURER" | "EXPERT" | "MASTER";
 export type PuzzleHintType = "PREVIEW" | "LOCATION" | "CONNECTION" | "FILTER";
 export type PuzzleFilter = "CORNERS" | "EDGES" | "MIDDLES" | null;
@@ -62,6 +66,6 @@ export function puzzlePolicy(difficulty: PuzzleDifficulty, rulesVersion = PUZZLE
 }
 
 export function puzzleGrid(pieces: PuzzlePieceCount): PuzzleGrid {
-  const columns = { 6: 3, 12: 4, 24: 6, 48: 8, 96: 12 }[pieces];
+  const columns = { 6: 3, 12: 4, 24: 6, 48: 8, 96: 12, 150: 15, 300: 20 }[pieces];
   return { columns, rows: pieces / columns };
 }

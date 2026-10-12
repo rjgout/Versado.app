@@ -21,6 +21,8 @@ function run(command, args, env) {
   });
 }
 let server;
+const redisContainer = `${container}-redis`;
+let hasRedis = false;
 try {
   docker(["run", "--rm", "-d", "--name", container, "-p", "127.0.0.1::5432", "-e", "POSTGRES_USER=puzzle_test", "-e", "POSTGRES_PASSWORD=puzzle_test", "-e", "POSTGRES_DB=versado_puzzle_test", "postgres:16-alpine"]);
   let ready = false;
@@ -30,16 +32,26 @@ try {
   if (!ready) throw new Error("De geïsoleerde PostgreSQL-database werd niet beschikbaar");
   const port = docker(["port", container, "5432/tcp"]).split(":").at(-1);
   const url = `postgresql://puzzle_test:puzzle_test@127.0.0.1:${port}/versado_puzzle_test`;
-  const env = { ...process.env, NODE_ENV: "production", DATABASE_URL: url, LEARNING_TEST_DATABASE_URL: url, SESSION_SECRET: "puzzle-isolated-test-secret-only", NEXT_TELEMETRY_DISABLED: "1" };
+  const env = { ...process.env, NODE_ENV: "production", DATABASE_URL: url, LEARNING_TEST_DATABASE_URL: url, REDIS_URL: "", SESSION_SECRET: "puzzle-isolated-test-secret-only", NEXT_TELEMETRY_DISABLED: "1" };
   await run("npm", ["run", "db:migrate:deploy"], env);
   await run("npm", ["run", "db:generate"], env);
   await run("npx", ["tsx", "--test", "tests/jigsaw.integration.test.ts", "tests/puzzle-solo.integration.test.ts", "tests/puzzle-hint-inventory.integration.test.ts", "tests/kompas.integration.test.ts"], env);
+  await run("npx", ["tsx", "scripts/puzzle/prepare-multiplayer-fixture.mjs"], env);
+  await run("npx", ["tsx", "--test", "--test-concurrency=1", "tests/puzzle-coop.integration.test.ts", "tests/puzzle-match.integration.test.ts"], env);
+  if (process.argv.includes("--multiplayer")) {
+    docker(["run", "--rm", "-d", "--name", redisContainer, "-p", "127.0.0.1::6379", "redis:7-alpine"]); hasRedis = true;
+    const redisPort = docker(["port", redisContainer, "6379/tcp"]).split(":").at(-1);
+    for (let i = 0; i < 60; i++) { try { if (docker(["exec", redisContainer, "redis-cli", "ping"]) === "PONG") break; } catch {} await delay(500); }
+    env.REDIS_URL = `redis://127.0.0.1:${redisPort}`;
+    await run("npx", ["tsx", "--test", "--test-concurrency=1", "tests/puzzle-multi-instance.integration.test.ts"], { ...env, PUZZLE_MULTI_INSTANCE: "1" });
+    await run("npx", ["tsx", "scripts/puzzle/perf-multiplayer.ts"], env);
+  }
   if (process.argv.includes("--browser")) {
     const base = process.env.PUZZLE_TEST_BASE_URL ?? "http://localhost:3107";
     env.PUZZLE_TEST_BASE_URL = base;
     env.PORT = new URL(base).port;
     env.APP_URL = base;
-    env.REDIS_URL = ""; // Geen externe Redis gebruiken voor deze solotest.
+    // Alleen de eventueel hierboven aangemaakte Redis; nooit een externe binding.
     server = spawn("npx", ["tsx", "server.ts"], { env, stdio: "inherit", detached: true });
     let available = false;
     for (let attempt = 0; attempt < 60; attempt++) {
@@ -51,10 +63,12 @@ try {
     const selected = process.argv.find(arg => arg.startsWith("--browser-case="))?.slice("--browser-case=".length);
     if (selected && !browserCases.includes(selected)) throw new Error("Onbekende bestaande browsercase");
     for (const name of browserCases.filter(name => !selected || name === selected)) await run("npx", ["tsx", `tests/puzzle-${name}.browser.mjs`], env);
+    if (process.argv.includes("--multiplayer")) await run("npx", ["tsx", "tests/puzzle-multiplayer.browser.mjs"], env);
   }
 } catch (error) {
   console.error(error); process.exitCode = 1;
 } finally {
   if (server?.pid) { try { process.kill(-server.pid, "SIGTERM"); } catch {} }
+  if (hasRedis) { try { docker(["rm", "-f", redisContainer]); } catch {} }
   try { docker(["rm", "-f", container]); } catch {}
 }

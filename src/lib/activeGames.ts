@@ -1,9 +1,11 @@
 import { prisma } from "@/lib/db";
+import { canResumeGameContent } from "@/lib/gameAvailability";
 import { fixedLiveGameCollectionId } from "@/lib/gameAvailabilityPolicy";
 import { getContentContext, BOM_COLLECTION_ID } from "@/lib/contentCollections";
 import { getT } from "@/lib/i18n";
 import { localizedCourse } from "@/lib/courseText";
 import type { CourseType } from "@/generated/prisma/client";
+import { getPuzzleActivity } from "@/lib/puzzle/activity";
 
 // Alles wat een gebruiker "open" heeft staan over de asynchrone spellen
 // heen (Uitdagingen, Woordspel), het realtime Live spel, en een eigen
@@ -15,7 +17,7 @@ import type { CourseType } from "@/generated/prisma/client";
 // Geen next/headers: de aanroeper geeft de gebruiker mee.
 
 export interface ActivityItem {
-  kind: "challenge" | "scrabble" | "live" | "chapter-guess-solo";
+  kind: "challenge" | "scrabble" | "live" | "chapter-guess-solo" | "puzzle-coop" | "puzzle-match";
   id: string;
   opponentName: string | null;
   opponentId: string | null;
@@ -79,6 +81,7 @@ export async function getActiveGameStatus(user: { id: string; uiLanguage: string
       orderBy: { createdAt: "desc" },
       include: { questions: { orderBy: { order: "asc" }, take: 1, select: { chapterId: true } } },
     }),
+
     getContentContext(user.id),
     // Alleen zolang het spel nog in de lobby staat en je nog niet bent
     // toegetreden: start of annuleert de host, dan vervalt de uitnodiging.
@@ -304,6 +307,14 @@ export async function getActiveGameStatus(user: { id: string; uiLanguage: string
     code: game.code,
     at: createdAt.toISOString(),
   }));
+
+  // Bestaande partijen gebruiken hun vaste BOM-bron; geen actuele voorkeur/settings/scope.
+  if (await canResumeGameContent(BOM_COLLECTION_ID)) {
+    const puzzles = await getPuzzleActivity(user.id, t, BOM_COLLECTION_ID);
+    invitesReceived.push(...puzzles.invitesReceived);
+    invitesSent.push(...puzzles.invitesSent);
+    activeGames.push(...puzzles.activeGames);
+  }
 
   return {
     liveInvitesReceived,

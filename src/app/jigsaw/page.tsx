@@ -4,12 +4,20 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { jigsawCatalog } from "@/lib/jigsawGame";
 import JigsawV2Client from "@/components/JigsawV2Client";
+import { listCoopOverview } from "@/lib/puzzle/coop";
+import { listMatchOverview } from "@/lib/puzzle/match";
 
 export default async function JigsawPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   const allowStarts = await canStartGame(user.id, "jigsaw");
-  const hasSession = await prisma.puzzleSession.count({ where: { ownerId: user.id, mode: "SOLO", status: { in: ["ACTIVE", "COMPLETED"] } } });
-  if (!allowStarts && (!hasSession || !(await canResumeGameContent("content_bom")))) redirect("/live?availability=unavailable");
+  if (!allowStarts) {
+    if (!await canResumeGameContent("content_bom")) redirect("/live?availability=unavailable");
+    const [solo, coop, matches] = await Promise.all([
+      prisma.puzzleSession.count({ where: { ownerId: user.id, mode: "SOLO", status: { in: ["ACTIVE", "COMPLETED"] } } }),
+      listCoopOverview(user.id), listMatchOverview(user.id),
+    ]);
+    if (!solo && !coop.sessions.length && !coop.invites.length && !matches.length) redirect("/live?availability=unavailable");
+  }
   return <JigsawV2Client images={jigsawCatalog} allowStarts={allowStarts} />;
 }

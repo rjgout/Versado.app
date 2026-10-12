@@ -10,7 +10,9 @@ import { type PuzzleDifficulty, type PuzzleFilter, type PuzzleHintType, type Puz
 type Choice = { type: PuzzleHintType; filter?: Exclude<PuzzleFilter, null> };
 const rowStyle = "flex min-h-14 w-full items-center gap-3 rounded-2xl p-3 text-left text-vs-fg transition hover:bg-vs-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent disabled:opacity-50 disabled:pointer-events-none";
 
-export default function PuzzleHintPanel({ snapshot, difficulty, rulesVersion, selected, canConnect, hintBalance, inventoryBusy, inventoryError, busy, active, error, onRefresh, onUse, onShop, onClose, returnFocus }: {
+export default function PuzzleHintPanel({ includedRemaining, snapshot, difficulty, rulesVersion, selected, canConnect, hintBalance, inventoryBusy, inventoryError, busy, active, error, onRefresh, onUse, onShop, onClose, returnFocus }: {
+  /** Samen/Tegen elkaar: het persoonlijke inbegrepen budget van deze speler (overschrijft het Solo-budget uit de snapshot). */
+  includedRemaining?: number | null;
   snapshot: PuzzleSnapshot; difficulty: PuzzleDifficulty; rulesVersion: number; selected: number | null; canConnect: boolean;
   hintBalance: number | null; inventoryBusy: boolean; inventoryError: boolean; busy: boolean; active: boolean; error: string;
   onRefresh: () => void; onUse: (type: PuzzleHintType, filter?: Exclude<PuzzleFilter, null>, confirmPersonal?: boolean) => void;
@@ -18,7 +20,8 @@ export default function PuzzleHintPanel({ snapshot, difficulty, rulesVersion, se
 }) {
   const t = useT(); const dialog = useRef<HTMLDialogElement>(null);
   const [sorting, setSorting] = useState(false); const [confirmation, setConfirmation] = useState<Choice | null>(null);
-  const budget = puzzleHintBudget(snapshot, difficulty, rulesVersion);
+  const base = puzzleHintBudget(snapshot, difficulty, rulesVersion);
+  const budget = includedRemaining === undefined ? base : { ...base, remaining: includedRemaining };
   const empty = budget.remaining === 0 && hintBalance === 0;
   const disabled = busy || active || empty || (budget.remaining === 0 && (inventoryBusy || inventoryError || hintBalance === null));
   useEffect(() => {

@@ -241,3 +241,78 @@ test("oude gebruiker zonder voorkeur krijgt dezelfde echte editie, zonder regist
   assert.deepEqual(await preserved(userId),before);
   await setSource("content_bom");
 });
+
+test("PR91 gecombineerd: nieuwe multiplayerstarts hebben normale actuele bronrechten en strikte Origin/payload", async () => {
+  const before = await preserved(userId);
+  const rows = async () => ({ sessions: await prisma.puzzleSession.count(), matches: await prisma.puzzleMatch.count(), definitions: await prisma.puzzleDefinition.count() });
+  const counts = await rows();
+  for (const path of ["/api/puzzle/coop","/api/puzzle/match"]) {
+    assert.equal((await request(path,"POST",{},null)).status,401);
+    assert.equal((await request(path,"POST",{},cookie,"https://evil.test")).status,403);
+  }
+  const { jigsawCatalog } = await import("../src/lib/jigsawGame");
+  for (const path of ["/api/puzzle/coop","/api/puzzle/match"]) {
+    const payload = { action: "create", imageId: jigsawCatalog[0].url, pieceCount: 24, difficulty: "DISCOVERER", friendIds: [adminId], ...(path.endsWith("match") ? { kind: "ASYNC" } : {}) };
+    assert.equal((await request(path,"POST",{ ...payload, preview: true })).status,400);
+    for (const flag of [{ enabled: false },{ visibleToUsers: false },{ publicationState: "DRAFT" as const }]) {
+      await prisma.contentCollection.update({ where: { id: "content_bom" }, data: flag });
+      for (const auth of [cookie,adminCookie]) assert.equal((await request(path,"POST",payload,auth)).status,403);
+      await prisma.contentCollection.update({ where: { id: "content_bom" }, data: { enabled: true, visibleToUsers: true, publicationState: "LEGACY" } });
+    }
+    await setSource(hiddenId); assert.equal((await request(path,"POST",payload)).status,403);
+    await setSource("content_podcasts"); assert.equal((await request(path,"POST",payload)).status,403); await setSource("content_bom");
+    await prisma.gameSettings.update({ where: { id: "singleton" }, data: { jigsawEnabled: false } });
+    assert.equal((await request(path,"POST",payload)).status,403);
+    await prisma.gameSettings.update({ where: { id: "singleton" }, data: { jigsawEnabled: true } });
+    await prisma.gameContentScope.deleteMany({ where: { gameKey: "jigsaw", contentCollectionId: "content_bom" } });
+    assert.equal((await request(path,"POST",payload)).status,403); await scope("jigsaw");
+  }
+  assert.deepEqual(await rows(),counts); assert.deepEqual(await preserved(userId),before);
+});
+
+test("PR91 gecombineerd: uitnodiging, join, wedstrijdpoging en hervatten behouden bron/owner na switch en settings-uit", async () => {
+  await prisma.friendship.create({ data: { senderId: userId, receiverId: adminId, status: "ACCEPTED" } });
+  const { jigsawCatalog } = await import("../src/lib/jigsawGame");
+  const payload = { action: "create", imageId: jigsawCatalog[0].url, pieceCount: 24, difficulty: "DISCOVERER", friendIds: [adminId] };
+  const coop = await request("/api/puzzle/coop","POST",payload); assert.equal(coop.status,200);
+  const { sessionId } = await coop.json();
+  const match = await request("/api/puzzle/match","POST",{ ...payload, pieceCount: 6, kind: "ASYNC" }); assert.equal(match.status,200);
+  const { matchId } = await match.json();
+  const invite = await prisma.puzzleInvite.findFirstOrThrow({ where: { sessionId, toUserId: adminId } });
+  await setSource("content_podcasts");
+  await prisma.user.update({ where: { id: adminId }, data: { activeContentCollectionId: "content_podcasts" } });
+  await prisma.gameSettings.update({ where: { id: "singleton" }, data: { jigsawEnabled: false } });
+  await prisma.gameContentScope.deleteMany({ where: { gameKey: "jigsaw", contentCollectionId: "content_bom" } });
+  const before = await preserved(userId); const guestBefore = await preserved(adminId);
+  assert.equal((await request("/api/puzzle/coop","POST",{ action: "respond", inviteId: invite.id, accept: true },adminCookie)).status,200);
+  assert.equal((await request("/api/puzzle/match","POST",{ action: "respond", matchId, accept: true },adminCookie)).status,200);
+  const stateResponse = await request("/api/puzzle/coop","POST",{ action: "state",sessionId },adminCookie); assert.equal(stateResponse.status,200);
+  const state = await stateResponse.json(); assert.equal(state.ownerId,userId);
+  const group = state.snapshot.groups[0];
+  const lock = await (await request("/api/puzzle/coop","POST",{ action: "lock",sessionId,groupId: group.id },adminCookie)).json(); assert.equal(lock.ok,true);
+  const operation = { action: "commit",sessionId,actionId: randomUUID(),lockToken: lock.token,operation: { kind: "move",groupId: group.id,x: group.x+.1,y: group.y } };
+  const commits = await Promise.all([request("/api/puzzle/coop","POST",operation,adminCookie),request("/api/puzzle/coop","POST",operation,adminCookie)]);
+  for (const r of commits) assert.equal(r.status,200);
+  assert.equal(await prisma.puzzleAction.count({ where: { sessionId,actionId: operation.actionId } }),1);
+  const begins = await Promise.all([request("/api/puzzle/match","POST",{ action: "begin",matchId },adminCookie),request("/api/puzzle/match","POST",{ action: "begin",matchId },adminCookie)]);
+  const values = await Promise.all(begins.map(async r => { assert.equal(r.status,200); return r.json(); })); assert.equal(values[0].sessionId,values[1].sessionId);
+  assert.equal((await request("/api/puzzle/match","POST",{ action: "resume",matchId },adminCookie)).status,200);
+  assert.equal((await request(`/jigsaw/samen/${sessionId}`,"GET",undefined,adminCookie)).status,200);
+  assert.equal((await request(`/jigsaw/wedstrijd/${matchId}`,"GET",undefined,adminCookie)).status,200);
+  const overview = await request("/api/puzzle/overview"); assert.equal(overview.status,200); assert.ok((await overview.json()).sessions.some((s: { id: string }) => s.id===sessionId));
+  const activity = await (await request("/api/activity-status")).json(); assert.equal(activity.activeGames.find((s: { id: string }) => s.id===sessionId).contentCollectionId,"content_bom");
+  const outsider = await account();
+  assert.equal((await request("/api/puzzle/coop","POST",{ action: "state",sessionId },outsider.cookie)).status,403);
+  assert.equal((await request("/api/puzzle/match","POST",{ action: "state",matchId },outsider.cookie)).status,403);
+  for (const flag of [{ visibleToUsers: false },{ publicationState: "DRAFT" as const },{ enabled: false }]) {
+    await prisma.contentCollection.update({ where: { id: "content_bom" }, data: flag });
+    for (const auth of [cookie,adminCookie]) {
+      assert.equal((await request("/api/puzzle/coop","POST",{ action: "state",sessionId },auth)).status,403);
+      assert.equal((await request("/api/puzzle/match","POST",{ action: "state",matchId },auth)).status,403);
+    }
+    await prisma.contentCollection.update({ where: { id: "content_bom" }, data: { enabled: true,visibleToUsers: true,publicationState: "LEGACY" } });
+  }
+  assert.deepEqual(await preserved(userId),before); assert.deepEqual(await preserved(adminId),guestBefore);
+  await setSource("content_bom"); await prisma.user.update({ where: { id: adminId }, data: { activeContentCollectionId: "content_bom" } });
+  await prisma.gameSettings.update({ where: { id: "singleton" }, data: { jigsawEnabled: true } }); await scope("jigsaw");
+});

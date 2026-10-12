@@ -315,6 +315,12 @@ model User {
   wordSearchGames   WordSearchGame[]
   puzzleSessions    PuzzleSession[] @relation("PuzzleSessionOwner")
   puzzleRecords     PuzzlePersonalRecord[]
+  puzzleParticipations PuzzleSessionParticipant[]
+  puzzleInvitesSent PuzzleInvite[] @relation("PuzzleInviteFrom")
+  puzzleInvitesReceived PuzzleInvite[] @relation("PuzzleInviteTo")
+  puzzleLocks       PuzzleLock[]
+  puzzleMatchesOrganized PuzzleMatch[] @relation("PuzzleMatchOrganizer")
+  puzzleMatchParticipations PuzzleMatchParticipant[]
 
   authTokens AuthToken[]
 
@@ -3217,6 +3223,45 @@ enum KompasStatus {
 enum PuzzleSessionMode {
   SOLO
   COOP
+  // Eigen veld van één deelnemer aan een wedstrijd (PuzzleMatch).
+  MATCH
+}
+
+enum PuzzleInviteKind {
+  COOP
+  MATCH
+}
+
+enum PuzzleInviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  REVOKED
+  EXPIRED
+}
+
+enum PuzzleMatchKind {
+  LIVE
+  ASYNC
+}
+
+enum PuzzleMatchStatus {
+  LOBBY
+  RUNNING
+  FINISHED
+  CANCELLED
+}
+
+enum PuzzleMatchParticipantStatus {
+  INVITED
+  ACCEPTED
+  PLAYING
+  FINISHED
+  // Puzzel gelegd, maar de inhoudsvraag fout beantwoord: geen geldige tijd.
+  INVALID
+  // Niet gestart of niet op tijd klaar.
+  DNF
+  DECLINED
 }
 
 enum PuzzleSessionStatus {
@@ -3249,6 +3294,7 @@ model PuzzleVariant {
   createdAt    DateTime @default(now())
   sessions     PuzzleSession[]
   records      PuzzlePersonalRecord[]
+  matches      PuzzleMatch[]
   @@unique([definitionId, pieceCount, difficulty, rulesVersion])
 }
 
@@ -3270,7 +3316,125 @@ model PuzzleSession {
   answeredAt    DateTime?
   lastActivityAt DateTime @default(now())
   actions       PuzzleAction[]
+  // Alleen voor mode MATCH: de wedstrijd waartoe dit eigen veld behoort.
+  matchId       String?
+  match         PuzzleMatch? @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  participants  PuzzleSessionParticipant[]
+  invites       PuzzleInvite[]
+  locks         PuzzleLock[]
   @@index([ownerId, status, lastActivityAt])
+  @@index([matchId])
+}
+
+// Deelnemers van een gedeelde (COOP) puzzel. De eigenaar staat er ook in.
+model PuzzleSessionParticipant {
+  id        String @id @default(cuid())
+  sessionId String
+  session   PuzzleSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String @default("MEMBER")
+  joinedAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  // Persoonlijk inbegrepen hintbudget binnen deze gezamenlijke puzzel.
+  includedHintsUsed Int @default(0)
+  // Tijdelijke persoonlijke hint (JSON); nooit onderdeel van de gedeelde snapshot.
+  activeHint String?
+  // Bijdragen (nieuwe geldige verbindingen) door deze speler; alleen statistiek.
+  connectionsMade Int @default(0)
+  @@unique([sessionId, userId])
+  @@index([userId])
+}
+
+model PuzzleInvite {
+  id         String @id @default(cuid())
+  kind       PuzzleInviteKind
+  sessionId  String?
+  session    PuzzleSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  matchId    String?
+  match      PuzzleMatch? @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  fromUserId String
+  from       User @relation("PuzzleInviteFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  to         User @relation("PuzzleInviteTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  status     PuzzleInviteStatus @default(PENDING)
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+  respondedAt DateTime?
+  @@unique([sessionId, toUserId])
+  @@unique([matchId, toUserId])
+  @@index([toUserId, status])
+  @@index([fromUserId, status])
+}
+
+// Tijdelijke groepslock (lease) in een gedeelde puzzel; PostgreSQL is de
+// autoriteit zodat meerdere app-instances dezelfde lock zien.
+model PuzzleLock {
+  id        String @id @default(cuid())
+  sessionId String
+  session   PuzzleSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  groupId   String
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@unique([sessionId, groupId])
+  @@index([sessionId, userId])
+  @@index([expiresAt])
+}
+
+// Eén competitieve puzzel voor 2-4 vrienden, live of asynchroon. Elke
+// deelnemer heeft een eigen PuzzleSession (mode MATCH) op dezelfde variant.
+model PuzzleMatch {
+  id          String @id @default(cuid())
+  organizerId String
+  organizer   User @relation("PuzzleMatchOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
+  variantId   String
+  variant     PuzzleVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  kind        PuzzleMatchKind
+  status      PuzzleMatchStatus @default(LOBBY)
+  // Eén vooraf vastgelegde vraag en optievolgorde voor alle deelnemers.
+  questionId  String
+  optionOrder String
+  createdAt   DateTime @default(now())
+  // Live: moment van de gezamenlijke start (na het aftellen). Async: null.
+  startsAt    DateTime?
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  // Tot wanneer een uitnodiging nog geaccepteerd mag worden.
+  joinDeadline DateTime
+  // Uiterste moment waarop een poging klaar moet zijn.
+  playDeadline DateTime
+  winnerId    String?
+  participants PuzzleMatchParticipant[]
+  sessions    PuzzleSession[]
+  invites     PuzzleInvite[]
+  @@index([status, playDeadline])
+  @@index([organizerId])
+}
+
+model PuzzleMatchParticipant {
+  id        String @id @default(cuid())
+  matchId   String
+  match     PuzzleMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    PuzzleMatchParticipantStatus @default(INVITED)
+  sessionId String? @unique
+  // Server-wandtijd van de officiële start en het geldige einde.
+  startedAt DateTime?
+  finishedAt DateTime?
+  elapsedMs Float?
+  hintsUsed Int @default(0)
+  extraHintsUsed Int @default(0)
+  answeredCorrect Boolean?
+  // Aantal verbonden stukken (live voortgangsindicatie).
+  progress  Int @default(0)
+  rank      Int?
+  createdAt DateTime @default(now())
+  @@unique([matchId, userId])
+  @@index([userId, status])
 }
 
 model PuzzleAction {
@@ -3281,6 +3445,8 @@ model PuzzleAction {
   type      String
   payload   String
   version   Int
+  // Wie de actie deed (gedeelde puzzel); null bij oudere Solo-acties.
+  userId    String?
   createdAt DateTime @default(now())
   @@unique([sessionId, actionId])
   @@index([sessionId, version])

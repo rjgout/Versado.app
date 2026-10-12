@@ -4,6 +4,16 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Nieuw: de Legpuzzel kun je nu ook met vrienden spelen. Bij **Samen** leggen
+  maximaal vier vrienden, live of op verschillende momenten, dezelfde puzzel
+  (24 tot 300 stukjes); wie een groep pakt houdt die vast, iedereen heeft zijn
+  eigen zoom en hints, en een verbinding die je zelf maakt telt als activiteit
+  voor je reeks. Bij **Tegen elkaar** (6 tot 96 stukjes) leg je met één tot drie
+  vrienden dezelfde puzzel, live met een aftelling of op eigen tijd, en
+  beantwoord je dezelfde vraag; de snelste geldige tijd wint. Uitnodigingen
+  staan bij Actieve spellen en op Vandaag. Samen puzzelen en wedstrijden geven
+  geen XP. De uitleg in Ontdek Versado en de speluitleg zijn aangevuld.
+
 - Nieuw: je dagelijkse reeks volgt nu één duidelijke regel: je hebt vandaag
   minstens één echte activiteit in Versado afgerond. Hoe kort de activiteit is
   of er XP bij hoort, maakt niet uit; de eerste afronding van de dag telt,
