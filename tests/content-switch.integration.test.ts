@@ -156,7 +156,8 @@ test("een onderdeel dat de nieuwe content niet heeft, geeft een nette uitleg in 
 
 test("spellen volgen de speltoegang van de nieuwe content", { skip }, async () => {
   const user = await account(ids.A);
-  assert.deepEqual(await switchTo(user.id, { contentCollectionId: ids.A }, "/jigsaw"), { applied: true, outcome: { kind: "stay" } });
+  // De synthetische A-bron heeft wel een scope, maar geen bestaande puzzeladapter.
+  assert.equal((await switchTo(user.id, { contentCollectionId: ids.A }, "/jigsaw")).applied, false);
   const blocked = await switchTo(user.id, { contentCollectionId: ids.C }, "/jigsaw");
   assert.equal(blocked.applied, false);
   if (!blocked.applied) assert.equal(blocked.outcome.hubHref, "/live");

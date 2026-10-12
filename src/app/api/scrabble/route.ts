@@ -1,3 +1,4 @@
+import { gameStartGuard } from "@/lib/gameStartGuard";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
@@ -5,7 +6,7 @@ import { getCurrentUser } from "@/lib/session";
 import { createInvite } from "@/lib/scrabbleGame";
 import { apiError, apiErrorText } from "@/lib/apiError";
 
-const createSchema = z.object({ friendUserId: z.string().trim().min(1) });
+const createSchema = z.object({ friendUserId: z.string().trim().min(1) }).strict();
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -43,6 +44,8 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
+  const denied = await gameStartGuard(req, user.id, "scrabble");
+  if (denied) return denied;
 
   const body = await req.json().catch(() => null);
   const parsed = createSchema.safeParse(body);

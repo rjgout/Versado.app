@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Handmatige reviewcheck: registry-login/publicatie blijven uitsluitend push.
+  workflow_dispatch:
 
 permissions:
   contents: read

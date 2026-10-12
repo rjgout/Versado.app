@@ -1,4 +1,4 @@
-name: Contentarchitectuur 1A/1B/1C toegang, context en selectie
+name: Contentarchitectuur 1A–1D toegang, context, selectie en spellen
 
 on:
   pull_request:
@@ -7,6 +7,16 @@ on:
       - 'prisma/schema.prisma'
       - 'prisma/migrations/**'
       - 'src/lib/contentAccess.ts'
+      - 'src/lib/gameAvailability*.ts'
+      - 'src/lib/gameStartGuard.ts'
+      - 'src/lib/study/startAvailability.ts'
+      - 'src/app/api/study/create/**'
+      - 'src/lib/adminContentInspection.ts'
+      - 'src/components/admin/AdminContentInspectionClient.tsx'
+      - 'src/app/adminbackend/content/**'
+      - 'src/app/api/admin/content-inspection/**'
+      - 'src/app/api/admin/game-scopes/**'
+      - 'tests/game-availability*.test.ts'
       - 'src/lib/contentCollections.ts'
       - 'src/lib/contentPickerContract.ts'
       - 'src/lib/contentSwitch.ts'
@@ -25,7 +35,14 @@ on:
       - 'src/app/api/bookmarks/**'
       - 'src/app/api/exercises/**'
       - 'src/app/api/practice/**'
-      - 'src/app/api/live/create/**'
+      - 'src/app/api/live/create*/**'
+      - 'src/app/api/word-game/**'
+      - 'src/app/api/word-search/**'
+      - 'src/app/api/jigsaw*/**'
+      - 'src/app/api/scrabble/**'
+      - 'src/app/api/challenges/**'
+      - 'src/app/api/alleskenner/**'
+      - 'src/app/api/snelle-zendeling/**'
       - 'src/app/api/dictionary/**'
       - 'src/app/api/persons/**'
       - 'src/app/lesson/**'
@@ -73,7 +90,7 @@ jobs:
         run: npm run test:content-access:integration
       - name: Regressie, lint en vertalingen
         run: |
-          npx tsx --test tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/streak-central.test.ts
+          npx tsx --test tests/admin-layout.test.ts tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/streak-central.test.ts
           npm run test:focus
           npm run test:live-data
           npm run lint

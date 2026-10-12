@@ -1,3 +1,4 @@
+import { availableGameKeys } from "@/lib/gameAvailability";
 import { prisma } from "@/lib/db";
 import { collectionAccessWhere, getContentAvailability } from "@/lib/contentAccess";
 import { DEFAULT_LANGUAGE, LANGUAGES, fallbackChain } from "@/lib/languages";
@@ -135,6 +136,21 @@ export async function getContentSwitcherSettings(): Promise<{ enabled: boolean }
   return { enabled: row?.enabled ?? false };
 }
 
+/** Nieuwe spelstarts gebruiken gewone rechten en nooit een vervangende bron bij ingetrokken toegang. */
+export async function getActiveGameCollection(userId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { activeContentCollectionId: true, contentLanguage: true } });
+  if (!user) return null;
+  const where = collectionAccessWhere({ isAdmin: false });
+  if (user.activeContentCollectionId) {
+    return prisma.contentCollection.findFirst({ where: { ...where, id: user.activeContentCollectionId }, include: { contentWork: true } });
+  }
+  // Oude gebruikers zonder expliciete keuze: dezelfde eerste-werk/taalkeuze
+  // als getContentContext, zonder synthetische BOM of voorkeurmutatie.
+  const collections = await prisma.contentCollection.findMany({ where, orderBy: { order: "asc" }, include: { contentWork: true } });
+  const selected = pickEditions(collections, user.contentLanguage)[0]?.edition;
+  return collections.find(collection => collection.id === selected?.id) ?? null;
+}
+
 export async function getContentContext(userId: string): Promise<ContentContext> {
   const [settings, user] = await Promise.all([
     getContentSwitcherSettings(),
@@ -162,10 +178,7 @@ export async function getContentContext(userId: string): Promise<ContentContext>
     option.work === workOf(selected) ? { ...option, edition: selected } : option
   );
 
-  const gameScopes = available.length ? await prisma.gameContentScope.findMany({
-    where: { contentCollectionId: selected.id },
-    select: { gameKey: true },
-  }) : [];
+  const gameKeys = available.length ? await availableGameKeys(selected.id) : [];
 
   return {
     // Met maar één zichtbare collectie valt er niets te wisselen.
@@ -173,7 +186,7 @@ export async function getContentContext(userId: string): Promise<ContentContext>
     switcherEnabled: settings.enabled && available.length > 1,
     active: selected,
     collections: available,
-    gameKeys: gameScopes.map((scope) => scope.gameKey),
+    gameKeys,
     contentLanguage,
     works: worksWithActive,
     activeEditions: available.filter((collection) => workOf(collection) === workOf(selected)),

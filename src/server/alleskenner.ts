@@ -1,3 +1,5 @@
+import { canResumeGameContent, canResumeLiveGame } from "@/lib/gameAvailability";
+import { getT } from "@/lib/i18n";
 import type { Server as SocketIOServer, Socket } from "socket.io";
 import { prisma } from "@/lib/db";
 import { notifyGameInvite, removeNotificationsByUrl } from "@/lib/notify";
@@ -1701,7 +1703,7 @@ function soloCode(runId: string): string {
  * een lopend potje weg; het begint dan opnieuw met dezelfde onderdelen (de
  * poging van de dag blijft dezelfde rij, zie startSoloRun).
  */
-async function loadSoloRoom(runId: string, user: { id: string; handle: string }): Promise<Room | string> {
+async function loadSoloRoom(runId: string, user: { id: string; handle: string; uiLanguage?: string | null }): Promise<Room | string> {
   const run = await prisma.alleskennerSoloRun.findUnique({ where: { id: runId } });
   if (!run || run.userId !== user.id) return "Dit spel bestaat niet (meer).";
   if (run.status !== "IN_PROGRESS") return "Dit spel is al afgelopen.";
@@ -1731,7 +1733,8 @@ async function loadSoloRoom(runId: string, user: { id: string; handle: string })
   return room;
 }
 
-async function joinSoloRoom(socket: Socket, user: { id: string; handle: string }, runId: string): Promise<Room | string> {
+async function joinSoloRoom(socket: Socket, user: { id: string; handle: string; uiLanguage?: string | null }, runId: string): Promise<Room | string> {
+  if (!(await canResumeGameContent("content_bom"))) return getT(user.uiLanguage)("gameAvailability.unavailable");
   const code = soloCode(runId);
   let room = rooms.get(code);
   if (!room) {
@@ -1771,8 +1774,9 @@ async function inviteSeasonMembers(room: Room, hostName: string) {
   }
 }
 
-async function joinRoom(socket: Socket, user: { id: string; handle: string }, code: string): Promise<Room | string> {
+async function joinRoom(socket: Socket, user: { id: string; handle: string; uiLanguage?: string | null }, code: string): Promise<Room | string> {
   const upper = code.toUpperCase();
+  if (!(await canResumeLiveGame(upper))) return getT(user.uiLanguage)("gameAvailability.unavailable");
   let room = rooms.get(upper);
   if (!room) {
     let loading = loadingRooms.get(upper);
@@ -1835,7 +1839,7 @@ export function forgetAlleskennerRoom(code: string) {
   rooms.delete(room.code);
 }
 
-export function registerAlleskennerHandlers(server: SocketIOServer, socket: Socket, user: { id: string; handle: string }) {
+export function registerAlleskennerHandlers(server: SocketIOServer, socket: Socket, user: { id: string; handle: string; uiLanguage?: string | null }) {
   io = server;
 
   const current = (): Room | null => {

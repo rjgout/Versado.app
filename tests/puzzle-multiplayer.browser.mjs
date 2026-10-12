@@ -120,6 +120,24 @@ try {
   assert.deepEqual([...host.errors, ...guest.errors], []);
   report.liveMatch = { id: liveId, players: startRows.length };
 
+  // Gecombineerde fase 1D: een bestaande uitnodiging/hervatting blijft bereikbaar
+  // vanuit Podcasts, met nieuwe-startsetting uit; de overzichtsactie gebruikt inviteId.
+  const e = await person(); const f = await person();
+  await prisma.friendship.create({ data: { senderId: e.id, receiverId: f.id, status: "ACCEPTED" } });
+  const existingId = await createCoopSession(e.id, jigsawCatalog[1].url, 24, "ADVENTURER", [f.id]);
+  await prisma.user.update({ where: { id: f.id }, data: { activeContentCollectionId: "content_podcasts" } });
+  await prisma.gameSettings.update({ where: { id: "singleton" }, data: { jigsawEnabled: false } });
+  const resumed = await open(f, { width: 390, height: 844 }, "/jigsaw");
+  await resumed.page.getByRole("button", { name: "Meedoen" }).first().click();
+  await resumed.page.waitForURL(new RegExp(`/jigsaw/samen/${existingId}`));
+  await resumed.page.waitForSelector("canvas", { timeout: 20000 });
+  assert.equal(await overflow(resumed.page),0);
+  assert.equal(await prisma.puzzleSessionParticipant.count({ where: { sessionId: existingId,userId: f.id } }),1);
+  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.id } })).activeContentCollectionId,"content_podcasts");
+  await resumed.page.screenshot({ path: "/tmp/mp-resume-source-switch-390.png" });
+  assert.deepEqual(resumed.errors,[]);
+  report.sourceSwitchResume = { invitationAccepted: true, prefsPreserved: true, startsDisabled: true };
+  await prisma.gameSettings.update({ where: { id: "singleton" }, data: { jigsawEnabled: true } });
   console.log(JSON.stringify(report));
 } finally {
   await browser.close();

@@ -14,7 +14,7 @@ const LEVELS = [
 
 const QUESTION_COUNTS = [5, 10, 15] as const;
 
-export default function ChapterGuessSetupClient() {
+export default function ChapterGuessSetupClient({ availableQuestionCounts = [5, 10, 15] }: { availableQuestionCounts?: number[] }) {
   const t = useT();
   const router = useRouter();
   const [level, setLevel] = useState<Level>("BEGINNER");
@@ -91,6 +91,7 @@ export default function ChapterGuessSetupClient() {
           {QUESTION_COUNTS.map((n) => (
             <button
               key={n}
+              disabled={!availableQuestionCounts.includes(n)}
               onClick={() => setQuestionCount(n)}
               className={`flex-1 rounded-xl border-2 py-3 font-extrabold transition-colors ${
                 questionCount === n

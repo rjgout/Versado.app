@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { kompasHref } from "@/lib/kompas/registry";
 import { X } from "lucide-react";
 import ActiveGamesBanner from "@/components/ActiveGamesBanner";
@@ -58,6 +58,7 @@ type GameEntry = GameCatalogEntry;
 export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, contentName }: Props) {
   const t = useT();
   const router = useRouter();
+  const search = useSearchParams();
   const { character } = useCompanion();
   const [chapters, setChapters] = useState<ChapterOption[]>([]);
   const [chapterId, setChapterId] = useState("");
@@ -156,6 +157,7 @@ export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, cont
   return (
     <div className="max-w-5xl mx-auto flex flex-col gap-6 sm:gap-8">
       <ActiveGamesBanner />
+      {search.get("availability") === "unavailable" && <p role="status" className="text-sm text-vs-fg-2">{t("gameAvailability.unavailable")}</p>}
 
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0 flex-1">

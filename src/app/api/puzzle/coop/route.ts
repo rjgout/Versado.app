@@ -25,10 +25,12 @@ const schema = z.discriminatedUnion("action", [
 ]);
 
 export async function POST(req: NextRequest) {
-  const guard = await puzzleRouteUser(); if ("response" in guard) return guard.response;
+  const guard = await puzzleRouteUser(req); if ("response" in guard) return guard.response;
   const { user, t } = guard;
-  const parsed = schema.safeParse(await req.json().catch(() => null));
+  const body = await req.json().catch(() => null);
+  const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: t("apiErrors.invalidInput") }, { status: 400 });
+  if (Object.keys(body).some(key => !(key in parsed.data))) return NextResponse.json({ error: t("apiErrors.invalidInput") }, { status: 400 });
   const input = parsed.data;
   try {
     switch (input.action) {

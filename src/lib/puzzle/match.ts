@@ -1,3 +1,4 @@
+import { requirePuzzleContent, requireNewPuzzleStart } from "@/lib/puzzle/access";
 import { randomInt } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
@@ -55,7 +56,8 @@ export interface MatchView {
 const matchInclude = { variant: { include: { definition: true } }, participants: { include: { user: { select: { id: true, handle: true, discriminator: true } } }, orderBy: [{ createdAt: "asc" as const }, { id: "asc" as const }] } } satisfies Prisma.PuzzleMatchInclude;
 type MatchRow = Prisma.PuzzleMatchGetPayload<{ include: typeof matchInclude }>;
 
-async function lockMatch(tx: Tx, matchId: string) {
+async function lockMatch(tx: Tx, matchId: string, checkContent = true) {
+  if (checkContent) await requirePuzzleContent(tx);
   await tx.$queryRaw`SELECT "id" FROM "PuzzleMatch" WHERE "id" = ${matchId} FOR UPDATE`;
   return tx.puzzleMatch.findUnique({ where: { id: matchId }, include: matchInclude });
 }
@@ -65,6 +67,7 @@ function deadlineOf(match: { kind: string; startsAt: Date | null; playDeadline: 
 // --- Aanmaken en uitnodigen ----------------------------------------------------------
 
 export async function createMatch(userId: string, content: number | string, pieceCount: (typeof MATCH_PIECE_COUNTS)[number], difficulty: PuzzleDifficulty, friendIds: string[], kind: "LIVE" | "ASYNC") {
+  await requireNewPuzzleStart(userId);
   const config = multiplayerConfig();
   if (!MATCH_PIECE_COUNTS.includes(pieceCount)) throw new PuzzleServiceError("INVALID");
   const invitees = [...new Set(friendIds)].filter((id) => id !== userId);
@@ -209,6 +212,7 @@ function signalProgress(matchId: string) {
 }
 
 export async function resumeMatchPuzzle(userId: string, matchId: string, language: string | null | undefined) {
+  await requirePuzzleContent();
   const participant = await prisma.puzzleMatchParticipant.findUnique({ where: { matchId_userId: { matchId, userId } } });
   if (!participant?.sessionId) throw new PuzzleServiceError("NOT_STARTED");
   await settleMatch(matchId);
@@ -218,6 +222,7 @@ export async function resumeMatchPuzzle(userId: string, matchId: string, languag
 }
 
 export async function applyMatchAction(userId: string, matchId: string, expectedVersion: number, actionId: string, action: SoloAction, language: string | null | undefined) {
+  await requirePuzzleContent();
   const participant = await prisma.puzzleMatchParticipant.findUnique({ where: { matchId_userId: { matchId, userId } } });
   if (!participant?.sessionId) throw new PuzzleServiceError("NOT_STARTED");
   const result = await applySoloAction(userId, participant.sessionId, expectedVersion, actionId, action, language, "MATCH", {
@@ -332,7 +337,8 @@ async function announceResult(matchId: string) {
 export async function settleMatch(matchId: string, now: Date = new Date()) {
   let finished = false;
   await prisma.$transaction(async (tx) => {
-    const match = await lockMatch(tx, matchId);
+    // Onderhoud bewaart deadlines, ook als de bron tijdelijk niet leesbaar is.
+    const match = await lockMatch(tx, matchId, false);
     if (!match || match.status === "FINISHED" || match.status === "CANCELLED") return;
     if (match.playDeadline > now && match.joinDeadline > now) return;
     finished = await finalizeIfDone(tx, matchId, now);
@@ -361,6 +367,8 @@ export async function cancelMatch(userId: string, matchId: string) {
 // --- Lezen ------------------------------------------------------------------------------------
 
 export async function getMatch(userId: string, matchId: string): Promise<MatchView> {
+  await requirePuzzleContent();
+  if (!await prisma.puzzleMatchParticipant.findUnique({ where: { matchId_userId: { matchId, userId } }, select: { id: true } })) throw new PuzzleServiceError("FORBIDDEN");
   await settleMatch(matchId);
   const match = await prisma.puzzleMatch.findUnique({ where: { id: matchId }, include: matchInclude });
   if (!match) throw new PuzzleServiceError("NOT_FOUND");
@@ -392,6 +400,7 @@ export async function getMatch(userId: string, matchId: string): Promise<MatchVi
 
 /** Vraag voor het resultaatscherm van de eigen poging (met het juiste antwoord pas na afloop). */
 export async function matchQuestion(userId: string, matchId: string, language: string | null | undefined) {
+  await requirePuzzleContent();
   const match = await prisma.puzzleMatch.findUnique({ where: { id: matchId }, include: { participants: { where: { userId } } } });
   const participant = match?.participants[0];
   if (!match || !participant) throw new PuzzleServiceError("FORBIDDEN");
@@ -403,6 +412,7 @@ export async function matchQuestion(userId: string, matchId: string, language: s
 }
 
 export async function listMatchOverview(userId: string) {
+  await requirePuzzleContent();
   const now = new Date();
   const rows = await prisma.puzzleMatchParticipant.findMany({
     where: { userId, status: { not: "DECLINED" }, match: { OR: [{ status: { in: ["LOBBY", "RUNNING"] } }, { status: "FINISHED", finishedAt: { gt: new Date(now.getTime() - 3 * 86_400_000) } }] } },

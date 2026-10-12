@@ -1,3 +1,4 @@
+import { canResumeLiveGame } from "@/lib/gameAvailability";
 import type { Server as HttpServer } from "http";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
@@ -819,7 +820,9 @@ export function initGameServer(httpServer: HttpServer) {
     });
 
     socket.on("join_game", async ({ code }: { code: string }) => {
+      if (typeof code !== "string" || code.length > 16) return;
       const upperCode = code.toUpperCase();
+      if (!(await canResumeLiveGame(upperCode))) { socket.emit("error_message", { message: getT(user.uiLanguage)("gameAvailability.unavailable") }); return; }
       let room = rooms.get(upperCode);
 
       if (!room) {

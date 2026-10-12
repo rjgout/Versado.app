@@ -31,7 +31,7 @@ export default function PuzzleTogetherOverview() {
 
   const post = async (url: string, json: unknown) => {
     setError(null);
-    try { await jsonMutation(url, { json }, { invalidates: "gamesChanged" }); } catch (e) { setError(e instanceof Error ? e.message : t("apiErrors.invalidInput")); }
+    try { await jsonMutation(url, { json }, { invalidates: "gamesChanged" }); } catch (e) { setError(e instanceof Error ? e.message : t("apiErrors.invalidInput")); throw e; }
   };
   const row = "flex min-h-14 flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800";
   const btn = "inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold";
@@ -47,8 +47,8 @@ export default function PuzzleTogetherOverview() {
             <div key={invite.id} className={row}>
               <span className="text-sm">{t("puzzleTogether.overview.coopInvite", { name: invite.from })}</span>
               <span className="flex gap-2">
-                <button type="button" className={`${btn} bg-emerald-600 text-white`} onClick={() => void post("/api/puzzle/coop", { action: "respond", sessionId: invite.sessionId, accept: true }).then(() => { router.push(`/jigsaw/samen/${invite.sessionId}`); })}>{t("puzzleTogether.overview.accept")}</button>
-                <button type="button" className={`${btn} border border-slate-300`} onClick={() => void post("/api/puzzle/coop", { action: "respond", sessionId: invite.sessionId, accept: false })}>{t("puzzleTogether.overview.decline")}</button>
+                <button type="button" className={`${btn} bg-emerald-600 text-white`} onClick={() => void post("/api/puzzle/coop", { action: "respond", inviteId: invite.id, accept: true }).then(() => { router.push(`/jigsaw/samen/${invite.sessionId}`); }).catch(() => {})}>{t("puzzleTogether.overview.accept")}</button>
+                <button type="button" className={`${btn} border border-slate-300`} onClick={() => void post("/api/puzzle/coop", { action: "respond", inviteId: invite.id, accept: false }).catch(() => {})}>{t("puzzleTogether.overview.decline")}</button>
               </span>
             </div>
           ))}
@@ -56,8 +56,8 @@ export default function PuzzleTogetherOverview() {
             <div key={match.id} className={row}>
               <span className="text-sm">{t(match.kind === "LIVE" ? "puzzleTogether.overview.matchInviteLive" : "puzzleTogether.overview.matchInvite", { name: match.organizer })}</span>
               <span className="flex gap-2">
-                <button type="button" className={`${btn} bg-emerald-600 text-white`} onClick={() => void post("/api/puzzle/match", { action: "respond", matchId: match.id, accept: true }).then(() => { router.push(`/jigsaw/wedstrijd/${match.id}`); })}>{t("puzzleTogether.overview.accept")}</button>
-                <button type="button" className={`${btn} border border-slate-300`} onClick={() => void post("/api/puzzle/match", { action: "respond", matchId: match.id, accept: false })}>{t("puzzleTogether.overview.decline")}</button>
+                <button type="button" className={`${btn} bg-emerald-600 text-white`} onClick={() => void post("/api/puzzle/match", { action: "respond", matchId: match.id, accept: true }).then(() => { router.push(`/jigsaw/wedstrijd/${match.id}`); }).catch(() => {})}>{t("puzzleTogether.overview.accept")}</button>
+                <button type="button" className={`${btn} border border-slate-300`} onClick={() => void post("/api/puzzle/match", { action: "respond", matchId: match.id, accept: false }).catch(() => {})}>{t("puzzleTogether.overview.decline")}</button>
               </span>
             </div>
           ))}

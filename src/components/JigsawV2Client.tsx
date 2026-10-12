@@ -61,7 +61,7 @@ async function request(body: object, url = "/api/jigsaw-v2") {
 function remember(id: string | null) { try { if (id) localStorage.setItem(KEY, id); else localStorage.removeItem(KEY); } catch { /* opslag kan bewust uitstaan */ } }
 function distance(one: Point, two: Point) { return Math.hypot(one.x - two.x, one.y - two.y); }
 
-export default function JigsawV2Client({ images }: { images: Array<{ url: string; story: number }> }) {
+export default function JigsawV2Client({ images, allowStarts = true }: { images: Array<{ url: string; story: number }>; allowStarts?: boolean }) {
   const t = useT(); const router = useRouter();
   const [mode, setMode] = useState<Mode>("SOLO"); const [chosen, setChosen] = useState<Chosen[]>([]); const [pickerOpen, setPickerOpen] = useState(false); const [matchKind, setMatchKind] = useState<"LIVE" | "ASYNC">("ASYNC");
   const [state, setState] = useState<State | null>(null);
@@ -98,7 +98,7 @@ export default function JigsawV2Client({ images }: { images: Array<{ url: string
   const selectedImage = visible.find((image) => image.src === imageId);
 
   async function startTogether() {
-    if (starting.current || !selectedImage || chosen.length === 0) return;
+    if (!allowStarts || starting.current || !selectedImage || chosen.length === 0) return;
     starting.current = true; setIsStarting(true); setError("");
     try {
       const friendIds = chosen.map((friend) => friend.id);
@@ -110,7 +110,7 @@ export default function JigsawV2Client({ images }: { images: Array<{ url: string
   }
 
   async function start(previous?: State) {
-    if (starting.current || (!previous && !selectedImage)) return;
+    if (!allowStarts || starting.current || (!previous && !selectedImage)) return;
     starting.current = true; setIsStarting(true); setLoading(true); setError("");
     try { const next = await request({ action: "start", imageId: previous?.image ?? selectedImage!.src, pieceCount: previous?.pieceCount ?? pieceCount, difficulty: previous?.difficulty ?? difficulty }) as State; remember(next.id); setState(next); }
     catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed")); }
@@ -119,6 +119,7 @@ export default function JigsawV2Client({ images }: { images: Array<{ url: string
 
   if (state) return <Puzzle key={state.id} initial={state} setOuter={(next) => setState((current) => current?.id === next.id ? next : current)} onReplay={() => { const previous = state; setState(null); void start(previous); }} onChooseAnother={chooseAnother} />;
   if (loading && !isStarting) return <FocusLayout><p role="status">{t("common.loading")}</p></FocusLayout>;
+  if (!allowStarts) return <FocusLayout><p role="status">{t("gameAvailability.unavailable")}</p><PuzzleTogetherOverview /></FocusLayout>;
   return <FocusLayout className="max-w-5xl gap-5">
     <header><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.title")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.intro")}</p></header>
     <PuzzleTogetherOverview />

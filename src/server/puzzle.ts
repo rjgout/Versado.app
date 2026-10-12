@@ -4,8 +4,7 @@ import { acquireCoopLock, commitCoopAction, getCoopState, releaseCoopLocks, rene
 import { PuzzleServiceError } from "@/lib/puzzle/errors";
 import { multiplayerConfig } from "@/lib/puzzle/multiplayerConfig";
 import { commitSchema, idSchema } from "@/lib/puzzle/schemas";
-import { getGameSettings } from "@/lib/gameSettings";
-import { prisma } from "@/lib/db";
+import { requirePuzzleContent } from "@/lib/puzzle/access";
 
 // Realtime voor Samen puzzelen (Socket.IO + Redis-adapter). De database is de
 // bron van waarheid: elke definitieve actie loopt door dezelfde servicefuncties
@@ -44,19 +43,9 @@ async function announcePresence(io: SocketIOServer, sessionId: string) {
 }
 
 export function registerPuzzleHandlers(io: SocketIOServer, socket: Socket, user: { id: string }) {
-  // Dezelfde schakelaar als de HTTP-routes: een beheerder die de legpuzzel uitzet, stopt ook de
-  // socket-acties (kort gecachet, zodat sleepverkeer geen database-aanvraag per bericht kost).
-  let allowedUntil = 0; let allowed = false;
-  const enabled = async () => {
-    const now = Date.now();
-    if (now < allowedUntil) return allowed;
-    const [settings, account] = await Promise.all([getGameSettings(), prisma.user.findUnique({ where: { id: user.id }, select: { isAdmin: true } })]);
-    allowed = settings.jigsawEnabled || account?.isAdmin === true; allowedUntil = now + 15_000;
-    return allowed;
-  };
   const guarded = (run: (payload: unknown, reply: Ack) => Promise<void> | void) => async (payload: unknown, ack?: Ack) => {
     const reply = call(ack);
-    if (!(await enabled().catch(() => false))) return reply({ ok: false, code: "FORBIDDEN" });
+    if (!(await requirePuzzleContent().then(() => true).catch(() => false))) return reply({ ok: false, code: "FORBIDDEN" });
     await run(payload, reply);
   };
 
@@ -137,13 +126,14 @@ export function registerPuzzleHandlers(io: SocketIOServer, socket: Socket, user:
 
   // Tijdelijke beweging: alleen doorgegeven, nooit opgeslagen. Alleen voor een
   // groep die dit socket zelf vasthoudt en alleen binnen de snelheidsgrens.
-  socket.on("puzzle:drag", (payload: unknown) => {
+  socket.on("puzzle:drag", async (payload: unknown) => {
     const parsed = dragPayload.safeParse(payload);
     if (!parsed.success || !joined.has(parsed.data.sessionId)) return;
     const now = Date.now(); const limit = multiplayerConfig().dragMessagesPerSecond;
     bucket = Math.min(limit, bucket + ((now - refilled) / 1000) * limit); refilled = now;
     if (bucket < 1) return; bucket -= 1;
     if ((heldUntil.get(`${parsed.data.sessionId}:${parsed.data.groupId}`) ?? 0) < now) return;
+    if (!await requirePuzzleContent().then(() => true).catch(() => false)) return;
     socket.to(roomOf(parsed.data.sessionId)).volatile.emit("puzzle:drag", { ...parsed.data, userId: user.id });
   });
 

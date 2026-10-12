@@ -27,7 +27,7 @@ try {
   await context.addCookies([{ name: SESSION_COOKIE, value: await createSessionToken(user.id), url: base }]);
   page = await context.newPage(); const errors = []; page.on("pageerror", (error) => errors.push(error.message));
   const canvas = page.locator("canvas");
-  const api = async (body) => { const response = await context.request.post(`${base}/api/jigsaw-v2`, { data: body }); assert.equal(response.status(), 200, await response.text()); return response.json(); };
+  const api = async (body) => { const response = await context.request.post(`${base}/api/jigsaw-v2`, { headers: { Origin: base }, data: body }); assert.equal(response.status(), 200, await response.text()); return response.json(); };
   const act = (state, operation) => api({ action: "act", sessionId: state.id, version: state.version, actionId: randomUUID(), operation });
   await page.goto(`${base}/jigsaw`);
   async function open(state) {

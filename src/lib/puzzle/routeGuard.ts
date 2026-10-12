@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
-import { getContentContext } from "@/lib/contentCollections";
-import { getGameSettings } from "@/lib/gameSettings";
+import { canResumeGameContent } from "@/lib/gameAvailability";
+import { PUZZLE_CONTENT_COLLECTION_ID } from "@/lib/puzzle/access";
+import { inventoryOriginAllowed } from "@/lib/content-inventory/origin";
 import { apiError } from "@/lib/apiError";
 import { getT } from "@/lib/i18n";
 import { PuzzleServiceError, puzzleErrorStatus } from "@/lib/puzzle/errors";
 
-/** Dezelfde toegang als Solo: ingelogd, spel aan en in de actieve contentkeuze. */
-export async function puzzleRouteUser() {
+/** Bestaande partijen: normale oorspronkelijke bronrechten; startcontrole zit in de createservice. */
+export async function puzzleRouteUser(req?: Request) {
   const user = await getCurrentUser();
   if (!user) return { response: await apiError("apiErrors.notLoggedIn", 401) } as const;
   const t = getT(user.uiLanguage);
-  const [settings, context] = await Promise.all([getGameSettings(), getContentContext(user.id)]);
-  if ((!settings.jigsawEnabled && !user.isAdmin) || !context.gameKeys.includes("jigsaw")) return { response: NextResponse.json({ error: t("jigsaw.unavailable") }, { status: 403 }) } as const;
+  if (req && !inventoryOriginAllowed(req.headers, req.url, process.env.APP_URL)) return { response: await apiError("apiErrors.forbidden", 403) } as const;
+  if (!await canResumeGameContent(PUZZLE_CONTENT_COLLECTION_ID)) return { response: NextResponse.json({ error: t("gameAvailability.unavailable") }, { status: 403 }) } as const;
   return { user, t } as const;
 }
 

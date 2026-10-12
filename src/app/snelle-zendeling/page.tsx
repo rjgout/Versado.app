@@ -6,6 +6,6 @@ import QuickMissionaryStartClient from "@/components/snelleZendeling/StartClient
 export default async function QuickMissionaryPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!(await canUseQuickMissionary(user.id, user.isAdmin))) redirect("/live");
+  if (!(await canUseQuickMissionary(user.id, user.isAdmin))) redirect("/live?availability=unavailable");
   return <QuickMissionaryStartClient />;
 }

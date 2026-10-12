@@ -3,6 +3,37 @@ import { kompasFr } from "./kompas/fr";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const fr: PartialMessages = {
+  gameAvailability: { unavailable: "Ce jeu n’est pas disponible pour ce contenu. Choisissez une activité ou une source disponible." },
+
+  adminContentInspect: {
+    previewTitle: "Aperçu des Écritures",
+    previewIntro: "Aperçu en lecture seule de cette édition. Votre sélection et votre progression sont conservées.",
+    showChapter: "Afficher le chapitre",
+    noText: "Cette édition ne contient pas encore de texte disponible.",
+    book: "Livre",
+
+    "title": "Consulter les contenus administrés",
+    "intro": "Consultez toutes les œuvres et éditions. Un aperçu ne modifie ni votre sélection ni votre progression.",
+    "work": "Œuvre",
+    "edition": "Famille d’édition",
+    "language": "Langue du contenu",
+    "all": "Toutes",
+    "collections": "Collections",
+    "empty": "Aucune collection trouvée.",
+    "previewAvailable": "Aperçu disponible",
+    "previewUnsupported": "Aperçu non pris en charge",
+    "preview": "Ouvrir l’aperçu",
+    "fsy": "Ouvrir la gestion FSY existante",
+    "unsupported": "Cette source ne dispose pas encore d’un lecteur d’aperçu sécurisé.",
+    "enabled": "Activée",
+    "disabled": "Désactivée",
+    "visible": "Visible",
+    "hidden": "Masquée",
+    "publication": "Statut de publication",
+    "unmapped": "Identité de l’œuvre manquante",
+    "failed": "Impossible de charger la liste."
+},
+
   adminInventory: {
     "title": "Inventaire de la base de données",
     "intro": "Vérifier les contenus, identités et migrations réels. Lecture seule ; aucune modification ni donnée personnelle dans le rapport.",

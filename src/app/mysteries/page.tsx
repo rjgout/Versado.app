@@ -11,7 +11,7 @@ import { surfaceCard } from "@/components/versado/styles";
 export default async function MysteryGamePage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!(await canUseMystery(user.id, user.isAdmin))) redirect("/live");
+  if (!(await canUseMystery(user.id, user.isAdmin))) redirect("/live?availability=unavailable");
   const [progress, t] = await Promise.all([
     Promise.all(MYSTERY_GAME.mysteries.map(({ definition }) => getMysteryProgress(user.id, definition))),
     Promise.resolve(getT(user.uiLanguage)),

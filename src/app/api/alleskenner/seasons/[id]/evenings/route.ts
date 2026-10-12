@@ -1,8 +1,8 @@
+import { gameStartGuard } from "@/lib/gameStartGuard";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
-import { getGameSettings } from "@/lib/gameSettings";
 import { createAlleskennerGame } from "@/lib/alleskenner/game";
 import { isSeasonManager, loadSeasonFor, openEvening, planEvening } from "@/lib/alleskenner/season";
 import { apiError, apiErrorText } from "@/lib/apiError";
@@ -15,10 +15,6 @@ const schema = z.object({ absentIds: z.array(z.string()).max(200) });
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
-  const settings = await getGameSettings();
-  if (!settings.alleskennerEnabled && !user.isAdmin) {
-    return await apiError("apiErrors.alleskennerOff", 403);
-  }
   const { id } = await params;
   const season = await loadSeasonFor(id, user.id);
   if (!season) return await apiError("apiErrors.seasonNotFound", 404);
@@ -30,6 +26,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const open = openEvening(season.evenings);
   if (open) return NextResponse.json({ code: open.game!.code });
 
+  const denied = await gameStartGuard(req, user.id, "alleskenner");
+  if (denied) return denied;
   const plan = planEvening(season, season.members, parsed.data.absentIds);
   if (plan.error) return await apiErrorText(plan.error, 409);
 

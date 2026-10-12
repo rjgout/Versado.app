@@ -1,3 +1,4 @@
+import { requirePuzzleContent, requireNewPuzzleStart } from "@/lib/puzzle/access";
 import { randomUUID } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
@@ -55,6 +56,7 @@ const room = (sessionId: string) => `puzzle:${sessionId}`;
 function parseSnapshot(raw: string): PuzzleSnapshot { return snapshotSchema.parse(JSON.parse(raw)) as PuzzleSnapshot; }
 
 async function lockCoopSession(tx: Tx, sessionId: string) {
+  await requirePuzzleContent(tx);
   // Alle schrijfacties van één gedeelde puzzel lopen serieel, ook tussen instances.
   await tx.$queryRaw`SELECT "id" FROM "PuzzleSession" WHERE "id" = ${sessionId} AND "mode" = 'COOP' FOR UPDATE`;
   return tx.puzzleSession.findFirst({ where: { id: sessionId, mode: "COOP" }, include: sessionInclude });
@@ -103,6 +105,7 @@ async function buildState(tx: Tx, row: Row, userId: string, now: Date): Promise<
 // --- Aanmaken, uitnodigen, reageren -------------------------------------------
 
 export async function createCoopSession(userId: string, content: number | string, pieceCount: (typeof COOP_PIECE_COUNTS)[number], difficulty: PuzzleDifficulty, friendIds: string[]) {
+  await requireNewPuzzleStart(userId);
   if (!COOP_PIECE_COUNTS.includes(pieceCount)) throw new PuzzleServiceError("INVALID");
   const invitees = [...new Set(friendIds)].filter((id) => id !== userId);
   if (invitees.length > multiplayerConfig().maxCoopParticipants - 1) throw new PuzzleServiceError("CAPACITY");
@@ -223,6 +226,7 @@ export async function leaveCoopSession(userId: string, sessionId: string) {
 
 export async function getCoopState(userId: string, sessionId: string): Promise<CoopState> {
   return prisma.$transaction(async (tx) => {
+    await requirePuzzleContent(tx);
     const row = await tx.puzzleSession.findFirst({ where: { id: sessionId, mode: "COOP" }, include: sessionInclude });
     if (!row) throw new PuzzleServiceError("NOT_FOUND");
     const participant = await requireParticipant(tx, sessionId, userId);
@@ -271,6 +275,7 @@ export async function acquireCoopLock(userId: string, sessionId: string, groupId
 }
 
 export async function renewCoopLock(userId: string, sessionId: string, groupId: string, token: string): Promise<{ ok: boolean; expiresAt?: string }> {
+  await requirePuzzleContent();
   const expiresAt = new Date(Date.now() + multiplayerConfig().lockLeaseMs);
   const changed = await prisma.puzzleLock.updateMany({ where: { sessionId, groupId, userId, token, expiresAt: { gt: new Date() } }, data: { expiresAt } });
   return changed.count ? { ok: true, expiresAt: expiresAt.toISOString() } : { ok: false };
@@ -439,6 +444,7 @@ function parseActive(raw: string | null, now: Date): PuzzleHint | null {
 // --- Overzichten ---------------------------------------------------------------------
 
 export async function listCoopOverview(userId: string) {
+  await requirePuzzleContent();
   const now = new Date();
   const [sessions, invites, sent] = await Promise.all([
     prisma.puzzleSession.findMany({ where: { mode: "COOP", participants: { some: { userId } }, status: { in: ["ACTIVE", "COMPLETED"] } }, orderBy: { lastActivityAt: "desc" }, take: 20, include: { variant: { include: { definition: true } }, participants: { include: { user: { select: { id: true, handle: true } } } } } }),

@@ -3,6 +3,37 @@ import { kompasDe } from "./kompas/de";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const de: PartialMessages = {
+  gameAvailability: { unavailable: "Dieses Spiel ist für diese Inhalte nicht verfügbar. Wähle eine verfügbare Aktivität oder Inhaltsquelle." },
+
+  adminContentInspect: {
+    previewTitle: "Schriftvorschau",
+    previewIntro: "Schreibgeschützte Ansicht dieser Ausgabe. Inhaltsauswahl und Fortschritt bleiben erhalten.",
+    showChapter: "Kapitel anzeigen",
+    noText: "Diese Ausgabe enthält noch keinen verfügbaren Lesetext.",
+    book: "Buch",
+
+    "title": "Verwaltete Inhalte ansehen",
+    "intro": "Alle Werke und Ausgaben prüfen. Eine Vorschau verändert weder Inhaltsauswahl noch Fortschritt.",
+    "work": "Werk",
+    "edition": "Ausgabenfamilie",
+    "language": "Inhaltssprache",
+    "all": "Alle",
+    "collections": "Sammlungen",
+    "empty": "Keine Sammlungen gefunden.",
+    "previewAvailable": "Vorschau verfügbar",
+    "previewUnsupported": "Vorschau nicht unterstützt",
+    "preview": "Vorschau öffnen",
+    "fsy": "Bestehende FSY-Verwaltung öffnen",
+    "unsupported": "Für diese Quelle gibt es noch keine sichere Vorschau.",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert",
+    "visible": "Sichtbar",
+    "hidden": "Verborgen",
+    "publication": "Veröffentlichungsstatus",
+    "unmapped": "Werkidentität fehlt",
+    "failed": "Die Übersicht konnte nicht geladen werden."
+},
+
   adminInventory: {
     "title": "Datenbankinventur",
     "intro": "Tatsächliche Inhalte, Identitäten und Migrationen prüfen. Nur lesend; keine Änderungen oder personenbezogenen Daten im Bericht.",

@@ -21,6 +21,9 @@ on:
       - 'src/lib/backTarget.ts'
       - 'src/app/globals.css'
       - 'src/app/api/jigsaw-v2/**'
+      - 'src/app/api/puzzle/**'
+      - 'src/server/puzzle.ts'
+      - 'src/components/puzzle/**'
       - 'prisma/**'
       - 'tests/puzzle*'
       - 'tests/jigsaw*'
@@ -60,7 +63,7 @@ jobs:
       - name: Sessies, vraag, reeks, content en echte productie-browserflow
         env:
           NODE_ENV: production
-        run: npm run test:puzzle:integration -- --browser
+        run: npm run test:puzzle:integration -- --browser --multiplayer
       - name: Engine, spelregels, vertalingen en legacy-regressies
         run: |
           npm run test:puzzle
@@ -76,6 +79,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: puzzle-v2-browser
-          path: /tmp/versado-puzzle-browser
+          path: |
+            /tmp/versado-puzzle-browser
+            /tmp/mp-*.png
           if-no-files-found: warn
           retention-days: 7

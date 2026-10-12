@@ -1,3 +1,4 @@
+import { canResumeLiveGame } from "@/lib/gameAvailability";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
@@ -14,6 +15,7 @@ export default async function LiveGamePage({ params }: { params: Promise<{ code:
   if (!user) redirect("/login");
   const { code } = await params;
   const upperCode = code.toUpperCase();
+  if (!(await canResumeLiveGame(upperCode))) redirect("/live?availability=unavailable");
 
   // Bepaalt hier (server-side) al welke spelmodus dit is, zodat we het
   // juiste client-component renderen. Bestaat de code niet (of nog niet

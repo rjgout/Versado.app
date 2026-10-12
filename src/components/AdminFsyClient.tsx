@@ -94,7 +94,7 @@ export default function AdminFsyClient() {
   const published = data.lessons.filter((lesson) => lesson.publishedAt !== null);
 
   return (
-    <AdminSection title={t("courseNames.fsy")}>
+    <AdminSection id="fsy-management" title={t("courseNames.fsy")}>
       <div>
         <p className="text-sm text-vs-fg-2">
           {t("adminFsy.intro")}

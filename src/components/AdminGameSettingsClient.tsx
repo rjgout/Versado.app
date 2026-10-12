@@ -39,7 +39,7 @@ const GAMES: { key: keyof SettingsView; gameKey: string; icon: string; labelKey:
 ];
 
 interface ScopesView {
-  collections: { id: string; name: string; icon: string; language: string | null }[];
+  collections: { id: string; name: string; icon: string; language: string | null; supportedGames: string[] }[];
   scopes: { gameKey: string; contentCollectionId: string }[];
 }
 
@@ -130,7 +130,7 @@ export default function AdminGameSettingsClient() {
                           : "border-vs-line text-vs-fg-2"
                       }`}
                     >
-                      <ToggleSwitch checked={on} disabled={saving} onChange={(enabled) => toggleScope(g.gameKey, collection.id, enabled)} compact />
+                      <ToggleSwitch checked={on} disabled={saving || (!on && !collection.supportedGames.includes(g.gameKey))} onChange={(enabled) => toggleScope(g.gameKey, collection.id, enabled)} compact />
                       <span aria-hidden>{collection.icon}</span>
                       {collection.name}
                       {collection.language && <span className="font-bold uppercase">{collection.language}</span>}

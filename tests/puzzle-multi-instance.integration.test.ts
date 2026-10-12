@@ -89,7 +89,7 @@ function expectEvent<T = Record<string, unknown>>(socket: Socket, event: string,
   });
 }
 async function postJson(port: number, cookie: string, path: string, body: unknown) {
-  const response = await fetch(`http://localhost:${port}${path}`, { method: "POST", headers: { "Content-Type": "application/json", cookie }, body: JSON.stringify(body) });
+  const response = await fetch(`http://localhost:${port}${path}`, { method: "POST", headers: { "Content-Type": "application/json", cookie, Origin: `http://localhost:${port}` }, body: JSON.stringify(body) });
   return { status: response.status, body: await response.json().catch(() => null) as Record<string, unknown> | null };
 }
 

@@ -8,6 +8,7 @@ export default async function WordSearchPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   const [settings, context] = await Promise.all([getGameSettings(), assertWordSearchContext(user.id)]);
-  if ((!settings.wordSearchEnabled && !user.isAdmin) || !context) redirect("/live");
-  return <WordSearchClient initialGame={await getActiveWordSearch(user.id)} />;
+  const active = await getActiveWordSearch(user.id);
+  if (!active && (!settings.wordSearchEnabled || !context)) redirect("/live?availability=unavailable");
+  return <WordSearchClient initialGame={active} />;
 }

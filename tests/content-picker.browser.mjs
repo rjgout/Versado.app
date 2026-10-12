@@ -27,7 +27,7 @@ try {
   }
   await prisma.contentCollection.updateMany({data:{enabled:true,visibleToUsers:true}});
   await prisma.contentSwitcherSettings.upsert({where:{id:'singleton'},create:{enabled:true},update:{enabled:true}});
-  for(const [collectionId,key] of [['content_bom','picker/bofm/1-ne'],['content_dc','picker/dc-testament/dc']]) {
+  for(const [collectionId,key] of [['content_bom','picker/bofm/1-ne'],['content_dc','picker/dc-testament/dc'],[catalog.collections.find(c=>c.work==='old-testament'&&c.language==='nl').id,'picker/old-testament/gen']]) {
     const book=await prisma.book.create({data:{slug:`picker-${randomUUID()}`,key,name:'Synthetisch boek',order:1,contentCollectionId:collectionId}});
     const chapter=await prisma.chapter.create({data:{bookId:book.id,number:1,order:1,verses:{create:{number:1,text:'Synthetische tekst voor de browsercontrole.'}}}});
     await prisma.course.create({data:{slug:`picker-${randomUUID()}`,name:'Vrije keuze',type:'FREE_CHOICE',contentCollectionId:collectionId,chapters:{create:{chapterId:chapter.id,order:1}}}});
@@ -63,6 +63,7 @@ try {
     await page.evaluate(font=>{document.documentElement.style.fontSize=`${font===200?32:16}px`;document.documentElement.style.setProperty('--safe-area-inset-top','20px');document.documentElement.style.setProperty('--safe-area-inset-bottom','20px');document.documentElement.style.setProperty('--safe-area-inset-left','12px');document.documentElement.style.setProperty('--safe-area-inset-right','12px');},font);
     await page.locator('[data-kompas-target="content-switcher"] a').click();await page.waitForURL(`${base}/content`);await page.locator('[data-content-picker]').waitFor();
     const state=await shell();
+    assert.ok(await page.evaluate(()=>document.querySelector('[data-content-language]').getBoundingClientRect().top>=document.querySelector('[data-content-group=studyPrograms]').getBoundingClientRect().bottom),'Taal volgt beide brongroepen');
     assert.equal(await page.locator('[data-content-menu]').count(),0);
     assert.equal(await page.locator('[data-content-picker] details, [data-content-picker] summary').count(),0);
     assert.equal(await page.locator('[data-content-picker] a').count(),0,'Geen beheerpreview-CTA');
@@ -82,7 +83,7 @@ try {
     const tag=`${width}x${height}-${scheme}-${font}`;
     await page.screenshot({path:`${output}/content-picker-${tag}.png`,fullPage:true});
     await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
-    const tail=await page.locator('[data-content-work]').last().evaluate(el=>{const r=el.getBoundingClientRect();return{bottom:r.bottom,visible:r.top<innerHeight};});assert.ok(tail.visible&&tail.bottom<=height+1);
+    const tail=await page.locator('[data-content-language]').evaluate(el=>{const r=el.getBoundingClientRect();return{bottom:r.bottom,visible:r.top<innerHeight};});assert.ok(tail.visible&&tail.bottom<=height+1);
     results.push({tag,...state,cards:cards.length});
     await page.locator('[data-subpage-back-bar] button').click();await page.waitForURL(`${base}/dashboard`);
   }
@@ -193,7 +194,35 @@ try {
     await ready('/content');assert.equal(await page.locator('[data-content-work="old-testament"]').count(),0);assert.equal(await page.locator('[data-content-work="pgp"]').count(),0);assert.equal(await page.locator('[data-content-work="fsy"]').count(),0);
     await prisma.user.update({where:{id:user.id},data:{isAdmin:true}});
     await ready('/content');assert.equal(await page.locator('[data-content-work="old-testament"]').count(),0,'Ook admins krijgen een publieke kiezer zonder verborgen bronnen');
-    assert.equal(await page.locator('[data-content-picker] a').count(),0);
+    assert.equal(await page.locator('[data-content-picker] a').count(),1);
+    assert.equal(await page.locator('[data-admin-content-link]').getAttribute('href'),'/adminbackend/content/inspect');
+    assert.ok(await page.locator('[data-admin-content-link]').evaluate(el=>el.getBoundingClientRect().top>=document.querySelector('[data-content-language]').getBoundingClientRect().bottom));
+    const adminSelection=()=>prisma.user.findUniqueOrThrow({where:{id:user.id},select:{activeContentCollectionId:true,contentLanguage:true,activeCourseId:true,xpTotal:true,hintBalance:true,currentStreak:true}});
+    const adminBefore=await adminSelection();
+    for(const [width,height] of [[320,844],[390,844],[768,1024],[1280,900],[844,390]])for(const dark of [false,true])for(const scale of [16,32]) {
+      await page.setViewportSize({width,height});await page.emulateMedia({colorScheme:dark?'dark':'light'});
+      await ready('/adminbackend/content/inspect');await page.locator('[data-admin-content-inspection]').waitFor();
+      await page.evaluate(({scale,dark})=>{document.documentElement.style.fontSize=`${scale}px`;document.documentElement.classList.toggle('dark',dark);},{scale,dark});
+      assert.equal(await page.locator('[data-admin-content-inspection] details').count(),await prisma.contentCollection.count());
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Beheerkiezer zonder overflow');
+      assert.ok(await page.locator('[data-main-nav]').evaluate(el=>{const rect=el.getBoundingClientRect();return getComputedStyle(el).display==='none'||(getComputedStyle(el).position==='fixed'&&Math.abs(rect.bottom-innerHeight)<2);}), 'Beheeronderbalk blijft onderaan de viewport');
+      await page.screenshot({path:`${output}/admin-content-${width}x${height}-${dark?'dark':'light'}-${scale===32?200:100}.png`,fullPage:true});
+      results.push({tag:`admin-${width}x${height}-${dark}-${scale}`,admin:true});
+    }
+    for(const lang of ['nl','en','de','fr','es']) {
+      await prisma.user.update({where:{id:user.id},data:{uiLanguage:lang}});await page.setViewportSize({width:320,height:844});
+      await ready('/adminbackend/content/inspect');await page.evaluate(()=>document.documentElement.style.fontSize='32px');
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`Beheerlabels ${lang} op 320/200%`);
+    }
+    await prisma.user.update({where:{id:user.id},data:{uiLanguage:'nl'}});await ready('/adminbackend/content/inspect');
+    await page.locator('[data-admin-content-inspection] select').nth(0).selectOption('old-testament');
+    assert.equal(await page.locator('[data-admin-content-inspection] details').count(),5);
+    await page.locator('[data-admin-content-inspection] select').nth(2).selectOption('nl');
+    assert.equal(await page.locator('[data-admin-content-inspection] details').count(),1);
+    await page.getByRole('link',{name:'Open preview',exact:true}).click();await page.waitForURL(/content-preview/);await page.locator('[data-subpage-back-bar]').waitFor();
+    assert.equal(await page.locator('main button').filter({hasText:'Markeren als gelezen'}).count(),0);
+    assert.deepEqual(await adminSelection(),adminBefore,'Inspectie en preview wijzigen geen voorkeur of beloning');
+    await ready('/content');
     const hidden=await prisma.contentCollection.findFirstOrThrow({where:{work:'old-testament',language:'nl'}});
     const own=(await (await page.request.get(`${base}/api/content-context?view=picker`)).json()).selection;
     const denied=await page.request.put(`${base}/api/content-context`,{headers:{Origin:base},data:{picker:true,contentCollectionId:hidden.id,expectedSelection:own}});assert.equal(denied.status(),404);

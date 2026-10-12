@@ -3,6 +3,37 @@ import { kompasEs } from "./kompas/es";
 
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
+  gameAvailability: { unavailable: "Este juego no está disponible para este contenido. Elige una actividad o una fuente disponible." },
+
+  adminContentInspect: {
+    previewTitle: "Vista previa de las Escrituras",
+    previewIntro: "Vista de solo lectura de esta edición. Se conservan tu selección y tu progreso.",
+    showChapter: "Mostrar capítulo",
+    noText: "Esta edición todavía no tiene texto disponible para leer.",
+    book: "Libro",
+
+    "title": "Consultar contenido administrado",
+    "intro": "Consulta todas las obras y ediciones. La vista previa no cambia tu selección ni tu progreso.",
+    "work": "Obra",
+    "edition": "Familia de edición",
+    "language": "Idioma del contenido",
+    "all": "Todas",
+    "collections": "Colecciones",
+    "empty": "No se encontraron colecciones.",
+    "previewAvailable": "Vista previa disponible",
+    "previewUnsupported": "Vista previa no compatible",
+    "preview": "Abrir vista previa",
+    "fsy": "Abrir la gestión FSY existente",
+    "unsupported": "Esta fuente todavía no tiene un lector de vista previa seguro.",
+    "enabled": "Activada",
+    "disabled": "Desactivada",
+    "visible": "Visible",
+    "hidden": "Oculta",
+    "publication": "Estado de publicación",
+    "unmapped": "Falta la identidad de la obra",
+    "failed": "No se pudo cargar la lista."
+},
+
   adminInventory: {
     "title": "Inventario de la base de datos",
     "intro": "Revisa contenidos, identidades y migraciones reales. Solo lectura; sin cambios ni datos personales en el informe.",

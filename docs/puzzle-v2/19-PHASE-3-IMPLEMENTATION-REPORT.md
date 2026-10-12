@@ -49,7 +49,11 @@ aangetoond in headless Chromium; er is **niet** op echte telefoons gemeten.
 ## Uitrol
 Zie §11 van het architectuurdocument: migratie eerst (additief), daarna app op alle
 instances; Redis nodig voor deltas over instances; terugdraaien = vorige versie,
-geen destructieve migratie; `GameSettings.jigsawEnabled` zet alles uit.
+geen destructieve migratie. Na integratie met Contentarchitectuur fase 1D
+beperkt `GameSettings.jigsawEnabled` nieuwe starts; geldige bestaande partijen
+blijven bereikbaar met normale oorspronkelijke bronrechten. Verborgen,
+uitgeschakelde of DRAFT-bronnen blijven voor normaal lezen geblokkeerd,
+ook voor beheerders. Zie `docs/content-architecture-v2/10-PHASE-1D-STATUS.md`.
 
 ## Oordeel
 Alle essentiële acceptatiecriteria zijn aantoonbaar gehaald binnen de lokale

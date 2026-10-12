@@ -26,7 +26,7 @@ try {
     await context.addCookies([{ name: SESSION_COOKIE, value: await createSessionToken(user.id), url: base }]);
     const page = await context.newPage(); const errors = []; page.on("pageerror", (e) => errors.push(e.message));
     const canvas = page.locator("canvas");
-    const api = async (body) => { const response = await context.request.post(`${base}/api/jigsaw-v2`, { data: body }); assert.equal(response.status(), 200, await response.text()); return response.json(); };
+    const api = async (body) => { const response = await context.request.post(`${base}/api/jigsaw-v2`, { headers: { Origin: base }, data: body }); assert.equal(response.status(), 200, await response.text()); return response.json(); };
     await page.goto(`${base}/jigsaw`);
     if (!definition) {
       // Alleen testcontent: egale kleuren maken de zichtbaarheid van ieder lid

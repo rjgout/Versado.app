@@ -1,3 +1,4 @@
+import { canResumeGameContent } from "@/lib/gameAvailability";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/session";
@@ -10,6 +11,7 @@ const schema = z.object({ guess: z.string().trim().min(1) });
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
+  if (!(await canResumeGameContent("content_bom"))) return apiError("gameAvailability.unavailable", 403);
 
   const body = await req.json().catch(() => null);
   const parsed = schema.safeParse(body);

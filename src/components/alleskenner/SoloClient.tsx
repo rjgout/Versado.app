@@ -17,7 +17,7 @@ const BOARDS: Board[] = ["today", "week", "friends"];
  * oefenen. Het potje zelf draait in AlleskennerRoom, met dezelfde rondes als
  * een quizavond behalve de finale.
  */
-export default function SoloClient({ myUserId }: { myUserId: string }) {
+export default function SoloClient({ myUserId, allowStarts = true }: { myUserId: string; allowStarts?: boolean }) {
   const t = useT();
   const router = useRouter();
   const [overview, setOverview] = useState<SoloOverview | null>(null);
@@ -85,7 +85,7 @@ export default function SoloClient({ myUserId }: { myUserId: string }) {
             <button
               className="btn-primary !bg-gold-500 !text-brand-900 self-start"
               onClick={() => start("DAILY")}
-              disabled={busy !== null}
+              disabled={busy !== null || (!allowStarts && today?.status !== "IN_PROGRESS")}
             >
               {busy === "DAILY"
                 ? t("courses.busy")
@@ -104,7 +104,7 @@ export default function SoloClient({ myUserId }: { myUserId: string }) {
           <p className="text-sm text-slate-500 dark:text-slate-400">
             {t("alleskenner.practiceText")}
           </p>
-          <button className="btn-secondary self-start mt-auto" onClick={() => start("PRACTICE")} disabled={busy !== null}>
+          <button className="btn-secondary self-start mt-auto" onClick={() => start("PRACTICE")} disabled={busy !== null || !allowStarts}>
             {busy === "PRACTICE" ? t("courses.busy") : overview?.practiceRunId ? t("alleskenner.newPractice") : t("alleskenner.startPractice")}
           </button>
           {overview?.practiceRunId && (
@@ -118,6 +118,7 @@ export default function SoloClient({ myUserId }: { myUserId: string }) {
         </div>
       </div>
 
+      {!allowStarts && <p role="status" className="text-sm text-vs-fg-2">{t("gameAvailability.unavailable")}</p>}
       {error && <p className="card !py-3 text-sm font-semibold text-red-600 dark:text-red-400">{error}</p>}
 
       <div className="card flex flex-col gap-3">

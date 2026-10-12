@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { getGameSettings } from "@/lib/gameSettings";
-import { getContentContext } from "@/lib/contentCollections";
+import { canResumeGameContent } from "@/lib/gameAvailability";
 import { getMatch } from "@/lib/puzzle/match";
 import { PuzzleServiceError } from "@/lib/puzzle/errors";
 import MatchClient from "@/components/puzzle/MatchClient";
@@ -9,8 +8,7 @@ import MatchClient from "@/components/puzzle/MatchClient";
 export default async function MatchPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const [settings, context] = await Promise.all([getGameSettings(), getContentContext(user.id)]);
-  if ((!settings.jigsawEnabled && !user.isAdmin) || !context.gameKeys.includes("jigsaw")) redirect("/live");
+  if (!await canResumeGameContent("content_bom")) redirect("/live?availability=unavailable");
   const { id } = await params;
   let state: Awaited<ReturnType<typeof getMatch>>;
   try {
