@@ -1,3 +1,4 @@
+import type { Prisma } from "@/generated/prisma/client";
 import { availableGameKeys } from "@/lib/gameAvailability";
 import { prisma } from "@/lib/db";
 import { collectionAccessWhere, getContentAvailability } from "@/lib/contentAccess";
@@ -137,16 +138,16 @@ export async function getContentSwitcherSettings(): Promise<{ enabled: boolean }
 }
 
 /** Nieuwe spelstarts gebruiken gewone rechten en nooit een vervangende bron bij ingetrokken toegang. */
-export async function getActiveGameCollection(userId: string) {
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { activeContentCollectionId: true, contentLanguage: true } });
+export async function getActiveGameCollection(userId: string, db: Pick<Prisma.TransactionClient, "user" | "contentCollection"> = prisma) {
+  const user = await db.user.findUnique({ where: { id: userId }, select: { activeContentCollectionId: true, contentLanguage: true } });
   if (!user) return null;
   const where = collectionAccessWhere({ isAdmin: false });
   if (user.activeContentCollectionId) {
-    return prisma.contentCollection.findFirst({ where: { ...where, id: user.activeContentCollectionId }, include: { contentWork: true } });
+    return db.contentCollection.findFirst({ where: { ...where, id: user.activeContentCollectionId }, include: { contentWork: true } });
   }
   // Oude gebruikers zonder expliciete keuze: dezelfde eerste-werk/taalkeuze
   // als getContentContext, zonder synthetische BOM of voorkeurmutatie.
-  const collections = await prisma.contentCollection.findMany({ where, orderBy: { order: "asc" }, include: { contentWork: true } });
+  const collections = await db.contentCollection.findMany({ where, orderBy: { order: "asc" }, include: { contentWork: true } });
   const selected = pickEditions(collections, user.contentLanguage)[0]?.edition;
   return collections.find(collection => collection.id === selected?.id) ?? null;
 }

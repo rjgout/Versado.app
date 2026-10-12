@@ -9,5 +9,6 @@ export async function POST(req: Request) {
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
   const denied = await gameStartGuard(req, user.id, "quick-missionary");
   if (denied) return denied;
-  return NextResponse.json(await startQuickMissionaryRun(user.id));
+  try { return NextResponse.json(await startQuickMissionaryRun(user.id)); }
+  catch { return await apiError("gameAvailability.unavailable", 403); }
 }

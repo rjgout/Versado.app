@@ -34,7 +34,7 @@ interface RunView {
   status: "IN_PROGRESS" | "DEAD_AWAITING_REVIVE" | "REVIVE_READY" | "FINISHED";
   score: number;
   reviveUsed: boolean;
-  reviveAvailable: boolean;
+  reviveAvailable: boolean; reviveBlocked: boolean; reviveUnavailableReason: "legacy-source" | "source-unavailable" | null;
   deathOption: DeathOptionView;
   geneesBalance: number;
   geneesPriceXp: number;
@@ -247,7 +247,7 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
   useEffect(() => {
     // finishFromDeath wacht eerst op de server; er wordt hier niet synchroon gerenderd.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (phase === "dead" && view && !view.reviveAvailable && !out) void finishFromDeath();
+    if (phase === "dead" && view && !view.reviveAvailable && !view.reviveBlocked && !out) void finishFromDeath();
   }, [phase, view, out, finishFromDeath]);
 
   const resume = useCallback(async () => {
@@ -286,7 +286,7 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
         setView(await response.json());
         setLocalPhase("revive-question");
         invalidateData("gamesChanged");
-      } else if (response.status === 409) void finishFromDeath();
+      } else if (response.status === 409) { await refreshView(); setLocalPhase("dead"); }
       else setError(true);
     } finally {
       setGeneesBusy(false);
@@ -482,16 +482,18 @@ export default function TogetherRun({ match, myUserId, character, socket }: { ma
             <p className="text-6xl font-black tabular-nums" role="status" aria-live="assertive" data-together-countdown>{countdown !== null && countdown > 0 ? countdown : ""}</p>
           </Overlay>
         )}
+        {["dead", "revive-question", "revive-ready"].includes(phase) && view?.reviveBlocked && <Overlay><p role="status">{t("quickMissionary.sourceUnavailable")}</p><button type="button" className="btn-secondary" onClick={() => void finishFromDeath()}>{t("quickMissionary.endRun")}</button></Overlay>}
         {!out && phase === "dead" && view?.reviveAvailable && (
           <Overlay><DeathPanel score={score} choice={view} busy={geneesBusy} error={geneesError} onUse={() => void requestRevive()} onBuy={() => void confirmGeneesPurchase()} onEnd={() => void finishFromDeath()} /></Overlay>
         )}
         {!out && phase === "revive-question" && view?.reviveQuestion && <Overlay><ReviveQuestionPanel question={view.reviveQuestion} onAnswer={(optionId) => void answer(optionId)} /></Overlay>}
-        {!out && phase === "revive-ready" && (
+        {!out && phase === "revive-ready" && !view?.reviveBlocked && (
           <button type="button" aria-label={t("quickMissionary.tapToContinue")} className="absolute inset-0 z-20 flex w-full flex-col items-center justify-center gap-3 bg-slate-950/50 px-5 text-center text-white backdrop-blur-[2px]" onClick={() => void resume()}>
             <p className="text-xl font-black text-emerald-300">{t("quickMissionary.reviveCorrect")}</p>
             <p>{t("quickMissionary.tapToContinue")}</p>
           </button>
         )}
+        {view?.reviveUnavailableReason && (spectating || ended) && <p className="absolute inset-x-4 top-12 z-30 rounded-xl bg-vs-surface p-3 text-vs-fg" role="status">{t(view.reviveUnavailableReason === "legacy-source" ? "quickMissionary.legacySourceUnknown" : "quickMissionary.sourceUnavailable")}</p>}
         {spectating && (
           <div className="absolute inset-x-3 bottom-[calc(var(--vs-safe-area-bottom)+0.75rem)] z-30 flex flex-col gap-2 rounded-2xl bg-slate-950/70 p-3 text-white backdrop-blur-sm" data-together-spectator>
             <div className="flex items-center justify-between gap-3">

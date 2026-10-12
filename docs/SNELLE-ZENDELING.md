@@ -163,7 +163,9 @@ de wereldhoogte zichtbaar.
 
 ## Run, Genees en vragen
 
-De server maakt eerst een `QuickMissionaryRun` aan. De client meldt alleen de
+De server maakt eerst een `QuickMissionaryRun` aan en bewaart de normaal
+toegankelijke, server-side gevalideerde oorspronkelijke uitgave in
+`contentCollectionId`. Een latere bron- of taalwissel wijzigt deze runbron niet. De client meldt alleen de
 score bij een botsing of einde; de server controleert run-eigenaarschap,
 status, monotone score, maximale score en het hoogst mogelijke tempo op basis
 van de servertijd. Intern blijven de stabiele `revive*`-namen bestaan. Na een
@@ -206,7 +208,7 @@ lengtehint) en wordt nooit tijdens het spelen bedacht. Een bestaande
 de migratie overgenomen als `legacy:`-vraag.
 
 **Volgorde.** Hoofdstukken worden doorlopen in de echte volgorde van de
-actieve uitgave: `(Book.order, Chapter.order)`, zonder vaste lijst. De plek
+vastgelegde runuitgave: `(Book.order, Chapter.order)`, zonder vaste lijst. De plek
 van de speler staat per gebruiker en per contentcollectie in
 `QuickMissionaryReviveProgress` (`cursorBookOrder`/`cursorChapterOrder`,
 `cycle`) en is dus server-side en gelijk op elk toestel en in elke run.
@@ -219,6 +221,19 @@ van de speler staat per gebruiker en per contentcollectie in
   blijft bij hetzelfde hoofdstuk met een andere, nog niet geziene variant;
   heeft dat hoofdstuk er geen meer, dan gaat het naar het volgende hoofdstuk.
 - Maximaal één Genees per run blijft ongewijzigd.
+
+**Bronrechten en oude runs.** Genees-aanbod, vraaguitgifte, beantwoording en
+noodkoop gebruiken de runbron en normale leesrechten, ook voor admins. Een
+verborgen, uitgeschakelde of DRAFT-bron geeft geen nieuwe vraaginhoud of kosten.
+Een reeds uitgegeven vraag blijft opgeslagen en wordt niet vervangen.
+
+Historische NULL-bronnen worden nooit vanuit de huidige profielkeuze of een
+BOM-default ingevuld. Alleen een bestaande vraagrelatie naar hoofdstuk, boek en
+collectie kan de bron onder de runlock bewijzen. Zonder dat bewijs kan de run
+veilig doorgaan/afronden, met behoud van score, maar zonder nieuwe Genees. Een
+oude al verdiende REVIVE_READY zonder bewaarde vraag kan nog worden hervat.
+Details, testbewijs en uitrolgrenzen staan in
+[het fase-1E-rapport](content-architecture-v2/11-PHASE-1E-GENEES-SOURCE.md).
 
 **Geen herhaling.** Een vraag wordt vastgelegd in `QuickMissionaryReviveSeen`
 op het moment dat hij wordt uitgegeven (status `SHOWN`, daarna `CORRECT` of
@@ -313,6 +328,16 @@ Socket.io-infrastructuur (`src/server/quickMissionary.ts`, events `qm:*`).
 Uitnodigingslinks wijzen naar `/live/<code>`, dat voor deze mode doorverwijst
 naar de schermvullende route `/snelle-zendeling/samen/<code>`. Er is **geen
 bovengrens** op het aantal spelers; vanaf twee spelers kan de host starten.
+
+De host bewaart zijn exacte uitgave bij lobbycreatie in
+`LiveGamePlayer.contentCollectionId`; gasten doen dat bij hun geautoriseerde
+`qm:join`. Reconnect of een latere profiel-/taalwissel verandert die snapshot
+niet. `startMatch` controleert alle opgeslagen bronnen opnieuw op normale
+rechten en nieuwe-startavailability en kopieert ze naar de afzonderlijke runs.
+Een oude lobby zonder snapshot vraagt iedere speler expliciet zijn huidige
+uitgave te bevestigen. Een ontbrekende/ingetrokken bron weigert alleen de
+nieuwe wedstrijdstart en wist geen lobby of uitnodiging. Join, leave en start
+gebruiken dezelfde lobbylock; een dubbele start herstelt dezelfde wedstrijd.
 
 **Eén wereld voor iedereen.** Bij de start legt de server een `seed` en een
 `startsAt` (servertijd, na het aftellen) vast in `QuickMissionaryMatch`.

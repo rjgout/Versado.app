@@ -1065,6 +1065,11 @@ export const es: PartialMessages = {
     }
   },
   "quickMissionary": {
+    sourceUnavailable: "La edición original no está disponible. Puedes terminar esta partida sin riesgo; no se cobra ninguna curación.",
+    legacySourceUnknown: "Se desconoce la edición original de esta partida antigua. No hay nuevas curaciones disponibles; tu puntuación se conserva.",
+    sourceConfirmationRequired: "Confirma tu edición actual para esta sala antigua. Cada jugador debe hacerlo antes de empezar.",
+    confirmSource: "Usar mi edición actual",
+
     "title": "Vuela con {mascot}",
     "eyebrow": "Juego arcade",
     "intro": "Vuela con tu guía personal por el mundo de Versado. Cada toque te da un breve impulso.",

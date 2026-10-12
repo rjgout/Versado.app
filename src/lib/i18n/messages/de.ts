@@ -1045,6 +1045,7 @@ export const de: PartialMessages = {
       rule3: "Danach könnt ihr eure Ergebnisse vergleichen.",
     },
     quickMissionary: {
+
       description: "Fliege mit deinem Begleiter durch eine farbenfrohe Welt und stelle deinen besten Punktestand auf.",
       linkLabel: "Flugspiel öffnen",
       rule1: "Tippe, klicke oder drücke die Leertaste für einen kurzen Auftrieb.",
@@ -1053,6 +1054,11 @@ export const de: PartialMessages = {
     },
   },
   quickMissionary: {
+    sourceUnavailable: "Die ursprüngliche Ausgabe ist nicht verfügbar. Du kannst diesen Lauf sicher beenden; Heilung kostet nichts.",
+    legacySourceUnknown: "Die ursprüngliche Ausgabe dieses älteren Laufs ist unbekannt. Neue Heilung ist nicht verfügbar; dein Punktestand bleibt erhalten.",
+    sourceConfirmationRequired: "Bestätige deine aktuelle Ausgabe für diese ältere Lobby. Alle müssen dies tun, bevor der Lauf starten kann.",
+    confirmSource: "Meine aktuelle Ausgabe verwenden",
+
     title: "Mit {mascot} fliegen",
     eyebrow: "Arcade-Spiel",
     intro: "Fliege mit deinem persönlichen Begleiter durch die Versado-Welt. Jeder Tipp gibt dir einen kurzen Auftrieb.",

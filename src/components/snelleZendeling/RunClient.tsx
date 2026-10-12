@@ -29,7 +29,7 @@ const LAYER_CONFIG = [
 ] as const;
 
 type Phase = "ready" | "running" | "dead" | "revive-question" | "revive-ready" | "finished";
-interface RunView { runId: string; status: "IN_PROGRESS" | "DEAD_AWAITING_REVIVE" | "REVIVE_READY" | "FINISHED"; score: number; reviveUsed: boolean; reviveAvailable: boolean; deathOption: DeathOptionView; geneesBalance: number; geneesPriceXp: number; xpTotal: number; canAffordGenees: boolean; inGamePurchaseUsed: boolean; reviveQuestion: ReviveQuestionView | null; reviveReading: ReviveReadingView | null; dailyBest: number; allTimeBest: number }
+interface RunView { runId: string; status: "IN_PROGRESS" | "DEAD_AWAITING_REVIVE" | "REVIVE_READY" | "FINISHED"; score: number; reviveUsed: boolean; reviveAvailable: boolean; reviveBlocked: boolean; reviveUnavailableReason: "legacy-source" | "source-unavailable" | null; deathOption: DeathOptionView; geneesBalance: number; geneesPriceXp: number; xpTotal: number; canAffordGenees: boolean; inGamePurchaseUsed: boolean; reviveQuestion: ReviveQuestionView | null; reviveReading: ReviveReadingView | null; dailyBest: number; allTimeBest: number }
 
 function image(src: string) { const img = new Image(); img.src = `${ASSET_BASE}/${src}`; return img; }
 
@@ -180,7 +180,7 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
   useEffect(() => {
     // finishFromDeath wacht eerst op de server; er wordt hier niet synchroon gerenderd.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (phase === "dead" && view && !view.reviveAvailable) void finishFromDeath();
+    if (phase === "dead" && view && !view.reviveAvailable && !view.reviveBlocked) void finishFromDeath();
   }, [phase, view, finishFromDeath]);
 
   const loopRef = useRef<(timestamp: number) => void>(() => {});
@@ -214,9 +214,10 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
   useEffect(() => { loopRef.current = loop; frameRef.current = requestAnimationFrame(loop); return () => { if (frameRef.current) cancelAnimationFrame(frameRef.current); }; }, [loop]);
 
   const resetLocalRun = useCallback(() => {
-    yRef.current = 270; velocityRef.current = 0; worldOffsetRef.current = 0; scoreRef.current = 0; setScore(0); scoredRef.current = new Set();
-    obstaclesRef.current = createPairSequence(1, FIRST_OBSTACLE_X, Math.random, debugDifficultyRef.current ?? 0);
-  }, []);
+    const savedScore = view?.score ?? 0;
+    yRef.current = 270; velocityRef.current = 0; worldOffsetRef.current = 0; scoreRef.current = savedScore; setScore(savedScore); scoredRef.current = new Set();
+    obstaclesRef.current = createPairSequence(1, FIRST_OBSTACLE_X, Math.random, debugDifficultyRef.current ?? savedScore);
+  }, [view?.score]);
 
   const repositionAfterRevive = useCallback(() => {
     yRef.current = (PLAY_TOP + PLAY_BOTTOM) / 2 - MASCOT_RENDER_SIZE / 2;
@@ -260,7 +261,11 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
         setCurrentPhase("revive-question");
         // De voorraad kan hiermee verbruikt zijn: de winkel moet dat bij terugkomen weten.
         invalidateData("gamesChanged");
-      } else if (response.status === 409) void finishFromDeath();
+      } else if (response.status === 409) {
+        const fresh = await fetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" });
+        if (fresh.ok) { setView(await fresh.json()); setCurrentPhase("dead"); }
+        else setError(true);
+      }
       else setError(true);
     } finally {
       setGeneesBusy(false);
@@ -300,7 +305,7 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
       purchaseConfirmationRef.current = false;
     }
   }
-  async function answer(optionId: string) { if (!view?.reviveQuestion) return; const response = await fetch(`/api/snelle-zendeling/runs/${runId}/revive/answer`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ exerciseId: view.reviveQuestion.exerciseId, optionId }) }); if (!response.ok) { setError(true); return; } const result = await response.json() as { correct: boolean; view: RunView }; setView(result.view); if (result.correct) { repositionAfterRevive(); setCurrentPhase("revive-ready"); } else { abandonSentRef.current = true; setCurrentPhase("finished"); } }
+  async function answer(optionId: string) { if (!view?.reviveQuestion) return; const response = await fetch(`/api/snelle-zendeling/runs/${runId}/revive/answer`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ exerciseId: view.reviveQuestion.exerciseId, optionId }) }); if (!response.ok) { const fresh = await fetch(`/api/snelle-zendeling/runs/${runId}`, { cache: "no-store" }); if (fresh.ok) { setView(await fresh.json()); setCurrentPhase("dead"); } else setError(true); return; } const result = await response.json() as { correct: boolean; view: RunView }; setView(result.view); if (result.correct) { repositionAfterRevive(); setCurrentPhase("revive-ready"); } else { abandonSentRef.current = true; setCurrentPhase("finished"); } }
   async function playAgain() { const response = await fetch("/api/snelle-zendeling/runs", { method: "POST" }); const data = await response.json().catch(() => ({})); if (response.ok && data.runId) router.replace(`/snelle-zendeling/run/${data.runId}`); }
   function openRanking() { router.replace(QUICK_MISSIONARY_RANKING_HREF); }
 
@@ -318,10 +323,11 @@ export default function QuickMissionaryRunClient({ runId, character }: { runId: 
         <canvas ref={canvasRef} width={WORLD_WIDTH} height={WORLD_HEIGHT} data-mascot={character} aria-label={t("quickMissionary.gameArea", { title })} className="block h-full w-full touch-none" onPointerDown={(event) => { event.preventDefault(); void action(); }} />
         <span className="pointer-events-none absolute right-[calc(var(--vs-safe-area-right)+1rem)] top-[calc(var(--vs-safe-area-top)+0.75rem)] z-30 min-w-10 rounded-full bg-slate-950/45 px-3 py-1.5 text-center text-xl font-black tabular-nums text-white shadow-sm backdrop-blur-sm" aria-live="polite" data-game-score>{score}</span>
         {phase === "ready" && <ActionOverlay label={t("quickMissionary.tapToFly")} onAction={() => void action()}><p className="text-xl font-black">{t("quickMissionary.tapToFly")}</p><p className="text-sm sm:hidden">{t("quickMissionary.readyHint")}</p><p className="hidden text-sm sm:block">{t("quickMissionary.readyHintDesktop")}</p></ActionOverlay>}
+        {["dead", "revive-question", "revive-ready"].includes(phase) && view?.reviveBlocked && <Overlay><p role="status">{t("quickMissionary.sourceUnavailable")}</p><button type="button" className="btn-secondary" onClick={() => void finishFromDeath()}>{t("quickMissionary.endRun")}</button></Overlay>}
         {phase === "dead" && view?.reviveAvailable && <Overlay><DeathPanel score={score} choice={view} busy={geneesBusy} error={geneesError} onUse={() => void requestRevive()} onBuy={() => void confirmGeneesPurchase()} onEnd={() => void finishFromDeath()} /></Overlay>}
         {phase === "revive-question" && view?.reviveQuestion && <Overlay><ReviveQuestionPanel question={view.reviveQuestion} onAnswer={(optionId) => void answer(optionId)} /></Overlay>}
-        {phase === "revive-ready" && <ActionOverlay label={t("quickMissionary.tapToContinue")} onAction={() => void action()}><p className="text-xl font-black text-emerald-300">{t("quickMissionary.reviveCorrect")}</p><p>{t("quickMissionary.tapToContinue")}</p></ActionOverlay>}
-        {phase === "finished" && <Overlay>{view?.reviveReading && <ReviveFailurePanel reading={view.reviveReading} />}<p className="text-sm font-extrabold uppercase tracking-wide text-white/75">{title}</p><p className="text-3xl font-black">{t("quickMissionary.gameOver")}</p>{newRecord && <p className="rounded-full bg-amber-300 px-3 py-1 text-sm font-black text-amber-950">{t("quickMissionary.newRecord")}</p>}<p className="text-xl font-black">{t("quickMissionary.scoreLabel", { n: finalScore })}</p><div className="text-sm"><p>{t("quickMissionary.dailyBest", { n: view?.dailyBest ?? 0 })}</p><p>{t("quickMissionary.allTimeBest", { n: view?.allTimeBest ?? 0 })}</p></div><div className="grid w-full max-w-xs gap-3"><button type="button" className="btn-primary w-full" onClick={() => void playAgain()}>{t("quickMissionary.playAgain")}</button><button type="button" className="btn-secondary w-full" onClick={openRanking}>{t("quickMissionary.viewRanking")}</button><Link replace className="btn-secondary w-full" href={PLAY_ROUTE}>{t("quickMissionary.backToGames")}</Link></div></Overlay>}
+        {phase === "revive-ready" && !view?.reviveBlocked && <ActionOverlay label={t("quickMissionary.tapToContinue")} onAction={() => void action()}><p className="text-xl font-black text-emerald-300">{t("quickMissionary.reviveCorrect")}</p><p>{t("quickMissionary.tapToContinue")}</p></ActionOverlay>}
+        {phase === "finished" && <Overlay>{view?.reviveUnavailableReason && <p role="status">{t(view.reviveUnavailableReason === "legacy-source" ? "quickMissionary.legacySourceUnknown" : "quickMissionary.sourceUnavailable")}</p>}{view?.reviveReading && <ReviveFailurePanel reading={view.reviveReading} />}<p className="text-sm font-extrabold uppercase tracking-wide text-white/75">{title}</p><p className="text-3xl font-black">{t("quickMissionary.gameOver")}</p>{newRecord && <p className="rounded-full bg-amber-300 px-3 py-1 text-sm font-black text-amber-950">{t("quickMissionary.newRecord")}</p>}<p className="text-xl font-black">{t("quickMissionary.scoreLabel", { n: finalScore })}</p><div className="text-sm"><p>{t("quickMissionary.dailyBest", { n: view?.dailyBest ?? 0 })}</p><p>{t("quickMissionary.allTimeBest", { n: view?.allTimeBest ?? 0 })}</p></div><div className="grid w-full max-w-xs gap-3"><button type="button" className="btn-primary w-full" onClick={() => void playAgain()}>{t("quickMissionary.playAgain")}</button><button type="button" className="btn-secondary w-full" onClick={openRanking}>{t("quickMissionary.viewRanking")}</button><Link replace className="btn-secondary w-full" href={PLAY_ROUTE}>{t("quickMissionary.backToGames")}</Link></div></Overlay>}
         {error && <p className="absolute inset-x-4 bottom-[calc(var(--vs-safe-area-bottom)+1rem)] z-40 rounded-xl bg-red-950/90 p-3 text-center text-sm font-semibold text-white">{t("quickMissionary.connectionError")}</p>}
       </div>
     </ImmersiveLayout>

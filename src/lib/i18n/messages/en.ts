@@ -1045,6 +1045,7 @@ export const en: PartialMessages = {
       rule3: "Afterwards you can compare scores.",
     },
     quickMissionary: {
+
       description: "Fly with your guide through a colorful world, steer in time and set your best score.",
       linkLabel: "Open the flying game",
       rule1: "Tap, click or press Space for a short upward boost.",
@@ -1053,6 +1054,11 @@ export const en: PartialMessages = {
     },
   },
   quickMissionary: {
+    sourceUnavailable: "The original edition is unavailable. You can safely end this run; no healing is charged.",
+    legacySourceUnknown: "The original edition of this older run is unknown. New healing is unavailable; your score is preserved.",
+    sourceConfirmationRequired: "Confirm your current edition for this older lobby. Every player must do this before the run can start.",
+    confirmSource: "Use my current edition",
+
     title: "Flying {mascot}",
     eyebrow: "Arcade game",
     intro: "Fly with your personal guide through the Versado world. Every tap gives a short upward boost.",

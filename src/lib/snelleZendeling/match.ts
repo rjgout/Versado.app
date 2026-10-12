@@ -1,3 +1,4 @@
+import { checkGameAvailability } from "@/lib/gameAvailability";
 import { randomBytes } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
@@ -128,26 +129,37 @@ export async function settleMatch(tx: Tx, matchId: string, at: Date): Promise<Se
 
 // --- Starten -----------------------------------------------------------------
 
-export type StartMatchError = "NOT_FOUND" | "NOT_HOST" | "INVALID_STATE" | "TOO_FEW_PLAYERS";
+export type StartMatchError = "NOT_FOUND" | "NOT_HOST" | "INVALID_STATE" | "TOO_FEW_PLAYERS" | "SOURCE_CONFIRMATION_REQUIRED" | "SOURCE_UNAVAILABLE";
 
 export async function startMatch(gameId: string, hostId: string, at: Date = new Date()): Promise<{ ok: true; matchId: string; startsAt: Date; userIds: string[] } | { ok: false; error: StartMatchError }> {
   return prisma.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT "id" FROM "LiveGame" WHERE "id" = ${gameId} FOR UPDATE`;
     const game = await tx.liveGame.findUnique({
       where: { id: gameId },
-      select: { id: true, hostId: true, mode: true, status: true, quickMissionaryMatch: { select: { id: true } }, players: { select: { userId: true, user: { select: { timeZone: true } } } } },
+      select: { id: true, hostId: true, mode: true, status: true, quickMissionaryMatch: { select: { id: true, startsAt: true } }, players: { select: { userId: true, contentCollectionId: true, user: { select: { timeZone: true } } } } },
     });
     if (!game || game.mode !== "QUICK_MISSIONARY") return { ok: false as const, error: "NOT_FOUND" as const };
     if (game.hostId !== hostId) return { ok: false as const, error: "NOT_HOST" as const };
-    if (game.status !== "LOBBY" || game.quickMissionaryMatch) return { ok: false as const, error: "INVALID_STATE" as const };
+    if (game.quickMissionaryMatch) return { ok: true as const, matchId: game.quickMissionaryMatch.id, startsAt: game.quickMissionaryMatch.startsAt, userIds: game.players.map(player => player.userId) };
+    if (game.status !== "LOBBY") return { ok: false as const, error: "INVALID_STATE" as const };
     if (game.players.length < 2) return { ok: false as const, error: "TOO_FEW_PLAYERS" as const };
 
+    const sources = new Set<string>();
+    for (const player of game.players) {
+      if (!player.contentCollectionId) return { ok: false as const, error: "SOURCE_CONFIRMATION_REQUIRED" as const };
+      sources.add(player.contentCollectionId);
+    }
+    // Normale bronrechten/settings/scopes zijn per uitgave gelijk. Eén controle
+    // per opgeslagen uitgave binnen deze transactie, ook bij grote lobby's.
+    for (const source of sources) {
+      if (!(await checkGameAvailability("quick-missionary", source, 5, tx)).available) return { ok: false as const, error: "SOURCE_UNAVAILABLE" as const };
+    }
     const startsAt = new Date(at.getTime() + MATCH_COUNTDOWN_MS);
     const match = await tx.quickMissionaryMatch.create({
       data: { liveGameId: game.id, seed: randomBytes(16).toString("hex"), startsAt, participantCount: game.players.length },
     });
     await tx.quickMissionaryRun.createMany({
-      data: game.players.map((player) => ({ userId: player.userId, matchId: match.id, dayKey: dayKeyInZone(at, resolveTimeZone(player.user.timeZone)), lastSeenAt: startsAt })),
+      data: game.players.map((player) => ({ userId: player.userId, contentCollectionId: player.contentCollectionId, matchId: match.id, dayKey: dayKeyInZone(at, resolveTimeZone(player.user.timeZone)), lastSeenAt: startsAt })),
     });
     await tx.liveGame.update({ where: { id: game.id }, data: { status: "IN_PROGRESS" } });
     return { ok: true as const, matchId: match.id, startsAt, userIds: game.players.map((player) => player.userId) };
@@ -239,7 +251,7 @@ export interface RoomPayload {
   phase: "lobby" | "running" | "ended";
   hostId: string;
   code: string;
-  players: { id: string; handle: string; discriminator: string }[];
+  players: { id: string; handle: string; discriminator: string; sourceConfirmed?: boolean }[];
   match: MatchView | null;
 }
 

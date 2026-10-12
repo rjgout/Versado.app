@@ -17,7 +17,7 @@ export type GameAvailability = { available: boolean; reason?: "content" | "unsup
 type AvailableCollection = Prisma.ContentCollectionGetPayload<{ include: { contentWork: true } }>;
 
 /** Alleen binnen één aanroep delen; rechten/settings/scopes worden nooit langdurig gecachet. */
-function availabilityRequest(collectionId: string, validatedCollection?: AvailableCollection) {
+function availabilityRequest(collectionId: string, validatedCollection?: AvailableCollection, db: Prisma.TransactionClient = prisma) {
   let collection: Promise<AvailableCollection | null> | undefined;
   let settings: ReturnType<typeof getGameSettings> | undefined;
   let scopes: Promise<Set<string>> | undefined;
@@ -25,17 +25,17 @@ function availabilityRequest(collectionId: string, validatedCollection?: Availab
   let chapters: Promise<number> | undefined;
   let exercises: Promise<number> | undefined;
   return {
-    collection: () => collection ??= validatedCollection ? Promise.resolve(validatedCollection) : prisma.contentCollection.findFirst({ where: { id: collectionId, ...collectionAccessWhere({ isAdmin: false }) }, include: { contentWork: true } }),
-    settings: () => settings ??= getGameSettings(),
-    scopes: () => scopes ??= prisma.gameContentScope.findMany({ where: { contentCollectionId: collectionId }, select: { gameKey: true } }).then(rows => new Set(rows.map(row => row.gameKey))),
-    fixedSource: () => fixed ??= collectionId === "content_bom" ? Promise.resolve(true) : prisma.contentCollection.findFirst({ where: { id: "content_bom", ...collectionAccessWhere({ isAdmin: false }) }, select: { id: true } }).then(Boolean),
-    chapters: () => chapters ??= prisma.chapter.count({ where: { book: { contentCollectionId: "content_bom" }, OR: [{ heading: { not: "" } }, { verses: { some: {} } }] } }),
-    exercises: () => exercises ??= prisma.exercise.count({ where: { status: "APPROVED", chapter: { book: { contentCollectionId: collectionId } } } }),
+    collection: () => collection ??= validatedCollection ? Promise.resolve(validatedCollection) : db.contentCollection.findFirst({ where: { id: collectionId, ...collectionAccessWhere({ isAdmin: false }) }, include: { contentWork: true } }),
+    settings: () => settings ??= getGameSettings(db),
+    scopes: () => scopes ??= db.gameContentScope.findMany({ where: { contentCollectionId: collectionId }, select: { gameKey: true } }).then(rows => new Set(rows.map(row => row.gameKey))),
+    fixedSource: () => fixed ??= collectionId === "content_bom" ? Promise.resolve(true) : db.contentCollection.findFirst({ where: { id: "content_bom", ...collectionAccessWhere({ isAdmin: false }) }, select: { id: true } }).then(Boolean),
+    chapters: () => chapters ??= db.chapter.count({ where: { book: { contentCollectionId: "content_bom" }, OR: [{ heading: { not: "" } }, { verses: { some: {} } }] } }),
+    exercises: () => exercises ??= db.exercise.count({ where: { status: "APPROVED", chapter: { book: { contentCollectionId: collectionId } } } }),
   };
 }
 
 /** Deze fase controleert bestaande pools; geen nieuwe spelresolver of writer. */
-async function checkInRequest(game: ScopedGame, collectionId: string, requiredChapters: number, dependencies: ReturnType<typeof availabilityRequest>): Promise<GameAvailability> {
+async function checkInRequest(game: ScopedGame, collectionId: string, requiredChapters: number, dependencies: ReturnType<typeof availabilityRequest>, db: Prisma.TransactionClient = prisma): Promise<GameAvailability> {
   const collection = await dependencies.collection();
   if (!collection) return { available: false, reason: "content" };
   if (!supportsGameSource(game, { ...collection, kind: collection.contentWork?.kind ?? null })) return { available: false, reason: "unsupported" };
@@ -59,11 +59,11 @@ async function checkInRequest(game: ScopedGame, collectionId: string, requiredCh
       const chapters = await dependencies.chapters();
       enough = chapters >= (game === "chapter-guess" ? requiredChapters : 4);
       if (game === "gezinsavond") {
-        const groups = await prisma.exercise.groupBy({ by: ["type"], where: { status: "APPROVED", chapter: { book: { contentCollectionId: "content_bom" } } }, _count: true });
+        const groups = await db.exercise.groupBy({ by: ["type"], where: { status: "APPROVED", chapter: { book: { contentCollectionId: "content_bom" } } }, _count: true });
         enough = enough && ["TRUE_FALSE", "FILL_BLANK", "WORD_BANK"].every(type => groups.some(g => g.type === type && g._count > 0));
       }
     } else if (game === "alleskenner") {
-      const rows = await prisma.alleskennerItem.findMany({ where: { enabled: true, ...(collection.language !== "nl" ? { editedByAdmin: false, translations: { some: { language: collection.language } } } : {}) }, select: { id: true, kind: true, data: true, translations: { where: { language: collection.language }, select: { data: true } } } });
+      const rows = await db.alleskennerItem.findMany({ where: { enabled: true, ...(collection.language !== "nl" ? { editedByAdmin: false, translations: { some: { language: collection.language } } } : {}) }, select: { id: true, kind: true, data: true, translations: { where: { language: collection.language }, select: { data: true } } } });
       const valid = rows.flatMap(row => {
         try { const item = parseItem(row.id, row.kind, JSON.parse(collection.language === "nl" ? row.data : row.translations[0]?.data ?? "null")); return typeof item === "string" ? [] : [item]; } catch { return []; }
       });
@@ -77,8 +77,8 @@ async function checkInRequest(game: ScopedGame, collectionId: string, requiredCh
   return enough ? { available: true, collectionId } : { available: false, reason: "pool" };
 }
 
-export async function checkGameAvailability(game: ScopedGame, collectionId: string, requiredChapters = 5): Promise<GameAvailability> {
-  return checkInRequest(game, collectionId, requiredChapters, availabilityRequest(collectionId));
+export async function checkGameAvailability(game: ScopedGame, collectionId: string, requiredChapters = 5, db: Prisma.TransactionClient = prisma): Promise<GameAvailability> {
+  return checkInRequest(game, collectionId, requiredChapters, availabilityRequest(collectionId, undefined, db), db);
 }
 
 export async function availableGameKeys(collectionId: string): Promise<string[]> {

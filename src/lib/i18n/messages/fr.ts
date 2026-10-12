@@ -1045,6 +1045,7 @@ export const fr: PartialMessages = {
       rule3: "Ensuite, vous pouvez comparer vos scores.",
     },
     quickMissionary: {
+
       description: "Vole avec ton guide dans un monde coloré et établis ton meilleur score.",
       linkLabel: "Ouvrir le jeu de vol",
       rule1: "Touche, clique ou appuie sur Espace pour une courte impulsion vers le haut.",
@@ -1053,6 +1054,11 @@ export const fr: PartialMessages = {
     },
   },
   quickMissionary: {
+    sourceUnavailable: "L’édition d’origine est indisponible. Tu peux terminer cette partie sans risque ; aucun soin ne sera facturé.",
+    legacySourceUnknown: "L’édition d’origine de cette ancienne partie est inconnue. Aucun nouveau soin n’est disponible ; ton score est conservé.",
+    sourceConfirmationRequired: "Confirme ton édition actuelle pour cet ancien salon. Chaque joueur doit le faire avant le départ.",
+    confirmSource: "Utiliser mon édition actuelle",
+
     title: "{mascot} prend son envol",
     eyebrow: "Jeu d’arcade",
     intro: "Vole avec ton guide personnel dans le monde de Versado. Chaque touche donne une courte impulsion.",

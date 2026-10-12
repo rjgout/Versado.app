@@ -21,5 +21,5 @@ export function gameSettingEnabled(game: ScopedGame, settings: GameSettingsView)
 
 /** Vast broncontract van bestaande live-modi; beheerscopes zijn geen sessiecontext. */
 export function fixedLiveGameCollectionId(mode: string): string | null {
-  return ["CHAPTER_GUESS", "FAMILY_GAME", "ALLESKENNER", "QUICK_MISSIONARY"].includes(mode) ? "content_bom" : null;
+  return ["CHAPTER_GUESS", "FAMILY_GAME", "ALLESKENNER"].includes(mode) ? "content_bom" : null;
 }

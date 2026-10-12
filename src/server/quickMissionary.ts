@@ -1,10 +1,9 @@
-import { canResumeLiveGame } from "@/lib/gameAvailability";
+import { joinQuickMissionaryLobby, leaveQuickMissionaryLobby } from "@/lib/snelleZendeling/lobby";
 import type { Server as SocketIOServer, Socket } from "socket.io";
 import { prisma } from "@/lib/db";
 import { getT } from "@/lib/i18n";
 import { notifyGameInvite, removeNotificationsByUrl } from "@/lib/notify";
 import { setMatchChangeListener } from "@/lib/realtime";
-import { canUseQuickMissionary } from "@/lib/snelleZendeling/access";
 import { announceMatchChanged, getMatchView, matchChannel, recordBeat, startMatch, sweepStalePlayers, type RoomPayload } from "@/lib/snelleZendeling/match";
 
 // Samen spelen met Vliegende {gids} (LiveGame mode QUICK_MISSIONARY, zie
@@ -143,9 +142,10 @@ function stopTimers(room: Room): void {
 async function buildPayload(room: Room): Promise<Omit<RoomPayload, "seq"> | null> {
   const game = await prisma.liveGame.findUnique({
     where: { id: room.gameId },
-    select: { hostId: true, players: { select: { user: { select: { id: true, handle: true, discriminator: true } } } } },
+    select: { hostId: true, quickMissionaryMatch: { select: { id: true } }, players: { select: { contentCollectionId: true, user: { select: { id: true, handle: true, discriminator: true } } } } },
   });
   if (!game) return null;
+  room.matchId = game.quickMissionaryMatch?.id ?? null;
   const match = room.matchId ? await getMatchView(room.matchId) : null;
   const phase: RoomPayload["phase"] = match ? (match.status === "RUNNING" ? "running" : "ended") : "lobby";
   room.status = phase;
@@ -167,7 +167,7 @@ async function buildPayload(room: Room): Promise<Omit<RoomPayload, "seq"> | null
     phase,
     hostId: game.hostId,
     code: room.code,
-    players: game.players.map((p) => p.user),
+    players: game.players.map((p) => ({ ...p.user, sourceConfirmed: Boolean(p.contentCollectionId) })),
     match,
   };
 }
@@ -266,26 +266,19 @@ export function registerQuickMissionaryHandlers(server: SocketIOServer, socket: 
     recordBeat(room.matchId, user.id, score).catch(() => {});
   };
 
-  socket.on("qm:join", async ({ code }: { code?: unknown }) => {
+  socket.on("qm:join", async ({ code, confirmSource }: { code?: unknown; confirmSource?: unknown }) => {
     if (typeof code !== "string" || code.length > 16) return;
     const upper = code.toUpperCase();
-    if (!(await canResumeLiveGame(upper))) return fail("quickMissionary.together.errors.unavailable");
+    try { await joinQuickMissionaryLobby(upper, user.id, confirmSource === true); }
+    catch (error) {
+      const reason = error instanceof Error ? error.message : "";
+      return fail(reason === "NOT_INVITED" ? "quickMissionary.together.errors.notInvited" : reason === "NOT_PARTICIPANT" ? "quickMissionary.together.errors.notParticipant" : reason === "NOT_FOUND" ? "quickMissionary.together.errors.notFound" : "quickMissionary.together.errors.unavailable");
+    }
     const result = await getRoom(upper).catch(() => "quickMissionary.together.errors.failed");
     if (typeof result === "string") return fail(result);
     const room = result;
-
     let member = room.members.get(user.id);
     if (!member) {
-      // Instappen kan alleen in de lobby; een lopende run heeft vaste deelnemers.
-      if (room.status !== "lobby") return fail("quickMissionary.together.errors.notParticipant");
-      const invited =
-        room.hostId === user.id ||
-        (await prisma.liveGameInvite.findUnique({ where: { gameId_userId: { gameId: room.gameId, userId: user.id } } }).catch(() => null)) !== null;
-      if (!invited) return fail("quickMissionary.together.errors.notInvited");
-      if (!(await canUseQuickMissionary(user.id, user.isAdmin === true).catch(() => false))) return fail("quickMissionary.together.errors.unavailable");
-      await prisma.liveGamePlayer
-        .upsert({ where: { gameId_userId: { gameId: room.gameId, userId: user.id } }, create: { gameId: room.gameId, userId: user.id }, update: {} })
-        .catch(() => {});
       member = { userId: user.id, handle: user.handle, socketIds: new Set() };
       room.members.set(user.id, member);
     }
@@ -341,7 +334,7 @@ export function registerQuickMissionaryHandlers(server: SocketIOServer, socket: 
     if (!room || room.hostId !== user.id || room.status !== "lobby") return;
     const result = await startMatch(room.gameId, user.id).catch(() => null);
     if (!result) return fail("quickMissionary.together.errors.failed");
-    if (!result.ok) return fail(result.error === "TOO_FEW_PLAYERS" ? "quickMissionary.together.errors.tooFew" : "quickMissionary.together.errors.failed");
+    if (!result.ok) return fail(result.error === "TOO_FEW_PLAYERS" ? "quickMissionary.together.errors.tooFew" : result.error === "SOURCE_CONFIRMATION_REQUIRED" ? "quickMissionary.sourceConfirmationRequired" : result.error === "SOURCE_UNAVAILABLE" ? "quickMissionary.sourceUnavailable" : "quickMissionary.together.errors.failed");
     room.status = "running";
     room.matchId = result.matchId;
     room.lastFlush.clear();
@@ -358,6 +351,7 @@ export function registerQuickMissionaryHandlers(server: SocketIOServer, socket: 
     const room = current();
     // Alleen vóór de start; tijdens de run is het opgeven (finish-route), zodat de uitslag klopt.
     if (!room || room.status !== "lobby" || room.hostId === user.id) return;
+    if (!(await leaveQuickMissionaryLobby(room.gameId, user.id))) return;
     const member = room.members.get(user.id);
     room.members.delete(user.id);
     for (const socketId of member?.socketIds ?? []) {
@@ -365,7 +359,6 @@ export function registerQuickMissionaryHandlers(server: SocketIOServer, socket: 
       s?.leave(channel(room.code));
       if (s?.data.qmCode === room.code) s.data.qmCode = undefined;
     }
-    await prisma.liveGamePlayer.deleteMany({ where: { gameId: room.gameId, userId: user.id } }).catch(() => {});
     io?.to(`user:${user.id}`).emit("game_left", { code: room.code });
     schedulePush(room);
   });
