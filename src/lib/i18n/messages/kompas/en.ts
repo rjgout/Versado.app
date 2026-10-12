@@ -214,29 +214,29 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
       more: "You can always reopen this voluntary product guide and its tour in Discover Versado. It does not change your settings.",
     },
     switcher: {
-      title: "Choosing Scriptures and language",
-      what: "At the top of the page you choose which Scriptures you work with, and in which language you read the text.",
-      benefit: "This way you can learn and play with other Scriptures or in another language, without losing your account or progress.",
-      step1: "Tap the name of the Scriptures at the top.",
-      step2: "Pick other Scriptures from the list.",
-      step3: "Below that, pick the language of the text, if there is more than one.",
-      step4: "Versado looks for the same page in your new choice.",
-      faq1: {
-        q: "What changes when I switch?",
-        a: "Courses, games and texts belong to the chosen Scriptures. That is why you see different things in Learn and Play.",
+      "title": "Choose content and language",
+      "what": "Tap your current source at the top left to open the full content picker.",
+      "benefit": "Choose from Scriptures and Study programmes. Podcasts have a separate row under Study programmes. Your choice is remembered and your progress stays saved.",
+      "step1": "Open the picker using the source in the header.",
+      "step2": "Tap an available source to switch directly.",
+      "step3": "Choose an available text language or explicitly choose another edition.",
+      "step4": "Versado opens a suitable destination; going back without choosing changes nothing.",
+      "faq1": {
+        "q": "What changes when I switch?",
+        "a": "Your chosen source determines the available texts, courses and games."
       },
-      faq2: {
-        q: "What stays the same?",
-        a: "Your account, XP, streak, division, friends and settings. Your reading progress is kept too: the same chapter earns its XP only once, whichever language you practise it in.",
+      "faq2": {
+        "q": "What stays the same?",
+        "a": "Your reading and course progress, active study lessons, podcasts, XP, hints and streak remain saved. Switching is not a learning activity."
       },
-      faq3: {
-        q: "How do I choose another language?",
-        a: "Open the menu at the top and pick the language under Language of the text. The language of the app is a separate choice; you change it in your profile.",
+      "faq3": {
+        "q": "How do I choose another language?",
+        "a": "Use the language choice on the content page. Only available editions are used. The interface language is a separate profile setting."
       },
-      faq4: {
-        q: "What if something is not available?",
-        a: "Then you get a message. You can stay where you are, or switch anyway. You are never quietly sent to another page.",
-      },
+      "faq4": {
+        "q": "What if something is unavailable?",
+        "a": "Hidden sources and missing languages cannot be selected normally. If a valid source has no suitable destination yet, you get an explanation; no empty course starts."
+      }
     },
   },
   work: {
@@ -271,7 +271,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
   tours: {
     start: {
       entry: { title: "Discover Versado", text: "Here you will always find explanations about Versado. You can come back at any time." },
-      switcher: { title: "Your Scriptures", text: "Here you choose which Scriptures you work with, and in which language you read the text." },
+      switcher: {"title": "Open the content picker", "text": "Tap here to choose Scriptures, Study programmes and the text language on a full page. Your choice is remembered; existing progress stays saved."},
       learn: { title: "Learn", text: "Here you follow courses: read and answer questions." },
       play: { title: "Play", text: "Here you find games and puzzles, alone or with others." },
       friends: { title: "Friends", text: "Here you add friends and see how you are doing together." },
@@ -280,14 +280,14 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
     learn: {
       intro: { title: "Your courses", text: "These are your courses. Open one to read and answer questions. Your progress is saved." },
       add: { title: "More courses", text: "Here you add a course. You can also put hidden courses back here." },
-      switcher: { title: "Other Scriptures", text: "Courses belong to the chosen Scriptures. Choose other Scriptures here for other courses." },
+      switcher: {"title": "Open the content picker", "text": "Tap here to choose Scriptures, Study programmes and the text language on a full page. Your choice is remembered; existing progress stays saved."},
     },
     play: {
       games: { title: "Your games", text: "Choose a game to open it. The information icon shows the rules." },
-      switcher: { title: "Games and Scriptures", text: "Which games you see depends on the chosen Scriptures." },
+      switcher: {"title": "Open the content picker", "text": "Tap here to choose Scriptures, Study programmes and the text language on a full page. Your choice is remembered; existing progress stays saved."},
     },
     switcher: {
-      menu: { title: "Choose your Scriptures", text: "Here you choose other Scriptures or another language of the text. Nothing changes until you choose." },
+      menu: {"title": "Open the content picker", "text": "Tap here to choose Scriptures, Study programmes and the text language on a full page. Your choice is remembered; existing progress stays saved."},
       learn: { title: "Learn follows your choice", text: "Your courses belong to the chosen Scriptures." },
       play: { title: "Play too", text: "The games depend on your choice as well." },
     },

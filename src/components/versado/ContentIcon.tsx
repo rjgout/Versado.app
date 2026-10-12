@@ -14,7 +14,7 @@ type ContentIdentity = { id: string; work: string | null };
  * bestaande functionele Lucidefallbackicoon, zodat één fout bestand de
  * contentkiezer niet onbruikbaar maakt.
  */
-export default function ContentIcon({ collection, className }: { collection: ContentIdentity; className: string }) {
+export default function ContentIcon({ collection, className, size = 28 }: { collection: ContentIdentity; className: string; size?: number }) {
   const sources = contentIconSources(collection);
   const sourceKey = sources.join("|");
   const [failure, setFailure] = useState<{ sourceKey: string; sourceIndex: number }>({ sourceKey: "", sourceIndex: 0 });
@@ -29,9 +29,9 @@ export default function ContentIcon({ collection, className }: { collection: Con
       src={src}
       alt=""
       aria-hidden
-      width={28}
-      height={28}
-      sizes="28px"
+      width={size}
+      height={size}
+      sizes={`${size}px`}
       className={`object-contain ${className}`}
       onError={() => {
         setFailure((previous) => ({

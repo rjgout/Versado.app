@@ -214,29 +214,29 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
       more: "Siempre puedes volver a abrir esta guía voluntaria del producto y su recorrido en Descubre Versado. Tus ajustes no cambian.",
     },
     switcher: {
-      title: "Elegir las Escrituras y el idioma",
-      what: "Arriba en la página eliges con qué Escrituras trabajas y en qué idioma lees el texto.",
-      benefit: "Así puedes aprender y jugar con otras Escrituras o en otro idioma sin perder tu cuenta ni tu progreso.",
-      step1: "Toca arriba el nombre de las Escrituras.",
-      step2: "Elige otras Escrituras de la lista.",
-      step3: "Debajo, elige el idioma del texto, si hay más de uno.",
-      step4: "Versado busca la misma página en tu nueva elección.",
-      faq1: {
-        q: "¿Qué cambia cuando cambio?",
-        a: "Los cursos, los juegos y los textos pertenecen a las Escrituras elegidas. Por eso ves cosas distintas en Aprender y Jugar.",
+      "title": "Elegir contenido e idioma",
+      "what": "Toca tu fuente actual arriba a la izquierda para abrir la página completa de selección.",
+      "benefit": "Elige entre Escrituras y Programas de estudio. Los podcasts tienen una fila propia en Programas de estudio. Tu elección y tu progreso se conservan.",
+      "step1": "Abre la selección desde la fuente en la cabecera.",
+      "step2": "Toca una fuente disponible para cambiar directamente.",
+      "step3": "Elige un idioma de texto disponible o elige explícitamente otra edición.",
+      "step4": "Versado abre un destino adecuado; volver sin elegir no cambia nada.",
+      "faq1": {
+        "q": "¿Qué cambia al cambiar de fuente?",
+        "a": "Tu fuente determina los textos, cursos y juegos disponibles."
       },
-      faq2: {
-        q: "¿Qué se queda igual?",
-        a: "Tu cuenta, tus XP, tu racha, tu liga, tus amigos y tus ajustes. Tu progreso de lectura también se conserva: el mismo capítulo da sus XP una sola vez, en el idioma que lo practiques.",
+      "faq2": {
+        "q": "¿Qué se mantiene igual?",
+        "a": "Se conservan tu progreso de lectura y cursos, lecciones activas, podcasts, XP, pistas y racha. Cambiar no es una actividad de aprendizaje."
       },
-      faq3: {
-        q: "¿Cómo elijo otro idioma?",
-        a: "Abre el menú de arriba y elige el idioma en «Idioma del texto». El idioma de la aplicación es una elección aparte; lo cambias en tu perfil.",
+      "faq3": {
+        "q": "¿Cómo elijo otro idioma?",
+        "a": "Usa la selección de idioma en la página de contenido. Solo se usan ediciones disponibles. El idioma de la interfaz sigue siendo un ajuste independiente del perfil."
       },
-      faq4: {
-        q: "¿Y si algo no está disponible?",
-        a: "Entonces recibes un aviso. Puedes quedarte donde estás o cambiar de todos modos. Nunca te enviamos en silencio a otra página.",
-      },
+      "faq4": {
+        "q": "¿Qué ocurre si algo no está disponible?",
+        "a": "No puedes seleccionar normalmente fuentes ocultas ni idiomas ausentes. Si una fuente válida aún no tiene un destino adecuado, verás una explicación; no se inicia un curso vacío."
+      }
     },
   },
   work: {
@@ -271,7 +271,7 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
   tours: {
     start: {
       entry: { title: "Descubre Versado", text: "Aquí siempre encontrarás explicaciones sobre Versado. Puedes volver en cualquier momento." },
-      switcher: { title: "Tus Escrituras", text: "Aquí eliges con qué Escrituras trabajas y en qué idioma lees el texto." },
+      switcher: {"title": "Abrir la selección de contenido", "text": "Toca aquí para elegir Escrituras, Programas de estudio y el idioma del texto en una página completa. Tu elección y tu progreso se conservan."},
       learn: { title: "Aprender", text: "Aquí sigues cursos: leer y responder preguntas." },
       play: { title: "Jugar", text: "Aquí encuentras juegos y acertijos, solo o con otros." },
       friends: { title: "Amigos", text: "Aquí añades amigos y ves cómo van juntos." },
@@ -280,14 +280,14 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
     learn: {
       intro: { title: "Tus cursos", text: "Estos son tus cursos. Abre uno para leer y responder preguntas. Tu progreso se guarda." },
       add: { title: "Más cursos", text: "Aquí añades un curso. También puedes volver a poner aquí los cursos ocultos." },
-      switcher: { title: "Otras Escrituras", text: "Los cursos pertenecen a las Escrituras elegidas. Elige aquí otras Escrituras para ver otros cursos." },
+      switcher: {"title": "Abrir la selección de contenido", "text": "Toca aquí para elegir Escrituras, Programas de estudio y el idioma del texto en una página completa. Tu elección y tu progreso se conservan."},
     },
     play: {
       games: { title: "Tus juegos", text: "Elige un juego para abrirlo. El icono de información muestra las reglas." },
-      switcher: { title: "Juegos y Escrituras", text: "Los juegos que ves dependen de las Escrituras elegidas." },
+      switcher: {"title": "Abrir la selección de contenido", "text": "Toca aquí para elegir Escrituras, Programas de estudio y el idioma del texto en una página completa. Tu elección y tu progreso se conservan."},
     },
     switcher: {
-      menu: { title: "Elige tus Escrituras", text: "Aquí eliges otras Escrituras u otro idioma del texto. No cambia nada hasta que elijas." },
+      menu: {"title": "Abrir la selección de contenido", "text": "Toca aquí para elegir Escrituras, Programas de estudio y el idioma del texto en una página completa. Tu elección y tu progreso se conservan."},
       learn: { title: "Aprender sigue tu elección", text: "Tus cursos pertenecen a las Escrituras elegidas." },
       play: { title: "Jugar también", text: "Los juegos también dependen de tu elección." },
     },

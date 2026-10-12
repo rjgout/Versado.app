@@ -38,13 +38,14 @@ export function pickTargetCollection<T extends SwitchCollection>(
   collections: readonly T[],
   active: SwitchCollection | null | undefined,
   change: SwitchChange,
+  familyPolicy: "legacy" | "exact" = "legacy",
 ): T | null {
   if ("contentCollectionId" in change) {
     return collections.find((collection) => collection.id === change.contentCollectionId) ?? null;
   }
   if (!active) return null;
   const sameWork = collections.filter((collection) => workOf(collection) === workOf(active) && collection.language === change.contentLanguage);
-  return sameWork.find((collection) => collection.editionKey === active.editionKey) ?? sameWork[0] ?? null;
+  return sameWork.find((collection) => collection.editionKey === active.editionKey) ?? (familyPolicy === "legacy" ? sameWork[0] : null) ?? null;
 }
 
 export type ContentRoute =

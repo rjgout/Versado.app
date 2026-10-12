@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Fragment, Suspense } from "react";
 import { headers } from "next/headers";
 import "./globals.css";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentUser, navigationSessionKey } from "@/lib/session";
 import { getBranding } from "@/lib/branding";
 import { cacheDetectedAppUrl, getAppUrl } from "@/lib/baseUrl";
 import NavUserBadges from "@/components/NavUserBadges";
@@ -154,6 +154,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const [contentContext, tier] = user
     ? await Promise.all([getContentContext(user.id), displayTierFor(prisma, user.id).catch(() => null)])
     : [null, null];
+  const sessionKey = user ? await navigationSessionKey() : "";
   const displayName = resolveAppName(appName);
   const uiLanguage = await requestLanguage(user);
 
@@ -164,7 +165,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         <I18nProvider language={uiLanguage} messages={messagesFor(uiLanguage)}>
-        <LiveDataProvider userId={user?.id} collectionId={contentContext?.active.id} language={contentContext?.contentLanguage}>
+        <LiveDataProvider userId={user?.id} collectionId={contentContext?.active.id} language={contentContext?.contentLanguage} initialContentContext={contentContext ?? undefined} sessionKey={sessionKey}>
         <CompanionProvider character={companionToMascot(user?.companion)}>
         <StreakContinuationProvider userId={user?.id}>
         <ConfirmProvider>
@@ -206,8 +207,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <ContentSwitcher
                 enabled={contentContext.switcherEnabled || user.isAdmin}
                 active={contentContext.active}
-                works={contentContext.works}
-                activeEditions={contentContext.activeEditions}
+                sessionKey={sessionKey}
                 showLanguage
               />
             )}

@@ -214,29 +214,29 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
       more: "Diese freiwillige Produktübersicht und den Rundgang kannst du jederzeit in „Versado entdecken“ erneut öffnen. Deine Einstellungen werden dadurch nicht geändert.",
     },
     switcher: {
-      title: "Schriften und Sprache wählen",
-      what: "Oben auf der Seite wählst du, mit welchen Schriften du arbeitest und in welcher Sprache du den Text liest.",
-      benefit: "So kannst du mit anderen Schriften oder in einer anderen Sprache lernen und spielen, ohne dein Konto oder deinen Fortschritt zu verlieren.",
-      step1: "Tippe oben auf den Namen der Schriften.",
-      step2: "Wähle andere Schriften aus der Liste.",
-      step3: "Wähle darunter die Sprache des Textes, wenn es mehrere gibt.",
-      step4: "Versado sucht dieselbe Seite bei deiner neuen Auswahl.",
-      faq1: {
-        q: "Was ändert sich, wenn ich wechsle?",
-        a: "Kurse, Spiele und Texte gehören zu den gewählten Schriften. Deshalb siehst du bei Lernen und Spielen andere Dinge.",
+      "title": "Inhalte und Sprache wählen",
+      "what": "Tippe oben links auf deine aktuelle Quelle, um die vollständige Inhaltsauswahl zu öffnen.",
+      "benefit": "Wähle zwischen Heiligen Schriften und Studienprogrammen. Podcasts stehen als eigene Zeile unter Studienprogramme. Deine Auswahl und dein Fortschritt bleiben gespeichert.",
+      "step1": "Öffne die Auswahl über die Quelle in der Kopfzeile.",
+      "step2": "Tippe auf eine verfügbare Quelle, um direkt zu wechseln.",
+      "step3": "Wähle eine verfügbare Textsprache oder ausdrücklich eine andere Ausgabe.",
+      "step4": "Versado öffnet ein passendes Ziel; Zurück ohne Auswahl ändert nichts.",
+      "faq1": {
+        "q": "Was ändert sich beim Wechsel?",
+        "a": "Deine Quelle bestimmt die verfügbaren Texte, Kurse und Spiele."
       },
-      faq2: {
-        q: "Was bleibt gleich?",
-        a: "Dein Konto, deine XP, Serie, Liga, Freunde und Einstellungen. Auch dein Lesefortschritt bleibt erhalten: Dasselbe Kapitel bringt seine XP nur einmal, in welcher Sprache du es auch übst.",
+      "faq2": {
+        "q": "Was bleibt gleich?",
+        "a": "Lese- und Kursfortschritt, aktive Studienlektionen, Podcasts, XP, Hinweise und Serie bleiben erhalten. Ein Wechsel ist keine Lernaktivität."
       },
-      faq3: {
-        q: "Wie wähle ich eine andere Sprache?",
-        a: "Öffne oben das Menü und wähle die Sprache unter „Sprache des Textes“. Die Sprache der App ist eine eigene Auswahl; die änderst du in deinem Profil.",
+      "faq3": {
+        "q": "Wie wähle ich eine andere Sprache?",
+        "a": "Nutze die Sprachauswahl auf der Inhaltsseite. Es werden nur verfügbare Ausgaben genutzt. Die Oberflächensprache bleibt eine separate Profileinstellung."
       },
-      faq4: {
-        q: "Was, wenn etwas nicht verfügbar ist?",
-        a: "Dann bekommst du eine Meldung. Du kannst bleiben, wo du bist, oder trotzdem wechseln. Du wirst nie stillschweigend auf eine andere Seite geschickt.",
-      },
+      "faq4": {
+        "q": "Was ist, wenn etwas fehlt?",
+        "a": "Verborgene Quellen und fehlende Sprachen kannst du nicht normal auswählen. Hat eine gültige Quelle noch kein passendes Ziel, erhältst du eine Erklärung; kein leerer Kurs wird gestartet."
+      }
     },
   },
   work: {
@@ -271,7 +271,7 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
   tours: {
     start: {
       entry: { title: "Versado entdecken", text: "Hier findest du immer Erklärungen zu Versado. Du kannst jederzeit zurückkommen." },
-      switcher: { title: "Deine Schriften", text: "Hier wählst du, mit welchen Schriften du arbeitest und in welcher Sprache du den Text liest." },
+      switcher: {"title": "Inhaltsauswahl öffnen", "text": "Tippe hier, um Heilige Schriften, Studienprogramme und die Textsprache auf einer eigenen Seite zu wählen. Auswahl und Fortschritt bleiben gespeichert."},
       learn: { title: "Lernen", text: "Hier folgst du Kursen: lesen und Fragen beantworten." },
       play: { title: "Spielen", text: "Hier findest du Spiele und Rätsel, allein oder mit anderen." },
       friends: { title: "Freunde", text: "Hier fügst du Freunde hinzu und siehst, wie es euch zusammen geht." },
@@ -280,14 +280,14 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
     learn: {
       intro: { title: "Deine Kurse", text: "Das sind deine Kurse. Öffne einen, um zu lesen und Fragen zu beantworten. Dein Fortschritt bleibt gespeichert." },
       add: { title: "Weitere Kurse", text: "Hier fügst du einen Kurs hinzu. Ausgeblendete Kurse kannst du hier auch wieder einblenden." },
-      switcher: { title: "Andere Schriften", text: "Kurse gehören zu den gewählten Schriften. Wähle hier andere Schriften für andere Kurse." },
+      switcher: {"title": "Inhaltsauswahl öffnen", "text": "Tippe hier, um Heilige Schriften, Studienprogramme und die Textsprache auf einer eigenen Seite zu wählen. Auswahl und Fortschritt bleiben gespeichert."},
     },
     play: {
       games: { title: "Deine Spiele", text: "Wähle ein Spiel, um es zu öffnen. Das Info-Symbol zeigt die Spielregeln." },
-      switcher: { title: "Spiele und Schriften", text: "Welche Spiele du siehst, hängt von den gewählten Schriften ab." },
+      switcher: {"title": "Inhaltsauswahl öffnen", "text": "Tippe hier, um Heilige Schriften, Studienprogramme und die Textsprache auf einer eigenen Seite zu wählen. Auswahl und Fortschritt bleiben gespeichert."},
     },
     switcher: {
-      menu: { title: "Wähle deine Schriften", text: "Hier wählst du andere Schriften oder eine andere Sprache des Textes. Es ändert sich nichts, bis du wählst." },
+      menu: {"title": "Inhaltsauswahl öffnen", "text": "Tippe hier, um Heilige Schriften, Studienprogramme und die Textsprache auf einer eigenen Seite zu wählen. Auswahl und Fortschritt bleiben gespeichert."},
       learn: { title: "Lernen folgt deiner Wahl", text: "Deine Kurse gehören zu den gewählten Schriften." },
       play: { title: "Spielen auch", text: "Auch die Spiele hängen von deiner Wahl ab." },
     },

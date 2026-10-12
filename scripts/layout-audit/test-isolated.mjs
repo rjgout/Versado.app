@@ -42,7 +42,8 @@ try {
     await delay(500);
   }
   if (!available) throw new Error("Productie-app niet beschikbaar");
-  await run("npx", ["tsx", "tests/header-wordsearch.browser.mjs", ...process.argv.slice(2)], env);
+  if (!process.argv.includes("--content-only")) await run("npx", ["tsx", "tests/header-wordsearch.browser.mjs", ...process.argv.slice(2)], env);
+  await run("npx", ["tsx", "tests/content-picker.browser.mjs", ...process.argv.slice(2)], env);
   await run("npm", ["run", "test:cards"], env);
 } catch (error) {
   console.error(error); process.exitCode = 1;

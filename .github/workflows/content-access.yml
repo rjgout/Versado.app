@@ -1,4 +1,4 @@
-name: Contentarchitectuur 1A/1B toegang en studiecontext
+name: Contentarchitectuur 1A/1B/1C toegang, context en selectie
 
 on:
   pull_request:
@@ -8,6 +8,10 @@ on:
       - 'prisma/migrations/**'
       - 'src/lib/contentAccess.ts'
       - 'src/lib/contentCollections.ts'
+      - 'src/lib/contentPickerContract.ts'
+      - 'src/lib/contentSwitch.ts'
+      - 'src/lib/contentRouting.ts'
+      - 'tests/content-picker*'
       - 'src/lib/studyContext*.ts'
       - 'src/lib/data/studyContext.ts'
       - 'src/lib/data/scopes.ts'

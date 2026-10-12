@@ -169,7 +169,7 @@ test("neutrale en overzichtspagina's blijven staan en de keuze wordt bewaard (re
   // Wat de server bewaart is wat een browser-refresh weer laadt.
   const context = await L.cc.getContentContext(user.id);
   assert.equal(context.active.id, ids.B);
-  assert.equal(context.contentLanguage, "nl", "de contenttaal verandert niet door een contentwissel");
+  assert.equal(context.contentLanguage, "en", "concrete bron en contenttaal blijven coherent");
 });
 
 test("zonder pagina blijft het een kale wissel (profiel)", { skip }, async () => {

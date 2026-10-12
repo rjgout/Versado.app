@@ -4,6 +4,7 @@
  * niet per feature met losse verberg-classes hoeven te worden beheerd.
  */
 const FOCUS_ROUTES = [
+  /^\/content$/,
   // De avatar-editor is een zelfstandige bewerkflow: alleen de centrale
   // terugbalk blijft zichtbaar, zodat de vaste opslagactie niet concurreert
   // met de globale mobiele navigatie.
@@ -65,5 +66,6 @@ export function shellModeForRoute(pathname: string): ShellMode {
  * resultaatkaart van de activiteit nooit wordt verdrongen.
  */
 export function isActivityRoute(pathname: string): boolean {
+  if (pathname === "/content") return false;
   return isFocusRoute(pathname) || isImmersiveRoute(pathname) || ACTIVITY_IN_NORMAL_SHELL.some((pattern) => pattern.test(pathname));
 }

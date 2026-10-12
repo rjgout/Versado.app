@@ -6,6 +6,8 @@ import {
   setContentLanguage,
   type ContentCollectionView,
   type ContentContext,
+  getContentPickerContext,
+  commitContentSelection,
 } from "@/lib/contentCollections";
 import {
   classifyContentRoute,
@@ -18,6 +20,10 @@ import {
 } from "@/lib/contentRouting";
 import { getLanguage } from "@/lib/languages";
 import { getT } from "@/lib/i18n";
+import { safeContentLocation, type ContentSelection } from "@/lib/contentPickerContract";
+import { getStudyContext } from "@/lib/studyContext";
+import { emitToUser } from "@/lib/realtime";
+import { DATA_EVENT_SOCKET_NAME } from "@/lib/data/scopes";
 
 /**
  * De wissel van content of contenttaal, zonder de gebruiker kwijt te raken.
@@ -51,7 +57,7 @@ export interface UnavailableNotice {
 }
 
 export type SwitchResult =
-  | { applied: true; outcome: Exclude<SwitchOutcome, { kind: "unavailable" }> }
+  | { applied: true; outcome: Exclude<SwitchOutcome, { kind: "unavailable" }>; changed?: boolean; selection?: ContentSelection; availability?: "ready" | "no-destination" }
   | { applied: false; outcome: Extract<SwitchOutcome, { kind: "unavailable" }>; notice: UnavailableNotice };
 
 interface RouteInput {
@@ -255,6 +261,43 @@ export interface ApplySwitchInput {
   location?: { pathname: string; search: string };
   /** De gebruiker koos na de uitleg toch voor de wissel: naar het overzicht van de nieuwe content. */
   force?: boolean;
+  /** Alleen de nieuwe één-tikflow; oude clients behouden unavailable/force. */
+  picker?: boolean;
+  expectedSelection?: ContentSelection;
+}
+
+async function applyPickerSwitch(input: ApplySwitchInput): Promise<SwitchResult> {
+  if (!input.expectedSelection) throw new Error("Actuele keuze ontbreekt");
+  const context = await getContentPickerContext(input.userId);
+  const editions = context.works.flatMap(w => w.editions).filter(e => e.selectable);
+  const active = editions.find(e => e.id === context.activeCollectionId);
+  const target = pickTargetCollection(editions, active, input.change, "exact");
+  if (!target) throw new Error("Uitgave niet beschikbaar");
+  const location = input.location ? safeContentLocation(input.location) : { pathname: "/dashboard", search: "" };
+  if (!location) throw new Error("Vertrekroute ongeldig");
+  const route = classifyContentRoute(location.pathname);
+  const outcome = await resolveContentSwitch(route, location, target, active ?? target);
+  let href = outcome.kind === "redirect" ? outcome.href : outcome.kind === "stay" ? `${location.pathname}${location.search}` : contentHubHref(route);
+  const work = context.works.find(w => w.key === target.work)!;
+  if (work.kind === "STUDY_PROGRAM") {
+    const study = await getStudyContext({ id: input.userId, isAdmin: input.isAdmin }, work.key);
+    const legacy = study.available && study.activeLessonKey?.startsWith("fsy:")
+      ? await prisma.fsyLesson.findUnique({ where: { id: study.activeLessonKey.slice(4) }, select: { contentCollectionId: true } }) : null;
+    const hasPublishedFsy = work.key === "fsy" && await prisma.fsyLesson.count({ where: { contentCollectionId: target.id, status: "PUBLISHED", publishedContent: { not: null } } }) > 0;
+    const course = hasPublishedFsy ? await prisma.course.findFirst({ where: { contentCollectionId: target.id, enabled: true, type: "FSY" }, orderBy: [{ order: "asc" }, { id: "asc" }], select: { id: true } }) : null;
+    href = legacy?.contentCollectionId === target.id && study.lessonHref ? study.lessonHref : course ? `/courses/${course.id}` : "/content";
+  }
+  // Neutraliteit en de Spelen-context behouden, zonder activiteiten te starten.
+  if (href !== "/content" && (route.kind === "game" || location.pathname === "/live")) href = "/live";
+  else if (href !== "/content" && route.kind === "neutral") href = `${location.pathname}${location.search}`;
+  if (href === "/courses" && !await prisma.course.count({ where: { contentCollectionId: target.id, enabled: true } })) href = "/content";
+  // De collectie opnieuw onder normale rechten controleren binnen de commit.
+  const saved = await commitContentSelection(input.userId, input.isAdmin, target, input.expectedSelection);
+  if (saved.changed) emitToUser(input.userId, DATA_EVENT_SOCKET_NAME, { event: "contentChanged" });
+  return {
+    applied: true, changed: saved.changed, selection: saved.selection,
+    availability: href === "/content" ? "no-destination" : "ready", outcome: { kind: "redirect", href },
+  };
 }
 
 async function persist(userId: string, isAdmin: boolean, change: SwitchChange): Promise<void> {
@@ -263,6 +306,7 @@ async function persist(userId: string, isAdmin: boolean, change: SwitchChange): 
 }
 
 export async function applyContentSwitch(input: ApplySwitchInput): Promise<SwitchResult> {
+  if (input.picker) return applyPickerSwitch(input);
   const context: ContentContext = await getContentContext(input.userId);
   const target = pickTargetCollection(context.collections, context.active, input.change);
   const contentLanguage = "contentLanguage" in input.change ? input.change.contentLanguage : (target?.language ?? context.contentLanguage);

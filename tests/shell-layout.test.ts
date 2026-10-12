@@ -167,49 +167,24 @@ test("de standaardhoogte vóór de meting kent de safe area en de terugbalk", ()
   assert.match(read("src/components/SubpageBackBar.tsx"), /data-subpage-back-bar/);
 });
 
-test("het menu van de contentkiezer staat in een portal buiten de vaste balk, begrensd en scrollend", () => {
-  // Binnen de vaste wrapper werd het afgekapt (overflow-x: clip) en deelde het diens stackinglaag.
-  assert.match(switcherSource, /createPortal\(/);
-  assert.match(switcherSource, /document\.body/);
-  assert.doesNotMatch(switcherSource, /absolute top-full/);
-  const panel = switcherSource.split("\n").find((line) => line.includes("data-content-menu") === false && line.includes('className="fixed z-40'));
-  assert.ok(panel, "menupaneel (fixed z-40) niet gevonden");
-  assert.match(panel!, /overflow-y-auto/);
-  assert.match(panel!, /overscroll-contain/);
-  assert.doesNotMatch(panel!, /overflow-hidden/);
-  // De hoogte komt uit gemeten geometrie (kiezer en onderbalk), niet uit een vaste offset per pagina.
-  assert.match(switcherSource, /\[data-main-nav\]/);
-  assert.match(switcherSource, /maxHeight/);
-  // Veiligheidsmarge links en rechts voor een inkeping in landscape.
-  assert.match(switcherSource, /--vs-safe-area-left/);
+test("de contentkiezer is een semantische paginalink zonder dropdown of tweede shell", () => {
+  assert.match(switcherSource, /<Link[^>]*href="\/content"/);
+  assert.match(switcherSource, /ResizeObserver/);
+  assert.doesNotMatch(switcherSource, /createPortal|data-content-menu|aria-haspopup|placeMenu|menuBox/);
+  const picker = read("src/components/content/FullscreenContentPicker.tsx");
+  assert.doesNotMatch(picker, /className="fixed|overflow-y-auto|role="dialog"|top-14/);
+  assert.match(picker, /page-fill/);
+  assert.match(read("src/lib/focusMode.ts"), /content/);
 });
 
-test("het menu ligt op een eigen laag boven de vaste balken maar onder dialogen", () => {
+test("kaartmenu en sleepkaart blijven onder de vaste navigatie", () => {
   const z = (source: string, pattern: RegExp) => Number(pattern.exec(source)?.[1]);
   const bars = z(read("src/components/StickyHeader.tsx"), /\bz-(\d+)\b/);
   const nav = z(read("src/components/BottomNav.tsx"), /\bz-(\d+)\b/);
-  const menu = z(switcherSource, /className="fixed z-(\d+)/);
-  const backdrop = z(switcherSource, /className="fixed inset-0 z-(\d+)/);
-  assert.equal(bars, 30);
-  assert.equal(nav, bars);
   const cardMenu = z(read("src/components/versado/ContentCard.tsx"), /right-2 top-2 z-(\d+)/);
   const drag = z(read("src/components/SortableList.tsx"), /<DragOverlay[^>]*zIndex=\{(\d+)\}/);
-  assert.ok(cardMenu < drag && drag < bars, `kaartmenu ${cardMenu}, sleepkaart ${drag}, balken ${bars}`);
-  assert.ok(menu > bars && backdrop >= bars && backdrop <= menu, `menu z-${menu}, achterlaag z-${backdrop}`);
-  // Dialogen en volledige overlays (ChapterPopup z-50 en hoger) blijven erboven.
-  assert.ok(menu < 50);
-  assert.match(read("docs/LAYOUT.md"), /Lagen/);
-});
-
-test("het menu sluit met Escape, een tik buiten het menu en na kiezen, en is toetsenbordbedienbaar", () => {
-  assert.match(switcherSource, /event\.key === "Escape"/);
-  assert.match(switcherSource, /ArrowDown/);
-  assert.match(switcherSource, /onClick=\{\(\) => setOpen\(false\)\}/); // onzichtbare achterlaag
-  assert.match(switcherSource, /aria-controls=\{open \? menuId/);
-  assert.match(switcherSource, /aria-expanded=\{open\}/);
-  assert.match(switcherSource, /motion-reduce:transition-none/);
-  // Een gekozen optie sluit het menu (save/selectCollection zet open op false).
-  assert.match(switcherSource, /setOpen\(false\)/);
+  assert.equal(bars, 30); assert.equal(nav, bars);
+  assert.ok(cardMenu < drag && drag < bars);
 });
 
 test("een kort actielabel breekt niet; invoer houdt ruimte vrij voor de knop", () => {

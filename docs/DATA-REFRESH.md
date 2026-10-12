@@ -137,3 +137,16 @@ toe: workKey, activeLessonKey én version. Gebruik geen `keepPreviousData` voor
 die requests. Een laat antwoord kan dan uitsluitend zijn eigen oude key vullen.
 Bij HTTP 409 bevat `StudyContextConflict.context` de actuele eigen context;
 geen automatische retry met opgehoogde versie die een andere keuze terugdraait.
+
+### Contentkiezer fase 1C
+
+`LiveDataProvider` observeert het bestaande `/api/content-context` via
+`useLiveQuery` (scope `content`, cachekey gebonden aan de aangemelde sessie).
+De header en `ContentScopeContext` gebruiken dezelfde actuele serverwaarde.
+Een commit op een ander apparaat of een laat antwoord na terugnavigatie
+ververst daardoor ook de zichtbare bron, zonder nieuwe focus-/resume-listener.
+Contentgebonden queries gebruiken hun SSR-beginwaarde uitsluitend bij de
+oorspronkelijke key; een andere bron krijgt geen oude cursussen of speldata.
+De picker gebruikt een eigen sessiegebonden catalogusquery en controleert de
+actuele keuze nogmaals vóór navigatie. Het centrale invalidatiecontract blijft
+`contentChanged`; studiecontexten worden niet gewijzigd.

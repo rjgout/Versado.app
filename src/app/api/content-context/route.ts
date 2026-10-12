@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/session";
-import { getContentContext, setActiveContentCollection, setContentLanguage } from "@/lib/contentCollections";
+import { getContentContext, getContentPickerContext, setActiveContentCollection, setContentLanguage, ContentSelectionConflict } from "@/lib/contentCollections";
 import { applyContentSwitch } from "@/lib/contentSwitch";
 import type { SwitchChange } from "@/lib/contentRouting";
 import { LANGUAGES } from "@/lib/languages";
 import { apiError } from "@/lib/apiError";
+import { inventoryOriginAllowed } from "@/lib/content-inventory/origin";
+import { contentSelectionSchema, safeContentLocation } from "@/lib/contentPickerContract";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
-  return NextResponse.json(await getContentContext(user.id), { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json(req.nextUrl.searchParams.get("view") === "picker" ? await getContentPickerContext(user.id) : await getContentContext(user.id), { headers: { "Cache-Control": "no-store" } });
 }
 
 // Eén van beide: een uitgave kiezen (contentkiezer) of de taal van de content
@@ -22,29 +24,35 @@ const common = {
     .object({
       pathname: z.string().startsWith("/").max(512),
       search: z.string().max(1024).default(""),
-    })
+    }).strict()
     .optional(),
   /** Na de uitleg "niet beschikbaar" koos de gebruiker toch voor de wissel. */
   force: z.boolean().optional(),
+  picker: z.boolean().optional(),
+  expectedSelection: contentSelectionSchema.optional(),
 };
 const putSchema = z.union([
-  z.object({ contentCollectionId: z.string().min(1), ...common }),
-  z.object({ contentLanguage: z.enum(LANGUAGES.map((language) => language.code) as [string, ...string[]]), ...common }),
-]);
+  z.object({ contentCollectionId: z.string().min(1).max(256), ...common }).strict(),
+  z.object({ contentLanguage: z.enum(LANGUAGES.map((language) => language.code) as [string, ...string[]]), ...common }).strict(),
+]).refine(value => !value.picker || Boolean(value.expectedSelection));
 
 export async function PUT(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
+  if (!inventoryOriginAllowed(req.headers, req.url, process.env.APP_URL)) return await apiError("apiErrors.forbidden", 403);
 
   const parsed = putSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return await apiError("apiErrors.noCollectionOrLanguage", 400);
-  const { location, force } = parsed.data;
+  const { location: requestedLocation, force, picker, expectedSelection } = parsed.data;
+  const location = requestedLocation ? safeContentLocation(requestedLocation) : undefined;
+  if (requestedLocation && !location) return await apiError("apiErrors.invalidInput", 400);
   const change: SwitchChange = "contentLanguage" in parsed.data ? { contentLanguage: parsed.data.contentLanguage } : { contentCollectionId: parsed.data.contentCollectionId };
 
-  if (location) {
+  if (location || picker) {
     try {
-      return NextResponse.json(await applyContentSwitch({ userId: user.id, isAdmin: user.isAdmin, change, location, force }));
-    } catch {
+      return NextResponse.json(await applyContentSwitch({ userId: user.id, isAdmin: user.isAdmin, change, location: location ?? undefined, force, picker, expectedSelection }), { headers: { "Cache-Control": "no-store" } });
+    } catch (error) {
+      if (error instanceof ContentSelectionConflict) return NextResponse.json({ code: "CONTENT_SELECTION_CONFLICT", selection: error.selection }, { status: 409, headers: { "Cache-Control": "no-store" } });
       return await apiError("contentLanguage" in change ? "apiErrors.languageUnavailableParen" : "apiErrors.collectionUnavailable", 404);
     }
   }
