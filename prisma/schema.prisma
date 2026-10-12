@@ -588,6 +588,8 @@ model ContentCollection {
   courses   Course[]
   gameScopes GameContentScope[]
   reviveProgress QuickMissionaryReviveProgress[]
+  quickMissionaryRuns QuickMissionaryRun[] @relation("QuickMissionaryRunSource")
+  liveGamePlayers LiveGamePlayer[] @relation("QuickMissionaryLobbySource")
   users     User[]   @relation("ActiveContentCollection")
   fsyLessons FsyLesson[]
   persons   Person[]
@@ -1962,6 +1964,9 @@ model LiveGame {
 }
 
 model LiveGamePlayer {
+  // Alleen Snelle Zendeling: vastgelegde uitgave bij bewuste lobbydeelname.
+  contentCollectionId String?
+  contentCollection ContentCollection? @relation("QuickMissionaryLobbySource", fields: [contentCollectionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   id       String   @id @default(cuid())
   gameId   String
   game     LiveGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
@@ -1971,6 +1976,7 @@ model LiveGamePlayer {
   joinedAt DateTime @default(now())
 
   @@unique([gameId, userId])
+  @@index([contentCollectionId])
 }
 
 // Wie is uitgenodigd voor een nog niet gestarte lobby — een uitnodiging zelf
@@ -2529,6 +2535,9 @@ enum QuickMissionaryRunStatus {
 // Serverregistratie van één arcade-run. De client rendert de wereld, maar
 // alleen dit record bepaalt welke score ooit in een klassement kan komen.
 model QuickMissionaryRun {
+  // Nieuwe runs bewaren hun bron; oude NULL-bronnen worden nooit gegokt.
+  contentCollectionId String?
+  contentCollection ContentCollection? @relation("QuickMissionaryRunSource", fields: [contentCollectionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   id              String                    @id @default(cuid())
   userId          String
   user            User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -2567,6 +2576,7 @@ model QuickMissionaryRun {
   @@index([userId, score])
   @@index([dayKey, status, score])
   @@index([matchId, status])
+  @@index([contentCollectionId])
 }
 
 enum QuickMissionaryMatchStatus {

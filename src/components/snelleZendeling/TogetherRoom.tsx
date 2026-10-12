@@ -108,6 +108,13 @@ export default function TogetherRoom({ code, myUserId, character }: { code: stri
           </ul>
         </section>
 
+        {room.players.find(player => player.id === myUserId)?.sourceConfirmed === false && (
+          <section className={`${surfaceCard} flex flex-col gap-3 p-4`}>
+            <p className="text-sm text-vs-fg-2">{t("quickMissionary.sourceConfirmationRequired")}</p>
+            <button type="button" className={secondaryButton} onClick={() => socket.emit("qm:join", { code, confirmSource: true })}>{t("quickMissionary.confirmSource")}</button>
+          </section>
+        )}
+
         <LobbyInviteCard
           friends={friends}
           invitedIds={invited}

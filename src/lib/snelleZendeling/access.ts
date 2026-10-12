@@ -1,8 +1,6 @@
-import { getContentContext } from "@/lib/contentCollections";
-import { getGameSettings } from "@/lib/gameSettings";
+import { canStartGame } from "@/lib/gameAvailability";
 
 export async function canUseQuickMissionary(userId: string, isAdmin: boolean): Promise<boolean> {
   void isAdmin;
-  const [settings, context] = await Promise.all([getGameSettings(), getContentContext(userId)]);
-  return settings.quickMissionaryEnabled && context.gameKeys.includes("quick-missionary");
+  return canStartGame(userId, "quick-missionary");
 }

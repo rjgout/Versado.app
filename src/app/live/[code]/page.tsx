@@ -15,7 +15,6 @@ export default async function LiveGamePage({ params }: { params: Promise<{ code:
   if (!user) redirect("/login");
   const { code } = await params;
   const upperCode = code.toUpperCase();
-  if (!(await canResumeLiveGame(upperCode))) redirect("/live?availability=unavailable");
 
   // Bepaalt hier (server-side) al welke spelmodus dit is, zodat we het
   // juiste client-component renderen. Bestaat de code niet (of nog niet
@@ -32,6 +31,7 @@ export default async function LiveGamePage({ params }: { params: Promise<{ code:
   // Samen spelen met Vliegende {gids} heeft een eigen schermvullende route; de
   // uitnodigingslinks wijzen naar /live/<code> en komen zo vanzelf op de juiste plek.
   if (game?.mode === "QUICK_MISSIONARY") redirect(`/snelle-zendeling/samen/${upperCode}`);
+  if (!(await canResumeLiveGame(upperCode))) redirect("/live?availability=unavailable");
 
   let content;
   if (game?.mode === "CHAPTER_GUESS") {

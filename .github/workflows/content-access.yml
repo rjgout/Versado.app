@@ -1,4 +1,4 @@
-name: Contentarchitectuur 1A–1D toegang, context, selectie en spellen
+name: Contentarchitectuur 1A–1E toegang, context, selectie en spellen
 
 on:
   pull_request:
@@ -7,6 +7,17 @@ on:
       - 'prisma/schema.prisma'
       - 'prisma/migrations/**'
       - 'src/lib/contentAccess.ts'
+      - 'src/lib/snelleZendeling/**'
+      - 'src/server/quickMissionary.ts'
+      - 'src/app/snelle-zendeling/**'
+      - 'src/app/live/**'
+      - 'src/lib/activeGames.ts'
+      - 'src/lib/gameSettings.ts'
+      - 'src/components/snelleZendeling/**'
+      - 'tests/quick-missionary-source*'
+      - 'tests/snelle-zendeling*'
+      - 'tests/genees-economy*'
+      - 'tests/fixtures/quick-missionary.ts'
       - 'src/lib/gameAvailability*.ts'
       - 'src/lib/gameStartGuard.ts'
       - 'src/lib/study/startAvailability.ts'
@@ -95,3 +106,37 @@ jobs:
           npm run test:live-data
           npm run lint
           npx tsx scripts/i18n/check.ts
+
+  quick-missionary-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Prisma, types en productiebuild
+        run: |
+          npx prisma validate
+          npm run db:generate
+          npx tsc --noEmit
+          npm run build
+      - name: Browser klaarzetten
+        run: |
+          npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
+          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Migratiebehoud, Genees-economie en twee productie-instances op eigen PostgreSQL/Redis
+        run: npm run test:snelle-zendeling:integration
+      - name: Browserbewijs bewaren
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quick-missionary-source-browser
+          path: /tmp/versado-qm-source-browser
+          if-no-files-found: ignore

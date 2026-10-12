@@ -1,5 +1,6 @@
+import { collectionAccessWhere } from "@/lib/contentAccess";
 import { prisma } from "@/lib/db";
-import { getContentContext } from "@/lib/contentCollections";
+import { requireQuickMissionarySource, runSource, hasUsableReviveQuestions, type SourceReason } from "./source";
 import { dayKeyInZone, resolveTimeZone } from "@/lib/timeZone";
 import { shuffleForDisplay } from "@/lib/exerciseGen";
 import type { Prisma } from "@/generated/prisma/client";
@@ -40,6 +41,9 @@ export interface QuickMissionaryRunView {
   /** De gratis Genees van deze run is al ingezet. */
   reviveUsed: boolean;
   reviveAvailable: boolean;
+  reviveUnavailableReason: SourceReason;
+  /** Bewaarde vraag blijft behouden wanneer bronrechten tijdelijk ontbreken. */
+  reviveBlocked: boolean;
   /** Eerste keuze na een botsing: gratis, uit voorraad, kopen (noodkoop) of niets. */
   deathOption: DeathOption;
   geneesBalance: number;
@@ -74,10 +78,6 @@ function runDayKey(user: { timeZone: string | null }, at: Date): string {
   return dayKeyInZone(at, resolveTimeZone(user.timeZone));
 }
 
-async function activeCollectionId(userId: string): Promise<string> {
-  return (await getContentContext(userId)).active.id;
-}
-
 function optionIdsFromRun(run: { reviveOptionIds: string | null }): string[] {
   if (!run.reviveOptionIds) return [];
   try {
@@ -93,7 +93,7 @@ async function reviveQuestionForRun(run: { reviveExerciseId: string | null; revi
   const ids = optionIdsFromRun(run);
   if (ids.length !== 3) return null;
   const question = await prisma.quickMissionaryReviveQuestion.findUnique({
-    where: { id: run.reviveExerciseId },
+    where: { id: run.reviveExerciseId, chapter: { book: { contentCollection: collectionAccessWhere({ isAdmin: false }) } } },
     select: {
       id: true,
       prompt: true,
@@ -110,25 +110,15 @@ async function reviveQuestionForRun(run: { reviveExerciseId: string | null; revi
 }
 
 /** Na een fout antwoord het hoofdstuk om te lezen; alleen voor een afgesloten run. */
-async function reviveReadingForRun(run: { id: string; status: RunStatus; userId: string }): Promise<ReviveReading | null> {
+async function reviveReadingForRun(run: { id: string; status: RunStatus; userId: string }, collectionId: string): Promise<ReviveReading | null> {
   if (run.status !== "FINISHED") return null;
   const wrong = await prisma.quickMissionaryReviveSeen.findFirst({
-    where: { runId: run.id, userId: run.userId, outcome: "WRONG" },
+    where: { runId: run.id, userId: run.userId, outcome: "WRONG", question: { chapter: { book: { contentCollectionId: collectionId, contentCollection: collectionAccessWhere({ isAdmin: false }) } } } },
     select: { question: { select: { chapter: { select: { id: true, number: true, book: { select: { name: true } } } } } } },
   });
   const chapter = wrong?.question.chapter;
   const context = chapter ? reviveQuestionContext({ chapter }) : null;
   return chapter && context ? { chapterId: chapter.id, label: context.label } : null;
-}
-
-/** Zonder geschikte vragen in de actieve uitgave wordt Genees niet aangeboden. */
-async function hasReviveQuestions(userId: string): Promise<boolean> {
-  const collectionId = await activeCollectionId(userId);
-  const any = await prisma.quickMissionaryReviveQuestion.findFirst({
-    where: { status: "APPROVED", chapter: { book: { contentCollectionId: collectionId } } },
-    select: { id: true },
-  });
-  return !!any;
 }
 
 async function bestScores(userId: string, dayKey: string): Promise<{ dailyBest: number; allTimeBest: number }> {
@@ -140,9 +130,12 @@ async function bestScores(userId: string, dayKey: string): Promise<{ dailyBest: 
 }
 
 export async function startQuickMissionaryRun(userId: string): Promise<{ runId: string }> {
-  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { timeZone: true } });
-  const created = await prisma.quickMissionaryRun.create({ data: { userId, dayKey: runDayKey(user, now()) } });
-  return { runId: created.id };
+  return prisma.$transaction(async tx => {
+    const contentCollectionId = await requireQuickMissionarySource(userId, tx);
+    const user = await tx.user.findUniqueOrThrow({ where: { id: userId }, select: { timeZone: true } });
+    const created = await tx.quickMissionaryRun.create({ data: { userId, contentCollectionId, dayKey: runDayKey(user, now()) } });
+    return { runId: created.id };
+  });
 }
 
 async function getOwnedRun(runId: string, userId: string) {
@@ -186,7 +179,7 @@ async function afterMatchChange(tx: Tx, matchId: string | null, at: Date): Promi
 
 /**
  * Wat kan de speler na een botsing? Gratis Genees eerst, daarna voorraad, daarna
- * (één keer per run) de in-game noodkoop. Zonder vragen in de actieve uitgave is
+ * (één keer per run) de in-game noodkoop. Zonder vragen in de vastgelegde runuitgave is
  * er helemaal geen Genees: dan is de dood direct definitief.
  */
 export function deathOptionFor(input: { hasQuestions: boolean; freeUsed: boolean; stock: number; purchaseUsed: boolean }): DeathOption {
@@ -200,22 +193,25 @@ export function deathOptionFor(input: { hasQuestions: boolean; freeUsed: boolean
 export async function getQuickMissionaryRunView(runId: string, userId: string): Promise<QuickMissionaryRunView> {
   const run = await getOwnedRun(runId, userId);
   const dead = run.status === "DEAD_AWAITING_REVIVE";
-  const question = dead ? await reviveQuestionForRun(run) : null;
+  const source = await runSource(prisma, run);
+  const question = dead && !source.reason ? await reviveQuestionForRun(run) : null;
   const [scores, reviveReading, hasQuestions, account] = await Promise.all([
     bestScores(userId, run.dayKey),
-    reviveReadingForRun(run),
-    dead ? (run.reviveExerciseId ? Promise.resolve(true) : hasReviveQuestions(userId)) : Promise.resolve(false),
+    source.reason || !source.collectionId ? Promise.resolve(null) : reviveReadingForRun(run, source.collectionId),
+    dead && !source.reason && source.collectionId ? (question ? Promise.resolve(true) : hasUsableReviveQuestions(prisma, source.collectionId)) : Promise.resolve(false),
     prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { xpTotal: true, geneesBalance: true } }),
   ]);
   const price = geneesPriceXp(account.geneesBalance);
   // Een al uitgegeven vraag is een lopende poging: die gaat gewoon door.
-  const deathOption: DeathOption = !dead ? "none" : run.reviveExerciseId ? "free" : deathOptionFor({ hasQuestions, freeUsed: run.reviveUsed, stock: account.geneesBalance, purchaseUsed: run.inGamePurchaseUsed });
+  const deathOption: DeathOption = !dead || source.reason ? "none" : question ? "free" : deathOptionFor({ hasQuestions, freeUsed: run.reviveUsed, stock: account.geneesBalance, purchaseUsed: run.inGamePurchaseUsed });
   return {
     runId: run.id,
     status: run.status,
     score: run.score,
     reviveUsed: run.reviveUsed,
     reviveAvailable: deathOption !== "none",
+    reviveUnavailableReason: source.reason,
+    reviveBlocked: Boolean(run.reviveExerciseId && source.reason),
     deathOption,
     geneesBalance: account.geneesBalance,
     geneesPriceXp: price,
@@ -275,11 +271,13 @@ const MAX_UNUSABLE_QUESTIONS = 50;
 export async function requestReviveQuestion(runId: string, userId: string): Promise<QuickMissionaryRunView> {
   const run = await getOwnedRun(runId, userId);
   if (run.status !== "DEAD_AWAITING_REVIVE") throw new Error("INVALID_STATE");
-  if (!run.reviveExerciseId) {
-    const collectionId = await activeCollectionId(userId);
+  {
     await prisma.$transaction(async (tx) => {
       const locked = await lockRun(tx, runId, userId);
       if (locked.status !== "DEAD_AWAITING_REVIVE") throw new Error("INVALID_STATE");
+      const sourceState = await runSource(tx, locked, true);
+      if (sourceState.reason || !sourceState.collectionId) throw new Error("NO_QUESTION");
+      const collectionId = sourceState.collectionId;
       // Een al uitgegeven vraag is dezelfde poging (verversen, tweede toestel): niets opnieuw verbruiken.
       if (locked.reviveExerciseId) return;
       // Bron van deze poging: eerst de gratis Genees van de run, daarna de voorraad.
@@ -301,7 +299,7 @@ export async function requestReviveQuestion(runId: string, userId: string): Prom
       const [rows, seenRows] = await Promise.all([
         tx.quickMissionaryReviveQuestion.findMany({
           where: { status: "APPROVED", ...inCollection },
-          select: { id: true, chapterId: true, chapter: { select: { order: true, book: { select: { order: true } } } } },
+          select: { id: true, chapterId: true, options: { orderBy: { order: "asc" }, select: { id: true, label: true, isCorrect: true } }, chapter: { select: { order: true, book: { select: { order: true } } } } },
         }),
         tx.quickMissionaryReviveSeen.findMany({ where: { userId, cycle, question: inCollection }, select: { questionId: true }, orderBy: { seenAt: "desc" } }),
       ]);
@@ -311,7 +309,7 @@ export async function requestReviveQuestion(runId: string, userId: string): Prom
       for (let attempt = 0; attempt < MAX_UNUSABLE_QUESTIONS; attempt++) {
         const byChapter = new Map<string, ReviveChapterEntry>();
         for (const row of rows) {
-          if (unusable.has(row.id)) continue;
+          if (unusable.has(row.id) || !selectReviveOptions(row.options)) continue;
           const entry = byChapter.get(row.chapterId) ?? { chapterId: row.chapterId, bookOrder: row.chapter.book.order, chapterOrder: row.chapter.order, questionIds: [] };
           entry.questionIds.push(row.id);
           byChapter.set(row.chapterId, entry);
@@ -363,6 +361,8 @@ export async function answerReviveQuestion(runId: string, userId: string, exerci
     // Na afsluiting van de wedstrijd is de run FINISHED: een goed antwoord brengt
     // nooit meer iemand terug.
     if (run.status !== "DEAD_AWAITING_REVIVE" || run.reviveExerciseId !== exerciseId) throw new Error("INVALID_STATE");
+    const source = await runSource(tx, run, true);
+    if (source.reason || !source.collectionId) throw new Error("NO_QUESTION");
     if (!optionIdsFromRun(run).includes(optionId)) throw new Error("INVALID_OPTION");
     const option = await tx.quickMissionaryReviveOption.findUnique({
       where: { id: optionId },
@@ -372,7 +372,7 @@ export async function answerReviveQuestion(runId: string, userId: string, exerci
         question: { select: { chapter: { select: { order: true, book: { select: { order: true, contentCollectionId: true } } } } } },
       },
     });
-    if (!option || option.questionId !== exerciseId) throw new Error("INVALID_OPTION");
+    if (!option || option.questionId !== exerciseId || option.question.chapter.book.contentCollectionId !== source.collectionId) throw new Error("INVALID_OPTION");
     const nextStatus = applyReviveAnswer(run.status, option.isCorrect);
     if (!nextStatus) throw new Error("INVALID_STATE");
     const at = now();
@@ -410,6 +410,8 @@ export async function resumeAfterRevive(runId: string, userId: string): Promise<
     const run = await lockRun(tx, runId, userId);
     // Een run die de wedstrijd al heeft afgesloten is FINISHED: geen resurrectie.
     if (run.status !== "REVIVE_READY") return null;
+    const source = await runSource(tx, run, true);
+    if (source.reason && (run.contentCollectionId || run.reviveExerciseId)) throw new Error("NO_QUESTION");
     await tx.quickMissionaryRun.update({ where: { id: runId }, data: { status: "IN_PROGRESS", reviveExerciseId: null, reviveOptionIds: null, lastSeenAt: now() } });
     return run.matchId ? { code: (await tx.quickMissionaryMatch.findUniqueOrThrow({ where: { id: run.matchId }, select: { liveGame: { select: { code: true } } } })).liveGame.code, endedFor: null } : null;
   });
@@ -428,13 +430,12 @@ export async function buyGeneesInRun(runId: string, userId: string): Promise<{ r
     const run = await lockRun(tx, runId, userId);
     if (run.status !== "DEAD_AWAITING_REVIVE" || run.reviveExerciseId || !run.reviveUsed) return { ok: false, error: "INVALID_STATE" };
     if (run.inGamePurchaseUsed) return { ok: false, error: "PURCHASE_LIMIT" };
+    const source = await runSource(tx, run, true);
+    if (source.reason || !source.collectionId || !(await hasUsableReviveQuestions(tx, source.collectionId))) return { ok: false, error: "NO_QUESTIONS" };
     await lockUser(tx, userId);
     const account = await tx.user.findUniqueOrThrow({ where: { id: userId }, select: { geneesBalance: true } });
     // Alleen een noodkoop als de voorraad echt leeg is: anders gebruik je die.
     if (account.geneesBalance > 0) return { ok: false, error: "INVALID_STATE" };
-    const collectionId = await activeCollectionId(userId);
-    const anyQuestion = await tx.quickMissionaryReviveQuestion.findFirst({ where: { status: "APPROVED", chapter: { book: { contentCollectionId: collectionId } } }, select: { id: true } });
-    if (!anyQuestion) return { ok: false, error: "NO_QUESTIONS" };
     const bought = await applyGeneesPurchase(tx, userId, { source: "GAME", runId });
     if (!bought.ok) return bought;
     await tx.quickMissionaryRun.update({ where: { id: runId }, data: { inGamePurchaseUsed: true } });

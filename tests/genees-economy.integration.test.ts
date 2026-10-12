@@ -2,6 +2,7 @@
 // tegen een echte database. Draait alleen met LEARNING_TEST_DATABASE_URL.
 //
 //   LEARNING_TEST_DATABASE_URL=postgresql://... npm run test:genees-economy
+import { quickMissionaryFixture } from "./fixtures/quick-missionary";
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
 
@@ -44,9 +45,9 @@ const state = (userId: string) => L.db.user.findUniqueOrThrow({ where: { id: use
 before(async () => {
   if (skip) return;
   L = await load();
-  collectionId = `geneeseco-${stamp}`;
-  await L.db.contentCollection.create({ data: { id: collectionId, slug: collectionId, name: collectionId, icon: "book", work: collectionId, language: "nl", order: 901 } });
-  const book = await L.db.book.create({ data: { slug: `${collectionId}-b`, name: "Boek", order: 0, contentCollectionId: collectionId } });
+  collectionId = "content_bom";
+  await quickMissionaryFixture(L.db, collectionId);
+  const book = await L.db.book.create({ data: { slug: `geneeseco-${stamp}-b`, name: "Boek", order: 0, contentCollectionId: collectionId } });
   const chapter = await L.db.chapter.create({ data: { bookId: book.id, number: 1, order: 0 } });
   for (let v = 1; v <= 12; v++) {
     await L.db.quickMissionaryReviveQuestion.create({
@@ -64,7 +65,7 @@ before(async () => {
 after(async () => {
   if (skip) return;
   await L.db.user.deleteMany({ where: { email: { in: emails } } });
-  await L.db.contentCollection.deleteMany({ where: { id: collectionId } });
+  await L.db.book.deleteMany({ where: { slug: `geneeseco-${stamp}-b` } });
   await L.db.$disconnect();
 });
 
@@ -327,8 +328,8 @@ test("noodkoop: een nieuwe run reset de gratis Genees en de noodkoop-kans, maar 
 test("run zonder vragen in de uitgave: geen Genees, ook geen noodkoop, en niets verbruikt", { skip }, async () => {
   const email = `geneeseco-leeg-${stamp}@test.invalid`;
   emails.push(email);
-  const emptyId = `geneeseco-leeg-${stamp}`;
-  await L.db.contentCollection.create({ data: { id: emptyId, slug: emptyId, name: emptyId, icon: "book", work: emptyId, language: "nl", order: 902 } });
+  const emptyId = "content_bom_de";
+  await quickMissionaryFixture(L.db, emptyId, "de");
   try {
     const user = await L.db.user.create({ data: { email, passwordHash: "x", handle: "Leeg", discriminator: "77", activeContentCollectionId: emptyId, xpTotal: 500, geneesBalance: 2 } });
     const { runId } = await L.runs.startQuickMissionaryRun(user.id);
@@ -341,6 +342,6 @@ test("run zonder vragen in de uitgave: geen Genees, ook geen noodkoop, en niets 
     assert.deepEqual(await state(user.id), { xpTotal: 500, geneesBalance: 2 });
   } finally {
     await L.db.user.deleteMany({ where: { email } });
-    await L.db.contentCollection.delete({ where: { id: emptyId } });
+
   }
 });

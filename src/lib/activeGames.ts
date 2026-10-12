@@ -72,7 +72,7 @@ export async function getActiveGameStatus(user: { id: string; uiLanguage: string
       include: {
         chapter: { include: { book: true } },
         studySession: { select: { course: { select: { type: true, name: true, description: true, contentCollectionId: true, contentCollection: { select: { work: true } } } } } },
-        players: { select: { userId: true } },
+        players: { select: { userId: true, contentCollectionId: true } },
         invites: { include: { user: { select: { handle: true } } } },
       },
     }),
@@ -200,7 +200,7 @@ export async function getActiveGameStatus(user: { id: string; uiLanguage: string
     const contentCollectionId =
       lg.studySession?.course.contentCollectionId ??
       lg.chapter?.book.contentCollectionId ??
-      fixedLiveGameCollectionId(lg.mode) ?? undefined;
+      (lg.mode === "QUICK_MISSIONARY" ? lg.players.find(player => player.userId === user.id)?.contentCollectionId : fixedLiveGameCollectionId(lg.mode)) ?? undefined;
     const label =
       lg.mode === "STUDY" && lg.studySession
         ? `${studyLabel(lg.studySession.course)}${suffix}`

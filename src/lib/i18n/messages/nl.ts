@@ -763,6 +763,7 @@ export const nl = {
       rule3: "Na afloop kun je de scores vergelijken.",
     },
     quickMissionary: {
+
       description: "Vlieg met je gids door een kleurrijke wereld, stuur op tijd bij en zet je beste score neer.",
       linkLabel: "Vliegspel openen",
       rule1: "Tik, klik of druk op spatie om een korte opwaartse impuls te geven.",
@@ -1539,6 +1540,11 @@ export const nl = {
     giveUpConfirm: "Deze woordzoeker opgeven? Je voortgang gaat verloren.",
   },
   quickMissionary: {
+    sourceUnavailable: "De oorspronkelijke uitgave is niet beschikbaar. Je kunt deze run veilig beëindigen; Genees kost niets.",
+    legacySourceUnknown: "De oorspronkelijke uitgave van deze oude run is onbekend. Nieuwe Genees is daarom niet beschikbaar; je score blijft behouden.",
+    sourceConfirmationRequired: "Bevestig je huidige uitgave voor deze oude lobby. Elke speler moet dit doen voordat de run kan starten.",
+    confirmSource: "Gebruik mijn huidige uitgave",
+
     title: "Vliegende {mascot}",
     eyebrow: "Arcadespel",
     intro: "Vlieg met je persoonlijke gids door de Versado-wereld. Eén tik geeft je een korte impuls; de openingen blijven altijd eerlijk gelijk.",

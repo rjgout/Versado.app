@@ -33,6 +33,8 @@ async function freePort() {
 }
 const temporary = mkdtempSync(join(tmpdir(), "versado-content-migration-"));
 let server, source;
+const redisContainer = `${container}-redis`;
+let hasRedis = false;
 try {
   docker(["run", "--rm", "-d", "--name", container, "-p", "127.0.0.1::5432", "-e", "POSTGRES_USER=content_access_test", "-e", "POSTGRES_PASSWORD=content_access_test", "-e", "POSTGRES_DB=versado_content_access_test", "postgres:16-alpine"]);
   let ready = false;
@@ -48,7 +50,7 @@ try {
   // Eerst dezelfde 133 historische migraties via Prisma op de eigen lege DB.
   // Daarna synthetische bestaande records vóór de nieuwe additieve migratie.
   const migrationPath = join(temporary, "migrations");
-  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
+  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context", "20261027120000_quick_missionary_source"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
   const config = join(temporary,"prisma.config.mjs");
   const require = createRequire(import.meta.url);
   writeFileSync(config, `import {defineConfig} from ${JSON.stringify(require.resolve("prisma/config"))}; export default defineConfig({schema:${JSON.stringify(resolve("prisma/schema.prisma"))},migrations:{path:${JSON.stringify(migrationPath)}},datasource:{url:process.env.DATABASE_URL}});`);
@@ -58,11 +60,25 @@ try {
   await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
   await run("node", ["tests/content-work-migration.mjs", "verify"], env);
   await run("node", ["tests/study-context-migration.mjs", "prepare"], env);
-  await run("npm", ["run", "db:migrate:deploy"], env);
+  cpSync("prisma/migrations/20261021120000_user_study_context",join(migrationPath,"20261021120000_user_study_context"),{recursive:true});
+  await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
   await run("node", ["tests/study-context-migration.mjs", "verify"], env);
+  await run("node", ["tests/quick-missionary-source-migration.mjs", "prepare"], env);
+  await run("npm", ["run", "db:migrate:deploy"], env);
+  await run("node", ["tests/quick-missionary-source-migration.mjs", "verify"], env);
   await run("npm", ["run", "db:migrate:deploy"], env);
   if (process.argv.includes("--availability-performance")) {
     await run("npx", ["tsx", "scripts/content-architecture/benchmark-availability.mjs", ...(process.argv.includes("--assert-budget") ? ["--assert-budget"] : [])], env);
+  } else if (process.argv.includes("--quick-missionary")) {
+    const fixtureDb = new pg.Client({ connectionString: database }); await fixtureDb.connect();
+    await fixtureDb.query(`DELETE FROM "QuickMissionaryReviveQuestion" WHERE id='qm-m-question'`); await fixtureDb.end();
+    await run("npm", ["run", "test:snelle-zendeling"], env);
+    await run("npm", ["run", "test:genees-economy"], env);
+    await run("npx", ["tsx", "--test", "tests/quick-missionary-source.integration.test.ts", "tests/snelle-zendeling-solo-isolation.test.ts"], env);
+    docker(["run", "--rm", "-d", "--name", redisContainer, "-p", "127.0.0.1::6379", "redis:7-alpine"]); hasRedis = true;
+    const redisPort = docker(["port", redisContainer, "6379/tcp"]).split(":").at(-1);
+    env.REDIS_URL = `redis://127.0.0.1:${redisPort}`;
+    await run("npx", ["tsx", "--test", "tests/quick-missionary-source.multi-instance.test.mjs"], env);
   } else {
     server = spawn("node", ["scripts/content-architecture/test-server.mjs"], { env, stdio: "inherit", detached: true });
     let healthy = false;
@@ -94,6 +110,7 @@ try {
 finally {
   await source?.end();
   if (server?.pid) { try { process.kill(-server.pid, "SIGTERM"); } catch {} }
+  if (hasRedis) { try { docker(["rm", "-f", redisContainer]); } catch {} }
   try { docker(["rm", "-f", container]); } catch {}
   rmSync(temporary,{recursive:true,force:true});
 }

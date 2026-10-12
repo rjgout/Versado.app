@@ -1,3 +1,4 @@
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 
 export interface GameSettingsView {
@@ -28,8 +29,8 @@ const DEFAULTS: GameSettingsView = {
   mysteryEnabled: true,
 };
 
-export async function getGameSettings(): Promise<GameSettingsView> {
-  const row = await prisma.gameSettings.findUnique({ where: { id: "singleton" } });
+export async function getGameSettings(db: Pick<Prisma.TransactionClient, "gameSettings"> = prisma): Promise<GameSettingsView> {
+  const row = await db.gameSettings.findUnique({ where: { id: "singleton" } });
   return row ? { ...DEFAULTS, ...row } : DEFAULTS;
 }
 
