@@ -307,6 +307,11 @@ Ook alle 37 echte socketcontroles, 40 puzzel-DB-tests en alle vijf
 productie-puzzelbrowsercases en 43 woordspelhint-/tijd-/gameplaychecks zijn
 opnieuw geslaagd. Geen tests overgeslagen. De negen Actions op de exact
 gepushte nieuwe HEAD worden bij oplevering in PR #90 gerapporteerd.
+Omdat GitHub voor de performancepush geen automatische runs registreerde,
+zijn de bestaande workflows ook handmatig op de exacte branch te starten.
+De Docker-workflow heeft daarvoor nu eveneens `workflow_dispatch`;
+registry-login en imagepublicatie blijven uitsluitend bij `push` (alleen
+`main`). Handmatige reviewruns bouwen images zonder ze te publiceren.
 De synthetische browserserver logde ook afgebroken responsestreams, mislukte
 testfeedrequests en twee `user.update`-fouten; alle browserasserties en
 runners slaagden. Deze afzonderlijke testserverlogs zijn niet als succesvolle
