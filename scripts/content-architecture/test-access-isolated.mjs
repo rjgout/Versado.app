@@ -48,14 +48,18 @@ try {
   // Eerst dezelfde 133 historische migraties via Prisma op de eigen lege DB.
   // Daarna synthetische bestaande records vóór de nieuwe additieve migratie.
   const migrationPath = join(temporary, "migrations");
-  for (const name of readdirSync("prisma/migrations")) if (name !== "20261020120000_content_work_publication") cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
+  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
   const config = join(temporary,"prisma.config.mjs");
   const require = createRequire(import.meta.url);
   writeFileSync(config, `import {defineConfig} from ${JSON.stringify(require.resolve("prisma/config"))}; export default defineConfig({schema:${JSON.stringify(resolve("prisma/schema.prisma"))},migrations:{path:${JSON.stringify(migrationPath)}},datasource:{url:process.env.DATABASE_URL}});`);
   await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
   await run("node", ["tests/content-work-migration.mjs", "prepare"], env);
-  await run("npm", ["run", "db:migrate:deploy"], env);
+  cpSync("prisma/migrations/20261020120000_content_work_publication",join(migrationPath,"20261020120000_content_work_publication"),{recursive:true});
+  await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
   await run("node", ["tests/content-work-migration.mjs", "verify"], env);
+  await run("node", ["tests/study-context-migration.mjs", "prepare"], env);
+  await run("npm", ["run", "db:migrate:deploy"], env);
+  await run("node", ["tests/study-context-migration.mjs", "verify"], env);
   await run("npm", ["run", "db:migrate:deploy"], env);
   server = spawn("node", ["scripts/content-architecture/test-server.mjs"], { env, stdio: "inherit", detached: true });
   let healthy = false;
@@ -66,6 +70,10 @@ try {
   }
   if (!healthy) throw new Error("Productie-routehandler niet beschikbaar");
   await run("npx", ["tsx", "--test", "tests/content-access.test.ts", "tests/content-inventory.test.ts", "tests/content-inventory-validation.test.mjs", "tests/content-access.integration.test.ts", "tests/content-switch.integration.test.ts"], env);
+  await run("npx", ["tsx", "--test", "tests/course-sync.integration.test.ts"], env);
+  // Apart: fingerprints over alle oude tabellen en een tijdelijke fouttrigger mogen
+  // niet samenvallen met fixtures van andere testprocessen.
+  await run("npx", ["tsx", "--test", "tests/study-context.test.ts", "tests/study-context.integration.test.ts"], env);
   source = new pg.Client({ connectionString: database }); await source.connect();
   const inventory = await collectInventory(source);
   assert.equal(inventory.identities.issues.length, 0);

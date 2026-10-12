@@ -40,12 +40,13 @@ is wordt meteen opnieuw opgehaald (de rest wordt alleen als verouderd gemarkeerd
 
 Datasets (scopes): `today`, `progress`, `courses`, `xp`, `streak`, `profile`,
 `competition`, `wordGame`, `wordGameRanking`, `friends`, `activity`, `groups`,
-`notifications`, `content`, `games`, `kompas`.
+`notifications`, `content`, `games`, `kompas`, `studyContext`, `studyContent`.
 
 | Gebeurtenis | Wanneer | Maakt ongeldig |
 |---|---|---|
 | `activityCompleted` | les/oefening/spel afgerond, ook vanaf een ander apparaat (Socket.io `streak_changed`) | today, progress, courses, xp, streak, profile, competition, activity |
 | `xpChanged` | `announceXpChanged()` na XP verdiend of uitgegeven | xp, streak, today, progress, courses, profile, competition |
+| `studyContextChanged` | bewuste actieve-leskeuze, na commit alleen naar de eigen account-room (`data_event`); geen XP, reeks of voortgang | studyContext, studyContent |
 | `contentChanged` | de set beschikbare content verandert (de gekozen content/taal zit al in de key) | content, today, courses, progress, wordGame, games |
 | `wordGameScored` | iemand plaatst of sluit een score (realtime-onderwerp `word-game-ranking`) | wordGameRanking |
 | `friendsChanged` | vriendschap of verzoek gewijzigd (`friends_changed`) | friends, today, activity, notifications |
@@ -124,3 +125,15 @@ nooit alleen om de lijst te verkleinen.
 
 Een UI-timer zonder dataverversing (bv. een seconden-aftelling) hoort niet in een component met
 data-fetching: zet hem in een eigen bestand zoals `src/lib/countdown.ts`.
+
+## Actieve studiecontext (fase 1B)
+
+`useStudyContext(workKey)` gebruikt dezelfde live-data-store en bestaande globale
+listeners; `saveStudyContext` gebruikt `liveMutation`. Geen nieuwe polling, listener
+of layoutkey. Het additieve `studyContexts`-veld in `/api/content-context` is eigen
+accountinformatie; toekomstige kiezerqueries gebruiken ook scope `studyContext`.
+Lesgebonden requests voegen `studyContextIdentity(context)` naast collectie/taal
+toe: workKey, activeLessonKey én version. Gebruik geen `keepPreviousData` voor
+die requests. Een laat antwoord kan dan uitsluitend zijn eigen oude key vullen.
+Bij HTTP 409 bevat `StudyContextConflict.context` de actuele eigen context;
+geen automatische retry met opgehoogde versie die een andere keuze terugdraait.

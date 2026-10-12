@@ -19,6 +19,8 @@ export const DATA_SCOPES = [
   "groups",
   "notifications",
   "content",
+  "studyContext",
+  "studyContent",
   "games",
   "kompas",
 ] as const;
@@ -32,6 +34,8 @@ export type DataScope = (typeof DATA_SCOPES)[number];
  * opnieuw opgehaald, de rest wordt alleen als verouderd gemarkeerd.
  */
 export const DATA_EVENTS = {
+  // Alleen studiecontext/-inhoud; bestaande pagina's hoeven niet te remounten.
+  studyContextChanged: ["studyContext", "studyContent"],
   // Een les, oefening, hoofdstuk of spel is afgerond (ook vanaf een ander apparaat).
   activityCompleted: ["today", "progress", "courses", "xp", "streak", "profile", "competition", "activity"],
   // XP verdiend of uitgegeven (ook aankopen): de beloningsstatus verandert.

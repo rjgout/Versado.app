@@ -92,3 +92,14 @@ rapport hoort niet in Git. De gedeelde adminrunner blijft `test-isolated.mjs`;
 1A gebruikt `test-access-isolated.mjs` en heeft geen eigen inventarisatieservice.
 Productie-deploy voert de migratie automatisch uit en vraagt daarom afzonderlijke
 uitroltoestemming. Zie het [status- en uitrolplan](../../docs/content-architecture-v2/07-PHASE-1A-STATUS.md).
+
+## Fase 1B studiecontext
+
+`npm run test:study-context` test het pure actie-/querykeycontract.
+`npm run test:study-context:integration` hergebruikt dezelfde veilige
+`test-access-isolated.mjs`-runner. Na de 1A-behoudtests worden alle bestaande
+127 tabellen opnieuw gefingerprint, 1B via Prisma gemigreerd en gecontroleerd.
+De echte context-HTTP-tests en cursusregressies draaien achtereenvolgens,
+zodat een tijdelijke fouttrigger of globale fingerprint niet tegelijk loopt
+met andermans synthetische fixtures. Geen productie, algemene seed of restore.
+Zie [1B-status, API en uitrol/rollback](../../docs/content-architecture-v2/08-PHASE-1B-STATUS.md).

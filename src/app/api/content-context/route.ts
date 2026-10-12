@@ -10,7 +10,7 @@ import { apiError } from "@/lib/apiError";
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
-  return NextResponse.json(await getContentContext(user.id));
+  return NextResponse.json(await getContentContext(user.id), { headers: { "Cache-Control": "no-store" } });
 }
 
 // Eén van beide: een uitgave kiezen (contentkiezer) of de taal van de content
