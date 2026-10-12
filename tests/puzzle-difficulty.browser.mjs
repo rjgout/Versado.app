@@ -29,7 +29,7 @@ try {
     await context.addCookies([{ name: SESSION_COOKIE, value: await createSessionToken(user.id), url: base }]);
     const page = await context.newPage(); const errors = []; page.on("pageerror", (error) => errors.push(error.message));
     const canvas = page.locator("canvas"); const menu = page.getByRole("button", { name: nl.jigsaw.boardMenu, exact: true });
-    const api = async (body) => { const response = await context.request.post(`${base}/api/jigsaw-v2`, { data: body }); assert.equal(response.status(), 200, await response.text()); return response.json(); };
+    const api = async (body) => { const response = await context.request.post(`${base}/api/jigsaw-v2`, { headers: { Origin: base }, data: body }); assert.equal(response.status(), 200, await response.text()); return response.json(); };
     const act = (state, operation) => api({ action: "act", sessionId: state.id, version: state.version, actionId: randomUUID(), operation });
     const resume = (state) => api({ action: "resume", sessionId: state.id });
     const frames = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -133,7 +133,7 @@ try {
     }
     // De API blijft streng op hintinput en kent geen clientclaim van anchoring.
     for(const operation of [{kind:"hint",hint:"LOCATION"},{kind:"hint",hint:"FILTER"},{kind:"hint",hint:"INVALID"},{kind:"anchor",groupId:""}]) {
-      const response=await context.request.post(`${base}/api/jigsaw-v2`,{data:{action:"act",sessionId:state.id,version:state.version,actionId:randomUUID(),operation}}); assert.equal(response.status(),400);
+      const response=await context.request.post(`${base}/api/jigsaw-v2`,{headers:{Origin:base},data:{action:"act",sessionId:state.id,version:state.version,actionId:randomUUID(),operation}}); assert.equal(response.status(),400);
     }
     await prisma.user.update({where:{id:user.id},data:{uiLanguage:"de"}}); await page.reload(); await canvas.waitFor();
     await page.getByRole("button",{name:de.jigsaw.boardMenu,exact:true}).click(); await page.getByRole("button",{name:de.jigsaw.useHint,exact:true}).click(); await page.getByRole("dialog",{name:de.jigsaw.hintPanel}).waitFor();

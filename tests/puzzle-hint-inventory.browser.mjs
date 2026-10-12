@@ -26,7 +26,7 @@ try {
     await context.addCookies([{name:SESSION_COOKIE,value:await createSessionToken(user.id),url:base}]);
     const page=await context.newPage(); const errors=[]; page.on("pageerror",error=>errors.push(error.message));
     let hintRequests=0; page.on("request",req=>{if(req.url().endsWith("/api/jigsaw-v2")&&req.postDataJSON()?.operation?.kind==="hint") hintRequests++;});
-    const api=async(body)=>{const r=await context.request.post(`${base}/api/jigsaw-v2`,{data:body});assert.equal(r.status(),200,await r.text());return r.json();};
+    const api=async(body)=>{const r=await context.request.post(`${base}/api/jigsaw-v2`,{headers:{Origin:base},data:body});assert.equal(r.status(),200,await r.text());return r.json();};
     const act=(s,operation)=>api({action:"act",sessionId:s.id,version:s.version,actionId:randomUUID(),operation});
     const resume=(s)=>api({action:"resume",sessionId:s.id});
     const canvas=page.locator("canvas");

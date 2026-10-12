@@ -39,7 +39,7 @@ try {
   const page = await context.newPage(); const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   const api = async (body) => {
-    const response = await context.request.post(`${base}/api/jigsaw-v2`, { data: body });
+    const response = await context.request.post(`${base}/api/jigsaw-v2`, { headers: { Origin: base }, data: body });
     assert.equal(response.status(), 200, await response.text()); return response.json();
   };
   const tiles = page.locator('section[aria-labelledby="jigsaw-image-choice"] button[aria-pressed]');
@@ -182,13 +182,13 @@ try {
   assert.deepEqual(errors, [], "geen browser-runtimefouten");
   // Toegangsvoorwaarden via de echte API, ook voor zichtbare/selecteerbare content.
   await prisma.gameSettings.update({ where: { id: "singleton" }, data: { jigsawEnabled: false } });
-  assert.equal((await context.request.post(`${base}/api/jigsaw-v2`, { data: { action: "start", imageId: jigsawCatalog[215].url, pieceCount: 6, difficulty: "ADVENTURER" } })).status(), 403);
+  assert.equal((await context.request.post(`${base}/api/jigsaw-v2`, { headers: { Origin: base }, data: { action: "start", imageId: jigsawCatalog[215].url, pieceCount: 6, difficulty: "ADVENTURER" } })).status(), 403);
   await prisma.gameSettings.update({ where: { id: "singleton" }, data: { jigsawEnabled: true } });
   const restricted = await prisma.contentCollection.findFirstOrThrow({ where: { gameScopes: { none: { gameKey: "jigsaw" } } } });
   await prisma.user.update({ where: { id: user.id }, data: { activeContentCollectionId: restricted.id } });
-  assert.equal((await context.request.post(`${base}/api/jigsaw-v2`, { data: { action: "start", imageId: jigsawCatalog[215].url, pieceCount: 6, difficulty: "ADVENTURER" } })).status(), 403);
+  assert.equal((await context.request.post(`${base}/api/jigsaw-v2`, { headers: { Origin: base }, data: { action: "start", imageId: jigsawCatalog[215].url, pieceCount: 6, difficulty: "ADVENTURER" } })).status(), 403);
   const anonymous = await browser.newContext();
-  assert.equal((await anonymous.request.post(`${base}/api/jigsaw-v2`, { data: { action: "resume", sessionId: firstId } })).status(), 401);
+  assert.equal((await anonymous.request.post(`${base}/api/jigsaw-v2`, { headers: { Origin: base }, data: { action: "resume", sessionId: firstId } })).status(), 401);
   await anonymous.close();
   console.log("Browser: alle 216 paginaresultaten, zoeken+pagineren, selectie/start buiten 20, andere puzzel, hervatten, echte laatste drag, afbeelding/Verder/vraag/herladen, verloren completion- en antwoordresponses, felicitatie, replay/historische vraag, dagregels, navigatie, 390px en 320px/200%/Duits: groen.");
 } finally {
