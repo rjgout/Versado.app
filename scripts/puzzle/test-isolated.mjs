@@ -30,7 +30,7 @@ try {
   if (!ready) throw new Error("De geïsoleerde PostgreSQL-database werd niet beschikbaar");
   const port = docker(["port", container, "5432/tcp"]).split(":").at(-1);
   const url = `postgresql://puzzle_test:puzzle_test@127.0.0.1:${port}/versado_puzzle_test`;
-  const env = { ...process.env, DATABASE_URL: url, LEARNING_TEST_DATABASE_URL: url, SESSION_SECRET: "puzzle-isolated-test-secret-only", NEXT_TELEMETRY_DISABLED: "1" };
+  const env = { ...process.env, NODE_ENV: "production", DATABASE_URL: url, LEARNING_TEST_DATABASE_URL: url, SESSION_SECRET: "puzzle-isolated-test-secret-only", NEXT_TELEMETRY_DISABLED: "1" };
   await run("npm", ["run", "db:migrate:deploy"], env);
   await run("npm", ["run", "db:generate"], env);
   await run("npx", ["tsx", "--test", "tests/jigsaw.integration.test.ts", "tests/puzzle-solo.integration.test.ts", "tests/puzzle-hint-inventory.integration.test.ts", "tests/kompas.integration.test.ts"], env);
@@ -47,11 +47,10 @@ try {
       await delay(500);
     }
     if (!available) throw new Error("Testapp werd niet beschikbaar");
-    await run("npx", ["tsx", "tests/puzzle-flow.browser.mjs"], env);
-    await run("npx", ["tsx", "tests/puzzle-mobile.browser.mjs"], env);
-    await run("npx", ["tsx", "tests/puzzle-drag.browser.mjs"], env);
-    await run("npx", ["tsx", "tests/puzzle-difficulty.browser.mjs"], env);
-    await run("npx", ["tsx", "tests/puzzle-hint-inventory.browser.mjs"], env);
+    const browserCases = ["flow", "mobile", "drag", "difficulty", "hint-inventory"];
+    const selected = process.argv.find(arg => arg.startsWith("--browser-case="))?.slice("--browser-case=".length);
+    if (selected && !browserCases.includes(selected)) throw new Error("Onbekende bestaande browsercase");
+    for (const name of browserCases.filter(name => !selected || name === selected)) await run("npx", ["tsx", `tests/puzzle-${name}.browser.mjs`], env);
   }
 } catch (error) {
   console.error(error); process.exitCode = 1;

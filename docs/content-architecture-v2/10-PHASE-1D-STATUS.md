@@ -167,6 +167,8 @@ productiemigratie.
 - Puzzelintegratie: 40 geslaagd, nul skips, inclusief volledige catalogus,
   vraagflow/hints/replay en Kompas-DB-tests. Woordspelhintintegratie: 14 + 29
   geslaagd, nul skips (tijd, gameplay, betalingen, cooldown en ranking).
+  Alle vijf bestaande puzzelbrowsertests zijn ook lokaal geslaagd op de
+  expliciet gestarte productiebuild (flow, mobiel, drag, moeilijkheden, hints).
 - Productie-Playwright: gewone kiezer op 320×844, 375×844, 390×844, 430×932,
   768×1024, 1280×900 en 844×390; light/dark en 100/200% tekst (28 varianten).
   Lange labels in alle vijf UI-talen, directe bron/taalkeuze, equivalenten,
@@ -182,6 +184,9 @@ productiemigratie.
 - De eerste CI-puzzelbrowsertest gebruikte directe requests zonder Origin
   en kreeg terecht 403. De test stuurt nu dezelfde geldige Origin als een
   browser; de productieguard is behouden.
+- De lokale puzzelrunner miste NODE_ENV=production; de Next-devtoolsportal
+  bedekte de rotatieknop. De runner start nu expliciet de productiebuild,
+  met behoud van de oorspronkelijke interactieasserties en puzzelengine.
 - De eerste socketrun faalde op dubbele synthetische gebruikersnamen.
   De fixture is gecorrigeerd; de afzonderlijke socketrun is daarna groen.
 
