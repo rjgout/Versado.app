@@ -226,7 +226,7 @@ describe("Difficulty-curve: invarianten", () => {
     assert.match(client, /worldSpeed\(difficultyScore\)/);
     assert.match(client, /createObstaclePair\([^)]*difficultyScore\)/);
     assert.match(client, /createPairSequence\(1001, MASCOT_X \+ 170, \(\) => 0\.5, debugDifficultyRef\.current \?\? scoreRef\.current\)/);
-    assert.match(client, /createPairSequence\(1, FIRST_OBSTACLE_X, Math\.random, debugDifficultyRef\.current \?\? 0\)/);
+    assert.match(client, /createPairSequence\(1, FIRST_OBSTACLE_X, Math\.random, debugDifficultyRef\.current \?\? savedScore\)/);
     assert.doesNotMatch(client, /HORIZONTAL_SPEED/, "geen vaste snelheid meer in de spelloop");
     assert.doesNotMatch(client, /allTimeBest.*difficulty|dailyBest.*difficulty/);
   });

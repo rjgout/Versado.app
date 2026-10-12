@@ -47,7 +47,7 @@ test("de solo-ranking en de persoonlijke records lezen via SOLO_RUNS", () => {
 
 test("niets buiten de solo-definitie schrijft een apart solo-record: scores leven alleen op de run", () => {
   const writers = sources.filter(({ text }) => /quickMissionaryRun\.(create|createMany|update|updateMany|upsert)\(/.test(text)).map(({ file }) => file).sort();
-  assert.deepEqual(writers, ["src/lib/snelleZendeling/match.ts", "src/lib/snelleZendeling/runs.ts"]);
+  assert.deepEqual(writers, ["src/lib/snelleZendeling/match.ts", "src/lib/snelleZendeling/runs.ts", "src/lib/snelleZendeling/source.ts"]);
   // Er is geen aparte highscore-tabel of -kolom die door een wedstrijd gevuld kan worden.
   const schema = readFileSync(path.join(root, "prisma/schema.prisma"), "utf8");
   const model = schema.slice(schema.indexOf("model QuickMissionaryRun {"), schema.indexOf("enum QuickMissionaryMatchStatus"));

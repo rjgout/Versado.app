@@ -4,6 +4,7 @@
 // LEARNING_TEST_DATABASE_URL.
 //
 //   LEARNING_TEST_DATABASE_URL=postgresql://... npm run test:snelle-zendeling-match
+import { quickMissionaryFixture } from "./fixtures/quick-missionary";
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
 
@@ -38,9 +39,9 @@ async function makeUser(options: { xp?: number; stock?: number } = {}): Promise<
 before(async () => {
   if (skip) return;
   L = await load();
-  collectionId = `qmmatch-${stamp}`;
-  await L.db.contentCollection.create({ data: { id: collectionId, slug: collectionId, name: collectionId, icon: "book", work: collectionId, language: "nl", order: 902 } });
-  const book = await L.db.book.create({ data: { slug: `${collectionId}-b`, name: "Boek", order: 0, contentCollectionId: collectionId } });
+  collectionId = "content_bom";
+  await quickMissionaryFixture(L.db, collectionId);
+  const book = await L.db.book.create({ data: { slug: `qmmatch-${stamp}-b`, name: "Boek", order: 0, contentCollectionId: collectionId } });
   const chapter = await L.db.chapter.create({ data: { bookId: book.id, number: 1, order: 0 } });
   for (let v = 1; v <= 12; v++) {
     await L.db.quickMissionaryReviveQuestion.create({
@@ -59,7 +60,7 @@ after(async () => {
   if (skip) return;
   await L.db.liveGame.deleteMany({ where: { host: { email: { in: emails } } } });
   await L.db.user.deleteMany({ where: { email: { in: emails } } });
-  await L.db.contentCollection.deleteMany({ where: { id: collectionId } });
+  await L.db.book.deleteMany({ where: { slug: `qmmatch-${stamp}-b` } });
   await L.db.$disconnect();
 });
 
@@ -68,7 +69,7 @@ async function startedMatch(n: number, options: { stock?: number; xp?: number; a
   const userIds: string[] = options.players ?? [];
   for (let i = userIds.length; i < n; i++) userIds.push(await makeUser(options));
   const game = await L.db.liveGame.create({
-    data: { code: `Q${stamp.slice(-4)}${seq}${Math.floor(Math.random() * 1e6)}`.slice(0, 12), hostId: userIds[0], mode: "QUICK_MISSIONARY", status: "LOBBY", players: { create: userIds.map((userId) => ({ userId })) } },
+    data: { code: `Q${stamp.slice(-4)}${seq}${Math.floor(Math.random() * 1e6)}`.slice(0, 12), hostId: userIds[0], mode: "QUICK_MISSIONARY", status: "LOBBY", players: { create: userIds.map((userId) => ({ userId, contentCollectionId: collectionId })) } },
   });
   const started = await L.match.startMatch(game.id, userIds[0]);
   assert.ok(started.ok, "wedstrijd hoort te starten");
@@ -95,12 +96,12 @@ async function reviveAndAnswer(userId: string, runId: string, correct: boolean) 
 
 test("start: één wereld voor iedereen, een run per speler, alleen de host start, niet dubbel", { skip }, async () => {
   const userIds = [await makeUser(), await makeUser(), await makeUser()];
-  const game = await L.db.liveGame.create({ data: { code: `S${stamp.slice(-5)}`, hostId: userIds[0], mode: "QUICK_MISSIONARY", players: { create: userIds.map((userId) => ({ userId })) } } });
+  const game = await L.db.liveGame.create({ data: { code: `S${stamp.slice(-5)}`, hostId: userIds[0], mode: "QUICK_MISSIONARY", players: { create: userIds.map((userId) => ({ userId, contentCollectionId: collectionId })) } } });
   assert.deepEqual(await L.match.startMatch(game.id, userIds[1]), { ok: false, error: "NOT_HOST" });
   const started = await L.match.startMatch(game.id, userIds[0]);
   assert.ok(started.ok);
   if (!started.ok) return;
-  assert.deepEqual(await L.match.startMatch(game.id, userIds[0]), { ok: false, error: "INVALID_STATE" });
+  assert.deepEqual(await L.match.startMatch(game.id, userIds[0]), started, "dubbele start herstelt dezelfde wedstrijd");
   const runs = await L.db.quickMissionaryRun.findMany({ where: { matchId: started.matchId } });
   assert.equal(runs.length, 3);
   assert.deepEqual(new Set(runs.map((run) => run.userId)), new Set(userIds));
@@ -113,7 +114,7 @@ test("start: één wereld voor iedereen, een run per speler, alleen de host star
 
 test("start: één speler is geen wedstrijd; geen beperking naar boven (12 spelers)", { skip }, async () => {
   const solo = await makeUser();
-  const lobby = await L.db.liveGame.create({ data: { code: `T${stamp.slice(-5)}`, hostId: solo, mode: "QUICK_MISSIONARY", players: { create: { userId: solo } } } });
+  const lobby = await L.db.liveGame.create({ data: { code: `T${stamp.slice(-5)}`, hostId: solo, mode: "QUICK_MISSIONARY", players: { create: { userId: solo, contentCollectionId: collectionId } } } });
   assert.deepEqual(await L.match.startMatch(lobby.id, solo), { ok: false, error: "TOO_FEW_PLAYERS" });
   const many = await startedMatch(12);
   assert.equal((await matchRow(many.matchId)).participantCount, 12);

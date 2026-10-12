@@ -35,6 +35,6 @@ test("normale spelkaart omzeilt uitgeschakelde settings niet voor admins", () =>
 });
 
 test("vaste opgeslagen live-bronnen veranderen niet met beheerinstellingen", () => {
-  for (const mode of ["CHAPTER_GUESS", "FAMILY_GAME", "ALLESKENNER", "QUICK_MISSIONARY"]) assert.equal(fixedLiveGameCollectionId(mode), "content_bom");
-  for (const mode of ["STUDY", "EXERCISES", "UNKNOWN"]) assert.equal(fixedLiveGameCollectionId(mode), null);
+  for (const mode of ["CHAPTER_GUESS", "FAMILY_GAME", "ALLESKENNER"]) assert.equal(fixedLiveGameCollectionId(mode), "content_bom");
+  for (const mode of ["STUDY", "EXERCISES", "QUICK_MISSIONARY", "UNKNOWN"]) assert.equal(fixedLiveGameCollectionId(mode), null);
 });

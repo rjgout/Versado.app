@@ -3,6 +3,7 @@
 // LEARNING_TEST_DATABASE_URL.
 //
 //   LEARNING_TEST_DATABASE_URL=postgresql://... npm run test:snelle-zendeling
+import { quickMissionaryFixture } from "./fixtures/quick-missionary";
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
 
@@ -64,14 +65,13 @@ async function addQuestion(chapterId: string, key: string, variant: number) {
 before(async () => {
   if (skip) return;
   L = await load();
-  collectionId = `geneestest-${run}`;
-  otherCollectionId = `geneestest-leeg-${run}`;
-  for (const id of [collectionId, otherCollectionId]) {
-    await L.db.contentCollection.create({ data: { id, slug: id, name: id, icon: "book", work: id, language: "nl", order: 900 } });
-  }
+  collectionId = "content_bom";
+  otherCollectionId = "content_bom_de";
+  await quickMissionaryFixture(L.db, collectionId);
+  await quickMissionaryFixture(L.db, otherCollectionId, "de");
   let bookOrder = 0;
   for (const layout of LAYOUT) {
-    const book = await L.db.book.create({ data: { slug: `${collectionId}-b${bookOrder}`, name: layout.book, order: bookOrder, contentCollectionId: collectionId } });
+    const book = await L.db.book.create({ data: { slug: `geneestest-${run}-b${bookOrder}`, name: layout.book, order: bookOrder, contentCollectionId: collectionId } });
     let chapterOrder = 0;
     for (const variants of layout.chapters) {
       const chapter = await L.db.chapter.create({ data: { bookId: book.id, number: chapterOrder + 1, order: chapterOrder } });
@@ -89,7 +89,7 @@ before(async () => {
 after(async () => {
   if (skip) return;
   await L.db.user.deleteMany({ where: { email: { in: emails } } });
-  await L.db.contentCollection.deleteMany({ where: { id: { in: [collectionId, otherCollectionId] } } });
+  await L.db.book.deleteMany({ where: { slug: { startsWith: `geneestest-${run}-` } } });
   await L.db.$disconnect();
 });
 
