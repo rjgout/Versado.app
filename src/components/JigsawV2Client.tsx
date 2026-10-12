@@ -8,6 +8,7 @@ import NextImage from "next/image";
 import { Ellipsis, RotateCw, Lightbulb } from "lucide-react";
 import PuzzleHintPanel from "@/components/PuzzleHintPanel";
 import FriendPicker from "@/components/FriendPicker";
+import { useTick } from "@/components/puzzle/serverClock";
 import PuzzleTogetherOverview from "@/components/puzzle/PuzzleTogetherOverview";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { useT } from "@/components/I18nProvider";
@@ -151,12 +152,9 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
 
   // Eén plek die bepaalt waar een verzoek heen gaat; Solo blijft ongewijzigd.
   const call = (body: Record<string, unknown>) => match ? request({ ...body, matchId: match.id, sessionId: undefined }, "/api/puzzle/match") : request(body);
-  const [clock, setClock] = useState(0);
-  useEffect(() => {
-    if (!match) return;
-    const tick = () => setClock(Math.max(0, Date.now() + match.serverOffsetMs - match.startedAt));
-    tick(); const handle = window.setInterval(tick, 500); return () => window.clearInterval(handle);
-  }, [match]);
+  // Alleen een wedstrijd heeft een klok; Solo tikt niet mee.
+  const tick = useTick(!!match, 500);
+  const clock = match && tick ? Math.max(0, tick + match.serverOffsetMs - match.startedAt) : 0;
 
   const back = useCallback(() => {
     if (stage === "QUESTION") { try { localStorage.removeItem(`${KEY}:question`); } catch {} setStage("COMPLETE"); }
