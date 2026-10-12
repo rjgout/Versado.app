@@ -68,7 +68,7 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
   const [counted, setCounted] = useState(false);
   const table = useRef<PuzzleTableHandle>(null); const menuButton = useRef<HTMLButtonElement>(null);
   const remoteDrags = useRef(new Map<string, { x: number; y: number; until: number }>());
-  const lastDragSent = useRef(0); const lastRenew = useRef(0); const repaintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastDragSent = useRef(0); const lastRenew = useRef(0); const repaintTimer = useRef<ReturnType<typeof setTimeout> | null>(null); const heldToken = useRef<{ groupId: string; token: string } | null>(null);
   const mounted = useRef(true); const syncing = useRef(false);
   const geometry = useMemo(() => createPuzzleGeometry(state.pieceCount, state.seed, state.geometryVersion), [state.pieceCount, state.seed, state.geometryVersion]);
   const colors = useMemo(() => new Map(state.participants.map((participant, index) => [participant.userId, PALETTE[index % PALETTE.length]])), [state.participants]);
@@ -138,13 +138,19 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
 
   const onGrab = useCallback(async (groupId: string) => {
     const response = await emitAck("puzzle:lock", { sessionId: initial.id, groupId }, () => post({ action: "lock", sessionId: initial.id, groupId }));
-    if (response.ok && typeof response.token === "string") { lastRenew.current = Date.now(); if (Array.isArray(response.locks)) setLocks(response.locks as TableLock[]); return response.token; }
+    if (response.ok && typeof response.token === "string") { lastRenew.current = Date.now(); heldToken.current = { groupId, token: response.token }; if (Array.isArray(response.locks)) setLocks(response.locks as TableLock[]); return response.token; }
     if (response.code === "GONE") void resync();
     return null;
   }, [initial.id, resync]);
-  const onRelease = useCallback((groupId: string, token: string) => { void emitAck("puzzle:release", { sessionId: initial.id, groupId, token }, () => post({ action: "release", sessionId: initial.id, groupId, token })); }, [initial.id]);
+  const onRelease = useCallback((groupId: string, token: string) => { if (heldToken.current?.groupId === groupId) heldToken.current = null; void emitAck("puzzle:release", { sessionId: initial.id, groupId, token }, () => post({ action: "release", sessionId: initial.id, groupId, token })); }, [initial.id]);
   const onDrag = useCallback((groupId: string, x: number, y: number) => {
     const now = Date.now(); const socket = getSocket();
+    // Een lange sleepbeweging houdt zijn lock vast; zonder vernieuwing verloopt de lease en pakt een ander de groep.
+    const held = heldToken.current;
+    if (held && held.groupId === groupId && now - lastRenew.current > 5000) {
+      lastRenew.current = now;
+      void emitAck("puzzle:renew", { sessionId: initial.id, groupId, token: held.token }, () => post({ action: "renew", sessionId: initial.id, groupId, token: held.token }));
+    }
     if (socket.connected && now - lastDragSent.current > 60) { lastDragSent.current = now; socket.volatile.emit("puzzle:drag", { sessionId: initial.id, groupId, x, y }); }
   }, [initial.id]);
 
