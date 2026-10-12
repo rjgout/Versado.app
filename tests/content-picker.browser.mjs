@@ -64,6 +64,15 @@ try {
     await page.locator('[data-kompas-target="content-switcher"] a').click();await page.waitForURL(`${base}/content`);await page.locator('[data-content-picker]').waitFor();
     const state=await shell();
     assert.equal(await page.locator('[data-content-menu]').count(),0);
+    assert.equal(await page.locator('[data-content-picker] details, [data-content-picker] summary').count(),0);
+    assert.equal(await page.locator('[data-content-picker] a').count(),0,'Geen beheerpreview-CTA');
+    assert.ok(!(await page.locator('[data-content-work]').allTextContents()).some(text=>text.includes('Beschikbaar in ')));
+    const chips=await page.locator('[data-content-language] button').evaluateAll(buttons=>buttons.map(button=>({name:button.textContent,height:button.getBoundingClientRect().height,width:button.clientWidth,scrollWidth:button.scrollWidth,overflow:button.scrollWidth>button.clientWidth+1})));
+    for(const chip of chips){assert.ok(chip.height>=44);assert.equal(chip.overflow,false,`${width}/${font}: taalchip blijft leesbaar zonder clipping: ${JSON.stringify(chip)}`);}
+    if(width===390&&font===100){
+      assert.ok((await page.locator('[data-content-language]').boundingBox()).height<=190,'Taalblok is compact');
+      assert.ok((await page.locator('[data-content-work="bofm"]').boundingBox()).height<=140,'Bronkaart is compact');
+    }
     assert.equal(await page.locator('[data-content-work="podcasts"]').getAttribute('data-content-kind'),'OTHER');
     assert.equal(await page.locator('[data-content-group="studyPrograms"] [data-content-work="podcasts"]').count(),1);
     assert.equal(await page.locator('[data-content-work="bofm"] > button').getAttribute('aria-pressed'),'true');
@@ -76,6 +85,15 @@ try {
     const tail=await page.locator('[data-content-work]').last().evaluate(el=>{const r=el.getBoundingClientRect();return{bottom:r.bottom,visible:r.top<innerHeight};});assert.ok(tail.visible&&tail.bottom<=height+1);
     results.push({tag,...state,cards:cards.length});
     await page.locator('[data-subpage-back-bar] button').click();await page.waitForURL(`${base}/dashboard`);
+  }
+  // Bredere fontmetingen (zoals op de CI-host): vinkje mag ombreken, het woord niet.
+  if(!interactionsOnly) {
+    await fresh(320,844);await ready('/content');
+    await page.evaluate(()=>document.documentElement.style.fontSize='32px');
+    const selectedChip=page.locator('[data-content-language] button[aria-pressed="true"]');
+    await selectedChip.evaluate(el=>el.style.letterSpacing='0.03em');
+    assert.ok(await selectedChip.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'Brede letters mogen niet worden afgekapt');
+    await page.screenshot({path:`${output}/content-picker-320x844-wide-font-200.png`,fullPage:true});
   }
   // Alle vijf interfacetalen blijven onafhankelijk van de Nederlandse bron.
   for(const language of (interactionsOnly?[]:['nl','en','de','fr','es'])) {
@@ -114,6 +132,12 @@ try {
   await ready('/dashboard');await page.locator('[data-kompas-target="content-switcher"] a').click();await page.waitForURL(`${base}/content`);
   await page.getByRole('button',{name:'English',exact:true}).click();await page.waitForURL(`${base}/dashboard`);
   const english=await prisma.user.findUniqueOrThrow({where:{id:user.id}});assert.equal(english.contentLanguage,'en');assert.equal(english.uiLanguage,'nl');assert.equal(english.activeContentCollectionId,'content_bom_en');
+  // Een bron zonder gekozen taal krijgt geen onverwachte taalfallback of mutatie.
+  await ready('/content');let missingWrites=0;
+  const countMissing=request=>{if(request.url().endsWith('/api/content-context')&&request.method()==='PUT')missingWrites++;};page.on('request',countMissing);
+  await page.locator('[data-content-work="fsy"] > button').focus();await page.keyboard.press('Enter');
+  await page.locator('[data-content-picker]').getByRole('alert').waitFor();assert.equal(missingWrites,0);
+  assert.equal((await prisma.user.findUniqueOrThrow({where:{id:user.id}})).activeContentCollectionId,'content_bom_en');page.off('request',countMissing);
   // Netwerkfout: geen optimistische bron, actuele data opnieuw ophalen en focus niet verliezen.
   await ready('/content');
   await page.route('**/api/content-context',async route=>route.request().method()==='PUT'?route.fulfill({status:503,contentType:'application/json',body:'{"error":"synthetic"}'}):route.continue());
@@ -150,9 +174,13 @@ try {
   page.on('request',request=>{if(request.url().endsWith('/api/content-context')&&request.method()==='PUT')invalidWrites++;});
   await page.getByRole('button',{name:'English',exact:true}).focus();await page.keyboard.press('Enter');await page.locator('[data-content-picker]').getByRole('alert').waitFor();assert.equal(invalidWrites,0);
   await prisma.contentCollection.create({data:{id:'picker_other_edition',slug:'picker-other-edition',name:'Andere uitgave',icon:'',work:'bofm',editionKey:'explicit-other',language:'en',enabled:true,visibleToUsers:true,publicationState:'PUBLISHED'}});
-  await prisma.user.update({where:{id:user.id},data:{activeContentCollectionId:'content_bom',contentLanguage:'nl'}});
-  await ready('/content');await page.locator('[data-content-work="bofm"] summary').click();
-  await page.locator('[data-content-work="bofm"] details button').filter({hasText:'explicit-other'}).click();await page.waitForURL(`${base}/dashboard`);
+  await prisma.user.update({where:{id:user.id},data:{activeContentCollectionId:'content_dc_en',contentLanguage:'en'}});
+  await ready('/content');const beforeEdition=(await prisma.user.findUniqueOrThrow({where:{id:user.id}})).activeContentCollectionId;
+  await page.locator('[data-content-work="bofm"] > button').click();
+  const editionChoice=page.locator('[data-content-edition-choice] select');await editionChoice.waitFor();
+  assert.ok(await editionChoice.evaluate(el=>el===document.activeElement));assert.equal((await prisma.user.findUniqueOrThrow({where:{id:user.id}})).activeContentCollectionId,beforeEdition);
+  assert.equal(await page.locator('[data-content-work] select, [data-content-work] details').count(),0,'Geen editievelden per kaart');
+  await editionChoice.selectOption('picker_other_edition');await page.waitForURL(`${base}/dashboard`);
   assert.equal((await prisma.user.findUniqueOrThrow({where:{id:user.id}})).activeContentCollectionId,'picker_other_edition');
   assert.deepEqual(await prisma.userStudyContext.findUniqueOrThrow({where:{userId_workKey:{userId:user.id,workKey:'fsy'}}}),study);
   const final=await prisma.user.findUniqueOrThrow({where:{id:user.id}});assert.equal(final.xpTotal,100);assert.equal(final.hintBalance,8);assert.equal(final.currentStreak,0);
@@ -164,8 +192,11 @@ try {
     await prisma.contentCollection.updateMany({where:{work:'fsy'},data:{publicationState:'DRAFT'}});
     await ready('/content');assert.equal(await page.locator('[data-content-work="old-testament"]').count(),0);assert.equal(await page.locator('[data-content-work="pgp"]').count(),0);assert.equal(await page.locator('[data-content-work="fsy"]').count(),0);
     await prisma.user.update({where:{id:user.id},data:{isAdmin:true}});
-    await ready('/content');const hidden=page.locator('[data-content-work="old-testament"]');
-    assert.equal(await hidden.locator('> button').isDisabled(),true);assert.equal(await hidden.getByRole('link').count(),1);assert.ok((await hidden.getByRole('link').getAttribute('href')).startsWith('/adminbackend/content-preview?'));
+    await ready('/content');assert.equal(await page.locator('[data-content-work="old-testament"]').count(),0,'Ook admins krijgen een publieke kiezer zonder verborgen bronnen');
+    assert.equal(await page.locator('[data-content-picker] a').count(),0);
+    const hidden=await prisma.contentCollection.findFirstOrThrow({where:{work:'old-testament',language:'nl'}});
+    const own=(await (await page.request.get(`${base}/api/content-context?view=picker`)).json()).selection;
+    const denied=await page.request.put(`${base}/api/content-context`,{headers:{Origin:base},data:{picker:true,contentCollectionId:hidden.id,expectedSelection:own}});assert.equal(denied.status(),404);
     assert.equal(await page.locator('[data-content-work="fsy"]').count(),0);
     await prisma.user.update({where:{id:user.id},data:{isAdmin:false}});
     await prisma.contentCollection.updateMany({data:{enabled:false}});
@@ -179,7 +210,7 @@ try {
   // Anoniem: de bestaande loginconventie.
   await context.close();context=await browser.newContext();page=await context.newPage();await page.goto(`${base}/content`);assert.equal(new URL(page.url()).pathname,'/login');
   assert.deepEqual(errors,[]);
-  writeFileSync(`${output}/content-picker-results.json`,JSON.stringify({matrix:results,uiLanguages:5,realNavigation:true,scrollRestore:true,doubleClick:true,lateResponse:true,noProgressRewards:true},null,2));
+  writeFileSync(`${output}/content-picker-results.json`,JSON.stringify({matrix:results,uiLanguages:5,realNavigation:true,scrollRestore:true,doubleClick:true,lateResponse:true,noProgressRewards:true,compactCards:true,noCardAccordions:true,noPreviewButtons:true,strictCardLanguage:true},null,2));
   console.log(`Fullscreen contentkiezer: ${results.length} viewport/thema/tekstcombinaties, vijf talen, touch/toetsenbord, route-/scrollherstel, fouten en vertraagde antwoorden geslaagd.`);
 } catch(error) {
   if(page){await page.screenshot({path:`${output}/content-picker-failure.png`,fullPage:true});writeFileSync(`${output}/content-picker-failure.html`,await page.content());}
