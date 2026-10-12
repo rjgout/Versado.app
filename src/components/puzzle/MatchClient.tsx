@@ -72,9 +72,9 @@ export default function MatchClient({ initial, meId }: { initial: MatchView; meI
 
   return (
     <FocusLayout className="page-fill mx-auto max-w-2xl justify-center gap-5 py-4">
-      <header className="flex items-center gap-4">
+      <header className="flex flex-wrap items-center gap-4">
         <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-xl bg-vs-surface"><NextImage src={match.image} alt="" fill unoptimized className="object-cover" /></div>
-        <div><h1 className="text-2xl font-extrabold text-vs-fg">{t("puzzleTogether.match.title")}</h1><p className="text-vs-fg-2">{match.pieceCount} · {t(match.kind === "LIVE" ? "puzzleTogether.setup.live" : "puzzleTogether.setup.async")}</p></div>
+        <div className="min-w-0 flex-1 basis-40"><h1 className="break-words text-2xl font-extrabold text-vs-fg">{t("puzzleTogether.match.title")}</h1><p className="text-vs-fg-2">{match.pieceCount} · {t(match.kind === "LIVE" ? "puzzleTogether.setup.live" : "puzzleTogether.setup.async")}</p></div>
       </header>
       {match.status === "CANCELLED" && <p className="card">{t("puzzleTogether.match.cancelled")}</p>}
 
