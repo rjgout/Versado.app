@@ -9,7 +9,7 @@ import { useLiveQuery } from "@/lib/data/hooks";
 import { ApiRequestError, fetchJson } from "@/lib/data/fetchJson";
 
 interface ActivityItem {
-  kind: "challenge" | "scrabble" | "live" | "chapter-guess-solo";
+  kind: "challenge" | "scrabble" | "live" | "chapter-guess-solo" | "puzzle-coop" | "puzzle-match";
   id: string;
   opponentName: string | null;
   opponentId: string | null;

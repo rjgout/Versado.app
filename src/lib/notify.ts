@@ -9,6 +9,7 @@ import type { LeagueTier } from "@/generated/prisma/client";
 import { getT } from "@/lib/i18n";
 import { translateOr, type TFunction } from "@/lib/i18n/core";
 import { CATEGORY_FIELD, type NotifyCategory } from "@/lib/notifyCategories";
+import type { PuzzleNotice } from "@/lib/puzzle/puzzleNotify";
 import { createPodcastUnsubscribeToken, createUnsubscribeToken, unsubscribeOneClickUrl, unsubscribePageUrl } from "@/lib/unsubscribe";
 
 // Elke gebeurtenis valt in één categorie, die de gebruiker in zijn profiel
@@ -248,6 +249,40 @@ export async function notifyGameInvite(userId: string, hostName: string, gameLab
     pushOnly: true,
     content: (t) =>
       simple(t("notify.gameInviteTitle"), t("notify.gameInviteTitle"), t("notify.gameInviteText", { name: hostName, game: gameLabel(t) }), ""),
+  });
+}
+
+/**
+ * Legpuzzel Samen/Tegen elkaar: alleen echte statusovergangen (uitnodiging,
+ * reactie, start, afronding, uitslag), nooit iedere puzzelactie. Valt onder de
+ * bestaande categorie "social" en dus onder dezelfde uit te zetten voorkeur.
+ */
+export async function notifyPuzzle(userId: string, notice: PuzzleNotice): Promise<void> {
+  const coop = notice.type.startsWith("COOP");
+  const id = "sessionId" in notice ? notice.sessionId : notice.matchId;
+  const url = coop ? `/jigsaw/samen/${id}` : `/jigsaw/wedstrijd/${id}`;
+  await notifyUser({
+    userId,
+    category: "social",
+    kind: "games",
+    url: notice.type === "COOP_REVOKED" || notice.type === "MATCH_REVOKED" ? "/jigsaw" : url,
+    pushOnly: true,
+    content: (t) => {
+      const name = "fromHandle" in notice ? notice.fromHandle : "";
+      switch (notice.type) {
+        case "COOP_INVITE": return simple(t("notify.puzzleInviteTitle"), t("notify.puzzleInviteTitle"), t("notify.puzzleCoopInviteText", { name }), "");
+        case "COOP_ACCEPTED": return simple(t("notify.puzzleAcceptedTitle"), t("notify.puzzleAcceptedTitle"), t("notify.puzzleAcceptedText", { name }), "");
+        case "COOP_DECLINED": return simple(t("notify.puzzleDeclinedTitle"), t("notify.puzzleDeclinedTitle"), t("notify.puzzleDeclinedText", { name }), "");
+        case "COOP_REVOKED": return simple(t("notify.puzzleRevokedTitle"), t("notify.puzzleRevokedTitle"), t("notify.puzzleRevokedText", { name }), "");
+        case "COOP_COMPLETED": return simple(t("notify.puzzleCompletedTitle"), t("notify.puzzleCompletedTitle"), t("notify.puzzleCompletedText"), "");
+        case "MATCH_INVITE": return simple(t("notify.puzzleMatchInviteTitle"), t("notify.puzzleMatchInviteTitle"), t(notice.live ? "notify.puzzleMatchInviteLiveText" : "notify.puzzleMatchInviteText", { name }), "");
+        case "MATCH_ACCEPTED": return simple(t("notify.puzzleAcceptedTitle"), t("notify.puzzleAcceptedTitle"), t("notify.puzzleMatchAcceptedText", { name }), "");
+        case "MATCH_DECLINED": return simple(t("notify.puzzleDeclinedTitle"), t("notify.puzzleDeclinedTitle"), t("notify.puzzleMatchDeclinedText", { name }), "");
+        case "MATCH_REVOKED": return simple(t("notify.puzzleRevokedTitle"), t("notify.puzzleRevokedTitle"), t("notify.puzzleRevokedText", { name }), "");
+        case "MATCH_STARTED": return simple(t("notify.puzzleMatchStartedTitle"), t("notify.puzzleMatchStartedTitle"), t("notify.puzzleMatchStartedText"), "");
+        case "MATCH_RESULT": return simple(t("notify.puzzleMatchResultTitle"), t("notify.puzzleMatchResultTitle"), t("notify.puzzleMatchResultText"), "");
+      }
+    },
   });
 }
 

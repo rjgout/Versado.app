@@ -23,6 +23,8 @@ const FOCUS_ROUTES = [
   /^\/alleskenner\/seizoen\/[^/]+$/,
   /^\/word-game$/,
   /^\/jigsaw$/,
+  // Legpuzzel Samen en Tegen elkaar: dezelfde fullscreen werktafel als Solo.
+  /^\/jigsaw\/(samen|wedstrijd)\/[^/]+$/,
   // Alle vooraf ontworpen Het Mysterie-varianten delen dezelfde focus-shell.
   // Het routepatroon voorkomt dat ieder nieuw mystery handmatig moet worden
   // toegevoegd en voorkomt dat latere varianten terugvallen op de normale app-shell.

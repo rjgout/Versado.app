@@ -3,6 +3,7 @@ import { getContentContext } from "@/lib/contentCollections";
 import { getT } from "@/lib/i18n";
 import { localizedCourse } from "@/lib/courseText";
 import type { CourseType } from "@/generated/prisma/client";
+import { getPuzzleActivity } from "@/lib/puzzle/activity";
 
 // Alles wat een gebruiker "open" heeft staan over de asynchrone spellen
 // heen (Uitdagingen, Woordspel), het realtime Live spel, en een eigen
@@ -14,7 +15,7 @@ import type { CourseType } from "@/generated/prisma/client";
 // Geen next/headers: de aanroeper geeft de gebruiker mee.
 
 export interface ActivityItem {
-  kind: "challenge" | "scrabble" | "live" | "chapter-guess-solo";
+  kind: "challenge" | "scrabble" | "live" | "chapter-guess-solo" | "puzzle-coop" | "puzzle-match";
   id: string;
   opponentName: string | null;
   opponentId: string | null;
@@ -79,7 +80,7 @@ export async function getActiveGameStatus(user: { id: string; uiLanguage: string
       include: { questions: { orderBy: { order: "asc" }, take: 1, select: { chapterId: true } } },
     }),
     prisma.gameContentScope.findMany({
-      where: { gameKey: { in: ["scrabble", "gezinsavond", "chapter-guess"] } },
+      where: { gameKey: { in: ["scrabble", "gezinsavond", "chapter-guess", "jigsaw"] } },
       select: { gameKey: true, contentCollectionId: true },
     }),
     getContentContext(user.id),
@@ -312,6 +313,14 @@ export async function getActiveGameStatus(user: { id: string; uiLanguage: string
     code: game.code,
     at: createdAt.toISOString(),
   }));
+
+  // Legpuzzel samen en tegen elkaar. Alleen als de legpuzzel voor deze gebruiker bestaat in de actieve inhoud.
+  if (contentContext.gameKeys.includes("jigsaw")) {
+    const puzzles = await getPuzzleActivity(user.id, t, singleScope("jigsaw"));
+    invitesReceived.push(...puzzles.invitesReceived);
+    invitesSent.push(...puzzles.invitesSent);
+    activeGames.push(...puzzles.activeGames);
+  }
 
   return {
     liveInvitesReceived,

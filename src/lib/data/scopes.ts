@@ -99,6 +99,9 @@ export const SOCKET_EVENT_TO_DATA_EVENT = {
   game_invite: ["notificationsChanged", "gamesChanged"],
   scrabble_updated: ["notificationsChanged", "gamesChanged"],
   game_invite_revoked: "gamesChanged",
+  // Legpuzzel Samen/Tegen elkaar: uitnodiging, deelnemers of wedstrijdstand veranderd (alleen de naam, nooit gegevens).
+  puzzle_invites_changed: ["notificationsChanged", "gamesChanged"],
+  puzzle_match_changed: "gamesChanged",
   game_cancelled: "gamesChanged",
   game_left: "gamesChanged",
 } as const satisfies Record<string, DataEvent | readonly DataEvent[]>;

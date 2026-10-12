@@ -21,7 +21,7 @@ const hintTargetSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("CONNECTION"), groupId: z.string(), pieceId: z.number(), neighborId: z.number(), neighborGroupId: z.string() }),
   z.object({ type: z.literal("FILTER"), filter: z.enum(["CORNERS", "EDGES", "MIDDLES"]), pieceIds: z.array(z.number()) }),
 ]);
-const snapshotSchema = z.object({
+export const snapshotSchema = z.object({
   version: z.number(),
   groups: z.array(z.object({ id: z.string(), pieceIds: z.array(z.number()), x: z.number(), y: z.number(), rotation: z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]), anchored: z.boolean().optional() })),
   connections: z.array(z.object({ a: z.number(), b: z.number() })),
@@ -30,13 +30,13 @@ const snapshotSchema = z.object({
 });
 
 export type SoloAction = { kind: "move"; groupId: string; x: number; y: number } | { kind: "rotate"; groupId: string } | { kind: "connect"; a: number; b: number } | { kind: "anchor"; groupId: string } | { kind: "hint"; hint: PuzzleHintType; confirmPersonal?: boolean; pieceId?: number; filter?: "CORNERS" | "EDGES" | "MIDDLES" | null };
-const hash = (value: string) => createHash("sha256").update(value).digest("hex");
+export const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 const seedFor = (contentKey: string) => hash(`puzzle-v${PUZZLE_GEOMETRY_VERSION}:${contentKey}`).slice(0, 32);
 
-function optionOrder() { const result = [0, 1, 2]; for (let i = result.length - 1; i > 0; i--) { const j = randomInt(i + 1); [result[i], result[j]] = [result[j], result[i]]; } return result; }
+export function optionOrder() { const result = [0, 1, 2]; for (let i = result.length - 1; i > 0; i--) { const j = randomInt(i + 1); [result[i], result[j]] = [result[j], result[i]]; } return result; }
 export type SoloAnswer = JigsawAnswerResult | { alreadyAnswered: true };
-const sessionInclude = { variant: { include: { definition: true } } } as const;
-type Session = Prisma.PuzzleSessionGetPayload<{ include: typeof sessionInclude }>;
+export const sessionInclude = { variant: { include: { definition: true } } } as const;
+export type Session = Prisma.PuzzleSessionGetPayload<{ include: typeof sessionInclude }>;
 
 async function publicState(row: Session, language: string | null | undefined, tx: Prisma.TransactionClient) {
   const { hintBalance } = await tx.user.findUniqueOrThrow({ where: { id: row.ownerId }, select: { hintBalance: true } });
@@ -45,10 +45,17 @@ async function publicState(row: Session, language: string | null | undefined, tx
   return { hintBalance, id: row.id, version: row.version, status: row.status, image: row.variant.definition.imageUrl, story: row.variant.definition.storyNumber, seed: row.variant.definition.seed, geometryVersion: row.variant.definition.geometryVersion, pieceCount: row.variant.pieceCount, difficulty: row.variant.difficulty as PuzzleDifficulty, rulesVersion: row.variant.rulesVersion, snapshot, ...(question ? { question: { text: question.text[lang], options: order.map((index) => question.options[lang][index]) } } : {}), ...(row.status === "ANSWERED" ? { answer: row.answerResult ? JSON.parse(row.answerResult) as SoloAnswer : { alreadyAnswered: true } as const } : {}) };
 }
 
-async function lockSession(tx: Prisma.TransactionClient, userId: string, sessionId: string) {
+export type EngineMode = "SOLO" | "MATCH";
+/** Hooks voor een wedstrijd (mode MATCH): controle vóór en bijwerken ná een actie, in dezelfde transactie. */
+export interface SessionHooks {
+  guard?: (tx: Prisma.TransactionClient, row: Session) => Promise<void>;
+  after?: (tx: Prisma.TransactionClient, row: Session, snapshot: PuzzleSnapshot) => Promise<void>;
+}
+
+export async function lockSession(tx: Prisma.TransactionClient, userId: string, sessionId: string, mode: EngineMode = "SOLO") {
   // Onder dezelfde lock lezen, valideren en schrijven, ook bij meerdere app-instances.
-  await tx.$queryRaw`SELECT "id" FROM "PuzzleSession" WHERE "id" = ${sessionId} AND "ownerId" = ${userId} AND "mode" = 'SOLO' FOR UPDATE`;
-  const row = await tx.puzzleSession.findFirst({ where: { id: sessionId, ownerId: userId, mode: "SOLO" }, include: sessionInclude });
+  await tx.$queryRaw`SELECT "id" FROM "PuzzleSession" WHERE "id" = ${sessionId} AND "ownerId" = ${userId} AND "mode" = ${mode}::"PuzzleSessionMode" FOR UPDATE`;
+  const row = await tx.puzzleSession.findFirst({ where: { id: sessionId, ownerId: userId, mode }, include: sessionInclude });
   if (!row || row.status === "ANSWERED" || row.status === "ABANDONED") return row;
   const snapshot = snapshotSchema.parse(JSON.parse(row.snapshot)) as PuzzleSnapshot;
   const geometry = createPuzzleGeometry(row.variant.pieceCount as z.infer<typeof countSchema>, row.variant.definition.seed, row.variant.definition.geometryVersion);
@@ -63,7 +70,7 @@ async function lockSession(tx: Prisma.TransactionClient, userId: string, session
   return tx.puzzleSession.update({ where: { id: row.id }, data: { status: "COMPLETED", completedAt, questionId, optionOrder: row.optionOrder ?? JSON.stringify(optionOrder()), version, snapshot: JSON.stringify({ ...snapshot, version, completedAt: completedAt.toISOString() }) }, include: sessionInclude });
 }
 
-async function definitionFor(content: number | string) {
+export async function definitionFor(content: number | string) {
   const image = typeof content === "number" ? jigsawCatalog[content] : jigsawCatalog.find((item) => item.url === content); if (!image) throw new Error("Ongeldige puzzelafbeelding.");
   // Geometry v1-definities kunnen actieve of historische sessies hebben.
   // Een eigen v2-key houdt die sessies onveranderd leesbaar in plaats van
@@ -94,9 +101,9 @@ export async function startSoloPuzzle(userId: string, content: number | string, 
   return (await resumeSoloPuzzle(userId, sessionId, language))!;
 }
 
-export async function resumeSoloPuzzle(userId: string, id: string, language: string | null | undefined) {
+export async function resumeSoloPuzzle(userId: string, id: string, language: string | null | undefined, mode: EngineMode = "SOLO") {
   return prisma.$transaction(async (tx) => {
-    const row = await lockSession(tx, userId, id);
+    const row = await lockSession(tx, userId, id, mode);
     return row ? publicState(row, language, tx) : null;
   });
 }
@@ -105,11 +112,12 @@ export class PuzzleHintError extends Error {
   constructor(readonly code: "EMPTY" | "CONFIRM", readonly hintBalance: number) { super(code); }
 }
 
-export async function applySoloAction(userId: string, sessionId: string, expectedVersion: number, actionId: string, action: SoloAction, language: string | null | undefined) {
+export async function applySoloAction(userId: string, sessionId: string, expectedVersion: number, actionId: string, action: SoloAction, language: string | null | undefined, mode: EngineMode = "SOLO", hooks: SessionHooks = {}) {
   let inventoryChanged = false;
   const result = await prisma.$transaction(async (tx) => {
-    const row = await lockSession(tx, userId, sessionId);
+    const row = await lockSession(tx, userId, sessionId, mode);
     if (!row) return null;
+    if (hooks.guard) await hooks.guard(tx, row);
     const prior = await tx.puzzleAction.findUnique({ where: { sessionId_actionId: { sessionId, actionId } } });
     if (prior) return prior.payload === JSON.stringify(action) ? publicState(row, language, tx) : null;
     if (row.status !== "ACTIVE" || row.version !== expectedVersion) return null;
@@ -154,6 +162,7 @@ export async function applySoloAction(userId: string, sessionId: string, expecte
     if (completed && !questionId) { const choices = jigsawQuestionsForStory(row.variant.definition.storyNumber); const chosen = choices[randomInt(choices.length)]; questionId = chosen?.id ?? null; order = questionId ? JSON.stringify(optionOrder()) : null; }
     await tx.puzzleAction.create({ data: { sessionId, actionId, type: action.kind, payload: JSON.stringify(action), version: row.version + 1 } });
     const updated = await tx.puzzleSession.update({ where: { id: sessionId }, data: { snapshot: JSON.stringify(next), version: { increment: 1 }, lastActivityAt: new Date(), completedAt: completed, status: completed ? "COMPLETED" : "ACTIVE", questionId, optionOrder: order }, include: sessionInclude });
+    await hooks.after?.(tx, updated, next);
     return publicState(updated, language, tx);
   });
   // Pas na commit; een retry van dezelfde actionId zendt geen nieuw verbruik.

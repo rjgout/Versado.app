@@ -27,6 +27,7 @@ function describe(action: OpenAction): { titleKey: MessageKey; ctaKey: MessageKe
         ? { titleKey: "today.action.challengeInvite", ctaKey: "today.cta.play" }
         : { titleKey: "today.action.gameInvite", ctaKey: "today.cta.view" };
     case "game-turn":
+      if (action.game === "puzzle-match") return { titleKey: "today.action.puzzleBegin", ctaKey: "today.cta.play" };
       return { titleKey: "today.action.yourTurn", ctaKey: "today.cta.continue" };
     case "game-continue":
       return { titleKey: "today.action.soloActive", ctaKey: "today.cta.continue" };

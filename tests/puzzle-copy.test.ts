@@ -23,12 +23,13 @@ test("nieuwe Solo-uitleg en hintbediening zijn expliciet vertaald in alle vijf t
 
 test("Kompas toont bijgewerkte spelregels en houdt centrale vraag/reeks/geen-XP-uitleg", () => {
   const topic = KOMPAS_TOPICS.find((topic) => topic.id === "play.jigsaw")!;
-  assert.equal(topic.version,3);
+  assert.equal(topic.version,4);
   for (const language of ["nl","en","de","fr","es"] as const) {
     const t = getT(language); const entry = generalEntry(t,topic);
-    assert.equal(entry.steps.length,3);
+    assert.equal(entry.steps.length,5);
     assert.ok(entry.steps[0].includes("96"));
     assert.ok(entry.steps[1].includes("3 / 2 / 1"));
     assert.ok(entry.steps[2].includes("XP"));
+    assert.ok(entry.steps[3].length > 0 && entry.steps[4].length > 0, "Samen en Tegen elkaar staan in de uitleg");
   }
 });

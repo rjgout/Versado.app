@@ -17,6 +17,7 @@ import { getStreakContinuation } from "@/lib/streakContinuation";
 import { runStreakReturnReminders } from "@/lib/streakReturnNotifications";
 import { runActivityReactionNotificationTick } from "@/lib/activityReactionNotifications";
 import { syncPodcastFeed } from "@/lib/podcastFeed";
+import { runPuzzleMaintenance } from "@/lib/puzzle/maintenance";
 import { notifyPodcastEpisode } from "@/lib/notify";
 
 const TICK_MS = 60_000;
@@ -468,6 +469,7 @@ export function startNotificationSchedulers(): void {
     runIncognitoExpiryTick().catch((e) => console.error("Incognito-vervaltijd mislukt:", e));
     runSocialTick().catch((e) => console.error("Samen (vrienden- en groepsreeksen) mislukt:", e));
     runRegistrationCleanupTick().catch((e) => console.error("Aanmeldingen opruimen mislukt:", e));
+    runPuzzleMaintenance().catch((e) => console.error("Puzzelonderhoud mislukt:", e instanceof Error ? e.message : String(e)));
     runActivityReactionNotificationTick().catch((e) => console.error("Reactiemeldingen bundelen mislukt:", e));
     runFsyWeeklyCheckIfDue(prisma).catch((e) => console.error("FSY-weekcontrole mislukt:", e));
     runPodcastFeedSyncTick().catch((e) => console.error("Podcastfeed-synchronisatie mislukt:", e instanceof Error ? e.message : String(e)));
