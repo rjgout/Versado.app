@@ -179,6 +179,9 @@ productiemigratie.
 - Realtime: 37 echte socketcontroles geslaagd, inclusief beide rollen en
   hidden/disabled/DRAFT bij alle zes bestaande live-modi. Een bestaande
   partij hervat vanuit Podcasts met nieuwe-startsettings uit.
+- De eerste CI-puzzelbrowsertest gebruikte directe requests zonder Origin
+  en kreeg terecht 403. De test stuurt nu dezelfde geldige Origin als een
+  browser; de productieguard is behouden.
 - De eerste socketrun faalde op dubbele synthetische gebruikersnamen.
   De fixture is gecorrigeerd; de afzonderlijke socketrun is daarna groen.
 
