@@ -99,7 +99,7 @@ export default function FullscreenContentPicker({ initialData, sessionKey }: { i
           const selected = language === item.code;
           return <button key={item.code} type="button" aria-pressed={selected} aria-disabled={unavailable || busy}
             onClick={() => { if (!locked.current) { if (activeWork) choose(activeWork, item.code); else setMessage("unavailableLanguage"); } }}
-            className={`inline-flex min-h-11 items-center gap-0.5 max-w-full whitespace-nowrap rounded-full border px-2 py-2 text-sm font-bold transition ${selected ? "border-vs-accent bg-vs-accent-soft text-vs-accent" : "border-vs-line text-vs-fg-2 hover:border-vs-accent"} ${unavailable ? "opacity-50" : ""} ${focusClass}`}>
+            className={`inline-flex min-h-11 flex-wrap items-center justify-center gap-0.5 max-w-full whitespace-nowrap rounded-full border px-2 py-2 text-sm font-bold transition ${selected ? "border-vs-accent bg-vs-accent-soft text-vs-accent" : "border-vs-line text-vs-fg-2 hover:border-vs-accent"} ${unavailable ? "opacity-50" : ""} ${focusClass}`}>
             {selected && <Check className="h-3 w-3 shrink-0" aria-hidden />}{item.nativeName}
           </button>;
         })}

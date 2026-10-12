@@ -71,7 +71,10 @@ Bestaande shell-/kaart-/Woordzoeker-browsermatrix: 28 combinaties, vijf UI-talen
 en drie echte spelafrondingen geslaagd. Definitieve picker-browsermatrix: 28
 combinaties, vijf UI-talen en alle interacties geslaagd; zeven kaartregressies
 ook geslaagd. De eerste proefrun vond een te smalle taalchip bij 320px/200%;
-padding/gap zijn gericht aangepast. De definitieve run controleert de echte
+padding/gap zijn gericht aangepast. CI vond vervolgens bredere fontmetingen;
+het selectievinkje mag daarom naar een eigen regel gaan binnen dezelfde chip,
+terwijl het woord volledig blijft. Een extra proef met bredere letters is
+toegevoegd. De definitieve run controleert de echte
 scrollWidth/clientWidth van ieder chiplabel.
 
 Vergelijking van volledige mobiele screenshots (390×844, licht, 100%, dezelfde

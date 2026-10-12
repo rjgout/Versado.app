@@ -86,6 +86,15 @@ try {
     results.push({tag,...state,cards:cards.length});
     await page.locator('[data-subpage-back-bar] button').click();await page.waitForURL(`${base}/dashboard`);
   }
+  // Bredere fontmetingen (zoals op de CI-host): vinkje mag ombreken, het woord niet.
+  if(!interactionsOnly) {
+    await fresh(320,844);await ready('/content');
+    await page.evaluate(()=>document.documentElement.style.fontSize='32px');
+    const selectedChip=page.locator('[data-content-language] button[aria-pressed="true"]');
+    await selectedChip.evaluate(el=>el.style.letterSpacing='0.03em');
+    assert.ok(await selectedChip.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'Brede letters mogen niet worden afgekapt');
+    await page.screenshot({path:`${output}/content-picker-320x844-wide-font-200.png`,fullPage:true});
+  }
   // Alle vijf interfacetalen blijven onafhankelijk van de Nederlandse bron.
   for(const language of (interactionsOnly?[]:['nl','en','de','fr','es'])) {
     await prisma.user.update({where:{id:user.id},data:{uiLanguage:language,activeContentCollectionId:'content_fsy',contentLanguage:'nl'}});
