@@ -952,11 +952,13 @@ export const es: PartialMessages = {
     "allAdded": "Todos los juegos ya están en tu resumen.",
     "allHidden": "Has ocultado todos los juegos. Vuelve a añadirlos abajo.",
     "jigsaw": {
-      "description": "Haz un rompecabezas con ilustraciones de las historias del Libro de Mormón para niños. Elige cuántas piezas usar y luego responde una pregunta sobre la historia.",
+      "description": "Haz un rompecabezas con ilustraciones de las historias del Libro de Mormón para niños. Elige cuántas piezas usar y luego responde una pregunta sobre la historia. También puedes armarlo en equipo con amigos o uno contra otro.",
       "linkLabel": "Rompecabezas abierto",
       "rule1": "Elige una imagen y 6, 12, 24, 48 o 96 piezas independientemente de la dificultad. Explorador tiene imagen y colocación en el tablero; Aventurero tiene contorno y colocación. Experto construye libremente sin ayuda; Maestro también gira piezas.",
       "rule2": "Arrastra piezas y grupos; desplaza la vista y amplía en cualquier nivel. Las piezas bien colocadas quedan ancladas en Explorador y Aventurero. Pistas en el menú: imagen, ubicación, conexión o clasificación temporal. Cada intento incluye pistas ilimitadas / 3 / 2 / 1. Después, tras tu confirmación, una pista cuesta 1 pista de Mi reserva. Si está vacía, puedes ir a la tienda; al reanudar se conservan el puzle y las pistas usadas. Las pistas no cambian tu racha.",
-      "rule3": "Después del rompecabezas viene una pregunta sobre la historia. Una respuesta correcta cuenta como actividad para tu racha; una incorrecta no deshace el rompecabezas. El rompecabezas no da XP."
+      "rule3": "Después del rompecabezas viene una pregunta sobre la historia. Una respuesta correcta cuenta como actividad para tu racha; una incorrecta no deshace el rompecabezas. El rompecabezas no da XP.",
+      "rule4": "En equipo: hasta cuatro amigos arman el mismo puzle (24 a 300 piezas), en directo o en momentos distintos. Quien coge un grupo lo conserva hasta soltarlo. Cada uno tiene su propio zoom y sus propias pistas. Una conexión que haces tú cuenta como actividad para tu racha; armar juntos no da XP y no tiene pregunta.",
+      "rule5": "Uno contra otro: reta a uno a tres amigos (6 a 96 piezas), en directo con cuenta atrás o a tu ritmo. Todos arman el mismo puzle desde el mismo inicio y responden la misma pregunta; tu reloj solo se detiene con una respuesta correcta. Gana el tiempo válido más rápido. Ves el resultado cuando tu intento termina, y tienes un único intento oficial."
     },
     "title": "Juegos y desafíos",
     "intro": "Juega solo, en grupo o contra un amigo. Ordena los juegos como quieras.",
