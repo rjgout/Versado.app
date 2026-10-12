@@ -1,5 +1,9 @@
 # Fase 1C — fullscreen contentkiezer
 
+Vervolg: [compacte visuele polish](09-PHASE-1C-POLISH.md) vervangt de hieronder
+beschreven kaartaccordions, talenrijen en previewknoppen. De technische
+selectie-, shell- en beveiligingscontracten blijven behouden.
+
 ## Basis en scope
 
 Werkbranch `codex/content-architecture-v2-1c`, vanaf `origin/main` `29ec1d1`

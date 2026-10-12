@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Check, ChevronRight, Globe2, LoaderCircle, Shield } from "lucide-react";
+import { Check, ChevronRight, Globe2, LoaderCircle } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import PageIntro from "@/components/versado/PageIntro";
 import ContentIcon from "@/components/versado/ContentIcon";
@@ -12,7 +11,7 @@ import { contentDepartureLocation, currentEntryKey } from "@/lib/navigationHisto
 import { useLiveQuery } from "@/lib/data/hooks";
 import { liveMutation } from "@/lib/data/mutation";
 import { fetchJson } from "@/lib/data/fetchJson";
-import { pickerGroup, type ContentPickerContext, type PickerEdition } from "@/lib/contentPickerContract";
+import { pickerGroup, resolvePickerEdition, type ContentPickerContext, type PickerEdition, type PickerWork } from "@/lib/contentPickerContract";
 import type { SwitchResult } from "@/lib/contentSwitch";
 
 export default function FullscreenContentPicker({ initialData, sessionKey }: { initialData: ContentPickerContext; sessionKey: string }) {
@@ -27,8 +26,15 @@ export default function FullscreenContentPicker({ initialData, sessionKey }: { i
   const locked = useRef(false);
   const alive = useRef(true);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<"error" | "conflict" | "unavailableLanguage" | null>(null);
-  const active = data.works.flatMap(w => w.editions).find(e => e.id === data.activeCollectionId);
+  const [message, setMessage] = useState<"error" | "conflict" | "unavailableLanguage" | "unavailableSource" | null>(null);
+  const [editionChoice, setEditionChoice] = useState<{ workKey: string; language: string } | null>(null);
+  const editionRef = useRef<HTMLSelectElement>(null);
+  const works = data.works.map(work => ({ ...work, editions: work.editions.filter(e => e.selectable) })).filter(work => work.editions.length > 0);
+  const active = works.flatMap(w => w.editions).find(e => e.id === data.activeCollectionId);
+  const language = active?.language ?? data.selection.contentLanguage;
+  const activeWork = works.find(work => work.key === active?.work);
+  const pendingEditions = editionChoice ? works.find(work => work.key === editionChoice.workKey)?.editions.filter(e => e.language === editionChoice.language) ?? [] : [];
+  useEffect(() => { editionRef.current?.focus(); }, [editionChoice]);
   useEffect(() => {
     alive.current = true;
     const heading = titleRef.current?.querySelector("h1");
@@ -63,6 +69,7 @@ export default function FullscreenContentPicker({ initialData, sessionKey }: { i
       if (latest.selection.activeContentCollectionId !== result.selection?.activeContentCollectionId
         || latest.selection.contentLanguage !== result.selection?.contentLanguage) throw new Error("conflict");
       query.setData(latest);
+      setEditionChoice(null);
       navigating = result.availability !== "no-destination";
       router.replace(result.availability === "no-destination" ? "/content?status=no-destination" : result.outcome.href);
       router.refresh();
@@ -74,70 +81,74 @@ export default function FullscreenContentPicker({ initialData, sessionKey }: { i
   }
 
   const focusClass = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent focus-visible:ring-offset-2 focus-visible:ring-offset-vs-bg";
-  function editionButton(edition: PickerEdition) {
-    return <button key={edition.id} type="button" disabled={!edition.selectable} aria-disabled={busy || !edition.selectable} onClick={() => select(edition)}
-      aria-pressed={edition.id === data.activeCollectionId}
-      className={`min-h-12 rounded-xl border border-vs-line bg-vs-elevated px-3 py-2 text-left text-sm font-semibold text-vs-fg-2 transition hover:border-vs-accent disabled:opacity-50 ${focusClass}`}>
-      {edition.name} · {getLanguage(edition.language).nativeName} · {edition.editionKey}
-    </button>;
+  function choose(work: PickerWork, code: string, sourceClick = false) {
+    if (locked.current) return;
+    const choice = resolvePickerEdition(work, code, active);
+    if (choice.kind === "available") { setEditionChoice(null); void select(choice.edition); }
+    else if (choice.kind === "choose-edition") { setMessage(null); setEditionChoice({ workKey: work.key, language: code }); }
+    else { setEditionChoice(null); setMessage(sourceClick ? "unavailableSource" : "unavailableLanguage"); }
   }
-  return <div data-content-picker aria-busy={busy} className="page-fill vs-motion mx-auto flex w-full max-w-5xl flex-col gap-7 pb-8">
+  return <div data-content-picker aria-busy={busy} className="page-fill vs-motion mx-auto flex w-full max-w-5xl flex-col gap-5 pb-6">
     <div ref={titleRef}><PageIntro title={t("contentSwitcher.picker.title")} text={t("contentSwitcher.picker.intro")} /></div>
-    <section aria-labelledby="content-language-title" className="rounded-3xl border border-vs-line bg-vs-surface p-4 shadow-sm sm:p-5">
-      <h2 id="content-language-title" className="mb-1 flex items-center gap-2 text-base font-extrabold text-vs-fg"><Globe2 className="h-5 w-5 shrink-0 text-vs-accent" aria-hidden />{t("contentSwitcher.picker.language")}</h2>
-      <p className="mb-4 text-sm text-vs-fg-3">{t("contentSwitcher.picker.languageHelp")}</p>
-      <div className="flex flex-wrap gap-2" role="group" aria-label={t("contentSwitcher.picker.language")}>
-        {LANGUAGES.map(language => {
-          const target = active && data.works.flatMap(w => w.editions).find(e => e.selectable && e.work === active.work && e.editionKey === active.editionKey && e.language === language.code);
-          const selected = active?.language === language.code;
-          return <button key={language.code} type="button" aria-pressed={selected} aria-disabled={!target || busy}
-            onClick={() => { if (!locked.current) { if (target) void select(target); else setMessage("unavailableLanguage"); } }}
-            className={`min-h-12 rounded-2xl border px-4 py-2 text-sm font-bold transition ${selected ? "border-vs-accent bg-vs-accent-soft text-vs-accent" : "border-vs-line text-vs-fg-2 hover:border-vs-accent"} ${!target ? "opacity-50" : ""} ${focusClass}`}>
-            {selected && <Check className="mr-1 inline h-4 w-4" aria-hidden />}{language.nativeName}
+    <section data-content-language aria-labelledby="content-language-title" className="rounded-2xl border border-vs-line bg-vs-surface p-2.5 shadow-sm sm:p-3">
+      <h2 id="content-language-title" className="flex items-center gap-2 text-sm font-extrabold text-vs-fg"><Globe2 className="h-4 w-4 shrink-0 text-vs-accent" aria-hidden />{t("contentSwitcher.picker.language")}</h2>
+      <p className="mt-1 text-xs leading-relaxed text-vs-fg-3">{t("contentSwitcher.picker.languageHelp")}</p>
+      <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label={t("contentSwitcher.picker.language")}>
+        {LANGUAGES.map(item => {
+          const unavailable = !activeWork || resolvePickerEdition(activeWork, item.code, active).kind === "unavailable";
+          const selected = language === item.code;
+          return <button key={item.code} type="button" aria-pressed={selected} aria-disabled={unavailable || busy}
+            onClick={() => { if (!locked.current) { if (activeWork) choose(activeWork, item.code); else setMessage("unavailableLanguage"); } }}
+            className={`inline-flex min-h-11 items-center gap-0.5 max-w-full whitespace-nowrap rounded-full border px-2 py-2 text-sm font-bold transition ${selected ? "border-vs-accent bg-vs-accent-soft text-vs-accent" : "border-vs-line text-vs-fg-2 hover:border-vs-accent"} ${unavailable ? "opacity-50" : ""} ${focusClass}`}>
+            {selected && <Check className="h-3 w-3 shrink-0" aria-hidden />}{item.nativeName}
           </button>;
         })}
       </div>
     </section>
-    <div aria-live="polite" aria-atomic="true">
+    <div aria-live="polite" aria-atomic="true" className="empty:hidden">
       {busy && <p role="status" className="flex items-center gap-2 text-sm font-semibold text-vs-fg-2"><LoaderCircle className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden />{t("contentSwitcher.picker.loading")}</p>}
-      {(message || Boolean(query.error)) && <div role="alert" className="rounded-2xl border border-vs-line bg-vs-elevated p-4 text-sm text-vs-fg"><p>{t(`contentSwitcher.picker.${message ?? "error"}`)}</p><button type="button" className="btn-secondary mt-3 min-h-12" onClick={() => { setMessage(null); void query.refetch(); }}>{t("contentSwitcher.picker.retry")}</button></div>}
-      {search.get("status") === "no-destination" && <p role="status" className="rounded-2xl bg-vs-accent-soft p-4 text-sm text-vs-fg">{t("contentSwitcher.picker.noDestination")}</p>}
+      {(message || Boolean(query.error)) && <div role="alert" className="rounded-2xl border border-vs-line bg-vs-elevated p-3 text-sm text-vs-fg"><p>{t(`contentSwitcher.picker.${message ?? "error"}`)}</p><button type="button" className="btn-secondary mt-2 min-h-11" onClick={() => { setMessage(null); void query.refetch(); }}>{t("contentSwitcher.picker.retry")}</button></div>}
+      {editionChoice && pendingEditions.length > 0 && <div data-content-edition-choice className="rounded-2xl border border-vs-line bg-vs-surface p-3 text-sm text-vs-fg">
+        <p className="mb-2">{t("contentSwitcher.picker.editionRequired")}</p>
+        <label htmlFor="content-edition" className="mb-1 block font-bold">{t("contentSwitcher.picker.chooseEdition")}</label>
+        <select ref={editionRef} id="content-edition" value="" aria-disabled={busy}
+          onChange={event => { const edition = pendingEditions.find(e => e.id === event.target.value); if (edition) void select(edition); }}
+          className={`min-h-11 w-full min-w-0 rounded-xl border border-vs-line bg-vs-surface px-3 py-2 text-vs-fg ${focusClass}`}>
+          <option value="" disabled>{t("contentSwitcher.picker.chooseEdition")}</option>
+          {pendingEditions.map(e => <option key={e.id} value={e.id}>{e.name} · {e.editionKey} · {getLanguage(e.language).nativeName}</option>)}
+        </select>
+      </div>}
+      {search.get("status") === "no-destination" && <p role="status" className="rounded-2xl bg-vs-accent-soft p-3 text-sm text-vs-fg">{t("contentSwitcher.picker.noDestination")}</p>}
     </div>
     {(["scriptures", "studyPrograms"] as const).map(group => <section key={group} data-content-group={group} aria-labelledby={`content-${group}-title`}>
-      <h2 id={`content-${group}-title`} className="mb-4 text-xl font-extrabold text-vs-fg">{t(`contentSwitcher.picker.${group}`)}</h2>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,22rem),1fr))] gap-4">
-        {data.works.filter(work => pickerGroup(work.kind) === group).map(work => {
-          const edition = work.editions.find(e => e.id === data.activeCollectionId)
-            ?? work.editions.find(e => e.selectable && e.language === data.selection.contentLanguage)
-            ?? work.editions.find(e => e.selectable) ?? work.editions[0];
-          const selected = edition.id === data.activeCollectionId;
-          const families = new Set(work.editions.map(e => e.editionKey));
+      <h2 id={`content-${group}-title`} className="vs-wrap mb-2.5 text-lg font-extrabold text-vs-fg">{t(`contentSwitcher.picker.${group}`)}</h2>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,22rem),1fr))] gap-3">
+        {works.filter(work => pickerGroup(work.kind) === group).map(work => {
+          const choice = resolvePickerEdition(work, language, active);
+          // Alleen de naam mag van een andere echte editie komen; nooit het selectiedoel.
+          const label = choice.kind === "available" ? choice.edition : work.editions.find(e => e.language === language) ?? work.editions[0];
+          const selected = work.key === active?.work;
+          const unavailable = choice.kind === "unavailable";
           return <article key={work.key} data-content-work={work.key} data-content-kind={work.kind}
-            className={`overflow-hidden rounded-3xl border bg-vs-surface shadow-sm ${selected ? "border-vs-accent ring-1 ring-vs-accent" : "border-vs-line"}`}>
-            <button type="button" disabled={!edition.selectable} aria-disabled={busy || !edition.selectable} aria-pressed={selected}
-              aria-label={t("contentSwitcher.picker.selectAria", { name: edition.name, language: getLanguage(edition.language).nativeName, edition: edition.editionKey })}
-              onClick={() => select(edition)}
-              className={`flex min-h-12 w-full items-start gap-4 rounded-3xl p-5 text-left transition hover:bg-vs-accent-soft disabled:cursor-default ${focusClass}`}>
-              <ContentIcon collection={edition} size={64} className="vs-decor h-16 w-16 shrink-0" />
+            className={`overflow-hidden rounded-2xl border bg-vs-surface shadow-sm ${selected ? "border-vs-accent ring-1 ring-vs-accent" : "border-vs-line"}`}>
+            <button type="button" aria-disabled={busy || unavailable} aria-pressed={selected}
+              aria-label={t("contentSwitcher.picker.selectAria", { name: label.name, language: getLanguage(language).nativeName })}
+              onClick={() => choose(work, language, true)}
+              className={`flex min-h-12 w-full items-center gap-3 rounded-2xl p-3.5 text-left transition ${unavailable ? "opacity-60" : "hover:bg-vs-accent-soft"} ${focusClass}`}>
+              <ContentIcon collection={label} size={48} className="vs-decor h-12 w-12 shrink-0" />
               <span className="min-w-0 flex-1">
-                <span className="block text-lg font-extrabold leading-snug text-vs-fg">{edition.name}</span>
-                <span className="mt-1 block text-sm font-semibold text-vs-fg-3">{getLanguage(edition.language).nativeName}{families.size > 1 ? ` · ${t("contentSwitcher.picker.edition", { edition: edition.editionKey })}` : ""}</span>
-                <span className="mt-2 block text-sm text-vs-fg-3">{t("contentSwitcher.picker.availableIn", { languages: [...new Set(work.editions.filter(e => e.selectable).map(e => getLanguage(e.language).nativeName))].join(", ") || "—" })}</span>
-                {selected && <span className="mt-3 flex items-center gap-1 text-sm font-bold text-vs-accent"><Check className="h-5 w-5" aria-hidden />{t("contentSwitcher.picker.selected")}</span>}
-                {!edition.selectable && <span className="mt-3 flex items-center gap-1 text-sm font-bold text-vs-fg-3"><Shield className="h-4 w-4" aria-hidden />{t("contentSwitcher.picker.adminOnly")}</span>}
-                {work.kind === "OTHER" && work.key !== "podcasts" && <span className="mt-2 block text-sm text-vs-fg-3">{t("contentSwitcher.picker.other")}</span>}
+                <span className="block text-base font-extrabold leading-snug text-vs-fg">{label.name}</span>
+                <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold text-vs-fg-3">
+                  <span>{unavailable ? t("contentSwitcher.picker.unavailableIn", { language: getLanguage(language).nativeName }) : getLanguage(language).nativeName}</span>
+                  {selected && <span className="inline-flex items-center gap-1 text-xs font-bold text-vs-accent"><Check className="h-4 w-4 shrink-0" aria-hidden />{t("contentSwitcher.picker.selected")}</span>}
+                </span>
               </span>
-              {edition.selectable && <ChevronRight className="mt-1 h-5 w-5 shrink-0 text-vs-fg-3" aria-hidden />}
+              {!unavailable && <ChevronRight className="vs-decor h-4 w-4 shrink-0 text-vs-fg-3" aria-hidden />}
             </button>
-            {work.editions.length > 1 && <details className="border-t border-vs-line px-5 pb-4">
-              <summary className={`min-h-12 cursor-pointer py-3 text-sm font-bold text-vs-accent ${focusClass}`}>{t("contentSwitcher.picker.otherEditions")}</summary>
-              <div className="flex flex-col gap-2">{work.editions.filter(e => e.selectable).map(editionButton)}</div>
-            </details>}
-            {!edition.selectable && edition.previewHref && <div className="border-t border-vs-line p-4"><Link href={edition.previewHref} className={`btn-secondary inline-flex min-h-12 ${focusClass}`}>{t("contentSwitcher.picker.preview")}</Link></div>}
           </article>;
         })}
       </div>
-      {!data.works.some(work => pickerGroup(work.kind) === group) && <p className="rounded-2xl border border-dashed border-vs-line p-5 text-sm text-vs-fg-3">{t(group === "studyPrograms" ? "contentSwitcher.picker.emptyPrograms" : "contentSwitcher.picker.empty")}</p>}
+      {!works.some(work => pickerGroup(work.kind) === group) && <p className="rounded-2xl border border-dashed border-vs-line p-4 text-sm text-vs-fg-3">{t(group === "studyPrograms" ? "contentSwitcher.picker.emptyPrograms" : "contentSwitcher.picker.empty")}</p>}
     </section>)}
   </div>;
 }

@@ -40,3 +40,18 @@ export function safeContentLocation(input: { pathname: string; search: string })
 export function pickerGroup(kind: PickerWork["kind"]): "scriptures" | "studyPrograms" {
   return kind === "SCRIPTURE" ? "scriptures" : "studyPrograms";
 }
+
+export type PickerEditionChoice =
+  | { kind: "available"; edition: PickerEdition }
+  | { kind: "unavailable" }
+  | { kind: "choose-edition"; editions: PickerEdition[] };
+
+/** Geen taalfallback; een andere of onduidelijke familie vereist een bewuste keuze. */
+export function resolvePickerEdition(work: PickerWork, language: string, active?: PickerEdition): PickerEditionChoice {
+  const editions = work.editions.filter(e => e.selectable && e.work === work.key && e.language === language && validPickerEdition(e));
+  if (!editions.length) return { kind: "unavailable" };
+  const sameFamily = active?.work === work.key ? editions.find(e => e.editionKey === active.editionKey) : undefined;
+  if (sameFamily) return { kind: "available", edition: sameFamily };
+  if (editions.length === 1 && active?.work !== work.key) return { kind: "available", edition: editions[0] };
+  return { kind: "choose-edition", editions };
+}
