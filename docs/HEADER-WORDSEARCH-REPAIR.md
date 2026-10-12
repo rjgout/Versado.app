@@ -153,3 +153,10 @@ blijven volledig leesbaar en met normaal scrollen bereikbaar.
 
 Geen bekende resterende functionele fout binnen de geteste reparaties. De
 algemene lint-/i18n-achterstand hierboven is niet onderdeel van deze opdracht.
+
+### Vervolg: fullscreen contentkiezer (fase 1C)
+
+De eerdere dropdown/portal is vervangen door de route `/content` binnen de
+bestaande Focus-shell. De laaghiërarchie voor header, kaartmenu’s en sleepkaarten
+blijft behouden. Zie `content-architecture-v2/09-PHASE-1C-STATUS.md` en
+`npm run test:layout:browser` voor het actuele browserbewijs.

@@ -5,11 +5,18 @@ import { liveData } from "./client";
 import { serializeKey, type QueryKey, type QuerySnapshot } from "./store";
 import { subscribeTopic } from "./topics";
 import type { DataScope, LiveTopic } from "./scopes";
+import type { ContentContext } from "@/lib/contentCollections";
 
 /** Welke content en taal op dit moment gekozen zijn (zie LiveDataProvider). */
 export interface ContentScope {
   collectionId: string;
   language: string;
+}
+
+export const ContentViewContext = createContext<ContentContext | null>(null);
+
+export function useContentView(): ContentContext | null {
+  return useContext(ContentViewContext);
 }
 
 export const ContentScopeContext = createContext<ContentScope | null>(null);
@@ -77,7 +84,11 @@ export function useLiveQuery<T>(key: QueryKey, fetcher: () => Promise<T>, option
   });
 
   const enabled = options.enabled !== false;
-  const { scopes, staleTime, pollMs, initialData } = options;
+  const { scopes, staleTime, pollMs } = options;
+  // Een SSR-beginwaarde hoort uitsluitend bij de oorspronkelijke contentkey.
+  // Na een bronwissel nooit oude cursussen/spellen in de nieuwe key zaaien.
+  const [initialEntryKey] = useState(entryKey);
+  const initialData = !options.contentScoped || initialEntryKey === entryKey ? options.initialData : undefined;
   const validUntilRef = useRef(options.validUntil);
   useEffect(() => {
     validUntilRef.current = options.validUntil;

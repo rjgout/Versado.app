@@ -9,6 +9,7 @@ import {
   persistScrollPositions,
   saveScrollPosition,
   savedScrollPosition,
+  bindContentDepartureEntry,
 } from "@/lib/navigationHistory";
 
 // Hoe lang we na terug/vooruit blijven proberen de oude positie te halen:
@@ -161,6 +162,7 @@ export default function NavigationScroll() {
       return;
     }
     if (previous === location) return;
+    bindContentDepartureEntry(previous.split("?")[0], pathname);
 
     const pop = pendingPop.current;
     pendingPop.current = null;
@@ -173,7 +175,7 @@ export default function NavigationScroll() {
     cancelRestore.current?.();
     // Met een #anker scrolt Next.js zelf naar dat element.
     if (!window.location.hash) window.scrollTo({ top: 0, behavior: "instant" });
-  }, [location]);
+  }, [location, pathname]);
 
   return null;
 }

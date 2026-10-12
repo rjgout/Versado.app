@@ -69,7 +69,7 @@ De standaardlaag 999 van `DragOverlay` wordt daarom expliciet begrensd. De schaa
 | pagina | gewone inhoud en lokale knoppen | ≤ 20, binnen `<main>` |
 | sleepkaart | `SortableList` / `DragOverlay`, boven andere kaarten | 25 |
 | balken | `[data-sticky-header]`, `[data-main-nav]` | 30 |
-| popovers en menu's | contentkiezer (portal op `<body>`) | 40 |
+| popovers en menu's | overige body-portals | 40 |
 | dialogen en sheets | `ChapterPopup` | 50 |
 | volledige overlays | `FriendPicker`, `NotificationCenter` | 75–80 |
 
@@ -80,7 +80,11 @@ anker (`getBoundingClientRect`). Zijn maximale hoogte is de ruimte tot de
 onderbalk (`[data-main-nav]`, alleen als die zichtbaar is) of de viewport, met
 `overflow-y: auto`. Zo is het menu een echte overlay: het wordt niet afgekapt
 door de balk, niet bedekt door de pagina en nooit door de pagina weggedrukt.
-`ContentSwitcher.tsx` is het voorbeeld; `tests/shell-layout.test.ts` bewaakt het.
+De publieke `ContentSwitcher.tsx` gebruikt geen overlay meer: hij linkt naar `/content`.
+Die route gebruikt de bestaande Focus-shell: uitsluitend de vaste terugbalk,
+zonder globale header of ondernavigatie. `.page-fill` volgt de gemeten
+`--main-pad-top` en safe areas; er is geen eigen offset of scrollcontainer.
+`tests/shell-layout.test.ts` en de productie-browsertest bewaken dit.
 
 **Standaard vóór de meting.** Tot `ShellMetrics` gemeten heeft (server-HTML,
 eerste paint) rekent `<main>` met `--header-default`. Die is
@@ -174,18 +178,14 @@ overflow, uitgezoomde viewport, positie van header en onderbalk (ook na
 scrollen), inhoud onder de header of onder de onderbalk, en een terugbalk die
 bij scrollen wegloopt.
 
-`scripts/layout-audit/switcher.mjs` meet in een echte browser (licht en donker,
-meerdere breedtes, touch-emulatie voor de telefoonbreedtes en landscape) de volgorde
-header → contentkiezer → terugbalk → inhoud, dat de kiezer zichtbaar en niet
-bedekt is, scrollen, terugnavigeren (scrollpositie), dat het menu volledig zichtbaar
-is (raster van meetpunten: het bovenste element op elk punt hoort bij het menu),
-niet geclipt wordt en boven de onderbalk eindigt, sluiten met Escape en een tik
-buiten het menu, content wisselen, de onderbalk onderaan, en de staat vóór hydratie
-met een inkeping. Echte iOS-WebKit meet het niet (alleen Chromium is beschikbaar):
+`scripts/layout-audit/switcher.mjs` is een wrapper voor de fullscreen
+contentkiezer-browsertest met een eigen wegwerpdatabase. De suite meet
+terugbalk → inhoud, safe areas, touch, toetsenbord, selectie, taal,
+terug/vooruit en scrollherstel. Zij gebruikt geen productieaccount:
 
 ```bash
-PLAYWRIGHT_MODULE=/pad/naar/playwright AUDIT_IDENTIFIER=mail AUDIT_PASSWORD=wachtwoord \
-  node scripts/layout-audit/switcher.mjs '{"widths":[320,390,768,1200]}'
+PLAYWRIGHT_MODULE=/pad/naar/playwright CHROMIUM_PATH=/pad/naar/chromium \
+  node scripts/layout-audit/switcher.mjs
 ```
 
 `npm run test:layout:browser` test de daadwerkelijk gerenderde productie-interface

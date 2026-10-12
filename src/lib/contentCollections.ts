@@ -4,6 +4,9 @@ import { DEFAULT_LANGUAGE, LANGUAGES, fallbackChain } from "@/lib/languages";
 import { pickTargetCollection } from "@/lib/contentRouting";
 import { getStudyContexts } from "@/lib/studyContext";
 import type { StudyContextView } from "@/lib/studyContextContract";
+import { canAccessCollection } from "@/lib/contentAccess";
+import type { ContentPickerContext, ContentSelection } from "@/lib/contentPickerContract";
+import { validPickerEdition } from "@/lib/contentPickerContract";
 
 export interface ContentCollectionView {
   id: string;
@@ -146,21 +149,23 @@ export async function getContentContext(userId: string): Promise<ContentContext>
     select: VIEW_SELECT,
   });
 
-  const available = collections.length > 0 ? collections : [DEFAULT_COLLECTION];
+  // Alleen het oude active-label blijft non-null voor bestaande clients.
+  // Een lege catalogus krijgt nooit synthetische selecteerbare inhoud.
+  const available = collections;
   const contentLanguage = user?.contentLanguage ?? DEFAULT_LANGUAGE;
   const works = pickEditions(available, contentLanguage);
   // Nog geen expliciete keuze: het eerste werk, in de eigen contenttaal.
   const selected =
-    available.find((collection) => collection.id === user?.activeContentCollectionId) ?? works[0].edition;
+    available.find((collection) => collection.id === user?.activeContentCollectionId) ?? works[0]?.edition ?? DEFAULT_COLLECTION;
   // In de kiezer staat bij het actieve werk de uitgave die nu open is.
   const worksWithActive = works.map((option) =>
     option.work === workOf(selected) ? { ...option, edition: selected } : option
   );
 
-  const gameScopes = await prisma.gameContentScope.findMany({
+  const gameScopes = available.length ? await prisma.gameContentScope.findMany({
     where: { contentCollectionId: selected.id },
     select: { gameKey: true },
-  });
+  }) : [];
 
   return {
     // Met maar één zichtbare collectie valt er niets te wisselen.
@@ -185,7 +190,7 @@ export async function getContentContext(userId: string): Promise<ContentContext>
  */
 export async function setContentLanguage(userId: string, isAdmin: boolean, language: string): Promise<void> {
   const collections = await prisma.contentCollection.findMany({
-    where: selectableWhere(isAdmin),
+    where: collectionAccessWhere({ isAdmin }),
     select: VIEW_SELECT,
   });
   if (!collections.some((collection) => collection.language === language)) {
@@ -193,6 +198,7 @@ export async function setContentLanguage(userId: string, isAdmin: boolean, langu
   }
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { activeContentCollectionId: true } });
   const active = collections.find((collection) => collection.id === user?.activeContentCollectionId);
+  if (user?.activeContentCollectionId && !active) throw new Error("Huidige collectie niet normaal toegankelijk.");
   const sameWork = pickTargetCollection(collections, active, { contentLanguage: language });
   await prisma.user.update({
     where: { id: userId },
@@ -206,17 +212,65 @@ export async function setActiveContentCollection(
   contentCollectionId: string
 ): Promise<ContentCollectionView> {
   const collection = await prisma.contentCollection.findFirst({
-    where: { id: contentCollectionId, ...selectableWhere(isAdmin) },
+    where: { id: contentCollectionId, ...collectionAccessWhere({ isAdmin }) },
     select: VIEW_SELECT,
   });
-  if (!collection) throw new Error("Contentcollectie niet gevonden.");
+  if (!collection || !validPickerEdition(collection)) throw new Error("Contentcollectie niet gevonden.");
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { activeContentCollectionId: collection.id },
+  await prisma.user.updateMany({
+    where: { id: userId, OR: [{ activeContentCollectionId: { not: collection.id } }, { activeContentCollectionId: null }, { contentLanguage: { not: collection.language } }] },
+    data: { activeContentCollectionId: collection.id, contentLanguage: collection.language },
   });
 
   return collection;
+}
+
+/** De publieke kiezer gebruikt echte catalogusgegevens en expliciete normale rechten. */
+export async function getContentPickerContext(userId: string, db = prisma): Promise<ContentPickerContext> {
+  const user = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { isAdmin: true, activeContentCollectionId: true, contentLanguage: true } });
+  const collections = await db.contentCollection.findMany({
+    where: collectionAccessWhere(user, "catalog"), orderBy: [{ order: "asc" }, { id: "asc" }],
+    select: { ...VIEW_SELECT, enabled: true, publicationState: true, contentWork: { select: { kind: true } } },
+  });
+  const works: ContentPickerContext["works"] = [];
+  for (const collection of collections) {
+    if (!collection.work || !collection.contentWork || !validPickerEdition(collection)) continue;
+    let work = works.find(w => w.key === collection.work);
+    if (!work) { work = { key: collection.work, kind: collection.contentWork.kind, editions: [] }; works.push(work); }
+    const edition = Object.fromEntries(Object.keys(VIEW_SELECT).map(key => [key, collection[key as keyof typeof VIEW_SELECT]])) as unknown as ContentCollectionView;
+    // De bestaande expliciete OTB-preview is de enige directe Schriftpreview.
+    const previewHref = user.isAdmin && collection.editionKey === "otb" && ["old-testament", "new-testament"].includes(collection.work)
+      ? `/adminbackend/content-preview?work=${encodeURIComponent(collection.work)}&language=${encodeURIComponent(collection.language)}` : null;
+    work.editions.push({ ...edition, selectable: canAccessCollection(user, collection), previewHref });
+  }
+  const readable = works.flatMap(w => w.editions).filter(e => e.selectable);
+  const selected = readable.find(e => e.id === user.activeContentCollectionId)
+    ?? pickEditions(readable, user.contentLanguage)[0]?.edition;
+  return { selection: { activeContentCollectionId: user.activeContentCollectionId, contentLanguage: user.contentLanguage }, activeCollectionId: selected?.id ?? null, works };
+}
+
+export class ContentSelectionConflict extends Error {
+  constructor(readonly selection: ContentSelection) { super("CONTENT_SELECTION_CONFLICT"); }
+}
+
+/** Exacte bron en taal samen opslaan; compare-and-set zonder nieuw schema. */
+export async function commitContentSelection(userId: string, isAdmin: boolean, requested: ContentCollectionView, expected: ContentSelection) {
+  return prisma.$transaction(async db => {
+    const [user] = await db.$queryRaw<ContentSelection[]>`SELECT "activeContentCollectionId", "contentLanguage" FROM "User" WHERE id=${userId} FOR UPDATE`;
+    if (!user) throw new Error("Gebruiker ontbreekt");
+    const target = await db.contentCollection.findFirst({ where: { id: requested.id, ...collectionAccessWhere({ isAdmin }) }, select: VIEW_SELECT });
+    if (!target || !validPickerEdition(target) || target.work !== requested.work || target.editionKey !== requested.editionKey || target.language !== requested.language) throw new Error("Content niet beschikbaar");
+    if (user.activeContentCollectionId === target.id && user.contentLanguage === target.language) return { target, changed: false, selection: user };
+    if (user.activeContentCollectionId !== expected.activeContentCollectionId || user.contentLanguage !== expected.contentLanguage) throw new ContentSelectionConflict(user);
+    // Een impliciete eerste keuze opnieuw aantikken is eveneens een no-op.
+    if (!user.activeContentCollectionId) {
+      const available = await db.contentCollection.findMany({ where: collectionAccessWhere({ isAdmin }), orderBy: [{ order: "asc" }, { id: "asc" }], select: VIEW_SELECT });
+      const first = pickEditions(available.filter(validPickerEdition), user.contentLanguage)[0]?.edition;
+      if (first?.id === target.id) return { target, changed: false, selection: user };
+    }
+    await db.user.update({ where: { id: userId }, data: { activeContentCollectionId: target.id, contentLanguage: target.language } });
+    return { target, changed: true, selection: { activeContentCollectionId: target.id, contentLanguage: target.language } };
+  }, { timeout: 10_000 });
 }
 
 export async function getDefaultContentCollectionId(): Promise<string | null> {

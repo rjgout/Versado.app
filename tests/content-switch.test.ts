@@ -97,8 +97,8 @@ test("de uitleg 'niet beschikbaar' staat in alle talen en gebruikt de gekozen ta
 test("de kiezer ververst via de router met de huidige pagina in plaats van een reload", () => {
   const switcher = read("src/components/ContentSwitcher.tsx");
   assert.doesNotMatch(switcher, /location\.reload/);
-  assert.match(switcher, /router\.refresh\(\)/);
-  assert.match(switcher, /location:\s*\{\s*pathname/);
+  assert.match(read("src/components/content/FullscreenContentPicker.tsx"), /router\.refresh\(\)/);
+  assert.match(switcher, /rememberContentDeparture/);
   const layout = read("src/app/layout.tsx");
   // Content + contenttaal vormen de sleutel van alles onder <main>.
   assert.match(layout, /<Fragment key=\{contentContext \? `\$\{contentContext\.active\.id\}:\$\{contentContext\.contentLanguage\}`/);
@@ -106,6 +106,6 @@ test("de kiezer ververst via de router met de huidige pagina in plaats van een r
 
 test("de bestaande profielroute voor taalkeuze blijft een kale wissel zonder pagina-uitleg", () => {
   const route = read("src/app/api/content-context/route.ts");
-  assert.match(route, /if \(location\)/);
+  assert.match(route, /if \(location \|\| picker\)/);
   assert.match(route, /setContentLanguage\(user\.id, user\.isAdmin, change\.contentLanguage\)/);
 });

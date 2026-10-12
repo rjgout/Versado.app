@@ -1,6 +1,12 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { createHash } from "node:crypto";
+
+/** Opaque tabcontextbinding; geen sessietoken of bruikbaar authenticatiemiddel. */
+export async function navigationSessionKey(): Promise<string> {
+  return createHash("sha256").update((await cookies()).get(SESSION_COOKIE)?.value ?? "anonymous").digest("hex");
+}
 
 export async function getCurrentUserId(): Promise<string | null> {
   const cookieStore = await cookies();

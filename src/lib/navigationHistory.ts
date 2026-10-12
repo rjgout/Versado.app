@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { safeContentLocation } from "@/lib/contentPickerContract";
 
 // Gedeelde navigatiestaat voor de hele app: scrollposities per
 // geschiedenisitem (gebruikt door shell/NavigationScroll.tsx) en of er een
@@ -38,6 +39,52 @@ function navigationApi(): NavigationLike | null {
 export function currentEntryKey(): string {
   const key = navigationApi()?.currentEntry?.key;
   return key ? `k:${key}` : `u:${window.location.pathname}${window.location.search}`;
+}
+
+const CONTENT_DEPARTURE_KEY = "vs-content-departure";
+interface ContentDeparture {
+  sessionKey: string;
+  originEntryKey: string;
+  pickerEntryKey: string | null;
+  createdAt: number;
+  location: { pathname: string; search: string };
+}
+let contentDeparture: ContentDeparture | null = null;
+
+/** NavigationScroll bindt een aangevraagde kiezer alleen bij de echte routeovergang. */
+export function bindContentDepartureEntry(previousPathname: string, pathname: string): void {
+  try {
+    const raw = contentDeparture ?? JSON.parse(window.sessionStorage.getItem(CONTENT_DEPARTURE_KEY) ?? "null") as ContentDeparture | null;
+    if (!raw || raw.pickerEntryKey) return;
+    if (pathname !== "/content" || raw.location?.pathname !== previousPathname || Date.now() - raw.createdAt > 30_000) {
+      contentDeparture = null; window.sessionStorage.removeItem(CONTENT_DEPARTURE_KEY); return;
+    }
+    raw.pickerEntryKey = currentEntryKey(); contentDeparture = raw;
+    window.sessionStorage.setItem(CONTENT_DEPARTURE_KEY, JSON.stringify(raw));
+  } catch { /* Opslag kan geblokkeerd zijn; de gebonden geheugenwaarde blijft. */ }
+}
+
+/** Voor de linknavigatie vastleggen; geen retouradres of gevoelige query in de URL. */
+export function rememberContentDeparture(sessionKey: string, input: { pathname: string; search: string }): void {
+  const location = safeContentLocation(input);
+  if (!location) return;
+  contentDeparture = { sessionKey, originEntryKey: currentEntryKey(), pickerEntryKey: null, createdAt: Date.now(), location };
+  saveScrollPosition(contentDeparture.originEntryKey, window.scrollY);
+  try { window.sessionStorage.setItem(CONTENT_DEPARTURE_KEY, JSON.stringify(contentDeparture)); } catch { /* Geheugenfallback. */ }
+}
+
+/** Alleen deze geschiedenis-entry, tab en geauthenticeerde sessie kunnen de keuze hernemen. */
+export function contentDepartureLocation(sessionKey: string): { pathname: string; search: string } {
+  const fallback = { pathname: "/dashboard", search: "" };
+  try {
+    const raw = contentDeparture ?? JSON.parse(window.sessionStorage.getItem(CONTENT_DEPARTURE_KEY) ?? "null") as ContentDeparture | null;
+    if (!raw || raw.sessionKey !== sessionKey || Date.now() - raw.createdAt > 30 * 60_000 || raw.createdAt > Date.now() || !safeContentLocation(raw.location)) return fallback;
+    const key = currentEntryKey();
+    if (!raw.pickerEntryKey || raw.pickerEntryKey !== key) return fallback;
+    contentDeparture = raw;
+    try { window.sessionStorage.setItem(CONTENT_DEPARTURE_KEY, JSON.stringify(raw)); } catch { /* Geheugenfallback. */ }
+    return safeContentLocation(raw.location) ?? fallback;
+  } catch { return fallback; }
 }
 
 /**

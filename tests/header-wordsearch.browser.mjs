@@ -33,7 +33,7 @@ try {
   const courses = [];
   for (let i = 0; i < 5; i++) courses.push(await prisma.course.create({ data: { slug: `layout-${randomUUID()}`, name: ["Hoofdstuk voor hoofdstuk", "Vrije keuze", "Stap voor stap", "Schriftstudie", "Verder lezen"][i], type: "FRONT_TO_BACK", order: i, contentCollectionId: "content_bom", chapters: { create: { chapterId: book.chapters[0].id, order: 0 } } } }));
   user = await prisma.user.create({ data: { email: `layout-${randomUUID()}@test.invalid`, passwordHash: "x", handle: "Layout", discriminator: "00", isAdmin: true,
-    activeContentCollectionId: "content_bom", activeCourseId: courses[0].id, uiLanguage: "nl", contentLanguage: "nl", onboardingSeenAt: new Date(), onboardingProfilePrivacyAt: new Date(),
+    activeContentCollectionId: "content_bom", activeCourseId: courses[0].id, uiLanguage: "nl", contentLanguage: "nl", onboardingSeenAt: new Date(), onboardingProfilePrivacyAt: new Date(), avatarCharacterId: "nephi", kompasOffersEnabled: false,
     courseProgress: { create: courses.map((course) => ({ courseId: course.id, subscribed: true })) } } });
   context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, serviceWorkers: "block" });
   await context.addCookies([{ name: SESSION_COOKIE, value: await createSessionToken(user.id), url: base }]);
@@ -119,18 +119,21 @@ try {
         if (state.navBottom !== null) { assert.ok(Math.abs(state.navBottom - height) < 1); assert.equal(state.navFixed, "fixed"); }
         if (fixed) assert.equal(state.headerTop, 0);
         results.push({ tag, path, ...state });
-        // De body-portal moet nog boven de kaarten en de nieuwe balklaag liggen.
+        // De kiezer is nu een Focus-pagina, geen portal in de header.
         await page.evaluate(() => scrollTo(0, 0));
-        await page.locator('[data-kompas-target="content-switcher"] > button').click();
-        const menu = page.locator("[data-content-menu]"); await menu.waitFor();
-        const overlay = await menu.evaluate((element) => {
-          const r = element.getBoundingClientRect(); const header = document.querySelector("[data-sticky-header]"); let hits = 0;
-          for (const x of [.15, .5, .85]) for (const y of [.1, .5, .9]) if (element.contains(document.elementFromPoint(r.x + r.width * x, r.y + r.height * y))) hits++;
-          return { hits, z: Number(getComputedStyle(element).zIndex), headerZ: Number(getComputedStyle(header).zIndex), bottom: r.bottom, left: r.left, right: r.right };
-        });
-        assert.equal(overlay.hits, 9, `${tag} ${path}: contentmenu bedekt`);
-        assert.ok(overlay.z > overlay.headerZ && overlay.left >= 0 && overlay.right <= width + 1);
-        await page.keyboard.press("Escape"); await menu.waitFor({ state: "detached" });
+        await page.locator('[data-kompas-target="content-switcher"] > a').click();
+        await page.waitForURL(`${base}/content`);
+        await page.locator('[data-content-picker]').waitFor();
+        const pickerShell = await page.evaluate(() => ({
+          globalHeader: getComputedStyle(document.querySelector('[data-app-global-header]')).display,
+          nav: getComputedStyle(document.querySelector('[data-main-nav]')).display,
+          back: document.querySelector('[data-subpage-back-bar]').getBoundingClientRect().bottom,
+          top: document.querySelector('[data-content-picker] h1').getBoundingClientRect().top,
+          overflow: document.documentElement.scrollWidth > innerWidth + 1,
+        }));
+        assert.equal(pickerShell.globalHeader, "none"); assert.equal(pickerShell.nav, "none");
+        assert.ok(pickerShell.top >= pickerShell.back - 1); assert.equal(pickerShell.overflow, false);
+        await page.locator('[data-subpage-back-bar] button').click(); await page.waitForURL(`${base}${path}`);
         if (width === 390 && font === 100) {
           if (path !== "/dashboard") await trigger.evaluate((button) => { const r = button.getBoundingClientRect(); scrollTo(0, scrollY + r.top + r.height / 2 - document.querySelector("[data-sticky-header]").getBoundingClientRect().height / 2); });
           await page.screenshot({ path: `${output}/header-${path.slice(1)}-${tag}.png` });

@@ -79,7 +79,7 @@ const STATIC_TOPICS: readonly KompasTopic[] = [
   { id: "progress.divisions", parent: "progress", icon: "division", version: 1, href: "/competition", routes: ["/competition"] },
   { id: "profile", parent: KOMPAS_ROOT, group: "support", icon: "profile", version: 2, href: "/profile" },
   { id: "start", parent: KOMPAS_ROOT, group: "support", icon: "start", version: 1, tour: "start" },
-  { id: "switcher", parent: "start", icon: "switcher", version: 1, tour: "switcher", requires: "switcher" },
+  { id: "switcher", parent: "start", icon: "switcher", version: 2, href: "/content", tour: "switcher", requires: "switcher" },
 ];
 
 /** Elk spel uit de catalogus is vanzelf een onderdeel onder Spelen: een nieuw spel hoeft hier niets te registreren. */

@@ -220,29 +220,29 @@ export const kompasNl = {
       more: "Je kunt deze vrijwillige productuitleg en de rondleiding altijd opnieuw openen via Ontdek Versado. Je instellingen veranderen daardoor niet.",
     },
     switcher: {
-      title: "Schriften en taal kiezen",
-      what: "Bovenaan de pagina kies je met welke Schriften je werkt, en in welke taal je de tekst leest.",
-      benefit: "Zo kun je met andere Schriften of in een andere taal leren en spelen, zonder je account of voortgang kwijt te raken.",
-      step1: "Tik bovenaan op de naam van de Schriften.",
-      step2: "Kies andere Schriften uit de lijst.",
-      step3: "Kies daaronder de taal van de tekst, als er meer talen zijn.",
-      step4: "Versado zoekt dezelfde pagina bij je nieuwe keuze.",
-      faq1: {
-        q: "Wat verandert er als ik wissel?",
-        a: "Cursussen, spellen en teksten horen bij de gekozen Schriften. Daarom zie je bij Leren en Spelen andere dingen.",
+      "title": "Content en taal kiezen",
+      "what": "Tik linksboven op je huidige bron om de volledige contentkiezer te openen.",
+      "benefit": "Kies uit Schriften en Studieprogramma’s. Podcasts staan apart bij Studieprogramma’s. Je keuze wordt onthouden en je voortgang blijft bewaard.",
+      "step1": "Open de kiezer via de bron in de header.",
+      "step2": "Tik op een beschikbare bron om direct te wisselen.",
+      "step3": "Kies een beschikbare teksttaal of expliciet een andere uitgave.",
+      "step4": "Versado opent een passende bestemming; terug zonder keuze verandert niets.",
+      "faq1": {
+        "q": "Wat verandert er als ik wissel?",
+        "a": "Je gekozen bron bepaalt de beschikbare teksten, cursussen en spellen."
       },
-      faq2: {
-        q: "Wat blijft hetzelfde?",
-        a: "Je account, XP, reeks, divisie, vrienden en instellingen. Ook je leesvoortgang blijft bewaard: hetzelfde hoofdstuk levert zijn XP maar één keer op, in welke taal je het ook oefent.",
+      "faq2": {
+        "q": "Wat blijft hetzelfde?",
+        "a": "Je lees- en cursusvoortgang, actieve studielessen, podcasts, XP, hints en reeks blijven bewaard. Wisselen is geen leeractiviteit."
       },
-      faq3: {
-        q: "Hoe kies ik een andere taal?",
-        a: "Open het menu bovenaan en kies de taal onder Taal van de tekst. De taal van de app is een aparte keuze; die verander je in je profiel.",
+      "faq3": {
+        "q": "Hoe kies ik een andere taal?",
+        "a": "Gebruik de taalkeuze op de contentpagina. Alleen beschikbare edities worden gebruikt. De interfacetaal blijft een aparte profielinstelling."
       },
-      faq4: {
-        q: "Wat als iets niet beschikbaar is?",
-        a: "Dan krijg je een melding. Je kunt blijven waar je bent, of toch wisselen. Je wordt niet stilletjes naar een andere pagina gestuurd.",
-      },
+      "faq4": {
+        "q": "Wat als iets niet beschikbaar is?",
+        "a": "Een verborgen bron of ontbrekende taal kun je niet normaal kiezen. Als een geldige bron nog geen passende bestemming heeft, krijg je uitleg; er wordt geen lege cursus gestart."
+      }
     },
   },
   work: {
@@ -277,7 +277,7 @@ export const kompasNl = {
   tours: {
     start: {
       entry: { title: "Ontdek Versado", text: "Hier vind je altijd uitleg over Versado. Je kunt hier op elk moment terugkomen." },
-      switcher: { title: "Jouw Schriften", text: "Hier kies je met welke Schriften je werkt, en in welke taal je de tekst leest." },
+      switcher: {"title": "Open de contentkiezer", "text": "Tik hier om Schriften, Studieprogramma’s en de teksttaal op een volledige pagina te kiezen. Je keuze wordt onthouden; bestaande voortgang blijft bewaard."},
       learn: { title: "Leren", text: "Hier volg je cursussen: lezen en vragen beantwoorden." },
       play: { title: "Spelen", text: "Hier vind je spellen en puzzels, alleen of met anderen." },
       friends: { title: "Vrienden", text: "Hier voeg je vrienden toe en zie je hoe jullie samen bezig zijn." },
@@ -286,14 +286,14 @@ export const kompasNl = {
     learn: {
       intro: { title: "Je cursussen", text: "Dit zijn je cursussen. Open er een om te lezen en vragen te beantwoorden. Je voortgang blijft bewaard." },
       add: { title: "Meer cursussen", text: "Hier voeg je een cursus toe. Verborgen cursussen kun je hier ook weer terugzetten." },
-      switcher: { title: "Andere Schriften", text: "Cursussen horen bij de gekozen Schriften. Kies hier andere Schriften voor andere cursussen." },
+      switcher: {"title": "Open de contentkiezer", "text": "Tik hier om Schriften, Studieprogramma’s en de teksttaal op een volledige pagina te kiezen. Je keuze wordt onthouden; bestaande voortgang blijft bewaard."},
     },
     play: {
       games: { title: "Je spellen", text: "Kies een spel om het te openen. Het informatie-icoon toont de spelregels." },
-      switcher: { title: "Spellen en Schriften", text: "Welke spellen je ziet, hangt af van de gekozen Schriften." },
+      switcher: {"title": "Open de contentkiezer", "text": "Tik hier om Schriften, Studieprogramma’s en de teksttaal op een volledige pagina te kiezen. Je keuze wordt onthouden; bestaande voortgang blijft bewaard."},
     },
     switcher: {
-      menu: { title: "Kies je Schriften", text: "Hier kies je andere Schriften of een andere taal van de tekst. Er verandert niets totdat je kiest." },
+      menu: {"title": "Open de contentkiezer", "text": "Tik hier om Schriften, Studieprogramma’s en de teksttaal op een volledige pagina te kiezen. Je keuze wordt onthouden; bestaande voortgang blijft bewaard."},
       learn: { title: "Leren volgt je keuze", text: "Je cursussen horen bij de gekozen Schriften." },
       play: { title: "Spelen ook", text: "Ook de spellen hangen af van je keuze." },
     },

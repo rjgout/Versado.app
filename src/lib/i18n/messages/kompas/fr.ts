@@ -214,29 +214,29 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
       more: "Tu peux toujours rouvrir cette présentation volontaire du produit et sa visite guidée dans Découvrir Versado. Tes réglages ne changent pas.",
     },
     switcher: {
-      title: "Choisir les Écritures et la langue",
-      what: "En haut de la page, tu choisis avec quelles Écritures tu travailles et dans quelle langue tu lis le texte.",
-      benefit: "Ainsi, tu peux apprendre et jouer avec d’autres Écritures ou dans une autre langue, sans perdre ton compte ni ta progression.",
-      step1: "Touche le nom des Écritures en haut.",
-      step2: "Choisis d’autres Écritures dans la liste.",
-      step3: "En dessous, choisis la langue du texte, s’il y en a plusieurs.",
-      step4: "Versado cherche la même page dans ton nouveau choix.",
-      faq1: {
-        q: "Qu’est-ce qui change quand je change ?",
-        a: "Les cours, les jeux et les textes sont liés aux Écritures choisies. C’est pourquoi tu vois autre chose dans Apprendre et Jouer.",
+      "title": "Choisir le contenu et la langue",
+      "what": "Touche ta source actuelle en haut à gauche pour ouvrir la page complète de sélection.",
+      "benefit": "Choisis parmi les Écritures et les Programmes d’étude. Les podcasts ont une ligne distincte sous Programmes d’étude. Ton choix et ta progression sont conservés.",
+      "step1": "Ouvre la sélection depuis la source dans l’en-tête.",
+      "step2": "Touche une source disponible pour changer directement.",
+      "step3": "Choisis une langue de texte disponible ou explicitement une autre édition.",
+      "step4": "Versado ouvre une destination adaptée ; revenir sans choisir ne change rien.",
+      "faq1": {
+        "q": "Que change un changement de source ?",
+        "a": "Ta source détermine les textes, cours et jeux disponibles."
       },
-      faq2: {
-        q: "Qu’est-ce qui reste identique ?",
-        a: "Ton compte, tes XP, ta série, ta division, tes amis et tes réglages. Ta progression de lecture est aussi conservée : un même chapitre ne rapporte ses XP qu’une seule fois, quelle que soit la langue dans laquelle tu le travailles.",
+      "faq2": {
+        "q": "Qu’est-ce qui reste identique ?",
+        "a": "Ta progression de lecture et de cours, tes leçons actives, podcasts, XP, indices et série sont conservés. Changer n’est pas une activité d’apprentissage."
       },
-      faq3: {
-        q: "Comment choisir une autre langue ?",
-        a: "Ouvre le menu en haut et choisis la langue sous « Langue du texte ». La langue de l’application est un choix distinct ; tu la modifies dans ton profil.",
+      "faq3": {
+        "q": "Comment choisir une autre langue ?",
+        "a": "Utilise le choix de langue sur la page du contenu. Seules les éditions disponibles sont utilisées. La langue de l’interface reste un réglage distinct du profil."
       },
-      faq4: {
-        q: "Et si quelque chose n’est pas disponible ?",
-        a: "Tu reçois alors un message. Tu peux rester où tu es, ou changer quand même. On ne t’envoie jamais discrètement vers une autre page.",
-      },
+      "faq4": {
+        "q": "Que faire si quelque chose manque ?",
+        "a": "Les sources cachées et les langues absentes ne peuvent pas être sélectionnées normalement. Si une source valide n’a pas encore de destination adaptée, une explication apparaît ; aucun cours vide ne démarre."
+      }
     },
   },
   work: {
@@ -271,7 +271,7 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
   tours: {
     start: {
       entry: { title: "Découvrir Versado", text: "Ici, tu trouveras toujours des explications sur Versado. Tu peux revenir à tout moment." },
-      switcher: { title: "Tes Écritures", text: "Ici, tu choisis avec quelles Écritures tu travailles et dans quelle langue tu lis le texte." },
+      switcher: {"title": "Ouvrir la sélection du contenu", "text": "Touche ici pour choisir les Écritures, les Programmes d’étude et la langue du texte sur une page complète. Ton choix et ta progression sont conservés."},
       learn: { title: "Apprendre", text: "Ici, tu suis des cours : lire et répondre à des questions." },
       play: { title: "Jouer", text: "Ici, tu trouves des jeux et des énigmes, seul ou avec d’autres." },
       friends: { title: "Amis", text: "Ici, tu ajoutes des amis et tu vois comment vous avancez ensemble." },
@@ -280,14 +280,14 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
     learn: {
       intro: { title: "Tes cours", text: "Ce sont tes cours. Ouvre-en un pour lire et répondre à des questions. Ta progression est enregistrée." },
       add: { title: "Plus de cours", text: "Ici, tu ajoutes un cours. Tu peux aussi y remettre les cours masqués." },
-      switcher: { title: "D’autres Écritures", text: "Les cours sont liés aux Écritures choisies. Choisis ici d’autres Écritures pour d’autres cours." },
+      switcher: {"title": "Ouvrir la sélection du contenu", "text": "Touche ici pour choisir les Écritures, les Programmes d’étude et la langue du texte sur une page complète. Ton choix et ta progression sont conservés."},
     },
     play: {
       games: { title: "Tes jeux", text: "Choisis un jeu pour l’ouvrir. L’icône d’information affiche les règles." },
-      switcher: { title: "Jeux et Écritures", text: "Les jeux que tu vois dépendent des Écritures choisies." },
+      switcher: {"title": "Ouvrir la sélection du contenu", "text": "Touche ici pour choisir les Écritures, les Programmes d’étude et la langue du texte sur une page complète. Ton choix et ta progression sont conservés."},
     },
     switcher: {
-      menu: { title: "Choisis tes Écritures", text: "Ici, tu choisis d’autres Écritures ou une autre langue du texte. Rien ne change tant que tu n’as pas choisi." },
+      menu: {"title": "Ouvrir la sélection du contenu", "text": "Touche ici pour choisir les Écritures, les Programmes d’étude et la langue du texte sur une page complète. Ton choix et ta progression sont conservés."},
       learn: { title: "Apprendre suit ton choix", text: "Tes cours sont liés aux Écritures choisies." },
       play: { title: "Jouer aussi", text: "Les jeux dépendent eux aussi de ton choix." },
     },
