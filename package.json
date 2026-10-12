@@ -68,7 +68,9 @@
     "test:study-context": "tsx --test tests/study-context.test.ts",
     "test:study-context:integration": "node scripts/content-architecture/test-access-isolated.mjs",
     "test:content-access": "tsx --test tests/content-access.test.ts tests/content-inventory.test.ts tests/content-inventory-validation.test.mjs",
-    "test:content-access:integration": "node scripts/content-architecture/test-access-isolated.mjs"
+    "test:content-access:integration": "node scripts/content-architecture/test-access-isolated.mjs",
+    "test:puzzle:multi": "PUZZLE_MULTI_INSTANCE=1 tsx --test --test-concurrency=1 tests/puzzle-multi-instance.integration.test.ts",
+    "test:puzzle:multiplayer": "tsx --test --test-concurrency=1 tests/puzzle-coop.integration.test.ts tests/puzzle-match.integration.test.ts"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",
