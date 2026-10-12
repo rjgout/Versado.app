@@ -1,3 +1,4 @@
+import { gameStartGuard } from "@/lib/gameStartGuard";
 import { NextRequest, NextResponse } from "next/server";
 import { customAlphabet } from "nanoid";
 import { z } from "zod";
@@ -10,7 +11,7 @@ const generateCode = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 5);
 const schema = z.object({
   minutes: z.number().refine((n) => (DURATION_OPTIONS as readonly number[]).includes(n)),
   diceMode: z.enum(["DIGITAL", "PHYSICAL"]),
-});
+}).strict();
 
 // Losse route i.p.v. /api/live/create uit te breiden: dat endpoint is
 // chapterId-specifiek, het Gezinsavondspel hangt juist aan geen enkel vast
@@ -20,6 +21,8 @@ const schema = z.object({
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
+  const denied = await gameStartGuard(req, user.id, "gezinsavond");
+  if (denied) return denied;
 
   const body = await req.json().catch(() => null);
   const parsed = schema.safeParse(body);

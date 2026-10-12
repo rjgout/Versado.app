@@ -97,7 +97,7 @@ for (const name of ["hidden", "disabled", "draft"]) for (const isAdmin of [false
     ["/api/reading-lessons/submit", "POST", { lessonId: f.lessonId, sessionId: null, answers: [] }],
   ];
   for (const [path, method, body] of probes) {
-    const response = await requestAs(path, method, body); assert.equal(response.status, 404, path);
+    const response = await requestAs(path, method, body); assert.equal(response.status, path === "/api/live/create" ? 403 : 404, path);
     assert.ok(!(await response.text()).includes(`PRIVETEKST-${name}`), path);
   }
   for (const path of [`/lesson/${f.chapterId}`, `/reading-lesson/${f.lessonId}`, `/courses/${f.courseId}/chapter/${f.chapterId}`]) {
@@ -157,6 +157,6 @@ test("bestaande zichtbare annotaties, bewaren en expliciet lezen blijven werken 
   const progress = await prisma.contentProgress.findFirstOrThrow({ where: { userId: normal, lastChapterId: f.chapterId } });
   assert.equal(progress.contentKey, `${f.collectionId}#1`); assert.equal(progress.readStatus, "READ");
   assert.equal(await prisma.streakActivity.count({ where: { userId: normal, key: `read:${progress.contentKey}` } }), 1);
-  const live = await request("/api/live/create", "POST", { chapterId: f.chapterId }); assert.equal(live.status, 200);
-  const game = await prisma.liveGame.findUniqueOrThrow({ where: { code: (await live.json()).code } }); assert.equal(game.chapterId, f.chapterId);
+  // Een OTHER-leesfixture is geen speladapter; inhoudelijk lezen blijft geldig.
+  const live = await request("/api/live/create", "POST", { chapterId: f.chapterId }); assert.equal(live.status, 403);
 });

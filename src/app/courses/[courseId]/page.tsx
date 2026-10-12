@@ -12,7 +12,7 @@ import IntroCourseView from "@/components/IntroCourseView";
 import FsyCourseView from "@/components/FsyCourseView";
 import ReadingCourseView from "@/components/ReadingCourseView";
 import StudyTogetherButton from "@/components/study/StudyTogetherButton";
-import { supportsStudy } from "@/lib/study/units";
+import { canStartStudy } from "@/lib/study/startAvailability";
 import { chapterTerm, localizeTerm } from "@/lib/chapterTerm";
 import { localizedCourse } from "@/lib/courseText";
 import { getT } from "@/lib/i18n";
@@ -53,7 +53,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
   const courseName = localizedCourse({ ...course, work: course.contentCollection.work }, user.uiLanguage).name;
   const t = getT(user.uiLanguage);
   // Samen studeren kan bij elke cursus met vragen (dus niet bij FSY).
-  const studyAction = supportsStudy(course.type) ? <StudyTogetherButton courseId={course.id} /> : null;
+  const studyAction = await canStartStudy(course.id) ? <StudyTogetherButton courseId={course.id} /> : null;
 
   if (course.type === "PODCAST") {
     const [podcast, episodes, notificationPreference] = await Promise.all([

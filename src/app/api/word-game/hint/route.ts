@@ -1,3 +1,4 @@
+import { canResumeGameContent } from "@/lib/gameAvailability";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
@@ -7,6 +8,7 @@ import { buyWordGameHint, WordGameHintError, wordGameHintRequestSchema } from "@
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
+  if (!(await canResumeGameContent("content_bom"))) return apiError("gameAvailability.unavailable", 403);
   const input = wordGameHintRequestSchema.safeParse(await req.json().catch(() => null));
   if (!input.success) return await apiError("apiErrors.invalidInput", 400);
   const t = getT(user.uiLanguage);

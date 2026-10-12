@@ -75,6 +75,7 @@ try {
   // niet samenvallen met fixtures van andere testprocessen.
   await run("npx", ["tsx", "--test", "tests/study-context.test.ts", "tests/study-context.integration.test.ts"], env);
   await run("npx", ["tsx", "--test", "tests/content-picker.test.ts", "tests/content-picker.integration.test.ts"], env);
+  await run("npx", ["tsx", "--test", "tests/game-availability.test.ts", "tests/game-availability.integration.test.ts"], env);
   source = new pg.Client({ connectionString: database }); await source.connect();
   const inventory = await collectInventory(source);
   assert.equal(inventory.identities.issues.length, 0);

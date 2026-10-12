@@ -1,3 +1,4 @@
+import { checkGameAvailability } from "@/lib/gameAvailability";
 import { prisma } from "@/lib/db";
 import { DICTIONARY_COLLECTION_IDS, getDictionaryEntries } from "@/lib/dictionary";
 import {
@@ -134,8 +135,8 @@ export async function resolveContentSwitch(
       return { kind: "redirect", href: "/tools/dictionary" };
     }
     case "game": {
-      const scope = await prisma.gameContentScope.count({ where: { contentCollectionId: target.id, gameKey: route.gameId } });
-      return scope > 0 ? { kind: "stay" } : missing;
+      const availability = await checkGameAvailability(route.gameId, target.id);
+      return availability.available ? { kind: "stay" } : missing;
     }
     case "course":
     case "courseChapter": {

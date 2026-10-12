@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
-import { assertWordSearchContext, findWordSearchWord } from "@/lib/wordSearch/game";
+import { findWordSearchWord } from "@/lib/wordSearch/game";
 
 const position = z.object({ row: z.number().int().min(0).max(20), col: z.number().int().min(0).max(20) });
 const schema = z.object({ start: position, end: position });
@@ -10,7 +10,6 @@ const schema = z.object({ start: position, end: position });
 export async function POST(req: NextRequest, { params }: { params: Promise<{ gameId: string }> }) {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
-  if (!(await assertWordSearchContext(user.id))) return await apiError("apiErrors.forbidden", 403);
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return await apiError("apiErrors.invalidInput", 400);
   const result = await findWordSearchWord(user.id, (await params).gameId, parsed.data.start, parsed.data.end);

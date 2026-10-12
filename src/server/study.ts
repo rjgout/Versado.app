@@ -1,3 +1,4 @@
+import { canResumeLiveGame } from "@/lib/gameAvailability";
 import type { Server as SocketIOServer, Socket } from "socket.io";
 import type { CourseType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
@@ -415,6 +416,7 @@ export function registerStudyHandlers(server: SocketIOServer, socket: Socket, us
   socket.on("st:join", async ({ code }: { code?: unknown }) => {
     if (typeof code !== "string" || code.length > 16) return;
     const upper = code.toUpperCase();
+    if (!(await canResumeLiveGame(upper))) return fail("gameAvailability.unavailable");
     const result = await getRoom(upper).catch(() => "study.errors.failed");
     if (typeof result === "string") return fail(result);
     const room = result;

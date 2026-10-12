@@ -1,3 +1,4 @@
+import { canResumeGameContent } from "@/lib/gameAvailability";
 import { prisma } from "@/lib/db";
 import { getContentContext, BOFM_WORK } from "@/lib/contentCollections";
 import { dayKey } from "@/lib/dates";
@@ -77,14 +78,14 @@ export async function getActiveWordSearch(userId: string): Promise<WordSearchVie
     where: { userId, status: "IN_PROGRESS" },
     orderBy: { createdAt: "desc" },
   });
-  return game ? toView(game) : null;
+  return game && await canResumeGameContent(game.contentCollectionId) ? toView(game) : null;
 }
 
 export async function startWordSearch(userId: string, difficulty: WordSearchDifficulty, theme = "RANDOM") {
-  const context = await assertWordSearchContext(userId);
-  if (!context) throw new Error("Woordzoeker is niet beschikbaar voor deze content.");
   const active = await getActiveWordSearch(userId);
   if (active) return active;
+  const context = await assertWordSearchContext(userId);
+  if (!context) throw new Error("Woordzoeker is niet beschikbaar voor deze content.");
 
   const candidates = await getWordSearchCandidates(context.active.id, context.active.language);
   const recent = await prisma.wordSearchGame.findMany({
@@ -98,7 +99,11 @@ export async function startWordSearch(userId: string, difficulty: WordSearchDiff
   );
   const seed = (Math.floor(Math.random() * 0x7fffffff) || 1) | 0;
   const puzzle = generateWordSearch(candidates, difficulty, seed, avoidSignatures);
-  const game = await prisma.wordSearchGame.create({
+  const game = await prisma.$transaction(async tx => {
+    await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
+    const existing = await tx.wordSearchGame.findFirst({ where: { userId, status: "IN_PROGRESS" }, orderBy: { createdAt: "desc" } });
+    if (existing) return existing;
+    return tx.wordSearchGame.create({
     data: {
       userId,
       contentCollectionId: context.active.id,
@@ -110,17 +115,18 @@ export async function startWordSearch(userId: string, difficulty: WordSearchDiff
       words: JSON.stringify(puzzle.words),
     },
   });
+  });
   return toView(game);
 }
 
 export async function getWordSearch(userId: string, gameId: string) {
   const game = await prisma.wordSearchGame.findFirst({ where: { id: gameId, userId } });
-  return game ? toView(game) : null;
+  return game && await canResumeGameContent(game.contentCollectionId) ? toView(game) : null;
 }
 
 export async function abandonWordSearch(userId: string, gameId: string) {
   const game = await prisma.wordSearchGame.findFirst({ where: { id: gameId, userId, status: "IN_PROGRESS" } });
-  if (!game) return null;
+  if (!game || !(await canResumeGameContent(game.contentCollectionId))) return null;
   return prisma.wordSearchGame.update({
     where: { id: game.id },
     data: { status: "ABANDONED", finishedAt: new Date() },
@@ -143,7 +149,7 @@ export async function findWordSearchWord(userId: string, gameId: string, start: 
 
 async function tryFindWordSearchWord(userId: string, gameId: string, start: WordSearchPosition, end: WordSearchPosition) {
   const game = await prisma.wordSearchGame.findFirst({ where: { id: gameId, userId } });
-  if (!game) return null;
+  if (!game || !(await canResumeGameContent(game.contentCollectionId))) return null;
   const grid = parseJson<string[][]>(game.grid, []);
   const words = parseJson<WordSearchPlacedWord[]>(game.words, []);
   const foundWords = parseJson<string[]>(game.foundWords, []);

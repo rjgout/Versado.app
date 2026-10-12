@@ -26,7 +26,9 @@ export async function getWordSearchCandidates(
   const stopwords = stopwordsFor(safeLanguage);
   const [persons, places, books] = await Promise.all([
     prisma.person.findMany({ where: { contentCollectionId }, select: { name: true } }),
-    prisma.place.findMany({ select: { name: true }, take: 500 }),
+    // Place heeft nog geen taaledities. Alleen bewezen gekoppelde Nederlandse
+    // namen gebruiken; geen NL-metadata of verborgen andere bron in vertaalde pools.
+    safeLanguage === "nl" ? prisma.place.findMany({ where: { verses: { some: { verse: { chapter: { book: { contentCollectionId } } } } } }, select: { name: true }, take: 500, orderBy: { id: "asc" } }) : Promise.resolve([]),
     prisma.book.findMany({ where: { contentCollectionId }, select: { name: true } }),
   ]);
 

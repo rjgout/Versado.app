@@ -67,12 +67,13 @@ export function quickMissionaryTitle(t: TFunction, character: PersonalMascotChar
   return t("quickMissionary.title", { mascot: personalMascotName(character) });
 }
 
-/** Zelfde regel als het spellenoverzicht: toegestaan bij de actieve content én aangezet (of beheerder). */
+/** Zelfde regel als het spellenoverzicht: toegestaan bij de actieve content én aangezet. */
 export function isGameVisible(
   game: GameCatalogEntry,
   settings: Record<GameEnabledKey, boolean>,
   allowedGameKeys: string[],
-  isAdmin: boolean
+  _isAdmin: boolean
 ): boolean {
-  return allowedGameKeys.includes(game.id) && (settings[game.enabledKey] || isAdmin);
+  void _isAdmin;
+  return allowedGameKeys.includes(game.id) && settings[game.enabledKey];
 }

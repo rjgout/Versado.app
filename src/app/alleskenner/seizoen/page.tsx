@@ -1,12 +1,11 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { getGameSettings } from "@/lib/gameSettings";
+import { canStartGame } from "@/lib/gameAvailability";
 import SeasonListClient from "@/components/alleskenner/SeasonListClient";
 
 export default async function AlleskennerSeasonsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const settings = await getGameSettings();
-  if (!settings.alleskennerEnabled && !user.isAdmin) redirect("/live");
+  if (!(await canStartGame(user.id, "alleskenner"))) redirect("/live?availability=unavailable");
   return <SeasonListClient />;
 }

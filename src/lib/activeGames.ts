@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
-import { getContentContext } from "@/lib/contentCollections";
+import { fixedLiveGameCollectionId } from "@/lib/gameAvailabilityPolicy";
+import { getContentContext, BOM_COLLECTION_ID } from "@/lib/contentCollections";
 import { getT } from "@/lib/i18n";
 import { localizedCourse } from "@/lib/courseText";
 import type { CourseType } from "@/generated/prisma/client";
@@ -45,7 +46,7 @@ export async function getActiveGameStatus(user: { id: string; uiLanguage: string
   const studyLabel = (course: { type: CourseType; name: string; description: string | null; contentCollection: { work: string | null } }) =>
     t("study.inviteLabel", { course: localizedCourse({ ...course, work: course.contentCollection.work }, user.uiLanguage).name });
 
-  const [challenges, scrabbleGames, liveGames, soloChapterGuessGames, gameScopes, contentContext, receivedLiveInvites] = await Promise.all([
+  const [challenges, scrabbleGames, liveGames, soloChapterGuessGames, contentContext, receivedLiveInvites] = await Promise.all([
     prisma.challenge.findMany({
       where: { OR: [{ senderId: user.id }, { receiverId: user.id }], status: { in: ["PENDING", "ACCEPTED"] } },
       include: {
@@ -77,10 +78,6 @@ export async function getActiveGameStatus(user: { id: string; uiLanguage: string
       where: { userId: user.id, status: "IN_PROGRESS" },
       orderBy: { createdAt: "desc" },
       include: { questions: { orderBy: { order: "asc" }, take: 1, select: { chapterId: true } } },
-    }),
-    prisma.gameContentScope.findMany({
-      where: { gameKey: { in: ["scrabble", "gezinsavond", "chapter-guess"] } },
-      select: { gameKey: true, contentCollectionId: true },
     }),
     getContentContext(user.id),
     // Alleen zolang het spel nog in de lobby staat en je nog niet bent
@@ -126,11 +123,6 @@ export async function getActiveGameStatus(user: { id: string; uiLanguage: string
     soloChapterCollections.map((chapter) => [chapter.id, chapter.book.contentCollectionId])
   );
 
-  const singleScope = (gameKey: string): string | undefined => {
-    const matches = gameScopes.filter((scope) => scope.gameKey === gameKey);
-    return matches.length === 1 ? matches[0].contentCollectionId : undefined;
-  };
-
   const invitesReceived: ActivityItem[] = [];
   const invitesSent: ActivityItem[] = [];
   const activeGames: ActivityItem[] = [];
@@ -172,7 +164,7 @@ export async function getActiveGameStatus(user: { id: string; uiLanguage: string
   for (const g of scrabbleGames) {
     const isPlayer1 = g.player1Id === user.id;
     const opponent = isPlayer1 ? g.player2 : g.player1;
-    const contentCollectionId = singleScope("scrabble");
+    const contentCollectionId = BOM_COLLECTION_ID;
     if (g.status === "PENDING") {
       (isPlayer1 ? invitesSent : invitesReceived).push({
         kind: "scrabble",
@@ -205,7 +197,7 @@ export async function getActiveGameStatus(user: { id: string; uiLanguage: string
     const contentCollectionId =
       lg.studySession?.course.contentCollectionId ??
       lg.chapter?.book.contentCollectionId ??
-      (lg.mode === "FAMILY_GAME" ? singleScope("gezinsavond") : singleScope("chapter-guess"));
+      fixedLiveGameCollectionId(lg.mode) ?? undefined;
     const label =
       lg.mode === "STUDY" && lg.studySession
         ? `${studyLabel(lg.studySession.course)}${suffix}`
@@ -308,7 +300,7 @@ export async function getActiveGameStatus(user: { id: string; uiLanguage: string
     contentCollectionId:
       game.studySession?.course.contentCollectionId ??
       game.chapter?.book.contentCollectionId ??
-      (game.mode === "FAMILY_GAME" ? singleScope("gezinsavond") : singleScope("chapter-guess")),
+      fixedLiveGameCollectionId(game.mode) ?? undefined,
     code: game.code,
     at: createdAt.toISOString(),
   }));

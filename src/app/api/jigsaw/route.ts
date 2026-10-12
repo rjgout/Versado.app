@@ -1,8 +1,8 @@
+import { gameStartGuard } from "@/lib/gameStartGuard";
+import { canResumeGameContent } from "@/lib/gameAvailability";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/session";
-import { getGameSettings } from "@/lib/gameSettings";
-import { getContentContext } from "@/lib/contentCollections";
 import { getT } from "@/lib/i18n";
 import { apiError } from "@/lib/apiError";
 import { answerJigsaw, jigsawImages, jigsawLevelSchema, placeJigsawPiece, resumeJigsaw, startJigsaw } from "@/lib/jigsawGame";
@@ -18,13 +18,11 @@ export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
   const t = getT(user.uiLanguage);
-  const [settings, context] = await Promise.all([getGameSettings(), getContentContext(user.id)]);
-  if ((!settings.jigsawEnabled && !user.isAdmin) || !context.gameKeys.includes("jigsaw")) {
-    return NextResponse.json({ error: t("jigsaw.unavailable") }, { status: 403 });
-  }
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: t("apiErrors.invalidInput") }, { status: 400 });
   const input = parsed.data;
+  if (input.action === "start") { const denied = await gameStartGuard(req, user.id, "jigsaw"); if (denied) return denied; }
+  else if (!(await canResumeGameContent("content_bom"))) return apiError("gameAvailability.unavailable", 403);
   if (input.action === "start") return NextResponse.json(await startJigsaw(user.id, input.imageIndex, input.pieces));
   if (input.action === "resume") {
     const state = await resumeJigsaw(user.id, input.token, user.uiLanguage);

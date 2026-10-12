@@ -55,7 +55,7 @@ async function request(body: object) {
 function remember(id: string | null) { try { if (id) localStorage.setItem(KEY, id); else localStorage.removeItem(KEY); } catch { /* opslag kan bewust uitstaan */ } }
 function distance(one: Point, two: Point) { return Math.hypot(one.x - two.x, one.y - two.y); }
 
-export default function JigsawV2Client({ images }: { images: Array<{ url: string; story: number }> }) {
+export default function JigsawV2Client({ images, allowStarts = true }: { images: Array<{ url: string; story: number }>; allowStarts?: boolean }) {
   const t = useT();
   const [state, setState] = useState<State | null>(null);
   const [imageId, setImageId] = useState<string | null>(null);
@@ -100,6 +100,7 @@ export default function JigsawV2Client({ images }: { images: Array<{ url: string
 
   if (state) return <Puzzle key={state.id} initial={state} setOuter={(next) => setState((current) => current?.id === next.id ? next : current)} onReplay={() => { const previous = state; setState(null); void start(previous); }} onChooseAnother={chooseAnother} />;
   if (loading && !isStarting) return <FocusLayout><p role="status">{t("common.loading")}</p></FocusLayout>;
+  if (!allowStarts) return <FocusLayout><p role="status">{t("gameAvailability.unavailable")}</p></FocusLayout>;
   return <FocusLayout className="max-w-5xl gap-5">
     <header><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.title")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.intro")}</p></header>
     <section aria-labelledby="jigsaw-image-choice"><div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="jigsaw-image-choice" className="font-bold">{t("jigsaw.chooseImage")}</h2><p className="text-sm text-vs-fg-2">{t("jigsaw.catalogCount", { n: images.length })}</p></div><label className="min-w-[min(100%,16rem)] text-sm font-semibold">{t("jigsaw.searchImages")}<input value={query} onChange={(event) => { setQuery(event.target.value); setPage(0); }} className="input mt-1 w-full" /></label></div>

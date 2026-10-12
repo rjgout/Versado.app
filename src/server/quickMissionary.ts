@@ -1,3 +1,4 @@
+import { canResumeLiveGame } from "@/lib/gameAvailability";
 import type { Server as SocketIOServer, Socket } from "socket.io";
 import { prisma } from "@/lib/db";
 import { getT } from "@/lib/i18n";
@@ -268,6 +269,7 @@ export function registerQuickMissionaryHandlers(server: SocketIOServer, socket: 
   socket.on("qm:join", async ({ code }: { code?: unknown }) => {
     if (typeof code !== "string" || code.length > 16) return;
     const upper = code.toUpperCase();
+    if (!(await canResumeLiveGame(upper))) return fail("quickMissionary.together.errors.unavailable");
     const result = await getRoom(upper).catch(() => "quickMissionary.together.errors.failed");
     if (typeof result === "string") return fail(result);
     const room = result;

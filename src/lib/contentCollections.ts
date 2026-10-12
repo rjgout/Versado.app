@@ -1,3 +1,4 @@
+import { availableGameKeys } from "@/lib/gameAvailability";
 import { prisma } from "@/lib/db";
 import { collectionAccessWhere, getContentAvailability } from "@/lib/contentAccess";
 import { DEFAULT_LANGUAGE, LANGUAGES, fallbackChain } from "@/lib/languages";
@@ -162,10 +163,7 @@ export async function getContentContext(userId: string): Promise<ContentContext>
     option.work === workOf(selected) ? { ...option, edition: selected } : option
   );
 
-  const gameScopes = available.length ? await prisma.gameContentScope.findMany({
-    where: { contentCollectionId: selected.id },
-    select: { gameKey: true },
-  }) : [];
+  const gameKeys = available.length ? await availableGameKeys(selected.id) : [];
 
   return {
     // Met maar één zichtbare collectie valt er niets te wisselen.
@@ -173,7 +171,7 @@ export async function getContentContext(userId: string): Promise<ContentContext>
     switcherEnabled: settings.enabled && available.length > 1,
     active: selected,
     collections: available,
-    gameKeys: gameScopes.map((scope) => scope.gameKey),
+    gameKeys,
     contentLanguage,
     works: worksWithActive,
     activeEditions: available.filter((collection) => workOf(collection) === workOf(selected)),

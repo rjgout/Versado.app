@@ -76,8 +76,9 @@ export async function pickRandomChapterIds(count: number, excludeIds: string[] =
   // andere schriften in dezelfde tabellen staan. Zonder opgegeven uitgave de
   // Nederlandse (zie resolveEditionId).
   const collectionId = editionId ?? (await resolveEditionId(BOFM_WORK));
+  if (!collectionId) return [];
   const all = await prisma.chapter.findMany({
-    where: { id: { notIn: excludeIds }, book: { contentCollectionId: collectionId ?? undefined } },
+    where: { id: { notIn: excludeIds }, book: { contentCollectionId: collectionId }, OR: [{ heading: { not: "" } }, { verses: { some: {} } }] },
     select: { id: true },
   });
   return shuffle(all.map((c) => c.id)).slice(0, count);

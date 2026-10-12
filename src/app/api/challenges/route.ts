@@ -1,3 +1,6 @@
+import { readingAccessWhere } from "@/lib/contentAccess";
+import { getContentContext } from "@/lib/contentCollections";
+import { gameStartGuard } from "@/lib/gameStartGuard";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
@@ -8,7 +11,7 @@ import { apiError } from "@/lib/apiError";
 const createSchema = z.object({
   friendUserId: z.string().trim().min(1),
   chapterId: z.string().trim().min(1),
-});
+}).strict();
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -53,6 +56,8 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
+  const denied = await gameStartGuard(req, user.id, "challenges");
+  if (denied) return denied;
 
   const body = await req.json().catch(() => null);
   const parsed = createSchema.safeParse(body);
@@ -76,7 +81,8 @@ export async function POST(req: NextRequest) {
     return await apiError("apiErrors.challengeFriendsOnly", 400);
   }
 
-  const chapter = await prisma.chapter.findUnique({ where: { id: chapterId }, include: { book: true } });
+  const context = await getContentContext(user.id);
+  const chapter = await prisma.chapter.findFirst({ where: { id: chapterId, book: { contentCollectionId: context.active.id, contentCollection: readingAccessWhere(user) }, exercises: { some: { status: "APPROVED" } } }, include: { book: true } });
   if (!chapter) return await apiError("apiErrors.chapterNotFoundDot", 404);
 
   const challenge = await prisma.challenge.create({

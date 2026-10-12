@@ -20,7 +20,7 @@ interface GameView {
   tied: boolean | null;
 }
 
-export default function ScrabbleListClient() {
+export default function ScrabbleListClient({ allowStarts = true }: { allowStarts?: boolean }) {
   const t = useT();
   const [games, setGames] = useState<GameView[] | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -92,10 +92,11 @@ export default function ScrabbleListClient() {
       <div className="card flex flex-col gap-3">
         <h2 className="font-extrabold dark:text-slate-100">{t("lobby.newGame")}</h2>
         <p className="text-sm text-slate-500 dark:text-slate-400">{t("scrabble.pickFriendHint")}</p>
-        <button className="btn-primary self-start" onClick={() => setPickerOpen(true)}>
+        <button className="btn-primary self-start" disabled={!allowStarts} onClick={() => setPickerOpen(true)}>
           {t("scrabble.pickFriend")}
         </button>
         {message && <p className="text-sm font-semibold text-brand-600 dark:text-brand-300">{message}</p>}
+        {!allowStarts && <p role="status" className="text-sm text-vs-fg-2">{t("gameAvailability.unavailable")}</p>}
         <FriendPicker
           open={pickerOpen}
           onClose={() => setPickerOpen(false)}
