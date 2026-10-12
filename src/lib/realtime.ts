@@ -17,6 +17,11 @@ export function emitToUser(userId: string, event: string, payload?: unknown): vo
   realtimeGlobal.__versadoRealtimeServer?.to(`user:${userId}`).emit(event, payload);
 }
 
+/** Naar een room (bv. een gedeelde puzzel); de Redis-adapter zorgt voor alle instances. */
+export function emitToRoom(room: string, event: string, payload?: unknown): void {
+  realtimeGlobal.__versadoRealtimeServer?.to(room).emit(event, payload);
+}
+
 // Gezamenlijke runs (Samen spelen): de toestand verandert via gewone API-routes
 // (dood, Genees, opgeven), maar de room staat in de socketmodule
 // (src/server/quickMissionary.ts). Die meldt zich hier aan; een route meldt

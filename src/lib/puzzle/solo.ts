@@ -21,7 +21,7 @@ const hintTargetSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("CONNECTION"), groupId: z.string(), pieceId: z.number(), neighborId: z.number(), neighborGroupId: z.string() }),
   z.object({ type: z.literal("FILTER"), filter: z.enum(["CORNERS", "EDGES", "MIDDLES"]), pieceIds: z.array(z.number()) }),
 ]);
-const snapshotSchema = z.object({
+export const snapshotSchema = z.object({
   version: z.number(),
   groups: z.array(z.object({ id: z.string(), pieceIds: z.array(z.number()), x: z.number(), y: z.number(), rotation: z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]), anchored: z.boolean().optional() })),
   connections: z.array(z.object({ a: z.number(), b: z.number() })),
@@ -30,12 +30,12 @@ const snapshotSchema = z.object({
 });
 
 export type SoloAction = { kind: "move"; groupId: string; x: number; y: number } | { kind: "rotate"; groupId: string } | { kind: "connect"; a: number; b: number } | { kind: "anchor"; groupId: string } | { kind: "hint"; hint: PuzzleHintType; confirmPersonal?: boolean; pieceId?: number; filter?: "CORNERS" | "EDGES" | "MIDDLES" | null };
-const hash = (value: string) => createHash("sha256").update(value).digest("hex");
+export const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 const seedFor = (contentKey: string) => hash(`puzzle-v${PUZZLE_GEOMETRY_VERSION}:${contentKey}`).slice(0, 32);
 
-function optionOrder() { const result = [0, 1, 2]; for (let i = result.length - 1; i > 0; i--) { const j = randomInt(i + 1); [result[i], result[j]] = [result[j], result[i]]; } return result; }
+export function optionOrder() { const result = [0, 1, 2]; for (let i = result.length - 1; i > 0; i--) { const j = randomInt(i + 1); [result[i], result[j]] = [result[j], result[i]]; } return result; }
 export type SoloAnswer = JigsawAnswerResult | { alreadyAnswered: true };
-const sessionInclude = { variant: { include: { definition: true } } } as const;
+export const sessionInclude = { variant: { include: { definition: true } } } as const;
 type Session = Prisma.PuzzleSessionGetPayload<{ include: typeof sessionInclude }>;
 
 async function publicState(row: Session, language: string | null | undefined, tx: Prisma.TransactionClient) {
@@ -63,7 +63,7 @@ async function lockSession(tx: Prisma.TransactionClient, userId: string, session
   return tx.puzzleSession.update({ where: { id: row.id }, data: { status: "COMPLETED", completedAt, questionId, optionOrder: row.optionOrder ?? JSON.stringify(optionOrder()), version, snapshot: JSON.stringify({ ...snapshot, version, completedAt: completedAt.toISOString() }) }, include: sessionInclude });
 }
 
-async function definitionFor(content: number | string) {
+export async function definitionFor(content: number | string) {
   const image = typeof content === "number" ? jigsawCatalog[content] : jigsawCatalog.find((item) => item.url === content); if (!image) throw new Error("Ongeldige puzzelafbeelding.");
   // Geometry v1-definities kunnen actieve of historische sessies hebben.
   // Een eigen v2-key houdt die sessies onveranderd leesbaar in plaats van
