@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { getCurrentUser } from "@/lib/session";
+import { getT } from "@/lib/i18n";
+import { chapterTerm, localizeTerm } from "@/lib/chapterTerm";
 import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
 import { ReaderView, type ReaderVerseView } from "@/components/LessonFlow";
@@ -16,10 +18,6 @@ const LANGUAGES = [
   { code: "de", label: "Deutsch" },
 ] as const;
 
-const WORKS = [
-  { value: "old-testament" as const, label: "Oude Testament" },
-  { value: "new-testament" as const, label: "Nieuwe Testament" },
-];
 
 function isWork(value: string | undefined): value is OtbWork {
   return value === "old-testament" || value === "new-testament";
@@ -33,24 +31,28 @@ function numberParam(value: string | undefined): number | null {
 export default async function ContentPreviewPage({
   searchParams,
 }: {
-  searchParams: Promise<{ work?: string; language?: string; book?: string; chapter?: string }>;
+  searchParams: Promise<{ work?: string; language?: string; book?: string; chapter?: string; collectionId?: string }>;
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (!user.isAdmin) redirect("/dashboard");
 
+  const t = getT(user.uiLanguage);
   const query = await searchParams;
   const work = isWork(query.work) ? query.work : "old-testament";
   const language = LANGUAGES.some((item) => item.code === query.language) ? query.language! : "nl";
   const collection = await prisma.contentCollection.findFirst({
-    where: { work, editionKey: "otb", language, enabled: true, ...readingAccessWhere(user, "admin-preview") },
-    select: { id: true, name: true },
+    where: { ...readingAccessWhere(user, "admin-preview"), contentWork: { kind: "SCRIPTURE" }, ...(query.collectionId ? { id: query.collectionId } : { work, language, editionKey: "otb" }) },
+    select: { id: true, name: true, work: true, language: true, editionKey: true },
   });
 
   if (!collection) {
-    return <PreviewShell><EmptyState work={work} language={language} /></PreviewShell>;
+    return <PreviewShell><p className="card text-sm text-vs-fg-3">{t("adminContentInspect.noText")}</p></PreviewShell>;
   }
 
+  const term = chapterTerm(null, collection.id);
+  const displayTerm = localizeTerm(term, t);
+  const exactQuery = query.collectionId ? `collectionId=${encodeURIComponent(collection.id)}&` : "";
   const books = await prisma.book.findMany({
     where: { contentCollectionId: collection.id },
     orderBy: { order: "asc" },
@@ -89,22 +91,24 @@ export default async function ContentPreviewPage({
     <PreviewShell>
       <div className="flex flex-col gap-6">
         {/* De terugknop komt uit SubpageBackBar (terug naar Content en cursussen). */}
-        <PageIntro title="Schriftpreview" text="Alleen-lezenweergave van de verborgen volledige OTB-content." />
+        <PageIntro title={t("adminContentInspect.previewTitle")} text={t("adminContentInspect.previewIntro")} />
+        <p className="text-sm font-bold text-vs-fg-2">{collection.name} · {collection.editionKey} · {collection.language}</p>
 
         <form method="get" className="card grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="flex flex-col gap-1 text-sm font-bold">Schriftwerk
-            <select className="input" name="work" defaultValue={work}><option value="old-testament">Oude Testament</option><option value="new-testament">Nieuwe Testament</option></select>
+          {query.collectionId && <input type="hidden" name="collectionId" value={collection.id} />}
+          <label className="flex flex-col gap-1 text-sm font-bold">{t("adminContentInspect.work")}
+            <select className="input" name="work" disabled={Boolean(query.collectionId)} defaultValue={collection.work ?? work}>{query.collectionId ? <option value={collection.work ?? ""}>{collection.name}</option> : <><option value="old-testament">Oude Testament</option><option value="new-testament">Nieuwe Testament</option></>}</select>
           </label>
-          <label className="flex flex-col gap-1 text-sm font-bold">Taal
-            <select className="input" name="language" defaultValue={language}>{LANGUAGES.map((item) => <option key={item.code} value={item.code}>{item.label}</option>)}</select>
+          <label className="flex flex-col gap-1 text-sm font-bold">{t("adminContentInspect.language")}
+            <select className="input" name="language" disabled={Boolean(query.collectionId)} defaultValue={collection.language}>{LANGUAGES.map((item) => <option key={item.code} value={item.code}>{item.label}</option>)}</select>
           </label>
-          <label className="flex flex-col gap-1 text-sm font-bold">Boek
+          <label className="flex flex-col gap-1 text-sm font-bold">{t("adminContentInspect.book")}
             <select className="input" name="book" defaultValue={selectedBook?.key ?? ""}>{books.map((book) => <option key={book.key ?? book.name} value={book.key ?? ""}>{book.name}</option>)}</select>
           </label>
-          <label className="flex flex-col gap-1 text-sm font-bold">Hoofdstuk
+          <label className="flex flex-col gap-1 text-sm font-bold">{displayTerm.singular}
             <select className="input" name="chapter" defaultValue={chapterNumber ?? ""}>{chapters.map((item) => <option key={item.number} value={item.number}>{item.number}</option>)}</select>
           </label>
-          <button className="btn-primary sm:col-span-2 lg:col-span-4 justify-self-start" type="submit">Toon hoofdstuk</button>
+          <button className="btn-primary sm:col-span-2 lg:col-span-4 justify-self-start" type="submit">{t("adminContentInspect.showChapter")}</button>
         </form>
 
         {chapter && selectedBook ? (
@@ -114,15 +118,16 @@ export default async function ContentPreviewPage({
               bookName={selectedBook.name}
               chapterNumber={chapter.number}
               verses={verses}
-              language={language}
+              term={term}
+              language={collection.language}
               preview
             />
             <div className="flex items-center justify-between gap-3">
-              {previous ? <Link className="btn-secondary" href={`/adminbackend/content-preview?work=${work}&language=${language}&book=${previous.book.key}&chapter=${previous.number}`}>← Vorig hoofdstuk</Link> : <span />}
-              {next ? <Link className="btn-primary" href={`/adminbackend/content-preview?work=${work}&language=${language}&book=${next.book.key}&chapter=${next.number}`}>Volgend hoofdstuk →</Link> : <span />}
+              {previous ? <Link className="btn-secondary" href={`/adminbackend/content-preview?${exactQuery}work=${work}&language=${language}&book=${previous.book.key}&chapter=${previous.number}`}>← {t(`terms.${term.kind}.previous`)}</Link> : <span />}
+              {next ? <Link className="btn-primary" href={`/adminbackend/content-preview?${exactQuery}work=${work}&language=${language}&book=${next.book.key}&chapter=${next.number}`}>{t(`terms.${term.kind}.next`)}</Link> : <span />}
             </div>
           </section>
-        ) : <p className="card text-sm text-slate-500 dark:text-slate-400">Deze verborgen collectie of dit hoofdstuk is nog niet geïmporteerd.</p>}
+        ) : <p className="card text-sm text-vs-fg-3">{t("adminContentInspect.noText")}</p>}
       </div>
     </PreviewShell>
   );
@@ -130,8 +135,4 @@ export default async function ContentPreviewPage({
 
 function PreviewShell({ children }: { children: ReactNode }) {
   return <div className="max-w-4xl mx-auto flex flex-col gap-8">{children}</div>;
-}
-
-function EmptyState({ work, language }: { work: OtbWork; language: string }) {
-  return <div className="card text-sm text-slate-500 dark:text-slate-400">Geen verborgen OTB-collectie gevonden voor {WORKS.find((item) => item.value === work)?.label} · {language}.</div>;
 }

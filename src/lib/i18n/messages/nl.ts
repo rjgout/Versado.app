@@ -5,6 +5,37 @@
 import { kompasNl } from "./kompas/nl";
 
 export const nl = {
+  gameAvailability: { unavailable: "Dit spel is niet beschikbaar voor deze content. Kies een beschikbare activiteit of contentbron." },
+
+  adminContentInspect: {
+    previewTitle: "Schriftpreview",
+    previewIntro: "Alleen-lezenweergave van deze uitgave. Je contentkeuze en voortgang blijven behouden.",
+    showChapter: "Toon hoofdstuk",
+    noText: "Deze uitgave bevat nog geen beschikbare leestekst.",
+    book: "Boek",
+
+    "title": "Beheercontent bekijken",
+    "intro": "Inspecteer alle werken en uitgaven. Een preview verandert geen contentkeuze of voortgang.",
+    "work": "Werk",
+    "edition": "Uitgavefamilie",
+    "language": "Contenttaal",
+    "all": "Alle",
+    "collections": "Collecties",
+    "empty": "Geen collecties gevonden.",
+    "previewAvailable": "Preview beschikbaar",
+    "previewUnsupported": "Preview niet ondersteund",
+    "preview": "Open preview",
+    "fsy": "Open bestaand FSY-beheer",
+    "unsupported": "Deze bron heeft nog geen veilige previewreader.",
+    "enabled": "Ingeschakeld",
+    "disabled": "Uitgeschakeld",
+    "visible": "Zichtbaar",
+    "hidden": "Verborgen",
+    "publication": "Publicatiestatus",
+    "unmapped": "Werkidentiteit ontbreekt",
+    "failed": "Het overzicht kon niet worden geladen."
+},
+
   adminInventory: {
     "title": "Database-inventarisatie",
     "intro": "Controleer de werkelijke content, identiteiten en migraties. Alleen-lezen; geen wijzigingen of persoonsgegevens in het rapport.",

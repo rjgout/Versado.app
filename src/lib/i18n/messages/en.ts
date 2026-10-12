@@ -3,6 +3,37 @@ import { kompasEn } from "./kompas/en";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const en: PartialMessages = {
+  gameAvailability: { unavailable: "This game is not available for this content. Choose an available activity or content source." },
+
+  adminContentInspect: {
+    previewTitle: "Scripture preview",
+    previewIntro: "Read-only view of this edition. Your content selection and progress are preserved.",
+    showChapter: "Show chapter",
+    noText: "This edition has no available reading text yet.",
+    book: "Book",
+
+    "title": "Inspect managed content",
+    "intro": "Inspect all works and editions. Previewing does not change your content selection or progress.",
+    "work": "Work",
+    "edition": "Edition family",
+    "language": "Content language",
+    "all": "All",
+    "collections": "Collections",
+    "empty": "No collections found.",
+    "previewAvailable": "Preview available",
+    "previewUnsupported": "Preview not supported",
+    "preview": "Open preview",
+    "fsy": "Open existing FSY management",
+    "unsupported": "This source has no supported safe preview reader yet.",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "visible": "Visible",
+    "hidden": "Hidden",
+    "publication": "Publication status",
+    "unmapped": "Missing work identity",
+    "failed": "Could not load the overview."
+},
+
   adminInventory: {
     "title": "Database inventory",
     "intro": "Inspect actual content, identities and migrations. Read only; no changes or personal data in the report.",

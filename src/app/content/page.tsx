@@ -7,5 +7,5 @@ export default async function ContentPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   const [initialData, sessionKey] = await Promise.all([getContentPickerContext(user.id), navigationSessionKey()]);
-  return <FullscreenContentPicker initialData={initialData} sessionKey={sessionKey} />;
+  return <FullscreenContentPicker initialData={initialData} sessionKey={sessionKey} isAdmin={user.isAdmin} />;
 }

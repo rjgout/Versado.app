@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Check, ChevronRight, Globe2, LoaderCircle } from "lucide-react";
@@ -14,7 +15,7 @@ import { fetchJson } from "@/lib/data/fetchJson";
 import { pickerGroup, resolvePickerEdition, type ContentPickerContext, type PickerEdition, type PickerWork } from "@/lib/contentPickerContract";
 import type { SwitchResult } from "@/lib/contentSwitch";
 
-export default function FullscreenContentPicker({ initialData, sessionKey }: { initialData: ContentPickerContext; sessionKey: string }) {
+export default function FullscreenContentPicker({ initialData, sessionKey, isAdmin = false }: { initialData: ContentPickerContext; sessionKey: string; isAdmin?: boolean }) {
   const t = useT();
   const router = useRouter();
   const search = useSearchParams();
@@ -90,21 +91,6 @@ export default function FullscreenContentPicker({ initialData, sessionKey }: { i
   }
   return <div data-content-picker aria-busy={busy} className="page-fill vs-motion mx-auto flex w-full max-w-5xl flex-col gap-5 pb-6">
     <div ref={titleRef}><PageIntro title={t("contentSwitcher.picker.title")} text={t("contentSwitcher.picker.intro")} /></div>
-    <section data-content-language aria-labelledby="content-language-title" className="rounded-2xl border border-vs-line bg-vs-surface p-2.5 shadow-sm sm:p-3">
-      <h2 id="content-language-title" className="flex items-center gap-2 text-sm font-extrabold text-vs-fg"><Globe2 className="h-4 w-4 shrink-0 text-vs-accent" aria-hidden />{t("contentSwitcher.picker.language")}</h2>
-      <p className="mt-1 text-xs leading-relaxed text-vs-fg-3">{t("contentSwitcher.picker.languageHelp")}</p>
-      <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label={t("contentSwitcher.picker.language")}>
-        {LANGUAGES.map(item => {
-          const unavailable = !activeWork || resolvePickerEdition(activeWork, item.code, active).kind === "unavailable";
-          const selected = language === item.code;
-          return <button key={item.code} type="button" aria-pressed={selected} aria-disabled={unavailable || busy}
-            onClick={() => { if (!locked.current) { if (activeWork) choose(activeWork, item.code); else setMessage("unavailableLanguage"); } }}
-            className={`inline-flex min-h-11 flex-wrap items-center justify-center gap-0.5 max-w-full whitespace-nowrap rounded-full border px-2 py-2 text-sm font-bold transition ${selected ? "border-vs-accent bg-vs-accent-soft text-vs-accent" : "border-vs-line text-vs-fg-2 hover:border-vs-accent"} ${unavailable ? "opacity-50" : ""} ${focusClass}`}>
-            {selected && <Check className="h-3 w-3 shrink-0" aria-hidden />}{item.nativeName}
-          </button>;
-        })}
-      </div>
-    </section>
     <div aria-live="polite" aria-atomic="true" className="empty:hidden">
       {busy && <p role="status" className="flex items-center gap-2 text-sm font-semibold text-vs-fg-2"><LoaderCircle className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden />{t("contentSwitcher.picker.loading")}</p>}
       {(message || Boolean(query.error)) && <div role="alert" className="rounded-2xl border border-vs-line bg-vs-elevated p-3 text-sm text-vs-fg"><p>{t(`contentSwitcher.picker.${message ?? "error"}`)}</p><button type="button" className="btn-secondary mt-2 min-h-11" onClick={() => { setMessage(null); void query.refetch(); }}>{t("contentSwitcher.picker.retry")}</button></div>}
@@ -150,5 +136,21 @@ export default function FullscreenContentPicker({ initialData, sessionKey }: { i
       </div>
       {!works.some(work => pickerGroup(work.kind) === group) && <p className="rounded-2xl border border-dashed border-vs-line p-4 text-sm text-vs-fg-3">{t(group === "studyPrograms" ? "contentSwitcher.picker.emptyPrograms" : "contentSwitcher.picker.empty")}</p>}
     </section>)}
+    <section data-content-language aria-labelledby="content-language-title" className="rounded-2xl border border-vs-line bg-vs-surface p-2.5 shadow-sm sm:p-3">
+      <h2 id="content-language-title" className="flex items-center gap-2 text-sm font-extrabold text-vs-fg"><Globe2 className="h-4 w-4 shrink-0 text-vs-accent" aria-hidden />{t("contentSwitcher.picker.language")}</h2>
+      <p className="mt-1 text-xs leading-relaxed text-vs-fg-3">{t("contentSwitcher.picker.languageHelp")}</p>
+      <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label={t("contentSwitcher.picker.language")}>
+        {LANGUAGES.map(item => {
+          const unavailable = !activeWork || resolvePickerEdition(activeWork, item.code, active).kind === "unavailable";
+          const selected = language === item.code;
+          return <button key={item.code} type="button" aria-pressed={selected} aria-disabled={unavailable || busy}
+            onClick={() => { if (!locked.current) { if (activeWork) choose(activeWork, item.code); else setMessage("unavailableLanguage"); } }}
+            className={`inline-flex min-h-11 flex-wrap items-center justify-center gap-0.5 max-w-full whitespace-nowrap rounded-full border px-2 py-2 text-sm font-bold transition ${selected ? "border-vs-accent bg-vs-accent-soft text-vs-accent" : "border-vs-line text-vs-fg-2 hover:border-vs-accent"} ${unavailable ? "opacity-50" : ""} ${focusClass}`}>
+            {selected && <Check className="h-3 w-3 shrink-0" aria-hidden />}{item.nativeName}
+          </button>;
+        })}
+      </div>
+    </section>
+    {isAdmin && <Link data-admin-content-link href="/adminbackend/content/inspect" className={`inline-flex min-h-11 items-center self-start text-sm font-semibold text-vs-fg-3 underline underline-offset-4 hover:text-vs-accent ${focusClass}`}>{t("adminContentInspect.title")}</Link>}
   </div>;
 }
