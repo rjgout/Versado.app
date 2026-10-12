@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import { useLiveQuery } from "@/lib/data/hooks";
@@ -19,7 +20,7 @@ interface Overview {
 // komt uit de live-datalaag (scope "games"), dus ook een uitnodiging van
 // iemand anders verschijnt zonder verversen.
 export default function PuzzleTogetherOverview() {
-  const t = useT();
+  const t = useT(); const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const query = useLiveQuery<Overview>(["puzzle", "overview"], () => fetchJson<Overview>("/api/puzzle/overview"), { scopes: ["games"], staleTime: 5000 });
   const data = query.data;
@@ -46,7 +47,7 @@ export default function PuzzleTogetherOverview() {
             <div key={invite.id} className={row}>
               <span className="text-sm">{t("puzzleTogether.overview.coopInvite", { name: invite.from })}</span>
               <span className="flex gap-2">
-                <button type="button" className={`${btn} bg-emerald-600 text-white`} onClick={() => void post("/api/puzzle/coop", { action: "respond", sessionId: invite.sessionId, accept: true }).then(() => { window.location.assign(`/jigsaw/samen/${invite.sessionId}`); })}>{t("puzzleTogether.overview.accept")}</button>
+                <button type="button" className={`${btn} bg-emerald-600 text-white`} onClick={() => void post("/api/puzzle/coop", { action: "respond", sessionId: invite.sessionId, accept: true }).then(() => { router.push(`/jigsaw/samen/${invite.sessionId}`); })}>{t("puzzleTogether.overview.accept")}</button>
                 <button type="button" className={`${btn} border border-slate-300`} onClick={() => void post("/api/puzzle/coop", { action: "respond", sessionId: invite.sessionId, accept: false })}>{t("puzzleTogether.overview.decline")}</button>
               </span>
             </div>
@@ -55,7 +56,7 @@ export default function PuzzleTogetherOverview() {
             <div key={match.id} className={row}>
               <span className="text-sm">{t(match.kind === "LIVE" ? "puzzleTogether.overview.matchInviteLive" : "puzzleTogether.overview.matchInvite", { name: match.organizer })}</span>
               <span className="flex gap-2">
-                <button type="button" className={`${btn} bg-emerald-600 text-white`} onClick={() => void post("/api/puzzle/match", { action: "respond", matchId: match.id, accept: true }).then(() => { window.location.assign(`/jigsaw/wedstrijd/${match.id}`); })}>{t("puzzleTogether.overview.accept")}</button>
+                <button type="button" className={`${btn} bg-emerald-600 text-white`} onClick={() => void post("/api/puzzle/match", { action: "respond", matchId: match.id, accept: true }).then(() => { router.push(`/jigsaw/wedstrijd/${match.id}`); })}>{t("puzzleTogether.overview.accept")}</button>
                 <button type="button" className={`${btn} border border-slate-300`} onClick={() => void post("/api/puzzle/match", { action: "respond", matchId: match.id, accept: false })}>{t("puzzleTogether.overview.decline")}</button>
               </span>
             </div>

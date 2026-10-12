@@ -109,6 +109,8 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
 
   // Verversen bij openen, focus en terugkeer via de centrale live-data-laag.
   const live = useLiveQuery<CoopState>(["puzzle", "coop", initial.id], async () => await post({ action: "state", sessionId: initial.id }) as unknown as CoopState, { scopes: ["games"], staleTime: 5000, initialData: initial });
+  // Synchroniseert de lokale kopie met de live-datalaag (externe bron), geen afgeleide state.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (live.data && live.data.version > version.current) adopt(live.data); else if (live.data) { setState((current) => ({ ...current, participants: live.data!.participants, invites: live.data!.invites })); } }, [live.data, adopt]);
 
   useEffect(() => {
@@ -171,6 +173,8 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
 
   const colorOf = useCallback((userId: string) => colors.get(userId) ?? "#64748b", [colors]);
   const handleOf = useCallback((userId: string) => state.participants.find((participant) => participant.userId === userId)?.handle ?? "", [state.participants]);
+  // Alleen voor de tekstmelding; de lease-einde bepaalt hier of de ander nog vasthoudt.
+  // eslint-disable-next-line react-hooks/purity
   const holder = locks.find((lock) => lock.userId !== meId && Date.parse(lock.expiresAt) > Date.now());
 
   async function requestHint(type: PuzzleHintType, filter?: Exclude<PuzzleFilter, null>, confirmPersonal = false) {
@@ -236,6 +240,8 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
             {!isOwner && <button type="button" className="btn-secondary mt-1 min-h-11 w-full justify-start text-left" onClick={() => { setMenuOpen(false); void leave(); }}>{t("puzzleTogether.coop.leave")}</button>}
             <button type="button" className="btn-secondary mt-1 min-h-11 w-full justify-start text-left" onClick={back}>{t("puzzleTogether.coop.back")}</button>
           </div>}
+          {/* De snapshot staat in een ref om elke sleepbeweging niet te laten renderen; paintKey ververst dit paneel. */}
+          {/* eslint-disable-next-line react-hooks/refs */}
           {hintsOpen && <PuzzleHintPanel returnFocus={menuButton} includedRemaining={policyIncluded} snapshot={snapshot.current} difficulty={state.difficulty} rulesVersion={state.rulesVersion} selected={selected} canConnect={puzzleHintTarget(snapshot.current, geometry, "CONNECTION", selected ?? undefined) !== null} hintBalance={inventory.data?.hintBalance ?? null} inventoryBusy={inventory.isFetching} inventoryError={!!inventory.error} busy={busyHint} active={hint !== null} error={error} onRefresh={() => void inventory.refetch()} onShop={() => router.push("/shop")} onUse={(type, filter, confirmed) => void requestHint(type, filter, confirmed)} onClose={() => { setHintsOpen(false); menuButton.current?.focus(); }} />}
         </div>
         <p aria-live="polite" className="sr-only">{message || (connected ? t("puzzleTogether.coop.synced") : t("puzzleTogether.coop.reconnecting"))}</p>

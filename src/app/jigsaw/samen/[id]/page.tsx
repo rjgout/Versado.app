@@ -12,10 +12,12 @@ export default async function CoopPuzzlePage({ params }: { params: Promise<{ id:
   const [settings, context] = await Promise.all([getGameSettings(), getContentContext(user.id)]);
   if ((!settings.jigsawEnabled && !user.isAdmin) || !context.gameKeys.includes("jigsaw")) redirect("/live");
   const { id } = await params;
+  let state: Awaited<ReturnType<typeof getCoopState>>;
   try {
-    return <CoopClient initial={await getCoopState(user.id, id)} meId={user.id} />;
+    state = await getCoopState(user.id, id);
   } catch (error) {
     if (error instanceof PuzzleServiceError) redirect("/jigsaw");
     throw error;
   }
+  return <CoopClient initial={state} meId={user.id} />;
 }

@@ -7,7 +7,7 @@ import { recordLearningActivity } from "@/lib/streak";
 import { anchorGroup, connectGroups, isPuzzleComplete, moveGroup, newPuzzleSnapshot, rotateGroup, validPuzzleStructure } from "@/lib/puzzle/engine";
 import { cachedPuzzleGeometry } from "@/lib/puzzle/geometryCache";
 import { applyDelta, mergeDeltas, snapshotDelta, type PuzzleDelta } from "@/lib/puzzle/delta";
-import { activePuzzleHint, puzzleHintTarget } from "@/lib/puzzle/hints";
+import { puzzleHintTarget } from "@/lib/puzzle/hints";
 import { PuzzleServiceError } from "@/lib/puzzle/errors";
 import { sendPuzzleNotice } from "@/lib/puzzle/puzzleNotify";
 import { multiplayerConfig } from "@/lib/puzzle/multiplayerConfig";
@@ -391,7 +391,7 @@ async function announceCoopCompletion(sessionId: string) {
 // --- Persoonlijke hints --------------------------------------------------------------
 
 /** Hints zijn persoonlijk: eigen budget per puzzel, eigen weergave, nooit in de gedeelde snapshot. */
-export async function useCoopHint(userId: string, sessionId: string, actionId: string, request: CoopHintRequest): Promise<{ hint: PuzzleHint | null; hintBalance: number; includedRemaining: number | null; inventoryChanged: boolean }> {
+export async function spendCoopHint(userId: string, sessionId: string, actionId: string, request: CoopHintRequest): Promise<{ hint: PuzzleHint | null; hintBalance: number; includedRemaining: number | null; inventoryChanged: boolean }> {
   let inventoryChanged = false;
   const result = await prisma.$transaction(async (tx) => {
     const row = await lockCoopSession(tx, sessionId);

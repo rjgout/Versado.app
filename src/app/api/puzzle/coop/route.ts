@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { jigsawCatalog } from "@/lib/jigsawGame";
-import { acquireCoopLock, commitCoopAction, createCoopSession, getCoopState, inviteToCoop, leaveCoopSession, listCoopOverview, releaseCoopLocks, renewCoopLock, respondToCoopInvite, revokeCoopInvite, syncCoopState, useCoopHint } from "@/lib/puzzle/coop";
+import { acquireCoopLock, commitCoopAction, createCoopSession, getCoopState, inviteToCoop, leaveCoopSession, listCoopOverview, releaseCoopLocks, renewCoopLock, respondToCoopInvite, revokeCoopInvite, syncCoopState, spendCoopHint } from "@/lib/puzzle/coop";
 import { actionIdSchema, commitSchema, coopCountSchema, difficultySchema, friendIdsSchema, hintRequestSchema, idSchema } from "@/lib/puzzle/schemas";
 import { puzzleErrorResponse, puzzleRouteUser } from "@/lib/puzzle/routeGuard";
 
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       case "lock": return NextResponse.json(await acquireCoopLock(user.id, input.sessionId, input.groupId));
       case "renew": return NextResponse.json(await renewCoopLock(user.id, input.sessionId, input.groupId, input.token));
       case "release": await releaseCoopLocks(user.id, input.sessionId, { groupId: input.groupId, token: input.token }); return NextResponse.json({ ok: true });
-      case "hint": return NextResponse.json(await useCoopHint(user.id, input.sessionId, input.actionId, input.request));
+      case "hint": return NextResponse.json(await spendCoopHint(user.id, input.sessionId, input.actionId, input.request));
       case "leave": await leaveCoopSession(user.id, input.sessionId); return NextResponse.json({ ok: true });
       case "overview": return NextResponse.json(await listCoopOverview(user.id));
     }

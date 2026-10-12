@@ -190,8 +190,6 @@ test("reeks over meerdere kalenderdagen in een gezamenlijke puzzel", { skip }, a
   const invite = await L.db.puzzleInvite.findFirstOrThrow({ where: { sessionId: id, toUserId: b.id } });
   await L.coop.respondToCoopInvite(b.id, invite.id, true);
   const base = new Date();
-  const state = await L.coop.getCoopState(a.id, id);
-  const geometry = L.geometry.cachedPuzzleGeometry(state.pieceCount as 24, state.seed, state.geometryVersion);
   // Elke dag een eigen buurpaar (horizontale buren in de eerste twee rijen), naast elkaar gelegd en verbonden.
   const pairs: [number, number][] = [[0, 1], [2, 3], [4, 5], [6, 7]];
   const hold = async (piece: number, now: Date) => {

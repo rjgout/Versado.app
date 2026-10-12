@@ -23,10 +23,16 @@ export default function MatchClient({ initial, meId }: { initial: MatchView; meI
   const t = useT(); const router = useRouter();
   const query = useLiveQuery<MatchView>(["puzzle", "match", initial.id], () => post<{ match: MatchView }>({ action: "state", matchId: initial.id }).then((r) => r.match), { scopes: ["games"], staleTime: 3000, initialData: initial });
   const match = query.data ?? initial;
-  const received = useRef(Date.now()); const [offset, setOffset] = useState(match.serverNow - Date.now());
-  useEffect(() => { setOffset(match.serverNow - Date.now()); received.current = Date.now(); }, [match.serverNow]);
-  const [now, setNow] = useState(() => Date.now() + offset);
-  useEffect(() => { const handle = window.setInterval(() => setNow(Date.now() + offset), 250); return () => window.clearInterval(handle); }, [offset]);
+  // Verschil tussen de serverklok en de toestelklok, vastgelegd op het moment dat de stand binnenkwam.
+  // Alleen de weergave van de aftelling en de klok gebruikt dit; de server beslist over alle tijden.
+  const [offset, setOffset] = useState(0);
+  const [now, setNow] = useState(initial.serverNow);
+  useEffect(() => {
+    const next = match.serverNow - Date.now();
+    const handle = window.setInterval(() => setNow(Date.now() + next), 250);
+    queueMicrotask(() => { setOffset(next); setNow(Date.now() + next); });
+    return () => window.clearInterval(handle);
+  }, [match.serverNow]);
   const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
   const [puzzle, setPuzzle] = useState<PuzzleState | null>(null);
   const goBack = useCallback(() => router.push("/jigsaw"), [router]);
@@ -39,7 +45,6 @@ export default function MatchClient({ initial, meId }: { initial: MatchView; meI
     finally { setBusy(false); }
   };
 
-  const me = match.participants.find((p) => p.userId === meId);
   const startsAt = match.startsAt ? Date.parse(match.startsAt) : null;
   const countdown = startsAt !== null && startsAt > now ? Math.ceil((startsAt - now) / 1000) : 0;
   const playing = match.me.status === "PLAYING" && match.status === "RUNNING" && countdown === 0;

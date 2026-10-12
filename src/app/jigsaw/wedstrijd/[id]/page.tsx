@@ -12,10 +12,12 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const [settings, context] = await Promise.all([getGameSettings(), getContentContext(user.id)]);
   if ((!settings.jigsawEnabled && !user.isAdmin) || !context.gameKeys.includes("jigsaw")) redirect("/live");
   const { id } = await params;
+  let state: Awaited<ReturnType<typeof getMatch>>;
   try {
-    return <MatchClient initial={await getMatch(user.id, id)} meId={user.id} />;
+    state = await getMatch(user.id, id);
   } catch (error) {
     if (error instanceof PuzzleServiceError) redirect("/jigsaw");
     throw error;
   }
+  return <MatchClient initial={state} meId={user.id} />;
 }

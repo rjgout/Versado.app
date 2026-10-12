@@ -204,18 +204,18 @@ test("hints zijn persoonlijk: eigen budget per deelnemer, geen overdracht, geen 
   const id = await session(a.id, [b.id], "EXPERT"); // 2 inbegrepen hints per speler
   await L.coop.respondToCoopInvite(b.id, (await L.db.puzzleInvite.findFirstOrThrow({ where: { sessionId: id } })).id, true);
   const before = (await world(id)).state;
-  const hint = (n: number) => L.coop.useCoopHint(a.id, id, randomUUID(), { hint: "PREVIEW" });
+  const hint = () => L.coop.spendCoopHint(a.id, id, randomUUID(), { hint: "PREVIEW" });
   const expire = () => L.db.puzzleSessionParticipant.updateMany({ where: { sessionId: id, userId: a.id }, data: { activeHint: null } });
-  const first = await hint(1); assert.ok(first.hint && !first.hint.extra); await expire();
-  await hint(2); await expire();
-  assert.equal(await code(hint(3)), "HINT_CONFIRM", "inbegrepen op, nu persoonlijk saldo");
-  const paid = await L.coop.useCoopHint(a.id, id, randomUUID(), { hint: "PREVIEW", confirmPersonal: true });
+  const first = await hint(); assert.ok(first.hint && !first.hint.extra); await expire();
+  await hint(); await expire();
+  assert.equal(await code(hint()), "HINT_CONFIRM", "inbegrepen op, nu persoonlijk saldo");
+  const paid = await L.coop.spendCoopHint(a.id, id, randomUUID(), { hint: "PREVIEW", confirmPersonal: true });
   assert.equal(paid.hintBalance, 0); assert.ok(paid.hint?.extra);
   await expire();
-  assert.equal(await code(L.coop.useCoopHint(a.id, id, randomUUID(), { hint: "PREVIEW", confirmPersonal: true })), "HINT_EMPTY", "geen negatief saldo");
+  assert.equal(await code(L.coop.spendCoopHint(a.id, id, randomUUID(), { hint: "PREVIEW", confirmPersonal: true })), "HINT_EMPTY", "geen negatief saldo");
   assert.equal((await get(a.id)).hintBalance, 0);
   // B heeft zijn eigen inbegrepen budget en ziet de hint van A niet.
-  const own = await L.coop.useCoopHint(b.id, id, randomUUID(), { hint: "PREVIEW" });
+  const own = await L.coop.spendCoopHint(b.id, id, randomUUID(), { hint: "PREVIEW" });
   assert.ok(own.hint && !own.hint.extra && own.includedRemaining === 1);
   const seenByB = await L.coop.getCoopState(b.id, id);
   assert.equal(seenByB.me.hint?.actionId, own.hint?.actionId);
