@@ -433,6 +433,7 @@ export const nl = {
       yourTurn: "Jouw beurt tegen {name}",
       liveActive: "Je speelt nog mee",
       soloActive: "Je was hier nog mee bezig",
+      puzzleBegin: "Begin jouw puzzelwedstrijd",
     },
     cta: {
       accept: "Accepteer",
@@ -1651,6 +1652,8 @@ export const nl = {
     end: "Beëindigen",
     cancel: "Annuleren",
     lobbySuffix: " (lobby)",
+    puzzleCoop: "Legpuzzel samen · {n} stukken",
+    puzzleMatch: "Puzzelwedstrijd · {n} stukken",
     soloChapterGuess: "{name} ({level}) — vraag {n}/{total}",
     attentionCount: "{n} acties vragen je aandacht",
     viewAllActions: "Bekijk alle {n} acties",

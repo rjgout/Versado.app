@@ -192,24 +192,57 @@ test("reeks over meerdere kalenderdagen in een gezamenlijke puzzel", { skip }, a
   const base = new Date();
   const state = await L.coop.getCoopState(a.id, id);
   const geometry = L.geometry.cachedPuzzleGeometry(state.pieceCount as 24, state.seed, state.geometryVersion);
-  // Verbind steeds een nieuw buurpaar; elke verbinding op een andere dag.
-  const pairs: [number, number][] = [];
-  for (let piece = 0; piece + 1 < geometry.grid.columns && pairs.length < 4; piece++) pairs.push([piece, piece + 1]);
-  const streakOf = async () => (await get(a.id)).currentStreak;
-  const days = [0, 1, 2, 6];
+  // Elke dag een eigen buurpaar (horizontale buren in de eerste twee rijen), naast elkaar gelegd en verbonden.
+  const pairs: [number, number][] = [[0, 1], [2, 3], [4, 5], [6, 7]];
+  const hold = async (piece: number, now: Date) => {
+    const current = await L.coop.getCoopState(a.id, id);
+    const group = current.snapshot.groups.find((g) => g.pieceIds.includes(piece))!;
+    const lock = await L.coop.acquireCoopLock(a.id, id, group.id, now);
+    assert.ok(lock.ok); return { groupId: group.id, token: lock.ok ? lock.token : "" };
+  };
+  const send = (operation: import("../src/lib/puzzle/coop").CoopOperation, token: string, now: Date) => L.coop.commitCoopAction(a.id, id, { actionId: randomUUID(), lockToken: token, operation, now });
   const result: number[] = [];
+  const days = [0, 1, 2, 6];
   for (const [index, offset] of days.entries()) {
     const now = new Date(base.getTime() + offset * 86_400_000);
-    const current = await L.coop.getCoopState(a.id, id);
-    const [x, y] = pairs[index];
-    const g = (piece: number) => current.snapshot.groups.find((group) => group.pieceIds.includes(piece))!;
-    const lock = await L.coop.acquireCoopLock(a.id, id, g(x).id, now);
-    assert.ok(lock.ok);
-    const done = await L.coop.commitCoopAction(a.id, id, { actionId: randomUUID(), lockToken: lock.ok ? lock.token : undefined, operation: { kind: "connect", a: x, b: y }, now });
+    const [one, two] = pairs[index]; const y = 3 + index;
+    const l1 = await hold(one, now); await send({ kind: "move", groupId: l1.groupId, x: 3, y }, l1.token, now); await L.coop.releaseCoopLocks(a.id, id);
+    const l2 = await hold(two, now); await send({ kind: "move", groupId: l2.groupId, x: 4, y }, l2.token, now); await L.coop.releaseCoopLocks(a.id, id);
+    const l3 = await hold(two, now);
+    const done = await send({ kind: "connect", a: two, b: one }, l3.token, now);
     assert.ok(done.delta, "verbinding gemaakt");
-    result.push(await streakOf());
-    // Tweede verbinding op dezelfde dag telt niet nog een keer: wordt hieronder niet gemaakt, maar de claim is uniek per dag.
+    await L.coop.releaseCoopLocks(a.id, id);
+    result.push((await get(a.id)).currentStreak);
   }
-  assert.deepEqual(result, [4, 5, 6, 1], "drie opeenvolgende dagen +1, na een gat van meerdere dagen opnieuw 1");
-  assert.equal(await L.db.puzzleSessionParticipant.count({ where: { sessionId: id } }), 2);
+  // Drie opeenvolgende dagen verlengen de reeks elk met één. Na een gat van meerdere dagen geldt
+  // de bestaande terugkeerregel: de reeks wordt niet stilletjes opgehoogd, maar de eerste
+  // activiteit telt mee voor de terugkeer.
+  assert.deepEqual(result.slice(0, 3), [4, 5, 6]);
+  const returned = await get(a.id);
+  assert.equal(result[3], 6, "na een gat verlengt één verbinding de reeks niet zelf");
+  assert.ok(returned.streakInterruptedDay, "de reeks staat in de terugkeerstand");
+  assert.equal(returned.streakReturnCount, 1, "de verbinding telt als eerste terugkeeractiviteit");
+  assert.equal(await L.db.streakActivity.count({ where: { userId: a.id, key: { startsWith: `puzzle-coop:${id}:` } } }), 4, "één claim per kalenderdag");
+});
+
+test("actieve spellen en open acties: uitnodigingen, begin jouw puzzel en wachten", { skip }, async () => {
+  const activity = await import("../src/lib/puzzle/activity");
+  const t = (key: string, values?: Record<string, string | number>) => `${key}:${values?.n ?? ""}`;
+  const { people: [a, b], matchId } = await duo("ASYNC");
+  let forB = await activity.getPuzzleActivity(b.id, t as never, undefined);
+  assert.equal(forB.invitesReceived.filter((i) => i.kind === "puzzle-match" && i.id === matchId).length, 1);
+  let forA = await activity.getPuzzleActivity(a.id, t as never, undefined);
+  assert.equal(forA.invitesSent.filter((i) => i.id === matchId).length, 1);
+  assert.equal(forA.activeGames.find((i) => i.id === matchId)!.myTurn, true, "asynchroon: begin jouw puzzel wacht op jou");
+  await L.match.respondToMatchInvite(b.id, matchId, true);
+  await L.match.beginMatchAttempt(a.id, matchId);
+  forA = await activity.getPuzzleActivity(a.id, t as never, undefined);
+  assert.equal(forA.activeGames.find((i) => i.id === matchId)!.myTurn, null, "bezig: verder spelen");
+  const state = await solve(a.id, matchId);
+  await L.match.answerMatch(a.id, matchId, rightChoice(state));
+  forA = await activity.getPuzzleActivity(a.id, t as never, undefined);
+  assert.equal(forA.activeGames.find((i) => i.id === matchId)!.myTurn, false, "klaar: wachten op anderen");
+  forB = await activity.getPuzzleActivity(b.id, t as never, undefined);
+  assert.equal(forB.invitesReceived.length, 0);
+  assert.equal(forB.activeGames.find((i) => i.id === matchId)!.myTurn, true);
 });

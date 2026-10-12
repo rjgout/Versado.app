@@ -715,6 +715,7 @@ export const fr: PartialMessages = {
       yourTurn: "À toi de jouer contre {name}",
       liveActive: "Tu joues encore",
       soloActive: "Tu n’avais pas terminé",
+      puzzleBegin: "Commence ton duel de puzzle",
     },
     cta: {
       accept: "Accepter",
@@ -1165,6 +1166,8 @@ export const fr: PartialMessages = {
     end: "Terminer",
     cancel: "Annuler",
     lobbySuffix: " (salon)",
+    puzzleCoop: "Puzzle à plusieurs · {n} pièces",
+    puzzleMatch: "Duel de puzzle · {n} pièces",
     soloChapterGuess: "{name} ({level}) — question {n}/{total}",
   },
   challenges: {

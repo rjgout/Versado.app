@@ -726,7 +726,8 @@ export const es: PartialMessages = {
       "gameInvite": "{name} te invita a una partida",
       "yourTurn": "Tu turno contra {name}",
       "liveActive": "Sigues en esta partida",
-      "soloActive": "Lo dejaste a medias"
+      "soloActive": "Lo dejaste a medias",
+      "puzzleBegin": "Empieza tu duelo de puzle"
     },
     "cta": {
       "accept": "Aceptar",
@@ -1177,6 +1178,8 @@ export const es: PartialMessages = {
     "end": "Fin",
     "cancel": "Cancelar",
     "lobbySuffix": "(lobby)",
+    "puzzleCoop": "Puzle en equipo · {n} piezas",
+    "puzzleMatch": "Duelo de puzle · {n} piezas",
     "soloChapterGuess": "{name} ({level}) — pregunta {n}/{total}"
   },
   "challenges": {

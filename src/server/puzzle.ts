@@ -4,6 +4,8 @@ import { acquireCoopLock, commitCoopAction, getCoopState, releaseCoopLocks, rene
 import { PuzzleServiceError } from "@/lib/puzzle/errors";
 import { multiplayerConfig } from "@/lib/puzzle/multiplayerConfig";
 import { commitSchema, idSchema } from "@/lib/puzzle/schemas";
+import { getGameSettings } from "@/lib/gameSettings";
+import { prisma } from "@/lib/db";
 
 // Realtime voor Samen puzzelen (Socket.IO + Redis-adapter). De database is de
 // bron van waarheid: elke definitieve actie loopt door dezelfde servicefuncties
@@ -42,14 +44,30 @@ async function announcePresence(io: SocketIOServer, sessionId: string) {
 }
 
 export function registerPuzzleHandlers(io: SocketIOServer, socket: Socket, user: { id: string }) {
+  // Dezelfde schakelaar als de HTTP-routes: een beheerder die de legpuzzel uitzet, stopt ook de
+  // socket-acties (kort gecachet, zodat sleepverkeer geen database-aanvraag per bericht kost).
+  let allowedUntil = 0; let allowed = false;
+  const enabled = async () => {
+    const now = Date.now();
+    if (now < allowedUntil) return allowed;
+    const [settings, account] = await Promise.all([getGameSettings(), prisma.user.findUnique({ where: { id: user.id }, select: { isAdmin: true } })]);
+    allowed = settings.jigsawEnabled || account?.isAdmin === true; allowedUntil = now + 15_000;
+    return allowed;
+  };
+  const guarded = (run: (payload: unknown, reply: Ack) => Promise<void> | void) => async (payload: unknown, ack?: Ack) => {
+    const reply = call(ack);
+    if (!(await enabled().catch(() => false))) return reply({ ok: false, code: "FORBIDDEN" });
+    await run(payload, reply);
+  };
+
   // Per socket: in welke puzzels, welke lock-tokens dit socket verkreeg, en een
   // eenvoudige emmer tegen overmatig sleepverkeer (bij 150-300 stukken).
   const joined = new Map<string, Set<string>>();
   const heldUntil = new Map<string, number>();
   let bucket = multiplayerConfig().dragMessagesPerSecond; let refilled = Date.now();
 
-  socket.on("puzzle:join", async (payload: unknown, ack?: Ack) => {
-    const reply = call(ack); const parsed = sessionPayload.safeParse(payload);
+  socket.on("puzzle:join", guarded(async (payload, reply) => {
+    const parsed = sessionPayload.safeParse(payload);
     if (!parsed.success) return reply({ ok: false, code: "INVALID" });
     try {
       const state = await getCoopState(user.id, parsed.data.sessionId);
@@ -58,7 +76,7 @@ export function registerPuzzleHandlers(io: SocketIOServer, socket: Socket, user:
       reply({ ok: true, state });
       void announcePresence(io, state.id);
     } catch (error) { reply(failure(error)); }
-  });
+  }));
 
   const leaveRoom = async (sessionId: string) => {
     const tokens = joined.get(sessionId);
@@ -75,31 +93,31 @@ export function registerPuzzleHandlers(io: SocketIOServer, socket: Socket, user:
     await leaveRoom(parsed.data.sessionId); reply({ ok: true });
   });
 
-  socket.on("puzzle:sync", async (payload: unknown, ack?: Ack) => {
-    const reply = call(ack); const parsed = syncPayload.safeParse(payload);
+  socket.on("puzzle:sync", guarded(async (payload, reply) => {
+    const parsed = syncPayload.safeParse(payload);
     if (!parsed.success) return reply({ ok: false, code: "INVALID" });
     try { reply({ ok: true, ...(await syncCoopState(user.id, parsed.data.sessionId, parsed.data.version)) }); } catch (error) { reply(failure(error)); }
-  });
+  }));
 
-  socket.on("puzzle:lock", async (payload: unknown, ack?: Ack) => {
-    const reply = call(ack); const parsed = lockPayload.safeParse(payload);
+  socket.on("puzzle:lock", guarded(async (payload, reply) => {
+    const parsed = lockPayload.safeParse(payload);
     if (!parsed.success) return reply({ ok: false, code: "INVALID" });
     try {
       const result = await acquireCoopLock(user.id, parsed.data.sessionId, parsed.data.groupId);
       if (result.ok) { joined.get(parsed.data.sessionId)?.add(result.token); heldUntil.set(`${parsed.data.sessionId}:${parsed.data.groupId}`, Date.parse(result.expiresAt)); }
       reply(result);
     } catch (error) { reply(failure(error)); }
-  });
+  }));
 
-  socket.on("puzzle:renew", async (payload: unknown, ack?: Ack) => {
-    const reply = call(ack); const parsed = renewPayload.safeParse(payload);
+  socket.on("puzzle:renew", guarded(async (payload, reply) => {
+    const parsed = renewPayload.safeParse(payload);
     if (!parsed.success) return reply({ ok: false, code: "INVALID" });
     try {
       const result = await renewCoopLock(user.id, parsed.data.sessionId, parsed.data.groupId, parsed.data.token);
       if (result.ok && result.expiresAt) heldUntil.set(`${parsed.data.sessionId}:${parsed.data.groupId}`, Date.parse(result.expiresAt));
       reply(result);
     } catch (error) { reply(failure(error)); }
-  });
+  }));
 
   socket.on("puzzle:release", async (payload: unknown, ack?: Ack) => {
     const reply = call(ack); const parsed = releasePayload.safeParse(payload);
@@ -111,11 +129,11 @@ export function registerPuzzleHandlers(io: SocketIOServer, socket: Socket, user:
     } catch (error) { reply(failure(error)); }
   });
 
-  socket.on("puzzle:commit", async (payload: unknown, ack?: Ack) => {
-    const reply = call(ack); const parsed = commitSchema.safeParse(payload);
+  socket.on("puzzle:commit", guarded(async (payload, reply) => {
+    const parsed = commitSchema.safeParse(payload);
     if (!parsed.success) return reply({ ok: false, code: "INVALID" });
     try { reply(await commitCoopAction(user.id, parsed.data.sessionId, parsed.data)); } catch (error) { reply(failure(error)); }
-  });
+  }));
 
   // Tijdelijke beweging: alleen doorgegeven, nooit opgeslagen. Alleen voor een
   // groep die dit socket zelf vasthoudt en alleen binnen de snelheidsgrens.
