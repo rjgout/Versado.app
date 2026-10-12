@@ -7,6 +7,8 @@ import { liveMutation } from "@/lib/data/mutation";
 import NextImage from "next/image";
 import { Ellipsis, RotateCw, Lightbulb } from "lucide-react";
 import PuzzleHintPanel from "@/components/PuzzleHintPanel";
+import FriendPicker from "@/components/FriendPicker";
+import PuzzleTogetherOverview from "@/components/puzzle/PuzzleTogetherOverview";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { useT } from "@/components/I18nProvider";
 import { createPuzzleGeometry, tracePuzzleGroup } from "@/lib/puzzle/geometry";
@@ -27,6 +29,9 @@ type Pan = { pointer: number; point: Point; camera: PuzzleCamera };
 type Pinch = { distance: number; world: Point; scale: number };
 type Stage = "BOARD" | "COMPLETE" | "QUESTION" | "RESULT";
 
+type Mode = "SOLO" | "COOP" | "MATCH";
+type Chosen = { id: string; handle: string };
+const COUNTS: Record<Mode, number[]> = { SOLO: [6, 12, 24, 48, 96], COOP: [24, 48, 96, 150, 300], MATCH: [6, 12, 24, 48, 96] };
 const KEY = "versado:jigsaw-v2-session";
 const PAGE_SIZE = 24;
 const difficulties: PuzzleDifficulty[] = ["DISCOVERER", "ADVENTURER", "EXPERT", "MASTER"];
@@ -56,7 +61,8 @@ function remember(id: string | null) { try { if (id) localStorage.setItem(KEY, i
 function distance(one: Point, two: Point) { return Math.hypot(one.x - two.x, one.y - two.y); }
 
 export default function JigsawV2Client({ images }: { images: Array<{ url: string; story: number }> }) {
-  const t = useT();
+  const t = useT(); const router = useRouter();
+  const [mode, setMode] = useState<Mode>("SOLO"); const [chosen, setChosen] = useState<Chosen[]>([]); const [pickerOpen, setPickerOpen] = useState(false); const [matchKind, setMatchKind] = useState<"LIVE" | "ASYNC">("ASYNC");
   const [state, setState] = useState<State | null>(null);
   const [imageId, setImageId] = useState<string | null>(null);
   const [pieceCount, setPieceCount] = useState<PuzzlePieceCount>(24);
@@ -90,6 +96,18 @@ export default function JigsawV2Client({ images }: { images: Array<{ url: string
   const { pages, currentPage: activePage, items: visible } = puzzleCatalogPage(filtered, page, PAGE_SIZE);
   const selectedImage = visible.find((image) => image.src === imageId);
 
+  async function startTogether() {
+    if (starting.current || !selectedImage || chosen.length === 0) return;
+    starting.current = true; setIsStarting(true); setError("");
+    try {
+      const friendIds = chosen.map((friend) => friend.id);
+      const response = await fetch(mode === "COOP" ? "/api/puzzle/coop" : "/api/puzzle/match", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(mode === "COOP" ? { action: "create", imageId: selectedImage.src, pieceCount, difficulty, friendIds } : { action: "create", imageId: selectedImage.src, pieceCount, difficulty, friendIds, kind: matchKind }) });
+      const data = await response.json().catch(() => null) as { sessionId?: string; matchId?: string; error?: string } | null;
+      if (!response.ok || !data) throw new Error(data?.error ?? "");
+      router.push(mode === "COOP" ? `/jigsaw/samen/${data.sessionId}` : `/jigsaw/wedstrijd/${data.matchId}`);
+    } catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed")); starting.current = false; setIsStarting(false); }
+  }
+
   async function start(previous?: State) {
     if (starting.current || (!previous && !selectedImage)) return;
     starting.current = true; setIsStarting(true); setLoading(true); setError("");
@@ -102,13 +120,19 @@ export default function JigsawV2Client({ images }: { images: Array<{ url: string
   if (loading && !isStarting) return <FocusLayout><p role="status">{t("common.loading")}</p></FocusLayout>;
   return <FocusLayout className="max-w-5xl gap-5">
     <header><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.title")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.intro")}</p></header>
+    <PuzzleTogetherOverview />
+    <section aria-labelledby="jigsaw-mode"><h2 id="jigsaw-mode" className="font-bold">{t("puzzleTogether.modes.title")}</h2><div className="mt-3 grid gap-2 sm:grid-cols-3" role="group" aria-labelledby="jigsaw-mode">{(["SOLO", "COOP", "MATCH"] as const).map((value) => <button type="button" key={value} aria-pressed={mode === value} onClick={() => { setMode(value); if (!COUNTS[value].includes(pieceCount)) setPieceCount(24); }} className={`btn-secondary min-h-11 flex-col items-start text-left ${mode === value ? "!border-vs-xp !bg-vs-xp/15" : ""}`}><span className="block font-semibold">{t(value === "SOLO" ? "puzzleTogether.modes.solo" : value === "COOP" ? "puzzleTogether.modes.coop" : "puzzleTogether.modes.match")}</span><span className="mt-1 block text-sm font-normal normal-case tracking-normal">{t(value === "SOLO" ? "puzzleTogether.modes.soloHelp" : value === "COOP" ? "puzzleTogether.modes.coopHelp" : "puzzleTogether.modes.matchHelp")}</span></button>)}</div></section>
     <section aria-labelledby="jigsaw-image-choice"><div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="jigsaw-image-choice" className="font-bold">{t("jigsaw.chooseImage")}</h2><p className="text-sm text-vs-fg-2">{t("jigsaw.catalogCount", { n: images.length })}</p></div><label className="min-w-[min(100%,16rem)] text-sm font-semibold">{t("jigsaw.searchImages")}<input value={query} onChange={(event) => { setQuery(event.target.value); setPage(0); }} className="input mt-1 w-full" /></label></div>
       {visible.length ? <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">{visible.map(({ src, label, category }) => <button key={src} type="button" onClick={() => setImageId(src)} aria-pressed={imageId === src} className={`min-w-0 overflow-hidden rounded-xl border-2 text-left ${imageId === src ? "border-vs-xp" : "border-vs-line"}`}><NextImage src={src} alt="" width={240} height={180} unoptimized loading="lazy" className="aspect-[4/3] w-full object-cover" /><span className="block vs-wrap px-2 pt-2 text-sm font-semibold">{label}</span><span className="block vs-wrap px-2 pb-2 text-xs text-vs-fg-2">{category}</span></button>)}</div> : <p className="mt-3 text-vs-fg-2">{t("jigsaw.noImages")}</p>}
       {pages > 1 && <nav className="mt-3 flex flex-wrap items-center justify-between gap-2" aria-label={t("jigsaw.imagePages")}><button type="button" className="btn-secondary min-h-11" disabled={activePage === 0} onClick={() => setPage(activePage - 1)}>{t("jigsaw.previous")}</button><span className="text-sm font-semibold">{t("jigsaw.page", { n: activePage + 1, total: pages })}</span><button type="button" className="btn-secondary min-h-11" disabled={activePage + 1 >= pages} onClick={() => setPage(activePage + 1)}>{t("jigsaw.next")}</button></nav>}
     </section>
-    <section><h2 className="font-bold">{t("jigsaw.pieces", { n: pieceCount })}</h2><p className="mt-1 text-sm text-vs-fg-2">{t("jigsaw.pieceCountHelp")}</p><div className="mt-3 flex flex-wrap gap-2">{[6, 12, 24, 48, 96].map((count) => <button type="button" className={`btn-secondary min-h-11 ${count === pieceCount ? "!border-vs-xp !bg-vs-xp/15" : ""}`} onClick={() => setPieceCount(count as PuzzlePieceCount)} key={count}>{count}</button>)}</div></section>
+    <section><h2 className="font-bold">{t("jigsaw.pieces", { n: pieceCount })}</h2><p className="mt-1 text-sm text-vs-fg-2">{mode === "COOP" ? t("puzzleTogether.setup.pieceHelpCoop") : mode === "MATCH" ? t("puzzleTogether.setup.pieceHelpMatch") : t("jigsaw.pieceCountHelp")}</p><div className="mt-3 flex flex-wrap gap-2">{COUNTS[mode].map((count) => <button type="button" className={`btn-secondary min-h-11 ${count === pieceCount ? "!border-vs-xp !bg-vs-xp/15" : ""}`} onClick={() => setPieceCount(count as PuzzlePieceCount)} key={count}>{count}</button>)}</div></section>
     <section><h2 className="font-bold">{t("jigsaw.difficulty")}</h2><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{difficulties.map((level) => <button type="button" className={`btn-secondary min-h-11 flex-col items-start text-left ${difficulty === level ? "!border-vs-xp !bg-vs-xp/15" : ""}`} aria-label={t(levelKeys[level])} aria-describedby={`difficulty-${level}`} aria-pressed={difficulty === level} onClick={() => setDifficulty(level)} key={level}><span className="block font-semibold">{t(levelKeys[level])}</span><span id={`difficulty-${level}`} className="mt-1 block text-sm font-normal normal-case tracking-normal">{t(levelDescriptions[level])}</span></button>)}</div></section>
-    <p role="status">{selectedImage ? selectedImage.label : t("jigsaw.chooseImage")}</p><button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" disabled={!selectedImage || loading} onClick={() => void start()}>{loading ? t("common.loading") : t("jigsaw.start")}</button>{error && <p role="alert">{error}</p>}
+    {mode === "MATCH" && <section><h2 className="font-bold">{t("puzzleTogether.setup.kind")}</h2><div className="mt-3 grid gap-2 sm:grid-cols-2" role="group">{(["LIVE", "ASYNC"] as const).map((kind) => <button type="button" key={kind} aria-pressed={matchKind === kind} onClick={() => setMatchKind(kind)} className={`btn-secondary min-h-11 flex-col items-start text-left ${matchKind === kind ? "!border-vs-xp !bg-vs-xp/15" : ""}`}><span className="block font-semibold">{t(kind === "LIVE" ? "puzzleTogether.setup.live" : "puzzleTogether.setup.async")}</span><span className="mt-1 block text-sm font-normal normal-case tracking-normal">{t(kind === "LIVE" ? "puzzleTogether.setup.liveHelp" : "puzzleTogether.setup.asyncHelp")}</span></button>)}</div></section>}
+    {mode !== "SOLO" && <section><h2 className="font-bold">{t("puzzleTogether.setup.friends")}</h2><p className="mt-1 text-sm text-vs-fg-2">{t(mode === "COOP" ? "puzzleTogether.setup.friendsCoop" : "puzzleTogether.setup.friendsMatch")}</p><div className="mt-3 flex flex-wrap items-center gap-2">{chosen.map((friend) => <button type="button" key={friend.id} className="btn-secondary min-h-11" aria-label={t("puzzleTogether.setup.remove", { name: friend.handle })} onClick={() => setChosen(chosen.filter((item) => item.id !== friend.id))}>{friend.handle} ✕</button>)}{chosen.length < 3 && <button type="button" className="btn-secondary min-h-11" onClick={() => setPickerOpen(true)}>{t("puzzleTogether.setup.pick")}</button>}</div>{chosen.length === 0 && <p className="mt-2 text-sm text-vs-fg-2">{t("puzzleTogether.setup.none")}</p>}</section>}
+    <p role="status">{selectedImage ? selectedImage.label : t("jigsaw.chooseImage")}</p>
+    {mode === "SOLO" ? <button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" disabled={!selectedImage || loading} onClick={() => void start()}>{loading ? t("common.loading") : t("jigsaw.start")}</button> : <button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" disabled={!selectedImage || chosen.length === 0 || isStarting} onClick={() => void startTogether()}>{isStarting ? t("common.loading") : t(mode === "COOP" ? "puzzleTogether.setup.startCoop" : "puzzleTogether.setup.startMatch")}</button>}{error && <p role="alert">{error}</p>}
+    <FriendPicker open={pickerOpen} onClose={() => setPickerOpen(false)} title={t("puzzleTogether.setup.pickerTitle")} subtitle={t("puzzleTogether.setup.pickerSubtitle")} onInvite={(friend) => setChosen((current) => current.some((item) => item.id === friend.id) || current.length >= 3 ? current : [...current, { id: friend.id, handle: friend.handle }])} stateFor={(id) => chosen.some((friend) => friend.id === id) ? "invited" : "invite"} inviteLabel={t("puzzleTogether.setup.pick")} joinedLabel={t("puzzleTogether.setup.chosen")} />
   </FocusLayout>;
 }
 
