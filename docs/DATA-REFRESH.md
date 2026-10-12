@@ -51,8 +51,8 @@ Datasets (scopes): `today`, `progress`, `courses`, `xp`, `streak`, `profile`,
 | `wordGameScored` | iemand plaatst of sluit een score (realtime-onderwerp `word-game-ranking`) | wordGameRanking |
 | `friendsChanged` | vriendschap of verzoek gewijzigd (`friends_changed`) | friends, today, activity, notifications |
 | `groupsChanged` | groep of lidmaatschap gewijzigd | groups, today, activity |
-| `notificationsChanged` | nieuwe of gewiste melding (`notifications_changed`, `game_invite`, `scrabble_updated`) | notifications, today |
-| `gamesChanged` | uitdaging/woordspel/live spel gestart, geannuleerd of verlaten, uitnodiging ingetrokken (`game_invite`, `scrabble_updated`, `game_invite_revoked`, `game_cancelled`, `game_left`) | games, today |
+| `notificationsChanged` | nieuwe of gewiste melding (`notifications_changed`, `game_invite`, `scrabble_updated`, `puzzle_invites_changed`) | notifications, today |
+| `gamesChanged` | uitdaging/woordspel/live spel gestart, geannuleerd of verlaten, uitnodiging ingetrokken (`game_invite`, `scrabble_updated`, `game_invite_revoked`, `game_cancelled`, `game_left`, `puzzle_invites_changed`, `puzzle_match_changed`) | games, today |
 | `coursesChanged` | cursus toegevoegd of verborgen | courses, today |
 | `settingsChanged` | profiel- of accountinstelling gewijzigd (ook de schakelaar voor uitnodigingen van Kompas) | profile, today, kompas |
 | `hintsChanged` | persoonlijke hintvoorraad verbruikt of gekocht; `/api/hints` is de gedeelde voorraadquery. `hints_changed` informeert andere apparaten na commit; ook betaalde Woord-van-de-Dag-kandidaten en de accountbrede cooldown verversen | games, wordGame |

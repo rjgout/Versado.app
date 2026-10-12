@@ -90,6 +90,36 @@ try {
   await inv.page.screenshot({ path: "/tmp/mp-match-play-320.png" });
   assert.deepEqual(inv.errors, []);
   report.match = { clock };
+  // --- Via de keuzepagina: een live wedstrijd aanmaken, accepteren in het overzicht, starten en spelen
+  const c = await person(); const d = await person();
+  await prisma.friendship.create({ data: { senderId: c.id, receiverId: d.id, status: "ACCEPTED" } });
+  const host = await open(c, { width: 1200, height: 900 }, "/jigsaw");
+  await host.page.getByRole("button", { name: /^Tegen elkaar/ }).click();
+  await host.page.getByRole("button", { name: /^Live/ }).click();
+  await host.page.getByRole("button", { name: /Vrienden kiezen/ }).click();
+  await host.page.getByRole("dialog").locator("li", { hasText: d.handle }).getByRole("button", { name: "Kies" }).click();
+  await host.page.getByRole("button", { name: /Sluiten|Close/ }).first().click();
+  await host.page.locator('section[aria-labelledby="jigsaw-image-choice"] button[aria-pressed]').first().click();
+  await host.page.screenshot({ path: "/tmp/mp-chooser.png", fullPage: true });
+  await host.page.getByRole("button", { name: /Maak wedstrijd/ }).click({ timeout: 5000 });
+  await host.page.waitForURL(/\/jigsaw\/wedstrijd\//, { timeout: 15000 });
+  const liveId = host.page.url().split("/").pop();
+  const guest = await open(d, { width: 390, height: 800 }, "/jigsaw");
+  await guest.page.getByRole("button", { name: "Meedoen" }).first().click();
+  await guest.page.waitForURL(/\/jigsaw\/wedstrijd\//, { timeout: 15000 });
+  // De organisator ziet de geaccepteerde speler live in de lobby (realtime-signaal) en start.
+  const startButton = host.page.getByRole("button", { name: "Start wedstrijd" });
+  await startButton.waitFor({ timeout: 15000 });
+  for (let i = 0; i < 40 && await startButton.isDisabled(); i++) await host.page.waitForTimeout(250);
+  assert.equal(await startButton.isDisabled(), false, "lobby toont de geaccepteerde speler zonder verversen");
+  await startButton.click();
+  await Promise.all([host.page, guest.page].map((p) => p.waitForSelector("canvas", { timeout: 25000 })));
+  const startRows = await prisma.puzzleMatchParticipant.findMany({ where: { matchId: liveId }, select: { status: true, startedAt: true } });
+  assert.ok(startRows.every((row) => row.status === "PLAYING"), "beide spelers spelen");
+  assert.equal(new Set(startRows.map((row) => row.startedAt?.getTime())).size, 1, "gezamenlijk servermoment als start");
+  assert.deepEqual([...host.errors, ...guest.errors], []);
+  report.liveMatch = { id: liveId, players: startRows.length };
+
   console.log(JSON.stringify(report));
 } finally {
   await browser.close();
