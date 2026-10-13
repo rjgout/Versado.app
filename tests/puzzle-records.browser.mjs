@@ -33,6 +33,8 @@ try {
     await page.goto(base + path, { waitUntil: "networkidle" });
     return { context, page, errors };
   };
+  // De reeksviering (secundair) verschijnt pas nadat de activiteit is verlaten; sluit haar zoals een gebruiker dat doet.
+  const dismissCelebration = async (page) => { const dialog = page.locator('[role="dialog"][aria-labelledby="streak-celebration-title"]'); if (await dialog.count()) { await dialog.getByRole("button").last().click(); await dialog.waitFor({ state: "detached", timeout: 10000 }).catch(() => {}); } };
   const overflow = (page) => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   const [a, b] = [await person(), await person()];
   await prisma.friendship.create({ data: { senderId: a.id, receiverId: b.id, status: "ACCEPTED" } });
@@ -85,11 +87,14 @@ try {
 
   // Persoonlijk overzicht: beide categorieën, 320 px zonder overflow.
   const mine = await open(a, "/jigsaw/records", { width: 320, height: 700 });
+  await dismissCelebration(mine.page);
   await mine.page.getByText("Zonder hints").first().waitFor({ timeout: 15000 });
   assert.ok(await mine.page.locator("li").count() >= 2);
   assert.equal(await overflow(mine.page), 0, "geen horizontale overflow op 320 px");
+  await mine.page.screenshot({ path: "/tmp/mp-records-320.png", fullPage: true });
   await mine.page.addStyleTag({ content: "html{font-size:200% !important}" });
-  assert.equal(await overflow(mine.page), 0, "geen horizontale overflow bij 200% tekst");
+  const wide = await mine.page.evaluate(() => [...document.querySelectorAll("body *")].filter((el) => el.getBoundingClientRect().right > document.documentElement.clientWidth + 1).slice(0, 6).map((el) => `${el.tagName}.${String(el.className).slice(0, 60)}`));
+  assert.equal(await overflow(mine.page), 0, "geen horizontale overflow bij 200% tekst: " + wide.join(" | "));
   await mine.page.getByRole("button", { name: "Met hints", exact: true }).first().click();
   await mine.page.waitForTimeout(600);
   assert.equal(await mine.page.getByText("Zonder hints").count() <= 1, true);
@@ -97,29 +102,31 @@ try {
   // 8-12. Vriendenranglijst en privacy.
   const bs = await solve(b); const bAnswer = await answerInBrowser(b, bs);
   const lb = `/jigsaw/records/${variantId}?mode=SOLO&cat=NO_HINTS`;
-  const viewer = await open(a, lb);
+  const viewer = await open(a, lb); await dismissCelebration(viewer.page);
   await viewer.page.getByText("Vriendenranglijst").first().waitFor({ timeout: 15000 });
   assert.equal(await viewer.page.getByText(`${b.handle}`).count(), 0, "b deelt nog niet: a ziet b niet");
   assert.ok(await viewer.page.getByText("Jij").count() >= 1, "a ziet zichzelf altijd");
   assert.ok(await viewer.page.getByText("Je records zijn privé").count() >= 1, "uitleg over de eigen privacy");
   // b zet delen aan via de echte privacy-instelling.
-  const bSettings = await open(b, "/profile?view=privacy");
+  const bSettings = await open(b, "/profile?view=privacy"); await dismissCelebration(bSettings.page);
   const toggle = bSettings.page.getByRole("switch", { name: /Puzzelrecords delen met vrienden/ });
   await toggle.waitFor({ timeout: 15000 });
   assert.equal(await toggle.isChecked(), false, "standaard uit");
   assert.equal(await bSettings.page.getByRole("switch", { name: /Prestaties delen/ }).isChecked(), false);
-  await toggle.click(); await bSettings.page.waitForTimeout(800);
+  const toggleLabel = bSettings.page.locator("label", { hasText: "Puzzelrecords delen met vrienden" });
+  await toggleLabel.click(); await bSettings.page.waitForTimeout(800);
   assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: b.id } })).sharePuzzleRecords, true);
   assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: b.id } })).shareAchievements, false, "los van shareAchievements");
   await viewer.page.reload({ waitUntil: "networkidle" });
   await viewer.page.getByText(b.handle).first().waitFor({ timeout: 15000 });
+  await viewer.page.screenshot({ path: "/tmp/mp-leaderboard.png", fullPage: true });
   // De API geeft voor a nu b's record; een niet-bevriend account krijgt niets.
   const stranger = await person();
   const strangerPage = await open(stranger, lb);
   await strangerPage.page.getByText("Vriendenranglijst").first().waitFor({ timeout: 15000 });
   assert.equal(await strangerPage.page.getByText(b.handle).count(), 0, "een niet-vriend ziet b niet");
   // b zet delen weer uit: direct weg bij a.
-  await toggle.click(); await bSettings.page.waitForTimeout(800);
+  await toggleLabel.click(); await bSettings.page.waitForTimeout(800);
   await viewer.page.reload({ waitUntil: "networkidle" });
   await viewer.page.getByText("Vriendenranglijst").first().waitFor({ timeout: 15000 });
   assert.equal(await viewer.page.getByText(b.handle).count(), 0, "uitzetten verbergt b onmiddellijk");
@@ -131,11 +138,11 @@ try {
   const g = cachedPuzzleGeometry(6, ms.seed, ms.geometryVersion);
   for (const piece of g.pieces) ms = await applyMatchAction(a.id, matchId, ms.version, randomUUID(), { kind: "move", groupId: `p${piece.id}`, x: 3 + piece.column, y: 3 + piece.row }, "nl");
   for (const [x, y] of [[0, 1], [1, 2], [0, 3], [3, 4], [4, 5]]) ms = await applyMatchAction(a.id, matchId, ms.version, randomUUID(), { kind: "connect", a: x, b: y }, "nl");
-  const match = await open(a, `/jigsaw/wedstrijd/${matchId}`, { width: 360, height: 700 });
+  const match = await open(a, `/jigsaw/wedstrijd/${matchId}`, { width: 360, height: 700 }); await dismissCelebration(match.page);
   await match.page.locator("[data-record-notice]").waitFor({ timeout: 15000 });
   assert.equal(await prisma.puzzleBestRecord.count({ where: { userId: a.id, variantId, mode: "MATCH", hintCategory: "NO_HINTS" } }), 1);
   assert.equal(await prisma.puzzleBestRecord.count({ where: { userId: a.id, variantId, mode: "SOLO" } }), 2, "Solo ongewijzigd");
-  const mineMatch = await open(a, "/jigsaw/records");
+  const mineMatch = await open(a, "/jigsaw/records"); await dismissCelebration(mineMatch.page);
   await mineMatch.page.getByRole("button", { name: "Tegen elkaar", exact: true }).first().click();
   await mineMatch.page.waitForTimeout(800);
   assert.equal(await mineMatch.page.locator("li").count(), 1, "alleen het wedstrijdrecord");

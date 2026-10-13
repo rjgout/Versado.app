@@ -23,9 +23,10 @@ test("volgorde: milliseconden, dan persoonlijke extra hints, dan hints totaal, d
 });
 
 test("weergave rondt alleen af voor tonen; twee tijden op dezelfde seconde blijven intern verschillend", () => {
-  assert.equal(formatPuzzleTime(0), "0:00");
+  assert.equal(formatPuzzleTime(0), "0:00.0");
+  assert.equal(formatPuzzleTime(12_345), "0:12.3");
   assert.equal(formatPuzzleTime(135_999), "2:15");
   assert.equal(formatPuzzleTime(3_725_000), "1:02:05");
-  assert.equal(formatPuzzleTime(135_100), formatPuzzleTime(135_900));
+  assert.equal(formatPuzzleTime(135_100), formatPuzzleTime(135_900), "boven een minuut op de seconde");
   assert.ok(compareRecords(rec({ elapsedMs: 135_100 }), rec({ elapsedMs: 135_900 })) < 0);
 });

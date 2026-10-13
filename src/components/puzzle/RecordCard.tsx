@@ -22,10 +22,10 @@ export default function RecordCard({ record, locale }: { record: OwnRecordView; 
         <p className="text-sm text-vs-fg-2">{t(`puzzleRecords.mode${record.mode}`)} · {t(`puzzleRecords.cat${record.hintCategory}`)}</p>
         <p className="text-sm text-vs-fg-2">{hints}{record.extraHintsUsed > 0 ? ` (${t("puzzleRecords.hintStock", { n: record.extraHintsUsed })})` : ""} · {t("puzzleRecords.completedOn", { date })}</p>
       </div>
-      <div className="flex shrink-0 flex-col items-end gap-1">
+      <div className="flex min-w-0 max-w-full flex-col items-start gap-1 sm:items-end">
         <p className="text-xs font-semibold uppercase text-vs-fg-2">{t("puzzleRecords.bestTime")}</p>
-        <p className="font-mono text-2xl font-extrabold tabular-nums text-vs-fg">{formatPuzzleTime(record.elapsedMs)}</p>
-        <Link href={href} className="inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-semibold text-vs-accent underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent">{t("puzzleRecords.compare")}</Link>
+        <p className="max-w-full break-all font-mono text-2xl font-extrabold tabular-nums text-vs-fg">{formatPuzzleTime(record.elapsedMs)}</p>
+        <Link href={href} className="inline-flex min-h-11 max-w-full items-center break-words rounded-xl px-2 text-sm font-semibold text-vs-accent underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent">{t("puzzleRecords.compare")}</Link>
       </div>
     </li>
   );

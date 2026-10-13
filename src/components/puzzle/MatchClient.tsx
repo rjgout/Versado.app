@@ -10,6 +10,7 @@ import { useServerNow } from "@/components/puzzle/serverClock";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
 import { jsonMutation } from "@/lib/data/mutation";
+import { formatPuzzleTime } from "@/lib/puzzle/recordFormat";
 import RecordNotice from "@/components/puzzle/RecordNotice";
 import PuzzleBackTarget from "@/components/puzzle/PuzzleBackTarget";
 import { JIGSAW_ROUTE } from "@/lib/puzzle/navigation";
@@ -18,7 +19,7 @@ import type { MatchView } from "@/lib/puzzle/match";
 type PuzzleState = Parameters<typeof Puzzle>[0]["initial"];
 
 const post = <T,>(body: object) => fetchJson<T>("/api/puzzle/match", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-const formatTime = (ms: number | null) => { if (ms === null) return "–"; const total = Math.floor(ms / 1000); return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`; };
+const formatTime = (ms: number | null) => (ms === null ? "–" : formatPuzzleTime(ms));
 
 // Wedstrijdscherm: lobby, eigen poging en uitslag. De server bepaalt klok, fase en
 // wat zichtbaar mag zijn; dit scherm toont alleen wat getMatch teruggeeft.
