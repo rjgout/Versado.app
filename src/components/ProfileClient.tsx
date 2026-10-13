@@ -139,6 +139,17 @@ export default function ProfileClient() {
     getSocket().emit("friend_profile_changed");
   }
 
+  async function toggleSharePuzzleRecords() {
+    if (!data) return;
+    const next = !data.sharePuzzleRecords;
+    setData({ ...data, sharePuzzleRecords: next });
+    setSavingPrivacy(true);
+    await saveAccountPatch({ sharePuzzleRecords: next });
+    setSavingPrivacy(false);
+    // Vriendenranglijsten en vriendenprofielen halen na de serverwijziging vers op (live-datalaag).
+    invalidateData("friendsChanged");
+  }
+
   async function saveFeaturedAchievements(achievementIds: string[]) {
     try {
       await liveMutation(
@@ -428,7 +439,7 @@ export default function ProfileClient() {
         {view === "language" && <LanguageSettings uiLanguage={data.uiLanguage} isAdmin={data.isAdmin} />}
         {view === "readAloud" && <ReadAloudView voices={readAloudVoices} selectedVoice={selectedReadAloudVoice} speed={readAloudSpeed} testing={testingReadAloudVoice} onVoice={changeReadAloudVoice} onSpeed={changeReadAloudSpeed} onTest={testReadAloudVoice} />}
         {view === "notifications" && <NotificationsView data={data} saving={savingNotifications} pushError={pushError} testingPush={testingPush} pushCountdown={pushCountdown} pushTestMessage={pushTestMessage} onEmail={toggleEmailNotifications} onPush={togglePushNotifications} onTest={sendTestPush} onCategory={toggleCategory} onReminder={changeReminderTime} onDailyText={(time) => saveAccountPatch({ dailyTextTime: time }).then(() => setData((current) => current ? { ...current, dailyTextTime: time } : current))} onPodcast={togglePodcastNotifications} />}
-        {view === "privacy" && <PrivacyView data={data} saving={savingPrivacy} onToggleSearchable={toggleSearchableByEmail} onToggleAchievements={toggleShareAchievements} />}
+        {view === "privacy" && <PrivacyView data={data} saving={savingPrivacy} onToggleSearchable={toggleSearchableByEmail} onToggleAchievements={toggleShareAchievements} onTogglePuzzleRecords={toggleSharePuzzleRecords} />}
         {view === "presence" && <PresenceView data={data} saving={savingPresence} onOnline={toggleShareOnlineStatus} onActivity={toggleShareCurrentActivity} onIncognito={activateIncognito} onIncognitoOff={deactivateIncognito} />}
         {view === "about" && <WhatsNewView enabled={data.changelogEnabled} saving={savingNotifications} onToggle={() => toggleCategory("changelogEnabled")} />}
         {view === "twoFactor" && <TwoFactorSettings isAdmin={data.isAdmin} />}

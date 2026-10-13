@@ -233,7 +233,7 @@ export function NotificationsView({
   );
 }
 
-export function PrivacyView({ data, saving, onToggleSearchable, onToggleAchievements }: { data: ProfileData; saving: boolean; onToggleSearchable: () => void; onToggleAchievements: () => void }) {
+export function PrivacyView({ data, saving, onToggleSearchable, onToggleAchievements, onTogglePuzzleRecords }: { data: ProfileData; saving: boolean; onToggleSearchable: () => void; onToggleAchievements: () => void; onTogglePuzzleRecords: () => void }) {
   const t = useT();
   return (
     <SettingsSection>
@@ -250,6 +250,13 @@ export function PrivacyView({ data, saving, onToggleSearchable, onToggleAchievem
         checked={data.shareAchievements}
         busy={saving}
         onChange={onToggleAchievements}
+      />
+      <SettingsToggleRow
+        label={t("profile.sharePuzzleRecordsLabel")}
+        description={t("profile.sharePuzzleRecordsDesc")}
+        checked={data.sharePuzzleRecords}
+        busy={saving}
+        onChange={onTogglePuzzleRecords}
       />
     </SettingsSection>
   );
