@@ -12,6 +12,8 @@ export const readingPositionActionSchema = z
     expectedVersion: z.number().int().min(0).max(2_147_483_646),
     actionId: z.uuid().transform((value) => value.toLowerCase()),
     intent: z.enum(["SAVE", "START_OVER"]),
+    // Alleen nodig bij opslag voor een inmiddels historische, echt geopende revisie.
+    visitProof: z.string().min(1).max(1500).optional(),
   })
   .strict();
 export type ReadingPositionAction = z.infer<typeof readingPositionActionSchema>;
