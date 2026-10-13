@@ -76,6 +76,12 @@ async function fixture(lang = "nl") {
     sourceMetadata: item.revision.sourceMetadata,
     rightsMetadata: item.revision.rightsMetadata,
   };
+  const paragraph = input.body.sections[0].blocks.find((b) => b.id === "paragraph-intro");
+  paragraph.content.push({
+    type: "link",
+    text: "Veilige synthetische link",
+    href: "https://example.invalid/study-link",
+  });
   const list = input.body.sections[0].blocks.find((b) => b.type === "list");
   list.items[0].children = [
     {
@@ -228,6 +234,15 @@ try {
       );
       assert.ok(
         (await page.locator("[data-study-reader-body] li li").count()) > 0,
+      );
+      const link = page.getByRole("link", { name: "Veilige synthetische link" });
+      assert.equal(await link.getAttribute("href"), "https://example.invalid/study-link");
+      assert.equal(await link.getAttribute("target"), "_blank");
+      assert.match(await link.getAttribute("rel"), /noopener/);
+      assert.equal(
+        await page.locator('[data-study-reader-body] a[href*="fixture-reference"]').count(),
+        0,
+        "onopgeloste schriftverwijzing blijft geen interne of externe link",
       );
       assert.equal(
         await page
