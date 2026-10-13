@@ -43,6 +43,7 @@ export class ReadingSaveQueue {
       cache: ReadingQueueCache,
     ) => void,
     private uuid: () => string = () => crypto.randomUUID(),
+    private readonly visitProof: string | null = null,
   ) {}
   snapshot(): ReadingSaveSnapshot {
     return { status: this.status, state: this.state, pending: this.pending };
@@ -144,6 +145,7 @@ export class ReadingSaveQueue {
       expectedVersion: this.state.position?.version ?? 0,
       actionId: this.uuid(),
       intent: "START_OVER",
+      visitProof: this.visitProof ?? undefined,
     };
     await this.flush();
   }
@@ -169,6 +171,7 @@ export class ReadingSaveQueue {
           expectedVersion: this.state.position?.version ?? 0,
           actionId: this.uuid(),
           intent: "SAVE",
+          visitProof: this.visitProof ?? undefined,
         };
         this.pending = null;
       }
