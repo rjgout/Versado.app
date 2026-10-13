@@ -14,13 +14,23 @@ function inline(parts: readonly Inline[]): ReactNode {
       if (part.marks?.includes("emphasis")) text = <em>{text}</em>;
       return <span key={index}>{text}</span>;
     }
-    // Pas fase 2D levert een bewezen resolver; geen willekeurige interne links.
+    // Veilige HTTPS-links zijn al gevalideerd door het gepubliceerde
+    // rich-content-schema. Canonieke Schriftuurverwijzingen volgen in 2D.
+    if (part.type === "link")
+      return (
+        <a
+          key={index}
+          href={part.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-vs-accent underline underline-offset-2 focus-visible:outline focus-visible:outline-2"
+        >
+          {part.text}
+        </a>
+      );
     return (
-      <span
-        key={part.type === "reference" ? part.id : index}
-        className="underline decoration-dotted"
-      >
-        {part.type === "reference" ? part.label : part.text}
+      <span key={part.id} className="underline decoration-dotted">
+        {part.label}
       </span>
     );
   });
