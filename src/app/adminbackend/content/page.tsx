@@ -25,6 +25,9 @@ export default async function AdminContentPage() {
           <ChevronRight className="h-4 w-4" aria-hidden />
         </span>
       </Link>
+      <Link href="/adminbackend/content/study-publications" className={`group flex min-h-16 items-center gap-3 p-4 ${interactiveCard}`}>
+        <span className="min-w-0 flex-1"><span className="block text-base font-extrabold text-vs-fg">{t("studyPublishing.title")}</span><span className="block text-sm text-vs-fg-2">{t("studyPublishing.intro")}</span></span><ChevronRight className="h-5 w-5 shrink-0 text-vs-accent" aria-hidden/>
+      </Link>
       <AdminContentInventoryClient />
       <AdminContentSwitcherClient />
       <AdminCoursesClient />

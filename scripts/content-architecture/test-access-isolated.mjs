@@ -5,7 +5,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { createServer } from "node:net";
 import pg from "pg";
 import assert from "node:assert/strict";
-import { mkdtempSync, cpSync, readdirSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, cpSync, readdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve, join } from "node:path";
 import { createRequire } from "node:module";
@@ -33,10 +33,12 @@ async function freePort() {
 }
 const temporary = mkdtempSync(join(tmpdir(), "versado-content-migration-"));
 let server, source;
+let ownedPgVolumes=[];
 const redisContainer = `${container}-redis`;
 let hasRedis = false;
 try {
   docker(["run", "--rm", "-d", "--name", container, "-p", "127.0.0.1::5432", "-e", "POSTGRES_USER=content_access_test", "-e", "POSTGRES_PASSWORD=content_access_test", "-e", "POSTGRES_DB=versado_content_access_test", "postgres:16-alpine"]);
+  ownedPgVolumes=JSON.parse(docker(["inspect",container]))[0].Mounts.filter(m=>m.Type==="volume").map(m=>m.Name);
   let ready = false;
   for (let i = 0; i < 60; i++) {
     try { docker(["exec", container, "pg_isready", "-U", "content_access_test"]); ready = true; break; } catch { await delay(500); }
@@ -45,12 +47,14 @@ try {
   const port = docker(["port", container, "5432/tcp"]).split(":").at(-1);
   const database = `postgresql://content_access_test:content_access_test@127.0.0.1:${port}/versado_content_access_test`;
   const base = `http://127.0.0.1:${await freePort()}`;
+  const mediaRoot=join(temporary,"study-media");mkdirSync(mediaRoot,{mode:0o700});
+  writeFileSync(join(mediaRoot,".versado-study-volume.json"),JSON.stringify({version:1,purpose:"versado-study-media",volumeId:randomUUID()}),{mode:0o600});
   const env = { ...process.env, NODE_ENV: "production", DATABASE_URL: database, CONTENT_ACCESS_TEST_DATABASE_URL: database,
-    CONTENT_ACCESS_TEST_BASE_URL: base, LEARNING_TEST_DATABASE_URL: database, CONTENT_MIGRATION_TEST_STATE: join(temporary, "proof.json"), APP_URL: base, REDIS_URL: "", SESSION_SECRET: "content-access-isolated-secret-only", NEXT_TELEMETRY_DISABLED: "1" };
+    CONTENT_ACCESS_TEST_BASE_URL: base, LEARNING_TEST_DATABASE_URL: database, CONTENT_MIGRATION_TEST_STATE: join(temporary, "proof.json"), APP_URL: base, REDIS_URL: "", STUDY_MEDIA_DIR: mediaRoot, STUDY_MEDIA_TEST_ROOT: mediaRoot, STUDY_PUBLICATION_PROFILE: "synthetic-test", SESSION_SECRET: "content-access-isolated-secret-only", NEXT_TELEMETRY_DISABLED: "1" };
   // Eerst dezelfde 133 historische migraties via Prisma op de eigen lege DB.
   // Daarna synthetische bestaande records vóór de nieuwe additieve migratie.
   const migrationPath = join(temporary, "migrations");
-  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context", "20261027120000_quick_missionary_source", "20261028120000_mystery_attempt", "20261029120000_study_identity"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
+  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context", "20261027120000_quick_missionary_source", "20261028120000_mystery_attempt", "20261029120000_study_identity", "20261030120000_study_import_publication"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
   const config = join(temporary,"prisma.config.mjs");
   const require = createRequire(import.meta.url);
   writeFileSync(config, `import {defineConfig} from ${JSON.stringify(require.resolve("prisma/config"))}; export default defineConfig({schema:${JSON.stringify(resolve("prisma/schema.prisma"))},migrations:{path:${JSON.stringify(migrationPath)}},datasource:{url:process.env.DATABASE_URL}});`);
@@ -72,8 +76,12 @@ try {
   await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
   await run("node", ["tests/mystery-attempt-migration.mjs", "verify"], env);
   await run("node", ["tests/study-identity-migration.mjs", "prepare"], env);
-  await run("npm", ["run", "db:migrate:deploy"], env);
+  cpSync("prisma/migrations/20261029120000_study_identity",join(migrationPath,"20261029120000_study_identity"),{recursive:true});
+  await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
   await run("node", ["tests/study-identity-migration.mjs", "verify"], env);
+  await run("node", ["tests/study-publication-migration.mjs", "prepare"], env);
+  await run("npm", ["run", "db:migrate:deploy"], env);
+  await run("node", ["tests/study-publication-migration.mjs", "verify"], env);
   await run("npm", ["run", "db:migrate:deploy"], env);
   if (process.argv.includes("--availability-performance")) {
     await run("npx", ["tsx", "scripts/content-architecture/benchmark-availability.mjs", ...(process.argv.includes("--assert-budget") ? ["--assert-budget"] : [])], env);
@@ -101,7 +109,7 @@ try {
       await run("npx", ["tsx", "tests/fixtures/mystery-learning.mjs"], env);
       for (const suite of ["test:kompas", "test:time", "test:learning", "test:streak-return", "test:streak-calendar"]) await run("npm", ["run", suite], env);
       if (process.argv.includes("--browser")) await run("npx", ["tsx", "tests/mystery-attempt.browser.mjs"], env);
-    } else {
+    } else if (!process.argv.includes("--focused")) {
     await run("npx", ["tsx", "--test", "tests/content-access.test.ts", "tests/content-inventory.test.ts", "tests/content-inventory-validation.test.mjs", "tests/content-access.integration.test.ts", "tests/content-switch.integration.test.ts"], env);
     await run("npx", ["tsx", "--test", "tests/course-sync.integration.test.ts"], env);
     // Apart: fingerprints over alle oude tabellen en een tijdelijke fouttrigger mogen
@@ -110,11 +118,16 @@ try {
     await run("npx", ["tsx", "--test", "tests/content-picker.test.ts", "tests/content-picker.integration.test.ts"], env);
     await run("npx", ["tsx", "--test", "tests/game-availability.test.ts", "tests/game-availability.integration.test.ts"], env);
     }
-    if (process.argv.includes("--study-content")) {
+    if ((process.argv.includes("--study-content") || process.argv.includes("--study-publication")) && !process.argv.includes("--focused")) {
       await run("npx", ["tsx", "--test", "tests/study-content.test.ts", "tests/study-content.integration.test.ts"], env);
       await run("npx", ["tsx", "tests/fixtures/mystery-learning.mjs"], env);
       for (const suite of ["test:learning", "test:streak-return", "test:streak-calendar", "test:time"]) await run("npm", ["run", suite], env);
     }
+  }
+  if(process.argv.includes("--study-publication")) {
+    await run("npx",["tsx","--test","tests/study-publication.integration.test.ts"],env);
+    if(process.argv.includes("--browser"))await run("npx",["tsx","tests/study-publication.browser.mjs"],env);
+    await run("node",["scripts/study-content/test-volume.mjs"],env);
   }
   if (!process.argv.includes("--availability-performance")) await run("npx", ["tsx", "scripts/content-architecture/benchmark-availability.mjs", "--assert-budget"], env);
   source = new pg.Client({ connectionString: database }); await source.connect();
@@ -130,7 +143,8 @@ try {
 finally {
   await source?.end();
   if (server?.pid) { try { process.kill(-server.pid, "SIGTERM"); } catch {} }
-  if (hasRedis) { try { docker(["rm", "-f", redisContainer]); } catch {} }
-  try { docker(["rm", "-f", container]); } catch {}
+  if (hasRedis) { try { docker(["rm", "-f", "-v", redisContainer]); } catch {} }
+  try { docker(["rm", "-f", "-v", container]); } catch {}
+  for(const volume of ownedPgVolumes)try{docker(["volume","rm",volume]);}catch{}
   rmSync(temporary,{recursive:true,force:true});
 }

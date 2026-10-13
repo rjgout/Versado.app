@@ -34,6 +34,8 @@ export type DataScope = (typeof DATA_SCOPES)[number];
  * opnieuw opgehaald, de rest wordt alleen als verouderd gemarkeerd.
  */
 export const DATA_EVENTS = {
+  // Alleen de nieuwe studiepublicaties/het beheer, geen progressie of economie.
+  studyContentChanged: ["studyContent"],
   // Alleen studiecontext/-inhoud; bestaande pagina's hoeven niet te remounten.
   studyContextChanged: ["studyContext", "studyContent"],
   // Een les, oefening, hoofdstuk of spel is afgerond (ook vanaf een ander apparaat).

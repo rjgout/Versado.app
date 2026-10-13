@@ -1,6 +1,15 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 import { useT } from "@/components/I18nProvider";
 
 /**
@@ -11,6 +20,8 @@ export interface ConfirmOptions {
   title?: string;
   confirmLabel?: string;
   destructive?: boolean;
+  /** Top-layer/focus voor de nieuwe beheerpublicatieflow; oude aanroepen behouden hun UI. */
+  native?: boolean;
 }
 
 interface PendingConfirmation extends ConfirmOptions {
@@ -44,7 +55,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!pending) return;
+    if (!pending || pending.native) return;
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") close(false);
     }
@@ -60,39 +71,136 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   return (
     <ConfirmContext.Provider value={{ confirm }}>
       {children}
-      {pending && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4" onClick={() => close(false)}>
+      {pending?.native ? (
+        <NativeConfirmation pending={pending} onClose={close} />
+      ) : (
+        pending && (
           <div
-            className="card w-full max-w-sm !p-5 shadow-xl animate-pop"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="confirm-dialog-title"
-            onClick={(event) => event.stopPropagation()}
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
+            onClick={() => close(false)}
           >
-            <h2 id="confirm-dialog-title" className="text-lg font-extrabold text-slate-800 dark:text-slate-100">
-              {pending.title ?? t("common.confirm")}
-            </h2>
-            <p className="mt-2 whitespace-pre-line text-sm text-slate-600 dark:text-slate-300">{pending.message}</p>
-            <div className="mt-5 flex justify-end gap-2">
-              <button className="btn-secondary !px-3 !py-2" onClick={() => close(false)}>
-                {t("common.cancel")}
-              </button>
-              <button
-                className={`btn-primary !px-3 !py-2 ${pending.destructive ? "!bg-red-600 hover:!bg-red-500 !shadow-[0_4px_0_0_theme(colors.red.800)]" : ""}`}
-                onClick={() => close(true)}
+            <div
+              className="card w-full max-w-sm !p-5 shadow-xl animate-pop"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="confirm-dialog-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <h2
+                id="confirm-dialog-title"
+                className="text-lg font-extrabold text-slate-800 dark:text-slate-100"
               >
-                {pending.confirmLabel ?? t("common.confirm")}
-              </button>
+                {pending.title ?? t("common.confirm")}
+              </h2>
+              <p className="mt-2 whitespace-pre-line text-sm text-slate-600 dark:text-slate-300">
+                {pending.message}
+              </p>
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  className="btn-secondary !px-3 !py-2"
+                  onClick={() => close(false)}
+                >
+                  {t("common.cancel")}
+                </button>
+                <button
+                  className={`btn-primary !px-3 !py-2 ${pending.destructive ? "!bg-red-600 hover:!bg-red-500 !shadow-[0_4px_0_0_theme(colors.red.800)]" : ""}`}
+                  onClick={() => close(true)}
+                >
+                  {pending.confirmLabel ?? t("common.confirm")}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )
       )}
     </ConfirmContext.Provider>
   );
 }
 
-export function useConfirm(): (message: string, options?: ConfirmOptions) => Promise<boolean> {
+export function useConfirm(): (
+  message: string,
+  options?: ConfirmOptions,
+) => Promise<boolean> {
   const context = useContext(ConfirmContext);
-  if (!context) throw new Error("useConfirm moet binnen ConfirmProvider worden gebruikt");
+  if (!context)
+    throw new Error("useConfirm moet binnen ConfirmProvider worden gebruikt");
   return context.confirm;
+}
+
+function NativeConfirmation({
+  pending,
+  onClose,
+}: {
+  pending: PendingConfirmation;
+  onClose: (confirmed: boolean) => void;
+}) {
+  const t = useT(),
+    dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const node = dialog.current;
+    if (!node) return;
+    const before =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    node.showModal();
+    return () => {
+      node.close();
+      document.body.style.overflow = overflow;
+      before?.focus();
+    };
+  }, []);
+  return createPortal(
+    <dialog
+      ref={dialog}
+      aria-labelledby="native-confirm-title"
+      onKeyDown={(event) => {
+        if (event.key !== "Tab") return;
+        const buttons = Array.from(
+          event.currentTarget.querySelectorAll<HTMLButtonElement>(
+            "button:not([disabled])",
+          ),
+        );
+        const first = buttons[0],
+          last = buttons.at(-1);
+        if (!first || !last) return;
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }}
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose(false);
+      }}
+      className="m-auto max-h-[calc(100dvh-2rem-var(--vs-safe-area-top)-var(--vs-safe-area-bottom))] w-[calc(100%-2rem-var(--vs-safe-area-left)-var(--vs-safe-area-right))] max-w-md overflow-y-auto rounded-2xl border border-vs-line bg-vs-elevated p-5 text-vs-fg shadow-xl backdrop:bg-slate-950/45"
+    >
+      <h2 id="native-confirm-title" className="text-lg font-extrabold">
+        {pending.title ?? t("common.confirm")}
+      </h2>
+      <p className="mt-3 text-sm text-vs-fg-2">{pending.message}</p>
+      <div className="mt-5 flex flex-col gap-3">
+        <button
+          type="button"
+          className="btn-secondary min-h-12 w-full"
+          onClick={() => onClose(false)}
+        >
+          {t("common.cancel")}
+        </button>
+        <button
+          type="button"
+          className="btn-primary min-h-12 w-full"
+          onClick={() => onClose(true)}
+        >
+          {pending.confirmLabel ?? t("common.confirm")}
+        </button>
+      </div>
+    </dialog>,
+    document.body,
+  );
 }

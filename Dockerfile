@@ -24,6 +24,8 @@ ENV NODE_ENV=production
 # Koppel hier een volume of map aan, anders gaat de kopie bij elke nieuwe
 # container verloren en wordt hij bij de volgende contentlading opnieuw gehaald.
 ENV AUDIO_DIR=/data/audio
+# Zonder echte persistente mount en marker blokkeert de studie-import/publicatie.
+ENV STUDY_MEDIA_DIR=/data/study-media
 ENV NEXT_PUBLIC_BUILD_SHA=$NEXT_PUBLIC_BUILD_SHA
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
@@ -35,6 +37,7 @@ COPY src ./src
 # Handmatige OTB-validatie/proefimport; de bron zelf wordt bewust extern
 # aangeleverd via --source en zit niet in de production image.
 COPY scripts/otb ./scripts/otb
+COPY scripts/study-content ./scripts/study-content
 # De Prisma-client wordt in de builder gegenereerd (src/generated staat niet
 # in git) en is nodig voor server.ts, dat via tsx draait.
 COPY --from=builder /app/src/generated ./src/generated

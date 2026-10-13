@@ -136,6 +136,8 @@ model User {
   uiLanguage      String @default("nl")
   contentLanguage String @default("nl")
   studyContexts UserStudyContext[]
+  contentImportRuns ContentImportRun[] @relation("StudyImportActor")
+  studyPublications StudyPublicationAction[] @relation("StudyPublicationActor")
 
   // Legacy eigen emoji voor het avatar-rondje. Het veld blijft voor bestaande
   // gegevens en migratiecompatibiliteit bestaan, maar nieuwe avatarweergaven
@@ -541,6 +543,7 @@ model ContentWork {
   studyContexts UserStudyContext[]
   studyPeriods StudyPeriod[]
   studyLessons StudyLesson[]
+  contentImports ContentImportRun[]
 }
 
 // Bewuste leskeuze per programma, onafhankelijk van taal en cursusvoortgang.
@@ -599,10 +602,12 @@ model ContentCollection {
   persons   Person[]
   wordSearchGames WordSearchGame[]
   studyLessonEditions StudyLessonEdition[]
+  contentImports ContentImportRun[]
 
   @@unique([work, editionKey, language])
   // Composite FK voor de nieuwe leseditie; work blijft de enige bronidentiteit.
   @@unique([id, work])
+  @@unique([id, work, editionKey, language])
 }
 
 // Fase 2A: officiële bronkeys bepalen identiteit; geen FSY-conversie of lesimport.
@@ -615,6 +620,7 @@ model StudyPeriod {
   metadata Json?
   work ContentWork @relation(fields: [workKey], references: [key], onDelete: Restrict, onUpdate: Restrict)
   lessons StudyLesson[]
+  imports ContentImportRun[]
 
   @@unique([workKey, sourceKey])
   @@unique([id, workKey])
@@ -649,6 +655,9 @@ model StudyLessonEdition {
   slug String
   publishedRevisionId String?
   draftRevisionId String?
+  publicationVersion Int @default(0)
+  importItems ContentImportItem[]
+  publications StudyPublicationAction[] @relation("StudyEditionPublications")
   lesson StudyLesson @relation(fields: [lessonId, workKey], references: [id, workKey], onDelete: Restrict, onUpdate: Restrict)
   collection ContentCollection @relation(fields: [collectionId, workKey], references: [id, work], onDelete: Restrict, onUpdate: Restrict)
   revisions StudyRevision[] @relation("StudyEditionRevisions")
@@ -676,9 +685,152 @@ model StudyRevision {
   edition StudyLessonEdition @relation("StudyEditionRevisions", fields: [lessonEditionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   publishedBy StudyLessonEdition[] @relation("StudyPublishedRevision")
   draftOf StudyLessonEdition[] @relation("StudyDraftRevision")
+  importItems ContentImportItem[]
+  media StudyRevisionMedia[]
+  references ContentReference[]
+  publications StudyPublicationAction[] @relation("StudyPublicationRevision")
+  replacedBy StudyPublicationAction[] @relation("StudyPublicationPrevious")
 
   @@unique([lessonEditionId, revisionNumber])
   @@unique([id, lessonEditionId])
+  @@index([lessonEditionId, contentHash])
+}
+
+// Alleen fase 2B; snapshots en geschiedenis blijven bewaard.
+enum ContentImportStatus {
+  CREATED
+  RUNNING
+  DRAFT_READY
+  FAILED
+}
+
+enum ContentMediaStatus {
+  STAGED
+  READY
+}
+
+model ContentImportRun {
+  id String @id @default(cuid())
+  adapterName String
+  adapterVersion String
+  workKey String
+  collectionId String
+  periodId String?
+  periodSourceKey String
+  editionKey String
+  language String
+  sourceVersion String
+  sourceHash String
+  scopeKey String
+  snapshot Json
+  status ContentImportStatus @default(CREATED)
+  foundItems Int @default(0)
+  validatedItems Int @default(0)
+  processedItems Int @default(0)
+  diagnostics Json @default("[]")
+  leaseHolder String?
+  leaseExpiresAt DateTime?
+  fence Int @default(0)
+  createdById String?
+  createdByKey String
+  startedAt DateTime @default(now())
+  finishedAt DateTime?
+  work ContentWork @relation(fields: [workKey], references: [key], onDelete: Restrict, onUpdate: Restrict)
+  collection ContentCollection @relation(fields: [collectionId, workKey, editionKey, language], references: [id, work, editionKey, language], onDelete: Restrict, onUpdate: Restrict)
+  period StudyPeriod? @relation(fields: [periodId, workKey], references: [id, workKey], onDelete: Restrict, onUpdate: Restrict)
+  createdBy User? @relation("StudyImportActor", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: Restrict)
+  items ContentImportItem[]
+
+  @@unique([scopeKey, sourceHash])
+  @@index([status, leaseExpiresAt])
+  @@index([collectionId, startedAt])
+}
+
+model ContentImportItem {
+  runId String
+  sourceKey String
+  lessonEditionId String
+  revisionId String
+  createdAt DateTime @default(now())
+  run ContentImportRun @relation(fields: [runId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  edition StudyLessonEdition @relation(fields: [lessonEditionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  revision StudyRevision @relation(fields: [revisionId, lessonEditionId], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
+  publications StudyPublicationAction[]
+
+  @@id([runId, sourceKey])
+  @@unique([runId, lessonEditionId, revisionId])
+  @@index([revisionId, lessonEditionId])
+}
+
+model ContentMedia {
+  id String @id @default(cuid())
+  checksum String @unique
+  mimeType String
+  byteSize Int
+  width Int
+  height Int
+  storageKey String @unique
+  volumeId String
+  sourceUrl String?
+  sourceMetadata Json
+  rightsMetadata Json
+  status ContentMediaStatus @default(STAGED)
+  createdAt DateTime @default(now())
+  revisionMedia StudyRevisionMedia[]
+}
+
+model StudyRevisionMedia {
+  revisionId String
+  mediaKey String
+  mediaId String
+  revision StudyRevision @relation(fields: [revisionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  media ContentMedia @relation(fields: [mediaId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([revisionId, mediaKey])
+  @@index([mediaId])
+}
+
+model ContentReference {
+  id String @id @default(cuid())
+  revisionId String
+  occurrenceKey String
+  label String
+  originalTarget Json
+  normalizedTarget Json
+  externalUrl String?
+  diagnosis String @default("UNRESOLVED")
+  evidenceKey String?
+  revision StudyRevision @relation(fields: [revisionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([revisionId, occurrenceKey])
+  @@index([diagnosis])
+}
+
+model StudyPublicationAction {
+  id String @id @default(cuid())
+  lessonEditionId String
+  revisionId String
+  previousRevisionId String?
+  importRunId String
+  actorId String?
+  actorKey String
+  actionId String
+  kind String
+  expectedVersion Int
+  version Int
+  requestHash String
+  createdAt DateTime @default(now())
+  edition StudyLessonEdition @relation("StudyEditionPublications", fields: [lessonEditionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  revision StudyRevision @relation("StudyPublicationRevision", fields: [revisionId, lessonEditionId], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
+  previous StudyRevision? @relation("StudyPublicationPrevious", fields: [previousRevisionId, lessonEditionId], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
+  importItem ContentImportItem @relation(fields: [importRunId, lessonEditionId, revisionId], references: [runId, lessonEditionId, revisionId], onDelete: Restrict, onUpdate: Restrict)
+  actor User? @relation("StudyPublicationActor", fields: [actorId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+
+  @@unique([lessonEditionId, actionId])
+  @@unique([lessonEditionId, version])
+  @@index([revisionId, lessonEditionId])
+  @@index([previousRevisionId, lessonEditionId])
+  @@index([importRunId, lessonEditionId, revisionId])
 }
 
 // Koppelt een spel aan één of meer contentcollecties. gameKey is de stabiele

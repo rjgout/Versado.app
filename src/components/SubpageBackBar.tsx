@@ -98,6 +98,7 @@ function detailPageFor(pathname: string, profileView: string | null, hash: strin
   if (pathname === "/adminbackend") return { fallback: "/profile", title: "adminPage.title" };
   const adminSubpage = ADMIN_SUBPAGES[pathname];
   if (adminSubpage) return { fallback: "/adminbackend", title: adminSubpage };
+  if (pathname === "/adminbackend/content/study-publications") return { fallback: "/adminbackend/content", title: "studyPublishing.title" };
   if (pathname === "/adminbackend/content/inspect") return { fallback: "/adminbackend/content", title: "adminContentInspect.title" };
   if (pathname === "/adminbackend/content-preview") return { fallback: "/adminbackend/content", title: "adminContentInspect.previewTitle" };
   // Een woord in het woordenboek: terug naar de lijst (met dezelfde zoekstand), ook via een deeplink.

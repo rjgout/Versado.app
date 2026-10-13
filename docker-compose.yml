@@ -59,11 +59,14 @@ services:
       # meer inloggen). De containernaam hieronder is puur cosmetisch en
       # veilig om te wijzigen.
       DATABASE_URL: "postgresql://${POSTGRES_USER:-bom}:${POSTGRES_PASSWORD:?Zet POSTGRES_PASSWORD in .env}@jehova-db:5432/${POSTGRES_DB:-bom}?schema=public"
+      STUDY_MEDIA_DIR: /data/study-media
       REDIS_URL: "redis://:${REDIS_PASSWORD:?Zet REDIS_PASSWORD in .env}@jehova-redis:6379"
     volumes:
       # Eigen kopie van de voorgelezen hoofdstukken, zie AUDIO_DIR in de
       # Dockerfile en src/lib/audioMirror.ts.
       - audio_data:/data/audio
+      # Eénmalig marker initialiseren; media blijven bij containervervanging bestaan.
+      - study_media:/data/study-media
     # Bewust GEEN "ports" meer hier: jehova-proxy hierboven is nu het enige
     # dat van buitenaf bereikbaar is; jehova-app is alleen nog intern op het
     # Docker-netwerk bereikbaar (als "jehova-app:3000").
@@ -119,6 +122,7 @@ volumes:
   # Voorgelezen hoofdstukken (kopie van de kerkaudio). Verloren gaan is niet
   # erg: de volgende contentlading haalt ze opnieuw op.
   audio_data:
+  study_media:
   # Bestandsvlag waarmee jehova-proxy bepaalt of bezoekers de app of de
   # onderhoudspagina zien (zie de toelichting bovenaan dit bestand).
   maintenance_flag:
