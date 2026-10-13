@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
 import { readStudyMedia, validateStudyMediaMetadata } from "./storage";
 import { validateStoredStudyRevision } from "./publication";
+import { studyObjectHash } from "./policy";
 import { studyDocumentInventory } from "./fixtureAdapter";
 import { type StudyAdmin, StudyPublishingError } from "./policy";
 
@@ -16,11 +17,11 @@ export async function authorizedStudyMedia(
     collection: readingAccessWhere(actor),
     lesson: { retiredAt: null, work: { kind: "STUDY_PROGRAM" as const } },
   };
+  // Gewone media-toegang volgt uitsluitend de actuele publicatiepointer.
+  // Historisch gepubliceerde revisies blijven bewaard voor beheer en rollback,
+  // maar hun media worden niet opnieuw openbaar via de auditgeschiedenis.
   const accessible: Prisma.StudyRevisionWhereInput = {
-    OR: [
-      { publishedBy: { some: edition } },
-      { publications: { some: { edition } } },
-    ],
+    publishedBy: { some: edition },
   };
   const media = await prisma.contentMedia.findFirst({
     where: {
@@ -49,6 +50,7 @@ export async function authorizedStudyMedia(
           !!pin &&
           pin.checksum === media.checksum &&
           pin.mimeType === media.mimeType &&
+          pin.rightsHash === studyObjectHash(media.rightsMetadata) &&
           studyDocumentInventory(content.body).figures.some(
             (f) =>
               f.mediaKey === binding.mediaKey &&
