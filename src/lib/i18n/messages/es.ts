@@ -54,7 +54,8 @@ export const es: PartialMessages = {
       "updated": "Lección sintética actualizada",
       "unresolved": "Lección sintética con referencia sin resolver",
       "invalid": "Estructura no válida (prueba)",
-      "batch-error": "Error en el segundo lote (prueba)"
+      "batch-error": "Error en el segundo lote (prueba)",
+      "rights-conflict": "Misma imagen, derechos diferentes (prueba)"
     },
     "changes": {
       "added": "Añadido",
