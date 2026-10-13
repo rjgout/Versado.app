@@ -22,6 +22,7 @@ import {
   type ReadingPositionAction,
 } from "../src/lib/studyContent/readingPositionContract";
 import { getStudyReader } from "../src/lib/studyContent/reader";
+import { issueReadingVisitProof, READING_VISIT_TTL_SECONDS } from "../src/lib/studyContent/readingVisitProof";
 import { studyRevisionFixture } from "./fixtures/study-content";
 const url = new URL(
     process.env.CONTENT_ACCESS_TEST_DATABASE_URL ?? "http://invalid",
@@ -335,6 +336,20 @@ test("concept/cross-edition-revisie is geen normale positiedoel, ook niet voor a
     (e: unknown) =>
       e instanceof ReadingPositionError && e.code === "UNAVAILABLE",
   );
+  // Zelfs een geldig ondertekend token creëert geen publicatiebewijs voor concepten.
+  await assert.rejects(
+    saveReadingPosition(
+      owner,
+      await action({
+        revisionId: draft.id,
+        visitProof: issueReadingVisitProof(owner.id, editionId, draft.id, ownerSession),
+      }),
+      prisma,
+      ownerSession,
+    ),
+    (e: unknown) =>
+      e instanceof ReadingPositionError && e.code === "UNAVAILABLE",
+  );
   const otherSource = await source();
   const item = await publish(otherSource, "sample");
   await assert.rejects(
@@ -353,16 +368,43 @@ test("concept/cross-edition-revisie is geen normale positiedoel, ook niet voor a
     404,
   );
 });
-test("oude aantoonbaar gepubliceerde tekst mag positie bewaren na update; oude media blijven afgeschermd", async () => {
+test("oude revisie vereist een echt, nog geldig en sessiegebonden bezoekbewijs", async () => {
+  // Alleen het openen van de TOEN actuele publicatie geeft een bewijs.
+  const visit = await getStudyReader(owner, lessonId, collection, ownerSession);
+  assert.ok(visit?.visitProof);
+  assert.equal(visit.lesson.revisionId, revisionId);
+  const save = await action({ revisionId, sectionFraction: 0.3 });
   await publish(collection, "updated");
-  const historical = await saveReadingPosition(
-    owner,
-    await action({ revisionId, sectionFraction: 0.3 }),
+  const invalidProofs = [
+    undefined,
+    "rv1.forged.invalid",
+    issueReadingVisitProof(other.id, editionId, revisionId, ownerSession),
+    issueReadingVisitProof(owner.id, "other-edition", revisionId, ownerSession),
+    issueReadingVisitProof(owner.id, editionId, "other-revision", ownerSession),
+    issueReadingVisitProof(owner.id, editionId, revisionId, "another-session"),
+    issueReadingVisitProof(owner.id, editionId, revisionId, ownerSession, Date.now() - (READING_VISIT_TTL_SECONDS + 60) * 1000),
+  ];
+  for (const proof of invalidProofs) {
+    const response = await api("PUT", { ...save, ...(proof ? { visitProof: proof } : {}) });
+    assert.equal(response.status, 404, "oud tekstfragment vereist echt leesbezoek");
+  }
+  const current = await getStudyReader(owner, lessonId, collection, ownerSession);
+  assert.ok(current?.visitProof);
+  assert.notEqual(current.lesson.revisionId, revisionId);
+  assert.equal((await api("PUT", { ...save, visitProof: current.visitProof })).status, 404);
+  // Ook een correct uitgegeven bewijs mag niet op een andere sessie werken.
+  await assert.rejects(
+    saveReadingPosition(owner, { ...save, visitProof: visit.visitProof }, prisma, "different-session"),
+    (e: unknown) => e instanceof ReadingPositionError && e.code === "UNAVAILABLE",
   );
-  assert.equal(historical.state.position?.revisionId, revisionId);
-  const updated = await getStudyReader(owner, lessonId, collection);
-  assert.ok(updated);
-  assert.notEqual(updated.lesson.revisionId, revisionId);
+  const historical = await api("PUT", { ...save, visitProof: visit.visitProof });
+  assert.equal(historical.status, 200);
+  const body = await historical.json();
+  assert.equal(body.state.position.revisionId, revisionId);
+  assert.ok(body.state.position.quoteContext);
+  assert.equal((await prisma.readingPosition.findUniqueOrThrow({
+    where: { userId_lessonEditionId: { userId: owner.id, lessonEditionId: editionId } },
+  })).revisionId, revisionId);
 });
 test("hidden/disabled/DRAFT en retired weigeren gewone admin- en leesmutaties; positie blijft behouden", async () => {
   const row = await prisma.readingPosition.findUniqueOrThrow({
