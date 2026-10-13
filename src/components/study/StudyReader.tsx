@@ -75,6 +75,7 @@ function ReaderVisit({
     data.positionState,
     query.data,
     sessionKey,
+    data.visitProof,
   );
   const status = control.snapshot.status;
   const busy = status === "saving" || updating;
