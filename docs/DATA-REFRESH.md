@@ -150,3 +150,14 @@ oorspronkelijke key; een andere bron krijgt geen oude cursussen of speldata.
 De picker gebruikt een eigen sessiegebonden catalogusquery en controleert de
 actuele keuze nogmaals vóór navigatie. Het centrale invalidatiecontract blijft
 `contentChanged`; studiecontexten worden niet gewijzigd.
+
+
+### Studiepublicaties (fase 2B)
+
+`studyContentChanged` invalideert uitsluitend `studyContent`. Importuitkomsten en
+publicatie-audits sturen na commit dit signaal naar de uitvoerende beheerder.
+`AdminStudyPublicationsClient` gebruikt de bestaande `useLiveQuery`/`jsonMutation`.
+Alleen in het expliciete geïsoleerde synthetische testprofiel kan de importer
+actief zijn; daar volgt de zichtbare beheerquery rustig via `pollMs:2000` de
+duurzame jobstatus. Geen losse interval-, focus- of reconnectlistener; geen
+progressie-, XP-, reeks-, hints- of spelinvalidatie door een publicatieactie.

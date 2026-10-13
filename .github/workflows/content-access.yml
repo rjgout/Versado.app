@@ -1,4 +1,4 @@
-name: Contentarchitectuur 1A–2A toegang, context, selectie en spellen
+name: Contentarchitectuur 1A–2B toegang, context, selectie en spellen
 
 on:
   pull_request:
@@ -14,7 +14,15 @@ on:
       - 'tests/fixtures/mystery*'
       - 'tests/learning-progress.integration.test.ts'
       - 'src/lib/studyContent/**'
+      - 'src/app/api/admin/study-publications/**'
+      - 'src/app/api/admin/study-media/**'
+      - 'src/app/api/study-media/**'
+      - 'src/components/admin/StudyRevisionContent.tsx'
+      - 'src/components/admin/AdminStudyPublicationsClient.tsx'
+      - 'src/components/ConfirmProvider.tsx'
       - 'tests/study-content*'
+      - 'tests/study-publication*'
+      - 'scripts/study-content/**'
       - 'tests/study-identity-migration.mjs'
       - 'tests/fixtures/study-content.ts'
       - 'src/lib/contentAccess.ts'
@@ -186,4 +194,39 @@ jobs:
         with:
           name: mystery-persistence-browser
           path: /tmp/versado-mystery-browser
+          if-no-files-found: ignore
+
+  study-import-publication:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Prisma, types, unit en schone productiebuild
+        run: |
+          npx prisma validate
+          npm run db:generate
+          npx tsc --noEmit
+          npm run test:study-publication
+          npm run build
+      - name: Browser klaarzetten
+        run: |
+          npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
+          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Geïsoleerde import/publicatie, foutinjectie, databehoud en echte containervervanging
+        run: npm run test:study-publication:integration
+      - name: Browserbewijs bewaren
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: study-import-publication-browser
+          path: /tmp/versado-study-publication-browser
           if-no-files-found: ignore

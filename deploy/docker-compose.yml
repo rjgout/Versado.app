@@ -75,12 +75,15 @@ services:
       DEPLOY_AGENT_TOKEN: CHANGE_THIS_TO_A_DIFFERENT_LONG_RANDOM_STRING
       # Laat Huisstijl het laatst opgeslagen headerlogo delen met de proxy,
       # zodat de onderhoudspagina zonder Next.js kan blijven tekenen.
+      STUDY_MEDIA_DIR: /data/study-media
       BRANDING_ASSET_DIR: /data/branding
     volumes:
       # Eigen kopie van de voorgelezen hoofdstukken (ruim een gigabyte per
       # taal), gevuld bij "Inhoud opnieuw laden" in /adminbackend. Op de NAS
       # zelf, zodat een nieuwe image de bestanden niet opnieuw hoeft te halen.
       - /volume1/docker/jehova-app/audio:/data/audio
+      # Eerst door eigenaar aanmaken/stack aanpassen en marker initialiseren; niet via image-update.
+      - /volume1/docker/jehova-app/study-media:/data/study-media
       - branding_assets:/data/branding
     depends_on:
       jehova-db:

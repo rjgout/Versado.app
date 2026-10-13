@@ -198,3 +198,44 @@ opnieuw gevuld.
 Wil je liever een los, herstelbaar databasedump-bestand, gebruik dan de
 meegeleverde scripts (`scripts/backup.sh` / `scripts/restore.sh`) — die
 werken op elke Docker-host, ook je NAS via SSH.
+
+## Fase 2B: studielesmedia — eenmalige voorbereiding na afzonderlijk uitrolakkoord
+
+Dit zijn voorbereidingsinstructies; de fase-2B-PR voert ze niet op de NAS uit.
+Een nieuwe appimage alleen voegt **geen** mount toe. De bestaande deployagent
+neemt de mounts en environment van de vorige appcontainer over.
+
+1. Controleer de daadwerkelijke stackconfiguratie en de opslag-/backupdekking.
+   Het voorstel sluit aan bij de bestaande `/volume1/docker/jehova-app/audio`:
+   `/volume1/docker/jehova-app/study-media:/data/study-media`. De werkelijke NAS-map
+   is niet vanuit de ontwikkelomgeving geïnspecteerd of aangemaakt.
+2. Maak als eigenaar de definitief gekozen NAS-map aan met beperkte rechten;
+   koppel hem in de **appservice**, met `STUDY_MEDIA_DIR=/data/study-media`.
+   Gebruik uitsluitend een eigen permanente bind mount/volume, geen containerlaag
+   of tijdelijke directory. Neem de map op in het gewenste Hyper Backup-bereik.
+3. Werk na afzonderlijke review de bestaande Portainer-stack één keer bij. Houd
+   alle bestaande database-, Redis-, branding- en audiomounts intact. Deze handeling
+   vervangt de container en kan de automatische `prisma migrate deploy` starten:
+   dit is dus een productie-uitrol, geen vrijblijvende configuratiecontrole.
+4. Initialiseer op de gemounte map expliciet de volumemarker met
+   `node scripts/study-content/prepare-storage.mjs` in de appcontainer. Doe dit met
+   dezelfde OS-identiteit als de app. De huidige Dockerfile gebruikt root; een
+   latere niet-root-configuratie moet de eigenaar van deze map daarop aanpassen.
+   De helper controleert de echte mount, maakt geen map aan, verwijdert geen media
+   en publiceert niets. Hij bewaart een bestaande geldige volumemarker.
+5. Controleer in Adminbackend → Content → Studielespublicaties de opslagstatus.
+   Zonder mount, marker of schrijfbevoegdheid blokkeren import en publicatie.
+   Controleer na een bewuste containervervanging dezelfde marker en bestanden.
+
+Officiële imports en productiepublicatie blijven in deze versie gesloten. Het
+profiel `synthetic-test` werkt alleen tegen de eigen lokale wegwerpdatabase
+`versado_content_access_test`; dit is geen productievrijgavevlag. Zet dat profiel
+niet op de NAS. Er worden geen synthetische lessen voor productiegebruikers gemaakt.
+
+Bij terugkeer naar de vorige appimage blijven de additieve tabellen en de
+mediamount bestaan. Draai geen down-migratie en verwijder geen map of marker.
+De oudere image kent de nieuwe beheerpagina niet; gebruikersvoortgang blijft
+hetzelfde. Publicatie-rollback wisselt uitsluitend een gevalideerde revisiepointer.
+
+De eigenaar beheert dagelijkse Synology Hyper Backup. Er is geen onafhankelijke
+herstelproef uitgevoerd; dat is het eerder expliciet geaccepteerde restrisico.
