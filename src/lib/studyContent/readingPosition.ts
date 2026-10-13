@@ -13,6 +13,7 @@ import {
   type StudyRevisionInput,
 } from "./revisions";
 import { studyObjectHash } from "./policy";
+import { validReadingVisitProof } from "./readingVisitProof";
 import {
   readingPositionActionSchema,
   readingBlock,
@@ -110,8 +111,13 @@ async function authorizedRevision(
   editionId: string,
   revisionId: string,
   current: { revisionId: string; body: ReaderDocument },
+  actorId: string,
+  sessionKey: string | undefined,
+  visitProof: string | undefined,
 ): Promise<ReaderDocument> {
   if (revisionId === current.revisionId) return current.body;
+  if (!validReadingVisitProof(visitProof, actorId, editionId, revisionId, sessionKey))
+    throw new ReadingPositionError("UNAVAILABLE");
   const historical = await db.studyPublicationAction.findFirst({
     where: {
       lessonEditionId: editionId,
@@ -144,6 +150,7 @@ export async function saveReadingPosition(
   actor: Actor,
   input: ReadingPositionAction,
   client: PrismaClient = prisma,
+  sessionKey?: string,
 ) {
   const parsed = readingPositionActionSchema.safeParse(input);
   if (!parsed.success) throw new ReadingPositionError("INVALID");
@@ -171,6 +178,9 @@ export async function saveReadingPosition(
         action.lessonEditionId,
         action.revisionId,
         current.authorized.current,
+        actor.id,
+        sessionKey,
+        action.visitProof,
       );
       const block = readingBlock(
         document,
