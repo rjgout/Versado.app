@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { hasMysteryAttempt } from "@/lib/mysteries/attempts";
 import { ArrowRight, Brain, CheckCircle2, LockKeyhole } from "lucide-react";
 import { redirect } from "next/navigation";
 import { canUseMystery, getMysteryProgress } from "@/lib/mysteries/progress";
@@ -11,7 +12,7 @@ import { surfaceCard } from "@/components/versado/styles";
 export default async function MysteryGamePage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!(await canUseMystery(user.id, user.isAdmin))) redirect("/live?availability=unavailable");
+  if (!(await hasMysteryAttempt(user.id)) && !(await canUseMystery(user.id, user.isAdmin))) redirect("/live?availability=unavailable");
   const [progress, t] = await Promise.all([
     Promise.all(MYSTERY_GAME.mysteries.map(({ definition }) => getMysteryProgress(user.id, definition))),
     Promise.resolve(getT(user.uiLanguage)),

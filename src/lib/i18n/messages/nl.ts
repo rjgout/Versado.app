@@ -5,6 +5,20 @@
 import { kompasNl } from "./kompas/nl";
 
 export const nl = {
+  mysteryPersistence: {
+    readerUnavailable: "Het oorspronkelijke hoofdstuk is nu niet beschikbaar.",
+    loadFailed: "Je poging kon niet worden geladen. Probeer opnieuw.",
+    saving: "Bezig met opslaan…",
+    saved: "Opgeslagen",
+    conflict: "Er is een nieuwere spelstand op een ander toestel. Je wijzigingen zijn niet overschreven.",
+    reload: "Nieuwere spelstand ophalen",
+    unavailable: "Deze oorspronkelijke uitgave is niet beschikbaar. Je poging blijft bewaard.",
+    loading: "Poging laden…",
+    retry: "Opnieuw proberen",
+    unsaved: "Deze wijzigingen zijn nog niet opgeslagen. Probeer opnieuw voordat je afsluit.",
+    hintConfirm: "Deze hint kost 1 hint uit je voorraad.",
+    explanation: "Je bord, aanwijzingen en betaalde hints worden bij deze poging opgeslagen. Je kunt later op een ander toestel verdergaan.",
+  },
   gameAvailability: { unavailable: "Dit spel is niet beschikbaar voor deze content. Kies een beschikbare activiteit of contentbron." },
 
   adminContentInspect: {
@@ -774,8 +788,8 @@ export const nl = {
       description: "Los logicapuzzels op en reis stap voor stap door de verhalen van het Boek van Mormon.",
       linkLabel: "Het Mysterie openen",
       rule1: "Begin met Mysterie 001: Vertrek uit Jeruzalem.",
-      rule2: "Ontdek stap voor stap vooraf ontworpen logicapuzzels in het Boek van Mormon.",
-      rule3: "De ruimtelijke opstellingen zijn puzzelfictie, geen historische reconstructies.",
+      rule2: "Je bord en aantekeningen worden automatisch bij je poging opgeslagen. Je kunt later op een ander toestel verdergaan, ook na een taal- of bronwissel. Een hint kost 1 hint uit je voorraad en blijft bij dezelfde poging geregistreerd. Opnieuw spelen bewaart je eerdere voltooiingen.",
+      rule3: "De ruimtelijke opstellingen zijn puzzelfictie, geen historische reconstructies. De eerste juiste oplossing telt voor je reeks; je krijgt geen XP.",
     },
   },
   mysteryGame: {

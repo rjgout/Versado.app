@@ -22,7 +22,7 @@ const load = async () => ({
 type Loaded = Awaited<ReturnType<typeof load>>;
 let L: Loaded;
 let userId = "";
-const extraIds: { collection?: string } = {};
+const extraIds: { collection?: string; work?: string } = {};
 
 async function chapterId(bookKey: string, number: number, collection = "content_bom"): Promise<string> {
   const chapter = await L.db.chapter.findFirstOrThrow({ where: { number, book: { key: bookKey, contentCollectionId: collection } }, select: { id: true } });
@@ -73,6 +73,7 @@ after(async () => {
   if (skip) return;
   if (userId) await L.db.user.delete({ where: { id: userId } }).catch(() => {});
   if (extraIds.collection) await L.db.contentCollection.delete({ where: { id: extraIds.collection } }).catch(() => {});
+  if (extraIds.work) await L.db.contentWork.delete({ where: { key: extraIds.work } }).catch(() => {});
   await L.db.$disconnect();
 });
 
@@ -243,7 +244,9 @@ test("leesvoortgang resetten: alles op nul, maar dezelfde basis-XP komt niet ter
 test("een nieuw boek zonder kerksleutel valt vanzelf onder hetzelfde systeem", { skip }, async () => {
   const id = `test_collectie_${Date.now()}`;
   extraIds.collection = id;
-  await L.db.contentCollection.create({ data: { id, slug: id, name: "Testboek", icon: "x", visibleToUsers: false, work: "test-werk" } });
+  extraIds.work = id;
+  await L.db.contentWork.create({ data: { key: extraIds.work, kind: "OTHER" } });
+  await L.db.contentCollection.create({ data: { id, slug: id, name: "Testboek", icon: "x", visibleToUsers: false, work: extraIds.work } });
   const book = await L.db.book.create({ data: { slug: id, name: "Testboek", order: 999, contentCollectionId: id } });
   const chapter = await L.db.chapter.create({ data: { bookId: book.id, number: 1, order: 1 } });
   for (let v = 1; v <= 25; v++) {

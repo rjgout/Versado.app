@@ -3,6 +3,20 @@ import { kompasFr } from "./kompas/fr";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const fr: PartialMessages = {
+  mysteryPersistence: {
+    readerUnavailable: "Le chapitre d’origine est actuellement indisponible.",
+    loadFailed: "Ta tentative n’a pas pu être chargée. Réessaie.",
+    saving: "Enregistrement…",
+    saved: "Enregistré",
+    conflict: "Un autre appareil possède une partie plus récente. Tes modifications n’ont pas été écrasées.",
+    reload: "Charger la partie plus récente",
+    unavailable: "L’édition d’origine est indisponible. Ta tentative est conservée.",
+    loading: "Chargement de la tentative…",
+    retry: "Réessayer",
+    unsaved: "Ces modifications ne sont pas enregistrées. Réessaie avant de quitter.",
+    hintConfirm: "Cet indice coûte 1 indice de ta réserve.",
+    explanation: "Ton plateau, tes notes et tes indices payés sont enregistrés avec cette tentative. Tu peux continuer plus tard sur un autre appareil.",
+  },
   gameAvailability: { unavailable: "Ce jeu n’est pas disponible pour ce contenu. Choisissez une activité ou une source disponible." },
 
   adminContentInspect: {
@@ -966,6 +980,13 @@ export const fr: PartialMessages = {
     hide: "Masquer de l’aperçu",
   },
   gamesHub: {
+    mystery: {
+      description: "Résous des énigmes logiques et découvre les récits du Livre de Mormon.",
+      linkLabel: "Ouvrir Mystère",
+      rule1: "Commence par Mystère 001 : le départ de Jérusalem.",
+      rule2: "Ton plateau et tes notes sont enregistrés automatiquement avec ta tentative. Continue sur un autre appareil, même après un changement de langue ou de source. Chaque indice coûte 1 indice de ta réserve et reste enregistré avec cette tentative. Rejouer conserve tes réussites précédentes.",
+      rule3: "Les dispositions sont fictives, pas des reconstitutions historiques. Ta première solution correcte compte pour ta série ; tu ne reçois pas de XP.",
+    },
     addGame: "Ajouter un jeu",
     addGameHint: "Choisis parmi les jeux que tu as masqués",
     allAdded: "Tous les jeux sont déjà dans ton aperçu.",

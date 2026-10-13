@@ -3,6 +3,20 @@ import { kompasEs } from "./kompas/es";
 
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
+  mysteryPersistence: {
+    readerUnavailable: "El capítulo original no está disponible en este momento.",
+    loadFailed: "No se pudo cargar tu intento. Reinténtalo.",
+    saving: "Guardando…",
+    saved: "Guardado",
+    conflict: "Otro dispositivo tiene un estado de juego más reciente. Tus cambios no se han sobrescrito.",
+    reload: "Cargar el estado más reciente",
+    unavailable: "La edición original no está disponible. Tu intento se conserva.",
+    loading: "Cargando el intento…",
+    retry: "Reintentar",
+    unsaved: "Estos cambios aún no se han guardado. Reintenta antes de salir.",
+    hintConfirm: "Esta pista cuesta 1 pista de tu reserva.",
+    explanation: "Tu tablero, notas y pistas pagadas se guardan con este intento. Puedes continuar después en otro dispositivo.",
+  },
   gameAvailability: { unavailable: "Este juego no está disponible para este contenido. Elige una actividad o una fuente disponible." },
 
   adminContentInspect: {
@@ -978,6 +992,13 @@ export const es: PartialMessages = {
     "hide": "Ocultar del resumen"
   },
   "gamesHub": {
+    mystery: {
+      description: "Resuelve acertijos lógicos y descubre paso a paso los relatos del Libro de Mormón.",
+      linkLabel: "Abrir Misterio",
+      rule1: "Empieza con Misterio 001: Salida de Jerusalén.",
+      rule2: "Tu tablero y notas se guardan automáticamente con tu intento. Continúa en otro dispositivo, incluso tras cambiar de idioma o fuente. Cada pista cuesta 1 pista de tu reserva y queda registrada en este intento. Volver a jugar conserva tus logros anteriores.",
+      rule3: "Las disposiciones son ficción del acertijo, no reconstrucciones históricas. Tu primera solución correcta cuenta para tu racha; no recibes XP.",
+    },
     "addGame": "Añadir juego",
     "addGameHint": "Elige entre los juegos que has ocultado",
     "allAdded": "Todos los juegos ya están en tu resumen.",

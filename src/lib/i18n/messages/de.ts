@@ -3,6 +3,20 @@ import { kompasDe } from "./kompas/de";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const de: PartialMessages = {
+  mysteryPersistence: {
+    readerUnavailable: "Das ursprüngliche Kapitel ist derzeit nicht verfügbar.",
+    loadFailed: "Dein Versuch konnte nicht geladen werden. Versuche es erneut.",
+    saving: "Wird gespeichert…",
+    saved: "Gespeichert",
+    conflict: "Ein anderes Gerät hat einen neueren Spielstand. Deine Änderungen wurden nicht überschrieben.",
+    reload: "Neueren Spielstand laden",
+    unavailable: "Die ursprüngliche Ausgabe ist nicht verfügbar. Dein Versuch bleibt gespeichert.",
+    loading: "Versuch wird geladen…",
+    retry: "Erneut versuchen",
+    unsaved: "Diese Änderungen sind noch nicht gespeichert. Versuche es vor dem Verlassen erneut.",
+    hintConfirm: "Dieser Hinweis kostet 1 Hinweis aus deinem Vorrat.",
+    explanation: "Dein Brett, deine Hinweisnotizen und bezahlten Hinweise werden mit diesem Versuch gespeichert. Du kannst später auf einem anderen Gerät weiterspielen.",
+  },
   gameAvailability: { unavailable: "Dieses Spiel ist für diese Inhalte nicht verfügbar. Wähle eine verfügbare Aktivität oder Inhaltsquelle." },
 
   adminContentInspect: {
@@ -966,6 +980,13 @@ export const de: PartialMessages = {
     hide: "Aus der Übersicht ausblenden",
   },
   gamesHub: {
+    mystery: {
+      description: "Löse Logikrätsel und entdecke Schritt für Schritt Geschichten aus dem Buch Mormon.",
+      linkLabel: "Mysterie öffnen",
+      rule1: "Beginne mit Mysterie 001: Aufbruch aus Jerusalem.",
+      rule2: "Dein Brett und deine Notizen werden automatisch mit deinem Versuch gespeichert. Spiele auf einem anderen Gerät weiter, auch nach einem Sprach- oder Quellenwechsel. Jeder Hinweis kostet 1 Hinweis aus deinem Vorrat und bleibt beim Versuch registriert. Erneutes Spielen bewahrt frühere Abschlüsse.",
+      rule3: "Die Anordnungen sind Rätselfiktion, keine historischen Rekonstruktionen. Deine erste richtige Lösung zählt für deine Serie; es gibt keine XP.",
+    },
     addGame: "Spiel hinzufügen",
     addGameHint: "Wähle aus Spielen, die du ausgeblendet hast",
     allAdded: "Alle Spiele sind schon in deiner Übersicht.",

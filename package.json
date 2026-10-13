@@ -38,7 +38,7 @@
     "test:exercise-feedback": "tsx --test tests/exercise-feedback.test.ts",
     "test:snelle-zendeling": "tsx --test --test-concurrency=1 tests/snelle-zendeling.test.ts tests/snelle-zendeling-hitbox.test.ts tests/snelle-zendeling-difficulty.test.ts tests/snelle-zendeling-genees.test.ts tests/snelle-zendeling-genees.integration.test.ts tests/snelle-zendeling-match.test.ts tests/snelle-zendeling-match.integration.test.ts",
     "test:snelle-zendeling:integration": "node scripts/content-architecture/test-access-isolated.mjs --quick-missionary",
-    "test:mystery": "tsx --test tests/mystery001a.test.ts tests/mystery002.test.ts tests/mystery003-006.test.ts tests/mystery-character-closing.test.ts tests/mystery-mobile-layout.test.ts tests/focus-mode.test.ts",
+    "test:mystery": "tsx --test tests/mystery001a.test.ts tests/mystery002.test.ts tests/mystery003-006.test.ts tests/mystery-character-closing.test.ts tests/mystery-mobile-layout.test.ts tests/focus-mode.test.ts tests/mystery-attempt.test.ts",
     "test:artwork": "tsx --test tests/artwork.test.ts",
     "test:character-assets": "tsx --test tests/character-assets.test.ts",
     "test:avatar-editor": "tsx --test tests/avatar-editor.test.ts",
@@ -71,7 +71,8 @@
     "test:content-access": "tsx --test tests/content-access.test.ts tests/content-inventory.test.ts tests/content-inventory-validation.test.mjs",
     "test:content-access:integration": "node scripts/content-architecture/test-access-isolated.mjs",
     "test:puzzle:multi": "PUZZLE_MULTI_INSTANCE=1 tsx --test --test-concurrency=1 tests/puzzle-multi-instance.integration.test.ts",
-    "test:puzzle:multiplayer": "tsx --test --test-concurrency=1 tests/puzzle-coop.integration.test.ts tests/puzzle-match.integration.test.ts"
+    "test:puzzle:multiplayer": "tsx --test --test-concurrency=1 tests/puzzle-coop.integration.test.ts tests/puzzle-match.integration.test.ts",
+    "test:mystery:integration": "node scripts/content-architecture/test-access-isolated.mjs --mystery --browser"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

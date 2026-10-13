@@ -122,6 +122,7 @@ model User {
   duoResultsA QuickMissionaryDuoResult[] @relation("DuoUserA")
   duoResultsB QuickMissionaryDuoResult[] @relation("DuoUserB")
   mysteryProgress     MysteryProgress[]
+  mysteryAttempts     MysteryAttempt[]
 
   // De actieve contentcollectie voor de contentswitcher. Null betekent dat de gebruiker
   // nog geen expliciete keuze heeft gemaakt; de app gebruikt dan de standaardcollectie.
@@ -588,6 +589,7 @@ model ContentCollection {
   courses   Course[]
   gameScopes GameContentScope[]
   reviveProgress QuickMissionaryReviveProgress[]
+  mysteryAttempts MysteryAttempt[] @relation("MysteryAttemptSource")
   quickMissionaryRuns QuickMissionaryRun[] @relation("QuickMissionaryRunSource")
   liveGamePlayers LiveGamePlayer[] @relation("QuickMissionaryLobbySource")
   users     User[]   @relation("ActiveContentCollection")
@@ -2506,7 +2508,7 @@ enum MysteryDifficulty {
 }
 
 // Historische voortgang van een vooraf ontworpen mysterie. Een poging zelf
-// blijft client-state; deze rij bewaart alleen wat refresh en opnieuw spelen
+// wordt apart bewaard; deze rij bewaart alleen wat refresh en opnieuw spelen
 // moet overleven. mysteryId en difficulty zijn stabiele interne sleutels.
 model MysteryProgress {
   id             String            @id @default(cuid())
@@ -3491,4 +3493,35 @@ model KompasProgress {
 
   @@unique([userId, topicId, scope, kind])
   @@index([userId])
+}
+
+// Eén actieve levenscyclus per variant via een partial unique index in SQL.
+model MysteryAttempt {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mysteryId String
+  difficulty MysteryDifficulty
+  contentCollectionId String
+  contentCollection ContentCollection @relation("MysteryAttemptSource", fields: [contentCollectionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  definitionVersion String
+  placements Json
+  clueNotes Json
+  hintUses Json @default("[]")
+  status MysteryAttemptStatus @default(IN_PROGRESS)
+  active Boolean @default(true)
+  revision Int @default(0)
+  startActionId String
+  lastActionId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, startActionId])
+  @@index([userId, mysteryId, difficulty, active])
+  @@index([contentCollectionId])
+}
+
+enum MysteryAttemptStatus {
+  IN_PROGRESS
+  COMPLETED
 }
