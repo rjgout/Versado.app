@@ -119,21 +119,152 @@ test("asynchroon: van uitnodiging tot uitslag, één officiële poging, identiek
   assert.equal(await L.db.puzzleMatchParticipant.count({ where: { matchId, status: "FINISHED" } }), 2);
 });
 
-test("een fout antwoord geeft geen geldige tijd en geen reeks", { skip }, async () => {
-  const { people: [a, b], matchId } = await duo("ASYNC");
-  await L.match.respondToMatchInvite(b.id, matchId, true);
-  await L.match.beginMatchAttempt(a.id, matchId); await L.match.beginMatchAttempt(b.id, matchId);
+/** Zet een wedstrijd terug naar de oude regels (versie 1), zoals bestaande wedstrijden die hebben. */
+const legacy = (matchId: string) => L.db.puzzleMatch.update({ where: { id: matchId }, data: { resultRules: 1 } });
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const participantRow = (matchId: string, userId: string) => L.db.puzzleMatchParticipant.findUniqueOrThrow({ where: { matchId_userId: { matchId, userId } } });
+async function started(kind: "ASYNC" | "LIVE" = "ASYNC", extra = 0) {
+  const made = await duo(kind, extra);
+  for (const p of made.people.slice(1)) await L.match.respondToMatchInvite(p.id, made.matchId, true);
+  if (kind === "ASYNC") for (const p of made.people) await L.match.beginMatchAttempt(p.id, made.matchId);
+  return made;
+}
+
+test("oude regels (versie 1): een fout antwoord geeft geen geldige tijd en geen reeks", { skip }, async () => {
+  const { people: [a, b], matchId } = await started();
+  await legacy(matchId);
   const streakA = (await get(a.id)).currentStreak;
   const stateA = await solve(a.id, matchId);
+  assert.equal((await participantRow(matchId, a.id)).status, "PLAYING", "onder de oude regels telt de puzzel pas met het antwoord");
   const wrong = await L.match.answerMatch(a.id, matchId, wrongChoice(stateA));
-  assert.equal(wrong.valid, false); assert.equal(wrong.correctChoice, null, "juiste antwoord blijft verborgen tijdens de wedstrijd");
+  assert.equal(wrong.valid, false); assert.equal(wrong.correctChoice, null);
   assert.equal((await get(a.id)).currentStreak, streakA);
   const stateB = await solve(b.id, matchId);
   await L.match.answerMatch(b.id, matchId, rightChoice(stateB));
   const final = await L.match.getMatch(b.id, matchId);
-  assert.equal(final.status, "FINISHED"); assert.equal(final.winnerId, b.id);
-  assert.equal(final.participants.find((p) => p.userId === a.id)!.result!.rank, null);
+  assert.equal(final.resultRules, 1); assert.equal(final.status, "FINISHED"); assert.equal(final.winnerId, b.id);
   assert.equal(final.participants.find((p) => p.userId === a.id)!.result!.valid, false);
+});
+
+test("nieuwe regels: de tijd stopt bij het voltooien van de puzzel en de vraag verandert niets", { skip }, async () => {
+  const { people: [a, b], matchId } = await started();
+  const stateA = await solve(a.id, matchId);
+  const done = await participantRow(matchId, a.id);
+  const session = await L.db.puzzleSession.findUniqueOrThrow({ where: { id: done.sessionId! } });
+  assert.equal(done.status, "FINISHED", "direct afgerond bij de laatste verbinding");
+  assert.ok(session.completedAt, "voltooiingstijdstip van de commit");
+  assert.equal(done.finishedAt!.getTime(), session.completedAt!.getTime(), "finish = canoniek voltooiingstijdstip");
+  assert.equal(done.elapsedMs, session.completedAt!.getTime() - done.startedAt!.getTime(), "elapsed = completedAt - startedAt");
+  assert.equal(done.answeredAt, null);
+  const official = done.elapsedMs;
+  await sleep(700);
+  const streakBefore = (await get(a.id)).currentStreak;
+  const wrong = await L.match.answerMatch(a.id, matchId, wrongChoice(stateA));
+  assert.equal(wrong.valid, true, "een fout antwoord maakt het resultaat niet ongeldig");
+  assert.equal(wrong.correctChoice, null, "juiste antwoord blijft verborgen zolang de wedstrijd loopt");
+  const after = await participantRow(matchId, a.id);
+  assert.equal(after.elapsedMs, official, "de vraagtijd telt niet mee");
+  assert.equal(after.status, "FINISHED"); assert.equal(after.answeredCorrect, false); assert.ok(after.answeredAt);
+  assert.equal((await get(a.id)).currentStreak, streakBefore, "een fout antwoord verlengt de reeks niet");
+  // Tweede antwoord (ook een goed): geen tweede kans, geen tweede beloning.
+  const again = await L.match.answerMatch(a.id, matchId, rightChoice(stateA));
+  assert.equal(again.correct, false); assert.equal((await get(a.id)).currentStreak, streakBefore);
+  const view = await L.match.getMatch(b.id, matchId);
+  assert.equal(view.participants.find((p) => p.userId === a.id)!.result, null, "b ziet a's tijd pas na eigen finish");
+  void b;
+});
+
+test("nieuwe regels: rang op puzzeltijd, goed antwoord verandert de volgorde niet en verlengt de reeks wel", { skip }, async () => {
+  const { people: [a, b], matchId } = await started();
+  // a begon later dan b, maar legt sneller (kortere officiële tijd).
+  await L.db.puzzleMatchParticipant.update({ where: { matchId_userId: { matchId, userId: a.id } }, data: { startedAt: new Date(Date.now() - 2000) } });
+  await L.db.puzzleMatchParticipant.update({ where: { matchId_userId: { matchId, userId: b.id } }, data: { startedAt: new Date(Date.now() - 90_000) } });
+  const stateA = await solve(a.id, matchId); const stateB = await solve(b.id, matchId);
+  assert.equal((await L.match.getMatch(a.id, matchId)).status, "FINISHED", "alle puzzels klaar: de wedstrijd sluit zonder antwoorden");
+  const streakB = (await get(b.id)).currentStreak;
+  await L.match.answerMatch(a.id, matchId, wrongChoice(stateA));
+  const goodB = await L.match.answerMatch(b.id, matchId, rightChoice(stateB));
+  assert.equal(goodB.correct, true); assert.ok(goodB.correctChoice !== null);
+  assert.equal((await get(b.id)).currentStreak, streakB + 1, "goed antwoord kan de reeks verlengen");
+  const final = await L.match.getMatch(a.id, matchId);
+  assert.equal(final.winnerId, a.id, "a wint op puzzeltijd, ondanks het foute antwoord");
+  assert.deepEqual(final.participants.map((p) => [p.userId, p.result!.rank, p.result!.valid]).sort(), [[a.id, 1, true], [b.id, 2, true]].sort());
+});
+
+test("nieuwe regels: zonder antwoord blijft de uitslag staan; de vraag kan ook na afloop nog", { skip }, async () => {
+  const { people: [a, b], matchId } = await started();
+  const stateA = await solve(a.id, matchId);
+  await L.db.puzzleMatch.update({ where: { id: matchId }, data: { playDeadline: new Date(Date.now() - 1000) } });
+  await L.maintenance.runPuzzleMaintenance();
+  const closed = await L.match.getMatch(a.id, matchId);
+  assert.equal(closed.status, "FINISHED"); assert.equal(closed.winnerId, a.id, "puzzel vóór de deadline voltooid blijft geldig zonder antwoord");
+  assert.equal(closed.participants.find((p) => p.userId === b.id)!.status, "DNF");
+  assert.equal(closed.me.question.answered, false);
+  const question = await L.match.matchQuestion(a.id, matchId, "nl");
+  assert.ok(question && !("correctChoice" in question), "geen antwoord zonder zelf te antwoorden");
+  const streak = (await get(a.id)).currentStreak;
+  const late = await L.match.answerMatch(a.id, matchId, rightChoice(stateA));
+  assert.equal(late.valid, true); assert.ok(late.correctChoice !== null, "na afloop mag het juiste antwoord getoond worden");
+  assert.equal((await get(a.id)).currentStreak, streak + 1);
+  assert.equal((await participantRow(matchId, a.id)).elapsedMs, closed.participants.find((p) => p.userId === a.id)!.result!.elapsedMs);
+});
+
+test("nieuwe regels: een puzzel die pas na de deadline af is, wordt DNF", { skip }, async () => {
+  const { people: [a, b], matchId } = await started();
+  let state = await L.match.resumeMatchPuzzle(a.id, matchId, "nl") as State;
+  await L.db.puzzleMatch.update({ where: { id: matchId }, data: { playDeadline: new Date(Date.now() - 1000) } });
+  assert.equal(await code(L.match.applyMatchAction(a.id, matchId, state.version, randomUUID(), { kind: "move", groupId: "p0", x: 3, y: 3 }, "nl")), "EXPIRED");
+  await L.maintenance.runPuzzleMaintenance();
+  const final = await L.match.getMatch(b.id, matchId);
+  assert.equal(final.status, "FINISHED");
+  assert.ok(final.participants.every((p) => p.status === "DNF"));
+  assert.equal(final.winnerId, null);
+  state = state;
+});
+
+test("nieuwe regels: een herhaalde laatste commit maakt geen tweede finish of andere tijd", { skip }, async () => {
+  const { people: [a, b], matchId } = await started();
+  let state = await L.match.resumeMatchPuzzle(a.id, matchId, "nl") as State;
+  const geometry = L.geometry.cachedPuzzleGeometry(state.pieceCount as 6, state.seed, state.geometryVersion);
+  for (const piece of geometry.pieces) state = await act(a.id, matchId, state, { kind: "move" as const, groupId: `p${piece.id}`, x: 3 + piece.column, y: 3 + piece.row });
+  for (const [x, y] of [[0, 1], [1, 2], [0, 3], [3, 4]]) state = await act(a.id, matchId, state, { kind: "connect" as const, a: x, b: y });
+  const lastId = randomUUID(); const operation = { kind: "connect" as const, a: 4, b: 5 };
+  const first = await L.match.applyMatchAction(a.id, matchId, state.version, lastId, operation, "nl");
+  const before = await participantRow(matchId, a.id);
+  await sleep(300);
+  const retry = await L.match.applyMatchAction(a.id, matchId, state.version, lastId, operation, "nl");
+  assert.ok(first && retry && retry.status === "COMPLETED");
+  const after = await participantRow(matchId, a.id);
+  assert.equal(after.elapsedMs, before.elapsedMs); assert.equal(after.finishedAt!.getTime(), before.finishedAt!.getTime());
+  assert.equal(await L.db.puzzleAction.count({ where: { sessionId: after.sessionId!, actionId: lastId } }), 1);
+  // Een nieuwe actie na de finish verplaatst niets meer.
+  assert.equal(await L.match.applyMatchAction(a.id, matchId, retry.version, randomUUID(), { kind: "move", groupId: "p0", x: 5, y: 5 }, "nl"), null);
+  void b;
+});
+
+test("nieuwe regels: gelijktijdig voltooien geeft twee geldige tijden en één afsluiting", { skip }, async () => {
+  const { people: [a, b], matchId } = await started();
+  await Promise.all([solve(a.id, matchId), solve(b.id, matchId)]);
+  const final = await L.match.getMatch(a.id, matchId);
+  assert.equal(final.status, "FINISHED");
+  assert.deepEqual(final.participants.map((p) => p.result!.rank).sort(), [1, 2]);
+  assert.ok(final.winnerId);
+});
+
+test("nieuwe regels: voortgang en vraagstatus in het overzicht (wachten, afgerond)", { skip }, async () => {
+  const activity = await import("../src/lib/puzzle/activity");
+  const t = (key: string) => key;
+  const { people: [a, b], matchId } = await started();
+  await solve(a.id, matchId);
+  const forA = await activity.getPuzzleActivity(a.id, t as never, undefined);
+  const mine = forA.activeGames.find((i) => i.id === matchId)!;
+  assert.equal(mine.myTurn, false, "klaar: wachten op anderen, geen 'verder puzzelen'");
+  const forB = await activity.getPuzzleActivity(b.id, t as never, undefined);
+  assert.equal(forB.activeGames.find((i) => i.id === matchId)!.myTurn, null);
+  await solve(b.id, matchId);
+  assert.equal((await activity.getPuzzleActivity(a.id, t as never, undefined)).activeGames.some((i) => i.id === matchId), false, "afgeronde wedstrijd is geen actieve actie meer");
+  const overview = await L.match.listMatchOverview(a.id);
+  assert.ok(overview.some((row) => row.match.id === matchId && row.match.status === "FINISHED"), "uitslag blijft bereikbaar");
 });
 
 test("live: lobby, startmoment van de server en geen acties vóór de start", { skip }, async () => {

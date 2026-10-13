@@ -59,3 +59,25 @@ ook voor beheerders. Zie `docs/content-architecture-v2/10-PHASE-1D-STATUS.md`.
 Alle essentiële acceptatiecriteria zijn aantoonbaar gehaald binnen de lokale
 testomgeving; de beperkingen hierboven (vooral echte mobiele toestellen en
 multi-host) blijven open en horen bij de beoordeling van "300 stukken ondersteund".
+
+## Correctieronde na fase 3 (navigatie, afgeronde puzzels, wedstrijdtijd)
+
+Branch `fix/puzzle-v2-navigation-completion-timing`.
+
+1. **Terugknop.** Root cause: het terugdoel stond op het vaste pad `/jigsaw` terwijl de multiplayerroutes
+   dynamisch zijn (de override paste nooit), `SubpageBackBar` kende de routes niet en de catalogus gebruikte
+   browsergeschiedenis. Oplossing: `lib/puzzle/navigation.ts` + `PuzzleBackTarget`, `replace`-navigatie,
+   één eigenaar per scherm. Zie architectuur §13.
+2. **Afgeronde puzzels als actief.** Root cause: `listCoopOverview` leverde ook `COMPLETED` en het overzicht
+   gaf elke sessie "Verder puzzelen"; `getPuzzleActivity` rekende een klaar-maar-nog-lopende wedstrijdpoging
+   (en een oude `INVALID`) niet als wachtend. Oplossing: gedeelde indeling uitnodiging/actief/wachten/afgerond.
+3. **Wedstrijdtijd.** Root cause: `answerMatch` was het afrekenmoment (tijd = antwoordmoment, fout antwoord =
+   `INVALID`). Oplossing: `finishAttempt` in de laatste puzzelcommit (regelversie 2); vraag losgekoppeld.
+   Zie architectuur §4 en §12.
+
+Nieuwe status: participant `FINISHED` bij voltooien (met `finishedAt`/`elapsedMs`) en een aparte vraagstatus
+(`answeredAt`, `answeredCorrect`); `INVALID` bestaat alleen nog voor oude (versie 1) wedstrijden.
+
+Tests: wedstrijd-integratietests uitgebreid (puzzeltijd stopt bij voltooien, fout/goed/geen antwoord, deadline,
+retry zonder tweede finish, gelijktijdig voltooien, antwoordlek, oude regels, overzicht), navigatie-unittests,
+een echte browsertest voor navigatie en de wedstrijdflow na voltooien, en alle eerdere suites opnieuw.

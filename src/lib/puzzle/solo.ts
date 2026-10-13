@@ -48,6 +48,8 @@ async function publicState(row: Session, language: string | null | undefined, tx
 export type EngineMode = "SOLO" | "MATCH";
 /** Hooks voor een wedstrijd (mode MATCH): controle vóór en bijwerken ná een actie, in dezelfde transactie. */
 export interface SessionHooks {
+  /** Eerste handeling in de transactie, vóór de sessielock: voor een hogere lock (wedstrijd → sessie → gebruiker). */
+  before?: (tx: Prisma.TransactionClient) => Promise<void>;
   guard?: (tx: Prisma.TransactionClient, row: Session) => Promise<void>;
   after?: (tx: Prisma.TransactionClient, row: Session, snapshot: PuzzleSnapshot) => Promise<void>;
 }
@@ -115,6 +117,7 @@ export class PuzzleHintError extends Error {
 export async function applySoloAction(userId: string, sessionId: string, expectedVersion: number, actionId: string, action: SoloAction, language: string | null | undefined, mode: EngineMode = "SOLO", hooks: SessionHooks = {}) {
   let inventoryChanged = false;
   const result = await prisma.$transaction(async (tx) => {
+    if (hooks.before) await hooks.before(tx);
     const row = await lockSession(tx, userId, sessionId, mode);
     if (!row) return null;
     if (hooks.guard) await hooks.guard(tx, row);

@@ -10,7 +10,8 @@ import { useServerNow } from "@/components/puzzle/serverClock";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
 import { jsonMutation } from "@/lib/data/mutation";
-import { useSetBackTarget } from "@/lib/backTarget";
+import PuzzleBackTarget from "@/components/puzzle/PuzzleBackTarget";
+import { JIGSAW_ROUTE } from "@/lib/puzzle/navigation";
 import type { MatchView } from "@/lib/puzzle/match";
 
 type PuzzleState = Parameters<typeof Puzzle>[0]["initial"];
@@ -27,8 +28,11 @@ export default function MatchClient({ initial, meId }: { initial: MatchView; meI
   const { now, offset } = useServerNow(match.serverNow);
   const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
   const [puzzle, setPuzzle] = useState<PuzzleState | null>(null);
-  const goBack = useCallback(() => router.push("/jigsaw"), [router]);
-  useSetBackTarget("/jigsaw", "/jigsaw", "", goBack);
+  // Terug = het puzzeloverzicht, altijd met replace: geen extra geschiedenisitem, geen annulering of reset.
+  const goBack = useCallback(() => router.replace(JIGSAW_ROUTE), [router]);
+  const [answerFeedback, setAnswerFeedback] = useState<{ correct: boolean; counted: boolean } | null>(null);
+  const [flow, setFlow] = useState(0);
+  const [initialStage, setInitialStage] = useState<"COMPLETE" | "QUESTION" | undefined>(undefined);
 
   const act = async (body: object) => {
     setBusy(true); setError("");
@@ -46,16 +50,33 @@ export default function MatchClient({ initial, meId }: { initial: MatchView; meI
   const wasCounting = useRef(false);
   useEffect(() => { if (countdown > 0) wasCounting.current = true; else if (wasCounting.current) { wasCounting.current = false; void query.refetch(); } }, [countdown, query]);
 
-  // Eigen puzzel ophalen zodra die gespeeld mag worden.
-  useEffect(() => {
-    if (!playing || puzzle) return;
-    let cancelled = false;
-    void post<PuzzleState>({ action: "resume", matchId: match.id }).then((state) => { if (!cancelled) setPuzzle(state); }).catch((e) => { if (!cancelled) setError(e instanceof Error ? e.message : t("jigsaw.failed")); });
-    return () => { cancelled = true; };
-  }, [playing, puzzle, match.id, t]);
+  // De poging blijft op het scherm zolang de speler speelt of nog in de voltooiings-/vraagstap zit. Een
+  // realtime statusupdate die de deelnemer op FINISHED zet, haalt de voltooide afbeelding of vraag dus niet weg.
+  const questionPending = match.resultRules >= 2 && match.me.status === "FINISHED" && !match.me.question.answered;
+  const stageKey = `versado:match-stage:${match.id}`;
+  const readStage = (): "COMPLETE" | "QUESTION" | null => { try { const value = window.sessionStorage.getItem(stageKey); return value === "COMPLETE" || value === "QUESTION" ? value : null; } catch { return null; } };
+  const writeStage = (stage: "COMPLETE" | "QUESTION" | null) => { try { if (stage) window.sessionStorage.setItem(stageKey, stage); else window.sessionStorage.removeItem(stageKey); } catch { /* opslag mag uit staan */ } };
 
-  if (playing && puzzle && startedAt !== null) {
-    const context: MatchContext = { id: match.id, startedAt, serverOffsetMs: offset, onAnswered: () => { setPuzzle(null); void query.refetch(); } };
+  // Eigen puzzel ophalen: tijdens het spelen, en bij een voltooide puzzel met open vraag zodra de speler daar
+  // al in zat (refresh/reconnect) of er zelf om vraagt.
+  useEffect(() => {
+    if (puzzle) return;
+    const stage = questionPending ? readStage() : null;
+    if (!playing && !stage) return;
+    let cancelled = false;
+    void post<PuzzleState>({ action: "resume", matchId: match.id }).then((state) => { if (!cancelled) { setInitialStage(stage ?? undefined); setPuzzle(state); } }).catch((e) => { if (!cancelled) setError(e instanceof Error ? e.message : t("jigsaw.failed")); });
+    return () => { cancelled = true; };
+    // readStage leest alleen de sleutel van deze wedstrijd.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playing, questionPending, puzzle, match.id, flow, t]);
+
+  if (puzzle && (playing || questionPending) && startedAt !== null) {
+    const context: MatchContext = {
+      id: match.id, startedAt, serverOffsetMs: offset, initialStage,
+      onStage: writeStage,
+      onAnswered: (result) => { writeStage(null); setAnswerFeedback({ correct: result.correct, counted: result.counted }); setPuzzle(null); void query.refetch(); },
+      onLater: () => { writeStage(null); setPuzzle(null); },
+    };
     return <Puzzle key={puzzle.id} initial={puzzle} setOuter={() => {}} onChooseAnother={goBack} onReplay={goBack} match={context} />;
   }
 
@@ -69,6 +90,7 @@ export default function MatchClient({ initial, meId }: { initial: MatchView; meI
 
   return (
     <FocusLayout className="page-fill mx-auto max-w-2xl justify-center gap-5 py-4">
+      <PuzzleBackTarget onBack={goBack} />
       <header className="flex flex-wrap items-center gap-4">
         <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-xl bg-vs-surface"><NextImage src={match.image} alt="" fill unoptimized className="object-cover" /></div>
         <div className="min-w-0 flex-1 basis-40"><h1 className="break-words text-2xl font-extrabold text-vs-fg">{t("puzzleTogether.match.title")}</h1><p className="text-vs-fg-2">{match.pieceCount} · {t(match.kind === "LIVE" ? "puzzleTogether.setup.live" : "puzzleTogether.setup.async")}</p></div>
@@ -130,10 +152,24 @@ export default function MatchClient({ initial, meId }: { initial: MatchView; meI
 
       {finished && match.me.status !== "INVITED" && (
         <section className="card space-y-3">
-          <h2 className="text-xl font-bold">{match.me.status === "FINISHED" ? t("puzzleTogether.match.rightTitle") : match.me.status === "INVALID" ? t("puzzleTogether.match.wrongTitle") : t("puzzleTogether.match.result")}</h2>
+          <h2 className="text-xl font-bold">{match.me.status === "FINISHED" ? t(match.resultRules >= 2 ? "puzzleTogether.match.puzzleDone" : "puzzleTogether.match.rightTitle") : match.me.status === "INVALID" ? t("puzzleTogether.match.wrongTitle") : t("puzzleTogether.match.result")}</h2>
+          {match.resultRules >= 2 && match.me.status === "FINISHED" && (
+            <>
+              <p data-official-time><span className="text-sm text-vs-fg-2">{t("puzzleTogether.match.officialTime")}</span> <span className="font-mono text-xl font-extrabold tabular-nums">{formatTime(match.participants.find((p) => p.userId === meId)?.result?.elapsedMs ?? null)}</span></p>
+              {/* De vraag staat los van tijd en uitslag; hier de status en eventueel de weg ernaartoe. */}
+              {questionPending ? (
+                <div className="space-y-2">
+                  <p className="text-sm text-vs-fg-2">{t("puzzleTogether.match.questionIndependent")}</p>
+                  <button type="button" className="btn-primary min-h-12 w-full max-w-[440px]" onClick={() => { writeStage("COMPLETE"); setFlow((value) => value + 1); }}>{t("puzzleTogether.match.questionOpen")}</button>
+                </div>
+              ) : (
+                <p className="text-sm text-vs-fg-2" data-question-status>{match.me.question.correct === false ? t("puzzleTogether.match.questionWrong") : match.me.question.correct === true ? `${t("puzzleTogether.match.questionRight")} ${answerFeedback?.counted ? t("puzzleTogether.match.questionStreak") : ""}` : t("puzzleTogether.match.questionDone")}</p>
+              )}
+            </>
+          )}
           {match.me.status === "INVALID" && <p>{t("puzzleTogether.match.invalidText")}</p>}
           {match.me.status === "DNF" && <p>{t("puzzleTogether.match.dnfText")}</p>}
-          {match.status !== "FINISHED" && <p className="text-sm text-vs-fg-2">{t("puzzleTogether.match.doneCount", { n: match.participants.filter((p) => p.done).length, total: accepted.length })}</p>}
+          {match.status !== "FINISHED" && <p className="text-sm text-vs-fg-2">{t("puzzleTogether.overview.waiting")} · {t("puzzleTogether.match.doneCount", { n: match.participants.filter((p) => p.done).length, total: accepted.length })}</p>}
           <ol className="space-y-1">
             {ranked.map((p) => (
               <li key={p.userId} className="flex flex-wrap justify-between gap-2">

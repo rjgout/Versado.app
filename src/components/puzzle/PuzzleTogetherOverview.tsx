@@ -13,7 +13,7 @@ interface Overview {
   invites: { id: string; sessionId: string; from: string; pieceCount: number }[];
   sent: { id: string; sessionId: string; to: string; toId: string }[];
   sessions: { id: string; status: string; pieceCount: number; players: string[]; max: number }[];
-  matches: { id: string; kind: "LIVE" | "ASYNC"; status: string; me: string; organizer: string; organizerId: string; pieceCount: number; players: string[] }[];
+  matches: { id: string; kind: "LIVE" | "ASYNC"; status: string; me: string; questionOpen?: boolean; organizer: string; organizerId: string; pieceCount: number; players: string[] }[];
 }
 
 // Uitnodigingen, lopende gezamenlijke puzzels en wedstrijden op één plek. Alles
@@ -25,9 +25,15 @@ export default function PuzzleTogetherOverview() {
   const query = useLiveQuery<Overview>(["puzzle", "overview"], () => fetchJson<Overview>("/api/puzzle/overview"), { scopes: ["games"], staleTime: 5000 });
   const data = query.data;
   if (!data) return null;
+  // Eén indeling voor alle weergaven: uitnodiging → actief (verder) → wachten (klaar, anderen nog bezig) → afgerond.
   const matchInvites = data.matches.filter((m) => m.me === "INVITED");
   const matchRest = data.matches.filter((m) => m.me !== "INVITED");
-  if (!data.invites.length && !matchInvites.length && !data.sessions.length && !matchRest.length) return null;
+  const activeSessions = data.sessions.filter((session) => session.status === "ACTIVE");
+  const doneSessions = data.sessions.filter((session) => session.status === "COMPLETED");
+  const activeMatches = matchRest.filter((m) => m.status !== "FINISHED" && m.status !== "CANCELLED" && (m.me === "ACCEPTED" || m.me === "PLAYING"));
+  const waitingMatches = matchRest.filter((m) => m.status !== "FINISHED" && m.status !== "CANCELLED" && (m.me === "FINISHED" || m.me === "INVALID" || m.me === "DNF"));
+  const doneMatches = matchRest.filter((m) => m.status === "FINISHED");
+  if (!data.invites.length && !matchInvites.length && !activeSessions.length && !doneSessions.length && !activeMatches.length && !waitingMatches.length && !doneMatches.length) return null;
 
   const post = async (url: string, json: unknown) => {
     setError(null);
@@ -63,26 +69,49 @@ export default function PuzzleTogetherOverview() {
           ))}
         </div>
       )}
-      {data.sessions.length > 0 && (
+      {(activeSessions.length > 0 || activeMatches.length > 0) && (
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-slate-500">{t("puzzleTogether.overview.sessions")}</h3>
-          {data.sessions.map((session) => (
+          {activeSessions.map((session) => (
             <div key={session.id} className={row}>
               <span className="text-sm">{t("puzzleTogether.overview.coopLabel")} · {session.pieceCount} · {t("puzzleTogether.overview.withNames", { names: session.players.join(", ") })}</span>
-              <Link className={`${btn} bg-sky-600 text-white`} href={`/jigsaw/samen/${session.id}`}>{session.status === "COMPLETED" ? t("puzzleTogether.overview.open") : t("puzzleTogether.overview.continue")}</Link>
+              <Link className={`${btn} bg-sky-600 text-white`} href={`/jigsaw/samen/${session.id}`}>{t("puzzleTogether.overview.continue")}</Link>
+            </div>
+          ))}
+          {activeMatches.map((match) => (
+            <div key={match.id} className={row}>
+              <span className="text-sm">{t("puzzleTogether.overview.matchLabel")} · {match.pieceCount} · {t("puzzleTogether.overview.withNames", { names: match.players.join(", ") })}</span>
+              <Link className={`${btn} bg-sky-600 text-white`} href={`/jigsaw/wedstrijd/${match.id}`}>
+                {match.status === "LOBBY" ? t("puzzleTogether.overview.liveLobby") : match.me === "ACCEPTED" && match.kind === "ASYNC" ? t("puzzleTogether.overview.begin") : t("puzzleTogether.overview.continue")}
+              </Link>
             </div>
           ))}
         </div>
       )}
-      {matchRest.length > 0 && (
+      {waitingMatches.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-slate-500">{t("puzzleTogether.overview.matches")}</h3>
-          {matchRest.map((match) => (
+          <h3 className="text-sm font-semibold text-slate-500">{t("puzzleTogether.overview.waiting")}</h3>
+          {waitingMatches.map((match) => (
             <div key={match.id} className={row}>
               <span className="text-sm">{t("puzzleTogether.overview.matchLabel")} · {match.pieceCount} · {t("puzzleTogether.overview.withNames", { names: match.players.join(", ") })}</span>
-              <Link className={`${btn} bg-sky-600 text-white`} href={`/jigsaw/wedstrijd/${match.id}`}>
-                {match.status === "FINISHED" ? t("puzzleTogether.overview.result") : match.status === "LOBBY" ? t("puzzleTogether.overview.liveLobby") : match.me === "ACCEPTED" ? t("puzzleTogether.overview.begin") : t("puzzleTogether.overview.continue")}
-              </Link>
+              <Link className={`${btn} border border-slate-300`} href={`/jigsaw/wedstrijd/${match.id}`}>{match.questionOpen ? t("puzzleTogether.overview.answerQuestion") : t("puzzleTogether.overview.viewResult")}</Link>
+            </div>
+          ))}
+        </div>
+      )}
+      {(doneSessions.length > 0 || doneMatches.length > 0) && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-slate-500">{t("puzzleTogether.overview.finishedTitle")}</h3>
+          {doneSessions.map((session) => (
+            <div key={session.id} className={row}>
+              <span className="text-sm">{t("puzzleTogether.overview.coopLabel")} · {session.pieceCount} · {t("puzzleTogether.overview.withNames", { names: session.players.join(", ") })}</span>
+              <Link className={`${btn} border border-slate-300`} href={`/jigsaw/samen/${session.id}`}>{t("puzzleTogether.overview.viewResult")}</Link>
+            </div>
+          ))}
+          {doneMatches.map((match) => (
+            <div key={match.id} className={row}>
+              <span className="text-sm">{t("puzzleTogether.overview.matchLabel")} · {match.pieceCount} · {t("puzzleTogether.overview.withNames", { names: match.players.join(", ") })}</span>
+              <Link className={`${btn} border border-slate-300`} href={`/jigsaw/wedstrijd/${match.id}`}>{match.questionOpen ? t("puzzleTogether.overview.answerQuestion") : t("puzzleTogether.overview.viewResult")}</Link>
             </div>
           ))}
         </div>

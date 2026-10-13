@@ -3419,6 +3419,10 @@ model PuzzleMatch {
   // Uiterste moment waarop een poging klaar moet zijn.
   playDeadline DateTime
   winnerId    String?
+  // Spelregelversie van de uitslag. 1 = oud: de tijd stopt bij een goed antwoord op de vraag
+  // (een fout antwoord geeft INVALID). 2 = de officiële tijd en geldigheid volgen uitsluitend uit het
+  // voltooien van de puzzel; de vraag staat los van de uitslag. Bestaande wedstrijden blijven 1.
+  resultRules Int @default(1)
   participants PuzzleMatchParticipant[]
   sessions    PuzzleSession[]
   invites     PuzzleInvite[]
@@ -3441,6 +3445,8 @@ model PuzzleMatchParticipant {
   hintsUsed Int @default(0)
   extraHintsUsed Int @default(0)
   answeredCorrect Boolean?
+  // Wanneer de inhoudelijke vraag is beantwoord (null = nog niet). Los van de uitslag.
+  answeredAt DateTime?
   // Aantal verbonden stukken (live voortgangsindicatie).
   progress  Int @default(0)
   rank      Int?

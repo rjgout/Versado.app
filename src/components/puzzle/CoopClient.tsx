@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { JIGSAW_ROUTE } from "@/lib/puzzle/navigation";
 import NextImage from "next/image";
 import { Ellipsis, Lightbulb, Users } from "lucide-react";
 import FocusLayout from "@/components/versado/FocusLayout";
@@ -74,8 +75,10 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
   const colors = useMemo(() => new Map(state.participants.map((participant, index) => [participant.userId, PALETTE[index % PALETTE.length]])), [state.participants]);
 
   useEffect(() => { if (!message) return; const id = setTimeout(() => setMessage(""), 4000); return () => clearTimeout(id); }, [message]);
-  const back = useCallback(() => router.push("/jigsaw"), [router]);
-  useSetBackTarget("/jigsaw", "/jigsaw", "", back);
+  // Terug = het puzzeloverzicht (replace, geen extra geschiedenisitem) en verlaat de gezamenlijke puzzel nooit:
+  // definitief verlaten is de aparte actie "Puzzel verlaten" met bevestiging.
+  const back = useCallback(() => router.replace(JIGSAW_ROUTE), [router]);
+  useSetBackTarget(usePathname(), JIGSAW_ROUTE, "", back);
 
   const bump = useCallback(() => setPaintKey((key) => key + 1), []);
   // Meerdere sleep-updates van anderen worden tot ongeveer 15 beelden per seconde samengevoegd.
@@ -197,7 +200,7 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
   }
   async function leave() {
     if (!(await confirm(t("puzzleTogether.coop.leaveConfirm")))) return;
-    try { await post({ action: "leave", sessionId: initial.id }); router.push("/jigsaw"); } catch (cause) { setError(cause instanceof Error ? cause.message : t("jigsaw.failed")); }
+    try { await post({ action: "leave", sessionId: initial.id }); router.replace(JIGSAW_ROUTE); } catch (cause) { setError(cause instanceof Error ? cause.message : t("jigsaw.failed")); }
   }
 
   if (completed) {
@@ -205,7 +208,7 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
       <div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-vs-surface shadow-lg"><NextImage src={state.image} alt={t("jigsaw.completedImage")} width={1440} height={960} unoptimized priority className="h-auto max-h-[68dvh] w-full object-contain" /></div>
       <div><h1 className="text-2xl font-extrabold text-vs-fg">{t("puzzleTogether.coop.completeTitle")}</h1><p className="mt-2 text-vs-fg-2">{t("puzzleTogether.coop.completeText")}</p></div>
       <div className="flex flex-wrap justify-center gap-2">{state.participants.map((participant) => <span key={participant.userId} className="flex items-center gap-2 rounded-full border border-vs-line px-3 py-1 text-sm"><UserAvatar id={participant.userId} handle={participant.handle} /><span className="vs-wrap">{participant.handle}</span></span>)}</div>
-      <button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" onClick={() => router.push("/jigsaw")}>{t("puzzleTogether.coop.back")}</button>
+      <button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" onClick={back}>{t("puzzleTogether.coop.back")}</button>
     </FocusLayout>;
   }
 
