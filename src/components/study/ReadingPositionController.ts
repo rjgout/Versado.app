@@ -65,6 +65,7 @@ export function useReadingPositionController(
   initial: ReadingPositionState,
   remote: ReadingPositionState | undefined,
   sessionKey: string,
+  visitProof: string | null,
 ) {
   const [snapshot, setSnapshot] = useState<ReadingSaveSnapshot>({
     status: "idle",
@@ -121,6 +122,8 @@ export function useReadingPositionController(
           /* Geen opslaggarantie bij geblokkeerde tabopslag. */
         }
       },
+      () => crypto.randomUUID(),
+      visitProof,
     );
     queue.current = q;
     try {
@@ -261,7 +264,7 @@ export function useReadingPositionController(
       queue.current = null;
       ready.current = false;
     };
-  }, [document, revisionId, sessionKey, initial.lessonEditionId, root]);
+  }, [document, revisionId, sessionKey, visitProof, initial.lessonEditionId, root]);
   useEffect(() => {
     if (remote) queue.current?.observe(remote);
   }, [remote]);
