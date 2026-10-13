@@ -72,7 +72,9 @@
     "test:content-access:integration": "node scripts/content-architecture/test-access-isolated.mjs",
     "test:puzzle:multi": "PUZZLE_MULTI_INSTANCE=1 tsx --test --test-concurrency=1 tests/puzzle-multi-instance.integration.test.ts",
     "test:puzzle:multiplayer": "tsx --test --test-concurrency=1 tests/puzzle-coop.integration.test.ts tests/puzzle-match.integration.test.ts",
-    "test:mystery:integration": "node scripts/content-architecture/test-access-isolated.mjs --mystery --browser"
+    "test:mystery:integration": "node scripts/content-architecture/test-access-isolated.mjs --mystery --browser",
+    "test:study-content": "tsx --test tests/study-content.test.ts",
+    "test:study-content:integration": "node scripts/content-architecture/test-access-isolated.mjs --study-content"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

@@ -539,6 +539,8 @@ model ContentWork {
   kind        ContentWorkKind
   collections ContentCollection[]
   studyContexts UserStudyContext[]
+  studyPeriods StudyPeriod[]
+  studyLessons StudyLesson[]
 }
 
 // Bewuste leskeuze per programma, onafhankelijk van taal en cursusvoortgang.
@@ -596,8 +598,87 @@ model ContentCollection {
   fsyLessons FsyLesson[]
   persons   Person[]
   wordSearchGames WordSearchGame[]
+  studyLessonEditions StudyLessonEdition[]
 
   @@unique([work, editionKey, language])
+  // Composite FK voor de nieuwe leseditie; work blijft de enige bronidentiteit.
+  @@unique([id, work])
+}
+
+// Fase 2A: officiële bronkeys bepalen identiteit; geen FSY-conversie of lesimport.
+model StudyPeriod {
+  id String @id @default(cuid())
+  workKey String
+  sourceKey String
+  label String
+  year Int?
+  metadata Json?
+  work ContentWork @relation(fields: [workKey], references: [key], onDelete: Restrict, onUpdate: Restrict)
+  lessons StudyLesson[]
+
+  @@unique([workKey, sourceKey])
+  @@unique([id, workKey])
+}
+
+model StudyLesson {
+  id String @id @default(cuid())
+  workKey String
+  periodId String
+  sourceKey String
+  order Int @default(0)
+  categoryKey String?
+  month Int?
+  startsOn DateTime? @db.Date
+  endsOnExclusive DateTime? @db.Date
+  retiredAt DateTime?
+  work ContentWork @relation(fields: [workKey], references: [key], onDelete: Restrict, onUpdate: Restrict)
+  period StudyPeriod @relation(fields: [periodId, workKey], references: [id, workKey], onDelete: Restrict, onUpdate: Restrict)
+  editions StudyLessonEdition[]
+
+  @@unique([workKey, periodId, sourceKey])
+  @@unique([id, workKey])
+  @@index([periodId, order, id])
+}
+
+model StudyLessonEdition {
+  id String @id @default(cuid())
+  lessonId String
+  collectionId String
+  // Alleen denormalisatie voor integriteitsconstraints, geen nieuwe werkidentiteit.
+  workKey String
+  slug String
+  publishedRevisionId String?
+  draftRevisionId String?
+  lesson StudyLesson @relation(fields: [lessonId, workKey], references: [id, workKey], onDelete: Restrict, onUpdate: Restrict)
+  collection ContentCollection @relation(fields: [collectionId, workKey], references: [id, work], onDelete: Restrict, onUpdate: Restrict)
+  revisions StudyRevision[] @relation("StudyEditionRevisions")
+  publishedRevision StudyRevision? @relation("StudyPublishedRevision", fields: [publishedRevisionId, id], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
+  draftRevision StudyRevision? @relation("StudyDraftRevision", fields: [draftRevisionId, id], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([lessonId, collectionId])
+  @@unique([collectionId, slug])
+  @@index([publishedRevisionId, id])
+  @@index([draftRevisionId, id])
+}
+
+// INSERT-only, ook buiten Prisma: de migratie blokkeert UPDATE en DELETE.
+model StudyRevision {
+  id String @id @default(cuid())
+  lessonEditionId String
+  revisionNumber Int
+  schemaVersion Int
+  contentHash String
+  title String
+  body Json
+  sourceMetadata Json
+  rightsMetadata Json
+  createdAt DateTime @default(now())
+  edition StudyLessonEdition @relation("StudyEditionRevisions", fields: [lessonEditionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  publishedBy StudyLessonEdition[] @relation("StudyPublishedRevision")
+  draftOf StudyLessonEdition[] @relation("StudyDraftRevision")
+
+  @@unique([lessonEditionId, revisionNumber])
+  @@unique([id, lessonEditionId])
 }
 
 // Koppelt een spel aan één of meer contentcollecties. gameKey is de stabiele
