@@ -244,7 +244,9 @@ export async function persistStudyImportItem(
         validateStudyMediaMetadata(existing);
         if (
           existing.volumeId !== store.volumeId ||
-          existing.storageKey !== image.storageKey
+          existing.storageKey !== image.storageKey ||
+          // Dezelfde bytes mogen geen afwijkende rechten ongemerkt overnemen.
+          studyObjectHash(existing.rightsMetadata) !== studyObjectHash(asset.rights)
         )
           throw new StudyPublishingError("MEDIA");
         return existing;
