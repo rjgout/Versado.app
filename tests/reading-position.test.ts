@@ -17,6 +17,11 @@ import {
 import { canRestoreScroll, restoreEntryScroll } from "../src/lib/scrollRestore";
 import { studyRevisionFixture } from "./fixtures/study-content";
 import { parseStudyDocument } from "../src/lib/studyContent/schema";
+import {
+  issueReadingVisitProof,
+  validReadingVisitProof,
+  READING_VISIT_TTL_SECONDS,
+} from "../src/lib/studyContent/readingVisitProof";
 const doc = parseStudyDocument(studyRevisionFixture().body);
 const start = readingStart(doc, "revision");
 const action = () => ({
@@ -43,6 +48,35 @@ const position = (
   lastActionId: randomUUID(),
   ...patch,
 });
+test("leesbezoekbewijs is ondertekend, sessie-/user-/editie-/revisiegebonden en verloopt", () => {
+  const previous = process.env.SESSION_SECRET;
+  process.env.SESSION_SECRET = "reader-proof-unit-secret-at-least-32-characters";
+  try {
+    const issued = Date.UTC(2026, 9, 13, 12);
+    const proof = issueReadingVisitProof("user-one", "edition-one", "rev-one", "session-one", issued);
+    const valid = (token: string | undefined, user = "user-one", edition = "edition-one", revision = "rev-one", session = "session-one", now = issued) =>
+      validReadingVisitProof(token, user, edition, revision, session, now);
+    assert.equal(valid(proof), true);
+    assert.equal(valid(proof, "user-two"), false);
+    assert.equal(valid(proof, "user-one", "edition-two"), false);
+    assert.equal(valid(proof, "user-one", "edition-one", "rev-two"), false);
+    assert.equal(valid(proof, "user-one", "edition-one", "rev-one", "session-two"), false);
+    assert.equal(valid(proof, "user-one", "edition-one", "rev-one", "session-one", issued + READING_VISIT_TTL_SECONDS * 1000), false);
+    assert.equal(valid(proof.replace(/.$/, proof.endsWith("A") ? "B" : "A")), false);
+    assert.equal(valid(undefined), false);
+    assert.equal(valid("rv1.bad.signature"), false);
+    assert.equal(readingPositionActionSchema.safeParse({
+      ...action(), visitProof: proof,
+    }).success, true);
+    assert.equal(readingPositionActionSchema.safeParse({
+      ...action(), visitProof: "x".repeat(1501),
+    }).success, false);
+  } finally {
+    if (previous === undefined) delete process.env.SESSION_SECRET;
+    else process.env.SESSION_SECRET = previous;
+  }
+});
+
 for (const patch of [
   { sectionFraction: -0.01 },
   { sectionFraction: 1.01 },
