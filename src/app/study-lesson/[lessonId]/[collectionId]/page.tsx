@@ -18,13 +18,14 @@ export default async function Page({
     .strict()
     .safeParse(await params);
   if (!parsed.success) notFound();
+  const sessionKey = await navigationSessionKey();
   const data = await getStudyReader(
     user,
     parsed.data.lessonId,
     parsed.data.collectionId,
+    sessionKey,
   );
   if (!data) notFound();
-  const sessionKey = await navigationSessionKey();
   return (
     <StudyReader
       key={`${data.lesson.editionId}:${sessionKey}`}
