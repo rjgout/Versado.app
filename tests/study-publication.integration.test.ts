@@ -452,6 +452,44 @@ test("ontbrekend/corrupt READY-bestand en readonly volume blokkeren publicatie z
     0,
   );
 });
+test("identieke mediabytes met afwijkende rechten worden bij herimport geweigerd", async () => {
+  const run = await createStudyImport(actor, collection, "rights-conflict");
+  await assert.rejects(executeStudyImport(actor, run.id), /MEDIA/);
+  const failed = await prisma.contentImportRun.findUniqueOrThrow({ where: { id: run.id } });
+  assert.equal(failed.status, "FAILED");
+  const current = await prisma.studyLessonEdition.findUniqueOrThrow({ where: { id: editionId } });
+  assert.equal(current.publishedRevisionId, null);
+  assert.equal(current.publicationVersion, 0);
+  assert.equal(await prisma.studyPublicationAction.count({ where: { lessonEditionId: editionId } }), 0);
+});
+
+test("rechtenhash van een medium wordt bij publicatie opnieuw gevalideerd", async () => {
+  // Simuleer uitsluitend in de geïsoleerde testdatabase een corrupte metadatarecord.
+  // De SQL-trigger blokkeert dit in normale applicatiecode; na iedere wijziging
+  // wordt de trigger binnen dezelfde transactie opnieuw ingeschakeld.
+  const original = (await prisma.contentMedia.findUniqueOrThrow({ where: { id: mediaId } })).rightsMetadata;
+  async function setTestMediaRights(rights: unknown) {
+    await prisma.$transaction(async (db) => {
+      await db.$executeRawUnsafe('ALTER TABLE "ContentMedia" DISABLE TRIGGER "ContentMedia_immutable"');
+      await db.$executeRaw`UPDATE "ContentMedia" SET "rightsMetadata" = ${JSON.stringify(rights)}::jsonb WHERE id = ${mediaId}`;
+      await db.$executeRawUnsafe('ALTER TABLE "ContentMedia" ENABLE TRIGGER "ContentMedia_immutable"');
+    });
+  }
+  await setTestMediaRights({
+    holder: "Synthetische fixture",
+    permission: "Andere, niet-gecontroleerde mediatoestemming",
+  });
+  try {
+    await assert.rejects(publishStudyRevision(actor, action()), /MEDIA/);
+  } finally {
+    await setTestMediaRights(original);
+  }
+  const edition = await prisma.studyLessonEdition.findUniqueOrThrow({ where: { id: editionId } });
+  assert.equal(edition.publishedRevisionId, null);
+  assert.equal(edition.publicationVersion, 0);
+  assert.equal(await prisma.studyPublicationAction.count({ where: { lessonEditionId: editionId } }), 0);
+});
+
 test("volledige publicatie is atomair, identieke verloren-response retry schrijft eenmaal", async () => {
   const input = action();
   const values = await Promise.all([
@@ -481,6 +519,50 @@ test("volledige publicatie is atomair, identieke verloren-response retry schrijf
   );
   assert.ok((await authorizedStudyMedia(normal, mediaId)).bytes.length);
 });
+test("historische publicatieaudit opent geen oude afbeelding na revisiewissel", async () => {
+  const published = await prisma.studyLessonEdition.findUniqueOrThrow({ where: { id: editionId } });
+  assert.equal(published.publishedRevisionId, revisionId);
+  const textOnly = await appendStudyRevision(actor, editionId, {
+    schemaVersion: 1,
+    title: "Huidige synthetische les zonder afbeelding",
+    body: {
+      schemaVersion: 1,
+      sections: [{
+        id: "current-section",
+        blocks: [{
+          id: "current-paragraph",
+          type: "paragraph",
+          content: [{ type: "text", text: "Deze revisie gebruikt geen oude media." }],
+        }],
+      }],
+    },
+    sourceMetadata: { sourceKey: "fixture:current-text-only" },
+    rightsMetadata: { holder: "Versado-testfixture", permission: "Alleen geïsoleerde test." },
+  });
+  await prisma.studyLessonEdition.update({
+    where: { id: editionId },
+    data: { publishedRevisionId: textOnly.id },
+  });
+  try {
+    assert.equal(await prisma.studyPublicationAction.count({
+      where: { lessonEditionId: editionId, revisionId },
+    }), 1);
+    await assert.rejects(authorizedStudyMedia(normal, mediaId), /UNAVAILABLE/);
+    await assert.rejects(authorizedStudyMedia(actor, mediaId), /UNAVAILABLE/);
+    assert.ok((await authorizedStudyMedia(actor, mediaId, true)).bytes.length);
+    const ordinary = await request("GET", undefined, normalAuth, null, `/api/study-media/${mediaId}`);
+    assert.equal(ordinary.status, 404);
+    const preview = await request("GET", undefined, auth, null, `/api/admin/study-media/${mediaId}`);
+    assert.equal(preview.status, 200);
+  } finally {
+    await prisma.studyLessonEdition.update({
+      where: { id: editionId },
+      data: { publishedRevisionId: published.publishedRevisionId },
+    });
+  }
+  assert.ok((await authorizedStudyMedia(normal, mediaId)).bytes.length);
+});
+
 test("gewijzigde bron wordt immutable concept; publicatie blijft staan; diff gebruikt anchors", async () => {
   const next = await imported(collection, "updated");
   assert.notEqual(next.item.revisionId, revisionId);
