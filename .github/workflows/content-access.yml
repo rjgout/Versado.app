@@ -1,4 +1,4 @@
-name: Contentarchitectuur 1A–1E toegang, context, selectie en spellen
+name: Contentarchitectuur 1A–1F toegang, context, selectie en spellen
 
 on:
   pull_request:
@@ -6,6 +6,13 @@ on:
     paths:
       - 'prisma/schema.prisma'
       - 'prisma/migrations/**'
+      - 'src/lib/mysteries/**'
+      - 'src/components/mysteries/**'
+      - 'src/app/mysteries/**'
+      - 'src/app/api/mysteries/**'
+      - 'tests/mystery*'
+      - 'tests/fixtures/mystery*'
+      - 'tests/learning-progress.integration.test.ts'
       - 'src/lib/contentAccess.ts'
       - 'src/lib/snelleZendeling/**'
       - 'src/server/quickMissionary.ts'
@@ -139,4 +146,40 @@ jobs:
         with:
           name: quick-missionary-source-browser
           path: /tmp/versado-qm-source-browser
+          if-no-files-found: ignore
+
+  mystery-persistence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Prisma, types en productiebuild
+        run: |
+          npx prisma validate
+          npm run db:generate
+          npx tsc --noEmit
+          npm run build
+      - name: Browser klaarzetten
+        run: |
+          npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
+          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Migratiebehoud, Mysterie-opslag, hints en browserflows op eigen PostgreSQL
+        run: |
+          npm run test:mystery
+          npm run test:mystery:integration
+      - name: Browserbewijs bewaren
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mystery-persistence-browser
+          path: /tmp/versado-mystery-browser
           if-no-files-found: ignore

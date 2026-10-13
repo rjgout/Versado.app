@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { hasMysteryAttempt } from "@/lib/mysteries/attempts";
 import { Brain, CheckCircle2 } from "lucide-react";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
@@ -23,8 +24,9 @@ const difficultyColors = ["text-vs-success", "text-vs-accent", "text-vs-xp"] as 
 export default async function MysteryDetailPage({ config }: { config: MysteryDetailConfig }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!(await canUseMystery(user.id, user.isAdmin))) redirect("/live");
-  if (!(await canUseMysteryNumber(user.id, user.isAdmin, config.number))) redirect("/mysteries");
+  const resumable = await hasMysteryAttempt(user.id, config.number);
+  if (!resumable && !(await canUseMystery(user.id, user.isAdmin))) redirect("/live");
+  if (!resumable && !(await canUseMysteryNumber(user.id, user.isAdmin, config.number))) redirect("/mysteries");
   const [first, second, third, t] = await Promise.all([
     getMysteryProgress(user.id, config.definitions[0]),
     getMysteryProgress(user.id, config.definitions[1]),

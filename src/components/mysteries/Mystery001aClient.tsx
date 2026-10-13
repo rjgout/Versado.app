@@ -8,7 +8,7 @@ import FocusLayout from "@/components/versado/FocusLayout";
 import { useT } from "@/components/I18nProvider";
 import { useConfirm } from "@/components/ConfirmProvider";
 import { focusRing, primaryButton, secondaryButton, surfaceCard } from "@/components/versado/styles";
-import { MYSTERY_001A, emptyMysteryPlacements } from "@/lib/mysteries/mystery001a";
+import { emptyMysteryPlacements } from "@/lib/mysteries/mystery001a";
 import { allCharactersPlaced, cellFootAnchor, cellFromBoardPoint, characterImageMetrics, gridNormalizedRect, hintFor, isHardConstraintValid, occupantAt, placeCharacter, sameCell } from "@/lib/mysteries/logic";
 import { parseBoardManifest, type BoardGeometry } from "@/lib/mysteries/manifest";
 import { characterCluesFor } from "@/lib/mysteries/characterClues";
@@ -16,6 +16,9 @@ import { closingQuestionFor } from "@/lib/mysteries/closingQuestions";
 import { nextMysteryHrefFor } from "@/lib/mysteries/game";
 import type { CharacterId, GridCell, MysteryDefinition, Placements } from "@/lib/mysteries/types";
 import type { MysteryProgressView } from "@/lib/mysteries/progress";
+import { useMysteryAttempt } from "@/lib/mysteries/client/useAttempt";
+import type { MysteryAttemptView } from "@/lib/mysteries/attemptContract";
+import { useHintInventory } from "@/lib/data/hints";
 import type { MessageKey } from "@/lib/i18n/core";
 import { getCharacterAsset } from "@/lib/characterAssets";
 
@@ -26,7 +29,7 @@ type DragState = { characterId: CharacterId; x: number; y: number };
 // voetankers en plaatsingstransform blijven ongewijzigd.
 const VISUAL_CHARACTER_SCALE = 1.15;
 
-export function MysteryClient({ initialProgress, readerHref, definition, progressEndpoint, hintEndpoint }: { initialProgress: MysteryProgressView; readerHref: string; definition: MysteryDefinition; progressEndpoint: string; hintEndpoint: string }) {
+export function MysteryClient({ userId, initialAttempt, initialProgress, readerHref, definition }: { userId: string; initialAttempt: MysteryAttemptView | null; initialProgress: MysteryProgressView; readerHref: string | null; definition: MysteryDefinition }) {
   // De bestaande component blijft de gedeelde renderer; deze lokale alias
   // beperkt de refactor tot data-invoer en laat de bestaande interactie intact.
   const MYSTERY_001A = definition;
@@ -41,16 +44,18 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   const [geometry, setGeometry] = useState<BoardGeometry | null>(null);
   const [boardAssetError, setBoardAssetError] = useState(false);
   const [characterAssetErrors, setCharacterAssetErrors] = useState<Partial<Record<CharacterId, true>>>({});
-  const [placements, setPlacements] = useState<Placements>(() => emptyMysteryPlacements(definition));
+  const resumeCompleted = searchParams.get("resume") === "completed" && initialProgress.completed;
+  const persistence = useMysteryAttempt(userId, definition, initialAttempt, resumeCompleted);
+  const { placements, setPlacements, clueNotes, setClueNotes } = persistence;
+  const inventory = useHintInventory();
+  const hintBalance = inventory.data?.hintBalance ?? null;
   const [placementHistory, setPlacementHistory] = useState<Placements[]>([]);
   const [selected, setSelected] = useState<CharacterId | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [dragTarget, setDragTarget] = useState<GridCell | null>(null);
-  const [clueNotes, setClueNotes] = useState<Record<string, boolean>>(() => initialCharacterClueNotes(definition));
   const [wrongOpen, setWrongOpen] = useState(false);
   const [hintKey, setHintKey] = useState<ReturnType<typeof hintFor> | null>(null);
-  const [hintCount, setHintCount] = useState(0);
-  const [hintBalance, setHintBalance] = useState<number | null>(null);
+  const hintCount = persistence.attempt?.hintCount ?? 0;
   const [hintLoading, setHintLoading] = useState(false);
   const [hintError, setHintError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
@@ -67,13 +72,13 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   const canClear = Object.values(placements).some(Boolean);
   const canUndo = placementHistory.length > 0;
   const closingQuestion = closingQuestionFor(definition);
-  const resumeCompleted = searchParams.get("resume") === "completed" && initialProgress.completed;
-  const resultVisible = solved || resumeCompleted;
+  const resultVisible = solved || resumeCompleted || persistence.attempt?.status === "COMPLETED";
   const nextMysteryHref = nextMysteryHrefFor(definition);
   const playHref = `/mysteries/${definition.routeId}/play`;
   const readerReturnHref = `${playHref}?resume=completed`;
-  const readerLink = withReturnContext(readerHref, readerReturnHref);
-  const resultHintCount = resumeCompleted ? (initialProgress.hintCount ?? 0) : hintCount;
+  const originalReaderHref = persistence.attempt ? persistence.attempt.readerHref : readerHref;
+  const readerLink = originalReaderHref ? withReturnContext(originalReaderHref, readerReturnHref) : null;
+  const resultHintCount = resumeCompleted && persistence.attempt?.status !== "COMPLETED" ? (initialProgress.hintCount ?? 0) : hintCount;
   const selectedCharacter = MYSTERY_001A.characters.find((character) => character.id === selected) ?? null;
 
   const markCharacterAssetError = useCallback((characterId: CharacterId) => {
@@ -98,13 +103,6 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   }, [MYSTERY_001A.assets.manifest, MYSTERY_001A.grid.columns, MYSTERY_001A.grid.rows]);
 
   useEffect(() => {
-    fetch("/api/hints", { cache: "no-store" })
-      .then((response) => response.ok ? response.json() : null)
-      .then((data) => { if (typeof data?.hintBalance === "number") setHintBalance(data.hintBalance); })
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
     const cancel = () => {
       gesture.current = null;
       setDrag(null);
@@ -115,13 +113,10 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   }, []);
 
   const resetAttempt = useCallback(() => {
-    setPlacements(emptyMysteryPlacements(definition));
     setPlacementHistory([]);
     setSelected(null);
     setDrag(null);
     setDragTarget(null);
-    setClueNotes(initialCharacterClueNotes(definition));
-    setHintCount(0);
     setHintKey(null);
     setHintError(null);
     setWrongOpen(false);
@@ -179,11 +174,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
     setTutorialFeedback(t("mystery001a.tutorialGood"));
     setConstraintPulse(true);
     setSelected(null);
-    fetch(progressEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "tutorial-seen" }),
-    }).catch(() => {});
+    // Tutorialstatus wordt samen met de geldige eerste plaatsing bewaard.
     window.setTimeout(() => {
       setConstraintPulse(false);
       setTutorialFeedback(null);
@@ -210,7 +201,8 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   function pointerDown(event: ReactPointerEvent<HTMLButtonElement>, characterId: CharacterId) {
     if (!event.isPrimary || event.button !== 0 || (tutorialActive && characterId !== definition.tutorial?.characterId)) return;
     suppressClick.current = false;
-    setSelected(characterId);
+    // Een tap selecteert via onClick. Pointerdown mag dezelfde selectie niet
+    // alvast zetten, want onClick zou die onmiddellijk weer uitschakelen.
     gesture.current = { pointerId: event.pointerId, characterId, startX: event.clientX, startY: event.clientY, moved: false };
     event.currentTarget.setPointerCapture(event.pointerId);
   }
@@ -220,6 +212,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
     if (!current || current.pointerId !== event.pointerId) return;
     if (!current.moved && Math.hypot(event.clientX - current.startX, event.clientY - current.startY) < 6) return;
     current.moved = true;
+    setSelected(current.characterId);
     event.preventDefault();
     setDrag({ characterId: current.characterId, x: event.clientX, y: event.clientY - (event.pointerType === "touch" ? 36 : 10) });
     // De preview hangt iets boven de vinger, maar de drop raakt altijd de
@@ -272,14 +265,9 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
     setChecking(true);
     setSaveError(false);
     try {
-      const response = await fetch(progressEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "complete", placements, hintCount }),
-      });
-      const data = await response.json().catch(() => null);
-      if (response.status === 422 || data?.correct === false) setWrongOpen(true);
-      else if (!response.ok || !data?.correct) setSaveError(true);
+      const data = await persistence.act("complete", crypto.randomUUID());
+      if (data.correct === false) setWrongOpen(true);
+      else if (!data.correct) setSaveError(true);
       else {
         setTutorialDone(true);
         setSolved(true);
@@ -291,27 +279,28 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
     }
   }
 
+  const hintActionId = useRef<string | null>(null);
+  const hintBusy = useRef(false);
   async function useHint() {
-    if (hintLoading || hintBalance === 0) return;
+    if (hintBusy.current || hintBalance === 0) return;
+    hintBusy.current = true;
+    const accepted = await confirm(t("mysteryPersistence.hintConfirm"), { confirmLabel: t("mystery001a.useHint") });
+    if (!accepted) { hintBusy.current = false; return; }
     setHintLoading(true);
     setHintError(null);
     try {
-      const response = await fetch(hintEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ difficulty: definition.difficulty, placements }),
-      });
-      const data = await response.json().catch(() => null);
-      if (response.ok && typeof data?.hint === "string") {
+      hintActionId.current ??= crypto.randomUUID();
+      const data = await persistence.act("hint", hintActionId.current);
+      if (typeof data?.hint === "string") {
         setHintKey(data.hint as MessageKey);
-        setHintCount((count) => count + 1);
-        if (typeof data.hintBalance === "number") setHintBalance(data.hintBalance);
+        hintActionId.current = null;
         setWrongOpen(false);
       } else setHintError(typeof data?.error === "string" ? data.error : t("mystery001a.hintFailed"));
     } catch {
       setHintError(t("mystery001a.hintFailed"));
     } finally {
       setHintLoading(false);
+      hintBusy.current = false;
     }
   }
 
@@ -326,10 +315,16 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
     rememberClosingState(definition.id, { dismissed: true });
   }
 
-  function replay() {
-    forgetClosingState(definition.id);
-    if (resumeCompleted) router.replace(playHref);
-    else resetAttempt();
+  async function replay() {
+    if (checking) return;
+    setChecking(true);
+    try {
+      await persistence.restart();
+      forgetClosingState(definition.id);
+      hintActionId.current = null;
+      resetAttempt();
+      if (resumeCompleted) router.replace(playHref);
+    } catch { setSaveError(true); } finally { setChecking(false); }
   }
 
   // Herstel de vrijblijvende slotvraag na een reader-roundtrip; dit is
@@ -348,6 +343,10 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
   }, [definition.id, resultVisible]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
+  if (persistence.status === "loading" || persistence.status === "unavailable" || persistence.status === "loadFailed") {
+    return <FocusLayout className="max-w-2xl gap-4 py-6"><p role="status">{t(`mysteryPersistence.${persistence.status}`)}</p>
+      {persistence.status !== "loading" && <button type="button" className={secondaryButton} onClick={() => void persistence.initialize()}>{t("mysteryPersistence.retry")}</button>}</FocusLayout>;
+  }
   if (resultVisible) {
     const closingDone = closingSubmitted || closingDismissed;
     const closingCorrect = closingAnswer === closingQuestion.correctOption;
@@ -361,6 +360,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
           <h1 className="mt-1 text-3xl font-black text-vs-fg">{t("mystery001a.solved")}</h1>
           <p className="mt-3 font-bold text-vs-fg-2">{resultHintCount === 0 ? t("mystery001a.solvedWithoutHints") : t("mystery001a.solvedWithHints", { count: resultHintCount })}</p>
         </div>
+        {saveError && <p role="alert" className="text-vs-danger">{t("mysteryPersistence.unsaved")}</p>}
         <section className={`${surfaceCard} p-5 text-left sm:p-6`}>
           <p className="text-vs-fg-2">{t(definition.story.summaryKey)}</p>
         </section>
@@ -398,9 +398,9 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
         {closingDone && <p className="text-sm font-extrabold text-vs-success">{t("mysteryClosing.solved")}</p>}
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
           {nextMysteryHref ? <Link href={nextMysteryHref} className={`${primaryButton} min-h-12 px-6`}>{t("mysteryClosing.nextMystery")}</Link> : null}
-          <Link href={readerLink} className={`${nextMysteryHref ? secondaryButton : primaryButton} min-h-12 px-6`}>{t(definition.readerLabelKey)}</Link>
+          {readerLink ? <Link href={readerLink} className={`${nextMysteryHref ? secondaryButton : primaryButton} min-h-12 px-6`}>{t(definition.readerLabelKey)}</Link> : <p className="text-sm text-vs-fg-2">{t("mysteryPersistence.readerUnavailable")}</p>}
           <Link href="/mysteries" className={`${secondaryButton} min-h-12 px-6`}>{t("mysteryClosing.backToMysteries")}</Link>
-          <button type="button" className={`${secondaryButton} min-h-12 px-6`} onClick={replay}>{t("mystery001a.replay")}</button>
+          <button type="button" className={`${secondaryButton} min-h-12 px-6`} disabled={checking} onClick={replay}>{t("mystery001a.replay")}</button>
         </div>
       </FocusLayout>
     );
@@ -415,7 +415,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
         </div>
       </header>
 
-      <div className="mystery-mobile-play-column grid min-h-0 flex-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div inert={checking || hintLoading || persistence.status === "conflict"} className="mystery-mobile-play-column grid min-h-0 flex-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 lg:gap-3">
           <div className="mystery-mobile-board-slot">
             {boardAssetError ? (
@@ -445,7 +445,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
             )}
             {(tutorialActive || tutorialFeedback || saveError || (hintError && !hintKey)) && (
               <div className={`pointer-events-none absolute inset-x-2 top-2 z-30 rounded-xl px-3 py-2 text-center text-xs font-extrabold shadow-lg ${tutorialFeedback ? "bg-vs-success-soft text-vs-success" : "bg-vs-elevated/95 text-vs-fg"}`} role={saveError || hintError ? "alert" : "status"}>
-                {tutorialActive ? t(definition.tutorialCopyKey ?? "mystery001a.tutorial") : tutorialFeedback ? tutorialFeedback : saveError ? t("mystery001a.saveFailed") : t("mystery001a.hintFailed")}
+                {tutorialActive ? t(definition.tutorialCopyKey ?? "mystery001a.tutorial") : tutorialFeedback ? tutorialFeedback : saveError ? t("mysteryPersistence.unsaved") : t("mystery001a.hintFailed")}
               </div>
             )}
           </div>
@@ -482,12 +482,17 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
         </aside>
       </div>
 
+      <div className="shrink-0 px-3 text-xs text-vs-fg-2" role="status" data-mystery-save-status={persistence.status}>
+        {t(`mysteryPersistence.${persistence.status}`)}
+        {persistence.status === "unsaved" && <button type="button" className="ml-2 font-bold underline" onClick={() => void persistence.flush().catch(() => {})}>{t("mysteryPersistence.retry")}</button>}
+        {persistence.status === "conflict" && <button type="button" className="ml-2 font-bold underline" onClick={async () => { if (await confirm(t("mysteryPersistence.conflict"), { confirmLabel: t("mysteryPersistence.reload") })) { try { await persistence.reload(); setPlacementHistory([]); } catch { setSaveError(true); } } }}>{t("mysteryPersistence.reload")}</button>}
+      </div>
       <div className="mystery-action-bar z-30 w-full shrink-0 border-t border-vs-line bg-vs-elevated/95 px-3 pt-2 backdrop-blur" aria-label={t("mystery001a.gameActions")}>
         <div className="mx-auto flex w-full max-w-5xl items-center gap-1.5">
-          <button type="button" className={`${secondaryButton} h-11 w-11 !px-0`} disabled={!canClear} onClick={clearBoard} aria-label={t("mystery001a.clearBoard")} title={t("mystery001a.clearBoard")}><Eraser className="h-4 w-4" aria-hidden /></button>
-          <button type="button" className={`${secondaryButton} h-11 w-11 !px-0`} disabled={!canUndo} onClick={undoPlacement} aria-label={t("mystery001a.undo")} title={t("mystery001a.undo")}><Undo2 className="h-4 w-4" aria-hidden /></button>
-          <button type="button" className={`${secondaryButton} h-11 w-11 !px-0`} disabled={hintLoading || hintBalance === 0} onClick={useHint} aria-label={t("mystery001a.useHint")} title={t("mystery001a.useHint")}><Lightbulb className="h-4 w-4" aria-hidden /></button>
-          <button type="button" className={`${primaryButton} min-w-0 flex-1`} disabled={!canCheck || checking || boardAssetError} onClick={checkSolution}>
+          <button type="button" className={`${secondaryButton} h-11 w-11 !px-0`} disabled={!canClear || checking || hintLoading || persistence.status === "conflict"} onClick={clearBoard} aria-label={t("mystery001a.clearBoard")} title={t("mystery001a.clearBoard")}><Eraser className="h-4 w-4" aria-hidden /></button>
+          <button type="button" className={`${secondaryButton} h-11 w-11 !px-0`} disabled={!canUndo || checking || hintLoading || persistence.status === "conflict"} onClick={undoPlacement} aria-label={t("mystery001a.undo")} title={t("mystery001a.undo")}><Undo2 className="h-4 w-4" aria-hidden /></button>
+          <button type="button" className={`${secondaryButton} h-11 w-11 !px-0`} disabled={hintLoading || checking || persistence.status === "conflict" || hintBalance === 0} onClick={useHint} aria-label={t("mystery001a.useHint")} title={t("mystery001a.useHint")}><Lightbulb className="h-4 w-4" aria-hidden /></button>
+          <button type="button" className={`${primaryButton} min-w-0 flex-1`} disabled={!canCheck || checking || hintLoading || persistence.status === "conflict" || boardAssetError} onClick={checkSolution}>
             {checking ? t("mystery001a.checking") : <><span className="hidden sm:inline">{t("mystery001a.check")}</span><span className="sm:hidden">{t("mystery001a.checkShort")}</span></>}
           </button>
         </div>
@@ -498,7 +503,7 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
         <p className="text-vs-fg-2">{t("mystery001a.wrongText")}</p>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <button type="button" className={`${primaryButton} min-h-12`} onClick={() => setWrongOpen(false)}>{t("mystery001a.continue")}</button>
-          <button type="button" className={`${secondaryButton} min-h-12`} disabled={hintLoading || hintBalance === 0} onClick={useHint}><Lightbulb className="h-4 w-4" aria-hidden />{hintLoading ? t("mystery001a.checking") : t("mystery001a.useHint")}</button>
+          <button type="button" className={`${secondaryButton} min-h-12`} disabled={hintLoading || checking || persistence.status === "conflict" || hintBalance === 0} onClick={useHint}><Lightbulb className="h-4 w-4" aria-hidden />{hintLoading ? t("mystery001a.checking") : t("mystery001a.useHint")}</button>
         </div>
         {hintBalance !== null && <p className="mt-3 text-xs font-bold text-vs-fg-3">{hintBalance === 1 ? t("mystery001a.hintsLeftOne", { count: hintBalance }) : t("mystery001a.hintsLeftMany", { count: hintBalance })}</p>}
         {hintError && <p className="mt-2 text-sm font-bold text-vs-danger" role="alert">{hintError}</p>}
@@ -510,14 +515,6 @@ export function MysteryClient({ initialProgress, readerHref, definition, progres
       </BottomSheet>}
     </FocusLayout>
   );
-}
-
-export default function Mystery001aClient({ initialProgress, readerHref }: { initialProgress: MysteryProgressView; readerHref: string }) {
-  return <MysteryClient initialProgress={initialProgress} readerHref={readerHref} definition={MYSTERY_001A} progressEndpoint="/api/mysteries/001a/progress" hintEndpoint="/api/mysteries/001/hint" />;
-}
-
-function initialCharacterClueNotes(definition: MysteryDefinition): Record<string, boolean> {
-  return Object.fromEntries(definition.characters.flatMap((character) => characterCluesFor(definition, character.id).map((_, index) => [`${character.id}-${index}`, false]))) as Record<string, boolean>;
 }
 
 function MysteryBoard({ definition, geometry, placements, selected, dragTarget, constraintPulse, tutorialActive, boardRef, onBoardAssetError, characterAssetErrors, onCharacterAssetError, onCell, onCharacterClick, onPointerDown, onPointerMove, onPointerUp, onPointerCancel }: {

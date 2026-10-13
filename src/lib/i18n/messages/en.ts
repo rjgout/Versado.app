@@ -3,6 +3,20 @@ import { kompasEn } from "./kompas/en";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const en: PartialMessages = {
+  mysteryPersistence: {
+    readerUnavailable: "The original chapter is currently unavailable.",
+    loadFailed: "Your attempt could not be loaded. Try again.",
+    saving: "Saving…",
+    saved: "Saved",
+    conflict: "Another device has a newer game state. Your changes have not been overwritten.",
+    reload: "Load newer game state",
+    unavailable: "The original edition is unavailable. Your attempt is preserved.",
+    loading: "Loading attempt…",
+    retry: "Try again",
+    unsaved: "These changes have not been saved. Retry before leaving.",
+    hintConfirm: "This hint costs 1 hint from your inventory.",
+    explanation: "Your board, clue notes and paid hints are saved with this attempt. You can continue on another device later.",
+  },
   gameAvailability: { unavailable: "This game is not available for this content. Choose an available activity or content source." },
 
   adminContentInspect: {
@@ -966,6 +980,13 @@ export const en: PartialMessages = {
     hide: "Hide from overview",
   },
   gamesHub: {
+    mystery: {
+      description: "Solve logic puzzles and explore stories from the Book of Mormon step by step.",
+      linkLabel: "Open Mystery",
+      rule1: "Start with Mystery 001: Leaving Jerusalem.",
+      rule2: "Your board and clue notes are automatically saved with your attempt. Continue on another device, even after changing language or content source. Each hint costs 1 hint from your inventory and stays recorded with this attempt. Replaying preserves earlier completions.",
+      rule3: "The arrangements are puzzle fiction, not historical reconstructions. Your first correct solution counts for your streak; there is no XP reward.",
+    },
     addGame: "Add game",
     addGameHint: "Choose from games you've hidden",
     allAdded: "All games are already in your overview.",

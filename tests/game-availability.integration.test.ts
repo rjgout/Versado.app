@@ -162,8 +162,9 @@ test("alle gewone start-API's weigeren een podcastbron zonder mutaties of BOM-fa
     ["/api/chapter-guess/start", { level: "BEGINNER", questionCount: 5 }], ["/api/alleskenner/solo", { mode: "PRACTICE" }],
     ["/api/alleskenner/seasons", { name: "Test", joinAsPlayer: true }], ["/api/scrabble", { friendUserId: adminId }],
     ["/api/challenges", { friendUserId: adminId, chapterId: previewChapter }], ["/api/word-search", { difficulty: "EASY" }],
-    ["/api/snelle-zendeling/runs", {}], ["/api/snelle-zendeling/together", {}], ["/api/mysteries/001a/progress", {}],
+    ["/api/snelle-zendeling/runs", {}], ["/api/snelle-zendeling/together", {}], ["/api/mysteries/attempts", { action: "start", variant: "001a", actionId: randomUUID() }],
   ] as const) assert.equal((await request(path, "POST", body)).status, 403, path);
+  assert.equal((await request("/api/mysteries/001a/progress", "POST", { action: "complete", hintCount: 0 })).status, 409);
   assert.deepEqual({ live: await prisma.liveGame.count(), puzzle: await prisma.puzzleSession.count(), chapter: await prisma.chapterGuessGame.count(), word: await prisma.wordGame.count(), search: await prisma.wordSearchGame.count(), arcade: await prisma.quickMissionaryRun.count(), solo: await prisma.alleskennerSoloRun.count(), scrabble: await prisma.scrabbleGame.count(), challenge: await prisma.challenge.count() }, rowsBefore);
   assert.deepEqual(await preserved(userId), before); await setSource("content_bom");
 });

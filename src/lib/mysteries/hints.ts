@@ -1,19 +1,6 @@
-import { prisma } from "@/lib/db";
-import { hintFor } from "./logic";
-import type { MysteryDefinition, Placements } from "./types";
+import { actOnMystery } from "./attempts";
 
-/**
- * Mysteries gebruiken hetzelfde hinttegoed als de andere leeractiviteiten.
- * De aftrek gebeurt conditioneel in de database, zodat twee snelle taps nooit
- * meer hints kunnen verbruiken dan de gebruiker werkelijk heeft.
- */
-export async function consumeMysteryHint(userId: string, definition: MysteryDefinition, placements: Placements) {
-  const hint = hintFor(definition, placements);
-  const consumed = await prisma.user.updateMany({
-    where: { id: userId, hintBalance: { gt: 0 } },
-    data: { hintBalance: { decrement: 1 } },
-  });
-  if (consumed.count !== 1) return null;
-  const current = await prisma.user.findUnique({ where: { id: userId }, select: { hintBalance: true } });
-  return { hint, hintBalance: current?.hintBalance ?? 0 };
+/** Betaal uitsluitend binnen de vastgelegde poging en dezelfde transactie. */
+export function consumeMysteryHint(userId: string, attemptId: string, expectedRevision: number, actionId: string) {
+  return actOnMystery(userId, { action: "hint", attemptId, expectedRevision, actionId });
 }
