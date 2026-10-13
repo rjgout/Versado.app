@@ -121,7 +121,20 @@ try {
   await overview.page.reload({ waitUntil: "networkidle" });
   await overview.page.getByText("Afgerond", { exact: true }).first().waitFor({ timeout: 15000 });
   await overview.page.getByRole("link", { name: /Bekijk resultaat|Vraag beantwoorden/ }).first().waitFor();
-  assert.deepEqual([...catalog.errors, ...coop.errors, ...invited.errors, ...play.errors, ...done.errors, ...overview.errors], []);
+  // 7. Een realtime statusupdate (deelnemer wordt FINISHED) haalt de lopende werktafel/voltooiingsstap niet weg.
+  const second = await createMatch(a.id, jigsawCatalog[2].url, 6, "ADVENTURER", [b.id], "ASYNC");
+  await respondToMatchInvite(b.id, second, true); await beginMatchAttempt(a.id, second); await beginMatchAttempt(b.id, second);
+  const live = await open(a, `/jigsaw/wedstrijd/${second}`, { width: 360, height: 700 });
+  await live.page.waitForSelector("canvas", { timeout: 20000 });
+  let state2 = await resumeMatchPuzzle(a.id, second, "nl");
+  const geometry2 = cachedPuzzleGeometry(state2.pieceCount, state2.seed, state2.geometryVersion);
+  for (const piece of geometry2.pieces) state2 = await applyMatchAction(a.id, second, state2.version, randomUUID(), { kind: "move", groupId: `p${piece.id}`, x: 3 + piece.column, y: 3 + piece.row }, "nl");
+  for (const [x, y] of [[0, 1], [1, 2], [0, 3], [3, 4], [4, 5]]) state2 = await applyMatchAction(a.id, second, state2.version, randomUUID(), { kind: "connect", a: x, b: y }, "nl");
+  assert.equal((await prisma.puzzleMatchParticipant.findUniqueOrThrow({ where: { matchId_userId: { matchId: second, userId: a.id } } })).status, "FINISHED");
+  await live.page.waitForTimeout(3000);
+  assert.ok(await live.page.locator("canvas").count() >= 1, "de werktafel blijft staan na de statusupdate");
+  assert.equal(await live.page.locator("[data-question-status]").count(), 0);
+  assert.deepEqual([...catalog.errors, ...coop.errors, ...invited.errors, ...play.errors, ...done.errors, ...overview.errors, ...live.errors], []);
   console.log(JSON.stringify({ navigatie: "ok", officieleTijdMs: official }));
 } finally {
   await browser.close();
