@@ -9,6 +9,7 @@ import {
   ReadingPositionError,
 } from "@/lib/studyContent/readingPosition";
 import { readingPositionActionSchema } from "@/lib/studyContent/readingPositionContract";
+import { prisma } from "@/lib/db";
 export const runtime = "nodejs";
 const query = z
   .object({ lessonEditionId: z.string().min(1).max(128) })
@@ -75,7 +76,7 @@ async function handle(req: NextRequest, write: boolean) {
     );
     if (!parsed.success)
       return response({ error: t("apiErrors.invalidInput") }, 400);
-    return response(await saveReadingPosition(user, parsed.data));
+    return response(await saveReadingPosition(user, parsed.data, prisma, await navigationSessionKey()));
   } catch (error) {
     if (error instanceof ReadingPositionError) {
       if (error.code === "CONFLICT")
