@@ -107,11 +107,21 @@ deze fase bouwt geen ongebruikte nullable targets.
   de oude positie nooit herstellen. Timestamps van toestellen hebben geen gezag.
 - Nieuwe positie verhoogt de versie precies eenmaal. Een save van dezelfde
   positie zonder nieuwe semantische actie schrijft niets.
-- Een geopende, eerder aantoonbaar gepubliceerde revisie kan nog een positie
-  krijgen na een publicatiewissel, mits de collectie en les nog normaal
-  toegankelijk zijn. Bewijs komt uit de bestaande publicatiehistorie, inclusief
-  `previousRevisionId` voor een vervangen 2A-publicatie; niet uit een clientclaim.
-  Conceptrevisies zijn nooit een geldige normale position-target.
+- Een geopende, eerder aantoonbaar gepubliceerde revisie kan na een
+  publicatiewissel alleen nog positie bewaren met **twee onafhankelijke bewijzen**:
+  (1) bestaande publicatiehistorie (ook `previousRevisionId`), en (2) een
+  serverondertekend leesbezoekbewijs dat eerder bij het openen van de toen
+  actuele gepubliceerde revisie is uitgegeven. Het bewijs is maximaal zes uur
+  geldig en gebonden aan gebruiker, sessie, leseditie en exacte revisie.
+  De server verifieert HMAC in constante tijd en controleert het bewijs
+  **vóór** het ophalen van historische bloktekst of de server-afgeleide
+  `quoteContext`. Ontbrekend, ongeldig, verlopen of niet-passend bewijs:
+  `UNAVAILABLE`, geen historische tekst in de response. De actuele
+  publicatie blijft via de gewone leesrechten beschikbaar; een bewijs geeft
+  nooit toegang tot concepten, andere gebruikers of ingetrokken collecties.
+  Het bewijs is geen productievrijgave, geen nieuw sessietoken en wordt niet
+  in URLs, sociale data of logs opgenomen. Een lang geopend leesbezoek dat
+  na zes uur verlopen is, moet bewust de huidige publicatie heropenen.
 - Een 409 bevat alleen de eigen, toegestane serverpositie en versie. Bij
   ingetrokken brontoegang blijft de rij bewaard, zonder verborgen tekst/quote
   terug te geven. Geen persoonlijke gegevens in logs of sociale scopes.
@@ -126,7 +136,12 @@ en terugbalkcontracten; geen nieuwe header, scrollcontainer of shell-offset.
 
 De reader bevriest de ontvangen revisie en toont heading/paragraph/list/quote/
 question/assignment/figure/reference/divider doorlopend. Questions/assignments
-zijn leestekst, geen oefeningen. Media gebruiken de bestaande gewone media-API,
+zijn leestekst, geen oefeningen. Inline-links die al door het rich-content-schema
+zijn gecontroleerd als veilige absolute HTTPS-URL worden als echte focusbare
+`<a>`-links gerenderd (nieuw tabblad, `noopener noreferrer`). Onbewezen
+Schriftuurverwijzingen blijven tekst tot fase 2D. De bestaande 2B-importgate
+voor onbewezen ongeankerde links wordt hierbij niet versoepeld.
+Media gebruiken de bestaande gewone media-API,
 met gereserveerde beeldverhouding, alt en caption. Afgewezen oude/ontbrekende media
 krijgen een toegankelijke melding; geen adminmedia-fallback.
 
@@ -283,6 +298,23 @@ begrensde foutmeldingen. Daarnaast meldt de PostgreSQL-driver zijn bestaande
 concurrent-query-deprecatie en Next.js kan bij bewuste navigatieafbraak melden
 “destination stream closed early”. Deze worden niet als geslaagde herstelproef of
 als genegeerde browser-pageerrors gepresenteerd.
+
+## Gerichte reviewcorrecties vóór merge
+
+- De eerder gebleken mogelijkheid om via een willekeurig historisch revisie-ID
+  een herstelquote op te vragen is beperkt: zonder een geldige, bij het
+  oorspronkelijke gepubliceerde leesbezoek uitgegeven en sessiegebonden HMAC
+  vindt geen historische revisieopslag of quote-afleiding plaats.
+- De client houdt het bewijs bij dezelfde serialiseerbare saveactie, zodat
+  keepalive, netwerkretry met dezelfde actionId en start-over dezelfde
+  toegangsgrenzen respecteren. Hij schrijft het bewijs niet in de URL.
+- Unit-/API-regressies dekken geldige frozen visits, ontbrekend, vervalst,
+  verlopen en verkeerd gebonden bewijs, onbereikbare concepten en
+  gewone bestaande position writes.
+- De rich-contentreader toont gecontroleerde HTTPS-links als echte links.
+  Semantische Schriftuurverwijzingen krijgen nog geen onbewezen bestemming.
+
+Deze wijzigingen geven géén toestemming voor merge of productie-uitrol.
 
 ## Gewijzigde onderdelen en grenzen
 
