@@ -117,7 +117,7 @@ try {
   const overview = await open(a, "/jigsaw");
   await overview.page.getByText("Wachten op anderen").first().waitFor({ timeout: 15000 });
   assert.equal(await overview.page.locator("a", { hasText: "Verder puzzelen" }).count(), 1, "alleen de lopende gezamenlijke puzzel is hervatbaar");
-  await solve(b); await solve(c);
+  await beginMatchAttempt(c.id, matchId); await solve(b); await solve(c);
   await overview.page.reload({ waitUntil: "networkidle" });
   await overview.page.getByText("Afgerond", { exact: true }).first().waitFor({ timeout: 15000 });
   await overview.page.getByRole("link", { name: /Bekijk resultaat|Vraag beantwoorden/ }).first().waitFor();

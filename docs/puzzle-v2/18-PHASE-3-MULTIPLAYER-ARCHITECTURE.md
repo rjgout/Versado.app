@@ -96,6 +96,9 @@ meerdere verbindingen op dezelfde dag gehaald (bekende, bewuste beperking).
 
 ## 4. Tegen elkaar
 
+**Wijziging correctieronde:** de wedstrijdregels hieronder zijn regelversie 2 (`PuzzleMatch.resultRules`).
+De puzzel bepaalt tijd en geldigheid; de inhoudelijke vraag staat los van de uitslag. Zie ook §12.
+
 - **Live**: lobby (`LOBBY`) → organisator start (minstens twee geaccepteerde
   spelers; wie niet accepteerde vervalt) → `startsAt` = servertijd + aftelling
   (5 s). Sessies voor alle spelers bestaan vanaf de start en delen variant, seed,
@@ -103,24 +106,31 @@ meerdere verbindingen op dezelfde dag gehaald (bekende, bewuste beperking).
 - **Asynchroon**: de wedstrijd loopt vanaf het aanmaken (`RUNNING`). Elke speler
   drukt zelf op "Begin": op dat moment ontstaat de sessie en loopt de servertijd.
   Eén officiële poging: opnieuw "Begin" geeft dezelfde sessie en klok.
-- **Vraag**: één vooraf vastgelegde vraag en optievolgorde voor iedereen
-  (`questionId`, `optionOrder` op de wedstrijd, gekopieerd naar de sessies). De
-  klok stopt pas bij een goed antwoord. Een fout antwoord geeft `INVALID` (geen
-  tijd, geen reeks, geen tweede kans); het juiste antwoord wordt pas getoond als de
-  wedstrijd gesloten is of de speler het goed had.
-- **Uitslag**: snelste geldige `elapsedMs`; tie-break eerder `finishedAt`, dan
-  `userId`. Zichtbaar voor een speler pas als die zelf klaar is of de wedstrijd
-  voorbij is; een andermans `INVALID` wordt als "klaar" gemaskeerd. Live voortgang
+- **Officiële finish**: zodra de laatste geldige verbinding of bordverankering de puzzel
+  volledig voltooit (engine-validatie, `applySoloAction`), legt `finishAttempt` in **dezelfde
+  transactie** vast: status `FINISHED`, `finishedAt` = het canonieke `completedAt` van die commit,
+  `elapsedMs = completedAt − startedAt`, hintgebruik en voortgang. De klok stopt daarmee
+  onmiddellijk en niet pas wanneer de client iets ontvangt. Lockvolgorde wedstrijd → sessie →
+  gebruiker (de wedstrijdrij wordt vóór de sessie vergrendeld via `SessionHooks.before`).
+  Een retry met dezelfde `actionId` geeft de opgeslagen uitkomst terug: geen tweede finish, geen
+  andere eindtijd, geen extra hintafschrijving en geen reeksclaim. Een finish die pas ná de
+  `playDeadline` zou zijn vastgelegd wordt `DNF` (de engine weigert acties na de deadline sowieso).
+- **Vraag**: één vooraf vastgelegde vraag en optievolgorde voor iedereen (`questionId`,
+  `optionOrder` op de wedstrijd, gekopieerd naar de sessies). Ze volgt na de voltooide afbeelding
+  maar verandert nooit tijd, rang, winnaar, geldigheid of voltooiingsstatus. Ze kan alleen de
+  persoonlijke reeks verlengen: één antwoord per deelnemer (`answeredAt`, idempotent via
+  `completeJigsaw(..., "m:<deelnemer>")`); goed → centrale reeksregel, fout of geen antwoord → geen
+  reeksverlenging en nooit `INVALID`. De vraag kan later of nooit beantwoord worden ("Later
+  beantwoorden") en blijft beantwoordbaar nadat de wedstrijd is afgesloten, omdat ze de uitslag niet meer
+  beïnvloedt. Het juiste antwoord blijft verborgen tot de wedstrijd gesloten is of de speler het zelf goed had.
+- **Uitslag**: snelste `elapsedMs`; tie-break eerder `finishedAt`, dan `userId`. Zichtbaar voor
+  een speler pas als die zelf klaar is (puzzel voltooid) of de wedstrijd voorbij is. Live voortgang
   (aantal verbonden stukken) alleen tijdens live wedstrijden.
 - **Deadlines**: live vervalt een lobby na 30 min, spelers die na 60 min nog bezig
-  zijn worden `DNF`; asynchroon sluiten join (48 u) en spelen (72 u). De scheduler
-  (`runPuzzleMaintenance`) en `getMatch`/`resume` (lui) verwerken verlopen
-  wedstrijden idempotent.
-- **Lockvolgorde**: wedstrijd → sessie → gebruiker. Elke overgang (accepteren,
-  starten, antwoorden, afsluiten) vergrendelt de wedstrijd, dus dubbelklikken,
-  gelijktijdige antwoorden of een gelijktijdige deadline geven één uitkomst.
-- **Reeks**: dezelfde regel als Solo via `completeJigsaw(userId, "m:<deelnemer>", correct, tx)`;
-  alleen een goed antwoord telt. Geen XP.
+  zijn worden `DNF`; asynchroon sluiten join (48 u) en spelen (72 u). Een puzzel die vóór de deadline
+  voltooid is blijft geldig, ook als de vraag later komt. De scheduler (`runPuzzleMaintenance`) en
+  `getMatch`/`resume` (lui) verwerken verlopen wedstrijden idempotent.
+- **Reeks**: dezelfde regel als Solo via `completeJigsaw`; alleen een goed antwoord telt. Geen XP.
 
 ## 5. Toegang en autorisatie
 
@@ -191,3 +201,43 @@ snapshot). Metingen en de grenzen staan in het verslag.
    legpuzzel kan via `GameSettings.jigsawEnabled` volledig worden uitgezet; dat
    stopt ook de socket-acties van Samen.
 5. Geen productie-contentreload en geen destructieve migratie nodig.
+
+## 12. Overgang oude en nieuwe wedstrijdregels (correctieronde)
+
+- `PuzzleMatch.resultRules`: **1** = oude regels (de klok stopt bij een goed antwoord; een fout antwoord
+  geeft `INVALID` zonder geldige tijd), **2** = huidige regels. De migratie
+  `20261029100000_puzzle_match_result_rules` voegt de kolom toe met default 1: alle bestaande wedstrijden
+  (ook lopende) blijven onder de oude regels en worden nooit herberekend; opgeslagen `FINISHED`- en
+  `INVALID`-uitslagen veranderen niet. Er is geen betrouwbaar voltooiingstijdstip in oude uitslagen,
+  dus een oude `INVALID` wordt nooit automatisch geldig. Alleen nieuwe wedstrijden krijgen 2
+  (`CURRENT_RESULT_RULES`).
+- `PuzzleMatchParticipant.answeredAt` (nieuw, nullable): moment van de vraagbeantwoording; backfill
+  uit `finishedAt` voor oude deelnemers die al antwoordden. `answeredCorrect` blijft de vraaguitkomst.
+- De code houdt het oude pad (`answerMatch` voor versie 1) naast het nieuwe; de UI toont bij versie 1
+  de oude uitslagteksten en bij versie 2 de nieuwe flow (tijd, daarna een losse vraag).
+- Terugdraaien: een eerdere appversie negeert de nieuwe kolommen; nieuwe (versie 2) wedstrijden zouden dan
+  onder de oude code vastlopen op de vraag. Rol terug alleen als er geen lopende versie 2-wedstrijden zijn.
+
+## 13. Navigatie (correctieronde)
+
+Terug in Legpuzzel 2.0 hangt nooit van browsergeschiedenis af (`src/lib/puzzle/navigation.ts`):
+
+| Plek | Terug gaat naar |
+|---|---|
+| Catalogus/overzicht `/jigsaw` | Spelen (`/live`) |
+| Solo: werktafel, voltooide afbeelding, resultaat | puzzelcatalogus; de vraag → voltooide afbeelding |
+| Samen: werktafel, afgeronde puzzel | `/jigsaw` (verlaat de puzzel niet; "Puzzel verlaten" is een aparte actie met bevestiging) |
+| Wedstrijd: uitnodiging, lobby, werktafel, resultaat | `/jigsaw` (geen reset, geen tweede poging, klok loopt, niet annuleren); de vraag → voltooide afbeelding |
+
+Oorzaak van het oude gedrag: de multiplayerschermen zetten het terugdoel op het vaste pad `/jigsaw` terwijl
+hun route dynamisch is (`/jigsaw/samen/[id]`, `/jigsaw/wedstrijd/[id]`), waardoor de override nooit paste;
+`SubpageBackBar` kende die routes niet (geen balk) en de catalogus gebruikte `router.back()`. Nu herkent
+`classifyPuzzleRoute` alle routes, wordt de bestemming met `replace` afgedwongen (`forceFallback`), en is er
+één eigenaar van het terugdoel (`PuzzleBackTarget` of de gedeelde werktafel, nooit beide).
+
+## 14. Overzichten
+
+Eén indeling voor `PuzzleTogetherOverview`, Actieve spellen en Vandaag: uitnodiging → actief
+(verder puzzelen) → wachten (klaar, anderen nog bezig; geen hervatbare actie) → afgerond (bekijk resultaat).
+Een voltooide gezamenlijke puzzel of een afgeronde wedstrijd staat niet meer onder actieve puzzels; resultaten
+(14 dagen in het overzicht, altijd via de link) blijven bereikbaar en geen historische gegevens worden verwijderd.

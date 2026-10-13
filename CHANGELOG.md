@@ -4,6 +4,11 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Verbeterd: in de Legpuzzel bij Tegen elkaar telt nu alleen je puzzeltijd: je klok stopt zodra je
+  puzzel af is, de snelste tijd wint, en de vraag erna verandert je tijd, plek of uitslag niet (een goed
+  antwoord kan je reeks verlengen). Afgeronde gezamenlijke puzzels en wedstrijden staan niet meer bij je
+  lopende puzzels, en de terugknop in de Legpuzzel gaat voorspelbaar naar het puzzeloverzicht.
+
 - Nieuw: de Legpuzzel kun je nu ook met vrienden spelen. Bij **Samen** leggen
   maximaal vier vrienden, live of op verschillende momenten, dezelfde puzzel
   (24 tot 300 stukjes); wie een groep pakt houdt die vast, iedereen heeft zijn
