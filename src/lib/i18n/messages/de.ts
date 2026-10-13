@@ -54,7 +54,8 @@ export const de: PartialMessages = {
       "updated": "Aktualisierte synthetische Lektion",
       "unresolved": "Synthetische Lektion mit ungeklärtem Verweis",
       "invalid": "Ungültige Struktur (Test)",
-      "batch-error": "Fehler im zweiten Stapel (Test)"
+      "batch-error": "Fehler im zweiten Stapel (Test)",
+      "rights-conflict": "Gleiches Bild, abweichende Rechte (Test)"
     },
     "changes": {
       "added": "Hinzugefügt",
