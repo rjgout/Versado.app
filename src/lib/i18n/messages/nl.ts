@@ -56,7 +56,8 @@ export const nl = {
       "updated": "Bijgewerkte synthetische les",
       "unresolved": "Synthetische les met onopgeloste verwijzing",
       "invalid": "Ongeldige structuur (test)",
-      "batch-error": "Fout in tweede batch (test)"
+      "batch-error": "Fout in tweede batch (test)",
+      "rights-conflict": "Zelfde afbeelding, afwijkende rechten (test)"
     },
     "changes": {
       "added": "Toegevoegd",
