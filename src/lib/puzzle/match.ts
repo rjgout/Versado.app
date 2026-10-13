@@ -504,7 +504,7 @@ export async function listMatchOverview(userId: string) {
   await requirePuzzleContent();
   const now = new Date();
   const rows = await prisma.puzzleMatchParticipant.findMany({
-    where: { userId, status: { not: "DECLINED" }, match: { OR: [{ status: { in: ["LOBBY", "RUNNING"] } }, { status: "FINISHED", finishedAt: { gt: new Date(now.getTime() - 3 * 86_400_000) } }] } },
+    where: { userId, status: { not: "DECLINED" }, match: { OR: [{ status: { in: ["LOBBY", "RUNNING"] } }, { status: "FINISHED", finishedAt: { gt: new Date(now.getTime() - 14 * 86_400_000) } }] } },
     orderBy: { createdAt: "desc" }, take: 20,
     include: { match: { include: { variant: { include: { definition: true } }, organizer: { select: { id: true, handle: true } }, participants: { include: { user: { select: { id: true, handle: true } } } } } } },
   });

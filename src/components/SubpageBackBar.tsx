@@ -11,6 +11,7 @@ import type { MessageKey } from "@/lib/i18n/core";
 import { useCompanion } from "@/components/versado/PersonalMascot";
 import { quickMissionaryTitle } from "@/lib/gameCatalog";
 import { PLAY_ROUTE } from "@/lib/navigation";
+import { classifyPuzzleRoute } from "@/lib/puzzle/navigation";
 
 interface DetailPage {
   /** Alleen gebruikt zonder vorige pagina in de app (een deeplink). */
@@ -103,6 +104,12 @@ function detailPageFor(pathname: string, profileView: string | null, hash: strin
   if (/^\/tools\/dictionary\/[^/]+$/.test(pathname)) return { fallback: "/tools/dictionary", title: "pages.dictionary" };
   const tool = TOOL_SUBPAGES[pathname];
   if (tool) return { fallback: "/tools", title: tool };
+  // Legpuzzel 2.0: expliciete bestemming per route (zie lib/puzzle/navigation.ts), nooit browsergeschiedenis.
+  const puzzle = classifyPuzzleRoute(pathname);
+  if (puzzle) {
+    const subtitle = puzzle.kind === "coop" ? "puzzleTogether.modes.coop" : puzzle.kind === "match" ? "puzzleTogether.modes.match" : undefined;
+    return { fallback: puzzle.parent, title: "jigsaw.title", subtitle, forceFallback: true };
+  }
   const game = GAME_PAGES[pathname];
   if (game) {
     const isLeaderboard = pathname === "/snelle-zendeling" && (profileView === "leaderboard" || hash === "#quick-missionary-leaderboard");

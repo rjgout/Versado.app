@@ -23,7 +23,7 @@ test("nieuwe Solo-uitleg en hintbediening zijn expliciet vertaald in alle vijf t
 
 test("Kompas toont bijgewerkte spelregels en houdt centrale vraag/reeks/geen-XP-uitleg", () => {
   const topic = KOMPAS_TOPICS.find((topic) => topic.id === "play.jigsaw")!;
-  assert.equal(topic.version,4);
+  assert.equal(topic.version,5);
   for (const language of ["nl","en","de","fr","es"] as const) {
     const t = getT(language); const entry = generalEntry(t,topic);
     assert.equal(entry.steps.length,5);
