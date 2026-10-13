@@ -16,6 +16,7 @@ export const STUDY_FIXTURES = [
   "unresolved",
   "invalid",
   "batch-error",
+  "rights-conflict",
 ] as const;
 export type StudyFixtureKey = (typeof STUDY_FIXTURES)[number];
 export const FIXTURE_IMAGE =
@@ -161,7 +162,10 @@ export function studyFixture(
           .update(Buffer.from(FIXTURE_IMAGE, "base64"))
           .digest("hex"),
         sourceKey: "fixture:diagram",
-        rights,
+        rights:
+          key === "rights-conflict"
+            ? { ...rights, permission: "Synthetische fixture met afwijkende mediarechten." }
+            : rights,
       },
     ],
     expectedAnchors: [
