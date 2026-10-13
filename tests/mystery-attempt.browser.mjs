@@ -38,9 +38,12 @@ try{
   await page.reload();await page.locator('[data-mystery-save-status="saved"]').waitFor();assert.deepEqual((await snapshot(u.id)).placements,saved.placements);assert.equal(await page.getByRole('button',{name:'Volgens mij verwerkt',exact:true}).count(),1);
   const bounds=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth+1,top:document.querySelector('.mystery-game-layout').getBoundingClientRect().top,header:document.querySelector('[data-sticky-header]').getBoundingClientRect().bottom}));assert.equal(bounds.overflow,false);// Na refresh mag de browser de eerdere desktopscroll bewaren. Meet de
   // shellgeometrie daarom bij expliciet bovenaan bekijken, niet halverwege.
-  await page.evaluate(()=>window.scrollTo(0,0));
+  // Een echte gebruikersactie beëindigt de centrale restore-loop. Een losse
+  // scrollTo direct na refresh kan op het volgende frame teruggedraaid worden.
+  await page.keyboard.press('Control+Home');
+  await page.waitForFunction(()=>window.scrollY<=1);
   const top=await page.evaluate(()=>({content:document.querySelector('.mystery-game-layout').getBoundingClientRect().top,header:document.querySelector('[data-sticky-header]').getBoundingClientRect().bottom}));
-  assert.ok(top.content>=top.header-1);
+  assert.ok(top.content>=top.header-1,JSON.stringify({width,scheme,top}));
   await page.screenshot({path:`${output}/${width}-${scheme}-resume.png`,fullPage:true});
   await context.close();
   await prisma.user.update({where:{id:u.id},data:{activeContentCollectionId:'content_podcasts',contentLanguage:'en'}});

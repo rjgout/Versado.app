@@ -1,4 +1,4 @@
-name: Contentarchitectuur 1A–1F toegang, context, selectie en spellen
+name: Contentarchitectuur 1A–2A toegang, context, selectie en spellen
 
 on:
   pull_request:
@@ -13,6 +13,10 @@ on:
       - 'tests/mystery*'
       - 'tests/fixtures/mystery*'
       - 'tests/learning-progress.integration.test.ts'
+      - 'src/lib/studyContent/**'
+      - 'tests/study-content*'
+      - 'tests/study-identity-migration.mjs'
+      - 'tests/fixtures/study-content.ts'
       - 'src/lib/contentAccess.ts'
       - 'src/lib/snelleZendeling/**'
       - 'src/server/quickMissionary.ts'
@@ -105,7 +109,7 @@ jobs:
           rm -rf .next
           npm run build
       - name: Echte HTTP-toegang, studiecontext en migratiebehoud op eigen PostgreSQL
-        run: npm run test:content-access:integration
+        run: npm run test:study-content:integration
       - name: Regressie, lint en vertalingen
         run: |
           npx tsx --test tests/admin-layout.test.ts tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/streak-central.test.ts
