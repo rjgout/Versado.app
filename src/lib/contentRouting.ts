@@ -56,6 +56,7 @@ export type ContentRoute =
   | { kind: "courseChapter"; courseId: string; chapterId: string }
   | { kind: "chapter"; chapterId: string }
   | { kind: "readingLesson"; lessonId: string }
+  | { kind: "studyLesson"; lessonId: string; collectionId: string }
   | { kind: "intro"; lessonId: string }
   | { kind: "kids"; storyId: string }
   | { kind: "fsy"; lessonId: string }
@@ -70,6 +71,8 @@ const SEGMENT = "([^/]+)";
 /** Herkent de contentgebonden routes. Alles wat hier niet in staat, is neutraal. */
 export function classifyContentRoute(pathname: string): ContentRoute {
   const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  const study = new RegExp(`^/study-lesson/${SEGMENT}/${SEGMENT}$`).exec(path);
+  if (study) return { kind: "studyLesson", lessonId: study[1], collectionId: study[2] };
   if (path === "/courses") return { kind: "courses" };
   let match = new RegExp(`^/courses/${SEGMENT}/chapter/${SEGMENT}$`).exec(path);
   if (match) return { kind: "courseChapter", courseId: match[1], chapterId: match[2] };

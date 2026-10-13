@@ -6,9 +6,10 @@ Werkbranch: `codex/content-architecture-v2-2c-study-reader`, gestart vanaf
 `origin/main` **1a34c020a93bfc898a9ae1bde6f2cccbcb2c64be**. Fase 2B / PR #96
 is gemerged. De afzonderlijke concept-PR #97 wordt niet meegenomen.
 
-**Status: definitief schemavoorstel voor afzonderlijke goedkeuring.** Er is
-nog geen fase-2C-migratie of Prisma-schemawijziging uitgevoerd. De eerdere
-toestemming voor 2B wordt niet als toestemming voor 2C gebruikt.
+**Status: schema afzonderlijk goedgekeurd op 13 oktober 2026.** De eigenaar
+antwoordde expliciet “Akkoord met dit schema”. Implementatie en geïsoleerde
+validatie vinden plaats op deze branch; productie-uitrol blijft buiten scope.
+De eerdere toestemming voor 2B is niet als toestemming voor 2C gebruikt.
 
 De opdracht vereist: “Leg het definitieve ReadingPosition-schema eerst ter
 goedkeuring voor voordat je de Prisma-migratie implementeert.” Het hieronder
@@ -173,7 +174,7 @@ Voorbereiding op 13 oktober 2026: 134 bestaande unit-/contracttests geslaagd,
 live-data-suites). Dit is een controle van actuele main, geen fase-2C-integratie-
 of browserbewijs. `git diff --check` is eveneens geslaagd. Geen database aangeraakt.
 
-Nog geen fase-2C-testresultaten geclaimd. Na schema-akkoord:
+De volgende controles zijn uitgevoerd; de verdere CI-resultaten worden op de exacte commit in de concept-PR geregistreerd:
 
 - Eigen PostgreSQL met alle bestaande migraties, dynamische schemaobjecttelling
   en vergelijking van alle oude rijgegevens; geen backfill of productiegegevens.
@@ -188,7 +189,7 @@ Nog geen fase-2C-testresultaten geclaimd. Na schema-akkoord:
 
 ## Uitrol en rollback
 
-Alleen na afzonderlijke schema-goedkeuring wordt de additieve migratie gebouwd.
+De afzonderlijk goedgekeurde additieve migratie is `20261031120000_reading_position`.
 Geen oude tabellen, rijen of kolommen veranderen; geen FSY-backfill. Afgebroken
 DDL/objectconflict en herhaalde migrate deploy worden op de eigen database getest.
 
@@ -200,3 +201,114 @@ down-migratie. Officiële import/publicatiegate uit 2B blijft gesloten.
 De eigenaar beheert Hyper Backup; geen onafhankelijke restoretest uitgevoerd,
 conform het eerder geaccepteerde risico. Geen productiequery, NAS-aanpassing,
 backup-, herstel-, import- of deploymentactie in deze voorbereiding.
+
+## Actuele implementatie en integratievoorwaarden
+
+De HTTP-write controleert naast bestaande Origin/auth de opaque
+`navigationSessionKey()` van de ingelogde sessie via `X-Reading-Session`.
+Die bestaande hash is geen authenticatiemiddel: de cookie blijft autoritatief.
+Een late save kan daardoor niet bij een later ingelogde gebruiker of een nieuwe
+login worden toegepast. Tabcache bevat alleen begrensde actie/coördinaten, geen
+quote, credentials of gebruikersprofiel; key bevat sessie, editie en revisie.
+
+De globale live-data-listeners bieden `subscribeDataPause` aan voor pagehide,
+verborgen tab en de bestaande native bridge. De controller registreert geen
+eigen focus-, visibility-, online- of pollinglistener. Mutation en realtime-event
+blijven gericht op `readingPosition`.
+
+De centrale scrollcoördinatie kan een vroeg ankerverzoek vasthouden totdat
+NavigationScroll gereed is. Geschiedenis en gebruikersinput houden voorrang.
+Een readerreload vraagt de serverpositie; bestaande generieke pagina's behouden
+hun eerdere lokale reloadherstel. Een bewust resetpunt is de echte paginabovenkant,
+ook na herladen, niet alleen de eerste tekstsectie onder de bediening.
+Sectieherstel bij een verdwenen blok begint veilig aan die sectie; alleen een
+uniek exact quote-fragment kan een verdwenen sectie vervangen.
+
+Kompas is beoordeeld: er is nog geen officiële studielescatalogus, dus geen nieuwe
+lege leskaart, menulink of bronbelofte toegevoegd. De reader legt lokaal het
+verschil tussen leespositie en gelezenstatus uit in alle vijf UI-talen. Een
+bron-/lesgebonden Kompas-ingang kan bij daadwerkelijke contentbeschikbaarheid
+op de bestaande infrastructuur aansluiten. Geen tweede tutorial.
+
+## Werkelijke validatieresultaten
+
+| Controle | Resultaat |
+| --- | --- |
+| Prisma validate/generate en TypeScript | Geslaagd; TypeScript per coherent codeblok. |
+| Schone Next.js-productiebuild | Geslaagd. Browser gebruikt deze productiebuild, niet dev. |
+| Nieuwe positie-/queue-unitchecks + bestaand 2A-schema | 56 geslaagd: 28 nieuwe checks en 28 bestaande schema/revisiechecks; geen skips. |
+| Contentwisseling, focus/shell en live-data-regressies | 121 geslaagd op de definitieve code, inclusief de aanvullende late-response/epochchecks; geen skips. |
+| Kompas, studyscoring, centrale reeks en leerregels | 77 geslaagd; geen skips. |
+| Volledige geïsoleerde reader-run | 296 Node-tests geslaagd: 281 bestaande toegang/context/cursus/leer/tijdcontroles en 15 nieuwe DB/API-tests; geen skips. |
+| Migratiebehoud | 144 bestaande tabellen, 1220 kolommen, 377 constraints, 381 indexen, 7 triggers, 5 functies en 60 enums behouden; bestaande sequencetelling 0. Oude rijhashes gelijk; geen backfill. Werkelijke dynamische telling, geen hardcoded migratievoorwaarde. |
+| Migratiefouten | Mid-DDL-error, tabel-/indexnaamconflict en locktimeout rollen de nieuwe objecten terug. Herhaald migrate deploy is veilig; handmatig SQL-herhalen stopt voor review. |
+| Readerbrowser | 20 flows geslaagd: mobiele/desktop/landscape hervatting, 200% tekst, alle vijf UI-talen, netwerkretry, conflicten, late oude responses, app-pauze, nieuwe login, revisie-update en verdwenen anker. Geen browser-pageerrors. |
+| Snelle Zendeling / Genees | 173 speltests, 58 economytests, 18 bron/isolationtests en 2 echte multi-instance/browsertests geslaagd; eigen PostgreSQL/Redis. |
+| Lint/i18n | Geen lintfouten; 134 vooraf bestaande waarschuwingen. Nieuwe gebruikerslabels vertaald in alle vijf UI-talen; bestaande 418 ontbrekende vertalingen buiten dit werkpakket blijven staan. |
+| Availability-querybudgetten | Bestaande limieten, actuele rechten/settings/scopes en economie behouden. Eigen database, geen productiemeting. |
+
+Browsermatrix: 320×844, 390×844, 1280×900 en 844×390 landscape, licht/donker.
+Daarnaast 320px met **200% tekst die ook na reload actief blijft**, in alle vijf
+UI-talen, met 20px boven-/34px onder-safearea-emulatie. De controle meet werkelijk
+32px rootfont, overflow, terugbalk/inhoud, bron/editie/revisie en opgeslagen ankers.
+Screenshots en `results.json` worden als `study-reader-browser` CI-artifact bewaard;
+geen grote gegenereerde bestanden in Git.
+
+Geen fysieke iOS-/Android-toestellen, Safari/WebKit of echte Capacitor-app getest.
+App-pauze/resume is met de bestaande bridge-gebeurtenissen in Chromium getest.
+Pagehide/OS-afsluiten blijft best effort: alleen een serverbevestiging betekent
+opgeslagen. De gebonden tabcache ondersteunt een herstelbare onbekende uitkomst;
+een harde OS-stop vóór enige lokale/serveropslag kan niet worden gegarandeerd.
+
+De eerste aanloop vond echte fouten in vroege scrollregistratie en het exacte
+resetdoel; beide zijn centraal gecorrigeerd en opnieuw in de browser gecontroleerd.
+De savequeue heeft aanvullend monotone positie-/publicatieversies en een bezoekepoch:
+een late eigen response of een response na bewuste conflictherstelkeuze kan geen
+nieuwere toestand vervangen. Oude tab-/les-/loginresponses zijn gebonden aan hun
+originele queue, sessie en editie/revisie.
+
+Testomgevingsafwijkingen zijn afzonderlijk behandeld: timezonefixtures zijn op
+UTC afgestemd op de browser; gedeelde PNG-bytes kunnen terecht via een andere
+actuele publicatie beschikbaar zijn. Die testkopieën worden bij de intrekkingsproef
+geïsoleerd. Een gecombineerde reader-/publicatiesuite bleek ongeschikt omdat de
+STAGED-compensatietest een eigen lege mediapool vereist; de runner weigert die
+combinatie nu vóór database-start. De bestaande suites draaien elk op hun eigen
+wegwerpdatabase. Een gelijktijdige extra database kon lokaal niet starten bij
+beperkte capaciteit; Snelle Zendeling is daarna afzonderlijk volledig geslaagd.
+Dit waren geen productieacties.
+
+Bewuste foutinjecties geven Prisma-testlogs; de API toont alleen vertaalde,
+begrensde foutmeldingen. Daarnaast meldt de PostgreSQL-driver zijn bestaande
+concurrent-query-deprecatie en Next.js kan bij bewuste navigatieafbraak melden
+“destination stream closed early”. Deze worden niet als geslaagde herstelproef of
+als genegeerde browser-pageerrors gepresenteerd.
+
+## Gewijzigde onderdelen en grenzen
+
+- Eén ReadingPosition-model, drie inverse relaties en één nieuwe additieve SQL-migratie.
+- Gedeeld leespositiecontract, server-service, private GET/PUT-API en readonly reader-DTO.
+- `/study-lesson/[lessonId]/[collectionId]`, StudyReader, RichContentBlocks en position-controller.
+- Centrale scrollcoördinatie in de bestaande NavigationScroll, bestaande native/live-data-pauze,
+  navigatie-/focus-/contentroutecontracten en één eigen positie-event/scope.
+- Vijf UI-vertalingen, bestaande isolated runner, nieuwe unit/DB/migratie/browsertests,
+  packagecommando's, bestaande Actions-workflow, dit document en DATA-REFRESH.
+
+De bestaande adminpreview blijft een zelfstandige readonly beheercontext. Hij
+maakt geen ReadingPosition. De nieuwe semantische renderer is gedeeld door alle
+normale studielessen; er is geen bronafhankelijke FSY-/CFM-reader gebouwd.
+Geen nieuwe permanente toolbar, hoofdstukkenrewrite, officiële content, FSY-
+conversie, annotatiemodel, ReferencePreview of READ-transactie.
+
+Publicatiemonitoring gebruikt de bestaande gerichte scope en focus/online/app-resume-
+hercontrole. Er is geen permanente polling of nieuwe globale broadcast toegevoegd.
+De geopende tekst blijft altijd frozen; heropenen is bewust. Fase 2D neemt veilige
+referencepreviews/equivalentie over; 2E neemt uitsluitend expliciete READ-afhandeling
+met bestaande centrale activiteitregels over. De drie voortgangstoestanden blijven
+onafhankelijk.
+
+Uitrol vereist review van de exacte concept-PR/DDL/CI en afzonderlijke merge-/
+deploymenttoestemming. Synology-startup migreert automatisch. Vooraf bestaande
+backupdekking en container-/DB-gezondheid controleren; geen nieuwe restoreclaim.
+Na gecontroleerde migratie eerst legacycontent/games/bronkeuze controleren en de
+nieuwe route alleen bij echt beschikbare publicatie gebruiken. Approllback behoudt
+nieuwe schema/data; nooit een destructieve down-migratie of algemene seed uitvoeren.

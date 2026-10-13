@@ -161,3 +161,15 @@ Alleen in het expliciete geïsoleerde synthetische testprofiel kan de importer
 actief zijn; daar volgt de zichtbare beheerquery rustig via `pollMs:2000` de
 duurzame jobstatus. Geen losse interval-, focus- of reconnectlistener; geen
 progressie-, XP-, reeks-, hints- of spelinvalidatie door een publicatieactie.
+
+### Leesposities (fase 2C)
+
+`readingPositionChanged` invalideert uitsluitend `readingPosition`. De eigen
+positiequery gebruikt sessionKey + concrete editie + geopende revisie; ze volgt
+niet stilzwijgend de actieve profielbron. `studyContent` controleert ook de actuele
+publicatiepointer zonder de geopende tekst te vervangen. Autosave gebruikt
+`liveMutation`, geen polling of nieuwe focus-/online-/resume-listener.
+De bestaande globale `client.ts` geeft verborgen/pagehide/native-pause door via
+`subscribeDataPause`; alleen de actieve controller doet een best-effort flush.
+Conflicten worden getoond en vereisen een bewuste keuze; oude responses kunnen
+alleen hun eigen bezoek afhandelen. Nooit progressie-, XP-, reeks- of sociale scopes.
