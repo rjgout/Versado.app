@@ -460,6 +460,36 @@ try {
     nextInput.body.sections[1].blocks[0].content[0].text =
       "Bijgewerkte synthetische leespassage.";
     const next = await appendStudyRevision(f.actor, f.edition.id, nextInput);
+    // Deze lange-lesfixture is bewust als directe, synthetische publicatie
+    // opgebouwd. Voor een echte historische positie is daarnaast de
+    // publicatieaudit vereist; een losse pointerwissel is onvoldoende.
+    const imported = await prisma.contentImportItem.findFirstOrThrow({
+      where: { lessonEditionId: f.edition.id },
+      select: { runId: true },
+    });
+    await prisma.contentImportItem.create({
+      data: {
+        runId: imported.runId,
+        sourceKey: `fixture:reader-published-${randomUUID()}`,
+        lessonEditionId: f.edition.id,
+        revisionId: f.revision.id,
+      },
+    });
+    await prisma.studyPublicationAction.create({
+      data: {
+        lessonEditionId: f.edition.id,
+        revisionId: f.revision.id,
+        previousRevisionId: null,
+        importRunId: imported.runId,
+        actorId: f.user.id,
+        actorKey: `fixture:${f.user.id}`,
+        actionId: randomUUID(),
+        kind: "PUBLISH",
+        expectedVersion: 0,
+        version: 1,
+        requestHash: createHash("sha256").update("isolated-reader-published-v1").digest("hex"),
+      },
+    });
     await prisma.studyLessonEdition.update({
       where: { id: f.edition.id },
       data: { publishedRevisionId: next.id, publicationVersion: 2 },
