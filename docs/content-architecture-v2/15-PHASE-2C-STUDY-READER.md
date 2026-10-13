@@ -237,12 +237,13 @@ op de bestaande infrastructuur aansluiten. Geen tweede tutorial.
 | Prisma validate/generate en TypeScript | Geslaagd; TypeScript per coherent codeblok. |
 | Schone Next.js-productiebuild | Geslaagd. Browser gebruikt deze productiebuild, niet dev. |
 | Nieuwe positie-/queue-unitchecks + bestaand 2A-schema | 56 geslaagd: 28 nieuwe checks en 28 bestaande schema/revisiechecks; geen skips. |
-| Contentwisseling, focus/shell en live-data-regressies | 121 geslaagd op de definitieve code, inclusief de aanvullende late-response/epochchecks; geen skips. |
+| Contentwisseling, focus/shell en live-data-regressies | 122 geslaagd op de definitieve code, inclusief late-response/epochchecks en hervatten tijdens een lopende fetch; geen skips. |
 | Kompas, studyscoring, centrale reeks en leerregels | 77 geslaagd; geen skips. |
 | Volledige geïsoleerde reader-run | 296 Node-tests geslaagd: 281 bestaande toegang/context/cursus/leer/tijdcontroles en 15 nieuwe DB/API-tests; geen skips. |
 | Migratiebehoud | 144 bestaande tabellen, 1220 kolommen, 377 constraints, 381 indexen, 7 triggers, 5 functies en 60 enums behouden; bestaande sequencetelling 0. Oude rijhashes gelijk; geen backfill. Werkelijke dynamische telling, geen hardcoded migratievoorwaarde. |
 | Migratiefouten | Mid-DDL-error, tabel-/indexnaamconflict en locktimeout rollen de nieuwe objecten terug. Herhaald migrate deploy is veilig; handmatig SQL-herhalen stopt voor review. |
 | Readerbrowser | 20 flows geslaagd: mobiele/desktop/landscape hervatting, 200% tekst, alle vijf UI-talen, netwerkretry, conflicten, late oude responses, app-pauze, nieuwe login, revisie-update en verdwenen anker. Geen browser-pageerrors. |
+| Bestaande 2B-publicatie en media | Afzonderlijk 307 Node-tests en 19 browserflows geslaagd; persistent mediavolume ook na container-/imagevervanging gecontroleerd. |
 | Snelle Zendeling / Genees | 173 speltests, 58 economytests, 18 bron/isolationtests en 2 echte multi-instance/browsertests geslaagd; eigen PostgreSQL/Redis. |
 | Lint/i18n | Geen lintfouten; 134 vooraf bestaande waarschuwingen. Nieuwe gebruikerslabels vertaald in alle vijf UI-talen; bestaande 418 ontbrekende vertalingen buiten dit werkpakket blijven staan. |
 | Availability-querybudgetten | Bestaande limieten, actuele rechten/settings/scopes en economie behouden. Eigen database, geen productiemeting. |
@@ -301,6 +302,13 @@ conversie, annotatiemodel, ReferencePreview of READ-transactie.
 
 Publicatiemonitoring gebruikt de bestaande gerichte scope en focus/online/app-resume-
 hercontrole. Er is geen permanente polling of nieuwe globale broadcast toegevoegd.
+De eerste reader-CI-run vond een race bij het updatebericht: een geforceerde
+hercontrole tijdens een lopende GET kon verloren gaan. De bestaande centrale
+LiveDataStore bewaart dit signaal nu met zijn generatiecontract en haalt na het
+oude antwoord eenmaal opnieuw op. Meerdere hervatsignalen worden samengevoegd;
+er komen geen parallelle fetches of permanente herhaallus bij. Een deterministische
+unitcheck en een browsercheck met bewust vertraagd oud publicatieantwoord dekken
+dit af. De afzonderlijke live-data-suite telt nu 52 geslaagde tests.
 De geopende tekst blijft altijd frozen; heropenen is bewust. Fase 2D neemt veilige
 referencepreviews/equivalentie over; 2E neemt uitsluitend expliciete READ-afhandeling
 met bestaande centrale activiteitregels over. De drie voortgangstoestanden blijven

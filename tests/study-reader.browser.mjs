@@ -417,7 +417,26 @@ try {
       .getByRole("button", { name: f.t("studyReader.retry"), exact: true })
       .click();
     await until(() => position(f), "retry commit");
+    await until(
+      () => page.locator("[data-reading-save-status]").textContent()
+        .then((text) => text === f.t("studyReader.saved")),
+      "retry bevestigd in de interface",
+    );
     assert.ok(requests >= 1);
+    // Dwing de CI-race af: een GET heeft de oude publicatie al gelezen,
+    // maar de response arriveert pas na publiceren én het hervatsignaal.
+    let held = false;
+    let releaseGet;
+    const heldResponse = new Promise((resolve) => { releaseGet = resolve; });
+    await page.route("**/api/reading-position?*", async (route) => {
+      if (held) return route.continue();
+      const response = await route.fetch();
+      held = true;
+      await heldResponse;
+      await route.fulfill({ response });
+    });
+    await page.evaluate(() => window.dispatchEvent(new Event("versado:app-resumed")));
+    await until(() => held, "oude publicatiestatus onderweg");
     // Update blijft bevroren, tot expliciet openen. Oude afbeelding verliest normale toegang.
     const nextInput = structuredClone(f.input);
     nextInput.title = "Nieuwe synthetische revisie";
@@ -433,6 +452,7 @@ try {
     await page.evaluate(() =>
       window.dispatchEvent(new Event("versado:app-resumed")),
     );
+    releaseGet();
     await until(
       () =>
         page

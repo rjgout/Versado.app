@@ -272,7 +272,14 @@ export class LiveDataStore {
    */
   revalidate(options: RevalidateOptions = {}): void {
     for (const entry of this.entries.values()) {
-      if (entry.observers.size > 0) this.maybeFetch(entry, options.force === true);
+      if (entry.observers.size === 0) continue;
+      // Hervatten/online kan tijdens een oude aanvraag plaatsvinden. Bewaar dat
+      // signaal als generatie, zodat na die response precies één verse ronde volgt.
+      if (options.force === true && entry.inflight) {
+        entry.generation += 1;
+        if (!entry.snapshot.invalidated) this.patch(entry, { invalidated: true });
+      }
+      this.maybeFetch(entry, options.force === true);
     }
     for (const page of this.pages.values()) this.maybeRefreshPage(page, options.force === true);
   }
