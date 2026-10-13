@@ -30,7 +30,7 @@ export async function getPuzzleActivity(userId: string, t: Translate, contentCol
       select: { id: true, sessionId: true, createdAt: true, to: { select: { id: true, handle: true } }, session: { select: { variant: { select: { pieceCount: true } } } } },
     }),
     prisma.puzzleMatchParticipant.findMany({
-      where: { userId, status: { notIn: ["DECLINED", "INVALID", "DNF"] }, match: { status: { in: ["LOBBY", "RUNNING"] } } },
+      where: { userId, status: { notIn: ["DECLINED", "DNF"] }, match: { status: { in: ["LOBBY", "RUNNING"] } } },
       orderBy: { createdAt: "desc" }, take: 10,
       select: { status: true, match: { select: { id: true, kind: true, status: true, createdAt: true, playDeadline: true, organizer: { select: { id: true, handle: true } }, variant: { select: { pieceCount: true } }, participants: { select: { status: true, user: { select: { id: true, handle: true } } } } } } },
     }),
@@ -61,7 +61,8 @@ export async function getPuzzleActivity(userId: string, t: Translate, contentCol
       for (const p of match.participants) if (p.status === "INVITED") result.invitesSent.push({ ...base, id: match.id, opponentName: p.user.handle, opponentId: p.user.id, myTurn: null });
     }
     const other = match.participants.find((p) => p.user.id !== userId)?.user ?? null;
-    const finishedMine = row.status === "FINISHED";
+    // Klaar (puzzel voltooid, of onder de oude regels beantwoord): geen "verder puzzelen" meer, alleen wachten op de anderen.
+    const finishedMine = row.status === "FINISHED" || row.status === "INVALID";
     // Asynchroon en geaccepteerd: "Begin jouw puzzel" wacht op jou. Klaar: je wacht op de anderen.
     const myTurn = finishedMine ? false : match.kind === "ASYNC" && match.status === "RUNNING" && row.status === "ACCEPTED" && match.playDeadline > now ? true : null;
     result.activeGames.push({ ...base, id: match.id, opponentName: other?.handle ?? null, opponentId: other?.id ?? null, myTurn });

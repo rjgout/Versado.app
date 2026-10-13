@@ -20,18 +20,26 @@ import { MATCH_PIECE_COUNTS, type PuzzleDifficulty, type PuzzlePieceCount, type 
 //
 // Tijd: uitsluitend server-wandtijd. De klok start bij de officiële start van de
 // deelnemer (async: wanneer hij op "Begin" drukt; live: het gezamenlijke
-// startmoment) en stopt pas bij een correct antwoord op de verplichte vraag
-// nadat de puzzel gelegd is. Eén officiële poging per deelnemer.
+// startmoment). Eén officiële poging per deelnemer.
+//
+// Spelregelversie 2 (resultRules, alle nieuwe wedstrijden): de klok stopt en de
+// uitslag wordt vastgelegd in dezelfde transactie als de laatste geldige
+// puzzelcommit (completedAt van de commit, elapsedMs = completedAt - startedAt).
+// De inhoudelijke vraag staat los van tijd, winnaar en geldigheid; ze kan alleen
+// de persoonlijke reeks verlengen. Versie 1 (wedstrijden van vóór deze wijziging)
+// houdt de oude regels: de klok stopt bij een goed antwoord, een fout antwoord geeft INVALID.
 //
 // Beleid voor afhaken/verlopen (zie ook docs/puzzle-v2/18-PHASE-3-MULTIPLAYER-ARCHITECTURE.md):
 // - uitnodiging niet geaccepteerd voor de joinDeadline → DECLINED (uitnodiging EXPIRED);
 // - geaccepteerd maar niet gestart, of gestart maar niet klaar voor de playDeadline → DNF;
-// - puzzel gelegd maar vraag fout → INVALID (geen geldige tijd, wel zichtbaar als "ongeldig");
+// - alleen regelversie 1: puzzel gelegd maar vraag fout → INVALID (geen geldige tijd);
 // - een async wedstrijd met minder dan twee deelnemers op de joinDeadline → CANCELLED;
 // - een live lobby die niet start binnen de lobby-TTL → CANCELLED.
 
 type Tx = Prisma.TransactionClient;
 const txOptions = { timeout: 20_000, maxWait: 10_000 } as const;
+/** Regelversie van nieuwe wedstrijden: de puzzel bepaalt tijd en geldigheid, de vraag niet. */
+export const CURRENT_RESULT_RULES = 2;
 const TERMINAL = ["FINISHED", "INVALID", "DNF", "DECLINED"] as const;
 const isTerminal = (status: string) => (TERMINAL as readonly string[]).includes(status);
 
@@ -48,7 +56,9 @@ export interface MatchView {
   id: string; kind: "LIVE" | "ASYNC"; status: string; organizerId: string;
   image: string; story: number; pieceCount: PuzzlePieceCount; difficulty: PuzzleDifficulty;
   createdAt: string; startsAt: string | null; joinDeadline: string; playDeadline: string; finishedAt: string | null; winnerId: string | null;
-  me: { userId: string; status: string; sessionId: string | null; startedAt: string | null; canBegin: boolean; inviteId: string | null; visibleResults: boolean };
+  /** Regelversie van de uitslag (1 = oud: vraag bepaalt de geldigheid, 2 = alleen de puzzel). */
+  resultRules: number;
+  me: { userId: string; status: string; sessionId: string | null; startedAt: string | null; canBegin: boolean; inviteId: string | null; visibleResults: boolean; question: { answered: boolean; correct: boolean | null } };
   participants: MatchParticipantView[];
   serverNow: number;
 }
@@ -81,7 +91,7 @@ export async function createMatch(userId: string, content: number | string, piec
     for (const id of invitees) if (!(await areAcceptedFriends(tx, userId, id))) throw new PuzzleServiceError("NOT_FRIENDS");
     const now = new Date();
     const match = await tx.puzzleMatch.create({ data: {
-      organizerId: userId, variantId: variant.id, kind, status: kind === "ASYNC" ? "RUNNING" : "LOBBY", questionId: question.id, optionOrder: JSON.stringify(optionOrder()),
+      organizerId: userId, variantId: variant.id, kind, status: kind === "ASYNC" ? "RUNNING" : "LOBBY", questionId: question.id, optionOrder: JSON.stringify(optionOrder()), resultRules: CURRENT_RESULT_RULES,
       joinDeadline: new Date(now.getTime() + (kind === "ASYNC" ? config.asyncJoinWindowMs : config.liveLobbyTtlMs)),
       playDeadline: new Date(now.getTime() + (kind === "ASYNC" ? config.asyncPlayWindowMs : config.liveLobbyTtlMs + config.liveCountdownMs + config.liveMaxPlayMs)),
     } });
@@ -216,37 +226,99 @@ export async function resumeMatchPuzzle(userId: string, matchId: string, languag
   const participant = await prisma.puzzleMatchParticipant.findUnique({ where: { matchId_userId: { matchId, userId } } });
   if (!participant?.sessionId) throw new PuzzleServiceError("NOT_STARTED");
   await settleMatch(matchId);
+  await healFinish(matchId, userId);
   const state = await resumeSoloPuzzle(userId, participant.sessionId, language, "MATCH");
   if (!state) throw new PuzzleServiceError("NOT_FOUND");
   return state;
+}
+
+/**
+ * Legt de officiële finish van een deelnemer vast (regelversie 2): in dezelfde transactie als de
+ * laatste geldige commit, met het canonieke voltooiingstijdstip van die commit. Geeft true als
+ * hiermee de hele wedstrijd is afgerond.
+ */
+async function finishAttempt(tx: Tx, matchId: string, userId: string, row: { id: string; completedAt: Date | null; startedAt: Date }, snapshot: PuzzleSnapshot): Promise<boolean> {
+  const match = await tx.puzzleMatch.findUnique({ where: { id: matchId } });
+  const participant = await tx.puzzleMatchParticipant.findUnique({ where: { matchId_userId: { matchId, userId } } });
+  if (!match || !participant || match.resultRules < 2 || participant.status !== "PLAYING") return false;
+  const completedAt = row.completedAt ?? new Date();
+  // Een finish die pas ná de deadline is vastgelegd is niet op tijd.
+  if (completedAt > match.playDeadline) {
+    await tx.puzzleMatchParticipant.update({ where: { id: participant.id }, data: { status: "DNF", finishedAt: completedAt } });
+    return finalizeIfDone(tx, matchId, new Date());
+  }
+  const started = participant.startedAt ?? row.startedAt;
+  await tx.puzzleMatchParticipant.update({ where: { id: participant.id }, data: { status: "FINISHED", finishedAt: completedAt, elapsedMs: Math.max(0, completedAt.getTime() - started.getTime()), hintsUsed: snapshot.hints.length, extraHintsUsed: snapshot.hints.filter((hint) => hint.extra).length, progress: connectedPieces(snapshot) } });
+  return finalizeIfDone(tx, matchId, new Date());
 }
 
 export async function applyMatchAction(userId: string, matchId: string, expectedVersion: number, actionId: string, action: SoloAction, language: string | null | undefined) {
   await requirePuzzleContent();
   const participant = await prisma.puzzleMatchParticipant.findUnique({ where: { matchId_userId: { matchId, userId } } });
   if (!participant?.sessionId) throw new PuzzleServiceError("NOT_STARTED");
+  let finished = false; let justFinished = false;
   const result = await applySoloAction(userId, participant.sessionId, expectedVersion, actionId, action, language, "MATCH", {
+    // Lockvolgorde wedstrijd → sessie → gebruiker, ook voor de finish die de wedstrijd afsluit.
+    before: async (tx) => { await tx.$queryRaw`SELECT "id" FROM "PuzzleMatch" WHERE "id" = ${matchId} FOR UPDATE`; },
     guard: async (tx, row) => {
       const match = await tx.puzzleMatch.findUnique({ where: { id: matchId } });
       const current = await participantFor(tx, matchId, userId);
       const now = new Date();
-      if (!match || match.id !== row.matchId || current.status !== "PLAYING") throw new PuzzleServiceError("CLOSED");
+      if (!match || match.id !== row.matchId) throw new PuzzleServiceError("CLOSED");
+      // Een reeds afgeronde poging (FINISHED) valt hier niet af: een herhaalde actie met dezelfde
+      // actionId krijgt zo de opgeslagen uitkomst terug; een nieuwe actie weigert de engine zelf.
+      if (current.status !== "PLAYING" && !(current.status === "FINISHED" && match.resultRules >= 2)) throw new PuzzleServiceError("CLOSED");
+      if (current.status === "FINISHED") return;
       if (match.startsAt && match.startsAt > now) throw new PuzzleServiceError("NOT_STARTED");
       // De officiële klok loopt door; na de deadline is de poging niet meer geldig.
       if (deadlineOf(match) <= now) throw new PuzzleServiceError("EXPIRED");
     },
     after: async (tx, row, snapshot: PuzzleSnapshot) => {
       await tx.puzzleMatchParticipant.updateMany({ where: { matchId, userId, status: "PLAYING" }, data: { progress: connectedPieces(snapshot) } });
+      if (row.status === "COMPLETED") { justFinished = true; finished = await finishAttempt(tx, matchId, userId, row, snapshot); }
     },
   });
-  if (result) signalProgress(matchId);
+  if (result) { if (justFinished) signalMatch(matchId); else signalProgress(matchId); }
+  if (finished) await announceResult(matchId);
   return result;
+}
+
+/**
+ * Herstel (regelversie 2): staat de sessie als voltooid terwijl de deelnemer nog PLAYING is, dan wordt de
+ * finish alsnog met het opgeslagen voltooiingstijdstip vastgelegd; nooit met "nu".
+ */
+async function healFinish(matchId: string, userId: string) {
+  let finished = false; let changed = false;
+  await prisma.$transaction(async (tx) => {
+    const match = await lockMatch(tx, matchId, false);
+    const participant = match?.participants.find((p) => p.userId === userId);
+    if (!match || !participant || match.resultRules < 2 || participant.status !== "PLAYING" || !participant.sessionId) return;
+    await tx.$queryRaw`SELECT "id" FROM "PuzzleSession" WHERE "id" = ${participant.sessionId} FOR UPDATE`;
+    const session = await tx.puzzleSession.findUnique({ where: { id: participant.sessionId } });
+    if (!session || session.status !== "COMPLETED" || !session.completedAt) return;
+    const snapshot = snapshotSchema.parse(JSON.parse(session.snapshot)) as PuzzleSnapshot;
+    changed = true; finished = await finishAttempt(tx, matchId, userId, session, snapshot);
+  }, txOptions);
+  if (changed) signalMatch(matchId);
+  if (finished) await announceResult(matchId);
 }
 
 /** Het juiste antwoord blijft verborgen zolang de wedstrijd loopt, zodat niemand het kan doorgeven aan spelers die nog niet klaar zijn. */
 export interface MatchAnswerResult { correct: boolean; correctChoice: number | null; valid: boolean; elapsedMs: number | null; status: string; counted: boolean }
 
-/** Het definitieve antwoord. De klok stopt hier: alleen een goed antwoord geeft een geldige tijd. */
+const flatAnswer = (participant: { status: string; answeredCorrect: boolean | null; elapsedMs: number | null }, correctChoice: number, matchFinished: boolean, counted = false): MatchAnswerResult => ({
+  correct: participant.answeredCorrect === true, correctChoice: participant.answeredCorrect === true || matchFinished ? correctChoice : null,
+  valid: participant.status === "FINISHED", elapsedMs: participant.elapsedMs, status: participant.status, counted,
+});
+
+/**
+ * Het antwoord op de inhoudelijke vraag.
+ * - Regelversie 2: alleen mogelijk na een voltooide puzzel; verandert nooit tijd, rang, winnaar of geldigheid.
+ *   Eén antwoord per deelnemer (idempotent): een goed antwoord kan de persoonlijke reeks verlengen via
+ *   de centrale regel, een fout of ontbrekend antwoord niet. De vraag blijft beantwoordbaar ook nadat
+ *   de wedstrijd is afgesloten, omdat ze de uitslag niet meer beïnvloedt.
+ * - Regelversie 1 (oude wedstrijden): de klok stopt hier en alleen een goed antwoord geeft een geldige tijd.
+ */
 export async function answerMatch(userId: string, matchId: string, choice: number): Promise<MatchAnswerResult> {
   if (!Number.isInteger(choice) || choice < 0 || choice >= JIGSAW_OPTION_COUNT) throw new PuzzleServiceError("INVALID");
   let streak: { dayEarned: boolean; currentStreak: number } | null = null; let finished = false;
@@ -259,6 +331,19 @@ export async function answerMatch(userId: string, matchId: string, choice: numbe
     const order = JSON.parse(match.optionOrder) as number[]; const correctChoice = order.indexOf(0);
     // Idempotent: een tweede antwoord geeft de bestaande uitkomst, nooit een tweede kans.
     const revealed = (correct: boolean) => correct || match.status === "FINISHED";
+    if (match.resultRules >= 2) {
+      if (participant.answeredAt) return flatAnswer(participant, correctChoice, match.status === "FINISHED");
+      if (participant.status !== "FINISHED" || !participant.sessionId) throw new PuzzleServiceError(participant.status === "DNF" ? "EXPIRED" : "NOT_STARTED");
+      await tx.$queryRaw`SELECT "id" FROM "PuzzleSession" WHERE "id" = ${participant.sessionId} FOR UPDATE`;
+      const done = await tx.puzzleSession.findUniqueOrThrow({ where: { id: participant.sessionId } });
+      if (done.status !== "COMPLETED") throw new PuzzleServiceError("CONFLICT");
+      const right = order[choice] === 0; const answeredAt = new Date();
+      const outcome = await completeJigsaw(userId, `m:${participant.id}`, right, tx);
+      if (outcome.result && !outcome.alreadyAnswered) streak = { dayEarned: outcome.result.dayEarned === true, currentStreak: outcome.result.currentStreak };
+      await tx.puzzleMatchParticipant.update({ where: { id: participant.id }, data: { answeredAt, answeredCorrect: right } });
+      await tx.puzzleSession.update({ where: { id: done.id }, data: { status: "ANSWERED", answeredAt, answerResult: JSON.stringify({ correct: right, correctChoice: right ? correctChoice : null, counted: outcome.counted, streak: null }), version: { increment: 1 }, lastActivityAt: answeredAt } });
+      return flatAnswer({ ...participant, answeredCorrect: right }, correctChoice, match.status === "FINISHED", outcome.counted);
+    }
     if (participant.status === "FINISHED" || participant.status === "INVALID") return { correct: participant.answeredCorrect === true, correctChoice: revealed(participant.answeredCorrect === true) ? correctChoice : null, valid: participant.status === "FINISHED", elapsedMs: participant.elapsedMs, status: participant.status, counted: false };
     if (participant.status === "DNF") throw new PuzzleServiceError("EXPIRED");
     if (participant.status !== "PLAYING" || !participant.sessionId) throw new PuzzleServiceError("NOT_STARTED");
@@ -384,8 +469,11 @@ export async function getMatch(userId: string, matchId: string): Promise<MatchVi
   return {
     id: match.id, kind: match.kind, status: match.status, organizerId: match.organizerId, image: match.variant.definition.imageUrl, story: match.variant.definition.storyNumber,
     pieceCount: match.variant.pieceCount as PuzzlePieceCount, difficulty: match.variant.difficulty as PuzzleDifficulty,
+    resultRules: match.resultRules,
     createdAt: match.createdAt.toISOString(), startsAt: match.startsAt?.toISOString() ?? null, joinDeadline: match.joinDeadline.toISOString(), playDeadline: match.playDeadline.toISOString(), finishedAt: match.finishedAt?.toISOString() ?? null, winnerId: visibleResults ? match.winnerId : null,
-    me: { userId, status: mine.status, sessionId: mine.sessionId, startedAt: mine.startedAt?.toISOString() ?? null, canBegin: match.kind === "ASYNC" && match.status === "RUNNING" && mine.status === "ACCEPTED" && match.playDeadline > now, inviteId: invite?.id ?? null, visibleResults },
+    me: { userId, status: mine.status, sessionId: mine.sessionId, startedAt: mine.startedAt?.toISOString() ?? null, canBegin: match.kind === "ASYNC" && match.status === "RUNNING" && mine.status === "ACCEPTED" && match.playDeadline > now, inviteId: invite?.id ?? null, visibleResults,
+      // Los van de uitslag: of de inhoudelijke vraag al is beantwoord en hoe.
+      question: { answered: mine.answeredAt !== null || (match.resultRules < 2 && mine.answeredCorrect !== null), correct: mine.answeredCorrect } },
     participants: match.participants.map((p) => ({
       userId: p.userId, handle: p.user.handle, discriminator: p.user.discriminator,
       // Zonder uitslagrechten alleen grove statussen; een ongeldige poging blijft verborgen als "klaar".
@@ -406,8 +494,9 @@ export async function matchQuestion(userId: string, matchId: string, language: s
   if (!match || !participant) throw new PuzzleServiceError("FORBIDDEN");
   const question = jigsawQuestionById(match.questionId); if (!question) return null;
   const lang = jigsawQuestionLanguage(language); const order = JSON.parse(match.optionOrder) as number[];
-  const answered = participant.status === "FINISHED" || participant.status === "INVALID";
-  const reveal = (participant.status === "FINISHED") || match.status === "FINISHED";
+  // Regelversie 2: beantwoord = answeredAt; oud: een afgeronde poging was altijd beantwoord.
+  const answered = match.resultRules >= 2 ? participant.answeredAt !== null : participant.status === "FINISHED" || participant.status === "INVALID";
+  const reveal = participant.answeredCorrect === true || match.status === "FINISHED";
   return { text: question.text[lang], options: order.map((index) => question.options[lang][index]), ...(answered && reveal ? { correctChoice: order.indexOf(0) } : {}) };
 }
 
