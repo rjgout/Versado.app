@@ -137,8 +137,10 @@ synthetische testomgeving pollt tijdens imports; geen nieuwe globale listener.
   alleen bekende acties, POST-Origin/CSRF, 30 mutaties/minuut, maximaal 16 KiB.
 - `GET /api/admin/study-media/[mediaId]`: aparte expliciete beheerpreview.
 - `GET /api/study-media/[mediaId]`: normale leesrechten, ook voor admins;
-  alleen toegankelijke actuele of eerder gepubliceerde revisiemedia. Een
-  queryparameter verleent nooit previewrechten.
+  uitsluitend media die daadwerkelijk in een toegankelijke **actuele**
+  gepubliceerde revisie voorkomen. Een historisch publicatieauditrecord
+  verleent geen mediarechten; oude revisieafbeeldingen blijven bewaard voor
+  aparte adminpreview en rollback. Een queryparameter verleent nooit previewrechten.
 
 Beheerqueries draaien READ ONLY met query-/locktimeout van 5 seconden;
 schrijfqueries hebben begrensde locks, statements en transacties.
@@ -148,6 +150,16 @@ MIME/lengte, same-origin-policy en sandboxheader. Geen ruwe DB-fouten, paden,
 credentials, profielen of privéschrijfacties. Content-addressed dedupe betekent
 wel dat dezelfde reeds gepubliceerde bytes opnieuw in een concept mogen staan;
 het concept zelf wordt daarmee niet openbaar.
+
+Reviewcorrecties vóór merge: publieke media-autorisatie gebruikt alleen de
+huidige `publishedRevisionId`-relatie en niet de historische
+`StudyPublicationAction`-audit. Bij hergebruik van dezelfde afbeeldinghash
+weigert de import uiteenlopende rechtenmetadata; bij publicatie wordt bovendien
+de opgeslagen `ContentMedia.rightsMetadata` canoniek gehasht en vergeleken
+met de `rightsHash` van het onveranderlijke revisiemanifest. Ook de normale
+mediaresponse valideert die pin. Gerichte regressies controleren historische
+media na revisiewissel, conflicterende importrechten en een corrupte
+rechtenregistratie die nooit gepubliceerd mag worden.
 
 De preview behoudt alle negen semantische bloktypen, afbeeldingen, bijschriften,
 vragen en opdrachten. Ongecontroleerde links worden als tekst weergegeven,
