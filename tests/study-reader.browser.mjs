@@ -484,6 +484,19 @@ try {
         .getAttribute("data-revision-id"),
       f.revision.id,
     );
+    // De geopende (nu historische) body moet met het originele, eerder
+    // ontvangen bezoekbewijs blijven kunnen autosaven. Geen concept- of
+    // historisch-leesrecht voor een nieuw bezoek.
+    const beforeFrozenSave = (await position(f)).version;
+    await page.mouse.wheel(0, 160);
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight * 0.83),
+    );
+    const frozenSaved = await until(async () => {
+      const p = await position(f);
+      return p && p.version > beforeFrozenSave ? p : null;
+    }, "frozen revisie bewaart met origineel leesbezoekbewijs");
+    assert.equal(frozenSaved.revisionId, f.revision.id);
     // Fixtures delen content-addressed PNG-bytes. Andere actuele publicaties
     // mogen die bytes terecht nog leveren; isoleer die testkopieën eerst.
     await prisma.contentCollection.updateMany({
