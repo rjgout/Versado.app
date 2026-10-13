@@ -62,7 +62,7 @@ test("beste tijd: een langzamere of gelijke prestatie vervangt niets; tie-breake
   assert.equal((await register(u.id, v.id, 100_000, 1, 0, "SOLO", new Date())).result, "IMPROVED", "dan minste hints in totaal");
   const row = (await best(u.id, v.id, "SOLO", "WITH_HINTS"))!;
   assert.equal(row.hintsUsed, 1);
-  assert.equal((await register(u.id, v.id, 100_000, 1, 0, "SOLO", new Date("2026-02-01T00:00:00Z"))).result, "UNCHANGED", "daarna vroegste voltooiing: later wint niet");
+  assert.equal((await register(u.id, v.id, 100_000, 1, 0, "SOLO", new Date("2099-02-01T00:00:00Z"))).result, "UNCHANGED", "daarna vroegste voltooiing: later wint niet");
   assert.equal((await register(u.id, v.id, 99_999.5, 5, 5)).result, "IMPROVED", "milliseconden bepalen de volgorde");
 });
 
