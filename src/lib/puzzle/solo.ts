@@ -36,7 +36,7 @@ const seedFor = (contentKey: string) => hash(`puzzle-v${PUZZLE_GEOMETRY_VERSION}
 
 export function optionOrder() { const result = [0, 1, 2]; for (let i = result.length - 1; i > 0; i--) { const j = randomInt(i + 1); [result[i], result[j]] = [result[j], result[i]]; } return result; }
 /** Uitkomst van de recordregistratie bij een goed beantwoorde Solo-puzzel (alleen informatief voor de resultaatkaart). */
-export interface SoloRecordInfo { result: "CREATED" | "IMPROVED" | "UNCHANGED"; hintCategory: "NO_HINTS" | "WITH_HINTS"; elapsedMs: number; previousElapsedMs: number | null }
+export interface SoloRecordInfo { variantId: string; result: "CREATED" | "IMPROVED" | "UNCHANGED"; hintCategory: "NO_HINTS" | "WITH_HINTS"; elapsedMs: number; previousElapsedMs: number | null }
 export type SoloAnswer = (JigsawAnswerResult & { record?: SoloRecordInfo }) | { alreadyAnswered: true };
 export const sessionInclude = { variant: { include: { definition: true } } } as const;
 export type Session = Prisma.PuzzleSessionGetPayload<{ include: typeof sessionInclude }>;
@@ -199,7 +199,7 @@ export async function answerSoloPuzzle(userId: string, sessionId: string, choice
       // Het historische "eerste geldige prestatie"-register blijft ongewijzigd bijgehouden.
       await tx.puzzlePersonalRecord.upsert({ where: { userId_variantId: { userId, variantId: row.variantId } }, create: { userId, variantId: row.variantId, sessionId: row.id, elapsedMs, hintsUsed: hints.length, extraHintsUsed, completedAt: row.completedAt }, update: {} });
       const registered = await registerBestRecord(tx, { userId, variantId: row.variantId, mode: "SOLO", elapsedMs, hintsUsed: hints.length, extraHintsUsed, completedAt: row.completedAt, sessionId: row.id });
-      record = { result: registered.result, hintCategory: registered.hintCategory, elapsedMs: registered.elapsedMs, previousElapsedMs: registered.previousElapsedMs };
+      record = { variantId: row.variantId, result: registered.result, hintCategory: registered.hintCategory, elapsedMs: registered.elapsedMs, previousElapsedMs: registered.previousElapsedMs };
     }
     // Bij een claim uit een oudere, onderbroken afhandeling mag een nieuwe keuze
     // nooit het historische antwoord herschrijven of een nieuwe beloning maken.

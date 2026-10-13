@@ -11,6 +11,8 @@ test("de puzzelroutes hebben een expliciete bestemming, los van geschiedenis", (
   assert.deepEqual(classifyPuzzleRoute("/jigsaw"), { kind: "catalog", parent: PLAY_ROUTE });
   assert.deepEqual(classifyPuzzleRoute("/jigsaw/samen/abc123"), { kind: "coop", id: "abc123", parent: JIGSAW_ROUTE });
   assert.deepEqual(classifyPuzzleRoute("/jigsaw/wedstrijd/xyz"), { kind: "match", id: "xyz", parent: JIGSAW_ROUTE });
+  assert.deepEqual(classifyPuzzleRoute("/jigsaw/records"), { kind: "records", parent: JIGSAW_ROUTE });
+  assert.deepEqual(classifyPuzzleRoute("/jigsaw/records/v1"), { kind: "leaderboard", id: "v1", parent: "/jigsaw/records" });
   for (const other of ["/live", "/jigsaw/samen", "/jigsaw/samen/a/b", "/jigsaw/overig/x", "/word-game"]) assert.equal(classifyPuzzleRoute(other), null, other);
 });
 

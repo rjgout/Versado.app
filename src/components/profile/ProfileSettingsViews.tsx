@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { Bell, BellRing, CalendarClock, Mail, RotateCcw, Sparkles, Volume2 } from "lucide-react";
 import AppSelect from "@/components/AppSelect";
@@ -258,6 +259,7 @@ export function PrivacyView({ data, saving, onToggleSearchable, onToggleAchievem
         busy={saving}
         onChange={onTogglePuzzleRecords}
       />
+      <Link href="/jigsaw/records" className="block min-h-11 px-4 py-3 text-sm font-semibold text-vs-accent underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent">{t("puzzleRecords.mine")}</Link>
     </SettingsSection>
   );
 }

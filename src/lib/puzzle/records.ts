@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { jigsawCatalog } from "@/lib/jigsawGame";
 
 // Persoonlijke beste tijden en vriendenranglijsten van Legpuzzel 2.0 (fase 4).
 //
@@ -75,12 +76,13 @@ export async function registerBestRecord(tx: Tx, candidate: RecordCandidate): Pr
 
 const orderBy = [{ elapsedMs: "asc" }, { extraHintsUsed: "asc" }, { hintsUsed: "asc" }, { completedAt: "asc" }, { userId: "asc" }] as const satisfies Prisma.PuzzleBestRecordOrderByWithRelationInput[];
 
+const imageNumber = (url: string) => jigsawCatalog.findIndex((item) => item.url === url) + 1;
 const variantSelect = { id: true, pieceCount: true, difficulty: true, rulesVersion: true, definition: { select: { imageUrl: true, storyNumber: true, geometryVersion: true } } } as const;
 
 export interface OwnRecordView {
   id: string; variantId: string; mode: RecordMode; hintCategory: HintCategory;
   elapsedMs: number; hintsUsed: number; extraHintsUsed: number; completedAt: string;
-  image: string; story: number; pieceCount: number; difficulty: string;
+  image: string; imageNumber: number; story: number; pieceCount: number; difficulty: string;
 }
 
 /** Alleen de eigen records van de ingelogde gebruiker; nooit privacy-afhankelijk. */
@@ -92,7 +94,7 @@ export async function listOwnRecords(userId: string, filters: { mode?: RecordMod
   });
   return rows.map((row) => ({
     id: row.id, variantId: row.variantId, mode: row.mode, hintCategory: row.hintCategory, elapsedMs: row.elapsedMs, hintsUsed: row.hintsUsed, extraHintsUsed: row.extraHintsUsed,
-    completedAt: row.completedAt.toISOString(), image: row.variant.definition.imageUrl, story: row.variant.definition.storyNumber, pieceCount: row.variant.pieceCount, difficulty: row.variant.difficulty,
+    completedAt: row.completedAt.toISOString(), image: row.variant.definition.imageUrl, imageNumber: imageNumber(row.variant.definition.imageUrl), story: row.variant.definition.storyNumber, pieceCount: row.variant.pieceCount, difficulty: row.variant.difficulty,
   }));
 }
 
@@ -113,8 +115,10 @@ export interface LeaderboardRow {
   user: { id: string; handle: string; discriminator: string; avatarEmoji: string | null; avatarCharacterId: string | null; avatarBackgroundId: string | null; avatarFrameId: string | null; avatarDecorationId: string | null; avatarLightAccentId: string | null };
 }
 export interface LeaderboardView {
-  variant: { id: string; image: string; story: number; pieceCount: number; difficulty: string };
+  variant: { id: string; image: string; imageNumber: number; story: number; pieceCount: number; difficulty: string };
   mode: RecordMode; hintCategory: HintCategory; rows: LeaderboardRow[];
+  /** Deelt de kijker zelf zijn records? (voor de privacy-uitleg; nooit gegevens van anderen) */
+  viewerShares: boolean;
 }
 
 /** Zoekt een bestaande variant; maakt er nooit een aan. Een onbekende variant geeft null en lekt niets. */
@@ -133,13 +137,15 @@ export async function findVariant(input: { variantId: string } | { imageUrl: str
 export async function friendLeaderboard(viewerId: string, variantId: string, mode: RecordMode, hintCategory: HintCategory): Promise<LeaderboardView | null> {
   const variant = await prisma.puzzleVariant.findUnique({ where: { id: variantId }, select: variantSelect });
   if (!variant) return null;
-  const allowed = [viewerId, ...(await sharingFriendIds(viewerId))];
+  const [allowedFriends, viewer] = await Promise.all([sharingFriendIds(viewerId), prisma.user.findUnique({ where: { id: viewerId }, select: { sharePuzzleRecords: true } })]);
+  const allowed = [viewerId, ...allowedFriends];
   const rows = await prisma.puzzleBestRecord.findMany({
     where: { variantId, mode, hintCategory, userId: { in: allowed } }, orderBy: [...orderBy], take: LEADERBOARD_LIMIT,
     select: { userId: true, elapsedMs: true, hintsUsed: true, extraHintsUsed: true, completedAt: true, user: { select: { id: true, handle: true, discriminator: true, avatarEmoji: true, avatarCharacterId: true, avatarBackgroundId: true, avatarFrameId: true, avatarDecorationId: true, avatarLightAccentId: true } } },
   });
   return {
-    variant: { id: variant.id, image: variant.definition.imageUrl, story: variant.definition.storyNumber, pieceCount: variant.pieceCount, difficulty: variant.difficulty },
+    viewerShares: viewer?.sharePuzzleRecords === true,
+    variant: { id: variant.id, image: variant.definition.imageUrl, imageNumber: imageNumber(variant.definition.imageUrl), story: variant.definition.storyNumber, pieceCount: variant.pieceCount, difficulty: variant.difficulty },
     mode, hintCategory,
     rows: rows.map((row, index) => ({ rank: index + 1, isMe: row.userId === viewerId, elapsedMs: row.elapsedMs, hintsUsed: row.hintsUsed, extraHintsUsed: row.extraHintsUsed, completedAt: row.completedAt.toISOString(), user: row.user })),
   };

@@ -10,6 +10,7 @@ import { useServerNow } from "@/components/puzzle/serverClock";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
 import { jsonMutation } from "@/lib/data/mutation";
+import RecordNotice from "@/components/puzzle/RecordNotice";
 import PuzzleBackTarget from "@/components/puzzle/PuzzleBackTarget";
 import { JIGSAW_ROUTE } from "@/lib/puzzle/navigation";
 import type { MatchView } from "@/lib/puzzle/match";
@@ -156,6 +157,7 @@ export default function MatchClient({ initial, meId }: { initial: MatchView; meI
           {match.resultRules >= 2 && match.me.status === "FINISHED" && (
             <>
               <p data-official-time><span className="text-sm text-vs-fg-2">{t("puzzleTogether.match.officialTime")}</span> <span className="font-mono text-xl font-extrabold tabular-nums">{formatTime(match.participants.find((p) => p.userId === meId)?.result?.elapsedMs ?? null)}</span></p>
+              {match.me.record && <RecordNotice mode="MATCH" variantId={match.variantId} hintCategory={match.me.record.hintCategory} elapsedMs={match.me.record.elapsedMs} />}
               {/* De vraag staat los van tijd en uitslag; hier de status en eventueel de weg ernaartoe. */}
               {questionPending ? (
                 <div className="space-y-2">

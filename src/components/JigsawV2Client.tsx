@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import RecordNotice from "@/components/puzzle/RecordNotice";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useHintInventory } from "@/lib/data/hints";
@@ -21,10 +23,11 @@ import { puzzlePolicy, type PuzzleFilter, type PuzzleHintType, type PuzzleHint, 
 import { activePuzzleHint, puzzleHintTarget } from "@/lib/puzzle/hints";
 import { filterPuzzleCatalog, puzzleCatalogPage } from "@/lib/puzzle/catalog";
 import type { JigsawAnswerResult } from "@/lib/jigsaw";
+import type { SoloRecordInfo } from "@/lib/puzzle/solo";
 import { useSetBackTarget } from "@/lib/backTarget";
 
 type State = { hintBalance: number; id: string; version: number; status: string; image: string; seed: string; geometryVersion: number; pieceCount: PuzzlePieceCount; difficulty: PuzzleDifficulty; rulesVersion: number; snapshot: PuzzleSnapshot; question?: { text: string; options: string[] }; answer?: Answer };
-type Answer = JigsawAnswerResult | { alreadyAnswered: true };
+type Answer = (JigsawAnswerResult & { record?: SoloRecordInfo }) | { alreadyAnswered: true };
 type Point = { x: number; y: number };
 type Drag = { pointer: number; groupId: string; offset: Point };
 type Pan = { pointer: number; point: Point; camera: PuzzleCamera };
@@ -123,6 +126,7 @@ export default function JigsawV2Client({ images, allowStarts = true }: { images:
   if (!allowStarts) return <FocusLayout><p role="status">{t("gameAvailability.unavailable")}</p><PuzzleTogetherOverview /></FocusLayout>;
   return <FocusLayout className="max-w-5xl gap-5">
     <header><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.title")}</h1><p className="mt-2 text-vs-fg-2">{t("jigsaw.intro")}</p></header>
+    <Link href="/jigsaw/records" className="btn-secondary min-h-12 self-start" data-kompas-target="puzzle-records">{t("puzzleRecords.hubLink")}</Link>
     <PuzzleTogetherOverview />
     <section aria-labelledby="jigsaw-mode"><h2 id="jigsaw-mode" className="font-bold">{t("puzzleTogether.modes.title")}</h2><div className="mt-3 grid gap-2 sm:grid-cols-3" role="group" aria-labelledby="jigsaw-mode">{(["SOLO", "COOP", "MATCH"] as const).map((value) => <button type="button" key={value} aria-pressed={mode === value} onClick={() => { setMode(value); if (!COUNTS[value].includes(pieceCount)) setPieceCount(24); }} className={`btn-secondary min-h-11 flex-col items-start text-left ${mode === value ? "!border-vs-xp !bg-vs-xp/15" : ""}`}><span className="block font-semibold">{t(value === "SOLO" ? "puzzleTogether.modes.solo" : value === "COOP" ? "puzzleTogether.modes.coop" : "puzzleTogether.modes.match")}</span><span className="mt-1 block text-sm font-normal normal-case tracking-normal">{t(value === "SOLO" ? "puzzleTogether.modes.soloHelp" : value === "COOP" ? "puzzleTogether.modes.coopHelp" : "puzzleTogether.modes.matchHelp")}</span></button>)}</div></section>
     <section aria-labelledby="jigsaw-image-choice"><div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="jigsaw-image-choice" className="font-bold">{t("jigsaw.chooseImage")}</h2><p className="text-sm text-vs-fg-2">{t("jigsaw.catalogCount", { n: images.length })}</p></div><label className="min-w-[min(100%,16rem)] text-sm font-semibold">{t("jigsaw.searchImages")}<input value={query} onChange={(event) => { setQuery(event.target.value); setPage(0); }} className="input mt-1 w-full" /></label></div>
@@ -311,7 +315,8 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
   function zoom(factor: number, around?: Point) { const canvas = canvasRef.current; if (!canvas) return; const center = around ?? { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 }; camera.current = zoomCamera(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds, factor, center); schedulePaint(); }
   async function rotateSelected() { if (selected === null || state.difficulty !== "MASTER") return; await runBoard(async () => { const group = groupFor(saved.current.snapshot, selected); if (group && !group.anchored) await action({ kind: "rotate", groupId: group.id }); }); }
   async function moveSelectedBy(dx: number, dy: number) { if (selected === null) return; await runBoard(async () => { const group = groupFor(saved.current.snapshot, selected); if (group && !group.anchored) { const next = await action({ kind: "move", groupId: group.id, x: group.x + dx, y: group.y + dy }); await snapAfterMove(next, group.id); } }); }
-  async function submit(choice: number) { if (match) { const outcome = await call({ action: "answer", choice }) as { correct: boolean; correctChoice: number | null; counted: boolean }; if (mounted.current) match.onAnswered(outcome); return; } const result = await request({ action: "answer", sessionId: saved.current.id, choice }) as Answer; if (!mounted.current) return; setAnswer(result); const next = { ...saved.current, status: "ANSWERED", answer: result }; saved.current = next; setState(next); setOuter(next); remember(null); setStage("RESULT"); }
+  async function submit(choice: number) { if (match) { const outcome = await call({ action: "answer", choice }) as { correct: boolean; correctChoice: number | null; counted: boolean }; if (mounted.current) match.onAnswered(outcome); return; } // Een nieuw persoonlijk record verandert de recordoverzichten en ranglijsten: ongeldig maken via de live-datalaag.
+    const result = await liveMutation(() => request({ action: "answer", sessionId: saved.current.id, choice }) as Promise<Answer>, { invalidates: "gamesChanged" }); if (!mounted.current) return; setAnswer(result); const next = { ...saved.current, status: "ANSWERED", answer: result }; saved.current = next; setState(next); setOuter(next); remember(null); setStage("RESULT"); }
   function continueToQuestion() { if (match) match.onStage?.("QUESTION"); else { try { localStorage.setItem(`${KEY}:question`, state.id); } catch {} } setStage("QUESTION"); }
 
   useEffect(() => {
@@ -386,6 +391,7 @@ function Result({ answer, question, onChooseAnother, onReplay, t }: { answer: An
     <h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.complete")}</h1>
     <p role="status" className="text-vs-fg-2">{text}</p>
     {result && !result.correct && question && <p>{t("jigsaw.correctWas", { answer: question.options[result.correctChoice] })}</p>}
+    {result && "record" in result && result.record && result.record.result !== "UNCHANGED" && <RecordNotice mode="SOLO" variantId={result.record.variantId} hintCategory={result.record.hintCategory} elapsedMs={result.record.elapsedMs} first={result.record.result === "CREATED"} />}
     <button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" onClick={onChooseAnother}>{t("jigsaw.another")}</button>
     <button type="button" className="btn-secondary min-h-12 w-full max-w-[440px] self-center" onClick={onReplay}>{t("jigsaw.replay")}</button>
   </FocusLayout>;
