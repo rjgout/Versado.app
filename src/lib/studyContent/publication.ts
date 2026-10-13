@@ -185,7 +185,8 @@ export async function publishStudyRevision(
         if (
           !pin ||
           pin.checksum !== binding.media.checksum ||
-          pin.mimeType !== binding.media.mimeType
+          pin.mimeType !== binding.media.mimeType ||
+          pin.rightsHash !== studyObjectHash(binding.media.rightsMetadata)
         )
           throw new StudyPublishingError("MEDIA");
         validateStudyMediaMetadata(binding.media);
