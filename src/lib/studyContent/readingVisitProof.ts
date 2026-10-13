@@ -65,11 +65,14 @@ export function validReadingVisitProof(
   if (parts.length !== 3 || parts[0] !== "rv1") return false;
   try {
     const supplied = Buffer.from(parts[2], "base64url");
+    const decoded = Buffer.from(parts[1], "base64url");
+    if (supplied.toString("base64url") !== parts[2] || decoded.toString("base64url") !== parts[1])
+      return false;
     const data = `${parts[0]}.${parts[1]}`;
     const expected = signature(data);
     if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected))
       return false;
-    const value = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8")) as Visit;
+    const value = JSON.parse(decoded.toString("utf8")) as Visit;
     const at = Math.floor(now / 1000);
     return (
       value.purpose === "study-reader-visit-v1" &&
