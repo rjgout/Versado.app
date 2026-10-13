@@ -1,17 +1,20 @@
 import { prisma } from "@/lib/db";
 import { getPublishedStudyLesson, type PublishedStudyDTO } from "./revisions";
 import { getReadingPosition } from "./readingPosition";
+import { issueReadingVisitProof } from "./readingVisitProof";
 import type { ReadingPositionState } from "./readingPositionContract";
 export interface StudyReaderDTO {
   lesson: PublishedStudyDTO;
   positionState: ReadingPositionState;
   media: Array<{ mediaKey: string; mediaId: string | null }>;
+  visitProof: string | null;
 }
 /** Geen profielkeuze, voortgangswrite of tweede rechtenlaag. */
 export async function getStudyReader(
   actor: { id: string; isAdmin: boolean },
   lessonId: string,
   collectionId: string,
+  sessionKey?: string,
 ): Promise<StudyReaderDTO | null> {
   const lesson = await getPublishedStudyLesson(actor, lessonId, collectionId);
   if (!lesson) return null;
@@ -26,6 +29,9 @@ export async function getStudyReader(
   // gevalideerde body niet. Media-API hercontroleert actuele publicatierechten.
   return {
     lesson,
+    visitProof: sessionKey
+      ? issueReadingVisitProof(actor.id, lesson.editionId, lesson.revisionId, sessionKey)
+      : null,
     positionState,
     media: bindings.map((b) => ({
       mediaKey: b.mediaKey,
