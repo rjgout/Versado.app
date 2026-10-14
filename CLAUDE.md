@@ -217,6 +217,20 @@ Harde regels:
 - De gegevens komen uit de officiële PDF's en pagina's (`scripts/hymns/fetch_sources.py`); de
   bronbestanden staan in `.cache/hymns/` en nooit in git. Hergebruik steunt op de verklaring van de
   eigenaar; leg een schriftelijke licentie vast vóór productie (`docs/hymns/01-SOURCE-AUDIT.md`).
+- **Bibliotheek (fase 4)**: de volledige huidige Nederlandse bibliotheek (205 lofzangen) staat als afgeleide, in git versioneerde
+  gegevens in `src/lib/hymns/library/data/` (manifest, zoekindex, `text/`, `music/`, `link/`, kalibratie). Die bestanden worden gemaakt door
+  `scripts/hymns/*.py` (zie `docs/hymns/09-NEDERLANDSE-BIBLIOTHEEK.md`): nooit met de hand bewerken, en de bronbestanden (PDF, opnamen)
+  nooit in git. Geladen wordt per lofzang via de admin-only API `/api/hymns/*` (404 voor anderen; `src/lib/hymns/apiAccess.ts`) en
+  `src/lib/hymns/library/server.ts`; de client (`src/lib/hymnLibraryClient.ts`, IndexedDB) staat bewust buiten `src/lib/hymns`.
+  Geen bibliotheekgegevens in de eerste JS-bundel en geen enkele database-migratie.
+- **Alleen gevalideerde muziek wordt gebruikt**: `capabilities` in het manifest bepalen wat een lofzang kan (alleen tekst, regelvolging,
+  woordvolging, herkenning). Een partituur met extractieproblemen, tekstafwijkingen of herhalingstekens wordt niet opgeslagen en nooit
+  voor herkenning of volgen gebruikt; de tekst blijft leesbaar. Een lofzang zonder tekst door een licentie-uitzondering (54, 151) behoudt
+  nummer en titel met een nette melding; er komt geen alternatieve bron. Woordmarkering alleen bij `linking = "word"`, anders de regel.
+- **Herkenning in de hele bibliotheek**: een voorfilter (`recognize/prefilter.ts`) kiest een handvol kandidaten, de score-follower
+  verifieert met z-genormaliseerd bewijs (`calibrate-evidence.ts`). Lofzangen met dezelfde melodie delen één kandidaat: de engine kiest
+  dan de tekst nooit zelf (`sharedWith`). Draai bij elke wijziging van de bibliotheek de kalibratie en de meting opnieuw
+  (`scripts/hymns/eval-library.ts`, `docs/hymns/12-HERKENNING-SCHAALBAAR.md`).
 - Nieuwe tekst in de proef gaat bij een echte functie via i18n in alle `uiReady`-talen.
 
 ## Techstack

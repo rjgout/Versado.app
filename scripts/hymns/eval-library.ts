@@ -74,6 +74,7 @@ for (const m of bundle.members) {
   let firstCorrect: number | null = null;
   let firstWrong: string | null = null;
   let activeMax = 0;
+  let detail: Record<string, unknown> | null = null;
   const chunk = 4096;
   for (let i = 0; i < audio.length; i += chunk) {
     for (const frame of extractor.push(audio.subarray(i, i + chunk))) {
@@ -88,6 +89,9 @@ for (const m of bundle.members) {
       if (st.status === "identified" && st.suggestion && firstCorrect === null && firstWrong === null) {
         if (st.suggestion.id === m.compositionId) firstCorrect = st.heardSeconds;
         else firstWrong = `${st.suggestion.number}@${st.heardSeconds.toFixed(1)}s`;
+        const others = st.ranking.filter((r) => r.id !== st.suggestion!.id);
+        const truth = st.ranking.find((r) => r.id === m.compositionId);
+        detail = { t: +st.heardSeconds.toFixed(1), margin: +(st.lead?.margin ?? 0).toFixed(3), streak: st.lead?.streak, ev: +st.suggestion.evidence.toFixed(0), evOther: +(others[0]?.evidence ?? 0).toFixed(0), evTruth: truth ? +truth.evidence.toFixed(0) : null, z: +st.suggestion.z.toFixed(1), zOther: +(others.length ? Math.max(...others.map((r) => r.z)) : -9).toFixed(1), zTruth: truth ? +truth.z.toFixed(1) : null };
       }
     }
   }
@@ -98,7 +102,7 @@ for (const m of bundle.members) {
     times.push(firstCorrect as number);
   } else if (firstWrong) wrong += 1;
   else notIdentified += 1;
-  results[String(m.number)] = { ok: good, seconds: firstCorrect, wrong: firstWrong, shared: (groups.get(m.compositionId)?.length ?? 1) > 1 };
+  results[String(m.number)] = { ok: good, seconds: firstCorrect, wrong: firstWrong, shared: (groups.get(m.compositionId)?.length ?? 1) > 1, detail };
   console.log(m.number, JSON.stringify(results[String(m.number)]), `actief≤${activeMax}`);
 }
 times.sort((a, b) => a - b);
@@ -118,5 +122,5 @@ const summary = {
   candidates: candidates.length,
 };
 console.log(JSON.stringify(summary));
-if (flag("write")) writeFileSync(`src/lib/hymns/library/data/recognition-eval.${TEMPO === 1 && NOISE === 0 ? "json" : `t${TEMPO}n${NOISE}.json`}`, JSON.stringify(results, null, 1));
+if (flag("results-out")) writeFileSync(flag("results-out") as string, JSON.stringify(results, null, 1));
 if (flag("summary-out")) writeFileSync(flag("summary-out") as string, JSON.stringify(summary, null, 1));

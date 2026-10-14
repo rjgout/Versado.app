@@ -1,4 +1,5 @@
 import { POC_LIBRARY, resolveHymn } from "../../src/lib/hymns/library";
+import { loadResolvedHymn } from "../../src/lib/hymns/library/server";
 import type { FeatureFrame } from "../../src/lib/hymns/audio/features";
 import { buildReference } from "../../src/lib/hymns/score/reference";
 import { constantTempo, synthesizeHymn, type SynthOptions, type SynthResult } from "../../src/lib/hymns/eval/synth";
@@ -95,7 +96,7 @@ export interface Service {
 }
 
 export function makeService(number: number, parts: ServicePart[], shared: Partial<SynthOptions> = {}, leadIn = 1.5): Service {
-  const hymn = resolveHymn(POC_LIBRARY, number)!;
+  const hymn = resolveHymn(POC_LIBRARY, number) ?? loadResolvedHymn(number)!;
   const chunks: Float32Array[] = [];
   const partStart: number[] = [];
   const partEnd: number[] = [];
