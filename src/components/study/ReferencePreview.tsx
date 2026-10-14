@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
+import { clearReferenceTrips } from "@/lib/references/returnContext";
 import { X, ExternalLink } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import { fetchJson, ApiRequestError } from "@/lib/data/fetchJson";
@@ -179,15 +181,24 @@ export default function ReferencePreview({
           </>
         )}
         {moreError && (
-          <p role="alert" className="mt-4 text-sm">
-            {t(
-              moreError === "save"
-                ? "referencePreview.saveFailed"
-                : moreError === "conflict"
-                  ? "referencePreview.selectionConflict"
-                  : "referencePreview.moreUnknown",
-            )}
-          </p>
+          <div className="mt-4 space-y-2">
+            <p role="alert" className="text-sm">
+              {t(
+                moreError === "save"
+                  ? "referencePreview.saveFailed"
+                  : moreError === "conflict"
+                    ? "referencePreview.selectionConflict"
+                    : "referencePreview.moreUnknown",
+              )}
+            </p>
+            <Link
+              href="/content"
+              onClick={clearReferenceTrips}
+              className="btn-secondary inline-flex min-h-12"
+            >
+              {t("contentSwitcher.picker.title")}
+            </Link>
+          </div>
         )}
         {result?.kind === "internal" && (
           <footer className="mt-4 border-t border-vs-line pt-3">

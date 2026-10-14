@@ -326,11 +326,13 @@ try {
       const after = await prisma.user.findUnique({ where: { id: f.user.id } });
       assert.equal(after.activeContentCollectionId, "content_podcasts");
       assert.equal(after.contentLanguage, "en");
+      assert.equal(after.contentSelectionVersion,before.contentSelectionVersion+1,"de expliciete bron-/taalwissel verhoogt precies één keer");
       assert.deepEqual(
         {
           ...after,
           activeContentCollectionId: before.activeContentCollectionId,
           contentLanguage: before.contentLanguage,
+          contentSelectionVersion: before.contentSelectionVersion,
         },
         before,
       );

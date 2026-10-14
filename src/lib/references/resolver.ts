@@ -103,10 +103,16 @@ export async function resolveReferenceTarget(
     typeof target.sourceKey === "string" ? target.sourceKey : "";
   // Een bekend maar ongerelateerd extern doel bewijst geen fallback. Behoud
   // de oorspronkelijke bewezen URL of een exact geregistreerde bronalias.
+  const resourceKey = sourceKey.startsWith("study:")
+    ? sourceKey.slice(6).split("#")[0]
+    : sourceKey;
   const fallback =
     verifiedOfficialUrl(sourceKey) ??
+    (sourceKey.startsWith("study:")
+      ? verifiedOfficialUrl(resourceKey)
+      : null) ??
     officialResources.find(
-      (r) => r.path === sourceKey && r.url === target.externalUrl,
+      (r) => r.path === resourceKey && r.url === target.externalUrl,
     )?.url ??
     null;
   const fail = (

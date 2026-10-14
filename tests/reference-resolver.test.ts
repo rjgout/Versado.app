@@ -380,3 +380,28 @@ test("fragmenten buiten de canonieke passage worden afgewezen", () => {
   assert.equal(parseScriptureUrl(base + "&id=p1-p3#p4"), null);
   assert.equal(parseScriptureUrl(base + "#p5")?.from, 5);
 });
+
+test("een studielesalias behoudt alleen zijn bewezen eigen externe bron", async () => {
+  const db = {
+    studyLesson: { findMany: async () => [] },
+    studyLessonEdition: { findMany: async () => [] },
+  } as unknown as Prisma.TransactionClient;
+  const url =
+    "https://www.churchofjesuschrist.org/study/ftsoy/2026/10/fsy-lessons/00-intro?lang=nld";
+  const [valid, invalid] = await resolveReferenceBatch(db, actor, origin, [
+    {
+      target: {
+        sourceKey:
+          "study:/study/ftsoy/2026/10/fsy-lessons/00-intro#section-intro",
+        externalUrl: url,
+      },
+      diagnosticKey: "known",
+    },
+    {
+      target: { sourceKey: "study:unrelated-lesson", externalUrl: url },
+      diagnosticKey: "unknown",
+    },
+  ]);
+  assert.equal(valid.kind, "external");
+  assert.equal(invalid.kind, "unavailable");
+});

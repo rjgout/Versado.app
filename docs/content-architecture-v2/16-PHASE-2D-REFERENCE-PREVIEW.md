@@ -242,7 +242,7 @@ De migraties 1A–2C worden eveneens opnieuw met hun bestaande behoudtests uitge
 
 | Controle | Resultaat / bewijs |
 |---|---|
-| Gerichte unit-/architectuurregressies | 206 geslaagd, nul failures/skips; resolver, 2A–2C, toegang/context/selectie, shell/focus/live-data en bestaande puzzelrecords |
+| Gerichte unit-/architectuurregressies | 207 geslaagd, nul failures/skips; resolver, 2A–2C, toegang/context/selectie, shell/focus/live-data en bestaande puzzelrecords |
 | Reference API / PostgreSQL | 14 gerichte tests, nul skips; normale/adminrechten, Origin/sessie/strict payloads, historische rechten, CAS/ABA, parallelle uitstappen, DB-foutrollback, publicatiereview, studieadapter, querybudget |
 | Chromium productiebuild | Matrix 320×844, 390×844, 1280×900, 844×390; licht/donker, 100/200%; vijf UI-talen op 320px/200%; touch, native focus/Escape, geen overflow/previewscrollverschil, refresh, back/forward, Return-conflict, save-failure en responseverlies |
 | Prisma validate/generate, TypeScript | Geslaagd; daadwerkelijke additieve migratie op eigen PostgreSQL |
@@ -285,3 +285,5 @@ De bestaande contentkiezer-databehoudtest controleert de vier bewuste bronwissel
 Bij versiegebonden uitstappen wordt ook de volledige verwachte voorkeur vóór de no-op vergeleken. Een client kan daardoor geen verzonnen oude keuze in een geldig terugkeerbewijs laten opnemen wanneer de huidige bron al gelijk is aan het verwijzingsdoel. Legacy-clients behouden hun oorspronkelijke no-op-contract.
 
 De 2C-browsercontrole blijft alle formulier-/afrondingscontrols in officiële tekst verbieden. Alleen expliciete `data-reference-key`-knoppen zijn nu toegestaan, met `type=button`; deze nieuwe 2D-bediening is read-only en geen oefening.
+
+Ook de bestaande 2C-browsertest controleert de ene expliciete bron-/taalwissel met exact één tellerverhoging, terwijl alle overige User-velden gelijk blijven. Bij een onzekere uitstap of geblokkeerde terugkeer biedt de UI een veilige, expliciete link naar de bestaande contentkiezer; die verandert niets zonder nieuwe selectie. Die keuze of logout ruimt ook oude pending-reference-intenties op.

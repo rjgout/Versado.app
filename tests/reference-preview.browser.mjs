@@ -264,6 +264,7 @@ try {
       }),
       0,
     );
+    assert.equal(await page.getByRole("link",{name:t("contentSwitcher.picker.title"),exact:true}).getAttribute("href"),"/content","conflict houdt een veilige uitgang naar de huidige bronkeuze beschikbaar");
     await page.screenshot({ path: output + "/return-conflict-mobile.png" });
     await c.close();
     results.push({

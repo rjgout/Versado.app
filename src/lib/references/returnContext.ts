@@ -40,13 +40,18 @@ export function readReferenceTrip(
 export function clearReferenceTrips() {
   try {
     for (const key of Object.keys(sessionStorage))
-      if (key.startsWith(PREFIX)) sessionStorage.removeItem(key);
+      if (key.startsWith(PREFIX) || key.startsWith("vs-reference-pending:"))
+        sessionStorage.removeItem(key);
     sessionStorage.removeItem(ACTIVE);
   } catch {}
 }
 /** Bestaande NavigationScroll roept dit aan; geen tweede historylistener. */
 export function pruneReferenceTrip(pathname: string) {
   try {
+    if (/^\/(?:content|login|logout|auth)(?:\/|$)/.test(pathname)) {
+      clearReferenceTrips();
+      return;
+    }
     const key = sessionStorage.getItem(ACTIVE);
     if (!key) return;
     const raw = JSON.parse(

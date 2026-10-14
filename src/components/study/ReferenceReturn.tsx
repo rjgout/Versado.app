@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import { useSetBackTarget } from "@/lib/backTarget";
@@ -82,9 +83,18 @@ export default function ReferenceReturn({
         {busy ? t("common.loading") : t("referencePreview.backToLesson")}
       </button>
       {error && (
-        <p role="alert" className="text-sm text-vs-fg-2">
-          {t("referencePreview.returnFailed")}
-        </p>
+        <div className="space-y-2">
+          <p role="alert" className="text-sm text-vs-fg-2">
+            {t("referencePreview.returnFailed")}
+          </p>
+          <Link
+            href="/content"
+            onClick={clearReferenceTrips}
+            className="btn-secondary inline-flex min-h-12"
+          >
+            {t("contentSwitcher.picker.title")}
+          </Link>
+        </div>
       )}
     </div>
   );
