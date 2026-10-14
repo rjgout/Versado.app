@@ -287,3 +287,187 @@ beschikbaar maken voor beheerders via de contentkiezer (productiebuild, `NODE_EN
 **Niet getest:** mobiele Safari en Chrome op echte toestellen, en de Capacitor-apps (zie `02-ARCHITECTURE.md`, 7).
 Echte uitvoeringen in een kerk zijn nog niet getest; de resultaten hierboven bewijzen geen betrouwbaarheid in een
 kerkgebouw.
+
+## 10. Voorspel, zangbegin en herkennen → volgen (fase 2, 14 oktober 2026)
+
+Alle getallen in deze sectie zijn **synthetisch gemeten** (BEWEZEN voor de synthetische diensten, **ONBEKEND**
+voor echte uitvoeringen) en reproduceerbaar met de scripts hieronder. De klank is additieve synthese
+(piano of orgel), met nagemaakte gemeentezang, kinderstemmen (stemachtige bursts, 250 tot 450 Hz) en
+ruis; zie 1 voor de grenzen. De eerste praktijktest van de beheerder (herkenning met spelende en
+pratende kinderen) was positief, maar is geen meting en staat hier niet als resultaat.
+
+### 10.1 Wat is uitgevoerd
+
+| Wat | Commando |
+|---|---|
+| Scenario's A t/m L, tussenspel, opnieuw synchroniseren | `npx tsx --test tests/hymns-phase.test.ts` |
+| Herkennen → volgen, kandidaten, onbekende melodie, achterstand, geheugen | `npx tsx --test tests/hymns-live.test.ts` |
+| Statussen, karaoke, woordmarkering, scrollen, voorkeuren, ontwerpregels | `npx tsx --test tests/hymns-ui.test.ts` |
+| Matrix voorspel/zangbegin (10 omstandigheden x 3 voorspellen x 3 lofzangen) | `npx tsx scripts/hymns/eval-service.ts fase` |
+| Matrix herkennen in de dienst (10 omstandigheden x 3 lofzangen) | `npx tsx scripts/hymns/eval-service.ts herken` |
+| Browser (Chromium, nep-microfoon): focus mode, herkennen → volgen, weergavewissel, scrollen, mic, schermmaten | `scripts/hymns/e2e-browser.mjs` (zie de kop van het bestand) |
+
+### 10.2 Zangbegin per omstandigheid en soort voorspel (BEWEZEN, synthetisch)
+
+Inhoud van de cel: **start +x s** = het zangbegin werd automatisch vastgesteld x seconden na het werkelijke
+begin van de zang (negatief = eerder); **wacht** = geen automatisch zangbegin, de engine vraagt om
+"Zang begint". "VROEGE MARKERING" zou betekenen dat er een woord werd gemarkeerd vóór de zang: dat
+kwam in **geen enkel geval** voor (0 van 90). De voorspellen: *staart* = laatste derde van de melodie
+(vier maten of meer, midden begonnen), *heel* = een heel couplet zonder pauze, *heel+pauze* = een heel
+couplet met 2,5 s stilte voor de zang. Tempo 90/min tenzij de omstandigheid iets anders zegt.
+
+| Omstandigheid | Voorspel | 24 | 36 | 82 |
+|---|---|---|---|---|
+| 1 alleen piano | staart | start +0.2 s | start +0.1 s | start +0.1 s |
+| 1 alleen piano | heel | wacht | wacht | wacht |
+| 1 alleen piano | heel+pauze | start -0.1 s | start -0.1 s | start -0.0 s |
+| 2 alleen orgel | staart | start +0.0 s | start -0.0 s | start +0.1 s |
+| 2 alleen orgel | heel | wacht | wacht | wacht |
+| 2 alleen orgel | heel+pauze | start -0.0 s | start -0.1 s | start -0.0 s |
+| 3 piano met pratende kinderen | staart | start +0.2 s | start +0.1 s | start +0.1 s |
+| 3 piano met pratende kinderen | heel | wacht | wacht | wacht |
+| 3 piano met pratende kinderen | heel+pauze | start -0.1 s | start -0.1 s | start -0.1 s |
+| 4 orgel met achtergrondgesprekken | staart | start +0.2 s | start -0.1 s | start +0.0 s |
+| 4 orgel met achtergrondgesprekken | heel | wacht | wacht | wacht |
+| 4 orgel met achtergrondgesprekken | heel+pauze | start -0.0 s | start -0.1 s | start -0.0 s |
+| 5 muziek met gemeentezang (-6 dB) | staart | start +0.2 s | start +0.1 s | start +0.1 s |
+| 5 muziek met gemeentezang (-6 dB) | heel | wacht | wacht | wacht |
+| 5 muziek met gemeentezang (-6 dB) | heel+pauze | start -0.1 s | start -0.1 s | start -0.0 s |
+| 6 kind roept plotseling | staart | start +0.1 s | start +0.1 s | start +0.1 s |
+| 6 kind roept plotseling | heel | wacht | wacht | wacht |
+| 6 kind roept plotseling | heel+pauze | start -0.1 s | start -0.0 s | start -0.0 s |
+| 7 kerkakoestiek (nagalm 2,5 s) | staart | start +0.3 s | start +0.2 s | start +0.2 s |
+| 7 kerkakoestiek (nagalm 2,5 s) | heel | wacht | wacht | wacht |
+| 7 kerkakoestiek (nagalm 2,5 s) | heel+pauze | start +0.3 s | start +0.1 s | start +0.1 s |
+| 8 langzaam orgelspel (55/min) | staart | start -0.0 s | start -0.0 s | start +0.2 s |
+| 8 langzaam orgelspel (55/min) | heel | wacht | wacht | wacht |
+| 8 langzaam orgelspel (55/min) | heel+pauze | start -0.1 s | start -0.1 s | start +0.1 s |
+| 9 snelle tempowisselingen | staart | start +0.1 s | start +0.1 s | start +0.1 s |
+| 9 snelle tempowisselingen | heel | wacht | wacht | wacht |
+| 9 snelle tempowisselingen | heel+pauze | start -0.1 s | start -0.0 s | start +0.1 s |
+| 10 stilte tijdens het voorspel (2 s) | staart | start +0.1 s | start +0.3 s | start -0.1 s |
+| 10 stilte tijdens het voorspel (2 s) | heel | wacht | wacht | wacht |
+| 10 stilte tijdens het voorspel (2 s) | heel+pauze | start -0.0 s | start -0.1 s | start +0.0 s |
+
+Samengevat over 90 gevallen: *staart* 30 van 30 automatisch (fout tussen -0,1 en +0,3 s); *heel+pauze* 30 van 30
+automatisch (tussen -0,1 en +0,3 s); *heel* 30 van 30 **wachten** (bedoeld: zonder bewijs geen gok).
+Gebabbel (3, 4), een plotselinge roep (6), nagalm van 2,5 s (7), een pauze in het voorspel (10), snelle
+tempowisselingen (9) en langzaam spel (8) veranderden dit niet in de gemeten gevallen. Een kleine
+steekproef (één opname per cel, vaste ruis- en stemmenzaden): een uitspraak over de kans dat het ook in een
+echte kerk zo gaat is **niet** mogelijk.
+
+Bij de eerste meting van deze matrix bleken 6 van de 30 *heel+pauze*-cellen te wachten, omdat de volger de
+rondegrens al aan het begin van de stilte ziet (de partituur is dan af) terwijl de pauze pas voorbij is als
+de gemeente begint. Dat is opgelost (`lateGap` in `phase.ts`, gedekt door scenario D2) en de matrix is
+daarna volledig opnieuw gedraaid; de tabel hierboven is die tweede meting.
+
+### 10.3 Lofzang herkennen in de dienst (BEWEZEN, synthetisch)
+
+Tijd in seconden vanaf het begin van de muziek tot de automatische overgang naar volgen (voorspel van een heel
+couplet, daarna 2,5 s pauze en de zang). **Alle 30 overgangen kozen de juiste lofzang; 0 verkeerde.**
+
+| Omstandigheid | 24 | 36 | 82 |
+|---|---|---|---|
+| 1 alleen piano | 9.8 s | 9.5 s | 8.2 s |
+| 2 alleen orgel | 8.7 s | 18.4 s | 8.2 s |
+| 3 piano met pratende kinderen | 11.3 s | 10.2 s | 8.7 s |
+| 4 orgel met achtergrondgesprekken | 11.7 s | 10.0 s | 10.2 s |
+| 5 muziek met gemeentezang (-6 dB) | 9.8 s | 9.5 s | 8.2 s |
+| 6 kind roept plotseling | 10.9 s | 10.2 s | 8.9 s |
+| 7 kerkakoestiek (nagalm 2,5 s) | 10.2 s | 16.7 s | 8.2 s |
+| 8 langzaam orgelspel (55/min) | 9.5 s | 126.1 s | 8.2 s |
+| 9 snelle tempowisselingen | 9.8 s | 9.3 s | 8.2 s |
+| 10 stilte tijdens het voorspel (2 s) | 9.8 s | 9.5 s | 8.2 s |
+
+De uitschieter (lofzang 36, langzaam orgelspel 55/min: 126 s) is een echte zwakte: bij dat tempo duurt het
+verzamelen van genoeg bewijs veel langer en de pauze na het voorspel valt daardoor eerder dan de herkenning.
+De pagina toont tot die tijd de kandidaten en de gebruiker kan zelf kiezen. In 29 van 30 cellen gebeurde de
+overgang binnen 18,4 s, vóór het einde van het voorspel van een heel couplet (27 s tot 35 s).
+
+### 10.4 Scenario's uit de opdracht
+
+| Scenario | Test | Uitkomst |
+|---|---|---|
+| A  laatste vier maten | `scenario A` | Tekst klaar zonder markering; zangbegin op de rondegrens (binnen 1,5 s), couplet 1 |
+| B  heel couplet als voorspel | `scenario B` | Telt niet als couplet 1; geen markering; engine wacht en meldt dat |
+| C  twee maten, gemeente direct | `scenario C` | Geen markering tijdens het voorspel; zangbegin automatisch of verzoek om bevestiging, nooit een gok |
+| D  stilte tussen voorspel en zang | `scenario D`, `D2` | Pauze telt als bewijs (ook als de grens al aan het begin van de stilte is gezien) |
+| E  geen stilte | `scenario E` | Wacht op handmatige bevestiging, met melding |
+| F  kinderen praten of roepen in het voorspel | `scenario F`, `F2` | Geen markering, geen zangbegin; de volger blijft meestal gesynchroniseerd |
+| G  instappen tijdens couplet 2 | `scenario G` | Positie herkend (meer dan 80% binnen 1,5 beat), couplet 1 niet aangenomen, kiezen en bevestigen werkt |
+| H  volgorde 1 → 4 | `scenario H` | Couplet 1 klaar; na de eerste echte zangronde couplet 4 op de grens |
+| I  instrumentaal tussenspel | `scenario I` | Tussenspel herkend, grens genegeerd (`lap-ignored`), geen extra couplet, geen markering tijdens het tussenspel |
+| J  onzeker, gebruiker tikt "Zang begint" | `scenario B/J` | Posities, tempo, betrouwbaarheid en status bit voor bit gelijk met en zonder tik |
+| K  herkenning midden in het voorspel | `scenario K` | Overgang vóór het einde van het voorspel; dezelfde extractor; toestand gelijk aan direct volgen |
+| L  instrumentale muziek zonder zang | `scenario L` | Geen "gedetecteerd" zangbegin; handmatig starten werkt |
+
+Ook getest: opnieuw synchroniseren (terug naar voorspel, couplet blijft, de volger synchroniseert weer),
+een handmatig zangbegin vlak voor een rondegrens (begint pas bij die grens), een onbekende melodie (nooit
+gevolgd), twee gelijke kandidaten (blijft herkennen, gebruiker kiest), wissel van lofzang tijdens het
+luisteren, verwerken van het geheugen in kleine tijdsbudgetten (zelfde uitkomst) en een begrensd
+frame-geheugen (zeven minuten luisteren).
+
+### 10.5 Niveauverandering als zangsignaal (diagnose, niet gebruikt)
+
+Het technische paneel toont de verandering van het geluidsniveau (laatste 2 s t.o.v. de 6 s ervoor).
+Gemeten op de synthetische diensten (`scripts/hymns/eval-service.ts` gebruikt dezelfde opbouw), 3 s na het
+zangbegin, met gemeente op -6 dB of zonder:
+
+| Lofzang | voorspel = staart, met gemeente | staart, **zonder** gemeente | heel + pauze, met gemeente |
+|---|---|---|---|
+| 24 | +1,5 dB | +0,5 dB | +7,2 dB |
+| 36 | +2,0 dB | +2,8 dB | +9,9 dB |
+| 82 | +3,7 dB | +2,8 dB | +11,2 dB |
+
+Na 6 s liepen de waarden uiteen van -5,9 tot +2,0 dB. Het signaal maakt dus **geen onderscheid** tussen
+"met gemeente" en "zonder gemeente" (bij 36 en 82 is de stijging zonder gemeente even groot), en na een
+pauze stijgt het door het hervatten van de muziek zelf (+7 tot +11 dB), niet door zang. Dat bevestigt de
+keuze dat het niveau **niets beslist**; voor echte uitvoeringen is er niets gemeten.
+
+### 10.6 Browsertest (Chromium met nep-microfoon, productiebuild)
+
+`scripts/hymns/e2e-browser.mjs` tegen de productiebuild (`NODE_ENV=production`, **zonder** `HYMNS_POC`),
+met een wegwerpdatabase, een testaccount dat via de database beheerder is gemaakt en een nep-microfoon die een
+synthetische dienst afspeelt (lofzang 82: voorspel van een heel couplet, 2,5 s pauze, twee gezongen rondes).
+**69 van 69 controles geslaagd.** Dit is Chromium op een Linux-machine met een viewport-emulatie: het is **geen
+bewijs** voor iPhone of Android.
+
+- *Toegang en focus mode*: Lofzangen opent vanuit de contentkiezer; header en onderbalk zijn weg, de terugbalk
+  staat er ("Lofzangen"); de microfoon is uit bij het openen.
+- *Herkennen → volgen in één sessie*: de lofzang wordt tijdens het voorspel automatisch herkend en gevolgd; de titel toont
+  "82. Kom, volg Mij na"; **1x `getUserMedia`, 1x `AudioContext` en 1 levende track** over herkennen, volgen,
+  weergavewissel en couplet kiezen heen.
+- *Voorspel*: status "Voorspel", de tekst staat klaar (meer dan 4 regels), er is **geen** actieve regel of woord;
+  daarna "Volgt muziek" zonder tik.
+- *Actief woord*: precies één woord, computed kleur gelijk aan `rgb(var(--vs-accent))`, achtergrond
+  transparant, gewicht 700; woordbreedtes en regelhoogte veranderen niet door de markering.
+- *Weergavewissel tijdens het zingen* (kop-knop en instellingen): zelfde lofzang, zelfde sessie, status blijft
+  "Volgt muziek" (geen reset); karaoke toont de vorige/huidige/volgende regel.
+- *Couplet en volgorde*: tikken op couplet 3 toont couplet 3 met actieve microfoon; volgorde 1 → 4 wordt getoond.
+- *Scrollen*: na eigen scrollen verschijnt "Volgen hervatten", de muziekvolging loopt door, na tikken verdwijnt
+  de knop; de onderste bediening staat aan de onderrand.
+- *Technische gegevens* (beheerder): positie, zangstatus, begin van de muziek en bewijs zijn zichtbaar.
+- *Privacy en opruimen*: geen enkel verzoek met inhoud naar een lofzang-eindpunt en geen WebSocket-frame
+  boven 1000 bytes tijdens het luisteren; de track is na Stop `ended`, en ook na het verlaten van de pagina via de
+  terugknop (die naar de contentkiezer gaat).
+- *Schermmaten*: 320x640, 375x667, 390x844, 430x932, 768x1024, 1280x800 en landscape 844x390, elk licht en donker
+  en elk met 200% tekst (28 combinaties): geen horizontale overflow, de inhoud begint onder de terugbalk,
+  geen onderbalk; karaoke "Extra groot" zonder overflow op 320 px en landscape; de bediening blijft boven een
+  gesimuleerde onderinkeping van 34 px (390x844 en landscape).
+- Geen paginafouten (de bekende hydration- en caret-color-meldingen van Playwright niet meegeteld).
+
+Pas achteraf viel op dat de allereerste run faalde op een dubbelzinnige knopnaam in het testscript (de
+nieuwe snelle weergaveknop heet ook "Karaoke per regel"); dat is in het script opgelost, niet in de app.
+
+### 10.7 Wat niet is gemeten
+
+- Echte kerkuitvoeringen, echte organisten en echte gemeentezang: **ONBEKEND**.
+- iPhone (Safari, PWA, Capacitor) en Android (Chrome, Capacitor): **niet getest**. De browsertest is
+  desktop-Chromium met een viewport-emulatie en is **geen bewijs** voor iOS of Android; safe areas zijn
+  gesimuleerd met een CSS-variabele.
+- Rekentijd en batterij op een echte telefoon, inclusief het opnieuw doorspelen van het geheugen na een
+  overgang (in Node 0,5 ms per frame; op een telefoon **ONBEKEND**).
+- Echte kerkakoestiek met lange nagalm waarin stilte niet meer als stilte klinkt: dan ontbreekt het
+  pauzebewijs en vraagt de engine om "Zang begint".
+- Voorspel van twee maten of korter, en een heel couplet als tussenspel: zie `07-VOORSPEL-EN-ZANGBEGIN.md`, 4.
+- Lofzangen buiten de drie proeflofzangen.

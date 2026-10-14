@@ -16,6 +16,20 @@ op synthetische opnamen en op de officiële begeleidingsopnamen, maar er is nog 
 Nederlandse orgel- of pianoopnamen in een kerk**, en de automatische herkenning is beperkt tot drie
 lofzangen en nog niet getest op echte opnamen buiten de officiële begeleiding. Zie `05-TEST-RESULTS.md`.
 
+## Stand na de tweede ontwikkelronde (voorspel en meezinginterface)
+
+Gebouwd (zie `07-VOORSPEL-EN-ZANGBEGIN.md`): een voorspel-/zangfaselaag zodat een voorspel nooit als gezongen
+couplet telt, handmatig "Zang begint" en "Opnieuw synchroniseren", herkennen en volgen in één
+luistersessie, en een nieuwe meezinginterface in focus mode met twee tekstweergaven. Alles synthetisch
+gemeten; **de eerste praktijktest van de beheerder (met spelende en pratende kinderen) was positief maar
+is geen meting**. Wat dat op een echte uitvoering betekent is nog **ONBEKEND**.
+
+Direct na deze ronde zinvol, in volgorde: (1) opnamen van echte diensten met de beheerders-app laten
+loggen **zonder audio** (alleen de technische gegevens: positie, fase, bewijs, door de gebruiker handmatig
+te bevestigen), zodat de zangbegin-regels op echte uitvoeringen zijn te meten; (2) de drempels (0,8 score,
+60% dekking, 20 dB pauze) per toestel en ruimte bijstellen; (3) pas daarna overwegen of lokale stem- of
+zangdetectie als extra bewijs zin heeft, met een echte meetset en nooit als doorslaggevend signaal.
+
 ## Fase 1: rechten en bronnen vastleggen (voorwaarde, geen code)
 
 1. Schriftelijke licentie of toestemming vastleggen voor het opnemen van tekst en bladmuziek in de

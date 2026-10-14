@@ -88,12 +88,19 @@ ChromaExtractor  (audio/features.ts)   FFT 186 ms, hop 46 ms, 2 x 12 toonklassen
 ScoreTracker     (follow/tracker.ts)   deeltjesfilter over (positie, tempo) tegen Reference
    │ positie, tempo, concentratie, bewijs
    ▼
-HymnFollowSession (follow/session.ts)  betrouwbaarheid, status, rondes, couplet, markering
+HymnFollowSession (follow/session.ts)  betrouwbaarheid, status, couplet, markering
+   ├─ SingingPhase (follow/phase.ts)   voorspel of zang, rondes met dekking, tussenspel (07-...)
    ├─ StanzaPlan   (follow/stanzas.ts) welk couplet; handmatige keuze heeft voorrang
    └─ StableCursor (follow/display.ts) regel/woord; springt niet heen en weer
 
 HymnRecognizer   (recognize/recognizer.ts)  één tracker per kandidaat, bewijs t.o.v. nulmodel
+
+HymnLiveEngine   (live.ts)  ÉÉN luistersessie: één extractor, een kenmerkgeheugen, herkenner -> volger
 ```
+
+`HymnLiveEngine` is wat de pagina gebruikt. Herkennen en volgen zijn twee fasen van dezelfde stroom
+kenmerkframes; de overgang start geen nieuwe microfoon of AudioContext (zie
+`07-VOORSPEL-EN-ZANGBEGIN.md`, 5).
 
 Details en afwegingen: `03-SCORE-FOLLOWING-POC.md` en `04-RECOGNITION-POC.md`.
 
@@ -105,10 +112,10 @@ Belangrijke ontwerpkeuzes:
 - **Cyclus.** Couplet en refrein samen vormen één cyclus; een nieuwe ronde = een nieuw couplet.
   Daardoor hoeft niets te "weten" welk couplet de gemeente zingt: de ronde telt, de gebruiker kan
   corrigeren.
-- **Voorspel.** Is de eerste betrouwbare positie midden in de cyclus, dan telt de eerstvolgende
-  rondewissel als begin van couplet 1. Bij een voorspel van een heel couplet staat `preludeLaps`
-  klaar; een automatische keuze zonder gebruiker is daarvoor niet te maken (**ONBEKEND** hoe
-  organisten het in de praktijk spelen).
+- **Voorspel.** (Bijgewerkt in fase 2.) Een voorspel is geen couplet: de markering begint pas als
+  `SingingPhase` het zangbegin heeft vastgesteld uit structuur (rondegrens, waar de muziek begon,
+  pauze) of de gebruiker "Zang begint" tikt. Zonder bewijs wacht de engine; er wordt niet gegokt.
+  Het oude `preludeLaps` bestaat niet meer. Details: `07-VOORSPEL-EN-ZANGBEGIN.md`.
 - **Verlies.** Mogelijk gemiste rondes worden gemeld (`lapUncertain`) in plaats van stil aangenomen.
 
 ## 5. Offline muziekbibliotheek (voorstel)
