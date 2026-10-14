@@ -50,6 +50,9 @@ export interface PuzzleTableProps {
   controls?: React.ReactNode;
 }
 
+/** Stilte na de laatste pijltjestoets voordat de verplaatsing naar de server gaat. */
+const KEYBOARD_IDLE_MS = 280;
+
 const PreviewOverlay = ({ image, label }: { image: string; label: string }) => <div className="pointer-events-none absolute inset-3 rounded-xl bg-vs-surface/95 p-2"><NextImage src={image} alt={label} fill unoptimized className="object-contain p-2" /></div>;
 
 const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function PuzzleTable(props, ref) {
@@ -65,6 +68,7 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
   const frame = useRef<number | null>(null);
   const paths = useRef(new Map<string, Path2D>());
   const nearSnap = useRef(createNearSnapTracker());
+  const keyboard = useRef<{ groupId: string; x: number; y: number } | null>(null); const keyboardTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const remoteSpot = useRef<RemotePlacement>({ x: 0, y: 0 }); const lockedByOthers = useRef(new Set<string>());
   const pointers = useRef(new Map<number, Point>());
   const drag = useRef<{ pointer: number; groupId: string; offset: Point; grab: Promise<string | null>; token: string | null; released: boolean; local: Point | null } | null>(null);
@@ -80,7 +84,6 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
 
   const setSelected = useCallback((piece: number | null) => { selectedRef.current = piece; setSelectedState(piece); propsRef.current.onSelect?.(piece); }, []);
 
-  // paint is een functiedeclaratie verderop en dus al beschikbaar zodra het frame draait.
   // eslint-disable-next-line react-hooks/immutability
   const schedule = useCallback(() => { if (frame.current === null) frame.current = requestAnimationFrame(() => { frame.current = null; paint(); }); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -124,9 +127,10 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
       geometry, table, camera: camera.current, image: picture.current, paths: paths.current, snapshot, groups: ordered,
       place: (group, out) => {
         const local = drag.current?.groupId === group.id && drag.current.local ? drag.current.local : null;
-        const followed = local ? null : motion.remoteAt(group.id, stamp, remoteSpot.current);
+        const keyed = !local && keyboard.current?.groupId === group.id ? keyboard.current : null;
+        const followed = local || keyed ? null : motion.remoteAt(group.id, stamp, remoteSpot.current);
         const far = remote.get(group.id); const remotePos = far && far.until > now ? far : null;
-        out.x = local?.x ?? followed?.x ?? remotePos?.x ?? group.x; out.y = local?.y ?? followed?.y ?? remotePos?.y ?? group.y;
+        out.x = local?.x ?? keyed?.x ?? followed?.x ?? remotePos?.x ?? group.x; out.y = local?.y ?? keyed?.y ?? followed?.y ?? remotePos?.y ?? group.y;
         out.lifted = group.id === mine || followed !== null || remotePos !== null;
         const lock = p.locks.find((candidate) => candidate.groupId === group.id && Date.parse(candidate.expiresAt) > now);
         out.lockColor = !settled && lock && lock.userId !== p.meId ? p.colorOf(lock.userId) : null;
@@ -167,7 +171,7 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
       viewport.current = next; schedule();
     };
     const observer = canvas ? new ResizeObserver(resize) : null; if (canvas) { observer?.observe(canvas); resize(); }
-    return () => { mounted.current = false; img.onload = null; observer?.disconnect(); motion.clear(); completion.cancel(); if (frame.current !== null) cancelAnimationFrame(frame.current); frame.current = null; };
+    return () => { mounted.current = false; img.onload = null; observer?.disconnect(); motion.clear(); completion.cancel(); if (keyboardTimer.current !== null) clearTimeout(keyboardTimer.current); if (frame.current !== null) cancelAnimationFrame(frame.current); frame.current = null; };
     // De camera hoort bij dit scherm; een gedeelde update reset hem nooit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [image, geometry, table]);
@@ -267,9 +271,27 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
     const piece = selectedRef.current; if (piece === null || difficulty !== "MASTER") return;
     await run(async () => { const group = groupFor(propsRef.current.getSnapshot(), piece); if (!group || group.anchored) return; const token = await propsRef.current.onGrab(group.id); if (!token) { propsRef.current.onBusy?.(t("puzzleTogether.coop.busy")); return; } try { await propsRef.current.onCommit({ kind: "rotate", groupId: group.id }, token); } finally { propsRef.current.onRelease(group.id, token); } });
   }
-  async function nudge(dx: number, dy: number) {
+  // Pijltjestoetsen: direct zichtbaar; na een korte stilte één greep, één verplaatsing (met één snapcontrole) en één loslaten in plaats van
+  // dat per aanslag. De server blijft autoriteit (lock en commit zoals voorheen); er komt geen nieuw bericht bij.
+  function flushKeyboard() {
+    if (keyboardTimer.current !== null) { clearTimeout(keyboardTimer.current); keyboardTimer.current = null; }
+    const move = keyboard.current; if (!move || !mounted.current) return;
+    if (pending.current) { keyboardTimer.current = setTimeout(flushKeyboard, 80); return; }
+    void run(async () => {
+      try {
+        const p = propsRef.current; const group = p.getSnapshot().groups.find((candidate) => candidate.id === move.groupId); if (!group || group.anchored) return;
+        const token = await p.onGrab(group.id); if (!token) { p.onBusy?.(t("puzzleTogether.coop.busy")); return; }
+        try { const changed = await p.onCommit({ kind: "move", groupId: group.id, x: move.x, y: move.y }, token); if (changed) await snapAfterMove(group.id, token); } finally { p.onRelease(group.id, token); }
+      } finally { if (keyboard.current === move) keyboard.current = null; schedule(); }
+    });
+  }
+  function nudge(dx: number, dy: number) {
     const piece = selectedRef.current; if (piece === null) return;
-    await run(async () => { const group = groupFor(propsRef.current.getSnapshot(), piece); if (!group || group.anchored) return; const token = await propsRef.current.onGrab(group.id); if (!token) { propsRef.current.onBusy?.(t("puzzleTogether.coop.busy")); return; } try { const changed = await propsRef.current.onCommit({ kind: "move", groupId: group.id, x: group.x + dx, y: group.y + dy }, token); if (changed) await snapAfterMove(group.id, token); } finally { propsRef.current.onRelease(group.id, token); } });
+    const p = propsRef.current; const snapshot = p.getSnapshot(); const group = groupFor(snapshot, piece); if (!group || group.anchored || snapshot.completedAt) return;
+    if (p.locks.some((lock) => lock.groupId === group.id && lock.userId !== p.meId && Date.parse(lock.expiresAt) > Date.now())) { p.onBusy?.(t("puzzleTogether.coop.busy")); return; }
+    const from = keyboard.current?.groupId === group.id ? keyboard.current : group; const position = clampGroupPosition(geometry, group, from.x + dx, from.y + dy);
+    keyboard.current = { groupId: group.id, ...position }; schedule();
+    if (keyboardTimer.current !== null) clearTimeout(keyboardTimer.current); keyboardTimer.current = setTimeout(flushKeyboard, KEYBOARD_IDLE_MS);
   }
 
   const selectedGroup = selected === null ? null : groupFor(props.getSnapshot(), selected);
@@ -281,15 +303,16 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
         onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel}
         onWheel={(event) => { event.preventDefault(); const canvas = canvasRef.current; if (!canvas) return; camera.current = zoomCamera(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds, event.deltaY > 0 ? .9 : 1.1, screenPoint(event)); schedule(); }}
         onKeyDown={async (event) => {
+          if (!event.key.startsWith("Arrow")) flushKeyboard();
           const pieces = props.getSnapshot().groups.flatMap((group) => group.pieceIds);
           if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelected(pieces[(pieces.indexOf(selectedRef.current ?? -1) + 1) % pieces.length]); schedule(); }
           if (event.key === "0") { event.preventDefault(); const canvas = canvasRef.current; if (canvas) { camera.current = fitCamera({ width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds); schedule(); } }
           if ((event.key === "r" || event.key === "R") && difficulty === "MASTER") { event.preventDefault(); await rotateSelected(); }
           if (props.readOnly) return;
-          if (event.key === "ArrowLeft") { event.preventDefault(); await nudge(-.2, 0); }
-          if (event.key === "ArrowRight") { event.preventDefault(); await nudge(.2, 0); }
-          if (event.key === "ArrowUp") { event.preventDefault(); await nudge(0, -.2); }
-          if (event.key === "ArrowDown") { event.preventDefault(); await nudge(0, .2); }
+          if (event.key === "ArrowLeft") { event.preventDefault(); nudge(-.2, 0); }
+          if (event.key === "ArrowRight") { event.preventDefault(); nudge(.2, 0); }
+          if (event.key === "ArrowUp") { event.preventDefault(); nudge(0, -.2); }
+          if (event.key === "ArrowDown") { event.preventDefault(); nudge(0, .2); }
         }} />
       {props.hint?.type === "PREVIEW" && <PreviewOverlay image={image} label={t("jigsaw.hintPreview")} />}
       <p id="jigsaw-board-help" className="sr-only">{t("jigsaw.boardHelp")}</p>
