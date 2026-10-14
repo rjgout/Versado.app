@@ -178,7 +178,8 @@ partituur en toont de juiste tekstregel (`docs/hymns/`, lees `02-ARCHITECTURE.md
 werkt). Code: `src/lib/hymns/` (engine en gegevens), `src/components/hymns-poc/`, route
 `/dev/lofzangen` (focus mode via `focusMode.ts`: alleen de terugbalk), zichtbare naam "Lofzangen" (regels in
 `src/lib/hymns/access.ts`). Bewaakt door `npm run test:hymns`. Voorspel, zangbegin, herkennen→volgen in één
-sessie en de meezinginterface: `docs/hymns/07-VOORSPEL-EN-ZANGBEGIN.md`.
+sessie en de meezinginterface: `docs/hymns/07-VOORSPEL-EN-ZANGBEGIN.md`; mobiele indeling en bediening:
+`docs/hymns/08-MOBIELE-UX.md`.
 
 Harde regels:
 - Alle realtime muziekanalyse draait lokaal op het toestel. Geen audio naar de server, naar een
@@ -202,6 +203,11 @@ Harde regels:
   presentatie. Het actieve woord krijgt de accentkleur (geen achtergrond, geen verschuivende woorden:
   `.hymn-word`). Voorkeuren staan uitsluitend in `src/lib/hymnPrefs.ts`; opslag blijft verboden in
   `src/lib/hymns` en `src/components/hymns-poc`. Geen `scrollIntoView`; eigen scrollen pauzeert het meescrollen.
+- Indeling: één werkruimte (`.hymns-workspace`, hoogte `100dvh - --header-height`, flex-kolom: kop, één
+  scrollende leesruimte, bedieningszone als gewone flex-kind). Nooit `sticky`/`fixed` of extra padding om de
+  bediening over de tekst heen te leggen; instellingen, coupletvolgorde en technische gegevens openen als
+  paneel (`Sheet.tsx`), nooit inline in de tekststroom. Het document scrolt nooit (geen `scrollIntoView` of
+  `window.scrollBy`). Geen lange uitleg of privacyblok boven de tekst; die staat in het instellingenpaneel.
 - Compositie, tekst, zangboekuitgave, lofzangnummer en herkenningsgegevens blijven gescheiden
   (`types.ts`); het nummer staat nooit in een compositie of tekst. Id's zijn stabiel en
   taalonafhankelijk (`comp:<officiële slug>`).

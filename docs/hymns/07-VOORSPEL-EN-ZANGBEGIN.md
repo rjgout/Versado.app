@@ -141,6 +141,10 @@ in `src/lib/hymns` en `src/components/hymns-poc`. Het kenmerkgeheugen bevat geen
 
 ## 7. Interface
 
+> Bijgewerkt in fase 3: de indeling (werkruimte, panelen, bediening, schermtoestanden) staat in
+> `08-MOBIELE-UX.md`. Wat hieronder over de markering, het scrollen en de voorkeuren staat, geldt nog; de
+> sticky bedieningsbalk en de inline instellingen bestaan niet meer.
+
 - **Focus mode.** `/dev/lofzangen` staat in `FOCUS_ROUTES` (`src/lib/focusMode.ts`): de globale
   header en onderbalk verdwijnen, de centrale terugbalk ("← Lofzangen") blijft en gaat terug naar de
   vorige pagina of de contentkiezer. Geen eigen verbergklassen. Een onderste bedieningsbalk is `sticky`
