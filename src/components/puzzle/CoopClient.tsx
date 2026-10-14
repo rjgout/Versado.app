@@ -6,6 +6,7 @@ import { JIGSAW_ROUTE } from "@/lib/puzzle/navigation";
 import { Ellipsis, Lightbulb, Users } from "lucide-react";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { COMPLETION_MAX_WAIT_MS } from "@/lib/puzzle/motion";
+import { puzzleFeedback } from "@/lib/puzzle/feedback";
 import CompletionCard from "@/components/puzzle/CompletionCard";
 import PuzzleTable, { type PuzzleTableHandle, type TableCommit, type TableLock } from "@/components/PuzzleTable";
 import PuzzleHintPanel from "@/components/PuzzleHintPanel";
@@ -84,6 +85,9 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
     if (table.current) table.current.settle(reveal); else reveal();
     return () => clearTimeout(failsafe);
   }, [completed, revealed]);
+  // Eén subtiele voltooiingsviering per deelnemer, alleen als de kaart na een live voltooiing verschijnt (niet bij het openen van een reeds voltooide puzzel).
+  const openedCompleted = useRef(initial.snapshot.completedAt !== null);
+  useEffect(() => { if (revealed && !openedCompleted.current) puzzleFeedback().play("complete", initial.id); }, [revealed, initial.id]);
   useEffect(() => { if (!message) return; const id = setTimeout(() => setMessage(""), 4000); return () => clearTimeout(id); }, [message]);
   // Terug = het puzzeloverzicht (replace, geen extra geschiedenisitem) en verlaat de gezamenlijke puzzel nooit:
   // definitief verlaten is de aparte actie "Puzzel verlaten" met bevestiging.

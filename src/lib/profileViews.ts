@@ -11,6 +11,7 @@ export const PROFILE_VIEWS = {
   reading: { title: "profile.readingProgress" },
   language: { title: "languageSettings.title" },
   readAloud: { title: "profile.readAloud" },
+  gameFeedback: { title: "profile.gameFeedback.title" },
   notifications: { title: "profile.notifications" },
   privacy: { title: "profile.privacy" },
   presence: { title: "profile.onlineActivity" },

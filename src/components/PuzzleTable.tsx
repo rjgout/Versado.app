@@ -11,6 +11,7 @@ import { createCompletionGate, createPuzzleMotion, frameTime, type RemotePlaceme
 import { boardSnapTarget, findSnapConnection, groupFor } from "@/lib/puzzle/engine";
 import { clampGroupPosition, groupMemberAt, puzzleRenderOrder, puzzleWorktable } from "@/lib/puzzle/worktable";
 import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
+import { puzzleFeedback } from "@/lib/puzzle/feedback";
 import { puzzlePolicy, type PuzzleDifficulty, type PuzzleGroup, type PuzzleHint, type PuzzlePieceCount, type PuzzleSnapshot } from "@/lib/puzzle/types";
 
 // De fullscreen werktafel voor Samen en Tegen elkaar. Dezelfde puzzelgeometrie,
@@ -81,7 +82,7 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
   const propsRef = useRef(props);
   useEffect(() => { propsRef.current = props; });
   const flushRef = useRef<() => Promise<boolean>>(() => Promise.resolve(true)); useEffect(() => { flushRef.current = flushKeyboard; });
-  const mounted = useRef(true);
+  const mounted = useRef(true); const feedback = puzzleFeedback();
 
   const setSelected = useCallback((piece: number | null) => { if (selectedRef.current !== piece) void flushRef.current(); selectedRef.current = piece; setSelectedState(piece); propsRef.current.onSelect?.(piece); }, []);
 
@@ -204,6 +205,8 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
       // Na de eerste snap staat het nieuwe geheel vast: volgende buren worden naar dit anker getrokken.
       const a = count === 0 ? connection.a : connection.b; const b = count === 0 ? connection.b : connection.a;
       const changed = await p.onCommit({ kind: "connect", a, b }, token); if (!changed) break;
+      // Eén bevestigd-verbindingsgeluid per verplaatsing; de voltooiing krijgt zijn eigen viering (CoopClient).
+      if (count === 0 && !p.getSnapshot().completedAt && mounted.current) feedback.play("connect");
     }
     snapshot = p.getSnapshot(); const moved = groupFor(snapshot, piece);
     if (moved && !snapshot.completedAt && boardSnapTarget(snapshot, geometry, difficulty, moved.id, rulesVersion)) await p.onCommit({ kind: "anchor", groupId: moved.id }, token);
@@ -229,6 +232,7 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
 
   function down(event: ReactPointerEvent<HTMLCanvasElement>) {
     if (props.readOnly) return;
+    feedback.noteGesture();
     void flushKeyboard();
     const point = screenPoint(event); pointers.current.set(event.pointerId, point); event.currentTarget.setPointerCapture(event.pointerId);
     if (pointers.current.size >= 2) { beginPinch(); return; }
@@ -243,7 +247,7 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
       const started = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: world.x - hit.group.x, y: world.y - hit.group.y }, grab, token: null as string | null, released: false, local: null };
       drag.current = started;
       // Pas na een gelukte greep (de lock is van mij) toont het bord bijna-passend-feedback.
-      grab.then((token) => { started.token = token; if (drag.current === started) schedule(); }, () => undefined);
+      grab.then((token) => { started.token = token; if (token && drag.current === started) feedback.play("pickup"); if (drag.current === started) schedule(); }, () => undefined);
     } else { setSelected(null); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; }
     schedule();
   }
@@ -321,6 +325,7 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
         onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel} onBlur={() => { void flushKeyboard(); }}
         onWheel={(event) => { event.preventDefault(); const canvas = canvasRef.current; if (!canvas) return; camera.current = zoomCamera(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds, event.deltaY > 0 ? .9 : 1.1, screenPoint(event)); schedule(); }}
         onKeyDown={async (event) => {
+          feedback.noteGesture();
           if (!event.key.startsWith("Arrow")) flushKeyboard();
           const pieces = props.getSnapshot().groups.flatMap((group) => group.pieceIds);
           if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelected(pieces[(pieces.indexOf(selectedRef.current ?? -1) + 1) % pieces.length]); schedule(); }
