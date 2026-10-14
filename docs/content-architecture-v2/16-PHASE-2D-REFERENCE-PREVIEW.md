@@ -283,3 +283,5 @@ De gerichte readonly route en de aanvullende bronselectieteller zijn de noodzake
 De bestaande contentkiezer-databehoudtest controleert de vier bewuste bronwissels nu inclusief exact vier tellerverhogingen. Het fingerprint sluit alleen de drie beheerde voorkeurvelden van de betreffende gebruiker uit; alle andere gebruikers en velden blijven volledig gecontroleerd.
 
 Bij versiegebonden uitstappen wordt ook de volledige verwachte voorkeur vóór de no-op vergeleken. Een client kan daardoor geen verzonnen oude keuze in een geldig terugkeerbewijs laten opnemen wanneer de huidige bron al gelijk is aan het verwijzingsdoel. Legacy-clients behouden hun oorspronkelijke no-op-contract.
+
+De 2C-browsercontrole blijft alle formulier-/afrondingscontrols in officiële tekst verbieden. Alleen expliciete `data-reference-key`-knoppen zijn nu toegestaan, met `type=button`; deze nieuwe 2D-bediening is read-only en geen oefening.
