@@ -87,6 +87,7 @@ const MYSTERY_PLAY_TITLES: Record<string, MessageKey> = {
 };
 
 function detailPageFor(pathname: string, profileView: string | null, hash: string): DetailPage | null {
+  if (/^\/study-lesson\/[^/]+\/[^/]+$/.test(pathname)) return { fallback: "/courses", title: "studyReader.title" };
   if (pathname === "/content") return { fallback: "/dashboard", title: "contentSwitcher.picker.title" };
   if (pathname === "/profile") {
     const view = parseProfileView(profileView);

@@ -135,6 +135,7 @@ model User {
   // Mormon in het Nederlands lezen. Codes uit src/lib/languages.ts.
   uiLanguage      String @default("nl")
   contentLanguage String @default("nl")
+  readingPositions ReadingPosition[]
   studyContexts UserStudyContext[]
   contentImportRuns ContentImportRun[] @relation("StudyImportActor")
   studyPublications StudyPublicationAction[] @relation("StudyPublicationActor")
@@ -656,6 +657,7 @@ model StudyLessonEdition {
   publishedRevisionId String?
   draftRevisionId String?
   publicationVersion Int @default(0)
+  readingPositions ReadingPosition[] @relation("StudyEditionReadingPositions")
   importItems ContentImportItem[]
   publications StudyPublicationAction[] @relation("StudyEditionPublications")
   lesson StudyLesson @relation(fields: [lessonId, workKey], references: [id, workKey], onDelete: Restrict, onUpdate: Restrict)
@@ -690,6 +692,7 @@ model StudyRevision {
   references ContentReference[]
   publications StudyPublicationAction[] @relation("StudyPublicationRevision")
   replacedBy StudyPublicationAction[] @relation("StudyPublicationPrevious")
+  readingPositions ReadingPosition[] @relation("StudyRevisionReadingPositions")
 
   @@unique([lessonEditionId, revisionNumber])
   @@unique([id, lessonEditionId])
@@ -3763,4 +3766,25 @@ model MysteryAttempt {
 enum MysteryAttemptStatus {
   IN_PROGRESS
   COMPLETED
+}
+
+// Persoonlijke positie, strikt los van gelezenstatus en beloningen.
+model ReadingPosition {
+  userId          String
+  lessonEditionId String
+  revisionId      String
+  sectionAnchor   String @db.VarChar(128)
+  blockAnchor     String @db.VarChar(128)
+  sectionFraction Float
+  quoteContext    String? @db.VarChar(240)
+  version         Int @default(1)
+  lastActionId    String @db.Uuid
+  lastActionHash  String @db.Char(64)
+  updatedAt       DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  edition StudyLessonEdition @relation("StudyEditionReadingPositions", fields: [lessonEditionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  revision StudyRevision @relation("StudyRevisionReadingPositions", fields: [revisionId, lessonEditionId], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
+  @@id([userId, lessonEditionId])
+  @@index([lessonEditionId])
+  @@index([revisionId, lessonEditionId])
 }

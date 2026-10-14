@@ -5,6 +5,7 @@
  */
 const FOCUS_ROUTES = [
   /^\/content$/,
+  /^\/study-lesson\/[^/]+\/[^/]+$/,
   // De avatar-editor is een zelfstandige bewerkflow: alleen de centrale
   // terugbalk blijft zichtbaar, zodat de vaste opslagactie niet concurreert
   // met de globale mobiele navigatie.

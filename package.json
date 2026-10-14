@@ -75,6 +75,8 @@
     "test:mystery:integration": "node scripts/content-architecture/test-access-isolated.mjs --mystery --browser",
     "test:study-content": "tsx --test tests/study-content.test.ts",
     "test:study-content:integration": "node scripts/content-architecture/test-access-isolated.mjs --study-content",
+    "test:study-reader": "tsx --test tests/reading-position.test.ts tests/study-content.test.ts",
+    "test:study-reader:integration": "node scripts/content-architecture/test-access-isolated.mjs --study-reader --study-content --browser",
     "test:study-publication": "tsx --test tests/study-publication.test.ts",
     "test:study-publication:integration": "node scripts/content-architecture/test-access-isolated.mjs --study-publication --browser"
   },
