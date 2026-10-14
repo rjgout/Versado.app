@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import { jigsawCatalog } from "@/lib/jigsawGame";
 import { jigsawQuestionById, jigsawQuestionLanguage, jigsawQuestionsForStory, JIGSAW_OPTION_COUNT } from "@/lib/jigsawQuestions";
 import { completeJigsaw } from "@/lib/streak";
-import { registerBestRecord } from "@/lib/puzzle/records";
+import { hintCategoryFor, registerBestRecord, type HintCategory } from "@/lib/puzzle/records";
 import { emitToUser } from "@/lib/realtime";
 import { anchorGroup, connectGroups, isPuzzleComplete, moveGroup, newPuzzleSnapshot, rotateGroup, validPuzzleStructure } from "@/lib/puzzle/engine";
 import { createPuzzleGeometry } from "@/lib/puzzle/geometry";
@@ -41,11 +41,27 @@ export type SoloAnswer = (JigsawAnswerResult & { record?: SoloRecordInfo }) | { 
 export const sessionInclude = { variant: { include: { definition: true } } } as const;
 export type Session = Prisma.PuzzleSessionGetPayload<{ include: typeof sessionInclude }>;
 
+/**
+ * Wat de voltooiingskaart mag tonen, uitsluitend uit door de server vastgelegde gegevens (alleen lezen; er wordt niets berekend of opgeslagen):
+ * de officiële puzzeltijd (Solo: completedAt - startedAt, de tijd die ook het record krijgt; Tegen elkaar: de vastgelegde finishtijd van de
+ * deelnemer) en het bestaande persoonlijke record in dezelfde categorie. Records ontstaan bij een geldig antwoord (Solo) of bij de finish
+ * (Tegen elkaar); `thisAttempt` zegt of dit record uit deze poging komt. Samen heeft geen snelheidsrecord en dus geen weergave.
+ */
+export interface PuzzleCompletionView { elapsedMs: number | null; hintCategory: HintCategory; best: { elapsedMs: number; thisAttempt: boolean } | null }
+async function completionView(row: Session, hints: number, tx: Prisma.TransactionClient): Promise<PuzzleCompletionView | undefined> {
+  if (!row.completedAt || (row.mode !== "SOLO" && row.mode !== "MATCH")) return undefined;
+  const category = hintCategoryFor(hints); let elapsedMs: number | null = null;
+  if (row.mode === "SOLO") elapsedMs = Math.max(0, row.completedAt.getTime() - row.startedAt.getTime());
+  else if (row.matchId) { const participant = await tx.puzzleMatchParticipant.findUnique({ where: { matchId_userId: { matchId: row.matchId, userId: row.ownerId } }, select: { status: true, elapsedMs: true } }); elapsedMs = participant?.status === "FINISHED" ? participant.elapsedMs : null; }
+  const best = await tx.puzzleBestRecord.findUnique({ where: { userId_variantId_mode_hintCategory: { userId: row.ownerId, variantId: row.variantId, mode: row.mode, hintCategory: category } }, select: { elapsedMs: true, sessionId: true } });
+  return { elapsedMs, hintCategory: category, best: best ? { elapsedMs: best.elapsedMs, thisAttempt: best.sessionId === row.id } : null };
+}
+
 async function publicState(row: Session, language: string | null | undefined, tx: Prisma.TransactionClient) {
   const { hintBalance } = await tx.user.findUniqueOrThrow({ where: { id: row.ownerId }, select: { hintBalance: true } });
   const snapshot = snapshotSchema.parse(JSON.parse(row.snapshot)) as PuzzleSnapshot; const lang = jigsawQuestionLanguage(language);
   const question = row.questionId && row.optionOrder ? jigsawQuestionById(row.questionId) : undefined; const order = row.optionOrder ? JSON.parse(row.optionOrder) as number[] : [];
-  return { hintBalance, id: row.id, version: row.version, status: row.status, image: row.variant.definition.imageUrl, story: row.variant.definition.storyNumber, seed: row.variant.definition.seed, geometryVersion: row.variant.definition.geometryVersion, pieceCount: row.variant.pieceCount, difficulty: row.variant.difficulty as PuzzleDifficulty, rulesVersion: row.variant.rulesVersion, snapshot, ...(question ? { question: { text: question.text[lang], options: order.map((index) => question.options[lang][index]) } } : {}), ...(row.status === "ANSWERED" ? { answer: row.answerResult ? JSON.parse(row.answerResult) as SoloAnswer : { alreadyAnswered: true } as const } : {}) };
+  return { hintBalance, id: row.id, version: row.version, status: row.status, image: row.variant.definition.imageUrl, story: row.variant.definition.storyNumber, seed: row.variant.definition.seed, geometryVersion: row.variant.definition.geometryVersion, pieceCount: row.variant.pieceCount, difficulty: row.variant.difficulty as PuzzleDifficulty, rulesVersion: row.variant.rulesVersion, snapshot, ...(row.completedAt ? { completion: await completionView(row, snapshot.hints.length, tx) } : {}), ...(question ? { question: { text: question.text[lang], options: order.map((index) => question.options[lang][index]) } } : {}), ...(row.status === "ANSWERED" ? { answer: row.answerResult ? JSON.parse(row.answerResult) as SoloAnswer : { alreadyAnswered: true } as const } : {}) };
 }
 
 export type EngineMode = "SOLO" | "MATCH";

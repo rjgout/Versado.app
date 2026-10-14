@@ -109,7 +109,7 @@ try {
     await page.mouse.move(from.x, from.y); await page.mouse.down(); await page.mouse.move(to.x, to.y, { steps: 10 }); await page.mouse.up();
     await page.getByRole("img", { name: "Voltooide legpuzzel" }).waitFor();
     assert.equal(await canvas.count(), 0, "bord en contouren verdwijnen");
-    await page.getByRole("button", { name: "Verder", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Naar de vraag", exact: true }).waitFor();
   }
   let prepared = await prepareFinalDrag(state);
   let lostCompletion = false;
@@ -123,10 +123,10 @@ try {
   await back.click(); await search.waitFor();
   state = await choose(216);
   await page.getByRole("img", { name: "Voltooide legpuzzel" }).waitFor();
-  await page.getByRole("button", { name: "Verder", exact: true }).click();
+  await page.getByRole("button", { name: "Naar de vraag", exact: true }).click();
   await page.getByRole("heading", { name: "Nog één vraag" }).waitFor();
   await back.click(); await page.getByRole("heading", { name: "Puzzel compleet!" }).waitFor();
-  await page.getByRole("button", { name: "Verder", exact: true }).click();
+  await page.getByRole("button", { name: "Naar de vraag", exact: true }).click();
   await page.getByRole("heading", { name: "Nog één vraag" }).waitFor();
   await page.reload(); await page.getByRole("heading", { name: "Nog één vraag" }).waitFor();
   const firstRow = await prisma.puzzleSession.findUniqueOrThrow({ where: { id: firstId } });
@@ -154,7 +154,7 @@ try {
   prepared = await prepareFinalDrag(replay); await finalDrag(prepared.state, prepared.geometry);
   // Historisch exact dezelfde vraag opnieuw: kies opnieuw in de nieuwe sessie.
   await prisma.puzzleSession.update({ where: { id: replay.id }, data: { questionId: firstRow.questionId, optionOrder: firstRow.optionOrder } });
-  await page.reload(); await page.getByRole("button", { name: "Verder", exact: true }).click();
+  await page.reload(); await page.getByRole("button", { name: "Naar de vraag", exact: true }).click();
   await options.nth(correct).click(); await page.getByRole("button", { name: "Antwoord bevestigen" }).click();
   await page.getByRole("button", { name: "Nog een puzzel", exact: true }).waitFor();
   assert.ok((await page.getByRole("status").allTextContents()).includes(nl.jigsaw.correct));

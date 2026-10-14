@@ -169,9 +169,9 @@ try {
     } else {
       assert.ok(series.length <= 3, `verminderde beweging: alleen begin, sleeppositie en eindstand, geen tussenstappen (${series.length})`); assert.ok(gone.wall - dbWall <= 500, `verminderde beweging: geen verplichte wachttijd (${gone.wall - dbWall} ms)`);
     }
-    assert.equal(await cardOf(page).count() + await page.getByRole("button", { name: nl.jigsaw.continue, exact: true }).count() >= 1, true, "de bestaande voltooiingskaart staat er");
-    assert.equal(await page.getByRole("button", { name: nl.jigsaw.continue, exact: true }).count(), 1, "precies één voltooiingskaart");
-    await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await sleep(600); assert.equal(await page.getByRole("button", { name: nl.jigsaw.continue, exact: true }).count(), 1, "herhaalde serverupdates geven geen tweede kaart");
+    assert.equal(await cardOf(page).count() + await page.getByRole("button", { name: nl.jigsaw.completion.toQuestion, exact: true }).count() >= 1, true, "de bestaande voltooiingskaart staat er");
+    assert.equal(await page.getByRole("button", { name: nl.jigsaw.completion.toQuestion, exact: true }).count(), 1, "precies één voltooiingskaart");
+    await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await sleep(600); assert.equal(await page.getByRole("button", { name: nl.jigsaw.completion.toQuestion, exact: true }).count(), 1, "herhaalde serverupdates geven geen tweede kaart");
     assert.deepEqual(s.errors, []); await s.context.close();
   }
   // Navigeren tijdens de voltooiingsanimatie: geen fouten, geen kaart na het weggaan, geen blijvende lus

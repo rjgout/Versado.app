@@ -330,3 +330,27 @@ test("versieovergang: geometry 1/2 en rules 1 hervatten exact; replay wordt rule
     assert.equal((await L.db.puzzlePersonalRecord.findUniqueOrThrow({ where: { sessionId: old.id }, include: { variant: true } })).variant.rulesVersion, 1);
   }
 });
+
+test("voltooiingskaart: de server levert alleen-lezen tijd, hintcategorie en bestaand record; een antwoord verandert de tijd nooit", { skip }, async () => {
+  const user = await account(); const state = await solve(user.id, 3);
+  const row = await L.db.puzzleSession.findUniqueOrThrow({ where: { id: state.id } });
+  const view = (await L.solo.resumeSoloPuzzle(user.id, state.id, "nl"))!.completion;
+  assert.ok(view, "voltooide sessie heeft een voltooiingsweergave");
+  assert.equal(view.elapsedMs, row.completedAt!.getTime() - row.startedAt.getTime(), "dezelfde tijd als waarmee het record straks wordt vastgelegd");
+  assert.equal(view.hintCategory, "NO_HINTS"); assert.equal(view.best, null, "nog geen record vóór het antwoord (Solo-record ontstaat bij een goed antwoord)");
+  const before = JSON.stringify(await L.db.puzzleBestRecord.findMany({ where: { userId: user.id } })); assert.equal(before, "[]", "de weergave schrijft niets");
+  const answered = await L.solo.answerSoloPuzzle(user.id, state.id, right(state)); assert.ok(answered && "correct" in answered && answered.correct);
+  const after = (await L.solo.resumeSoloPuzzle(user.id, state.id, "nl"))!.completion!;
+  assert.equal(after.elapsedMs, view.elapsedMs, "het antwoord verandert de puzzeltijd niet"); assert.ok(after.best && after.best.thisAttempt && after.best.elapsedMs === view.elapsedMs, "het bevestigde record komt uit deze poging");
+  const open = await L.solo.startSoloPuzzle(user.id, 4, 6, "ADVENTURER", "nl"); assert.equal((open as { completion?: unknown }).completion, undefined, "een lopende puzzel heeft geen voltooiingsweergave");
+});
+
+test("voltooiingskaart: met een hint is de categorie Met hints en het bestaande record van die categorie wordt getoond", { skip }, async () => {
+  const user = await account(); let state = await prepare(user.id, 5);
+  state = await act(user.id, state, { kind: "hint", hint: "PREVIEW" }); state = await act(user.id, state, { kind: "connect", a: 4, b: 5 }); assert.equal(state.status, "COMPLETED");
+  const variantId = (await L.db.puzzleSession.findUniqueOrThrow({ where: { id: state.id } })).variantId;
+  const earlier = await L.db.puzzleSession.create({ data: { ownerId: user.id, variantId, status: "ANSWERED", snapshot: "{}", completedAt: new Date(Date.now() - 1000) } });
+  await L.db.puzzleBestRecord.create({ data: { userId: user.id, variantId, mode: "SOLO", hintCategory: "WITH_HINTS", elapsedMs: 54_321, hintsUsed: 1, extraHintsUsed: 0, completedAt: new Date(), sessionId: earlier.id } });
+  const view = (await L.solo.resumeSoloPuzzle(user.id, state.id, "nl"))!.completion!;
+  assert.equal(view.hintCategory, "WITH_HINTS"); assert.deepEqual(view.best, { elapsedMs: 54_321, thisAttempt: false });
+});
