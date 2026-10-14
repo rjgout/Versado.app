@@ -39,16 +39,16 @@ export default function CompletionCard({ image, imageAlt, title, mascot = "celeb
   return (
     <FocusLayout className="page-fill max-w-none gap-4 py-3">
       <section aria-labelledby="puzzle-completion-title" data-completion-card className="mx-auto grid w-full max-w-4xl flex-1 content-center items-center gap-4 [@media(orientation:landscape)_and_(max-height:520px)]:grid-cols-2 [@media(orientation:landscape)_and_(max-height:520px)]:gap-6">
-        <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl bg-vs-surface shadow-lg">
-          <NextImage src={image} alt={imageAlt} width={1440} height={960} unoptimized priority className="h-auto max-h-[34dvh] w-full object-contain [@media(orientation:landscape)_and_(max-height:520px)]:max-h-[70dvh]" />
+        <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl bg-vs-surface shadow-lg [@media(orientation:portrait)_and_(max-height:640px)]:hidden">
+          <NextImage src={image} alt={imageAlt} width={1440} height={960} unoptimized priority className="h-auto max-h-[30dvh] w-full object-contain [@media(orientation:landscape)_and_(max-height:520px)]:max-h-[70dvh]" />
         </div>
-        <div className="flex min-w-0 flex-col items-center gap-3 text-center">
-          <PersonalMascot state={mascot} size={104} className="h-[104px] w-[104px] shrink-0" />
-          <h1 id="puzzle-completion-title" ref={heading} tabIndex={-1} className="vs-wrap text-2xl font-extrabold text-vs-fg outline-none">{title}</h1>
+        <div className="flex min-w-0 flex-col items-center gap-3 text-center [@media(max-height:700px)]:gap-2">
+          <PersonalMascot state={mascot} size={104} className="h-[104px] w-[104px] shrink-0 [@media(max-height:760px)]:h-[80px] [@media(max-height:760px)]:w-[80px]" />
+          <h1 id="puzzle-completion-title" ref={heading} tabIndex={-1} className="vs-wrap text-2xl font-extrabold text-vs-fg outline-none [@media(max-height:700px)]:text-xl">{title}</h1>
           {time && (
             <p className="text-vs-fg" data-official-time>
               <span className="block text-sm text-vs-fg-2">{time.label}</span>
-              <span className="block font-mono text-4xl font-extrabold tabular-nums">{time.value}</span>
+              <span className="block font-mono text-4xl font-extrabold tabular-nums [@media(max-height:700px)]:text-3xl">{time.value}</span>
               {time.note && <span className="mt-1 block text-sm text-vs-fg-2">{time.note}</span>}
             </p>
           )}
@@ -70,7 +70,7 @@ export function CompletionRecord({ title, text, emphasis = false }: { title?: st
   return (
     <div role="status" className={`vs-wrap w-full max-w-[440px] rounded-2xl border p-3 text-left ${emphasis ? "border-vs-xp/40 bg-vs-xp/10" : "border-vs-line"}`} data-completion-record={emphasis ? "new" : "existing"}>
       {title && <p className="font-extrabold text-vs-fg">{title}</p>}
-      <p className="text-sm text-vs-fg-2">{text}</p>
+      <p className="text-sm text-vs-fg-2 [@media(max-height:700px)]:text-xs">{text}</p>
     </div>
   );
 }
