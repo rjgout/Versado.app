@@ -10,12 +10,14 @@ import { createSessionToken, SESSION_COOKIE } from "../src/lib/auth.ts";
 import { jigsawCatalog } from "../src/lib/jigsawGame.ts";
 import { createCoopSession, respondToCoopInvite } from "../src/lib/puzzle/coop.ts";
 import { startSoloPuzzle } from "../src/lib/puzzle/solo.ts";
-import { createMatch, respondToMatchInvite, beginMatchAttempt } from "../src/lib/puzzle/match.ts";
+import { createMatch, respondToMatchInvite, beginMatchAttempt, startLiveMatch } from "../src/lib/puzzle/match.ts";
 import { createPuzzleGeometry } from "../src/lib/puzzle/geometry.ts";
 import { boardPosition, connectGroups, newPuzzleSnapshot } from "../src/lib/puzzle/engine.ts";
-import { initialPuzzleCamera } from "../src/lib/puzzle/viewport.ts";
+import { fitCamera, initialPuzzleCamera } from "../src/lib/puzzle/viewport.ts";
+import { puzzleWorktable } from "../src/lib/puzzle/worktable.ts";
 import { formatPuzzleTime } from "../src/lib/puzzle/recordFormat.ts";
 import { nl } from "../src/lib/i18n/messages/nl.ts";
+import { jigsawQuestionsForStory } from "../src/lib/jigsawQuestions.ts";
 
 const database = new URL(process.env.LEARNING_TEST_DATABASE_URL ?? "http://invalid");
 if (database.hostname !== "127.0.0.1" || database.pathname !== "/versado_puzzle_test" || process.env.DATABASE_URL !== process.env.LEARNING_TEST_DATABASE_URL) throw new Error("Gebruik de lokale wegwerpdatabase");
@@ -52,23 +54,23 @@ async function drop(page, ctx, device, env, spot) {
   if (DEVICES[device].hasTouch) { const touch = await ctx.newCDPSession(page); await touch.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ ...point, id: 0 }] }); await touch.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: point.x + 1, y: point.y, id: 0 }] }); await touch.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] }); }
   else { await page.mouse.move(point.x, point.y); await page.mouse.down(); await page.mouse.move(point.x + 1, point.y, { steps: 1 }); await page.mouse.up(); }
 }
-async function prepare(page, geometry, snapshot) {
+async function prepare(page, geometry, snapshot, fit = false) {
   const canvas = page.locator("canvas").first(); await canvas.waitFor(); await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
   await page.waitForFunction(() => { const c = document.querySelector("canvas"), h = document.querySelector("[data-sticky-header]"); return c && h && Math.abs(c.getBoundingClientRect().top - h.getBoundingClientRect().bottom) < 1 && c.width === Math.round(c.clientWidth * Math.min(devicePixelRatio, 2)); });
-  await page.waitForTimeout(600); const bounds = await canvas.boundingBox(); return { bounds, camera: initialPuzzleCamera(bounds, geometry, snapshot) };
+  await page.waitForTimeout(600); if (fit) { await canvas.focus(); await canvas.press("0"); await page.waitForTimeout(200); } const bounds = await canvas.boundingBox(); return { bounds, camera: fit ? fitCamera({ width: bounds.width, height: bounds.height }, puzzleWorktable(geometry).bounds) : initialPuzzleCamera(bounds, geometry, snapshot) };
 }
 async function soloVariant(user, pieceCount, difficulty = "ADVENTURER", { hints = 0, bestMs = null } = {}) {
   const solo = await startSoloPuzzle(user.id, 5 + (pieceCount % 7), pieceCount, difficulty, "nl"); const row = await prisma.puzzleSession.findUniqueOrThrow({ where: { id: solo.id }, include: { variant: { include: { definition: true } } } });
   const geometry = createPuzzleGeometry(pieceCount, row.variant.definition.seed, row.variant.definition.geometryVersion); const { snapshot, spot } = almostDone(geometry, difficulty);
   snapshot.hints = Array.from({ length: hints }, () => ({ type: "PREVIEW", at: new Date(Date.now() - 60000).toISOString(), extra: false, source: "INCLUDED", actionId: randomUUID(), expiresAt: new Date(0).toISOString(), target: { type: "PREVIEW" } }));
-  await prisma.puzzleSession.update({ where: { id: solo.id }, data: { snapshot: JSON.stringify(snapshot), startedAt: new Date(Date.now() - 95_400) } });
+  await prisma.puzzleSession.update({ where: { id: solo.id }, data: { snapshot: JSON.stringify(snapshot), startedAt: new Date(Date.now() - 95_400), optionOrder: JSON.stringify([0, 1, 2]), questionId: jigsawQuestionsForStory(row.variant.definition.storyNumber)[0].id } });
   if (bestMs !== null) await prisma.puzzleBestRecord.create({ data: { userId: user.id, variantId: row.variantId, mode: "SOLO", hintCategory: hints > 0 ? "WITH_HINTS" : "NO_HINTS", elapsedMs: bestMs, hintsUsed: hints, extraHintsUsed: 0, completedAt: new Date(Date.now() - 86400000), sessionId: (await prisma.puzzleSession.create({ data: { ownerId: user.id, variantId: row.variantId, status: "ANSWERED", snapshot: "{}", answeredAt: new Date(), completedAt: new Date(Date.now() - 86400000) } })).id } });
   return { solo, row, geometry, snapshot, spot };
 }
 async function openSolo(user, device, variant, options = {}) {
   const ctx = await newContext(user, device, options); await ctx.addInitScript((id) => { try { localStorage.setItem("versado:jigsaw-v2-session", id); } catch {} }, variant.solo.id);
   const page = await ctx.newPage(); const errors = []; page.on("pageerror", (e) => errors.push(e.message)); await page.goto(`${base}/jigsaw`);
-  const env = await prepare(page, variant.geometry, variant.snapshot); return { ctx, page, errors, env };
+  const env = await prepare(page, variant.geometry, variant.snapshot, variant.geometry.pieces.length >= 96); return { ctx, page, errors, env };
 }
 const heading = (page, text = nl.jigsaw.complete) => page.locator("h1", { hasText: text });
 const inView = async (page, locator) => { const box = await locator.boundingBox(); const view = page.viewportSize(); return !!box && box.y >= 0 && box.y + box.height <= view.height + 1 && box.x >= 0 && box.x + box.width <= view.width + 1; };
@@ -99,22 +101,37 @@ try {
     report[`solo-${device}`] = { time, elapsed };
     assert.deepEqual(errors, []); await ctx.close();
   }
-  // === Solo met bestaand record, met hints; daarna de vraag (juist = record, onjuist = geen viering en geen record)
-  {
+  // === Solo met bestaand record, met hints; daarna de vraag: juist = nieuw record bevestigd door de server, onjuist = geen viering en geen record
+  for (const [outcome, choice] of [["right", 0], ["wrong", 1]]) {
     const user = await person("VARO"); const variant = await soloVariant(user, 24, "ADVENTURER", { hints: 1, bestMs: 120_000 }); const { ctx, page, errors, env } = await openSolo(user, "phone", variant);
     await drop(page, ctx, "phone", env, variant.spot); await heading(page).waitFor({ timeout: 8000 });
     const text = await page.locator("[data-completion-card]").innerText(); assert.ok(text.includes(nl.puzzleRecords.catWITH_HINTS), "met hints: de categorie Met hints"); assert.ok(text.includes(nl.jigsaw.completion.bestSoFar.replace("{category}", nl.puzzleRecords.catWITH_HINTS).replace("{time}", formatPuzzleTime(120_000))), "bestaand persoonlijk record uit de server");
     assert.match(await page.locator('[data-completion-card] img[src*="/mascots/"]').getAttribute("src"), /varo/i, "Varo als gekozen gids");
-    await page.screenshot({ path: `${shots}/solo24-existing-record-phone.png` });
+    if (outcome === "right") await page.screenshot({ path: `${shots}/solo24-existing-record-phone.png` });
     await page.getByRole("button", { name: nl.jigsaw.completion.toQuestion, exact: true }).click(); await page.getByRole("button", { name: nl.jigsaw.confirmAnswer, exact: true }).waitFor();
-    assert.equal(await page.getByRole("button", { name: nl.jigsaw.completion.toQuestion, exact: true }).count(), 0, "de verplichte vervolgvraag volgt na de kaart");
-    // Onjuist antwoord: de optie die niet het juiste antwoord is (de server bepaalt dat; we proberen de opties tot een onjuist resultaat)
-    const options = page.locator("section.card button[aria-pressed]"); await options.nth(0).click(); await page.getByRole("button", { name: nl.jigsaw.confirmAnswer, exact: true }).click();
-    await page.locator("h1").first().waitFor(); const wrong = await page.locator("h1", { hasText: nl.jigsaw.completion.resultIncorrectTitle }).count() === 1; const right = await page.locator("[data-record-notice]").count() === 1 || await page.getByText(nl.jigsaw.completion.resultCorrectNote).count() === 1;
-    report["solo-answer"] = { wrong, right }; assert.ok(wrong !== right, "het resultaat is óf juist óf onjuist, nooit allebei");
-    if (wrong) { assert.equal(await page.locator("[data-record-notice]").count(), 0, "onjuist: geen record"); assert.ok(await page.getByText(nl.jigsaw.completion.resultIncorrectNote).count() === 1, "onjuist: zegt dat de activiteit niet is afgerond"); assert.match(await page.locator('[data-completion-card] img[src*="/mascots/"]').getAttribute("src"), /encourage/i, "onjuist: bemoedigende gids"); await page.screenshot({ path: `${shots}/solo24-result-wrong-phone.png` }); }
-    else { await page.screenshot({ path: `${shots}/solo24-result-correct-phone.png` }); }
-    assert.deepEqual(errors, []); await ctx.close();
+    assert.equal(await page.getByRole("button", { name: nl.jigsaw.completion.toQuestion, exact: true }).count(), 0, "de verplichte vervolgvraag volgt na de kaart"); assert.equal(await page.evaluate(() => document.activeElement?.textContent), nl.jigsaw.questionIntro, "focusherstel: de focus staat op de kop van de vraag");
+    await page.locator("section.card button[aria-pressed]").nth(choice).click(); await page.getByRole("button", { name: nl.jigsaw.confirmAnswer, exact: true }).click();
+    await page.locator("[data-completion-card]").waitFor(); await sleep(400);
+    if (outcome === "right") {
+      assert.equal(await page.locator("[data-record-notice]").count(), 1, "juist: het door de server bevestigde nieuwe record"); assert.equal(await page.locator("h1", { hasText: nl.jigsaw.complete }).count(), 1); assert.ok(await page.getByText(nl.jigsaw.completion.resultCorrectNote).count() === 1);
+      assert.match(await page.locator('[data-completion-card] img[src*="/mascots/"]').getAttribute("src"), /celebrate/i); await page.screenshot({ path: `${shots}/solo24-result-correct-phone.png` });
+      const record = await prisma.puzzleBestRecord.findFirst({ where: { userId: user.id, mode: "SOLO", hintCategory: "WITH_HINTS", NOT: { elapsedMs: 120_000 } } }); assert.ok(record, "de server heeft het record opgeslagen (clientweergave volgt de server)");
+    } else {
+      await page.screenshot({ path: `${shots}/solo24-result-wrong-phone.png` });
+      assert.equal(await page.locator("h1", { hasText: nl.jigsaw.completion.resultIncorrectTitle }).count(), 1, "onjuist: geen 'Puzzel compleet!' als afgeronde activiteit"); assert.equal(await page.locator("[data-record-notice]").count(), 0, "onjuist: geen record");
+      assert.equal(await page.getByText(nl.jigsaw.completion.resultIncorrectNote).count(), 1, "onjuist: zegt dat de activiteit niet is afgerond"); assert.equal(await page.getByText(nl.jigsaw.completion.resultCorrectNote).count(), 0);
+      assert.match(await page.locator('[data-completion-card] img[src*="/mascots/"]').getAttribute("src"), /encourage/i, "onjuist: bemoedigende gids"); await page.screenshot({ path: `${shots}/solo24-result-wrong-phone.png` });
+      assert.equal(await prisma.puzzleBestRecord.count({ where: { userId: user.id, mode: "SOLO", NOT: { elapsedMs: 120_000 } } }), 0, "onjuist: geen record in de database");
+    }
+    report[`solo-answer-${outcome}`] = { ok: true }; assert.deepEqual(errors, []); await ctx.close();
+  }
+  // === Reduced motion: de kaart komt direct na de serverbevestiging (geen verplichte wachttijd) en bevat geen lopende animaties
+  {
+    const user = await person(); const variant = await soloVariant(user, 24); const { ctx, page, errors, env } = await openSolo(user, "phone", variant, { reducedMotion: "reduce" });
+    let doneAt = null; const watch = (async () => { for (let i = 0; i < 600 && doneAt === null; i++) { const row = await prisma.puzzleSession.findUnique({ where: { id: variant.solo.id }, select: { status: true } }); if (row?.status === "COMPLETED") doneAt = Date.now(); else await sleep(10); } })();
+    await drop(page, ctx, "phone", env, variant.spot); await heading(page).waitFor({ timeout: 8000 }); const shownAt = Date.now(); await watch;
+    report["solo-reduced-card"] = { cardAfterServerMs: shownAt - doneAt }; assert.ok(shownAt - doneAt < 600, `reduced motion: geen verplichte wachttijd (${shownAt - doneAt} ms)`);
+    const animating = await page.evaluate(() => document.getAnimations().length); assert.equal(animating, 0, "reduced motion: geen lopende animaties op de kaart"); assert.deepEqual(errors, []); await ctx.close();
   }
   // === Direct openen van een voltooide puzzel: de kaart staat er meteen, één keer, zonder animatiewachttijd; ontbrekende mascotte blijft werken
   {
@@ -132,7 +149,7 @@ try {
     const id = await createCoopSession(a.id, jigsawCatalog[2].url, count, "ADVENTURER", [b.id]); await respondToCoopInvite(b.id, (await prisma.puzzleInvite.findFirstOrThrow({ where: { sessionId: id, toUserId: b.id } })).id, true);
     const row = await prisma.puzzleSession.findUniqueOrThrow({ where: { id }, include: { variant: { include: { definition: true } } } }); const geometry = createPuzzleGeometry(count, row.variant.definition.seed, row.variant.definition.geometryVersion); const { snapshot, spot } = almostDone(geometry);
     await prisma.puzzleSession.update({ where: { id }, data: { snapshot: JSON.stringify(snapshot) } });
-    const open = async (user) => { const ctx = await newContext(user, device); const page = await ctx.newPage(); const errors = []; page.on("pageerror", (e) => errors.push(e.message)); await page.goto(`${base}/jigsaw/samen/${id}`, { waitUntil: "networkidle" }); return { ctx, page, errors, env: await prepare(page, geometry, snapshot) }; };
+    const open = async (user) => { const ctx = await newContext(user, device); const page = await ctx.newPage(); const errors = []; page.on("pageerror", (e) => errors.push(e.message)); await page.goto(`${base}/jigsaw/samen/${id}`, { waitUntil: "networkidle" }); return { ctx, page, errors, env: await prepare(page, geometry, snapshot, count >= 96) }; };
     const A = await open(a); const B = await open(b); await drop(A.page, A.ctx, device, A.env, spot);
     const title = nl.puzzleTogether.coop.completeTitle; await heading(A.page, title).waitFor({ timeout: 10000 }); await heading(B.page, title).waitFor({ timeout: 10000 }); await sleep(600);
     for (const [who, view] of [["A", A], ["B", B]]) {
@@ -148,7 +165,7 @@ try {
   // === Tegen elkaar (asynchroon en live): officiële tijd = door de server vastgelegde finishtijd; nieuw record bevestigd door de server
   for (const kind of process.env.MATRIX ? ["ASYNC", "LIVE"] : ["ASYNC"]) {
     const [a, b] = [await person(), await person()]; await prisma.friendship.create({ data: { senderId: a.id, receiverId: b.id, status: "ACCEPTED" } });
-    const matchId = await createMatch(a.id, 9, 24, "ADVENTURER", [b.id], kind); await respondToMatchInvite(b.id, matchId, true); await beginMatchAttempt(a.id, matchId);
+    const matchId = await createMatch(a.id, 9, 24, "ADVENTURER", [b.id], kind); await respondToMatchInvite(b.id, matchId, true); if (kind === "LIVE") await startLiveMatch(a.id, matchId); else await beginMatchAttempt(a.id, matchId);
     const session = await prisma.puzzleSession.findFirstOrThrow({ where: { ownerId: a.id, matchId }, include: { variant: { include: { definition: true } } } }); const geometry = createPuzzleGeometry(24, session.variant.definition.seed, session.variant.definition.geometryVersion); const { snapshot, spot } = almostDone(geometry);
     await prisma.puzzleSession.update({ where: { id: session.id }, data: { snapshot: JSON.stringify(snapshot) } });
     const ctx = await newContext(a, "phone"); const page = await ctx.newPage(); const errors = []; page.on("pageerror", (e) => errors.push(e.message)); await page.goto(`${base}/jigsaw/wedstrijd/${matchId}`, { waitUntil: "networkidle" }); const env = await prepare(page, geometry, snapshot);
