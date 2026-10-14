@@ -14,6 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import hymn_text as T  # noqa: E402
+import build_nld_music as M  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 CACHE = ROOT / ".cache/hymns/nld"
@@ -74,15 +75,64 @@ def main():
         else:
             search.append([n, h["title"], ""])
     entries.sort(key=lambda e: e["number"])
+    music = M.build_all(index, flog)
+    audio = json.loads((CACHE / "audio-check.json").read_text()) if (CACHE / "audio-check.json").exists() else {}
+    recog = json.loads((OUT / "recognition-eval.json").read_text()) if (OUT / "recognition-eval.json").exists() else {}
+    summary = json.loads((CACHE / "score" / "_summary.json").read_text())
+    for e in entries:
+        m = music[e["number"]]
+        a = audio.get(str(e["number"]))
+        status = m["musicStatus"]
+        reasons = list(m["musicReasons"])
+        # onafhankelijke controle tegen de officiële begeleidingsopname (zie audio_check.py)
+        audio_state = "niet-beschikbaar"
+        if a:
+            # De opname is de ENGELSE begeleiding van dezelfde melodie; een andere harmonisatie in het Nederlandse boek geeft dus
+            # geen fout in de extractie. "afwijkend" blokkeert de status daarom niet, maar telt ook niet als bevestiging.
+            audio_state = "bevestigd" if a["rank"] <= 3 else "afwijkend"
+        e["music"] = {"status": status, "reasons": reasons, "compositionId": m["compositionId"] if status == "gevalideerd" else None,
+                      "extractionProblems": summary.get(str(e["number"]), {}).get("nProblems", 0), "audioCheck": audio_state,
+                      "audioRank": a["rank"] if a else None}
+        valid = status == "gevalideerd"
+        r = recog.get(str(e["number"]))
+        e["capabilities"] = {
+            "textComplete": e["textStatus"] == "volledig",
+            "sheetMusicAvailable": bool(e["pdfUrl"]),
+            "scoreValidated": valid,
+            "lineFollowing": valid,
+            "wordFollowing": valid and m["wordLinking"],
+            "recognizable": valid,
+            "recognitionValidated": bool(valid and r and r.get("ok")),
+        }
+    # alleen muziekgegevens van gevalideerde lofzangen blijven bestaan (de rest is onzeker en wordt afgeschermd)
+    keep_links = {e["number"] for e in entries if e["capabilities"]["scoreValidated"]}
+    for f in (OUT / "link").glob("*.json"):
+        if int(f.stem) not in keep_links:
+            f.unlink()
+    keep_comps = {e["music"]["compositionId"] for e in entries if e["music"]["compositionId"]}
+    for f in (OUT / "music").glob("*.json"):
+        if json.loads(f.read_text())["id"] not in keep_comps:
+            f.unlink()
     counts = {
         "official": len(entries),
         "textComplete": sum(e["textStatus"] == "volledig" for e in entries),
         "textUnavailable": [e["number"] for e in entries if e["textStatus"] == "niet-gepubliceerd"],
         "textUncertain": [e["number"] for e in entries if e["textStatus"] == "onzeker"],
         "withPdf": sum(bool(e["pdfUrl"]) for e in entries),
+        "scoreValidated": sum(e["capabilities"]["scoreValidated"] for e in entries),
+        "lineFollowing": sum(e["capabilities"]["lineFollowing"] for e in entries),
+        "wordFollowing": sum(e["capabilities"]["wordFollowing"] for e in entries),
+        "recognizable": sum(e["capabilities"]["recognizable"] for e in entries),
+        "recognitionValidated": sum(e["capabilities"]["recognitionValidated"] for e in entries),
+        "uniqueCompositions": len(keep_comps),
+        "audioConfirmed": sum(e["music"]["audioCheck"] == "bevestigd" for e in entries),
+        "audioDeviating": [e["number"] for e in entries if e["music"]["audioCheck"] == "afwijkend"],
     }
+    import hashlib
+    version = hashlib.sha256(json.dumps([entries, search], sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:12]
     dump(OUT / "manifest.json", {
         "schema": 1,
+        "dataVersion": version,
         "source": {"name": "Lofzangen (Nederlands), De Kerk van Jezus Christus van de Heiligen der Laatste Dagen",
                    "indexUrl": f"{BASE}/study/manual/hymns?lang=nld", "language": "nld"},
         "counts": counts, "hymns": entries,

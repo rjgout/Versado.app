@@ -154,9 +154,10 @@ def extract(pdf_path, opts=None):
     for d in drawings:
         w = d.get("width") or 0
         for it in d["items"]:
-            if it[0] == "l" and abs(it[1].x - it[2].x) < 0.01:
+            # sommige stokken zijn ~1 pt scheef getekend (afronding in de bron); dat blijft een stok
+            if it[0] == "l" and abs(it[1].x - it[2].x) < 1.2:
                 y0, y1 = sorted((it[1].y, it[2].y))
-                x = it[1].x
+                x = (it[1].x + it[2].x) / 2
                 is_bar = False
                 for si, st in enumerate(staves):
                     if st["clef"] != "treble":
@@ -336,9 +337,9 @@ def extract(pdf_path, opts=None):
             cands = []
             for s in stems:
                 if s["y0"] - 1.6 <= n["y"] <= s["y1"] + 1.6:
-                    if abs(s["x"] - (n["x"] + HEAD_W)) < 0.6:
+                    if abs(s["x"] - (n["x"] + HEAD_W)) < 0.9:
                         cands.append(("up", s))
-                    elif abs(s["x"] - n["x"]) < 0.6:
+                    elif abs(s["x"] - n["x"]) < 0.9:
                         cands.append(("down", s))
             # twee stokken aan één kop (twee stemmen op dezelfde toon): de gebalkte stok bepaalt de duur
             best = max(cands, key=lambda c: beam_count_of(c[1], c[0]), default=None)
@@ -423,17 +424,37 @@ def extract(pdf_path, opts=None):
         items.sort(key=lambda it: it["x"])
         return items
 
+    opts_col_tol = opts.get("colTol", 6.5)
+
+    def _is_second(a, b):
+        """Verplaatste kop: een kop in b staat een secunde (1 stap) naast een kop in a op dezelfde balk."""
+        for x in a["items"]:
+            for y in b["items"]:
+                if x["note"] is not None and y["note"] is not None and x["staff"] == y["staff"] and abs(x["note"]["diatonic"] - y["note"]["diatonic"]) <= 1 and 3.5 < abs(y["x"] - x["x"]) < 6.5:
+                    return True
+        return False
+
     def timeline(items, full_len):
         """Kolommen en eindtijden; geeft (cols, lengte). Hele-maat-rusten krijgen de maatlengte."""
         # een hele-maat-rust staat gecentreerd in de maat en begint dus op tijd 0, niet op zijn x-positie
         fulls = [it for it in items if it["dur"] is None]
         items = [it for it in items if it["dur"] is not None]
+        # kolommen: koppen op bijna dezelfde x horen bij hetzelfde tijdstip. Een verplaatste kop (secunde, ~5 pt ernaast) hoort
+        # er ook bij, maar twee stemmen met verschillend ritme staan op verschillende x en mogen niet worden samengevoegd.
+        tol = opts_col_tol
         cols = []
         for it in items:
-            if cols and it["x"] - cols[-1]["x"] < 6.5:
+            if cols and it["x"] - cols[-1]["x"] < tol:
                 cols[-1]["items"].append(it)
             else:
                 cols.append({"x": it["x"], "items": [it]})
+        merged = []
+        for c in cols:
+            if merged and c["x"] - merged[-1]["x"] < 6.5 and _is_second(merged[-1], c):
+                merged[-1]["items"].extend(c["items"])
+            else:
+                merged.append(c)
+        cols = merged
         t = 0.0
         active = []
         for ci, col in enumerate(cols):
@@ -654,7 +675,7 @@ def extract(pdf_path, opts=None):
     return result
 
 
-VARIANTS = [{"dots": "match"}, {"dots": "above"}]
+VARIANTS = [{"dots": "match", "colTol": 6.5}, {"dots": "above", "colTol": 6.5}, {"dots": "match", "colTol": 2.0}, {"dots": "above", "colTol": 2.0}]
 
 
 def extract_best(pdf_path):
@@ -668,7 +689,7 @@ def extract_best(pdf_path):
             if best is None:
                 err = e
             continue
-        r["variant"] = v["dots"]
+        r["variant"] = f"{v['dots']}/{v['colTol']}"
         if best is None or len(r["problems"]) < len(best["problems"]):
             best = r
         if not best["problems"]:
