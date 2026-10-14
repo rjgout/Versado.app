@@ -21,3 +21,7 @@ __pycache__/
 
 # Gegenereerde Prisma-client (npx prisma generate)
 /src/generated
+
+# Lofzangen-proef: bronbestanden (auteursrechtelijk beschermd) en Python-omgeving
+.cache/hymns/
+.venv-hymns/

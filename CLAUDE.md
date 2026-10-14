@@ -169,6 +169,37 @@ niet de standaard. Native permissies worden pas toegevoegd wanneer de feature
 ze daadwerkelijk nodig heeft. De bestaande webpush blijft losstaan van
 toekomstige APNs/FCM-push.
 
+## Lofzangen (technische proef): live meezingen
+
+Beschikbaar op de live omgeving voor uitsluitend beheerders (via de contentkiezer `/content`, sectie
+"Voor beheerders"; gewone gebruikers krijgen 404; optionele noodstop `HYMNS_POC=0`). De muziekherkenning is
+nog in ontwikkeling en niet getest met echte kerkuitvoeringen. De telefoon luistert naar orgel of piano, volgt de
+partituur en toont de juiste tekstregel (`docs/hymns/`, lees `02-ARCHITECTURE.md` vóór je eraan
+werkt). Code: `src/lib/hymns/` (engine en gegevens), `src/components/hymns-poc/`, route
+`/dev/lofzangen`, zichtbare naam "Lofzangen" (regels in `src/lib/hymns/access.ts`). Bewaakt door `npm run test:hymns`.
+
+Harde regels:
+- Alle realtime muziekanalyse draait lokaal op het toestel. Geen audio naar de server, naar een
+  database, naar analytics of naar een bestand, en geen fetch/WebSocket/opslag in `src/lib/hymns`
+  of `src/components/hymns-poc` (`tests/hymns-privacy.test.ts` laat dat falen).
+- De microfoon start alleen na een expliciete actie, toont dat hij actief is en stopt bij stoppen,
+  de pagina verlaten en naar de achtergrond gaan (`MicListener`).
+- De positie komt uit de muziek (score following), nooit uit verstreken seconden of vaste
+  tijdstempels. Bij onzekerheid houdt de engine de positie vast en meldt dat; de markering springt
+  niet heen en weer en de herkenning toont nooit een gok als zekerheid.
+- Muzikale positie en couplet zijn twee toestanden (`follow/stanzas.ts`): een handmatige keuze
+  heeft altijd voorrang en herstart de muziekvolging niet.
+- Compositie, tekst, zangboekuitgave, lofzangnummer en herkenningsgegevens blijven gescheiden
+  (`types.ts`); het nummer staat nooit in een compositie of tekst. Id's zijn stabiel en
+  taalonafhankelijk (`comp:<officiële slug>`).
+- Raakt nooit XP, reeksen, competitie, authenticatie, de serviceworker of de database; geen
+  imports uit die modules. Een offline bibliotheek gebruikt een eigen IndexedDB-opslag zonder
+  persoonsgegevens (voorstel in `02-ARCHITECTURE.md`).
+- De gegevens komen uit de officiële PDF's en pagina's (`scripts/hymns/fetch_sources.py`); de
+  bronbestanden staan in `.cache/hymns/` en nooit in git. Hergebruik steunt op de verklaring van de
+  eigenaar; leg een schriftelijke licentie vast vóór productie (`docs/hymns/01-SOURCE-AUDIT.md`).
+- Nieuwe tekst in de proef gaat bij een echte functie via i18n in alle `uiReady`-talen.
+
 ## Techstack
 
 - Next.js 16 (App Router) + TypeScript (strict) + Tailwind CSS + React 19
