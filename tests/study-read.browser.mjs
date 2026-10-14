@@ -100,9 +100,12 @@ try {
   }
   const f = await fixture(), c = await context(f, 390, 844, "light"), page = await c.newPage();
   await open(page, f);
-  let calls = 0;
+  let calls = 0, firstRetryActionId, secondRetryActionId;
   await page.route("**/api/study-read", async (route) => {
     calls += 1;
+    const actionId = JSON.parse(route.request().postData() ?? "{}").actionId;
+    if (calls === 1) firstRetryActionId = actionId;
+    else secondRetryActionId = actionId;
     if (calls === 1) return route.abort("failed");
     return route.continue();
   });
@@ -111,8 +114,44 @@ try {
   assert.equal(await prisma.contentProgress.count({ where: { userId: f.user.id } }), 0);
   await page.getByRole("button", { name: f.t("studyReader.markRead"), exact: true }).click();
   await page.locator('[data-study-read-status="read"]').waitFor();
-  results.push({ networkRetry: true, noFalseSavedState: true });
+  assert.equal(firstRetryActionId, secondRetryActionId, "een retry na een netwerkfout behoudt de actionId");
+  results.push({ networkRetry: true, stableRetryActionId: true, noFalseSavedState: true });
   await c.close();
+
+  const lost = await fixture(), lostContext = await context(lost, 390, 844, "light"), lostPage = await lostContext.newPage();
+  await open(lostPage, lost);
+  let lostCalls = 0, committedActionId, recoveredActionId;
+  await lostPage.route("**/api/study-read", async (route) => {
+    lostCalls += 1;
+    const actionId = JSON.parse(route.request().postData() ?? "{}").actionId;
+    if (lostCalls === 1) {
+      committedActionId = actionId;
+      await route.fetch(); // De server commit wel, maar de browser ontvangt geen antwoord.
+      return route.abort("failed");
+    }
+    recoveredActionId = actionId;
+    return route.continue();
+  });
+  await lostPage.getByRole("button", { name: lost.t("studyReader.markRead"), exact: true }).click();
+  await lostPage.getByRole("status").filter({ hasText: lost.t("studyReader.readFailed") }).waitFor();
+  assert.equal(await prisma.contentProgress.count({ where: { userId: lost.user.id } }), 1, "de eerste request is server-side gecommit");
+  await lostPage.getByRole("button", { name: lost.t("studyReader.markRead"), exact: true }).click();
+  await lostPage.locator('[data-study-read-status="read"]').waitFor();
+  assert.equal(committedActionId, recoveredActionId, "verloren response wordt met dezelfde actionId hersteld");
+  assert.equal(await prisma.streakActivity.count({ where: { userId: lost.user.id } }), 1);
+  await lostContext.close();
+
+  const celebration = await fixture(), celebrationContext = await context(celebration, 390, 844, "light"), celebrationPage = await celebrationContext.newPage();
+  await open(celebrationPage, celebration);
+  await celebrationPage.getByRole("button", { name: celebration.t("studyReader.markRead"), exact: true }).click();
+  await celebrationPage.locator('[data-study-read-status="read"]').waitFor();
+  await celebrationPage.waitForTimeout(300);
+  assert.equal(await celebrationPage.locator('[role="dialog"][aria-labelledby="streak-celebration-title"]').count(), 0, "de reeksviering verdringt de primaire gelezenstatus niet");
+  await celebrationPage.screenshot({ path: `${output}/study-read-primary-completion.png`, fullPage: true });
+  await celebrationPage.goto(`${base}/dashboard`);
+  await celebrationPage.locator('[role="dialog"][aria-labelledby="streak-celebration-title"]').waitFor();
+  results.push({ primaryReadConfirmation: true, celebrationDeferredUntilLeavingActivity: true });
+  await celebrationContext.close();
   assert.deepEqual(errors, []);
   writeFileSync(`${output}/results.json`, JSON.stringify({ cases: results.length, results, pageErrors: errors, realDevicesTested: false }, null, 2));
   console.log(JSON.stringify({ cases: results.length, results, pageErrors: errors, realDevicesTested: false }));

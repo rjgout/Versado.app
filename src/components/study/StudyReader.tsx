@@ -19,6 +19,12 @@ import { rememberReferenceTrip } from "@/lib/references/returnContext";
 import type { ReferenceTrip } from "@/lib/references/tripContract";
 import type { ReferenceRequest } from "@/lib/references/contract";
 import { contentSelectionSchema, type ContentPickerContext, type ContentSelection } from "@/lib/contentPickerContract";
+import {
+  clearPendingStudyReadAction,
+  pendingStudyReadAction,
+  storePendingStudyReadAction,
+  studyReadActionStorageKey,
+} from "@/lib/studyContent/readAction";
 
 export default function StudyReader({
   initial,
@@ -64,6 +70,7 @@ function ReaderVisit({
   const [markingRead, setMarkingRead] = useState(false);
   const [readError, setReadError] = useState<string | null>(null);
   const [justMarkedRead, setJustMarkedRead] = useState(false);
+  const pendingReadAction = useRef<{ key: string; actionId: string } | null>(null);
   const [reference,setReference]=useState<{request:ReferenceRequest;label:string;element:HTMLElement}|null>(null);
   const moreAlive=useRef(true),moreSession=useRef(sessionKey),moreController=useRef<AbortController|null>(null);
   useLayoutEffect(()=>{
@@ -103,6 +110,16 @@ function ReaderVisit({
     (query.data?.currentRevisionId ?? data.positionState.currentRevisionId) !==
     data.lesson.revisionId;
   useEffect(() => {
+    if (!data.readState.read) return;
+    const context = {
+      sessionKey,
+      lessonEditionId: data.lesson.editionId,
+      revisionId: data.lesson.revisionId,
+    };
+    clearPendingStudyReadAction(context, sessionStorage);
+    pendingReadAction.current = null;
+  }, [data.readState.read, data.lesson.editionId, data.lesson.revisionId, sessionKey]);
+  useEffect(() => {
     title.current?.focus({ preventScroll: true });
   }, []);
   async function openUpdate() {
@@ -116,6 +133,18 @@ function ReaderVisit({
   }
   async function markRead() {
     if (readState.read || markingRead) return;
+    const readActionContext = {
+      sessionKey,
+      lessonEditionId: data.lesson.editionId,
+      revisionId: data.lesson.revisionId,
+    };
+    const pendingKey = studyReadActionStorageKey(readActionContext);
+    const actionId =
+      pendingReadAction.current?.key === pendingKey
+        ? pendingReadAction.current.actionId
+        : pendingStudyReadAction(readActionContext, sessionStorage) ?? crypto.randomUUID();
+    pendingReadAction.current = { key: pendingKey, actionId };
+    storePendingStudyReadAction(readActionContext, actionId, sessionStorage);
     setMarkingRead(true);
     setReadError(null);
     try {
@@ -128,7 +157,7 @@ function ReaderVisit({
           json: {
             lessonEditionId: data.lesson.editionId,
             revisionId: data.lesson.revisionId,
-            actionId: crypto.randomUUID(),
+            actionId,
           },
           headers: { "X-Reading-Session": sessionKey },
         },
@@ -136,7 +165,18 @@ function ReaderVisit({
       );
       setReadState(result.state);
       setJustMarkedRead(result.changed);
+      clearPendingStudyReadAction(readActionContext, sessionStorage);
+      pendingReadAction.current = null;
     } catch (error) {
+      // Een afgewezen actie kan niet meer slagen bij een retry. Bij een
+      // onzekere netwerk- of serverfout blijft dezelfde UUID juist bewaard.
+      if (
+        error instanceof ApiRequestError &&
+        [400, 401, 403, 404, 409].includes(error.status)
+      ) {
+        clearPendingStudyReadAction(readActionContext, sessionStorage);
+        pendingReadAction.current = null;
+      }
       setReadError(
         error instanceof ApiRequestError && error.status === 409
           ? t("studyReader.readRevisionChanged")

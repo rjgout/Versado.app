@@ -143,7 +143,7 @@ try {
     if(process.argv.includes("--browser"))await run("npx",["tsx","tests/study-reader.browser.mjs"],env);
   }
   if(process.argv.includes("--study-read")) {
-    await run("npx",["tsx","--test","tests/study-read.integration.test.ts"],env);
+    await run("npx",["tsx","--test","tests/study-read-action.test.ts","tests/study-read.integration.test.ts"],env);
     if(process.argv.includes("--browser"))await run("npx",["tsx","tests/study-read.browser.mjs"],env);
   }
   if(process.argv.includes("--study-publication")) {

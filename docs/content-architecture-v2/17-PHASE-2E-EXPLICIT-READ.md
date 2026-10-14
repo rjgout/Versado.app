@@ -129,3 +129,40 @@ gepubliceerde studielessen. Bestaande Schriftuurhoofdstukken en legacy-FSY
 houden hun eigen, ongewijzigde routes. Een activiteit kan volgens de bestaande
 centrale regels een reeksdag, terugkeerstatus of bestaande freeze-effecten
 opleveren; fase 2E voegt daar geen XP-, munt- of eigen beloningsregel aan toe.
+
+## Correctieronde na PR-review
+
+De aanvullende review bevestigde dat de bestaande centrale
+`celebrationGate` ook voor `/study-lesson/...` de juiste eigenaar is. Die route
+is een activity-route: na een succesvolle READ blijft de rustige,
+persistente gelezenstatus dus de primaire feedback. `streak_changed` ververst
+wel de centrale reeksstatus, maar de provider claimt en toont een eventuele
+reeksviering pas nadat de gebruiker de leesactiviteit verlaat. Zij komt
+daarmee niet over deze bevestiging of boven een volgende activiteit te staan.
+Er is geen nieuwe overlay, manager of eventbus toegevoegd.
+
+De browsermatrix controleert nu expliciet de gelezenstatus zonder
+reeksoverlay, maakt daarvan een screenshot en navigeert vervolgens naar
+Vandaag om te bewijzen dat dezelfde centrale viering daar pas verschijnt.
+De bestaande gate-regressie bevat daarnaast expliciet de StudyReader-route en
+bevestigt dat een routewissel tussen activiteiten de viering nog steeds
+uitstelt.
+
+`StudyReader` bewaart een nog onzekere READ-actionId tabgebonden in
+`sessionStorage`, met een sleutel die de sessie, leseditie en immutable
+revisie bevat. Een netwerkfout of verloren response hergebruikt die UUID;
+een bevestigde respons of definitieve 4xx-afwijzing ruimt alleen die context
+op. Bij heropenen met een al opgeslagen READ-status wordt een eventueel oud
+pending item voor precies die context eveneens opgeruimd. Een andere les,
+revisie, sessie of apparaat kan de UUID niet hergebruiken. De server-side
+logische `ContentProgress`- en `StreakActivity`-constraints blijven de
+uiteindelijke idempotentiegarantie.
+
+Nieuwe regressies dekken daarom een netwerkfout vóór verzending, een door de
+server gecommitte request waarvan de response verloren gaat, dezelfde UUID bij
+retry, de bevestigde centrale status zonder dubbele activiteit en isolatie
+tussen les, revisie en sessie. De bestaande integratietests blijven de
+parallelle/twee-apparaten- en transactierollbackgevallen dekken. De
+correctieronde gebruikt uitsluitend de geïsoleerde testdatabase en geen
+productiegegevens. Fysieke Safari-, iOS-, Android- en Capacitor-controles
+blijven buiten deze geautomatiseerde browsermatrix.
