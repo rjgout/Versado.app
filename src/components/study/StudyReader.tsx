@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RotateCcw, RefreshCw } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
@@ -13,6 +13,7 @@ import { useReadingPositionController } from "./ReadingPositionController";
 import ReferencePreview from "./ReferencePreview";
 import ReferenceReturn from "./ReferenceReturn";
 import { ReferenceActionsContext } from "./ReferenceLink";
+import { currentEntryKey } from "@/lib/navigationHistory";
 import { jsonMutation } from "@/lib/data/mutation";
 import { rememberReferenceTrip } from "@/lib/references/returnContext";
 import type { ReferenceTrip } from "@/lib/references/tripContract";
@@ -60,6 +61,11 @@ function ReaderVisit({
     title = useRef<HTMLHeadingElement>(null);
   const [updating, setUpdating] = useState(false);
   const [reference,setReference]=useState<{request:ReferenceRequest;label:string;element:HTMLElement}|null>(null);
+  const moreAlive=useRef(true),moreSession=useRef(sessionKey),moreController=useRef<AbortController|null>(null);
+  useLayoutEffect(()=>{
+    moreAlive.current=true;moreSession.current=sessionKey;
+    return ()=>{moreAlive.current=false;moreController.current?.abort();};
+  },[sessionKey]);
   const morePending=useRef<{occurrenceKey:string;expectedSelection:ContentSelection;expectedSelectionVersion:number}|null>(null);
   const query = useLiveQuery<ReadingPositionState>(
     [
@@ -106,7 +112,10 @@ function ReaderVisit({
   }
   async function moreReference(){
     if(!reference)throw new Error("REFERENCE_UNAVAILABLE");
+    const entry=currentEntryKey();
+    const stillCurrent=()=>moreAlive.current && moreSession.current===sessionKey && currentEntryKey()===entry;
     const state=await control.flush();
+    if(!stillCurrent())throw new Error("REFERENCE_NAVIGATION_CANCELLED");
     if(!state || !control.canLeave())throw new Error("READING_POSITION_NOT_SAVED");
     // Geen bronmutatie als de vereiste tabgebonden context niet kan worden bewaard.
     const reserve=`vs-reference-trip:reserve`;
@@ -126,15 +135,19 @@ function ReaderVisit({
       morePending.current={occurrenceKey:reference.request.occurrenceKey,expectedSelection:picker.selection,expectedSelectionVersion:picker.selectionVersion};
       sessionStorage.setItem(pendingKey,JSON.stringify(morePending.current));
     }
+    const controller=new AbortController();moreController.current=controller;
+    const deadline=setTimeout(()=>controller.abort(),15000);
     let result:{href:string;token:string;trip:ReferenceTrip};
     try{result=await jsonMutation<{href:string;token:string;trip:ReferenceTrip}>("/api/study-references",{
       json:{action:"more",...reference.request,expectedSelection:morePending.current.expectedSelection,expectedSelectionVersion:morePending.current.expectedSelectionVersion,expectedPositionVersion:state.position?.version ?? 0},
-      headers:{"X-Reading-Session":sessionKey},
+      headers:{"X-Reading-Session":sessionKey},signal:controller.signal,
     },{invalidates:"contentChanged"});}
     catch(error){
       if(error instanceof ApiRequestError && error.status===409){sessionStorage.removeItem(pendingKey);morePending.current=null;}
       throw error;
     }
+    finally{clearTimeout(deadline);if(moreController.current===controller)moreController.current=null;}
+    if(controller.signal.aborted || !stillCurrent())throw new Error("REFERENCE_NAVIGATION_CANCELLED");
     if(!rememberReferenceTrip(result))throw new Error("REFERENCE_RETURN_STORAGE");
     sessionStorage.removeItem(pendingKey);morePending.current=null;
     setReference(null);router.push(result.href);router.refresh();
@@ -263,7 +276,7 @@ function ReaderVisit({
           <RichContentBlocks document={data.lesson.body} media={data.media} />
         </article>
         </ReferenceActionsContext.Provider>
-        {reference && <ReferencePreview key={reference.request.occurrenceKey} request={reference.request} label={reference.label} sessionKey={sessionKey} onClose={()=>setReference(null)} onMore={moreReference} returnFocus={reference.element}/ >}
+        {reference && <ReferencePreview key={`${sessionKey}:${reference.request.occurrenceKey}`} request={reference.request} label={reference.label} sessionKey={sessionKey} onClose={()=>setReference(null)} onMore={moreReference} returnFocus={reference.element}/ >}
       </div>
     </FocusLayout>
   );

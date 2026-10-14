@@ -287,3 +287,5 @@ Bij versiegebonden uitstappen wordt ook de volledige verwachte voorkeur vóór d
 De 2C-browsercontrole blijft alle formulier-/afrondingscontrols in officiële tekst verbieden. Alleen expliciete `data-reference-key`-knoppen zijn nu toegestaan, met `type=button`; deze nieuwe 2D-bediening is read-only en geen oefening.
 
 Ook de bestaande 2C-browsertest controleert de ene expliciete bron-/taalwissel met exact één tellerverhoging, terwijl alle overige User-velden gelijk blijven. Bij een onzekere uitstap of geblokkeerde terugkeer biedt de UI een veilige, expliciete link naar de bestaande contentkiezer; die verandert niets zonder nieuwe selectie. Die keuze of logout ruimt ook oude pending-reference-intenties op.
+
+Meer-lezen-requests hebben een clientdeadline van 15 seconden en worden bij reader-/sessiewissel afgebroken. Ook na een succesvolle response controleert de callback de oorspronkelijke centrale history-entry en sessie, voordat tokenopslag of navigatie gebeurt. Een later antwoord mag dus geen nieuwe geschiedeniskeuze overschrijven; een reeds gecommitte serverkeuze wordt niet onveilig teruggedraaid.

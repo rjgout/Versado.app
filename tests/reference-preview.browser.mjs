@@ -389,6 +389,25 @@ try {
     await c.close();
     results.push({ lostMoreResponse: true, retryDoesNotOverwrite: true });
   }
+  {
+    const f=await referenceFixture(),t=getT("nl"),{c,page}=await context(f,{width:390,height:844});
+    await page.goto(base+f.href);await open(page);await page.getByRole("button",{name:t("referencePreview.more"),exact:true}).click();
+    await page.locator("[data-scripture-readonly]").waitFor();const prior=page.url();
+    await page.getByRole("button",{name:t("referencePreview.backToLesson"),exact:true}).last().click();await page.locator("[data-study-reader]").waitFor();
+    let committed=false;
+    await page.route("**/api/study-references",async route=>{
+      const response=await route.fetch();
+      if(route.request().postDataJSON()?.action==="more"){committed=true;await delay(1500);}
+      try{await route.fulfill({response});}catch{ /* Verwachte abort door de echte reader-unmount. */ }
+    });
+    await open(page);await page.getByRole("button",{name:t("referencePreview.more"),exact:true}).click();
+    for(let i=0;i<100&&!committed;i++)await delay(50);assert.equal(committed,true);
+    await prisma.user.update({where:{id:f.owner.user.id},data:{activeContentCollectionId:"content_podcasts"}});
+    await page.goBack();await page.locator("[data-scripture-readonly]").waitFor();await delay(2000);
+    assert.equal(page.url(),prior,"laat Meer-lezen-antwoord mag een nieuwe geschiedeniskeuze niet terugdraaien");
+    assert.equal((await prisma.user.findUniqueOrThrow({where:{id:f.owner.user.id}})).activeContentCollectionId,"content_podcasts");
+    await page.screenshot({path:output+"/late-more-history-mobile.png"});await c.close();results.push({lateMoreCannotNavigate:true,newerChoicePreserved:true});
+  }
   assert.deepEqual(errors, []);
   console.log(
     JSON.stringify({
