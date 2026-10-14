@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { JIGSAW_ROUTE } from "@/lib/puzzle/navigation";
-import NextImage from "next/image";
 import { Ellipsis, Lightbulb, Users } from "lucide-react";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { COMPLETION_MAX_WAIT_MS } from "@/lib/puzzle/motion";
+import CompletionCard from "@/components/puzzle/CompletionCard";
 import PuzzleTable, { type PuzzleTableHandle, type TableCommit, type TableLock } from "@/components/PuzzleTable";
 import PuzzleHintPanel from "@/components/PuzzleHintPanel";
 import UserAvatar from "@/components/UserAvatar";
@@ -214,12 +214,14 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
   }
 
   if (completed && revealed) {
-    return <FocusLayout className="page-fill max-w-none items-center justify-center gap-5 py-4 text-center">
-      <div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-vs-surface shadow-lg"><NextImage src={state.image} alt={t("jigsaw.completedImage")} width={1440} height={960} unoptimized priority className="h-auto max-h-[68dvh] w-full object-contain" /></div>
-      <div><h1 className="text-2xl font-extrabold text-vs-fg">{t("puzzleTogether.coop.completeTitle")}</h1><p className="mt-2 text-vs-fg-2">{t("puzzleTogether.coop.completeText")}</p></div>
-      <div className="flex flex-wrap justify-center gap-2">{state.participants.map((participant) => <span key={participant.userId} className="flex items-center gap-2 rounded-full border border-vs-line px-3 py-1 text-sm"><UserAvatar id={participant.userId} handle={participant.handle} /><span className="vs-wrap">{participant.handle}</span></span>)}</div>
-      <button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" onClick={back}>{t("puzzleTogether.coop.back")}</button>
-    </FocusLayout>;
+    // Dezelfde kaart als Solo en Tegen elkaar. Samen heeft geen puzzeltijd of snelheidsrecord (spelers leggen verspreid over momenten),
+    // dus toont de kaart die niet; er volgt ook geen vraag.
+    return <CompletionCard image={state.image} imageAlt={t("jigsaw.completedImage")} title={t("puzzleTogether.coop.completeTitle")}
+      facts={[t(`jigsaw.${state.difficulty.toLowerCase() as "discoverer" | "adventurer" | "expert" | "master"}`), t("jigsaw.pieces", { n: state.pieceCount })]} factsLabel={t("jigsaw.completion.facts")}
+      action={{ label: t("puzzleTogether.coop.back"), onClick: back }}>
+      <p className="vs-wrap max-w-[440px] text-vs-fg-2">{t("puzzleTogether.coop.completeText")}</p>
+      <ul className="flex flex-wrap justify-center gap-2">{state.participants.map((participant) => <li key={participant.userId} className="flex items-center gap-2 rounded-full border border-vs-line px-3 py-1 text-sm"><UserAvatar id={participant.userId} handle={participant.handle} /><span className="vs-wrap">{participant.handle}</span></li>)}</ul>
+    </CompletionCard>;
   }
 
   const isOwner = state.ownerId === meId;
