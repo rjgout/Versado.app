@@ -38,6 +38,9 @@ COPY src ./src
 # aangeleverd via --source en zit niet in de production image.
 COPY scripts/otb ./scripts/otb
 COPY scripts/study-content ./scripts/study-content
+# Read-only productiediagnose; neem geen andere contentarchitectuur-scripts
+# of testinfrastructuur op in de runtime-image.
+COPY scripts/content-architecture/diagnose-otb-production-readonly.mjs ./scripts/content-architecture/diagnose-otb-production-readonly.mjs
 # De Prisma-client wordt in de builder gegenereerd (src/generated staat niet
 # in git) en is nodig voor server.ts, dat via tsx draait.
 COPY --from=builder /app/src/generated ./src/generated

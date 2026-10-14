@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 // Alleen lezen: dit hulpmiddel is bewust geen migratie-, import- of herstelpad.
-import pg from "pg";
 import { chmod, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
@@ -38,6 +37,9 @@ if (!args.includes("--confirm-readonly") || args.some((arg) => !["--confirm-read
 } else {
   let client;
   try {
+    // Laad de databaseclient pas na de twee weigeringspaden hierboven. Zo
+    // opent een vergissing zonder bevestiging nooit indirect een verbinding.
+    const { default: pg } = await import("pg");
     client = new pg.Client({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 5000, query_timeout: 5000, statement_timeout: 5000 });
     await client.connect();
     await client.query("BEGIN TRANSACTION READ ONLY");
