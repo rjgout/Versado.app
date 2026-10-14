@@ -89,3 +89,38 @@ test("render: hintmarkeringen worden na de groepen getekend en zonder cache", ()
   assert.equal(names(connection.log, "=lineWidth").filter((entry) => entry[1] === 4 / 40).length, 2);
   const filter = render({ hint: { type: "FILTER", filter: "CORNERS", pieceIds: [0, 3] } }); assert.equal(names(filter.log, "=globalAlpha").filter((entry) => entry[1] === .2).length, value.groups.length);
 });
+
+const ACCENT = "21, 101, 192";
+const glow = (strength: number, edgeCount = 2, slot = false) => ({
+  edgeCount, strength,
+  edges: [{ piece: 0, neighbour: 1, anchorPiece: 0, x: 3, y: 4 }, { piece: 1, neighbour: 0, anchorPiece: 1, x: 3.2, y: 4.1 }] as const,
+  slot: { active: slot, pieceIds: [1], x: 7, y: 8 },
+});
+const accentStrokes = (log: Entry[]) => log.filter((entry) => entry[0] === "=strokeStyle" && String(entry[1]).includes(ACCENT));
+
+test("render: bijna-passend tekent halo en kern per rand in de accentkleur en muteert niets", () => {
+  const value = scene(); const before = JSON.stringify(value.snapshot);
+  const { log } = render({ nearSnap: glow(1) });
+  assert.equal(accentStrokes(log).length, 4, "halo en kern per rand (de witte onderlaag is een andere kleur)");
+  assert.equal(names(log, "=lineCap").length, 2); assert.equal(JSON.stringify(value.snapshot), before);
+  // Lijndiktes zijn vaste schermpixels: breedte / schaal (schaal 40).
+  assert.ok(log.some((entry) => entry[0] === "=lineWidth" && entry[1] === 3 / 40) && log.some((entry) => entry[0] === "=lineWidth" && entry[1] === 9 / 40));
+  // Eén pad per rand, bewaard in de cache onder een eigen sleutel; het tweede beeld hergebruikt ze.
+  const second = scene({ nearSnap: glow(1) }); renderPuzzle(fakeCanvas([]), second); const size = second.paths.size; renderPuzzle(fakeCanvas([]), second);
+  assert.equal(second.paths.size, size); assert.ok(second.paths.has("edge:0>1") && second.paths.has("edge:1>0"));
+});
+
+test("render: zonder feedback of bij sterkte 0 blijft er niets van de gloed achter; de kleur botst niet met selectie, hint, anker of lock", () => {
+  for (const nearSnap of [null, undefined, glow(0), glow(1, 0)]) assert.equal(accentStrokes(render({ nearSnap }).log).length, 0);
+  const colours = ["#d97716", "rgba(217,119,22,.16)", "rgba(43, 103, 99, .70)", "rgba(43, 103, 99, .35)", "rgba(29, 42, 60, .60)"];
+  for (const colour of colours) assert.ok(!colour.includes(ACCENT));
+  const { log } = render({ nearSnap: glow(1, 2, true) });
+  assert.equal(accentStrokes(log).length, 6, "ook de bordplek krijgt halo en kern"); // 2 randen + slot
+  // De groepscontour van het slot gebruikt dezelfde cache-sleutel als de groep zelf (geen tweede pad).
+});
+
+test("render: de overgang schaalt alleen de dekking, de vorm blijft gelijk", () => {
+  const alphas = (strength: number) => accentStrokes(render({ nearSnap: glow(strength) }).log).map((entry) => Number(String(entry[1]).split(",").at(-1)!.replace(")", "")));
+  const half = alphas(.5); const full = alphas(1);
+  assert.equal(half.length, full.length); half.forEach((alpha, index) => assert.ok(Math.abs(alpha - full[index] / 2) < 1e-9));
+});

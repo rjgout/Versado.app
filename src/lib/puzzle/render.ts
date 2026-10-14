@@ -1,4 +1,4 @@
-import { tracePuzzleGroup } from "@/lib/puzzle/geometry";
+import { tracePuzzleGroup, tracePuzzleSide } from "@/lib/puzzle/geometry";
 import { groupFor } from "@/lib/puzzle/engine";
 import { groupAnchor, type PuzzleWorktable } from "@/lib/puzzle/worktable";
 import type { PuzzleCamera } from "@/lib/puzzle/viewport";
@@ -19,6 +19,10 @@ const SHADOW = "rgba(29, 42, 60, .28)";
 const LOOSE_STROKE = "rgba(29, 42, 60, .60)";
 const SELECTED_STROKE = "#d97716";
 const HINT_FILL = "rgba(217,119,22,.16)";
+// Bijna-passend: de accentkleur van Versado (--vs-accent, lichte waarde; het bord is in beide thema's licht). Bewust blauw:
+// oranje is selectie en hint, groen is verankerd en een spelerkleur is een lock.
+const NEAR_SNAP_CORE = "21, 101, 192";
+const NEAR_SNAP_BACKING = "255, 255, 255";
 
 /** Waar en hoe één groep nu getekend wordt; `place` vult dit zonder per groep een object aan te maken. */
 export interface GroupPlacement {
@@ -28,6 +32,23 @@ export interface GroupPlacement {
   lifted: boolean;
   /** Kleur van de contour van een groep die een ander vasthoudt, anders null. */
   lockColor: string | null;
+}
+
+/** Eén rand tussen twee stukken, in het groepsframe van `piece` (anker en weergegeven positie van die groep). */
+export interface GlowEdge { piece: number; neighbour: number; anchorPiece: number; x: number; y: number }
+
+/**
+ * Presentatiestatus voor "bijna passend". Alleen weergave: de aanroeper bepaalt met de engine of een verbinding geldig is
+ * en levert hier alleen het resultaat; de renderer beslist niets en wijzigt niets.
+ */
+export interface NearSnapGlow {
+  /** Aantal geldige randen in `edges` (0 of 2: het stilstaande en het gesleepte stuk). */
+  edgeCount: number;
+  edges: readonly [GlowEdge, GlowEdge];
+  /** Geldige plaatsing op het bord: de groepscontour op zijn bordpositie. */
+  slot: { active: boolean; pieceIds: readonly number[]; x: number; y: number };
+  /** 0..1: korte overgang bij binnenkomst; 1 bij verminderde beweging. */
+  strength: number;
 }
 
 export interface PuzzleScene {
@@ -53,6 +74,25 @@ export interface PuzzleScene {
   edges: boolean;
   /** Contourkleur van een verankerde groep; Solo en Samen kiezen hier bewust een andere dekking. */
   anchoredStroke: string;
+  /** Alleen gevuld terwijl de speler zelf een groep sleept binnen de geldige snapafstand. */
+  nearSnap?: NearSnapGlow | null;
+}
+
+/** De gedeelde rand van `piece` met zijn buur, in de celruimte van `piece` (0..1). Zelfde pad voor beide kanten van de aansluiting. */
+function traceSharedSide(path: Path2D, geometry: PuzzleGeometry, piece: number, neighbour: number) {
+  const a = geometry.pieces[piece]; const b = geometry.pieces[neighbour];
+  if (b.column === a.column + 1) { path.moveTo(1, 0); tracePuzzleSide(path, 1, 0, 1, 1, a.right, false); }
+  else if (b.column === a.column - 1) { path.moveTo(0, 1); tracePuzzleSide(path, 0, 1, 0, 0, a.left, true); }
+  else if (b.row === a.row - 1) { path.moveTo(0, 0); tracePuzzleSide(path, 0, 0, 1, 0, a.top, true); }
+  else { path.moveTo(1, 1); tracePuzzleSide(path, 1, 1, 0, 1, a.bottom, false); }
+}
+
+/** Zachte halo, witte onderlaag voor contrast op donkere beeldstukken en een heldere kern; vaste breedtes in schermpixels. */
+function strokeGlow(context: CanvasRenderingContext2D, path: Path2D, scale: number, strength: number, width: number) {
+  context.lineCap = "round"; context.lineJoin = "round";
+  context.strokeStyle = `rgba(${NEAR_SNAP_CORE}, ${.26 * strength})`; context.lineWidth = (width + 6) / scale; context.stroke(path);
+  context.strokeStyle = `rgba(${NEAR_SNAP_BACKING}, ${.7 * strength})`; context.lineWidth = (width + 2) / scale; context.stroke(path);
+  context.strokeStyle = `rgba(${NEAR_SNAP_CORE}, ${.95 * strength})`; context.lineWidth = width / scale; context.stroke(path);
 }
 
 export function renderPuzzle(canvas: HTMLCanvasElement, scene: PuzzleScene): void {
@@ -104,6 +144,20 @@ export function renderPuzzle(canvas: HTMLCanvasElement, scene: PuzzleScene): voi
     context.strokeStyle = active ? SELECTED_STROKE : group.anchored ? scene.anchoredStroke : LOOSE_STROKE; context.lineWidth = (active ? 3 : 1) / scale;
     if (scene.edges) context.stroke(path);
     context.restore();
+  }
+  const glow = scene.nearSnap;
+  if (glow && glow.strength > 0) {
+    if (glow.slot.active) {
+      const key = glow.slot.pieceIds.join(","); let path = paths.get(key);
+      if (!path) { path = new Path2D(); tracePuzzleGroup(path, geometry, glow.slot.pieceIds as number[]); paths.set(key, path); }
+      context.save(); context.translate(glow.slot.x, glow.slot.y); strokeGlow(context, path, scale, glow.strength * .7, 2); context.restore();
+    }
+    for (let index = 0; index < glow.edgeCount; index++) {
+      const edge = glow.edges[index]; const key = `edge:${edge.piece}>${edge.neighbour}`; let path = paths.get(key);
+      if (!path) { path = new Path2D(); traceSharedSide(path, geometry, edge.piece, edge.neighbour); paths.set(key, path); }
+      const piece = geometry.pieces[edge.piece]; const anchor = geometry.pieces[edge.anchorPiece];
+      context.save(); context.translate(edge.x + piece.column - anchor.column, edge.y + piece.row - anchor.row); strokeGlow(context, path, scale, glow.strength, 3); context.restore();
+    }
   }
   // Tijdelijke markers gebruiken de echte canonieke paden. Geen statusmutatie.
   if (target?.type === "LOCATION") {
