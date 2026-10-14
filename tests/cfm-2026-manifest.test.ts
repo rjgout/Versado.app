@@ -44,7 +44,7 @@ test("onvolledige media- en referentiecontrole wordt zichtbaar en niet als volle
   assert.equal(manifestStatus(diagnostics), "BLOCKED");
   assert.ok(diagnostics.some((diagnostic) => diagnostic.code === "MEDIA_INVENTORY_INCOMPLETE"));
   assert.ok(diagnostics.some((diagnostic) => diagnostic.code === "REFERENCE_MAPPING_INCOMPLETE"));
-  assert.ok(diagnostics.some((diagnostic) => diagnostic.code === "RIGHTS_NOT_CLEARED"));
+  assert.ok(!diagnostics.some((diagnostic) => diagnostic.code === "RIGHTS_NOT_CLEARED"));
 });
 
 test("validatie is herhaalbaar en doet geen netwerkverkeer", () => {

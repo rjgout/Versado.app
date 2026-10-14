@@ -67,8 +67,10 @@ export const cfmOldTestament2026NlManifest: StudyManifest = {
   year: 2026,
   canonicalUrl: `${root}/000-contents?lang=nld`,
   verifiedAt: "2026-10-14",
-  // De bron is gecontroleerd; opslag/herpublicatie is niet vrijgegeven.
-  rightsStatus: "BLOCKED",
+  // De projecteigenaar heeft voor dit programma expliciet gebruiksrechten
+  // bevestigd. Schriftelijke bewijsstukken en eventuele voorwaarden horen
+  // administratief buiten de repository beschikbaar te blijven.
+  rightsStatus: "VALID",
   lessons: lessons.map(([sourceKey, startsOn, endsOn, title], index) => ({
     sourceKey,
     periodSourceKey: `cfm-old-testament-2026:${sourceKey}`,
@@ -82,10 +84,11 @@ export const cfmOldTestament2026NlManifest: StudyManifest = {
     scriptureReferences: [title],
     fullContent: "AVAILABLE",
     // De officiële API meldt per les negen img-elementen; semantische selectie
-    // en rechtencontrole volgen pas na toestemming.
+    // en alternatieve teksten worden in fase 3B vastgelegd.
     media: { observedCount: 9, inventoryStatus: "WARNING" },
     sourceStatus: "VALID",
-    // De huidige resolver heeft geen bewezen Oudtestament-editiebewijs.
+    // Een interne verwijzing wordt pas gepubliceerd wanneer de bestaande OTB-
+    // editie en haar concrete boek-, hoofdstuk- en verzenbewijs zijn gevalideerd.
     referenceStatus: "BLOCKED",
   })),
 };

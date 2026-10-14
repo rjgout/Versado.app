@@ -88,16 +88,17 @@ computernetwerk zonder voorafgaande schriftelijke toestemming niet toegestaan.
 De voorwaarden geven ook geen algemene licentie om afbeeldingen lokaal op te
 slaan of volledige CFM-teksten via Versado te herpubliceren.
 
-Daarom is `rightsStatus` bewust `BLOCKED`:
+De projecteigenaar heeft na fase 3A expliciet bevestigd dat Versado volledige
+gebruiksrechten heeft voor de officiële website-inhoud, inclusief teksten,
+afbeeldingen, overige media en studieprogramma's. Daarom is
+`rightsStatus: "VALID"` in het manifest opgenomen. De schriftelijke
+bestaansbewijzen en eventuele specifieke voorwaarden moeten administratief
+buiten deze repository beschikbaar en controleerbaar blijven; er is bewust
+geen licentienummer, contractdatum of nadere voorwaarde gefingeerd.
 
-- volledige tekst opslaan/publiceren: schriftelijke toestemming vereist;
-- afbeeldingen lokaal opslaan/publiceren: schriftelijke toestemming en
-  asset-specifieke beoordeling vereist;
-- bronvermelding: op zichzelf geen verleende herpublicatielicentie;
-- aanvullende toestemming: vereist vóór fase 3B-import of publicatie.
-
-De bronhouder en contactroute staan in de Terms of Use; deze fase doet geen
-juridische aanname en vraagt geen toestemming namens de eigenaar aan.
+Deze bevestiging verandert niets aan de technische publicatiepoort: fase 3B
+mag pas inhoud publiceren nadat de bestaande Nederlandse Bijbeleditie en alle
+te importeren verwijzingen concreet zijn gevalideerd.
 
 ## Voorbereiding voor fase 3B
 
@@ -131,15 +132,37 @@ ontbrekende metadata, ongeldige kalenderdata, incomplete media- en
 referentiecontrole en herhaalbaarheid zonder netwerk.
 
 De validator retourneert `VALID`, `WARNING` of `BLOCKED`. Dit manifest is
-structureel consistent, maar het totaaloordeel is **BLOCKED**, uitsluitend
-door de expliciet vastgelegde rechtenblokkade en de nog ontbrekende bewezen
-Oudtestament-verwijzings- en media-evidence.
+structureel consistent, maar het totaaloordeel is **BLOCKED** door de nog
+ontbrekende bewezen Oudtestament-verwijzings- en media-evidence.
 
 ## Voorwaarden voor fase 3B
 
-Fase 3B mag pas beginnen nadat de eigenaar schriftelijk heeft vastgelegd dat
-de volledige Nederlandstalige tekst en de geselecteerde media in Versado
-mogen worden opgeslagen en gepubliceerd, en nadat per passage resolverbewijs
-en per betekenisvolle afbeelding een media-inventaris bestaan. Zonder die
+Fase 3B mag pas beginnen nadat per passage resolverbewijs en per
+betekenisvolle afbeelding een media-inventaris bestaan. Zonder die technische
 besluiten mag hoogstens dit metadata-manifest worden onderhouden; er mag geen
 import, publicatie of publieke cursus plaatsvinden.
+
+## Correctieronde 3A.1 — interne Bijbelverwijzingen
+
+Versado's bestaande Bijbelimport is de Nederlandse Open Translation Bible:
+`work: old-testament`, `editionKey: otb`, met canonieke boekcodes zoals
+`gen`, `exo` en `isa`. De bestaande readerroute is `/scripture/[chapterId]`;
+de `ReferencePreview` opent alleen na een server-side resolutie en `Meer
+lezen` bewaart via de bestaande reference-trip de terugkeer naar de les.
+Daardoor markeert een preview geen leesstatus, kent geen XP of munten toe en
+verlengt geen reeks.
+
+De huidige resolver accepteert echter alleen vastgepinde bewijsbestanden voor
+Boek van Mormon, Leer en Verbonden en Parel van Grote Waarde. De OTB-collecties
+worden door de importconfiguratie bovendien standaard als niet-zichtbaar
+aangemaakt. Een read-only controle tegen de veilige testdatabase kon de
+vereiste Bijbelstructuur niet uitvoeren omdat die database achter het actuele
+schema loopt (`ContentCollection.publicationState` ontbreekt). Er is daarom
+geen onbewijsbare interne mapping of fallback toegevoegd.
+
+Voor 3B is nog nodig: een actuele, gemigreerde testdatabase met de
+Nederlandstalige OTB-collectie, vastgepinde bewijsgegevens voor boek,
+hoofdstuk en vers, én een expliciete bestaande-publicatiebeslissing voor die
+collectie. Daarna kunnen enkel-, bereik- en samengestelde verwijzingen via
+de bestaande `ReferenceResolver`, preview, reader en return-trip worden
+gevalideerd zonder een tweede Bijbelreader te bouwen.

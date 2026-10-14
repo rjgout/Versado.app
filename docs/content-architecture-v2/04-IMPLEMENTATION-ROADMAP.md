@@ -202,10 +202,12 @@ gepubliceerde inhoud. De eerste CFM-contenttaal is geen open productkeuze.
 | 3C | FSY-conversie en nieuwe adapter, writerhandover | Oude publicaties/drafts/ids/cursuslinks behouden; één schrijver |
 | 3D | Programma-aanbod in Vandaag/Leren/Spelen en admin | Gedeelde actieve les, expliciete huidige-weekactie, correct beschikbare kaarten |
 
-Status 3A: bronmanifest en structurele validatie zijn voorbereid, maar de
-officiële gebruiksvoorwaarden vereisen nog een expliciete schriftelijke
-rechtenbeslissing voor opslag/herpublicatie. Fase 3A is dus niet automatisch
-afgerond en geeft geen toestemming voor import of publicatie.
+Status 3A: de projecteigenaar heeft gebruiksrechten voor de CFM-inhoud
+bevestigd; administratieve bewijsstukken blijven buiten de repository
+controleerbaar. De technische poort blijft dicht totdat de bestaande
+Nederlandstalige OTB-editie, boek-/hoofdstuk-/versbewijzen en media-inventaris
+aantoonbaar gereed zijn. Dit geeft nog geen toestemming voor import of
+publicatie.
 
 ### Bestaande bestanden en componenten
 
