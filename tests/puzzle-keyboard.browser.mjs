@@ -111,11 +111,11 @@ try {
     await canvas.focus(); await canvas.press("Enter"); await canvas.press("ArrowRight"); await canvas.press("ArrowRight"); await canvas.press("Enter");
     await sleep(850); // de selectiewissel heeft p0 verzonden
     await canvas.press("ArrowRight"); await page.getByRole("button", { name: /Terug|Back/ }).first().click();
-    await page.waitForURL(/\\/jigsaw$/, { timeout: 15000 }); await sleep(350);
+    await page.waitForURL(/\/jigsaw$/, { timeout: 15000 }); await sleep(350);
     const snapshot = JSON.parse((await prisma.puzzleSession.findUniqueOrThrow({ where: { id } })).snapshot);
     assert.ok(Math.abs(snapshot.groups.find((g) => g.id === "p0").x - 8.4) < 1e-6, "Samen: p0 bewaard na selectie");
     assert.ok(Math.abs(snapshot.groups.find((g) => g.id === "p1").x - 4.2) < 1e-6, "Samen: vertrek wacht op commit van p1");
-    const events = frames.map((frame) => frame.match(/^\\d*\\["([^"]+)"/)?.[1]).filter(Boolean);
+    const events = frames.map((frame) => frame.match(/^\d*\["([^"]+)"/)?.[1]).filter(Boolean);
     assert.ok(events.filter((event) => event === "puzzle:commit").length <= 2, "Samen: maximaal één commit per buffer");
     assert.deepEqual(errors, []); report.samenExit = { commits: events.filter((event) => event === "puzzle:commit").length, p0: snapshot.groups.find((g) => g.id === "p0").x, p1: snapshot.groups.find((g) => g.id === "p1").x };
     await ctx.close();
