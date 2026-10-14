@@ -110,6 +110,8 @@ function detailPageFor(pathname: string, profileView: string | null, hash: strin
   const puzzle = classifyPuzzleRoute(pathname);
   if (puzzle) {
     const subtitle = puzzle.kind === "coop" ? "puzzleTogether.modes.coop" : puzzle.kind === "match" ? "puzzleTogether.modes.match" : undefined;
+    if (puzzle.kind === "records") return { fallback: puzzle.parent, title: "puzzleRecords.title", forceFallback: true };
+    if (puzzle.kind === "leaderboard") return { fallback: puzzle.parent, title: "puzzleRecords.lbTitle", forceFallback: true };
     return { fallback: puzzle.parent, title: "jigsaw.title", subtitle, forceFallback: true };
   }
   const game = GAME_PAGES[pathname];

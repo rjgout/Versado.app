@@ -29,6 +29,8 @@ model User {
   // dit zelf aanzet, mogen geaccepteerde vrienden reeks, XP, divisie en de
   // bewust gekozen uitgelichte prestaties op het vriendenprofiel zien.
   shareAchievements  Boolean   @default(false)
+  // Legpuzzel 2.0 fase 4: puzzelrecords zichtbaar voor geaccepteerde vrienden. Los van shareAchievements en standaard uit.
+  sharePuzzleRecords Boolean   @default(false)
   passwordHash       String
   // Verhoogd bij een wachtwoordreset/-wijziging zodat alle eerder uitgegeven sessietokens direct ongeldig worden.
   sessionVersion     Int       @default(0)
@@ -319,6 +321,7 @@ model User {
   wordSearchGames   WordSearchGame[]
   puzzleSessions    PuzzleSession[] @relation("PuzzleSessionOwner")
   puzzleRecords     PuzzlePersonalRecord[]
+  puzzleBestRecords PuzzleBestRecord[]
   puzzleParticipations PuzzleSessionParticipant[]
   puzzleInvitesSent PuzzleInvite[] @relation("PuzzleInviteFrom")
   puzzleInvitesReceived PuzzleInvite[] @relation("PuzzleInviteTo")
@@ -3542,6 +3545,7 @@ model PuzzleVariant {
   createdAt    DateTime @default(now())
   sessions     PuzzleSession[]
   records      PuzzlePersonalRecord[]
+  bestRecords  PuzzleBestRecord[]
   matches      PuzzleMatch[]
   @@unique([definitionId, pieceCount, difficulty, rulesVersion])
 }
@@ -3719,6 +3723,41 @@ model PuzzlePersonalRecord {
   completedAt       DateTime
   @@unique([userId, variantId])
   @@index([variantId, elapsedMs])
+}
+
+// Canonieke persoonlijke beste tijden (fase 4). Eén rij per gebruiker, exacte puzzelvariant, spelmodus en
+// hintcategorie: maximaal vier posities per variant. PuzzlePersonalRecord blijft het historische
+// "eerste geldige prestatie"-register en wordt niet meer als beste tijd gelezen.
+enum PuzzleRecordMode {
+  SOLO
+  MATCH
+}
+
+enum PuzzleHintCategory {
+  NO_HINTS
+  WITH_HINTS
+}
+
+model PuzzleBestRecord {
+  id             String @id @default(cuid())
+  userId         String
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variantId      String
+  variant        PuzzleVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  mode           PuzzleRecordMode
+  hintCategory   PuzzleHintCategory
+  elapsedMs      Float
+  hintsUsed      Int
+  extraHintsUsed Int
+  completedAt    DateTime
+  // Aantoonbare bron: de sessie (en bij een wedstrijd de deelnemer) waaruit dit record komt.
+  sessionId      String
+  matchParticipantId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@unique([userId, variantId, mode, hintCategory])
+  @@index([variantId, mode, hintCategory, elapsedMs])
+  @@index([userId, mode])
 }
 
 model KompasProgress {

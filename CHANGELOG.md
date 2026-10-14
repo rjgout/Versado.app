@@ -4,6 +4,14 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Nieuw: persoonlijke puzzelrecords en vriendenranglijsten in de Legpuzzel. Je beste tijd per exacte puzzel
+  (afbeelding, aantal stukjes en moeilijkheid) wordt bijgehouden, apart voor Solo en Tegen elkaar en apart
+  zonder hints en met hints; elke hint telt, ook een gratis inbegrepen hint. Een snellere tijd verbetert je record, een
+  langzamere niet (eerder bleef alleen je eerste tijd staan). Je ziet je records onder "Mijn records en vriendenranglijst"
+  en krijgt een rustige melding bij een nieuw persoonlijk record. Vrienden zien je records alleen als je dat zelf aanzet bij
+  Profiel > Privacy ("Deel mijn puzzelrecords met vrienden"); dat staat standaard uit en is los van het delen van prestaties.
+  Wedstrijden van vóór de nieuwe regels (waarbij de vraag de tijd bepaalde) zijn niet vergelijkbaar en staan niet in de lijst.
+
 - Verbeterd: in de Legpuzzel bij Tegen elkaar telt nu alleen je puzzeltijd: je klok stopt zodra je
   puzzel af is, de snelste tijd wint, en de vraag erna verandert je tijd, plek of uitslag niet (een goed
   antwoord kan je reeks verlengen). Afgeronde gezamenlijke puzzels en wedstrijden staan niet meer bij je

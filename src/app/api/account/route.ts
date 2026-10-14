@@ -41,6 +41,8 @@ const patchSchema = z.object({
   avatarLightAccentId: z.string().nullable().optional(),
   searchableByEmail: z.boolean().optional(),
   shareAchievements: z.boolean().optional(),
+  // Los van shareAchievements: puzzelrecords zichtbaar voor geaccepteerde vrienden (standaard uit).
+  sharePuzzleRecords: z.boolean().optional(),
   emailNotificationsEnabled: z.boolean().optional(),
   pushNotificationsEnabled: z.boolean().optional(),
   dailyReminderTime: z

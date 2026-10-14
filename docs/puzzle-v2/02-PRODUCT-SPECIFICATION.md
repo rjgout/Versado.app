@@ -41,8 +41,8 @@ Daarna kost iedere hint, na bevestiging, exact één persoonlijke hint uit
 de bestaande winkel aan. Ontdekker gebruikt nooit persoonlijke hints.
 Sorteerhulp openen kost niets; uitsluitend Hoek/Rand/Midden is een hintactie.
 Historische hints blijven ongewijzigd en veroorzaken geen afschrijving achteraf.
-Extra hints blijven herkenbaar voor latere records; er wordt nu geen ranglijst
-gebouwd. Locatie- en verbindingshints behouden zoom en pannen alleen minimaal
+Extra hints blijven herkenbaar in records; vanaf fase 4 staan er twee
+recordcategorieën (zonder hints en met hints; zie `20-PHASE-4-RECORDS-AND-PRIVACY.md`). Locatie- en verbindingshints behouden zoom en pannen alleen minimaal
 naar een onzichtbaar doel. De sheet sluit met Escape, houdt focus binnen en
 maakt het bord tijdelijk inert; sluiten herstelt focus naar de vaste menuknop.
 Primaire Solo-CTA’s zijn lokaal volle breedte, maximaal 440px en minimaal 48px.
@@ -78,9 +78,9 @@ schakelen veilig naar pan/pinch. Muisdrag, cursorzoom, trackpad/wiel,
 het bordmenu en een toetsenbordpad gebruiken dezelfde world-coördinaten.
 Gebruik één shell/focusmodel uit `docs/LAYOUT.md`.
 
-Solo bewaart automatisch, behoudt vraag en huidige regel: alleen correct antwoord verlengt reeks, nooit XP. Samen: rechtstreekse vriendenuitnodiging, maximaal vier, gedeelde voortgang, persoonlijke bak/viewport/hints. Alleen server-gevalideerde nieuwe verbinding is betekenisvolle bijdrage; uitnodiging, openen, presence en lock nooit. Per volgende kalenderdag kan een werkelijke bijdrage opnieuw volgens centrale reeksregels tellen. Vraag is optioneel en nooit voorwaarde in Samen.
+Solo bewaart automatisch, behoudt vraag en huidige regel: alleen correct antwoord verlengt reeks, nooit XP. Samen: rechtstreekse vriendenuitnodiging, maximaal vier, gedeelde voortgang, persoonlijke viewport/hints (er is geen persoonlijke stukjesbak: de werktafel is gedeeld; deze zin beschreef het oorspronkelijke ontwerp). Alleen server-gevalideerde nieuwe verbinding is betekenisvolle bijdrage; uitnodiging, openen, presence en lock nooit. Per volgende kalenderdag kan een werkelijke bijdrage opnieuw volgens centrale reeksregels tellen. Vraag is optioneel en nooit voorwaarde in Samen.
 
-Tegen elkaar geeft iedere speler dezelfde variant, eigen bord; server-eindtijd pas na oplossen én correcte verplichte vraag. Live en async delen één matchcontract; alleen start/deadline verschillen. Vriendenranglijst toont uitsluitend zelf en geaccepteerde vrienden: positie, bestaande veilige avatar/handle, beste geldige tijd en hintlabel. Ties: minder extra hints, minder hints, eerdere voltooiing, stabiel id.
+Tegen elkaar geeft iedere speler dezelfde variant, eigen bord; de server-eindtijd staat vast bij het voltooien van de puzzel (regelversie 2). De inhoudelijke vraag staat los van tijd, winnaar en geldigheid en kan alleen de persoonlijke reeks verlengen. *Historisch: in het oorspronkelijke ontwerp (regelversie 1) stopte de klok pas na een correct antwoord; die wedstrijden blijven onder de oude regels en zijn niet vergelijkbaar.* Live en async delen één matchcontract; alleen start/deadline verschillen. Vriendenranglijst (fase 4) toont uitsluitend jezelf en geaccepteerde vrienden die hun puzzelrecords delen (`User.sharePuzzleRecords`, standaard uit): positie, bestaande veilige avatar/handle, beste geldige tijd en hintaantal, per exacte variant, per modus (Solo / Tegen elkaar) en per hintcategorie (zonder / met hints). Ties: minder extra hints, minder hints, eerdere voltooiing, stabiel id.
 
 Nieuwe zichtbare uitleg loopt via Kompas, met alle vertalingen. Geen groepsstart voor Samen en geen wereld- of groepsranglijsten.
 

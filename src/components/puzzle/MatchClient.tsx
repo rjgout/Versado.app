@@ -10,6 +10,8 @@ import { useServerNow } from "@/components/puzzle/serverClock";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
 import { jsonMutation } from "@/lib/data/mutation";
+import { formatPuzzleTime } from "@/lib/puzzle/recordFormat";
+import RecordNotice from "@/components/puzzle/RecordNotice";
 import PuzzleBackTarget from "@/components/puzzle/PuzzleBackTarget";
 import { JIGSAW_ROUTE } from "@/lib/puzzle/navigation";
 import type { MatchView } from "@/lib/puzzle/match";
@@ -17,7 +19,7 @@ import type { MatchView } from "@/lib/puzzle/match";
 type PuzzleState = Parameters<typeof Puzzle>[0]["initial"];
 
 const post = <T,>(body: object) => fetchJson<T>("/api/puzzle/match", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-const formatTime = (ms: number | null) => { if (ms === null) return "–"; const total = Math.floor(ms / 1000); return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`; };
+const formatTime = (ms: number | null) => (ms === null ? "–" : formatPuzzleTime(ms));
 
 // Wedstrijdscherm: lobby, eigen poging en uitslag. De server bepaalt klok, fase en
 // wat zichtbaar mag zijn; dit scherm toont alleen wat getMatch teruggeeft.
@@ -156,6 +158,7 @@ export default function MatchClient({ initial, meId }: { initial: MatchView; meI
           {match.resultRules >= 2 && match.me.status === "FINISHED" && (
             <>
               <p data-official-time><span className="text-sm text-vs-fg-2">{t("puzzleTogether.match.officialTime")}</span> <span className="font-mono text-xl font-extrabold tabular-nums">{formatTime(match.participants.find((p) => p.userId === meId)?.result?.elapsedMs ?? null)}</span></p>
+              {match.me.record && <RecordNotice mode="MATCH" variantId={match.variantId} hintCategory={match.me.record.hintCategory} elapsedMs={match.me.record.elapsedMs} />}
               {/* De vraag staat los van tijd en uitslag; hier de status en eventueel de weg ernaartoe. */}
               {questionPending ? (
                 <div className="space-y-2">

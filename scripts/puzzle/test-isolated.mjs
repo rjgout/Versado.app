@@ -37,7 +37,7 @@ try {
   await run("npm", ["run", "db:generate"], env);
   await run("npx", ["tsx", "--test", "tests/jigsaw.integration.test.ts", "tests/puzzle-solo.integration.test.ts", "tests/puzzle-hint-inventory.integration.test.ts", "tests/kompas.integration.test.ts"], env);
   await run("npx", ["tsx", "scripts/puzzle/prepare-multiplayer-fixture.mjs"], env);
-  await run("npx", ["tsx", "--test", "--test-concurrency=1", "tests/puzzle-coop.integration.test.ts", "tests/puzzle-match.integration.test.ts"], env);
+  await run("npx", ["tsx", "--test", "--test-concurrency=1", "tests/puzzle-coop.integration.test.ts", "tests/puzzle-match.integration.test.ts", "tests/puzzle-records.integration.test.ts", "tests/puzzle-records-backfill.integration.test.ts", "tests/puzzle-leaderboard.integration.test.ts"], env);
   if (process.argv.includes("--multiplayer")) {
     docker(["run", "--rm", "-d", "--name", redisContainer, "-p", "127.0.0.1::6379", "redis:7-alpine"]); hasRedis = true;
     const redisPort = docker(["port", redisContainer, "6379/tcp"]).split(":").at(-1);
@@ -63,7 +63,7 @@ try {
     const selected = process.argv.find(arg => arg.startsWith("--browser-case="))?.slice("--browser-case=".length);
     if (selected && !browserCases.includes(selected)) throw new Error("Onbekende bestaande browsercase");
     for (const name of browserCases.filter(name => !selected || name === selected)) await run("npx", ["tsx", `tests/puzzle-${name}.browser.mjs`], env);
-    if (process.argv.includes("--multiplayer")) await run("npx", ["tsx", "tests/puzzle-multiplayer.browser.mjs"], env);
+    if (process.argv.includes("--multiplayer")) { await run("npx", ["tsx", "tests/puzzle-multiplayer.browser.mjs"], env); await run("npx", ["tsx", "tests/puzzle-navigation.browser.mjs"], env); await run("npx", ["tsx", "tests/puzzle-records.browser.mjs"], env); }
   }
 } catch (error) {
   console.error(error); process.exitCode = 1;
