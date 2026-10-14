@@ -44,7 +44,7 @@ niet-voltooide sessies, foute antwoorden, versie-1-wedstrijden, DNF/INVALID; die
 | Echte browserflow records/privacy (alle 15 stappen, 320 px en 200% tekst) | groen |
 | Navigatie-, multiplayer-, flow-, mobiel-, drag-, difficulty-, hint-browsersuites | groen |
 | `tsc`, `prisma validate`, eslint (0 fouten), i18n (5 talen gelijk), schone `npm run build` | groen |
-| Volledige `tests/*.test.ts` vs `main` op dezelfde opzet | zie hieronder |
+| Volledige `tests/*.test.ts` op een deels geseede database, `main` vs deze branch | `main`: 891 geslaagd / 34 mislukt (basislijn); branch: 908 geslaagd / 37 mislukt. Alle 34 basislijnfouten zijn identiek (tests met vaste databasenaam of ontbrekende inhoud). De 3 extra fouten zijn nieuwe wedstrijdtests die `content_bom` (legpuzzelinhoud) nodig hebben, die in die database ontbreekt (`FORBIDDEN`, net als de andere multiplayertests daar); op de voorbereide testdatabases slagen ze (82/82). |
 
 ## Prestaties (150 en 300 stukken)
 Server (4 gelijktijdige spelers, één PostgreSQL): snapshot 11,5 KB (150) / 24,1 KB (300); delta ≈ 150 B; commit p50/p95 47/75 ms (150) en 54/77 ms (300);
