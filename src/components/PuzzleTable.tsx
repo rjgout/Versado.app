@@ -7,6 +7,7 @@ import { useT } from "@/components/I18nProvider";
 import { createPuzzleGeometry } from "@/lib/puzzle/geometry";
 import { renderPuzzle } from "@/lib/puzzle/render";
 import { createNearSnapTracker, prefersReducedMotion } from "@/lib/puzzle/nearSnap";
+import { createCompletionGate, createPuzzleMotion, frameTime, type RemotePlacement } from "@/lib/puzzle/motion";
 import { boardSnapTarget, findSnapConnection, groupFor } from "@/lib/puzzle/engine";
 import { clampGroupPosition, groupMemberAt, puzzleRenderOrder, puzzleWorktable } from "@/lib/puzzle/worktable";
 import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
@@ -22,7 +23,7 @@ type Point = { x: number; y: number };
 export interface TableLock { groupId: string; userId: string; expiresAt: string }
 export interface TableOperation { kind: "move"; groupId: string; x: number; y: number }
 export type TableCommit = { kind: "move"; groupId: string; x: number; y: number } | { kind: "rotate"; groupId: string } | { kind: "connect"; a: number; b: number } | { kind: "anchor"; groupId: string };
-export interface PuzzleTableHandle { fit: () => void; zoom: (factor: number) => void; repaint: () => void; selected: () => number | null; select: (piece: number | null) => void; focusWorld: (point: Point) => void }
+export interface PuzzleTableHandle { /** Roept `done` aan zodra de laatste bevestigde snap getoond is (direct zonder animatie); alleen presentatie. */ settle: (done: () => void) => void; fit: () => void; zoom: (factor: number) => void; repaint: () => void; selected: () => number | null; select: (piece: number | null) => void; focusWorld: (point: Point) => void }
 
 export interface PuzzleTableProps {
   image: string; seed: string; geometryVersion: number; pieceCount: PuzzlePieceCount; difficulty: PuzzleDifficulty; rulesVersion: number;
@@ -55,7 +56,7 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
   const t = useT();
   const { image, seed, geometryVersion, pieceCount, difficulty, rulesVersion } = props;
   const geometry = useMemo(() => createPuzzleGeometry(pieceCount, seed, geometryVersion), [pieceCount, seed, geometryVersion]);
-  const table = useMemo(() => puzzleWorktable(geometry), [geometry]);
+  const table = useMemo(() => puzzleWorktable(geometry), [geometry]); const motion = useMemo(() => createPuzzleMotion(geometry), [geometry]); const completion = useMemo(() => createCompletionGate(), []);
   const policy = puzzlePolicy(difficulty, rulesVersion);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const picture = useRef<HTMLImageElement | null>(null);
@@ -64,6 +65,7 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
   const frame = useRef<number | null>(null);
   const paths = useRef(new Map<string, Path2D>());
   const nearSnap = useRef(createNearSnapTracker());
+  const remoteSpot = useRef<RemotePlacement>({ x: 0, y: 0 }); const lockedByOthers = useRef(new Set<string>());
   const pointers = useRef(new Map<number, Point>());
   const drag = useRef<{ pointer: number; groupId: string; offset: Point; grab: Promise<string | null>; token: string | null; released: boolean; local: Point | null } | null>(null);
   const pan = useRef<{ pointer: number; point: Point; camera: PuzzleCamera } | null>(null);
@@ -92,33 +94,51 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
     const canvas = canvasRef.current; if (!canvas) return;
     const p = propsRef.current; const snapshot = p.getSnapshot();
     const complete = snapshot.completedAt !== null; const mine = drag.current?.groupId ?? null;
-    const now = Date.now(); const remote = p.remoteDrags.current;
+    const now = Date.now(); const stamp = frameTime(); const remoteAll = p.remoteDrags.current;
+    // Verliest een andere speler zijn lock (verlopen of losgelaten), dan stopt het volgen van zijn sleepbeweging direct.
+    let remote: ReadonlyMap<string, { x: number; y: number; until: number }> = remoteAll;
+    for (const lock of p.locks) if (lock.userId !== p.meId && Date.parse(lock.expiresAt) > now) lockedByOthers.current.add(lock.groupId);
+    if (lockedByOthers.current.size) {
+      let dropped: Map<string, { x: number; y: number; until: number }> | null = null;
+      for (const id of lockedByOthers.current) {
+        if (p.locks.some((lock) => lock.groupId === id && lock.userId !== p.meId && Date.parse(lock.expiresAt) > now)) continue;
+        lockedByOthers.current.delete(id); if (remoteAll.has(id)) (dropped ??= new Map(remoteAll)).delete(id);
+      }
+      if (dropped) remote = dropped;
+    }
+    // De bevestigde stand staat al in `snapshot`; remote bewegingen worden tussen de ontvangen punten gevolgd en bevestigde snaps glijden kort.
+    motion.update({ snapshot, remote, now: stamp, wall: now, enabled: !prefersReducedMotion(), maxDistance: Math.max(policy.snap, policy.boardSnapDistance) + .1 });
     // Een actieve (eigen of andermans) groep ligt tijdens het slepen bovenop.
     const order = puzzleRenderOrder(snapshot.groups, mine);
     const topRemote = [...remote.keys()].filter((id) => (remote.get(id)?.until ?? 0) > now);
-    const ordered = topRemote.length ? [...order.filter((g) => !topRemote.includes(g.id)), ...order.filter((g) => topRemote.includes(g.id))] : order;
+    const ordered = motion.groups(topRemote.length ? [...order.filter((g) => !topRemote.includes(g.id)), ...order.filter((g) => topRemote.includes(g.id))] : order, stamp);
+    // Een voltooide puzzel toont zijn eindweergave pas als de laatste bevestigde snap klaar is.
+    const settled = complete && !motion.gliding(stamp);
+    completion.tick({ now: stamp, complete, animating: motion.gliding(stamp), reduced: prefersReducedMotion() });
     // Alleen de speler die sleept ziet dit, lokaal berekend: pas zodra de eigen greep is gelukt en zolang niemand anders de groep vasthoudt.
     const active = drag.current; const moving = active?.token && !active.released ? snapshot.groups.find((group) => group.id === active.groupId) : undefined;
     const taken = active ? p.locks.some((lock) => lock.groupId === active.groupId && lock.userId !== p.meId && Date.parse(lock.expiresAt) > now) : false;
-    const glow = active && moving && !complete && !taken ? nearSnap.current.update({ snapshot, geometry, difficulty, rulesVersion, groupId: moving.id, x: active.local?.x ?? moving.x, y: active.local?.y ?? moving.y, now: performance.now(), reducedMotion: prefersReducedMotion() }) : nearSnap.current.reset();
-    if (nearSnap.current.animating) schedule();
+    const glow = active && moving && !complete && !taken ? nearSnap.current.update({ snapshot, geometry, difficulty, rulesVersion, groupId: moving.id, x: active.local?.x ?? moving.x, y: active.local?.y ?? moving.y, now: stamp, reducedMotion: prefersReducedMotion() }) : nearSnap.current.reset();
+    if (nearSnap.current.animating || motion.active(stamp) || completion.waiting) schedule();
     renderPuzzle(canvas, {
       geometry, table, camera: camera.current, image: picture.current, paths: paths.current, snapshot, groups: ordered,
       place: (group, out) => {
         const local = drag.current?.groupId === group.id && drag.current.local ? drag.current.local : null;
+        const followed = local ? null : motion.remoteAt(group.id, stamp, remoteSpot.current);
         const far = remote.get(group.id); const remotePos = far && far.until > now ? far : null;
-        out.x = local?.x ?? remotePos?.x ?? group.x; out.y = local?.y ?? remotePos?.y ?? group.y;
-        out.lifted = group.id === mine || remotePos !== null;
+        out.x = local?.x ?? followed?.x ?? remotePos?.x ?? group.x; out.y = local?.y ?? followed?.y ?? remotePos?.y ?? group.y;
+        out.lifted = group.id === mine || followed !== null || remotePos !== null;
         const lock = p.locks.find((candidate) => candidate.groupId === group.id && Date.parse(candidate.expiresAt) > now);
-        out.lockColor = !complete && lock && lock.userId !== p.meId ? p.colorOf(lock.userId) : null;
+        out.lockColor = !settled && lock && lock.userId !== p.meId ? p.colorOf(lock.userId) : null;
       },
       selectedPiece: selectedRef.current, hint: p.hint?.target,
-      backdrop: !complete && (policy.showOutline || policy.showGhost), ghost: !complete && policy.showGhost, outline: !complete && policy.showOutline,
-      edges: !complete, anchoredStroke: "rgba(43, 103, 99, .35)", nearSnap: glow,
+      backdrop: !settled && (policy.showOutline || policy.showGhost), ghost: !settled && policy.showGhost, outline: !settled && policy.showOutline,
+      edges: !settled, anchoredStroke: "rgba(43, 103, 99, .35)", nearSnap: glow,
     });
   }
 
   useImperativeHandle(ref, () => ({
+    settle: (done: () => void) => { completion.request(done, frameTime()); schedule(); },
     fit: () => { const canvas = canvasRef.current; if (!canvas) return; camera.current = fitCamera({ width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds); schedule(); },
     zoom: (factor: number) => { const canvas = canvasRef.current; if (!canvas) return; camera.current = zoomCamera(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds, factor, { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 }); schedule(); },
     repaint: schedule,
@@ -131,7 +151,7 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
       camera.current.y += Math.max(margin, Math.min(canvas.clientHeight - margin, screen.y)) - screen.y;
       constrain(); schedule();
     },
-  }), [table, schedule, setSelected]); // eslint-disable-line react-hooks/exhaustive-deps
+  }), [table, schedule, setSelected, completion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { schedule(); }, [props.paintKey, props.hint, props.locks, schedule]);
 
@@ -147,7 +167,7 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
       viewport.current = next; schedule();
     };
     const observer = canvas ? new ResizeObserver(resize) : null; if (canvas) { observer?.observe(canvas); resize(); }
-    return () => { mounted.current = false; img.onload = null; observer?.disconnect(); if (frame.current !== null) cancelAnimationFrame(frame.current); frame.current = null; };
+    return () => { mounted.current = false; img.onload = null; observer?.disconnect(); motion.clear(); completion.cancel(); if (frame.current !== null) cancelAnimationFrame(frame.current); frame.current = null; };
     // De camera hoort bij dit scherm; een gedeelde update reset hem nooit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [image, geometry, table]);

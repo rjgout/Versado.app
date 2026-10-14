@@ -1,0 +1,119 @@
+{
+  "solo-desktop": {
+    "positions": 10,
+    "glideMs": 67,
+    "busyMs": 129,
+    "start": [
+      5.69,
+      4.58
+    ],
+    "final": [
+      5.49,
+      4.48
+    ]
+  },
+  "solo-phone": {
+    "positions": 12,
+    "glideMs": 167,
+    "busyMs": 149,
+    "start": [
+      5.7,
+      4.57
+    ],
+    "final": [
+      5.48,
+      4.47
+    ]
+  },
+  "solo-landscape": {
+    "positions": 12,
+    "glideMs": 150,
+    "busyMs": 136,
+    "start": [
+      5.7,
+      4.57
+    ],
+    "final": [
+      5.48,
+      4.47
+    ]
+  },
+  "solo-reduced": {
+    "positions": 2
+  },
+  "solo-complete": {
+    "status": "COMPLETED"
+  },
+  "solo-unmount": {
+    "idleDraws": 0,
+    "errors": 0
+  },
+  "samen-desktop": {
+    "positionsA": 10,
+    "positionsB": 11,
+    "finalA": [
+      5.49,
+      4.48
+    ],
+    "finalB": [
+      5.49,
+      4.48
+    ],
+    "serverGroups": 23,
+    "socketEvents": [
+      "puzzle:commit",
+      "puzzle:drag",
+      "puzzle:lock",
+      "puzzle:release"
+    ],
+    "requests": 3
+  },
+  "samen-phone": {
+    "positionsA": 8,
+    "positionsB": 11,
+    "finalA": [
+      5.49,
+      4.48
+    ],
+    "finalB": [
+      5.49,
+      4.48
+    ],
+    "serverGroups": 23,
+    "socketEvents": [
+      "puzzle:commit",
+      "puzzle:drag",
+      "puzzle:lock",
+      "puzzle:release"
+    ],
+    "requests": 2
+  },
+  "remote-smooth": {
+    "frames": 90,
+    "movedFrames": 65,
+    "positions": 66,
+    "biggestStep": 0.085,
+    "spanMs": 1483
+  },
+  "remote-reduced": {
+    "frames": 91,
+    "movedFrames": 12,
+    "positions": 13,
+    "biggestStep": 0.427,
+    "spanMs": 1500
+  },
+  "samen-simultaan": {
+    "serverGroups": 22,
+    "expected": 22
+  },
+  "samen-reconnect": {
+    "finalA": [
+      5.49,
+      4.48
+    ],
+    "finalB": [
+      5.49,
+      4.48
+    ]
+  }
+}

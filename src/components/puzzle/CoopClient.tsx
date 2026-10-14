@@ -6,6 +6,7 @@ import { JIGSAW_ROUTE } from "@/lib/puzzle/navigation";
 import NextImage from "next/image";
 import { Ellipsis, Lightbulb, Users } from "lucide-react";
 import FocusLayout from "@/components/versado/FocusLayout";
+import { COMPLETION_MAX_WAIT_MS } from "@/lib/puzzle/motion";
 import PuzzleTable, { type PuzzleTableHandle, type TableCommit, type TableLock } from "@/components/PuzzleTable";
 import PuzzleHintPanel from "@/components/PuzzleHintPanel";
 import UserAvatar from "@/components/UserAvatar";
@@ -66,6 +67,8 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
   const [error, setError] = useState(""); const [busyHint, setBusyHint] = useState(false);
   const [selected, setSelectedPiece] = useState<number | null>(null);
   const [completed, setCompleted] = useState(initial.snapshot.completedAt !== null);
+  // De server legt voltooiing en eindtijd direct vast (`completed`); de kaart verschijnt pas nadat de laatste snap getoond is (`revealed`).
+  const [revealed, setRevealed] = useState(initial.snapshot.completedAt !== null);
   const [counted, setCounted] = useState(false);
   const table = useRef<PuzzleTableHandle>(null); const menuButton = useRef<HTMLButtonElement>(null);
   const remoteDrags = useRef(new Map<string, { x: number; y: number; until: number }>());
@@ -74,6 +77,13 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
   const geometry = useMemo(() => createPuzzleGeometry(state.pieceCount, state.seed, state.geometryVersion), [state.pieceCount, state.seed, state.geometryVersion]);
   const colors = useMemo(() => new Map(state.participants.map((participant, index) => [participant.userId, PALETTE[index % PALETTE.length]])), [state.participants]);
 
+  // Voltooiing (via delta, resync of bericht) wacht kort op de laatste snap; één keer, ook bij herhaalde updates of herverbinden.
+  useEffect(() => {
+    if (!completed || revealed) return;
+    const reveal = () => setRevealed(true); const failsafe = setTimeout(reveal, COMPLETION_MAX_WAIT_MS + 100);
+    if (table.current) table.current.settle(reveal); else reveal();
+    return () => clearTimeout(failsafe);
+  }, [completed, revealed]);
   useEffect(() => { if (!message) return; const id = setTimeout(() => setMessage(""), 4000); return () => clearTimeout(id); }, [message]);
   // Terug = het puzzeloverzicht (replace, geen extra geschiedenisitem) en verlaat de gezamenlijke puzzel nooit:
   // definitief verlaten is de aparte actie "Puzzel verlaten" met bevestiging.
@@ -203,7 +213,7 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
     try { await post({ action: "leave", sessionId: initial.id }); router.replace(JIGSAW_ROUTE); } catch (cause) { setError(cause instanceof Error ? cause.message : t("jigsaw.failed")); }
   }
 
-  if (completed) {
+  if (completed && revealed) {
     return <FocusLayout className="page-fill max-w-none items-center justify-center gap-5 py-4 text-center">
       <div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-vs-surface shadow-lg"><NextImage src={state.image} alt={t("jigsaw.completedImage")} width={1440} height={960} unoptimized priority className="h-auto max-h-[68dvh] w-full object-contain" /></div>
       <div><h1 className="text-2xl font-extrabold text-vs-fg">{t("puzzleTogether.coop.completeTitle")}</h1><p className="mt-2 text-vs-fg-2">{t("puzzleTogether.coop.completeText")}</p></div>
