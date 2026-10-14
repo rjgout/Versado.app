@@ -290,9 +290,10 @@ test("microfoon: opnieuw starten na stoppen levert een schone nieuwe sessie zond
 
 import { hymnsPocAccess } from "../src/lib/hymns/access";
 
-test("toegang: in productie bestaat de proef niet zonder vlag en is hij daarmee alleen voor beheerders", () => {
-  assert.equal(hymnsPocAccess({ production: true, flag: undefined, loggedIn: true, isAdmin: true }), "hidden");
+test("toegang: in productie voor admins, noodstop en gewone gebruikers geblokkeerd", () => {
+  assert.equal(hymnsPocAccess({ production: true, flag: undefined, loggedIn: true, isAdmin: true }), "allow");
   assert.equal(hymnsPocAccess({ production: true, flag: "0", loggedIn: true, isAdmin: true }), "hidden");
+  assert.equal(hymnsPocAccess({ production: true, flag: undefined, loggedIn: true, isAdmin: false }), "hidden");
   assert.equal(hymnsPocAccess({ production: true, flag: "1", loggedIn: true, isAdmin: false }), "hidden");
   assert.equal(hymnsPocAccess({ production: true, flag: "1", loggedIn: false, isAdmin: false }), "login");
   assert.equal(hymnsPocAccess({ production: true, flag: "1", loggedIn: true, isAdmin: true }), "allow");
