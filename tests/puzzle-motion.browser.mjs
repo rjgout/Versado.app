@@ -51,20 +51,34 @@ async function prepare(page, geometry, snapshot) {
 }
 /** Meet per beeld het zwaartepunt van een gekleurd stuk (in wereld-units) rond een gebied; loopt tot stopTrack. */
 async function startTrack(page, env, colour, around) {
-  await page.evaluate(({ colour, around, camera, tolerance }) => {
+  await page.evaluate(({ colour, around, camera, tolerance, captureOn }) => {
     const canvas = document.querySelector("canvas"); const ratio = canvas.width / canvas.clientWidth; const ctx = canvas.getContext("2d", { willReadFrequently: true });
     const left = Math.max(0, Math.floor((camera.x + (around.x - around.r) * camera.scale) * ratio)); const top = Math.max(0, Math.floor((camera.y + (around.y - around.r) * camera.scale) * ratio));
     const width = Math.min(canvas.width - left, Math.ceil(2 * around.r * camera.scale * ratio)); const height = Math.min(canvas.height - top, Math.ceil(2 * around.r * camera.scale * ratio));
-    window.__track = []; window.__tracking = true; const started = performance.now(); let lastDraws = window.__draws;
+    window.__track = []; window.__crops = []; window.__capture = !!captureOn; window.__tracking = true; const started = performance.now(); let lastDraws = window.__draws;
     const loop = (time) => {
       if (!window.__tracking) return;
       const data = ctx.getImageData(left, top, width, height).data; let sx = 0, sy = 0, n = 0;
       for (let i = 0, p = 0; i < data.length; i += 4, p++) if (Math.abs(data[i] - colour[0]) < tolerance && Math.abs(data[i + 1] - colour[1]) < tolerance && Math.abs(data[i + 2] - colour[2]) < tolerance) { sx += p % width; sy += Math.floor(p / width); n++; }
       window.__track.push({ t: +(time - started).toFixed(1), n, x: n ? ((left + sx / n) / ratio - camera.x) / camera.scale : null, y: n ? ((top + sy / n) / ratio - camera.y) / camera.scale : null, drawn: window.__draws !== lastDraws }); lastDraws = window.__draws;
+      if (window.__capture && window.__draws !== window.__lastCropDraw && window.__crops.length < 60) { window.__lastCropDraw = window.__draws; window.__crops.push({ t: +(time - started).toFixed(0), image: new ImageData(new Uint8ClampedArray(data), width, height) }); }
       requestAnimationFrame(loop);
     };
     requestAnimationFrame(loop);
-  }, { colour, around, camera: env.camera, tolerance: 28 });
+  }, { colour, around, camera: env.camera, tolerance: 28, captureOn: !!process.env.FRAMES });
+}
+/** Contactblad van de opgenomen beelden (alleen met FRAMES=1): elk beeld waarin het bord opnieuw getekend werd, met tijdstempel. */
+async function saveSheet(page, name, maxFrames = 14) {
+  if (!process.env.FRAMES) return;
+  const url = await page.evaluate((limit) => {
+    const crops = window.__crops; if (!crops.length) return null;
+    const pick = crops.length <= limit ? crops : crops.filter((_, index) => index % Math.ceil(crops.length / limit) === 0);
+    const { width, height } = pick[0].image; const columns = Math.min(7, pick.length); const rows = Math.ceil(pick.length / columns); const sheet = document.createElement("canvas"); sheet.width = columns * (width + 6) + 6; sheet.height = rows * (height + 22) + 6;
+    const ctx = sheet.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, sheet.width, sheet.height); ctx.font = "14px sans-serif";
+    pick.forEach((crop, index) => { const x = 6 + (index % columns) * (width + 6); const y = 6 + Math.floor(index / columns) * (height + 22); ctx.putImageData(crop.image, x, y + 16); ctx.fillStyle = "#000"; ctx.fillText(`${crop.t} ms`, x + 2, y + 12); ctx.strokeStyle = "#888"; ctx.strokeRect(x - .5, y + 15.5, width + 1, height + 1); });
+    return sheet.toDataURL("image/png");
+  }, maxFrames);
+  if (url) writeFileSync(`${output}/frames-${name}.png`, Buffer.from(url.split(",")[1], "base64"));
 }
 const stopTrack = (page) => page.evaluate(() => { window.__tracking = false; return window.__track; });
 const distinct = (track) => { const seen = []; for (const sample of track) if (sample.x !== null && !seen.some((value) => Math.abs(value.x - sample.x) < .004 && Math.abs(value.y - sample.y) < .004)) seen.push(sample); return seen; };
@@ -99,7 +113,7 @@ try {
     const released = Date.now(); await input.down(grab); await input.up();
     await page.waitForFunction(() => document.querySelector("canvas").parentElement.getAttribute("aria-busy") === "true", null, { timeout: 3000, polling: "raf" }).catch(() => undefined);
     await page.waitForFunction(() => document.querySelector("canvas").parentElement.getAttribute("aria-busy") === "false", null, { timeout: 8000, polling: "raf" }); const busyMs = Date.now() - released; await sleep(700);
-    const track = await stopTrack(page); const series = distinct(track); const final = series.at(-1); const start = series[0];
+    const track = await stopTrack(page); await saveSheet(page, `solo-${device}`); const series = distinct(track); const final = series.at(-1); const start = series[0];
     const moved = track.filter((sample) => sample.x !== null && (Math.abs(sample.x - start.x) > .02 || Math.abs(sample.y - start.y) > .02));
     const startAt = moved[0]?.t ?? 0; const rows = track.filter((sample) => sample.x !== null); const endAt = rows.find((sample, index) => rows.slice(index).every((later) => Math.abs(later.x - (start.x - .2)) <= .035 && Math.abs(later.y - (start.y - .1)) <= .035))?.t ?? 0;
     const resumed = await s.api({ action: "resume", sessionId: s.state.id });
@@ -117,7 +131,7 @@ try {
   {
     const s = await soloSession("desktop", (snapshot) => { place(snapshot.groups, 0, 4, 4); place(snapshot.groups, 1, 5.2, 4.1); return snapshot; }, { options: { reducedMotion: "reduce" } });
     await startTrack(s.page, s.env, GREEN, { x: 5.7, y: 4.6, r: 2.2 }); await sleep(100); await s.input.down(s.env.screen(5.7, 4.6)); await s.input.up(); await sleep(900);
-    const series = distinct(await stopTrack(s.page)); report["solo-reduced"] = { positions: series.length };
+    const reducedTrack = await stopTrack(s.page); await saveSheet(s.page, "solo-reduced"); const series = distinct(reducedTrack); report["solo-reduced"] = { positions: series.length };
     assert.ok(series.length <= 2, `reduced motion: direct de bevestigde stand, geen tussenstappen (${series.length})`); await s.context.close();
   }
   // --- Solo: voltooien tijdens de animatie en unmount tijdens de animatie
@@ -166,7 +180,7 @@ try {
       const around = { x: 5.7, y: 4.6, r: 2.2 }; await startTrack(A.page, A.env, GREEN, around); await startTrack(B.page, B.env, GREEN, around); await sleep(150);
       const sentBefore = A.sockets.length; const requestsBefore = A.requests.length;
       const grab = A.env.screen(5.7, 4.6); await A.input.down(grab); await A.input.move({ x: grab.x + 1, y: grab.y }, 1); await A.input.up(); await sleep(1100);
-      const seriesA = distinct(await stopTrack(A.page)); const seriesB = distinct(await stopTrack(B.page));
+      const trackA = await stopTrack(A.page); await saveSheet(A.page, `samen-${device}-dragger`); const trackB = await stopTrack(B.page); await saveSheet(B.page, `samen-${device}-other`); const seriesA = distinct(trackA); const seriesB = distinct(trackB);
       const server = await prisma.puzzleSession.findUniqueOrThrow({ where: { id } }); const groups = JSON.parse(server.snapshot).groups;
       report[`samen-${device}`] = { positionsA: seriesA.length, positionsB: seriesB.length, finalA: [+seriesA.at(-1).x.toFixed(2), +seriesA.at(-1).y.toFixed(2)], finalB: [+seriesB.at(-1).x.toFixed(2), +seriesB.at(-1).y.toFixed(2)], serverGroups: groups.length };
       assert.equal(groups.length, snapshot.groups.length - 1, `Samen ${device}: de server heeft de verbinding vastgelegd`);
@@ -188,7 +202,7 @@ try {
       await startTrack(B.page, B.env, [230, 140, 40], { x: 6.5, y: 8, r: 3.5 });
       const from = A.env.screen(4.5, 8); await A.input.down(from);
       for (let step = 1; step <= 14; step++) { await A.input.move({ x: from.x + step * .22 * A.env.camera.scale, y: from.y + Math.sin(step / 3) * 8 }, 1); await sleep(65); }
-      await sleep(350); const trackB = await stopTrack(B.page); await A.input.up(); await sleep(500);
+      await sleep(350); const trackB = await stopTrack(B.page); await saveSheet(B.page, `remote-${reduced ? "reduced" : "smooth"}`, 20); await A.input.up(); await sleep(500);
       const rows = trackB.filter((sample) => sample.x !== null); const times = rows.map((sample) => sample.t); const moved = distinct(rows);
       const gaps = rows.slice(1).map((sample, index) => Math.hypot(sample.x - rows[index].x, sample.y - rows[index].y)); const biggest = Math.max(...gaps);
       const frames = rows.filter((sample, index) => index && (Math.abs(sample.x - rows[index - 1].x) > .002 || Math.abs(sample.y - rows[index - 1].y) > .002)).length;
