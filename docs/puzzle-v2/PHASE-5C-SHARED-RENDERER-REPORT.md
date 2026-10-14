@@ -16,7 +16,7 @@ Beide tekenden achtergrond, groepen, schaduw, selectie, hintmarkeringen en hield
 - **Blijft in de componenten**: interactie (pointer/touch/toets), camera, puzzelstatus, netwerk en locks, animatieplanning (`animateSnap` van Solo, ongewijzigd; Samen heeft nog geen snapanimatie, dat is fase 5D), lifecycle, toegankelijkheid, `puzzleRenderOrder`/remote-volgorde.
 - **Prestatiekeuzes**: de scène wordt per frame als één object aangemaakt; `place` vult één hergebruikt `GroupPlacement`-object (geen object per groep per frame); Path2D-cache en canvas-instellingen zijn identiek aan voorheen; geen extra tekenoperaties, netwerkverkeer of serveracties. Het bestand `PuzzleTable.tsx` is 75 regels korter, `JigsawV2Client.tsx` 68.
 
-Gewijzigd: `src/lib/puzzle/render.ts` (nieuw, 118 regels), `src/components/JigsawV2Client.tsx`, `src/components/PuzzleTable.tsx`, `tests/puzzle-render.test.ts` (nieuw, opgenomen in `npm run test:puzzle`), `package.json` (alleen die testlijst), meetgereedschap en bewijs in `docs/puzzle-v2/audit-evidence/phase-5c/`.
+Gewijzigd: `src/lib/puzzle/render.ts` (nieuw, 120 regels), `src/components/JigsawV2Client.tsx`, `src/components/PuzzleTable.tsx`, `tests/puzzle-render.test.ts` (nieuw, opgenomen in `npm run test:puzzle`), `package.json` (alleen die testlijst), meetgereedschap en bewijs in `docs/puzzle-v2/audit-evidence/phase-5c/`.
 
 ## Pixelvergelijking vóór/na
 Gereedschap: `phase-5c/render-compare.mjs` (echte productiebuild, echte browser, geïsoleerde database, echte pointer/touch). Per scenario een sha256 van de canvaspixels (`canvas.toDataURL`). Deterministische testtoestand: een samengestelde groep (stukken 0-1-2), een verankerde groep, MASTER-draaiingen. Schermen: telefoon 390×844 (DPR 3 → canvas-DPR 2), landscape 740×360, desktop 1280×900.
@@ -49,7 +49,7 @@ Scripts: `phase-5c/perf-render.mjs` (400 pointermoves met volledig beeld, 390×7
 | Samen 150 vóór → na | 317 → 390 | 765 → 689 | 7,3 → 6,5 | 16,8 → 16,7 | 1 → 0 |
 | Samen 300 vóór → na | 302 → 343 | 1208 → 1046 | 7,9 → 8,2 | 33,4 → 33,4 | 2 → 1 |
 | Solo 96 vóór → na | 540 → 531 | 916 → 902 | 7,2 → 6,2 | 16,7 → 16,8 | 0 → 1 |
-Conclusie: geen aantoonbare verslechtering; de scripttijd is 1-12% lager, binnen de ruis van deze meetmethode. De eerste rendertijd varieert per run met paginalaad (netwerk, hydratatie) en wordt niet door de tekenmodule bepaald. De losse frames > 50 ms (Solo 96: 1, Samen 300: 1) zijn enkelvoudige uitschieters die ook in de basislijn voorkomen (Samen 300: 2). Netwerkverkeer en serveracties zijn ongewijzigd (zelfde code voor acties; `puzzle-perf` toont dezelfde websocketberichten).
+Conclusie: geen aantoonbare verslechtering; de scripttijd is 1-12% lager, binnen de ruis van deze meetmethode. De eerste rendertijd varieert per run met paginalaad (netwerk, hydratatie) en wordt niet door de tekenmodule bepaald. De losse frames > 50 ms (Solo 96: 1, Samen 300: 1) zijn enkelvoudige uitschieters die ook in de basislijn voorkomen (Samen 300: 2). Netwerkverkeer en serveracties zijn ongewijzigd (de actie- en netwerkcode is niet aangeraakt; de renderer doet geen verzoeken).
 
 ## Resterende risico's
 - Pixelgelijkheid is aangetoond voor de genoemde scenario's en schermen op Chromium; andere engines (Safari) kunnen dezelfde canvasaanroepen anders renderen, maar de aanroepen zelf zijn ongewijzigd.
