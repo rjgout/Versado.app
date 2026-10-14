@@ -278,6 +278,7 @@ export const nl = {
   },
   // Namen van pagina's en spellen; dezelfde naam op elke plek één vertaling.
   pages: {
+    hymns: "Lofzangen",
     tools: "Hulpmiddelen",
     dictionary: "Woordenboek",
     bookmarks: "Bladwijzers",

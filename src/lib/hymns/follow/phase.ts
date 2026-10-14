@@ -150,6 +150,8 @@ export class SingingPhase {
   private interludes = 0;
   /** De eerste rondegrens na een handmatig zangbegin telt altijd als einde van het gezongen couplet. */
   private firstWrapCounts = false;
+  /** Laatste rondegrens zonder genoeg bewijs: een pauze die er vlak na begint kan het bewijs alsnog aanvullen. */
+  private openBoundary: { time: number; score: number; evidence: string[] } | null = null;
   /** Handmatig zangbegin vlak voor een rondegrens: het zingen begint pas bij die grens. */
   private pendingManual = false;
 
@@ -226,7 +228,10 @@ export class SingingPhase {
     if (quiet) {
       if (this.quietSince === null) this.quietSince = o.time;
     } else {
-      if (this.quietSince !== null && o.time - this.quietSince >= cfg.minGapSeconds && this.musicStart !== null) this.lastGap = { start: this.quietSince, end: o.time };
+      if (this.quietSince !== null && o.time - this.quietSince >= cfg.minGapSeconds && this.musicStart !== null) {
+        this.lastGap = { start: this.quietSince, end: o.time };
+        this.lateGap(this.lastGap, events);
+      }
       this.quietSince = null;
       if (this.musicStart !== null) this.heardBeats += (Math.max(0, o.bpm) / 60) * dt;
       this.updateLevelStep(o);
@@ -330,6 +335,7 @@ export class SingingPhase {
         this.startSinging(time, gap ? "wrap-gap" : "wrap-tail", evidence, events, false);
       } else {
         // geen bewijs dat het zingen begint: dit kan een voorspel van een heel couplet zijn. Niet gokken.
+        this.openBoundary = { time, score, evidence };
         this.waiting = true;
         events.push({ time, type: "waiting", evidence });
         this.resetCoverage();
@@ -373,9 +379,24 @@ export class SingingPhase {
     return f <= cfg.startWindowHigh || f >= 1 + cfg.startWindowLow ? "start" : "mid";
   }
 
+  /**
+   * De rondegrens wordt vaak al gezien aan het BEGIN van de stilte (de volger loopt door tot het eind van de
+   * melodie), de pauze is pas voorbij als de gemeente begint. Eindigt een pauze die rond een nog openstaande
+   * rondegrens begon, dan telt ze alsnog mee en begint het zingen waar de muziek weer klinkt.
+   */
+  private lateGap(gap: { start: number; end: number }, events: PhaseEvent[]): void {
+    const b = this.openBoundary;
+    if (!b || this.phase !== "prelude") return;
+    if (gap.start < b.time - 1.5 || gap.start > b.time + 1.5) return;
+    this.openBoundary = null;
+    if (b.score + this.config.weightGap < this.config.startThreshold) return;
+    this.startSinging(gap.end, "wrap-gap", [...b.evidence, `pauze van ${(gap.end - gap.start).toFixed(1)} s bij de grens`], events, false);
+  }
+
   private startSinging(time: number, reason: StartReason, evidence: string[], events: PhaseEvent[], manualMidLap: boolean): void {
     this.phase = "singing";
     this.waiting = false;
+    this.openBoundary = null;
     this.startReason = reason;
     this.startEvidence = evidence;
     this.sungLaps = 0;
@@ -419,6 +440,7 @@ export class SingingPhase {
     this.startReason = null;
     this.startEvidence = [];
     this.pendingManual = false;
+    this.openBoundary = null;
     this.firstWrapCounts = false;
     this.candidate = null;
     this.tailSeconds = 0;

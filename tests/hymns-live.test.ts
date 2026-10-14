@@ -161,3 +161,16 @@ test("herstart: een nieuwe luistersessie begint schoon", () => {
   assert.equal(engine.currentHymn, null);
   assert.equal(engine.backlog, 0);
 });
+
+test("geheugen: de frame-buffer blijft begrensd, ook na vele minuten luisteren", () => {
+  const sv = makeService(82, [{ options: FAST }], {});
+  const engine = new HymnLiveEngine(HYMNS, { bufferSeconds: 30, autoFollow: false });
+  engine.followHymn(82, "manual");
+  // zeven minuten aan frames met doorlopende tijd
+  for (let n = 0; n < 8; n += 1) {
+    for (const f of sv.frames) engine.pushFrame({ ...f, time: f.time + n * sv.duration });
+  }
+  const buffered = (engine as unknown as { buffer: unknown[] }).buffer.length;
+  assert.ok(buffered <= (30 / 0.0464) + 2, `buffer ${buffered} frames`);
+  assert.equal(engine.backlog, 0);
+});

@@ -646,6 +646,7 @@ export const fr: PartialMessages = {
     cancel: "Annuler",
   },
   pages: {
+    hymns: "Lofzangen",
     tools: "Outils",
     dictionary: "Dictionnaire",
     bookmarks: "Signets",

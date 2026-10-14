@@ -646,6 +646,7 @@ export const es: PartialMessages = {
     "cancel": "Cancelar"
   },
   "pages": {
+    "hymns": "Lofzangen",
     "tools": "Herramientas",
     "dictionary": "Diccionario",
     "bookmarks": "Marcadores",

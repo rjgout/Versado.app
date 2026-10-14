@@ -516,3 +516,21 @@ nav[data-main-nav] a {
   width: 0;
   height: 0;
 }
+
+/* Lofzangen: het actieve woord wordt vetter en krijgt de accentkleur, zonder dat woorden of regels
+ * verschuiven. Het onzichtbare vette exemplaar in ::after houdt de breedte altijd op de vette maat; de
+ * lege alternatieve tekst houdt het weg uit de toegankelijkheidsboom. */
+.hymn-word {
+  display: inline-block;
+}
+.hymn-word::after {
+  content: attr(data-w);
+  content: attr(data-w) / "";
+  display: block;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  font-weight: 700;
+  pointer-events: none;
+  user-select: none;
+}

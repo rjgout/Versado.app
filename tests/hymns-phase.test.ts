@@ -113,6 +113,18 @@ test("scenario D: een duidelijke stilte tussen voorspel en samenzang is bewijs v
   assert.ok(run.snapshots.filter((s) => s.time < sv.partStart[1] - 0.2).every((s) => !active(s)));
 });
 
+test("scenario D2: ook als de volger de rondegrens al aan het begin van de stilte ziet (orgel, hymne 36)", () => {
+  const organ = { ...FAST, timbre: "organ" as const };
+  const sv = makeService(36, [{ options: organ }, { gapBefore: 2.5, options: { ...organ, singersDb: -6 } }]);
+  const run = follow(sv.hymn, sv.frames);
+  const start = startEvent(run);
+  assert.ok(start, "geen zangbegin na de stilte");
+  assert.equal(run.session.snapshotNow.phase.startReason, "wrap-gap");
+  // het zingen begint waar de muziek na de stilte weer klinkt, niet in het midden van de stilte
+  assert.ok(Math.abs(start.time - sv.partStart[1]) < 1.5, `zangbegin ${start.time.toFixed(1)} s, werkelijk ${sv.partStart[1].toFixed(1)} s`);
+  assert.ok(run.snapshots.filter((s) => s.time < sv.partStart[1] - 0.2).every((s) => !active(s)));
+});
+
 test("scenario E: zonder stilte en zonder ander bewijs wacht de engine op handmatige bevestiging", () => {
   const sv = makeService(N, [{ options: FAST }, { options: SINGERS }]);
   const run = follow(sv.hymn, sv.frames);

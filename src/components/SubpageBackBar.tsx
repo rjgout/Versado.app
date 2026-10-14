@@ -90,6 +90,8 @@ function detailPageFor(pathname: string, profileView: string | null, hash: strin
   if (/^\/study-lesson\/[^/]+\/[^/]+$/.test(pathname)) return { fallback: "/courses", title: "studyReader.title" };
   if (/^\/scripture\/[^/]+$/.test(pathname)) return { fallback: "/courses", title: "referencePreview.title" };
   if (pathname === "/content") return { fallback: "/dashboard", title: "contentSwitcher.picker.title" };
+  // Lofzangen (alleen beheerders) is bereikbaar vanuit de contentkiezer.
+  if (pathname === "/dev/lofzangen") return { fallback: "/content", title: "pages.hymns" };
   if (pathname === "/profile") {
     const view = parseProfileView(profileView);
     return view ? { fallback: "/profile", ...PROFILE_VIEWS[view] } : null;
