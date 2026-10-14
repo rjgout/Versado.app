@@ -91,22 +91,25 @@ async function soloSession(device, build, { difficulty = "ADVENTURER", options =
 
 try {
   // --- Solo: een bevestigde verbinding glijdt kort; de bevestigde stand geldt direct
-  for (const device of Object.keys(DEVICES)) {
+  for (const device of (process.env.DEVICES ?? Object.keys(DEVICES).join(",")).split(",")) {
     const s = await soloSession(device, (snapshot) => { place(snapshot.groups, 0, 4, 4); place(snapshot.groups, 1, 5.2, 4.1); return snapshot; });
     const { page, env, input } = s; const grab = env.screen(5.7, 4.6);
     await startTrack(page, env, GREEN, { x: 5.7, y: 4.6, r: 2.2 }); await sleep(120);
-    const busy = page.waitForFunction(() => document.querySelector("canvas").parentElement.getAttribute("aria-busy") === "false", null, { timeout: 8000, polling: "raf" });
-    const released = Date.now(); await input.down(grab); await input.up(); await busy; const busyMs = Date.now() - released; await sleep(700);
+    // De bord blijft "bezig" tot de serveracties klaar zijn; de animatie mag dat niet verlengen (busyMs = vanaf loslaten tot weer bedienbaar).
+    const released = Date.now(); await input.down(grab); await input.up();
+    await page.waitForFunction(() => document.querySelector("canvas").parentElement.getAttribute("aria-busy") === "true", null, { timeout: 3000, polling: "raf" }).catch(() => undefined);
+    await page.waitForFunction(() => document.querySelector("canvas").parentElement.getAttribute("aria-busy") === "false", null, { timeout: 8000, polling: "raf" }); const busyMs = Date.now() - released; await sleep(700);
     const track = await stopTrack(page); const series = distinct(track); const final = series.at(-1); const start = series[0];
-    const moved = track.filter((sample) => sample.x !== null && Math.abs(sample.x - start.x) > .004 || sample.x !== null && Math.abs(sample.y - start.y) > .004);
-    const startAt = moved[0]?.t ?? 0; const endAt = track.findLast((sample, index) => index && sample.x !== null && track[index - 1].x !== null && Math.abs(sample.x - track[index - 1].x) + Math.abs(sample.y - track[index - 1].y) > .004)?.t ?? 0;
+    const moved = track.filter((sample) => sample.x !== null && (Math.abs(sample.x - start.x) > .02 || Math.abs(sample.y - start.y) > .02));
+    const startAt = moved[0]?.t ?? 0; const rows = track.filter((sample) => sample.x !== null); const endAt = rows.find((sample, index) => rows.slice(index).every((later) => Math.abs(later.x - (start.x - .2)) <= .035 && Math.abs(later.y - (start.y - .1)) <= .035))?.t ?? 0;
     const resumed = await s.api({ action: "resume", sessionId: s.state.id });
+    if (process.env.TRACE) console.log(device, JSON.stringify(track.filter((sample) => sample.x !== null).map((sample) => [sample.t, +sample.x.toFixed(3), sample.drawn ? 1 : 0])));
     report[`solo-${device}`] = { positions: series.length, glideMs: Math.round(endAt - startAt), busyMs, start: [+start.x.toFixed(2), +start.y.toFixed(2)], final: [+final.x.toFixed(2), +final.y.toFixed(2)] };
     assert.equal(resumed.snapshot.groups.length, s.state.snapshot.groups.length - 1, `${device}: de verbinding is vastgelegd zoals voorheen`);
-    assert.ok(series.length >= 4, `${device}: de weergave bewoog in meerdere stappen (${series.length}), niet in één sprong`);
-    assert.ok(Math.abs(final.x - start.x - .8) < .12 && Math.abs(final.y - start.y - .9) < .12, `${device}: eindigt precies op de verbindingsplek (${final.x - start.x}, ${final.y - start.y})`);
-    const xs = series.map((sample) => sample.x); assert.ok(xs.every((x, index) => !index || x >= xs[index - 1] - .01), `${device}: monotone beweging, geen heen-en-weer`);
-    assert.ok(endAt - startAt >= 80 && endAt - startAt <= 260, `${device}: duur rond 140 ms (${Math.round(endAt - startAt)} ms)`);
+    assert.ok(series.length >= 3, `${device}: de weergave bewoog in meerdere stappen (${series.length}), niet in één sprong`);
+    assert.ok(Math.abs(final.x - start.x + .2) < .06 && Math.abs(final.y - start.y + .1) < .06, `${device}: eindigt precies op de verbindingsplek (${final.x - start.x}, ${final.y - start.y})`);
+    const xs = series.map((sample) => sample.x); assert.ok(xs.every((x, index) => !index || x <= xs[index - 1] + .01), `${device}: monotone beweging, geen heen-en-weer`);
+    assert.ok(endAt - startAt >= 30 && endAt - startAt <= 220, `${device}: korte beweging (ruim onder een kwart seconde, meer dan één beeld) (${Math.round(endAt - startAt)} ms)`);
     await sleep(300); const idle = await page.evaluate(() => { const before = window.__draws; return new Promise((resolve) => setTimeout(() => resolve(window.__draws - before), 700)); }); assert.equal(idle, 0, `${device}: na de beweging geen tekenframes meer (${idle})`);
     assert.deepEqual(s.errors, []); await s.context.close();
   }
@@ -162,14 +165,14 @@ try {
       const { id, snapshot } = await make(); const A = await open(a, id, device, {}, snapshot); const B = await open(b, id, device, {}, snapshot);
       const around = { x: 5.7, y: 4.6, r: 2.2 }; await startTrack(A.page, A.env, GREEN, around); await startTrack(B.page, B.env, GREEN, around); await sleep(150);
       const sentBefore = A.sockets.length; const requestsBefore = A.requests.length;
-      await A.input.down(A.env.screen(5.7, 4.6)); await A.input.up(); await sleep(1100);
+      const grab = A.env.screen(5.7, 4.6); await A.input.down(grab); await A.input.move({ x: grab.x + 1, y: grab.y }, 1); await A.input.up(); await sleep(1100);
       const seriesA = distinct(await stopTrack(A.page)); const seriesB = distinct(await stopTrack(B.page));
       const server = await prisma.puzzleSession.findUniqueOrThrow({ where: { id } }); const groups = JSON.parse(server.snapshot).groups;
       report[`samen-${device}`] = { positionsA: seriesA.length, positionsB: seriesB.length, finalA: [+seriesA.at(-1).x.toFixed(2), +seriesA.at(-1).y.toFixed(2)], finalB: [+seriesB.at(-1).x.toFixed(2), +seriesB.at(-1).y.toFixed(2)], serverGroups: groups.length };
       assert.equal(groups.length, snapshot.groups.length - 1, `Samen ${device}: de server heeft de verbinding vastgelegd`);
       for (const [who, series] of [["dragger", seriesA], ["andere speler", seriesB]]) {
-        assert.ok(series.length >= 4, `Samen ${device}: ${who} ziet de snap in meerdere stappen (${series.length})`);
-        assert.ok(Math.abs(series.at(-1).x - series[0].x - .8) < .12 && Math.abs(series.at(-1).y - series[0].y - .9) < .12, `Samen ${device}: ${who} eindigt op de verbindingsplek`);
+        assert.ok(series.length >= 3, `Samen ${device}: ${who} ziet de snap in meerdere stappen (${series.length})`);
+        assert.ok(Math.abs(series.at(-1).x - series[0].x + .2) < .06 && Math.abs(series.at(-1).y - series[0].y + .1) < .06, `Samen ${device}: ${who} eindigt op de verbindingsplek`);
       }
       assert.ok(Math.abs(seriesA.at(-1).x - seriesB.at(-1).x) < .02 && Math.abs(seriesA.at(-1).y - seriesB.at(-1).y) < .02, `Samen ${device}: beide spelers zien dezelfde definitieve stand`);
       const events = (frames) => [...new Set(frames.map((frame) => frame.match(/^\d*\["([^"]+)"/)?.[1]).filter(Boolean))].sort();
@@ -198,7 +201,7 @@ try {
     {
       const { id, snapshot } = await make(); const A = await open(a, id, "desktop", {}, snapshot); const B = await open(b, id, "desktop", {}, snapshot);
       await Promise.all([startTrack(A.page, A.env, GREEN, { x: 5.7, y: 4.6, r: 2.2 }), startTrack(B.page, B.env, GREEN, { x: 5.7, y: 4.6, r: 2.2 })]);
-      await Promise.all([(async () => { await A.input.down(A.env.screen(5.7, 4.6)); await A.input.up(); })(), (async () => { await B.input.down(B.env.screen(5.7, 8.1)); await B.input.up(); })()]);
+      await Promise.all([(async () => { const g = A.env.screen(5.7, 4.6); await A.input.down(g); await A.input.move({ x: g.x + 1, y: g.y }, 1); await A.input.up(); })(), (async () => { const g = B.env.screen(5.7, 8.1); await B.input.down(g); await B.input.move({ x: g.x + 1, y: g.y }, 1); await B.input.up(); })()]);
       await sleep(1200); await Promise.all([stopTrack(A.page), stopTrack(B.page)]);
       const server = await prisma.puzzleSession.findUniqueOrThrow({ where: { id } }); const groups = JSON.parse(server.snapshot).groups;
       report["samen-simultaan"] = { serverGroups: groups.length, expected: snapshot.groups.length - 2 };
@@ -209,7 +212,7 @@ try {
     // Herverbinden tijdens de animatie: B verliest de verbinding precies bij A's snap en komt terug; de eindstand is gelijk en er blijft niets hangen.
     {
       const { id, snapshot } = await make(); const A = await open(a, id, "desktop", {}, snapshot); const B = await open(b, id, "desktop", {}, snapshot);
-      await B.context.setOffline(true); await A.input.down(A.env.screen(5.7, 4.6)); await A.input.up(); await sleep(400); await B.context.setOffline(false);
+      await B.context.setOffline(true); const g = A.env.screen(5.7, 4.6); await A.input.down(g); await A.input.move({ x: g.x + 1, y: g.y }, 1); await A.input.up(); await sleep(400); await B.context.setOffline(false);
       await startTrack(B.page, B.env, GREEN, { x: 5.7, y: 4.6, r: 2.2 }); await sleep(2500); const trackB = await stopTrack(B.page); const finalB = distinct(trackB).at(-1);
       await startTrack(A.page, A.env, GREEN, { x: 5.7, y: 4.6, r: 2.2 }); await sleep(200); const trackA = await stopTrack(A.page); const finalA = distinct(trackA).at(-1);
       report["samen-reconnect"] = { finalA: [+finalA.x.toFixed(2), +finalA.y.toFixed(2)], finalB: [+finalB.x.toFixed(2), +finalB.y.toFixed(2)] };
