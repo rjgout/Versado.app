@@ -6,6 +6,7 @@ import { RotateCw } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import { createPuzzleGeometry } from "@/lib/puzzle/geometry";
 import { renderPuzzle } from "@/lib/puzzle/render";
+import { createNearSnapTracker, prefersReducedMotion } from "@/lib/puzzle/nearSnap";
 import { boardSnapTarget, findSnapConnection, groupFor } from "@/lib/puzzle/engine";
 import { clampGroupPosition, groupMemberAt, puzzleRenderOrder, puzzleWorktable } from "@/lib/puzzle/worktable";
 import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
@@ -62,8 +63,9 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
   const viewport = useRef<ViewportSize | null>(null);
   const frame = useRef<number | null>(null);
   const paths = useRef(new Map<string, Path2D>());
+  const nearSnap = useRef(createNearSnapTracker());
   const pointers = useRef(new Map<number, Point>());
-  const drag = useRef<{ pointer: number; groupId: string; offset: Point; grab: Promise<string | null>; local: Point | null } | null>(null);
+  const drag = useRef<{ pointer: number; groupId: string; offset: Point; grab: Promise<string | null>; token: string | null; released: boolean; local: Point | null } | null>(null);
   const pan = useRef<{ pointer: number; point: Point; camera: PuzzleCamera } | null>(null);
   const pinch = useRef<{ distance: number; world: Point; scale: number } | null>(null);
   const [selected, setSelectedState] = useState<number | null>(null);
@@ -95,6 +97,11 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
     const order = puzzleRenderOrder(snapshot.groups, mine);
     const topRemote = [...remote.keys()].filter((id) => (remote.get(id)?.until ?? 0) > now);
     const ordered = topRemote.length ? [...order.filter((g) => !topRemote.includes(g.id)), ...order.filter((g) => topRemote.includes(g.id))] : order;
+    // Alleen de speler die sleept ziet dit, lokaal berekend: pas zodra de eigen greep is gelukt en zolang niemand anders de groep vasthoudt.
+    const active = drag.current; const moving = active?.token && !active.released ? snapshot.groups.find((group) => group.id === active.groupId) : undefined;
+    const taken = active ? p.locks.some((lock) => lock.groupId === active.groupId && lock.userId !== p.meId && Date.parse(lock.expiresAt) > now) : false;
+    const glow = active && moving && !complete && !taken ? nearSnap.current.update({ snapshot, geometry, difficulty, rulesVersion, groupId: moving.id, x: active.local?.x ?? moving.x, y: active.local?.y ?? moving.y, now: performance.now(), reducedMotion: prefersReducedMotion() }) : nearSnap.current.reset();
+    if (nearSnap.current.animating) schedule();
     renderPuzzle(canvas, {
       geometry, table, camera: camera.current, image: picture.current, paths: paths.current, snapshot, groups: ordered,
       place: (group, out) => {
@@ -107,7 +114,7 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
       },
       selectedPiece: selectedRef.current, hint: p.hint?.target,
       backdrop: !complete && (policy.showOutline || policy.showGhost), ghost: !complete && policy.showGhost, outline: !complete && policy.showOutline,
-      edges: !complete, anchoredStroke: "rgba(43, 103, 99, .35)",
+      edges: !complete, anchoredStroke: "rgba(43, 103, 99, .35)", nearSnap: glow,
     });
   }
 
@@ -203,7 +210,11 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
       const locked = props.locks.find((lock) => lock.groupId === hit.group.id && lock.userId !== props.meId && Date.parse(lock.expiresAt) > Date.now());
       if (locked) { props.onBusy?.(t("puzzleTogether.coop.busy")); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; schedule(); return; }
       const world = worldPoint(point);
-      drag.current = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: world.x - hit.group.x, y: world.y - hit.group.y }, grab: props.onGrab(hit.group.id), local: null };
+      const grab = props.onGrab(hit.group.id);
+      const started = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: world.x - hit.group.x, y: world.y - hit.group.y }, grab, token: null as string | null, released: false, local: null };
+      drag.current = started;
+      // Pas na een gelukte greep (de lock is van mij) toont het bord bijna-passend-feedback.
+      grab.then((token) => { started.token = token; if (drag.current === started) schedule(); }, () => undefined);
     } else { setSelected(null); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; }
     schedule();
   }
@@ -223,7 +234,8 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
     const active = drag.current; pointers.current.delete(event.pointerId);
     if (pointers.current.size >= 2) { beginPinch(); return; }
     if (pinch.current) { pinch.current = null; const remaining = [...pointers.current.entries()][0]; if (remaining) pan.current = { pointer: remaining[0], point: remaining[1], camera: { ...camera.current } }; return; }
-    if (active?.pointer === event.pointerId) { void run(async () => { try { await finishDrag(active); } finally { if (drag.current === active) drag.current = null; schedule(); } }); }
+    // Direct bij loslaten verdwijnt de feedback, ook al loopt de commit nog.
+    if (active?.pointer === event.pointerId) { active.released = true; schedule(); void run(async () => { try { await finishDrag(active); } finally { if (drag.current === active) drag.current = null; schedule(); } }); }
     if (pan.current?.pointer === event.pointerId) pan.current = null;
   }
   function cancel(event: ReactPointerEvent<HTMLCanvasElement>) {

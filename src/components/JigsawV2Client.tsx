@@ -18,6 +18,7 @@ import FocusLayout from "@/components/versado/FocusLayout";
 import { useT } from "@/components/I18nProvider";
 import { createPuzzleGeometry } from "@/lib/puzzle/geometry";
 import { renderPuzzle } from "@/lib/puzzle/render";
+import { createNearSnapTracker, prefersReducedMotion } from "@/lib/puzzle/nearSnap";
 import { boardSnapTarget, connectedPieces, findSnapConnection, groupFor, worldOf } from "@/lib/puzzle/engine";
 import { clampGroupPosition, groupMemberAt, puzzleRenderOrder, puzzleWorktable } from "@/lib/puzzle/worktable";
 import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
@@ -164,7 +165,7 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
   const pending = useRef(false); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null); const image = useRef<HTMLImageElement | null>(null); const camera = useRef<PuzzleCamera>({ scale: 60, x: 0, y: 0 }); const frame = useRef<number | null>(null);
   const mounted = useRef(true); const stopAnimation = useRef<(() => void) | null>(null);
-  const viewport = useRef<ViewportSize | null>(null); const paths = useRef(new Map<string, Path2D>());
+  const viewport = useRef<ViewportSize | null>(null); const paths = useRef(new Map<string, Path2D>()); const nearSnap = useRef(createNearSnapTracker());
   const pointers = useRef(new Map<number, Point>()); const drag = useRef<Drag | null>(null); const pan = useRef<Pan | null>(null); const pinch = useRef<Pinch | null>(null);
   const geometry = useMemo(() => createPuzzleGeometry(initial.pieceCount, initial.seed, initial.geometryVersion), [initial.pieceCount, initial.seed, initial.geometryVersion]); const table = useMemo(() => puzzleWorktable(geometry), [geometry]); const policy = puzzlePolicy(state.difficulty, state.rulesVersion);
 
@@ -188,12 +189,16 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
   function paint() {
     const canvas = canvasRef.current; if (!canvas) return;
     const snapshot = shown.current.snapshot; const draggedGroupId = drag.current?.groupId ?? null;
+    // Alleen lokaal en alleen tijdens het eigen slepen: de engine zegt of loslaten hier nu zou snappen.
+    const moving = draggedGroupId === null ? undefined : snapshot.groups.find((group) => group.id === draggedGroupId);
+    const glow = moving ? nearSnap.current.update({ snapshot, geometry, difficulty: shown.current.difficulty, rulesVersion: shown.current.rulesVersion, groupId: moving.id, x: moving.x, y: moving.y, now: performance.now(), reducedMotion: prefersReducedMotion() }) : nearSnap.current.reset();
+    if (nearSnap.current.animating) schedulePaint();
     renderPuzzle(canvas, {
       geometry, table, camera: camera.current, image: image.current, paths: paths.current, snapshot, groups: puzzleRenderOrder(snapshot.groups, draggedGroupId),
       place: (group, out) => { out.lifted = group.id === draggedGroupId; },
       selectedPiece: selectedRef.current, hint: hintRef.current?.target,
       backdrop: state.rulesVersion === 1 || policy.showOutline || policy.showGhost, ghost: policy.showGhost, outline: policy.showOutline,
-      edges: true, anchoredStroke: "rgba(43, 103, 99, .70)",
+      edges: true, anchoredStroke: "rgba(43, 103, 99, .70)", nearSnap: glow,
     });
   }
   function update(next: State) { inventory.setData({ hintBalance: next.hintBalance }); saved.current = next; if (!mounted.current) return; shown.current = next; setState(next); setOuter(next); if (!match) remember(next.id); if (next.status === "COMPLETED") setStage("COMPLETE"); if (next.status === "ANSWERED") setStage("RESULT"); schedulePaint(); }
