@@ -131,6 +131,7 @@ function ReaderVisit({
     }
     if(morePending.current?.occurrenceKey!==reference.request.occurrenceKey){
       const picker=await fetchJson<ContentPickerContext>("/api/content-context?view=picker");
+      if(!stillCurrent())throw new Error("REFERENCE_NAVIGATION_CANCELLED");
       if(picker.selectionVersion===undefined)throw new Error("REFERENCE_SOURCE_STATUS_UNKNOWN");
       morePending.current={occurrenceKey:reference.request.occurrenceKey,expectedSelection:picker.selection,expectedSelectionVersion:picker.selectionVersion};
       sessionStorage.setItem(pendingKey,JSON.stringify(morePending.current));

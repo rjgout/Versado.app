@@ -98,7 +98,12 @@ try {
               .contains(document.activeElement),
           ),
         );
-        assert.ok(await page.locator("dialog[open] h2").evaluate(e=>e.scrollHeight<=e.clientHeight+1),"korte passagekop blijft volledig zichtbaar bij grote tekst");
+        assert.ok(
+          await page
+            .locator("dialog[open] h2")
+            .evaluate((e) => e.scrollHeight <= e.clientHeight + 1),
+          "korte passagekop blijft volledig zichtbaar bij grote tekst",
+        );
         const box = await page.locator("dialog[open]").boundingBox();
         assert.ok(
           box.x >= 0 &&
@@ -264,7 +269,16 @@ try {
       }),
       0,
     );
-    assert.equal(await page.getByRole("link",{name:t("contentSwitcher.picker.title"),exact:true}).getAttribute("href"),"/content","conflict houdt een veilige uitgang naar de huidige bronkeuze beschikbaar");
+    assert.equal(
+      await page
+        .getByRole("link", {
+          name: t("contentSwitcher.picker.title"),
+          exact: true,
+        })
+        .getAttribute("href"),
+      "/content",
+      "conflict houdt een veilige uitgang naar de huidige bronkeuze beschikbaar",
+    );
     await page.screenshot({ path: output + "/return-conflict-mobile.png" });
     await c.close();
     results.push({
@@ -390,23 +404,122 @@ try {
     results.push({ lostMoreResponse: true, retryDoesNotOverwrite: true });
   }
   {
-    const f=await referenceFixture(),t=getT("nl"),{c,page}=await context(f,{width:390,height:844});
-    await page.goto(base+f.href);await open(page);await page.getByRole("button",{name:t("referencePreview.more"),exact:true}).click();
-    await page.locator("[data-scripture-readonly]").waitFor();const prior=page.url();
-    await page.getByRole("button",{name:t("referencePreview.backToLesson"),exact:true}).last().click();await page.locator("[data-study-reader]").waitFor();
-    let committed=false;
-    await page.route("**/api/study-references",async route=>{
-      const response=await route.fetch();
-      if(route.request().postDataJSON()?.action==="more"){committed=true;await delay(1500);}
-      try{await route.fulfill({response});}catch{ /* Verwachte abort door de echte reader-unmount. */ }
+    const f = await referenceFixture(),
+      t = getT("nl"),
+      { c, page } = await context(f, { width: 390, height: 844 });
+    await page.goto(base + f.href);
+    await open(page);
+    await page
+      .getByRole("button", { name: t("referencePreview.more"), exact: true })
+      .click();
+    await page.locator("[data-scripture-readonly]").waitFor();
+    const prior = page.url();
+    await page
+      .getByRole("button", {
+        name: t("referencePreview.backToLesson"),
+        exact: true,
+      })
+      .last()
+      .click();
+    await page.locator("[data-study-reader]").waitFor();
+    let committed = false;
+    await page.route("**/api/study-references", async (route) => {
+      const response = await route.fetch();
+      if (route.request().postDataJSON()?.action === "more") {
+        committed = true;
+        await delay(1500);
+      }
+      try {
+        await route.fulfill({ response });
+      } catch {
+        /* Verwachte abort door de echte reader-unmount. */
+      }
     });
-    await open(page);await page.getByRole("button",{name:t("referencePreview.more"),exact:true}).click();
-    for(let i=0;i<100&&!committed;i++)await delay(50);assert.equal(committed,true);
-    await prisma.user.update({where:{id:f.owner.user.id},data:{activeContentCollectionId:"content_podcasts"}});
-    await page.goBack();await page.locator("[data-scripture-readonly]").waitFor();await delay(2000);
-    assert.equal(page.url(),prior,"laat Meer-lezen-antwoord mag een nieuwe geschiedeniskeuze niet terugdraaien");
-    assert.equal((await prisma.user.findUniqueOrThrow({where:{id:f.owner.user.id}})).activeContentCollectionId,"content_podcasts");
-    await page.screenshot({path:output+"/late-more-history-mobile.png"});await c.close();results.push({lateMoreCannotNavigate:true,newerChoicePreserved:true});
+    await open(page);
+    await page
+      .getByRole("button", { name: t("referencePreview.more"), exact: true })
+      .click();
+    for (let i = 0; i < 100 && !committed; i++) await delay(50);
+    assert.equal(committed, true);
+    await prisma.user.update({
+      where: { id: f.owner.user.id },
+      data: { activeContentCollectionId: "content_podcasts" },
+    });
+    await page.goBack();
+    await page.locator("[data-scripture-readonly]").waitFor();
+    await delay(2000);
+    assert.equal(
+      page.url(),
+      prior,
+      "laat Meer-lezen-antwoord mag een nieuwe geschiedeniskeuze niet terugdraaien",
+    );
+    assert.equal(
+      (await prisma.user.findUniqueOrThrow({ where: { id: f.owner.user.id } }))
+        .activeContentCollectionId,
+      "content_podcasts",
+    );
+    await page.screenshot({ path: output + "/late-more-history-mobile.png" });
+    await c.close();
+    results.push({ lateMoreCannotNavigate: true, newerChoicePreserved: true });
+  }
+  {
+    const f = await referenceFixture(),
+      t = getT("nl"),
+      { c, page } = await context(f, { width: 390, height: 844 });
+    await page.goto(base + f.href);
+    await open(page);
+    await page
+      .getByRole("button", { name: t("referencePreview.more"), exact: true })
+      .click();
+    await page.locator("[data-scripture-readonly]").waitFor();
+    const prior = page.url();
+    await page
+      .getByRole("button", {
+        name: t("referencePreview.backToLesson"),
+        exact: true,
+      })
+      .last()
+      .click();
+    await page.locator("[data-study-reader]").waitFor();
+    let pickerPending = false,
+      moreRequests = 0;
+    page.on("request", (r) => {
+      if (
+        r.url().endsWith("/api/study-references") &&
+        r.postDataJSON()?.action === "more"
+      )
+        moreRequests++;
+    });
+    await page.route("**/api/content-context?view=picker", async (route) => {
+      const response = await route.fetch();
+      pickerPending = true;
+      await delay(1500);
+      try {
+        await route.fulfill({ response });
+      } catch {}
+    });
+    await open(page);
+    await page
+      .getByRole("button", { name: t("referencePreview.more"), exact: true })
+      .click();
+    for (let i = 0; i < 100 && !pickerPending; i++) await delay(50);
+    assert.equal(pickerPending, true);
+    await page.goBack();
+    await page.locator("[data-scripture-readonly]").waitFor();
+    await delay(2000);
+    assert.equal(page.url(), prior);
+    assert.equal(
+      moreRequests,
+      0,
+      "na verlaten van de reader wordt geen uitgestelde bronmutatie meer verstuurd",
+    );
+    assert.equal(
+      (await prisma.user.findUniqueOrThrow({ where: { id: f.owner.user.id } }))
+        .activeContentCollectionId,
+      f.collection.id,
+    );
+    await c.close();
+    results.push({ latePickerDoesNotStartMore: true });
   }
   assert.deepEqual(errors, []);
   console.log(
