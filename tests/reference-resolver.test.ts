@@ -300,6 +300,8 @@ test("terugkeerbewijzen zijn sessie/eigenaar/TTL/routegebonden en niet manipulee
       positionVersion: 2,
       workKey: "work",
       studyVersion: 0,
+      targetStudyWorkKey: null,
+      targetStudyVersion: null,
       beforeVersion: 0,
       afterVersion: 1,
       before: { activeContentCollectionId: "source", contentLanguage: "nl" },

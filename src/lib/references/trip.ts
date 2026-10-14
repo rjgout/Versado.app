@@ -100,7 +100,15 @@ export async function moreReference(
         sessionKey,
       );
       if (result.kind !== "internal") throw new Error("REFERENCE_UNAVAILABLE");
-      await db.$queryRaw`SELECT 1 FROM pg_advisory_xact_lock(hashtextextended(${JSON.stringify([actor.id, origin.workKey])},0))`;
+      const targetStudyWorkKey =
+        result.preview.kind === "study" ? result.work : null;
+      for (const work of [
+        ...new Set([
+          origin.workKey,
+          ...(targetStudyWorkKey ? [targetStudyWorkKey] : []),
+        ]),
+      ].sort())
+        await db.$queryRaw`SELECT 1 FROM pg_advisory_xact_lock(hashtextextended(${JSON.stringify([actor.id, work])},0))`;
       await db.$queryRaw`SELECT 1 FROM pg_advisory_xact_lock(hashtextextended(${JSON.stringify([actor.id, origin.editionId])},0))`;
       const position = await db.readingPosition.findUnique({
         where: {
@@ -118,6 +126,14 @@ export async function moreReference(
         },
         select: { version: true },
       });
+      const targetContext = targetStudyWorkKey
+        ? await db.userStudyContext.findUnique({
+            where: {
+              userId_workKey: { userId: actor.id, workKey: targetStudyWorkKey },
+            },
+            select: { version: true },
+          })
+        : null;
       const target = await db.contentCollection.findFirst({
         where: { id: result.collectionId, ...readingAccessWhere(actor) },
       });
@@ -140,6 +156,10 @@ export async function moreReference(
         positionVersion: expectedPositionVersion,
         workKey: origin.workKey,
         studyVersion: context?.version ?? 0,
+        targetStudyWorkKey,
+        targetStudyVersion: targetStudyWorkKey
+          ? (targetContext?.version ?? 0)
+          : null,
         before,
         after: {
           activeContentCollectionId: target.id,
@@ -198,13 +218,32 @@ export async function returnReference(
       );
       if (!origin || origin.editionId !== trip.lessonEditionId)
         throw new Error("REFERENCE_UNAVAILABLE");
-      await db.$queryRaw`SELECT 1 FROM pg_advisory_xact_lock(hashtextextended(${JSON.stringify([actor.id, trip.workKey])},0))`;
+      for (const work of [
+        ...new Set([
+          trip.workKey,
+          ...(trip.targetStudyWorkKey ? [trip.targetStudyWorkKey] : []),
+        ]),
+      ].sort())
+        await db.$queryRaw`SELECT 1 FROM pg_advisory_xact_lock(hashtextextended(${JSON.stringify([actor.id, work])},0))`;
       const context = await db.userStudyContext.findUnique({
         where: { userId_workKey: { userId: actor.id, workKey: trip.workKey } },
         select: { version: true },
       });
       if ((context?.version ?? 0) !== trip.studyVersion)
         throw new ReferenceTripConflict();
+      if (trip.targetStudyWorkKey) {
+        const targetContext = await db.userStudyContext.findUnique({
+          where: {
+            userId_workKey: {
+              userId: actor.id,
+              workKey: trip.targetStudyWorkKey,
+            },
+          },
+          select: { version: true },
+        });
+        if ((targetContext?.version ?? 0) !== trip.targetStudyVersion)
+          throw new ReferenceTripConflict();
+      }
       await db.$queryRaw`SELECT id FROM "User" WHERE id=${actor.id} FOR UPDATE`;
       const current = await db.user.findUniqueOrThrow({
         where: { id: actor.id },

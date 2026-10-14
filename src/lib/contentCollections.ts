@@ -283,6 +283,7 @@ function selectionResult(user: LockedSelection) {
 export async function commitContentSelection(userId: string, isAdmin: boolean, requested: ContentCollectionView, expected: ContentSelection, options: SelectionOptions = {}) {
   const execute = async (db: Prisma.TransactionClient) => {
     const user = await lockedSelection(db,userId,options.expectedVersion);
+    if(options.expectedVersion!==undefined && (user.activeContentCollectionId!==expected.activeContentCollectionId || user.contentLanguage!==expected.contentLanguage))throw new ContentSelectionConflict(selectionResult(user).selection);
     const target = await db.contentCollection.findFirst({ where: { id: requested.id, ...collectionAccessWhere({ isAdmin }) }, select: VIEW_SELECT });
     if (!target || !validPickerEdition(target) || target.work !== requested.work || target.editionKey !== requested.editionKey || target.language !== requested.language) throw new Error("Content niet beschikbaar");
     if (user.activeContentCollectionId === target.id && user.contentLanguage === target.language) return { target, changed: false, ...selectionResult(user) };

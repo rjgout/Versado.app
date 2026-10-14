@@ -458,3 +458,128 @@ test("echte PostgreSQL-preview blijft begrensd en haalt geen individuele preview
     await client.$disconnect();
   }
 });
+
+test("client kan een vorige voorkeur niet verzinnen bij een uitstap die al op het doel staat", async () => {
+  const f = await referenceFixture();
+  await prisma.user.update({
+    where: { id: f.owner.user.id },
+    data: { activeContentCollectionId: "content_bom" },
+  });
+  const current = await prisma.user.findUniqueOrThrow({
+      where: { id: f.owner.user.id },
+    }),
+    input = await moreInput(f);
+  input.expectedSelection = {
+    activeContentCollectionId: f.collection.id,
+    contentLanguage: "nl",
+  };
+  const response = await referenceHttp(f, input);
+  assert.equal(response.status, 409);
+  assert.equal((await response.json()).token, undefined);
+  assert.deepEqual(
+    await prisma.user.findUniqueOrThrow({ where: { id: f.owner.user.id } }),
+    current,
+  );
+});
+
+test("Meer lezen naar een andere studieles bewaart beide contextversies en blokkeert een nieuwere doelkeuze", async () => {
+  const f = await referenceFixture(),
+    target = await referenceFixture();
+  const { appendStudyRevision } = await import(
+      "../src/lib/studyContent/revisions.ts"
+    ),
+    { getStudyReader } = await import("../src/lib/studyContent/reader.ts");
+  const original = await prisma.studyRevision.findUniqueOrThrow({
+      where: { id: f.item.revisionId },
+    }),
+    body = structuredClone(original.body);
+  const ref = body.sections[0].blocks.find(
+    (block) => block.type === "reference",
+  );
+  ref.label = "Doelstudieles";
+  ref.target = {
+    sourceKey: "study:" + target.dto.lesson.sourceKey + "#section-intro",
+    workKey: target.collection.work,
+    editionKey: target.collection.editionKey,
+    language: "nl",
+  };
+  const revision = await appendStudyRevision(
+    f.admin.actor,
+    f.item.lessonEditionId,
+    {
+      schemaVersion: 1,
+      title: original.title,
+      body,
+      sourceMetadata: original.sourceMetadata,
+      rightsMetadata: original.rightsMetadata,
+    },
+  );
+  // Alleen eigen synthetische resolverfixture; geen import/publicatievrijgave of productieactie.
+  await prisma.contentReference.create({
+    data: {
+      revisionId: revision.id,
+      occurrenceKey: "reference-intro",
+      label: ref.label,
+      originalTarget: ref.target,
+      normalizedTarget: {},
+      diagnosis: "UNRESOLVED",
+    },
+  });
+  await prisma.studyLessonEdition.update({
+    where: { id: f.item.lessonEditionId },
+    data: {
+      publishedRevisionId: revision.id,
+      publicationVersion: { increment: 1 },
+    },
+  });
+  const dto = await getStudyReader(
+    f.owner.actor,
+    f.item.edition.lessonId,
+    f.collection.id,
+    f.owner.sessionKey,
+  );
+  f.request = {
+    ...f.request,
+    revisionId: revision.id,
+    visitProof: dto.visitProof,
+  };
+  await prisma.userStudyContext.create({
+    data: {
+      userId: f.owner.user.id,
+      workKey: target.collection.work,
+      activeLessonKey: "study:" + target.dto.lesson.lessonId,
+      version: 1,
+      lastActionId: crypto.randomUUID(),
+    },
+  });
+  const more = await referenceHttp(f, await moreInput(f));
+  assert.equal(more.status, 200);
+  const trip = await more.json();
+  assert.equal(trip.trip.targetStudyWorkKey, target.collection.work);
+  assert.equal(trip.trip.targetStudyVersion, 1);
+  const selected = await prisma.user.findUniqueOrThrow({
+    where: { id: f.owner.user.id },
+  });
+  assert.equal(selected.activeContentCollectionId, target.collection.id);
+  await prisma.userStudyContext.update({
+    where: {
+      userId_workKey: {
+        userId: f.owner.user.id,
+        workKey: target.collection.work,
+      },
+    },
+    data: {
+      activeLessonKey: null,
+      version: 2,
+      lastActionId: crypto.randomUUID(),
+    },
+  });
+  assert.equal(
+    (await referenceHttp(f, { action: "return", token: trip.token })).status,
+    409,
+  );
+  assert.deepEqual(
+    await prisma.user.findUniqueOrThrow({ where: { id: f.owner.user.id } }),
+    selected,
+  );
+});

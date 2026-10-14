@@ -98,10 +98,7 @@ export default function ReferencePreview({
       }}
       className="fixed inset-0 z-50 m-auto flex max-h-[calc(100dvh-2rem-var(--vs-safe-area-top)-var(--vs-safe-area-bottom))] w-[calc(100%-2rem-var(--vs-safe-area-left)-var(--vs-safe-area-right))] max-w-xl flex-col overflow-hidden rounded-3xl border border-vs-line bg-vs-elevated p-0 text-vs-fg shadow-xl backdrop:bg-slate-950/45"
     >
-      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-vs-line px-4 py-3">
-        <h2 id={title} className="min-w-0 flex-1 line-clamp-3 text-lg font-extrabold">
-          {label}
-        </h2>
+      <header className="flex flex-row-reverse flex-wrap shrink-0 items-center justify-between gap-3 border-b border-vs-line px-4 py-3">
         <button
           autoFocus
           type="button"
@@ -112,6 +109,12 @@ export default function ReferencePreview({
         >
           <X size={22} aria-hidden />
         </button>
+        <h2
+          id={title}
+          className="min-w-0 grow basis-[9rem] line-clamp-3 text-lg font-extrabold"
+        >
+          {label}
+        </h2>
       </header>
       <div
         className="min-h-0 overflow-y-auto overscroll-contain px-4 py-4"

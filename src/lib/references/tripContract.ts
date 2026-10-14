@@ -17,6 +17,8 @@ export const referenceTripSchema = z
     positionVersion: z.number().int().nonnegative(),
     workKey: z.string().min(1).max(128),
     studyVersion: z.number().int().nonnegative(),
+    targetStudyWorkKey: z.string().min(1).max(128).nullable(),
+    targetStudyVersion: z.number().int().nonnegative().nullable(),
     before: contentSelectionSchema,
     after: contentSelectionSchema,
     beforeVersion: z.number().int().nonnegative().max(2147483647),

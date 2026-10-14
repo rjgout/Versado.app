@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
       );
     const unavailable =
       error instanceof Error &&
-      ["REFERENCE_UNAVAILABLE", "UNAVAILABLE", "NOT_FOUND"].includes(
+      ["REFERENCE_UNAVAILABLE", "UNAVAILABLE", "NOT_FOUND", "Content niet beschikbaar"].includes(
         error.message,
       );
     return response(

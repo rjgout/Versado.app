@@ -98,6 +98,7 @@ try {
               .contains(document.activeElement),
           ),
         );
+        assert.ok(await page.locator("dialog[open] h2").evaluate(e=>e.scrollHeight<=e.clientHeight+1),"korte passagekop blijft volledig zichtbaar bij grote tekst");
         const box = await page.locator("dialog[open]").boundingBox();
         assert.ok(
           box.x >= 0 &&
