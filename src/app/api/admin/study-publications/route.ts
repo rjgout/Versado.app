@@ -20,6 +20,7 @@ import {
 } from "@/lib/studyContent/publication";
 import { StudyPublishingError } from "@/lib/studyContent/policy";
 import { STUDY_FIXTURES } from "@/lib/studyContent/fixtureAdapter";
+import { auditStudyReferences } from "@/lib/references/audit";
 import type { MessageKey } from "@/lib/i18n/core";
 export const runtime = "nodejs";
 const headers = {
@@ -46,6 +47,7 @@ const actionSchema = z.discriminatedUnion("action", [
     })
     .strict(),
   z.object({ action: z.literal("resume"), runId: id }).strict(),
+  z.object({action:z.literal("audit-references"),editionId:id,revisionId:id}).strict(),
   studyPublicationSchema.extend({ action: z.literal("publish") }),
 ]);
 async function input(req: NextRequest) {
@@ -146,6 +148,7 @@ export async function POST(req: NextRequest) {
         { status: 202, headers },
       );
     }
+    if(action.action==="audit-references")return NextResponse.json(await auditStudyReferences(user,action.editionId,action.revisionId),{headers});
     const { action: _, ...publication } = action;
     void _;
     return NextResponse.json(await publishStudyRevision(user, publication), {

@@ -52,6 +52,7 @@ export const nl = {
       "FAILED": "Mislukt"
     },
     "fixtures": {
+      "references": "Verwijzingen testen",
       "sample": "Synthetische testles",
       "updated": "Bijgewerkte synthetische les",
       "unresolved": "Synthetische les met onopgeloste verwijzing",
@@ -4454,4 +4455,22 @@ export const nl = {
     "readNotice": "Dit is je leespositie. Scrollen markeert de les niet als gelezen.",
     "sections": "Lesonderdelen"
 },
+  referencePreview: {
+    saveFailed: "Je leesplek is nog niet zeker opgeslagen. Probeer het bewaren opnieuw voordat je verder leest.",
+    selectionConflict: "Je bron- of leskeuze is inmiddels veranderd. Herlaad de les; de nieuwere keuze wordt niet overschreven.",
+    moreUnknown: "De uitkomst van de bronwissel is niet zeker. Controleer je huidige bron na herladen; we herstellen geen oudere keuze automatisch.",
+
+  "audit": "Verwijzingen controleren",
+  "title": "Schriftuurpassage",
+  "backToLesson": "Terug naar les",
+  "more": "Meer lezen",
+  "external": "Open de officiële bron",
+  "externalNotice": "Deze verwijzing is beschikbaar op de officiële website.",
+  "unavailable": "Deze verwijzing kan nog niet betrouwbaar worden geopend.",
+  "failed": "De verwijzing kon niet worden geopend of je leesplek kon niet worden bewaard. Probeer het opnieuw.",
+  "returnExpired": "De tijdelijke terugkeer naar je les is verlopen.",
+  "returnFailed": "Terugkeren is niet gelukt. Je bron- of leskeuze kan inmiddels veranderd zijn; die wordt niet overschreven.",
+  "readonly": "Dit opent alleen de tekst; het rondt geen les af."
+},
+
 };

@@ -28,6 +28,7 @@ import {
 } from "./storage";
 import { emitToUser } from "@/lib/realtime";
 import { DATA_EVENT_SOCKET_NAME } from "@/lib/data/scopes";
+import { resolveReferenceBatch, referenceDiagnosis, normalizedReference } from "@/lib/references/resolver";
 
 export const studyPublicationSchema = z
   .object({
@@ -192,7 +193,8 @@ export async function publishStudyRevision(
         validateStudyMediaMetadata(binding.media);
         await readStudyMedia(binding.media, true);
       }
-      for (const reference of inventory.references) {
+      const referenceResults=await resolveReferenceBatch(db,actor,{workKey:edition.workKey,collectionId:edition.collectionId,editionKey:edition.collection.editionKey,language:edition.collection.language},inventory.references.map(r=>({target:r.target,diagnosticKey:r.occurrenceKey})));
+      for (const [referenceIndex,reference] of inventory.references.entries()) {
         const audit = revision.references.find(
           (r) => r.occurrenceKey === reference.occurrenceKey,
         );
@@ -201,7 +203,13 @@ export async function publishStudyRevision(
             e.occurrenceKey === reference.occurrenceKey &&
             e.url === reference.target.externalUrl,
         );
-        // Nog geen bewezen interne mapping in 2B. Alleen de gecontroleerde test-fallback.
+        const actual=referenceResults[referenceIndex];
+        if(audit?.evidenceKey!=="synthetic-reviewed-reference-v1"){
+          const verified=referenceDiagnosis(actual);
+          if(!audit || actual.kind==="unavailable" || audit.diagnosis!==verified.diagnosis || audit.evidenceKey!==verified.evidenceKey || studyObjectHash(audit.originalTarget)!==studyObjectHash(reference.target) || studyObjectHash(audit.normalizedTarget)!==studyObjectHash(normalizedReference(actual)))throw new StudyPublishingError("REFERENCES");
+          continue;
+        }
+        // Bestaande synthetische fallback blijft uitsluitend achter de 2B-releasegate.
         if (
           !audit ||
           audit.diagnosis !== "EXTERNAL_VERIFIED" ||

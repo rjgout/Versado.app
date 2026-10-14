@@ -208,6 +208,8 @@ export async function studyRevisionPreview(
         label: reference.label,
         diagnosis: audit?.diagnosis ?? "UNRESOLVED",
         externalUrl: audit?.externalUrl ?? null,
+        normalizedTarget: audit?.normalizedTarget ?? null,
+        evidenceKey: audit?.evidenceKey ?? null,
       };
     }),
     wasPublished:

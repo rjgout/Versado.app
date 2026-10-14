@@ -50,6 +50,7 @@ export const fr: PartialMessages = {
       "FAILED": "Échec"
     },
     "fixtures": {
+      "references": "Test des références",
       "sample": "Leçon de test synthétique",
       "updated": "Leçon synthétique mise à jour",
       "unresolved": "Leçon synthétique avec référence non résolue",
@@ -3982,4 +3983,22 @@ export const fr: PartialMessages = {
     "readNotice": "Il s’agit de votre position de lecture. Faire défiler ne marque pas la leçon comme lue.",
     "sections": "Sections de la leçon"
 },
+  referencePreview: {
+    saveFailed: "La sauvegarde de votre position de lecture n’est pas confirmée. Réessayez avant de lire la suite.",
+    selectionConflict: "Votre source ou leçon a changé. Rechargez la leçon ; le choix plus récent ne sera pas remplacé.",
+    moreUnknown: "Le résultat du changement de source est incertain. Vérifiez la source après rechargement ; un ancien choix ne sera pas restauré automatiquement.",
+
+  "audit": "Vérifier les références",
+  "title": "Passage des Écritures",
+  "backToLesson": "Retour à la leçon",
+  "more": "Lire la suite",
+  "external": "Ouvrir la source officielle",
+  "externalNotice": "Cette référence est disponible sur le site officiel.",
+  "unavailable": "Cette référence ne peut pas encore être ouverte de manière fiable.",
+  "failed": "La référence n’a pas pu être ouverte ou votre position de lecture enregistrée. Réessayez.",
+  "returnExpired": "Le retour temporaire à votre leçon a expiré.",
+  "returnFailed": "Le retour a échoué. Votre choix de source ou de leçon a peut-être changé et ne sera pas remplacé.",
+  "readonly": "Cette action ouvre uniquement le texte et ne termine aucune leçon."
+},
+
 };

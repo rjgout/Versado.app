@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useState, type ReactNode } from "react";
 import { useT } from "@/components/I18nProvider";
 import type { ReaderDocument } from "@/lib/studyContent/readingPositionContract";
+import ReferenceLink from "./ReferenceLink";
 type Block = ReaderDocument["sections"][number]["blocks"][number];
 type Inline = Extract<Block, { type: "paragraph" }>["content"][number];
 type Media = { mediaKey: string; mediaId: string | null };
@@ -29,9 +30,7 @@ function inline(parts: readonly Inline[]): ReactNode {
         </a>
       );
     return (
-      <span key={part.id} className="underline decoration-dotted">
-        {part.label}
-      </span>
+      <ReferenceLink key={part.id} id={part.id} label={part.label}/>
     );
   });
 }
@@ -88,7 +87,6 @@ export default function RichContentBlocks({
   media: readonly Media[];
   preview?: boolean;
 }) {
-  const t = useT();
   function render(block: Block): ReactNode {
     if (block.type === "heading") {
       const Tag = `h${block.level}` as "h2" | "h3" | "h4" | "h5" | "h6";
@@ -174,14 +172,7 @@ export default function RichContentBlocks({
     if (block.type === "reference")
       return (
         <div>
-          <p className="text-vs-accent underline decoration-dotted">
-            {block.label}
-          </p>
-          {!preview && (
-            <p className="mt-1 text-sm text-vs-fg-2">
-              {t("studyReader.referenceUnavailable")}
-            </p>
-          )}
+          <ReferenceLink id={block.id} label={block.label}/>
         </div>
       );
     return <hr className="border-vs-line" />;
