@@ -14,7 +14,7 @@ Branch `feature/puzzle-v2-phase-5d2-animations`, gebaseerd op `main` na PR #104 
 Gewijzigd: `JigsawV2Client.tsx` (de eigen animatielus is vervangen door de gedeelde laag), `PuzzleTable.tsx`, `motion.ts`, tests en `package.json` (testlijst). `render.ts` is ongewijzigd (de renderer tekent de groepen en posities die hij krijgt).
 
 ## 3. Snapgedrag per spelmodus
-- **Solo / Tegen elkaar**: de verbinding of bordplaatsing wordt bevestigd en direct toegepast (`update(next)`), het tekenen glijdt 140 ms. Het bord is bedienbaar zodra de server klaar is (gemeten 122–149 ms na loslaten in plaats van 285–319 ms). Eindtijd, wedstrijdtijd, vraag, records, ranglijsten en reeks lopen via ongewijzigde code. Bij voltooien verschijnt de voltooiingsstap direct (vroeger na 140 ms); de laatste snap wordt dan niet meer getoond.
+- **Solo / Tegen elkaar**: de verbinding of bordplaatsing wordt bevestigd en direct toegepast (`update(next)`), het tekenen glijdt 140 ms. Het bord is bedienbaar zodra de server klaar is (gemeten 122–149 ms na loslaten in plaats van 285–319 ms). Eindtijd, wedstrijdtijd, vraag, records, ranglijsten en reeks lopen via ongewijzigde code. Bij het laatste stuk legt de server voltooiing en eindtijd direct vast; de bestaande voltooiingskaart verschijnt pas nadat de laatste snap getoond is (zie sectie 12).
 - **Samen**: elke bevestigde wijziging die via een delta of resync binnenkomt (eigen of van een ander) wordt op dezelfde manier herkend in `paint()`; zowel de speler die verbindt als anderen zien dezelfde glijbeweging naar dezelfde definitieve stand. Een snap van een andere speler begint op de plek waar zijn sleepbeweging werd getoond (geen sprong).
 - **Volgorde met 5D-1**: de bijna-passend-gloed verdwijnt direct bij loslaten (daar is `drag.current`/`released` al op afgestemd) en dus vóór de serverbevestiging en de glijbeweging; de browsertest bevestigt dat er tijdens de glijbeweging geen gloedpixels zijn. Selectie, hint- en lockkleuren blijven ongewijzigd.
 
@@ -24,7 +24,7 @@ De getoonde positie van een remote gesleepte groep loopt lineair van de vorige g
 ## 5. Annulering en servercorrecties
 - Een nieuwe bevestigde stand voor dezelfde groep (servercorrectie) heeft voorrang: de glijbeweging vervalt direct. Een volgende snap van dezelfde groep neemt de lopende beweging over zonder sprong (één laag per doelgroep, geen dubbele animatie).
 - Een sprong groter dan een snap kan afleggen (herverbinding, resync na gemiste delta's) wordt niet geanimeerd. In Solo glijdt alleen een stand die uit een bevestigde verbindings- of bordactie komt.
-- Verliest een andere speler zijn lock (verlopen of vrijgegeven), dan stopt het volgen van zijn sleepbeweging direct. Verlies van de lock van de eigen speler en voltooien verbergen de bijna-passend-gloed (5D-1) en beëindigen de bewegingen; bij een voltooide puzzel is de laag uit.
+- Verliest een andere speler zijn lock (verlopen of vrijgegeven), dan stopt het volgen van zijn sleepbeweging direct. Verlies van de lock van de eigen speler verbergt de bijna-passend-gloed (5D-1). Bij voltooien blijft de laag aan tot de laatste snap getoond is (sectie 12); daarna verdwijnt het bord met de kaart.
 - `clear()` bij unmount; een nieuwe puzzel is een nieuw onderdeel (nieuwe instantie). Geen timers: de laag gebruikt alleen de bestaande frameplanning en kan niet blijven hangen.
 
 ## 6. Reduced motion
@@ -43,7 +43,7 @@ Bewegingsmetrics vóór → na (browsertest): Samen-snap getoond in 3-5 → 8-11
 ## 8. Testresultaten
 | Controle | Resultaat |
 |---|---|
-| `npm run test:puzzle` (incl. 16 nieuwe `puzzle-motion`-tests) | 88/88 |
+| `npm run test:puzzle` (incl. 21 nieuwe `puzzle-motion`-tests) | 93/93 |
 | Nieuwe browsertest `puzzle-motion` (productiebuild, echte muis/touch, canvaspixels per beeld, 2 browsers) | groen |
 | Browser near-snap, mobile, drag, flow, navigation, difficulty, hint-inventory, records, multiplayer (300 stukken), perf | allemaal groen |
 | Integratie Samen/wedstrijd/records/ranglijst; Solo + hinttegoed | 42/42; 25/25 |
@@ -59,7 +59,22 @@ Frame-reeksen vóór en na onder elkaar (elk beeld waarin het bord opnieuw getek
 - Tijdens een glijbeweging worden de delen kort met hun eigen contour getekend (zoals de oude Solo-animatie); wie in dat venster een groep pakt, pakt de bevestigde (samengevoegde) groep.
 - De bewegingsdetectie hangt af van het zien van de vorige en nieuwe stand in `paint()`; bij een verborgen tabblad (geen frames) vallen meerdere wijzigingen samen en wordt een te grote sprong niet geanimeerd (veilig, direct de eindstand).
 - Een snap van een andere speler in Samen toont bij ontbrekende sleep-events (korte verbinding) alleen de glijbeweging vanaf de bevestigde plek; het eerste ontvangen sleeppunt wordt in 50 ms benaderd, wat bij een ver verwijderd eerste punt zichtbaar kan zijn.
-- Samen toont bij voltooien geen laatste snapbeweging (de laag wordt uitgeschakeld); Solo toont de voltooiingsstap nu 140 ms eerder.
+- De voltooiingskaart komt nu ~260 ms (gemeten ~300 ms) later dan de serverbevestiging van het laatste stuk, bewust (sectie 12).
 
 ## 11. Bevestiging
 Geen wijziging aan: puzzelengine, snapafstand en -validatie, moeilijkheids- en rotatieregels, hints en tegoed, puzzeltijd, vervolgvraag, reeks, records, ranglijsten, privacy, servervalidatie, multiplayerprotocol, database of migraties, noch aan `render.ts` of `nearSnap.ts`. Geen nieuwe dependencies. Spelresultaten zijn per scenario tegen de serverstand gecontroleerd; geen extra netwerkverkeer.
+
+## 12. Correctie: voltooiingsvolgorde (na review van PR #105)
+**Probleem.** In de eerste versie verscheen de voltooiingskaart in Solo/Tegen elkaar direct bij de bevestigde eindstand (de laatste snap was dus niet te zien) en in Samen was de bewegingslaag bij een voltooide puzzel uitgeschakeld.
+**Nu.**
+1. De server legt voltooiing en eindtijd ongewijzigd en direct vast (`completeJigsaw`, `completedAt`, records, wedstrijduitslag: geen enkele serverfunctie is aangeraakt); de component past de bevestigde eindstand direct toe (`status`, `completedAt`, officiële tijd zijn meteen beschikbaar).
+2. De laatste bevestigde snap glijdt de bestaande 140 ms; daarna volgt een rustpauze van 120 ms met het voltooide bord (`COMPLETION_HOLD_MS`). Totaal ~260 ms, met een harde bovengrens van 600 ms (`COMPLETION_MAX_WAIT_MS`, ook zonder frames door een verborgen tabblad via een enkele, bij unmount gewiste noodtimer).
+3. Pas daarna de bestaande voltooiingskaart (Solo/Tegen elkaar: `Completion`; Samen: de bestaande kaart in `CoopClient`). Er is geen nieuwe kaart of tekst (geen vertalingen nodig).
+4. `createCompletionGate()` in `motion.ts` (puur, zonder timers) beslist wanneer de kaart mag komen en wordt in dezelfde teken-frames getikt als de bewegingslaag (geen aparte lus): Solo/Tegen elkaar in `JigsawV2Client` (`showCompletion`), Samen via `PuzzleTable.settle(done)` en een `revealed`-staat in `CoopClient` naast de bestaande `completed` (de serverstand blijft `completed`; alleen de weergave van de kaart wacht). Het bord is tijdens de wacht in Samen nog het gewone bord; bij de laatste snap blijven de contouren zichtbaar tot de beweging klaar is. Een voltooide Samen-puzzel die bij het openen al voltooid is (herladen, later terugkomen) toont de kaart direct zonder animatie.
+5. Reduced motion: de gate toont de kaart direct (geen verplichte wachttijd; gemeten 13 ms na de serverbevestiging in Solo en ~50-60 ms in Samen).
+6. Geen dubbele kaarten: een tweede aanvraag terwijl er al een wacht doet niets; de overgang zet de stap alleen van "bord" naar "voltooid" (nooit over een latere stap als vraag of resultaat heen) en `revealed` is een enkele boolean in Samen. Herverbinden of een resync zonder snapbeweging (grote sprong) toont de kaart direct, één keer; herhaalde serverupdates (focus, delta's, socketbericht `puzzle:completed`) veranderen niets.
+7. Navigeren of unmount tijdens de wachttijd annuleert de aanvraag (`cancel()`, noodtimer gewist, motion `clear()`): geen kaart op de volgende pagina en geen fouten; de server heeft voltooiing dan al vastgelegd.
+8. Daarnaast: tijdens de korte wachttijd negeert het Solo-bord nieuwe sleepbewegingen op een al voltooide puzzel (`saved.status !== "ACTIVE"`).
+**Metingen (browsertest, productiebuild):** Solo normaal: server legt voltooiing vast vóór de animatie klaar is; kaart ~300 ms na de serverbevestiging; laatste positie ~128 ms zichtbaar vóór de kaart; 3-4 getoonde posities. Solo met verminderde beweging: kaart 13 ms na de serverbevestiging. Samen normaal: beide spelers zien de laatste snap (3-4 posities) en daarna precies één kaart (~300-340 ms na het begin van de beweging). Samen met verminderde beweging: ~50-60 ms, één kaart per speler.
+**Nieuwe regressietests** (`puzzle-motion.test.ts` en `puzzle-motion.browser.mjs`): laatste snap eerst en dan één kaart (Solo en beide Samen-spelers), reduced motion zonder wachttijd, herverbinden tijdens de voltooiing (één kaart na terugkeer), navigeren tijdens de voltooiingsanimatie (Solo en Samen), herhaalde serverupdates (geen dubbele kaart), bovengrens en annuleren in de gate. Alle onderstaande suites zijn na de correctie opnieuw gedraaid: puzzel-unit 93/93, alle puzzelbrowsertests (motion, near-snap, mobile, drag, flow, navigation, difficulty, hint-inventory, records, multiplayer, perf) groen, integratie 42/42 en 25/25, live-data 52, focus 22, Kompas 54; `tsc`, eslint (0 errors), i18n en een schone productiebuild: ok.
+**Prestaties na de correctie** (5 runs, zelfde scenario): Samen 150: 777 ms, Samen 300: 1201 ms, Solo 96: 1028 ms scripttijd (frame p95 16,8/33,4/16,7 ms); de eerdere meting van dezelfde 5D-2-code gaf 729/1097/991 ms. De spreiding tussen runs op deze machine is ongeveer ±10%; de gate doet per beeld alleen een paar vergelijkingen en alleen tijdens een openstaande voltooiing.
