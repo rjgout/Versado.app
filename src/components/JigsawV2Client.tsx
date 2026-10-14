@@ -281,7 +281,8 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
   // Leegmaken is idempotent. Een navigatie wacht op de echte servercommit; bij een fout blijft de speler op het bord.
   function flushNudge(): Promise<boolean> {
     if (nudgeTimer.current !== null) { clearTimeout(nudgeTimer.current); nudgeTimer.current = null; }
-    if (nudgeFlight.current) return nudgeFlight.current;
+    // Tijdens een lopende commit kunnen toetsen nieuwe bewegingen bufferen; een vertrek wacht ook daarop.
+    if (nudgeFlight.current) return nudgeFlight.current.then((ok) => ok && nudge.current ? flushNudge() : ok);
     const move = nudge.current; if (!move || !mounted.current) return Promise.resolve(!move);
     const task = (async () => {
       while (pending.current && mounted.current) await new Promise<void>((resolve) => setTimeout(resolve, 40));
