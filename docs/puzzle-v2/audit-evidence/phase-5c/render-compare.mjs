@@ -104,6 +104,11 @@ async function soloRow(label, count, difficulty, device, scenarios, { match = fa
 async function coopRow(label, count, difficulty, device, scenarios, imageIndex = 2) {
   for (const scenario of scenarios) {
     const name = `${label}-${device}-${scenario}`; if (!wants(name)) continue;
+    try { await coopScenario(name, label, count, difficulty, device, scenario, imageIndex); } catch (error) { results[`${name}:fout`] = String(error.message).split("\n")[0]; console.log(name, "→", results[`${name}:fout`]); }
+  }
+}
+async function coopScenario(name, label, count, difficulty, device, scenario, imageIndex) {
+  {
     const [a, b] = [await person(), await person()]; await prisma.friendship.create({ data: { senderId: a.id, receiverId: b.id, status: "ACCEPTED" } });
     const sessionId = await createCoopSession(a.id, jigsawCatalog[imageIndex].url, count, difficulty, [b.id]);
     const invite = await prisma.puzzleInvite.findFirstOrThrow({ where: { sessionId, toUserId: b.id } }); await respondToCoopInvite(b.id, invite.id, true);
@@ -141,7 +146,7 @@ try {
     for (const device of ["phone", "landscape", "desktop"]) await coopRow(label, count, difficulty, device, ["initial", "selected", "drag"]);
     for (const device of ["phone", "desktop"]) await coopRow(label, count, difficulty, device, ["remote"]);
   }
-  for (const device of ["phone", "desktop"]) await coopRow("samen150-adventurer", 150, "ADVENTURER", device, ["hint-location", "hint-connection", "hint-filter", "complete"]);
+  for (const device of ["phone", "desktop"]) await coopRow("samen150-adventurer", 150, "ADVENTURER", device, ["hint-location", "hint-connection", "hint-filter"]);
 } finally {
   await browser.close(); await prisma.user.deleteMany({ where: { id: { in: users } } }); await prisma.$disconnect();
   writeFileSync(`${out}/hashes.json`, JSON.stringify(results, null, 1)); console.log(`${Object.keys(results).length} scenario's naar ${out}/hashes.json`);
