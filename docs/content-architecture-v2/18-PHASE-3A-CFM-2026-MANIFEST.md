@@ -166,3 +166,38 @@ hoofdstuk en vers, én een expliciete bestaande-publicatiebeslissing voor die
 collectie. Daarna kunnen enkel-, bereik- en samengestelde verwijzingen via
 de bestaande `ReferenceResolver`, preview, reader en return-trip worden
 gevalideerd zonder een tweede Bijbelreader te bouwen.
+
+## Fase 3A.2 — OTB-validatie en interne verwijzingen
+
+De ontbrekende kolom `ContentCollection.publicationState` is geïntroduceerd
+door migratie `20261020120000_content_work_publication`. De eerder gebruikte
+`LEARNING_TEST_DATABASE_URL` wijst naar de gedeelde veilige testdatabase en
+bevat die migratie nog niet. Dat is geen geldige basis om schema- of
+publicatiegedrag te testen en is daarom niet gemigreerd.
+
+De bestaande structurele oplossing is
+`scripts/content-architecture/test-access-isolated.mjs`: die negeert de
+omgevings-`DATABASE_URL`, start een eigen Postgres-container, voert de gehele
+migratieketen inclusief `20261020120000_content_work_publication` uit en
+verwijdert container, volume en tijdelijke bestanden in `finally`. De runner
+kon in deze uitvoeromgeving niet starten omdat de Docker-binary ontbreekt
+(`spawnSync docker ENOENT`). Er zijn geen gedeelde of productiegegevens
+gewijzigd.
+
+De OTB-importer valideert vóór writes de gepinde upstreambron, alle 66 boeken,
+hoofdstukken, verzen en de gelijke structuur van de ondersteunde talen. Voor
+de Nederlandse Oude-Testamentcollectie schrijft hij de canonieke boekcodes
+`gen` tot en met `mal`, `work: old-testament` en `editionKey: otb`. Hij maakt
+de collectie bewust aan met `visibleToUsers: false`; de centrale
+`collectionAccessWhere` blokkeert die collectie voor normale leesroutes tot
+een expliciete publicatiebeslissing. Dat is geen foutieve instelling en mag
+niet door een CFM-import of resolver worden omzeild.
+
+Daarom zijn nog geen `INTERNAL_VERIFIED` CFM-verwijzingen toegevoegd. De
+bestaande resolver gebruikt nu uitsluitend vastgepinde tekstbewijzen voor
+bronnen die reeds normaal leesbaar zijn. Een OTB-mapping zou pas betrouwbaar
+zijn nadat de wegwerpdatabase een volledige, gepinde Nederlandse OTB-import
+heeft gevalideerd én de collectie volgens het bestaande publicatiepad
+`PUBLISHED`, `enabled` en `visibleToUsers` is gemaakt. Pas dan kunnen
+ReferencePreview, `Meer lezen` en de bestaande return-trip ongewijzigd de
+interne `/scripture/[chapterId]`-route gebruiken.
