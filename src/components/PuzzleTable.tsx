@@ -281,7 +281,8 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
   // Dezelfde in-flight commit kan door blur, navigatie en timer worden opgevraagd: altijd één lock en één commit.
   function flushKeyboard(): Promise<boolean> {
     if (keyboardTimer.current !== null) { clearTimeout(keyboardTimer.current); keyboardTimer.current = null; }
-    if (keyboardFlight.current) return keyboardFlight.current;
+    // Tijdens een lopende commit kunnen toetsen nieuwe bewegingen bufferen; een vertrek wacht ook daarop.
+    if (keyboardFlight.current) return keyboardFlight.current.then((ok) => ok && keyboard.current ? flushKeyboard() : ok);
     const move = keyboard.current; if (!move || !mounted.current) return Promise.resolve(!move);
     const task = (async () => {
       while (pending.current && mounted.current) await new Promise<void>((resolve) => setTimeout(resolve, 40));
