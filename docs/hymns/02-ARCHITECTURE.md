@@ -155,10 +155,29 @@ Status: **AANNEMELIJK**, niet gebouwd. De proef bundelt de bibliotheek met de pa
 - **Echo-onderdrukking uit**: `getUserMedia` wordt met `echoCancellation`, `noiseSuppression` en
   `autoGainControl` uit gevraagd. Browsers mogen dat negeren (**ONBEKEND** hoe iOS zich gedraagt).
 
-## 7. Toegang en isolatie (fase J)
+## 7. Toegang (productie, uitsluitend beheerders)
 
-- Route `/dev/lofzangen`, niet in de publieke navigatie of sitemap, `robots: noindex`. Op de `/content`-kiezer verschijnt een kaart uitsluitend voor admins; dit wisselt geen contentcollectie.
-- `src/lib/hymns/access.ts`: in ontwikkeling voor elke ingelogde gebruiker; in productie standaard alleen voor beheerders, voor anderen 404. `HYMNS_POC=0` is een noodstop die de route ook voor admins verbergt. Controle via `tests/hymns-privacy.test.ts` en `tests/content-picker.browser.mjs`. De oorspronkelijke gatingresultaten in `05-TEST-RESULTS.md` beschrijven de eerdere POC-stand.
+Stand na de publicatie naar main: **Lofzangen is beschikbaar voor beheerders op de live omgeving**, die
+daarmee ook als testomgeving voor de muziekherkenning met echte instrumenten dient (er is geen
+afzonderlijke testomgeving). Gewone gebruikers hebben geen toegang en zien niets.
+
+- Route: `/dev/lofzangen` (technische route, zichtbare naam "Lofzangen"). Ingang: de contentkiezer
+  `/content`, sectie "Voor beheerders", uitsluitend voor ingelogde beheerders. De kaart is een gewone
+  link: er wordt **geen** contentcollectie, contenttaal of studievoortgang gewijzigd en er is geen
+  databasewijziging.
+- Beveiliging staat server-side in `src/lib/hymns/access.ts` en wordt zowel door `/content` (zichtbaarheid)
+  als door de route zelf (toegang) gebruikt, met de bestaande `User.isAdmin`:
+  beheerder = toegang; gewone gebruiker = 404; niet ingelogd = redirect naar `/login`.
+- Er is **geen** verplichte omgevingsvariabele. `HYMNS_POC=0` is een optionele noodstop die de route en de
+  kaart ook voor beheerders verbergt.
+- De route staat niet in navigatie of sitemap, `robots: noindex`.
+- Getest in `tests/hymns-privacy.test.ts`, `tests/content-picker.browser.mjs` en met een productieserver
+  (zie `05-TEST-RESULTS.md`, 9). De eerdere gatingresultaten in 7 van dat document beschrijven de
+  oorspronkelijke stand met `HYMNS_POC=1`.
+- Microfoon in de browser: `getUserMedia` vereist HTTPS (de live site heeft dat). Mobiele Safari en Chrome zijn
+  **niet** getest; in de Capacitor-apps (remote-preview) zijn extra native permissies nodig
+  (`NSMicrophoneUsageDescription` op iOS, `RECORD_AUDIO` en een toestemmingsafhandeling van de WebView op
+  Android). Die zijn bewust niet toegevoegd; gebruik in de app is dus **ONBEKEND** tot dat gebeurt.
 - Teksten van de proef staan bewust nog buiten het i18n-systeem (`components/hymns-poc/copy.ts`);
   dat is toelaatbaar omdat de pagina niet publiek is en moet bij een echte functie alsnog via
   `src/lib/i18n/messages`.

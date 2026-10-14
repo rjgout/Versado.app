@@ -171,10 +171,12 @@ toekomstige APNs/FCM-push.
 
 ## Lofzangen (technische proef): live meezingen
 
-Proof of concept, geen publieke functie: de telefoon luistert naar orgel of piano, volgt de
+Beschikbaar op de live omgeving voor uitsluitend beheerders (via de contentkiezer `/content`, sectie
+"Voor beheerders"; gewone gebruikers krijgen 404; optionele noodstop `HYMNS_POC=0`). De muziekherkenning is
+nog in ontwikkeling en niet getest met echte kerkuitvoeringen. De telefoon luistert naar orgel of piano, volgt de
 partituur en toont de juiste tekstregel (`docs/hymns/`, lees `02-ARCHITECTURE.md` vóór je eraan
 werkt). Code: `src/lib/hymns/` (engine en gegevens), `src/components/hymns-poc/`, route
-`/dev/lofzangen` (regels in `src/lib/hymns/access.ts`). Bewaakt door `npm run test:hymns`.
+`/dev/lofzangen`, zichtbare naam "Lofzangen" (regels in `src/lib/hymns/access.ts`). Bewaakt door `npm run test:hymns`.
 
 Harde regels:
 - Alle realtime muziekanalyse draait lokaal op het toestel. Geen audio naar de server, naar een

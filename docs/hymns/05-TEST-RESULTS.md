@@ -265,3 +265,25 @@ De proef raakt geen bestaande code. `git status` toont alleen nieuwe bestanden, 
 | Gemeentezang met echte stemmen | Alleen gesynthetiseerde zang op de melodie. |
 | Fermates in echte opnamen | Alleen lofzang 24 heeft er één, en de echte opname houdt hem niet aan. |
 | Serververkeer van een volledige productieomgeving | Alleen de ontwikkelserver in de browsertest. |
+
+## 9. Admin-only beschikbaarstelling in productie (aanvulling, 14 oktober 2026)
+
+De metingen in 1 tot 8 zijn ongewijzigd en beschrijven de proef. Aanvullend gecontroleerd na het
+beschikbaar maken voor beheerders via de contentkiezer (productiebuild, `NODE_ENV=production`, **zonder**
+`HYMNS_POC`, wegwerpdatabase met alle bestaande migraties):
+
+| Controle | Uitkomst |
+|---|---|
+| Beheerder ziet "Lofzangen" in `/content` en opent de route | geslaagd (`tests/content-picker.browser.mjs`, 48 combinaties van viewport, thema en tekstgrootte) |
+| Gewone gebruiker: kaart niet zichtbaar, directe toegang | geen link in `/content`; `/dev/lofzangen` geeft 404 |
+| Niet ingelogd | 307 naar `/login` |
+| Zonder `HYMNS_POC` in productie | route werkt voor beheerders |
+| `HYMNS_POC=0` (noodstop) | 404 voor een beheerder en geen kaart in `/content` |
+| Actieve contentcollectie, taal en voortgang | ongewijzigd na openen (de browsertest vergelijkt de gebruikersrij voor en na) |
+| Muziekanalyse en microfoon in productie als beheerder | browsertest met nep-microfoon 18 van 18 |
+| Databasewijzigingen | geen eigen migraties |
+| Bestaande tests | `test:hymns` 59/59, `test:content-picker` 40/40, `test:focus` 22/22, `test:live-data` 52/52, `test:profile` 12/12, `test:mascots` 10/10, `test:kompas` 60 (9 overgeslagen), `test:learning` 12/12, `test:cards` 6/6 |
+
+**Niet getest:** mobiele Safari en Chrome op echte toestellen, en de Capacitor-apps (zie `02-ARCHITECTURE.md`, 7).
+Echte uitvoeringen in een kerk zijn nog niet getest; de resultaten hierboven bewijzen geen betrouwbaarheid in een
+kerkgebouw.

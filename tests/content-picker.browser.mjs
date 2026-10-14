@@ -199,7 +199,7 @@ try {
     assert.equal(await page.locator('[data-admin-content-link]').getAttribute('href'),'/adminbackend/content/inspect');
     assert.equal(await page.locator('[data-admin-hymns-link]').getAttribute('href'),'/dev/lofzangen');
     await page.locator('[data-admin-hymns-link]').click();await page.waitForURL(`${base}/dev/lofzangen`);
-    assert.equal(await page.locator('h1').filter({hasText:'Lofzangen, technische proef'}).count(),1);
+    assert.equal(await page.locator('h1').filter({hasText:'Lofzangen'}).count(),1);
     await ready('/content');
     assert.ok(await page.locator('[data-admin-content-link]').evaluate(el=>el.getBoundingClientRect().top>=document.querySelector('[data-content-language]').getBoundingClientRect().bottom));
     const adminSelection=()=>prisma.user.findUniqueOrThrow({where:{id:user.id},select:{activeContentCollectionId:true,contentLanguage:true,activeCourseId:true,xpTotal:true,hintBalance:true,currentStreak:true}});

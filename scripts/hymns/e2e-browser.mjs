@@ -5,6 +5,7 @@
 //     AUDIT_BASE_URL=http://localhost:3100 node scripts/hymns/e2e-browser.mjs
 // Maakt zelf een testaccount aan (de eerste registratie op een verse installatie wordt beheerder).
 import { createRequire } from "node:module";
+import { execFileSync } from "node:child_process";
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE ?? "playwright");
 const BASE = process.env.AUDIT_BASE_URL ?? "http://localhost:3100";
@@ -33,6 +34,8 @@ page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
 // account (eerste of nieuwe gebruiker), daarna inloggen via de gewone route
 let res = await ctx.request.post(`${BASE}/api/auth/register`, { data: { email, handle, password } });
 check("account aangemaakt", res.ok(), String(res.status()));
+// In productie is de route alleen voor beheerders: PROMOTE_DB_URL = wegwerpdatabase waarin dit testaccount beheerder wordt.
+if (process.env.PROMOTE_DB_URL) execFileSync("psql", [process.env.PROMOTE_DB_URL, "-c", `update "User" set "isAdmin"=true where email='${email}'`]);
 res = await ctx.request.post(`${BASE}/api/auth/login`, { data: { identifier: email, password } });
 check("ingelogd", res.ok(), String(res.status()));
 

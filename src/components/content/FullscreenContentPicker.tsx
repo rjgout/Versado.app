@@ -142,8 +142,8 @@ export default function FullscreenContentPicker({ initialData, sessionKey, isAdm
         className={`flex min-h-12 w-full items-center gap-3 rounded-2xl border border-vs-line bg-vs-surface p-3.5 text-left shadow-sm transition hover:bg-vs-accent-soft ${focusClass}`}>
         <Music2 className="h-10 w-10 shrink-0 text-vs-accent" aria-hidden="true" />
         <span className="min-w-0 flex-1">
-          <span className="block text-base font-extrabold leading-snug text-vs-fg">Lofzangen (proef)</span>
-          <span className="mt-1 block text-sm font-semibold text-vs-fg-3">Live meezingen testen · alleen voor beheerders</span>
+          <span className="block text-base font-extrabold leading-snug text-vs-fg">Lofzangen</span>
+          <span className="mt-1 block text-sm font-semibold text-vs-fg-3">Live meezingen · alleen voor beheerders</span>
         </span>
         <ChevronRight className="h-4 w-4 shrink-0 text-vs-fg-3" aria-hidden="true" />
       </Link>

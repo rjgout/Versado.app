@@ -6,7 +6,7 @@ import HymnsPocClient from "@/components/hymns-poc/HymnsPocClient";
 // Technische proef "Lofzangen" (live score following). Geen publieke functie: de regels staan in
 // src/lib/hymns/access.ts. Alleen de admin-kiezer linkt ernaar. Zie docs/hymns/02-ARCHITECTURE.md.
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Lofzangen (proef)", robots: { index: false, follow: false } };
+export const metadata = { title: "Lofzangen", robots: { index: false, follow: false } };
 
 export default async function HymnsPocPage() {
   const production = process.env.NODE_ENV === "production";

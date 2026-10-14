@@ -7,9 +7,9 @@ import type { MicState } from "@/lib/hymns/audio/micListener";
 import type { RecognitionStatus } from "@/lib/hymns/recognize/recognizer";
 
 export const COPY = {
-  title: "Lofzangen, technische proef",
+  title: "Lofzangen",
   intro:
-    "Proefversie voor ontwikkelaars. De telefoon luistert naar het orgel of de piano en volgt de muziek om de juiste tekstregel te tonen.",
+    "Alleen voor beheerders, in ontwikkeling: de herkenning is nog niet getest met echte uitvoeringen in een kerk. De telefoon luistert naar het orgel of de piano en volgt de muziek om de juiste tekstregel te tonen.",
   privacy:
     "Het geluid wordt alleen op dit toestel geanalyseerd. Er wordt niets verzonden of opgeslagen. De microfoon stopt zodra je op Stop tikt, deze pagina verlaat of de app naar de achtergrond gaat.",
   start: "Start luisteren",
@@ -19,7 +19,7 @@ export const COPY = {
   micRequesting: "Toestemming vragen…",
   hymnLabel: "Lofzang",
   recognize: "Herken lofzang",
-  recognizeHelp: "Laat de telefoon luisteren en raden welke van de drie proeflofzangen wordt gespeeld.",
+  recognizeHelp: "Laat de telefoon luisteren en raden welke van de drie beschikbare lofzangen wordt gespeeld.",
   followThis: "Volg deze lofzang",
   stanzaLabel: "Couplet",
   orderToggle: "Volgorde kiezen",
@@ -56,5 +56,5 @@ export const RECOGNITION_TEXT: Record<RecognitionStatus, string> = {
   candidates: "Mogelijke lofzangen",
   identified: "Dit lijkt de lofzang",
   ambiguous: "Meerdere lofzangen passen even goed",
-  unknown: "Geen van de proeflofzangen herkend",
+  unknown: "Geen van de beschikbare lofzangen herkend",
 };

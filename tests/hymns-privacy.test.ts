@@ -304,9 +304,9 @@ test("toegang: in ontwikkeling voor elke ingelogde gebruiker", () => {
   assert.equal(hymnsPocAccess({ production: false, flag: undefined, loggedIn: false, isAdmin: false }), "login");
 });
 
-test("de proef is nergens gelinkt: geen verwijzing naar de route in navigatie, shell of sitemap", () => {
+test("de route is alleen gelinkt vanuit de admin-sectie van de contentkiezer, nergens in navigatie, shell of sitemap", () => {
   const files = [...walk(path.join(root, "src/components")), ...walk(path.join(root, "src/lib")), ...walk(path.join(root, "src/app"))]
-    .filter((f) => !f.includes(`${path.sep}hymns-poc${path.sep}`) && !f.includes(`${path.sep}hymns${path.sep}`) && !f.includes(`${path.sep}dev${path.sep}lofzangen`));
+    .filter((f) => !f.includes(`${path.sep}hymns-poc${path.sep}`) && !f.includes(`${path.sep}hymns${path.sep}`) && !f.includes(`${path.sep}dev${path.sep}lofzangen`) && !f.endsWith("FullscreenContentPicker.tsx") && !f.endsWith(`${path.sep}content${path.sep}page.tsx`));
   for (const file of files) {
     assert.equal(/dev\/lofzangen/.test(readFileSync(file, "utf8")), false, `${path.relative(root, file)} verwijst naar de proefroute`);
   }
