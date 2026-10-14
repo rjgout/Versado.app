@@ -114,6 +114,9 @@ CFM-kalender-import. Bestaande Schrifturen-reader blijft staan.
 | 2D | Reference resolver, gevalideerde verwijzingsedities en veilige preview/Meer lezen | Intern alleen bij bewezen canonieke én editie-equivalentie; anders officiële externe bron of melding; bewuste bronwissel en gebonden Terug naar les |
 | 2E | ContentProgress-studieadapter en expliciete afronding | READ + eenmalige centrale activity in één transactie, geen XP |
 
+Werkpakket 2D is op de afzonderlijke werkbranch geïmplementeerd; bronbewijs, grenzen, tests en het apart goedgekeurde bronselectiecounter-schema staan in [16-PHASE-2D-REFERENCE-PREVIEW.md](16-PHASE-2D-REFERENCE-PREVIEW.md). Review en productie-uitrol blijven afzonderlijk. Werkpakket 2E en officiële contentvrijgave zijn niet afgerond.
+
+
 ### Bestaande bestanden en componenten
 
 `LessonFlow.tsx`/ReaderView en `ReadingLessonFlow.tsx` als gedragsreferentie;
