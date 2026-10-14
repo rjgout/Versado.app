@@ -70,3 +70,63 @@ export function medianError(sc: Scenario, snaps: FollowSnapshot[], from = 0): nu
 export function referenceFor(hymn: ResolvedHymn) {
   return buildReference(hymn.composition);
 }
+
+// --- een hele "dienst": voorspel, eventuele pauze, daarna de zang. Elk deel is een eigen synthetische
+// opname met bekende tijdlijn; ze worden achter elkaar gezet zodat het voorspel een ander begin kan hebben
+// dan de samenzang (de laatste vier maten, een heel couplet) en er een echte stilte tussen kan zitten.
+
+export interface ServicePart {
+  /** Opties voor dit deel; `startBeat` bepaalt waar in de melodie het deel begint. */
+  options: Partial<SynthOptions>;
+  /** Stilte (s) vóór dit deel. */
+  gapBefore?: number;
+}
+
+export interface Service {
+  hymn: ResolvedHymn;
+  frames: FeatureFrame[];
+  cycle: number;
+  duration: number;
+  /** Tijdstip (s) waarop elk deel begint (de eerste noot, na de stilte ervoor). */
+  partStart: number[];
+  /** Tijdstip (s) waarop elk deel eindigt (de laatste klank van de muziek). */
+  partEnd: number[];
+}
+
+export function makeService(number: number, parts: ServicePart[], shared: Partial<SynthOptions> = {}, leadIn = 1.5): Service {
+  const hymn = resolveHymn(POC_LIBRARY, number)!;
+  const chunks: Float32Array[] = [];
+  const partStart: number[] = [];
+  const partEnd: number[] = [];
+  let offset = 0;
+  const push = (a: Float32Array) => {
+    chunks.push(a);
+    offset += a.length / SAMPLE_RATE;
+  };
+  push(new Float32Array(Math.round(leadIn * SAMPLE_RATE)));
+  parts.forEach((part, i) => {
+    if (part.gapBefore) push(new Float32Array(Math.round(part.gapBefore * SAMPLE_RATE)));
+    const synth = synthesizeHymn(hymn.composition, {
+      sampleRate: SAMPLE_RATE,
+      laps: 1,
+      timbre: "piano",
+      tempoSegments: constantTempo(80),
+      leadInSeconds: 0,
+      seed: number + 17 * i,
+      ...shared,
+      ...part.options,
+    });
+    partStart.push(offset + synth.timeAt(part.options.startBeat ?? 0));
+    const last = i === parts.length - 1;
+    const keep = last ? synth.samples.length : Math.min(synth.samples.length, Math.ceil(synth.duration * SAMPLE_RATE));
+    partEnd.push(offset + synth.duration);
+    push(synth.samples.subarray(0, keep));
+  });
+  const total = new Float32Array(chunks.reduce((n, c) => n + c.length, 0));
+  let at = 0;
+  for (const c of chunks) {
+    total.set(c, at);
+    at += c.length;
+  }
+  return { hymn, frames: extractFrames(total, SAMPLE_RATE), cycle: hymn.composition.totalBeats, duration: total.length / SAMPLE_RATE, partStart, partEnd };
+}
