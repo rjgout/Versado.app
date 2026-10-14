@@ -33,7 +33,10 @@ export function prefersReducedMotion(): boolean {
 
 /** Ondiepe kopie met één groep op een andere plek: O(aantal groepen) verwijzingen, geen diepe kloon. */
 export function withGroupAt(snapshot: PuzzleSnapshot, groupId: string, x: number, y: number): PuzzleSnapshot {
-  const groups = snapshot.groups.slice(); const index = groups.findIndex((group) => group.id === groupId);
+  return withGroupAtIndex(snapshot, snapshot.groups.findIndex((group) => group.id === groupId), x, y);
+}
+function withGroupAtIndex(snapshot: PuzzleSnapshot, index: number, x: number, y: number): PuzzleSnapshot {
+  const groups = snapshot.groups.slice();
   if (index >= 0) groups[index] = { ...groups[index], x, y };
   return { ...snapshot, groups };
 }
@@ -50,9 +53,9 @@ export function createNearSnapTracker() {
   const reset = () => { key = ""; active = false; glow.edgeCount = 0; glow.slot.active = false; glow.strength = 0; return null; };
   function update(input: NearSnapInput): NearSnapGlow | null {
     const { snapshot, geometry, difficulty, rulesVersion, groupId } = input;
-    const group = snapshot.groups.find((candidate) => candidate.id === groupId);
+    const index = snapshot.groups.findIndex((candidate) => candidate.id === groupId); const group = snapshot.groups[index];
     if (!group || snapshot.completedAt) return reset();
-    const view = group.x === input.x && group.y === input.y ? snapshot : withGroupAt(snapshot, groupId, input.x, input.y);
+    const view = group.x === input.x && group.y === input.y ? snapshot : withGroupAtIndex(snapshot, index, input.x, input.y);
     const connection = findSnapConnection(view, geometry, difficulty, groupId, rulesVersion);
     // Eerst een goedkope poort op de afstand, daarna beslist boardSnapTarget (dat ook de structuur valideert) alsnog.
     let slot: { x: number; y: number } | null = null;

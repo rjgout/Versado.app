@@ -97,8 +97,8 @@ try {
     const env = await openSolo("desktop", difficulty, (groups, geometry) => { const to = boardPosition(geometry, { pieceIds: [5] }); place(groups, 5, to.x + .1, to.y - .1); }); const p = pointer(env);
     const geometry = env.geometry; const to = boardPosition(geometry, { pieceIds: [5] });
     await p.down(env.screen(to.x + .6, to.y + .4)); await env.page.waitForTimeout(FADE_WAIT);
-    const count = await accent(env.page, 70); await env.page.screenshot({ path: `${output}/board-${difficulty.toLowerCase()}.png` });
-    if (expected) assert.ok(count >= 10, `${difficulty}: bordplaats krijgt feedback (${count})`); else assert.equal(count, 0, `${difficulty}: geen bordhulp (${count})`);
+    const count = await accent(env.page, 36); await env.page.screenshot({ path: `${output}/board-${difficulty.toLowerCase()}.png` });
+    report.push({ board: difficulty, count }); if (expected) assert.ok(count >= 10, `${difficulty}: bordplaats krijgt feedback (${count})`); else assert.equal(count, 0, `${difficulty}: geen bordhulp (${count})`);
     await p.cancel(); await env.context.close();
   }
   // --- Meester: alleen bij de juiste rotatie
