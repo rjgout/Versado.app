@@ -16,9 +16,10 @@ import { JIGSAW_ROUTE, previousPuzzleStage } from "@/lib/puzzle/navigation";
 import PuzzleTogetherOverview from "@/components/puzzle/PuzzleTogetherOverview";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { useT } from "@/components/I18nProvider";
-import { createPuzzleGeometry, tracePuzzleGroup } from "@/lib/puzzle/geometry";
+import { createPuzzleGeometry } from "@/lib/puzzle/geometry";
+import { renderPuzzle } from "@/lib/puzzle/render";
 import { boardSnapTarget, connectedPieces, findSnapConnection, groupFor, worldOf } from "@/lib/puzzle/engine";
-import { clampGroupPosition, groupAnchor, groupMemberAt, puzzleRenderOrder, puzzleWorktable } from "@/lib/puzzle/worktable";
+import { clampGroupPosition, groupMemberAt, puzzleRenderOrder, puzzleWorktable } from "@/lib/puzzle/worktable";
 import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
 import { puzzlePolicy, type PuzzleFilter, type PuzzleHintType, type PuzzleHint, type PuzzleDifficulty, type PuzzlePieceCount, type PuzzleSnapshot } from "@/lib/puzzle/types";
 import { activePuzzleHint, puzzleHintTarget } from "@/lib/puzzle/hints";
@@ -185,60 +186,15 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
   function schedulePaint() { if (frame.current === null) frame.current = requestAnimationFrame(() => { frame.current = null; paint(); }); }
   function constrainCamera() { const canvas = canvasRef.current; if (canvas) camera.current = constrainViewport(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds); }
   function paint() {
-    const canvas = canvasRef.current; if (!canvas) return; const rect = canvas.getBoundingClientRect(); const ratio = Math.min(window.devicePixelRatio || 1, 2); const width = Math.max(1, Math.round(rect.width * ratio)); const height = Math.max(1, Math.round(rect.height * ratio));
-    if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
-    const context = canvas.getContext("2d"); if (!context) return; context.setTransform(ratio, 0, 0, ratio, 0, 0); context.clearRect(0, 0, rect.width, rect.height); context.fillStyle = "#edf1f2"; context.fillRect(0, 0, rect.width, rect.height);
-    context.save(); context.translate(camera.current.x, camera.current.y); context.scale(camera.current.scale, camera.current.scale);
-    context.fillStyle = "#dbe6e6"; context.fillRect(table.bounds.minX, table.bounds.minY, table.bounds.maxX - table.bounds.minX, table.bounds.maxY - table.bounds.minY); context.strokeStyle = "rgba(42, 68, 74, .45)"; context.lineWidth = 2 / camera.current.scale; context.strokeRect(table.bounds.minX, table.bounds.minY, table.bounds.maxX - table.bounds.minX, table.bounds.maxY - table.bounds.minY);
-    if (state.rulesVersion === 1 || policy.showOutline || policy.showGhost) { context.fillStyle = "rgba(255, 255, 255, .74)"; context.fillRect(table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); } if (policy.showGhost && image.current) { context.globalAlpha = .18; context.drawImage(image.current, table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); context.globalAlpha = 1; }
-    if (policy.showOutline) { context.strokeStyle = "rgba(64, 87, 94, .46)"; context.setLineDash([.12, .1]); context.strokeRect(table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); context.setLineDash([]); }
-    const target = hintRef.current?.target;
-    const draggedGroupId = drag.current?.groupId ?? null;
-    for (const group of puzzleRenderOrder(shown.current.snapshot.groups, draggedGroupId)) {
-      const dragging = group.id === draggedGroupId;
-      const dim = target?.type === "FILTER";
-      const anchor = groupAnchor(geometry, group); const key = group.pieceIds.join(",");
-      let path = paths.current.get(key);
-      if (!path) { path = new Path2D(); tracePuzzleGroup(path, geometry, group.pieceIds); paths.current.set(key, path); }
-      // Twee schermpixels lift, ook bij zoom/rotatie. Wereldpositie en snap blijven exact.
-      context.save(); if (dim) context.globalAlpha = .2; context.translate(group.x + .5, group.y + .5 - (dragging ? 2 / camera.current.scale : 0)); context.rotate(group.rotation * Math.PI / 180); context.translate(-.5, -.5);
-      if (dragging) {
-        // De echte groepscontour werpt schaduw, buiten de beeldclip en zonder interne randen.
-        context.save(); context.shadowColor = "rgba(29, 42, 60, .28)"; context.shadowBlur = 10 * ratio; context.shadowOffsetY = 5 * ratio;
-        context.fillStyle = "#b9d5d7"; context.fill(path); context.restore();
-      }
-      // Eén echte groepscontour en één beelduitsnede: geen afzonderlijke clips
-      // met antialias-kieren of dubbel gestrokte interne aansluitingen.
-      context.save(); context.clip(path);
-      if (image.current) context.drawImage(image.current, -anchor.column, -anchor.row, geometry.grid.columns, geometry.grid.rows);
-      else { context.fillStyle = "#b9d5d7"; context.fill(path); }
-      context.restore();
-      if (target?.type === "FILTER" && image.current) {
-        const members = group.pieceIds.filter((id) => target.pieceIds.includes(id));
-        if (members.length) {
-          const first = geometry.pieces[members[0]]; const key = `filter:${members.join(",")}`;
-          let highlight = paths.current.get(key);
-          if (!highlight) { highlight = new Path2D(); tracePuzzleGroup(highlight, geometry, members); paths.current.set(key, highlight); }
-          context.save(); context.globalAlpha = 1; context.translate(first.column - anchor.column, first.row - anchor.row); context.clip(highlight);
-          context.drawImage(image.current, -first.column, -first.row, geometry.grid.columns, geometry.grid.rows); context.restore();
-        }
-      }
-      const active = selectedRef.current !== null && group.pieceIds.includes(selectedRef.current);
-      context.strokeStyle = active ? "#d97716" : group.anchored ? "rgba(43, 103, 99, .70)" : "rgba(29, 42, 60, .60)"; context.lineWidth = (active ? 3 : 1) / camera.current.scale;
-      context.stroke(path); context.restore();
-    }
-    // Tijdelijke markers gebruiken de echte canonieke paden. Geen statusmutatie.
-    if (target?.type === "LOCATION") {
-      const path = new Path2D(); tracePuzzleGroup(path, geometry, target.pieceIds);
-      context.save(); context.translate(target.x, target.y); context.fillStyle = "rgba(217,119,22,.16)"; context.fill(path); context.strokeStyle = "#d97716"; context.lineWidth = 3 / camera.current.scale; context.stroke(path); context.restore();
-    }
-    const marked = target?.type === "CONNECTION" ? [target.pieceId, target.neighborId] : target?.type === "FILTER" ? target.pieceIds : [];
-    for (const id of marked) {
-      const group = groupFor(shown.current.snapshot, id); if (!group) continue;
-      const anchor = groupAnchor(geometry, group); const piece = geometry.pieces[id]; const path = new Path2D(); tracePuzzleGroup(path, geometry, [id]);
-      context.save(); context.translate(group.x + .5, group.y + .5); context.rotate(group.rotation * Math.PI / 180); context.translate(piece.column - anchor.column - .5, piece.row - anchor.row - .5); context.strokeStyle = "#d97716"; context.lineWidth = 4 / camera.current.scale; context.stroke(path); context.restore();
-    }
-    context.restore();
+    const canvas = canvasRef.current; if (!canvas) return;
+    const snapshot = shown.current.snapshot; const draggedGroupId = drag.current?.groupId ?? null;
+    renderPuzzle(canvas, {
+      geometry, table, camera: camera.current, image: image.current, paths: paths.current, snapshot, groups: puzzleRenderOrder(snapshot.groups, draggedGroupId),
+      place: (group, out) => { out.lifted = group.id === draggedGroupId; },
+      selectedPiece: selectedRef.current, hint: hintRef.current?.target,
+      backdrop: state.rulesVersion === 1 || policy.showOutline || policy.showGhost, ghost: policy.showGhost, outline: policy.showOutline,
+      edges: true, anchoredStroke: "rgba(43, 103, 99, .70)",
+    });
   }
   function update(next: State) { inventory.setData({ hintBalance: next.hintBalance }); saved.current = next; if (!mounted.current) return; shown.current = next; setState(next); setOuter(next); if (!match) remember(next.id); if (next.status === "COMPLETED") setStage("COMPLETE"); if (next.status === "ANSWERED") setStage("RESULT"); schedulePaint(); }
   async function animateSnap(before: State, next: State, groupId: string) {
