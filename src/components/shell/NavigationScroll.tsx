@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { pruneReferenceTrip } from "@/lib/references/returnContext";
 import {
   currentEntryKey,
   noteInAppNavigation,
@@ -178,6 +179,7 @@ export default function NavigationScroll() {
     }
     if (previous === location) return;
     bindContentDepartureEntry(previous.split("?")[0], pathname);
+    pruneReferenceTrip(pathname);
 
     const pop = pendingPop.current;
     pendingPop.current = null;

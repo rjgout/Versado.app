@@ -344,15 +344,18 @@ export default function AdminStudyPublicationsClient({
                 </AdminNotice>
               )}
               <h3 className="font-bold">{t("studyPublishing.references")}</h3>
+              <button type="button" className={button} disabled={busy} onClick={()=>void mutate({action:"audit-references",editionId:preview.editionId,revisionId:preview.revisionId})}>{t("referencePreview.audit")}</button>
               <ul className="space-y-2 text-sm">
                 {preview.references.map((ref) => (
                   <li key={ref.occurrenceKey} className="break-words">
                     {ref.label} —{" "}
                     {t(
-                      ref.diagnosis !== "EXTERNAL_VERIFIED"
+                      !["EXTERNAL_VERIFIED","INTERNAL_VERIFIED"].includes(ref.diagnosis)
                         ? "studyPublishing.unresolved"
                         : "studyPublishing.verified",
                     )}
+                    {ref.externalUrl && <span className="block break-words text-vs-fg-2">{ref.externalUrl}</span>}
+                    {ref.normalizedTarget && <code className="block whitespace-pre-wrap break-words text-xs">{JSON.stringify(ref.normalizedTarget)}</code>}
                   </li>
                 ))}
               </ul>
@@ -409,7 +412,7 @@ export default function AdminStudyPublicationsClient({
                       !preview.importRunId ||
                       preview.media.some((m) => !m.ready) ||
                       preview.references.some(
-                        (r) => r.diagnosis !== "EXTERNAL_VERIFIED",
+                        (r) => !["EXTERNAL_VERIFIED","INTERNAL_VERIFIED"].includes(r.diagnosis),
                       )
                     }
                     onClick={() => publication("PUBLISH")}

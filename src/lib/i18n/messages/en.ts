@@ -50,6 +50,7 @@ export const en: PartialMessages = {
       "FAILED": "Failed"
     },
     "fixtures": {
+      "references": "Reference test",
       "sample": "Synthetic test lesson",
       "updated": "Updated synthetic lesson",
       "unresolved": "Synthetic lesson with unresolved reference",
@@ -4000,4 +4001,22 @@ export const en: PartialMessages = {
     "readNotice": "This shows your reading position. Scrolling does not mark the lesson as read.",
     "sections": "Lesson sections"
 },
+  referencePreview: {
+    saveFailed: "Your reading position has not been confirmed as saved. Retry saving before reading more.",
+    selectionConflict: "Your source or lesson selection has changed. Reload the lesson; the newer selection will not be overwritten.",
+    moreUnknown: "The outcome of the source change is uncertain. Check your current source after reloading; an older selection will not be restored automatically.",
+
+  "audit": "Check references",
+  "title": "Scripture passage",
+  "backToLesson": "Back to lesson",
+  "more": "Read more",
+  "external": "Open the official source",
+  "externalNotice": "This reference is available on the official website.",
+  "unavailable": "This reference cannot yet be opened reliably.",
+  "failed": "The reference could not be opened or your reading position could not be saved. Please try again.",
+  "returnExpired": "The temporary return to your lesson has expired.",
+  "returnFailed": "Returning failed. Your source or lesson selection may have changed and will not be overwritten.",
+  "readonly": "This opens the text only; it does not complete a lesson."
+},
+
 };

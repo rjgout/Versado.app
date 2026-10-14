@@ -50,6 +50,7 @@ export const de: PartialMessages = {
       "FAILED": "Fehlgeschlagen"
     },
     "fixtures": {
+      "references": "Verweistest",
       "sample": "Synthetische Testlektion",
       "updated": "Aktualisierte synthetische Lektion",
       "unresolved": "Synthetische Lektion mit ungeklärtem Verweis",
@@ -3997,4 +3998,22 @@ export const de: PartialMessages = {
     "readNotice": "Dies zeigt deine Leseposition. Scrollen markiert die Lektion nicht als gelesen.",
     "sections": "Abschnitte der Lektion"
 },
+  referencePreview: {
+    saveFailed: "Deine Leseposition ist noch nicht sicher gespeichert. Versuche das Speichern erneut, bevor du weiterliest.",
+    selectionConflict: "Deine Quellen- oder Lektionsauswahl hat sich geändert. Lade die Lektion neu; die neuere Auswahl wird nicht überschrieben.",
+    moreUnknown: "Das Ergebnis des Quellenwechsels ist unklar. Prüfe nach dem Neuladen deine aktuelle Quelle; eine ältere Auswahl wird nicht automatisch wiederhergestellt.",
+
+  "audit": "Verweise prüfen",
+  "title": "Schriftstelle",
+  "backToLesson": "Zurück zur Lektion",
+  "more": "Weiterlesen",
+  "external": "Offizielle Quelle öffnen",
+  "externalNotice": "Dieser Verweis ist auf der offiziellen Website verfügbar.",
+  "unavailable": "Dieser Verweis kann noch nicht zuverlässig geöffnet werden.",
+  "failed": "Der Verweis konnte nicht geöffnet oder die Leseposition nicht gespeichert werden. Bitte versuche es erneut.",
+  "returnExpired": "Die vorübergehende Rückkehr zur Lektion ist abgelaufen.",
+  "returnFailed": "Die Rückkehr ist fehlgeschlagen. Deine Quellen- oder Lektionsauswahl hat sich möglicherweise geändert und wird nicht überschrieben.",
+  "readonly": "Dies öffnet nur den Text und schließt keine Lektion ab."
+},
+
 };

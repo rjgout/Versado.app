@@ -235,6 +235,9 @@ try {
       assert.ok(
         (await page.locator("[data-study-reader-body] li li").count()) > 0,
       );
+      const references=page.locator("[data-study-reader-body] button[data-reference-key]");
+      assert.equal(await references.count(),1,"alleen een expliciete read-only verwijzingsactie in de leestekst");
+      assert.equal(await references.first().getAttribute("type"),"button","een verwijzing dient geen quiz/READ-formulier in");
       const link = page.getByRole("link", { name: "Veilige synthetische link" });
       assert.equal(await link.getAttribute("href"), "https://example.invalid/study-link");
       assert.equal(await link.getAttribute("target"), "_blank");
@@ -247,7 +250,7 @@ try {
       assert.equal(
         await page
           .locator(
-            "[data-study-reader-body] input, [data-study-reader-body] button",
+            "[data-study-reader-body] input, [data-study-reader-body] button:not([data-reference-key])",
           )
           .count(),
         0,
@@ -323,11 +326,13 @@ try {
       const after = await prisma.user.findUnique({ where: { id: f.user.id } });
       assert.equal(after.activeContentCollectionId, "content_podcasts");
       assert.equal(after.contentLanguage, "en");
+      assert.equal(after.contentSelectionVersion,before.contentSelectionVersion+1,"de expliciete bron-/taalwissel verhoogt precies één keer");
       assert.deepEqual(
         {
           ...after,
           activeContentCollectionId: before.activeContentCollectionId,
           contentLanguage: before.contentLanguage,
+          contentSelectionVersion: before.contentSelectionVersion,
         },
         before,
       );

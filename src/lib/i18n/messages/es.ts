@@ -50,6 +50,7 @@ export const es: PartialMessages = {
       "FAILED": "Error"
     },
     "fixtures": {
+      "references": "Prueba de referencias",
       "sample": "Lección sintética de prueba",
       "updated": "Lección sintética actualizada",
       "unresolved": "Lección sintética con referencia sin resolver",
@@ -4008,4 +4009,22 @@ export const es: PartialMessages = {
     "readNotice": "Esto muestra tu posición de lectura. Desplazarte no marca la lección como leída.",
     "sections": "Secciones de la lección"
 },
+  referencePreview: {
+    saveFailed: "No se ha confirmado el guardado de tu posición de lectura. Inténtalo de nuevo antes de leer más.",
+    selectionConflict: "Tu selección de fuente o lección ha cambiado. Recarga la lección; no se sustituirá la selección más reciente.",
+    moreUnknown: "El resultado del cambio de fuente es incierto. Comprueba tu fuente al recargar; no se restaurará automáticamente una selección anterior.",
+
+  "audit": "Comprobar referencias",
+  "title": "Pasaje de las Escrituras",
+  "backToLesson": "Volver a la lección",
+  "more": "Leer más",
+  "external": "Abrir la fuente oficial",
+  "externalNotice": "Esta referencia está disponible en el sitio oficial.",
+  "unavailable": "Esta referencia todavía no se puede abrir de forma fiable.",
+  "failed": "No se pudo abrir la referencia o guardar tu posición de lectura. Vuelve a intentarlo.",
+  "returnExpired": "El regreso temporal a tu lección ha caducado.",
+  "returnFailed": "No se pudo regresar. Tu selección de fuente o lección puede haber cambiado y no se sobrescribirá.",
+  "readonly": "Esto solo abre el texto y no completa ninguna lección."
+},
+
 };
