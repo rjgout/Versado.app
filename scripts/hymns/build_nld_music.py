@@ -94,10 +94,16 @@ def align_words(lines, syls, label):
     matched = len(pos_t2s)
     missing = len(text) - matched
     extra = len(sheet) - matched
-    if missing / len(text) > 0.03:
+    # Weinig overeenkomst = de tekstrij onder de noten hoort niet bij deze tekst (HARD: onbruikbaar). Een klein verschil (andere
+    # spelling, een extra herhaling) laat de regels bruikbaar maar zonder woordkoppeling voor de afwijkende woorden (SOFT).
+    if missing / len(text) > 0.15 or matched < 0.7 * min(len(text), len(sheet)):
         diffs.append(f"HARD {label}: {missing} van {len(text)} tekens uit de officiële tekst niet in de bladmuziek teruggevonden")
-    if extra / len(sheet) > 0.05:
+    elif missing / len(text) > 0.03:
+        diffs.append(f"{label}: {missing} van {len(text)} tekens uit de officiële tekst niet in de bladmuziek teruggevonden")
+    if extra / len(sheet) > 0.15 and matched < 0.85 * len(sheet):
         diffs.append(f"HARD {label}: {extra} van {len(sheet)} tekens onder de noten niet in de officiële tekst")
+    elif extra / len(sheet) > 0.05:
+        diffs.append(f"{label}: {extra} van {len(sheet)} tekens onder de noten niet in de officiële tekst")
     out = [{"text": line, "words": []} for line in lines]
     prev_b = None
     word_first_char = {}
@@ -111,18 +117,21 @@ def align_words(lines, syls, label):
             out[li]["words"].append({"w": w, "b": prev_b if prev_b is not None else 0.0})
             continue
         if len(hit) < max(1, 0.6 * len(chars)):
-            diffs.append(f"HARD {label}: woord '{w}' niet aan de bladmuziek te koppelen")
+            diffs.append(f"{label}: woord '{w}' niet aan de bladmuziek te koppelen")
             out[li]["words"].append({"w": w, "b": None})
             continue
         owners = sorted({owner_s[pos_t2s[c]] for c in hit})
         sy = [[syls[o]["s"], syls[o]["t"]] for o in owners]
         b = syls[owners[0]]["t"]
         if prev_b is not None and b < prev_b - 1e-6:
-            diffs.append(f"HARD {label}: woord '{w}' staat voor het vorige woord (beat {b} < {prev_b})")
+            diffs.append(f"{label}: woord '{w}' staat voor het vorige woord (beat {b} < {prev_b})")
         prev_b = b
         out[li]["words"].append({"w": w, "b": b, "syl": sy})
         if any(syls[o]["dx"] > 14 for o in owners):
             diffs.append(f"{label}: woord '{w}' staat ver van zijn noot")
+    for li, ln in enumerate(out):
+        if ln["words"] and all(w["b"] is None for w in ln["words"]):
+            diffs.append(f"HARD {label}: regel {li + 1} heeft geen enkel gekoppeld woord")
     return out, diffs
 
 

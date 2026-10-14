@@ -137,6 +137,9 @@ def extract(pdf_path, opts=None):
             raise ValueError(f"systeem {si // 2}: verwacht G- en F-sleutel, kreeg {staves[si]['clef']}/{staves[si + 1]['clef']}")
         systems.append({"treble": si, "bass": si + 1})
 
+    def systems_of_staff(si):
+        return si // 2
+
     def staff_of(y):
         return min(range(len(staves)), key=lambda k: abs(y - (staves[k]["top"] + staves[k]["bottom"]) / 2))
 
@@ -297,7 +300,7 @@ def extract(pdf_path, opts=None):
             dx = g["x"] - (r["x"] + 4.5)
             dy = abs(g["y"] - r["y"])
             if 0 < dx < 8 and dy < sp * 1.6:
-                pairs.append((abs(dx - 3) + 0.6 * dy - 1.0, gi, r))  # rustpunt wint van een nabije kop
+                pairs.append((abs(dx - 3) + opts.get("restDy", 0.6) * dy + opts.get("restBonus", -1.0), gi, r))  # rustpunt wint (standaard) van een nabije kop
     pairs.sort(key=lambda p_: p_[0])
     if opts.get("dots") == "above":
         pairs = []
@@ -378,16 +381,16 @@ def extract(pdf_path, opts=None):
                 base = {0: 1.0, 1: 0.5, 2: 0.25, 3: 0.125}.get(beam_count(n), 0.25)
             n["base"] = base
 
-    # --- triolen: het cijfer 3 ("£") staat in het midden van de groep; de drie dichtstbijzijnde stokken eronder/erboven
-    for g in other:
-        if g["c"] != TUPLET3:
-            continue
+    # --- triolen: het cijfer 3 ("£") staat in het midden van de groep. Standaard geldt het voor de drie kolommen rond het cijfer;
+    # een triool kan ook uit twee noten bestaan (kwart + achtste). Welke van de twee klopt, volgt uit de maatsom (extract_best).
+    tuplet_list = []
+    tmode = opts.get("tupletMode", {})
+    for ti_, g in enumerate([g for g in other if g["c"] == TUPLET3]):
         si = staff_of(g["y"])
         cols = {}
         for n in notes_by_staff[si]:
             if abs(n["x"] + 2.5 - g["x"]) < 40:
                 cols.setdefault(round(n["x"], 0), []).append(n)
-        # kies de drie kolommen die samen het midden op g["x"] hebben: drie opeenvolgende kolommen rond het cijfer
         xs = sorted(cols)
         best = None
         for i in range(len(xs) - 2):
@@ -396,8 +399,10 @@ def extract(pdf_path, opts=None):
             sc = abs(centre - g["x"]) + (0 if all(cols[x][0]["base"] <= 1.0 for x in trio) else 5)
             if best is None or sc < best[0]:
                 best = (sc, trio)
+        tuplet_list.append({"i": ti_, "x": g["x"], "y": g["y"], "staff": si})
         if best and best[0] < 14:
-            for x in best[1]:
+            members = {"L2": best[1][:2], "R2": best[1][1:]}.get(tmode.get(ti_, "3"), best[1])
+            for x in members:
                 for n in cols[x]:
                     n["tuplet"] = 2 / 3
         else:
@@ -652,7 +657,15 @@ def extract(pdf_path, opts=None):
     first_sig = results[0]["sig"] if results else sigs[0]
     sig_changes = sorted({(r["sig"][2], r["sig"][3]) for r in results})
     repeats = [{"measure": r["index"], "endRepeat": r["m"]["endRepeat"], "startRepeatAfter": r["m"]["startRepeatAfter"]} for r in results if r["m"]["endRepeat"] or r["m"]["startRepeatAfter"]]
+    # welke maat bij welke triool hoort (voor de maatsom-gestuurde keuze in extract_best)
+    tuplet_measures = []
+    for t_ in tuplet_list:
+        for r in results:
+            if any(seg["system"] == systems_of_staff(t_["staff"]) and seg["lo"] < t_["x"] <= seg["hi"] for seg in r["m"]["segments"]):
+                tuplet_measures.append({"i": t_["i"], "measure": r["index"]})
+                break
     result = {
+        "tuplets": tuplet_measures,
         "source": pdf_path.split("/")[-1],
         "timeSignature": [first_sig[2], first_sig[3]],
         "timeSignatureChanges": [list(s) for s in sig_changes] if len(sig_changes) > 1 else [],
@@ -675,21 +688,64 @@ def extract(pdf_path, opts=None):
     return result
 
 
-VARIANTS = [{"dots": "match", "colTol": 6.5}, {"dots": "above", "colTol": 6.5}, {"dots": "match", "colTol": 2.0}, {"dots": "above", "colTol": 2.0}]
+VARIANTS = [
+    {"dots": "match", "colTol": 6.5},
+    {"dots": "above", "colTol": 6.5},
+    {"dots": "match", "colTol": 2.0},
+    {"dots": "above", "colTol": 2.0},
+    {"dots": "match", "colTol": 2.0, "restBonus": 0.0, "restDy": 3.0},
+    {"dots": "match", "colTol": 6.5, "restBonus": 0.0, "restDy": 3.0},
+]
+
+
+def _failing_measures(problems):
+    out = set()
+    for p in problems:
+        m = re.match(r"maat (\d+):", p)
+        if m:
+            out.add(int(m.group(1)) - 1)
+    return out
 
 
 def extract_best(pdf_path):
     """Probeert de extractievarianten en houdt die met de minste problemen; bij gelijke stand de eerste.
-    Een variant zonder problemen is alleen intern consistent, geen bewijs van juistheid (zie validate in build)."""
+    Bij een triool in een mislukte maat wordt per triool ook een tweenoten-triool geprobeerd (links of rechts); alleen wat de
+    maatsom herstelt, blijft staan. Een variant zonder problemen is alleen intern consistent, geen bewijs van juistheid
+    (zie de tekstkoppeling en de opnamecontrole in build_nld_music.py en audio_check.py)."""
     best = None
+    err = None
     for v in VARIANTS:
         try:
             r = extract(pdf_path, v)
         except Exception as e:  # noqa: BLE001
-            if best is None:
-                err = e
+            err = e
             continue
-        r["variant"] = f"{v['dots']}/{v['colTol']}"
+        r["variant"] = f"{v['dots']}/{v['colTol']}/{v.get('restBonus', '-')}"
+        # tweenoten-triolen: greedy per triool in een mislukte maat
+        mode = {}
+        for _ in range(4):
+            if not r["problems"] or not r["tuplets"]:
+                break
+            failing = _failing_measures(r["problems"])
+            improved = False
+            for t in r["tuplets"]:
+                if t["measure"] not in failing and t["measure"] + 1 not in failing and t["measure"] - 1 not in failing:
+                    continue
+                for alt in ("L2", "R2"):
+                    trial = dict(mode)
+                    trial[t["i"]] = alt
+                    try:
+                        r2 = extract(pdf_path, {**v, "tupletMode": trial})
+                    except Exception:  # noqa: BLE001
+                        continue
+                    if len(r2["problems"]) < len(r["problems"]):
+                        r2["variant"] = f"{r['variant']}+triool"
+                        r, mode, improved = r2, trial, True
+                        break
+                if improved:
+                    break
+            if not improved:
+                break
         if best is None or len(r["problems"]) < len(best["problems"]):
             best = r
         if not best["problems"]:
