@@ -65,7 +65,7 @@ Eén kaart per speler, ook na reconnect en herhaalde updates (zie 5D-2-tests en 
 | Samen 150 | 785 → 808 | 16,7 → 16,8 | 7,1 → 7,6 | 354 → 340 |
 | Samen 300 | 1145 → 1153 | 33,3 → 33,4 | 7,2 → 7,1 | 340 → 339 |
 | Solo 96 | 1044 → 1000 | 16,8 → 16,8 | 7,0 → 6,8 | 603 → 506 |
-Gelijk binnen de spreiding. De kaart voegt geen frames, polling of permanente lus toe; hij verschijnt pas na de bestaande wachtlogica. Eén extra afbeelding (de mascotte, ~100 kB WebP, statisch) en voor de wedstrijd/Solo-staat twee extra leesqueries op een voltooide sessie. Geen nieuwe serververzoeken door de client. Het toetsenbord vermindert serveracties (sectie 8).
+Gelijk binnen de spreiding. De kaart voegt geen frames, polling of permanente lus toe; hij verschijnt pas na de bestaande wachtlogica. Eén extra afbeelding (de mascotte, ~65 kB WebP, statisch) en op de server één (Solo) of twee (wedstrijd) extra leesqueries bij een voltooide sessie. Geen nieuwe serververzoeken door de client. Het toetsenbord vermindert serveracties (sectie 8).
 
 ## 12. Resterende risico's
 - Alleen Chromium-emulatie; geen WebKit of fysiek toestel (met name de compacte indeling op 320×568 en landscape is afgeleid van pixelmetingen, niet beoordeeld op een echt apparaat).
