@@ -184,9 +184,11 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
   // Eén bestemming per stap (lib/puzzle/navigation.ts): de vraag gaat terug naar de voltooide afbeelding,
   // alle andere stappen naar de puzzelkeuze (Solo) of het puzzeloverzicht (wedstrijd). Nooit browsergeschiedenis.
   const pathname = usePathname();
+  // De terugactie gebruikt altijd de actuele flush (de functie leest alleen refs, maar blijft zo ook bij latere wijzigingen juist).
+  const flushRef = useRef<() => Promise<boolean>>(() => Promise.resolve(true)); useEffect(() => { flushRef.current = flushNudge; });
   const back = useCallback(() => {
     if (previousPuzzleStage(stage) === "COMPLETE") { try { localStorage.removeItem(`${KEY}:question`); } catch {} match?.onStage?.("COMPLETE"); setStage("COMPLETE"); }
-    else void flushNudge().then((saved) => { if (saved && mounted.current) onChooseAnother(); });
+    else void flushRef.current().then((saved) => { if (saved && mounted.current) onChooseAnother(); });
   }, [stage, onChooseAnother, match]);
   useSetBackTarget(pathname, JIGSAW_ROUTE, "", back);
 
@@ -232,12 +234,12 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
     if (movedGroupId) glideRequested.current = true;
     update(next); return next;
   }
-  async function runBoard(work: () => Promise<void>) {
+  async function runBoard(work: () => Promise<void>): Promise<boolean> {
     if (!mounted.current || pending.current || saved.current.status !== "ACTIVE") return false;
     pending.current = true; setBusy(true); setError("");
     try { await work(); return true; }
     catch (cause) {
-      if (!mounted.current) return;
+      if (!mounted.current) return false;
       setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed"));
       // Ook na een verloren completion-response de autoritatieve fase herstellen.
       try { update(await call({ action: "resume", sessionId: saved.current.id }) as State); }
@@ -283,11 +285,14 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
     if (nudgeTimer.current !== null) { clearTimeout(nudgeTimer.current); nudgeTimer.current = null; }
     // Tijdens een lopende commit kunnen toetsen nieuwe bewegingen bufferen; een vertrek wacht ook daarop.
     if (nudgeFlight.current) return nudgeFlight.current.then((ok) => ok && nudge.current ? flushNudge() : ok);
-    const move = nudge.current; if (!move || !mounted.current) return Promise.resolve(!move);
+    const move = nudge.current; if (!move) return Promise.resolve(true);
     const task = (async () => {
-      while (pending.current && mounted.current) await new Promise<void>((resolve) => setTimeout(resolve, 40));
-      if (!mounted.current || nudge.current !== move) return false;
+      // Ook na het verlaten van het bord wachten we op een lopende actie: de laatste verplaatsing moet daarna nog vertrekken.
+      while (pending.current) await new Promise<void>((resolve) => setTimeout(resolve, 40));
+      if (nudge.current !== move) return false;
       nudge.current = null;
+      // Na het verlaten van het bord is er geen scherm meer om bij te werken; de server blijft de enige bron van waarheid.
+      if (!mounted.current) { try { await action({ kind: "move", groupId: move.groupId, x: move.x, y: move.y }); return true; } catch { return false; } }
       return runBoard(async () => { const next = await action({ kind: "move", groupId: move.groupId, x: move.x, y: move.y }); await snapAfterMove(next, move.groupId); });
     })();
     nudgeFlight.current = task;

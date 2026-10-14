@@ -80,9 +80,10 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
   const pending = useRef(false);
   const propsRef = useRef(props);
   useEffect(() => { propsRef.current = props; });
+  const flushRef = useRef<() => Promise<boolean>>(() => Promise.resolve(true)); useEffect(() => { flushRef.current = flushKeyboard; });
   const mounted = useRef(true);
 
-  const setSelected = useCallback((piece: number | null) => { if (selectedRef.current !== piece) void flushKeyboard(); selectedRef.current = piece; setSelectedState(piece); propsRef.current.onSelect?.(piece); }, []);
+  const setSelected = useCallback((piece: number | null) => { if (selectedRef.current !== piece) void flushRef.current(); selectedRef.current = piece; setSelectedState(piece); propsRef.current.onSelect?.(piece); }, []);
 
   // paint is een functiedeclaratie verderop en dus al beschikbaar zodra het frame draait.
   const schedule = useCallback(() => { if (frame.current === null) frame.current = requestAnimationFrame(() => { frame.current = null; paint(); }); // eslint-disable-next-line react-hooks/exhaustive-deps

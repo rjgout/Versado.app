@@ -57,7 +57,7 @@ try {
     const solo = await startSoloPuzzle(user.id, 11, 24, "ADVENTURER", "nl");
     const row = await prisma.puzzleSession.findUniqueOrThrow({ where: { id: solo.id }, include: { variant: { include: { definition: true } } } });
     const geometry = createPuzzleGeometry(24, row.variant.definition.seed, row.variant.definition.geometryVersion);
-    const groups = stacked(geometry); place(groups, 0, 8, 8); place(groups, 1, 4, 4); place(groups, 2, 5.5, 4.05);
+    const groups = stacked(geometry); place(groups, 0, 8, 8); place(groups, 1, 3, 4); place(groups, 2, 5.5, 4.05);
     await prisma.puzzleSession.update({ where: { id: solo.id }, data: { snapshot: JSON.stringify({ ...newPuzzleSnapshot(geometry, "ADVENTURER"), groups }) } });
     await ctx.addInitScript((id) => { try { localStorage.setItem("versado:jigsaw-v2-session", id); } catch {} }, solo.id);
     const moves = []; page.on("request", (request) => { if (request.method() === "POST" && request.url().endsWith("/api/jigsaw-v2")) { const body = request.postDataJSON(); if (body?.action === "act" && body?.operation?.kind === "move") moves.push(body.operation); } });
@@ -69,16 +69,58 @@ try {
     await sleep(800);
     let snapshot = JSON.parse((await prisma.puzzleSession.findUniqueOrThrow({ where: { id: solo.id } })).snapshot);
     assert.ok(Math.abs(snapshot.groups.find((g) => g.id === "p0").x - 8.4) < 1e-6, "Solo: p0 blijft bewaard na wissel");
-    assert.ok(Math.abs(snapshot.groups.find((g) => g.id === "p1").x - 4.2) < 1e-6, "Solo: blur commit p1");
+    assert.ok(Math.abs(snapshot.groups.find((g) => g.id === "p1").x - 3.2) < 1e-6, "Solo: blur commit p1");
     await canvas.focus(); await canvas.press("ArrowRight");
     await page.getByRole("button", { name: /Terug|Back/ }).first().click(); // navigeert vóór debounce, unmount het bord
     await page.waitForFunction(() => document.querySelector("canvas") === null, null, { timeout: 12000 });
     await sleep(250);
     snapshot = JSON.parse((await prisma.puzzleSession.findUniqueOrThrow({ where: { id: solo.id } })).snapshot);
-    assert.ok(Math.abs(snapshot.groups.find((g) => g.id === "p1").x - 4.4) < 1e-6, "Solo: terugnavigatie bewaart de laatste verplaatsing");
+    assert.ok(Math.abs(snapshot.groups.find((g) => g.id === "p1").x - 3.4) < 1e-6, "Solo: terugnavigatie bewaart de laatste verplaatsing");
     assert.ok(moves.length <= 3, `Solo: hooguit één commit per buffer (${moves.length})`);
     assert.deepEqual(errors, []); report.soloExit = { commits: moves.length, p0: snapshot.groups.find((g) => g.id === "p0").x, p1: snapshot.groups.find((g) => g.id === "p1").x };
     await ctx.close();
+  }
+  // --- Solo: aanslagen tijdens een lopende commit gaan niet verloren; een mislukte commit blijft niet als opgeslagen gelden en herstelt.
+  {
+    const user = await person(); const ctx = await context(user); const page = await ctx.newPage(); const errors = []; page.on("pageerror", (e) => errors.push(e.message));
+    const solo = await startSoloPuzzle(user.id, 11, 24, "ADVENTURER", "nl");
+    const row = await prisma.puzzleSession.findUniqueOrThrow({ where: { id: solo.id }, include: { variant: { include: { definition: true } } } });
+    const geometry = createPuzzleGeometry(24, row.variant.definition.seed, row.variant.definition.geometryVersion);
+    const groups = stacked(geometry); place(groups, 0, 8, 8);
+    await prisma.puzzleSession.update({ where: { id: solo.id }, data: { snapshot: JSON.stringify({ ...newPuzzleSnapshot(geometry, "ADVENTURER"), groups }) } });
+    await ctx.addInitScript((id) => { try { localStorage.setItem("versado:jigsaw-v2-session", id); } catch {} }, solo.id);
+    let moves = 0; let mode = "slow"; // slow: commit 900 ms vertraagd; fail: commit mislukt
+    await page.route("**/api/jigsaw-v2", async (route) => {
+      const body = route.request().postDataJSON();
+      if (body?.action === "act" && body?.operation?.kind === "move") {
+        moves++;
+        if (mode === "fail") { await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "Mislukt" }) }); return; }
+        await sleep(900);
+      }
+      await route.continue();
+    });
+    await page.goto(`${base}/jigsaw`); const canvas = page.locator("canvas").first(); await canvas.waitFor(); await page.waitForTimeout(800);
+    await canvas.focus(); await canvas.press("Enter"); await canvas.press("ArrowRight"); await sleep(450); // eerste commit loopt (vertraagd)
+    await canvas.press("ArrowRight"); await canvas.press("ArrowRight"); // tijdens de commit
+    await sleep(3500);
+    let snapshot = JSON.parse((await prisma.puzzleSession.findUniqueOrThrow({ where: { id: solo.id } })).snapshot);
+    assert.ok(Math.abs(snapshot.groups.find((g) => g.id === "p0").x - 8.6) < 1e-6, "Solo: aanslagen tijdens een commit blijven bewaard");
+    assert.equal(moves, 2, "Solo: precies twee commits (vóór en tijdens), geen dubbele");
+    mode = "fail"; moves = 0; await canvas.press("ArrowRight");
+    await sleep(1500);
+    snapshot = JSON.parse((await prisma.puzzleSession.findUniqueOrThrow({ where: { id: solo.id } })).snapshot);
+    assert.ok(Math.abs(snapshot.groups.find((g) => g.id === "p0").x - 8.6) < 1e-6, "Solo: een mislukte commit geldt niet als opgeslagen");
+    assert.ok(moves >= 1 && moves <= 2, `Solo: geen eindeloze herhaling na een fout (${moves})`);
+    const after = moves; await sleep(1500); assert.equal(moves, after, "Solo: geen herhaalde pogingen op de achtergrond");
+    // Terug tijdens een mislukkende commit: de speler blijft op het bord en de stand geldt niet als opgeslagen.
+    await canvas.focus(); await canvas.press("ArrowRight"); await page.getByRole("button", { name: /Terug|Back/ }).first().click(); await sleep(1500);
+    assert.equal(await page.locator("canvas").count(), 1, "Solo: bij een mislukte commit blijft de speler op het bord");
+    assert.ok(Math.abs(JSON.parse((await prisma.puzzleSession.findUniqueOrThrow({ where: { id: solo.id } })).snapshot).groups.find((g) => g.id === "p0").x - 8.6) < 1e-6, "Solo: mislukte commit bij terugnavigatie is niet opgeslagen");
+    mode = "slow"; await canvas.press("ArrowRight"); await sleep(3000);
+    snapshot = JSON.parse((await prisma.puzzleSession.findUniqueOrThrow({ where: { id: solo.id } })).snapshot);
+    assert.ok(snapshot.groups.find((g) => g.id === "p0").x > 8.6, "Solo: na de fout werkt het toetsenbord weer en wordt de stand bewaard");
+    report.soloBusy = { x: snapshot.groups.find((g) => g.id === "p0").x };
+    assert.deepEqual(errors.filter((message) => !/Mislukt|500/.test(message)), []); await ctx.close();
   }
   // --- Samen: 10 aanslagen = één greep, één verplaatsing, één loslaten
   {
@@ -103,7 +145,7 @@ try {
     const [a, b] = [await person(), await person()]; await prisma.friendship.create({ data: { senderId: a.id, receiverId: b.id, status: "ACCEPTED" } });
     const id = await createCoopSession(a.id, jigsawCatalog[4].url, 24, "ADVENTURER", [b.id]); await respondToCoopInvite(b.id, (await prisma.puzzleInvite.findFirstOrThrow({ where: { sessionId: id, toUserId: b.id } })).id, true);
     const row = await prisma.puzzleSession.findUniqueOrThrow({ where: { id }, include: { variant: { include: { definition: true } } } }); const geometry = createPuzzleGeometry(24, row.variant.definition.seed, row.variant.definition.geometryVersion);
-    const groups = stacked(geometry); place(groups, 0, 8, 8); place(groups, 1, 4, 4); place(groups, 2, 5.5, 4.05);
+    const groups = stacked(geometry); place(groups, 0, 8, 8); place(groups, 1, 3, 4); place(groups, 2, 5.5, 4.05);
     await prisma.puzzleSession.update({ where: { id }, data: { snapshot: JSON.stringify({ ...newPuzzleSnapshot(geometry, "ADVENTURER"), groups }) } });
     const ctx = await context(a); const page = await ctx.newPage(); const errors = []; page.on("pageerror", (e) => errors.push(e.message));
     const frames = []; page.on("websocket", (ws) => ws.on("framesent", (f) => frames.push(String(f.payload))));
@@ -114,7 +156,7 @@ try {
     await page.waitForURL(/\/jigsaw$/, { timeout: 15000 }); await sleep(350);
     const snapshot = JSON.parse((await prisma.puzzleSession.findUniqueOrThrow({ where: { id } })).snapshot);
     assert.ok(Math.abs(snapshot.groups.find((g) => g.id === "p0").x - 8.4) < 1e-6, "Samen: p0 bewaard na selectie");
-    assert.ok(Math.abs(snapshot.groups.find((g) => g.id === "p1").x - 4.2) < 1e-6, "Samen: vertrek wacht op commit van p1");
+    assert.ok(Math.abs(snapshot.groups.find((g) => g.id === "p1").x - 3.2) < 1e-6, "Samen: vertrek wacht op commit van p1");
     const events = frames.map((frame) => frame.match(/^\d*\["([^"]+)"/)?.[1]).filter(Boolean);
     assert.ok(events.filter((event) => event === "puzzle:commit").length <= 2, "Samen: maximaal één commit per buffer");
     assert.deepEqual(errors, []); report.samenExit = { commits: events.filter((event) => event === "puzzle:commit").length, p0: snapshot.groups.find((g) => g.id === "p0").x, p1: snapshot.groups.find((g) => g.id === "p1").x };
