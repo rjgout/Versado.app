@@ -157,10 +157,8 @@ Status: **AANNEMELIJK**, niet gebouwd. De proef bundelt de bibliotheek met de pa
 
 ## 7. Toegang en isolatie (fase J)
 
-- Route `/dev/lofzangen`, niet in de navigatie, niet in `sitemap.ts`, `robots: noindex`.
-- `src/lib/hymns/access.ts`: in ontwikkeling voor elke ingelogde gebruiker; in productie alleen met
-  `HYMNS_POC=1` en voor beheerders, anders 404. Getest in `tests/hymns-privacy.test.ts` en met een
-  productiebuild (zie `05-TEST-RESULTS.md`).
+- Route `/dev/lofzangen`, niet in de publieke navigatie of sitemap, `robots: noindex`. Op de `/content`-kiezer verschijnt een kaart uitsluitend voor admins; dit wisselt geen contentcollectie.
+- `src/lib/hymns/access.ts`: in ontwikkeling voor elke ingelogde gebruiker; in productie standaard alleen voor beheerders, voor anderen 404. `HYMNS_POC=0` is een noodstop die de route ook voor admins verbergt. Controle via `tests/hymns-privacy.test.ts` en `tests/content-picker.browser.mjs`. De oorspronkelijke gatingresultaten in `05-TEST-RESULTS.md` beschrijven de eerdere POC-stand.
 - Teksten van de proef staan bewust nog buiten het i18n-systeem (`components/hymns-poc/copy.ts`);
   dat is toelaatbaar omdat de pagina niet publiek is en moet bij een echte functie alsnog via
   `src/lib/i18n/messages`.
