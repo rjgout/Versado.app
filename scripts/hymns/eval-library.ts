@@ -20,6 +20,9 @@ const SECONDS = Number(flag("seconds", "70"));
 const ONLY = new Set((flag("only", "") ?? "").split(",").filter(Boolean).map(Number));
 const TEMPO = Number(flag("tempo", "1"));
 const NOISE = Number(flag("noise", "0"));
+// Onbekende melodie: de lofzang zelf wordt uit de kandidaten gehaald; goed = nooit een lofzang voorgesteld.
+const LEAVE_OUT = Boolean(flag("leave-out"));
+const EVERY = Number(flag("every", "1"));
 const SR = 44100;
 const cache = ".cache/hymns/nld";
 const index = JSON.parse(readFileSync(`${cache}/index.json`, "utf8")).hymns as { number: number; slug: string }[];
@@ -63,14 +66,15 @@ const times: number[] = [];
 let totalMs = 0;
 let totalFrames = 0;
 let maxMsFrame = 0;
-for (const m of bundle.members) {
+for (const [mi, m] of bundle.members.entries()) {
   if (ONLY.size && !ONLY.has(m.number)) continue;
+  if (mi % EVERY !== 0) continue;
   const slug = slugOf.get(m.number);
   const mp3 = `${cache}/audio/${slug}.mp3`;
   if (!existsSync(mp3)) continue;
   const audio = decode(mp3);
   const extractor = new ChromaExtractor({ sampleRate: SR });
-  const recognizer = new HymnRecognizer(candidates);
+  const recognizer = new HymnRecognizer(LEAVE_OUT ? candidates.filter((c) => c.id !== m.compositionId) : candidates);
   let firstCorrect: number | null = null;
   let firstWrong: string | null = null;
   let activeMax = 0;
@@ -96,11 +100,11 @@ for (const m of bundle.members) {
     }
   }
   n += 1;
-  const good = firstCorrect !== null && firstWrong === null;
+  const good = LEAVE_OUT ? firstCorrect === null && firstWrong === null : firstCorrect !== null && firstWrong === null;
   if (good) {
     ok += 1;
-    times.push(firstCorrect as number);
-  } else if (firstWrong) wrong += 1;
+    if (firstCorrect !== null) times.push(firstCorrect);
+  } else if (firstWrong || (LEAVE_OUT && firstCorrect !== null)) wrong += 1;
   else notIdentified += 1;
   results[String(m.number)] = { ok: good, seconds: firstCorrect, wrong: firstWrong, shared: (groups.get(m.compositionId)?.length ?? 1) > 1, detail };
   console.log(m.number, JSON.stringify(results[String(m.number)]), `actief≤${activeMax}`);
@@ -119,6 +123,7 @@ const summary = {
   frames: totalFrames,
   tempo: TEMPO,
   noise: NOISE,
+  leaveOut: LEAVE_OUT,
   candidates: candidates.length,
 };
 console.log(JSON.stringify(summary));

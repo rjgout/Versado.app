@@ -412,7 +412,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
             </div>
           </div>
 
-          {!choosing ? (
+          {!choosing && (canFollow || stage === "recognizing") ? (
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               {status ? (
                 <span
@@ -440,7 +440,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
           {status?.hint ? <p className="vs-wrap text-sm text-vs-fg-3">{status.hint}</p> : null}
           {micDetail && micState !== "listening" ? <p className="vs-wrap text-sm text-vs-fg-3">{micDetail}</p> : null}
 
-          {!choosing && stage === "following" ? (
+          {!choosing && stage !== "recognizing" && stanzaNumbers.length > 1 ? (
             <div className="flex flex-wrap items-center gap-1" role="group" aria-label={COPY.stanzaLabel}>
               <span className="mr-1 hidden text-sm font-semibold text-vs-fg-2 sm:inline" aria-hidden="true">
                 {COPY.stanzaLabel}
@@ -459,6 +459,8 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
                   {n}
                 </button>
               ))}
+              {canFollow ? (
+                <>
               <button type="button" className={iconButton} data-hymns-order aria-label={COPY.stanzaMore} aria-haspopup="dialog" onClick={() => setSheet("order")}>
                 <MoreHorizontal className="h-5 w-5" aria-hidden="true" />
               </button>
@@ -466,6 +468,8 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
                 <span className="text-sm text-vs-fg-3" data-hymns-order-label>
                   {order.join(" → ")}
                 </span>
+              ) : null}
+                </>
               ) : null}
             </div>
           ) : null}

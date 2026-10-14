@@ -33,7 +33,7 @@ Termen (in alle documenten in `docs/hymns/`):
 
 Methode: alleen gewone, openbare verzoeken zoals een browser die doet. Geen toegangsbeperkingen
 omzeild, geen inlog gebruikt, geen verborgen of ongedocumenteerde eindpunten aangeroepen. Het
-ophalen staat in `scripts/hymns/fetch_sources.py` en is herhaalbaar (de uitvoer is byte voor byte
+ophalen staat in `scripts/hymns/import_nld.py` (sinds fase 4; eerder `fetch_sources.py` voor de drie proeflofzangen) en is herhaalbaar (de uitvoer is byte voor byte
 gelijk aan de gecommitte bibliotheek).
 
 ## 3. Wat er daadwerkelijk beschikbaar is
@@ -143,7 +143,7 @@ Niet uitgaan van gelijke nummers, en ook niet van gelijke muziek. Wat is vastges
 | Begeleidingsopname (Engels) | Officieel (mp3), alleen voor tests. |
 | Melodienaam | Officieel (Sacred Music). |
 | Symbolische partituur (noten, duur, maten, fermate, sleutel) | **Zelf gegenereerd** uit de PDF met `scripts/hymns/extract_score.py`. |
-| Tekst-naar-nootkoppeling (woord, regel) | **Zelf gegenereerd** uit de PDF-lettergrepen met `scripts/hymns/build_library.py`. |
+| Tekst-naar-nootkoppeling (woord, regel) | **Zelf gegenereerd** uit de PDF-lettergrepen met `scripts/hymns/build_nld_music.py` (sinds fase 4; zie `11-TEKST-NAAR-NOOT.md`). |
 | Referentiekenmerken voor herkenning | **Zelf afgeleid** uit de noten (`src/lib/hymns/score/reference.ts`), niet opgeslagen. |
 | Testopnamen met bekende tijdlijn | **Zelf gegenereerd** (`src/lib/hymns/eval/synth.ts`). |
 
@@ -187,7 +187,7 @@ per bron relevant is. Dit is een technische aantekening en geen juridisch advies
 | Muziek (melodie, arrangement) | Op de pagina's staan `Tekst:` en `Muziek:` met namen en jaartallen. Voor sommige liederen is de muziek van een bekende componist (82: Samuel McBurney, geb. 1847), voor andere traditioneel of anoniem (24: Schotse volksmelodie; 36: anoniem, ca. 1889). Het arrangement in de bladmuziek is een eigen uitgave. | **ONBEKEND**: de status van het arrangement per lofzang. |
 | Engelse begeleidingsopnamen | Opnamen van de kerk. | Alleen lokaal gebruikt voor metingen, niet in git, niet in de app. |
 | Forum-MIDI-bestanden | Herkomst en rechten onbekend. | Niet gebruikt. |
-| `nld-poc.json` | Afgeleid van tekst en PDF's. | In de repository met een rechtenopmerking in het bestand; niet als losstaand bestand delen. |
+| `src/lib/hymns/library/data/**` (sinds fase 4; voorheen `nld-poc.json`) | Afgeleid van tekst en PDF's. | In de repository; niet als losstaand bestand delen; rechten per bestand: zie `09-NEDERLANDSE-BIBLIOTHEEK.md`, 5. |
 
 Afspraken in de code:
 
@@ -201,8 +201,11 @@ Afspraken in de code:
 
 ```bash
 python3 -m venv .venv-hymns && .venv-hymns/bin/pip install pymupdf
-.venv-hymns/bin/python scripts/hymns/fetch_sources.py .cache/hymns
+.venv-hymns/bin/pip install numpy scipy   # alleen voor audio_check.py
+python3 scripts/hymns/import_nld.py all
+.venv-hymns/bin/python scripts/hymns/extract_all.py
+python3 scripts/hymns/build_nld_library.py
 ```
 
-Dit haalt de pagina's, PDF's en mp3's op, leest de partituren en bouwt
-`src/lib/hymns/library/nld-poc.json` (bevestigd: de uitvoer is identiek aan de gecommitte versie).
+Dit haalt de pagina's, PDF's en mp3's van alle 205 lofzangen op, leest de partituren en bouwt de bibliotheek in
+`src/lib/hymns/library/data/` (zie `09-NEDERLANDSE-BIBLIOTHEEK.md`; tweemaal draaien geeft een identiek manifest).

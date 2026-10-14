@@ -214,7 +214,7 @@ Harde regels:
 - Raakt nooit XP, reeksen, competitie, authenticatie, de serviceworker of de database; geen
   imports uit die modules. Een offline bibliotheek gebruikt een eigen IndexedDB-opslag zonder
   persoonsgegevens (voorstel in `02-ARCHITECTURE.md`).
-- De gegevens komen uit de officiële PDF's en pagina's (`scripts/hymns/fetch_sources.py`); de
+- De gegevens komen uit de officiële PDF's en pagina's (`scripts/hymns/import_nld.py`); de
   bronbestanden staan in `.cache/hymns/` en nooit in git. Hergebruik steunt op de verklaring van de
   eigenaar; leg een schriftelijke licentie vast vóór productie (`docs/hymns/01-SOURCE-AUDIT.md`).
 - **Bibliotheek (fase 4)**: de volledige huidige Nederlandse bibliotheek (205 lofzangen) staat als afgeleide, in git versioneerde

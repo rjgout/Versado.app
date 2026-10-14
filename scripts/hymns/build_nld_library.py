@@ -86,10 +86,15 @@ def main():
         reasons = list(m["musicReasons"])
         # onafhankelijke controle tegen de officiële begeleidingsopname (zie audio_check.py)
         audio_state = "niet-beschikbaar"
-        if a:
-            # De opname is de ENGELSE begeleiding van dezelfde melodie; een andere harmonisatie in het Nederlandse boek geeft dus
-            # geen fout in de extractie. "afwijkend" blokkeert de status daarom niet, maar telt ook niet als bevestiging.
-            audio_state = "bevestigd" if a["rank"] <= 3 else "afwijkend"
+        recog_ok = bool(recog.get(str(e["number"]), {}).get("ok"))
+        # "bevestigd" = de volledige DTW zet de eigen compositie bij de beste drie, of de herkenning (venster van ~12 s) vindt de lofzang
+        # in de opname terug (eval-library.ts): beide zijn onafhankelijk van de tekstkoppeling. De opname is de ENGELSE begeleiding van
+        # dezelfde melodie; een andere harmonisatie in het Nederlandse boek geeft dus geen fout in de extractie. "afwijkend" blokkeert
+        # de status daarom niet, maar telt ook niet als bevestiging.
+        if recog_ok or (a and a["rank"] <= 3):
+            audio_state = "bevestigd"
+        elif a:
+            audio_state = "afwijkend"
         e["music"] = {"status": status, "reasons": reasons, "compositionId": m["compositionId"] if status == "gevalideerd" else None,
                       "extractionProblems": summary.get(str(e["number"]), {}).get("nProblems", 0), "audioCheck": audio_state,
                       "audioRank": a["rank"] if a else None}

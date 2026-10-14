@@ -120,6 +120,9 @@ export interface RecognizerConfig {
   /** Tweede weg: een kandidaat met z vanaf `trackerZ` en `trackerGapZ` boven de rest, die ook bovenaan het voorfilter staat. */
   trackerZ: number;
   trackerGapZ: number;
+  /** Ook dan moet de voorfilter-kop even stabiel zijn (rondes) en een kleine voorsprong hebben: een kop die net wisselde is geen getuige. */
+  trackerStreak: number;
+  trackerMargin: number;
 }
 
 export const DEFAULT_RECOGNIZER_CONFIG: RecognizerConfig = {
@@ -144,6 +147,8 @@ export const DEFAULT_RECOGNIZER_CONFIG: RecognizerConfig = {
   strongMargin: 0.1,
   trackerZ: 6,
   trackerGapZ: 3,
+  trackerStreak: 3,
+  trackerMargin: 0.02,
 };
 
 interface Entry {
@@ -330,7 +335,13 @@ export class HymnRecognizer {
         const byZ = [...ranking].sort((a, b) => b.z - a.z);
         const zTop = byZ[0];
         const zNext = byZ[1];
-        const trackerLed = zTop !== undefined && zTop.z >= cfg.trackerZ && (!zNext || zTop.z - zNext.z >= cfg.trackerGapZ) && (this.prefilterRank.get(zTop.id) ?? 99) <= 1;
+        const trackerLed =
+          zTop !== undefined &&
+          zTop.z >= cfg.trackerZ &&
+          (!zNext || zTop.z - zNext.z >= cfg.trackerGapZ) &&
+          lead?.id === zTop.id &&
+          lead.streak >= cfg.trackerStreak &&
+          lead.margin >= cfg.trackerMargin;
         if (trackerLed) {
           status = "identified";
           suggestion = zTop;

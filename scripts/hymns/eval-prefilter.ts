@@ -1,3 +1,6 @@
+// Meting van alleen het voorfilter (zonder score-followers) op de officiële begeleidingsopnamen: per lofzang elke seconde de rang
+// van de juiste compositie. Schrijft /tmp/pf2-<tempo>.json; gebruikt voor de keuze van drempels (docs/hymns/12).
+// Aanroep: npx tsx scripts/hymns/eval-prefilter.ts [nummers] [--tempo=0.8]
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { ChromaExtractor } from "../../src/lib/hymns/audio/features";
@@ -19,7 +22,6 @@ for (const m of b.members) {
   const rows: unknown[] = []; let next=4;
   for (let i=0;i<x.length;i+=4096) for (const f of ex.push(x.subarray(i,i+4096))) { pf.tracker.push(f); if (f.time>=next){ next+=1; const rk=pf.rankNow(); if(!rk) continue; rows.push([Math.round(f.time*10)/10, rk[0].id, +rk[0].cost.toFixed(4), +rk[1].cost.toFixed(4), rk.findIndex(e=>e.id===m.compositionId)+1, rk.slice(0,3).map(e=>e.id)]); } }
   out[m.number+""] = [m.compositionId, rows];
-  console.log(m.number, rows.length, flush);
+  console.log(m.number, rows.length);
 }
-function flush(){}
 writeFileSync(`/tmp/pf2-${tempo}.json`, JSON.stringify(out));

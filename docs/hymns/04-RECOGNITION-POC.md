@@ -8,6 +8,9 @@ Beperkt tot de drie proeflofzangen. Termen BEWEZEN, AANNEMELIJK en ONBEKEND: zie
 bekende fragmenten juist, 0 van 21 onbekende melodieën ten onrechte voorgesteld). Op de echte
 begeleidingsopnamen werkt het, maar trager (25 tot 48 s) dan op synthetisch geluid. Een algemene uitspraak voor echte uitvoeringen is **nog niet** te doen.
 
+> **Bijgewerkt in fase 4.** Herkennen tegen de hele Nederlandse bibliotheek werkt met een voorfilter en z-genormaliseerd bewijs; zie
+> `12-HERKENNING-SCHAALBAAR.md`. Dit document beschrijft de proef met drie kandidaten en blijft daarvoor geldig.
+>
 > **Bijgewerkt in fase 2.** De pagina gebruikt `HymnLiveEngine` (`07-VOORSPEL-EN-ZANGBEGIN.md`, 5): bij een
 > duidelijk, 2 s stabiel voorstel start de volger automatisch in dezelfde luistersessie; bij meerdere
 > even goede kandidaten of onvoldoende bewijs kiest de gebruiker. Het herkenningsalgoritme zelf is
