@@ -1,0 +1,28 @@
+{
+  "solo-phone-small": {
+    "time": "Puzzeltijd\n1:36\nJe tijd staat vast. De vraag verandert die niet.",
+    "elapsed": 96838
+  },
+  "solo-landscape": {
+    "time": "Puzzeltijd\n1:36\nJe tijd staat vast. De vraag verandert die niet.",
+    "elapsed": 96614
+  },
+  "solo-desktop": {
+    "time": "Puzzeltijd\n1:36\nJe tijd staat vast. De vraag verandert die niet.",
+    "elapsed": 96732
+  },
+  "solo-answer-right": {
+    "ok": true
+  },
+  "solo-answer-wrong": {
+    "ok": true
+  },
+  "solo-reduced-card": {
+    "cardAfterServerMs": 48
+  },
+  "match-ASYNC": {
+    "shown": "Officiële puzzeltijd\n0:01.8\nJe tijd en plek staan vast. De vraag verandert die niet.",
+    "official": 1889,
+    "status": "FINISHED"
+  }
+}

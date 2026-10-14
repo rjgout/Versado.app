@@ -1691,7 +1691,6 @@ export const nl = {
       resultIncorrectTitle: "De puzzel ligt, de vraag niet",
       resultIncorrectNote: "Deze activiteit telt niet als afgerond: er is geen reeks of record bijgeschreven.",
       resultCorrectNote: "Activiteit afgerond.",
-      board: "Puzzel van {n} stukjes",
       facts: "Details van deze puzzel",
     },
     completeHint: "Je afbeelding is compleet. Ga verder naar de vraag over het verhaal.",

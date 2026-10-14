@@ -520,7 +520,6 @@ export const es: PartialMessages = {
       "resultIncorrectTitle": "El rompecabezas está hecho, la pregunta no",
       "resultIncorrectNote": "Esta actividad no cuenta como completada: no se añadió ninguna racha ni récord.",
       "resultCorrectNote": "Actividad completada.",
-      "board": "Rompecabezas de {n} piezas",
       "facts": "Detalles de este rompecabezas",
     },
     "completeHint": "La imagen está completa. Continúa a la pregunta sobre la historia.",

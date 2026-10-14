@@ -520,7 +520,6 @@ export const fr: PartialMessages = {
       resultIncorrectTitle: "Le puzzle est fini, la question non",
       resultIncorrectNote: "Cette activité ne compte pas comme terminée : aucune série ni aucun record n’a été ajouté.",
       resultCorrectNote: "Activité terminée.",
-      board: "Puzzle de {n} pièces",
       facts: "Détails de ce puzzle",
     },
     completeHint: "Votre image est complète. Continuez vers la question sur l’histoire.",
