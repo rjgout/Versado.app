@@ -10,6 +10,7 @@ import { createSessionToken, SESSION_COOKIE } from "../src/lib/auth.ts";
 import { createPuzzleGeometry } from "../src/lib/puzzle/geometry.ts";
 import { connectGroups, newPuzzleSnapshot } from "../src/lib/puzzle/engine.ts";
 import { initialPuzzleCamera } from "../src/lib/puzzle/viewport.ts";
+import { nl } from "../src/lib/i18n/messages/nl.ts";
 
 const database = new URL(process.env.LEARNING_TEST_DATABASE_URL ?? "http://invalid");
 if (database.hostname !== "127.0.0.1" || database.pathname !== "/versado_puzzle_test" || process.env.DATABASE_URL !== process.env.LEARNING_TEST_DATABASE_URL) throw new Error("Gebruik de lokale wegwerpdatabase");
@@ -22,6 +23,7 @@ const browser = await chromium.launch({ args: ["--no-sandbox"], executablePath: 
 const DEVICES = { desktop: { viewport: { width: 1280, height: 900 }, deviceScaleFactor: 1 }, phone: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 }, landscape: { viewport: { width: 740, height: 360 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 } };
 const users = []; let definition; const report = {};
 const GREEN = [50, 180, 70];
+const LAST = [200, 40, 160];
 const COLOURS = [[230, 60, 60], GREEN, [230, 140, 40], [150, 60, 200], [40, 90, 230]];
 const settle = (page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -32,7 +34,7 @@ function place(groups, id, x, y) { Object.assign(groups.find((group) => group.id
 async function ensureDefinition(page) {
   if (definition) return definition;
   // Eén egaal gekleurd vak per stuk: zo is de positie van elk stuk per frame meetbaar.
-  const imageUrl = await page.evaluate((colours) => { const c = document.createElement("canvas"); c.width = 600; c.height = 400; const ctx = c.getContext("2d"); for (let id = 0; id < 24; id++) { const rgb = id < colours.length ? colours[id] : [150, 150, 150]; ctx.fillStyle = `rgb(${rgb.join(",")})`; ctx.fillRect(id % 6 * 100, Math.floor(id / 6) * 100, 100, 100); } return c.toDataURL(); }, COLOURS);
+  const imageUrl = await page.evaluate((colours) => { const c = document.createElement("canvas"); c.width = 600; c.height = 400; const ctx = c.getContext("2d"); for (let id = 0; id < 24; id++) { const rgb = id < colours.length ? colours[id] : id === 23 ? [200, 40, 160] : [150, 150, 150]; ctx.fillStyle = `rgb(${rgb.join(",")})`; ctx.fillRect(id % 6 * 100, Math.floor(id / 6) * 100, 100, 100); } return c.toDataURL(); }, COLOURS);
   const seed = `mo-${randomUUID()}`; definition = await prisma.puzzleDefinition.create({ data: { contentKey: seed, seed, definitionHash: seed, imageUrl, storyNumber: 1, aspectRatio: 3 / 2, geometryVersion: 2 } }); return definition;
 }
 async function newContext(user, device, options = {}) {
@@ -55,12 +57,12 @@ async function startTrack(page, env, colour, around) {
     const canvas = document.querySelector("canvas"); const ratio = canvas.width / canvas.clientWidth; const ctx = canvas.getContext("2d", { willReadFrequently: true });
     const left = Math.max(0, Math.floor((camera.x + (around.x - around.r) * camera.scale) * ratio)); const top = Math.max(0, Math.floor((camera.y + (around.y - around.r) * camera.scale) * ratio));
     const width = Math.min(canvas.width - left, Math.ceil(2 * around.r * camera.scale * ratio)); const height = Math.min(canvas.height - top, Math.ceil(2 * around.r * camera.scale * ratio));
-    window.__track = []; window.__crops = []; window.__capture = !!captureOn; window.__tracking = true; const started = performance.now(); let lastDraws = window.__draws;
+    window.__track = []; window.__crops = []; window.__gone = null; window.__goneWall = null; new MutationObserver(() => { if (!document.querySelector("canvas") && window.__gone === null) { window.__gone = performance.now(); window.__goneWall = Date.now(); } }).observe(document.body, { childList: true, subtree: true }); window.__capture = !!captureOn; window.__tracking = true; const started = performance.now(); window.__trackStarted = started; let lastDraws = window.__draws;
     const loop = (time) => {
       if (!window.__tracking) return;
       const data = ctx.getImageData(left, top, width, height).data; let sx = 0, sy = 0, n = 0, glow = 0;
       for (let i = 0, p = 0; i < data.length; i += 4, p++) { if (Math.abs(data[i] - 25) < 30 && Math.abs(data[i + 1] - 122) < 30 && Math.abs(data[i + 2] - 150) < 30) glow++; if (Math.abs(data[i] - colour[0]) < tolerance && Math.abs(data[i + 1] - colour[1]) < tolerance && Math.abs(data[i + 2] - colour[2]) < tolerance) { sx += p % width; sy += Math.floor(p / width); n++; } }
-      window.__track.push({ t: +(time - started).toFixed(1), n, glow, x: n ? ((left + sx / n) / ratio - camera.x) / camera.scale : null, y: n ? ((top + sy / n) / ratio - camera.y) / camera.scale : null, drawn: window.__draws !== lastDraws }); lastDraws = window.__draws;
+      window.__track.push({ t: +(time - started).toFixed(1), wall: Date.now(), n, glow, x: n ? ((left + sx / n) / ratio - camera.x) / camera.scale : null, y: n ? ((top + sy / n) / ratio - camera.y) / camera.scale : null, drawn: window.__draws !== lastDraws }); lastDraws = window.__draws;
       if (window.__capture && window.__draws !== window.__lastCropDraw && window.__crops.length < 60) { window.__lastCropDraw = window.__draws; window.__crops.push({ t: +(time - started).toFixed(0), image: new ImageData(new Uint8ClampedArray(data), width, height) }); }
       requestAnimationFrame(loop);
     };
@@ -90,6 +92,17 @@ function pointer(page, context, device) {
     async up() { if (touch) await touch.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] }); else await page.mouse.up(); },
   };
 }
+
+/** Alles aan elkaar behalve het laatste stuk (23), dat net naast zijn buur ligt: loslaten voltooit de puzzel. */
+function almostDone(snapshot, geometry) {
+  let next = snapshot; const columns = geometry.grid.columns; const origin = { x: 8, y: 6 };
+  for (const piece of geometry.pieces) place(next.groups, piece.id, origin.x + piece.column, origin.y + piece.row);
+  place(next.groups, 23, origin.x + 5 + .15, origin.y + 3 + .1);
+  for (const piece of geometry.pieces) { if (piece.id === 23) continue; const left = piece.column > 0 ? piece.id - 1 : null; const up = piece.row > 0 ? piece.id - columns : null; if (left !== null) next = connectGroups(next, geometry, "ADVENTURER", left, piece.id); else if (up !== null) next = connectGroups(next, geometry, "ADVENTURER", up, piece.id); }
+  return next;
+}
+const LAST_SPOT = { x: 8 + 5.65, y: 6 + 3.6, r: 2.2 };
+const cardOf = (page) => page.locator("h1", { hasText: nl.puzzleTogether.coop.completeTitle });
 
 async function soloSession(device, build, { difficulty = "ADVENTURER", options = {}, user: given } = {}) {
   const user = given ?? await person(); const context = await newContext(user, device, options); const page = await context.newPage(); const errors = []; page.on("pageerror", (e) => errors.push(e.message));
@@ -135,21 +148,40 @@ try {
     const reducedTrack = await stopTrack(s.page); await saveSheet(s.page, "solo-reduced"); const series = distinct(reducedTrack); report["solo-reduced"] = { positions: series.length };
     assert.ok(series.length <= 2, `reduced motion: direct de bevestigde stand, geen tussenstappen (${series.length})`); await s.context.close();
   }
-  // --- Solo: voltooien tijdens de animatie en unmount tijdens de animatie
-  {
-    const s = await soloSession("desktop", (snapshot, geometry) => {
-      // Alles aan elkaar behalve het laatste stuk, dat net naast zijn buur ligt.
-      let next = snapshot; const columns = geometry.grid.columns; const origin = { x: 8, y: 6 };
-      for (const piece of geometry.pieces) place(next.groups, piece.id, origin.x + piece.column, origin.y + piece.row);
-      place(next.groups, 23, origin.x + 5 + .15, origin.y + 3 + .1);
-      for (const piece of geometry.pieces) { if (piece.id === 23) continue; const left = piece.column > 0 ? piece.id - 1 : null; const up = piece.row > 0 ? piece.id - columns : null; if (left !== null) next = connectGroups(next, geometry, "ADVENTURER", left, piece.id); else if (up !== null) next = connectGroups(next, geometry, "ADVENTURER", up, piece.id); }
-      return next;
-    });
-    const { page, env, input } = s;     await input.down(env.screen(8 + 5.65, 6 + 3.6)); await input.up();
-    await page.waitForFunction(() => !document.querySelector("canvas") || document.querySelector("canvas")?.parentElement?.getAttribute("aria-busy") === "false", null, { timeout: 8000 });
-    await sleep(500); const state = await s.api({ action: "resume", sessionId: s.state.id }); report["solo-complete"] = { status: state.status };
-    assert.equal(state.status, "COMPLETED", "voltooid: de bevestigde stand is leidend, ook tijdens de animatie"); assert.equal(await page.locator("canvas").count(), 0, "de voltooiingsstap is zichtbaar en er blijft geen canvas of animatie achter");
+  // --- Voltooien: de laatste bevestigde snap is eerst te zien, daarna pas de voltooiingskaart; de server legt voltooiing direct vast
+  for (const reduced of [false, true]) {
+    const s = await soloSession("desktop", almostDone, { options: reduced ? { reducedMotion: "reduce" } : {} }); const { page, env, input } = s;
+    await startTrack(page, env, LAST, LAST_SPOT); await sleep(150);
+    // Meet wanneer de server de voltooiing vastlegt (databasepeiling, niet de interface).
+    let dbWall = null; const poll = (async () => { for (let i = 0; i < 400 && dbWall === null; i++) { const row = await prisma.puzzleSession.findUnique({ where: { id: s.state.id }, select: { status: true } }); if (row?.status === "COMPLETED") dbWall = Date.now(); else await sleep(10); } })();
+    const grab = env.screen(8 + 5.65, 6 + 3.6); await input.down(grab); await input.move({ x: grab.x + 1, y: grab.y }, 1); await input.up(); await poll; await sleep(1200);
+    const track = await stopTrack(page); const gone = await page.evaluate(() => ({ gone: window.__gone, wall: window.__goneWall, started: window.__trackStarted }));
+    const rows = track.filter((sample) => sample.x !== null); const first = rows[0]; const moving = rows.filter((sample) => Math.abs(sample.x - first.x) > .02 || Math.abs(sample.y - first.y) > .02);
+    const series = distinct(rows); const firstMoveWall = moving[0]?.wall ?? null; const lastMoveWall = rows.findLast((sample, index) => index && (Math.abs(sample.x - rows[index - 1].x) > .004 || Math.abs(sample.y - rows[index - 1].y) > .004))?.wall ?? null;
+    const state = await s.api({ action: "resume", sessionId: s.state.id });
+    report[`solo-completion-${reduced ? "reduced" : "normal"}`] = { positions: series.length, dbToCardMs: gone.wall - dbWall, snapToCardMs: firstMoveWall ? gone.wall - firstMoveWall : null, lastMoveToCardMs: lastMoveWall ? gone.wall - lastMoveWall : null, cards: await cardOf(page).count() };
+    assert.equal(state.status, "COMPLETED", "voltooid: de server heeft voltooiing en eindtijd vastgelegd"); assert.ok(dbWall !== null && gone.wall !== null);
+    if (!reduced) {
+      assert.ok(series.length >= 3, `de laatste snap is zichtbaar in meerdere stappen (${series.length}) voordat de kaart komt`);
+      assert.ok(gone.wall - firstMoveWall >= 160 && gone.wall - firstMoveWall <= 700, `de kaart komt na de glijbeweging plus korte rust (${gone.wall - firstMoveWall} ms)`);
+      assert.ok(gone.wall - lastMoveWall >= 60, `de laatste positie blijft kort zichtbaar vóór de kaart (${gone.wall - lastMoveWall} ms)`);
+      assert.ok(dbWall <= firstMoveWall, "de server legde voltooiing vast vóór de animatie te zien was (niet erop gewacht)");
+    } else {
+      assert.ok(series.length <= 2, `verminderde beweging: geen tussenstappen (${series.length})`); assert.ok(gone.wall - dbWall <= 500, `verminderde beweging: geen verplichte wachttijd (${gone.wall - dbWall} ms)`);
+    }
+    assert.equal(await cardOf(page).count() + await page.getByRole("button", { name: nl.jigsaw.continue, exact: true }).count() >= 1, true, "de bestaande voltooiingskaart staat er");
+    assert.equal(await page.getByRole("button", { name: nl.jigsaw.continue, exact: true }).count(), 1, "precies één voltooiingskaart");
+    await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await sleep(600); assert.equal(await page.getByRole("button", { name: nl.jigsaw.continue, exact: true }).count(), 1, "herhaalde serverupdates geven geen tweede kaart");
     assert.deepEqual(s.errors, []); await s.context.close();
+  }
+  // Navigeren tijdens de voltooiingsanimatie: geen fouten, geen kaart na het weggaan, geen blijvende lus
+  {
+    const s = await soloSession("desktop", almostDone); const grab = s.env.screen(8 + 5.65, 6 + 3.6);
+    await s.input.down(grab); await s.input.move({ x: grab.x + 1, y: grab.y }, 1); await s.input.up(); await sleep(90); await s.page.goto(`${base}/`); await sleep(900);
+    const idle = await s.page.evaluate(() => new Promise((resolve) => { const before = window.__draws ?? 0; setTimeout(() => resolve((window.__draws ?? 0) - before), 500); }));
+    report["solo-completion-navigate"] = { idleDraws: idle, errors: s.errors.length, onHome: new URL(s.page.url()).pathname };
+    assert.deepEqual(s.errors, [], "navigeren tijdens de voltooiingsanimatie geeft geen fouten"); assert.equal(await s.page.getByRole("button", { name: nl.jigsaw.continue, exact: true }).count(), 0, "geen kaart op de nieuwe pagina"); assert.equal(idle, 0);
+    assert.equal((await prisma.puzzleSession.findUniqueOrThrow({ where: { id: s.state.id } })).status, "COMPLETED", "de server heeft voltooiing vastgelegd, ook al verliet de speler de pagina"); await s.context.close();
   }
   {
     const s = await soloSession("desktop", (snapshot) => { place(snapshot.groups, 0, 4, 4); place(snapshot.groups, 1, 5.2, 4.1); return snapshot; });
@@ -234,6 +266,52 @@ try {
       assert.ok(Math.abs(finalA.x - finalB.x) < .02 && Math.abs(finalA.y - finalB.y) < .02, "na herverbinden dezelfde definitieve stand (geen achterblijvend stuk)");
       for (const page of [A.page, B.page]) { const idle = await page.evaluate(() => new Promise((resolve) => { const before = window.__draws; setTimeout(() => resolve(window.__draws - before), 800); })); assert.equal(idle, 0, "geen blijvende animatie na herverbinden"); }
       assert.deepEqual([...A.errors, ...B.errors], []); await A.context.close(); await B.context.close();
+    }
+    // Voltooien in Samen: beide spelers zien de laatste snap, daarna één kaart; reduced motion, herverbinden en navigeren
+    const makeFinal = async () => {
+      const snapshot = almostDone({ ...newPuzzleSnapshot(geometry, "ADVENTURER"), groups: stacked(geometry, "ADVENTURER") }, geometry);
+      const session = await prisma.puzzleSession.create({ data: { ownerId: a.id, variantId: variant.id, mode: "COOP", snapshot: JSON.stringify(snapshot) } });
+      await prisma.puzzleSessionParticipant.create({ data: { sessionId: session.id, userId: a.id, role: "OWNER" } }); await prisma.puzzleSessionParticipant.create({ data: { sessionId: session.id, userId: b.id } });
+      return { id: session.id, snapshot };
+    };
+    const finalSnap = async (A, B, { navigateA = false, offlineB = false } = {}) => {
+      await Promise.all([startTrack(A.page, A.env, LAST, LAST_SPOT), startTrack(B.page, B.env, LAST, LAST_SPOT)]); await sleep(150);
+      if (offlineB) await B.context.setOffline(true);
+      const grab = A.env.screen(8 + 5.65, 6 + 3.6); await A.input.down(grab); await A.input.move({ x: grab.x + 1, y: grab.y }, 1); await A.input.up();
+      if (navigateA) { await sleep(90); await A.page.goto(`${base}/`); }
+      if (offlineB) { await sleep(500); await B.context.setOffline(false); }
+      await sleep(2200);
+      const read = async (page) => { const track = await stopTrack(page).catch(() => []); const gone = await page.evaluate(() => ({ wall: window.__goneWall })).catch(() => ({ wall: null })); const rows = track.filter((sample) => sample.x !== null); const first = rows[0]; const moving = first ? rows.filter((sample) => Math.abs(sample.x - first.x) > .02 || Math.abs(sample.y - first.y) > .02) : []; return { series: distinct(rows).length, firstMoveWall: moving[0]?.wall ?? null, goneWall: gone.wall }; };
+      return { A: navigateA ? null : await read(A.page), B: await read(B.page) };
+    };
+    for (const mode of ["normal", "reduced"]) {
+      const { id } = await makeFinal(); const options = mode === "reduced" ? { reducedMotion: "reduce" } : {}; const snap = { ...newPuzzleSnapshot(geometry, "ADVENTURER"), groups: stacked(geometry, "ADVENTURER") };
+      const A = await open(a, id, "desktop", options, almostDone(snap, geometry)); const B = await open(b, id, "desktop", options, almostDone({ ...snap, groups: stacked(geometry, "ADVENTURER") }, geometry));
+      const result = await finalSnap(A, B); const state = await prisma.puzzleSession.findUniqueOrThrow({ where: { id } });
+      report[`samen-completion-${mode}`] = { A: result.A, B: result.B, cardsA: await cardOf(A.page).count(), cardsB: await cardOf(B.page).count() };
+      assert.equal(state.status, "COMPLETED", "Samen: de server heeft voltooiing vastgelegd");
+      for (const [who, view] of [["dragger", result.A], ["andere speler", result.B]]) {
+        if (mode === "normal") { assert.ok(view.series >= 3, `Samen: ${who} ziet de laatste snap in meerdere stappen (${view.series})`); assert.ok(view.goneWall - view.firstMoveWall >= 160 && view.goneWall - view.firstMoveWall <= 800, `Samen: ${who} ziet de kaart pas na de animatie (${view.goneWall - view.firstMoveWall} ms)`); }
+        else assert.ok(view.series <= 2, `Samen reduced: ${who} ziet geen tussenstappen (${view.series})`);
+      }
+      assert.equal(await cardOf(A.page).count(), 1, "Samen: precies één voltooiingskaart bij de speler die verbindt"); assert.equal(await cardOf(B.page).count(), 1, "Samen: precies één voltooiingskaart bij de andere speler");
+      await A.page.evaluate(() => window.dispatchEvent(new Event("focus"))); await B.page.evaluate(() => window.dispatchEvent(new Event("focus"))); await sleep(700);
+      assert.equal(await cardOf(A.page).count() + await cardOf(B.page).count(), 2, "herhaalde serverupdates geven geen dubbele kaart");
+      assert.deepEqual([...A.errors, ...B.errors], []); await A.context.close(); await B.context.close();
+    }
+    {
+      const { id } = await makeFinal(); const snap = { ...newPuzzleSnapshot(geometry, "ADVENTURER"), groups: stacked(geometry, "ADVENTURER") };
+      const A = await open(a, id, "desktop", {}, almostDone(snap, geometry)); const B = await open(b, id, "desktop", {}, almostDone({ ...snap, groups: stacked(geometry, "ADVENTURER") }, geometry));
+      const result = await finalSnap(A, B, { offlineB: true }); report["samen-completion-reconnect"] = { B: result.B, cardsA: await cardOf(A.page).count(), cardsB: await cardOf(B.page).count() };
+      assert.equal(await cardOf(A.page).count(), 1, "herverbinden: één kaart bij A"); assert.equal(await cardOf(B.page).count(), 1, "herverbinden: precies één kaart bij B na de herverbinding");
+      assert.deepEqual([...A.errors, ...B.errors], []); await A.context.close(); await B.context.close();
+    }
+    {
+      const { id } = await makeFinal(); const snap = { ...newPuzzleSnapshot(geometry, "ADVENTURER"), groups: stacked(geometry, "ADVENTURER") };
+      const A = await open(a, id, "desktop", {}, almostDone(snap, geometry)); const B = await open(b, id, "desktop", {}, almostDone({ ...snap, groups: stacked(geometry, "ADVENTURER") }, geometry));
+      await finalSnap(A, B, { navigateA: true }); report["samen-completion-navigate"] = { cardsB: await cardOf(B.page).count(), errorsA: A.errors.length };
+      assert.deepEqual(A.errors, [], "navigeren tijdens de voltooiingsanimatie geeft geen fouten"); assert.equal(await cardOf(B.page).count(), 1, "de andere speler ziet gewoon één kaart");
+      assert.equal((await prisma.puzzleSession.findUniqueOrThrow({ where: { id } })).status, "COMPLETED"); await A.context.close(); await B.context.close();
     }
   }
   writeFileSync(`${output}/metrics.json`, JSON.stringify(report, null, 2)); console.log(JSON.stringify(report));

@@ -19,7 +19,7 @@ import { useT } from "@/components/I18nProvider";
 import { createPuzzleGeometry } from "@/lib/puzzle/geometry";
 import { renderPuzzle } from "@/lib/puzzle/render";
 import { createNearSnapTracker, prefersReducedMotion } from "@/lib/puzzle/nearSnap";
-import { createPuzzleMotion, frameTime, wallTime, type RemoteEntry } from "@/lib/puzzle/motion";
+import { COMPLETION_MAX_WAIT_MS, createCompletionGate, createPuzzleMotion, frameTime, wallTime, type RemoteEntry } from "@/lib/puzzle/motion";
 import { boardSnapTarget, connectedPieces, findSnapConnection, groupFor, worldOf } from "@/lib/puzzle/engine";
 import { clampGroupPosition, groupMemberAt, puzzleRenderOrder, puzzleWorktable } from "@/lib/puzzle/worktable";
 import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
@@ -170,7 +170,7 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
   const mounted = useRef(true); const glideRequested = useRef(false);
   const viewport = useRef<ViewportSize | null>(null); const paths = useRef(new Map<string, Path2D>()); const nearSnap = useRef(createNearSnapTracker());
   const pointers = useRef(new Map<number, Point>()); const drag = useRef<Drag | null>(null); const pan = useRef<Pan | null>(null); const pinch = useRef<Pinch | null>(null);
-  const geometry = useMemo(() => createPuzzleGeometry(initial.pieceCount, initial.seed, initial.geometryVersion), [initial.pieceCount, initial.seed, initial.geometryVersion]); const table = useMemo(() => puzzleWorktable(geometry), [geometry]); const motion = useMemo(() => createPuzzleMotion(geometry), [geometry]); const policy = puzzlePolicy(state.difficulty, state.rulesVersion);
+  const geometry = useMemo(() => createPuzzleGeometry(initial.pieceCount, initial.seed, initial.geometryVersion), [initial.pieceCount, initial.seed, initial.geometryVersion]); const table = useMemo(() => puzzleWorktable(geometry), [geometry]); const motion = useMemo(() => createPuzzleMotion(geometry), [geometry]); const completion = useMemo(() => createCompletionGate(), []); const completionTimer = useRef<ReturnType<typeof setTimeout> | null>(null); const policy = puzzlePolicy(state.difficulty, state.rulesVersion);
 
   // Eén plek die bepaalt waar een verzoek heen gaat; Solo blijft ongewijzigd.
   const call = (body: Record<string, unknown>) => match ? request({ ...body, matchId: match.id, sessionId: undefined }, "/api/puzzle/match") : request(body);
@@ -197,7 +197,9 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
     // Alleen lokaal en alleen tijdens het eigen slepen: de engine zegt of loslaten hier nu zou snappen.
     const moving = draggedGroupId === null ? undefined : snapshot.groups.find((group) => group.id === draggedGroupId);
     const glow = moving ? nearSnap.current.update({ snapshot, geometry, difficulty: shown.current.difficulty, rulesVersion: shown.current.rulesVersion, groupId: moving.id, x: moving.x, y: moving.y, now, reducedMotion: prefersReducedMotion() }) : nearSnap.current.reset();
-    if (nearSnap.current.animating || motion.active(now)) schedulePaint();
+    // De voltooiingskaart wacht kort op de laatste bevestigde snap; de server heeft voltooiing en eindtijd dan al vastgelegd.
+    completion.tick({ now, complete: shown.current.status === "COMPLETED", animating: motion.gliding(now), reduced: prefersReducedMotion() });
+    if (nearSnap.current.animating || motion.active(now) || completion.waiting) schedulePaint();
     renderPuzzle(canvas, {
       geometry, table, camera: camera.current, image: image.current, paths: paths.current, snapshot, groups: puzzleRenderOrder(motion.groups(snapshot.groups, now), draggedGroupId),
       place: (group, out) => { out.lifted = group.id === draggedGroupId; },
@@ -206,7 +208,15 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
       edges: true, anchoredStroke: "rgba(43, 103, 99, .70)", nearSnap: glow,
     });
   }
-  function update(next: State) { inventory.setData({ hintBalance: next.hintBalance }); saved.current = next; if (!mounted.current) return; shown.current = next; setState(next); setOuter(next); if (!match) remember(next.id); if (next.status === "COMPLETED") setStage("COMPLETE"); if (next.status === "ANSWERED") setStage("RESULT"); schedulePaint(); }
+  /** De voltooiingskaart komt pas nadat de laatste snap getoond is (kort); nooit twee keer en nooit over een latere stap heen. */
+  function showCompletion() {
+    const reveal = () => { if (completionTimer.current !== null) { clearTimeout(completionTimer.current); completionTimer.current = null; } if (mounted.current) setStage((current) => current === "BOARD" ? "COMPLETE" : current); };
+    if (completion.waiting) return;
+    completion.request(reveal, frameTime());
+    // Noodgreep: ook zonder frames (verborgen tabblad) blijft de kaart niet langer weg dan de bovengrens.
+    completionTimer.current = setTimeout(() => { completion.cancel(); reveal(); }, COMPLETION_MAX_WAIT_MS + 100);
+  }
+  function update(next: State) { inventory.setData({ hintBalance: next.hintBalance }); saved.current = next; if (!mounted.current) return; shown.current = next; setState(next); setOuter(next); if (!match) remember(next.id); if (next.status === "COMPLETED") showCompletion(); if (next.status === "ANSWERED") setStage("RESULT"); schedulePaint(); }
   async function action(operation: object, movedGroupId?: string) {
     const current = saved.current; const body = { action: "act", sessionId: current.id, version: current.version, actionId: crypto.randomUUID(), operation };
     if ("kind" in operation && operation.kind === "hint") {
@@ -256,7 +266,7 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
     if (current.status === "ACTIVE" && moved && boardSnapTarget(current.snapshot, geometry, current.difficulty, moved.id, current.rulesVersion)) await action({ kind: "anchor", groupId: moved.id }, moved.id);
   }
   async function finishDrag(active: Drag, point: Point) { const next = await action({ kind: "move", groupId: active.groupId, x: point.x - active.offset.x, y: point.y - active.offset.y }); await snapAfterMove(next, active.groupId); }
-  function boardDown(event: ReactPointerEvent<HTMLCanvasElement>) { if (pending.current) return; setMenuOpen(false); setHintsOpen(false); const point = screenPoint(event); pointers.current.set(event.pointerId, point); event.currentTarget.setPointerCapture(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } const hit = picked(worldPoint(point)); if (hit) { setSelected(hit.id); if (hit.group.anchored) { schedulePaint(); return; } drag.current = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: worldPoint(point).x - hit.group.x, y: worldPoint(point).y - hit.group.y } }; } else { setSelected(null); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; } schedulePaint(); }
+  function boardDown(event: ReactPointerEvent<HTMLCanvasElement>) { if (pending.current || saved.current.status !== "ACTIVE") return; setMenuOpen(false); setHintsOpen(false); const point = screenPoint(event); pointers.current.set(event.pointerId, point); event.currentTarget.setPointerCapture(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } const hit = picked(worldPoint(point)); if (hit) { setSelected(hit.id); if (hit.group.anchored) { schedulePaint(); return; } drag.current = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: worldPoint(point).x - hit.group.x, y: worldPoint(point).y - hit.group.y } }; } else { setSelected(null); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; } schedulePaint(); }
   function boardMove(event: ReactPointerEvent<HTMLCanvasElement>) { if (!pointers.current.has(event.pointerId)) return; const point = screenPoint(event); pointers.current.set(event.pointerId, point); if (pointers.current.size >= 2) { updatePinch(); return; } if (drag.current?.pointer === event.pointerId) { const world = worldPoint(point); transientMove(drag.current.groupId, world.x - drag.current.offset.x, world.y - drag.current.offset.y); } else if (pan.current?.pointer === event.pointerId) { camera.current.x = pan.current.camera.x + point.x - pan.current.point.x; camera.current.y = pan.current.camera.y + point.y - pan.current.point.y; constrainCamera(); schedulePaint(); } }
   async function boardUp(event: ReactPointerEvent<HTMLCanvasElement>) { const point = screenPoint(event); const activeDrag = drag.current; pointers.current.delete(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } if (pinch.current) { pinch.current = null; const remaining = [...pointers.current.entries()][0]; if (remaining) pan.current = { pointer: remaining[0], point: remaining[1], camera: { ...camera.current } }; return; } if (activeDrag?.pointer === event.pointerId) { drag.current = null; schedulePaint(); await runBoard(() => finishDrag(activeDrag, worldPoint(point))); } if (pan.current?.pointer === event.pointerId) pan.current = null; }
   function boardCancel(event: ReactPointerEvent<HTMLCanvasElement>) { pointers.current.delete(event.pointerId); drag.current = null; pan.current = null; pinch.current = null; shown.current = saved.current; setState(saved.current); schedulePaint(); }
@@ -280,7 +290,7 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
       viewport.current = next; schedulePaint();
     };
     const observer = canvas ? new ResizeObserver(resize) : null; if (canvas) { observer?.observe(canvas); resize(); }
-    return () => { mounted.current = false; picture.onload = null; observer?.disconnect(); motion.clear(); if (frame.current !== null) cancelAnimationFrame(frame.current); frame.current = null; };
+    return () => { mounted.current = false; picture.onload = null; observer?.disconnect(); motion.clear(); completion.cancel(); if (completionTimer.current !== null) clearTimeout(completionTimer.current); if (frame.current !== null) cancelAnimationFrame(frame.current); frame.current = null; };
     // De camera hoort bij deze ge-keyde sessie; een actie reset hem nooit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createPuzzleGeometry } from "../src/lib/puzzle/geometry";
 import { anchorGroup, boardPosition, connectGroups, moveGroup, newPuzzleSnapshot } from "../src/lib/puzzle/engine";
-import { createPuzzleMotion, REMOTE_SETTLE_MS, SNAP_GLIDE_MS, type MotionUpdate, type RemoteEntry } from "../src/lib/puzzle/motion";
+import { COMPLETION_HOLD_MS, COMPLETION_MAX_WAIT_MS, createCompletionGate, createPuzzleMotion, REMOTE_SETTLE_MS, SNAP_GLIDE_MS, type MotionUpdate, type RemoteEntry } from "../src/lib/puzzle/motion";
 import type { PuzzleSnapshot } from "../src/lib/puzzle/types";
 
 const geometry = createPuzzleGeometry(24, "beweging", 2);
@@ -148,4 +148,43 @@ test("beweging: de bevestigde stand wordt nooit gewijzigd en de module doet geen
   const before = pair(.2); const after = connectGroups(before, geometry, "ADVENTURER", 0, 1); Object.freeze(after.groups); for (const group of after.groups) Object.freeze(group); const frozen = JSON.stringify(after);
   const motion = createPuzzleMotion(geometry); motion.update(input(before, 0)); motion.update(input(after, 10)); motion.groups(after.groups, 40); assert.equal(JSON.stringify(after), frozen);
   const source = readFileSync(new URL("../src/lib/puzzle/motion.ts", import.meta.url), "utf8"); assert.doesNotMatch(source, /\bfetch\s*\(|socket|XMLHttpRequest|sendBeacon|prisma|from "react"|next\/|requestAnimationFrame|setTimeout|setInterval/i, "geen netwerk, geen eigen lus of timers");
+});
+
+// --- Voltooiingsvolgorde: de laatste snap eerst, daarna de kaart ---------------------------------------------------------
+test("voltooien: de kaart wacht op de laatste snap plus korte rust, en komt dan precies één keer", () => {
+  const gate = createCompletionGate(); let shown = 0; gate.request(() => { shown++; }, 0);
+  gate.tick({ now: 10, complete: true, animating: true, reduced: false }); assert.equal(shown, 0, "tijdens de glijbeweging nog geen kaart"); assert.equal(gate.waiting, true);
+  gate.tick({ now: 10 + SNAP_GLIDE_MS - 1, complete: true, animating: true, reduced: false }); assert.equal(shown, 0);
+  gate.tick({ now: 10 + SNAP_GLIDE_MS, complete: true, animating: false, reduced: false }); assert.equal(shown, 0, "de rustpauze begint na de glijbeweging");
+  gate.tick({ now: 10 + SNAP_GLIDE_MS + COMPLETION_HOLD_MS - 1, complete: true, animating: false, reduced: false }); assert.equal(shown, 0);
+  gate.tick({ now: 10 + SNAP_GLIDE_MS + COMPLETION_HOLD_MS, complete: true, animating: false, reduced: false }); assert.equal(shown, 1, "daarna de kaart");
+  for (let now = 400; now < 900; now += 50) gate.tick({ now, complete: true, animating: false, reduced: false }); assert.equal(shown, 1, "nooit een tweede kaart"); assert.equal(gate.waiting, false);
+  assert.ok(SNAP_GLIDE_MS + COMPLETION_HOLD_MS <= 300, "totale vertraging beperkt (glijbeweging + rust)");
+});
+
+test("voltooien: reduced motion en een stand zonder snapbeweging (herverbinden) tonen de kaart direct", () => {
+  const reduced = createCompletionGate(); let a = 0; reduced.request(() => { a++; }, 0); reduced.tick({ now: 1, complete: false, animating: false, reduced: true }); assert.equal(a, 1, "geen verplichte wachttijd, ook niet voor de eindstand");
+  const reconnect = createCompletionGate(); let b = 0; reconnect.request(() => { b++; }, 0); reconnect.tick({ now: 1, complete: true, animating: false, reduced: false }); assert.equal(b, 1, "geen glijbeweging (resync): direct");
+});
+
+test("voltooien: wacht op de bevestigde eindstand, maar nooit langer dan de bovengrens", () => {
+  const gate = createCompletionGate(); let shown = 0; gate.request(() => { shown++; }, 0);
+  gate.tick({ now: 100, complete: false, animating: false, reduced: false }); assert.equal(shown, 0, "de eindstand is nog niet binnen");
+  gate.tick({ now: 300, complete: false, animating: false, reduced: false }); assert.equal(shown, 0);
+  gate.tick({ now: COMPLETION_MAX_WAIT_MS, complete: false, animating: false, reduced: false }); assert.equal(shown, 1, "de bovengrens voorkomt een kaart die nooit komt");
+  const stuck = createCompletionGate(); let late = 0; stuck.request(() => { late++; }, 0); stuck.tick({ now: 10, complete: true, animating: true, reduced: false }); stuck.tick({ now: COMPLETION_MAX_WAIT_MS + 1, complete: true, animating: true, reduced: false }); assert.equal(late, 1, "ook een hangende animatie houdt de kaart niet tegen");
+});
+
+test("voltooien: dubbele aanvragen, herhaalde serverupdates en annuleren (unmount, navigatie) geven nooit een tweede of verlate kaart", () => {
+  const gate = createCompletionGate(); let shown = 0; const card = () => { shown++; };
+  gate.request(card, 0); gate.request(card, 5); gate.request(card, 9); gate.tick({ now: 20, complete: true, animating: false, reduced: false }); assert.equal(shown, 1, "meerdere aanvragen: één kaart");
+  const cancelled = createCompletionGate(); let late = 0; cancelled.request(() => { late++; }, 0); cancelled.tick({ now: 10, complete: true, animating: true, reduced: false }); cancelled.cancel();
+  for (let now = 20; now < 1500; now += 20) cancelled.tick({ now, complete: true, animating: false, reduced: false }); assert.equal(late, 0, "na annuleren komt er geen kaart meer"); assert.equal(cancelled.waiting, false);
+  gate.tick({ now: 2000, complete: true, animating: false, reduced: false }); assert.equal(shown, 1, "zonder aanvraag doet tikken niets");
+});
+
+test("voltooien: de bewegingslaag laat de laatste snap als glijbeweging zien, ook als de nieuwe stand voltooid is", () => {
+  const before = pair(.2); const done = { ...connectGroups(before, geometry, "ADVENTURER", 0, 1), completedAt: new Date().toISOString() };
+  const motion = createPuzzleMotion(geometry); motion.update(input(before, 0)); motion.update(input(done, 20)); assert.equal(motion.gliding(20), true); assert.equal(motion.gliding(20 + SNAP_GLIDE_MS), false);
+  assert.deepEqual(ids(motion.groups(done.groups, 60)), ids(done.groups));
 });

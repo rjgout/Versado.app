@@ -16,6 +16,10 @@ export const SNAP_GLIDE_MS = 140;
 export const REMOTE_FOLLOW_MIN_MS = 50;
 export const REMOTE_FOLLOW_MAX_MS = 120;
 export const REMOTE_SETTLE_MS = 120;
+/** Na de laatste snap: korte rustpauze voordat de voltooiingskaart komt (totaal met de glijbeweging ruim onder een kwart seconde). */
+export const COMPLETION_HOLD_MS = 120;
+/** Absolute bovengrens: de kaart wacht nooit langer op de animatie, ook niet als de stand uitblijft of er geen frames lopen. */
+export const COMPLETION_MAX_WAIT_MS = 600;
 const EPSILON = 1e-6;
 
 /** Tijdbron voor de bewegingen (los van React-render; wordt alleen in tekenfuncties aangeroepen). */
@@ -156,6 +160,8 @@ export function createPuzzleMotion(geometry: PuzzleGeometry) {
   function remoteAt(id: string, now: number, out: RemotePlacement): RemotePlacement | null {
     const follow = follows.get(id); return follow ? followAt(follow, now, out) : null;
   }
+  /** Glijdt er op dit moment een bevestigde snap? (Los van remote volgen.) */
+  function gliding(now: number): boolean { return glides.some((glide) => now < glide.end); }
   /** Is er nog een frame nodig? Alleen tijdens lopende bewegingen en zolang ontvangen sleepinformatie nog geldig is (begrensd). */
   function active(now: number): boolean {
     if (glides.some((glide) => now < glide.end)) return true;
@@ -163,6 +169,42 @@ export function createPuzzleMotion(geometry: PuzzleGeometry) {
     return false;
   }
   function clear() { glides = []; follows.clear(); last = null; }
-  return { update, groups, remoteAt, active, clear, get glideCount() { return glides.length; }, get followCount() { return follows.size; } };
+  return { update, groups, remoteAt, active, gliding, clear, get glideCount() { return glides.length; }, get followCount() { return follows.size; } };
 }
 export type PuzzleMotion = ReturnType<typeof createPuzzleMotion>;
+
+/**
+ * Bepaalt wanneer de voltooiingskaart mag verschijnen. De server heeft voltooiing en eindtijd dan al lang vastgelegd en de
+ * component kent de bevestigde eindstand; dit wacht alleen (kort) tot de laatste bevestigde snap getoond is, plus een korte
+ * rustpauze. Zonder animatie (verminderde beweging, geen glijbeweging, bijvoorbeeld bij herverbinden) komt de kaart direct.
+ * Puur en zonder timers: de aanroeper tikt het in zijn bestaande teken-frame en regelt zelf een noodtijdslimiet.
+ */
+export interface CompletionTick {
+  now: number;
+  /** De getoonde bevestigde stand is voltooid (de eindstand is binnen). */
+  complete: boolean;
+  /** Loopt er nog een glijbeweging (of ander werk) voor de laatste snap? */
+  animating: boolean;
+  reduced: boolean;
+}
+export function createCompletionGate() {
+  let done: (() => void) | null = null; let started = 0; let glided = false; let holdFrom: number | null = null;
+  const finish = () => { const callback = done; done = null; glided = false; holdFrom = null; callback?.(); };
+  return {
+    /** Vraag de kaart aan. Een tweede aanvraag terwijl er al een wacht (herhaalde serverupdates) doet niets: nooit twee kaarten. */
+    request(callback: () => void, now: number) { if (done) return; done = callback; started = now; glided = false; holdFrom = null; },
+    tick(input: CompletionTick) {
+      if (!done) return;
+      if (input.reduced) { finish(); return; }
+      if (input.now - started >= COMPLETION_MAX_WAIT_MS) { finish(); return; }
+      if (!input.complete) return;
+      if (input.animating) { glided = true; holdFrom = null; return; }
+      if (!glided) { finish(); return; }
+      holdFrom ??= input.now; if (input.now - holdFrom >= COMPLETION_HOLD_MS) finish();
+    },
+    /** Annuleren (unmount, nieuwe puzzel): de aanvraag vervalt zonder de kaart te tonen. */
+    cancel() { done = null; glided = false; holdFrom = null; },
+    get waiting() { return done !== null; },
+  };
+}
+export type CompletionGate = ReturnType<typeof createCompletionGate>;
