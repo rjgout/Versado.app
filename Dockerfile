@@ -53,6 +53,11 @@ COPY prisma.config.ts ./
 COPY public ./public
 RUN npm prune --omit=dev
 
+# Bouwtijdcontrole in de uiteindelijke /app-runtime: beide veilige
+# weigeringspaden moeten werken zonder ooit een databaseverbinding te openen.
+RUN node scripts/content-architecture/diagnose-otb-production-readonly.mjs >/dev/null 2>&1; test $? -eq 2 \
+  && env -u DATABASE_URL node scripts/content-architecture/diagnose-otb-production-readonly.mjs --confirm-readonly >/dev/null 2>&1; test $? -eq 2
+
 EXPOSE 3000
 
 # Kritiek voor Docker Compose depends_on/orchestratie: geeft aan of de app
