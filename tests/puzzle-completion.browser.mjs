@@ -89,7 +89,7 @@ try {
     assert.ok((await card.innerText()).includes(nl.puzzleRecords.catNO_HINTS), `${device}: hintcategorie zichtbaar`);
     assert.ok((await card.innerText()).includes(nl.jigsaw.completion.noBest), `${device}: geen eerdere tijd = nette tekst, geen verzonnen record`);
     assert.equal(await page.locator("[data-record-notice], [data-completion-record='new']").count(), 0, `${device}: geen recordclaim vóór het antwoord`);
-    const button = page.getByRole("button", { name: nl.jigsaw.completion.toQuestion, exact: true }); assert.ok(await inView(page, button), `${device}: de knop is zonder scrollen bereikbaar`);
+    const button = page.getByRole("button", { name: nl.jigsaw.completion.toQuestion, exact: true }); if (!(await inView(page, button))) await page.screenshot({ path: `${shots}/FAIL-${device}.png`, fullPage: true }); assert.ok(await inView(page, button), `${device}: de knop is zonder scrollen bereikbaar`);
     const box = await button.boundingBox(); assert.ok(box.height >= 44, `${device}: knop minstens 44 px hoog`);
     assert.equal(await page.evaluate(() => document.activeElement?.id), "puzzle-completion-title", `${device}: focus op de kop`);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), 0, `${device}: geen horizontale overflow`);

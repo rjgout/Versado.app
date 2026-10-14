@@ -49,10 +49,10 @@ export default function CompletionCard({ image, imageAlt, title, mascot = "celeb
             <p className="text-vs-fg" data-official-time>
               <span className="block text-sm text-vs-fg-2">{time.label}</span>
               <span className="block font-mono text-4xl font-extrabold tabular-nums [@media(max-height:700px)]:text-3xl">{time.value}</span>
-              {time.note && <span className="mt-1 block text-sm text-vs-fg-2">{time.note}</span>}
+              {time.note && <span className="mt-1 block text-sm text-vs-fg-2 [@media(max-height:640px)]:sr-only">{time.note}</span>}
             </p>
           )}
-          {facts.length > 0 && <ul aria-label={factsLabel} className="flex flex-wrap justify-center gap-2">{facts.map((fact) => <li key={fact} className="vs-wrap rounded-full border border-vs-line px-3 py-1 text-sm font-semibold text-vs-fg-2">{fact}</li>)}</ul>}
+          {facts.length > 0 && <ul aria-label={factsLabel} className="flex flex-wrap justify-center gap-2">{facts.map((fact) => <li key={fact} className="vs-wrap rounded-full border border-vs-line px-3 py-1 text-sm font-semibold text-vs-fg-2 [@media(max-height:700px)]:px-2.5 [@media(max-height:700px)]:py-0.5">{fact}</li>)}</ul>}
           {children}
           {followUp && <p className="vs-wrap max-w-[440px] text-sm font-semibold text-vs-fg" data-completion-followup>{followUp}</p>}
         </div>
