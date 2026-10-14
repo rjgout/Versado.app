@@ -87,7 +87,7 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
   useEffect(() => { if (!message) return; const id = setTimeout(() => setMessage(""), 4000); return () => clearTimeout(id); }, [message]);
   // Terug = het puzzeloverzicht (replace, geen extra geschiedenisitem) en verlaat de gezamenlijke puzzel nooit:
   // definitief verlaten is de aparte actie "Puzzel verlaten" met bevestiging.
-  const back = useCallback(() => router.replace(JIGSAW_ROUTE), [router]);
+  const back = useCallback(() => { void (async () => { if (await table.current?.flushKeyboard() !== false) router.replace(JIGSAW_ROUTE); })(); }, [router]);
   useSetBackTarget(usePathname(), JIGSAW_ROUTE, "", back);
 
   const bump = useCallback(() => setPaintKey((key) => key + 1), []);
@@ -210,7 +210,7 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
   }
   async function leave() {
     if (!(await confirm(t("puzzleTogether.coop.leaveConfirm")))) return;
-    try { await post({ action: "leave", sessionId: initial.id }); router.replace(JIGSAW_ROUTE); } catch (cause) { setError(cause instanceof Error ? cause.message : t("jigsaw.failed")); }
+    try { if (await table.current?.flushKeyboard() === false) return; await post({ action: "leave", sessionId: initial.id }); router.replace(JIGSAW_ROUTE); } catch (cause) { setError(cause instanceof Error ? cause.message : t("jigsaw.failed")); }
   }
 
   if (completed && revealed) {
@@ -257,7 +257,7 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
           </div>}
           {/* De snapshot staat in een ref om elke sleepbeweging niet te laten renderen; paintKey ververst dit paneel. */}
           {/* eslint-disable-next-line react-hooks/refs */}
-          {hintsOpen && <PuzzleHintPanel returnFocus={menuButton} includedRemaining={policyIncluded} snapshot={snapshot.current} difficulty={state.difficulty} rulesVersion={state.rulesVersion} selected={selected} canConnect={puzzleHintTarget(snapshot.current, geometry, "CONNECTION", selected ?? undefined) !== null} hintBalance={inventory.data?.hintBalance ?? null} inventoryBusy={inventory.isFetching} inventoryError={!!inventory.error} busy={busyHint} active={hint !== null} error={error} onRefresh={() => void inventory.refetch()} onShop={() => router.push("/shop")} onUse={(type, filter, confirmed) => void requestHint(type, filter, confirmed)} onClose={() => { setHintsOpen(false); menuButton.current?.focus(); }} />}
+          {hintsOpen && <PuzzleHintPanel returnFocus={menuButton} includedRemaining={policyIncluded} snapshot={snapshot.current} difficulty={state.difficulty} rulesVersion={state.rulesVersion} selected={selected} canConnect={puzzleHintTarget(snapshot.current, geometry, "CONNECTION", selected ?? undefined) !== null} hintBalance={inventory.data?.hintBalance ?? null} inventoryBusy={inventory.isFetching} inventoryError={!!inventory.error} busy={busyHint} active={hint !== null} error={error} onRefresh={() => void inventory.refetch()} onShop={() => { void (async () => { if (await table.current?.flushKeyboard() !== false) router.push("/shop"); })(); }} onUse={(type, filter, confirmed) => void requestHint(type, filter, confirmed)} onClose={() => { setHintsOpen(false); menuButton.current?.focus(); }} />}
         </div>
         <p aria-live="polite" className="sr-only">{message || (connected ? t("puzzleTogether.coop.synced") : t("puzzleTogether.coop.reconnecting"))}</p>
         {!connected && <p role="status" className="absolute inset-x-3 bottom-24 z-10 rounded-xl bg-vs-surface p-3 text-center text-sm shadow-md">{t("puzzleTogether.coop.reconnecting")}</p>}
