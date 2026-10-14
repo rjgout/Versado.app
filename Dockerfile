@@ -38,6 +38,9 @@ COPY src ./src
 # aangeleverd via --source en zit niet in de production image.
 COPY scripts/otb ./scripts/otb
 COPY scripts/study-content ./scripts/study-content
+# Read-only productiediagnose; neem geen andere contentarchitectuur-scripts
+# of testinfrastructuur op in de runtime-image.
+COPY scripts/content-architecture/diagnose-otb-production-readonly.mjs ./scripts/content-architecture/diagnose-otb-production-readonly.mjs
 # De Prisma-client wordt in de builder gegenereerd (src/generated staat niet
 # in git) en is nodig voor server.ts, dat via tsx draait.
 COPY --from=builder /app/src/generated ./src/generated
@@ -49,6 +52,11 @@ COPY prisma.config.ts ./
 # maar 404en al zulke bestanden in productie.
 COPY public ./public
 RUN npm prune --omit=dev
+
+# Bouwtijdcontrole in de uiteindelijke /app-runtime: beide veilige
+# weigeringspaden moeten werken zonder ooit een databaseverbinding te openen.
+RUN node scripts/content-architecture/diagnose-otb-production-readonly.mjs >/dev/null 2>&1; test $? -eq 2 \
+  && env -u DATABASE_URL node scripts/content-architecture/diagnose-otb-production-readonly.mjs --confirm-readonly >/dev/null 2>&1; test $? -eq 2
 
 EXPOSE 3000
 
