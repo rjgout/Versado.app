@@ -28,8 +28,10 @@ on:
       - 'src/components/study/StudyReader.tsx'
       - 'src/app/study-lesson/**'
       - 'src/app/api/reading-position/**'
+      - 'src/app/api/study-read/**'
       - 'tests/reading-position*'
       - 'tests/study-reader*'
+      - 'tests/study-read*'
       - 'src/app/api/admin/study-publications/**'
       - 'src/app/api/admin/study-media/**'
       - 'src/app/api/study-media/**'
@@ -272,14 +274,18 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
           node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
-      - name: Geïsoleerde migratie, privacy, conflicten, reader en echt hervatten
-        run: npm run test:study-reader:integration
+      - name: Geïsoleerde migratie, privacy, conflicten, reader, hervatten en expliciet gelezen
+        run: |
+          npm run test:study-reader:integration
+          npm run test:study-read:integration
       - name: Browserbewijs bewaren
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: study-reader-browser
-          path: /tmp/versado-study-reader-browser
+          path: |
+            /tmp/versado-study-reader-browser
+            /tmp/versado-study-read-browser
           if-no-files-found: ignore
 
   reference-preview:

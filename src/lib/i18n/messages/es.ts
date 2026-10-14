@@ -4018,6 +4018,14 @@ export const es: PartialMessages = {
     "positionRemapped": "Tu posición se ha restaurado con la sección o el texto guardado.",
     "availableFailed": "Esta lección de estudio ya no está disponible. Tu posición de lectura se conserva.",
     "readNotice": "Esto muestra tu posición de lectura. Desplazarte no marca la lección como leída.",
+    "markRead": "Marcar como leída",
+    "markingRead": "Marcando…",
+    "markReadNotice": "Esta es una finalización consciente y puede contar para tu racha diaria.",
+    "readComplete": "Marcada como leída",
+    "readCompleteNotice": "Tu posición de lectura se guarda por separado cuando vuelvas a leer esta lección.",
+    "readMarked": "Esta lección se ha marcado como leída.",
+    "readFailed": "Todavía no se pudo marcar la lección como leída. Vuelve a intentarlo.",
+    "readRevisionChanged": "Hay una nueva versión de esta lección. Ábrela antes de marcarla.",
     "sections": "Secciones de la lección"
 },
   referencePreview: {

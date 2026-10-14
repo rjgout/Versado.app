@@ -79,6 +79,7 @@
     "test:study-content:integration": "node scripts/content-architecture/test-access-isolated.mjs --study-content",
     "test:study-reader": "tsx --test tests/reading-position.test.ts tests/study-content.test.ts",
     "test:study-reader:integration": "node scripts/content-architecture/test-access-isolated.mjs --study-reader --study-content --browser",
+    "test:study-read:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --study-read --browser",
     "test:references": "tsx --test tests/reference-resolver.test.ts",
     "test:references:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --reference-preview --browser",
     "test:study-publication": "tsx --test tests/study-publication.test.ts",

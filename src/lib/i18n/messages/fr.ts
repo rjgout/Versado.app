@@ -4007,6 +4007,14 @@ export const fr: PartialMessages = {
     "positionRemapped": "Votre position a été rétablie à partir de la section ou du texte enregistré.",
     "availableFailed": "Cette leçon d’étude n’est plus accessible. Votre position de lecture est conservée.",
     "readNotice": "Il s’agit de votre position de lecture. Faire défiler ne marque pas la leçon comme lue.",
+    "markRead": "Marquer comme lue",
+    "markingRead": "Marquage…",
+    "markReadNotice": "C’est une finalisation volontaire et elle peut compter pour votre série quotidienne.",
+    "readComplete": "Marquée comme lue",
+    "readCompleteNotice": "Votre position de lecture reste enregistrée séparément si vous relisez cette leçon.",
+    "readMarked": "Cette leçon a été marquée comme lue.",
+    "readFailed": "La leçon n’a pas encore pu être marquée comme lue. Réessayez.",
+    "readRevisionChanged": "Une nouvelle version de cette leçon est disponible. Ouvrez-la avant de la marquer.",
     "sections": "Sections de la leçon"
 },
   referencePreview: {
