@@ -201,3 +201,12 @@ heeft gevalideerd én de collectie volgens het bestaande publicatiepad
 `PUBLISHED`, `enabled` en `visibleToUsers` is gemaakt. Pas dan kunnen
 ReferencePreview, `Meer lezen` en de bestaande return-trip ongewijzigd de
 interne `/scripture/[chapterId]`-route gebruiken.
+
+## Fase 3A.3 — read-only productiediagnose
+
+De beheerder kan de feitelijke OTB-aanwezigheid, publicatiepoort, canonieke
+boekcodes en geaggregeerde hoofdstuk-/versstructuur zonder wijziging
+controleren met `diagnose-otb-production-readonly.mjs`. De uitvoer en de
+veiligheidsgrenzen staan in `19-PHASE-3A-OTB-PRODUCTION-DIAGNOSIS.md`.
+De diagnose levert bewust geen interne resolvermapping op en mag niet worden
+gebruikt om een collectie te publiceren of te herstellen.
