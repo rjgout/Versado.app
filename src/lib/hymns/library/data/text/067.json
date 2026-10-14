@@ -1,0 +1,77 @@
+{
+ "choruses": [
+  [
+   "Mijn ziel heeft U van node,",
+   "heel mijn hart zucht naar U,",
+   "o, zegen mij, mijn Heiland,",
+   "en troost mij nu."
+  ]
+ ],
+ "id": "nld:67",
+ "leadingChorus": null,
+ "musicCredit": "Robert Lowry (1826–1899)",
+ "notices": [],
+ "number": 67,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "2 Nephi 4:16–35",
+  "Psalm 143:1"
+ ],
+ "source": {
+  "pageSha": "2bddebf9db0156520c3e76fe3f9541ce9860f8f0b72bd8b43b452a9a3bc7b24c",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/i-need-thee-every-hour",
+  "pdfSha": "252547eeeb8258e2b7e22b265f870d0de29fd5b646c7799a6f842274e13e89ea",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b6/ad/b6adcbb0ac4011ec9da5eeeeac1eb1da2c6e90f1/i_need_thee_every_hour_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Gij zijt mijn hoogste Goed,",
+    "genadig Heer!",
+    "Uw stem, zo zacht en zoet,",
+    "brengt vrede weer."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Gij zijt mijn hoogste Goed,",
+    "blijf mij nabij.",
+    "Verleiding mist haar doel,",
+    "zijt Gij bij mij."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Gij zijt mijn hoogste Goed,",
+    "in vreugd of pijn.",
+    "O, kom en blijf bij mij,",
+    "of ik verkwijn."
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Gij zijt mijn hoogste Goed,",
+    "voor immermeer.",
+    "O, maak met U mij één,",
+    "mijn heilig Heer."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Innig",
+ "textCredit": "naar Annie S. Hawks (1835–1918)",
+ "title": "Gij zijt mijn hoogste Goed"
+}

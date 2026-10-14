@@ -1,0 +1,58 @@
+{
+ "choruses": [],
+ "id": "nld:43",
+ "leadingChorus": null,
+ "musicCredit": "Melchior Teschner (1584–1635)",
+ "notices": [],
+ "number": 43,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 148",
+  "Johannes 12:12–13",
+  "Jakobus 1:12"
+ ],
+ "source": {
+  "pageSha": "7c46d4dea2c5da6c26250d4d2c178bb9ca30413e5430e2184cce428504cdcaef",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/all-glory-laud-and-honor",
+  "pdfSha": "b5b771dcec1c0ff6fc80125be9462097e055e5eb7bd458b9b5db6ce126b14bc3",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/7a/97/7a97901dac4011ec9da5eeeeac1eb1dab33ea8ff/all_glory_laud_and_honor_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Al d’ere, lof en glorie zij U, o grote Heer,",
+    "tot wie hosanna’s klonken uit kindermonden teer.",
+    "Gij zijt de koning Isr’els, geboren Davids Zoon,",
+    "komt in de naam des Heren met eens gezalfden kroon."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "De eng’len in de hemel verheerlijken uw naam,",
+    "wijl mens en heel uw schepping getuigen van uw faam.",
+    "Het volk dat U vereerde, lei palmen voor U neer;",
+    "zo bieden wij met liefde ons hart aan U, o Heer."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Aan U, voor uw beproeving, is eerbetoon geschied.",
+    "Tot U, nu hoog verheven, rijst dankbaar ook ons lied.",
+    "G’aanvaardde hun aanbidding; doe evenzo nu, Heer,",
+    "Gij die ons hoogste streven verdient voor immermeer."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Triomfantelijk",
+ "textCredit": "naar Theodulph van Orléans (ca. 760–821)",
+ "title": "Al d’ere, lof en glorie"
+}

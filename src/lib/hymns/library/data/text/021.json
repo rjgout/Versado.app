@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:21",
+ "leadingChorus": null,
+ "musicCredit": "Joseph J. Daynes (1851–1920)",
+ "notices": [],
+ "number": 21,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Geschiedenis van Joseph Smith 1:14–17",
+  "Leer en Verbonden 21:4–7"
+ ],
+ "source": {
+  "pageSha": "5875e4947c7fe2b5eb9edce8a60c4b396f28ece09d64a690b3706a93e58d29cf",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/come-listen-to-a-prophets-voice",
+  "pdfSha": "169ffaf80a7c93f98a68ce4f97a321ed180bd7cd7ca589d09a8b03fbe759170b",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/a0/cf/a0cf7f7cac4011eca5e7eeeeac1e4f87178a432c/come_listen_to_a_prophets_voice_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Komt, hoort naar eens profeten stem en luistert naar Gods woord.",
+    "Verheugt u in de ware leer, vermeldt haar verder voort.",
+    "Wij vonden der profeten weg, door hen op aard’ betreên,",
+    "een ziener Gods heeft nu gezegd hoe die eens was voorheen."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Het dikke duister, eens verspreid op ’t ganse rond der aard’,",
+    "verdwijnt allengs op Gods bevel, die zich weer openbaart.",
+    "Hoewel de boze ’t ware licht sinds lang verborgen had,",
+    "heeft Gods volk nu gevonden weer het eng’ en smalle pad."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Zij hebben niet op mensenkracht of ’t aardse goed gebouwd,",
+    "want vloek spreekt God op ieder uit die niet op Hem vertrouwt.",
+    "De Heiland heeft gesproken weer: Gehoorzaamt mijn gezag,",
+    "en teek’nen volgen waar geloof, ja, tot de laatste dag."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Slaat acht dan op het waarheidswoord, uit reine bron gevloeid,",
+    "totdat uw roeping zeker staat, gij alle zond’ verfoeit;",
+    "tot Godes stem belofte doet van eeuw’ge heerschappij,",
+    "uw uitverkiezing ’t hart vervult met zekerheid zo blij."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Blij",
+ "textCredit": "naar Joseph S. Murdock (1822–1899); vers vier: naar Bruce R. McConkie (1915–1985). © 1985 IRI",
+ "title": "Komt, hoort naar eens profeten stem"
+}

@@ -1,0 +1,69 @@
+{
+ "choruses": [],
+ "id": "nld:81",
+ "leadingChorus": null,
+ "musicCredit": "Crawford Gates (1921–2018). © 1977 IRI",
+ "notices": [],
+ "number": 81,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Johannes 15:12–14",
+  "Leer en Verbonden 34:1–4"
+ ],
+ "source": {
+  "pageSha": "3e8dc2326bc560c0aef04da11f28ea7061c2ee5e7de680f46e9fd4ceb20b40a7",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/our-saviors-love",
+  "pdfSha": "198a9f38433dae6f8afb3acf58d75fbd9f953d8e4a08040429cd5f96bcd144a9",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ad/4e/ad4e80efac4011ec9da5eeeeac1eb1da453c8236/our_saviors_love_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Uw liefde, Heer,",
+    "schijnt als de zon met warme gloed",
+    "van boven neer",
+    "door wolken van conflict.",
+    "Licht op ons pad,",
+    "ze leidt ons naar uw overvloed;",
+    "kostbare schat",
+    "voor elk die tot U blikt."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Uw Geest, de stem",
+    "van troost en rust, legt in ons hart",
+    "een milde rem",
+    "op ongeduld en nijd.",
+    "Moge uw hand,",
+    "die ons verkrampt gemoed ontwart,",
+    "scheppen een band",
+    "die blijft in eeuwigheid."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Vader en God,",
+    "het offer, door uw Zoon gebracht,",
+    "verheft ons lot",
+    "tot eindeloze jeugd.",
+    "Vreedzaam uw wet;",
+    "uw last is licht, uw juk is zacht.",
+    "Lam zonder smet,",
+    "in U is onze vreugd."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Innig",
+ "textCredit": "naar Edward L. Hart (1916–2008). © 1977 IRI",
+ "title": "Uw liefde, Heer"
+}

@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:77",
+ "leadingChorus": null,
+ "musicCredit": "Jessie Seymour Irvine (1836–1887), bew.",
+ "notices": [],
+ "number": 77,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 23",
+  "Jesaja 26:3–4"
+ ],
+ "source": {
+  "pageSha": "bbde390ecf24fdc80013068eb7dbb2a288f13a35561ab5cbc2a4d68afe7828b0",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/the-lord-is-my-good-shepherd",
+  "pdfSha": "c5dd51e51c9a9752f4657100661939eda8a347b17f501db11f093f425c48c5fb",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/27/f4/27f477ccac4011ec884feeeeac1e94ef45862a0e/the_lord_is_my_good_shepherd_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Mijn goede Herder is de Heer,",
+    "bij Hem ontbreekt mij niets;",
+    "aan rustige waat’ren voert Hij mij;",
+    "mijn ziel verkwikt Hij weer."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Al ga ik door een donker dal,",
+    "ik vrees het kwade niet;",
+    "zijn stok en zijn staf vertroosten mij;",
+    "Hij, die mij leiden zal."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Mijn Herder, niets is Hem teveel,",
+    "zijn olie zalft mijn hoofd,",
+    "mijn beker vloeit over van zijn trouw;",
+    "genade is mijn deel."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Ja, heil en goedertierenheid,",
+    "zij volgen op mijn pad.",
+    "In ’t huis van mijn Heer verblijf ik eens",
+    "tot in de eeuwigheid."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Kalm",
+ "textCredit": "psalm 23, bew. Merryn P. Jongkees (1959– )",
+ "title": "Mijn goede Herder is de Heer"
+}

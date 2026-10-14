@@ -1,0 +1,63 @@
+{
+ "choruses": [],
+ "id": "nld:79",
+ "leadingChorus": null,
+ "musicCredit": "Thomas Hastings (1784–1872)",
+ "notices": [],
+ "number": 79,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "2 Samuël 22:2–3, 32–33",
+  "Mozes 6:57–60"
+ ],
+ "source": {
+  "pageSha": "ca7f8129ae3988b554abd54ec05994f3f435c97a63f19200065286649e2d0889",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/rock-of-ages",
+  "pdfSha": "e23addc00e9adff835ab27b7c4b18d1e91339177ee60d3871ab76b1790797bcf",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/79/65/79650379ac4011eca698eeeeac1eb6af38dd1a0c/rock_of_ages_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Rots der eeuwen, Troost in smart,",
+    "laat mij schuilen aan uw hart!",
+    "Laat het water en het bloed,",
+    "uit uw zijde eens gevloeid,",
+    "zijn voor mij een artsenij",
+    "die mij maakt van zonden vrij!"
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Hoe ’k mijn zonden ook beschrei,",
+    "of hoe groot mijn ijver zij,",
+    "’t zal mij niet behouden, neen!",
+    "Gij moet redden, Gij alleen.",
+    "Moede klem ik, zwaar belast,",
+    "aan uw kruis mij hoopvol vast."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Als het uur van sterven slaat",
+    "en mijn oog zich sluiten gaat,",
+    "als ’k, van ’t aardse stof ontdaan,",
+    "eenmaal voor uw troon zal staan,",
+    "Rots der eeuwen, Troost in smart,",
+    "laat mij schuilen aan uw hart!"
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Gedragen",
+ "textCredit": "naar Augustus M. Toplady (1740–1778)",
+ "title": "Rots der eeuwen"
+}

@@ -1,0 +1,76 @@
+{
+ "choruses": [],
+ "id": "nld:103",
+ "leadingChorus": null,
+ "musicCredit": "John J. McClellan (1874–1925)",
+ "notices": [],
+ "number": 103,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 92:2–6",
+  "Enos 1:27"
+ ],
+ "source": {
+  "pageSha": "4c501db601437745df545d4ea185fa0f0dccebb166da78f6393e4a807e6d8f51",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/sweet-is-the-work",
+  "pdfSha": "cdc6f2bc98469ebcd0128ade33425f204237fb1359dc3c5747e7f48b59c74462",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/27/36/27363208ac4011ec895aeeeeac1eee216a7832e7/sweet_is_the_work_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Uw dienst is zoet, mijn God en Heer!",
+    "Uw naam bewijs ik lof en eer,",
+    "steeds prijs ik uw verlossingsplan,",
+    "spreek van uw goedheid waar ik kan."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Zoet is de dag, aan rust gewijd,",
+    "’k voel mij van aardse zorg bevrijd.",
+    "O harte mijn, gans onbeklemd,",
+    "wees steeds als Davids harp gestemd."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Mijn hart zal roemen in mijn Heer,",
+    "zijn daden prijzen immermeer.",
+    "Lof voor zijn groot genadewerk!",
+    "Lof voor mijn Rots, onwrikbaar sterk!"
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Groot zal eens d’ eer zijn die ’k U breng,",
+    "als ik met d’ eng’lenschaar mij meng,",
+    "als ik op die verheven dag",
+    "uw aangezicht aanschouwen mag."
+   ],
+   "n": 4
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Dan zal mijn vreugd volkomen zijn,",
+    "en ben ik vrij van smart en pijn;",
+    "dan spreekt Hij in zijn majesteit:",
+    "Treed in de woning, u bereid."
+   ],
+   "n": 5
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Gloedvol",
+ "textCredit": "naar Isaac Watts (1674–1748)",
+ "title": "Uw dienst is zoet"
+}

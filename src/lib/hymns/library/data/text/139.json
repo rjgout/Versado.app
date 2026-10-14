@@ -1,0 +1,62 @@
+{
+ "choruses": [
+  [
+   "O, laten wij aanbidden, o, laten wij aanbidden,",
+   "o, laten wij aanbidden die Koning!"
+  ]
+ ],
+ "id": "nld:139",
+ "leadingChorus": null,
+ "musicCredit": "toegeschreven aan John F. Wade (ca. 1711–1786)",
+ "notices": [],
+ "number": 139,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 2:8–20",
+  "Psalm 95:6"
+ ],
+ "source": {
+  "pageSha": "6824dd11fc6dde89f1fd0761623019712d93e5ebecd54b77f72cc0937aeaba9e",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/oh-come-all-ye-faithful",
+  "pdfSha": "7ddf0399b992dc2f67efc7b3a6470d753a14f2fd9806fcda98723c7b8f516d3f",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/aa/bc/aabc162bac4011eca698eeeeac1eb6af87c2ceb8/oh_come_all_ye_faithful_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Komt allen tezamen, komt verheugd van harte,",
+    "Betlehems stal in de geest bezocht.",
+    "Komt, ziet het kindje, ons tot heil geboren."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "De Heiland der wereld, Gods geliefde Zone,",
+    "ligt in een krib en op schamel stro.",
+    "’t Is de Beloofde, nu op aard’ verschenen."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "O, zingt, eng’lenkoren, zingt uw jubelzangen;",
+    "zingt, alle scharen in ’t hemelrijk!",
+    "Ere zij God, glorie in den hoge."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Majestueus",
+ "textCredit": "oorspronkelijke tekst toegeschreven aan John F. Wade (ca. 1711–1786)",
+ "title": "Komt allen tezamen"
+}

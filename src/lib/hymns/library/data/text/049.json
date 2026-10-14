@@ -1,0 +1,63 @@
+{
+ "choruses": [],
+ "id": "nld:49",
+ "leadingChorus": null,
+ "musicCredit": "Tracy Y. Cannon (1879–1961). © 1948 IRI",
+ "notices": [],
+ "number": 49,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 117",
+  "Leer en Verbonden 20:17–19"
+ ],
+ "source": {
+  "pageSha": "aedca51116ff0873c96c27962da622bd9c0bbec59307cb81dd4feef1b1ddf97f",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/praise-the-lord-with-heart-and-voice",
+  "pdfSha": "45f35dbb435b18ffb671ea10f8306c58c3bc3a568dd580a1555bf4210228ec0c",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/db/85/db853f98ac4011ec90cceeeeac1e6e3d6bdda878/praise_the_lord_with_heart_and_voice_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Loof nu allen onze Heer;",
+    "dat heel d’aarde breng’ Hem eer.",
+    "Lof zij Hem voor kracht en licht,",
+    "voor zijn kerk, opnieuw gesticht.",
+    "Loof nu allen onze Heer;",
+    "dat heel d’aarde breng’ Hem eer."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Aard’ en hemel, prijs uw Heer,",
+    "roem zijn goedheid, meld zijn eer.",
+    "Loof zijn liefde voor de mens,",
+    "zijn ontferming zonder grens.",
+    "Aard’ en hemel, prijs uw Heer,",
+    "roem zijn goedheid, meld zijn eer."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Vader, eeuw’ge Vriend en Heer,",
+    "’t leven zijt Gij, immermeer.",
+    "Heel de schepping, waar ’t ook zij,",
+    "leeft in U, want daar zijt Gij.",
+    "Vader, eeuw’ge Vriend en Heer,",
+    "’t leven zijt Gij immermeer."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "naar Tracy Y. Cannon (1879–1961). © 1948 IRI",
+ "title": "Loof nu allen onze Heer"
+}

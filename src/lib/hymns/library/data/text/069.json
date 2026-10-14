@@ -1,0 +1,70 @@
+{
+ "choruses": [],
+ "id": "nld:69",
+ "leadingChorus": null,
+ "musicCredit": "Lowell Mason (1792–1872)",
+ "notices": [],
+ "number": 69,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 88:63",
+  "Genesis 28:10–22"
+ ],
+ "source": {
+  "pageSha": "632f7fa26b02b0490e461238970d1944e5d715f40268cb498f871c4665608ee3",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/nearer-my-god-to-thee",
+  "pdfSha": "56d7c971c78cfc1abd132357ec24d98d600b6cb1741a728ab12b00e9b629059e",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/15/24/15242f01ac4011ec8ad8eeeeac1e0652f1cce3ab/nearer_my_god_to_thee_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Nader, mijn God, tot U, nader tot U!",
+    "Kwelt mij een smart’lijk kruis: nader tot U!",
+    "Toch zal in smart en pijn",
+    "dit steeds mijn leuze zijn:",
+    "Nader, mijn God, tot U, nader tot U!"
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Is ’t, als bij Jakob eens, nacht om mij heen,",
+    "en ik tot rustplaats vind ook slechts een steen,",
+    "daar, in het droomdomein,",
+    "zal ook mijn bede zijn:",
+    "Nader, mijn God, tot U, nader tot U!"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Houdt Gij de ladder mij duid’lijk voor ’t oog;",
+    "zij voert mij tree voor tree tot U omhoog.",
+    "Eng’len gebaren mij",
+    "nader tot uwer zij,",
+    "Nader, mijn God, tot U, nader tot U!"
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Is straks de nacht voorbij, dan meldt mijn lied",
+    "dat Gij ook in de nacht mij niet verliet.",
+    "Dan voel ik grote vreugd",
+    "en zing ik diep verheugd:",
+    "Nader, mijn God, tot U, nader tot U!"
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Kalm",
+ "textCredit": "naar Sarah F. Adams (1805–1848)",
+ "title": "Nader, mijn God, tot U"
+}

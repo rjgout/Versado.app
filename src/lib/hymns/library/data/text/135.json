@@ -1,0 +1,63 @@
+{
+ "choruses": [],
+ "id": "nld:135",
+ "leadingChorus": null,
+ "musicCredit": "Joachim Neander (1650–1680)",
+ "notices": [],
+ "number": 135,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Marcus 16:6–7",
+  "Mosiah 16:7–9"
+ ],
+ "source": {
+  "pageSha": "dc9c8aad958cde7a22eb74802664317bd37d2f3419c594aaa506382b99d403a9",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/he-is-risen",
+  "pdfSha": "fb91d81be2c9ec5b27192b7f4841ee7979e3361ec8894fce48d1f6000a3df171",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e7/2c/e72c9c25ac3f11eca698eeeeac1eb6af8a7fec5f/he_is_risen_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Hij is uit de dood verrezen!",
+    "Spreid het woord met grote vreugd.",
+    "Op de derde dag herrezen;",
+    "dat heel d’ aarde zij verheugd.",
+    "Dood verwonnen, ’t mensdom vrij;",
+    "Christus stierf voor u en mij."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Kom met heil’ge lofgezangen;",
+    "zing de Heer een vreugdelied.",
+    "Nee, geen enk’le wolk blijft hangen",
+    "voor het gloren dat Hij biedt,",
+    "dagend aan de purp’ren oost,",
+    "’t paasfeest dat een ieder troost."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Hij is uit de dood verrezen,",
+    "heeft geopend ’s hemels poort,",
+    "dat een ieder vrij zou wezen,",
+    "waardig zijn een hoger oord.",
+    "Eens aanschouwt ons oog verblijd",
+    "’t ware paaslicht ons bereid."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Gedragen",
+ "textCredit": "naar Cecil Frances Alexander (1818–1895)",
+ "title": "Hij is uit de dood verrezen!"
+}

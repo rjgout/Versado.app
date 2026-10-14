@@ -1,0 +1,67 @@
+{
+ "choruses": [
+  [
+   "Kies toch goed! Kies toch goed!",
+   "Bid steeds om wijsheid van de Heer.",
+   "Kies toch goed, zoals ’t moet,",
+   "en God behoedt u immermeer."
+  ]
+ ],
+ "id": "nld:162",
+ "leadingChorus": null,
+ "musicCredit": "Henry A. Tuckett (1852–1918)",
+ "notices": [],
+ "number": 162,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Moroni 7:16–17",
+  "2 Nephi 2:27–28"
+ ],
+ "source": {
+  "pageSha": "2c4d6996c1d0b7a71a00cc92dfd186bca0cac5522e8190ebf4b3bd063693aeb8",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/choose-the-right",
+  "pdfSha": "fd43b66c38839190430b7977c92d4c274b22cc3730b31691d4a6e3432aac1756",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/af/8b/af8b6cceac3f11ec8ad8eeeeac1e06529644c399/choose_the_right_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Kies toch goed als u voor een keus gesteld wordt.",
+    "Tot het goede leidt de Heil’ge Geest;",
+    "en zijn licht zal bestendig op u schijnen",
+    "als uw hart naar het goede streeft."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Kies toch goed; en laat nimmer u verleiden",
+    "tot de zonde door de boze macht.",
+    "Elke vraag heeft een keerzij, wees verstandig!",
+    "Geef gehoor aan Gods fluist’ring zacht."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Kies toch goed! In de waarheid vindt u vrede.",
+    "Kies toch goed! Uw ziel blijft immer rein.",
+    "Kies toch goed in uw denken en uw hand’len,",
+    "laat de hemel uw reisdoel zijn."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "naar Joseph L. Townsend (1849–1942)",
+ "title": "Kies toch goed"
+}

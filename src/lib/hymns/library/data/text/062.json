@@ -1,0 +1,68 @@
+{
+ "choruses": [
+  [
+   "Ja, ik zal, ja, ik zal,",
+   "ja, ik zal u daar ontmoeten",
+   "en met blijdschap u begroeten",
+   "aan de overzij van ’t meer."
+  ]
+ ],
+ "id": "nld:62",
+ "leadingChorus": null,
+ "musicCredit": "Elihu S. Rice",
+ "notices": [],
+ "number": 62,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Mozes 7:63"
+ ],
+ "source": {
+  "pageSha": "f036037d16621f7300869eb924d83f13768ef29156ee5adfb5733776e529d5e1",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/shall-we-meet",
+  "pdfSha": "20b5519c52512fcfdf16df6c0c8bdf381138fe61166cf6f9230ab0fc8109f58a",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/50/c4/50c49fb2ac4011ec8f37eeeeac1e071f9f70abc2/shall_we_meet_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Zullen wij elkaar ontmoeten aan de overzij van ’t meer?",
+    "Waar de golven zachtjes kabb’len, want daar zijn geen stormen meer."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Zullen wij elkaar ontmoeten in die haven, wonderschoon,",
+    "vrij van alle zorg en smarten, vrij van alle spot en hoon?"
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Zullen wij elkaar ontmoeten in die stad, zo heerlijk mooi,",
+    "gans vervuld van pracht en luister, in een hemels witte tooi?"
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Zullen wij elkaar ontmoeten als eens Jezus wederkeert,",
+    "en met Hem voor eeuwig wonen in het rijk waar Hij regeert?"
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Blijmoedig",
+ "textCredit": "naar Horace L. Hastings (1831–1886)",
+ "title": "Zullen wij elkaar ontmoeten"
+}

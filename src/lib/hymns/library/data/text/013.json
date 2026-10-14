@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:13",
+ "leadingChorus": null,
+ "musicCredit": "Carolee Curtis Green (1940– ). © 1984 IRI",
+ "notices": [],
+ "number": 13,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 133:7–10",
+  "Leer en Verbonden 43:17–20"
+ ],
+ "source": {
+  "pageSha": "457e1b50fd4bc6df36309407a7ca916c3aaaf895c15ca946324085adce2678ab",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/awake-and-arise",
+  "pdfSha": "2b5cbbbc4774ee07d1cb79db024952593e5aadcc3bbb714e6d60c952ab6699cc",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/d7/10/d7100b26ac4011eca877eeeeac1e1ab388cc3fe0/awake_and_arise_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Ontwaak en sta op, o gij slapende volken!",
+    "De vensters des hemels zijn opengedaan.",
+    "De laatste bedeling verschijnt door de wolken,",
+    "de duisternis wijkt en de morgen breekt aan."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "De volheid der tijden die eens zou verrijzen,",
+    "het schoon visioen, aan profeten ontvouwd,",
+    "die heerlijke dag, eens gedroomd door de wijzen,",
+    "is nù, o gij slapende volken, aanschouw!"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Verhef dan uw stem, laat uw vreugdelied klinken,",
+    "ontplooi in elk land nu de vredesbanier.",
+    "Want ’t rijk van de waarheid zal nimmer verzinken,",
+    "zijn grens breidt zich uit en zijn ringen staan fier."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bezield",
+ "textCredit": "naar Theodore E. Curtis (1872–1957). © 1984 IRI",
+ "title": "Ontwaak en sta op"
+}

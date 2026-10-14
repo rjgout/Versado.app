@@ -1,0 +1,63 @@
+{
+ "choruses": [
+  [
+   "Hoort der eng’len lied, zo schoon:",
+   "Ere zij Gods Een’ge Zoon!"
+  ]
+ ],
+ "id": "nld:148",
+ "leadingChorus": null,
+ "musicCredit": "Felix Mendelssohn-Bartholdy (1809–1847)",
+ "notices": [],
+ "number": 148,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 2:8–14",
+  "Jesaja 53"
+ ],
+ "source": {
+  "pageSha": "59b5e35f071a64a2a0e6cb0bc60ed0efaba863a0731498cba4610aded945b0e4",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/hark-the-herald-angels-sing",
+  "pdfSha": "506f383ad361ef85ff25062b0fabca6b77b52d14eeab3ce63fc084383f0f2d7c",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/bf/6e/bf6e0cb3ac3f11ecb473eeeeac1effcb7d8e0943/hark_the_herald_angels_sing_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Hoort der eng’len lied, zo schoon:",
+    "Ere zij Gods Een’ge Zoon!",
+    "Vreed’ op aard’ en zaligheid",
+    "door zijn liefde ons bereid.",
+    "Al gij volk’ren, zingt van vreugd,",
+    "weest met d’ eng’lenschaar verheugd,",
+    "zingt met hen: In Betlems stal",
+    "ligt het Kerstkind, Heer van ’t al!"
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Lof aan U die eeuwig leeft",
+    "en op aarde vrede geeft;",
+    "Gij die ons geworden zijt",
+    "Bron van heil in onze tijd.",
+    "Al uw glorie legt Gij af,",
+    "ons tot redding uit het graf,",
+    "dat wij ongerept en rein",
+    "nieuwgeboren zouden zijn."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Krachtig",
+ "textCredit": "naar Charles Wesley (1707–1788)",
+ "title": "Hoort der eng’len lied, zo schoon"
+}

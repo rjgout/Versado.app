@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:30",
+ "leadingChorus": null,
+ "musicCredit": "Edwin F. Parry (1850–1935)",
+ "notices": [],
+ "number": 30,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Jesaja 35:1–2, 6, 10",
+  "2 Nephi 8:3, 11"
+ ],
+ "source": {
+  "pageSha": "d6d6e55c3de29e5325c904b63c4b918a9860f523c82f929eb9e9be39523bc920",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/hail-to-the-brightness-of-zions-glad-morning",
+  "pdfSha": "ba7b6b33fad83df19a6dc983d3616ed7de7e7e652941116738126c97e1ed364b",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ec/54/ec547ed5ac3f11ecb473eeeeac1effcb447c6af8/hail_to_the_brightness_of_zions_glad_morning_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Groot is de glorie van Zions blijde morgen,",
+    "licht voor elk land dat in duisternis lag!",
+    "Nu zwijgt de klaagtoon van droefheid en zorgen,",
+    "Zion verkondigt een heuglijke dag."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Groot is de glorie van Zions blijde morgen,",
+    "eeuwen door Isr’els profeten voorspeld.",
+    "Nu worden ’s Heren verlosten geborgen,",
+    "’t nieuws wordt aan Joden en and’ren gemeld."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "In de woestijn, zie hoe bloemen welig bloeien,",
+    "steppen en bergen, zij juichen verheugd.",
+    "Zie hoe de waat’ren ontspringen en vloeien,",
+    "hoor, hoe de wildernis jubelt van vreugd."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Hoor hoe uit alle werelddelen",
+    "lof tot Jehovah ten hemel stijgt.",
+    "Wonden van oorlog en smart zullen helen,",
+    "niets dat de hemelse vrede bedreigt."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Blij",
+ "textCredit": "naar Thomas Hastings (1784–1872)",
+ "title": "Groot is de glorie van Zions blijde morgen"
+}

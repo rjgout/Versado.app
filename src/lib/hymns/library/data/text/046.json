@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:46",
+ "leadingChorus": null,
+ "musicCredit": "uit Stralsund Gesangbuch, 1665, bew. William Bennett, (1816–1875) en Otto Goldschmidt (1829–1907)",
+ "notices": [],
+ "number": 46,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 150",
+  "Mosiah 19:30"
+ ],
+ "source": {
+  "pageSha": "9f20a93e7b1059fdd8773009836eb89ffdaeccb73c97a9d65e21277273572bbb",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/praise-to-the-lord-the-almighty",
+  "pdfSha": "d4b88838079f0801816bd29e4b2f3dbebb0f095e0e07f48ad348c4d18749f91f",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/a7/48/a748c17cac4011ec8f90eeeeac1eb657a87b9b28/praise_to_the_lord_the_almighty_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Alles wat adem heeft love de Here der heren,",
+    "elk schepsel zinge een jubelzang te zijner ere.",
+    "Loof, loof zijn naam, mannen en vrouwen te zaam,",
+    "kom, zing zijn eer: halleluja."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Allen die zijn gedoopt loven de Here der heren,",
+    "en nu van zonden vrij, zingen een lied Hem ter ere.",
+    "Loof, loof zijn naam, broeders en zusters tezaam,",
+    "kom, zing verheugd: halleluja"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Allen die Jezus niet kennen als Christus de Here,",
+    "roep Hem toch aan, wil u van ganser harte bekeren.",
+    "Kom tot uw Heer, kniel aan zijn voeten toch neer,",
+    "Hij stierf voor u: halleluja."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Blij",
+ "textCredit": "naar Joachim Neander (1650–1680)",
+ "title": "Alles wat adem heeft"
+}

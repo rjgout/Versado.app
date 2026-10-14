@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:33",
+ "leadingChorus": null,
+ "musicCredit": "Merrill Bradshaw (1929–2000). © 1980 IRI",
+ "notices": [],
+ "number": 33,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 65:5–6",
+  "Leer en Verbonden 97:21"
+ ],
+ "source": {
+  "pageSha": "bae16fa41236843ff60ab708e596468878234113908328ea607ec53f72764e6e",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/we-will-sing-of-zion",
+  "pdfSha": "6ac645fa1d4448f5dccf86f7acab0fc104560b108aad38e359df1d83c45b14f4",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/86/34/8634bbb8ac4011ec8c51eeeeac1edd4ef1b8292f/we_will_sing_of_zion_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Zingen wij van Zion, koninkrijk van God.",
+    "Zions volk is rein van hart,",
+    "houdt zich van het kwaad apart.",
+    "Zion, over d’aard’ verspreid, begroet eerlang haar God."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "God zendt openbaring tot profeten neer.",
+    "Waarheid is op aard’ hersteld;",
+    "klaar voor d’oogst is nu het veld.",
+    "Zion prepareert ons voor de terugkomst van de Heer."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Als de heil’gen Zions leven naar Gods wet",
+    "zullen haat en strijd vergaan,",
+    "enkel vreugd en rust bestaan.",
+    "Eens wordt heel het rond der aard’ met Zions pracht bedekt."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Resoluut",
+ "textCredit": "naar Merrill Bradshaw (1929–2000). © 1980 IRI",
+ "title": "Zingen wij van Zion"
+}

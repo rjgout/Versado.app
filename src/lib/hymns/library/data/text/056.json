@@ -1,0 +1,63 @@
+{
+ "choruses": [],
+ "id": "nld:56",
+ "leadingChorus": null,
+ "musicCredit": "Thomas C. Griggs (1845–1903)",
+ "notices": [],
+ "number": 56,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "1 Johannes 4:7–8",
+  "Mozes 6:63"
+ ],
+ "source": {
+  "pageSha": "0a83a9ef3d45df03df9ce7d50c05e2594b6dfed09810559b76e3ee512cfac335",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/god-is-love",
+  "pdfSha": "f5190c818e3229c69888ee5dbfaf544050b47734b98d5f76c456ea5368b14e42",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/22/8b/228be6e4ab8011eca698eeeeac1eb6afcfc2d363/god_is_love_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "D’aarde met haar bloemenpracht,",
+    "’t luchtruim waar de zonne lacht,",
+    "’s hemels onbegrensde ruimt’,",
+    "en de zee, die bruist en schuimt;",
+    "alles juicht of fluistert zoet:",
+    "God is liefde, God is goed."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "’t Zacht geluid op berg en dal,",
+    "vogels zingend overal,",
+    "’t briesje, ruisend op de kreek,",
+    "’t zachte murmelen der beek,",
+    "brengen ons een blijde groet:",
+    "God is liefde, God is goed."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Alle hoop die wellen kon",
+    "uit des harten reine bron,",
+    "alle vreugd te zaam vergaard",
+    "in een woning hier op aard’,",
+    "tonen in hun warme gloed:",
+    "God is liefde, God is goed."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Lieflijk",
+ "textCredit": "naar Thomas R. Taylor (1807–1835)",
+ "title": "God is liefde"
+}

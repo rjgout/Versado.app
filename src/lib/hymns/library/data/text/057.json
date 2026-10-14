@@ -1,0 +1,77 @@
+{
+ "choruses": [
+  [
+   "De Heer is mijn Licht,",
+   "Hij is mijn vreugd en gezang,",
+   "Hij leert mij mijn plicht,",
+   "Hij leidt, Hij leidt steeds mijn gang."
+  ]
+ ],
+ "id": "nld:57",
+ "leadingChorus": null,
+ "musicCredit": "John R. Sweney (1837–1899)",
+ "notices": [],
+ "number": 57,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 27:1",
+  "Jesaja 12:2"
+ ],
+ "source": {
+  "pageSha": "1b0d3a78291b85862ab80da87bbe24149c3d80f4e08965b3fab4935aebf3e3ab",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/the-lord-is-my-light",
+  "pdfSha": "6adf08f2208775c247cbd8d60649a6312e40ff163ba5884b22b99762bdf70aaf",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e1/2e/e12e7ca9ac3f11ecbfd6eeeeac1e85cf0b308784/the_lord_is_my_light_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "De Heer is mijn Licht; waarom dan gevreesd?",
+    "Nabij mij, heel dicht, is Hij door zijn Geest.",
+    "Hij is mijn Verlosser van zonde en smart,",
+    "die zaal’ge verzeek’ring geeft Hij in mijn hart."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "De Heer is mijn Licht; ’t gelovige oog",
+    "is immer gericht op ’t Zion zo hoog,",
+    "waar Jezus in glorie en glans zit getroond.",
+    "Hoe kan ik dan blijven waar duisternis woont?"
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "De Heer is mijn Licht; de Heer is mijn kracht.",
+    "Der zonde lust zwicht, ‘k verwin in zijn macht.",
+    "Mijn zwakheid bedekt Hij met teed’re genâ,",
+    "en op mijn gebed volgt zijn zegen weldra."
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "De Heer is mijn Licht; mijn eeuwige goed.",
+    "Zijn vlekloos gezicht kent glans slechts en gloed.",
+    "Hij is mijn Behouder, mijn koninklijk Hoofd,",
+    "zijn eernaam word’ immer verhoogd en geloofd."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Resoluut",
+ "textCredit": "naar James Nicholson (1828–1876)",
+ "title": "De Heer is mijn Licht"
+}

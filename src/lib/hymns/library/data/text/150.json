@@ -1,0 +1,56 @@
+{
+ "choruses": [
+  [
+   "Noël, noël, noël, noël,",
+   "ere de Koning van Israel."
+  ]
+ ],
+ "id": "nld:150",
+ "leadingChorus": null,
+ "musicCredit": null,
+ "notices": [
+  "Tekst en muziek: naar traditioneel Engels kerstlied, ca. 17e eeuw."
+ ],
+ "number": 150,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 2:8–20"
+ ],
+ "source": {
+  "pageSha": "110a47ba36d83d054e024cc498f5450ad7ef9e3ad0980c26eacbd2136cccff21",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/the-first-noel",
+  "pdfSha": "6dc0788b679490df63c0c1dafc4603159752969387ed12944216fcb74a6d073a",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/09/e0/09e046fdac4011ecb4a3eeeeac1ea26c055aedbd/the_first_noel_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "De eerste noël van ’t engelenkoor",
+    "kwam enkele herders in ’t veld ter oor.",
+    "Zij hielden bij hun kudde de wacht",
+    "in die koude donk’re winternacht."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Zij keken omhoog en zagen een ster",
+    "met heldere glans in het oosten ver;",
+    "op heel de aarde zag men haar pracht,",
+    "zo bleef zij stralen dag en nacht."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Jubelend",
+ "textCredit": null,
+ "title": "De eerste noël"
+}

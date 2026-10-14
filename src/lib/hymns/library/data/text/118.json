@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:118",
+ "leadingChorus": null,
+ "musicCredit": "Alexander Schreiner (1901–1987). © 1948 IRI",
+ "notices": [],
+ "number": 118,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 20:40",
+  "Alma 5:19, 21"
+ ],
+ "source": {
+  "pageSha": "de12cec4f64acea7dc7996e7e548fba18a225d06a04593598db29637b239618b",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/while-of-these-emblems-we-partake-aeolian",
+  "pdfSha": "1453765a418fc07b8c64075f67a512e04cef7970d905344f64d1453dff5ac723",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/c8/99/c899cf16ac4011ec8f37eeeeac1e071f7bb3e085/while_of_these_emblems_we_partake_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "In Christus’ kerk zijn wij tezaam,",
+    "nemen symbolen in zijn naam;",
+    "laten wij zorgen dat wij zijn",
+    "zuiver van hart, van handen rein."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Christus vergoot voor ons zijn bloed,",
+    "heeft aan het kruis voor ons geboet,",
+    "en Hij verdreef de duist’re rouw",
+    "die ’t lot der schepping worden zou."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Voor een gebroken wet stierf Hij",
+    "opdat het recht bevredigd zij,",
+    "opdat de mens ontga de straf",
+    "van eeuw’ge smart en van het graf."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "En triomferend weer verrijz’",
+    "en God in glorie dankbaar prijz’,",
+    "om dan, bevrijd van dood en pijn,",
+    "met Christus heerser, vorst te zijn."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Innig",
+ "textCredit": "naar John Nicholson (1839–1909)",
+ "title": "In Christus’ kerk zijn wij tezaam"
+}

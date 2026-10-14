@@ -1,0 +1,86 @@
+{
+ "choruses": [],
+ "id": "nld:82",
+ "leadingChorus": null,
+ "musicCredit": "Samuel McBurney (geb. 1847)",
+ "notices": [],
+ "number": 82,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Matteüs 4:19",
+  "2 Nephi 31:10–21"
+ ],
+ "source": {
+  "pageSha": "86a6ec3fd02e06e070e32bed40ccf7a8f7e297ab8dcf9f1c292d651576202cfb",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/come-follow-me",
+  "pdfSha": "08a5c963f316e2cdf87c6e69c9222dff3c8b34e2d6f8bd0cff813f5a1a30aea8",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/dc/02/dc025443ac3f11eca035eeeeac1ee74b11691120/come_follow_me_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "‘Kom,’ sprak de Heiland, ‘volg Mijn na.’",
+    "Dat elk dus in zijn voetspoor ga,",
+    "want wij toch worden dan alleen",
+    "met Godes Zoon, de Heiland, één."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "‘Kom, volg Mij na,’ een enk’le zin,",
+    "toch schuilt er diepe waarheid in;",
+    "’t wijst ons de weg naar eeuwig goed,",
+    "machtig bezielt het ons gemoed."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Is het genoeg te weten dat",
+    "wij moeten treden ’t aardse pad,",
+    "en door beproeving worden rein?",
+    "Nee, ook ons hart moet heilig zijn."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Niet slechts als men op aarde leeft,",
+    "moet onze Heiland nagestreefd;",
+    "zijn mede erfgenaam te zijn,",
+    "gaat verder dan dit land van pijn."
+   ],
+   "n": 4
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Wij moeten voorwaarts en omhoog,",
+    "waar ruimer velden boeien ’t oog,",
+    "Hem dankbaar volgen, elke dag,",
+    "wat ook ons lot eens wezen mag."
+   ],
+   "n": 5
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Ons wacht dan koningschap en macht,",
+    "blijdschap en glorie, levenskracht,",
+    "indien wij langs der eeuwen lijn",
+    "’t ‘Kom, volg Mij na’ gehoorzaam zijn."
+   ],
+   "n": 6
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Nederig",
+ "textCredit": "naar John Nicholson (1839–1909)",
+ "title": "Kom, volg Mij na"
+}

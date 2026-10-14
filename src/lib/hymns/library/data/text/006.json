@@ -1,0 +1,86 @@
+{
+ "choruses": [],
+ "id": "nld:6",
+ "leadingChorus": null,
+ "musicCredit": "Freeman Lewis (1780–1859)",
+ "notices": [],
+ "number": 6,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Exodus 13:21–22",
+  "1 Nephi 22:12"
+ ],
+ "source": {
+  "pageSha": "fa587dc33cc173dfaa322d022f83d680095166a9b53b677b8b77a470edc45c2d",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/redeemer-of-israel",
+  "pdfSha": "9d905737a80bf9415e2f129008f2eda5cdbf8c0588b0783e145ee070ff6921f0",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/22/a9/22a9f647ab8011ec9974eeeeac1ef8b470e905c7/redeemer_of_israel_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Verlosser van Isr’el, onz’ enige vreugd,",
+    "tot wie voor een zegen wij gaan,",
+    "een schaduw bij dag en een licht in de nacht,",
+    "van dwaling heeft Hij ons ontdaan."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "De Herder vergadert zijn schapen bijeen",
+    "en voert hen naar Zion in vreê.",
+    "Waarom langer treuren in dalen der smart?",
+    "De Heer, hun Verlosser, gaat mee."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Lang doolden wij rond, vol van zonden en schuld,",
+    "en vonden geen vrede daarbij.",
+    "De vijanden lachten bij ’t zien van ons leed,",
+    "maar Isr’el is spoedig weer vrij."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Als kind’ren van Zion verwachten wij Hem,",
+    "wij nemen zijn teek’nen reeds waar.",
+    "Vrees niet, blijf getrouw, want zijn koninkrijk komt,",
+    "en ’t uur der verlossing is daar."
+   ],
+   "n": 4
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Herstel, goede Heiland, uw licht op mijn pad.",
+    "O, geef mij uw troost in mijn smart,",
+    "en laat het verlangen naar uw heilig huis",
+    "de hoop zijn voor mijn eenzaam hart."
+   ],
+   "n": 5
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Tienduizenden eng’len bezingen zijn naam,",
+    "miljoenen verwachten zijn woord.",
+    "Hij spreekt! en zijn stem klinkt door d’eeuwigheid heen,",
+    "en de dag van zijn wederkomst gloort."
+   ],
+   "n": 6
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vastberaden",
+ "textCredit": "naar William W. Phelps (1792–1872); naar Joseph Swain (1761–1796)",
+ "title": "Verlosser van Israël"
+}

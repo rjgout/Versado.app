@@ -1,0 +1,44 @@
+{
+ "choruses": [],
+ "id": "nld:108",
+ "leadingChorus": null,
+ "musicCredit": "Joseph Barnby (1838–1896)",
+ "notices": [],
+ "number": 108,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Spreuken 3:24",
+  "Alma 37:37"
+ ],
+ "source": {
+  "pageSha": "78e471905bab816f3246d3f24172ef82fb076be328a21467c39ac5ae71e33adc",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/now-the-day-is-over",
+  "pdfSha": "e3ad2f58f5a32bed7be95bebe16c87c2fa2547beefb54799a6e984ce87e2384b",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/92/80/9280a052ac4011ecb4a3eeeeac1ea26cf0509ce0/now_the_day_is_over_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Nu de dag voorbij is, ’t zonnelicht verdween,",
+    "valt de avondschaduw over d’ aarde heen."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Vader, wil ons geven kalme, zoete rust;",
+    "houd ons van uw goedheid dag aan dag bewust."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Rustig",
+ "textCredit": "naar Sabine Baring-Gould (1834–1924)",
+ "title": "Nu de dag voorbij is"
+}

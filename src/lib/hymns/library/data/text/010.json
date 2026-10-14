@@ -1,0 +1,71 @@
+{
+ "choruses": [],
+ "id": "nld:10",
+ "leadingChorus": null,
+ "musicCredit": "Ebenezer Beesley (1840–1906)",
+ "notices": [],
+ "number": 10,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 27:5",
+  "Ether 12:41",
+  "Moroni 10:32"
+ ],
+ "source": {
+  "pageSha": "dea3308b393bb18a6c3087be3c05a2dc111098ca041e5e79475eb6bdb4b595f8",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/what-glorious-scenes-mine-eyes-behold",
+  "pdfSha": "d806d409fc59e4335316aa6cf1ee59a8ce33a1294a04f5366ef101fafa8d8b28",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/6f/45/6f4574dcac4011ecbfd6eeeeac1e85cf741b2374/what_glorious_scenes_mine_eyes_behold_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O, welk een vreugde vult mijn geest,",
+    "ontroering welt er in mijn hart,",
+    "als ik de blijde boodschap lees,",
+    "in Efraims kroniek vervat,",
+    "in Efraims kroniek vervat."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "De waarheid kwam uit d’aarde voort,",
+    "na eeuwen klonk zij uit het stof,",
+    "herstellend Gods nauwkeurig woord",
+    "voor al wat ’s mensen heil betrof,",
+    "voor al wat ’s mensen heil betrof."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Dit heilig schriftdeel was ’t begin",
+    "van ’s Heren wonderbare werk.",
+    "Het luidt de laatste dagen in",
+    "en stuwt de zending van Gods kerk,",
+    "en stuwt de zending van Gods kerk."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Uit ’t Boek van Mormon klinkt ’t gebod:",
+    "Zoek Jezus, die u zalig maakt.",
+    "O, heil’gen, kom nu tot uw God",
+    "en word in Christus vervolmaakt,",
+    "en word in Christus vervolmaakt."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Verheugd",
+ "textCredit": "vrij naar anonieme Engelse tekst, ca. 1840",
+ "title": "O, welk een vreugde vult mijn geest"
+}

@@ -1,0 +1,69 @@
+{
+ "choruses": [],
+ "id": "nld:17",
+ "leadingChorus": null,
+ "musicCredit": "Caroline Sheridan Norton (1808–ca. 1877)",
+ "notices": [],
+ "number": 17,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 21:1–5",
+  "Mosiah 2:41"
+ ],
+ "source": {
+  "pageSha": "b68159c9e3e7ffda5499013bdfc1d22a6e967c756fd7a1cb697276c562e0faa5",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/we-thank-thee-o-god-for-a-prophet",
+  "pdfSha": "d9c4a483bacd822f11b4c12a5937ce345b6401d5cbc4b507f26b75cce57ffbb7",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/c1/e7/c1e75380ac4011ec884feeeeac1e94ef527402fc/we_thank_thee_o_god_for_a_prophet_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Wij danken U, Heer, voor profeten,",
+    "ons tot leiding in deez’ laatste tijd,",
+    "wij danken voor ’t rein evangelie,",
+    "welks licht onze ziel zo verblijdt.",
+    "Wij danken voor iedere zegen",
+    "die Gij uitstort van uw milde troon,",
+    "wij achten het vreugd U te dienen,",
+    "vervullen met liefd’ uw geboôn."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Als stormen van moeit’ ons bedreigen",
+    "en haast onze vreê doen vergaan,",
+    "dan houdt nog het anker der hope,",
+    "weldra breekt voor ons redding aan.",
+    "Wij twijf’len ook niet aan Gods goedheid,",
+    "wij hebben Hem dikwijls beproefd.",
+    "Zeg hun toch die Zion bestrijden",
+    "dat Gods wraak niet lang meer vertoeft."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Ons loflied voor gunst en genade",
+    "tot Hem dag en nacht is gericht;",
+    "verheugd zijn w’in ’t schoon evangelie,",
+    "gekoesterd in zijn levend licht.",
+    "Zo gaat tot zijn eeuw’ge volmaking",
+    "de trouwe, d’oprechte van hart,",
+    "wijl hem die verwerpt deze boodschap",
+    "ten deel valt eens wroeging en smart."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vreugdevol",
+ "textCredit": "naar William Fowler (1830–1865)",
+ "title": "Wij danken U, Heer, voor profeten"
+}

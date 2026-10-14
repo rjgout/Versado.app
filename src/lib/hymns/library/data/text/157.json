@@ -1,0 +1,86 @@
+{
+ "choruses": [
+  [
+   "Als de zon schijnt in uw hart,",
+   "zendt haar stralen uit in ’t rond,",
+   "zo breekt aan de morgenstond",
+   "en verdwijnt uw zorg en smart,",
+   "als de zon, de zon schijnt in uw hart."
+  ]
+ ],
+ "id": "nld:157",
+ "leadingChorus": null,
+ "musicCredit": "James M. Dungan (1851–1925)",
+ "notices": [],
+ "number": 157,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Mosiah 2:17, 41",
+  "1 Petrus 3:8–12"
+ ],
+ "source": {
+  "pageSha": "a01097f6a37a4f1495c5863c820408ebb6ad60ed51abfffdfb33484762b0b0b5",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/you-can-make-the-pathway-bright",
+  "pdfSha": "30226a38ae66f78ba533069f6ccc1a664b060ab7407887e8310f363ce5909ae1",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/bf/1b/bf1bf512ac3f11ecb473eeeeac1effcbe61b8f4f/you_can_make_the_pathway_bright_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Zie, uw pad wordt schoon en licht,",
+    "levensvreugde wordt gesticht,",
+    "als de zon schijnt in uw hart.",
+    "Mist en duister worden dag,",
+    "schaduw vliedt voor haar gezag,",
+    "als de zon, de zon schijnt in uw hart."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Tot de ziel die is verstoord,",
+    "klinkt uw vriendelijke woord,",
+    "als de zon schijnt in uw hart.",
+    "Ook al schijnt het u gering,",
+    "’t brengt toch ’s hemels zegening,",
+    "als de zon, de zon schijnt in uw hart."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "U kunt helpen, klein en groot,",
+    "en verlichten and’rer nood,",
+    "als de zon schijnt in uw hart.",
+    "Als u lasten mededraagt,",
+    "wordt uw lijden deels verjaagd,",
+    "als de zon, de zon schijnt in uw hart."
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "U kunt leven, heel verblijd,",
+    "zelfs bij al uw werk en strijd,",
+    "als de zon schijnt in uw hart.",
+    "Zie hoe liefde in u groeit",
+    "en uw zelfvertrouwen bloeit,",
+    "als de zon, de zon schijnt in uw hart."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "naar Helen Silcott Dungan, ca. 1899",
+ "title": "Zie, uw pad wordt schoon en licht"
+}

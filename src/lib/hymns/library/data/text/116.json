@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:116",
+ "leadingChorus": null,
+ "musicCredit": "Louis M. Gottschalk (1829–1869); bew. Edwin P. Parker (1836–1925)",
+ "notices": [],
+ "number": 116,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 59:9–12",
+  "2 Nephi 10:24–25"
+ ],
+ "source": {
+  "pageSha": "476c34754a37a08aa7adeb2d5b787c16dbe06feadf21ab63204f85ed0b281cbd",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/god-our-father-hear-us-pray",
+  "pdfSha": "87d820d2cd52957ec89b715e1821a1a0a36666485c27d1af84b157a2896bb0a9",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/f9/8d/f98d8022ac3f11ec90cceeeeac1e6e3d6f11e890/god_our_father_hear_us_pray_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Vader, hoort Gij onze beê,",
+    "schenk ons nu des hemels vreê;",
+    "teek’nen van zijn vlees en bloed",
+    "brengen ’s Heilands liefde zoet."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Schenk ons, Vader, uw genâ,",
+    "sla ons met ontferming gâ,",
+    "als wij eten van het brood,",
+    "zend tot ons uw vrede groot."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Drinken wij het water rein,",
+    "laat uw Geest dan met ons zijn.",
+    "Scheld ons onze fouten kwijt,",
+    "sterk ons streven t’ allen tijd’."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar Annie Pinnock Malin (1863–1935)",
+ "title": "Vader, hoort Gij onze beê"
+}

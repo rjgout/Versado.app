@@ -1,0 +1,60 @@
+{
+ "choruses": [],
+ "id": "nld:9",
+ "leadingChorus": null,
+ "musicCredit": "Gerrit de Jong jr. (1892–1978)",
+ "notices": [],
+ "number": 9,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 84:19–21",
+  "1 Kronieken 16:8–10"
+ ],
+ "source": {
+  "pageSha": "929c82f27cb312ce4e9b51faa99ed26332ed5f0adb80ee6c9c4e5a839faba1fa",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/come-sing-to-the-lord",
+  "pdfSha": "2df0e6a128cd8fce245c654e7a51aaf2a316d15450943cc5980298ecc92e2664",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/cb/fa/cbfa36c6ac4011ec90cceeeeac1e6e3d04db20bc/come_to_sing_to_the_lord_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Kom, zing tot de Heer met dankbaarheid.",
+    "Hij heeft in deze laatste tijd",
+    "Zich weer geopenbaard",
+    "en wond’ren als vanouds gedaan.",
+    "Kom, zing tot de Heer en prijs zijn naam."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Profeten aanschouwden deze dag,",
+    "zij maakten van zijn komst gewag",
+    "in woord en jubellied;",
+    "hij wordt in volheid nu onthuld.",
+    "Kom, zing tot de Heer, van vreugd vervuld."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Het priesterschap is op aard’ hersteld,",
+    "een sikkel voor het witte veld",
+    "dat klaar is voor de oogst;",
+    "de macht der rechtschapenheid ontvouwd.",
+    "Kom, zing tot de Heer, ja, onverflauwd."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vreugdevol",
+ "textCredit": "naar Gerrit de Jong jr. (1892–1978)",
+ "title": "Kom, zing tot de Heer"
+}

@@ -1,0 +1,83 @@
+{
+ "choruses": [
+  [
+   "Min mij teder, breng mij steeds",
+   "nader, mijn Heiland, tot U!"
+  ]
+ ],
+ "id": "nld:68",
+ "leadingChorus": null,
+ "musicCredit": "William Clayson (1840–1887)",
+ "notices": [],
+ "number": 68,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 145:18–20",
+  "Leer en Verbonden 88:63"
+ ],
+ "source": {
+  "pageSha": "bff4a531d44cae5f566230b2182b138aacefb13775c0f2c8ae9e45c9ee9ee49c",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/nearer-dear-savior-to-thee",
+  "pdfSha": "0de8776e06b078ba36e4bd80fb530463e73ca93a92a05891e957deb235949d13",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/f0/98/f098430bac3f11ec9f37eeeeac1e5aa583689d04/nearer_dear_savior_to_thee_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Nader, mijn Heiland, tot U,",
+    "nader, nader tot U!",
+    "Heiland, ik streef om te zijn:",
+    "nader, steeds nader tot U!",
+    "Ja, ’k bouw op U steeds, o Heer,",
+    "Gij zijt mijn hoop en mijn eer."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Nader, mijn Heiland, tot U,",
+    "nader, nader tot U!",
+    "Loutert beproeving, ze leidt",
+    "nader, steeds nader tot U!",
+    "Need’rig voor U buig ik, Heer,",
+    "ernstig en biddende neer."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Nader, mijn Heiland, tot U,",
+    "nader, nader tot U!",
+    "Moge mijn lied immer zijn:",
+    "Nader, steeds nader tot U!",
+    "Liefd’rijk uw kind wil behoên,",
+    "help mij uw wil steeds te doen."
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Nader, mijn Heiland, tot U,",
+    "nader, nader tot U!",
+    "Breng mij, geheiligd en rein,",
+    "nader, steeds nader tot U!",
+    "Is mijn beproeving gedaan,",
+    "biedt Gij het loon mij dan aan."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Als een gebed",
+ "textCredit": "naar Joseph L. Townsend (1849–1942)",
+ "title": "Nader, mijn Heiland, tot U"
+}

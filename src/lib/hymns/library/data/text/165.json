@@ -1,0 +1,75 @@
+{
+ "choruses": [
+  [
+   "Voorwaarts, christenstrijders, gordt u aan ten strijd!",
+   "Onder ’t kruis van Jezus, dat u steeds geleidt."
+  ]
+ ],
+ "id": "nld:165",
+ "leadingChorus": null,
+ "musicCredit": "Arthur S. Sullivan (1842–1900)",
+ "notices": [],
+ "number": 165,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Deuteronomium 31:6",
+  "2 Timoteüs 2:3"
+ ],
+ "source": {
+  "pageSha": "3dd3146c7ed782a7912081ae9ee3661f5f143772244c6a7459f1d668abcb2c61",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/onward-christian-soldiers",
+  "pdfSha": "a08b6c3fa2051748df788b38834ae7c085e4584d11eb351443e21ab31af0fcfb",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/46/91/4691fe03ac4011ec8ad8eeeeac1e06528e8ea748/onward_christian_soldiers_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Voorwaarts, christenstrijder! Voorwaarts naar de strijd,",
+    "onder ’t kruis van Jezus, dat u steeds geleidt!",
+    "Christus, Koning, Meester, voert ten krijg u aan,",
+    "voorwaarts, ziet verheven zijn banieren gaan!"
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Op het sein van glorie vliedt des Satans macht,",
+    "voorwaarts, christenstrijders, toont hem uwe kracht!",
+    "Op uw lofzang siddert ’t fundament der hel,",
+    "broeders, paart uw stemmen, ’t klinke luid en fel!"
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Als een machtig leger breekt Gods kerk zich baan.",
+    "Waar de heil’gen traden, uwe voeten gaan.",
+    "Wij zijn niet versplinterd, allen zijn wij één,",
+    "één in hoop, belijden en liefdadigheên."
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Voegt u, broeders, zusters, bij ’t gelukkig volk,",
+    "mengt uw stem met d’ onze, ’t zij van vreugd een tolk.",
+    "Glorie, lof en ere tot de Vorst van ’t al",
+    "zingen mensen, eng’len door het gans heelal."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Stoutmoedig",
+ "textCredit": "naar Sabine Baring-Gould (1834–1924)",
+ "title": "Voorwaarts, christenstrijders"
+}

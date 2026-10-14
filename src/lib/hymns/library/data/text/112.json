@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:112",
+ "leadingChorus": null,
+ "musicCredit": "William H. Monk (1823–1889)",
+ "notices": [],
+ "number": 112,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 24:29",
+  "Johannes 15:4–12"
+ ],
+ "source": {
+  "pageSha": "772a2df1107f78888c03f77b75360d767c5904ac6c0957e4447aa1ef628d939f",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/abide-with-me",
+  "pdfSha": "c40edb4a538cd41afbd6083cdc754d4adf098d6341bbc0df4912debadad184b7",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/38/7e/387ef067ac4011ecb473eeeeac1effcb804e9e58/abide_with_me_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Blijf bij mij, Heer, als ’t zonlicht niet meer straalt,",
+    "blijf bij mij, Heer, als straks het duister daalt.",
+    "Als vrienden heengaan in het stormgetij,",
+    "o, Hulp der hulpelozen, blijf bij mij."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Wat is hier blijvend, dat het hart verheugt?",
+    "Ach, nimmer geeft ons ’t aardse blijvend vreugd.",
+    "Alles snelt henen, glorie gaat voorbij,",
+    "maar Gij, die niet verandert, blijf bij mij."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "U heb ik nodig: wees met mij begaan!",
+    "Slechts uw genade doet het kwaad vergaan.",
+    "Wie anders zal mijn Leidsman zijn dan Gij?",
+    "In voor– en tegenspoed, Heer, blijf bij mij."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar Henry F. Lyte (1793–1847 )",
+ "title": "Blijf bij mij, Heer"
+}

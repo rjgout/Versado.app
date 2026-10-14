@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:104",
+ "leadingChorus": null,
+ "musicCredit": "Ebenezer Beesley (1840–1906)",
+ "notices": [],
+ "number": 104,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 147:1",
+  "Alma 26:8"
+ ],
+ "source": {
+  "pageSha": "1816b2f5fde7a4f3fbe727c21204de1454413c926c657692ce11ff7c3d525915",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/sing-we-now-at-parting",
+  "pdfSha": "dd79ebdd4ad839c22d6dd47742dc64d654f8acb8b7aab62138fe0ccb2eddc3be",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/bc/96/bc9682a1ac3f11eca4f5eeeeac1e6144b0d64d12/sing_we_now_at_parting_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Zingen wij voor ’t scheiden nog een lied ter eer",
+    "van ons aller Vader, die ons mint zo teer.",
+    "Voor zijn grote goedheid, voor zijn liefd’ en trouw",
+    "zingen wij gezangen in dit godsgebouw."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Prijs Hem voor genade, voor uw gunstig lot,",
+    "voor uw zegeningen; prijs de Heer, uw God!",
+    "Laat uw blijde zangen klinken in het rond,",
+    "prijs de Allerhoogste nu met hart en mond."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Jezus, onze Redder, o, geef ons gehoor",
+    "nu wij voor U buigen, leen een luist’rend oor.",
+    "Hoed ons, Heer, voor dwaling, leid ons t’ allen tijd’,",
+    "help ons U te dienen, dankbaar en verblijd."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar George Manwaring (1854–1889)",
+ "title": "Zingen wij voor ’t scheiden"
+}

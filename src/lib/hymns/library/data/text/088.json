@@ -1,0 +1,58 @@
+{
+ "choruses": [],
+ "id": "nld:88",
+ "leadingChorus": null,
+ "musicCredit": "Joleen G. Meredith (1935– ). © 1973 IRI",
+ "notices": [],
+ "number": 88,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Johannes 14:27",
+  "Johannes 16:33",
+  "Hebreeën 4:14–16"
+ ],
+ "source": {
+  "pageSha": "0dac98f721fce66497ff6a9b0619c76a034fbb7b8b94988433f7c139d77259a6",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/where-can-i-turn-for-peace",
+  "pdfSha": "eb0a4fb0087187e3301fbf511cdb882a8246c52f12150a4269827ee5a13c045d",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/41/66/416624faac4011ec895aeeeeac1eee2140618771/where_can_i_turn_for_peace_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Waar is een toevluchtsoord? Waar is verlichting",
+    "als het verstand’lijk woord geen uitkomst meer biedt,",
+    "als, met geloof verflauwd, zoekend naar richting,",
+    "ik mij afzijdig houd met mijn verdriet?"
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Waar, in mijn eenzaamheid, waar, in mijn wachten,",
+    "waar, in mijn bange tijd, waar kan ik heen?",
+    "Waar is genezingskracht, zalf voor mijn smachten?",
+    "Wie kent mijn donk’re nacht? Hij, hij alleen."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Hij worstelt met mij mee, deelt in mijn lijden",
+    "in mijn Getsemane, Heiland en Vriend.",
+    "Zijn vrede geeft Hij mij, rust in mijn strijden.",
+    "Goed en constant is Hij, eeuwig alziend."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Innig",
+ "textCredit": "naar Emma Lou Thayne (1924– ). © 1973 IRI",
+ "title": "Waar is een toevluchtsoord?"
+}

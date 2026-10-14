@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:182",
+ "leadingChorus": null,
+ "musicCredit": "Ebenezer Beesley (1840–1906)",
+ "notices": [],
+ "number": 182,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Handelingen 2:1–40",
+  "Leer en Verbonden 20:37"
+ ],
+ "source": {
+  "pageSha": "200fa8c4184c181e686ad4bd0eea61c27b202c4e2b9061261b3ec3c06bb2474d",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/how-great-the-joy-that-promised-day",
+  "pdfSha": "95342f0c5945b5b6a8d2fa6aa3fd39029620072beb0d59db35d9641dd7e77570",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ad/d6/add6b92aac3f11ec9f37eeeeac1e5aa5af097f17/how_great_the_joy_that_promised_day_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Groot was de vreugd op ’t pinksterfeest,",
+    "toen van Gods troon de Heil’ge Geest",
+    "neerdaald’ en kroonde ieders hoofd",
+    "met tongen vuurs, door Hem beloofd."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Zijn gaven, in dat uur gebracht,",
+    "schonken tot overtuiging kracht;",
+    "door ied’re ziel werd Godes woord",
+    "aldaar in eigen taal gehoord."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Met macht bekleed uit hoger oord,",
+    "brachten apost’len Jezus’ woord;",
+    "leerden het schoon verlossingsplan,",
+    "hetwelk een ieder redden kan."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Wie aan dat woord geloof wil slaan",
+    "en wordt gedoopt in Jezus’ naam,",
+    "krijgt dan vergeving van de zond’",
+    "en vindt de redding in ’t ver bond."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Met overtuiging",
+ "textCredit": "naar anonieme tekst, ca. 1850",
+ "title": "Groot was de vreugd"
+}

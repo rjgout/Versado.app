@@ -1,0 +1,58 @@
+{
+ "choruses": [],
+ "id": "nld:122",
+ "leadingChorus": null,
+ "musicCredit": "Joseph Coslett (1850–1910)",
+ "notices": [],
+ "number": 122,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "2 Nephi 9:5, 10–12",
+  "3 Nephi 20:8"
+ ],
+ "source": {
+  "pageSha": "e149c61088af677245b8f8c209623be3137720adb4b94609b96215d07883f73e",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/well-sing-all-hail-to-jesus-name",
+  "pdfSha": "3a5ad08cd5117cd3fe8bb28565ed31bfc3e253b9e0f51621563cd382a885b8dd",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e4/04/e404f535ac3f11eca035eeeeac1ee74b6ad3e966/well_sing_all_hail_to_jesus_name_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Het brood wordt ons hier nu bediend, ten teken dat de Heer",
+    "voor ons eens stierf op Golgota, zijn leven lei ter neer."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Het water zegt dat Hij zijn bloed uit liefde voor ons gaf,",
+    "opdat wij ook, als Hij eens deed, verrijzen uit het graf."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Ja, groot was zijne liefd’ en trouw, betoond tot in de dood.",
+    "Hij stierf tot redding van elkeen, voor allen, klein en groot."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Hernieuwen wij in deze stond ’t verbond met onze Heer,",
+    "opdat wij beter dan voorheen hier leven, Hem ter eer."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Innig",
+ "textCredit": "naar Richard Alldridge (1815–1896)",
+ "title": "Het brood wordt ons hier nu bediend"
+}

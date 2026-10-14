@@ -1,0 +1,99 @@
+{
+ "choruses": [
+  [
+   "Ginds dolen z’ om in ’t woestijnland,",
+   "honger en koude ten prooi.",
+   "Daar snelt Hij heen ter bevrijding,",
+   "brengt ze terug in de kooi."
+  ],
+  [
+   "Ginds dolen z’ om in ’t woestijnland,",
+   "honger en koude ten prooi.",
+   "Wij snellen heen ter bevrijding,",
+   "brengen ze terug in de kooi."
+  ]
+ ],
+ "id": "nld:154",
+ "leadingChorus": null,
+ "musicCredit": "William J. Kirkpatrick (1838–1921)",
+ "notices": [],
+ "number": 154,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 15:4–7",
+  "1 Petrus 5:2–4"
+ ],
+ "source": {
+  "pageSha": "f1b00e42be925f3eadb694c53c52c726cd3016c0e0131a2df0f1bcd0704f1c3e",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/dear-to-the-heart-of-the-shepherd",
+  "pdfSha": "70b0a5cadfb53b7fbdd70075ca2058fe53356041981d0389e6aba4aba316a557",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/54/c1/54c196c0ac4011ecb4a3eeeeac1ea26c2ef3271a/dear_to_the_heart_of_the_shepherd_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Zielslief heeft ’t hart van de Herder,",
+    "zielslief elk schaap in zijn kooi;",
+    "reiner dan goud is zijn liefde,",
+    "goud van het zuiverst allooi.",
+    "Zielslief ook heeft Hij die ’and’ren’,",
+    "waarheen elk schaapje ook liep,",
+    "over ’t gebergt’ zal Hij ’t volgen,",
+    "over de waat’ren zo diep."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Zielslief heeft ’t hart van de Herder,",
+    "zielslief de lamm’ren der kooi;",
+    "enk’len gaan dwalen en dolen,",
+    "honger en koude ten prooi.",
+    "Ziet hoe de Herder der schapen",
+    "zoekt naar het lam dat daar dwaalt,",
+    "’t weerbrengt met grote verheuging,",
+    "d’ eindloze losprijs betaalt."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Zielslief heeft ’t hart van de Herder",
+    "’t negenennegentigtal;",
+    "zielslief de schapen die dolen,",
+    "ver van de veilige stal.",
+    "Hoort gij zijn roepstem niet noden,",
+    "pleiten zo zacht en zo teer:",
+    "Wilt gij mijn schapen niet zoeken,",
+    "brengt gij ’t verloor’ne niet weer?"
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 1,
+   "lines": [
+    "Weiden bij rustige waat’ren,",
+    "grazige biedt Hij ons aan.",
+    "Here, wij antwoorden blijde:",
+    "Ja, dierb’re Meester, wij gaan.",
+    "Neem ons in dienst als uw herders,",
+    "in wi uw liefdesvuur vlamt.",
+    "Wil in ’t woestijnland ons zenden,",
+    "zoekend uw dwalende lam."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Rustig",
+ "textCredit": "naar Mary B. Wingate (1899– )",
+ "title": "Zielslief heeft ’t hart van de Herder"
+}

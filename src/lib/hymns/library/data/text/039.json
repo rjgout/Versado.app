@@ -1,0 +1,65 @@
+{
+ "choruses": [],
+ "id": "nld:39",
+ "leadingChorus": null,
+ "musicCredit": "Felice de Giardini (1716–1796)",
+ "notices": [],
+ "number": 39,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Openbaring 5:9–13"
+ ],
+ "source": {
+  "pageSha": "4a1a4c46943e74546ef70930cb6bc3fb14e071a653c1f7103f3a1699cb4c0718",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/glory-to-god-on-high",
+  "pdfSha": "402f6e6cfa48b8d8d9553be252d642470038f4357a80c4062877e5a445250d29",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/be/db/bedb4d2eac4011ec9f37eeeeac1e5aa5d571f84c/glory_to_god_on_high_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Glorie zij God de Heer!",
+    "Dat ieder Hem vereer!",
+    "O, prijs zijn naam!",
+    "Zijn liefd’ heeft ons bereid",
+    "eeuwige zaligheid.",
+    "Zing dankbaar en verblijd:",
+    "Waardig is ’t Lam!"
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Jezus, die voor ons stierf,",
+    "’t leven voor ons verwierf;",
+    "o, prijs zijn naam!",
+    "Zeg wat voor ons Hij wrocht,",
+    "hoe duur Hij ons eens kocht,",
+    "ons heil steeds heeft gezocht.",
+    "Waardig is ’t Lam!"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Dat uit der eng’len rang",
+    "weergalm’ een vreugdezang.",
+    "O, prijs zijn naam!",
+    "God heeft voor Hem bereid",
+    "lof, eer en majesteit",
+    "door alle eeuwigheid.",
+    "Waardig is ’t Lam!"
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Blij",
+ "textCredit": "naar James Allen (1734–1804)",
+ "title": "Glorie zij God de Heer"
+}

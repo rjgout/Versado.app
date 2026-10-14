@@ -1,0 +1,54 @@
+{
+ "choruses": [],
+ "id": "nld:61",
+ "leadingChorus": null,
+ "musicCredit": "John Menzies Macfarlane (1833–1892)",
+ "notices": [],
+ "number": 61,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 37:3–5",
+  "Leer en Verbonden 76:5"
+ ],
+ "source": {
+  "pageSha": "038ce53982a6b0fefc9fcff0fef4095821d1b76529d2ac74a5e2518eeb2a0866",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/dearest-children-god-is-near-you",
+  "pdfSha": "307a494e1ffb785b443d27ab64811a13fd9c5833755aa8b4c79b810c1dfacc59",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/93/21/932124ceac4011ec86d6eeeeac1e939391ec615e/dearest_children_god_is_near_you_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Dierb’re kind’ren, God is met u. Hij houdt dag en nacht de wacht,",
+    "en Hij wil u gaarne zeeg’nen, als gij ’t goede steeds betracht.",
+    "Stelt vertrouwen, stelt vertrouwen in zijn liefd’ en in zijn macht."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Dierb’re kind’ren, heil’ge eng’len letten steeds op wat gij doet.",
+    "Trouw wordt alles opgeschreven, elke hand’ling, kwaad of goed.",
+    "O, weest deugdzaam, o, weest deugdzaam, God zal zeeg’nen ’t rein gemoed."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Kind’ren, God wil graag u leren, en u sterken als gij streeft",
+    "steeds de wenken op te volgen die Hij door zijn Geest u geeft.",
+    "Weest standvastig, weest standvastig, aan zijn kerk en rijk verkleefd."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Liefdevol",
+ "textCredit": "naar Charles L. Walker (1832–1904)",
+ "title": "Dierb’re kind’ren, God is met u"
+}

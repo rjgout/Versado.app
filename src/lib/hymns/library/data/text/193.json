@@ -1,0 +1,48 @@
+{
+ "choruses": [],
+ "id": "nld:193",
+ "leadingChorus": null,
+ "musicCredit": "G. William Richards (1918– ). © 1985 IRI",
+ "notices": [],
+ "number": 193,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Jesaja 54:13",
+  "Psalm 149:1–2"
+ ],
+ "source": {
+  "pageSha": "80f177da19ee4ee88c92eb1dcf3b6c62d3a4ccb0d6da949009eb28d4e10bfb91",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/from-homes-of-saints-glad-songs-arise",
+  "pdfSha": "74093f2a80e8341f7a4c8f0fea74e1656c1efc5122c4c3af5a193982fac70b57",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b9/7f/b97f566cac3f11ec86d6eeeeac1e9393b4139a98/from_homes_of_saints_glad_songs_arise_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Bij heil’gen thuis klinkt blij gezang, want Christus is daar Heer.",
+    "Daar wordt geloof, gebed geleerd, daalt ’s hemels vrede neer.",
+    "Een thuis met liefde voor Gods woord, gesproken of op schrift;",
+    "o Vader, U zij dank en eer voor zulk een grote gift."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Gods waarheid weert van onze haard het kwaad en valse schijn;",
+    "verlies uzelf in dienstbaarheid en houd uw denken rein.",
+    "Kom, heil’gen, zing een lofgezang, ja, prijs uw God en Heer,",
+    "wiens raad, gevolgd in ’t aardse thuis, u brengt bij Hem eens weer."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "naar Vernald W. Johns (1902–1999). © 1985 IRI",
+ "title": "Bij heil’gen thuis klinkt blij gezang"
+}

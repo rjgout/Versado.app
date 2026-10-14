@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:117",
+ "leadingChorus": null,
+ "musicCredit": "Felix Mendelssohn-Bartholdy (1809–1847)",
+ "notices": [],
+ "number": 117,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 20:77, 79",
+  "Jesaja 53:2–5"
+ ],
+ "source": {
+  "pageSha": "cd8fae33eb928215c0e6152529df700e8632942c319f8fe2b0440455106b7ebb",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/o-god-the-eternal-father",
+  "pdfSha": "ab4ea732ae1d3628741e7923e8f6512ad804708802a89ff46efd95f72da9748b",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/22/88/22888b6eab8011ec8960eeeeac1ef785e2b0b7fa/o_god_the_eternal_father_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O God, onz’ eeuw’ge Vader, nu wij hier zijn vereend,",
+    "wil zeeg’nen ’t brood en ’t water, als teek’nen ons verleend.",
+    "Dat wij nu mogen eren de nagedachtenis",
+    "van Hem, de Heer der heren, die onze Heiland is."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Laat ons in ootmoed denken aan ’t bloed van Hem, uw Zoon.",
+    "Voor ons werd het vergoten, droeg Hij die spot en hoon.",
+    "Laat ons voor U betuigen dat wij gewillig zijn",
+    "zijn naam op ons te nemen, te blijven immer rein."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Toen Jezus, de Gezalfde, uit hoger oorden kwam,",
+    "en ’t redden onzer ziele hier verder op Zich nam,",
+    "had Hij geen zichtb’re schoonheid waarom Hij werd gezocht,",
+    "maar toch was Hij de Redder, die met zijn bloed ons kocht."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Hoe peilloos diep de wijsheid, door Hem op aard’ gebracht,",
+    "die zaligheid gewrocht heeft, en redding uit de nacht.",
+    "Uit uwe woon kwam Jezus, welhaast tot ’s mensen peil;",
+    "tot zegen en verlossing stierf Hij voor aller heil."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar William W. Phelps (1792–1872)",
+ "title": "O God, onz’ eeuw’ge Vader"
+}

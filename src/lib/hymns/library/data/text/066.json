@@ -1,0 +1,63 @@
+{
+ "choruses": [],
+ "id": "nld:66",
+ "leadingChorus": null,
+ "musicCredit": "John B. Dykes (1823–1876)",
+ "notices": [],
+ "number": 66,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 43:3",
+  "Psalm 119:133–135"
+ ],
+ "source": {
+  "pageSha": "afb2cae1daf1e7de882ac1245c1c689b7be44991de41fb62ced81c52e7b8b948",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/lead-kindly-light",
+  "pdfSha": "d2ad2b9b085f08a0e734f6b4c33519f538a4ee2332d95a6536300e1cb16022d9",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/57/e8/57e82b2aac4011ec8f90eeeeac1eb6574ce62c26/lead_kindly_light_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Leid, vriend’lijk Licht, door ’t duister, dicht en bang;",
+    "leidt Gij mij voort!",
+    "De weg naar huis is donker en nog lang;",
+    "leidt Gij mij voort!",
+    "Richt Gij mijn voet, ’k vraag niet te zien het oord",
+    "in ’t ver verschiet; leid stap voor stap mij voort."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Ik was voorheen niet zo, bad nooit tot U:",
+    "Leidt Gij mij voort!",
+    "Ik koos en zag graag zelf mijn pad, maar nu:",
+    "leidt Gij mij voort!",
+    "Ik minde pracht en praal, en zonder spijt",
+    "was trots mijn hart. Gedenkt toch niet die tijd."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Blijft Gij toch steeds mijn levenskracht, o God!",
+    "Leidt Gij mij voort",
+    "langs meer en stroom, door poel en rotskloof, tot",
+    "de morgen gloort,",
+    "en ’k dan opnieuw mag zien de dierb’re schaar,",
+    "die ’k mind’ eenmaal, en die mij afwacht daar."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Als een gebed",
+ "textCredit": "naar John Henry Newman (1801–1890)",
+ "title": "Leid, vriend’ lijk Licht"
+}

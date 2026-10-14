@@ -1,0 +1,69 @@
+{
+ "choruses": [],
+ "id": "nld:37",
+ "leadingChorus": null,
+ "musicCredit": "Johannes Gijsbertus Bastiaans (1812–1875)",
+ "notices": [],
+ "number": 37,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Spreuken 3:5–6",
+  "Leer en Verbonden 84:116"
+ ],
+ "source": {
+  "pageSha": "a5874d7c1c121638f8aacfbdc1f17b7afd08a2847792d42076ba2367d3ded7eb",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/commit-thou-all-thy-griefs",
+  "pdfSha": "db736a15353a5e114e0d95f08bea9d79c32b0bf84f173343764bbb7b08689323",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/86/b1/86b166feac4011ec9da5eeeeac1eb1daa99b097f/commend_trustfully_thy_ways_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Beveel gerust uw wegen,",
+    "al wat u ’t harte deert,",
+    "der trouwe hoed’ en zegen",
+    "van Hem, die ’t al regeert.",
+    "Die wolken, lucht en winden",
+    "wijst spoor en loop en baan,",
+    "zal ook wel wegen vinden,",
+    "waarlangs uw voet kan gaan."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Een weg hebt G’ allerwegen,",
+    "geen middel dat U faalt.",
+    "Uw doen is louter zegen,",
+    "uw gang met licht omstraald.",
+    "Niets kan uw werk verhind’ren,",
+    "uw plannen zijn gewis.",
+    "Gij doet voor al uw kind’ren",
+    "wat hun het heilzaamst is."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Hoor onze smeekgebeden;",
+    "Heer, red ons uit de nood!",
+    "Sterk onze wank’le schreden",
+    "en leer ons tot de dood",
+    "vertrouwen op uw zegen",
+    "en vaderlijk beleid,",
+    "dan voeren onze wegen",
+    "naar ’t rijk der heerlijkheid."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Kalm",
+ "textCredit": "naar Paul Gerhardt (1607–1676); vertaling Bernard ter Haar (1806–1880)",
+ "title": "Beveel gerust uw wegen"
+}

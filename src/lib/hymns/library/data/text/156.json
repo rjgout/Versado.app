@@ -1,0 +1,77 @@
+{
+ "choruses": [
+  [
+   "O, ’t is zonlicht, hemels zonlicht,",
+   "zonlicht zelfs bij storm en ook in smart.",
+   "Als ik mijn gebed ten hemel richt",
+   "is er zonlicht in mijn hart."
+  ]
+ ],
+ "id": "nld:156",
+ "leadingChorus": null,
+ "musicCredit": "John R. Sweney (1837–1899)",
+ "notices": [],
+ "number": 156,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Jesaja 60:19",
+  "Psalm 16:9, 11"
+ ],
+ "source": {
+  "pageSha": "3e372a61ce85772422bf2b6533a4637f9b47aa13acf63be337b4bfdb76fad7d7",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/there-is-sunshine-in-my-soul-today",
+  "pdfSha": "c8261d7498ddac5d07e32b3137db8a13aea892d8f21ee07e55c17ff6ef4790a2",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/dd/3d/dd3dba74ac3f11eca035eeeeac1ee74b2409175d/there_is_sunshine_in_my_soul_today_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Zie, de zon schijnt heden in mijn ziel,",
+    "daag’lijks komt meer warmt’en licht,",
+    "sinds ik voor de Heiland nederkniel",
+    "in gebed, mijn liefste plicht."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "’t Is muziek en blijdschap in mijn ziel,",
+    "innig dankbaar klinkt mijn stem,",
+    "sinds ik voor de Heiland nederkniel",
+    "en mijn leven wijd aan Hem."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Lente bloesemt heden in mijn ziel,",
+    "vrede groeit er daag’lijks meer,",
+    "sinds ik voor de Heiland nederkniel",
+    "en Hem aanneem als mijn Heer."
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "O, wat vreugde kwam er in mijn ziel,",
+    "welk een hoop en liefd’ en lof,",
+    "sinds ik voor de Heiland nederkniel",
+    "en verwacht het hemels hof."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "naar Eliza E. Hewitt (1851–1920)",
+ "title": "Zie, de zon schijnt heden in mijn ziel"
+}

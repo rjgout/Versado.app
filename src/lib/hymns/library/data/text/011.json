@@ -1,0 +1,97 @@
+{
+ "choruses": [],
+ "id": "nld:11",
+ "leadingChorus": null,
+ "musicCredit": "John E. Tullidge (1806–1873)",
+ "notices": [],
+ "number": 11,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Geschiedenis van Joseph Smith 1:30–34",
+  "Leer en Verbonden 128:20"
+ ],
+ "source": {
+  "pageSha": "5849c02e3c9422d6b8fde57002132b5033c8560f46915190d47fdfaf057bcd37",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/an-angel-from-on-high",
+  "pdfSha": "abf9dd154088f695de9231d31156906d19be2f64040df7cc5e93cfea84ed2bcd",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/bf/2e/bf2e2825ac4011ec9974eeeeac1ef8b4c05488a9/an_angel_from_on_high_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Een engel van de Heer,",
+    "die ’t lange zwijgen brak,",
+    "daald’ uit de hemel neer,",
+    "en dit is wat hij sprak:",
+    "Zie, in Cumorah wordt in d’ aard’",
+    "sinds lang een heilig boek bewaard.",
+    "Zie, in Cumorah wordt in d’ aard’",
+    "sinds lang een heilig boek bewaard."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Moroni, eeuwen her,",
+    "begroef in d’ aard’ dat woord,",
+    "’t moest wachten daar tot er",
+    "een godsspraak kwam: Kom voort",
+    "en kondig, een heraut gelijk,",
+    "de naad’ring aan van Christus’ rijk!",
+    "En kondig, een heraut gelijk,",
+    "de naad’ring aan van Christus’ rijk!"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "’t Wijst Jozefs nakroost aan",
+    "en spreekt van ’t overschot",
+    "van volk’ren lang vergaan,",
+    "eens weggeleid door God.",
+    "Ook ’s evangelies volheid is",
+    "vervat in die geschiedenis.",
+    "Ook ’s evangelies volheid is",
+    "vervat in die geschiedenis."
+   ],
+   "n": 3
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "De tijd is nu vervuld,",
+    "de lang verwachte dag;",
+    "de nacht die d’aard’ omhult,",
+    "wijkt voor dit groot verslag.",
+    "Verbreek de zegels, toon met kracht",
+    "de wereld nu zijn licht en pracht.",
+    "Verbreek de zegels, toon met kracht",
+    "de wereld nu zijn licht en pracht."
+   ],
+   "n": 4
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Nu zal blij huiswaarts gaan",
+    "’t verstrooide Israël,",
+    "zijn rijkdom wijden aan",
+    "Jeruzalems herstel;",
+    "wijl Zion rijst, in glans gehuld,",
+    "en d’aard’ met godd’lijk licht vervult,",
+    "wijl Zion rijst, in glans gehuld,",
+    "en d’aard’ met godd’lijk licht vervult."
+   ],
+   "n": 5
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bedachtzaam/Krachtig",
+ "textCredit": "naar Parley P. Pratt (1807–1857)",
+ "title": "Een engel van de Heer"
+}

@@ -1,0 +1,69 @@
+{
+ "choruses": [],
+ "id": "nld:145",
+ "leadingChorus": null,
+ "musicCredit": "Lewis H. Redner (1831–1908)",
+ "notices": [],
+ "number": 145,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Micha 5:2",
+  "Lucas 2:4–16"
+ ],
+ "source": {
+  "pageSha": "fd9ad3e0c3461227e1c855fb26ad1d088fd2fc78ad37c9ce5e840d6b0aa2a2cd",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/o-little-town-of-bethlehem",
+  "pdfSha": "f20237f6c1ab438c68fe41e8d8e7b8e65e96e9484293a30fd51dd2a16a6c67e2",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e0/e5/e0e518aeac3f11eca75deeeeac1e937988662182/o_little_town_of_bethlehem_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O Betlehem, gij kleine stad,",
+    "wat is uw sluimer zoet,",
+    "het sterrenheer ziet zwijgend neer",
+    "terwijl ’t zijn ronde doet.",
+    "Maar in uw donk’re straten",
+    "het eeuwig licht verscheen,",
+    "de hoop en vrees van alle vlees",
+    "zijn thans in u bijeen."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Want Christus, als Maria’s Zoon,",
+    "kwam need’rig in een stal;",
+    "bewaakt door ’t heer uit hoger sfeer",
+    "slaapt zacht de God van ’t al.",
+    "Bezingt, o morgensterren,",
+    "de heilige geboort’,",
+    "prijst luide d’eer van God, de Heer,",
+    "en vreed’ in ’s mensen oord."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Hoe vreedzaam stil, hoe vreedzaam stil",
+    "komt ’s hemels heilig Kind!",
+    "Zo zendt de Heer zijn zegen neer",
+    "tot elk die Hem bemint.",
+    "Geen oor hoort Hem ooit komen,",
+    "maar in dit rijk des leeds,",
+    "waar ’t vroom gemoed Hem blij begroet,",
+    "maakt Hij zijn woon nog steeds."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vredig",
+ "textCredit": "naar Phillips Brooks (1835–1893)",
+ "title": "O Betlehem, gij kleine stad"
+}

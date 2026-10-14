@@ -1,0 +1,48 @@
+{
+ "choruses": [],
+ "id": "nld:83",
+ "leadingChorus": null,
+ "musicCredit": "Grietje Terburg Rowley (1927–2015). © 1985 IRI",
+ "notices": [],
+ "number": 83,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 112:10",
+  "Ether 12:27"
+ ],
+ "source": {
+  "pageSha": "fdce7dd4d739a383ebdb13e9127939082cf7f38cd281e5d342d0362ae83457db",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/be-thou-humble",
+  "pdfSha": "f91fa490b57b1218d32c9b056f8bda5b6703babe49136989248845f78d15f05d",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ea/d8/ead88d26ac3f11eca698eeeeac1eb6afe183658f/be_thou_humble_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O, wees need’rig in uw zwakheid en de Here zal u leiden,",
+    "u leiden aan de hand en steeds verhoren uw gebed.",
+    "O, wees need’rig in uw smeken en de Here zal u zeeg’nen,",
+    "u zeeg’nen met vertrouwen dat Hij altijd op u let."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "O, wees need’rig in uw roeping en de Here zal u leren",
+    "zijn kind’ren blij te dienen met een liefde zacht en rein.",
+    "O, wees need’rig in uw streven en de Here zal u voeren,",
+    "u voeren naar zijn woning en voor eeuwig bij u zijn."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Gedragen",
+ "textCredit": "naar Grietje Terburg Rowley (1927–2015). © 1985 IRI",
+ "title": "O, wees need’rig"
+}

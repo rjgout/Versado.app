@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:27",
+ "leadingChorus": null,
+ "musicCredit": "Ebenezer Beesley (1840–1906)",
+ "notices": [],
+ "number": 27,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 128:20–21",
+  "Handelingen 3:19–21"
+ ],
+ "source": {
+  "pageSha": "4b1f40956e6b4177b4468953fd7b5a3d235bd5273d42dee491c6b989f03a606f",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/the-happy-day-at-last-has-come",
+  "pdfSha": "580c1855831a9de7fd174abf1ea5ba41feaadebc276cb6debaf42ca0797fc457",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/25/1f/251f3be4ab8011eca5e7eeeeac1e4f87ed3a4e79/the_happy_day_at_last_has_come_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "De blijde tijd is ingeluid.",
+    "’t Herstelde Godswoord breidt zich uit.",
+    "Een engel Gods, beloofd weleer,",
+    "verkondde ’t rijk van onze Heer."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "De reine leer wordt weer gehoord.",
+    "De waarheid kwam uit ’t duister voort.",
+    "Onz’ aard’, door leugen lang ontwijd,",
+    "aanschouwt een wonderschone tijd."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "De tijd, voor zienersoog ontvouwd;",
+    "de tijd, door Abraham aanschouwd;",
+    "de tijd waarnaar men uitzag toen,",
+    "dat God zijn grote werk zou doen."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "De tijd waarin Gods volk het woord",
+    "des Heilands van diens lippen hoort,",
+    "en eng’len, boden des behouds,",
+    "met mensen spreken als vanouds."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "naar Philo Dibble (1806–1895)",
+ "title": "De blijde tijd is ingeluid"
+}

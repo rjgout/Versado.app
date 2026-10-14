@@ -1,0 +1,67 @@
+{
+ "choruses": [
+  [
+   "’t Was Jezus die zijn leven gaf",
+   "en ons verloste van het graf.",
+   "’t Hosanna schalle wijd en zijd",
+   "als loflied tot zijn majesteit."
+  ]
+ ],
+ "id": "nld:119",
+ "leadingChorus": null,
+ "musicCredit": "Ebenezer Beesley (1840–1906)",
+ "notices": [],
+ "number": 119,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Matteüs 20:28",
+  "Moroni 6:5–6"
+ ],
+ "source": {
+  "pageSha": "8846eab5ab1b739b564ccb7a9081864cda726fe859ee86d3f4d9976ef5f92244",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/tis-sweet-to-sing-the-matchless-love-hancock",
+  "pdfSha": "d535ed67541fab0358f71402e3582767476f74af192df4036e33c0f2d6a1a95b",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/95/df/95dfa9b4ac4011eca75deeeeac1e93793a09ea4a/tis_sweet_to_sing_the_matchless_love_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Kom, stijg’ ons lied van dank en lof",
+    "tot Hem die daald’ uit ’s hemels hof,",
+    "en die uit liefde zonder peil",
+    "hier leed en stierf voor ’s mensen heil."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "’t Is goed dat elke sabbat weer",
+    "het avondmaal van onze Heer,",
+    "zoals door Hem werd ingesteld,",
+    "ons groot geloof in Hem vermeldt."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Schoon uur van vreugd en liefde rein,",
+    "als groot en klein verenigd zijn,",
+    "en elk verheugd met hart en stem",
+    "zijn loflied zingt ter eer van Hem."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar George Manwaring (1854–1889)",
+ "title": "Kom, stijg’ ons lied van dank en lof"
+}

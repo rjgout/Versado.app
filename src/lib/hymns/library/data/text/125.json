@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:125",
+ "leadingChorus": null,
+ "musicCredit": "Alexander Schreiner (1901–1987). © 1948 IRI",
+ "notices": [],
+ "number": 125,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Johannes 3:16–17",
+  "Leer en Verbonden 34:3"
+ ],
+ "source": {
+  "pageSha": "271d8a656c92b1afd3e73bf5062e260a12f01274fc1e6114350df10e41511b83",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/god-loved-us-so-he-sent-his-son",
+  "pdfSha": "164e3a7a1cc233b2b93885de81272d4f26600fc8de333d5393631c5a444b50c8",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/32/3b/323bd892ac4011ec8ad8eeeeac1e06524ec2cd7b/god_loved_us_so_he_sent_his_son_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "God had ons lief en zond zijn Zoon,",
+    "die tot ons daalde van zijn troon;",
+    "Hij leerde ons, van krib tot kruis,",
+    "de een’ge weg naar ’t Vaderhuis."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Hij kwam als mens, ofschoon Gods Zoon,",
+    "en gaf Zichzelf, spijt smart en hoon.",
+    "Hij stierf onschuldig, onbesmet,",
+    "verzoende een gebroken wet."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "O, welk een liefde, welk een licht!",
+    "Tot welk een dank zijn wij verplicht",
+    "voor ’t offer, ook voor ons gebracht;",
+    "voor liefd’ oneindig, ongedacht."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Dit brood en water, teek’nen zoet",
+    "van ’s Heilands lichaam en zijn bloed;",
+    "het nuttigen getuigt nu weer",
+    "dat wij gedenken Hem, de Heer."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar Edward P. Kimball (1822–1937)",
+ "title": "God had ons lief en zond zijn Zoon"
+}
