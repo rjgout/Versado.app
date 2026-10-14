@@ -1,7 +1,9 @@
 // Fase 5D-1: bijna-passend-feedback in de echte productie-interface (Solo, Tegen elkaar-component en Samen), echte muis/touch,
 // canvaspixels en websocketverkeer. Draait alleen tegen de lokale wegwerpdatabase.
 //   . /tmp/puzenv.sh && npx tsx tests/puzzle-near-snap.browser.mjs
-import assert from "node:assert/strict";
+import realAssert from "node:assert/strict";
+// SHOTS_ONLY=1: dezelfde standen alleen fotograferen (voor de vergelijking met een build zonder de feedback); geen beoordeling.
+const assert = process.env.SHOTS_ONLY ? new Proxy(() => undefined, { get: () => () => undefined, apply: () => undefined }) : realAssert;
 import { createRequire } from "node:module";
 import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
