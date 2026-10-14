@@ -1,9 +1,24 @@
 import type { HymnComposition, HymnLibrary, HymnText, ResolvedHymn } from "./types";
-import poc from "./library/nld-poc.json";
+import { NLD_EDITION, loadResolvedHymn } from "./library/server";
 
-// De proefbibliotheek is een lokaal JSON-bestand: geen database, geen migratie, geen server.
-// De JSON bevat bewust alleen arrays/velden met vaste namen (zie CLAUDE.md over tsx en JSON).
-export const POC_LIBRARY = poc as unknown as HymnLibrary;
+// Testselectie uit de volledige bibliotheek: de drie lofzangen waarop de engine-tests en meetscripts steunen (24 met refrein,
+// 36 met fermate, 82 met zes coupletten). Gelezen uit dezelfde bestanden als de app (library/data); alleen voor Node
+// (tests en scripts), nooit vanuit de browser. De app zelf laadt per lofzang via /api/hymns (zie hymnLibraryClient.ts).
+export const POC_NUMBERS = [24, 36, 82] as const;
+
+const hymns = POC_NUMBERS.map((n) => {
+  const h = loadResolvedHymn(n);
+  if (!h) throw new Error(`Testlofzang ${n} ontbreekt in de bibliotheek`);
+  return h;
+});
+
+export const POC_LIBRARY: HymnLibrary = {
+  schemaVersion: 1,
+  rights: "Afgeleid van de officiële Nederlandse lofzangen met toestemming van de eigenaar van Versado; niet als losstaand bestand delen.",
+  edition: { ...NLD_EDITION, entries: hymns.map((h) => ({ number: h.number, textId: h.text.id, compositionId: h.composition.id })) },
+  compositions: hymns.map((h) => h.composition),
+  texts: hymns.map((h) => h.text),
+};
 
 export function resolveHymn(library: HymnLibrary, number: number): ResolvedHymn | null {
   const entry = library.edition.entries.find((e) => e.number === number);

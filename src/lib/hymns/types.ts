@@ -70,6 +70,21 @@ export interface HymnStanza {
   lines: HymnLine[];
 }
 
+/** Herkomst van een tekst: de officiële pagina en (indien beschikbaar) de bladmuziek-PDF, met hashes van de bronbestanden. */
+export interface HymnSource {
+  pageUrl: string;
+  pageSha: string;
+  pdfUrl: string | null;
+  pdfSha: string | null;
+}
+
+export interface HymnRights {
+  copyrightNotice: boolean;
+  copyingForbiddenWithoutPermission: boolean;
+  copyingAllowedNonCommercial: boolean;
+  licenseRestrictedByChurch: boolean;
+}
+
 export interface HymnText {
   id: string;
   compositionId: string;
@@ -80,6 +95,14 @@ export interface HymnText {
   scriptureRefs: string[];
   stanzas: HymnStanza[];
   chorus: { linking: "word" | "line"; lines: HymnLine[] } | null;
+  /** Aanvullende bron- en rechtengegevens (volledige bibliotheek); ontbreekt bij de proefgegevens. */
+  subtitle?: string | null;
+  musicCredit?: string | null;
+  notices?: string[];
+  rights?: HymnRights;
+  source?: HymnSource;
+  /** Aantal afwijkende refreinvarianten die niet apart gevolgd worden (bv. lofzang 154). */
+  extraChorusVariants?: number;
 }
 
 export interface HymnbookEntry {
@@ -110,4 +133,38 @@ export interface ResolvedHymn {
   edition: HymnbookEdition;
   text: HymnText;
   composition: HymnComposition;
+}
+
+/** Wat een lofzang kan, afgeleid van wat aantoonbaar is gelezen en gevalideerd (zie docs/hymns/09). */
+export interface HymnCapabilities {
+  textComplete: boolean;
+  sheetMusicAvailable: boolean;
+  scoreValidated: boolean;
+  lineFollowing: boolean;
+  wordFollowing: boolean;
+  recognizable: boolean;
+  recognitionValidated: boolean;
+}
+
+/** Eén regel in de bibliotheeklijst en de zoekindex. */
+export interface HymnIndexEntry {
+  number: number;
+  title: string;
+  /** Eerste regel van het eerste couplet (zoeken op beginwoorden). */
+  firstLine: string;
+  textAvailable: boolean;
+  capabilities: HymnCapabilities;
+}
+
+/** Lofzang voor de leesweergave: altijd aanwezig als de tekst beschikbaar is, ook zonder betrouwbare muziek. */
+export interface ReadableHymn {
+  number: number;
+  title: string;
+  text: HymnText | null;
+  /** Alleen gevuld als er een gevalideerde compositie is; zonder blijft het een leesweergave. */
+  composition: HymnComposition | null;
+  edition: HymnbookEdition;
+  capabilities: HymnCapabilities;
+  /** Netjes geformuleerde reden als de tekst niet beschikbaar is (rechtenbeperking). */
+  unavailableReason: "license" | null;
 }
