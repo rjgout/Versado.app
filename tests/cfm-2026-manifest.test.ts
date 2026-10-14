@@ -22,8 +22,16 @@ test("iedere les heeft een stabiele identiteit en officiële Nederlandse URL", (
 });
 
 test("een dubbele identiteit, ontbrekende URL en ongeldige kalender blokkeren de manifestvalidatie", () => {
-  const broken: StudyManifest = structuredClone(cfmOldTestament2026NlManifest);
-  broken.lessons[1] = { ...broken.lessons[1], sourceKey: broken.lessons[0].sourceKey, sourceUrl: "", startsOn: "2026-99-99" };
+  const broken: StudyManifest = {
+    ...cfmOldTestament2026NlManifest,
+    lessons: cfmOldTestament2026NlManifest.lessons.map((lesson) => ({ ...lesson })),
+  };
+  broken.lessons = broken.lessons.map((lesson, index) => index === 1 ? {
+    ...lesson,
+    sourceKey: broken.lessons[0].sourceKey,
+    sourceUrl: "",
+    startsOn: "2026-99-99",
+  } : lesson);
   const diagnostics = validateStudyManifest(broken);
   assert.equal(manifestStatus(diagnostics), "BLOCKED");
   assert.ok(diagnostics.some((diagnostic) => diagnostic.code === "DUPLICATE_SOURCE_KEY"));
