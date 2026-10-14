@@ -19,9 +19,10 @@ const SHADOW = "rgba(29, 42, 60, .28)";
 const LOOSE_STROKE = "rgba(29, 42, 60, .60)";
 const SELECTED_STROKE = "#d97716";
 const HINT_FILL = "rgba(217,119,22,.16)";
-// Bijna-passend: de accentkleur van Versado (--vs-accent, lichte waarde; het bord is in beide thema's licht). Bewust blauw:
-// oranje is selectie en hint, groen is verankerd en een spelerkleur is een lock.
-const NEAR_SNAP_CORE = "21, 101, 192";
+// Bijna-passend: een diep cyaan (cyan-700). Bewust geen kleur die al iets betekent op het bord: oranje is selectie en hint,
+// donkergroen is verankerd en de spelerkleuren van Samen (blauw, roze, smaragd, paars) zijn locks. Daarnaast verschilt de vorm:
+// alleen de aansluitende rand en de bordplek, nooit de hele contour van een groep.
+const NEAR_SNAP_CORE = "14, 116, 144";
 const NEAR_SNAP_BACKING = "255, 255, 255";
 
 /** Waar en hoe één groep nu getekend wordt; `place` vult dit zonder per groep een object aan te maken. */
@@ -150,7 +151,7 @@ export function renderPuzzle(canvas: HTMLCanvasElement, scene: PuzzleScene): voi
     if (glow.slot.active) {
       const key = glow.slot.pieceIds.join(","); let path = paths.get(key);
       if (!path) { path = new Path2D(); tracePuzzleGroup(path, geometry, glow.slot.pieceIds as number[]); paths.set(key, path); }
-      context.save(); context.translate(glow.slot.x, glow.slot.y); strokeGlow(context, path, scale, glow.strength * .7, 2); context.restore();
+      context.save(); context.translate(glow.slot.x, glow.slot.y); strokeGlow(context, path, scale, glow.strength * .85, 2.5); context.restore();
     }
     for (let index = 0; index < glow.edgeCount; index++) {
       const edge = glow.edges[index]; const key = `edge:${edge.piece}>${edge.neighbour}`; let path = paths.get(key);

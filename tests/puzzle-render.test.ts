@@ -90,7 +90,7 @@ test("render: hintmarkeringen worden na de groepen getekend en zonder cache", ()
   const filter = render({ hint: { type: "FILTER", filter: "CORNERS", pieceIds: [0, 3] } }); assert.equal(names(filter.log, "=globalAlpha").filter((entry) => entry[1] === .2).length, value.groups.length);
 });
 
-const ACCENT = "21, 101, 192";
+const ACCENT = "14, 116, 144";
 const glow = (strength: number, edgeCount = 2, slot = false) => ({
   edgeCount, strength,
   edges: [{ piece: 0, neighbour: 1, anchorPiece: 0, x: 3, y: 4 }, { piece: 1, neighbour: 0, anchorPiece: 1, x: 3.2, y: 4.1 }] as const,

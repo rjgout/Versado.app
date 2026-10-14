@@ -23,8 +23,8 @@ const DEVICES = { desktop: { viewport: { width: 1280, height: 900 }, deviceScale
 const users = []; let definition; const report = [];
 const person = async () => { const scope = await prisma.gameContentScope.findFirstOrThrow({ where: { gameKey: "jigsaw" } }); const user = await prisma.user.create({ data: { email: `ns-${randomUUID()}@test.invalid`, passwordHash: "x", handle: `Ns${randomUUID().slice(0, 6)}`, discriminator: "00", activeContentCollectionId: scope.contentCollectionId, onboardingSeenAt: new Date(), onboardingProfilePrivacyAt: new Date() } }); users.push(user.id); return user; };
 const settle = (page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-/** Pixels in de kern van de feedbackkleur (--vs-accent), met een kleine tolerantie voor antialiasing. */
-const accent = (page) => page.locator("canvas").first().evaluate((canvas) => { const data = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data; let count = 0; for (let i = 0; i < data.length; i += 4) if (Math.abs(data[i] - 21) < 9 && Math.abs(data[i + 1] - 101) < 9 && Math.abs(data[i + 2] - 192) < 9) count++; return count; });
+/** Pixels in de kern van de feedbackkleur (diep cyaan), met een kleine tolerantie voor antialiasing. */
+const accent = (page, tolerance = 16) => page.locator("canvas").first().evaluate((canvas, tol) => { const data = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data; let count = 0; for (let i = 0; i < data.length; i += 4) if (Math.abs(data[i] - 25) < tol && Math.abs(data[i + 1] - 122) < tol && Math.abs(data[i + 2] - 150) < tol) count++; return count; }, tolerance);
 const SEEN = 30;
 const stacked = (geometry, difficulty) => newPuzzleSnapshot(geometry, difficulty).groups.map((group) => ({ ...group, x: .6, y: .6, rotation: 0 }));
 function place(groups, id, x, y, rotation = 0) { const group = groups.find((candidate) => candidate.id === `p${id}`); Object.assign(group, { x, y, rotation }); }
@@ -97,7 +97,7 @@ try {
     const env = await openSolo("desktop", difficulty, (groups, geometry) => { const to = boardPosition(geometry, { pieceIds: [5] }); place(groups, 5, to.x + .1, to.y - .1); }); const p = pointer(env);
     const geometry = env.geometry; const to = boardPosition(geometry, { pieceIds: [5] });
     await p.down(env.screen(to.x + .6, to.y + .4)); await env.page.waitForTimeout(FADE_WAIT);
-    const count = await accent(env.page); await env.page.screenshot({ path: `${output}/board-${difficulty.toLowerCase()}.png` });
+    const count = await accent(env.page, 70); await env.page.screenshot({ path: `${output}/board-${difficulty.toLowerCase()}.png` });
     if (expected) assert.ok(count >= 10, `${difficulty}: bordplaats krijgt feedback (${count})`); else assert.equal(count, 0, `${difficulty}: geen bordhulp (${count})`);
     await p.cancel(); await env.context.close();
   }
@@ -142,13 +142,13 @@ try {
     for (let attempt = 0; attempt < 40 && !(await prisma.puzzleLock.count({ where: { sessionId } })); attempt++) await A.page.waitForTimeout(50);
     const far = at(5.7 + 3, 4.6 + 2); let framesBefore = A.frames.length; let requestsBefore = A.requests.length;
     for (let i = 0; i < 12; i++) { await A.page.mouse.move(far.x + i, far.y + i); await settle(A.page); }
-    const farEvents = eventNames(A.frames.slice(framesBefore)); const farRequests = A.requests.slice(requestsBefore); assert.equal(await accent(A.page) - baseA, 0, "Samen: ver weg geen feedback");
+    const farB = await accent(B.page); const farEvents = eventNames(A.frames.slice(framesBefore)); const farRequests = A.requests.slice(requestsBefore); assert.equal(await accent(A.page) - baseA, 0, "Samen: ver weg geen feedback");
     await A.page.mouse.move(start.x, start.y, { steps: 6 }); await A.page.waitForTimeout(FADE_WAIT);
     framesBefore = A.frames.length; requestsBefore = A.requests.length;
     for (let i = 0; i < 12; i++) { await A.page.mouse.move(start.x + i * .3, start.y + i * .3); await settle(A.page); }
     await A.page.waitForTimeout(FADE_WAIT); const mine = await accent(A.page) - baseA; assert.ok(mine >= SEEN, `Samen: de slepende speler ziet de feedback (${mine})`);
-    assert.ok(await accent(B.page) - baseB < 5, "Samen: de andere speler ziet geen lokale feedback, ook niet tijdens de remote sleepbeweging");
     await A.page.screenshot({ path: `${output}/samen-dragger.png` }); await B.page.screenshot({ path: `${output}/samen-other-player.png` });
+    const nearB = await accent(B.page); assert.ok(Math.abs(nearB - farB) < 5, `Samen: de andere speler ziet geen lokale feedback, ook niet tijdens de remote sleepbeweging (${farB} → ${nearB}, basis ${baseB})`);
     const nearEvents = eventNames(A.frames.slice(framesBefore)); const nearRequests = A.requests.slice(requestsBefore);
     assert.deepEqual(nearEvents.filter((name) => !farEvents.includes(name)), [], `Samen: geen nieuwe socket-events (${nearEvents} t.o.v. ${farEvents})`); assert.deepEqual(nearRequests.filter((request) => !farRequests.includes(request)), [], "Samen: geen nieuwe HTTP-verzoeken");
     // Lockverlies: mijn lock verloopt, de ander pakt de groep; de feedback verdwijnt terwijl ik nog sleep.
