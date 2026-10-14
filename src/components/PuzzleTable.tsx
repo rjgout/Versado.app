@@ -4,9 +4,10 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRe
 import NextImage from "next/image";
 import { RotateCw } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
-import { createPuzzleGeometry, tracePuzzleGroup } from "@/lib/puzzle/geometry";
+import { createPuzzleGeometry } from "@/lib/puzzle/geometry";
+import { renderPuzzle } from "@/lib/puzzle/render";
 import { boardSnapTarget, findSnapConnection, groupFor } from "@/lib/puzzle/engine";
-import { clampGroupPosition, groupAnchor, groupMemberAt, puzzleRenderOrder, puzzleWorktable } from "@/lib/puzzle/worktable";
+import { clampGroupPosition, groupMemberAt, puzzleRenderOrder, puzzleWorktable } from "@/lib/puzzle/worktable";
 import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
 import { puzzlePolicy, type PuzzleDifficulty, type PuzzleGroup, type PuzzleHint, type PuzzlePieceCount, type PuzzleSnapshot } from "@/lib/puzzle/types";
 
@@ -88,64 +89,26 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
   function paint() {
     const canvas = canvasRef.current; if (!canvas) return;
     const p = propsRef.current; const snapshot = p.getSnapshot();
-    const rect = canvas.getBoundingClientRect(); const ratio = Math.min(window.devicePixelRatio || 1, 2);
-    const width = Math.max(1, Math.round(rect.width * ratio)); const height = Math.max(1, Math.round(rect.height * ratio));
-    if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
-    const context = canvas.getContext("2d"); if (!context) return;
-    context.setTransform(ratio, 0, 0, ratio, 0, 0); context.clearRect(0, 0, rect.width, rect.height); context.fillStyle = "#edf1f2"; context.fillRect(0, 0, rect.width, rect.height);
-    context.save(); context.translate(camera.current.x, camera.current.y); context.scale(camera.current.scale, camera.current.scale);
-    const scale = camera.current.scale;
-    context.fillStyle = "#dbe6e6"; context.fillRect(table.bounds.minX, table.bounds.minY, table.bounds.maxX - table.bounds.minX, table.bounds.maxY - table.bounds.minY);
-    context.strokeStyle = "rgba(42, 68, 74, .45)"; context.lineWidth = 2 / scale; context.strokeRect(table.bounds.minX, table.bounds.minY, table.bounds.maxX - table.bounds.minX, table.bounds.maxY - table.bounds.minY);
-    const complete = snapshot.completedAt !== null;
-    if (!complete && (policy.showOutline || policy.showGhost)) { context.fillStyle = "rgba(255, 255, 255, .74)"; context.fillRect(table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); }
-    if (!complete && policy.showGhost && picture.current) { context.globalAlpha = .18; context.drawImage(picture.current, table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); context.globalAlpha = 1; }
-    if (!complete && policy.showOutline) { context.strokeStyle = "rgba(64, 87, 94, .46)"; context.setLineDash([.12, .1]); context.strokeRect(table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); context.setLineDash([]); }
-    const target = p.hint?.target;
-    const mine = drag.current?.groupId ?? null;
-    const now = Date.now();
-    const remote = p.remoteDrags.current;
+    const complete = snapshot.completedAt !== null; const mine = drag.current?.groupId ?? null;
+    const now = Date.now(); const remote = p.remoteDrags.current;
     // Een actieve (eigen of andermans) groep ligt tijdens het slepen bovenop.
     const order = puzzleRenderOrder(snapshot.groups, mine);
     const topRemote = [...remote.keys()].filter((id) => (remote.get(id)?.until ?? 0) > now);
     const ordered = topRemote.length ? [...order.filter((g) => !topRemote.includes(g.id)), ...order.filter((g) => topRemote.includes(g.id))] : order;
-    for (const group of ordered) {
-      const local = drag.current?.groupId === group.id && drag.current.local ? drag.current.local : null;
-      const far = remote.get(group.id); const remotePos = far && far.until > now ? far : null;
-      const x = local?.x ?? remotePos?.x ?? group.x; const y = local?.y ?? remotePos?.y ?? group.y;
-      const dragging = group.id === mine || remotePos !== null;
-      const lock = p.locks.find((candidate) => candidate.groupId === group.id && Date.parse(candidate.expiresAt) > now);
-      const anchor = groupAnchor(geometry, group); const key = group.pieceIds.join(",");
-      let path = paths.current.get(key);
-      if (!path) { path = new Path2D(); tracePuzzleGroup(path, geometry, group.pieceIds); paths.current.set(key, path); }
-      context.save(); if (target?.type === "FILTER") context.globalAlpha = .2;
-      context.translate(x + .5, y + .5 - (dragging ? 2 / scale : 0)); context.rotate(group.rotation * Math.PI / 180); context.translate(-.5, -.5);
-      if (dragging) { context.save(); context.shadowColor = "rgba(29, 42, 60, .28)"; context.shadowBlur = 10 * ratio; context.shadowOffsetY = 5 * ratio; context.fillStyle = "#b9d5d7"; context.fill(path); context.restore(); }
-      context.save(); context.clip(path);
-      if (picture.current) context.drawImage(picture.current, -anchor.column, -anchor.row, geometry.grid.columns, geometry.grid.rows); else { context.fillStyle = "#b9d5d7"; context.fill(path); }
-      context.restore();
-      if (target?.type === "FILTER" && picture.current) {
-        const members = group.pieceIds.filter((id) => target.pieceIds.includes(id));
-        if (members.length) {
-          const first = geometry.pieces[members[0]]; const filterKey = `filter:${members.join(",")}`;
-          let highlight = paths.current.get(filterKey); if (!highlight) { highlight = new Path2D(); tracePuzzleGroup(highlight, geometry, members); paths.current.set(filterKey, highlight); }
-          context.save(); context.globalAlpha = 1; context.translate(first.column - anchor.column, first.row - anchor.row); context.clip(highlight); context.drawImage(picture.current, -first.column, -first.row, geometry.grid.columns, geometry.grid.rows); context.restore();
-        }
-      }
-      const active = selectedRef.current !== null && group.pieceIds.includes(selectedRef.current);
-      // Rustige contour in de kleur van de speler die de groep vasthoudt; de eigen selectie blijft oranje.
-      if (!complete && lock && lock.userId !== p.meId) { context.strokeStyle = p.colorOf(lock.userId); context.lineWidth = 4 / scale; context.stroke(path); }
-      context.strokeStyle = active ? "#d97716" : group.anchored || complete ? "rgba(43, 103, 99, .35)" : "rgba(29, 42, 60, .60)"; context.lineWidth = (active ? 3 : 1) / scale;
-      if (!complete) context.stroke(path);
-      context.restore();
-    }
-    if (target?.type === "LOCATION") { const path = new Path2D(); tracePuzzleGroup(path, geometry, target.pieceIds); context.save(); context.translate(target.x, target.y); context.fillStyle = "rgba(217,119,22,.16)"; context.fill(path); context.strokeStyle = "#d97716"; context.lineWidth = 3 / scale; context.stroke(path); context.restore(); }
-    const marked = target?.type === "CONNECTION" ? [target.pieceId, target.neighborId] : target?.type === "FILTER" ? target.pieceIds : [];
-    for (const id of marked) {
-      const group = groupFor(snapshot, id); if (!group) continue; const anchor = groupAnchor(geometry, group); const piece = geometry.pieces[id]; const path = new Path2D(); tracePuzzleGroup(path, geometry, [id]);
-      context.save(); context.translate(group.x + .5, group.y + .5); context.rotate(group.rotation * Math.PI / 180); context.translate(piece.column - anchor.column - .5, piece.row - anchor.row - .5); context.strokeStyle = "#d97716"; context.lineWidth = 4 / scale; context.stroke(path); context.restore();
-    }
-    context.restore();
+    renderPuzzle(canvas, {
+      geometry, table, camera: camera.current, image: picture.current, paths: paths.current, snapshot, groups: ordered,
+      place: (group, out) => {
+        const local = drag.current?.groupId === group.id && drag.current.local ? drag.current.local : null;
+        const far = remote.get(group.id); const remotePos = far && far.until > now ? far : null;
+        out.x = local?.x ?? remotePos?.x ?? group.x; out.y = local?.y ?? remotePos?.y ?? group.y;
+        out.lifted = group.id === mine || remotePos !== null;
+        const lock = p.locks.find((candidate) => candidate.groupId === group.id && Date.parse(candidate.expiresAt) > now);
+        out.lockColor = !complete && lock && lock.userId !== p.meId ? p.colorOf(lock.userId) : null;
+      },
+      selectedPiece: selectedRef.current, hint: p.hint?.target,
+      backdrop: !complete && (policy.showOutline || policy.showGhost), ghost: !complete && policy.showGhost, outline: !complete && policy.showOutline,
+      edges: !complete, anchoredStroke: "rgba(43, 103, 99, .35)",
+    });
   }
 
   useImperativeHandle(ref, () => ({
