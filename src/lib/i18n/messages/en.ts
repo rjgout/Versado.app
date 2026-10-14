@@ -646,6 +646,7 @@ export const en: PartialMessages = {
     cancel: "Cancel",
   },
   pages: {
+    hymns: "Lofzangen",
     tools: "Tools",
     dictionary: "Dictionary",
     bookmarks: "Bookmarks",

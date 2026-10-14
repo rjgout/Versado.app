@@ -176,7 +176,9 @@ Beschikbaar op de live omgeving voor uitsluitend beheerders (via de contentkieze
 nog in ontwikkeling en niet getest met echte kerkuitvoeringen. De telefoon luistert naar orgel of piano, volgt de
 partituur en toont de juiste tekstregel (`docs/hymns/`, lees `02-ARCHITECTURE.md` vóór je eraan
 werkt). Code: `src/lib/hymns/` (engine en gegevens), `src/components/hymns-poc/`, route
-`/dev/lofzangen`, zichtbare naam "Lofzangen" (regels in `src/lib/hymns/access.ts`). Bewaakt door `npm run test:hymns`.
+`/dev/lofzangen` (focus mode via `focusMode.ts`: alleen de terugbalk), zichtbare naam "Lofzangen" (regels in
+`src/lib/hymns/access.ts`). Bewaakt door `npm run test:hymns`. Voorspel, zangbegin, herkennen→volgen in één
+sessie en de meezinginterface: `docs/hymns/07-VOORSPEL-EN-ZANGBEGIN.md`.
 
 Harde regels:
 - Alle realtime muziekanalyse draait lokaal op het toestel. Geen audio naar de server, naar een
@@ -189,6 +191,17 @@ Harde regels:
   niet heen en weer en de herkenning toont nooit een gok als zekerheid.
 - Muzikale positie en couplet zijn twee toestanden (`follow/stanzas.ts`): een handmatige keuze
   heeft altijd voorrang en herstart de muziekvolging niet.
+- Een voorspel is geen gezongen couplet. De woordmarkering begint pas als `follow/phase.ts` het zangbegin
+  uit structuur (rondegrens, waar de muziek begon, pauze) heeft vastgesteld of de gebruiker "Zang begint" tikt;
+  zonder bewijs wacht de engine en gokt niet. Een ronde telt alleen bij genoeg dekking (geen extra couplet door
+  een tussenspel). Geen eigen rondetelling of zangbegin-aanname in de UI.
+- Herkennen en volgen zijn één luistersessie (`live.ts`, `HymnLiveEngine`): één extractor, één microfoon. Een
+  wissel van lofzang, weergave of tekstgrootte start nooit een nieuwe microfoon- of AudioContext-sessie en reset
+  de positie niet. De UI maakt geen eigen sessie of herkenner aan.
+- De weergave (volledig couplet of karaoke, tekstgrootte, meescrollen, rustige kerkweergave) is alleen
+  presentatie. Het actieve woord krijgt de accentkleur (geen achtergrond, geen verschuivende woorden:
+  `.hymn-word`). Voorkeuren staan uitsluitend in `src/lib/hymnPrefs.ts`; opslag blijft verboden in
+  `src/lib/hymns` en `src/components/hymns-poc`. Geen `scrollIntoView`; eigen scrollen pauzeert het meescrollen.
 - Compositie, tekst, zangboekuitgave, lofzangnummer en herkenningsgegevens blijven gescheiden
   (`types.ts`); het nummer staat nooit in een compositie of tekst. Id's zijn stabiel en
   taalonafhankelijk (`comp:<officiële slug>`).

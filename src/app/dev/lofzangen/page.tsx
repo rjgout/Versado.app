@@ -17,5 +17,5 @@ export default async function HymnsPocPage() {
   const access = hymnsPocAccess({ production, flag, loggedIn: Boolean(user), isAdmin: Boolean(user?.isAdmin) });
   if (access === "login") redirect("/login");
   if (access === "hidden") notFound();
-  return <HymnsPocClient />;
+  return <HymnsPocClient isAdmin={Boolean(user?.isAdmin)} />;
 }

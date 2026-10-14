@@ -66,6 +66,12 @@ export class StableCursor {
     this.allowJump = true;
   }
 
+  /** Terug naar "niets actief" (voorspel, tussenspel of opnieuw synchroniseren). */
+  reset(): void {
+    this.current = { section: "verse", line: -1, word: null, frozen: false };
+    this.allowJump = true;
+  }
+
   get value(): DisplayCursor {
     return this.current;
   }

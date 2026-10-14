@@ -24,6 +24,8 @@ const FOCUS_ROUTES = [
   /^\/alleskenner\/alleen\/[^/]+$/,
   /^\/alleskenner\/seizoen\/[^/]+$/,
   /^\/word-game$/,
+  // Lofzangen (live meezingen): tekst centraal, alleen de terugbalk blijft.
+  /^\/dev\/lofzangen$/,
   /^\/jigsaw$/,
   // Legpuzzel Samen en Tegen elkaar: dezelfde fullscreen werktafel als Solo.
   /^\/jigsaw\/(samen|wedstrijd)\/[^/]+$/,

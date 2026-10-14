@@ -305,9 +305,20 @@ test("toegang: in ontwikkeling voor elke ingelogde gebruiker", () => {
 });
 
 test("de route is alleen gelinkt vanuit de admin-sectie van de contentkiezer, nergens in navigatie, shell of sitemap", () => {
+  // focusMode.ts en SubpageBackBar.tsx zijn de centrale shellregisters voor focus mode en de terugbalk: ze noemen
+  // de route om de shell goed te zetten, maar linken er niet naartoe (zie de volgende test).
+  const SHELL_REGISTRIES = [`${path.sep}lib${path.sep}focusMode.ts`, `${path.sep}components${path.sep}SubpageBackBar.tsx`];
   const files = [...walk(path.join(root, "src/components")), ...walk(path.join(root, "src/lib")), ...walk(path.join(root, "src/app"))]
-    .filter((f) => !f.includes(`${path.sep}hymns-poc${path.sep}`) && !f.includes(`${path.sep}hymns${path.sep}`) && !f.includes(`${path.sep}dev${path.sep}lofzangen`) && !f.endsWith("FullscreenContentPicker.tsx") && !f.endsWith(`${path.sep}content${path.sep}page.tsx`));
+    .filter((f) => !f.includes(`${path.sep}hymns-poc${path.sep}`) && !f.includes(`${path.sep}hymns${path.sep}`) && !f.includes(`${path.sep}dev${path.sep}lofzangen`) && !f.endsWith("FullscreenContentPicker.tsx") && !f.endsWith(`${path.sep}content${path.sep}page.tsx`) && !SHELL_REGISTRIES.some((r) => f.endsWith(r)));
   for (const file of files) {
     assert.equal(/dev\/lofzangen/.test(readFileSync(file, "utf8")), false, `${path.relative(root, file)} verwijst naar de proefroute`);
+  }
+});
+
+test("de shellregisters noemen de route alleen voor focus mode en de terugbalk, ze linken er niet naartoe", () => {
+  for (const rel of ["src/lib/focusMode.ts", "src/components/SubpageBackBar.tsx"]) {
+    const lines = readFileSync(path.join(root, rel), "utf8").split("\n").filter((l) => /dev\\?\/lofzangen/.test(l));
+    assert.ok(lines.length > 0, `${rel} noemt de route niet meer`);
+    for (const line of lines) assert.equal(/href|<Link|router\.(push|replace)/.test(line), false, `${rel} linkt naar de route: ${line.trim()}`);
   }
 });

@@ -30,6 +30,10 @@ export interface SynthOptions {
   singersDb?: number;
   /** Achtergrondruis (roze-achtig) t.o.v. het instrument in dB. */
   noiseDb?: number;
+  /** Pratende of spelende kinderen: korte, hoge stembursten zonder verband met de melodie, in dB t.o.v. het instrument. */
+  chatterDb?: number;
+  /** Tijdstippen (s) van een plotselinge roep, 12 dB luider dan het gemiddelde gebabbel. */
+  shoutsAt?: number[];
   /** Nagalmtijd in seconden (0 = droog). */
   reverbSeconds?: number;
   /** Stemming van het instrument in halve tonen t.o.v. A=440. */
@@ -213,6 +217,47 @@ export function synthesizeHymn(comp: HymnComposition, o: SynthOptions): SynthRes
   const instRms = rms(inst);
   const gainVoices = o.singersDb !== undefined && rms(voices) > 0 ? (instRms * 10 ** (o.singersDb / 20)) / rms(voices) : 0;
   for (let i = 0; i < length; i += 1) out[i] = inst[i] + voices[i] * gainVoices;
+
+  // --- kinderstemmen: stemachtige bursts (grondtoon 250-450 Hz met glijdende toonhoogte en lettergreepritme)
+  if (o.chatterDb !== undefined || (o.shoutsAt ?? []).length > 0) {
+    const chat = new Float32Array(length);
+    const burst = (buf: Float32Array, t0: number, dur: number, f0: number, amp: number) => {
+      const i0 = Math.floor(t0 * fs);
+      const i1 = Math.min(length - 1, Math.floor((t0 + dur) * fs));
+      const glide = 0.15 + rand() * 0.25;
+      const glideHz = 1 + rand() * 2;
+      const syl = 3.5 + rand() * 2;
+      const ph = rand() * Math.PI * 2;
+      let phase = 0;
+      for (let i = i0; i <= i1; i += 1) {
+        const t = (i - i0) / fs;
+        const f = f0 * (1 + glide * Math.sin(2 * Math.PI * glideHz * t + ph));
+        phase += (2 * Math.PI * f) / fs;
+        const env = Math.min(1, t / 0.03, (dur - t) / 0.05) * (0.55 + 0.45 * Math.sin(2 * Math.PI * syl * t + ph) ** 2);
+        let v = 0;
+        for (let h = 1; h <= 8; h += 1) if (f * h < 3800) v += Math.sin(h * phase) / h ** 0.9;
+        buf[i] += amp * env * (v + 0.25 * gauss());
+      }
+    };
+    if (o.chatterDb !== undefined) {
+      let t = 0.3;
+      while (t < tl.end) {
+        const dur = 0.3 + rand() * 1.1;
+        if (rand() < 0.75) burst(chat, t, dur, 250 + rand() * 200, 1);
+        t += dur + 0.15 + rand() * 1.2;
+      }
+    }
+    const instRms0 = rms(inst);
+    const g = rms(chat) > 0 ? (instRms0 * 10 ** ((o.chatterDb ?? -6) / 20)) / rms(chat) : 0;
+    for (let i = 0; i < length; i += 1) out[i] += chat[i] * g;
+    // roepen: 12 dB boven het gemiddelde gebabbel
+    if ((o.shoutsAt ?? []).length > 0) {
+      const shout = new Float32Array(length);
+      for (const at of o.shoutsAt ?? []) burst(shout, at, 0.9, 420 + rand() * 120, 1);
+      const gs = rms(shout) > 0 ? (instRms0 * 10 ** (((o.chatterDb ?? -6) + 12) / 20)) / (rms(shout) * Math.sqrt(length / (0.9 * fs * (o.shoutsAt ?? []).length))) : 0;
+      for (let i = 0; i < length; i += 1) out[i] += shout[i] * gs;
+    }
+  }
 
   // --- ruis
   if (o.noiseDb !== undefined) {

@@ -146,14 +146,19 @@ en nog **niet** op echte opnamen in een kerk gekalibreerd.
 
 ### 5.3 Rondes en coupletten
 
-Zie `02-ARCHITECTURE.md`, 4. Kort: de engine telt rondewissels (alleen bij een betrouwbare positie
-die van het laatste naar het eerste deel van de cyclus gaat; daarna moet de positie eerst door de
-helft van de cyclus). `StanzaPlan` schakelt dan naar het volgende couplet uit de gekozen volgorde.
-Een handmatige keuze heeft voorrang en wordt nooit teruggedraaid; na de keuze gaat het
-automatisch verder vanaf de gekozen plek. Tijdens een verlies kan een ronde gemist zijn: dat wordt
-gemeld (`lapUncertain`) en niet stil aangenomen.
+(Bijgewerkt in fase 2; zie `07-VOORSPEL-EN-ZANGBEGIN.md`.) Een ronde telt pas als er na het
+vastgestelde zangbegin genoeg van de melodie is doorlopen (dekking van minstens 60%), zodat een
+tussenspel van twee regels geen extra couplet oplevert. `StanzaPlan` schakelt dan naar het volgende
+couplet uit de gekozen volgorde. Een handmatige keuze heeft voorrang en wordt nooit teruggedraaid;
+na de keuze gaat het automatisch verder vanaf de gekozen plek. Tijdens een verlies kan een ronde
+gemist zijn: dat wordt gemeld (`lapUncertain`) en niet stil aangenomen. De volger start sinds fase 2
+met een uniforme beginverdeling, omdat een voorspel overal in de melodie kan beginnen.
 
 ## 6. Weergave (fase E en F)
+
+(De weergave is in fase 2 vervangen door de meezinginterface uit `07-VOORSPEL-EN-ZANGBEGIN.md`, 7.
+De regels hieronder over markering, springen en onzekerheid gelden nog steeds; het actieve woord heeft
+nu de accentkleur in plaats van een achtergrond.)
 
 - Regelmarkering altijd; woordmarkering alleen als de lettergrepen aan noten zijn gekoppeld
   (`linking: "word"`). Anders een melding "alleen de regel is te volgen". Geen schijnnauwkeurige

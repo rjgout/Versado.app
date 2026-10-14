@@ -12,6 +12,11 @@ const unknown = JSON.parse(readFileSync(new URL("./fixtures/hymns/unknown-melodi
 const FAST = { tempoSegments: constantTempo(100) } as const;
 const T82 = 48;
 
+/** De muziek begint bij het begin van het couplet en de zang ook: de gebruiker bevestigt het zangbegin zelf. */
+const SING_FROM_START = (i: number, s: { confirmSingingStart(): void }) => {
+  if (i === 30) s.confirmSingingStart();
+};
+
 /** Events tot het einde van de muziek: daarna klinkt alleen nog nagalm, en een rondewissel op het allerlaatste frame zegt niets. */
 function untilEnd<T extends { time: number }>(events: T[], synthEnd: number): T[] {
   return events.filter((e) => e.time < synthEnd - 0.5);
@@ -19,7 +24,7 @@ function untilEnd<T extends { time: number }>(events: T[], synthEnd: number): T[
 
 test("rondes: elke nieuwe herhaling van de melodie wordt op de rondegrens herkend en schakelt het couplet door", () => {
   const sc = makeScenario(82, { ...FAST, laps: 3 });
-  const { session } = follow(sc.hymn, sc.frames);
+  const { session } = follow(sc.hymn, sc.frames, {}, SING_FROM_START);
   const end = sc.synth.timeAt(T82 * 3);
   const laps = untilEnd(session.events.filter((e) => e.type === "lap"), end);
   assert.deepEqual(laps.map((l) => l.lap), [1, 2], "verwachtte twee rondewissels in drie rondes");
@@ -33,8 +38,9 @@ test("rondes: elke nieuwe herhaling van de melodie wordt op de rondegrens herken
 
 test("handmatig couplet kiezen herstart de muziekherkenning niet: de posities zijn bit voor bit gelijk", () => {
   const sc = makeScenario(82, { ...FAST, laps: 2 });
-  const plain = follow(sc.hymn, sc.frames);
+  const plain = follow(sc.hymn, sc.frames, {}, SING_FROM_START);
   const picked = follow(sc.hymn, sc.frames, {}, (i, s) => {
+    SING_FROM_START(i, s);
     if (i === 400) s.selectStanza(4);
   });
   assert.deepEqual(
@@ -52,6 +58,7 @@ test("een handmatige keuze heeft voorrang: de eerstvolgende rondewissel gaat ver
   // gebruiker kiest couplet 1 terug net nadat de engine naar 2 is gegaan, en later couplet 4
   let chosen = false;
   const run = follow(sc.hymn, sc.frames, {}, (i, s) => {
+    SING_FROM_START(i, s);
     const lap1 = s.events.find((e) => e.type === "lap" && e.lap === 1);
     if (lap1 && !chosen && s.snapshotNow.time > lap1.time + 3) {
       s.selectStanza(1);
@@ -66,17 +73,20 @@ test("gekozen volgorde 1 -> 4: de tweede ronde gaat naar couplet 4 en daarna bli
   const sc = makeScenario(82, { ...FAST, laps: 3 });
   const { session } = follow(sc.hymn, sc.frames, {}, (i, s) => {
     if (i === 0) s.setStanzaOrder([1, 4]);
+    SING_FROM_START(i, s);
   });
   assert.deepEqual(untilEnd(session.events.filter((e) => e.type === "stanza"), sc.synth.timeAt(T82 * 3)).map((e) => e.stanza), [4]);
 });
 
-test("voorspel van een deel van het couplet: de eerste rondewissel begint couplet 1 (geen doorschakeling)", () => {
-  const sc = makeScenario(82, { ...FAST, laps: 3, startBeat: T82 * 0.7 });
+test("voorspel van een deel van het couplet: de zang begint op de rondegrens, couplet 1 wordt niet doorgeschakeld", () => {
+  const sc = makeScenario(82, { ...FAST, laps: 3, startBeat: T82 * 0.7, leadInSeconds: 1.5 });
   const { session } = follow(sc.hymn, sc.frames);
   const end = sc.synth.timeAt(T82 * 3);
-  const laps = untilEnd(session.events.filter((e) => e.type === "lap"), end).map((e) => e.lap);
-  assert.deepEqual(laps, [0, 1]);
-  assert.deepEqual(untilEnd(session.events.filter((e) => e.type === "stanza"), end).map((e) => e.stanza), [2], "couplet 2 pas na de tweede wissel");
+  const start = session.events.find((e) => e.type === "phase" && e.phaseEvent === "start");
+  assert.ok(start, "geen zangbegin vastgesteld op de rondegrens");
+  assert.ok(Math.abs(start.time - sc.synth.timeAt(T82)) < 1.5, `zangbegin ${start.time.toFixed(1)} s versus rondegrens ${sc.synth.timeAt(T82).toFixed(1)} s`);
+  assert.deepEqual(untilEnd(session.events.filter((e) => e.type === "lap"), end).map((e) => e.lap), [1]);
+  assert.deepEqual(untilEnd(session.events.filter((e) => e.type === "stanza"), end).map((e) => e.stanza), [2], "couplet 2 pas na de eerste echte zangronde");
 });
 
 test("verlies en herstel: onbekende muziek midden in het stuk geeft 'verloren' en daarna 'hersteld' en weer gesynchroniseerd", () => {
@@ -111,7 +121,7 @@ test("de weergave verschuift niet zolang de synchronisatie onzeker of verloren i
     ...sc.frames.filter((f) => f.time < 20),
     ...noiseFrames.filter((f) => f.time < 18).map((f) => ({ ...f, time: f.time + 20 })),
   ];
-  const { snapshots } = follow(sc.hymn, frames);
+  const { snapshots } = follow(sc.hymn, frames, {}, SING_FROM_START);
   const unreliable = snapshots.filter((s) => s.status === "uncertain" || s.status === "lost");
   assert.ok(unreliable.length > 100, "te weinig onzekere frames om te testen");
   const lines = new Set(unreliable.map((s) => `${s.cursor.section}:${s.cursor.line}`));

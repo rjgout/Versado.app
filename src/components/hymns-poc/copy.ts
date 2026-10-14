@@ -1,5 +1,5 @@
-// Teksten van de Lofzangen-proef. Bewust nog geen i18n: de proefpagina is niet publiek (zie
-// docs/hymns/02-ARCHITECTURE.md). Bij een productie-implementatie gaan alle teksten via
+// Teksten van Lofzangen. Bewust nog geen i18n: de pagina is alleen voor beheerders (zie
+// docs/hymns/02-ARCHITECTURE.md). Bij openstelling voor gewone gebruikers gaan alle teksten via
 // src/lib/i18n/messages (nl als bron, alle uiReady-talen) en komt de pagina in het register van Kompas.
 
 import type { SyncStatus } from "@/lib/hymns/follow/session";
@@ -9,7 +9,7 @@ import type { RecognitionStatus } from "@/lib/hymns/recognize/recognizer";
 export const COPY = {
   title: "Lofzangen",
   intro:
-    "Alleen voor beheerders, in ontwikkeling: de herkenning is nog niet getest met echte uitvoeringen in een kerk. De telefoon luistert naar het orgel of de piano en volgt de muziek om de juiste tekstregel te tonen.",
+    "Alleen voor beheerders, in ontwikkeling: de herkenning is nog niet getest met echte uitvoeringen in een kerk. De telefoon luistert naar het orgel of de piano, zet de tekst klaar en loopt mee zodra er wordt gezongen.",
   privacy:
     "Het geluid wordt alleen op dit toestel geanalyseerd. Er wordt niets verzonden of opgeslagen. De microfoon stopt zodra je op Stop tikt, deze pagina verlaat of de app naar de achtergrond gaat.",
   start: "Start luisteren",
@@ -19,8 +19,14 @@ export const COPY = {
   micRequesting: "Toestemming vragen…",
   hymnLabel: "Lofzang",
   recognize: "Herken lofzang",
-  recognizeHelp: "Laat de telefoon luisteren en raden welke van de drie beschikbare lofzangen wordt gespeeld.",
-  followThis: "Volg deze lofzang",
+  recognizing: "Lofzang herkennen…",
+  chooseHint: "Kies hieronder een lofzang, of laat de telefoon luisteren en de lofzang herkennen.",
+  candidatesTitle: "Mogelijke lofzangen",
+  candidatesHelp: "Tik op de lofzang die wordt gespeeld.",
+  singingStarts: "Zang begint",
+  singingStartsHelp: "Tik als de gemeente begint te zingen.",
+  resync: "Opnieuw synchroniseren",
+  resumeFollow: "Volgen hervatten",
   stanzaLabel: "Couplet",
   orderToggle: "Volgorde kiezen",
   orderDone: "Klaar",
@@ -28,9 +34,25 @@ export const COPY = {
   orderPrefix: "Volgorde",
   chorus: "Refrein",
   lineFallbackNote: "Voor dit couplet is alleen de regel te volgen, geen woord.",
+  settings: "Instellingen",
+  settingsClose: "Instellingen sluiten",
+  viewTitle: "Tekstweergave",
+  viewStanza: "Volledig couplet",
+  viewKaraoke: "Karaoke per regel",
+  sizeTitle: "Tekstgrootte",
+  sizeNormal: "Normaal",
+  sizeLarge: "Groot",
+  sizeXLarge: "Extra groot",
+  displayTitle: "Weergave",
+  autoScroll: "Automatisch meescrollen",
+  calm: "Rustige kerkweergave",
+  technical: "Technische gegevens",
   testTitle: "Testbestand (blijft op dit toestel)",
   testHelp: "Kies een audiobestand met orgel- of pianospel; het wordt lokaal door dezelfde engine verwerkt.",
   testRunning: "Bestand wordt verwerkt…",
+  testAs: "Verwerken als",
+  testAsRecognize: "Herkennen",
+  testAsFollow: "Volgen (gekozen lofzang)",
 } as const;
 
 export const SYNC_TEXT: Record<SyncStatus, string> = {

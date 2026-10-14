@@ -52,7 +52,7 @@
     "test:social": "tsx --test tests/social-rules.test.ts tests/social.integration.test.ts tests/social-links.integration.test.ts",
     "test:time": "tsx --test tests/timeZone.test.ts tests/wordGameTime.test.ts tests/streakTravel.integration.test.ts tests/wordGame.integration.test.ts",
     "test:companion": "tsx --test tests/companion.integration.test.ts",
-    "test:hymns": "tsx --test tests/hymns-library.test.ts tests/hymns-stanzas.test.ts tests/hymns-score-following.test.ts tests/hymns-session.test.ts tests/hymns-recognition.test.ts tests/hymns-privacy.test.ts",
+    "test:hymns": "tsx --test tests/hymns-library.test.ts tests/hymns-stanzas.test.ts tests/hymns-score-following.test.ts tests/hymns-session.test.ts tests/hymns-phase.test.ts tests/hymns-live.test.ts tests/hymns-ui.test.ts tests/hymns-recognition.test.ts tests/hymns-privacy.test.ts",
     "hymns:eval": "tsx scripts/hymns/eval-synthetic.ts",
     "test:kompas": "tsx --test tests/kompas.test.ts tests/kompas.integration.test.ts tests/kompas-layout-integration.test.ts",
     "test:registration": "tsx --test tests/registration.integration.test.ts",

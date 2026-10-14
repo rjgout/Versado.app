@@ -47,3 +47,11 @@ test("overzichtspagina's behouden de normale shell", () => {
   assert.equal(isFocusRoute("/mysteries/001a"), false);
   assert.equal(isFocusRoute("/profile"), false);
 });
+
+test("Lofzangen gebruikt focus mode: terugbalk blijft, header en onderbalk verdwijnen", () => {
+  assert.equal(isFocusRoute("/dev/lofzangen"), true);
+  assert.equal(shellModeForRoute("/dev/lofzangen"), "focus");
+  assert.equal(isFocusRoute("/dev/lofzangen/extra"), false);
+  const back = readFileSync(path.join(process.cwd(), "src/components/SubpageBackBar.tsx"), "utf8");
+  assert.match(back, /pathname === "\/dev\/lofzangen"\) return \{ fallback: "\/content"/);
+});
