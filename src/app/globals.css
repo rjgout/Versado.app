@@ -534,3 +534,25 @@ nav[data-main-nav] a {
   pointer-events: none;
   user-select: none;
 }
+
+/* Lofzangen: één werkruimte ter hoogte van het scherm onder de terugbalk (zelfde aanpak als het legpuzzelbord).
+ * De kop, de leesruimte en de bedieningszone zijn kinderen van een flex-kolom; alleen de leesruimte scrolt. Er
+ * ligt dus niets over de tekst, het document scrolt niet (een iPhone-browser verschuift de pagina niet) en de
+ * bedieningszone houdt de safe area onderaan vrij. */
+[data-shell-mode="focus"] main:has(.hymns-workspace) {
+  max-width: none;
+  width: 100%;
+  padding: var(--header-height, var(--header-default)) 0 0 !important;
+}
+.hymns-workspace {
+  height: calc(100vh - var(--header-height, var(--header-default)));
+  height: calc(100dvh - var(--header-height, var(--header-default)));
+  min-height: 0;
+  padding-left: max(1rem, var(--vs-safe-area-left));
+  padding-right: max(1rem, var(--vs-safe-area-right));
+  padding-bottom: max(0.5rem, var(--vs-safe-area-bottom));
+  /* Vangnet voor zeer grote tekst op een klein scherm: past kop + leesruimte + bediening niet, dan scrolt de
+   * werkruimte zelf (nooit het document) en blijft alles bereikbaar. Bij normale maten scrolt hier niets. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}

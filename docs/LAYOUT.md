@@ -149,6 +149,12 @@ bevestiging boven de terugbalk, ook binnen stacking contexts. Er is geen eigen
 header, navigatie of shell-offset toegevoegd. De echte browsercontrole staat
 in `tests/word-game-hints.browser.mjs`.
 
+**Werkruimte in focus mode (Lofzangen).** Een activiteit die de tekst centraal zet en een eigen bedieningszone
+heeft gebruikt dezelfde aanpak als het legpuzzelbord: `[data-shell-mode="focus"] main:has(.hymns-workspace)`
+haalt de padding van `<main>` weg en de werkruimte is `calc(100dvh - var(--header-height))` hoog, met de
+safe areas als padding. Binnenin een flex-kolom met één scrollende leesruimte en een bediening als gewone
+flex-kind (geen sticky of fixed). Zie `docs/hymns/08-MOBIELE-UX.md`.
+
 ## Een nieuwe pagina of component bouwen
 
 - Plaats inhoud in `<main>` (de layout geeft de ruimte); nooit eigen

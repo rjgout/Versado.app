@@ -3,7 +3,7 @@ import type { FollowSnapshot } from "@/lib/hymns/follow/session";
 import type { LiveState } from "@/lib/hymns/live";
 import type { HymnLine, HymnStanza, HymnText } from "@/lib/hymns/types";
 import type { MicState } from "@/lib/hymns/audio/micListener";
-import { RECOGNITION_TEXT, SYNC_TEXT } from "./copy";
+import { RECOGNITION_TEXT } from "./copy";
 
 // Pure afleidingen voor de Lofzangen-weergave (getest in tests/hymns-ui.test.ts): welke statustekst staat er,
 // welke regels horen bij karaoke, en wanneer moet er gescrold worden. Geen React, geen DOM.
@@ -25,14 +25,15 @@ export function describeStatus(mic: MicState, live: LiveState): StatusView | nul
   }
   if (live.stage !== "following") return null;
   const s = live.snapshot;
-  if (!s || s.status === "idle" || s.status === "acquiring") return { label: SYNC_TEXT.acquiring, tone: "neutral", hint: null };
-  if (s.phase.phase === "interlude") return { label: "Tussenspel", tone: "info", hint: "De tekst staat klaar voor het volgende couplet." };
+  if (!s || s.status === "idle" || s.status === "acquiring") return { label: "Luisteren…", tone: "neutral", hint: null };
+  if (s.phase.phase === "interlude") return { label: "Tussenspel", tone: "info", hint: null };
   if (s.phase.phase === "prelude") {
-    return { label: "Voorspel", tone: "info", hint: s.phase.waiting ? "Wachten op het zangbegin. Tik op Zang begint als de gemeente zingt." : "De tekst staat klaar." };
+    // Alleen als de engine echt niet weet wanneer de zang begint is een uitleg nodig; anders blijft het scherm rustig.
+    return { label: "Voorspel", tone: "info", hint: s.phase.waiting ? "Tik op Zang begint zodra de gemeente zingt." : null };
   }
-  if (s.status === "uncertain") return { label: SYNC_TEXT.uncertain, tone: "warn", hint: null };
-  if (s.status === "lost") return { label: SYNC_TEXT.lost, tone: "danger", hint: null };
-  return { label: "Volgt muziek", tone: "ok", hint: s.lapUncertain ? "Controleer het couplet." : null };
+  if (s.status === "uncertain") return { label: "Even onzeker", tone: "warn", hint: "Lees gewoon mee." };
+  if (s.status === "lost") return { label: "Synchronisatie verloren", tone: "danger", hint: "Lees zelf verder." };
+  return { label: s.phase.startReason === "manual" ? "Handmatig volgen" : "Volgt muziek", tone: "ok", hint: s.lapUncertain ? "Controleer het couplet." : null };
 }
 
 export interface LyricLine {

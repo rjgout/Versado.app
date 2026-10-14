@@ -52,7 +52,7 @@ test("status: voorspel, volgt muziek, tussenspel en onzekerheid zijn te ondersch
   assert.equal(describeStatus("listening", live({ snapshot: snap({ phase: "interlude" }) }))?.label, "Tussenspel");
   assert.equal(describeStatus("listening", live({ snapshot: snap({ phase: "singing", status: "uncertain" }) }))?.tone, "warn");
   assert.equal(describeStatus("listening", live({ snapshot: snap({ phase: "singing", status: "lost" }) }))?.tone, "danger");
-  assert.equal(describeStatus("listening", live({ snapshot: snap({ phase: "prelude", status: "acquiring" }) }))?.label, "Muziek zoeken…");
+  assert.equal(describeStatus("listening", live({ snapshot: snap({ phase: "prelude", status: "acquiring" }) }))?.label, "Luisteren…");
   const waiting = describeStatus("listening", live({ snapshot: snap({ phase: "prelude", waiting: true }) }));
   assert.match(waiting!.hint ?? "", /Zang begint/);
   assert.equal(describeStatus("listening", live({ stage: "recognizing", hymn: null }))?.label, "Luisteren…");
@@ -138,6 +138,7 @@ test("ontwerp: actief woord = accentkleur zonder achtergrond, geen scrollIntoVie
   for (const file of ["LyricsView.tsx", "HymnsPocClient.tsx", "useFollowScroll.ts", "TechnicalPanel.tsx"]) {
     const code = read(`src/components/hymns-poc/${file}`);
     assert.equal(/scrollIntoView/.test(code), false, `${file} gebruikt scrollIntoView`);
+    assert.equal(/window\.(scrollBy|scrollTo|scroll)\(/.test(code), false, `${file} scrolt het venster`);
     assert.equal(/text-\[\d+px\]/.test(code), false, `${file} gebruikt een px-tekstgrootte`);
   }
   const css = read("src/app/globals.css");
@@ -153,4 +154,71 @@ test("weergavewissel raakt de engine niet: de keuzeknoppen roepen alleen setPref
   const prefHandlers = [...client.matchAll(/onChange=\{[^}]*setPrefs[^}]*\}/g)].map((m) => m[0]).join("\n");
   assert.equal(/restart|startListening|followHymn|startRecognizing|MicListener/.test(prefHandlers), false);
   assert.equal(/restart\(\)/.test(client.slice(client.indexOf("setPrefs({ view"))), false, "voorkeurscode herstart de engine");
+});
+
+test("layout: één werkruimte met flex-kolom, een eigen scrollende leesruimte en een bediening die niet over de tekst ligt", () => {
+  const client = read("src/components/hymns-poc/HymnsPocClient.tsx");
+  const css = read("src/app/globals.css");
+  assert.match(client, /className="hymns-workspace"/);
+  // de bedieningszone is een gewone flex-kind (shrink-0), geen sticky of fixed laag
+  assert.match(client, /data-hymns-bar className="flex shrink-0/);
+  for (const file of ["HymnsPocClient.tsx", "LyricsView.tsx", "TechnicalPanel.tsx"]) {
+    const code = read(`src/components/hymns-poc/${file}`);
+    assert.equal(/\b(sticky|fixed|absolute inset)\b/.test(code.split("\n").filter((l) => !/^\s*(\/\/|\/\*|\*)/.test(l)).join("\n").replace(/absolute bottom-3/g, "")), false, `${file} gebruikt sticky/fixed positionering`);
+  }
+  assert.match(css, /\.hymns-workspace\s*\{[^}]*100dvh[^}]*--header-height/s, "werkruimte rekent met de gemeten terugbalk");
+  assert.match(css, /\.hymns-workspace\s*\{[^}]*--vs-safe-area-bottom/s, "werkruimte houdt de safe area onderaan vrij");
+  assert.match(css, /\[data-shell-mode="focus"\] main:has\(\.hymns-workspace\)/);
+  // de leesruimte scrolt zelf en is toetsenbordbereikbaar
+  assert.match(client, /data-hymns-scroll/);
+  assert.match(client, /role="region"[\s\S]{0,120}tabIndex=\{0\}/);
+});
+
+test("instellingen, couplettvolgorde en technische gegevens openen als paneel over de weergave, niet inline", () => {
+  const client = read("src/components/hymns-poc/HymnsPocClient.tsx");
+  assert.match(client, /sheet === "settings"/);
+  assert.match(client, /sheet === "order"/);
+  assert.match(client, /sheet === "tech" && isAdmin/);
+  assert.equal(/settingsOpen|techOpen|orderMode/.test(client), false, "inline uitklapstaat gevonden");
+  const sheet = read("src/components/hymns-poc/Sheet.tsx");
+  assert.match(sheet, /showModal\(\)/);
+  assert.match(sheet, /onCancel/);
+  assert.match(sheet, /vs-safe-area-bottom/);
+  assert.match(sheet, /overflow-y-auto/);
+  // geen engine in het paneel
+  assert.equal(/HymnLiveEngine|MicListener|restart|followHymn/.test(sheet), false);
+});
+
+test("beginscherm en kop: geen introductie of privacyblok boven de tekst, privacy achter de infoknop", () => {
+  const client = read("src/components/hymns-poc/HymnsPocClient.tsx");
+  const heading = client.slice(client.indexOf("<header"), client.indexOf("</header>"));
+  assert.equal(/COPY\.intro|COPY\.privacy\b/.test(heading), false, "uitleg staat in de kop");
+  // de volledige uitleg staat alleen in het instellingenpaneel
+  const sheetPart = client.slice(client.indexOf('sheet === "settings"'), client.indexOf('sheet === "order"'));
+  assert.match(sheetPart, /COPY\.privacy\}/);
+  assert.match(sheetPart, /COPY\.intro/);
+  assert.equal(client.indexOf("COPY.privacy}") > client.indexOf('sheet === "settings"'), true);
+});
+
+test("bediening per toestand: maximaal één primaire actie", () => {
+  const client = read("src/components/hymns-poc/HymnsPocClient.tsx");
+  const bar = client.slice(client.indexOf("data-hymns-bar"), client.indexOf("{sheet === \"settings\""));
+  // per tak van de bediening hoogstens één primaryButton
+  const branches = bar.split(/\)\s*:\s*choosing\s*\?|\)\s*:\s*\(/);
+  for (const branch of branches) assert.ok((branch.match(/className=\{primaryButton\}/g) ?? []).length <= 1, "meer dan één primaire actie in één toestand");
+  assert.match(bar, /COPY\.stop/);
+  assert.match(bar, /COPY\.singingStarts/);
+  assert.match(bar, /COPY\.resync/);
+});
+
+test("aanraakdoelen: coupletknoppen en icoonknoppen zijn minstens 44 px, ook bij grote tekst", () => {
+  const client = read("src/components/hymns-poc/HymnsPocClient.tsx");
+  assert.match(client, /min-h-\[44px\] min-w-\[44px\]/);
+  assert.match(client, /!h-\[44px\] !w-\[44px\]/);
+});
+
+test("status: handmatig begonnen zang heet 'Handmatig volgen'", () => {
+  const s = snap({ phase: "singing" });
+  s.phase.startReason = "manual";
+  assert.equal(describeStatus("listening", live({ snapshot: s }))?.label, "Handmatig volgen");
 });

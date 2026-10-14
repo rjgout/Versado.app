@@ -22,8 +22,6 @@ interface Props {
   cursor: DisplayCursor | undefined;
   view: HymnView;
   size: HymnTextSize;
-  /** Container van het hele couplet (voor het bepalen of scrollen nodig is). */
-  containerRef: RefObject<HTMLDivElement | null>;
   /** Wordt aan de actieve regel gehangen. */
   activeRef: RefObject<HTMLParagraphElement | null>;
 }
@@ -47,7 +45,7 @@ function Words({ entry, activeWord, linking, lineActive }: { entry: LyricLine; a
   );
 }
 
-export default function LyricsView({ text, stanza, cursor, view, size, containerRef, activeRef }: Props) {
+export default function LyricsView({ text, stanza, cursor, view, size, activeRef }: Props) {
   const seq = lyricSequence(text, stanza);
   const active = activeSeq(seq, cursor);
 
@@ -64,23 +62,26 @@ export default function LyricsView({ text, stanza, cursor, view, size, container
       );
     };
     return (
-      <div ref={containerRef} className="grid min-h-[16rem] flex-1 grid-rows-[1fr_auto_1fr] gap-4 text-center" aria-label={`${COPY.stanzaLabel} ${stanza?.n ?? ""}`}>
-        <div className="flex items-end justify-center pb-2">{render(win.previous, `${KARAOKE_NEIGHBOR[size]} text-vs-fg-3`, false)}</div>
-        <div className="flex justify-center">
+      // De actuele regel staat in het midden van de leesruimte: twee gelijke buitenrijen (1fr) en een rij naar maat.
+      // De buren staan er vlak tegenaan met een vaste afstand en worden bij lange regels afgekapt, zodat ze nooit
+      // ver weg staan of de actuele regel verdringen.
+      <div className="grid min-h-full grid-rows-[1fr_auto_1fr] gap-3 text-center" data-hymns-karaoke aria-label={`${COPY.stanzaLabel} ${stanza?.n ?? ""}`}>
+        <div className="flex items-end justify-center overflow-hidden">{render(win.previous, `${KARAOKE_NEIGHBOR[size]} line-clamp-2 text-vs-fg-3`, false)}</div>
+        <div className="flex justify-center" data-hymns-karaoke-current>
           {render(win.current, `${KARAOKE_CURRENT[size]} ${win.ready ? "text-vs-fg-2" : "text-vs-fg"}`, true)}
         </div>
-        <div className="flex items-start justify-center pt-2">{render(win.next, `${KARAOKE_NEIGHBOR[size]} text-vs-fg-3`, false)}</div>
+        <div className="flex items-start justify-center overflow-hidden">{render(win.next, `${KARAOKE_NEIGHBOR[size]} line-clamp-2 text-vs-fg-3`, false)}</div>
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className="space-y-1.5">
+    <div className="space-y-0.5 pb-3" data-hymns-stanza>
       {seq.map((entry, at) => {
         const isActive = entry.seq === active;
         const heading =
           entry.section !== seq[at - 1]?.section ? (
-            <h3 key={`h-${entry.seq}`} className="mb-1 mt-3 text-sm font-bold uppercase tracking-wide text-vs-fg-3 first:mt-0">
+            <h3 key={`h-${entry.seq}`} className="mb-0.5 mt-4 text-xs font-bold uppercase tracking-wider text-vs-fg-3 first:mt-0">
               {entry.section === "verse" ? `${COPY.stanzaLabel} ${stanza?.n ?? ""}` : COPY.chorus}
             </h3>
           ) : null;
@@ -91,7 +92,7 @@ export default function LyricsView({ text, stanza, cursor, view, size, container
             <p
               ref={isActive ? activeRef : undefined}
               aria-current={isActive ? "true" : undefined}
-              className={`vs-wrap border-l-[3px] py-0.5 pl-3 leading-snug ${STANZA_SIZE[size]} ${isActive ? "border-vs-accent/50 text-vs-fg" : "border-transparent text-vs-fg-2"}`}
+              className={`vs-wrap border-l-[3px] py-0.5 pl-3 leading-normal ${STANZA_SIZE[size]} ${isActive ? "border-vs-accent/50 text-vs-fg" : "border-transparent text-vs-fg-2"}`}
             >
               <Words entry={entry} activeWord={isActive ? activeWordFor(entry, cursor, stanza, text) : null} linking={linking} lineActive={isActive} />
             </p>
