@@ -94,11 +94,11 @@ try {
   await done.page.locator("[data-official-time]").first().waitFor({ timeout: 15000 });
   await done.page.reload({ waitUntil: "networkidle" });
   await done.page.locator("[data-official-time]").first().waitFor({ timeout: 15000 });
-  await done.page.getByRole("button", { name: /Doorgaan|Verder/ }).last().click();
+  await done.page.getByRole("button", { name: /Naar de vraag/ }).last().click();
   await done.page.getByRole("heading", { name: "Nog één vraag" }).waitFor({ timeout: 15000 });
   await clickBack(done.page);
   await done.page.locator("[data-official-time]").first().waitFor({ timeout: 15000 });
-  await done.page.getByRole("button", { name: /Doorgaan|Verder/ }).last().click();
+  await done.page.getByRole("button", { name: /Naar de vraag/ }).last().click();
   const question = jigsawQuestionsForStory((await prisma.puzzleSession.findFirstOrThrow({ where: { matchId, ownerId: a.id }, include: { variant: { include: { definition: true } } } })).variant.definition.storyNumber).find((q) => true);
   const state = await resumeMatchPuzzle(a.id, matchId, "nl");
   const q = jigsawQuestionsForStory(state.story).find((item) => item.text.nl === state.question.text);

@@ -27,10 +27,12 @@ import { puzzlePolicy, type PuzzleFilter, type PuzzleHintType, type PuzzleHint, 
 import { activePuzzleHint, puzzleHintTarget } from "@/lib/puzzle/hints";
 import { filterPuzzleCatalog, puzzleCatalogPage } from "@/lib/puzzle/catalog";
 import type { JigsawAnswerResult } from "@/lib/jigsaw";
-import type { SoloRecordInfo } from "@/lib/puzzle/solo";
+import type { PuzzleCompletionView, SoloRecordInfo } from "@/lib/puzzle/solo";
+import CompletionCard, { CompletionRecord } from "@/components/puzzle/CompletionCard";
 import { useSetBackTarget } from "@/lib/backTarget";
+import { puzzleFeedback } from "@/lib/puzzle/feedback";
 
-type State = { hintBalance: number; id: string; version: number; status: string; image: string; seed: string; geometryVersion: number; pieceCount: PuzzlePieceCount; difficulty: PuzzleDifficulty; rulesVersion: number; snapshot: PuzzleSnapshot; question?: { text: string; options: string[] }; answer?: Answer };
+type State = { completion?: PuzzleCompletionView; hintBalance: number; id: string; version: number; status: string; image: string; seed: string; geometryVersion: number; pieceCount: PuzzlePieceCount; difficulty: PuzzleDifficulty; rulesVersion: number; snapshot: PuzzleSnapshot; question?: { text: string; options: string[] }; answer?: Answer };
 type Answer = (JigsawAnswerResult & { record?: SoloRecordInfo }) | { alreadyAnswered: true };
 type Point = { x: number; y: number };
 type Drag = { pointer: number; groupId: string; offset: Point };
@@ -43,6 +45,8 @@ type Chosen = { id: string; handle: string };
 const COUNTS: Record<Mode, number[]> = { SOLO: [6, 12, 24, 48, 96], COOP: [24, 48, 96, 150, 300], MATCH: [6, 12, 24, 48, 96] };
 const KEY = "versado:jigsaw-v2-session";
 /** Solo heeft geen remote sleepbewegingen. */
+/** Stilte na de laatste pijltjestoets voordat de verplaatsing naar de server gaat. */
+const NUDGE_IDLE_MS = 280;
 const NO_REMOTE: ReadonlyMap<string, RemoteEntry> = new Map();
 const PAGE_SIZE = 24;
 const difficulties: PuzzleDifficulty[] = ["DISCOVERER", "ADVENTURER", "EXPERT", "MASTER"];
@@ -167,9 +171,10 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
   const [hint, setHint] = useState<PuzzleHint | null>(() => activePuzzleHint(initial.snapshot)); const hintRef = useRef(hint); const selectedRef = useRef(selected); const menuButton = useRef<HTMLButtonElement>(null);
   const pending = useRef(false); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null); const image = useRef<HTMLImageElement | null>(null); const camera = useRef<PuzzleCamera>({ scale: 60, x: 0, y: 0 }); const frame = useRef<number | null>(null);
-  const mounted = useRef(true); const glideRequested = useRef(false);
+  const mounted = useRef(true); const glideRequested = useRef(false); const nudge = useRef<{ groupId: string; x: number; y: number } | null>(null); const nudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null); const nudgeFlight = useRef<Promise<boolean> | null>(null);
   const viewport = useRef<ViewportSize | null>(null); const paths = useRef(new Map<string, Path2D>()); const nearSnap = useRef(createNearSnapTracker());
   const pointers = useRef(new Map<number, Point>()); const drag = useRef<Drag | null>(null); const pan = useRef<Pan | null>(null); const pinch = useRef<Pinch | null>(null);
+  const feedback = puzzleFeedback(); const stageRef = useRef<Stage>("BOARD");
   const geometry = useMemo(() => createPuzzleGeometry(initial.pieceCount, initial.seed, initial.geometryVersion), [initial.pieceCount, initial.seed, initial.geometryVersion]); const table = useMemo(() => puzzleWorktable(geometry), [geometry]); const motion = useMemo(() => createPuzzleMotion(geometry), [geometry]); const completion = useMemo(() => createCompletionGate(), []); const completionTimer = useRef<ReturnType<typeof setTimeout> | null>(null); const policy = puzzlePolicy(state.difficulty, state.rulesVersion);
 
   // Eén plek die bepaalt waar een verzoek heen gaat; Solo blijft ongewijzigd.
@@ -181,9 +186,12 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
   // Eén bestemming per stap (lib/puzzle/navigation.ts): de vraag gaat terug naar de voltooide afbeelding,
   // alle andere stappen naar de puzzelkeuze (Solo) of het puzzeloverzicht (wedstrijd). Nooit browsergeschiedenis.
   const pathname = usePathname();
+  // De terugactie gebruikt altijd de actuele flush (de functie leest alleen refs, maar blijft zo ook bij latere wijzigingen juist).
+  useEffect(() => { stageRef.current = stage; }, [stage]);
+  const flushRef = useRef<() => Promise<boolean>>(() => Promise.resolve(true)); useEffect(() => { flushRef.current = flushNudge; });
   const back = useCallback(() => {
     if (previousPuzzleStage(stage) === "COMPLETE") { try { localStorage.removeItem(`${KEY}:question`); } catch {} match?.onStage?.("COMPLETE"); setStage("COMPLETE"); }
-    else onChooseAnother();
+    else void flushRef.current().then((saved) => { if (saved && mounted.current) onChooseAnother(); });
   }, [stage, onChooseAnother, match]);
   useSetBackTarget(pathname, JIGSAW_ROUTE, "", back);
 
@@ -210,7 +218,7 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
   }
   /** De voltooiingskaart komt pas nadat de laatste snap getoond is (kort); nooit twee keer en nooit over een latere stap heen. */
   function showCompletion() {
-    const reveal = () => { if (completionTimer.current !== null) { clearTimeout(completionTimer.current); completionTimer.current = null; } if (mounted.current) setStage((current) => current === "BOARD" ? "COMPLETE" : current); };
+    const reveal = () => { if (completionTimer.current !== null) { clearTimeout(completionTimer.current); completionTimer.current = null; } if (!mounted.current) return; if (stageRef.current === "BOARD") { const done = saved.current; /* Eén viering per sessie: een bevestigd nieuw wedstrijdrecord vervangt de gewone voltooiingstoon. */ feedback.play(match && done.completion?.best?.thisAttempt ? "record" : "complete", done.id); } setStage((current) => current === "BOARD" ? "COMPLETE" : current); };
     if (completion.waiting) return;
     completion.request(reveal, frameTime());
     // Noodgreep: ook zonder frames (verborgen tabblad) blijft de kaart niet langer weg dan de bovengrens.
@@ -229,16 +237,17 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
     if (movedGroupId) glideRequested.current = true;
     update(next); return next;
   }
-  async function runBoard(work: () => Promise<void>) {
-    if (!mounted.current || pending.current || saved.current.status !== "ACTIVE") return;
+  async function runBoard(work: () => Promise<void>): Promise<boolean> {
+    if (!mounted.current || pending.current || saved.current.status !== "ACTIVE") return false;
     pending.current = true; setBusy(true); setError("");
-    try { await work(); }
+    try { await work(); return true; }
     catch (cause) {
-      if (!mounted.current) return;
+      if (!mounted.current) return false;
       setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed"));
       // Ook na een verloren completion-response de autoritatieve fase herstellen.
       try { update(await call({ action: "resume", sessionId: saved.current.id }) as State); }
       catch { shown.current = saved.current; setState(saved.current); schedulePaint(); }
+      return false;
     } finally { pending.current = false; if (mounted.current) setBusy(false); }
   }
   function fit() { const canvas = canvasRef.current; if (!canvas) return; camera.current = fitCamera({ width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds); schedulePaint(); }
@@ -260,21 +269,52 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
       const b = count === 0 ? connection.b : connection.a;
       const joined = await action({ kind: "connect", a, b }, groupFor(current.snapshot, b)?.id);
       if (joined.version === current.version) break;
+      // Eén bevestigd-verbindingsgeluid per verplaatsing (ook bij een keten); de laatste snap krijgt de voltooiingsviering.
+      if (count === 0 && joined.status === "ACTIVE" && mounted.current) feedback.play("connect");
       current = joined; if (mounted.current) setMessage(t("jigsaw.piecesConnected"));
     }
     const moved = groupFor(current.snapshot, piece);
     if (current.status === "ACTIVE" && moved && boardSnapTarget(current.snapshot, geometry, current.difficulty, moved.id, current.rulesVersion)) await action({ kind: "anchor", groupId: moved.id }, moved.id);
   }
   async function finishDrag(active: Drag, point: Point) { const next = await action({ kind: "move", groupId: active.groupId, x: point.x - active.offset.x, y: point.y - active.offset.y }); await snapAfterMove(next, active.groupId); }
-  function boardDown(event: ReactPointerEvent<HTMLCanvasElement>) { if (pending.current || saved.current.status !== "ACTIVE") return; setMenuOpen(false); setHintsOpen(false); const point = screenPoint(event); pointers.current.set(event.pointerId, point); event.currentTarget.setPointerCapture(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } const hit = picked(worldPoint(point)); if (hit) { setSelected(hit.id); if (hit.group.anchored) { schedulePaint(); return; } drag.current = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: worldPoint(point).x - hit.group.x, y: worldPoint(point).y - hit.group.y } }; } else { setSelected(null); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; } schedulePaint(); }
+  function boardDown(event: ReactPointerEvent<HTMLCanvasElement>) { feedback.noteGesture(); flushNudge(); if (pending.current || saved.current.status !== "ACTIVE") return; setMenuOpen(false); setHintsOpen(false); const point = screenPoint(event); pointers.current.set(event.pointerId, point); event.currentTarget.setPointerCapture(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } const hit = picked(worldPoint(point)); if (hit) { setSelected(hit.id); if (hit.group.anchored) { schedulePaint(); return; } drag.current = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: worldPoint(point).x - hit.group.x, y: worldPoint(point).y - hit.group.y } }; feedback.play("pickup"); } else { setSelected(null); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; } schedulePaint(); }
   function boardMove(event: ReactPointerEvent<HTMLCanvasElement>) { if (!pointers.current.has(event.pointerId)) return; const point = screenPoint(event); pointers.current.set(event.pointerId, point); if (pointers.current.size >= 2) { updatePinch(); return; } if (drag.current?.pointer === event.pointerId) { const world = worldPoint(point); transientMove(drag.current.groupId, world.x - drag.current.offset.x, world.y - drag.current.offset.y); } else if (pan.current?.pointer === event.pointerId) { camera.current.x = pan.current.camera.x + point.x - pan.current.point.x; camera.current.y = pan.current.camera.y + point.y - pan.current.point.y; constrainCamera(); schedulePaint(); } }
   async function boardUp(event: ReactPointerEvent<HTMLCanvasElement>) { const point = screenPoint(event); const activeDrag = drag.current; pointers.current.delete(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } if (pinch.current) { pinch.current = null; const remaining = [...pointers.current.entries()][0]; if (remaining) pan.current = { pointer: remaining[0], point: remaining[1], camera: { ...camera.current } }; return; } if (activeDrag?.pointer === event.pointerId) { drag.current = null; schedulePaint(); await runBoard(() => finishDrag(activeDrag, worldPoint(point))); } if (pan.current?.pointer === event.pointerId) pan.current = null; }
   function boardCancel(event: ReactPointerEvent<HTMLCanvasElement>) { pointers.current.delete(event.pointerId); drag.current = null; pan.current = null; pinch.current = null; shown.current = saved.current; setState(saved.current); schedulePaint(); }
   function zoom(factor: number, around?: Point) { const canvas = canvasRef.current; if (!canvas) return; const center = around ?? { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 }; camera.current = zoomCamera(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds, factor, center); schedulePaint(); }
-  async function rotateSelected() { if (selected === null || state.difficulty !== "MASTER") return; await runBoard(async () => { const group = groupFor(saved.current.snapshot, selected); if (group && !group.anchored) await action({ kind: "rotate", groupId: group.id }); }); }
-  async function moveSelectedBy(dx: number, dy: number) { if (selected === null) return; await runBoard(async () => { const group = groupFor(saved.current.snapshot, selected); if (group && !group.anchored) { const next = await action({ kind: "move", groupId: group.id, x: group.x + dx, y: group.y + dy }); await snapAfterMove(next, group.id); } }); }
+  async function rotateSelected() { flushNudge(); if (selected === null || state.difficulty !== "MASTER") return; await runBoard(async () => { const group = groupFor(saved.current.snapshot, selected); if (group && !group.anchored) await action({ kind: "rotate", groupId: group.id }); }); }
+  // Pijltjestoetsen: de verplaatsing is direct zichtbaar en gaat na een korte stilte als één verplaatsing (met één snapcontrole) naar de server.
+  // Veel aanslagen geven zo niet evenveel serveracties en er gaat geen aanslag verloren terwijl een vorige actie nog loopt.
+  // Leegmaken is idempotent. Een navigatie wacht op de echte servercommit; bij een fout blijft de speler op het bord.
+  function flushNudge(): Promise<boolean> {
+    if (nudgeTimer.current !== null) { clearTimeout(nudgeTimer.current); nudgeTimer.current = null; }
+    // Tijdens een lopende commit kunnen toetsen nieuwe bewegingen bufferen; een vertrek wacht ook daarop.
+    if (nudgeFlight.current) return nudgeFlight.current.then((ok) => ok && nudge.current ? flushNudge() : ok);
+    const move = nudge.current; if (!move) return Promise.resolve(true);
+    const task = (async () => {
+      // Ook na het verlaten van het bord wachten we op een lopende actie: de laatste verplaatsing moet daarna nog vertrekken.
+      while (pending.current) await new Promise<void>((resolve) => setTimeout(resolve, 40));
+      if (nudge.current !== move) return false;
+      nudge.current = null;
+      // Na het verlaten van het bord is er geen scherm meer om bij te werken; de server blijft de enige bron van waarheid.
+      if (!mounted.current) { try { await action({ kind: "move", groupId: move.groupId, x: move.x, y: move.y }); return true; } catch { return false; } }
+      return runBoard(async () => { const next = await action({ kind: "move", groupId: move.groupId, x: move.x, y: move.y }); await snapAfterMove(next, move.groupId); });
+    })();
+    nudgeFlight.current = task;
+    void task.finally(() => { if (nudgeFlight.current === task) nudgeFlight.current = null; });
+    return task;
+  }
+  function moveSelectedBy(dx: number, dy: number) {
+    const piece = selectedRef.current;
+    if (piece === null || drag.current || saved.current.status !== "ACTIVE") return;
+    if (nudgeFlight.current) { void nudgeFlight.current.then((ok) => { if (ok && mounted.current && selectedRef.current === piece) moveSelectedBy(dx, dy); }); return; }
+    const group = groupFor(saved.current.snapshot, piece); if (!group || group.anchored) return;
+    const from = nudge.current?.groupId === group.id ? nudge.current : group; const position = clampGroupPosition(geometry, group, from.x + dx, from.y + dy);
+    nudge.current = { groupId: group.id, ...position }; transientMove(group.id, position.x, position.y);
+    if (nudgeTimer.current !== null) clearTimeout(nudgeTimer.current); nudgeTimer.current = setTimeout(() => { void flushNudge(); }, NUDGE_IDLE_MS);
+  }
   async function submit(choice: number) { if (match) { const outcome = await call({ action: "answer", choice }) as { correct: boolean; correctChoice: number | null; counted: boolean }; if (mounted.current) match.onAnswered(outcome); return; } // Een nieuw persoonlijk record verandert de recordoverzichten en ranglijsten: ongeldig maken via de live-datalaag.
-    const result = await liveMutation(() => request({ action: "answer", sessionId: saved.current.id, choice }) as Promise<Answer>, { invalidates: "gamesChanged" }); if (!mounted.current) return; setAnswer(result); const next = { ...saved.current, status: "ANSWERED", answer: result }; saved.current = next; setState(next); setOuter(next); remember(null); setStage("RESULT"); }
+    const result = await liveMutation(() => request({ action: "answer", sessionId: saved.current.id, choice }) as Promise<Answer>, { invalidates: "gamesChanged" }); if (!mounted.current) return; if ("correct" in result && result.correct && "record" in result && result.record && result.record.result !== "UNCHANGED") feedback.play("record", saved.current.id); setAnswer(result); const next = { ...saved.current, status: "ANSWERED", answer: result }; saved.current = next; setState(next); setOuter(next); remember(null); setStage("RESULT"); }
   function continueToQuestion() { if (match) match.onStage?.("QUESTION"); else { try { localStorage.setItem(`${KEY}:question`, state.id); } catch {} } setStage("QUESTION"); }
 
   useEffect(() => {
@@ -290,7 +330,9 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
       viewport.current = next; schedulePaint();
     };
     const observer = canvas ? new ResizeObserver(resize) : null; if (canvas) { observer?.observe(canvas); resize(); }
-    return () => { mounted.current = false; picture.onload = null; observer?.disconnect(); motion.clear(); completion.cancel(); if (completionTimer.current !== null) clearTimeout(completionTimer.current); if (frame.current !== null) cancelAnimationFrame(frame.current); frame.current = null; };
+    const lastChance = () => { void flushNudge(); };
+    window.addEventListener("pagehide", lastChance);
+    return () => { lastChance(); mounted.current = false; window.removeEventListener("pagehide", lastChance); picture.onload = null; observer?.disconnect(); motion.clear(); completion.cancel(); if (nudgeTimer.current !== null) clearTimeout(nudgeTimer.current); if (completionTimer.current !== null) clearTimeout(completionTimer.current); if (frame.current !== null) cancelAnimationFrame(frame.current); frame.current = null; };
     // De camera hoort bij deze ge-keyde sessie; een actie reset hem nooit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -306,6 +348,7 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.snapshot.hints]);
   async function requestHint(type: PuzzleHintType, filter?: Exclude<PuzzleFilter, null>, confirmPersonal = false) {
+    flushNudge();
     await runBoard(async () => {
       const next = await action({ kind: "hint", hint: type, confirmPersonal, ...(selected !== null ? { pieceId: selected } : {}), ...(filter ? { filter } : {}) });
       const active = activePuzzleHint(next.snapshot);
@@ -331,26 +374,44 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
 
   // Wedstrijd: de officiële puzzeltijd staat vast bij de laatste verbinding (completedAt van de server); de vraag staat daar los van.
   const officialMs = match && state.snapshot.completedAt ? Math.max(0, Date.parse(state.snapshot.completedAt) - match.startedAt) : null;
-  if (stage === "COMPLETE") return <Completion image={state.image} onContinue={continueToQuestion} t={t} officialMs={officialMs} />;
+  if (stage === "COMPLETE") return <Completion state={state} onContinue={continueToQuestion} t={t} officialMs={officialMs} matchMode={!!match} />;
   if (stage === "QUESTION") return <Question state={state} onSubmit={submit} t={t} matchMode={!!match} onLater={match?.onLater} />;
-  if (stage === "RESULT") return <Result answer={answer} question={state.question} onChooseAnother={onChooseAnother} onReplay={onReplay} t={t} />;
+  if (stage === "RESULT") return <Result state={state} answer={answer} question={state.question} onChooseAnother={onChooseAnother} onReplay={onReplay} t={t} />;
   const selectedGroup = selected === null ? null : groupFor(state.snapshot, selected);
-  return <FocusLayout className="puzzle-workspace gap-0"><section aria-busy={busy} className="relative min-h-0 flex-1 overflow-hidden bg-vs-surface"><canvas ref={canvasRef} data-active-hint={hint?.type ?? ""} aria-label={t("jigsaw.board")} aria-describedby="jigsaw-board-help" tabIndex={0} className="block h-full w-full touch-none outline-none focus-visible:ring-4 focus-visible:ring-vs-xp" onPointerDown={boardDown} onPointerMove={boardMove} onPointerUp={boardUp} onPointerCancel={boardCancel} onWheel={(event) => { event.preventDefault(); zoom(event.deltaY > 0 ? .9 : 1.1, screenPoint(event)); }} onKeyDown={async (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); const pieces = state.snapshot.groups.flatMap((group) => group.pieceIds); setSelected(pieces[(pieces.indexOf(selected ?? -1) + 1) % pieces.length]); } if (event.key === "0") { event.preventDefault(); fit(); } if ((event.key === "r" || event.key === "R") && state.difficulty === "MASTER") { event.preventDefault(); await rotateSelected(); } if (event.key === "ArrowLeft") { event.preventDefault(); await moveSelectedBy(-.2, 0); } if (event.key === "ArrowRight") { event.preventDefault(); await moveSelectedBy(.2, 0); } if (event.key === "ArrowUp") { event.preventDefault(); await moveSelectedBy(0, -.2); } if (event.key === "ArrowDown") { event.preventDefault(); await moveSelectedBy(0, .2); } }} />{hint?.type === "PREVIEW" && <div className="pointer-events-none absolute inset-3 rounded-xl bg-vs-surface/95 p-2"><NextImage src={state.image} alt={t("jigsaw.hintPreview")} fill unoptimized className="object-contain p-2" /></div>}<p id="jigsaw-board-help" className="sr-only">{t("jigsaw.boardHelp")}</p>{state.difficulty === "MASTER" && selectedGroup && !selectedGroup.anchored && <button type="button" aria-label={t("jigsaw.rotate")} title={t("jigsaw.rotate")} className="btn-primary absolute bottom-3 left-3 min-h-[60px] min-w-[60px] rounded-2xl !p-[12px] shadow-md" disabled={busy} onClick={rotateSelected}><RotateCw size={26} /></button>}<div className="absolute bottom-3 right-3"><button ref={menuButton} type="button" className="btn-secondary min-h-[60px] min-w-[60px] rounded-2xl !p-[12px] shadow-md" aria-label={t("jigsaw.boardMenu")} aria-expanded={menuOpen || hintsOpen} onClick={() => { setHintsOpen(false); setMenuOpen(!menuOpen); }}><Ellipsis size={26} /></button>{menuOpen && <div className="absolute bottom-full right-0 z-10 mb-3 w-64 max-w-[calc(100vw-1.5rem-var(--vs-safe-area-left)-var(--vs-safe-area-right))] max-h-[calc(100dvh-var(--header-height,var(--header-default))-60px-2.25rem-var(--vs-safe-area-bottom))] overflow-y-auto rounded-xl border border-vs-line !bg-vs-surface p-1 shadow-lg"><button type="button" className="btn-secondary min-h-11 w-full justify-start gap-2 text-left" disabled={busy} onClick={() => { setMenuOpen(false); setError(""); setHintsOpen(true); void inventory.refetch(); }}><Lightbulb size={22} className="shrink-0" />{t("jigsaw.useHint")}</button>{state.rulesVersion === 1 && <p className="p-2 text-sm text-vs-fg-2">{t("jigsaw.legacyRules")}</p>}<button type="button" className="btn-secondary w-full min-h-11 justify-start text-left" onClick={() => { fit(); setMenuOpen(false); }}>{t("jigsaw.fitBoard")}</button><button type="button" className="btn-secondary mt-1 w-full min-h-11 justify-start text-left" disabled={busy} onClick={onChooseAnother}>{t("jigsaw.chooseAnother")}</button></div>}{hintsOpen && <PuzzleHintPanel returnFocus={menuButton} snapshot={state.snapshot} difficulty={state.difficulty} rulesVersion={state.rulesVersion} selected={selected} canConnect={puzzleHintTarget(state.snapshot, geometry, "CONNECTION", selected ?? undefined) !== null} hintBalance={inventory.data?.hintBalance ?? null} inventoryBusy={inventory.isFetching} inventoryError={!!inventory.error} busy={busy} active={hint !== null} error={error} onRefresh={() => void inventory.refetch()} onShop={() => { if (!pending.current) { if (!match) remember(saved.current.id); router.push("/shop"); } }} onUse={(type, filter, confirmed) => void requestHint(type, filter, confirmed)} onClose={closeHints} />}</div><p aria-live="polite" className="sr-only">{message || t("jigsaw.connected", { n: connectedPieces(state.snapshot), total: state.pieceCount })}</p>{match && <p className="pointer-events-none absolute left-3 top-3 rounded-xl bg-vs-surface/90 px-3 py-1 font-mono text-lg font-bold tabular-nums shadow" aria-label={t("puzzleTogether.match.clock")}>{`${Math.floor(clock / 60000)}:${String(Math.floor(clock / 1000) % 60).padStart(2, "0")}`}</p>}{error && <p role="alert" className="absolute inset-x-3 top-3 rounded-xl bg-vs-surface p-3 text-vs-fg">{error}</p>}</section></FocusLayout>;
+  return <FocusLayout className="puzzle-workspace gap-0"><section aria-busy={busy} className="relative min-h-0 flex-1 overflow-hidden bg-vs-surface"><canvas ref={canvasRef} data-active-hint={hint?.type ?? ""} aria-label={t("jigsaw.board")} aria-describedby="jigsaw-board-help" tabIndex={0} className="block h-full w-full touch-none outline-none focus-visible:ring-4 focus-visible:ring-vs-xp" onPointerDown={boardDown} onPointerMove={boardMove} onPointerUp={boardUp} onPointerCancel={boardCancel} onBlur={() => { void flushNudge(); }} onWheel={(event) => { event.preventDefault(); zoom(event.deltaY > 0 ? .9 : 1.1, screenPoint(event)); }} onKeyDown={async (event) => { feedback.noteGesture(); if (!event.key.startsWith("Arrow")) flushNudge(); if (event.key === "Enter" || event.key === " ") { event.preventDefault(); if (!(await flushNudge()) || !mounted.current) return; const pieces = saved.current.snapshot.groups.flatMap((group) => group.pieceIds); const next = pieces[(pieces.indexOf(selectedRef.current ?? -1) + 1) % pieces.length]; selectedRef.current = next; setSelected(next); } if (event.key === "0") { event.preventDefault(); fit(); } if ((event.key === "r" || event.key === "R") && state.difficulty === "MASTER") { event.preventDefault(); await rotateSelected(); } if (event.key === "ArrowLeft") { event.preventDefault(); moveSelectedBy(-.2, 0); } if (event.key === "ArrowRight") { event.preventDefault(); moveSelectedBy(.2, 0); } if (event.key === "ArrowUp") { event.preventDefault(); moveSelectedBy(0, -.2); } if (event.key === "ArrowDown") { event.preventDefault(); moveSelectedBy(0, .2); } }} />{hint?.type === "PREVIEW" && <div className="pointer-events-none absolute inset-3 rounded-xl bg-vs-surface/95 p-2"><NextImage src={state.image} alt={t("jigsaw.hintPreview")} fill unoptimized className="object-contain p-2" /></div>}<p id="jigsaw-board-help" className="sr-only">{t("jigsaw.boardHelp")}</p>{state.difficulty === "MASTER" && selectedGroup && !selectedGroup.anchored && <button type="button" aria-label={t("jigsaw.rotate")} title={t("jigsaw.rotate")} className="btn-primary absolute bottom-3 left-3 min-h-[60px] min-w-[60px] rounded-2xl !p-[12px] shadow-md" disabled={busy} onClick={rotateSelected}><RotateCw size={26} /></button>}<div className="absolute bottom-3 right-3"><button ref={menuButton} type="button" className="btn-secondary min-h-[60px] min-w-[60px] rounded-2xl !p-[12px] shadow-md" aria-label={t("jigsaw.boardMenu")} aria-expanded={menuOpen || hintsOpen} onClick={() => { setHintsOpen(false); setMenuOpen(!menuOpen); }}><Ellipsis size={26} /></button>{menuOpen && <div className="absolute bottom-full right-0 z-10 mb-3 w-64 max-w-[calc(100vw-1.5rem-var(--vs-safe-area-left)-var(--vs-safe-area-right))] max-h-[calc(100dvh-var(--header-height,var(--header-default))-60px-2.25rem-var(--vs-safe-area-bottom))] overflow-y-auto rounded-xl border border-vs-line !bg-vs-surface p-1 shadow-lg"><button type="button" className="btn-secondary min-h-11 w-full justify-start gap-2 text-left" disabled={busy} onClick={() => { setMenuOpen(false); setError(""); setHintsOpen(true); void inventory.refetch(); }}><Lightbulb size={22} className="shrink-0" />{t("jigsaw.useHint")}</button>{state.rulesVersion === 1 && <p className="p-2 text-sm text-vs-fg-2">{t("jigsaw.legacyRules")}</p>}<button type="button" className="btn-secondary w-full min-h-11 justify-start text-left" onClick={() => { fit(); setMenuOpen(false); }}>{t("jigsaw.fitBoard")}</button><button type="button" className="btn-secondary mt-1 w-full min-h-11 justify-start text-left" disabled={busy} onClick={() => { void flushNudge().then((ok) => { if (ok && mounted.current) onChooseAnother(); }); }}>{t("jigsaw.chooseAnother")}</button></div>}{hintsOpen && <PuzzleHintPanel returnFocus={menuButton} snapshot={state.snapshot} difficulty={state.difficulty} rulesVersion={state.rulesVersion} selected={selected} canConnect={puzzleHintTarget(state.snapshot, geometry, "CONNECTION", selected ?? undefined) !== null} hintBalance={inventory.data?.hintBalance ?? null} inventoryBusy={inventory.isFetching} inventoryError={!!inventory.error} busy={busy} active={hint !== null} error={error} onRefresh={() => void inventory.refetch()} onShop={() => { if (!pending.current) void flushNudge().then((ok) => { if (ok && mounted.current) { if (!match) remember(saved.current.id); router.push("/shop"); } }); }} onUse={(type, filter, confirmed) => void requestHint(type, filter, confirmed)} onClose={closeHints} />}</div><p aria-live="polite" className="sr-only">{message || t("jigsaw.connected", { n: connectedPieces(state.snapshot), total: state.pieceCount })}</p>{match && <p className="pointer-events-none absolute left-3 top-3 rounded-xl bg-vs-surface/90 px-3 py-1 font-mono text-lg font-bold tabular-nums shadow" aria-label={t("puzzleTogether.match.clock")}>{`${Math.floor(clock / 60000)}:${String(Math.floor(clock / 1000) % 60).padStart(2, "0")}`}</p>}{error && <p role="alert" className="absolute inset-x-3 top-3 rounded-xl bg-vs-surface p-3 text-vs-fg">{error}</p>}</section></FocusLayout>;
 }
 
-function Completion({ image, onContinue, t, officialMs = null }: { image: string; onContinue: () => void; t: ReturnType<typeof useT>; officialMs?: number | null }) { return <FocusLayout className="page-fill max-w-none items-center justify-center gap-5 py-4 text-center"><div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-vs-surface shadow-lg"><NextImage src={image} alt={t("jigsaw.completedImage")} width={1440} height={960} unoptimized priority className="h-auto max-h-[68dvh] w-full object-contain" /></div><div><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.complete")}</h1>{officialMs !== null ? <p className="mt-2 text-vs-fg" data-official-time><span className="text-sm text-vs-fg-2">{t("puzzleTogether.match.officialTime")}</span><span className="block font-mono text-3xl font-extrabold tabular-nums">{formatPuzzleTime(officialMs)}</span><span className="mt-1 block text-sm text-vs-fg-2">{t("puzzleTogether.match.questionIndependent")}</span></p> : <p className="mt-2 text-vs-fg-2">{t("jigsaw.completeHint")}</p>}</div><button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" onClick={onContinue}>{t("jigsaw.continue")}</button></FocusLayout>; }
+/** De voltooiingskaart (Solo en Tegen elkaar): alleen door de server vastgelegde tijd en records; de vraag volgt nog. */
+function Completion({ state, onContinue, t, officialMs = null, matchMode = false }: { state: State; onContinue: () => void; t: ReturnType<typeof useT>; officialMs?: number | null; matchMode?: boolean }) {
+  const completion = state.completion; const elapsed = completion?.elapsedMs ?? officialMs;
+  const category = completion ? t(`puzzleRecords.cat${completion.hintCategory}`) : "";
+  const best = completion?.best ?? null; const bestTime = best ? formatPuzzleTime(best.elapsedMs) : "";
+  return <CompletionCard image={state.image} imageAlt={t("jigsaw.completedImage")} title={t("jigsaw.complete")}
+    time={{ label: matchMode ? t("puzzleTogether.match.officialTime") : t("jigsaw.completion.time"), value: elapsed !== null ? formatPuzzleTime(elapsed) : t("jigsaw.completion.timeUnavailable"), note: matchMode ? t("puzzleTogether.match.questionIndependent") : t("jigsaw.completion.timeNote") }}
+    facts={[t(levelKeys[state.difficulty]), t("jigsaw.pieces", { n: state.pieceCount }), ...(completion ? [category] : [])]} factsLabel={t("jigsaw.completion.facts")}
+    followUp={t("jigsaw.completion.questionNext")} action={{ label: t("jigsaw.completion.toQuestion"), onClick: onContinue }}>
+    {/* Alleen bevestigde recordinformatie: bij Tegen elkaar is het record al bij de finish vastgelegd, bij Solo ontstaat het pas bij een goed antwoord. */}
+    {matchMode && best?.thisAttempt && <CompletionRecord emphasis title={t("puzzleRecords.newRecord")} text={t("puzzleRecords.newRecordText", { category, time: bestTime })} />}
+    {matchMode && best && !best.thisAttempt && <CompletionRecord text={t("jigsaw.completion.bestSoFar", { category, time: bestTime })} />}
+    {!matchMode && completion && <CompletionRecord text={`${best ? t("jigsaw.completion.bestSoFar", { category, time: bestTime }) : t("jigsaw.completion.noBest")} ${t("jigsaw.completion.recordAfterAnswer")}`} />}
+  </CompletionCard>;
+}
 
-function Question({ state, onSubmit, t, matchMode = false, onLater }: { state: State; onSubmit: (choice: number) => Promise<void>; t: ReturnType<typeof useT>; matchMode?: boolean; onLater?: () => void }) { const [choice, setChoice] = useState<number | null>(null); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); async function submit() { if (choice === null || busy) return; setBusy(true); setError(""); try { await onSubmit(choice); } catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed")); } finally { setBusy(false); } } return <FocusLayout className="page-fill mx-auto max-w-2xl justify-center gap-5 py-4"><header><h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.questionIntro")}</h1><p className="mt-2 text-vs-fg-2">{matchMode ? t("puzzleTogether.match.questionHelp") : t("jigsaw.questionHint")}</p></header><section className="card"><p className="font-semibold">{state.question?.text}</p><div className="mt-4 grid gap-2">{state.question?.options.map((option, index) => <button key={option} type="button" className={`btn-secondary min-h-12 justify-start text-left ${choice === index ? "!border-vs-xp !bg-vs-xp/15" : ""}`} aria-pressed={choice === index} disabled={busy} onClick={() => setChoice(index)}>{option}</button>)}</div></section><button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" disabled={choice === null || busy} onClick={submit}>{busy ? t("jigsaw.answering") : t("jigsaw.confirmAnswer")}</button>{matchMode && onLater && <button type="button" className="btn-secondary min-h-12 w-full max-w-[440px] self-center" disabled={busy} onClick={onLater}>{t("puzzleTogether.match.questionLater")}</button>}{error && <p role="alert">{error}</p>}</FocusLayout>; }
+function Question({ state, onSubmit, t, matchMode = false, onLater }: { state: State; onSubmit: (choice: number) => Promise<void>; t: ReturnType<typeof useT>; matchMode?: boolean; onLater?: () => void }) { const heading = useRef<HTMLHeadingElement>(null); useEffect(() => { heading.current?.focus({ preventScroll: true }); }, []); const [choice, setChoice] = useState<number | null>(null); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); async function submit() { if (choice === null || busy) return; setBusy(true); setError(""); try { await onSubmit(choice); } catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed")); } finally { setBusy(false); } } return <FocusLayout className="page-fill mx-auto max-w-2xl justify-center gap-5 py-4"><header><h1 ref={heading} tabIndex={-1} className="text-2xl font-extrabold text-vs-fg outline-none">{t("jigsaw.questionIntro")}</h1><p className="mt-2 text-vs-fg-2">{matchMode ? t("puzzleTogether.match.questionHelp") : t("jigsaw.questionHint")}</p></header><section className="card"><p className="font-semibold">{state.question?.text}</p><div className="mt-4 grid gap-2">{state.question?.options.map((option, index) => <button key={option} type="button" className={`btn-secondary min-h-12 justify-start text-left ${choice === index ? "!border-vs-xp !bg-vs-xp/15" : ""}`} aria-pressed={choice === index} disabled={busy} onClick={() => setChoice(index)}>{option}</button>)}</div></section><button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" disabled={choice === null || busy} onClick={submit}>{busy ? t("jigsaw.answering") : t("jigsaw.confirmAnswer")}</button>{matchMode && onLater && <button type="button" className="btn-secondary min-h-12 w-full max-w-[440px] self-center" disabled={busy} onClick={onLater}>{t("puzzleTogether.match.questionLater")}</button>}{error && <p role="alert">{error}</p>}</FocusLayout>; }
 
-function Result({ answer, question, onChooseAnother, onReplay, t }: { answer: Answer | null; question: State["question"]; onChooseAnother: () => void; onReplay: () => void; t: ReturnType<typeof useT> }) {
+function Result({ state, answer, question, onChooseAnother, onReplay, t }: { state: State; answer: Answer | null; question: State["question"]; onChooseAnother: () => void; onReplay: () => void; t: ReturnType<typeof useT> }) {
   const result = answer && "correct" in answer ? answer : null;
   const text = result ? result.correct ? t("jigsaw.correct") : t("jigsaw.incorrect") : t("jigsaw.answerRecorded");
-  return <FocusLayout className="page-fill mx-auto max-w-2xl items-center justify-center gap-5 py-4 text-center">
-    <h1 className="text-2xl font-extrabold text-vs-fg">{t("jigsaw.complete")}</h1>
-    <p role="status" className="text-vs-fg-2">{text}</p>
-    {result && !result.correct && question && <p>{t("jigsaw.correctWas", { answer: question.options[result.correctChoice] })}</p>}
+  // Een onjuist antwoord is geen afgeronde activiteit: de kaart viert dan niet en zegt dat er niets is bijgeschreven.
+  const wrong = result !== null && !result.correct; const elapsed = state.completion?.elapsedMs ?? null;
+  return <CompletionCard image={state.image} imageAlt={t("jigsaw.completedImage")} title={wrong ? t("jigsaw.completion.resultIncorrectTitle") : t("jigsaw.complete")} mascot={wrong ? "encourage" : "celebrate"}
+    time={elapsed !== null ? { label: t("jigsaw.completion.time"), value: formatPuzzleTime(elapsed) } : null}
+    facts={[t(levelKeys[state.difficulty]), t("jigsaw.pieces", { n: state.pieceCount })]} factsLabel={t("jigsaw.completion.facts")}
+    action={{ label: t("jigsaw.another"), onClick: onChooseAnother }} secondary={{ label: t("jigsaw.replay"), onClick: onReplay }}>
+    <p role="status" className="vs-wrap max-w-[440px] text-vs-fg-2">{text}</p>
+    {wrong && <p className="vs-wrap max-w-[440px] text-sm font-semibold text-vs-fg">{t("jigsaw.completion.resultIncorrectNote")}</p>}
+    {result?.correct && <p className="text-sm font-semibold text-vs-fg">{t("jigsaw.completion.resultCorrectNote")}</p>}
+    {result && !result.correct && question && <p className="vs-wrap max-w-[440px]">{t("jigsaw.correctWas", { answer: question.options[result.correctChoice] })}</p>}
     {result && "record" in result && result.record && result.record.result !== "UNCHANGED" && <RecordNotice mode="SOLO" variantId={result.record.variantId} hintCategory={result.record.hintCategory} elapsedMs={result.record.elapsedMs} first={result.record.result === "CREATED"} />}
-    <button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" onClick={onChooseAnother}>{t("jigsaw.another")}</button>
-    <button type="button" className="btn-secondary min-h-12 w-full max-w-[440px] self-center" onClick={onReplay}>{t("jigsaw.replay")}</button>
-  </FocusLayout>;
+  </CompletionCard>;
 }
