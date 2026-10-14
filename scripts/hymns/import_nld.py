@@ -5,6 +5,7 @@ der Laatste Dagen) van de officiële website. Idempotent en hervatbaar.
 Fases (elk apart aan te roepen, standaard alles):
   index    haalt de officiële inhoudsopgave op en schrijft het manifest (nummer, slug, titel, afdeling, bron-URL's)
   fetch    haalt per lofzang de pagina en de bladmuziek-PDF op; bewaart sha256 van elk bronbestand
+  audio    haalt de officiële begeleidingsopname op (alleen voor onafhankelijke controle en tests)
   
 Bronbestanden komen in .cache/hymns/nld/ en horen NIET in git. Alleen gewijzigde of ontbrekende bestanden worden
 opnieuw opgehaald. Verzoeken zijn beperkt tot ~2 per seconde met een duidelijke User-Agent; bij een fout volgt een
@@ -117,6 +118,36 @@ def stage_fetch(cache: Path, hymns: list, only: set | None) -> dict:
     return log
 
 
+def stage_audio(cache: Path, hymns: list, only: set | None) -> None:
+    """Haalt de officiële begeleidingsopname (piano/orgel, AUDIO_ACCOMPANIMENT) op. Die dient uitsluitend als
+    onafhankelijke controle van de uit de PDF gelezen noten en als testmateriaal; hij gaat niet in git en niet naar gebruikers."""
+    (cache / "audio").mkdir(exist_ok=True)
+    log_file = cache / "fetch-log.json"
+    log = json.loads(log_file.read_text())
+    for h in hymns:
+        n = h["number"]
+        if only and n not in only:
+            continue
+        page = json.loads((cache / "pages" / f"{h['slug']}.json").read_text())
+        acc = next((a for a in page["meta"].get("audio") or [] if a.get("variant") == "AUDIO_ACCOMPANIMENT"), None)
+        rec = log.setdefault(str(n), {})
+        if not acc:
+            rec["audioUrl"] = None
+            continue
+        f = cache / "audio" / f"{h['slug']}.mp3"
+        try:
+            if not f.exists():
+                f.write_bytes(get(acc["mediaUrl"]))
+            rec["audioUrl"] = acc["mediaUrl"]
+            rec["audioSha"] = sha(f.read_bytes())
+            rec.pop("audioError", None)
+        except Exception as e:  # noqa: BLE001
+            rec["audioError"] = f"{type(e).__name__}: {e}"
+            print(f"{n}: audio FOUT {rec['audioError']}")
+        log_file.write_text(json.dumps(log, ensure_ascii=False, indent=1, sort_keys=True))
+    print(f"audio: {sum(1 for r in log.values() if r.get('audioSha'))} bestanden")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("stage", nargs="?", default="all")
@@ -129,6 +160,8 @@ def main():
     hymns = stage_index(cache) if a.stage in ("index", "all") or not (cache / "index.json").exists() else json.loads((cache / "index.json").read_text())["hymns"]
     if a.stage in ("fetch", "all"):
         stage_fetch(cache, hymns, only)
+    if a.stage in ("audio", "all"):
+        stage_audio(cache, hymns, only)
 
 
 if __name__ == "__main__":
