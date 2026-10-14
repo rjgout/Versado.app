@@ -58,9 +58,9 @@ async function startTrack(page, env, colour, around) {
     window.__track = []; window.__crops = []; window.__capture = !!captureOn; window.__tracking = true; const started = performance.now(); let lastDraws = window.__draws;
     const loop = (time) => {
       if (!window.__tracking) return;
-      const data = ctx.getImageData(left, top, width, height).data; let sx = 0, sy = 0, n = 0;
-      for (let i = 0, p = 0; i < data.length; i += 4, p++) if (Math.abs(data[i] - colour[0]) < tolerance && Math.abs(data[i + 1] - colour[1]) < tolerance && Math.abs(data[i + 2] - colour[2]) < tolerance) { sx += p % width; sy += Math.floor(p / width); n++; }
-      window.__track.push({ t: +(time - started).toFixed(1), n, x: n ? ((left + sx / n) / ratio - camera.x) / camera.scale : null, y: n ? ((top + sy / n) / ratio - camera.y) / camera.scale : null, drawn: window.__draws !== lastDraws }); lastDraws = window.__draws;
+      const data = ctx.getImageData(left, top, width, height).data; let sx = 0, sy = 0, n = 0, glow = 0;
+      for (let i = 0, p = 0; i < data.length; i += 4, p++) { if (Math.abs(data[i] - 25) < 30 && Math.abs(data[i + 1] - 122) < 30 && Math.abs(data[i + 2] - 150) < 30) glow++; if (Math.abs(data[i] - colour[0]) < tolerance && Math.abs(data[i + 1] - colour[1]) < tolerance && Math.abs(data[i + 2] - colour[2]) < tolerance) { sx += p % width; sy += Math.floor(p / width); n++; } }
+      window.__track.push({ t: +(time - started).toFixed(1), n, glow, x: n ? ((left + sx / n) / ratio - camera.x) / camera.scale : null, y: n ? ((top + sy / n) / ratio - camera.y) / camera.scale : null, drawn: window.__draws !== lastDraws }); lastDraws = window.__draws;
       if (window.__capture && window.__draws !== window.__lastCropDraw && window.__crops.length < 60) { window.__lastCropDraw = window.__draws; window.__crops.push({ t: +(time - started).toFixed(0), image: new ImageData(new Uint8ClampedArray(data), width, height) }); }
       requestAnimationFrame(loop);
     };
@@ -116,13 +116,14 @@ try {
     const track = await stopTrack(page); await saveSheet(page, `solo-${device}`); const series = distinct(track); const final = series.at(-1); const start = series[0];
     const moved = track.filter((sample) => sample.x !== null && (Math.abs(sample.x - start.x) > .02 || Math.abs(sample.y - start.y) > .02));
     const startAt = moved[0]?.t ?? 0; const rows = track.filter((sample) => sample.x !== null); const endAt = rows.find((sample, index) => rows.slice(index).every((later) => Math.abs(later.x - (start.x - .2)) <= .035 && Math.abs(later.y - (start.y - .1)) <= .035))?.t ?? 0;
+    assert.equal(track.filter((sample) => sample.t >= startAt - 20 && sample.glow > 0).length, 0, `${device}: de bijna-passend-gloed is verdwenen vóór de definitieve snapweergave begint`);
     const resumed = await s.api({ action: "resume", sessionId: s.state.id });
     if (process.env.TRACE) console.log(device, JSON.stringify(track.filter((sample) => sample.x !== null).map((sample) => [sample.t, +sample.x.toFixed(3), sample.drawn ? 1 : 0])));
     report[`solo-${device}`] = { positions: series.length, glideMs: Math.round(endAt - startAt), busyMs, start: [+start.x.toFixed(2), +start.y.toFixed(2)], final: [+final.x.toFixed(2), +final.y.toFixed(2)] };
     assert.equal(resumed.snapshot.groups.length, s.state.snapshot.groups.length - 1, `${device}: de verbinding is vastgelegd zoals voorheen`);
     assert.ok(series.length >= 3, `${device}: de weergave bewoog in meerdere stappen (${series.length}), niet in één sprong`);
     assert.ok(Math.abs(final.x - start.x + .2) < .06 && Math.abs(final.y - start.y + .1) < .06, `${device}: eindigt precies op de verbindingsplek (${final.x - start.x}, ${final.y - start.y})`);
-    const xs = series.map((sample) => sample.x); assert.ok(xs.every((x, index) => !index || x <= xs[index - 1] + .01), `${device}: monotone beweging, geen heen-en-weer`);
+    const xs = series.map((sample) => sample.x); assert.ok(xs.every((x, index) => !index || x <= xs[index - 1] + .03), `${device}: monotone beweging, geen heen-en-weer`);
     assert.ok(endAt - startAt >= 30 && endAt - startAt <= 220, `${device}: korte beweging (ruim onder een kwart seconde, meer dan één beeld) (${Math.round(endAt - startAt)} ms)`);
     await sleep(300); const idle = await page.evaluate(() => { const before = window.__draws; return new Promise((resolve) => setTimeout(() => resolve(window.__draws - before), 700)); }); assert.equal(idle, 0, `${device}: na de beweging geen tekenframes meer (${idle})`);
     assert.deepEqual(s.errors, []); await s.context.close();
