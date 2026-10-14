@@ -4480,6 +4480,14 @@ export const nl = {
     "positionRemapped": "Je leesplek is hersteld met de bewaarde sectie of tekst.",
     "availableFailed": "Deze studieles is niet meer toegankelijk. Je leespositie blijft bewaard.",
     "readNotice": "Dit is je leespositie. Scrollen markeert de les niet als gelezen.",
+    "markRead": "Markeren als gelezen",
+    "markingRead": "Markeren…",
+    "markReadNotice": "Dit is een bewuste afronding en kan meetellen voor je dagelijkse reeks.",
+    "readComplete": "Gemarkeerd als gelezen",
+    "readCompleteNotice": "Je leespositie blijft apart bewaard wanneer je deze les opnieuw leest.",
+    "readMarked": "Deze les is als gelezen gemarkeerd.",
+    "readFailed": "De les kon nog niet als gelezen worden gemarkeerd. Probeer opnieuw.",
+    "readRevisionChanged": "Er is een nieuwe versie van deze les. Open die eerst voordat je de les markeert.",
     "sections": "Lesonderdelen"
 },
   referencePreview: {

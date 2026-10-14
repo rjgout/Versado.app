@@ -51,7 +51,7 @@ Vier aparte dingen, die niet meer hetzelfde mogen betekenen:
 |---|---|---|
 | Oefenset bij een hoofdstuk/stap (alle leesroutes) | Ja | Volledig ingeleverde, door de server uitgedeelde set (`content:<sessie>`) |
 | Leesstap zonder vragen | Ja (nieuw) | Stap uitdrukkelijk afgerond, één keer per stap (`read-step:<les>`) |
-| "Markeer als gelezen" | Ja (nieuw) | Hoofdstuk voor het eerst als gelezen geregistreerd, één keer per inhoud (`read:<contentKey>`) |
+| "Markeer als gelezen" | Ja (nieuw) | Hoofdstuk of gepubliceerde studieles voor het eerst als gelezen geregistreerd, één keer per logische inhoud (`read:<contentKey>`) |
 | Openen/scrollen/begonnen met lezen | Nee | Geen afronding |
 | Samen studeren: gezamenlijk lezen | Nee | De host start de vragen; niemand rondde het lezen uitdrukkelijk af. De afgeronde stap zelf telt wel |
 | Introductie-, kinder- en podcastles | Ja | Les ingeleverd met de slaagvoorwaarde van de les |
@@ -114,6 +114,11 @@ zich via `recordLearningActivity` bij de rest; tot dan is dit geen vergeten gat.
   - Oefenen: `issueExerciseSession` en `submitExerciseSession`.
   - Overzicht: `getChapterStates`.
   - Herbeginnen: `resetReadingProgress`.
+- **`studyContent/readStatus.ts`**: de kleine adapter voor de doorlopende
+  StudyReader. Alleen de expliciete knop schrijft `ContentProgress.READ` met
+  `study:<workKey>:<periodId>:<sourceKey>` en claimt in dezelfde transactie de
+  centrale `read:<contentKey>`-activiteit. Leespositie, openen en scrollen
+  schrijven nooit deze status of een beloning.
 - **`courseProgress.ts`**: telling per cursus voor de cursuslijst en Vandaag.
 
 ## Oefenen: altijd via een uitgedeelde set

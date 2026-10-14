@@ -4011,6 +4011,14 @@ export const en: PartialMessages = {
     "positionRemapped": "Your reading location was restored using the saved section or text.",
     "availableFailed": "This study lesson is no longer accessible. Your reading position is retained.",
     "readNotice": "This shows your reading position. Scrolling does not mark the lesson as read.",
+    "markRead": "Mark as read",
+    "markingRead": "Marking…",
+    "markReadNotice": "This is a deliberate completion and may count toward your daily streak.",
+    "readComplete": "Marked as read",
+    "readCompleteNotice": "Your reading position remains saved separately when you read this lesson again.",
+    "readMarked": "This lesson has been marked as read.",
+    "readFailed": "The lesson could not be marked as read yet. Please try again.",
+    "readRevisionChanged": "There is a new version of this lesson. Open it before marking the lesson.",
     "sections": "Lesson sections"
 },
   referencePreview: {

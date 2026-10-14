@@ -4008,6 +4008,14 @@ export const de: PartialMessages = {
     "positionRemapped": "Deine Lesestelle wurde anhand des gespeicherten Abschnitts oder Texts wiederhergestellt.",
     "availableFailed": "Diese Studienlektion ist nicht mehr zugänglich. Deine Leseposition bleibt gespeichert.",
     "readNotice": "Dies zeigt deine Leseposition. Scrollen markiert die Lektion nicht als gelesen.",
+    "markRead": "Als gelesen markieren",
+    "markingRead": "Wird markiert…",
+    "markReadNotice": "Dies ist ein bewusster Abschluss und kann für deine tägliche Serie zählen.",
+    "readComplete": "Als gelesen markiert",
+    "readCompleteNotice": "Deine Leseposition bleibt separat gespeichert, wenn du diese Lektion erneut liest.",
+    "readMarked": "Diese Lektion wurde als gelesen markiert.",
+    "readFailed": "Die Lektion konnte noch nicht als gelesen markiert werden. Bitte versuche es erneut.",
+    "readRevisionChanged": "Es gibt eine neue Version dieser Lektion. Öffne sie, bevor du die Lektion markierst.",
     "sections": "Abschnitte der Lektion"
 },
   referencePreview: {
