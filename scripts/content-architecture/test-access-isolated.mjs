@@ -142,6 +142,10 @@ try {
     await run("npx",["tsx","--test","tests/reading-position.integration.test.ts"],env);
     if(process.argv.includes("--browser"))await run("npx",["tsx","tests/study-reader.browser.mjs"],env);
   }
+  if(process.argv.includes("--study-read")) {
+    await run("npx",["tsx","--test","tests/study-read.integration.test.ts"],env);
+    if(process.argv.includes("--browser"))await run("npx",["tsx","tests/study-read.browser.mjs"],env);
+  }
   if(process.argv.includes("--study-publication")) {
     await run("npx",["tsx","--test","tests/study-publication.integration.test.ts"],env);
     if(process.argv.includes("--browser"))await run("npx",["tsx","tests/study-publication.browser.mjs"],env);

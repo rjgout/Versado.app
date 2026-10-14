@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { RotateCcw, RefreshCw } from "lucide-react";
+import { CheckCircle2, RotateCcw, RefreshCw } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { useLiveQuery } from "@/lib/data/hooks";
@@ -60,6 +60,10 @@ function ReaderVisit({
     root = useRef<HTMLElement>(null),
     title = useRef<HTMLHeadingElement>(null);
   const [updating, setUpdating] = useState(false);
+  const [readState, setReadState] = useState(data.readState);
+  const [markingRead, setMarkingRead] = useState(false);
+  const [readError, setReadError] = useState<string | null>(null);
+  const [justMarkedRead, setJustMarkedRead] = useState(false);
   const [reference,setReference]=useState<{request:ReferenceRequest;label:string;element:HTMLElement}|null>(null);
   const moreAlive=useRef(true),moreSession=useRef(sessionKey),moreController=useRef<AbortController|null>(null);
   useLayoutEffect(()=>{
@@ -109,6 +113,38 @@ function ReaderVisit({
       router.refresh();
     }
     setUpdating(false);
+  }
+  async function markRead() {
+    if (readState.read || markingRead) return;
+    setMarkingRead(true);
+    setReadError(null);
+    try {
+      const result = await jsonMutation<{
+        state: { read: boolean; readAt: string | null };
+        changed: boolean;
+      }>(
+        "/api/study-read",
+        {
+          json: {
+            lessonEditionId: data.lesson.editionId,
+            revisionId: data.lesson.revisionId,
+            actionId: crypto.randomUUID(),
+          },
+          headers: { "X-Reading-Session": sessionKey },
+        },
+        { invalidates: "activityCompleted" },
+      );
+      setReadState(result.state);
+      setJustMarkedRead(result.changed);
+    } catch (error) {
+      setReadError(
+        error instanceof ApiRequestError && error.status === 409
+          ? t("studyReader.readRevisionChanged")
+          : t("studyReader.readFailed"),
+      );
+    } finally {
+      setMarkingRead(false);
+    }
   }
   async function moreReference(){
     if(!reference)throw new Error("REFERENCE_UNAVAILABLE");
@@ -185,6 +221,41 @@ function ReaderVisit({
             />
           </div>
           <p className="text-sm text-vs-fg-2">{t("studyReader.readNotice")}</p>
+          {readState.read ? (
+            <section
+              data-study-read-status="read"
+              role="status"
+              className="rounded-2xl border border-vs-success/35 bg-vs-success-soft p-4 text-vs-fg"
+            >
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-vs-success" aria-hidden />
+                <div className="min-w-0">
+                  <h2 className="font-bold">{t("studyReader.readComplete")}</h2>
+                  <p className="mt-1 text-sm text-vs-fg-2">{t("studyReader.readCompleteNotice")}</p>
+                </div>
+              </div>
+            </section>
+          ) : (
+            <div className="space-y-2">
+              <button
+                type="button"
+                data-mark-study-read
+                className="btn-primary min-h-12 max-w-full gap-2"
+                onClick={() => void markRead()}
+                disabled={markingRead || busy}
+              >
+                <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
+                {markingRead ? t("studyReader.markingRead") : t("studyReader.markRead")}
+              </button>
+              <p className="text-sm text-vs-fg-2">{t("studyReader.markReadNotice")}</p>
+              {readError && <p role="status" className="text-sm text-vs-danger">{readError}</p>}
+            </div>
+          )}
+          {justMarkedRead && (
+            <p role="status" className="text-sm font-semibold text-vs-success">
+              {t("studyReader.readMarked")}
+            </p>
+          )}
           <button
             type="button"
             className="btn-secondary min-h-12 max-w-full gap-2"

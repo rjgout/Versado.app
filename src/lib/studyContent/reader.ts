@@ -3,9 +3,11 @@ import { getPublishedStudyLesson, type PublishedStudyDTO } from "./revisions";
 import { getReadingPosition } from "./readingPosition";
 import { issueReadingVisitProof } from "./readingVisitProof";
 import type { ReadingPositionState } from "./readingPositionContract";
+import { getStudyLessonReadState, type StudyReadState } from "./readStatus";
 export interface StudyReaderDTO {
   lesson: PublishedStudyDTO;
   positionState: ReadingPositionState;
+  readState: StudyReadState;
   media: Array<{ mediaKey: string; mediaId: string | null }>;
   visitProof: string | null;
 }
@@ -18,12 +20,13 @@ export async function getStudyReader(
 ): Promise<StudyReaderDTO | null> {
   const lesson = await getPublishedStudyLesson(actor, lessonId, collectionId);
   if (!lesson) return null;
-  const [positionState, bindings] = await Promise.all([
+  const [positionState, bindings, readState] = await Promise.all([
     getReadingPosition(actor, lesson.editionId),
     prisma.studyRevisionMedia.findMany({
       where: { revisionId: lesson.revisionId },
       select: { mediaKey: true, media: { select: { id: true, status: true } } },
     }),
+    getStudyLessonReadState(prisma, actor.id, lesson),
   ]);
   // Een gelijktijdige pointerwissel is zichtbaar als update, maar vervangt deze
   // gevalideerde body niet. Media-API hercontroleert actuele publicatierechten.
@@ -33,6 +36,7 @@ export async function getStudyReader(
       ? issueReadingVisitProof(actor.id, lesson.editionId, lesson.revisionId, sessionKey)
       : null,
     positionState,
+    readState,
     media: bindings.map((b) => ({
       mediaKey: b.mediaKey,
       mediaId: b.media.status === "READY" ? b.media.id : null,
