@@ -19,6 +19,7 @@ import { useT } from "@/components/I18nProvider";
 import { createPuzzleGeometry } from "@/lib/puzzle/geometry";
 import { renderPuzzle } from "@/lib/puzzle/render";
 import { createNearSnapTracker, prefersReducedMotion } from "@/lib/puzzle/nearSnap";
+import { createPuzzleMotion, frameTime, wallTime, type RemoteEntry } from "@/lib/puzzle/motion";
 import { boardSnapTarget, connectedPieces, findSnapConnection, groupFor, worldOf } from "@/lib/puzzle/engine";
 import { clampGroupPosition, groupMemberAt, puzzleRenderOrder, puzzleWorktable } from "@/lib/puzzle/worktable";
 import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
@@ -41,6 +42,8 @@ type Mode = "SOLO" | "COOP" | "MATCH";
 type Chosen = { id: string; handle: string };
 const COUNTS: Record<Mode, number[]> = { SOLO: [6, 12, 24, 48, 96], COOP: [24, 48, 96, 150, 300], MATCH: [6, 12, 24, 48, 96] };
 const KEY = "versado:jigsaw-v2-session";
+/** Solo heeft geen remote sleepbewegingen. */
+const NO_REMOTE: ReadonlyMap<string, RemoteEntry> = new Map();
 const PAGE_SIZE = 24;
 const difficulties: PuzzleDifficulty[] = ["DISCOVERER", "ADVENTURER", "EXPERT", "MASTER"];
 const levelDescriptions = { DISCOVERER: "jigsaw.discovererDescription", ADVENTURER: "jigsaw.adventurerDescription", EXPERT: "jigsaw.expertDescription", MASTER: "jigsaw.masterDescription" } as const;
@@ -164,10 +167,10 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
   const [hint, setHint] = useState<PuzzleHint | null>(() => activePuzzleHint(initial.snapshot)); const hintRef = useRef(hint); const selectedRef = useRef(selected); const menuButton = useRef<HTMLButtonElement>(null);
   const pending = useRef(false); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null); const image = useRef<HTMLImageElement | null>(null); const camera = useRef<PuzzleCamera>({ scale: 60, x: 0, y: 0 }); const frame = useRef<number | null>(null);
-  const mounted = useRef(true); const stopAnimation = useRef<(() => void) | null>(null);
+  const mounted = useRef(true); const glideRequested = useRef(false);
   const viewport = useRef<ViewportSize | null>(null); const paths = useRef(new Map<string, Path2D>()); const nearSnap = useRef(createNearSnapTracker());
   const pointers = useRef(new Map<number, Point>()); const drag = useRef<Drag | null>(null); const pan = useRef<Pan | null>(null); const pinch = useRef<Pinch | null>(null);
-  const geometry = useMemo(() => createPuzzleGeometry(initial.pieceCount, initial.seed, initial.geometryVersion), [initial.pieceCount, initial.seed, initial.geometryVersion]); const table = useMemo(() => puzzleWorktable(geometry), [geometry]); const policy = puzzlePolicy(state.difficulty, state.rulesVersion);
+  const geometry = useMemo(() => createPuzzleGeometry(initial.pieceCount, initial.seed, initial.geometryVersion), [initial.pieceCount, initial.seed, initial.geometryVersion]); const table = useMemo(() => puzzleWorktable(geometry), [geometry]); const motion = useMemo(() => createPuzzleMotion(geometry), [geometry]); const policy = puzzlePolicy(state.difficulty, state.rulesVersion);
 
   // Eén plek die bepaalt waar een verzoek heen gaat; Solo blijft ongewijzigd.
   const call = (body: Record<string, unknown>) => match ? request({ ...body, matchId: match.id, sessionId: undefined }, "/api/puzzle/match") : request(body);
@@ -188,13 +191,15 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
   function constrainCamera() { const canvas = canvasRef.current; if (canvas) camera.current = constrainViewport(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds); }
   function paint() {
     const canvas = canvasRef.current; if (!canvas) return;
-    const snapshot = shown.current.snapshot; const draggedGroupId = drag.current?.groupId ?? null;
+    const snapshot = shown.current.snapshot; const draggedGroupId = drag.current?.groupId ?? null; const now = frameTime();
+    // De bevestigde stand staat al in `shown`; de bewegingslaag laat een bevestigde snap alleen kort naar zijn plek glijden.
+    motion.update({ snapshot, remote: NO_REMOTE, now, wall: wallTime(), enabled: !prefersReducedMotion(), glide: glideRequested.current, maxDistance: Math.max(policy.snap, policy.boardSnapDistance) + .1 }); glideRequested.current = false;
     // Alleen lokaal en alleen tijdens het eigen slepen: de engine zegt of loslaten hier nu zou snappen.
     const moving = draggedGroupId === null ? undefined : snapshot.groups.find((group) => group.id === draggedGroupId);
-    const glow = moving ? nearSnap.current.update({ snapshot, geometry, difficulty: shown.current.difficulty, rulesVersion: shown.current.rulesVersion, groupId: moving.id, x: moving.x, y: moving.y, now: performance.now(), reducedMotion: prefersReducedMotion() }) : nearSnap.current.reset();
-    if (nearSnap.current.animating) schedulePaint();
+    const glow = moving ? nearSnap.current.update({ snapshot, geometry, difficulty: shown.current.difficulty, rulesVersion: shown.current.rulesVersion, groupId: moving.id, x: moving.x, y: moving.y, now, reducedMotion: prefersReducedMotion() }) : nearSnap.current.reset();
+    if (nearSnap.current.animating || motion.active(now)) schedulePaint();
     renderPuzzle(canvas, {
-      geometry, table, camera: camera.current, image: image.current, paths: paths.current, snapshot, groups: puzzleRenderOrder(snapshot.groups, draggedGroupId),
+      geometry, table, camera: camera.current, image: image.current, paths: paths.current, snapshot, groups: puzzleRenderOrder(motion.groups(snapshot.groups, now), draggedGroupId),
       place: (group, out) => { out.lifted = group.id === draggedGroupId; },
       selectedPiece: selectedRef.current, hint: hintRef.current?.target,
       backdrop: state.rulesVersion === 1 || policy.showOutline || policy.showGhost, ghost: policy.showGhost, outline: policy.showOutline,
@@ -202,26 +207,6 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
     });
   }
   function update(next: State) { inventory.setData({ hintBalance: next.hintBalance }); saved.current = next; if (!mounted.current) return; shown.current = next; setState(next); setOuter(next); if (!match) remember(next.id); if (next.status === "COMPLETED") setStage("COMPLETE"); if (next.status === "ANSWERED") setStage("RESULT"); schedulePaint(); }
-  async function animateSnap(before: State, next: State, groupId: string) {
-    const moving = before.snapshot.groups.find((group) => group.id === groupId);
-    const target = moving && groupFor(next.snapshot, moving.pieceIds[0]);
-    if (!moving || !target || next.version === before.version || !mounted.current || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const to = worldOf(geometry, target, moving.pieceIds[0]);
-    if (Math.hypot(to.x - moving.x, to.y - moving.y) < 1e-9) return;
-    await new Promise<void>((resolve) => {
-      const start = performance.now(); let animation = 0;
-      const finish = () => { cancelAnimationFrame(animation); stopAnimation.current = null; resolve(); };
-      stopAnimation.current = finish;
-      const step = (now: number) => {
-        if (!mounted.current) { finish(); return; }
-        const progress = Math.min(1, (now - start) / 140); const eased = 1 - (1 - progress) ** 3;
-        shown.current = { ...before, snapshot: { ...before.snapshot, groups: before.snapshot.groups.map((group) => group.id === groupId ? { ...group, x: moving.x + (to.x - moving.x) * eased, y: moving.y + (to.y - moving.y) * eased } : group) } };
-        paint();
-        if (progress < 1) animation = requestAnimationFrame(step); else finish();
-      };
-      animation = requestAnimationFrame(step);
-    });
-  }
   async function action(operation: object, movedGroupId?: string) {
     const current = saved.current; const body = { action: "act", sessionId: current.id, version: current.version, actionId: crypto.randomUUID(), operation };
     if ("kind" in operation && operation.kind === "hint") {
@@ -230,7 +215,8 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
       return await liveMutation(() => call(body) as Promise<State>, { invalidates: "hintsChanged", onSuccess: update });
     }
     const next = await call(body) as State;
-    if (movedGroupId) await animateSnap(current, next, movedGroupId);
+    // De bevestigde stand geldt direct (geen vertraging van de commit); alleen het tekenen glijdt kort naar de definitieve plek.
+    if (movedGroupId) glideRequested.current = true;
     update(next); return next;
   }
   async function runBoard(work: () => Promise<void>) {
@@ -294,7 +280,7 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
       viewport.current = next; schedulePaint();
     };
     const observer = canvas ? new ResizeObserver(resize) : null; if (canvas) { observer?.observe(canvas); resize(); }
-    return () => { mounted.current = false; picture.onload = null; observer?.disconnect(); stopAnimation.current?.(); if (frame.current !== null) cancelAnimationFrame(frame.current); frame.current = null; };
+    return () => { mounted.current = false; picture.onload = null; observer?.disconnect(); motion.clear(); if (frame.current !== null) cancelAnimationFrame(frame.current); frame.current = null; };
     // De camera hoort bij deze ge-keyde sessie; een actie reset hem nooit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
