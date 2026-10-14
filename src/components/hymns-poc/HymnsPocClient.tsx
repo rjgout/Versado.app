@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDown, ChevronDown, Mic, MicOff, Music, Play, RefreshCw, Settings2, ShieldCheck, Square } from "lucide-react";
+import { ArrowDown, ChevronDown, Mic, MicOff, Music, Play, RefreshCw, Rows3, Settings2, ShieldCheck, Square, TextQuote } from "lucide-react";
 import { POC_LIBRARY, listHymns } from "@/lib/hymns/library";
 import { MicListener, decodeAudioFile, type MicState } from "@/lib/hymns/audio/micListener";
 import { HymnLiveEngine, type LiveState } from "@/lib/hymns/live";
@@ -121,8 +121,8 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
       eng.setStanzaOrder(order);
       if (intent === "recognize") eng.startRecognizing();
       else {
-        eng.followHymn(chosen, "manual");
-        if (idleStanza !== (HYMNS.find((h) => h.number === chosen)?.text.stanzas[0]?.n ?? 1)) eng.selectStanza(idleStanza);
+        eng.followHymn(hymn.number, "manual");
+        if (idleStanza !== (hymn.text.stanzas[0]?.n ?? 1)) eng.selectStanza(idleStanza);
       }
       setLive(eng.state());
       if (!micRef.current) {
@@ -137,7 +137,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
       }
       await micRef.current.start();
     },
-    [chosen, getEngine, handleSamples, idleStanza, order, schedule]
+    [getEngine, handleSamples, hymn, idleStanza, order, schedule]
   );
 
   const stopMic = useCallback(() => {
@@ -267,6 +267,17 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
             {started ? <p className="text-xs font-bold uppercase tracking-wide text-vs-fg-3">{COPY.hymnLabel}</p> : null}
             <h1 className="vs-wrap text-xl font-bold text-vs-fg">{title}</h1>
           </div>
+          <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            className={iconButton}
+            data-hymns-view-toggle
+            aria-label={prefs.view === "stanza" ? `${COPY.viewTitle}: ${COPY.viewKaraoke}` : `${COPY.viewTitle}: ${COPY.viewStanza}`}
+            title={prefs.view === "stanza" ? COPY.viewKaraoke : COPY.viewStanza}
+            onClick={() => setPrefs({ view: prefs.view === "stanza" ? "karaoke" : "stanza" })}
+          >
+            {prefs.view === "stanza" ? <TextQuote className="h-5 w-5" aria-hidden="true" /> : <Rows3 className="h-5 w-5" aria-hidden="true" />}
+          </button>
           <button
             type="button"
             className={iconButton}
@@ -277,6 +288,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
           >
             <Settings2 className="h-5 w-5" aria-hidden="true" />
           </button>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -493,7 +505,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
       <div
         ref={barRef}
         data-hymns-bar
-        className="sticky bottom-0 z-10 flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-vs-line bg-vs-surface/95 p-2 shadow-lg backdrop-blur"
+        className="sticky bottom-[var(--vs-safe-area-bottom,0px)] z-10 flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-vs-line bg-vs-surface/95 p-2 shadow-lg backdrop-blur"
       >
         {detached ? (
           <button type="button" className={secondaryButton} onClick={resume}>

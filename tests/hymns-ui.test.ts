@@ -148,6 +148,7 @@ test("weergavewissel raakt de engine niet: de keuzeknoppen roepen alleen setPref
   const client = read("src/components/hymns-poc/HymnsPocClient.tsx");
   assert.match(client, /setPrefs\(\{ view: v\.id \}\)/);
   assert.match(client, /setPrefs\(\{ size: s\.id \}\)/);
+  assert.match(client, /data-hymns-view-toggle[\s\S]*?setPrefs\(\{ view: prefs\.view === "stanza" \? "karaoke" : "stanza" \}\)/, "snelle weergavewissel in de kop");
   // geen herstart van de engine of microfoon bij een voorkeur
   const prefHandlers = [...client.matchAll(/onChange=\{[^}]*setPrefs[^}]*\}/g)].map((m) => m[0]).join("\n");
   assert.equal(/restart|startListening|followHymn|startRecognizing|MicListener/.test(prefHandlers), false);
