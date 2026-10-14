@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useState } from "react";
-import { Bell, BellRing, CalendarClock, Mail, RotateCcw, Sparkles, Volume2 } from "lucide-react";
+import { useEffect, useId, useState, useSyncExternalStore } from "react";
+import { Bell, BellRing, CalendarClock, Mail, RotateCcw, Smartphone, Sparkles, Volume2 } from "lucide-react";
 import AppSelect from "@/components/AppSelect";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { getLanguage } from "@/lib/languages";
 import { formatTag } from "@/lib/handle";
 import { isPushSupported } from "@/lib/pushClient";
+import { FEEDBACK_CHANGE_EVENT, puzzleFeedback, type FeedbackKind } from "@/lib/puzzle/feedback";
 import {
   ProfileCard,
   SettingsActions,
@@ -101,6 +102,52 @@ export function ReadAloudView({
           <SettingsStatus>{t("profile.noVoices")}</SettingsStatus>
         </div>
       )}
+    </SettingsSection>
+  );
+}
+
+function subscribeFeedback(listener: () => void) {
+  window.addEventListener(FEEDBACK_CHANGE_EVENT, listener); window.addEventListener("storage", listener);
+  return () => { window.removeEventListener(FEEDBACK_CHANGE_EVENT, listener); window.removeEventListener("storage", listener); };
+}
+
+/** Een apparaatlokale voorkeur: standaard uit, bewaard in localStorage (geen server, geen account). */
+function useFeedbackPreference(kind: FeedbackKind): [boolean, (value: boolean) => void] {
+  const value = useSyncExternalStore(subscribeFeedback, () => puzzleFeedback().isEnabled(kind), () => false);
+  return [value, (next) => {
+    const feedback = puzzleFeedback();
+    // De tik op de schakelaar is het gebruikersgebaar waarmee geluid ontgrendeld wordt.
+    feedback.setEnabled(kind, next); if (next) { feedback.noteGesture(); feedback.play("connect"); }
+  }];
+}
+
+/** Spelgeluiden en haptische feedback (Legpuzzel 2.0): twee losse schakelaars, standaard uit, alleen op dit apparaat. */
+export function GameFeedbackView() {
+  const t = useT();
+  const [sound, setSound] = useFeedbackPreference("sound");
+  const [haptics, setHaptics] = useFeedbackPreference("haptics");
+  // Pas na het laden bekend (server en browser verschillen); tot dan geen foutieve "niet ondersteund".
+  const hapticsKnown = useSyncExternalStore(() => () => undefined, () => puzzleFeedback().hapticsSupported(), () => true);
+  const soundKnown = useSyncExternalStore(() => () => undefined, () => puzzleFeedback().soundSupported(), () => true);
+  return (
+    <SettingsSection description={t("profile.gameFeedback.text")}>
+      <SettingsToggleRow
+        icon={<Volume2 className="h-5 w-5 text-vs-accent" aria-hidden />}
+        label={t("profile.gameFeedback.sound")}
+        description={soundKnown ? t("profile.gameFeedback.soundHint") : t("profile.gameFeedback.soundUnsupported")}
+        checked={sound}
+        disabled={!soundKnown && !sound}
+        onChange={() => setSound(!sound)}
+      />
+      <SettingsToggleRow
+        icon={<Smartphone className="h-5 w-5 text-vs-accent" aria-hidden />}
+        label={t("profile.gameFeedback.haptics")}
+        description={hapticsKnown ? t("profile.gameFeedback.hapticsHint") : t("profile.gameFeedback.hapticsUnsupported")}
+        checked={haptics}
+        disabled={!hapticsKnown && !haptics}
+        onChange={() => setHaptics(!haptics)}
+      />
+      <p className="px-2 py-2 text-xs text-vs-fg-3">{t("profile.gameFeedback.saved")}</p>
     </SettingsSection>
   );
 }
