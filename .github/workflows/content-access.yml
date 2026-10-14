@@ -1,4 +1,4 @@
-name: Contentarchitectuur 1A–2C toegang, context, selectie en spellen
+name: Contentarchitectuur 1A–2D toegang, context, selectie en spellen
 
 on:
   pull_request:
@@ -13,6 +13,13 @@ on:
       - 'tests/mystery*'
       - 'tests/fixtures/mystery*'
       - 'tests/learning-progress.integration.test.ts'
+      - 'src/lib/references/**'
+      - 'src/components/study/Reference*'
+      - 'src/app/api/study-references/**'
+      - 'src/app/scripture/**'
+      - 'tests/reference-*'
+      - 'tests/content-selection-version-migration.mjs'
+      - 'tests/fixtures/reference-content.mjs'
       - 'src/lib/studyContent/**'
       - 'src/lib/scrollRestore.ts'
       - 'src/components/shell/NavigationScroll.tsx'
@@ -273,4 +280,39 @@ jobs:
         with:
           name: study-reader-browser
           path: /tmp/versado-study-reader-browser
+          if-no-files-found: ignore
+
+  reference-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
+      NEXT_TELEMETRY_DISABLED: '1'
+      SESSION_SECRET: reference-preview-ci-build-only-secret
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Schema, types, resolverbewijs en schone productiebuild
+        run: |
+          npx prisma validate
+          npm run db:generate
+          npx tsc --noEmit
+          npm run test:references
+          npm run build
+      - name: Browser klaarzetten
+        run: |
+          npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
+          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Eigen PostgreSQL, migratiebehoud, versieconflicten en echte browserflows
+        run: npm run test:references:integration
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reference-preview-browser
+          path: /tmp/versado-reference-preview-browser
           if-no-files-found: ignore

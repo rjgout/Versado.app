@@ -78,6 +78,7 @@ export function useReadingPositionController(
   const queue = useRef<ReadingSaveQueue | null>(null);
   const initRef = useRef(initial);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prepareLeave = useRef<(() => Promise<ReadingPositionState>) | null>(null);
   const ready = useRef(false);
   useEffect(() => {
     const element = root.current;
@@ -238,6 +239,12 @@ export function useReadingPositionController(
           measure(true);
         });
     };
+    prepareLeave.current = async () => {
+      measure(true);
+      if (timer.current) clearTimeout(timer.current);
+      await q.flush();
+      return q.snapshot().state;
+    };
     const resize = new ResizeObserver(() => measure(false));
     resize.observe(element);
     const observer = new IntersectionObserver(() => measure(false));
@@ -252,6 +259,7 @@ export function useReadingPositionController(
     window.addEventListener("scroll", onScroll, { passive: true });
     measure(false);
     return () => {
+      if(queue.current===q)prepareLeave.current=null;
       window.removeEventListener("scroll", onScroll);
       stopPause();
       resize.disconnect();
@@ -273,7 +281,7 @@ export function useReadingPositionController(
     progress,
     recovery,
     retry: () => queue.current?.flush(),
-    flush: () => queue.current?.flush(),
+    flush: () => prepareLeave.current?.(),
     canLeave: () =>
       !queue.current ||
       ["idle", "saved"].includes(queue.current.snapshot().status),

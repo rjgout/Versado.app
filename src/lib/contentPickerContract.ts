@@ -11,6 +11,7 @@ export interface PickerEdition extends ContentCollectionView { selectable: boole
 export interface PickerWork { key: string; kind: "SCRIPTURE" | "STUDY_PROGRAM" | "OTHER"; editions: PickerEdition[] }
 export interface ContentPickerContext {
   selection: ContentSelection;
+  selectionVersion?: number;
   activeCollectionId: string | null;
   works: PickerWork[];
 }

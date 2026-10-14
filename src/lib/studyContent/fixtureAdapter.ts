@@ -8,6 +8,7 @@ import {
   type StudyDocument,
 } from "./schema";
 import { studyObjectHash, StudyPublishingError } from "./policy";
+import { referenceEvidenceVersion } from "@/lib/references/evidence";
 import { validateStudyRevision, type StudyRevisionInput } from "./revisions";
 
 export const STUDY_FIXTURES = [
@@ -17,6 +18,7 @@ export const STUDY_FIXTURES = [
   "invalid",
   "batch-error",
   "rights-conflict",
+  "references",
 ] as const;
 export type StudyFixtureKey = (typeof STUDY_FIXTURES)[number];
 export const FIXTURE_IMAGE =
@@ -197,6 +199,13 @@ export function studyFixture(
     (body.sections[0].blocks[0] as { type: string }).type =
       "unknown-meaningful-block";
   const items = [item];
+  if(key==="references"){
+    const block=(body.sections[0].blocks.find(b=>b.type==="reference") as {label:string;target:Record<string,string>});
+    block.label="1 Nephi 1:1–3";
+    const url="https://www.churchofjesuschrist.org/study/scriptures/bofm/1-ne/1?lang=nld&id=p1-p3";
+    block.target={sourceKey:url,workKey:"bofm",editionKey:"bofm",language:"nl",externalUrl:url};
+    item.evidence=[{occurrenceKey:"reference-intro",url,evidenceKey:referenceEvidenceVersion}];
+  }
   if (key === "batch-error")
     items.push({
       ...JSON.parse(JSON.stringify(item)),

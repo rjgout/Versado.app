@@ -31,6 +31,7 @@ import {
 } from "./storage";
 import { emitToUser } from "@/lib/realtime";
 import { DATA_EVENT_SOCKET_NAME } from "@/lib/data/scopes";
+import { resolveReferenceBatch, referenceDiagnosis, normalizedReference } from "@/lib/references/resolver";
 
 type Tx = Prisma.TransactionClient;
 export interface StudyImportLease {
@@ -373,7 +374,8 @@ export async function persistStudyImportItem(
             },
           });
       }
-      for (const reference of normalized.inventory.references) {
+      const referenceResults=await resolveReferenceBatch(db,actor,{workKey:initial.workKey,collectionId:initial.collectionId,editionKey:initial.editionKey,language:initial.language},normalized.inventory.references.map(r=>({target:r.target,diagnosticKey:r.occurrenceKey})));
+      for (const [referenceIndex,reference] of normalized.inventory.references.entries()) {
         const evidence = item.evidence.find(
           (e) =>
             e.occurrenceKey === reference.occurrenceKey &&
@@ -399,13 +401,13 @@ export async function persistStudyImportItem(
               occurrenceKey: reference.occurrenceKey,
               label: reference.label,
               originalTarget: reference.target as Prisma.InputJsonValue,
-              normalizedTarget: reference.target as Prisma.InputJsonValue,
+              normalizedTarget: external ? reference.target as Prisma.InputJsonValue : normalizedReference(referenceResults[referenceIndex]) as Prisma.InputJsonValue,
               externalUrl:
                 typeof reference.target.externalUrl === "string"
                   ? reference.target.externalUrl
                   : null,
-              diagnosis: external ? "EXTERNAL_VERIFIED" : "UNRESOLVED",
-              evidenceKey: external ? evidence.evidenceKey : null,
+              diagnosis: external ? "EXTERNAL_VERIFIED" : referenceDiagnosis(referenceResults[referenceIndex]).diagnosis,
+              evidenceKey: external ? evidence.evidenceKey : referenceDiagnosis(referenceResults[referenceIndex]).evidenceKey,
             },
           });
       }
@@ -426,7 +428,7 @@ export async function persistStudyImportItem(
         where: { runId: initial.id },
       });
       const warnings = normalized.inventory.references.filter(
-        (ref) =>
+        (ref,index) => referenceResults[index].kind==="unavailable" &&
           !item.evidence.some(
             (e) =>
               e.occurrenceKey === ref.occurrenceKey &&

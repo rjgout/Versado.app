@@ -29,8 +29,9 @@ function subscribe(listener: () => void) {
   };
 }
 
-export function useSetBackTarget(pathname: string, href: string, parent: string, onBack?: () => void): void {
+export function useSetBackTarget(pathname: string, href: string, parent: string, onBack?: () => void, enabled = true): void {
   useEffect(() => {
+    if(!enabled)return;
     const target = { pathname, href, parent, onBack };
     current = target;
     emit();
@@ -40,7 +41,7 @@ export function useSetBackTarget(pathname: string, href: string, parent: string,
         emit();
       }
     };
-  }, [pathname, href, parent, onBack]);
+  }, [pathname, href, parent, onBack, enabled]);
 }
 
 /** Alleen de doorgegeven cursus van déze pagina: bij het wisselen van pagina geldt die niet meer. */
