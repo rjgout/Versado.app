@@ -85,6 +85,7 @@ export interface ServicePart {
 export interface Service {
   hymn: ResolvedHymn;
   frames: FeatureFrame[];
+  samples: Float32Array;
   cycle: number;
   duration: number;
   /** Tijdstip (s) waarop elk deel begint (de eerste noot, na de stilte ervoor). */
@@ -128,5 +129,5 @@ export function makeService(number: number, parts: ServicePart[], shared: Partia
     total.set(c, at);
     at += c.length;
   }
-  return { hymn, frames: extractFrames(total, SAMPLE_RATE), cycle: hymn.composition.totalBeats, duration: total.length / SAMPLE_RATE, partStart, partEnd };
+  return { hymn, frames: extractFrames(total, SAMPLE_RATE), samples: total, cycle: hymn.composition.totalBeats, duration: total.length / SAMPLE_RATE, partStart, partEnd };
 }
