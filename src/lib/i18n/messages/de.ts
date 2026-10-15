@@ -4019,6 +4019,7 @@ export const de: PartialMessages = {
     "sections": "Abschnitte der Lektion"
 },
   referencePreview: {
+    passages: "Abschnitt auswählen",
     saveFailed: "Deine Leseposition ist noch nicht sicher gespeichert. Versuche das Speichern erneut, bevor du weiterliest.",
     selectionConflict: "Deine Quellen- oder Lektionsauswahl hat sich geändert. Lade die Lektion neu; die neuere Auswahl wird nicht überschrieben.",
     moreUnknown: "Das Ergebnis des Quellenwechsels ist unklar. Prüfe nach dem Neuladen deine aktuelle Quelle; eine ältere Auswahl wird nicht automatisch wiederhergestellt.",

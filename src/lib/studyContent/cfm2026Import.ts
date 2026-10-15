@@ -141,7 +141,7 @@ export async function importCfm2026Drafts(
         editionKey: manifest.editionKey,
         language: "nl",
         adapterName: CFM_ADAPTER,
-        adapterVersion: "1",
+        adapterVersion: "2",
         synthetic: false,
         sourceVersion:
           sourceLock.lessons[

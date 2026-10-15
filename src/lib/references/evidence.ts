@@ -1,6 +1,11 @@
 import { createHash } from "node:crypto";
 import evidence from "./scripture-evidence.json";
-import officialResources from "./official-resources.json";
+import baseOfficialResources from "./official-resources.json";
+import cfmOfficialResources from "./official-resources-cfm.json";
+export const officialResources = [
+  ...baseOfficialResources,
+  ...cfmOfficialResources,
+];
 type BookEvidence = {
   work: string;
   editionKey: string;

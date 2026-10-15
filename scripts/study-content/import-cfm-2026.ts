@@ -5,7 +5,7 @@ const flags = process.argv.slice(2),
   at = flags.indexOf("--admin-user-id"),
   adminId = at >= 0 ? flags[at + 1] : null;
 const hash = createHash("sha256");
-for (const name of ["source-lock.json", "media-lock.json", "otb-index.json"]) {
+for (const name of ["source-lock.json", "media-lock.json", "otb-index.json", "reference-source-checks.json", "reference-review.json"]) {
   hash
     .update(name)
     .update("\0")

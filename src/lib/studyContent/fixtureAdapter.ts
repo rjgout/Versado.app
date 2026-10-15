@@ -48,7 +48,7 @@ export interface StudySnapshot {
   editionKey: string;
   language: "nl";
   adapterName: "synthetic-v1" | "cfm-2026-nl-v1";
-  adapterVersion: "1";
+  adapterVersion: "1" | "2";
   sourceVersion: string;
   synthetic: boolean;
   period: { sourceKey: string; label: string; year: number };

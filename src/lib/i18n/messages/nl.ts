@@ -4491,6 +4491,7 @@ export const nl = {
     "sections": "Lesonderdelen"
 },
   referencePreview: {
+    passages: "Kies een passage",
     saveFailed: "Je leesplek is nog niet zeker opgeslagen. Probeer het bewaren opnieuw voordat je verder leest.",
     selectionConflict: "Je bron- of leskeuze is inmiddels veranderd. Herlaad de les; de nieuwere keuze wordt niet overschreven.",
     moreUnknown: "De uitkomst van de bronwissel is niet zeker. Controleer je huidige bron na herladen; we herstellen geen oudere keuze automatisch.",

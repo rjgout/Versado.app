@@ -84,7 +84,7 @@
     "test:references:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --reference-preview --browser",
     "test:study-publication": "tsx --test tests/study-publication.test.ts",
     "test:study-publication:integration": "node scripts/content-architecture/test-access-isolated.mjs --study-publication --browser",
-    "test:cfm-2026": "tsx --test tests/cfm-2026-import.test.ts",
+    "test:cfm-2026": "tsx --test tests/cfm-2026-import.test.ts tests/cfm-2026-review.test.ts",
     "test:cfm-2026:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --cfm-import --browser"
   },
   "dependencies": {

@@ -4,7 +4,11 @@ import { createHash } from "node:crypto";
 import { parseStudyDocument, type StudyDocument } from "./schema";
 import { studyDocumentInventory, type SnapshotItem } from "./fixtureAdapter";
 import { cfmOldTestament2026NlManifest as manifest } from "./cfm2026Manifest";
-import { parseOtbPassage } from "@/lib/references/otb";
+import {
+  parseOtbPassage,
+  parseOtbPassageSet,
+  type OtbPassage,
+} from "@/lib/references/otb";
 import { verifiedOfficialUrl } from "@/lib/references/evidence";
 import otbIndex from "../../../data/study-content/cfm-2026-nl/otb-index.json";
 
@@ -75,6 +79,26 @@ const bookCodes: Record<string, string> = {
   zech: "zac",
   mal: "mal",
 };
+/** Alleen bestaande hoofdstukken en expliciete verzen; grote bereiken worden
+ * in echte selecties van maximaal 40 verzen verdeeld, nooit ingekort. */
+function passageKey(parts: OtbPassage[]): string | null {
+  const keys: string[] = [];
+  for (const p of parts) {
+    const row = otbIndex.chapters.find(
+      (c) => c.bookKey === p.bookKey && c.chapter === p.chapter,
+    );
+    if (!row || p.verses?.some((v) => !row.verses.includes(v))) return null;
+    if (!p.verses) keys.push(`${p.bookKey}:${p.chapter}`);
+    else
+      for (let i = 0; i < p.verses.length; i += 40)
+        keys.push(
+          `${p.bookKey}:${p.chapter}:${p.verses.slice(i, i + 40).join(",")}`,
+        );
+  }
+  if (keys.length === 1) return `otb:${keys[0]}`;
+  const key = `otb-set:${keys.join(";")}`;
+  return parseOtbPassageSet(key) ? key : null;
+}
 function element(n: Node): n is Element {
   return "tagName" in n;
 }
@@ -131,32 +155,105 @@ export function cfmReferenceTarget(
       language: manifest.language,
       externalUrl: url,
     };
+    const uriKey = `otb:${book}:${chapter}${
+      u.searchParams.get("id")
+        ? ":" +
+          u.searchParams
+            .get("id")!
+            .split(",")
+            .map((v) => v.replace(/^p/, "").replace(/-p/g, "-"))
+            .join(",")
+        : ""
+    }`;
+    const uriPassage = parseOtbPassage(uriKey);
+    const numbered = (p: OtbPassage | null) =>
+      p &&
+      (!uriPassage?.verses ||
+        JSON.stringify(p.verses) === JSON.stringify(uriPassage.verses));
     if (
-      parseOtbPassage(`${label} 1`)?.bookKey === book &&
-      otbIndex.chapters.filter((c) => c.bookKey === book).length !== 1
-    )
-      return { ...identity, sourceKey: `otb:${book}` };
-    if ((label.match(/:/g)?.length ?? 0) > 1) {
-      const range = /([0-9]{1,3}:[0-9].*)$/.exec(label)?.[1] ?? label;
-      return {
-        ...identity,
-        sourceKey: `otb:${book}:${range.replace(/\s/g, "")}`,
-      };
+      /^ver(?:s|zen)\s+/i.test(label) ||
+      (u.searchParams.has("id") && /^[0-9, –-]+$/.test(label))
+    ) {
+      const p = parseOtbPassage(
+        `otb:${book}:${chapter}:${label.replace(/^ver(?:s|zen)\s+/i, "").replace(/\s+en\s+/gi, ",")}`,
+      );
+      const key = numbered(p) && p ? passageKey([p]) : null;
+      return { ...identity, sourceKey: key ?? `unverified-numbering:${url}` };
+    }
+    if (parseOtbPassage(`${label} 1`)?.bookKey === book) {
+      const key = passageKey(
+        otbIndex.chapters
+          .filter((c) => c.bookKey === book)
+          .map((c) => ({ bookKey: book, chapter: c.chapter, verses: null })),
+      );
+      return { ...identity, sourceKey: key ?? `otb:${book}` };
+    }
+    const cross =
+      /^(.*?)\s*(\d{1,3}):(\d{1,3})\s*[-–]\s*(\d{1,3}):(\d{1,3})$/.exec(label);
+    if (cross) {
+      const [, name, fc, fv, tc, tv] = cross,
+        first = Number(fc),
+        last = Number(tc);
+      if (
+        first === chapter &&
+        last >= first &&
+        last - first < 40 &&
+        (!name.trim() ||
+          parseOtbPassage(`${name} ${first}`)?.bookKey === book) &&
+        (!uriPassage?.verses || uriPassage.verses[0] === Number(fv))
+      ) {
+        const parts: OtbPassage[] = [];
+        for (let c = first; c <= last; c++) {
+          const row = otbIndex.chapters.find(
+            (r) => r.bookKey === book && r.chapter === c,
+          );
+          if (!row) break;
+          parts.push({
+            bookKey: book,
+            chapter: c,
+            verses: row.verses.filter(
+              (v) =>
+                (c !== first || v >= Number(fv)) &&
+                (c !== last || v <= Number(tv)),
+            ),
+          });
+        }
+        if (
+          parts.length === last - first + 1 &&
+          parts[0].verses?.[0] === Number(fv) &&
+          parts.at(-1)?.verses?.at(-1) === Number(tv)
+        ) {
+          const key = passageKey(parts);
+          if (key) return { ...identity, sourceKey: key };
+        }
+      }
+      return { ...identity, sourceKey: `unverified-range:${url}` };
     }
     const chapters = !label.includes(":")
-      ? /(\d{1,3})\s*[-–]\s*(\d{1,3})\s*$/.exec(label)
+      ? /^(.*?)\s*(\d{1,3})\s*[-–]\s*(\d{1,3})\s*$/.exec(label)
       : null;
-    if (chapters)
-      return {
-        ...identity,
-        sourceKey: `otb:${book}:${chapters[1]}-${chapters[2]}`,
-      };
-    if (
-      !label.includes(":") &&
-      (label.match(/\d+/g)?.length ?? 0) > 1 &&
-      !parseOtbPassage(label)
-    )
+    if (chapters) {
+      const [, name, fc, tc] = chapters,
+        first = Number(fc),
+        last = Number(tc);
+      const local = /^(hoofdstuk(?:ken)?|)$/i.test(name.trim());
+      if (
+        first === chapter &&
+        last >= first &&
+        last - first < 40 &&
+        (local || parseOtbPassage(`${name} ${first}`)?.bookKey === book)
+      ) {
+        const key = passageKey(
+          Array.from({ length: last - first + 1 }, (_, i) => ({
+            bookKey: book,
+            chapter: first + i,
+            verses: null,
+          })),
+        );
+        if (key) return { ...identity, sourceKey: key };
+      }
       return { ...identity, sourceKey: `unverified-range:${url}` };
+    }
     const ids = u.searchParams.get("id");
     const verses = ids
       ?.split(",")
@@ -180,7 +277,15 @@ export function cfmReferenceTarget(
       if (uri.verses === null && printed.verses !== null)
         sourceKey = `otb:${book}:${chapter}:${printed.verses.join(",")}`;
     }
-    if (uri) return { ...identity, sourceKey };
+    if (uri) {
+      const selected = parseOtbPassage(sourceKey);
+      return {
+        ...identity,
+        sourceKey: selected
+          ? (passageKey([selected]) ?? sourceKey)
+          : `unverified-range:${url}`,
+      };
+    }
   }
   // Behoud de echte bron-URL. Alleen de bestaande centrale resolver mag een
   // reeds bewezen officiële externe fallback herkennen; geen host-wildcard.
@@ -229,6 +334,7 @@ export function parseCfmLesson(
       target = cfmReferenceTarget(href, label, lesson.sourceUrl);
     if (
       !parseOtbPassage(target.sourceKey) &&
+      !parseOtbPassageSet(target.sourceKey) &&
       !verifiedOfficialUrl(target.sourceKey)
     )
       diagnostics.push({
@@ -299,7 +405,14 @@ export function parseCfmLesson(
     const anchor = id("img", n, scope),
       mediaKey = `media-${anchor}`;
     assets.push({ ...metadata, mediaKey });
-    const alt = attr(n, "alt") || attr(n, "data-public-title");
+    // Handmatig bekeken op de gepinde checksum: informatiebanner met zichtbare tekst.
+    const alt =
+      attr(n, "alt") ||
+      attr(n, "data-public-title") ||
+      (metadata.checksum ===
+      "9e9f60cd6b12ef4b069d6ae3eb07829bd8736aacd6ab5c869f60dce192b1e88c"
+        ? "Meer voor onderwijs aan kinderen — Nu bekijken."
+        : undefined);
     if (!alt?.trim())
       diagnostics.push({ anchor, code: "MISSING_SOURCE_ALT", target: url });
     blocks.push({

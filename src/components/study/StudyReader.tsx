@@ -186,7 +186,7 @@ function ReaderVisit({
       setMarkingRead(false);
     }
   }
-  async function moreReference(){
+  async function moreReference(passageIndex = 0){
     if(!reference)throw new Error("REFERENCE_UNAVAILABLE");
     const entry=currentEntryKey();
     const stillCurrent=()=>moreAlive.current && moreSession.current===sessionKey && currentEntryKey()===entry;
@@ -216,7 +216,7 @@ function ReaderVisit({
     const deadline=setTimeout(()=>controller.abort(),15000);
     let result:{href:string;token:string;trip:ReferenceTrip};
     try{result=await jsonMutation<{href:string;token:string;trip:ReferenceTrip}>("/api/study-references",{
-      json:{action:"more",...reference.request,expectedSelection:morePending.current.expectedSelection,expectedSelectionVersion:morePending.current.expectedSelectionVersion,expectedPositionVersion:state.position?.version ?? 0},
+      json:{action:"more",...reference.request,passageIndex,expectedSelection:morePending.current.expectedSelection,expectedSelectionVersion:morePending.current.expectedSelectionVersion,expectedPositionVersion:state.position?.version ?? 0},
       headers:{"X-Reading-Session":sessionKey},signal:controller.signal,
     },{invalidates:"contentChanged"});}
     catch(error){

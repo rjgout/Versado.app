@@ -42,7 +42,7 @@ on:
       - 'tests/study-publication*'
       - 'scripts/study-content/**'
       - 'data/study-content/cfm-2026-nl/**'
-      - 'tests/cfm-2026-import*'
+      - 'tests/cfm-2026*'
       - 'tests/study-identity-migration.mjs'
       - 'tests/fixtures/study-content.ts'
       - 'src/lib/contentAccess.ts'

@@ -178,11 +178,12 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
   }
   const refs = report.lessons.flatMap((l) => l.references),
     internal = refs.filter((r) => r.diagnosis === "INTERNAL_VERIFIED");
-  assert.equal(internal.length, 1679);
+  assert.equal(internal.length, 1960);
   assert.equal(
     refs.filter((r) => r.diagnosis === "EXTERNAL_VERIFIED").length,
-    449,
+    1043,
   );
+  assert.equal(refs.filter((r) => r.diagnosis === "UNRESOLVED").length, 606);
   assert.ok(
     internal.every(
       (r) =>
@@ -295,7 +296,14 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     where: { id: f.owner.user.id },
     data: { activeContentCollectionId: collection.id, contentLanguage: "nl" },
   });
-  for (const e of [editions[9], editions[35], editions[40]])
+  for (const e of [
+    editions[0],
+    editions[9],
+    editions[10],
+    editions[22],
+    editions[35],
+    editions[40],
+  ])
     await prisma.studyLessonEdition.update({
       where: { id: e.id },
       data: { publishedRevisionId: e.draftRevisionId },
@@ -312,7 +320,67 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     reference: x.reference,
     verses: x.verses,
   }));
+  const scriptureChapter = async (book, number) =>
+    prisma.chapter.findFirstOrThrow({
+      where: { number, book: { key: book, contentCollectionId: otb.id } },
+      select: { id: true },
+    });
+  const selectedCases = [
+    {
+      edition: editions[22],
+      reference: "ref-b-title1-0",
+      index: 3,
+      choices: 4,
+      book: "rut",
+      chapter: 4,
+      verses: 22,
+    },
+    {
+      edition: editions[10],
+      reference: "ref-b-scripture_title4-0",
+      index: 1,
+      choices: 2,
+      book: "gen",
+      chapter: 41,
+      verses: 57,
+      previewNumbers: [55, 56, 57],
+    },
+  ];
+  const selections = [];
+  for (const c of selectedCases)
+    selections.push({
+      ...c,
+      edition: undefined,
+      href: `/study-lesson/${c.edition.lessonId}/${collection.id}`,
+      chapterId: (await scriptureChapter(c.book, c.chapter)).id,
+    });
+  const externalPdf = report.lessons[2].references.find(
+    (r) =>
+      r.diagnosis === "EXTERNAL_VERIFIED" && r.normalized.url?.endsWith(".pdf"),
+  );
+  const externalVideo = report.lessons[0].references.find(
+    (r) =>
+      r.diagnosis === "EXTERNAL_VERIFIED" &&
+      r.normalized.url?.endsWith("-nl.mp4"),
+  );
+  assert.ok(externalPdf);
+  assert.ok(externalVideo);
   const flow = {
+    selections,
+    secondChapterId: (await scriptureChapter("gen", 2)).id,
+    externals: [
+      {
+        href: `/study-lesson/${chosen.lessonId}/${collection.id}`,
+        anchor: externalPdf.anchor,
+        url: externalPdf.normalized.url,
+      },
+      {
+        href: `/study-lesson/${editions[0].lessonId}/${collection.id}`,
+        anchor: externalVideo.anchor,
+        url: externalVideo.normalized.url,
+      },
+    ],
+    ntHref: `/study-lesson/${editions[0].lessonId}/${collection.id}`,
     tableHref: `/study-lesson/${editions[40].lessonId}/${collection.id}`,
     longLessons,
     userId: f.owner.user.id,

@@ -23,7 +23,7 @@ export default function ReferencePreview({
   label: string;
   sessionKey: string;
   onClose: () => void;
-  onMore: () => Promise<void>;
+  onMore: (passageIndex?: number) => Promise<void>;
   returnFocus: HTMLElement | null;
 }) {
   const t = useT(),
@@ -35,7 +35,11 @@ export default function ReferencePreview({
     [moreError, setMoreError] = useState<
       "save" | "conflict" | "unknown" | null
     >(null),
-    [retry, setRetry] = useState(0);
+    [retry, setRetry] = useState(0),
+    [passageIndex, setPassageIndex] = useState(0),
+    [choices, setChoices] = useState<Array<{ index: number; title: string }>>(
+      [],
+    );
   useEffect(() => {
     const node = dialog.current;
     if (!node) return;
@@ -53,29 +57,34 @@ export default function ReferencePreview({
   }, [returnFocus]);
   useEffect(() => {
     const controller = new AbortController();
+    setResult(null);
+    setError(false);
     void fetchJson<ReferenceResolution>("/api/study-references", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-Reading-Session": sessionKey,
       },
-      body: JSON.stringify({ action: "preview", ...request }),
+      body: JSON.stringify({ action: "preview", ...request, passageIndex }),
       signal: controller.signal,
     })
       .then((data) => {
-        if (!controller.signal.aborted) setResult(data);
+        if (!controller.signal.aborted) {
+          setResult(data);
+          setChoices(data.kind === "internal" ? (data.passages ?? []) : []);
+        }
       })
       .catch(() => {
         if (!controller.signal.aborted) setError(true);
       });
     return () => controller.abort();
-  }, [request, sessionKey, retry]);
+  }, [request, sessionKey, retry, passageIndex]);
   async function more() {
     if (busy) return;
     setBusy(true);
     setMoreError(null);
     try {
-      await onMore();
+      await onMore(passageIndex);
     } catch (error) {
       setMoreError(
         error instanceof ApiRequestError && error.status === 409
@@ -155,6 +164,34 @@ export default function ReferencePreview({
               {t("referencePreview.external")}
             </a>
           </div>
+        )}
+        {choices.length > 0 && (
+          <fieldset className="mb-4 min-w-0 space-y-2" disabled={busy}>
+            <legend className="mb-2 font-semibold">
+              {t("referencePreview.passages")}
+            </legend>
+            <div
+              lang={result?.kind === "internal" ? result.language : undefined}
+              className="flex max-h-40 flex-wrap gap-2 overflow-y-auto"
+              data-reference-passages
+            >
+              {choices.map((p) => (
+                <button
+                  key={p.index}
+                  type="button"
+                  aria-pressed={p.index === passageIndex}
+                  className={`min-h-12 max-w-full whitespace-normal rounded-xl border px-3 py-2 text-left text-sm ${p.index === passageIndex ? "border-vs-accent bg-vs-accent-soft font-bold" : "border-vs-line bg-vs-surface"}`}
+                  onClick={() => {
+                    setMoreError(null);
+                    setResult(null);
+                    setPassageIndex(p.index);
+                  }}
+                >
+                  {p.title}
+                </button>
+              ))}
+            </div>
+          </fieldset>
         )}
         {result?.kind === "internal" && (
           <>

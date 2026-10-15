@@ -10,7 +10,7 @@ import { cfmOldTestament2026NlManifest as manifest } from "../src/lib/studyConte
 import media from "../data/study-content/cfm-2026-nl/media-lock.json";
 import lock from "../data/study-content/cfm-2026-nl/source-lock.json";
 import { verifiedOfficialUrl } from "../src/lib/references/evidence";
-import { parseOtbPassage } from "../src/lib/references/otb";
+import { parseOtbPassage, parseOtbPassageSet } from "../src/lib/references/otb";
 import index from "../data/study-content/cfm-2026-nl/otb-index.json";
 import {
   studyObjectHash,
@@ -73,7 +73,7 @@ test("52 echte gepinde lessen behouden tekst, media, tabellen, volgorde en perio
   assert.equal(blocks, 3200);
   assert.equal(refs, 3609);
   assert.equal(tables, 10);
-  assert.equal(missingAlt, 52);
+  assert.equal(missingAlt, 0);
   assert.equal(embeddedFigures, 56); // Twee bronafbeeldingen en 54 videoposters binnen lijstitems.
   assert.equal(nestedLists, 3);
 });
@@ -88,29 +88,36 @@ test("OTB-doelen hebben bestaande canonieke hoofdstukken/verzen of een expliciet
       media,
     );
     for (const ref of a.inventory.references) {
-      const p = parseOtbPassage(String(ref.target.sourceKey));
-      if (!p) {
+      const single = parseOtbPassage(String(ref.target.sourceKey));
+      const passages = single
+        ? [single]
+        : parseOtbPassageSet(String(ref.target.sourceKey));
+      if (!passages) {
         if (verifiedOfficialUrl(ref.target.sourceKey)) external++;
         else blocked++;
         continue;
       }
       assert.equal(ref.target.language, "nl");
       assert.equal(ref.target.editionKey, "otb");
-      const c = index.chapters.find(
-        (c) => c.bookKey === p.bookKey && c.chapter === p.chapter,
-      );
       if (
-        !c ||
-        p.verses?.some((v) => !c.verses.includes(v)) ||
-        (p.verses?.length ?? 0) > 40
+        passages.some((p) => {
+          const c = index.chapters.find(
+            (c) => c.bookKey === p.bookKey && c.chapter === p.chapter,
+          );
+          return (
+            !c ||
+            p.verses?.some((v) => !c.verses.includes(v)) ||
+            (p.verses?.length ?? 0) > 40
+          );
+        })
       )
         blocked++;
       else valid++;
     }
   }
-  assert.equal(valid, 1679);
-  assert.equal(external, 449);
-  assert.equal(blocked, 1481);
+  assert.equal(valid, 1960);
+  assert.equal(external, 1043);
+  assert.equal(blocked, 606);
 });
 test("onbekende structuur, bronidentiteit en ontbrekende media stoppen; geen verzonnen vertaling", async () => {
   const s = await source("01");
@@ -141,7 +148,7 @@ test("onbekende structuur, bronidentiteit en ontbrekende media stoppen; geen ver
   assert.match(
     cfmReferenceTarget("../../scriptures/ot/gen/1.html", "Genesis 1–6", url)
       .sourceKey,
-    /^otb:gen:1-6$/,
+    /^otb-set:gen:1;gen:2;gen:3;gen:4;gen:5;gen:6$/,
   );
   assert.match(
     cfmReferenceTarget(
@@ -154,7 +161,7 @@ test("onbekende structuur, bronidentiteit en ontbrekende media stoppen; geen ver
   assert.equal(
     cfmReferenceTarget("../../scriptures/ot/ruth/1.html", "Ruth", url)
       .sourceKey,
-    "otb:rut",
+    "otb-set:rut:1;rut:2;rut:3;rut:4",
   );
   assert.equal(
     cfmReferenceTarget("../../scriptures/ot/obad/1.html", "Obadja", url)
