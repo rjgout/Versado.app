@@ -66,6 +66,17 @@ export function shellModeForRoute(pathname: string): ShellMode {
 }
 
 /**
+ * Een scherm dat binnen een Focus-route tijdelijk een speelviewport is (bijvoorbeeld het actieve legpuzzelbord
+ * op een route die ook een catalogus of resultaatstap heeft) vraagt Immersive aan via `shellModeOverride.ts`.
+ * Dit is geen vierde modus: de aanvraag kan alleen een Focus-route naar Immersive verheffen. Normale routes en
+ * routes die al Immersive zijn veranderen er nooit door, zodat een scherm de shell niet buiten zijn eigen
+ * activiteit kan beïnvloeden. Puur en getest in tests/focus-mode.test.ts.
+ */
+export function resolveShellMode(routeMode: ShellMode, immersiveRequested: boolean): ShellMode {
+  return immersiveRequested && routeMode === "focus" ? "immersive" : routeMode;
+}
+
+/**
  * Is de gebruiker nu in een activiteit, inclusief het resultaatscherm en de
  * stap "verder gaan" naar een volgende activiteit? Secundaire vieringen
  * (bijvoorbeeld de reeksviering) wachten tot deze waarde false is, zodat de

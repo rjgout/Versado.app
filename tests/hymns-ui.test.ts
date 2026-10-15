@@ -43,7 +43,7 @@ function snap(partial: { status?: FollowSnapshot["status"]; phase?: "prelude" | 
   };
 }
 
-const live = (patch: Partial<LiveState>): LiveState => ({ stage: "following", hymn, choice: "manual", recognition: null, snapshot: null, backlog: 0, needHymn: null, ...patch });
+const live = (patch: Partial<LiveState>): LiveState => ({ stage: "following", hymn, choice: "manual", recognition: null, snapshot: null, backlog: 0, needHymn: null, diag: { frames: 0, lastFrameSilent: null, lastRmsDb: null, candidates: 0, awaitingCandidates: false }, ...patch });
 
 test("status: voorspel, volgt muziek, tussenspel en onzekerheid zijn te onderscheiden", () => {
   assert.equal(describeStatus("idle", live({ stage: "idle", hymn: null })), null);
@@ -102,16 +102,16 @@ test("scrollen: past het couplet, dan nooit; staat de regel in beeld, dan niet; 
 test("voorkeuren: standaardwaarden, geldige keuzes en kapotte opslag", () => {
   assert.deepEqual(parseHymnPrefs(null), DEFAULT_HYMN_PREFS);
   assert.deepEqual(parseHymnPrefs("{kapot"), DEFAULT_HYMN_PREFS);
-  assert.deepEqual(parseHymnPrefs(JSON.stringify({ view: "karaoke", size: "xlarge", autoScroll: false, calm: true })), { view: "karaoke", size: "xlarge", autoScroll: false, calm: true });
+  assert.deepEqual(parseHymnPrefs(JSON.stringify({ view: "karaoke", size: "xlarge", autoScroll: false, calm: true })), { view: "karaoke", size: "xlarge", autoScroll: false, calm: true, sheetZoom: 100 });
   assert.deepEqual(parseHymnPrefs(JSON.stringify({ view: "iets", size: 5, autoScroll: "ja" })), DEFAULT_HYMN_PREFS);
   assert.equal(DEFAULT_HYMN_PREFS.view, "stanza", "volledig couplet is de standaard");
 });
 
-test("voorkeuren: een eigen laag buiten de engine die alleen vier weergavekeuzes bewaart", () => {
+test("voorkeuren: een eigen laag buiten de engine die alleen vijf weergavekeuzes bewaart", () => {
   const prefs = read("src/lib/hymnPrefs.ts");
   assert.match(prefs, /localStorage/);
   assert.equal(/fetch\(|sessionStorage|indexedDB|getUserMedia|AudioContext/.test(prefs), false);
-  assert.deepEqual([...prefs.matchAll(/^\s{2}(view|size|autoScroll|calm):/gm)].map((m) => m[1]).sort(), ["autoScroll", "calm", "size", "view"]);
+  assert.deepEqual([...prefs.matchAll(/^\s{2}(view|size|autoScroll|calm|sheetZoom):/gm)].map((m) => m[1]).sort(), ["autoScroll", "calm", "sheetZoom", "size", "view"]);
   // de engine en de meezingcomponenten importeren de opslag niet rechtstreeks; alleen de client gebruikt de hook
   for (const file of ["src/lib/hymns/live.ts", "src/lib/hymns/follow/session.ts", "src/components/hymns-poc/LyricsView.tsx", "src/components/hymns-poc/TechnicalPanel.tsx"]) {
     // alleen het type van een keuze (import type) is toegestaan, nooit de opslag zelf
@@ -138,7 +138,8 @@ test("weergavewissel raakt de engine niet: de keuzeknoppen roepen alleen setPref
   const client = read("src/components/hymns-poc/HymnsPocClient.tsx");
   assert.match(client, /setPrefs\(\{ view: v\.id \}\)/);
   assert.match(client, /setPrefs\(\{ size: s\.id \}\)/);
-  assert.match(client, /data-hymns-view-toggle[\s\S]*?setPrefs\(\{ view: prefs\.view === "stanza" \? "karaoke" : "stanza" \}\)/, "snelle weergavewissel in de kop");
+  assert.match(client, /data-hymns-view-toggle[\s\S]*?setPrefs\(\{ view: nextView \}\)/, "snelle weergavewissel in de kop");
+  assert.match(client, /const nextView: HymnView = prefs\.view === "stanza" \? "karaoke" : prefs\.view === "karaoke" \? "sheet" : "stanza"/, "drieweg-wissel couplet, karaoke, bladmuziek");
   // geen herstart van de engine of microfoon bij een voorkeur
   const prefHandlers = [...client.matchAll(/onChange=\{[^}]*setPrefs[^}]*\}/g)].map((m) => m[0]).join("\n");
   assert.equal(/restart|startListening|followHymn|startRecognizing|MicListener/.test(prefHandlers), false);

@@ -99,8 +99,8 @@ export function focusLine(s: ReadingState, active: number, sticky: number, count
 }
 
 /** Naar welke regel scrollt een bewuste navigatie (aantikken, vorige/volgende, hervatten)? -1 = geen. */
-export function navigationTarget(s: ReadingState, active: number, sticky: number, count: number, view: "stanza" | "karaoke"): number {
-  if (count <= 0) return -1;
+export function navigationTarget(s: ReadingState, active: number, sticky: number, count: number, view: "stanza" | "karaoke" | "sheet"): number {
+  if (count <= 0 || view === "sheet") return -1;
   if (view === "karaoke") return focusLine(s, active, sticky, count);
   const raw = s.line ?? (active >= 0 ? active : -1);
   return raw < 0 ? -1 : Math.min(count - 1, raw);

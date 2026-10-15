@@ -47,6 +47,8 @@ try {
   const start = page.getByRole("button", { name: "Start de puzzel", exact: true });
   const canvas = page.locator("canvas");
   const back = page.locator("[data-subpage-back-bar] button");
+  // Het actieve bord is Immersive (geen terugbalk): terug naar de keuze staat in het zwevende bordmenu.
+  const backFromBoard = async () => { await page.getByRole("button", { name: "Puzzelbordmenu", exact: true }).click(); await page.getByRole("button", { name: "Andere puzzel kiezen", exact: true }).click(); };
   async function choose(number) {
     await search.fill(String(number));
     await tiles.filter({ has: page.getByText(`Afbeelding ${number}`, { exact: true }) }).click();
@@ -79,7 +81,7 @@ try {
   await search.fill("216"); assert.equal(await tiles.count(), 1); assert.equal(await start.isDisabled(), true);
   let state = await choose(216); assert.equal(state.image, jigsawCatalog[215].url);
   const firstId = state.id;
-  await back.click(); await search.waitFor();
+  await backFromBoard(); await search.waitFor();
   assert.equal(new URL(page.url()).pathname, "/jigsaw");
   state = await choose(216); assert.equal(state.id, firstId, "terug vanuit bord bewaart voortgang");
   await page.getByRole("button", { name: "Puzzelbordmenu" }).click();
@@ -149,7 +151,7 @@ try {
   await page.getByRole("button", { name: "Dezelfde puzzel opnieuw spelen" }).click();
   const replay = await (await replayResponse).json(); assert.notEqual(replay.id, firstId); assert.equal(replay.status, "ACTIVE");
   assert.equal(replay.image, state.image); assert.equal(replay.snapshot.connections.length, 0);
-  await back.click(); await search.waitFor();
+  await backFromBoard(); await search.waitFor();
   state = await choose(216); assert.equal(state.id, replay.id, "terug vanuit replay hervat nieuwe poging");
   prepared = await prepareFinalDrag(replay); await finalDrag(prepared.state, prepared.geometry);
   // Historisch exact dezelfde vraag opnieuw: kies opnieuw in de nieuwe sessie.

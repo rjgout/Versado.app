@@ -114,6 +114,7 @@ function detailPageFor(pathname: string, profileView: string | null, hash: strin
   if (puzzle) {
     const subtitle = puzzle.kind === "coop" ? "puzzleTogether.modes.coop" : puzzle.kind === "match" ? "puzzleTogether.modes.match" : undefined;
     if (puzzle.kind === "records") return { fallback: puzzle.parent, title: "puzzleRecords.title", forceFallback: true };
+    if (puzzle.kind === "history") return { fallback: puzzle.parent, title: "puzzleTogether.overview.historyTitle", forceFallback: true };
     if (puzzle.kind === "leaderboard") return { fallback: puzzle.parent, title: "puzzleRecords.lbTitle", forceFallback: true };
     return { fallback: puzzle.parent, title: "jigsaw.title", subtitle, forceFallback: true };
   }
