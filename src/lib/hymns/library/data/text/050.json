@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:50",
+ "leadingChorus": null,
+ "musicCredit": "Annie F. Harrison, gew.",
+ "notices": [],
+ "number": 50,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Exodus 13:21–22",
+  "Leer en Verbonden 45:57"
+ ],
+ "source": {
+  "pageSha": "0953a047902fa56092e965dbba88b00fa03f30c6178114b216f9d0f654a2024d",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/guide-us-o-thou-great-jehovah-harrison",
+  "pdfSha": "623b2eef42a438739e335057244068aabaabefa7563f9007d7e36799006f9f60",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/22/3d/223dee00ab8011ecb4a3eeeeac1ea26c821a6d95/guide_us_o_thou_great_jehovah_harrison_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Leid ons, o Gij goede Meester, veilig naar ’t beloofde land.",
+    "Wij zijn zwak, maar Gij zijt machtig, steun ons door uw sterke hand.",
+    "Heil’ge Trooster, heil’ge Trooster, voed ons tot de Here komt.",
+    "Heil’ge Trooster, heil’ge Trooster, voed ons tot de Here komt."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Open, Jezus, Zions bronnen, dat haar rijkste zegen ruis’.",
+    "Laat de vuur– en wolkkolom ons leiden naar uw heilig huis.",
+    "Grote Redder, grote Redder, breng ons die verwachte dag.",
+    "Grote Redder, grote Redder, breng ons die verwachte dag."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Als deez’ aarde kreunt en siddert, geef ons bange hart dan rust.",
+    "Als uw oordeel spreidt verwoesting, berg ons dan op Zions kust.",
+    "’k Zal dan juichen, dank betuigen, uw verheven naam ter eer.",
+    "’k Zal dan juichen, dank betuigen, uw verheven naam ter eer."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Smekend",
+ "textCredit": "naar William Williams (1717–1791). Engelse versie opgenomen in het eerste HLD-zangboek, 1835.",
+ "title": "Leid ons, o Gij goede Meester"
+}

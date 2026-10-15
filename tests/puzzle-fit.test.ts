@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { createPuzzleGeometry, tracePuzzleGroup, tracePuzzlePiece } from "../src/lib/puzzle/geometry";
 import { connectGroups, findSnapConnection, groupFor, moveGroup, newPuzzleSnapshot, worldOf } from "../src/lib/puzzle/engine";
 import type { PuzzlePieceGeometry } from "../src/lib/puzzle/types";
-import { initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera } from "../src/lib/puzzle/viewport";
-import { puzzleRenderOrder, puzzleWorktable } from "../src/lib/puzzle/worktable";
+import { constrainCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera } from "../src/lib/puzzle/viewport";
+import { groupBounds, puzzleRenderOrder, puzzleWorktable } from "../src/lib/puzzle/worktable";
 
 type Point = [number, number];
 type Segment = { from: Point; to: Point; controls?: [Point, Point] };
@@ -120,4 +120,67 @@ test("startcamera toont bruikbare stukken; resize behoudt zoom en world-midden",
     const after = screenToWorld(resized, { x: next.width / 2, y: next.height / 2 });
     samePoint([before.x, before.y], [after.x, after.y]);
   }
+});
+
+// --- Startcamera grote borden (fase 5B-1) ---------------------------------------------------------------
+// Oorzaak van het lege startscherm: bij 150/300 stukken liggen de dichtstbijzijnde stukken verder weg dan een scherm op de
+// oude startschaal toont. De matrix hieronder is dezelfde als de audit-probe (docs/puzzle-v2/audit-evidence).
+const SCREENS: [string, number, number][] = [["320×568", 320, 568], ["360×740", 360, 740], ["390×844", 390, 844], ["740×360", 740, 360], ["768×1024", 768, 1024]];
+// Conservatief (kop + terugbalk afgetrokken, zoals de probe) en zoals gemeten in de browser (balk ≈ 53 px).
+const insets = [108, 53];
+
+/** De oude startcamera, ter vergelijking: zodat kleinere puzzels aantoonbaar ongewijzigd blijven wanneer die al goed was. */
+function legacyStartCamera(viewport: { width: number; height: number }, geometry: ReturnType<typeof createPuzzleGeometry>, snapshot: ReturnType<typeof newPuzzleSnapshot>) {
+  const table = puzzleWorktable(geometry); const zone = { x: table.puzzle.x + table.puzzle.width / 2, y: table.puzzle.y + table.puzzle.height / 2 };
+  const groups = snapshot.groups.map((group) => { const b = groupBounds(geometry, group); return { group, center: { x: (b.minX + b.maxX) / 2, y: (b.minY + b.maxY) / 2 } }; });
+  const d = (c: { x: number; y: number }) => Math.hypot(c.x - zone.x, c.y - zone.y);
+  groups.sort((a, b) => b.group.pieceIds.length - a.group.pieceIds.length || d(a.center) - d(b.center) || a.group.id.localeCompare(b.group.id));
+  const focus = groups[0]; const center = focus.group.pieceIds.length > 1 ? focus.center : { x: (focus.center.x + zone.x) / 2, y: (focus.center.y + zone.y) / 2 };
+  const scale = Math.max(40, Math.min(160, Math.min(viewport.width, viewport.height) / 6));
+  return constrainCamera({ scale, x: viewport.width / 2 - center.x * scale, y: viewport.height / 2 - center.y * scale }, viewport, table.bounds);
+}
+const onScreen = (camera: { scale: number; x: number; y: number }, viewport: { width: number; height: number }, point: { x: number; y: number }, margin: number) => { const x = camera.x + point.x * camera.scale, y = camera.y + point.y * camera.scale; return x >= margin && x <= viewport.width - margin && y >= margin && y <= viewport.height - margin; };
+
+test("startcamera: bij elk getest scherm en elk aantal stukken zijn het puzzelmidden en minstens vier losse stukken zichtbaar", () => {
+  let changed = 0; let unchanged = 0;
+  for (const seed of ["audit-seed", "mobiel", "samen-1", "samen-2"]) for (const count of [24, 48, 96, 150, 300] as const) {
+    const geometry = createPuzzleGeometry(count, seed, 2); const snapshot = newPuzzleSnapshot(geometry, "ADVENTURER"); const table = puzzleWorktable(geometry);
+    const zone = { x: table.puzzle.x + table.puzzle.width / 2, y: table.puzzle.y + table.puzzle.height / 2 };
+    for (const [label, width, height] of SCREENS) for (const inset of insets) {
+      const viewport = { width, height: Math.max(200, height - inset) };
+      const camera = initialPuzzleCamera(viewport, geometry, snapshot);
+      const visible = snapshot.groups.filter((group) => { const b = groupBounds(geometry, group); return onScreen(camera, viewport, { x: (b.minX + b.maxX) / 2, y: (b.minY + b.maxY) / 2 }, .35 * camera.scale); }).length;
+      const where = `${label}/${viewport.height} ${count} stukken (${seed})`;
+      assert.ok(visible >= 4, `${where}: ${visible} stukken zichtbaar`);
+      assert.ok(onScreen(camera, viewport, zone, .5 * camera.scale), `${where}: puzzelmidden niet in beeld`);
+      assert.ok(camera.scale >= 30, `${where}: schaal ${camera.scale.toFixed(1)} te klein (niet volledig uitgezoomd)`);
+      assert.ok(camera.scale <= 160);
+      // Reeds goede startbeelden van kleinere puzzels blijven exact zoals ze waren.
+      const old = legacyStartCamera(viewport, geometry, snapshot);
+      const oldVisible = snapshot.groups.filter((group) => { const b = groupBounds(geometry, group); return onScreen(old, viewport, { x: (b.minX + b.maxX) / 2, y: (b.minY + b.maxY) / 2 }, .35 * old.scale); }).length;
+      if (oldVisible >= 4 && onScreen(old, viewport, zone, .5 * old.scale)) { assert.deepEqual(camera, old, `${where}: een goed bestaand beeld blijft ongewijzigd`); unchanged++; } else changed++;
+    }
+  }
+  assert.ok(unchanged > 0 && changed > 0, `gemengd resultaat verwacht (ongewijzigd ${unchanged}, verbeterd ${changed})`);
+});
+
+test("startcamera: een bord met voortgang opent op de samengestelde groep, ongewijzigd; pannen en zoomen blijven mogelijk", () => {
+  const geometry = createPuzzleGeometry(300, "voortgang", 2); let snapshot = newPuzzleSnapshot(geometry, "ADVENTURER");
+  for (const id of [0, 1]) snapshot = moveGroup(snapshot, geometry, `p${id}`, 4 + id, 4);
+  snapshot = connectGroups(snapshot, geometry, "ADVENTURER", 0, 1);
+  const viewport = { width: 768, height: 971 };
+  assert.deepEqual(initialPuzzleCamera(viewport, geometry, snapshot), legacyStartCamera(viewport, geometry, snapshot));
+  const table = puzzleWorktable(geometry); const camera = initialPuzzleCamera(viewport, geometry, newPuzzleSnapshot(geometry, "ADVENTURER"));
+  const zoomedIn = zoomCamera(camera, viewport, table.bounds, 2, { x: 384, y: 485 }); const zoomedOut = zoomCamera(camera, viewport, table.bounds, .1, { x: 384, y: 485 });
+  assert.ok(zoomedIn.scale > camera.scale && zoomedOut.scale >= 8, "zoom werkt vanaf de startstand");
+  const resized = resizeCamera(camera, viewport, { width: 971, height: 768 }, table.bounds);
+  assert.equal(resized.scale, camera.scale, "resize behoudt de zoom");
+});
+
+test("startcamera: deterministisch en zonder losse stukken geen crash", () => {
+  const geometry = createPuzzleGeometry(24, "leeg", 2); const snapshot = newPuzzleSnapshot(geometry, "ADVENTURER");
+  const viewport = { width: 390, height: 700 };
+  assert.deepEqual(initialPuzzleCamera(viewport, geometry, snapshot), initialPuzzleCamera(viewport, geometry, structuredClone(snapshot)));
+  const anchored = { ...snapshot, groups: snapshot.groups.map((group) => ({ ...group, anchored: true })) };
+  assert.ok(Number.isFinite(initialPuzzleCamera(viewport, geometry, anchored).scale));
 });

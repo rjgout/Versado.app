@@ -1,0 +1,49 @@
+{
+ "choruses": [],
+ "id": "nld:55",
+ "leadingChorus": null,
+ "musicCredit": "toegeschreven aan Johann Michaël Haydn, (1737–1806)",
+ "notices": [],
+ "number": 55,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Openbaring 15:3–4",
+  "Openbaring 15:3–4",
+  "Romeinen 14:11"
+ ],
+ "source": {
+  "pageSha": "e83a143ad73992b73bc5e7d52785c7083b5380c6e7e69a51b0ad33b170cf93bc",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/how-wondrous-and-great",
+  "pdfSha": "53f1e634e5bb9f0fd05f12bcfedbf90ef319e333397b63822fa460da2f63f3bc",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/a4/07/a407791bac4011ec895aeeeeac1eee21a96fee2a/how_wondrous_and_great_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Hoe treff’lijk en groot uw werken, o Heer!",
+    "Hoe duurzaam en recht uw wegen en leer!",
+    "Wie zal U niet prijzen voor al wat Gij doet?",
+    "Gij, Here, zijt heilig, Gij, Here zijt goed."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Tot volken in nacht zal komen uw licht.",
+    "Hun eredienst dan tot U zij gericht.",
+    "Alom zal uw waarheid en recht zijn verbreid,",
+    "tot eens heel het mensdom U, Here, belijdt."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Majestueus",
+ "textCredit": "naar Henry U. Onderdonk, (1789–1858). Gebaseerd op Openbaring 15:3–4",
+ "title": "Hoe treff’lijk en groot"
+}

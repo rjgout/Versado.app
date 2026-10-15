@@ -1,4 +1,4 @@
-name: Contentarchitectuur 1A–2C toegang, context, selectie en spellen
+name: Contentarchitectuur 1A–2D toegang, context, selectie en spellen
 
 on:
   pull_request:
@@ -13,6 +13,13 @@ on:
       - 'tests/mystery*'
       - 'tests/fixtures/mystery*'
       - 'tests/learning-progress.integration.test.ts'
+      - 'src/lib/references/**'
+      - 'src/components/study/Reference*'
+      - 'src/app/api/study-references/**'
+      - 'src/app/scripture/**'
+      - 'tests/reference-*'
+      - 'tests/content-selection-version-migration.mjs'
+      - 'tests/fixtures/reference-content.mjs'
       - 'src/lib/studyContent/**'
       - 'src/lib/scrollRestore.ts'
       - 'src/components/shell/NavigationScroll.tsx'
@@ -21,8 +28,10 @@ on:
       - 'src/components/study/StudyReader.tsx'
       - 'src/app/study-lesson/**'
       - 'src/app/api/reading-position/**'
+      - 'src/app/api/study-read/**'
       - 'tests/reading-position*'
       - 'tests/study-reader*'
+      - 'tests/study-read*'
       - 'src/app/api/admin/study-publications/**'
       - 'src/app/api/admin/study-media/**'
       - 'src/app/api/study-media/**'
@@ -32,6 +41,8 @@ on:
       - 'tests/study-content*'
       - 'tests/study-publication*'
       - 'scripts/study-content/**'
+      - 'data/study-content/cfm-2026-nl/**'
+      - 'tests/cfm-2026*'
       - 'tests/study-identity-migration.mjs'
       - 'tests/fixtures/study-content.ts'
       - 'src/lib/contentAccess.ts'
@@ -129,7 +140,7 @@ jobs:
         run: npm run test:study-content:integration
       - name: Regressie, lint en vertalingen
         run: |
-          npx tsx --test tests/admin-layout.test.ts tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/streak-central.test.ts
+          npx tsx --test tests/admin-layout.test.ts tests/cfm-2026-manifest.test.ts tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/proxy-headers.test.ts tests/streak-central.test.ts
           npm run test:focus
           npm run test:live-data
           npm run lint
@@ -265,12 +276,89 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
           node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
-      - name: Geïsoleerde migratie, privacy, conflicten, reader en echt hervatten
-        run: npm run test:study-reader:integration
+      - name: Geïsoleerde migratie, privacy, conflicten, reader, hervatten en expliciet gelezen
+        run: |
+          npm run test:study-reader:integration
+          npm run test:study-read:integration
       - name: Browserbewijs bewaren
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: study-reader-browser
-          path: /tmp/versado-study-reader-browser
+          path: |
+            /tmp/versado-study-reader-browser
+            /tmp/versado-study-read-browser
+          if-no-files-found: ignore
+
+  reference-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
+      NEXT_TELEMETRY_DISABLED: '1'
+      SESSION_SECRET: reference-preview-ci-build-only-secret
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Schema, types, resolverbewijs en schone productiebuild
+        run: |
+          npx prisma validate
+          npm run db:generate
+          npx tsc --noEmit
+          npm run test:references
+          npm run build
+      - name: Browser klaarzetten
+        run: |
+          npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
+          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Eigen PostgreSQL, migratiebehoud, versieconflicten en echte browserflows
+        run: npm run test:references:integration
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reference-preview-browser
+          path: /tmp/versado-reference-preview-browser
+          if-no-files-found: ignore
+
+  cfm-2026-import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
+      SESSION_SECRET: cfm-ci-build-only-secret
+      NEXT_TELEMETRY_DISABLED: '1'
+      CFM_TEST_ASSETS: /tmp/versado-cfm-test-assets
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Schema, types, alle 52 bronnen en productiebuild
+        run: |
+          npx prisma validate
+          npm run db:generate
+          npx tsc --noEmit
+          npm run test:cfm-2026
+          npm run build
+      - name: Gepinde publieke OTB- en mediabestanden voorbereiden
+        run: node scripts/study-content/prepare-cfm-test-assets.mjs
+      - name: Browser klaarzetten
+        run: |
+          npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
+          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: 52 concepten, idempotentie, publicatiebehoud en echte readertrip
+        run: npm run test:cfm-2026:integration
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cfm-2026-import-browser
+          path: /tmp/versado-cfm-import-browser
           if-no-files-found: ignore

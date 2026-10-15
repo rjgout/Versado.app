@@ -8,6 +8,7 @@ import {
   type StudyDocument,
 } from "./schema";
 import { studyObjectHash, StudyPublishingError } from "./policy";
+import { referenceEvidenceVersion } from "@/lib/references/evidence";
 import { validateStudyRevision, type StudyRevisionInput } from "./revisions";
 
 export const STUDY_FIXTURES = [
@@ -17,6 +18,7 @@ export const STUDY_FIXTURES = [
   "invalid",
   "batch-error",
   "rights-conflict",
+  "references",
 ] as const;
 export type StudyFixtureKey = (typeof STUDY_FIXTURES)[number];
 export const FIXTURE_IMAGE =
@@ -30,6 +32,8 @@ export interface SnapshotAsset {
   rights: StudyRevisionInput["rightsMetadata"];
 }
 export interface SnapshotItem extends StudyRevisionInput {
+  startsOn?: string;
+  endsOn?: string;
   sourceKey: string;
   slug: string;
   order: number;
@@ -41,12 +45,12 @@ export interface SnapshotItem extends StudyRevisionInput {
 }
 export interface StudySnapshot {
   workKey: string;
-  editionKey: "fixture-v1";
+  editionKey: string;
   language: "nl";
-  adapterName: "synthetic-v1";
-  adapterVersion: "1";
+  adapterName: "synthetic-v1" | "cfm-2026-nl-v1";
+  adapterVersion: "1" | "2";
   sourceVersion: string;
-  synthetic: true;
+  synthetic: boolean;
   period: { sourceKey: string; label: string; year: number };
   items: SnapshotItem[];
 }
@@ -197,6 +201,13 @@ export function studyFixture(
     (body.sections[0].blocks[0] as { type: string }).type =
       "unknown-meaningful-block";
   const items = [item];
+  if(key==="references"){
+    const block=(body.sections[0].blocks.find(b=>b.type==="reference") as {label:string;target:Record<string,string>});
+    block.label="1 Nephi 1:1–3";
+    const url="https://www.churchofjesuschrist.org/study/scriptures/bofm/1-ne/1?lang=nld&id=p1-p3";
+    block.target={sourceKey:url,workKey:"bofm",editionKey:"bofm",language:"nl",externalUrl:url};
+    item.evidence=[{occurrenceKey:"reference-intro",url,evidenceKey:referenceEvidenceVersion}];
+  }
   if (key === "batch-error")
     items.push({
       ...JSON.parse(JSON.stringify(item)),
@@ -225,7 +236,7 @@ export function snapshotIdentity(snapshot: StudySnapshot) {
 }
 
 export function studyDocumentInventory(body: StudyDocument) {
-  let unanchoredLinks = 0;
+  let unanchoredLinks = 0, blockCount = 0, emptyAltFigures = 0;
   const anchors: string[] = [],
     figures: Array<{ mediaKey: string; width: number; height: number }> = [],
     references: Array<{
@@ -236,8 +247,10 @@ export function studyDocumentInventory(body: StudyDocument) {
   function walk(value: unknown) {
     if (!value || typeof value !== "object") return;
     const row = value as Record<string, unknown>;
+    if (Array.isArray(row.blocks)) blockCount += row.blocks.length;
     if (typeof row.id === "string") anchors.push(row.id);
     if (row.type === "link") unanchoredLinks++;
+    if (row.type === "figure" && typeof row.alt === "string" && !row.alt.trim()) emptyAltFigures++;
     if (row.type === "figure")
       figures.push({
         mediaKey: row.mediaKey as string,
@@ -253,7 +266,7 @@ export function studyDocumentInventory(body: StudyDocument) {
     for (const child of Object.values(value)) walk(child);
   }
   walk(body);
-  return { anchors, figures, references, unanchoredLinks };
+  return { anchors, figures, references, unanchoredLinks, blockCount, emptyAltFigures };
 }
 const rightsSchema = z
   .object({
@@ -281,6 +294,8 @@ const itemSchema = z
       .max(256)
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
     order: z.number().int().nonnegative(),
+    startsOn: z.iso.date().optional(),
+    endsOn: z.iso.date().optional(),
     media: z
       .array(
         z

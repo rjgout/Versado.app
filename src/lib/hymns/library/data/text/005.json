@@ -1,0 +1,74 @@
+{
+ "choruses": [],
+ "id": "nld:5",
+ "leadingChorus": null,
+ "musicCredit": "Ebenezer Beesley (1840–1906)",
+ "notices": [],
+ "number": 5,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Jesaja 2:2–3",
+  "Jesaja 5:26"
+ ],
+ "source": {
+  "pageSha": "6d61e701fda124d1e7e548d7122677ef7841c06e1b4622ce559fd181c9077fd2",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/high-on-the-mountain-top",
+  "pdfSha": "f01ca7ebe79095252bb6e66dd8bba9a8610f26bb9b8bcffacb053ea73f684ad0",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/c5/88/c5882207ac4011ecbc03eeeeac1e8c5b725341b9/high_on_the_mountain_top_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Hoog op der bergen kruin,",
+    "daar wappert een banier,",
+    "kom, hoor naar de bazuin,",
+    "de ware leer is hier.",
+    "In Zions schoon en vreedzaam land,",
+    "daar op een berg is zij geplant."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Want God gedenkt nu weer",
+    "’tgeen Hij gesproken had:",
+    "Door waarheid triomfeer,",
+    "gij schone Zionstad!",
+    "Uw godd’lijk licht spreidt gij ten toon",
+    "tot heel de wereld dient mijn Zoon."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Zijn huis werd daar gebouwd;",
+    "de volk’ren zullen zien",
+    "zijn heerlijkheid ontvouwd",
+    "en dan tot Zion vliên.",
+    "Laat ons dan gaan waar onze God",
+    "ons leert zijn wet en zijn gebod."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Vandaar, als is voorzegd,",
+    "gaat uit des Heren wet,",
+    "vol waarheid, wijsheid, recht,",
+    "waarop heel d’aard’ eens let.",
+    "Wij dienen Hem voor altijd daar",
+    "en redden ook de dodenschaar."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Resoluut",
+ "textCredit": "naar Joel H. Johnson (1802–1882)",
+ "title": "Hoog op der bergen kruin"
+}

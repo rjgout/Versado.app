@@ -1,0 +1,75 @@
+{
+ "choruses": [],
+ "id": "nld:85",
+ "leadingChorus": null,
+ "musicCredit": "Orson Pratt Huish (1851–1932)",
+ "notices": [],
+ "number": 85,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Matteüs 11:28–30",
+  "2 Nephi 26:33"
+ ],
+ "source": {
+  "pageSha": "8712497e0634adc7be17c288e7c209654c25312a02f0fcb22ec7a6920f4cc20d",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/come-unto-jesus",
+  "pdfSha": "e0cd0bf4cbb44a7ae7b8fb59490b3cd17f6d318367dd08a46c75e00c847826a9",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/a9/b3/a9b37550ac3f11ec9974eeeeac1ef8b4added2e4/come_unto_jesus_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O, komt tot Jezus, gij zwaar belasten,",
+    "moed’ en gebroken, door zond’ bezwaard,",
+    "Hij leidt u veilig heen naar die haven",
+    "die de getrouwen bewaart."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "O, komt tot Jezus, Hij is opmerkzaam,",
+    "schoon in het duister gij zijt gezwicht.",
+    "Zijn liefde vindt u en deze leidt u",
+    "uit donk’re nacht in het licht."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "O, komt tot Jezus, Hij is opmerkzaam,",
+    "schoon in het duister gij zijt gezwicht.",
+    "Zijn liefde vindt u en deze leidt u",
+    "uit donk’re nacht in het licht."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "O, komt tot Jezus, Hij zal u horen,",
+    "als g’ in geloof op Hem richt uw oog.",
+    "O, weet gij niet dat eng’len nabij zijn,",
+    "uit reiner sfeer, van omhoog."
+   ],
+   "n": 4
+  },
+  {
+   "lines": [
+    "O, komt tot Jezus, uit alle volk’ren,",
+    "uit alle landen, ver of nabij.",
+    "Tot de voornamen en de geringen",
+    "klinkt ’s Heren stem: Komt tot Mij."
+   ],
+   "n": 5
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Rustig",
+ "textCredit": "naar Orson Pratt Huish (1851–1932)",
+ "title": "O, komt tot Jezus"
+}

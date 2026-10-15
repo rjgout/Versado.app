@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:134",
+ "leadingChorus": null,
+ "musicCredit": "William J. C. Thiel",
+ "notices": [],
+ "number": 134,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Matteüs 28:1–9",
+  "Lucas 24:37–48"
+ ],
+ "source": {
+  "pageSha": "f47652ee3a1c4c03b666cd1335dfe88941eebc130c7e2b271f42921b2abc463f",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/easter-morning",
+  "pdfSha": "e6bbfd8044e6df848d4a011cd0853e229f5ff2de673a02c44e22666dced72988",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/f0/a9/f0a98121ac3f11ec9974eeeeac1ef8b4ee400e01/easter_morning_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "’t Licht van de morgen tint goudgeel de lucht,",
+    "schemer en schaduw, ze nemen de vlucht;",
+    "’t aardrijk ontwaakt uit zijn sombere nacht;",
+    "Jezus heeft leven, nieuw leven gebracht."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "’t Rijk van de dood bindt des levens Vorst niet;",
+    "Hij is verrezen, Hem huldigt ons lied.",
+    "Eeuwig zit Hij aan de rechterhand Gods;",
+    "kroont Hem, uw Koning, belijdt Hem, uw Rots."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Lieflijke morgen, van Gods licht vervuld;",
+    "zie, hoe het zonlicht de schepping verguldt.",
+    "Hemel en glorie weerschijnen in ’t graf",
+    "sinds Hij verrees, ’t eeuwig leven ons gaf."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vreugdevol",
+ "textCredit": "naar C. D. Martin",
+ "title": "’t Licht van de morgen"
+}

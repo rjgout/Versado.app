@@ -142,7 +142,12 @@ test("ontbrekende expliciete bron behoudt de bestaande werk-default bij een elde
 test("alle oude gegevens, studiecontext en economie blijven gelijk; legacy API blijft bruikbaar", async () => {
   await reset();
   const tables = await prisma.$queryRaw<{ tablename: string }[]>`SELECT tablename FROM pg_tables WHERE schemaname=current_schema() AND tablename <> '_prisma_migrations' ORDER BY tablename`;
-  const fingerprint = async () => Promise.all(tables.map(({tablename}) => prisma.$queryRawUnsafe(`SELECT count(*)::int AS count, md5(COALESCE(string_agg(${tablename === "User" ? "(to_jsonb(t)-'activeContentCollectionId'-'contentLanguage')" : "to_jsonb(t)"}::text,E'\\n' ORDER BY ${tablename === "User" ? "(to_jsonb(t)-'activeContentCollectionId'-'contentLanguage')" : "to_jsonb(t)"}::text),'')) AS hash FROM "${tablename.replaceAll('"','""')}" t`)));
+  const fingerprint = async () => Promise.all(tables.map(({tablename}) => {
+    // Alleen de vier expliciete voorkeurwissels van deze gebruiker mogen wijzigen.
+    const projection=tablename === "User" ? "(CASE WHEN t.id=$1 THEN to_jsonb(t)-'activeContentCollectionId'-'contentLanguage'-'contentSelectionVersion' ELSE to_jsonb(t) END)" : "to_jsonb(t)";
+    return prisma.$queryRawUnsafe(`SELECT count(*)::int AS count, md5(COALESCE(string_agg(${projection}::text,E'\\n' ORDER BY ${projection}::text),'')) AS hash FROM "${tablename.replaceAll('"','""')}" t`,...(tablename === "User" ? [userId] : []));
+  }));
+  const counterBefore=(await prisma.user.findUniqueOrThrow({where:{id:userId}})).contentSelectionVersion;
   const before = await fingerprint();
   assert.equal((await choose(ids.en)).status, 200);
   assert.equal((await choose("content_podcasts")).status, 200);
@@ -151,6 +156,7 @@ test("alle oude gegevens, studiecontext en economie blijven gelijk; legacy API b
   const language = await request("PUT", { contentLanguage: "en" }, cookie, base.origin, ""); assert.equal(language.status, 200);
   const old = await (await request("GET", undefined, cookie, base.origin, "")).json(); assert.ok(old.active); assert.ok(old.collections); assert.ok(old.works); assert.ok(old.studyContexts);
   assert.deepEqual(await fingerprint(),before);
+  assert.equal((await prisma.user.findUniqueOrThrow({where:{id:userId}})).contentSelectionVersion,counterBefore+4);
 });
 
 test("lege catalogus bevat geen synthetische selecteerbare bron en bewaart voorkeuren", async () => {

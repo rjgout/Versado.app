@@ -1,0 +1,63 @@
+{
+ "choruses": [],
+ "id": "nld:175",
+ "leadingChorus": null,
+ "musicCredit": "Adam C. Smyth (1840–1909)",
+ "notices": [],
+ "number": 175,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Matteüs 5:14–16",
+  "Mosiah 2:17"
+ ],
+ "source": {
+  "pageSha": "bf77783ae2006484425a469344dfda9f3d7e5e1da308026ab73f3db2790c1f15",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/let-your-light-shine-brightly",
+  "pdfSha": "7980b5050c931711dae159f21b66abba08ddd953b618b932627cc8990f3f8790",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e0/45/e0455643ac3f11ecbc03eeeeac1e8c5b45f07ea4/come_thou_glorious_day_of_promise_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Laat uw lampen helder lichten,",
+    "schijnen ook voor and’rer voet.",
+    "’t Is een heil’ge dienst verrichten",
+    "als g’ een zwakke broeder hoedt.",
+    "’t Is een heil’ge dienst verrichten",
+    "als g’ een zwakke broeder hoedt."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Laat uw lampen helder lichten,",
+    "heil’gen, u is d’ eer gegund!",
+    "Waarom zou een moede zwichten",
+    "die gij helpen, redden kunt?",
+    "Waarom zou een moede zwichten",
+    "die gij helpen, redden kunt?"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Broeders, weet, door Gods genade",
+    "zijn wij kind’ren nu des lichts.",
+    "Waakt dan, ’t komt eerlang te stade,",
+    "dra komt d’ ure des gerichts.",
+    "Waakt dan, ’t komt eerlang te stade,",
+    "dra komt d’ ure des gerichts."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Kalm",
+ "textCredit": "anon.",
+ "title": "Laat uw lampen helder lichten"
+}

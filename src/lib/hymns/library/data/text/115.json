@@ -1,0 +1,48 @@
+{
+ "choruses": [],
+ "id": "nld:115",
+ "leadingChorus": null,
+ "musicCredit": "Rowland H. Pritchard (1811–1887)",
+ "notices": [],
+ "number": 115,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "2 Nephi 2:7",
+  "Leer en Verbonden 59:9"
+ ],
+ "source": {
+  "pageSha": "8d68b2e1bd280c80124fc45dec38ec6b1d7d87d986cbf31c14e4490e49b9885e",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/in-humility-our-savior",
+  "pdfSha": "6b9faa6cc47331a61f35cee25104c488cde49c83ab10cdbc85172985477b4ca5",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/d5/6d/d56d0ac4ac4011ecb4a3eeeeac1ea26cac92ae92/in_humility_our_savior_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Bij ’t gebed voor ’t brood en ’t water smeken wij met heilig vuur,",
+    "in de deemoed van ons harte: zend uw Geest ons in dit uur.",
+    "Laat ons niet vergeten, Heiland, dat Gij voor ons leedt en stierft,",
+    "aan het smart’lijk kruis der schande ons de zaligheid verwierft."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Vul ons harte met vergeving, leer verdraagzaamheid ons, Heer.",
+    "Moog’ ons bidden U bereiken in uw hoge, heil’ge sfeer.",
+    "Mochten wij uw offerande waardig zijn door ons gedrag,",
+    "laat ons, Heer, dan tot U komen op die glorierijke dag."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Zachtmoedig",
+ "textCredit": "naar Mabel Jones Gabbott, (1910– ). © 1948 IRI",
+ "title": "Bij ’t gebed voor ’t brood en ’t water"
+}

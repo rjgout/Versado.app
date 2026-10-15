@@ -8,6 +8,7 @@ import { createSessionToken, SESSION_COOKIE } from "../../../src/lib/auth.ts";
 import { jigsawCatalog } from "../../../src/lib/jigsawGame.ts";
 import { createCoopSession, respondToCoopInvite } from "../../../src/lib/puzzle/coop.ts";
 import { startSoloPuzzle } from "../../../src/lib/puzzle/solo.ts";
+import { createMatch, respondToMatchInvite, beginMatchAttempt } from "../../../src/lib/puzzle/match.ts";
 if (!process.env.LEARNING_TEST_DATABASE_URL || process.env.DATABASE_URL !== process.env.LEARNING_TEST_DATABASE_URL) throw new Error("Alleen een geïsoleerde testdatabase");
 const require = createRequire(import.meta.url); const { chromium } = require(process.env.PLAYWRIGHT_MODULE ?? "playwright");
 const base = process.env.PUZZLE_TEST_BASE_URL ?? "http://localhost:3107"; const out = process.env.SHOTS ?? "/tmp/audit-shots";
@@ -18,11 +19,15 @@ try {
   const person = async () => { const u = await prisma.user.create({ data: { email: `au-${randomUUID()}@test.invalid`, passwordHash: "x", handle: `Au${randomUUID().slice(0, 6)}`, discriminator: "00", activeContentCollectionId: scope.contentCollectionId, onboardingSeenAt: new Date(), onboardingProfilePrivacyAt: new Date() } }); users.push(u.id); return u; };
   const [a, b] = [await person(), await person()]; await prisma.friendship.create({ data: { senderId: a.id, receiverId: b.id, status: "ACCEPTED" } });
   const coop = await createCoopSession(a.id, jigsawCatalog[2].url, 300, "ADVENTURER", [b.id]);
+  const coop150 = await createCoopSession(a.id, jigsawCatalog[3].url, 150, "ADVENTURER", [b.id]);
   const solo = await startSoloPuzzle(a.id, 7, 24, "ADVENTURER", "nl");
-  for (const [name, w, h] of [["se", 320, 568], ["android", 360, 740], ["landscape", 740, 360], ["tablet", 768, 1024]]) {
-    for (const [kind, path, init] of [["samen300", `/jigsaw/samen/${coop}`, null], ["solo24", "/jigsaw", { id: solo.id }]]) {
+  const solo96 = await startSoloPuzzle(b.id, 8, 96, "ADVENTURER", "nl");
+  const matchId = await createMatch(a.id, 9, 96, "ADVENTURER", [b.id], "ASYNC");
+  await respondToMatchInvite(b.id, matchId, true); await beginMatchAttempt(a.id, matchId);
+  for (const [name, w, h] of [["se", 320, 568], ["android", 360, 740], ["iphone", 390, 844], ["landscape", 740, 360], ["tablet", 768, 1024]]) {
+    for (const [kind, path, init, who] of [["samen300", `/jigsaw/samen/${coop}`, null, a], ["samen150", `/jigsaw/samen/${coop150}`, null, a], ["solo24", "/jigsaw", { id: solo.id }, a], ["solo96", "/jigsaw", { id: solo96.id }, b], ["wedstrijd96", `/jigsaw/wedstrijd/${matchId}`, null, a]]) {
       const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2, serviceWorkers: "block", hasTouch: true, isMobile: w < 800 });
-      await ctx.addCookies([{ name: SESSION_COOKIE, value: await createSessionToken(a.id), url: base }]);
+      await ctx.addCookies([{ name: SESSION_COOKIE, value: await createSessionToken(who.id), url: base }]);
       if (init) await ctx.addInitScript(({ id }) => { try { localStorage.setItem("versado:jigsaw-v2-session", id); } catch {} }, init);
       const page = await ctx.newPage(); await page.goto(base + path, { waitUntil: "networkidle" }); await page.waitForSelector("canvas", { timeout: 20000 }); await page.waitForTimeout(900);
       const box = await page.locator("canvas").first().boundingBox();

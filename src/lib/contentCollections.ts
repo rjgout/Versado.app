@@ -241,7 +241,7 @@ export async function setActiveContentCollection(
 
 /** De publieke kiezer gebruikt echte catalogusgegevens en expliciete normale rechten. */
 export async function getContentPickerContext(userId: string, db = prisma): Promise<ContentPickerContext> {
-  const user = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { isAdmin: true, activeContentCollectionId: true, contentLanguage: true } });
+  const user = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { isAdmin: true, activeContentCollectionId: true, contentLanguage: true, contentSelectionVersion: true } });
   const collections = await db.contentCollection.findMany({
     where: collectionAccessWhere(user, "catalog"), orderBy: [{ order: "asc" }, { id: "asc" }],
     select: { ...VIEW_SELECT, enabled: true, publicationState: true, contentWork: { select: { kind: true } } },
@@ -260,31 +260,60 @@ export async function getContentPickerContext(userId: string, db = prisma): Prom
   const readable = works.flatMap(w => w.editions).filter(e => e.selectable);
   const selected = readable.find(e => e.id === user.activeContentCollectionId)
     ?? pickEditions(readable, user.contentLanguage)[0]?.edition;
-  return { selection: { activeContentCollectionId: user.activeContentCollectionId, contentLanguage: user.contentLanguage }, activeCollectionId: selected?.id ?? null, works };
+  return { selectionVersion: user.contentSelectionVersion, selection: { activeContentCollectionId: user.activeContentCollectionId, contentLanguage: user.contentLanguage }, activeCollectionId: selected?.id ?? null, works };
 }
 
 export class ContentSelectionConflict extends Error {
   constructor(readonly selection: ContentSelection) { super("CONTENT_SELECTION_CONFLICT"); }
 }
 
-/** Exacte bron en taal samen opslaan; compare-and-set zonder nieuw schema. */
-export async function commitContentSelection(userId: string, isAdmin: boolean, requested: ContentCollectionView, expected: ContentSelection) {
-  return prisma.$transaction(async db => {
-    const [user] = await db.$queryRaw<ContentSelection[]>`SELECT "activeContentCollectionId", "contentLanguage" FROM "User" WHERE id=${userId} FOR UPDATE`;
-    if (!user) throw new Error("Gebruiker ontbreekt");
+type SelectionOptions = { db?: Prisma.TransactionClient; expectedVersion?: number };
+type LockedSelection = ContentSelection & { contentSelectionVersion: number };
+async function lockedSelection(db: Prisma.TransactionClient, userId: string, version?: number) {
+  const [user] = await db.$queryRaw<LockedSelection[]>`SELECT "activeContentCollectionId", "contentLanguage", "contentSelectionVersion" FROM "User" WHERE id=${userId} FOR UPDATE`;
+  if (!user) throw new Error("Gebruiker ontbreekt");
+  // Controle vóór no-op: een A→B→A op een ander toestel is geen veilige retry.
+  if (version !== undefined && user.contentSelectionVersion !== version) throw new ContentSelectionConflict({activeContentCollectionId:user.activeContentCollectionId,contentLanguage:user.contentLanguage});
+  return user;
+}
+function selectionResult(user: LockedSelection) {
+  return {selection:{activeContentCollectionId:user.activeContentCollectionId,contentLanguage:user.contentLanguage},selectionVersion:user.contentSelectionVersion};
+}
+/** Centrale bronwissel; oude clients behouden tuple-CAS, leesuitstappen vereisen ook de teller. */
+export async function commitContentSelection(userId: string, isAdmin: boolean, requested: ContentCollectionView, expected: ContentSelection, options: SelectionOptions = {}) {
+  const execute = async (db: Prisma.TransactionClient) => {
+    const user = await lockedSelection(db,userId,options.expectedVersion);
+    if(options.expectedVersion!==undefined && (user.activeContentCollectionId!==expected.activeContentCollectionId || user.contentLanguage!==expected.contentLanguage))throw new ContentSelectionConflict(selectionResult(user).selection);
     const target = await db.contentCollection.findFirst({ where: { id: requested.id, ...collectionAccessWhere({ isAdmin }) }, select: VIEW_SELECT });
     if (!target || !validPickerEdition(target) || target.work !== requested.work || target.editionKey !== requested.editionKey || target.language !== requested.language) throw new Error("Content niet beschikbaar");
-    if (user.activeContentCollectionId === target.id && user.contentLanguage === target.language) return { target, changed: false, selection: user };
-    if (user.activeContentCollectionId !== expected.activeContentCollectionId || user.contentLanguage !== expected.contentLanguage) throw new ContentSelectionConflict(user);
-    // Een impliciete eerste keuze opnieuw aantikken is eveneens een no-op.
+    if (user.activeContentCollectionId === target.id && user.contentLanguage === target.language) return { target, changed: false, ...selectionResult(user) };
+    if (user.activeContentCollectionId !== expected.activeContentCollectionId || user.contentLanguage !== expected.contentLanguage) throw new ContentSelectionConflict(selectionResult(user).selection);
     if (!user.activeContentCollectionId) {
       const available = await db.contentCollection.findMany({ where: collectionAccessWhere({ isAdmin }), orderBy: [{ order: "asc" }, { id: "asc" }], select: VIEW_SELECT });
       const first = pickEditions(available.filter(validPickerEdition), user.contentLanguage)[0]?.edition;
-      if (first?.id === target.id) return { target, changed: false, selection: user };
+      if (first?.id === target.id) return { target, changed: false, ...selectionResult(user) };
     }
-    await db.user.update({ where: { id: userId }, data: { activeContentCollectionId: target.id, contentLanguage: target.language } });
-    return { target, changed: true, selection: { activeContentCollectionId: target.id, contentLanguage: target.language } };
-  }, { timeout: 10_000 });
+    const updated = await db.user.update({ where: { id: userId }, data: { activeContentCollectionId: target.id, contentLanguage: target.language }, select:{activeContentCollectionId:true,contentLanguage:true,contentSelectionVersion:true} });
+    return { target, changed: true, ...selectionResult(updated) };
+  };
+  return options.db ? execute(options.db) : prisma.$transaction(execute,{timeout:10_000});
+}
+
+/** Bewuste terugkeer; ontbrekende oorspronkelijke expliciete keuze blijft NULL. */
+export async function restoreContentSelection(userId: string, isAdmin: boolean, before: ContentSelection, expected: ContentSelection, options: SelectionOptions = {}) {
+  const execute = async (db: Prisma.TransactionClient) => {
+    if (before.activeContentCollectionId) {
+      const collection=await db.contentCollection.findFirst({where:{id:before.activeContentCollectionId,...collectionAccessWhere({isAdmin})},select:VIEW_SELECT});
+      if(!collection || collection.language!==before.contentLanguage)throw new Error("Content niet beschikbaar");
+      return commitContentSelection(userId,isAdmin,collection,expected,{...options,db});
+    }
+    const current=await lockedSelection(db,userId,options.expectedVersion);
+    if(current.activeContentCollectionId===before.activeContentCollectionId && current.contentLanguage===before.contentLanguage)return {changed:false,...selectionResult(current)};
+    if(current.activeContentCollectionId!==expected.activeContentCollectionId || current.contentLanguage!==expected.contentLanguage)throw new ContentSelectionConflict(selectionResult(current).selection);
+    const updated=await db.user.update({where:{id:userId},data:before,select:{activeContentCollectionId:true,contentLanguage:true,contentSelectionVersion:true}});
+    return {changed:true,...selectionResult(updated)};
+  };
+  return options.db ? execute(options.db) : prisma.$transaction(execute,{timeout:10_000});
 }
 
 export async function getDefaultContentCollectionId(): Promise<string | null> {

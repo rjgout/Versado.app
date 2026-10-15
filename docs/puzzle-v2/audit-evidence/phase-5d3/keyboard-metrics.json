@@ -1,0 +1,5 @@
+{
+  "vóór (main na 5D-2)": {"soloTien": {"serverMoves": 10, "finalX": 10}, "soloSnap": {"serverActions": ["move", "connect", "move", "anchor"], "groups": 23}, "samenTien": {"commits": 10, "locks": 10, "releases": 10, "finalX": 10}},
+  "na (5D-3)": {"soloTien": {"serverMoves": 1, "finalX": 10}, "soloSnap": {"serverActions": ["move", "connect"], "groups": 23}, "samenTien": {"commits": 1, "locks": 1, "releases": 1, "finalX": 10}},
+  "opmerking": "Een eerdere meting op een oudere build gaf voor Solo 9 acties met eindpositie 9,8 (aanslagen gingen verloren terwijl een actie liep) en voor Samen 7 commits, 7 grepen en 7 loslaatacties met eindpositie 9,4."
+}

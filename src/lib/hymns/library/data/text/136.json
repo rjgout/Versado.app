@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:136",
+ "leadingChorus": null,
+ "musicCredit": "uit Lyra Davidica, 1708",
+ "notices": [],
+ "number": 136,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Matteüs 28:5–6",
+  "1 Korintiërs 15:20, 53–57"
+ ],
+ "source": {
+  "pageSha": "64728ac64289b0d6d6a7239fe632812be1e7d9a3b97299e203d022987b223eb4",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/christ-the-lord-is-risen-today",
+  "pdfSha": "358fc651f8d226d8877fc18c204d8f2195ccd12e2dbdfb05e8cdffdecb42079b",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/a6/dc/a6dc1bb4ac4011ec8ad8eeeeac1e0652c750b950/christ_the_lord_is_risen_today_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Christus is verrezen nu, halleluja!",
+    "Mens en eng’len melden ’t u. halleluja!",
+    "Jubel luid en zing verheugd, halleluja!",
+    "Antwoord, aard’, op ’s hemels vreugd, halleluja!"
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Jezus’ doodsstrijd is gestreên, halleluja!",
+    "’t Duister van deez’ aard’ verdween, halleluja!",
+    "Glorievol het pleit volbracht, halleluja!",
+    "’t Liefdesoffer brak de nacht, halleluja!"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Looft Hem die het graf ontvlood, halleluja!",
+    "Waar ’s uw prikkel toch, o dood? halleluja!",
+    "Ons stond Hij zijn leven af, halleluja!",
+    "Waar ’s uw zegepraal, o graf? halleluja!"
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Juichend",
+ "textCredit": "naar Charles Wesley (1707–1788)",
+ "title": "Christus is verrezen nu"
+}

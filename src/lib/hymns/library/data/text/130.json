@@ -1,0 +1,58 @@
+{
+ "choruses": [],
+ "id": "nld:130",
+ "leadingChorus": null,
+ "musicCredit": "John H. Gower (1855–1922)",
+ "notices": [],
+ "number": 130,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Johannes 19:16–20",
+  "Hebreeën 13:12"
+ ],
+ "source": {
+  "pageSha": "97b988af4aeb7bc2321193ac8490889be6c08b0edcfc7df6fb96cf34d7e015bb",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/there-is-a-green-hill-far-away",
+  "pdfSha": "7a5032df79e8c82a6fb7180073192d37676a09c58242fa93cb556ac272c34c03",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/25/c2/25c256a3ac4011eca75deeeeac1e9379eb503857/there_is_a_green_hill_far_away_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Er is een heuvel ver van hier, toch kent hem jong en oud,",
+    "waar onze Heer gekruisigd werd en stierf voor ons behoud."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Wij weten niet, beseffen niet de smart die Hij doorstond,",
+    "maar wij geloven: ’t was voor ons dat Hij daar werd gewond."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Er was geen ander goed genoeg de losprijs te voldoen,",
+    "en Hij alleen kon ons de poort des hemels opendoen."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Ja, teder, teder mint Hij ons! O, minnen wij ook Hem,",
+    "vertrouwen op zijn kracht, die redt, en luist’ren naar zijn stem."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar Cecil Frances Alexander (1818–1895)",
+ "title": "Er is een heuvel ver van hier"
+}

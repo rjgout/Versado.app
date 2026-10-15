@@ -1,0 +1,67 @@
+{
+ "choruses": [
+  [
+   "Nu tot wederzien, nu tot weerzien,",
+   "zij ’t op aard’ of in Gods vaderhuis,",
+   "nu tot wederzien, nu tot weerzien,",
+   "God zij met u tot w’ u wederzien."
+  ]
+ ],
+ "id": "nld:105",
+ "leadingChorus": null,
+ "musicCredit": "William G. Tomer (1833–1896)",
+ "notices": [],
+ "number": 105,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "2 Tesssalonicenzen 3:16",
+  "Numeri 6:24–26"
+ ],
+ "source": {
+  "pageSha": "9c56c296ec928db7b1cc8dd10fae677de3d8dacd560581ce189d136ad10e31f6",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/god-be-with-you-till-we-meet-again",
+  "pdfSha": "b190f5f03a73241fc8f3bc8bc29efcb0f161654b889df346bfa8fc276cc54965",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/6d/53/6d5342fcac4011ec9da5eeeeac1eb1da59f34050/god_be_with_you_till_we_meet_again_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "God zij met u tot w’ u werderzien;",
+    "dat zijn vaderhand u leide,",
+    "bij zijn kudd’ u veilig weide,",
+    "God zij met u tot w’ u werderzien."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "God zij met u tot w’ u wederzien;",
+    "als de levensstormen woeden,",
+    "moog’ zijn arm u dan behoeden,",
+    "God zij met u tot w’ u wederzien."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "God zij met u tot w’ u wederzien;",
+    "blijf op zijne liefde bouwen",
+    "door op Christus te vertrouwen,",
+    "God zij met u tot w’ u wederzien."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar Jeremiah E. Rankin (1828–1904)",
+ "title": "God zij met u tot w’u wederzien"
+}

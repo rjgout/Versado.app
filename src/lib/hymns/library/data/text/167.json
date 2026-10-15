@@ -1,0 +1,58 @@
+{
+ "choruses": [
+  [
+   "Opwaarts, altijd opwaarts, immer roemend in zijn naam.",
+   "Opwaarts, altijd opwaarts, immer roemend in zijn naam.",
+   "Voorwaarts, stadig voorwaarts, zingen wij als zegelied.",
+   "Naar de overwinning, voorwaarts,",
+   "zoals onze Heer gebiedt."
+  ]
+ ],
+ "id": "nld:167",
+ "leadingChorus": null,
+ "musicCredit": "Adam Geibel (1855–1933)",
+ "notices": [],
+ "number": 167,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 4:2–3",
+  "Leer en Verbonden 20:17–19"
+ ],
+ "source": {
+  "pageSha": "244dfb24f44a9175538cbec118ac721c21a7d52796344468a63a62378532ecf7",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/called-to-serve",
+  "pdfSha": "c96ad5abdcf24043374068b10293f69043005b55313bfcc950a877cb85dd8ae0",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/fe/5a/fe5ae7ecac3f11ecb4a3eeeeac1ea26c3b0e43d9/called_to_serve_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Uitgekozen Hem altijd te dienen;",
+    "als getuige van zijn grote naam",
+    "spreken wij van onze Hemelvader,",
+    "van zijn liefde en zijn faam."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Rijk gezegend met zijn milde gaven,",
+    "kind’ren van een goddelijke Heer,",
+    "vreugdevol zijn heil’ge naam belijdend,",
+    "brengen wij Hem lof en eer."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Met overtuiging",
+ "textCredit": "naar Grace Gordon",
+ "title": "Uitgekozen Hem altijd te dienen"
+}

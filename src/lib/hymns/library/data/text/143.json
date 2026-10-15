@@ -1,0 +1,43 @@
+{
+ "choruses": [],
+ "id": "nld:143",
+ "leadingChorus": null,
+ "musicCredit": "F. A. Schultz, ca. 1870",
+ "notices": [],
+ "number": 143,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 2:8–20"
+ ],
+ "source": {
+  "pageSha": "40c7f894b8302f2cb84af22a0509e4200e2d1310610d43851ab5b6e53c36d1a4",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/glory-to-god",
+  "pdfSha": "bb60ff959f6c643ba0370c83d894d52947aed6dc73babf97216fcf1d12435dde",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/a7/fb/a7fb487eac4011ecb848eeeeac1e8465524c1c24/glory_to_god_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Ere zij God, ere zij God in den hoge, in den hoge, in den hoge!",
+    "Vrede op aarde, vrede op aarde, in de mensen een welbehagen.",
+    "Ere zij God in den hoge, ere zij God in den hoge.",
+    "Vrede op aarde, vrede op aarde, vrede op aarde, vrede op aarde,",
+    "in de mensen, in de mensen een welbehagen,",
+    "in de mensen een welbehagen, een welbehagen.",
+    "Ere zij God, ere zij God in den hoge, in den hoge, in den hoge.",
+    "Vrede op aarde, vrede op aarde, in de mensen een welbehagen.",
+    "Amen, amen."
+   ],
+   "n": 1
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Plechtig",
+ "textCredit": "naar Lucas 2:14",
+ "title": "Ere zij God"
+}

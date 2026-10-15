@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:12",
+ "leadingChorus": null,
+ "musicCredit": "Tracy Y. Cannon (1879–1961). © 1948 IRI",
+ "notices": [],
+ "number": 12,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Alma 26:35",
+  "Leer en Verbonden 88:67–68"
+ ],
+ "source": {
+  "pageSha": "9f94cbe0fc3dfbf906ccfdf59a2cf9088c1bd8440a36a44d4a8db73f21f5c5ae",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/god-of-power-god-of-right",
+  "pdfSha": "e3582db0134d81901122d8fb1133406263c4a5624e7451ac7772d590beaaaef3",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/56/90/56906335ac4011ecbc03eeeeac1e8c5b4ade8c93/god_of_power_god_of_right_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "God van wijsheid, God van kracht,",
+    "leid ons met uw grote macht.",
+    "Smeed de ziel in vuur dat leeft,",
+    "opdat Gij haar vorming geeft."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "God van vrijheid, God van deugd,",
+    "uw gebod is onze vreugd",
+    "Maak ons tegen zonde sterk,",
+    "dienstbaar in uw grote werk."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "God van liefde, God van licht,",
+    "immer zij ons oog gericht",
+    "op uw eer en majesteit,",
+    "op uw trouw en heiligheid."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Majestueus",
+ "textCredit": "naar Wallace F. Bennett (1898–1993). © 1948 IRI",
+ "title": "God van wijsheid, God van kracht"
+}

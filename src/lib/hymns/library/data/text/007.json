@@ -1,0 +1,81 @@
+{
+ "choruses": [],
+ "id": "nld:7",
+ "leadingChorus": null,
+ "musicCredit": "Charles C. Converse (1832–1918)",
+ "notices": [],
+ "number": 7,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 133:7–16"
+ ],
+ "source": {
+  "pageSha": "fbfd9b7e0431d2aa398d7d4b55dc8dea176f74db7cd7ac400e2d6b5ae8beaeb1",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/israel-israel-god-is-calling",
+  "pdfSha": "f417c9c962601c2747d216c5c6ff7a6b7d096862c9e12794e7505dc9f7e27022",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/8e/c1/8ec12735ac4011eca4f5eeeeac1e61445e23660c/israel_israel_god_is_calling_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Isr’el, hoor, God roept u allen,",
+    "roept u weg uit zond’ en wee.",
+    "’t Grote Babylon zal vallen,",
+    "al haar hoogten trekt God mee.",
+    "Kom tot Zion, kom tot Zion,",
+    "eer zijn toorn neemt weg de vreê.",
+    "Kom tot Zion, kom tot Zion,",
+    "eer zijn toorn neemt weg de vreê."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Isr’el, hoor het woord des Heren,",
+    "leen aan Jezus’ stem uw oor!",
+    "Spoedig gloort de dag van ere",
+    "dat zijn Isr’el Hem behoort",
+    "Kom tot Zion, kom tot Zion,",
+    "juich nu met der heil’gen koor.",
+    "Kom tot Zion, kom tot Zion,",
+    "juich nu met der heil’gen koor."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Isr’el, Isr’el, eng’len zweven",
+    "uit de hemel tot u neer",
+    "om van Godes macht te geven",
+    "dat gij u vergaad’re weer.",
+    "Kom tot Zion, kom tot Zion,",
+    "want weldra komt onze Heer.",
+    "Kom tot Zion, kom tot Zion,",
+    "want weldra komt onze Heer."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Isr’el, Isr’el, waarom toeft gij",
+    "langer nog in duisternis?",
+    "Zie, de dagen worden banger,",
+    "niets zij meer een hindernis.",
+    "Kom tot Zion, kom tot Zion,",
+    "Zions jubel is gewis.",
+    "Kom tot Zion, kom tot Zion,",
+    "Zions jubel is gewis."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bezield",
+ "textCredit": "naar Richard Smyth (1838–1914)",
+ "title": "Israël, hoor, God roept u allen"
+}

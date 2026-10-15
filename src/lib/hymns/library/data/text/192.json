@@ -1,0 +1,78 @@
+{
+ "choruses": [],
+ "id": "nld:192",
+ "leadingChorus": null,
+ "musicCredit": "John Hugh McNaughton (1829–1891)",
+ "notices": [],
+ "number": 192,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Mosiah 4:14–15",
+  "Prediker 9:9"
+ ],
+ "source": {
+  "pageSha": "4ef11070bc790b237207057d1e79c397c89215ef5d5ad22a9235af9c6c0e3a17",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/love-at-home",
+  "pdfSha": "8b2df30f4a3bfd3cb238e64b54f6b08e2b12fe00bef24347bc1ff6f602299a72",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b8/5c/b85c3338ac3f11ecbfd6eeeeac1e85cfd474faaa/love_at_home_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Elk ziet schoonheid in het rond",
+    "als er liefde heerst;",
+    "vreugd vervult dan hart en mond,",
+    "als er liefde heerst.",
+    "Vrede, voorspoed vinden wij,",
+    "lachend zoet aan elke zij.",
+    "Tijd gaat aangenaam voorbij",
+    "als er liefde heerst.",
+    "Als in ’t hart liefde heerst;",
+    "tijd gaat aangenaam voorbij",
+    "als er liefde heerst."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Elke woning is vol vreugd",
+    "als er liefde heerst;",
+    "haat noch nijd belaagt de deugd",
+    "als er liefde heerst.",
+    "Rozen bloeien om ons heen,",
+    "’s hemels invloed heerst beneên.",
+    "Vol van heil zijn ’s levens schreên",
+    "als er liefde heerst.",
+    "Als in ’t hart liefde heerst;",
+    "vol van heil zijn ’s levens schreên",
+    "als er liefde heerst."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Vriend’lijk blikt de hemel neer",
+    "als er liefde heerst;",
+    "niets verstoort de vrede meer",
+    "als er liefde heerst.",
+    "Schone bloemen boeien ’t oog,",
+    "helder is de hemelboog.",
+    "Eng’len juichen in den hoog’,",
+    "als er liefde heerst.",
+    "Als in ’t hart liefde heerst;",
+    "eng’len juichen in de hoog’,",
+    "als er liefde heerst."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Enthousiast",
+ "textCredit": "naar John Hugh McNaughton (1829–1891)",
+ "title": "Als er liefde heerst"
+}

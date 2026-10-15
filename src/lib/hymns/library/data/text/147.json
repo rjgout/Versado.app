@@ -1,0 +1,50 @@
+{
+ "choruses": [],
+ "id": "nld:147",
+ "leadingChorus": null,
+ "musicCredit": "Duits volksliedje, 1650, zetting naar Johann Sebastian Bach (1685–1750)",
+ "notices": [],
+ "number": 147,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "1 Nephi 11:19–23",
+  "Leer en Verbonden 59:8"
+ ],
+ "source": {
+  "pageSha": "9e1a780eb3ab42056bca317fa79db3256d2210143af801f737369a6a045ca39d",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/o-jesu-sweet",
+  "pdfSha": "4dcc36d6133f4700dffe02f821443dbdbc0980de7d5a73fc72d5ee45596b2bb1",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/c1/39/c1392fc4ac3f11ecb473eeeeac1effcb6780c944/o_little_child_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O Kindeke klein, o Kindeke teer,",
+    "uit hoge hemel daalt Gij neer,",
+    "verlaat uw Vaders eeuwig rijk",
+    "en maakt U aan de mens gelijk,",
+    "o Kindeke klein, o kindeke teer."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "O Kindeke klein, o Kindeke teer,",
+    "Gij zijt ons uitverkoren Heer!",
+    "Ik geef U heel het harte mijn;",
+    "ach, laat mij eeuwig bij U zijn,",
+    "o Kindeke klein, o Kindeke teer."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar Duits kerstlied, 1665",
+ "title": "O Kindeke klein"
+}

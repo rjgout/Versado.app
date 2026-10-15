@@ -1,0 +1,58 @@
+{
+ "choruses": [],
+ "id": "nld:120",
+ "leadingChorus": null,
+ "musicCredit": "George Careless (1839–1932)",
+ "notices": [],
+ "number": 120,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "1 Petrus 2:21, 24",
+  "Mosiah 4:12–13"
+ ],
+ "source": {
+  "pageSha": "0943fe56a2d7bc3fed4407b9c1b9c0d214a1d29e07f0ccfe5e7b298f933a3db4",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/o-lord-of-hosts",
+  "pdfSha": "d5f441fe8dcc674adc1275cff5a5d79238ee9023b7fd3690e67439c2cf073086",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/17/2a/172afcb9ac4011ec9da5eeeeac1eb1da70e2b098/o_lord_of_hosts_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O grote Heer, wij bidden U, wil door uw Geest hier zijn,",
+    "en maak ons hart bij ’t avondmaal ontvank’lijk, goed en rein."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Dat wij toch steeds indachtig zijn uw lijden, o zo bang,",
+    "volbracht voor ons op Golgota, de liefde was uw drang."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Bereid ons oog om steeds te zien die rijkdom van genâ,",
+    "die zaligheid, voor ons bereid, gewrocht op Golgota."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Laat ons hier steeds als broeders zijn, en, door uw Geest vereend,",
+    "vergeven zoals Gij vergeeft, uw vreê wordt dan verleend."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Als een gebed",
+ "textCredit": "naar Andrew Dalrymple, geb. 1817",
+ "title": "O grote Heer"
+}

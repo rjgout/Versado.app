@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:51",
+ "leadingChorus": null,
+ "musicCredit": "John Hughes (1873–1932)",
+ "notices": [],
+ "number": 51,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Exodus 13:21–22",
+  "Leer en Verbonden 45:57"
+ ],
+ "source": {
+  "pageSha": "ed6e72944ae4873946279617d9bade810f77dc22e165e47a79e0b94529ed7d9d",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/guide-us-o-thou-great-jehovah",
+  "pdfSha": "ee874bab1f2e7d5ffd23432a29909728c6dcaef9793b407b64488197a23abade",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/1d/d7/1dd786a0ab8011ecb473eeeeac1effcbb566c02c/guide_us_o_thou_great_jehovah_hughes_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Leid ons, o Gij goede Meester, veilig naar ’t beloofde land.",
+    "Wij zijn zwak, maar Gij zijt machtig, steun ons door uw sterke hand.",
+    "Heil’ge Trooster, heil’ge Trooster, voed ons tot de Here komt, [tot Hij komt,]",
+    "voed ons tot de Here komt."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Open, Jezus, Zions bronnen, dat haar rijkste zegen ruis’.",
+    "Laat de vuur– en wolkkolom ons leiden naar uw heilig huis.",
+    "Grote Redder, grote Redder, breng ons die verwachte dag, [die dag,]",
+    "breng ons die verwachte dag."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Als deez’ aarde kreunt en siddert, geef ons bange hart dan rust.",
+    "Als uw oordeel spreidt verwoesting, berg ons dan op Zions kust.",
+    "’k Zal dan juichen, dank betuigen, uw verheven naam ter eer, [ter eer,]",
+    "uw verheven naam ter eer."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Majestueus",
+ "textCredit": "naar William Williams (1717–1791). Vers 1: Peter Williams (1722–1796)",
+ "title": "Leid ons, o Gij goede Meester"
+}

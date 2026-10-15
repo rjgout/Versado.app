@@ -1,0 +1,65 @@
+{
+ "choruses": [
+  [
+   "zeggen wij U dank, o Heer,",
+   "met dit lied van lof en eer."
+  ]
+ ],
+ "id": "nld:60",
+ "leadingChorus": null,
+ "musicCredit": "Conrad Kocher (1786–1872)",
+ "notices": [],
+ "number": 60,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 95:1–6",
+  "Psalm 33:1–6"
+ ],
+ "source": {
+  "pageSha": "8ba661d02b5451ae6e7f1ef63f881a639bcccaafe1b36fb13241a54a0768da96",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/for-the-beauty-of-the-earth",
+  "pdfSha": "842ca8f97d993d9064f4eec42d74b00376bf79f7338076fdc2a55231fc336665",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/f3/e5/f3e5c039ac3f11eca5e7eeeeac1e4f87ee4fb821/for_the_beauty_of_the_earth_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Voor de schepping, goed en mooi,",
+    "voor de wereld in haar tooi;",
+    "planten, dieren overal,",
+    "zee, rivieren, berg en dal,"
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Voor de pracht van elk moment",
+    "dat het aards bestaan ons schenkt;",
+    "voor uw liefd’, die in ons welt",
+    "en ons immer vergezelt,"
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Voor de vreugde die men vindt",
+    "tussen vader, moeder, kind;",
+    "voor de vrienden om ons heen,",
+    "vrienden boven en beneên,"
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "naar Folliott S. Pierpoint (1835–1917)",
+ "title": "Voor de schepping, goed en mooi"
+}

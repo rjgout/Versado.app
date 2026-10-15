@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:47",
+ "leadingChorus": null,
+ "musicCredit": "George W. Warren (1828–1902)",
+ "notices": [],
+ "number": 47,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 33:12, 20–22",
+  "Matteüs naar Joseph Smith 1:29–31"
+ ],
+ "source": {
+  "pageSha": "2a124d41541b4e738fd0378b6c1209d332233474bda2c11eaa9b0133b3017f15",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/god-of-our-fathers-whose-almighty-hand",
+  "pdfSha": "d6aa2e640c97682d1c5075512ea12d3d10aa7cfd444ef07b31bdf67c2068f6ff",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/2b/29/2b29da46ac4011ec8960eeeeac1ef785243663b9/god_of_our_fathers_whose_almighty_hand_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "God onzer vaad’ren, wiens almacht’ge hand",
+    "leidt voort de baan der sterren en hun stand,",
+    "stuurt de planeten in het gans heelal,",
+    "uw grote kracht bewijst zich overal."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Uw liefde heeft ons in ’t verleên geleid;",
+    "leid ons, o Heer, ook nu in deze tijd!",
+    "Wees onze Gids, Beschermer, Rots en Borg,",
+    "hoedt Gij ons immer in uw goede zorg."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Oorlogsgeweld, vernietiging en plaag;",
+    "ondanks dit al is Zions groei gestaag.",
+    "Laat onze hoop in U verankerd zijn;",
+    "Heer, dat uw goedheid immer op ons schijn’."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Energiek",
+ "textCredit": "naar Daniel C. Roberts (1841–1907)",
+ "title": "God onzer vaad’ren"
+}

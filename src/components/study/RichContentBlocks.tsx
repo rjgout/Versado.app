@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useState, type ReactNode } from "react";
 import { useT } from "@/components/I18nProvider";
 import type { ReaderDocument } from "@/lib/studyContent/readingPositionContract";
+import ReferenceLink from "./ReferenceLink";
 type Block = ReaderDocument["sections"][number]["blocks"][number];
 type Inline = Extract<Block, { type: "paragraph" }>["content"][number];
 type Media = { mediaKey: string; mediaId: string | null };
@@ -29,9 +30,7 @@ function inline(parts: readonly Inline[]): ReactNode {
         </a>
       );
     return (
-      <span key={part.id} className="underline decoration-dotted">
-        {part.label}
-      </span>
+      <ReferenceLink key={part.id} id={part.id} label={part.label}/>
     );
   });
 }
@@ -88,7 +87,6 @@ export default function RichContentBlocks({
   media: readonly Media[];
   preview?: boolean;
 }) {
-  const t = useT();
   function render(block: Block): ReactNode {
     if (block.type === "heading") {
       const Tag = `h${block.level}` as "h2" | "h3" | "h4" | "h5" | "h6";
@@ -115,6 +113,17 @@ export default function RichContentBlocks({
           )}
         </blockquote>
       );
+    if (block.type === "table")
+      return (
+        <div className="max-w-full overflow-x-auto">
+          <table className="w-full border-collapse text-left">
+            <tbody>{block.rows.map((row) => <tr key={row.id}>{row.cells.map((cell) => {
+              const Tag = cell.header ? "th" : "td";
+              return <Tag key={cell.id} colSpan={cell.colSpan} rowSpan={cell.rowSpan} className="border border-vs-line p-3 align-top">{inline(cell.content)}</Tag>;
+            })}</tr>)}</tbody>
+          </table>
+        </div>
+      );
     if (block.type === "list") {
       const Tag = block.ordered ? "ol" : "ul";
       return (
@@ -124,6 +133,7 @@ export default function RichContentBlocks({
           {block.items.map((item) => (
             <li key={item.id} id={`study-${item.id}`}>
               {inline(item.content)}
+              {item.blocks && <div className="mt-3 min-w-0 space-y-3">{item.blocks.map(child => <div key={child.id} id={`study-${child.id}`}>{render(child)}</div>)}</div>}
               {item.children && (
                 <Tag className="ml-4 mt-2 list-[inherit] space-y-2">
                   {item.children.map((child) => (
@@ -147,6 +157,7 @@ export default function RichContentBlocks({
               {block.items.map((item) => (
                 <li key={item.id} id={`study-${item.id}`}>
                   {inline(item.content)}
+                  {item.blocks && <div className="mt-3 min-w-0 space-y-3">{item.blocks.map(child => <div key={child.id} id={`study-${child.id}`}>{render(child)}</div>)}</div>}
                   {item.children && (
                     <ul className="mt-2 list-disc pl-6">
                       {item.children.map((child) => (
@@ -174,14 +185,7 @@ export default function RichContentBlocks({
     if (block.type === "reference")
       return (
         <div>
-          <p className="text-vs-accent underline decoration-dotted">
-            {block.label}
-          </p>
-          {!preview && (
-            <p className="mt-1 text-sm text-vs-fg-2">
-              {t("studyReader.referenceUnavailable")}
-            </p>
-          )}
+          <ReferenceLink id={block.id} label={block.label}/>
         </div>
       );
     return <hr className="border-vs-line" />;

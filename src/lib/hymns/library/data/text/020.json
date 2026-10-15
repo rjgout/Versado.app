@@ -1,0 +1,59 @@
+{
+ "choruses": [],
+ "id": "nld:20",
+ "leadingChorus": null,
+ "musicCredit": "Darwin K. Wolford (1936– ). © 1985 IRI",
+ "notices": [],
+ "number": 20,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Amos 3:7",
+  "Leer en Verbonden 1:38",
+  "Leer en Verbonden 68:4",
+  "Leer en Verbonden 112:30–32"
+ ],
+ "source": {
+  "pageSha": "0b3d6044d9dd1e096c517c5f3041091530cd51f85936e6d0991d77596fd9fea2",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/we-listen-to-a-prophets-voice",
+  "pdfSha": "59d0972d234a121ece96ead2a6448afd9fffc7846720b45d4c9cbfeb625c6ca2",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/6e/a0/6ea05b3eac4011ec884feeeeac1e94ef5ed26284/we_listen_to_a_prophets_voice_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Wij horen een profetenstem en horen zo de Heer.",
+    "Met zachte drang spoort hij ons aan te leven naar Gods leer.",
+    "De Heiland openbaart zijn wil aan zijn gekozen knecht,",
+    "opdat de mens de vreugde vindt die voor hem is weggelegd."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Eens horen alle volkeren het godswoord uit zijn mond.",
+    "Hoe snel spoedt zijn getuigenis de hele wereld rond!",
+    "De heil’ge boodschap die hij brengt, komt altijd overeen",
+    "met ’t woord van elke man van God uit het heden en ’t verleên."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Hosanna! Laat ons lofgezang verrijzen tot Gods troon;",
+    "zijn openbaarder wijst de weg naar ’s hemels eeuw’ge kroon.",
+    "O wereld, hoor! Een ziener spreekt; sla acht op zijn gebod.",
+    "Hij is het die de sleutels draagt van het priesterschap van God."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Resoluut",
+ "textCredit": "naar Marylou Cunningham Leavitt (1928– ) © 1985 IRI",
+ "title": "Wij horen een profetenstem"
+}

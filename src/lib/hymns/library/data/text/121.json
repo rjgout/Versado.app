@@ -1,0 +1,58 @@
+{
+ "choruses": [],
+ "id": "nld:121",
+ "leadingChorus": null,
+ "musicCredit": "Hugh W. Dougall (1872–1963)",
+ "notices": [],
+ "number": 121,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Johannes 6:38–40",
+  "Johannes 15:13",
+  "Alma 5:19, 21"
+ ],
+ "source": {
+  "pageSha": "2d76c785d74e33173b1b6dce144203504698abae00ae2a27186c0e4e70630afc",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/jesus-of-nazareth-savior-and-king",
+  "pdfSha": "08ef7f43d04fca7319c5cb1ea1ea56212ce7ed005a17896f2058d41309bd2878",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/7c/96/7c96e157ac4011ec8c51eeeeac1edd4e693f6f82/jesus_of_nazareth_savior_and_king_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Jezus van Nazaret, Heiland en Heer!",
+    "U overwon de dood, bracht leven weer;",
+    "daald’ uit uw Vaders woon naar d’ aarde af,",
+    "waar U uit liefd’ voor ons uw leven gaf."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Als wij in need’righeid eten het brood,",
+    "denken wij stil aan U en aan uw dood.",
+    "Voor ons gewond, doorboord op Golgota;",
+    "uw grote offerand’ peinzen wij na."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Drinken wij ’t water dat hier voor ons staat,",
+    "griffen w’ uw heilig beeld in ons gelaat.",
+    "Heer, help ons dienen, als U hebt gediend,",
+    "tot w’ eeuwig leven door U, onze Vriend."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar Hugh W. Dougall (1872–1963)",
+ "title": "Jezus van Nazaret, Heiland en Heer"
+}

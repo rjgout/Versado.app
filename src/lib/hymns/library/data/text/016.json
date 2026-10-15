@@ -1,0 +1,68 @@
+{
+ "choruses": [],
+ "id": "nld:16",
+ "leadingChorus": null,
+ "musicCredit": null,
+ "notices": [
+  "Tekst en muziek: Frans Heijdemann (1952– ). Gebaseerd op de hiernaast aangegeven schriftuurplaatsen."
+ ],
+ "number": 16,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 84:99–102",
+  "Leer en Verbonden 128:23–24"
+ ],
+ "source": {
+  "pageSha": "1e0a1bd5512bf1f2ab6735c9eb19e1984223c0fe864c899680dda7f47c8ab499",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/listen-to-the-word-of-the-lord",
+  "pdfSha": "8e2f8d6529efe718fae6cd76d16403cb9b51e1eb90ce06fc7c62cb4566ce2d79",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/8e/4b/8e4bf73dac4011ecb848eeeeac1e8465e768cf9f/listen_to_the_word_of_the_lord_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Kom, luister naar het woord des Heren,",
+    "zoals het is geopenbaard.",
+    "De hemel werd opnieuw geopend",
+    "en profetie kwam weer op aard’!"
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "De Here zal zijn volk verlossen;",
+    "gebonden wordt de boze macht.",
+    "De waarheid wordt op aard’ gevestigd",
+    "en alles wordt bijeengebracht."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Hij komt! De grote dag des Heren,",
+    "en wie houdt stand als Hij verschijnt?",
+    "Hij is als vuur, brengt recht en vrede,",
+    "zodat het kwaad voorgoed verdwijnt."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Van vreugde laat de bergen juichen:",
+    "Hij brengt zijn volk gerechtigheid!",
+    "Zijn woord staat vast, zal immer blijven,",
+    "aan Hem de glorie voor altijd!"
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vastberaden",
+ "textCredit": null,
+ "title": "Luister naar het woord des Heren"
+}

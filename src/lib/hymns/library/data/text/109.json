@@ -1,0 +1,52 @@
+{
+ "choruses": [],
+ "id": "nld:109",
+ "leadingChorus": null,
+ "musicCredit": "Alexander Schreiner (1901–1987). © 1948 IRI",
+ "notices": [],
+ "number": 109,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Mosiah 5:2",
+  "Lucas 24:32 (13–35)"
+ ],
+ "source": {
+  "pageSha": "742bf4c14da1b6280a9a319cf89e866639f8f011342c2ee488309cafb02454e9",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/thy-spirit-lord-has-stirred-our-souls",
+  "pdfSha": "ab86afa34460db171eec289b8ed9c1c2a01973d76a3b5aed68efde3731e1d0d9",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/1a/a1/1aa10f76ac4011eca035eeeeac1ee74bab5da354/thy_spirit_lord_has_stirred_our_souls_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Uw Geest, o Heer, heeft ons gevoel",
+    "met zachte fluist’ring aangeraakt.",
+    "Wij zien opnieuw ons heilig doel",
+    "en hebben van uw liefd’ gesmaakt.",
+    "Geen bramenstruik, door vuur omzoomd,",
+    "had uw nabijheid meer getoond."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "‘En heeft ons hart toen niet gebrand?’",
+    "De Geest heeft door zijn warme gloed",
+    "in onze ziel de wil geplant",
+    "tot dienstbetoon en levensmoed.",
+    "Heer, dat zijn licht van dag tot dag",
+    "gestadig bij ons blijven mag."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vurig",
+ "textCredit": "naar Frank I. Kooyman (1880–1963). © 1948 IRI",
+ "title": "Uw Geest, o Heer"
+}

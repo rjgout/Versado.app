@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:65",
+ "leadingChorus": null,
+ "musicCredit": "uit Neder-landtsche gedenck-clanck, Haarlem 1626, bew. Frans Heijdemann (1952– )",
+ "notices": [],
+ "number": 65,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Efeziërs 5:15",
+  "Leer en Verbonden 20:69"
+ ],
+ "source": {
+  "pageSha": "d6d34b8100f8a46a7bf49ae4a558dde37bdcaf844989dd9c999c078c767deebf",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/prayer-of-thanksgiving",
+  "pdfSha": "be5e526b57a92ee1a601d5a4e1c6dbd3eadd2d25d282e1aaef754f6c19ab0b9a",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b7/43/b74306bcac4011eca698eeeeac1eb6af9689db1f/prayer_of_thanksgiving_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Wilt heden nu treden voor God, de Here,",
+    "Hem bovenal loven, van harte zeer,",
+    "en maken groot zijns lieven namens ere,",
+    "die daar nu onze vijand slaat ter neer."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Ter eren ons Heren wilt al uw dagen",
+    "dit wonder bijzonder gedenken toch.",
+    "Maakt u, o mens, voor God steeds wel te dragen,",
+    "doet ieder recht en wacht u voor bedrog."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Bid, waket en maket, dat g’in bekoring¹",
+    "en ’t kwade met schade toch niet en valt.",
+    "Uw vroomheid² brengt de vijand tot verstoring,",
+    "al waar’ zijn rijk nog eens zo sterk bewald.³"
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Blij",
+ "textCredit": "Adriaen Valerius (1575–1625)",
+ "title": "Wilt heden nu treden"
+}

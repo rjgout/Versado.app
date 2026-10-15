@@ -129,7 +129,7 @@ test("niet claimen terwijl een claim loopt, of bij een onderbroken reeks", () =>
 });
 
 test("alle activiteiten tellen als activiteit, ook oefenen in de normale shell", () => {
-  for (const route of ["/lesson/c1", "/reading-lesson/l1", "/intro/i1", "/kids/s1", "/podcast/p/e", "/word-game", "/chapter-guess/solo/g1", "/live/ABCD", "/snelle-zendeling/run/r1", "/practice", "/mysteries/003a/play", "/mysteries/006c/play"]) {
+  for (const route of ["/study-lesson/lesson-a/collection-a", "/lesson/c1", "/reading-lesson/l1", "/intro/i1", "/kids/s1", "/podcast/p/e", "/word-game", "/chapter-guess/solo/g1", "/live/ABCD", "/snelle-zendeling/run/r1", "/practice", "/mysteries/003a/play", "/mysteries/006c/play"]) {
     assert.equal(isActivityRoute(route), true, route);
     assert.equal(celebrationDeferredOn(route), true, route);
   }

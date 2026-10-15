@@ -1,0 +1,51 @@
+{
+ "choruses": [],
+ "id": "nld:91",
+ "leadingChorus": null,
+ "musicCredit": "G. Homer Durham (1911–1985). © 1985 IRI",
+ "notices": [],
+ "number": 91,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 76:22–24, 41–42",
+  "Job 19:25"
+ ],
+ "source": {
+  "pageSha": "f904b223e295330aeaae9eb93e2e909625d7c8a4cab4dcd0d20669ad170c59be",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/my-redeemer-lives",
+  "pdfSha": "4601ee903703624acc92650787aeb4e9918a8b169bde65908e610a8c86391128",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/a5/ed/a5ed45adac3f11ec8f37eeeeac1e071f4c140c97/my_redeemer_lives_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Ik weet dat mijn Verlosser leeft, herrezen Heiland, Zone Gods,",
+    "Verwinnaar, boven pijn en dood, mijn Koning, Leider en mijn Rots."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Hij leeft, de Bron van mijn geloof, de Hoop van ieder mens op aard’,",
+    "het Baken naar een beter oord, het Licht waardoor de doodsnacht klaart."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "O, schenk mij toch uw goede Geest, uw vrede, die van angst bevrijdt,",
+    "de kracht op ’t smalle pad te gaan dat voert naar eeuw’ge zaligheid."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Blij",
+ "textCredit": "naar Gordon B. Hinckley (1910–2008). © 1985 IRI",
+ "title": "Mijn Verlosser leeft"
+}

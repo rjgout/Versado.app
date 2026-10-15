@@ -514,10 +514,12 @@ export async function matchQuestion(userId: string, matchId: string, language: s
 export async function listMatchOverview(userId: string) {
   await requirePuzzleContent();
   const now = new Date();
-  const rows = await prisma.puzzleMatchParticipant.findMany({
-    where: { userId, status: { not: "DECLINED" }, match: { OR: [{ status: { in: ["LOBBY", "RUNNING"] } }, { status: "FINISHED", finishedAt: { gt: new Date(now.getTime() - 14 * 86_400_000) } }] } },
-    orderBy: { createdAt: "desc" }, take: 20,
-    include: { match: { include: { variant: { include: { definition: true } }, organizer: { select: { id: true, handle: true } }, participants: { include: { user: { select: { id: true, handle: true } } } } } } },
-  });
-  return rows;
+  const include = { match: { include: { variant: { include: { definition: true } }, organizer: { select: { id: true, handle: true } }, participants: { include: { user: { select: { id: true, handle: true } } } } } } };
+  const mine = { userId, status: { not: "DECLINED" as const } };
+  // Lopende en afgeronde wedstrijden hebben elk hun eigen limiet: afgeronde wedstrijden verdringen lopende nooit meer.
+  const [running, finished] = await Promise.all([
+    prisma.puzzleMatchParticipant.findMany({ where: { ...mine, match: { status: { in: ["LOBBY", "RUNNING"] } } }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 20, include }),
+    prisma.puzzleMatchParticipant.findMany({ where: { ...mine, match: { status: "FINISHED", finishedAt: { gt: new Date(now.getTime() - 14 * 86_400_000) } } }, orderBy: [{ match: { finishedAt: "desc" } }, { matchId: "desc" }], take: 3, include }),
+  ]);
+  return [...running, ...finished];
 }

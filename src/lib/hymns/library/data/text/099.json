@@ -1,0 +1,69 @@
+{
+ "choruses": [
+  [
+   "Dat mijn hart zich biddend neig’,",
+   "heimlijk tot Gods trone stijg’.",
+   "Door die gunst de mens verleend,",
+   "ziel en hemel zijn vereend."
+  ]
+ ],
+ "id": "nld:99",
+ "leadingChorus": null,
+ "musicCredit": "Hans Henry Petersen (1835–1909)",
+ "notices": [],
+ "number": 99,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Matteüs 6:6",
+  "Alma 33:3–11"
+ ],
+ "source": {
+  "pageSha": "ffe8502b7abeb67ff856210d9655377d2298c24dc97cd4b8a196dce45188521e",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/secret-prayer",
+  "pdfSha": "61ae35dde6862ca2eb5c0f0f0c2fcabf7083c3a4b1930b8fd558029ba1693c75",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/36/bc/36bc0ae0ac4011ec8f37eeeeac1e071f9002cf99/secret_prayer_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Ik weet een uur van vreed’ en rust, dat ’k streef alleen te zijn",
+    "en in geheim gebed geknield voor Godes troon verschijn."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Het rechte, smalle pad tot God, waar ’t reine eng’lenheer",
+    "zijn lof bezingt, die vind ik wis door bidden immermeer."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Als ’k reis op ’s levens woeste zee, door stormen van ellend’,",
+    "welk ’n troost geeft mij dan dat ik weet: mijn beê is Hem bekend."
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Als op mijn pad men doornen strooit, de vijand strikken zet,",
+    "dan komt mijn Heiland mij te hulp op ’t need’rig, stil gebed."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bedachtzaam",
+ "textCredit": "naar Hans Henry Petersen (1835–1909)",
+ "title": "Een uur van vreed’ en rust"
+}

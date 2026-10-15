@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { JIGSAW_ROUTE } from "@/lib/puzzle/navigation";
-import NextImage from "next/image";
 import { Ellipsis, Lightbulb, Users } from "lucide-react";
-import FocusLayout from "@/components/versado/FocusLayout";
+import PuzzleBoardLayout from "@/components/puzzle/PuzzleBoardLayout";
+import { COMPLETION_MAX_WAIT_MS } from "@/lib/puzzle/motion";
+import { puzzleFeedback } from "@/lib/puzzle/feedback";
+import CompletionCard from "@/components/puzzle/CompletionCard";
 import PuzzleTable, { type PuzzleTableHandle, type TableCommit, type TableLock } from "@/components/PuzzleTable";
 import PuzzleHintPanel from "@/components/PuzzleHintPanel";
 import UserAvatar from "@/components/UserAvatar";
@@ -29,6 +31,8 @@ import type { PuzzleFilter, PuzzleHint, PuzzleHintType, PuzzleSnapshot } from "@
 // dubbele update wordt nooit "ingehaald" door gokken: bij een versieverschil
 // volgt een resync (patch of volledige snapshot).
 
+/** Hoe lang een speleractie maximaal op een lopende ruimte-maak-actie wacht (trage verbinding); daarna gaat ze zelf verder. */
+const SETTLE_WAIT_MS = 5000;
 const PALETTE = ["#2563eb", "#db2777", "#059669", "#9333ea"];
 type Ack = { ok: boolean; code?: string; [key: string]: unknown };
 
@@ -66,6 +70,8 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
   const [error, setError] = useState(""); const [busyHint, setBusyHint] = useState(false);
   const [selected, setSelectedPiece] = useState<number | null>(null);
   const [completed, setCompleted] = useState(initial.snapshot.completedAt !== null);
+  // De server legt voltooiing en eindtijd direct vast (`completed`); de kaart verschijnt pas nadat de laatste snap getoond is (`revealed`).
+  const [revealed, setRevealed] = useState(initial.snapshot.completedAt !== null);
   const [counted, setCounted] = useState(false);
   const table = useRef<PuzzleTableHandle>(null); const menuButton = useRef<HTMLButtonElement>(null);
   const remoteDrags = useRef(new Map<string, { x: number; y: number; until: number }>());
@@ -74,10 +80,20 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
   const geometry = useMemo(() => createPuzzleGeometry(state.pieceCount, state.seed, state.geometryVersion), [state.pieceCount, state.seed, state.geometryVersion]);
   const colors = useMemo(() => new Map(state.participants.map((participant, index) => [participant.userId, PALETTE[index % PALETTE.length]])), [state.participants]);
 
+  // Voltooiing (via delta, resync of bericht) wacht kort op de laatste snap; één keer, ook bij herhaalde updates of herverbinden.
+  useEffect(() => {
+    if (!completed || revealed) return;
+    const reveal = () => setRevealed(true); const failsafe = setTimeout(reveal, COMPLETION_MAX_WAIT_MS + 100);
+    if (table.current) table.current.settle(reveal); else reveal();
+    return () => clearTimeout(failsafe);
+  }, [completed, revealed]);
+  // Eén subtiele voltooiingsviering per deelnemer, alleen als de kaart na een live voltooiing verschijnt (niet bij het openen van een reeds voltooide puzzel).
+  const openedCompleted = useRef(initial.snapshot.completedAt !== null);
+  useEffect(() => { if (revealed && !openedCompleted.current) puzzleFeedback().play("complete", initial.id); }, [revealed, initial.id]);
   useEffect(() => { if (!message) return; const id = setTimeout(() => setMessage(""), 4000); return () => clearTimeout(id); }, [message]);
   // Terug = het puzzeloverzicht (replace, geen extra geschiedenisitem) en verlaat de gezamenlijke puzzel nooit:
   // definitief verlaten is de aparte actie "Puzzel verlaten" met bevestiging.
-  const back = useCallback(() => router.replace(JIGSAW_ROUTE), [router]);
+  const back = useCallback(() => { void (async () => { if (await table.current?.flushKeyboard() !== false) router.replace(JIGSAW_ROUTE); })(); }, [router]);
   useSetBackTarget(usePathname(), JIGSAW_ROUTE, "", back);
 
   const bump = useCallback(() => setPaintKey((key) => key + 1), []);
@@ -159,19 +175,28 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
     if (socket.connected && now - lastDragSent.current > 60) { lastDragSent.current = now; socket.volatile.emit("puzzle:drag", { sessionId: initial.id, groupId, x, y }); }
   }, [initial.id]);
 
-  const onCommit = useCallback(async (operation: TableCommit, token: string): Promise<boolean> => {
-    const body = { sessionId: initial.id, actionId: crypto.randomUUID(), baseVersion: version.current, lockToken: token, operation };
-    const response = await emitAck("puzzle:commit", body, () => post({ action: "commit", ...body }));
-    if (!response.ok) {
-      // Conflict, verlopen lock of verbroken verbinding: de canonieke stand wint.
-      setMessage(t(response.code === "LOCKED" || response.code === "NO_LOCK" ? "puzzleTogether.coop.busy" : "puzzleTogether.coop.changed"));
-      await resync(); return false;
-    }
-    const delta = response.delta as PuzzleDelta | null;
-    if (delta && !apply(delta)) await resync();
-    const contribution = response.contribution as { counted: boolean } | null;
-    if (contribution?.counted) setCounted(true);
-    return delta !== null;
+  // Ruimte maken is een achtergrondactie en draagt de actuele versie. Een volgende speleractie wacht (begrensd) op de bevestiging, zodat
+  // ze met de bevestigde versie vertrekt en een late settle-respons nooit een nieuwere actie ongedaan maakt.
+  const settleFlight = useRef<Promise<boolean> | null>(null);
+  const onCommit = useCallback(async (operation: TableCommit, token: string | null): Promise<boolean> => {
+    if (operation.kind !== "settle" && settleFlight.current) await Promise.race([settleFlight.current, new Promise<void>((resolve) => setTimeout(resolve, SETTLE_WAIT_MS))]);
+    const send = async (): Promise<boolean> => {
+      const body = { sessionId: initial.id, actionId: crypto.randomUUID(), baseVersion: version.current, ...(token ? { lockToken: token } : {}), operation };
+      const response = await emitAck("puzzle:commit", body, () => post({ action: "commit", ...body }));
+      if (!response.ok) {
+        // Conflict, verlopen lock of verbroken verbinding: de canonieke stand wint. Een mislukte ruimte-maak-actie is niet de speler zijn zaak: stil herstellen.
+        if (operation.kind !== "settle") setMessage(t(response.code === "LOCKED" || response.code === "NO_LOCK" ? "puzzleTogether.coop.busy" : "puzzleTogether.coop.changed"));
+        await resync(); return false;
+      }
+      const delta = response.delta as PuzzleDelta | null;
+      if (delta && !apply(delta)) await resync();
+      const contribution = response.contribution as { counted: boolean } | null;
+      if (contribution?.counted) setCounted(true);
+      return delta !== null;
+    };
+    if (operation.kind !== "settle") return send();
+    const flight = send(); settleFlight.current = flight;
+    try { return await flight; } finally { if (settleFlight.current === flight) settleFlight.current = null; }
   }, [apply, initial.id, resync, t]);
 
   const colorOf = useCallback((userId: string) => colors.get(userId) ?? "#64748b", [colors]);
@@ -200,23 +225,25 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
   }
   async function leave() {
     if (!(await confirm(t("puzzleTogether.coop.leaveConfirm")))) return;
-    try { await post({ action: "leave", sessionId: initial.id }); router.replace(JIGSAW_ROUTE); } catch (cause) { setError(cause instanceof Error ? cause.message : t("jigsaw.failed")); }
+    try { if (await table.current?.flushKeyboard() === false) return; await post({ action: "leave", sessionId: initial.id }); router.replace(JIGSAW_ROUTE); } catch (cause) { setError(cause instanceof Error ? cause.message : t("jigsaw.failed")); }
   }
 
-  if (completed) {
-    return <FocusLayout className="page-fill max-w-none items-center justify-center gap-5 py-4 text-center">
-      <div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-vs-surface shadow-lg"><NextImage src={state.image} alt={t("jigsaw.completedImage")} width={1440} height={960} unoptimized priority className="h-auto max-h-[68dvh] w-full object-contain" /></div>
-      <div><h1 className="text-2xl font-extrabold text-vs-fg">{t("puzzleTogether.coop.completeTitle")}</h1><p className="mt-2 text-vs-fg-2">{t("puzzleTogether.coop.completeText")}</p></div>
-      <div className="flex flex-wrap justify-center gap-2">{state.participants.map((participant) => <span key={participant.userId} className="flex items-center gap-2 rounded-full border border-vs-line px-3 py-1 text-sm"><UserAvatar id={participant.userId} handle={participant.handle} /><span className="vs-wrap">{participant.handle}</span></span>)}</div>
-      <button type="button" className="btn-primary min-h-12 w-full max-w-[440px] self-center" onClick={back}>{t("puzzleTogether.coop.back")}</button>
-    </FocusLayout>;
+  if (completed && revealed) {
+    // Dezelfde kaart als Solo en Tegen elkaar. Samen heeft geen puzzeltijd of snelheidsrecord (spelers leggen verspreid over momenten),
+    // dus toont de kaart die niet; er volgt ook geen vraag.
+    return <CompletionCard image={state.image} imageAlt={t("jigsaw.completedImage")} title={t("puzzleTogether.coop.completeTitle")}
+      facts={[t(`jigsaw.${state.difficulty.toLowerCase() as "discoverer" | "adventurer" | "expert" | "master"}`), t("jigsaw.pieces", { n: state.pieceCount })]} factsLabel={t("jigsaw.completion.facts")}
+      action={{ label: t("puzzleTogether.coop.back"), onClick: back }}>
+      <p className="vs-wrap max-w-[440px] text-vs-fg-2">{t("puzzleTogether.coop.completeText")}</p>
+      <ul className="flex flex-wrap justify-center gap-2">{state.participants.map((participant) => <li key={participant.userId} className="flex items-center gap-2 rounded-full border border-vs-line px-3 py-1 text-sm"><UserAvatar id={participant.userId} handle={participant.handle} /><span className="vs-wrap">{participant.handle}</span></li>)}</ul>
+    </CompletionCard>;
   }
 
   const isOwner = state.ownerId === meId;
   const canInviteMore = isOwner && state.participants.length + state.invites.length < 4;
   const policyIncluded = includedRemaining;
 
-  return <FocusLayout className="puzzle-workspace gap-0">
+  return <PuzzleBoardLayout>
     <PuzzleTable ref={table} image={state.image} seed={state.seed} geometryVersion={state.geometryVersion} pieceCount={state.pieceCount} difficulty={state.difficulty} rulesVersion={state.rulesVersion}
       getSnapshot={() => snapshot.current} paintKey={paintKey} hint={hint} meId={meId} locks={locks} colorOf={colorOf} onGrab={onGrab} onRelease={onRelease} onDrag={onDrag} onCommit={onCommit} remoteDrags={remoteDrags}
       onBusy={setMessage} onSelect={setSelectedPiece}
@@ -245,14 +272,14 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
           </div>}
           {/* De snapshot staat in een ref om elke sleepbeweging niet te laten renderen; paintKey ververst dit paneel. */}
           {/* eslint-disable-next-line react-hooks/refs */}
-          {hintsOpen && <PuzzleHintPanel returnFocus={menuButton} includedRemaining={policyIncluded} snapshot={snapshot.current} difficulty={state.difficulty} rulesVersion={state.rulesVersion} selected={selected} canConnect={puzzleHintTarget(snapshot.current, geometry, "CONNECTION", selected ?? undefined) !== null} hintBalance={inventory.data?.hintBalance ?? null} inventoryBusy={inventory.isFetching} inventoryError={!!inventory.error} busy={busyHint} active={hint !== null} error={error} onRefresh={() => void inventory.refetch()} onShop={() => router.push("/shop")} onUse={(type, filter, confirmed) => void requestHint(type, filter, confirmed)} onClose={() => { setHintsOpen(false); menuButton.current?.focus(); }} />}
+          {hintsOpen && <PuzzleHintPanel returnFocus={menuButton} includedRemaining={policyIncluded} snapshot={snapshot.current} difficulty={state.difficulty} rulesVersion={state.rulesVersion} selected={selected} canConnect={puzzleHintTarget(snapshot.current, geometry, "CONNECTION", selected ?? undefined) !== null} hintBalance={inventory.data?.hintBalance ?? null} inventoryBusy={inventory.isFetching} inventoryError={!!inventory.error} busy={busyHint} active={hint !== null} error={error} onRefresh={() => void inventory.refetch()} onShop={() => { void (async () => { if (await table.current?.flushKeyboard() !== false) router.push("/shop"); })(); }} onUse={(type, filter, confirmed) => void requestHint(type, filter, confirmed)} onClose={() => { setHintsOpen(false); menuButton.current?.focus(); }} />}
         </div>
         <p aria-live="polite" className="sr-only">{message || (connected ? t("puzzleTogether.coop.synced") : t("puzzleTogether.coop.reconnecting"))}</p>
         {!connected && <p role="status" className="absolute inset-x-3 bottom-24 z-10 rounded-xl bg-vs-surface p-3 text-center text-sm shadow-md">{t("puzzleTogether.coop.reconnecting")}</p>}
         {(message || counted) && <p role="status" className="pointer-events-none absolute inset-x-3 top-16 z-10 mx-auto w-fit max-w-full rounded-xl bg-vs-surface/95 px-3 py-2 text-center text-sm shadow-md" >{message || t("puzzleTogether.coop.counts")}</p>}
-        {hint && <p className="pointer-events-none absolute bottom-3 left-3 z-10 rounded-full bg-vs-surface/90 px-3 py-1 text-xs text-vs-fg-2">{t("puzzleTogether.coop.hintPrivate")}</p>}
+        {hint && <p className="pointer-events-none absolute bottom-[6rem] left-3 z-10 rounded-full bg-vs-surface/90 px-3 py-1 text-xs text-vs-fg-2">{t("puzzleTogether.coop.hintPrivate")}</p>}
         {error && !hintsOpen && <p role="alert" className="absolute inset-x-3 top-3 z-20 rounded-xl bg-vs-surface p-3 text-vs-fg" onClick={() => setError("")}>{error}</p>}
       </>} />
     <FriendPicker open={pickerOpen} onClose={() => setPickerOpen(false)} title={t("puzzleTogether.setup.pickerTitle")} subtitle={t("puzzleTogether.setup.pickerSubtitle")} onInvite={(friend) => void invite(friend)} stateFor={(id) => state.participants.some((participant) => participant.userId === id) ? "joined" : state.invites.some((item) => item.userId === id) ? "invited" : "invite"} />
-  </FocusLayout>;
+  </PuzzleBoardLayout>;
 }

@@ -1,0 +1,70 @@
+{
+ "choruses": [],
+ "id": "nld:84",
+ "leadingChorus": null,
+ "musicCredit": "George Careless (1839–1932)",
+ "notices": [],
+ "number": 84,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 58:2–4",
+  "Johannes 16:33"
+ ],
+ "source": {
+  "pageSha": "205a6fe789078a4edbfcb22fb217b3f7e1903a22c9f540a8bd0008b989767750",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/though-deepening-trials",
+  "pdfSha": "8f322d23bac0bea9bcc0f888ae0e6b605d3291535c55cf7d233b6c885343a849",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/73/18/7318771bac4011ec8f90eeeeac1eb6577c32e0aa/though_deepening_trials_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Schoon soms beproeving kwellen mag,",
+    "heil’gen, houd stand in ’t nieuw verbond.",
+    "D’opstanding brengt de nieuwe dag,",
+    "spreidt dra zijn levenslicht in ’t rond,",
+    "spreidt dra zijn levenslicht in ’t rond."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Wordt soms geluk hier ondermijnd,",
+    "toch is de tijd op aard’ niet lang",
+    "voor glorierijk de Heer verschijnt,",
+    "Hem looft en prijst der eng’len zang,",
+    "Hem looft en prijst der eng’len zang."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Richt steeds uw hart in lof tot God,",
+    "voegt u in ’s Heren hand gedwee.",
+    "Als moeiten plagen hier uw lot,",
+    "zegt Christus: In Mij vindt gij vreê,",
+    "zegt Christus: In Mij vindt gij vreê."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Schoon smaad en hoon hier op u daalt,",
+    "gij voor de vijands woede vliedt;",
+    "Jehovahs woord heeft nooit gefaald,",
+    "denk nooit dat Gods plan is te niet,",
+    "denk nooit dat Gods plan is te niet."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Blijmoedig",
+ "textCredit": "naar Eliza R. Snow (1804–1887)",
+ "title": "Schoon soms beproeving kwellen mag"
+}

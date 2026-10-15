@@ -1,0 +1,51 @@
+{
+ "choruses": [],
+ "id": "nld:203",
+ "leadingChorus": null,
+ "musicCredit": "Martin Shaw (1875–1958). © 1915 by J. Curwin & Sons, Ltd. Herdrukt met toestemming van G. Schirmer, Inc., U.S. agents. Het maken van kopieën zonder de schriftelijke toestemming van de houder van het auteursrecht is niet toegestaan.",
+ "notices": [],
+ "number": 203,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Moroni 10:5–7",
+  "Leer en Verbonden 11:12–14"
+ ],
+ "source": {
+  "pageSha": "a5c88bea7f976cb0f8e6c8ffd69a20dc9b15ba164e1678585b281d643e200615",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/let-the-holy-spirit-guide",
+  "pdfSha": "6cc6771b147faf6346b9f6ee9371f67ad80962d82b203361a05ca692e2fed655",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ab/36/ab36dfc1ac3f11ec90cceeeeac1e6e3d9db71f36/let_the_holy_spirit_guide_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Neem de Heil’ge Geest tot gids, laat u leiden door zijn licht.",
+    "Hij getuigt ook van de Zoon, houdt ons oog op Hem gericht."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Neem de Heil’ge Geest tot steun. Door zijn stille, zachte stem",
+    "begeleidt Hij ons naar huis. O, vertrouwen wij op Hem!"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Ja, de Geest geneest ons hart, geeft ons gaarna hulp en kracht.",
+    "Als ons leven zuiver is, leidt Hij ons bij dag en nacht."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vriendelijk",
+ "textCredit": "naar Penelope Moody Allen (1939– ). © 1985 IRI",
+ "title": "Neem de Heil’ge Geest tot gids"
+}

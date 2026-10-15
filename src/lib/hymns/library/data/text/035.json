@@ -1,0 +1,69 @@
+{
+ "choruses": [],
+ "id": "nld:35",
+ "leadingChorus": null,
+ "musicCredit": "Spaanse melodie; bew. Benjamin Carr (1768–1831)",
+ "notices": [],
+ "number": 35,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 133:25, 33, 56",
+  "Openbaring 7:9–17"
+ ],
+ "source": {
+  "pageSha": "83af4fff84bb3e337a12fad9e4e7ab78a6672c6baca363c17f3b5553a636181e",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/come-ye-children-of-the-lord",
+  "pdfSha": "06e73723072e50c46edb19cb12ce44b1d2858cd78d8d0a9bfb272373fddc0df7",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ab/55/ab5548e5ac4011eca75deeeeac1e937969a78edd/come_ye_children_of_the_lord_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Komt, gij kind’ren van de Heer,",
+    "zingen wij een lied ter eer",
+    "van de Heer, die binnenkort",
+    "hier op aarde koning wordt,",
+    "als van ongerechtigheid",
+    "deze wereld wordt bevrijd,",
+    "als de mens, van zonden schoon,",
+    "vredig in Gods liefde woont."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "O, wat vreugde wonderbaar",
+    "als wij zien de Middelaar!",
+    "Als in glorie Hij verschijnt,",
+    "al het kwade dan verdwijnt.",
+    "O, hoe geeft ons lied dan eer",
+    "onze Heiland, Vorst en Heer!",
+    "Welk een liefd’ heerst overal,",
+    "als geen mens meer vrezen zal!"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Dan, in smetloos wit gehuld",
+    "en van hemels licht vervuld,",
+    "zingen wij de Zoon ter eer,",
+    "juub’len dankbaar immermeer.",
+    "D’aarde is van zonden rein;",
+    "al wat ademt, groot en klein,",
+    "woont in schoonheid, liefd’ en deugd;",
+    "aller hart is dan verheugd."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Uitbundig",
+ "textCredit": "naar James H. Wallis (1861–1940)",
+ "title": "Komt, gij kind’ren van de Heer"
+}

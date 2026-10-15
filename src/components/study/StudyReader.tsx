@@ -1,15 +1,30 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { RotateCcw, RefreshCw } from "lucide-react";
+import { CheckCircle2, RotateCcw, RefreshCw } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { useLiveQuery } from "@/lib/data/hooks";
-import { fetchJson } from "@/lib/data/fetchJson";
+import { fetchJson, ApiRequestError } from "@/lib/data/fetchJson";
 import type { StudyReaderDTO } from "@/lib/studyContent/reader";
 import type { ReadingPositionState } from "@/lib/studyContent/readingPositionContract";
 import RichContentBlocks from "./RichContentBlocks";
 import { useReadingPositionController } from "./ReadingPositionController";
+import ReferencePreview from "./ReferencePreview";
+import ReferenceReturn from "./ReferenceReturn";
+import { ReferenceActionsContext } from "./ReferenceLink";
+import { currentEntryKey } from "@/lib/navigationHistory";
+import { jsonMutation } from "@/lib/data/mutation";
+import { rememberReferenceTrip } from "@/lib/references/returnContext";
+import type { ReferenceTrip } from "@/lib/references/tripContract";
+import type { ReferenceRequest } from "@/lib/references/contract";
+import { contentSelectionSchema, type ContentPickerContext, type ContentSelection } from "@/lib/contentPickerContract";
+import {
+  clearPendingStudyReadAction,
+  pendingStudyReadAction,
+  storePendingStudyReadAction,
+  studyReadActionStorageKey,
+} from "@/lib/studyContent/readAction";
 
 export default function StudyReader({
   initial,
@@ -51,6 +66,18 @@ function ReaderVisit({
     root = useRef<HTMLElement>(null),
     title = useRef<HTMLHeadingElement>(null);
   const [updating, setUpdating] = useState(false);
+  const [readState, setReadState] = useState(data.readState);
+  const [markingRead, setMarkingRead] = useState(false);
+  const [readError, setReadError] = useState<string | null>(null);
+  const [justMarkedRead, setJustMarkedRead] = useState(false);
+  const pendingReadAction = useRef<{ key: string; actionId: string } | null>(null);
+  const [reference,setReference]=useState<{request:ReferenceRequest;label:string;element:HTMLElement}|null>(null);
+  const moreAlive=useRef(true),moreSession=useRef(sessionKey),moreController=useRef<AbortController|null>(null);
+  useLayoutEffect(()=>{
+    moreAlive.current=true;moreSession.current=sessionKey;
+    return ()=>{moreAlive.current=false;moreController.current?.abort();};
+  },[sessionKey]);
+  const morePending=useRef<{occurrenceKey:string;expectedSelection:ContentSelection;expectedSelectionVersion:number}|null>(null);
   const query = useLiveQuery<ReadingPositionState>(
     [
       "readingPosition",
@@ -83,6 +110,16 @@ function ReaderVisit({
     (query.data?.currentRevisionId ?? data.positionState.currentRevisionId) !==
     data.lesson.revisionId;
   useEffect(() => {
+    if (!data.readState.read) return;
+    const context = {
+      sessionKey,
+      lessonEditionId: data.lesson.editionId,
+      revisionId: data.lesson.revisionId,
+    };
+    clearPendingStudyReadAction(context, sessionStorage);
+    pendingReadAction.current = null;
+  }, [data.readState.read, data.lesson.editionId, data.lesson.revisionId, sessionKey]);
+  useEffect(() => {
     title.current?.focus({ preventScroll: true });
   }, []);
   async function openUpdate() {
@@ -94,6 +131,104 @@ function ReaderVisit({
     }
     setUpdating(false);
   }
+  async function markRead() {
+    if (readState.read || markingRead) return;
+    const readActionContext = {
+      sessionKey,
+      lessonEditionId: data.lesson.editionId,
+      revisionId: data.lesson.revisionId,
+    };
+    const pendingKey = studyReadActionStorageKey(readActionContext);
+    const actionId =
+      pendingReadAction.current?.key === pendingKey
+        ? pendingReadAction.current.actionId
+        : pendingStudyReadAction(readActionContext, sessionStorage) ?? crypto.randomUUID();
+    pendingReadAction.current = { key: pendingKey, actionId };
+    storePendingStudyReadAction(readActionContext, actionId, sessionStorage);
+    setMarkingRead(true);
+    setReadError(null);
+    try {
+      const result = await jsonMutation<{
+        state: { read: boolean; readAt: string | null };
+        changed: boolean;
+      }>(
+        "/api/study-read",
+        {
+          json: {
+            lessonEditionId: data.lesson.editionId,
+            revisionId: data.lesson.revisionId,
+            actionId,
+          },
+          headers: { "X-Reading-Session": sessionKey },
+        },
+        { invalidates: "activityCompleted" },
+      );
+      setReadState(result.state);
+      setJustMarkedRead(result.changed);
+      clearPendingStudyReadAction(readActionContext, sessionStorage);
+      pendingReadAction.current = null;
+    } catch (error) {
+      // Een afgewezen actie kan niet meer slagen bij een retry. Bij een
+      // onzekere netwerk- of serverfout blijft dezelfde UUID juist bewaard.
+      if (
+        error instanceof ApiRequestError &&
+        [400, 401, 403, 404, 409].includes(error.status)
+      ) {
+        clearPendingStudyReadAction(readActionContext, sessionStorage);
+        pendingReadAction.current = null;
+      }
+      setReadError(
+        error instanceof ApiRequestError && error.status === 409
+          ? t("studyReader.readRevisionChanged")
+          : t("studyReader.readFailed"),
+      );
+    } finally {
+      setMarkingRead(false);
+    }
+  }
+  async function moreReference(passageIndex = 0){
+    if(!reference)throw new Error("REFERENCE_UNAVAILABLE");
+    const entry=currentEntryKey();
+    const stillCurrent=()=>moreAlive.current && moreSession.current===sessionKey && currentEntryKey()===entry;
+    const state=await control.flush();
+    if(!stillCurrent())throw new Error("REFERENCE_NAVIGATION_CANCELLED");
+    if(!state || !control.canLeave())throw new Error("READING_POSITION_NOT_SAVED");
+    // Geen bronmutatie als de vereiste tabgebonden context niet kan worden bewaard.
+    const reserve=`vs-reference-trip:reserve`;
+    sessionStorage.setItem(reserve," ".repeat(16000));
+    const pendingKey=`vs-reference-pending:${sessionKey}:${data.lesson.editionId}:${data.lesson.revisionId}`;
+    if(!morePending.current){
+      try{
+        const stored=JSON.parse(sessionStorage.getItem(pendingKey)??"null");
+        const selection=contentSelectionSchema.safeParse(stored?.expectedSelection);
+        if(selection.success && typeof stored.occurrenceKey==="string" && stored.occurrenceKey.length<=128 && Number.isSafeInteger(stored.expectedSelectionVersion) && stored.expectedSelectionVersion>=0 && stored.expectedSelectionVersion<=2147483647)
+          morePending.current={occurrenceKey:stored.occurrenceKey,expectedSelection:selection.data,expectedSelectionVersion:stored.expectedSelectionVersion};
+      }catch{}
+    }
+    if(morePending.current?.occurrenceKey!==reference.request.occurrenceKey){
+      const picker=await fetchJson<ContentPickerContext>("/api/content-context?view=picker");
+      if(!stillCurrent())throw new Error("REFERENCE_NAVIGATION_CANCELLED");
+      if(picker.selectionVersion===undefined)throw new Error("REFERENCE_SOURCE_STATUS_UNKNOWN");
+      morePending.current={occurrenceKey:reference.request.occurrenceKey,expectedSelection:picker.selection,expectedSelectionVersion:picker.selectionVersion};
+      sessionStorage.setItem(pendingKey,JSON.stringify(morePending.current));
+    }
+    const controller=new AbortController();moreController.current=controller;
+    const deadline=setTimeout(()=>controller.abort(),15000);
+    let result:{href:string;token:string;trip:ReferenceTrip};
+    try{result=await jsonMutation<{href:string;token:string;trip:ReferenceTrip}>("/api/study-references",{
+      json:{action:"more",...reference.request,passageIndex,expectedSelection:morePending.current.expectedSelection,expectedSelectionVersion:morePending.current.expectedSelectionVersion,expectedPositionVersion:state.position?.version ?? 0},
+      headers:{"X-Reading-Session":sessionKey},signal:controller.signal,
+    },{invalidates:"contentChanged"});}
+    catch(error){
+      if(error instanceof ApiRequestError && error.status===409){sessionStorage.removeItem(pendingKey);morePending.current=null;}
+      throw error;
+    }
+    finally{clearTimeout(deadline);if(moreController.current===controller)moreController.current=null;}
+    if(controller.signal.aborted || !stillCurrent())throw new Error("REFERENCE_NAVIGATION_CANCELLED");
+    if(!rememberReferenceTrip(result))throw new Error("REFERENCE_RETURN_STORAGE");
+    sessionStorage.removeItem(pendingKey);morePending.current=null;
+    setReference(null);router.push(result.href);router.refresh();
+  }
   return (
     <FocusLayout className="max-w-3xl">
       <div
@@ -103,6 +238,7 @@ function ReaderVisit({
         className="vs-motion min-w-0 space-y-5 py-2"
       >
         <header className="space-y-4">
+          <ReferenceReturn sessionKey={sessionKey}/>
           <h1
             ref={title}
             tabIndex={-1}
@@ -125,6 +261,41 @@ function ReaderVisit({
             />
           </div>
           <p className="text-sm text-vs-fg-2">{t("studyReader.readNotice")}</p>
+          {readState.read ? (
+            <section
+              data-study-read-status="read"
+              role="status"
+              className="rounded-2xl border border-vs-success/35 bg-vs-success-soft p-4 text-vs-fg"
+            >
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-vs-success" aria-hidden />
+                <div className="min-w-0">
+                  <h2 className="font-bold">{t("studyReader.readComplete")}</h2>
+                  <p className="mt-1 text-sm text-vs-fg-2">{t("studyReader.readCompleteNotice")}</p>
+                </div>
+              </div>
+            </section>
+          ) : (
+            <div className="space-y-2">
+              <button
+                type="button"
+                data-mark-study-read
+                className="btn-primary min-h-12 max-w-full gap-2"
+                onClick={() => void markRead()}
+                disabled={markingRead || busy}
+              >
+                <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
+                {markingRead ? t("studyReader.markingRead") : t("studyReader.markRead")}
+              </button>
+              <p className="text-sm text-vs-fg-2">{t("studyReader.markReadNotice")}</p>
+              {readError && <p role="status" className="text-sm text-vs-danger">{readError}</p>}
+            </div>
+          )}
+          {justMarkedRead && (
+            <p role="status" className="text-sm font-semibold text-vs-success">
+              {t("studyReader.readMarked")}
+            </p>
+          )}
           <button
             type="button"
             className="btn-secondary min-h-12 max-w-full gap-2"
@@ -207,6 +378,7 @@ function ReaderVisit({
             </div>
           )}
         </header>
+        <ReferenceActionsContext.Provider value={(id,label,element)=>setReference({request:{lessonEditionId:data.lesson.editionId,revisionId:data.lesson.revisionId,occurrenceKey:id,...(data.visitProof ? {visitProof:data.visitProof} : {})},label,element})}>
         <article
           ref={root}
           data-study-reader-body
@@ -215,6 +387,8 @@ function ReaderVisit({
         >
           <RichContentBlocks document={data.lesson.body} media={data.media} />
         </article>
+        </ReferenceActionsContext.Provider>
+        {reference && <ReferencePreview key={`${sessionKey}:${reference.request.occurrenceKey}`} request={reference.request} label={reference.label} sessionKey={sessionKey} onClose={()=>setReference(null)} onMore={moreReference} returnFocus={reference.element}/ >}
       </div>
     </FocusLayout>
   );

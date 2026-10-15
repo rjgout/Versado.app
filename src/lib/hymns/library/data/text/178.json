@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:178",
+ "leadingChorus": null,
+ "musicCredit": "C. Marianne Johnson Fisher (1932–2018). © 1985 IRI",
+ "notices": [],
+ "number": 178,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "2 Timoteüs 3:14–17",
+  "Romeinen 15:4"
+ ],
+ "source": {
+  "pageSha": "521e503355d069845eb0fcc4c235a6f200989eeedee41c97da78edb1d8462a06",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/as-i-search-the-holy-scriptures",
+  "pdfSha": "3519ddd31c881b7e3cd9b72f66af0e6c161019ac234c3facc6e08d00d695c033",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/52/b2/52b217a8ac4011ecb473eeeeac1effcb984a9b3f/as_i_search_the_holy_sciprtures_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Bij mijn studie van de Schriften,",
+    "Vader, wilt Gij met mij zijn.",
+    "Vul mijn hart met eed’le wijsheid,",
+    "mijn verstand met kennis rein."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Bij mijn studie van de Schriften,",
+    "wil mijn geest beroeren, Heer.",
+    "Toon mij uw verborgenheden,",
+    "hef mij naar een hoog’re sfeer."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Bij mijn studie van de Schriften,",
+    "waarin ’k uw genade vond,",
+    "wil mijn hart en ziel vertroosten,",
+    "helen een verborgen wond."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Bij mijn studie van de Schriften,",
+    "help mij overpeinzen, Heer.",
+    "In uw woord is eeuwig leven,",
+    "schenk uw licht mij immermeer."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Als een gebed",
+ "textCredit": "naar C. Marianne Johnson Fisher (1932–2018). © 1985 IRI",
+ "title": "Bij mijn studie van de Schriften"
+}

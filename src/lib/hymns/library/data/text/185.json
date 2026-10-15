@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:185",
+ "leadingChorus": null,
+ "musicCredit": "Robert P. Manookin (1918–1997). © 1985 IRI",
+ "notices": [],
+ "number": 185,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 109:13–21",
+  "Leer en Verbonden 132:46"
+ ],
+ "source": {
+  "pageSha": "6b68edb83df7ef644073a68417ef0599cf7893cc233a48f4a6b5c7d7352eb084",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/rise-ye-saints-and-temples-enter",
+  "pdfSha": "f304a89ca2c731942908226a35e5cd6d0260c7dc8bb5b3612f70aa3efc3e7056",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/17/70/1770b857ac4011ec8f90eeeeac1eb657e88157ef/rise_ye_saints_and_temples_enter_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Hoor, o heil’gen, richt uw schreden;",
+    "kom in ’s Heren huis bijeen.",
+    "Smeed tezamen dierb’re zielen",
+    "uit het heden en ’t verleên."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Leer het plan van zaligmaking",
+    "en gehoorzaam elk gebod.",
+    "Eer uw eeuw’ge heilsverbonden",
+    "met de Allerhoogste God."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Elohim, Gij groot Ontwerper,",
+    "zend des hemels zegen neer",
+    "op uw trouwe zoons en dochters",
+    "in de tempels van hun Heer."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Resoluut",
+ "textCredit": "naar Jean L. Kaberry (1918–1999). © 1985 IRI",
+ "title": "Hoor, o heil’gen, richt uw schreden"
+}

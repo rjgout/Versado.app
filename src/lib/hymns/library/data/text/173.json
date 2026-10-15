@@ -1,0 +1,67 @@
+{
+ "choruses": [
+  [
+   "O, hoe heerlijk schijnt van God omhoog",
+   "’t licht der waarheid aan de hemelboog!",
+   "Helder als zonlicht straalt deze gloed",
+   "heel ’t mensdom tegemoet."
+  ]
+ ],
+ "id": "nld:173",
+ "leadingChorus": null,
+ "musicCredit": "George F. Root (1820–1895)",
+ "notices": [],
+ "number": 173,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 133:36–38",
+  "Leer en Verbonden 128:19–21"
+ ],
+ "source": {
+  "pageSha": "1a6af80d8192c94702ea20963566c01bb74849b78db7e4116cba3ad9734a5d6b",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/hark-all-ye-nations",
+  "pdfSha": "c52fbbf103bf07f6a842a9221dfc160f536214540f45b662cf4272db9c18f252",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/4a/db/4adbddf3ac4011ec9974eeeeac1ef8b4e1530e41/hark_all_ye_nations_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Luister, o volk’ren! Hoor naar uw Heer,",
+    "die weer gedenkt ’t verbond van weleer!",
+    "Heilige eng’len hebben ’t gemeld:",
+    "waarheid is weer hersteld!"
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Zoekende volk’ren hebben geweend,",
+    "biddend dat licht zou worden verleend.",
+    "Nu is de donk’re nacht opgeklaard:",
+    "waarheid is weer op aard’!"
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Door God geroepen gaan w’ in zijn kracht",
+    "naar elke natie, taal en geslacht;",
+    "rusten niet uit tot elk heeft gehoord",
+    "zijn heilig, reddend woord."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Stoutmoedig",
+ "textCredit": "naar Louis F. Mönch (1847–1916). © 1985 IRI",
+ "title": "Luister, o volk’ren"
+}

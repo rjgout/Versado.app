@@ -1,0 +1,69 @@
+{
+ "choruses": [],
+ "id": "nld:80",
+ "leadingChorus": null,
+ "musicCredit": "Hans Leo Hassler (1564–1612); bew. Johann Sebastian Bach (1685–1750), gew.",
+ "notices": [],
+ "number": 80,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "2 Nephi 2:6–9",
+  "Matteüs 27:26–31, 34–35"
+ ],
+ "source": {
+  "pageSha": "4499435e2607c49fff1260a7f1e339b67c284ada3cf4de83775237847a391cd5",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/o-savior-thou-who-wearest-a-crown",
+  "pdfSha": "b59abcbf976c02a1f3fc871f96d3e540705e7d88bfcac47f71774a8250ffd9a3",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/3e/eb/3eebd4f2ac4011eca993eeeeac1e41516c096d16/o_savior_thou_who_wearest_a_crown_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O hoofd bedekt met wonden,",
+    "belaân met smart en hoon,",
+    "o hoofd, ten spot ombonden",
+    "met ene doornen kroon,",
+    "eertijds gekroond met stralen",
+    "van meer dan aardse gloed,",
+    "waarlangs nu drupp’len dalen;",
+    "’k breng biddend U mijn groet!"
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Van al de last dier plagen,",
+    "met goddelijk geduld,",
+    "o Heer, door U gedragen,",
+    "heb ik, heb ik de schuld!",
+    "Och, zie ho ’k voor uw ogen",
+    "hier als een zondaar sta,",
+    "en schenk vol mededogen",
+    "m’een blik van uw gena!"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Als ’k eens van d’aarde scheide,",
+    "och, wijk dan niet van mij!",
+    "Als ik de doodssnik beide,",
+    "och, sta dan aan mijn zij!",
+    "En wordt mijn strijd het bangste,",
+    "laat dan in angst en pijn",
+    "uw doorgeworsteld’ angste",
+    "mij tot vertroosting zijn!"
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bedachtzaam",
+ "textCredit": "naar Paul Gerhardt (1607–1676)",
+ "title": "O hoofd bedekt met wonden"
+}

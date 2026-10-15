@@ -1,0 +1,176 @@
+{
+  "solo-desktop": {
+    "positions": 11,
+    "glideMs": 67,
+    "busyMs": 136,
+    "start": [
+      5.69,
+      4.58
+    ],
+    "final": [
+      5.48,
+      4.48
+    ]
+  },
+  "solo-phone": {
+    "positions": 10,
+    "glideMs": 167,
+    "busyMs": 148,
+    "start": [
+      5.69,
+      4.58
+    ],
+    "final": [
+      5.47,
+      4.47
+    ]
+  },
+  "solo-landscape": {
+    "positions": 12,
+    "glideMs": 167,
+    "busyMs": 140,
+    "start": [
+      5.69,
+      4.58
+    ],
+    "final": [
+      5.47,
+      4.47
+    ]
+  },
+  "solo-reduced": {
+    "positions": 2
+  },
+  "solo-completion-normal": {
+    "positions": 3,
+    "dbToCardMs": 301,
+    "snapToCardMs": 359,
+    "lastMoveToCardMs": 125,
+    "cards": 1
+  },
+  "solo-completion-reduced": {
+    "positions": 3,
+    "dbToCardMs": 30,
+    "snapToCardMs": 88,
+    "lastMoveToCardMs": -11,
+    "cards": 1
+  },
+  "solo-completion-navigate": {
+    "idleDraws": 0,
+    "errors": 0,
+    "onHome": "/onboarding"
+  },
+  "solo-unmount": {
+    "idleDraws": 0,
+    "errors": 0
+  },
+  "samen-desktop": {
+    "positionsA": 8,
+    "positionsB": 11,
+    "finalA": [
+      5.49,
+      4.48
+    ],
+    "finalB": [
+      5.49,
+      4.48
+    ],
+    "serverGroups": 23,
+    "socketEvents": [
+      "puzzle:commit",
+      "puzzle:drag",
+      "puzzle:lock",
+      "puzzle:release"
+    ],
+    "requests": 3
+  },
+  "samen-phone": {
+    "positionsA": 11,
+    "positionsB": 12,
+    "finalA": [
+      5.48,
+      4.48
+    ],
+    "finalB": [
+      5.48,
+      4.48
+    ],
+    "serverGroups": 23,
+    "socketEvents": [
+      "puzzle:commit",
+      "puzzle:drag",
+      "puzzle:lock",
+      "puzzle:release"
+    ],
+    "requests": 2
+  },
+  "remote-smooth": {
+    "frames": 91,
+    "movedFrames": 59,
+    "positions": 60,
+    "biggestStep": 0.226,
+    "spanMs": 1500
+  },
+  "remote-reduced": {
+    "frames": 88,
+    "movedFrames": 9,
+    "positions": 10,
+    "biggestStep": 0.427,
+    "spanMs": 1450
+  },
+  "samen-simultaan": {
+    "serverGroups": 22,
+    "expected": 22
+  },
+  "samen-reconnect": {
+    "finalA": [
+      5.49,
+      4.48
+    ],
+    "finalB": [
+      5.49,
+      4.48
+    ]
+  },
+  "samen-completion-normal": {
+    "A": {
+      "series": 3,
+      "firstMoveWall": 1791975622270,
+      "goneWall": 1791975622658
+    },
+    "B": {
+      "series": 3,
+      "firstMoveWall": 1791975622310,
+      "goneWall": 1791975622611
+    },
+    "cardsA": 1,
+    "cardsB": 1
+  },
+  "samen-completion-reduced": {
+    "A": {
+      "series": 3,
+      "firstMoveWall": 1791975628521,
+      "goneWall": 1791975628600
+    },
+    "B": {
+      "series": 3,
+      "firstMoveWall": 1791975628548,
+      "goneWall": 1791975628607
+    },
+    "cardsA": 1,
+    "cardsB": 1
+  },
+  "samen-completion-reconnect": {
+    "B": {
+      "series": 6,
+      "firstMoveWall": 1791975635320,
+      "goneWall": 1791975635576
+    },
+    "cardsA": 1,
+    "cardsB": 1
+  },
+  "samen-completion-navigate": {
+    "cardsB": 1,
+    "errorsA": 0
+  }
+}

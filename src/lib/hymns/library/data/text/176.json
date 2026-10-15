@@ -1,0 +1,68 @@
+{
+ "choruses": [
+  [
+   "Heilig woord van liefde, komend van Godes troon;",
+   "hoe zoet, hoe fijn voor ’t harte mijn",
+   "is immer der liefde woord."
+  ]
+ ],
+ "id": "nld:176",
+ "leadingChorus": null,
+ "musicCredit": "Edwin F. Parry (1850–1935)",
+ "notices": [],
+ "number": 176,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 1:38",
+  "Leer en Verbonden 84:43–45"
+ ],
+ "source": {
+  "pageSha": "61dfb15c4b1644f9971304e2029cb862de3a0b8baa4e0164e16cb3de9408ef32",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/oh-holy-words-of-truth-and-love",
+  "pdfSha": "e68de92a63e9e799a0949773e3ab73c00923348a3f7594970c844a8b7d4cd8d1",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b1/39/b139ba48ac3f11ec9da5eeeeac1eb1da19054e57/oh_holy_words_of_truth_and_love_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Het heilig woord van liefd’ en deugd is hier ons daag’lijks goed,",
+    "een wijzer op het levenspad dat voor gevaar behoedt."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "’t Komt van apost’len, goed en trouw, wier naam om eerbied vraagt;",
+    "met ’t woord der liefde leren z’ ons te doen wat God behaagt."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "’t Komt van profeten met gezag, die, door de Geest geleid,",
+    "ons voorgaan op het smalle pad, de weg tot zaligheid."
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "O, laten wij hun goede raad en leer toch niet weerstaan,",
+    "maar, in geloof en need’righeid, gehoorzaam voorwaarts gaan."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "naar Joseph L. Townsend (1849–1942)",
+ "title": "Het heilig woord van liefd’ en deugd"
+}

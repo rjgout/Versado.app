@@ -1,0 +1,82 @@
+{
+ "choruses": [
+  [
+   "Halleluja! O, prijst Hem! Halleluja!"
+  ]
+ ],
+ "id": "nld:38",
+ "leadingChorus": null,
+ "musicCredit": "Geistliche Kirchengesänge, Köln, 1623, bew. Ralph Vaughan Williams (1872–1958). Overgenomen uit English Hymnal met toestemming van Oxford University Press. Het kopiëren van deze lofzang zonder schriftelijke toestemming van de eigenaar van het auteursrecht is verboden.",
+ "notices": [],
+ "number": 38,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": true,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 148",
+  "Leer en Verbonden 128:23"
+ ],
+ "source": {
+  "pageSha": "42349595c4093209c75e8a5d4e02db74323ec628ee51661d80be0fa6c106000d",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/all-creatures-of-our-god-and-king",
+  "pdfSha": "8407cc930708996beaec2c44b023c6245a8818f6a2bf0998b27c373eddcce043",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b0/05/b005b1acac4011ec895aeeeeac1eee21d2b43b20/all_creatures_of_our_god_and_king_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Zingt, schepselen van onze Heer,",
+    "verheft uw stem en brengt Hem eer.",
+    "Halleluja! Halleluja!",
+    "Gij zon, met warme, gouden gloed,",
+    "gij maan, met zilv’ren stralenvloed.",
+    "Halleluja! Halleluja!"
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Gij wind, die ruist zo woest en sterk,",
+    "gij hoge wolken in het zwerk.",
+    "Halleluja! Halleluja!",
+    "Gij ochtendgloren, prijs zijn naam,",
+    "gij avondschemer, meld zijn faam.",
+    "Halleluja! Halleluja!"
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Gij stromend water, klaar en schoon,",
+    "zing voor uw Heer op held’re toon.",
+    "Halleluja! Halleluja!",
+    "Gij vuur, dat vlammend hoog zich richt,",
+    "’t mensdom voorziet van warmt’ en licht.",
+    "Halleluja! Halleluja!"
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Gij aard’, die milde gaven schenkt",
+    "en op ons pad veel zegen brengt.",
+    "Halleluja! Halleluja!",
+    "Bloemen, gewas in overvloed,",
+    "laat deze tonen: God is goed!",
+    "Halleluja! Halleluja!"
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Uitbundig",
+ "textCredit": "naar William H. Draper (1855–1933). Oorspronkelijke tekst van Franciscus van Assisi (1182–1226).",
+ "title": "Zingt, schepselen van onze Heer"
+}

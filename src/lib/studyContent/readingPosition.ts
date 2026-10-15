@@ -146,6 +146,20 @@ async function authorizedRevision(
     throw new ReadingPositionError("UNAVAILABLE");
   }
 }
+/** Gedeelde published/leesbezoekgate voor frozen readerinhoud en verwijzingen. */
+export async function authorizedReadingRevision(
+  db: Prisma.TransactionClient,
+  actor: Actor,
+  editionId: string,
+  revisionId: string,
+  sessionKey?: string,
+  visitProof?: string,
+) {
+  const current = await authorizedEdition(db, actor, editionId);
+  const body = await authorizedRevision(db, editionId, revisionId, current.current, actor.id, sessionKey, visitProof);
+  return { lesson: current.current, body };
+}
+
 export async function saveReadingPosition(
   actor: Actor,
   input: ReadingPositionAction,

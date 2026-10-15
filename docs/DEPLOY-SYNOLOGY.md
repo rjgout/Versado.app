@@ -227,7 +227,10 @@ neemt de mounts en environment van de vorige appcontainer over.
    Zonder mount, marker of schrijfbevoegdheid blokkeren import en publicatie.
    Controleer na een bewuste containervervanging dezelfde marker en bestanden.
 
-Officiële imports en productiepublicatie blijven in deze versie gesloten. Het
+Officiële productiepublicatie blijft gesloten. Een verborgen Nederlandse CFM 2026-
+conceptimport kan uitsluitend na afzonderlijke toestemming via de bestaande operator-CLI;
+zie [het fase-3B.2-draaiboek](content-architecture-v2/23-PHASE-3B2-CFM-MERGE-AND-DRAFT-ROLLOUT.md).
+Geen import bij containerstart, seed of contentreload. Het
 profiel `synthetic-test` werkt alleen tegen de eigen lokale wegwerpdatabase
 `versado_content_access_test`; dit is geen productievrijgavevlag. Zet dat profiel
 niet op de NAS. Er worden geen synthetische lessen voor productiegebruikers gemaakt.

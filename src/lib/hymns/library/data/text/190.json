@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:190",
+ "leadingChorus": null,
+ "musicCredit": "James McGranahan (1840–1907)",
+ "notices": [],
+ "number": 190,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Romeinen 8:16–17",
+  "Handelingen 17:28–29 (22–31)"
+ ],
+ "source": {
+  "pageSha": "8b1b6f123b513ed40acc0fd0025a1ba4c2011d87acbd9b4083381eadd7ab447f",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/o-my-father",
+  "pdfSha": "ea06871fb2bc88c7c3aea732a860fd400e6d86526b250f54e4ed69ab6cd9fb5d",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ad/07/ad073427ac3f11ec895aeeeeac1eee2119d9d87c/o_my_father_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O mijn Vader, die daarboven woont in heerlijkheid en licht,",
+    "wanneer, ach! herwin ’k uw bijzijn en zie ’k weer uw aangezicht?",
+    "Woond’ in uwe heil’ge woning eenmaal niet mijn geest? Werd hij",
+    "in zijn eerste, vroegste kindsheid niet gekoesterd aan uw zij?"
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Met een wijs en heerlijk oogmerk zondt Gij mij naar d’ aarde heen",
+    "en onthieldt mij de herinn’ring aan mijn toestand in ’t verleên.",
+    "Maar toch: ‘Gij zijt hier een vreemd’ling’, lispt’ een fluist’ring soms zo teer,",
+    "en ik voelde dan mijn herkomst uit een meer verheven sfeer."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "’k Had geleerd te zeggen ‘Vader’ door uw Geest, die werkt alom,",
+    "maar voordat der kennissleutel werd hersteld, wist ’k niet waarom.",
+    "Zijn daarboven enkel vaders? Nee, dat schokt de rede zwaar,",
+    "want de red’ en d’ eeuw’ge waarheid zeggen: ’k heb een Moeder daar."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Mag ik, als mijn proeftijd om is, als mijn stof tot d’ aarde keert,",
+    "Vader, Moeder, U ontmoeten in het rijk waar Gij regeert?",
+    "Als ik dan geheel volbracht heb al het werk door U geboôn,",
+    "wil dan toestaan dat ik kome en voor eeuwig bij U woon’."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Innig",
+ "textCredit": "naar Eliza R. Snow (1804–1887)",
+ "title": "O mijn Vader"
+}

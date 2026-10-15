@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:94",
+ "leadingChorus": null,
+ "musicCredit": "Philip Paul Bliss (1838–1876)",
+ "notices": [],
+ "number": 94,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "3 Nephi 12:48",
+  "3 Nephi 27:27"
+ ],
+ "source": {
+  "pageSha": "165e3338acb1059484845d56399219f27df1a11cdd397a0f879b53e407647447",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/more-holiness-give-me",
+  "pdfSha": "afd31e857667638c824f2f1f2519cb462d26aca360f43811be22e64a59400786",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/a6/72/a672f03aac3f11ecb848eeeeac1e846573b3acc4/more_holiness_give_me_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Heer, geef mij meer reinheid, meer kracht van omhoog,",
+    "meer losheid van ’t aardse, meer klaarheid voor ’t oog,",
+    "meer drang tot de waarheid, meer vrucht dan voorheen,",
+    "meer zien op mijn Heiland, op Jezus alleen."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Meer dankbaarheid geef mij, meer trouw, o mijn God,",
+    "meer innige liefde, meer rust in mijn lot,",
+    "meer lof voor mijn Redder, meer eerbied voor ’t kruis,",
+    "meer ernst bij ’t aanbidden, meer smachten naar Huis."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Meer heiligheid geef mij, meer vrede en licht,",
+    "meer leed over zonde, meer vreugd in mijn plicht,",
+    "meer blijven in Christus, meer sterkte in U,",
+    "meer lust U te dienen, Heer, geef mij dit nu."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Als een gebed",
+ "textCredit": "naar Philip Paul Bliss (1838–1876)",
+ "title": "Heer, geef mij meer reinheid"
+}

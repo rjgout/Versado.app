@@ -6,6 +6,7 @@
 const FOCUS_ROUTES = [
   /^\/content$/,
   /^\/study-lesson\/[^/]+\/[^/]+$/,
+  /^\/scripture\/[^/]+$/,
   // De avatar-editor is een zelfstandige bewerkflow: alleen de centrale
   // terugbalk blijft zichtbaar, zodat de vaste opslagactie niet concurreert
   // met de globale mobiele navigatie.
@@ -23,6 +24,8 @@ const FOCUS_ROUTES = [
   /^\/alleskenner\/alleen\/[^/]+$/,
   /^\/alleskenner\/seizoen\/[^/]+$/,
   /^\/word-game$/,
+  // Lofzangen (live meezingen): tekst centraal, alleen de terugbalk blijft.
+  /^\/dev\/lofzangen$/,
   /^\/jigsaw$/,
   // Legpuzzel Samen en Tegen elkaar: dezelfde fullscreen werktafel als Solo.
   /^\/jigsaw\/(samen|wedstrijd)\/[^/]+$/,
@@ -60,6 +63,17 @@ export function shellModeForRoute(pathname: string): ShellMode {
   if (isImmersiveRoute(pathname)) return "immersive";
   if (isFocusRoute(pathname)) return "focus";
   return "normal";
+}
+
+/**
+ * Een scherm dat binnen een Focus-route tijdelijk een speelviewport is (bijvoorbeeld het actieve legpuzzelbord
+ * op een route die ook een catalogus of resultaatstap heeft) vraagt Immersive aan via `shellModeOverride.ts`.
+ * Dit is geen vierde modus: de aanvraag kan alleen een Focus-route naar Immersive verheffen. Normale routes en
+ * routes die al Immersive zijn veranderen er nooit door, zodat een scherm de shell niet buiten zijn eigen
+ * activiteit kan beïnvloeden. Puur en getest in tests/focus-mode.test.ts.
+ */
+export function resolveShellMode(routeMode: ShellMode, immersiveRequested: boolean): ShellMode {
+  return immersiveRequested && routeMode === "focus" ? "immersive" : routeMode;
 }
 
 /**

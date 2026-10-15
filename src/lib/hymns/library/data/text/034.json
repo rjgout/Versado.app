@@ -1,0 +1,70 @@
+{
+ "choruses": [],
+ "id": "nld:34",
+ "leadingChorus": null,
+ "musicCredit": "Duits volksliedje, 18e eeuw",
+ "notices": [],
+ "number": 34,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 33:2–10, 17",
+  "Leer en Verbonden 51:19"
+ ],
+ "source": {
+  "pageSha": "a09c426f4e59b1aa369e3f015e75026a5c9c6acecfb4e365f18b35c84b999b37",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/the-time-is-far-spent",
+  "pdfSha": "3db6ecdbab3d6e68e97c3fbf47905729cd74b308c5173a6f3e7bb988dbeede8b",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/27/23/2723bb68ac4011eca698eeeeac1eb6afefd6e877/the_time_is_far_spent_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "De tijd is zeer kort! Gaat, en predikt de volken:",
+    "Bekeert u, het koninkrijk Gods is nabij!",
+    "Spoedt heen, gij herauten, spreidt uit als de wolken,",
+    "verbreidt nu de waarheid en Gods heerschappij,",
+    "verbreidt nu de waarheid en Gods heerschappij!"
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Schuwt nimmer uw plichten, hoe zwaar die ook schijnen,",
+    "maar volgt steeds uw Redder, uw Voorbeeld, uw Vriend!",
+    "Want weet dat beproeving, hoe scherp ook de pijnen,",
+    "voor kind’ren van God tot verhoging eens dient,",
+    "voor kind’ren van God tot verhoging eens dient."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "O, weet dat uw beden Jehovah bekend zijn,",
+    "nee, niets is verborgen voor zijn alziend oog.",
+    "Vreest niet, want zijn oor zal tot uw beê geneigd zijn,",
+    "Hij hoorde zijn volk steeds dat need’rig zich boog,",
+    "Hij hoorde zijn volk steeds dat need’rig zich boog."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Uw eeuw’ge volmaking zij ’t doel van uw streven,",
+    "zoekt’s hemels beloning, o, neemt dat besluit,",
+    "want d’ opstanding brengt u dan ’t eeuwige leven,",
+    "dan nodigt u Jezus tot zijn feestmaal uit,",
+    "dan nodigt u Jezus tot zijn feestmaal uit."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vastberaden",
+ "textCredit": "naar Eliza R. Snow (1804–1887)",
+ "title": "De tijd is zeer kort"
+}

@@ -1,0 +1,74 @@
+{
+ "choruses": [],
+ "id": "nld:131",
+ "leadingChorus": null,
+ "musicCredit": "Thomas McIntyre (1833–1914)",
+ "notices": [],
+ "number": 131,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Mozes 4:1–2",
+  "Alma 42:14–15"
+ ],
+ "source": {
+  "pageSha": "81c94299c79d3540bfcfc0f1651723584f505758b4696b809725554f831cd856",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/how-great-the-wisdom-and-the-love",
+  "pdfSha": "3ae4e645e6f16abcad403389c65b9ff43c837e0567bc7326a900f574036342af",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/2a/8a/2a8a3ddbac4011ecbfd6eeeeac1e85cf189a3f7b/how_great_the_wisdom_and_the_love_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Hoe groot de wijsheid van de Heer, zijn liefde eindeloos,",
+    "toen Hij zijn Zoon naar d’ aarde zond, als Heiland Hem verkoos."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Onschuldig vloeide eens zijn bloed als losprijs voor de mens.",
+    "Zijn leven gaf Hij ons tot heil, vervullend ’s Vaders wens."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Dit avondmaal wijst ons terug naar d’ heilge offerand’",
+    "van ’t vlek’loos Lam op Golgota aan ’t hout van vloek en schand’."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Het brood zegt ons dat Hij zijn vlees, zijn lichaam voor ons gaf",
+    "en voor der mensheid zond’ en schuld ternederging in ’t graf."
+   ],
+   "n": 4
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Het water, tot dit doel gewijd, dat men ons hier nu biedt,",
+    "zegt dat door Zijn vergoten bloed vergeving is geschied."
+   ],
+   "n": 5
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Hoe groots, hoe heerlijk, hoe volmaakt het heilsplan, ons verleend;",
+    "genade en gerechtigheid zijn thans in liefd’ vereend."
+   ],
+   "n": 6
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Rustig",
+ "textCredit": "naar Eliza R. Snow (1804–1887)",
+ "title": "Hoe groot de wijsheid"
+}

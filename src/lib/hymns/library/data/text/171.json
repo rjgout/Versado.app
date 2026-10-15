@@ -1,0 +1,70 @@
+{
+ "choruses": [
+  [
+   "Hoop van Isr’el, rijs in macht!",
+   "’t Zwaard der waarheid geeft u kracht.",
+   "Slaak de krijgskreet: Bid en waak!",
+   "Weet dat God verwinnaars maakt."
+  ]
+ ],
+ "id": "nld:171",
+ "leadingChorus": null,
+ "musicCredit": "William Clayson (1840–1887)",
+ "notices": [],
+ "number": 171,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Efeziërs 6:10–18",
+  "Leer en Verbonden 27:15–18",
+  "2 Nephi 28:7–8, 20–28"
+ ],
+ "source": {
+  "pageSha": "9f522938d8d57667ad5a3ff2dca846eca77cfd77df9ef38d3bf6aece763923ed",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/hope-of-israel",
+  "pdfSha": "e02cd0d1d85ada183ca50785e739957dca7288736a16cc3d7afe87151f170034",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ac/7f/ac7fb4a8ac3f11ecb4a3eeeeac1ea26c0313f78b/hope_of_israel_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Hoop van Is’rel, Zions leger, kind’ren Gods, steun op zijn macht.",
+    "Hoor, de Heer spreekt uit het ‘Voorwaarts!’ en de strijd is in zijn kracht."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Zie de vijand, sterk gelegerd, in de zond’ en groot in tal.",
+    "Hoop van Isr’el, op, ten strijde! Breng hen allen nu te val!"
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Strijd voor Zion, weg met dwaling, zwaai het zwaard met al uw kracht;",
+    "elke slag velt weer een vijand, ied’re stap brengt ons meer macht."
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Spoedig is de veldslag over en deez’ aard’ van zonde vrij.",
+    "Voorwaarts, voorwaarts, jeugd van Zion, schaar u in der strijd’ren rij!"
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Energiek",
+ "textCredit": "naar Joseph L. Townsend (1849–1942)",
+ "title": "Hoop van Israël"
+}

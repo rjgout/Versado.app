@@ -1,0 +1,51 @@
+{
+ "choruses": [],
+ "id": "nld:166",
+ "leadingChorus": null,
+ "musicCredit": "Leroy J. Robertson (1896–1971). © 1948 IRI",
+ "notices": [],
+ "number": 166,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 26:8",
+  "Leer en Verbonden 84:43–44"
+ ],
+ "source": {
+  "pageSha": "3cb40a1a9d4961c927a50a5eaa871078af7fbf3d912feed991d4ebde5f5dac19",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/we-love-thy-house-o-god",
+  "pdfSha": "73c3bde4ea361423564bf013589a1247a8f7a1e14c97490880ebe0e4ddb098dc",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b1/a6/b1a685cbac3f11ecb848eeeeac1e8465295076c9/we_love_thy_house_o_god_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Wij houden veel, o Heer, van uw gewijde huis;",
+    "zijn geestelijke sfeer sluit buiten ’t aards gedruis."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Het is een huis van rust, van orde en gebed.",
+    "Hier worden wij bewust van uw verheven wet."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Wij houden van uw woord, dat vreugd en vrede sticht;",
+    "het leidt ons door dit oord naar zaligheid en licht."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar William Bullock (1797–1874)",
+ "title": "Uw gewijde huis"
+}

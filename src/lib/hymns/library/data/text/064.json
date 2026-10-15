@@ -1,0 +1,56 @@
+{
+ "choruses": [],
+ "id": "nld:64",
+ "leadingChorus": null,
+ "musicCredit": "Johann Crüger (1598–1662)",
+ "notices": [],
+ "number": 64,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "1 Kronieken 16:8–14",
+  "Alma 26:8"
+ ],
+ "source": {
+  "pageSha": "adf2b2ccaa96397422b982b9ad6dd631ec42a247b46e9c46be67b21c754e28b9",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/now-thank-we-all-our-god",
+  "pdfSha": "352e94bc78682dfdb78df09f3be7b858a1e36b0dd214554475b3297a20ad870d",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/1f/1e/1f1ef67bac4011ec884feeeeac1e94eff764a549/now_thank_we_all_our_god_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Dankt, dankt nu allen God",
+    "met blijde feestgezangen.",
+    "Van Hem is ’t heug’lijk lot,",
+    "het heil dat wij ontvangen.",
+    "Hij is de God der goôn",
+    "en spoort tot liefd’ ons aan.",
+    "Hij heeft ons dag aan dag",
+    "met goedheid overlaân."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Moog’ onze milde God",
+    "voortdurend ons geleiden;",
+    "met vreed’ ons aardse lot",
+    "door liefd’ en licht verblijden.",
+    "Hij, onze Toeverlaat,",
+    "zij met ons dag en nacht,",
+    "redd’ ons van alle kwaad,",
+    "bescherm’ ons door zijn macht."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Waardig",
+ "textCredit": "naar Martin Rinckart (1586–1649)",
+ "title": "Dankt, dankt nu allen God"
+}

@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:78",
+ "leadingChorus": null,
+ "musicCredit": "Edwin F. Parry (1850–1935)",
+ "notices": [],
+ "number": 78,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 11:12",
+  "Johannes 14:26"
+ ],
+ "source": {
+  "pageSha": "386206a9c5f638d60c680d4aa96d240f6b3c3752e2f13e723c2cbd68fbdd4002",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/let-the-holy-spirit-guide-parry",
+  "pdfSha": "9f89852c13fcef8b88647acd762d05e014f1fae6d32f1ba6c899ace2c9de8d12",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/d1/0f/d10ff0efac4011ec86d6eeeeac1e9393f84f89b0/let_the_holy_spirit_guide_parry_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Moog’ de Heil’ge Geest u leiden, dag aan dag, bij vreugd of smart.",
+    "Laat zijn goede, heil’ge invloed immer wonen in uw hart.",
+    "Hij zal steeds uw plicht u wijzen, en, als g’u op Hem verlaat,",
+    "zal Hij voor gevaar u hoeden en voor al het dreigend kwaad."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Moog’ de Heil’ge Geest u leiden, in gedachte, woord en daad.",
+    "Tracht geen arbeid aan te vangen zonder zijn alwijze raad.",
+    "Laat Hem u gezelschap houden, leer verstaan zijn zachte stem,",
+    "weet dat Hij u dan zal helpen, want de hulp komt steeds van Hem."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Wil die Geest dus nooit bedroeven, anders gaat Hij van u heen,",
+    "en dan zoudt gij licht verdwalen, ja, dan voelt g’u ras alleen.",
+    "Als gij Hem vraagt met vertrouwen, wacht zijn antwoord met geduld.",
+    "Dra voelt gij dan zijn nabijheid, ’tgeen uw ziel met liefde vult."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bedachtzaam",
+ "textCredit": "naar Edwin F. Parry (1850–1935)",
+ "title": "Moog’ de Heil’ge Geest u leiden"
+}

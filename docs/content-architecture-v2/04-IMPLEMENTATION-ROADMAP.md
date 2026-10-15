@@ -114,6 +114,9 @@ CFM-kalender-import. Bestaande Schrifturen-reader blijft staan.
 | 2D | Reference resolver, gevalideerde verwijzingsedities en veilige preview/Meer lezen | Intern alleen bij bewezen canonieke én editie-equivalentie; anders officiële externe bron of melding; bewuste bronwissel en gebonden Terug naar les |
 | 2E | ContentProgress-studieadapter en expliciete afronding | READ + eenmalige centrale activity in één transactie, geen XP |
 
+Werkpakket 2D is gemerged via PR #102; bronbewijs, grenzen, tests en het apart goedgekeurde bronselectiecounter-schema staan in [16-PHASE-2D-REFERENCE-PREVIEW.md](16-PHASE-2D-REFERENCE-PREVIEW.md). Werkpakket 2E is geïmplementeerd op zijn afzonderlijke werkbranch; het READ-contract, testbewijs en uitrolgrenzen staan in [17-PHASE-2E-EXPLICIT-READ.md](17-PHASE-2E-EXPLICIT-READ.md). Review en productie-uitrol blijven afzonderlijk. Officiële contentvrijgave is niet afgerond.
+
+
 ### Bestaande bestanden en componenten
 
 `LessonFlow.tsx`/ReaderView en `ReadingLessonFlow.tsx` als gedragsreferentie;
@@ -143,6 +146,9 @@ verwijzingsedities/mappings met bronbewijs en fixtures voor canon, nummering
 en teksteditie. Zonder bewezen equivalentie werkt uitsluitend een bekende
 officiële externe fallback of nette melding. Dezelfde referentievalidatie
 is verplicht vóór latere lespublicatie; dit is geen gate voor fase 1A.
+De beperkte Nederlandse OTB-mapping is aanvullend vastgelegd in
+[20-PHASE-3A4-OTB-REFERENCE-RESOLVER.md](20-PHASE-3A4-OTB-REFERENCE-RESOLVER.md);
+een concrete CFM-passage-inventaris blijft een fase-3B-gate.
 Bewaarbeleid D4 geldt vanaf de importbasis: geen automatische garbage
 collection of destructieve contractmigratie zonder afzonderlijk goedgekeurd beleid.
 
@@ -198,6 +204,13 @@ gepubliceerde inhoud. De eerste CFM-contenttaal is geen open productkeuze.
 | 3B | CFM 2026-adapter, volledige Nederlandse conceptimport en leskeuze | Alle manifestlessen traceerbaar; gecontroleerde teksten/media doorlopend leesbaar |
 | 3C | FSY-conversie en nieuwe adapter, writerhandover | Oude publicaties/drafts/ids/cursuslinks behouden; één schrijver |
 | 3D | Programma-aanbod in Vandaag/Leren/Spelen en admin | Gedeelde actieve les, expliciete huidige-weekactie, correct beschikbare kaarten |
+
+Status 3A: de projecteigenaar heeft gebruiksrechten voor de CFM-inhoud
+bevestigd; administratieve bewijsstukken blijven buiten de repository
+controleerbaar. De technische poort blijft dicht totdat de bestaande
+Nederlandstalige OTB-editie, boek-/hoofdstuk-/versbewijzen en media-inventaris
+aantoonbaar gereed zijn. Dit geeft nog geen toestemming voor import of
+publicatie.
 
 ### Bestaande bestanden en componenten
 

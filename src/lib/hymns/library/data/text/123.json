@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:123",
+ "leadingChorus": null,
+ "musicCredit": "Evan Stephens (1854–1930)",
+ "notices": [],
+ "number": 123,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 20:75–79",
+  "Leer en Verbonden 27:5"
+ ],
+ "source": {
+  "pageSha": "dd94209a954b9ad501e1b77e39e06b32f2155ee6c7dd1beaaadfc477b2b4ec2a",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/in-remembrance-of-thy-suffering",
+  "pdfSha": "a701616e31a88311302edc2bd9e118d153524442bc5e709ac8b0cb3d2ff30a15",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/f6/ba/f6bab230ac3f11eca75deeeeac1e9379e954e757/in_remembrance_of_thy_suffering_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Wij gedenken deze stonde hoe Gij, Here, voor ons leedt",
+    "toen Gij voor der mensen zonden aan het kruis verzoening deedt.",
+    "Wij vergaven wie misdreven jegens ons, zoals Gij ’t vraagt.",
+    "Wil gelijkerwijs vergeven al wat U in ons mishaagt."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Zuiver, Heer, ons hart, dan dwalen wij nooit ver van ’t rechte spoor.",
+    "Licht’ uw Geest ons met zijn stralen dag aan dag steeds helder voor.",
+    "Lokt verzoeking ons tot zonde, help ons dan die te weerstaan;",
+    "hoed ons immer tot de stonde dat w’ uit d’aardse sferen gaan."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Daalt G’ in glorie eenmaal neder om hier aller Vorst te zijn,",
+    "en met uw getrouwen weder eet en drinkt dan brood en wijn,",
+    "moogt G’ ons allen dan vergaad’ren voor dat heilig avondmaal",
+    "waartoe Gods verlosten naad’ren aller natie, tong en taal."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar Evan Stephens (1854–1930)",
+ "title": "Wij gedenken deze stonde"
+}

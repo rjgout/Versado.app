@@ -1,0 +1,7 @@
+│ (index) │ kind    │ count │ runs │ firstRenderMs │ scriptMs │ taskMs │ heapMB │ frameP95 │ over50 │
+├─────────┼─────────┼───────┼──────┼───────────────┼──────────┼────────┼────────┼──────────┼────────┤
+│ 0       │ 'samen' │ 150   │ 5    │ 376           │ 777.2    │ 8339.4 │ 7.4    │ 16.7     │ 5      │
+│ 1       │ 'samen' │ 300   │ 5    │ 338           │ 1099.9   │ 12848  │ 8      │ 33.3     │ 0      │
+│ 2       │ 'solo'  │ 96    │ 5    │ 483           │ 913.2    │ 9141.9 │ 7.5    │ 16.7     │ 0      │
+└─────────┴─────────┴───────┴──────┴───────────────┴──────────┴────────┴────────┴──────────┴────────┘
+[{"kind":"samen","count":150,"runs":5,"firstRenderMs":376,"scriptMs":777.2,"taskMs":8339.4,"heapMB":7.4,"frameP95":16.7,"over50":5},{"kind":"samen","count":300,"runs":5,"firstRenderMs":338,"scriptMs":1099.9,"taskMs":12848,"heapMB":8,"frameP95":33.3,"over50":0},{"kind":"solo","count":96,"runs":5,"firstRenderMs":483,"scriptMs":913.2,"taskMs":9141.9,"heapMB":7.5,"frameP95":16.7,"over50":0}]

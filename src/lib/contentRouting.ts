@@ -55,6 +55,7 @@ export type ContentRoute =
   | { kind: "course"; courseId: string }
   | { kind: "courseChapter"; courseId: string; chapterId: string }
   | { kind: "chapter"; chapterId: string }
+  | { kind: "scripture"; chapterId: string }
   | { kind: "readingLesson"; lessonId: string }
   | { kind: "studyLesson"; lessonId: string; collectionId: string }
   | { kind: "intro"; lessonId: string }
@@ -74,6 +75,8 @@ export function classifyContentRoute(pathname: string): ContentRoute {
   const study = new RegExp(`^/study-lesson/${SEGMENT}/${SEGMENT}$`).exec(path);
   if (study) return { kind: "studyLesson", lessonId: study[1], collectionId: study[2] };
   if (path === "/courses") return { kind: "courses" };
+  const scripture = new RegExp(`^/scripture/${SEGMENT}$`).exec(path);
+  if (scripture) return {kind:"scripture",chapterId:scripture[1]};
   let match = new RegExp(`^/courses/${SEGMENT}/chapter/${SEGMENT}$`).exec(path);
   if (match) return { kind: "courseChapter", courseId: match[1], chapterId: match[2] };
   match = new RegExp(`^/courses/${SEGMENT}$`).exec(path);

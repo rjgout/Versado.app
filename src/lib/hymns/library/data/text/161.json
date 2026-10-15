@@ -1,0 +1,67 @@
+{
+ "choruses": [
+  [
+   "Strijd voor het recht en strijd ook voor de vrijheid,",
+   "strijd in de geest en word nimmer geknecht!",
+   "Sterk in geloof, vraag uw Vader om wijsheid;",
+   "zijn macht is met u, dus strijd voor het recht!"
+  ]
+ ],
+ "id": "nld:161",
+ "leadingChorus": null,
+ "musicCredit": "George Kaillmark (1781–1835)",
+ "notices": [],
+ "number": 161,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Deuteronomium 6:17–18",
+  "Helaman 10:4–5"
+ ],
+ "source": {
+  "pageSha": "06d0aa30107083907198d6c8256fbcf1e9aff2fb281b83d712e44e09c0d0cb79",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/do-what-is-right",
+  "pdfSha": "8b60f3dc063147061488a08aa0e4b2b0f7e4edcea6a3cd6240b47f4b426c3697",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/a8/52/a8521086ac3f11ec895aeeeeac1eee21145411bb/do_what_is_right_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Strijd voor het recht, de dag zal dra komen,",
+    "groetend een toekomst van vrijheid en licht.",
+    "Eng’len van God hebben alles vernomen,",
+    "ja, elke hand’ling die gij hebt verricht."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Strijd voor het recht, nu breken de banden,",
+    "boeien geslaakt, ook al waren z’ eens hecht.",
+    "Weg is verbitt’ring, weg schrijnen en branden;",
+    "waarheid gaat voorwaarts, dus strijd voor het recht."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Strijd voor het recht, wees trouw steeds en moedig;",
+    "voorwaarts, het pleit is nu bijna beslecht.",
+    "Wenende ogen, ze drogen dan spoedig,",
+    "zegening wacht u, dus strijd voor het recht."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Resoluut",
+ "textCredit": "naar The Psalms of Life, Boston, 1857",
+ "title": "Strijd voor het recht"
+}

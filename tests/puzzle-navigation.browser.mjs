@@ -34,6 +34,9 @@ try {
   };
   const barCount = (page) => page.locator("[data-subpage-back-bar]").count();
   const clickBack = (page) => page.getByRole("button", { name: /Terug|Back/ }).first().click();
+  // Het actieve bord is Immersive: geen terugbalk, terug staat in het zwevende bordmenu.
+  const shellMode = (page) => page.locator("[data-shell-mode]").first().getAttribute("data-shell-mode");
+  const menuBack = async (page, menu, item) => { await page.getByRole("button", { name: menu, exact: true }).click(); await page.getByRole("button", { name: item, exact: true }).click(); };
   const historyLength = (page) => page.evaluate(() => history.length);
   const [a, b, c] = [await person(), await person(), await person()];
   await prisma.friendship.create({ data: { senderId: a.id, receiverId: b.id, status: "ACCEPTED" } });
@@ -49,9 +52,12 @@ try {
   const invite = await prisma.puzzleInvite.findFirstOrThrow({ where: { sessionId, toUserId: b.id } });
   await respondToCoopInvite(b.id, invite.id, true);
   const coop = await open(a, `/jigsaw/samen/${sessionId}`);
-  assert.equal(await barCount(coop.page), 1, "de werktafel heeft de terugbalk");
+  await coop.page.waitForSelector("canvas", { timeout: 20000 });
+  assert.equal(await shellMode(coop.page), "immersive", "het actieve Samen-bord is Immersive");
+  assert.equal(await barCount(coop.page), 1, "de terugbalk staat in de DOM, maar ...");
+  assert.equal(await coop.page.locator("[data-sticky-header]").first().isVisible(), false, "... is niet zichtbaar: geen dubbele terugknop");
   const before = await historyLength(coop.page);
-  await clickBack(coop.page); await coop.page.waitForURL(/\/jigsaw$/, { timeout: 15000 });
+  await menuBack(coop.page, "Puzzelmenu", "Terug naar puzzels"); await coop.page.waitForURL(/\/jigsaw$/, { timeout: 15000 });
   assert.ok(await historyLength(coop.page) <= before, "terug voegt geen geschiedenisitem toe");
   assert.equal(await prisma.puzzleSessionParticipant.count({ where: { sessionId, userId: a.id } }), 1, "terug verlaat de gezamenlijke puzzel niet");
   assert.equal((await prisma.puzzleSession.findUniqueOrThrow({ where: { id: sessionId } })).status, "ACTIVE");
@@ -70,9 +76,10 @@ try {
   // 4. Wedstrijdwerktafel → terug naar het overzicht; de klok loopt door en de poging is niet gereset.
   const play = await open(b, `/jigsaw/wedstrijd/${matchId}`, { width: 360, height: 700 });
   await play.page.waitForSelector("canvas", { timeout: 20000 });
-  assert.equal(await barCount(play.page), 1, "ook de werktafel houdt de terugbalk");
+  assert.equal(await shellMode(play.page), "immersive", "de wedstrijdwerktafel is Immersive");
+  assert.equal(await play.page.locator("[data-sticky-header]").first().isVisible(), false, "geen zichtbare terugbalk op het bord");
   const startedBefore = (await prisma.puzzleMatchParticipant.findUniqueOrThrow({ where: { matchId_userId: { matchId, userId: b.id } } })).startedAt;
-  await clickBack(play.page); await play.page.waitForURL(/\/jigsaw$/, { timeout: 15000 });
+  await menuBack(play.page, "Puzzelbordmenu", "Andere puzzel kiezen"); await play.page.waitForURL(/\/jigsaw$/, { timeout: 15000 });
   const rowB = await prisma.puzzleMatchParticipant.findUniqueOrThrow({ where: { matchId_userId: { matchId, userId: b.id } } });
   assert.equal(rowB.status, "PLAYING"); assert.equal(rowB.startedAt.getTime(), startedBefore.getTime(), "geen nieuwe poging of klokreset");
 
@@ -87,6 +94,8 @@ try {
   await solve(a);
   const done = await open(a, `/jigsaw/wedstrijd/${matchId}`, { width: 360, height: 700 });
   await done.page.locator("[data-official-time]").first().waitFor({ timeout: 15000 });
+  assert.equal(await shellMode(done.page), "focus", "de voltooiingskaart is weer Focus met de gewone terugbalk");
+  assert.equal(await done.page.locator("[data-sticky-header]").first().isVisible(), true);
   assert.equal(await done.page.getByText("Verder puzzelen").count(), 0, "afgerond: geen 'verder puzzelen'");
   const official = (await prisma.puzzleMatchParticipant.findUniqueOrThrow({ where: { matchId_userId: { matchId, userId: a.id } } })).elapsedMs;
   // De vraag staat los: openen → voltooide afbeelding met officiële tijd → vraag → terug → afbeelding → terug → overzicht.
@@ -94,11 +103,11 @@ try {
   await done.page.locator("[data-official-time]").first().waitFor({ timeout: 15000 });
   await done.page.reload({ waitUntil: "networkidle" });
   await done.page.locator("[data-official-time]").first().waitFor({ timeout: 15000 });
-  await done.page.getByRole("button", { name: /Doorgaan|Verder/ }).last().click();
+  await done.page.getByRole("button", { name: /Naar de vraag/ }).last().click();
   await done.page.getByRole("heading", { name: "Nog één vraag" }).waitFor({ timeout: 15000 });
   await clickBack(done.page);
   await done.page.locator("[data-official-time]").first().waitFor({ timeout: 15000 });
-  await done.page.getByRole("button", { name: /Doorgaan|Verder/ }).last().click();
+  await done.page.getByRole("button", { name: /Naar de vraag/ }).last().click();
   const question = jigsawQuestionsForStory((await prisma.puzzleSession.findFirstOrThrow({ where: { matchId, ownerId: a.id }, include: { variant: { include: { definition: true } } } })).variant.definition.storyNumber).find((q) => true);
   const state = await resumeMatchPuzzle(a.id, matchId, "nl");
   const q = jigsawQuestionsForStory(state.story).find((item) => item.text.nl === state.question.text);
@@ -121,11 +130,18 @@ try {
   await overview.page.reload({ waitUntil: "networkidle" });
   await overview.page.getByText("Afgerond", { exact: true }).first().waitFor({ timeout: 15000 });
   await overview.page.getByRole("link", { name: /Bekijk resultaat|Vraag beantwoorden/ }).first().waitFor();
+  // De hub toont de afgeronde puzzels compact en verwijst naar de volledige, gepagineerde geschiedenis.
+  await overview.page.getByRole("link", { name: "Bekijk alle afgeronde puzzels" }).click();
+  await overview.page.waitForURL(/\/jigsaw\/afgerond$/, { timeout: 15000 });
+  await overview.page.getByRole("heading", { name: "Afgeronde puzzels" }).waitFor({ timeout: 15000 });
+  await overview.page.getByRole("link", { name: /Bekijk resultaat|Vraag beantwoorden/ }).first().waitFor({ timeout: 15000 });
+  await clickBack(overview.page); await overview.page.waitForURL(/\/jigsaw$/, { timeout: 15000 });
   // 7. Een realtime statusupdate (deelnemer wordt FINISHED) haalt de lopende werktafel/voltooiingsstap niet weg.
   const second = await createMatch(a.id, jigsawCatalog[2].url, 6, "ADVENTURER", [b.id], "ASYNC");
   await respondToMatchInvite(b.id, second, true); await beginMatchAttempt(a.id, second); await beginMatchAttempt(b.id, second);
   const live = await open(a, `/jigsaw/wedstrijd/${second}`, { width: 360, height: 700 });
   await live.page.waitForSelector("canvas", { timeout: 20000 });
+  assert.equal(await shellMode(live.page), "immersive");
   let state2 = await resumeMatchPuzzle(a.id, second, "nl");
   const geometry2 = cachedPuzzleGeometry(state2.pieceCount, state2.seed, state2.geometryVersion);
   for (const piece of geometry2.pieces) state2 = await applyMatchAction(a.id, second, state2.version, randomUUID(), { kind: "move", groupId: `p${piece.id}`, x: 3 + piece.column, y: 3 + piece.row }, "nl");

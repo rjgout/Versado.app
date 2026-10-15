@@ -1,0 +1,58 @@
+{
+ "choruses": [],
+ "id": "nld:102",
+ "leadingChorus": null,
+ "musicCredit": "Joseph J. Daynes (1851–1920)",
+ "notices": [],
+ "number": 102,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Deuteronomium 32:2",
+  "Jesaja 55:10–11"
+ ],
+ "source": {
+  "pageSha": "40c78da45c198b0d1e0f04b038c3bf7c6313d2258e2c25b459e19263ba929633",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/as-the-dew-from-heaven-distilling",
+  "pdfSha": "ab59b7a146fc56c6bea877665fe52ac5d19f4542a34f7e76fca5432cf565ae2a",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/27/f5/27f56223ac4011ec90cceeeeac1e6e3dea890bc0/as_the_dew_from_heaven_distilling_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Evenals de dauw des hemels zacht zich op het gras verspreidt,",
+    "’t doet herleven, zo vervullend ’t doel van uw voorzienigheid."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Moge zo uw lering, Heiland, nederdalen op uw kerk,",
+    "met uw zegen hier vervullen uw gebod, uw liefdewerk!"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Laat, terwijl wij hier aanbidden, dauw des levens, naar uw woord,",
+    "nederdalen in ons midden uit uw heilig, hemels oord."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Wil ons smeken nu verhoren, vul de aarde met uw Geest;",
+    "dat de volk’ren U aanbidden en eens ingaan tot uw feest!"
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Gedragen",
+ "textCredit": "naar Thomas Kelly (1769–1854)",
+ "title": "Evenals de dauw des hemels"
+}

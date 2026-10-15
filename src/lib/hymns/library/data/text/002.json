@@ -1,0 +1,77 @@
+{
+ "choruses": [
+  [
+   "Wij zingen en juichen met hemelse koren:",
+   "Hosanna, hosanna, de Vader en Zoon!",
+   "Al d’ere zij Hun in de hoge gegeven,",
+   "voor eeuwig en immer rondom hun troon."
+  ]
+ ],
+ "id": "nld:2",
+ "leadingChorus": null,
+ "musicCredit": "anon, ca. 1844",
+ "notices": [],
+ "number": 2,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 109:79–80",
+  "Leer en Verbonden 110"
+ ],
+ "source": {
+  "pageSha": "f4d682d6407ff1ceb158a02f20a9e5936c6f02c637c8034509b1b65cb9ffb514",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/the-spirit-of-god",
+  "pdfSha": "a7645c3a9441dbd093ea9171225b8c62a4e901070fcede2a4717c9415eda558b",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/24/5a/245a8c65ab8011eca698eeeeac1eb6af6148b30d/the_spirit_of_god_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Gods Geest brandt in ’t harte als vuur en als vlammen,",
+    "de glorie der laatste bedeling komt voort,",
+    "gezichten en gaven vanouds keren weder",
+    "en eng’len bezoeken der sterv’lingen oord."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "De Heiland te volgen zij immer ons streven,",
+    "zijn priestershap leidt ons wat er ook gebeurt.",
+    "Gods kennis en leer wordt alomme gepredikt,",
+    "de sluier der aarde wordt opengescheurd."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Wij komen tezamen in zuiv’re aanbidding,",
+    "verbreiden het godsrijk op ’s hemels gebod.",
+    "Dat wij door geloof nu ook mogen beerven",
+    "de gaven, gezichten en glorie van God."
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Gezegend de dag dat de lamm’ren en leeuwen",
+    "in vriendschap en vrede tezaam zijn vergaard.",
+    "Als Efr’im gekroond wordt met zegen in Zion",
+    "en Jezus in glorie daalt neder op aard’."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Uitbundig",
+ "textCredit": "naar William W. Phelps (1792–1872). Gezongen bij de inwijding van de Kirtland-tempel in 1836.",
+ "title": "Gods Geest brandt in ’t harte"
+}

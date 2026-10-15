@@ -1,0 +1,70 @@
+{
+ "choruses": [],
+ "id": "nld:177",
+ "leadingChorus": null,
+ "musicCredit": "Ellen Knowles Melling (1820–1905)",
+ "notices": [],
+ "number": 177,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 93:23–28",
+  "Johannes 18:37–38"
+ ],
+ "source": {
+  "pageSha": "bdfe1a93bcf03695fd1d62fee76f1e243ee965e520b272a755b4165eafc96f81",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/oh-say-what-is-truth",
+  "pdfSha": "e9105c7af817b2aaf9e636c298c4c10f3a2d977d055982e192ca4649f739f31b",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/33/e0/33e0fe58ac4011ec8f90eeeeac1eb65700b07614/oh_say_what_is_truth_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O zeg, wat is waarheid? De grootste schat,",
+    "aardse weelde is haar niet gelijk.",
+    "Onschatbaar zal spoedig haar waarde ook zijn",
+    "als de vorst’lijke kroon wordt gerekend slechts schijn,",
+    "wordt gerekend als stof en als slijk."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "O zeg, wat is waarheid? De schoonste prijs",
+    "voor het streven van God en de mens.",
+    "Ga, zoek in de diepte, wellicht vindt ge haar,",
+    "of stijg naar omhoog en aanschouw haar aldaar,",
+    "z’ is het voorwerp van d’ edelste wens."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "De scepter ontvalt eens des heersers hand",
+    "als hij tegen gerechtigheid strijdt.",
+    "Maar d’ eeuwige waarheid zal staan immer pal,",
+    "niets kan haar verand’ren of brengen ten val,",
+    "ze weerstaat zelfs de tand van de tijd."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Zeg dan, wat is waarheid? Het laatst’ en ’t eerst’,",
+    "z’ overschrijdt zelfs de grens van de tijd.",
+    "Moog’ hemel en aarde ook eenmaal vergaan,",
+    "dan verblijft nog de waarheid, de som van ’t bestaan,",
+    "onverwoestbaar in al d’ eeuwigheid."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Resoluut",
+ "textCredit": "naar John Jaques (1827–1900)",
+ "title": "O zeg, wat is waarheid?"
+}

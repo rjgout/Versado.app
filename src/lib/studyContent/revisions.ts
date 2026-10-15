@@ -193,6 +193,11 @@ export async function getPublishedStudyLesson(
     },
     include: { lesson: true, collection: true, publishedRevision: true },
   });
+  return decodePublishedStudyEdition(edition);
+}
+
+/** Zelfde immutable validatie voor een rechtengestuurde batch; caller controleert normale rechten. */
+export function decodePublishedStudyEdition(edition: Prisma.StudyLessonEditionGetPayload<{include:{lesson:true;collection:true;publishedRevision:true}}> | null): PublishedStudyDTO | null {
   const revision = edition?.publishedRevision;
   if (
     !edition ||
@@ -202,6 +207,7 @@ export async function getPublishedStudyLesson(
     edition.workKey !== edition.collection.work
   )
     return null;
+  const {lessonId,collectionId}=edition;
   // Zelfs een corrupte directe DB-insert is geen valide gepubliceerde inhoud.
   try {
     const content = validateStudyRevision({
