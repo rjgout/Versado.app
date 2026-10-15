@@ -1,0 +1,70 @@
+{
+ "choruses": [],
+ "id": "nld:189",
+ "leadingChorus": null,
+ "musicCredit": "Gaylen Hatton (1928– ). © 1985 IRI. Deze lofzang mag gekopieerd worden voor incidenteel, niet-commercieel gebruik thuis of in de kerk.",
+ "notices": [],
+ "number": 189,
+ "rights": {
+  "copyingAllowedNonCommercial": true,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 138:46–48",
+  "Leer en Verbonden 128:17–18, 22–24"
+ ],
+ "source": {
+  "pageSha": "1ce9be7e7d835e8beb986e1f2a92f21cf670d2ae18b1f9d3f9d2cf1cf2a26ca4",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/turn-your-hearts",
+  "pdfSha": "c3a80690809ca6bb10a99f5099a3e514bcf787852112f11688031ebdfee21549",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b0/0b/b00b2543ac3f11eca698eeeeac1eb6af4ca1ab9a/turn_your_hearts_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Voer uw hart terug naar uw vaad’ren,",
+    "luidt de opdracht in de Schrift.",
+    "Houd de arbeid voor de doden,",
+    "door de Heer aan ons geboden,",
+    "immer in het hart gegrift."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Door de sleutel van Elia",
+    "wordt het heerlijk plan volbracht.",
+    "Hij zal de beloften planten",
+    "in het hart van hun verwanten;",
+    "op hun werk is lang gewacht."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Voer uw hart terug naar uw ouders:",
+    "generaties van weleer.",
+    "Zoek, en eenmaal zult u vinden;",
+    "in de tempel aan u binden",
+    "en behouden immermeer."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Keer in liefde tot uw kind’ren:",
+    "generaties in ’t verschiet.",
+    "Al uw evangeliestreven,",
+    "tempelwerk en deugdzaam leven,",
+    "mist zijn eeuw’ge invloed niet."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Levendig",
+ "textCredit": "naar Paul L. Anderson (1946– ). © 1983 Paul L. Anderson en Lynn R. Carson.",
+ "title": "Voer uw hart terug"
+}

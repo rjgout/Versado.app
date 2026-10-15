@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:174",
+ "leadingChorus": null,
+ "musicCredit": "William B. Bradbury (1816–1868)",
+ "notices": [],
+ "number": 174,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 107:23–31",
+  "Romeinen 8:28"
+ ],
+ "source": {
+  "pageSha": "bd9b349d90c265e7402e0eda32df1b6d52341d46db6a0261766b512a4f071b2e",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/god-moves-in-a-mysterious-way",
+  "pdfSha": "341fbad16e174690f1c10cceed9783d1a03635d71d50408f44358ca5dca0efe2",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/28/8b/288bd5c1ac4011eca993eeeeac1e41517ac9582b/god_moves_in_mysterious_ways_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "God volgt voor ons verborgen paân",
+    "bij al zijn heilig werk.",
+    "Zijn wil beheerst naast d’ oceaan",
+    "ook ’t stormen in het zwerk."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Met ondoorgrondelijk besluit",
+    "en feilloos diep verstand",
+    "werkt Hij zijn grote plannen uit,",
+    "en leidt met vaste hand."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Vreest niet, gij kind’ren Gods, vat moed:",
+    "het leed dat u verschrikt",
+    "wordt door uw Vader, wijs en goed,",
+    "tot zegen u beschikt."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Treedt niet met uw beperkt verstand",
+    "in het gericht met God;",
+    "Hij stuurt, ofschoon met strenge hand,",
+    "met liefde ’s mensen lot."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Gedragen",
+ "textCredit": "naar William Cowper (1731–1800)",
+ "title": "God volgt voor ons verborgen paân"
+}

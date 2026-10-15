@@ -1,0 +1,45 @@
+{
+ "choruses": [],
+ "id": "nld:199",
+ "leadingChorus": null,
+ "musicCredit": "Luacine Clark Fox (1914–2002), bew. © 1961 Luacine Clark Fox. Vernieuwd 1989.",
+ "notices": [
+  "Deze lofzang mag gekopieerd worden voor incidenteel, niet-commercieel gebruik thuis of in de kerk."
+ ],
+ "number": 199,
+ "rights": {
+  "copyingAllowedNonCommercial": true,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Johannes 13:34–35",
+  "1 Johannes 4:11"
+ ],
+ "source": {
+  "pageSha": "32dd7702bdd13815a73f49e0dee833251551650f97301719c08831b3f7996c02",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/love-one-another",
+  "pdfSha": "0def5c65a37c2ca7d602ec66b6083fa6a38087a794c9f90c5ab656eb447be7ba",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ac/40/ac403973ac3f11eca877eeeeac1e1ab36f9bedff/love_one_another_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Zoals ’k u liefheb,",
+    "houd van elkander.",
+    "Dit nieuw gebod luidt:",
+    "houd van elkander.",
+    "Zo weten allen:",
+    "gij zijt mijn discip’len,",
+    "indien gij houdt",
+    "van elkander."
+   ],
+   "n": 1
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar Luacine Clark Fox (1914–2002)",
+ "title": "Houd van elkander"
+}

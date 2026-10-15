@@ -1,0 +1,91 @@
+{
+ "choruses": [],
+ "id": "nld:100",
+ "leadingChorus": null,
+ "musicCredit": "George Careless (1839–1932)",
+ "notices": [],
+ "number": 100,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "3 Nephi 13:5–13",
+  "3 Nephi 18:15–20",
+  "Jakobus 5:16"
+ ],
+ "source": {
+  "pageSha": "0e9504816fb947de68ec5c81cd94a4704e1798a9ef397c504c002bd929409a4a",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/prayer-is-the-souls-sincere-desire",
+  "pdfSha": "f0eca8b6d534de7ffc294317708a3ac8816cda7af15bbf43edc5f997bd7fed0d",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/72/da/72da5cc4ac4011ec8f37eeeeac1e071f37616b10/prayer_is_the_souls_sincere_desire_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Wat is ’t gebed? D’ oprechte wens, door ons tot God gericht;",
+    "de warme gloed van innig vuur dat hart en ziel verlicht."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Bidden is ’t slaken van een zucht, ja, ’t vallen van een traan;",
+    "of ’t opwaarts blikken van het oog tot God, die bij kan staan."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Bidden is d’ eenvoud van een kind, voor ’t hemelrijk geschikt;",
+    "d’ ontroering van een eed’le geest op wie God liefd’rijk blikt."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Bidden, des christens levenskracht, steekt aan het godd’lijk vuur;",
+    "geeft hoop bij zorg, in pijn en smart, en troost in ’t stervensuur."
+   ],
+   "n": 4
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Bidden is steeds des zondaars drang als wroeging hem bezit,",
+    "wijl d’eng’len juichen in hun zang en roepen: Zie, hij bidt!"
+   ],
+   "n": 5
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Bidden vereent Gods heilig volk in woord en daad, verstand.",
+    "Zij naad’ren tot elkaar en God, want bidden schept een band"
+   ],
+   "n": 6
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Niet slechts op aarde is ’t gebed: ook pleit voor ons de Geest,",
+    "en Jezus, bij des Vaders troon, wiens liefde ons geneest."
+   ],
+   "n": 7
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Gij die tot God ons naad’ren doet, ’t Waarheidslicht immermeer,",
+    "ook Gij vondt in gebed uw kracht. O, leer ons bidden, Heer!"
+   ],
+   "n": 8
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Rustig",
+ "textCredit": "naar James Montgomery (1771–1854)",
+ "title": "Wat is ’t gebed?"
+}

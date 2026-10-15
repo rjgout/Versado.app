@@ -1,0 +1,78 @@
+{
+ "choruses": [],
+ "id": "nld:101",
+ "leadingChorus": null,
+ "musicCredit": "Thomas C. Griggs (1845–1903)",
+ "notices": [],
+ "number": 101,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 59:8–12",
+  "Jesaja 1:16–18"
+ ],
+ "source": {
+  "pageSha": "da86ae9197091983e0105a21599a794bf491b5c0063d23646ed30ab70195ed9a",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/gently-raise-the-sacred-strain",
+  "pdfSha": "9db17f3a326997aab5c6f7188439ef6bd89cde494f7ee724bc32d5a04fc4bf33",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/22/3a/223a6b6dab8011ec8960eeeeac1ef785fc0fc047/gently_raise_the_sacred_strain_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Stijg’ ons lied nu zoet en teer",
+    "want de sabbat is er weer,",
+    "voor ’s mensen rust,",
+    "voor ’s mensen rust",
+    "en opdat hij dankt de Heer,",
+    "van zijn goedheid zich bewust,",
+    "van zijn goedheid zich bewust."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Heil’ge dag, van zorgen vrij;",
+    "’t eeuw’ge leven zoeken wij,",
+    "dat loon zo groot,",
+    "dat loon zo groot,",
+    "nemen ’t avondmaal,",
+    "want Hij heeft gezegd: gedenk mijn dood,",
+    "heeft gezegd: Gedenk mijn dood."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Lieflijk ruist het plechtig lied,",
+    "wijl een elk zijn gabe biedt:",
+    "’t berouwvol hart,",
+    "’t berouwvol hart,",
+    "’t offer dat de Heer graag ziet,",
+    "die ons vreugde geeft voor smart,",
+    "die ons vreugde geeft voor smart."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Heilig, heilig is de Heer;",
+    "kostbaar, kostbaar is zijn leer:",
+    "bekeer u en leef,",
+    "bekeer u en leef.",
+    "Ook al zijn uw zonden groot,",
+    "kom tot Hem en Hij vergeeft,",
+    "kom tot Hem en Hij vergeeft."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Aanbiddend",
+ "textCredit": "naar William W. Phelps (1792–1872)",
+ "title": "Stijg’ ons lied nu zoet en teer"
+}

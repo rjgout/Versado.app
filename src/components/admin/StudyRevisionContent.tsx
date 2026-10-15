@@ -44,6 +44,8 @@ export default function StudyRevisionContent({
           {inlineContent(block.content)}
         </p>
       );
+    if (block.type === "table")
+      return <div className="max-w-full overflow-x-auto"><table className="w-full border-collapse text-left"><tbody>{block.rows.map(row=><tr key={row.id}>{row.cells.map(cell=>{const Tag=cell.header?"th":"td";return <Tag key={cell.id} colSpan={cell.colSpan} rowSpan={cell.rowSpan} className="border border-vs-line p-3 align-top">{inlineContent(cell.content)}</Tag>;})}</tr>)}</tbody></table></div>;
     if (block.type === "quote")
       return (
         <blockquote className="border-l-4 border-vs-accent pl-4">
@@ -64,6 +66,7 @@ export default function StudyRevisionContent({
           {block.items.map((item) => (
             <li key={item.id}>
               {inlineContent(item.content)}
+              {item.blocks && <div className="mt-3 min-w-0 space-y-3">{item.blocks.map(child => <div key={child.id}>{render(child)}</div>)}</div>}
               {item.children && (
                 <Tag className="ml-4 list-[inherit]">
                   {item.children.map((child) => (
@@ -85,6 +88,7 @@ export default function StudyRevisionContent({
               {block.items.map((item) => (
                 <li key={item.id}>
                   {inlineContent(item.content)}
+                  {item.blocks && <div className="mt-3 min-w-0 space-y-3">{item.blocks.map(child => <div key={child.id}>{render(child)}</div>)}</div>}
                   {item.children && (
                     <ul className="list-disc pl-6">
                       {item.children.map((child) => (

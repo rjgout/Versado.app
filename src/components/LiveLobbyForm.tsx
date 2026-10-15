@@ -245,7 +245,7 @@ export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, cont
         <CardPicker addLabel={t("gamesHub.addGame")} addHint={t("gamesHub.addGameHint")} emptyText={t("gamesHub.allAdded")} items={order ? pickerItems : null} onAdd={add} />
       )}
 
-      {rulesFor && <GameRules title={gameTitle(t, rulesFor, character)} rules={[...(["rule1", "rule2", "rule3"] as const).map((rule) => text(rulesFor, rule)), ...(rulesFor.id === "word-game" ? [t("gamesHub.wordGame.rule4")] : []), ...(rulesFor.id === "jigsaw" ? [t("gamesHub.jigsaw.rule4"), t("gamesHub.jigsaw.rule5")] : [])]} moreHref={kompasHref(`play.${rulesFor.id}`)} onClose={() => setRulesFor(null)} />}
+      {rulesFor && <GameRules title={gameTitle(t, rulesFor, character)} rules={[...(["rule1", "rule2", "rule3"] as const).map((rule) => text(rulesFor, rule)), ...(rulesFor.id === "word-game" ? [t("gamesHub.wordGame.rule4")] : []), ...(rulesFor.id === "jigsaw" ? [t("gamesHub.jigsaw.rule4"), t("gamesHub.jigsaw.rule5"), t("gamesHub.jigsaw.rule6")] : [])]} moreHref={kompasHref(`play.${rulesFor.id}`)} onClose={() => setRulesFor(null)} />}
     </div>
   );
 }

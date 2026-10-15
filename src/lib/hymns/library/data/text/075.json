@@ -1,0 +1,52 @@
+{
+ "choruses": [],
+ "id": "nld:75",
+ "leadingChorus": null,
+ "musicCredit": "Dimitri Stepanovitsj Bortnjanski (1751–1825)",
+ "notices": [],
+ "number": 75,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "1 Korintiërs 13",
+  "Moroni 7:45–48"
+ ],
+ "source": {
+  "pageSha": "046f20a452027228467d7a8553c5b85035cb99086ac9598f7c3266431a917370",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/the-lord-my-pasture-will-prepare",
+  "pdfSha": "b98e4b47edd6752ccbe5a6099ef033048fe17f40dd6eceeafb5bb3a38a60322b",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/24/b7/24b7eba2ac4011ec9974eeeeac1ef8b442857e74/o_power_of_love_all_else_transending_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "U bid ik aan, o macht der liefde,",
+    "die zich in Jezus openbaart,",
+    "die mij gezocht heeft, hoe ’k haar griefde,",
+    "die ’k zoeken mag, schoon gans onwaard!",
+    "’k Vergeet mijzelf waar ’k in de golven",
+    "der zee van liefde werd bedolven"
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "O, prent mij diep in hart en zinnen",
+    "uw nooit volprezen Jezus naam,",
+    "en maakt tot dankbaar wederminnen",
+    "uw teed’re liefde mij bekwaam!",
+    "Moog’ ik in woord, in werk en leven",
+    "uw heilig beeld ’t aanschouwen geven."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Innig",
+ "textCredit": "naar Gerhard Tersteegen (1697–1769)",
+ "title": "U bid ik aan, o macht der liefde"
+}

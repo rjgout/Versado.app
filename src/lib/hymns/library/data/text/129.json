@@ -1,0 +1,66 @@
+{
+ "choruses": [
+  [
+   "O, het is wonderbaar dat Hij zo hield van mij",
+   "dat Hij ’s ontzield voor mij!",
+   "O, het is wonderbaar, wonderbaar voor mij!"
+  ]
+ ],
+ "id": "nld:129",
+ "leadingChorus": null,
+ "musicCredit": "Charles H. Gabriel (1856–1932)",
+ "notices": [],
+ "number": 129,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Mosiah 3:5–8",
+  "Johannes 15:13"
+ ],
+ "source": {
+  "pageSha": "a2e7394c412c5879645096602b5bfceff5a019be9963fa409ccaba6a13064f92",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/i-stand-all-amazed",
+  "pdfSha": "2110373519bf6fd6ea08489df92de6eeebcf0fd68e8a3d7ca741bbdf15576082",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/f7/36/f7364ad7ac3f11eca698eeeeac1eb6af9ec22875/i_stand_all_amazed_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "’k Sta spraak’loos dat Christus zo’n liefde mij schenken kan,",
+    "verward dat Hij mij zo genadig bedenken kan.",
+    "’t Ontroert mij ten diepst dat Hij zo voor mijn schulden leed,",
+    "dat voor mij, een zondaar, Hem ’t kruis zoveel dulden deed."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "’t Verbaast mij dat Hij van omhoog kwam en stierf voor mij,",
+    "voor mij, zo weerspannig, en ’t leven verwierf voor mij,",
+    "dat Hij zelfs tot mij in zijn liefd’ zonder peil zich buigt,",
+    "tot mij van vergeving, verlossing en heil getuigt."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Als ’k denk aan zijn wonden voor onze strafwaardigheid,",
+    "zal ’k ooit dan vergeten zijn groot’ offervaardigheid?",
+    "Nee, nee, ’k zal Hem prijzen, zolang ’k hier op aarde leef,",
+    "totdat ik Hem eer in de hemelse gaarde geef."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bedachtzaam",
+ "textCredit": "naar Charles H. Gabriel (1856–1932)",
+ "title": "’k Sta spraak’loos"
+}

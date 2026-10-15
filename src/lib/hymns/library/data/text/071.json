@@ -1,0 +1,73 @@
+{
+ "choruses": [
+  [
+   "De wind en de golven verstaan uw wil:",
+   "zwijg, wees stil.",
+   "Zij het de woede van ’t noodgetij,",
+   "of duivels of mensen of wat het ook zij,",
+   "geen zee deert het vaartuig waar Gij mee vaart,",
+   "de Meester van hemel en zee en aard’.",
+   "Zij allen volgen gedwee uw wil:",
+   "zwijg, wees stil; zwijg, weest stil.",
+   "Zij allen volgen gedwee uw wil:",
+   "zwijg, zwijg, wees stil."
+  ]
+ ],
+ "id": "nld:71",
+ "leadingChorus": null,
+ "musicCredit": "H. R. Palmer (1834–1907)",
+ "notices": [],
+ "number": 71,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Matteüs 8:23–27",
+  "Marcus 4:36–41"
+ ],
+ "source": {
+  "pageSha": "2ef74f76c67cfb326e9384a804dd8ff2ee83c927a2a3f3a5fac1ce8b900eb600",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/master-the-tempest-is-raging",
+  "pdfSha": "02a74670a487bdbaa81f7ca2ce612863506949ab4e9b1c2c4af207d00d282169",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/a1/a1/a1a19c96ac4011eca4f5eeeeac1e6144aa8bb6e9/master_the_tempest_is_raging_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Meester, de stormwinden woeden! Onstuimig is ’t bandloos tij!",
+    "De lucht is zo dreigend en donker, geen haven of hulp nabij.",
+    "Bekommert U dan onze nood niet? Hoe kunt Gij slapen, Heer,",
+    "nu elk ogenblik hier ons bedreigt met een graf in het kokend meer!"
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Meester, verslagen van geeste buig ’k heden in smart mij neer.",
+    "Mijn hart is ten diepste bekommerd, word wakker en red mij, Heer!",
+    "Ik lig in de golven der zonde waarin ’k al dieper zink.",
+    "Ik verga hier, ’k verga! O, mijn Meester, kom, red mij voordat ’k verdrink!"
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Meester, de schrik is nu over, ’t is rustig op land en vloed.",
+    "De zon kiest het meer tot haar spiegel en vreed’ is in mijn gemoed.",
+    "O, toef, mijn gezegende Heiland, houd mij steeds aan uw hand,",
+    "tot ik anker met vreugd in uw haven en rust aan het zalig strand."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vurig",
+ "textCredit": "naar Mary Ann Baker (ca. 1874)",
+ "title": "Meester, de stormwinden woeden"
+}

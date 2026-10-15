@@ -1,0 +1,82 @@
+{
+ "choruses": [],
+ "id": "nld:160",
+ "leadingChorus": null,
+ "musicCredit": "Leroy J. Robertson (1896–1971)",
+ "notices": [],
+ "number": 160,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Mormon 9:6",
+  "2 Nephi 31:17–20"
+ ],
+ "source": {
+  "pageSha": "ac870726a456e9da4adf5785639f9c9bd6a156d67e53a1dab6264a54df2b689f",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/lo-on-the-waters-brink-we-stand",
+  "pdfSha": "b95b7f99a5154c4737beeef3d3fe5bfe550062d9143af701b56387f3ac0d5d25",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e9/0a/e90a83e2ac3f11eca4f5eeeeac1e6144c991d7b5/lo_on_the_waters_brink_we_stand_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Zie aan de waterkant ons staan,",
+    "opdat Gods wil geschiedt.",
+    "Zie ons ten doop in ’t water gaan,",
+    "zoals zijn woord gebiedt,",
+    "zoals zijn woord gebiedt."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Vader, wij kennen onze schuld",
+    "en hebben ons bekeerd.",
+    "O, dat Gij in uw groot geduld",
+    "ons streven accepteert,",
+    "ons streven accepteert."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Jezus, uw Eerstgeboren Zoon,",
+    "is ’t die de weg ontsloot.",
+    "Zijn bloed wast ons van zonden schoon",
+    "en redt ons van de dood,",
+    "en redt ons van de dood."
+   ],
+   "n": 3
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "In het symbolisch watergraf daalt straks",
+    "de doop’ling neer.",
+    "De oude mens legt hij daar af,",
+    "hernieuwd verrijst hij weer,",
+    "hernieuwd verrijst hij weer."
+   ],
+   "n": 4
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Als u gegaan bent door de poort",
+    "op ’t enge, smalle pad,",
+    "vergast u dan aan Christus’ woord,",
+    "streef voorwaarts en volhard,",
+    "streef voorwaarts en volhard."
+   ],
+   "n": 5
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bedachtzaam",
+ "textCredit": "vrij naar anonieme Engelse tekst",
+ "title": "Zie aan de waterkant ons staan"
+}

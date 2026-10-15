@@ -1,0 +1,73 @@
+{
+ "choruses": [
+  [
+   "Trouw aan ’t geloof dat onz’ ouders beleden!",
+   "Trouw aan ’t geloof waar de mart’laars voor streden!",
+   "Wat God beval of spreken zal,",
+   "daarvoor staan w’ immer onwrikbaar pal!"
+  ]
+ ],
+ "id": "nld:170",
+ "leadingChorus": null,
+ "musicCredit": "Evan Stephens (1854–1930)",
+ "notices": [],
+ "number": 170,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "1 Timoteüs 4:12",
+  "Alma 53:18–21"
+ ],
+ "source": {
+  "pageSha": "19a13b3b6bc06c9857bae36b1cda85dcff1d775b92971c80c27cc674b00190a6",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/true-to-the-faith",
+  "pdfSha": "ff8333454da6f023c6e02c22e58358f53e1e83e7eb3346851d914b75bf3b73f6",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ea/bf/eabffc04ac3f11ec8960eeeeac1ef785224b28e6/true_to_the_faith_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Zal de jeugd van Zion dralen, niet voor waarheid staan en recht?",
+    "Als de vijand aan komt vallen, zullen w’ aarz’len voor ’t gevecht?",
+    "Nee!"
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Waar de duist’re machten strijden tegen Gods werk, nimmer moe,",
+    "zal het nakroost der belofte los gaan laten d’ ijz’ren roe?",
+    "Nee!"
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Heil op aard’ en in de hemel brengen waarheidsliefd’ en deugd.",
+    "Wij gaan waken, bidden, werken met de kracht en ’t vuur der jeugd.",
+    "Ja!"
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Wij proberen zo te leven dat ons God eens waardig acht",
+    "bij des hemelsschaar te wonen die zijn wetten heeft betracht.",
+    "Ja!"
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Krachtig",
+ "textCredit": "naar Evan Stephens (1854–1930)",
+ "title": "Trouw aan ’t geloof"
+}

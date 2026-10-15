@@ -1,0 +1,82 @@
+{
+ "choruses": [],
+ "id": "nld:70",
+ "leadingChorus": null,
+ "musicCredit": "Orson Pratt Huish (1851–1932)",
+ "notices": [],
+ "number": 70,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Alma 38:9",
+  "Psalm 48:15"
+ ],
+ "source": {
+  "pageSha": "97a5d5f678777b8206bf725092d01be88f255e8e666304df58b120f80bd896b3",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/guide-me-to-thee",
+  "pdfSha": "1140db1f31da47fe706b756ae81c6ef0c73d27633ff09b5316cad99e321eba6b",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/69/00/690063c3ac4011ec8f37eeeeac1e071f90183274/guide_me_to_thee_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Jezus, mijn Hoofd en Heer,",
+    "leid mij tot U.",
+    "O, sterk mij immermeer.",
+    "Leid mij tot U.",
+    "Houd mij in ’t rechte spoor,",
+    "licht dag en nacht mij voor,",
+    "heel ’t aardse leven door.",
+    "Leid mij tot U."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Door ’s levens bang gewoel,",
+    "leid mij tot U.",
+    "Wijs mij een hoger doel.",
+    "Leid mij tot U.",
+    "Dat uw oneind’ge kracht",
+    "zij met mij, dag en nacht.",
+    "Weest Gij mijn trouwe wacht.",
+    "Leid mij tot U."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Als zonde mij bevangt,",
+    "leid mij tot U.",
+    "Als smart mijn boezem prangt,",
+    "leid mij tot U.",
+    "Als alle hoop verzwindt,",
+    "mijn ziel geen vreugd hier vindt,",
+    "sterk, Heiland, dan uw kind.",
+    "Leid mij tot U."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Als ’t uur van sterven slaat,",
+    "leid mij tot U.",
+    "Weest Gij mijn toeverlaat.",
+    "Leid mij tot U.",
+    "Dat uw genadig woord",
+    "door mij dan word’ gehoord:",
+    "’Kom in het hemels oord!’",
+    "Leid mij tot U."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Smekend",
+ "textCredit": "naar Orson Pratt Huish (1851–1932)",
+ "title": "Leid mij tot U"
+}

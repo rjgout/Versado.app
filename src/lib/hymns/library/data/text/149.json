@@ -1,0 +1,65 @@
+{
+ "choruses": [],
+ "id": "nld:149",
+ "leadingChorus": null,
+ "musicCredit": null,
+ "notices": [
+  "Musiek: Franz Xaver Gruber (1787–1863)"
+ ],
+ "number": 149,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 2:7–14",
+  "Alma 7:10–12"
+ ],
+ "source": {
+  "pageSha": "1d4797e4b8dc6aefd65a9ce3bc5096bab7d2574188af849c142da0cbda5cb45a",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/silent-night",
+  "pdfSha": "2eec5a141f53773a6c0dbb4153fbc8da0e645be51e031e30aa0c8e530bb6de31",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ae/47/ae47a239ac3f11ec884feeeeac1e94ef9409680e/silent_night_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Stille nacht, heilige nacht,",
+    "Davids Zoon, lang verwacht,",
+    "die tot God on terugbrengen zal,",
+    "werd geboren in Betlehems stal,",
+    "Hij, der schepselen Heer,",
+    "Hij, der schepselen Heer."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Hulp’loos Kind, heilig Kind,",
+    "dat zo trouw zondaars mint,",
+    "ook voor mij hebt G’ U rijkdom ontzegd,",
+    "werd G’ in stro en in doeken gelegd.",
+    "Leer m’ U danken daarvoor,",
+    "Leer m’ U danken daarvoor."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Stille nacht, heilige nacht,",
+    "heil en vreê wordt gebracht",
+    "aan een wereld verloren in schuld,",
+    "Gods belofte wordt heerlijk vervuld.",
+    "Amen, Gode zij d’ eer,",
+    "amen, Gode zij d’ eer."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vredig",
+ "textCredit": "Johannes IJserinkhuizen (1858–1935); naar Joseph Mohr (1792–1848)",
+ "title": "Stille nacht"
+}

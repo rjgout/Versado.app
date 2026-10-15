@@ -2,12 +2,19 @@
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import NextImage from "next/image";
-import { RotateCw } from "lucide-react";
+import RotateButton from "@/components/puzzle/RotateButton";
 import { useT } from "@/components/I18nProvider";
-import { createPuzzleGeometry, tracePuzzleGroup } from "@/lib/puzzle/geometry";
+import { createPuzzleGeometry } from "@/lib/puzzle/geometry";
+import { renderPuzzle } from "@/lib/puzzle/render";
+import { createNearSnapTracker, prefersReducedMotion } from "@/lib/puzzle/nearSnap";
+import { createCompletionGate, createPuzzleMotion, frameTime, type RemotePlacement } from "@/lib/puzzle/motion";
 import { boardSnapTarget, findSnapConnection, groupFor } from "@/lib/puzzle/engine";
-import { clampGroupPosition, groupAnchor, groupMemberAt, puzzleRenderOrder, puzzleWorktable } from "@/lib/puzzle/worktable";
-import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
+import { clampGroupPosition, groupMemberAt, puzzleWorktable } from "@/lib/puzzle/worktable";
+import { settleWouldMove, type Rect } from "@/lib/puzzle/collision";
+import { createParking, type Parking, type ParkingReadiness } from "@/lib/puzzle/parking";
+import { createStacking } from "@/lib/puzzle/stacking";
+import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, visibleWorldRect, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
+import { puzzleFeedback } from "@/lib/puzzle/feedback";
 import { puzzlePolicy, type PuzzleDifficulty, type PuzzleGroup, type PuzzleHint, type PuzzlePieceCount, type PuzzleSnapshot } from "@/lib/puzzle/types";
 
 // De fullscreen werktafel voor Samen en Tegen elkaar. Dezelfde puzzelgeometrie,
@@ -19,8 +26,8 @@ import { puzzlePolicy, type PuzzleDifficulty, type PuzzleGroup, type PuzzleHint,
 type Point = { x: number; y: number };
 export interface TableLock { groupId: string; userId: string; expiresAt: string }
 export interface TableOperation { kind: "move"; groupId: string; x: number; y: number }
-export type TableCommit = { kind: "move"; groupId: string; x: number; y: number } | { kind: "rotate"; groupId: string } | { kind: "connect"; a: number; b: number } | { kind: "anchor"; groupId: string };
-export interface PuzzleTableHandle { fit: () => void; zoom: (factor: number) => void; repaint: () => void; selected: () => number | null; select: (piece: number | null) => void; focusWorld: (point: Point) => void }
+export type TableCommit = { kind: "move"; groupId: string; x: number; y: number } | { kind: "rotate"; groupId: string } | { kind: "connect"; a: number; b: number } | { kind: "anchor"; groupId: string } | { kind: "settle"; groupId: string; viewport?: Rect };
+export interface PuzzleTableHandle { /** Commit een nog niet verzonden toetsenbordbeweging vóór navigatie. */ flushKeyboard: () => Promise<boolean>; /** Roept `done` aan zodra de laatste bevestigde snap getoond is (direct zonder animatie); alleen presentatie. */ settle: (done: () => void) => void; fit: () => void; zoom: (factor: number) => void; repaint: () => void; selected: () => number | null; select: (piece: number | null) => void; focusWorld: (point: Point) => void }
 
 export interface PuzzleTableProps {
   image: string; seed: string; geometryVersion: number; pieceCount: PuzzlePieceCount; difficulty: PuzzleDifficulty; rulesVersion: number;
@@ -39,7 +46,7 @@ export interface PuzzleTableProps {
   /** Tijdelijke sleepbeweging; nooit opgeslagen. */
   onDrag?: (groupId: string, x: number, y: number) => void;
   /** Definitieve actie. Moet de nieuwe stand toepassen vóór hij resolve't en geeft terug of er iets veranderde. */
-  onCommit: (operation: TableCommit, token: string) => Promise<boolean>;
+  onCommit: (operation: TableCommit, token: string | null) => Promise<boolean>;
   /** Tijdelijke posities van groepen die anderen verslepen (op groep-id). */
   remoteDrags: { current: Map<string, { x: number; y: number; until: number }> };
   onBusy?: (message: string) => void;
@@ -47,13 +54,16 @@ export interface PuzzleTableProps {
   controls?: React.ReactNode;
 }
 
+/** Stilte na de laatste pijltjestoets voordat de verplaatsing naar de server gaat. */
+const KEYBOARD_IDLE_MS = 280;
+
 const PreviewOverlay = ({ image, label }: { image: string; label: string }) => <div className="pointer-events-none absolute inset-3 rounded-xl bg-vs-surface/95 p-2"><NextImage src={image} alt={label} fill unoptimized className="object-contain p-2" /></div>;
 
 const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function PuzzleTable(props, ref) {
   const t = useT();
   const { image, seed, geometryVersion, pieceCount, difficulty, rulesVersion } = props;
   const geometry = useMemo(() => createPuzzleGeometry(pieceCount, seed, geometryVersion), [pieceCount, seed, geometryVersion]);
-  const table = useMemo(() => puzzleWorktable(geometry), [geometry]);
+  const table = useMemo(() => puzzleWorktable(geometry), [geometry]); const motion = useMemo(() => createPuzzleMotion(geometry), [geometry]); const completion = useMemo(() => createCompletionGate(), []);
   const policy = puzzlePolicy(difficulty, rulesVersion);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const picture = useRef<HTMLImageElement | null>(null);
@@ -61,8 +71,11 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
   const viewport = useRef<ViewportSize | null>(null);
   const frame = useRef<number | null>(null);
   const paths = useRef(new Map<string, Path2D>());
+  const nearSnap = useRef(createNearSnapTracker());
+  const keyboard = useRef<{ groupId: string; x: number; y: number } | null>(null); const keyboardTimer = useRef<ReturnType<typeof setTimeout> | null>(null); const keyboardFlight = useRef<Promise<boolean> | null>(null);
+  const remoteSpot = useRef<RemotePlacement>({ x: 0, y: 0 }); const lockedByOthers = useRef(new Set<string>());
   const pointers = useRef(new Map<number, Point>());
-  const drag = useRef<{ pointer: number; groupId: string; offset: Point; grab: Promise<string | null>; local: Point | null } | null>(null);
+  const drag = useRef<{ pointer: number; groupId: string; offset: Point; grab: Promise<string | null>; token: string | null; released: boolean; local: Point | null } | null>(null);
   const pan = useRef<{ pointer: number; point: Point; camera: PuzzleCamera } | null>(null);
   const pinch = useRef<{ distance: number; world: Point; scale: number } | null>(null);
   const [selected, setSelectedState] = useState<number | null>(null);
@@ -71,12 +84,15 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
   const pending = useRef(false);
   const propsRef = useRef(props);
   useEffect(() => { propsRef.current = props; });
-  const mounted = useRef(true);
+  const flushRef = useRef<() => Promise<boolean>>(() => Promise.resolve(true)); useEffect(() => { flushRef.current = flushKeyboard; });
+  const mounted = useRef(true); const feedback = puzzleFeedback();
+  // Tafelgedrag: lokale stapelvolgorde (alleen presentatie en aanwijzen, nooit gedeeld), één annuleerbare parkeertimer en de laatst bekende bovenste groepen van anderen.
+  const stacking = useRef(createStacking()); const parkingRef = useRef<Parking | null>(null); const previousRemoteTop = useRef(new Set<string>());
+  const parkingHooks = useRef<{ ready: () => ParkingReadiness; settle: (ids: readonly string[], stale: () => boolean) => Promise<void> }>({ ready: () => "stop", settle: async () => {} });
 
-  const setSelected = useCallback((piece: number | null) => { selectedRef.current = piece; setSelectedState(piece); propsRef.current.onSelect?.(piece); }, []);
+  const setSelected = useCallback((piece: number | null) => { if (selectedRef.current !== piece) void flushRef.current(); selectedRef.current = piece; setSelectedState(piece); propsRef.current.onSelect?.(piece); }, []);
 
   // paint is een functiedeclaratie verderop en dus al beschikbaar zodra het frame draait.
-  // eslint-disable-next-line react-hooks/immutability
   const schedule = useCallback(() => { if (frame.current === null) frame.current = requestAnimationFrame(() => { frame.current = null; paint(); }); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -88,69 +104,60 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
   function paint() {
     const canvas = canvasRef.current; if (!canvas) return;
     const p = propsRef.current; const snapshot = p.getSnapshot();
-    const rect = canvas.getBoundingClientRect(); const ratio = Math.min(window.devicePixelRatio || 1, 2);
-    const width = Math.max(1, Math.round(rect.width * ratio)); const height = Math.max(1, Math.round(rect.height * ratio));
-    if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
-    const context = canvas.getContext("2d"); if (!context) return;
-    context.setTransform(ratio, 0, 0, ratio, 0, 0); context.clearRect(0, 0, rect.width, rect.height); context.fillStyle = "#edf1f2"; context.fillRect(0, 0, rect.width, rect.height);
-    context.save(); context.translate(camera.current.x, camera.current.y); context.scale(camera.current.scale, camera.current.scale);
-    const scale = camera.current.scale;
-    context.fillStyle = "#dbe6e6"; context.fillRect(table.bounds.minX, table.bounds.minY, table.bounds.maxX - table.bounds.minX, table.bounds.maxY - table.bounds.minY);
-    context.strokeStyle = "rgba(42, 68, 74, .45)"; context.lineWidth = 2 / scale; context.strokeRect(table.bounds.minX, table.bounds.minY, table.bounds.maxX - table.bounds.minX, table.bounds.maxY - table.bounds.minY);
-    const complete = snapshot.completedAt !== null;
-    if (!complete && (policy.showOutline || policy.showGhost)) { context.fillStyle = "rgba(255, 255, 255, .74)"; context.fillRect(table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); }
-    if (!complete && policy.showGhost && picture.current) { context.globalAlpha = .18; context.drawImage(picture.current, table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); context.globalAlpha = 1; }
-    if (!complete && policy.showOutline) { context.strokeStyle = "rgba(64, 87, 94, .46)"; context.setLineDash([.12, .1]); context.strokeRect(table.puzzle.x, table.puzzle.y, table.puzzle.width, table.puzzle.height); context.setLineDash([]); }
-    const target = p.hint?.target;
-    const mine = drag.current?.groupId ?? null;
-    const now = Date.now();
-    const remote = p.remoteDrags.current;
-    // Een actieve (eigen of andermans) groep ligt tijdens het slepen bovenop.
-    const order = puzzleRenderOrder(snapshot.groups, mine);
-    const topRemote = [...remote.keys()].filter((id) => (remote.get(id)?.until ?? 0) > now);
-    const ordered = topRemote.length ? [...order.filter((g) => !topRemote.includes(g.id)), ...order.filter((g) => topRemote.includes(g.id))] : order;
-    for (const group of ordered) {
-      const local = drag.current?.groupId === group.id && drag.current.local ? drag.current.local : null;
-      const far = remote.get(group.id); const remotePos = far && far.until > now ? far : null;
-      const x = local?.x ?? remotePos?.x ?? group.x; const y = local?.y ?? remotePos?.y ?? group.y;
-      const dragging = group.id === mine || remotePos !== null;
-      const lock = p.locks.find((candidate) => candidate.groupId === group.id && Date.parse(candidate.expiresAt) > now);
-      const anchor = groupAnchor(geometry, group); const key = group.pieceIds.join(",");
-      let path = paths.current.get(key);
-      if (!path) { path = new Path2D(); tracePuzzleGroup(path, geometry, group.pieceIds); paths.current.set(key, path); }
-      context.save(); if (target?.type === "FILTER") context.globalAlpha = .2;
-      context.translate(x + .5, y + .5 - (dragging ? 2 / scale : 0)); context.rotate(group.rotation * Math.PI / 180); context.translate(-.5, -.5);
-      if (dragging) { context.save(); context.shadowColor = "rgba(29, 42, 60, .28)"; context.shadowBlur = 10 * ratio; context.shadowOffsetY = 5 * ratio; context.fillStyle = "#b9d5d7"; context.fill(path); context.restore(); }
-      context.save(); context.clip(path);
-      if (picture.current) context.drawImage(picture.current, -anchor.column, -anchor.row, geometry.grid.columns, geometry.grid.rows); else { context.fillStyle = "#b9d5d7"; context.fill(path); }
-      context.restore();
-      if (target?.type === "FILTER" && picture.current) {
-        const members = group.pieceIds.filter((id) => target.pieceIds.includes(id));
-        if (members.length) {
-          const first = geometry.pieces[members[0]]; const filterKey = `filter:${members.join(",")}`;
-          let highlight = paths.current.get(filterKey); if (!highlight) { highlight = new Path2D(); tracePuzzleGroup(highlight, geometry, members); paths.current.set(filterKey, highlight); }
-          context.save(); context.globalAlpha = 1; context.translate(first.column - anchor.column, first.row - anchor.row); context.clip(highlight); context.drawImage(picture.current, -first.column, -first.row, geometry.grid.columns, geometry.grid.rows); context.restore();
-        }
+    const complete = snapshot.completedAt !== null; const mine = drag.current?.groupId ?? null;
+    const now = Date.now(); const stamp = frameTime(); const remoteAll = p.remoteDrags.current;
+    // Verliest een andere speler zijn lock (verlopen of losgelaten), dan stopt het volgen van zijn sleepbeweging direct.
+    let remote: ReadonlyMap<string, { x: number; y: number; until: number }> = remoteAll;
+    for (const lock of p.locks) if (lock.userId !== p.meId && Date.parse(lock.expiresAt) > now) lockedByOthers.current.add(lock.groupId);
+    if (lockedByOthers.current.size) {
+      let dropped: Map<string, { x: number; y: number; until: number }> | null = null;
+      for (const id of lockedByOthers.current) {
+        if (p.locks.some((lock) => lock.groupId === id && lock.userId !== p.meId && Date.parse(lock.expiresAt) > now)) continue;
+        lockedByOthers.current.delete(id); if (remoteAll.has(id)) (dropped ??= new Map(remoteAll)).delete(id);
       }
-      const active = selectedRef.current !== null && group.pieceIds.includes(selectedRef.current);
-      // Rustige contour in de kleur van de speler die de groep vasthoudt; de eigen selectie blijft oranje.
-      if (!complete && lock && lock.userId !== p.meId) { context.strokeStyle = p.colorOf(lock.userId); context.lineWidth = 4 / scale; context.stroke(path); }
-      context.strokeStyle = active ? "#d97716" : group.anchored || complete ? "rgba(43, 103, 99, .35)" : "rgba(29, 42, 60, .60)"; context.lineWidth = (active ? 3 : 1) / scale;
-      if (!complete) context.stroke(path);
-      context.restore();
+      if (dropped) remote = dropped;
     }
-    if (target?.type === "LOCATION") { const path = new Path2D(); tracePuzzleGroup(path, geometry, target.pieceIds); context.save(); context.translate(target.x, target.y); context.fillStyle = "rgba(217,119,22,.16)"; context.fill(path); context.strokeStyle = "#d97716"; context.lineWidth = 3 / scale; context.stroke(path); context.restore(); }
-    const marked = target?.type === "CONNECTION" ? [target.pieceId, target.neighborId] : target?.type === "FILTER" ? target.pieceIds : [];
-    for (const id of marked) {
-      const group = groupFor(snapshot, id); if (!group) continue; const anchor = groupAnchor(geometry, group); const piece = geometry.pieces[id]; const path = new Path2D(); tracePuzzleGroup(path, geometry, [id]);
-      context.save(); context.translate(group.x + .5, group.y + .5); context.rotate(group.rotation * Math.PI / 180); context.translate(piece.column - anchor.column - .5, piece.row - anchor.row - .5); context.strokeStyle = "#d97716"; context.lineWidth = 4 / scale; context.stroke(path); context.restore();
-    }
-    context.restore();
+    // De bevestigde stand staat al in `snapshot`; remote bewegingen worden tussen de ontvangen punten gevolgd en bevestigde snaps glijden kort.
+    motion.update({ snapshot, remote, now: stamp, wall: now, enabled: !prefersReducedMotion(), maxDistance: Math.max(policy.snap, policy.boardSnapDistance) + .1 });
+    // Een actieve (eigen of andermans) groep ligt tijdens het slepen bovenop.
+    const topRemote = [...remote.keys()].filter((id) => (remote.get(id)?.until ?? 0) > now);
+    // Een groep die een ander zojuist losliet, blijft ook bij mij bovenop: de laatst verplaatste groep ligt bovenaan.
+    for (const id of previousRemoteTop.current) if (!topRemote.includes(id)) stacking.current.raise(id);
+    previousRemoteTop.current = new Set(topRemote);
+    stacking.current.prune(snapshot.groups);
+    const order = stacking.current.order(snapshot.groups, mine);
+    const ordered = motion.groups(topRemote.length ? [...order.filter((g) => !topRemote.includes(g.id)), ...order.filter((g) => topRemote.includes(g.id))] : order, stamp);
+    // Een voltooide puzzel toont zijn eindweergave pas als de laatste bevestigde snap klaar is.
+    const settled = complete && !motion.gliding(stamp);
+    completion.tick({ now: stamp, complete, animating: motion.gliding(stamp), reduced: prefersReducedMotion() });
+    // Alleen de speler die sleept ziet dit, lokaal berekend: pas zodra de eigen greep is gelukt en zolang niemand anders de groep vasthoudt.
+    const active = drag.current; const moving = active?.token && !active.released ? snapshot.groups.find((group) => group.id === active.groupId) : undefined;
+    const taken = active ? p.locks.some((lock) => lock.groupId === active.groupId && lock.userId !== p.meId && Date.parse(lock.expiresAt) > now) : false;
+    const glow = active && moving && !complete && !taken ? nearSnap.current.update({ snapshot, geometry, difficulty, rulesVersion, groupId: moving.id, x: active.local?.x ?? moving.x, y: active.local?.y ?? moving.y, now: stamp, reducedMotion: prefersReducedMotion() }) : nearSnap.current.reset();
+    if (nearSnap.current.animating || motion.active(stamp) || completion.waiting) schedule();
+    renderPuzzle(canvas, {
+      geometry, table, camera: camera.current, image: picture.current, paths: paths.current, snapshot, groups: ordered,
+      place: (group, out) => {
+        const local = drag.current?.groupId === group.id && drag.current.local ? drag.current.local : null;
+        const keyed = !local && keyboard.current?.groupId === group.id ? keyboard.current : null;
+        const followed = local || keyed ? null : motion.remoteAt(group.id, stamp, remoteSpot.current);
+        const far = remote.get(group.id); const remotePos = far && far.until > now ? far : null;
+        out.x = local?.x ?? keyed?.x ?? followed?.x ?? remotePos?.x ?? group.x; out.y = local?.y ?? keyed?.y ?? followed?.y ?? remotePos?.y ?? group.y;
+        out.lifted = group.id === mine || followed !== null || remotePos !== null;
+        const lock = p.locks.find((candidate) => candidate.groupId === group.id && Date.parse(candidate.expiresAt) > now);
+        out.lockColor = !settled && lock && lock.userId !== p.meId ? p.colorOf(lock.userId) : null;
+      },
+      selectedPiece: selectedRef.current, hint: p.hint?.target,
+      backdrop: !settled && (policy.showOutline || policy.showGhost), ghost: !settled && policy.showGhost, outline: !settled && policy.showOutline,
+      edges: !settled, anchoredStroke: "rgba(43, 103, 99, .35)", nearSnap: glow,
+    });
   }
 
   useImperativeHandle(ref, () => ({
-    fit: () => { const canvas = canvasRef.current; if (!canvas) return; camera.current = fitCamera({ width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds); schedule(); },
-    zoom: (factor: number) => { const canvas = canvasRef.current; if (!canvas) return; camera.current = zoomCamera(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds, factor, { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 }); schedule(); },
+    flushKeyboard,
+    settle: (done: () => void) => { completion.request(done, frameTime()); schedule(); },
+    fit: () => { const canvas = canvasRef.current; if (!canvas) return; parkingRef.current?.interact(); camera.current = fitCamera({ width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds); schedule(); },
+    zoom: (factor: number) => { const canvas = canvasRef.current; if (!canvas) return; parkingRef.current?.interact(); camera.current = zoomCamera(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds, factor, { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 }); schedule(); },
     repaint: schedule,
     selected: () => selectedRef.current,
     select: setSelected,
@@ -161,7 +168,7 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
       camera.current.y += Math.max(margin, Math.min(canvas.clientHeight - margin, screen.y)) - screen.y;
       constrain(); schedule();
     },
-  }), [table, schedule, setSelected]); // eslint-disable-line react-hooks/exhaustive-deps
+  }), [table, schedule, setSelected, completion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { schedule(); }, [props.paintKey, props.hint, props.locks, schedule]);
 
@@ -176,39 +183,48 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
       camera.current = previous ? resizeCamera(camera.current, previous, next, table.bounds) : initialPuzzleCamera(next, geometry, propsRef.current.getSnapshot());
       viewport.current = next; schedule();
     };
-    const observer = canvas ? new ResizeObserver(resize) : null; if (canvas) { observer?.observe(canvas); resize(); }
-    return () => { mounted.current = false; img.onload = null; observer?.disconnect(); if (frame.current !== null) cancelAnimationFrame(frame.current); frame.current = null; };
+    const observer = canvas ? new ResizeObserver(() => { parkingRef.current?.interact(); resize(); }) : null; if (canvas) { observer?.observe(canvas); resize(); }
+    const parking = createParking({ ready: () => parkingHooks.current.ready(), settle: (ids, stale) => parkingHooks.current.settle(ids, stale) }); parkingRef.current = parking;
+    const lastChance = () => { void flushKeyboard(); };
+    window.addEventListener("pagehide", lastChance);
+    return () => { lastChance(); mounted.current = false; parking.dispose(); parkingRef.current = null; window.removeEventListener("pagehide", lastChance); img.onload = null; observer?.disconnect(); motion.clear(); completion.cancel(); if (keyboardTimer.current !== null) clearTimeout(keyboardTimer.current); if (frame.current !== null) cancelAnimationFrame(frame.current); frame.current = null; };
     // De camera hoort bij dit scherm; een gedeelde update reset hem nooit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [image, geometry, table]);
 
-  function picked(point: Point) { for (const group of [...propsRef.current.getSnapshot().groups].reverse()) { const id = groupMemberAt(geometry, group, point); if (id !== null) return { group, id }; } return null; }
+  // Aanwijzen gebeurt op wat de speler ziet: een schuivende groep staat op haar getekende plek (motion.hitGroups), de regels gebruiken de bevestigde stand.
+  function picked(point: Point) { for (const group of stacking.current.hitOrder(motion.hitGroups(propsRef.current.getSnapshot().groups, frameTime()), drag.current?.groupId ?? null)) { const id = groupMemberAt(geometry, group, point); if (id !== null) return { group, id }; } return null; }
 
   function beginPinch() {
-    const fingers = [...pointers.current.values()]; if (fingers.length < 2) return;
-    if (drag.current) { const active = drag.current; drag.current = null; void active.grab.then((token) => { if (token) propsRef.current.onRelease(active.groupId, token); }); }
+    const fingers = [...pointers.current.values()]; if (fingers.length < 2) return; parkingRef.current?.interact();
+    if (drag.current) { const active = drag.current; drag.current = null; parkingRef.current?.park(active.groupId); void active.grab.then((token) => { if (token) propsRef.current.onRelease(active.groupId, token); }); }
     pan.current = null; const center = { x: (fingers[0].x + fingers[1].x) / 2, y: (fingers[0].y + fingers[1].y) / 2 };
     pinch.current = { distance: Math.max(1, distance(fingers[0], fingers[1])), world: worldPoint(center), scale: camera.current.scale }; schedule();
   }
   function updatePinch() {
-    const active = pinch.current; const fingers = [...pointers.current.values()]; if (!active || fingers.length < 2) return;
+    const active = pinch.current; const fingers = [...pointers.current.values()]; if (!active || fingers.length < 2) return; parkingRef.current?.interact();
     const center = { x: (fingers[0].x + fingers[1].x) / 2, y: (fingers[0].y + fingers[1].y) / 2 };
     camera.current.scale = Math.max(8, Math.min(240, active.scale * distance(fingers[0], fingers[1]) / active.distance));
     camera.current.x = center.x - active.world.x * camera.current.scale; camera.current.y = center.y - active.world.y * camera.current.scale; constrain(); schedule();
   }
 
-  async function snapAfterMove(groupId: string, token: string) {
-    const p = propsRef.current; let snapshot = p.getSnapshot();
-    const piece = snapshot.groups.find((group) => group.id === groupId)?.pieceIds[0]; if (piece === undefined) return;
+  async function snapAfterMove(groupId: string, token: string): Promise<boolean> {
+    // Geeft terug of er een verbinding of verankering is gemaakt: alleen een groep zonder dat wordt geparkeerd.
+    const p = propsRef.current; let snapshot = p.getSnapshot(); let connected = false;
+    const piece = snapshot.groups.find((group) => group.id === groupId)?.pieceIds[0]; if (piece === undefined) return false;
     for (let count = 0; count < pieceCount && mounted.current; count++) {
       snapshot = p.getSnapshot(); const moved = groupFor(snapshot, piece); if (!moved || snapshot.completedAt) break;
       const connection = findSnapConnection(snapshot, geometry, difficulty, moved.id, rulesVersion); if (!connection) break;
       // Na de eerste snap staat het nieuwe geheel vast: volgende buren worden naar dit anker getrokken.
       const a = count === 0 ? connection.a : connection.b; const b = count === 0 ? connection.b : connection.a;
       const changed = await p.onCommit({ kind: "connect", a, b }, token); if (!changed) break;
+      connected = true;
+      // Eén bevestigd-verbindingsgeluid per verplaatsing; de voltooiing krijgt zijn eigen viering (CoopClient).
+      if (count === 0 && !p.getSnapshot().completedAt && mounted.current) feedback.play("connect");
     }
     snapshot = p.getSnapshot(); const moved = groupFor(snapshot, piece);
-    if (moved && !snapshot.completedAt && boardSnapTarget(snapshot, geometry, difficulty, moved.id, rulesVersion)) await p.onCommit({ kind: "anchor", groupId: moved.id }, token);
+    if (moved && !snapshot.completedAt && boardSnapTarget(snapshot, geometry, difficulty, moved.id, rulesVersion) && await p.onCommit({ kind: "anchor", groupId: moved.id }, token)) connected = true;
+    return connected;
   }
 
   async function finishDrag(active: NonNullable<typeof drag.current>) {
@@ -217,7 +233,7 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
     try {
       const to = active.local; if (to) {
         const changed = await p.onCommit({ kind: "move", groupId: active.groupId, x: to.x, y: to.y }, token);
-        if (changed) await snapAfterMove(active.groupId, token);
+        if (changed) { const connected = await snapAfterMove(active.groupId, token); if (!connected && !p.getSnapshot().completedAt) parkingRef.current?.park(active.groupId); }
       }
     } finally { p.onRelease(active.groupId, token); }
   }
@@ -231,6 +247,8 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
 
   function down(event: ReactPointerEvent<HTMLCanvasElement>) {
     if (props.readOnly) return;
+    feedback.noteGesture(); parkingRef.current?.interact();
+    void flushKeyboard();
     const point = screenPoint(event); pointers.current.set(event.pointerId, point); event.currentTarget.setPointerCapture(event.pointerId);
     if (pointers.current.size >= 2) { beginPinch(); return; }
     if (pending.current) return;
@@ -240,7 +258,12 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
       const locked = props.locks.find((lock) => lock.groupId === hit.group.id && lock.userId !== props.meId && Date.parse(lock.expiresAt) > Date.now());
       if (locked) { props.onBusy?.(t("puzzleTogether.coop.busy")); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; schedule(); return; }
       const world = worldPoint(point);
-      drag.current = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: world.x - hit.group.x, y: world.y - hit.group.y }, grab: props.onGrab(hit.group.id), local: null };
+      stacking.current.raise(hit.group.id); parkingRef.current?.unpark(hit.group.id);
+      const grab = props.onGrab(hit.group.id);
+      const started = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: world.x - hit.group.x, y: world.y - hit.group.y }, grab, token: null as string | null, released: false, local: null };
+      drag.current = started;
+      // Pas na een gelukte greep (de lock is van mij) toont het bord bijna-passend-feedback.
+      grab.then((token) => { started.token = token; if (token && drag.current === started) feedback.play("pickup"); if (drag.current === started) schedule(); }, () => undefined);
     } else { setSelected(null); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; }
     schedule();
   }
@@ -253,28 +276,86 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
       const position = clampGroupPosition(geometry, group as PuzzleGroup, world.x - active.offset.x, world.y - active.offset.y);
       active.local = position; propsRef.current.onDrag?.(active.groupId, position.x, position.y); schedule();
     } else if (pan.current?.pointer === event.pointerId) {
-      camera.current.x = pan.current.camera.x + point.x - pan.current.point.x; camera.current.y = pan.current.camera.y + point.y - pan.current.point.y; constrain(); schedule();
+      camera.current.x = pan.current.camera.x + point.x - pan.current.point.x; camera.current.y = pan.current.camera.y + point.y - pan.current.point.y; parkingRef.current?.interact(); constrain(); schedule();
     }
   }
   function up(event: ReactPointerEvent<HTMLCanvasElement>) {
     const active = drag.current; pointers.current.delete(event.pointerId);
     if (pointers.current.size >= 2) { beginPinch(); return; }
     if (pinch.current) { pinch.current = null; const remaining = [...pointers.current.entries()][0]; if (remaining) pan.current = { pointer: remaining[0], point: remaining[1], camera: { ...camera.current } }; return; }
-    if (active?.pointer === event.pointerId) { void run(async () => { try { await finishDrag(active); } finally { if (drag.current === active) drag.current = null; schedule(); } }); }
+    // Direct bij loslaten verdwijnt de feedback, ook al loopt de commit nog.
+    if (active?.pointer === event.pointerId) { active.released = true; schedule(); void run(async () => { try { await finishDrag(active); } finally { if (drag.current === active) drag.current = null; schedule(); } }); }
     if (pan.current?.pointer === event.pointerId) pan.current = null;
   }
   function cancel(event: ReactPointerEvent<HTMLCanvasElement>) {
     pointers.current.delete(event.pointerId); const active = drag.current; drag.current = null; pan.current = null; pinch.current = null;
+    if (active) parkingRef.current?.park(active.groupId);
     if (active) void active.grab.then((token) => { if (token) propsRef.current.onRelease(active.groupId, token); });
     schedule();
   }
+  // Parkeren (zie parking.ts): na 1,5 s zonder relevante interactie mag de tafel ruimte maken. De server bepaalt de verschuivingen vanuit de
+  // actuele gedeelde stand en respecteert locks van anderen; dit is alleen het moment en de vraag of het iets oplost.
+  function parkingReady(): ParkingReadiness {
+    if (!mounted.current || propsRef.current.readOnly || propsRef.current.getSnapshot().completedAt) return "stop";
+    if (drag.current || pan.current || pinch.current || pointers.current.size || pending.current || keyboard.current || keyboardFlight.current || keyboardTimer.current !== null) return "wait";
+    return "go";
+  }
+  async function runSettle(ids: readonly string[], stale: () => boolean) {
+    for (const id of ids) {
+      if (stale() || parkingReady() !== "go") return;
+      const p = propsRef.current; const snapshot = p.getSnapshot(); const group = snapshot.groups.find((candidate) => candidate.id === id);
+      if (!group || group.anchored) continue;
+      const nowMs = Date.now(); const heldByOthers = p.locks.filter((lock) => lock.userId !== p.meId && Date.parse(lock.expiresAt) > nowMs);
+      // Een groep die iemand anders vasthoudt blijft met rust; geen netwerkactie als er niets te verplaatsen valt.
+      if (heldByOthers.some((lock) => lock.groupId === id)) continue;
+      // Het beeld van deze speler is een beperkende hint; de server bepaalt de posities en kent de camera van de andere spelers niet.
+      const canvas = canvasRef.current; const viewport = canvas && canvas.clientWidth > 0 ? visibleWorldRect(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }) : undefined;
+      if (!settleWouldMove(snapshot, geometry, { focusGroupId: id, difficulty, rulesVersion, immovable: new Set(heldByOthers.map((lock) => lock.groupId)), viewport })) continue;
+      // Achtergrondactie: zet `pending` niet, zodat oppakken, pannen en zoomen direct blijven werken (de commit-laag serialiseert de volgende speleractie).
+      const before = p.getSnapshot();
+      try { const changed = await p.onCommit({ kind: "settle", groupId: id, ...(viewport ? { viewport } : {}) }, null); if (changed && mounted.current) { motion.beginShift(before, p.getSnapshot(), frameTime()); schedule(); } } catch { /* stil: de volgende actie of een resync herstelt de stand */ }
+    }
+  }
+  useEffect(() => { parkingHooks.current = { ready: parkingReady, settle: runSettle }; });
   async function rotateSelected() {
+    if (!(await flushKeyboard())) return;
     const piece = selectedRef.current; if (piece === null || difficulty !== "MASTER") return;
     await run(async () => { const group = groupFor(propsRef.current.getSnapshot(), piece); if (!group || group.anchored) return; const token = await propsRef.current.onGrab(group.id); if (!token) { propsRef.current.onBusy?.(t("puzzleTogether.coop.busy")); return; } try { await propsRef.current.onCommit({ kind: "rotate", groupId: group.id }, token); } finally { propsRef.current.onRelease(group.id, token); } });
   }
-  async function nudge(dx: number, dy: number) {
+  // Pijltjestoetsen: direct zichtbaar; na een korte stilte één greep, één verplaatsing (met één snapcontrole) en één loslaten in plaats van
+  // dat per aanslag. De server blijft autoriteit (lock en commit zoals voorheen); er komt geen nieuw bericht bij.
+  // Dezelfde in-flight commit kan door blur, navigatie en timer worden opgevraagd: altijd één lock en één commit.
+  function flushKeyboard(): Promise<boolean> {
+    if (keyboardTimer.current !== null) { clearTimeout(keyboardTimer.current); keyboardTimer.current = null; }
+    // Tijdens een lopende commit kunnen toetsen nieuwe bewegingen bufferen; een vertrek wacht ook daarop.
+    if (keyboardFlight.current) return keyboardFlight.current.then((ok) => ok && keyboard.current ? flushKeyboard() : ok);
+    const move = keyboard.current; if (!move || !mounted.current) return Promise.resolve(!move);
+    const task = (async () => {
+      while (pending.current && mounted.current) await new Promise<void>((resolve) => setTimeout(resolve, 40));
+      if (!mounted.current || keyboard.current !== move) return false;
+      let committed = false;
+      await run(async () => {
+        const p = propsRef.current; const group = p.getSnapshot().groups.find((candidate) => candidate.id === move.groupId); if (!group || group.anchored) return;
+        const token = await p.onGrab(group.id); if (!token) { p.onBusy?.(t("puzzleTogether.coop.busy")); return; }
+        try { committed = await p.onCommit({ kind: "move", groupId: group.id, x: move.x, y: move.y }, token); if (committed) { const connected = await snapAfterMove(group.id, token); if (!connected && !p.getSnapshot().completedAt) parkingRef.current?.park(group.id); } } finally { p.onRelease(group.id, token); }
+      });
+      if (keyboard.current === move && committed) keyboard.current = null;
+      schedule();
+      return committed;
+    })();
+    keyboardFlight.current = task;
+    void task.finally(() => { if (keyboardFlight.current === task) keyboardFlight.current = null; });
+    return task;
+  }
+  function nudge(dx: number, dy: number) {
     const piece = selectedRef.current; if (piece === null) return;
-    await run(async () => { const group = groupFor(propsRef.current.getSnapshot(), piece); if (!group || group.anchored) return; const token = await propsRef.current.onGrab(group.id); if (!token) { propsRef.current.onBusy?.(t("puzzleTogether.coop.busy")); return; } try { const changed = await propsRef.current.onCommit({ kind: "move", groupId: group.id, x: group.x + dx, y: group.y + dy }, token); if (changed) await snapAfterMove(group.id, token); } finally { propsRef.current.onRelease(group.id, token); } });
+    if (keyboardFlight.current) { void keyboardFlight.current.then((ok) => { if (ok && mounted.current && selectedRef.current === piece) nudge(dx, dy); }); return; }
+    const p = propsRef.current; const snapshot = p.getSnapshot(); const group = groupFor(snapshot, piece); if (!group || group.anchored || snapshot.completedAt) return;
+    if (p.locks.some((lock) => lock.groupId === group.id && lock.userId !== p.meId && Date.parse(lock.expiresAt) > Date.now())) { p.onBusy?.(t("puzzleTogether.coop.busy")); return; }
+    parkingRef.current?.interact(); parkingRef.current?.unpark(group.id); stacking.current.raise(group.id);
+    const from = keyboard.current?.groupId === group.id ? keyboard.current : group; const position = clampGroupPosition(geometry, group, from.x + dx, from.y + dy);
+    keyboard.current = { groupId: group.id, ...position }; schedule();
+    if (keyboardTimer.current !== null) clearTimeout(keyboardTimer.current); keyboardTimer.current = setTimeout(() => { void flushKeyboard(); }, KEYBOARD_IDLE_MS);
   }
 
   const selectedGroup = selected === null ? null : groupFor(props.getSnapshot(), selected);
@@ -283,22 +364,24 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
   return (
     <section aria-busy={busy} className="relative min-h-0 flex-1 overflow-hidden bg-vs-surface">
       <canvas ref={canvasRef} data-active-hint={props.hint?.type ?? ""} aria-label={t("jigsaw.board")} aria-describedby="jigsaw-board-help" tabIndex={0} className="block h-full w-full touch-none outline-none focus-visible:ring-4 focus-visible:ring-vs-xp"
-        onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel}
-        onWheel={(event) => { event.preventDefault(); const canvas = canvasRef.current; if (!canvas) return; camera.current = zoomCamera(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds, event.deltaY > 0 ? .9 : 1.1, screenPoint(event)); schedule(); }}
+        onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel} onBlur={() => { void flushKeyboard(); }}
+        onWheel={(event) => { event.preventDefault(); const canvas = canvasRef.current; if (!canvas) return; parkingRef.current?.interact(); camera.current = zoomCamera(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds, event.deltaY > 0 ? .9 : 1.1, screenPoint(event)); schedule(); }}
         onKeyDown={async (event) => {
+          feedback.noteGesture();
+          if (!event.key.startsWith("Arrow")) flushKeyboard();
           const pieces = props.getSnapshot().groups.flatMap((group) => group.pieceIds);
           if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelected(pieces[(pieces.indexOf(selectedRef.current ?? -1) + 1) % pieces.length]); schedule(); }
-          if (event.key === "0") { event.preventDefault(); const canvas = canvasRef.current; if (canvas) { camera.current = fitCamera({ width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds); schedule(); } }
+          if (event.key === "0") { event.preventDefault(); const canvas = canvasRef.current; if (canvas) { parkingRef.current?.interact(); camera.current = fitCamera({ width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds); schedule(); } }
           if ((event.key === "r" || event.key === "R") && difficulty === "MASTER") { event.preventDefault(); await rotateSelected(); }
           if (props.readOnly) return;
-          if (event.key === "ArrowLeft") { event.preventDefault(); await nudge(-.2, 0); }
-          if (event.key === "ArrowRight") { event.preventDefault(); await nudge(.2, 0); }
-          if (event.key === "ArrowUp") { event.preventDefault(); await nudge(0, -.2); }
-          if (event.key === "ArrowDown") { event.preventDefault(); await nudge(0, .2); }
+          if (event.key === "ArrowLeft") { event.preventDefault(); nudge(-.2, 0); }
+          if (event.key === "ArrowRight") { event.preventDefault(); nudge(.2, 0); }
+          if (event.key === "ArrowUp") { event.preventDefault(); nudge(0, -.2); }
+          if (event.key === "ArrowDown") { event.preventDefault(); nudge(0, .2); }
         }} />
       {props.hint?.type === "PREVIEW" && <PreviewOverlay image={image} label={t("jigsaw.hintPreview")} />}
       <p id="jigsaw-board-help" className="sr-only">{t("jigsaw.boardHelp")}</p>
-      {!props.readOnly && !complete && difficulty === "MASTER" && selectedGroup && !selectedGroup.anchored && <button type="button" aria-label={t("jigsaw.rotate")} title={t("jigsaw.rotate")} className="btn-primary absolute bottom-3 left-3 min-h-[60px] min-w-[60px] rounded-2xl !p-[12px] shadow-md" disabled={busy} onClick={rotateSelected}><RotateCw size={26} /></button>}
+      {!props.readOnly && !complete && difficulty === "MASTER" && selectedGroup && !selectedGroup.anchored && <RotateButton label={t("jigsaw.rotate")} disabled={busy} onClick={rotateSelected} />}
       {props.controls}
     </section>
   );

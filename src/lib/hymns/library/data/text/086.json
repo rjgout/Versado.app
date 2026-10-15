@@ -1,0 +1,63 @@
+{
+ "choruses": [],
+ "id": "nld:86",
+ "leadingChorus": null,
+ "musicCredit": "Jean Sibelius (1865–1957). Auteursrecht bewerking 1933: Presbyterian Board of Christian Education; hernieuwd 1961; uit The Hymnal. Gebruikt met toestemming van The Westminster Press, Philadelphia. Het kopiëren van deze lofzang zonder schriftelijke toestemming van de eigenaar van het auteursrecht is verboden.",
+ "notices": [],
+ "number": 86,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": true,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 37:3–9",
+  "Leer en Verbonden 101:14–16, 35–38"
+ ],
+ "source": {
+  "pageSha": "c7e9d155e46dfcae93ee5fdd631f29c6873af92f590fb54d02ef83f5fb09eeb8",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/be-still-my-soul",
+  "pdfSha": null,
+  "pdfUrl": null
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Kalm nu, mijn ziel: de Heer ziet naar u om;",
+    "draag met geduld uw kruis van smart of pijn.",
+    "Laat aan uw God het hoe en het waarom;",
+    "bij elke wending zal Hij met u zijn.",
+    "Kalm nu, mijn ziel: uw Vriend, uw Heiland leidt",
+    "langs ’t doornig pad naar eeuw’ge zaligheid."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Kalm nu, mijn ziel: God stuurt met vaste hand",
+    "uw lot in ’t heden, net als in ’t verleên;",
+    "uw groot vertrouwen houde immer stand,",
+    "eenmaal wordt klaar wat onbegrijp’lijk scheen.",
+    "Kalm nu, mijn ziel: de wind en zee verstaan",
+    "nog steeds de stem die hen eens heeft vermaand."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Kalm nu, mijn ziel: de ure nadert snel",
+    "dat uw omhulsel tot de aarde keert;",
+    "dan zegt gij alle angst en pijn vaarwel",
+    "en vindt de vreugd, zo lang door u begeerd.",
+    "Kalm nu, mijn ziel: uw vrede is dan zacht,",
+    "waar d’eng’lenschaar met blijdschap op u wacht."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Berustend",
+ "textCredit": "naar Katharina von Schlegel (geb. 1697); Jane Borthwick (1813–1897).",
+ "title": "Kalm nu, mijn ziel"
+}

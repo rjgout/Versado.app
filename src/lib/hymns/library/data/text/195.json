@@ -1,0 +1,68 @@
+{
+ "choruses": [
+  [
+   "Leid mij, help mij, blijf dicht bij mij,",
+   "vraag ik hun steeds weer,",
+   "leer mij al wat ik moet doen",
+   "dat ik tot Hem wederkeer."
+  ]
+ ],
+ "id": "nld:195",
+ "leadingChorus": null,
+ "musicCredit": "Mildred T. Pettit (1895–1977). © 1957 IRI",
+ "notices": [],
+ "number": 195,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 82:6",
+  "Mosiah 4:15",
+  "Leer en Verbonden 14:7"
+ ],
+ "source": {
+  "pageSha": "e334f64923469496fe3a2bd7e66d74a119cbd2a0e77218431ef6db0908ddd1fe",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/i-am-a-child-of-god",
+  "pdfSha": "f2756a3d61e0440da7f4d1c3c27c2053bb40f7527cbacad4d9dca27f05bcb6a2",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ac/24/ac247526ac3f11eca5e7eeeeac1e4f87e1b04070/i_am_a_child_of_god_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Ik ben een kind van God,",
+    "door Hem op aard’ gebracht.",
+    "Hij heeft mij met een veilig thuis",
+    "en ouders lief bedacht."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Ik ben een kind van God,",
+    "toch voel ik mij heel klein;",
+    "begrijpen wil ik heel zijn plan,",
+    "een voorbeeld altijd zijn."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Ik ben een kind van God,",
+    "Hij geeft mij toch zoveel,",
+    "als ik maar leer zijn wil te doen,",
+    "wordt zaligheid mijn deel."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Liefelijk",
+ "textCredit": "naar Naomi W. Randall (1908–2001). © 1957 IRI",
+ "title": "Ik ben een kind van God"
+}

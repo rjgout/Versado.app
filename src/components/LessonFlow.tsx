@@ -356,7 +356,7 @@ export function ReaderView({
   const [verseState, setVerseState] = useState(verses);
   const [openNoteFor, setOpenNoteFor] = useState<string | null>(null);
   const { source, currentIndex, isPlaying } = useReadAloudPlayer();
-  const readingVerse = source && source.id === chapterId && isPlaying ? source.verses[currentIndex]?.number ?? null : null;
+  const readingVerse = !preview && source && source.id === chapterId && isPlaying ? source.verses[currentIndex]?.number ?? null : null;
   // Het opgevraagde vers licht even op, zodat je ziet waar je bent beland.
   const [flashVerse, setFlashVerse] = useState<number | null>(focusVerse ?? null);
 

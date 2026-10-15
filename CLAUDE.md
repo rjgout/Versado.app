@@ -169,6 +169,84 @@ niet de standaard. Native permissies worden pas toegevoegd wanneer de feature
 ze daadwerkelijk nodig heeft. De bestaande webpush blijft losstaan van
 toekomstige APNs/FCM-push.
 
+## Lofzangen (technische proef): live meezingen
+
+Beschikbaar op de live omgeving voor uitsluitend beheerders (via de contentkiezer `/content`, sectie
+"Voor beheerders"; gewone gebruikers krijgen 404; optionele noodstop `HYMNS_POC=0`). De muziekherkenning is
+nog in ontwikkeling en niet getest met echte kerkuitvoeringen. De telefoon luistert naar orgel of piano, volgt de
+partituur en toont de juiste tekstregel (`docs/hymns/`, lees `02-ARCHITECTURE.md` vóór je eraan
+werkt). Code: `src/lib/hymns/` (engine en gegevens), `src/components/hymns-poc/`, route
+`/dev/lofzangen` (focus mode via `focusMode.ts`: alleen de terugbalk), zichtbare naam "Lofzangen" (regels in
+`src/lib/hymns/access.ts`). Bewaakt door `npm run test:hymns`. Voorspel, zangbegin, herkennen→volgen in één
+sessie en de meezinginterface: `docs/hymns/07-VOORSPEL-EN-ZANGBEGIN.md`; mobiele indeling en bediening:
+`docs/hymns/08-MOBIELE-UX.md`.
+
+Harde regels:
+- Alle realtime muziekanalyse draait lokaal op het toestel. Geen audio naar de server, naar een
+  database, naar analytics of naar een bestand, en geen fetch/WebSocket/opslag in `src/lib/hymns`
+  of `src/components/hymns-poc` (`tests/hymns-privacy.test.ts` laat dat falen).
+- De microfoon start alleen na een expliciete actie, toont dat hij actief is en stopt bij stoppen,
+  de pagina verlaten en naar de achtergrond gaan (`MicListener`).
+- De positie komt uit de muziek (score following), nooit uit verstreken seconden of vaste
+  tijdstempels. Bij onzekerheid houdt de engine de positie vast en meldt dat; de markering springt
+  niet heen en weer en de herkenning toont nooit een gok als zekerheid.
+- Muzikale positie en couplet zijn twee toestanden (`follow/stanzas.ts`): een handmatige keuze
+  heeft altijd voorrang en herstart de muziekvolging niet.
+- Een voorspel is geen gezongen couplet. De woordmarkering begint pas als `follow/phase.ts` het zangbegin
+  uit structuur (rondegrens, waar de muziek begon, pauze) heeft vastgesteld of de gebruiker "Zang begint" tikt;
+  zonder bewijs wacht de engine en gokt niet. Een ronde telt alleen bij genoeg dekking (geen extra couplet door
+  een tussenspel). Geen eigen rondetelling of zangbegin-aanname in de UI.
+- Herkennen en volgen zijn één luistersessie (`live.ts`, `HymnLiveEngine`): één extractor, één microfoon. Een
+  wissel van lofzang, weergave of tekstgrootte start nooit een nieuwe microfoon- of AudioContext-sessie en reset
+  de positie niet. De UI maakt geen eigen sessie of herkenner aan.
+- De weergave (volledig couplet of karaoke, tekstgrootte, meescrollen, rustige kerkweergave) is alleen
+  presentatie. Het actieve woord krijgt de accentkleur (geen achtergrond, geen verschuivende woorden:
+  `.hymn-word`). Voorkeuren staan uitsluitend in `src/lib/hymnPrefs.ts`; opslag blijft verboden in
+  `src/lib/hymns` en `src/components/hymns-poc`. Geen `scrollIntoView`; eigen scrollen pauzeert het meescrollen.
+- Indeling: één werkruimte (`.hymns-workspace`, hoogte `100dvh - --header-height`, flex-kolom: kop, één
+  scrollende leesruimte, bedieningszone als gewone flex-kind). Nooit `sticky`/`fixed` of extra padding om de
+  bediening over de tekst heen te leggen; instellingen, coupletvolgorde en technische gegevens openen als
+  paneel (`Sheet.tsx`), nooit inline in de tekststroom. Het document scrolt nooit (geen `scrollIntoView` of
+  `window.scrollBy`). Geen lange uitleg of privacyblok boven de tekst; die staat in het instellingenpaneel.
+- Compositie, tekst, zangboekuitgave, lofzangnummer en herkenningsgegevens blijven gescheiden
+  (`types.ts`); het nummer staat nooit in een compositie of tekst. Id's zijn stabiel en
+  taalonafhankelijk (`comp:<officiële slug>`).
+- Raakt nooit XP, reeksen, competitie, authenticatie, de serviceworker of de database; geen
+  imports uit die modules. Een offline bibliotheek gebruikt een eigen IndexedDB-opslag zonder
+  persoonsgegevens (voorstel in `02-ARCHITECTURE.md`).
+- De gegevens komen uit de officiële PDF's en pagina's (`scripts/hymns/import_nld.py`); de
+  bronbestanden staan in `.cache/hymns/` en nooit in git. Hergebruik steunt op de verklaring van de
+  eigenaar; leg een schriftelijke licentie vast vóór productie (`docs/hymns/01-SOURCE-AUDIT.md`).
+- **Bibliotheek (fase 4)**: de volledige huidige Nederlandse bibliotheek (205 lofzangen) staat als afgeleide, in git versioneerde
+  gegevens in `src/lib/hymns/library/data/` (manifest, zoekindex, `text/`, `music/`, `link/`, kalibratie). Die bestanden worden gemaakt door
+  `scripts/hymns/*.py` (zie `docs/hymns/09-NEDERLANDSE-BIBLIOTHEEK.md`): nooit met de hand bewerken, en de bronbestanden (PDF, opnamen)
+  nooit in git. Geladen wordt per lofzang via de admin-only API `/api/hymns/*` (404 voor anderen; `src/lib/hymns/apiAccess.ts`) en
+  `src/lib/hymns/library/server.ts`; de client (`src/lib/hymnLibraryClient.ts`, IndexedDB) staat bewust buiten `src/lib/hymns`.
+  Geen bibliotheekgegevens in de eerste JS-bundel en geen enkele database-migratie.
+- **Alleen gevalideerde muziek wordt gebruikt**: `capabilities` in het manifest bepalen wat een lofzang kan (alleen tekst, regelvolging,
+  woordvolging, herkenning). Een partituur met extractieproblemen, tekstafwijkingen of herhalingstekens wordt niet opgeslagen en nooit
+  voor herkenning of volgen gebruikt; de tekst blijft leesbaar. Een lofzang zonder tekst door een licentie-uitzondering (54, 151) behoudt
+  nummer en titel met een nette melding; er komt geen alternatieve bron. Woordmarkering alleen bij `linking = "word"`, anders de regel.
+- **Herkenning in de hele bibliotheek**: een voorfilter (`recognize/prefilter.ts`) kiest een handvol kandidaten, de score-follower
+  verifieert met z-genormaliseerd bewijs (`calibrate-evidence.ts`). Lofzangen met dezelfde melodie delen één kandidaat: de engine kiest
+  dan de tekst nooit zelf (`sharedWith`). Draai bij elke wijziging van de bibliotheek de kalibratie en de meting opnieuw
+  (`scripts/hymns/eval-library.ts`, `docs/hymns/12-HERKENNING-SCHAALBAAR.md`).
+- **Lezen heeft altijd voorrang** (`docs/hymns/17-LEZEN-EERST.md`): Lofzangen is een digitaal zangboek met optionele synchronisatie. Een zelf gekozen
+  lofzang toont direct de volledige tekst en wacht nooit op herkenning of zangbegin. MusicalPosition (engine) en ReadingPosition (gebruiker,
+  `components/hymns-poc/reading.ts`) zijn gescheiden: een eigen scrollgebaar, aangetikte regel of coupletkeuze tijdens het meeluisteren zet alleen
+  de automatische tekstnavigatie op pauze ("Zelf bladeren"); de microfoon, de engine en de positie lopen door, en de muziek overschrijft de leesplek
+  nooit en scrolt nooit terug. Hervatten alleen via `resumeVerdict`. Beide weergaven zijn altijd scrolbaar en aantikbaar; de leesbediening staat in
+  de bedieningszone, nooit over de tekst. Geen herkenningsdrempels verlagen om sneller te lijken.
+- **Rustig meelezen gaat voor perfecte synchronisatie** (`docs/hymns/20-VLOEIEND-MEELEZEN.md`): bij tijdelijk syncverlies lopen de woorden hooguit `maxCoastSeconds` op het laatst betrouwbare tempo door (`follow/coast.ts`, een rekensom op wat de volger mat, geen nieuwe herkenning); gemeten en geschatte positie zijn te onderscheiden (`DisplayCursor.estimated`, `FollowSnapshot.positionSource`). Nooit voorbij de ronde (geen voorspeld volgend couplet; een couplet wisselt alleen op een door de fase-laag gemeten rondegrens), geen woorden tijdens voorspel, stilte of tussenspel, een fermate houdt vast, en herstel sluit aan zonder sprong terug (`positionSource` "catching-up" tot de weergave op de meting staat; status "Tekst sluit aan"). Het volgende couplet (volgens de gekozen volgorde, `nextStanzaInPlan`) staat klaar in dezelfde leesruimte; een vanzelf doorschakelend couplet zet de leesplek niet terug (`placeEpoch`, `useStanzaAnchor`), de bladmuziek graveert het volgende couplet alvast. Muzikale positie en leespositie blijven gescheiden.
+- **De productieproxy mag de microfoon nooit blokkeren**: `deploy/nginx/nginx.conf` zet `Permissions-Policy: camera=(), microphone=(self), geolocation=()` op elke response. `microphone=()` blokkeert `getUserMedia` voor de hele site (gemeten op 15 oktober 2026). Wijzig die header alleen samen met `tests/proxy-headers.test.ts`; een app-update vernieuwt de proxy-container niet vanzelf.
+- **Live audio mag nooit stilzwijgend vastlopen** (`docs/hymns/19-REGRESSIE-LIVE-AUDIO.md`): een mislukte herkenningsbundel of lofzangverzoek stopt de microfoon niet en wist de engine niet; de fout is zichtbaar met "Opnieuw proberen" en zelf kiezen. Opslag (IndexedDB) en netwerk hebben tijdslimieten. Elke microfoonstop heeft een reden (`MicStopReason`); `stop()` tijdens het aanvragen annuleert de start. Een onbekende melodie laat de microfoon aan. De beheerdersdiagnostiek toont de toestand van de audioketen (zonder audio).
+- **Bladmuziek (derde weergave)** (`docs/hymns/18-BLADMUZIEK.md`): per couplet een dynamisch gegraveerde partituur (OpenSheetMusicDisplay, lazy). De notatielaag
+  (`src/lib/hymns/notation/`, `library/data/notation/`, afgeleid door `scripts/hymns/build_nld_notation.py`) staat los van de analysegegevens en wijzigt die nooit.
+  Tekst staat alleen onder de noten bij een gevalideerde lettergreepkoppeling (`SheetStanzaStatus.status === "ok"`); nooit lettergreepposities verzinnen. Maatmarkering
+  alleen bij een betrouwbare positie, tijdens de zang en een gevalideerd couplet (`markableMeasure`). Verander je de notatie of `musicxml.ts`, verhoog `NOTATION_VERSION`.
+  Er is geen PDF-fallback zolang de rechten niet zijn bevestigd; `/api/hymns/*/sheet` blijft admin-only (404 voor anderen).
+- Nieuwe tekst in de proef gaat bij een echte functie via i18n in alle `uiReady`-talen.
+
 ## Techstack
 
 - Next.js 16 (App Router) + TypeScript (strict) + Tailwind CSS + React 19

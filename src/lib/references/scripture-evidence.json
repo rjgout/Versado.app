@@ -1,0 +1,1784 @@
+{
+  "bofm/1-ne": {
+    "work": "bofm",
+    "editionKey": "bofm",
+    "language": "nl",
+    "alias": "1-nephi",
+    "sourceFile": "bomContent.json",
+    "sourceHash": "72b0bf85b76673f96cf2262f398ee0e4b673a0885d3c2fcb2784089c98532a2f",
+    "chapters": {
+      "1": {
+        "verses": 20,
+        "hash": "bee396805e7fa460af817321247b876e4cfe2c0b843810e6515ec337597e3647"
+      },
+      "2": {
+        "verses": 24,
+        "hash": "9a6a3898c7352d0c6b1e78dbe7a1a1278b6f3400147a30fb20647495d9708454"
+      },
+      "3": {
+        "verses": 31,
+        "hash": "a5a96147187a736bf5ec62206345c0334b34b9e2d37c880c4d9591c7cdcf3626"
+      },
+      "4": {
+        "verses": 38,
+        "hash": "5fccf3b08fd39567d62e1c506616f15f34697055cbe8990728c73d357df7b90c"
+      },
+      "5": {
+        "verses": 22,
+        "hash": "d5919c8670b39fe4732c16cae077a13fcf27bce17cd9def596aec776b06f223a"
+      },
+      "6": {
+        "verses": 6,
+        "hash": "a1e7a00ca90ca591c5701caa975185f10b452261fa1a9fe8058f61b77f8c0553"
+      },
+      "7": {
+        "verses": 22,
+        "hash": "fc27baee824c6647554b18866c8b96eec6f13c8ff8f5b33c6cfad023ead4673d"
+      },
+      "8": {
+        "verses": 38,
+        "hash": "35454f7795f8a273bc41e3b7e3aa337bfd9b0612c00b5aad8033b52943ef56ca"
+      },
+      "9": {
+        "verses": 6,
+        "hash": "c1d7033dff3f908740835bc5b806a2cc7ae9cab7946b4e37b98c777ef19bcbde"
+      },
+      "10": {
+        "verses": 22,
+        "hash": "45cd56bc47fb40a06c84b2bdeec682005e9650e7773e7f68a36ddc3587655287"
+      },
+      "11": {
+        "verses": 36,
+        "hash": "7d3a098798e09b821fa742d63c50871f42e03cde1b3904d97eb7154015448b3c"
+      },
+      "12": {
+        "verses": 23,
+        "hash": "90ad66af1fadf2cc643d965ef02b274a774440e5a40cf2b655d9add3f2222be2"
+      },
+      "13": {
+        "verses": 42,
+        "hash": "192b06afce5b6ca44af505de7c0e8a468dd46c24ceed054f7aaf17c600a31478"
+      },
+      "14": {
+        "verses": 30,
+        "hash": "e93bc21e033729b5932df443acfe0f0068350c054e2d47d1557864369aa2e73d"
+      },
+      "15": {
+        "verses": 36,
+        "hash": "e52f126866f0bdc63c83bb6908730bf50d22986c7f972139c1ddee47a4f8efb0"
+      },
+      "16": {
+        "verses": 39,
+        "hash": "24cdf2032d7c8b28af957eb8afaf916c02a0f83c9c4dbf2787dd8fa1dc8d457c"
+      },
+      "17": {
+        "verses": 55,
+        "hash": "faab49d6c382d46b3bf00db97b328d9df565cbd9fcba3ab5669e5c44ecfac54c"
+      },
+      "18": {
+        "verses": 25,
+        "hash": "4af455f827de9f09faf326fe1ee20d7ae21ffedfa998294d2acaa30cdc3160d0"
+      },
+      "19": {
+        "verses": 24,
+        "hash": "a09debd7c77a625080c6f75e34e78a579d66ced5142308864987f8b7869a7d40"
+      },
+      "20": {
+        "verses": 22,
+        "hash": "9b2ba0c85cdbc826c1eef590784a68ce8b5468fe8a93b19a063f2edb30aa6e97"
+      },
+      "21": {
+        "verses": 26,
+        "hash": "c5ac7868a2f5305797d4e1d05ed24b0ddcb0d797f643108ad54a6da07b3f9412"
+      },
+      "22": {
+        "verses": 31,
+        "hash": "0b66cf48190e54afbe140c0ef3e0940d31b847d02170746f0cfb4c00e158e811"
+      }
+    }
+  },
+  "bofm/2-ne": {
+    "work": "bofm",
+    "editionKey": "bofm",
+    "language": "nl",
+    "alias": "2-nephi",
+    "sourceFile": "bomContent.json",
+    "sourceHash": "72b0bf85b76673f96cf2262f398ee0e4b673a0885d3c2fcb2784089c98532a2f",
+    "chapters": {
+      "1": {
+        "verses": 32,
+        "hash": "449279d6370fc60ed18d9b758fa9fad343de153caa4a70e44c8cc606d71cc538"
+      },
+      "2": {
+        "verses": 30,
+        "hash": "a1a7166c290c3bdd268796baf8bef779f0c594afe7e2a542bc6b7536164d19e2"
+      },
+      "3": {
+        "verses": 25,
+        "hash": "4952e23c304ac1038122a7f4a6fafe8c150c17d6b00a1d6a74e680c18b3c6948"
+      },
+      "4": {
+        "verses": 35,
+        "hash": "3a06bdb31001c9cec5234cdbfdcf37d128eee529733fcbfa271c150fd3c27504"
+      },
+      "5": {
+        "verses": 34,
+        "hash": "94d78fd11484da41c43561db58ccd082c2e89bfb95fdb7501a99c367143c3dcc"
+      },
+      "6": {
+        "verses": 18,
+        "hash": "5ccf639a3e4e00400187377899ebcef1caaf29705c0d656fcfe39a06b12f4631"
+      },
+      "7": {
+        "verses": 11,
+        "hash": "d2b5fc2c6100f1dd98fe24c66da6c5dadd5e21db8cf76b65f784d3f19a9328e0"
+      },
+      "8": {
+        "verses": 25,
+        "hash": "f7f427d8e8bd129f2f94319e1fb18f3d9a12f4a8b606b8e8b7eb9a8fccaa8c5d"
+      },
+      "9": {
+        "verses": 54,
+        "hash": "d041042f3d33c307cc6250943b68c31e213ebc5341f3f9896cc68536c9e20d6e"
+      },
+      "10": {
+        "verses": 25,
+        "hash": "4fe315f29c092cc89e229843c176f304b8e8ec39a3cf54305f79336966acba99"
+      },
+      "11": {
+        "verses": 8,
+        "hash": "d15f3d0e7fe6c142e7694599737805ff34a35839bd642fd346196566cc3fa363"
+      },
+      "12": {
+        "verses": 22,
+        "hash": "3997aeaff5f3592aecbe35ff20c6affe90ee2da484db76c54faf690049d570ae"
+      },
+      "13": {
+        "verses": 26,
+        "hash": "174ec66aec28778a5c45f1318f8a1406d8ae7153853a89b2c3ca001e483cb140"
+      },
+      "14": {
+        "verses": 6,
+        "hash": "fe0577618840c181e85aa79e3cdbc24bda36c888bf3bbfc109fb787889082ec7"
+      },
+      "15": {
+        "verses": 30,
+        "hash": "9ea6283b30ea4f4014b89bda23b5dc1859526694eced0b035e8a53e85978a191"
+      },
+      "16": {
+        "verses": 13,
+        "hash": "375ee0a95b1bc20a2f96941934f4f0b533de268fcd490aed5607f4e16d8c2c6d"
+      },
+      "17": {
+        "verses": 25,
+        "hash": "1f4fb5a52adf1ade78139e3bee53c9e326d38ddc21140a5157d19342c50b0f74"
+      },
+      "18": {
+        "verses": 22,
+        "hash": "51942596697c3081d89334bbb5edb7ee1581eda082005693365ca1e1c18878da"
+      },
+      "19": {
+        "verses": 21,
+        "hash": "9cd0989710e0a0fe3580f049ca0b1e92605e01bbeeedc889683869ae5fdb5871"
+      },
+      "20": {
+        "verses": 34,
+        "hash": "2cc34577e00da43e5aed4576aab3f4504efb8ba3e392348b95c4b3231f40374d"
+      },
+      "21": {
+        "verses": 16,
+        "hash": "215968804157e7746d9d08fa16b6e58c057a1a05ab23f058315dc34052f755cf"
+      },
+      "22": {
+        "verses": 6,
+        "hash": "ca907268c3bace6b12da661455ff4ae34bcfac0274790c5c99c810ed0fa17821"
+      },
+      "23": {
+        "verses": 22,
+        "hash": "7f77b771e8fd703d0419ac6f9698e626322186aebbd4997b10c65ca17cf429c1"
+      },
+      "24": {
+        "verses": 32,
+        "hash": "984ce765f9f12c9f7692027c0cc07d0dd57298d8365ed490809dd2cc7ab5e8d1"
+      },
+      "25": {
+        "verses": 30,
+        "hash": "d5a19cab83ef253ec4d04be51f0808bb4aaa70dd51f1621e35361417a1266810"
+      },
+      "26": {
+        "verses": 33,
+        "hash": "cb50fe3571aa206c0ca40b8d1e0151833aac702b9d3e262af682612f9462100b"
+      },
+      "27": {
+        "verses": 35,
+        "hash": "9fa467169839ae9d84a6ea6f6a95e617bdfb3f2a3aa2c0a7e6b9dee8142c7946"
+      },
+      "28": {
+        "verses": 32,
+        "hash": "d876cd1b0329871799375748dcb047fef47ffed9ea285d81b7c4e8b4e9976070"
+      },
+      "29": {
+        "verses": 14,
+        "hash": "ba6301dd9e34044291dd87ee8569e9a897896a38c1f4692a9a5f5b65845e5913"
+      },
+      "30": {
+        "verses": 18,
+        "hash": "499aa21ec39cfc79a012e249da0b9d5a65d7c84f0eb7de503fadd8f89626074b"
+      },
+      "31": {
+        "verses": 21,
+        "hash": "aa4d47856ebd757b07363760ea253d87c42edcaaeaa9bb2a2955df66070552bc"
+      },
+      "32": {
+        "verses": 9,
+        "hash": "15790bf84832acc8ab0b8f36b2d8f35e2227a3f5f60c00c8926090d9de6be23a"
+      },
+      "33": {
+        "verses": 15,
+        "hash": "ba6242b336a08d50e487b4b2b63c43c4b5553eabefea4d9f5f37f0c6b16039af"
+      }
+    }
+  },
+  "bofm/jacob": {
+    "work": "bofm",
+    "editionKey": "bofm",
+    "language": "nl",
+    "alias": "jakob",
+    "sourceFile": "bomContent.json",
+    "sourceHash": "72b0bf85b76673f96cf2262f398ee0e4b673a0885d3c2fcb2784089c98532a2f",
+    "chapters": {
+      "1": {
+        "verses": 19,
+        "hash": "c705d5a3da70131d466b5788044f7150c9361345f4b6cf9e55908b0b4c215bef"
+      },
+      "2": {
+        "verses": 35,
+        "hash": "5018d9a57dce169b6182878f8fc80bca9578688b5df9c199c83a65958c0d3b80"
+      },
+      "3": {
+        "verses": 14,
+        "hash": "97a427441ce3a3ff3f38d4c34b92a896de23ccbc477a726fe999bf544f7917a9"
+      },
+      "4": {
+        "verses": 18,
+        "hash": "78c31259a4c5a6dbd942cb99730457a47be2401042ee763e8dac2baec7e5e851"
+      },
+      "5": {
+        "verses": 77,
+        "hash": "a9f76980b65de3d8dd70a35323243eb26fedb4c25a89953bcfa42059f2e2ffd7"
+      },
+      "6": {
+        "verses": 13,
+        "hash": "8552a124bc0d26ad2160c0c5e6b8bb6418f303fd339c2f1344027f2fe5da7dfb"
+      },
+      "7": {
+        "verses": 27,
+        "hash": "a9c8b11653750825ca724b0cfc370d93577b6e8d76485f21edd325780bc293d8"
+      }
+    }
+  },
+  "bofm/enos": {
+    "work": "bofm",
+    "editionKey": "bofm",
+    "language": "nl",
+    "alias": "enos",
+    "sourceFile": "bomContent.json",
+    "sourceHash": "72b0bf85b76673f96cf2262f398ee0e4b673a0885d3c2fcb2784089c98532a2f",
+    "chapters": {
+      "1": {
+        "verses": 27,
+        "hash": "62a9e46050b6a8a24bf34bf816c49e1499f9e6aa492f185b225a647cc4f4fa36"
+      }
+    }
+  },
+  "bofm/jarom": {
+    "work": "bofm",
+    "editionKey": "bofm",
+    "language": "nl",
+    "alias": "jarom",
+    "sourceFile": "bomContent.json",
+    "sourceHash": "72b0bf85b76673f96cf2262f398ee0e4b673a0885d3c2fcb2784089c98532a2f",
+    "chapters": {
+      "1": {
+        "verses": 15,
+        "hash": "98288473e9e507daa962c94043b083a150ea66b59f75ec95d5ab10e289f55efa"
+      }
+    }
+  },
+  "bofm/omni": {
+    "work": "bofm",
+    "editionKey": "bofm",
+    "language": "nl",
+    "alias": "omni",
+    "sourceFile": "bomContent.json",
+    "sourceHash": "72b0bf85b76673f96cf2262f398ee0e4b673a0885d3c2fcb2784089c98532a2f",
+    "chapters": {
+      "1": {
+        "verses": 30,
+        "hash": "d54e42776748a433fe807bafd139ef773955c41e8ddb2c2fe3203e22c11fb4b8"
+      }
+    }
+  },
+  "bofm/w-of-m": {
+    "work": "bofm",
+    "editionKey": "bofm",
+    "language": "nl",
+    "alias": "woorden-van-mormon",
+    "sourceFile": "bomContent.json",
+    "sourceHash": "72b0bf85b76673f96cf2262f398ee0e4b673a0885d3c2fcb2784089c98532a2f",
+    "chapters": {
+      "1": {
+        "verses": 18,
+        "hash": "b9f4e70328533473330727b561c0f109a2e761e1354e62aad589873df0b22d29"
+      }
+    }
+  },
+  "bofm/mosiah": {
+    "work": "bofm",
+    "editionKey": "bofm",
+    "language": "nl",
+    "alias": "mosiah",
+    "sourceFile": "bomContent.json",
+    "sourceHash": "72b0bf85b76673f96cf2262f398ee0e4b673a0885d3c2fcb2784089c98532a2f",
+    "chapters": {
+      "1": {
+        "verses": 18,
+        "hash": "37a6ff4744db53ad1d0e4ba220d2290ae32a185f2e44c61982368d3e21f1c2ae"
+      },
+      "2": {
+        "verses": 41,
+        "hash": "d624ac8471a8ce0908b4359f4b400a70bd303ee4d59d140b869a8f8be4c6e669"
+      },
+      "3": {
+        "verses": 27,
+        "hash": "8e1bc1708ec3ef0ad68dafc169d66f3aad3b7b03455d678af9465a494ffd0f38"
+      },
+      "4": {
+        "verses": 30,
+        "hash": "c10247a06792d2502ea75063e44e115d5939ebb2027e7b806b78d0f858467ad1"
+      },
+      "5": {
+        "verses": 15,
+        "hash": "567e0f62d30d81fbfed5ca756f6f8f3f7d5f0bc92684577ec3eac780895a62f7"
+      },
+      "6": {
+        "verses": 7,
+        "hash": "f0298e6ef17217b14f627c0d8336266b00e9493f2bf14d5eb1cdcc1d98665890"
+      },
+      "7": {
+        "verses": 33,
+        "hash": "2ab0fd0d359abe0fff46f344293146199254d8461b15dc34340e368a59419073"
+      },
+      "8": {
+        "verses": 21,
+        "hash": "952b7504e2cfad9463e8f1fd3b1f79e803a0997cf8a08c3a3f71db6a09717c9b"
+      },
+      "9": {
+        "verses": 19,
+        "hash": "183bc847ea17a08b4fa14cc64a55b8dff87a855bb6b9c9cfae3a1b1ade6066bf"
+      },
+      "10": {
+        "verses": 22,
+        "hash": "9478b9b7e6c563ef60c766137cdf0509b114fff8ecdd122072a3b08fa223bcfd"
+      },
+      "11": {
+        "verses": 29,
+        "hash": "5d0e5dbaa93dc97c3521089f71ac275b4125d5089e2fe36ace12636b9946abdd"
+      },
+      "12": {
+        "verses": 37,
+        "hash": "a5873d2c4b87ccf7e007941c1818f9e432e974f8dc5c0d3e5976c39c6f101723"
+      },
+      "13": {
+        "verses": 35,
+        "hash": "2227953ac84e631604fd2550e0a36319193e1df92de9252e9bdc37f0e2784df6"
+      },
+      "14": {
+        "verses": 12,
+        "hash": "b35b3c920aeb601cbe9c58174f10ff8e29f9bd4be17200d64689a11bd8d1a084"
+      },
+      "15": {
+        "verses": 31,
+        "hash": "77df3780a8a076ebd34ba966786a7d50fbe784e175b8c2928b25c55db1f8d007"
+      },
+      "16": {
+        "verses": 15,
+        "hash": "7525fac59a54cf47f392504d98f55bba0e52f595ca02ee58186c8ec086eabee1"
+      },
+      "17": {
+        "verses": 20,
+        "hash": "9c9aaa9c276cead1a450d5d505ab7dc81be46346f6190655774953cce00cbd27"
+      },
+      "18": {
+        "verses": 35,
+        "hash": "f88e05e9ff0ac1b32ee39b788929a94cca940e2c95aec86f73087a52039af6ed"
+      },
+      "19": {
+        "verses": 29,
+        "hash": "e9669209a823e89c6681baa2a87b9ec4172843ae85dc50e4e4bc42c99fa1e5d3"
+      },
+      "20": {
+        "verses": 26,
+        "hash": "5bd1d26f0ab208030250ab115d7fae06ea4f8eddcaff84d1384ca5061e0c242d"
+      },
+      "21": {
+        "verses": 36,
+        "hash": "c1c90f1429fce41cb29ed673d19c90dae99437b744865540bf38386583f56cd4"
+      },
+      "22": {
+        "verses": 16,
+        "hash": "d95d7204b0fce56b0aab09673b20cd1efb19977c4f2eb0f6dff4e1e57cea2875"
+      },
+      "23": {
+        "verses": 39,
+        "hash": "6c2d7fb6851564873ee50e1025cabb3ded55ee556a1784ccbc465ef85afe6ad6"
+      },
+      "24": {
+        "verses": 25,
+        "hash": "89afc6a8b25b4b15ffb25ba6dfe1d49ae4a7dee69f5ccb05e60c59ef5a81acfd"
+      },
+      "25": {
+        "verses": 24,
+        "hash": "3f6d8b2298920bdb4254ef82a7f32e6b17a02b686fe567a32c7c6193cc3695b8"
+      },
+      "26": {
+        "verses": 39,
+        "hash": "a1713fdcafb34a45720fb3c7f29120991ce53d0933513cddc1d619a38c105a32"
+      },
+      "27": {
+        "verses": 37,
+        "hash": "464593a55c6896ef9094d92ca8a99a5460d07af2dca1d46259ba8a6c8d40293b"
+      },
+      "28": {
+        "verses": 20,
+        "hash": "dad8c478beac3a3f2c9162db61fb2f79f8a2b0488f97f5bee4bc4dafa8c88750"
+      },
+      "29": {
+        "verses": 47,
+        "hash": "93e292ce2383435c3faca859798b4eb7401fb8f3afbe52b98421113e0e78591d"
+      }
+    }
+  },
+  "bofm/alma": {
+    "work": "bofm",
+    "editionKey": "bofm",
+    "language": "nl",
+    "alias": "alma",
+    "sourceFile": "bomContent.json",
+    "sourceHash": "72b0bf85b76673f96cf2262f398ee0e4b673a0885d3c2fcb2784089c98532a2f",
+    "chapters": {
+      "1": {
+        "verses": 33,
+        "hash": "dd67f9dd4fe3d818483740cc6ac76d26ab75983871471e490c9604021d824879"
+      },
+      "2": {
+        "verses": 38,
+        "hash": "d693a6cde2210e51fa8c8508f2838055dab8799554e7746cf8af307b71bce577"
+      },
+      "3": {
+        "verses": 27,
+        "hash": "d5093c272072e5fb8017c6e5f9518a8f1a72d8ce33c379bd19ac4cfafd7a77b1"
+      },
+      "4": {
+        "verses": 20,
+        "hash": "7ed3d825a617a2d068403656b3f1d46efd23dc1dffae321485c2c5b969c3e0ca"
+      },
+      "5": {
+        "verses": 62,
+        "hash": "b7334f0723b5fc86159661be4e0382b5ffb8f067a1ddd275b78df038a08363e4"
+      },
+      "6": {
+        "verses": 8,
+        "hash": "37fe58ea99620e62dc2b8613268b62fbf1ec744aa7eaa1b4341e7f01b1218b15"
+      },
+      "7": {
+        "verses": 27,
+        "hash": "51216755e95954e24a5cee6d775b9e7dc4b598591783197a7f9de14fcfdfbcba"
+      },
+      "8": {
+        "verses": 32,
+        "hash": "3ada20e12e68bb3d5db8d4c6257d64289872232de6d9da1d1121ee2f2f8e2a9b"
+      },
+      "9": {
+        "verses": 34,
+        "hash": "1f763aeadd402a3631af6842d99375af159ed6c0ee3e8abafeb2d9d6d76afe01"
+      },
+      "10": {
+        "verses": 32,
+        "hash": "45e46257ebbe494f3aabb33c60826eb317b8473b92d72d4e6b986299faec3b11"
+      },
+      "11": {
+        "verses": 46,
+        "hash": "715528eb0925d70bc1857f53c5c727c11124096474feb3fcadff75c272b248e0"
+      },
+      "12": {
+        "verses": 37,
+        "hash": "ffd7743f95ff49c4b1740ac9562a5a65511b19d36ca0d6802fc2cef319054ef3"
+      },
+      "13": {
+        "verses": 31,
+        "hash": "41c8b9f3100c1e5cbb5afa12c55ffc649b8c7902c2ba8790deecfc983e2ce9b1"
+      },
+      "14": {
+        "verses": 29,
+        "hash": "187f2847dbb209db8e74f8741c8995f93bd7fe549e7fe0f94c7571678ee1e193"
+      },
+      "15": {
+        "verses": 19,
+        "hash": "669055b9ebadf6e51f29f29c5207ecdad5ef0e93273abe30de4ffdf5dae3084d"
+      },
+      "16": {
+        "verses": 21,
+        "hash": "f3ca4ec30be0270e282c02cabf19094db5fcc7fff659c654d6906534ab9c0392"
+      },
+      "17": {
+        "verses": 39,
+        "hash": "2b92326cab18ca2a13c9b505807eaa69ce1772254e479556cd7a884d46f34b71"
+      },
+      "18": {
+        "verses": 43,
+        "hash": "0684acc49439d834f402b56eeffb49282676a0a82432e18c648832a7c297338a"
+      },
+      "19": {
+        "verses": 36,
+        "hash": "abfd2d04b03545167e87c1ffa8eeaee501568424840130c65e5c31f75f22a528"
+      },
+      "20": {
+        "verses": 30,
+        "hash": "830c3a6345754b7a3140a1a769bd4bf024403372a96bd80518c1f723570ae9a8"
+      },
+      "21": {
+        "verses": 23,
+        "hash": "df3090911c8bda6d39af2b0aa9b2c47a9ba30bca070d84b397e528ffe8426a15"
+      },
+      "22": {
+        "verses": 35,
+        "hash": "9aea0b888c45acebddf088b0d993c6b597561c9f1db91e6fadd42a6061a920c2"
+      },
+      "23": {
+        "verses": 18,
+        "hash": "49ba26cd39a76a64c6d255bc47a0ee45827a58dd91cdfe876be8664809536daa"
+      },
+      "24": {
+        "verses": 30,
+        "hash": "fa84b53791849d54cc783ee3e13aafbffd04680d621a54e9a65f1d4447a1d9c9"
+      },
+      "25": {
+        "verses": 17,
+        "hash": "380549f711a0c64ad1dd634ea64251a7f93a1fd06f89a543cb1b87aef9393d00"
+      },
+      "26": {
+        "verses": 37,
+        "hash": "952bd39c128a4b7746ac11499b50500d7a8fd66f231865207be89cc9943cc0af"
+      },
+      "27": {
+        "verses": 30,
+        "hash": "5b1ac753a0a4fa8e32348268530397b3c0c6a1a446881b7f461c83cbaa002567"
+      },
+      "28": {
+        "verses": 14,
+        "hash": "5ea5badb9abce2dccd9fb3e2d54b566a1e9decd8f84d7e7559deeff3702f09db"
+      },
+      "29": {
+        "verses": 17,
+        "hash": "86f1b2d16f83294c6d70476dd61e12f24952bfc12bb05aef82fd9c301abe2c72"
+      },
+      "30": {
+        "verses": 60,
+        "hash": "6c83f629cf3c64a74c5ec4ea99171d114991d60b9b01d6ae4b6b266918d925c8"
+      },
+      "31": {
+        "verses": 38,
+        "hash": "00a816312a8c3bdd3f65a73f1910511d82331134ac24119dfef7ca12c82a3467"
+      },
+      "32": {
+        "verses": 43,
+        "hash": "9d69a9c653358124e6040f246d20b3aa6cfa145930471328119283ba385da830"
+      },
+      "33": {
+        "verses": 23,
+        "hash": "abc73e20a6b8f430f2a71c2c3ba896ec6e3142fd6b638dd1a6ed9b3f321da813"
+      },
+      "34": {
+        "verses": 41,
+        "hash": "fa20ecb1667006a1c9a83b4a5628ebc87ce0c22302ed527ca9b65234a9d6e970"
+      },
+      "35": {
+        "verses": 16,
+        "hash": "5d4d90543e67e9279d345a11b985f6b36e04e024b498471aa7394025847b65ac"
+      },
+      "36": {
+        "verses": 30,
+        "hash": "ba5043b8068720205770c2f41034711cfe12559c0268feb0659815efce1fd560"
+      },
+      "37": {
+        "verses": 47,
+        "hash": "a0dc8b4786acd4a03d5a7be317d2ea306a59d0a0fa929a0572eeb1060b8d86a3"
+      },
+      "38": {
+        "verses": 15,
+        "hash": "2e513b61d2d12330f0035bf9156afb65d34d437edaa48d2dadb209d7fa111e1b"
+      },
+      "39": {
+        "verses": 19,
+        "hash": "bc8879b9d4754b3a4ea3ff6eeba29af121d67de420f97cbe44be42e017f981a4"
+      },
+      "40": {
+        "verses": 26,
+        "hash": "c2b6ecee7d838b069701edc7182f508029a911f383fb609edee0b0a3775602b3"
+      },
+      "41": {
+        "verses": 15,
+        "hash": "6511b23edf85c3e6eeb00882fd4eb8c8e1e7207ac5e2f73c2d10d27fd6d859c3"
+      },
+      "42": {
+        "verses": 31,
+        "hash": "9cf9d5da9ceead75d61eb34e51d213abe3fea41ecf08a3166d3595a02966574b"
+      },
+      "43": {
+        "verses": 54,
+        "hash": "7c8e8b1bf127af11d6fcce0c3b74fc66bab202a66ebcccf69a8b7cbcc1c4da46"
+      },
+      "44": {
+        "verses": 24,
+        "hash": "ef24114f02ebda29e4680687490ae7202e74d5405d67d59f93872b0f9c498122"
+      },
+      "45": {
+        "verses": 24,
+        "hash": "6e1e31ddeeab91dd375b0fdd24e673d957e1095c54ee36c05872dc7c9449e4fb"
+      },
+      "46": {
+        "verses": 41,
+        "hash": "eafef344a0c30587263c6f993b0027fef51c9ab86791921f266c49ad751902ff"
+      },
+      "47": {
+        "verses": 36,
+        "hash": "966aab26973bdd47d4644c6eeb59fba881edb540cf8071fb97f5dd492162b59a"
+      },
+      "48": {
+        "verses": 25,
+        "hash": "cfc2a3278c92f75cd6370ad847763acd7d23ba01e66aa8ddbe27dcfe0c55accc"
+      },
+      "49": {
+        "verses": 30,
+        "hash": "4123c640dc1fa2fe8f18a41ed6802268df035dfbcb099d25991155974b901cff"
+      },
+      "50": {
+        "verses": 40,
+        "hash": "a8e45499151b0ecc1361ea10adeec49acb39fd107bd598c16d7650c3a9b0a2ad"
+      },
+      "51": {
+        "verses": 37,
+        "hash": "42dcdc7a8d0a0e30e34be3501ed3607bc36d3d02b15c57d072174b42ebf03083"
+      },
+      "52": {
+        "verses": 40,
+        "hash": "9fb9f55f2f1a23b9e7f41e1de7f6b7ad6d31f126fb2c0b38c7329e26e0711600"
+      },
+      "53": {
+        "verses": 23,
+        "hash": "df8427c8b245399053c3d759e2cb3e5141a67a3b44c470f3d5c199ce22bae7c6"
+      },
+      "54": {
+        "verses": 24,
+        "hash": "5c999fbafbc91629f97a317387fe3eed8690502ccd2f17f940dc90d362db6c1e"
+      },
+      "55": {
+        "verses": 35,
+        "hash": "e554bf3de47814db36b3c3ff90153cf561a70aa8c83636f6b25d22516b9a8436"
+      },
+      "56": {
+        "verses": 57,
+        "hash": "3a89edfe23aca2514709bd19db85e21aca12bfed5aadaebf10f854cd1aed8e09"
+      },
+      "57": {
+        "verses": 36,
+        "hash": "820ef5084ebffb1886c9cd6fdb63d9fcf1b1d4012126430ab53527696e7a0ca5"
+      },
+      "58": {
+        "verses": 41,
+        "hash": "155b1d8db2b5dd166e1f7d4ac76ef030adf96f17e013075ec789082dbfdbdd0d"
+      },
+      "59": {
+        "verses": 13,
+        "hash": "d6c84890048dbd29a05b1e362818c61f98a70b68b4998065e1985309d2bcb45e"
+      },
+      "60": {
+        "verses": 36,
+        "hash": "4569ddf4303e80e9eb594f89dbd1182e7bd1244370791f12d9f692ab907e3842"
+      },
+      "61": {
+        "verses": 21,
+        "hash": "748c419c32b706e328370ec17cb2b03c9b8f46be14cfa284292a6ac2fd82763a"
+      },
+      "62": {
+        "verses": 52,
+        "hash": "8e181f350094f2e7ca4d9e3ebf0206da003f269b802693b87d137a19838ed0e8"
+      },
+      "63": {
+        "verses": 17,
+        "hash": "ee8d4f2ac7409b39417e39e5403f33b82092f3d76c5a16a08bf16d0f91325e2a"
+      }
+    }
+  },
+  "bofm/hel": {
+    "work": "bofm",
+    "editionKey": "bofm",
+    "language": "nl",
+    "alias": "helaman",
+    "sourceFile": "bomContent.json",
+    "sourceHash": "72b0bf85b76673f96cf2262f398ee0e4b673a0885d3c2fcb2784089c98532a2f",
+    "chapters": {
+      "1": {
+        "verses": 34,
+        "hash": "3dfc71551d33b5af4e74ed78db839ea012115fa91b36c10d6a75d5bbbbe3bb78"
+      },
+      "2": {
+        "verses": 14,
+        "hash": "a284a24988aa8368c67d2cf1111204d472d74f2a0756f8b59f5ff755a95d12d2"
+      },
+      "3": {
+        "verses": 37,
+        "hash": "c226cd80fdb9e00f4119fc8737caab3b35ba15a35cd5229991762917c889c3db"
+      },
+      "4": {
+        "verses": 26,
+        "hash": "573bb540ace34863dfe5e0bc70fcd7c8d8ddd6bf063645a06f008aa44febfbb2"
+      },
+      "5": {
+        "verses": 52,
+        "hash": "db6c5f23e3b09b1ae887003f96039732257600f60f7b761575bb3005dfd48477"
+      },
+      "6": {
+        "verses": 41,
+        "hash": "783e4ad077e13914516bb309fd12f06ae140716cd7028338f313f74d6be50fc2"
+      },
+      "7": {
+        "verses": 29,
+        "hash": "4647d282b429e04a0f43a1955ab6432345b0ad86e42e5cd421393f754b5d3552"
+      },
+      "8": {
+        "verses": 28,
+        "hash": "2f9db134b4aa25773a03c44b5bf013f3afd5917cb375276da1f7be0bd0fbe1c1"
+      },
+      "9": {
+        "verses": 41,
+        "hash": "d7d861c7a07cdb543213167c37464ede65a84e6fa3a532690f72ffc3052b87eb"
+      },
+      "10": {
+        "verses": 19,
+        "hash": "c0da82e81717ddcc09a2fc19e4fe1a59249263264f717e458f7a2e497f1d57ff"
+      },
+      "11": {
+        "verses": 38,
+        "hash": "9e42b7f2e74f5bae9cadbb9595f6a8db268b22f3c66e15f2fc6d75adeb6eb2b0"
+      },
+      "12": {
+        "verses": 26,
+        "hash": "71781701ee9f62b89618a742b8b997f246a4eab66b0336ea78d34c022e792de5"
+      },
+      "13": {
+        "verses": 39,
+        "hash": "cb464b4da264304ae41d4c8a06ad3bfabd5d3237a1cae136048b8463860f994b"
+      },
+      "14": {
+        "verses": 31,
+        "hash": "19561115c275de87798cbf6ee3f0d0add9e84deda530df97eb9171e1bf1a4c9e"
+      },
+      "15": {
+        "verses": 17,
+        "hash": "926da7555aa370883295799e0708ecc418c5eca75343d860a8dda648880befcc"
+      },
+      "16": {
+        "verses": 25,
+        "hash": "511a4ca7361a6adfa6294d5e5be33d5cb28aee75f2a27e9ab9456717fcf0e940"
+      }
+    }
+  },
+  "bofm/3-ne": {
+    "work": "bofm",
+    "editionKey": "bofm",
+    "language": "nl",
+    "alias": "3-nephi",
+    "sourceFile": "bomContent.json",
+    "sourceHash": "72b0bf85b76673f96cf2262f398ee0e4b673a0885d3c2fcb2784089c98532a2f",
+    "chapters": {
+      "1": {
+        "verses": 30,
+        "hash": "041a963df2bc18d4f07f2eaf7274b8027ff5f0fe4ed38d1ca6b612f1b110d28b"
+      },
+      "2": {
+        "verses": 19,
+        "hash": "8a7ead98019458cec9aebb3fa19eb6eae6eb53f0b4781c1ef75e8aabe5b72cfb"
+      },
+      "3": {
+        "verses": 26,
+        "hash": "703d0b05f6a3893d27d9a556a4e35cdef9fbe1185bbe27318db4992a4479f9b1"
+      },
+      "4": {
+        "verses": 33,
+        "hash": "85e54dfb39b0fe5ff168a1e1c3b4324c5a05c1e2b076f2d3255daafafc9efc14"
+      },
+      "5": {
+        "verses": 26,
+        "hash": "22d7e5f3c2b700d8fabe5e516103729183957b88c80b0b794152d0528c7465c3"
+      },
+      "6": {
+        "verses": 30,
+        "hash": "9eb95be0cc0a64a601acfdc97f3b8e6c5829ec1ef21b8e641c99575880122ddf"
+      },
+      "7": {
+        "verses": 26,
+        "hash": "d6308abe615c0b6787df78a40a97b02e622c854d4dc0b84d4e1f95788846c1a6"
+      },
+      "8": {
+        "verses": 25,
+        "hash": "dc4d840581b53c1621c7358e1959d4dc177cd951c3895c22997208f426e44ea0"
+      },
+      "9": {
+        "verses": 22,
+        "hash": "ef3a17cef5fba2db1d95282b07c5f542c8d3177db649e23471e7014c8391d793"
+      },
+      "10": {
+        "verses": 19,
+        "hash": "f7dc76f3abe214813821aad8158d2f8f3533cc0ab410179f87584d3d19b86c6d"
+      },
+      "11": {
+        "verses": 41,
+        "hash": "4f59937d82b24d8c81776608b2238b9f6c3f090f5d8d7e99171ef858ee72fa33"
+      },
+      "12": {
+        "verses": 48,
+        "hash": "0ff1a83f413c52e6a6a3a8e9a36116d28ee871438a97453dac2fa3ad836cf147"
+      },
+      "13": {
+        "verses": 34,
+        "hash": "831a557b816a6b8b1fa8dbb70c1351e34bb0fa3258f10811759e80c8e5f45826"
+      },
+      "14": {
+        "verses": 27,
+        "hash": "99f34ced53c20743346e4da97f0a2d5bbb5ef15d07db1bf0fe536ca4c96182ca"
+      },
+      "15": {
+        "verses": 24,
+        "hash": "d9a94bd40242c4bc14e6c8b4fd98c894a9eedcd525eded1af2232494100677f1"
+      },
+      "16": {
+        "verses": 20,
+        "hash": "8a4a0cff5314e5643673c8c69ca23023ce019687207cd65fbe8f7e7ea9da00c2"
+      },
+      "17": {
+        "verses": 25,
+        "hash": "924bdfcabce6fe9a0af05326c6b99f4571bdd681caa69f50b0e0947f9e56e00a"
+      },
+      "18": {
+        "verses": 39,
+        "hash": "8f7fd673fc03e2567ebb6bc5a9d7c5ccb83820830d98c292016a6b686000d67f"
+      },
+      "19": {
+        "verses": 36,
+        "hash": "9394f906e14aac9503ac45ad993627f6a6c54036ffbc149a3f9c5300b4f28416"
+      },
+      "20": {
+        "verses": 46,
+        "hash": "54d548a9b63d47ea2d369f7e231214d68540f5bd31b8fd4edb19cd60ca26d502"
+      },
+      "21": {
+        "verses": 29,
+        "hash": "a8a7a1a41317a63472a85fb59049b96f7b2f610b00c354b31b26a1964337aa51"
+      },
+      "22": {
+        "verses": 17,
+        "hash": "bb9dadbe4d5af4425237aab51e876c50973bf90e57bf567c393cd61d91b54459"
+      },
+      "23": {
+        "verses": 14,
+        "hash": "5d548e0c41e8099ef7e6a17df8492f4ea8aa411c3f8bcff726b9f30c5df9f3d3"
+      },
+      "24": {
+        "verses": 18,
+        "hash": "d2aa4af898663923c490ed98889fe90004d3f79596d9a9cfc3d7f60c266f9438"
+      },
+      "25": {
+        "verses": 6,
+        "hash": "469c53bda407641448d1522a38613ae5a458d07ecfc3097defd10c748b01a889"
+      },
+      "26": {
+        "verses": 21,
+        "hash": "201ae9eb6b9c4fbaa583ddbbb81f7fe7ea39ecf7c5f76833c0aa4b073d71b72a"
+      },
+      "27": {
+        "verses": 33,
+        "hash": "ca72dd92993fe101b6b7f386142e01610ba7b9b12cbf36298506a025c75239fc"
+      },
+      "28": {
+        "verses": 40,
+        "hash": "6b5fc29d3d7b6c28b759c2856b3a157d783b573af605e4fc3663452be64b1cbe"
+      },
+      "29": {
+        "verses": 9,
+        "hash": "ff9c7dc74d2a8ea13bc0969bd532d49e81ae1cc0ed80ffdc2b352b409944c82b"
+      },
+      "30": {
+        "verses": 2,
+        "hash": "0820853ec1395ab760f0a330f8ef28c8652b60b32ee0e6be3b81bd22870b7c7c"
+      }
+    }
+  },
+  "bofm/4-ne": {
+    "work": "bofm",
+    "editionKey": "bofm",
+    "language": "nl",
+    "alias": "4-nephi",
+    "sourceFile": "bomContent.json",
+    "sourceHash": "72b0bf85b76673f96cf2262f398ee0e4b673a0885d3c2fcb2784089c98532a2f",
+    "chapters": {
+      "1": {
+        "verses": 49,
+        "hash": "854814ca28f911c2ecfa3023427e8c562db66d8594397a8d83bb237b1a09a8a8"
+      }
+    }
+  },
+  "bofm/morm": {
+    "work": "bofm",
+    "editionKey": "bofm",
+    "language": "nl",
+    "alias": "mormon",
+    "sourceFile": "bomContent.json",
+    "sourceHash": "72b0bf85b76673f96cf2262f398ee0e4b673a0885d3c2fcb2784089c98532a2f",
+    "chapters": {
+      "1": {
+        "verses": 19,
+        "hash": "7368cf57423fb00947dcf20e9004458c8041bba080fcf68a4b58d2594dc76de8"
+      },
+      "2": {
+        "verses": 29,
+        "hash": "b42b182f67cfcaa7b77dd67a0e269d3fd30abad5a795b00e7de5731348d8df1e"
+      },
+      "3": {
+        "verses": 22,
+        "hash": "da5c7997054518d3fe669dd1eb04578e109589b7a5665218067311ed7ea3ecfc"
+      },
+      "4": {
+        "verses": 23,
+        "hash": "14ad1248e607be7f3b4d8cfa40c9145e036e7409a1b67b65a59bd5403e0c15fd"
+      },
+      "5": {
+        "verses": 24,
+        "hash": "a2f05cf7d6dc6d6c392b6c94b327ce01e76db519c8519ad2070b7a474fa47855"
+      },
+      "6": {
+        "verses": 22,
+        "hash": "6a1ac7c21dabd902e22583e861de542b390dca20596fc60b4814fe882839d0ac"
+      },
+      "7": {
+        "verses": 10,
+        "hash": "c1d2602b8a415383798f29a15eb61815217f8b470dd4aec0eb96def21869eb02"
+      },
+      "8": {
+        "verses": 41,
+        "hash": "5e4b173d822d0acd9a24d88b24985d0a7c450fcc99a9e79a7f977f4e1dcc27dd"
+      },
+      "9": {
+        "verses": 37,
+        "hash": "226b3e5ca3fc2314ca0b0cc2bcae967db43ebb4a4d52cdf00a8601f8b6e9f883"
+      }
+    }
+  },
+  "bofm/ether": {
+    "work": "bofm",
+    "editionKey": "bofm",
+    "language": "nl",
+    "alias": "ether",
+    "sourceFile": "bomContent.json",
+    "sourceHash": "72b0bf85b76673f96cf2262f398ee0e4b673a0885d3c2fcb2784089c98532a2f",
+    "chapters": {
+      "1": {
+        "verses": 43,
+        "hash": "db3431dc4351c9efba9dae72ebbb974c04b7a38afb796cf8bb098bbab4846a63"
+      },
+      "2": {
+        "verses": 25,
+        "hash": "9ff8b075f86e2085b04a83f81d64a91362a9b6d02c0c2ac1208fe8bad9081c38"
+      },
+      "3": {
+        "verses": 28,
+        "hash": "cb3029e081fc7a8e5afbd51fb0bc390d4536d8a041c8f46ae6cda548ab2d270d"
+      },
+      "4": {
+        "verses": 19,
+        "hash": "f8ad4f6837af7386a0b777c7fc74bf48ad8fba4143ba3ea36c2e8d0030b71801"
+      },
+      "5": {
+        "verses": 6,
+        "hash": "9ddfe24307ad55ff50a7ed6a640b2cc8de48b36f760858a0daab2f391841af86"
+      },
+      "6": {
+        "verses": 30,
+        "hash": "79f4f5cbb3dc2c3a21f79d55df04d64a3e095b85215083b0a28b94c812fcf78c"
+      },
+      "7": {
+        "verses": 27,
+        "hash": "220e86e9449287adf0ab69b11f92af6cd18393da6801862f6d8b5bee4d1ddeff"
+      },
+      "8": {
+        "verses": 26,
+        "hash": "2a4b948e2f24055afb95bbc76da4739df772d4f7def46c06b406fc9aaed296cb"
+      },
+      "9": {
+        "verses": 35,
+        "hash": "e12daaa0d57d51e8ee1f88b232fd739d9780597e66d05240f4345b3f036f9cb5"
+      },
+      "10": {
+        "verses": 34,
+        "hash": "ba50caf63fd12cd80343f09046f9ef8b0e6d755c4c8ba6391e29e4dffb585c22"
+      },
+      "11": {
+        "verses": 23,
+        "hash": "fc13741e848d5cc5867ca23f25813a4f9d715026ebc3bfed8f99c9c1c523b37e"
+      },
+      "12": {
+        "verses": 41,
+        "hash": "da4559be5ffb769aceaeca17a65e194b7e48f80443bf9e7dd9a7e0d9598ecac3"
+      },
+      "13": {
+        "verses": 31,
+        "hash": "bd2e9d73ae2243f6c48a85d5cab5db8d352cbdd5f9f6307a6a1e55d2339ccfa1"
+      },
+      "14": {
+        "verses": 31,
+        "hash": "8464ff5a15a70275aa2d7fea892c2886a2acd99c813c008cfe1abc202af66916"
+      },
+      "15": {
+        "verses": 34,
+        "hash": "ca6e8ea07add9ecb0e08c1c86ed5ef081121eadd8b0d71530ef5c790db7d0223"
+      }
+    }
+  },
+  "bofm/moro": {
+    "work": "bofm",
+    "editionKey": "bofm",
+    "language": "nl",
+    "alias": "moroni",
+    "sourceFile": "bomContent.json",
+    "sourceHash": "72b0bf85b76673f96cf2262f398ee0e4b673a0885d3c2fcb2784089c98532a2f",
+    "chapters": {
+      "1": {
+        "verses": 4,
+        "hash": "c5e461644ce4d32520f124d521e85be84608bf86a281a3deca4d63bc30d80676"
+      },
+      "2": {
+        "verses": 3,
+        "hash": "2a972ade42ef527699d8d853b1d9c633fd4eb4d51f29adebc920da664250ec46"
+      },
+      "3": {
+        "verses": 4,
+        "hash": "69ef6a01b7600efc76050f41a00cb892aea7869eb520352050686e738aaa1243"
+      },
+      "4": {
+        "verses": 3,
+        "hash": "dc4b9dde1d81dacedff2eab8bc8ced694ebc8ef543ecfe37171d6c0545b43c67"
+      },
+      "5": {
+        "verses": 2,
+        "hash": "adc5fc0110053937387002499515bd24b44e29d48076a18d479566a0cd12b7a2"
+      },
+      "6": {
+        "verses": 9,
+        "hash": "4179702f04f22ea32f692c6c3a71ed1d6886ced825f99a1a3afb2b6634e22636"
+      },
+      "7": {
+        "verses": 48,
+        "hash": "c4f4f851778008cb3d0be3a83c3d9786dd10ba9631f181a88bb7b06be36930d5"
+      },
+      "8": {
+        "verses": 30,
+        "hash": "ddf3759c8fc147b87918d4463faa5b4531c335cc33d2d5c041117c4b568e4fa7"
+      },
+      "9": {
+        "verses": 26,
+        "hash": "2c87b54a6a13a97f57e3d5bd074adf37852255fb7f9a4f522fd37fa09b932202"
+      },
+      "10": {
+        "verses": 34,
+        "hash": "cd4076453149e20ee39cad980870d987e7c03e8d4d9591c871563e0cc4eada5e"
+      }
+    }
+  },
+  "dc-testament/dc": {
+    "work": "dc-testament",
+    "editionKey": "dc-testament",
+    "language": "nl",
+    "alias": "leer-en-verbonden",
+    "sourceFile": "dcContent.json",
+    "sourceHash": "af404a4b210f17d3d6a602f4a467025a0a0eafa4149a5daf6195b4a63e61e779",
+    "chapters": {
+      "1": {
+        "verses": 39,
+        "hash": "3660d3c2d7394c4e00cb7b9b8e6560c9bf018fc45db8380659a1cb22a7a85a61"
+      },
+      "2": {
+        "verses": 3,
+        "hash": "dd828b150ac930bdbadad8cbadec229042443d7fb21ced35da13f18d15cbe446"
+      },
+      "3": {
+        "verses": 20,
+        "hash": "5c2f009cfa1c212d4e43d35935bfb3dd83c64aa7109bc4ff5628289e76f3814f"
+      },
+      "4": {
+        "verses": 7,
+        "hash": "81e8286e1d794a78ee66399d24d87fadcd92ad469f9c8ca3c8a307b26faed0a1"
+      },
+      "5": {
+        "verses": 35,
+        "hash": "01b22e14bedefab808594f359ef9b5aaa1cfe87601302b2070ae232f50559a63"
+      },
+      "6": {
+        "verses": 37,
+        "hash": "ef73fbcd5eadebef9d5819a10f20790e2bbec3310757d963b8d5edda53d21f69"
+      },
+      "7": {
+        "verses": 8,
+        "hash": "195ccf094c7d79aeba5f0220827c8b939a4c0d672e84663cd0240f3087a3543f"
+      },
+      "8": {
+        "verses": 12,
+        "hash": "e7a4e280f179b1c259fd4020b22c1aceccad1f4d55a7b44a1b59689721c8c427"
+      },
+      "9": {
+        "verses": 14,
+        "hash": "5e2ef68635b775643efc43f483dc2d14880a73db0a1460b465763d375b85a412"
+      },
+      "10": {
+        "verses": 70,
+        "hash": "3e781239cf51d72736539335f240434905fdbb2579d7d45bfafce90aae2c7d21"
+      },
+      "11": {
+        "verses": 30,
+        "hash": "3335a272abcc88de4b44f4a2bbc756c061c187e61bf49f521ab3fb4336ef28ad"
+      },
+      "12": {
+        "verses": 9,
+        "hash": "cb239d5b18fbea53eada741e06ddd8d16ae12c2c1b7576fe273dc9b637f538b9"
+      },
+      "13": {
+        "verses": 1,
+        "hash": "75bb922fdda88fd8301bbf42ef249f8bc981e970e76edbffcbd5c267288091fd"
+      },
+      "14": {
+        "verses": 11,
+        "hash": "cf556d3110f38ce9d837f5c80e217abe424d23c42baee63b967af3612fe88f9e"
+      },
+      "15": {
+        "verses": 6,
+        "hash": "218bcf70b79864f054e7c6892c6617135a7e76227e4cd6916a9687630fe05b84"
+      },
+      "16": {
+        "verses": 6,
+        "hash": "8f1842e9b172d91cb3298742a8c0f7950af70ec4e3517e69dd248ecff5ccbec8"
+      },
+      "17": {
+        "verses": 9,
+        "hash": "f8b310321401d28431f3ae803ad1f68a311c9efc6534fb02f89a3b2da946cc41"
+      },
+      "18": {
+        "verses": 47,
+        "hash": "2887f4380a216bcb3518ef556e6d4c70e879f1c49e292c9bd6d1cb36149d24a6"
+      },
+      "19": {
+        "verses": 41,
+        "hash": "8aa4acacb92a84ffd910bf1b734d2f2bd5875346aae552578ad0a5687d1e2d02"
+      },
+      "20": {
+        "verses": 84,
+        "hash": "f8aa3ad7b691a0aa3d109196a6d01bc7c3f3d01f804e2928dbab39f486542d96"
+      },
+      "21": {
+        "verses": 12,
+        "hash": "def8dd924f154746531a6a60609e49c3309a01d61d25ff552edae681fbdd594b"
+      },
+      "22": {
+        "verses": 4,
+        "hash": "77ad29631be8e449638c7aadef7f92b6cd879e39077827920161c607fb2596ea"
+      },
+      "23": {
+        "verses": 7,
+        "hash": "f801a4461e807cfecb1cfbe6228fa0cdf552eb5ee7cb4df5668dd8e882aa578d"
+      },
+      "24": {
+        "verses": 19,
+        "hash": "f17fe15e6c619cdd9e2d8d5867e4cfcd664a81b2e6da5bbfd6e20f92054056fa"
+      },
+      "25": {
+        "verses": 16,
+        "hash": "aa7a705043f25ff49359734a6fb8938db6fd1de30968d3ad5f9e47a13438342f"
+      },
+      "26": {
+        "verses": 2,
+        "hash": "345083f82ada901e579f0c81b9ee22cafab96f7837bb0472aa0bec9903b81d28"
+      },
+      "27": {
+        "verses": 18,
+        "hash": "e31b158d524371ee790698c481250780c55394dec739fb615a36df54e81f7b15"
+      },
+      "28": {
+        "verses": 16,
+        "hash": "e3998258f7bbe7248ebb18554b0eaa18bc4f89ceb665100377837802e70d999e"
+      },
+      "29": {
+        "verses": 50,
+        "hash": "b592b9ae8d994fee7f2b2bf92eff66ed8e4887ebe59d31d4109f440fe4991363"
+      },
+      "30": {
+        "verses": 11,
+        "hash": "ead5e280a069c399852804522669c0f324055db317a48b7c02d9482fa7c63e81"
+      },
+      "31": {
+        "verses": 13,
+        "hash": "7b6eb8b9074ab40571a051a5af7142dd6bf515b1d8c7fea91bdc97e10da5958a"
+      },
+      "32": {
+        "verses": 5,
+        "hash": "2bde51e3e2c1567d4e4484c1872145451204e0e07e6e3e1b2402047d30c72d11"
+      },
+      "33": {
+        "verses": 18,
+        "hash": "e044c9584fde17674a41c1d261a9b91b6a7c69e9541cdbe9990daeca8132c093"
+      },
+      "34": {
+        "verses": 12,
+        "hash": "45885f981d4769017d749498ed0ce8a9da3bddaac3717b1ac59598f0a2aac29c"
+      },
+      "35": {
+        "verses": 27,
+        "hash": "063398b25e0caedd74800d8bacbb4ead05ecc6022797b7eb133cb23990eae169"
+      },
+      "36": {
+        "verses": 8,
+        "hash": "2ca5ab1ae6b34104060fc264a13209b352bf5fd1e0333346b1028723556c7bde"
+      },
+      "37": {
+        "verses": 4,
+        "hash": "4ca0fc4baea7bbd26c5e8bc8301f2f738ee633e7b54028ff21384ebb34f91f22"
+      },
+      "38": {
+        "verses": 42,
+        "hash": "f0350b9ba511edf2b16c774908a8d965506f8634f9bd44dcdb374fc7a9cda5c6"
+      },
+      "39": {
+        "verses": 24,
+        "hash": "4cd28a8f38d1a6ccef6055aa14073928541845f9b7595787a9f30f25900bff94"
+      },
+      "40": {
+        "verses": 3,
+        "hash": "150554ec5717848d6a6809b7a42df340e4be0bae2498eec99b9c89dfdf0b3853"
+      },
+      "41": {
+        "verses": 12,
+        "hash": "53871e6d8d7a7c20ac427e3421d84dbf8439ee849aedebc9831bcbea99ac728f"
+      },
+      "42": {
+        "verses": 93,
+        "hash": "46ddd4c9b7171ded9a0db3af6844835758ea64503d1ca3017018cd9cdc0b1eba"
+      },
+      "43": {
+        "verses": 35,
+        "hash": "581234c04ceb26bfc80e7b4f0a88ba8c283f4f9a0ce29e993d781d04619b7d05"
+      },
+      "44": {
+        "verses": 6,
+        "hash": "724dfccb37c63a6bd25470d4a2d7517bf7ef1dd3ad4e866b2e2df82884657b13"
+      },
+      "45": {
+        "verses": 75,
+        "hash": "07bdbcd5107cd815de4fb14317fccf8f7ca5b9d9528b08328e15afd99c2b6249"
+      },
+      "46": {
+        "verses": 33,
+        "hash": "9fe58ef87da49e5d9ca50b1b932005f6cfe240d3f456b1cddda6a94fbc723fdc"
+      },
+      "47": {
+        "verses": 4,
+        "hash": "ee46cc0a55eb150fe186aeaa950e4a03827aa34ec1a2e2cf18a2fbdda94927c6"
+      },
+      "48": {
+        "verses": 6,
+        "hash": "1ded737d0406f6e602353fbf9d6636c6916875a9fe69dbcfce4f88d922236482"
+      },
+      "49": {
+        "verses": 28,
+        "hash": "7e00f28705cf8153fb9ce29d6730262be204d08c8d2d6c8641f213a0d29b2cb5"
+      },
+      "50": {
+        "verses": 46,
+        "hash": "d553015ba1120e668d898691e3cc31803f9f68fe4677a067b619bcece3406653"
+      },
+      "51": {
+        "verses": 20,
+        "hash": "4a8e9cb069ca86dfa253e744fc28e9409f0aa8bc784279282c8aaa4b95385d6c"
+      },
+      "52": {
+        "verses": 44,
+        "hash": "32e57bfbf92f724883adddb543e6dd61e643a8080771f207efa7b4cf83dd60ab"
+      },
+      "53": {
+        "verses": 7,
+        "hash": "f543c0b82788078281b17b916eed656400fc57323419e0a218fb46a20a7c00f7"
+      },
+      "54": {
+        "verses": 10,
+        "hash": "3f29d9016613ab881af0b95bbe0756dc4429c13e8db783aae05b5feaa4d00e9e"
+      },
+      "55": {
+        "verses": 6,
+        "hash": "b314d4ef368c31c5e409e626e420b7c6a1fb665da74b1266ce028748c62fc2f7"
+      },
+      "56": {
+        "verses": 20,
+        "hash": "d309b99e1d37d957099903ecbb2ec89449d763f227636fe77361efdd31732b37"
+      },
+      "57": {
+        "verses": 16,
+        "hash": "8ed34b1eca6c2fe48d701bdf3cb8164edf08713ceac213f30bb4383486787706"
+      },
+      "58": {
+        "verses": 65,
+        "hash": "80fed52c5745b00dd53e7e267931dfbdacd947bd2dc6e6c7cb7f81b72730729f"
+      },
+      "59": {
+        "verses": 24,
+        "hash": "f3fe0ae039bef4408cbf548f8a7f5dcee31150167b1de473f28e720ffa0b4864"
+      },
+      "60": {
+        "verses": 17,
+        "hash": "a3f724f933fabbf7db8997a9460018e4135c97e65dc6cb06d4f10bb6d225c837"
+      },
+      "61": {
+        "verses": 39,
+        "hash": "b808ced6e5e5942dba8201461d2bf25b657c0e94c2335a3373485dffab866a20"
+      },
+      "62": {
+        "verses": 9,
+        "hash": "126a7c49648ff855fd63161f9d4b8d6f7adc55b8efec334fc179f91d535e682e"
+      },
+      "63": {
+        "verses": 66,
+        "hash": "c8596e6fd45c12b92c894e5c3a1837f0b2cd0f3f768786fb7b7d5cd2c168c652"
+      },
+      "64": {
+        "verses": 43,
+        "hash": "f194637532c521a1cec571da1624160c4bdbd25091a68cb020cc03ba12db2d5d"
+      },
+      "65": {
+        "verses": 6,
+        "hash": "e68398bb79984b7f1c583dc17d562d8650a71f89352c6f1712a416839ef1c092"
+      },
+      "66": {
+        "verses": 13,
+        "hash": "e607486aa523db8064ac628851c15c17c17f39e8b2b552f8a1cf43f948b27505"
+      },
+      "67": {
+        "verses": 14,
+        "hash": "240ef4aa937dc045c40c6e91b280c6bff15bb24dee55e3108392131224747f69"
+      },
+      "68": {
+        "verses": 35,
+        "hash": "4f3f0175b5af024c69e3d23627373cfcdc0c62d9d94eaabf0551637e8b39a8c2"
+      },
+      "69": {
+        "verses": 8,
+        "hash": "dfed818c5479e645059c19241ec407358893ea080b23e32a092ffd7033f9e4cf"
+      },
+      "70": {
+        "verses": 18,
+        "hash": "ab0cfe87f73fdcd17afbd457269cd19c4c7a94158b19daea7a12b832eb8989bf"
+      },
+      "71": {
+        "verses": 11,
+        "hash": "f3c8b4020a14bea47fd5ac4c04f6f077ba9dfc9788de3914a086e246a01aaa7c"
+      },
+      "72": {
+        "verses": 26,
+        "hash": "58ea986bfe7b2b4891db61bbf7584204fa67fa5011fc275e2fc534dcd272ada7"
+      },
+      "73": {
+        "verses": 6,
+        "hash": "8dd7a3825b84488b951a80a8f6d9d5c016ae21273aa1bfcc273da870dc3083ee"
+      },
+      "74": {
+        "verses": 7,
+        "hash": "41f326fca464d559579774aa5f6e88933f9b23745b8a01d2730414d7f39afdf4"
+      },
+      "75": {
+        "verses": 36,
+        "hash": "b2cef7daa28a6fcd9eac503dd9259601837a6326fcf55bce61adf0aad27c7362"
+      },
+      "76": {
+        "verses": 119,
+        "hash": "8c9352b4ddeec088ea92f2bdfa51c0ffb88a523a4c91e1e33d6ebbeba8ff5c1a"
+      },
+      "77": {
+        "verses": 15,
+        "hash": "ad774cda134b89aba0bc57b6e089241bc04dbf98be2ece6ed4d6bb06d24f7cee"
+      },
+      "78": {
+        "verses": 22,
+        "hash": "e6a8ad1ad1e90f97f8a33306dafda7c540da55ba786a1584ab8916f1fcd57711"
+      },
+      "79": {
+        "verses": 4,
+        "hash": "e54734194cce722dca190369316573c5844d6d3049a8fe5415e5360d894b70af"
+      },
+      "80": {
+        "verses": 5,
+        "hash": "6426659a626e07a1bfc112f74c9a48b42e5595ce658bb0c3e2fea1ca6e3cb488"
+      },
+      "81": {
+        "verses": 7,
+        "hash": "584124fb9ead2fd36387860c9db3860f728359cacc3acf7c8de492d0f10e813e"
+      },
+      "82": {
+        "verses": 24,
+        "hash": "26253aa84885061ac0dac0220f19d0ec2a69da80e2d17be7cb6044952b6c950a"
+      },
+      "83": {
+        "verses": 6,
+        "hash": "1d6938f8f7419ef7293438ae5a45203e371546fae4ddb5daa56a96dc40223072"
+      },
+      "84": {
+        "verses": 120,
+        "hash": "1f89f8d85d4bfdc5c37b0b84bae884cc16b3ef4ca4d0bd860d3ff03badbfb4c3"
+      },
+      "85": {
+        "verses": 12,
+        "hash": "9ec2ffc5a212d0a782a1238b304da72924e03791dd5422bda048def0ae509832"
+      },
+      "86": {
+        "verses": 11,
+        "hash": "4733f3d35ac4450e2accb83234014e69268e98219af4cf162354a9d4501115bf"
+      },
+      "87": {
+        "verses": 8,
+        "hash": "7adb14b302aaac8c1c11eaa5804b38fb033e2f0b7a704336c9f60812e236dc9d"
+      },
+      "88": {
+        "verses": 141,
+        "hash": "7d60425640272d44b8b5fdbdfcbf73f6995c8a77db4f037956d218f065879fd5"
+      },
+      "89": {
+        "verses": 21,
+        "hash": "e6dd13b5fa80453e386b084f6ec11e4ccbd1a11c92dc423a6e141ee76bebcba6"
+      },
+      "90": {
+        "verses": 37,
+        "hash": "89b33aa6e8245331be9f921da9d7a0994cc3fe6f647071853c44e43fe405127c"
+      },
+      "91": {
+        "verses": 6,
+        "hash": "007314f7f924be499a50304868e671cee9c4cd36fc9ca2f490e02574299463a1"
+      },
+      "92": {
+        "verses": 2,
+        "hash": "76c0b65e049d00f8e00186c9a2bea536a26a50fd7fda1d6d1e7cc973c242b012"
+      },
+      "93": {
+        "verses": 53,
+        "hash": "9ee76217029297cfc12c1cf79ce9fe697230afe593342ff069255cefaff5499a"
+      },
+      "94": {
+        "verses": 17,
+        "hash": "3b9b482af0505865ccfaaf1d3c9361288bcb70da31c448faf33d8bd15f63225a"
+      },
+      "95": {
+        "verses": 17,
+        "hash": "50fb6aa6c8a48e827be15dc478aef95be46b941431084d23fa8279abeafee682"
+      },
+      "96": {
+        "verses": 9,
+        "hash": "53193eb9122d6db741db7c9058f45d05ac326cdeaa070bae6a782145477eb907"
+      },
+      "97": {
+        "verses": 28,
+        "hash": "f1eb5a34041ac722bc3341c97ace9ace610f15d213ffe6d026d393c579868604"
+      },
+      "98": {
+        "verses": 48,
+        "hash": "54f4e86bf04dcb674f62d100698c1d77225c8f74e8a480a2fc3f84e0d6fafa9e"
+      },
+      "99": {
+        "verses": 8,
+        "hash": "9d4b8f5517278768f7697b7fed31d3e187a2d3ae8bde60aa17b6ad16d98b1ac8"
+      },
+      "100": {
+        "verses": 17,
+        "hash": "587ddb58515b0f3005a5cc663e9258df3d36ef72297ac1c4cc64b3a5b7df8ce0"
+      },
+      "101": {
+        "verses": 101,
+        "hash": "46b2b56b69f8b8ffb9d3830efc7cc5d4cea7939568576e0d4510a75a1d9610a8"
+      },
+      "102": {
+        "verses": 34,
+        "hash": "ed041b79bedd31e0f4aed66b3c2f66487f09ced8f23718e7ddc6bad7b1cea6ef"
+      },
+      "103": {
+        "verses": 40,
+        "hash": "34c09ce322069f28a8010f1a384fe0537626682b620dfbebff3143ac7dc7f95b"
+      },
+      "104": {
+        "verses": 86,
+        "hash": "b13fc85838989f9a284fe037d430a7d390cab95e860725da925ddbd9372bc3c2"
+      },
+      "105": {
+        "verses": 41,
+        "hash": "10e99ade3cd4d431704303a8d9e2da0550cea64886b6a027838bf5b386d7dbb4"
+      },
+      "106": {
+        "verses": 8,
+        "hash": "c47ae293e1b3dee069db38c27574011420c58154abb5a58035b76708c6ba8ea8"
+      },
+      "107": {
+        "verses": 100,
+        "hash": "9ce407b321b7697ec030b945fd4377ee830a4e5020649b9302388c7a02413ee0"
+      },
+      "108": {
+        "verses": 8,
+        "hash": "77eafb08ae7dd340bc7eecb0fc6887f46f31900aa62691a5605ee595e504486b"
+      },
+      "109": {
+        "verses": 80,
+        "hash": "182bc9a50005922ee3175b8ee2c2dfaf9147dd0504a1bec407364e437dfd858e"
+      },
+      "110": {
+        "verses": 16,
+        "hash": "8be24c9a8e4a789d34e12d14ee02e52c4438f67a5f53032b8c94f50ada1992ab"
+      },
+      "111": {
+        "verses": 11,
+        "hash": "854a84f35d32f7bb6e6dbc02fa277f5669ab7ce05c5140d67d76f4799e557f03"
+      },
+      "112": {
+        "verses": 34,
+        "hash": "2adad591edd3f8751f3b1da710ea2598288adfd8856946ed4d0f11183f94fd41"
+      },
+      "113": {
+        "verses": 10,
+        "hash": "5c586040100f833df997437aa856fe51ecfe3de4758e3dff762ddfdcdbf98cac"
+      },
+      "114": {
+        "verses": 2,
+        "hash": "e47b2c3d1513651abb24dffe6bd699ec465d72c49f4aba551e2b23b63be3734a"
+      },
+      "115": {
+        "verses": 19,
+        "hash": "f8ae48aad85ac527071d4003fc17a05fc9ad3bb018320fed8cf77f8b9976900d"
+      },
+      "116": {
+        "verses": 1,
+        "hash": "137bf42a529ce1a21a616135ef8036d2331415f2daebaa35482f02a4a906af74"
+      },
+      "117": {
+        "verses": 16,
+        "hash": "7adcbb34a44263df71b4263ef286afe5bbdf040c3f55e875c9c9bad9d3024380"
+      },
+      "118": {
+        "verses": 6,
+        "hash": "5c709c596a34c2dbd7c8f5bbcfb85fc44353addc3c936ba35fdb8533a8f597eb"
+      },
+      "119": {
+        "verses": 7,
+        "hash": "21ceb2f28361824632e224fb961ba05c49c9a38197197f819f0631cf81115321"
+      },
+      "120": {
+        "verses": 1,
+        "hash": "3651e38c4d66cb579d768aad660cf8c4cf3a1e87ad465ccdf16b8da8d91a936d"
+      },
+      "121": {
+        "verses": 46,
+        "hash": "8fad6a42623c3d901094f61d44e751fd989b7e88296e570547b7c467227a8eb0"
+      },
+      "122": {
+        "verses": 9,
+        "hash": "f99ea614af796ba8f038403bf3cca551a07d0800681ecaa4f14a5503096e997a"
+      },
+      "123": {
+        "verses": 17,
+        "hash": "7046f8887812d96ba35051f9fbc27a670c50f87121876460f059a5683ee91432"
+      },
+      "124": {
+        "verses": 145,
+        "hash": "c85a033fc0c2d4471af029d759809f64f76b5eb18f8fbadea853313337920524"
+      },
+      "125": {
+        "verses": 4,
+        "hash": "7acd13a9dcf4f172f7b61374a46a44b7ebab482205912faf1bd0e36bb87bd702"
+      },
+      "126": {
+        "verses": 3,
+        "hash": "0dc27c95a8c60b54bc1ca9c2046e6d51a52a8680f4d1ebfad8e44a47bd499b30"
+      },
+      "127": {
+        "verses": 12,
+        "hash": "c19fe09978707b4e8c6c312ff3c51b8ec7dfadaa530f39b74b25458194dfec61"
+      },
+      "128": {
+        "verses": 25,
+        "hash": "1eebc89816358540ca67946bfa9d62a135189cb39ef5c451706dca17768cdbb9"
+      },
+      "129": {
+        "verses": 9,
+        "hash": "c4ce7218d4ec5e729b5c7341adbfe51e5753f793de3a60b6f164f66029289f2b"
+      },
+      "130": {
+        "verses": 23,
+        "hash": "41cd3bf59562d1dbe21389ceeac2ede48cc77c2fed17a16209697ed8b80bcbf9"
+      },
+      "131": {
+        "verses": 8,
+        "hash": "71be1677c9c36e781889d2486d7ce51c6e52148a06821d0f991efe46837dacec"
+      },
+      "132": {
+        "verses": 66,
+        "hash": "00e1656babee73b8ecc36073f1b959e8c8e4e62f6aa00c45735da12f68f2cfd9"
+      },
+      "133": {
+        "verses": 74,
+        "hash": "72ec686cda4da05b4c3d8b4cfafaddd324b8be6de6f76df68d48d212a3852cc2"
+      },
+      "134": {
+        "verses": 12,
+        "hash": "ae8c4c3b806ef93459adec279bf7efe815e750da9bd35bae76d39dcbecbd203d"
+      },
+      "135": {
+        "verses": 7,
+        "hash": "fd7ed657ebc25d0b1b7bb671c11029e5828c5c7fca23ef18ee2d7454f52c32ac"
+      },
+      "136": {
+        "verses": 42,
+        "hash": "d129d20a0f8328569056c8f2aa187012e9e461e89c677ccc39fe1a7e5df3474e"
+      },
+      "137": {
+        "verses": 10,
+        "hash": "96c8684c00895102ee7a102d0dc13db8f1281b53de73b7cc71c60fb3f9f65bd4"
+      },
+      "138": {
+        "verses": 60,
+        "hash": "e3dd9b8ba07e13a5fae416a3a0395bdbba1a064b1b1e072d6c7368f0b5a3319e"
+      }
+    }
+  },
+  "pgp/moses": {
+    "work": "pgp",
+    "editionKey": "pgp",
+    "language": "nl",
+    "alias": "mozes",
+    "sourceFile": "pgpContent.json",
+    "sourceHash": "1c697567b54a489c0ce9dbceea48fe5165e1138e400a4a82cb0bbf099ecb9f87",
+    "chapters": {
+      "1": {
+        "verses": 42,
+        "hash": "5326b51271ae7b25f7b683916737e738120a7a8b887a0a004deb752abfd280d0"
+      },
+      "2": {
+        "verses": 31,
+        "hash": "0d9f5019661d482bc64e4c93e5b70d900ca123a5b22aaadc03c7e175bab756f8"
+      },
+      "3": {
+        "verses": 25,
+        "hash": "ef6c45a676fb819395f5aabab185242998e31734b601fe16097218359428d476"
+      },
+      "4": {
+        "verses": 32,
+        "hash": "b623e2ee04de4af6a785761d37a1dfa3f8d408612c97c768beeba4f1260c2a0c"
+      },
+      "5": {
+        "verses": 59,
+        "hash": "4f8959d5b180b95f44eb8f549d4e36f097a58a358667e89c1da7da0bef9ea480"
+      },
+      "6": {
+        "verses": 68,
+        "hash": "daf272aa5ff9413dc23f159eaaf539fc597e62a3433c91adb571cd77c01be7d8"
+      },
+      "7": {
+        "verses": 69,
+        "hash": "0d0b243e071d3a9698439d62ce4d732628eb77046f6a056cf9d95ea384af2d69"
+      },
+      "8": {
+        "verses": 30,
+        "hash": "3a73844db014994255fb7f5f47425559c9070a0783c6ec97e4f51c2838a748be"
+      }
+    }
+  },
+  "pgp/abr": {
+    "work": "pgp",
+    "editionKey": "pgp",
+    "language": "nl",
+    "alias": "abraham",
+    "sourceFile": "pgpContent.json",
+    "sourceHash": "1c697567b54a489c0ce9dbceea48fe5165e1138e400a4a82cb0bbf099ecb9f87",
+    "chapters": {
+      "1": {
+        "verses": 31,
+        "hash": "4061244f0f42b60d132c23ed99e006235f38cee580c92830776730b2fecf4b71"
+      },
+      "2": {
+        "verses": 25,
+        "hash": "0ef6bca6d62c68b6519af175f59a45a0388e88460fc904a3f59791d4332066d9"
+      },
+      "3": {
+        "verses": 28,
+        "hash": "0359482837164d0089fe1036eaa622de76f9dc2bd2463373ed73167c346a4883"
+      },
+      "4": {
+        "verses": 31,
+        "hash": "1448ada1ee449e78859dedb34d16e026c95a5e3dd45489eb698b9eebfe4f53b8"
+      },
+      "5": {
+        "verses": 21,
+        "hash": "7ca6c3a774da9bc393e894300725499ca8875a95ed859c9617d8c77ca97cce57"
+      }
+    }
+  },
+  "pgp/js-m": {
+    "work": "pgp",
+    "editionKey": "pgp",
+    "language": "nl",
+    "alias": "joseph-smith-mattheus",
+    "sourceFile": "pgpContent.json",
+    "sourceHash": "1c697567b54a489c0ce9dbceea48fe5165e1138e400a4a82cb0bbf099ecb9f87",
+    "chapters": {
+      "1": {
+        "verses": 55,
+        "hash": "274204235860a5a15e70269921393da707b19afc99fa63d34357d55f5f61057b"
+      }
+    }
+  },
+  "pgp/js-h": {
+    "work": "pgp",
+    "editionKey": "pgp",
+    "language": "nl",
+    "alias": "joseph-smith-geschiedenis",
+    "sourceFile": "pgpContent.json",
+    "sourceHash": "1c697567b54a489c0ce9dbceea48fe5165e1138e400a4a82cb0bbf099ecb9f87",
+    "chapters": {
+      "1": {
+        "verses": 75,
+        "hash": "69b80761d34b97bc78b6b643c94bce3e181b48bbba676e6a82d01249248770d4"
+      }
+    }
+  },
+  "pgp/a-of-f": {
+    "work": "pgp",
+    "editionKey": "pgp",
+    "language": "nl",
+    "alias": "geloofsartikelen",
+    "sourceFile": "pgpContent.json",
+    "sourceHash": "1c697567b54a489c0ce9dbceea48fe5165e1138e400a4a82cb0bbf099ecb9f87",
+    "chapters": {
+      "1": {
+        "verses": 13,
+        "hash": "7201e798f250e4b34ff9937e0ce42aa1080aaf0be5803a80a2d01656207bd22c"
+      }
+    }
+  }
+}

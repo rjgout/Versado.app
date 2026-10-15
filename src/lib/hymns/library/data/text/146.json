@@ -1,0 +1,68 @@
+{
+ "choruses": [
+  [
+   "Ere zij God, ere zij God, ere zijn God in de hoge;",
+   "vreed’ op aard’ is Godes wens,",
+   "welbehagen in de mens!"
+  ]
+ ],
+ "id": "nld:146",
+ "leadingChorus": null,
+ "musicCredit": "John Menzies Macfarlane (1833–1892)",
+ "notices": [],
+ "number": 146,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 2:8–20",
+  "Leer en Verbonden 45:71"
+ ],
+ "source": {
+  "pageSha": "eff0aa0551c7bde0a0cfa7d81f25ceb058b8760047c1ede0e2339c426400ca4c",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/far-far-away-on-judeas-plains",
+  "pdfSha": "aca7c8bbe298748a2ca8ee85d0a78aba52780aa62767dd1729afbb02cb171fa9",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e0/57/e057097dac3f11eca75deeeeac1e937981901123/far_far_away_on_judeas_plains_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Ver, ver van hier in Judea schoon,",
+    "hoorden de herders de jubeltoon:"
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Zoet spreekt verlossing uit ’t schoon klinkend lied,",
+    "’t woord van genâ dat de hemel biedt:"
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Heer, met uw eng’len ons hart zij verheugd,",
+    "help ons te zingen met innige vreugd:"
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Geef dat van ’t mensdom uit ieder oord,",
+    "dra wordt vernomen dit eng’lenwoord:"
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "naar John Menzies Macfarlane (1833–1892)",
+ "title": "Ver, ver van hier in Judea schoon"
+}

@@ -1,0 +1,59 @@
+{
+ "choruses": [
+  [
+   "Verschijn dan voor Gods aanblik, weerhoud uw hulde niet!",
+   "Geef uiting aan ’t vervulde hart, verhoog Hem met uw lied."
+  ]
+ ],
+ "id": "nld:45",
+ "leadingChorus": null,
+ "musicCredit": "Newel Kay Brown (1932– ). © 1985 IRI",
+ "notices": [],
+ "number": 45,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 30:5",
+  "Leer en Verbonden 25:12"
+ ],
+ "source": {
+  "pageSha": "b0f076f98d90285c671c78a19e4e8e19b6a100085f9e8c9e0a24154427087aae",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/with-songs-of-praise",
+  "pdfSha": "ab72611d921acdf3879a58064e2d23fd814f6c4bb7589453262a14fb2a6cf175",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/1e/35/1e3581f2ac4011eca75deeeeac1e9379f944ec12/with_songs_of_praise_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Met blij gezang aanbidden wij nu onze God en Heer,",
+    "om Hem met woorden en muziek te brengen lof en eer."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Het lied van de rechtvaardigen is Gode een gebed;",
+    "een lofzang schept saamhorigheid, de Geest komt onbelet."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Met psalmen loofde Israël de God van Abraham;",
+    "als Christus komt, zingt heel zijn volk het nieuwe lied van ’t Lam."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "naar Penelope Moody Allen (1939– ). © 1985 IRI",
+ "title": "Met blij gezang"
+}

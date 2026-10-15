@@ -1,0 +1,64 @@
+{
+ "choruses": [],
+ "id": "nld:58",
+ "leadingChorus": null,
+ "musicCredit": "uit Schlesische Volkslieder, Leipzig, 1842, bew. Richard Storrs Willis (1819–1900)",
+ "notices": [],
+ "number": 58,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 88:6–13",
+  "Psalm 8:4–9",
+  "Psalm 9:2–3"
+ ],
+ "source": {
+  "pageSha": "467a8aed218a8bbda56b6344e3477443a1fba1ed62c427f7a062572c1423fbc4",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/beautiful-savior",
+  "pdfSha": "de66f574f7bf4b3ff634268dec4bfde5be9c9f0bea89e71e104cd74b82151b76",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/84/8b/848ba0baac4011eca698eeeeac1eb6af64dcb48c/beautiful_savior_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Mooi zijn de sterren,",
+    "mooier nog het licht der maan",
+    "en de zon aan de hemelboog,",
+    "maar ’t licht van Jezus",
+    "straalt nog veel schoner",
+    "en schenkt ons liefde van omhoog."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Mooi zijn de weiden,",
+    "mooier nog de bossen",
+    "en de lente in bloemenpracht.",
+    "Jezus is mooier,",
+    "Jezus is reiner,",
+    "Hij maakt dat ’t droeve hart weer lacht."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Dierbare Heiland,",
+    "Koning aller volken,",
+    "Heer van ’t al en Godes Zoon,",
+    "ere en glorie,",
+    "lof en aanbidding",
+    "zijn nu en voor altijd uw kroon."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Liefelijk",
+ "textCredit": "naar Münster Gesangbuch, 1677",
+ "title": "Dierbare Heiland"
+}

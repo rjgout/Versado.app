@@ -1,0 +1,65 @@
+{
+ "choruses": [
+  [
+   "O Babylon, o Babylon, van ons wees gegroet,",
+   "nu richt zich naar Efr’ims gebergt’ onze voet."
+  ]
+ ],
+ "id": "nld:201",
+ "leadingChorus": null,
+ "musicCredit": "Thomas H. Bayly (1797–1839), bew.",
+ "notices": [],
+ "number": 201,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 133:7–9, 14",
+  "Leer en Verbonden 75:2–5"
+ ],
+ "source": {
+  "pageSha": "f4b280f8eb6b368925e93a4e7b3e18557eea011814222e4bd451cb65f4d9c1f6",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/ye-elders-of-israel-men",
+  "pdfSha": "8b444697a302b7a2e526e388ae389494349a5b8ef156376574b2b6535dc6dbd3",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/aa/da/aada9011ac3f11ecbc03eeeeac1e8c5ba03268cc/ye_elders_of_israel_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Gij ouderlingen Isr’els, vereent u met mij",
+    "en zoekt ’t volk des Heren, ja, waar dat ook zij –",
+    "op bergen, in dalen, op land of op zee –",
+    "en neemt het uit Babel naar Zion in vreê."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "De oogst is zeer groot en de werkers niet veel,",
+    "maar zijn wij vereend, dan is Gods kracht ons deel.",
+    "Wij zaam’len het graan tussen ’t onkruid vandaan,",
+    "en leiden Gods kind’ren naar veilige paân."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Wij zorgen voor d’ armen, als Jezus eens deed,",
+    "bezoeken die treuren, verlichten hun leed,",
+    "verblijden hun ziel met zijn boodschap en leer,",
+    "en spreken van Zion, het land van de Heer."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": "Mannen",
+ "tempoLabel": "Stoutmoedig",
+ "textCredit": "naar Cyrus H. Wheelock (1813–1894)",
+ "title": "Gij ouderlingen Israëls"
+}

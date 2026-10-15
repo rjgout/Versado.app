@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:187",
+ "leadingChorus": null,
+ "musicCredit": "Alexander Schreiner (1901–1987). © 1948 IRI",
+ "notices": [],
+ "number": 187,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 138:47–48",
+  "Leer en Verbonden 128:22–24"
+ ],
+ "source": {
+  "pageSha": "aed48e66ace3aee630d20b8bd4e0973373ad10b5537d90edbd42102f83e35846",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/holy-temples-on-mount-zion",
+  "pdfSha": "51d5d20e5e2d9634eb341c73180d69e54bcefce40b6a0269e25d5fdf2fbc852c",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ec/16/ec16646bac3f11ecb4a3eeeeac1ea26ca6a00dae/holy_temples_on_mount_zion_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Tempels op de berg des Heren, Zions lichtend aureool;",
+    "voorportalen der verhoging, van Gods liefde schoon symbool.",
+    "En hun lieflijkde gewelven wenken tot sereniteit",
+    "trouwe kind’ren der belofte, aan een heil’ge dienst gewijd."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Eeuwig en genadig Vader, zuiver ons in hart en geest.",
+    "Maak de arbeid in uw tempel tot een blij verlossingsfeest,",
+    "tot wij eenmaal zijn verzegeld aan ons dierbaar voorgeslacht",
+    "en voor eeuwig bij hen wonen in celestiale pracht."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Heft uw stem, o hemelkoren, in gezang van dankb’re lof",
+    "aan de grote Vorst Immanuel, die de doodskracht overtrof!",
+    "Alle bergen, juicht van vreugde! Gij valleien, roept nu luid,",
+    "want eens gaan al de gevang’nen blij hun duist’re kerker uit."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Krachtig",
+ "textCredit": "naar Archibald F. Bennett (1896–1965). © 1948 IRI",
+ "title": "Tempels op de berg des Heren"
+}

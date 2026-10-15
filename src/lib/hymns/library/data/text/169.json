@@ -1,0 +1,82 @@
+{
+ "choruses": [
+  [
+   "Steek uw handen uit de mouw, niet gemard.",
+   "Doe uw plichten met een lied in uw hart.",
+   "Niet één verzaak’",
+   "zijn heil’ge taak;",
+   "steek uw handen uit de mouw."
+  ]
+ ],
+ "id": "nld:169",
+ "leadingChorus": null,
+ "musicCredit": "Will L. Thompson (1847–1909)",
+ "notices": [],
+ "number": 169,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 58:26–28",
+  "Leer en Verbonden 107:99"
+ ],
+ "source": {
+  "pageSha": "1a1155cb9aa53aaf1a53c4b9e5c872d5e2ac7567f75ed777a7f8af70b5ea53a1",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/put-your-shoulder-to-the-wheel",
+  "pdfSha": "4cff60049c4765641bdf0fcaec2f5b54d7b0dd0a45912cc1cd3c67a7b267848e",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b1/ca/b1caae77ac3f11ecbfd6eeeeac1e85cfb1aa55e4/put_your_shoulder_to_the_wheel_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "De wereld vraagt naar willig volk,",
+    "naar werkers, waar en trouw.",
+    "Wees kloek en sterk",
+    "in ’t goede werk;",
+    "steek uw handen uit de mouw."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Naar willig volk vraagt ook de kerk,",
+    "naar zielen, hou en trouw.",
+    "Met al uw macht",
+    "uw taak volbracht;",
+    "steek uw handen uit de mouw."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "De strijd met zond’ en wee is zwaar,",
+    "talm niet! Het luistert nauw.",
+    "Die strijd duurt lang,",
+    "maar wees niet bang;",
+    "steek uw handen uit de mouw."
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Werk dan en waak en strijd en bid,",
+    "o, wees niet langer lauw!",
+    "Steun, kloek en sterk,",
+    "elk waardig werk;",
+    "steek uw handen uit de mouw."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Energiek",
+ "textCredit": "naar Will L. Thompson (1847–1909)",
+ "title": "Steek uw handen uit de mouw"
+}

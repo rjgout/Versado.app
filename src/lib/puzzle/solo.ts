@@ -6,7 +6,9 @@ import { prisma } from "@/lib/db";
 import { jigsawCatalog } from "@/lib/jigsawGame";
 import { jigsawQuestionById, jigsawQuestionLanguage, jigsawQuestionsForStory, JIGSAW_OPTION_COUNT } from "@/lib/jigsawQuestions";
 import { completeJigsaw } from "@/lib/streak";
+import { hintCategoryFor, registerBestRecord, type HintCategory } from "@/lib/puzzle/records";
 import { emitToUser } from "@/lib/realtime";
+import { settleGroups, type Rect } from "@/lib/puzzle/collision";
 import { anchorGroup, connectGroups, isPuzzleComplete, moveGroup, newPuzzleSnapshot, rotateGroup, validPuzzleStructure } from "@/lib/puzzle/engine";
 import { createPuzzleGeometry } from "@/lib/puzzle/geometry";
 import { puzzlePolicy, PUZZLE_HINT_DURATION_MS, PUZZLE_GEOMETRY_VERSION, PUZZLE_RULES_VERSION, SOLO_PIECE_COUNTS, type PuzzleDifficulty, type PuzzleHintType, type PuzzleSnapshot } from "@/lib/puzzle/types";
@@ -29,20 +31,38 @@ export const snapshotSchema = z.object({
   filter: z.enum(["CORNERS", "EDGES", "MIDDLES"]).nullable(), completedAt: z.string().nullable(),
 });
 
-export type SoloAction = { kind: "move"; groupId: string; x: number; y: number } | { kind: "rotate"; groupId: string } | { kind: "connect"; a: number; b: number } | { kind: "anchor"; groupId: string } | { kind: "hint"; hint: PuzzleHintType; confirmPersonal?: boolean; pieceId?: number; filter?: "CORNERS" | "EDGES" | "MIDDLES" | null };
+export type SoloAction = { kind: "move"; groupId: string; x: number; y: number } | { kind: "rotate"; groupId: string } | { kind: "connect"; a: number; b: number } | { kind: "anchor"; groupId: string } | { kind: "settle"; groupId: string; viewport?: Rect } | { kind: "hint"; hint: PuzzleHintType; confirmPersonal?: boolean; pieceId?: number; filter?: "CORNERS" | "EDGES" | "MIDDLES" | null };
 export const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 const seedFor = (contentKey: string) => hash(`puzzle-v${PUZZLE_GEOMETRY_VERSION}:${contentKey}`).slice(0, 32);
 
 export function optionOrder() { const result = [0, 1, 2]; for (let i = result.length - 1; i > 0; i--) { const j = randomInt(i + 1); [result[i], result[j]] = [result[j], result[i]]; } return result; }
-export type SoloAnswer = JigsawAnswerResult | { alreadyAnswered: true };
+/** Uitkomst van de recordregistratie bij een goed beantwoorde Solo-puzzel (alleen informatief voor de resultaatkaart). */
+export interface SoloRecordInfo { variantId: string; result: "CREATED" | "IMPROVED" | "UNCHANGED"; hintCategory: "NO_HINTS" | "WITH_HINTS"; elapsedMs: number; previousElapsedMs: number | null }
+export type SoloAnswer = (JigsawAnswerResult & { record?: SoloRecordInfo }) | { alreadyAnswered: true };
 export const sessionInclude = { variant: { include: { definition: true } } } as const;
 export type Session = Prisma.PuzzleSessionGetPayload<{ include: typeof sessionInclude }>;
+
+/**
+ * Wat de voltooiingskaart mag tonen, uitsluitend uit door de server vastgelegde gegevens (alleen lezen; er wordt niets berekend of opgeslagen):
+ * de officiële puzzeltijd (Solo: completedAt - startedAt, de tijd die ook het record krijgt; Tegen elkaar: de vastgelegde finishtijd van de
+ * deelnemer) en het bestaande persoonlijke record in dezelfde categorie. Records ontstaan bij een geldig antwoord (Solo) of bij de finish
+ * (Tegen elkaar); `thisAttempt` zegt of dit record uit deze poging komt. Samen heeft geen snelheidsrecord en dus geen weergave.
+ */
+export interface PuzzleCompletionView { elapsedMs: number | null; hintCategory: HintCategory; best: { elapsedMs: number; thisAttempt: boolean } | null }
+async function completionView(row: Session, hints: number, tx: Prisma.TransactionClient): Promise<PuzzleCompletionView | undefined> {
+  if (!row.completedAt || (row.mode !== "SOLO" && row.mode !== "MATCH")) return undefined;
+  const category = hintCategoryFor(hints); let elapsedMs: number | null = null;
+  if (row.mode === "SOLO") elapsedMs = Math.max(0, row.completedAt.getTime() - row.startedAt.getTime());
+  else if (row.matchId) { const participant = await tx.puzzleMatchParticipant.findUnique({ where: { matchId_userId: { matchId: row.matchId, userId: row.ownerId } }, select: { status: true, elapsedMs: true } }); elapsedMs = participant?.status === "FINISHED" ? participant.elapsedMs : null; }
+  const best = await tx.puzzleBestRecord.findUnique({ where: { userId_variantId_mode_hintCategory: { userId: row.ownerId, variantId: row.variantId, mode: row.mode, hintCategory: category } }, select: { elapsedMs: true, sessionId: true } });
+  return { elapsedMs, hintCategory: category, best: best ? { elapsedMs: best.elapsedMs, thisAttempt: best.sessionId === row.id } : null };
+}
 
 async function publicState(row: Session, language: string | null | undefined, tx: Prisma.TransactionClient) {
   const { hintBalance } = await tx.user.findUniqueOrThrow({ where: { id: row.ownerId }, select: { hintBalance: true } });
   const snapshot = snapshotSchema.parse(JSON.parse(row.snapshot)) as PuzzleSnapshot; const lang = jigsawQuestionLanguage(language);
   const question = row.questionId && row.optionOrder ? jigsawQuestionById(row.questionId) : undefined; const order = row.optionOrder ? JSON.parse(row.optionOrder) as number[] : [];
-  return { hintBalance, id: row.id, version: row.version, status: row.status, image: row.variant.definition.imageUrl, story: row.variant.definition.storyNumber, seed: row.variant.definition.seed, geometryVersion: row.variant.definition.geometryVersion, pieceCount: row.variant.pieceCount, difficulty: row.variant.difficulty as PuzzleDifficulty, rulesVersion: row.variant.rulesVersion, snapshot, ...(question ? { question: { text: question.text[lang], options: order.map((index) => question.options[lang][index]) } } : {}), ...(row.status === "ANSWERED" ? { answer: row.answerResult ? JSON.parse(row.answerResult) as SoloAnswer : { alreadyAnswered: true } as const } : {}) };
+  return { hintBalance, id: row.id, version: row.version, status: row.status, image: row.variant.definition.imageUrl, story: row.variant.definition.storyNumber, seed: row.variant.definition.seed, geometryVersion: row.variant.definition.geometryVersion, pieceCount: row.variant.pieceCount, difficulty: row.variant.difficulty as PuzzleDifficulty, rulesVersion: row.variant.rulesVersion, snapshot, ...(row.completedAt ? { completion: await completionView(row, snapshot.hints.length, tx) } : {}), ...(question ? { question: { text: question.text[lang], options: order.map((index) => question.options[lang][index]) } } : {}), ...(row.status === "ANSWERED" ? { answer: row.answerResult ? JSON.parse(row.answerResult) as SoloAnswer : { alreadyAnswered: true } as const } : {}) };
 }
 
 export type EngineMode = "SOLO" | "MATCH";
@@ -135,6 +155,9 @@ export async function applySoloAction(userId: string, sessionId: string, expecte
     if (action.kind === "rotate" && difficulty !== "MASTER") return publicState(row, language, tx);
     if (action.kind === "connect") next = connectGroups(snapshot, geometry, difficulty, action.a, action.b, row.variant.rulesVersion);
     if (action.kind === "anchor") next = anchorGroup(snapshot, geometry, difficulty, action.groupId, row.variant.rulesVersion);
+    // Ruimte maken is geen spelhandeling: de server bepaalt de verplaatsingen opnieuw vanuit de actuele stand, raakt verbindingen,
+    // ankers, tijd en voortgang nooit aan en doet niets (geen versie, geen log) als er niets verschuift of een snap nog mogelijk is.
+    if (action.kind === "settle") next = settleGroups(snapshot, geometry, { focusGroupId: action.groupId, difficulty, rulesVersion: row.variant.rulesVersion, viewport: action.viewport });
     if (action.kind === "hint") {
       // Een lopende hint beschermt ook tegen snelle herhaalde klikken met
       // verschillende actionIds. Herladen gebruikt dezelfde absolute eindtijd.
@@ -186,11 +209,22 @@ export async function answerSoloPuzzle(userId: string, sessionId: string, choice
     const geometry = createPuzzleGeometry(row.variant.pieceCount as z.infer<typeof countSchema>, row.variant.definition.seed, row.variant.definition.geometryVersion);
     if (!isPuzzleComplete(snapshot, geometry, row.variant.difficulty as PuzzleDifficulty, row.variant.rulesVersion)) return null;
     const correct = order[choice] === 0; const outcome = await completeJigsaw(userId, `v2:${row.id}`, correct, tx);
+    // Het persoonlijke beste record (fase 4): alleen een geldige prestatie, dus een goed beantwoorde vraag op een
+    // geometrisch voltooide puzzel, en nooit bij een herhaald antwoord. De puzzeltijd is completedAt - startedAt; de
+    // tijd die aan de vraag besteed wordt telt niet mee. Dezelfde transactie als de beloning, zodat een retry niets dubbel doet.
+    let record: SoloRecordInfo | undefined;
+    if (!outcome.alreadyAnswered && correct && row.completedAt) {
+      const hints = snapshotSchema.parse(JSON.parse(row.snapshot)).hints; const elapsedMs = Math.max(0, row.completedAt.getTime() - row.startedAt.getTime());
+      const extraHintsUsed = hints.filter((hint) => hint.extra).length;
+      // Het historische "eerste geldige prestatie"-register blijft ongewijzigd bijgehouden.
+      await tx.puzzlePersonalRecord.upsert({ where: { userId_variantId: { userId, variantId: row.variantId } }, create: { userId, variantId: row.variantId, sessionId: row.id, elapsedMs, hintsUsed: hints.length, extraHintsUsed, completedAt: row.completedAt }, update: {} });
+      const registered = await registerBestRecord(tx, { userId, variantId: row.variantId, mode: "SOLO", elapsedMs, hintsUsed: hints.length, extraHintsUsed, completedAt: row.completedAt, sessionId: row.id });
+      record = { variantId: row.variantId, result: registered.result, hintCategory: registered.hintCategory, elapsedMs: registered.elapsedMs, previousElapsedMs: registered.previousElapsedMs };
+    }
     // Bij een claim uit een oudere, onderbroken afhandeling mag een nieuwe keuze
     // nooit het historische antwoord herschrijven of een nieuwe beloning maken.
-    const answer: SoloAnswer = outcome.alreadyAnswered ? { alreadyAnswered: true } : { correct, correctChoice: order.indexOf(0), counted: outcome.counted, streak: outcome.result ? { currentStreak: outcome.result.currentStreak, dayEarned: outcome.result.dayEarned === true, alreadyStudiedToday: outcome.result.alreadyStudiedToday } : null };
+    const answer: SoloAnswer = outcome.alreadyAnswered ? { alreadyAnswered: true } : { correct, correctChoice: order.indexOf(0), counted: outcome.counted, streak: outcome.result ? { currentStreak: outcome.result.currentStreak, dayEarned: outcome.result.dayEarned === true, alreadyStudiedToday: outcome.result.alreadyStudiedToday } : null, ...(record ? { record } : {}) };
     await tx.puzzleSession.update({ where: { id: row.id }, data: { status: "ANSWERED", answeredAt: new Date(), answerResult: JSON.stringify(answer), version: { increment: 1 }, lastActivityAt: new Date() } });
-    if (!outcome.alreadyAnswered && correct && row.completedAt) { const hints = snapshotSchema.parse(JSON.parse(row.snapshot)).hints; const elapsedMs = Math.max(0, row.completedAt.getTime() - row.startedAt.getTime()); await tx.puzzlePersonalRecord.upsert({ where: { userId_variantId: { userId, variantId: row.variantId } }, create: { userId, variantId: row.variantId, sessionId: row.id, elapsedMs, hintsUsed: hints.length, extraHintsUsed: hints.filter((hint) => hint.extra).length, completedAt: row.completedAt }, update: {} }); }
     changed = !!outcome.result;
     return answer;
   });

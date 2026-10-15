@@ -1,0 +1,82 @@
+{
+ "choruses": [],
+ "id": "nld:31",
+ "leadingChorus": null,
+ "musicCredit": "Nederlandse melodie, ca. 1710",
+ "notices": [],
+ "number": 31,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Mozes 7:13, 16–21, 63–69",
+  "Jesaja 52:8"
+ ],
+ "source": {
+  "pageSha": "3635db1cfe074de58ca0b75ead7c5d713e7226a5aea97ff366c82ed2a554cb1f",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/glorious-things-are-sung-of-zion",
+  "pdfSha": "330a4926b09ee212405aa5658839e23760fd082481e72f42e45640040e19a6d1",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/4b/99/4b998884ac4011eca4f5eeeeac1e6144c28ac0b9/glorious_things_are_sung_of_zion_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Zing van Zions pracht en glorie,",
+    "Henochs stad in vroeger tijd,",
+    "waar de heil’gen met hun Heiland",
+    "leefden in gerechtigheid.",
+    "Liefde, deugd, geloof en wijsheid",
+    "waren hier volmaakt bijeen;",
+    "als zichzelf mind’ elk zijn naaste,",
+    "aller hart en geest was één."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Daar werd Satans macht verdreven,",
+    "’s hemels hoogste wet geëerd;",
+    "Zion rees waar eeuwen eerder",
+    "Eden was gesitueerd.",
+    "’t Kwade kon er niet meer deren,",
+    "rijkdom werd niet nagestreefd,",
+    "en Gods zegenrijke invloed",
+    "werd door jong en oud beleefd."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Toen ging Zions stadsmuur glanzen,",
+    "helder als de middagzon,",
+    "en de goddelozen beefden,",
+    "vrees des Heren heerst’ alom.",
+    "Omdat hun geloof volmaakt was,",
+    "volgden zij hun eeuwig Hoofd,",
+    "en de stad voer op ten hemel,",
+    "en het volk zei: Zion vlood."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Als de Heer met Zion terugkeert",
+    "en de stem der wachters klinkt,",
+    "zullen wij hen daar ontmoeten,",
+    "door geliefden weer omringd.",
+    "Dan verkeren wij met d’eng’len,",
+    "kennen w’als wij zijn gekend;",
+    "dan wordt d’aarde weer als Eden,",
+    "als door God eertijds bestemd."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Majestueus",
+ "textCredit": "naar William W. Phelps (1792–1872)",
+ "title": "Zing van Zions pracht en glorie"
+}

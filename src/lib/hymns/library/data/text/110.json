@@ -1,0 +1,51 @@
+{
+ "choruses": [],
+ "id": "nld:110",
+ "leadingChorus": null,
+ "musicCredit": "Edward P. Kimball (1882–1937)",
+ "notices": [],
+ "number": 110,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "2 Nephi 9:52",
+  "Alma 37:37"
+ ],
+ "source": {
+  "pageSha": "948ca02cda882d127a9db54a01c980b7da898c7a3bfa315bcaee0efa5073102d",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/great-god-to-thee-my-evening-song",
+  "pdfSha": "59aa47612aa4f4e30636e96d277b1ffc626b83ff538e38f36dac1357dca1215c",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e5/52/e55236eaac3f11ecb4a3eeeeac1ea26c0602b568/great_god_to_thee_my_evening_song_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O, grote Heer, met dankbaar hart zing ik tot U dit avondlied.",
+    "Laat uw genade dragen de toon naar uw verheven hemels gebied."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Iedere dag die Gij mij gunt, ja, ieder uur dat ik verblijf,",
+    "tonen uw gunst en eind’loos geduld waarmee G’ uw liefde onderschrijft."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Met hoop in U sluit ik mijn oog; laat mij in uw zorg rusten, Heer.",
+    "Moge mijn slaap verkwikkend zijn tot ik ontwaak met dank, U ter eer."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Als een gebed",
+ "textCredit": "naar Anne Steele (1716–1778)",
+ "title": "Een avondlied"
+}

@@ -135,6 +135,21 @@ onderbalk. Immersive: niets van de shell. Een wijziging aan de shell mag deze
 modi niet veranderen; `tests/focus-mode.test.ts` en `tests/shell-layout.test.ts`
 bewaken dat. Zet nooit eigen `hide`-klassen op shelldelen.
 
+**Immersive per stap binnen een Focus-route.** Een route met meerdere interne stappen
+(Legpuzzel: catalogus, speelbord, resultaat) blijft in `focusMode.ts` een Focus-route.
+Alleen het actieve speelbord vraagt, zolang het gemonteerd is, om Immersive via
+`useImmersiveShell()` (`src/lib/shellModeOverride.ts`, gebruikt door
+`components/puzzle/PuzzleBoardLayout.tsx`). `resolveShellMode()` laat die aanvraag
+uitsluitend een Focus-route naar Immersive verheffen; normale en al-immersive
+routes veranderen nooit. De aanvraag verdwijnt bij unmount, dus een stapwissel,
+navigatie of sluiten zet de shell vanzelf terug. `FocusModeController` zet de modus
+in dezelfde commit op het element (een layout-effect), zodat de werktafel haar
+eerste afmeting en camera op de uiteindelijke layout bepaalt. Het bord is
+`.vs-immersive-layout.puzzle-workspace` (`100dvh` met de veilige randen als
+padding, geen vrijgehouden ruimte voor een terugbalk); terug staat in het
+zwevende bordmenu. Browserterug, Android-systeemterug en iOS-gebaren gebruiken de
+browsergeschiedenis en zijn niet van de terugbalk afhankelijk.
+
 **Toetsenbord.** Zodra je in een tekstveld typt en het zichtbare gebied
 duidelijk kleiner wordt, krijgt `<html>` `data-keyboard` en verdwijnt de
 onderbalk. Plaats geen eigen vaste balk onderaan zonder dat ook te
@@ -148,6 +163,12 @@ focusherstel. De browser-toplaag maakt de achtergrond inert en houdt de
 bevestiging boven de terugbalk, ook binnen stacking contexts. Er is geen eigen
 header, navigatie of shell-offset toegevoegd. De echte browsercontrole staat
 in `tests/word-game-hints.browser.mjs`.
+
+**Werkruimte in focus mode (Lofzangen).** Een activiteit die de tekst centraal zet en een eigen bedieningszone
+heeft gebruikt dezelfde aanpak als het legpuzzelbord: `[data-shell-mode="focus"] main:has(.hymns-workspace)`
+haalt de padding van `<main>` weg en de werkruimte is `calc(100dvh - var(--header-height))` hoog, met de
+safe areas als padding. Binnenin een flex-kolom met één scrollende leesruimte en een bediening als gewone
+flex-kind (geen sticky of fixed). Zie `docs/hymns/08-MOBIELE-UX.md`.
 
 ## Een nieuwe pagina of component bouwen
 

@@ -4,6 +4,7 @@
 // zichtbaarheid, netwerk, app hervat, Socket.io). Alle dynamische data in de
 // app loopt hierdoor; zie docs/DATA-REFRESH.md. Componenten gebruiken de
 // hooks (useLiveQuery, LiveRefresh) en liveMutation, niet dit bestand direct.
+import { notifyDataPause } from "./pause";
 import { getSocket } from "@/lib/socketClient";
 import { LiveDataStore, type LiveEnvironment } from "./store";
 import { DATA_EVENT_SOCKET_NAME, SOCKET_EVENT_TO_DATA_EVENT, dataEventsForSocketEvent, isDataEvent, type DataEvent, type DataScope } from "./scopes";
@@ -59,8 +60,11 @@ export function startLiveDataListeners(): () => void {
       liveData.revalidate();
     } else {
       stopTicker();
+      notifyDataPause();
     }
   });
+  listen(window, "pagehide", notifyDataPause);
+  listen(window, "versado:app-paused", notifyDataPause);
   listen(window, "focus", () => liveData.revalidate());
   // bfcache: de pagina komt terug uit het geheugen zonder iets te laden.
   listen(window, "pageshow", (event) => {

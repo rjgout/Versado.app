@@ -32,7 +32,7 @@ export const PRIMARY_NAV: PrimaryNavItem[] = [
     id: "learn",
     href: "/courses",
     labelKey: "nav.learn",
-    match: ["/courses", "/lesson", "/reading-lesson", "/intro", "/kids", "/fsy", "/podcast", "/bookmarks", "/tools", "/practice"],
+    match: ["/courses", "/lesson", "/reading-lesson", "/study-lesson", "/scripture", "/intro", "/kids", "/fsy", "/podcast", "/bookmarks", "/tools", "/practice"],
   },
   {
     id: "play",

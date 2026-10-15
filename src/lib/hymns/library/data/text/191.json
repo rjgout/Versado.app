@@ -1,0 +1,67 @@
+{
+ "choruses": [],
+ "id": "nld:191",
+ "leadingChorus": null,
+ "musicCredit": "A. Laurence Lyon (1934–2006). © 1985 IRI",
+ "notices": [],
+ "number": 191,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Spreuken 17:17",
+  "Spreuken 4:18",
+  "Leer en Verbonden 42:45–46"
+ ],
+ "source": {
+  "pageSha": "f36c2f38f5e1cb7d8f89747bfe85e2f3c4bfd7a43117946f9ff5d8189d9da3a5",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/each-life-that-touches-ours-for-good",
+  "pdfSha": "eb8109d4fcb5142d2ec1ccadd62b84da669675996acbe35b482bc1fcda754fcc",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b2/66/b2660532ac3f11ecbc03eeeeac1e8c5bc2c8c1cb/each_life_that_touches_ours_for_good_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Elk die ons leven hier verrijkt,",
+    "weerschijnt uw eigen goedheid, Heer;",
+    "door hun oprechte liefdeblijk",
+    "zendt Gij uw zegen op ons neer."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Is er een groter Godsgeschenk,",
+    "of fijn’re invloed hier beneên,",
+    "beter bewijs dat G’ ons gedenkt",
+    "dan goede vrienden om ons heen?"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Als zo een vriend hier niet meer is,",
+    "dan dragen w’ immer met ons mee",
+    "een zoete nagedachtenis",
+    "die ons verheft, vervult met vreê."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Vrienden die door hun levensloop",
+    "onz’ ogen richten op uw eer",
+    "en ons doen delen in hun hoop,",
+    "dank U daarvoor, geliefde Heer."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bedachtzaam",
+ "textCredit": "naar Karen Lynn Davidson (1943–2019). © 1985 IRI",
+ "title": "Elk die ons leven hier verrijkt"
+}

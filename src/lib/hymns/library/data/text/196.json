@@ -1,0 +1,46 @@
+{
+ "choruses": [],
+ "id": "nld:196",
+ "leadingChorus": null,
+ "musicCredit": "Reid N. Nibley (1923– ). © 1969 IRI",
+ "notices": [],
+ "number": 196,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Moroni 10:5",
+  "Abraham 3:22–28"
+ ],
+ "source": {
+  "pageSha": "62ce56996c76fe714d40e4ea918838c01620ffb82138126df06165dac39aef93",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/i-know-my-father-lives",
+  "pdfSha": "ba6945aea7a8611932a3ceff427eb7f4c8289490ff00e06b0c02b37139395f1c",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/be/d2/bed2de4eac3f11ec8f37eeeeac1e071fa02683ba/i_know_my_father_lives_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Ik weet dat Jezus leeft, Hij houdt heel veel van mij;",
+    "de Heil’ge Geest vertelt mij dat en daarom ben ik blij,",
+    "en daarom ben ik blij."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Hij leert mij in geloof te leven naar Gods plan;",
+    "de Heil’ge Geest vertelt mij dat en zegt dat ik het kan,",
+    "en zegt dat ik het kan."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Rustig",
+ "textCredit": "naar Reid N. Nibley (1923– ). © 1969 IRI",
+ "title": "Ik weet dat Jezus leeft"
+}

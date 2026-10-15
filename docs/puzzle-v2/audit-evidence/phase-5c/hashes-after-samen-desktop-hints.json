@@ -1,0 +1,7 @@
+{
+ "samen150-adventurer-phone-complete:fout": "page.waitForSelector: Timeout 20000ms exceeded.",
+ "samen150-adventurer-desktop-hint-location": "49588aee52b6ffb002039cb26a73b782fa439d53b83992293e2d20616af88097",
+ "samen150-adventurer-desktop-hint-connection": "cb55c2460882fac8f031025fbe3e329042d1a5ca7643568f7ffaf4f1598b70c2",
+ "samen150-adventurer-desktop-hint-filter": "b57c1f552f69753c450d3f880be8e82be7e6a0d7f408d3afc00f0f3f33f87c18",
+ "samen150-adventurer-desktop-complete:fout": "page.waitForSelector: Timeout 20000ms exceeded."
+}

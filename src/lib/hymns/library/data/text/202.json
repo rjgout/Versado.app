@@ -1,0 +1,70 @@
+{
+ "choruses": [],
+ "id": "nld:202",
+ "leadingChorus": null,
+ "musicCredit": "Orson Pratt Huish (1851–1932)",
+ "notices": [],
+ "number": 202,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 33:5–11",
+  "Leer en Verbonden 133:7–8, 56"
+ ],
+ "source": {
+  "pageSha": "905a5992a4e88907c45f11ca2246867bc2bb2196fabe00176da4277f09411525",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/come-all-ye-sons-of-god-men",
+  "pdfSha": "33ca9f3f63e27d0c52a7a43435497d6b81673b4c91ef6218f49141ca699a2ad4",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b1/79/b1790c0aac3f11ec884feeeeac1e94efb8e7fe8d/come_all_ye_sons_of_god_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Komt, alle zonen Gods, met ’t priesterschap gezegend,",
+    "verspreidt des Heren woord, uw plicht steeds overwegend.",
+    "Het werk van deze tijd vangt aan,",
+    "dat Isr’el huiswaarts weer zal gaan;",
+    "zij keren weer tot Zion, ter eer van ’t Lam."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Keer weer, verloren schaap, keer weder tot uw Herder,",
+    "dan oogst gij zegen in, o, dwaal dan toch niet verder.",
+    "Profeten zagen ’t reeds voorheen,",
+    "vermeldden ’t luid in hunne reên,",
+    "dat gij zoudt gaan tot Zion, ter eer van ’t Lam."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Bekeert u, wordt gedoopt, dan is uw kwaad vergeven,",
+    "ontvangt de Heil’ge Geest, die leidt u door het leven.",
+    "Werpt al uw zorg op Hem, die let",
+    "op uw ootmoedig, vroom gebed,",
+    "en brengt u heen tot Zion, ter eer zijns naams."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Als alles is doorstaan, geëindigd ’t aardse streven,",
+    "dan gaat uw geest van hier en wacht op ’t eeuwig leven.",
+    "Dan zult gij dra de Koning zien,",
+    "Hij zal u vreugd en vrede biên,",
+    "en duizend jaar in Zion, vereend met Hem."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": "Mannen",
+ "tempoLabel": "Stoutmoedig",
+ "textCredit": "naar Thomas Davenport (1815–1888)",
+ "title": "Komt, alle zonen Gods"
+}

@@ -1,0 +1,79 @@
+{
+ "choruses": [
+  [
+   "Ik ga daar waarheen Gij mij zendt, o Heer,",
+   "over bergen of vlakten of zee;",
+   "ik spreek dan wat Gij mij te spreken geeft;",
+   "wat Gij wilt zal ’k wezen, o Heer."
+  ]
+ ],
+ "id": "nld:179",
+ "leadingChorus": null,
+ "musicCredit": "Carrie E. Rounsefell (1861–1930)",
+ "notices": [],
+ "number": 179,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "1 Nephi 3:7",
+  "Leer en Verbonden 4:2"
+ ],
+ "source": {
+  "pageSha": "01ab88b1ab71d34e1ebbf8ae01047a7450c34856e1fe49f7325b6aefa36d33e0",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/ill-go-where-you-want-me-to-go",
+  "pdfSha": "823d00fa12eccd5621b888009770a7169e704927aaaf8ab6b8b61294b5efda7d",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/1b/d8/1bd8311aac4011ec9da5eeeeac1eb1da2cc54161/ill_go_where_you_want_me_to_go_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Het moog’ niet zijn naar het hooggebergt’",
+    "of over de oceaan,",
+    "het moog’ niet zijn naar het strijdgewoel",
+    "dat Christus mij eens doet gaan.",
+    "Maar roept nu zijn stem, zo zacht en zoet,",
+    "naar paden, mij onbekend,",
+    "dan antwoord ik: Heer, houd mijn hand gevat;",
+    "ik ga daar waarheen Gij mij zendt."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Wellicht wenst Hij slechts een vriend’lijk woord",
+    "dat liefde en troost verspreidt,",
+    "waardoor de zwakke op ’t zondig pad",
+    "van ’t kwade wordt weggeleid.",
+    "Mijn Meester, als Gij mijn gids wilt zijn,",
+    "zij donker mijn pad en steil,",
+    "mijn mond zal dan uiten uw boodschap rein;",
+    "’k zal spreken uw woorden van heil."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Er is toch zeker een kleine plek",
+    "waar ik mij uw dienstknecht weet,",
+    "alwaar ik arbeid in ’t licht des daags",
+    "voor U, Heer, die voor ons leedt.",
+    "’k Vertrouw dan steeds need’rig op uwe zorg,",
+    "daar ’k weet: Gij bemint mij teer.",
+    "Ik volg dan het voorbeeld, door U gesteld;",
+    "wat Gij wilt zal ’k wezen, o Heer."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vastberaden",
+ "textCredit": "naar Mary Brown (1856–1918)",
+ "title": "Ik ga daar waarheen Gij mij zendt"
+}

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Check, ChevronRight, Globe2, LoaderCircle } from "lucide-react";
+import { Check, ChevronRight, Globe2, LoaderCircle, Music2 } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import PageIntro from "@/components/versado/PageIntro";
 import ContentIcon from "@/components/versado/ContentIcon";
@@ -15,7 +15,7 @@ import { fetchJson } from "@/lib/data/fetchJson";
 import { pickerGroup, resolvePickerEdition, type ContentPickerContext, type PickerEdition, type PickerWork } from "@/lib/contentPickerContract";
 import type { SwitchResult } from "@/lib/contentSwitch";
 
-export default function FullscreenContentPicker({ initialData, sessionKey, isAdmin = false }: { initialData: ContentPickerContext; sessionKey: string; isAdmin?: boolean }) {
+export default function FullscreenContentPicker({ initialData, sessionKey, isAdmin = false, showAdminHymns = false }: { initialData: ContentPickerContext; sessionKey: string; isAdmin?: boolean; showAdminHymns?: boolean }) {
   const t = useT();
   const router = useRouter();
   const search = useSearchParams();
@@ -136,6 +136,18 @@ export default function FullscreenContentPicker({ initialData, sessionKey, isAdm
       </div>
       {!works.some(work => pickerGroup(work.kind) === group) && <p className="rounded-2xl border border-dashed border-vs-line p-4 text-sm text-vs-fg-3">{t(group === "studyPrograms" ? "contentSwitcher.picker.emptyPrograms" : "contentSwitcher.picker.empty")}</p>}
     </section>)}
+    {isAdmin && showAdminHymns && <section data-admin-hymns aria-labelledby="admin-hymns-title">
+      <h2 id="admin-hymns-title" className="vs-wrap mb-2.5 text-lg font-extrabold text-vs-fg">Voor beheerders</h2>
+      <Link data-admin-hymns-link href="/dev/lofzangen" prefetch={false}
+        className={`flex min-h-12 w-full items-center gap-3 rounded-2xl border border-vs-line bg-vs-surface p-3.5 text-left shadow-sm transition hover:bg-vs-accent-soft ${focusClass}`}>
+        <Music2 className="h-10 w-10 shrink-0 text-vs-accent" aria-hidden="true" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-base font-extrabold leading-snug text-vs-fg">Lofzangen</span>
+          <span className="mt-1 block text-sm font-semibold text-vs-fg-3">Live meezingen · alleen voor beheerders</span>
+        </span>
+        <ChevronRight className="h-4 w-4 shrink-0 text-vs-fg-3" aria-hidden="true" />
+      </Link>
+    </section>}
     <section data-content-language aria-labelledby="content-language-title" className="rounded-2xl border border-vs-line bg-vs-surface p-2.5 shadow-sm sm:p-3">
       <h2 id="content-language-title" className="flex items-center gap-2 text-sm font-extrabold text-vs-fg"><Globe2 className="h-4 w-4 shrink-0 text-vs-accent" aria-hidden />{t("contentSwitcher.picker.language")}</h2>
       <p className="mt-1 text-xs leading-relaxed text-vs-fg-3">{t("contentSwitcher.picker.languageHelp")}</p>

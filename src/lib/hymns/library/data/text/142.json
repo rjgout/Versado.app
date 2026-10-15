@@ -1,0 +1,62 @@
+{
+ "choruses": [],
+ "id": "nld:142",
+ "leadingChorus": null,
+ "musicCredit": null,
+ "notices": [
+  "Tekst en muziek: Paradijs der Gheestelijcke en Kerkelijcke Lofsangen, ’s–Hertogenbosch, 1627"
+ ],
+ "number": 142,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 2:1–20",
+  "Matteüs 2:1–12"
+ ],
+ "source": {
+  "pageSha": "c74c66b8143706767b6243491794dda7e370a7a9557870215de66d9a33415e2b",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/we-welcome-thee",
+  "pdfSha": "8929b3f897df2493b06cbdcd26d6cf538c98b84cb7e374a858085e1fb2a7f052",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/1f/07/1f0702d6ac4011ecb473eeeeac1effcb9fdd41a4/we_welcome_thee_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Nu zijt wellekome, Jesu, lieve Heer.",
+    "Gij komt van alzo hoge, van alzo veer.",
+    "Nu zijt wellekome van de hoge hemel neer.",
+    "Hier al op dit aardrijk zijt gij gezien nooit meer.¹",
+    "Kyrieleis!²"
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Herders op den velde hoorden een nieuw lied,",
+    "dat Jezus was geboren, zij wisten ’t niet.",
+    "‘Gaat aan gene straten en gij zult Hem vinden klaar.",
+    "Betlem is de stede, daar is ’t geschied voorwaar.’",
+    "Kyrieleis!"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Wijzen uit het Oosten uit zo verre land,",
+    "zij zochten onze Here met offerand.",
+    "Z’ offerden ootmoediglijk mirr’, wierook ende goud,",
+    "t’ ere van dat Kindje, dat alle ding behoudt.",
+    "Kyrieleis!"
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bedachtzaam",
+ "textCredit": null,
+ "title": "Nu zijt wellekome"
+}

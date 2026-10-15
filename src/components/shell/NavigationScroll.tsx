@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { pruneReferenceTrip } from "@/lib/references/returnContext";
 import {
   currentEntryKey,
   noteInAppNavigation,
@@ -15,6 +16,9 @@ import {
 // Hoe lang we na terug/vooruit blijven proberen de oude positie te halen:
 // veel pagina's halen hun inhoud pas na het tonen op, en tot die er staat is
 // de pagina te kort om ver genoeg te kunnen scrollen.
+import { classifyContentRoute } from "@/lib/contentRouting";
+import { beginScrollEntry, registerScrollRestorer, setScrollRestoring, noteScrollInteraction, restoreEntryScroll } from "@/lib/scrollRestore";
+
 const RESTORE_TIMEOUT_MS = 3000;
 const RESTORE_STABLE_MS = 500;
 const USER_INPUT_EVENTS = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
@@ -51,8 +55,9 @@ export default function NavigationScroll() {
   const pendingPop = useRef<{ target: number | null } | null>(null);
   const cancelRestore = useRef<(() => void) | null>(null);
 
-  function restore(target: number) {
+  function restore(target: number | (() => number | null)) {
     cancelRestore.current?.();
+    setScrollRestoring(true);
     const root = document.documentElement;
     const started = performance.now();
     let lastHeight = -1;
@@ -66,6 +71,7 @@ export default function NavigationScroll() {
       root.style.overflowAnchor = "";
       for (const event of USER_INPUT_EVENTS) window.removeEventListener(event, finish);
       cancelRestore.current = null;
+      setScrollRestoring(false);
     };
     // Per frame opnieuw: inhoud die na het tonen nog binnenkomt (boven of
     // onder de doelpositie) mag de pagina niet meer verschuiven. Scroll-
@@ -79,9 +85,11 @@ export default function NavigationScroll() {
         lastHeight = height;
         stableSince = now;
       }
-      const top = Math.min(target, Math.max(0, height - window.innerHeight));
+      const desired = typeof target === "function" ? target() : target;
+      if (desired === null) { finish(); return; }
+      const top = Math.min(desired, Math.max(0, height - window.innerHeight));
       if (Math.abs(window.scrollY - top) > 1) window.scrollTo({ top, behavior: "instant" });
-      const reached = top >= target;
+      const reached = top >= desired;
       if ((reached && now - stableSince > RESTORE_STABLE_MS) || now - started > RESTORE_TIMEOUT_MS) {
         finish();
         return;
@@ -107,6 +115,7 @@ export default function NavigationScroll() {
       saveScrollPosition(currentEntryKey(), window.scrollY);
     };
     const startTraverse = (target: number | null, destination: string) => {
+      beginScrollEntry(currentEntryKey(), true);
       if (destination === lastLocation.current) {
         // Zelfde adres (bv. alleen een #anker): er volgt geen nieuwe pagina.
         if (target !== null) window.setTimeout(() => restore(target), 0);
@@ -132,11 +141,17 @@ export default function NavigationScroll() {
     };
     const onPageHide = () => persistScrollPositions();
 
+    const stopRestorer = registerScrollRestorer(restore);
+    const onInteraction = () => { noteScrollInteraction(); cancelRestore.current?.(); };
+    for (const event of USER_INPUT_EVENTS) window.addEventListener(event, onInteraction, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("popstate", onPopState);
     window.addEventListener("pagehide", onPageHide);
     return () => {
       stopTraverse?.();
+      stopRestorer();
+      cancelRestore.current?.();
+      for (const event of USER_INPUT_EVENTS) window.removeEventListener(event, onInteraction);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("popstate", onPopState);
       window.removeEventListener("pagehide", onPageHide);
@@ -150,19 +165,21 @@ export default function NavigationScroll() {
   useLayoutEffect(() => {
     const previous = lastLocation.current;
     lastLocation.current = location;
+    if (previous !== location) beginScrollEntry(currentEntryKey(), Boolean(pendingPop.current));
 
     if (previous === null) {
       // Eerste keer laden. Bij herladen of terugkomen van een andere site
       // de laatst bekende positie van dit item terugzetten.
       const entry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
-      if (entry && (entry.type === "reload" || entry.type === "back_forward")) {
+      if (entry && restoreEntryScroll(entry.type, classifyContentRoute(pathname).kind === "studyLesson")) {
         const target = savedScrollPosition(currentEntryKey());
-        if (target) restore(target);
+        if (target) { beginScrollEntry(currentEntryKey(), true); restore(target); }
       }
       return;
     }
     if (previous === location) return;
     bindContentDepartureEntry(previous.split("?")[0], pathname);
+    pruneReferenceTrip(pathname);
 
     const pop = pendingPop.current;
     pendingPop.current = null;

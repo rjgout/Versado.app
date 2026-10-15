@@ -1,0 +1,65 @@
+{
+ "choruses": [],
+ "id": "nld:137",
+ "leadingChorus": null,
+ "musicCredit": "De gheestelijcken leeuwercker, Antwerpen, 1645; zetting naar Gerardina Debaene (1927– ).",
+ "notices": [],
+ "number": 137,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 2:7–20"
+ ],
+ "source": {
+  "pageSha": "f9108ca28db881ae7d1d640af016ed10b62b70ddee2f274fcab3df2bd61da38e",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/shepherds-he-is-born",
+  "pdfSha": "86113b55f68a3df12c09d29df851f16ea24ced254c8138a247c33cb4fb2129d0",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b7/ec/b7ecd0a7ac3f11eca5e7eeeeac1e4f87c739b6c5/shepherds_he_has_been_born_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Herders, Hij is geboren in ’t midden van de nacht,",
+    "die zo lang van tevoren de wereld heeft verwacht.",
+    "Vrolijk o herderkens, zongen ons d’ engelkens,",
+    "zongen met blijde stem: Haast u naar Bethlehem!"
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Als wij daar zijn gekomen: ziet, een klein kindeken",
+    "leit op ’t strooi nieuw geboren, zoet als een lammeken.",
+    "D’ oogskens van stonden aan zag men vol tranen staan;",
+    "’t weende uit druk en rouw in deze straffe kou."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Ziet, wij schenken u samen een teer klein lammeken;",
+    "boter, melk en sanne¹ voor uw lief mondeken.",
+    "Na, na, na, kindje teer, sus, sus, en krijt niet meer;",
+    "doet uw klein oogskens toe, zij zijn van ’t krijten moe."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "’t Kindjen begon te slapen, de moeder sprak ons aan:",
+    "Lieve herderkens samen, wilt zoetjes buiten gaan;",
+    "uliê zij peis en vree, dat brengt mijn kind u mee,",
+    "want ’t is uw God en Heer; komt morgen nog eens weer."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "naar Liefde-vier in den Kerstnacht, Leuven, 1669",
+ "title": "Herders, Hij is geboren"
+}

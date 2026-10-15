@@ -1,0 +1,59 @@
+{
+ "choruses": [
+  [
+   "O, voed de ziel, ja, vul het hart en wijd ons vasten, Heer,",
+   "dat aan uw tegenwoordigheid wij ons vergasten weer."
+  ]
+ ],
+ "id": "nld:95",
+ "leadingChorus": null,
+ "musicCredit": "James B. Welch (1950– ). © 1985 IRI",
+ "notices": [],
+ "number": 95,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Jesaja 58:6–11",
+  "Leer en Verbonden 59:12–21"
+ ],
+ "source": {
+  "pageSha": "1b6267977397e9d5e9cc17134c56ddb2ad16ab747a498386811aaf11ae07a28a",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/bless-our-fast-we-pray",
+  "pdfSha": "7abb372bfb983e191c4cf697ab56bc0e822e55774320a166beffd657facd22f4",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/f8/3a/f83a9a50ac3f11eca993eeeeac1e4151373c501d/bless_our_fast_we_pray_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Geknield en met berouwvol hart, Heer, komen wij tot U",
+    "in stil en overluid gebed; o, schenk uw Geest ons nu."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Wij hebben ook ons brood gedeeld, verlicht de zware last,",
+    "de vreemd’ling vond een open deur; ontvang nu ons als gast."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Wij geven ons getuigenis uit blijde dankbaarheid",
+    "voor wonderen en zegening; blijf bij ons t’ allen tijd."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Innig",
+ "textCredit": "naar John Sears Tanner (1950– ). © 1985 IRI",
+ "title": "Wijd ons vasten, Heer"
+}

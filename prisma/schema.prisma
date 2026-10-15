@@ -29,6 +29,8 @@ model User {
   // dit zelf aanzet, mogen geaccepteerde vrienden reeks, XP, divisie en de
   // bewust gekozen uitgelichte prestaties op het vriendenprofiel zien.
   shareAchievements  Boolean   @default(false)
+  // Legpuzzel 2.0 fase 4: puzzelrecords zichtbaar voor geaccepteerde vrienden. Los van shareAchievements en standaard uit.
+  sharePuzzleRecords Boolean   @default(false)
   passwordHash       String
   // Verhoogd bij een wachtwoordreset/-wijziging zodat alle eerder uitgegeven sessietokens direct ongeldig worden.
   sessionVersion     Int       @default(0)
@@ -126,6 +128,7 @@ model User {
 
   // De actieve contentcollectie voor de contentswitcher. Null betekent dat de gebruiker
   // nog geen expliciete keuze heeft gemaakt; de app gebruikt dan de standaardcollectie.
+  contentSelectionVersion   Int @default(0)
   activeContentCollectionId String?
   activeContentCollection   ContentCollection? @relation("ActiveContentCollection", fields: [activeContentCollectionId], references: [id], onDelete: SetNull)
 
@@ -135,6 +138,7 @@ model User {
   // Mormon in het Nederlands lezen. Codes uit src/lib/languages.ts.
   uiLanguage      String @default("nl")
   contentLanguage String @default("nl")
+  readingPositions ReadingPosition[]
   studyContexts UserStudyContext[]
   contentImportRuns ContentImportRun[] @relation("StudyImportActor")
   studyPublications StudyPublicationAction[] @relation("StudyPublicationActor")
@@ -318,6 +322,7 @@ model User {
   wordSearchGames   WordSearchGame[]
   puzzleSessions    PuzzleSession[] @relation("PuzzleSessionOwner")
   puzzleRecords     PuzzlePersonalRecord[]
+  puzzleBestRecords PuzzleBestRecord[]
   puzzleParticipations PuzzleSessionParticipant[]
   puzzleInvitesSent PuzzleInvite[] @relation("PuzzleInviteFrom")
   puzzleInvitesReceived PuzzleInvite[] @relation("PuzzleInviteTo")
@@ -656,6 +661,7 @@ model StudyLessonEdition {
   publishedRevisionId String?
   draftRevisionId String?
   publicationVersion Int @default(0)
+  readingPositions ReadingPosition[] @relation("StudyEditionReadingPositions")
   importItems ContentImportItem[]
   publications StudyPublicationAction[] @relation("StudyEditionPublications")
   lesson StudyLesson @relation(fields: [lessonId, workKey], references: [id, workKey], onDelete: Restrict, onUpdate: Restrict)
@@ -690,6 +696,7 @@ model StudyRevision {
   references ContentReference[]
   publications StudyPublicationAction[] @relation("StudyPublicationRevision")
   replacedBy StudyPublicationAction[] @relation("StudyPublicationPrevious")
+  readingPositions ReadingPosition[] @relation("StudyRevisionReadingPositions")
 
   @@unique([lessonEditionId, revisionNumber])
   @@unique([id, lessonEditionId])
@@ -3539,6 +3546,7 @@ model PuzzleVariant {
   createdAt    DateTime @default(now())
   sessions     PuzzleSession[]
   records      PuzzlePersonalRecord[]
+  bestRecords  PuzzleBestRecord[]
   matches      PuzzleMatch[]
   @@unique([definitionId, pieceCount, difficulty, rulesVersion])
 }
@@ -3718,6 +3726,41 @@ model PuzzlePersonalRecord {
   @@index([variantId, elapsedMs])
 }
 
+// Canonieke persoonlijke beste tijden (fase 4). Eén rij per gebruiker, exacte puzzelvariant, spelmodus en
+// hintcategorie: maximaal vier posities per variant. PuzzlePersonalRecord blijft het historische
+// "eerste geldige prestatie"-register en wordt niet meer als beste tijd gelezen.
+enum PuzzleRecordMode {
+  SOLO
+  MATCH
+}
+
+enum PuzzleHintCategory {
+  NO_HINTS
+  WITH_HINTS
+}
+
+model PuzzleBestRecord {
+  id             String @id @default(cuid())
+  userId         String
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variantId      String
+  variant        PuzzleVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  mode           PuzzleRecordMode
+  hintCategory   PuzzleHintCategory
+  elapsedMs      Float
+  hintsUsed      Int
+  extraHintsUsed Int
+  completedAt    DateTime
+  // Aantoonbare bron: de sessie (en bij een wedstrijd de deelnemer) waaruit dit record komt.
+  sessionId      String
+  matchParticipantId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@unique([userId, variantId, mode, hintCategory])
+  @@index([variantId, mode, hintCategory, elapsedMs])
+  @@index([userId, mode])
+}
+
 model KompasProgress {
   id        String         @id @default(cuid())
   userId    String
@@ -3763,4 +3806,25 @@ model MysteryAttempt {
 enum MysteryAttemptStatus {
   IN_PROGRESS
   COMPLETED
+}
+
+// Persoonlijke positie, strikt los van gelezenstatus en beloningen.
+model ReadingPosition {
+  userId          String
+  lessonEditionId String
+  revisionId      String
+  sectionAnchor   String @db.VarChar(128)
+  blockAnchor     String @db.VarChar(128)
+  sectionFraction Float
+  quoteContext    String? @db.VarChar(240)
+  version         Int @default(1)
+  lastActionId    String @db.Uuid
+  lastActionHash  String @db.Char(64)
+  updatedAt       DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  edition StudyLessonEdition @relation("StudyEditionReadingPositions", fields: [lessonEditionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  revision StudyRevision @relation("StudyRevisionReadingPositions", fields: [revisionId, lessonEditionId], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
+  @@id([userId, lessonEditionId])
+  @@index([lessonEditionId])
+  @@index([revisionId, lessonEditionId])
 }

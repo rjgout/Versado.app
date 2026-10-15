@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:73",
+ "leadingChorus": null,
+ "musicCredit": "Ernst Moritz Arndt (1796–1860)",
+ "notices": [],
+ "number": 73,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 58:27–28",
+  "Alma 27:27, 30"
+ ],
+ "source": {
+  "pageSha": "f033ec4b97632a2b04069c377ecf86d07e23d2b60e185894d5cf26c06c407fd9",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/god-speed-the-right",
+  "pdfSha": "ec4d4cc44e87022df4df8d0577d798ce1e1e2f2f791661da0cd849c45beed640",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/a0/f7/a0f7a135ac4011ec8f37eeeeac1e071f410598ce/god_speed_the_right_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Dat ons bidden opwaarts rijze,",
+    "God sta ons bij,",
+    "opdat Hij ons gunst bewijze,",
+    "God sta ons bij.",
+    "Uit de hemel zij gegeven",
+    "heil op aard’ in edel streven,",
+    "God sta ons bij, God sta ons bij."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Lijkt het kwaad in macht verheven,",
+    "God sta ons bij,",
+    "wanhoop niet, want hoop doet leven,",
+    "God sta ons bij.",
+    "Falen wij, niets doet ons vrezen;",
+    "ons verlies zal eervol wezen.",
+    "God sta on bij, God sta ons bij."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Trouw, geduldig, nooit bezwijkend,",
+    "God sta ons bij,",
+    "noch voor leed of zonde wijkend,",
+    "God sta ons bij;",
+    "boven alles Hem beminnend",
+    "en in ’s hemels tijd verwinnend,",
+    "God sta ons bij, God sta ons bij."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vastberaden",
+ "textCredit": "naar William E. Hickson (1803–1870)",
+ "title": "God sta ons bij"
+}

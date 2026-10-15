@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { weekStartKey } from "@/lib/dates";
+import { sharedRecordsOf } from "@/lib/puzzle/records";
 
 /**
  * Vriendenprofielen zijn nooit een algemene gebruikersdirectory. Dezelfde
@@ -51,7 +52,7 @@ export async function getFriendProfile(viewerId: string, profileUserId: string) 
   });
   if (!target) return null;
 
-  const [score, groups, games] = await Promise.all([
+  const [score, groups, games, puzzleRecords] = await Promise.all([
     target.shareAchievements
       ? prisma.weeklyScore.findUnique({
           where: { userId_weekStart: { userId: profileUserId, weekStart: weekStartKey() } },
@@ -76,6 +77,9 @@ export async function getFriendProfile(viewerId: string, profileUserId: string) 
       take: 5,
       select: { code: true, mode: true, status: true },
     }),
+    // Puzzelrecords hangen uitsluitend af van sharePuzzleRecords, nooit van shareAchievements; sharedRecordsOf
+    // controleert vriendschap en toestemming zelf (null = niet delen).
+    sharedRecordsOf(viewerId, profileUserId),
   ]);
 
   return {
@@ -100,5 +104,6 @@ export async function getFriendProfile(viewerId: string, profileUserId: string) 
         }
       : null,
     together: { groups, games },
+    puzzleRecords,
   };
 }

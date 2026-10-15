@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:200",
+ "leadingChorus": null,
+ "musicCredit": "Janice Kapp Perry (1938– ). © 1985 IRI",
+ "notices": [],
+ "number": 200,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Galaten 6:2, 9–10",
+  "Leer en Verbonden 11:12–14"
+ ],
+ "source": {
+  "pageSha": "a15b3cd8fad4a544593751541c5e2527066e5b96e04550215adbf09c2385bcdf",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/as-sisters-in-zion-women",
+  "pdfSha": "b718f3abf4a4c0440767bbb1a10ef41439d892503520f1ac34a11ef2b88c91d9",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/35/a5/35a51c89ac4011ec8f90eeeeac1eb657ff192d64/as_sisters_in_zion_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Wij zusters in Zion staan zijde aan zijde",
+    "en bidden om hemelse hulp bij ons werk.",
+    "Wij trachten voor Christus de weg te bereiden,",
+    "vertroosten wie treuren en maken hen sterk."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Als zusters te dienen is ’t voorrecht der vrouwen,",
+    "een gave van God, in vertrouwen verleend;",
+    "in liefde te schragen en steeds op te bouwen,",
+    "te steunen en helpen waar nood wordt vermeend."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Verheven ons oogmerk, gewijd onze zending,",
+    "dat wij die volbrengen met inzicht en moed!",
+    "Ja, Hij die nabij is bij iedere wending",
+    "zal schenken de wijsheid die wonderen doet."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": "Vrouwen",
+ "tempoLabel": "Resoluut",
+ "textCredit": "naar Emily H. Woodmansee (1836–1906)",
+ "title": "Wij zusters in Zion"
+}

@@ -1,0 +1,67 @@
+{
+ "choruses": [
+  [
+   "Kom, klink’ ons vreugdelied, zing blij van zin,",
+   "stem met het lied van de zondagsschool in.",
+   "Groot zij de glorie van wie hier goed leeft,",
+   "die ’t kwaad overwint en naar ’t beet’re streeft."
+  ]
+ ],
+ "id": "nld:180",
+ "leadingChorus": null,
+ "musicCredit": "James R. Murray (1841–1905)",
+ "notices": [],
+ "number": 180,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Mosiah 18:23, 25",
+  "Romeinen 12:21"
+ ],
+ "source": {
+  "pageSha": "909e7629ffa83639d498cd440bb087c241d5ca4976715d40c0b51d6cf0965360",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/thanks-for-the-sabbath-school",
+  "pdfSha": "df33d086f6f3d9e18cd40167eba59cceae24570c5b1a59012436761b52fbedff",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/34/00/34009306ac4011ec8c51eeeeac1edd4e77b306a5/thanks_for_the_sabbath_school_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Dank voor de zondagsschool. Lof zij de tijd",
+    "dat ’t rein evangelie alom wordt verbreid.",
+    "Dank voor de leraars, wier zorgens steeds weer",
+    "ons houden in ’t licht van Gods waarheid en leer."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Laat uw gedachten versierd zijn met deugd,",
+    "en mijd toch het kwade reeds vroeg in uw jeugd.",
+    "Streef met de heil’gen naar daden zo goed,",
+    "dat al het verkeerde dan wegvluchten moet."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Wees een wijs voorbeeld dan iedere dag,",
+    "en toon dat wij hand’len met Godes gezag.",
+    "Tracht aan verzoeking steeds weerstand te biên,",
+    "dat elk van ons eenmaal verhoging verdien’!"
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Blij",
+ "textCredit": "naar William Willes (1814–1890)",
+ "title": "Dank voor de zondagsschool"
+}

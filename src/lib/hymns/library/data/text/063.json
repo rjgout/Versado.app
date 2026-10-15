@@ -1,0 +1,56 @@
+{
+ "choruses": [],
+ "id": "nld:63",
+ "leadingChorus": null,
+ "musicCredit": "George J. Elvey (1816–1893)",
+ "notices": [],
+ "number": 63,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 86:1–7",
+  "Marcus 4:26–28"
+ ],
+ "source": {
+  "pageSha": "e9aa37fb30b0cabf1372f5ced116608de58df0ad67f76de2b6147ab8a559bee3",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/come-ye-thankful-people",
+  "pdfSha": "e1714e1171d2c53f9a471e123f2c52b4b0e8ccd0b4a515e6762dcc6a5e9e6552",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/7b/26/7b268987ac4011ec8960eeeeac1ef785d115dd8c/come_ye_thankful_people_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Kom, o dankbaar volk, ja, kom;",
+    "zing verblijd, de oogst is om.",
+    "Alles veilig ingehaald",
+    "eer de winter nederdaalt.",
+    "Onze Here, Schepper goed,",
+    "zegent ons met overvloed.",
+    "Kom naar Godes tempel, kom;",
+    "zing verblijd, de oogst is om."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "D’aarde, veld van onze Heer,",
+    "brengt gewas voort Hem ter eer.",
+    "’t Onkruid met het graan gezaaid,",
+    "eenmaal smart of vreugd gemaaid.",
+    "Eerst de halm en dan de aar,",
+    "dan is ’t volle koren daar.",
+    "Heer van d’oogst, geef dat ook wij",
+    "eenmaal zuiver koren zijn."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Energiek",
+ "textCredit": "naar Henry Alford (1810–1871)",
+ "title": "Kom, o dankbaar volk"
+}

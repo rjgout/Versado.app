@@ -32,7 +32,7 @@ import KompasEntryCard from "@/components/kompas/KompasEntryCard";
 import { KompasIcon } from "@/components/kompas/KompasIcon";
 import { ProfileCard, SettingsButton, SettingsInfoRow, SettingsRow, SettingsSection, SettingsToggleRow } from "@/components/profile/settings";
 import { AchievementsView, CompetitionView } from "@/components/profile/ProfileContentViews";
-import { NotificationsView, PresenceView, PrivacyView, ReadAloudView, ReadingView, WhatsNewView } from "@/components/profile/ProfileSettingsViews";
+import { GameFeedbackView, NotificationsView, PresenceView, PrivacyView, ReadAloudView, ReadingView, WhatsNewView } from "@/components/profile/ProfileSettingsViews";
 import type { ProfileData, ProfileToggleField } from "@/components/profile/profileData";
 import {
   Bell,
@@ -54,6 +54,7 @@ import {
   Trophy,
   Users,
   Volume2,
+  Smartphone,
 } from "lucide-react";
 
 // Het profiel: overzicht op /profile en elk onderdeel op /profile?view=...
@@ -137,6 +138,17 @@ export default function ProfileClient() {
     setSavingPrivacy(false);
     // Vrienden met dit profiel open halen na de serverwijziging vers op.
     getSocket().emit("friend_profile_changed");
+  }
+
+  async function toggleSharePuzzleRecords() {
+    if (!data) return;
+    const next = !data.sharePuzzleRecords;
+    setData({ ...data, sharePuzzleRecords: next });
+    setSavingPrivacy(true);
+    await saveAccountPatch({ sharePuzzleRecords: next });
+    setSavingPrivacy(false);
+    // Vriendenranglijsten en vriendenprofielen halen na de serverwijziging vers op (live-datalaag).
+    invalidateData("friendsChanged");
   }
 
   async function saveFeaturedAchievements(achievementIds: string[]) {
@@ -426,9 +438,10 @@ export default function ProfileClient() {
         {view === "achievements" && <AchievementsView data={data} onSaveFeatured={saveFeaturedAchievements} />}
         {view === "reading" && <ReadingView resetting={resettingReadingProgress} message={resetReadingMessage} error={resetReadingError} onReset={resetReadingProgress} />}
         {view === "language" && <LanguageSettings uiLanguage={data.uiLanguage} isAdmin={data.isAdmin} />}
+        {view === "gameFeedback" && <GameFeedbackView />}
         {view === "readAloud" && <ReadAloudView voices={readAloudVoices} selectedVoice={selectedReadAloudVoice} speed={readAloudSpeed} testing={testingReadAloudVoice} onVoice={changeReadAloudVoice} onSpeed={changeReadAloudSpeed} onTest={testReadAloudVoice} />}
         {view === "notifications" && <NotificationsView data={data} saving={savingNotifications} pushError={pushError} testingPush={testingPush} pushCountdown={pushCountdown} pushTestMessage={pushTestMessage} onEmail={toggleEmailNotifications} onPush={togglePushNotifications} onTest={sendTestPush} onCategory={toggleCategory} onReminder={changeReminderTime} onDailyText={(time) => saveAccountPatch({ dailyTextTime: time }).then(() => setData((current) => current ? { ...current, dailyTextTime: time } : current))} onPodcast={togglePodcastNotifications} />}
-        {view === "privacy" && <PrivacyView data={data} saving={savingPrivacy} onToggleSearchable={toggleSearchableByEmail} onToggleAchievements={toggleShareAchievements} />}
+        {view === "privacy" && <PrivacyView data={data} saving={savingPrivacy} onToggleSearchable={toggleSearchableByEmail} onToggleAchievements={toggleShareAchievements} onTogglePuzzleRecords={toggleSharePuzzleRecords} />}
         {view === "presence" && <PresenceView data={data} saving={savingPresence} onOnline={toggleShareOnlineStatus} onActivity={toggleShareCurrentActivity} onIncognito={activateIncognito} onIncognitoOff={deactivateIncognito} />}
         {view === "about" && <WhatsNewView enabled={data.changelogEnabled} saving={savingNotifications} onToggle={() => toggleCategory("changelogEnabled")} />}
         {view === "twoFactor" && <TwoFactorSettings isAdmin={data.isAdmin} />}
@@ -511,6 +524,7 @@ export default function ProfileClient() {
         </div>
         <SettingsRow icon={<Globe2 className="h-5 w-5 text-vs-accent" aria-hidden />} label={t("languageSettings.title")} value={getLanguage(data.uiLanguage).nativeName} onClick={() => openView("language")} />
         <SettingsRow icon={<Volume2 className="h-5 w-5 text-vs-accent" aria-hidden />} label={t("profile.readAloud")} onClick={() => openView("readAloud")} />
+        <SettingsRow icon={<Smartphone className="h-5 w-5 text-vs-accent" aria-hidden />} label={t("profile.gameFeedback.title")} onClick={() => openView("gameFeedback")} />
         <SettingsRow icon={<Bell className="h-5 w-5 text-vs-accent" aria-hidden />} label={t("profile.notifications")} onClick={() => openView("notifications")} />
         <SettingsRow icon={<Users className="h-5 w-5 text-vs-accent" aria-hidden />} label={t("profile.onlineActivity")} value={data.shareOnlineStatus ? t("twoFactor.on") : t("twoFactor.off")} onClick={() => openView("presence")} />
         <SettingsRow icon={<LockKeyhole className="h-5 w-5 text-vs-accent" aria-hidden />} label={t("profile.privacy")} onClick={() => openView("privacy")} />

@@ -133,6 +133,35 @@ test("een invalidatie tijdens een lopende fetch wordt niet verloren", async () =
   assert.equal(store.getSnapshot(o.entryKey).invalidated, false);
 });
 
+test("app hervatten tijdens een aanvraag bewaart één hercontrole zonder parallelle fetch", async () => {
+  const { env } = makeEnv();
+  const store = new LiveDataStore(env);
+  let serverValue = 1;
+  let release: (() => void) | undefined;
+  let calls = 0;
+  const o = store.observe(["readingPosition", "edition"], {
+    scopes: ["readingPosition"],
+    fetcher: () => {
+      calls += 1;
+      const answer = serverValue;
+      return new Promise<number>((resolve) => { release = () => resolve(answer); });
+    },
+  });
+  await flush();
+  serverValue = 2;
+  store.revalidate({ force: true });
+  store.revalidate({ force: true });
+  assert.equal(calls, 1, "hervatsignalen starten geen parallelle aanvragen");
+  release!();
+  await flush();
+  assert.equal(calls, 2, "het oude antwoord wordt gevolgd door één hercontrole");
+  release!();
+  await flush();
+  assert.equal(store.getSnapshot<number>(o.entryKey).data, 2);
+  assert.equal(store.getSnapshot(o.entryKey).invalidated, false);
+  assert.equal(calls, 2, "geen permanente herhaallus");
+});
+
 test("C: tab terug naar voren controleert alleen verouderde data opnieuw", async () => {
   const { env, state, advance } = makeEnv();
   const store = new LiveDataStore(env);

@@ -11,6 +11,8 @@ import { resolve, join } from "node:path";
 import { createRequire } from "node:module";
 import { collectInventory } from "./inventory.mjs";
 
+if (process.argv.includes("--study-reader") && process.argv.includes("--study-publication")) throw new Error("Reader- en publicatiefixtures vereisen ieder een eigen wegwerpdatabase; voer de bestaande suites afzonderlijk uit.");
+
 const container = `versado-content-access-${randomUUID()}`;
 const dockerEnv = { ...process.env };
 for (const key of ["DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_TLS", "DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH"]) delete dockerEnv[key];
@@ -54,7 +56,7 @@ try {
   // Eerst dezelfde 133 historische migraties via Prisma op de eigen lege DB.
   // Daarna synthetische bestaande records vóór de nieuwe additieve migratie.
   const migrationPath = join(temporary, "migrations");
-  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context", "20261027120000_quick_missionary_source", "20261028120000_mystery_attempt", "20261029120000_study_identity", "20261030120000_study_import_publication"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
+  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context", "20261027120000_quick_missionary_source", "20261028120000_mystery_attempt", "20261029120000_study_identity", "20261030120000_study_import_publication", "20261031120000_reading_position", "20261101120000_content_selection_version"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
   const config = join(temporary,"prisma.config.mjs");
   const require = createRequire(import.meta.url);
   writeFileSync(config, `import {defineConfig} from ${JSON.stringify(require.resolve("prisma/config"))}; export default defineConfig({schema:${JSON.stringify(resolve("prisma/schema.prisma"))},migrations:{path:${JSON.stringify(migrationPath)}},datasource:{url:process.env.DATABASE_URL}});`);
@@ -80,8 +82,16 @@ try {
   await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
   await run("node", ["tests/study-identity-migration.mjs", "verify"], env);
   await run("node", ["tests/study-publication-migration.mjs", "prepare"], env);
-  await run("npm", ["run", "db:migrate:deploy"], env);
+  cpSync("prisma/migrations/20261030120000_study_import_publication",join(migrationPath,"20261030120000_study_import_publication"),{recursive:true});
+  await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
   await run("node", ["tests/study-publication-migration.mjs", "verify"], env);
+  await run("node", ["tests/reading-position-migration.mjs", "prepare"], env);
+  cpSync("prisma/migrations/20261031120000_reading_position",join(migrationPath,"20261031120000_reading_position"),{recursive:true});
+  await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
+  await run("node", ["tests/reading-position-migration.mjs", "verify"], env);
+  await run("node", ["tests/content-selection-version-migration.mjs", "prepare"], env);
+  await run("npm", ["run", "db:migrate:deploy"], env);
+  await run("node", ["tests/content-selection-version-migration.mjs", "verify"], env);
   await run("npm", ["run", "db:migrate:deploy"], env);
   if (process.argv.includes("--availability-performance")) {
     await run("npx", ["tsx", "scripts/content-architecture/benchmark-availability.mjs", ...(process.argv.includes("--assert-budget") ? ["--assert-budget"] : [])], env);
@@ -123,6 +133,23 @@ try {
       await run("npx", ["tsx", "tests/fixtures/mystery-learning.mjs"], env);
       for (const suite of ["test:learning", "test:streak-return", "test:streak-calendar", "test:time"]) await run("npm", ["run", suite], env);
     }
+  }
+  if(process.argv.includes("--cfm-import")) {
+    await run("npx",["tsx","--test","tests/cfm-2026-import.integration.test.mjs"],env);
+    if(process.argv.includes("--browser")) await run("npx",["tsx","tests/cfm-2026-import.browser.mjs"],env);
+  }
+  if(process.argv.includes("--reference-preview")) {
+    const longChapterOnly = process.argv.includes("--long-chapter-only");
+    if (!longChapterOnly) await run("npx",["tsx","--test","tests/reference-resolver.integration.test.mjs"],env);
+    if(process.argv.includes("--browser"))await run("npx",["tsx","tests/reference-preview.browser.mjs", ...(longChapterOnly ? ["--long-chapter-only"] : [])],env);
+  }
+  if(process.argv.includes("--study-reader")) {
+    await run("npx",["tsx","--test","tests/reading-position.integration.test.ts"],env);
+    if(process.argv.includes("--browser"))await run("npx",["tsx","tests/study-reader.browser.mjs"],env);
+  }
+  if(process.argv.includes("--study-read")) {
+    await run("npx",["tsx","--test","tests/study-read-action.test.ts","tests/study-read.integration.test.ts"],env);
+    if(process.argv.includes("--browser"))await run("npx",["tsx","tests/study-read.browser.mjs"],env);
   }
   if(process.argv.includes("--study-publication")) {
     await run("npx",["tsx","--test","tests/study-publication.integration.test.ts"],env);

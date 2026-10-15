@@ -1,0 +1,63 @@
+{
+ "choruses": [],
+ "id": "nld:153",
+ "leadingChorus": null,
+ "musicCredit": "K. Newell Dayley (1939– ). © 1985 IRI",
+ "notices": [],
+ "number": 153,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Johannes 13:34–35",
+  "1 Johannes 3:16–19",
+  "1 Johannes 4:21"
+ ],
+ "source": {
+  "pageSha": "f3e669de97ed3aa183a221f18b2d8c2f827f664a10482d79a21334d2367577f1",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/lord-i-would-follow-thee",
+  "pdfSha": "13c2dafd3d2a2d8c1b5be8d7ed208bbc036554274df361633bdf0c5e1b8bf72c",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e3/3a/e33aef88ac3f11eca5e7eeeeac1e4f8739ac5b43/lord_i_would_follow_thee_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Heiland, leer mij U te dienen op het pad dat U ons wees;",
+    "tijd te nemen voor een ander, hulp te bieden zonder vrees.",
+    "Heiland, leer mij U te dienen; U wil ik volgen, Heer."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Waarom zal ’k een oordeel vellen als ik zelf niet feilloos ben?",
+    "In een hart kan droefheid leven waar ’k de reden niet van ken.",
+    "Waarom zal ’k een oordeel vellen? U wil ik volgen, Heer."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Ben ik niet mijn broeders hoeder? Laat mijn oog opmerkzaam zijn.",
+    "Geef mij olie voor zijn wonden, ’t woord van troost voor zielenpijn.",
+    "Ben ik niet mijn broeders hoeder? U wil ik volgen, Heer."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Heiland, leer mij liefde geven, net zoals U mij die geeft.",
+    "Laat mij uw discipel wezen in wie steeds uw voorbeeld leeft.",
+    "Heiland, leer mij liefde geven; U wil ik volgen, Heer."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bedachtzaam",
+ "textCredit": "naar Susan Evans McCloud (1945– ). © 1985 IRI",
+ "title": "U wil ik volgen, Heer"
+}

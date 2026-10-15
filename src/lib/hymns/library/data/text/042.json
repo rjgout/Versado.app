@@ -1,0 +1,61 @@
+{
+ "choruses": [
+  [
+   "Verhef uw hart! Verhef uw stem!",
+   "Te allen tijde wees verblijd!",
+   "Verhef uw hart! Verhef uw stem verblijd!",
+   "Ik zeg u: Wees verblijd!"
+  ]
+ ],
+ "id": "nld:42",
+ "leadingChorus": null,
+ "musicCredit": "Horatio Parker (1863–1919)",
+ "notices": [],
+ "number": 42,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Filippenzen 4:4",
+  "Psalm 32:11"
+ ],
+ "source": {
+  "pageSha": "d46a93f3858f356e26ffa9c673d434bf8470028c364a0d3321294b9e0fecf600",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/rejoice-the-lord-is-king",
+  "pdfSha": "b14760127d5f08ee217c8342387c125e34792e39dc80ec341cf38ee58c1e91a7",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/8d/07/8d07de91ac4011ecb4a3eeeeac1ea26caffc4253/rejoice_the_lord_is_king_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Verblijd u in de Heer! Betoon uw Koning eer!",
+    "Sterv’lingen, juich en zing, en prijs Hem immermeer."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "De Heer, uw God, regeert, de God van kracht en licht.",
+    "Door zijn verzoening heeft Hij eeuwig heil gesticht."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Zijn koninkrijk staat fier; Hij leidt met vaste hand.",
+    "Boven de macht van hel en dood houdt Christus stand."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bezield",
+ "textCredit": "naar Charles Wesley (1707–1788)",
+ "title": "Verblijd u in de Heer!"
+}

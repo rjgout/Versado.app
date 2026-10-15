@@ -1,0 +1,73 @@
+{
+ "choruses": [
+  [
+   "Zion, Zion,",
+   "heerlijk Zion,",
+   "liefelijk Zion!",
+   "Zion, stad van onze God."
+  ]
+ ],
+ "id": "nld:32",
+ "leadingChorus": null,
+ "musicCredit": "Joseph G. Fones (1828–1906)",
+ "notices": [],
+ "number": 32,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Openbaring 7:9–17",
+  "Openbaring 21:2, 21–23"
+ ],
+ "source": {
+  "pageSha": "6962726c7c2c100cd8eb75d8325cdb5c7f1d2a46961bf4d16090af4e7a6a788e",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/beautiful-zion-built-above",
+  "pdfSha": "a5c98397c6a625d27250b0b098c55ac85dff25f1ad934f0b2a6af066a227f8c1",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e4/15/e415a2c0ac4011ecb848eeeeac1e84656523ceb6/beautiful_zion_built_above_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Liefelijk Zion, Godes stad!",
+    "Liefelijk Zion, hoog geschat!",
+    "Lief’lijk haar poort van kostbaar steen,",
+    "lief’lijk haar tempel, leid m’erheen.",
+    "Gij die mij maakt van zonden vrij,",
+    "open die schone poort voor mij."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Lief’lijk de hemel, rein en licht.",
+    "Lief’lijk der eng’len aangezicht.",
+    "Lief’lijke klanken strelen ’t oor,",
+    "liefelijk klinken harp en koor;",
+    "daar klink’ ook eens mijn stem in lof;",
+    "Heiland, ’k heb steeds tot danken stof."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Lief’lijk de kroon op ieder hoofd,",
+    "lief’lijk het witte kleed beloofd.",
+    "Schoon der verwinnaars zegepalm,",
+    "schoon rijst tot God hun vreugdepsalm;",
+    "daar spoed ik vol ver langen heen,",
+    "’k zal ’t land der zoete rust betreên."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Licht",
+ "textCredit": "naar George Gill (1820–1880)",
+ "title": "Liefelijk Zion, Godes stad"
+}

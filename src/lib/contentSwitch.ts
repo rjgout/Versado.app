@@ -1,3 +1,4 @@
+import { getPublishedStudyLesson } from "@/lib/studyContent/revisions";
 import { checkGameAvailability } from "@/lib/gameAvailability";
 import { prisma } from "@/lib/db";
 import { DICTIONARY_COLLECTION_IDS, getDictionaryEntries } from "@/lib/dictionary";
@@ -174,6 +175,19 @@ export async function resolveContentSwitch(
       }
       if (sameWork) return missing;
       return { kind: "redirect", href: equivalentCourse ? `/courses/${equivalentCourse.id}` : "/courses" };
+    }
+    case "scripture": {
+      if(!sameWork)return missing;
+      const chapter=await chapterEquivalent(route.chapterId,target);
+      if(chapter==="same")return {kind:"stay"};
+      return chapter ? {kind:"redirect",href:`/scripture/${chapter.id}`} : missing;
+    }
+    case "studyLesson": {
+      const current = await getPublishedStudyLesson({ isAdmin: false }, route.lessonId, route.collectionId);
+      if (!current) return missing;
+      const equivalent = await getPublishedStudyLesson({ isAdmin: false }, route.lessonId, target.id);
+      if (!equivalent) return missing;
+      return target.id === route.collectionId ? { kind: "stay" } : { kind: "redirect", href: `/study-lesson/${encodeURIComponent(route.lessonId)}/${encodeURIComponent(target.id)}` };
     }
     case "readingLesson": {
       const lesson = await prisma.courseLesson.findUnique({

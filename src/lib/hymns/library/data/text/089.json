@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:89",
+ "leadingChorus": null,
+ "musicCredit": "Friedrich F. Flemming (1778–1813); bew. Edwin P. Parker (1836–1925)",
+ "notices": [],
+ "number": 89,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 29:11",
+  "Johannes 14:27"
+ ],
+ "source": {
+  "pageSha": "ff9450581b50996ce8e235c86862cdbccfe078ae9c970c369c80efd129ca77b5",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/father-in-heaven",
+  "pdfSha": "c0b90cb477f0754467af376fdef31595f64bb4f9c0f20b0f3a5b35416b66c1a1",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b2/68/b268ea40ac3f11ec8ad8eeeeac1e0652d5bd1897/father_in_heaven_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Liefderijk Vader, hoor, alom op aarde",
+    "danken uw kind’ren dat G’ in hen bewaarde",
+    "vrede des harten, uw volkomen vrede,",
+    "eeuwige vrede."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Dat Gij in ’t hart steeds ons die vreê blijft geven;",
+    "vreugde voor zielen die in wanhoop leven,",
+    "moedig vertrouwend in uw vreed’ oneindig,",
+    "eind’loze vrede."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "God onzer vaad’ren, sterk elk volk in vrede;",
+    "uw vrede slechts brengt welzijn met zich mede.",
+    "Moge de wereld glorierijk verrijzen,",
+    "eeuwig U prijzen."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Als een gebed",
+ "textCredit": "naar Angus S. Hibbard",
+ "title": "Liefderijk Vader"
+}

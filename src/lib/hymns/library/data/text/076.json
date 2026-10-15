@@ -1,0 +1,61 @@
+{
+ "choruses": [],
+ "id": "nld:76",
+ "leadingChorus": null,
+ "musicCredit": "Thomas Koschat (1845–1914)",
+ "notices": [],
+ "number": 76,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "psalm 23",
+  "Psalm 23",
+  "Jesaja 26:3–4"
+ ],
+ "source": {
+  "pageSha": "13cb0e0377360165e92e6d2f8b5160f7f590f122e49b40377eb93fd0b5da8d88",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/the-lord-is-my-shepherd",
+  "pdfSha": "54e41d122eceb236dd2ec21241afc08e7ed8b254834a8ecbb77c94874df5f37a",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/69/72/6972ac3dac4011ec884feeeeac1e94efcbcd1966/the_lord_is_my_shepherd_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "De Heer is mijn Herder, ’k heb al wat mij lust,",
+    "Hij leidt mijne schreden, bewaart mijne ziel,",
+    "Hij voert mij al zachtkens, naar waat’ren der rust,",
+    "Hij schraagt m’als ik wankel, Hij droeg m’als ik viel,",
+    "Hij schraagt m’als ik wankel, Hij droeg m’als ik viel."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Door dalen en schaduw des doods zal ik gaan,",
+    "want Hij is mijn Herder, zorgt teder voor mij,",
+    "zijn hand leidt mij voorwaarts, met zegen belaân,",
+    "geen kwaad kan mij naken als Hij is nabij,",
+    "geen kwaad kan mij naken als Hij is nabij."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "De Heer is mijn Herder, zijn gusten zijn veel,",
+    "Hij nam al mijn zonden, die Hij voor mij droeg,",
+    "te midden van smarten is zegen mijn deel,",
+    "Hij geeft mij met liefde, nog meer dan ik vroeg,",
+    "Hij geeft mij met liefde, nog meer dan ik vroeg."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vredig",
+ "textCredit": "naar James Montgomery (1771–1854); gebaseerd op psalm 23",
+ "title": "De Heer is mijn Herder"
+}

@@ -39,8 +39,10 @@ try {
     await page.evaluate(async (src) => { const image = new Image(); image.src = src; await image.decode(); await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))); }, state.image);
     return canvas.boundingBox();
   }
-  async function layout(expectedSafe = { left: 0, right: 0, bottom: 0 }) {
-    await page.waitForFunction(() => { const c = document.querySelector("canvas"); const h = document.querySelector("[data-sticky-header]"); return c && h && Math.abs(c.getBoundingClientRect().top - h.getBoundingClientRect().bottom) < 1; });
+  // Het actieve bord is Immersive: geen terugbalk, de werktafel begint onder de veilige bovenrand en vult de rest van het scherm.
+  async function layout(expectedSafe = { left: 0, right: 0, bottom: 0, top: 0 }) {
+    await page.waitForFunction((top) => { const c = document.querySelector("canvas"); const mode = document.querySelector("[data-shell-mode]")?.getAttribute("data-shell-mode"); return c && mode === "immersive" && Math.abs(c.getBoundingClientRect().top - top) < 1; }, expectedSafe.top ?? 0);
+    assert.equal(await page.locator("[data-sticky-header]").first().isVisible(), false, "geen zichtbare header of terugbalk op het bord");
     const metrics = await page.evaluate(() => {
       const c = document.querySelector("canvas").getBoundingClientRect(); const h = document.querySelector("[data-sticky-header]").getBoundingClientRect();
       return { canvas: { x: c.x, y: c.y, width: c.width, height: c.height, bottom: c.bottom, right: c.right }, header: h.bottom, width: innerWidth, height: innerHeight, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight };
@@ -93,7 +95,7 @@ try {
   await page.setViewportSize({ width: 430, height: 800 }); const afterSize = await layout();
   await compareSeam(resizeCamera(beforeCamera, beforeSize, afterSize, puzzleWorktable(geometry).bounds));
   await page.evaluate(() => { for (const [side, value] of Object.entries({ top: 20, left: 44, right: 44, bottom: 34 })) document.documentElement.style.setProperty(`--safe-area-inset-${side}`, `${value}px`); });
-  await layout({ left: 44, right: 44, bottom: 34 }); await page.screenshot({ path: `${output}/safe-areas.png` });
+  await layout({ left: 44, right: 44, bottom: 34, top: 20 }); await page.screenshot({ path: `${output}/safe-areas.png` });
   await page.evaluate(() => { for (const side of ["top", "left", "right", "bottom"]) document.documentElement.style.removeProperty(`--safe-area-inset-${side}`); });
   await page.setViewportSize({ width: 390, height: 844 }); await open(state);
   const touch = await context.newCDPSession(page);

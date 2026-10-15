@@ -46,7 +46,7 @@ export default function NativeAppBridge() {
         }
       }),
       App.addListener("appStateChange", ({ isActive }) => {
-        if (isActive) window.dispatchEvent(new Event("versado:app-resumed"));
+        window.dispatchEvent(new Event(isActive ? "versado:app-resumed" : "versado:app-paused"));
       }),
     ]).then((newHandles) => {
       if (disposed) {

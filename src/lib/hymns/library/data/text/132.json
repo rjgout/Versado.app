@@ -1,0 +1,70 @@
+{
+ "choruses": [],
+ "id": "nld:132",
+ "leadingChorus": null,
+ "musicCredit": "Giacomo Meyerbeer (1791–1864), bew.",
+ "notices": [],
+ "number": 132,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 2:7",
+  "Matteüs 25:31"
+ ],
+ "source": {
+  "pageSha": "928a62f2252870e4b64a6f70d1ec6179387efab6454089d6bac372f996e2d5bf",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/jesus-once-of-humble-birth",
+  "pdfSha": "7f234222af5e2978454e720659a665b81b928647cff586ceaaa2da742949fc8f",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/08/74/0874f711ac4011eca75deeeeac1e9379381f5d22/jesus_once_of_humble_birth_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Jezus werd eertijds veracht,",
+    "eens komt Hij in grote macht.",
+    "Eenmaal leed Hij smart en pijn,",
+    "eens zal Hij hier koning zijn,",
+    "eens zal Hij hier koning zijn."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Eens een need’rig Lam op aard’,",
+    "dan als Vredevorst vermaard.",
+    "Eens aan ’t kruishout boog Hij ’t hoofd,",
+    "dan wordt Hij alom geloofd,",
+    "dan wordt Hij alom geloofd."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Eens heeft Hij uit leed geschreid,",
+    "dra komt Hij in heerlijkheid.",
+    "Door de zijnen eens gehoond,",
+    "dra als aller Vorst gekroond,",
+    "dra als aller Vorst gekroond."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Eens verlaten, spot als loon,",
+    "dan verheven op een troon.",
+    "Alles droeg eens onze Heer,",
+    "dan duldt Hij het kwaad niet meer,",
+    "dan duldt Hij het kwaad niet meer."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Sober",
+ "textCredit": "naar Parley P. Pratt (1807–1857)",
+ "title": "Jezus werd eertijds veracht"
+}

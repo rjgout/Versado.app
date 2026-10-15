@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:25",
+ "leadingChorus": null,
+ "musicCredit": "A. Laurence Lyon (1934–2006). © 1985 IRI",
+ "notices": [],
+ "number": 25,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 64:41–42",
+  "Leer en Verbonden 133:37–38"
+ ],
+ "source": {
+  "pageSha": "95683d21ed687411b9697154483a0f070e8275dccb2a08c216bc35e9c629bee8",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/saints-behold-how-great-jehovah",
+  "pdfSha": "428043b00c9995fe1d86fc9e78e7d0d7d8e0a84adc158a50df16193cd8f9922f",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/c2/19/c219611fac4011ecb848eeeeac1e8465b61aaa09/saints_behold_how_great_jehovah_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Heil’gen, zie uw zegeningen",
+    "uit Jehovahs milde hand.",
+    "Zion wordt alom gevestigd",
+    "in een grote broederband."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Uit het heden en ’t verleden",
+    "wordt voor ’t laatst bijeenvergaard",
+    "alle waarheid ooit verkondigd;",
+    "volheid ongeëvenaard!"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Hef dan Zions vaandel opwaarts",
+    "en getuig met luide stem",
+    "dat de Vorst des hemels nadert;",
+    "elke knie buigt eens voor Hem."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Energiek",
+ "textCredit": "naar Douglas W. Stott (1925– ). © 1985 IRI",
+ "title": "Heil’gen, zie uw zegeningen"
+}

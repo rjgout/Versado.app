@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:28",
+ "leadingChorus": null,
+ "musicCredit": "Robert P. Manookin (1918–1997). © 1948 IRI",
+ "notices": [],
+ "number": 28,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 65",
+  "Leer en Verbonden 64:41–42"
+ ],
+ "source": {
+  "pageSha": "950bac2936654ef3fe9527c5a776f3d34169d8b685769f365783283b31c45413",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/o-saints-of-zion",
+  "pdfSha": "2e29fa0ff4eb9e356d1afa4bbc1e57be7aaf723ba45ca8d4daeaa79bd717c4a9",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/c4/5a/c45a0125ac4011ec90cceeeeac1e6e3d8b8ea177/o_saints_of_zion_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O volk van Zion, hoor de stem van Hem die tot u zegt:",
+    "Bereid de wegen van de Heer en maak zijn paden recht.",
+    "Bereid de maaltijd van het Lam en nodig ’t mensdom uit,",
+    "want zie, de grote Bruidegom komt spoedig naar zijn bruid."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Roep aan de Heer opdat zijn rijk zal voortgaan over d’aard’,",
+    "totdat het mensdom overal zijn waarheid heeft aanvaard.",
+    "De sleutels zijn ons toevertrouwd: het heilswoord nu verbreid!",
+    "en steun het wonderbare werk van deze laatste tijd."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Aanschouw, de glorie van de Heer zet Zions berg in gloed;",
+    "uit ied’re natie richt men nu naar haar banier zijn voet.",
+    "O volk van Zion, wees uw God met vreugde toegewijd,",
+    "want eer en macht en heerlijkheid is Hem in eeuwigheid!"
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bezield",
+ "textCredit": "naar Ed M. Rowe (1878–1951). © 1948 IRI",
+ "title": "O volk van Zion"
+}

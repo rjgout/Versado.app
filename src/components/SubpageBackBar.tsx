@@ -87,7 +87,11 @@ const MYSTERY_PLAY_TITLES: Record<string, MessageKey> = {
 };
 
 function detailPageFor(pathname: string, profileView: string | null, hash: string): DetailPage | null {
+  if (/^\/study-lesson\/[^/]+\/[^/]+$/.test(pathname)) return { fallback: "/courses", title: "studyReader.title" };
+  if (/^\/scripture\/[^/]+$/.test(pathname)) return { fallback: "/courses", title: "referencePreview.title" };
   if (pathname === "/content") return { fallback: "/dashboard", title: "contentSwitcher.picker.title" };
+  // Lofzangen (alleen beheerders) is bereikbaar vanuit de contentkiezer.
+  if (pathname === "/dev/lofzangen") return { fallback: "/content", title: "pages.hymns" };
   if (pathname === "/profile") {
     const view = parseProfileView(profileView);
     return view ? { fallback: "/profile", ...PROFILE_VIEWS[view] } : null;
@@ -109,6 +113,9 @@ function detailPageFor(pathname: string, profileView: string | null, hash: strin
   const puzzle = classifyPuzzleRoute(pathname);
   if (puzzle) {
     const subtitle = puzzle.kind === "coop" ? "puzzleTogether.modes.coop" : puzzle.kind === "match" ? "puzzleTogether.modes.match" : undefined;
+    if (puzzle.kind === "records") return { fallback: puzzle.parent, title: "puzzleRecords.title", forceFallback: true };
+    if (puzzle.kind === "history") return { fallback: puzzle.parent, title: "puzzleTogether.overview.historyTitle", forceFallback: true };
+    if (puzzle.kind === "leaderboard") return { fallback: puzzle.parent, title: "puzzleRecords.lbTitle", forceFallback: true };
     return { fallback: puzzle.parent, title: "jigsaw.title", subtitle, forceFallback: true };
   }
   const game = GAME_PAGES[pathname];

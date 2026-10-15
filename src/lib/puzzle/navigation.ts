@@ -6,17 +6,30 @@ import { PLAY_ROUTE } from "@/lib/navigation";
 // ontstaan er geen extra geschiedenisitems of lussen. Teruggaan verlaat nooit een sessie of wedstrijd
 // (geen annulering, geen reset, de serverklok loopt door); alleen een expliciete actie met bevestiging doet dat.
 
+/** Persoonlijke records; een vriendenranglijst per variant hangt daaronder. */
+export const RECORDS_ROUTE = "/jigsaw/records" as const;
+
+/** Alle afgeronde gezamenlijke puzzels en wedstrijden, gepagineerd; bereikbaar vanaf de hub. */
+export const HISTORY_ROUTE = "/jigsaw/afgerond" as const;
+
 /** De puzzelcatalogus en het overzicht met uitnodigingen, lopende en afgeronde puzzels. */
 export const JIGSAW_ROUTE = "/jigsaw" as const;
 
 export type PuzzleRoute =
   | { kind: "catalog"; parent: typeof PLAY_ROUTE }
   | { kind: "coop"; id: string; parent: typeof JIGSAW_ROUTE }
-  | { kind: "match"; id: string; parent: typeof JIGSAW_ROUTE };
+  | { kind: "match"; id: string; parent: typeof JIGSAW_ROUTE }
+  | { kind: "records"; parent: typeof JIGSAW_ROUTE }
+  | { kind: "history"; parent: typeof JIGSAW_ROUTE }
+  | { kind: "leaderboard"; id: string; parent: typeof RECORDS_ROUTE };
 
 /** Herkent de puzzelroutes; alles buiten Legpuzzel 2.0 geeft null. */
 export function classifyPuzzleRoute(pathname: string): PuzzleRoute | null {
   if (pathname === JIGSAW_ROUTE) return { kind: "catalog", parent: PLAY_ROUTE };
+  if (pathname === RECORDS_ROUTE) return { kind: "records", parent: JIGSAW_ROUTE };
+  if (pathname === HISTORY_ROUTE) return { kind: "history", parent: JIGSAW_ROUTE };
+  const board = /^\/jigsaw\/records\/([^/]+)$/.exec(pathname);
+  if (board) return { kind: "leaderboard", id: board[1], parent: RECORDS_ROUTE };
   const coop = /^\/jigsaw\/samen\/([^/]+)$/.exec(pathname);
   if (coop) return { kind: "coop", id: coop[1], parent: JIGSAW_ROUTE };
   const match = /^\/jigsaw\/wedstrijd\/([^/]+)$/.exec(pathname);

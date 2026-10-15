@@ -13,6 +13,8 @@ import SystemIcon from "@/components/versado/SystemIcon";
 import DivisionEmblem from "@/components/versado/DivisionEmblem";
 import AchievementIcon from "@/components/versado/AchievementIcon";
 import { ProfileCard } from "@/components/profile/settings";
+import RecordCard from "@/components/puzzle/RecordCard";
+import type { OwnRecordView } from "@/lib/puzzle/records";
 
 type FriendProfile = {
   friend: {
@@ -37,6 +39,8 @@ type FriendProfile = {
     groups: { id: string; name: string; currentStreak: number }[];
     games: { code: string; mode: string; status: "LOBBY" | "IN_PROGRESS" }[];
   };
+  /** null = de vriend deelt zijn puzzelrecords niet (of er is geen vriendschap); nooit afhankelijk van shareAchievements. */
+  puzzleRecords: OwnRecordView[] | null;
 };
 
 function FeaturedAchievement({ achievement }: { achievement: NonNullable<FriendProfile["stats"]>["featuredAchievements"][number] }) {
@@ -109,6 +113,12 @@ export default function FriendProfileClient({ userId }: { userId: string }) {
       ) : (
         <ProfileCard>
           <p className="text-sm text-vs-fg-2">{t("friends.profileNoAchievements")}</p>
+        </ProfileCard>
+      )}
+
+      {query.data.puzzleRecords && query.data.puzzleRecords.length > 0 && (
+        <ProfileCard title={t("puzzleRecords.friendsTitle")}>
+          <ul className="mt-3 flex flex-col gap-2">{query.data.puzzleRecords.map((record) => <RecordCard key={record.id} record={record} />)}</ul>
         </ProfileCard>
       )}
 

@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:74",
+ "leadingChorus": null,
+ "musicCredit": "H. R. Palmer (1834–1907)",
+ "notices": [],
+ "number": 74,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Jesaja 26:3–4",
+  "Psalm 145:8–9, 14–21"
+ ],
+ "source": {
+  "pageSha": "1ec300812abd33df2ad387ea76f6b2d6c71beb2a1811640a594c293473031085",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/precious-savior-dear-redeemer",
+  "pdfSha": "d705cd04e7a416f2d5f6487c7a15476d989f560f5d9fc6b54c5f46cda0e0b0d3",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/48/79/48793494ac4011ec90cceeeeac1e6e3d7ef79d7f/precious_savior_dear_redeemer_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Goede Meester, dierb’re Heiland, Gij die ieder hart doorgrondt,",
+    "wil ons met uw Geest verblijden, spreid zijn heil’ge invloed rond.",
+    "Schenk ons vaste overtuiging, die de golf van zonde keert,",
+    "goede Meester, dierb’re Heiland, Gij die immer inspireert."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Goede Meester, dierb’re Heiland, wij zijn zwak maar Gij zijt sterk;",
+    "help ons immer vast te houden aan de lering van uw kerk.",
+    "Voer ons langs de ijz’ren roede, in uw heilig woord vervat.",
+    "Goede Meester, dierb’re Heiland, houd ons op het smalle pad."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Goede Meester, dierb’re Heiland, laat ons niet in bitt’re smart.",
+    "Droog met deernis onze tranen, geef ons balsem voor het hart.",
+    "Schenk gemoedsrust met de vrede die ’t verstand te boven gaat,",
+    "goede Meester, dierb’re Heiland, Gij die immer bij ons staat."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar H. R. Palmer (1834–1907)",
+ "title": "Goede Meester, dierb’re Heiland"
+}

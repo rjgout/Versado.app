@@ -1,0 +1,48 @@
+{
+ "choruses": [],
+ "id": "nld:205",
+ "leadingChorus": null,
+ "musicCredit": "Willy Reske (1897–1991). © 1951 IRI",
+ "notices": [],
+ "number": 205,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 68:19",
+  "Psalm 36:7"
+ ],
+ "source": {
+  "pageSha": "51320e1829d648bcd061d1b062892e53f0ff8261a9245dab1b2a49b2a675495f",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/gods-daily-care",
+  "pdfSha": "e2a1e53f73812eefbf5e972b819dc8e3a5d9ba0e8756a6c189cb2fb2bb747461",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ab/36/ab3644b7ac3f11ecb4a3eeeeac1ea26c0d4e1169/gods_daily_care_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Als de rode ochtendzon",
+    "opkomt aan de horizon,",
+    "denk ik aan uw liefde zoet,",
+    "die zovele wond’ren doet."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Vader, hoor mijn dankgebed,",
+    "U, die daag’lijks op mij let.",
+    "’k Weet dat U er altijd bent,",
+    "als ik mij maar tot U wend."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar Marie C. Turk. © 1951 IRI",
+ "title": "Gods dagelijkse zorg"
+}

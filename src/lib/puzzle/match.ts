@@ -10,6 +10,7 @@ import { cachedPuzzleGeometry } from "@/lib/puzzle/geometryCache";
 import { PuzzleServiceError } from "@/lib/puzzle/errors";
 import { sendPuzzleNotice } from "@/lib/puzzle/puzzleNotify";
 import { multiplayerConfig } from "@/lib/puzzle/multiplayerConfig";
+import { hintCategoryFor, registerBestRecord } from "@/lib/puzzle/records";
 import { areAcceptedFriends, ensureVariant } from "@/lib/puzzle/variants";
 import { applySoloAction, optionOrder, resumeSoloPuzzle, snapshotSchema, sessionInclude, type SoloAction } from "@/lib/puzzle/solo";
 import { MATCH_PIECE_COUNTS, type PuzzleDifficulty, type PuzzlePieceCount, type PuzzleSnapshot } from "@/lib/puzzle/types";
@@ -58,7 +59,8 @@ export interface MatchView {
   createdAt: string; startsAt: string | null; joinDeadline: string; playDeadline: string; finishedAt: string | null; winnerId: string | null;
   /** Regelversie van de uitslag (1 = oud: vraag bepaalt de geldigheid, 2 = alleen de puzzel). */
   resultRules: number;
-  me: { userId: string; status: string; sessionId: string | null; startedAt: string | null; canBegin: boolean; inviteId: string | null; visibleResults: boolean; question: { answered: boolean; correct: boolean | null } };
+  variantId: string;
+  me: { userId: string; status: string; sessionId: string | null; startedAt: string | null; canBegin: boolean; inviteId: string | null; visibleResults: boolean; question: { answered: boolean; correct: boolean | null }; record: { hintCategory: "NO_HINTS" | "WITH_HINTS"; elapsedMs: number } | null };
   participants: MatchParticipantView[];
   serverNow: number;
 }
@@ -248,7 +250,11 @@ async function finishAttempt(tx: Tx, matchId: string, userId: string, row: { id:
     return finalizeIfDone(tx, matchId, new Date());
   }
   const started = participant.startedAt ?? row.startedAt;
-  await tx.puzzleMatchParticipant.update({ where: { id: participant.id }, data: { status: "FINISHED", finishedAt: completedAt, elapsedMs: Math.max(0, completedAt.getTime() - started.getTime()), hintsUsed: snapshot.hints.length, extraHintsUsed: snapshot.hints.filter((hint) => hint.extra).length, progress: connectedPieces(snapshot) } });
+  const elapsedMs = Math.max(0, completedAt.getTime() - started.getTime()); const extraHintsUsed = snapshot.hints.filter((hint) => hint.extra).length;
+  await tx.puzzleMatchParticipant.update({ where: { id: participant.id }, data: { status: "FINISHED", finishedAt: completedAt, elapsedMs, hintsUsed: snapshot.hints.length, extraHintsUsed, progress: connectedPieces(snapshot) } });
+  // Persoonlijk beste wedstrijdrecord (alleen regelversie 2, een geldige finish vóór de deadline): in dezelfde
+  // transactie als de finish, onafhankelijk van winst en van de vraag. Een retry maakt geen tweede record.
+  await registerBestRecord(tx, { userId, variantId: match.variantId, mode: "MATCH", elapsedMs, hintsUsed: snapshot.hints.length, extraHintsUsed, completedAt, sessionId: row.id, matchParticipantId: participant.id });
   return finalizeIfDone(tx, matchId, new Date());
 }
 
@@ -466,14 +472,19 @@ export async function getMatch(userId: string, matchId: string): Promise<MatchVi
   const visibleResults = closed || isTerminal(mine.status) && mine.status !== "DECLINED";
   const invite = mine.status === "INVITED" ? await prisma.puzzleInvite.findFirst({ where: { matchId, toUserId: userId, status: "PENDING" }, select: { id: true } }) : null;
   const live = match.kind === "LIVE" && match.status === "RUNNING";
+  const personalRecord = match.resultRules >= 2 && mine.status === "FINISHED" && mine.sessionId && mine.elapsedMs !== null
+    ? await prisma.puzzleBestRecord.findFirst({ where: { userId, variantId: match.variantId, mode: "MATCH", hintCategory: hintCategoryFor(mine.hintsUsed), sessionId: mine.sessionId }, select: { hintCategory: true, elapsedMs: true } })
+    : null;
   return {
     id: match.id, kind: match.kind, status: match.status, organizerId: match.organizerId, image: match.variant.definition.imageUrl, story: match.variant.definition.storyNumber,
     pieceCount: match.variant.pieceCount as PuzzlePieceCount, difficulty: match.variant.difficulty as PuzzleDifficulty,
-    resultRules: match.resultRules,
+    resultRules: match.resultRules, variantId: match.variantId,
     createdAt: match.createdAt.toISOString(), startsAt: match.startsAt?.toISOString() ?? null, joinDeadline: match.joinDeadline.toISOString(), playDeadline: match.playDeadline.toISOString(), finishedAt: match.finishedAt?.toISOString() ?? null, winnerId: visibleResults ? match.winnerId : null,
     me: { userId, status: mine.status, sessionId: mine.sessionId, startedAt: mine.startedAt?.toISOString() ?? null, canBegin: match.kind === "ASYNC" && match.status === "RUNNING" && mine.status === "ACCEPTED" && match.playDeadline > now, inviteId: invite?.id ?? null, visibleResults,
       // Los van de uitslag: of de inhoudelijke vraag al is beantwoord en hoe.
-      question: { answered: mine.answeredAt !== null || (match.resultRules < 2 && mine.answeredCorrect !== null), correct: mine.answeredCorrect } },
+      question: { answered: mine.answeredAt !== null || (match.resultRules < 2 && mine.answeredCorrect !== null), correct: mine.answeredCorrect },
+      // Is deze poging nu mijn beste wedstrijdrecord in zijn hintcategorie? (Alleen informatief; de uitslag blijft staan.)
+      record: personalRecord },
     participants: match.participants.map((p) => ({
       userId: p.userId, handle: p.user.handle, discriminator: p.user.discriminator,
       // Zonder uitslagrechten alleen grove statussen; een ongeldige poging blijft verborgen als "klaar".
@@ -503,10 +514,12 @@ export async function matchQuestion(userId: string, matchId: string, language: s
 export async function listMatchOverview(userId: string) {
   await requirePuzzleContent();
   const now = new Date();
-  const rows = await prisma.puzzleMatchParticipant.findMany({
-    where: { userId, status: { not: "DECLINED" }, match: { OR: [{ status: { in: ["LOBBY", "RUNNING"] } }, { status: "FINISHED", finishedAt: { gt: new Date(now.getTime() - 14 * 86_400_000) } }] } },
-    orderBy: { createdAt: "desc" }, take: 20,
-    include: { match: { include: { variant: { include: { definition: true } }, organizer: { select: { id: true, handle: true } }, participants: { include: { user: { select: { id: true, handle: true } } } } } } },
-  });
-  return rows;
+  const include = { match: { include: { variant: { include: { definition: true } }, organizer: { select: { id: true, handle: true } }, participants: { include: { user: { select: { id: true, handle: true } } } } } } };
+  const mine = { userId, status: { not: "DECLINED" as const } };
+  // Lopende en afgeronde wedstrijden hebben elk hun eigen limiet: afgeronde wedstrijden verdringen lopende nooit meer.
+  const [running, finished] = await Promise.all([
+    prisma.puzzleMatchParticipant.findMany({ where: { ...mine, match: { status: { in: ["LOBBY", "RUNNING"] } } }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 20, include }),
+    prisma.puzzleMatchParticipant.findMany({ where: { ...mine, match: { status: "FINISHED", finishedAt: { gt: new Date(now.getTime() - 14 * 86_400_000) } } }, orderBy: [{ match: { finishedAt: "desc" } }, { matchId: "desc" }], take: 3, include }),
+  ]);
+  return [...running, ...finished];
 }

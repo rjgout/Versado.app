@@ -1,0 +1,56 @@
+{
+ "choruses": [],
+ "id": "nld:113",
+ "leadingChorus": null,
+ "musicCredit": "Jean-Jacques Rousseau (1712–1778)",
+ "notices": [],
+ "number": 113,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 31:24–25",
+  "Leer en Verbonden 6:13"
+ ],
+ "source": {
+  "pageSha": "339f4dba1e0ba42fdd6b46827af407d79aab54a59ca0847fc422d77322d660de",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/lord-dismiss-us-with-thy-blessing",
+  "pdfSha": "0c0dd84d5a7d861bfe123e110521a8dc031f95ceddf4bf4b87ab2e7a8734f6c4",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e4/91/e49130c4ac3f11eca698eeeeac1eb6af023356c6/lord_dismiss_us_with_thy_blessing_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Heer, wij gaan nu huiswaarts henen,",
+    "’t hart vervuld met vreugd en vreê.",
+    "Wil uw zegen ons verlenen,",
+    "hoed ons, ga, Heer, met ons mee.",
+    "O, versterk ons, o, versterk ons,",
+    "reizend over ’s levens zee.",
+    "O, versterk ons, o, versterk ons,",
+    "reizend over ’s levens zee."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Laat ons dank en lof U geven",
+    "voor uw kerk, opnieuw gesticht.",
+    "Blijke ’t daaglijks uit ons leven",
+    "dat wij kind’ren zijn van ’t licht,",
+    "onverwrikbaar, onverwrikbaar,",
+    "op de rots die nimmer zwicht,",
+    "onverwrikbaar, onverwrikbaar,",
+    "op de rots die nimmer zwicht."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bedachtzaam",
+ "textCredit": "naar John Fawcett (1740–1817)",
+ "title": "Heer, wij gaan nu huiswaarts henen"
+}
