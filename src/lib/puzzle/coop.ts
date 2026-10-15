@@ -453,12 +453,16 @@ function parseActive(raw: string | null, now: Date): PuzzleHint | null {
 export async function listCoopOverview(userId: string) {
   await requirePuzzleContent();
   const now = new Date();
-  const [sessions, invites, sent] = await Promise.all([
-    prisma.puzzleSession.findMany({ where: { mode: "COOP", participants: { some: { userId } }, status: { in: ["ACTIVE", "COMPLETED"] } }, orderBy: { lastActivityAt: "desc" }, take: 20, include: { variant: { include: { definition: true } }, participants: { include: { user: { select: { id: true, handle: true } } } } } }),
+  const mine = { mode: "COOP" as const, participants: { some: { userId } } };
+  const include = { variant: { include: { definition: true } }, participants: { include: { user: { select: { id: true, handle: true } } } } };
+  const [active, completed, invites, sent] = await Promise.all([
+    // Lopende en afgeronde puzzels hebben elk hun eigen limiet: afgeronde puzzels kunnen lopende nooit meer uit de lijst verdringen.
+    prisma.puzzleSession.findMany({ where: { ...mine, status: "ACTIVE" }, orderBy: [{ lastActivityAt: "desc" }, { id: "desc" }], take: 20, include }),
+    prisma.puzzleSession.findMany({ where: { ...mine, status: "COMPLETED" }, orderBy: [{ completedAt: "desc" }, { id: "desc" }], take: 3, include }),
     prisma.puzzleInvite.findMany({ where: { toUserId: userId, kind: "COOP", status: "PENDING", expiresAt: { gt: now } }, orderBy: { createdAt: "desc" }, include: { from: { select: { id: true, handle: true } }, session: { include: { variant: { include: { definition: true } } } } } }),
     prisma.puzzleInvite.findMany({ where: { fromUserId: userId, kind: "COOP", status: "PENDING", expiresAt: { gt: now } }, include: { to: { select: { id: true, handle: true } } } }),
   ]);
-  return { sessions, invites, sent };
+  return { sessions: [...active, ...completed], invites, sent };
 }
 
 export { applyDelta };

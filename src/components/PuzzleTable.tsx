@@ -2,7 +2,7 @@
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import NextImage from "next/image";
-import { RotateCw } from "lucide-react";
+import RotateButton from "@/components/puzzle/RotateButton";
 import { useT } from "@/components/I18nProvider";
 import { createPuzzleGeometry } from "@/lib/puzzle/geometry";
 import { renderPuzzle } from "@/lib/puzzle/render";
@@ -381,7 +381,7 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
         }} />
       {props.hint?.type === "PREVIEW" && <PreviewOverlay image={image} label={t("jigsaw.hintPreview")} />}
       <p id="jigsaw-board-help" className="sr-only">{t("jigsaw.boardHelp")}</p>
-      {!props.readOnly && !complete && difficulty === "MASTER" && selectedGroup && !selectedGroup.anchored && <button type="button" aria-label={t("jigsaw.rotate")} title={t("jigsaw.rotate")} className="btn-primary absolute bottom-3 left-3 min-h-[60px] min-w-[60px] rounded-2xl !p-[12px] shadow-md" disabled={busy} onClick={rotateSelected}><RotateCw size={26} /></button>}
+      {!props.readOnly && !complete && difficulty === "MASTER" && selectedGroup && !selectedGroup.anchored && <RotateButton label={t("jigsaw.rotate")} disabled={busy} onClick={rotateSelected} />}
       {props.controls}
     </section>
   );
