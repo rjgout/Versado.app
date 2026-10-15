@@ -1,0 +1,51 @@
+{
+ "choruses": [],
+ "id": "nld:124",
+ "leadingChorus": null,
+ "musicCredit": "Leroy J. Robertson (1896–1971). © 1948 IRI",
+ "notices": [],
+ "number": 124,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 23:33, 46",
+  "Helaman 14:14–19"
+ ],
+ "source": {
+  "pageSha": "178383d3f3d40dc87739a1deffe845f82ecb4cbf782d6733db2e8cc623796c96",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/upon-the-cross-of-calvary",
+  "pdfSha": "c94e44bb0d9eb93cbee3b216fd66c886fd60464263eb678a0f35d346d7ed53a2",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/2b/2f/2b2f576dac4011ec86d6eeeeac1e93939f4ba10c/upon_the_cross_of_calvary_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Aan ’t houten kruis op Golgota hing eenmaal onze Heer,",
+    "verzegelde met zond’loos bloed zijn offer en zijn leer."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Aan ’t houten kruis stierf Hij voor ons en schonk de zekerheid",
+    "dat door zijn dood ontsloten is de weg naar zaligheid."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Aan ’t houten kruis stierf onze God, maar, stervend, bracht Hij voort",
+    "het wonder der verrijzenis, onz’ eeuw’ge nieuwgeboort’."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Plechtig",
+ "textCredit": "naar Vilate Raile (1890–1954). © 1948 IRI",
+ "title": "Aan ’t houten kruis op Golgota"
+}

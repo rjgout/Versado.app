@@ -1,0 +1,40 @@
+{
+ "choruses": [],
+ "id": "nld:197",
+ "leadingChorus": null,
+ "musicCredit": "Barbara A. McConochie (1940– ). © 1975 IRI",
+ "notices": [],
+ "number": 197,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Mosiah 2:22",
+  "Leer en Verbonden 59:23"
+ ],
+ "source": {
+  "pageSha": "d2819c2ec0d0d6d5cfc13210b0176a27b585157885e2e03e1b8fd0121d5a8bb7",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/keep-the-commandments",
+  "pdfSha": "effd8311f9553a7ce0d490827bdf6321884448d109fdfea08c11adb0c9e5d4b8",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/cc/df/ccdfab8fac3f11ec8f37eeeeac1e071f9ff78240/keep_the_commandments_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Wees toch gehoorzaam aan de geboden,",
+    "want dat is veilig, brengt vrede en rust.",
+    "God zendt dan zegen, Hij zendt dan zegen.",
+    "’t Woord van profeten: Wees toch gehoorzaam,",
+    "want dat brengt vrede en rust."
+   ],
+   "n": 1
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Rustig",
+ "textCredit": "naar Barbara A. McConochie (1940– ). © 1975 IRI",
+ "title": "Wees gehoorzaam aan de geboden"
+}

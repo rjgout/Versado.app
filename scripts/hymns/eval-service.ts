@@ -1,9 +1,11 @@
 // Metingen voor voorspel en zangbegin op synthetische "diensten" met bekende tijdlijn (voorspel, eventueel een
 // pauze, dan de samenzang). Uitvoer is Markdown voor docs/hymns/05-TEST-RESULTS.md.
-// Aanroep: npx tsx scripts/hymns/eval-service.ts [fase|herken]
+// Aanroep: npx tsx scripts/hymns/eval-service.ts [fase|herken|bibliotheek <nummers> <conditie-van-tot>]
 import { constantTempo, type SynthOptions } from "../../src/lib/hymns/eval/synth";
 import { POC_LIBRARY, listHymns } from "../../src/lib/hymns/library";
 import { HymnLiveEngine } from "../../src/lib/hymns/live";
+import { loadRecognitionBundle, loadResolvedHymn } from "../../src/lib/hymns/library/server";
+import { candidatesFromBundle } from "../../src/lib/hymns/recognize/candidates";
 import { SAMPLE_RATE, follow, makeService, type ServicePart } from "../../tests/helpers/hymnScenario";
 
 const what = process.argv[2] ?? "fase";
@@ -85,6 +87,39 @@ if (what === "herken") {
         }
       }
       cells.push(at === null ? "niet herkend" : wrong ? `VERKEERD (${engine.currentHymn?.number}) na ${at.toFixed(1)} s` : `${at.toFixed(1)} s`);
+    }
+    console.log(`| ${cond.name} | ${cells.join(" | ")} |`);
+  }
+}
+
+// Herkennen tegen de HELE bibliotheek in een synthetische dienst (voorspel, pauze, samenzang): de engine kiest zelf, de tekst
+// wordt pas opgehaald als de lofzang herkend is (bibliotheekmodus). Eerste uitspraak telt.
+if (what === "bibliotheek") {
+  const numbers = (process.argv[3] ?? "24,36,82").split(",").map(Number);
+  const [from, to] = (process.argv[4] ?? `1-${CONDITIONS.length}`).split("-").map(Number);
+  const candidates = candidatesFromBundle(loadRecognitionBundle());
+  console.log(`| Omstandigheid | ${numbers.join(" | ")} |`);
+  console.log(`|---|${numbers.map(() => "---").join("|")}|`);
+  for (const cond of CONDITIONS.slice(from - 1, to)) {
+    const cells: string[] = [];
+    for (const n of numbers) {
+      const target = loadResolvedHymn(n)!;
+      const sv = makeService(n, parts(cond, "heel+pauze", target.composition.totalBeats), {}, 1.5);
+      const engine = new HymnLiveEngine([]);
+      engine.setCandidates(candidates);
+      engine.startRecognizing();
+      let at: number | null = null;
+      let got: number | null = null;
+      for (let i = 0; i < sv.samples.length; i += 4096) {
+        engine.pushAudio(sv.samples.subarray(i, Math.min(sv.samples.length, i + 4096)), SAMPLE_RATE, Infinity);
+        const need = engine.state().needHymn;
+        if (need !== null) engine.registerHymn(loadResolvedHymn(need)!);
+        if (at === null && engine.currentStage === "following") {
+          at = (i + 4096) / SAMPLE_RATE - 1.5;
+          got = engine.currentHymn?.number ?? null;
+        }
+      }
+      cells.push(at === null ? "niet herkend" : got !== n ? `VERKEERD (${got}) na ${at.toFixed(1)} s` : `${at.toFixed(1)} s`);
     }
     console.log(`| ${cond.name} | ${cells.join(" | ")} |`);
   }

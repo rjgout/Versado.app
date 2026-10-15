@@ -1,0 +1,80 @@
+{
+ "choruses": [],
+ "id": "nld:1",
+ "leadingChorus": null,
+ "musicCredit": "George Careless (1839–1932)",
+ "notices": [],
+ "number": 1,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Jesaja 60:1–3",
+  "3 Nephi 16:7–20"
+ ],
+ "source": {
+  "pageSha": "70b12814576bbf2afbb3583b364a88069fe936267f3a0aad77bff9310f97b68e",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/the-morning-breaks",
+  "pdfSha": "afe64424f6997da3890415abfd7134ff620a09d7248d39af8d326979cd32a773",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e7/88/e788f665ac4011ec8ad8eeeeac1e0652a7a8869c/the_morning_breaks_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "De morgen daagt, de nacht vliedt heen,",
+    "zie, Zions vaandel wappert fier.",
+    "in glorie rijst die schone dag,",
+    "in glorie rijst die schone dag,",
+    "brengt vreugde voor Gods kind’ren hier."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "De wolk van dwaling trekt nu heen,",
+    "’t licht van Gods waarheid drijft haar voort.",
+    "De glans van deze laatste tijd,",
+    "de glans van deze laatste tijd",
+    "beschijnt elk volk in ieder oord."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Een engel daalde neer op aard’,",
+    "bracht ons het evangelie weer.",
+    "En Zion straalt met held’re glans,",
+    "en Zion straalt met held’re glans,",
+    "men hoort haar roem zoals weleer."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "De goede tijding hoort men nu,",
+    "in veler hart wordt zij geplant.",
+    "En zie, ’t verbondsvolk van de Heer,",
+    "en zie, ’t verbondsvolk van de Heer",
+    "vergadert in ’t beloofde land."
+   ],
+   "n": 4
+  },
+  {
+   "lines": [
+    "De eng’len Gods en ’t woord uit d’aard’",
+    "spreken tezaam, zoals voorspeld.",
+    "Hef aan een lied, zing Gode lof,",
+    "hef aan een lied, zing Gode lof,",
+    "wijl d’aard’ het hemels heil vermeldt!"
+   ],
+   "n": 5
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Juichend",
+ "textCredit": "naar Parley P. Pratt (1807–1857)",
+ "title": "De morgen daagt"
+}

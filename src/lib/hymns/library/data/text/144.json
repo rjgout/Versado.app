@@ -1,0 +1,69 @@
+{
+ "choruses": [],
+ "id": "nld:144",
+ "leadingChorus": null,
+ "musicCredit": "William J. Kirkpatrick (1831–1921); bew. Rosalee Elser, (1925– ). © 1980 Rosalee Elser. Gebruikt met toestemming. Het maken van kopieën voor eenmalig, niet-commercieel gebruik thuis of in de kerk is toegestaan.",
+ "notices": [],
+ "number": 144,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 2:7",
+  "Lucas 18:15–17"
+ ],
+ "source": {
+  "pageSha": "0af4412946540cc5e577039dc64c62d752c1ea2ad6af5f0b132acdddbcaa2b5d",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/away-in-a-manger",
+  "pdfSha": "06eddfb4c9e33360ea847dc52a1bdc18c4afae5a2fccf3460f94cbfbf192457a",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ac/23/ac23d7d6ac3f11ecbfd6eeeeac1e85cf1e163cb3/away_in_a_manger_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Geen wieg voor een Koning,",
+    "een kribbe alleen,",
+    "geen plaats in een woning",
+    "voor ’t Kindeke klein.",
+    "De sterren, zij straalden,",
+    "verspreidden hun pracht,",
+    "toen Jezus zou komen",
+    "in donkere nacht."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "De os en de ezel",
+    "hebt Gij wel gehoord,",
+    "toch heeft het uw vrede",
+    "en rust niet verstoord.",
+    "Ik bid U, Heer Jezus,",
+    "laat stralen het licht,",
+    "en houd zo mijn ogen",
+    "op U steeds gericht."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Blijf bij mij, Heer Jezus,",
+    "wijk niet van mijn zij!",
+    "Ik bid U, schenk immer",
+    "uw liefde aan mij.",
+    "Ach, dat ik mag worden",
+    "als ’n kindeke klein,",
+    "en uw heilige woning",
+    "eens waardig mag zijn."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar anonieme Engelse tekst, ca. 1883, Philadelphia.",
+ "title": "Geen wieg voor een Koning"
+}

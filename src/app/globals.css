@@ -520,6 +520,18 @@ nav[data-main-nav] a {
 /* Lofzangen: het actieve woord wordt vetter en krijgt de accentkleur, zonder dat woorden of regels
  * verschuiven. Het onzichtbare vette exemplaar in ::after houdt de breedte altijd op de vette maat; de
  * lege alternatieve tekst houdt het weg uit de toegankelijkheidsboom. */
+/* Rustige luisterindicator van de herkenning: geen percentage, alleen een zachte puls (uit bij verminderde beweging). */
+@keyframes hymn-listening-pulse {
+  0%, 100% { opacity: 0.45; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+.hymn-listening-dot {
+  animation: hymn-listening-pulse 1.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hymn-listening-dot { animation: none; }
+}
+
 .hymn-word {
   display: inline-block;
 }

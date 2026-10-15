@@ -1,0 +1,58 @@
+{
+ "choruses": [],
+ "id": "nld:93",
+ "leadingChorus": null,
+ "musicCredit": "Michael Finlinson Moody (1941– ). © 1985 IRI",
+ "notices": [],
+ "number": 93,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "1 Korintiërs 2:9–13",
+  "Alma 5:45–46"
+ ],
+ "source": {
+  "pageSha": "9da84f6c9880cca31a43be23d2abc847655abd5977c00b787448aceba5964c3f",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/testimony",
+  "pdfSha": "26baa9caf7b9b53fe611cd630df89a7c724700dde5669918398b609b05359f7e",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/db/43/db4307afac4011ec9f37eeeeac1e5aa5239e1657/testimony_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "De invloed van de Heil’ge Geest, uit woorden diep doorleefd,",
+    "heeeft mij tot U verheven, Heer, die ons het leven geeft."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Ik weet dat G’ in uw hemel zijt en dat uw Zoon regeert,",
+    "dat tot ons spreekt een waar profeet, die ons uw wegen leert."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Mijn ogen en mijn hart vervuld; de Geest schenkt overvloed.",
+    "O Heer, maak heel mijn leven nieuw, verblijf in mijn gemoed."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Getuigenis doorstroomt mijn hart, verzacht mijn zielenpijn,",
+    "en voor mijn blik ontvouwt zich kort uw hemelse domein."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bedachtzaam",
+ "textCredit": "naar Loren C. Dunn (1930–2001). © 1985 IRI",
+ "title": "Getuigenis"
+}

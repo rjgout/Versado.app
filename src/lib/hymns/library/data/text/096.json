@@ -1,0 +1,70 @@
+{
+ "choruses": [
+  [
+   "O, het bidden geeft steeds ruste,",
+   "nacht wordt dag door uw gebed;",
+   "wat het leven verontruste,",
+   "denk toch aan ’t gebed."
+  ]
+ ],
+ "id": "nld:96",
+ "leadingChorus": null,
+ "musicCredit": "William O. Perkins (1831–1902)",
+ "notices": [],
+ "number": 96,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 5:4, 13",
+  "Marcus 11:24–25"
+ ],
+ "source": {
+  "pageSha": "6a2a7e21e68f4bb2474326ad680202cfbb3cf0dd8c717959aac65e217f1b53ab",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/did-you-think-to-pray",
+  "pdfSha": "1ce738248fa9f383238aa00d2344f094f97f6e75ac88843d542be8c4b38a904c",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/cf/79/cf79e7a7ac4011ec90cceeeeac1e6e3daa2f2461/did_you_think_to_pray_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Voor g’ uw woning hadt verlaten,",
+    "dacht gij aan ’t gebed?",
+    "Badt gij in de naam des Heren",
+    "onheil van u af te weren,",
+    "waar g’ uw voet ook zet?"
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Toen uw hart met toorn vervuld was,",
+    "dacht gij aan ’t gebed?",
+    "Badt gij toen ook om genade,",
+    "te vergeven hem die ’t kwade",
+    "voor u had gezet?"
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Toen beproeving was gekomen,",
+    "dacht gij aan ’t gebed?",
+    "Toen uw ziel vol was van smarte,",
+    "vroegt gij balsem voor het harte",
+    "Hem, die helpt en redt?"
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bedachtzaam",
+ "textCredit": "naar Mary A. Pepper Kidder (1820–1905)",
+ "title": "Dacht gij aan ’t gebed?"
+}

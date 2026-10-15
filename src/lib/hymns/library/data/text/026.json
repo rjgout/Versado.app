@@ -1,0 +1,84 @@
+{
+ "choruses": [],
+ "id": "nld:26",
+ "leadingChorus": null,
+ "musicCredit": "Sylvanus Billings Pond (1792–1871)",
+ "notices": [
+  "bew. A. C. Smyth (1840–1909)"
+ ],
+ "number": 26,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Geschiedenis van Joseph Smith 1:14–20, 25",
+  "Jakobus 1:5"
+ ],
+ "source": {
+  "pageSha": "f00dafa2e719d4b3b3e0361e7f9019cde01631cef42c893b00f5194af35504e5",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/joseph-smiths-first-prayer",
+  "pdfSha": "f79fa0fcd196d43c81b7a210b7d4e5ec78951df87ab47ec85f207a2d8025b97f",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ad/ea/adea99c6ac4011eca75deeeeac1e9379a7ec0f21/joseph_smiths_first_prayer_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O, hoe lieflijk was de morgen,",
+    "helder blauw de hemelboog,",
+    "bijen gonsden, vogels zongen,",
+    "lentebloesems streelden ’t oog,",
+    "toen in ’t lommer van een bosje",
+    "Joseph tot de Heer zich boog,",
+    "toen in ’t lommer van een bosje",
+    "Joseph tot de Heer zich boog."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Need’rig smeekte hij om wijsheid,",
+    "’t was zijn eerste luid’ gebed,",
+    "toen door kwade, duist’re machten",
+    "hem het spreken werd belet.",
+    "Maar toch werd zijn vast vertrouwen",
+    "op de Here niet ontzet,",
+    "maar toch werd zijn vast vertrouwen",
+    "op de Here niet ontzet."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Plots’ling kwam een licht van boven,",
+    "heller dan de middag zon;",
+    "in een vuurkolom, zo heerlijk",
+    "dat hij ’t niet beschrijven kon,",
+    "stond een tweetal heil’ge Wezens,",
+    "God de Vader en de Zoon,",
+    "stond een tweetal heil’ge Wezens,",
+    "God de Vader en de Zoon."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "‘Joseph, dit is mijn Geliefde,",
+    "luister nu naar zijn gebod.’",
+    "Joseph, die zijn beê verhoord kreeg,",
+    "hoorde toe met stil genot.",
+    "O, wat vreugd gloeid’ in zijn boezem,",
+    "want zijn oog aanschouwde God,",
+    "o, wat vreugd gloeid’ in zijn boezem,",
+    "want zijn oog aanschouwde God."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Met blijdschap",
+ "textCredit": "naar George Manwaring (1854–1889)",
+ "title": "Joseph Smiths eerste gebed"
+}

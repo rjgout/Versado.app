@@ -1,0 +1,58 @@
+{
+ "choruses": [],
+ "id": "nld:87",
+ "leadingChorus": null,
+ "musicCredit": "Hans G. Nägeli (1773–1836); bew. Lowell Mason (1792–1872)",
+ "notices": [],
+ "number": 87,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "1 Johannes 5:3",
+  "Psalm 55:23"
+ ],
+ "source": {
+  "pageSha": "a8897c92825325859a2c9ef3d03198292ff5744778438c6c0d1c3f58daee4071",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/how-gentle-gods-commands",
+  "pdfSha": "3aff6714f78cdc8b5a82cd444e74c8a59faf715b595d676bd2e26ed01692e3d9",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/9e/0e/9e0eb1f4ac4011ec9974eeeeac1ef8b463fb9cc9/how_gentle_gods_commands_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Hoe mild is Godes woord, elk voorschrift en gebod!",
+    "Kom, werp uw lasten op de Heer, vertrouw aan Hem uw lot."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Hij, die met waakzaam oog zijn heil’gen hier aanschouwt,",
+    "wiens hand het gans heelal bestuurt, word’ onbegrensd vertrouwd."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Waarom die zware last van zorg op uw gemoed?",
+    "O, buig u voor de Vader neer, ontvang vertroosting zoet."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Zijn goedheid, eindeloos, staat vast, verandert niet.",
+    "’k Leg al mijn lasten voor Hem neer en zing een dankbaar lied."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vriendelijk",
+ "textCredit": "naar Philip Doddridge (1702–1751)",
+ "title": "Hoe mild is Godes woord"
+}

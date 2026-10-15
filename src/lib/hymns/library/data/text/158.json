@@ -1,0 +1,47 @@
+{
+ "choruses": [],
+ "id": "nld:158",
+ "leadingChorus": null,
+ "musicCredit": "Frank W. Asper (1892–1973). © 1948 IRI",
+ "notices": [],
+ "number": 158,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 86:6, 11"
+ ],
+ "source": {
+  "pageSha": "61b9c2ee013f44d2f6ab7feb490c52c56e965dddc72cf7bc8bf93b35dec98215",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/hear-thou-our-hymn-o-lord",
+  "pdfSha": "50bef711d8274eb1a043c0bd1511236161e79bd20840ad650ec27775419d9cb2",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b0/23/b023b669ac3f11ecb4a3eeeeac1ea26c06d5e4f5/hear_thou_our_hymn_our_lord_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O, hoor ons loflied, Heer,",
+    "als bede U gebracht.",
+    "Help ons uw heil’ge wil te doen",
+    "en geef ons van uw kracht."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Houdt Gij ons hart in gloed",
+    "met uw milddadig woord.",
+    "Verleen uw Geest ons ieder uur",
+    "en leid ons daag’lijks voort."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vurig",
+ "textCredit": "naar Frank W. Asper (1892–1973). © 1948 IRI",
+ "title": "O, hoor ons loflied, Heer"
+}

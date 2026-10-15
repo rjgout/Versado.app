@@ -1,0 +1,60 @@
+{
+ "choruses": [],
+ "id": "nld:98",
+ "leadingChorus": null,
+ "musicCredit": "William B. Bradbury (1816–1868), gew.",
+ "notices": [],
+ "number": 98,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 55:17–18, 23",
+  "Filippenzen 4:6–7"
+ ],
+ "source": {
+  "pageSha": "20f2faec7f16d6315a6fab56a4174e0ccc6885e4b3985eed28848ebfaa1d712b",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/sweet-hour-of-prayer",
+  "pdfSha": "448b3f96a263521542ed61fbeb65671af4d605e3932d486b1612e575604f99f3",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/36/28/3628563eac4011ecb4a3eeeeac1ea26ca02a3ad2/sweet_hour_of_prayer_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O zoete ure van gebed,",
+    "gij rukt mij uit der zorgen net",
+    "en doet mij aan mijns Vaders troon",
+    "genade vinden door zijn Zoon.",
+    "In tijden van verdriet en smart",
+    "vond ik vaak balsem voor het hart,",
+    "en werd des bozen wil belet",
+    "door u, gij ure van gebed,",
+    "en werd des bozen wil belet",
+    "door u, gij ure van gebed."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "O zoete ure van gebed,",
+    "mijn smeking brengt gij onverlet",
+    "tot Hem wiens trouw en lief’lijkheid",
+    "mijn ziel met zeek’re hoop verblijdt.",
+    "En daar Hij wil dat ik zijn stem",
+    "gelovig volg en bouw op Hem,",
+    "werp ’k heel mijn last op Hem, die redt,",
+    "in u, gij ure van gebed,",
+    "werp ’k heel mijn last op Hem, die redt,",
+    "in u, gij ure van gebed."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vredig",
+ "textCredit": "oorspronkelijke tekst toegeschreven aan William W. Walford (1772–1850)",
+ "title": "O zoete ure van gebed"
+}

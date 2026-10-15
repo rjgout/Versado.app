@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:133",
+ "leadingChorus": null,
+ "musicCredit": "Henri Abraham César Malan (1787–1864)",
+ "notices": [],
+ "number": 133,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "1 Korintiërs 15:20, 53–57",
+  "Lucas 24:33–34, 46–48"
+ ],
+ "source": {
+  "pageSha": "129b5265cea5d6fdca9471c5e4ccab76327ffe70ea3a8f47a53e8924cb79f7e4",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/a-shout-rings-out-a-joyful-voice",
+  "pdfSha": "1a9f49be88bc4ffce79ce07cef4f6312986ce606d98e33bdba4b67ba75229ef8",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/14/35/1435d764ac4011eca877eeeeac1e1ab3bdd74717/a_joyful_tone_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Daar juicht een toon, daar klinkt een stem,",
+    "die galmt door gans Jeruzalem.",
+    "Een heerlijk morgenlicht breekt aan,",
+    "de Zone Gods is opgestaan!"
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Geen graf hield Davids Zoon omkneld,",
+    "Hij overwon, die sterke Held.",
+    "Hij steeg uit ’t graf door eigen kracht,",
+    "want Hij is God, bekleed met macht."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Nu jaagt de dood geen angst meer aan,",
+    "want alles, alles is voldaan.",
+    "Wie met geloof op Jezus ziet,",
+    "die vreest voor dood of helle niet."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Want nu de Heer is opgestaan,",
+    "nu vangt het nieuwe leven aan;",
+    "een leven, door zijn dood bereid,",
+    "een leven in zijn heerlijkheid."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Blij",
+ "textCredit": "naar Eduard Gerdes (1821–1898)",
+ "title": "Daar juicht een toon"
+}

@@ -1,0 +1,75 @@
+{
+ "choruses": [],
+ "id": "nld:138",
+ "leadingChorus": null,
+ "musicCredit": "George F. Händel (1685–1759); bew. Lowell Mason (1792–1872)",
+ "notices": [],
+ "number": 138,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Alma 5:50",
+  "Psalm 97:1",
+  "Psalm 98:4–9"
+ ],
+ "source": {
+  "pageSha": "f8fe7c8e1a845764539cdb61b1589376b03b9e32e14c18e4eb63cb5360880e8a",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/joy-to-the-world",
+  "pdfSha": "631cab742b2441b3513b3ffca76809d6b40a2160355f3c849e6c77be695ac16b",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/22/23/22238836ab8011ec9974eeeeac1ef8b45cde9469/joy_to_the_world_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Juich, wereld, juich, de Heer ’s nabij,",
+    "en aard’, uw Vorst ontvang!",
+    "Dat ieder hart ontvank’lijk zij!",
+    "O, juich met d’ eng’lenzang,",
+    "o, juich met d’ eng’lenzang,",
+    "o, juich, o, juich met d’ eng’lenzang."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Juich, heil’gen, juich, begroet uw Heer,",
+    "die hier regeert eerlang!",
+    "Langs veld en beemd, rivier en meer",
+    "weergalm’ het lofgezang,",
+    "weergalm’ het lofgezang,",
+    "weergalm’, weergalm’ het lofgezang."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Zonde noch smart aanschouwt men er,",
+    "geen doorn ontsiert de grond.",
+    "Gods milde zegen gaat zo ver",
+    "alsof geen vloek bestond,",
+    "alsof geen vloek bestond,",
+    "alsof, alsof geen vloek bestond."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Juich, heil’gen, juich tot God omhoog,",
+    "nu Isr’els volk vermeert",
+    "als sterren aan de hemelboog",
+    "en God voortdurend eert,",
+    "en God voordurend eert,",
+    "en God, en God voortdurend eert."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Jubelend",
+ "textCredit": "naar Isaac Watts (1674–1748), bew. William W. Phelps (1792–1872)",
+ "title": "Juich, wereld, juich!"
+}

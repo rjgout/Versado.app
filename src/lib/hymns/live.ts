@@ -1,6 +1,6 @@
 import { ChromaExtractor, type FeatureFrame } from "./audio/features";
 import { HymnFollowSession, type FollowSnapshot, type SessionConfig } from "./follow/session";
-import { HymnRecognizer, type RecognitionState } from "./recognize/recognizer";
+import { HymnRecognizer, type RecognitionCandidate, type RecognitionState } from "./recognize/recognizer";
 import type { ResolvedHymn } from "./types";
 
 // Eén doorlopende luistersessie voor "Herken lofzang" én "Volgen". Er is één audiopijplijn (de microfoon en
@@ -31,6 +31,11 @@ export interface LiveState {
   snapshot: FollowSnapshot | null;
   /** Aantal frames dat nog op verwerking wacht (na een overgang). */
   backlog: number;
+  /**
+   * Bibliotheekmodus: de herkenning heeft een lofzang gekozen waarvan de tekst nog niet is geladen. De UI haalt hem op,
+   * meldt hem met registerHymn() en de engine volgt dan vanaf het geheugen (er gaat geen luistertijd verloren).
+   */
+  needHymn: number | null;
 }
 
 export interface LiveEngineOptions {
@@ -45,8 +50,23 @@ export interface LiveEngineOptions {
 
 const DEFAULT_BUFFER_SECONDS = 90;
 
+/** Eén kandidaat per unieke compositie; lofzangen met dezelfde melodie delen die kandidaat (de gebruiker kiest dan de tekst). */
+export function candidatesFromHymns(hymns: ResolvedHymn[]): RecognitionCandidate[] {
+  const byComposition = new Map<string, ResolvedHymn[]>();
+  for (const h of hymns) byComposition.set(h.composition.id, [...(byComposition.get(h.composition.id) ?? []), h]);
+  return [...byComposition.values()].map((group) => ({
+    id: group[0].composition.id,
+    number: group[0].number,
+    title: group[0].text.title,
+    composition: group[0].composition,
+    sharedWith: group.slice(1).map((h) => ({ number: h.number, title: h.text.title })),
+  }));
+}
+
 export class HymnLiveEngine {
-  private readonly hymns: ResolvedHymn[];
+  private hymns: ResolvedHymn[];
+  private candidates: RecognitionCandidate[] | null = null;
+  private needHymn: number | null = null;
   private readonly opts: Required<Omit<LiveEngineOptions, "session">> & { session: Partial<SessionConfig> };
   private extractor: ChromaExtractor | null = null;
   private recognizer: HymnRecognizer | null = null;
@@ -70,6 +90,20 @@ export class HymnLiveEngine {
       stableSeconds: options.stableSeconds ?? 2,
       autoFollow: options.autoFollow ?? true,
     };
+  }
+
+  /** Bibliotheekmodus: herken tegen deze kandidaten (alle gevalideerde composities) in plaats van tegen de geladen lofzangen. */
+  setCandidates(candidates: RecognitionCandidate[]): void {
+    this.candidates = candidates;
+  }
+
+  /** Maakt een (inmiddels geladen) lofzang bekend zodat de engine hem kan volgen. */
+  registerHymn(hymn: ResolvedHymn): void {
+    if (!this.hymns.some((h) => h.number === hymn.number)) this.hymns = [...this.hymns, hymn];
+    if (this.needHymn === hymn.number && this.stage === "recognizing") {
+      this.needHymn = null;
+      this.followHymn(hymn.number, "auto");
+    }
   }
 
   get currentStage(): LiveStage {
@@ -97,7 +131,8 @@ export class HymnLiveEngine {
     this.stage = "recognizing";
     this.suggestionId = null;
     this.queueAt = 0;
-    this.recognizer = new HymnRecognizer(this.hymns.map((h) => ({ id: h.composition.id, number: h.number, title: h.text.title, composition: h.composition })));
+    this.needHymn = null;
+    this.recognizer = new HymnRecognizer(this.candidates ?? candidatesFromHymns(this.hymns));
     // Wat al gehoord is, telt mee: de herkenner loopt eerst het geheugen door (binnen het tijdsbudget).
     this.queue = [...this.buffer];
   }
@@ -106,6 +141,7 @@ export class HymnLiveEngine {
   followHymn(number: number, choice: HymnChoice = "manual"): void {
     const hymn = this.hymns.find((h) => h.number === number);
     if (!hymn) return;
+    this.needHymn = null;
     this.hymn = hymn;
     this.choice = choice;
     this.stage = "following";
@@ -147,6 +183,7 @@ export class HymnLiveEngine {
     this.choice = null;
     this.stage = "idle";
     this.suggestionId = null;
+    this.needHymn = null;
     this.lastRecognition = null;
   }
 
@@ -211,15 +248,25 @@ export class HymnLiveEngine {
     // Alleen automatisch volgen bij een duidelijk voorstel dat even stabiel blijft. Bij meerdere even goede
     // kandidaten ("ambiguous") of te weinig bewijs kiest de engine niet zelf.
     if (state.status === "identified" && state.suggestion) {
+      // Dezelfde melodie hoort bij meerdere lofzangen: de muziek kan de tekst niet bepalen, de gebruiker kiest.
+      if (state.suggestion.sharedWith.length > 0) return false;
       if (this.suggestionId !== state.suggestion.id) {
         this.suggestionId = state.suggestion.id;
         this.suggestionSince = frame.time;
       } else if (frame.time - this.suggestionSince >= this.opts.stableSeconds) {
+        if (!this.hymns.some((h) => h.number === state.suggestion?.number)) {
+          // bibliotheekmodus: de tekst moet eerst worden opgehaald; de herkenner blijft intussen luisteren
+          this.needHymn = state.suggestion.number;
+          return false;
+        }
         // followHymn zet de wachtrij opnieuw; de huidige frame zit al in het geheugen en komt daar dus in terug
         this.followHymn(state.suggestion.number, "auto");
         return true;
       }
-    } else this.suggestionId = null;
+    } else {
+      this.suggestionId = null;
+      this.needHymn = null;
+    }
     return false;
   }
 
@@ -231,6 +278,7 @@ export class HymnLiveEngine {
       recognition: this.stage === "recognizing" ? (this.recognizer?.state() ?? this.lastRecognition) : null,
       snapshot: this.session?.snapshotNow ?? null,
       backlog: this.backlog,
+      needHymn: this.needHymn,
     };
   }
 }

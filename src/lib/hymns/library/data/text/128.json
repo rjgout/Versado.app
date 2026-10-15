@@ -1,0 +1,67 @@
+{
+ "choruses": [],
+ "id": "nld:128",
+ "leadingChorus": null,
+ "musicCredit": "George Careless (1839–1932)",
+ "notices": [],
+ "number": 128,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Matteüs 27:35, 45, 51",
+  "Matteüs 28:5–6",
+  "Mosiah 3:7–10"
+ ],
+ "source": {
+  "pageSha": "97aa3cff850f9c899635592e24065fcb5ff59167f864a11832761f83ea7022e1",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/he-died-the-great-redeemer-died",
+  "pdfSha": "185c606a2696f2e6fb9252dba93af9d51fe2d5a943c404e121627c366ec00712",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/22/1f/221fb793ab8011eca698eeeeac1eb6af9ce4c273/he_died_the_great_redeemer_died_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Hij stierf! De grote Redder stierf,",
+    "en Isr’els dochters weenden luid.",
+    "De hemel werd in nacht gehuld,",
+    "en d’aarde brak in beven uit."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Komt, heil’gen komt en stort een traan",
+    "voor Hem die willig droeg uw last.",
+    "Hij stortte zijn onschuldig bloed,",
+    "waardoor Hij van de zond’ u wast."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "De Heer des hemels stierf voor ons,",
+    "met liefd’ en smart oneindig groot.",
+    "Maar o, wat jubel werd gehoord",
+    "toen Hij verrees na kruis en dood."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Des levens Heer verliet het graf,",
+    "Hem houden kon des doods macht niet.",
+    "Een eng’lenheer geleidde hem",
+    "en zong Hem toe een welkomstlied."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Innig",
+ "textCredit": "naar Isaac Watts (1674–1748)",
+ "title": "Hij stierf! De grote Redder stierf"
+}

@@ -1,0 +1,53 @@
+{
+ "choruses": [
+  [
+   "Ja, ons gezin kan altijd zo blijven door Vaders mooie plan.",
+   "Het is toch o zo fijn om bij elkaar te zijn,",
+   "en de Heer vertelt ons hoe dat kan,",
+   "de Heer vertelt ons hoe dat kan."
+  ]
+ ],
+ "id": "nld:204",
+ "leadingChorus": null,
+ "musicCredit": "Vanja Y. Watkins (1938– ). © 1980 IRI",
+ "notices": [],
+ "number": 204,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 138:47–48",
+  "Alma 37:35"
+ ],
+ "source": {
+  "pageSha": "edf334b3286e4139ac5c9fad2b442eecc0ef5ee3ceec26c72bc878b3bde36fd8",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/families-can-be-together-forever",
+  "pdfSha": "2d1bbb96b2e2294a961a60ff68b2cbae3c0208580055a6d30b23af2de5549ab3",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/aa/1e/aa1e44e3ac3f11ec8960eeeeac1ef785290052b4/families_can_be_together_forever_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "’k Hoor bij een liefderijk gezin, zij houden veel van mij.",
+    "’k Wil altijd met hen samen zijn tot in de eeuwigheid."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "’k Zorg ervoor dat ik nu als kind mij heel goed voorbereid,",
+    "dat ik kan trouwen in Gods tempel voor de eeuwigheid."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "naar Ruth Muir Gardner (1927–1999). © 1980 IRI",
+ "title": "Ons gezin kan eeuwig zijn"
+}

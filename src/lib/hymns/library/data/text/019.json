@@ -1,0 +1,59 @@
+{
+ "choruses": [],
+ "id": "nld:19",
+ "leadingChorus": null,
+ "musicCredit": "Henry A. Tuckett (1852–1918); bew. Evan Stephens (1854–1930)",
+ "notices": [],
+ "number": 19,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 107:22"
+ ],
+ "source": {
+  "pageSha": "94c36a58375b3a4e0a7698cc5dd7ea38069a17bf0a81a963973369ff7a97b5a7",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/we-ever-pray-for-thee",
+  "pdfSha": "f790cd7766f370eb1793665d2e5227dd05352f1353c48cd828a69570b76bf31e",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/9e/95/9e9545dfac4011ec884feeeeac1e94ef04dedf02/we_ever_pray_for_thee_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Wij bidden steeds voor u, dierb’re profeet,",
+    "dat u Gods milde zorg rondom u weet.",
+    "Als leeftijd rimpels groeft in uw gezicht,",
+    "moog’ het dan stralen van innerlijk licht,",
+    "moog’ het dan stralen van innerlijk licht."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Wij bidden steeds voor u, met heel ons hart,",
+    "dat u in ’s Heren werk immer volhardt;",
+    "dat w’in uw voetspoor gaan van dag tot dag,",
+    "dat ons een heilig licht voortleiden mag,",
+    "dat ons een heilig licht voortleiden mag."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Wij bidden steeds voor u met warm gevoel,",
+    "in d’eenvoud van een kind en met dit doel",
+    "dat Gods voorzienigheid met u zal gaan,",
+    "dat Hij met alle goeds vult uw bestaan,",
+    "dat Hij met alle goeds vult uw bestaan."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Innig",
+ "textCredit": "naar Evan Stephens (1854–1930)",
+ "title": "Wij bidden steeds voor u"
+}

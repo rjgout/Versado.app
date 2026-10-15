@@ -1,0 +1,75 @@
+{
+ "choruses": [
+  [
+   "Nimmer, nimmer, nimmer de zonde verpand.",
+   "Immer, immer, immer beloften gestand."
+  ]
+ ],
+ "id": "nld:48",
+ "leadingChorus": null,
+ "musicCredit": "Ebenezer Beesley (1840–1906)",
+ "notices": [],
+ "number": 48,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 119:10–11",
+  "Leer en Verbonden 14:7"
+ ],
+ "source": {
+  "pageSha": "048a376308c5ec2226cb948924841efc0f948e9d6f9c696e17a310c1ab60bf5e",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/god-of-our-fathers-we-come-unto-thee",
+  "pdfSha": "d8521af0d70d1ba50bc97b8125c687a4f81cfe24000aabc4dcec887282e3b13f",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ae/30/ae30a393ac4011ecb4a3eeeeac1ea26c88033662/god_of_our_fathers_we_come_unto_thee_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "God onzer vaad’ren, U roepen wij aan,",
+    "kind’ren van ’t volk dat uw woord heeft verstaan.",
+    "Geef dat ons hart met uw heilig vuur brand’,",
+    "nimmer de zonde verpand."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Dankbaar voor alles waarvan G’ons voorziet,",
+    "loven en prijzen wij U in ons lied.",
+    "Leidsman en Gids, laat ons houden uw hand,",
+    "nimmer de zonde verpand."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Geest’lijke gaven versieren uw kerk;",
+    "Zion blijft bloeien, wordt glansrijk en sterk.",
+    "’t Slagwoord luidt: Blijf in de heilige band,",
+    "nimmer de zonde verpand."
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Sterk in de strijd door de kracht die Gij schenkt,",
+    "streven wij voorwaarts naar ’t doel dat ons wenkt:",
+    "glorie en heil in het hemelse land,",
+    "nimmer de zonde verpand."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Resoluut",
+ "textCredit": "naar Charles W. Penrose (1832–1925)",
+ "title": "God onzer vaad’ren, U roepen wij aan"
+}

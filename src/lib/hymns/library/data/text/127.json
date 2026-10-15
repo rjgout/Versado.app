@@ -1,0 +1,93 @@
+{
+ "choruses": [],
+ "id": "nld:127",
+ "leadingChorus": null,
+ "musicCredit": "George Careless (1839–1932)",
+ "notices": [],
+ "number": 127,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 18:11",
+  "Lucas 22:42",
+  "Lucas 23:46"
+ ],
+ "source": {
+  "pageSha": "8d1c99abee51796c3d7dec7369fdc5643993a671880ace4937153292245a93e2",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/behold-the-great-redeemer-die",
+  "pdfSha": "195ba383f6b4839ceaffa80cf439392b33f80eb20b674fd5ceb27f2b066cbd61",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/27/f4/27f42adcac4011ec9f37eeeeac1e5aa5cb98e580/behold_the_great_redeemer_die_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Aanschouw, de grote Redder stierf,",
+    "bevredigd’ een gebroken wet,",
+    "waardoor verzoening Hij verwierf,",
+    "waardoor verzoening Hij verwierf,",
+    "en ons van dood en zonde redt."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Hij werd door snoodaards eens gehoond;",
+    "zijn hand en voet en zij doorboord.",
+    "Met doornen werd zijn hoofd gekroond,",
+    "met doornen werd zijn hoofd gekroond,",
+    "wijl smaad en laster werd gehoord."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Hoewel in doodstrijd Hij daar hing,",
+    "uitte zijn mond geen enk’le klacht.",
+    "Zijn Vaders wil en ordening,",
+    "zijn Vaders wil en ordening",
+    "heeft Hij ten einde toe volbracht."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "‘O, spaar die bitt’re beker Mij.",
+    "Niet mijn wil, Heer, uw wil geschied’.",
+    "’t Eind van mijn taak is nu nabij,",
+    "’t eind van mijn taak is nu nabij;",
+    "ontvang mijn geest, die tot U vliedt.’"
+   ],
+   "n": 4
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Hij stierf, en donker werd de lucht",
+    "uit schaamte voor dit gruw’lijk lot;",
+    "ook heel de schepping slaakt’ een zucht,",
+    "ook heel de schepping slaakt’ een zucht:",
+    "Hij is gestorven, onze God."
+   ],
+   "n": 5
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Hij leeft, Hij leeft. In need’righeid",
+    "nemen wij brood en water rein.",
+    "Als heil’gen in deez’ laatste tijd,",
+    "als heil’gen in deez’ laatste tijd",
+    "willen wij Hem gehoorzaam zijn."
+   ],
+   "n": 6
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar Eliza R. Snow (1804–1887)",
+ "title": "Aanschouw, de grote Redder stierf"
+}

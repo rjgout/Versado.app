@@ -1,0 +1,72 @@
+{
+ "choruses": [],
+ "id": "nld:152",
+ "leadingChorus": null,
+ "musicCredit": "toegeschreven aan James Lucas, geb. 1726",
+ "notices": [],
+ "number": 152,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "2 Timoteüs 4:7–8",
+  "Matteüs 25:21 (14–30)"
+ ],
+ "source": {
+  "pageSha": "a3fb9a3949aae6d8c0b274baed17ef55b5e6744909608a6f4be24c755893a588",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/come-let-us-anew",
+  "pdfSha": "38c8fdfbe7bcf1b918612bb3846fe4b606e596ced4c7b02a2d84cbc92fbab570",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e6/02/e60225ecac3f11ecb848eeeeac1e8465867f8f3a/come_let_us_anew_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Kom, de reis nu hervat,",
+    "voortgegaan op het pad",
+    "van ’t huidige jaar,",
+    "en nooit blijven staan tot de Meester is daar.",
+    "Wat zijn wil ons ook vraagt,",
+    "laat ons ’t doen onversaagd.",
+    "Kom, ontplooi elk talent",
+    "met de hoop en ’t geduld die de liefde slechts kent,",
+    "met de hoop en ’t geduld die de liefde slechts kent."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Ons leven, een droom,",
+    "de tijd als een stroom,",
+    "gaan spoedig voorbij",
+    "en alles vliedt heen, niets houdt stil voor u of mij.",
+    "Ieder ogenblik vlucht",
+    "in het ijle der lucht.",
+    "Het millennium Gods",
+    "komt zeer snel naderbij en d’ oneindigheid is daar,",
+    "komt zeer snel naderbij en d’ oneindigheid is daar."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "O, getuig’ in het uur",
+    "van zijn komst elk vol vuur:",
+    "Mijn strijd is volbracht,",
+    "en het werk is voltooid dat door U werd verwacht.",
+    "Dat dan worde gehoord",
+    "dit gezegende woord:",
+    "U was kloek in de strijd,",
+    "ga de vreugde thans in, in mijn rijk u bereid,",
+    "ga de vreugde thans in, in mijn rijk u bereid."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Resoluut",
+ "textCredit": "naar Charles Wesley (1707–1788)",
+ "title": "Kom, de reis nu hervat"
+}

@@ -1,0 +1,82 @@
+{
+ "choruses": [],
+ "id": "nld:90",
+ "leadingChorus": null,
+ "musicCredit": "John Longhurst (1940– ). © 1985 IRI",
+ "notices": [],
+ "number": 90,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "2 Nephi 25:23, 26, 29",
+  "Mormon 7:5–7"
+ ],
+ "source": {
+  "pageSha": "8432029fb7c1639e074751b6b868f65e13022e1f61ed4908e208f37433934200",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/i-believe-in-christ",
+  "pdfSha": "48f7e82b4fb1d87163a61f2b7697c6896cb7ff456dbfdbb59413749e8544c4a3",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/d7/ad/d7ad5dadac4011eca5e7eeeeac1e4f8710de5577/i_believe_in_christ_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Christus is mijn Heer, mijn hemelse Heer!",
+    "Met heel mijn hart zing ’k Hem ter eer;",
+    "verhef in lof en dank mijn stem,",
+    "met grote vreugd belijd ik Hem.",
+    "Christus is mijn Heer, Hij is de Zoon,",
+    "op aarde maakte Hij zijn woon;",
+    "genas de zieken, sloeg de dood,",
+    "zijn heil’ge naam zij steeds geloofd."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Christus is mijn Heer, zijn naam is groot!",
+    "Als mens werd Hij het levensbrood",
+    "om alle volken, soms verhard,",
+    "te redden uit hun zond’ en smart.",
+    "Christus is mijn Heer, die immer leeft;",
+    "kreeg alles wat de Vader heeft.",
+    "’Kom, volg Mij na,’ spoort Hij ons aan,",
+    "’dat waar Ik ben ook gij zult gaan.’"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Christus is mijn Heer, Hij is mijn God!",
+    "Gewillig volg ik zijn gebod.",
+    "Ik buig mij voor zijn aangezicht,",
+    "voor Hem, de Bron van ’t levenslicht.",
+    "Christus is mijn Heer, Hij maakt mij vrij,",
+    "uit Satans greep verlost Hij mij;",
+    "en eens zal ik voor immermeer",
+    "bij Hem zijn in zijn heil’ge sfeer."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Christus is mijn Heer die voor mij pleit,",
+    "Hij maakt mijn dromen werk’lijkheid;",
+    "en als ’k volhard, in leed en pijn,",
+    "spreekt Hij: ’Eens zult gij koning zijn.’",
+    "Christus is mijn Heer; wat ook geschiedt,",
+    "ik win de prijs die Hij ons biedt",
+    "als Hij op aarde wederkeert",
+    "en heel het mensdom dan regeert."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Innig",
+ "textCredit": "naar Bruce R. McConkie (1915–1985). © 1972 IRI",
+ "title": "Christus is mijn Heer"
+}

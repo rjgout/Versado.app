@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:198",
+ "leadingChorus": null,
+ "musicCredit": "Clara W. McMaster (1904–1997). © 1958 IRI",
+ "notices": [],
+ "number": 198,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Jesaja 2:5",
+  "Efeziërs 5:8"
+ ],
+ "source": {
+  "pageSha": "8e1c62999d5a5fd71aa9867ccce6447c97705d57e6f83ddcede2eece433e7fb2",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/teach-me-to-walk-in-the-light",
+  "pdfSha": "8f641172da5eaad8fd082cdbabda79389b077ed0388e42f0f928110820906e8c",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/af/f7/aff7c32bac3f11ec86d6eeeeac1e9393a7ca08ac/teach_me_to_walk_in_the_light_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Leer mij te wand’len in ’t licht van de Heer;",
+    "leer mij te bidden tot Hem altijd weer",
+    "dat ik mijn oog op het goede steeds richt.",
+    "Leer mij, leer mij te wand’len in ’t licht."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Laat ons tezamen toch leren, mijn kind,",
+    "van zijn geboden, ja, dat Hij ons mint,",
+    "tot wij verschijnen voor zijn aangezicht,",
+    "altijd, altijd te wand’len in ’t licht."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Hemelse Vader, wij danken u zeer",
+    "voor uwe leiding en liefde zo teer.",
+    "Dankbaar tot U is ons loflied gericht,",
+    "blij nu, blij nu, wij wand’len in ’t licht."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Als een gebed",
+ "textCredit": "naar Clara W. McMaster (1904–1997). © 1958 IRI",
+ "title": "Leer mij te wand’len in ’t licht van de Heer"
+}

@@ -1,0 +1,94 @@
+{
+ "choruses": [],
+ "id": "nld:53",
+ "leadingChorus": null,
+ "musicCredit": "toegeschreven aan J. Ellis, ca. 1889",
+ "notices": [],
+ "number": 53,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Jesaja 41:10",
+  "Jesaja 43:2–5",
+  "Helaman 5:12"
+ ],
+ "source": {
+  "pageSha": "e1f9b46bc1b0b8ef984089881732a9a0ccd0d0ecb32666ffe5b760c12e0d9075",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/how-firm-a-foundation",
+  "pdfSha": "84b9e2f13b640891eaa7e5d6e34eb7dbcc8cb03bf84ec86f3bd2aeb300fadbe0",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/24/bc/24bcf7a8ab8011ecbc03eeeeac1e8c5bb910bab2/how_firm_a_foundation_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O, vast als een rotssteen is Gods heilig woord!",
+    "Geeft acht, volgt het na, gij die ’t reeds hebt gehoord.",
+    "Wat meer kan Hij zeggen dan Hij heeft gedaan?",
+    "O, sluit u bij Jezus, o, sluit u bij Jezus,",
+    "o, sluit u bij Jezus, de Redder, toch aan."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "In iedere toestand, ’t zij ziek of gezond,",
+    "als armoed’ u zoekt, of geluk gij hier vondt,",
+    "te huis of op weg, of op land, zee of meer,",
+    "naar uwe behoefte, naar uwe behoefte,",
+    "naar uwe behoefte, zo geeft u de Heer."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Vat moed! Ik ben met u, o, weest niet verschrikt,",
+    "want Ik ben uw God die uw lot hier beschikt.",
+    "Ik sterk u en help u en waarschuw voor ’t kwaad,",
+    "als gij vol vertrouwen, als gij vol vertrouwen,",
+    "als gij vol vertrouwen Mij nimmer verlaat."
+   ],
+   "n": 3
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Als voor diepe waat’ren gij eens komt te staan,",
+    "weet dat Ik een weg door de kolken u baan.",
+    "Ik blijf uw Beschermer, uw eeuwige Borg,",
+    "en wijd tot uw welzijn, en wijd tot uw welzijn,",
+    "en wijd tot uw welzijn uw smart’lijkste zorg."
+   ],
+   "n": 4
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Als vurige pijlen verstoren uw vreê,",
+    "dan gaat mijn genâ in de strijd met u mee.",
+    "De vlam zal niet deren, maar tot uw behoud",
+    "uw smetten verwijd’ren, uw smetten verwijd’ren,",
+    "uw smetten verwijd’ren en zuiv’ren uw goud."
+   ],
+   "n": 5
+  },
+  {
+   "belowMusic": true,
+   "lines": [
+    "Als door bitter lijden ik u roep te gaan,",
+    "en gij veel verdriet ondervindt op uw paân,",
+    "zo zal ik in smarten van u geenszins vliên,",
+    "maar bijstand en hulpe, maar bijstand en hulpe,",
+    "maar bijstand en hulpe in kommer u biên."
+   ],
+   "n": 6
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Met overtuiging",
+ "textCredit": "oorspronkelijke tekst toegeschreven aan Robert Keen, ca. 1787",
+ "title": "O, vast als een rotssteen"
+}

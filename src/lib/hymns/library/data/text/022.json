@@ -1,0 +1,67 @@
+{
+ "choruses": [],
+ "id": "nld:22",
+ "leadingChorus": null,
+ "musicCredit": "William Croft (1677–1727 )",
+ "notices": [],
+ "number": 22,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 90:1–2",
+  "Psalm 91:1–2",
+  "Psalm 48:15"
+ ],
+ "source": {
+  "pageSha": "0adcd9293c24a244015b3cb66f857c542e7ae7f43f0e219a76bd86ee52358d0a",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/o-god-our-help-in-ages-past",
+  "pdfSha": "49bea992ab26ad8c8fc1a5752a0a222f81c37d24c16a4c70b450120dc64462e5",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/24/72/24728148ab8011ec9974eeeeac1ef8b450fde1e8/o_god_our_help_of_ages_past_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "O God, mijn steun en toeverlaat,",
+    "mijn hoop in eeuwigheid,",
+    "mijn toevlucht bij het dreigend kwaad,",
+    "mijn rots van zekerheid."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "De schaduw van uw troon bedekt",
+    "als schild mijn huis en haard.",
+    "Uw arm, in almacht uitgestrekt,",
+    "is d’arm die mij bewaart."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Eer Gij deez’ aard’ hadt voortgebracht,",
+    "waart Gij, o Vader, God.",
+    "Omgeven door uw scheppingspracht",
+    "stuurt Gij des mensen lot."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "O God, mijn steun en toeverlaat,",
+    "mijn hoop in eeuwigheid,",
+    "weest Gij mijn kracht die nooit vergaat,",
+    "mijn gids tot zaligheid."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Gedragen",
+ "textCredit": "naar Isaac Watts (1674–1748)",
+ "title": "O God, mijn steun en toeverlaat"
+}

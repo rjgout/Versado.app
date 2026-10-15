@@ -1,0 +1,67 @@
+{
+ "choruses": [
+  [
+   "Want al het beloofde wordt eenmaal gegeven;",
+   "der heiligen woonplaats zal Zion toch zijn,",
+   "en wat niet uit God is zal zeker verdwijnen,",
+   "het zal op deez’ aard’ als daarboven eens zijn."
+  ]
+ ],
+ "id": "nld:3",
+ "leadingChorus": null,
+ "musicCredit": "Henry A. Tucker, ca. 1863",
+ "notices": [],
+ "number": 3,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Mozes 7:61–67",
+  "Geloofsartikelen 1:10"
+ ],
+ "source": {
+  "pageSha": "68142380ce41d54e62d48ff5466b1a143bd8f39ccb2470049a41198d7d74f051",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/now-let-us-rejoice",
+  "pdfSha": "2e8dde27b9f39ba86e57799e3942ecab740253aeb2de66317f992d8d612ed552",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/25/2c/252c3450ab8011ecad08eeeeac1e93a7cf46c226/now_let_us_rejoice_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "O volheid van zegen, de dag der bevrijding",
+    "van zondige afval van ’t goddelijk woord!",
+    "De volk’ren vernemen de heuglijke tijding",
+    "dat eind’lijk de dag van zijn wederkomst gloort."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Als bergen verzinken en dalen verrijzen",
+    "en niemand in nood meer t’ontkomen vermag,",
+    "dan zullen de bozen zeer sidd’ren en beven,",
+    "maar wij zien verheugd naar die komende dag."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Wij danken de Here voor zijn openbaring,",
+    "ze voert ons steeds veilig door lijden en nood.",
+    "In storm en gevaren zorgt Hij voor bewaring,",
+    "en Hij overwint aan het eind hel en dood."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "naar William W. Phelps (1792–1872)",
+ "title": "O volheid van zegen"
+}

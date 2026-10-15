@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:4",
+ "leadingChorus": null,
+ "musicCredit": "Alexander Schreiner (1901–1987)",
+ "notices": [],
+ "number": 4,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Johannes 8:32",
+  "Leer en Verbonden 50:24–25"
+ ],
+ "source": {
+  "pageSha": "b75bb9724ae673bbe402b17f597205fdaaefa5defc94537fbfcc4545260180dd",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/truth-eternal",
+  "pdfSha": "94ced1d1050dac84ef23a30f6285556e74546c4eeb2adcb979c213037de049aa",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/eb/d6/ebd6a5a4ac4011eca993eeeeac1e41515325583e/truth_eternal_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Waarheid, woord uit hoger sfeer,",
+    "toon uw volheid van weleer!",
+    "Breek de ketens van de geest,",
+    "lang in duisternis geweest."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Waarheid, weer op aard’ gebracht,",
+    "smeed een koninklijk geslacht",
+    "uit ’t verbondsvolk van de Heer,",
+    "dat met Hem eens hier regeer’."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Waarheid gaat verwinnend voort",
+    "tot elk mens haar heeft gehoord.",
+    "Onveranderd door de tijd",
+    "straalt haar licht in eeuwigheid."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Plechtig",
+ "textCredit": "naar Parley P. Pratt (1807–1857)",
+ "title": "Waarheid, woord uit hoger sfeer"
+}

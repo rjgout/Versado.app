@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:172",
+ "leadingChorus": null,
+ "musicCredit": "Lyall J. Gardner (1926– ). © 1985 IRI",
+ "notices": [],
+ "number": 172,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 42:6",
+  "Matteüs 24:14"
+ ],
+ "source": {
+  "pageSha": "fef864feca08041ce2dfe5649a498228f0c7c91b74a76c4f6424fb633f5fd73e",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/go-forth-with-faith",
+  "pdfSha": "764a1e36ab0f13c119129df34f9f8723ae1e061208b9e3cff086bdd3a7a2f33c",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/ae/e4/aee4f39aac3f11ec86d6eeeeac1e939384a082af/go_forth_with_faith_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Ga heen, getuig met sterk geloof van Christus, onze Heer;",
+    "dat Hij Gods Eerstgeboor’ne is, verbreid zijn schone leer.",
+    "Ga heen met hoop en goede moed, verkondig ’t heerlijk woord",
+    "dat God onz’ eeuw’ge Vader is en ’t mensdom Hem behoort."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Ga heen, getuig met need’righeid van ’t eeuwige gezin:",
+    "wie trouw blijft, treedt met dierbaren de hoogste hemel in.",
+    "Ga heen en werk met al uw kracht, leg zelfzucht naast u neer",
+    "en proef de vreugd van dienstbaarheid aan Christus, onze Heer."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Ga heen, getuig met grote macht van ’t evangelieplan;",
+    "dat ieder mens door Jezus Christus zalig worden kan.",
+    "Ga heen en predik vrede, deugd en liefde overal,",
+    "opdat een ieder die ’t aanvaardt de Here loven zal."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Energiek",
+ "textCredit": "naar Ruth M. Gardner (1927–1999). © 1985 IRI",
+ "title": "Ga heen en getuig"
+}

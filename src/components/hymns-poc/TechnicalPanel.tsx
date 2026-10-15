@@ -6,6 +6,7 @@ import type { LiveState } from "@/lib/hymns/live";
 import { focusRing } from "@/components/versado/styles";
 import { COPY, MIC_TEXT, RECOGNITION_TEXT, SYNC_TEXT } from "./copy";
 import { formatPosition } from "./viewModel";
+import LibraryReportPanel from "./LibraryReportPanel";
 
 // Ontwikkelaarsgegevens voor de lopende praktijktesten. Alleen voor beheerders en standaard dicht; de gewone
 // meezingweergave blijft er rustig van. Niets hiervan verlaat het toestel.
@@ -34,6 +35,7 @@ export default function TechnicalPanel({ micState, live, testProgress, testAs, o
   const maxEvidence = Math.max(70, ...(r?.ranking.map((x) => x.evidence) ?? [0]));
   return (
     <div className="space-y-4 text-sm" data-hymns-technical>
+      <LibraryReportPanel />
       <dl className="space-y-1">
         <Row k="Microfoon" v={MIC_TEXT[micState]} />
         <Row k="Fase" v={live.stage === "idle" ? "niet gestart" : live.stage === "recognizing" ? "herkennen" : `volgen (${live.choice === "auto" ? "automatisch gekozen" : "handmatig gekozen"})`} />

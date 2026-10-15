@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:97",
+ "leadingChorus": null,
+ "musicCredit": "John B. Dykes (1823–1876)",
+ "notices": [],
+ "number": 97,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 104:34",
+  "Enos 1:27"
+ ],
+ "source": {
+  "pageSha": "86e00bddb51b99c61ddc9bbf7dc509c053221db76178b227b0bb0a98bd34e202",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/jesus-the-very-thought-of-thee",
+  "pdfSha": "953687a125de63c11af8c9fc4dbb17c08a67392094320324e7a30b2462b1389c",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/72/c4/72c46263ac4011eca993eeeeac1e415130d0f84e/jesus_the_very_thought_of_thee_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Jezus, als ’k zelfs maar denk aan U,",
+    "zet dat mijn hart in gloed;",
+    "maar ’t wordt veel zaal’ger nog dan nu",
+    "als ’k eenmaal U ontmoet."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Geen hart bedenkt, geen stem brengt voort,",
+    "geen vroom verlangen vindt",
+    "zo lief’lijk als uw naam een woord,",
+    "o grote Mensenvrind."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Gij, hoop van elk gebroken hart,",
+    "Gij, vreugd van ’t rein gemoed,",
+    "o borg voor zondaars soms verhard,",
+    "Gij zijt voor allen goed."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Weest Gij onz’ een’ge vreugde, Heer,",
+    "ons doelwit, Gij alleen;",
+    "wees immer onze roem en eer,",
+    "door alle eeuwen heen."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "oorspronkelijke tekst toegeschreven aan Bernard van Clairvaux (ca. 1091–1153)",
+ "title": "Jezus, als ’k zelfs maar denk aan U"
+}

@@ -43,7 +43,7 @@ function snap(partial: { status?: FollowSnapshot["status"]; phase?: "prelude" | 
   };
 }
 
-const live = (patch: Partial<LiveState>): LiveState => ({ stage: "following", hymn, choice: "manual", recognition: null, snapshot: null, backlog: 0, ...patch });
+const live = (patch: Partial<LiveState>): LiveState => ({ stage: "following", hymn, choice: "manual", recognition: null, snapshot: null, backlog: 0, needHymn: null, ...patch });
 
 test("status: voorspel, volgt muziek, tussenspel en onzekerheid zijn te onderscheiden", () => {
   assert.equal(describeStatus("idle", live({ stage: "idle", hymn: null })), null);
@@ -55,7 +55,8 @@ test("status: voorspel, volgt muziek, tussenspel en onzekerheid zijn te ondersch
   assert.equal(describeStatus("listening", live({ snapshot: snap({ phase: "prelude", status: "acquiring" }) }))?.label, "Luisteren…");
   const waiting = describeStatus("listening", live({ snapshot: snap({ phase: "prelude", waiting: true }) }));
   assert.match(waiting!.hint ?? "", /Zang begint/);
-  assert.equal(describeStatus("listening", live({ stage: "recognizing", hymn: null }))?.label, "Luisteren…");
+  // tijdens het herkennen toont het herkenningsscherm zelf één rustige status; de kop herhaalt die niet
+  assert.equal(describeStatus("listening", live({ stage: "recognizing", hymn: null })), null);
 });
 
 test("coupletreeks: couplet gevolgd door refrein; geen refrein bij hymne 82", () => {

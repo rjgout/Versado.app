@@ -1,0 +1,56 @@
+{
+ "choruses": [],
+ "id": "nld:183",
+ "leadingChorus": null,
+ "musicCredit": "Melchior Teschner (1584–1635), gew.",
+ "notices": [],
+ "number": 183,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Handelingen 2:1–4",
+  "Johannes 15:26"
+ ],
+ "source": {
+  "pageSha": "476fce05f9ba8de9c0a43722d61518dfa492a36f77904e5658f924f0fae3dfe0",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/come-holy-ghost-descend",
+  "pdfSha": "7c6da4416f91dfdbd2aece2e8d8b8129a24ae1eea1b89e409ed9f48a3f8085b0",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b2/3a/b23aaf70ac3f11eca4f5eeeeac1e61442a08f2fa/come_holy_ghost_descend_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Kom, Heil’ge Geest, daal neder,",
+    "als op het pinksterfeest;",
+    "milddadig Overreder,",
+    "die onze ziel geneest.",
+    "Ach, steeds zijn onze zinnen",
+    "op ’t aardse nog gericht;",
+    "treed, goede Geest, daar binnen,",
+    "en maak het duister licht."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Doe geest’lijk mij herleven!",
+    "Ontsteek uw lout’rend vuur",
+    "en smelt elk zondig streven",
+    "uit ’t diepst van mijn natuur.",
+    "O, leer ons Christus kennen,",
+    "des Vaders heil’ge Zoon,",
+    "dat w’ aan geen kwaad ons wennen,",
+    "maar volgen zijn geboôn."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Smekend",
+ "textCredit": "naar Serné, Christelijke Feestliederen",
+ "title": "Kom, Heil’ge Geest, daal neder"
+}

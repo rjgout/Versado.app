@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:114",
+ "leadingChorus": null,
+ "musicCredit": "anon.",
+ "notices": [],
+ "number": 114,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 141:2",
+  "Psalm 23:4"
+ ],
+ "source": {
+  "pageSha": "e7c56619e2b5918be742a530f1073817743a8031c284860e853b064f292f1852",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/lord-give-an-evening-blessing",
+  "pdfSha": "c28354f730858053e5225410a78b662af686b8fe12a515e156f258f8ad6ec99b",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/7b/6c/7b6c451bac4011eca5e7eeeeac1e4f8783823eb9/lord_give_an_evening_blessing_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Heiland, geef een avondzegen",
+    "eer de rust mijn ogen sluit.",
+    "Ik belijd vol spijt mijn wegen,",
+    "spreek vergeving op mij uit."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Als vernietiging bedreigt mij,",
+    "pijlen vliegen om mij heen,",
+    "is uw eng’lenwacht rondom mij,",
+    "ik ben veilig dan alleen."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Zij de nacht ook bang en duister,",
+    "hij verbergt mij voor U niet,",
+    "Gij, die woont in pracht en luister",
+    "en uw kind’ren nooit verliet."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Mocht de dood mij hier verrassen,",
+    "vinden op deez’ legerstee,",
+    "laat, van zonden rein gewassen,",
+    "mij dan delen in uw vree."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Rustig",
+ "textCredit": "anon.",
+ "title": "Heiland, geef een avondzegen"
+}

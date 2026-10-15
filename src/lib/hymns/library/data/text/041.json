@@ -1,0 +1,74 @@
+{
+ "choruses": [],
+ "id": "nld:41",
+ "leadingChorus": null,
+ "musicCredit": "William B. Bradbury (1816–1868)",
+ "notices": [],
+ "number": 41,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 9:23",
+  "2 Nephi 31:19–21"
+ ],
+ "source": {
+  "pageSha": "a40c9cdbb6289744b734e50335dcba49928d6906c8af338fb4fa9a08c8fda979",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/come-all-ye-saints-who-dwell-on-earth",
+  "pdfSha": "2a67b51973ba7ea538040ccdd31f899c81a2da35874b47585ea66a5ddece055d",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/23/3b/233b39cfab8011ec8f90eeeeac1eb6573eb19813/come_all_ye_saints_who_dwell_on_earth_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Komt, al gij heil’gen hier op aard,",
+    "bezingt met blijde stem",
+    "de liefde van de Middelaar",
+    "en looft, verheerlijkt Hem,",
+    "de liefde van de Middelaar",
+    "en looft, verheerlijkt Hem."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Zijn liefd’ is groot, Hij stierf voor ons.",
+    "Wie brengt zijn dank Hem niet,",
+    "daar Hij de weg tot heil ons wees,",
+    "het ‘Volg Mij’ horen liet,",
+    "daar Hij de weg tot heil ons wees,",
+    "het ‘Volg Mij’ horen liet?"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Wij vonden ’t eng’ en smalle pad,",
+    "gaan wij nu daarop voort,",
+    "totdat wij allen Christus zien",
+    "in ’t hemels, zalig oord,",
+    "totdat wij allen Christus zien",
+    "in ’t hemels, zalig oord."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Daar voegen w’ons bij ’s hemels koor",
+    "en zingen Hem ter eer,",
+    "verhoogd, volmaakt door d’eeuwen heen",
+    "door zijne liefd’ en leer,",
+    "verhoogd, volmaakt door d’eeuwen heen",
+    "door zijne liefd’ en leer."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "naar William W. Phelps, (1792–1872)",
+ "title": "Komt, al gij heil’gen hier op aard’"
+}

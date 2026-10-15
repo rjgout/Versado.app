@@ -1,0 +1,65 @@
+{
+ "choruses": [
+  [
+   "Gloria in excelsis Deo.",
+   "Gloria in excelsis Deo."
+  ]
+ ],
+ "id": "nld:141",
+ "leadingChorus": null,
+ "musicCredit": "Frans kerstlied, bew.",
+ "notices": [],
+ "number": 141,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 2:8–20",
+  "Psalm 95:6"
+ ],
+ "source": {
+  "pageSha": "fdf092ddf6105b4ef3ae54d4d5a16f09019ee9554bd94515f5361cead6bf2602",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/angels-we-have-heard-on-high",
+  "pdfSha": "64a19229a6cf35d06657c7c3dd02ef2df349f066a947fae3cbd00783d7967684",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e5/7e/e57ea8afac4011ec895aeeeeac1eee213f805b61/angels_we_have_heard_on_high_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Hoort gij gindse eng’lenkoren",
+    "zingen, juichen rein en klaar:",
+    "Heden is Gods Zoon geboren!",
+    "Herders, hoort de blijde maar!"
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Wilt u spoeden van de velden,",
+    "heel de aarde is verblijd.",
+    "Gaat naar gindse kleine stalle,",
+    "ziet het Kind, zo lang verbeid!"
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Mensen, juicht nu Hem ter ere,",
+    "in deez’ nacht vol majesteit.",
+    "Wilt de kleine Koning eren,",
+    "Hem, de God van eeuwigheid!"
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Blij",
+ "textCredit": "naar Frans kerstlied, waarschijnlijk 18e eeuw",
+ "title": "Hoort gij gindse eng’lenkoren"
+}

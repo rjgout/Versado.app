@@ -91,20 +91,55 @@ check("focus mode: globale header en onderbalk weg, terugbalk blijft", shell.mod
 check("geen dubbele titel: terugbalk 'Lofzangen', pagina 'Kies een lofzang'", /Lofzangen/.test(shell.backText ?? "") && shell.h1.length === 1 && shell.h1[0] === "Kies een lofzang", JSON.stringify(shell.h1));
 check("beginscherm: geen lange introductie en geen privacyblok", !shell.privacyVisible && !shell.introVisible);
 check("beginscherm: het document scrolt niet", shell.docScroll <= 1, String(shell.docScroll));
-check("beginscherm: drie lofzangen selecteerbaar", (await page.getByRole("radio").count()) === 3);
-check("beginscherm: 'Herken lofzang' en 'Start luisteren'", (await page.getByRole("button", bar("Herken lofzang")).count()) === 1 && (await page.getByRole("button", bar("Start luisteren")).count()) === 1);
+await page.locator("[data-hymn-number]").first().waitFor({ timeout: 60000 });
+check("beginscherm: de volledige bibliotheek van 205 lofzangen is selecteerbaar", (await page.locator("[data-hymn-number]").count()) === 205, String(await page.locator("[data-hymn-number]").count()));
+check("beginscherm: alleen nummer en titel in de lijst (geen technische labels)", await page.evaluate(() => ![...document.querySelectorAll("[data-hymn-number]")].some((b) => /gevalideerd|bladmuziek|herkenning|woordvolging|onzeker/i.test(b.textContent ?? ""))));
+check("beginscherm: 'Herken lofzang' is beschikbaar", (await page.getByRole("button", bar("Herken lofzang")).count()) === 1);
+// zoeken: nummer, titel, deel van de titel; geen verzoek per toetsaanslag
+const netBeforeSearch = net.length;
+const search = page.locator("[data-hymns-search]");
+await search.fill("24");
+check("zoeken op nummer: 24 staat bovenaan", (await page.locator("[data-hymn-number]").first().getAttribute("data-hymn-number")) === "24");
+await search.fill("ere de man");
+check("zoeken op titel: Ere de man (lofzang 24)", (await page.locator("[data-hymn-number]").first().getAttribute("data-hymn-number")) === "24");
+await search.fill("kom volg");
+check("zoeken op een deel van de titel", (await page.locator("[data-hymn-number]").count()) >= 1);
+await search.fill("zzzzqq");
+check("zoeken zonder resultaat toont een nette melding", (await page.locator("[data-hymns-no-results]").count()) === 1);
+check("zoeken veroorzaakt geen verzoeken naar de server", net.length === netBeforeSearch, String(net.length - netBeforeSearch));
+await search.fill("");
+// lofzang zonder tekst (licentie) en zonder bladmuziek
+await page.locator('[data-hymn-number="54"]').click();
+await page.locator("[data-hymns-license]").waitFor({ timeout: 20000 });
+check("lofzang 54: nette melding dat de tekst niet beschikbaar is (rechtenbeperking)", /rechtenbeperkingen/.test((await page.locator("[data-hymns-license]").textContent()) ?? ""));
+check("lofzang 54: geen luisterknop", (await page.getByRole("button", bar("Start luisteren")).count()) === 0);
+await page.getByRole("button", bar("Andere lofzang")).click();
+await page.locator('[data-hymn-number="86"]').click();
+await page.locator("[data-hymns-text-only]").waitFor({ timeout: 20000 });
+check("lofzang 86: volledig leesbaar zonder bladmuziek", (await page.locator("[data-hymns-scroll] p").count()) >= 8 && (await page.getByRole("button", bar("Start luisteren")).count()) === 0);
+await page.screenshot({ path: `${SHOTS}/01b-alleen-tekst.png` });
+await page.getByRole("button", bar("Andere lofzang")).click();
+await page.locator('[data-hymn-number="82"]').click();
+await page.getByRole("button", bar("Start luisteren")).waitFor({ timeout: 20000 });
+check("lofzang 82 geopend: 'Start luisteren' en 'Andere lofzang'", (await page.getByRole("button", bar("Start luisteren")).count()) === 1 && (await page.getByRole("button", bar("Andere lofzang")).count()) === 1);
+await page.getByRole("button", bar("Andere lofzang")).click();
+await page.locator("[data-hymn-number]").first().waitFor({ timeout: 20000 });
 check("technische gegevens zijn standaard niet zichtbaar", (await page.locator("[data-hymns-technical]").count()) === 0);
 await page.screenshot({ path: `${SHOTS}/01-kiezen.png` });
 await page.getByRole("button", { name: "Privacy", exact: true }).click();
-check("privacy-uitleg staat achter de infoknop (in het instellingenpaneel)", (await page.locator("dialog[open]").getByText("Er wordt niets verzonden").count()) === 1);
+check("privacy-uitleg is compact en uitklapbaar in het instellingenpaneel (standaard dicht)", (await page.locator("dialog[open] details[data-hymns-privacy]").count()) === 1 && (await page.locator("dialog[open] details[data-hymns-privacy][open]").count()) === 0);
+await page.locator("dialog[open] details[data-hymns-privacy] summary").click();
+check("privacy-uitleg klapt open en bevat de uitleg over lokaal verwerken", (await page.locator("dialog[open]").getByText("Er wordt niets verzonden").isVisible()));
 await page.getByRole("button", { name: "Sluiten", exact: true }).click();
 check("het paneel sluit met de sluitknop", (await page.locator("dialog[open]").count()) === 0);
 
 // ---------- 2. herkennen en automatisch volgen in één sessie
 await page.getByRole("button", bar("Herken lofzang")).click();
 await page.getByText("Microfoon is actief").first().waitFor({ timeout: 10000 });
-const first = await waitStatus(/herkennen|Luisteren|Mogelijke/, 8000);
-check("tijdens het herkennen toont de pagina de herkenstatus", !!first, String(first));
+await page.locator("[data-hymns-recognition]").waitFor({ timeout: 20000 });
+const rtext = (await page.locator("[data-hymns-recognition-status]").textContent())?.trim();
+check("tijdens het herkennen: één rustige status 'Luistert naar muziek' en de uitleg", rtext === "Luistert naar muziek" && /Versado probeert de lofzang te herkennen/.test((await page.locator("[data-hymns-recognition]").textContent()) ?? ""), String(rtext));
+check("tijdens het herkennen: geen percentage en geen dubbele 'Luisteren…'", !/%/.test((await page.locator("[data-hymns-recognition]").textContent()) ?? "") && (await page.getByText(/Luistert…|Luisteren…/).count()) === 0);
 const prelude = await waitStatus(/Voorspel|Volgt muziek|Handmatig/, 60000);
 check("de lofzang wordt automatisch herkend en gevolgd", !!prelude, String(prelude));
 check("de titel toont nummer en naam van de herkende lofzang", (await page.locator("h1").first().textContent())?.startsWith(`${HYMN}.`), await page.locator("h1").first().textContent());
@@ -285,9 +320,10 @@ for (const [w, h, kind] of SIZES) {
         await p.waitForTimeout(300);
         const label = `${w}x${h} ${scheme}${big ? " 200%" : ""} ${view}`;
         // kiesscherm
+        await p.locator("[data-hymn-number]").first().waitFor({ timeout: 60000 });
         const chooseOk = await p.evaluate(() => ({ x: document.documentElement.scrollWidth - window.innerWidth, y: document.documentElement.scrollHeight - window.innerHeight }));
         check(`${label}: kiesscherm zonder overflow`, chooseOk.x <= 1 && chooseOk.y <= 1, JSON.stringify(chooseOk));
-        await p.getByRole("radio").nth(2).click(); // lofzang 82: zes coupletten, de moeilijkste indeling
+        await p.locator('[data-hymn-number="82"]').click(); // lofzang 82: zes coupletten, de moeilijkste indeling
         await p.getByRole("button", bar("Start luisteren")).click();
         await p.getByText("Microfoon is actief").first().waitFor({ timeout: 15000 });
         await p.waitForTimeout(500);

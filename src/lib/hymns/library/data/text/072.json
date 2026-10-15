@@ -1,0 +1,56 @@
+{
+ "choruses": [],
+ "id": "nld:72",
+ "leadingChorus": null,
+ "musicCredit": "Joseph P. Holbrook (1822–1888)",
+ "notices": [],
+ "number": 72,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Jesaja 25:4",
+  "Psalm 62:2–3, 8–9"
+ ],
+ "source": {
+  "pageSha": "baabbb3ea94eec15f1e2c0ca3ff1dfe9a7d04aee170651cce83b3a0df1b24953",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/jesus-lover-of-my-soul",
+  "pdfSha": "60c03adc5d5d84a32910b20d030aecdbd7535e49667a9a44c3623910c1e8ba48",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e4/6e/e46ebf5dac4011ec8f90eeeeac1eb65780172ac4/jesus_love_of_my_soul_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Jezus, Redder van mijn ziel,",
+    "laat mij schuilen aan uw hart",
+    "daar de storm mij overviel",
+    "en de golfslag mij benart.",
+    "Houd mij aan uw sterke hand",
+    "tot de levensstorm bedaart",
+    "en ’k in veil’ge haven land,",
+    "die ’t geloof alreeds ontwaart."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Toevlucht vind ik anders geen,",
+    "al mijn hoop en troost zijt Gij.",
+    "Laat, o laat mij niet alleen,",
+    "steun en sterk gestadig mij.",
+    "’k Heb in U alleen geloofd,",
+    "heel mijn hart is U verpand.",
+    "O, bedek mijn weerloos hoofd",
+    "met de schaduw van uw hand."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Eerbiedig",
+ "textCredit": "naar Charles Wesley (1707–1788)",
+ "title": "Jezus, Redder van mijn ziel"
+}

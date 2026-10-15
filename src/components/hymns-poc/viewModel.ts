@@ -3,7 +3,6 @@ import type { FollowSnapshot } from "@/lib/hymns/follow/session";
 import type { LiveState } from "@/lib/hymns/live";
 import type { HymnLine, HymnStanza, HymnText } from "@/lib/hymns/types";
 import type { MicState } from "@/lib/hymns/audio/micListener";
-import { RECOGNITION_TEXT } from "./copy";
 
 // Pure afleidingen voor de Lofzangen-weergave (getest in tests/hymns-ui.test.ts): welke statustekst staat er,
 // welke regels horen bij karaoke, en wanneer moet er gescrold worden. Geen React, geen DOM.
@@ -19,10 +18,8 @@ export interface StatusView {
 
 export function describeStatus(mic: MicState, live: LiveState): StatusView | null {
   if (mic !== "listening" && live.stage !== "following") return null;
-  if (live.stage === "recognizing") {
-    const r = live.recognition;
-    return { label: r ? RECOGNITION_TEXT[r.status] : RECOGNITION_TEXT.listening, tone: r?.status === "ambiguous" || r?.status === "unknown" ? "warn" : "neutral", hint: null };
-  }
+  // Tijdens het herkennen toont het herkenningsscherm zelf één rustige status; een tweede statusregel zou alleen herhalen.
+  if (live.stage === "recognizing") return null;
   if (live.stage !== "following") return null;
   const s = live.snapshot;
   if (!s || s.status === "idle" || s.status === "acquiring") return { label: "Luisteren…", tone: "neutral", hint: null };

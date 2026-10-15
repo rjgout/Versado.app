@@ -64,8 +64,8 @@ Tekst: coupletten met regels en woorden; een woord heeft een `b` (beat) en event
 `linking` is `word` als de lettergrepen aan noten zijn gekoppeld en `line` als alleen de regels
 (frasering van couplet 1) bekend zijn. De interface gebruikt woordmarkering alleen bij `word`.
 
-Voor de proef is dit een lokaal JSON-bestand (`src/lib/hymns/library/nld-poc.json`) met vaste
-veldnamen (geen woorden als sleutels, zie CLAUDE.md). Er is **geen databasemigratie**.
+Sinds fase 4 zijn dit statische JSON-bestanden per lofzang (`src/lib/hymns/library/data/`, zie `09-NEDERLANDSE-BIBLIOTHEEK.md`) met vaste
+veldnamen (geen woorden als sleutels, zie CLAUDE.md), geladen via een admin-only API. Er is **geen databasemigratie**.
 
 ### Later in de database (voorstel, niet gebouwd)
 
@@ -93,7 +93,7 @@ HymnFollowSession (follow/session.ts)  betrouwbaarheid, status, couplet, markeri
    ├─ StanzaPlan   (follow/stanzas.ts) welk couplet; handmatige keuze heeft voorrang
    └─ StableCursor (follow/display.ts) regel/woord; springt niet heen en weer
 
-HymnRecognizer   (recognize/recognizer.ts)  één tracker per kandidaat, bewijs t.o.v. nulmodel
+HymnRecognizer   (recognize/recognizer.ts)  voorfilter (prefilter.ts) + tracker voor de beste kandidaten, z-genormaliseerd bewijs (12-...)
 
 HymnLiveEngine   (live.ts)  ÉÉN luistersessie: één extractor, een kenmerkgeheugen, herkenner -> volger
 ```

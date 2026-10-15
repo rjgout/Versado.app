@@ -1,0 +1,56 @@
+{
+ "choruses": [],
+ "id": "nld:59",
+ "leadingChorus": null,
+ "musicCredit": "Evan Stephens (1854–1930)",
+ "notices": [],
+ "number": 59,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 13:6",
+  "Leer en Verbonden 136:28"
+ ],
+ "source": {
+  "pageSha": "efec4853562164a0e2c948230365800510fa2c058cf846f63658d76c7e80020c",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/father-thy-children-to-thee-now-raise",
+  "pdfSha": "9d8c76f637cb1d64e1a2fb3c0c2123e7472cdc555515c934d0ccb4499ce4bc23",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/c0/e5/c0e54dfdac4011ec895aeeeeac1eee211b19a36d/father_thy_children_to_thee_now_raise_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Vader, uw kind’ren verheffen nu",
+    "dankbaar een vreugdegezang tot U",
+    "voor uw bescherming en liefd’ en zorg;",
+    "Gij zijt de heil’gen een steun en borg.",
+    "Dankbaar voor uw evangelielicht,",
+    "dat in de waarheid ons onderricht,",
+    "blij dat wij kozen het beet’re deel,",
+    "geven wij U, Heer, ons hart geheel."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Stijge dit lied tot uw troon omhoog;",
+    "dat onze stem steeds U prijzen moog’!",
+    "Leid ons zoals Gij getrouwen leidt,",
+    "voed ons met kennis tot zaligheid.",
+    "Laat ons niet dwalen van ’t pad der deugd,",
+    "zie niet de dwaasheên van onze jeugd.",
+    "Vader, ontvang nu ons vreugdelied",
+    "dat U ons harte hier dankbaar biedt."
+   ],
+   "n": 2
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Energiek",
+ "textCredit": "naar Evan Stephens (1854–1930)",
+ "title": "Vader, uw kind’ren verheffen nu"
+}

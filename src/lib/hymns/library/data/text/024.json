@@ -1,0 +1,77 @@
+{
+ "choruses": [
+  [
+   "Heil de profeet, nu in hemelse sferen,",
+   "thans door verraders noch wreedaards gekweld.",
+   "Met God vereend zoekt hij ’t heil van zijn broeders,",
+   "nooit kan de dood meer verwinnen de held."
+  ]
+ ],
+ "id": "nld:24",
+ "leadingChorus": null,
+ "musicCredit": "Schotse volksmelodie",
+ "notices": [],
+ "number": 24,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 135",
+  "2 Nephi 3:14–15"
+ ],
+ "source": {
+  "pageSha": "daf5637c45aef3309d7037f0dd6930262c60bfcaa22ea18dac8fb64405d05a2d",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/praise-to-the-man",
+  "pdfSha": "d75f65dd4e602069c30e71b021774f7080957c94018614ef5ffe01dd6866f0df",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/c1/58/c158822eac4011ec895aeeeeac1eee2148e0b671/praise_to_the_man_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Ere de man tot wie sprak weer Jehovah,",
+    "die tot profeet werd gezalfd door de Heer.",
+    "Hij was d’ontsluiter der laatste bedeling,",
+    "eens geven volken en vorsten hem eer."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Blijf hem gedenken, hij stierf als een mart’laar,",
+    "groot’lijks gezegend zij immer zijn naam!",
+    "Lang zal zijn bloed, door de moord’naars vergoten,",
+    "roepen ten hemel wijl d’aard’ meldt zijn faam."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Groot is zijn glorie, zijn priesterschap eind’loos,",
+    "eeuwig behoudt hij de sleutels en macht.",
+    "Eenmaal gekroond naast al d’oude profeten,",
+    "treedt de getrouw’ in het rijk dat hem wacht."
+   ],
+   "n": 3
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Opoff’ring brengt voort de zegen des hemels;",
+    "’t bloed van die Godsman vergeldt eens de Heer!",
+    "Wereld, ontwaak om de Rechter t’ontmoeten,",
+    "heel ’t mensdom kent ‘broeder Joseph’ eens weer."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Energiek",
+ "textCredit": "naar William W. Phelps (1792-1872)",
+ "title": "Ere de man"
+}

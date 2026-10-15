@@ -1,0 +1,68 @@
+{
+ "choruses": [],
+ "id": "nld:181",
+ "leadingChorus": null,
+ "musicCredit": "Lorin F. Wheelwright (1909–1987)",
+ "notices": [
+  "© 1958, 1985 Lorin F. Wheelwright. Deze lofzang mag gekopieerd worden voor incidenteel, niet-commercieel gebruik thuis of in de kerk."
+ ],
+ "number": 181,
+ "rights": {
+  "copyingAllowedNonCommercial": true,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 43:15–16",
+  "Johannes 21:15–17"
+ ],
+ "source": {
+  "pageSha": "f69808d1d91b260e84e6a387df8d4b6b654c4973d05b5fca4afca0079e88d641",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/help-me-teach-with-inspiration",
+  "pdfSha": "dafc87e0bc7d390f76ed8b3ade95bcd39c7f492767cc7af42aff1c2310da4519",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/af/17/af177554ac3f11ec8c51eeeeac1edd4e8cc2b3f5/help_me_teach_with_inspiration_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Help mij bij het onderwijzen,",
+    "geef mij inspiratie, Heer.",
+    "Help mij anderen verheffen",
+    "naar een hoger, eed’ler sfeer."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Als een vriend verlaten ronddwaalt",
+    "en de nacht belet zijn zicht,",
+    "zend mij dan om hem te vinden",
+    "en te leiden naar het licht."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Vul mijn geest met mededogen;",
+    "laat uw wil de mijne zijn,",
+    "raak mijn hand met hechte vriendschap,",
+    "vul mijn hart met liefde rein."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Laat mij toch uw lamm’ren hoeden",
+    "en ’t verloor’ne brengen weer.",
+    "Als een herder wil ’k U dienen;",
+    "leer m’ uw schapen weiden, Heer."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vurig",
+ "textCredit": "naar Lorin F. Wheelwright (1909–1987)",
+ "title": "Help mij bij het onderwijzen"
+}

@@ -1,0 +1,65 @@
+{
+ "choruses": [
+  [
+   "Dierbaar geloof, ons levensbrood,",
+   "u zijn wij trouw tot in de dood."
+  ]
+ ],
+ "id": "nld:52",
+ "leadingChorus": null,
+ "musicCredit": "Henri F. Hemy (1818–1888); refrein: James G. Walton (1821–1905)",
+ "notices": [],
+ "number": 52,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "1 Timoteüs 6:12",
+  "Judas 1:3"
+ ],
+ "source": {
+  "pageSha": "e7342a42dc370f9c660205bd534ede06de0fcd41a2aa45590585d260fed9b8da",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/faith-of-our-fathers",
+  "pdfSha": "1489a3e5366a1a20b70425fb3102d4079ecec26ce3a9e2759ba1e0fd25368ec8",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/15/63/15630de4ac4011ecbc03eeeeac1e8c5bb04fcf27/faith_of_our_fathers_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Dierbaar geloof, in ons geplant,",
+    "ondanks vervolging, vuur en zwaard.",
+    "Zoet is uw vreugd en zekerheid,",
+    "gij zijt ons hoogste streven waard."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Dierbaar geloof, dat ieder volk",
+    "eenmaal voor u ontvank’lijk zij;",
+    "en, door de waarheid van omhoog,",
+    "mogen zij worden waarlijk vrij."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Dierbaar geloof, der liefde macht",
+    "drijft ons naar vriend en vijand voort;",
+    "mogen wij u daar prediken",
+    "door onze wandel en ons woord."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Innig",
+ "textCredit": "naar Frederick W. Faber (1814–1863)",
+ "title": "Dierbaar geloof"
+}

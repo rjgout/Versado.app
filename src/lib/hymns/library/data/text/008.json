@@ -1,0 +1,71 @@
+{
+ "choruses": [
+  [
+   "Zing hosanna Hem ter eer,",
+   "Jezus Christus, onze Heer!"
+  ]
+ ],
+ "id": "nld:8",
+ "leadingChorus": null,
+ "musicCredit": "Tracy Y. Cannon (1879–1961). © 1948 IRI",
+ "notices": [],
+ "number": 8,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 29:4",
+  "Leer en Verbonden 128:19–21"
+ ],
+ "source": {
+  "pageSha": "05ffd85838fd6456540e68255c964f046c6000238e1e1f3de86b90f99bd6bbc4",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/come-rejoice",
+  "pdfSha": "33613edad9e35eff0dbc55a550c5986fdb07b2a1739412d03703850e845186d4",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/e6/ce/e6ce3320ac4011ec895aeeeeac1eee213c567b56/come_rejoice_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Wees verheugd, de God van Isr’el",
+    "wordt opnieuw gehoord;",
+    "’t blijde nieuws klinkt uit de hemel,",
+    "luister naar zijn woord.",
+    "Waarheid springt uit d’aarde voort,",
+    "spreidt haar licht naar ieder oord."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Eng’len keren met hun tijding",
+    "tot de aarde weer",
+    "en verlenen heil’ge sleutels,",
+    "machten van weleer.",
+    "Dat een ieder horen mag",
+    "dit herstel van Gods gezag."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Groot is Christus, onze Koning,",
+    "wonderbaar zijn werk,",
+    "geeft ons hoop op zaligmaking,",
+    "sticht opnieuw zijn kerk.",
+    "Juich verheugd, de Vredevorst",
+    "lest voor eeuwig onze dorst."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Blij",
+ "textCredit": "naar Tracy Y. Cannon (1879–1961). © 1948 IRI",
+ "title": "Wees verheugd"
+}

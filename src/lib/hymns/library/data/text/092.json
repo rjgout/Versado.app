@@ -1,0 +1,82 @@
+{
+ "choruses": [],
+ "id": "nld:92",
+ "leadingChorus": null,
+ "musicCredit": "Lewis D. Edwards, (1858–1921)",
+ "notices": [],
+ "number": 92,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Job 19:25",
+  "Psalm 104:33–34"
+ ],
+ "source": {
+  "pageSha": "98b8647223013dffabc5ec9d8cd3e6d20ce3f34d1ed0407d513ba0deba0a4b32",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/i-know-that-my-redeemer-lives",
+  "pdfSha": "ad91e8e91141596ff0fe8e6382e9e407b1a8062e307a27804d1a9a89993fbf3e",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/25/38/2538b770ab8011ec9da5eeeeac1eb1dad16c4397/i_know_that_my_redeemer_lives_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Ik weet dat mijn Verlosser leeft,",
+    "niets dat mij zoveel troost hier geeft!",
+    "Hij leeft, van ’t leven eens beroofd,",
+    "Hij leeft, mijn immer levend Hoofd.",
+    "Hij leeft, van liefde straalt zijn oog,",
+    "Hij leeft mijn Voorspraak in den hoog’.",
+    "Hij leeft en voedt mij ’t eeuwig brood,",
+    "Hij leeft, mijn Hulp in tijd van nood."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Hij leeft, mijn zegenrijke Bron,",
+    "Hij leeft, mijn Licht, mijn Levenszon,",
+    "Hij leeft, geeft in mijn zwakheid kracht.",
+    "Hij leeft, en hoort mijn bange klacht,",
+    "Hij leeft, en troost mijn droef gemoed,",
+    "Hij leeft, en stelpt mijn tranenvloed.",
+    "Hij leeft, en al mijn vreze vliedt,",
+    "Hij leeft, mijn liefst, mijn innigst Lied."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Hij leeft, mijn dierb’re wijze Vrind,",
+    "Hij leeft, die mij zo teer bemint.",
+    "Hij leeft, en ’k jubel immermeer,",
+    "Hij leeft, mijn Koning, Priester, Heer.",
+    "Hij leeft, die mij het leven gaf,",
+    "Hij leeft, en ’k overwin het graf.",
+    "Hij leeft waar Hij mij plaats bereidt,",
+    "Hij leeft, waar Hij m’ eens veilig weidt."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Hij leeft, Zijn naam zij steeds geloofd!",
+    "Hij leeft, mijn Lichtbron, nooit gedoofd,",
+    "Geen woord dat zoveel blijdschap geeft:",
+    "ik weet dat mijn Verlosser leeft.",
+    "Hij leeft, o roem en prijs Hem toch!",
+    "Hij leeft, dezelfde Heiland nog.",
+    "Niets dat mij zoveel vreugde geeft:",
+    "ik weet dat mijn Verlosser leeft."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vredig",
+ "textCredit": "naar Samuel Medley (1738–1799)",
+ "title": "Ik weet dat mijn Verlosser leeft"
+}

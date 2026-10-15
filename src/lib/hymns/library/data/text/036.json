@@ -1,0 +1,74 @@
+{
+ "choruses": [],
+ "id": "nld:36",
+ "leadingChorus": null,
+ "musicCredit": "anon., ca. 1889",
+ "notices": [],
+ "number": 36,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 45:39, 44",
+  "Jesaja 35:10"
+ ],
+ "source": {
+  "pageSha": "681ab257b67e3c197f2238a174cfee102d4cdc989ce3e08bd6eca4419abdfb97",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/come-o-thou-king-of-kings",
+  "pdfSha": "73c860e228e7cfb8975de98e9dbf5dc0e0f44fdb1f60a855ba3f01c3468831c5",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/1f/91/1f911a4aac4011eca5e7eeeeac1e4f87cc7f1a09/come_o_thou_kings_of_kings_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Kom, o Gij Vredevorst!",
+    "Lang hebben w’U verwacht;",
+    "ons heil is in uw hand,",
+    "verlos ons uit de nacht.",
+    "Gewenste veler volk’ren, kom!",
+    "Vergader Isr’el van alom!"
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Aan zonde maak een eind",
+    "en zuiver d’aard’ met vuur,",
+    "herstel gerechtigheid.",
+    "Uw vredevol bestuur",
+    "wordt door uw heilig volk eerlang",
+    "verwelkomd met een vreugdezang."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Hosanna’s klinken dan",
+    "uit der verlosten mond;",
+    "de echo plant zich voort,",
+    "de hele wereld rond.",
+    "Het zegelied vervult ’t heelal,",
+    "weerklinkt van Zions berg en dal."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Heil, wonderbare God!",
+    "Bestijg uw eeuw’ge troon,",
+    "wijl ’t uitverkoren volk",
+    "U eer geeft als de Zoon",
+    "en elke knie voor U zich buigt,",
+    "ja, ied’re mond U lof betuigt."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Krachtig",
+ "textCredit": "naar Parley P. Pratt (1807–1857)",
+ "title": "Kom, o Gij Vredevorst"
+}

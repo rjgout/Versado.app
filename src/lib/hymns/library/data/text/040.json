@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:40",
+ "leadingChorus": null,
+ "musicCredit": "George J. Webb (1803–1887 )",
+ "notices": [],
+ "number": 40,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 76:40–42",
+  "Leer en Verbonden 128:19"
+ ],
+ "source": {
+  "pageSha": "2c6a9f94b63419b5f56927b11a77dfef9e5756017278d82f3fa304de6937af36",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/what-is-the-gospel",
+  "pdfSha": "30e973713071c5eb835f38d345884cfe1b9387cef19788f6f1ef51272132254f",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/3b/d4/3bd40edfac4011ecb4a3eeeeac1ea26caa9e64bc/what_is_the_gospel_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Wat is het evangelie dat u zozeer verblijdt?",
+    "Wat is ’t en wat zal ’t blijven, voor nu en voor altijd?",
+    "Het is een eeuw’ge boodschap van vreed’ en zaligheid",
+    "voor hen die zich bekeren van ongerechtigheid."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Waartoe is ’t ons gegeven in onze levenstijd?",
+    "Zal ik er ook naar streven, mij wagen in de strijd?",
+    "Het is een blijde boodschap tot kennis van uw lot,",
+    "opdat gij, sterf’lijk wezen, moogt worden als uw God."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Laat ons dan dankbaar strijden, gaan wij gehoorzaam voort,",
+    "laat ons elkander steunen door daad, gebed en woord.",
+    "Weet, als wij steeds volharden, dan is aan ’t eind ons loon",
+    "dat Godes hand zal geven een overwinnaarskroon."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "H. de Brij",
+ "title": "Wat is het evangelie?"
+}

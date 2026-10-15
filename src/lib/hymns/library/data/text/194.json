@@ -1,0 +1,60 @@
+{
+ "choruses": [],
+ "id": "nld:194",
+ "leadingChorus": null,
+ "musicCredit": "W. Herbert Klopfer (1936– ). © 1985 IRI",
+ "notices": [],
+ "number": 194,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Efeziërs 6:1–4",
+  "Mosiah 4:13–15"
+ ],
+ "source": {
+  "pageSha": "70af19de3a7c43c0d26e100a48cb9c19b6b228cec2ae43dac421dbc5b464e087",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/home-can-be-a-heaven-on-earth",
+  "pdfSha": "918b9c82f917ec9a8adf8560a2cba28d2d4e82b305fa55e398a5d1d907015e0b",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/f5/9d/f59da855ac3f11ec8c51eeeeac1edd4ee9272467/home_can_be_a_heaven_on_earth_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Als een hemel op de aarde is een fijn gezin,",
+    "schenkt ons vreugde en geluk, brengt rijke zegen in:",
+    "liefde, vriendschap, tederheid,",
+    "warmte en geborgenheid;",
+    "zo wordt thuis een stukje hemel waar wij willen zijn."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Wekelijks als huisgezin vernemen wij Gods raad,",
+    "dienen wij met blij gemoed de Heer in woord en daad.",
+    "Ouders geven ’t voorbeeld goed",
+    "dat de kind’ren volgen doet,",
+    "strevend naar ons hemels thuis waar wij willen zijn."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Daag’lijks biddend als gezin ervaren wij zijn macht,",
+    "trouw studerend in de Schrift, zo groeien wij in kracht.",
+    "Met ons loflied zeggen wij:",
+    "Vader, blijf steeds aan mijn zij,",
+    "reizend naar ons hemels thuis waar wij willen zijn!"
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Opgewekt",
+ "textCredit": "naar Carolyn Hamilton Klopfer (1936– ). © 1985 IRI",
+ "title": "Als een hemel op de aarde"
+}

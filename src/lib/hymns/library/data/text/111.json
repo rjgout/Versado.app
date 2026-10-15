@@ -1,0 +1,61 @@
+{
+ "choruses": [
+  [
+   "O Heiland, houd de wacht bij mij, nu ’t schemert om mij heen.",
+   "O Heiland, houd de wacht bij mij, nu ’t schemert om mij heen."
+  ]
+ ],
+ "id": "nld:111",
+ "leadingChorus": null,
+ "musicCredit": "Harrison Millard (1830–1895)",
+ "notices": [],
+ "number": 111,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Lucas 24:29 (13–32)"
+ ],
+ "source": {
+  "pageSha": "ce4effa21ac97526bd6b780d64ce0998f016f485a7a552b9b22796e8c2a5a89a",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/abide-with-me-tis-eventide",
+  "pdfSha": "4e56f80dfd2466e7b13160e8b647d95fa61536ef0bc534f7392ab4a165fd4789",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/bd/ac/bdacde15ac4011eca877eeeeac1e1ab3e5c1fb8a/abide_with_me_tis_eventide_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Verblijf bij mij, nu d’ avond valt; de dag verging en vlood,",
+    "het schijnsel van de zon verdween, kleurt slechts de kim nog rood.",
+    "Mijn hart verwelkomt U als gast, verblijf en ga niet heen."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Verblijf bij mij, nu d’ avond valt; uw bijzijn op mijn pad",
+    "bracht in mijn hart een gloed van vreugd, toen ’k omgang met U had.",
+    "Uw vredig woord klonk in mijn ziel en liet mij niet alleen."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Verblijf bij mij, nu d’ avond valt, ja, eenzaam wordt de nacht",
+    "als ik met U niet om kan gaan, noch vind in U mijn kracht.",
+    "Ik vrees dat ’s werelds duisternis mijn huis dan zou betreên."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Als een gebed",
+ "textCredit": "naar Lowrie M. Hofford",
+ "title": "Verblijf bij mij, nu d’avond valt"
+}

@@ -1,0 +1,80 @@
+{
+ "choruses": [
+  [
+   "Moedig doen wij mee totdat voorbij is de strijd;",
+   "’t is onze vreugd, ’t is onze vreugd!",
+   "Zie, hoe schoon en schitt’rend is de kroon ons bereid;",
+   "wij verkrijgen, dragen haar weldra!"
+  ]
+ ],
+ "id": "nld:168",
+ "leadingChorus": null,
+ "musicCredit": "William B. Bradbury (1816–1868)",
+ "notices": [],
+ "number": 168,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "2 Timoteüs 2:3",
+  "2 Timoteüs 4:7–8",
+  "Efeziërs 6:10–18"
+ ],
+ "source": {
+  "pageSha": "1e2a7864fa0784219d7c2ca309112f05ef84f4f3e5928e02697685e1c2ce9967",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/we-are-all-enlisted",
+  "pdfSha": "36a515c0b157d52e0a7b26a5a3613dbe8d82ccbd1ed0942742c48091a22e5eb5",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/32/94/329432f9ac4011ec895aeeeeac1eee21d209dc84/we_are_all_enlisted_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Moedig doen wij mee totdat voorbij is de strijd;",
+    "’t is onze vreugd, ’t is onze vreugd!",
+    "Zie, hoe schoon en schitt’rend is de kroon ons bereid;",
+    "wij verkrijgen, dragen haar weldra!",
+    "Haastig ten strijde, vlug naar het veld;",
+    "waarheid is ’t wapen, moedige held.",
+    "Vecht voor het vaandel, fier opgesteld,",
+    "tot wij verheugd samen marcheren naar ons huis."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Hoor, de oorlogskreet weerklinkt zo helder en luid;",
+    "doe met ons mee, doe met ons mee!",
+    "Wij zien uit naar nieuwe strijders, neem uw besluit;",
+    "schaar u om de standaard van het kruis!",
+    "Hoor, onze Hoofdman roept u vandaag,",
+    "aarzel geen oogwenk, o, wees niet traag.",
+    "Strijd voor de Heiland, dien Hem gestaag,",
+    "laat ons verheugd samen marcheren naar ons huis."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Onze vijand is de zonde, wij strijden flink",
+    "voor ’t koninkrijk, Gods koninkrijk!",
+    "Vrolijk is dit leger; dat hun jubel dra klink’:",
+    "Zie, nu is de grote zege daar!",
+    "Nadert gevaar, geen vrees kennen wij,",
+    "Jezus, de Leidsman, is ons nabij.",
+    "Hij vuurt ons aan, beschermt, maakt ons vrij,",
+    "doet ons verheugd samen marcheren naar ons huis."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Energiek",
+ "textCredit": "naar The New Golden Chain, New York, 1866",
+ "title": "Moedig doen wij mee"
+}

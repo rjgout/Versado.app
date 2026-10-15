@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:186",
+ "leadingChorus": null,
+ "musicCredit": "Tracy Y. Cannon (1879–1961). © 1948 IRI",
+ "notices": [],
+ "number": 186,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 138:47–48",
+  "Leer en Verbonden 132:19–20"
+ ],
+ "source": {
+  "pageSha": "0d428af802e18090f81f1cd3e365a57e32c81d1470e54b7e2b0baf104efa9d52",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/how-beautiful-thy-temples-lord",
+  "pdfSha": "56f0ee8a1e96d69f6ef0d03bc01d5a6c8f36c473a731830fc4e25ce9a41593c8",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/b0/15/b0155e96ac3f11ec8f90eeeeac1eb657c4e34070/how_beautiful_thy_temples_lord_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Hoe prachtig zijn uw tempels, Heer, elkeen aan U gewijd,",
+    "waar trouwe heil’gen, één van hart, ontsluiten zaligheid",
+    "voor dierbaren die niet meer leven in dit aards bestaan;",
+    "onsterf’lijk echter is hun geest, ze zijn slechts voorgegaan."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Hoe prachtig zijn uw woorden, Heer, het evangelieplan,",
+    "dat is hersteld en heel het mensdom zalig maken kan.",
+    "Hoe prachtig is de hoop die dat aan al uw kind’ren geeft,",
+    "ook ieder die aan d’ and’re zij des sluiers verder leeft."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Hoe prachtig de belofte, Heer, door U aan ons gedaan,",
+    "dat ieder door gehoorzaamheid verhoging in kan gaan,",
+    "verzegeld in familieband voor tijd en eeuwigheid.",
+    "Ja, eindeloos de werelden die Gij ons hebt bereid."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Oprecht",
+ "textCredit": "naar Frank I. Kooyman (1880–1963). © 1948 IRI",
+ "title": "Hoe prachtig zijn uw tempels, Heer"
+}

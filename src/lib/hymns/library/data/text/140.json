@@ -1,0 +1,78 @@
+{
+ "choruses": [],
+ "id": "nld:140",
+ "leadingChorus": null,
+ "musicCredit": "oude melodie, zetting Michael Prätorius (1571–1621), gew.",
+ "notices": [],
+ "number": 140,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Jesaja 53:1–2, 11–12",
+  "Lucas 2:1–20"
+ ],
+ "source": {
+  "pageSha": "be6ef5bc39f402c5c85e2d4ed326a5e2e22d42609c8698957ea4ba224784b995",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/lo-how-a-rose-eer-blooming",
+  "pdfSha": "5ab3570ffe29d2e2043f9ba4572290a6b3ffcbfbb1fd24b52a058c8c3bde9886",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/f2/3f/f23fb155ac3f11ec8960eeeeac1ef785cba29d5a/from_the_dry_earth_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Er is uit dorre aarde",
+    "een takje groen en teer,",
+    "doch van onschatb’re waarde,",
+    "gesproten: ’t is de Heer.",
+    "Daar in een beestenstal",
+    "werd Hij als Kind geboren,",
+    "de Schepper van ’t heelal."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Geen plaats en mensenwoning,",
+    "zijn ouders gans alleen,",
+    "en toch was ’t aller Koning",
+    "die daar in ’t vlees verscheen.",
+    "Hij daalde van zijn troon,",
+    "en daar in Betlems dreven",
+    "werd Hij des Mensen Zoon"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Ontelb’re eng’lenscharen",
+    "vervulden ’t hemelrond",
+    "terwijl de blijde mare",
+    "weerklonk uit aller mond:",
+    "De hoge God zij eer!",
+    "In mensen welbehagen!",
+    "De vreed’ op aard’ keert weer!"
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "Die Heiland werd geboren",
+    "opdat Hij door zijn kruis",
+    "de mens, die was verloren,",
+    "weerbracht in ’t Vaderhuis.",
+    "Prijst Jezus, onze Heer!",
+    "Laat alle mensentongen",
+    "Hem geven lof en eer!"
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bedachtzaam",
+ "textCredit": "naar oud Duits kerstlied, Speierisches Gesangbuch, 1600",
+ "title": "Er is uit dorre aarde"
+}

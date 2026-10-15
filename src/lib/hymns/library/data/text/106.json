@@ -1,0 +1,65 @@
+{
+ "choruses": [],
+ "id": "nld:106",
+ "leadingChorus": null,
+ "musicCredit": "Benjamin Milgrove (1731–1810), bew. Ebenezer Beesley (1840–1906)",
+ "notices": [],
+ "number": 106,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Psalm 119:33–35"
+ ],
+ "source": {
+  "pageSha": "c7f856b2e4a9a94c697fcf22c9820cd613782d7dafd337b47675ffbbeca0f2b5",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/lord-we-ask-thee-ere-we-part",
+  "pdfSha": "e2d2b1d14dcad315deea66c68362499bc599fede3fa7de7cc964b9db3e8a8c25",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/a6/d1/a6d115bcac3f11eca75deeeeac1e93793d56a91f/lord_we_ask_thee_ere_we_part_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Heer, voor ’t scheiden bidden w’ U:",
+    "zegen wat wij leerden nu,",
+    "plant het diep in elk gemoed,",
+    "’t blijv’ ons bij als eeuwig goed."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Heer, in d’ onschuld onzer jeugd",
+    "zijn uw wetten onze vreugd;",
+    "’t pad der waarheid trekt ons aan,",
+    "help ons daarop voort te gaan."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Vader, liefdevol en goed,",
+    "schenk ons rust in ons gemoed;",
+    "maak ons tot uw dienst bereid,",
+    "sterk ons in gerechtigheid."
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "O, vergeef ons als, helaas,",
+    "ons gedrag is dom en dwaas.",
+    "Help ons zo te leven, Heer,",
+    "dat w’ U eren immermeer."
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Als een gebed",
+ "textCredit": "naar George Manwaring (1854–1889)",
+ "title": "Heer, voor ’t scheiden bidden w’U"
+}

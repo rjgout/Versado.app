@@ -1,0 +1,57 @@
+{
+ "choruses": [],
+ "id": "nld:29",
+ "leadingChorus": null,
+ "musicCredit": "anon., Württemberg, ca. 1784",
+ "notices": [],
+ "number": 29,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 82:14",
+  "Mozes 7:62–65"
+ ],
+ "source": {
+  "pageSha": "30b0794ae22283a0de8195269cb654111e3cb0143ba66e94aee1816a19bc8940",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/let-zion-in-her-beauty-rise",
+  "pdfSha": "8aca4d15ea2e54b1e5d9ddcfa866c7975efb64da865569671eb81807cb8b6e2a",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/23/55/2355edd9ab8011ec8f37eeeeac1e071f15dffed7/let_zion_in_her_beauty_rise_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Laat Zion opstaan in haar pracht, haar grenzen uitgebreid!",
+    "Versterk haar ringen, want haar Vorst komt snel in heerlijkheid.",
+    "Neem toe in schoonheid, heiligheid, trek pronkgewaden aan",
+    "om Hem, de Heer, en Henochs stad dan tegemoet te gaan."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Herauten, blaas op uw bazuin tot elke hoek der aard’.",
+    "Verspreid het nieuws van pool tot pool tot Isr’el is vergaard,",
+    "want Jezus, bij zijn wederkomst, zal met een eng’lenheer",
+    "bevrijden ’t volk van zijn verbond, zijn vijand slaan terneer."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Dan vangt de tijd van vrede aan, door zieners lang begeerd,",
+    "dat Christus in gerechtigheid met heil’gen hier regeert",
+    "voor duizend jaar, geprezen dag! O Heer, bereid mijn hart",
+    "en richt mijn blik op Zions berg, dat ’k tot het eind volhard’."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Vastberaden",
+ "textCredit": "naar Edward Partridge (1793–1840)",
+ "title": "Laat Zion opstaan in haar pracht"
+}

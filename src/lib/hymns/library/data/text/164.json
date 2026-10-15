@@ -1,0 +1,68 @@
+{
+ "choruses": [
+  [
+   "Vrees niet, hoe de vijand ons bestrij’,",
+   "moed nu, want de Heer ’s aan onze zij.",
+   "Nooit beschaamd, nee, hoe de wereld ook spot,",
+   "volgen wij alleen de wil van God."
+  ]
+ ],
+ "id": "nld:164",
+ "leadingChorus": null,
+ "musicCredit": "Evan Stephens (1854–1930)",
+ "notices": [],
+ "number": 164,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 6:33–37",
+  "Leer en Verbonden 128:22",
+  "1 Nephi 22:15–17"
+ ],
+ "source": {
+  "pageSha": "d0a6a88cdd81ace36101701cdbdf8c0c313476ddfb8e08ab1d2cbdf5f5c96b1e",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/let-us-all-press-on",
+  "pdfSha": "b387692a4b4a80fba1cb2cbb4cebcca728ce68da1c7726e2d6d594b8bab2a85d",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/a6/c3/a6c3f539ac3f11ec86d6eeeeac1e93930caa28ce/let_us_all_press_on_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "chorus": 0,
+   "lines": [
+    "Wij gaan voort, steeds voort in het werk van de Heer,",
+    "want vooruit ligt de weg zonder wending of keer.",
+    "Dat een elk voor ’t recht het zwaard hanteer’,",
+    "der waarheid machtig zwaard."
+   ],
+   "n": 1
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Is ook klein ons tal, wij gaan nimmer rechtsomkeert,",
+    "wat de tegenpartijder ook doet of beweert.",
+    "U en mij helpt Gods macht uit hoger sfeer",
+    "der waarheid werk te doen."
+   ],
+   "n": 2
+  },
+  {
+   "chorus": 0,
+   "lines": [
+    "Als wij doen zo ’t hoort, dan ook nimmermeer gevreesd,",
+    "want de Heer, die ons immer nabij is geweest,",
+    "geeft ons altijd moed door zijn goede Geest",
+    "en stuwt der waarheid werk."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Bezield",
+ "textCredit": "naar Evan Stephens (1854–1930)",
+ "title": "Wij gaan voort, steeds voort"
+}

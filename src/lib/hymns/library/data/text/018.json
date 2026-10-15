@@ -1,0 +1,66 @@
+{
+ "choruses": [],
+ "id": "nld:18",
+ "leadingChorus": null,
+ "musicCredit": "Harry A. Dean (1892–1987). © 1985 IRI",
+ "notices": [],
+ "number": 18,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": true,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 107:22",
+  "3 Nephi 19:23"
+ ],
+ "source": {
+  "pageSha": "5564db25a0e6f474a7aebeceef41669762db43b0537f263d0868a4f689d717b3",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/god-bless-our-prophet-dear",
+  "pdfSha": "c7a77a47405f0f341420ab07f08a51efb6e088154bdf0ce6bb56e0f6ceafee1c",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/38/3a/383a1f61ac4011ec8f37eeeeac1e071f8346aadf/god_bless_our_prophet_dear_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Wil uw profeet, o Heer,",
+    "verlenen immermeer",
+    "uw zegen rijk.",
+    "Wil branden in ons hart",
+    "zijn nobel woord,",
+    "opdat wij kiezen ’t goede pad",
+    "in deugdzaamheid."
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Zo gaat uw koninkrijk,",
+    "aan Daniëls steen gelijk,",
+    "van kust tot kust.",
+    "Die grote broederband,",
+    "vereend in uwe hand,",
+    "omvat eens ieder land",
+    "in vreugd en rust."
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "O, maak uw volk beneên",
+    "als Zoon en Vader één,",
+    "is onze beê.",
+    "Verenigd gaan wij voort",
+    "tot ieder heeft gehoord",
+    "dit wonderbare woord",
+    "van heil en vreê."
+   ],
+   "n": 3
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Als een gebed",
+ "textCredit": "naar Bernard Snow (1822–1894)",
+ "title": "Zegen uw profeet, o Heer"
+}

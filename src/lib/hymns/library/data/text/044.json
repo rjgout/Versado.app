@@ -1,0 +1,44 @@
+{
+ "choruses": [],
+ "id": "nld:44",
+ "leadingChorus": null,
+ "musicCredit": "toegeschreven aan Maarten Luther (1483–1546), gew.",
+ "notices": [],
+ "number": 44,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "2 Samuël 22:2–3",
+  "Psalm 18:2–4"
+ ],
+ "source": {
+  "pageSha": "f75fbc7db56ac8e757e92ef015ffc01c48aa27bd9cf3195992f9e37032fe2bc8",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/a-mighty-fortress-is-our-god",
+  "pdfSha": "6b0adfc82b84ca05dd483eb4b8eb07f471b80c8c5d5696386d3ed648a60aa21a",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/36/e4/36e4a143ac4011eca4f5eeeeac1e6144c0ddc629/a_might_fortress_is_our_god_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Een vaste burcht is onze God,",
+    "een toevlucht voor de zijnen;",
+    "al drukt het leed, al dreigt het lot,",
+    "Hij doet zijn hulp verschijnen.",
+    "De vijand rukt vast aan",
+    "met opgestoken vaan.",
+    "Hij draagt zijn rusting nog",
+    "van gruwel en bedrog,",
+    "maar zal als kaf verdwijnen!"
+   ],
+   "n": 1
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Krachtig",
+ "textCredit": "naar Maarten Luther (1483–1546)",
+ "title": "Een vaste burcht is onze God"
+}

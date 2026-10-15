@@ -1,0 +1,82 @@
+{
+ "choruses": [],
+ "id": "nld:15",
+ "leadingChorus": null,
+ "musicCredit": "Engels volksliedje",
+ "notices": [],
+ "number": 15,
+ "rights": {
+  "copyingAllowedNonCommercial": false,
+  "copyingForbiddenWithoutPermission": false,
+  "copyrightNotice": false,
+  "licenseRestrictedByChurch": false
+ },
+ "scriptureRefs": [
+  "Leer en Verbonden 61:36–39",
+  "Leer en Verbonden 59:1–4"
+ ],
+ "source": {
+  "pageSha": "3dfbaac1c8a1374be586a8740c4de0660ed2a683f8fece6ceed3295bff3ff8ca",
+  "pageUrl": "https://www.churchofjesuschrist.org/media/music/songs/come-come-ye-saints",
+  "pdfSha": "31535b74e461f5cbb6be49c7c491ada5ac60e5a11160844a027356eeb6dc4f43",
+  "pdfUrl": "https://assets.churchofjesuschrist.org/d8/0d/d80dcd38ac4011ecbc03eeeeac1e8c5b732057bf/come_come_ye_saints_nld.pdf"
+ },
+ "stanzas": [
+  {
+   "lines": [
+    "Komt, heil’gen, komt, geen werk noch strijd gevreesd,",
+    "maar uw reis blij volbracht!",
+    "Schijnt zwaar de tocht, volhardt, zijt kloek van geest,",
+    "naar uw kruis krijgt gij kracht.",
+    "’t Is beter voor ons vastberaân",
+    "met moed en blijdschap voort te gaan,",
+    "dan dat de zorg ons harte kwell’:",
+    "Alles wel! Alles wel!"
+   ],
+   "n": 1
+  },
+  {
+   "lines": [
+    "Waarom getreurd, of moeilijk ’t lot geacht?",
+    "’t Is niet zo, geen geween!",
+    "Waarom een groot en heerlijk loon verwacht",
+    "als er niet wordt gestreên?",
+    "Vat moed! Gaat voort, wat ook geschied’,",
+    "want God verlaat de zijnen niet,",
+    "opdat ons loflied dra vertell’:",
+    "Alles wel! Alles wel!"
+   ],
+   "n": 2
+  },
+  {
+   "lines": [
+    "Wij vinden wis in ’t westen, ver van hier,",
+    "’t land door God ons bereid.",
+    "Daar wordt de kerk de volk’ren een banier,",
+    "als weleer is voorzeid.",
+    "Dan zingen wij met rein genot",
+    "ter eer van onze Heer en God,",
+    "bij zielverheffend snarenspel:",
+    "Alles wel! Alles wel!"
+   ],
+   "n": 3
+  },
+  {
+   "lines": [
+    "En sterven wij alvorens daar te zijn,",
+    "blijde dag, ongehoord!",
+    "Dan zijn wij vrij van alle smart en pijn",
+    "in het schoon, hemels oord.",
+    "Maar als ons leven wordt gespaard",
+    "en w’eens in Zion zijn vergaard,",
+    "dan klinkt de juichkreet luid en fel:",
+    "Alles wel! Alles wel!"
+   ],
+   "n": 4
+  }
+ ],
+ "subtitle": null,
+ "tempoLabel": "Met overtuiging",
+ "textCredit": "naar William Clayton (1814–1879)",
+ "title": "Komt, heil’gen, komt"
+}
