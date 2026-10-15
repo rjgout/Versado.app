@@ -1,5 +1,11 @@
 # Legpuzzel V2 — tijdelijke sleepprioriteit
 
+> **Bijgewerkt:** de prioriteit geldt niet meer alleen tijdens het slepen. De laatst
+> neergelegde groep blijft lokaal bovenaan (render én hit-test) en na 1,5 s rust maakt
+> het spel ruimte. Zie `14-SMART-PARKING.md`. Wat hieronder staat beschrijft de
+> oorspronkelijke bugfix (tekenvolgorde tijdens slepen en de lift van 2 CSS-pixels);
+> die lift blijft gelden voor de groep die wordt vastgehouden.
+
 Branch: `fix/legpuzzel-v2-drag-priority`, vanaf main `317cdda` (inclusief
 fase-2-afwerking PR #77). Alleen de Solo-rendering wordt gecorrigeerd.
 

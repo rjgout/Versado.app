@@ -8,6 +8,8 @@ export const operationSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("rotate"), groupId: z.string().min(1).max(64) }),
   z.object({ kind: z.literal("anchor"), groupId: z.string().min(1).max(64) }),
   z.object({ kind: z.literal("connect"), a: z.number().int().min(0).max(299), b: z.number().int().min(0).max(299) }),
+  /** Ruimte maken rond een zojuist losgelaten groep. De server bepaalt zelf welke groepen verschuiven; de client levert alleen de focusgroep. */
+  z.object({ kind: z.literal("settle"), groupId: z.string().min(1).max(64) }),
 ]);
 export const hintRequestSchema = z.object({
   hint: z.enum(["PREVIEW", "LOCATION", "CONNECTION", "FILTER"]),

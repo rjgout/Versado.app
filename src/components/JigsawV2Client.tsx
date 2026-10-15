@@ -21,7 +21,10 @@ import { renderPuzzle } from "@/lib/puzzle/render";
 import { createNearSnapTracker, prefersReducedMotion } from "@/lib/puzzle/nearSnap";
 import { COMPLETION_MAX_WAIT_MS, createCompletionGate, createPuzzleMotion, frameTime, wallTime, type RemoteEntry } from "@/lib/puzzle/motion";
 import { boardSnapTarget, connectedPieces, findSnapConnection, groupFor, worldOf } from "@/lib/puzzle/engine";
-import { clampGroupPosition, groupMemberAt, puzzleRenderOrder, puzzleWorktable } from "@/lib/puzzle/worktable";
+import { clampGroupPosition, groupMemberAt, puzzleWorktable } from "@/lib/puzzle/worktable";
+import { settleWouldMove } from "@/lib/puzzle/collision";
+import { createParking, type Parking, type ParkingReadiness } from "@/lib/puzzle/parking";
+import { createStacking } from "@/lib/puzzle/stacking";
 import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
 import { puzzlePolicy, type PuzzleFilter, type PuzzleHintType, type PuzzleHint, type PuzzleDifficulty, type PuzzlePieceCount, type PuzzleSnapshot } from "@/lib/puzzle/types";
 import { activePuzzleHint, puzzleHintTarget } from "@/lib/puzzle/hints";
@@ -175,6 +178,9 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
   const viewport = useRef<ViewportSize | null>(null); const paths = useRef(new Map<string, Path2D>()); const nearSnap = useRef(createNearSnapTracker());
   const pointers = useRef(new Map<number, Point>()); const drag = useRef<Drag | null>(null); const pan = useRef<Pan | null>(null); const pinch = useRef<Pinch | null>(null);
   const feedback = puzzleFeedback(); const stageRef = useRef<Stage>("BOARD");
+  // Tafelgedrag: lokale stapelvolgorde (alleen presentatie en aanwijzen), een enkele annuleerbare parkeertimer en een vlag voor de schuifanimatie.
+  const stacking = useRef(createStacking()); const parkingRef = useRef<Parking | null>(null);
+  const parkingHooks = useRef<{ ready: () => ParkingReadiness; settle: (ids: readonly string[], stale: () => boolean) => Promise<void> }>({ ready: () => "stop", settle: async () => {} });
   const geometry = useMemo(() => createPuzzleGeometry(initial.pieceCount, initial.seed, initial.geometryVersion), [initial.pieceCount, initial.seed, initial.geometryVersion]); const table = useMemo(() => puzzleWorktable(geometry), [geometry]); const motion = useMemo(() => createPuzzleMotion(geometry), [geometry]); const completion = useMemo(() => createCompletionGate(), []); const completionTimer = useRef<ReturnType<typeof setTimeout> | null>(null); const policy = puzzlePolicy(state.difficulty, state.rulesVersion);
 
   // Eén plek die bepaalt waar een verzoek heen gaat; Solo blijft ongewijzigd.
@@ -209,7 +215,7 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
     completion.tick({ now, complete: shown.current.status === "COMPLETED", animating: motion.gliding(now), reduced: prefersReducedMotion() });
     if (nearSnap.current.animating || motion.active(now) || completion.waiting) schedulePaint();
     renderPuzzle(canvas, {
-      geometry, table, camera: camera.current, image: image.current, paths: paths.current, snapshot, groups: puzzleRenderOrder(motion.groups(snapshot.groups, now), draggedGroupId),
+      geometry, table, camera: camera.current, image: image.current, paths: paths.current, snapshot, groups: stacking.current.order(motion.groups(snapshot.groups, now), draggedGroupId),
       place: (group, out) => { out.lifted = group.id === draggedGroupId; },
       selectedPiece: selectedRef.current, hint: hintRef.current?.target,
       backdrop: state.rulesVersion === 1 || policy.showOutline || policy.showGhost, ghost: policy.showGhost, outline: policy.showOutline,
@@ -224,7 +230,7 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
     // Noodgreep: ook zonder frames (verborgen tabblad) blijft de kaart niet langer weg dan de bovengrens.
     completionTimer.current = setTimeout(() => { completion.cancel(); reveal(); }, COMPLETION_MAX_WAIT_MS + 100);
   }
-  function update(next: State) { inventory.setData({ hintBalance: next.hintBalance }); saved.current = next; if (!mounted.current) return; shown.current = next; setState(next); setOuter(next); if (!match) remember(next.id); if (next.status === "COMPLETED") showCompletion(); if (next.status === "ANSWERED") setStage("RESULT"); schedulePaint(); }
+  function update(next: State) { inventory.setData({ hintBalance: next.hintBalance }); stacking.current.prune(next.snapshot.groups); saved.current = next; if (!mounted.current) return; shown.current = next; setState(next); setOuter(next); if (!match) remember(next.id); if (next.status === "COMPLETED") showCompletion(); if (next.status === "ANSWERED") setStage("RESULT"); schedulePaint(); }
   async function action(operation: object, movedGroupId?: string) {
     const current = saved.current; const body = { action: "act", sessionId: current.id, version: current.version, actionId: crypto.randomUUID(), operation };
     if ("kind" in operation && operation.kind === "hint") {
@@ -237,29 +243,30 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
     if (movedGroupId) glideRequested.current = true;
     update(next); return next;
   }
-  async function runBoard(work: () => Promise<void>): Promise<boolean> {
+  async function runBoard(work: () => Promise<void>, silent = false): Promise<boolean> {
     if (!mounted.current || pending.current || saved.current.status !== "ACTIVE") return false;
-    pending.current = true; setBusy(true); setError("");
+    pending.current = true; setBusy(true); if (!silent) setError("");
     try { await work(); return true; }
     catch (cause) {
       if (!mounted.current) return false;
-      setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed"));
+      if (!silent) setError(cause instanceof Error && cause.message ? cause.message : t("jigsaw.failed"));
       // Ook na een verloren completion-response de autoritatieve fase herstellen.
       try { update(await call({ action: "resume", sessionId: saved.current.id }) as State); }
       catch { shown.current = saved.current; setState(saved.current); schedulePaint(); }
       return false;
     } finally { pending.current = false; if (mounted.current) setBusy(false); }
   }
-  function fit() { const canvas = canvasRef.current; if (!canvas) return; camera.current = fitCamera({ width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds); schedulePaint(); }
+  function fit() { const canvas = canvasRef.current; if (!canvas) return; parkingRef.current?.interact(); camera.current = fitCamera({ width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds); schedulePaint(); }
   function screenPoint(event: { clientX: number; clientY: number }) { const rect = canvasRef.current?.getBoundingClientRect(); return rect ? { x: event.clientX - rect.left, y: event.clientY - rect.top } : { x: 0, y: 0 }; }
   function worldPoint(point: Point) { return screenToWorld(camera.current, point); }
-  function picked(point: Point) { for (const group of [...shown.current.snapshot.groups].reverse()) { const id = groupMemberAt(geometry, group, point); if (id !== null) return { group, id }; } return null; }
+  function picked(point: Point) { for (const group of stacking.current.hitOrder(shown.current.snapshot.groups, drag.current?.groupId ?? null)) { const id = groupMemberAt(geometry, group, point); if (id !== null) return { group, id }; } return null; }
   function transientMove(groupId: string, x: number, y: number) { const base = saved.current; const group = base.snapshot.groups.find((candidate) => candidate.id === groupId); if (!group || group.anchored) return; const position = clampGroupPosition(geometry, group, x, y); const next = { ...base, snapshot: { ...base.snapshot, groups: base.snapshot.groups.map((candidate) => candidate.id === groupId ? { ...candidate, ...position } : candidate) } }; shown.current = next; setState(next); schedulePaint(); }
-  function beginPinch() { const fingers = [...pointers.current.values()]; if (fingers.length < 2) return; if (drag.current) { drag.current = null; shown.current = saved.current; setState(saved.current); } pan.current = null; const center = { x: (fingers[0].x + fingers[1].x) / 2, y: (fingers[0].y + fingers[1].y) / 2 }; pinch.current = { distance: Math.max(1, distance(fingers[0], fingers[1])), world: worldPoint(center), scale: camera.current.scale }; schedulePaint(); }
-  function updatePinch() { const active = pinch.current; const fingers = [...pointers.current.values()]; if (!active || fingers.length < 2) return; const center = { x: (fingers[0].x + fingers[1].x) / 2, y: (fingers[0].y + fingers[1].y) / 2 }; camera.current.scale = Math.max(8, Math.min(240, active.scale * distance(fingers[0], fingers[1]) / active.distance)); camera.current.x = center.x - active.world.x * camera.current.scale; camera.current.y = center.y - active.world.y * camera.current.scale; constrainCamera(); schedulePaint(); }
-  async function snapAfterMove(next: State, groupId: string) {
-    let current = next; const piece = next.snapshot.groups.find((group) => group.id === groupId)?.pieceIds[0];
-    if (piece === undefined) return;
+  function beginPinch() { const fingers = [...pointers.current.values()]; if (fingers.length < 2) return; parkingRef.current?.interact(); if (drag.current) { const dropped = drag.current.groupId; drag.current = null; shown.current = saved.current; setState(saved.current); parkingRef.current?.park(dropped); } pan.current = null; const center = { x: (fingers[0].x + fingers[1].x) / 2, y: (fingers[0].y + fingers[1].y) / 2 }; pinch.current = { distance: Math.max(1, distance(fingers[0], fingers[1])), world: worldPoint(center), scale: camera.current.scale }; schedulePaint(); }
+  function updatePinch() { const active = pinch.current; const fingers = [...pointers.current.values()]; if (!active || fingers.length < 2) return; parkingRef.current?.interact(); const center = { x: (fingers[0].x + fingers[1].x) / 2, y: (fingers[0].y + fingers[1].y) / 2 }; camera.current.scale = Math.max(8, Math.min(240, active.scale * distance(fingers[0], fingers[1]) / active.distance)); camera.current.x = center.x - active.world.x * camera.current.scale; camera.current.y = center.y - active.world.y * camera.current.scale; constrainCamera(); schedulePaint(); }
+  async function snapAfterMove(next: State, groupId: string): Promise<boolean> {
+    // Geeft terug of er een verbinding of verankering is gemaakt: alleen een groep zonder dat wordt geparkeerd.
+    let current = next; let connected = false; const piece = next.snapshot.groups.find((group) => group.id === groupId)?.pieceIds[0];
+    if (piece === undefined) return false;
     for (let count = 0; count < state.pieceCount && mounted.current; count++) {
       const moved = groupFor(current.snapshot, piece); if (!moved || current.status !== "ACTIVE") break;
       const connection = findSnapConnection(current.snapshot, geometry, current.difficulty, moved.id, current.rulesVersion); if (!connection) break;
@@ -269,19 +276,21 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
       const b = count === 0 ? connection.b : connection.a;
       const joined = await action({ kind: "connect", a, b }, groupFor(current.snapshot, b)?.id);
       if (joined.version === current.version) break;
+      connected = true;
       // Eén bevestigd-verbindingsgeluid per verplaatsing (ook bij een keten); de laatste snap krijgt de voltooiingsviering.
       if (count === 0 && joined.status === "ACTIVE" && mounted.current) feedback.play("connect");
       current = joined; if (mounted.current) setMessage(t("jigsaw.piecesConnected"));
     }
     const moved = groupFor(current.snapshot, piece);
-    if (current.status === "ACTIVE" && moved && boardSnapTarget(current.snapshot, geometry, current.difficulty, moved.id, current.rulesVersion)) await action({ kind: "anchor", groupId: moved.id }, moved.id);
+    if (current.status === "ACTIVE" && moved && boardSnapTarget(current.snapshot, geometry, current.difficulty, moved.id, current.rulesVersion)) { await action({ kind: "anchor", groupId: moved.id }, moved.id); connected = true; }
+    return connected;
   }
-  async function finishDrag(active: Drag, point: Point) { const next = await action({ kind: "move", groupId: active.groupId, x: point.x - active.offset.x, y: point.y - active.offset.y }); await snapAfterMove(next, active.groupId); }
-  function boardDown(event: ReactPointerEvent<HTMLCanvasElement>) { feedback.noteGesture(); flushNudge(); if (pending.current || saved.current.status !== "ACTIVE") return; setMenuOpen(false); setHintsOpen(false); const point = screenPoint(event); pointers.current.set(event.pointerId, point); event.currentTarget.setPointerCapture(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } const hit = picked(worldPoint(point)); if (hit) { setSelected(hit.id); if (hit.group.anchored) { schedulePaint(); return; } drag.current = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: worldPoint(point).x - hit.group.x, y: worldPoint(point).y - hit.group.y } }; feedback.play("pickup"); } else { setSelected(null); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; } schedulePaint(); }
-  function boardMove(event: ReactPointerEvent<HTMLCanvasElement>) { if (!pointers.current.has(event.pointerId)) return; const point = screenPoint(event); pointers.current.set(event.pointerId, point); if (pointers.current.size >= 2) { updatePinch(); return; } if (drag.current?.pointer === event.pointerId) { const world = worldPoint(point); transientMove(drag.current.groupId, world.x - drag.current.offset.x, world.y - drag.current.offset.y); } else if (pan.current?.pointer === event.pointerId) { camera.current.x = pan.current.camera.x + point.x - pan.current.point.x; camera.current.y = pan.current.camera.y + point.y - pan.current.point.y; constrainCamera(); schedulePaint(); } }
-  async function boardUp(event: ReactPointerEvent<HTMLCanvasElement>) { const point = screenPoint(event); const activeDrag = drag.current; pointers.current.delete(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } if (pinch.current) { pinch.current = null; const remaining = [...pointers.current.entries()][0]; if (remaining) pan.current = { pointer: remaining[0], point: remaining[1], camera: { ...camera.current } }; return; } if (activeDrag?.pointer === event.pointerId) { drag.current = null; schedulePaint(); await runBoard(() => finishDrag(activeDrag, worldPoint(point))); } if (pan.current?.pointer === event.pointerId) pan.current = null; }
-  function boardCancel(event: ReactPointerEvent<HTMLCanvasElement>) { pointers.current.delete(event.pointerId); drag.current = null; pan.current = null; pinch.current = null; shown.current = saved.current; setState(saved.current); schedulePaint(); }
-  function zoom(factor: number, around?: Point) { const canvas = canvasRef.current; if (!canvas) return; const center = around ?? { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 }; camera.current = zoomCamera(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds, factor, center); schedulePaint(); }
+  async function finishDrag(active: Drag, point: Point) { const next = await action({ kind: "move", groupId: active.groupId, x: point.x - active.offset.x, y: point.y - active.offset.y }); const connected = await snapAfterMove(next, active.groupId); if (!connected && next.status === "ACTIVE") parkingRef.current?.park(active.groupId); }
+  function boardDown(event: ReactPointerEvent<HTMLCanvasElement>) { feedback.noteGesture(); parkingRef.current?.interact(); flushNudge(); if (pending.current || saved.current.status !== "ACTIVE") return; setMenuOpen(false); setHintsOpen(false); const point = screenPoint(event); pointers.current.set(event.pointerId, point); event.currentTarget.setPointerCapture(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } const hit = picked(worldPoint(point)); if (hit) { setSelected(hit.id); if (hit.group.anchored) { schedulePaint(); return; } stacking.current.raise(hit.group.id); parkingRef.current?.unpark(hit.group.id); drag.current = { pointer: event.pointerId, groupId: hit.group.id, offset: { x: worldPoint(point).x - hit.group.x, y: worldPoint(point).y - hit.group.y } }; feedback.play("pickup"); } else { setSelected(null); pan.current = { pointer: event.pointerId, point, camera: { ...camera.current } }; } schedulePaint(); }
+  function boardMove(event: ReactPointerEvent<HTMLCanvasElement>) { if (!pointers.current.has(event.pointerId)) return; const point = screenPoint(event); pointers.current.set(event.pointerId, point); if (pointers.current.size >= 2) { updatePinch(); return; } if (drag.current?.pointer === event.pointerId) { const world = worldPoint(point); transientMove(drag.current.groupId, world.x - drag.current.offset.x, world.y - drag.current.offset.y); } else if (pan.current?.pointer === event.pointerId) { camera.current.x = pan.current.camera.x + point.x - pan.current.point.x; camera.current.y = pan.current.camera.y + point.y - pan.current.point.y; parkingRef.current?.interact(); constrainCamera(); schedulePaint(); } }
+  async function boardUp(event: ReactPointerEvent<HTMLCanvasElement>) { const point = screenPoint(event); const activeDrag = drag.current; pointers.current.delete(event.pointerId); if (pointers.current.size >= 2) { beginPinch(); return; } if (pinch.current) { pinch.current = null; const remaining = [...pointers.current.entries()][0]; if (remaining) pan.current = { pointer: remaining[0], point: remaining[1], camera: { ...camera.current } }; return; } if (activeDrag?.pointer === event.pointerId) { drag.current = null; schedulePaint(); const ran = await runBoard(() => finishDrag(activeDrag, worldPoint(point))); if (!ran) parkingRef.current?.park(activeDrag.groupId); } if (pan.current?.pointer === event.pointerId) pan.current = null; }
+  function boardCancel(event: ReactPointerEvent<HTMLCanvasElement>) { pointers.current.delete(event.pointerId); if (drag.current) parkingRef.current?.park(drag.current.groupId); drag.current = null; pan.current = null; pinch.current = null; shown.current = saved.current; setState(saved.current); schedulePaint(); }
+  function zoom(factor: number, around?: Point) { const canvas = canvasRef.current; if (!canvas) return; parkingRef.current?.interact(); const center = around ?? { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 }; camera.current = zoomCamera(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds, factor, center); schedulePaint(); }
   async function rotateSelected() { flushNudge(); if (selected === null || state.difficulty !== "MASTER") return; await runBoard(async () => { const group = groupFor(saved.current.snapshot, selected); if (group && !group.anchored) await action({ kind: "rotate", groupId: group.id }); }); }
   // Pijltjestoetsen: de verplaatsing is direct zichtbaar en gaat na een korte stilte als één verplaatsing (met één snapcontrole) naar de server.
   // Veel aanslagen geven zo niet evenveel serveracties en er gaat geen aanslag verloren terwijl een vorige actie nog loopt.
@@ -298,7 +307,7 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
       nudge.current = null;
       // Na het verlaten van het bord is er geen scherm meer om bij te werken; de server blijft de enige bron van waarheid.
       if (!mounted.current) { try { await action({ kind: "move", groupId: move.groupId, x: move.x, y: move.y }); return true; } catch { return false; } }
-      return runBoard(async () => { const next = await action({ kind: "move", groupId: move.groupId, x: move.x, y: move.y }); await snapAfterMove(next, move.groupId); });
+      return runBoard(async () => { const next = await action({ kind: "move", groupId: move.groupId, x: move.x, y: move.y }); const connected = await snapAfterMove(next, move.groupId); if (!connected && next.status === "ACTIVE") parkingRef.current?.park(move.groupId); });
     })();
     nudgeFlight.current = task;
     void task.finally(() => { if (nudgeFlight.current === task) nudgeFlight.current = null; });
@@ -309,10 +318,29 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
     if (piece === null || drag.current || saved.current.status !== "ACTIVE") return;
     if (nudgeFlight.current) { void nudgeFlight.current.then((ok) => { if (ok && mounted.current && selectedRef.current === piece) moveSelectedBy(dx, dy); }); return; }
     const group = groupFor(saved.current.snapshot, piece); if (!group || group.anchored) return;
+    parkingRef.current?.interact(); parkingRef.current?.unpark(group.id); stacking.current.raise(group.id);
     const from = nudge.current?.groupId === group.id ? nudge.current : group; const position = clampGroupPosition(geometry, group, from.x + dx, from.y + dy);
     nudge.current = { groupId: group.id, ...position }; transientMove(group.id, position.x, position.y);
     if (nudgeTimer.current !== null) clearTimeout(nudgeTimer.current); nudgeTimer.current = setTimeout(() => { void flushNudge(); }, NUDGE_IDLE_MS);
   }
+  // Parkeren: een losgelaten groep zonder verbinding blijft bovenop liggen en de speler kan direct verder. Pas na 1,5 s zonder relevante
+  // interactie (slepen, camera, zoom, toetsen) mag de tafel ruimte maken, en alleen als dat echt iets oplost. De server bepaalt de verschuivingen.
+  function parkingReady(): ParkingReadiness {
+    if (!mounted.current || saved.current.status !== "ACTIVE" || stageRef.current !== "BOARD") return "stop";
+    if (drag.current || pan.current || pinch.current || pointers.current.size || pending.current || nudge.current || nudgeFlight.current || nudgeTimer.current !== null) return "wait";
+    return "go";
+  }
+  async function runSettle(ids: readonly string[], stale: () => boolean) {
+    for (const id of ids) {
+      if (stale() || parkingReady() !== "go") return;
+      const current = saved.current; const group = current.snapshot.groups.find((candidate) => candidate.id === id);
+      if (!group || group.anchored) continue;
+      // Geen netwerkactie als er niets te verplaatsen valt (geen botsing, een snap is nog mogelijk, of er is geen veilige plek).
+      if (!settleWouldMove(current.snapshot, geometry, { focusGroupId: id, difficulty: current.difficulty, rulesVersion: current.rulesVersion })) continue;
+      await runBoard(async () => { const before = saved.current.snapshot; const next = await action({ kind: "settle", groupId: id }); motion.beginShift(before, next.snapshot, frameTime()); schedulePaint(); }, true);
+    }
+  }
+  useEffect(() => { parkingHooks.current = { ready: parkingReady, settle: runSettle }; });
   async function submit(choice: number) { if (match) { const outcome = await call({ action: "answer", choice }) as { correct: boolean; correctChoice: number | null; counted: boolean }; if (mounted.current) match.onAnswered(outcome); return; } // Een nieuw persoonlijk record verandert de recordoverzichten en ranglijsten: ongeldig maken via de live-datalaag.
     const result = await liveMutation(() => request({ action: "answer", sessionId: saved.current.id, choice }) as Promise<Answer>, { invalidates: "gamesChanged" }); if (!mounted.current) return; if ("correct" in result && result.correct && "record" in result && result.record && result.record.result !== "UNCHANGED") feedback.play("record", saved.current.id); setAnswer(result); const next = { ...saved.current, status: "ANSWERED", answer: result }; saved.current = next; setState(next); setOuter(next); remember(null); setStage("RESULT"); }
   function continueToQuestion() { if (match) match.onStage?.("QUESTION"); else { try { localStorage.setItem(`${KEY}:question`, state.id); } catch {} } setStage("QUESTION"); }
@@ -329,10 +357,11 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
       camera.current = previous ? resizeCamera(camera.current, previous, next, table.bounds) : initialPuzzleCamera(next, geometry, saved.current.snapshot);
       viewport.current = next; schedulePaint();
     };
-    const observer = canvas ? new ResizeObserver(resize) : null; if (canvas) { observer?.observe(canvas); resize(); }
+    const observer = canvas ? new ResizeObserver(() => { parkingRef.current?.interact(); resize(); }) : null; if (canvas) { observer?.observe(canvas); resize(); }
+    const parking = createParking({ ready: () => parkingHooks.current.ready(), settle: (ids, stale) => parkingHooks.current.settle(ids, stale) }); parkingRef.current = parking;
     const lastChance = () => { void flushNudge(); };
     window.addEventListener("pagehide", lastChance);
-    return () => { lastChance(); mounted.current = false; window.removeEventListener("pagehide", lastChance); picture.onload = null; observer?.disconnect(); motion.clear(); completion.cancel(); if (nudgeTimer.current !== null) clearTimeout(nudgeTimer.current); if (completionTimer.current !== null) clearTimeout(completionTimer.current); if (frame.current !== null) cancelAnimationFrame(frame.current); frame.current = null; };
+    return () => { lastChance(); mounted.current = false; parking.dispose(); parkingRef.current = null; window.removeEventListener("pagehide", lastChance); picture.onload = null; observer?.disconnect(); motion.clear(); completion.cancel(); if (nudgeTimer.current !== null) clearTimeout(nudgeTimer.current); if (completionTimer.current !== null) clearTimeout(completionTimer.current); if (frame.current !== null) cancelAnimationFrame(frame.current); frame.current = null; };
     // De camera hoort bij deze ge-keyde sessie; een actie reset hem nooit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

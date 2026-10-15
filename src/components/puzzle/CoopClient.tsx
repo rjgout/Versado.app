@@ -173,12 +173,12 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
     if (socket.connected && now - lastDragSent.current > 60) { lastDragSent.current = now; socket.volatile.emit("puzzle:drag", { sessionId: initial.id, groupId, x, y }); }
   }, [initial.id]);
 
-  const onCommit = useCallback(async (operation: TableCommit, token: string): Promise<boolean> => {
-    const body = { sessionId: initial.id, actionId: crypto.randomUUID(), baseVersion: version.current, lockToken: token, operation };
+  const onCommit = useCallback(async (operation: TableCommit, token: string | null): Promise<boolean> => {
+    const body = { sessionId: initial.id, actionId: crypto.randomUUID(), baseVersion: version.current, ...(token ? { lockToken: token } : {}), operation };
     const response = await emitAck("puzzle:commit", body, () => post({ action: "commit", ...body }));
     if (!response.ok) {
-      // Conflict, verlopen lock of verbroken verbinding: de canonieke stand wint.
-      setMessage(t(response.code === "LOCKED" || response.code === "NO_LOCK" ? "puzzleTogether.coop.busy" : "puzzleTogether.coop.changed"));
+      // Conflict, verlopen lock of verbroken verbinding: de canonieke stand wint. Een mislukte ruimte-maak-actie is niet de speler zijn zaak: stil herstellen.
+      if (operation.kind !== "settle") setMessage(t(response.code === "LOCKED" || response.code === "NO_LOCK" ? "puzzleTogether.coop.busy" : "puzzleTogether.coop.changed"));
       await resync(); return false;
     }
     const delta = response.delta as PuzzleDelta | null;

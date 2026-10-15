@@ -13,6 +13,7 @@ const operation = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("anchor"), groupId: z.string().min(1).max(64) }),
   z.object({ kind: z.literal("hint"), hint: z.enum(["PREVIEW", "LOCATION", "CONNECTION", "FILTER"]), confirmPersonal: z.boolean().optional(), pieceId: z.number().int().min(0).max(95).optional(), filter: z.enum(["CORNERS", "EDGES", "MIDDLES"]).optional() }).refine((input) => input.hint === "PREVIEW" || (input.hint === "FILTER" ? input.filter !== undefined : input.pieceId !== undefined)),
   z.object({ kind: z.literal("connect"), a: z.number().int().min(0).max(95), b: z.number().int().min(0).max(95) }),
+  z.object({ kind: z.literal("settle"), groupId: z.string().min(1).max(64) }),
 ]);
 const schema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("create"), imageId: z.string().refine((id) => jigsawCatalog.some((item) => item.url === id)), pieceCount: matchCountSchema, difficulty: difficultySchema, friendIds: friendIdsSchema.min(1), kind: z.enum(["LIVE", "ASYNC"]) }),

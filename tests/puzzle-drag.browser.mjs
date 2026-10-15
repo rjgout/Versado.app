@@ -87,10 +87,15 @@ try {
       // pointerup verdwijnen, niet pas als de echte serveractie terugkomt.
       let release;
       const gate = new Promise((resolve) => { release = resolve; });
-      const hold = async (route) => { if (route.request().postDataJSON()?.operation?.kind === "move") await gate; await route.continue(); };
+      const hold = async (route) => { if (route.request().postDataJSON()?.operation?.kind === "move") await gate; await route.fallback(); };
+      // Deze test meet de stapelvolgorde van een neergelegde groep: het automatische ruimte maken (na 1,5 s) wordt hier bewust niet uitgevoerd
+      // en staat in tests/puzzle-parking.browser.mjs.
+      const noSettle = async (route) => { if (route.request().postDataJSON()?.operation?.kind === "settle") await route.abort(); else await route.fallback(); };
+      await page.route("**/api/jigsaw-v2", noSettle);
       await page.route("**/api/jigsaw-v2", hold);
       const response = page.waitForResponse((r) => r.url().endsWith("/api/jigsaw-v2") && r.request().postDataJSON()?.operation?.kind === "move");
-      try { await up(); await checkMembers(dx, dy, false); } finally { release(); }
+      // Na het loslaten blijft de laatst verplaatste groep bovenop liggen (geparkeerd); alleen lift en schaduw verdwijnen.
+      try { await up(); await checkMembers(dx, dy, true); } finally { release(); }
       state = await (await response).json(); await page.unroute("**/api/jigsaw-v2", hold);
       await page.waitForFunction(() => document.querySelector("canvas").parentElement.getAttribute("aria-busy") === "false"); await settle();
       const saved = state.snapshot.groups.find((g) => g.id === "p0");
@@ -105,12 +110,12 @@ try {
       // Dezelfde selectie opnieuw oppakken: React hoeft geen state te wijzigen.
       await down(pick(dx, dy)); await checkMembers(dx, dy, true);
       const liftedTop = await redTop(); assert.ok(restingTop - liftedTop >= 1.5 && restingTop - liftedTop <= 2.5, "lift blijft subtiel en gebruikt schermpixels");
-      await cancel(); await checkMembers(dx, dy, false); assert.equal(await redTop(), restingTop);
+      await cancel(); await checkMembers(dx, dy, true); assert.equal(await redTop(), restingTop);
       assert.deepEqual((await api({ action: "resume", sessionId: state.id })).snapshot, state.snapshot, "annuleren herstelt de volledige groep");
       if (touch) {
         await down(pick(dx, dy)); await checkMembers(dx, dy, true);
         await touch.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ ...pointer, id: 0 }, { x: pointer.x + 40, y: pointer.y + 60, id: 1 }] });
-        await settle(); await checkMembers(dx, dy, false); // Pinch-start, nog zonder bewegen.
+        await settle(); await checkMembers(dx, dy, true); // Pinch-start, nog zonder bewegen: de groep blijft de bovenste.
         await touch.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] }); await settle();
         assert.deepEqual((await api({ action: "resume", sessionId: state.id })).snapshot, state.snapshot);
       }

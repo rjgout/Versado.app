@@ -13,6 +13,8 @@ import type { PuzzleGeometry, PuzzleGroup, PuzzleSnapshot } from "@/lib/puzzle/t
 //    ontvangen punt) en met een korte terugkeer naar de bevestigde stand als updates uitblijven.
 
 export const SNAP_GLIDE_MS = 140;
+/** Subtiele schuif bij het ruimte maken van de tafel (150-200 ms, zachte ease-out, nooit een stuiter). */
+export const SETTLE_GLIDE_MS = 180;
 export const REMOTE_FOLLOW_MIN_MS = 50;
 export const REMOTE_FOLLOW_MAX_MS = 120;
 export const REMOTE_SETTLE_MS = 120;
@@ -29,7 +31,7 @@ const easeOut = (progress: number) => 1 - (1 - progress) ** 3;
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 interface Part { group: PuzzleGroup; fromX: number; fromY: number; toX: number; toY: number }
-interface Glide { target: PuzzleGroup; parts: Part[]; start: number; end: number }
+interface Glide { target: PuzzleGroup; parts: Part[]; start: number; end: number; ms: number }
 interface Follow {
   fromX: number; fromY: number; toX: number; toY: number; start: number; duration: number;
   /** Laatste ontvangen punt en tijdstip (wandklok, zoals `until` van de ontvangen update). */
@@ -49,6 +51,7 @@ export interface MotionUpdate {
   glide?: boolean;
   /** Verder dan een snap kan afleggen is geen snap (herverbinding, servercorrectie): dan geen glijbeweging. */
   maxDistance: number;
+
 }
 
 /** Wat de renderer voor deze groep moet gebruiken; `lifted` hoort bij het schaduweffect van een gesleepte groep. */
@@ -65,7 +68,7 @@ export function createPuzzleMotion(geometry: PuzzleGeometry) {
   }
   const displayed = (id: string, group: PuzzleGroup, now: number) => { const follow = follows.get(id); if (!follow) return { x: group.x, y: group.y }; const out = { x: 0, y: 0 }; return followAt(follow, now, out); };
   const partAt = (part: Part, glide: Glide, now: number, out: RemotePlacement) => {
-    const progress = clamp01((now - (glide.end - SNAP_GLIDE_MS)) / SNAP_GLIDE_MS); const eased = easeOut(progress);
+    const progress = clamp01((now - (glide.end - glide.ms)) / glide.ms); const eased = easeOut(progress);
     out.x = part.fromX + (part.toX - part.fromX) * eased; out.y = part.fromY + (part.toY - part.fromY) * eased; return out;
   };
 
@@ -99,9 +102,35 @@ export function createPuzzleMotion(geometry: PuzzleGeometry) {
         for (const part of old.parts) { const at = partAt(part, old, now, { x: 0, y: 0 }); const to = worldOf(geometry, target, part.group.pieceIds[0]); if (!parts.some((candidate) => candidate.group === part.group)) parts.push({ group: part.group, fromX: at.x, fromY: at.y, toX: to.x, toY: to.y }); }
       }
       if (!parts.some((part) => Math.hypot(part.toX - part.fromX, part.toY - part.fromY) > EPSILON)) continue;
-      result.push({ target, parts, start: now, end: now + SNAP_GLIDE_MS });
+      result.push({ target, parts, start: now, end: now + SNAP_GLIDE_MS, ms: SNAP_GLIDE_MS });
     }
     return result;
+  }
+
+  /** Bevestigde verschuivingen (ruimte maken): dezelfde groep, dezelfde stukken, een andere plek. */
+  function shiftsFor(prev: PuzzleSnapshot, next: PuzzleSnapshot, now: number): Glide[] {
+    const prevById = new Map(prev.groups.map((group) => [group.id, group] as const)); const result: Glide[] = [];
+    for (const group of next.groups) {
+      const before = prevById.get(group.id);
+      if (!before || before.anchored !== group.anchored || before.pieceIds.length !== group.pieceIds.length || before.rotation !== group.rotation) continue;
+      if (Math.hypot(group.x - before.x, group.y - before.y) < EPSILON) continue;
+      const from = displayed(group.id, before, now);
+      // Een groep die nog glijdt begint vanaf waar ze nu getekend wordt: geen sprong.
+      const running = glides.find((glide) => glide.target.id === group.id && now < glide.end);
+      const at = running ? partAt(running.parts[0], running, now, { x: 0, y: 0 }) : from;
+      result.push({ target: group, parts: [{ group, fromX: at.x, fromY: at.y, toX: group.x, toY: group.y }], start: now, end: now + SETTLE_GLIDE_MS, ms: SETTLE_GLIDE_MS });
+    }
+    return result;
+  }
+
+  /**
+   * Na een bevestigde ruimte-maak-actie: groepen die in `next` op een andere plek staan dan in `prev` (zelfde stukken) schuiven
+   * subtiel naar de nieuwe plek. De aanroeper geeft de stand van vóór en na de bevestiging; alleen presentatie: de bevestigde
+   * stand staat al toegepast en wordt nooit door de animatie bepaald. Geeft het aantal schuivende groepen terug.
+   */
+  function beginShift(prev: PuzzleSnapshot, next: PuzzleSnapshot, now: number): number {
+    const shifted = shiftsFor(prev, next, now); if (!shifted.length) return 0;
+    const ids = new Set(shifted.map((glide) => glide.target.id)); glides = [...glides.filter((old) => !ids.has(old.target.id)), ...shifted]; return shifted.length;
   }
 
   function update(input: MotionUpdate) {
@@ -169,7 +198,7 @@ export function createPuzzleMotion(geometry: PuzzleGeometry) {
     return false;
   }
   function clear() { glides = []; follows.clear(); last = null; }
-  return { update, groups, remoteAt, active, gliding, clear, get glideCount() { return glides.length; }, get followCount() { return follows.size; } };
+  return { update, beginShift, groups, remoteAt, active, gliding, clear, get glideCount() { return glides.length; }, get followCount() { return follows.size; } };
 }
 export type PuzzleMotion = ReturnType<typeof createPuzzleMotion>;
 
