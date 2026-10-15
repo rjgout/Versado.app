@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createPuzzleGeometry } from "../src/lib/puzzle/geometry";
-import { moveGroup, newPuzzleSnapshot } from "../src/lib/puzzle/engine";
+import { connectGroups, groupFor, moveGroup, newPuzzleSnapshot, worldOf } from "../src/lib/puzzle/engine";
 import { groupMemberAt } from "../src/lib/puzzle/worktable";
 import { createPuzzleMotion, SETTLE_GLIDE_MS } from "../src/lib/puzzle/motion";
 import { PARKING_DELAY_MS, createParking, type ParkingEnv, type ParkingReadiness } from "../src/lib/puzzle/parking";
@@ -146,4 +146,57 @@ test("schuifanimatie: een nieuwe bevestigde stand tijdens het schuiven wint (gee
   const motion = createPuzzleMotion(geometry); motion.update({ snapshot: before, remote: new Map(), now: 0, wall: 0, enabled: true, maxDistance: .5 }); motion.beginShift(before, after, 10);
   const correction = put(after, 0, 8, 7); motion.update({ snapshot: correction, remote: new Map(), now: 50, wall: 50, enabled: true, maxDistance: .5 });
   assert.equal(motion.groups(correction.groups, 60), correction.groups, "een afwijkende bevestigde positie vervangt de animatie");
+});
+
+// --- aanwijzen tijdens de schuifanimatie (review PR #117) -----------------------------------------------------------------------
+
+/** Wat de speler aantikt, zoals de client het bepaalt: gestapelde volgorde van de getekende posities. */
+function tap(motion: ReturnType<typeof createPuzzleMotion>, stacking: ReturnType<typeof createStacking>, snap: PuzzleSnapshot, at: { x: number; y: number }, now: number) {
+  for (const group of stacking.hitOrder(motion.hitGroups(snap.groups, now))) { const id = groupMemberAt(geometry, group, at); if (id !== null) return { group, id }; }
+  return null;
+}
+const centreOf = (snap: PuzzleSnapshot, groupId: string, piece: number) => { const g = snap.groups.find((x) => x.id === groupId)!; const w = worldOf(geometry, g, piece); return { x: w.x + .5, y: w.y + .5 }; };
+
+test("aanwijzen tijdens het schuiven: je pakt het stuk dat je ziet, niet het stuk dat er straks staat", () => {
+  const before = put(put(base(), 0, 5, 5), 1, 5.3, 5.2); const after = settleGroups(before, geometry, { focusGroupId: "p1", difficulty: "DISCOVERER" });
+  const from = centreOf(before, "p0", 0); const to = centreOf(after, "p0", 0);
+  const motion = createPuzzleMotion(geometry); const stacking = createStacking(); stacking.raise("p1");
+  motion.update({ snapshot: before, remote: new Map(), now: 0, wall: 0, enabled: true, maxDistance: .5 });
+  motion.beginShift(before, after, 100);
+  // direct na de bevestiging (nog op de oude plek): een tik op de oude plek, buiten p1, pakt p0
+  const early = tap(motion, stacking, after, { x: from.x - .65, y: from.y }, 100);
+  assert.equal(early?.group.id, "p0", "p0 is nog zichtbaar op de oude plek en dus aanwijsbaar");
+  const dir = { x: Math.sign(to.x - from.x), y: Math.sign(to.y - from.y) }; assert.ok(Math.max(Math.abs(to.x - from.x), Math.abs(to.y - from.y)) > .5, "voorwaarde: een merkbare verschuiving");
+  assert.equal(tap(motion, stacking, after, { x: to.x + dir.x * .45, y: to.y + dir.y * .45 }, 100)?.group.id === "p0", false, "de bevestigde eindplek is nog leeg");
+  // aan het einde van de animatie geldt de bevestigde stand
+  const late = tap(motion, stacking, after, { x: to.x, y: to.y }, 100 + SETTLE_GLIDE_MS);
+  assert.equal(late?.group.id, "p0");
+  // de bevestigde posities zijn nooit door de animatie gewijzigd
+  assert.equal(motion.hitGroups(after.groups, 100 + SETTLE_GLIDE_MS), after.groups);
+  assert.deepEqual({ x: after.groups.find((g) => g.id === "p0")!.x, y: after.groups.find((g) => g.id === "p0")!.y }, { x: to.x - .5 + (centreOf(after, "p0", 0).x - to.x), y: to.y - .5 });
+});
+
+test("aanwijzen tijdens het schuiven: een verbonden groep wordt als geheel aangewezen en de bovenste groep wint", () => {
+  let snap = put(base(), 0, 5, 5); snap = put(snap, 1, 6, 5); snap = connectGroups(snap, geometry, "DISCOVERER", 0, 1);
+  const pair = groupFor(snap, 0)!; const before = put(snap, 9, pair.x + .3, pair.y + .2);
+  const after = settleGroups(before, geometry, { focusGroupId: "p9", difficulty: "DISCOVERER" });
+  assert.ok(after.groups.find((g) => g.id === pair.id)!.x !== pair.x || after.groups.find((g) => g.id === pair.id)!.y !== pair.y, "het paar schuift");
+  const motion = createPuzzleMotion(geometry); const stacking = createStacking(); stacking.raise("p9");
+  motion.update({ snapshot: before, remote: new Map(), now: 0, wall: 0, enabled: true, maxDistance: .5 });
+  motion.beginShift(before, after, 100);
+  const second = centreOf(before, pair.id, 1); // het tweede stuk staat visueel nog op de oude plek
+  const hit = tap(motion, stacking, after, { x: second.x + .3, y: second.y }, 100);
+  assert.equal(hit?.group.id, pair.id); assert.equal(hit?.group.pieceIds.length, 2, "de hele verbonden groep");
+  // de gestapelde focusgroep ligt bovenop het paar: waar beide staan, wint zij
+  const overlapPoint = { x: before.groups.find((g) => g.id === "p9")!.x + .5, y: before.groups.find((g) => g.id === "p9")!.y + .5 };
+  assert.equal(tap(motion, stacking, after, overlapPoint, 100)?.group.id, "p9");
+});
+
+test("aanwijzen: een groep die door een snap in een andere opgaat blijft op haar bevestigde plek aanwijsbaar", () => {
+  const snap = put(put(base(), 0, 5, 5), 1, 6, 5); const merged = connectGroups(snap, geometry, "DISCOVERER", 0, 1);
+  const motion = createPuzzleMotion(geometry); motion.update({ snapshot: snap, remote: new Map(), now: 0, wall: 0, enabled: true, maxDistance: 2 });
+  motion.update({ snapshot: merged, remote: new Map(), now: 10, wall: 10, enabled: true, glide: true, maxDistance: 2 });
+  const list = motion.hitGroups(merged.groups, 20);
+  assert.deepEqual(list.map((g) => g.id), merged.groups.map((g) => g.id), "dezelfde groepen in dezelfde volgorde");
+  assert.ok(list.some((g) => g.pieceIds.length === 2), "de samengevoegde groep is aanwijsbaar");
 });

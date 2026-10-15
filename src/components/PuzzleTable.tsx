@@ -10,10 +10,10 @@ import { createNearSnapTracker, prefersReducedMotion } from "@/lib/puzzle/nearSn
 import { createCompletionGate, createPuzzleMotion, frameTime, type RemotePlacement } from "@/lib/puzzle/motion";
 import { boardSnapTarget, findSnapConnection, groupFor } from "@/lib/puzzle/engine";
 import { clampGroupPosition, groupMemberAt, puzzleWorktable } from "@/lib/puzzle/worktable";
-import { settleWouldMove } from "@/lib/puzzle/collision";
+import { settleWouldMove, type Rect } from "@/lib/puzzle/collision";
 import { createParking, type Parking, type ParkingReadiness } from "@/lib/puzzle/parking";
 import { createStacking } from "@/lib/puzzle/stacking";
-import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
+import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, visibleWorldRect, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
 import { puzzleFeedback } from "@/lib/puzzle/feedback";
 import { puzzlePolicy, type PuzzleDifficulty, type PuzzleGroup, type PuzzleHint, type PuzzlePieceCount, type PuzzleSnapshot } from "@/lib/puzzle/types";
 
@@ -26,7 +26,7 @@ import { puzzlePolicy, type PuzzleDifficulty, type PuzzleGroup, type PuzzleHint,
 type Point = { x: number; y: number };
 export interface TableLock { groupId: string; userId: string; expiresAt: string }
 export interface TableOperation { kind: "move"; groupId: string; x: number; y: number }
-export type TableCommit = { kind: "move"; groupId: string; x: number; y: number } | { kind: "rotate"; groupId: string } | { kind: "connect"; a: number; b: number } | { kind: "anchor"; groupId: string } | { kind: "settle"; groupId: string };
+export type TableCommit = { kind: "move"; groupId: string; x: number; y: number } | { kind: "rotate"; groupId: string } | { kind: "connect"; a: number; b: number } | { kind: "anchor"; groupId: string } | { kind: "settle"; groupId: string; viewport?: Rect };
 export interface PuzzleTableHandle { /** Commit een nog niet verzonden toetsenbordbeweging vóór navigatie. */ flushKeyboard: () => Promise<boolean>; /** Roept `done` aan zodra de laatste bevestigde snap getoond is (direct zonder animatie); alleen presentatie. */ settle: (done: () => void) => void; fit: () => void; zoom: (factor: number) => void; repaint: () => void; selected: () => number | null; select: (piece: number | null) => void; focusWorld: (point: Point) => void }
 
 export interface PuzzleTableProps {
@@ -192,7 +192,8 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [image, geometry, table]);
 
-  function picked(point: Point) { for (const group of stacking.current.hitOrder(propsRef.current.getSnapshot().groups, drag.current?.groupId ?? null)) { const id = groupMemberAt(geometry, group, point); if (id !== null) return { group, id }; } return null; }
+  // Aanwijzen gebeurt op wat de speler ziet: een schuivende groep staat op haar getekende plek (motion.hitGroups), de regels gebruiken de bevestigde stand.
+  function picked(point: Point) { for (const group of stacking.current.hitOrder(motion.hitGroups(propsRef.current.getSnapshot().groups, frameTime()), drag.current?.groupId ?? null)) { const id = groupMemberAt(geometry, group, point); if (id !== null) return { group, id }; } return null; }
 
   function beginPinch() {
     const fingers = [...pointers.current.values()]; if (fingers.length < 2) return; parkingRef.current?.interact();
@@ -307,8 +308,12 @@ const PuzzleTable = forwardRef<PuzzleTableHandle, PuzzleTableProps>(function Puz
       const nowMs = Date.now(); const heldByOthers = p.locks.filter((lock) => lock.userId !== p.meId && Date.parse(lock.expiresAt) > nowMs);
       // Een groep die iemand anders vasthoudt blijft met rust; geen netwerkactie als er niets te verplaatsen valt.
       if (heldByOthers.some((lock) => lock.groupId === id)) continue;
-      if (!settleWouldMove(snapshot, geometry, { focusGroupId: id, difficulty, rulesVersion, immovable: new Set(heldByOthers.map((lock) => lock.groupId)) })) continue;
-      await run(async () => { const before = p.getSnapshot(); const changed = await p.onCommit({ kind: "settle", groupId: id }, null); if (changed) motion.beginShift(before, p.getSnapshot(), frameTime()); });
+      // Het beeld van deze speler is een beperkende hint; de server bepaalt de posities en kent de camera van de andere spelers niet.
+      const canvas = canvasRef.current; const viewport = canvas && canvas.clientWidth > 0 ? visibleWorldRect(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }) : undefined;
+      if (!settleWouldMove(snapshot, geometry, { focusGroupId: id, difficulty, rulesVersion, immovable: new Set(heldByOthers.map((lock) => lock.groupId)), viewport })) continue;
+      // Achtergrondactie: zet `pending` niet, zodat oppakken, pannen en zoomen direct blijven werken (de commit-laag serialiseert de volgende speleractie).
+      const before = p.getSnapshot();
+      try { const changed = await p.onCommit({ kind: "settle", groupId: id, ...(viewport ? { viewport } : {}) }, null); if (changed && mounted.current) { motion.beginShift(before, p.getSnapshot(), frameTime()); schedule(); } } catch { /* stil: de volgende actie of een resync herstelt de stand */ }
     }
   }
   useEffect(() => { parkingHooks.current = { ready: parkingReady, settle: runSettle }; });

@@ -185,6 +185,17 @@ export function createPuzzleMotion(geometry: PuzzleGeometry) {
     return out;
   }
 
+  /**
+   * De groepen zoals de speler ze nu ziet, om aan te wijzen: een schuivende groep staat op haar getekende plek, niet op haar
+   * bevestigde einde. Een groep die door een snap in een andere groep opgaat (geen gelijke id) blijft op haar bevestigde plek,
+   * en de volgorde en de objecten van de lijst blijven gelijk. Alleen presentatie; de spelregels gebruiken de bevestigde stand.
+   */
+  function hitGroups(list: readonly PuzzleGroup[], now: number): readonly PuzzleGroup[] {
+    if (!glides.some((glide) => now < glide.end)) return list;
+    const shown = new Map(groups(list, now).map((group) => [group.id, group] as const));
+    return list.map((group) => shown.get(group.id) ?? group);
+  }
+
   /** Positie van een groep die een andere speler sleept; `null` als de groep niet gevolgd wordt (gewone weergave). */
   function remoteAt(id: string, now: number, out: RemotePlacement): RemotePlacement | null {
     const follow = follows.get(id); return follow ? followAt(follow, now, out) : null;
@@ -198,7 +209,7 @@ export function createPuzzleMotion(geometry: PuzzleGeometry) {
     return false;
   }
   function clear() { glides = []; follows.clear(); last = null; }
-  return { update, beginShift, groups, remoteAt, active, gliding, clear, get glideCount() { return glides.length; }, get followCount() { return follows.size; } };
+  return { update, beginShift, groups, hitGroups, remoteAt, active, gliding, clear, get glideCount() { return glides.length; }, get followCount() { return follows.size; } };
 }
 export type PuzzleMotion = ReturnType<typeof createPuzzleMotion>;
 

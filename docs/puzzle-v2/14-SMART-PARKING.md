@@ -103,7 +103,7 @@ ruimte maken.
 | `tests/puzzle-parking.browser.mjs` | echte muis/touch (desktop, mobiel, minder beweging) en Samen: bovenop, oppakken, 1,5 s, pannen/zoomen/pinch, vastgehouden groep, laatste stuk, runtimefouten |
 | `tests/puzzle-drag.browser.mjs` | bijgewerkt naar het nieuwe gedrag |
 
-Resultaten van de laatste run: `npm run test:puzzle` 135/135; TypeScript en ESLint schoon;
+Resultaten van de eerste oplevering: `npm run test:puzzle` 135/135; TypeScript en ESLint schoon;
 i18n zonder nieuwe teksten; parkeer-browsertest 67/67; overige bestaande browsertests
 (flow, mobile, drag, difficulty, hint-inventory, feedback) groen; integratie op de
 geïsoleerde lokale PostgreSQL alle groen, op één bekende uitzondering na bij herhaald
@@ -135,3 +135,135 @@ volgorde-lookup bij render/hit-test, begrensd op 64 opgetilde groepen).
 iOS Safari en Android Chrome: oppakken/parkeren/pannen met één en twee vingers, pinch tijdens
 parkeertijd, achtergrond/terug, trage verbinding in Samen, Android-systeemterug, schermlezer
 (VoiceOver/TalkBack) en grote tekst.
+
+---
+
+# Herstel na code-review (PR #117)
+
+Drie bevindingen uit de review en twee aanvullende aandachtspunten zijn opgelost. Geen nieuwe puzzelfuncties.
+
+## 1. Botsingsdetectie bij verbonden groepen
+
+**Oorzaak.** `Occupancy.hits()` markeerde een kandidaat-rechthoek als "gezien" met één teller voor de hele vraag (alle stukken van de
+groep), nog vóórdat getoetst was of die kandidaat het huidige stuk raakt. Een kandidaat die al bij het eerste stuk (in een nabije
+cel) was onderzocht maar daar niet raakte, werd bij het tweede of een later stuk van dezelfde verbonden groep overgeslagen. Een botsing
+die alleen een later stuk raakt bleef dus onopgemerkt (geen settle, of een onvolledige).
+
+**Oplossing.** De markering geldt nu per vraagstuk (`++stamp` per stuk): binnen één stuk voorkomt ze nog steeds dubbel werk bij een
+kandidaat die in meerdere cellen staat; tussen stukken wordt opnieuw getoetst. Groepen die al als botsend gevonden zijn worden
+overgeslagen (dat houdt de kosten laag). Rotaties, snaptoleranties en `DETECT_PENETRATION` zijn ongewijzigd; aangrenzende
+niet-overlappende stukken blijven geen botsing.
+
+**Regressietests** (`tests/puzzle-collision.test.ts`, falen aantoonbaar met de oude code): een losse groep die uitsluitend het tweede
+stuk van een verbonden paar raakt, bij 0/90/180/270° en in beide richtingen (de verbonden groep als focus én als te verplaatsen groep):
+de botsing wordt gevonden, `planSettle` geeft `moved`, er blijft geen overlap, de groep blijft intact (leden, verbindingen, positie
+van de focus) en de uitkomst is deterministisch; plus een blok van zes stukken waarvan alleen het laatste stuk raakt.
+
+## 2. Automatisch uitwijken en zichtbaarheid
+
+**Oorzaak.** `planSettle` controleerde alleen of een verplaatste groep binnen de hele werktafel bleef. Op een telefoon is de tafel
+vele malen groter dan het beeld: een verplaatsing van vier tot zes stukbreedtes kon het geparkeerde (of weggeduwde) stuk buiten beeld
+brengen, juist wanneer de speler het tijdelijk boven een vastgezet deel parkeerde om de camera te verschuiven.
+
+**Oplossing: de wereldtafel en het beeld zijn twee dingen.**
+
+| | Wat | Wie bepaalt het |
+| --- | --- | --- |
+| Wereldtafel | Canonieke groepsposities | alleen de server |
+| Zichtbaar beeld | Het deel van de tafel dat de aanvrager nu ziet (camera + zoom, met 0,5 stuk marge) | de client van de aanvrager, als beperkende hint |
+
+`settle` krijgt een optionele `viewport` (`visibleWorldRect`, `viewport.ts`; geldig bereik afgedwongen in `viewportSchema`). Die hint kan
+alleen **beperken**, nooit een positie opleggen:
+
+- groepen die niet (deels) in beeld zijn bewegen niet (net als vastgezette en door anderen vastgehouden groepen);
+- een groep die in beeld is komt na het uitwijken altijd volledig in beeld te liggen (past ze niet in het beeld, dan blijft haar
+  middelpunt in beeld);
+- is er geen veilige plek in beeld, dan verplaatst er niets (`reason: "blocked"`): de focusgroep blijft bovenop liggen en bereikbaar, er
+  wordt geen actie verstuurd (de client voorspelt hetzelfde met `settleWouldMove`) en er komt geen nieuwe versie;
+- verbinden en verankeren, vastgezette groepen, locks van anderen en de laatste-stukregel gaan ongewijzigd voor.
+
+De server rekent altijd opnieuw vanuit de actuele snapshot. Een verouderde clientcontrole is daarom geen veiligheidsgarantie die nodig is:
+ook de beperking wordt op de actuele serverstand toegepast.
+
+### Garanties bij Samen (lokaal versus gezamenlijk)
+
+De server kent de camera van de andere deelnemers niet en gebruikt de stand van één deelnemer nooit als waarheid voor iedereen.
+
+| Garantie | Geldt voor |
+| --- | --- |
+| Een door settle verplaatst stuk ligt volledig in het beeld van de speler die de actie aanvroeg; ligt het niet in beeld, dan beweegt het niet | de aanvrager (lokaal) |
+| Het geparkeerde stuk blijft bovenop (lokale stapelvolgorde) en altijd opnieuw op te pakken | iedere speler (lokaal) |
+| Geen camerabeweging wordt geforceerd; er zijn geen nieuwe synchronisatiestromen of polling | iedereen |
+| Vastgezette groepen en groepen die een ander vasthoudt bewegen nooit; één atomaire versie/delta; idempotent per action-ID | iedereen (server) |
+| Een verplaatst stuk is ook zichtbaar voor een *andere* speler met een ander beeld | **niet gegarandeerd** |
+
+Beperking: een andere deelnemer kan een stuk zien schuiven dat in zijn eigen beeld buiten de rand ligt of zelf een andere
+onderlinge stapelvolgorde zien tot er ruimte gemaakt is. Verplaatsingen zijn begrensd (maximaal 6 stukbreedtes, nooit groepen die een
+ander vasthoudt) en gebeuren alleen rond een groep die iemand zojuist losliet. Dit is bewust de minst verrassende keuze: liever
+niets verplaatsen dan een stuk buiten het beeld van de speler die het zojuist neerlegde.
+
+Zonder `viewport` (oudere client) geldt alleen de tafelrand; alle huidige clients sturen hem mee. Een speler die tijdens de aanvraag de
+camera verschuift, kan een stuk buiten het nieuwe beeld zien belanden: de hint is van het moment van versturen (daarom 0,5 stuk marge).
+
+## 3. Aanwijzen tijdens de schuifanimatie
+
+**Oorzaak.** Tijdens de 180 ms-schuif tekent `motion.groups()` de tijdelijke (geanimeerde) positie, maar `picked()` zocht in de
+bevestigde positie. Een tik op het zichtbare stuk kon daardoor het verkeerde (of een onderliggend) stuk raken, of niets.
+
+**Oplossing.** `motion.hitGroups()` geeft de lijst met dezelfde objecten en volgorde als de snapshot, maar met de getekende positie voor
+groepen die glijden; een groep die door een snap in een andere opgaat blijft op haar bevestigde plek aanwijsbaar. `picked()` in
+`JigsawV2Client` en `PuzzleTable` gebruikt dat. De stapelvolgorde (`stacking`) blijft dezelfde voor tekenen en aanwijzen. De
+spelregels, de snap en de commit gebruiken uitsluitend de bevestigde stand; de animatiepositie wordt nooit opgeslagen. Wordt een glijdende groep
+opgepakt, dan vervalt haar glijbeweging vanzelf (de getoonde positie wijkt dan af van het doel) en volgt ze de vinger zonder sprong.
+
+## 4. Trage verbinding
+
+**Oorzaak.** De settle liep via `runBoard`/`run` en zette `pending`; tot het antwoord er was werd elke pointerdown genegeerd. Bij een
+verbinding van 1–3 s kon de speler een stuk niet oppakken. Daarnaast zette `update()` bij een late respons de getoonde stand terug,
+ook het stuk dat de speler net vasthield.
+
+**Oplossing.**
+
+- Settle is een achtergrondactie (`settleFlight`): `pending` wordt niet gezet. Oppakken, pannen, zoomen en pinchen werken direct.
+- Een volgende speleractie wacht in `action()` (Solo/Tegen elkaar) of `onCommit` (Samen) op de bevestiging van de lopende settle, met
+  een bovengrens van 5 s (`SETTLE_WAIT_MS`), en vertrekt dan met de bevestigde versie. Een settle kan een nieuwere speleractie dus nooit
+  ongedaan maken en veroorzaakt geen versieconflict.
+- Een late of dubbele respons met een lagere versie dan de bevestigde stand wordt genegeerd.
+- De respons verplaatst nooit het stuk dat de speler op dat moment vasthoudt of met de toetsen verplaatst (`withHeldPose`); de animatie
+  slaat dat stuk ook over.
+- Timeout, verloren respons of fout: stil herstel (hervatten); er komt geen foutmelding want de speler vroeg hier niet om. Het action-ID
+  blijft idempotent; een retry verplaatst niets dubbel.
+- Een andere speler die tijdens de aanvraag iets verplaatst: de server rekent op de actuele stand (met alle locks); in Samen volgt de
+  client het bestaande delta-/resync-pad.
+
+Bekende rest: na de 5 s wachttijd (extreem trage verbinding) vertrekt de speleractie met de laatst bekende versie; bij een alsnog
+binnenkomende settle volgt dan het bestaande versieconflict-pad (stil hervatten in Solo, `resync` in Samen).
+
+## Nieuwe tests
+
+| Bestand | Dekking |
+| --- | --- |
+| `tests/puzzle-collision.test.ts` | multi-stuk-botsing (0/90/180/270°, beide richtingen, 6-stuksblok); `visibleWorldRect`; uitwijken blijft in beeld (390 × 844, 360 × 740, sterk ingezoomd); geen veilige plek in beeld; groepen buiten beeld bewegen niet; groep groter dan het beeld |
+| `tests/puzzle-parking.test.ts` | `motion.hitGroups`: aanwijzen tijdens het schuiven (zichtbare plek wint, lege eindplek niet, verbonden groep als geheel, snap-groepen) |
+| `tests/puzzle-settle.integration.test.ts` | server: viewport beperkt het uitwijken (geen versie/actie bij "blocked"), ruim beeld verplaatst binnen het beeld; schema-validatie van de viewport |
+| `tests/puzzle-visibility.browser.mjs` | echte touch/muis op 390 × 844, 360 × 740 en desktop: groot vastgezet deel, zoom 0 / ×1,8 / maximaal, geen veilige plek (blijft liggen, niets verstuurd, opnieuw op te pakken), pannen en oppakken binnen de parkeertijd, trage settle (2,5 s vertraagd: oppakken, volgen van de vinger, late respons, bevestigde versies), aanwijzen tijdens een stilgezette animatie (juiste stuk, geen sprong, lege eindplek niet aanwijsbaar), Samen met twee verschillende camera- en zoomstanden |
+| `scripts/puzzle/test-isolated.mjs` | de zichtbaarheidstest zit nu in de officiële runner (en dus in CI) |
+
+## Prestaties na de correctie (`scripts/puzzle/perf-settle.ts`)
+
+De juiste deduplicatie onderzoekt meer paren, dus het kunstmatige slechtste geval (alle stukken in één hoop) is ongeveer twee keer zo duur;
+de normale stand en een groot verbonden blok blijven ruim onder één frame.
+
+| Stukken | normale stand | slechtste geval (alles opgehoopt) | verbonden blok (helft van de stukken): leden → tijd |
+| --- | --- | --- | --- |
+| 24 | 0,11 ms | 2,0 ms | 2 → 0,5 ms |
+| 96 | 0,29 ms | 13 ms | 24 → 2,9 ms |
+| 150 | 0,31 ms | 28 ms | 50 → 4,7 ms |
+| 300 | 0,37 ms | 70 ms | 129 → 5,6 ms |
+
+## Resterende beperkingen
+
+- Stapelvolgorde en aanwijzen zijn per apparaat; bij Samen zien deelnemers een andere onderlinge volgorde tot er ruimte gemaakt is.
+- Verplaatsingen door settle zijn alleen gegarandeerd zichtbaar voor de aanvrager (zie Samen); anderen kunnen een stuk zien schuiven.
+- De viewport-hint is van het moment van versturen.
+- De framerate op oude telefoons is niet gemeten; echte iOS/Android-apparaten blijven nodig (zie hierboven).

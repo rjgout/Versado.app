@@ -4,6 +4,7 @@ import { createPuzzleGeometry } from "../src/lib/puzzle/geometry";
 import { anchorGroup, boardPosition, connectGroups, groupFor, moveGroup, newPuzzleSnapshot, rotateGroup, worldOf } from "../src/lib/puzzle/engine";
 import { DEFAULT_SETTLE_LIMITS, overlappingGroups, pieceCoreRects, planSettle, settleGroups, settleWouldMove } from "../src/lib/puzzle/collision";
 import { puzzleWorktable } from "../src/lib/puzzle/worktable";
+import { visibleWorldRect } from "../src/lib/puzzle/viewport";
 import type { PuzzleSnapshot } from "../src/lib/puzzle/types";
 
 // De botsingsmodule: wanneer overlappen twee groepen ongewenst, en waar schuift de ene dan heen?
@@ -233,4 +234,130 @@ test("eigenschappen over 300 willekeurige tafels: vastgezette groepen staan stil
   }
   assert.ok(moved > 50, `te weinig scenario's met een verplaatsing: ${moved}`);
   assert.ok(chained >= 0 && blocked >= 0);
+});
+
+// ---- Regressie (review PR #117): botsing die alleen een later stuk van een verbonden groep raakt ----
+const coreOverlap = (a: { minX: number; minY: number; maxX: number; maxY: number }, b: { minX: number; minY: number; maxX: number; maxY: number }) => Math.min(a.maxX, b.maxX) - Math.max(a.minX, b.minX) > 0.22 && Math.min(a.maxY, b.maxY) - Math.max(a.minY, b.minY) > 0.22;
+
+function pairWithRotation(turns: number) {
+  const master = createPuzzleGeometry(24, "botsing");
+  let s = newPuzzleSnapshot(master, "DISCOVERER");
+  s = moveGroup(s, master, "p0", 6, 6); s = moveGroup(s, master, "p1", 7, 6); s = connectGroups(s, master, "DISCOVERER", 0, 1);
+  let pair = groupFor(s, 0)!; for (let i = 0; i < turns; i++) { s = rotateGroup(s, master, pair.id); pair = groupFor(s, 0)!; }
+  return { master, s, pair };
+}
+
+for (const turns of [0, 1, 2, 3]) {
+  test(`verbonden groep (${turns * 90}°): een losse groep die alleen het tweede stuk raakt wordt toch als botsing gevonden en weggezet`, () => {
+    const { master, s, pair } = pairWithRotation(turns);
+    const rect = (snap: PuzzleSnapshot, id: string, i: number) => { const g = snap.groups.find((x) => x.id === id)!; const r = pieceCoreRects(master, g)[i]; return { minX: r.minX + g.x, minY: r.minY + g.y, maxX: r.maxX + g.x, maxY: r.maxY + g.y }; };
+    // p8 komt uitsluitend op de kern van het tweede stuk te liggen (index 1), niet op die van het eerste.
+    const second = rect(s, pair.id, 1);
+    const first = rect(s, pair.id, 0); const dx = Math.sign(Math.round((second.minX - first.minX) * 10)); const dy = Math.sign(Math.round((second.minY - first.minY) * 10));
+    const withLoose = moveGroup(s, master, "p8", second.minX + dx * .7 + (dx ? 0 : .3), second.minY + dy * .7 + (dy ? 0 : .3));
+    assert.ok(coreOverlap(rect(withLoose, pair.id, 1), rect(withLoose, "p8", 0)), "voorwaarde: tweede stuk wordt geraakt");
+    assert.ok(!coreOverlap(rect(withLoose, pair.id, 0), rect(withLoose, "p8", 0)), "voorwaarde: eerste stuk wordt niet geraakt");
+    assert.deepEqual(overlappingGroups(withLoose, master, pair.id), ["p8"]);
+    // 1. de groep zelf als focus (zij bevat het botsende stuk als 2e stuk): p8 moet uitwijken
+    const opts = { focusGroupId: pair.id, difficulty: "DISCOVERER" as const };
+    const plan = planSettle(withLoose, master, opts);
+    assert.equal(plan.reason, "moved"); assert.deepEqual(plan.moves.map((m) => m.groupId), ["p8"]);
+    const after = settleGroups(withLoose, master, opts);
+    assert.deepEqual(overlappingGroups(after, master, pair.id), [], "geen overlap achtergebleven");
+    assert.deepEqual(groupFor(after, 0)!.pieceIds, pair.pieceIds, "groep intact"); assert.equal(after.connections.length, withLoose.connections.length);
+    assert.equal(group(after, pair.id).x, pair.x); assert.equal(group(after, pair.id).y, pair.y);
+    assert.deepEqual(planSettle(withLoose, master, opts), plan, "deterministisch");
+    // 2. andersom: p8 is de focus en de verbonden groep moet als geheel uitwijken (haar 2e stuk raakt)
+    const other = { focusGroupId: "p8", difficulty: "DISCOVERER" as const };
+    const plan2 = planSettle(withLoose, master, other);
+    assert.equal(plan2.reason, "moved"); assert.deepEqual(plan2.moves.map((m) => m.groupId), [pair.id]);
+    const after2 = settleGroups(withLoose, master, other);
+    assert.deepEqual(overlappingGroups(after2, master, "p8"), []); assert.deepEqual(groupFor(after2, 0)!.pieceIds, pair.pieceIds);
+    assert.deepEqual(planSettle(withLoose, master, other), plan2);
+  });
+}
+
+test("grote verbonden groep (6 stukken): alleen het laatste stuk raakt een losse groep en dat wordt gevonden", () => {
+  const big = createPuzzleGeometry(24, "botsing");
+  let s = newPuzzleSnapshot(big, "DISCOVERER");
+  s = moveGroup(s, big, "p0", 3, 4);
+  for (let i = 1; i < 6; i++) { const a = groupFor(s, 0)!; const w = worldOf(big, a, i - 1); s = moveGroup(s, big, `p${i}`, w.x + 1, w.y); s = connectGroups(s, big, "DISCOVERER", i - 1, i); }
+  const train = groupFor(s, 0)!; assert.equal(train.pieceIds.length, 6);
+  const last = (() => { const r = pieceCoreRects(big, train)[5]; return { x: r.minX + train.x, y: r.minY + train.y }; })();
+  const withLoose = moveGroup(s, big, "p20", last.x + .4, last.y + .3);
+  assert.deepEqual(overlappingGroups(withLoose, big, train.id), ["p20"]);
+  const after = settleGroups(withLoose, big, { focusGroupId: train.id, difficulty: "DISCOVERER" });
+  assert.deepEqual(overlappingGroups(after, big, train.id), []); assert.deepEqual(groupFor(after, 0)!.pieceIds, train.pieceIds);
+});
+
+// ---- Zichtbaarheid (review PR #117): automatisch uitwijken brengt nooit een stuk buiten beeld ----
+type R = { minX: number; minY: number; maxX: number; maxY: number };
+const inside = (snap: PuzzleSnapshot, id: string, v: R) => { const g = group(snap, id); return pieceCoreRects(geometry, g).every((r) => r.minX + g.x >= v.minX - 1e-9 && r.maxX + g.x <= v.maxX + 1e-9 && r.minY + g.y >= v.minY - 1e-9 && r.maxY + g.y <= v.maxY + 1e-9); };
+/** Een vastgezet stuk (bordpositie) met een los stuk erbovenop. */
+function parkedOnAnchored() {
+  let snap = base(); const board = boardPosition(geometry, group(snap, "p0"));
+  snap = put(snap, 0, board.x, board.y); snap = anchorGroup(snap, geometry, "DISCOVERER", "p0");
+  const a = group(snap, "p0"); snap = put(snap, 9, a.x + .3, a.y + .1);
+  return { snap, a };
+}
+const around = (cx: number, cy: number, w: number, h: number): R => ({ minX: cx - w / 2, minY: cy - h / 2, maxX: cx + w / 2, maxY: cy + h / 2 });
+
+test("visibleWorldRect: het beeld in wereldcoördinaten, met marge, ook sterk ingezoomd", () => {
+  const v = visibleWorldRect({ scale: 65, x: -130, y: -65 }, { width: 390, height: 844 }, 0);
+  assert.deepEqual([v.minX, v.minY, v.maxX, v.maxY].map((n) => Math.round(n * 100) / 100), [2, 1, 8, 13.98]);
+  const zoomed = visibleWorldRect({ scale: 160, x: -800, y: -800 }, { width: 360, height: 740 });
+  assert.ok(zoomed.maxX - zoomed.minX < 360 / 160 && zoomed.minX > 5);
+});
+
+for (const [name, w, h] of [["390 × 844", 390, 844], ["360 × 740", 360, 740], ["sterk ingezoomd (160 px per stuk)", 360, 740]] as const) {
+  test(`uitwijken blijft in beeld (${name}): het geparkeerde stuk eindigt volledig zichtbaar`, () => {
+    const { snap, a } = parkedOnAnchored();
+    const scale = name.startsWith("sterk") ? 160 : 65;
+    const view = visibleWorldRect({ scale, x: -(a.x - 1.2) * scale, y: -(a.y - 1.4) * scale }, { width: w, height: h });
+    const opts = options("p9", { viewport: view });
+    const plan = planSettle(snap, geometry, opts);
+    if (plan.moves.length) {
+      const after = settleGroups(snap, geometry, opts);
+      assert.ok(inside(after, "p9", view), "het stuk is na het uitwijken volledig in beeld");
+      assert.ok(clean(after, "p9")); assert.equal(group(after, "p0").x, a.x); assert.equal(group(after, "p0").y, a.y);
+    } else assert.deepEqual(plan.moves, [], "geen veilige plek in beeld: blijft liggen");
+    assert.deepEqual(planSettle(snap, geometry, opts), plan, "deterministisch");
+  });
+}
+
+test("de dichtstbijzijnde vrije plek ligt buiten beeld: het stuk blijft bovenop liggen en wordt niet verplaatst", () => {
+  const { snap, a } = parkedOnAnchored();
+  // Een beeld dat vrijwel alleen het vastgezette stuk toont (marge al verwerkt): elke vrije plek ligt erbuiten.
+  const view = around(a.x + .5, a.y + .5, 1.8, 1.8);
+  const withViewport = planSettle(snap, geometry, options("p9", { viewport: view }));
+  assert.equal(withViewport.reason, "blocked"); assert.deepEqual(withViewport.moves, []); assert.deepEqual(withViewport.unresolved, ["p0"]);
+  assert.equal(settleGroups(snap, geometry, options("p9", { viewport: view })), snap, "dezelfde instantie: geen nieuwe versie");
+  assert.equal(settleWouldMove(snap, geometry, options("p9", { viewport: view })), false, "de client verstuurt dan niets");
+  // zonder die beperking zou het stuk wel verschuiven
+  assert.equal(planSettle(snap, geometry, options("p9")).reason, "moved");
+});
+
+test("groepen buiten beeld bewegen niet: een stuk dat de speler niet ziet wordt nooit ongevraagd verplaatst", () => {
+  let snap = put(base(), 0, 5, 5); snap = put(snap, 1, 5.3, 5.2);
+  const away = around(9, 9, 4, 4); // p0 en p1 liggen buiten beeld
+  assert.deepEqual(planSettle(snap, geometry, options("p1", { viewport: away })).moves, []);
+  // p1 half in beeld, p0 er helemaal buiten: p0 is niet beweeglijk, dus p1 zoekt zelf een plek (volledig in beeld)
+  snap = put(base(), 0, 5, 5); snap = put(snap, 1, 5.7, 5.2);
+  const edge: R = { minX: 6.2, minY: 3.5, maxX: 9.5, maxY: 8 };
+  const after = settleGroups(snap, geometry, options("p1", { viewport: edge }));
+  assert.notEqual(after, snap); assert.equal(group(after, "p0").x, 5); assert.equal(group(after, "p0").y, 5);
+  assert.ok(inside(after, "p1", edge)); assert.ok(clean(after, "p1"));
+});
+
+test("een groep die groter is dan het beeld blijft met haar middelpunt in beeld", () => {
+  const big = createPuzzleGeometry(24, "botsing");
+  let s = newPuzzleSnapshot(big, "DISCOVERER"); s = moveGroup(s, big, "p0", 4, 5);
+  for (let i = 1; i < 6; i++) { const a = groupFor(s, 0)!; const w = worldOf(big, a, i - 1); s = moveGroup(s, big, `p${i}`, w.x + 1, w.y); s = connectGroups(s, big, "DISCOVERER", i - 1, i); }
+  const train = groupFor(s, 0)!; const r = pieceCoreRects(big, train)[2];
+  s = moveGroup(s, big, "p20", r.minX + train.x + .3, r.minY + train.y + .2);
+  const view = around(train.x + 3, train.y + .5, 3.2, 3); // smaller than the 6-wide train
+  const after = settleGroups(s, big, { focusGroupId: "p20", difficulty: "DISCOVERER", viewport: view });
+  const moved = groupFor(after, 0)!; const rects = pieceCoreRects(big, moved);
+  const minX = Math.min(...rects.map((q) => q.minX)) + moved.x; const maxX = Math.max(...rects.map((q) => q.maxX)) + moved.x;
+  assert.ok(minX <= (view.minX + view.maxX) / 2 && maxX >= (view.minX + view.maxX) / 2, "middelpunt van het beeld blijft bedekt");
 });

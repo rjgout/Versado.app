@@ -111,6 +111,31 @@ test("Solo: een oude sessie met overlappingen blijft hervatbaar en wordt niet va
   assert.equal((await L.solo.applySoloAction(u.id, state.id, state.version, randomUUID(), { kind: "settle", groupId: "p4" }, "nl") as Solo).version, state.version);
 });
 
+test("Solo: de viewport van de aanvrager beperkt het uitwijken; zonder veilige plek in beeld verandert er niets (geen versie)", { skip }, async () => {
+  const u = await person();
+  let state = await L.solo.startSoloPuzzle(u.id, 0, 6, "ADVENTURER", "nl") as Solo;
+  state = await soloAct(u.id, state, { kind: "move", groupId: "p0", x: 5, y: 5 });
+  state = await soloAct(u.id, state, { kind: "move", groupId: "p1", x: 5.3, y: 5.2 });
+  // een beeld waarin p1 net past en p0 ernaast geen vrije plek heeft: niets verplaatst, ook geen versie of actielog
+  const tight = { minX: 5.2, minY: 5.1, maxX: 6.5, maxY: 6.4 };
+  const same = await soloAct(u.id, state, { kind: "settle", groupId: "p1", viewport: tight });
+  assert.equal(same.version, state.version, "geen versie zonder verandering");
+  assert.equal(await L.db.puzzleAction.count({ where: { sessionId: state.id, type: "settle" } }), 0);
+  // een ruim beeld: p0 weekt uit en blijft volledig binnen dat beeld; p1 blijft liggen
+  const wide = { minX: 2, minY: 2, maxX: 11, maxY: 11 };
+  const moved = await soloAct(u.id, same, { kind: "settle", groupId: "p1", viewport: wide });
+  assert.equal(moved.version, same.version + 1);
+  const p0 = groupOf(moved, "p0"); assert.ok(p0.x >= wide.minX && p0.x + 1 <= wide.maxX && p0.y >= wide.minY && p0.y + 1 <= wide.maxY, "p0 blijft in het opgegeven beeld");
+  assert.equal(groupOf(moved, "p1").x, 5.3);
+});
+
+test("schema: een ongeldige viewport wordt geweigerd en een geldige of afwezige geaccepteerd", async () => {
+  const { operationSchema } = await import("../src/lib/puzzle/schemas");
+  assert.ok(operationSchema.safeParse({ kind: "settle", groupId: "p1" }).success);
+  assert.ok(operationSchema.safeParse({ kind: "settle", groupId: "p1", viewport: { minX: 1, minY: 1, maxX: 5, maxY: 9 } }).success);
+  for (const viewport of [{ minX: 5, minY: 1, maxX: 1, maxY: 9 }, { minX: 0, minY: 0, maxX: 1000, maxY: 9 }, { minX: NaN, minY: 0, maxX: 1, maxY: 1 }, { minX: 0, minY: 0, maxX: 1 }]) assert.equal(operationSchema.safeParse({ kind: "settle", groupId: "p1", viewport }).success, false);
+});
+
 // ---------------- Samen ----------------
 type CoopOp = import("../src/lib/puzzle/coop").CoopOperation;
 async function coopWorld() {

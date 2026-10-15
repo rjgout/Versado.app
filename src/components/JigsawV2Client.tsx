@@ -25,7 +25,7 @@ import { clampGroupPosition, groupMemberAt, puzzleWorktable } from "@/lib/puzzle
 import { settleWouldMove } from "@/lib/puzzle/collision";
 import { createParking, type Parking, type ParkingReadiness } from "@/lib/puzzle/parking";
 import { createStacking } from "@/lib/puzzle/stacking";
-import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
+import { constrainCamera as constrainViewport, fitCamera, initialPuzzleCamera, resizeCamera, screenToWorld, visibleWorldRect, zoomCamera, type PuzzleCamera, type ViewportSize } from "@/lib/puzzle/viewport";
 import { puzzlePolicy, type PuzzleFilter, type PuzzleHintType, type PuzzleHint, type PuzzleDifficulty, type PuzzlePieceCount, type PuzzleSnapshot } from "@/lib/puzzle/types";
 import { activePuzzleHint, puzzleHintTarget } from "@/lib/puzzle/hints";
 import { filterPuzzleCatalog, puzzleCatalogPage } from "@/lib/puzzle/catalog";
@@ -50,6 +50,8 @@ const KEY = "versado:jigsaw-v2-session";
 /** Solo heeft geen remote sleepbewegingen. */
 /** Stilte na de laatste pijltjestoets voordat de verplaatsing naar de server gaat. */
 const NUDGE_IDLE_MS = 280;
+/** Hoe lang een speleractie maximaal op een lopende ruimte-maak-actie wacht (trage verbinding); daarna gaat ze zelf verder. */
+const SETTLE_WAIT_MS = 5000;
 const NO_REMOTE: ReadonlyMap<string, RemoteEntry> = new Map();
 const PAGE_SIZE = 24;
 const difficulties: PuzzleDifficulty[] = ["DISCOVERER", "ADVENTURER", "EXPERT", "MASTER"];
@@ -174,7 +176,7 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
   const [hint, setHint] = useState<PuzzleHint | null>(() => activePuzzleHint(initial.snapshot)); const hintRef = useRef(hint); const selectedRef = useRef(selected); const menuButton = useRef<HTMLButtonElement>(null);
   const pending = useRef(false); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null); const image = useRef<HTMLImageElement | null>(null); const camera = useRef<PuzzleCamera>({ scale: 60, x: 0, y: 0 }); const frame = useRef<number | null>(null);
-  const mounted = useRef(true); const glideRequested = useRef(false); const nudge = useRef<{ groupId: string; x: number; y: number } | null>(null); const nudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null); const nudgeFlight = useRef<Promise<boolean> | null>(null);
+  const mounted = useRef(true); const glideRequested = useRef(false); const nudge = useRef<{ groupId: string; x: number; y: number } | null>(null); const nudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null); const nudgeFlight = useRef<Promise<boolean> | null>(null); const settleFlight = useRef<Promise<void> | null>(null); const transientPose = useRef<{ groupId: string; x: number; y: number } | null>(null);
   const viewport = useRef<ViewportSize | null>(null); const paths = useRef(new Map<string, Path2D>()); const nearSnap = useRef(createNearSnapTracker());
   const pointers = useRef(new Map<number, Point>()); const drag = useRef<Drag | null>(null); const pan = useRef<Pan | null>(null); const pinch = useRef<Pinch | null>(null);
   const feedback = puzzleFeedback(); const stageRef = useRef<Stage>("BOARD");
@@ -230,8 +232,19 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
     // Noodgreep: ook zonder frames (verborgen tabblad) blijft de kaart niet langer weg dan de bovengrens.
     completionTimer.current = setTimeout(() => { completion.cancel(); reveal(); }, COMPLETION_MAX_WAIT_MS + 100);
   }
-  function update(next: State) { inventory.setData({ hintBalance: next.hintBalance }); stacking.current.prune(next.snapshot.groups); saved.current = next; if (!mounted.current) return; shown.current = next; setState(next); setOuter(next); if (!match) remember(next.id); if (next.status === "COMPLETED") showCompletion(); if (next.status === "ANSWERED") setStage("RESULT"); schedulePaint(); }
+  /** Een bevestigde stand (bijvoorbeeld van ruimte maken) mag de groep die de speler nu vasthoudt of met de toetsen verplaatst niet onder zijn vinger wegtrekken. */
+  function withHeldPose(next: State): State {
+    const held = drag.current?.groupId ?? nudge.current?.groupId ?? null; if (!held) return next;
+    const at = nudge.current?.groupId === held ? nudge.current : transientPose.current?.groupId === held ? transientPose.current : null;
+    if (!at || !next.snapshot.groups.some((group) => group.id === held && !group.anchored)) return next;
+    return { ...next, snapshot: { ...next.snapshot, groups: next.snapshot.groups.map((group) => group.id === held ? { ...group, x: at.x, y: at.y } : group) } };
+  }
+  function update(next: State) { inventory.setData({ hintBalance: next.hintBalance }); stacking.current.prune(next.snapshot.groups); saved.current = next; if (!mounted.current) return; const kept = withHeldPose(next); shown.current = kept; setState(kept); setOuter(next); if (!match) remember(next.id); if (next.status === "COMPLETED") showCompletion(); if (next.status === "ANSWERED") setStage("RESULT"); schedulePaint(); }
   async function action(operation: object, movedGroupId?: string) {
+    // Een lopende ruimte-maak-actie gaat voor op de volgende actie van de speler (ze draagt de huidige versie): daarna pas verzenden,
+    // met de bevestigde versie. Zo kan een achtergrondactie een nieuwere speleractie nooit ongedaan maken of tot een versieconflict leiden.
+    const isSettle = "kind" in operation && operation.kind === "settle";
+    if (!isSettle && settleFlight.current) await Promise.race([settleFlight.current, new Promise<void>((resolve) => setTimeout(resolve, SETTLE_WAIT_MS))]);
     const current = saved.current; const body = { action: "act", sessionId: current.id, version: current.version, actionId: crypto.randomUUID(), operation };
     if ("kind" in operation && operation.kind === "hint") {
       // Toon het serverantwoord vóór invalidatie. Een snellere voorraad-refetch
@@ -239,6 +252,8 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
       return await liveMutation(() => call(body) as Promise<State>, { invalidates: "hintsChanged", onSuccess: update });
     }
     const next = await call(body) as State;
+    // Een late of dubbele respons van een oudere versie overschrijft nooit een nieuwere bevestigde stand.
+    if (next.id === current.id && next.version < saved.current.version) return saved.current;
     // De bevestigde stand geldt direct (geen vertraging van de commit); alleen het tekenen glijdt kort naar de definitieve plek.
     if (movedGroupId) glideRequested.current = true;
     update(next); return next;
@@ -259,8 +274,9 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
   function fit() { const canvas = canvasRef.current; if (!canvas) return; parkingRef.current?.interact(); camera.current = fitCamera({ width: canvas.clientWidth, height: canvas.clientHeight }, table.bounds); schedulePaint(); }
   function screenPoint(event: { clientX: number; clientY: number }) { const rect = canvasRef.current?.getBoundingClientRect(); return rect ? { x: event.clientX - rect.left, y: event.clientY - rect.top } : { x: 0, y: 0 }; }
   function worldPoint(point: Point) { return screenToWorld(camera.current, point); }
-  function picked(point: Point) { for (const group of stacking.current.hitOrder(shown.current.snapshot.groups, drag.current?.groupId ?? null)) { const id = groupMemberAt(geometry, group, point); if (id !== null) return { group, id }; } return null; }
-  function transientMove(groupId: string, x: number, y: number) { const base = saved.current; const group = base.snapshot.groups.find((candidate) => candidate.id === groupId); if (!group || group.anchored) return; const position = clampGroupPosition(geometry, group, x, y); const next = { ...base, snapshot: { ...base.snapshot, groups: base.snapshot.groups.map((candidate) => candidate.id === groupId ? { ...candidate, ...position } : candidate) } }; shown.current = next; setState(next); schedulePaint(); }
+  // Aanwijzen gebeurt op wat de speler ziet: een schuivende groep staat op haar getekende plek (motion.hitGroups), de regels gebruiken de bevestigde stand.
+  function picked(point: Point) { for (const group of stacking.current.hitOrder(motion.hitGroups(shown.current.snapshot.groups, frameTime()), drag.current?.groupId ?? null)) { const id = groupMemberAt(geometry, group, point); if (id !== null) return { group, id }; } return null; }
+  function transientMove(groupId: string, x: number, y: number) { const base = saved.current; const group = base.snapshot.groups.find((candidate) => candidate.id === groupId); if (!group || group.anchored) return; const position = clampGroupPosition(geometry, group, x, y); transientPose.current = { groupId, ...position }; const next = { ...base, snapshot: { ...base.snapshot, groups: base.snapshot.groups.map((candidate) => candidate.id === groupId ? { ...candidate, ...position } : candidate) } }; shown.current = next; setState(next); schedulePaint(); }
   function beginPinch() { const fingers = [...pointers.current.values()]; if (fingers.length < 2) return; parkingRef.current?.interact(); if (drag.current) { const dropped = drag.current.groupId; drag.current = null; shown.current = saved.current; setState(saved.current); parkingRef.current?.park(dropped); } pan.current = null; const center = { x: (fingers[0].x + fingers[1].x) / 2, y: (fingers[0].y + fingers[1].y) / 2 }; pinch.current = { distance: Math.max(1, distance(fingers[0], fingers[1])), world: worldPoint(center), scale: camera.current.scale }; schedulePaint(); }
   function updatePinch() { const active = pinch.current; const fingers = [...pointers.current.values()]; if (!active || fingers.length < 2) return; parkingRef.current?.interact(); const center = { x: (fingers[0].x + fingers[1].x) / 2, y: (fingers[0].y + fingers[1].y) / 2 }; camera.current.scale = Math.max(8, Math.min(240, active.scale * distance(fingers[0], fingers[1]) / active.distance)); camera.current.x = center.x - active.world.x * camera.current.scale; camera.current.y = center.y - active.world.y * camera.current.scale; constrainCamera(); schedulePaint(); }
   async function snapAfterMove(next: State, groupId: string): Promise<boolean> {
@@ -330,14 +346,33 @@ export function Puzzle({ initial, setOuter, onChooseAnother, onReplay, match }: 
     if (drag.current || pan.current || pinch.current || pointers.current.size || pending.current || nudge.current || nudgeFlight.current || nudgeTimer.current !== null) return "wait";
     return "go";
   }
+  /** Het beeld van deze speler in wereldcoördinaten: een beperkende hint voor ruimte maken (de server blijft de posities bepalen). */
+  function currentViewport() { const canvas = canvasRef.current; return canvas && canvas.clientWidth > 0 ? visibleWorldRect(camera.current, { width: canvas.clientWidth, height: canvas.clientHeight }) : undefined; }
+  // Ruimte maken is een achtergrondactie: het zet `pending` bewust niet, zodat de speler direct kan oppakken, pannen en zoomen. Een volgende
+  // speleractie wacht in `action()` op de bevestigde versie; de uitkomst verplaatst nooit het stuk dat de speler op dat moment vasthoudt.
   async function runSettle(ids: readonly string[], stale: () => boolean) {
     for (const id of ids) {
       if (stale() || parkingReady() !== "go") return;
       const current = saved.current; const group = current.snapshot.groups.find((candidate) => candidate.id === id);
       if (!group || group.anchored) continue;
-      // Geen netwerkactie als er niets te verplaatsen valt (geen botsing, een snap is nog mogelijk, of er is geen veilige plek).
-      if (!settleWouldMove(current.snapshot, geometry, { focusGroupId: id, difficulty: current.difficulty, rulesVersion: current.rulesVersion })) continue;
-      await runBoard(async () => { const before = saved.current.snapshot; const next = await action({ kind: "settle", groupId: id }); motion.beginShift(before, next.snapshot, frameTime()); schedulePaint(); }, true);
+      const viewport = currentViewport();
+      // Geen netwerkactie als er niets te verplaatsen valt (geen botsing, een snap is nog mogelijk, of er is geen veilige plek in beeld).
+      if (!settleWouldMove(current.snapshot, geometry, { focusGroupId: id, difficulty: current.difficulty, rulesVersion: current.rulesVersion, viewport })) continue;
+      const task = (async () => {
+        const before = saved.current.snapshot;
+        try {
+          const next = await action({ kind: "settle", groupId: id, ...(viewport ? { viewport } : {}) });
+          if (!mounted.current || next.snapshot === before) return;
+          // Alleen presentatie: wat de speler vasthoudt schuift niet mee.
+          const held = new Set([drag.current?.groupId, nudge.current?.groupId].filter((value): value is string => !!value));
+          const shiftable = held.size ? { ...next.snapshot, groups: next.snapshot.groups.map((candidate) => held.has(candidate.id) ? before.groups.find((old) => old.id === candidate.id) ?? candidate : candidate) } : next.snapshot;
+          motion.beginShift(before, shiftable, frameTime()); schedulePaint();
+        } catch {
+          // Stil: de speler vroeg hier niet om. Een volgende actie of het hervatten herstelt de bevestigde stand.
+          if (mounted.current) { try { update(await call({ action: "resume", sessionId: saved.current.id }) as State); } catch { /* de volgende interactie probeert opnieuw */ } }
+        }
+      })();
+      settleFlight.current = task; await task; if (settleFlight.current === task) settleFlight.current = null;
     }
   }
   useEffect(() => { parkingHooks.current = { ready: parkingReady, settle: runSettle }; });

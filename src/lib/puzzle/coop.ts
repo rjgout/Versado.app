@@ -336,7 +336,7 @@ export async function commitCoopAction(userId: string, sessionId: string, input:
       // Ruimte maken heeft geen lock nodig (de speler liet de groep al los) maar respecteert die van anderen: een groep die iemand
       // vasthoudt beweegt nooit, en een focusgroep die een ander vasthoudt blijft helemaal met rust. De server bepaalt de
       // verplaatsingen zelf vanuit de actuele stand; er komt geen lijst posities van de client. Geen verandering = geen versie.
-      if (!heldByOther(operation.groupId)) next = settleGroups(snapshot, geometry, { focusGroupId: operation.groupId, difficulty, rulesVersion: row.variant.rulesVersion, immovable: new Set(locks.map((lock) => lock.groupId)) });
+      if (!heldByOther(operation.groupId)) next = settleGroups(snapshot, geometry, { focusGroupId: operation.groupId, difficulty, rulesVersion: row.variant.rulesVersion, immovable: new Set(locks.map((lock) => lock.groupId)), viewport: operation.viewport });
     }
     else {
       const one = snapshot.groups.find((group) => group.pieceIds.includes(operation.a)); const two = snapshot.groups.find((group) => group.pieceIds.includes(operation.b));

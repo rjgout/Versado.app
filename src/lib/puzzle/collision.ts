@@ -52,6 +52,13 @@ export interface SettleOptions {
   rulesVersion?: number;
   /** Groepen die niet mogen bewegen (naast vastgezette): bijvoorbeeld een groep die een andere speler vasthoudt. */
   immovable?: ReadonlySet<string>;
+  /**
+   * Het deel van de tafel dat de aanvrager nu ziet (wereldcoördinaten, al met een veiligheidsmarge). Een hint die alleen
+   * kan beperken: groepen die niet in beeld zijn bewegen niet, en een groep die in beeld is komt altijd weer volledig in beeld
+   * te liggen (past ze niet, dan blijft haar middelpunt in beeld). Past dat nergens, dan verplaatst er niets en blijft de
+   * focusgroep bovenop liggen. Zonder viewport geldt alleen de tafelrand. De canonieke posities bepaalt altijd de server.
+   */
+  viewport?: Rect;
   limits?: Partial<SettleLimits>;
 }
 
@@ -120,15 +127,20 @@ class Occupancy {
     }
     this.byGroup.delete(groupId);
   }
-  /** Alle andere groepen die met één van deze stukken botsen. */
+  /**
+   * Alle andere groepen die met één van deze stukken botsen. De "gezien"-markering geldt per vraagstuk (rect) en alleen voor
+   * kandidaten die echt zijn getoetst: een kandidaat die bij het ene stuk niet botst, moet bij een later stuk van dezelfde
+   * groep alsnog onderzocht worden. Binnen één vraagstuk voorkomt de markering dubbel werk bij kandidaten die in meerdere cellen staan.
+   */
   hits(selfId: string, rects: readonly Rect[], threshold: number, inflate: number): Set<string> {
-    const found = new Set<string>(); const mark = ++this.stamp;
+    const found = new Set<string>();
     for (const rect of rects) {
-      const pad = inflate + 1e-9;
+      const mark = ++this.stamp; const pad = inflate + 1e-9;
       for (let cx = Math.floor((rect.minX - pad) / CELL); cx <= Math.floor((rect.maxX + pad) / CELL); cx++) for (let cy = Math.floor((rect.minY - pad) / CELL); cy <= Math.floor((rect.maxY + pad) / CELL); cy++) {
         const list = this.cells.get(cellKey(cx, cy)); if (!list) continue;
         for (const index of list) {
-          if (this.seen[index] === mark || this.owner[index] === selfId) continue; this.seen[index] = mark;
+          if (this.seen[index] === mark || this.owner[index] === selfId || found.has(this.owner[index])) continue;
+          this.seen[index] = mark;
           if (touches(rect, this.rects[index], threshold, inflate)) found.add(this.owner[index]);
         }
       }
@@ -155,7 +167,7 @@ export function planSettle(snapshot: PuzzleSnapshot, geometry: PuzzleGeometry, o
   if (snapshot.completedAt) return EMPTY;
   const focusGroup = snapshot.groups.find((group) => group.id === options.focusGroupId);
   if (!focusGroup || focusGroup.anchored) return EMPTY;
-  const immovable = options.immovable ?? new Set<string>();
+  const immovable = options.immovable ?? new Set<string>(); const viewport = options.viewport;
   // Prioriteit 1: een geldige snap of bordverankering. Dan is het niet aan dit bestand om iets te verplaatsen.
   const rulesVersion = options.rulesVersion ?? PUZZLE_RULES_VERSION;
   if (findSnapConnection(snapshot, geometry, options.difficulty, focusGroup.id, rulesVersion) || boardSnapTarget(snapshot, geometry, options.difficulty, focusGroup.id, rulesVersion)) return { moves: [], unresolved: [], reason: "snap-possible" };
@@ -166,13 +178,23 @@ export function planSettle(snapshot: PuzzleSnapshot, geometry: PuzzleGeometry, o
     const rel = pieceCoreRects(geometry, group);
     // Uitsteeksels tellen mee voor de tafelrand (zelfde klem als de engine), niet voor de botsing.
     const relBounds = bounding(rel);
-    items.set(group.id, { id: group.id, group, rel, relBounds, x: group.x, y: group.y, fixed: group.anchored === true || immovable.has(group.id) });
+    // Buiten beeld (volgens de aanvrager) blijft een groep gewoon liggen: de speler hoeft nooit iets te zoeken wat hij niet zag bewegen.
+    const unseen = !!viewport && (relBounds.maxX + group.x < viewport.minX || relBounds.minX + group.x > viewport.maxX || relBounds.maxY + group.y < viewport.minY || relBounds.minY + group.y > viewport.maxY);
+    items.set(group.id, { id: group.id, group, rel, relBounds, x: group.x, y: group.y, fixed: group.anchored === true || immovable.has(group.id) || unseen });
     occupancy.add(group.id, rel.map((r) => ({ minX: r.minX + group.x, minY: r.minY + group.y, maxX: r.maxX + group.x, maxY: r.maxY + group.y })));
   }
   const focus = items.get(focusGroup.id)!;
   const world = (item: Item, x = item.x, y = item.y) => item.rel.map((r) => ({ minX: r.minX + x, minY: r.minY + y, maxX: r.maxX + x, maxY: r.maxY + y }));
   const overhang = 0.28; // tabs mogen de tafelrand niet raken (zelfde reserve als de engine)
   const inTable = (item: Item, x: number, y: number) => x + item.relBounds.minX - overhang >= table.minX - 1e-9 && y + item.relBounds.minY - overhang >= table.minY - 1e-9 && x + item.relBounds.maxX + overhang <= table.maxX + 1e-9 && y + item.relBounds.maxY + overhang <= table.maxY + 1e-9;
+
+  /** Past de groep op deze plek volledig in beeld (of, als ze groter is dan het beeld, met haar middelpunt)? */
+  const visible = (item: Item, x: number, y: number) => {
+    if (!viewport) return true;
+    const axis = (min: number, max: number, vMin: number, vMax: number) => max - min <= vMax - vMin ? min >= vMin - 1e-9 && max <= vMax + 1e-9 : min <= (vMin + vMax) / 2 && max >= (vMin + vMax) / 2;
+    return axis(x + item.relBounds.minX, x + item.relBounds.maxX, viewport.minX, viewport.maxX) && axis(y + item.relBounds.minY, y + item.relBounds.maxY, viewport.minY, viewport.maxY);
+  };
+  const allowed = (item: Item, x: number, y: number) => inTable(item, x, y) && visible(item, x, y);
 
   const original = new Map<string, { x: number; y: number }>(snapshot.groups.map((group) => [group.id, { x: group.x, y: group.y }]));
   const moved = new Set<string>(); const log: Array<{ id: string; x: number; y: number; wasMoved: boolean }> = [];
@@ -184,7 +206,7 @@ export function planSettle(snapshot: PuzzleSnapshot, geometry: PuzzleGeometry, o
     while (log.length > mark) { const entry = log.pop()!; const item = items.get(entry.id)!; occupancy.remove(entry.id); item.x = entry.x; item.y = entry.y; occupancy.add(entry.id, world(item)); if (!entry.wasMoved) moved.delete(entry.id); }
   };
   const conflictsWith = (item: Item, x: number, y: number, threshold: number, inflate: number) => occupancy.hits(item.id, world(item, x, y), threshold, inflate);
-  const free = (item: Item, x: number, y: number) => inTable(item, x, y) && conflictsWith(item, x, y, 0, PLACEMENT_CLEARANCE).size === 0;
+  const free = (item: Item, x: number, y: number) => allowed(item, x, y) && conflictsWith(item, x, y, 0, PLACEMENT_CLEARANCE).size === 0;
   const movable = (id: string) => { const item = items.get(id); return !!item && !item.fixed && id !== focus.id && !moved.has(id); };
 
   /** Dichtstbijzijnde vrije plek binnen `radius`, bij gelijke afstand liever van de focusgroep af. */
@@ -213,7 +235,7 @@ export function planSettle(snapshot: PuzzleSnapshot, geometry: PuzzleGeometry, o
     if (depth >= limits.maxDepth || moved.size >= limits.maxMoves) return false;
     const candidates: Array<{ x: number; y: number; others: string[]; cost: number; dist: number; dx: number; dy: number }> = [];
     for (const o of offsets(limits.chainRadius, limits.step)) {
-      const x = item.x + o.dx; const y = item.y + o.dy; if (!inTable(item, x, y)) continue;
+      const x = item.x + o.dx; const y = item.y + o.dy; if (!allowed(item, x, y)) continue;
       const hit = conflictsWith(item, x, y, 0, PLACEMENT_CLEARANCE);
       if (hit.size === 0 || hit.size > 2 || ![...hit].every(movable)) continue;
       candidates.push({ x, y, others: [...hit].sort(), cost: o.dist + 0.8 * hit.size, dist: o.dist, dx: o.dx, dy: o.dy });

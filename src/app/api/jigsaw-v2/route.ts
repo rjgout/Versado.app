@@ -7,6 +7,7 @@ import { apiError } from "@/lib/apiError";
 import { getT } from "@/lib/i18n";
 import { jigsawCatalog } from "@/lib/jigsawGame";
 import { answerSoloPuzzle, applySoloAction, countSchema, difficultySchema, PuzzleHintError, resumeSoloPuzzle, startSoloPuzzle } from "@/lib/puzzle/solo";
+import { viewportSchema } from "@/lib/puzzle/schemas";
 
 const actionSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("move"), groupId: z.string().min(1).max(64), x: z.number().finite().min(-100).max(100), y: z.number().finite().min(-100).max(100) }),
@@ -14,7 +15,7 @@ const actionSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("anchor"), groupId: z.string().min(1).max(64) }),
   z.object({ kind: z.literal("hint"), hint: z.enum(["PREVIEW", "LOCATION", "CONNECTION", "FILTER"]), confirmPersonal: z.boolean().optional(), pieceId: z.number().int().min(0).max(95).optional(), filter: z.enum(["CORNERS", "EDGES", "MIDDLES"]).optional() }).refine((input) => input.hint === "PREVIEW" || (input.hint === "FILTER" ? input.filter !== undefined : input.pieceId !== undefined)),
   z.object({ kind: z.literal("connect"), a: z.number().int().min(0).max(95), b: z.number().int().min(0).max(95) }),
-  z.object({ kind: z.literal("settle"), groupId: z.string().min(1).max(64) }),
+  z.object({ kind: z.literal("settle"), groupId: z.string().min(1).max(64), viewport: viewportSchema.optional() }),
 ]);
 const schema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("start"), imageIndex: z.number().int().min(0).max(jigsawCatalog.length - 1).optional(), imageId: z.string().refine((id) => jigsawCatalog.some((item) => item.url === id)).optional(), pieceCount: countSchema, difficulty: difficultySchema }).refine((input) => (input.imageId !== undefined) !== (input.imageIndex !== undefined)),

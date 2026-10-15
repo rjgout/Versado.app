@@ -8,7 +8,7 @@ import { jigsawQuestionById, jigsawQuestionLanguage, jigsawQuestionsForStory, JI
 import { completeJigsaw } from "@/lib/streak";
 import { hintCategoryFor, registerBestRecord, type HintCategory } from "@/lib/puzzle/records";
 import { emitToUser } from "@/lib/realtime";
-import { settleGroups } from "@/lib/puzzle/collision";
+import { settleGroups, type Rect } from "@/lib/puzzle/collision";
 import { anchorGroup, connectGroups, isPuzzleComplete, moveGroup, newPuzzleSnapshot, rotateGroup, validPuzzleStructure } from "@/lib/puzzle/engine";
 import { createPuzzleGeometry } from "@/lib/puzzle/geometry";
 import { puzzlePolicy, PUZZLE_HINT_DURATION_MS, PUZZLE_GEOMETRY_VERSION, PUZZLE_RULES_VERSION, SOLO_PIECE_COUNTS, type PuzzleDifficulty, type PuzzleHintType, type PuzzleSnapshot } from "@/lib/puzzle/types";
@@ -31,7 +31,7 @@ export const snapshotSchema = z.object({
   filter: z.enum(["CORNERS", "EDGES", "MIDDLES"]).nullable(), completedAt: z.string().nullable(),
 });
 
-export type SoloAction = { kind: "move"; groupId: string; x: number; y: number } | { kind: "rotate"; groupId: string } | { kind: "connect"; a: number; b: number } | { kind: "anchor"; groupId: string } | { kind: "settle"; groupId: string } | { kind: "hint"; hint: PuzzleHintType; confirmPersonal?: boolean; pieceId?: number; filter?: "CORNERS" | "EDGES" | "MIDDLES" | null };
+export type SoloAction = { kind: "move"; groupId: string; x: number; y: number } | { kind: "rotate"; groupId: string } | { kind: "connect"; a: number; b: number } | { kind: "anchor"; groupId: string } | { kind: "settle"; groupId: string; viewport?: Rect } | { kind: "hint"; hint: PuzzleHintType; confirmPersonal?: boolean; pieceId?: number; filter?: "CORNERS" | "EDGES" | "MIDDLES" | null };
 export const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 const seedFor = (contentKey: string) => hash(`puzzle-v${PUZZLE_GEOMETRY_VERSION}:${contentKey}`).slice(0, 32);
 
@@ -157,7 +157,7 @@ export async function applySoloAction(userId: string, sessionId: string, expecte
     if (action.kind === "anchor") next = anchorGroup(snapshot, geometry, difficulty, action.groupId, row.variant.rulesVersion);
     // Ruimte maken is geen spelhandeling: de server bepaalt de verplaatsingen opnieuw vanuit de actuele stand, raakt verbindingen,
     // ankers, tijd en voortgang nooit aan en doet niets (geen versie, geen log) als er niets verschuift of een snap nog mogelijk is.
-    if (action.kind === "settle") next = settleGroups(snapshot, geometry, { focusGroupId: action.groupId, difficulty, rulesVersion: row.variant.rulesVersion });
+    if (action.kind === "settle") next = settleGroups(snapshot, geometry, { focusGroupId: action.groupId, difficulty, rulesVersion: row.variant.rulesVersion, viewport: action.viewport });
     if (action.kind === "hint") {
       // Een lopende hint beschermt ook tegen snelle herhaalde klikken met
       // verschillende actionIds. Herladen gebruikt dezelfde absolute eindtijd.
