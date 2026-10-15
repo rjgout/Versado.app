@@ -237,6 +237,8 @@ Harde regels:
   de automatische tekstnavigatie op pauze ("Zelf bladeren"); de microfoon, de engine en de positie lopen door, en de muziek overschrijft de leesplek
   nooit en scrolt nooit terug. Hervatten alleen via `resumeVerdict`. Beide weergaven zijn altijd scrolbaar en aantikbaar; de leesbediening staat in
   de bedieningszone, nooit over de tekst. Geen herkenningsdrempels verlagen om sneller te lijken.
+- **De productieproxy mag de microfoon nooit blokkeren**: `deploy/nginx/nginx.conf` zet `Permissions-Policy: camera=(), microphone=(self), geolocation=()` op elke response. `microphone=()` blokkeert `getUserMedia` voor de hele site (gemeten op 15 oktober 2026). Wijzig die header alleen samen met `tests/proxy-headers.test.ts`; een app-update vernieuwt de proxy-container niet vanzelf.
+- **Live audio mag nooit stilzwijgend vastlopen** (`docs/hymns/19-REGRESSIE-LIVE-AUDIO.md`): een mislukte herkenningsbundel of lofzangverzoek stopt de microfoon niet en wist de engine niet; de fout is zichtbaar met "Opnieuw proberen" en zelf kiezen. Opslag (IndexedDB) en netwerk hebben tijdslimieten. Elke microfoonstop heeft een reden (`MicStopReason`); `stop()` tijdens het aanvragen annuleert de start. Een onbekende melodie laat de microfoon aan. De beheerdersdiagnostiek toont de toestand van de audioketen (zonder audio).
 - Nieuwe tekst in de proef gaat bij een echte functie via i18n in alle `uiReady`-talen.
 
 ## Techstack
