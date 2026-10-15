@@ -335,6 +335,18 @@ def extract(pdf_path, opts=None):
                 cnt += 1
         return cnt
 
+    def beam_ids_of(stem, direction):
+        """Notatielaag: de balken (index in `beams`) die deze stok raken, van de stokpunt naar binnen gesorteerd (niveau 1 eerst)."""
+        far_y = stem["y0"] if direction == "up" else stem["y1"]
+        found = []
+        for bi, b in enumerate(beams):
+            if b["x0"] - 0.4 <= stem["x"] <= b["x1"] + 0.4:
+                frac = (stem["x"] - b["x0"]) / max(b["x1"] - b["x0"], 1e-6)
+                yb = b["yl"] + (b["yr"] - b["yl"]) * min(max(frac, 0), 1)
+                if abs(yb - far_y) < 4.5:
+                    found.append((abs(yb - far_y), bi))
+        return [bi for _, bi in sorted(found)]
+
     for si, lst in notes_by_staff.items():
         for n in lst:
             cands = []
@@ -349,6 +361,7 @@ def extract(pdf_path, opts=None):
             n["stem"] = best[1] if best else None
             n["dir"] = best[0] if best else None
             n["twoStems"] = len(cands) > 1
+            n["bm"] = beam_ids_of(n["stem"], n["dir"]) if n["stem"] else []
             for g in other:
                 if g["c"] in "#nb" and 0 < n["x"] - g["x"] < 11 and abs(g["y"] - n["y"]) < staves[si]["sp"] * 0.9:
                     if n["alter"] is None and g["x"] > 0:
@@ -600,6 +613,7 @@ def extract(pdf_path, opts=None):
                 else:
                     alter = key_letters.get(letter, 0)
                 n["midi"] = diatonic_to_midi(n["diatonic"], alter)
+                n["alt"] = alter  # notatielaag: de werkelijke wijziging (spelling) van deze kop
 
     result_notes = []
     events = []
@@ -611,10 +625,54 @@ def extract(pdf_path, opts=None):
                 n = it["note"]
                 if n is None:
                     continue
-                result_notes.append({"t": round(base + col["t"], 4), "dur": round(it["dur"], 4), "midi": n["midi"], "staff": staves[it["staff"]]["clef"], "measure": r["index"], "system": col["system"], "x": round(it["x"], 1), "dbg": {"dots": n["dots"], "base": n["base"], "stemX": round(n["stem"]["x"], 1) if n["stem"] else None, "dir": n["dir"], "two": n["twoStems"], "y": round(n["y"], 1)}})
+                result_notes.append({"t": round(base + col["t"], 4), "dur": round(it["dur"], 4), "midi": n["midi"], "staff": staves[it["staff"]]["clef"], "measure": r["index"], "system": col["system"], "x": round(it["x"], 1), "dia": n["diatonic"], "alt": n["alt"], "acc": n["alter"], "head": n["head"], "bm": n["bm"], "dir": n["dir"], "dots": n["dots"], "base": n["base"], "dbg": {"dots": n["dots"], "base": n["base"], "stemX": round(n["stem"]["x"], 1) if n["stem"] else None, "dir": n["dir"], "two": n["twoStems"], "y": round(n["y"], 1)}})
     result_notes.sort(key=lambda n: (n["t"], n["midi"]))
+    # notatielaag: rusten (positie en duur) zodat een partituur gegraveerd kan worden; heeft geen invloed op de validatie
+    result_rests = []
+    for r in results:
+        base = starts[r["index"]]
+        for col in r["cols"]:
+            for it in col["items"]:
+                if it["note"] is None:
+                    result_rests.append({"t": round(base + col["t"], 4), "dur": round(it["dur"], 4), "staff": staves[it["staff"]]["clef"], "measure": r["index"], "x": round(it["x"], 1)})
+    # notatielaag: bogen (overbinding of legatoboog) uit de bezierkrommen van de PDF
+    curves = []
+    for d in drawings:
+        its = [i for i in d["items"] if i[0] == "c"]
+        if not its or d["type"] not in ("f", "fs"):
+            continue
+        pts = [(i[1].x, i[1].y) for i in its] + [(i[4].x, i[4].y) for i in its]
+        xs = [p_[0] for p_ in pts]
+        left = min(pts, key=lambda p_: p_[0])
+        right = max(pts, key=lambda p_: p_[0])
+        if right[0] - left[0] < 6:  # kleine driehoekige vormen zijn geen bogen
+            continue
+        curves.append({"x0": left[0], "y0": left[1], "x1": right[0], "y1": right[1], "ymin": min(p_[1] for p_ in pts), "ymax": max(p_[1] for p_ in pts)})
+    result_slurs = []
+    all_heads = [(it["x"], n_) for r in results for col in r["cols"] for it in col["items"] for n_ in [it["note"]] if n_ is not None]
+    note_lookup = {id(n_): n_ for _, n_ in all_heads}
+    for cv in curves:
+        # boog hoort bij een balk (de dichtstbijzijnde) en eindigt boven of onder de koppen; de kop wordt op x gekozen
+        mid_y = (cv["ymin"] + cv["ymax"]) / 2
+        si_c = min(range(len(staves)), key=lambda k: abs(mid_y - (staves[k]["top"] + staves[k]["bottom"]) / 2))
+
+        def nearest(x, y_end, above):
+            cands = [(abs((hx + HEAD_W / 2) - x), n_) for hx, n_ in all_heads if n_["staff"] == si_c and abs((hx + HEAD_W / 2) - x) < 4.5]
+            if not cands:
+                return None
+            best_dx = min(c_[0] for c_ in cands)
+            col = [n_ for dx_, n_ in cands if dx_ < best_dx + 1.2]
+            return min(col, key=lambda n_: n_["y"]) if above else max(col, key=lambda n_: n_["y"])
+
+        above = mid_y < (staves[si_c]["top"] + staves[si_c]["bottom"]) / 2
+        a_, b_ = nearest(cv["x0"], cv["y0"], above), nearest(cv["x1"], cv["y1"], above)
+        if a_ is None or b_ is None or a_ is b_:
+            result_slurs.append({"kind": "unresolved", "x0": round(cv["x0"], 1), "x1": round(cv["x1"], 1)})
+            continue
+        result_slurs.append({"kind": "tie" if a_["midi"] == b_["midi"] else "slur", "from": [a_["midi"], round(a_["x"], 1), a_["staff"]], "to": [b_["midi"], round(b_["x"], 1), b_["staff"]]})
 
     fermatas = []
+    fermata_marks = []
     for g in other:
         if g["c"] in "Uu":
             si = staff_of(g["y"])
@@ -622,6 +680,8 @@ def extract(pdf_path, opts=None):
             if cand:
                 e = min(cand, key=lambda e: abs(e["x"] + 2.5 - g["x"]))
                 fermatas.append(round(e["t"], 4))
+                # notatielaag: op welke balk en met welke stand (U = boven de noot, u = eronder)
+                fermata_marks.append({"t": round(e["t"], 4), "staff": staves[si]["clef"], "inverted": g["c"] == "u"})
 
     # --- lettergrepen uit afzonderlijke tekens
     syllables = []
@@ -680,6 +740,9 @@ def extract(pdf_path, opts=None):
         "sectionEndMeasures": sorted(r["index"] for r in results if r["m"]["endKind"] in ("double", "thickafter", "thickbefore") and r["index"] != n_meas - 1),
         "columns": [{"system": c["system"], "measure": r["index"], "t": round(starts[r["index"]] + c["t"], 4), "xc": round(min(it["x"] for it in c["items"]) + 2.55, 1)} for r in results for c in r["cols"]],
         "notes": result_notes,
+        "rests": result_rests,
+        "fermataMarks": fermata_marks,
+        "curves": result_slurs,
         "syllables": syllables,
         "systems": system_infos,
         "warnings": warnings,
