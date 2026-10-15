@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useT } from "@/components/I18nProvider";
+import FinishedPuzzleRow from "@/components/puzzle/FinishedPuzzleRow";
+import type { HistoryItem } from "@/lib/puzzle/history";
+import { HISTORY_ROUTE } from "@/lib/puzzle/navigation";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
 import { jsonMutation } from "@/lib/data/mutation";
@@ -13,6 +16,8 @@ interface Overview {
   invites: { id: string; sessionId: string; from: string; pieceCount: number }[];
   sent: { id: string; sessionId: string; to: string; toId: string }[];
   sessions: { id: string; status: string; pieceCount: number; players: string[]; max: number }[];
+  finished: HistoryItem[];
+  hasHistory: boolean;
   matches: { id: string; kind: "LIVE" | "ASYNC"; status: string; me: string; questionOpen?: boolean; organizer: string; organizerId: string; pieceCount: number; players: string[] }[];
 }
 
@@ -29,11 +34,9 @@ export default function PuzzleTogetherOverview() {
   const matchInvites = data.matches.filter((m) => m.me === "INVITED");
   const matchRest = data.matches.filter((m) => m.me !== "INVITED");
   const activeSessions = data.sessions.filter((session) => session.status === "ACTIVE");
-  const doneSessions = data.sessions.filter((session) => session.status === "COMPLETED");
   const activeMatches = matchRest.filter((m) => m.status !== "FINISHED" && m.status !== "CANCELLED" && (m.me === "ACCEPTED" || m.me === "PLAYING"));
   const waitingMatches = matchRest.filter((m) => m.status !== "FINISHED" && m.status !== "CANCELLED" && (m.me === "FINISHED" || m.me === "INVALID" || m.me === "DNF"));
-  const doneMatches = matchRest.filter((m) => m.status === "FINISHED");
-  if (!data.invites.length && !matchInvites.length && !activeSessions.length && !doneSessions.length && !activeMatches.length && !waitingMatches.length && !doneMatches.length) return null;
+  if (!data.invites.length && !matchInvites.length && !activeSessions.length && !activeMatches.length && !waitingMatches.length && !data.finished.length && !data.hasHistory) return null;
 
   const post = async (url: string, json: unknown) => {
     setError(null);
@@ -99,21 +102,12 @@ export default function PuzzleTogetherOverview() {
           ))}
         </div>
       )}
-      {(doneSessions.length > 0 || doneMatches.length > 0) && (
+      {(data.finished.length > 0 || data.hasHistory) && (
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-slate-500">{t("puzzleTogether.overview.finishedTitle")}</h3>
-          {doneSessions.map((session) => (
-            <div key={session.id} className={row}>
-              <span className="text-sm">{t("puzzleTogether.overview.coopLabel")} · {session.pieceCount} · {t("puzzleTogether.overview.withNames", { names: session.players.join(", ") })}</span>
-              <Link className={`${btn} border border-slate-300`} href={`/jigsaw/samen/${session.id}`}>{t("puzzleTogether.overview.viewResult")}</Link>
-            </div>
-          ))}
-          {doneMatches.map((match) => (
-            <div key={match.id} className={row}>
-              <span className="text-sm">{t("puzzleTogether.overview.matchLabel")} · {match.pieceCount} · {t("puzzleTogether.overview.withNames", { names: match.players.join(", ") })}</span>
-              <Link className={`${btn} border border-slate-300`} href={`/jigsaw/wedstrijd/${match.id}`}>{match.questionOpen ? t("puzzleTogether.overview.answerQuestion") : t("puzzleTogether.overview.viewResult")}</Link>
-            </div>
-          ))}
+          {/* Maximaal de drie laatst afgeronde (Samen en Tegen elkaar samen); de rest staat in de geschiedenis. */}
+          {data.finished.length > 0 && <ul className="space-y-2">{data.finished.map((item) => <FinishedPuzzleRow key={item.key} item={item} />)}</ul>}
+          {data.hasHistory && <Link className={`${btn} border border-slate-300`} href={HISTORY_ROUTE}>{t("puzzleTogether.overview.viewAllFinished")}</Link>}
         </div>
       )}
     </section>

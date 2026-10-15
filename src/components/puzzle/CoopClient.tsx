@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { JIGSAW_ROUTE } from "@/lib/puzzle/navigation";
 import { Ellipsis, Lightbulb, Users } from "lucide-react";
-import FocusLayout from "@/components/versado/FocusLayout";
+import PuzzleBoardLayout from "@/components/puzzle/PuzzleBoardLayout";
 import { COMPLETION_MAX_WAIT_MS } from "@/lib/puzzle/motion";
 import { puzzleFeedback } from "@/lib/puzzle/feedback";
 import CompletionCard from "@/components/puzzle/CompletionCard";
@@ -243,7 +243,7 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
   const canInviteMore = isOwner && state.participants.length + state.invites.length < 4;
   const policyIncluded = includedRemaining;
 
-  return <FocusLayout className="puzzle-workspace gap-0">
+  return <PuzzleBoardLayout>
     <PuzzleTable ref={table} image={state.image} seed={state.seed} geometryVersion={state.geometryVersion} pieceCount={state.pieceCount} difficulty={state.difficulty} rulesVersion={state.rulesVersion}
       getSnapshot={() => snapshot.current} paintKey={paintKey} hint={hint} meId={meId} locks={locks} colorOf={colorOf} onGrab={onGrab} onRelease={onRelease} onDrag={onDrag} onCommit={onCommit} remoteDrags={remoteDrags}
       onBusy={setMessage} onSelect={setSelectedPiece}
@@ -277,9 +277,9 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
         <p aria-live="polite" className="sr-only">{message || (connected ? t("puzzleTogether.coop.synced") : t("puzzleTogether.coop.reconnecting"))}</p>
         {!connected && <p role="status" className="absolute inset-x-3 bottom-24 z-10 rounded-xl bg-vs-surface p-3 text-center text-sm shadow-md">{t("puzzleTogether.coop.reconnecting")}</p>}
         {(message || counted) && <p role="status" className="pointer-events-none absolute inset-x-3 top-16 z-10 mx-auto w-fit max-w-full rounded-xl bg-vs-surface/95 px-3 py-2 text-center text-sm shadow-md" >{message || t("puzzleTogether.coop.counts")}</p>}
-        {hint && <p className="pointer-events-none absolute bottom-3 left-3 z-10 rounded-full bg-vs-surface/90 px-3 py-1 text-xs text-vs-fg-2">{t("puzzleTogether.coop.hintPrivate")}</p>}
+        {hint && <p className="pointer-events-none absolute bottom-[6rem] left-3 z-10 rounded-full bg-vs-surface/90 px-3 py-1 text-xs text-vs-fg-2">{t("puzzleTogether.coop.hintPrivate")}</p>}
         {error && !hintsOpen && <p role="alert" className="absolute inset-x-3 top-3 z-20 rounded-xl bg-vs-surface p-3 text-vs-fg" onClick={() => setError("")}>{error}</p>}
       </>} />
     <FriendPicker open={pickerOpen} onClose={() => setPickerOpen(false)} title={t("puzzleTogether.setup.pickerTitle")} subtitle={t("puzzleTogether.setup.pickerSubtitle")} onInvite={(friend) => void invite(friend)} stateFor={(id) => state.participants.some((participant) => participant.userId === id) ? "joined" : state.invites.some((item) => item.userId === id) ? "invited" : "invite"} />
-  </FocusLayout>;
+  </PuzzleBoardLayout>;
 }
