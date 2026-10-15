@@ -36,6 +36,24 @@ function valid(bytes, e) {
       .digest("hex") === e.sha
   );
 }
+async function pinnedResponse(source) {
+  let url = new URL(source);
+  const host = url.hostname;
+  for (let redirects = 0; redirects <= 3; redirects++) {
+    if (url.protocol !== "https:" || url.hostname !== host || url.username || url.password || url.port)
+      throw Error("CFM_TEST_REDIRECT_HOST");
+    const response = await fetch(url, {
+      redirect: "manual",
+      signal: AbortSignal.timeout(45000),
+    });
+    if (![301, 302, 303, 307, 308].includes(response.status)) return response;
+    const location = response.headers.get("location");
+    await response.body?.cancel();
+    if (!location || redirects === 3) throw Error("CFM_TEST_REDIRECT_LIMIT");
+    url = new URL(location, url);
+  }
+  throw Error("CFM_TEST_REDIRECT_LIMIT");
+}
 await fs.mkdir(root, { recursive: true });
 let next = 0;
 async function worker() {
@@ -53,10 +71,9 @@ async function worker() {
       )
     )
       throw Error("CFM_TEST_HOST");
-    const r = await fetch(u, {
-      redirect: "error",
-      signal: AbortSignal.timeout(45000),
-    });
+    // De officiële afbeeldingsdienst kan naar een canoniek pad op dezelfde
+    // host verwijzen. Controleer elke stap; bronhash en bytegrens blijven gelden.
+    const r = await pinnedResponse(u);
     if (!r.ok) throw Error(`CFM_ASSET_HTTP:${r.status}`);
     const chunks = [];
     let size = 0;
