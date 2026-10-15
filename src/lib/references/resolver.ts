@@ -32,12 +32,13 @@ function bounded(result: ReferenceResolution): boolean {
 type ChapterProof = {
   id: string;
   number: number;
-  verses: Array<{ number: number; text: string }>;
+  verses: Array<{ id: string; number: number; text: string }>;
   book: {
     key: string | null;
     name: string;
     contentCollection: {
       id: string;
+      name: string;
       work: string | null;
       editionKey: string;
       language: string;
@@ -249,6 +250,7 @@ export async function resolveReferenceTarget(
                 contentCollection: {
                   select: {
                     id: true,
+                    name: true,
                     work: true,
                     editionKey: true,
                     language: true,
@@ -259,19 +261,43 @@ export async function resolveReferenceTarget(
             verses: {
               orderBy: { number: "asc" },
               take: 501,
-              select: { number: true, text: true },
+              select: { id: true, number: true, text: true },
             },
           },
         });
     if (!chapter) return fail("missing");
-    const selected = otb.verses
+    // Houd de navigatielink in lijn met de bestaande ScriptureReader-limiet.
+    if (chapter.verses.length > 500) return fail("too-large");
+    if (
+      Buffer.byteLength(
+        JSON.stringify({
+          id: chapter.id,
+          number: chapter.number,
+          book: {
+            name: chapter.book.name,
+            contentCollection: {
+              name: chapter.book.contentCollection.name,
+              language: chapter.book.contentCollection.language,
+              editionKey: chapter.book.contentCollection.editionKey,
+            },
+          },
+          verses: chapter.verses,
+        }),
+      ) > 500000
+    )
+      return fail("too-large");
+    const explicitRange = otb.verses !== null;
+    const selected = explicitRange
       ? chapter.verses.filter((verse) => otb.verses!.includes(verse.number))
-      : chapter.verses;
+      : chapter.verses.slice(0, MAX_PREVIEW_VERSES);
     if (
       !selected.length ||
-      (otb.verses && selected.length !== otb.verses.length)
+      (explicitRange && selected.length !== otb.verses!.length)
     )
       return fail("range");
+    // Een expliciet bereik is alleen betrouwbaar als het volledig in de
+    // preview past. Een hoofdstuk zonder bereik mag wel veilig worden
+    // ingekort: de bestaande reader opent via `href` het volledige hoofdstuk.
     if (selected.length > MAX_PREVIEW_VERSES) return fail("too-large");
     const result: ReferenceResolution = {
       kind: "internal",
@@ -280,13 +306,20 @@ export async function resolveReferenceTarget(
       work: "old-testament",
       editionKey: "otb",
       language: "nl",
-      title: otbTitle(
-        chapter.book.name,
-        otb.chapter,
-        selected.map((verse) => verse.number),
-      ),
+      title: explicitRange
+        ? otbTitle(
+            chapter.book.name,
+            otb.chapter,
+            selected.map((verse) => verse.number),
+          )
+        : `${chapter.book.name} ${otb.chapter}`,
       href: `/scripture/${encodeURIComponent(chapter.id)}#vers-${selected[0].number}`,
-      preview: { kind: "scripture", chapterId: chapter.id, verses: selected },
+      preview: {
+        kind: "scripture",
+        chapterId: chapter.id,
+        verses: selected,
+        truncated: !explicitRange && chapter.verses.length > selected.length,
+      },
     };
     return bounded(result) ? result : fail("too-large");
   }
@@ -431,6 +464,7 @@ export async function resolveReferenceBatch(
               contentCollection: {
                 select: {
                   id: true,
+                  name: true,
                   work: true,
                   editionKey: true,
                   language: true,
@@ -441,7 +475,7 @@ export async function resolveReferenceBatch(
           verses: {
             orderBy: { number: "asc" },
             take: 501,
-            select: { number: true, text: true },
+            select: { id: true, number: true, text: true },
           },
         },
       })

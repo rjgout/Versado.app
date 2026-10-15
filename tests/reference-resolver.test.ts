@@ -67,13 +67,25 @@ function chapter() {
     })),
   };
 }
-function otbChapter() {
+function otbChapter({
+  id = "synthetic-otb-genesis-1",
+  key = "gen",
+  name = "Genesis",
+  number = 1,
+  verseCount = 5,
+}: {
+  id?: string;
+  key?: string;
+  name?: string;
+  number?: number;
+  verseCount?: number;
+} = {}) {
   return {
-    id: "synthetic-otb-genesis-1",
-    number: 1,
+    id,
+    number,
     book: {
-      key: "gen",
-      name: "Genesis",
+      key,
+      name,
       contentCollection: {
         id: "content_old_testament_otb_nl",
         work: "old-testament",
@@ -81,9 +93,9 @@ function otbChapter() {
         language: "nl",
       },
     },
-    verses: [1, 2, 3, 4, 5].map((number) => ({
-      number,
-      text: `Nederlandse OTB-vers ${number}.`,
+    verses: Array.from({ length: verseCount }, (_, index) => ({
+      number: index + 1,
+      text: `Nederlandse OTB-vers ${index + 1}.`,
     })),
   };
 }
@@ -248,6 +260,91 @@ test("Nederlandse OTB-verwijzingen leveren uitsluitend de exact gekozen editie e
     result.preview.verses.map((verse) => verse.number),
     [1, 2, 3, 4, 5],
   );
+});
+test("volledige OTB-hoofdstukken krijgen een begrensde preview en behouden een bruikbare volledige leesroute", async () => {
+  for (const scenario of [
+    {
+      sourceKey: "Genesis 1",
+      chapter: otbChapter(),
+      href: "/scripture/synthetic-otb-genesis-1#vers-1",
+      title: "Genesis 1",
+      truncated: false,
+    },
+    {
+      sourceKey: "Genesis 24",
+      chapter: otbChapter({
+        id: "synthetic-otb-genesis-24",
+        number: 24,
+        verseCount: 67,
+      }),
+      href: "/scripture/synthetic-otb-genesis-24#vers-1",
+      title: "Genesis 24",
+      truncated: true,
+    },
+    {
+      sourceKey: "Psalm 119",
+      chapter: otbChapter({
+        id: "synthetic-otb-psalm-119",
+        key: "psa",
+        name: "Psalmen",
+        number: 119,
+        verseCount: 176,
+      }),
+      href: "/scripture/synthetic-otb-psalm-119#vers-1",
+      title: "Psalmen 119",
+      truncated: true,
+    },
+  ]) {
+    const [result] = await resolveReferenceBatch(
+      {
+        chapter: { findMany: async () => [scenario.chapter] },
+      } as unknown as Prisma.TransactionClient,
+      actor,
+      origin,
+      [
+        {
+          target: { ...otbTarget, sourceKey: scenario.sourceKey },
+          diagnosticKey: scenario.sourceKey,
+        },
+      ],
+    );
+    assert.equal(result.kind, "internal", scenario.sourceKey);
+    if (result.kind !== "internal" || result.preview.kind !== "scripture")
+      throw Error("geen OTB-hoofdstuk");
+    assert.equal(result.href, scenario.href);
+    assert.equal(result.title, scenario.title);
+    assert.equal(result.preview.truncated, scenario.truncated);
+    assert.equal(
+      result.preview.verses.length,
+      Math.min(scenario.chapter.verses.length, 40),
+    );
+  }
+});
+test("OTB-preview- en readerlimieten wijzen expliciete of onleesbare doelen af", async () => {
+  const hugeText = otbChapter();
+  hugeText.verses[4].text = "x".repeat(500001);
+  const missingVerse = otbChapter();
+  missingVerse.verses.splice(2, 1);
+  for (const [chapter, sourceKey, reason] of [
+    [otbChapter({ verseCount: 67 }), "Genesis 1:1-41", "too-large"],
+    [otbChapter({ verseCount: 501 }), "Genesis 1", "too-large"],
+    [hugeText, "Genesis 1", "too-large"],
+    [missingVerse, "Genesis 1:1-5", "range"],
+  ] as const) {
+    const [result] = await resolveReferenceBatch(
+      {
+        chapter: { findMany: async () => [chapter] },
+      } as unknown as Prisma.TransactionClient,
+      actor,
+      origin,
+      [{ target: { ...otbTarget, sourceKey }, diagnosticKey: "limit" }],
+    );
+    assert.deepEqual(result, {
+      kind: "unavailable",
+      reason,
+      diagnosticKey: "limit",
+    });
+  }
 });
 test("OTB-ranges, toegang en editie-equivalentie falen gesloten", async () => {
   const unavailable = {

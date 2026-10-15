@@ -4036,7 +4036,8 @@ export const en: PartialMessages = {
   "failed": "The reference could not be opened or your reading position could not be saved. Please try again.",
   "returnExpired": "The temporary return to your lesson has expired.",
   "returnFailed": "Returning failed. Your source or lesson selection may have changed and will not be overwritten.",
-  "readonly": "This opens the text only; it does not complete a lesson."
+  "readonly": "This opens the text only; it does not complete a lesson.",
+  "truncated": "This is a preview of this chapter. Read more to view every verse."
 },
 
 };

@@ -163,6 +163,14 @@ export default function ReferencePreview({
             </p>
             {result.preview.kind === "scripture" ? (
               <div className="space-y-3" lang={result.language}>
+                {result.preview.truncated && (
+                  <p
+                    className="rounded-xl bg-vs-surface px-3 py-2 text-sm text-vs-fg-2"
+                    data-reference-preview-truncated
+                  >
+                    {t("referencePreview.truncated")}
+                  </p>
+                )}
                 {result.preview.verses.map((v) => (
                   <p key={v.number} className="leading-relaxed">
                     <sup className="mr-2 font-bold text-vs-accent">

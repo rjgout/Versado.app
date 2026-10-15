@@ -135,8 +135,9 @@ try {
     }
   }
   if(process.argv.includes("--reference-preview")) {
-    await run("npx",["tsx","--test","tests/reference-resolver.integration.test.mjs"],env);
-    if(process.argv.includes("--browser"))await run("npx",["tsx","tests/reference-preview.browser.mjs"],env);
+    const longChapterOnly = process.argv.includes("--long-chapter-only");
+    if (!longChapterOnly) await run("npx",["tsx","--test","tests/reference-resolver.integration.test.mjs"],env);
+    if(process.argv.includes("--browser"))await run("npx",["tsx","tests/reference-preview.browser.mjs", ...(longChapterOnly ? ["--long-chapter-only"] : [])],env);
   }
   if(process.argv.includes("--study-reader")) {
     await run("npx",["tsx","--test","tests/reading-position.integration.test.ts"],env);

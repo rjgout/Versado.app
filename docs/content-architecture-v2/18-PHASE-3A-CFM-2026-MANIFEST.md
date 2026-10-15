@@ -65,6 +65,12 @@ evidence-record dat de bestaande resolver verlangt. Zonder dat bewijs moet de
 adapter de verwijzing als geblokkeerd rapporteren, niet een andere vertaling
 openen.
 
+Voor latere CFM-edities bepaalt de taal van de lesinhoud welke gecontroleerde
+schriftuureditie voor dezelfde canonieke passage nodig is; de interfacetaal is
+hiervoor niet bepalend. Meerdere edities vereisen een expliciete,
+controleerbare keuze. Ontbreekt die bewezen combinatie, dan blijft de
+verwijzing onbeschikbaar zonder stille fallback naar een andere taal of editie.
+
 ## Media-inventarisatie
 
 De officiële API meldt bij elke gecontroleerde les negen `img`-elementen.
