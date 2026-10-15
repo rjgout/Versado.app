@@ -237,6 +237,7 @@ Harde regels:
   de automatische tekstnavigatie op pauze ("Zelf bladeren"); de microfoon, de engine en de positie lopen door, en de muziek overschrijft de leesplek
   nooit en scrolt nooit terug. Hervatten alleen via `resumeVerdict`. Beide weergaven zijn altijd scrolbaar en aantikbaar; de leesbediening staat in
   de bedieningszone, nooit over de tekst. Geen herkenningsdrempels verlagen om sneller te lijken.
+- **Live audio mag nooit stilzwijgend vastlopen** (`docs/hymns/19-REGRESSIE-LIVE-AUDIO.md`): een mislukte herkenningsbundel of lofzangverzoek stopt de microfoon niet en wist de engine niet; de fout is zichtbaar met "Opnieuw proberen" en zelf kiezen. Opslag (IndexedDB) en netwerk hebben tijdslimieten. Elke microfoonstop heeft een reden (`MicStopReason`); `stop()` tijdens het aanvragen annuleert de start. Een onbekende melodie laat de microfoon aan. De beheerdersdiagnostiek toont de toestand van de audioketen (zonder audio).
 - Nieuwe tekst in de proef gaat bij een echte functie via i18n in alle `uiReady`-talen.
 
 ## Techstack

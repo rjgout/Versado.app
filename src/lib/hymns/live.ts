@@ -36,6 +36,20 @@ export interface LiveState {
    * meldt hem met registerHymn() en de engine volgt dan vanaf het geheugen (er gaat geen luistertijd verloren).
    */
   needHymn: number | null;
+  /** Diagnostiek van de audioketen (alleen tellers en niveaus, nooit audio). */
+  diag: LiveDiagnostics;
+}
+
+export interface LiveDiagnostics {
+  /** Aantal kenmerkframes dat de extractor sinds de start produceerde. */
+  frames: number;
+  /** Laatste frame: hoorbare muziek of stilte, en het niveau in dBFS (null als er nog geen frame was). */
+  lastFrameSilent: boolean | null;
+  lastRmsDb: number | null;
+  /** Aantal kandidaat-composities waartegen herkend wordt (0 zolang de herkenningsgegevens ontbreken). */
+  candidates: number;
+  /** De herkenning wacht nog op de herkenningsgegevens (de microfoon luistert intussen door). */
+  awaitingCandidates: boolean;
 }
 
 export interface LiveEngineOptions {
@@ -68,6 +82,8 @@ export class HymnLiveEngine {
   private candidates: RecognitionCandidate[] | null = null;
   private needHymn: number | null = null;
   private awaitingCandidates = false;
+  private framesProduced = 0;
+  private lastFrame: { silent: boolean; rmsDb: number } | null = null;
   private readonly opts: Required<Omit<LiveEngineOptions, "session">> & { session: Partial<SessionConfig> };
   private extractor: ChromaExtractor | null = null;
   private recognizer: HymnRecognizer | null = null;
@@ -195,6 +211,8 @@ export class HymnLiveEngine {
   restart(): void {
     this.extractor?.reset();
     this.extractor = null;
+    this.framesProduced = 0;
+    this.lastFrame = null;
     this.buffer.length = 0;
     this.queue = [];
     this.queueAt = 0;
@@ -223,6 +241,8 @@ export class HymnLiveEngine {
   }
 
   private enqueue(frame: FeatureFrame): void {
+    this.framesProduced += 1;
+    this.lastFrame = { silent: frame.silent, rmsDb: frame.rmsDb };
     this.buffer.push(frame);
     const keep = this.opts.bufferSeconds;
     while (this.buffer.length > 1 && frame.time - this.buffer[0].time > keep) this.buffer.shift();
@@ -301,6 +321,13 @@ export class HymnLiveEngine {
       snapshot: this.session?.snapshotNow ?? null,
       backlog: this.backlog,
       needHymn: this.needHymn,
+      diag: {
+        frames: this.framesProduced,
+        lastFrameSilent: this.lastFrame?.silent ?? null,
+        lastRmsDb: this.lastFrame ? Math.round(this.lastFrame.rmsDb * 10) / 10 : null,
+        candidates: this.candidates?.length ?? 0,
+        awaitingCandidates: this.awaitingCandidates,
+      },
     };
   }
 }

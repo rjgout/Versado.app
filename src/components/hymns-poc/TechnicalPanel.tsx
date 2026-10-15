@@ -1,7 +1,8 @@
 "use client";
 
 import { FileAudio } from "lucide-react";
-import type { MicState } from "@/lib/hymns/audio/micListener";
+import type { MicDiagnostics, MicState } from "@/lib/hymns/audio/micListener";
+import type { LibraryDiagnostics } from "@/lib/hymnLibraryClient";
 import type { LiveState } from "@/lib/hymns/live";
 import { focusRing } from "@/components/versado/styles";
 import { COPY, MIC_TEXT, RECOGNITION_TEXT, SYNC_TEXT } from "./copy";
@@ -13,6 +14,8 @@ import LibraryReportPanel from "./LibraryReportPanel";
 
 interface Props {
   micState: MicState;
+  micDiag: MicDiagnostics | null;
+  libDiag: LibraryDiagnostics | null;
   live: LiveState;
   testProgress: number | null;
   testAs: "recognize" | "follow";
@@ -29,15 +32,35 @@ function Row({ k, v }: { k: string; v: string }) {
   );
 }
 
-export default function TechnicalPanel({ micState, live, testProgress, testAs, onTestAs, onFile }: Props) {
+export default function TechnicalPanel({ micState, micDiag, libDiag, live, testProgress, testAs, onTestAs, onFile }: Props) {
   const s = live.snapshot;
   const r = live.recognition;
   const maxEvidence = Math.max(70, ...(r?.ranking.map((x) => x.evidence) ?? [0]));
   return (
     <div className="space-y-4 text-sm" data-hymns-technical>
       <LibraryReportPanel />
-      <dl className="space-y-1">
+      <dl className="space-y-1" data-hymns-diagnostics>
         <Row k="Microfoon" v={MIC_TEXT[micState]} />
+        <Row k="AudioContext" v={micDiag?.contextState ?? "geen"} />
+        <Row k="Microfoonspoor" v={micDiag?.trackState ?? "geen"} />
+        <Row k="Audiobuffers ontvangen" v={micDiag ? `${micDiag.buffers}${micDiag.sampleRate ? ` · ${micDiag.sampleRate} Hz` : ""}` : "0"} />
+        <Row k="Tijd sinds laatste buffer" v={micDiag?.msSinceLastBuffer == null ? "nog geen" : `${(micDiag.msSinceLastBuffer / 1000).toFixed(1)} s`} />
+        <Row k="Muziekframes geproduceerd" v={String(live.diag.frames)} />
+        <Row k="Laatste frame" v={live.diag.lastFrameSilent === null ? "nog geen" : `${live.diag.lastFrameSilent ? "stilte" : "hoorbare muziek"} · ${live.diag.lastRmsDb} dB`} />
+        <Row
+          k="Herkenningsbibliotheek"
+          v={
+            libDiag?.bundle === "ready"
+              ? `geladen (${libDiag.compositions} composities, via ${libDiag.bundleSource})`
+              : libDiag?.bundle === "loading"
+                ? "laden…"
+                : libDiag?.bundle === "error"
+                  ? `FOUT: ${libDiag.bundleError ?? "onbekend"}`
+                  : "nog niet gevraagd"
+          }
+        />
+        <Row k="Actieve kandidaten" v={live.diag.awaitingCandidates ? "wacht op herkenningsgegevens" : String(live.diag.candidates)} />
+        <Row k="Laatste microfoonstop" v={micDiag?.lastStopReason ? `${micDiag.lastStopReason}${micDiag.lastStopDetail ? ` — ${micDiag.lastStopDetail}` : ""}` : "geen"} />
         <Row k="Fase" v={live.stage === "idle" ? "niet gestart" : live.stage === "recognizing" ? "herkennen" : `volgen (${live.choice === "auto" ? "automatisch gekozen" : "handmatig gekozen"})`} />
         {s ? (
           <>

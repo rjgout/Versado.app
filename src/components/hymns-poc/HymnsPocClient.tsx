@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, Info, Mic, MicOff, Music, Play, RefreshCw, Rows3, Search, Settings2, ShieldCheck, Square, TextQuote, MoreHorizontal } from "lucide-react";
-import { MicListener, decodeAudioFile, type MicState } from "@/lib/hymns/audio/micListener";
+import { MicListener, decodeAudioFile, type MicDiagnostics, type MicState } from "@/lib/hymns/audio/micListener";
 import { HymnLiveEngine, type LiveState } from "@/lib/hymns/live";
 import type { HymnIndexEntry, ReadableHymn, ResolvedHymn } from "@/lib/hymns/types";
 import { candidatesFromBundle } from "@/lib/hymns/recognize/candidates";
-import { loadHymn, loadHymnIndex, loadRecognitionBundle } from "@/lib/hymnLibraryClient";
+import { getLibraryDiagnostics, loadHymn, loadHymnIndex, loadRecognitionBundle, type LibraryDiagnostics } from "@/lib/hymnLibraryClient";
 import { useHymnPrefs, type HymnTextSize, type HymnView } from "@/lib/hymnPrefs";
 import { focusRing, iconButton as baseIconButton, primaryButton, secondaryButton } from "@/components/versado/styles";
 
@@ -19,7 +19,7 @@ import Sheet from "./Sheet";
 import TechnicalPanel from "./TechnicalPanel";
 import { INITIAL_READING, displayedStanza, focusLine, musicalCursorVisible, navigationTarget, nextSticky, readingReducer, resumeVerdict } from "./reading";
 import { useReadingScroll } from "./useReadingScroll";
-import { activeSeq, describeStatus, lyricSequence, type StatusTone } from "./viewModel";
+import { activeSeq, audioMissing, describeStatus, lyricSequence, type StatusTone } from "./viewModel";
 
 // Lofzangen: een intelligent digitaal zangboek. Eén luistersessie voor herkennen en volgen (HymnLiveEngine),
 // de tekst staat klaar tijdens het voorspel en loopt pas mee als de zang begint. De weergave (volledig
@@ -36,7 +36,7 @@ function toResolved(h: ReadableHymn): ResolvedHymn | null {
 }
 
 const UI_FLUSH_MS = 100;
-const IDLE_LIVE: LiveState = { stage: "idle", hymn: null, choice: null, recognition: null, snapshot: null, backlog: 0, needHymn: null };
+const IDLE_LIVE: LiveState = { stage: "idle", hymn: null, choice: null, recognition: null, snapshot: null, backlog: 0, needHymn: null, diag: { frames: 0, lastFrameSilent: null, lastRmsDb: null, candidates: 0, awaitingCandidates: false } };
 
 const TONE: Record<StatusTone, string> = {
   neutral: "bg-vs-subtle text-vs-fg-2",
@@ -91,6 +91,11 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
   const [sheet, setSheet] = useState<SheetKind>(null);
   const [testProgress, setTestProgress] = useState<number | null>(null);
   const [testAs, setTestAs] = useState<"recognize" | "follow">("recognize");
+  // De herkenningsgegevens konden niet worden geladen: de microfoon en de engine blijven gewoon luisteren (de audio wordt
+  // bewaard); de gebruiker ziet de fout, kan opnieuw proberen of zelf een lofzang kiezen.
+  const [bundleFailed, setBundleFailed] = useState(false);
+  const [micDiag, setMicDiag] = useState<MicDiagnostics | null>(null);
+  const [libDiag, setLibDiag] = useState<LibraryDiagnostics | null>(null);
   // Twee onafhankelijke posities: de muziek (engine) en de leesplek van de gebruiker (reading.ts).
   const [reading, dispatchReading] = useReducer(readingReducer, INITIAL_READING);
   const [navTick, setNavTick] = useState(0);
@@ -180,6 +185,22 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
       });
   }, [live.needHymn, getEngine, schedule]);
 
+  /** Laadt de herkenningsgegevens in de engine. Een fout stopt nooit de microfoon of de engine: ze wordt getoond (bundleFailed). */
+  const loadBundleInto = useCallback(
+    (eng: HymnLiveEngine) => {
+      setBundleFailed(false);
+      loadRecognitionBundle()
+        .then((bundle) => {
+          eng.setCandidates(candidatesFromBundle(bundle));
+          setBundleFailed(false);
+          schedule(0);
+        })
+        .catch(() => setBundleFailed(true))
+        .finally(() => setLibDiag(getLibraryDiagnostics()));
+    },
+    [schedule]
+  );
+
   const startListening = useCallback(
     async (intent: "recognize" | "follow") => {
       const eng = getEngine();
@@ -195,19 +216,8 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
         // luisteren gaat er verder geen verzoek meer naar de server.
         const needBundle = !eng.hasCandidates;
         eng.startRecognizing({ awaitCandidates: needBundle });
-        if (needBundle) {
-          loadRecognitionBundle()
-            .then((bundle) => {
-              eng.setCandidates(candidatesFromBundle(bundle));
-              schedule(0);
-            })
-            .catch(() => {
-              micRef.current?.stop();
-              eng.restart();
-              setLive(eng.state());
-              setMicDetail(COPY.recognitionUnavailable);
-            });
-        }
+        if (needBundle) loadBundleInto(eng);
+        else setBundleFailed(false);
       } else if (hymn) {
         // Een zelf gekozen lofzang hoeft niet herkend te worden: direct de muzikale positie volgen.
         eng.registerHymn(hymn);
@@ -230,7 +240,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
       }
       await micRef.current.start();
     },
-    [getEngine, handleSamples, hymn, idleStanza, order, schedule]
+    [getEngine, handleSamples, hymn, idleStanza, loadBundleInto, order, schedule]
   );
 
   const stopMic = useCallback(() => {
@@ -266,7 +276,8 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
         const eng = getEngine();
         if (res) {
           eng.registerHymn(res);
-          if (eng.currentStage !== "idle") {
+          // Ook als de engine nog "idle" is terwijl de microfoon luistert (bijvoorbeeld na een mislukte herkenning) volgt hij de gekozen lofzang.
+          if (eng.currentStage !== "idle" || micRef.current?.listening) {
             // Midden in een luistersessie: dezelfde microfoon en extractor, het geheugen wordt opnieuw door de volger gehaald.
             eng.setStanzaOrder([]);
             eng.followHymn(number, "manual");
@@ -318,12 +329,12 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
 
   // De microfoon stopt bij het verlaten van de pagina en bij het sluiten van dit onderdeel.
   useEffect(() => {
-    const stop = () => micRef.current?.stop();
+    const stop = () => micRef.current?.stop(undefined, "pagina-verlaten");
     window.addEventListener("pagehide", stop);
     return () => {
       window.removeEventListener("pagehide", stop);
       cancelTest.current = true;
-      micRef.current?.stop();
+      micRef.current?.stop(undefined, "pagina-verlaten");
       if (flushTimer.current) clearTimeout(flushTimer.current);
     };
   }, []);
@@ -370,6 +381,23 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
 
   const snapshot = live.snapshot;
   const listening = micState === "listening";
+
+  // Elke seconde de toestand van de audioketen, zolang er geluisterd wordt of het technische paneel openstaat. Dit staat los van de
+  // audioframes zelf: juist als er GEEN audio meer binnenkomt moet dat zichtbaar worden ("Geen geluid ontvangen").
+  const diagWanted = listening || sheet === "tech";
+  useEffect(() => {
+    if (!diagWanted) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      setMicDiag(micRef.current?.diagnostics() ?? null);
+      setLibDiag(getLibraryDiagnostics());
+      timer = setTimeout(tick, 1000);
+    };
+    tick();
+    return () => clearTimeout(timer);
+  }, [diagWanted]);
+  // Na drie seconden zonder audiobuffer (of zonder eerste buffer) tonen we dat: nooit stilzwijgend "luisteren" laten staan.
+  const noAudio = audioMissing(micDiag);
   const stage = live.stage;
   const choosing = stage === "idle" && !listening && !opened;
   const stanzaNumbers = (displayText?.stanzas ?? []).map((s) => s.n);
@@ -460,7 +488,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
     if (leadNumber !== null) void loadHymn(leadNumber).catch(() => {});
   }, [leadNumber]);
   const shownNumber = hymn?.number ?? opened?.number;
-  const title = choosing ? COPY.choose : stage === "recognizing" ? COPY.recognizing : `${shownNumber}. ${displayText?.title ?? opened?.title ?? ""}`;
+  const title = choosing ? COPY.choose : stage === "recognizing" ? COPY.recognizing : shownNumber === undefined ? COPY.choose : `${shownNumber}. ${displayText?.title ?? opened?.title ?? ""}`;
   const canFollow = Boolean(hymn);
 
   const viewToggle = (
@@ -524,6 +552,11 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
           ) : null}
           {status?.hint ? <p className="vs-wrap text-sm text-vs-fg-3">{status.hint}</p> : null}
           {micDetail && micState !== "listening" ? <p className="vs-wrap text-sm text-vs-fg-3">{micDetail}</p> : null}
+          {listening && noAudio ? (
+            <p className="vs-wrap rounded-xl bg-vs-warning-soft p-2 text-sm font-semibold text-vs-warning" role="alert" data-hymns-no-audio>
+              {micDiag?.contextState && micDiag.contextState !== "running" ? COPY.noAudioSuspended : COPY.noAudio}
+            </p>
+          ) : null}
 
           {!choosing && stage !== "recognizing" && stanzaNumbers.length > 1 ? (
             <div className="flex flex-wrap items-center gap-1" role="group" aria-label={COPY.stanzaLabel}>
@@ -658,7 +691,17 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
                       </ul>
                     </div>
                   ) : null}
-                  {!searchSelf ? (
+                  {bundleFailed ? (
+                    <div className="space-y-2 rounded-xl bg-vs-warning-soft p-3" role="alert" data-hymns-bundle-error>
+                      <p className="text-sm font-semibold text-vs-warning">{COPY.recognitionUnavailable}</p>
+                      <p className="text-sm text-vs-fg-2">{COPY.recognitionUnavailableHelp}</p>
+                      <button type="button" className={secondaryButton} data-hymns-bundle-retry onClick={() => loadBundleInto(getEngine())}>
+                        <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                        {COPY.libraryRetry}
+                      </button>
+                    </div>
+                  ) : null}
+                  {!searchSelf && !bundleFailed ? (
                     <div className="space-y-2" data-hymns-slow={slow ? "true" : undefined}>
                       {slow ? <p className="text-sm text-vs-fg-2">{COPY.recognizingSlow}</p> : null}
                       <button type="button" className={secondaryButton} data-hymns-search-self onClick={() => setSearchSelf(true)}>
@@ -667,7 +710,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
                       </button>
                     </div>
                   ) : null}
-                  {searchSelf && index ? <HymnList entries={index} selected={null} loadingNumber={loadingNumber} onSelect={(n) => void selectHymn(n)} autoFocus /> : null}
+                  {(searchSelf || bundleFailed) && index ? <HymnList entries={index} selected={null} loadingNumber={loadingNumber} onSelect={(n) => void selectHymn(n)} autoFocus /> : null}
                 </section>
               ) : displayText ? (
                 <>
@@ -857,7 +900,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
 
       {sheet === "tech" && isAdmin ? (
         <Sheet title={COPY.technical} tall onClose={() => setSheet(null)}>
-          <TechnicalPanel micState={micState} live={live} testProgress={testProgress} testAs={testAs} onTestAs={setTestAs} onFile={(f) => void runTestFile(f)} />
+          <TechnicalPanel micState={micState} micDiag={micDiag} libDiag={libDiag} live={live} testProgress={testProgress} testAs={testAs} onTestAs={setTestAs} onFile={(f) => void runTestFile(f)} />
         </Sheet>
       ) : null}
     </div>
