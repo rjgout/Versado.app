@@ -237,6 +237,11 @@ Harde regels:
   de automatische tekstnavigatie op pauze ("Zelf bladeren"); de microfoon, de engine en de positie lopen door, en de muziek overschrijft de leesplek
   nooit en scrolt nooit terug. Hervatten alleen via `resumeVerdict`. Beide weergaven zijn altijd scrolbaar en aantikbaar; de leesbediening staat in
   de bedieningszone, nooit over de tekst. Geen herkenningsdrempels verlagen om sneller te lijken.
+- **Bladmuziek (derde weergave)** (`docs/hymns/18-BLADMUZIEK.md`): per couplet een dynamisch gegraveerde partituur (OpenSheetMusicDisplay, lazy). De notatielaag
+  (`src/lib/hymns/notation/`, `library/data/notation/`, afgeleid door `scripts/hymns/build_nld_notation.py`) staat los van de analysegegevens en wijzigt die nooit.
+  Tekst staat alleen onder de noten bij een gevalideerde lettergreepkoppeling (`SheetStanzaStatus.status === "ok"`); nooit lettergreepposities verzinnen. Maatmarkering
+  alleen bij een betrouwbare positie, tijdens de zang en een gevalideerd couplet (`markableMeasure`). Verander je de notatie of `musicxml.ts`, verhoog `NOTATION_VERSION`.
+  Er is geen PDF-fallback zolang de rechten niet zijn bevestigd; `/api/hymns/*/sheet` blijft admin-only (404 voor anderen).
 - Nieuwe tekst in de proef gaat bij een echte functie via i18n in alle `uiReady`-talen.
 
 ## Techstack

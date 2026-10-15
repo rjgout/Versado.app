@@ -90,3 +90,20 @@ export interface SheetProblem {
   code: string;
   message: string;
 }
+
+export interface SheetStanzaStatus {
+  n: number;
+  status: SheetValidationStatus;
+  /** Code van het eerste probleem (alleen voor de technische weergave), of null. */
+  reason: string | null;
+  /** Lettergrepen van couplet en refrein samen; null als er geen betrouwbare koppeling is (dan geen tekst onder de noten). */
+  lyrics: SheetSyllable[] | null;
+}
+
+/** Wat de server voor de bladmuziek van één lofzang levert. */
+export interface SheetData {
+  number: number;
+  notation: RawHymnNotation;
+  stanzas: SheetStanzaStatus[];
+  chorus: { linked: boolean } | null;
+}

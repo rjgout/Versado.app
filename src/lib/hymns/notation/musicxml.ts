@@ -185,6 +185,9 @@ export function buildMusicXml(notation: HymnNotation, options: MusicXmlOptions):
       prevSig = sig;
     }
     const voices = [...new Set(events.map((e) => e.voice))].sort((a, b) => a - b);
+    // Positie waar de vorige stem eindigde: terug naar het begin van de maat is precies zoveel, nooit de volle maatlengte
+    // (een stem die eerder stopt zou anders onder het begin van de maat uitkomen).
+    let previousEnd = 0;
     voices.forEach((voice, vi) => {
       const list = events.filter((e) => e.voice === voice).sort((a, b) => a.t - b.t);
       // balken per niveau: opeenvolgende gebeurtenissen met dezelfde balk
@@ -221,7 +224,7 @@ export function buildMusicXml(notation: HymnNotation, options: MusicXmlOptions):
       }
       if (group.length) problems.push({ code: "triool", message: `Onvolledige triool in maat ${mi + 1}` });
 
-      if (vi > 0) out.push(`<backup><duration>${units(m.length)}</duration></backup>`);
+      if (vi > 0 && previousEnd > EPS) out.push(`<backup><duration>${units(previousEnd)}</duration></backup>`);
       let cursor = 0;
       for (const e of list) {
         const gap = e.t - m.start - cursor;
@@ -258,6 +261,7 @@ export function buildMusicXml(notation: HymnNotation, options: MusicXmlOptions):
         }
         cursor = e.t - m.start + e.dur;
       }
+      previousEnd = cursor;
     });
     out.push("</measure>");
   });

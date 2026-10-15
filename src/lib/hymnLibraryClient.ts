@@ -1,3 +1,4 @@
+import { NOTATION_VERSION, type SheetData } from "@/lib/hymns/notation/types";
 import type { HymnComposition, HymnIndexEntry, ReadableHymn } from "@/lib/hymns/types";
 
 // Client-kant van de lofzangenbibliotheek: haalt de (admin-only) gegevens op bij de server en bewaart ze lokaal in
@@ -148,4 +149,28 @@ export interface LibraryReport {
 /** Kwaliteitsoverzicht (alleen beheerders); altijd vers, nooit lokaal bewaard. */
 export async function loadLibraryReport(): Promise<LibraryReport> {
   return getJson<LibraryReport>("/api/hymns/report");
+}
+
+/** Bladmuziek van één lofzang: pas opgehaald als de gebruiker Bladmuziek kiest, daarna uit geheugen of lokale opslag zolang de dataversie klopt. */
+export async function loadHymnSheet(number: number): Promise<SheetData | null> {
+  // De notatieversie zit in de sleutel: verandert de notatie of de MusicXML-bouw (versie omhoog), dan wordt een oud blad nooit hergebruikt.
+  const key = `sheet:v${NOTATION_VERSION}:${number}`;
+  const mem = memory.get(key) as SheetData | undefined;
+  if (mem) return mem;
+  const cached = await idbGet<SheetData>(key);
+  if (cached && (knownVersion === null || cached.dataVersion === knownVersion)) {
+    memory.set(key, cached.value);
+    return cached.value;
+  }
+  try {
+    const res = await getJson<{ dataVersion: string; sheet: SheetData }>(`/api/hymns/${number}/sheet`);
+    memory.set(key, res.sheet);
+    void idbPut(key, { dataVersion: res.dataVersion, value: res.sheet });
+    return res.sheet;
+  } catch (err) {
+    if (cached) return cached.value;
+    // 404 = deze lofzang heeft geen notatie: geen fout, de tekst blijft leesbaar
+    if (err instanceof Error && /: 404$/.test(err.message)) return null;
+    throw err;
+  }
 }
