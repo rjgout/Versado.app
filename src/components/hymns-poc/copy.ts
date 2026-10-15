@@ -81,6 +81,7 @@ export const COPY = {
   previousLine: "Vorige regel",
   nextLine: "Volgende regel",
   readingNav: "Regels doorlopen",
+  nextStanza: "Volgend couplet",
   stanzaLabel: "Couplet",
   orderToggle: "Volgorde kiezen",
   orderDone: "Klaar",

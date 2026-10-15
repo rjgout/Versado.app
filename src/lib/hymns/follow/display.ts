@@ -15,6 +15,11 @@ export interface DisplayCursor {
   word: number | null;
   /** True als de markering is vastgezet omdat de synchronisatie onzeker is. */
   frozen: boolean;
+  /**
+   * True als de markering niet gemeten maar geschat is (de volger is de synchronisatie even kwijt en de woorden lopen op het laatst
+   * betrouwbare tempo door, zie coast.ts). De weergave toont dat subtieler dan een gemeten woord.
+   */
+  estimated: boolean;
 }
 
 export interface SectionBounds {
@@ -37,7 +42,7 @@ export function linesFor(text: HymnText, section: SectionId, stanza: number): { 
 const LEAD_BEATS = 0.12;
 
 /** Ongefilterde (ruwe) cursor voor één positie. */
-export function rawCursor(text: HymnText, sections: SectionBounds[], stanza: number, position: number): Omit<DisplayCursor, "frozen"> {
+export function rawCursor(text: HymnText, sections: SectionBounds[], stanza: number, position: number): Omit<DisplayCursor, "frozen" | "estimated"> {
   const section = sectionAt(sections, position).id;
   const src = linesFor(text, section, stanza);
   if (!src) return { section, line: -1, word: null };
@@ -58,7 +63,7 @@ export function rawCursor(text: HymnText, sections: SectionBounds[], stanza: num
 }
 
 export class StableCursor {
-  private current: DisplayCursor = { section: "verse", line: -1, word: null, frozen: false };
+  private current: DisplayCursor = { section: "verse", line: -1, word: null, frozen: false, estimated: false };
   private allowJump = true;
 
   /** Sta bij de eerstvolgende update een sprong toe (nieuwe ronde, herstel, handmatige coupletwissel). */
@@ -68,7 +73,7 @@ export class StableCursor {
 
   /** Terug naar "niets actief" (voorspel, tussenspel of opnieuw synchroniseren). */
   reset(): void {
-    this.current = { section: "verse", line: -1, word: null, frozen: false };
+    this.current = { section: "verse", line: -1, word: null, frozen: false, estimated: false };
     this.allowJump = true;
   }
 
@@ -76,26 +81,26 @@ export class StableCursor {
     return this.current;
   }
 
-  update(text: HymnText, sections: SectionBounds[], stanza: number, position: number, reliable: boolean): DisplayCursor {
+  update(text: HymnText, sections: SectionBounds[], stanza: number, position: number, reliable: boolean, estimated = false): DisplayCursor {
     if (!reliable) {
-      this.current = { ...this.current, frozen: true };
+      this.current = { ...this.current, frozen: true, estimated: false };
       return this.current;
     }
     const raw = rawCursor(text, sections, stanza, position);
     const prev = this.current;
     const sectionOrder = (id: SectionId) => sections.findIndex((s) => s.id === id);
-    let next = { ...raw, frozen: false };
+    let next = { ...raw, frozen: false, estimated };
     if (!this.allowJump && prev.line >= 0) {
       const sameSection = raw.section === prev.section;
       const forwardSection = sectionOrder(raw.section) > sectionOrder(prev.section);
       if (sameSection) {
         // binnen een ronde alleen vooruit
-        if (raw.line < prev.line) next = { ...prev, frozen: false };
-        else if (raw.line === prev.line && raw.word !== null && prev.word !== null && raw.word < prev.word) next = { ...prev, frozen: false };
-        else if (raw.line > prev.line + 2) next = { ...raw, line: prev.line + 1, word: null, frozen: false };
+        if (raw.line < prev.line) next = { ...prev, frozen: false, estimated };
+        else if (raw.line === prev.line && raw.word !== null && prev.word !== null && raw.word < prev.word) next = { ...prev, frozen: false, estimated };
+        else if (raw.line > prev.line + 2) next = { ...raw, line: prev.line + 1, word: null, frozen: false, estimated };
       } else if (!forwardSection) {
         // terug naar een eerdere sectie kan alleen na een nieuwe ronde; tot dan blijft de markering staan
-        next = { ...prev, frozen: false };
+        next = { ...prev, frozen: false, estimated };
       }
     }
     this.allowJump = false;

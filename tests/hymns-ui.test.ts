@@ -27,8 +27,11 @@ function snap(partial: { status?: FollowSnapshot["status"]; phase?: "prelude" | 
     bpm: 90,
     lap: 0,
     lapUncertain: partial.lapUncertain ?? false,
+    displayPosition: 3,
+    positionSource: "measured",
+    estimatedSeconds: 0,
     stanza: 1,
-    cursor: { section: "verse", line: -1, word: null, frozen: false },
+    cursor: { section: "verse", line: -1, word: null, frozen: false, estimated: false },
     phase: {
       phase: partial.phase ?? "prelude",
       entry: "mid",
@@ -72,7 +75,7 @@ test("coupletreeks: couplet gevolgd door refrein; geen refrein bij hymne 82", ()
 
 test("actieve regel: de index in de doorlopende reeks, -1 zolang er niets actief is", () => {
   const seq = lyricSequence(hymn.text, hymn.text.stanzas[0]);
-  const cursor = (line: number): DisplayCursor => ({ section: "verse", line, word: 0, frozen: false });
+  const cursor = (line: number): DisplayCursor => ({ section: "verse", line, word: 0, frozen: false, estimated: false });
   assert.equal(activeSeq(seq, cursor(2)), 2);
   assert.equal(activeSeq(seq, cursor(-1)), -1);
   assert.equal(activeSeq(seq, undefined), -1);
@@ -80,7 +83,7 @@ test("actieve regel: de index in de doorlopende reeks, -1 zolang er niets actief
 
 test("woordmarkering: alleen met woordkoppeling; zonder (couplet 5 van 82) hoort de markering bij de regel", () => {
   const seq1 = lyricSequence(hymn.text, hymn.text.stanzas.find((s) => s.n === 1));
-  const cursor: DisplayCursor = { section: "verse", line: 0, word: 2, frozen: false };
+  const cursor: DisplayCursor = { section: "verse", line: 0, word: 2, frozen: false, estimated: false };
   assert.equal(activeWordFor(seq1[0], cursor, hymn.text.stanzas.find((s) => s.n === 1), hymn.text), 2);
   assert.equal(activeWordFor(seq1[1], cursor, hymn.text.stanzas.find((s) => s.n === 1), hymn.text), null, "andere regel kreeg een woord");
   const five = hymn.text.stanzas.find((s) => s.n === 5)!;
@@ -88,7 +91,7 @@ test("woordmarkering: alleen met woordkoppeling; zonder (couplet 5 van 82) hoort
   assert.equal(activeWordFor(lyricSequence(hymn.text, five)[0], cursor, five, hymn.text), null, "verzonnen woordtiming bij regelkoppeling");
 });
 
-test("scrollen: past het couplet, dan nooit; staat de regel in beeld, dan niet; anders rustig naar ~38%", () => {
+test("scrollen: past het couplet, dan nooit; staat de regel in beeld, dan niet; anders rustig naar ~30%, zodat er ruim vooruit gelezen kan worden", () => {
   const view = { viewTop: 80, viewBottom: 700 };
   assert.equal(scrollDelta({ ...view, lineTop: 600, lineBottom: 640, contentHeight: 400 }), 0, "hele couplet past, toch gescrold");
   assert.equal(scrollDelta({ ...view, lineTop: 300, lineBottom: 340, contentHeight: 1200 }), 0, "regel stond al in beeld");

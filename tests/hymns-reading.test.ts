@@ -38,8 +38,11 @@ function snap(partial: { status?: FollowSnapshot["status"]; phase?: "prelude" | 
     bpm: 90,
     lap: 0,
     lapUncertain: partial.lapUncertain ?? false,
+    displayPosition: 3,
+    positionSource: "measured",
+    estimatedSeconds: 0,
     stanza: partial.stanza ?? 1,
-    cursor: { section: "verse", line: partial.line ?? 2, word: null, frozen: partial.frozen ?? false },
+    cursor: { section: "verse", line: partial.line ?? 2, word: null, frozen: partial.frozen ?? false, estimated: false },
     phase: { phase: partial.phase ?? "singing", entry: "mid", waiting: false, sungLaps: 0, coverage: 0, startReason: null, startEvidence: [], levelStepDb: 0, interludes: 0 },
   };
 }

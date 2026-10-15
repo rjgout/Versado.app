@@ -25,7 +25,7 @@ const SheetMusicView = dynamic(() => import("./SheetMusicView"), { ssr: false })
 import TechnicalPanel from "./TechnicalPanel";
 import { INITIAL_READING, displayedStanza, focusLine, musicalCursorVisible, navigationTarget, nextSticky, readingReducer, resumeVerdict } from "./reading";
 import { useReadingScroll } from "./useReadingScroll";
-import { activeSeq, audioMissing, describeStatus, lyricSequence, type StatusTone } from "./viewModel";
+import { activeSeq, audioMissing, describeStatus, holdMeasure, lyricSequence, nextStanzaInPlan, type MeasureHold, type StatusTone } from "./viewModel";
 
 // Lofzangen: een intelligent digitaal zangboek. Eén luistersessie voor herkennen en volgen (HymnLiveEngine),
 // de tekst staat klaar tijdens het voorspel en loopt pas mee als de zang begint. De weergave (volledig
@@ -106,6 +106,10 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
   // Twee onafhankelijke posities: de muziek (engine) en de leesplek van de gebruiker (reading.ts).
   const [reading, dispatchReading] = useReducer(readingReducer, INITIAL_READING);
   const [navTick, setNavTick] = useState(0);
+  // Telt op bij elke BEWUSTE wissel van couplet of lofzang (aantikken, kiezen, opnieuw starten). Een couplet dat vanzelf doorschakelt telt niet mee:
+  // dan blijft de leesplek doorlopen (geen sprong naar boven), want het volgende couplet stond al klaar onder het huidige.
+  const [placeEpoch, setPlaceEpoch] = useState(0);
+  const bumpPlace = useCallback(() => setPlaceEpoch((n) => n + 1), []);
 
   // De engine en de microfoon leven in refs: ze veranderen 20 keer per seconde en mogen geen render per frame veroorzaken.
   const engineRef = useRef<HymnLiveEngine | null>(null);
@@ -212,6 +216,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
     async (intent: "recognize" | "follow") => {
       const eng = getEngine();
       if (intent === "follow" && !hymn) return;
+      bumpPlace();
       eng.restart();
       eng.setStanzaOrder(order);
       setSearchSelf(false);
@@ -247,7 +252,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
       }
       await micRef.current.start();
     },
-    [getEngine, handleSamples, hymn, idleStanza, loadBundleInto, order, schedule]
+    [bumpPlace, getEngine, handleSamples, hymn, idleStanza, loadBundleInto, order, schedule]
   );
 
   const stopMic = useCallback(() => {
@@ -256,6 +261,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
 
   /** Terug naar de keuze van een lofzang (alleen als de microfoon uit is). */
   const backToChoose = useCallback(() => {
+    bumpPlace();
     const eng = engineRef.current;
     if (eng) {
       eng.restart();
@@ -265,10 +271,11 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
     setSearchSelf(false);
     setMicDetail(undefined);
     dispatchReading({ type: "reset" });
-  }, []);
+  }, [bumpPlace]);
 
   const selectHymn = useCallback(
     async (number: number) => {
+      bumpPlace();
       setLoadingNumber(number);
       setOpenError(null);
       try {
@@ -297,10 +304,11 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
         setLoadingNumber(null);
       }
     },
-    [getEngine, schedule]
+    [bumpPlace, getEngine, schedule]
   );
 
   const onStanzaTap = (n: number) => {
+    bumpPlace();
     if (live.stage === "following" && listening && reading.mode === "manual") {
       // Zelf aan het bladeren: alleen de leesplek verandert. De engine houdt zijn eigen couplet en de muziek loopt door.
       dispatchReading({ type: "stanza", stanza: n, following: true });
@@ -438,6 +446,10 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
   const customOrder = order.length > 0 && order.length < stanzaNumbers.length;
   const browsing = following && listening && reading.mode === "manual";
   const hymnKey = `${hymn?.number ?? opened?.number ?? 0}:${stanza?.n ?? 0}`;
+  // Het volgende couplet volgens de gekozen volgorde (of null aan het einde): alleen een voorbeeld om vooruit te lezen. Tijdens handmatig lezen
+  // is het het couplet na dat van de gebruiker, anders het couplet na dat van de muziek; wisselen doet het getoonde couplet nooit.
+  const nextNumber = stanza ? nextStanzaInPlan(order, stanzaNumbers, stanza.n) : null;
+  const nextStanza = nextNumber === null ? null : (displayText?.stanzas.find((s) => s.n === nextNumber) ?? null);
 
   // Verliest de engine tijdelijk zijn regel (onzeker, tussenspel), dan blijft de laatst bekende regel de focus.
   const lastLineKey = `${hymnKey}:${phase === "prelude" ? "voorspel" : "zang"}`;
@@ -454,12 +466,18 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
   // Maatmarkering (niveau B): alleen bij een betrouwbare positie in het getoonde couplet, tijdens de zang, en alleen als de
   // coupletgravure gevalideerd is. Anders verdwijnt de markering en blijft het blad gewoon leesbaar.
   const sheetMeasures = sheetData?.data?.notation.measures.map((m) => ({ start: m[0], length: m[1] })) ?? [];
-  const activeMeasure = markableMeasure({
+  const rawMeasure = markableMeasure({
     measures: sheetMeasures,
-    beat: snapshot && musicalCursorVisible(snapshot.stanza, stanza?.n ?? -1) ? snapshot.position : null,
-    reliable: Boolean(snapshot) && (snapshot?.status === "locked" || snapshot?.status === "recovered") && !snapshot?.paused && phase !== "prelude",
+    // Gemeten positie, of tijdens tijdelijk syncverlies de geschatte (coast.ts); bevroren of onbekend = geen markering.
+    beat: snapshot && musicalCursorVisible(snapshot.stanza, stanza?.n ?? -1) ? snapshot.displayPosition : null,
+    reliable: Boolean(snapshot) && (snapshot?.positionSource === "measured" || snapshot?.positionSource === "estimated") && !snapshot?.paused && phase !== "prelude",
     validated: sheetStanzaStatus?.status === "ok",
   });
+  // De maatmarkering gaat binnen een couplet niet terug (jitter, of de korte tijd tussen een nieuwe ronde en het doorschakelen van het couplet).
+  const [measureHold, setMeasureHold] = useState<MeasureHold>({ key: "", value: null, behindSince: null });
+  const heldMeasure = holdMeasure(measureHold, `${hymnKey}`, rawMeasure, snapshot?.time ?? 0);
+  if (heldMeasure !== measureHold) setMeasureHold(heldMeasure);
+  const activeMeasure = rawMeasure === null ? null : heldMeasure.value;
   const focus = karaoke ? focusLine(reading, activeIdx, lastLine, seq.length) : -1;
   const navIndex = navigationTarget(reading, activeIdx, lastLine, seq.length, prefs.view);
   const textShown = !choosing && stage !== "recognizing" && Boolean(displayText);
@@ -472,7 +490,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
     autoIndex: sheetShown ? (activeMeasure ?? -1) : karaoke ? focus : activeIdx,
     navIndex,
     navTick,
-    placeKey: `${hymnKey}:${effectiveView}`,
+    placeKey: `${hymn?.number ?? opened?.number ?? 0}:${placeEpoch}:${effectiveView}`,
     smooth: !calm,
     onUserScroll: () => dispatchReading({ type: "scroll", following: following && listening, stanza: shownStanza }),
   });
@@ -768,9 +786,9 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
                     </p>
                   ) : null}
                   {sheetShown && sheetData?.data && stanza ? (
-                    <SheetMusicView sheet={sheetData.data} stanza={stanza.n} zoom={prefs.sheetZoom} activeMeasure={activeMeasure} />
+                    <SheetMusicView sheet={sheetData.data} stanza={stanza.n} nextStanza={nextNumber} zoom={prefs.sheetZoom} activeMeasure={activeMeasure} activeEstimated={snapshot?.positionSource === "estimated"} />
                   ) : (
-                  <LyricsView text={displayText} stanza={stanza} cursor={musicCursor} view={effectiveView === "sheet" ? "stanza" : effectiveView} size={prefs.size} focus={focus} reading={reading.line} onLineTap={tapLine} />
+                  <LyricsView text={displayText} stanza={stanza} cursor={musicCursor} view={effectiveView === "sheet" ? "stanza" : effectiveView} size={prefs.size} focus={focus} reading={reading.line} onLineTap={tapLine} nextStanza={nextStanza} />
                   )}
                   {stanza?.linking === "line" && effectiveView === "stanza" && canFollow ? <p className="mt-3 text-xs text-vs-fg-3">{COPY.lineFallbackNote}</p> : null}
                   {displayText.musicCredit || displayText.textCredit ? (
