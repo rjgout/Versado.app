@@ -470,7 +470,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
     measures: sheetMeasures,
     // Gemeten positie, of tijdens tijdelijk syncverlies de geschatte (coast.ts); bevroren of onbekend = geen markering.
     beat: snapshot && musicalCursorVisible(snapshot.stanza, stanza?.n ?? -1) ? snapshot.displayPosition : null,
-    reliable: Boolean(snapshot) && (snapshot?.positionSource === "measured" || snapshot?.positionSource === "estimated") && !snapshot?.paused && phase !== "prelude",
+    reliable: Boolean(snapshot) && (snapshot?.positionSource === "measured" || snapshot?.positionSource === "catching-up" || snapshot?.positionSource === "estimated") && !snapshot?.paused && phase !== "prelude",
     validated: sheetStanzaStatus?.status === "ok",
   });
   // De maatmarkering gaat binnen een couplet niet terug (jitter, of de korte tijd tussen een nieuwe ronde en het doorschakelen van het couplet).
@@ -786,7 +786,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
                     </p>
                   ) : null}
                   {sheetShown && sheetData?.data && stanza ? (
-                    <SheetMusicView sheet={sheetData.data} stanza={stanza.n} nextStanza={nextNumber} zoom={prefs.sheetZoom} activeMeasure={activeMeasure} activeEstimated={snapshot?.positionSource === "estimated"} />
+                    <SheetMusicView sheet={sheetData.data} stanza={stanza.n} nextStanza={nextNumber} zoom={prefs.sheetZoom} activeMeasure={activeMeasure} activeEstimated={snapshot?.positionSource === "estimated" || snapshot?.positionSource === "catching-up"} />
                   ) : (
                   <LyricsView text={displayText} stanza={stanza} cursor={musicCursor} view={effectiveView === "sheet" ? "stanza" : effectiveView} size={prefs.size} focus={focus} reading={reading.line} onLineTap={tapLine} nextStanza={nextStanza} />
                   )}

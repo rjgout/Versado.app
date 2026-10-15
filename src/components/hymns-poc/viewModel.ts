@@ -29,6 +29,7 @@ export function describeStatus(mic: MicState, live: LiveState): StatusView | nul
     return { label: "Voorspel", tone: "info", hint: s.phase.waiting ? "Tik op Zang begint zodra de gemeente zingt." : null };
   }
   // Tijdelijk syncverlies: de woorden lopen rustig door op het laatst betrouwbare tempo (geschat); geen alarmerende melding.
+  if (s.positionSource === "catching-up") return { label: "Tekst sluit aan", tone: "neutral", hint: null };
   if (s.positionSource === "estimated" && s.cursor.estimated) return { label: "Tekst loopt door", tone: "neutral", hint: null };
   if (s.status === "uncertain") return { label: "Even onzeker", tone: "warn", hint: "Lees gewoon mee." };
   if (s.status === "lost") return { label: "Synchronisatie verloren", tone: "danger", hint: "Lees zelf verder." };

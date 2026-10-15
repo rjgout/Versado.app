@@ -13,9 +13,11 @@
 //  - stilte (pauze, fermate) telt niet mee: de muziek staat dan stil, dus de schatting ook;
 //  - nooit voorbij het einde van de ronde: de volgende ronde (couplet) begint pas op een gemeten rondegrens, nooit op een gok;
 //  - een fermate houdt de schatting vast (hoe lang er gehouden wordt is niet te voorspellen);
-//  - bij herstel sluit de weergave aan zonder sprong: achterlopen wordt met beperkte snelheid ingehaald, vooruitlopen wacht tot de meting aansluit.
+//  - bij herstel sluit de weergave aan zonder sprong: achterlopen wordt met beperkte snelheid ingehaald, vooruitlopen wacht tot de meting aansluit
+//    (de weergave gaat binnen een ronde nooit terug); alleen een rondegrens of een afwijking groter dan `glideMaxBeats` is een echte sprong;
+//  - zolang de weergave nog afwijkt van de meting is de bron "catching-up", niet "measured": de woorden zijn dan nog niet op de meting.
 
-export type PositionSource = "measured" | "estimated" | "frozen" | "none";
+export type PositionSource = "measured" | "catching-up" | "estimated" | "frozen" | "none";
 
 export interface CoastConfig {
   /** Zo lang mag de positie achtereen worden geschat. */
@@ -26,7 +28,7 @@ export interface CoastConfig {
   catchUpFactor: number;
   /** Grotere afstanden (in beats) tussen schatting en meting worden niet "ingehaald" maar als echte sprong genomen. */
   glideMaxBeats: number;
-  /** Loopt de schatting vóór op een meting die niet aansluit, dan wacht de weergave zo lang (seconden) voordat hij de meting volgt. */
+  /** Ligt de meting ver (meer dan `glideMaxBeats`) achter de weergave, dan wacht de weergave zo lang (seconden) voordat hij als echte herpositionering de meting volgt. */
   aheadHoldSeconds: number;
   /** Tempo's buiten dit bereik (veelvoud van het nominale tempo) worden niet gebruikt om door te lopen. */
   tempoRange: [number, number];
@@ -150,7 +152,7 @@ export class PositionCoaster {
       } else {
         this.display = input.position;
       }
-      this.out = { position: this.display, source: "measured", estimatedSeconds: 0, gliding: this.gliding };
+      this.out = { position: this.display, source: this.gliding ? "catching-up" : "measured", estimatedSeconds: 0, gliding: this.gliding };
       return this.out;
     }
 
@@ -202,33 +204,44 @@ export class PositionCoaster {
     this.bps += a * (bps - this.bps);
   }
 
-  /** Naar de meting toe zonder visuele sprong: achterlopen = beperkt inhalen, vooruitlopen = wachten. */
+  /** Naar de meting toe zonder visuele sprong: achterlopen = beperkt inhalen, vooruitlopen = wachten (nooit terug binnen een ronde). */
   private glide(target: number, gap: number, dt: number): void {
     if (this.display === null) return;
-    if (Math.abs(gap) > this.cfg.glideMaxBeats) {
-      // geen glijdende aansluiting mogelijk: een echte sprong (bijvoorbeeld na een gemiste ronde)
-      this.display = target;
-      this.gliding = false;
+    const { cycleBeats } = this.ref;
+    // De meting begint een nieuwe ronde terwijl de weergave nog aan het einde van de vorige staat: dat is geen terugsprong maar de rondegrens.
+    const roundBoundary = this.display > cycleBeats * 0.75 && target < cycleBeats * 0.25;
+    if (roundBoundary || gap > this.cfg.glideMaxBeats) {
+      // geen glijdende aansluiting mogelijk: de gebruiker is echt achterop geraakt (gemiste ronde of lang verlies); de woordmarkering
+      // beweegt daarna toch hooguit een regel per keer (StableCursor) en een couplet wisselt alleen op een gemeten rondegrens
+      this.jumpTo(target);
+      return;
+    }
+    if (gap < -this.cfg.glideMaxBeats) {
+      // de meting ligt ver achter de weergave: eerst vasthouden (misschien een tijdelijke verkeerde plek); blijft dat, dan is het een herpositionering
+      this.aheadFor += dt;
+      if (this.aheadFor >= this.cfg.aheadHoldSeconds) this.jumpTo(target);
       return;
     }
     if (gap > 1e-3) {
       const step = Math.max(this.bps * this.cfg.catchUpFactor * dt, 0);
       this.display = gap <= step || gap < 0.05 ? target : this.display + step;
-      this.aheadFor = 0;
     } else if (gap < -0.05) {
-      // de schatting liep vóór: de markering wacht tot de meting aansluit (nooit terug); duurt dat te lang, dan volgt hij de meting
-      this.aheadFor += dt;
-      if (this.aheadFor >= this.cfg.aheadHoldSeconds) {
-        this.display = target;
-        this.aheadFor = 0;
-      }
+      // de schatting liep vóór: de markering wacht tot de meting aansluit. De meting loopt zelf op tempo door, dus dit duurt hooguit
+      // `glideMaxBeats` beats; er is bewust geen terugsprong na een tijdslimiet.
+      this.aheadFor = 0;
     } else {
       this.display = target;
     }
-    if (this.display !== null && Math.abs(target - this.display) < 0.05) {
+    if (Math.abs(target - this.display) < 0.05) {
       this.display = target;
       this.gliding = false;
       this.aheadFor = 0;
     }
+  }
+
+  private jumpTo(target: number): void {
+    this.display = target;
+    this.gliding = false;
+    this.aheadFor = 0;
   }
 }

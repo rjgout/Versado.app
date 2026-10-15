@@ -151,7 +151,7 @@ export class HymnFollowSession {
     // Tijdelijk syncverlies: de woorden lopen een beperkte tijd door op het laatst betrouwbare tempo (coast.ts); stilte bevriest ze.
     const place = this.coast.update({ time: frame.time, reliable: reliable && !out.held, held: out.held, singing, position: out.position, bpm: out.bpm });
     // Voor het zangbegin (voorspel) en tijdens een tussenspel staat de tekst klaar zonder markering.
-    const cursor = singing ? this.updateCursor(stanza, place.position ?? out.position, place.position === null ? reliable && !out.held : place.source === "measured" || (place.source === "estimated" && !out.held), place.source === "estimated" && !out.held) : null;
+    const cursor = singing ? this.updateCursor(stanza, place.position ?? out.position, place.position === null ? reliable && !out.held : place.source === "measured" || place.source === "catching-up" || (place.source === "estimated" && !out.held), (place.source === "estimated" || place.source === "catching-up") && !out.held) : null;
     this.lastSnapshot = this.snapshot(frame.time, cursor);
     return this.lastSnapshot;
   }

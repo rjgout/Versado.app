@@ -130,6 +130,75 @@ test("coast: herstel zonder sprong: achterlopen wordt met beperkte snelheid inge
   assert.ok(rows2.every((r) => r.out.position! >= ahead - 1e-9), "de weergave ging terug bij herstel");
 });
 
+test("coast: vooruitlopen (5+ s): de weergave gaat nooit terug en springt niet, ook niet na de oude wachtgrens van 3 s", () => {
+  // de schatting loopt 4,5 beats voor op een meting die langzaam (0,5 beat/s) vordert: sluit pas na ruim 9 s aan
+  const c = new PositionCoaster(REF, { maxCoastSeconds: 60 });
+  run(c, 0, 5, {}, 10);
+  const est = run(c, 5, 3, { reliable: false });
+  const ahead = est[est.length - 1].out.position!;
+  const rows: ReturnType<typeof run> = [];
+  for (let i = 0; i < Math.round(6 / DT); i += 1) {
+    const time = 8 + (i + 1) * DT;
+    rows.push({ time, out: c.update({ time, reliable: true, held: false, singing: true, position: ahead - 4.5 + (time - 8) * 0.5, bpm: 30 }) });
+  }
+  let prev = ahead;
+  for (const r of rows) {
+    assert.ok(r.out.position! >= prev - 1e-9, `terugsprong op t=${r.time}: ${prev} -> ${r.out.position}`);
+    assert.ok(r.out.position! - prev < 0.3, "sprong vooruit tijdens het wachten");
+    prev = r.out.position!;
+  }
+  assert.ok(rows.every((r) => r.out.source === "catching-up" && r.out.gliding), "tijdens het wachten is de bron niet 'measured'");
+  assert.equal(rows[rows.length - 1].out.position, ahead, "de weergave wacht op de meting");
+  // zodra de meting aansluit volgt de weergave haar weer en is de bron gemeten
+  const after = run(c, 14, 6, {}, ahead + 0.5);
+  assert.ok(after.every((r) => r.out.position! >= ahead));
+  assert.equal(after[after.length - 1].out.source, "measured");
+});
+
+test("coast: bij herstel is de bron 'catching-up' zolang de weergave afwijkt van de meting, daarna 'measured'", () => {
+  const c = new PositionCoaster(REF);
+  run(c, 0, 5, {}, 10);
+  const est = run(c, 5, 3, { reliable: false });
+  const measuredStart = est[est.length - 1].out.position! + 4;
+  const rows = run(c, 8, 5, {}, measuredStart);
+  assert.equal(rows[0].out.source, "catching-up");
+  const aligned = rows.findIndex((r) => r.out.source === "measured");
+  assert.ok(aligned > 0, "sluit nooit aan");
+  assert.ok(rows.slice(aligned).every((r) => r.out.source === "measured" && !r.out.gliding), "valt terug na aansluiten");
+  assert.ok(rows.slice(0, aligned).every((r) => Math.abs(r.out.position! - (measuredStart + (r.time - 8) * 1.5)) >= 0.05));
+});
+
+test("coast: grote afwijking vooruit (meer dan glideMaxBeats) is een echte sprong naar de meting, geen eindeloos inhalen", () => {
+  const c = new PositionCoaster(REF);
+  run(c, 0, 5, {}, 5);
+  run(c, 5, 3, { reliable: false });
+  const rows = run(c, 8, 1, {}, 5 + 20);
+  assert.equal(rows[0].out.source, "measured");
+  assert.ok(Math.abs(rows[0].out.position! - (25 + DT * 1.5)) < 0.1);
+});
+
+test("coast: grote afwijking achteruit binnen een ronde wordt eerst vastgehouden en gaat pas na aheadHoldSeconds mee", () => {
+  const c = new PositionCoaster(REF);
+  run(c, 0, 5, {}, 25);
+  const est = run(c, 5, 3, { reliable: false });
+  const ahead = est[est.length - 1].out.position!;
+  const rows = run(c, 8, 5, {}, ahead - 15);
+  const hold = rows.filter((r) => r.time - 8 < DEFAULT_COAST_CONFIG.aheadHoldSeconds - 0.2);
+  assert.ok(hold.every((r) => r.out.position === ahead && r.out.source === "catching-up"), "eerst vasthouden");
+  assert.ok(rows[rows.length - 1].out.position! < ahead - 5, "daarna volgt de weergave de meting");
+  assert.equal(rows[rows.length - 1].out.source, "measured");
+});
+
+test("coast: rondegrens: de meting begint een nieuwe ronde terwijl de weergave aan het einde staat: direct mee, geen vasthouden", () => {
+  const c = new PositionCoaster(REF);
+  run(c, 0, 5, {}, 38);
+  const est = run(c, 5, 3, { reliable: false });
+  assert.ok(est[est.length - 1].out.position! > 44);
+  const next = c.update({ time: 8.05, reliable: true, held: false, singing: true, position: 1.0, bpm: 90 });
+  assert.ok(next.position! < 3, `bleef aan het einde hangen: ${next.position}`);
+  assert.equal(next.source, "measured");
+});
+
 // --- sessieniveau met echte extractie: syncverlies in het midden van het zingen
 
 function dropout(frames: FeatureFrame[], from: number, to: number): FeatureFrame[] {
@@ -224,4 +293,32 @@ test("sessie, stilte: tijdens een pauze loopt de markering niet door", () => {
   assert.ok(silent.length > 30);
   assert.equal(new Set(silent.map((s) => `${lineKey(s)}:${s.cursor.word}`)).size, 1, "de markering liep door tijdens stilte");
   assert.ok(silent.every((s) => !s.cursor.estimated));
+});
+
+test("sessie, verlies rond de rondegrens: het couplet wisselt alleen op een gemeten ronde, de markering gaat binnen een couplet niet terug en 'aansluiten' is zichtbaar anders dan 'gemeten'", () => {
+  const sc = makeScenario(82, { tempoSegments: constantTempo(100), laps: 3, singersDb: -6 });
+  for (const [from, to] of [[24, 31], [26, 29], [22, 33]] as const) {
+    const { snapshots, session } = follow(sc.hymn, dropout(sc.frames, from, to), {}, SING);
+    const events = session.events;
+    let prev: FollowSnapshot | null = null;
+    let catching = 0;
+    for (const s of snapshots) {
+      if (prev && s.stanza !== prev.stanza) {
+        assert.ok(s.lap > prev.lap, `couplet wisselde zonder gemeten ronde (${from}-${to}) op t=${s.time}`);
+        assert.ok(s.stanza > prev.stanza, "couplet ging terug");
+      }
+      if (prev && prev.stanza === s.stanza && prev.cursor.line >= 0 && s.cursor.line >= 0 && prev.cursor.section === s.cursor.section) {
+        assert.ok(lineKey(s) >= lineKey(prev), `markering ging terug binnen couplet (${from}-${to}) op t=${s.time}`);
+        assert.ok(lineKey(s) - lineKey(prev) <= 1, "markering sprong meer dan een regel");
+      }
+      if (s.positionSource === "catching-up") {
+        catching += 1;
+        assert.ok(s.cursor.estimated, "tijdens aansluiten moet de markering als niet-gemeten getoond worden");
+        assert.equal(s.estimatedSeconds, 0);
+      } else if (s.positionSource === "measured") assert.ok(!s.cursor.estimated, "gemeten markering is niet 'geschat'");
+      prev = s;
+    }
+    assert.ok(events.filter((e) => e.type === "stanza").length <= events.filter((e) => e.type === "lap").length + 1);
+    assert.ok(catching >= 0);
+  }
 });

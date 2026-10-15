@@ -62,6 +62,10 @@ test("status: geschatte positie is geen alarm ('Tekst loopt door'); bevroren bli
   const est = describeStatus("listening", live({}));
   assert.equal(est?.label, "Tekst loopt door");
   assert.equal(est?.tone, "neutral");
+  // aansluiten na een schatting: nog niet "Volgt muziek", want de woorden staan nog niet op de meting
+  const catching = describeStatus("listening", live({ positionSource: "catching-up", cursor: { section: "verse", line: 1, word: 2, frozen: false, estimated: true } }));
+  assert.equal(catching?.label, "Tekst sluit aan");
+  assert.equal(catching?.tone, "neutral");
   const frozen = describeStatus("listening", live({ positionSource: "frozen", cursor: { section: "verse", line: 1, word: 2, frozen: true, estimated: false } }));
   assert.equal(frozen?.label, "Even onzeker");
 });

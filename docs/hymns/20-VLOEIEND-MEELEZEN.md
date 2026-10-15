@@ -21,7 +21,8 @@ en tempo) en de bestaande beat-naar-woordkoppeling (`display.ts`).
 | Fermate | houdt de schatting vast (hoe lang gehouden wordt is niet te voorspellen) |
 | Einde van de ronde | nooit voorbij het einde van de cyclus: de **volgende ronde (couplet) begint alleen op een door de fase-laag gemeten rondegrens**, nooit op een gok |
 | Rondegrens tijdens schatten | de fase-laag meldt hem (`lap`), de weergave springt mee naar het begin van de nieuwe ronde (`noteLap`) |
-| Herstel | zonder sprong: achterlopen wordt met beperkte snelheid ingehaald (2,5× tempo, max. 8 beats; groter = echte sprong), vooruitlopen wacht tot de meting aansluit (max. 3 s), nooit terug |
+| Herstel | zonder sprong: achterlopen wordt met beperkte snelheid ingehaald (2,5× tempo, max. 8 beats; groter = echte sprong), vooruitlopen wacht tot de meting aansluit (geen tijdslimiet, dus geen terugsprong; de meting loopt zelf op tempo door), nooit terug binnen een ronde. Uitzonderingen: een rondegrens (meting begint een nieuwe ronde) en een afwijking van meer dan 8 beats vooruit gaan direct mee; een meting die meer dan 8 beats achterligt wordt 3 s vastgehouden en daarna als herpositionering gevolgd. De woordmarkering (StableCursor) gaat ook dan binnen een couplet niet terug en beweegt hooguit een regel per frame |
+| Aansluiten | zolang de weergave nog afwijkt van de meting is `positionSource` "catching-up" (niet "measured"): de markering is gestippeld onderstreept (`cursor.estimated`), de status is "Tekst sluit aan" en de bladmuziekmaat krijgt de geschatte stijl; pas daarna "Volgt muziek" |
 
 Gemeten tegenover geschat: `DisplayCursor.estimated`, `FollowSnapshot.positionSource` (`measured` / `estimated` / `frozen` / `none`), `displayPosition` en `estimatedSeconds`.
 In de weergave is een geschat woord subtieler (accentkleur met stippellijn, `data-estimated`), een geschatte maat een gestippelde omlijning; de status zegt "Tekst loopt door" (neutraal,
