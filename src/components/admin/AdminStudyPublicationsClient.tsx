@@ -148,11 +148,6 @@ export default function AdminStudyPublicationsClient({
       </div>
       {data && (
         <>
-          {!data.publicationAllowed && (
-            <AdminNotice kind="warning">
-              {t("studyPublishing.closed")}
-            </AdminNotice>
-          )}
           <AdminNotice kind={data.storageReady ? "success" : "warning"}>
             {t(
               data.storageReady
