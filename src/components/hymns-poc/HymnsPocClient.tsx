@@ -1,13 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { ChevronDown, ChevronUp, Info, Mic, MicOff, Music, Play, RefreshCw, Rows3, Search, Settings2, ShieldCheck, Square, TextQuote, MoreHorizontal } from "lucide-react";
+import { ChevronDown, ChevronUp, Info, Minus, Plus, Mic, MicOff, Music, Play, RefreshCw, Rows3, Search, Settings2, ShieldCheck, Square, TextQuote, MoreHorizontal } from "lucide-react";
 import { MicListener, decodeAudioFile, type MicDiagnostics, type MicState } from "@/lib/hymns/audio/micListener";
 import { HymnLiveEngine, type LiveState } from "@/lib/hymns/live";
 import type { HymnIndexEntry, ReadableHymn, ResolvedHymn } from "@/lib/hymns/types";
 import { candidatesFromBundle } from "@/lib/hymns/recognize/candidates";
-import { getLibraryDiagnostics, loadHymn, loadHymnIndex, loadRecognitionBundle, type LibraryDiagnostics } from "@/lib/hymnLibraryClient";
-import { useHymnPrefs, type HymnTextSize, type HymnView } from "@/lib/hymnPrefs";
+import { getLibraryDiagnostics, loadHymn, loadHymnIndex, loadHymnSheet, loadRecognitionBundle, type LibraryDiagnostics } from "@/lib/hymnLibraryClient";
+import { SHEET_ZOOM_STEPS, useHymnPrefs, type HymnTextSize, type HymnView } from "@/lib/hymnPrefs";
+import type { SheetData } from "@/lib/hymns/notation/types";
+import { markableMeasure } from "@/lib/hymns/notation/measureMap";
+import dynamic from "next/dynamic";
 import { focusRing, iconButton as baseIconButton, primaryButton, secondaryButton } from "@/components/versado/styles";
 
 // Aanraakdoelen van minstens 44 x 44 px, ook als de tekst groter staat (geen rem: het zijn bedieningselementen).
@@ -16,6 +19,9 @@ import { COPY, MIC_TEXT, RECOGNITION_TEXT } from "./copy";
 import HymnList from "./HymnList";
 import LyricsView from "./LyricsView";
 import Sheet from "./Sheet";
+
+// OpenSheetMusicDisplay is zwaar: de bladmuziekweergave (en dus de graveerbibliotheek) wordt pas geladen als Bladmuziek gekozen wordt.
+const SheetMusicView = dynamic(() => import("./SheetMusicView"), { ssr: false });
 import TechnicalPanel from "./TechnicalPanel";
 import { INITIAL_READING, displayedStanza, focusLine, musicalCursorVisible, navigationTarget, nextSticky, readingReducer, resumeVerdict } from "./reading";
 import { useReadingScroll } from "./useReadingScroll";
@@ -49,6 +55,7 @@ const TONE: Record<StatusTone, string> = {
 const VIEWS: { id: HymnView; label: string }[] = [
   { id: "stanza", label: COPY.viewStanza },
   { id: "karaoke", label: COPY.viewKaraoke },
+  { id: "sheet", label: COPY.viewSheet },
 ];
 const SIZES: { id: HymnTextSize; label: string }[] = [
   { id: "normal", label: COPY.sizeNormal },
@@ -380,6 +387,21 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
   );
 
   const snapshot = live.snapshot;
+  // Bladmuziek: pas laden als de weergave gekozen is; null = deze lofzang heeft geen notatie (de tekst blijft leesbaar).
+  const sheetNumber = hymn?.number ?? opened?.number ?? null;
+  const [sheetState, setSheetState] = useState<{ number: number; data: SheetData | null; error: boolean } | null>(null);
+  const sheetWanted = prefs.view === "sheet" && sheetNumber !== null;
+  useEffect(() => {
+    if (!sheetWanted || sheetNumber === null) return;
+    let cancelled = false;
+    loadHymnSheet(sheetNumber)
+      .then((data) => !cancelled && setSheetState({ number: sheetNumber, data, error: false }))
+      .catch(() => !cancelled && setSheetState({ number: sheetNumber, data: null, error: true }));
+    return () => {
+      cancelled = true;
+    };
+  }, [sheetWanted, sheetNumber]);
+  const sheetData = sheetState && sheetState.number === sheetNumber ? sheetState : null;
   const listening = micState === "listening";
 
   // Elke seconde de toestand van de audioketen, zolang er geluisterd wordt of het technische paneel openstaat. Dit staat los van de
@@ -425,19 +447,32 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
   const lastLine = heldNow.value;
 
   const karaoke = prefs.view === "karaoke";
+  // Bladmuziek alleen als er notatie is; anders blijft de tekst gewoon leesbaar (volledig couplet).
+  const sheetShown = prefs.view === "sheet" && Boolean(sheetData?.data);
+  const effectiveView: HymnView = prefs.view === "sheet" && !sheetShown ? "stanza" : prefs.view;
+  const sheetStanzaStatus = sheetData?.data?.stanzas.find((x) => x.n === stanza?.n) ?? null;
+  // Maatmarkering (niveau B): alleen bij een betrouwbare positie in het getoonde couplet, tijdens de zang, en alleen als de
+  // coupletgravure gevalideerd is. Anders verdwijnt de markering en blijft het blad gewoon leesbaar.
+  const sheetMeasures = sheetData?.data?.notation.measures.map((m) => ({ start: m[0], length: m[1] })) ?? [];
+  const activeMeasure = markableMeasure({
+    measures: sheetMeasures,
+    beat: snapshot && musicalCursorVisible(snapshot.stanza, stanza?.n ?? -1) ? snapshot.position : null,
+    reliable: Boolean(snapshot) && (snapshot?.status === "locked" || snapshot?.status === "recovered") && !snapshot?.paused && phase !== "prelude",
+    validated: sheetStanzaStatus?.status === "ok",
+  });
   const focus = karaoke ? focusLine(reading, activeIdx, lastLine, seq.length) : -1;
   const navIndex = navigationTarget(reading, activeIdx, lastLine, seq.length, prefs.view);
   const textShown = !choosing && stage !== "recognizing" && Boolean(displayText);
 
   useReadingScroll({
     boxRef: scrollRef,
-    view: prefs.view,
+    view: effectiveView,
     active: textShown,
     autoFollow: prefs.autoScroll && following && listening && reading.mode === "auto",
-    autoIndex: karaoke ? focus : activeIdx,
+    autoIndex: sheetShown ? (activeMeasure ?? -1) : karaoke ? focus : activeIdx,
     navIndex,
     navTick,
-    placeKey: `${hymnKey}:${prefs.view}`,
+    placeKey: `${hymnKey}:${effectiveView}`,
     smooth: !calm,
     onUserScroll: () => dispatchReading({ type: "scroll", following: following && listening, stanza: shownStanza }),
   });
@@ -491,16 +526,18 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
   const title = choosing ? COPY.choose : stage === "recognizing" ? COPY.recognizing : shownNumber === undefined ? COPY.choose : `${shownNumber}. ${displayText?.title ?? opened?.title ?? ""}`;
   const canFollow = Boolean(hymn);
 
+  const nextView: HymnView = prefs.view === "stanza" ? "karaoke" : prefs.view === "karaoke" ? "sheet" : "stanza";
+  const zoomIdx = Math.max(0, SHEET_ZOOM_STEPS.indexOf(prefs.sheetZoom as never));
   const viewToggle = (
     <button
       type="button"
       className={iconButton}
       data-hymns-view-toggle
-      aria-label={prefs.view === "stanza" ? COPY.viewToggleToKaraoke : COPY.viewToggleToStanza}
-      title={prefs.view === "stanza" ? COPY.viewKaraoke : COPY.viewStanza}
-      onClick={() => setPrefs({ view: prefs.view === "stanza" ? "karaoke" : "stanza" })}
+      aria-label={nextView === "karaoke" ? COPY.viewToggleToKaraoke : nextView === "sheet" ? COPY.viewToggleToSheet : COPY.viewToggleToStanza}
+      title={nextView === "karaoke" ? COPY.viewKaraoke : nextView === "sheet" ? COPY.viewSheet : COPY.viewStanza}
+      onClick={() => setPrefs({ view: nextView })}
     >
-      {prefs.view === "stanza" ? <TextQuote className="h-5 w-5" aria-hidden="true" /> : <Rows3 className="h-5 w-5" aria-hidden="true" />}
+      {nextView === "karaoke" ? <Rows3 className="h-5 w-5" aria-hidden="true" /> : nextView === "sheet" ? <Music className="h-5 w-5" aria-hidden="true" /> : <TextQuote className="h-5 w-5" aria-hidden="true" />}
     </button>
   );
 
@@ -511,6 +548,16 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
           <div className="flex items-start justify-between gap-2">
             <h1 className="vs-wrap min-w-0 text-xl font-bold leading-tight text-vs-fg">{title}</h1>
             <div className="-mr-2 flex shrink-0 items-center">
+              {textShown && sheetShown ? (
+                <div role="group" aria-label={COPY.viewSheet} className="flex items-center" data-hymns-zoom>
+                  <button type="button" className={iconButton} data-hymns-zoom-out disabled={zoomIdx <= 0} aria-label={COPY.sheetZoomOut} title={COPY.sheetZoomOut} onClick={() => setPrefs({ sheetZoom: SHEET_ZOOM_STEPS[Math.max(0, zoomIdx - 1)] })}>
+                    <Minus className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                  <button type="button" className={iconButton} data-hymns-zoom-in disabled={zoomIdx >= SHEET_ZOOM_STEPS.length - 1} aria-label={COPY.sheetZoomIn} title={COPY.sheetZoomIn} onClick={() => setPrefs({ sheetZoom: SHEET_ZOOM_STEPS[Math.min(SHEET_ZOOM_STEPS.length - 1, zoomIdx + 1)] })}>
+                    <Plus className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </div>
+              ) : null}
               {textShown ? viewToggle : null}
               <button
                 type="button"
@@ -715,8 +762,17 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
               ) : displayText ? (
                 <>
                   {opened && !canFollow ? <p className="mb-3 rounded-xl bg-vs-subtle p-3 text-sm text-vs-fg-2" data-hymns-text-only>{COPY.textOnlyNote}</p> : null}
-                  <LyricsView text={displayText} stanza={stanza} cursor={musicCursor} view={prefs.view} size={prefs.size} focus={focus} reading={reading.line} onLineTap={tapLine} />
-                  {stanza?.linking === "line" && prefs.view === "stanza" && canFollow ? <p className="mt-3 text-xs text-vs-fg-3">{COPY.lineFallbackNote}</p> : null}
+                  {prefs.view === "sheet" && !sheetShown ? (
+                    <p className="mb-3 rounded-xl bg-vs-subtle p-3 text-sm text-vs-fg-2" role="status" data-hymns-sheet-state>
+                      {sheetData ? (sheetData.error ? COPY.sheetFailed : COPY.sheetUnavailable) : COPY.sheetLoading}
+                    </p>
+                  ) : null}
+                  {sheetShown && sheetData?.data && stanza ? (
+                    <SheetMusicView sheet={sheetData.data} stanza={stanza.n} zoom={prefs.sheetZoom} activeMeasure={activeMeasure} />
+                  ) : (
+                  <LyricsView text={displayText} stanza={stanza} cursor={musicCursor} view={effectiveView === "sheet" ? "stanza" : effectiveView} size={prefs.size} focus={focus} reading={reading.line} onLineTap={tapLine} />
+                  )}
+                  {stanza?.linking === "line" && effectiveView === "stanza" && canFollow ? <p className="mt-3 text-xs text-vs-fg-3">{COPY.lineFallbackNote}</p> : null}
                   {displayText.musicCredit || displayText.textCredit ? (
                     <p className="mt-6 text-xs text-vs-fg-3" data-hymns-credits>
                       {displayText.textCredit ? `Tekst: ${displayText.textCredit}` : ""}
@@ -737,6 +793,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
         <div data-hymns-controls className="flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-vs-line pt-2">
           {textShown && (karaoke || browsing) ? (
             <div data-hymns-reading className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+              {!sheetShown ? (
               <div role="group" aria-label={COPY.readingNav} className="-ml-2 flex items-center">
                 <button type="button" className={iconButton} data-hymns-prev aria-label={COPY.previousLine} title={COPY.previousLine} onClick={() => stepLine(-1)}>
                   <ChevronUp className="h-5 w-5" aria-hidden="true" />
@@ -745,6 +802,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
                   <ChevronDown className="h-5 w-5" aria-hidden="true" />
                 </button>
               </div>
+              ) : null}
               {browsing ? (
                 <>
                   <span className="text-sm font-semibold text-vs-fg-2" data-hymns-browsing>

@@ -239,6 +239,11 @@ Harde regels:
   de bedieningszone, nooit over de tekst. Geen herkenningsdrempels verlagen om sneller te lijken.
 - **De productieproxy mag de microfoon nooit blokkeren**: `deploy/nginx/nginx.conf` zet `Permissions-Policy: camera=(), microphone=(self), geolocation=()` op elke response. `microphone=()` blokkeert `getUserMedia` voor de hele site (gemeten op 15 oktober 2026). Wijzig die header alleen samen met `tests/proxy-headers.test.ts`; een app-update vernieuwt de proxy-container niet vanzelf.
 - **Live audio mag nooit stilzwijgend vastlopen** (`docs/hymns/19-REGRESSIE-LIVE-AUDIO.md`): een mislukte herkenningsbundel of lofzangverzoek stopt de microfoon niet en wist de engine niet; de fout is zichtbaar met "Opnieuw proberen" en zelf kiezen. Opslag (IndexedDB) en netwerk hebben tijdslimieten. Elke microfoonstop heeft een reden (`MicStopReason`); `stop()` tijdens het aanvragen annuleert de start. Een onbekende melodie laat de microfoon aan. De beheerdersdiagnostiek toont de toestand van de audioketen (zonder audio).
+- **Bladmuziek (derde weergave)** (`docs/hymns/18-BLADMUZIEK.md`): per couplet een dynamisch gegraveerde partituur (OpenSheetMusicDisplay, lazy). De notatielaag
+  (`src/lib/hymns/notation/`, `library/data/notation/`, afgeleid door `scripts/hymns/build_nld_notation.py`) staat los van de analysegegevens en wijzigt die nooit.
+  Tekst staat alleen onder de noten bij een gevalideerde lettergreepkoppeling (`SheetStanzaStatus.status === "ok"`); nooit lettergreepposities verzinnen. Maatmarkering
+  alleen bij een betrouwbare positie, tijdens de zang en een gevalideerd couplet (`markableMeasure`). Verander je de notatie of `musicxml.ts`, verhoog `NOTATION_VERSION`.
+  Er is geen PDF-fallback zolang de rechten niet zijn bevestigd; `/api/hymns/*/sheet` blijft admin-only (404 voor anderen).
 - Nieuwe tekst in de proef gaat bij een echte functie via i18n in alle `uiReady`-talen.
 
 ## Techstack

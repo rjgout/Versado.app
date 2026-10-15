@@ -1,5 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
+import { decodeNotation } from "../notation/decode";
+import { buildMusicXml } from "../notation/musicxml";
+import { syllablesOf } from "../notation/lyrics";
+import type { RawHymnNotation, SheetData, SheetStanzaStatus } from "../notation/types";
 import type { HymnCapabilities, HymnComposition, HymnIndexEntry, HymnLine, HymnStanza, HymnText, HymnbookEdition, ReadableHymn, ResolvedHymn } from "../types";
 
 // Server-kant van de Nederlandse lofzangenbibliotheek: leest de statische, in git versioneerde gegevens uit
@@ -214,4 +218,31 @@ export function buildReport(): LibraryReport {
     .filter((h) => !h.complete)
     .map((h) => ({ number: h.number, title: h.title, levels: h.levels, problems: h.problems }));
   return { dataVersion: manifest.dataVersion, counts: manifest.counts, incomplete };
+}
+
+/**
+ * De gegevens voor de bladmuziek van één lofzang: de ruwe notatie en per couplet een validatiestatus.
+ * De MusicXML zelf wordt op het toestel gebouwd (puur, deterministisch); hier wordt alleen vastgesteld of die per couplet
+ * klopt: lettergrepen aan elke noot gekoppeld, geen problemen bij het graveren. Zonder notatie: null (de tekst blijft leesbaar).
+ */
+export function loadSheetData(number: number): SheetData | null {
+  const pad = String(number).padStart(3, "0");
+  const link = readJson<LinkFile>(`link/${pad}.json`);
+  if (!link) return null;
+  const slug = link.compositionId.replace(/^comp:/, "");
+  if (!/^[a-z0-9-]+$/.test(slug)) return null;
+  const raw = readJson<RawHymnNotation>(`notation/${slug}.json`);
+  if (!raw) return null;
+  const notation = decodeNotation(raw);
+  const chorus = link.chorus ? syllablesOf(link.chorus) : null;
+  const stanzas: SheetStanzaStatus[] = link.stanzas.map((s) => {
+    const verse = syllablesOf(s);
+    if (!verse.syllables) return { n: s.n, status: "geen-tekstkoppeling", reason: verse.problems[0]?.code ?? "geen-koppeling", lyrics: null };
+    if (chorus && !chorus.syllables) return { n: s.n, status: "geen-tekstkoppeling", reason: chorus.problems[0]?.code ?? "refrein", lyrics: null };
+    const syl = [...verse.syllables, ...(chorus?.syllables ?? [])];
+    const built = buildMusicXml(notation, { syllables: syl });
+    const ok = built.problems.length === 0 && built.lyricsPlaced === syl.length;
+    return { n: s.n, status: ok ? "ok" : "mislukt", reason: ok ? null : (built.problems[0]?.code ?? "onvolledig"), lyrics: ok ? syl : null };
+  });
+  return { number, notation: raw, stanzas, chorus: link.chorus ? { linked: Boolean(chorus?.syllables) } : null };
 }

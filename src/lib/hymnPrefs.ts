@@ -4,10 +4,10 @@ import { useCallback, useMemo, useSyncExternalStore } from "react";
 
 // Weergavevoorkeuren van Lofzangen. Dit is bewust een eigen, kleine laag buiten src/lib/hymns: de muziekengine
 // en het meezingscherm mogen geen opslag gebruiken (tests/hymns-privacy.test.ts), en dit bestand bewaart
-// uitsluitend vier weergavekeuzes op dit toestel. Nooit microfoongeluid, herkenningsgegevens, lofzangkeuzes
+// uitsluitend vijf weergavekeuzes (weergave, tekstgrootte, meescrollen, rustig, zoom bladmuziek) op dit toestel. Nooit microfoongeluid, herkenningsgegevens, lofzangkeuzes
 // of iets over de gebruiker. Zonder opslag (privévenster, geblokkeerd) werkt alles met de standaardwaarden.
 
-export type HymnView = "stanza" | "karaoke";
+export type HymnView = "stanza" | "karaoke" | "sheet";
 export type HymnTextSize = "normal" | "large" | "xlarge";
 
 export interface HymnPrefs {
@@ -16,9 +16,13 @@ export interface HymnPrefs {
   autoScroll: boolean;
   /** Rustige kerkweergave: minder visuele afleiding. */
   calm: boolean;
+  /** Zoom van de bladmuziek in procenten (100 = passende breedte). */
+  sheetZoom: number;
 }
 
-export const DEFAULT_HYMN_PREFS: HymnPrefs = { view: "stanza", size: "normal", autoScroll: true, calm: false };
+export const DEFAULT_HYMN_PREFS: HymnPrefs = { view: "stanza", size: "normal", autoScroll: true, calm: false, sheetZoom: 100 };
+
+export const SHEET_ZOOM_STEPS = [70, 85, 100, 125, 150, 200] as const;
 
 const STORAGE_KEY = "versado:hymns:prefs:v1";
 const EVENT = "versado:hymns-prefs";
@@ -29,10 +33,11 @@ export function parseHymnPrefs(raw: string | null | undefined): HymnPrefs {
   try {
     const value = JSON.parse(raw) as Partial<Record<keyof HymnPrefs, unknown>>;
     return {
-      view: value.view === "karaoke" ? "karaoke" : "stanza",
+      view: value.view === "karaoke" || value.view === "sheet" ? value.view : "stanza",
       size: value.size === "large" || value.size === "xlarge" ? value.size : "normal",
       autoScroll: typeof value.autoScroll === "boolean" ? value.autoScroll : DEFAULT_HYMN_PREFS.autoScroll,
       calm: typeof value.calm === "boolean" ? value.calm : DEFAULT_HYMN_PREFS.calm,
+      sheetZoom: SHEET_ZOOM_STEPS.includes(value.sheetZoom as never) ? (value.sheetZoom as number) : DEFAULT_HYMN_PREFS.sheetZoom,
     };
   } catch {
     return DEFAULT_HYMN_PREFS;
