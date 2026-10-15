@@ -41,6 +41,8 @@ on:
       - 'tests/study-content*'
       - 'tests/study-publication*'
       - 'scripts/study-content/**'
+      - 'data/study-content/cfm-2026-nl/**'
+      - 'tests/cfm-2026-import*'
       - 'tests/study-identity-migration.mjs'
       - 'tests/fixtures/study-content.ts'
       - 'src/lib/contentAccess.ts'
@@ -321,4 +323,41 @@ jobs:
         with:
           name: reference-preview-browser
           path: /tmp/versado-reference-preview-browser
+          if-no-files-found: ignore
+
+  cfm-2026-import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
+      SESSION_SECRET: cfm-ci-build-only-secret
+      NEXT_TELEMETRY_DISABLED: '1'
+      CFM_TEST_ASSETS: /tmp/versado-cfm-test-assets
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Schema, types, alle 52 bronnen en productiebuild
+        run: |
+          npx prisma validate
+          npx tsc --noEmit
+          npm run test:cfm-2026
+          npm run build
+      - name: Gepinde publieke OTB- en mediabestanden voorbereiden
+        run: node scripts/study-content/prepare-cfm-test-assets.mjs
+      - name: Browser klaarzetten
+        run: |
+          npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
+          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: 52 concepten, idempotentie, publicatiebehoud en echte readertrip
+        run: npm run test:cfm-2026:integration
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cfm-2026-import-browser
+          path: /tmp/versado-cfm-import-browser
           if-no-files-found: ignore

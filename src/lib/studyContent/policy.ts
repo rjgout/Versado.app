@@ -40,6 +40,10 @@ export function syntheticStudyEnvironment() {
   }
 }
 export function studyReleaseAllowed(adapter: string) {
-  // Nog geen goedgekeurde officiële bronadapter/fixture. Fase 2D bewijst interne editiemappings.
-  return adapter === "synthetic-v1" && syntheticStudyEnvironment();
+  // Officiële publicatie blijft buiten de eigen testdatabase gesloten.
+  return ["synthetic-v1", "cfm-2026-nl-v1"].includes(adapter) && syntheticStudyEnvironment();
+}
+/** Conceptimport is geen publicatie. Onbekende adapters blijven gesloten. */
+export function studyImportAllowed(adapter: string) {
+  return adapter === "cfm-2026-nl-v1" || studyReleaseAllowed(adapter);
 }

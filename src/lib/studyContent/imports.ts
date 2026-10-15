@@ -19,6 +19,7 @@ import {
   requireStudyAdmin,
   studyObjectHash,
   studyReleaseAllowed,
+  studyImportAllowed,
   StudyPublishingError,
   type StudyAdmin,
 } from "./policy";
@@ -102,6 +103,19 @@ export async function createStudyImport(
   )
     throw new StudyPublishingError("UNAVAILABLE");
   const snapshot = studyFixture(fixtureKey, collection.work);
+  return registerStudySnapshotImport(actor, collection.id, snapshot, client);
+}
+/** Gedeelde audit/lease/revisieketen; alleen bekende adapters, nooit publicatie. */
+export async function registerStudySnapshotImport(
+  actor: StudyAdmin, collectionId: string, snapshot: StudySnapshot,
+  client: PrismaClient = prisma,
+) {
+  requireStudyAdmin(actor);
+  if (!studyImportAllowed(snapshot.adapterName)) throw new StudyPublishingError("RELEASE_CLOSED");
+  await studyStorage();
+  const collection = await client.contentCollection.findFirst({where:{id:collectionId,...readingAccessWhere(actor,"admin-preview"),contentWork:{kind:"STUDY_PROGRAM"}}});
+  if (!collection?.work || collection.work !== snapshot.workKey || collection.editionKey !== snapshot.editionKey || collection.language !== snapshot.language ||
+    (snapshot.adapterName === "cfm-2026-nl-v1" && (snapshot.synthetic || snapshot.workKey !== "cfm-old-testament-2026" || snapshot.editionKey !== "church-cfm-ot-2026" || snapshot.language !== "nl"))) throw new StudyPublishingError("UNAVAILABLE");
   const scopeKey = studyObjectHash([
     snapshot.adapterName,
     collection.id,
@@ -150,7 +164,7 @@ export async function claimStudyImport(
     where: { id: runId },
   });
   if (!initial) throw new StudyPublishingError("UNAVAILABLE");
-  if (!studyReleaseAllowed(initial.adapterName))
+  if (!studyImportAllowed(initial.adapterName))
     throw new StudyPublishingError("RELEASE_CLOSED");
   return client.$transaction(async (db) => {
     await lockStudyImportScope(db, initial.scopeKey);
@@ -208,7 +222,7 @@ export async function persistStudyImportItem(
     snapshot.workKey !== initial.workKey ||
     snapshot.editionKey !== initial.editionKey ||
     snapshot.language !== initial.language ||
-    !studyReleaseAllowed(snapshot.adapterName)
+    !studyImportAllowed(snapshot.adapterName)
   )
     throw new StudyPublishingError("INVALID");
   const item = snapshot.items[itemIndex];
@@ -316,10 +330,15 @@ export async function persistStudyImportItem(
           periodId: period.id,
           sourceKey: item.sourceKey,
           order: item.order,
+          startsOn: item.startsOn ? new Date(item.startsOn) : null,
+          endsOnExclusive: item.endsOn ? new Date(Date.parse(item.endsOn) + 86_400_000) : null,
         },
         update: {},
       });
       if (lesson.retiredAt) throw new StudyPublishingError("UNAVAILABLE");
+      if (item.startsOn && item.endsOn &&
+        (lesson.startsOn?.getTime() !== Date.parse(item.startsOn) || lesson.endsOnExclusive?.getTime() !== Date.parse(item.endsOn) + 86_400_000))
+        throw new StudyPublishingError("INVALID");
       const edition = await db.studyLessonEdition.upsert({
         where: {
           lessonId_collectionId: {

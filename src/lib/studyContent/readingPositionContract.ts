@@ -57,7 +57,7 @@ export function readingBlockText(
     if (v.type === "text") return String(v.text);
     if (v.type === "link") return String(v.text);
     if (v.type === "reference") return String(v.label);
-    return [v.content, v.items, v.children, v.attribution, v.caption]
+    return [v.content, v.items, v.children, v.attribution, v.caption, v.rows, v.cells, v.blocks]
       .map(text)
       .filter(Boolean)
       .join(" ");
