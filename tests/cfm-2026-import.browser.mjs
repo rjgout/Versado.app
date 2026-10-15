@@ -125,16 +125,21 @@ try {
     await page.locator("[data-study-reader]").waitFor();
     await page.addStyleTag({ content: "html{font-size:200% !important}" });
     const table = page.locator("table").first();
-    await table.scrollIntoViewIfNeeded();
+    // Een echte gebruikersscroll beëindigt het initiële leeshervatten.
+    // Alleen scrollIntoView kan daarmee racen en vervolgens worden teruggezet.
+    await page.keyboard.press("PageDown");
+    const cell = table.locator("td").first();
+    await cell.click({ trial: true });
     // Wacht op de daadwerkelijke compositie na tekstvergroting en de lange
     // scrollsprong; DOM-aanwezigheid alleen bewijst geen zichtbare tabel.
     await page.evaluate(() => new Promise((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(resolve)),
     ));
-    assert.ok(await table.evaluate((el) => {
+    assert.ok(await cell.evaluate((el) => {
       const r = el.getBoundingClientRect();
-      const x = Math.min(innerWidth - 1, Math.max(1, r.left + 20));
-      const y = Math.min(innerHeight - 1, Math.max(1, r.top + 20));
+      const x = (Math.max(0, r.left) + Math.min(innerWidth, r.right)) / 2;
+      const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-height")) || 0;
+      const y = (Math.max(header + 1, r.top) + Math.min(innerHeight, r.bottom)) / 2;
       return r.bottom > 0 && r.top < innerHeight && el.contains(document.elementFromPoint(x, y));
     }));
     assert.ok(

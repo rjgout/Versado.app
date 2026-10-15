@@ -343,6 +343,7 @@ jobs:
       - name: Schema, types, alle 52 bronnen en productiebuild
         run: |
           npx prisma validate
+          npm run db:generate
           npx tsc --noEmit
           npm run test:cfm-2026
           npm run build
