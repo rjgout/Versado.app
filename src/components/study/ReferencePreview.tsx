@@ -57,8 +57,6 @@ export default function ReferencePreview({
   }, [returnFocus]);
   useEffect(() => {
     const controller = new AbortController();
-    setResult(null);
-    setError(false);
     void fetchJson<ReferenceResolution>("/api/study-references", {
       method: "POST",
       headers: {
@@ -154,6 +152,14 @@ export default function ReferencePreview({
         {result?.kind === "external" && (
           <div className="space-y-4">
             <p>{t("referencePreview.externalNotice")}</p>
+            {result.language === "en" && (
+              <p
+                data-reference-source-language="en"
+                className="text-sm text-vs-fg-2"
+              >
+                {t("referencePreview.sourceEnglish")}
+              </p>
+            )}
             <a
               href={result.url}
               target="_blank"
@@ -183,6 +189,7 @@ export default function ReferencePreview({
                   className={`min-h-12 max-w-full whitespace-normal rounded-xl border px-3 py-2 text-left text-sm ${p.index === passageIndex ? "border-vs-accent bg-vs-accent-soft font-bold" : "border-vs-line bg-vs-surface"}`}
                   onClick={() => {
                     setMoreError(null);
+                    setError(false);
                     setResult(null);
                     setPassageIndex(p.index);
                   }}

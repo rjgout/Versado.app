@@ -116,8 +116,8 @@ test("OTB-doelen hebben bestaande canonieke hoofdstukken/verzen of een expliciet
     }
   }
   assert.equal(valid, 1960);
-  assert.equal(external, 1043);
-  assert.equal(blocked, 606);
+  assert.equal(external, 1096);
+  assert.equal(blocked, 553);
 });
 test("onbekende structuur, bronidentiteit en ontbrekende media stoppen; geen verzonnen vertaling", async () => {
   const s = await source("01");

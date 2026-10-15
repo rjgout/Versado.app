@@ -181,9 +181,9 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
   assert.equal(internal.length, 1960);
   assert.equal(
     refs.filter((r) => r.diagnosis === "EXTERNAL_VERIFIED").length,
-    1043,
+    1096,
   );
-  assert.equal(refs.filter((r) => r.diagnosis === "UNRESOLVED").length, 606);
+  assert.equal(refs.filter((r) => r.diagnosis === "UNRESOLVED").length, 553);
   assert.ok(
     internal.every(
       (r) =>
@@ -363,12 +363,25 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
       r.diagnosis === "EXTERNAL_VERIFIED" &&
       r.normalized.url?.endsWith("-nl.mp4"),
   );
+  const externalEnglish = report.lessons[2].references.find(
+    (r) =>
+      r.diagnosis === "EXTERNAL_VERIFIED" &&
+      r.normalized.url?.endsWith("-en.mp4"),
+  );
+  assert.ok(externalEnglish);
   assert.ok(externalPdf);
   assert.ok(externalVideo);
   const flow = {
     selections,
     secondChapterId: (await scriptureChapter("gen", 2)).id,
     externals: [
+      {
+        href: `/study-lesson/${chosen.lessonId}/${collection.id}`,
+        anchor: externalEnglish.anchor,
+        url: externalEnglish.normalized.url,
+        language: "en",
+        label: externalEnglish.label,
+      },
       {
         href: `/study-lesson/${chosen.lessonId}/${collection.id}`,
         anchor: externalPdf.anchor,
@@ -378,6 +391,7 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
         href: `/study-lesson/${editions[0].lessonId}/${collection.id}`,
         anchor: externalVideo.anchor,
         url: externalVideo.normalized.url,
+        label: externalVideo.label,
       },
     ],
     ntHref: `/study-lesson/${editions[0].lessonId}/${collection.id}`,

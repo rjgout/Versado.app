@@ -1,5 +1,7 @@
 # Fase 3B — volledige Nederlandse CFM 2026-conceptimport
 
+Aanvullende actuele kwaliteitsreview: [fase 3B.1](22-PHASE-3B1-CFM-REFERENCE-MEDIA-REVIEW.md). De onderstaande tellingen beschrijven de oorspronkelijke fase-3B-basis.
+
 ## Basis en resultaat
 
 Gebaseerd op `origin/main` met gemergede PR #116 (`c34860e6`). De bestaande

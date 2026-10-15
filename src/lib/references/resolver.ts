@@ -26,6 +26,22 @@ import { parseOtbPassage, parseOtbPassageSet, type OtbPassage } from "./otb";
 export type ReferenceActor = { id: string; isAdmin: boolean };
 export const MAX_PREVIEW_VERSES = 40;
 export const MAX_PREVIEW_BYTES = 48_000;
+function externalResolution(
+  url: string,
+  diagnosticKey: string,
+): Extract<ReferenceResolution, { kind: "external" }> {
+  const resource = officialResources.find((r) => r.url === url);
+  return {
+    kind: "external",
+    url,
+    diagnosticKey,
+    ...(resource &&
+    "mediaLanguage" in resource &&
+    resource.mediaLanguage === "en"
+      ? { language: "en" as const }
+      : {}),
+  };
+}
 function bounded(result: ReferenceResolution): boolean {
   return Buffer.byteLength(JSON.stringify(result), "utf8") <= MAX_PREVIEW_BYTES;
 }
@@ -137,7 +153,7 @@ export async function resolveReferenceTarget(
     reason: Extract<ReferenceResolution, { kind: "unavailable" }>["reason"],
   ): ReferenceResolution =>
     fallback
-      ? { kind: "external", url: fallback, diagnosticKey }
+      ? externalResolution(fallback, diagnosticKey)
       : { kind: "unavailable", reason, diagnosticKey };
   const bundle =
     target.workKey === "old-testament" &&
@@ -424,7 +440,7 @@ export async function resolveReferenceTarget(
   }
   const official = verifiedOfficialUrl(sourceKey);
   return official
-    ? { kind: "external", url: official, diagnosticKey }
+    ? externalResolution(official, diagnosticKey)
     : fail("unverified");
 }
 
@@ -714,7 +730,12 @@ export function referenceDiagnosis(result: ReferenceResolution) {
 export function normalizedReference(result: ReferenceResolution) {
   if (result.kind === "unavailable")
     return { kind: result.kind, reason: result.reason };
-  if (result.kind === "external") return { kind: result.kind, url: result.url };
+  if (result.kind === "external")
+    return {
+      kind: result.kind,
+      url: result.url,
+      ...(result.language ? { language: result.language } : {}),
+    };
   return {
     kind: result.kind,
     collectionId: result.collectionId,

@@ -71,7 +71,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/14eb7df3434311ecbc9ceeeeac1e9a91cfde3bdb-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -79,11 +79,11 @@
       "prefixHash": "37eb57d63ef2d108176134e8e8edd39a7cd815f4738171836ff8df7b10e0ad9a",
       "sizeEvidence": "bytes 0-1023/8329357",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/167c5716434311ecbb8deeeeac1e0d10fd481f82-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -91,11 +91,11 @@
       "prefixHash": "b9d09cb4dc68b708581e6b190040007b8f90c5e98f9e6d3ae66d2f5074ea6de7",
       "sizeEvidence": "bytes 0-1023/5302966",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/18441f59434311ec9461eeeeac1efd8b26d92c14-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -103,11 +103,11 @@
       "prefixHash": "6943c99f019100fd3cfe7e33bb1bed9e3f9f9ca5c45a6231f7f7052345da8286",
       "sizeEvidence": "bytes 0-1023/7227078",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/1ae5cc18434311eca8cdeeeeac1ef8db9104b3fa-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -115,11 +115,11 @@
       "prefixHash": "0b89ed86afde1f836b9957e067e508800560cacd41bd6c7273dfb7355e2c1a4d",
       "sizeEvidence": "bytes 0-1023/7347010",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/1e99d3a9434311ecb1b5eeeeac1e22c94bebd87e-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -127,11 +127,11 @@
       "prefixHash": "a51422ce239f627fc1ee16ae58579bcdcf90bbcb93667f4a80773bd95b545960",
       "sizeEvidence": "bytes 0-1023/7873997",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/202bbd51434311ec8640eeeeac1e35146bd6b1d5-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -139,11 +139,11 @@
       "prefixHash": "c8b0f484da3bc3f1778f1387da0fa9efc62b0ff5605e586a7deb81ed214889b8",
       "sizeEvidence": "bytes 0-1023/9895649",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/2186e118434311ec85f5eeeeac1e3d56c330d256-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -151,11 +151,11 @@
       "prefixHash": "984ccedd2e28f777e44f64fc13f45a5df0ac5aeb44e090072ffbf8c81c1f4f8e",
       "sizeEvidence": "bytes 0-1023/8925978",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/2349edd5434311eca2abeeeeac1edd8770a38bed-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -163,11 +163,11 @@
       "prefixHash": "0368c2db2f62b657d860f08bf42b8decca231ce6572ca1e8446ef526a4be5a7d",
       "sizeEvidence": "bytes 0-1023/6651678",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/24c012e4434311ecbc9ceeeeac1e9a91803952e2-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -175,11 +175,11 @@
       "prefixHash": "3484204c9714c5d485299fe289d105f7f24c8ed65499b7548f2ce7e47c31ddab",
       "sizeEvidence": "bytes 0-1023/5483292",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/26b30935434311ecaaebeeeeac1e588cb0c5e413-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -187,7 +187,7 @@
       "prefixHash": "d76ddb66514be13a7b30a7a7aad33b3d95b898d11899e44c7884e1da6621487d",
       "sizeEvidence": "bytes 0-1023/7392764",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/27/tc/27tczqaoxl0eds04rphpr5iix35jd8xs1sgaki4u/come_follow_me_proimary_activity_page.pdf",
@@ -202,7 +202,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/287f655a434311ec9461eeeeac1efd8b1627aa7f-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -210,7 +210,7 @@
       "prefixHash": "6509b1eb170743ba4239812abe8c8c855f24807286edf0b34cdac32de81c9a15",
       "sizeEvidence": "bytes 0-1023/10246638",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/2b02aa45e0712ef917587a9f5ef5feb6a6e57504-360p-nl.mp4",
@@ -225,7 +225,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/2c389ccb434311ec9461eeeeac1efd8bbbf27677-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -233,11 +233,11 @@
       "prefixHash": "b00e4ec6db9a85ebd066db50060d474c58ec26d54d7c808799d96b620acd6c57",
       "sizeEvidence": "bytes 0-1023/11165526",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/2d339e69434311eca8cdeeeeac1ef8db13f3c439-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -245,11 +245,11 @@
       "prefixHash": "7661219731010f94743abce7d305eb4069eed280e92476b3451564995eb71f62",
       "sizeEvidence": "bytes 0-1023/3859882",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/2ef15398434311ecbb8deeeeac1e0d103cb31b64-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -257,7 +257,7 @@
       "prefixHash": "5bad9380271b77132625b9d49503a352fed4e7034825bdf8738c55cbd49a8083",
       "sizeEvidence": "bytes 0-1023/10555950",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/2k/xb/2kxbcgoo7wgxefnx4393968byapldeokrry26cjk/come_follow_me.pdf",
@@ -272,7 +272,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/3040de07434311ecaaebeeeeac1e588c5e2f3c71-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -280,11 +280,11 @@
       "prefixHash": "7b8a2c20412faa371745c0d9a6af8c80e169dd5214ee8e331f0314db8ba0b21d",
       "sizeEvidence": "bytes 0-1023/4884798",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/30c3a040383503780a914149ea6ed02b841fbcf5-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -292,11 +292,11 @@
       "prefixHash": "dd47dc3fe02044a738f98301d150b5e9f32638b885083b8967cb29010bf9baf7",
       "sizeEvidence": "bytes 0-1023/2677262",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/31b2bd32434311ecbb10eeeeac1e4455411f6632-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -304,11 +304,11 @@
       "prefixHash": "fde45f2d6f4100b55e19e47e30127df9aab6ecda22c5b9c86c437d7259b83e11",
       "sizeEvidence": "bytes 0-1023/8425850",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/3356f810434311ec9a0eeeeeac1ede1739b5b32a-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -316,11 +316,11 @@
       "prefixHash": "29d68824a00a084f6d282bb21bd6ea0e2e3c695d382bd47d935eca89a0706efb",
       "sizeEvidence": "bytes 0-1023/10509902",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/33b205a23c7e78e4e45c2b26caa343b1f0fd7b14-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -328,11 +328,11 @@
       "prefixHash": "eccd18ba65ab10f3bd0c8cdca86d2d77c2683492847908a3f1fbb3ca7c8614b2",
       "sizeEvidence": "bytes 0-1023/12051020",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/34c0251d434311ec87bbeeeeac1ee10be05a2501-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -340,11 +340,11 @@
       "prefixHash": "6a1080df880480db3e9408bfabad268d192f1d521e02c2112ae08a06ef931b70",
       "sizeEvidence": "bytes 0-1023/7411833",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/3660dc63434311ecb915eeeeac1e6f4b185d156b-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -352,11 +352,11 @@
       "prefixHash": "d2f6b2ea935760ae796161e9606685984e4c5ef313bbd3bf9f3372e77674ec88",
       "sizeEvidence": "bytes 0-1023/4121200",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/37fc3d15434311eca66beeeeac1ec8b66d193aad-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -364,11 +364,11 @@
       "prefixHash": "c028699171e6858a064000a29a7383766322e3a1a409bd3630e2c4d8963124d4",
       "sizeEvidence": "bytes 0-1023/7863409",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/397e498a434311ecb1b5eeeeac1e22c9ed94340e-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -376,11 +376,11 @@
       "prefixHash": "d64c940345cc4d2b8286bb3620e72d1fabd3c4b0a8c4c2191dc44a6e8a5c5748",
       "sizeEvidence": "bytes 0-1023/4350880",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/3b19d079434311ecbb8deeeeac1e0d108417f7d1-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -388,11 +388,11 @@
       "prefixHash": "4c270bf9d56633b50e34f6ee94be5c6b014868deddc24388241e12f7519794ca",
       "sizeEvidence": "bytes 0-1023/9998001",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/3c9e9bf9434311ec85f5eeeeac1e3d56086881c3-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -400,11 +400,11 @@
       "prefixHash": "551e9a9c9931ccff50b334b93d511513c127b2a0fece242f168f3c714046af54",
       "sizeEvidence": "bytes 0-1023/8111531",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/3e31bf1a434311ec85f5eeeeac1e3d56962af4ac-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -412,7 +412,7 @@
       "prefixHash": "0081dfb3f3d1f1c9ea4f6e75ffcfbb057784f2f762c6d49b674333a392c32133",
       "sizeEvidence": "bytes 0-1023/6422741",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/3f1d5b7ba92711eca698eeeeac1eb6afa030b28e-360p-nl.mp4",
@@ -438,7 +438,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/403026f5434311ecbc9ceeeeac1e9a91976ef07c-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -446,11 +446,11 @@
       "prefixHash": "82f75407083fe20e65126109f498630c4aa9bac436b9ceb7f5cdca8224839ec3",
       "sizeEvidence": "bytes 0-1023/7511165",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/41b0d3c7434311eca66beeeeac1ec8b6c2b0ee05-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -458,7 +458,7 @@
       "prefixHash": "a15a69a1e77333efcb6c19fb675f119ea966bd34cef49cc367bb07d8d1d0c1e4",
       "sizeEvidence": "bytes 0-1023/6510754",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/44/0j/440jnco4d471b2ahsbfec072p2u1vkamzxcrzx6o/come_follow_me.pdf",
@@ -473,7 +473,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/44ffb0fc434311ecb1b5eeeeac1e22c9d51f8c16-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -481,7 +481,7 @@
       "prefixHash": "cf88f1fb99bbc5faf7e9406a5b9cebb3c51232374483e0bfe669e4acfbb11000",
       "sizeEvidence": "bytes 0-1023/7222790",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/45/uw/45uwdorbqcg7ep3x2o9d9xmbsst6irjqei9z90db/come_follow_me_2026.pdf",
@@ -496,7 +496,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/464c5443434311ec8640eeeeac1e3514d8b9827f-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -504,11 +504,11 @@
       "prefixHash": "223095bc759e87b71ebe858a4a9edd271f8c97f241672beaa1d98914d6fcbd5f",
       "sizeEvidence": "bytes 0-1023/4474672",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/4744dc12f12492b57ea4ff2dcacac67f26ff8e7a-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -516,7 +516,7 @@
       "prefixHash": "5e0a2896d25c6c8b3c71f93874bd9ab52d55c1c7abb9d9928cbf676d65b9cd1f",
       "sizeEvidence": "bytes 0-1023/40887584",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/47e7cfa1822247b01502f09d2d9d909d53699cdc-360p-nl.mp4",
@@ -531,7 +531,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/47fbd958434311ecaaebeeeeac1e588cb002ecb6-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -539,7 +539,7 @@
       "prefixHash": "271ba47e0e2a46fd30665672eb46aab9aa3b84639f3cfd8b7de528a5f82aa9c3",
       "sizeEvidence": "bytes 0-1023/10495233",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/48/zm/48zmr6gxev73tvh8p5imwls9j63k01xa22xjvfcm/2026_come_follow_me_for_home_and_church_old_testament.pdf",
@@ -554,7 +554,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/49a2ac2d434311ecb1b5eeeeac1e22c967cb5c79-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -562,11 +562,11 @@
       "prefixHash": "b223e4f30864c35bcfb360c14aca421bbaf4c5ad65e0df21f0982341609d2f13",
       "sizeEvidence": "bytes 0-1023/7678000",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/4b45388c434311ec9461eeeeac1efd8b7548526d-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -574,7 +574,7 @@
       "prefixHash": "c29ce44af00a851f63d9d4af5569f3d4a19d13b8ef108210ddd82225c37977e2",
       "sizeEvidence": "bytes 0-1023/5998611",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/4d/tr/4dtr9cfmsqftjmznu42u279cmgvt7mqybeb6ou03/come_follow_me_proimary_activity_page.pdf",
@@ -589,7 +589,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/4d273e84434311ecb915eeeeac1e6f4bd08df2e6-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -597,7 +597,7 @@
       "prefixHash": "e6482f110abf4cd20eae4d51ab66bda7357adc135459503f6ae1efad99dcb115",
       "sizeEvidence": "bytes 0-1023/4107850",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/4n/k6/4nk6feeazoo0evn3yamjxq5tzyghkasvm2f5afyo/come_follow_me_proimary_activity_page.pdf",
@@ -645,7 +645,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/51c1d5af434311ec87bbeeeeac1ee10b871bbb88-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -653,7 +653,7 @@
       "prefixHash": "99b24475db9a84f5540846d7584a6fe895793c5b6dccb5155f5d616abb75c463",
       "sizeEvidence": "bytes 0-1023/6219458",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/54b35ab55886774f31264afeb3cdd93a5445bbdd-360p-nl.mp4",
@@ -668,7 +668,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/54f4ed4e434311ecb1b5eeeeac1e22c911d5d48f-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -676,11 +676,11 @@
       "prefixHash": "392d99a0c0c12323478723917acdaa22004e753f33537f4c62ced26febe3b997",
       "sizeEvidence": "bytes 0-1023/7222710",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/56acfd38434311eca66beeeeac1ec8b6fa25d5fe-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -688,11 +688,11 @@
       "prefixHash": "ce36b1510f9f9e08e3746fcf11775f493da90811d4eb6e31f45380e039c42110",
       "sizeEvidence": "bytes 0-1023/6714300",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/58c025e1434311ec9a0eeeeeac1ede17f8c2ff1b-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -700,11 +700,11 @@
       "prefixHash": "a74ec974c3a8b76ce48321ba55d0e61efdbe135e18097c182dd9232a506bd8d8",
       "sizeEvidence": "bytes 0-1023/10924294",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/5a9f947f434311ecb1b5eeeeac1e22c937065ef7-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -712,11 +712,11 @@
       "prefixHash": "ddbff54c27de177df428bf17e311b46855d6868e454f62cee0bdca99f0622fe1",
       "sizeEvidence": "bytes 0-1023/3799874",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/5c5f4555434311ecb915eeeeac1e6f4b96ce4451-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -724,7 +724,7 @@
       "prefixHash": "2a9ab2c3a79d3fa30bc422dac240bac2aff1908be7c64631a44b1cb0a94448f8",
       "sizeEvidence": "bytes 0-1023/5512403",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/5s/d3/5sd3455sixomlhqyx1g74avw2ykntu3wyrucvj3x/come_follow_me.pdf",
@@ -739,7 +739,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/645B1996998A4B2F337AF374DC130E6341668A4B-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -747,7 +747,7 @@
       "prefixHash": "7fa5678cf84667caaddc7365c9becd79491c46c686ebcd3a12234015b1d8476c",
       "sizeEvidence": "bytes 0-1023/21420385",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/64844dbe216411ec8e61eeeeac1ed9231e113e8c-360p-nl.mp4",
@@ -828,7 +828,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/7de4e20ee4735caa61356d50cc056acf2fd62af6-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -836,7 +836,7 @@
       "prefixHash": "d0f79820da47454178cba8d0775f590322558428f9d057ac9224094bda866577",
       "sizeEvidence": "bytes 0-1023/18854219",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/7e4c2ce5a7c70ca1a7c107659293758365835fb5-360p-nl.mp4",
@@ -895,7 +895,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/8C6D96DC66FF6E25E7E964F05A12994A1541E6B6-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -903,7 +903,7 @@
       "prefixHash": "9e5236412876cac4847c2c44154932b372bab7a9b91e58c24b69068ce0b58600",
       "sizeEvidence": "bytes 0-1023/17754677",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/8bc7ff6556d611ec9f42eeeeac1e4ef0a0c01bb5-360p-nl.mp4",
@@ -929,7 +929,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/944CB06A4DF5FF6F87BE5332CC8F6C8FB9DB6F25-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -937,7 +937,7 @@
       "prefixHash": "0dd476e0a9d650e3c9e8f2e2e2c38f9100e32f0e698b56021bdacdbf8a0dfa21",
       "sizeEvidence": "bytes 0-1023/5069206",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/951db597216411ec9b75eeeeac1e708d36ffff38-360p-nl.mp4",
@@ -1029,7 +1029,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/b722f27d98e061a31f5ed52b88c2690266604ece-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -1037,7 +1037,7 @@
       "prefixHash": "df3a01abc78604141761e2745e5e3ad29ecc5d54b2897c394a16892b038da239",
       "sizeEvidence": "bytes 0-1023/9135083",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/b8f4cd75a5c0357f61bcebcc5bb31bcd9fa25b1d-360p-nl.mp4",
@@ -1063,7 +1063,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/bf9f37230a0707d679c4da5a33e99f2ad331e786-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -1071,7 +1071,7 @@
       "prefixHash": "b9175087e746c7d86c7cf2a6f2c0afdca62938fbb39270debe430f9082426933",
       "sizeEvidence": "bytes 0-1023/13248189",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/bfe40700216411ec81b6eeeeac1e0e28a1a0a34f-360p-nl.mp4",
@@ -1108,7 +1108,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/c828642d374011eca29deeeeac1e03f982461f87-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -1116,7 +1116,7 @@
       "prefixHash": "aa4c6e1caff3b8006e8370ce18eee8b91f02c9b8d3ca4556e3530001bd51c7df",
       "sizeEvidence": "bytes 0-1023/7193210",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/ci/na/cinayt57nph6t0mbd46hqzp233a5cb5gez9p1s03/2026_come_follow_me_for_home_and_church_old_testament.pdf",
@@ -1164,7 +1164,7 @@
     },
     {
       "url": "https://assets.churchofjesuschrist.org/f43c0e5e0b6911ecbf18eeeeac1e5d0b57e65880-360p-en.mp4",
-      "verified": false,
+      "verified": true,
       "binaryChecked": true,
       "mediaLanguage": "en",
       "method": "official-binary-prefix-only",
@@ -1172,7 +1172,7 @@
       "prefixHash": "a002d6a385249b38ec2a9902320922ac28ed8f38df48ecd28840724dab6713c9",
       "sizeEvidence": "bytes 0-1023/14254792",
       "status": 206,
-      "reason": "NON_DUTCH_VIDEO_REQUIRES_REVIEW"
+      "requiresLanguageDisclosure": true
     },
     {
       "url": "https://assets.churchofjesuschrist.org/f93a5514f9da25c274b383a103dd0f07f24f7930-360p-nl.mp4",
@@ -8566,7 +8566,6 @@
     {
       "url": "https://www.churchofjesuschrist.org/study/scriptures/pgp/moses/1?lang=nld&id=p13%2Cp15%2Cp18%2Cp20-p22%2Cp26#p13",
       "verified": true,
-      "reason": "HTTP_503",
       "verifiedApi": "https://www.churchofjesuschrist.org/study/api/v3/language-pages/type/content?lang=nld&uri=%2Fscriptures%2Fpgp%2Fmoses%2F1",
       "sourceHash": "d78fec3e2d0d4d3e0231300178b5af56cc95f3a90e9b420fff2607a9f9e75d11",
       "title": "Mozes 1",
@@ -8581,12 +8580,12 @@
         "p22",
         "p26"
       ],
-      "method": "official-nld-content-api"
+      "method": "official-nld-content-api",
+      "priorTransientFailure": "HTTP_503"
     },
     {
       "url": "https://www.churchofjesuschrist.org/study/scriptures/pgp/moses/1?lang=nld&id=p4%2Cp6#p4",
       "verified": true,
-      "reason": "HTTP_503",
       "verifiedApi": "https://www.churchofjesuschrist.org/study/api/v3/language-pages/type/content?lang=nld&uri=%2Fscriptures%2Fpgp%2Fmoses%2F1",
       "sourceHash": "d78fec3e2d0d4d3e0231300178b5af56cc95f3a90e9b420fff2607a9f9e75d11",
       "title": "Mozes 1",
@@ -8596,7 +8595,8 @@
         "p4",
         "p6"
       ],
-      "method": "official-nld-content-api"
+      "method": "official-nld-content-api",
+      "priorTransientFailure": "HTTP_503"
     },
     {
       "url": "https://www.churchofjesuschrist.org/study/scriptures/pgp/moses/1?lang=nld&id=p6%2Cp39#p6",
@@ -8900,5 +8900,6 @@
       "verified": false,
       "reason": "UNAPPROVED_URL"
     }
-  ]
+  ],
+  "validationPolicy": "exact-original-video-language-with-visible-disclosure"
 }

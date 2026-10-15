@@ -69,7 +69,7 @@ def review(url):
             if pdf and not (prefix.startswith(b'%PDF-') and mime=='application/pdf'): raise ValueError('PDF_SIGNATURE')
             if not pdf and not (prefix[4:8]==b'ftyp' and mime=='video/mp4'): raise ValueError('VIDEO_SIGNATURE')
             row.update(binaryChecked=True,mediaLanguage='und' if pdf else 'nl' if re.search(r'-nl\.mp4$',u.path,re.I) else 'en',method='official-binary-prefix-only',mimeType=mime,prefixHash=hashlib.sha256(prefix).hexdigest(),sizeEvidence=size,status=status)
-            if not pdf and row['mediaLanguage']!='nl': raise ValueError('NON_DUTCH_VIDEO_REQUIRES_REVIEW')
+            row['requiresLanguageDisclosure']=not pdf and row['mediaLanguage']=='en'
             row['verified']=True
         else: raise ValueError('RESOURCE_TYPE_REQUIRES_REVIEW')
     except Exception as e:
@@ -82,7 +82,8 @@ def main():
         data=json.loads(out.read_text())
         for row in data['resources']:
             if row.get('mimeType')=='application/pdf': row['mediaLanguage']='und'
-            if row.get('reason') in {'HTTP_503','HTTP_429','TimeoutError','URLError'}: row.update(review(row['url']))
+            if row.get('reason') in {'HTTP_503','HTTP_429','TimeoutError','URLError'}:
+                fresh=review(row['url']); row.clear(); row.update(fresh)
         additional=json.loads((ROOT/'reference-review-additional.json').read_text())
         known={r['url'] for r in data['resources']}
         for r in additional['occurrences']:

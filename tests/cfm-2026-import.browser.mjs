@@ -279,7 +279,9 @@ try {
           [i]?.getAttribute("aria-pressed") === "true",
       { i: selection.index },
     );
-    await dialog.getByRole("button", {name:"Meer lezen",exact:true}).waitFor();
+    await dialog
+      .getByRole("button", { name: "Meer lezen", exact: true })
+      .waitFor();
     if (selection.previewNumbers)
       assert.deepEqual(
         await dialog.locator("[data-reference-preview] sup").allTextContents(),
@@ -325,10 +327,25 @@ try {
     const link = page.locator('dialog[open] a[target="_blank"]');
     await link.waitFor();
     assert.equal(await link.getAttribute("href"), external.url);
+    if (external.language === "en")
+      await page.locator('[data-reference-source-language="en"]').waitFor();
+    if (external.label)
+      assert.ok(
+        (await page.getByAltText(external.label, { exact: true }).count()) > 0,
+        "Oorspronkelijke videoposter blijft zichtbaar in de les",
+      );
     assert.match(await link.getAttribute("rel"), /noopener/);
     await page.screenshot({
-      path: `${output}/cfm-external-${external.url.endsWith(".pdf") ? "pdf" : "video"}.png`,
+      path: `${output}/cfm-external-${external.url.endsWith(".pdf") ? "pdf" : external.language === "en" ? "video-en" : "video-nl"}.png`,
     });
+    // Test de echte nieuwe-tabactie, met alleen de externe response onderschept
+    // zodat de browser geen videobestand of PDF volledig downloadt.
+    const originalLocation=page.url();
+    await context.route(external.url,route=>route.fulfill({status:200,contentType:"text/plain",body:"Gecontroleerde externe navigatietest"}));
+    const opened=page.waitForEvent("popup");await link.click();const popup=await opened;
+    await popup.waitForLoadState();assert.equal(popup.url(),external.url);
+    assert.ok(await popup.evaluate(()=>window.opener===null));await popup.close();
+    assert.equal(page.url(),originalLocation);
     await page.keyboard.press("Escape");
     await page.locator("dialog[open]").waitFor({ state: "detached" });
     const banner = page.getByAltText(
@@ -349,6 +366,7 @@ try {
       externalOriginalUrl: true,
       kind: external.url.endsWith(".pdf") ? "PDF" : "VIDEO",
       accessibleBanner: true,
+      explicitSourceLanguage: external.language ?? (external.url.endsWith("-nl.mp4") ? "nl" : "und"),
     });
     await context.close();
   }
@@ -366,7 +384,9 @@ try {
     const dialog = page.locator("dialog[open]");
     await dialog.getByRole("status").waitFor();
     await dialog
-      .getByText("Deze verwijzing kan nog niet betrouwbaar worden geopend.", { exact: true })
+      .getByText("Deze verwijzing kan nog niet betrouwbaar worden geopend.", {
+        exact: true,
+      })
       .waitFor();
     assert.equal(
       await dialog

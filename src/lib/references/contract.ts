@@ -16,7 +16,7 @@ export type ReferenceResolution =
       reason: "missing" | "edition" | "range" | "unverified" | "too-large";
       diagnosticKey: string;
     }
-  | { kind: "external"; url: string; diagnosticKey: string }
+  | { kind: "external"; url: string; diagnosticKey: string; language?: "en" }
   | {
       kind: "internal";
       diagnosticKey: string;

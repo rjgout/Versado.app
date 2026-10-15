@@ -5,8 +5,8 @@
   "references": 3609,
   "bibleReferences": 2242,
   "otbSourceVerified": 1960,
-  "externalVerified": 1043,
-  "blocked": 606,
+  "externalVerified": 1096,
+  "blocked": 553,
   "tables": 10,
   "missingImages": 0,
   "unmirroredVideoResources": 95,
@@ -2028,8 +2028,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/30c3a040383503780a914149ea6ed02b841fbcf5-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/30c3a040383503780a914149ea6ed02b841fbcf5-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-figure2_p1-1",
@@ -2845,8 +2845,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/645B1996998A4B2F337AF374DC130E6341668A4B-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/645B1996998A4B2F337AF374DC130E6341668A4B-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title7-0",
@@ -6174,8 +6174,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/14eb7df3434311ecbc9ceeeeac1e9a91cfde3bdb-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/14eb7df3434311ecbc9ceeeeac1e9a91cfde3bdb-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "video-video3",
@@ -6185,8 +6185,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/167c5716434311ecbb8deeeeac1e0d10fd481f82-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/167c5716434311ecbb8deeeeac1e0d10fd481f82-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-figure7_p1-1",
@@ -6840,8 +6840,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/14eb7df3434311ecbc9ceeeeac1e9a91cfde3bdb-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/14eb7df3434311ecbc9ceeeeac1e9a91cfde3bdb-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p31-1",
@@ -7021,8 +7021,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/18441f59434311ec9461eeeeac1efd8b26d92c14-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/18441f59434311ec9461eeeeac1efd8b26d92c14-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p36-1",
@@ -7651,8 +7651,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/1ae5cc18434311eca8cdeeeeac1ef8db9104b3fa-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/1ae5cc18434311eca8cdeeeeac1ef8db9104b3fa-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title8-0",
@@ -8409,8 +8409,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/1e99d3a9434311ecb1b5eeeeac1e22c94bebd87e-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/1e99d3a9434311ecb1b5eeeeac1e22c94bebd87e-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title6-0",
@@ -8526,8 +8526,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/1e99d3a9434311ecb1b5eeeeac1e22c94bebd87e-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/1e99d3a9434311ecb1b5eeeeac1e22c94bebd87e-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "video-video3",
@@ -8537,8 +8537,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/202bbd51434311ec8640eeeeac1e35146bd6b1d5-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/202bbd51434311ec8640eeeeac1e35146bd6b1d5-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p24-1",
@@ -9442,8 +9442,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/2186e118434311ec85f5eeeeac1e3d56c330d256-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/2186e118434311ec85f5eeeeac1e3d56c330d256-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p27-1",
@@ -10297,8 +10297,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/2349edd5434311eca2abeeeeac1edd8770a38bed-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/2349edd5434311eca2abeeeeac1edd8770a38bed-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title7-0",
@@ -10347,8 +10347,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/24c012e4434311ecbc9ceeeeac1e9a91803952e2-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/24c012e4434311ecbc9ceeeeac1e9a91803952e2-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p19-1",
@@ -12739,8 +12739,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/26b30935434311ecaaebeeeeac1e588cb0c5e413-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/26b30935434311ecaaebeeeeac1e588cb0c5e413-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p30-1",
@@ -12884,8 +12884,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/287f655a434311ec9461eeeeac1efd8b1627aa7f-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/287f655a434311ec9461eeeeac1efd8b1627aa7f-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p34-1",
@@ -13650,8 +13650,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/287f655a434311ec9461eeeeac1efd8b1627aa7f-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/287f655a434311ec9461eeeeac1efd8b1627aa7f-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p20-1",
@@ -14852,8 +14852,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/2c389ccb434311ec9461eeeeac1efd8bbbf27677-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/2c389ccb434311ec9461eeeeac1efd8bbbf27677-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p24-1",
@@ -16875,8 +16875,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/2d339e69434311eca8cdeeeeac1ef8db13f3c439-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/2d339e69434311eca8cdeeeeac1ef8db13f3c439-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p23-1",
@@ -18770,8 +18770,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/2ef15398434311ecbb8deeeeac1e0d103cb31b64-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/2ef15398434311ecbb8deeeeac1e0d103cb31b64-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "video-video2",
@@ -18781,8 +18781,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/3040de07434311ecaaebeeeeac1e588c5e2f3c71-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/3040de07434311ecaaebeeeeac1e588c5e2f3c71-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title8-0",
@@ -18925,8 +18925,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/2ef15398434311ecbb8deeeeac1e0d103cb31b64-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/2ef15398434311ecbb8deeeeac1e0d103cb31b64-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title10-0",
@@ -19642,8 +19642,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/31b2bd32434311ecbb10eeeeac1e4455411f6632-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/31b2bd32434311ecbb10eeeeac1e4455411f6632-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title8-0",
@@ -19706,8 +19706,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/3356f810434311ec9a0eeeeeac1ede1739b5b32a-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/3356f810434311ec9a0eeeeeac1ede1739b5b32a-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p26-1",
@@ -20348,8 +20348,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/34c0251d434311ec87bbeeeeac1ee10be05a2501-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/34c0251d434311ec87bbeeeeac1ee10be05a2501-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title6-0",
@@ -20482,8 +20482,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/3660dc63434311ecb915eeeeac1e6f4b185d156b-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/3660dc63434311ecb915eeeeac1e6f4b185d156b-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "video-video3",
@@ -20493,8 +20493,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/7de4e20ee4735caa61356d50cc056acf2fd62af6-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/7de4e20ee4735caa61356d50cc056acf2fd62af6-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title8-0",
@@ -20543,8 +20543,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/37fc3d15434311eca66beeeeac1ec8b66d193aad-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/37fc3d15434311eca66beeeeac1ec8b66d193aad-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "video-video5",
@@ -21370,8 +21370,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/397e498a434311ecb1b5eeeeac1e22c9ed94340e-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/397e498a434311ecb1b5eeeeac1e22c9ed94340e-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p19-1",
@@ -22190,8 +22190,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/3b19d079434311ecbb8deeeeac1e0d108417f7d1-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/3b19d079434311ecbb8deeeeac1e0d108417f7d1-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p24-1",
@@ -23035,8 +23035,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/3c9e9bf9434311ec85f5eeeeac1e3d56086881c3-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/3c9e9bf9434311ec85f5eeeeac1e3d56086881c3-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "video-video4",
@@ -23715,8 +23715,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/3e31bf1a434311ec85f5eeeeac1e3d56962af4ac-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/3e31bf1a434311ec85f5eeeeac1e3d56962af4ac-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title6-0",
@@ -23818,8 +23818,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/403026f5434311ecbc9ceeeeac1e9a91976ef07c-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/403026f5434311ecbc9ceeeeac1e9a91976ef07c-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title8-0",
@@ -23882,8 +23882,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/41b0d3c7434311eca66beeeeac1ec8b6c2b0ee05-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/41b0d3c7434311eca66beeeeac1ec8b6c2b0ee05-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p21-1",
@@ -24746,8 +24746,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/44ffb0fc434311ecb1b5eeeeac1e22c9d51f8c16-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/44ffb0fc434311ecb1b5eeeeac1e22c9d51f8c16-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p24-1",
@@ -24824,8 +24824,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/464c5443434311ec8640eeeeac1e3514d8b9827f-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/464c5443434311ec8640eeeeac1e3514d8b9827f-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-figure6_p1-1-0",
@@ -25618,8 +25618,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/4b45388c434311ec9461eeeeac1efd8b7548526d-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/4b45388c434311ec9461eeeeac1efd8b7548526d-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p17-1",
@@ -27452,8 +27452,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/5c5f4555434311ecb915eeeeac1e6f4b96ce4451-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/5c5f4555434311ecb915eeeeac1e6f4b96ce4451-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p24-1",
@@ -28068,8 +28068,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/bf9f37230a0707d679c4da5a33e99f2ad331e786-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/bf9f37230a0707d679c4da5a33e99f2ad331e786-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title4-0",
@@ -28366,8 +28366,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/58c025e1434311ec9a0eeeeeac1ede17f8c2ff1b-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/58c025e1434311ec9a0eeeeeac1ede17f8c2ff1b-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p16-1",
@@ -29303,8 +29303,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/49a2ac2d434311ecb1b5eeeeac1e22c967cb5c79-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/49a2ac2d434311ecb1b5eeeeac1e22c967cb5c79-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p22-1",
@@ -29403,8 +29403,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/944CB06A4DF5FF6F87BE5332CC8F6C8FB9DB6F25-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/944CB06A4DF5FF6F87BE5332CC8F6C8FB9DB6F25-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title7-0",
@@ -35543,8 +35543,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/4d273e84434311ecb915eeeeac1e6f4bd08df2e6-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/4d273e84434311ecb915eeeeac1e6f4bd08df2e6-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-figure5_p1-1-0",
@@ -39188,8 +39188,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/33b205a23c7e78e4e45c2b26caa343b1f0fd7b14-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/33b205a23c7e78e4e45c2b26caa343b1f0fd7b14-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p13-1",
@@ -43550,8 +43550,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/51c1d5af434311ec87bbeeeeac1ee10b871bbb88-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/51c1d5af434311ec87bbeeeeac1ee10b871bbb88-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "video-video3",
@@ -43561,8 +43561,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/54f4ed4e434311ecb1b5eeeeac1e22c911d5d48f-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/54f4ed4e434311ecb1b5eeeeac1e22c911d5d48f-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "video-video4",
@@ -43572,8 +43572,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/56acfd38434311eca66beeeeac1ec8b6fa25d5fe-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/56acfd38434311eca66beeeeac1ec8b6fa25d5fe-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p16-1",
@@ -45476,8 +45476,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/f43c0e5e0b6911ecbf18eeeeac1e5d0b57e65880-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/f43c0e5e0b6911ecbf18eeeeac1e5d0b57e65880-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title8-0",
@@ -45582,8 +45582,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/47fbd958434311ecaaebeeeeac1e588cb002ecb6-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/47fbd958434311ecaaebeeeeac1e588cb002ecb6-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title9-0",
@@ -47003,8 +47003,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/4744dc12f12492b57ea4ff2dcacac67f26ff8e7a-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/4744dc12f12492b57ea4ff2dcacac67f26ff8e7a-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-scripture_title2-0",
@@ -47460,8 +47460,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/b722f27d98e061a31f5ed52b88c2690266604ece-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/b722f27d98e061a31f5ed52b88c2690266604ece-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-figure3_p1-1-0",
@@ -47694,8 +47694,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/c828642d374011eca29deeeeac1e03f982461f87-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/c828642d374011eca29deeeeac1e03f982461f87-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-p24-1",
@@ -48338,8 +48338,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/8C6D96DC66FF6E25E7E964F05A12994A1541E6B6-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/8C6D96DC66FF6E25E7E964F05A12994A1541E6B6-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "ref-b-figure3_p1-1-0",
@@ -48438,8 +48438,8 @@
             "sourceKey": "https://assets.churchofjesuschrist.org/5a9f947f434311ecb1b5eeeeac1e22c937065ef7-360p-en.mp4",
             "externalUrl": "https://assets.churchofjesuschrist.org/5a9f947f434311ecb1b5eeeeac1e22c937065ef7-360p-en.mp4"
           },
-          "sourceValidation": "VIDEO_RESOURCE_REVIEW_REQUIRED",
-          "reason": "VIDEO_RESOURCE_REVIEW_REQUIRED"
+          "sourceValidation": "EXTERNAL_VERIFIED",
+          "reason": null
         },
         {
           "anchor": "video-video3",
@@ -49748,7 +49748,7 @@
   "altCorrections": 52,
   "videoFilesMirrored": 0,
   "checkedVideoOccurrences": 95,
-  "approvedVideoLinks": 42,
+  "approvedVideoLinks": 95,
   "newlyFoundNumberingConflicts": 6,
-  "manualReviewRequired": 606
+  "manualReviewRequired": 553
 }

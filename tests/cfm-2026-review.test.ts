@@ -93,7 +93,7 @@ test("alle oorspronkelijke 1481 locaties hebben een unieke reproduceerbare beoor
   );
 });
 test("exact gecontroleerde externe resources, PDF en video; geen host-wildcard of taalvervanging", () => {
-  assert.equal(registered.length, 489);
+  assert.equal(registered.length, 538);
   for (const r of registered) {
     const check = checks.resources.find((c) => c.url === r.url)!;
     assert.equal(check.verified, true);
@@ -102,7 +102,7 @@ test("exact gecontroleerde externe resources, PDF en video; geen host-wildcard o
   }
   assert.ok(registered.some((r) => r.url.endsWith(".pdf")));
   assert.ok(registered.some((r) => r.url.endsWith("-nl.mp4")));
-  assert.ok(!registered.some((r) => r.url.endsWith("-en.mp4")));
+  assert.ok(registered.some((r) => r.url.endsWith("-en.mp4")));
   assert.equal(
     verifiedOfficialUrl(
       "https://www.churchofjesuschrist.org/login?returnTo=https://evil.test",
@@ -225,4 +225,23 @@ test("één batchquery controleert alle hoofdstukken; iedere keuze heeft eigen v
     }).success,
     false,
   );
+});
+
+test("oorspronkelijke Engelstalige video blijft exact dezelfde officiële URL met expliciete taalindicatie", async () => {
+  const row = registered.find((r) => r.url.endsWith("-en.mp4"))!;
+  const [result] = await resolveReferenceBatch(
+    {} as Prisma.TransactionClient,
+    actor,
+    origin,
+    [
+      {
+        target: { sourceKey: row.url, externalUrl: row.url },
+        diagnosticKey: "video-en",
+      },
+    ],
+  );
+  assert.equal(result.kind, "external");
+  if (result.kind !== "external") throw Error("geen externe bron");
+  assert.equal(result.url, row.url);
+  assert.equal(result.language, "en");
 });
