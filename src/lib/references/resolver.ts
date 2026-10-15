@@ -22,6 +22,7 @@ import {
   type ReferenceRequest,
   type ReferenceResolution,
 } from "./contract";
+import { parseOtbPassage, type OtbPassage } from "./otb";
 export type ReferenceActor = { id: string; isAdmin: boolean };
 export const MAX_PREVIEW_VERSES = 40;
 export const MAX_PREVIEW_BYTES = 48_000;
@@ -31,12 +32,13 @@ function bounded(result: ReferenceResolution): boolean {
 type ChapterProof = {
   id: string;
   number: number;
-  verses: Array<{ number: number; text: string }>;
+  verses: Array<{ id: string; number: number; text: string }>;
   book: {
     key: string | null;
     name: string;
     contentCollection: {
       id: string;
+      name: string;
       work: string | null;
       editionKey: string;
       language: string;
@@ -85,6 +87,21 @@ function studyIdentity(
     : null;
 }
 const proofKey = (bookKey: string, chapter: number) => `${bookKey}:${chapter}`;
+function otbTarget(target: Record<string, unknown>): OtbPassage | null {
+  return target.workKey === "old-testament" &&
+    target.editionKey === "otb" &&
+    target.language === "nl" &&
+    typeof target.sourceKey === "string"
+    ? parseOtbPassage(target.sourceKey)
+    : null;
+}
+function otbTitle(book: string, chapter: number, verses: number[]) {
+  if (!verses.length) return `${book} ${chapter}`;
+  const range = verses.every(
+    (verse, index) => index === 0 || verse === verses[index - 1] + 1,
+  );
+  return `${book} ${chapter}:${verses[0]}${verses.length === 1 ? "" : range ? `–${verses.at(-1)}` : `, ${verses.slice(1).join(", ")}`}`;
+}
 
 /** Eén adaptercontract voor importreview en gewone, lazy gebruikerspreviews. */
 export async function resolveReferenceTarget(
@@ -191,6 +208,121 @@ export async function resolveReferenceTarget(
     };
     return bounded(result) ? result : fail("too-large");
   }
+  const otb = otbTarget(target);
+  if (target.workKey === "old-testament") {
+    if (target.editionKey !== "otb" || target.language !== "nl")
+      return fail("edition");
+    if (!otb) return fail("unverified");
+    const cached = prepared?.get(proofKey(otb.bookKey, otb.chapter));
+    const collection = prepared
+      ? cached?.book.contentCollection
+      : await db.contentCollection.findFirst({
+          where: {
+            ...readingAccessWhere(actor),
+            work: "old-testament",
+            editionKey: "otb",
+            language: "nl",
+            contentWork: { kind: "SCRIPTURE" },
+          },
+          select: { id: true, work: true, editionKey: true, language: true },
+        });
+    if (
+      !collection ||
+      collection.work !== "old-testament" ||
+      collection.editionKey !== "otb" ||
+      collection.language !== "nl"
+    )
+      return fail("missing");
+    const chapter = prepared
+      ? cached
+      : await db.chapter.findFirst({
+          where: {
+            number: otb.chapter,
+            book: { contentCollectionId: collection.id, key: otb.bookKey },
+          },
+          select: {
+            id: true,
+            number: true,
+            book: {
+              select: {
+                key: true,
+                name: true,
+                contentCollection: {
+                  select: {
+                    id: true,
+                    name: true,
+                    work: true,
+                    editionKey: true,
+                    language: true,
+                  },
+                },
+              },
+            },
+            verses: {
+              orderBy: { number: "asc" },
+              take: 501,
+              select: { id: true, number: true, text: true },
+            },
+          },
+        });
+    if (!chapter) return fail("missing");
+    // Houd de navigatielink in lijn met de bestaande ScriptureReader-limiet.
+    if (chapter.verses.length > 500) return fail("too-large");
+    if (
+      Buffer.byteLength(
+        JSON.stringify({
+          id: chapter.id,
+          number: chapter.number,
+          book: {
+            name: chapter.book.name,
+            contentCollection: {
+              name: chapter.book.contentCollection.name,
+              language: chapter.book.contentCollection.language,
+              editionKey: chapter.book.contentCollection.editionKey,
+            },
+          },
+          verses: chapter.verses,
+        }),
+      ) > 500000
+    )
+      return fail("too-large");
+    const explicitRange = otb.verses !== null;
+    const selected = explicitRange
+      ? chapter.verses.filter((verse) => otb.verses!.includes(verse.number))
+      : chapter.verses.slice(0, MAX_PREVIEW_VERSES);
+    if (
+      !selected.length ||
+      (explicitRange && selected.length !== otb.verses!.length)
+    )
+      return fail("range");
+    // Een expliciet bereik is alleen betrouwbaar als het volledig in de
+    // preview past. Een hoofdstuk zonder bereik mag wel veilig worden
+    // ingekort: de bestaande reader opent via `href` het volledige hoofdstuk.
+    if (selected.length > MAX_PREVIEW_VERSES) return fail("too-large");
+    const result: ReferenceResolution = {
+      kind: "internal",
+      diagnosticKey,
+      collectionId: collection.id,
+      work: "old-testament",
+      editionKey: "otb",
+      language: "nl",
+      title: explicitRange
+        ? otbTitle(
+            chapter.book.name,
+            otb.chapter,
+            selected.map((verse) => verse.number),
+          )
+        : `${chapter.book.name} ${otb.chapter}`,
+      href: `/scripture/${encodeURIComponent(chapter.id)}#vers-${selected[0].number}`,
+      preview: {
+        kind: "scripture",
+        chapterId: chapter.id,
+        verses: selected,
+        truncated: !explicitRange && chapter.verses.length > selected.length,
+      },
+    };
+    return bounded(result) ? result : fail("too-large");
+  }
   if (sourceKey.startsWith("study:")) {
     const identity = studyIdentity(origin, target);
     if (!identity) return fail("edition");
@@ -277,6 +409,9 @@ export async function resolveReferenceBatch(
       ),
     )
     .filter((p) => p && p.language === "nl");
+  const otbPassages = references
+    .map((reference) => otbTarget(reference.target))
+    .filter((p) => p !== null);
   const clauses = [
     ...new Map(
       passages.map((p) => [
@@ -289,6 +424,24 @@ export async function resolveReferenceBatch(
               ...readingAccessWhere(actor),
               work: p!.book.work,
               editionKey: p!.book.editionKey,
+              language: "nl",
+              contentWork: { kind: "SCRIPTURE" as const },
+            },
+          },
+        },
+      ]),
+    ).values(),
+    ...new Map(
+      otbPassages.map((passage) => [
+        proofKey(passage!.bookKey, passage!.chapter),
+        {
+          number: passage!.chapter,
+          book: {
+            key: passage!.bookKey,
+            contentCollection: {
+              ...readingAccessWhere(actor),
+              work: "old-testament",
+              editionKey: "otb",
               language: "nl",
               contentWork: { kind: "SCRIPTURE" as const },
             },
@@ -311,6 +464,7 @@ export async function resolveReferenceBatch(
               contentCollection: {
                 select: {
                   id: true,
+                  name: true,
                   work: true,
                   editionKey: true,
                   language: true,
@@ -321,7 +475,7 @@ export async function resolveReferenceBatch(
           verses: {
             orderBy: { number: "asc" },
             take: 501,
-            select: { number: true, text: true },
+            select: { id: true, number: true, text: true },
           },
         },
       })

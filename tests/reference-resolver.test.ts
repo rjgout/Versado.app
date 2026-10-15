@@ -10,6 +10,7 @@ import {
   verifiedOfficialUrl,
 } from "../src/lib/references/evidence";
 import { resolveReferenceBatch } from "../src/lib/references/resolver";
+import { parseOtbPassage } from "../src/lib/references/otb";
 import { referenceRequestSchema } from "../src/lib/references/contract";
 import {
   openReferenceTrip,
@@ -25,6 +26,12 @@ const target = {
   sourceKey: base + "&id=p1-p3",
   workKey: "bofm",
   editionKey: "bofm",
+  language: "nl",
+};
+const otbTarget = {
+  sourceKey: "Genesis 1:1-5",
+  workKey: "old-testament",
+  editionKey: "otb",
   language: "nl",
 };
 const origin = {
@@ -57,6 +64,38 @@ function chapter() {
     verses: books[0].chapters[0].verses.map((text, i) => ({
       number: i + 1,
       text,
+    })),
+  };
+}
+function otbChapter({
+  id = "synthetic-otb-genesis-1",
+  key = "gen",
+  name = "Genesis",
+  number = 1,
+  verseCount = 5,
+}: {
+  id?: string;
+  key?: string;
+  name?: string;
+  number?: number;
+  verseCount?: number;
+} = {}) {
+  return {
+    id,
+    number,
+    book: {
+      key,
+      name,
+      contentCollection: {
+        id: "content_old_testament_otb_nl",
+        work: "old-testament",
+        editionKey: "otb",
+        language: "nl",
+      },
+    },
+    verses: Array.from({ length: verseCount }, (_, index) => ({
+      number: index + 1,
+      text: `Nederlandse OTB-vers ${index + 1}.`,
     })),
   };
 }
@@ -109,6 +148,33 @@ test("canonieke URL en bereik blijven exact; natuurlijke namen zijn geen mapping
     base.replace("bofm/1-ne", "ot/gen"),
   ])
     assert.equal(parseScriptureUrl(url), null, url);
+});
+test("Nederlandse OTB-namen, afkortingen en codes normaliseren naar de bestaande canonieke sleutels", () => {
+  for (const [sourceKey, expected] of [
+    ["Genesis 1", ["gen", 1, null]],
+    ["Gen. 1:1-5", ["gen", 1, [1, 2, 3, 4, 5]]],
+    ["otb:gen:1:1-5", ["gen", 1, [1, 2, 3, 4, 5]]],
+    ["1 Samuel 3:1", ["1sa", 3, [1]]],
+    ["2 Kron. 7:14", ["2ch", 7, [14]]],
+    ["Ezechiël 1:1", ["ezk", 1, [1]]],
+    ["Maleachi 3:10", ["mal", 3, [10]]],
+  ] as const) {
+    const parsed = parseOtbPassage(sourceKey);
+    assert.ok(parsed, sourceKey);
+    assert.deepEqual(
+      [parsed.bookKey, parsed.chapter, parsed.verses],
+      expected,
+      sourceKey,
+    );
+  }
+  for (const invalid of [
+    "Genesis 0",
+    "Genesis 1:5-1",
+    "Genesis 1:31-2:3",
+    "Onbekend 1:1",
+    "otb:gen:1:0",
+  ])
+    assert.equal(parseOtbPassage(invalid), null, invalid);
 });
 test("onveilige URL-normalisatie en redirects hebben geen externe vrijbrief", () => {
   for (const url of [
@@ -176,6 +242,151 @@ test("echte canon, expliciete editie en volledige hoofdstukhash leveren de juist
   );
   assert.equal(result.preview.verses[0].text, chapter().verses[0].text);
   assert.equal(result.href, "/scripture/synthetic-chapter#vers-1");
+});
+test("Nederlandse OTB-verwijzingen leveren uitsluitend de exact gekozen editie en verzen", async () => {
+  const db = {
+    chapter: { findMany: async () => [otbChapter()] },
+  } as unknown as Prisma.TransactionClient;
+  const [result] = await resolveReferenceBatch(db, actor, origin, [
+    { target: otbTarget, diagnosticKey: "otb-ref" },
+  ]);
+  assert.equal(result.kind, "internal");
+  if (result.kind !== "internal" || result.preview.kind !== "scripture")
+    throw Error("geen OTB-passage");
+  assert.equal(result.collectionId, "content_old_testament_otb_nl");
+  assert.equal(result.href, "/scripture/synthetic-otb-genesis-1#vers-1");
+  assert.equal(result.title, "Genesis 1:1–5");
+  assert.deepEqual(
+    result.preview.verses.map((verse) => verse.number),
+    [1, 2, 3, 4, 5],
+  );
+});
+test("volledige OTB-hoofdstukken krijgen een begrensde preview en behouden een bruikbare volledige leesroute", async () => {
+  for (const scenario of [
+    {
+      sourceKey: "Genesis 1",
+      chapter: otbChapter(),
+      href: "/scripture/synthetic-otb-genesis-1#vers-1",
+      title: "Genesis 1",
+      truncated: false,
+    },
+    {
+      sourceKey: "Genesis 24",
+      chapter: otbChapter({
+        id: "synthetic-otb-genesis-24",
+        number: 24,
+        verseCount: 67,
+      }),
+      href: "/scripture/synthetic-otb-genesis-24#vers-1",
+      title: "Genesis 24",
+      truncated: true,
+    },
+    {
+      sourceKey: "Psalm 119",
+      chapter: otbChapter({
+        id: "synthetic-otb-psalm-119",
+        key: "psa",
+        name: "Psalmen",
+        number: 119,
+        verseCount: 176,
+      }),
+      href: "/scripture/synthetic-otb-psalm-119#vers-1",
+      title: "Psalmen 119",
+      truncated: true,
+    },
+  ]) {
+    const [result] = await resolveReferenceBatch(
+      {
+        chapter: { findMany: async () => [scenario.chapter] },
+      } as unknown as Prisma.TransactionClient,
+      actor,
+      origin,
+      [
+        {
+          target: { ...otbTarget, sourceKey: scenario.sourceKey },
+          diagnosticKey: scenario.sourceKey,
+        },
+      ],
+    );
+    assert.equal(result.kind, "internal", scenario.sourceKey);
+    if (result.kind !== "internal" || result.preview.kind !== "scripture")
+      throw Error("geen OTB-hoofdstuk");
+    assert.equal(result.href, scenario.href);
+    assert.equal(result.title, scenario.title);
+    assert.equal(result.preview.truncated, scenario.truncated);
+    assert.equal(
+      result.preview.verses.length,
+      Math.min(scenario.chapter.verses.length, 40),
+    );
+  }
+});
+test("OTB-preview- en readerlimieten wijzen expliciete of onleesbare doelen af", async () => {
+  const hugeText = otbChapter();
+  hugeText.verses[4].text = "x".repeat(500001);
+  const missingVerse = otbChapter();
+  missingVerse.verses.splice(2, 1);
+  for (const [chapter, sourceKey, reason] of [
+    [otbChapter({ verseCount: 67 }), "Genesis 1:1-41", "too-large"],
+    [otbChapter({ verseCount: 501 }), "Genesis 1", "too-large"],
+    [hugeText, "Genesis 1", "too-large"],
+    [missingVerse, "Genesis 1:1-5", "range"],
+  ] as const) {
+    const [result] = await resolveReferenceBatch(
+      {
+        chapter: { findMany: async () => [chapter] },
+      } as unknown as Prisma.TransactionClient,
+      actor,
+      origin,
+      [{ target: { ...otbTarget, sourceKey }, diagnosticKey: "limit" }],
+    );
+    assert.deepEqual(result, {
+      kind: "unavailable",
+      reason,
+      diagnosticKey: "limit",
+    });
+  }
+});
+test("OTB-ranges, toegang en editie-equivalentie falen gesloten", async () => {
+  const unavailable = {
+    chapter: { findMany: async () => [] },
+  } as unknown as Prisma.TransactionClient;
+  const [missing, edition] = await resolveReferenceBatch(
+    unavailable,
+    actor,
+    origin,
+    [
+      { target: otbTarget, diagnosticKey: "missing" },
+      { target: { ...otbTarget, language: "en" }, diagnosticKey: "edition" },
+    ],
+  );
+  assert.deepEqual(missing, {
+    kind: "unavailable",
+    reason: "missing",
+    diagnosticKey: "missing",
+  });
+  assert.deepEqual(edition, {
+    kind: "unavailable",
+    reason: "edition",
+    diagnosticKey: "edition",
+  });
+  const [range] = await resolveReferenceBatch(
+    {
+      chapter: { findMany: async () => [otbChapter()] },
+    } as unknown as Prisma.TransactionClient,
+    actor,
+    origin,
+    [
+      {
+        target: { ...otbTarget, sourceKey: "Genesis 1:99" },
+        diagnosticKey: "range",
+      },
+    ],
+  );
+  assert.deepEqual(range, {
+    kind: "unavailable",
+    reason: "range",
+    diagnosticKey: "range",
+  });
 });
 test("100 versverwijzingen naar dezelfde bron gebruiken één gerichte hoofdstukquery", async () => {
   let count = 0;

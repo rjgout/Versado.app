@@ -4044,7 +4044,8 @@ export const es: PartialMessages = {
   "failed": "No se pudo abrir la referencia o guardar tu posición de lectura. Vuelve a intentarlo.",
   "returnExpired": "El regreso temporal a tu lección ha caducado.",
   "returnFailed": "No se pudo regresar. Tu selección de fuente o lección puede haber cambiado y no se sobrescribirá.",
-  "readonly": "Esto solo abre el texto y no completa ninguna lección."
+  "readonly": "Esto solo abre el texto y no completa ninguna lección.",
+  "truncated": "Esta es una vista previa del capítulo. Lee más para ver todos los versículos."
 },
 
 };

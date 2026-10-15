@@ -30,6 +30,8 @@ export type ReferenceResolution =
             kind: "scripture";
             chapterId: string;
             verses: Array<{ number: number; text: string }>;
+            /** Alleen bij een hoofdstukverwijzing; Meer lezen opent altijd het hele hoofdstuk. */
+            truncated?: boolean;
           }
         | {
             kind: "study";

@@ -76,6 +76,46 @@ export async function ensureReferenceScripture() {
     },
   });
 }
+export async function ensureReferenceOtbScripture() {
+  assertReferenceTestEnvironment();
+  const collection = await prisma.contentCollection.findFirstOrThrow({
+    where: { work: "old-testament", editionKey: "otb", language: "nl" },
+  });
+  const existing = await prisma.chapter.findFirst({
+    where: {
+      number: 1,
+      book: { key: "gen", contentCollectionId: collection.id },
+    },
+  });
+  if (existing) return { collection, chapter: existing };
+  const book =
+    (await prisma.book.findFirst({
+      where: { key: "gen", contentCollectionId: collection.id },
+    })) ??
+    (await prisma.book.create({
+      data: {
+        slug: `reference-otb-genesis-${randomUUID()}`,
+        key: "gen",
+        name: "Genesis",
+        order: 1,
+        contentCollectionId: collection.id,
+      },
+    }));
+  const chapter = await prisma.chapter.create({
+    data: {
+      bookId: book.id,
+      number: 1,
+      order: 1,
+      verses: {
+        create: Array.from({ length: 5 }, (_, index) => ({
+          number: index + 1,
+          text: `Synthetisch Nederlands OTB-vers ${index + 1}.`,
+        })),
+      },
+    },
+  });
+  return { collection, chapter };
+}
 export async function referenceFixture(language = "nl") {
   const base = assertReferenceTestEnvironment();
   await ensureReferenceScripture();

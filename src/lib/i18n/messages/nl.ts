@@ -4505,7 +4505,8 @@ export const nl = {
   "failed": "De verwijzing kon niet worden geopend of je leesplek kon niet worden bewaard. Probeer het opnieuw.",
   "returnExpired": "De tijdelijke terugkeer naar je les is verlopen.",
   "returnFailed": "Terugkeren is niet gelukt. Je bron- of leskeuze kan inmiddels veranderd zijn; die wordt niet overschreven.",
-  "readonly": "Dit opent alleen de tekst; het rondt geen les af."
+  "readonly": "Dit opent alleen de tekst; het rondt geen les af.",
+  "truncated": "Dit is een voorproef van dit hoofdstuk. Lees verder om alle verzen te bekijken."
 },
 
 };

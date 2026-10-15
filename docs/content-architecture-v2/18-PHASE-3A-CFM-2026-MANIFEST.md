@@ -52,17 +52,24 @@ niet door een generieke schriftboekregel gefabriceerd.
 
 De leskoppen en de bronpagina's bevatten de te bestuderen passages. Het
 manifest bewaart die officiële labels, maar classificeert alle lesverwijzingen
-voorlopig als `BLOCKED`: de bestaande `ReferenceResolver` heeft alleen
-bewezen canonieke/edition-equivalentie voor de momenteel geregistreerde
-Schriftbronnen en geen gecontroleerd Oudtestament-bewijs in een Nederlandse
-editie. Er is daarom geen interne route en ook geen gefingeerde fallback-URL
-toegevoegd.
+voorlopig als `BLOCKED`: er is nog geen gecontroleerde concrete
+passage-inventaris uit de CFM-bron. Fase 3A.4 voegt uitsluitend de bewezen
+Nederlandse OTB-doeluitgave aan de centrale resolver toe; zie
+[20-PHASE-3A4-OTB-REFERENCE-RESOLVER.md](20-PHASE-3A4-OTB-REFERENCE-RESOLVER.md).
+Dat maakt geen CFM-verwijzing automatisch intern en voegt geen gefingeerde
+fallback-URL toe.
 
 Voor 3B is per concrete passage nodig: een officiële, precieze bron-URL,
 canonieke boek-/hoofdstuk-/versmapping, een Nederlandse editie en het
 evidence-record dat de bestaande resolver verlangt. Zonder dat bewijs moet de
 adapter de verwijzing als geblokkeerd rapporteren, niet een andere vertaling
 openen.
+
+Voor latere CFM-edities bepaalt de taal van de lesinhoud welke gecontroleerde
+schriftuureditie voor dezelfde canonieke passage nodig is; de interfacetaal is
+hiervoor niet bepalend. Meerdere edities vereisen een expliciete,
+controleerbare keuze. Ontbreekt die bewezen combinatie, dan blijft de
+verwijzing onbeschikbaar zonder stille fallback naar een andere taal of editie.
 
 ## Media-inventarisatie
 

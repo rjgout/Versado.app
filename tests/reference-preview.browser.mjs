@@ -59,7 +59,57 @@ async function open(page) {
   const y = await page.evaluate(() => window.__referenceOpenY);
   return { button, y };
 }
-try {
+async function longChapterPreview() {
+  const f = await referenceFixture(),
+    t = getT("nl"),
+    { c, page } = await context(f, { width: 320, height: 844 });
+  await page.route("**/api/study-references", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        kind: "internal",
+        diagnosticKey: "long-chapter",
+        collectionId: "content_old_testament_otb_nl",
+        work: "old-testament",
+        editionKey: "otb",
+        language: "nl",
+        title: "Psalmen 119",
+        href: "/scripture/long-chapter#vers-1",
+        preview: {
+          kind: "scripture",
+          chapterId: "long-chapter",
+          truncated: true,
+          verses: Array.from({ length: 40 }, (_, index) => ({
+            number: index + 1,
+            text: index === 0 ? "Ik, Nephi, zag." : `Voorbeeldvers ${index + 1}.`,
+          })),
+        },
+      }),
+    });
+  });
+  await page.goto(base + f.href);
+  await open(page);
+  await page
+    .locator("[data-reference-preview-truncated]")
+    .getByText(t("referencePreview.truncated"), { exact: true })
+    .waitFor();
+  assert.equal(await page.locator("[data-reference-preview] sup").count(), 40);
+  assert.equal(
+    await page
+      .getByRole("button", { name: t("referencePreview.more"), exact: true })
+      .count(),
+    1,
+  );
+  await page.screenshot({ path: output + "/long-chapter-mobile.png" });
+  await page.keyboard.press("Escape");
+  await c.close();
+  results.push({ longChapterPreview: true, moreAvailable: true });
+}
+async function runSuite() {
+  if (process.argv.includes("--long-chapter-only")) {
+    await longChapterPreview();
+    return;
+  }
   for (const size of [
     { width: 320, height: 844 },
     { width: 390, height: 844 },
@@ -168,7 +218,10 @@ try {
     await open(page);
     assert.equal(
       await page
-        .getByRole("button", { name: t("referencePreview.more"), exact: true })
+        .getByRole("button", {
+          name: t("referencePreview.more"),
+          exact: true,
+        })
         .count(),
       1,
     );
@@ -182,6 +235,7 @@ try {
     await c.close();
     results.push({ uiLanguage: lang, largeText: true, keyboard: true });
   }
+  await longChapterPreview();
   // Echte uitstap, herladen, tabgebonden terugkeer en een conflict vanaf een ander toestel.
   {
     const f = await referenceFixture(),
@@ -198,15 +252,21 @@ try {
     await page.locator("[data-scripture-readonly]").waitFor();
     assert.match(page.url(), /returnKey=/);
     assert.equal(
-      (await prisma.user.findUniqueOrThrow({ where: { id: f.owner.user.id } }))
-        .activeContentCollectionId,
+      (
+        await prisma.user.findUniqueOrThrow({
+          where: { id: f.owner.user.id },
+        })
+      ).activeContentCollectionId,
       "content_bom",
     );
     await page.goBack();
     await page.locator("[data-study-reader]").waitFor();
     assert.equal(
-      (await prisma.user.findUniqueOrThrow({ where: { id: f.owner.user.id } }))
-        .activeContentCollectionId,
+      (
+        await prisma.user.findUniqueOrThrow({
+          where: { id: f.owner.user.id },
+        })
+      ).activeContentCollectionId,
       "content_bom",
     );
     await page.goForward();
@@ -221,8 +281,11 @@ try {
       .click();
     await page.locator("[data-study-reader]").waitFor();
     assert.equal(
-      (await prisma.user.findUniqueOrThrow({ where: { id: f.owner.user.id } }))
-        .activeContentCollectionId,
+      (
+        await prisma.user.findUniqueOrThrow({
+          where: { id: f.owner.user.id },
+        })
+      ).activeContentCollectionId,
       f.collection.id,
     );
     await delay(900);
@@ -260,7 +323,9 @@ try {
     for (const k of ["xpTotal", "hintBalance", "activeCourseId"])
       assert.equal(after[k], before[k]);
     assert.equal(
-      await prisma.readingSession.count({ where: { userId: f.owner.user.id } }),
+      await prisma.readingSession.count({
+        where: { userId: f.owner.user.id },
+      }),
       0,
     );
     assert.equal(
@@ -299,8 +364,11 @@ try {
       .click();
     await page.locator("dialog[open]").getByRole("alert").waitFor();
     assert.equal(
-      (await prisma.user.findUniqueOrThrow({ where: { id: f.owner.user.id } }))
-        .activeContentCollectionId,
+      (
+        await prisma.user.findUniqueOrThrow({
+          where: { id: f.owner.user.id },
+        })
+      ).activeContentCollectionId,
       f.collection.id,
     );
     await page.unroute("**/api/study-references");
@@ -348,8 +416,11 @@ try {
       .waitFor();
     assert.equal(moreRequests, 0);
     assert.equal(
-      (await prisma.user.findUniqueOrThrow({ where: { id: f.owner.user.id } }))
-        .activeContentCollectionId,
+      (
+        await prisma.user.findUniqueOrThrow({
+          where: { id: f.owner.user.id },
+        })
+      ).activeContentCollectionId,
       f.collection.id,
     );
     await page.screenshot({ path: output + "/save-failure-mobile.png" });
@@ -394,8 +465,11 @@ try {
       .filter({ hasText: t("referencePreview.selectionConflict") })
       .waitFor();
     assert.equal(
-      (await prisma.user.findUniqueOrThrow({ where: { id: f.owner.user.id } }))
-        .contentSelectionVersion,
+      (
+        await prisma.user.findUniqueOrThrow({
+          where: { id: f.owner.user.id },
+        })
+      ).contentSelectionVersion,
       changed.contentSelectionVersion,
     );
     await page.screenshot({ path: output + "/lost-response-mobile.png" });
@@ -454,13 +528,19 @@ try {
       "laat Meer-lezen-antwoord mag een nieuwe geschiedeniskeuze niet terugdraaien",
     );
     assert.equal(
-      (await prisma.user.findUniqueOrThrow({ where: { id: f.owner.user.id } }))
-        .activeContentCollectionId,
+      (
+        await prisma.user.findUniqueOrThrow({
+          where: { id: f.owner.user.id },
+        })
+      ).activeContentCollectionId,
       "content_podcasts",
     );
     await page.screenshot({ path: output + "/late-more-history-mobile.png" });
     await c.close();
-    results.push({ lateMoreCannotNavigate: true, newerChoicePreserved: true });
+    results.push({
+      lateMoreCannotNavigate: true,
+      newerChoicePreserved: true,
+    });
   }
   {
     const f = await referenceFixture(),
@@ -514,13 +594,19 @@ try {
       "na verlaten van de reader wordt geen uitgestelde bronmutatie meer verstuurd",
     );
     assert.equal(
-      (await prisma.user.findUniqueOrThrow({ where: { id: f.owner.user.id } }))
-        .activeContentCollectionId,
+      (
+        await prisma.user.findUniqueOrThrow({
+          where: { id: f.owner.user.id },
+        })
+      ).activeContentCollectionId,
       f.collection.id,
     );
     await c.close();
     results.push({ latePickerDoesNotStartMore: true });
   }
+}
+try {
+  await runSuite();
   assert.deepEqual(errors, []);
   console.log(
     JSON.stringify({

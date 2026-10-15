@@ -4033,7 +4033,8 @@ export const de: PartialMessages = {
   "failed": "Der Verweis konnte nicht geöffnet oder die Leseposition nicht gespeichert werden. Bitte versuche es erneut.",
   "returnExpired": "Die vorübergehende Rückkehr zur Lektion ist abgelaufen.",
   "returnFailed": "Die Rückkehr ist fehlgeschlagen. Deine Quellen- oder Lektionsauswahl hat sich möglicherweise geändert und wird nicht überschrieben.",
-  "readonly": "Dies öffnet nur den Text und schließt keine Lektion ab."
+  "readonly": "Dies öffnet nur den Text und schließt keine Lektion ab.",
+  "truncated": "Dies ist eine Vorschau dieses Kapitels. Lies weiter, um alle Verse zu sehen."
 },
 
 };

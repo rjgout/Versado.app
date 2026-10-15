@@ -4033,7 +4033,8 @@ export const fr: PartialMessages = {
   "failed": "La référence n’a pas pu être ouverte ou votre position de lecture enregistrée. Réessayez.",
   "returnExpired": "Le retour temporaire à votre leçon a expiré.",
   "returnFailed": "Le retour a échoué. Votre choix de source ou de leçon a peut-être changé et ne sera pas remplacé.",
-  "readonly": "Cette action ouvre uniquement le texte et ne termine aucune leçon."
+  "readonly": "Cette action ouvre uniquement le texte et ne termine aucune leçon.",
+  "truncated": "Ceci est un aperçu de ce chapitre. Lisez la suite pour voir tous les versets."
 },
 
 };

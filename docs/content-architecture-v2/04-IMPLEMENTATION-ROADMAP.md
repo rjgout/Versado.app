@@ -146,6 +146,9 @@ verwijzingsedities/mappings met bronbewijs en fixtures voor canon, nummering
 en teksteditie. Zonder bewezen equivalentie werkt uitsluitend een bekende
 officiële externe fallback of nette melding. Dezelfde referentievalidatie
 is verplicht vóór latere lespublicatie; dit is geen gate voor fase 1A.
+De beperkte Nederlandse OTB-mapping is aanvullend vastgelegd in
+[20-PHASE-3A4-OTB-REFERENCE-RESOLVER.md](20-PHASE-3A4-OTB-REFERENCE-RESOLVER.md);
+een concrete CFM-passage-inventaris blijft een fase-3B-gate.
 Bewaarbeleid D4 geldt vanaf de importbasis: geen automatische garbage
 collection of destructieve contractmigratie zonder afzonderlijk goedgekeurd beleid.
 
