@@ -98,4 +98,31 @@ cancel-bij-aanvragen en stopredenen. Met `HYMNS_REAL_AUDIO_82=<wav>` draaien twe
 - of de AudioContext `running` blijft (onderbreking door beller, Siri, vergrendelscherm), en na hoeveel seconden audiobuffers binnenkomen;
 - of het scherm dimmen/vergrendelen de microfoon stopt (`visibilitychange` → reden "achtergrond", bewust gedrag);
 - of de herkenning met echte kerkgeluiden en een telefoonmicrofoon slaagt (de volger verliest in mijn ruis-/galmtest de lock, in oud én nieuw);
-- of de reverse proxy/NAS (`Permissions-Policy: microphone=()` staat in `deploy/nginx/nginx.conf`; als dat daadwerkelijk in de keten zit, is de microfoon geblokkeerd) iets aan de headers of compressie verandert.
+- of de reverse proxy/NAS naast de aangepaste `Permissions-Policy` nog iets aan de headers of compressie verandert (zie hieronder: de publieke route is gemeten).
+
+## Tweede, bevestigde oorzaak: de productieproxy blokkeerde de microfoon (Permissions-Policy)
+
+Gemeten op de echte publieke route (`curl -I https://versado.app/...` op 15 oktober 2026, 16:24 UTC):
+
+```
+/dev/lofzangen (307 naar /login)   permissions-policy: camera=(), microphone=(), geolocation=()
+/login                             permissions-policy: camera=(), microphone=(), geolocation=()
+/api/health                        permissions-policy: camera=(), microphone=(), geolocation=()
+```
+
+`deploy/nginx/nginx.conf` (sinds commit `7d2ee15b`, 7 oktober) zet die header op ELKE response (de app zelf zet hem niet). Een browser die `microphone=()` ziet, weigert
+`getUserMedia` volledig, ook als de gebruiker toestemming geeft. Gemeten in Chromium met precies deze header: de microfoon wordt nooit geopend, de app meldt de oorzaak.
+
+**Wat ik wel en niet kan vaststellen.** Dat de header nu in productie staat is gemeten. *Sinds wanneer* de proxy-container hem stuurt weet ik niet: de proxy is bewust een altijd-actieve container
+die bij app-updates blijft draaien. Een oudere proxy-image (van vóór 7 oktober) zou verklaren waarom het op 14 oktober nog werkte en na het opnieuw aanmaken van de proxy niet meer; dat is een
+aannemelijke, niet bewezen verklaring. Let op: bij deze oorzaak meldt de app "geen toestemming" en gaat de microfoon niet aan; de eigenaar beschreef "de microfoon gaat aan". Dat past bij de eerste
+oorzaak (bundelfout). Beide kunnen dus tegelijk bestaan of op verschillende toestellen/tijdstippen zijn opgetreden.
+
+**Reparatie (afgebakend):** `Permissions-Policy: camera=(), microphone=(self), geolocation=()`. De microfoon is alleen toegestaan voor de eigen oorsprong (geen iframes of andere oorsprongen; `X-Frame-Options: DENY` staat er
+bovendien), camera en locatie blijven voor iedereen gesloten. Daarnaast herkent de app nu een blokkerende policy (`document.permissionsPolicy.allowsFeature("microphone")`), meldt die als eigen oorzaak en toont hem in de diagnostiek.
+
+**Regressietest:** `tests/proxy-headers.test.ts` (draait mee in CI via `content-access.yml` en in `npm run test:hymns`/`test:proxy`): de microfoon moet `(self)` zijn, nooit `*` of een andere oorsprong, camera en locatie `()`, de
+beveiligingsheaders mogen niet door een `add_header` in `location /` verdwijnen, en geen enkel ander bronbestand mag `microphone=()` zetten. Bewezen: met de oude `nginx.conf` falen 2 van de 5 tests. Browserbewijs (`e2e-live-failures.mjs`, scenario's
+`policyblock` en `policyself`): met de oude header geen microfoon en een zichtbare oorzaak, met `(self)` wordt lofzang 82 herkend na 40 s.
+
+**Voor het effect in productie moet de `jehova-proxy`-image opnieuw worden gebouwd én die container opnieuw worden aangemaakt** (een app-update alleen volstaat niet; de proxy blijft bewust draaien). Dat gebeurt pas na jouw toestemming.

@@ -28,6 +28,8 @@ export interface MicDiagnostics {
   trackState: string | null;
   lastStopReason: MicStopReason | null;
   lastStopDetail: string | null;
+  /** Staat de Permissions-Policy van de pagina de microfoon toe (null = de browser kan dat niet zeggen). */
+  policyAllowsMicrophone: boolean | null;
 }
 
 export interface MicListenerOptions {
@@ -52,6 +54,22 @@ class HymnCapture extends AudioWorkletProcessor {
 }
 registerProcessor("hymn-capture", HymnCapture);
 `;
+
+/**
+ * Staat de Permissions-Policy van de pagina de microfoon toe? true/false waar de browser dat kan zeggen (Chromium: document.permissionsPolicy),
+ * anders null (onbekend; Safari heeft die API niet en weigert dan pas bij getUserMedia). Een proxy die "microphone=()" meestuurt blokkeert
+ * de microfoon volledig; dat willen we als aparte, herkenbare oorzaak tonen in plaats van als "geen toestemming".
+ */
+export function microphonePolicyAllows(): boolean | null {
+  if (typeof document === "undefined") return null;
+  const doc = document as unknown as { permissionsPolicy?: { allowsFeature(name: string): boolean }; featurePolicy?: { allowsFeature(name: string): boolean } };
+  const policy = doc.permissionsPolicy ?? doc.featurePolicy;
+  try {
+    return policy ? policy.allowsFeature("microphone") : null;
+  } catch {
+    return null;
+  }
+}
 
 export function micSupported(): boolean {
   return typeof navigator !== "undefined" && !!navigator.mediaDevices?.getUserMedia && typeof AudioWorkletNode !== "undefined";
@@ -98,6 +116,7 @@ export class MicListener {
       trackState: this.stream?.getAudioTracks()[0]?.readyState ?? null,
       lastStopReason: this.lastStopReason,
       lastStopDetail: this.lastStopDetail,
+      policyAllowsMicrophone: microphonePolicyAllows(),
     };
   }
 
@@ -110,6 +129,12 @@ export class MicListener {
     if (this.starting || this.state === "listening") return;
     if (!micSupported()) {
       this.setState("unsupported", "Deze browser kan het geluid niet lokaal analyseren (geen AudioWorklet of microfoon).");
+      return;
+    }
+    if (microphonePolicyAllows() === false) {
+      this.lastStopReason = "fout";
+      this.lastStopDetail = "Permissions-Policy blokkeert de microfoon";
+      this.setState("denied", "De microfoon wordt geblokkeerd door een beveiligingsheader van de server (Permissions-Policy: microphone=()). Dit kan alleen op de server worden opgelost.");
       return;
     }
     this.starting = true;

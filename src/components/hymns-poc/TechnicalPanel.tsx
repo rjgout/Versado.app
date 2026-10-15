@@ -1,7 +1,7 @@
 "use client";
 
 import { FileAudio } from "lucide-react";
-import type { MicDiagnostics, MicState } from "@/lib/hymns/audio/micListener";
+import { microphonePolicyAllows, type MicDiagnostics, type MicState } from "@/lib/hymns/audio/micListener";
 import type { LibraryDiagnostics } from "@/lib/hymnLibraryClient";
 import type { LiveState } from "@/lib/hymns/live";
 import { focusRing } from "@/components/versado/styles";
@@ -35,12 +35,14 @@ function Row({ k, v }: { k: string; v: string }) {
 export default function TechnicalPanel({ micState, micDiag, libDiag, live, testProgress, testAs, onTestAs, onFile }: Props) {
   const s = live.snapshot;
   const r = live.recognition;
+  const policy = microphonePolicyAllows();
   const maxEvidence = Math.max(70, ...(r?.ranking.map((x) => x.evidence) ?? [0]));
   return (
     <div className="space-y-4 text-sm" data-hymns-technical>
       <LibraryReportPanel />
       <dl className="space-y-1" data-hymns-diagnostics>
         <Row k="Microfoon" v={MIC_TEXT[micState]} />
+        <Row k="Permissions-Policy (microfoon)" v={policy === false ? "GEBLOKKEERD door de server" : policy === true ? "toegestaan" : "onbekend (browser meldt het niet)"} />
         <Row k="AudioContext" v={micDiag?.contextState ?? "geen"} />
         <Row k="Microfoonspoor" v={micDiag?.trackState ?? "geen"} />
         <Row k="Audiobuffers ontvangen" v={micDiag ? `${micDiag.buffers}${micDiag.sampleRate ? ` · ${micDiag.sampleRate} Hz` : ""}` : "0"} />
