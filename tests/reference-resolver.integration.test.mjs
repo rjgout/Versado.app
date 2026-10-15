@@ -5,11 +5,87 @@ import {
   referenceFixture,
   referenceHttp,
   referenceAccount,
+  ensureReferenceOtbScripture,
   assertReferenceTestEnvironment,
 } from "./fixtures/reference-content.mjs";
 import { auditStudyReferences } from "../src/lib/references/audit.ts";
 assertReferenceTestEnvironment();
 after(() => prisma.$disconnect());
+test("Nederlandse OTB-preview gebruikt de echte gekozen collectie, een hoofdstukanker en normale leesrechten", async () => {
+  const f = await referenceFixture();
+  const { collection, chapter } = await ensureReferenceOtbScripture();
+  const beforeCollection = {
+    enabled: collection.enabled,
+    visibleToUsers: collection.visibleToUsers,
+    publicationState: collection.publicationState,
+  };
+  const beforeUser = await prisma.user.findUniqueOrThrow({
+    where: { id: f.owner.user.id },
+  });
+  try {
+    await prisma.contentCollection.update({
+      where: { id: collection.id },
+      data: {
+        enabled: true,
+        visibleToUsers: true,
+        publicationState: "PUBLISHED",
+      },
+    });
+    const { resolveReferenceBatch } =
+      await import("../src/lib/references/resolver.ts");
+    const [resolved] = await prisma.$transaction((db) =>
+      resolveReferenceBatch(db, f.owner.actor, f.dto.lesson, [
+        {
+          target: {
+            sourceKey: "Gen. 1:1-5",
+            workKey: "old-testament",
+            editionKey: "otb",
+            language: "nl",
+          },
+          diagnosticKey: "otb-reference",
+        },
+      ]),
+    );
+    assert.equal(resolved.kind, "internal");
+    assert.equal(resolved.collectionId, collection.id);
+    assert.equal(resolved.href, `/scripture/${chapter.id}#vers-1`);
+    assert.deepEqual(
+      resolved.preview.verses.map((verse) => verse.number),
+      [1, 2, 3, 4, 5],
+    );
+    await prisma.contentCollection.update({
+      where: { id: collection.id },
+      data: { visibleToUsers: false },
+    });
+    const [blocked] = await prisma.$transaction((db) =>
+      resolveReferenceBatch(db, f.owner.actor, f.dto.lesson, [
+        {
+          target: {
+            sourceKey: "Genesis 1:1",
+            workKey: "old-testament",
+            editionKey: "otb",
+            language: "nl",
+          },
+          diagnosticKey: "hidden-otb-reference",
+        },
+      ]),
+    );
+    assert.deepEqual(blocked, {
+      kind: "unavailable",
+      reason: "missing",
+      diagnosticKey: "hidden-otb-reference",
+    });
+    assert.deepEqual(
+      await prisma.user.findUniqueOrThrow({ where: { id: f.owner.user.id } }),
+      beforeUser,
+    );
+  } finally {
+    await prisma.contentCollection.update({
+      where: { id: collection.id },
+      data: beforeCollection,
+    });
+  }
+});
 test("echte published-only preview geeft exacte verzen zonder voortgang/economie/voorkeurmutaties", async () => {
   const f = await referenceFixture();
   const before = await prisma.user.findUniqueOrThrow({
