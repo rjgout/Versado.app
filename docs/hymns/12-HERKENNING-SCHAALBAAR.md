@@ -96,7 +96,18 @@ orgel met afwijkende stemming. De Nederlandse notatie wijkt soms af van de Engel
 
 ## 4. Robuustheid (synthetisch en bewerkte opnamen)
 
-ROBUSTHEID_TABEL
+Dezelfde herkenner, dezelfde 27 lofzangen (een op de drie bij een gespreide steekproef), eerste 90 s van de officiële opname, bewerkt. Gemeten met
+`eval-library.ts --tempo/--noise`. "Juist" = de eerste uitspraak is de goede lofzang.
+
+| Bewerking | Lofzangen | Juist | Verkeerd | Niet herkend | Mediaan | P90 |
+|---|---|---|---|---|---|---|
+| tempo ×0,75 (langzamer) | 27 | 22 | 0 | 5 (67, 94, 198, 70, 149) | 14,8 s | 52,3 s |
+| tempo ×1,35 (sneller) | 27 | 23 | 0 | 4 (116, 148, 198, 174) | 9,6 s | 47,8 s |
+| ruis 0,05 (witte ruis) | 27 | 24 | 0 | 3 (23, 67, 94) | 17,8 s | 57,9 s |
+
+Lezing: bij vertraagd, versneld of ruizig geluid wordt een lofzang vaker niet herkend (11-19 %), maar nooit een verkeerde zeker gekozen (0 van 81).
+Dat is de bedoelde afweging: liever "niet herkend, zoek zelf" dan een verkeerde lofzang. **BEWEZEN** alleen voor deze bewerkingen op studio-opnamen; echte
+kerkakoestiek, gemeentezang en kinderen zijn niet gemeten.
 
 ## 5. Regressie lofzang 36 bij 55 per minuut
 
