@@ -31,6 +31,8 @@ import type { PuzzleFilter, PuzzleHint, PuzzleHintType, PuzzleSnapshot } from "@
 // dubbele update wordt nooit "ingehaald" door gokken: bij een versieverschil
 // volgt een resync (patch of volledige snapshot).
 
+/** Hoe lang een speleractie maximaal op een lopende ruimte-maak-actie wacht (trage verbinding); daarna gaat ze zelf verder. */
+const SETTLE_WAIT_MS = 5000;
 const PALETTE = ["#2563eb", "#db2777", "#059669", "#9333ea"];
 type Ack = { ok: boolean; code?: string; [key: string]: unknown };
 
@@ -173,19 +175,28 @@ export default function CoopClient({ initial, meId }: { initial: CoopState; meId
     if (socket.connected && now - lastDragSent.current > 60) { lastDragSent.current = now; socket.volatile.emit("puzzle:drag", { sessionId: initial.id, groupId, x, y }); }
   }, [initial.id]);
 
-  const onCommit = useCallback(async (operation: TableCommit, token: string): Promise<boolean> => {
-    const body = { sessionId: initial.id, actionId: crypto.randomUUID(), baseVersion: version.current, lockToken: token, operation };
-    const response = await emitAck("puzzle:commit", body, () => post({ action: "commit", ...body }));
-    if (!response.ok) {
-      // Conflict, verlopen lock of verbroken verbinding: de canonieke stand wint.
-      setMessage(t(response.code === "LOCKED" || response.code === "NO_LOCK" ? "puzzleTogether.coop.busy" : "puzzleTogether.coop.changed"));
-      await resync(); return false;
-    }
-    const delta = response.delta as PuzzleDelta | null;
-    if (delta && !apply(delta)) await resync();
-    const contribution = response.contribution as { counted: boolean } | null;
-    if (contribution?.counted) setCounted(true);
-    return delta !== null;
+  // Ruimte maken is een achtergrondactie en draagt de actuele versie. Een volgende speleractie wacht (begrensd) op de bevestiging, zodat
+  // ze met de bevestigde versie vertrekt en een late settle-respons nooit een nieuwere actie ongedaan maakt.
+  const settleFlight = useRef<Promise<boolean> | null>(null);
+  const onCommit = useCallback(async (operation: TableCommit, token: string | null): Promise<boolean> => {
+    if (operation.kind !== "settle" && settleFlight.current) await Promise.race([settleFlight.current, new Promise<void>((resolve) => setTimeout(resolve, SETTLE_WAIT_MS))]);
+    const send = async (): Promise<boolean> => {
+      const body = { sessionId: initial.id, actionId: crypto.randomUUID(), baseVersion: version.current, ...(token ? { lockToken: token } : {}), operation };
+      const response = await emitAck("puzzle:commit", body, () => post({ action: "commit", ...body }));
+      if (!response.ok) {
+        // Conflict, verlopen lock of verbroken verbinding: de canonieke stand wint. Een mislukte ruimte-maak-actie is niet de speler zijn zaak: stil herstellen.
+        if (operation.kind !== "settle") setMessage(t(response.code === "LOCKED" || response.code === "NO_LOCK" ? "puzzleTogether.coop.busy" : "puzzleTogether.coop.changed"));
+        await resync(); return false;
+      }
+      const delta = response.delta as PuzzleDelta | null;
+      if (delta && !apply(delta)) await resync();
+      const contribution = response.contribution as { counted: boolean } | null;
+      if (contribution?.counted) setCounted(true);
+      return delta !== null;
+    };
+    if (operation.kind !== "settle") return send();
+    const flight = send(); settleFlight.current = flight;
+    try { return await flight; } finally { if (settleFlight.current === flight) settleFlight.current = null; }
   }, [apply, initial.id, resync, t]);
 
   const colorOf = useCallback((userId: string) => colors.get(userId) ?? "#64748b", [colors]);

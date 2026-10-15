@@ -97,3 +97,17 @@ export function zoomCamera(camera: PuzzleCamera, viewport: ViewportSize, bounds:
   const world = screenToWorld(camera, around); const scale = Math.max(8, Math.min(240, camera.scale * factor));
   return constrainCamera({ scale, x: around.x - world.x * scale, y: around.y - world.y * scale }, viewport, bounds);
 }
+
+/** Veiligheidsmarge (in stukbreedtes) rond het beeld: stukken die automatisch verschuiven komen nooit tegen de rand of onder een knop te liggen. */
+export const VISIBLE_MARGIN = .5;
+
+/**
+ * Het deel van de tafel dat deze speler nu ziet, in wereldcoördinaten en met een marge. Een hint voor `planSettle`: de camera is
+ * per apparaat verschillend en de server kent hem niet, dus dit beperkt alleen wat een automatische verplaatsing mag doen.
+ */
+export function visibleWorldRect(camera: PuzzleCamera, viewport: ViewportSize, margin = VISIBLE_MARGIN) {
+  const left = -camera.x / camera.scale; const top = -camera.y / camera.scale;
+  const width = viewport.width / camera.scale; const height = viewport.height / camera.scale;
+  const mx = Math.min(margin, width * .4); const my = Math.min(margin, height * .4);
+  return { minX: left + mx, minY: top + my, maxX: left + width - mx, maxY: top + height - my };
+}

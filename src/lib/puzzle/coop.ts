@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { emitToRoom, emitToUser } from "@/lib/realtime";
 import { userDayKey } from "@/lib/timeZone";
 import { recordLearningActivity } from "@/lib/streak";
+import { settleGroups } from "@/lib/puzzle/collision";
 import { anchorGroup, connectGroups, isPuzzleComplete, moveGroup, newPuzzleSnapshot, rotateGroup, validPuzzleStructure } from "@/lib/puzzle/engine";
 import { cachedPuzzleGeometry } from "@/lib/puzzle/geometryCache";
 import { applyDelta, mergeDeltas, snapshotDelta, type PuzzleDelta } from "@/lib/puzzle/delta";
@@ -21,7 +22,7 @@ import { COOP_PIECE_COUNTS, puzzlePolicy, PUZZLE_HINT_DURATION_MS, type PuzzleDi
 // dus ook twee app-instances schrijven nooit tegelijk. Socket.IO (src/server/
 // puzzle.ts) verspreidt alleen wat hier is vastgelegd.
 
-export type CoopOperation = Extract<SoloAction, { kind: "move" | "rotate" | "connect" | "anchor" }>;
+export type CoopOperation = Extract<SoloAction, { kind: "move" | "rotate" | "connect" | "anchor" | "settle" }>;
 export type CoopHintRequest = { hint: PuzzleHintType; confirmPersonal?: boolean; pieceId?: number; filter?: "CORNERS" | "EDGES" | "MIDDLES" | null };
 
 export interface CoopParticipantView { userId: string; handle: string; discriminator: string; role: string; connectionsMade: number; includedHintsUsed: number; }
@@ -331,6 +332,12 @@ export async function commitCoopAction(userId: string, sessionId: string, input:
     if (operation.kind === "move") { if (!holds(operation.groupId)) throw new PuzzleServiceError("NO_LOCK"); next = moveGroup(snapshot, geometry, operation.groupId, operation.x, operation.y); }
     else if (operation.kind === "rotate") { if (difficulty !== "MASTER") throw new PuzzleServiceError("INVALID"); if (!holds(operation.groupId)) throw new PuzzleServiceError("NO_LOCK"); next = rotateGroup(snapshot, geometry, operation.groupId); }
     else if (operation.kind === "anchor") { if (!holds(operation.groupId)) throw new PuzzleServiceError("NO_LOCK"); next = anchorGroup(snapshot, geometry, difficulty, operation.groupId, row.variant.rulesVersion); }
+    else if (operation.kind === "settle") {
+      // Ruimte maken heeft geen lock nodig (de speler liet de groep al los) maar respecteert die van anderen: een groep die iemand
+      // vasthoudt beweegt nooit, en een focusgroep die een ander vasthoudt blijft helemaal met rust. De server bepaalt de
+      // verplaatsingen zelf vanuit de actuele stand; er komt geen lijst posities van de client. Geen verandering = geen versie.
+      if (!heldByOther(operation.groupId)) next = settleGroups(snapshot, geometry, { focusGroupId: operation.groupId, difficulty, rulesVersion: row.variant.rulesVersion, immovable: new Set(locks.map((lock) => lock.groupId)), viewport: operation.viewport });
+    }
     else {
       const one = snapshot.groups.find((group) => group.pieceIds.includes(operation.a)); const two = snapshot.groups.find((group) => group.pieceIds.includes(operation.b));
       if (!one || !two || one.id === two.id) throw new PuzzleServiceError("CONFLICT", { version: row.version });
