@@ -231,6 +231,12 @@ Harde regels:
   verifieert met z-genormaliseerd bewijs (`calibrate-evidence.ts`). Lofzangen met dezelfde melodie delen één kandidaat: de engine kiest
   dan de tekst nooit zelf (`sharedWith`). Draai bij elke wijziging van de bibliotheek de kalibratie en de meting opnieuw
   (`scripts/hymns/eval-library.ts`, `docs/hymns/12-HERKENNING-SCHAALBAAR.md`).
+- **Lezen heeft altijd voorrang** (`docs/hymns/17-LEZEN-EERST.md`): Lofzangen is een digitaal zangboek met optionele synchronisatie. Een zelf gekozen
+  lofzang toont direct de volledige tekst en wacht nooit op herkenning of zangbegin. MusicalPosition (engine) en ReadingPosition (gebruiker,
+  `components/hymns-poc/reading.ts`) zijn gescheiden: een eigen scrollgebaar, aangetikte regel of coupletkeuze tijdens het meeluisteren zet alleen
+  de automatische tekstnavigatie op pauze ("Zelf bladeren"); de microfoon, de engine en de positie lopen door, en de muziek overschrijft de leesplek
+  nooit en scrolt nooit terug. Hervatten alleen via `resumeVerdict`. Beide weergaven zijn altijd scrolbaar en aantikbaar; de leesbediening staat in
+  de bedieningszone, nooit over de tekst. Geen herkenningsdrempels verlagen om sneller te lijken.
 - Nieuwe tekst in de proef gaat bij een echte functie via i18n in alle `uiReady`-talen.
 
 ## Techstack

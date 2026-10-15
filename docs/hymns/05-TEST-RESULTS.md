@@ -444,7 +444,7 @@ bewijs** voor iPhone of Android.
 - *Weergavewissel tijdens het zingen* (kop-knop en instellingen): zelfde lofzang, zelfde sessie, status blijft
   "Volgt muziek" (geen reset); karaoke toont de vorige/huidige/volgende regel.
 - *Couplet en volgorde*: tikken op couplet 3 toont couplet 3 met actieve microfoon; volgorde 1 → 4 wordt getoond.
-- *Scrollen*: na eigen scrollen verschijnt "Volgen hervatten", de muziekvolging loopt door, na tikken verdwijnt
+- *Scrollen*: na eigen scrollen verschijnt "Zelf bladeren" met "Automatisch volgen hervatten" (sinds docs 17), de muziekvolging loopt door, na tikken verdwijnt
   de knop; de onderste bediening staat aan de onderrand.
 - *Technische gegevens* (beheerder): positie, zangstatus, begin van de muziek en bewijs zijn zichtbaar.
 - *Privacy en opruimen*: geen enkel verzoek met inhoud naar een lofzang-eindpunt en geen WebSocket-frame

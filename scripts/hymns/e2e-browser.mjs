@@ -220,12 +220,12 @@ await page.getByRole("button", { name: "Sluiten", exact: true }).click();
 await page.mouse.move(200, 300);
 await page.mouse.wheel(0, 300);
 await page.waitForTimeout(600);
-const resume = page.getByRole("button", { name: "Volgen hervatten", exact: true });
-check("na eigen scrollen verschijnt 'Volgen hervatten'", (await resume.count()) === 1);
+const resume = page.getByRole("button", { name: "Automatisch volgen hervatten", exact: true });
+check("na eigen scrollen verschijnt 'Zelf bladeren' met 'Automatisch volgen hervatten'", (await resume.count()) === 1);
 check("het document zelf scrolt niet (alleen de leesruimte)", await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1 && window.scrollY === 0));
 check("de muziekvolging loopt door tijdens eigen scrollen", /Volgt muziek|Handmatig|onzeker/i.test((await status()) ?? ""), String(await status()));
 if ((await resume.count()) === 1) { await resume.click(); await page.waitForTimeout(300); }
-check("na 'Volgen hervatten' verdwijnt de knop", (await resume.count()) === 0);
+check("na 'Automatisch volgen hervatten' sluit de tekst weer aan, of er komt een melding dat de synchronisatie nog onzeker is", (await resume.count()) === 0 || (await page.locator("[data-hymns-resume-note]").count()) === 1);
 check("scrollen veroorzaakte geen nieuwe microfoonsessie", (await mic()).g === 1);
 await page.setViewportSize({ width: 390, height: 844 });
 

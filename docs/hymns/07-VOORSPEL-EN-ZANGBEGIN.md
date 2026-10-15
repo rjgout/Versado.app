@@ -161,7 +161,7 @@ in `src/lib/hymns` en `src/components/hymns-poc`. Het kenmerkgeheugen bevat geen
   wordt nooit een woordtiming verzonnen.
 - **Scrollen.** Geen `scrollIntoView`. De pagina scrolt alleen met `window.scrollBy` als de actieve regel
   buiten het gebied tussen terugbalk en bedieningsbalk valt, rustig, en nooit als het hele couplet past.
-  Wiel, vinger of toetsen pauzeren het meescrollen; "Volgen hervatten" sluit weer aan. De engine merkt
+  Wiel, vinger of toetsen pauzeren het meescrollen; "Automatisch volgen hervatten" sluit weer aan (docs 17). De engine merkt
   daar niets van. Bij een nieuw couplet sluit het scrollen vanzelf weer aan.
 - **Instellingen** (inline paneel): tekstweergave, tekstgrootte (normaal, groot, extra groot), automatisch
   meescrollen, rustige kerkweergave, en de lofzang.

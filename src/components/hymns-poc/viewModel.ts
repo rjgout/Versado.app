@@ -5,7 +5,7 @@ import type { HymnLine, HymnStanza, HymnText } from "@/lib/hymns/types";
 import type { MicState } from "@/lib/hymns/audio/micListener";
 
 // Pure afleidingen voor de Lofzangen-weergave (getest in tests/hymns-ui.test.ts): welke statustekst staat er,
-// welke regels horen bij karaoke, en wanneer moet er gescrold worden. Geen React, geen DOM.
+// welke regel actief is, en wanneer moet er gescrold worden. Geen React, geen DOM.
 
 export type StatusTone = "neutral" | "ok" | "warn" | "danger" | "info";
 
@@ -53,20 +53,6 @@ export function lyricSequence(text: HymnText, stanza: HymnStanza | undefined): L
 export function activeSeq(seq: LyricLine[], cursor: DisplayCursor | undefined): number {
   if (!cursor || cursor.line < 0) return -1;
   return seq.findIndex((l) => l.section === cursor.section && l.index === cursor.line);
-}
-
-export interface KaraokeWindow {
-  previous: LyricLine | null;
-  current: LyricLine | null;
-  next: LyricLine | null;
-  /** True zolang er nog niets actief is: de eerste regel staat klaar. */
-  ready: boolean;
-}
-
-export function karaokeWindow(seq: LyricLine[], active: number): KaraokeWindow {
-  const ready = active < 0;
-  const i = ready ? 0 : active;
-  return { previous: seq[i - 1] ?? null, current: seq[i] ?? null, next: seq[i + 1] ?? null, ready };
 }
 
 /** Het woord dat de markering krijgt: alleen als de woordkoppeling van dit couplet betrouwbaar is. */
