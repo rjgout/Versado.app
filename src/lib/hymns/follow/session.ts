@@ -5,6 +5,7 @@ import { ScoreTracker, type TrackerConfig, type TrackerOutput } from "./tracker"
 import { StanzaPlan } from "./stanzas";
 import { StableCursor, sectionAt, type DisplayCursor } from "./display";
 import { SingingPhase, type PhaseConfig, type PhaseEvent, type PhaseState } from "./phase";
+import { PositionCoaster, type CoastConfig, type PositionSource } from "./coast";
 
 // Eén volg-sessie voor één lofzang: audio -> kenmerken -> tracker -> status/betrouwbaarheid -> rondes ->
 // getoond couplet en markering. Alles lokaal en in het geheugen; de sessie bewaart geen audio.
@@ -28,6 +29,8 @@ export interface SessionConfig {
   pauseUncertainSeconds: number;
   /** Regels voor de voorspel- en zangfase (zie phase.ts). */
   phase: Partial<PhaseConfig>;
+  /** Doorlopen op het laatst betrouwbare tempo bij tijdelijk syncverlies (zie coast.ts). */
+  coast: Partial<CoastConfig>;
 }
 
 export const DEFAULT_SESSION_CONFIG: SessionConfig = {
@@ -42,6 +45,7 @@ export const DEFAULT_SESSION_CONFIG: SessionConfig = {
   recoveredSeconds: 4,
   pauseUncertainSeconds: 25,
   phase: {},
+  coast: {},
 };
 
 export interface SessionEvent {
@@ -75,6 +79,14 @@ export interface FollowSnapshot {
   lapUncertain: boolean;
   stanza: number;
   cursor: DisplayCursor;
+  /**
+   * Positie waarop de woordmarkering en de maatmarkering steunen: gemeten (`position`), of tijdens tijdelijk syncverlies geschat op het laatst
+   * betrouwbare tempo. null zolang er geen markering is (voorspel, tussenspel). `positionSource` zegt welke van de twee het is.
+   */
+  displayPosition: number | null;
+  positionSource: PositionSource;
+  /** Hoe lang (seconden) de positie nu al geschat wordt. */
+  estimatedSeconds: number;
 }
 
 export class HymnFollowSession {
@@ -86,6 +98,7 @@ export class HymnFollowSession {
   private tracker: ScoreTracker;
   private phaseLayer: SingingPhase;
   private readonly cursor = new StableCursor();
+  private readonly coast: PositionCoaster;
   private extractor: ChromaExtractor | null = null;
 
   private status: SyncStatus = "idle";
@@ -109,6 +122,7 @@ export class HymnFollowSession {
     this.tracker = new ScoreTracker(this.reference, this.config.tracker);
     this.phaseLayer = new SingingPhase(this.reference.cycleBeats, this.config.phase);
     this.stanzas = new StanzaPlan(hymn.text.stanzas.map((s) => s.n));
+    this.coast = new PositionCoaster({ cycleBeats: this.reference.cycleBeats, fermatas: this.reference.fermatas, nominalBeatsPerSecond: this.reference.nominalBeatsPerSecond }, this.config.coast);
     this.lastSnapshot = this.snapshot(0, null);
   }
 
@@ -133,8 +147,11 @@ export class HymnFollowSession {
     );
     const reliable = this.status === "locked" || this.status === "recovered";
     const stanza = this.stanzas.current;
+    const singing = this.phaseLayer.isSinging;
+    // Tijdelijk syncverlies: de woorden lopen een beperkte tijd door op het laatst betrouwbare tempo (coast.ts); stilte bevriest ze.
+    const place = this.coast.update({ time: frame.time, reliable: reliable && !out.held, held: out.held, singing, position: out.position, bpm: out.bpm });
     // Voor het zangbegin (voorspel) en tijdens een tussenspel staat de tekst klaar zonder markering.
-    const cursor = this.phaseLayer.isSinging ? this.cursor.update(this.hymn.text, this.reference.sections, stanza, out.position, reliable && !out.held) : null;
+    const cursor = singing ? this.updateCursor(stanza, place.position ?? out.position, place.position === null ? reliable && !out.held : place.source === "measured" || place.source === "catching-up" || (place.source === "estimated" && !out.held), (place.source === "estimated" || place.source === "catching-up") && !out.held) : null;
     this.lastSnapshot = this.snapshot(frame.time, cursor);
     return this.lastSnapshot;
   }
@@ -168,11 +185,19 @@ export class HymnFollowSession {
     this.lapUncertain = false;
     this.lastOut = null;
     this.cursor.reset();
+    this.coast.reset();
     this.refreshSnapshot();
   }
 
+  private updateCursor(stanza: number, position: number, reliable: boolean, estimated: boolean): DisplayCursor {
+    return this.cursor.update(this.hymn.text, this.reference.sections, stanza, position, reliable, estimated);
+  }
+
   private refreshSnapshot(): void {
-    const cursor = this.phaseLayer.isSinging ? this.cursor.update(this.hymn.text, this.reference.sections, this.stanzas.current, this.lastSnapshot.position, this.lastSnapshot.status === "locked" || this.lastSnapshot.status === "recovered") : null;
+    const place = this.coast.value;
+    const cursor = this.phaseLayer.isSinging
+      ? this.updateCursor(this.stanzas.current, place.position ?? this.lastSnapshot.position, this.lastSnapshot.status === "locked" || this.lastSnapshot.status === "recovered", false)
+      : null;
     this.lastSnapshot = this.snapshot(this.lastTime, cursor);
   }
 
@@ -182,9 +207,11 @@ export class HymnFollowSession {
       if (e.type === "start") {
         this.lapUncertain = false;
         this.cursor.reset();
+        this.coast.reset();
       } else if (e.type === "lap") {
         this.lapUncertain = false;
         this.events.push({ time: e.time, type: "lap", lap: e.lap });
+        this.coast.noteLap(this.lastOut ? this.lastOut.position : 0);
         const change = this.stanzas.onNewLap(e.lap);
         if (change) this.events.push({ time: e.time, type: "stanza", stanza: change.stanza, reason: change.reason });
         this.cursor.permitJump();
@@ -192,6 +219,7 @@ export class HymnFollowSession {
         this.cursor.permitJump();
       } else if (e.type === "back-to-prelude") {
         this.cursor.reset();
+        this.coast.reset();
       }
     }
   }
@@ -304,6 +332,9 @@ export class HymnFollowSession {
       lapUncertain: this.lapUncertain,
       stanza: this.stanzas.current,
       cursor: cursor ?? IDLE_CURSOR,
+      displayPosition: this.phaseLayer.isSinging ? this.coast.value.position : null,
+      positionSource: this.phaseLayer.isSinging ? this.coast.value.source : "none",
+      estimatedSeconds: this.coast.value.estimatedSeconds,
     };
   }
 
@@ -317,6 +348,7 @@ export class HymnFollowSession {
     this.extractor?.reset();
     this.phaseLayer = new SingingPhase(this.reference.cycleBeats, this.config.phase);
     this.cursor.reset();
+    this.coast.reset();
     this.status = "idle";
     this.statusSince = 0;
     this.quality = 0;
@@ -329,7 +361,7 @@ export class HymnFollowSession {
   }
 }
 
-const IDLE_CURSOR: DisplayCursor = { section: "verse", line: -1, word: null, frozen: false };
+const IDLE_CURSOR: DisplayCursor = { section: "verse", line: -1, word: null, frozen: false, estimated: false };
 
 function clamp01(x: number): number {
   return Math.max(0, Math.min(1, x));

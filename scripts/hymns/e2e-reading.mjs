@@ -68,8 +68,13 @@ const readingLine = (p) => p.evaluate(() => { const el = document.querySelector(
 const browsing = async (p) => (await p.locator("[data-hymns-browsing]").count()) === 1;
 const openHymn = async (p, n) => { await p.locator(`[data-hymn-number="${n}"]`).click(); await p.locator("[data-hymns-scroll] [data-seq]").first().waitFor({ timeout: 20000 }); };
 const setView = async (p, view) => {
-  const cur = await p.locator("[data-hymns-karaoke]").count() ? "karaoke" : "stanza";
-  if (cur !== view) await p.locator("[data-hymns-view-toggle]").click();
+  // de wisselknop doorloopt couplet -> karaoke -> bladmuziek -> couplet: klik tot de gewenste weergave er staat
+  for (let i = 0; i < 3; i += 1) {
+    const cur = (await p.locator("[data-hymns-karaoke]").count()) ? "karaoke" : (await p.locator("[data-hymns-stanza]").count()) ? "stanza" : "sheet";
+    if (cur === view) break;
+    await p.locator("[data-hymns-view-toggle]").click();
+    await p.waitForTimeout(150);
+  }
   await p.locator(view === "karaoke" ? "[data-hymns-karaoke]" : "[data-hymns-stanza]").waitFor({ timeout: 5000 });
 };
 /** Echt aanraakgebaar (touchmove) op de leesruimte via het DevTools-protocol. */

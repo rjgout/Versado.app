@@ -113,7 +113,9 @@ test("verlies en herstel: onbekende muziek midden in het stuk geeft 'verloren' e
   assert.ok(snapshots.some((s) => s.lapUncertain), "mogelijk gemiste ronde niet gemeld");
 });
 
-test("de weergave verschuift niet zolang de synchronisatie onzeker of verloren is", () => {
+test("de weergave springt niet zolang de synchronisatie onzeker of verloren is: eerst op tempo doorlopen (geschat), daarna veilig bevriezen", () => {
+  // Bewust gewijzigd (meelezen): de markering bevriest niet meer direct bij syncverlies maar loopt hooguit coastSeconds op het laatst
+  // betrouwbare tempo door (follow/coast.ts, gedetailleerd getest in tests/hymns-coast.test.ts). Wat blijft: geen sprongen en geen vooruitlopen.
   const sc = makeScenario(82, { ...FAST, laps: 2 });
   const noise = synthesizeHymn(unknown[0], { sampleRate: SAMPLE_RATE, laps: 1, timbre: "piano", tempoSegments: constantTempo(84), leadInSeconds: 0 });
   const noiseFrames = extractFrames(noise.samples, noise.sampleRate);
@@ -122,11 +124,17 @@ test("de weergave verschuift niet zolang de synchronisatie onzeker of verloren i
     ...noiseFrames.filter((f) => f.time < 18).map((f) => ({ ...f, time: f.time + 20 })),
   ];
   const { snapshots } = follow(sc.hymn, frames, {}, SING_FROM_START);
-  const unreliable = snapshots.filter((s) => s.status === "uncertain" || s.status === "lost");
+  const unreliable = snapshots.filter((s) => (s.status === "uncertain" || s.status === "lost") && s.cursor.line >= 0);
   assert.ok(unreliable.length > 100, "te weinig onzekere frames om te testen");
-  const lines = new Set(unreliable.map((s) => `${s.cursor.section}:${s.cursor.line}`));
-  assert.equal(lines.size, 1, `de markering sprong tijdens onzekerheid: ${[...lines].join(", ")}`);
-  assert.ok(unreliable.every((s) => s.cursor.frozen));
+  // elke geschatte markering is als geschat gemarkeerd; wat niet geschat is, staat vast
+  assert.ok(unreliable.every((s) => s.cursor.estimated !== s.cursor.frozen || (!s.cursor.estimated && !s.cursor.frozen)));
+  const estimated = unreliable.filter((s) => s.cursor.estimated);
+  assert.ok(estimated.length > 0 && estimated.every((s) => s.estimatedSeconds <= 7.05), "schatten langer dan de veilige duur");
+  // na de veilige duur staat de markering vast op één plek
+  const frozen = unreliable.filter((s) => s.positionSource === "frozen");
+  assert.ok(frozen.length > 50, "de markering bevroor niet na de veilige duur");
+  assert.equal(new Set(frozen.map((s) => `${s.cursor.section}:${s.cursor.line}:${s.cursor.word}`)).size, 1, "de markering bewoog na de veilige duur");
+  assert.ok(frozen.every((s) => s.cursor.frozen));
 });
 
 test("de markering springt tijdens normaal volgen niet terug binnen een ronde", () => {

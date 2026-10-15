@@ -34,13 +34,14 @@ interface Options {
 }
 
 const SCROLL_KEYS = new Set(["PageUp", "PageDown", "Home", "End", "ArrowUp", "ArrowDown", " "]);
-const CENTER_AT = 0.4;
+// Karaoke: de actieve regel staat hoog op het scherm, zodat er ruim ruimte is voor de komende regels (en het volgende couplet).
+const CENTER_AT = 0.28;
 
 function lineEl(box: HTMLElement, index: number): HTMLElement | null {
   return box.querySelector<HTMLElement>(`[data-seq="${index}"]`);
 }
 
-/** Scrolt de regel naar de leesplek (karaoke: op 40% van de hoogte) of, in het volledige couplet, alleen in beeld. */
+/** Scrolt de regel naar de leesplek (karaoke: op ~28% van de hoogte) of, in het volledige couplet, alleen in beeld. */
 function align(box: HTMLElement, index: number, view: HymnView, smooth: boolean): void {
   const el = lineEl(box, index);
   if (!el) return;
