@@ -37,6 +37,46 @@ const rewardCounts = () =>
 const counts = await rewardCounts(),
   results = [];
 try {
+  // Echte verborgen concepten via bestaande beheerpagina; publieke reader blijft dicht.
+  const originalCollection = await prisma.contentCollection.findUniqueOrThrow({ where: { id: flow.collectionId } });
+  await prisma.contentCollection.update({ where: { id: flow.collectionId }, data: { publicationState: "DRAFT", visibleToUsers: false } });
+  try {
+    const editions = await prisma.studyLessonEdition.findMany({ where: { collectionId: flow.collectionId }, orderBy: { lesson: { order: "asc" } }, include: { draftRevision: true } });
+    assert.equal(editions.length, 52);
+    for (const [width, scheme, text] of [[320, "light", 200], [390, "dark", 100], [1280, "light", 100]]) {
+      const context = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: scheme });
+      await context.addCookies([{ name: SESSION_COOKIE, value: flow.adminToken, url: base }]);
+      const page = await context.newPage();
+      await page.goto(`${base}/adminbackend/content/study-publications`);
+      await page.locator("[data-study-publications]").waitFor();
+      if (text === 200) await page.addStyleTag({ content: "html{font-size:200% !important}" });
+      const ids = await page.locator("[data-study-edition]").evaluateAll((nodes) => nodes.map((n) => n.getAttribute("data-study-edition")));
+      assert.ok(editions.every((e) => ids.includes(e.id)), "Alle 52 verborgen concepten staan in beheer");
+      for (const edition of [editions[40], editions[0]]) {
+        await page.locator(`[data-study-edition="${edition.id}"]`).getByRole("button", { name: "Concept bekijken", exact: true }).click();
+        const article = page.locator("[data-study-revision-content]");
+        await article.getByRole("heading", { level: 2, name: edition.draftRevision.title, exact: true }).waitFor();
+        if (edition === editions[40]) assert.ok(await article.locator("table").count() > 0);
+        else {
+          await page.locator('[data-reference-diagnosis="UNRESOLVED"]').first().waitFor();
+          assert.ok(await page.locator('[data-study-reference] code').count() > 0);
+          assert.ok(await page.getByRole("link", { name: "Open de officiële bron", exact: true }).count() > 0);
+          const img = article.locator("img").first();
+          await img.scrollIntoViewIfNeeded();
+          await page.waitForFunction((selector) => { const image = document.querySelector(selector); return image?.complete && image.naturalWidth > 0; }, "[data-study-revision-content] img", { timeout: 10000 });
+          assert.ok(await img.getAttribute("src"));
+        }
+      }
+      const denied = await context.request.get(base + flow.href);
+      assert.equal(denied.status(), 404, "Ook een admin leest verborgen content niet publiek");
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
+      await page.screenshot({ path: `${output}/cfm-admin-${width}-${scheme}.png` });
+      results.push({ width, scheme, text, hiddenAdminConcepts: 52, tableAndImages: true, referenceDiagnostics: true, publicReaderDenied: true });
+      await context.close();
+    }
+  } finally {
+    await prisma.contentCollection.update({ where: { id: flow.collectionId }, data: { publicationState: originalCollection.publicationState, visibleToUsers: originalCollection.visibleToUsers } });
+  }
   for (const [width, height, scheme, text] of [
     [320, 844, "light", 200],
     [390, 844, "dark", 100],

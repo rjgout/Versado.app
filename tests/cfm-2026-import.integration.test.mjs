@@ -184,6 +184,20 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     1096,
   );
   assert.equal(refs.filter((r) => r.diagnosis === "UNRESOLVED").length, 553);
+  const adminOverview = await fetch(`${assertReferenceTestEnvironment()}/api/admin/study-publications`, { headers: { cookie: f.admin.cookie } });
+  assert.equal(adminOverview.status, 200);
+  const overview = await adminOverview.json();
+  assert.equal(overview.editions.filter((e) => e.collectionId === collection.id).length, 52);
+  const previewResponse = await fetch(`${assertReferenceTestEnvironment()}/api/admin/study-publications?editionId=${editions[0].id}&revisionId=${editions[0].draftRevisionId}`, { headers: { cookie: f.admin.cookie } });
+  assert.equal(previewResponse.status, 200);
+  const preview = await previewResponse.json();
+  assert.ok(preview.references.some((r) => r.diagnosis === "UNRESOLVED" && r.originalTarget));
+  assert.ok(preview.references.some((r) => r.approvedExternalUrl));
+  assert.ok(preview.media.every((m) => m.ready));
+  for (const cookie of [null, f.owner.cookie]) {
+    const denied = await fetch(`${assertReferenceTestEnvironment()}/api/admin/study-publications?editionId=${editions[0].id}&revisionId=${editions[0].draftRevisionId}`, { headers: cookie ? { cookie } : {} });
+    assert.equal(denied.status, cookie ? 403 : 401);
+  }
   assert.ok(
     internal.every(
       (r) =>
@@ -201,6 +215,20 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     }),
     media: await prisma.contentMedia.count(),
   };
+  for (const flags of [
+    { visibleToUsers: true, publicationState: "DRAFT" },
+    { visibleToUsers: false, publicationState: "LEGACY" },
+    { visibleToUsers: false, publicationState: "PUBLISHED" },
+  ]) {
+    await prisma.contentCollection.update({ where: { id: collection.id }, data: flags });
+    await assert.rejects(importCfm2026Drafts(f.admin.actor, options), (e) => e.code === "CONFLICT");
+    const unchanged = await prisma.contentCollection.findUniqueOrThrow({ where: { id: collection.id } });
+    assert.equal(unchanged.visibleToUsers, flags.visibleToUsers);
+    assert.equal(unchanged.publicationState, flags.publicationState);
+    assert.equal(await prisma.contentImportRun.count({ where: { collectionId: collection.id } }), counts.runs);
+    assert.equal(await prisma.studyRevision.count({ where: { edition: { collectionId: collection.id } } }), counts.revisions);
+  }
+  await prisma.contentCollection.update({ where: { id: collection.id }, data: { visibleToUsers: false, publicationState: "DRAFT" } });
   // Simuleer een bestaande publicatie uitsluitend als eigen testfixture.
   const previous = editions[9].draftRevisionId;
   await prisma.studyLessonEdition.update({
@@ -372,6 +400,7 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
   assert.ok(externalPdf);
   assert.ok(externalVideo);
   const flow = {
+    adminToken: f.admin.token,
     selections,
     secondChapterId: (await scriptureChapter("gen", 2)).id,
     externals: [

@@ -54,17 +54,21 @@ export async function ensureCfmDraftCollection(
     });
     if (existingWork && existingWork.kind !== "STUDY_PROGRAM")
       throw new StudyPublishingError("INVALID");
-    await db.contentWork.upsert({
-      where: { key: manifest.workKey },
-      update: {},
-      create: { key: manifest.workKey, kind: "STUDY_PROGRAM" },
-    });
     const existing = await db.contentCollection.findFirst({
       where: {
         work: manifest.workKey,
         editionKey: manifest.editionKey,
         language: manifest.language,
       },
+    });
+    // Deze operatorflow is uitsluitend voor verborgen concepten. Corrigeer
+    // afwijkende live flags nooit stilzwijgend en schrijf dan ook geen concepten.
+    if (existing && (existing.visibleToUsers || existing.publicationState !== "DRAFT"))
+      throw new StudyPublishingError("CONFLICT");
+    await db.contentWork.upsert({
+      where: { key: manifest.workKey },
+      update: {},
+      create: { key: manifest.workKey, kind: "STUDY_PROGRAM" },
     });
     return (
       existing ??

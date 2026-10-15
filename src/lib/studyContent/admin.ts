@@ -11,6 +11,7 @@ import { studyStorage, readStudyMedia } from "./storage";
 import { validateStoredStudyRevision, diffStudyRevisions } from "./publication";
 import { studyDocumentInventory } from "./fixtureAdapter";
 import { STUDY_FIXTURES } from "./fixtureAdapter";
+import { verifiedOfficialUrl } from "@/lib/references/evidence";
 
 async function readStudyAdmin<T>(
   read: (db: Prisma.TransactionClient) => Promise<T>,
@@ -206,8 +207,12 @@ export async function studyRevisionPreview(
       return {
         occurrenceKey: reference.occurrenceKey,
         label: reference.label,
+        originalTarget: audit?.originalTarget ?? reference.target,
         diagnosis: audit?.diagnosis ?? "UNRESOLVED",
         externalUrl: audit?.externalUrl ?? null,
+        approvedExternalUrl: audit?.diagnosis === "EXTERNAL_VERIFIED"
+          ? verifiedOfficialUrl(audit.externalUrl)
+          : null,
         normalizedTarget: audit?.normalizedTarget ?? null,
         evidenceKey: audit?.evidenceKey ?? null,
       };
