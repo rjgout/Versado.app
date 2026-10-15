@@ -38,7 +38,7 @@ for (const change of [
 test("corrupte, cyclische, te diepe en te lange inhoud geeft een gecontroleerde fout", () => {
   for(const value of [null, 'corrupt-json', {}, {schemaVersion:1,sections:[]}]) assert.throws(()=>parseStudyDocument(value));
   const cycle: Record<string,unknown> = {};cycle.self=cycle;assert.throws(()=>parseStudyDocument(cycle),/CYCLE/);
-  let deep: unknown = {};for(let i=0;i<20;i++)deep={child:deep};assert.throws(()=>parseStudyDocument(deep),/LIMIT/);
+  let deep: unknown = {};for(let i=0;i<21;i++)deep={child:deep};assert.throws(()=>parseStudyDocument(deep),/LIMIT/);
   const v=fixture();v.body.sections[0].blocks[0].content[0].text="x".repeat(20_001);assert.throws(()=>parseStudyDocument(v.body));
   assert.throws(()=>parseStudyDocument({payload:"x".repeat(2_000_001)}),/LIMIT/);
 });

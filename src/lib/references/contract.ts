@@ -6,6 +6,7 @@ export const referenceRequestSchema = z
     revisionId: z.string().min(1).max(128),
     occurrenceKey: z.string().min(1).max(128),
     visitProof: z.string().max(1500).optional(),
+    passageIndex: z.number().int().min(0).max(39).optional(),
   })
   .strict();
 export type ReferenceRequest = z.infer<typeof referenceRequestSchema>;
@@ -15,7 +16,7 @@ export type ReferenceResolution =
       reason: "missing" | "edition" | "range" | "unverified" | "too-large";
       diagnosticKey: string;
     }
-  | { kind: "external"; url: string; diagnosticKey: string }
+  | { kind: "external"; url: string; diagnosticKey: string; language?: "en" }
   | {
       kind: "internal";
       diagnosticKey: string;
@@ -25,6 +26,7 @@ export type ReferenceResolution =
       language: string;
       title: string;
       href: string;
+      passages?: Array<{ index: number; title: string }>;
       preview:
         | {
             kind: "scripture";

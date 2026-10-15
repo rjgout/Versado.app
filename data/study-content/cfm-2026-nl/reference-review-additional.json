@@ -1,0 +1,57 @@
+{
+  "baseCommit": "4a7260c41ea24b8b6fb7ab13316403dc2c99acba",
+  "occurrences": [
+    {
+      "lesson": "35",
+      "anchor": "ref-b-p2-3",
+      "label": "vers 3",
+      "originalTarget": {
+        "sourceKey": "otb:psa:49:2",
+        "workKey": "old-testament",
+        "editionKey": "otb",
+        "language": "nl",
+        "externalUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/ps/49?id=p2&lang=nld#p2"
+      },
+      "originalReason": "PREVIOUSLY_UNDETECTED_NUMBERING_CONFLICT"
+    },
+    {
+      "lesson": "35",
+      "anchor": "ref-b-p17-3",
+      "label": "vers 3",
+      "originalTarget": {
+        "sourceKey": "otb:psa:61:2",
+        "workKey": "old-testament",
+        "editionKey": "otb",
+        "language": "nl",
+        "externalUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/ps/61?id=p2&lang=nld#p2"
+      },
+      "originalReason": "PREVIOUSLY_UNDETECTED_NUMBERING_CONFLICT"
+    },
+    {
+      "lesson": "35",
+      "anchor": "ref-b-p17-5",
+      "label": "vers 4",
+      "originalTarget": {
+        "sourceKey": "otb:psa:61:3",
+        "workKey": "old-testament",
+        "editionKey": "otb",
+        "language": "nl",
+        "externalUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/ps/61?id=p3&lang=nld#p3"
+      },
+      "originalReason": "PREVIOUSLY_UNDETECTED_NUMBERING_CONFLICT"
+    },
+    {
+      "lesson": "47",
+      "anchor": "ref-b-p5-3",
+      "label": "Vers 5",
+      "originalTarget": {
+        "sourceKey": "otb:hos:14:4",
+        "workKey": "old-testament",
+        "editionKey": "otb",
+        "language": "nl",
+        "externalUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/hosea/14?id=p4&lang=nld#p4"
+      },
+      "originalReason": "PREVIOUSLY_UNDETECTED_NUMBERING_CONFLICT"
+    }
+  ]
+}

@@ -347,7 +347,7 @@ export default function AdminStudyPublicationsClient({
               <button type="button" className={button} disabled={busy} onClick={()=>void mutate({action:"audit-references",editionId:preview.editionId,revisionId:preview.revisionId})}>{t("referencePreview.audit")}</button>
               <ul className="space-y-2 text-sm">
                 {preview.references.map((ref) => (
-                  <li key={ref.occurrenceKey} className="break-words">
+                  <li key={ref.occurrenceKey} data-study-reference={ref.occurrenceKey} data-reference-diagnosis={ref.diagnosis} className="break-words">
                     {ref.label} —{" "}
                     {t(
                       !["EXTERNAL_VERIFIED","INTERNAL_VERIFIED"].includes(ref.diagnosis)
@@ -355,6 +355,8 @@ export default function AdminStudyPublicationsClient({
                         : "studyPublishing.verified",
                     )}
                     {ref.externalUrl && <span className="block break-words text-vs-fg-2">{ref.externalUrl}</span>}
+                    {ref.approvedExternalUrl && <a className="inline-flex min-h-12 items-center text-vs-accent underline" href={ref.approvedExternalUrl} target="_blank" rel="noopener noreferrer">{t("referencePreview.external")}</a>}
+                    <code className="block whitespace-pre-wrap break-words text-xs">{JSON.stringify(ref.originalTarget)}</code>
                     {ref.normalizedTarget && <code className="block whitespace-pre-wrap break-words text-xs">{JSON.stringify(ref.normalizedTarget)}</code>}
                   </li>
                 ))}

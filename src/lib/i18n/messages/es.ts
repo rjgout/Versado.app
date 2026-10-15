@@ -4039,6 +4039,8 @@ export const es: PartialMessages = {
     "sections": "Secciones de la lección"
 },
   referencePreview: {
+    sourceEnglish: "Esta fuente oficial original está en inglés.",
+    passages: "Elige un pasaje",
     saveFailed: "No se ha confirmado el guardado de tu posición de lectura. Inténtalo de nuevo antes de leer más.",
     selectionConflict: "Tu selección de fuente o lección ha cambiado. Recarga la lección; no se sustituirá la selección más reciente.",
     moreUnknown: "El resultado del cambio de fuente es incierto. Comprueba tu fuente al recargar; no se restaurará automáticamente una selección anterior.",

@@ -18,25 +18,34 @@ const referenceTarget = z.object({
 }).strict();
 const reference = z.object({ type: z.literal("reference"), id: studyAnchorSchema, label: text, target: referenceTarget }).strict();
 const inline = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("text"), text, marks: z.array(z.enum(["emphasis", "strong"])).max(2).optional() }).strict(),
+  z.object({ type: z.literal("text"), text: text.or(z.literal(" ")), marks: z.array(z.enum(["emphasis", "strong"])).max(2).optional() }).strict(),
   z.object({ type: z.literal("link"), text, href: safeStudyUrlSchema }).strict(),
   reference,
 ]);
 const inlines = z.array(inline).min(1).max(200);
-const listItem = z.object({ id: studyAnchorSchema, content: inlines,
-  // Eén extra lijstniveau; geen onbegrensde recursie of rauwe blokken.
-  children: z.array(z.object({ id: studyAnchorSchema, content: inlines }).strict()).min(1).max(100).optional(),
-}).strict();
 const prose = { id: studyAnchorSchema, content: inlines };
+const figure = z.object({ id: studyAnchorSchema, type: z.literal("figure"), mediaKey: studyAnchorSchema, alt: text.or(z.literal("")),
+  caption: inlines.optional(), width: z.number().int().min(1).max(16_384), height: z.number().int().min(1).max(16_384) }).strict();
+const embedded = z.discriminatedUnion("type", [z.object({ ...prose, type: z.literal("paragraph") }).strict(), figure, reference]);
+const nestedItem = z.object({ id: studyAnchorSchema, content: inlines, blocks: z.array(embedded).min(1).max(100).optional() }).strict();
+const nestedList = z.object({ id: studyAnchorSchema, type: z.literal("list"), ordered: z.boolean(), items: z.array(nestedItem).min(1).max(100) }).strict();
+const listItem = z.object({ id: studyAnchorSchema, content: inlines,
+  // Eén extra lijstniveau; uitsluitend begrensde semantische blokken, geen HTML.
+  children: z.array(z.object({ id: studyAnchorSchema, content: inlines }).strict()).min(1).max(100).optional(),
+  blocks: z.array(z.union([embedded, nestedList])).min(1).max(100).optional(),
+}).strict();
 export const studyBlockSchema = z.discriminatedUnion("type", [
   z.object({ ...prose, type: z.literal("heading"), level: z.number().int().min(2).max(6) }).strict(),
   z.object({ ...prose, type: z.literal("paragraph") }).strict(),
+  z.object({ id: studyAnchorSchema, type: z.literal("table"), rows: z.array(z.object({
+    id: studyAnchorSchema,
+    cells: z.array(z.object({ id: studyAnchorSchema, header: z.boolean(), content: z.array(inline).max(200), colSpan: z.number().int().min(1).max(20), rowSpan: z.number().int().min(1).max(100) }).strict()).min(1).max(20),
+  }).strict()).min(1).max(100) }).strict(),
   z.object({ id: studyAnchorSchema, type: z.literal("list"), ordered: z.boolean(), items: z.array(listItem).min(1).max(100) }).strict(),
   z.object({ ...prose, type: z.literal("quote"), attribution: inlines.optional() }).strict(),
   z.object({ ...prose, type: z.literal("question"), items: z.array(listItem).min(1).max(100).optional() }).strict(),
   z.object({ ...prose, type: z.literal("assignment"), items: z.array(listItem).min(1).max(100).optional() }).strict(),
-  z.object({ id: studyAnchorSchema, type: z.literal("figure"), mediaKey: studyAnchorSchema, alt: text,
-    caption: inlines.optional(), width: z.number().int().min(1).max(16_384), height: z.number().int().min(1).max(16_384) }).strict(),
+  figure,
   reference,
   z.object({ id: studyAnchorSchema, type: z.literal("divider") }).strict(),
 ]);
@@ -64,7 +73,7 @@ export function parseStudyDocument(value: unknown): StudyDocument {
   while (stack.length) {
     const entry = stack.pop()!;
     if (entry.exit) { seen.delete(entry.value as object); continue; }
-    if (++nodes > 100_000 || entry.depth > 12) throw new Error("STUDY_DOCUMENT_LIMIT");
+    if (++nodes > 100_000 || entry.depth > 20) throw new Error("STUDY_DOCUMENT_LIMIT");
     if (entry.value && typeof entry.value === "object") {
       if (seen.has(entry.value)) throw new Error("STUDY_DOCUMENT_CYCLE");
       seen.add(entry.value);

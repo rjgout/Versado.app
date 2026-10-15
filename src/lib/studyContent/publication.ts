@@ -163,6 +163,10 @@ export async function publishStudyRevision(
       if (studyRevisionHash(sourceContent) !== revision.contentHash)
         throw new StudyPublishingError("INCOMPLETE");
       const inventory = studyDocumentInventory(content.body);
+      // Een bron kan zonder alttekst als concept worden behouden, maar niet
+      // zonder afzonderlijke inhoudelijke beoordeling worden gepubliceerd.
+      if (inventory.emptyAltFigures > 0)
+        throw new StudyPublishingError("MEDIA");
       if (
         revision.media.length !==
           new Set(inventory.figures.map((f) => f.mediaKey)).size ||

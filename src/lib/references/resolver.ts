@@ -16,16 +16,32 @@ import {
   verifiedOfficialUrl,
   referenceEvidenceVersion,
 } from "./evidence";
-import officialResources from "./official-resources.json";
+import { officialResources } from "./evidence";
 import {
   referenceRequestSchema,
   type ReferenceRequest,
   type ReferenceResolution,
 } from "./contract";
-import { parseOtbPassage, type OtbPassage } from "./otb";
+import { parseOtbPassage, parseOtbPassageSet, type OtbPassage } from "./otb";
 export type ReferenceActor = { id: string; isAdmin: boolean };
 export const MAX_PREVIEW_VERSES = 40;
 export const MAX_PREVIEW_BYTES = 48_000;
+function externalResolution(
+  url: string,
+  diagnosticKey: string,
+): Extract<ReferenceResolution, { kind: "external" }> {
+  const resource = officialResources.find((r) => r.url === url);
+  return {
+    kind: "external",
+    url,
+    diagnosticKey,
+    ...(resource &&
+    "mediaLanguage" in resource &&
+    resource.mediaLanguage === "en"
+      ? { language: "en" as const }
+      : {}),
+  };
+}
 function bounded(result: ReferenceResolution): boolean {
   return Buffer.byteLength(JSON.stringify(result), "utf8") <= MAX_PREVIEW_BYTES;
 }
@@ -115,6 +131,7 @@ export async function resolveReferenceTarget(
   diagnosticKey: string,
   prepared?: PreparedChapters,
   studies?: PreparedStudy,
+  passageIndex = 0,
 ): Promise<ReferenceResolution> {
   const sourceKey =
     typeof target.sourceKey === "string" ? target.sourceKey : "";
@@ -136,8 +153,44 @@ export async function resolveReferenceTarget(
     reason: Extract<ReferenceResolution, { kind: "unavailable" }>["reason"],
   ): ReferenceResolution =>
     fallback
-      ? { kind: "external", url: fallback, diagnosticKey }
+      ? externalResolution(fallback, diagnosticKey)
       : { kind: "unavailable", reason, diagnosticKey };
+  const bundle =
+    target.workKey === "old-testament" &&
+    target.editionKey === "otb" &&
+    target.language === "nl"
+      ? parseOtbPassageSet(sourceKey)
+      : null;
+  if (bundle) {
+    if (passageIndex >= bundle.length) return fail("range");
+    const results: Array<Extract<ReferenceResolution, { kind: "internal" }>> =
+      [];
+    for (const part of bundle) {
+      const key = `otb:${part.bookKey}:${part.chapter}${part.verses ? `:${part.verses.join(",")}` : ""}`;
+      const result = await resolveReferenceTarget(
+        db,
+        actor,
+        origin,
+        { ...target, sourceKey: key },
+        diagnosticKey,
+        prepared,
+        studies,
+      );
+      if (result.kind !== "internal")
+        return fail(
+          result.kind === "unavailable" ? result.reason : "unverified",
+        );
+      results.push(result);
+    }
+    if (results.some((r) => r.collectionId !== results[0].collectionId))
+      return fail("edition");
+    const result = {
+      ...results[passageIndex],
+      passages: results.map((r, index) => ({ index, title: r.title })),
+    };
+    return bounded(result) ? result : fail("too-large");
+  }
+  if (passageIndex !== 0) return fail("range");
   const passage = parseScriptureUrl(sourceKey);
   if (passage) {
     // Expliciete bronmetadata is noodzakelijk; een URL of vertaalde naam alleen
@@ -387,7 +440,7 @@ export async function resolveReferenceTarget(
   }
   const official = verifiedOfficialUrl(sourceKey);
   return official
-    ? { kind: "external", url: official, diagnosticKey }
+    ? externalResolution(official, diagnosticKey)
     : fail("unverified");
 }
 
@@ -399,7 +452,11 @@ export async function resolveReferenceBatch(
     PublishedStudyDTO,
     "workKey" | "editionKey" | "language" | "collectionId"
   >,
-  references: Array<{ target: Record<string, unknown>; diagnosticKey: string }>,
+  references: Array<{
+    target: Record<string, unknown>;
+    diagnosticKey: string;
+    passageIndex?: number;
+  }>,
 ) {
   if (references.length > 200) throw new Error("REFERENCE_LIMIT");
   const passages = references
@@ -409,9 +466,18 @@ export async function resolveReferenceBatch(
       ),
     )
     .filter((p) => p && p.language === "nl");
-  const otbPassages = references
-    .map((reference) => otbTarget(reference.target))
-    .filter((p) => p !== null);
+  const otbPassages = references.flatMap((reference) => {
+    const t = reference.target;
+    const bundle =
+      t.workKey === "old-testament" &&
+      t.editionKey === "otb" &&
+      t.language === "nl" &&
+      typeof t.sourceKey === "string"
+        ? parseOtbPassageSet(t.sourceKey)
+        : null;
+    const single = otbTarget(t);
+    return bundle ?? (single ? [single] : []);
+  });
   const clauses = [
     ...new Map(
       passages.map((p) => [
@@ -583,6 +649,7 @@ export async function resolveReferenceBatch(
         ref.diagnosticKey,
         prepared,
         studies,
+        ref.passageIndex,
       ),
     );
   return results;
@@ -623,7 +690,11 @@ export async function referenceInTransaction(
   )
     throw new Error("REFERENCE_UNAVAILABLE");
   const [result] = await resolveReferenceBatch(db, actor, origin.lesson, [
-    { target: source.target, diagnosticKey: row.id },
+    {
+      target: source.target,
+      diagnosticKey: row.id,
+      passageIndex: request.passageIndex,
+    },
   ]);
   return { origin: origin.lesson, result };
 }
@@ -659,7 +730,12 @@ export function referenceDiagnosis(result: ReferenceResolution) {
 export function normalizedReference(result: ReferenceResolution) {
   if (result.kind === "unavailable")
     return { kind: result.kind, reason: result.reason };
-  if (result.kind === "external") return { kind: result.kind, url: result.url };
+  if (result.kind === "external")
+    return {
+      kind: result.kind,
+      url: result.url,
+      ...(result.language ? { language: result.language } : {}),
+    };
   return {
     kind: result.kind,
     collectionId: result.collectionId,
@@ -667,5 +743,6 @@ export function normalizedReference(result: ReferenceResolution) {
     editionKey: result.editionKey,
     language: result.language,
     href: result.href,
+    ...(result.passages ? { passages: result.passages } : {}),
   };
 }

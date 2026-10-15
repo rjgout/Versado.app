@@ -38,6 +38,8 @@ COPY src ./src
 # aangeleverd via --source en zit niet in de production image.
 COPY scripts/otb ./scripts/otb
 COPY scripts/study-content ./scripts/study-content
+# Gepinde CFM-broninhoud en controlemanifesten; media blijven op het eigen volume.
+COPY data/study-content/cfm-2026-nl ./data/study-content/cfm-2026-nl
 # Read-only productiediagnose; neem geen andere contentarchitectuur-scripts
 # of testinfrastructuur op in de runtime-image.
 COPY scripts/content-architecture/diagnose-otb-production-readonly.mjs ./scripts/content-architecture/diagnose-otb-production-readonly.mjs

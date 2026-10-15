@@ -134,6 +134,10 @@ try {
       for (const suite of ["test:learning", "test:streak-return", "test:streak-calendar", "test:time"]) await run("npm", ["run", suite], env);
     }
   }
+  if(process.argv.includes("--cfm-import")) {
+    await run("npx",["tsx","--test","tests/cfm-2026-import.integration.test.mjs"],env);
+    if(process.argv.includes("--browser")) await run("npx",["tsx","tests/cfm-2026-import.browser.mjs"],env);
+  }
   if(process.argv.includes("--reference-preview")) {
     const longChapterOnly = process.argv.includes("--long-chapter-only");
     if (!longChapterOnly) await run("npx",["tsx","--test","tests/reference-resolver.integration.test.mjs"],env);

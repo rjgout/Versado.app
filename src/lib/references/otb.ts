@@ -82,6 +82,26 @@ export type OtbPassage = {
   verses: number[] | null;
 };
 
+/** Expliciete bundel van maximaal 40 echte hoofdstuk-/verspassages. Geen
+ * samengevoegd pseudohoofdstuk; iedere selectie behoudt eigen navigatie. */
+export function parseOtbPassageSet(raw: string): OtbPassage[] | null {
+  if (!raw.startsWith("otb-set:") || raw.length > 512) return null;
+  const parts = raw.slice(8).split(";");
+  if (
+    !parts.length ||
+    parts.length > 40 ||
+    new Set(parts).size !== parts.length
+  )
+    return null;
+  const parsed = parts.map((p) => parseOtbPassage(p));
+  return parsed.every(
+    (p): p is OtbPassage =>
+      p !== null && (p.verses === null || p.verses.length <= 40),
+  )
+    ? parsed
+    : null;
+}
+
 /**
  * Accepteert de machineleesbare `otb:gen:1:1-5`-vorm en gecontroleerde
  * Nederlandse labels zoals `Genesis 1:1-5`. Verwijzingen over hoofdstukken
