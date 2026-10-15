@@ -67,6 +67,7 @@ export class HymnLiveEngine {
   private hymns: ResolvedHymn[];
   private candidates: RecognitionCandidate[] | null = null;
   private needHymn: number | null = null;
+  private awaitingCandidates = false;
   private readonly opts: Required<Omit<LiveEngineOptions, "session">> & { session: Partial<SessionConfig> };
   private extractor: ChromaExtractor | null = null;
   private recognizer: HymnRecognizer | null = null;
@@ -92,9 +93,23 @@ export class HymnLiveEngine {
     };
   }
 
-  /** Bibliotheekmodus: herken tegen deze kandidaten (alle gevalideerde composities) in plaats van tegen de geladen lofzangen. */
+  /**
+   * Bibliotheekmodus: herken tegen deze kandidaten (alle gevalideerde composities) in plaats van tegen de geladen lofzangen.
+   * Wacht de herkenning al op de kandidaten (zie startRecognizing), dan begint ze nu en loopt ze eerst het geheugen door:
+   * het begin van het voorspel gaat dus niet verloren omdat de gegevens later binnenkwamen dan de microfoon.
+   */
   setCandidates(candidates: RecognitionCandidate[]): void {
     this.candidates = candidates;
+    if (this.awaitingCandidates && this.stage === "recognizing") {
+      this.awaitingCandidates = false;
+      this.recognizer = new HymnRecognizer(candidates);
+      this.queue = [...this.buffer];
+      this.queueAt = 0;
+    }
+  }
+
+  get hasCandidates(): boolean {
+    return this.candidates !== null;
   }
 
   /** Maakt een (inmiddels geladen) lofzang bekend zodat de engine hem kan volgen. */
@@ -123,8 +138,11 @@ export class HymnLiveEngine {
     return this.session;
   }
 
-  /** Begin met herkennen (de lofzang is nog niet bekend). Gooit de vorige keuze weg, niet de audio. */
-  startRecognizing(): void {
+  /**
+   * Begin met herkennen (de lofzang is nog niet bekend). Gooit de vorige keuze weg, niet de audio.
+   * Met `awaitCandidates` mag de microfoon al luisteren terwijl de herkenningsgegevens nog binnenkomen.
+   */
+  startRecognizing(options: { awaitCandidates?: boolean } = {}): void {
     this.session = null;
     this.hymn = null;
     this.choice = null;
@@ -132,9 +150,11 @@ export class HymnLiveEngine {
     this.suggestionId = null;
     this.queueAt = 0;
     this.needHymn = null;
-    this.recognizer = new HymnRecognizer(this.candidates ?? candidatesFromHymns(this.hymns));
+    this.awaitingCandidates = options.awaitCandidates === true && this.candidates === null;
+    this.recognizer = this.awaitingCandidates ? null : new HymnRecognizer(this.candidates ?? candidatesFromHymns(this.hymns));
     // Wat al gehoord is, telt mee: de herkenner loopt eerst het geheugen door (binnen het tijdsbudget).
     this.queue = [...this.buffer];
+    this.queueAt = 0;
   }
 
   /** Volg deze lofzang. Mag midden in een luistersessie; de microfoon en de extractor blijven doorlopen. */
@@ -146,6 +166,7 @@ export class HymnLiveEngine {
     this.choice = choice;
     this.stage = "following";
     this.recognizer = null;
+    this.awaitingCandidates = false;
     this.session = new HymnFollowSession(hymn, this.opts.session);
     this.session.setStanzaOrder(this.stanzaOrder);
     // alles wat we hoorden (inclusief het voorspel) door de volger, op volgorde, voor de nieuwe frames
@@ -184,6 +205,7 @@ export class HymnLiveEngine {
     this.stage = "idle";
     this.suggestionId = null;
     this.needHymn = null;
+    this.awaitingCandidates = false;
     this.lastRecognition = null;
   }
 

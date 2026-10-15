@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDown, Info, Mic, MicOff, Music, Play, RefreshCw, Rows3, Search, Settings2, ShieldCheck, Square, TextQuote, MoreHorizontal } from "lucide-react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { ChevronDown, ChevronUp, Info, Mic, MicOff, Music, Play, RefreshCw, Rows3, Search, Settings2, ShieldCheck, Square, TextQuote, MoreHorizontal } from "lucide-react";
 import { MicListener, decodeAudioFile, type MicState } from "@/lib/hymns/audio/micListener";
 import { HymnLiveEngine, type LiveState } from "@/lib/hymns/live";
 import type { HymnIndexEntry, ReadableHymn, ResolvedHymn } from "@/lib/hymns/types";
@@ -17,7 +17,8 @@ import HymnList from "./HymnList";
 import LyricsView from "./LyricsView";
 import Sheet from "./Sheet";
 import TechnicalPanel from "./TechnicalPanel";
-import { useFollowScroll } from "./useFollowScroll";
+import { INITIAL_READING, displayedStanza, focusLine, musicalCursorVisible, navigationTarget, nextSticky, readingReducer, resumeVerdict } from "./reading";
+import { useReadingScroll } from "./useReadingScroll";
 import { activeSeq, describeStatus, lyricSequence, type StatusTone } from "./viewModel";
 
 // Lofzangen: een intelligent digitaal zangboek. Eén luistersessie voor herkennen en volgen (HymnLiveEngine),
@@ -85,12 +86,14 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
   const [loadingNumber, setLoadingNumber] = useState<number | null>(null);
   const [openError, setOpenError] = useState<string | null>(null);
   const [searchSelf, setSearchSelf] = useState(false);
-  const [preparing, setPreparing] = useState(false);
   const [idleStanza, setIdleStanza] = useState<number>(1);
   const [order, setOrder] = useState<number[]>([]);
   const [sheet, setSheet] = useState<SheetKind>(null);
   const [testProgress, setTestProgress] = useState<number | null>(null);
   const [testAs, setTestAs] = useState<"recognize" | "follow">("recognize");
+  // Twee onafhankelijke posities: de muziek (engine) en de leesplek van de gebruiker (reading.ts).
+  const [reading, dispatchReading] = useReducer(readingReducer, INITIAL_READING);
+  const [navTick, setNavTick] = useState(0);
 
   // De engine en de microfoon leven in refs: ze veranderen 20 keer per seconde en mogen geen render per frame veroorzaken.
   const engineRef = useRef<HymnLiveEngine | null>(null);
@@ -100,7 +103,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
   const cancelTest = useRef(false);
   const fetchingNeeded = useRef<number | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const activeRef = useRef<HTMLParagraphElement | null>(null);
+  const settleReadingRef = useRef<() => void>(() => {});
 
   const getEngine = useCallback(() => {
     if (!engineRef.current) engineRef.current = new HymnLiveEngine([]);
@@ -181,23 +184,32 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
     async (intent: "recognize" | "follow") => {
       const eng = getEngine();
       if (intent === "follow" && !hymn) return;
-      if (intent === "recognize") {
-        // Alle herkenningsgegevens vóór de microfoon starten: tijdens het luisteren gaat er geen verzoek meer naar de server.
-        setPreparing(true);
-        try {
-          eng.setCandidates(candidatesFromBundle(await loadRecognitionBundle()));
-        } catch {
-          setMicDetail(COPY.recognitionUnavailable);
-          return;
-        } finally {
-          setPreparing(false);
-        }
-      }
       eng.restart();
       eng.setStanzaOrder(order);
       setSearchSelf(false);
-      if (intent === "recognize") eng.startRecognizing();
-      else if (hymn) {
+      setMicDetail(undefined);
+      dispatchReading({ type: "reset" });
+      if (intent === "recognize") {
+        // De microfoon start meteen: de herkenningsgegevens komen er tijdens het luisteren bij en de engine loopt dan
+        // eerst het geheugen door. Zo gaat het begin van het voorspel niet verloren aan het laden. Tijdens het
+        // luisteren gaat er verder geen verzoek meer naar de server.
+        const needBundle = !eng.hasCandidates;
+        eng.startRecognizing({ awaitCandidates: needBundle });
+        if (needBundle) {
+          loadRecognitionBundle()
+            .then((bundle) => {
+              eng.setCandidates(candidatesFromBundle(bundle));
+              schedule(0);
+            })
+            .catch(() => {
+              micRef.current?.stop();
+              eng.restart();
+              setLive(eng.state());
+              setMicDetail(COPY.recognitionUnavailable);
+            });
+        }
+      } else if (hymn) {
+        // Een zelf gekozen lofzang hoeft niet herkend te worden: direct de muzikale positie volgen.
         eng.registerHymn(hymn);
         eng.followHymn(hymn.number, "manual");
         if (idleStanza !== (hymn.text.stanzas[0]?.n ?? 1)) eng.selectStanza(idleStanza);
@@ -209,7 +221,10 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
           onState: (state, detail) => {
             setMicState(state);
             setMicDetail(detail);
-            if (state !== "listening") schedule(0);
+            if (state !== "listening") {
+              settleReadingRef.current();
+              schedule(0);
+            }
           },
         });
       }
@@ -232,6 +247,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
     setOpened(null);
     setSearchSelf(false);
     setMicDetail(undefined);
+    dispatchReading({ type: "reset" });
   }, []);
 
   const selectHymn = useCallback(
@@ -246,6 +262,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
         setOrder([]);
         setSearchSelf(false);
         setSheet(null);
+        dispatchReading({ type: "reset" });
         const eng = getEngine();
         if (res) {
           eng.registerHymn(res);
@@ -266,7 +283,13 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
   );
 
   const onStanzaTap = (n: number) => {
+    if (live.stage === "following" && listening && reading.mode === "manual") {
+      // Zelf aan het bladeren: alleen de leesplek verandert. De engine houdt zijn eigen couplet en de muziek loopt door.
+      dispatchReading({ type: "stanza", stanza: n, following: true });
+      return;
+    }
     // Handmatige keuze: onmiddellijk tonen, de muziekherkenning loopt ongestoord door.
+    dispatchReading({ type: "stanza", stanza: n, following: false });
     setIdleStanza(n);
     engineRef.current?.selectStanza(n);
     schedule(0);
@@ -350,23 +373,80 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
   const stage = live.stage;
   const choosing = stage === "idle" && !listening && !opened;
   const stanzaNumbers = (displayText?.stanzas ?? []).map((s) => s.n);
-  const shownStanza = snapshot ? snapshot.stanza : idleStanza;
+  const following = stage === "following";
+  const engineStanza = snapshot ? snapshot.stanza : idleStanza;
+  // MusicalPosition (engine) en ReadingPosition (gebruiker) zijn gescheiden: tijdens handmatig lezen bepaalt de gebruiker
+  // welk couplet en welke regel getoond worden; de engine gaat intussen gewoon door.
+  const shownStanza = displayedStanza(reading, engineStanza, following);
   const stanza = displayText?.stanzas.find((s) => s.n === shownStanza) ?? displayText?.stanzas[0];
   const phase = snapshot?.phase.phase ?? "prelude";
   const status = describeStatus(micState, live);
   const calm = prefs.calm;
   const seq = useMemo(() => (displayText ? lyricSequence(displayText, stanza) : []), [displayText, stanza]);
-  const activeIdx = activeSeq(seq, snapshot?.cursor);
+  const musicCursor = snapshot && musicalCursorVisible(snapshot.stanza, stanza?.n ?? -1) ? snapshot.cursor : undefined;
+  const activeIdx = activeSeq(seq, musicCursor);
   const customOrder = order.length > 0 && order.length < stanzaNumbers.length;
+  const browsing = following && listening && reading.mode === "manual";
+  const hymnKey = `${hymn?.number ?? opened?.number ?? 0}:${stanza?.n ?? 0}`;
 
-  const { detached, resume } = useFollowScroll({
-    enabled: prefs.autoScroll && prefs.view === "stanza" && stage === "following",
-    resetKey: `${hymn?.number ?? opened?.number ?? 0}:${shownStanza}`,
-    activeIndex: activeIdx,
-    scrollRef,
-    activeRef,
+  // Verliest de engine tijdelijk zijn regel (onzeker, tussenspel), dan blijft de laatst bekende regel de focus.
+  const lastLineKey = `${hymnKey}:${phase === "prelude" ? "voorspel" : "zang"}`;
+  const [held, setHeld] = useState({ key: lastLineKey, value: activeIdx });
+  const heldNow = nextSticky(held, lastLineKey, activeIdx);
+  if (heldNow !== held) setHeld(heldNow);
+  const lastLine = heldNow.value;
+
+  const karaoke = prefs.view === "karaoke";
+  const focus = karaoke ? focusLine(reading, activeIdx, lastLine, seq.length) : -1;
+  const navIndex = navigationTarget(reading, activeIdx, lastLine, seq.length, prefs.view);
+  const textShown = !choosing && stage !== "recognizing" && Boolean(displayText);
+
+  useReadingScroll({
+    boxRef: scrollRef,
+    view: prefs.view,
+    active: textShown,
+    autoFollow: prefs.autoScroll && following && listening && reading.mode === "auto",
+    autoIndex: karaoke ? focus : activeIdx,
+    navIndex,
+    navTick,
+    placeKey: `${hymnKey}:${prefs.view}`,
     smooth: !calm,
+    onUserScroll: () => dispatchReading({ type: "scroll", following: following && listening, stanza: shownStanza }),
   });
+
+  const tapLine = (line: number) => {
+    dispatchReading({ type: "line", line, following: following && listening, stanza: shownStanza });
+    setNavTick((n) => n + 1);
+  };
+  const stepLine = (dir: 1 | -1) => {
+    const from = karaoke ? focus : (reading.line ?? activeIdx);
+    dispatchReading({ type: "step", dir, from, count: seq.length, following: following && listening, stanza: shownStanza });
+    setNavTick((n) => n + 1);
+  };
+  const resumeAuto = () => {
+    const verdict = resumeVerdict(snapshot, reading.stanza);
+    dispatchReading({ type: "resume", verdict });
+    if (verdict.ok) setNavTick((n) => n + 1);
+  };
+
+  // De melding "nog niet zeker genoeg" verdwijnt vanzelf; de leesplek blijft.
+  useEffect(() => {
+    if (!reading.note) return;
+    const t = setTimeout(() => dispatchReading({ type: "clearNote" }), 6000);
+    return () => clearTimeout(t);
+  }, [reading.note]);
+
+  // Stopt de microfoon terwijl de gebruiker zelf bladert, dan blijft staan wat hij leest: die keuze wordt van de engine.
+  useEffect(() => {
+    settleReadingRef.current = () => {
+      if (reading.mode !== "manual") return;
+      if (reading.stanza !== null) {
+        if (snapshot && snapshot.stanza !== reading.stanza) engineRef.current?.selectStanza(reading.stanza);
+        setIdleStanza(reading.stanza);
+      }
+      dispatchReading({ type: "reset" });
+    };
+  }, [reading.mode, reading.stanza, snapshot]);
 
   const recog = live.recognition;
   const suggestion = recog?.suggestion ?? null;
@@ -374,6 +454,11 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
   const shared = suggestion && suggestion.sharedWith.length > 0 ? [{ number: suggestion.number, title: suggestion.title }, ...suggestion.sharedWith] : null;
   const candidates = suggestion ? [] : (recog?.ranking ?? []).filter((c) => c.z >= 3).sort((a, b) => b.z - a.z).slice(0, 4);
   const slow = (recog?.heardSeconds ?? 0) >= 15 || recog?.status === "unknown";
+  const leadNumber = suggestion?.number ?? null;
+  // De tekst van de waarschijnlijkste lofzang alvast laden (alleen naar het lokale geheugen): tikken of automatisch volgen toont hem direct.
+  useEffect(() => {
+    if (leadNumber !== null) void loadHymn(leadNumber).catch(() => {});
+  }, [leadNumber]);
   const shownNumber = hymn?.number ?? opened?.number;
   const title = choosing ? COPY.choose : stage === "recognizing" ? COPY.recognizing : `${shownNumber}. ${displayText?.title ?? opened?.title ?? ""}`;
   const canFollow = Boolean(hymn);
@@ -398,7 +483,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
           <div className="flex items-start justify-between gap-2">
             <h1 className="vs-wrap min-w-0 text-xl font-bold leading-tight text-vs-fg">{title}</h1>
             <div className="-mr-2 flex shrink-0 items-center">
-              {!choosing && stage === "following" ? viewToggle : null}
+              {textShown ? viewToggle : null}
               <button
                 type="button"
                 className={iconButton}
@@ -573,10 +658,10 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
                       </ul>
                     </div>
                   ) : null}
-                  {slow && !searchSelf ? (
-                    <div className="space-y-2" data-hymns-slow>
-                      <p className="text-sm text-vs-fg-2">{COPY.recognizingSlow}</p>
-                      <button type="button" className={secondaryButton} onClick={() => setSearchSelf(true)}>
+                  {!searchSelf ? (
+                    <div className="space-y-2" data-hymns-slow={slow ? "true" : undefined}>
+                      {slow ? <p className="text-sm text-vs-fg-2">{COPY.recognizingSlow}</p> : null}
+                      <button type="button" className={secondaryButton} data-hymns-search-self onClick={() => setSearchSelf(true)}>
                         <Search className="h-4 w-4" aria-hidden="true" />
                         {COPY.searchSelf}
                       </button>
@@ -587,7 +672,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
               ) : displayText ? (
                 <>
                   {opened && !canFollow ? <p className="mb-3 rounded-xl bg-vs-subtle p-3 text-sm text-vs-fg-2" data-hymns-text-only>{COPY.textOnlyNote}</p> : null}
-                  <LyricsView text={displayText} stanza={stanza} cursor={snapshot?.cursor} view={prefs.view} size={prefs.size} activeRef={activeRef} />
+                  <LyricsView text={displayText} stanza={stanza} cursor={musicCursor} view={prefs.view} size={prefs.size} focus={focus} reading={reading.line} onLineTap={tapLine} />
                   {stanza?.linking === "line" && prefs.view === "stanza" && canFollow ? <p className="mt-3 text-xs text-vs-fg-3">{COPY.lineFallbackNote}</p> : null}
                   {displayText.musicCredit || displayText.textCredit ? (
                     <p className="mt-6 text-xs text-vs-fg-3" data-hymns-credits>
@@ -603,16 +688,43 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
                 </p>
               ) : null}
             </div>
-            {detached ? (
-              <button type="button" className={`${secondaryButton} absolute bottom-3 left-1/2 -translate-x-1/2 shadow-lg`} onClick={resume}>
-                <ArrowDown className="h-4 w-4" aria-hidden="true" />
-                {COPY.resumeFollow}
-              </button>
-            ) : null}
           </div>
         )}
 
-        <div data-hymns-bar className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-vs-line pt-2">
+        <div data-hymns-controls className="flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-vs-line pt-2">
+          {textShown && (karaoke || browsing) ? (
+            <div data-hymns-reading className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+              <div role="group" aria-label={COPY.readingNav} className="-ml-2 flex items-center">
+                <button type="button" className={iconButton} data-hymns-prev aria-label={COPY.previousLine} title={COPY.previousLine} onClick={() => stepLine(-1)}>
+                  <ChevronUp className="h-5 w-5" aria-hidden="true" />
+                </button>
+                <button type="button" className={iconButton} data-hymns-next aria-label={COPY.nextLine} title={COPY.nextLine} onClick={() => stepLine(1)}>
+                  <ChevronDown className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </div>
+              {browsing ? (
+                <>
+                  <span className="text-sm font-semibold text-vs-fg-2" data-hymns-browsing>
+                    {COPY.browsing}
+                  </span>
+                  {snapshot && snapshot.stanza !== shownStanza ? (
+                    <span className="text-sm text-vs-fg-3" data-hymns-music-stanza>
+                      {COPY.musicInStanza} {snapshot.stanza}
+                    </span>
+                  ) : null}
+                  <button type="button" className={`${secondaryButton} !min-h-[44px]`} data-hymns-resume onClick={resumeAuto}>
+                    {COPY.resumeAuto}
+                  </button>
+                </>
+              ) : null}
+              {reading.note ? (
+                <p className="vs-wrap basis-full text-sm text-vs-fg-3" role="status" data-hymns-resume-note>
+                  {reading.note === "lost" ? COPY.resumeLost : reading.note === "waiting" ? COPY.resumeWaiting : COPY.resumeUnsure}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+          <div data-hymns-bar className="ml-auto flex flex-wrap items-center justify-end gap-2 [&_button]:!min-h-[44px]">
           {listening ? (
             <>
               {stage === "following" && phase === "prelude" ? (
@@ -633,9 +745,9 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
               </button>
             </>
           ) : choosing ? (
-            <button type="button" className={primaryButton} onClick={() => void startListening("recognize")} disabled={micState === "requesting" || preparing || indexState !== "ready"}>
+            <button type="button" className={primaryButton} onClick={() => void startListening("recognize")} disabled={micState === "requesting" || indexState !== "ready"}>
               <Music className="h-4 w-4" aria-hidden="true" />
-              {preparing ? COPY.preparingRecognition : COPY.recognize}
+              {COPY.recognize}
             </button>
           ) : (
             <>
@@ -647,7 +759,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
                   type="button"
                   className={primaryButton}
                   onClick={() => void startListening(stage === "recognizing" ? "recognize" : "follow")}
-                  disabled={micState === "requesting" || preparing}
+                  disabled={micState === "requesting"}
                 >
                   <Mic className="h-4 w-4" aria-hidden="true" />
                   {COPY.start}
@@ -655,6 +767,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
               ) : null}
             </>
           )}
+          </div>
         </div>
       </div>
 

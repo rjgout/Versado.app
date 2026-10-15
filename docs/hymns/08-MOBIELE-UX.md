@@ -31,14 +31,14 @@ Termen **BEWEZEN** (gemeten of getest in deze repository), **AANNEMELIJK** en **
   flex-kind onderaan. Omdat de bediening in de stroom zit en niet over de tekst ligt, kan er niets achter
   verdwijnen, ook niet als de hoogte van de bediening verandert (bijvoorbeeld bij tekstschaling).
 - **Geen magische padding, geen z-index-wedloop.** Er is geen `sticky`, `fixed` of `absolute` voor de
-  bediening; alleen de tijdelijke knop "Volgen hervatten" ligt binnen de leesruimte.
+  bediening; de leesbediening ("Zelf bladeren", "Automatisch volgen hervatten") staat sinds docs 17 in de bedieningszone, niet meer in de leesruimte.
 - **Vangnet voor zeer grote tekst.** Passen kop, leesruimte (minimaal 7 rem) en bediening niet (200% tekst op een
   scherm van 320x700 of een landscape-telefoon), dan scrolt de werkruimte zelf (`overflow-y: auto`). Het
   document scrolt nooit en alles blijft bereikbaar; de bediening is dan na scrollen onderaan bereikbaar
   in plaats van altijd vast zichtbaar. Dat is bewust gekozen boven een leesruimte van nul hoogte.
-- **Scrollen.** Geen `scrollIntoView`, geen `window.scrollBy`: het meescrollen (`useFollowScroll`) scrolt alleen de
+- **Scrollen.** Geen `scrollIntoView`, geen `window.scrollBy`: het meescrollen (`useReadingScroll`, zie 17) scrolt alleen de
   leesruimte, en alleen als het couplet niet past en de actieve regel buiten beeld valt. Eigen scrollen
-  (wiel, vinger, toetsen in de leesruimte) pauzeert het meescrollen tot "Volgen hervatten". Reduced motion
+  (wiel, vinger, toetsen in de leesruimte) pauzeert het meescrollen tot "Automatisch volgen hervatten" (docs 17). Reduced motion
   geeft geen vloeiende beweging.
 - **Aanraakdoelen** van coupletnummers en icoonknoppen zijn minimaal 44 x 44 px (px-minimum, ook bij grote tekst).
 
@@ -65,7 +65,7 @@ Termen **BEWEZEN** (gemeten of getest in deze repository), **AANNEMELIJK** en **
 | Voorspel | **Zang begint** (primair), *Stop* |
 | Zingen of tussenspel | *Opnieuw synchroniseren*, *Stop* |
 | Gestopt (na een sessie) | *Andere lofzang* (terug naar kiezen), **Start luisteren** (primair) |
-| Eigen scrollen | extra knop "Volgen hervatten" in de leesruimte |
+| Eigen scrollen | strook "Zelf bladeren" + "Automatisch volgen hervatten" in de bedieningszone |
 
 De microfoon is altijd met *Stop* uit te zetten, met de terugbalk, door de pagina te verlaten of door naar de
 achtergrond te gaan. De indicator "Microfoon is actief" (met punt) staat bij de status.

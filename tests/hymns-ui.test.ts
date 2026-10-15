@@ -7,7 +7,7 @@ import type { DisplayCursor } from "../src/lib/hymns/follow/display";
 import type { FollowSnapshot } from "../src/lib/hymns/follow/session";
 import type { LiveState } from "../src/lib/hymns/live";
 import { parseHymnPrefs, DEFAULT_HYMN_PREFS } from "../src/lib/hymnPrefs";
-import { activeSeq, activeWordFor, describeStatus, karaokeWindow, lyricSequence, scrollDelta } from "../src/components/hymns-poc/viewModel";
+import { activeSeq, activeWordFor, describeStatus, lyricSequence, scrollDelta } from "../src/components/hymns-poc/viewModel";
 
 // De Lofzangen-weergave: statusteksten, de regels van karaoke, het scrollgedrag en de voorkeuren. Alles zonder
 // browser; de echte weergave (focus mode, 320 px, 200% tekst, microfoon) staat in scripts/hymns/e2e-browser.mjs.
@@ -70,24 +70,12 @@ test("coupletreeks: couplet gevolgd door refrein; geen refrein bij hymne 82", ()
   assert.equal(s24[s24.length - 1].section, "chorus");
 });
 
-test("actieve regel en karaokevenster: vorige, huidige en volgende; vooraf staat de eerste regel klaar", () => {
+test("actieve regel: de index in de doorlopende reeks, -1 zolang er niets actief is", () => {
   const seq = lyricSequence(hymn.text, hymn.text.stanzas[0]);
   const cursor = (line: number): DisplayCursor => ({ section: "verse", line, word: 0, frozen: false });
   assert.equal(activeSeq(seq, cursor(2)), 2);
   assert.equal(activeSeq(seq, cursor(-1)), -1);
   assert.equal(activeSeq(seq, undefined), -1);
-  const mid = karaokeWindow(seq, 2);
-  assert.equal(mid.previous?.seq, 1);
-  assert.equal(mid.current?.seq, 2);
-  assert.equal(mid.next?.seq, 3);
-  assert.equal(mid.ready, false);
-  const first = karaokeWindow(seq, 0);
-  assert.equal(first.previous, null);
-  const ready = karaokeWindow(seq, -1);
-  assert.equal(ready.ready, true);
-  assert.equal(ready.current?.seq, 0);
-  const last = karaokeWindow(seq, seq.length - 1);
-  assert.equal(last.next, null);
 });
 
 test("woordmarkering: alleen met woordkoppeling; zonder (couplet 5 van 82) hoort de markering bij de regel", () => {
@@ -136,7 +124,7 @@ test("ontwerp: actief woord = accentkleur zonder achtergrond, geen scrollIntoVie
   assert.match(lyrics, /text-vs-accent/);
   assert.equal(/bg-vs-accent|bg-vs-accent-soft/.test(lyrics), false, "achtergrondmarkering achter het woord");
   assert.match(lyrics, /hymn-word/);
-  for (const file of ["LyricsView.tsx", "HymnsPocClient.tsx", "useFollowScroll.ts", "TechnicalPanel.tsx"]) {
+  for (const file of ["LyricsView.tsx", "HymnsPocClient.tsx", "useReadingScroll.ts", "TechnicalPanel.tsx"]) {
     const code = read(`src/components/hymns-poc/${file}`);
     assert.equal(/scrollIntoView/.test(code), false, `${file} gebruikt scrollIntoView`);
     assert.equal(/window\.(scrollBy|scrollTo|scroll)\(/.test(code), false, `${file} scrolt het venster`);
@@ -162,10 +150,11 @@ test("layout: één werkruimte met flex-kolom, een eigen scrollende leesruimte e
   const css = read("src/app/globals.css");
   assert.match(client, /className="hymns-workspace"/);
   // de bedieningszone is een gewone flex-kind (shrink-0), geen sticky of fixed laag
-  assert.match(client, /data-hymns-bar className="flex shrink-0/);
+  assert.match(client, /data-hymns-controls className="flex shrink-0/);
+  assert.match(client, /data-hymns-bar className="ml-auto flex/);
   for (const file of ["HymnsPocClient.tsx", "LyricsView.tsx", "TechnicalPanel.tsx"]) {
     const code = read(`src/components/hymns-poc/${file}`);
-    assert.equal(/\b(sticky|fixed|absolute inset)\b/.test(code.split("\n").filter((l) => !/^\s*(\/\/|\/\*|\*)/.test(l)).join("\n").replace(/absolute bottom-3/g, "")), false, `${file} gebruikt sticky/fixed positionering`);
+    assert.equal(/\b(sticky|fixed|absolute inset)\b/.test(code.split("\n").filter((l) => !/^\s*(\/\/|\/\*|\*)/.test(l)).join("\n")), false, `${file} gebruikt sticky/fixed positionering`);
   }
   assert.match(css, /\.hymns-workspace\s*\{[^}]*100dvh[^}]*--header-height/s, "werkruimte rekent met de gemeten terugbalk");
   assert.match(css, /\.hymns-workspace\s*\{[^}]*--vs-safe-area-bottom/s, "werkruimte houdt de safe area onderaan vrij");
