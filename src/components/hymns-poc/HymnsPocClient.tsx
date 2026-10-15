@@ -548,6 +548,15 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
                         ))}
                       </ul>
                     </div>
+                  ) : suggestion && recog?.status === "suggested" ? (
+                    <div className="space-y-2" data-hymns-suggestion>
+                      <p className="text-sm text-vs-fg-3">{COPY.suggestionHelp}</p>
+                      <button type="button" className={`${primaryButton} w-full justify-start !rounded-xl text-left`} onClick={() => void selectHymn(suggestion.number)}>
+                        <span className="vs-wrap">
+                          {suggestion.number}. {suggestion.title}
+                        </span>
+                      </button>
+                    </div>
                   ) : candidates.length > 0 ? (
                     <div className="space-y-2">
                       <p className="text-sm text-vs-fg-3">{COPY.candidatesHelp}</p>

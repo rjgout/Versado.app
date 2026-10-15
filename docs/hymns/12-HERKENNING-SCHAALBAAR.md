@@ -46,20 +46,22 @@ besluit (recognizer.ts):  voorfilter-kop stabiel + tracker bevestigt   →  iden
   gemiddeld en hoe wisselend op 24 ANDERE opnamen haalt, op 10/20/30/45/60 s. Het bewijs wordt omgerekend naar z = (bewijs - gemiddelde) / spreiding.
   Zo verliezen vaste "aantrekkers" hun voordeel. De kalibratie hoort bij de bibliotheek: bij elke wijziging opnieuw draaien.
 
-### 2.3 Besluit
+### 2.3 Besluit in twee niveaus
 
 Alleen in de grote bibliotheek (meer kandidaten dan `activeLimit`); bij hooguit zes kandidaten geldt de oude regel ongewijzigd (de bestaande tests).
 
-| Weg | Voorwaarde |
-|---|---|
-| Voorfilter-kop | minstens 8 s muziek, kop 5 rondes achter elkaar eerste, voorsprong ≥ 0,04, tracker-z ≥ 1,5 én (z niet meer dan 1 onder de beste rivaal, of voorsprong ≥ 0,10) |
-| Tracker-gedreven | z ≥ 6 met 3 z boven de rest én die kandidaat is de stabiele kop van het voorfilter (3 rondes, voorsprong ≥ 0,02) |
-| `ambiguous` | de kop is stabiel maar de voorsprong is kleiner dan 0,04 |
-| `unknown` | na 25 s geen enkele kandidaat met bewijs |
+| Status | Voorwaarde | Gevolg |
+|---|---|---|
+| `identified` (zeker) | **voorfilter-kop**: minstens 8 s muziek, kop 5 rondes achter elkaar eerste, voorsprong ≥ 0,08, tracker-z ≥ 3 én (z niet meer dan 1 onder de beste rivaal, of voorsprong ≥ 0,10); **of tracker-gedreven**: z ≥ 6 met 3 z boven de rest én dezelfde kandidaat is de stabiele kop van het voorfilter (3 rondes, voorsprong ≥ 0,06) | de app begint zelf te volgen (na 2 s stabiel) |
+| `suggested` (waarschijnlijk) | kop 5 rondes stabiel, voorsprong ≥ 0,04, tracker-z ≥ 1,5 én niet tegengesproken | knop "Dit lijkt de lofzang: n. titel"; de gebruiker bevestigt, de app volgt niet zelf |
+| `ambiguous` | de kop is stabiel maar de voorsprong is kleiner dan 0,04 | geen keuze |
+| `unknown` | na 25 s geen enkele kandidaat met bewijs | "Zoek zelf" |
 
-Het voorfilter en de tracker zijn twee onafhankelijke getuigen; spreken ze elkaar tegen, dan wacht de herkenner (nooit een gok). De drempels zijn
-gekozen op de echte begeleidingsopnamen (zie 4: dezelfde opnamen dus **geen** onafhankelijke testset; ze zijn daarna ook op de helft
-van de opnamen gecontroleerd die niet in de kalibratiepool zaten).
+Het voorfilter en de tracker zijn twee onafhankelijke getuigen; spreken ze elkaar tegen, dan wacht de herkenner (nooit een gok). Waarom twee niveaus:
+**BEWEZEN** (leave-one-out, zie 3): als de gespeelde lofzang niet in de bibliotheek staat, lijkt hij toch op een andere lofzang; met alleen
+het lage niveau volgde de app dan in 21 % van de gevallen (32 van 152) zelf een verkeerde lofzang. Met het hoge niveau voor automatisch volgen en het
+lage niveau als voorstel is dat 1 van 152. De drempels zijn gekozen op de echte begeleidingsopnamen (zie 3: dezelfde opnamen dus **geen**
+onafhankelijke testset; ze zijn daarna ook op de helft van de opnamen gecontroleerd die niet in de kalibratiepool zaten).
 
 ### 2.4 Gedeelde melodieën
 
@@ -75,18 +77,19 @@ kiest dan **nooit** zelf (geen automatisch volgen); het herkenscherm toont de lo
 | Meting | Uitkomst |
 |---|---|
 | Lofzangen met opname | 152 |
-| Eerste uitspraak juist | **152 van 152** |
-| Eerste uitspraak verkeerd | 0 |
-| Niet herkend binnen 90 s | 0 |
-| Luistertijd tot de uitspraak | mediaan 11 s, P75 24 s, P90 39 s, maximaal 88 s |
-| Controle op de 92 opnamen buiten de kalibratiepool | 92 van 92 juist |
+| De app volgt zelf, en juist (`identified`) | **139 van 152 (91 %)** |
+| De app volgt zelf, maar verkeerd | **0** |
+| Juist als voorstel dat de gebruiker bevestigt (`suggested`) | 11 |
+| Niet herkend binnen 90 s | 2 (lofzang 7 en 17; status "onbekend" of "ambigu", nooit een gok) |
+| Luistertijd tot automatisch volgen | mediaan 13 s, P90 57 s, maximaal 85 s |
+| Onbekende melodie (leave-one-out: de lofzang zelf is geen kandidaat), 152 opnamen | de app volgt zelf een verkeerde lofzang bij **1 van 152** (lofzang 19); bij 28 komt een (verkeerd) voorstel dat de gebruiker kan negeren |
 | CPU per frame (46 ms interval), ontwikkelmachine, gemiddeld | ~5,5-6 ms (piek per frame ~90-160 ms bij het activeren van kandidaten) |
 | Geheugen (bibliotheek + herkenner na 60 s) | ~11 MB |
 | Gelijktijdig actieve score-followers | maximaal 9 |
 
-Ontwikkeling van de aanpak, ter eerlijkheid: de eerste versie (alleen tracker-bewijs, alle kandidaten) gaf op 18 lofzangen 10 goed, 6 fout en 2 niet herkend; het voorfilter als
-kop gaf 141 van 146 goed en 4 fout; met z-normalisatie en tegenspraakregel 150 van 152 en 1 fout; de laatste restrictie (tracker-gedreven alleen bij een
-kop van het voorfilter) gaf 152 van 152. Dat is dus afstellen op dezelfde opnamen.
+Ontwikkeling van de aanpak, ter eerlijkheid: de eerste versie (alleen tracker-bewijs, alle kandidaten) gaf op 18 lofzangen 10 goed, 6 fout en 2 niet herkend;
+het voorfilter als kop gaf 141 van 146 goed en 4 fout; met z-normalisatie en tegenspraakregel 150 van 152 en 1 fout; met een tweede (tracker-gedreven) weg
+152 van 152 maar 21 % verkeerd bij onbekende melodieën, en daarom de twee niveaus hierboven. Dat is dus afstellen op dezelfde opnamen.
 
 Wat dit **niet** zegt: de opnamen zijn schoon begeleidingsspel van de Engelse uitvoering, zonder gemeentezang, galm, pratende kinderen of een
 orgel met afwijkende stemming. De Nederlandse notatie wijkt soms af van de Engelse opname. **Praktijkresultaat in een kerk: ONBEKEND.**

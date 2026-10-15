@@ -86,7 +86,8 @@ def main():
         reasons = list(m["musicReasons"])
         # onafhankelijke controle tegen de officiële begeleidingsopname (zie audio_check.py)
         audio_state = "niet-beschikbaar"
-        recog_ok = bool(recog.get(str(e["number"]), {}).get("ok"))
+        r0 = recog.get(str(e["number"]), {})
+        recog_ok = bool(r0.get("auto") or r0.get("suggested"))
         # "bevestigd" = de volledige DTW zet de eigen compositie bij de beste drie, of de herkenning (venster van ~12 s) vindt de lofzang
         # in de opname terug (eval-library.ts): beide zijn onafhankelijk van de tekstkoppeling. De opname is de ENGELSE begeleiding van
         # dezelfde melodie; een andere harmonisatie in het Nederlandse boek geeft dus geen fout in de extractie. "afwijkend" blokkeert
@@ -107,7 +108,7 @@ def main():
             "lineFollowing": valid,
             "wordFollowing": valid and m["wordLinking"],
             "recognizable": valid,
-            "recognitionValidated": bool(valid and r and r.get("ok")),
+            "recognitionValidated": bool(valid and r and (r.get("auto") or r.get("suggested"))),
         }
     # alleen muziekgegevens van gevalideerde lofzangen blijven bestaan (de rest is onzeker en wordt afgeschermd)
     keep_links = {e["number"] for e in entries if e["capabilities"]["scoreValidated"]}
@@ -129,6 +130,8 @@ def main():
         "wordFollowing": sum(e["capabilities"]["wordFollowing"] for e in entries),
         "recognizable": sum(e["capabilities"]["recognizable"] for e in entries),
         "recognitionValidated": sum(e["capabilities"]["recognitionValidated"] for e in entries),
+        "recognitionAuto": sum(1 for e in entries if e["capabilities"]["recognitionValidated"] and recog.get(str(e["number"]), {}).get("auto")),
+        "recognitionSuggested": sum(1 for e in entries if e["capabilities"]["recognitionValidated"] and not recog.get(str(e["number"]), {}).get("auto")),
         "uniqueCompositions": len(keep_comps),
         "audioConfirmed": sum(e["music"]["audioCheck"] == "bevestigd" for e in entries),
         "audioDeviating": [e["number"] for e in entries if e["music"]["audioCheck"] == "afwijkend"],

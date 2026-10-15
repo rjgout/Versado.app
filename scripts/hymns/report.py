@@ -40,7 +40,7 @@ a(f"| Bladmuziek gelezen én gevalideerd | {c['scoreValidated']} | Maten sluiten
 a(f"| Regelvolging beschikbaar | {c['lineFollowing']} | |")
 a(f"| Woordvolging beschikbaar | {c['wordFollowing']} | Alleen als alle woorden betrouwbaar aan lettergrepen zijn gekoppeld; anders wordt de regel gemarkeerd. |")
 a(f"| Herkenning beschikbaar | {c['recognizable']} | In de herkenningsgegevens opgenomen. Unieke melodieën: {c['uniqueCompositions']}. |")
-a(f"| Herkenning gevalideerd met opnamen | {c['recognitionValidated']} | Juiste lofzang als eerste uitspraak op de officiële begeleidingsopname, zonder verkeerde uitspraak. |")
+a(f"| Herkenning gevalideerd met opnamen | {c['recognitionValidated']} | Juiste lofzang op de officiële begeleidingsopname, zonder verkeerde uitspraak: {c['recognitionAuto']} automatisch (de app volgt zelf), {c['recognitionSuggested']} als voorstel dat de gebruiker bevestigt. |")
 a(f"| Noten bevestigd door de begeleidingsopname | {c['audioConfirmed']} | Onafhankelijke controle (zie 10-MUZIEKEXTRACTIE.md). |")
 a("")
 a("Onderscheid dat dit rapport bewust maakt:")

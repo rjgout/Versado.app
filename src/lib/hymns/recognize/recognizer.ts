@@ -49,7 +49,11 @@ export function evidenceZ(evidence: number, heardSeconds: number, cal: EvidenceC
   return (evidence - m) / sd;
 }
 
-export type RecognitionStatus = "listening" | "candidates" | "identified" | "ambiguous" | "unknown";
+/**
+ * identified: zeker genoeg om automatisch te volgen. suggested: waarschijnlijk, maar de gebruiker bevestigt (grote bibliotheek:
+ * een melodie die niet in de bibliotheek staat kan ten onrechte op een andere lofzang lijken, zie docs/hymns/12).
+ */
+export type RecognitionStatus = "listening" | "candidates" | "suggested" | "identified" | "ambiguous" | "unknown";
 
 export interface CandidateScore {
   id: string;
@@ -75,7 +79,7 @@ export interface RecognitionState {
   /** Alleen gevuld bij "identified": de voorgestelde lofzang. */
   suggestion: CandidateScore | null;
   /** Diagnose (grote bibliotheek): de kop van het voorfilter, hoe lang al, en de voorsprong op de tweede (kosten-eenheden). */
-  lead: { id: string; streak: number; margin: number } | null;
+  lead: { id: string; streak: number; margin: number; cost: number } | null;
 }
 
 export interface RecognizerConfig {
@@ -123,6 +127,9 @@ export interface RecognizerConfig {
   /** Ook dan moet de voorfilter-kop even stabiel zijn (rondes) en een kleine voorsprong hebben: een kop die net wisselde is geen getuige. */
   trackerStreak: number;
   trackerMargin: number;
+  /** Automatisch volgen (identified) vraagt een grotere voorsprong en meer bewijs dan een voorstel (suggested). */
+  confidentMargin: number;
+  confidentZ: number;
 }
 
 export const DEFAULT_RECOGNIZER_CONFIG: RecognizerConfig = {
@@ -148,7 +155,9 @@ export const DEFAULT_RECOGNIZER_CONFIG: RecognizerConfig = {
   trackerZ: 6,
   trackerGapZ: 3,
   trackerStreak: 3,
-  trackerMargin: 0.02,
+  trackerMargin: 0.06,
+  confidentMargin: 0.08,
+  confidentZ: 3,
 };
 
 interface Entry {
@@ -174,7 +183,7 @@ export class HymnRecognizer {
   private heard = 0;
   private lastTime: number | null = null;
   /** Kop van het voorfilter: wie de laatste rondes eerst stond en hoe lang al, met de voorsprong op de tweede. */
-  private leader: { id: string; streak: number; margin: number; since: number } | null = null;
+  private leader: { id: string; streak: number; margin: number; since: number; cost: number } | null = null;
   private prefilterRank = new Map<string, number>();
 
   constructor(candidates: RecognitionCandidate[], config: Partial<RecognizerConfig> = {}) {
@@ -261,7 +270,8 @@ export class HymnRecognizer {
       if (this.leader && this.leader.id === top.id) {
         this.leader.streak += 1;
         this.leader.margin = margin;
-      } else this.leader = { id: top.id, streak: 1, margin, since: now };
+        this.leader.cost = top.cost;
+      } else this.leader = { id: top.id, streak: 1, margin, since: now, cost: top.cost };
     }
     this.prefilterRank = new Map(result.ranking.slice(0, 5).map((r, i) => [r.id, i + 1]));
     const wanted = new Set(result.ranking.slice(0, this.config.activeLimit).map((r) => r.id));
@@ -342,11 +352,12 @@ export class HymnRecognizer {
           lead?.id === zTop.id &&
           lead.streak >= cfg.trackerStreak &&
           lead.margin >= cfg.trackerMargin;
-        if (trackerLed) {
+        const confidentLead = lead !== null && stable && leadScore !== undefined && lead.margin >= cfg.confidentMargin && ev >= cfg.confidentZ && supported;
+        if (trackerLed || confidentLead) {
           status = "identified";
-          suggestion = zTop;
+          suggestion = trackerLed ? zTop : (leadScore as CandidateScore);
         } else if (lead && stable && leadScore && lead.margin >= cfg.leaderMargin && ev >= cfg.verifyZ && supported) {
-          status = "identified";
+          status = "suggested";
           suggestion = leadScore;
         } else if (lead && stable && lead.margin < cfg.leaderMargin) status = "ambiguous";
         else if (this.heard >= cfg.unknownAfterSeconds && !(leadScore && leadScore.z > cfg.verifyZ * 0.5)) status = "unknown";
@@ -369,7 +380,7 @@ export class HymnRecognizer {
         }
       }
     }
-    return { status, heardSeconds: this.heard, ranking, suggestion, lead: this.leader ? { id: this.leader.id, streak: this.leader.streak, margin: this.leader.margin } : null };
+    return { status, heardSeconds: this.heard, ranking, suggestion, lead: this.leader ? { id: this.leader.id, streak: this.leader.streak, margin: this.leader.margin, cost: this.leader.cost } : null };
   }
 
   reset(): void {

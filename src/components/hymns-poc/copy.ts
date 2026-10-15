@@ -56,6 +56,7 @@ export const COPY = {
   chooseHint: "Kies hieronder een lofzang, of laat de telefoon luisteren en de lofzang herkennen.",
   candidatesTitle: "Mogelijke lofzangen",
   candidatesHelp: "Tik op de lofzang die wordt gespeeld.",
+  suggestionHelp: "Klopt dit? Tik om mee te zingen.",
   singingStarts: "Zang begint",
   singingStartsHelp: "Tik als de gemeente begint te zingen.",
   resync: "Opnieuw synchroniseren",
@@ -109,6 +110,7 @@ export const MIC_TEXT: Record<MicState, string> = {
 export const RECOGNITION_TEXT: Record<RecognitionStatus, string> = {
   listening: COPY.recognizingStatus,
   candidates: COPY.recognizingStatus,
+  suggested: "Dit lijkt de lofzang",
   identified: "Lofzang gevonden",
   ambiguous: "Meerdere lofzangen passen even goed",
   unknown: "Geen van de beschikbare lofzangen herkend",

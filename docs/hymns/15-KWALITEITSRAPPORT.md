@@ -1,6 +1,6 @@
 # Lofzangen: kwaliteitsrapport Nederlandse bibliotheek
 
-_Gegenereerd door `scripts/hymns/report.py` uit `manifest.json` (dataversie `38f2ea30f55b`). Niet met de hand bewerken._
+_Gegenereerd door `scripts/hymns/report.py` uit `manifest.json` (dataversie `d1abcf327ed0`). Niet met de hand bewerken._
 
 ## 1. Aantallen per niveau
 
@@ -15,14 +15,14 @@ _Gegenereerd door `scripts/hymns/report.py` uit `manifest.json` (dataversie `38f
 | Regelvolging beschikbaar | 173 | |
 | Woordvolging beschikbaar | 171 | Alleen als alle woorden betrouwbaar aan lettergrepen zijn gekoppeld; anders wordt de regel gemarkeerd. |
 | Herkenning beschikbaar | 173 | In de herkenningsgegevens opgenomen. Unieke melodieën: 171. |
-| Herkenning gevalideerd met opnamen | 151 | Juiste lofzang als eerste uitspraak op de officiële begeleidingsopname, zonder verkeerde uitspraak. |
+| Herkenning gevalideerd met opnamen | 150 | Juiste lofzang op de officiële begeleidingsopname, zonder verkeerde uitspraak: 139 automatisch (de app volgt zelf), 11 als voorstel dat de gebruiker bevestigt. |
 | Noten bevestigd door de begeleidingsopname | 152 | Onafhankelijke controle (zie 10-MUZIEKEXTRACTIE.md). |
 
 Onderscheid dat dit rapport bewust maakt:
 
 - **Bibliotheek compleet**: 203 van 205. De 2 ontbrekende teksten (54, 151) zijn licentie-uitzonderingen van de kerk zelf, geen importfouten.
 - **Muziekgegevens compleet**: 173 van 202 bladmuziek-PDF's gevalideerd; 29 blijven onzeker en worden niet gebruikt.
-- **Live herkenning gevalideerd**: 151 van 173, uitsluitend op studio-opnamen van de begeleiding. Niet getest met een echte gemeente, zang, galm of kinderen.
+- **Live herkenning gevalideerd**: 150 van 173, uitsluitend op studio-opnamen van de begeleiding. Niet getest met een echte gemeente, zang, galm of kinderen.
 
 ## 2. Lofzangen zonder volledige muziekondersteuning
 

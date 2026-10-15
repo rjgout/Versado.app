@@ -4,7 +4,9 @@
   "audioDeviating": [],
   "lineFollowing": 173,
   "official": 205,
-  "recognitionValidated": 151,
+  "recognitionAuto": 139,
+  "recognitionSuggested": 11,
+  "recognitionValidated": 150,
   "recognizable": 173,
   "scoreValidated": 173,
   "textComplete": 203,
@@ -17,7 +19,7 @@
   "withPdf": 202,
   "wordFollowing": 171
  },
- "dataVersion": "38f2ea30f55b",
+ "dataVersion": "d1abcf327ed0",
  "hymns": [
   {
    "capabilities": {
@@ -210,7 +212,7 @@
   {
    "capabilities": {
     "lineFollowing": true,
-    "recognitionValidated": true,
+    "recognitionValidated": false,
     "recognizable": true,
     "scoreValidated": true,
     "sheetMusicAvailable": true,
