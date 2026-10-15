@@ -43,7 +43,7 @@ function snap(partial: { status?: FollowSnapshot["status"]; phase?: "prelude" | 
   };
 }
 
-const live = (patch: Partial<LiveState>): LiveState => ({ stage: "following", hymn, choice: "manual", recognition: null, snapshot: null, backlog: 0, needHymn: null, ...patch });
+const live = (patch: Partial<LiveState>): LiveState => ({ stage: "following", hymn, choice: "manual", recognition: null, snapshot: null, backlog: 0, needHymn: null, diag: { frames: 0, lastFrameSilent: null, lastRmsDb: null, candidates: 0, awaitingCandidates: false }, ...patch });
 
 test("status: voorspel, volgt muziek, tussenspel en onzekerheid zijn te onderscheiden", () => {
   assert.equal(describeStatus("idle", live({ stage: "idle", hymn: null })), null);

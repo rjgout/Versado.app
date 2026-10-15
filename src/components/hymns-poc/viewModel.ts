@@ -94,3 +94,16 @@ export function scrollDelta(g: ScrollGeometry, margin = 24): number {
 export function formatPosition(s: FollowSnapshot | null): string {
   return s && s.bpm > 0 ? `maat ${s.measure + 1} · ${Math.round(s.bpm)}/min` : "—";
 }
+
+/** Na zo lang zonder audiobuffer geldt de microfoon als "geen geluid ontvangen" (milliseconden). */
+export const NO_AUDIO_AFTER_MS = 3000;
+
+/**
+ * Luistert de microfoon wel, maar komt er geen audio binnen? Dat gebeurt bij een onderbroken AudioContext, een stille of weggevallen
+ * bron of een kapotte worklet. Het scherm moet dat tonen in plaats van stilzwijgend "luisteren" te blijven staan.
+ */
+export function audioMissing(diag: { state: string; buffers: number; msListening: number | null; msSinceLastBuffer: number | null } | null): boolean {
+  if (!diag || diag.state !== "listening" || diag.msListening === null) return false;
+  if (diag.buffers === 0) return diag.msListening > NO_AUDIO_AFTER_MS;
+  return (diag.msSinceLastBuffer ?? 0) > NO_AUDIO_AFTER_MS;
+}
