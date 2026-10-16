@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, Quote } from "lucide-react";
+import { ArrowRight, Check, Music2, Quote } from "lucide-react";
 import { getT } from "@/lib/i18n";
 import MediaArtwork from "@/components/versado/MediaArtwork";
 import PersonalMascot from "@/components/versado/PersonalMascot";
@@ -67,8 +67,8 @@ function DailyGameCard({
 
 export default function TodaySection({ data, language, dayComplete = false, serverNow }: { data: TodayData; language: string; dayComplete?: boolean; serverNow: number }) {
   const t = getT(language);
-  const { dailyText, wordGame, dailyQuiz } = data;
-  if (!dailyText && !wordGame && !dailyQuiz) return null;
+  const { dailyText, wordGame, dailyQuiz, sundayHymns } = data;
+  if (!dailyText && !wordGame && !dailyQuiz && !sundayHymns) return null;
   const wordStatus: MessageKey | null = wordGame
     ? wordGame.status === "todo"
       ? "today.wordGame.todo"
@@ -90,6 +90,19 @@ export default function TodaySection({ data, language, dayComplete = false, serv
     <section aria-labelledby="today-daily" className="vs-rise">
       <SectionHeader id="today-daily" title={t("today.dailyTitle")} />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:grid-cols-2">
+        {sundayHymns && (
+          <Link data-today-hymns href="/dev/lofzangen" prefetch={false}
+            className={`${interactiveCard} flex min-w-0 items-center gap-4 p-4 sm:col-span-2`}>
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-vs-accent-soft text-vs-accent">
+              <Music2 className="h-8 w-8" aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-base font-extrabold text-vs-fg">{t("pages.hymns")}</span>
+              <span className="mt-1 block text-sm leading-relaxed text-vs-fg-3">{t("contentSwitcher.picker.hymnsHelp")}</span>
+            </span>
+            <ArrowRight className="h-5 w-5 shrink-0 text-vs-fg-3" aria-hidden="true" />
+          </Link>
+        )}
         {dailyText && (
           <article className={`${surfaceCard} relative min-w-0 overflow-hidden sm:col-span-2 md:col-span-1 md:row-span-2 md:flex md:flex-col lg:col-span-2 lg:row-span-1 lg:block`}>
             <MediaArtwork kind="daily" artworkKey="daily:text" ratio="21/9" sizes="(min-width: 1024px) 640px, (min-width: 768px) 440px, 100vw" className="!aspect-auto h-24 sm:h-28">
