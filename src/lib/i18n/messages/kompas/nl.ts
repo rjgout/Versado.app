@@ -222,7 +222,7 @@ export const kompasNl = {
     switcher: {
       "title": "Content en taal kiezen",
       "what": "Tik linksboven op je huidige bron om de volledige contentkiezer te openen.",
-      "benefit": "Kies uit Schriften en Studieprogramma’s. Podcasts staan apart bij Studieprogramma’s. Je keuze wordt onthouden en je voortgang blijft bewaard.",
+      "benefit": "Kies uit Schriften en Studieprogramma’s, of open Lofzangen onder Zang & muziek. Podcasts blijven bij Studieprogramma’s. Lofzangen openen verandert je bronkeuze niet; op zondag vind je ze ook bij Vandaag.",
       "step1": "Open de kiezer via de bron in de header.",
       "step2": "Tik op een beschikbare bron om direct te wisselen.",
       "step3": "Kies een beschikbare teksttaal of expliciet een andere uitgave.",
@@ -277,7 +277,7 @@ export const kompasNl = {
   tours: {
     start: {
       entry: { title: "Ontdek Versado", text: "Hier vind je altijd uitleg over Versado. Je kunt hier op elk moment terugkomen." },
-      switcher: {"title": "Open de contentkiezer", "text": "Tik hier om Schriften, Studieprogramma’s en de teksttaal op een volledige pagina te kiezen. Je keuze wordt onthouden; bestaande voortgang blijft bewaard."},
+      switcher: {"title": "Open de contentkiezer", "text": "Tik hier om Schriften of Studieprogramma’s te kiezen, Lofzangen te openen onder Zang & muziek of je teksttaal te veranderen. Je voortgang blijft bewaard."},
       learn: { title: "Leren", text: "Hier volg je cursussen: lezen en vragen beantwoorden." },
       play: { title: "Spelen", text: "Hier vind je spellen en puzzels, alleen of met anderen." },
       friends: { title: "Vrienden", text: "Hier voeg je vrienden toe en zie je hoe jullie samen bezig zijn." },
@@ -286,14 +286,14 @@ export const kompasNl = {
     learn: {
       intro: { title: "Je cursussen", text: "Dit zijn je cursussen. Open er een om te lezen en vragen te beantwoorden. Je voortgang blijft bewaard." },
       add: { title: "Meer cursussen", text: "Hier voeg je een cursus toe. Verborgen cursussen kun je hier ook weer terugzetten." },
-      switcher: {"title": "Open de contentkiezer", "text": "Tik hier om Schriften, Studieprogramma’s en de teksttaal op een volledige pagina te kiezen. Je keuze wordt onthouden; bestaande voortgang blijft bewaard."},
+      switcher: {"title": "Open de contentkiezer", "text": "Tik hier om Schriften of Studieprogramma’s te kiezen, Lofzangen te openen onder Zang & muziek of je teksttaal te veranderen. Je voortgang blijft bewaard."},
     },
     play: {
       games: { title: "Je spellen", text: "Kies een spel om het te openen. Het informatie-icoon toont de spelregels." },
-      switcher: {"title": "Open de contentkiezer", "text": "Tik hier om Schriften, Studieprogramma’s en de teksttaal op een volledige pagina te kiezen. Je keuze wordt onthouden; bestaande voortgang blijft bewaard."},
+      switcher: {"title": "Open de contentkiezer", "text": "Tik hier om Schriften of Studieprogramma’s te kiezen, Lofzangen te openen onder Zang & muziek of je teksttaal te veranderen. Je voortgang blijft bewaard."},
     },
     switcher: {
-      menu: {"title": "Open de contentkiezer", "text": "Tik hier om Schriften, Studieprogramma’s en de teksttaal op een volledige pagina te kiezen. Je keuze wordt onthouden; bestaande voortgang blijft bewaard."},
+      menu: {"title": "Open de contentkiezer", "text": "Tik hier om Schriften of Studieprogramma’s te kiezen, Lofzangen te openen onder Zang & muziek of je teksttaal te veranderen. Je voortgang blijft bewaard."},
       learn: { title: "Leren volgt je keuze", text: "Je cursussen horen bij de gekozen Schriften." },
       play: { title: "Spelen ook", text: "Ook de spellen hangen af van je keuze." },
     },
