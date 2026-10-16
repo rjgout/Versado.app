@@ -355,6 +355,7 @@ export const nl = {
   },
   contentSwitcher: {
     picker: {
+      music: "Zang & muziek",
       hymnsHelp: "Zangboek, live meelezen en bladmuziek.",
       "title": "Kies je content",
       "intro": "Kies een bron om mee te leren en spelen. Je voortgang blijft bewaard.",
