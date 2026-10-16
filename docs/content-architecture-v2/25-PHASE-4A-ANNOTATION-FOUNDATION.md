@@ -141,6 +141,7 @@ Lokale controles:
 | Bestaande contenttoegang/inventarisatie-unittests | 40 geslaagd |
 | Live-data-architectuur en invalidatie | 52 geslaagd |
 | Geïntegreerd leespad / Focus | 16 / 28 geslaagd |
+| Inventarisatie HTTP/browser op wegwerpdatabase | 20 combinaties + vier vertalingen geslaagd; bronverwijdering behoudt annotaties vóór expliciete fixture-opruiming |
 | Bestaande toegang-, context-, contentwissel-, cursus- en studiecontentregressies | 281 checks geslaagd; annotaties draaien apart op eigen fixtures |
 | Migratieketen en herhaalde migrate deploy | Geslaagd; 146 bestaande tabellen en oorspronkelijke kolomwaarden behouden |
 | Prisma validate/generate, TypeScript, i18n en schone productiebuild | Geslaagd |
