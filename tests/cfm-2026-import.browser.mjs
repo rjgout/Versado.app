@@ -50,8 +50,12 @@ try {
     const sent=page.waitForResponse(r=>new URL(r.url()).pathname==="/api/admin/reseed"&&r.request().method()==="POST");await modal.getByRole("button",{name:"Bevestigen",exact:true}).click();await sent;assert.deepEqual(posted,[{approvedSnapshot:proposal.studySource.snapshot,confirmDraftsOnly:true}]);results.push({width,scheme,text:scale,reloadApprovalUi:true,cancelAndEscapeNoPost:true,legacySeedNotExecuted:true});await c.close();
   }
   // Echte verborgen concepten via bestaande beheerpagina; publieke reader blijft dicht.
+  await prisma.contentCollection.update({ where: { id: flow.collectionId }, data: { visibleToUsers: false } });
   const originalCollection = await prisma.contentCollection.findUniqueOrThrow({ where: { id: flow.collectionId } });
   await prisma.contentCollection.update({ where: { id: flow.collectionId }, data: { publicationState: "DRAFT", visibleToUsers: false } });
+  // Alleen de wegwerpfixture terugzetten naar de reeds geïmporteerde concepttoestand.
+  // Alle revisies, importaudit en eerdere publicatiehistorie blijven bewaard.
+  await prisma.$executeRaw`UPDATE "StudyLessonEdition" SET "draftRevisionId"="publishedRevisionId", "publishedRevisionId"=NULL WHERE "collectionId"=${flow.collectionId}`;
   try {
     const editions = await prisma.studyLessonEdition.findMany({ where: { collectionId: flow.collectionId }, orderBy: { lesson: { order: "asc" } }, include: { draftRevision: true, publishedRevision: true } });
     assert.equal(editions.length, 52);
@@ -88,6 +92,51 @@ try {
       results.push({ width, scheme, text, hiddenAdminConcepts: 52, tableAndImages: true, referenceDiagnostics: true, publicReaderDenied: true });
       await context.close();
     }
+    const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    await context.addCookies([{ name: SESSION_COOKIE, value: flow.adminToken, url: base }]);
+    const page = await context.newPage();
+    await page.goto(base + "/adminbackend");
+    await page.locator('a[href="/adminbackend/content"]').click();
+    await page.locator('a[href="/adminbackend/content/study-publications"]').click();
+    await page.locator("[data-study-publications]").waitFor();
+    const cfmCards = page.locator(editions.map(edition => `[data-study-edition="${edition.id}"]`).join(","));
+    assert.equal(await cfmCards.count(), 52, "Precies de 52 bestaande CFM-edities zijn via beheer bereikbaar; andere testcollecties blijven behouden");
+    for (const edition of editions) {
+      const reviewStartedAt = Date.now();
+      const card = page.locator(`[data-study-edition="${edition.id}"]`);
+      await card.getByRole("button", { name: "Concept bekijken", exact: true }).click();
+      await page.locator("[data-study-revision-content]").getByRole("heading", { level: 2, name: edition.draftRevision.title, exact: true }).waitFor();
+      const publish = page.getByRole("button", { name: "Revisie publiceren", exact: true });
+      const review = page.getByRole("checkbox");
+      if (await review.count()) {
+        assert.equal(await publish.isDisabled(), true, "Geblokkeerde verwijzingen vereisen revisiebeoordeling");
+        await review.check();
+      }
+      const sent = page.waitForResponse(response => response.url().endsWith("/api/admin/study-publications") && response.request().method() === "POST" && response.request().postDataJSON()?.action === "publish");
+      await publish.click();
+      await page.locator("dialog[open]").getByRole("button", { name: "Revisie publiceren", exact: true }).click();
+      const response = await sent;
+      assert.equal(response.status(), 200, "Elke revisie wordt via de beveiligde beheer-API gepubliceerd");
+      await card.getByRole("button", { name: "Concept bekijken", exact: true }).waitFor({ state: "hidden" });
+      // Behoud de echte 30-acties/minuut-grens, ook bij machinaal snelle beoordeling.
+      await delay(Math.max(0, 2100 - (Date.now() - reviewStartedAt)));
+    }
+    assert.equal(await prisma.studyLessonEdition.count({ where: { collectionId: flow.collectionId, publishedRevisionId: { not: null } } }), 52);
+    assert.equal((await context.request.get(base + flow.href)).status(), 404, "Lespublicaties maken een DRAFT-collectie niet normaal leesbaar");
+    const release = page.locator(`[data-release-collection="${flow.collectionId}"]`);
+    await release.waitFor({ state: "attached" });
+    await page.locator("details").filter({ has: release }).locator("summary").first().click();
+    await release.click();
+    await page.screenshot({ path: `${output}/cfm-collection-release-confirm.png` });
+    const released = page.waitForResponse(response => response.url().endsWith("/api/admin/study-publications") && response.request().method() === "POST" && response.request().postDataJSON()?.action === "release-collection");
+    await page.locator("dialog[open]").getByRole("button", { name: "Collectie inhoudelijk vrijgeven", exact: true }).click();
+    assert.equal((await released).status(), 200);
+    const collection = await prisma.contentCollection.findUniqueOrThrow({ where: { id: flow.collectionId } });
+    assert.equal(collection.publicationState, "PUBLISHED");
+    assert.equal(collection.visibleToUsers, false);
+    assert.equal((await context.request.get(base + flow.href)).status(), 200);
+    results.push({ completeAdminWorkflow: true, uiPublishedLessons: 52, uiCollectionRelease: true, publicVisibilityRemainsOff: true, terminalRequired: false });
+    await context.close();
   } finally {
     await prisma.contentCollection.update({ where: { id: flow.collectionId }, data: { publicationState: originalCollection.publicationState, visibleToUsers: originalCollection.visibleToUsers } });
   }

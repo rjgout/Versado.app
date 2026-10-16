@@ -137,7 +137,7 @@ noodstop, zonder ContentCollection of wijziging van actieve bron/taal.
 
 ## Bestaande productie-import beschikbaar maken — later door de eigenaar
 
-1. Laat #123 en deze concept-PR beoordelen en bepaal expliciet merge/uitrolvolgorde.
+1. #123 is inmiddels in main aanwezig. Laat deze concept-PR afzonderlijk beoordelen.
    De Synology-container voert bij een toegestane nieuwe image automatisch
    migrate deploy uit. Deze opdracht voert dat niet op productie uit.
 2. Controleer bestaande Hyper Backup, juiste image en de reeds gemounte
@@ -220,3 +220,171 @@ Niet getest op fysieke iOS-/Android-toestellen. Er is geen productie-inventarisa
 of volledige inhoudelijke beoordeling door de producteigenaar tijdens deze
 ontwikkelopdracht uitgevoerd. De beheerbeoordeling en productie-uitrol blijven
 bewuste, afzonderlijke handelingen.
+
+## Definitieve pre-mergecontrole van PR #125
+
+De controle begon op `9b16a04e3148a6321fd7893f87e73ea9d52b6bc2`: de PR was
+open, concept en zonder mergeconflicten, met 16 geslaagde checks. Main was daarna
+doorgegaan naar `ee43dc1b` met #124 (zelfstandige muziekrubriek en de zondagse
+Lofzangenkaart). Die wijzigingen zijn zonder conflicten geïntegreerd in
+mergecommit `a7483733`; #123 (`7511df94`) is een bewezen voorouder van main.
+De nieuwe controles en CI horen bij de uiteindelijke PR-head, niet alleen bij
+de eerder groene commit. De PR vermeldt de exacte eind-SHA en artifactlinks.
+
+### Aangetroffen en herstelde race
+
+Een echte geïsoleerde foutinjectie trok één les in tussen de volledigheidscheck
+en de vrijgavetransactie. De oorspronkelijke service accepteerde dat ten
+onrechte. Dezelfde cataloguscontrole wordt nu binnen de transactie herhaald;
+het vrijgavetoken omvat ook werk-/editie-identiteit, bronvolgorde en ingetrokken
+lesstatus. De regressie controleert weigering zonder collectievrijgave of
+nieuwe auditrijen. De bestaande vergrendelingsvolgorde (collectie, daarna
+edities op ID) blijft behouden. Een latere bewuste intrekking blijft daarnaast
+de normale reader blokkeren; vrijgave verleent geen blijvend onbeperkt recht.
+
+### Exacte migratie en gegevensimpact
+
+Alleen `20261103120000_study_publication_audit_actions/migration.sql` wordt
+toegevoegd. Eén atomische `ALTER TABLE` vervangt uitsluitend
+`StudyPublicationAction_version_check`: naast PUBLISH/ROLLBACK worden
+PUBLISH_DISPLAY_ONLY en RELEASE_COLLECTION toegestaan. De bestaande eisen aan
+versiestap en SHA-256 blijven staan. Geen Prisma-modelwijziging, nieuwe tabel,
+kolom, index, DML, backfill, pointerwissel, zichtbaarheidsreset of automatische
+publicatie. Bestaande geldige auditrijen blijven geldig.
+
+De geïsoleerde test controleert alle constraints vóór/na de wijziging, herhaalt
+de SQL en veroorzaakt bewust een naamconflict ná de DROP: ook dan blijft de
+oorspronkelijke constraint behouden. De bestaande migratierunner controleert
+de keten op een oudere fixture en herhaalt `migrate deploy`. In productie
+wordt de migratie uitsluitend door de later goedgekeurde containerstart
+uitgevoerd; niet tijdens deze controle.
+
+### Wat niet op productie is vastgesteld
+
+Deze werkruimte heeft geen geautoriseerde read-only productieverbinding. De
+52 geïmporteerde DRAFT-lessen en `publicationChanged=false` zijn door de eigenaar
+gemelde feiten, geen nieuwe live meting. Ook backupdatum, vrije NAS-opslag,
+live mountidentiteit, fysieke mediachecksums en actuele migratieregistraties
+zijn hier niet gemeten. De geïsoleerde fixtures vervangen dat bewijs niet.
+
+Het diagnostische `/tmp/versado-cfm-2026-drafts-1792095443834.json` is geen
+afhankelijkheid: alleen de operator-CLI schrijft zo'n resultaatbestand. De
+beheerpagina leest bestaande collecties, lesedities, revisies, importaudits en
+media uit PostgreSQL en de permanente opslag. De bestaande 52 lessen kunnen
+zonder herimport worden beoordeeld en gepubliceerd.
+
+## Productie-uitrol: handelingen na afzonderlijke toestemming
+
+1. **Voor merge:** controleer groene checks op de definitieve PR-head en de
+   mergebaarheid tegen de actuele main. Niet automatisch mergen. Leg na een
+   toegestaan mergebesluit ook de merge-SHA en geslaagde main-imagebuild vast;
+   de release-image hoort bij die SHA en kan afwijken van de PR-head.
+2. **Backup en vertrekpunt:** laat de eigenaar een recente, geslaagde,
+   PostgreSQL-consistente backup en dekking vastleggen. Bescherm database,
+   `study-media` inclusief `.versado-study-volume.json`, branding en besloten
+   stack-/environmentconfiguratie. Noteer tijdstip, PostgreSQL-versie (de
+   repository gebruikt 16), migratienamen/checksums en het huidige appimage-ID,
+   digest en build-SHA. Bewaar die oude image; ruim niets op. Dagelijkse Hyper
+   Backup is eigenaarbevestigd; onafhankelijk terugzetten blijft ongetest en
+   als restrisico geaccepteerd.
+3. **Live voorwaarden:** controleer zonder mutaties de bestaande collectie-ID,
+   52 lesedities, DRAFT/publicatiepointers en verborgen vlag. Controleer de
+   relevante importaudits en huidige bronsnapshot; exporteer geen gebruikers-
+   of notitieteksten. Controleer dat alle 356 unieke mediabestanden READY,
+   leesbaar en checksumcorrect zijn en dat `/data/study-media` werkelijk
+   permanent gemount is. De voorgestelde Synology-hostmap blijft
+   `/volume1/docker/jehova-app/study-media`; de bestaande live mount moet door
+   de eigenaar worden bevestigd. De beheerpagina moet opslag gereed melden.
+   Controleer schrijfrechten en voldoende vrije ruimte voor eventuele latere
+   imports. Bij afwijkingen: stoppen, geen herimport als vermeende reparatie.
+4. **Uitrol:** uitsluitend na aparte toestemming via het bestaande deploypaneel.
+   De agent behoudt huidige mounts/environment/netwerken; een image voegt geen
+   ontbrekende mount toe. De nieuwe container voert vóór de serverstart
+   automatisch `prisma migrate deploy` uit. Geen seed, reload of CFM-import
+   starten. Houd alle bestaande volumes en geheimen intact.
+5. **Direct na start:** controleer health, build-SHA en succesvolle registratie
+   van exact de nieuwe migratie, zonder mislukte open migratie. Health test
+   alleen basisgezondheid. Controleer daarom ook inloggen, bestaande BOM/OTB/
+   DC/PGP-readers, Lofzangen-instelling/noodstop, contentkeuze en voortgang.
+   Controleer dezelfde opslagmarker/media en de bestaande 52 conceptlessen in
+   Studielespublicaties. Aantallen, identiteiten, publicatiepointers en alle
+   zichtbaarheidsschakelaars moeten vóór bewuste beheerhandelingen gelijk zijn
+   aan het vertrekpunt. Gewone reader blijft dicht voor deze DRAFT-collectie,
+   ook voor admins; geautoriseerde beheerpreview werkt wel.
+6. **Bewuste inhoudelijke handelingen:** beoordeel per les tekst, afbeeldingen,
+   tabellen, video’s, bronmetadata en diagnoses. Alleen de exact gepinde
+   display-only-verwijzingen kunnen per revisie expliciet als niet-klikbare
+   tekst worden aanvaard; dat wordt als PUBLISH_DISPLAY_ONLY geaudit. Andere
+   blokkades eerst oplossen. Publiceer alle 52 revisies via de bestaande
+   knoppen. Controleer dat de collectie nog DRAFT/verborgen blijft. Geef daarna
+   de complete collectie afzonderlijk inhoudelijk vrij; dit registreert
+   RELEASE_COLLECTION maar zet de publieke schakelaar niet aan.
+7. **Normaal testen en publiek besluit:** kies CFM in de gewone contentkiezer,
+   open Leren en de 52 lessen als beheerder met publieke zichtbaarheid uit.
+   Controleer beelden, tabellen, videoacties, actieve en inactieve verwijzingen
+   en terugkeer naar de les. Een gewone gebruiker blijft geweigerd. Alleen na
+   apart inhoudelijk besluit zet de eigenaar de bestaande schakelaar aan en
+   controleert gewone reader/API/kiezer. Uitzetten moet nieuwe verzoeken direct
+   weigeren. Reeds door een gebruiker ontvangen tekst kan niet worden
+   teruggehaald; servercache mag geen nieuwe onbevoegde respons leveren.
+
+### Rollback: applicatie is niet de database
+
+Bij een functionele fout: onderhoudsmodus aan, foutstatus vastleggen zonder
+geheimen en de vooraf vastgelegde oude image via Portainer terugzetten, met
+dezelfde mounts/configuratie. Geen `latest` of blind vertrouwen op de losse
+rollbackknop: de huidige agent bewaart na een geslaagde healthcheck juist de
+nieuwe image als last-good. Automatische rollback tijdens een mislukte deploy
+gebruikt wel het voorafgaande image-ID. Dit bestaande agentgedrag is niet in
+deze content-PR aangepast.
+
+De additief verruimde constraint kan bij applicatierollback blijven staan;
+bestaande code en oude auditrijen blijven geldig. Nieuwe auditacties mogen
+niet met een vernauwende downmigratie worden verwijderd of ongeldig gemaakt.
+De oude app mist de nieuwe beheerhandelingen en kan verborgen bronnen weer
+beperkter tonen. Reeds gemaakte publicatiepointers en zichtbaarheidskeuzes
+blijven databasegegevens; een imagewissel draait die niet terug.
+
+Faalt de migratie, dan is dit ene ALTER-statement atomisch, maar een mislukte
+Prisma-registratie kan verdere starts blokkeren. De bestaande automatische
+herstelhelper staat deze nieuwe migratie niet op zijn whitelist toe. Stop en
+laat de registratie/constraint afzonderlijk beoordelen; voer niet blind
+`migrate resolve` uit. De site blijft zo nodig in onderhoud.
+
+Databaseherstel is een afzonderlijke, expliciet goed te keuren noodhandeling
+met een gecontroleerd backupmoment en afgestemde mediaversie. Het kan nieuwere
+gebruikersmutaties verliezen en is geen normale applicatierollback. Geen
+databasevolume vervangen of wissen, geen seed/herimport, geen historische
+revisies, media of auditrijen verwijderen.
+
+### Aanvullend lokaal bewijs op de geïntegreerde branch
+
+- Schone productiebuild, TypeScript, Prisma validate/generate en i18n: geslaagd.
+- CFM bron/review/goedkeuring: 11 geslaagd; contenttoegang/inventarisatie: 40;
+  kiezer/contentwissel/Focus-shell: 45. Geen skips in deze drie suites.
+- Lofzangen inclusief de nieuwe zondagkaart uit #124: 171 geslaagd, geen fouten;
+  twee optionele echte-audiotests overgeslagen omdat de lokale opname van
+  lofzang 82 niet beschikbaar is. De overige herkenningsregressies zijn wel
+  uitgevoerd.
+- ESLint: 0 fouten, 157 waarschuwingen in de gecombineerde codebasis; de vorige
+  head had 155. De aanvullende bestaande waarschuwingen komen uit de met main
+  geïntegreerde Lofzangen-browsercontroles. De vijf gewijzigde auditbestanden
+  introduceren geen nieuwe lintwaarschuwingen.
+- De nieuwe constraint- en intrekkingsraceproeven slagen samen met de volledige
+  CFM-importintegratie: 52 echte lespublicaties, dubbele vrijgave precies één
+  wijziging, 21 persoonlijke/economietabellen behouden en DRAFT-reader geweigerd.
+  De bewust uitgelokte `42710` en `SYNTHETIC_LEGACY_BOUNDARY` zijn verwachte
+  foutinjecties; de pg-client-deprecatiewaarschuwing is geen testfout.
+
+Alle 22 browsergevallen zijn lokaal geslaagd tegen de nieuwe schone
+productiebuild: 320px/200% licht, 390px donker en 1280px desktop, inclusief
+publiek aan/uit, beelden, tabellen, resolver en Meer lezen/Terug naar les.
+De browserproef publiceert daarnaast alle 52 bestaande concepten via echte
+beheerknoppen en geeft daarna via de UI de collectie vrij. De test begrenst de
+assertie tot de 52 CFM-identiteiten: andere synthetische studiecollecties mogen
+naast CFM blijven bestaan. De bestaande limiet van 30 beheeracties per minuut
+blijft actief. Eindresultaten, screenshots en alle definitieve CI-checks worden
+bij de exacte gepushte PR-head vastgelegd. Er is niet op fysieke iOS-/Android-
+toestellen getest. De private branch-protectionconfiguratie is met deze GitHub-
+integratie niet uitleesbaar (403); de volledige zichtbare PR-checklijst wordt
+wel gecontroleerd.

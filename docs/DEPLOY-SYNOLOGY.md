@@ -44,11 +44,12 @@ Draait er al een installatie onder de oude naamgeving (`bom-game`/`bom-db`/
    `jehova-proxy` publiceert voortaan diezelfde poort in plaats van
    `jehova-app` zelf.
 
-Alle persistente data (gebruikers, wachtwoorden, leesvoortgang, XP, streaks,
+Persistente databasegegevens (gebruikers, wachtwoorden, leesvoortgang, XP, streaks,
 freezes, vrienden, competitie, quizresultaten, content, instellingen) staat
-in PostgreSQL, in een map op je NAS die losstaat van de containers. Je kan elk
-van de containers probleemloos verwijderen en opnieuw starten zonder
-dataverlies.
+in PostgreSQL, in een map op je NAS die losstaat van de containers. Studielesmedia
+en branding staan daarnaast in eigen persistente volumes. Containervervanging
+behoudt deze gegevens alleen wanneer de bestaande mounts en configuratie intact
+blijven; verwijder de bijbehorende volumes of hostmappen niet.
 
 ## Stap 1 — Eenmalig: packages publiek maken op GitHub
 
@@ -102,15 +103,16 @@ container op **Logs** klikken.
 
 ## Stap 3 — Content laden (eenmalig, en na elke content-update)
 
-Ga naar **Containers → jehova-app → Console**, kies `/bin/sh`, **Connect**, en
-draai daarin:
+Gebruik **Content opnieuw laden** in `/adminbackend`. Voor CFM bevestig je de
+getoonde gepinde bronsnapshot; de bestaande importer maakt uitsluitend concepten
+en behoudt bestaande publicaties. Er is voor normale contentupdates geen
+Docker-console nodig. Niet-goedgekeurde snapshots worden niet geïmporteerd.
 
-```bash
-npm run db:seed
-```
-
-Dit laadt alle content (zie de auteursrechtnotitie in de hoofd-README).
-Hetzelfde kan zonder console via **Inhoud opnieuw laden** in `/adminbackend`.
+Al geïmporteerde CFM-concepten hoeven niet opnieuw te worden geladen: beoordeel
+en publiceer de revisies onder **Content → Studielespublicaties**, geef daarna de
+complete collectie afzonderlijk inhoudelijk vrij en houd de publieke
+zichtbaarheid uit totdat je die bewust inschakelt. De zichtbaarheidsknop
+publiceert geen concepten. Zie het [CFM-vrijgavedraaiboek](content-architecture-v2/24-CFM-MANAGED-IMPORT-AND-RELEASE.md).
 
 Als laatste stap haalt dit ook de voorgelezen hoofdstukken op van de kerk
 naar `/volume1/docker/jehova-app/audio` (zie `volumes:` bij `jehova-app` in
@@ -170,10 +172,15 @@ de app zelf (dus niet meer via Portainer) — dat volgt precies dit stappenplan:
      zodat er nooit een kapotte versie live komt te staan.
 
 Klik gewoon op **"Nu deployen"** en volg de live status/logregels in
-hetzelfde paneel. De losse knoppen **"Onderhoudsmodus aan/uit"** en
-**"Rollback naar vorige versie"** zijn er voor als je dat ooit los van een
-deploy wil doen (bv. eigen onderhoud, of een eerdere mislukte deploy
-alsnog handmatig terugdraaien).
+hetzelfde paneel. Leg vóór elke update ook het huidige immutable image-ID/digest
+en de build-SHA vast en bewaar die image. De huidige deployagent slaat na een
+geslaagde healthcheck de **nieuwe** image als `last-good` op. De knop
+**"Rollback naar vorige versie"** garandeert daarom na een geslaagde update niet
+dat de eerdere image wordt gekozen. Voor een latere bewuste applicatierollback:
+zet onderhoudsmodus aan en kies in Portainer expliciet de vooraf vastgelegde
+oude image, met behoud van alle mounts, environment en netwerken. Gebruik geen
+onbepaald `latest` als rollbackdoel. De automatische rollback tijdens een
+mislukte deploy gebruikt wel het daadwerkelijk vooraf vastgelegde image-ID.
 
 **Als er iets misgaat** (bv. de adminbackend zelf is door iets anders niet
 bereikbaar): Portainer's eigen **Stacks → jehova-app → Pull and redeploy**
@@ -183,15 +190,25 @@ je alleen de onderhoudspagina en de automatische rollback voor die ene keer.
 **Let op bij schemawijzigingen**: nieuwe Prisma-migraties in
 `prisma/migrations/` worden automatisch toegepast bij het opstarten
 (`prisma migrate deploy`) — daar hoef je zelf niets voor te doen op de NAS.
-De healthcheck in stap 4 hierboven faalt als een migratie faalt, dus een
-mislukte migratie leidt vanzelf tot de automatische rollback hierboven in
-plaats van een half-bijgewerkte database.
+De healthcheck faalt als de server door een migratiefout niet opstart. De
+automatische applicatierollback draait reeds uitgevoerde SQL echter **niet**
+terug. Afgeronde migraties blijven toegepast; een mislukte migratieregistratie
+kan ook het starten van een oudere image blokkeren. Houd bij zo'n fout de site
+in onderhoud en laat de migratiestatus en database afzonderlijk beoordelen.
+Voer niet blind `migrate resolve`, een downmigratie of herstel uit. Een groene
+`/api/health` bewijst alleen basisgezondheid, niet dat alle lessen en media
+functioneren; voer ook de functionele controles uit het vrijgavedraaiboek uit.
 
 ## Back-ups
 
 De database staat op je NAS onder `/volume1/docker/jehova-app/postgres` (zie
 het `volumes:`-pad in `deploy/docker-compose.yml`) — neem die map mee in je
-bestaande Synology-back-upplan (Hyper Backup e.d.). De map `audio` ernaast
+bestaande Synology-back-upplan (Hyper Backup e.d.). Zorg voor een recente,
+PostgreSQL-consistente backup (een gevalideerde logische dump of passende
+consistente snapshot; alleen een willekeurige kopie van een draaiende datamap
+bewijst dat niet). Bescherm ook de permanente `study-media`-map inclusief
+`.versado-study-volume.json`, het brandingvolume en de stackconfiguratie met
+geheimen in besloten opslag. De map `audio` ernaast
 hoeft niet in de back-up: die wordt bij de volgende contentlading vanzelf
 opnieuw gevuld.
 
@@ -227,10 +244,14 @@ neemt de mounts en environment van de vorige appcontainer over.
    Zonder mount, marker of schrijfbevoegdheid blokkeren import en publicatie.
    Controleer na een bewuste containervervanging dezelfde marker en bestanden.
 
-Officiële productiepublicatie blijft gesloten. Een verborgen Nederlandse CFM 2026-
-conceptimport kan uitsluitend na afzonderlijke toestemming via de bestaande operator-CLI;
-zie [het fase-3B.2-draaiboek](content-architecture-v2/23-PHASE-3B2-CFM-MERGE-AND-DRAFT-ROLLOUT.md).
-Geen import bij containerstart, seed of contentreload. Het
+Na afzonderlijke uitroltoestemming ondersteunt de beheerde CFM-workflow een
+verborgen conceptimport via **Content opnieuw laden**, met expliciete
+snapshotgoedkeuring. De operator-CLI blijft een hulpmiddel, geen noodzakelijke
+beheerhandeling. Import publiceert niets: revisiebeoordeling, lespublicatie,
+collectievrijgave en publieke zichtbaarheid blijven afzonderlijke acties. Zie
+het [actuele vrijgavedraaiboek](content-architecture-v2/24-CFM-MANAGED-IMPORT-AND-RELEASE.md);
+het eerdere fase-3B.2-draaiboek beschrijft de historische CLI-voorbereiding.
+Geen import of publicatie bij containerstart of CLI-seed. Het
 profiel `synthetic-test` werkt alleen tegen de eigen lokale wegwerpdatabase
 `versado_content_access_test`; dit is geen productievrijgavevlag. Zet dat profiel
 niet op de NAS. Er worden geen synthetische lessen voor productiegebruikers gemaakt.

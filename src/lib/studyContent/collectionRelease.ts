@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { emitToUser } from "@/lib/realtime";
 import { DATA_EVENT_SOCKET_NAME } from "@/lib/data/scopes";
-import type { PrismaClient } from "@/generated/prisma/client";
+import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import {
   requireStudyAdmin,
@@ -20,21 +20,14 @@ export const studyCollectionReleaseSchema = z
   })
   .strict();
 
-export async function studyCollectionReleaseState(
-  actor: StudyAdmin,
-  collectionId: string,
-  client: PrismaClient = prisma,
-) {
-  requireStudyAdmin(actor);
-  const collection = await client.contentCollection.findUnique({
-    where: { id: collectionId },
-    include: { contentWork: { select: { kind: true } } },
-  });
-  const editions = await client.studyLessonEdition.findMany({
-    where: { collectionId },
-    orderBy: { lesson: { order: "asc" } },
-    include: { lesson: true },
-  });
+type ReleaseCollection = Prisma.ContentCollectionGetPayload<{
+  include: { contentWork: { select: { kind: true } } };
+}>;
+type ReleaseEdition = Prisma.StudyLessonEditionGetPayload<{
+  include: { lesson: true };
+}>;
+/** Dezelfde catalogusvoorwaarden voor overzicht én de gecontroleerde schrijftransactie. */
+function releaseCatalogueState(collection: ReleaseCollection | null, editions: ReleaseEdition[]) {
   const supported =
     collection?.contentWork?.kind === "STUDY_PROGRAM" &&
     collection.work === manifest.workKey &&
@@ -51,16 +44,32 @@ export async function studyCollectionReleaseState(
         e.publishedRevisionId,
     );
   return {
-    collectionId,
     complete: Boolean(complete),
     published: editions.filter((e) => e.publishedRevisionId).length,
     total: editions.length,
     releaseToken: studyObjectHash([
-      collection?.publicationState,
-      collection?.enabled,
-      editions.map((e) => [e.id, e.publishedRevisionId, e.publicationVersion]),
+      collection && [collection.id, collection.work, collection.editionKey, collection.language, collection.contentWork?.kind, collection.publicationState, collection.enabled, collection.visibleToUsers],
+      editions.map((e) => [e.id, e.publishedRevisionId, e.publicationVersion, e.lesson.sourceKey, e.lesson.order, e.lesson.retiredAt]),
     ]),
   };
+}
+
+export async function studyCollectionReleaseState(
+  actor: StudyAdmin,
+  collectionId: string,
+  client: PrismaClient = prisma,
+) {
+  requireStudyAdmin(actor);
+  const collection = await client.contentCollection.findUnique({
+    where: { id: collectionId },
+    include: { contentWork: { select: { kind: true } } },
+  });
+  const editions = await client.studyLessonEdition.findMany({
+    where: { collectionId },
+    orderBy: { lesson: { order: "asc" } },
+    include: { lesson: true },
+  });
+  return { collectionId, ...releaseCatalogueState(collection, editions) };
 }
 /** Collectie vrijgeven is géén zichtbaarheidsactie. Bestaande lespublicaties blijven immutable. */
 export async function releaseStudyCollection(
@@ -121,6 +130,7 @@ export async function releaseStudyCollection(
       await db.$queryRaw`SELECT id FROM "ContentCollection" WHERE id=${input.collectionId} FOR UPDATE`;
       const collection = await db.contentCollection.findUniqueOrThrow({
         where: { id: input.collectionId },
+        include: { contentWork: { select: { kind: true } } },
       });
       const editions = await db.studyLessonEdition.findMany({
         where: { collectionId: input.collectionId },
@@ -132,6 +142,7 @@ export async function releaseStudyCollection(
       const fresh = await db.studyLessonEdition.findMany({
         where: { collectionId: input.collectionId },
         orderBy: { lesson: { order: "asc" } },
+        include: { lesson: true },
       });
       const prior = await db.studyPublicationAction.findMany({
         where: {
@@ -149,12 +160,9 @@ export async function releaseStudyCollection(
           throw new StudyPublishingError("INVALID");
         return { changed: false };
       }
-      const token = studyObjectHash([
-        collection.publicationState,
-        collection.enabled,
-        fresh.map((e) => [e.id, e.publishedRevisionId, e.publicationVersion]),
-      ]);
-      if (token !== input.releaseToken)
+      const current = releaseCatalogueState(collection, fresh);
+      if (!current.complete) throw new StudyPublishingError("INCOMPLETE");
+      if (current.releaseToken !== input.releaseToken)
         throw new StudyPublishingError("CONFLICT");
       if (
         !collection.enabled ||

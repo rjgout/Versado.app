@@ -19,6 +19,20 @@ assertReferenceTestEnvironment();
 const root = process.env.CFM_TEST_ASSETS;
 if (!root?.startsWith("/tmp/")) throw Error("Eigen gepinde testassets vereist");
 after(() => prisma.$disconnect());
+test("auditmigratie is uitsluitend een atomaire constraintuitbreiding, herhaalbaar en terugrolbaar bij conflict", async () => {
+  const sql = await fs.readFile("prisma/migrations/20261103120000_study_publication_audit_actions/migration.sql", "utf8");
+  assert.doesNotMatch(sql, /\b(?:CREATE\s+TABLE|DROP\s+(?:TABLE|COLUMN)|UPDATE|INSERT|DELETE|TRUNCATE)\b/i);
+  const constraints = () => prisma.$queryRaw`SELECT conname,pg_get_constraintdef(oid) AS definition FROM pg_constraint WHERE conrelid='"StudyPublicationAction"'::regclass ORDER BY conname`;
+  const before = await constraints();
+  const check = before.find(row => row.conname === "StudyPublicationAction_version_check").definition;
+  for (const kind of ["PUBLISH", "ROLLBACK", "PUBLISH_DISPLAY_ONLY", "RELEASE_COLLECTION"]) assert.ok(check.includes(kind));
+  // De DROP en ADD zitten in één SQL-statement: ook een fout ná DROP behoudt de oude constraint.
+  await assert.rejects(prisma.$executeRawUnsafe(sql.replace('ADD CONSTRAINT "StudyPublicationAction_version_check"', 'ADD CONSTRAINT "StudyPublicationAction_pkey"')));
+  assert.deepEqual(await constraints(), before);
+  await prisma.$executeRawUnsafe(sql);
+  await prisma.$executeRawUnsafe(sql);
+  assert.deepEqual(await constraints(), before);
+});
 test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempotentie en behoud van publicaties/economie", async (t) => {
   const f = await referenceFixture();
   const index = JSON.parse(
@@ -348,6 +362,26 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
   }
   const release=await studyCollectionReleaseState(f.admin.actor,collection.id);
   assert.equal(release.complete,true);assert.equal(release.published,52);
+  // Een intrekking tussen preflight en de schrijftransactie mag geen collectie vrijgeven.
+  const releaseAuditsBefore = await prisma.studyPublicationAction.count({ where: { kind: "RELEASE_COLLECTION" } });
+  const retiringClient = new Proxy(prisma, {
+    get(target, key) {
+      if (key === "$transaction") return async (...args) => {
+        await prisma.studyLesson.update({ where: { id: editions[0].lessonId }, data: { retiredAt: new Date() } });
+        return target.$transaction(...args);
+      };
+      return Reflect.get(target, key, target);
+    },
+  });
+  try {
+    await assert.rejects(releaseStudyCollection(f.admin.actor, {
+      collectionId: collection.id, releaseToken: release.releaseToken, actionId: randomUUID(),
+    }, retiringClient), error => ["INCOMPLETE", "CONFLICT"].includes(error.code));
+    assert.equal((await prisma.contentCollection.findUniqueOrThrow({ where: { id: collection.id } })).publicationState, "DRAFT");
+    assert.equal(await prisma.studyPublicationAction.count({ where: { kind: "RELEASE_COLLECTION" } }), releaseAuditsBefore);
+  } finally {
+    await prisma.studyLesson.update({ where: { id: editions[0].lessonId }, data: { retiredAt: null } });
+  }
   await assert.rejects(releaseStudyCollection(f.owner.actor,{collectionId:collection.id,releaseToken:release.releaseToken,actionId:randomUUID()}),e=>e.code==="FORBIDDEN");
   const releaseAction={collectionId:collection.id,releaseToken:release.releaseToken,actionId:randomUUID()};
   const outcomes=await Promise.all([releaseStudyCollection(f.admin.actor,releaseAction),releaseStudyCollection(f.admin.actor,releaseAction)]);
