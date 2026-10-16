@@ -729,6 +729,7 @@ export const fr: PartialMessages = {
   },
   contentSwitcher: {
     picker: {
+      music: "Chant et musique",
       hymnsHelp: "Recueil de cantiques, lecture synchronisée et partitions.",
       "title": "Choisis ton contenu",
       "intro": "Choisis une source pour apprendre et jouer. Ta progression reste enregistrée.",
