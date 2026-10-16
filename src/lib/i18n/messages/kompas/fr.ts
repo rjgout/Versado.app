@@ -216,7 +216,7 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
     switcher: {
       "title": "Choisir le contenu et la langue",
       "what": "Touche ta source actuelle en haut à gauche pour ouvrir la page complète de sélection.",
-      "benefit": "Choisis parmi les Écritures et les Programmes d’étude. Les podcasts ont une ligne distincte sous Programmes d’étude. Ton choix et ta progression sont conservés.",
+      "benefit": "Choisis les Écritures ou les Programmes d’étude, ou ouvre les Cantiques dans Chant et musique. Les podcasts restent dans Programmes d’étude. Ouvrir les cantiques ne modifie pas ta source ; le dimanche, ils sont aussi accessibles depuis Aujourd’hui.",
       "step1": "Ouvre la sélection depuis la source dans l’en-tête.",
       "step2": "Touche une source disponible pour changer directement.",
       "step3": "Choisis une langue de texte disponible ou explicitement une autre édition.",
@@ -271,7 +271,7 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
   tours: {
     start: {
       entry: { title: "Découvrir Versado", text: "Ici, tu trouveras toujours des explications sur Versado. Tu peux revenir à tout moment." },
-      switcher: {"title": "Ouvrir la sélection du contenu", "text": "Touche ici pour choisir les Écritures, les Programmes d’étude et la langue du texte sur une page complète. Ton choix et ta progression sont conservés."},
+      switcher: {"title": "Ouvrir la sélection du contenu", "text": "Touche ici pour choisir les Écritures ou les Programmes d’étude, ouvrir les Cantiques dans Chant et musique, ou changer la langue du texte. Ta progression reste enregistrée."},
       learn: { title: "Apprendre", text: "Ici, tu suis des cours : lire et répondre à des questions." },
       play: { title: "Jouer", text: "Ici, tu trouves des jeux et des énigmes, seul ou avec d’autres." },
       friends: { title: "Amis", text: "Ici, tu ajoutes des amis et tu vois comment vous avancez ensemble." },
@@ -280,14 +280,14 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
     learn: {
       intro: { title: "Tes cours", text: "Ce sont tes cours. Ouvre-en un pour lire et répondre à des questions. Ta progression est enregistrée." },
       add: { title: "Plus de cours", text: "Ici, tu ajoutes un cours. Tu peux aussi y remettre les cours masqués." },
-      switcher: {"title": "Ouvrir la sélection du contenu", "text": "Touche ici pour choisir les Écritures, les Programmes d’étude et la langue du texte sur une page complète. Ton choix et ta progression sont conservés."},
+      switcher: {"title": "Ouvrir la sélection du contenu", "text": "Touche ici pour choisir les Écritures ou les Programmes d’étude, ouvrir les Cantiques dans Chant et musique, ou changer la langue du texte. Ta progression reste enregistrée."},
     },
     play: {
       games: { title: "Tes jeux", text: "Choisis un jeu pour l’ouvrir. L’icône d’information affiche les règles." },
-      switcher: {"title": "Ouvrir la sélection du contenu", "text": "Touche ici pour choisir les Écritures, les Programmes d’étude et la langue du texte sur une page complète. Ton choix et ta progression sont conservés."},
+      switcher: {"title": "Ouvrir la sélection du contenu", "text": "Touche ici pour choisir les Écritures ou les Programmes d’étude, ouvrir les Cantiques dans Chant et musique, ou changer la langue du texte. Ta progression reste enregistrée."},
     },
     switcher: {
-      menu: {"title": "Ouvrir la sélection du contenu", "text": "Touche ici pour choisir les Écritures, les Programmes d’étude et la langue du texte sur une page complète. Ton choix et ta progression sont conservés."},
+      menu: {"title": "Ouvrir la sélection du contenu", "text": "Touche ici pour choisir les Écritures ou les Programmes d’étude, ouvrir les Cantiques dans Chant et musique, ou changer la langue du texte. Ta progression reste enregistrée."},
       learn: { title: "Apprendre suit ton choix", text: "Tes cours sont liés aux Écritures choisies." },
       play: { title: "Jouer aussi", text: "Les jeux dépendent eux aussi de ton choix." },
     },
