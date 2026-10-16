@@ -178,7 +178,7 @@ function NativeConfirmation({
         event.preventDefault();
         onClose(false);
       }}
-      className="m-auto max-h-[calc(100dvh-2rem-var(--vs-safe-area-top)-var(--vs-safe-area-bottom))] w-[calc(100%-1rem-var(--vs-safe-area-left)-var(--vs-safe-area-right))] max-w-md flex-col overflow-hidden rounded-2xl border border-vs-line bg-vs-elevated p-3 text-vs-fg [open]:flex shadow-xl backdrop:bg-slate-950/45"
+      className="m-auto max-h-[calc(100dvh-2rem-var(--vs-safe-area-top)-var(--vs-safe-area-bottom))] w-[calc(100%-1rem-var(--vs-safe-area-left)-var(--vs-safe-area-right))] max-w-md flex-col overflow-hidden rounded-2xl border border-vs-line bg-vs-elevated p-3 text-vs-fg open:flex shadow-xl backdrop:bg-slate-950/45"
     >
       <div className="min-h-0 overflow-y-auto overscroll-contain" data-confirm-message>
         <h2 id="native-confirm-title" className="text-lg font-extrabold">
