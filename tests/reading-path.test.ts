@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { BOOK_KEYS_BY_SLUG } from "../prisma/bookKeys";
 import { CHAPTER_SCENES, chapterSceneKey, chapterSceneSrc } from "../src/lib/chapterScenes";
-import { artworkFor, chapterArtworkKeys } from "../src/lib/artwork";
+import { artworkFor, bookArtworkKeys, chapterArtworkKeys } from "../src/lib/artwork";
 import {
   myStepDirection,
   buildPathChapters,
@@ -20,6 +20,10 @@ import {
 // koppelt waar de inhoud klopt.
 
 const read = (rel: string) => readFileSync(new URL(`../${rel}`, import.meta.url), "utf8");
+// De leespaden delen hun bouwstenen: het stappenpad zelf, de gedeelde kaarten/verbindingen en de "Naar mijn stap"-knop.
+const stepPath = () => read("src/components/reading/ReadingPath.tsx");
+const sharedParts = () => read("src/components/reading/pathParts.tsx");
+const myStepNav = () => read("src/components/reading/MyStepNav.tsx");
 
 // --- gegevens uit de server -> hoofdstukken met echte stappen
 
@@ -154,24 +158,27 @@ test("chapterScenes: elke koppeling wijst naar een bestaand verhaal met dezelfde
   }
 });
 
-test("artwork: 1 Nephi 2 krijgt de scène van Lehi's vertrek; 1 Nephi 11 niet zomaar het verhaal met nummer 11 maar het boekbeeld", () => {
+test("artwork: een hoofdstuk krijgt alleen een expliciet gekoppelde scène; nooit het boekbeeld als vulling", () => {
   assert.equal(artworkFor(chapterArtworkKeys("bofm/1-ne", 2))?.src, "/kids/images/story-3-0.jpg");
-  const eleven = artworkFor(chapterArtworkKeys("bofm/1-ne", 11));
-  assert.equal(eleven?.src, "/images/book-of-mormon/1-nephi.png");
-  assert.notEqual(eleven?.src, "/kids/images/story-11-0.jpg");
-  // een hoofdstuk zonder eigen scène in een boek zonder beeld: geen beeld (kaart met icoon, nooit een gok)
+  // 1 Nephi 11 heeft geen gecontroleerde scène: geen beeld (en zeker niet het verhaal met nummer 11 of het boekbeeld)
+  assert.equal(artworkFor(chapterArtworkKeys("bofm/1-ne", 11)), null);
+  assert.deepEqual(chapterArtworkKeys("bofm/1-ne", 11), [chapterSceneKey("bofm/1-ne", 11)]);
   assert.equal(artworkFor(chapterArtworkKeys("bofm/onbekend", 5)), null);
   assert.deepEqual(chapterArtworkKeys(null, 1), []);
-  // gelijk nummer in een ander boek geeft die scène niet
-  assert.equal(artworkFor(chapterArtworkKeys("bofm/2-ne", 2))?.src, "/images/book-of-mormon/2-nephi.png");
+  assert.equal(artworkFor(chapterArtworkKeys("bofm/2-ne", 2)), null, "gelijk nummer in een ander boek geeft die scène niet");
+  // het boekbeeld hoort bij de boektitel, via een aparte sleutel
+  assert.equal(artworkFor(bookArtworkKeys("bofm/1-ne"))?.src, "/images/book-of-mormon/1-nephi.png");
+  assert.deepEqual(bookArtworkKeys(null), []);
+  assert.equal(artworkFor(bookArtworkKeys("bofm/onbekend")), null);
 });
 
 // --- broncontracten: geen tweede systeem, geen eigen shellmechanisme, geen harde kleuren
 
 test("het pad schrijft nergens voortgang weg, linkt alleen naar bestaande lesroutes en toont vergrendelde stappen zonder link", () => {
-  const path = read("src/components/reading/ReadingPath.tsx");
+  const path = stepPath() + sharedParts();
   assert.doesNotMatch(path, /fetch\(|liveMutation|jsonMutation|XMLHttpRequest|prisma/);
-  assert.deepEqual([...new Set([...path.matchAll(/href=\{`([^`]+)`\}/g)].map((m) => m[1].replace(/\$\{[^}]+\}/g, "$")))], ["/reading-lesson/$"]);
+  const hrefs = [...stepPath().matchAll(/href=\{`([^`]+)`\}/g)].map((m) => m[1].replace(/\$\{[^}]+\}/g, "$"));
+  assert.deepEqual([...new Set(hrefs)], ["/reading-lesson/$"]);
   // een vergrendeld hoofdstuk en een vergrendelde stap zijn geen link en niet bedienbaar
   assert.equal((path.match(/aria-disabled="true"/g) ?? []).length, 2);
 });
@@ -191,23 +198,25 @@ test("myStepDirection: boven de stap omlaag, onder de stap omhoog, zichtbaar gee
 });
 
 test("Naar mijn stap: richting uit de werkelijke plek van de stap, pijl wisselt, label via i18n, knop verdwijnt als de stap zichtbaar is", () => {
-  const path = read("src/components/reading/ReadingPath.tsx");
+  const path = myStepNav();
+  assert.match(stepPath(), /<MyStepNav currentKey=\{currentStepId\} kind="step" \/>/);
   assert.match(path, /myStepDirection\(\{/);
   assert.match(path, /ArrowDown/);
   assert.match(path, /ArrowUp/);
   assert.match(path, /data-direction=\{direction\}/);
-  assert.match(path, /settled && direction && \(/, "alleen na de eerste positionering en alleen buiten beeld");
+  assert.match(path, /if \(!settled \|\| !direction\) return null;/, "alleen na de eerste positionering en alleen buiten beeld");
   assert.match(path, /prefers-reduced-motion: reduce/);
   for (const lang of ["nl", "en", "de", "fr", "es"]) {
     assert.match(read(`src/lib/i18n/messages/${lang}.ts`), /"?myStep"?: "(Naar mijn stap|Go to my step|Zu meinem Schritt|Vers mon étape|Ir a mi paso)"/, lang);
+    assert.match(read(`src/lib/i18n/messages/${lang}.ts`), /"?myChapter"?: "[^"]+"/, `${lang}: Naar mijn hoofdstuk`);
   }
 });
 
 test("de actieve kaart heeft één doorlopend accentkader met zachte gloed en geen statusbadges meer; lees- en oefenvoortgang blijven intact", () => {
-  const path = read("src/components/reading/ReadingPath.tsx");
+  const path = sharedParts();
   assert.match(path, /bg-gradient-to-br from-vs-accent via-vs-accent to-vs-xp-fill p-\[2px\]/, "verloopkader rond de hele kaart incl. beeldhoeken");
   assert.match(path, /shadow-lg shadow-vs-accent\/25 ring-\[3px\] ring-vs-accent\/15/, "zachte gloed");
-  assert.doesNotMatch(path, /ContentStatusLine|ContentStatus/, "geen 'Bezig met lezen' en 'Oefeningen x/y' in de kaart");
+  assert.doesNotMatch(stepPath(), /ContentStatusLine|ContentStatus/, "geen 'Bezig met lezen' en 'Oefeningen x/y' in de actieve kaart van Stap voor stap");
   // de gegevens zelf blijven in het model
   const model = read("src/lib/readingPath.ts");
   assert.match(model, /exercisesAnswered/);
@@ -215,9 +224,9 @@ test("de actieve kaart heeft één doorlopend accentkader met zachte gloed en ge
 });
 
 test("miniaturen: alleen de bestaande koppelingen, decoratief, lui en klein; afgerond sterker dan toekomstig; zonder beeld geen laag", () => {
-  const path = read("src/components/reading/ReadingPath.tsx");
+  const path = stepPath() + sharedParts();
   assert.match(path, /chapterArtworkKeys\(chapter\.bookKey, chapter\.number\)/);
-  assert.match(path, /const thumb = artworkFor\(artworkKeys\) !== null;/);
+  assert.match(path, /const thumb = hasArtwork\(artworkKeys\);/);
   assert.match(path, /\{thumb && <ChapterThumb/g);
   assert.match(path, /sizes="120px"/, "geen groot beeld voor een miniatuur");
   assert.doesNotMatch(path, /priority/, "nooit direct laden op een lange lijst");
@@ -225,27 +234,36 @@ test("miniaturen: alleen de bestaande koppelingen, decoratief, lui en klein; afg
   assert.match(path, /dimmed \? "opacity-45 saturate-50" : "opacity-90"/);
   // het slot blijft zichtbaar en de tekst begint rechts van het sterkste beeld
   assert.match(path, /<Lock size=\{18\}/);
-  assert.match(path, /THUMB_PAD = "pl-\[96px\]"/);
+  assert.match(path, /THUMB_PAD = "min-\[380px\]:pl-\[96px\]"/);
+  assert.match(path, /hidden w-\[120px\][^"]*min-\[380px\]:block/, "onder 380 px vervalt de miniatuur: tekst krijgt de volle breedte");
   assert.doesNotMatch(path, /\/images\/|\.webp|\.jpg|\.png/, "geen eigen beeldpaden naast het register");
 });
 
 test("het pad gebruikt de bestaande tokens en geen eigen vaste of sticky balk", () => {
-  for (const rel of ["src/components/reading/ReadingPath.tsx", "src/components/ReadingCourseView.tsx"]) {
+  for (const rel of [
+    "src/components/reading/ReadingPath.tsx",
+    "src/components/reading/pathParts.tsx",
+    "src/components/reading/ChapterPath.tsx",
+    "src/components/reading/CoursePathHeader.tsx",
+    "src/components/reading/MyStepNav.tsx",
+    "src/components/ReadingCourseView.tsx",
+    "src/components/ChapterListCourseView.tsx",
+  ]) {
     const source = read(rel);
     assert.doesNotMatch(source, /#[0-9a-fA-F]{3,8}\b|rgb\(|hsl\(/, `${rel}: harde kleurcode`);
     assert.doesNotMatch(source, /\bsticky\b|env\(/, `${rel}: eigen sticky of env()`);
     assert.doesNotMatch(source, /text-\[\d+px\]/, `${rel}: leesbare tekst in px`);
     assert.doesNotMatch(source, /window\.scrollTo\(0,\s*0\)|scrollIntoView/, `${rel}: eigen scrolllogica`);
   }
-  const path = read("src/components/reading/ReadingPath.tsx");
-  // het enige vaste element: de knop "Mijn stap", boven de onderbalk en binnen de safe area
+  const path = myStepNav();
+  // het enige vaste element: de knop "Naar mijn stap", boven de onderbalk en binnen de safe area
   assert.equal((path.match(/\bfixed\b/g) ?? []).length, 1);
   assert.match(path, /bottom-\[calc\(var\(--nav-height,0px\)\+var\(--vs-safe-area-bottom,0px\)\+0\.75rem\)\]/);
   assert.match(path, /requestScrollRestore\(currentEntryKey\(\), "position"/, "scrollen via het centrale coördinatiepunt");
 });
 
 test("geen slingerlijn meer: geen SVG-route, knooppunten of statusbolletjes op het pad; wel korte rechte streepjes tussen kaarten", () => {
-  const path = read("src/components/reading/ReadingPath.tsx");
+  const path = stepPath() + sharedParts() + read("src/components/reading/ChapterPath.tsx");
   assert.doesNotMatch(path, /<svg|<path|RAIL|WIGGLE|railX|function Node|strokeDasharray|vectorEffect/);
   assert.doesNotMatch(path, /text-vs-success"?[^>]*\bw-\[|bg-vs-success\b(?!-soft)/, "geen lange groene lijn");
   assert.match(path, /<li aria-hidden data-connector className="pointer-events-none mx-auto flex h-\[18px\] w-\[6px\]/, "recht, gecentreerd, 18 px, puur decoratief en nooit klikbaar");
@@ -258,29 +276,29 @@ test("geen slingerlijn meer: geen SVG-route, knooppunten of statusbolletjes op h
 });
 
 test("actieve kaart: hogere illustratie met titel, voortgang en balk óp het beeld; de kop blijft leesbaar zonder beeld", () => {
-  const path = read("src/components/reading/ReadingPath.tsx");
-  const card = path.slice(path.indexOf("function CurrentCard"), path.indexOf("function StepGrid"));
-  assert.match(card, /min-h-\[9\.5rem\][^"]*sm:min-h-\[11rem\]/, "hoger dan de oude banner van 84/104 px");
-  assert.match(card, /hasImage \? "bg-vs-overlay" : "bg-vs-accent-soft"/, "eigen basis: tekst valt niet weg tijdens laden of zonder beeld");
+  const path = sharedParts();
+  const card = path.slice(path.indexOf("export function ActiveChapterCard"));
+  assert.match(card, /min-h-\[9\.5rem\] bg-vs-overlay sm:min-h-\[11rem\]/, "hoger dan de oude banner van 84/104 px, met eigen donkere basis");
+  assert.match(card, /min-h-\[6\.5rem\] bg-gradient-to-br from-vs-accent-soft to-vs-surface/, "zonder beeld: een verzorgde neutrale kop, geen leeg vlak");
   assert.match(card, /bg-gradient-to-t from-vs-overlay\/90 via-vs-overlay\/50 to-transparent/, "donkere gradient voor contrast");
   // titel, voortgangstekst en balk zitten in dezelfde kop als de afbeelding; onder de kop staat alleen het stappenraster
-  const header = card.slice(0, card.indexOf("<StepGrid"));
+  const header = card.slice(0, card.indexOf("{children}"));
   assert.match(header, /<h2[^>]*>\{label\}<\/h2>/);
   assert.match(header, /role="progressbar"/);
   assert.equal((card.match(/<h2/g) ?? []).length, 1);
-  assert.ok(card.indexOf("<h2") < card.indexOf("<StepGrid") && card.indexOf('role="progressbar"') < card.indexOf("<StepGrid"));
+  assert.ok(card.indexOf("<h2") < card.indexOf("{children}") && card.indexOf('role="progressbar"') < card.indexOf("{children}"));
   assert.match(card, /from-vs-accent via-vs-accent to-vs-xp-fill p-\[2px\]/, "kader loopt rond de afgeronde beeldhoeken door");
 });
 
 test("statusiconen staan binnen de kaart; een afgerond hoofdstuk toont alleen een vinkje met een tekst voor schermlezers", () => {
-  const path = read("src/components/reading/ReadingPath.tsx");
+  const path = stepPath() + sharedParts();
   assert.match(path, /<Check size=\{18\} strokeWidth=\{3\} aria-hidden \/>\s*<span className="sr-only">\{t\("courseView\.path\.chapterDone"\)\}/);
   assert.match(path, /<Lock size=\{18\} strokeWidth=\{2\.25\} aria-hidden \/>\s*<span className="sr-only">\{t\("courseView\.path\.chapterLocked"\)\}/);
   assert.doesNotMatch(path, /border-dashed/, "geen zware stippelrand als standaard");
 });
 
 test("de actieve stap is een compacte tegel in hetzelfde raster, geen enorme knop over de volle breedte", () => {
-  const path = read("src/components/reading/ReadingPath.tsx");
+  const path = stepPath();
   assert.doesNotMatch(path, /col-span-full|primaryButton \$\{|!rounded-2xl/);
   assert.match(path, /grid-cols-\[repeat\(auto-fill,minmax\(min\(100%,7rem\),1fr\)\)\]/);
   assert.match(path, /data-current-step=\{state === "current" \? "" : undefined\}/);
@@ -291,17 +309,19 @@ test("de actieve stap is een compacte tegel in hetzelfde raster, geen enorme kno
 test("de bovenste voortgang telt voltooide hoofdstukken, niet het nummer van het hoofdstuk waar je bezig bent", () => {
   const view = read("src/components/ReadingCourseView.tsx");
   assert.match(view, /completedChapters = chapters\.filter\(\(chapter\) => chapter\.lessonCount > 0 && chapter\.completedLessons === chapter\.lessonCount\)\.length/);
-  assert.match(view, /pos: completedChapters/);
+  assert.match(view, /completed=\{completedChapters\}/);
+  assert.match(read("src/components/reading/CoursePathHeader.tsx"), /pos: completed,/);
   assert.doesNotMatch(view, /currentChapterIndex|progressPosition/);
 });
 
-test("het leerpad heeft een eigen Focusroute; de gewone cursuspagina blijft voor alle andere cursustypes en stuurt READING_LESSONS door", () => {
+test("de drie leescursussen delen één Focusroute; de gewone cursuspagina blijft voor alle andere cursustypes en stuurt alleen die drie door", () => {
   const hub = read("src/app/courses/[courseId]/page.tsx");
-  assert.match(hub, /if \(course\.type === "READING_LESSONS"\) redirect\(`\/courses\/\$\{course\.id\}\/pad`\);/);
+  assert.match(hub, /if \(isReadingPathType\(course\.type\)\) redirect\(`\/courses\/\$\{course\.id\}\/pad`\);/);
+  assert.match(hub, /redirect\("\/courses"\);\n\}/, "onbekend type gaat nooit naar /pad (geen lus)");
   assert.doesNotMatch(hub, /ReadingCourseView|buildPathChapters/);
   const pad = read("src/app/courses/[courseId]/pad/page.tsx");
   // geen lus: de padpagina stuurt alleen andere typen terug, en zonder geldige/selecteerbare cursus naar de lijst
-  assert.match(pad, /if \(course\.type !== "READING_LESSONS"\) redirect\(`\/courses\/\$\{course\.id\}`\);/);
+  assert.match(pad, /if \(!isReadingPathType\(course\.type\)\) redirect\(`\/courses\/\$\{course\.id\}`\);/);
   assert.match(pad, /if \(!course\) redirect\("\/courses"\);/);
   assert.match(pad, /isContentCollectionSelectable\(course\.contentCollectionId, user\.isAdmin\)\)\) redirect\("\/courses"\)/);
   assert.match(pad, /loadReadingPath\(prisma, user\.id, course\.id\)/);

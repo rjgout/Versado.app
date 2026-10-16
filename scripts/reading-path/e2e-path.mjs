@@ -85,8 +85,8 @@ try {
   check("de actieve stap is een compacte tegel (geen volle-breedte knop)", tiles && tiles.height < 90 && tiles.width < 300, JSON.stringify(tiles));
   const b = await bars(page);
   check("het hoofdstuk ervoor (1 Nephi 10) staat boven de actieve kaart in beeld als de hoogte dat toelaat", prev && prev.y >= b.header - 1 && prev.y < 400, JSON.stringify(prev));
-  const art = await page.locator('[data-chapter-state="current"] [data-artwork]').first().getAttribute("data-artwork");
-  check("1 Nephi 11 krijgt het boekbeeld, niet het verhaal met nummer 11", art === "/images/book-of-mormon/1-nephi.png", String(art));
+  const art = await page.locator('[data-chapter-state="current"] [data-artwork]').count();
+  check("1 Nephi 11 heeft geen gecontroleerde scène: neutrale kop zonder vulbeeld (niet het boekbeeld)", art === 0 && (await page.locator('[data-chapter-state="current"] article').first().innerText()).includes("1 Nephi 11"), String(art));
   const doneStepTile = await page.locator('[data-chapter-state="current"] ol li a').count();
   check("stap 1 (af) blijft openbaar om opnieuw te lezen; vergrendelde stappen zijn geen link", doneStepTile === 2 && (await page.locator('[data-chapter-state="current"] [aria-disabled="true"]').count()) === parts - 2);
   await page.screenshot({ path: `${SHOTS}/pad-390-nephi11.png` });
@@ -182,12 +182,12 @@ try {
       const cb = card.getBoundingClientRect();
       const done = document.querySelector('[data-chapter-state="done"]:last-of-type, [data-chapter-state="done"]');
       const doneEls = [...document.querySelectorAll('[data-chapter-state="done"]')]; const dc = doneEls[doneEls.length - 1]; const dr = dc.getBoundingClientRect();
-      const label = dc.querySelector("button span.relative").getBoundingClientRect();
-      const check = dc.querySelector("button > span:not(.relative)").getBoundingClientRect();
+      const label = dc.querySelector("button > span.min-w-0").getBoundingClientRect();
+      const check = dc.querySelector("button > span.text-vs-success").getBoundingClientRect();
       const overflowX = [...card.querySelectorAll("*")].some((el) => el.getBoundingClientRect().right > cb.right + 1);
       return { headH: hb.height, h2In: h2.top >= hb.top && h2.bottom <= hb.bottom, barIn: bar.bottom <= hb.bottom + 0.5, cols, rowsEqual: rows.every((n) => n === 1), overflowX, centered: Math.abs((label.top + label.bottom) / 2 - (dr.top + dr.bottom) / 2) < 6, gapToIcon: check.left - label.right };
     });
-    check(`${name}: actieve kaart met hoge afbeelding, titel en voortgang erop`, m.headH >= 140 && m.h2In && m.barIn, JSON.stringify(m));
+    check(`${name}: actieve kaart met kop (neutraal zonder beeld), titel en voortgang erop`, m.headH >= 100 && m.h2In && m.barIn, JSON.stringify(m));
     check(`${name}: stappenraster ${big ? "valt terug naar één kolom" : w < 500 ? "heeft twee kolommen" : "gebruikt de breedte"}, gelijke hoogtes per rij, geen overflow`, (big ? m.cols === 1 : w < 500 ? m.cols === 2 : m.cols >= 2) && m.rowsEqual && !m.overflowX, JSON.stringify(m));
     check(`${name}: tekst op compacte kaart verticaal gecentreerd en niet tegen het vinkje`, m.centered && m.gapToIcon >= 4, JSON.stringify(m));
     const sv = await stepVisible(pg);
@@ -209,7 +209,7 @@ try {
   check("een vergrendelde stap via een directe link stuurt terug (serverregel ongewijzigd)", (await direct.url()).includes(`/chapter/${chapterId}`));
   await direct.close();
   // 11. andere cursustypes blijven ongewijzigd: gewone pagina, normale shell, geen doorverwijzing
-  const other = sql(`select id from "Course" where type<>'READING_LESSONS' and type in ('FREE_CHOICE','FRONT_TO_BACK') limit 1`);
+  const other = sql(`select id from "Course" where type in ('INTRO','KIDS','PODCAST','FSY') order by type limit 1`);
   if (other) {
     const op = await u.ctx.newPage();
     await op.setViewportSize({ width: 390, height: 844 });
@@ -218,7 +218,7 @@ try {
     const direct2 = await op.goto(`${BASE}/courses/${other}/pad`);
     check("/pad bij een ander cursustype stuurt terug naar de gewone pagina (geen lus)", op.url() === `${BASE}/courses/${other}` && direct2.status() === 200, op.url());
     await op.close();
-  } else check("een ander cursustype is aanwezig om te vergelijken", false, "geen FREE_CHOICE/FRONT_TO_BACK-cursus in de testdatabase");
+  } else check("een ander cursustype is aanwezig om te vergelijken", false, "geen INTRO/KIDS/PODCAST/FSY-cursus in de testdatabase");
 } catch (e) { check("onverwachte fout", false, String(e)); }
 await browser.close();
 const bad = results.filter((r) => !r.ok).length;

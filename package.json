@@ -57,7 +57,7 @@
     "hymns:eval": "tsx scripts/hymns/eval-synthetic.ts",
     "test:kompas": "tsx --test tests/kompas.test.ts tests/kompas.integration.test.ts tests/kompas-layout-integration.test.ts",
     "test:registration": "tsx --test tests/registration.integration.test.ts",
-    "test:reading-path": "tsx --test tests/reading-path.test.ts",
+    "test:reading-path": "tsx --test tests/reading-path.test.ts tests/reading-courses.test.ts",
     "test:learning": "tsx --test tests/learning-rules.test.ts tests/learning-progress.integration.test.ts",
     "audio:mirror": "tsx scripts/mirrorAudio.ts",
     "otb:validate": "tsx scripts/otb/validate.ts",

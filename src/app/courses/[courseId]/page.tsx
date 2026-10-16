@@ -3,20 +3,15 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { parseStoredChapters } from "@/lib/podcastChapters";
 import { isEmailConfigured } from "@/lib/email";
-import { advanceCourseProgress } from "@/lib/courses";
 import { isContentCollectionSelectable } from "@/lib/contentCollections";
-import ChapterListCourseView from "@/components/ChapterListCourseView";
 import PodcastCourseView from "@/components/PodcastCourseView";
 import KidsCourseView from "@/components/KidsCourseView";
 import IntroCourseView from "@/components/IntroCourseView";
 import FsyCourseView from "@/components/FsyCourseView";
 import StudyTogetherButton from "@/components/study/StudyTogetherButton";
 import { canStartStudy } from "@/lib/study/startAvailability";
-import { chapterTerm, localizeTerm } from "@/lib/chapterTerm";
 import { localizedCourse } from "@/lib/courseText";
-import { getT } from "@/lib/i18n";
-import { getChapterStates } from "@/lib/learning/contentProgress";
-import { countWords, estimateReadingMinutes } from "@/lib/learning/readingTime";
+import { isReadingPathType } from "@/lib/readingCourses";
 
 export default async function CourseDetailPage({ params }: { params: Promise<{ courseId: string }> }) {
   const user = await getCurrentUser();
@@ -29,27 +24,12 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
   const { courseId } = await params;
   const course = await prisma.course.findUnique({
     where: { id: courseId },
-    include: {
-      contentCollection: { select: { work: true } },
-      chapters: {
-        orderBy: { order: "asc" },
-        include: {
-          chapter: {
-            include: {
-              book: true,
-              verses: { select: { text: true } },
-              _count: { select: { verses: true } },
-            },
-          },
-        },
-      },
-    },
+    include: { contentCollection: { select: { work: true } } },
   });
   if (!course) redirect("/courses");
   if (!(await isContentCollectionSelectable(course.contentCollectionId, user.isAdmin))) redirect("/courses");
   // Naam in de taal van de app; voor Nederlands de databasewaarde.
   const courseName = localizedCourse({ ...course, work: course.contentCollection.work }, user.uiLanguage).name;
-  const t = getT(user.uiLanguage);
   // Samen studeren kan bij elke cursus met vragen (dus niet bij FSY).
   const studyAction = await canStartStudy(course.id) ? <StudyTogetherButton courseId={course.id} /> : null;
 
@@ -175,52 +155,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
     );
   }
 
-  // Het leerpad van Stap voor stap heeft een eigen Focus-route (zie focusMode.ts); andere cursustypes blijven hier.
-  if (course.type === "READING_LESSONS") redirect(`/courses/${course.id}/pad`);
-
-  // De resterende cursustypes (van voor naar achter, vrije keuze) zijn
-  // allebei simpelweg "een lijst hoofdstukken" (zie
-  // ChapterListCourseView) — elk met hun eigen pagina, hun eigen "Vandaag"-
-  // hoofdstuk en (bij meerdere boeken) hun eigen inklapbare secties, ook al
-  // deelt een los hoofdstuk zijn afrondingsstatus (ChapterProgress) altijd
-  // met elke andere cursus die het ook bevat — dat is bewust zo.
-  let courseProgress = await prisma.userCourseProgress.findUnique({
-    where: { userId_courseId: { userId: user.id, courseId: course.id } },
-  });
-  if (!courseProgress) {
-    await advanceCourseProgress(prisma, user.id, course.id);
-    courseProgress = await prisma.userCourseProgress.findUnique({
-      where: { userId_courseId: { userId: user.id, courseId: course.id } },
-    });
-  }
-
-  const chapters = course.chapters.map((cc) => cc.chapter);
-  const states = await getChapterStates(prisma, user.id, chapters);
-
-  return (
-    <ChapterListCourseView
-      studyAction={studyAction}
-      courseId={course.id}
-      courseName={courseName}
-      currentChapterId={courseProgress?.currentChapterId ?? null}
-      sequential={course.type !== "FREE_CHOICE"}
-      unitPlural={localizeTerm(chapterTerm(chapters[0]?.book.slug), t).plural}
-      chapters={chapters.map((chapter) => {
-        const state = states.get(chapter.id)!;
-        return {
-          id: chapter.id,
-          number: chapter.number,
-          bookName: chapter.book.name,
-          verseCount: chapter._count.verses,
-          minutes: estimateReadingMinutes(chapter.verses.reduce((sum, v) => sum + countWords(v.text), 0)),
-          read: state.read,
-          exercisesAnswered: state.exercisesAnswered,
-          exercisesTotal: state.exercisesTotal,
-          exerciseScore: state.exerciseScore,
-          xpAvailable: state.xpAvailable,
-          completed: state.done,
-        };
-      })}
-    />
-  );
+  // De drie schriftuurlijke leescursussen (Stap voor stap, Hoofdstuk voor hoofdstuk, Vrije keuze) delen één Focus-route
+  // met hetzelfde visuele leespad (zie focusMode.ts); alle andere cursustypes blijven hier.
+  if (isReadingPathType(course.type)) redirect(`/courses/${course.id}/pad`);
+  // Een onbekend cursustype hoort hier niet: terug naar de lijst (nooit naar /pad, dat zou een lus geven).
+  redirect("/courses");
 }

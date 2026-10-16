@@ -145,9 +145,10 @@ export function SharedProgressHint({ show }: { show: boolean }) {
     }
   }
   return (
-    <div className="flex items-start gap-2 rounded-xl bg-vs-subtle px-3 py-2.5 text-sm text-vs-fg-2">
+    <div className="flex flex-wrap items-start gap-x-2 gap-y-1 rounded-xl bg-vs-subtle px-3 py-2.5 text-sm text-vs-fg-2">
       <Info className="mt-0.5 h-4 w-4 shrink-0 text-vs-accent" aria-hidden />
-      <span className="min-w-0 flex-1">{t("progress.sharedInfo")}</span>
+      {/* basis: bij 320 px en 200% tekst springt de knop naar een eigen regel in plaats van de tekst te kneden */}
+      <span className="min-w-0 flex-1 basis-[8rem]">{t("progress.sharedInfo")}</span>
       <button type="button" onClick={dismiss} className="shrink-0 font-bold text-vs-accent hover:underline">
         {t("progress.dismiss")}
       </button>
