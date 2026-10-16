@@ -17,7 +17,7 @@ export function collectionAccessWhere(
   if (purpose === "admin-preview") return identity;
   return {
     ...identity, publicationState: { in: ["LEGACY", "PUBLISHED"] }, enabled: true,
-    ...(purpose === "catalog" && actor.isAdmin ? {} : { visibleToUsers: true }),
+    ...(actor.isAdmin ? {} : { visibleToUsers: true }),
   };
 }
 
@@ -29,10 +29,10 @@ export function canAccessCollection(
   if (!actor || !collection || !collection.work) return false;
   if (purpose === "admin-preview") return actor.isAdmin;
   return ["LEGACY", "PUBLISHED"].includes(collection.publicationState)
-    && collection.enabled && (collection.visibleToUsers || (purpose === "catalog" && actor.isAdmin));
+    && collection.enabled && (collection.visibleToUsers || (actor.isAdmin));
 }
 
-/** Normale routes houden normale rechten, ook voor beheerders. */
+/** Normale rechten: beheer mag vrijgegeven verborgen bronnen lezen, nooit DRAFT. */
 export function readingAccessWhere(
   actor: ContentActor,
   purpose: "read" | "admin-preview" = "read",

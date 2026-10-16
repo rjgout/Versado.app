@@ -231,7 +231,7 @@ test("DRAFT/hidden/disabled oorsprong blijft ook voor admins gesloten; bewijs ge
       where: { id: f.collection.id },
       data: change,
     });
-    for (const who of [f.owner, f.admin])
+    for (const who of (change.visibleToUsers === false ? [f.owner] : [f.owner, f.admin]))
       assert.equal(
         (await referenceHttp(f, { action: "preview", ...f.request }, who))
           .status,
@@ -665,6 +665,8 @@ test("Meer lezen naar een andere studieles bewaart beide contextversies en blokk
       publicationVersion: { increment: 1 },
     },
   });
+  const reviewed = await auditStudyReferences(f.admin.actor, f.item.lessonEditionId, revision.id);
+  assert.equal(reviewed.references[0].diagnosis, "INTERNAL_VERIFIED");
   const dto = await getStudyReader(
     f.owner.actor,
     f.item.edition.lessonId,

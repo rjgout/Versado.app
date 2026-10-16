@@ -8,11 +8,7 @@ import {
 } from "@/lib/studyContent/policy";
 import { validateStoredStudyRevision } from "@/lib/studyContent/publication";
 import { studyDocumentInventory } from "@/lib/studyContent/fixtureAdapter";
-import {
-  resolveReferenceBatch,
-  referenceDiagnosis,
-  normalizedReference,
-} from "./resolver";
+import { resolveReferenceBatch, referenceDiagnosis } from "./resolver";
 /** Expliciete beheerreview: uitsluitend diagnoses bijwerken, geen publicatie/voortgang. */
 export async function auditStudyReferences(
   actor: StudyAdmin,
@@ -78,14 +74,11 @@ export async function auditStudyReferences(
           {
             id: stored.id,
             ...referenceDiagnosis(result),
-            normalizedTarget: normalizedReference(result),
-            externalUrl:
-              result.kind === "external" ? result.url : stored.externalUrl,
           },
         ];
       });
       if (changes.length)
-        await db.$executeRaw`UPDATE "ContentReference" r SET diagnosis=a.diagnosis, "evidenceKey"=a."evidenceKey", "normalizedTarget"=a."normalizedTarget", "externalUrl"=a."externalUrl" FROM jsonb_to_recordset(${JSON.stringify(changes)}::jsonb) AS a(id text, diagnosis text, "evidenceKey" text, "normalizedTarget" jsonb, "externalUrl" text) WHERE r.id=a.id AND r."revisionId"=${revisionId}`;
+        await db.$executeRaw`UPDATE "ContentReference" r SET diagnosis=a.diagnosis, "evidenceKey"=a."evidenceKey" FROM jsonb_to_recordset(${JSON.stringify(changes)}::jsonb) AS a(id text, diagnosis text, "evidenceKey" text) WHERE r.id=a.id AND r."revisionId"=${revisionId}`;
       return {
         references: changes.map((c) => ({
           id: c.id,

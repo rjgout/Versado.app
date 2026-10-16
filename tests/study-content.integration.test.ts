@@ -85,7 +85,7 @@ test("readonly DTO gate geldt ook voor metadata; geen bron/rechtenmetadata, fall
 test("DRAFT, verborgen en uitgeschakeld worden geweigerd, ook bij normale admin-login",async()=>{
  for(const patch of [{publicationState:"DRAFT" as const},{visibleToUsers:false},{enabled:false}]){
   await prisma.contentCollection.update({where:{id:nl},data:patch});
-  for(const actor of [normal,admin]){assert.equal(await getPublishedStudyLesson(actor,lesson,nl),null);assert.equal(await findPublishedLogicalLesson(actor,lesson,nl),null);assert.equal(await findPublishedLessonEdition(actor,lesson,nl),null);}
+  for(const actor of [normal,admin]){if("visibleToUsers" in patch && actor===admin){assert.ok(await getPublishedStudyLesson(actor,lesson,nl));continue;}assert.equal(await getPublishedStudyLesson(actor,lesson,nl),null);assert.equal(await findPublishedLogicalLesson(actor,lesson,nl),null);assert.equal(await findPublishedLessonEdition(actor,lesson,nl),null);}
   await prisma.contentCollection.update({where:{id:nl},data:{publicationState:"PUBLISHED",visibleToUsers:true,enabled:true}});
  }
  await prisma.contentCollection.update({where:{id:nl},data:{publicationState:"LEGACY"}});assert.ok(await getPublishedStudyLesson(normal,lesson,nl));

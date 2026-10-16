@@ -1,8 +1,10 @@
 "use client";
+import { useT } from "@/components/I18nProvider";
 import { createContext, useContext } from "react";
 export const ReferenceActionsContext = createContext<
   ((id: string, label: string, element: HTMLElement) => void) | null
 >(null);
+export const BlockedReferencesContext = createContext<readonly string[]>([]);
 export default function ReferenceLink({
   id,
   label,
@@ -10,8 +12,10 @@ export default function ReferenceLink({
   id: string;
   label: string;
 }) {
+  const t = useT();
   const open = useContext(ReferenceActionsContext);
-  return open ? (
+  const blocked = useContext(BlockedReferencesContext);
+  return open && !blocked.includes(id) ? (
     <button
       type="button"
       data-reference-key={id}
@@ -21,6 +25,14 @@ export default function ReferenceLink({
       {label}
     </button>
   ) : (
-    <span className="underline decoration-dotted">{label}</span>
+    <span
+      data-blocked-reference={blocked.includes(id) ? id : undefined}
+      title={
+        blocked.includes(id) ? t("referencePreview.unavailable") : undefined
+      }
+      className="underline decoration-dotted"
+    >
+      {label}
+    </span>
   );
 }

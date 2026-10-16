@@ -835,10 +835,8 @@ test("gewone bronrechten blijven leidend, ook voor admins; expliciet preview bli
       await getPublishedStudyLesson(normal, row.lessonId, collection),
       null,
     );
-    assert.equal(
-      await getPublishedStudyLesson(actor, row.lessonId, collection),
-      null,
-    );
+    if ("visibleToUsers" in patch) assert.ok(await getPublishedStudyLesson(actor,row.lessonId,collection));
+    else assert.equal(await getPublishedStudyLesson(actor,row.lessonId,collection),null);
     assert.ok(await studyRevisionPreview(actor, editionId, revisionId));
     await prisma.contentCollection.update({
       where: { id: collection },
@@ -858,7 +856,8 @@ test("gewone bronrechten blijven leidend, ook voor admins; expliciet preview bli
       where: { id },
       data: { visibleToUsers: false },
     });
-  await assert.rejects(authorizedStudyMedia(actor, mediaId), /UNAVAILABLE/);
+  assert.ok(await authorizedStudyMedia(actor, mediaId));
+  await assert.rejects(authorizedStudyMedia(normal, mediaId), /UNAVAILABLE/);
   assert.ok(await authorizedStudyMedia(actor, mediaId, true));
   await prisma.contentCollection.update({
     where: { id: collection },

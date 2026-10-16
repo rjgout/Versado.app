@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  releaseStudyCollection,
+  studyCollectionReleaseSchema,
+} from "@/lib/studyContent/collectionRelease";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/session";
 import { getT } from "@/lib/i18n";
@@ -47,8 +51,17 @@ const actionSchema = z.discriminatedUnion("action", [
     })
     .strict(),
   z.object({ action: z.literal("resume"), runId: id }).strict(),
-  z.object({action:z.literal("audit-references"),editionId:id,revisionId:id}).strict(),
+  z
+    .object({
+      action: z.literal("audit-references"),
+      editionId: id,
+      revisionId: id,
+    })
+    .strict(),
   studyPublicationSchema.extend({ action: z.literal("publish") }),
+  studyCollectionReleaseSchema.extend({
+    action: z.literal("release-collection"),
+  }),
 ]);
 async function input(req: NextRequest) {
   if (Number(req.headers.get("content-length") ?? 0) > 16384)
@@ -148,7 +161,18 @@ export async function POST(req: NextRequest) {
         { status: 202, headers },
       );
     }
-    if(action.action==="audit-references")return NextResponse.json(await auditStudyReferences(user,action.editionId,action.revisionId),{headers});
+    if (action.action === "release-collection") {
+      const { action: _, ...request } = action;
+      void _;
+      return NextResponse.json(await releaseStudyCollection(user, request), {
+        headers,
+      });
+    }
+    if (action.action === "audit-references")
+      return NextResponse.json(
+        await auditStudyReferences(user, action.editionId, action.revisionId),
+        { headers },
+      );
     const { action: _, ...publication } = action;
     void _;
     return NextResponse.json(await publishStudyRevision(user, publication), {

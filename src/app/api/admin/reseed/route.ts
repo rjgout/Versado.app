@@ -1,3 +1,10 @@
+import { z } from "zod";
+import { inventoryOriginAllowed } from "@/lib/content-inventory/origin";
+import {
+  cfmApprovedSnapshot,
+  requireCfmApproval,
+} from "@/lib/studyContent/sourceApproval";
+import { studyStorage } from "@/lib/studyContent/storage";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
@@ -21,17 +28,69 @@ async function requireAdmin() {
 // — dat kon eerder een valse foutmelding geven als een reverse proxy de
 // request eerder liet timeouten dan de seed klaar was. De adminpagina pollt
 // GET hieronder voor de voortgang.
-export async function POST() {
+export async function POST(req: Request) {
   const forbidden = await requireAdmin();
   if (forbidden) return forbidden;
 
-  const { started, job } = startReseedJob(prisma);
-  return NextResponse.json({ started, job });
+  if (!inventoryOriginAllowed(req.headers, req.url, process.env.APP_URL))
+    return await apiError("apiErrors.forbidden", 403);
+  const raw = await req.text();
+  if (raw.length > 2048) return await apiError("apiErrors.invalidInput", 400);
+  const parsed = z
+    .union([
+      z.object({}).strict(),
+      z
+        .object({
+          approvedSnapshot: z.string().regex(/^[a-f0-9]{64}$/),
+          confirmDraftsOnly: z.literal(true),
+        })
+        .strict(),
+    ])
+    .safeParse(
+      raw
+        ? await Promise.resolve()
+            .then(() => JSON.parse(raw))
+            .catch(() => null)
+        : {},
+    );
+  if (!parsed.success) return await apiError("apiErrors.invalidInput", 400);
+  const user = await getCurrentUser();
+  if (!user?.isAdmin) return await apiError("apiErrors.forbidden", 403);
+  if ("approvedSnapshot" in parsed.data) {
+    try {
+      await requireCfmApproval(parsed.data.approvedSnapshot);
+    } catch {
+      return await apiError("studyPublishing.errors.CONFLICT", 409);
+    }
+  }
+  const { started, job } = startReseedJob(
+    prisma,
+    "approvedSnapshot" in parsed.data
+      ? { actor: user, approvedSnapshot: parsed.data.approvedSnapshot }
+      : undefined,
+  );
+  return NextResponse.json(
+    { started, job },
+    { headers: { "Cache-Control": "no-store, private" } },
+  );
 }
 
 export async function GET() {
   const forbidden = await requireAdmin();
   if (forbidden) return forbidden;
 
-  return NextResponse.json({ job: getReseedJob() });
+  let studySource = null;
+  try {
+    const snapshot = await cfmApprovedSnapshot();
+    let storageReady = false;
+    try {
+      await studyStorage();
+      storageReady = true;
+    } catch {}
+    studySource = { snapshot, lessons: 52, storageReady };
+  } catch {}
+  return NextResponse.json(
+    { job: getReseedJob(), studySource },
+    { headers: { "Cache-Control": "no-store, private" } },
+  );
 }

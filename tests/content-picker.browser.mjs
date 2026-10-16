@@ -194,7 +194,7 @@ try {
     await prisma.contentCollection.updateMany({where:{work:'fsy'},data:{publicationState:'DRAFT'}});
     await ready('/content');assert.equal(await page.locator('[data-content-work="old-testament"]').count(),0);assert.equal(await page.locator('[data-content-work="pgp"]').count(),0);assert.equal(await page.locator('[data-content-work="fsy"]').count(),0);
     await prisma.user.update({where:{id:user.id},data:{isAdmin:true}});
-    await ready('/content');assert.equal(await page.locator('[data-content-work="old-testament"]').count(),0,'Ook admins krijgen een publieke kiezer zonder verborgen bronnen');
+    await ready('/content');assert.equal(await page.locator('[data-content-work="old-testament"]').count(),1,'Admins mogen verborgen vrijgegeven bronnen selecteren');
     assert.equal(await page.locator('[data-content-picker] a').count(),2);
     assert.equal(await page.locator('[data-admin-content-link]').getAttribute('href'),'/adminbackend/content/inspect');
     assert.equal(await page.locator('[data-hymns-link]').getAttribute('href'),'/dev/lofzangen');
@@ -230,9 +230,11 @@ try {
     await ready('/content');
     const hidden=await prisma.contentCollection.findFirstOrThrow({where:{work:'old-testament',language:'nl'}});
     const own=(await (await page.request.get(`${base}/api/content-context?view=picker`)).json()).selection;
-    const denied=await page.request.put(`${base}/api/content-context`,{headers:{Origin:base},data:{picker:true,contentCollectionId:hidden.id,expectedSelection:own}});assert.equal(denied.status(),404);
+    const allowed=await page.request.put(`${base}/api/content-context`,{headers:{Origin:base},data:{picker:true,contentCollectionId:hidden.id,expectedSelection:own}});assert.equal(allowed.status(),200);
     assert.equal(await page.locator('[data-content-work="fsy"]').count(),0);
     await prisma.user.update({where:{id:user.id},data:{isAdmin:false}});
+    const ordinarySelection=(await (await page.request.get(`${base}/api/content-context?view=picker`)).json()).selection;
+    const denied=await page.request.put(`${base}/api/content-context`,{headers:{Origin:base},data:{picker:true,contentCollectionId:hidden.id,expectedSelection:ordinarySelection}});assert.equal(denied.status(),404);
     await prisma.contentCollection.updateMany({data:{enabled:false}});
     const preserved=await prisma.user.findUniqueOrThrow({where:{id:user.id}});
     await ready('/content');assert.equal(await page.locator('[data-content-work]').count(),0);assert.equal(await page.locator('[data-content-group]').count(),2);

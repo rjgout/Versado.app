@@ -205,6 +205,23 @@ studieprogramma’s, Lofzangen en toekomstige contentactiviteiten:
   noodstop. Test blijvende instellingen, veilige caches en regressies. Gebruik
   uitsluitend geïsoleerde databasegegevens; productie-uitrol vraagt apart akkoord.
 
+### Vaste contentketen: inladen → vrijgeven → normaal gebruiken → zichtbaar maken
+
+Nieuwe bronnen worden via **Content opnieuw laden** en hun bestaande gepinde
+importadapter verwerkt. Iedere import gebruikt een expliciete doelcollectie;
+nooit de eerste enabled collectie of de actuele profielkeuze als impliciet
+doel voor canonieke bronbestanden. Een vereiste snapshotgoedkeuring wordt expliciet in het
+bestaande beheer gevraagd; geen Docker-terminal als normale beheerworkflow.
+Import, deployment en migrations publiceren nooit automatisch. Inhoudelijke
+vrijgave gebruikt de bestaande revisie-/publicatieaudit. Een beheerder kan
+LEGACY/PUBLISHED én enabled content via de normale kiezer/reader gebruiken,
+ook als visibleToUsers=false; DRAFT blijft uitsluitend beheerpreview.
+De bestaande zichtbaarheidsschakelaar regelt daarna gewone gebruikers, los van
+de algemene contentswitcher-instelling. Geen tweede selector of publicatiesysteem.
+CFM gebruikt dezelfde les-ID’s, revisies en media; beoordeelde geblokkeerde
+verwijzingen blijven niet-klikbaar en vereisen expliciete revisiebeoordeling.
+Zie `docs/content-architecture-v2/24-CFM-MANAGED-IMPORT-AND-RELEASE.md`.
+
 ## Lofzangen (technische proef): live meezingen
 
 Beschikbaarheid wordt beheerd onder Adminbackend → Content (`ContentSwitcherSettings.hymnsVisibleToUsers`, standaard uit).

@@ -10,6 +10,7 @@ export interface StudyReaderDTO {
   readState: StudyReadState;
   media: Array<{ mediaKey: string; mediaId: string | null }>;
   visitProof: string | null;
+  blockedReferences?: string[];
 }
 /** Geen profielkeuze, voortgangswrite of tweede rechtenlaag. */
 export async function getStudyReader(
@@ -20,18 +21,20 @@ export async function getStudyReader(
 ): Promise<StudyReaderDTO | null> {
   const lesson = await getPublishedStudyLesson(actor, lessonId, collectionId);
   if (!lesson) return null;
-  const [positionState, bindings, readState] = await Promise.all([
+  const [positionState, bindings, readState, blocked] = await Promise.all([
     getReadingPosition(actor, lesson.editionId),
     prisma.studyRevisionMedia.findMany({
       where: { revisionId: lesson.revisionId },
       select: { mediaKey: true, media: { select: { id: true, status: true } } },
     }),
     getStudyLessonReadState(prisma, actor.id, lesson),
+    prisma.contentReference.findMany({where:{revisionId:lesson.revisionId,diagnosis:{notIn:["INTERNAL_VERIFIED","EXTERNAL_VERIFIED"]}},select:{occurrenceKey:true}}),
   ]);
   // Een gelijktijdige pointerwissel is zichtbaar als update, maar vervangt deze
   // gevalideerde body niet. Media-API hercontroleert actuele publicatierechten.
   return {
     lesson,
+    blockedReferences: blocked.map(r => r.occurrenceKey),
     visitProof: sessionKey
       ? issueReadingVisitProof(actor.id, lesson.editionId, lesson.revisionId, sessionKey)
       : null,

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { cfmDisplayOnlyKeys } from "./cfmReview";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import {
@@ -28,7 +29,10 @@ import {
 } from "./storage";
 import { emitToUser } from "@/lib/realtime";
 import { DATA_EVENT_SOCKET_NAME } from "@/lib/data/scopes";
-import { resolveReferenceBatch, referenceDiagnosis, normalizedReference } from "@/lib/references/resolver";
+import {
+  resolveReferenceBatch,
+  referenceDiagnosis,
+} from "@/lib/references/resolver";
 
 export const studyPublicationSchema = z
   .object({
@@ -38,6 +42,7 @@ export const studyPublicationSchema = z
     kind: z.enum(["PUBLISH", "ROLLBACK"]),
     expectedVersion: z.number().int().min(0).max(2_147_483_646),
     actionId: z.uuid(),
+    allowReviewedDisplayOnly: z.boolean().optional(),
   })
   .strict();
 export type StudyPublicationRequest = z.infer<typeof studyPublicationSchema>;
@@ -115,9 +120,11 @@ export async function publishStudyRevision(
         edition.lesson.retiredAt ||
         edition.lesson.work.kind !== "STUDY_PROGRAM" ||
         !edition.collection.enabled ||
-        !["LEGACY", "PUBLISHED"].includes(
-          edition.collection.publicationState,
-        ) ||
+        ![
+          "LEGACY",
+          "PUBLISHED",
+          ...(run.adapterName === "cfm-2026-nl-v1" ? ["DRAFT"] : []),
+        ].includes(edition.collection.publicationState) ||
         edition.workKey !== run.workKey ||
         edition.collectionId !== run.collectionId ||
         edition.collection.language !== run.language ||
@@ -162,6 +169,27 @@ export async function publishStudyRevision(
       const content = validateStoredStudyRevision(revision);
       if (studyRevisionHash(sourceContent) !== revision.contentHash)
         throw new StudyPublishingError("INCOMPLETE");
+      const historicDisplayOnly =
+        input.kind === "ROLLBACK" &&
+        (await db.studyPublicationAction.findFirst({
+          where: {
+            lessonEditionId: edition.id,
+            revisionId: revision.id,
+            kind: "PUBLISH_DISPLAY_ONLY",
+          },
+        }));
+      const displayOnly =
+        run.adapterName === "cfm-2026-nl-v1"
+          ? historicDisplayOnly
+            ? revision.references
+                .filter((r) => r.diagnosis === "UNRESOLVED")
+                .map((r) => r.occurrenceKey)
+            : await cfmDisplayOnlyKeys(
+                source.sourceKey,
+                content,
+                snapshot.sourceVersion,
+              )
+          : [];
       const inventory = studyDocumentInventory(content.body);
       // Een bron kan zonder alttekst als concept worden behouden, maar niet
       // zonder afzonderlijke inhoudelijke beoordeling worden gepubliceerd.
@@ -197,8 +225,24 @@ export async function publishStudyRevision(
         validateStudyMediaMetadata(binding.media);
         await readStudyMedia(binding.media, true);
       }
-      const referenceResults=await resolveReferenceBatch(db,actor,{workKey:edition.workKey,collectionId:edition.collectionId,editionKey:edition.collection.editionKey,language:edition.collection.language},inventory.references.map(r=>({target:r.target,diagnosticKey:r.occurrenceKey})));
-      for (const [referenceIndex,reference] of inventory.references.entries()) {
+      const referenceResults = await resolveReferenceBatch(
+        db,
+        actor,
+        {
+          workKey: edition.workKey,
+          collectionId: edition.collectionId,
+          editionKey: edition.collection.editionKey,
+          language: edition.collection.language,
+        },
+        inventory.references.map((r) => ({
+          target: r.target,
+          diagnosticKey: r.occurrenceKey,
+        })),
+      );
+      for (const [
+        referenceIndex,
+        reference,
+      ] of inventory.references.entries()) {
         const audit = revision.references.find(
           (r) => r.occurrenceKey === reference.occurrenceKey,
         );
@@ -207,10 +251,42 @@ export async function publishStudyRevision(
             e.occurrenceKey === reference.occurrenceKey &&
             e.url === reference.target.externalUrl,
         );
-        const actual=referenceResults[referenceIndex];
-        if(audit?.evidenceKey!=="synthetic-reviewed-reference-v1"){
-          const verified=referenceDiagnosis(actual);
-          if(!audit || actual.kind==="unavailable" || audit.diagnosis!==verified.diagnosis || audit.evidenceKey!==verified.evidenceKey || studyObjectHash(audit.originalTarget)!==studyObjectHash(reference.target) || studyObjectHash(audit.normalizedTarget)!==studyObjectHash(normalizedReference(actual)))throw new StudyPublishingError("REFERENCES");
+        const actual = referenceResults[referenceIndex];
+        if (
+          actual.kind === "unavailable" &&
+          displayOnly.includes(reference.occurrenceKey)
+        ) {
+          const historical =
+            input.kind === "ROLLBACK" &&
+            (await db.studyPublicationAction.findFirst({
+              where: {
+                lessonEditionId: edition.id,
+                revisionId: revision.id,
+                kind: "PUBLISH_DISPLAY_ONLY",
+              },
+            }));
+          if (
+            (!input.allowReviewedDisplayOnly && !historical) ||
+            !audit ||
+            studyObjectHash(audit.originalTarget) !==
+              studyObjectHash(reference.target)
+          )
+            throw new StudyPublishingError("REFERENCES");
+          continue;
+        }
+        if (audit?.evidenceKey !== "synthetic-reviewed-reference-v1") {
+          // De oorspronkelijke normalisatie blijft historisch. Actuele canonieke/editierechten
+          // worden hierboven opnieuw bewezen; een expliciete heraudit moet diagnose/bewijs bijwerken.
+          const verified = referenceDiagnosis(actual);
+          if (
+            !audit ||
+            actual.kind === "unavailable" ||
+            audit.diagnosis !== verified.diagnosis ||
+            audit.evidenceKey !== verified.evidenceKey ||
+            studyObjectHash(audit.originalTarget) !==
+              studyObjectHash(reference.target)
+          )
+            throw new StudyPublishingError("REFERENCES");
           continue;
         }
         // Bestaande synthetische fallback blijft uitsluitend achter de 2B-releasegate.
@@ -256,7 +332,12 @@ export async function publishStudyRevision(
           actorId: actor.id,
           actorKey: actor.id,
           actionId: input.actionId,
-          kind: input.kind,
+          kind:
+            input.kind === "PUBLISH" &&
+            input.allowReviewedDisplayOnly &&
+            displayOnly.length
+              ? "PUBLISH_DISPLAY_ONLY"
+              : input.kind,
           expectedVersion: input.expectedVersion,
           version,
           requestHash,

@@ -82,7 +82,7 @@ test("authenticatie, strikte payload/query en Origin: geen toegang tot andermans
 });
 
 for (const name of ["hidden", "disabled", "draft-collection", "draft", "draft-copy", "empty", "invalid-content", "missing-publication", "wrong-work"]) test(`${name}: selectie geweigerd zonder bijeffect, adminpreview verruimt geen gewone keuze`, async () => {
-  for (const actor of [b, admin]) {
+  for (const actor of (name === "hidden" ? [b] : [b, admin])) {
     const before = await prisma.user.findUniqueOrThrow({ where: { id: actor.id } });
     const response = await request(actor, "PUT", action(lessonIds[name], 0), "");
     assert.equal(response.status, 404); assert.ok(!(await response.text()).includes("PRIVE_CONCEPT"));

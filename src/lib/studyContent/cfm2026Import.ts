@@ -24,7 +24,12 @@ import {
   StudyPublishingError,
 } from "./policy";
 import { downloadStudyImage } from "./download";
-import { studyStorage, validateStudyImage } from "./storage";
+import {
+  studyStorage,
+  validateStudyImage,
+  readStudyMedia,
+  installStudyMedia,
+} from "./storage";
 
 export async function loadCfmLesson(key: string) {
   if (!manifest.lessons.some((l) => l.sourceKey === key))
@@ -61,9 +66,13 @@ export async function ensureCfmDraftCollection(
         language: manifest.language,
       },
     });
-    // Deze operatorflow is uitsluitend voor verborgen concepten. Corrigeer
-    // afwijkende live flags nooit stilzwijgend en schrijf dan ook geen concepten.
-    if (existing && (existing.visibleToUsers || existing.publicationState !== "DRAFT"))
+    // Updates maken uitsluitend concepten; bestaande publicatie en zichtbaarheid blijven intact.
+    if (
+      existing &&
+      (existing.work !== manifest.workKey ||
+        existing.editionKey !== manifest.editionKey ||
+        existing.language !== manifest.language)
+    )
       throw new StudyPublishingError("CONFLICT");
     await db.contentWork.upsert({
       where: { key: manifest.workKey },
@@ -97,10 +106,18 @@ export async function importCfm2026Drafts(
   options: {
     mediaBytes?: (asset: CfmMedia) => Promise<Buffer>;
     client?: PrismaClient;
+    progress?: (current: number, total: number, label: string) => void;
   } = {},
 ) {
   requireStudyAdmin(actor);
-  await studyStorage();
+  const store = await studyStorage();
+  const unique = new Map(mediaLock.map((asset) => [asset.checksum, asset]));
+  const space = await fs.statfs(store.root);
+  const required =
+    [...unique.values()].reduce((sum, a) => sum + a.byteSize, 0) +
+    32 * 1024 * 1024;
+  if (Number(space.bavail) * Number(space.bsize) < required)
+    throw new StudyPublishingError("STORAGE");
   const client = options.client ?? prisma;
   // Valideer alle 52 bronnen vóór de eerste databasewrite.
   const lessons = await Promise.all(
@@ -110,9 +127,26 @@ export async function importCfm2026Drafts(
   const cache = new Map<string, Buffer>();
   const report = [];
   for (const parsed of lessons) {
+    options.progress?.(report.length, lessons.length, parsed.title);
     for (const asset of parsed.assets) {
       if (cache.has(asset.checksum)) continue;
-      const bytes = options.mediaBytes
+      const stored = await client.contentMedia.findUnique({
+        where: { checksum: asset.checksum },
+      });
+      let bytes: Buffer | undefined;
+      let repair = false;
+      if (stored?.status === "READY")
+        try {
+          bytes = await readStudyMedia(stored, true);
+        } catch (error) {
+          if (
+            !(error instanceof StudyPublishingError) ||
+            error.code !== "MEDIA"
+          )
+            throw error;
+          repair = true;
+        }
+      bytes ??= options.mediaBytes
         ? await options.mediaBytes(asset)
         : (
             await downloadStudyImage(
@@ -132,6 +166,7 @@ export async function importCfm2026Drafts(
         checked.byteSize !== asset.byteSize
       )
         throw new StudyPublishingError("MEDIA");
+      if (repair) await installStudyMedia(bytes, checked);
       cache.set(asset.checksum, bytes);
     }
     const item = cfmSnapshotItem(parsed, (a) => cache.get(a.checksum)!);
@@ -182,6 +217,7 @@ export async function importCfm2026Drafts(
       media: parsed.assets.length,
     });
   }
+  options.progress?.(report.length, lessons.length, "CFM 2026");
   return {
     expectedLessons: 52,
     importedLessons: report.length,

@@ -3477,7 +3477,7 @@ export const fr: PartialMessages = {
   },
   adminReseed: {
     title: "Recharger le contenu",
-    text: "Place le contenu le plus récent (livres/chapitres/exercices, épisodes de podcast, leçons FSY, succès) dans la base de données — comme {cmd}, mais sans terminal. Les utilisateurs, la progression, les séries et les scores existants restent intacts ; le contenu est seulement ajouté ou mis à jour. Fais-le après chaque mise à jour qui ajoute du contenu (par ex. un nouvel épisode de podcast). Cela peut prendre un moment — la barre ci-dessous reste jusqu’à la fin, même si tu vas sur une autre page et reviens.",
+    text: "Met à jour les livres, chapitres, exercices, podcasts, contenus FSY et brouillons CFM disponibles. Approuvez explicitement l’instantané CFM affiché. Les leçons ne sont jamais publiées ou rendues visibles automatiquement. Les utilisateurs, la progression, les séries et les scores sont conservés. Vous pouvez quitter cette page et consulter la progression plus tard.",
     failed: "Le chargement du contenu a échoué.",
     done: "Terminé — le contenu a été mis à jour.",
   },
@@ -3527,6 +3527,16 @@ export const fr: PartialMessages = {
     favicon: "Favicon",
     faviconText: "L’icône de l’onglet du navigateur — apparaît aussi en aperçu lors du partage d’un lien (WhatsApp, Telegram, etc.). Minimum 200×200px.",
   },
+  managedContent: {
+    "lessons": "Leçons d’étude",
+    "reviewBlocked": "J’ai vérifié les {count} références bloquées. Les afficher uniquement comme texte non cliquable.",
+    "release": "Valider le contenu de la collection",
+    "releaseConfirm": "Toutes les leçons ont été publiées individuellement. Autoriser l’utilisation normale par les administrateurs. La visibilité des utilisateurs reste inchangée.",
+    "approveImport": "CFM 2026 : approuver l’instantané {snapshot} pour mettre à jour 52 brouillons de leçons. Les publications et la visibilité existantes restent inchangées.",
+    "includeCfm": "Mettre à jour les brouillons CFM 2026",
+    "sourceMissing": "Les fichiers sources CFM vérifiés sont absents. Aucun import CFM ne sera effectué.",
+    "spaceMissing": "Le stockage permanent des médias est indisponible. Rétablissez-le avant de mettre à jour CFM."
+},
   adminContent: {
     hymnsEmergencyStop: "Désactivé techniquement via HYMNS_POC=0.",
     saveFailed: "Échec de l’enregistrement.",
@@ -3536,7 +3546,7 @@ export const fr: PartialMessages = {
     disabled: "Désactivé",
     visible: "Visible pour les utilisateurs",
     hidden: "Masqué",
-    note: "Consultez les sources masquées dans le contenu administré ; les brouillons restent dans l’aperçu administrateur. Au moins une collection reste visible. Les cantiques ont leur propre visibilité sans modifier la source choisie. Le bouton général contrôle uniquement l’accès au sélecteur de contenu.",
+    note: "Les administrateurs peuvent utiliser normalement les sources validées et activées, même masquées. Les brouillons restent dans l’aperçu administrateur. Au moins une collection reste visible. Les cantiques ont leur propre visibilité et ne changent pas la source sélectionnée. Le commutateur général contrôle uniquement l’entrée du sélecteur de contenu.",
   },
   adminFeedback: {
     none: "Aucun signalement pour l’instant.",
