@@ -729,6 +729,7 @@ export const de: PartialMessages = {
   },
   contentSwitcher: {
     picker: {
+      music: "Gesang & Musik",
       hymnsHelp: "Gesangbuch, live mitlesen und Noten.",
       "title": "Wähle deine Inhalte",
       "intro": "Wähle eine Quelle zum Lernen und Spielen. Dein Fortschritt bleibt gespeichert.",
