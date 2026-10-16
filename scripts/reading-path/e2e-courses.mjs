@@ -60,6 +60,7 @@ try {
   check("F2B: 15 boekkaarten onder hun echte boeken", (await page.locator("li[data-book]").count()) === 15);
   check("F2B: het actieve hoofdstuk (1 Nephi 1) is direct zichtbaar", (await page.locator('[data-chapter-state="current"] h2').innerText()).trim() === "1 Nephi 1" && (await visible(page, "[data-current-step]")));
   const art = page.locator('[data-chapter-state="current"] article');
+  check("F2B: 1 Nephi 1 (geen eigen scène) toont het beeld van 1 Nephi op de actieve kaart", (await page.locator('[data-chapter-state="current"] [data-artwork]').first().getAttribute("data-artwork").catch(() => "")) === "/images/book-of-mormon/1-nephi.png");
   check("F2B: geen kunstmatige leesgedeelten (geen stappen) in de actieve kaart", (await art.locator("ol").count()) === 0 && !/Stap \d/.test(await art.innerText()));
   const link = await page.locator("[data-current-step]").getAttribute("href");
   check("F2B: de actie opent de bestaande hoofdstukles met de cursus als context", link?.startsWith("/lesson/") && link.endsWith(`?cursus=${F2B}`), String(link));
@@ -77,6 +78,8 @@ try {
   completeFirst(u.id, F2B, n);
   page = await open(u.ctx, F2B);
   check("F2B: mid-cursus: precies het boek Alma is open en Alma 10 is actief", JSON.stringify(await openBooks(page)) === '["bofm/alma"]' && (await page.locator('[data-chapter-state="current"] h2').innerText()).trim() === "Alma 10", JSON.stringify(await openBooks(page)));
+  const almaArt = await page.locator('[data-chapter-state="current"] [data-artwork]').first().getAttribute("data-artwork").catch(() => null);
+  check("F2B: Alma 10 heeft geen eigen scène: de actieve kaart toont het bestaande beeld van Alma", /\/images\/book-of-mormon\/alma/.test(String(almaArt)), String(almaArt));
   check("F2B: het actieve hoofdstuk staat direct in beeld, zonder door tientallen hoofdstukken te scrollen", await visible(page, "[data-current-step]"));
   check("F2B: voltooide hoofdstukken tellen mee in de voortgang (niet de positie)", /104 \/ 239/.test(await page.locator("main").first().innerText()), (await page.locator("main").first().innerText()).match(/\d+ \/ \d+/)?.[0]);
   check("F2B: eerdere hoofdstukken in het open boek zijn af (compact met vinkje)", (await page.locator('[data-chapter-state="done"]').count()) === 9);
@@ -137,6 +140,8 @@ try {
   check("FREE: alle 22 hoofdstukken van 1 Nephi zijn vrij te kiezen: geen slot, allemaal een link", (await cards.count()) === 22 && (await page.locator('li[data-book="bofm/1-ne"] [aria-disabled="true"]').count()) === 0 && (await cards.locator("a").count()) === 22);
   const href = await cards.nth(20).locator("a").getAttribute("href");
   check("FREE: een klik opent de bestaande volledige hoofdstukles met de cursus als context", href?.startsWith("/lesson/") && href.endsWith(`?cursus=${FREE}`), String(href));
+  const thumbSrc = await cards.nth(0).locator("[data-chapter-thumb] [data-artwork]").getAttribute("data-artwork").catch(() => null);
+  check("FREE: een hoofdstuk zonder eigen scène (1 Nephi 1) toont het beeld van zijn eigen boek, een hoofdstuk met scène (1 Nephi 2) zijn scène", thumbSrc === "/images/book-of-mormon/1-nephi.png" && (await cards.nth(1).locator("[data-chapter-thumb] [data-artwork]").getAttribute("data-artwork")) === "/kids/images/story-3-0.jpg", String(thumbSrc));
   check("FREE: geen verbindingen door boeken of hoofdstukken (vrije keuze heeft geen volgorde)", (await page.locator("[data-connector]").count()) === 0);
   await page.screenshot({ path: `${SHOTS}/free-390-open.png` });
   check("FREE: het openen en bladeren schrijft niets weg (voortgang, cursussen, stappen)", snapshot() === snap0, `${snap0} -> ${snapshot()}`);

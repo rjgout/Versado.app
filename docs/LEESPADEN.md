@@ -31,9 +31,11 @@ Alleen presentatie en navigatie. Afronding, vergrendeling, volgorde, vragen, XP 
   beslist de gebruiker, en een refresh klapt niets open of dicht.
 
 ## Afbeeldingen
-Alleen via het artworkregister (`src/lib/artwork.ts`). Een hoofdstuk toont uitsluitend een expliciet gekoppelde scène
-(`chapterArtworkKeys`, `chapterScenes.ts`); nooit het boekbeeld als vulling. Het boekbeeld (`bookArtworkKeys`) staat
-alleen op de boekkaart. Zonder beeld is een kaart een verzorgde neutrale kaart; een later toegevoegde scène verschijnt
-vanzelf. Miniaturen zijn decoratief, lui geladen op 120 px en vervallen onder 380 px breed. Ingeklapte boeken renderen niets.
+Alleen via het artworkregister (`src/lib/artwork.ts`). Prioriteit per hoofdstuk (`chapterArtworkKeys`): 1) de expliciet
+gekoppelde scène (`chapterScenes.ts`), 2) alleen voor het Boek van Mormon (`Book.key` begint met `bofm/`) het bestaande
+boekbeeld `book:<Book.key>` (herhaling bij meerdere hoofdstukken is bedoeld), 3) de neutrale Versado-kaart. Andere schriften
+behouden alleen hun eigen scènes. Een later toegevoegde hoofdstukscène staat vooraan in de sleutellijst en wint dus vanzelf,
+zonder aanpassing van de cursuscomponenten. Het boekbeeld (`bookArtworkKeys`) staat daarnaast op de boekkaart. Miniaturen
+zijn decoratief, lui geladen op 120 px en vervallen onder 380 px breed. Ingeklapte boeken renderen niets.
 
 Tests: `npm run test:reading-path` en de browsertests `scripts/reading-path/e2e-path.mjs` en `e2e-courses.mjs`.

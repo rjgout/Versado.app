@@ -85,8 +85,8 @@ try {
   check("de actieve stap is een compacte tegel (geen volle-breedte knop)", tiles && tiles.height < 90 && tiles.width < 300, JSON.stringify(tiles));
   const b = await bars(page);
   check("het hoofdstuk ervoor (1 Nephi 10) staat boven de actieve kaart in beeld als de hoogte dat toelaat", prev && prev.y >= b.header - 1 && prev.y < 400, JSON.stringify(prev));
-  const art = await page.locator('[data-chapter-state="current"] [data-artwork]').count();
-  check("1 Nephi 11 heeft geen gecontroleerde scène: neutrale kop zonder vulbeeld (niet het boekbeeld)", art === 0 && (await page.locator('[data-chapter-state="current"] article').first().innerText()).includes("1 Nephi 11"), String(art));
+  const art = await page.locator('[data-chapter-state="current"] [data-artwork]').first().getAttribute("data-artwork");
+  check("1 Nephi 11 heeft geen eigen scène: de actieve kaart valt terug op het beeld van 1 Nephi (niet het verhaal met nummer 11)", art === "/images/book-of-mormon/1-nephi.png", String(art));
   const doneStepTile = await page.locator('[data-chapter-state="current"] ol li a').count();
   check("stap 1 (af) blijft openbaar om opnieuw te lezen; vergrendelde stappen zijn geen link", doneStepTile === 2 && (await page.locator('[data-chapter-state="current"] [aria-disabled="true"]').count()) === parts - 2);
   await page.screenshot({ path: `${SHOTS}/pad-390-nephi11.png` });
@@ -187,7 +187,7 @@ try {
       const overflowX = [...card.querySelectorAll("*")].some((el) => el.getBoundingClientRect().right > cb.right + 1);
       return { headH: hb.height, h2In: h2.top >= hb.top && h2.bottom <= hb.bottom, barIn: bar.bottom <= hb.bottom + 0.5, cols, rowsEqual: rows.every((n) => n === 1), overflowX, centered: Math.abs((label.top + label.bottom) / 2 - (dr.top + dr.bottom) / 2) < 6, gapToIcon: check.left - label.right };
     });
-    check(`${name}: actieve kaart met kop (neutraal zonder beeld), titel en voortgang erop`, m.headH >= 100 && m.h2In && m.barIn, JSON.stringify(m));
+    check(`${name}: actieve kaart met hoge afbeelding, titel en voortgang erop`, m.headH >= 140 && m.h2In && m.barIn, JSON.stringify(m));
     check(`${name}: stappenraster ${big ? "valt terug naar één kolom" : w < 500 ? "heeft twee kolommen" : "gebruikt de breedte"}, gelijke hoogtes per rij, geen overflow`, (big ? m.cols === 1 : w < 500 ? m.cols === 2 : m.cols >= 2) && m.rowsEqual && !m.overflowX, JSON.stringify(m));
     check(`${name}: tekst op compacte kaart verticaal gecentreerd en niet tegen het vinkje`, m.centered && m.gapToIcon >= 4, JSON.stringify(m));
     const sv = await stepVisible(pg);

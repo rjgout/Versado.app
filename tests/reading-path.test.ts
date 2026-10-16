@@ -158,18 +158,59 @@ test("chapterScenes: elke koppeling wijst naar een bestaand verhaal met dezelfde
   }
 });
 
-test("artwork: een hoofdstuk krijgt alleen een expliciet gekoppelde scène; nooit het boekbeeld als vulling", () => {
+test("artwork: de hoofdstukscène heeft voorrang; zonder scène valt het Boek van Mormon terug op het eigen boekbeeld", () => {
+  // 1 Nephi 2 en 8 hebben een gecontroleerde scène: die blijft behouden (en gaat voor het boekbeeld)
   assert.equal(artworkFor(chapterArtworkKeys("bofm/1-ne", 2))?.src, "/kids/images/story-3-0.jpg");
-  // 1 Nephi 11 heeft geen gecontroleerde scène: geen beeld (en zeker niet het verhaal met nummer 11 of het boekbeeld)
-  assert.equal(artworkFor(chapterArtworkKeys("bofm/1-ne", 11)), null);
-  assert.deepEqual(chapterArtworkKeys("bofm/1-ne", 11), [chapterSceneKey("bofm/1-ne", 11)]);
+  assert.deepEqual(chapterArtworkKeys("bofm/1-ne", 8), [chapterSceneKey("bofm/1-ne", 8), "book:bofm/1-ne"], "scène eerst, boek daarna");
+  assert.notEqual(artworkFor(chapterArtworkKeys("bofm/1-ne", 8))?.src, "/images/book-of-mormon/1-nephi.png");
+  // 1 Nephi 11 heeft geen scène (en zeker geen "verhaal met nummer 11"): het boekbeeld van 1 Nephi
+  assert.equal(artworkFor(chapterArtworkKeys("bofm/1-ne", 11))?.src, "/images/book-of-mormon/1-nephi.png");
+  assert.notEqual(artworkFor(chapterArtworkKeys("bofm/1-ne", 11))?.src, "/kids/images/story-11-0.jpg");
+  // Alma 10: het bestaande beeld van Alma, niet van een ander boek
+  assert.equal(artworkFor(chapterArtworkKeys("bofm/alma", 10))?.src, artworkFor(bookArtworkKeys("bofm/alma"))?.src);
+  assert.match(artworkFor(chapterArtworkKeys("bofm/alma", 10))?.src ?? "", /alma/);
+  // gelijk nummer in een ander boek: de scène van 1 Nephi 2 lekt niet door
+  assert.equal(artworkFor(chapterArtworkKeys("bofm/2-ne", 2))?.src, "/images/book-of-mormon/2-nephi.png");
+  // een Boek-van-Mormon-boek zonder beeld, of geen boek: geen beeld en geen fout (neutrale kaart)
   assert.equal(artworkFor(chapterArtworkKeys("bofm/onbekend", 5)), null);
   assert.deepEqual(chapterArtworkKeys(null, 1), []);
-  assert.equal(artworkFor(chapterArtworkKeys("bofm/2-ne", 2)), null, "gelijk nummer in een ander boek geeft die scène niet");
-  // het boekbeeld hoort bij de boektitel, via een aparte sleutel
+  assert.deepEqual(chapterArtworkKeys(undefined, 1), []);
+  // het boekbeeld zelf (boekkaart) blijft een aparte sleutel
   assert.equal(artworkFor(bookArtworkKeys("bofm/1-ne"))?.src, "/images/book-of-mormon/1-nephi.png");
   assert.deepEqual(bookArtworkKeys(null), []);
   assert.equal(artworkFor(bookArtworkKeys("bofm/onbekend")), null);
+});
+
+test("artwork: elk Boek-van-Mormon-hoofdstuk krijgt alleen zijn eigen scène of zijn eigen boekbeeld, nooit dat van een ander boek", () => {
+  const bom = JSON.parse(read("prisma/bomContent.json")) as { slug: string; chapters: { number: number }[] }[];
+  let withScene = 0;
+  let withBook = 0;
+  for (const slug of Object.keys(BOOK_KEYS_BY_SLUG)) {
+    const bookKey = BOOK_KEYS_BY_SLUG[slug];
+    const book = bom.find((b) => b.slug === slug);
+    if (!book) continue;
+    for (const { number } of book.chapters) {
+      const keys = chapterArtworkKeys(bookKey, number);
+      assert.deepEqual(keys, [chapterSceneKey(bookKey, number), `book:${bookKey}`], `${bookKey} ${number}`);
+      const asset = artworkFor(keys);
+      if (!asset) continue;
+      if (keys[0] && artworkFor([keys[0]])) withScene++;
+      else {
+        withBook++;
+        assert.equal(asset.src, artworkFor(bookArtworkKeys(bookKey))?.src, `${bookKey} ${number}`);
+      }
+    }
+  }
+  assert.ok(withScene > 0 && withBook > withScene, `scènes ${withScene}, boekbeelden ${withBook}`);
+});
+
+test("artwork: andere schriften en collecties krijgen nooit een ongevraagde boekfallback", () => {
+  for (const bookKey of ["dc-testament/dc", "pgp/moses", "pgp/abraham", "nt/matthew"]) {
+    assert.deepEqual(chapterArtworkKeys(bookKey, 3), [chapterSceneKey(bookKey, 3)], bookKey);
+    assert.equal(artworkFor(chapterArtworkKeys(bookKey, 3)), null, bookKey);
+  }
+  // een sleutel die alleen op "bofm" lijkt, is geen Boek van Mormon
+  assert.deepEqual(chapterArtworkKeys("bofmx/alma", 1), [chapterSceneKey("bofmx/alma", 1)]);
 });
 
 // --- broncontracten: geen tweede systeem, geen eigen shellmechanisme, geen harde kleuren

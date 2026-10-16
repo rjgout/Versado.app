@@ -179,14 +179,27 @@ test("handmatig geopende boeken blijven open: de beginstand komt één keer uit 
   assert.doesNotMatch(chapters, /setOpen\(new Set\(\[todayBook\]\)\)|setOpen\(new Set\(\[defaultOpenBook\]\)\)/);
 });
 
-test("zonder beeld een verzorgde kaart, nooit een vulbeeld; boekbeeld alleen op de boekkaart", () => {
+test("alle drie de leescursussen gebruiken dezelfde hoofdstuksleutels; zonder beeld een verzorgde neutrale kaart zonder fout", () => {
   const shared = read("src/components/reading/pathParts.tsx");
   assert.match(shared, /export function hasArtwork\(/);
   assert.match(shared, /min-h-\[6\.5rem\] bg-gradient-to-br from-vs-accent-soft to-vs-surface/);
-  const chapters = read("src/components/reading/ChapterPath.tsx");
-  assert.match(chapters, /bookArtworkKeys\(group\.bookKey\)/);
-  assert.match(chapters, /chapterArtworkKeys\(chapter\.bookKey, chapter\.number\)/);
-  assert.doesNotMatch(chapters, /chapterArtworkKeys\([^)]*\)[^;]*bookArtworkKeys/);
+  // Stap voor stap én de hoofdstukroute (Hoofdstuk voor hoofdstuk en Vrije keuze) vragen hun beeld op dezelfde plek op
+  for (const rel of ["src/components/reading/ReadingPath.tsx", "src/components/reading/ChapterPath.tsx"]) {
+    assert.match(read(rel), /chapterArtworkKeys\(chapter\.bookKey, chapter\.number\)/, rel);
+  }
+  // geen eigen beeldlogica of vulbeeld in de componenten: alleen het register, met hasArtwork als poort voor miniaturen
+  for (const rel of ["src/components/reading/ReadingPath.tsx", "src/components/reading/ChapterPath.tsx", "src/components/reading/pathParts.tsx"]) {
+    assert.doesNotMatch(read(rel), /book:\$\{|\/images\/book-of-mormon|startsWith\("bofm/, rel);
+  }
+  assert.match(read("src/components/reading/ChapterPath.tsx"), /bookArtworkKeys\(group\.bookKey\)/, "boekbeeld ook op de boekkaart");
+  // een ontbrekend beeld: de miniatuur wordt niet gerenderd en de actieve kop valt terug op de neutrale kop
+  assert.match(shared, /const hasImage = hasArtwork\(artworkKeys\);/);
+  assert.match(read("src/components/reading/ChapterPath.tsx"), /const thumb = hasArtwork\(keys\);/);
+  // responsive, lui en met fade: ongewijzigd
+  assert.match(shared, /sizes="120px"/);
+  assert.match(shared, /sizes="\(min-width: 1024px\) 640px, 100vw"/);
+  assert.match(shared, /bg-gradient-to-r from-transparent/);
+  assert.doesNotMatch(shared, /priority/);
 });
 
 test("alle nieuwe tekst loopt via i18n in alle talen", () => {
