@@ -729,6 +729,7 @@ export const es: PartialMessages = {
   },
   "contentSwitcher": {
     picker: {
+      hymnsHelp: "Himnario, lectura sincronizada y partituras.",
       "title": "Elige tu contenido",
       "intro": "Elige una fuente para aprender y jugar. Tu progreso se conserva.",
       "scriptures": "Escrituras",
@@ -3537,6 +3538,7 @@ export const es: PartialMessages = {
     "faviconText": "El icono en la pestaña del navegador también aparece como vista previa al compartir un enlace (WhatsApp, Telegram, etc.). Al menos 200 × 200 píxeles."
   },
   "adminContent": {
+    hymnsEmergencyStop: "Desactivado técnicamente mediante HYMNS_POC=0.",
     "saveFailed": "Error al guardar.",
     "title": "Contenido",
     "intro": "Activa o desactiva el selector de contenido para los usuarios y elige qué contenido ven los usuarios en él.",
@@ -3544,7 +3546,7 @@ export const es: PartialMessages = {
     "disabled": "Desactivado",
     "visible": "Visible para los usuarios",
     "hidden": "Oculto",
-    "note": "Los administradores siempre ven todo el contenido, incluido el contenido oculto, para que puedas revisarlo primero. Al menos un contenido permanece visible. Cualquiera que haya abierto contenido oculto vuelve al primero visible. Con un contenido visible, el conmutador no se muestra a los usuarios."
+    "note": "Inspecciona las fuentes ocultas en el contenido administrado; los borradores permanecen en la vista previa de administración. Al menos una colección sigue visible. Los himnos tienen su propia visibilidad y no cambian la fuente elegida. El interruptor general solo controla el acceso al selector de contenido."
   },
   "adminFeedback": {
     "none": "Aún no hay informes."

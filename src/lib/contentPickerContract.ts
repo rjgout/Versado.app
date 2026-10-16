@@ -10,6 +10,8 @@ export type ContentSelection = z.infer<typeof contentSelectionSchema>;
 export interface PickerEdition extends ContentCollectionView { selectable: boolean; previewHref: string | null }
 export interface PickerWork { key: string; kind: "SCRIPTURE" | "STUDY_PROGRAM" | "OTHER"; editions: PickerEdition[] }
 export interface ContentPickerContext {
+  /** Activiteit: openen wijzigt geen collectie-, taal- of lesselectie. */
+  hymnsAvailable?: boolean;
   selection: ContentSelection;
   selectionVersion?: number;
   activeCollectionId: string | null;

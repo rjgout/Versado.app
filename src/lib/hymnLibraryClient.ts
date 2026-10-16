@@ -1,7 +1,7 @@
 import { NOTATION_VERSION, type SheetData } from "@/lib/hymns/notation/types";
 import type { HymnComposition, HymnIndexEntry, ReadableHymn } from "@/lib/hymns/types";
 
-// Client-kant van de lofzangenbibliotheek: haalt de (admin-only) gegevens op bij de server en bewaart ze lokaal in
+// Client-kant van de lofzangenbibliotheek: haalt de geautoriseerde gegevens op bij de server en bewaart ze lokaal in
 // IndexedDB, zodat een tweede sessie, en een dienst zonder goede verbinding, geen verzoeken meer nodig heeft.
 // Er gaat uitsluitend bibliotheekinhoud (tekst en noten) heen en weer; nooit audio of persoonsgegevens.
 // Dit bestand staat bewust buiten src/lib/hymns: de privacytest verbiedt daar elk netwerk- en opslaggebruik.
@@ -108,7 +108,7 @@ async function fetchJsonOnce<T>(url: string): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    const res = await fetch(url, { credentials: "same-origin", signal: controller.signal });
+    const res = await fetch(url, { credentials: "same-origin", cache: "no-store", signal: controller.signal });
     if (!res.ok) throw new Error(`${url}: ${res.status}`);
     return (await res.json()) as T;
   } finally {
@@ -139,6 +139,7 @@ export async function loadHymnIndex(): Promise<{ dataVersion: string; hymns: Hym
     void idbPut("index", { dataVersion: fresh.dataVersion, value: fresh.hymns });
     return { ...fresh, fromCache: false };
   } catch (err) {
+    if (err instanceof Error && /: (401|403|404)$/.test(err.message)) throw err;
     const cached = await idbGet<HymnIndexEntry[]>("index");
     if (!cached) throw err;
     knownVersion = cached.dataVersion;
