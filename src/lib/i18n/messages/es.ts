@@ -849,7 +849,7 @@ export const es: PartialMessages = {
       "stepReread": "Leer de nuevo",
       "chapterDone": "Completado",
       "chapterLocked": "Bloqueado",
-      "myStep": "Mi paso",
+      "myStep": "Ir a mi paso",
       "myStepAria": "Ir a mi siguiente paso",
     },
     "progress": "Progreso",

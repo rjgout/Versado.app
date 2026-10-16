@@ -5,6 +5,7 @@ import { BOOK_KEYS_BY_SLUG } from "../prisma/bookKeys";
 import { CHAPTER_SCENES, chapterSceneKey, chapterSceneSrc } from "../src/lib/chapterScenes";
 import { artworkFor, chapterArtworkKeys } from "../src/lib/artwork";
 import {
+  myStepDirection,
   buildPathChapters,
   chapterPercent,
   chapterState,
@@ -175,6 +176,59 @@ test("het pad schrijft nergens voortgang weg, linkt alleen naar bestaande lesrou
   assert.equal((path.match(/aria-disabled="true"/g) ?? []).length, 2);
 });
 
+test("myStepDirection: boven de stap omlaag, onder de stap omhoog, zichtbaar geen knop; de vaste balken tellen mee", () => {
+  const g = { header: 60, nav: 70, viewport: 800 };
+  // stap volledig onder het zichtbare gebied (gebruiker staat erboven) → pijl omlaag
+  assert.equal(myStepDirection({ ...g, top: 900, bottom: 960 }), "down");
+  assert.equal(myStepDirection({ ...g, top: 730, bottom: 790 }), "down", "verborgen achter de onderbalk telt als onder beeld");
+  // stap boven het zichtbare gebied (gebruiker staat eronder) → pijl omhoog
+  assert.equal(myStepDirection({ ...g, top: -200, bottom: -140 }), "up");
+  assert.equal(myStepDirection({ ...g, top: 10, bottom: 58 }), "up", "verborgen achter de bovenbalk telt als boven beeld");
+  // (deels) zichtbaar → geen knop
+  assert.equal(myStepDirection({ ...g, top: 300, bottom: 360 }), null);
+  assert.equal(myStepDirection({ ...g, top: 40, bottom: 100 }), null, "half onder de bovenbalk is nog zichtbaar");
+  assert.equal(myStepDirection({ ...g, top: 700, bottom: 760 }), null);
+});
+
+test("Naar mijn stap: richting uit de werkelijke plek van de stap, pijl wisselt, label via i18n, knop verdwijnt als de stap zichtbaar is", () => {
+  const path = read("src/components/reading/ReadingPath.tsx");
+  assert.match(path, /myStepDirection\(\{/);
+  assert.match(path, /ArrowDown/);
+  assert.match(path, /ArrowUp/);
+  assert.match(path, /data-direction=\{direction\}/);
+  assert.match(path, /settled && direction && \(/, "alleen na de eerste positionering en alleen buiten beeld");
+  assert.match(path, /prefers-reduced-motion: reduce/);
+  for (const lang of ["nl", "en", "de", "fr", "es"]) {
+    assert.match(read(`src/lib/i18n/messages/${lang}.ts`), /"?myStep"?: "(Naar mijn stap|Go to my step|Zu meinem Schritt|Vers mon étape|Ir a mi paso)"/, lang);
+  }
+});
+
+test("de actieve kaart heeft één doorlopend accentkader met zachte gloed en geen statusbadges meer; lees- en oefenvoortgang blijven intact", () => {
+  const path = read("src/components/reading/ReadingPath.tsx");
+  assert.match(path, /bg-gradient-to-br from-vs-accent via-vs-accent to-vs-xp-fill p-\[2px\]/, "verloopkader rond de hele kaart incl. beeldhoeken");
+  assert.match(path, /ring-vs-accent\/15 shadow-lg shadow-vs-accent\/25/, "zachte gloed");
+  assert.doesNotMatch(path, /ContentStatusLine|ContentStatus/, "geen 'Bezig met lezen' en 'Oefeningen x/y' in de kaart");
+  // de gegevens zelf blijven in het model
+  const model = read("src/lib/readingPath.ts");
+  assert.match(model, /exercisesAnswered/);
+  assert.match(model, /read:/);
+});
+
+test("miniaturen: alleen de bestaande koppelingen, decoratief, lui en klein; afgerond sterker dan toekomstig; zonder beeld geen laag", () => {
+  const path = read("src/components/reading/ReadingPath.tsx");
+  assert.match(path, /chapterArtworkKeys\(chapter\.bookKey, chapter\.number\)/);
+  assert.match(path, /const thumb = artworkFor\(artworkKeys\) !== null;/);
+  assert.match(path, /\{thumb && <ChapterThumb/g);
+  assert.match(path, /sizes="88px"/, "geen groot beeld voor een miniatuur");
+  assert.doesNotMatch(path, /priority/, "nooit direct laden op een lange lijst");
+  assert.match(path, /bg-gradient-to-r from-transparent/, "horizontale fade");
+  assert.match(path, /dimmed \? "opacity-45 saturate-50" : "opacity-90"/);
+  // het slot blijft zichtbaar en de tekst begint rechts van het sterkste beeld
+  assert.match(path, /<Lock size=\{18\}/);
+  assert.match(path, /THUMB_PAD = "pl-\[5\.25rem\]"/);
+  assert.doesNotMatch(path, /\/images\/|\.webp|\.jpg|\.png/, "geen eigen beeldpaden naast het register");
+});
+
 test("het pad gebruikt de bestaande tokens en geen eigen vaste of sticky balk", () => {
   for (const rel of ["src/components/reading/ReadingPath.tsx", "src/components/ReadingCourseView.tsx"]) {
     const source = read(rel);
@@ -201,7 +255,7 @@ test("geen slingerlijn meer: geen SVG-route, knooppunten of statusbolletjes op h
 test("statusiconen staan binnen de kaart; een afgerond hoofdstuk toont alleen een vinkje met een tekst voor schermlezers", () => {
   const path = read("src/components/reading/ReadingPath.tsx");
   assert.match(path, /<Check size=\{18\} strokeWidth=\{3\} aria-hidden \/>\s*<span className="sr-only">\{t\("courseView\.path\.chapterDone"\)\}/);
-  assert.match(path, /<Lock size=\{16\} strokeWidth=\{2\.25\} aria-hidden \/>\s*<span className="sr-only">\{t\("courseView\.path\.chapterLocked"\)\}/);
+  assert.match(path, /<Lock size=\{18\} strokeWidth=\{2\.25\} aria-hidden \/>\s*<span className="sr-only">\{t\("courseView\.path\.chapterLocked"\)\}/);
   assert.doesNotMatch(path, /border-dashed/, "geen zware stippelrand als standaard");
 });
 

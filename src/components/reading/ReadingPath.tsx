@@ -2,21 +2,22 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUp, Check, ChevronDown, Lock } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, ChevronDown, Lock } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import MediaArtwork from "@/components/versado/MediaArtwork";
-import { ContentStatusLine } from "@/components/learning/ContentStatus";
 import { artworkFor, chapterArtworkKeys } from "@/lib/artwork";
 import { focusRing, primaryButton } from "@/components/versado/styles";
 import { currentEntryKey } from "@/lib/navigationHistory";
 import { requestScrollRestore } from "@/lib/scrollRestore";
-import { chapterPercent, chapterState, pathScrollTarget, stepState, type PathChapter, type PathChapterState, type PathStep } from "@/lib/readingPath";
+import { chapterPercent, chapterState, myStepDirection, pathScrollTarget, type MyStepDirection, stepState, type PathChapter, type PathChapterState, type PathStep } from "@/lib/readingPath";
 
 // Het leerpad van Stap voor stap: elk schriftuurlijk hoofdstuk is één omlijnde kaart in één kolom, in de volgorde van
 // de cursus, met een kort recht streepje ertussen. Alleen presentatie: wat open, af of vergrendeld is komt uit de server
 // (getStepOverview); een stap blijft lezen + vragen via de bestaande lesroute. Status staat binnen de kaart.
 
 const card = "rounded-2xl border bg-vs-surface";
+// Breedte van de overlopende miniatuur links; de tekst begint pas waar het beeld al grotendeels is weggefaded.
+const THUMB_PAD = "pl-[5.25rem]";
 
 function cssPx(name: string): number {
   return Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || 0;
@@ -46,7 +47,7 @@ export default function ReadingPath({ chapters, currentStepId }: { chapters: Pat
   const t = useT();
   // Wat de gebruiker zelf openklapte; het actieve hoofdstuk staat altijd open (ook na een nieuwe actieve stap).
   const [opened, setOpened] = useState<ReadonlySet<string>>(() => new Set());
-  const [away, setAway] = useState(false);
+  const [direction, setDirection] = useState<MyStepDirection | null>(null);
   const [settled, setSettled] = useState(false);
 
   // Bij het openen staat de actieve stap in beeld. Het scrollcoördinatiepunt (NavigationScroll) bepaalt of
@@ -65,7 +66,16 @@ export default function ReadingPath({ chapters, currentStepId }: { chapters: Pat
     if (!currentStepId) return;
     const step = document.querySelector<HTMLElement>("[data-current-step]");
     if (!step || typeof IntersectionObserver === "undefined") return;
-    const observer = new IntersectionObserver(([entry]) => setAway(!entry.isIntersecting), { threshold: 0 });
+    // Het zichtbare gebied is het scherm tussen de vaste balken; de richting volgt uit de werkelijke plek van de stap.
+    const header = cssPx("--header-offset");
+    const nav = cssPx("--nav-height");
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const r = entry.boundingClientRect;
+        setDirection(entry.isIntersecting ? null : myStepDirection({ top: r.top, bottom: r.bottom, header, nav, viewport: window.innerHeight }));
+      },
+      { threshold: 0, rootMargin: `-${Math.round(header)}px 0px -${Math.round(nav)}px 0px` },
+    );
     observer.observe(step);
     return () => observer.disconnect();
   }, [currentStepId]);
@@ -103,15 +113,16 @@ export default function ReadingPath({ chapters, currentStepId }: { chapters: Pat
           />
         ))}
       </ol>
-      {settled && away && (
+      {settled && direction && (
         <button
           type="button"
           onClick={goToMyStep}
           aria-label={t("courseView.path.myStepAria")}
           data-my-step
-          className={`${primaryButton} vs-rise fixed right-3 z-20 !min-h-9 !px-3 !py-1 !text-xs shadow-md bottom-[calc(var(--nav-height,0px)+var(--vs-safe-area-bottom,0px)+0.75rem)]`}
+          data-direction={direction}
+          className={`${primaryButton} vs-rise fixed right-3 z-20 !min-h-8 !gap-1 !px-2.5 !py-1 !text-xs shadow-md bottom-[calc(var(--nav-height,0px)+var(--vs-safe-area-bottom,0px)+0.75rem)]`}
         >
-          <ArrowUp size={14} className="shrink-0" aria-hidden />
+          {direction === "down" ? <ArrowDown size={14} className="shrink-0" aria-hidden /> : <ArrowUp size={14} className="shrink-0" aria-hidden />}
           {t("courseView.path.myStep")}
         </button>
       )}
@@ -138,6 +149,8 @@ function PathChapterItem({
   const label = `${chapter.bookName} ${chapter.number}`;
   const panelId = `path-${chapter.id}`;
   const stepsDone = t("courseView.stepsDone", { done: chapter.completedLessons, total: chapter.lessonCount });
+  const artworkKeys = chapterArtworkKeys(chapter.bookKey, chapter.number);
+  const thumb = artworkFor(artworkKeys) !== null;
 
   return (
     <>
@@ -146,31 +159,35 @@ function PathChapterItem({
           <CurrentCard chapter={chapter} label={label} stepsDone={stepsDone} currentStepId={currentStepId} />
         ) : state === "locked" ? (
           // niet interactief zolang de serverregels het hoofdstuk vergrendeld houden
-          <div aria-disabled="true" className={`${card} flex min-h-12 items-center gap-3 border-vs-line bg-vs-subtle/60 px-3 py-2`}>
+          <div aria-disabled="true" className={`${card} relative flex min-h-12 items-center gap-3 border-vs-line !bg-vs-subtle px-3 py-2 ${thumb ? THUMB_PAD : ""}`}>
+            {thumb && <ChapterThumb artworkKeys={artworkKeys} fadeTo="to-vs-subtle" dimmed />}
             <Heading label={label} stepsDone={stepsDone} muted />
-            <span className="shrink-0 text-vs-fg-3">
-              <Lock size={16} strokeWidth={2.25} aria-hidden />
+            <span className="relative shrink-0 text-vs-fg-2">
+              <Lock size={18} strokeWidth={2.25} aria-hidden />
               <span className="sr-only">{t("courseView.path.chapterLocked")}</span>
             </span>
           </div>
         ) : (
           <div className={`${card} border-vs-line`}>
-            <button
-              type="button"
-              onClick={onToggle}
-              aria-expanded={open}
-              aria-controls={panelId}
-              className={`flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${focusRing}`}
-            >
-              <Heading label={label} stepsDone={stepsDone} />
-              {state === "done" && (
-                <span className="shrink-0 text-vs-success">
-                  <Check size={18} strokeWidth={3} aria-hidden />
-                  <span className="sr-only">{t("courseView.path.chapterDone")}</span>
-                </span>
-              )}
-              <ChevronDown size={16} aria-hidden className={`vs-motion shrink-0 text-vs-fg-3 transition-transform ${open ? "rotate-180" : ""}`} />
-            </button>
+            <div className="relative">
+              {thumb && <ChapterThumb artworkKeys={artworkKeys} fadeTo="to-vs-surface" />}
+              <button
+                type="button"
+                onClick={onToggle}
+                aria-expanded={open}
+                aria-controls={panelId}
+                className={`relative flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${thumb ? THUMB_PAD : ""} ${focusRing}`}
+              >
+                <Heading label={label} stepsDone={stepsDone} />
+                {state === "done" && (
+                  <span className="shrink-0 text-vs-success">
+                    <Check size={18} strokeWidth={3} aria-hidden />
+                    <span className="sr-only">{t("courseView.path.chapterDone")}</span>
+                  </span>
+                )}
+                <ChevronDown size={16} aria-hidden className={`vs-motion shrink-0 text-vs-fg-3 transition-transform ${open ? "rotate-180" : ""}`} />
+              </button>
+            </div>
             {open && (
               <div id={panelId} className="border-t border-vs-line p-[clamp(0.5rem,3vw,0.75rem)]">
                 <StepGrid steps={chapter.steps} currentStepId={currentStepId} />
@@ -185,9 +202,29 @@ function PathChapterItem({
   );
 }
 
+/**
+ * Kleine illustratie links op een compacte kaart die horizontaal in de kaartachtergrond overloopt. Alleen het
+ * bestaande register (chapterArtworkKeys); zonder beeld rendert de aanroeper deze laag niet. Decoratief en lui
+ * geladen op het formaat van de miniatuur, zodat honderden hoofdstukken geen honderden grote beelden ophalen.
+ */
+function ChapterThumb({ artworkKeys, fadeTo, dimmed = false }: { artworkKeys: string[]; fadeTo: string; dimmed?: boolean }) {
+  return (
+    <div aria-hidden data-chapter-thumb className="pointer-events-none absolute inset-y-0 left-0 w-[5.5rem] overflow-hidden rounded-l-2xl">
+      <MediaArtwork
+        kind="reading"
+        artworkKey={artworkKeys}
+        ratio="1/1"
+        sizes="88px"
+        className={`vs-decor !absolute inset-0 !aspect-auto h-full w-full ${dimmed ? "opacity-45 saturate-50" : "opacity-90"}`}
+      />
+      <div className={`absolute inset-0 bg-gradient-to-r from-transparent ${dimmed ? "via-vs-subtle/60" : "via-vs-surface/60"} ${fadeTo}`} />
+    </div>
+  );
+}
+
 function Heading({ label, stepsDone, muted = false }: { label: string; stepsDone: string; muted?: boolean }) {
   return (
-    <span className="min-w-0 flex-1">
+    <span className="relative min-w-0 flex-1">
       <span className={`vs-wrap block text-base font-extrabold leading-snug ${muted ? "text-vs-fg-2" : "text-vs-fg"}`}>{label}</span>
       <span className="block text-xs text-vs-fg-3">{stepsDone}</span>
     </span>
@@ -199,32 +236,33 @@ function CurrentCard({ chapter, label, stepsDone, currentStepId }: { chapter: Pa
   const hasImage = artworkFor(keys) !== null;
   const percent = chapterPercent(chapter);
   return (
-    <article className={`${card} vs-rise overflow-hidden border-vs-accent/60 bg-vs-accent-soft/40 ring-1 ring-vs-accent/20`} aria-label={label}>
-      {hasImage && (
-        // decoratieve banner met vaste px-hoogte: het beeld groeit niet mee met de tekst en verdringt de stap niet
-        <MediaArtwork kind="reading" artworkKey={keys} ratio="21/9" sizes="(min-width: 1024px) 640px, 100vw" className="vs-decor !aspect-auto h-[84px] sm:h-[104px]" />
-      )}
-      <div className="flex flex-col gap-2 p-[clamp(0.5rem,3vw,0.75rem)]">
-        <div className="flex flex-col gap-0.5">
-          <h2 className="vs-wrap text-lg font-extrabold leading-snug text-vs-fg">{label}</h2>
-          <p className="text-xs font-semibold text-vs-fg-2">{stepsDone}</p>
-        </div>
-        <div
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={chapter.lessonCount}
-          aria-valuenow={chapter.completedLessons}
-          aria-label={stepsDone}
-          className="h-1.5 overflow-hidden rounded-full bg-vs-subtle"
-        >
-          <div className="vs-motion h-full rounded-full bg-vs-accent transition-all" style={{ width: `${percent}%` }} />
-        </div>
-        {(chapter.read !== "UNREAD" || chapter.exercisesAnswered > 0) && (
-          <ContentStatusLine read={chapter.read} exercisesAnswered={chapter.exercisesAnswered} exercisesTotal={chapter.exercisesTotal} />
+    // Dubbele omlijning: een verloopkader van 2 px (accent, met een klein warm lichtaccent in de hoek) rond de hele kaart,
+    // beeldhoeken inbegrepen, plus een zachte gloed. Alleen semantische tokens, dus ook in donkere modus goed.
+    <div className="vs-rise rounded-[1.125rem] bg-gradient-to-br from-vs-accent via-vs-accent to-vs-xp-fill p-[2px] ring-[3px] ring-vs-accent/15 shadow-lg shadow-vs-accent/25">
+      <article className="overflow-hidden rounded-2xl bg-vs-surface" aria-label={label}>
+        {hasImage && (
+          // decoratieve banner met vaste px-hoogte: het beeld groeit niet mee met de tekst en verdringt de stap niet
+          <MediaArtwork kind="reading" artworkKey={keys} ratio="21/9" sizes="(min-width: 1024px) 640px, 100vw" className="vs-decor !aspect-auto h-[84px] sm:h-[104px]" />
         )}
-        <StepGrid steps={chapter.steps} currentStepId={currentStepId} />
-      </div>
-    </article>
+        <div className="flex flex-col gap-2 bg-gradient-to-b from-vs-accent-soft/60 to-vs-surface p-[clamp(0.5rem,3vw,0.75rem)]">
+          <div className="flex flex-col gap-0.5">
+            <h2 className="vs-wrap text-lg font-extrabold leading-snug text-vs-fg">{label}</h2>
+            <p className="text-xs font-semibold text-vs-accent">{stepsDone}</p>
+          </div>
+          <div
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={chapter.lessonCount}
+            aria-valuenow={chapter.completedLessons}
+            aria-label={stepsDone}
+            className="h-1.5 overflow-hidden rounded-full bg-vs-accent/15"
+          >
+            <div className="vs-motion h-full rounded-full bg-vs-accent transition-all" style={{ width: `${percent}%` }} />
+          </div>
+          <StepGrid steps={chapter.steps} currentStepId={currentStepId} />
+        </div>
+      </article>
+    </div>
   );
 }
 
