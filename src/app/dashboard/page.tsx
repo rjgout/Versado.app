@@ -11,7 +11,7 @@ import SocialPreview from "@/components/today/SocialPreview";
 import DiscoverySection from "@/components/today/DiscoverySection";
 import GeneralConferenceCountdown from "@/components/today/GeneralConferenceCountdown";
 import { shouldShowGeneralConferenceCountdown } from "@/lib/generalConference";
-import { userTimeZone } from "@/lib/timeZone";
+import { dayKeyInZone, localDayRange, userTimeZone } from "@/lib/timeZone";
 import LiveRefresh from "@/components/LiveRefresh";
 import KompasEntryCard from "@/components/kompas/KompasEntryCard";
 
@@ -40,6 +40,9 @@ export default async function DashboardPage() {
   // kan dat een dag schelen, voor het tellen van de rijen maakt dat niet uit).
   const serverNow = Date.now();
   const timeZone = userTimeZone(user);
+  // Ook de zondagkaart moet na lokale middernacht opnieuw beoordeeld worden; behoud de eerdere woord-release indien die eerder komt.
+  const nextLocalMidnight = localDayRange(dayKeyInZone(new Date(serverNow), timeZone), timeZone).end.toISOString();
+  const refreshExpiry = [nextLocalMidnight, data.wordGame?.nextReleaseAt].filter((x): x is string => Boolean(x)).sort()[0];
   const countdownVisible = user.conferenceCountdownEnabled && shouldShowGeneralConferenceCountdown(new Date(serverNow), timeZone);
   const dayComplete = isTodayComplete(data);
   const showRestState = dayComplete && Boolean(data.dailyText || data.wordGame || data.dailyQuiz);
@@ -51,7 +54,7 @@ export default async function DashboardPage() {
     <div className="vs-motion mx-auto flex max-w-5xl flex-col gap-8 sm:gap-10">
       {/* Vandaag is server-gerenderd: een afgeronde activiteit, nieuwe XP of een vriend die iets
           doet ververst deze pagina vanzelf (focus, terugnavigeren, realtime). Zie docs/DATA-REFRESH.md. */}
-      <LiveRefresh scopes={["today"]} token={String(serverNow)} serverNow={serverNow} expiresAt={data.wordGame?.nextReleaseAt ?? null} />
+      <LiveRefresh scopes={["today"]} token={String(serverNow)} serverNow={serverNow} expiresAt={refreshExpiry} />
       <Greeting data={data} language={language} showMascot={!showRestState} />
       <StreakContinuationCard />
       {/* Permanente ingang naar uitleg (Versado Kompas), bewust geen extra tab onderaan. */}
