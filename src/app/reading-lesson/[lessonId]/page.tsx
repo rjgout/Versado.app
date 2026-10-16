@@ -93,7 +93,7 @@ export default async function ReadingLessonPage({
 
   return (
     <>
-    <CourseBackTarget href={`/courses/${lesson.courseId}`} parent={lesson.course.name} />
+    <CourseBackTarget href={`/courses/${lesson.courseId}/pad`} parent={lesson.course.name} />
     <ReadingLessonFlow
       lessonId={lesson.id}
       chapterId={lesson.chapterId}

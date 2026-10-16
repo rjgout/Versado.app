@@ -79,7 +79,7 @@ export function classifyContentRoute(pathname: string): ContentRoute {
   if (scripture) return {kind:"scripture",chapterId:scripture[1]};
   let match = new RegExp(`^/courses/${SEGMENT}/chapter/${SEGMENT}$`).exec(path);
   if (match) return { kind: "courseChapter", courseId: match[1], chapterId: match[2] };
-  match = new RegExp(`^/courses/${SEGMENT}$`).exec(path);
+  match = new RegExp(`^/courses/${SEGMENT}(?:/pad)?$`).exec(path);
   if (match) return { kind: "course", courseId: match[1] };
   match = new RegExp(`^/lesson/${SEGMENT}$`).exec(path);
   if (match) return { kind: "chapter", chapterId: match[1] };

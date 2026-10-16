@@ -186,15 +186,55 @@ test("het pad gebruikt de bestaande tokens en geen eigen vaste of sticky balk", 
   const path = read("src/components/reading/ReadingPath.tsx");
   // het enige vaste element: de knop "Mijn stap", boven de onderbalk en binnen de safe area
   assert.equal((path.match(/\bfixed\b/g) ?? []).length, 1);
-  assert.match(path, /bottom-\[calc\(var\(--nav-height,0px\)\+var\(--vs-safe-area-bottom,0px\)\+1rem\)\]/);
+  assert.match(path, /bottom-\[calc\(var\(--nav-height,0px\)\+var\(--vs-safe-area-bottom,0px\)\+0\.75rem\)\]/);
   assert.match(path, /requestScrollRestore\(currentEntryKey\(\), "position"/, "scrollen via het centrale coördinatiepunt");
 });
 
-test("de cursushub geeft het pad dezelfde gegevens als voorheen en ververst na een afgeronde stap", () => {
-  const page = read("src/app/courses/[courseId]/page.tsx");
-  assert.match(page, /buildPathChapters\(lessons, stepById,/);
-  assert.match(page, /<LiveRefresh scopes=\{\["courses", "progress"\]\}/);
-  assert.match(page, /getStepOverview\(prisma, user\.id, course\.id\)/);
-  // ongewijzigde voortgangscursor
-  assert.match(page, /currentLessonId: overview\.next\?\.id \?\? null/);
+test("geen slingerlijn meer: geen SVG-route, knooppunten of statusbolletjes op het pad; wel korte rechte streepjes tussen kaarten", () => {
+  const path = read("src/components/reading/ReadingPath.tsx");
+  assert.doesNotMatch(path, /<svg|<path|RAIL|WIGGLE|railX|function Node|strokeDasharray|vectorEffect/);
+  assert.doesNotMatch(path, /text-vs-success"?[^>]*\bw-\[|bg-vs-success\b(?!-soft)/, "geen lange groene lijn");
+  assert.match(path, /mx-auto h-\[18px\] w-\[2px\]/, "recht, gecentreerd streepje van ~18 px");
+  assert.match(path, /aria-hidden className="mx-auto h-\[18px\]/, "puur decoratief");
+});
+
+test("statusiconen staan binnen de kaart; een afgerond hoofdstuk toont alleen een vinkje met een tekst voor schermlezers", () => {
+  const path = read("src/components/reading/ReadingPath.tsx");
+  assert.match(path, /<Check size=\{18\} strokeWidth=\{3\} aria-hidden \/>\s*<span className="sr-only">\{t\("courseView\.path\.chapterDone"\)\}/);
+  assert.match(path, /<Lock size=\{16\} strokeWidth=\{2\.25\} aria-hidden \/>\s*<span className="sr-only">\{t\("courseView\.path\.chapterLocked"\)\}/);
+  assert.doesNotMatch(path, /border-dashed/, "geen zware stippelrand als standaard");
+});
+
+test("de actieve stap is een compacte tegel in hetzelfde raster, geen enorme knop over de volle breedte", () => {
+  const path = read("src/components/reading/ReadingPath.tsx");
+  assert.doesNotMatch(path, /col-span-full|primaryButton \$\{|!rounded-2xl/);
+  assert.match(path, /grid-cols-\[repeat\(auto-fill,minmax\(min\(100%,8\.5rem\),1fr\)\)\]/);
+  assert.match(path, /data-current-step=\{state === "current" \? "" : undefined\}/);
+  // het label "Volgende stap" staat alleen op de huidige tegel
+  assert.equal((path.match(/courseView\.path\.nextStep/g) ?? []).length, 1);
+});
+
+test("de bovenste voortgang telt voltooide hoofdstukken, niet het nummer van het hoofdstuk waar je bezig bent", () => {
+  const view = read("src/components/ReadingCourseView.tsx");
+  assert.match(view, /completedChapters = chapters\.filter\(\(chapter\) => chapter\.lessonCount > 0 && chapter\.completedLessons === chapter\.lessonCount\)\.length/);
+  assert.match(view, /pos: completedChapters/);
+  assert.doesNotMatch(view, /currentChapterIndex|progressPosition/);
+});
+
+test("het leerpad heeft een eigen Focusroute; de gewone cursuspagina blijft voor alle andere cursustypes en stuurt READING_LESSONS door", () => {
+  const hub = read("src/app/courses/[courseId]/page.tsx");
+  assert.match(hub, /if \(course\.type === "READING_LESSONS"\) redirect\(`\/courses\/\$\{course\.id\}\/pad`\);/);
+  assert.doesNotMatch(hub, /ReadingCourseView|buildPathChapters/);
+  const pad = read("src/app/courses/[courseId]/pad/page.tsx");
+  // geen lus: de padpagina stuurt alleen andere typen terug, en zonder geldige/selecteerbare cursus naar de lijst
+  assert.match(pad, /if \(course\.type !== "READING_LESSONS"\) redirect\(`\/courses\/\$\{course\.id\}`\);/);
+  assert.match(pad, /if \(!course\) redirect\("\/courses"\);/);
+  assert.match(pad, /isContentCollectionSelectable\(course\.contentCollectionId, user\.isAdmin\)\)\) redirect\("\/courses"\)/);
+  assert.match(pad, /loadReadingPath\(prisma, user\.id, course\.id\)/);
+  assert.match(pad, /<LiveRefresh scopes=\{\["courses", "progress"\]\}/);
+  const data = read("src/lib/readingPathData.ts");
+  assert.match(data, /getStepOverview\(db, userId, courseId\)/);
+  assert.match(data, /currentLessonId: overview\.next\?\.id \?\? null/, "ongewijzigde voortgangscursor");
+  // terug vanuit een les gaat rechtstreeks naar het leerpad
+  assert.match(read("src/app/reading-lesson/[lessonId]/page.tsx"), /CourseBackTarget href=\{`\/courses\/\$\{lesson\.courseId\}\/pad`\}/);
 });
