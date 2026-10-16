@@ -652,6 +652,9 @@ model StudyLesson {
 }
 
 model StudyLessonEdition {
+  annotationBookmark Bookmark[] @relation("BookmarkEdition")
+  annotationHighlight Highlight[] @relation("HighlightEdition")
+  annotationNote Note[] @relation("NoteEdition")
   id String @id @default(cuid())
   lessonId String
   collectionId String
@@ -678,6 +681,9 @@ model StudyLessonEdition {
 
 // INSERT-only, ook buiten Prisma: de migratie blokkeert UPDATE en DELETE.
 model StudyRevision {
+  annotationBookmark Bookmark[] @relation("BookmarkRevision")
+  annotationHighlight Highlight[] @relation("HighlightRevision")
+  annotationNote Note[] @relation("NoteRevision")
   id String @id @default(cuid())
   lessonEditionId String
   revisionNumber Int
@@ -1505,39 +1511,87 @@ model Bookmark {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  verseId   String
-  verse     Verse    @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  verseId   String?
+  verse     Verse?   @relation(fields: [verseId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   createdAt DateTime @default(now())
 
   @@unique([userId, verseId])
   @@index([verseId])
+  lessonEditionId String?
+  revisionId String?
+  selector Json?
+  targetKey String?
+  anchorStatus String @default("EXACT")
+  mutationVersion Int @default(0)
+  lastActionId String? @db.Uuid
+  lastActionHash String?
+  deletedAt DateTime?
+  lessonEdition StudyLessonEdition? @relation("BookmarkEdition", fields: [lessonEditionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  revision StudyRevision? @relation("BookmarkRevision", fields: [revisionId, lessonEditionId], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([userId, targetKey])
+  @@index([revisionId, lessonEditionId])
+  @@index([userId, lessonEditionId, deletedAt])
+
 }
 
 model Highlight {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  verseId   String
-  verse     Verse    @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  verseId   String?
+  verse     Verse?   @relation(fields: [verseId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   color     String   @default("yellow")
   createdAt DateTime @default(now())
 
   @@unique([userId, verseId])
   @@index([verseId])
+  lessonEditionId String?
+  revisionId String?
+  selector Json?
+  targetKey String?
+  anchorStatus String @default("EXACT")
+  mutationVersion Int @default(0)
+  lastActionId String? @db.Uuid
+  lastActionHash String?
+  deletedAt DateTime?
+  lessonEdition StudyLessonEdition? @relation("HighlightEdition", fields: [lessonEditionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  revision StudyRevision? @relation("HighlightRevision", fields: [revisionId, lessonEditionId], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([userId, targetKey])
+  @@index([revisionId, lessonEditionId])
+  @@index([userId, lessonEditionId, deletedAt])
+
 }
 
 model Note {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  verseId   String
-  verse     Verse    @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  verseId   String?
+  verse     Verse?   @relation(fields: [verseId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   text      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([userId, verseId])
   @@index([verseId])
+  lessonEditionId String?
+  revisionId String?
+  selector Json?
+  targetKey String?
+  anchorStatus String @default("EXACT")
+  mutationVersion Int @default(0)
+  lastActionId String? @db.Uuid
+  lastActionHash String?
+  deletedAt DateTime?
+  lessonEdition StudyLessonEdition? @relation("NoteEdition", fields: [lessonEditionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  revision StudyRevision? @relation("NoteRevision", fields: [revisionId, lessonEditionId], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([userId, targetKey])
+  @@index([revisionId, lessonEditionId])
+  @@index([userId, lessonEditionId, deletedAt])
+
 }
 
 // Een "leesmoment": aparte registratie van het lézen, los van de quiz erna.

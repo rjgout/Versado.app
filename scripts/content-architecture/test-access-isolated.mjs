@@ -11,6 +11,7 @@ import { resolve, join } from "node:path";
 import { createRequire } from "node:module";
 import { collectInventory } from "./inventory.mjs";
 
+if (process.argv.includes("--annotations") && !process.argv.includes("--focused")) throw new Error("Annotatiefixtures vereisen een eigen wegwerpdatabase; gebruik npm run test:annotations:integration naast de bestaande regressies.");
 if (process.argv.includes("--study-reader") && process.argv.includes("--study-publication")) throw new Error("Reader- en publicatiefixtures vereisen ieder een eigen wegwerpdatabase; voer de bestaande suites afzonderlijk uit.");
 
 const container = `versado-content-access-${randomUUID()}`;
@@ -56,7 +57,7 @@ try {
   // Eerst dezelfde 133 historische migraties via Prisma op de eigen lege DB.
   // Daarna synthetische bestaande records vóór de nieuwe additieve migratie.
   const migrationPath = join(temporary, "migrations");
-  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context", "20261027120000_quick_missionary_source", "20261028120000_mystery_attempt", "20261029120000_study_identity", "20261030120000_study_import_publication", "20261031120000_reading_position", "20261101120000_content_selection_version", "20261102120000_hymns_content_visibility", "20261103120000_study_publication_audit_actions"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
+  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context", "20261027120000_quick_missionary_source", "20261028120000_mystery_attempt", "20261029120000_study_identity", "20261030120000_study_import_publication", "20261031120000_reading_position", "20261101120000_content_selection_version", "20261102120000_hymns_content_visibility", "20261103120000_study_publication_audit_actions", "20261104120000_annotation_targets"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
   const config = join(temporary,"prisma.config.mjs");
   const require = createRequire(import.meta.url);
   writeFileSync(config, `import {defineConfig} from ${JSON.stringify(require.resolve("prisma/config"))}; export default defineConfig({schema:${JSON.stringify(resolve("prisma/schema.prisma"))},migrations:{path:${JSON.stringify(migrationPath)}},datasource:{url:process.env.DATABASE_URL}});`);
@@ -94,8 +95,12 @@ try {
   await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
   await run("node", ["tests/content-selection-version-migration.mjs", "verify"], env);
   await run("node", ["tests/hymns-visibility-migration.mjs", "prepare"], env);
-  await run("npm", ["run", "db:migrate:deploy"], env);
+  for (const name of ["20261102120000_hymns_content_visibility", "20261103120000_study_publication_audit_actions"]) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
+  await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
   await run("node", ["tests/hymns-visibility-migration.mjs", "verify"], env);
+  await run("node", ["tests/annotation-migration.mjs", "prepare"], env);
+  await run("npm", ["run", "db:migrate:deploy"], env);
+  await run("node", ["tests/annotation-migration.mjs", "verify"], env);
   await run("npm", ["run", "db:migrate:deploy"], env);
   if (process.argv.includes("--availability-performance")) {
     await run("npx", ["tsx", "scripts/content-architecture/benchmark-availability.mjs", ...(process.argv.includes("--assert-budget") ? ["--assert-budget"] : [])], env);
@@ -142,6 +147,7 @@ try {
     await run("npx",["tsx","--test","tests/hymns-availability.integration.test.mjs"],env);
     if(process.argv.includes("--browser")) await run("npx",["tsx","tests/hymns-availability.browser.mjs"],env);
   }
+  if(process.argv.includes("--annotations")) await run("npx",["tsx","--test","tests/annotation-foundation.integration.test.mjs"],env);
   if(process.argv.includes("--cfm-import")) {
     await run("npx",["tsx","--test","tests/cfm-2026-import.integration.test.mjs"],env);
     if(process.argv.includes("--browser")) await run("npx",["tsx","tests/cfm-2026-import.browser.mjs"],env);

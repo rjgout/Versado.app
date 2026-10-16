@@ -19,7 +19,7 @@ async function account(isAdmin: boolean) {
   return user.id;
 }
 async function request(path: string, method = "GET", body?: unknown, auth: string | null = cookie) {
-  return fetch(new URL(path, base), { method, headers: { ...(auth ? { Cookie: auth } : {}), ...(body ? { "Content-Type": "application/json" } : {}) }, body: body ? JSON.stringify(body) : undefined, redirect: "manual" });
+  return fetch(new URL(path, base), { method, headers: { ...(method !== "GET" && path.startsWith("/api/verses/") ? { Origin: base.origin } : {}), ...(auth ? { Cookie: auth } : {}), ...(body ? { "Content-Type": "application/json" } : {}) }, body: body ? JSON.stringify(body) : undefined, redirect: "manual" });
 }
 async function fixture(name: string, enabled: boolean, visibleToUsers: boolean, language = "nl", publicationState: "LEGACY" | "DRAFT" | "PUBLISHED" = "LEGACY") {
   const collectionId = name === "hidden" ? "content_old_testament_otb_nl" : name === "draft" ? "content_new_testament_otb_nl" : `content-access-${prefix}-${name}`;

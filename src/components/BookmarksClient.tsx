@@ -22,7 +22,7 @@ interface BookmarkItem {
 export default function BookmarksClient() {
   const t = useT();
   // Bladwijzers worden tijdens het lezen toegevoegd of verwijderd; bij terugkomen altijd actueel.
-  const bookmarks = useLiveQuery<BookmarkItem[]>(["bookmarks"], () => fetchJson<BookmarkItem[]>("/api/bookmarks"), { scopes: ["content"], staleTime: 1_000 });
+  const bookmarks = useLiveQuery<BookmarkItem[]>(["bookmarks"], () => fetchJson<BookmarkItem[]>("/api/bookmarks"), { scopes: ["content", "annotations"], staleTime: 1_000 });
   const items = bookmarks.data;
 
   return (

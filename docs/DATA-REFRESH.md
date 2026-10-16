@@ -173,3 +173,7 @@ De bestaande globale `client.ts` geeft verborgen/pagehide/native-pause door via
 `subscribeDataPause`; alleen de actieve controller doet een best-effort flush.
 Conflicten worden getoond en vereisen een bewuste keuze; oude responses kunnen
 alleen hun eigen bezoek afhandelen. Nooit progressie-, XP-, reeks- of sociale scopes.
+
+Annotatiefundament: scope `annotations` en gebeurtenis `annotationsChanged`
+invalideren uitsluitend eigen annotatiedata na commit. Realtime bevat geen privétekst,
+selector of broninhoud; de bestaande bladwijzerquery gebruikt ook deze scope.

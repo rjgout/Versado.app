@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { annotationResponse } from "@/lib/annotations/http";
 import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
 import { getCurrentUser } from "@/lib/session";
@@ -10,19 +10,19 @@ export async function GET() {
 
   const bookmarks = await prisma.bookmark.findMany({
     // Alleen leesbare brontekst teruggeven; verborgen privérecords blijven opgeslagen.
-    where: { userId: user.id, verse: { chapter: { book: { contentCollection: readingAccessWhere(user) } } } },
+    where: { userId: user.id, verseId: { not: null }, deletedAt: null, verse: { chapter: { book: { contentCollection: readingAccessWhere(user) } } } },
     orderBy: { createdAt: "desc" },
     include: { verse: { include: { chapter: { include: { book: true } } } } },
   });
 
-  return NextResponse.json(
-    bookmarks.map((b) => ({
+  return annotationResponse(
+    bookmarks.flatMap((b) => b.verse && b.verseId ? [{
       verseId: b.verseId,
       bookName: b.verse.chapter.book.name,
       chapterNumber: b.verse.chapter.number,
       chapterId: b.verse.chapter.id,
       verseNumber: b.verse.number,
       text: b.verse.text,
-    }))
+    }] : [])
   );
 }
