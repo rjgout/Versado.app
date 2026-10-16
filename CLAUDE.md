@@ -39,10 +39,23 @@ praktijk toegepast wordt.
 
 ## Werkwijze
 
+Volg de vaste taakverdeling in [AI-ontwikkelworkflow](docs/AI-DEVELOPMENT-WORKFLOW.md).
+Een aangeleverde, actuele ChatGPT-audit geldt als vooronderzoek: dupliceer die
+niet, maar inspecteer alleen de codepaden die nodig zijn voor implementatie en
+concrete afwijkingen. Bij ontbrekend of aantoonbaar verouderd vooronderzoek voer
+je uitsluitend het noodzakelijke onderzoek voor veilige implementatie uit.
+Technische tests blijven verplicht voor gewijzigde functionaliteit. De eigenaar
+is exclusief verantwoordelijk voor NAS, productie-uitrol en live tests: voer
+geen productiehandelingen uit, vraag geen NAS-toegang en maak ontbrekende
+productiecontroles geen blokkade voor een ontwikkel-PR. Merge alleen na
+expliciete toestemming; start geen volgende roadmapfase zonder akkoord.
+
 - Bij een vraag om analyse, ontwerp of sparren: wijzig geen code tenzij daar
   expliciet om wordt gevraagd.
-- Bij grotere wijzigingen: onderzoek eerst de relevante bestaande
-  implementatie en doe een concreet voorstel voordat je code wijzigt.
+- Bij grotere wijzigingen zonder actueel, goedgekeurd implementatiepakket:
+  onderzoek gericht de relevante implementatie en leg noodzakelijke
+  ontwerpbesluiten voor voordat je code wijzigt. Volg anders het aangeleverde
+  ontwerp; verander de architectuur niet zelfstandig.
 - Stel alleen verduidelijkende vragen wanneer benodigde informatie niet uit
   het project of de opdracht kan worden afgeleid.
 - Maak geen ongevraagde refactors of wijzigingen buiten de scope van de taak.
@@ -879,9 +892,12 @@ Belangrijke env vars (zie `.env.example`): `DATABASE_URL`, `REDIS_URL`,
 verzoek), `PODCAST_FEED_URL` (optioneel). SMTP wordt niet via env
 geconfigureerd maar via `/adminbackend` in de app zelf.
 
-Vóór een taak als afgerond geldt: voer `npx tsc --noEmit` uit, test relevante
-functionaliteit waar mogelijk handmatig via de dev-server/API, en voer
-daarna een schone productiebuild uit met `rm -rf .next && npm run build`.
+Vóór een codewijziging als afgerond geldt: voer `npx tsc --noEmit` uit, test
+relevante functionaliteit in een lokale/geïsoleerde omgeving via de
+dev-server/API en voer daarna een schone productiebuild uit met
+`rm -rf .next && npm run build`. Voor uitsluitend documentatie en
+instructieconfiguratie volstaan relevante documentlink-, symlink- en
+diffcontroles; start daarvoor geen app-, database- of browsertests.
 
 
 ## Versiebeheer
