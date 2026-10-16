@@ -94,7 +94,7 @@ export default async function LessonPage({
 
   return (
     <>
-    {readerReturn ? <ReaderBackTarget href={readerReturn} parent="Het Mysterie" /> : course && <CourseBackTarget href={`/courses/${course.id}`} parent={course.name} />}
+    {readerReturn ? <ReaderBackTarget href={readerReturn} parent="Het Mysterie" /> : course && <CourseBackTarget href={route ? `/courses/${course.id}/pad` : `/courses/${course.id}`} parent={course.name} />}
     <LessonFlow
       chapterId={chapter.id}
       bookName={chapter.book.name}

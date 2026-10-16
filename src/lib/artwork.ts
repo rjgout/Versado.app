@@ -181,9 +181,18 @@ export function courseArtworkKeys(course: {
   ].filter((key): key is string => key !== null);
 }
 
-/** Een hoofdstuk op het leerpad: de eigen scène als die er is, anders het beeld van het boek, anders niets. */
+/**
+ * Een hoofdstuk op een leespad: alleen een expliciet, gecontroleerd gekoppelde scène (chapterScenes.ts). Bewust geen
+ * terugval op het boekbeeld: dat zou bij elk hoofdstuk van een boek hetzelfde beeld herhalen. Zonder scène blijft de
+ * kaart een verzorgde neutrale Versado-kaart; een later toegevoegde scène verschijnt hier vanzelf.
+ */
 export function chapterArtworkKeys(bookKey: string | null | undefined, chapter: number): string[] {
-  return bookKey ? [chapterSceneKey(bookKey, chapter), `book:${bookKey}`] : [];
+  return bookKey ? [chapterSceneKey(bookKey, chapter)] : [];
+}
+
+/** Een boek op een leespad (titelkaart van een boek): het boekbeeld, als dat er is. */
+export function bookArtworkKeys(bookKey: string | null | undefined): string[] {
+  return bookKey ? [`book:${bookKey}`] : [];
 }
 
 /** Een podcast(aflevering): eigen beeld per podcast, anders het algemene podcastbeeld. */
