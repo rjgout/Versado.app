@@ -106,7 +106,22 @@ export default function FullscreenContentPicker({ initialData, sessionKey, isAdm
       </div>}
       {search.get("status") === "no-destination" && <p role="status" className="rounded-2xl bg-vs-accent-soft p-3 text-sm text-vs-fg">{t("contentSwitcher.picker.noDestination")}</p>}
     </div>
-    {(["scriptures", "studyPrograms"] as const).map(group => <section key={group} data-content-group={group} aria-labelledby={`content-${group}-title`}>
+    {(["scriptures", "music", "studyPrograms"] as const).map(group => group === "music" ? (
+      data.hymnsAvailable ? (
+        <section key="music" data-content-group="music" aria-labelledby="content-music-title">
+          <h2 id="content-music-title" className="vs-wrap mb-2.5 text-lg font-extrabold text-vs-fg">{t("contentSwitcher.picker.music")}</h2>
+          <Link data-hymns-link href="/dev/lofzangen" prefetch={false}
+            className={`flex min-h-12 w-full items-center gap-3 rounded-2xl border border-vs-line bg-vs-surface p-3.5 text-left shadow-sm transition hover:bg-vs-accent-soft ${focusClass}`}>
+            <Music2 className="h-10 w-10 shrink-0 text-vs-accent" aria-hidden="true" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-base font-extrabold leading-snug text-vs-fg">{t("pages.hymns")}</span>
+              <span className="mt-1 block text-sm font-semibold text-vs-fg-3">{t("contentSwitcher.picker.hymnsHelp")}</span>
+            </span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-vs-fg-3" aria-hidden="true" />
+          </Link>
+        </section>
+      ) : null
+    ) : <section key={group} data-content-group={group} aria-labelledby={`content-${group}-title`}>
       <h2 id={`content-${group}-title`} className="vs-wrap mb-2.5 text-lg font-extrabold text-vs-fg">{t(`contentSwitcher.picker.${group}`)}</h2>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,22rem),1fr))] gap-3">
         {works.filter(work => pickerGroup(work.kind) === group).map(work => {
@@ -133,19 +148,9 @@ export default function FullscreenContentPicker({ initialData, sessionKey, isAdm
             </button>
           </article>;
         })}
-        {group === "studyPrograms" && data.hymnsAvailable && (
-      <Link data-hymns-link href="/dev/lofzangen" prefetch={false}
-        className={`flex min-h-12 w-full items-center gap-3 rounded-2xl border border-vs-line bg-vs-surface p-3.5 text-left shadow-sm transition hover:bg-vs-accent-soft ${focusClass}`}>
-        <Music2 className="h-10 w-10 shrink-0 text-vs-accent" aria-hidden="true" />
-        <span className="min-w-0 flex-1">
-          <span className="block text-base font-extrabold leading-snug text-vs-fg">{t("pages.hymns")}</span>
-          <span className="mt-1 block text-sm font-semibold text-vs-fg-3">{t("contentSwitcher.picker.hymnsHelp")}</span>
-        </span>
-        <ChevronRight className="h-4 w-4 shrink-0 text-vs-fg-3" aria-hidden="true" />
-      </Link>
-        )}
+
       </div>
-      {!works.some(work => pickerGroup(work.kind) === group) && !(group === "studyPrograms" && data.hymnsAvailable) && <p className="rounded-2xl border border-dashed border-vs-line p-4 text-sm text-vs-fg-3">{t(group === "studyPrograms" ? "contentSwitcher.picker.emptyPrograms" : "contentSwitcher.picker.empty")}</p>}
+      {!works.some(work => pickerGroup(work.kind) === group) && <p className="rounded-2xl border border-dashed border-vs-line p-4 text-sm text-vs-fg-3">{t(group === "studyPrograms" ? "contentSwitcher.picker.emptyPrograms" : "contentSwitcher.picker.empty")}</p>}
     </section>)}
     <section data-content-language aria-labelledby="content-language-title" className="rounded-2xl border border-vs-line bg-vs-surface p-2.5 shadow-sm sm:p-3">
       <h2 id="content-language-title" className="flex items-center gap-2 text-sm font-extrabold text-vs-fg"><Globe2 className="h-4 w-4 shrink-0 text-vs-accent" aria-hidden />{t("contentSwitcher.picker.language")}</h2>
