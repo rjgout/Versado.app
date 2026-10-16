@@ -388,30 +388,28 @@ test("OTB-ranges, toegang en editie-equivalentie falen gesloten", async () => {
     diagnosticKey: "range",
   });
 });
-test("100 versverwijzingen naar dezelfde bron gebruiken één gerichte hoofdstukquery", async () => {
-  let count = 0;
-  const db = {
-    chapter: {
-      findMany: async (input: { where: unknown }) => {
-        count++;
-        assert.match(JSON.stringify(input.where), /visibleToUsers/);
-        assert.match(JSON.stringify(input.where), /PUBLISHED/);
-        return [chapter()];
+test("100 versverwijzingen gebruiken per toegangsrol één gerichte hoofdstukquery", async () => {
+  for (const isAdmin of [false, true]) {
+    let count = 0;
+    const db = {
+      chapter: {
+        findMany: async (input: { where: unknown }) => {
+          count++;
+          assert.equal(JSON.stringify(input.where).includes("visibleToUsers"), !isAdmin);
+          assert.match(JSON.stringify(input.where), /PUBLISHED/);
+          assert.match(JSON.stringify(input.where), /"enabled":true/);
+          return [chapter()];
+        },
       },
-    },
-  } as unknown as Prisma.TransactionClient;
-  const refs = Array.from({ length: 100 }, (_, i) => ({
-    target: { ...target, sourceKey: base + `&id=p${(i % 20) + 1}` },
-    diagnosticKey: `ref-${i}`,
-  }));
-  const results = await resolveReferenceBatch(
-    db,
-    { ...actor, isAdmin: true },
-    origin,
-    refs,
-  );
-  assert.equal(count, 1);
-  assert.ok(results.every((r) => r.kind === "internal"));
+    } as unknown as Prisma.TransactionClient;
+    const refs = Array.from({ length: 100 }, (_, i) => ({
+      target: { ...target, sourceKey: base + `&id=p${(i % 20) + 1}` },
+      diagnosticKey: `ref-${i}`,
+    }));
+    const results = await resolveReferenceBatch(db, { ...actor, isAdmin }, origin, refs);
+    assert.equal(count, 1);
+    assert.ok(results.every((r) => r.kind === "internal"));
+  }
 });
 test("een vergelijkbare tekst, verkeerde editie of taal wordt nooit intern gesubstitueerd", async () => {
   const altered = chapter();

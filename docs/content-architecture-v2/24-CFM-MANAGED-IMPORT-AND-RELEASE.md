@@ -188,6 +188,8 @@ Reeds uitgevoerde lokale controles:
 | --- | --- |
 | Content-/studiecontext-, selectie-, beschikbaarheids- en cursusintegraties | 281 geslaagd, 0 overgeslagen |
 | ReferenceResolver/Meer lezen/Terug naar les integraties | 15 geslaagd, 0 overgeslagen |
+| ReferenceResolver-unit- en querybudgettests | 18 geslaagd; één hoofdstukquery per 100 verwijzingen voor beide toegangsrollen |
+| CFM-integratie en productiebuild-browserflows | 52 echte lespublicaties en collectievrijgave; 21 browsergevallen geslaagd |
 | CFM bron-, review- en goedkeuringstests | 11 geslaagd, 0 overgeslagen |
 | Live-data / Focus-shell / studiecontent | 52 / 27 / 28 geslaagd |
 | Aanvullende Kompascontrole zonder DB-binding | 60 geslaagd, 9 DB-tests overgeslagen; geïsoleerde regressie/CI voert de DB-gebonden checks apart uit |
