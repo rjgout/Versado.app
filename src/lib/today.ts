@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { dayKey } from "@/lib/dates";
 import { userTimeZone, zonedParts } from "@/lib/timeZone";
 import { getHymnsAccess } from "@/lib/hymnAvailability";
-import { isSundayInTimeZone } from "@/lib/hymns/sunday";
+import { sundayHymnsVisible } from "@/lib/hymns/sunday";
 import { getStreakContinuation } from "@/lib/streakContinuation";
 import { getTextOfTheDay, type DailyText } from "@/lib/dailyText";
 import { wordGamePeriod } from "@/lib/wordGame";
@@ -145,9 +145,9 @@ export async function getTodayData(user: User): Promise<TodayData> {
   // de tijdzone van de gebruiker.
   const today = dayKey();
   const timeZone = userTimeZone(user);
-  // Zondagsingang is een activiteit, geen contentselectie: controleer dezelfde servergate als /dev/lofzangen.
+  // Zondagsingang is een activiteit, geen contentselectie: controleer dezelfde servergate als de Lofzangen-pagina zelf.
   // Op andere dagen is geen extra databasequery nodig.
-  const sundayHymns = isSundayInTimeZone(new Date(), timeZone) && (await getHymnsAccess(user)) === "allow";
+  const sundayHymns = await sundayHymnsVisible(new Date(), timeZone, () => getHymnsAccess(user));
   // Het woord van de dag wisselt om 18:00 in de tijdzone van de gebruiker
   // (met servertijd), los van de gewone kalenderdag hieronder.
   const wordPeriod = wordGamePeriod(new Date(), timeZone);

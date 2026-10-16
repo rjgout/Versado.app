@@ -92,15 +92,15 @@ export default function TodaySection({ data, language, dayComplete = false, serv
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:grid-cols-2">
         {sundayHymns && (
           <Link data-today-hymns href="/dev/lofzangen" prefetch={false}
-            className={`${interactiveCard} flex min-w-0 items-center gap-4 p-4 sm:col-span-2`}>
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-vs-accent-soft text-vs-accent">
-              <Music2 className="h-8 w-8" aria-hidden="true" />
+            className={`${interactiveCard} flex min-w-0 flex-wrap items-center gap-4 p-4 sm:col-span-2`}>
+            <span className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-2xl bg-vs-accent-soft text-vs-accent">
+              <Music2 size={32} aria-hidden="true" />
             </span>
-            <span className="min-w-0 flex-1">
+            <span className="min-w-0 flex-1 basis-40">
               <span className="block text-base font-extrabold text-vs-fg">{t("pages.hymns")}</span>
               <span className="mt-1 block text-sm leading-relaxed text-vs-fg-3">{t("contentSwitcher.picker.hymnsHelp")}</span>
             </span>
-            <ArrowRight className="h-5 w-5 shrink-0 text-vs-fg-3" aria-hidden="true" />
+            <ArrowRight size={20} className="shrink-0 text-vs-fg-3" aria-hidden="true" />
           </Link>
         )}
         {dailyText && (

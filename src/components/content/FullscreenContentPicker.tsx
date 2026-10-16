@@ -111,13 +111,13 @@ export default function FullscreenContentPicker({ initialData, sessionKey, isAdm
         <section key="music" data-content-group="music" aria-labelledby="content-music-title">
           <h2 id="content-music-title" className="vs-wrap mb-2.5 text-lg font-extrabold text-vs-fg">{t("contentSwitcher.picker.music")}</h2>
           <Link data-hymns-link href="/dev/lofzangen" prefetch={false}
-            className={`flex min-h-12 w-full items-center gap-3 rounded-2xl border border-vs-line bg-vs-surface p-3.5 text-left shadow-sm transition hover:bg-vs-accent-soft ${focusClass}`}>
-            <Music2 className="h-10 w-10 shrink-0 text-vs-accent" aria-hidden="true" />
-            <span className="min-w-0 flex-1">
+            className={`flex min-h-12 w-full flex-wrap items-center gap-3 rounded-2xl border border-vs-line bg-vs-surface p-3.5 text-left shadow-sm transition hover:bg-vs-accent-soft ${focusClass}`}>
+            <Music2 size={40} className="shrink-0 text-vs-accent" aria-hidden="true" />
+            <span className="min-w-0 flex-1 basis-40">
               <span className="block text-base font-extrabold leading-snug text-vs-fg">{t("pages.hymns")}</span>
               <span className="mt-1 block text-sm font-semibold text-vs-fg-3">{t("contentSwitcher.picker.hymnsHelp")}</span>
             </span>
-            <ChevronRight className="h-4 w-4 shrink-0 text-vs-fg-3" aria-hidden="true" />
+            <ChevronRight size={16} className="shrink-0 text-vs-fg-3" aria-hidden="true" />
           </Link>
         </section>
       ) : null

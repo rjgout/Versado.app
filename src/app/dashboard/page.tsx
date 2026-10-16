@@ -11,7 +11,8 @@ import SocialPreview from "@/components/today/SocialPreview";
 import DiscoverySection from "@/components/today/DiscoverySection";
 import GeneralConferenceCountdown from "@/components/today/GeneralConferenceCountdown";
 import { shouldShowGeneralConferenceCountdown } from "@/lib/generalConference";
-import { dayKeyInZone, localDayRange, userTimeZone } from "@/lib/timeZone";
+import { userTimeZone } from "@/lib/timeZone";
+import { todayRefreshExpiry } from "@/lib/hymns/sunday";
 import LiveRefresh from "@/components/LiveRefresh";
 import KompasEntryCard from "@/components/kompas/KompasEntryCard";
 
@@ -41,8 +42,7 @@ export default async function DashboardPage() {
   const serverNow = Date.now();
   const timeZone = userTimeZone(user);
   // Ook de zondagkaart moet na lokale middernacht opnieuw beoordeeld worden; behoud de eerdere woord-release indien die eerder komt.
-  const nextLocalMidnight = localDayRange(dayKeyInZone(new Date(serverNow), timeZone), timeZone).end.toISOString();
-  const refreshExpiry = [nextLocalMidnight, data.wordGame?.nextReleaseAt].filter((x): x is string => Boolean(x)).sort()[0];
+  const refreshExpiry = todayRefreshExpiry(new Date(serverNow), timeZone, data.wordGame?.nextReleaseAt);
   const countdownVisible = user.conferenceCountdownEnabled && shouldShowGeneralConferenceCountdown(new Date(serverNow), timeZone);
   const dayComplete = isTodayComplete(data);
   const showRestState = dayComplete && Boolean(data.dailyText || data.wordGame || data.dailyQuiz);

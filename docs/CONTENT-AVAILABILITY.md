@@ -21,8 +21,9 @@ Er is geen nieuw CMS of alternatief contentbeheersysteem.
 De kaart staat in de zelfstandige groep **Zang & muziek**, tussen Schriften en Studieprogramma’s.
 Op zondag verschijnt daarnaast een directe ingang onder **Vandaag → Voor vandaag**,
 onafhankelijk van de gekozen collectie/taal, maar uitsluitend als `getHymnsAccess` toegang geeft.
-De zondag wordt bepaald door de persoonlijke IANA-tijdzone en de Vandaag-pagina
-ververst bij terugkeer na de eerstvolgende lokale daggrens. Het servercontract onderscheidt de activiteit via `hymnsAvailable`; er
+De zondag wordt bepaald door de persoonlijke IANA-tijdzone (`src/lib/hymns/sunday.ts`: `isSundayInTimeZone`, `sundayHymnsVisible`) en de Vandaag-pagina
+ververst via de bestaande `LiveRefresh`-vervaldatum op de eerstvolgende lokale middernacht (`todayRefreshExpiry`, ook op dagen van 23 of 25 uur; geen polling). De kaart is geen taak: geen XP, geen reeks, geen teller.
+Browserbewijs: `scripts/hymns/e2e-sunday.mjs` (server met nagebootste klok, zie het kopje van het script). Het servercontract onderscheidt de activiteit via `hymnsAvailable`; er
 wordt geen ContentWork/ContentCollection/taaleditie voor het zangboek verzonnen.
 Een gewone link opent `/dev/lofzangen` met de bestaande Focus-shell en terugbalk.
 
