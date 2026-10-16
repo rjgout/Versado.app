@@ -548,8 +548,7 @@ test("historische publicatieaudit opent geen oude afbeelding na revisiewissel", 
       where: { lessonEditionId: editionId, revisionId },
     }), 1);
     await assert.rejects(authorizedStudyMedia(normal, mediaId), /UNAVAILABLE/);
-    assert.ok(await authorizedStudyMedia(actor, mediaId));
-  await assert.rejects(authorizedStudyMedia(normal, mediaId), /UNAVAILABLE/);
+    await assert.rejects(authorizedStudyMedia(actor, mediaId), /UNAVAILABLE/);
     assert.ok((await authorizedStudyMedia(actor, mediaId, true)).bytes.length);
     const ordinary = await request("GET", undefined, normalAuth, null, `/api/study-media/${mediaId}`);
     assert.equal(ordinary.status, 404);

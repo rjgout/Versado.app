@@ -230,9 +230,11 @@ try {
     await ready('/content');
     const hidden=await prisma.contentCollection.findFirstOrThrow({where:{work:'old-testament',language:'nl'}});
     const own=(await (await page.request.get(`${base}/api/content-context?view=picker`)).json()).selection;
-    const denied=await page.request.put(`${base}/api/content-context`,{headers:{Origin:base},data:{picker:true,contentCollectionId:hidden.id,expectedSelection:own}});assert.equal(denied.status(),404);
+    const allowed=await page.request.put(`${base}/api/content-context`,{headers:{Origin:base},data:{picker:true,contentCollectionId:hidden.id,expectedSelection:own}});assert.equal(allowed.status(),200);
     assert.equal(await page.locator('[data-content-work="fsy"]').count(),0);
     await prisma.user.update({where:{id:user.id},data:{isAdmin:false}});
+    const ordinarySelection=(await (await page.request.get(`${base}/api/content-context?view=picker`)).json()).selection;
+    const denied=await page.request.put(`${base}/api/content-context`,{headers:{Origin:base},data:{picker:true,contentCollectionId:hidden.id,expectedSelection:ordinarySelection}});assert.equal(denied.status(),404);
     await prisma.contentCollection.updateMany({data:{enabled:false}});
     const preserved=await prisma.user.findUniqueOrThrow({where:{id:user.id}});
     await ready('/content');assert.equal(await page.locator('[data-content-work]').count(),0);assert.equal(await page.locator('[data-content-group]').count(),2);

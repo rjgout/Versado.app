@@ -225,38 +225,26 @@ try {
     await page.locator("[data-study-reader]").waitFor();
     await page.addStyleTag({ content: "html{font-size:200% !important}" });
     const table = page.locator("table").first();
-    // Een echte gebruikersscroll beëindigt het initiële leeshervatten.
-    // Alleen scrollIntoView kan daarmee racen en vervolgens worden teruggezet.
-    await page.keyboard.press("PageDown");
+    // Wacht op gehydrateerde readerbediening vóór de gebruikersscroll; de
+    // servergerenderde tabel alleen bewijst nog niet dat hervatten klaarstaat.
+    await page.getByRole("button", { name: "Opnieuw bovenaan beginnen", exact: true }).click({ trial: true });
+    await page.evaluate(() => document.fonts.ready);
+    await page.mouse.move(160, 400);
+    await page.mouse.wheel(0, 300);
     const cell = table.locator("td").first();
-    await cell.click({ trial: true });
-    // Wacht op de daadwerkelijke compositie na tekstvergroting en de lange
-    // scrollsprong; DOM-aanwezigheid alleen bewijst geen zichtbare tabel.
-    await page.evaluate(
-      () =>
-        new Promise((resolve) =>
-          requestAnimationFrame(() => requestAnimationFrame(resolve)),
-        ),
-    );
-    assert.ok(
-      await cell.evaluate((el) => {
-        const r = el.getBoundingClientRect();
-        const x = (Math.max(0, r.left) + Math.min(innerWidth, r.right)) / 2;
-        const header =
-          parseFloat(
-            getComputedStyle(document.documentElement).getPropertyValue(
-              "--header-height",
-            ),
-          ) || 0;
-        const y =
-          (Math.max(header + 1, r.top) + Math.min(innerHeight, r.bottom)) / 2;
-        return (
-          r.bottom > 0 &&
-          r.top < innerHeight &&
-          el.contains(document.elementFromPoint(x, y))
-        );
-      }),
-    );
+    await cell.evaluate(el => el.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" }));
+    await page.screenshot({ path: `${output}/cfm-table-before-assert.png` });
+    // Controleer de echte hit-test na compositie, niet een willekeurig aantal
+    // frames na een scrollsprong. De tabel moet werkelijk onder de terugbalk liggen.
+    await page.waitForFunction(() => {
+      const el = document.querySelector("table td");
+      if (!el) return false;
+      const r = el.getBoundingClientRect();
+      const x = (Math.max(0, r.left) + Math.min(innerWidth, r.right)) / 2;
+      const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-height")) || 0;
+      const y = (Math.max(header + 1, r.top) + Math.min(innerHeight, r.bottom)) / 2;
+      return r.bottom > header && r.top < innerHeight && el.contains(document.elementFromPoint(x, y));
+    }, null, { timeout: 10000 });
     assert.ok(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth + 1,

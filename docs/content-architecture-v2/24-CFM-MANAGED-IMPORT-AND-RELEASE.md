@@ -180,7 +180,9 @@ import kan overnemen. De volledige legacytaak met externe feeds en grote
 audiomirrors wordt niet als internettaak in deze suite uitgevoerd. De browser
 controleert daarnaast bevestigen/annuleren/Escape en de exacte snapshotpayload.
 De bestaande native bevestigingsdialoog heeft een begrensd scrollbaar tekstdeel
-en afzonderlijke bereikbare acties, ook bij 320px en 200% tekst.
+en afzonderlijke bereikbare acties, ook bij 320px en 200% tekst. De tabeltest
+wacht op gehydrateerde readerbediening en geladen fonts en behoudt de strikte
+hit-test onder de terugbalk, na een echte gebruikersscroll.
 
 Reeds uitgevoerde lokale controles:
 
@@ -191,6 +193,7 @@ Reeds uitgevoerde lokale controles:
 | ReferenceResolver-unit- en querybudgettests | 18 geslaagd; één hoofdstukquery per 100 verwijzingen voor beide toegangsrollen |
 | CFM-integratie en productiebuild-browserflows | 52 echte lespublicaties en collectievrijgave; 21 browsergevallen geslaagd |
 | CFM bron-, review- en goedkeuringstests | 11 geslaagd, 0 overgeslagen |
+| Publicatie-/mediabeveiligingsintegraties | 26 geslaagd; historische media blijven uitsluitend via expliciete beheerpreview bereikbaar |
 | Live-data / Focus-shell / studiecontent | 52 / 27 / 28 geslaagd |
 | Aanvullende Kompascontrole zonder DB-binding | 60 geslaagd, 9 DB-tests overgeslagen; geïsoleerde regressie/CI voert de DB-gebonden checks apart uit |
 | TypeScript, Prisma validate/generate, i18n en schone productiebuild | Geslaagd |
