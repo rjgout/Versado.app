@@ -17,7 +17,7 @@ import { chapterPercent, chapterState, myStepDirection, pathScrollTarget, type M
 
 const card = "rounded-2xl border bg-vs-surface";
 // Breedte van de overlopende miniatuur links; de tekst begint pas waar het beeld al grotendeels is weggefaded.
-const THUMB_PAD = "pl-[5.25rem]";
+const THUMB_PAD = "pl-[96px]";
 
 function cssPx(name: string): number {
   return Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || 0;
@@ -106,7 +106,7 @@ export default function ReadingPath({ chapters, currentStepId }: { chapters: Pat
             key={chapter.id}
             chapter={chapter}
             state={states[index]}
-            isLast={index === chapters.length - 1}
+            nextState={index < chapters.length - 1 ? states[index + 1] : null}
             open={opened.has(chapter.id)}
             onToggle={() => toggle(chapter.id)}
             currentStepId={currentStepId}
@@ -133,14 +133,14 @@ export default function ReadingPath({ chapters, currentStepId }: { chapters: Pat
 function PathChapterItem({
   chapter,
   state,
-  isLast,
+  nextState,
   open,
   onToggle,
   currentStepId,
 }: {
   chapter: PathChapter;
   state: PathChapterState;
-  isLast: boolean;
+  nextState: PathChapterState | null;
   open: boolean;
   onToggle: () => void;
   currentStepId: string | null;
@@ -196,8 +196,8 @@ function PathChapterItem({
           </div>
         )}
       </li>
-      {/* kort, recht verbindingsstreepje: puur decoratief, de status staat in de kaart */}
-      {!isLast && <li aria-hidden className="mx-auto h-[18px] w-[2px] shrink-0 list-none rounded-full bg-vs-line-strong" />}
+      {/* kort, recht verbindingsstuk: puur decoratief, de status staat in de kaart */}
+      {nextState && <Connector from={state} to={nextState} />}
     </>
   );
 }
@@ -209,16 +209,36 @@ function PathChapterItem({
  */
 function ChapterThumb({ artworkKeys, fadeTo, dimmed = false }: { artworkKeys: string[]; fadeTo: string; dimmed?: boolean }) {
   return (
-    <div aria-hidden data-chapter-thumb className="pointer-events-none absolute inset-y-0 left-0 w-[5.5rem] overflow-hidden rounded-l-2xl">
+    <div aria-hidden data-chapter-thumb className="pointer-events-none absolute inset-y-0 left-0 w-[120px] overflow-hidden rounded-l-2xl">
       <MediaArtwork
         kind="reading"
         artworkKey={artworkKeys}
         ratio="1/1"
-        sizes="88px"
+        sizes="120px"
         className={`vs-decor !absolute inset-0 !aspect-auto h-full w-full ${dimmed ? "opacity-45 saturate-50" : "opacity-90"}`}
       />
-      <div className={`absolute inset-0 bg-gradient-to-r from-transparent ${dimmed ? "via-vs-subtle/60" : "via-vs-surface/60"} ${fadeTo}`} />
+      <div className={`absolute inset-0 bg-gradient-to-r from-transparent ${dimmed ? "via-vs-subtle/50" : "via-vs-surface/50"} ${fadeTo}`} />
     </div>
+  );
+}
+
+/** Kleur van het verbindingsstuk per overgang: voltooid is gedempt accent, de overgang naar het huidige hoofdstuk krijgt het volle accent, toekomstig is neutraal. */
+function connectorTone(from: PathChapterState, to: PathChapterState): { line: string; top: string; bottom: string } {
+  if (to === "current") return { line: "from-vs-accent/30 to-vs-accent", top: "bg-vs-accent/40", bottom: "bg-vs-accent" };
+  if (from === "current") return { line: "from-vs-accent to-vs-line-strong", top: "bg-vs-accent", bottom: "bg-vs-line-strong" };
+  if (to === "locked") return { line: "from-vs-line-strong to-vs-line-strong/60", top: "bg-vs-line-strong", bottom: "bg-vs-line-strong/60" };
+  return { line: "from-vs-accent/40 to-vs-accent/40", top: "bg-vs-accent/40", bottom: "bg-vs-accent/40" };
+}
+
+// 18 px hoog, zoals het eenvoudige streepje: de kleine punten aan de uiteinden raken de kaarten, de lijn ertussen loopt zacht over.
+function Connector({ from, to }: { from: PathChapterState; to: PathChapterState }) {
+  const tone = connectorTone(from, to);
+  return (
+    <li aria-hidden data-connector className="pointer-events-none mx-auto flex h-[18px] w-[6px] shrink-0 list-none flex-col items-center">
+      <span className={`h-1 w-1 shrink-0 rounded-full ${tone.top}`} />
+      <span className={`w-[2px] flex-1 bg-gradient-to-b ${tone.line}`} />
+      <span className={`h-1 w-1 shrink-0 rounded-full ${tone.bottom}`} />
+    </li>
   );
 }
 
@@ -238,27 +258,33 @@ function CurrentCard({ chapter, label, stepsDone, currentStepId }: { chapter: Pa
   return (
     // Dubbele omlijning: een verloopkader van 2 px (accent, met een klein warm lichtaccent in de hoek) rond de hele kaart,
     // beeldhoeken inbegrepen, plus een zachte gloed. Alleen semantische tokens, dus ook in donkere modus goed.
-    <div className="vs-rise rounded-[1.125rem] bg-gradient-to-br from-vs-accent via-vs-accent to-vs-xp-fill p-[2px] ring-[3px] ring-vs-accent/15 shadow-lg shadow-vs-accent/25">
+    <div className="vs-rise rounded-[1.125rem] bg-gradient-to-br from-vs-accent via-vs-accent to-vs-xp-fill p-[2px] shadow-lg shadow-vs-accent/25 ring-[3px] ring-vs-accent/15">
       <article className="overflow-hidden rounded-2xl bg-vs-surface" aria-label={label}>
-        {hasImage && (
-          // decoratieve banner met vaste px-hoogte: het beeld groeit niet mee met de tekst en verdringt de stap niet
-          <MediaArtwork kind="reading" artworkKey={keys} ratio="21/9" sizes="(min-width: 1024px) 640px, 100vw" className="vs-decor !aspect-auto h-[84px] sm:h-[104px]" />
-        )}
-        <div className="flex flex-col gap-2 bg-gradient-to-b from-vs-accent-soft/60 to-vs-surface p-[clamp(0.5rem,3vw,0.75rem)]">
-          <div className="flex flex-col gap-0.5">
-            <h2 className="vs-wrap text-lg font-extrabold leading-snug text-vs-fg">{label}</h2>
-            <p className="text-xs font-semibold text-vs-accent">{stepsDone}</p>
+        {/* Titel en voortgang staan op de illustratie. De kop heeft een eigen donkere basis en gradient, dus de tekst blijft
+            leesbaar terwijl het beeld laadt, ontbreekt of licht is. Zonder beeld valt de kop terug op een lichte accentkleur. */}
+        <div className={`relative flex min-h-[9.5rem] flex-col justify-end sm:min-h-[11rem] ${hasImage ? "bg-vs-overlay" : "bg-vs-accent-soft"}`}>
+          {hasImage && (
+            <>
+              <MediaArtwork kind="reading" artworkKey={keys} ratio="21/9" sizes="(min-width: 1024px) 640px, 100vw" className="vs-decor !absolute inset-0 !aspect-auto h-full w-full" />
+              <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-vs-overlay/90 via-vs-overlay/50 to-transparent" />
+            </>
+          )}
+          <div className="relative flex flex-col gap-1.5 px-[clamp(0.5rem,3vw,0.75rem)] pb-[clamp(0.5rem,3vw,0.75rem)] pt-10">
+            <h2 className={`vs-wrap text-xl font-extrabold leading-snug ${hasImage ? "text-white" : "text-vs-fg"}`}>{label}</h2>
+            <p className={`text-xs font-semibold ${hasImage ? "text-white/90" : "text-vs-accent"}`}>{stepsDone}</p>
+            <div
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={chapter.lessonCount}
+              aria-valuenow={chapter.completedLessons}
+              aria-label={stepsDone}
+              className={`h-1.5 overflow-hidden rounded-full ${hasImage ? "bg-white/30" : "bg-vs-accent/15"}`}
+            >
+              <div className="vs-motion h-full rounded-full bg-vs-accent transition-all" style={{ width: `${percent}%` }} />
+            </div>
           </div>
-          <div
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={chapter.lessonCount}
-            aria-valuenow={chapter.completedLessons}
-            aria-label={stepsDone}
-            className="h-1.5 overflow-hidden rounded-full bg-vs-accent/15"
-          >
-            <div className="vs-motion h-full rounded-full bg-vs-accent transition-all" style={{ width: `${percent}%` }} />
-          </div>
+        </div>
+        <div className="bg-gradient-to-b from-vs-accent-soft/60 to-vs-surface p-[clamp(0.5rem,3vw,0.75rem)]">
           <StepGrid steps={chapter.steps} currentStepId={currentStepId} />
         </div>
       </article>
@@ -269,7 +295,7 @@ function CurrentCard({ chapter, label, stepsDone, currentStepId }: { chapter: Pa
 function StepGrid({ steps, currentStepId }: { steps: PathStep[]; currentStepId: string | null }) {
   // twee kolommen op een gewone telefoon; bij 200% tekst of 320 px schakelt het vanzelf naar één kolom
   return (
-    <ol className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,8.5rem),1fr))] gap-2 p-0">
+    <ol className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,7rem),1fr))] gap-1.5 p-0">
       {steps.map((step) => (
         <StepTile key={step.id} step={step} currentStepId={currentStepId} />
       ))}
@@ -296,7 +322,7 @@ function StepTile({ step, currentStepId }: { step: PathStep; currentStepId: stri
                 ? "bg-vs-accent text-vs-on-accent"
                 : "bg-vs-accent-soft text-vs-accent"
         }`}
-        style={{ width: 22, height: 22 }}
+        style={{ width: 20, height: 20 }}
       >
         {state === "done" ? <Check size={13} strokeWidth={3} /> : state === "locked" ? <Lock size={11} strokeWidth={2.25} /> : step.number}
       </span>
@@ -308,11 +334,11 @@ function StepTile({ step, currentStepId }: { step: PathStep; currentStepId: stri
       </span>
     </>
   );
-  const tile = "flex min-h-11 items-center gap-2 rounded-xl border px-2.5 py-1.5";
+  const tile = "flex h-full min-h-11 w-full items-center gap-1.5 rounded-xl border px-2 py-1";
 
   if (state === "locked") {
     return (
-      <li>
+      <li className="flex">
         <div aria-disabled="true" className={`${tile} border-vs-line bg-vs-subtle/60 text-vs-fg-3`}>
           {body}
         </div>
@@ -320,7 +346,7 @@ function StepTile({ step, currentStepId }: { step: PathStep; currentStepId: stri
     );
   }
   return (
-    <li>
+    <li className="flex">
       <Link
         href={`/reading-lesson/${step.id}`}
         data-current-step={state === "current" ? "" : undefined}

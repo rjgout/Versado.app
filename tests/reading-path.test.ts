@@ -206,7 +206,7 @@ test("Naar mijn stap: richting uit de werkelijke plek van de stap, pijl wisselt,
 test("de actieve kaart heeft één doorlopend accentkader met zachte gloed en geen statusbadges meer; lees- en oefenvoortgang blijven intact", () => {
   const path = read("src/components/reading/ReadingPath.tsx");
   assert.match(path, /bg-gradient-to-br from-vs-accent via-vs-accent to-vs-xp-fill p-\[2px\]/, "verloopkader rond de hele kaart incl. beeldhoeken");
-  assert.match(path, /ring-vs-accent\/15 shadow-lg shadow-vs-accent\/25/, "zachte gloed");
+  assert.match(path, /shadow-lg shadow-vs-accent\/25 ring-\[3px\] ring-vs-accent\/15/, "zachte gloed");
   assert.doesNotMatch(path, /ContentStatusLine|ContentStatus/, "geen 'Bezig met lezen' en 'Oefeningen x/y' in de kaart");
   // de gegevens zelf blijven in het model
   const model = read("src/lib/readingPath.ts");
@@ -219,13 +219,13 @@ test("miniaturen: alleen de bestaande koppelingen, decoratief, lui en klein; afg
   assert.match(path, /chapterArtworkKeys\(chapter\.bookKey, chapter\.number\)/);
   assert.match(path, /const thumb = artworkFor\(artworkKeys\) !== null;/);
   assert.match(path, /\{thumb && <ChapterThumb/g);
-  assert.match(path, /sizes="88px"/, "geen groot beeld voor een miniatuur");
+  assert.match(path, /sizes="120px"/, "geen groot beeld voor een miniatuur");
   assert.doesNotMatch(path, /priority/, "nooit direct laden op een lange lijst");
   assert.match(path, /bg-gradient-to-r from-transparent/, "horizontale fade");
   assert.match(path, /dimmed \? "opacity-45 saturate-50" : "opacity-90"/);
   // het slot blijft zichtbaar en de tekst begint rechts van het sterkste beeld
   assert.match(path, /<Lock size=\{18\}/);
-  assert.match(path, /THUMB_PAD = "pl-\[5\.25rem\]"/);
+  assert.match(path, /THUMB_PAD = "pl-\[96px\]"/);
   assert.doesNotMatch(path, /\/images\/|\.webp|\.jpg|\.png/, "geen eigen beeldpaden naast het register");
 });
 
@@ -248,8 +248,28 @@ test("geen slingerlijn meer: geen SVG-route, knooppunten of statusbolletjes op h
   const path = read("src/components/reading/ReadingPath.tsx");
   assert.doesNotMatch(path, /<svg|<path|RAIL|WIGGLE|railX|function Node|strokeDasharray|vectorEffect/);
   assert.doesNotMatch(path, /text-vs-success"?[^>]*\bw-\[|bg-vs-success\b(?!-soft)/, "geen lange groene lijn");
-  assert.match(path, /mx-auto h-\[18px\] w-\[2px\]/, "recht, gecentreerd streepje van ~18 px");
-  assert.match(path, /aria-hidden className="mx-auto h-\[18px\]/, "puur decoratief");
+  assert.match(path, /<li aria-hidden data-connector className="pointer-events-none mx-auto flex h-\[18px\] w-\[6px\]/, "recht, gecentreerd, 18 px, puur decoratief en nooit klikbaar");
+  assert.match(path, /w-\[2px\] flex-1 bg-gradient-to-b/, "lijn met zacht kleurverloop");
+  // voltooid, overgang naar het huidige hoofdstuk, daarna en toekomstig zijn rustig te onderscheiden
+  assert.match(path, /to === "current"\) return \{ line: "from-vs-accent\/30 to-vs-accent"/);
+  assert.match(path, /from === "current"\) return \{ line: "from-vs-accent to-vs-line-strong"/);
+  assert.match(path, /to === "locked"\) return \{ line: "from-vs-line-strong to-vs-line-strong\/60"/);
+  assert.match(path, /states\[index \+ 1\] : null/, "toestand van het volgende hoofdstuk bepaalt de overgang");
+});
+
+test("actieve kaart: hogere illustratie met titel, voortgang en balk óp het beeld; de kop blijft leesbaar zonder beeld", () => {
+  const path = read("src/components/reading/ReadingPath.tsx");
+  const card = path.slice(path.indexOf("function CurrentCard"), path.indexOf("function StepGrid"));
+  assert.match(card, /min-h-\[9\.5rem\][^"]*sm:min-h-\[11rem\]/, "hoger dan de oude banner van 84/104 px");
+  assert.match(card, /hasImage \? "bg-vs-overlay" : "bg-vs-accent-soft"/, "eigen basis: tekst valt niet weg tijdens laden of zonder beeld");
+  assert.match(card, /bg-gradient-to-t from-vs-overlay\/90 via-vs-overlay\/50 to-transparent/, "donkere gradient voor contrast");
+  // titel, voortgangstekst en balk zitten in dezelfde kop als de afbeelding; onder de kop staat alleen het stappenraster
+  const header = card.slice(0, card.indexOf("<StepGrid"));
+  assert.match(header, /<h2[^>]*>\{label\}<\/h2>/);
+  assert.match(header, /role="progressbar"/);
+  assert.equal((card.match(/<h2/g) ?? []).length, 1);
+  assert.ok(card.indexOf("<h2") < card.indexOf("<StepGrid") && card.indexOf('role="progressbar"') < card.indexOf("<StepGrid"));
+  assert.match(card, /from-vs-accent via-vs-accent to-vs-xp-fill p-\[2px\]/, "kader loopt rond de afgeronde beeldhoeken door");
 });
 
 test("statusiconen staan binnen de kaart; een afgerond hoofdstuk toont alleen een vinkje met een tekst voor schermlezers", () => {
@@ -262,7 +282,7 @@ test("statusiconen staan binnen de kaart; een afgerond hoofdstuk toont alleen ee
 test("de actieve stap is een compacte tegel in hetzelfde raster, geen enorme knop over de volle breedte", () => {
   const path = read("src/components/reading/ReadingPath.tsx");
   assert.doesNotMatch(path, /col-span-full|primaryButton \$\{|!rounded-2xl/);
-  assert.match(path, /grid-cols-\[repeat\(auto-fill,minmax\(min\(100%,8\.5rem\),1fr\)\)\]/);
+  assert.match(path, /grid-cols-\[repeat\(auto-fill,minmax\(min\(100%,7rem\),1fr\)\)\]/);
   assert.match(path, /data-current-step=\{state === "current" \? "" : undefined\}/);
   // het label "Volgende stap" staat alleen op de huidige tegel
   assert.equal((path.match(/courseView\.path\.nextStep/g) ?? []).length, 1);
