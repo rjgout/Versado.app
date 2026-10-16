@@ -22,6 +22,7 @@ export const DATA_SCOPES = [
   "studyContext",
   "studyContent",
   "readingPosition",
+  "annotations",
   "games",
   "kompas",
 ] as const;
@@ -38,6 +39,7 @@ export const DATA_EVENTS = {
   // Alleen de nieuwe studiepublicaties/het beheer, geen progressie of economie.
   studyContentChanged: ["studyContent"],
   readingPositionChanged: ["readingPosition"],
+  annotationsChanged: ["annotations"],
   // Alleen studiecontext/-inhoud; bestaande pagina's hoeven niet te remounten.
   studyContextChanged: ["studyContext", "studyContent"],
   // Een les, oefening, hoofdstuk of spel is afgerond (ook vanaf een ander apparaat).

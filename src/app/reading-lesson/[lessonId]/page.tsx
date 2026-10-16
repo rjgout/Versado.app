@@ -50,9 +50,9 @@ export default async function ReadingLessonPage({
   });
   const verseIds = verses.map((verse) => verse.id);
   const [bookmarks, highlights, notes, chapterLessonCount] = await Promise.all([
-    prisma.bookmark.findMany({ where: { userId: user.id, verseId: { in: verseIds } } }),
-    prisma.highlight.findMany({ where: { userId: user.id, verseId: { in: verseIds } } }),
-    prisma.note.findMany({ where: { userId: user.id, verseId: { in: verseIds } } }),
+    prisma.bookmark.findMany({ where: { userId: user.id, verseId: { in: verseIds }, deletedAt: null } }),
+    prisma.highlight.findMany({ where: { userId: user.id, verseId: { in: verseIds }, deletedAt: null } }),
+    prisma.note.findMany({ where: { userId: user.id, verseId: { in: verseIds }, deletedAt: null } }),
     prisma.courseLesson.count({ where: { courseId: lesson.courseId, chapterId: lesson.chapterId } }),
   ]);
 

@@ -190,6 +190,20 @@ try {
   }
   // Alleen de eigen tijdelijke fixtures leegmaken; geen productie of echte data.
   const emptyAdmin = await account();
+  const annotationSnapshot = {
+    notes: await prisma.note.findMany({ where: { userId: admin.id } }),
+    bookmarks: await prisma.bookmark.findMany({ where: { userId: admin.id } }),
+    highlights: await prisma.highlight.findMany({ where: { userId: admin.id } }),
+  };
+  await assert.rejects(prisma.contentCollection.deleteMany(), (error) => error.code === "P2003");
+  assert.deepEqual({
+    notes: await prisma.note.findMany({ where: { userId: admin.id } }),
+    bookmarks: await prisma.bookmark.findMany({ where: { userId: admin.id } }),
+    highlights: await prisma.highlight.findMany({ where: { userId: admin.id } }),
+  }, annotationSnapshot, "Bronverwijdering behoudt de annotaties");
+  await prisma.note.deleteMany({ where: { userId: admin.id, verseId: verse.id } });
+  await prisma.bookmark.deleteMany({ where: { userId: admin.id, verseId: verse.id } });
+  await prisma.highlight.deleteMany({ where: { userId: admin.id, verseId: verse.id } });
   await prisma.contentCollection.deleteMany();
   const empty = await post(emptyAdmin); assert.equal(empty.status, 200);
   const emptyReport = await empty.json(); assert.deepEqual(emptyReport.collections, []);

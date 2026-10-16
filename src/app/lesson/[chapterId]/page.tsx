@@ -42,9 +42,9 @@ export default async function LessonPage({
 
   const verseIds = chapter.verses.map((v) => v.id);
   const [bookmarks, highlights, notes, allChapters] = await Promise.all([
-    prisma.bookmark.findMany({ where: { userId: user.id, verseId: { in: verseIds } } }),
-    prisma.highlight.findMany({ where: { userId: user.id, verseId: { in: verseIds } } }),
-    prisma.note.findMany({ where: { userId: user.id, verseId: { in: verseIds } } }),
+    prisma.bookmark.findMany({ where: { userId: user.id, verseId: { in: verseIds }, deletedAt: null } }),
+    prisma.highlight.findMany({ where: { userId: user.id, verseId: { in: verseIds }, deletedAt: null } }),
+    prisma.note.findMany({ where: { userId: user.id, verseId: { in: verseIds }, deletedAt: null } }),
     // Volgend hoofdstuk binnen dezelfde collectie: de boekvolgorde telt per collectie.
     prisma.chapter.findMany({
       where: { book: { contentCollectionId: chapter.book.contentCollectionId } },

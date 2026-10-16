@@ -31,6 +31,9 @@ on:
       - 'tests/content-selection-version-migration.mjs'
       - 'tests/fixtures/reference-content.mjs'
       - 'src/lib/studyContent/**'
+      - 'src/lib/annotations/**'
+      - 'src/app/api/annotations/**'
+      - 'tests/annotation-*'
       - 'src/lib/scrollRestore.ts'
       - 'src/components/shell/NavigationScroll.tsx'
       - 'src/components/study/ReadingPositionController.ts'
@@ -152,10 +155,13 @@ jobs:
           rm -rf .next
           npm run build
       - name: Echte HTTP-toegang, studiecontext en migratiebehoud op eigen PostgreSQL
-        run: npm run test:study-content:integration
+        run: |
+          npm run test:study-content:integration
+          npm run test:annotations:integration
       - name: Regressie, lint en vertalingen
         run: |
           npx tsx --test tests/admin-layout.test.ts tests/cfm-2026-manifest.test.ts tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/proxy-headers.test.ts tests/reading-path.test.ts tests/streak-central.test.ts
+          npm run test:annotations
           npm run test:focus
           npm run test:live-data
           npm run lint
