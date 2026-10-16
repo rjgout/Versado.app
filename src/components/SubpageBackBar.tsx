@@ -159,6 +159,8 @@ function detailPageFor(pathname: string, profileView: string | null, hash: strin
   if (lesson) return { fallback: "/courses", title: lesson[1] };
   const chapter = /^\/courses\/([^/]+)\/chapter\/[^/]+$/.exec(pathname);
   if (chapter) return { fallback: `/courses/${chapter[1]}`, title: "pages.chapter" };
+  // Leerpad van Stap voor stap (Focus): terug naar de cursuslijst.
+  if (/^\/courses\/[^/]+\/pad$/.test(pathname)) return { fallback: "/courses", title: "pages.course" };
   if (/^\/courses\/[^/]+$/.test(pathname)) return { fallback: "/courses", title: "pages.course" };
   return null;
 }

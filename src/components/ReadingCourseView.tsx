@@ -21,9 +21,9 @@ interface Props {
 export default function ReadingCourseView({ today, chapters, courseName, unitPlural = "hoofdstukken", studyAction }: Props) {
   const t = useT();
   const allDone = chapters.length > 0 && chapters.every((chapter) => chapter.completedLessons === chapter.lessonCount);
-  const currentChapterIndex = today ? chapters.findIndex((chapter) => chapter.steps.some((step) => step.id === today.id)) : -1;
-  const progressPosition = currentChapterIndex >= 0 ? currentChapterIndex + 1 : chapters.length;
-  const progressPercent = chapters.length > 0 ? Math.round((progressPosition / chapters.length) * 100) : 0;
+  // Voltooide hoofdstukken, niet het nummer van het hoofdstuk waar je nu bezig bent.
+  const completedChapters = chapters.filter((chapter) => chapter.lessonCount > 0 && chapter.completedLessons === chapter.lessonCount).length;
+  const progressPercent = chapters.length > 0 ? Math.round((completedChapters / chapters.length) * 100) : 0;
   const anyProgress = chapters.some((chapter) => chapter.read !== "UNREAD" || chapter.exercisesAnswered > 0);
 
   return (
@@ -38,9 +38,16 @@ export default function ReadingCourseView({ today, chapters, courseName, unitPlu
           <div className="flex flex-col gap-2 border-y border-vs-line py-3">
             <div className="flex flex-wrap items-center justify-between gap-x-3 text-xs font-bold text-vs-fg-3">
               <span>{t("courseView.progress")}</span>
-              <span>{t("courseView.progressCount", { pos: progressPosition, total: chapters.length, unit: unitPlural, pct: progressPercent })}</span>
+              <span>{t("courseView.progressCount", { pos: completedChapters, total: chapters.length, unit: unitPlural, pct: progressPercent })}</span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-vs-subtle">
+            <div
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={chapters.length}
+              aria-valuenow={completedChapters}
+              aria-label={t("courseView.progress")}
+              className="h-2 overflow-hidden rounded-full bg-vs-subtle"
+            >
               <div className="vs-motion h-full rounded-full bg-vs-accent transition-all" style={{ width: progressPercent + "%" }} />
             </div>
           </div>

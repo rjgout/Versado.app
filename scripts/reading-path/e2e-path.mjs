@@ -64,6 +64,9 @@ try {
   const openSteps = await page.locator('[data-chapter-state="current"] ol li:not(:has([aria-disabled="true"]))').count();
   check("begin: alleen open stappen van het huidige hoofdstuk zijn links (toekomstige hoofdstukken en stappen geven geen toegang)", hrefs === openSteps && hrefs === 1, `${hrefs}/${openSteps}`);
   check("begin: toekomstige hoofdstukken zijn vergrendeld en geen link", (await page.locator('[data-chapter-state="locked"][data-path-chapter] a').count()) === 0 && (await page.locator('[data-chapter-state="locked"]').count()) > 200);
+  check("de gewone cursus-URL stuurt door naar het Focus-leerpad (geen lus)", page.url() === `${BASE}/courses/${COURSE}/pad`, page.url());
+  check("Focusmodus: geen globale header en geen onderste navigatie, wel de terugbalk", !(await page.locator("[data-main-nav]").first().isVisible()) && !(await page.locator("[data-sticky-header] header").first().isVisible().catch(() => false)) && (await page.locator("[data-subpage-back-bar]").isVisible()) && (await page.evaluate(() => document.documentElement.getAttribute("data-shell-mode") ?? document.querySelector("[data-shell-mode]")?.getAttribute("data-shell-mode"))) === "focus");
+  check("geen slingerlijn: geen SVG-route op het pad", (await page.locator("[data-reading-path] svg[preserveAspectRatio]").count()) === 0 && (await page.locator("[data-reading-path] > li[aria-hidden]").count()) > 100);
   await page.close();
 
   // 2. voorbeeld 1 Nephi 11: vier stappen, één af, stap 2 actief
@@ -75,7 +78,11 @@ try {
   check(`stap 2 van ${parts} is de volgende stap`, (await page.locator("[data-current-step]").innerText()).includes("Stap 2"));
   check("afgeronde hoofdstukken zijn compact (ingeklapt)", (await page.locator('[data-chapter-state="done"] button[aria-expanded="true"]').count()) === 0 && (await page.locator('[data-chapter-state="done"]').count()) >= 10);
   check("de volgende stap is zichtbaar", (await stepVisible(page)).ok);
+  const progressText = await page.locator("main").first().innerText();
+  check("de bovenste voortgang telt voltooide hoofdstukken (10 van 239), niet het huidige hoofdstuknummer", /10 \/ 239/.test(progressText), (progressText.match(/\d+ \/ \d+[^\n]*/) ?? [""])[0]);
   const prev = await page.locator('[data-chapter-state="done"]').last().boundingBox();
+  const tiles = await page.locator("[data-current-step]").boundingBox();
+  check("de actieve stap is een compacte tegel (geen volle-breedte knop)", tiles && tiles.height < 90 && tiles.width < 300, JSON.stringify(tiles));
   const b = await bars(page);
   check("het hoofdstuk ervoor (1 Nephi 10) staat boven de actieve kaart in beeld als de hoogte dat toelaat", prev && prev.y >= b.header - 1 && prev.y < 400, JSON.stringify(prev));
   const art = await page.locator('[data-chapter-state="current"] [data-artwork]').first().getAttribute("data-artwork");
@@ -164,6 +171,17 @@ try {
   await direct.goto(`${BASE}/reading-lesson/${lockedLesson}`);
   check("een vergrendelde stap via een directe link stuurt terug (serverregel ongewijzigd)", (await direct.url()).includes(`/chapter/${chapterId}`));
   await direct.close();
+  // 11. andere cursustypes blijven ongewijzigd: gewone pagina, normale shell, geen doorverwijzing
+  const other = sql(`select id from "Course" where type<>'READING_LESSONS' and type in ('FREE_CHOICE','FRONT_TO_BACK') limit 1`);
+  if (other) {
+    const op = await u.ctx.newPage();
+    await op.setViewportSize({ width: 390, height: 844 });
+    await op.goto(`${BASE}/courses/${other}`); await op.waitForLoadState("networkidle");
+    check("een ander cursustype blijft op /courses/<id> met de normale shell (header en onderbalk)", op.url() === `${BASE}/courses/${other}` && (await op.locator("[data-main-nav]").first().isVisible()));
+    const direct2 = await op.goto(`${BASE}/courses/${other}/pad`);
+    check("/pad bij een ander cursustype stuurt terug naar de gewone pagina (geen lus)", op.url() === `${BASE}/courses/${other}` && direct2.status() === 200, op.url());
+    await op.close();
+  } else check("een ander cursustype is aanwezig om te vergelijken", false, "geen FREE_CHOICE/FRONT_TO_BACK-cursus in de testdatabase");
 } catch (e) { check("onverwachte fout", false, String(e)); }
 await browser.close();
 const bad = results.filter((r) => !r.ok).length;

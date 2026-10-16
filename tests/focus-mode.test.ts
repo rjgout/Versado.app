@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { isFocusRoute, isImmersiveRoute, resolveShellMode, shellModeForRoute } from "../src/lib/focusMode";
+import { isActivityRoute, isFocusRoute, isImmersiveRoute, resolveShellMode, shellModeForRoute } from "../src/lib/focusMode";
+import { celebrationDeferredOn, shouldClaimStreakCelebration } from "../src/lib/celebrationGate";
 import { immersiveShellRequested, requestImmersiveShell } from "../src/lib/shellModeOverride";
 
 test("actieve leer- en spelroutes gebruiken focus mode", () => {
@@ -55,6 +56,27 @@ test("Lofzangen gebruikt focus mode: terugbalk blijft, header en onderbalk verdw
   assert.equal(isFocusRoute("/dev/lofzangen/extra"), false);
   const back = readFileSync(path.join(process.cwd(), "src/components/SubpageBackBar.tsx"), "utf8");
   assert.match(back, /pathname === "\/dev\/lofzangen"\) return \{ fallback: "\/content"/);
+});
+
+test("het leerpad van Stap voor stap is cursusspecifiek Focus, zonder de andere cursuspagina's te raken, en geen activiteit", () => {
+  assert.equal(isFocusRoute("/courses/reading-course/pad"), true);
+  assert.equal(shellModeForRoute("/courses/reading-course/pad"), "focus");
+  // andere cursustypes en onderdelen blijven in de normale shell
+  for (const route of ["/courses", "/courses/course-1", "/courses/course-1/chapter/c1", "/courses/course-1/pad/extra", "/courses/pad"]) {
+    assert.equal(isFocusRoute(route), false, route);
+  }
+  // een overzicht om uit te kiezen: geen activiteit, dus geen blokkade van reeksvieringen en geen activiteitsstatus
+  assert.equal(isActivityRoute("/courses/reading-course/pad"), false);
+  // de daadwerkelijke leesles blijft wel een activiteit
+  assert.equal(isActivityRoute("/reading-lesson/lesson-1"), true);
+  assert.equal(celebrationDeferredOn("/courses/reading-course/pad"), false);
+  assert.equal(celebrationDeferredOn("/reading-lesson/lesson-1"), true);
+  // een reeksviering mag dus wel verschijnen terwijl je het leerpad bekijkt, maar niet midden in een les
+  const claim = (pathname: string) => shouldClaimStreakCelebration({ pathname, status: "ACTIVE", studiedToday: true, claiming: false });
+  assert.equal(claim("/courses/reading-course/pad"), true);
+  assert.equal(claim("/reading-lesson/lesson-1"), false);
+  const back = readFileSync(path.join(process.cwd(), "src/components/SubpageBackBar.tsx"), "utf8");
+  assert.match(back, /\/\^\\\/courses\\\/\[\^\/\]\+\\\/pad\$\/\.test\(pathname\)\) return \{ fallback: "\/courses"/);
 });
 
 // ---- Legpuzzel: het actieve bord is Immersive, de rest van de route blijft Focus ----
