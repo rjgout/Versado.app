@@ -13,7 +13,10 @@ async function hash(table,columns){return(await db.query(`SELECT md5(coalesce(st
 try {
  if(process.argv[2]==='prepare'){
   const user=(await db.query('SELECT id FROM "User" LIMIT 1')).rows[0].id;
-  const chapter=(await db.query('SELECT id FROM "Chapter" LIMIT 1')).rows[0].id;
+  // Eigen bronrecords: geen annotatie-FK op hoofdstukken die andere suites vervangen.
+  const book='annotation-book-'+randomUUID(),chapter='annotation-chapter-'+randomUUID();
+  await db.query('INSERT INTO "Book" (id,slug,key,name,"order","contentCollectionId") VALUES ($1,$1,$1,$2,999,$3)',[book,'Eigen annotatiemigratiefixture','content_bom']);
+  await db.query('INSERT INTO "Chapter" (id,"bookId",number,"order") VALUES ($1,$2,1,1)',[chapter,book]);
   const verse='annotation-migration-'+randomUUID();
   await db.query('INSERT INTO "Verse" (id,"chapterId",number,text) VALUES ($1,$2,987654,$3)',[verse,chapter,'Eigen migratiefixture']);
   for(const model of ['Bookmark','Highlight','Note']){
@@ -29,9 +32,9 @@ try {
   await db.query('ROLLBACK');
   for(const s of snapshots)assert.equal(await hash(s.table,s.columns),s.hash);
   assert.equal((await db.query(`SELECT count(*)::int n FROM information_schema.columns WHERE table_name='Bookmark' AND column_name='lessonEditionId'`)).rows[0].n,0);
-  writeFileSync(file,JSON.stringify({snapshots,user,verse}),{mode:0o600});
+  writeFileSync(file,JSON.stringify({snapshots,user,verse,book,chapter}),{mode:0o600});
  } else {
-  const {snapshots,user,verse}=JSON.parse(readFileSync(file,'utf8'));
+  const {snapshots,user,verse,book,chapter}=JSON.parse(readFileSync(file,'utf8'));
   for(const s of snapshots)assert.equal(await hash(s.table,s.columns),s.hash,s.table+': alle oorspronkelijke kolommen behouden');
   for(const model of ['Bookmark','Highlight','Note']){
    const row=(await db.query(`SELECT * FROM "${model}" WHERE id=$1`,['migration-'+model])).rows[0];
@@ -43,6 +46,8 @@ try {
   }
   await assert.rejects(db.query('DELETE FROM "Verse" WHERE id=$1',[verse]),e=>e.code==='23503');
   assert.equal((await db.query('SELECT count(*)::int n FROM "Verse" WHERE id=$1',[verse])).rows[0].n,1);
+  await assert.rejects(db.query('DELETE FROM "Chapter" WHERE id=$1',[chapter]),e=>e.code==='23503');
+  await assert.rejects(db.query('DELETE FROM "Book" WHERE id=$1',[book]),e=>e.code==='23503');
   for(const s of snapshots)assert.equal(await hash(s.table,s.columns),s.hash);
   console.log(JSON.stringify({annotationMigration:'passed',preservedTables:snapshots.length,oldRowsAndTimestampsIdentical:true,verseDeletionRestricted:true,uniqueAndXorPreserved:true,conflictingMigrationAtomic:true,productionTouched:false}));
  }
