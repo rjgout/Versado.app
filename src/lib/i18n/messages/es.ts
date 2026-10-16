@@ -3,6 +3,7 @@ import { kompasEs } from "./kompas/es";
 
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
+  contentSwitcher: { picker: { music: "Canto y música" } },
   studyPublishing: {
     "older": "Revisiones anteriores",
     "newer": "Revisiones más recientes",
