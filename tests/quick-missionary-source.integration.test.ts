@@ -95,10 +95,7 @@ test("Oude reeds uitgegeven vraag herstelt alleen haar bewezen bron onder de run
 test("Ingetrokken bron blokkeert vraaglekkage/antwoord/aankoop ook voor admin, bewaart uitgegeven vraag", {skip},async()=>{
  const user=await account(nl,true), run=await died(user); const issued=await runs.requestReviveQuestion(run,user); const before=await economy(user);
  const correct=await db.quickMissionaryReviveOption.findFirstOrThrow({where:{questionId:issued.reviveQuestion!.exerciseId,isCorrect:true}});
- await db.contentCollection.update({where:{id:nl},data:{visibleToUsers:false}});
- assert.deepEqual((await runs.requestReviveQuestion(run,user)).reviveQuestion,issued.reviveQuestion);
- assert.deepEqual(await economy(user),before);await quickMissionaryFixture(db);
- for(const patch of [{enabled:false},{publicationState:"DRAFT" as const}]) {
+ for(const patch of [{visibleToUsers:false},{enabled:false},{publicationState:"DRAFT" as const}]) {
   await db.contentCollection.update({where:{id:nl},data:patch});
   const view=await runs.getQuickMissionaryRunView(run,user); assert.equal(view.reviveQuestion,null); assert.equal(view.reviveBlocked,true); assert.equal(view.reviveAvailable,false);
   await assert.rejects(runs.requestReviveQuestion(run,user),/NO_QUESTION/); await assert.rejects(runs.answerReviveQuestion(run,user,correct.questionId,correct.id),/NO_QUESTION/);

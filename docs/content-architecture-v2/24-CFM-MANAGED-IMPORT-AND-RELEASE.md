@@ -161,6 +161,11 @@ noodstop, zonder ContentCollection of wijziging van actieve bron/taal.
 
 ## Testbewijs, beperkingen en rollback
 
+De bestaande spelstart- en hervatservices zijn niet aangepast. Hun afzonderlijke
+technische availability-/runbronvoorwaarden blijven gelden; normale leestoegang
+voegt geen nieuwe speladapter of spelondersteuning toe. De oorspronkelijke
+Mysterie- en Genees-regressieasserties blijven daarom intact.
+
 Werkelijke eindresultaten en CI-artifacts worden bij de PR vastgelegd. De suite
 controleert alle 52 bronlessen, 3200 blokken, 356 media, 3609 verwijzingen,
 1960 interne en 1096 externe diagnoses en 553 inactieve verwijzingen. Ze test
