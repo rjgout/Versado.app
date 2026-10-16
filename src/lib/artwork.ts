@@ -181,13 +181,18 @@ export function courseArtworkKeys(course: {
   ].filter((key): key is string => key !== null);
 }
 
+// Canonieke Book.key-prefix van het Boek van Mormon (prisma/bookKeys.ts); alleen dit werk valt terug op het boekbeeld.
+const BOFM_BOOK_PREFIX = "bofm/";
+
 /**
- * Een hoofdstuk op een leespad: alleen een expliciet, gecontroleerd gekoppelde scène (chapterScenes.ts). Bewust geen
- * terugval op het boekbeeld: dat zou bij elk hoofdstuk van een boek hetzelfde beeld herhalen. Zonder scène blijft de
- * kaart een verzorgde neutrale Versado-kaart; een later toegevoegde scène verschijnt hier vanzelf.
+ * Een hoofdstuk op een leespad, in volgorde van voorkeur: de expliciet gekoppelde scène (chapterScenes.ts), en alleen
+ * voor het Boek van Mormon daarna het bestaande boekbeeld (herhaling bij meerdere hoofdstukken is hier bedoeld). Een
+ * later toegevoegde hoofdstukscène staat vooraan en krijgt dus vanzelf voorrang. Andere schriften behouden alleen hun
+ * eigen scènes; zonder beeld blijft de kaart een verzorgde neutrale Versado-kaart.
  */
 export function chapterArtworkKeys(bookKey: string | null | undefined, chapter: number): string[] {
-  return bookKey ? [chapterSceneKey(bookKey, chapter)] : [];
+  if (!bookKey) return [];
+  return bookKey.startsWith(BOFM_BOOK_PREFIX) ? [chapterSceneKey(bookKey, chapter), `book:${bookKey}`] : [chapterSceneKey(bookKey, chapter)];
 }
 
 /** Een boek op een leespad (titelkaart van een boek): het boekbeeld, als dat er is. */
