@@ -160,7 +160,7 @@ jobs:
           npm run test:annotations:integration
       - name: Regressie, lint en vertalingen
         run: |
-          npx tsx --test tests/admin-layout.test.ts tests/cfm-2026-manifest.test.ts tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/proxy-headers.test.ts tests/streak-central.test.ts
+          npx tsx --test tests/admin-layout.test.ts tests/cfm-2026-manifest.test.ts tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/proxy-headers.test.ts tests/reading-path.test.ts tests/streak-central.test.ts
           npm run test:annotations
           npm run test:focus
           npm run test:live-data

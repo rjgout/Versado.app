@@ -840,6 +840,18 @@ export const es: PartialMessages = {
     }
   },
   "courseView": {
+    "path": {
+      "label": "Ruta de aprendizaje",
+      "nextStep": "Siguiente paso",
+      "verses": "Versículos {from}–{to}",
+      "stepDone": "Completado",
+      "stepLocked": "Bloqueado",
+      "stepReread": "Leer de nuevo",
+      "chapterDone": "Completado",
+      "chapterLocked": "Bloqueado",
+      "myStep": "Mi paso",
+      "myStepAria": "Ir a mi siguiente paso",
+    },
     "progress": "Progreso",
     "progressCount": "{pos} / {total} {unit} · {pct}%",
     "today": "Hoy",

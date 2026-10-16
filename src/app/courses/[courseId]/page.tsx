@@ -3,14 +3,13 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { parseStoredChapters } from "@/lib/podcastChapters";
 import { isEmailConfigured } from "@/lib/email";
-import { advanceCourseProgress, syncCourses } from "@/lib/courses";
+import { advanceCourseProgress } from "@/lib/courses";
 import { isContentCollectionSelectable } from "@/lib/contentCollections";
 import ChapterListCourseView from "@/components/ChapterListCourseView";
 import PodcastCourseView from "@/components/PodcastCourseView";
 import KidsCourseView from "@/components/KidsCourseView";
 import IntroCourseView from "@/components/IntroCourseView";
 import FsyCourseView from "@/components/FsyCourseView";
-import ReadingCourseView from "@/components/ReadingCourseView";
 import StudyTogetherButton from "@/components/study/StudyTogetherButton";
 import { canStartStudy } from "@/lib/study/startAvailability";
 import { chapterTerm, localizeTerm } from "@/lib/chapterTerm";
@@ -18,7 +17,6 @@ import { localizedCourse } from "@/lib/courseText";
 import { getT } from "@/lib/i18n";
 import { getChapterStates } from "@/lib/learning/contentProgress";
 import { countWords, estimateReadingMinutes } from "@/lib/learning/readingTime";
-import { getStepOverview } from "@/lib/readingLessons";
 
 export default async function CourseDetailPage({ params }: { params: Promise<{ courseId: string }> }) {
   const user = await getCurrentUser();
@@ -177,93 +175,8 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
     );
   }
 
-  if (course.type === "READING_LESSONS") {
-    // Bestaande installaties krijgen de nieuwe cursus al via de migratie.
-    // De vaste lesindeling wordt één keer opgebouwd zodra de cursus voor het
-    // eerst wordt geopend; daarna blijven de grenzen en voortgang bewaard.
-    if ((await prisma.courseLesson.count({ where: { courseId: course.id } })) === 0 && (await prisma.chapter.count()) > 0) {
-      await syncCourses(prisma);
-    }
-    const [lessons, overview] = await Promise.all([
-      prisma.courseLesson.findMany({
-        where: { courseId: course.id },
-        orderBy: { order: "asc" },
-        select: { id: true, chapterId: true, order: true, startVerse: true, endVerse: true, chapter: { select: { id: true, number: true, book: { select: { name: true, key: true } } } } },
-      }),
-      getStepOverview(prisma, user.id, course.id),
-    ]);
-    const stepById = new Map(overview.steps.map((step) => [step.id, step]));
-    const states = await getChapterStates(prisma, user.id, [...new Map(lessons.map((l) => [l.chapterId, l.chapter])).values()]);
-
-    // De cursor (voor Vandaag en "ga verder") volgt de gedeelde voortgang:
-    // wat via een andere route al gedaan is, slaat Stap voor stap over.
-    await prisma.userCourseProgress.upsert({
-      where: { userId_courseId: { userId: user.id, courseId: course.id } },
-      create: { userId: user.id, courseId: course.id, currentLessonId: overview.next?.id ?? null, currentChapterId: overview.next?.chapterId ?? null },
-      update: { currentLessonId: overview.next?.id ?? null, currentChapterId: overview.next?.chapterId ?? null },
-    });
-
-    const currentLesson = overview.next ? lessons.find((lesson) => lesson.id === overview.next!.id) ?? null : null;
-    const currentChapterFirstLessonOrder = currentLesson
-      ? lessons.find((lesson) => lesson.chapterId === currentLesson.chapterId)?.order ?? currentLesson.order
-      : 0;
-
-    const chapterMap = new Map<string, {
-      id: string;
-      number: number;
-      bookName: string;
-      lessonCount: number;
-      completedLessons: number;
-      locked: boolean;
-    }>();
-    for (const lesson of lessons) {
-      const step = stepById.get(lesson.id)!;
-      const existing = chapterMap.get(lesson.chapterId);
-      if (existing) {
-        existing.lessonCount++;
-        if (step.done) existing.completedLessons++;
-      } else {
-        chapterMap.set(lesson.chapterId, {
-          id: lesson.chapterId,
-          number: lesson.chapter.number,
-          bookName: lesson.chapter.book.name,
-          lessonCount: 1,
-          completedLessons: step.done ? 1 : 0,
-          locked: !step.available,
-        });
-      }
-    }
-
-    return (
-      <ReadingCourseView
-        studyAction={studyAction}
-        courseId={course.id}
-        courseName={courseName}
-        unitPlural={localizeTerm(chapterTerm(null, course.contentCollectionId), t).plural}
-        today={
-          currentLesson
-            ? {
-                id: currentLesson.id,
-                bookName: currentLesson.chapter.book.name,
-                chapterNumber: currentLesson.chapter.number,
-                lessonNumber: currentLesson.order - currentChapterFirstLessonOrder + 1,
-                startVerse: currentLesson.startVerse,
-                endVerse: currentLesson.endVerse,
-              }
-            : null
-        }
-        chapters={Array.from(chapterMap.values()).map((chapter) => {
-          const state = states.get(chapter.id)!;
-          return {
-            ...chapter,
-            read: state.read,
-            exercisesAnswered: state.exercisesAnswered,
-            exercisesTotal: state.exercisesTotal,
-          };
-        })}
-      />
-    );
-  }
+  // Het leerpad van Stap voor stap heeft een eigen Focus-route (zie focusMode.ts); andere cursustypes blijven hier.
+  if (course.type === "READING_LESSONS") redirect(`/courses/${course.id}/pad`);
 
   // De resterende cursustypes (van voor naar achter, vrije keuze) zijn
   // allebei simpelweg "een lijst hoofdstukken" (zie

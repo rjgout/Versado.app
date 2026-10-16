@@ -5,6 +5,9 @@
  */
 const FOCUS_ROUTES = [
   /^\/content$/,
+  // Het leerpad van Stap voor stap (READING_LESSONS): een eigen route, want /courses/<id> is van alle cursustypes.
+  // Een overzicht om uit te kiezen, geen activiteit (zie isActivityRoute).
+  /^\/courses\/[^/]+\/pad$/,
   /^\/study-lesson\/[^/]+\/[^/]+$/,
   /^\/scripture\/[^/]+$/,
   // De avatar-editor is een zelfstandige bewerkflow: alleen de centrale
@@ -83,6 +86,6 @@ export function resolveShellMode(routeMode: ShellMode, immersiveRequested: boole
  * resultaatkaart van de activiteit nooit wordt verdrongen.
  */
 export function isActivityRoute(pathname: string): boolean {
-  if (pathname === "/content") return false;
+  if (pathname === "/content" || /^\/courses\/[^/]+\/pad$/.test(pathname)) return false;
   return isFocusRoute(pathname) || isImmersiveRoute(pathname) || ACTIVITY_IN_NORMAL_SHELL.some((pattern) => pattern.test(pathname));
 }

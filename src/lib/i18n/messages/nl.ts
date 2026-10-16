@@ -456,6 +456,18 @@ export const nl = {
     },
   },
   courseView: {
+    path: {
+      label: "Leerpad",
+      nextStep: "Volgende stap",
+      verses: "Verzen {from}–{to}",
+      stepDone: "Afgerond",
+      stepLocked: "Vergrendeld",
+      stepReread: "Opnieuw lezen",
+      chapterDone: "Afgerond",
+      chapterLocked: "Vergrendeld",
+      myStep: "Mijn stap",
+      myStepAria: "Ga naar mijn volgende stap",
+    },
     progress: "Voortgang",
     progressCount: "{pos} / {total} {unit} · {pct}%",
     today: "Vandaag",
