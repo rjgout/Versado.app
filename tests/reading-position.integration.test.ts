@@ -422,7 +422,7 @@ test("hidden/disabled/DRAFT en retired weigeren gewone admin- en leesmutaties; p
       data: patch,
     });
     assert.equal((await api("GET")).status, 404);
-    assert.equal((await api("GET", undefined, adminCookie)).status, 404);
+    assert.equal((await api("GET", undefined, adminCookie)).status, "visibleToUsers" in patch ? 200 : 404);
     assert.equal(
       (await api("PUT", { ...actionBase(row), actionId: randomUUID() })).status,
       404,

@@ -81,14 +81,22 @@ test("saldo 1 → 0, geen negatieve voorraad; ongeldige actie of DB-fout betaalt
  try {await assert.rejects(actOnMystery(u.id,action(a,'hint')),/synthetic failure/);assert.equal((await money(u.id)).hintBalance,5);assert.equal((await getMysteryAttempt(u.id,d))?.hintCount,1);}
  finally {await prisma.$executeRawUnsafe('DROP TRIGGER mystery_fail_payment ON "MysteryAttempt"');await prisma.$executeRawUnsafe('DROP FUNCTION mystery_fail_payment()');}
 });
-test("hidden/disabled/DRAFT ook voor admin: geen nieuwe start of hintinhoud, poging blijft exact bewaard",async()=>{
- const u=await mysteryAccount('content_bom',true);const a=await begin(u.id);await actOnMystery(u.id,action(a,'hint'));const before=await prisma.mysteryAttempt.findUniqueOrThrow({where:{id:a.id}});
- for(const patch of [{visibleToUsers:false},{enabled:false},{publicationState:'DRAFT' as const}]){
-  await prisma.contentCollection.update({where:{id:'content_bom'},data:patch});const view=(await getMysteryAttempt(u.id,d))!;assert.equal(view.available,false);assert.deepEqual(view.placements,{});assert.equal(view.hint,null);assert.equal(view.readerHref,null);
-  const other=await mysteryAccount('content_bom',true);await assert.rejects(begin(other.id),/SOURCE_UNAVAILABLE/);
-  assert.equal((await post(u,action(view,'hint'))).status,403);assert.deepEqual(await prisma.mysteryAttempt.findUniqueOrThrow({where:{id:a.id}}),before);await mysteryFixture();
+test("verborgen vrijgegeven adminbron blijft bruikbaar; gewone gebruikers en disabled/DRAFT blijven beschermd",async()=>{
+ for(const isAdmin of [false,true]) {
+  const u=await mysteryAccount('content_bom',isAdmin);const a=await begin(u.id);await actOnMystery(u.id,action(a,'hint'));const before=await prisma.mysteryAttempt.findUniqueOrThrow({where:{id:a.id}});
+  for(const patch of [{visibleToUsers:false},{enabled:false},{publicationState:'DRAFT' as const}]){
+   await prisma.contentCollection.update({where:{id:'content_bom'},data:patch});const view=(await getMysteryAttempt(u.id,d))!;
+   if(isAdmin && 'visibleToUsers' in patch) {
+    assert.equal(view.available,true);assert.ok(view.hint);assert.ok(view.readerHref);
+   } else {
+    assert.equal(view.available,false);assert.deepEqual(view.placements,{});assert.equal(view.hint,null);assert.equal(view.readerHref,null);
+    const other=await mysteryAccount('content_bom',isAdmin);await assert.rejects(begin(other.id),/SOURCE_UNAVAILABLE/);
+    assert.equal((await post(u,action(view,'hint'))).status,403);
+   }
+   assert.deepEqual(await prisma.mysteryAttempt.findUniqueOrThrow({where:{id:a.id}}),before);await mysteryFixture();
+  }
+  await assert.rejects(prisma.contentCollection.delete({where:{id:'content_bom'}}));assert.ok((await getMysteryAttempt(u.id,d))?.available);
  }
- await assert.rejects(prisma.contentCollection.delete({where:{id:'content_bom'}}));assert.ok((await getMysteryAttempt(u.id,d))?.available);
 });
 test("geen synthetische fallback: ontbrekende bron, podcasts, andere familie of niet-ontgrendelde variant",async()=>{
  for(const source of ['content_podcasts','content_fsy']){const u=await mysteryAccount();await prisma.user.update({where:{id:u.id},data:{activeContentCollectionId:source}});

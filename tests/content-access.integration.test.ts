@@ -65,7 +65,7 @@ test("normale legacytekst en tweede taal blijven bereikbaar; ontbrekende bronnen
   assert.equal((await request(`/api/chapters/${cases.get("visible")!.chapterId}`, "GET", undefined, null)).status, 401);
 });
 
-for (const name of ["hidden", "disabled", "draft"]) for (const isAdmin of [false, true]) test(`${name}, admin=${isAdmin}: directe reads en mutations geweigerd; privégegevens blijven byte-identiek`, async () => {
+for (const name of ["hidden", "disabled", "draft"]) for (const isAdmin of (name === "hidden" ? [false] : [false, true])) test(`${name}, admin=${isAdmin}: directe reads en mutations geweigerd; privégegevens blijven byte-identiek`, async () => {
   const f = cases.get(name)!;
   const userId = isAdmin ? admin : normal;
   const requestAs = (path: string, method = "GET", body?: unknown) => request(path, method, body, isAdmin ? adminCookie : cookie);
@@ -112,9 +112,9 @@ for (const name of ["hidden", "disabled", "draft"]) for (const isAdmin of [false
   assert.ok(!JSON.stringify(await bookmarks.json()).includes(f.verseId));
   assert.deepEqual(await snapshot(), before);
   assert.equal(await getContentAvailability({ isAdmin: false }, f.collectionId, "admin-preview"), false);
-  assert.equal(await getContentAvailability({ isAdmin: true }, f.collectionId), false);
+  assert.equal(await getContentAvailability({ isAdmin: true }, f.collectionId), name === "hidden");
   assert.equal(await getContentAvailability({ isAdmin: true }, f.collectionId, "admin-preview"), true);
-  assert.equal(await isContentCollectionSelectable(f.collectionId, true), false);
+  assert.equal(await isContentCollectionSelectable(f.collectionId, true), name === "hidden");
   assert.equal((await requestAs(`/api/chapters/${f.chapterId}?preview=true`)).status, 404);
 });
 
@@ -160,3 +160,5 @@ test("bestaande zichtbare annotaties, bewaren en expliciet lezen blijven werken 
   // Een OTHER-leesfixture is geen speladapter; inhoudelijk lezen blijft geldig.
   const live = await request("/api/live/create", "POST", { chapterId: f.chapterId }); assert.equal(live.status, 403);
 });
+
+test("beheerder kan verborgen vrijgegeven tekst normaal openen; gebruiker niet",async()=>{const f=cases.get("hidden")!;assert.equal((await request(`/api/chapters/${f.chapterId}`,"GET",undefined,adminCookie)).status,200);assert.equal((await request(`/api/chapters/${f.chapterId}`,"GET",undefined,cookie)).status,404);});

@@ -194,7 +194,7 @@ try {
     await prisma.contentCollection.updateMany({where:{work:'fsy'},data:{publicationState:'DRAFT'}});
     await ready('/content');assert.equal(await page.locator('[data-content-work="old-testament"]').count(),0);assert.equal(await page.locator('[data-content-work="pgp"]').count(),0);assert.equal(await page.locator('[data-content-work="fsy"]').count(),0);
     await prisma.user.update({where:{id:user.id},data:{isAdmin:true}});
-    await ready('/content');assert.equal(await page.locator('[data-content-work="old-testament"]').count(),0,'Ook admins krijgen een publieke kiezer zonder verborgen bronnen');
+    await ready('/content');assert.equal(await page.locator('[data-content-work="old-testament"]').count(),1,'Admins mogen verborgen vrijgegeven bronnen selecteren');
     assert.equal(await page.locator('[data-content-picker] a').count(),2);
     assert.equal(await page.locator('[data-admin-content-link]').getAttribute('href'),'/adminbackend/content/inspect');
     assert.equal(await page.locator('[data-hymns-link]').getAttribute('href'),'/dev/lofzangen');

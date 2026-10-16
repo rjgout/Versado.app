@@ -59,8 +59,9 @@ test("echt cataloguscontract: één werk per soort, edities/talen, podcasts OTHE
   assert.equal(c.works.find(w => w.key === `${prefix}-programme`)?.kind, "STUDY_PROGRAM");
   assert.equal(c.works.find(w => w.key === "podcasts")?.kind, "OTHER");
   assert.ok(!c.works.flatMap(w => w.editions).some(e => [ids.hidden,ids.disabled,ids.draft].includes(e.id)));
-  const admin = await context(adminCookie); assert.equal(admin.works.flatMap(w => w.editions).find(e => e.id === ids.hidden)?.selectable, false);
-  for (const auth of [cookie, adminCookie]) for (const name of ["hidden","disabled","draft"]) assert.equal((await choose(ids[name], "/dashboard", undefined, auth)).status, 404);
+  const admin = await context(adminCookie); assert.equal(admin.works.flatMap(w => w.editions).find(e => e.id === ids.hidden)?.selectable, true);
+  for (const auth of [cookie, adminCookie]) for (const name of ["hidden","disabled","draft"]) assert.equal((await choose(ids[name], "/dashboard", undefined, auth)).status, auth === adminCookie && name === "hidden" ? 200 : 404);
+  await choose(ids.nl,"/dashboard",undefined,adminCookie);
 });
 
 test("auth, CSRF, client-userId/preview en externe redirects worden geweigerd", async () => {
