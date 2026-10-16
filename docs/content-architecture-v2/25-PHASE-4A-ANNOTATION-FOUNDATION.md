@@ -8,6 +8,8 @@ workflow-PR #126. Tijdens implementatie zijn #127/#128 voor het leespad in main
 had een conflict; zowel leespad- als annotatietests blijven actief. De aangeleverde audit is gevolgd; alleen annotatiecode en
 noodzakelijke afhankelijkheden zijn gecontroleerd. Geen nieuwe readerbediening,
 studiemap, revisieherstel, FSY-conversie of productiehandeling.
+De latere leespadverbetering #130 (`5370e0f0`) is eveneens zonder conflicten
+geïntegreerd; de uitgebreide leespad-unitreeks slaagt met 20 tests.
 
 ## M4-migratie en databehoud
 
@@ -140,7 +142,7 @@ Lokale controles:
 | Annotatie-integratie/HTTP, privacy, concurrency, DELETE/heraanmaak, pointerrace, taaleditie en terugvalstand | 14 geslaagd, geen skips |
 | Bestaande contenttoegang/inventarisatie-unittests | 40 geslaagd |
 | Live-data-architectuur en invalidatie | 52 geslaagd |
-| Geïntegreerd leespad / Focus | 16 / 28 geslaagd |
+| Geïntegreerd leespad / Focus | 20 / 28 geslaagd |
 | Inventarisatie HTTP/browser op wegwerpdatabase | 20 combinaties + vier vertalingen geslaagd; bronverwijdering behoudt annotaties vóór expliciete fixture-opruiming |
 | Bestaande toegang-, context-, contentwissel-, cursus- en studiecontentregressies | 281 checks geslaagd; annotaties draaien apart op eigen fixtures |
 | Migratieketen en herhaalde migrate deploy | Geslaagd; 146 bestaande tabellen en oorspronkelijke kolomwaarden behouden |
