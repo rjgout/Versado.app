@@ -165,13 +165,31 @@ try {
 
   // 9. formaten, thema's en grote tekst
   progressTo(u.id, "1 Nephi", 11, 1);
-  for (const [w, h, scheme, big, name] of [[320, 640, "light", true, "320-200"], [390, 844, "dark", false, "390-dark"], [768, 1024, "light", false, "tablet"], [1280, 800, "light", false, "desktop"], [390, 560, "light", false, "kort"]]) {
+  for (const [w, h, scheme, big, name] of [[320, 640, "light", true, "320-200"], [320, 640, "light", false, "320"], [390, 844, "dark", false, "390-dark"], [768, 1024, "light", false, "tablet"], [1280, 800, "light", false, "desktop"], [390, 560, "light", false, "kort"]]) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h }, colorScheme: scheme, hasTouch: w < 500 });
     await ctx.addCookies(await u.ctx.cookies());
     if (big) await ctx.addInitScript(() => { document.addEventListener("DOMContentLoaded", () => { document.documentElement.style.fontSize = "200%"; }); });
     const pg = await ctx.newPage(); await pg.goto(`${BASE}/courses/${COURSE}`); await pg.waitForSelector("[data-reading-path]"); await pg.waitForTimeout(1500);
     const ov = await pg.evaluate(() => ({ w: innerWidth, s: document.documentElement.scrollWidth }));
     check(`${name}: geen horizontale overflow`, ov.s <= ov.w + 1, JSON.stringify(ov));
+    const m = await pg.evaluate(() => {
+      const card = document.querySelector('[data-chapter-state="current"] article');
+      const head = card.firstElementChild; const hb = head.getBoundingClientRect(); const h2 = card.querySelector("h2").getBoundingClientRect();
+      const bar = card.querySelector('[role="progressbar"]').getBoundingClientRect();
+      const tiles = [...card.querySelectorAll("ol > li")].map((li) => li.getBoundingClientRect());
+      const cols = new Set(tiles.map((r) => Math.round(r.left))).size;
+      const rows = [...new Set(tiles.map((r) => Math.round(r.top)))].map((top) => new Set(tiles.filter((r) => Math.round(r.top) === top).map((r) => Math.round(r.height))).size);
+      const cb = card.getBoundingClientRect();
+      const done = document.querySelector('[data-chapter-state="done"]:last-of-type, [data-chapter-state="done"]');
+      const doneEls = [...document.querySelectorAll('[data-chapter-state="done"]')]; const dc = doneEls[doneEls.length - 1]; const dr = dc.getBoundingClientRect();
+      const label = dc.querySelector("button span.relative").getBoundingClientRect();
+      const check = dc.querySelector("button > span:not(.relative)").getBoundingClientRect();
+      const overflowX = [...card.querySelectorAll("*")].some((el) => el.getBoundingClientRect().right > cb.right + 1);
+      return { headH: hb.height, h2In: h2.top >= hb.top && h2.bottom <= hb.bottom, barIn: bar.bottom <= hb.bottom + 0.5, cols, rowsEqual: rows.every((n) => n === 1), overflowX, centered: Math.abs((label.top + label.bottom) / 2 - (dr.top + dr.bottom) / 2) < 6, gapToIcon: check.left - label.right };
+    });
+    check(`${name}: actieve kaart met hoge afbeelding, titel en voortgang erop`, m.headH >= 140 && m.h2In && m.barIn, JSON.stringify(m));
+    check(`${name}: stappenraster ${big ? "valt terug naar één kolom" : w < 500 ? "heeft twee kolommen" : "gebruikt de breedte"}, gelijke hoogtes per rij, geen overflow`, (big ? m.cols === 1 : w < 500 ? m.cols === 2 : m.cols >= 2) && m.rowsEqual && !m.overflowX, JSON.stringify(m));
+    check(`${name}: tekst op compacte kaart verticaal gecentreerd en niet tegen het vinkje`, m.centered && m.gapToIcon >= 4, JSON.stringify(m));
     const sv = await stepVisible(pg);
     check(`${name}: de actieve stap staat tussen de vaste balken`, sv.ok, JSON.stringify(sv));
     await pg.screenshot({ path: `${SHOTS}/pad-${name}.png` });
