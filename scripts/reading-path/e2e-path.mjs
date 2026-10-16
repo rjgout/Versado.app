@@ -90,6 +90,17 @@ try {
   const doneStepTile = await page.locator('[data-chapter-state="current"] ol li a').count();
   check("stap 1 (af) blijft openbaar om opnieuw te lezen; vergrendelde stappen zijn geen link", doneStepTile === 2 && (await page.locator('[data-chapter-state="current"] [aria-disabled="true"]').count()) === parts - 2);
   await page.screenshot({ path: `${SHOTS}/pad-390-nephi11.png` });
+  const cardText = await page.locator('[data-chapter-state="current"]').innerText();
+  check("de actieve kaart toont geen statusbadges (Bezig met lezen / Oefeningen x/y)", !/Bezig met lezen|Gelezen|Oefeningen\s*\d/i.test(cardText), cardText.slice(0, 120));
+  const frame = await page.locator('[data-chapter-state="current"] > div').evaluate((el) => { const cs = getComputedStyle(el); const art = el.querySelector("article").getBoundingClientRect(); const r = el.getBoundingClientRect(); return { pad: cs.paddingTop, bg: cs.backgroundImage.startsWith("linear-gradient"), radius: cs.borderTopLeftRadius, inset: [art.left - r.left, art.top - r.top, r.right - art.right, r.bottom - art.bottom], shadow: cs.boxShadow !== "none" }; });
+  check("de actieve kaart heeft een doorlopend accentkader van 2 px rond kaart én beeld, met gloed", frame.pad === "2px" && frame.bg && frame.shadow && frame.inset.every((v) => Math.abs(v - 2) < 0.6), JSON.stringify(frame));
+  const thumbs = await page.evaluate(() => { const all = [...document.querySelectorAll("[data-chapter-thumb] img")]; return { total: all.length, lazy: all.filter((i) => i.loading === "lazy").length, loaded: all.filter((i) => i.complete && i.naturalWidth > 0 && i.currentSrc).length, done: document.querySelectorAll('[data-chapter-state="done"] [data-chapter-thumb]').length, locked: document.querySelectorAll('[data-chapter-state="locked"] [data-chapter-thumb]').length }; });
+  check("miniaturen: afgeronde én toekomstige hoofdstukken hebben er, allemaal lui geladen", thumbs.done > 0 && thumbs.locked > 0 && thumbs.lazy === thumbs.total, JSON.stringify(thumbs));
+  check("miniaturen: van 239 hoofdstukken laadt alleen wat in of ruim naast het beeld staat (minder dan een derde)", thumbs.loaded < thumbs.total / 3, JSON.stringify(thumbs));
+  const lockedCard = page.locator('[data-chapter-state="locked"][data-path-chapter]').first();
+  check("vergrendeld: slotje zichtbaar en kaart niet bedienbaar, ook met miniatuur", (await lockedCard.locator("svg").count()) >= 1 && (await lockedCard.locator("a,button").count()) === 0);
+  const doneCard = page.locator('[data-chapter-state="done"]').last();
+  check("afgerond: vinkje rechts in de kaart, kaart blijft compact", (await doneCard.boundingBox()).height < 90 && (await doneCard.locator("svg").count()) >= 2);
 
   // 3. handmatig scrollen wordt niet overschreven; "Mijn stap" brengt je terug
   const y0 = await page.evaluate(() => scrollY);
@@ -97,11 +108,19 @@ try {
   const y1 = await page.evaluate(() => scrollY);
   check("handmatig omhoog scrollen blijft staan (geen terugspringen)", y1 < y0 - 400 && Math.abs((await page.evaluate(() => scrollY)) - y1) < 2, `${y0}->${y1}`);
   await page.waitForSelector("[data-my-step]", { timeout: 4000 });
+  check("boven de huidige stap wijst 'Naar mijn stap' omlaag", (await page.locator("[data-my-step]").getAttribute("data-direction")) === "down");
   check("'Mijn stap' verschijnt alleen buiten de actieve stap", (await page.locator("[data-my-step]").count()) === 1);
   const myStep = await page.locator("[data-my-step]").boundingBox(); const bb = await bars(page);
   check("'Mijn stap' overlapt de onderste navigatie niet", myStep && myStep.y + myStep.height <= bb.vh - bb.nav + 1, JSON.stringify(myStep));
   await page.locator("[data-my-step]").click(); await page.waitForTimeout(1200);
   check("'Mijn stap' brengt de actieve stap in beeld en verdwijnt dan", (await stepVisible(page)).ok && (await page.locator("[data-my-step]").count()) === 0);
+  await page.mouse.wheel(0, 3000); await page.waitForTimeout(1500);
+  await page.waitForSelector("[data-my-step]", { timeout: 4000 });
+  check("onder de huidige stap wijst 'Naar mijn stap' omhoog", (await page.locator("[data-my-step]").getAttribute("data-direction")) === "up");
+  const lbl = await page.locator("[data-my-step]").innerText();
+  check("label is 'Naar mijn stap' en de knop is compact", /Naar mijn stap/.test(lbl) && (await page.locator("[data-my-step]").boundingBox()).height <= 40, lbl);
+  await page.locator("[data-my-step]").click(); await page.waitForTimeout(1200);
+  check("na terugspringen is de stap zichtbaar en de knop weg", (await stepVisible(page)).ok && (await page.locator("[data-my-step]").count()) === 0);
 
   // 4. hoofdstuk handmatig uitklappen zonder de voortgang te veranderen
   const before = sql(`select count(*) from "UserCourseLessonProgress" where "userId"='${u.id}'`);

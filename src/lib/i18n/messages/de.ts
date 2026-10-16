@@ -837,7 +837,7 @@ export const de: PartialMessages = {
       stepReread: "Erneut lesen",
       chapterDone: "Abgeschlossen",
       chapterLocked: "Gesperrt",
-      myStep: "Mein Schritt",
+      myStep: "Zu meinem Schritt",
       myStepAria: "Zu meinem nächsten Schritt",
     },
     progress: "Fortschritt",

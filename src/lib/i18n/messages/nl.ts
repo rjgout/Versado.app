@@ -465,7 +465,7 @@ export const nl = {
       stepReread: "Opnieuw lezen",
       chapterDone: "Afgerond",
       chapterLocked: "Vergrendeld",
-      myStep: "Mijn stap",
+      myStep: "Naar mijn stap",
       myStepAria: "Ga naar mijn volgende stap",
     },
     progress: "Voortgang",
