@@ -65,7 +65,8 @@ Tekst: coupletten met regels en woorden; een woord heeft een `b` (beat) en event
 (frasering van couplet 1) bekend zijn. De interface gebruikt woordmarkering alleen bij `word`.
 
 Sinds fase 4 zijn dit statische JSON-bestanden per lofzang (`src/lib/hymns/library/data/`, zie `09-NEDERLANDSE-BIBLIOTHEEK.md`) met vaste
-veldnamen (geen woorden als sleutels, zie CLAUDE.md), geladen via een admin-only API. Er is **geen databasemigratie**.
+veldnamen (geen woorden als sleutels, zie CLAUDE.md), geladen via de centraal geautoriseerde API (zie §7). De bibliotheek zelf blijft
+bestandsgebaseerd; uitsluitend de beheerbare zichtbaarheid gebruikt een additieve databasekolom.
 
 ### Later in de database (voorstel, niet gebouwd)
 
@@ -162,32 +163,44 @@ Status: **AANNEMELIJK**, niet gebouwd. De proef bundelt de bibliotheek met de pa
 - **Echo-onderdrukking uit**: `getUserMedia` wordt met `echoCancellation`, `noiseSuppression` en
   `autoGainControl` uit gevraagd. Browsers mogen dat negeren (**ONBEKEND** hoe iOS zich gedraagt).
 
-## 7. Toegang (productie, uitsluitend beheerders)
+## 7. Toegang — beheerbare beschikbaarheid
 
-Stand na de publicatie naar main: **Lofzangen is beschikbaar voor beheerders op de live omgeving**, die
-daarmee ook als testomgeving voor de muziekherkenning met echte instrumenten dient (er is geen
-afzonderlijke testomgeving). Gewone gebruikers hebben geen toegang en zien niets.
+De actuele regel staat in [Contentbeschikbaarheid](../CONTENT-AVAILABILITY.md).
+Lofzangen is een activiteit, geen ContentCollection of Schriftuureditie.
 
-- Route: `/dev/lofzangen` (technische route, zichtbare naam "Lofzangen"). Ingang: de contentkiezer
-  `/content`, sectie "Voor beheerders", uitsluitend voor ingelogde beheerders. De kaart is een gewone
-  link: er wordt **geen** contentcollectie, contenttaal of studievoortgang gewijzigd en er is geen
-  databasewijziging.
-- Beveiliging staat server-side in `src/lib/hymns/access.ts` en wordt zowel door `/content` (zichtbaarheid)
-  als door de route zelf (toegang) gebruikt, met de bestaande `User.isAdmin`:
-  beheerder = toegang; gewone gebruiker = 404; niet ingelogd = redirect naar `/login`.
-- Er is **geen** verplichte omgevingsvariabele. `HYMNS_POC=0` is een optionele noodstop die de route en de
-  kaart ook voor beheerders verbergt.
-- De route staat niet in navigatie of sitemap, `robots: noindex`.
-- Getest in `tests/hymns-privacy.test.ts`, `tests/content-picker.browser.mjs` en met een productieserver
-  (zie `05-TEST-RESULTS.md`, 9). De eerdere gatingresultaten in 7 van dat document beschrijven de
-  oorspronkelijke stand met `HYMNS_POC=1`.
+- Adminbackend → Content bevat dezelfde zichtbaarheidsschakelaar als het overige
+  contentbeheer: `ContentSwitcherSettings.hymnsVisibleToUsers`, standaard `false`.
+  De algemene switcherinstelling blijft onafhankelijk. Een nieuwe installatie,
+  migratie of image-update stelt Lofzangen niet automatisch publiek beschikbaar.
+- De gewone `/content`-kiezer toont één Lofzangen-kaart wanneer
+  `getHymnsAccess()` toegang geeft. Geen aparte beheerderssectie en geen wijziging
+  van actieve collectie, contenttaal, cursus of studiecontext bij openen.
+- `src/lib/hymnAvailability.ts` gebruikt dezelfde beslissing voor picker, pagina
+  en alle vijf API-routes. `src/lib/hymns/access.ts` is de pure regel. De lokale
+  audio-engine gebruikt geen database of netwerk voor deze instelling.
+- Een beheerder heeft toegang met de gewone zichtbaarheid uit; gewone gebruikers
+  alleen met zichtbaarheid aan. Anonieme paginabezoekers volgen de inlogflow;
+  verborgen pagina’s en ongeautoriseerde API-verzoeken geven 404.
+- `HYMNS_POC=0` blokkeert iedereen, ook admins, onafhankelijk van `NODE_ENV` of
+  de backendkeuze. De backend meldt de technische noodstop. Geen nieuwe env-flag.
+- Beschermde HTTP-responses zijn `private, no-store`; JSON varieert ook op Cookie.
+  Een expliciete 401/403/404 bij het laden van de index gebruikt geen oude lokale
+  index als fallback. Offline opslag van eerder geautoriseerde muziekinhoud
+  blijft bestaan; reeds afgeleverde bytes zijn niet op afstand terug te halen.
+- `/api/hymns/report` houdt zijn bestaande aanvullende adminbeperking: het is
+  kwaliteitsdiagnostiek, niet een tweede publieke beschikbaarheidsinstelling.
+- Bestaande route `/dev/lofzangen`, Focus-shell, robots/noindex en terugnavigatie
+  blijven behouden. De nieuwe labels gebruiken alle vijf UI-talen.
+- Controle via `npm run test:hymns` en `npm run test:hymns:availability`.
+  Historische proefresultaten in `05-TEST-RESULTS.md` beschrijven de oude gating.
 - Microfoon in de browser: `getUserMedia` vereist HTTPS (de live site heeft dat). Mobiele Safari en Chrome zijn
   **niet** getest; in de Capacitor-apps (remote-preview) zijn extra native permissies nodig
   (`NSMicrophoneUsageDescription` op iOS, `RECORD_AUDIO` en een toestemmingsafhandeling van de WebView op
   Android). Die zijn bewust niet toegevoegd; gebruik in de app is dus **ONBEKEND** tot dat gebeurt.
-- Teksten van de proef staan bewust nog buiten het i18n-systeem (`components/hymns-poc/copy.ts`);
-  dat is toelaatbaar omdat de pagina niet publiek is en moet bij een echte functie alsnog via
-  `src/lib/i18n/messages`.
+- De bestaande Nederlandstalige zangboek-/proefbediening in `components/hymns-poc/copy.ts`
+  blijft in deze beschikbaarheidsopdracht behouden. De beschikbaarheidsbediening en
+  contentkaart zijn in alle vijf UI-talen vertaald; een volledige vertaling van
+  de experimentele muziekschermen is geen onderdeel van deze wijziging.
 - Kompas: een echte functie krijgt een uitlegonderwerp in het register (zie `docs/KOMPAS.md`). Niet
   nodig voor een niet-publieke proef.
 

@@ -7,11 +7,11 @@ import { loadSheetData, readManifest } from "@/lib/hymns/library/server";
 export const dynamic = "force-dynamic";
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ number: string }> }) {
-  if (!(await hymnsApiAllowed())) return new NextResponse(null, { status: 404 });
+  if (!(await hymnsApiAllowed())) return new NextResponse(null, { status: 404, headers: { "Cache-Control": "private, no-store", Vary: "Cookie" } });
   const { number } = await ctx.params;
   const n = Number(number);
-  if (!Number.isInteger(n) || n < 1 || n > 9999) return new NextResponse(null, { status: 404 });
+  if (!Number.isInteger(n) || n < 1 || n > 9999) return new NextResponse(null, { status: 404, headers: { "Cache-Control": "private, no-store", Vary: "Cookie" } });
   const sheet = loadSheetData(n);
-  if (!sheet) return new NextResponse(null, { status: 404 });
-  return NextResponse.json({ dataVersion: readManifest().dataVersion, sheet }, { headers: { "Cache-Control": "private, max-age=300" } });
+  if (!sheet) return new NextResponse(null, { status: 404, headers: { "Cache-Control": "private, no-store", Vary: "Cookie" } });
+  return NextResponse.json({ dataVersion: readManifest().dataVersion, sheet }, { headers: { "Cache-Control": "private, no-store", Vary: "Cookie" } });
 }

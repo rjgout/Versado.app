@@ -4,6 +4,16 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - 'src/lib/hymnAvailability.ts'
+      - 'src/lib/hymnLibraryClient.ts'
+      - 'src/lib/hymns/access.ts'
+      - 'src/lib/hymns/apiAccess.ts'
+      - 'src/app/dev/lofzangen/**'
+      - 'src/app/api/hymns/**'
+      - 'src/app/api/admin/content-switcher/**'
+      - 'src/components/AdminContentSwitcherClient.tsx'
+      - 'tests/hymns-availability*'
+      - 'tests/hymns-visibility-migration.mjs'
       - 'prisma/schema.prisma'
       - 'prisma/migrations/**'
       - 'src/lib/mysteries/**'
@@ -361,4 +371,40 @@ jobs:
         with:
           name: cfm-2026-import-browser
           path: /tmp/versado-cfm-import-browser
+          if-no-files-found: ignore
+
+  hymns-availability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
+      SESSION_SECRET: hymns-ci-build-only-secret
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Schema, types, bestaande Lofzangen-regressies en productiebuild
+        run: |
+          npx prisma validate
+          npm run db:generate
+          npx tsc --noEmit
+          npm run test:hymns
+          npm run test:proxy
+          npm run build
+      - name: Browser klaarzetten
+        run: |
+          npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
+          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Geïsoleerde migratie, backend, toegang, herstart en browser
+        run: npm run test:hymns:availability
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hymns-availability-browser
+          path: /tmp/versado-hymns-availability-browser
           if-no-files-found: ignore

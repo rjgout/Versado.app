@@ -6,7 +6,7 @@ import { listIndex, readManifest } from "@/lib/hymns/library/server";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  if (!(await hymnsApiAllowed())) return new NextResponse(null, { status: 404 });
+  if (!(await hymnsApiAllowed())) return new NextResponse(null, { status: 404, headers: { "Cache-Control": "private, no-store", Vary: "Cookie" } });
   const manifest = readManifest();
-  return jsonMaybeGzip(req, `index:${manifest.dataVersion}`, { dataVersion: manifest.dataVersion, hymns: listIndex() }, { "Cache-Control": "private, max-age=300" });
+  return jsonMaybeGzip(req, `index:${manifest.dataVersion}`, { dataVersion: manifest.dataVersion, hymns: listIndex() }, { "Cache-Control": "private, no-store" });
 }

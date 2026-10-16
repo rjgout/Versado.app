@@ -7,23 +7,27 @@ import {
   setContentCollectionVisibility,
   updateContentSwitcherSettings,
 } from "@/lib/contentCollections";
+import { prisma } from "@/lib/db";
+import { hymnsTechnicallyAvailable } from "@/lib/hymnAvailability";
+import { inventoryOriginAllowed } from "@/lib/content-inventory/origin";
 import { apiError } from "@/lib/apiError";
 
 const bodySchema = z.union([
-  z.object({ enabled: z.boolean() }),
-  z.object({ contentCollectionId: z.string().min(1), visibleToUsers: z.boolean() }),
+  z.object({ enabled: z.boolean() }).strict(),
+  z.object({ activity: z.literal("hymns"), visibleToUsers: z.boolean() }).strict(),
+  z.object({ contentCollectionId: z.string().min(1).max(256), visibleToUsers: z.boolean() }).strict(),
 ]);
 
 async function snapshot() {
   const [settings, collections] = await Promise.all([getContentSwitcherSettings(), listContentCollectionsForAdmin()]);
-  return { ...settings, collections };
+  return { ...settings, collections, hymnsTechnicallyAvailable: hymnsTechnicallyAvailable() };
 }
 
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
   if (!user.isAdmin) return await apiError("apiErrors.forbidden", 403);
-  return NextResponse.json(await snapshot());
+  return NextResponse.json(await snapshot(), { headers: { "Cache-Control": "no-store, private", Vary: "Cookie" } });
 }
 
 export async function PUT(req: NextRequest) {
@@ -31,12 +35,20 @@ export async function PUT(req: NextRequest) {
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
   if (!user.isAdmin) return await apiError("apiErrors.forbidden", 403);
 
+  if (!inventoryOriginAllowed(req.headers, req.url, process.env.APP_URL)) return await apiError("apiErrors.forbidden", 403);
+
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return await apiError("apiErrors.invalidInput", 400);
 
   const body = parsed.data;
   if ("enabled" in body) {
     await updateContentSwitcherSettings(body.enabled);
+  } else if ("activity" in body) {
+    await prisma.contentSwitcherSettings.upsert({
+      where: { id: "singleton" },
+      create: { id: "singleton", hymnsVisibleToUsers: body.visibleToUsers },
+      update: { hymnsVisibleToUsers: body.visibleToUsers },
+    });
   } else {
     try {
       await setContentCollectionVisibility(body.contentCollectionId, body.visibleToUsers);
@@ -47,5 +59,5 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: message }, { status: 400 });
     }
   }
-  return NextResponse.json(await snapshot());
+  return NextResponse.json(await snapshot(), { headers: { "Cache-Control": "no-store, private", Vary: "Cookie" } });
 }

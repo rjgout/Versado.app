@@ -67,7 +67,7 @@ try {
     assert.equal(await page.locator('[data-content-menu]').count(),0);
     assert.equal(await page.locator('[data-content-picker] details, [data-content-picker] summary').count(),0);
     assert.equal(await page.locator('[data-content-picker] a').count(),0,'Geen beheerlinks voor gewone gebruikers');
-    assert.equal(await page.locator('[data-admin-hymns-link]').count(),0,'Proef niet zichtbaar voor gewone gebruikers');
+    assert.equal(await page.locator('[data-hymns-link]').count(),0,'Proef niet zichtbaar voor gewone gebruikers');
     assert.ok(!(await page.locator('[data-content-work]').allTextContents()).some(text=>text.includes('Beschikbaar in ')));
     const chips=await page.locator('[data-content-language] button').evaluateAll(buttons=>buttons.map(button=>({name:button.textContent,height:button.getBoundingClientRect().height,width:button.clientWidth,scrollWidth:button.scrollWidth,overflow:button.scrollWidth>button.clientWidth+1})));
     for(const chip of chips){assert.ok(chip.height>=44);assert.equal(chip.overflow,false,`${width}/${font}: taalchip blijft leesbaar zonder clipping: ${JSON.stringify(chip)}`);}
@@ -197,8 +197,8 @@ try {
     await ready('/content');assert.equal(await page.locator('[data-content-work="old-testament"]').count(),0,'Ook admins krijgen een publieke kiezer zonder verborgen bronnen');
     assert.equal(await page.locator('[data-content-picker] a').count(),2);
     assert.equal(await page.locator('[data-admin-content-link]').getAttribute('href'),'/adminbackend/content/inspect');
-    assert.equal(await page.locator('[data-admin-hymns-link]').getAttribute('href'),'/dev/lofzangen');
-    await page.locator('[data-admin-hymns-link]').click();await page.waitForURL(`${base}/dev/lofzangen`);
+    assert.equal(await page.locator('[data-hymns-link]').getAttribute('href'),'/dev/lofzangen');
+    await page.locator('[data-hymns-link]').click();await page.waitForURL(`${base}/dev/lofzangen`);
     assert.equal(await page.locator('h1').filter({hasText:'Kies een lofzang'}).count(),1);assert.ok(/Lofzangen/.test(await page.locator('[data-subpage-back-bar]').innerText()),'De terugbalk draagt de naam Lofzangen');
     await ready('/content');
     assert.ok(await page.locator('[data-admin-content-link]').evaluate(el=>el.getBoundingClientRect().top>=document.querySelector('[data-content-language]').getBoundingClientRect().bottom));
@@ -236,7 +236,7 @@ try {
     await prisma.contentCollection.updateMany({data:{enabled:false}});
     const preserved=await prisma.user.findUniqueOrThrow({where:{id:user.id}});
     await ready('/content');assert.equal(await page.locator('[data-content-work]').count(),0);assert.equal(await page.locator('[data-content-group]').count(),2);
-    assert.equal(await page.locator('[data-admin-hymns-link]').count(),0);
+    assert.equal(await page.locator('[data-hymns-link]').count(),0);
     assert.equal((await prisma.user.findUniqueOrThrow({where:{id:user.id}})).activeContentCollectionId,preserved.activeContentCollectionId);
   } finally {
     await prisma.user.update({where:{id:user.id},data:{isAdmin:false}});

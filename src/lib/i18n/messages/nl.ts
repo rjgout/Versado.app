@@ -355,6 +355,7 @@ export const nl = {
   },
   contentSwitcher: {
     picker: {
+      hymnsHelp: "Zangboek, live meelezen en bladmuziek.",
       "title": "Kies je content",
       "intro": "Kies een bron om mee te leren en spelen. Je voortgang blijft bewaard.",
       "scriptures": "Schriften",
@@ -4028,6 +4029,7 @@ export const nl = {
     faviconText: "Het icoontje in het browsertabblad — verschijnt ook als voorvertoning bij het delen van een link (WhatsApp, Telegram e.d.). Minimaal 200×200px.",
   },
   adminContent: {
+    hymnsEmergencyStop: "Technisch uitgeschakeld via HYMNS_POC=0.",
     saveFailed: "Opslaan mislukt.",
     title: "Content",
     intro: "Zet de contentswitcher voor gebruikers aan of uit, en kies welke content gebruikers daarin te zien krijgen.",
@@ -4035,7 +4037,7 @@ export const nl = {
     disabled: "Uitgeschakeld",
     visible: "Zichtbaar voor gebruikers",
     hidden: "Verborgen",
-    note: "Beheerders zien altijd alle content, ook verborgen content, zodat je die eerst kunt bekijken. Minstens één content blijft zichtbaar. Wie verborgen content open had, gaat terug naar de eerste zichtbare. Met één zichtbare content toont de switcher zich niet voor gebruikers.",
+    note: "Verborgen bronnen kun je via Beheercontent bekijken inspecteren; concepten blijven in de beheerpreview. Minstens één collectie blijft zichtbaar. Lofzangen heeft een eigen zichtbaarheid en verandert de gekozen bron niet. De algemene schakelaar hierboven regelt alleen de ingang naar de contentkiezer.",
   },
   adminFeedback: {
     none: "Nog geen meldingen.",

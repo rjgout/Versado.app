@@ -1,4 +1,5 @@
 import type { Prisma } from "@/generated/prisma/client";
+import { getHymnsAccess } from "@/lib/hymnAvailability";
 import { availableGameKeys } from "@/lib/gameAvailability";
 import { prisma } from "@/lib/db";
 import { collectionAccessWhere, getContentAvailability } from "@/lib/contentAccess";
@@ -132,9 +133,9 @@ function selectableWhere(isAdmin: boolean) {
   return collectionAccessWhere({ isAdmin }, "catalog");
 }
 
-export async function getContentSwitcherSettings(): Promise<{ enabled: boolean }> {
+export async function getContentSwitcherSettings(): Promise<{ enabled: boolean; hymnsVisibleToUsers: boolean }> {
   const row = await prisma.contentSwitcherSettings.findUnique({ where: { id: "singleton" } });
-  return { enabled: row?.enabled ?? false };
+  return { enabled: row?.enabled ?? false, hymnsVisibleToUsers: row?.hymnsVisibleToUsers ?? false };
 }
 
 /** Nieuwe spelstarts gebruiken gewone rechten en nooit een vervangende bron bij ingetrokken toegang. */
@@ -180,11 +181,12 @@ export async function getContentContext(userId: string): Promise<ContentContext>
   );
 
   const gameKeys = available.length ? await availableGameKeys(selected.id) : [];
+  const hymnsAvailable = (await getHymnsAccess(user, prisma, settings)) === "allow";
 
   return {
     // Met maar één zichtbare collectie valt er niets te wisselen.
     studyContexts: user ? await getStudyContexts({ id: userId, isAdmin: user.isAdmin }) : [],
-    switcherEnabled: settings.enabled && available.length > 1,
+    switcherEnabled: settings.enabled && (available.length > 1 || hymnsAvailable),
     active: selected,
     collections: available,
     gameKeys,
@@ -260,7 +262,7 @@ export async function getContentPickerContext(userId: string, db = prisma): Prom
   const readable = works.flatMap(w => w.editions).filter(e => e.selectable);
   const selected = readable.find(e => e.id === user.activeContentCollectionId)
     ?? pickEditions(readable, user.contentLanguage)[0]?.edition;
-  return { selectionVersion: user.contentSelectionVersion, selection: { activeContentCollectionId: user.activeContentCollectionId, contentLanguage: user.contentLanguage }, activeCollectionId: selected?.id ?? null, works };
+  return { hymnsAvailable: (await getHymnsAccess(user, db)) === "allow", selectionVersion: user.contentSelectionVersion, selection: { activeContentCollectionId: user.activeContentCollectionId, contentLanguage: user.contentLanguage }, activeCollectionId: selected?.id ?? null, works };
 }
 
 export class ContentSelectionConflict extends Error {

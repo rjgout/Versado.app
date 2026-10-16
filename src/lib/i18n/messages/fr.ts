@@ -729,6 +729,7 @@ export const fr: PartialMessages = {
   },
   contentSwitcher: {
     picker: {
+      hymnsHelp: "Recueil de cantiques, lecture synchronisée et partitions.",
       "title": "Choisis ton contenu",
       "intro": "Choisis une source pour apprendre et jouer. Ta progression reste enregistrée.",
       "scriptures": "Écritures",
@@ -3526,6 +3527,7 @@ export const fr: PartialMessages = {
     faviconText: "L’icône de l’onglet du navigateur — apparaît aussi en aperçu lors du partage d’un lien (WhatsApp, Telegram, etc.). Minimum 200×200px.",
   },
   adminContent: {
+    hymnsEmergencyStop: "Désactivé techniquement via HYMNS_POC=0.",
     saveFailed: "Échec de l’enregistrement.",
     title: "Contenu",
     intro: "Active ou désactive le sélecteur de contenu pour les utilisateurs, et choisis le contenu qu’ils y voient.",
@@ -3533,7 +3535,7 @@ export const fr: PartialMessages = {
     disabled: "Désactivé",
     visible: "Visible pour les utilisateurs",
     hidden: "Masqué",
-    note: "Les administrateurs voient toujours tout le contenu, même masqué, pour pouvoir le vérifier d’abord. Au moins un contenu reste visible. Qui avait un contenu masqué ouvert revient au premier visible. Avec un seul contenu visible, le sélecteur n’est pas affiché aux utilisateurs.",
+    note: "Consultez les sources masquées dans le contenu administré ; les brouillons restent dans l’aperçu administrateur. Au moins une collection reste visible. Les cantiques ont leur propre visibilité sans modifier la source choisie. Le bouton général contrôle uniquement l’accès au sélecteur de contenu.",
   },
   adminFeedback: {
     none: "Aucun signalement pour l’instant.",

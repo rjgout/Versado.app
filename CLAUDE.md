@@ -169,10 +169,47 @@ niet de standaard. Native permissies worden pas toegevoegd wanneer de feature
 ze daadwerkelijk nodig heeft. De bestaande webpush blijft losstaan van
 toekomstige APNs/FCM-push.
 
+## Harde regel: beheerbare beschikbaarheid van alle nieuwe content
+
+Zie `docs/CONTENT-AVAILABILITY.md`. Deze regels gelden voor Schrifturen,
+studieprogramma’s, Lofzangen en toekomstige contentactiviteiten:
+
+- **A — Backend bepaalt beschikbaarheid.** Sluit nieuwe gebruikersgerichte content
+  aan op het bestaande beheer onder Adminbackend → Content. Bouw geen tweede
+  zichtbaarheidssysteem; de beheerder bepaalt de gewone gebruikerstoegang.
+- **B — Eerst testen door beheer.** Nieuwe content blijft standaard verborgen.
+  Beheerders kunnen technisch beschikbare, inhoudelijk vrijgegeven content vooraf
+  testen. Echte DRAFT-revisies blijven uitsluitend in de expliciete beheerpreview;
+  verruim daarvoor nooit gewone readerrechten.
+- **C — Geen hardcoded productiegate.** Gebruik `NODE_ENV === "production"`,
+  hardcoded admin-only regels of tijdelijke featureflags niet als permanente
+  publicatie-/zichtbaarheidsschakelaar. Een technische noodstop mag blijven,
+  geldt ook voor admins en vervangt de backendinstelling niet.
+- **D — Eén serverbeleid.** De kiezer, navigatie, pagina, directe URL en alle
+  bijbehorende API-/gegevensverzoeken gebruiken dezelfde server-side beslissing.
+  Verberg niet alleen een knop. Controleer rechten vóór gegevensladen en zorg
+  dat beschermde HTTP-caches een ingetrokken recht niet omzeilen.
+- **E — Het juiste domeinmodel.** Een activiteit is niet vanzelf een Schriftuur-
+  of studiecollectie. Onderzoek eerst bestaande modellen; breid bestaande
+  instellingen minimaal uit. Geen fictieve werken/edities, dubbele schakelaars
+  of onnodige wijziging van actieve bron, taal of lescontext.
+- **F — Publicatie is geen zichtbaarheid.** Onderscheid technisch aanwezige data,
+  conceptrevisies, inhoudelijke vrijgave en beschikbaarstelling aan gebruikers.
+  Een zichtbaarheidsschakelaar publiceert nooit een DRAFT-revisie en omzeilt geen
+  bestaande bron-, media- of referentiegate.
+- **G — Standaard verborgen.** Defaultwaarden, migraties, seed en deployment
+  schakelen nieuwe content nooit vanzelf publiek in. Bestaande collecties,
+  gebruikerskeuzes, voortgang en beloningen blijven behouden.
+- **H — Verplichte rechtenmatrix.** Test admin en gewone gebruiker met zichtbaarheid
+  uit én aan, anoniem, directe pagina/API, de kiezer/navigatie en een eventuele
+  noodstop. Test blijvende instellingen, veilige caches en regressies. Gebruik
+  uitsluitend geïsoleerde databasegegevens; productie-uitrol vraagt apart akkoord.
+
 ## Lofzangen (technische proef): live meezingen
 
-Beschikbaar op de live omgeving voor uitsluitend beheerders (via de contentkiezer `/content`, sectie
-"Voor beheerders"; gewone gebruikers krijgen 404; optionele noodstop `HYMNS_POC=0`). De muziekherkenning is
+Beschikbaarheid wordt beheerd onder Adminbackend → Content (`ContentSwitcherSettings.hymnsVisibleToUsers`, standaard uit).
+Beheerders houden toegang zolang `HYMNS_POC=0` niet actief is; gewone gebruikers alleen na inschakelen.
+De gewone contentkiezer toont de activiteit zonder bron-/taalwissel. Eén serverguard staat in `src/lib/hymnAvailability.ts`. De muziekherkenning is
 nog in ontwikkeling en niet getest met echte kerkuitvoeringen. De telefoon luistert naar orgel of piano, volgt de
 partituur en toont de juiste tekstregel (`docs/hymns/`, lees `02-ARCHITECTURE.md` vóór je eraan
 werkt). Code: `src/lib/hymns/` (engine en gegevens), `src/components/hymns-poc/`, route
@@ -220,9 +257,9 @@ Harde regels:
 - **Bibliotheek (fase 4)**: de volledige huidige Nederlandse bibliotheek (205 lofzangen) staat als afgeleide, in git versioneerde
   gegevens in `src/lib/hymns/library/data/` (manifest, zoekindex, `text/`, `music/`, `link/`, kalibratie). Die bestanden worden gemaakt door
   `scripts/hymns/*.py` (zie `docs/hymns/09-NEDERLANDSE-BIBLIOTHEEK.md`): nooit met de hand bewerken, en de bronbestanden (PDF, opnamen)
-  nooit in git. Geladen wordt per lofzang via de admin-only API `/api/hymns/*` (404 voor anderen; `src/lib/hymns/apiAccess.ts`) en
+  nooit in git. Geladen wordt per lofzang via de geautoriseerde API `/api/hymns/*` (centrale toegang: `src/lib/hymnAvailability.ts`, routeguard: `src/lib/hymns/apiAccess.ts`) en
   `src/lib/hymns/library/server.ts`; de client (`src/lib/hymnLibraryClient.ts`, IndexedDB) staat bewust buiten `src/lib/hymns`.
-  Geen bibliotheekgegevens in de eerste JS-bundel en geen enkele database-migratie.
+  Geen bibliotheekgegevens in de eerste JS-bundel en geen databaseopslag voor muziekdata; alleen de beheerbare beschikbaarheid gebruikt de bestaande ContentSwitcherSettings.
 - **Alleen gevalideerde muziek wordt gebruikt**: `capabilities` in het manifest bepalen wat een lofzang kan (alleen tekst, regelvolging,
   woordvolging, herkenning). Een partituur met extractieproblemen, tekstafwijkingen of herhalingstekens wordt niet opgeslagen en nooit
   voor herkenning of volgen gebruikt; de tekst blijft leesbaar. Een lofzang zonder tekst door een licentie-uitzondering (54, 151) behoudt
@@ -244,7 +281,7 @@ Harde regels:
   (`src/lib/hymns/notation/`, `library/data/notation/`, afgeleid door `scripts/hymns/build_nld_notation.py`) staat los van de analysegegevens en wijzigt die nooit.
   Tekst staat alleen onder de noten bij een gevalideerde lettergreepkoppeling (`SheetStanzaStatus.status === "ok"`); nooit lettergreepposities verzinnen. Maatmarkering
   alleen bij een betrouwbare positie, tijdens de zang en een gevalideerd couplet (`markableMeasure`). Verander je de notatie of `musicxml.ts`, verhoog `NOTATION_VERSION`.
-  Er is geen PDF-fallback zolang de rechten niet zijn bevestigd; `/api/hymns/*/sheet` blijft admin-only (404 voor anderen).
+  Er is geen PDF-fallback zolang de rechten niet zijn bevestigd; `/api/hymns/*/sheet` volgt dezelfde centrale beschikbaarheidsregel (404 zonder toegang).
 - Nieuwe tekst in de proef gaat bij een echte functie via i18n in alle `uiReady`-talen.
 
 ## Techstack

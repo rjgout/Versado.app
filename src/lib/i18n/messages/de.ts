@@ -729,6 +729,7 @@ export const de: PartialMessages = {
   },
   contentSwitcher: {
     picker: {
+      hymnsHelp: "Gesangbuch, live mitlesen und Noten.",
       "title": "Wähle deine Inhalte",
       "intro": "Wähle eine Quelle zum Lernen und Spielen. Dein Fortschritt bleibt gespeichert.",
       "scriptures": "Heilige Schriften",
@@ -3526,6 +3527,7 @@ export const de: PartialMessages = {
     faviconText: "Das Symbol im Browsertab — erscheint auch als Vorschau beim Teilen eines Links (WhatsApp, Telegram usw.). Mindestens 200×200px.",
   },
   adminContent: {
+    hymnsEmergencyStop: "Technisch deaktiviert über HYMNS_POC=0.",
     saveFailed: "Speichern fehlgeschlagen.",
     title: "Inhalte",
     intro: "Schalte den Inhaltswechsler für Benutzer ein oder aus und wähle, welche Inhalte sie darin sehen.",
@@ -3533,7 +3535,7 @@ export const de: PartialMessages = {
     disabled: "Deaktiviert",
     visible: "Für Benutzer sichtbar",
     hidden: "Verborgen",
-    note: "Admins sehen immer alle Inhalte, auch verborgene, damit du sie zuerst ansehen kannst. Mindestens ein Inhalt bleibt sichtbar. Wer verborgene Inhalte geöffnet hatte, kommt zum ersten sichtbaren zurück. Bei nur einem sichtbaren Inhalt wird der Wechsler Benutzern nicht angezeigt.",
+    note: "Verborgene Quellen lassen sich über Verwaltungsinhalte ansehen prüfen; Entwürfe bleiben in der Verwaltungsvorschau. Mindestens eine Sammlung bleibt sichtbar. Gesangbuch hat eine eigene Sichtbarkeit und ändert die gewählte Quelle nicht. Der allgemeine Schalter steuert nur den Zugang zur Inhaltsauswahl.",
   },
   adminFeedback: {
     none: "Noch keine Meldungen.",

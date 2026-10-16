@@ -729,6 +729,7 @@ export const en: PartialMessages = {
   },
   contentSwitcher: {
     picker: {
+      hymnsHelp: "Hymnbook, live reading and sheet music.",
       "title": "Choose your content",
       "intro": "Choose a source to learn and play with. Your progress stays saved.",
       "scriptures": "Scriptures",
@@ -3526,6 +3527,7 @@ export const en: PartialMessages = {
     faviconText: "The icon in the browser tab — also appears as a preview when sharing a link (WhatsApp, Telegram etc.). At least 200×200px.",
   },
   adminContent: {
+    hymnsEmergencyStop: "Technically disabled via HYMNS_POC=0.",
     saveFailed: "Saving failed.",
     title: "Content",
     intro: "Turn the content switcher on or off for users, and choose which content users see in it.",
@@ -3533,7 +3535,7 @@ export const en: PartialMessages = {
     disabled: "Disabled",
     visible: "Visible to users",
     hidden: "Hidden",
-    note: "Admins always see all content, including hidden content, so you can review it first. At least one content stays visible. Anyone who had hidden content open goes back to the first visible one. With one visible content, the switcher isn't shown to users.",
+    note: "Inspect hidden sources through View managed content; drafts remain in admin preview. At least one collection stays visible. Hymns has its own visibility and does not change the selected source. The general switch above only controls the content-picker entry.",
   },
   adminFeedback: {
     none: "No reports yet.",

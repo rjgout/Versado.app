@@ -1,13 +1,10 @@
 import { getCurrentUser } from "@/lib/session";
-import { hymnsPocAccess } from "@/lib/hymns/access";
+import { getHymnsAccess } from "@/lib/hymnAvailability";
 
 // Toegang tot de Lofzangen-API: dezelfde regel als de pagina (hymnsPocAccess). Wie geen toegang heeft, krijgt 404
 // (niet 401/403), zodat de bestaansreden van de routes niet te raden is. Alleen vanuit route handlers gebruiken.
 export async function hymnsApiAllowed(): Promise<boolean> {
-  const production = process.env.NODE_ENV === "production";
-  const flag = process.env.HYMNS_POC;
-  const user = await getCurrentUser();
-  return hymnsPocAccess({ production, flag, loggedIn: Boolean(user), isAdmin: Boolean(user?.isAdmin) }) === "allow";
+  return (await getHymnsAccess(await getCurrentUser())) === "allow";
 }
 
 // De aangepaste server (server.ts) comprimeert antwoorden niet zelf; de grote bibliotheekantwoorden (herkenningsbundel ~0,5 MB,
@@ -20,7 +17,7 @@ const compressed = new Map<string, Buffer>();
 
 export function jsonMaybeGzip(req: Request, key: string, body: unknown, headers: Record<string, string> = {}): NextResponse {
   const wantsGzip = /\bgzip\b/.test(req.headers.get("accept-encoding") ?? "");
-  const base = { "Content-Type": "application/json", Vary: "Accept-Encoding", ...headers };
+  const base = { "Content-Type": "application/json", Vary: "Cookie, Accept-Encoding", ...headers };
   if (!wantsGzip) return new NextResponse(JSON.stringify(body), { headers: base });
   let buf = compressed.get(key);
   if (!buf) {

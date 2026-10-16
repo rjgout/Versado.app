@@ -854,10 +854,12 @@ model GameContentScope {
 }
 
 // Singleton: bepaalt alleen of de contentswitcher voor gewone gebruikers
-// zichtbaar is. De inhoud zelf komt uit ContentCollection.
+// zichtbaar is. Collecties komen uit ContentCollection; de activiteit Lofzangen
+// heeft hieronder één afzonderlijke publieke zichtbaarheid, geen fictieve editie.
 model ContentSwitcherSettings {
   id      String  @id @default("singleton")
   enabled Boolean @default(false)
+  hymnsVisibleToUsers Boolean @default(false)
 }
 
 // Singleton voor de automatische FSY-broncontrole. Nieuwe inhoud komt eerst

@@ -7,7 +7,7 @@ import { loadRecognitionBundle, readManifest } from "@/lib/hymns/library/server"
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  if (!(await hymnsApiAllowed())) return new NextResponse(null, { status: 404 });
+  if (!(await hymnsApiAllowed())) return new NextResponse(null, { status: 404, headers: { "Cache-Control": "private, no-store", Vary: "Cookie" } });
   const version = readManifest().dataVersion;
-  return jsonMaybeGzip(req, `recognition:${version}`, { dataVersion: version, ...loadRecognitionBundle() }, { "Cache-Control": "private, max-age=3600" });
+  return jsonMaybeGzip(req, `recognition:${version}`, { dataVersion: version, ...loadRecognitionBundle() }, { "Cache-Control": "private, no-store" });
 }

@@ -290,21 +290,18 @@ test("microfoon: opnieuw starten na stoppen levert een schone nieuwe sessie zond
 
 import { hymnsPocAccess } from "../src/lib/hymns/access";
 
-test("toegang: in productie voor admins, noodstop en gewone gebruikers geblokkeerd", () => {
-  assert.equal(hymnsPocAccess({ production: true, flag: undefined, loggedIn: true, isAdmin: true }), "allow");
-  assert.equal(hymnsPocAccess({ production: true, flag: "0", loggedIn: true, isAdmin: true }), "hidden");
-  assert.equal(hymnsPocAccess({ production: true, flag: undefined, loggedIn: true, isAdmin: false }), "hidden");
-  assert.equal(hymnsPocAccess({ production: true, flag: "1", loggedIn: true, isAdmin: false }), "hidden");
-  assert.equal(hymnsPocAccess({ production: true, flag: "1", loggedIn: false, isAdmin: false }), "login");
-  assert.equal(hymnsPocAccess({ production: true, flag: "1", loggedIn: true, isAdmin: true }), "allow");
+test("toegang: beheerbare zichtbaarheid, sessie en technische noodstop", () => {
+  for (const visibleToUsers of [false, true]) for (const isAdmin of [false, true]) {
+    const input = { visibleToUsers, isAdmin, loggedIn: true, flag: undefined as string | undefined };
+    assert.equal(hymnsPocAccess(input), isAdmin || visibleToUsers ? "allow" : "hidden");
+    assert.equal(hymnsPocAccess({ ...input, flag: "0" }), "hidden");
+    assert.equal(hymnsPocAccess({ ...input, loggedIn: false }), "login");
+    assert.equal(hymnsPocAccess({ ...input, flag: "0", loggedIn: false }), "hidden");
+    assert.equal(hymnsPocAccess({ ...input, flag: "1" }), isAdmin || visibleToUsers ? "allow" : "hidden");
+  }
 });
 
-test("toegang: in ontwikkeling voor elke ingelogde gebruiker", () => {
-  assert.equal(hymnsPocAccess({ production: false, flag: undefined, loggedIn: true, isAdmin: false }), "allow");
-  assert.equal(hymnsPocAccess({ production: false, flag: undefined, loggedIn: false, isAdmin: false }), "login");
-});
-
-test("de route is alleen gelinkt vanuit de admin-sectie van de contentkiezer, nergens in navigatie, shell of sitemap", () => {
+test("de route is alleen gelinkt vanuit de contentkiezer, nergens in navigatie, shell of sitemap", () => {
   // focusMode.ts en SubpageBackBar.tsx zijn de centrale shellregisters voor focus mode en de terugbalk: ze noemen
   // de route om de shell goed te zetten, maar linken er niet naartoe (zie de volgende test).
   const SHELL_REGISTRIES = [`${path.sep}lib${path.sep}focusMode.ts`, `${path.sep}components${path.sep}SubpageBackBar.tsx`];
