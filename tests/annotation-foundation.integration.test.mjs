@@ -60,12 +60,19 @@ test('gelijktijdig eerste aanmaak en wijzigingen; verloren responses, ongeldige 
  await assert.rejects(mutateAnnotation(who.actor,winner),fault('CONFLICT'));
  assert.equal((await getAnnotation(who.actor,'note',row.id)).text,'Bewuste heraanmaak');
 });
-test('DELETE van afwezige annotatie is veilig; oude DELETE kan latere aanmaak niet verwijderen',async()=>{
- const who=await referenceAccount(), action=command('bookmark',target);
- assert.deepEqual(await mutateAnnotation(who.actor,action,true),{changed:false,annotation:null});
- const created=await mutateAnnotation(who.actor,command('bookmark',target));
- await assert.rejects(mutateAnnotation(who.actor,action,true),fault('CONFLICT'));
- assert.equal((await getAnnotation(who.actor,'bookmark',created.annotation.id)).deleted,false);
+test('DELETE vóór aanmaak registreert een versie voor alle drie typen; oude PUT/DELETE kan niets terugdraaien',async()=>{
+ const who=await referenceAccount();
+ for(const kind of ['bookmark','highlight','note']){
+  const action=command(kind,target);delete action.text;
+  const deleted=await mutateAnnotation(who.actor,action,true);
+  assert.equal(deleted.changed,true);assert.equal(deleted.annotation.deleted,true);assert.equal(deleted.annotation.mutationVersion,1);
+  if(kind==='note')assert.equal(deleted.annotation.text,'');
+  assert.equal((await mutateAnnotation(who.actor,action,true)).changed,false);
+  await assert.rejects(mutateAnnotation(who.actor,command(kind,target)),fault('CONFLICT'));
+  const created=await mutateAnnotation(who.actor,command(kind,target,1));
+  await assert.rejects(mutateAnnotation(who.actor,action,true),fault('CONFLICT'));
+  assert.equal((await getAnnotation(who.actor,kind,created.annotation.id)).deleted,false);
+ }
 });
 test('cross-user, adminprivileges, gemanipuleerde userId en Origin/sessie geven geen privétoegang',async()=>{
  const who=await referenceAccount();const saved=await mutateAnnotation(who.actor,command('note',target));

@@ -3,7 +3,9 @@
 ## Scope en basis
 
 Gebaseerd op main `a0f21277111f960d0121b0e38d3d917f9a427d18`, inclusief
-workflow-PR #126. De aangeleverde audit is gevolgd; alleen annotatiecode en
+workflow-PR #126. Tijdens implementatie zijn #127/#128 voor het leespad in main
+`2698acb7` gemerged; die wijzigingen zijn behouden. Alleen de CI-regressielijst
+had een conflict; zowel leespad- als annotatietests blijven actief. De aangeleverde audit is gevolgd; alleen annotatiecode en
 noodzakelijke afhankelijkheden zijn gecontroleerd. Geen nieuwe readerbediening,
 studiemap, revisieherstel, FSY-conversie of productiehandeling.
 
@@ -86,7 +88,9 @@ heraanmaak niet en brengt een oude PUT een verwijderde annotatie niet terug.
 Herbruikbare rijen behouden ID en oorspronkelijke createdAt, ook bij heraanmaak;
 dit is de bewuste opslagtrade-off. Selector en laatste receipt blijven privé
 bewaard om het target en retries te herkennen. Een DELETE van een nooit bestaand
-target is een write-vrije no-op; na latere aanmaak conflicteert die oude versie.
+target valideert eerst de actuele gepubliceerde bron en bewaart ook een
+tombstone op versie 1. Zo kan een vertraagde eerste PUT op versie 0 het
+verwijderverzoek niet terugdraaien. Bewuste heraanmaak vereist de nieuwe versie.
 
 Sessies en strikte Origin-controle beschermen mutaties, ook de legacyadapters.
 Bestaande browsercalls sturen Origin automatisch; andere API-clients moeten die
@@ -136,10 +140,11 @@ Lokale controles:
 | Annotatie-integratie/HTTP, privacy, concurrency, DELETE/heraanmaak, pointerrace, taaleditie en terugvalstand | 14 geslaagd, geen skips |
 | Bestaande contenttoegang/inventarisatie-unittests | 40 geslaagd |
 | Live-data-architectuur en invalidatie | 52 geslaagd |
+| Geïntegreerd leespad / Focus | 16 / 28 geslaagd |
 | Bestaande toegang-, context-, contentwissel-, cursus- en studiecontentregressies | 281 checks geslaagd; annotaties draaien apart op eigen fixtures |
 | Migratieketen en herhaalde migrate deploy | Geslaagd; 146 bestaande tabellen en oorspronkelijke kolomwaarden behouden |
 | Prisma validate/generate, TypeScript, i18n en schone productiebuild | Geslaagd |
-| ESLint | 0 fouten, 157 bestaande waarschuwingen; geen nieuwe waarschuwingen |
+| ESLint | 0 fouten, 159 bestaande waarschuwingen op de gecombineerde main; geen nieuwe annotatiewaarschuwingen |
 
 De test injecteert een indexnaamconflict na eerdere ALTER/UPDATE-statements:
 alles wordt teruggerold, inclusief oorspronkelijke Note.updatedAt. Invalid FK,

@@ -72,7 +72,6 @@ async function write(db: Db, actor: Actor, action: AnnotationAction, remove: boo
     return { changed: false, annotation: view(action.kind, existing) };
   }
   if ((existing?.mutationVersion ?? 0) !== action.expectedVersion) throw new AnnotationError("CONFLICT", existing ? view(action.kind, existing) : undefined);
-  if (remove && !existing) return { changed: false, annotation: null };
   const data = {
     targetKey: key,
     mutationVersion: (existing?.mutationVersion ?? 0) + 1,
@@ -90,7 +89,7 @@ async function write(db: Db, actor: Actor, action: AnnotationAction, remove: boo
     : await db.highlight.create({ data: { ...data, ...target, userId: actor.id, color: action.color ?? "yellow" } });
   else row = existing
     ? await db.note.update({ where: { id: existing.id }, data: { ...data, text: remove ? "" : action.text! } })
-    : await db.note.create({ data: { ...data, ...target, userId: actor.id, text: action.text! } });
+    : await db.note.create({ data: { ...data, ...target, userId: actor.id, text: remove ? "" : action.text! } });
   return { changed: true, annotation: view(action.kind, row) };
 }
 /** Alle nieuwe PUT/DELETE en oude verse-adapters lopen langs dezelfde write- en lockregels. */
@@ -103,7 +102,9 @@ export async function mutateAnnotation(actor: Actor, input: unknown, remove = fa
   const result = await client.$transaction(async db => {
     await db.$executeRaw`SET LOCAL lock_timeout='5s'`;
     await db.$executeRaw`SET LOCAL statement_timeout='5s'`;
-    if (!remove) await authorize(db, actor, action.target);
+    // Ook een DELETE vóór de eerste PUT krijgt een versie; nieuwe targets vereisen bronvalidatie.
+    const known = remove ? await find(db, actor.id, action.kind, action.target) : null;
+    if (!remove || !known) await authorize(db, actor, action.target);
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${JSON.stringify([actor.id, action.kind, annotationTargetKey(action.target)])},0))`;
     const existing = await find(db, actor.id, action.kind, action.target);
     return write(db, actor, action, remove, existing);
