@@ -89,6 +89,21 @@ export function pathScrollTarget(g: ScrollGeometry): number {
   return Math.max(0, Math.min(Math.max(wanted, needed), highest));
 }
 
+export type MyStepDirection = "up" | "down";
+
+/**
+ * Welke kant de gebruiker op moet om de actieve stap te bereiken, vanuit de werkelijke plek van die stap
+ * (viewportcoördinaten) ten opzichte van het zichtbare gebied tussen de vaste balken. Staat de stap (deels) in
+ * beeld, dan is er geen knop nodig (null). Staat hij boven het zichtbare gebied, dan zit de gebruiker eronder: omhoog.
+ */
+export function myStepDirection(g: { top: number; bottom: number; header: number; nav: number; viewport: number }): MyStepDirection | null {
+  const visibleTop = g.header;
+  const visibleBottom = g.viewport - g.nav;
+  if (g.bottom <= visibleTop) return "up";
+  if (g.top >= visibleBottom) return "down";
+  return null;
+}
+
 /** De gegevens die de cursushub al heeft opgehaald (CourseLesson, StepOverview, hoofdstukstatus). */
 export interface PathLessonInput {
   id: string;
