@@ -216,7 +216,7 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
     switcher: {
       "title": "Inhalte und Sprache wählen",
       "what": "Tippe oben links auf deine aktuelle Quelle, um die vollständige Inhaltsauswahl zu öffnen.",
-      "benefit": "Wähle zwischen Heiligen Schriften und Studienprogrammen. Podcasts stehen als eigene Zeile unter Studienprogramme. Deine Auswahl und dein Fortschritt bleiben gespeichert.",
+      "benefit": "Wähle Heilige Schriften oder Studienprogramme oder öffne Kirchenlieder unter Gesang & Musik. Podcasts bleiben bei den Studienprogrammen. Das Öffnen der Lieder ändert deine Quellenauswahl nicht; sonntags findest du sie auch unter Heute.",
       "step1": "Öffne die Auswahl über die Quelle in der Kopfzeile.",
       "step2": "Tippe auf eine verfügbare Quelle, um direkt zu wechseln.",
       "step3": "Wähle eine verfügbare Textsprache oder ausdrücklich eine andere Ausgabe.",
@@ -271,7 +271,7 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
   tours: {
     start: {
       entry: { title: "Versado entdecken", text: "Hier findest du immer Erklärungen zu Versado. Du kannst jederzeit zurückkommen." },
-      switcher: {"title": "Inhaltsauswahl öffnen", "text": "Tippe hier, um Heilige Schriften, Studienprogramme und die Textsprache auf einer eigenen Seite zu wählen. Auswahl und Fortschritt bleiben gespeichert."},
+      switcher: {"title": "Inhaltsauswahl öffnen", "text": "Tippe hier, um Heilige Schriften oder Studienprogramme zu wählen, Kirchenlieder unter Gesang & Musik zu öffnen oder die Textsprache zu wechseln. Dein Fortschritt bleibt gespeichert."},
       learn: { title: "Lernen", text: "Hier folgst du Kursen: lesen und Fragen beantworten." },
       play: { title: "Spielen", text: "Hier findest du Spiele und Rätsel, allein oder mit anderen." },
       friends: { title: "Freunde", text: "Hier fügst du Freunde hinzu und siehst, wie es euch zusammen geht." },
@@ -280,14 +280,14 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
     learn: {
       intro: { title: "Deine Kurse", text: "Das sind deine Kurse. Öffne einen, um zu lesen und Fragen zu beantworten. Dein Fortschritt bleibt gespeichert." },
       add: { title: "Weitere Kurse", text: "Hier fügst du einen Kurs hinzu. Ausgeblendete Kurse kannst du hier auch wieder einblenden." },
-      switcher: {"title": "Inhaltsauswahl öffnen", "text": "Tippe hier, um Heilige Schriften, Studienprogramme und die Textsprache auf einer eigenen Seite zu wählen. Auswahl und Fortschritt bleiben gespeichert."},
+      switcher: {"title": "Inhaltsauswahl öffnen", "text": "Tippe hier, um Heilige Schriften oder Studienprogramme zu wählen, Kirchenlieder unter Gesang & Musik zu öffnen oder die Textsprache zu wechseln. Dein Fortschritt bleibt gespeichert."},
     },
     play: {
       games: { title: "Deine Spiele", text: "Wähle ein Spiel, um es zu öffnen. Das Info-Symbol zeigt die Spielregeln." },
-      switcher: {"title": "Inhaltsauswahl öffnen", "text": "Tippe hier, um Heilige Schriften, Studienprogramme und die Textsprache auf einer eigenen Seite zu wählen. Auswahl und Fortschritt bleiben gespeichert."},
+      switcher: {"title": "Inhaltsauswahl öffnen", "text": "Tippe hier, um Heilige Schriften oder Studienprogramme zu wählen, Kirchenlieder unter Gesang & Musik zu öffnen oder die Textsprache zu wechseln. Dein Fortschritt bleibt gespeichert."},
     },
     switcher: {
-      menu: {"title": "Inhaltsauswahl öffnen", "text": "Tippe hier, um Heilige Schriften, Studienprogramme und die Textsprache auf einer eigenen Seite zu wählen. Auswahl und Fortschritt bleiben gespeichert."},
+      menu: {"title": "Inhaltsauswahl öffnen", "text": "Tippe hier, um Heilige Schriften oder Studienprogramme zu wählen, Kirchenlieder unter Gesang & Musik zu öffnen oder die Textsprache zu wechseln. Dein Fortschritt bleibt gespeichert."},
       learn: { title: "Lernen folgt deiner Wahl", text: "Deine Kurse gehören zu den gewählten Schriften." },
       play: { title: "Spielen auch", text: "Auch die Spiele hängen von deiner Wahl ab." },
     },

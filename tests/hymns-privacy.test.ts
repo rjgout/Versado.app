@@ -301,15 +301,19 @@ test("toegang: beheerbare zichtbaarheid, sessie en technische noodstop", () => {
   }
 });
 
-test("de route is alleen gelinkt vanuit de contentkiezer, nergens in navigatie, shell of sitemap", () => {
+test("de route is alleen gelinkt vanuit de contentkiezer en de zondagkaart op Vandaag, nergens in navigatie, shell of sitemap", () => {
   // focusMode.ts en SubpageBackBar.tsx zijn de centrale shellregisters voor focus mode en de terugbalk: ze noemen
   // de route om de shell goed te zetten, maar linken er niet naartoe (zie de volgende test).
   const SHELL_REGISTRIES = [`${path.sep}lib${path.sep}focusMode.ts`, `${path.sep}components${path.sep}SubpageBackBar.tsx`];
   const files = [...walk(path.join(root, "src/components")), ...walk(path.join(root, "src/lib")), ...walk(path.join(root, "src/app"))]
-    .filter((f) => !f.includes(`${path.sep}hymns-poc${path.sep}`) && !f.includes(`${path.sep}hymns${path.sep}`) && !f.includes(`${path.sep}dev${path.sep}lofzangen`) && !f.endsWith("FullscreenContentPicker.tsx") && !f.endsWith(`${path.sep}content${path.sep}page.tsx`) && !SHELL_REGISTRIES.some((r) => f.endsWith(r)));
+    .filter((f) => !f.includes(`${path.sep}hymns-poc${path.sep}`) && !f.includes(`${path.sep}hymns${path.sep}`) && !f.includes(`${path.sep}dev${path.sep}lofzangen`) && !f.endsWith("FullscreenContentPicker.tsx") && !f.endsWith(`${path.sep}today${path.sep}TodaySection.tsx`) && !f.endsWith(`${path.sep}content${path.sep}page.tsx`) && !SHELL_REGISTRIES.some((r) => f.endsWith(r)));
   for (const file of files) {
     assert.equal(/dev\/lofzangen/.test(readFileSync(file, "utf8")), false, `${path.relative(root, file)} verwijst naar de proefroute`);
   }
+  // De zondagkaart is de enige ingang op Vandaag en bestaat alleen achter de servergate (`sundayHymns` komt uit getHymnsAccess).
+  const today = readFileSync(path.join(root, "src/components/today/TodaySection.tsx"), "utf8");
+  assert.equal((today.match(/dev\/lofzangen/g) ?? []).length, 1);
+  assert.match(today, /\{sundayHymns && \(\s*<Link data-today-hymns href="\/dev\/lofzangen"/);
 });
 
 test("de shellregisters noemen de route alleen voor focus mode en de terugbalk, ze linken er niet naartoe", () => {
