@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/components/I18nProvider";
-import { rich } from "@/lib/i18n/rich";
 import AdminSection from "@/components/admin/AdminSection";
 import { useConfirm } from "@/components/ConfirmProvider";
 import { dangerButton } from "@/components/versado/styles";
@@ -15,7 +14,13 @@ interface ReseedJobState {
   error: string | null;
   startedAt: string | null;
   finishedAt: string | null;
-  progress: { current: number; total: number; label: string; language: string; work: string } | null;
+  progress: {
+    current: number;
+    total: number;
+    label: string;
+    language: string;
+    work: string;
+  } | null;
 }
 
 const POLL_MS = 1500;
@@ -24,7 +29,15 @@ export default function ReseedClient() {
   const t = useT();
   const confirm = useConfirm();
   const [job, setJob] = useState<ReseedJobState | null>(null);
+  const [studySource, setStudySource] = useState<{
+    snapshot: string;
+    lessons: number;
+    storageReady: boolean;
+  } | null>(null);
+  const [includeCfm, setIncludeCfm] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const startingRef = useRef(false);
+  const [starting, setStarting] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const logBoxRef = useRef<HTMLPreElement | null>(null);
 
@@ -41,11 +54,14 @@ export default function ReseedClient() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? t("adminCommon.statusFailed"));
       setJob(data.job as ReseedJobState);
+      setStudySource(data.studySource ?? null);
       setLoadError(null);
       if (data.job.status !== "running") stopPolling();
       return data.job as ReseedJobState;
     } catch (e) {
-      setLoadError(e instanceof Error ? e.message : t("adminCommon.statusFailed"));
+      setLoadError(
+        e instanceof Error ? e.message : t("adminCommon.statusFailed"),
+      );
       return null;
     }
   }
@@ -67,17 +83,57 @@ export default function ReseedClient() {
   }, []);
 
   async function run() {
-    // Dit raakt de live database; een tik of klik mag het nooit zomaar starten.
-    if (!(await confirm(t("adminHub.reseedConfirm"), { destructive: true, confirmLabel: t("adminReseed.title") }))) return;
-    setLoadError(null);
-    const res = await fetch("/api/admin/reseed", { method: "POST" });
-    const data = await res.json().catch(() => null);
-    if (!res.ok || !data) {
-      setLoadError(data?.error ?? t("adminCommon.error"));
-      return;
+    if (startingRef.current) return;
+    startingRef.current = true;
+    setStarting(true);
+    try {
+      // Dit raakt de live database; een tik of klik mag het nooit zomaar starten.
+      if (
+        !(await confirm(t("adminHub.reseedConfirm"), {
+          destructive: true,
+          native: true,
+          confirmLabel: t("adminReseed.title"),
+        }))
+      )
+        return;
+      setLoadError(null);
+      if (
+        includeCfm &&
+        studySource &&
+        !(await confirm(
+          t("managedContent.approveImport", { snapshot: studySource.snapshot }),
+          { native: true },
+        ))
+      )
+        return;
+      const res = await fetch("/api/admin/reseed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          includeCfm && studySource
+            ? {
+                approvedSnapshot: studySource.snapshot,
+                confirmDraftsOnly: true,
+              }
+            : {},
+        ),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data) {
+        if (res.status === 409) await fetchStatus();
+        setLoadError(data?.error ?? t("adminCommon.error"));
+        return;
+      }
+      setJob(data.job as ReseedJobState);
+      if (data.job.status === "running") startPolling();
+    } catch {
+      const status = await fetchStatus();
+      if (status?.status === "running") startPolling();
+      else setLoadError(t("adminCommon.error"));
+    } finally {
+      startingRef.current = false;
+      setStarting(false);
     }
-    setJob(data.job as ReseedJobState);
-    if (data.job.status === "running") startPolling();
   }
 
   const running = job?.status === "running";
@@ -88,37 +144,95 @@ export default function ReseedClient() {
   // hieronder) bij de bovenkant staan terwijl nieuwe regels onderaan
   // bijkwamen.
   useEffect(() => {
-    if (logBoxRef.current) logBoxRef.current.scrollTop = logBoxRef.current.scrollHeight;
+    if (logBoxRef.current)
+      logBoxRef.current.scrollTop = logBoxRef.current.scrollHeight;
   }, [job?.logs.length]);
 
   return (
-    <AdminSection title={t("adminReseed.title")} tone="danger" badge={t("adminHub.dangerBadge")}>
-
+    <AdminSection
+      title={t("adminReseed.title")}
+      tone="danger"
+      badge={t("adminHub.dangerBadge")}
+    >
       <p className="text-sm text-vs-fg-2">
-        {rich(t("adminReseed.text"), { cmd: <code>npm run db:seed</code> })}
+        {t("adminReseed.text")}
       </p>
 
-      <button className={`${dangerButton} self-start`} disabled={running} onClick={run}>
+      {studySource ? (
+        <label className="flex min-h-12 items-center gap-3 text-sm">
+          <input
+            type="checkbox"
+            checked={includeCfm}
+            onChange={(e) => setIncludeCfm(e.target.checked)}
+            disabled={running}
+          />
+          <span className="min-w-0">{t("managedContent.includeCfm")}</span>
+        </label>
+      ) : (
+        <p role="status" className="text-sm text-vs-fg-2">
+          {t("managedContent.sourceMissing")}
+        </p>
+      )}
+      {includeCfm && studySource && !studySource.storageReady && (
+        <p role="alert" className="text-sm text-vs-danger">
+          {t("managedContent.spaceMissing")}
+        </p>
+      )}
+      <button
+        className={`${dangerButton} self-start`}
+        disabled={
+          running ||
+          starting ||
+          Boolean(includeCfm && studySource && !studySource.storageReady)
+        }
+        onClick={run}
+      >
         {running ? t("adminCommon.busy") : t("adminReseed.title")}
       </button>
 
       {running && (
         <div className="flex flex-col gap-2">
-          {job.progress && <p className="text-sm text-vs-fg-2">{job.progress.work === "old-testament" ? "Oude Testament" : "Nieuwe Testament"} — {job.progress.language} · {job.progress.current}/{job.progress.total} hoofdstukken · {job.progress.label}</p>}
-          <div className="h-2 w-full overflow-hidden rounded-full bg-vs-subtle" aria-label="Importvoortgang" role="progressbar" aria-valuemin={0} aria-valuemax={job.progress?.total ?? 0} aria-valuenow={job.progress?.current ?? 0}>
-            <div className="h-full rounded-full bg-vs-accent transition-all" style={{ width: `${job.progress ? Math.round((job.progress.current / job.progress.total) * 100) : 5}%` }} />
+          {job.progress && (
+            <p className="text-sm text-vs-fg-2">
+              {job.progress.work === "cfm-old-testament-2026"
+                ? "CFM 2026"
+                : job.progress.work === "old-testament"
+                  ? "Oude Testament"
+                  : "Nieuwe Testament"}{" "}
+              — {job.progress.language} · {job.progress.current}/
+              {job.progress.total} · {job.progress.label}
+            </p>
+          )}
+          <div
+            className="h-2 w-full overflow-hidden rounded-full bg-vs-subtle"
+            aria-label={t("studyPublishing.progress")}
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={job.progress?.total ?? 0}
+            aria-valuenow={job.progress?.current ?? 0}
+          >
+            <div
+              className="h-full rounded-full bg-vs-accent transition-all"
+              style={{
+                width: `${job.progress ? Math.round((job.progress.current / job.progress.total) * 100) : 5}%`,
+              }}
+            />
           </div>
         </div>
       )}
 
-      {loadError && <p className="text-sm font-semibold text-vs-danger">{loadError}</p>}
+      {loadError && (
+        <p role="alert" className="text-sm font-semibold text-vs-danger">{loadError}</p>
+      )}
       {job?.status === "error" && (
-        <p className="text-sm font-semibold text-vs-danger">
+        <p role="alert" className="text-sm font-semibold text-vs-danger">
           {job.error ?? t("adminReseed.failed")}
         </p>
       )}
       {job?.status === "done" && (
-        <p className="text-sm font-semibold text-vs-accent">{t("adminReseed.done")}</p>
+        <p role="status" className="text-sm font-semibold text-vs-accent">
+          {t("adminReseed.done")}
+        </p>
       )}
 
       {job && job.logs.length > 0 && (

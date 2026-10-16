@@ -110,9 +110,11 @@ export async function runSeed(
   client: PrismaClient,
   log: (msg: string) => void = console.log,
   progress?: (progress: OtbImportProgress) => void,
+  studyImport?: () => Promise<void>,
 ): Promise<void> {
+  if (studyImport) await inPhase("Studiecontent", studyImport);
   log("Seeding boeken, hoofdstukken, verzen en oefeningen...");
-  await inPhase("Boeken", () => importBooks(client, seedBooks, log));
+  await inPhase("Boeken", () => importBooks(client, seedBooks, log, BOM_COLLECTION_ID));
   await inPhase("Voorgelezen hoofdstukken", () => importChapterAudio(client, bomAudio as ChapterAudioSeed[], BOM_COLLECTION_ID, log));
 
   // De OTB-import staat los van de cursussen: hij gebruikt geen syncCourses en

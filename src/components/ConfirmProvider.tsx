@@ -178,23 +178,27 @@ function NativeConfirmation({
         event.preventDefault();
         onClose(false);
       }}
-      className="m-auto max-h-[calc(100dvh-2rem-var(--vs-safe-area-top)-var(--vs-safe-area-bottom))] w-[calc(100%-2rem-var(--vs-safe-area-left)-var(--vs-safe-area-right))] max-w-md overflow-y-auto rounded-2xl border border-vs-line bg-vs-elevated p-5 text-vs-fg shadow-xl backdrop:bg-slate-950/45"
+      className="m-auto max-h-[calc(100dvh-2rem-var(--vs-safe-area-top)-var(--vs-safe-area-bottom))] w-[calc(100%-1rem-var(--vs-safe-area-left)-var(--vs-safe-area-right))] max-w-md flex-col overflow-hidden rounded-2xl border border-vs-line bg-vs-elevated p-3 text-vs-fg [open]:flex shadow-xl backdrop:bg-slate-950/45"
     >
-      <h2 id="native-confirm-title" className="text-lg font-extrabold">
-        {pending.title ?? t("common.confirm")}
-      </h2>
-      <p className="mt-3 text-sm text-vs-fg-2">{pending.message}</p>
-      <div className="mt-5 flex flex-col gap-3">
+      <div className="min-h-0 overflow-y-auto overscroll-contain" data-confirm-message>
+        <h2 id="native-confirm-title" className="text-lg font-extrabold">
+          {pending.title ?? t("common.confirm")}
+        </h2>
+        <p className="mt-3 text-sm text-vs-fg-2 [overflow-wrap:anywhere]">
+          {pending.message}
+        </p>
+      </div>
+      <div className="mt-4 flex shrink-0 flex-col gap-3">
         <button
           type="button"
-          className="btn-secondary min-h-12 w-full"
+          className="btn-secondary min-h-12 w-full !px-2 !tracking-normal [word-break:normal] [overflow-wrap:normal]"
           onClick={() => onClose(false)}
         >
           {t("common.cancel")}
         </button>
         <button
           type="button"
-          className="btn-primary min-h-12 w-full"
+          className="btn-primary min-h-12 w-full !px-2 !tracking-normal [word-break:normal] [overflow-wrap:normal]"
           onClick={() => onClose(true)}
         >
           {pending.confirmLabel ?? t("common.confirm")}

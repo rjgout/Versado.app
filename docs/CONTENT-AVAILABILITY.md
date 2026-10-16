@@ -60,8 +60,9 @@ op zichzelf geen publieke toegang. Er is geen tweede featureflag nodig.
 
 Collecties blijven onder `contentAccess.ts`: technisch aanwezig, inhoudelijk
 vrijgegeven, enabled en zichtbaar zijn verschillende voorwaarden. Beheerders
-inspecteren verborgen collecties via de bestaande expliciete beheeromgeving;
-gewone readerrechten worden niet verruimd. DRAFT-studierevisies blijven in de
+kunnen verborgen LEGACY/PUBLISHED-collecties die enabled zijn normaal openen.
+Dezelfde centrale beslissing geldt voor kiezer, pagina en API. DRAFT en disabled
+blijven uit normale leesroutes, ook voor beheerders. DRAFT-studierevisies blijven in de
 beveiligde beheerpreview. CFM-import, publicatiepointers en de 553 blokkades
 worden niet gewijzigd.
 
@@ -138,3 +139,21 @@ Er is geen horizontale overflow en de voorkeur-/voortgangscontroles blijven geli
 Niet getest op fysieke iOS-/Android-toestellen. Commit en screenshots staan bij de PR. De bestaande workflow `content-access.yml` bevat hiervoor de job
 `hymns-availability`, inclusief de volledige bestaande muziektests. Screenshots
 blijven in het CI-artifact `hymns-availability-browser`, niet als grote Git-bestanden.
+
+## Vaste workflow voor bronnen: reload, publicatie en zichtbaarheid
+
+Nieuwe content gebruikt de bestaande backendknop Content opnieuw laden met een
+expliciete goedkeuring van een gepinde snapshot wanneer de adapter dat vereist.
+De importer maakt uitsluitend concepten; bestaande publicaties blijven staan.
+De beheerder beoordeelt en publiceert via Studielespublicaties en geeft de
+complete collectie daar afzonderlijk vrij. Daarna kan hij de verborgen collectie
+al normaal gebruiken; de bestaande schakelaar maakt haar later beschikbaar voor
+gewone gebruikers. Geen automatische publicatie bij import, seed, migratie of
+deployment en geen Docker-import als normale gebruikersworkflow.
+
+De reeds geïmporteerde 52 CFM-lessen hoeven niet opnieuw te worden geïmporteerd.
+Zie [het CFM-draaiboek](content-architecture-v2/24-CFM-MANAGED-IMPORT-AND-RELEASE.md)
+voor de stappen, de 553 niet-klikbare verwijzingen, de additieve auditconstraint,
+uitrol, tests en rollback. Dit is de actuele aanvulling op de historische
+fase-1A/3B-documenten; de oudere beperking op normale adminleestoegang en de
+synthetische officiële-publicatiegate zijn hiermee gericht vervangen.

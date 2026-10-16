@@ -206,5 +206,5 @@ test("onbekende structuur, bronidentiteit en ontbrekende media stoppen; geen ver
     ),
     { bookKey: "psa", chapter: 119, verses: [105, 140] },
   );
-  assert.equal(studyReleaseAllowed("cfm-2026-nl-v1"), false);
+  assert.equal(studyReleaseAllowed("cfm-2026-nl-v1"), true);
 });

@@ -3487,7 +3487,7 @@ export const es: PartialMessages = {
   },
   "adminReseed": {
     "title": "Volver a cargar contenido",
-    "text": "Pone el contenido más reciente (libros/capítulos/ejercicios, episodios de podcasts, lecciones de FSY, logros) en la base de datos, igual que {cmd}, pero sin terminal. Los usuarios existentes, el progreso, las rachas y las puntuaciones se dejan en paz; el contenido solo se agrega o actualiza. Haga esto después de cada actualización que agregue contenido nuevo (por ejemplo, un nuevo episodio de podcast). Esto puede llevar un tiempo: la barra de abajo permanece hasta que esté realmente lista, incluso si vas a otra página y regresas.",
+    "text": "Actualiza los libros, capítulos, ejercicios, pódcasts, contenido FSY y borradores CFM disponibles. Aprueba explícitamente la instantánea CFM indicada. Las lecciones nunca se publican ni se hacen visibles automáticamente. Se conservan los usuarios, el progreso, las rachas y las puntuaciones. Puedes salir de esta página y consultar el progreso más tarde.",
     "failed": "Error al cargar el contenido.",
     "done": "Listo: el contenido se actualizó."
   },
@@ -3537,6 +3537,16 @@ export const es: PartialMessages = {
     "favicon": "Favicon",
     "faviconText": "El icono en la pestaña del navegador también aparece como vista previa al compartir un enlace (WhatsApp, Telegram, etc.). Al menos 200 × 200 píxeles."
   },
+  managedContent: {
+    "lessons": "Lecciones de estudio",
+    "reviewBlocked": "He revisado las {count} referencias bloqueadas. Mostrarlas únicamente como texto sin enlace.",
+    "release": "Aprobar el contenido de la colección",
+    "releaseConfirm": "Todas las lecciones se han publicado individualmente. Autorizar el uso normal por los administradores. La visibilidad para usuarios no cambia.",
+    "approveImport": "CFM 2026: aprobar la instantánea {snapshot} para actualizar 52 borradores de lecciones. Las publicaciones y la visibilidad existentes no cambian.",
+    "includeCfm": "Actualizar los borradores de CFM 2026",
+    "sourceMissing": "Faltan los archivos fuente fijados de CFM. No se realizará ninguna importación CFM.",
+    "spaceMissing": "El almacenamiento persistente de medios no está disponible. Restáuralo antes de actualizar CFM."
+},
   "adminContent": {
     hymnsEmergencyStop: "Desactivado técnicamente mediante HYMNS_POC=0.",
     "saveFailed": "Error al guardar.",
@@ -3546,7 +3556,7 @@ export const es: PartialMessages = {
     "disabled": "Desactivado",
     "visible": "Visible para los usuarios",
     "hidden": "Oculto",
-    "note": "Inspecciona las fuentes ocultas en el contenido administrado; los borradores permanecen en la vista previa de administración. Al menos una colección sigue visible. Los himnos tienen su propia visibilidad y no cambian la fuente elegida. El interruptor general solo controla el acceso al selector de contenido."
+    "note": "Los administradores pueden usar normalmente las fuentes aprobadas y habilitadas, aunque estén ocultas. Los borradores permanecen en la vista previa de administración. Al menos una colección sigue visible. Los himnos tienen su propia visibilidad y no cambian la fuente seleccionada. El interruptor general solo controla la entrada al selector de contenido."
   },
   "adminFeedback": {
     "none": "Aún no hay informes."

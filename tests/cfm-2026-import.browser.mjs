@@ -37,11 +37,23 @@ const rewardCounts = () =>
 const counts = await rewardCounts(),
   results = [];
 try {
+  // Alleen het legacy-seedverzoek wordt onderschept; de echte CFM-import/publicatie is hierboven via PostgreSQL getest.
+  for(const [width,scheme,scale] of [[320,"light",200],[390,"dark",100],[1280,"light",100]]){
+    const c=await browser.newContext({viewport:{width,height:900},colorScheme:scheme,hasTouch:width<500});await c.addCookies([{name:SESSION_COOKIE,value:flow.adminToken,url:base}]);const page=await c.newPage();
+    const proposal=await (await c.request.get(base+"/api/admin/reseed")).json();let posted=[];
+    await page.route("**/api/admin/**",async route=>{const r=route.request(),pathname=new URL(r.url()).pathname;if(pathname === "/api/admin/reseed" && r.method()==="POST"){posted.push(r.postDataJSON());await route.fulfill({json:{started:false,job:{status:"idle",logs:[],error:null,startedAt:null,finishedAt:null,progress:null}}});}else if(pathname === "/api/admin/reseed")await route.continue();else await route.fulfill({status:503,json:{error:"Isolated unrelated admin panel"}});});
+    await page.goto(base+"/adminbackend/systeem");const run=page.getByRole("button",{name:"Content opnieuw laden",exact:true,includeHidden:true});await run.waitFor({state:"attached"});await page.locator("details").filter({has:run}).locator("summary").first().click();
+    await page.getByLabel("CFM 2026 als concept bijwerken").waitFor();if(scale===200)await page.addStyleTag({content:"html{font-size:200% !important}"});
+    await run.click();await page.getByRole("dialog").getByRole("button",{name:"Annuleren",exact:true}).click();assert.equal(posted.length,0);
+    await run.click();await page.getByRole("dialog").getByRole("button",{name:"Content opnieuw laden",exact:true}).click();await page.locator("dialog[open]").getByText(proposal.studySource.snapshot,{exact:false}).waitFor();await page.keyboard.press("Escape");assert.equal(posted.length,0);
+    await run.click();await page.getByRole("dialog").getByRole("button",{name:"Content opnieuw laden",exact:true}).click();const modal=page.locator("dialog[open]");await modal.getByText(proposal.studySource.snapshot,{exact:false}).waitFor();const box=await modal.boundingBox();assert.ok(box.x>=0&&box.x+box.width<=width+1&&box.y>=0&&box.y+box.height<=900);for(const button of await modal.getByRole("button").all()){const b=await button.boundingBox();assert.ok(b.y>=box.y&&b.y+b.height<=box.y+box.height,"Bevestigingsacties blijven zichtbaar bij grote tekst");assert.equal(await button.evaluate(el=>el.scrollWidth<=el.clientWidth+1),true);}assert.equal(await modal.evaluate(el=>el.scrollWidth<=el.clientWidth+1),true);await page.screenshot({path:`${output}/cfm-snapshot-confirm-${width}-${scheme}.png`});
+    const sent=page.waitForResponse(r=>new URL(r.url()).pathname==="/api/admin/reseed"&&r.request().method()==="POST");await modal.getByRole("button",{name:"Bevestigen",exact:true}).click();await sent;assert.deepEqual(posted,[{approvedSnapshot:proposal.studySource.snapshot,confirmDraftsOnly:true}]);results.push({width,scheme,text:scale,reloadApprovalUi:true,cancelAndEscapeNoPost:true,legacySeedNotExecuted:true});await c.close();
+  }
   // Echte verborgen concepten via bestaande beheerpagina; publieke reader blijft dicht.
   const originalCollection = await prisma.contentCollection.findUniqueOrThrow({ where: { id: flow.collectionId } });
   await prisma.contentCollection.update({ where: { id: flow.collectionId }, data: { publicationState: "DRAFT", visibleToUsers: false } });
   try {
-    const editions = await prisma.studyLessonEdition.findMany({ where: { collectionId: flow.collectionId }, orderBy: { lesson: { order: "asc" } }, include: { draftRevision: true } });
+    const editions = await prisma.studyLessonEdition.findMany({ where: { collectionId: flow.collectionId }, orderBy: { lesson: { order: "asc" } }, include: { draftRevision: true, publishedRevision: true } });
     assert.equal(editions.length, 52);
     for (const [width, scheme, text] of [[320, "light", 200], [390, "dark", 100], [1280, "light", 100]]) {
       const context = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: scheme });
@@ -53,9 +65,11 @@ try {
       const ids = await page.locator("[data-study-edition]").evaluateAll((nodes) => nodes.map((n) => n.getAttribute("data-study-edition")));
       assert.ok(editions.every((e) => ids.includes(e.id)), "Alle 52 verborgen concepten staan in beheer");
       for (const edition of [editions[40], editions[0]]) {
-        await page.locator(`[data-study-edition="${edition.id}"]`).getByRole("button", { name: "Concept bekijken", exact: true }).click();
+        const card=page.locator(`[data-study-edition="${edition.id}"]`);
+        if(edition.draftRevision) await card.getByRole("button",{name:"Concept bekijken",exact:true}).click();
+        else {await card.locator("details summary").click();await card.getByRole("button",{name:`#${edition.publishedRevision.revisionNumber} · ${edition.publishedRevision.title}`,exact:true}).click();}
         const article = page.locator("[data-study-revision-content]");
-        await article.getByRole("heading", { level: 2, name: edition.draftRevision.title, exact: true }).waitFor();
+        await article.getByRole("heading", { level: 2, name: (edition.draftRevision ?? edition.publishedRevision).title, exact: true }).waitFor();
         if (edition === editions[40]) assert.ok(await article.locator("table").count() > 0);
         else {
           await page.locator('[data-reference-diagnosis="UNRESOLVED"]').first().waitFor();
@@ -77,6 +91,23 @@ try {
   } finally {
     await prisma.contentCollection.update({ where: { id: flow.collectionId }, data: { publicationState: originalCollection.publicationState, visibleToUsers: originalCollection.visibleToUsers } });
   }
+  for(const [width,scheme,scale] of [[320,"light",200],[390,"dark",100],[1280,"light",100]]){
+    await prisma.contentCollection.update({where:{id:flow.collectionId},data:{visibleToUsers:false}});
+    await prisma.user.update({where:{id:flow.adminId},data:{activeContentCollectionId:"content_bom",contentLanguage:"nl"}});
+    const admin=await browser.newContext({viewport:{width,height:900},colorScheme:scheme,hasTouch:width<500});await admin.addCookies([{name:SESSION_COOKIE,value:flow.adminToken,url:base}]);const a=await admin.newPage();
+    await a.goto(base+"/courses");await a.locator('[data-kompas-target="content-switcher"] a').click();await a.waitForURL(base+"/content");
+    const card=a.locator('[data-content-work="cfm-old-testament-2026"]');await card.waitFor();if(scale===200)await a.addStyleTag({content:"html{font-size:200% !important}"});
+    await card.getByRole("button").first().click();await a.waitForURL(base+"/courses");await a.locator('[data-study-catalogue]').waitFor();assert.equal(await a.locator('[data-study-lesson]').count(),52);if(scale===200)await a.addStyleTag({content:"html{font-size:200% !important}"});assert.equal(await a.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+    await a.screenshot({path:`${output}/cfm-catalogue-${width}-${scheme}.png`});
+    await a.locator('[data-study-lesson]').first().click();await a.locator('[data-study-reader]').waitFor();await a.goBack();await a.locator('[data-study-catalogue]').waitFor();
+    const user=await browser.newContext({viewport:{width,height:900},colorScheme:scheme,hasTouch:width<500});await user.addCookies([{name:SESSION_COOKIE,value:flow.token,url:base}]);assert.equal((await user.request.get(base+flow.href)).status(),404);
+    await a.goto(base+"/adminbackend/content");const row=a.locator("label").filter({hasText:"Kom dan en volg Mij 2026 — Oude Testament"});await row.waitFor({state:"attached"});await a.locator("details").filter({has:row}).locator("summary").first().click();
+    const enabled=a.waitForResponse(r=>r.url().endsWith("/api/admin/content-switcher")&&r.request().method()==="PUT");await row.click();assert.equal((await enabled).status(),200);
+    const u=await user.newPage();await u.goto(base+"/courses");await u.locator('[data-study-catalogue]').waitFor();assert.equal(await u.locator('[data-study-lesson]').count(),52);if(scale===200)await u.addStyleTag({content:"html{font-size:200% !important}"});assert.equal(await u.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);await u.locator('[data-study-lesson]').last().click();await u.locator('[data-study-reader]').waitFor();await u.goBack();await u.locator('[data-study-catalogue]').waitFor();
+    const disabled=a.waitForResponse(r=>r.url().endsWith("/api/admin/content-switcher")&&r.request().method()==="PUT");await row.click();assert.equal((await disabled).status(),200);assert.equal((await user.request.get(base+flow.href)).status(),404);assert.equal((await admin.request.get(base+flow.href)).status(),200);
+    results.push({width,scheme,text:scale,adminHiddenCatalogue:52,publicToggle:true,normalReader:true,back:true});await user.close();await admin.close();
+  }
+  await prisma.contentCollection.update({where:{id:flow.collectionId},data:{visibleToUsers:true}});
   for (const [width, height, scheme, text] of [
     [320, 844, "light", 200],
     [390, 844, "dark", 100],
@@ -420,20 +451,8 @@ try {
     const page = await context.newPage();
     await page.goto(base + flow.ntHref);
     await page.locator("[data-study-reader]").waitFor();
-    await page.locator('[data-reference-key="ref-b-p2-1"]').click();
-    const dialog = page.locator("dialog[open]");
-    await dialog.getByRole("status").waitFor();
-    await dialog
-      .getByText("Deze verwijzing kan nog niet betrouwbaar worden geopend.", {
-        exact: true,
-      })
-      .waitFor();
-    assert.equal(
-      await dialog
-        .getByRole("button", { name: "Meer lezen", exact: true })
-        .count(),
-      0,
-    );
+    assert.equal(await page.locator('[data-reference-key="ref-b-p2-1"]').count(),0,"Geblokkeerde verwijzing is geen knop");
+    const label=page.getByText("Johannes 6:48",{exact:true}).first();await label.waitFor();assert.equal(await label.evaluate(e=>e.closest("a,button")===null),true);
     results.push({ width: 390, newTestamentNoOtbFallback: true });
     await context.close();
   }

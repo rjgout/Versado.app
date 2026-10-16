@@ -36,6 +36,7 @@ export default function AdminStudyPublicationsClient({
       editionId: string;
       revisionId: string;
     } | null>(null);
+  const [reviewedRevision, setReviewedRevision] = useState<string | null>(null);
   const [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
     [error, setError] = useState("");
@@ -90,7 +91,15 @@ export default function AdminStudyPublicationsClient({
       await jsonMutation(
         "/api/admin/study-publications",
         { json: body },
-        { invalidates: "studyContentChanged" },
+        {
+          invalidates:
+            typeof body === "object" &&
+            body &&
+            "action" in body &&
+            body.action === "release-collection"
+              ? ["content", "studyContent"]
+              : "studyContentChanged",
+        },
       );
       setMessage(t("studyPublishing.success"));
     } catch (e) {
@@ -121,6 +130,7 @@ export default function AdminStudyPublicationsClient({
         importRunId: preview.importRunId,
         expectedVersion: preview.publicationVersion,
         actionId: crypto.randomUUID(),
+        allowReviewedDisplayOnly: reviewedRevision === preview.revisionId,
       },
       t(
         kind === "PUBLISH"
@@ -321,6 +331,32 @@ export default function AdminStudyPublicationsClient({
               </section>
             ))}
           </AdminSection>
+          {data.collections
+            .filter((c) => c.publicationState === "DRAFT" && c.release.complete)
+            .map((c) => (
+              <AdminSection key={c.id} title={c.name}>
+                <button
+                  data-release-collection={c.id}
+                  type="button"
+                  className="btn-primary min-h-12 max-w-full whitespace-normal"
+                  disabled={busy || !ready || !data.storageReady}
+                  onClick={() =>
+                    void mutate(
+                      {
+                        action: "release-collection",
+                        collectionId: c.id,
+                        releaseToken: c.release.releaseToken,
+                        actionId: crypto.randomUUID(),
+                      },
+                      t("managedContent.releaseConfirm"),
+                      t("managedContent.release"),
+                    )
+                  }
+                >
+                  {t("managedContent.release")}
+                </button>
+              </AdminSection>
+            ))}
           {selected && detail.error && (
             <AdminNotice kind="error">
               {t("studyPublishing.failed")}
@@ -339,20 +375,59 @@ export default function AdminStudyPublicationsClient({
                 </AdminNotice>
               )}
               <h3 className="font-bold">{t("studyPublishing.references")}</h3>
-              <button type="button" className={button} disabled={busy} onClick={()=>void mutate({action:"audit-references",editionId:preview.editionId,revisionId:preview.revisionId})}>{t("referencePreview.audit")}</button>
+              <button
+                type="button"
+                className={button}
+                disabled={busy}
+                onClick={() =>
+                  void mutate({
+                    action: "audit-references",
+                    editionId: preview.editionId,
+                    revisionId: preview.revisionId,
+                  })
+                }
+              >
+                {t("referencePreview.audit")}
+              </button>
               <ul className="space-y-2 text-sm">
                 {preview.references.map((ref) => (
-                  <li key={ref.occurrenceKey} data-study-reference={ref.occurrenceKey} data-reference-diagnosis={ref.diagnosis} className="break-words">
+                  <li
+                    key={ref.occurrenceKey}
+                    data-study-reference={ref.occurrenceKey}
+                    data-reference-diagnosis={ref.diagnosis}
+                    className="break-words"
+                  >
                     {ref.label} —{" "}
                     {t(
-                      !["EXTERNAL_VERIFIED","INTERNAL_VERIFIED"].includes(ref.diagnosis)
+                      !["EXTERNAL_VERIFIED", "INTERNAL_VERIFIED"].includes(
+                        ref.diagnosis,
+                      )
                         ? "studyPublishing.unresolved"
                         : "studyPublishing.verified",
                     )}
-                    {ref.externalUrl && <span className="block break-words text-vs-fg-2">{ref.externalUrl}</span>}
-                    {ref.approvedExternalUrl && <a className="inline-flex min-h-12 items-center text-vs-accent underline" href={ref.approvedExternalUrl} target="_blank" rel="noopener noreferrer">{t("referencePreview.external")}</a>}
-                    <code className="block whitespace-pre-wrap break-words text-xs">{JSON.stringify(ref.originalTarget)}</code>
-                    {ref.normalizedTarget && <code className="block whitespace-pre-wrap break-words text-xs">{JSON.stringify(ref.normalizedTarget)}</code>}
+                    {ref.externalUrl && (
+                      <span className="block break-words text-vs-fg-2">
+                        {ref.externalUrl}
+                      </span>
+                    )}
+                    {ref.approvedExternalUrl && (
+                      <a
+                        className="inline-flex min-h-12 items-center text-vs-accent underline"
+                        href={ref.approvedExternalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {t("referencePreview.external")}
+                      </a>
+                    )}
+                    <code className="block whitespace-pre-wrap break-words text-xs">
+                      {JSON.stringify(ref.originalTarget)}
+                    </code>
+                    {ref.normalizedTarget && (
+                      <code className="block whitespace-pre-wrap break-words text-xs">
+                        {JSON.stringify(ref.normalizedTarget)}
+                      </code>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -396,6 +471,25 @@ export default function AdminStudyPublicationsClient({
                   )}
                 </pre>
               </details>
+              {preview.displayOnlyKeys.length > 0 && (
+                <label className="flex min-h-12 items-start gap-3 text-sm">
+                  <input
+                    type="checkbox"
+                    className="mt-1 shrink-0"
+                    checked={reviewedRevision === preview.revisionId}
+                    onChange={(e) =>
+                      setReviewedRevision(
+                        e.target.checked ? preview.revisionId : null,
+                      )
+                    }
+                  />
+                  <span>
+                    {t("managedContent.reviewBlocked", {
+                      count: preview.displayOnlyKeys.length,
+                    })}
+                  </span>
+                </label>
+              )}
               <div className="flex flex-col gap-3 sm:flex-row">
                 {preview.draftRevisionId === preview.revisionId && (
                   <button
@@ -404,12 +498,19 @@ export default function AdminStudyPublicationsClient({
                     disabled={
                       !ready ||
                       busy ||
-                      !data.publicationAllowed ||
+                      !preview.publicationAllowed ||
                       !data.storageReady ||
                       !preview.importRunId ||
                       preview.media.some((m) => !m.ready) ||
                       preview.references.some(
-                        (r) => !["EXTERNAL_VERIFIED","INTERNAL_VERIFIED"].includes(r.diagnosis),
+                        (r) =>
+                          !["EXTERNAL_VERIFIED", "INTERNAL_VERIFIED"].includes(
+                            r.diagnosis,
+                          ) &&
+                          !(
+                            reviewedRevision === preview.revisionId &&
+                            preview.displayOnlyKeys.includes(r.occurrenceKey)
+                          ),
                       )
                     }
                     onClick={() => publication("PUBLISH")}
@@ -425,7 +526,7 @@ export default function AdminStudyPublicationsClient({
                       disabled={
                         !ready ||
                         busy ||
-                        !data.publicationAllowed ||
+                        !preview.publicationAllowed ||
                         !data.storageReady ||
                         !preview.importRunId
                       }

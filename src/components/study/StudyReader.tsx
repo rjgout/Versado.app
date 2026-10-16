@@ -12,7 +12,7 @@ import RichContentBlocks from "./RichContentBlocks";
 import { useReadingPositionController } from "./ReadingPositionController";
 import ReferencePreview from "./ReferencePreview";
 import ReferenceReturn from "./ReferenceReturn";
-import { ReferenceActionsContext } from "./ReferenceLink";
+import { ReferenceActionsContext, BlockedReferencesContext } from "./ReferenceLink";
 import { currentEntryKey } from "@/lib/navigationHistory";
 import { jsonMutation } from "@/lib/data/mutation";
 import { rememberReferenceTrip } from "@/lib/references/returnContext";
@@ -385,7 +385,7 @@ function ReaderVisit({
           lang={data.lesson.language}
           className="min-w-0 rounded-2xl border border-vs-line bg-vs-elevated p-4 sm:p-6"
         >
-          <RichContentBlocks document={data.lesson.body} media={data.media} />
+          <BlockedReferencesContext.Provider value={data.blockedReferences ?? []}><RichContentBlocks document={data.lesson.body} media={data.media} /></BlockedReferencesContext.Provider>
         </article>
         </ReferenceActionsContext.Provider>
         {reference && <ReferencePreview key={`${sessionKey}:${reference.request.occurrenceKey}`} request={reference.request} label={reference.label} sessionKey={sessionKey} onClose={()=>setReference(null)} onMore={moreReference} returnFocus={reference.element}/ >}

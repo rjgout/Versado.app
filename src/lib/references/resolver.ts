@@ -689,6 +689,7 @@ export async function referenceInTransaction(
     studyObjectHash(row.originalTarget) !== studyObjectHash(source.target)
   )
     throw new Error("REFERENCE_UNAVAILABLE");
+  if (!["INTERNAL_VERIFIED", "EXTERNAL_VERIFIED"].includes(row.diagnosis)) return {origin: origin.lesson, result: {kind:"unavailable" as const, reason:"unverified" as const, diagnosticKey:row.id}};
   const [result] = await resolveReferenceBatch(db, actor, origin.lesson, [
     {
       target: source.target,

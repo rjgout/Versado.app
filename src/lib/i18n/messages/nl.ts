@@ -3978,7 +3978,7 @@ export const nl = {
   },
   adminReseed: {
     title: "Content opnieuw laden",
-    text: "Zet de nieuwste content (boeken/hoofdstukken/oefeningen, podcastafleveringen, FSY-lessen, achievements) in de database — hetzelfde als {cmd}, maar dan zonder terminal. Bestaande gebruikers, voortgang, streaks en scores blijven ongemoeid; er wordt alleen content toegevoegd of bijgewerkt. Doe dit na elke update die nieuwe content toevoegt (bv. een nieuwe podcastaflevering). Dit kan een tijdje duren — de balk hieronder blijft staan totdat het écht klaar is, ook als je ondertussen naar een andere pagina gaat en terugkomt.",
+    text: "Werkt de beschikbare boeken, hoofdstukken, oefeningen, podcasts, FSY-content en CFM-concepten bij. Bevestig de aangegeven CFM-bronsnapshot expliciet. Studielessen worden niet automatisch gepubliceerd of zichtbaar gemaakt. Bestaande gebruikers, voortgang, reeksen en scores blijven behouden. Je kunt deze pagina verlaten en later de voortgang opnieuw bekijken.",
     failed: "Content laden is mislukt.",
     done: "Klaar — content is bijgewerkt.",
   },
@@ -4028,6 +4028,16 @@ export const nl = {
     favicon: "Favicon",
     faviconText: "Het icoontje in het browsertabblad — verschijnt ook als voorvertoning bij het delen van een link (WhatsApp, Telegram e.d.). Minimaal 200×200px.",
   },
+  managedContent: {
+    "lessons": "Studielessen",
+    "reviewBlocked": "Ik heb de {count} geblokkeerde verwijzingen beoordeeld. Toon deze uitsluitend als niet-klikbare tekst.",
+    "release": "Collectie inhoudelijk vrijgeven",
+    "releaseConfirm": "Alle lessen zijn afzonderlijk gepubliceerd. Geef de collectie vrij voor normaal gebruik door beheerders. De gebruikerszichtbaarheid blijft ongewijzigd.",
+    "approveImport": "CFM 2026: keur snapshot {snapshot} goed voor het bijwerken van 52 conceptlessen. Bestaande publicaties en zichtbaarheid blijven ongewijzigd.",
+    "includeCfm": "CFM 2026 als concept bijwerken",
+    "sourceMissing": "De gepinde CFM-bronbestanden ontbreken. Er wordt geen CFM-import uitgevoerd.",
+    "spaceMissing": "De persistente studiemediaopslag is niet beschikbaar. Herstel de opslag voordat je CFM bijwerkt."
+},
   adminContent: {
     hymnsEmergencyStop: "Technisch uitgeschakeld via HYMNS_POC=0.",
     saveFailed: "Opslaan mislukt.",
@@ -4037,7 +4047,7 @@ export const nl = {
     disabled: "Uitgeschakeld",
     visible: "Zichtbaar voor gebruikers",
     hidden: "Verborgen",
-    note: "Verborgen bronnen kun je via Beheercontent bekijken inspecteren; concepten blijven in de beheerpreview. Minstens één collectie blijft zichtbaar. Lofzangen heeft een eigen zichtbaarheid en verandert de gekozen bron niet. De algemene schakelaar hierboven regelt alleen de ingang naar de contentkiezer.",
+    note: "Als beheerder kun je vrijgegeven, ingeschakelde bronnen normaal gebruiken, ook wanneer ze verborgen zijn. Concepten blijven in de beheerpreview. Minstens één collectie blijft zichtbaar. Lofzangen heeft een eigen zichtbaarheid en verandert de gekozen bron niet. De algemene schakelaar regelt alleen de ingang naar de contentkiezer.",
   },
   adminFeedback: {
     none: "Nog geen meldingen.",

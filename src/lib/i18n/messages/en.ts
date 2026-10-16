@@ -3476,7 +3476,7 @@ export const en: PartialMessages = {
   },
   adminReseed: {
     title: "Reload content",
-    text: "Puts the latest content (books/chapters/exercises, podcast episodes, FSY lessons, achievements) in the database — the same as {cmd}, but without a terminal. Existing users, progress, streaks and scores are left alone; content is only added or updated. Do this after every update that adds new content (e.g. a new podcast episode). This can take a while — the bar below stays until it's really done, even if you go to another page and come back.",
+    text: "Updates available books, chapters, exercises, podcasts, FSY content and CFM drafts. Explicitly approve the displayed CFM source snapshot. Study lessons are never automatically published or made visible. Existing users, progress, streaks and scores are preserved. You can leave this page and check progress later.",
     failed: "Loading content failed.",
     done: "Done — content has been updated.",
   },
@@ -3526,6 +3526,16 @@ export const en: PartialMessages = {
     favicon: "Favicon",
     faviconText: "The icon in the browser tab — also appears as a preview when sharing a link (WhatsApp, Telegram etc.). At least 200×200px.",
   },
+  managedContent: {
+    "lessons": "Study lessons",
+    "reviewBlocked": "I have reviewed the {count} blocked references. Display these only as non-clickable text.",
+    "release": "Release collection content",
+    "releaseConfirm": "All lessons have been published individually. Release the collection for normal administrator use. User visibility remains unchanged.",
+    "approveImport": "CFM 2026: approve snapshot {snapshot} to update 52 draft lessons. Existing publications and visibility remain unchanged.",
+    "includeCfm": "Update CFM 2026 drafts",
+    "sourceMissing": "The pinned CFM source files are missing. No CFM import will run.",
+    "spaceMissing": "Persistent study media storage is unavailable. Restore storage before updating CFM."
+},
   adminContent: {
     hymnsEmergencyStop: "Technically disabled via HYMNS_POC=0.",
     saveFailed: "Saving failed.",
@@ -3535,7 +3545,7 @@ export const en: PartialMessages = {
     disabled: "Disabled",
     visible: "Visible to users",
     hidden: "Hidden",
-    note: "Inspect hidden sources through View managed content; drafts remain in admin preview. At least one collection stays visible. Hymns has its own visibility and does not change the selected source. The general switch above only controls the content-picker entry.",
+    note: "Administrators can normally use released, enabled sources even when hidden. Drafts remain in the admin preview. At least one collection stays visible. Hymns has its own visibility setting and does not change the selected source. The general switch only controls the content picker entry.",
   },
   adminFeedback: {
     none: "No reports yet.",

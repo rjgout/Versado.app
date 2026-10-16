@@ -298,14 +298,15 @@ async function applyPickerSwitch(input: ApplySwitchInput): Promise<SwitchResult>
     const study = await getStudyContext({ id: input.userId, isAdmin: input.isAdmin }, work.key);
     const legacy = study.available && study.activeLessonKey?.startsWith("fsy:")
       ? await prisma.fsyLesson.findUnique({ where: { id: study.activeLessonKey.slice(4) }, select: { contentCollectionId: true } }) : null;
+    const hasStudyLessons = await prisma.studyLessonEdition.count({where:{collectionId:target.id,publishedRevisionId:{not:null},lesson:{retiredAt:null}}}) > 0;
     const hasPublishedFsy = work.key === "fsy" && await prisma.fsyLesson.count({ where: { contentCollectionId: target.id, status: "PUBLISHED", publishedContent: { not: null } } }) > 0;
     const course = hasPublishedFsy ? await prisma.course.findFirst({ where: { contentCollectionId: target.id, enabled: true, type: "FSY" }, orderBy: [{ order: "asc" }, { id: "asc" }], select: { id: true } }) : null;
-    href = legacy?.contentCollectionId === target.id && study.lessonHref ? study.lessonHref : course ? `/courses/${course.id}` : "/content";
+    href = hasStudyLessons ? "/courses" : legacy?.contentCollectionId === target.id && study.lessonHref ? study.lessonHref : course ? `/courses/${course.id}` : "/content";
   }
   // Neutraliteit en de Spelen-context behouden, zonder activiteiten te starten.
   if (href !== "/content" && (route.kind === "game" || location.pathname === "/live")) href = "/live";
   else if (href !== "/content" && route.kind === "neutral") href = `${location.pathname}${location.search}`;
-  if (href === "/courses" && !await prisma.course.count({ where: { contentCollectionId: target.id, enabled: true } })) href = "/content";
+  if (href === "/courses" && !await prisma.course.count({ where: { contentCollectionId: target.id, enabled: true } }) && !await prisma.studyLessonEdition.count({where:{collectionId:target.id,publishedRevisionId:{not:null},lesson:{retiredAt:null}}})) href = "/content";
   // De collectie opnieuw onder normale rechten controleren binnen de commit.
   const saved = await commitContentSelection(input.userId, input.isAdmin, target, input.expectedSelection);
   if (saved.changed) emitToUser(input.userId, DATA_EVENT_SOCKET_NAME, { event: "contentChanged" });

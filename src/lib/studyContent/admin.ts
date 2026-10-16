@@ -1,3 +1,5 @@
+import { studyCollectionReleaseState } from "./collectionRelease";
+import { cfmDisplayOnlyKeys } from "./cfmReview";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
@@ -83,7 +85,11 @@ export async function studyPublishingOverview(actor: StudyAdmin) {
             collection: readingAccessWhere(actor, "admin-preview"),
             lesson: { work: { kind: "STUDY_PROGRAM" } },
           },
-          orderBy: { id: "asc" },
+          orderBy: [
+            { collectionId: "asc" },
+            { lesson: { order: "asc" } },
+            { id: "asc" },
+          ],
           take: 100,
           select: {
             id: true,
@@ -108,7 +114,12 @@ export async function studyPublishingOverview(actor: StudyAdmin) {
     importAllowed: studyReleaseAllowed("synthetic-v1"),
     publicationAllowed: studyReleaseAllowed("synthetic-v1"),
     fixtures: STUDY_FIXTURES,
-    collections,
+    collections: await Promise.all(
+      collections.map(async (c) => ({
+        ...c,
+        release: await studyCollectionReleaseState(actor, c.id),
+      })),
+    ),
     importCollections: collections.filter(
       (c) =>
         c.work?.startsWith("synthetic-study-") &&
@@ -190,7 +201,26 @@ export async function studyRevisionPreview(
       height: figure.height,
     });
   }
+  const importRun = revision.importItems[0]?.runId
+    ? await prisma.contentImportRun.findUnique({
+        where: { id: revision.importItems[0].runId },
+        select: { adapterName: true, sourceVersion: true },
+      })
+    : null;
+  let displayOnlyKeys: string[] = [];
+  if (importRun?.adapterName === "cfm-2026-nl-v1")
+    try {
+      displayOnlyKeys = await cfmDisplayOnlyKeys(
+        content.sourceMetadata.sourceKey,
+        content,
+        importRun.sourceVersion,
+      );
+    } catch {}
   return {
+    publicationAllowed: Boolean(
+      importRun && studyReleaseAllowed(importRun.adapterName),
+    ),
+    displayOnlyKeys,
     editionId,
     revisionId,
     publicationVersion: edition.publicationVersion,
@@ -210,9 +240,10 @@ export async function studyRevisionPreview(
         originalTarget: audit?.originalTarget ?? reference.target,
         diagnosis: audit?.diagnosis ?? "UNRESOLVED",
         externalUrl: audit?.externalUrl ?? null,
-        approvedExternalUrl: audit?.diagnosis === "EXTERNAL_VERIFIED"
-          ? verifiedOfficialUrl(audit.externalUrl)
-          : null,
+        approvedExternalUrl:
+          audit?.diagnosis === "EXTERNAL_VERIFIED"
+            ? verifiedOfficialUrl(audit.externalUrl)
+            : null,
         normalizedTarget: audit?.normalizedTarget ?? null,
         evidenceKey: audit?.evidenceKey ?? null,
       };

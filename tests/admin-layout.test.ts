@@ -68,7 +68,7 @@ test("beheerblokken gebruiken de gedeelde sectie en geen losse kaartstijl of oud
 
 test("ingrijpende acties vragen om bevestiging en zijn als gevaar gemarkeerd", () => {
   const reseed = read("src/components/ReseedClient.tsx");
-  assert.match(reseed, /await confirm\(t\("adminHub\.reseedConfirm"\), \{ destructive: true/);
+  assert.match(reseed, /await confirm\(\s*t\("adminHub\.reseedConfirm"\),\s*\{\s*destructive: true/);
   assert.match(reseed, /tone="danger"/);
   assert.match(reseed, /dangerButton/);
   const deploy = read("src/components/AdminDeployClient.tsx");

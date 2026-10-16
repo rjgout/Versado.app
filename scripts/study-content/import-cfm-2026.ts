@@ -1,17 +1,10 @@
-/** Uitsluitend een bewuste operatoractie; nooit via seed, deploy of containerstart. */
-import { createHash } from "node:crypto";
+/** Optionele operator-CLI met dezelfde snapshotgoedkeuring als de beheerreload. Geen automatische seed/deploy. */
 import fs from "node:fs/promises";
 const flags = process.argv.slice(2),
   at = flags.indexOf("--admin-user-id"),
   adminId = at >= 0 ? flags[at + 1] : null;
-const hash = createHash("sha256");
-for (const name of ["source-lock.json", "media-lock.json", "otb-index.json", "reference-source-checks.json", "reference-review.json"]) {
-  hash
-    .update(name)
-    .update("\0")
-    .update(await fs.readFile(`data/study-content/cfm-2026-nl/${name}`));
-}
-const approved = hash.digest("hex");
+const { cfmApprovedSnapshot } = await import("../../src/lib/studyContent/sourceApproval");
+const approved = await cfmApprovedSnapshot();
 if (
   !flags.includes("--confirm-drafts-only") ||
   !adminId ||

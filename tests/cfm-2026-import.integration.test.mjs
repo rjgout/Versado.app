@@ -1,3 +1,4 @@
+import {setTimeout as delay} from "node:timers/promises";
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
@@ -11,12 +12,14 @@ import {
 import { parseOtbChapter } from "../scripts/otb/chapterParser.ts";
 import { importCfm2026Drafts } from "../src/lib/studyContent/cfm2026Import.ts";
 import { publishStudyRevision } from "../src/lib/studyContent/publication.ts";
+import { releaseStudyCollection, studyCollectionReleaseState } from "../src/lib/studyContent/collectionRelease.ts";
+import { cfmApprovedSnapshot,requireCfmApproval } from "../src/lib/studyContent/sourceApproval.ts";
 import { getPublishedStudyLesson } from "../src/lib/studyContent/revisions.ts";
 assertReferenceTestEnvironment();
 const root = process.env.CFM_TEST_ASSETS;
 if (!root?.startsWith("/tmp/")) throw Error("Eigen gepinde testassets vereist");
 after(() => prisma.$disconnect());
-test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempotentie en behoud van publicaties/economie", async () => {
+test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempotentie en behoud van publicaties/economie", async (t) => {
   const f = await referenceFixture();
   const index = JSON.parse(
     await fs.readFile("data/study-content/cfm-2026-nl/otb-index.json", "utf8"),
@@ -77,6 +80,7 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     prisma.user,
     prisma.userStudyContext,
     prisma.contentProgress,
+    prisma.readingPosition,
     prisma.userCourseProgress,
     prisma.userCourseLessonProgress,
     prisma.podcastPlaybackProgress,
@@ -107,6 +111,7 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
           .digest("hex"),
       ),
     );
+  const unrelatedPublications = await prisma.studyLessonEdition.findMany({select:{id:true,publishedRevisionId:true,draftRevisionId:true,publicationVersion:true},orderBy:{id:"asc"}});
   const beforeHashes = await personalHashes();
   const beforeUser = await prisma.user.findUniqueOrThrow({
     where: { id: f.owner.user.id },
@@ -127,6 +132,18 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     importCfm2026Drafts(f.owner.actor, options),
     (e) => e.code === "FORBIDDEN",
   );
+  const storageDir=process.env.STUDY_MEDIA_DIR;
+  try{process.env.STUDY_MEDIA_DIR="/tmp/versado-missing-study-media";await assert.rejects(importCfm2026Drafts(f.admin.actor,options),e=>e.code === "STORAGE");}finally{process.env.STUDY_MEDIA_DIR=storageDir;}
+  t.mock.method(fs,"statfs",async()=>({bavail:0,bsize:4096}));
+  await assert.rejects(importCfm2026Drafts(f.admin.actor,options),e=>e.code === "STORAGE");t.mock.restoreAll();
+  await assert.rejects(importCfm2026Drafts(f.admin.actor,{...options,progress:n=>{if(n===9)throw Error("synthetic-interruption");}}),/synthetic-interruption/);
+  assert.equal(await prisma.contentImportRun.count({where:{adapterName:"cfm-2026-nl-v1"}}),9);
+  const base=assertReferenceTestEnvironment();const proposal=await fetch(base+"/api/admin/reseed",{headers:{cookie:f.admin.cookie}});assert.equal(proposal.status,200);assert.equal((await proposal.json()).studySource.snapshot,await cfmApprovedSnapshot());
+  for(const who of [null,f.owner])assert.equal((await fetch(base+"/api/admin/reseed",{headers:who?{cookie:who.cookie}:{}})).status,who?403:401);
+  for(const who of [null,f.owner])assert.equal((await fetch(base+"/api/admin/reseed",{method:"POST",headers:{...(who?{cookie:who.cookie}:{}),Origin:base,"Content-Type":"application/json"},body:JSON.stringify({approvedSnapshot:await cfmApprovedSnapshot(),confirmDraftsOnly:true})})).status,who?403:401);
+  for(const payload of [{approvedSnapshot:await cfmApprovedSnapshot(),confirmDraftsOnly:false},{approvedSnapshot:await cfmApprovedSnapshot(),confirmDraftsOnly:true,userId:f.owner.user.id}])assert.equal((await fetch(base+"/api/admin/reseed",{method:"POST",headers:{cookie:f.admin.cookie,Origin:base,"Content-Type":"application/json"},body:JSON.stringify(payload)})).status,400);
+  const csrf=await fetch(base+"/api/admin/reseed",{method:"POST",headers:{cookie:f.admin.cookie,Origin:"https://untrusted.invalid","Content-Type":"application/json"},body:"{}"});assert.equal(csrf.status,403);
+  const rejected=await fetch(base+"/api/admin/reseed",{method:"POST",headers:{cookie:f.admin.cookie,Origin:base,"Content-Type":"application/json"},body:JSON.stringify({approvedSnapshot:"0".repeat(64),confirmDraftsOnly:true})});assert.equal(rejected.status,409);
   const report = await importCfm2026Drafts(f.admin.actor, options);
   assert.equal(report.importedLessons, 52);
   assert.equal(
@@ -215,13 +232,26 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     }),
     media: await prisma.contentMedia.count(),
   };
+  // Echte API → achtergrondjob → runSeed → CFM. Stop de legacyfase vóór iedere boekwrite/netwerkimport.
+  const orderBefore=collection.order;
+  await prisma.contentCollection.update({where:{id:collection.id},data:{order:-1000}});
+  await prisma.$executeRawUnsafe(`CREATE FUNCTION "testCfmSeedBoundary"() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW."contentCollectionId" <> 'content_bom' THEN RAISE EXCEPTION 'WRONG_CANONICAL_SOURCE'; END IF; RAISE EXCEPTION 'SYNTHETIC_LEGACY_BOUNDARY'; END $$`);
+  await prisma.$executeRawUnsafe(`CREATE TRIGGER "testCfmSeedBoundary" BEFORE INSERT OR UPDATE ON "Book" FOR EACH ROW EXECUTE FUNCTION "testCfmSeedBoundary"()`);
+  try {
+    const start=async()=>fetch(base+"/api/admin/reseed",{method:"POST",headers:{cookie:f.admin.cookie,Origin:base,"Content-Type":"application/json"},body:JSON.stringify({approvedSnapshot:await cfmApprovedSnapshot(),confirmDraftsOnly:true})});
+    const response=await start();assert.equal(response.status,200);assert.equal((await response.json()).started,true);
+    const duplicate=await start();assert.equal((await duplicate.json()).started,false);
+    let status;
+    for(let n=0;n<180;n++){status=(await (await fetch(base+"/api/admin/reseed",{headers:{cookie:f.admin.cookie}})).json()).job;if(status.status!=="running")break;await delay(500);}
+    assert.equal(status.status,"error");assert.match(status.error,/SYNTHETIC_LEGACY_BOUNDARY/);assert.ok(!status.error.includes("WRONG_CANONICAL_SOURCE"));assert.equal(status.progress.current,52);assert.equal(status.progress.work,"cfm-old-testament-2026");
+  } finally {await prisma.$executeRawUnsafe(`DROP TRIGGER "testCfmSeedBoundary" ON "Book"`);await prisma.$executeRawUnsafe(`DROP FUNCTION "testCfmSeedBoundary"()`);await prisma.contentCollection.update({where:{id:collection.id},data:{order:orderBefore}});}
   for (const flags of [
     { visibleToUsers: true, publicationState: "DRAFT" },
     { visibleToUsers: false, publicationState: "LEGACY" },
     { visibleToUsers: false, publicationState: "PUBLISHED" },
   ]) {
     await prisma.contentCollection.update({ where: { id: collection.id }, data: flags });
-    await assert.rejects(importCfm2026Drafts(f.admin.actor, options), (e) => e.code === "CONFLICT");
+    await importCfm2026Drafts(f.admin.actor, options);
     const unchanged = await prisma.contentCollection.findUniqueOrThrow({ where: { id: collection.id } });
     assert.equal(unchanged.visibleToUsers, flags.visibleToUsers);
     assert.equal(unchanged.publicationState, flags.publicationState);
@@ -240,12 +270,7 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     again.lessons.map((l) => l.revisionId),
     report.lessons.map((l) => l.revisionId),
   );
-  await assert.rejects(
-    importCfm2026Drafts(f.admin.actor, {
-      mediaBytes: async () => Buffer.from("corrupt"),
-    }),
-    (e) => e.code === "MEDIA",
-  );
+  await importCfm2026Drafts(f.admin.actor, {mediaBytes:async()=>{throw Error("Bestaande gevalideerde media mogen niet opnieuw downloaden");}});
   assert.equal(
     (
       await prisma.studyLessonEdition.findUniqueOrThrow({
@@ -286,9 +311,10 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
   assert.deepEqual(
     await personalHashes(),
     beforeHashes,
-    "20 persoonlijke, cursus-, spel- en economietabellen blijven bytegelijk",
+    "21 persoonlijke, cursus-, spel- en economietabellen blijven bytegelijk",
   );
-  // Publicatie faalt nog steeds op echte onopgeloste verwijzingen.
+  assert.deepEqual(await prisma.studyLessonEdition.findMany({where:{id:{in:unrelatedPublications.map(e=>e.id)}},select:{id:true,publishedRevisionId:true,draftRevisionId:true,publicationVersion:true},orderBy:{id:"asc"}}),unrelatedPublications);
+  // Zonder expliciete inhoudelijke beoordeling blijven deze verwijzingen blokkeren.
   await prisma.contentCollection.update({
     where: { id: collection.id },
     data: { publicationState: "PUBLISHED", visibleToUsers: true },
@@ -314,28 +340,29 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     ).publishedRevisionId,
     null,
   );
-  // Alleen de wegwerpdatabase stelt één pointer in om de echte readertrip te testen.
-  // Dit is geen geslaagde publicatiegate en wordt nooit uitgevoerd door importcode.
-  await prisma.studyLessonEdition.update({
-    where: { id: chosen.id },
-    data: { publishedRevisionId: chosen.draftRevisionId },
-  });
-  await prisma.user.update({
-    where: { id: f.owner.user.id },
-    data: { activeContentCollectionId: collection.id, contentLanguage: "nl" },
-  });
-  for (const e of [
-    editions[0],
-    editions[9],
-    editions[10],
-    editions[22],
-    editions[35],
-    editions[40],
-  ])
-    await prisma.studyLessonEdition.update({
-      where: { id: e.id },
-      data: { publishedRevisionId: e.draftRevisionId },
-    });
+  await prisma.contentCollection.update({where:{id:collection.id},data:{publicationState:"DRAFT",visibleToUsers:false}});
+  await assert.rejects(releaseStudyCollection(f.admin.actor,{collectionId:collection.id,releaseToken:"0".repeat(64),actionId:randomUUID()}));
+  for(const [i,e] of editions.entries()){
+    await publishStudyRevision(f.admin.actor,{editionId:e.id,revisionId:e.draftRevisionId,importRunId:report.lessons[i].runId,kind:"PUBLISH",expectedVersion:0,actionId:randomUUID(),allowReviewedDisplayOnly:true});
+    assert.equal(await getPublishedStudyLesson(f.admin.actor,e.lessonId,collection.id),null,"Collectie blijft DRAFT tot afzonderlijke vrijgave");
+  }
+  const release=await studyCollectionReleaseState(f.admin.actor,collection.id);
+  assert.equal(release.complete,true);assert.equal(release.published,52);
+  await assert.rejects(releaseStudyCollection(f.owner.actor,{collectionId:collection.id,releaseToken:release.releaseToken,actionId:randomUUID()}),e=>e.code==="FORBIDDEN");
+  const releaseAction={collectionId:collection.id,releaseToken:release.releaseToken,actionId:randomUUID()};
+  const outcomes=await Promise.all([releaseStudyCollection(f.admin.actor,releaseAction),releaseStudyCollection(f.admin.actor,releaseAction)]);
+  assert.equal(outcomes.filter(r=>r.changed).length,1);
+  assert.equal((await prisma.contentCollection.findUniqueOrThrow({where:{id:collection.id}})).visibleToUsers,false);
+  for(const e of editions){assert.ok(await getPublishedStudyLesson(f.admin.actor,e.lessonId,collection.id));assert.equal(await getPublishedStudyLesson(f.owner.actor,e.lessonId,collection.id),null);}
+  const adminReader=await fetch(`${assertReferenceTestEnvironment()}/study-lesson/${chosen.lessonId}/${collection.id}`,{headers:{cookie:f.admin.cookie}});assert.equal(adminReader.status,200);
+  const unselected=await fetch(`${assertReferenceTestEnvironment()}/study-lesson/${chosen.lessonId}/${collection.id}`,{headers:{cookie:f.owner.cookie}});assert.equal(unselected.status,404);
+  await prisma.contentCollection.update({where:{id:collection.id},data:{visibleToUsers:true}});
+  for(const e of editions)assert.ok(await getPublishedStudyLesson(f.owner.actor,e.lessonId,collection.id));
+  const publishedBefore=await prisma.studyLessonEdition.findMany({where:{collectionId:collection.id},select:{id:true,publishedRevisionId:true,publicationVersion:true},orderBy:{id:"asc"}});
+  await importCfm2026Drafts(f.admin.actor,options);
+  assert.deepEqual(await prisma.studyLessonEdition.findMany({where:{collectionId:collection.id},select:{id:true,publishedRevisionId:true,publicationVersion:true},orderBy:{id:"asc"}}),publishedBefore);
+  await requireCfmApproval(await cfmApprovedSnapshot());await assert.rejects(requireCfmApproval("0".repeat(64)));
+  await prisma.user.update({where:{id:f.owner.user.id},data:{activeContentCollectionId:collection.id,contentLanguage:"nl"}});
   const longLessons = [
     { edition: editions[9], reference: "ref-b-scripture_title1-0", verses: 67 },
     {
@@ -401,6 +428,7 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
   assert.ok(externalVideo);
   const flow = {
     adminToken: f.admin.token,
+    adminId: f.admin.user.id,
     selections,
     secondChapterId: (await scriptureChapter("gen", 2)).id,
     externals: [
@@ -442,6 +470,14 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
   const summary = {
     expectedLessons: 52,
     importedLessons: 52,
+    legitimatelyPublishedLessons: 52,
+    concurrentCollectionRelease: "one-change",
+    adminHiddenReader: true,
+    publicVisibilitySeparate: true,
+    interruptedImportResumed: true,
+    actualBackendReloadCfmPhase: true,
+    legacyBookSourcePinned: true,
+    duplicateReloadBlocked: true,
     blocks: 3200,
     references: refs.length,
     internallyResolved: internal.length,

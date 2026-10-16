@@ -3476,7 +3476,7 @@ export const de: PartialMessages = {
   },
   adminReseed: {
     title: "Inhalte neu laden",
-    text: "Schreibt die neuesten Inhalte (Bücher/Kapitel/Übungen, Podcastfolgen, FSY-Lektionen, Erfolge) in die Datenbank — wie {cmd}, nur ohne Terminal. Bestehende Benutzer, Fortschritt, Serien und Punkte bleiben unberührt; Inhalte werden nur hinzugefügt oder aktualisiert. Mach das nach jedem Update mit neuen Inhalten (z. B. einer neuen Podcastfolge). Das kann eine Weile dauern — der Balken unten bleibt, bis es wirklich fertig ist, auch wenn du zwischendurch eine andere Seite öffnest.",
+    text: "Aktualisiert verfügbare Bücher, Kapitel, Übungen, Podcasts, FSY-Inhalte und CFM-Entwürfe. Den angezeigten CFM-Quellsnapshot ausdrücklich genehmigen. Studienlektionen werden nie automatisch veröffentlicht oder sichtbar gemacht. Benutzer, Fortschritt, Serien und Punkte bleiben erhalten. Du kannst die Seite verlassen und später den Fortschritt prüfen.",
     failed: "Das Laden der Inhalte ist fehlgeschlagen.",
     done: "Fertig — Inhalte wurden aktualisiert.",
   },
@@ -3526,6 +3526,16 @@ export const de: PartialMessages = {
     favicon: "Favicon",
     faviconText: "Das Symbol im Browsertab — erscheint auch als Vorschau beim Teilen eines Links (WhatsApp, Telegram usw.). Mindestens 200×200px.",
   },
+  managedContent: {
+    "lessons": "Studienlektionen",
+    "reviewBlocked": "Ich habe die {count} gesperrten Verweise geprüft. Diese ausschließlich als nicht anklickbaren Text anzeigen.",
+    "release": "Sammlungsinhalt freigeben",
+    "releaseConfirm": "Alle Lektionen wurden einzeln veröffentlicht. Die Sammlung für die normale Nutzung durch Administratoren freigeben. Die Sichtbarkeit für Benutzer bleibt unverändert.",
+    "approveImport": "CFM 2026: Snapshot {snapshot} für die Aktualisierung von 52 Lektionsentwürfen genehmigen. Bestehende Veröffentlichungen und Sichtbarkeit bleiben unverändert.",
+    "includeCfm": "CFM-2026-Entwürfe aktualisieren",
+    "sourceMissing": "Die fixierten CFM-Quelldateien fehlen. Es wird kein CFM-Import ausgeführt.",
+    "spaceMissing": "Der dauerhafte Medienspeicher ist nicht verfügbar. Vor der CFM-Aktualisierung den Speicher wiederherstellen."
+},
   adminContent: {
     hymnsEmergencyStop: "Technisch deaktiviert über HYMNS_POC=0.",
     saveFailed: "Speichern fehlgeschlagen.",
@@ -3535,7 +3545,7 @@ export const de: PartialMessages = {
     disabled: "Deaktiviert",
     visible: "Für Benutzer sichtbar",
     hidden: "Verborgen",
-    note: "Verborgene Quellen lassen sich über Verwaltungsinhalte ansehen prüfen; Entwürfe bleiben in der Verwaltungsvorschau. Mindestens eine Sammlung bleibt sichtbar. Gesangbuch hat eine eigene Sichtbarkeit und ändert die gewählte Quelle nicht. Der allgemeine Schalter steuert nur den Zugang zur Inhaltsauswahl.",
+    note: "Administratoren können freigegebene, aktivierte Quellen normal nutzen, auch wenn sie verborgen sind. Entwürfe bleiben in der Verwaltungsvorschau. Mindestens eine Sammlung bleibt sichtbar. Kirchenlieder haben eine eigene Sichtbarkeit und ändern die gewählte Quelle nicht. Der allgemeine Schalter steuert nur den Zugang zur Inhaltsauswahl.",
   },
   adminFeedback: {
     none: "Noch keine Meldungen.",

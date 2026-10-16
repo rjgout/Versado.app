@@ -40,8 +40,8 @@ export function syntheticStudyEnvironment() {
   }
 }
 export function studyReleaseAllowed(adapter: string) {
-  // Officiële publicatie blijft buiten de eigen testdatabase gesloten.
-  return ["synthetic-v1", "cfm-2026-nl-v1"].includes(adapter) && syntheticStudyEnvironment();
+  // Eén gecontroleerde officiële adapter; zijn inhoud/media/referenties worden opnieuw getoetst.
+  return adapter === "cfm-2026-nl-v1" || (adapter === "synthetic-v1" && syntheticStudyEnvironment());
 }
 /** Conceptimport is geen publicatie. Onbekende adapters blijven gesloten. */
 export function studyImportAllowed(adapter: string) {
