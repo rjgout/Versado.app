@@ -729,6 +729,7 @@ export const en: PartialMessages = {
   },
   contentSwitcher: {
     picker: {
+      music: "Singing & music",
       hymnsHelp: "Hymnbook, live reading and sheet music.",
       "title": "Choose your content",
       "intro": "Choose a source to learn and play with. Your progress stays saved.",

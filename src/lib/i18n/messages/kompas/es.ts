@@ -216,7 +216,7 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
     switcher: {
       "title": "Elegir contenido e idioma",
       "what": "Toca tu fuente actual arriba a la izquierda para abrir la página completa de selección.",
-      "benefit": "Elige entre Escrituras y Programas de estudio. Los podcasts tienen una fila propia en Programas de estudio. Tu elección y tu progreso se conservan.",
+      "benefit": "Elige Escrituras o Programas de estudio, o abre Himnos en Canto y música. Los podcasts siguen en Programas de estudio. Abrir Himnos no cambia tu fuente seleccionada; los domingos también están en Hoy.",
       "step1": "Abre la selección desde la fuente en la cabecera.",
       "step2": "Toca una fuente disponible para cambiar directamente.",
       "step3": "Elige un idioma de texto disponible o elige explícitamente otra edición.",
@@ -271,7 +271,7 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
   tours: {
     start: {
       entry: { title: "Descubre Versado", text: "Aquí siempre encontrarás explicaciones sobre Versado. Puedes volver en cualquier momento." },
-      switcher: {"title": "Abrir la selección de contenido", "text": "Toca aquí para elegir Escrituras, Programas de estudio y el idioma del texto en una página completa. Tu elección y tu progreso se conservan."},
+      switcher: {"title": "Abrir la selección de contenido", "text": "Toca aquí para elegir Escrituras o Programas de estudio, abrir Himnos en Canto y música o cambiar el idioma del texto. Tu progreso se conserva."},
       learn: { title: "Aprender", text: "Aquí sigues cursos: leer y responder preguntas." },
       play: { title: "Jugar", text: "Aquí encuentras juegos y acertijos, solo o con otros." },
       friends: { title: "Amigos", text: "Aquí añades amigos y ves cómo van juntos." },
@@ -280,14 +280,14 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
     learn: {
       intro: { title: "Tus cursos", text: "Estos son tus cursos. Abre uno para leer y responder preguntas. Tu progreso se guarda." },
       add: { title: "Más cursos", text: "Aquí añades un curso. También puedes volver a poner aquí los cursos ocultos." },
-      switcher: {"title": "Abrir la selección de contenido", "text": "Toca aquí para elegir Escrituras, Programas de estudio y el idioma del texto en una página completa. Tu elección y tu progreso se conservan."},
+      switcher: {"title": "Abrir la selección de contenido", "text": "Toca aquí para elegir Escrituras o Programas de estudio, abrir Himnos en Canto y música o cambiar el idioma del texto. Tu progreso se conserva."},
     },
     play: {
       games: { title: "Tus juegos", text: "Elige un juego para abrirlo. El icono de información muestra las reglas." },
-      switcher: {"title": "Abrir la selección de contenido", "text": "Toca aquí para elegir Escrituras, Programas de estudio y el idioma del texto en una página completa. Tu elección y tu progreso se conservan."},
+      switcher: {"title": "Abrir la selección de contenido", "text": "Toca aquí para elegir Escrituras o Programas de estudio, abrir Himnos en Canto y música o cambiar el idioma del texto. Tu progreso se conserva."},
     },
     switcher: {
-      menu: {"title": "Abrir la selección de contenido", "text": "Toca aquí para elegir Escrituras, Programas de estudio y el idioma del texto en una página completa. Tu elección y tu progreso se conservan."},
+      menu: {"title": "Abrir la selección de contenido", "text": "Toca aquí para elegir Escrituras o Programas de estudio, abrir Himnos en Canto y música o cambiar el idioma del texto. Tu progreso se conserva."},
       learn: { title: "Aprender sigue tu elección", text: "Tus cursos pertenecen a las Escrituras elegidas." },
       play: { title: "Jugar también", text: "Los juegos también dependen de tu elección." },
     },

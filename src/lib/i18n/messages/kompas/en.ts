@@ -216,7 +216,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
     switcher: {
       "title": "Choose content and language",
       "what": "Tap your current source at the top left to open the full content picker.",
-      "benefit": "Choose from Scriptures and Study programmes. Podcasts have a separate row under Study programmes. Your choice is remembered and your progress stays saved.",
+      "benefit": "Choose Scriptures or Study programmes, or open Hymns under Singing & music. Podcasts stay under Study programmes. Opening Hymns does not change your selected source; on Sundays you can also find Hymns on Today.",
       "step1": "Open the picker using the source in the header.",
       "step2": "Tap an available source to switch directly.",
       "step3": "Choose an available text language or explicitly choose another edition.",
@@ -271,7 +271,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
   tours: {
     start: {
       entry: { title: "Discover Versado", text: "Here you will always find explanations about Versado. You can come back at any time." },
-      switcher: {"title": "Open the content picker", "text": "Tap here to choose Scriptures, Study programmes and the text language on a full page. Your choice is remembered; existing progress stays saved."},
+      switcher: {"title": "Open the content picker", "text": "Tap here to choose Scriptures or Study programmes, open Hymns under Singing & music, or change the text language. Your progress stays saved."},
       learn: { title: "Learn", text: "Here you follow courses: read and answer questions." },
       play: { title: "Play", text: "Here you find games and puzzles, alone or with others." },
       friends: { title: "Friends", text: "Here you add friends and see how you are doing together." },
@@ -280,14 +280,14 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
     learn: {
       intro: { title: "Your courses", text: "These are your courses. Open one to read and answer questions. Your progress is saved." },
       add: { title: "More courses", text: "Here you add a course. You can also put hidden courses back here." },
-      switcher: {"title": "Open the content picker", "text": "Tap here to choose Scriptures, Study programmes and the text language on a full page. Your choice is remembered; existing progress stays saved."},
+      switcher: {"title": "Open the content picker", "text": "Tap here to choose Scriptures or Study programmes, open Hymns under Singing & music, or change the text language. Your progress stays saved."},
     },
     play: {
       games: { title: "Your games", text: "Choose a game to open it. The information icon shows the rules." },
-      switcher: {"title": "Open the content picker", "text": "Tap here to choose Scriptures, Study programmes and the text language on a full page. Your choice is remembered; existing progress stays saved."},
+      switcher: {"title": "Open the content picker", "text": "Tap here to choose Scriptures or Study programmes, open Hymns under Singing & music, or change the text language. Your progress stays saved."},
     },
     switcher: {
-      menu: {"title": "Open the content picker", "text": "Tap here to choose Scriptures, Study programmes and the text language on a full page. Your choice is remembered; existing progress stays saved."},
+      menu: {"title": "Open the content picker", "text": "Tap here to choose Scriptures or Study programmes, open Hymns under Singing & music, or change the text language. Your progress stays saved."},
       learn: { title: "Learn follows your choice", text: "Your courses belong to the chosen Scriptures." },
       play: { title: "Play too", text: "The games depend on your choice as well." },
     },

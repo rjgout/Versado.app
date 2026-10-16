@@ -2,6 +2,8 @@ import type { User } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { dayKey } from "@/lib/dates";
 import { userTimeZone, zonedParts } from "@/lib/timeZone";
+import { getHymnsAccess } from "@/lib/hymnAvailability";
+import { sundayHymnsVisible } from "@/lib/hymns/sunday";
 import { getStreakContinuation } from "@/lib/streakContinuation";
 import { getTextOfTheDay, type DailyText } from "@/lib/dailyText";
 import { wordGamePeriod } from "@/lib/wordGame";
@@ -86,6 +88,8 @@ export interface TodayData {
   actionTotal: number;
   continueItems: ContinueItem[];
   dailyText: DailyText | null;
+  /** Zondag in de tijdzone van de gebruiker én server-side toegang tot Lofzangen. Onafhankelijk van actieve content. */
+  sundayHymns: boolean;
   wordGame: DailyGameState | null;
   dailyQuiz: DailyGameState | null;
   /** Alle vrienden (voor live bijwerken: een vriend die online komt, moet al bekend zijn) en wie nu online is, met diens gedeelde activiteit. */
@@ -141,6 +145,9 @@ export async function getTodayData(user: User): Promise<TodayData> {
   // de tijdzone van de gebruiker.
   const today = dayKey();
   const timeZone = userTimeZone(user);
+  // Zondagsingang is een activiteit, geen contentselectie: controleer dezelfde servergate als de Lofzangen-pagina zelf.
+  // Op andere dagen is geen extra databasequery nodig.
+  const sundayHymns = await sundayHymnsVisible(new Date(), timeZone, () => getHymnsAccess(user));
   // Het woord van de dag wisselt om 18:00 in de tijdzone van de gebruiker
   // (met servertijd), los van de gewone kalenderdag hieronder.
   const wordPeriod = wordGamePeriod(new Date(), timeZone);
@@ -437,6 +444,7 @@ export async function getTodayData(user: User): Promise<TodayData> {
     actionTotal: compactActions.total,
     continueItems,
     dailyText,
+    sundayHymns,
     wordGame: wordGameEntry
       ? { href: wordGameEntry.href, dayKey: wordGameDay, nextReleaseAt: wordPeriod.nextReleaseAt.toISOString(), status: !wordGame ? "todo" : wordGame.status === "IN_PROGRESS" ? "in-progress" : "done", won: wordGame?.status === "WON" }
       : null,
