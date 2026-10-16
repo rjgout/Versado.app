@@ -110,16 +110,61 @@ test('verborgen vrijgegeven inhoud is alleen voor beheer toegankelijk; DRAFT/dis
   }
  }finally{await prisma.contentCollection.update({where:{id:f.collection.id},data:{visibleToUsers:true,enabled:true,publicationState:'PUBLISHED'}});}
 });
-test('ingetrokken bron behoudt eigen notitie, lekt geen nieuwe brontekst en laat bewuste verwijdering toe',async()=>{
+test('ingetrokken bron laat alleen eigen actieve notitie bewerken zonder nieuwe brontekst of heractivatie',async()=>{
  const who=await referenceAccount();const saved=await mutateAnnotation(who.actor,command('note',target));
  try{
   await prisma.contentCollection.update({where:{id:f.collection.id},data:{enabled:false}});
   assert.equal((await getAnnotation(who.actor,'note',saved.annotation.id)).text,'Privétestnotitie');
   assert.equal((await listAnnotations(who.actor,{lessonEditionId:target.lessonEditionId})).length,1);
-  await assert.rejects(mutateAnnotation(who.actor,command('note',target,1)),fault('UNAVAILABLE'));
-  const remove=command('note',target,1);delete remove.text;
+  const edit=command('note',target,1,{text:'Bewerkt na intrekking'});
+  const updated=await mutateAnnotation(who.actor,edit);
+  assert.equal(updated.annotation.text,edit.text);assert.equal(updated.annotation.mutationVersion,2);
+  assert.equal(updated.annotation.id,saved.annotation.id);assert.deepEqual(updated.annotation.target,saved.annotation.target);
+  assert.equal(updated.annotation.targetKey,saved.annotation.targetKey);
+  assert.equal((await mutateAnnotation(who.actor,edit)).changed,false);
+  for(const other of [await referenceAccount(),f.admin]){
+   await assert.rejects(mutateAnnotation(other.actor,command('note',target)),fault('UNAVAILABLE'));
+   await assert.rejects(getAnnotation(other.actor,'note',saved.annotation.id),fault('UNAVAILABLE'));
+  }
+  await assert.rejects(mutateAnnotation(who.actor,command('note',{...target,selector:{...target.selector,exact:'Vervalste bron'}} ,2)),fault('INVALID'));
+  const response=await http('/api/annotations','PUT',command('note',target,2,{text:'Privé via API'}),who);
+  assert.equal(response.status,200);const json=await response.json();
+  assert.equal(json.annotation.text,'Privé via API');assert.deepEqual(json.annotation.target,saved.annotation.target);assert.equal('body' in json,false);
+  const remove=command('note',target,3);delete remove.text;
   assert.equal((await mutateAnnotation(who.actor,remove,true)).annotation.deleted,true);
+  await assert.rejects(mutateAnnotation(who.actor,command('note',target,4)),fault('UNAVAILABLE'));
  }finally{await prisma.contentCollection.update({where:{id:f.collection.id},data:{enabled:true}});}
+});
+test('DELETE tijdens privénotitiebewerking veroorzaakt conflict en kan geen tombstone heractiveren',async()=>{
+ const who=await referenceAccount(), saved=await mutateAnnotation(who.actor,command('note',target));
+ let entered,release;const locked=new Promise(resolve=>entered=resolve),gate=new Promise(resolve=>release=resolve);
+ const deletion=prisma.$transaction(async db=>{
+  await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${JSON.stringify([who.actor.id,'note',saved.annotation.targetKey])},0))`;
+  await db.note.update({where:{id:saved.annotation.id},data:{deletedAt:new Date(),text:'',mutationVersion:2,lastActionId:randomUUID(),lastActionHash:'0'.repeat(64)}});
+  entered();await gate;
+ },{timeout:10000});
+ try{
+  await locked;let done=false;
+  const edits=Promise.all([1,2].map(version=>assert.rejects(mutateAnnotation(who.actor,command('note',target,version,{text:'Vertraagd toestel'})),fault('CONFLICT')))).finally(()=>{done=true;});
+  await delay(75);assert.equal(done,false);
+  release();await deletion;await edits;
+  const row=await getAnnotation(who.actor,'note',saved.annotation.id);assert.equal(row.deleted,true);assert.equal(row.text,'');assert.equal(row.mutationVersion,2);
+ }finally{release();await deletion;}
+});
+test('succesvolle PUT/DELETE tellen niet als failures; herhaald ongeldige verzoeken blijven begrensd',async()=>{
+ const who=await referenceAccount();
+ for(let version=0;version<130;version++){
+  const remove=version%2===1, action=command('note',target,version);if(remove)delete action.text;
+  const response=await http('/api/annotations',remove?'DELETE':'PUT',action,who);
+  assert.equal(response.status,200,`Geldige mutatie ${version+1}`);assert.equal((await response.json()).annotation.mutationVersion,version+1);
+ }
+ const abusive=await referenceAccount();
+ for(let i=0;i<120;i++){
+  assert.equal((await http('/api/annotations','PUT',{invalid:true},abusive)).status,400);
+  if(i===59)assert.equal((await http('/api/annotations','PUT',command('note',target),abusive)).status,200,'Een succes wist eerdere failures niet');
+ }
+ const limited=await http('/api/annotations','PUT',command('note',target,1),abusive);assert.equal(limited.status,429);assert.match(limited.headers.get('cache-control'),/no-store/);
+ assert.equal((await listAnnotations(abusive.actor,{lessonEditionId:target.lessonEditionId}))[0].mutationVersion,1);
 });
 test('verkeerde revisie/editie en corrupte selectors worden zonder write geweigerd',async()=>{
  const who=await referenceAccount();
@@ -137,6 +182,18 @@ test('draft en historische revisie blijven buiten writes, ook met geldig eerder 
   await assert.rejects(mutateAnnotation(who.actor,command('note',target)),fault('UNAVAILABLE'));
   await assert.rejects(mutateAnnotation(who.actor,{...command('note',target),visitProof:f.dto.visitProof}),fault('INVALID'));
   assert.equal((await mutateAnnotation(who.actor,command('note',nextTarget))).changed,true);
+ }finally{await prisma.studyLessonEdition.update({where:{id:target.lessonEditionId},data:{publishedRevisionId:old.id}});}
+});
+test('historische notitie blijft bewerkbaar maar een nieuwe notitie op die revisie niet',async()=>{
+ const who=await referenceAccount(), saved=await mutateAnnotation(who.actor,command('note',target));
+ const old=await prisma.studyRevision.findUniqueOrThrow({where:{id:target.revisionId}});
+ const newer=await appendStudyRevision(f.admin.actor,target.lessonEditionId,{schemaVersion:1,title:'Historische notitie',body:old.body,sourceMetadata:old.sourceMetadata,rightsMetadata:old.rightsMetadata});
+ try{
+  await prisma.studyLessonEdition.update({where:{id:target.lessonEditionId},data:{publishedRevisionId:newer.id}});
+  const edited=await mutateAnnotation(who.actor,command('note',target,1,{text:'Eigen historische notitie'}));
+  assert.equal(edited.annotation.id,saved.annotation.id);assert.deepEqual(edited.annotation.target,saved.annotation.target);
+  assert.equal(edited.annotation.text,'Eigen historische notitie');assert.equal(edited.annotation.mutationVersion,2);
+  await assert.rejects(mutateAnnotation((await referenceAccount()).actor,command('note',target)),fault('UNAVAILABLE'));
  }finally{await prisma.studyLessonEdition.update({where:{id:target.lessonEditionId},data:{publishedRevisionId:old.id}});}
 });
 test('publicatiepointerwissel wordt onder dezelfde editielock afgewacht en opnieuw gevalideerd',async()=>{

@@ -102,11 +102,15 @@ export async function mutateAnnotation(actor: Actor, input: unknown, remove = fa
   const result = await client.$transaction(async db => {
     await db.$executeRaw`SET LOCAL lock_timeout='5s'`;
     await db.$executeRaw`SET LOCAL statement_timeout='5s'`;
-    // Ook een DELETE vóór de eerste PUT krijgt een versie; nieuwe targets vereisen bronvalidatie.
-    const known = remove ? await find(db, actor.id, action.kind, action.target) : null;
-    if (!remove || !known) await authorize(db, actor, action.target);
+    // Alleen bestaande actieve privénotities mogen zonder nieuwe broninzage worden bewerkt.
+    // Nieuwe targets en heractivaties houden de lockvolgorde collectie → target.
+    const known = await find(db, actor.id, action.kind, action.target);
+    const privateEdit = !remove && action.kind === "note" && known && !known.deletedAt;
+    if ((!remove && !privateEdit) || !known) await authorize(db, actor, action.target);
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${JSON.stringify([actor.id, action.kind, annotationTargetKey(action.target)])},0))`;
     const existing = await find(db, actor.id, action.kind, action.target);
+    // Een DELETE tijdens het wachten mag niet veranderen in een ongeautoriseerde heractivatie.
+    if (privateEdit && (!existing || existing.deletedAt)) throw new AnnotationError("CONFLICT", existing ? view(action.kind, existing) : undefined);
     return write(db, actor, action, remove, existing);
   }, { timeout: 15_000 });
   if (result.changed) notify(actor.id);

@@ -27,9 +27,9 @@ async function handle(req: NextRequest, method: "GET" | "PUT" | "DELETE") {
     }
     const key = `annotations:${user.id}`;
     if (failureLockSeconds(key, 120)) return response({ error: t("apiErrors.notSaved") }, 429);
-    registerFailure(key, 60_000);
     return response(await mutateAnnotation(user, await annotationJson(req).catch(() => null), method === "DELETE"));
   } catch (error) {
+    if (method !== "GET" && error instanceof AnnotationError) registerFailure(`annotations:${user.id}`, 60_000);
     if (error instanceof AnnotationError) return response({ code: error.code, error: t(error.code === "INVALID" ? "apiErrors.invalidInput" : error.code === "CONFLICT" ? "apiErrors.notSaved" : "apiErrors.collectionUnavailable"), ...(error.state ? { state: error.state } : {}) }, error.code === "INVALID" ? 400 : error.code === "CONFLICT" ? 409 : 404);
     return response({ error: t("apiErrors.notSaved") }, 503);
   }
