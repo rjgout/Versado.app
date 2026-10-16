@@ -16,11 +16,13 @@
 //
 // Sleutels: "book:<Book.key>", "course:<Course.slug>",
 // "course-work:<werk>:<CourseType>", "course-type:<CourseType>",
+// "chapter:<Book.key>:<hoofdstuknummer>" (alleen waar de scène inhoudelijk klopt),
 // "podcast:<podcastId>", "podcast:default",
 // "game:<GameId>", "daily:<soort>". Bewust niet de emoji uit de database
 // (Achievement.icon, ContentCollection.icon) als bron.
 
 import type { GameId } from "@/lib/gameCatalog";
+import { CHAPTER_SCENES, chapterSceneKey, chapterSceneSrc } from "@/lib/chapterScenes";
 import { DEFAULT_PERSONAL_MASCOT, PERSONAL_MASCOTS, type PersonalMascotCharacter } from "@/lib/mascots";
 
 export type ArtworkKind = "course" | "podcast" | "game" | "daily" | "reading" | "quiz" | "social";
@@ -120,7 +122,14 @@ const DAILY: Record<string, ArtworkAsset> = {
   text: { src: "/images/daily/verse-of-the-day.png", position: "55% 70%", tone: "#9c744e" },
 };
 
+// Hoofdstukken met een inhoudelijk passende kinderverhaal-scène (chapterScenes.ts). Alleen die
+// expliciete lijst: een gelijk hoofdstuk- en verhaalnummer zegt niets.
+const CHAPTERS: Record<string, ArtworkAsset> = Object.fromEntries(
+  CHAPTER_SCENES.map((scene) => [chapterSceneKey(scene.book, scene.chapter), { src: chapterSceneSrc(scene), position: "50% 40%", tone: "#8a6f58" }])
+);
+
 const ARTWORK: Record<string, ArtworkAsset> = Object.fromEntries([
+  ...Object.entries(CHAPTERS),
   ...Object.entries(BOOKS).map(([key, asset]) => [`book:${key}`, asset]),
   ...Object.entries(COURSES).map(([key, asset]) => [`course:${key}`, asset]),
   ...Object.entries(COURSE_WORKS).map(([key, asset]) => [`course-work:${key}`, asset]),
@@ -170,6 +179,11 @@ export function courseArtworkKeys(course: {
     course.work && course.type ? `course-work:${course.work}:${course.type}` : null,
     course.type ? `course-type:${course.type}` : null,
   ].filter((key): key is string => key !== null);
+}
+
+/** Een hoofdstuk op het leerpad: de eigen scène als die er is, anders het beeld van het boek, anders niets. */
+export function chapterArtworkKeys(bookKey: string | null | undefined, chapter: number): string[] {
+  return bookKey ? [chapterSceneKey(bookKey, chapter), `book:${bookKey}`] : [];
 }
 
 /** Een podcast(aflevering): eigen beeld per podcast, anders het algemene podcastbeeld. */

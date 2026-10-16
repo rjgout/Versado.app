@@ -11,6 +11,8 @@ import KidsCourseView from "@/components/KidsCourseView";
 import IntroCourseView from "@/components/IntroCourseView";
 import FsyCourseView from "@/components/FsyCourseView";
 import ReadingCourseView from "@/components/ReadingCourseView";
+import LiveRefresh from "@/components/LiveRefresh";
+import { buildPathChapters } from "@/lib/readingPath";
 import StudyTogetherButton from "@/components/study/StudyTogetherButton";
 import { canStartStudy } from "@/lib/study/startAvailability";
 import { chapterTerm, localizeTerm } from "@/lib/chapterTerm";
@@ -204,64 +206,22 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
     });
 
     const currentLesson = overview.next ? lessons.find((lesson) => lesson.id === overview.next!.id) ?? null : null;
-    const currentChapterFirstLessonOrder = currentLesson
-      ? lessons.find((lesson) => lesson.chapterId === currentLesson.chapterId)?.order ?? currentLesson.order
-      : 0;
-
-    const chapterMap = new Map<string, {
-      id: string;
-      number: number;
-      bookName: string;
-      lessonCount: number;
-      completedLessons: number;
-      locked: boolean;
-    }>();
-    for (const lesson of lessons) {
-      const step = stepById.get(lesson.id)!;
-      const existing = chapterMap.get(lesson.chapterId);
-      if (existing) {
-        existing.lessonCount++;
-        if (step.done) existing.completedLessons++;
-      } else {
-        chapterMap.set(lesson.chapterId, {
-          id: lesson.chapterId,
-          number: lesson.chapter.number,
-          bookName: lesson.chapter.book.name,
-          lessonCount: 1,
-          completedLessons: step.done ? 1 : 0,
-          locked: !step.available,
-        });
-      }
-    }
+    // Elk hoofdstuk met zijn eigen stappen: dezelfde CourseLesson- en StepOverview-gegevens als hierboven,
+    // zonder tweede bron voor beschikbaarheid of afronding.
+    const pathChapters = buildPathChapters(lessons, stepById, (chapterId) => states.get(chapterId)!);
 
     return (
-      <ReadingCourseView
-        studyAction={studyAction}
-        courseId={course.id}
-        courseName={courseName}
-        unitPlural={localizeTerm(chapterTerm(null, course.contentCollectionId), t).plural}
-        today={
-          currentLesson
-            ? {
-                id: currentLesson.id,
-                bookName: currentLesson.chapter.book.name,
-                chapterNumber: currentLesson.chapter.number,
-                lessonNumber: currentLesson.order - currentChapterFirstLessonOrder + 1,
-                startVerse: currentLesson.startVerse,
-                endVerse: currentLesson.endVerse,
-              }
-            : null
-        }
-        chapters={Array.from(chapterMap.values()).map((chapter) => {
-          const state = states.get(chapter.id)!;
-          return {
-            ...chapter,
-            read: state.read,
-            exercisesAnswered: state.exercisesAnswered,
-            exercisesTotal: state.exercisesTotal,
-          };
-        })}
-      />
+      <>
+        {/* Na een afgeronde stap (xpChanged) of een wijziging van elders klopt het leerpad weer. */}
+        <LiveRefresh scopes={["courses", "progress"]} token={String(Date.now())} />
+        <ReadingCourseView
+          studyAction={studyAction}
+          courseName={courseName}
+          unitPlural={localizeTerm(chapterTerm(null, course.contentCollectionId), t).plural}
+          today={currentLesson ? { id: currentLesson.id } : null}
+          chapters={pathChapters}
+        />
+      </>
     );
   }
 

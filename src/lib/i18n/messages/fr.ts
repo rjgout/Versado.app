@@ -828,6 +828,18 @@ export const fr: PartialMessages = {
     },
   },
   courseView: {
+    path: {
+      label: "Parcours d’apprentissage",
+      nextStep: "Prochaine étape",
+      verses: "Versets {from}–{to}",
+      stepDone: "Terminée",
+      stepLocked: "Verrouillée",
+      stepReread: "Relire",
+      chapterDone: "Terminé",
+      chapterLocked: "Verrouillé",
+      myStep: "Mon étape",
+      myStepAria: "Aller à ma prochaine étape",
+    },
     progress: "Progression",
     progressCount: "{pos} / {total} {unit} · {pct} %",
     today: "Aujourd’hui",
