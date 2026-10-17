@@ -198,6 +198,7 @@ jobs:
             /tmp/versado-annotation-actions-browser
             /tmp/versado-reader-verse-menu-browser
             /tmp/versado-study-folder-browser
+            /tmp/versado-annotation-recovery-browser
           if-no-files-found: warn
           retention-days: 7
 

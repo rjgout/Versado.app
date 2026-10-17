@@ -221,11 +221,11 @@ try {
   await page.goto(`${base}/study-folder?type=note&source=${encodeURIComponent(f.collection.id)}`);
   await page.locator("[data-folder-item]").first().waitFor();
   const changed = page.locator(`[data-folder-item="note:${lessonNote.annotation.id}"]`);
-  check("revisie: kaart meldt 'Passage is bijgewerkt' en toont de oorspronkelijke quote", /Passage is bijgewerkt/.test(await changed.innerText()) && (await changed.locator("blockquote").count()) === 1);
+  check("revisie: bewezen exact anker, kaart meldt 'Passage gevonden' en toont de oorspronkelijke quote", /Passage gevonden/.test(await changed.innerText()) && (await changed.locator("blockquote").count()) === 1);
   await changed.locator("[data-folder-open]").click();
   await page.waitForURL(/\/study-lesson\//);
-  await page.locator("[data-annotation-focus-note]").waitFor();
-  check("revisie: de reader meldt het en markeert of scrolt niet naar een andere passage", (await page.locator("[data-annotation-focus]").count()) === 0 && (await page.locator('[data-annotation-focus-note="revision"]').count()) === 1);
+  await page.waitForFunction(() => document.querySelector("[data-annotation-focus]"), null, { timeout: 8000 });
+  check("revisie: de reader focust de teruggevonden passage zonder waarschuwing", (await page.locator("[data-annotation-focus-note]").count()) === 0 && (await page.locator("[data-annotation-recovery]").count()) === 0);
 
   // ===== Deeplink naar één annotatie =====
   await page.goto(`${base}/study-folder?item=note:${verseNote.annotation.id}`);
