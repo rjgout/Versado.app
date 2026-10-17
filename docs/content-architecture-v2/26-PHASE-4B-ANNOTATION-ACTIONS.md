@@ -14,7 +14,10 @@ geen blokkerende pointerhandlers. Keyboard/touch gebruiken dezelfde acties.
 
 `domSelector.ts` vergelijkt tekstankers met de gepinde immutable revisie.
 RichContentBlocks voegt `data-study-text` toe naast de bestaande sectie-/blokankers,
-ook bij lijstitems, cellen, vragen, citaten en bijschriften. Inlineonderdelen sluiten
+ook bij lijstitems, cellen, vragen, citaten en bijschriften. Geneste semantische
+ankers gebruiken `data-study-anchor`; `data-study-block` blijft exclusief voor
+de bestaande hoofdblokken van ReadingPosition, zodat geneste annotaties geen
+ongeldige autosavecoördinaten introduceren. Een browserassertie bewaakt deze scheiding. Inlineonderdelen sluiten
 rechtstreeks aan; citaattoeschrijving gebruikt een expliciete witruimtegrens.
 Browser-UTF-16-grenzen worden Unicode-codepunten na NFC/witruimte-normalisatie.
 Een halve surrogate, NFC-compositiegrens, afwijkende DOM, dubbel anker,

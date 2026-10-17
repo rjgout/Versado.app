@@ -137,13 +137,13 @@ export default function RichContentBlocks({
           className={`${block.ordered ? "list-decimal" : "list-disc"} space-y-3 pl-6`}
         >
           {block.items.map((item) => (
-            <li key={item.id} id={`study-${item.id}`} data-study-block={item.id}>
+            <li key={item.id} id={`study-${item.id}`} data-study-anchor={item.id}>
               {text(item.id, item.content)}{action(item.id)}
-              {item.blocks && <div className="mt-3 min-w-0 space-y-3">{item.blocks.map(child => <div key={child.id} id={`study-${child.id}`} data-study-block={child.id}>{render(child)}</div>)}</div>}
+              {item.blocks && <div className="mt-3 min-w-0 space-y-3">{item.blocks.map(child => <div key={child.id} id={`study-${child.id}`} data-study-anchor={child.id}>{render(child)}</div>)}</div>}
               {item.children && (
                 <Tag className="ml-4 mt-2 list-[inherit] space-y-2">
                   {item.children.map((child) => (
-                    <li key={child.id} id={`study-${child.id}`} data-study-block={child.id}>
+                    <li key={child.id} id={`study-${child.id}`} data-study-anchor={child.id}>
                       {text(child.id, child.content)}{action(child.id)}
                     </li>
                   ))}
@@ -161,13 +161,13 @@ export default function RichContentBlocks({
           {block.items && (
             <ul className="mt-3 list-disc space-y-2 pl-6">
               {block.items.map((item) => (
-                <li key={item.id} id={`study-${item.id}`} data-study-block={item.id}>
+                <li key={item.id} id={`study-${item.id}`} data-study-anchor={item.id}>
                   {text(item.id, item.content)}{action(item.id)}
-                  {item.blocks && <div className="mt-3 min-w-0 space-y-3">{item.blocks.map(child => <div key={child.id} id={`study-${child.id}`} data-study-block={child.id}>{render(child)}</div>)}</div>}
+                  {item.blocks && <div className="mt-3 min-w-0 space-y-3">{item.blocks.map(child => <div key={child.id} id={`study-${child.id}`} data-study-anchor={child.id}>{render(child)}</div>)}</div>}
                   {item.children && (
                     <ul className="mt-2 list-disc pl-6">
                       {item.children.map((child) => (
-                        <li key={child.id} id={`study-${child.id}`} data-study-block={child.id}>
+                        <li key={child.id} id={`study-${child.id}`} data-study-anchor={child.id}>
                           {text(child.id, child.content)}{action(child.id)}
                         </li>
                       ))}

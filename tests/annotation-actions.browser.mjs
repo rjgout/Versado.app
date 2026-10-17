@@ -204,6 +204,9 @@ try {
     await p.locator("[data-annotation-dialog]").waitFor({ state: "detached" });
   }
   await page.goto(base + f.href);
+  await page.locator('[data-study-rich-content]').waitFor();
+  assert.deepEqual(await page.locator('[data-study-block]').evaluateAll(elements=>elements.map(element=>element.dataset.studyBlock)), f.dto.lesson.body.sections.flatMap(section=>section.blocks.map(block=>block.id)), 'ReadingPosition behoudt uitsluitend de bestaande hoofdblokankers');
+  assert.equal(await page.locator('[data-study-anchor="item-first"] [data-study-text="item-first"]').count(),1,'Geneste annotatieankers zijn afzonderlijk beschikbaar');
   // Werkelijke DOM-adapter op de gerenderde tekst, niet alleen op een losse fixture.
   await page.locator("#study-paragraph-intro [data-study-text]").waitFor();
   await page.evaluate(() => {
