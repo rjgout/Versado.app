@@ -34,9 +34,12 @@ try {
   } });
   // Playwright kan een request achter de doorgeef-serviceworker niet afbreken.
   // Blokkeer alleen in deze test die worker zodat de transportfout echt optreedt.
-  const context = await browser.newContext({ viewport: { width: 1200, height: 900 }, serviceWorkers: "block" });
+  // De browser moet dezelfde kalender gebruiken als de reeksfixture; anders zet TimeZoneSync
+  // de gebruiker op UTC en telt rond Nederlandse middernacht terecht geen nieuwe dag.
+  const context = await browser.newContext({ viewport: { width: 1200, height: 900 }, serviceWorkers: "block", timezoneId: "Europe/Amsterdam" });
   await context.addCookies([{ name: SESSION_COOKIE, value: await createSessionToken(user.id), url: base }]);
   const page = await context.newPage(); const errors = [];
+  assert.equal(await page.evaluate(() => Intl.DateTimeFormat().resolvedOptions().timeZone), user.timeZone);
   page.on("pageerror", (error) => errors.push(error.message));
   const api = async (body) => {
     const response = await context.request.post(`${base}/api/jigsaw-v2`, { headers: { Origin: base }, data: body });
