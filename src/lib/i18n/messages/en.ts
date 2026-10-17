@@ -6,6 +6,7 @@ export const en: PartialMessages = {
   annotations: {
     "readFrom": "Read aloud from verse {number}",
     "verseActions": "Actions for verse {number}",
+    "audioFailed": "The audio languages could not be loaded. Try again to read aloud from this verse.",
     "audioPreparing": "Preparing audio…",
     "cancel": "Cancel",
     "open": "Open annotations",

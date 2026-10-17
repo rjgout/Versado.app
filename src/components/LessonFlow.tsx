@@ -18,7 +18,7 @@ import type { TFunction } from "@/lib/i18n/core";
 import { normalizeAnswer } from "@/lib/exerciseGen";
 import { useActivityStatus } from "@/lib/useActivity";
 import { announceXpChanged } from "@/lib/xpBroadcast";
-import ReadAloudPlayer, { type ReadAloudControl } from "@/components/ReadAloudPlayer";
+import ReadAloudPlayer, { type ReadAloudControl, type ReadAloudStatus } from "@/components/ReadAloudPlayer";
 import { useReadAloudPlayer } from "@/lib/readAloudPlayerContext";
 import { chapterTerm, type ChapterTerm } from "@/lib/chapterTerm";
 import { ContentStatusLine, LongChapterNotice, type ReadState } from "@/components/learning/ContentStatus";
@@ -398,7 +398,7 @@ export function ReaderView({
   }, []);
 
   const readAloud = useRef<ReadAloudControl | null>(null);
-  const [audioReady, setAudioReady] = useState(false);
+  const [audioStatus, setAudioStatus] = useState<ReadAloudStatus>("loading");
   const pointerStart = useRef<{ x: number; y: number; hadSelection: boolean } | null>(null);
   function rememberPointer(event: React.PointerEvent) {
     pointerStart.current = { x: event.clientX, y: event.clientY, hadSelection: !(window.getSelection()?.isCollapsed ?? true) };
@@ -421,8 +421,9 @@ export function ReaderView({
     if (!verse) return undefined;
     return {
       label: t("annotations.readFrom", { number: verse.number }),
-      ready: audioReady,
+      status: audioStatus,
       onStart: () => startReading(verse.number),
+      onRetry: () => readAloud.current?.retry(),
     };
   }
 
@@ -468,7 +469,7 @@ export function ReaderView({
           subtitle={t("lesson.listenTo", { thisOne: term.thisOne })}
           language={language}
           controlRef={readAloud}
-          onReadyChange={setAudioReady}
+          onStatusChange={setAudioStatus}
         />}
 
       {!preview && annotations.data && !annotations.data.complete && <p role="status">{t("annotations.incomplete")}</p>}

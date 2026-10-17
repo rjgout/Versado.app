@@ -8,6 +8,7 @@ export const nl = {
   annotations: {
     "readFrom": "Voorlezen vanaf vers {number}",
     "verseActions": "Acties voor vers {number}",
+    "audioFailed": "Audiotalen konden niet worden geladen. Probeer het opnieuw om vanaf dit vers voor te lezen.",
     "audioPreparing": "Audio wordt voorbereid…",
     "cancel": "Annuleren",
     "open": "Annotaties openen",

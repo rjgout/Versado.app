@@ -32,6 +32,18 @@ test("voorlezen vanaf een vers gebruikt de taal- en bronkeuze van ReadAloudPlaye
 
 test("de audioactie staat bovenaan het bestaande menu en alleen waar een bron is", () => {
   assert.ok(actions.indexOf("data-annotation-read-aloud") < actions.indexOf('t(\n            active("bookmark")'));
-  assert.match(actions, /disabled=\{!audio\.ready\}/);
+  assert.match(actions, /disabled=\{audio\.status !== "ready" \|\| busy \|\| uncertain\}/);
   assert.doesNotMatch(read("src/components/annotations/StudyAnnotations.tsx"), /audio=/);
+});
+
+test("een mislukte audiotaalopvraag is een eigen status, geen gereed", () => {
+  assert.match(player, /editions\?\.id === sourceId \? "ready" : failed \? "error" : "loading"/);
+  assert.match(player, /if \(status !== "ready"\) return false/);
+  assert.match(actions, /annotations\.audioFailed/);
+});
+
+test("een onopgeslagen notitie beschermt de audioactie", () => {
+  assert.match(actions, /function startAudio\(\)/);
+  assert.match(actions, /setAudioPending\(true\)/);
+  assert.match(actions, /onClick=\{confirmDiscard\}/);
 });
