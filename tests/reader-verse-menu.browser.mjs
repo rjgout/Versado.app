@@ -156,6 +156,31 @@ try {
   check("notitie: na bewust verlaten start de audio bij vers 3 en sluit de sheet", state[0] === text(tts, 3) && !(await dialog(page).count()));
   await page.evaluate(() => window.speechSynthesis.cancel());
 
+  // ===== Audiobevestiging en een opslag die daarna start =====
+  await tapVerse(page, 6); await dialog(page).waitFor();
+  await dialog(page).locator("textarea:not([disabled])").waitFor();
+  await dialog(page).locator("textarea").fill("Notitie met openstaande audiobevestiging");
+  await dialog(page).locator("[data-annotation-read-aloud]").click();
+  await dialog(page).getByText(t("annotations.unsaved")).waitFor();
+  const before = await page.evaluate(() => window.__t.spoken.length);
+  await page.route("**/api/annotations", async (route) => {
+    if (route.request().method() !== "PUT") return route.continue();
+    await new Promise((r) => setTimeout(r, 1500));
+    return route.continue();
+  });
+  await dialog(page).getByRole("button", { name: t("annotations.save"), exact: true }).click();
+  await page.waitForTimeout(300);
+  check("race: een lopende opslag laat de audiobevestiging vervallen", (await dialog(page).getByText(t("annotations.unsaved")).count()) === 0 && await dialog(page).locator("[data-annotation-read-aloud]").isDisabled());
+  await dialog(page).getByRole("button", { name: t("annotations.discard"), exact: true }).click({ force: true, timeout: 300 }).catch(() => {});
+  check("race: tijdens de opslag start geen audio en sluit de sheet niet", (await page.evaluate(() => window.__t.spoken.length)) === before && (await dialog(page).count()) === 1);
+  await dialog(page).getByText(t("annotations.saved")).waitFor();
+  check("race: na de opslag werkt de audioactie weer", await dialog(page).locator("[data-annotation-read-aloud]").isEnabled());
+  await dialog(page).locator("[data-annotation-read-aloud]").click(); await page.waitForTimeout(400);
+  state = await page.evaluate(() => window.__t.spoken.at(-1)?.text);
+  check("race: bewuste nieuwe keuze start het voorlezen en sluit de sheet", state === text(tts, VERSES) && (await dialog(page).count()) === 0);
+  await page.unroute("**/api/annotations");
+  await page.evaluate(() => window.speechSynthesis.cancel());
+
   // ===== Lopende en onzekere mutatie =====
   await tapVerse(page, 5); await dialog(page).waitFor();
   await dialog(page).locator("textarea:not([disabled])").waitFor();

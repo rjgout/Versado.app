@@ -205,6 +205,11 @@ export default function AnnotationActions({
   function confirmDiscard() {
     if (audioPending) {
       setAudioPending(false);
+      // Een opslag die intussen loopt of onzeker is, gaat voor: nooit audio starten of sluiten tijdens een mutatie.
+      if (busy || lock.current || uncertain) {
+        setDiscard(false);
+        return;
+      }
       if (!audio?.onStart()) {
         setDiscard(false);
         return;
@@ -222,6 +227,11 @@ export default function AnnotationActions({
     setBusy(true);
     setError(null);
     setSaved(null);
+    // Een openstaande audiobevestiging vervalt zodra een opslag start.
+    if (audioPending) {
+      setAudioPending(false);
+      setDiscard(false);
+    }
     if (!pending.current) {
       const row = rows.find((r) => r.kind === kind);
       pending.current = {
@@ -501,7 +511,12 @@ export default function AnnotationActions({
         {discard && (
           <div className="space-y-2 border-t border-vs-line pt-3">
             <p>{t("annotations.unsaved")}</p>
-            <button type="button" className={secondaryButton} onClick={confirmDiscard}>
+            <button
+              type="button"
+              className={secondaryButton}
+              disabled={audioPending && (busy || uncertain)}
+              onClick={confirmDiscard}
+            >
               {t("annotations.discard")}
             </button>
             <button

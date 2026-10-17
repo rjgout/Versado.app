@@ -46,4 +46,5 @@ test("een onopgeslagen notitie beschermt de audioactie", () => {
   assert.match(actions, /function startAudio\(\)/);
   assert.match(actions, /setAudioPending\(true\)/);
   assert.match(actions, /onClick=\{confirmDiscard\}/);
+  assert.match(actions, /busy \|\| lock\.current \|\| uncertain\) \{\n\s+setDiscard\(false\)/);
 });
