@@ -5,6 +5,7 @@ import { createRequire } from "node:module";
 import { setTimeout as delay } from "node:timers/promises";
 import { prisma } from "../src/lib/db.ts";
 import sharp from "sharp";
+import { publishStudyProgram } from "../src/lib/studyContent/programPublication.ts";
 import { SESSION_COOKIE } from "../src/lib/auth.ts";
 import { assertReferenceTestEnvironment } from "./fixtures/reference-content.mjs";
 const base = assertReferenceTestEnvironment();
@@ -112,7 +113,7 @@ try {
       results.push({ width, scheme, text, hiddenAdminConcepts: 52, tableAndImages: true, referenceDiagnostics: true, publicReaderDenied: true });
       await context.close();
     }
-    const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: "block" });
     await context.addCookies([{ name: SESSION_COOKIE, value: flow.adminToken, url: base }]);
     const page = await context.newPage();
     await page.goto(base + "/adminbackend");
@@ -158,12 +159,45 @@ try {
     await page.screenshot({ path: `${output}/sp-bulk-confirm-1280-light.png` });
     await page.keyboard.press("Escape");
     assert.equal(await prisma.studyLessonEdition.count({ where: { collectionId: flow.collectionId, publishedRevisionId: { not: null } } }), 0);
+    // Een expliciet nieuwe beoordeling trekt de oude bevestiging in.
+    await program.locator("[data-program-review]").click();
+    await page.waitForFunction((id) => document.querySelector(`[data-study-program="${id}"]`)?.getAttribute("aria-busy") === "false", flow.collectionId, { timeout: 90000 });
+    assert.equal(await program.locator("[data-confirm-reviewed]").isChecked(), false);
+    await program.locator("[data-confirm-reviewed]").check();
+    // Eén echte beperkte publicatiestap; injecteer daarna een specifieke batchfout in de response.
+    // De daaropvolgende hercontrole gebruikt de echte DB-status en moet eerst volledig afgerond zijn.
+    let partialBatchId;
+    await page.route("**/api/admin/study-publications", async route => {
+      const request = route.request();
+      if (request.method() !== "POST" || request.postDataJSON()?.action !== "publish-program") return route.continue();
+      const input = request.postDataJSON();
+      delete input.action;
+      partialBatchId = input.batchId;
+      const partial = await publishStudyProgram({ id: flow.adminId, isAdmin: true }, input, prisma, { budgetMs: 1 });
+      assert.ok(partial.published > 0 && partial.remaining > 0);
+      await route.fulfill({ json: { ...partial, done: false, failed: [{ editionId: editions.at(-1).id, sourceKey: "52", title: "Specifieke mediafout", code: "MEDIA" }] } });
+      await page.unroute("**/api/admin/study-publications");
+    });
     await bulk.click();
+    await page.locator("dialog[open]").getByRole("button", { name: /lessen publiceren/ }).click();
+    await page.waitForFunction((id) => document.querySelector(`[data-study-program="${id}"] [data-batch-result]`) && document.querySelector(`[data-study-program="${id}"]`)?.getAttribute("aria-busy") === "false", flow.collectionId, { timeout: 90000 });
+    assert.match(await program.locator("[data-batch-result]").innerText(), /Specifieke mediafout/);
+    assert.ok(Number(await program.locator("[data-batch-result] progress").getAttribute("value")) > 0);
+    const resume = program.getByRole("button", { name: "Publicatie hervatten", exact: true });
+    assert.equal(await resume.isEnabled(), true);
+    await resume.click();
+    const resumed = page.waitForRequest(request => request.method() === "POST" && request.url().endsWith("/api/admin/study-publications") && request.postDataJSON()?.action === "publish-program");
     const sent = page.waitForResponse((response) => response.url().endsWith("/api/admin/study-publications") && response.request().method() === "POST" && response.request().postDataJSON()?.action === "publish-program");
-    await page.locator("dialog[open]").getByRole("button", { name: "52 lessen publiceren", exact: true }).click();
+    await page.locator("dialog[open]").getByRole("button", { name: /lessen publiceren/ }).click();
+    assert.equal((await resumed).postDataJSON().batchId, partialBatchId, "hervatten behoudt dezelfde batchId");
     assert.equal((await sent).status(), 200);
     await program.locator("[data-batch-result]").waitFor();
-    await page.waitForFunction((id) => document.querySelector(`[data-study-program="${id}"] [data-count="published"]`)?.textContent === "52", flow.collectionId);
+    await page.waitForFunction((id) => document.querySelector(`[data-study-program="${id}"] [data-count="published"]`)?.textContent === "52", flow.collectionId, { timeout: 90000 });
+    await page.waitForFunction((id) => document.querySelector(`[data-study-program="${id}"]`)?.getAttribute("aria-busy") === "false", flow.collectionId, { timeout: 90000 });
+    assert.match(await program.locator("[data-batch-result]").innerText(), /Alle 52 lessen zijn gepubliceerd/);
+    assert.equal(await program.locator("[data-batch-result] progress").getAttribute("value"), "52");
+    assert.equal(await program.getByRole("button", { name: "Publicatie hervatten", exact: true }).count(), 0);
+    assert.doesNotMatch(await program.locator("[data-batch-result]").innerText(), /Specifieke mediafout/);
     await page.screenshot({ path: `${output}/sp-bulk-done-1280-light.png` });
     assert.equal(await prisma.studyLessonEdition.count({ where: { collectionId: flow.collectionId, publishedRevisionId: { not: null } } }), 52);
     assert.equal((await context.request.get(base + flow.href)).status(), 404, "Lespublicaties maken een DRAFT-collectie niet normaal leesbaar");

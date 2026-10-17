@@ -170,6 +170,7 @@ export const de: PartialMessages = {
       "issue_REFERENCE_UNKNOWN": "Unbekannter oder unsicherer Verweis: {ref}",
       "issue_REFERENCE_UNPROVEN": "Verweis nicht erneut belegt: {ref}",
       "issue_REFERENCE_MISMATCH": "Verweis weicht von der festgelegten Prüfung ab: {ref}",
+      "issue_CATALOGUE": "Die Lektionen weichen vom offiziellen CFM-2026-Manifest ab: Prüfe die 52 Lektionsidentitäten, Reihenfolge, Sammlung und Ausgabe.",
       "issue_INCOMPLETE": "Revision oder Audit ist unvollständig.",
       "errBUSY": "Für dieses Programm läuft bereits eine gemeinsame Veröffentlichung.",
       "errCONFLICT": "Die geprüfte Menge hat sich geändert. Prüfe das Programm erneut.",

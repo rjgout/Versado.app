@@ -172,6 +172,7 @@ export const nl = {
       "issue_REFERENCE_UNKNOWN": "Onbekende of onveilige verwijzing: {ref}",
       "issue_REFERENCE_UNPROVEN": "Verwijzing niet opnieuw bewezen: {ref}",
       "issue_REFERENCE_MISMATCH": "Verwijzing wijkt af van de vastgelegde controle: {ref}",
+      "issue_CATALOGUE": "De lessenset wijkt af van het officiële CFM 2026-manifest: controleer de 52 lesidentiteiten, volgorde, collectie en uitgave.",
       "issue_INCOMPLETE": "Revisie of audit is onvolledig.",
       "errBUSY": "Er loopt al een gezamenlijke publicatie voor dit programma.",
       "errCONFLICT": "De gecontroleerde set is gewijzigd. Controleer het programma opnieuw.",

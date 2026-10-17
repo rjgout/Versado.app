@@ -170,6 +170,7 @@ export const es: PartialMessages = {
       "issue_REFERENCE_UNKNOWN": "Referencia desconocida o insegura: {ref}",
       "issue_REFERENCE_UNPROVEN": "Referencia no probada de nuevo: {ref}",
       "issue_REFERENCE_MISMATCH": "La referencia difiere de la comprobación registrada: {ref}",
+      "issue_CATALOGUE": "Las lecciones no coinciden con el manifiesto oficial CFM 2026: revisa las 52 identidades, el orden, la colección y la edición.",
       "issue_INCOMPLETE": "Revisión o auditoría incompleta.",
       "errBUSY": "Ya hay una publicación conjunta en curso para este programa.",
       "errCONFLICT": "El conjunto comprobado ha cambiado. Comprueba el programa de nuevo.",

@@ -8,6 +8,7 @@ const NOT_REVIEWED = "NIET BEOORDEELD: dit verslag is automatisch samengesteld u
 
 const cell = (value: unknown) => String(value ?? "").replace(/\|/g, "\\|").replace(/\s+/g, " ").trim();
 const ISSUE: Record<string, string> = {
+  CATALOGUE: "De lessenset wijkt af van het officiële CFM 2026-manifest (lesidentiteiten, volgorde, collectie of uitgave).",
   CONTENT: "De opgeslagen inhoud komt niet overeen met zijn vastgelegde identiteit.",
   IMPORT: "Geen afgeronde import voor dit concept.",
   IMPORT_CLOSED: "De importbron mag niet gepubliceerd worden.",

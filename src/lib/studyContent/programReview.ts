@@ -6,7 +6,7 @@ import { referenceDiagnosis, resolveReferenceBatch } from "@/lib/references/reso
 import review from "../../../data/study-content/cfm-2026-nl/reference-review.json";
 import sourceLock from "../../../data/study-content/cfm-2026-nl/source-lock.json";
 import { cfmDisplayOnlyKeys } from "./cfmReview";
-import { cfmOldTestament2026NlManifest as manifest } from "./cfm2026Manifest";
+import { cfmOldTestament2026NlManifest as manifest, matchesCfm2026Catalogue } from "./cfm2026Manifest";
 import { studyDocumentInventory } from "./fixtureAdapter";
 import { validateStoredStudyRevision } from "./publication";
 import { requireStudyAdmin, studyObjectHash, studyReleaseAllowed, StudyPublishingError, type StudyAdmin } from "./policy";
@@ -17,7 +17,7 @@ import { readStudyMedia, validateStudyMediaMetadata } from "./storage";
 // de laatste poort: publishStudyRevision herhaalt alles per les. Een voorcontrole is dus geen beoordeling.
 
 /** Codes in plaats van vrije tekst: de beheerpagina vertaalt ze, het (Nederlandse) verslag heeft een eigen tekst per code. */
-export type ReviewIssueCode = "CONTENT" | "IMPORT" | "IMPORT_CLOSED" | "SOURCE" | "MEDIA" | "ALT" | "REFERENCE_UNKNOWN" | "REFERENCE_UNPROVEN" | "REFERENCE_MISMATCH" | "INCOMPLETE";
+export type ReviewIssueCode = "CONTENT" | "IMPORT" | "IMPORT_CLOSED" | "SOURCE" | "MEDIA" | "ALT" | "REFERENCE_UNKNOWN" | "REFERENCE_UNPROVEN" | "REFERENCE_MISMATCH" | "CATALOGUE" | "INCOMPLETE";
 export type ReviewIssue = { code: ReviewIssueCode; ref?: string; count?: number };
 export type LessonReviewStatus = "published" | "ready" | "blocked" | "missing";
 export type LessonReview = {
@@ -56,6 +56,7 @@ export type ProgramReview = {
   sourceVersion: string | null;
   publicationState: string;
   visibleToUsers: boolean;
+  catalogueValid: boolean;
   expected: number;
   imported: number;
   published: number;
@@ -83,13 +84,13 @@ export type ProgramReview = {
 /** Alleen identiteiten en controlelijsten, geen uitkomsten: wat de beheerder beoordeelde is deze set revisies. */
 export function reviewSetToken(input: {
   collectionId: string;
-  lessons: Array<Pick<LessonReview, "editionId" | "sourceKey" | "revisionId" | "contentHash" | "importRunId">>;
+  lessons: Array<Pick<LessonReview, "editionId" | "lessonId" | "sourceKey" | "order" | "revisionId" | "contentHash" | "importRunId">>;
   controlLists: { referenceReview: string | null; sourceLock: string | null };
 }) {
   return studyObjectHash({
     collectionId: input.collectionId,
     controlLists: input.controlLists,
-    lessons: input.lessons.map((l) => [l.editionId, l.sourceKey, l.revisionId, l.contentHash, l.importRunId]),
+    lessons: input.lessons.map((l) => [l.editionId, l.lessonId, l.sourceKey, l.order, l.revisionId, l.contentHash, l.importRunId]),
   });
 }
 function cfmControlLists(adapter: string | null) {
@@ -239,6 +240,7 @@ export async function studyProgramReview(actor: StudyAdmin, collectionId: string
   });
   if (!collection) throw new StudyPublishingError("UNAVAILABLE");
   const editions = await loadEditions(client, collection.id);
+  const catalogueValid = collection.work !== manifest.workKey || matchesCfm2026Catalogue(collection, editions);
   const revisionIds = editions.flatMap((e) => (e.draftRevisionId ?? e.publishedRevisionId ? [(e.draftRevisionId ?? e.publishedRevisionId)!] : []));
   const items = revisionIds.length
     ? await client.contentImportItem.findMany({
@@ -253,6 +255,10 @@ export async function studyProgramReview(actor: StudyAdmin, collectionId: string
   // Beperkt parallel (volgorde blijft die van de lessen): de bytecontrole en verwijzingsresolutie zijn de dure delen.
   for (let i = 0; i < editions.length; i += REVIEW_CONCURRENCY)
     lessons.push(...(await Promise.all(editions.slice(i, i + REVIEW_CONCURRENCY).map((edition) => reviewLesson(client, actor, edition, collection, runs)))));
+  if (!catalogueValid) for (const lesson of lessons) {
+    lesson.issues.push({ code: "CATALOGUE" });
+    if (lesson.status !== "missing") lesson.status = "blocked";
+  }
   const adapter = [...runs.values()][0]?.adapterName ?? (collection.work === manifest.workKey ? "cfm-2026-nl-v1" : null);
   const controlLists = cfmControlLists(adapter);
   const total = (pick: (l: LessonReview) => number) => lessons.reduce((n, l) => n + pick(l), 0);
@@ -270,6 +276,7 @@ export async function studyProgramReview(actor: StudyAdmin, collectionId: string
     sourceVersion: [...runs.values()][0]?.sourceVersion ?? null,
     publicationState: collection.publicationState,
     visibleToUsers: collection.visibleToUsers,
+    catalogueValid,
     expected: manifestCount,
     imported: lessons.filter((l) => l.status !== "missing").length,
     published: lessons.filter((l) => l.status === "published").length,
@@ -284,7 +291,7 @@ export async function studyProgramReview(actor: StudyAdmin, collectionId: string
       references: total((l) => l.references.total),
       referencesVerified: total((l) => l.references.verified),
       displayOnly: total((l) => l.references.displayOnly),
-      blocking: total((l) => l.references.blocking) + total((l) => l.issues.filter((i) => !i.code.startsWith("REFERENCE")).length),
+      blocking: (catalogueValid ? 0 : 1) + total((l) => l.references.blocking) + total((l) => l.issues.filter((i) => !i.code.startsWith("REFERENCE")).length),
     },
     lessons,
     reviewToken: reviewSetToken({ collectionId: collection.id, lessons, controlLists }),

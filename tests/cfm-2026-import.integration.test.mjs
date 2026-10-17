@@ -77,6 +77,30 @@ async function bulkPublicationScenarios({ f, collection, editions, report, befor
   await assert.rejects(publishStudyProgram(f.admin.actor, { ...request, reviewToken: "0".repeat(64) }), (e) => e.code === "CONFLICT");
   await assert.rejects(publishStudyProgram(f.owner.actor, request), (e) => e.code === "FORBIDDEN");
   assert.equal(await publishedCount(), 0);
+  // Exacte officiële catalogus is een poort vóór iedere lespublicatie, ook met een vers beoordelingstoken.
+  const sample = await prisma.studyLessonEdition.findUniqueOrThrow({ where: { id: editions[0].id }, include: { lesson: true } });
+  const other = await prisma.contentCollection.create({ data: { id: `catalogue-other-${randomUUID()}`, slug: `catalogue-other-${randomUUID()}`, icon: "BookOpen", name: "Geïsoleerde catalogustest", work: collection.work, editionKey: `${collection.editionKey}-catalogue-test`, language: collection.language, enabled: true, visibleToUsers: false, publicationState: "DRAFT" } });
+  async function rejectsCatalogue(label, mutate, restore, count) {
+    try {
+      await mutate();
+      const invalid = await studyProgramReview(f.admin.actor, collection.id);
+      assert.equal(invalid.lessons.length, count, label);
+      assert.equal(invalid.catalogueValid, false, label);
+      assert.ok(invalid.totals.blocking > 0, label);
+      await assert.rejects(publishStudyProgram(f.admin.actor, { ...request, reviewToken: invalid.reviewToken }), (e) => e.code === "INCOMPLETE", label);
+      assert.equal(await publishedCount(), 0, `${label}: geen enkele les gepubliceerd`);
+      assert.equal(await auditCount(), 0, `${label}: geen publicatie-audit`);
+    } finally { await restore(); }
+  }
+  await rejectsCatalogue("51 lessen", () => prisma.studyLessonEdition.update({ where: { id: sample.id }, data: { collectionId: other.id } }), () => prisma.studyLessonEdition.update({ where: { id: sample.id }, data: { collectionId: collection.id } }), 51);
+  const extra = await prisma.studyLesson.create({ data: { workKey: sample.workKey, periodId: sample.lesson.periodId, sourceKey: "onverwacht-extra", order: 53 } });
+  const extraId = `catalogue-extra-${randomUUID()}`;
+  await rejectsCatalogue("53 lessen", () => prisma.studyLessonEdition.create({ data: { id: extraId, collectionId: collection.id, workKey: sample.workKey, lessonId: extra.id, slug: "onverwacht-extra" } }), () => prisma.studyLessonEdition.delete({ where: { id: extraId } }), 53);
+  await prisma.studyLesson.delete({ where: { id: extra.id } });
+  await prisma.contentCollection.delete({ where: { id: other.id } });
+  await rejectsCatalogue("verkeerde sourceKey", () => prisma.studyLesson.update({ where: { id: sample.lessonId }, data: { sourceKey: "verkeerde-identiteit" } }), () => prisma.studyLesson.update({ where: { id: sample.lessonId }, data: { sourceKey: sample.lesson.sourceKey } }), 52);
+  await rejectsCatalogue("gewijzigde volgorde", () => prisma.studyLesson.update({ where: { id: sample.lessonId }, data: { order: 53 } }), () => prisma.studyLesson.update({ where: { id: sample.lessonId }, data: { order: sample.lesson.order } }), 52);
+  assert.equal((await studyProgramReview(f.admin.actor, collection.id)).reviewToken, review.reviewToken);
   // Een nieuw/gewijzigd onveilig verwijzingsdoel blokkeert de hele set vóór de eerste publicatie.
   const victim = await prisma.contentReference.findFirstOrThrow({ where: { revisionId: editions[30].draftRevisionId, diagnosis: { in: ["INTERNAL_VERIFIED", "EXTERNAL_VERIFIED"] } } });
   await prisma.$executeRaw`ALTER TABLE "ContentReference" DISABLE TRIGGER USER`;

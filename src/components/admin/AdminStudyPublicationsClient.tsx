@@ -553,7 +553,7 @@ function ProgramCard({
   const statusOf = (editionId: string, published: boolean): LessonReviewStatus | "unchecked" =>
     reviewById.get(editionId)?.status ?? (review ? "missing" : published ? "published" : "unchecked");
   const blockingNow = review?.totals.blocking ?? 0;
-  const issuesNow = review ? review.blocked + review.missing : 0;
+  const issuesNow = review ? review.blocked + review.missing + (review.catalogueValid ? 0 : 1) : 0;
   const allPublished = program.expected > 0 && program.published >= program.expected;
   const nextKey: MessageKey = !program.imported || program.imported < program.expected
     ? "studyPublishing.program.next_import"
@@ -569,15 +569,25 @@ function ProgramCard({
             ? "studyPublishing.program.next_fix"
             : "studyPublishing.program.next_publish";
 
-  async function runReview() {
+  async function runReview(explicit = true) {
     setReviewing(true);
     setReviewError(false);
-    setConfirmed(false);
-    setResult(null);
+    if (explicit) {
+      setConfirmed(false);
+      setResult(null);
+      batchId.current = null;
+    }
     try {
-      setReview(await fetchJson<ProgramReview>(`/api/admin/study-publications?collectionId=${encodeURIComponent(program.id)}&review=1`));
+      const next = await fetchJson<ProgramReview>(`/api/admin/study-publications?collectionId=${encodeURIComponent(program.id)}&review=1`);
+      if (!explicit && next.reviewToken !== review?.reviewToken) {
+        // Voortgang blijft zichtbaar, maar een gewijzigde set vereist een nieuwe beoordeling.
+        setConfirmed(false);
+        batchId.current = null;
+      }
+      setReview(next);
     } catch {
       setReview(null);
+      setConfirmed(false);
       setReviewError(true);
     } finally {
       setReviewing(false);
@@ -607,7 +617,7 @@ function ProgramCard({
         if (next.done) batchId.current = null;
         if (next.done || next.failed.length || next.remaining === 0) break;
       }
-      await runReview();
+      await runReview(false);
     });
   }
 
@@ -626,7 +636,7 @@ function ProgramCard({
       defaultOpen
       title={program.name}
     >
-      <div data-study-program={program.id} className="flex min-w-0 flex-col gap-4">
+      <div data-study-program={program.id} aria-busy={reviewing || busy} className="flex min-w-0 flex-col gap-4">
         <p className="[overflow-wrap:anywhere] text-sm text-vs-fg-2">
           {t("studyPublishing.program.source")}: {program.editionKey ?? program.work ?? "—"} · {t("studyPublishing.program.language")}: {program.language.toUpperCase()} ·{" "}
           {t(program.publicationState === "PUBLISHED" ? "studyPublishing.program.statePublished" : "studyPublishing.program.stateDraft")} ·{" "}
@@ -656,6 +666,7 @@ function ProgramCard({
           <a className="btn-secondary inline-flex min-h-12 max-w-full items-center whitespace-normal" data-report-download="json" href={`/api/admin/study-publications/report?collectionId=${encodeURIComponent(program.id)}&format=json`} download>{t("studyPublishing.program.downloadJson")}</a>
         </div>
         <p className="text-xs text-vs-fg-2">{t("studyPublishing.program.reviewNote")}</p>
+        {review && !review.catalogueValid && <AdminNotice kind="error">{t("studyPublishing.program.issue_CATALOGUE")}</AdminNotice>}
         {reviewError && <AdminNotice kind="error">{t("studyPublishing.program.reviewFailed")}</AdminNotice>}
 
         {review && pendingCount > 0 && issuesNow === 0 && (
@@ -691,8 +702,8 @@ function ProgramCard({
                 </ul>
               </>
             )}
-            {!result.done && (
-              <button type="button" className="btn-secondary min-h-12 whitespace-normal" disabled={busy || !confirmed} onClick={() => void publishAll()}>{t("studyPublishing.program.resumeBatch")}</button>
+            {!result.done && result.remaining > 0 && pendingCount > 0 && issuesNow === 0 && (
+              <button type="button" className="btn-secondary min-h-12 whitespace-normal" disabled={busy || reviewing || !confirmed} onClick={() => void publishAll()}>{t("studyPublishing.program.resumeBatch")}</button>
             )}
           </div>
         )}

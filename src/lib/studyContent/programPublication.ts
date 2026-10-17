@@ -60,7 +60,7 @@ export async function publishStudyProgram(
       const started = Date.now();
       // De beoordeelde set moet exact de set zijn die de server nu kent (andere revisie, import of controlelijst = conflict).
       if (review.reviewToken !== input.reviewToken) throw new StudyPublishingError("CONFLICT");
-      if (!review.lessons.length || review.missing > 0 || review.imported < review.expected) throw new StudyPublishingError("INCOMPLETE");
+      if (!review.catalogueValid || !review.lessons.length || review.missing > 0 || review.imported < review.expected) throw new StudyPublishingError("INCOMPLETE");
       const blocked = review.lessons.find((l) => l.status === "blocked");
       if (blocked) throw new StudyPublishingError(blockCode(blocked));
       const pending = review.lessons.filter((l) => l.status === "ready");
