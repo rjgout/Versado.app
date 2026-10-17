@@ -23,6 +23,7 @@ import { useConfirm } from "@/components/ConfirmProvider";
 import ProfileCharacterHero from "@/components/ProfileCharacterHero";
 import { getLanguage } from "@/lib/languages";
 import SystemIcon from "@/components/versado/SystemIcon";
+import MascotSlot from "@/components/versado/MascotSlot";
 import CompanionPicker, { companionName } from "@/components/versado/CompanionPicker";
 import { useCompanion } from "@/components/versado/PersonalMascot";
 import type { PersonalMascotCharacter } from "@/lib/mascots";
@@ -437,6 +438,7 @@ export default function ProfileClient() {
         {view === "competition" && <CompetitionView data={data} />}
         {view === "achievements" && <AchievementsView data={data} onSaveFeatured={saveFeaturedAchievements} />}
         {view === "reading" && <ReadingView resetting={resettingReadingProgress} message={resetReadingMessage} error={resetReadingError} onReset={resetReadingProgress} />}
+        {view === "guide" && <CompanionSection current={data.companion} onChanged={(companion) => setData((current) => (current ? { ...current, companion } : current))} />}
         {view === "language" && <LanguageSettings uiLanguage={data.uiLanguage} isAdmin={data.isAdmin} />}
         {view === "gameFeedback" && <GameFeedbackView />}
         {view === "readAloud" && <ReadAloudView voices={readAloudVoices} selectedVoice={selectedReadAloudVoice} speed={readAloudSpeed} testing={testingReadAloudVoice} onVoice={changeReadAloudVoice} onSpeed={changeReadAloudSpeed} onTest={testReadAloudVoice} />}
@@ -494,11 +496,6 @@ export default function ProfileClient() {
 
       <KompasEntryCard />
 
-      <CompanionSection
-        current={data.companion}
-        onChanged={(companion) => setData((current) => (current ? { ...current, companion } : current))}
-      />
-
       <ProfileCard title={<><Trophy className="h-5 w-5 text-vs-xp" aria-hidden />{t("nav.competition")}</>}>
         {/* Smal scherm: beste divisie onder de huidige, anders breekt de
             huidige divisie af in losse woorden. */}
@@ -522,6 +519,12 @@ export default function ProfileClient() {
           <span className="flex min-w-0 flex-1 items-center gap-3"><SunMoon className="h-5 w-5 shrink-0 text-vs-accent" aria-hidden /><span className="truncate font-bold text-vs-fg">{t("theme.appearance")}</span></span>
           <div className="sm:w-80"><ThemePreference /></div>
         </div>
+        <SettingsRow
+          icon={<span className="block aspect-square w-10"><MascotSlot character={data.companion} state="greeting" size={40} fill /></span>}
+          label={t("companion.profileTitle")}
+          value={companionName(data.companion)}
+          onClick={() => openView("guide")}
+        />
         <SettingsRow icon={<Globe2 className="h-5 w-5 text-vs-accent" aria-hidden />} label={t("languageSettings.title")} value={getLanguage(data.uiLanguage).nativeName} onClick={() => openView("language")} />
         <SettingsRow icon={<Volume2 className="h-5 w-5 text-vs-accent" aria-hidden />} label={t("profile.readAloud")} onClick={() => openView("readAloud")} />
         <SettingsRow icon={<Smartphone className="h-5 w-5 text-vs-accent" aria-hidden />} label={t("profile.gameFeedback.title")} onClick={() => openView("gameFeedback")} />
@@ -623,9 +626,9 @@ function CompanionSection({ current, onChanged }: { current: PersonalMascotChara
   }
 
   return (
-    <ProfileCard title={t("companion.profileTitle")} description={t("companion.profileIntro")}>
+    <ProfileCard description={t("companion.profileIntro")}>
       <div className="mt-1">
-        <CompanionPicker name="profile-companion" legend={t("companion.profileTitle")} value={current} onSelect={choose} disabled={saving} size="compact" />
+        <CompanionPicker name="profile-companion" legend={t("companion.profileTitle")} value={current} onSelect={choose} busy={saving} size="carousel" />
       </div>
       <p role="status" className={`mt-3 min-h-5 text-sm font-semibold ${status?.kind === "error" ? "text-vs-danger" : "text-vs-success"}`}>
         {status?.text}

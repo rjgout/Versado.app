@@ -55,6 +55,12 @@ layout-CSS.
 - **Winkel, XP, reeks en rondleiding** zijn eigen onderdelen van de app
   (eigen hero of flow) en gebruiken deze shell bewust niet.
 
+## Jouw gids
+
+Jouw gids staat als compact onderdeel onder Voorkeuren (rij direct na Weergave, met kleine `MascotSlot` en de gekozen naam). De
+daadwerkelijke keuze bevindt zich op `/profile?view=guide` (`CompanionPicker size="carousel"`, opslag via `PATCH /api/account`).
+Er is geen grote gidssectie meer op het overzicht.
+
 ## Regels
 
 - Mobiel eerst. Rijen minstens 56 px hoog, knoppen en velden 44 px: genoeg

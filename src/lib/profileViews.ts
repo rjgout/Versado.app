@@ -9,6 +9,7 @@ export const PROFILE_VIEWS = {
   competition: { title: "nav.competition", subtitle: "profile.thisWeek" },
   achievements: { title: "profile.achievements" },
   reading: { title: "profile.readingProgress" },
+  guide: { title: "companion.profileTitle" },
   language: { title: "languageSettings.title" },
   readAloud: { title: "profile.readAloud" },
   gameFeedback: { title: "profile.gameFeedback.title" },
