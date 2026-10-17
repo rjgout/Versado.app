@@ -100,7 +100,7 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
       step1: "Abre Aprender y elige un curso.",
       step2: "Lee el siguiente trozo.",
       step3: "Responde las preguntas. Tu progreso se guarda, así que siempre puedes continuar.",
-      more: "Leer por sí solo no da XP. Un capítulo o paso de lectura que terminas de forma explícita sí cuenta como actividad para tu racha, igual que un ejercicio completado. Abre la acción junto a un versículo o bloque para un marcador, resaltado o nota privada. También puedes seleccionar texto dentro de una sección. Las anotaciones no otorgan XP ni actividad de racha.",
+      more: "Leer por sí solo no da XP. Un capítulo o paso de lectura que terminas de forma explícita sí cuenta como actividad para tu racha, igual que un ejercicio completado. Toca un versículo, o abre la acción junto a un bloque, para un marcador, resaltado o nota privada. También puedes seleccionar texto dentro de una sección. Lo encuentras todo en Mi carpeta de estudio, al final del selector de contenido. Las anotaciones no otorgan XP ni actividad de racha.",
       faq1: {
         q: "¿Importa qué curso elija?",
         a: "Cada curso ofrece el mismo contenido de otra manera, por ejemplo en pasos cortos o capítulo por capítulo. Con el mismo contenido no ganas más XP en un curso que en otro.",
@@ -221,6 +221,7 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
       "step2": "Toca una fuente disponible para cambiar directamente.",
       "step3": "Elige un idioma de texto disponible o elige explícitamente otra edición.",
       "step4": "Versado abre un destino adecuado; volver sin elegir no cambia nada.",
+      "more": "Al final del selector de contenido, encima de la elección de idioma, está Mi carpeta de estudio. Reúne todos tus marcadores, resaltados y notas privadas de todas las fuentes, aunque ahora hayas elegido otra fuente o idioma. Busca por texto, filtra por tipo o fuente y toca Abrir pasaje para volver al versículo o pasaje de estudio guardado. Las notas son privadas. Si una lección se actualizó o una fuente ya no está disponible, Versado no traslada tu nota automáticamente a otro pasaje; tu texto original se conserva. Las anotaciones no otorgan XP ni actividad de racha.",
       "faq1": {
         "q": "¿Qué cambia al cambiar de fuente?",
         "a": "Tu fuente determina los textos, cursos y juegos disponibles."

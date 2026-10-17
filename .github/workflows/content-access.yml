@@ -36,6 +36,18 @@ on:
       - 'src/app/api/annotations/**'
       - 'tests/annotation-*'
       - 'tests/reader-verse-menu*'
+      - 'tests/study-folder*'
+      - 'src/app/study-folder/**'
+      - 'src/app/api/study-folder/**'
+      - 'src/components/study-folder/**'
+      - 'src/components/study/useAnnotationFocus.ts'
+      - 'src/components/content/**'
+      - 'src/app/bookmarks/**'
+      - 'src/app/tools/**'
+      - 'src/lib/focusMode.ts'
+      - 'src/lib/backTarget.ts'
+      - 'src/components/ReaderBackTarget.tsx'
+      - 'src/components/SubpageBackBar.tsx'
       - 'src/components/LessonFlow.tsx'
       - 'src/components/ReadAloudPlayer.tsx'
       - 'src/lib/readAloudPlayerContext.tsx'
@@ -182,7 +194,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: annotation-actions-browser
-          path: /tmp/versado-annotation-actions-browser
+          path: |
+            /tmp/versado-annotation-actions-browser
+            /tmp/versado-reader-verse-menu-browser
+            /tmp/versado-study-folder-browser
           if-no-files-found: warn
           retention-days: 7
 

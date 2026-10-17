@@ -10,6 +10,7 @@ import { getT } from "@/lib/i18n";
 import CourseBackTarget from "@/components/CourseBackTarget";
 import ReaderBackTarget from "@/components/ReaderBackTarget";
 import { safeReturnPath } from "@/lib/returnTo";
+import { studyFolderReturn } from "@/lib/annotations/studyFocus";
 import { getChapterState, issueExerciseSession } from "@/lib/learning/contentProgress";
 import { countWords, estimateReadingMinutes, isLongChapter } from "@/lib/learning/readingTime";
 import { isReadingRoute, ROUTE_PRESENTATION } from "@/lib/learning/routes";
@@ -31,6 +32,7 @@ export default async function LessonPage({
   const { chapterId } = await params;
   const { challengeId, cursus, vers, returnTo } = await searchParams;
   const readerReturn = safeReturnPath(returnTo);
+  const folderReturn = studyFolderReturn(returnTo);
   const chapter = await prisma.chapter.findFirst({
     where: { id: chapterId, book: { contentCollection: readingAccessWhere(user) } },
     include: {
@@ -94,7 +96,7 @@ export default async function LessonPage({
 
   return (
     <>
-    {readerReturn ? <ReaderBackTarget href={readerReturn} parent="Het Mysterie" /> : course && <CourseBackTarget href={route ? `/courses/${course.id}/pad` : `/courses/${course.id}`} parent={course.name} />}
+    {readerReturn ? <ReaderBackTarget href={readerReturn} parent={folderReturn ? getT(user.uiLanguage)("studyFolder.title") : "Het Mysterie"} soft={Boolean(folderReturn)} /> : course && <CourseBackTarget href={route ? `/courses/${course.id}/pad` : `/courses/${course.id}`} parent={course.name} />}
     <LessonFlow
       chapterId={chapter.id}
       bookName={chapter.book.name}

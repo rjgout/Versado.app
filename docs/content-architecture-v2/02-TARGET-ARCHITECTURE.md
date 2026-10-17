@@ -421,7 +421,7 @@ keyboard en screenreader-alternatief testen; desktop contextual menu.
 Bestaande highlights blijven rustig zichtbaar, note-indicatie alleen
 contextueel/subtiel. Geen drie permanente knoppen onder elk vers.
 
-`/study-folder` (voorgestelde route) onder Leren biedt zoeken/type/bronfilter,
+`/study-folder` biedt (zichtbare ingang: onderaan de contentkiezer, direct boven de taalkeuze; bewust niet onder Leren of Hulpmiddelen, zie `27-PHASE-4C-STUDY-FOLDER.md`) zoeken/type/bronfilter,
 bronlabel, edit/delete en passage-deeplink. Accountbrede data-key, niet
 contentScoped. Server vult bronmetadata in; de client leidt bron niet af uit
 actieve collectie. Eén gepagineerde queryservice combineert de drie tabellen

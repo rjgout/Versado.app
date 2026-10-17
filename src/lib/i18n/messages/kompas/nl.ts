@@ -106,7 +106,7 @@ export const kompasNl = {
       step1: "Open Leren en kies een cursus.",
       step2: "Lees het volgende stuk.",
       step3: "Beantwoord de vragen. Je voortgang blijft bewaard, dus je kunt altijd verdergaan.",
-      more: "Lezen alleen levert geen XP op. Een hoofdstuk of leesstap dat je uitdrukkelijk afrondt telt wel als activiteit voor je reeks, net als een afgeronde oefening. Open de actieknop bij een vers of tekstblok voor een bladwijzer, markering of privénotitie. Je kunt ook tekst binnen één sectie selecteren. Annotaties leveren geen XP of reeksactiviteit op.",
+      more: "Lezen alleen levert geen XP op. Een hoofdstuk of leesstap dat je uitdrukkelijk afrondt telt wel als activiteit voor je reeks, net als een afgeronde oefening. Tik op een vers, of open de actieknop bij een tekstblok, voor een bladwijzer, markering of privénotitie. Je kunt ook tekst binnen één sectie selecteren. Je vindt alles terug in Mijn studiemap, onderaan de contentkiezer. Annotaties leveren geen XP of reeksactiviteit op.",
       faq1: {
         q: "Maakt het uit welke cursus ik kies?",
         a: "Elke cursus biedt dezelfde inhoud op een andere manier aan, bijvoorbeeld in korte stappen of per hoofdstuk. Voor dezelfde inhoud kun je er niet meer XP mee verdienen dan met een andere cursus.",
@@ -227,6 +227,7 @@ export const kompasNl = {
       "step2": "Tik op een beschikbare bron om direct te wisselen.",
       "step3": "Kies een beschikbare teksttaal of expliciet een andere uitgave.",
       "step4": "Versado opent een passende bestemming; terug zonder keuze verandert niets.",
+      "more": "Onderaan de contentkiezer, boven de taalkeuze, staat Mijn studiemap. Daar vind je al je bladwijzers, markeringen en privénotities uit alle bronnen bij elkaar, ook als je nu een andere bron of taal hebt gekozen. Zoek op tekst, filter op soort of bron en tik op Open passage om terug te gaan naar het bewaarde vers of de studiepassage. Notities zijn privé. Is een les bijgewerkt of een bron niet meer beschikbaar, dan zet Versado je notitie niet automatisch om naar een andere passage; je oorspronkelijke tekst blijft bewaard. Annotaties leveren geen XP of reeksactiviteit op.",
       "faq1": {
         "q": "Wat verandert er als ik wissel?",
         "a": "Je gekozen bron bepaalt de beschikbare teksten, cursussen en spellen."

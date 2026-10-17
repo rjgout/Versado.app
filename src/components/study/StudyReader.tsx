@@ -10,6 +10,8 @@ import type { StudyReaderDTO } from "@/lib/studyContent/reader";
 import type { ReadingPositionState } from "@/lib/studyContent/readingPositionContract";
 import StudyAnnotations from "@/components/annotations/StudyAnnotations";
 import RichContentBlocks from "./RichContentBlocks";
+import { useAnnotationFocus } from "./useAnnotationFocus";
+import type { AnnotationFocus } from "@/lib/annotations/studyFocus";
 import { useReadingPositionController } from "./ReadingPositionController";
 import ReferencePreview from "./ReferencePreview";
 import ReferenceReturn from "./ReferenceReturn";
@@ -30,9 +32,12 @@ import {
 export default function StudyReader({
   initial,
   sessionKey,
+  annotationFocus = null,
 }: {
   initial: StudyReaderDTO;
   sessionKey: string;
+  /** Door de server bepaald (eigen annotatie, exacte revisie); nooit uit vrije URL-gegevens. */
+  annotationFocus?: AnnotationFocus | null;
 }) {
   const [pinned, setPinned] = useState(initial);
   const allowUpdate = useRef(false);
@@ -47,6 +52,7 @@ export default function StudyReader({
       key={`${pinned.lesson.editionId}:${pinned.lesson.revisionId}`}
       data={pinned}
       sessionKey={sessionKey}
+      annotationFocus={annotationFocus}
       onUpdate={() => {
         allowUpdate.current = true;
       }}
@@ -56,10 +62,12 @@ export default function StudyReader({
 function ReaderVisit({
   data,
   sessionKey,
+  annotationFocus,
   onUpdate,
 }: {
   data: StudyReaderDTO;
   sessionKey: string;
+  annotationFocus: AnnotationFocus | null;
   onUpdate: () => void;
 }) {
   const t = useT(),
@@ -105,6 +113,7 @@ function ReaderVisit({
     sessionKey,
     data.visitProof,
   );
+  useAnnotationFocus(root, annotationFocus);
   const status = control.snapshot.status;
   const busy = status === "saving" || updating;
   const update =
@@ -261,6 +270,18 @@ function ReaderVisit({
               style={{ width: `${control.progress}%` }}
             />
           </div>
+          {annotationFocus?.status === "exact" && <p role="status" className="sr-only">{t("studyFolder.readerFocused")}</p>}
+          {annotationFocus && annotationFocus.status !== "exact" && (
+            <section data-annotation-focus-note={annotationFocus.status} role="status" className="rounded-2xl border border-vs-line bg-vs-elevated p-4 text-sm text-vs-fg">
+              <p>{t(annotationFocus.status === "revision" ? "studyFolder.readerChanged" : "studyFolder.readerMissing")}</p>
+              {annotationFocus.quote && (
+                <blockquote className="mt-2 whitespace-pre-line border-l-2 border-vs-line pl-3 text-vs-fg-2 [overflow-wrap:anywhere]">
+                  <span className="block text-xs font-bold text-vs-fg-3">{t("studyFolder.originalPassage")}</span>
+                  {annotationFocus.quote}
+                </blockquote>
+              )}
+            </section>
+          )}
           <p className="text-sm text-vs-fg-2">{t("studyReader.readNotice")}</p>
           {readState.read ? (
             <section

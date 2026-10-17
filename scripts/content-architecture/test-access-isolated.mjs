@@ -149,9 +149,11 @@ try {
   }
   if(process.argv.includes("--annotations")) {
     await run("npx",["tsx","--test","tests/annotation-foundation.integration.test.mjs"],env);
+    await run("npx",["tsx","--test","tests/study-folder.integration.test.mjs"],env);
     if(process.argv.includes("--browser")){
       await run("npx",["tsx","tests/annotation-actions.browser.mjs"],env);
       await run("npx",["tsx","tests/reader-verse-menu.browser.mjs"],env);
+      await run("npx",["tsx","tests/study-folder.browser.mjs"],env);
     }
   }
   if(process.argv.includes("--cfm-import")) {

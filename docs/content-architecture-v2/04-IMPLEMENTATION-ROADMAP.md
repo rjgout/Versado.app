@@ -274,7 +274,7 @@ redesign, spelimplementaties en eigen kalendergokwerk.
 ### Doel en concrete scope
 
 Vers- en passageannotaties via één contextuele bediening; notities/markeringen/
-bladwijzers in één doorzoekbare, accountbrede map onder Leren. Alle oude
+bladwijzers in één doorzoekbare, accountbrede map (ingang onderaan de contentkiezer, zie fase 4C-document). Alle oude
 gegevens blijven in dezelfde tabellen en op dezelfde ids.
 
 ### Kleine PR's

@@ -22,11 +22,10 @@ interface DetailPage {
   forceFallback?: boolean;
 }
 
-// De onderliggende pagina's van Hulpmiddelen. Bladwijzers staat bewust op
-// /bookmarks (ouder dan de hulpmiddelenpagina), maar hoort daar wel bij.
+// De onderliggende pagina's van Hulpmiddelen. Bladwijzers is verhuisd naar
+// Mijn studiemap; /bookmarks stuurt alleen nog door.
 const TOOL_SUBPAGES: Record<string, MessageKey> = {
   "/tools/dictionary": "pages.dictionary",
-  "/bookmarks": "pages.bookmarks",
   "/tools/xp-guide": "pages.xpGuide",
   "/tools/persons": "pages.persons",
 };
@@ -90,6 +89,8 @@ function detailPageFor(pathname: string, profileView: string | null, hash: strin
   if (/^\/study-lesson\/[^/]+\/[^/]+$/.test(pathname)) return { fallback: "/courses", title: "studyReader.title" };
   if (/^\/scripture\/[^/]+$/.test(pathname)) return { fallback: "/courses", title: "referencePreview.title" };
   if (pathname === "/content") return { fallback: "/dashboard", title: "contentSwitcher.picker.title" };
+  // Mijn studiemap staat onderaan de contentkiezer; zonder bruikbare geschiedenis terug naar de kiezer.
+  if (pathname === "/study-folder") return { fallback: "/content", title: "studyFolder.title" };
   // Lofzangen (alleen beheerders) is bereikbaar vanuit de contentkiezer.
   if (pathname === "/dev/lofzangen") return { fallback: "/content", title: "pages.hymns" };
   if (pathname === "/profile") {
@@ -191,7 +192,7 @@ export default function SubpageBackBar() {
   const { character } = useCompanion();
   const override = useBackTargetOverride(pathname);
   const page = detailPageFor(pathname, profileView, hash);
-  const goBack = useBackNavigation(override?.href ?? page?.fallback ?? "/dashboard", { forceFallback: page?.forceFallback || Boolean(override) });
+  const goBack = useBackNavigation(override?.href ?? page?.fallback ?? "/dashboard", { forceFallback: page?.forceFallback || (Boolean(override) && !override?.soft) });
   if (!page) return null;
   // Een cursusnaam (override) komt al als tekst uit de database.
   const subtitle = override?.parent ?? (page.subtitle ? t(page.subtitle) : null);

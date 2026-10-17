@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       disallow: [
-        "/adminbackend/", "/api/", "/bookmarks/", "/change-password/",
+        "/adminbackend/", "/api/", "/bookmarks/", "/study-folder/", "/change-password/",
         "/competition/", "/dashboard/", "/feedback/", "/forgot-password/",
         "/friends/", "/kids/", "/lesson/", "/live/", "/login/",
         "/onboarding/", "/profile/", "/register/", "/reset-password/",
