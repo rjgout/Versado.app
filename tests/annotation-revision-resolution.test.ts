@@ -198,3 +198,24 @@ test("ambigue overeenkomst wordt nooit automatisch EXACT, ook niet met een ongel
   const result = placeAnnotation(r2, row(r1, sel, { resolvedRevisionId: "r2", resolvedSelector: { not: "valid" } }));
   assert.equal(result.status, "ORPHANED");
 });
+
+test("bevestigingshistorie: een eerder bevestigde koppeling geldt weer na een rollback naar haar revisie, nooit op een andere", () => {
+  const sel = select(r1, "intro", [["a", 3, 17]]);
+  const r2 = lesson("r2", [{ id: "intro", blocks: [{ id: "x", text: "Tweede revisie, andere kop" }] }]);
+  const r3 = lesson("r3", [{ id: "intro", blocks: [{ id: "x", text: "Derde revisie, weer een andere kop" }] }]);
+  const at2 = select(r2, "intro", [["x", 0, 6]]), at3 = select(r3, "intro", [["x", 0, 5]]);
+  // Actueel bevestigd voor r3; r2 staat in de historie (oudste eerst).
+  const confirmed = row(r1, sel, { resolvedRevisionId: "r3", resolvedSelector: at3, resolutionHistory: [{ revisionId: "r2", selector: at2, resolvedAt: "2026-01-01T00:00:00.000Z" }] });
+  const on2 = placeAnnotation(r2, confirmed);
+  assert.equal(on2.status === "EXACT" && on2.via, "resolved");
+  assert.equal(on2.status === "EXACT" && on2.selector.exact, at2.exact);
+  const on3 = placeAnnotation(r3, confirmed);
+  assert.equal(on3.status === "EXACT" && on3.selector.exact, at3.exact);
+  const on1 = placeAnnotation(r1, confirmed);
+  assert.equal(on1.status === "EXACT" && on1.via, "original", "de oorspronkelijke selector heeft voorrang op de oorspronkelijke revisie");
+  const r4 = lesson("r4", [{ id: "intro", blocks: [{ id: "q", text: "niets herkenbaars" }] }]);
+  assert.equal(placeAnnotation(r4, confirmed).status, "ORPHANED", "een bevestigde locatie wordt nooit blind op een andere revisie toegepast");
+  // Een corrupt historie-item telt niet en breekt niets.
+  const corrupt = row(r1, sel, { resolutionHistory: [{ nonsense: true }, "x", null] });
+  assert.equal(placeAnnotation(r1, corrupt).status, "EXACT");
+});

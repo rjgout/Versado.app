@@ -16,7 +16,7 @@ test("de 4D-migratie is uitsluitend additief (geen UPDATE, DELETE, DROP, INSERT 
   const sql = readFileSync(new URL(`${MIGRATION}/migration.sql`, root), "utf8").replace(/--[^\n]*/g, "");
   assert.equal(names.at(-1), MIGRATION, "dit is de nieuwste migratie");
   for (const forbidden of [/\bUPDATE\s+"/i, /\bDELETE\s+FROM\b/i, /\bDROP\b/i, /\bINSERT\b/i, /\bTRUNCATE\b/i, /ALTER COLUMN/i, /RENAME/i]) assert.doesNotMatch(sql, forbidden);
-  assert.equal((sql.match(/ADD COLUMN/g) ?? []).length, 9);
+  assert.equal((sql.match(/ADD COLUMN/g) ?? []).length, 12);
 });
 
 test("bestaande annotaties zijn vóór en na de migratie byte-identiek; nieuwe kolommen zijn leeg", async () => {
@@ -59,11 +59,11 @@ test("bestaande annotaties zijn vóór en na de migratie byte-identiek; nieuwe k
     const before = await digest("");
     assert.deepEqual(before.map((r) => r.n), [1, 1, 1]);
     await client.query(readFileSync(new URL(`${MIGRATION}/migration.sql`, root), "utf8"));
-    const after = await digest(` - 'resolvedRevisionId' - 'resolvedSelector' - 'resolvedAt'`);
+    const after = await digest(` - 'resolvedRevisionId' - 'resolvedSelector' - 'resolvedAt' - 'resolutionHistory'`);
     assert.deepEqual(after, before, "oorspronkelijke kolommen, tijdstempels en Note.updatedAt zijn byte-identiek");
     const fresh = await client.query(`SELECT count(*)::int n FROM (
-      SELECT "resolvedRevisionId","resolvedSelector","resolvedAt" FROM "Bookmark" UNION ALL SELECT "resolvedRevisionId","resolvedSelector","resolvedAt" FROM "Highlight" UNION ALL SELECT "resolvedRevisionId","resolvedSelector","resolvedAt" FROM "Note") a
-      WHERE "resolvedRevisionId" IS NOT NULL OR "resolvedSelector" IS NOT NULL OR "resolvedAt" IS NOT NULL`);
+      SELECT "resolvedRevisionId","resolvedSelector","resolvedAt","resolutionHistory" FROM "Bookmark" UNION ALL SELECT "resolvedRevisionId","resolvedSelector","resolvedAt","resolutionHistory" FROM "Highlight" UNION ALL SELECT "resolvedRevisionId","resolvedSelector","resolvedAt","resolutionHistory" FROM "Note") a
+      WHERE "resolvedRevisionId" IS NOT NULL OR "resolvedSelector" IS NOT NULL OR "resolvedAt" IS NOT NULL OR "resolutionHistory" IS NOT NULL`);
     assert.equal(fresh.rows[0].n, 0, "geen backfill: bestaande annotaties hebben geen resolutie");
     // Verse-annotaties blijven bruikbaar met hun oude constraints.
     await assert.rejects(client.query(`UPDATE "Highlight" SET "resolvedRevisionId"='x', "resolvedSelector"='{}'::jsonb, "resolvedAt"=now()`), /check|foreign key/i);

@@ -309,3 +309,128 @@ test("databaseconstraints: resolutiemetadata is alles-of-niets, alleen voor lest
   await prisma.$executeRawUnsafe(`UPDATE "Highlight" SET "resolvedRevisionId"=$1, "resolvedSelector"=$2::jsonb, "resolvedAt"=now() WHERE id=$3`, original, selector, hl.id);
   await assert.rejects(prisma.studyRevision.delete({ where: { id: original } }), /STUDY_REVISION_IMMUTABLE|Foreign key|violat|constraint/i, "een revisie met annotaties kan niet verdwijnen");
 });
+
+test("bevestigingshistorie: eerdere bevestigde koppelingen blijven bewaard en bruikbaar na een rollback; oorspronkelijke velden ongewijzigd", async () => {
+  const who = await referenceAccount();
+  const hl = (await mutateAnnotation(who.actor, command("highlight", target, 0, { color: "blue" }))).annotation;
+  const frozen = snapshot(await raw("highlight", hl.id));
+  const reviseHeading = (text) => editBlock(f.dto.lesson.body, block.id, (b) => { b.content = [{ type: "text", text }]; });
+  const confirm = async (rev, body, length, version, extra = {}) => {
+    const selector = selectorFor(body, rev.id, section.id, block.id, 0, length);
+    return { selector, result: await resolveAnnotation(who.actor, { kind: "highlight", id: hl.id, mode: "manual", revisionId: rev.id, selector, expectedVersion: version, actionId: randomUUID(), ...extra }) };
+  };
+  const exactAt = async (rev) => (await readerAnnotations(who.actor, { lessonEditionId: target.lessonEditionId, revisionId: rev })).annotations.find((a) => a.id === hl.id).placement;
+  const body2 = reviseHeading("Tweede revisie met een andere kop"), body3 = reviseHeading("Derde revisie met weer een andere kop"), body4 = reviseHeading("Vierde zonder enige overeenkomst");
+  const rev2 = await newRevision(body2, "H2"), rev3 = await newRevision(body3, "H3"), rev4 = await newRevision(body4, "H4");
+  try {
+    await pointer(rev2.id);
+    const first = await confirm(rev2, body2, 8, hl.mutationVersion);
+    await pointer(rev3.id);
+    assert.equal((await exactAt(rev3.id)).status, "ORPHANED", "de koppeling van revisie 2 wordt niet blind op revisie 3 toegepast");
+    const second = await confirm(rev3, body3, 6, first.result.annotation.mutationVersion);
+    const row = await raw("highlight", hl.id);
+    assert.equal(row.resolvedRevisionId, rev3.id);
+    assert.equal(row.resolutionHistory.length, 1);
+    assert.equal(row.resolutionHistory[0].revisionId, rev2.id);
+    assert.equal(row.resolutionHistory[0].selector.exact, first.selector.exact, "de eerdere bevestiging is bewaard");
+    assert.ok(row.resolutionHistory[0].resolvedAt);
+    // Rollback naar revisie 2: de eerdere bevestigde koppeling wordt opnieuw gebruikt.
+    await pointer(rev2.id);
+    const at2 = await exactAt(rev2.id);
+    assert.equal(at2.status, "EXACT"); assert.equal(at2.selector.exact, first.selector.exact);
+    // Rollback naar revisie 1: de oorspronkelijke selector heeft voorrang.
+    await pointer(original);
+    const at1 = await exactAt(original);
+    assert.equal(at1.status, "EXACT"); assert.equal(at1.selector.exact, target.selector.exact);
+    // Terug naar revisie 3: de actuele bevestiging blijft correct.
+    await pointer(rev3.id);
+    const at3 = await exactAt(rev3.id);
+    assert.equal(at3.status, "EXACT"); assert.equal(at3.selector.exact, second.selector.exact);
+    // Revisie 4: nergens zekerheid, dus ORPHANED; een nieuwe bevestiging verplaatst de actuele naar de historie (nu twee).
+    await pointer(rev4.id);
+    assert.equal((await exactAt(rev4.id)).status, "ORPHANED");
+    const third = await confirm(rev4, body4, 6, second.result.annotation.mutationVersion);
+    const afterThird = await raw("highlight", hl.id);
+    assert.deepEqual(afterThird.resolutionHistory.map((e) => e.revisionId), [rev2.id, rev3.id], "oudste eerst, niets afgekapt");
+    for (const [rev, exact] of [[rev2.id, first.selector.exact], [rev3.id, second.selector.exact], [rev4.id, third.selector.exact]]) {
+      await pointer(rev);
+      assert.equal((await exactAt(rev)).selector.exact, exact);
+    }
+    // Oorspronkelijke identiteit en gegevens zijn nooit gewijzigd.
+    const ours = { ...afterThird };
+    assert.equal(snapshot(ours), frozen);
+    assert.equal(ours.color, "blue");
+    // Identieke retry met dezelfde actionId en payload na een verloren respons: geen tweede mutatie, geen dubbele historie.
+    const retryAction = { kind: "highlight", id: hl.id, mode: "manual", revisionId: rev4.id, selector: third.selector, expectedVersion: second.result.annotation.mutationVersion, actionId: third.result.annotation && (await raw("highlight", hl.id)).lastActionId };
+    const retry = await resolveAnnotation(who.actor, retryAction);
+    assert.equal(retry.changed, false);
+    assert.equal((await raw("highlight", hl.id)).resolutionHistory.length, 2);
+    // Gelijktijdige bevestigingen: precies één wint, de historie blijft consistent.
+    const rev5 = await newRevision(reviseHeading("Vijfde kop zonder overlap"), "H5");
+    await pointer(rev5.id);
+    const body5 = rev5 && reviseHeading("Vijfde kop zonder overlap");
+    const version = (await raw("highlight", hl.id)).mutationVersion;
+    const racers = await Promise.allSettled([0, 1].map((n) => resolveAnnotation(who.actor, { kind: "highlight", id: hl.id, mode: "manual", revisionId: rev5.id, selector: selectorFor(body5, rev5.id, section.id, block.id, 0, 5 + n), expectedVersion: version, actionId: randomUUID() })));
+    assert.equal(racers.filter((r) => r.status === "fulfilled").length, 1);
+    assert.equal(racers.filter((r) => r.status === "rejected" && r.reason?.code === "CONFLICT").length, 1);
+    assert.equal((await raw("highlight", hl.id)).resolutionHistory.length, 3);
+    // Tombstone: een verwijderde annotatie blijft verwijderd en behoudt haar historie.
+    const live = await raw("highlight", hl.id);
+    await mutateAnnotation(who.actor, { kind: "highlight", target, expectedVersion: live.mutationVersion, actionId: randomUUID() }, true);
+    await assert.rejects(resolveAnnotation(who.actor, { kind: "highlight", id: hl.id, mode: "manual", revisionId: rev5.id, selector: selectorFor(body5, rev5.id, section.id, block.id, 0, 3), expectedVersion: live.mutationVersion + 1, actionId: randomUUID() }), fault("UNAVAILABLE"));
+    const dead = await raw("highlight", hl.id);
+    assert.ok(dead.deletedAt); assert.equal(dead.resolutionHistory.length, 3);
+    assert.equal(await prisma.highlight.count({ where: { userId: who.user.id } }), 1, "geen dubbele annotaties");
+  } finally { await pointer(original); }
+});
+
+test("historiegrens en eigenaargebondenheid: een volle historie wordt expliciet geweigerd, niets wordt stil afgekapt", async () => {
+  const who = await referenceAccount(), other = await referenceAccount();
+  const hl = (await mutateAnnotation(who.actor, command("highlight", target, 0, { color: "green" }))).annotation;
+  const rev = await newRevision(editBlock(f.dto.lesson.body, block.id, (b) => { b.content = [{ type: "text", text: "Totaal andere koptekst hier" }]; }), "Grens");
+  await pointer(rev.id);
+  try {
+    const entry = (n) => ({ revisionId: rev.id, selector: { ...target.selector, originalRevisionId: rev.id }, resolvedAt: new Date(2026, 0, 1, 0, 0, n).toISOString() });
+    await prisma.$executeRaw`UPDATE "Highlight" SET "resolvedRevisionId"=${original}, "resolvedSelector"=${JSON.stringify({ ...target.selector, originalRevisionId: original })}::jsonb, "resolvedAt"=now(), "resolutionHistory"=${JSON.stringify(Array.from({ length: 100 }, (_, n) => entry(n)))}::jsonb WHERE id=${hl.id}`;
+    const body = editBlock(f.dto.lesson.body, block.id, (b) => { b.content = [{ type: "text", text: "Totaal andere koptekst hier" }]; });
+    const selector = selectorFor(body, rev.id, section.id, block.id, 0, 6);
+    const version = (await raw("highlight", hl.id)).mutationVersion;
+    await assert.rejects(resolveAnnotation(who.actor, { kind: "highlight", id: hl.id, mode: "manual", revisionId: rev.id, selector, expectedVersion: version, actionId: randomUUID() }), fault("INVALID"));
+    const after = await raw("highlight", hl.id);
+    assert.equal(after.resolutionHistory.length, 100); assert.equal(after.mutationVersion, version); assert.equal(after.resolvedRevisionId, original);
+    // Historie is nooit zichtbaar voor anderen of in een leesresponse.
+    const json = JSON.stringify([await getAnnotation(who.actor, "highlight", hl.id), await readerAnnotations(who.actor, { lessonEditionId: target.lessonEditionId, revisionId: rev.id }), await listStudyFolder(who.actor, {})]);
+    assert.ok(!json.includes("resolutionHistory") && !json.includes("resolvedAt"));
+    await assert.rejects(getAnnotation(other.actor, "highlight", hl.id), fault("UNAVAILABLE"));
+    assert.deepEqual((await readerAnnotations(other.actor, { lessonEditionId: target.lessonEditionId, revisionId: rev.id })).annotations, []);
+    await assert.rejects(prisma.$executeRaw`UPDATE "Highlight" SET "resolutionHistory"='[]'::jsonb WHERE id=${hl.id}`, /check/i);
+    await assert.rejects(prisma.$executeRaw`UPDATE "Highlight" SET "resolutionHistory"=${JSON.stringify(Array.from({ length: 101 }, (_, n) => entry(n)))}::jsonb WHERE id=${hl.id}`, /check/i);
+  } finally { await pointer(original); }
+});
+
+test("idempotentie: de requesthash omvat alle aanvraagvelden (ook expectedVersion); afgewezen acties veranderen niets", async () => {
+  const who = await referenceAccount();
+  const note = (await mutateAnnotation(who.actor, command("note", target, 0, { text: "Hash" }))).annotation;
+  const rev = await newRevision(editBlock(f.dto.lesson.body, block.id, (b) => { b.id = `${block.id}-v7`; }), "Hash");
+  await pointer(rev.id);
+  try {
+    const focus = await resolveAnnotationFocus(who.actor, `note:${note.id}`, await lessonOf(who.actor));
+    const body = { kind: "note", id: note.id, mode: "proposal", revisionId: rev.id, selector: focus.proposal, expectedVersion: note.mutationVersion, actionId: randomUUID() };
+    const post = async (payload) => (await http("/api/annotations/resolve", "POST", payload, who)).status;
+    const state = async () => { const r = await raw("note", note.id); return JSON.stringify([r.mutationVersion, r.lastActionId, r.lastActionHash, r.resolvedRevisionId, r.resolvedSelector, r.resolutionHistory, +r.updatedAt, r.text]); };
+    assert.equal(await post(body), 200);
+    const settled = await state();
+    assert.equal(await post(body), 200, "identieke retry na een verloren response");
+    assert.equal(await state(), settled, "geen tweede mutatie");
+    assert.equal(await post({ ...body, expectedVersion: body.expectedVersion + 1 }), 400, "andere expectedVersion");
+    assert.equal(await post({ ...body, selector: { ...focus.proposal, suffix: "x" } }), 400, "gewijzigde selector");
+    assert.equal(await post({ ...body, mode: "manual" }), 400, "andere mode");
+    assert.equal(await post({ ...body, revisionId: original, selector: { ...focus.proposal, originalRevisionId: original } }), 400, "andere revisie");
+    assert.equal(await post({ ...body, actionId: randomUUID(), expectedVersion: note.mutationVersion }), 409, "nieuwe actionId met verouderde versie");
+    assert.equal(await state(), settled, "afgewezen acties veranderen niets");
+    // Hetzelfde patroon voor de writer: dezelfde actionId met andere expectedVersion is geen retry.
+    const edit = command("note", target, (await raw("note", note.id)).mutationVersion, { text: "Eerst" });
+    assert.equal((await mutateAnnotation(who.actor, edit)).changed, true);
+    await assert.rejects(mutateAnnotation(who.actor, { ...edit, expectedVersion: edit.expectedVersion + 1 }), fault("INVALID"));
+  } finally { await pointer(original); }
+});

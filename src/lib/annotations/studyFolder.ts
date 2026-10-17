@@ -93,7 +93,7 @@ type Row = {
   kind: AnnotationKind; id: string; createdAt: Date; updatedAt: Date; text: string | null; color: string | null;
   verseId: string | null; lessonEditionId: string | null; revisionId: string | null; selector: PassageSelector | null;
   anchorStatus: string; mutationVersion: number; targetKey: string | null;
-  resolvedRevisionId: string | null; resolvedSelector: unknown;
+  resolvedRevisionId: string | null; resolvedSelector: unknown; resolutionHistory: unknown;
   open: boolean;
   collectionId: string | null; collectionName: string | null; collectionLanguage: string | null;
   bookName: string | null; chapterId: string | null; chapterNumber: number | null; verseNumber: number | null; verseText: string | null;
@@ -113,7 +113,7 @@ async function select(actor: Actor, filters: StudyFolderFilters, extra: Prisma.S
   const branch = (kind: AnnotationKind, table: Prisma.Sql, text: Prisma.Sql, color: Prisma.Sql, updated: Prisma.Sql) => Prisma.sql`
     SELECT ${kind}::text AS kind, x.id, x."createdAt", ${updated} AS "updatedAt", ${text} AS text, ${color} AS color,
       x."verseId", x."lessonEditionId", x."revisionId", x.selector, x."anchorStatus", x."mutationVersion", x."targetKey",
-      x."resolvedRevisionId", x."resolvedSelector"
+      x."resolvedRevisionId", x."resolvedSelector", x."resolutionHistory"
     FROM ${table} x WHERE x."userId" = ${actor.id} AND x."deletedAt" IS NULL ${type(kind)} ${colorFilter(kind)}`;
   const query = filters.q ? `%${escapeLike(filters.q)}%` : null;
   const where: Prisma.Sql[] = [];
@@ -149,7 +149,7 @@ async function select(actor: Actor, filters: StudyFolderFilters, extra: Prisma.S
       LEFT JOIN "ContentCollection" cc ON cc.id = COALESCE(bk."contentCollectionId", e."collectionId")
     ), gated AS (
       SELECT j.kind, j.id, j."createdAt", j."updatedAt", j.text, j.color, j."verseId", j."lessonEditionId", j."revisionId",
-        j.selector, j."anchorStatus", j."mutationVersion", j."targetKey", j."resolvedRevisionId", j."resolvedSelector", j.open,
+        j.selector, j."anchorStatus", j."mutationVersion", j."targetKey", j."resolvedRevisionId", j."resolvedSelector", j."resolutionHistory", j.open,
         CASE WHEN j.open THEN j.cc_id END AS "collectionId", CASE WHEN j.open THEN j.cc_name END AS "collectionName",
         CASE WHEN j.open THEN j.cc_language END AS "collectionLanguage", CASE WHEN j.open THEN j.bk_name END AS "bookName",
         CASE WHEN j.open THEN j.ch_id END AS "chapterId", CASE WHEN j.open THEN j.ch_number END AS "chapterNumber",

@@ -68,9 +68,11 @@ export default function StudyAnnotations({
   );
   const rows = useMemo(() => list.data?.annotations ?? [], [list.data]);
   // Het oorspronkelijke target blijft de identiteit; de zichtbare plaats is alleen een bewezen exacte plaats (fase 4D).
+  // Zonder serverplaatsing (bv. direct na een bewerking) geldt de oorspronkelijke selector alleen als hij bij de werkelijk
+  // getoonde revisie hoort; anders liever tijdelijk geen markering dan een markering op de verkeerde tekst.
   const effective = (row: AnnotationView): PassageSelector | null =>
     row.placement ? (row.placement.status === "EXACT" ? (row.placement.selector ?? null) : null)
-      : row.target.type === "lesson" ? row.target.selector : null;
+      : row.target.type === "lesson" && row.target.selector.originalRevisionId === revisionId ? row.target.selector : null;
   if (disabled && selected) setSelected(null);
   function open(blockId: string, element: HTMLElement) {
     if (disabled || pickMode) return;
@@ -159,17 +161,14 @@ export default function StudyAnnotations({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, highlightId]);
   function changed(row: AnnotationView) {
-    list.setData((old) =>
-      old
-        ? {
-            ...old,
-            annotations: [
-              ...old.annotations.filter((r) => r.id !== row.id),
-              ...(!row.deleted ? [row] : []),
-            ],
-          }
-        : old,
-    );
+    list.setData((old) => {
+      if (!old) return old;
+      // Dezelfde annotatie-identiteit behoudt haar door de server bewezen plaats (alleen kleur/tekst veranderden); de
+      // centrale annotationsChanged-invalidatie haalt daarna de definitieve plaatsing op.
+      const previous = old.annotations.find((r) => r.id === row.id);
+      const next = !row.placement && previous?.placement && previous.targetKey === row.targetKey ? { ...row, placement: previous.placement } : row;
+      return { ...old, annotations: [...old.annotations.filter((r) => r.id !== row.id), ...(!row.deleted ? [next] : [])] };
+    });
   }
   const marked = rows.flatMap((row) => effective(row)?.ranges.map((range) => range.blockId) ?? []);
   return (

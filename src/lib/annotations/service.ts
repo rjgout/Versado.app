@@ -7,7 +7,7 @@ import { studyObjectHash } from "@/lib/studyContent/policy";
 import { emitToUser } from "@/lib/realtime";
 import { DATA_EVENT_SOCKET_NAME } from "@/lib/data/scopes";
 import { annotationPutSchema, annotationDeleteSchema, annotationResolveSchema, validatePassageSelector, type AnnotationAction, type AnnotationKind, type AnnotationTarget } from "./contract";
-import { placeAnnotation } from "./revisionResolution";
+import { placeAnnotation, resolutionHistorySchema, RESOLUTION_HISTORY_LIMIT } from "./revisionResolution";
 
 type Actor = { id: string; isAdmin: boolean };
 type Db = Prisma.TransactionClient;
@@ -138,7 +138,8 @@ export async function resolveAnnotation(actor: Actor, input: unknown, client: Pr
   const parsed = annotationResolveSchema.safeParse(input);
   if (!parsed.success) throw new AnnotationError("INVALID");
   const action = parsed.data;
-  const hash = studyObjectHash({ operation: "RESOLVE", kind: action.kind, id: action.id, mode: action.mode, revisionId: action.revisionId, selector: action.selector });
+  // Alle inhoudelijke aanvraagvelden, zoals bij mutateAnnotation: dezelfde actionId met andere inhoud (ook een andere expectedVersion) is geen retry.
+  const hash = studyObjectHash({ ...action, operation: "RESOLVE" });
   if (process.env.STUDY_ANNOTATION_WRITES === "0") throw new AnnotationError("UNAVAILABLE");
   const result = await client.$transaction(async db => {
     await db.$executeRaw`SET LOCAL lock_timeout='5s'`;
@@ -175,8 +176,18 @@ export async function resolveAnnotation(actor: Actor, input: unknown, client: Pr
     // Een voorstel bevestigen kan alleen als de server nog steeds precies dit voorstel doet; anders is de stand veranderd.
     if (action.mode === "proposal" && (placement.status !== "NEEDS_REVIEW" || studyObjectHash(placement.proposal) !== studyObjectHash(action.selector)))
       throw new AnnotationError("CONFLICT", view(action.kind, existing));
+    // De actuele bevestigde koppeling gaat eerst atomair (zelfde transactie, zelfde locks en versiecontrole) naar de historie;
+    // niets wordt overschreven of afgekapt. Een volle of corrupte historie wordt expliciet geweigerd.
+    const history = existing.resolutionHistory == null ? [] : resolutionHistorySchema.safeParse(existing.resolutionHistory);
+    if (!Array.isArray(history) && !history.success) throw new AnnotationError("INVALID");
+    const earlier = Array.isArray(history) ? history : history.data;
+    if (existing.resolvedRevisionId && existing.resolvedSelector && existing.resolvedAt && earlier.length >= RESOLUTION_HISTORY_LIMIT) throw new AnnotationError("INVALID");
+    const nextHistory = existing.resolvedRevisionId && existing.resolvedSelector && existing.resolvedAt
+      ? [...earlier, { revisionId: existing.resolvedRevisionId, selector: existing.resolvedSelector, resolvedAt: existing.resolvedAt.toISOString() }]
+      : earlier;
     const data = {
       resolvedRevisionId: action.revisionId, resolvedSelector: action.selector as Prisma.InputJsonValue, resolvedAt: new Date(),
+      ...(nextHistory.length ? { resolutionHistory: nextHistory as unknown as Prisma.InputJsonValue } : {}),
       mutationVersion: existing.mutationVersion + 1, lastActionId: action.actionId, lastActionHash: hash,
     };
     const row: Row = action.kind === "bookmark" ? await db.bookmark.update({ where: { id: existing.id }, data })

@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { passageBlocks, selectorSchema, validatePassageSelector, type PassageSelector } from "./contract";
 
 // Fase 4D: pure, deterministische bepaling van waar een eigen studieannotatie in de nu gepubliceerde revisie hoort.
@@ -16,7 +17,32 @@ export type PlacementRow = {
   selector: unknown;
   resolvedRevisionId?: string | null;
   resolvedSelector?: unknown;
+  /** Eerder bevestigde koppelingen (oudste eerst); de actuele staat in resolved*. NULL/leeg = geen. */
+  resolutionHistory?: unknown;
 };
+
+/** Eén door de gebruiker bevestigde koppeling: de revisie waarvoor zij bevestigd is, de selector en het tijdstip. */
+export const resolutionEntrySchema = z.object({
+  revisionId: z.string().min(1).max(128),
+  selector: selectorSchema,
+  resolvedAt: z.string().min(1).max(40),
+}).strict();
+export type ResolutionEntry = z.infer<typeof resolutionEntrySchema>;
+export const RESOLUTION_HISTORY_LIMIT = 100;
+export const resolutionHistorySchema = z.array(resolutionEntrySchema).max(RESOLUTION_HISTORY_LIMIT);
+
+/** Alle bevestigde koppelingen, nieuwste eerst: eerst de actuele, daarna de historie van recent naar oud. Ongeldige items tellen niet. */
+export function confirmedResolutions(row: PlacementRow): ResolutionEntry[] {
+  const entries: ResolutionEntry[] = [];
+  const current = selectorSchema.safeParse(row.resolvedSelector);
+  if (current.success && row.resolvedRevisionId) entries.push({ revisionId: row.resolvedRevisionId, selector: current.data, resolvedAt: "" });
+  const history = Array.isArray(row.resolutionHistory) ? row.resolutionHistory : [];
+  for (const item of [...history].reverse()) {
+    const parsed = resolutionEntrySchema.safeParse(item);
+    if (parsed.success) entries.push(parsed.data);
+  }
+  return entries;
+}
 
 export type PlacementReason = "edition" | "invalid" | "section" | "text" | "ambiguous";
 export type Placement =
@@ -110,13 +136,19 @@ export function placeAnnotation(lesson: PlacementLesson, row: PlacementRow): Pla
     try { return { status: "EXACT", via: "original", selector: validatePassageSelector(lesson.body, original.data) }; }
     catch { return { status: "ORPHANED", reason: "invalid" }; }
   }
-  const resolved = selectorSchema.safeParse(row.resolvedSelector);
-  if (resolved.success && row.resolvedRevisionId === lesson.revisionId) {
-    try { return { status: "EXACT", via: "resolved", selector: validatePassageSelector(lesson.body, resolved.data) }; }
+  // Een expliciet bevestigde locatie geldt alleen voor de revisie waarvoor zij bevestigd is (de nieuwste eerst) en alleen
+  // zolang zij hier nog valideert; ook een eerdere bevestiging blijft bruikbaar na een rollback naar die revisie.
+  const confirmed = confirmedResolutions(row);
+  for (const entry of confirmed.filter((e) => e.revisionId === lesson.revisionId)) {
+    try { return { status: "EXACT", via: "resolved", selector: validatePassageSelector(lesson.body, entry.selector) }; }
     catch { /* een verouderde koppeling die hier niet meer klopt wordt genegeerd */ }
   }
-  // Een eerder bevestigde locatie is het beste vertrekpunt (de gebruiker koos haar bewust); daarna de oorspronkelijke.
-  const bases = [...(resolved.success ? [resolved.data] : []), original.data];
+  // Bevestigde locaties zijn het beste vertrekpunt voor een volgende revisie (de gebruiker koos ze bewust); daarna de oorspronkelijke.
+  const seen = new Set<string>();
+  const bases = [...confirmed.map((e) => e.selector), original.data].filter((basis) => {
+    const key = JSON.stringify([basis.sectionAnchor, basis.ranges, basis.exact]);
+    return seen.has(key) ? false : (seen.add(key), true);
+  });
   const results = bases.map((basis) => locate(lesson, basis));
   return results.find((r) => r.status === "EXACT") ?? results.find((r) => r.status === "NEEDS_REVIEW") ?? results.at(-1)!;
 }

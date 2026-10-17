@@ -23,7 +23,7 @@ Regels (alle server-side, dezelfde `validatePassageSelector`):
 5. `EXACT(carried)`: de oorspronkelijke selector valideert ongewijzigd, óf elk gekozen stuk komt **precies één keer** voor in het blok met hetzelfde blok-ID (verschoven offsets), in dezelfde volgorde. Een gedeeltelijke match van meerdere ranges is nooit exact.
 6. `NEEDS_REVIEW`: blok-ID verdwenen of tekst niet meer in dat blok, maar elk stuk komt binnen dezelfde sectie precies één keer voor.
 7. Meerdere kandidaten, ontbrekende stukken, een andere sectie of een andere volgorde ⇒ `ORPHANED`; nooit "de eerste".
-8. Een eerder bevestigde locatie is het vertrekpunt bij een volgende revisie; een oude bevestigde selector wordt nooit blind op een niet-overeenkomende revisie toegepast.
+8. Alle eerder bevestigde locaties (actueel + historie, nieuwste eerst) gelden alleen voor de revisie waarvoor zij bevestigd zijn en alleen zolang zij daar valideren; na een rollback naar die revisie zijn ze weer `EXACT(resolved)`. De oorspronkelijke selector heeft voorrang op de oorspronkelijke revisie. Een bevestigde locatie is verder alleen het vertrekpunt bij een volgende revisie; een oude bevestigde selector wordt nooit blind op een niet-overeenkomende revisie toegepast.
 
 De oorspronkelijke velden (`revisionId`, `selector`, `targetKey`, tekst, kleur, ids, tijdstempels) worden door lezen of resolutie nooit overschreven.
 
@@ -32,6 +32,7 @@ De oorspronkelijke velden (`revisionId`, `selector`, `targetKey`, tekst, kleur, 
 Additieve migratie `20261117120000_annotation_resolution` op `Bookmark`, `Highlight` en `Note`: `resolvedRevisionId`, `resolvedSelector` (JSONB), `resolvedAt`,
 alles nullable, geen backfill, geen UPDATE/DELETE/DROP.
 
+* Kolom `resolutionHistory` (JSONB, nullable, per tabel): eerder bevestigde koppelingen `{revisionId, selector, resolvedAt}`, oudste eerst, eigenaargebonden in dezelfde rij, nooit in een response. CHECK: `NULL` of een array van 1–100 items, en alleen naast een actuele resolutie. De bevestigde resolutie van een volgende `resolve` verplaatst de vorige eerst atomair naar de historie (zelfde transactie, locks en versiecontrole); bij 100 items wordt expliciet geweigerd (`INVALID`) in plaats van stil af te kappen.
 * CHECK `*_resolution_check`: alles-of-niets; alleen voor lestargets (`lessonEditionId` gezet, `verseId` leeg); `resolvedSelector.originalRevisionId = resolvedRevisionId`, `normalizationVersion = 1`, 1–32 ranges.
 * Samengestelde FK `(resolvedRevisionId, lessonEditionId) → StudyRevision(id, lessonEditionId)` met Restrict: de bevestigde revisie hoort aantoonbaar bij dezelfde leseditie en kan niet verdwijnen.
 * Bestaande XOR-targetconstraint, verse-FK's (Restrict) en unieke (userId, targetKey) blijven ongemoeid.
@@ -46,11 +47,13 @@ Dezelfde locks en regels als `mutateAnnotation`: collectie → les → editie (`
 Vereist: ingelogde eigenaar (ook een admin leest/schrijft niet bij een ander), actieve rij (**een tombstone wordt nooit heractiveerd**), normaal leesbare bron,
 dezelfde leseditie, `revisionId` is nu werkelijk gepubliceerd, selector valideert server-side, `expectedVersion` klopt (anders 409 met actuele staat).
 `proposal`: de server herberekent het voorstel; een afwijkend voorstel is 409. `manual`: de gekozen passage wordt gevalideerd; alleen toegestaan als de annotatie niet al bewezen op haar plaats staat.
-Schrijft uitsluitend `resolved*`, `mutationVersion + 1`, `lastActionId/Hash`; `Note.updatedAt` blijft gelijk; geen tweede annotatie. Een identieke retry (zelfde `actionId` en inhoud) geeft `changed:false`; zelfde `actionId` met andere inhoud is 400.
+De requesthash omvat alle aanvraagvelden (kind, id, mode, revisie, selector, `expectedVersion`, `actionId`), zoals bij `mutateAnnotation`: dezelfde `actionId` met andere inhoud is 400, een nieuwe `actionId` met een verouderde versie 409, en een afgewezen actie verandert niets.
+Schrijft uitsluitend `resolved*`, `resolutionHistory`, `mutationVersion + 1`, `lastActionId/Hash`; `Note.updatedAt` blijft gelijk; geen tweede annotatie. Een identieke retry (zelfde `actionId` en inhoud) geeft `changed:false`; zelfde `actionId` met andere inhoud is 400.
 Een late notitiebewerking met een oude versie krijgt daarna 409 (bestaand contract). Realtime: alleen het event `annotationsChanged`, geen tekst of selector.
 
 ## 4. Lezen en bewerken
 
+* **Client** (`StudyAnnotations`): een rij zonder serverplaatsing (bv. direct na een bewerking) wordt alleen gemarkeerd als haar oorspronkelijke selector bij de getoonde revisie hoort; een bewerking behoudt de eerder door de server bewezen plaats van dezelfde annotatie-identiteit, en `annotationsChanged` haalt de definitieve plaatsing op. Liever tijdelijk geen markering dan een markering op de verkeerde tekst.
 * **Reader** (`GET /api/annotations?view=reader&lessonEditionId&revisionId`): is `revisionId` de nu voor de gebruiker gepubliceerde revisie, dan krijgt elke eigen annotatie van de editie `placement` (`status`, alleen bij `EXACT` de effectieve `selector`). `target`/`targetKey`/`id` blijven de identiteit. Een voorstel wordt niet als plaats geleverd. Zonder brontoegang of voor een oude revisie geldt de oude strikte filter. Andere reads (`getAnnotation`, `listAnnotations`, verse-API's) hebben geen nieuwe velden.
 * **Schrijfrechten** (`authorize`): een eigen, actieve annotatie met een bewezen `EXACT`-plaats mag via haar oorspronkelijke identiteit (kleur, bladwijzer, notitie) bewerkt worden op de nieuwe revisie; al het andere krijgt geen nieuwe schrijfrechten voor oude, verborgen of ingetrokken content.
 * **Focus** (`resolveAnnotationFocus`): `exact` (scroll/benadrukken), `proposal` (vergelijkingspaneel), `orphaned` (herstelpaneel), `missing` (niet van jou / andere editie).
@@ -71,7 +74,8 @@ revisie laat de oorspronkelijke selector weer gelden; bevestigde koppelingen bli
 
 * Puur: `tests/annotation-revision-resolution.test.ts` (21 gevallen: ongewijzigd, identiek, verschoven offset, dubbele quote, vervangen/verplaatst/verwijderd blok, gewijzigde quote, meerdere ranges, NFC, emoji/surrogaten, lijst/tabel, gelijknamige secties, andere taal/collectie/editie, rollback, bevestigde koppeling).
 * Integratie: `tests/annotation-recovery.integration.test.mjs` (exact, voorstel met versie/idempotentie/conflict/tampering/vreemde gebruiker/admin, orphan met handmatige herkoppeling, ontoegankelijke bron, tombstone, gelijktijdige bewerking, HTTP, databaseconstraints) en `tests/annotation-resolution-migration.test.mjs` (databehoud).
-* Browser: `tests/annotation-recovery.browser.mjs` (scenario's A–E, 5 talen, 320/390/820/1280 px, 100/200%, licht/donker); bestaande suites (`study-folder`, kleuren, reader-verse-menu, annotation-foundation, kompas, live-data, `test:annotations`) blijven groen.
+* Correctieronde: bevestigingshistorie (rollback 3→2→1→3, concurrentie, retry, tombstone, grens van 100), requesthash/idempotentie via HTTP (400/409), en browserscenario's F/G (verschoven offset en handmatige resolutie met een bewust vertraagde readerrefresh, gemeten in de CSS Highlight API).
+* Browser: `tests/annotation-recovery.browser.mjs` (scenario's A–G, 5 talen, 320/390/820/1280 px, 100/200%, licht/donker); bestaande suites (`study-folder`, kleuren, reader-verse-menu, annotation-foundation, kompas, live-data, `test:annotations`) blijven groen.
 * Runner: `npm run test:annotations:integration -- --browser` (CI-job `content-access`).
 
 ## 8. Bekende beperkingen

@@ -1539,6 +1539,7 @@ model Bookmark {
   resolvedRevisionId String?
   resolvedSelector Json?
   resolvedAt DateTime?
+  resolutionHistory Json?
   resolvedRevision StudyRevision? @relation("BookmarkResolvedRevision", fields: [resolvedRevisionId, lessonEditionId], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
   @@index([resolvedRevisionId, lessonEditionId])
 
@@ -1574,6 +1575,7 @@ model Highlight {
   resolvedRevisionId String?
   resolvedSelector Json?
   resolvedAt DateTime?
+  resolutionHistory Json?
   resolvedRevision StudyRevision? @relation("HighlightResolvedRevision", fields: [resolvedRevisionId, lessonEditionId], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
   @@index([resolvedRevisionId, lessonEditionId])
 
@@ -1610,6 +1612,7 @@ model Note {
   resolvedRevisionId String?
   resolvedSelector Json?
   resolvedAt DateTime?
+  resolutionHistory Json?
   resolvedRevision StudyRevision? @relation("NoteResolvedRevision", fields: [resolvedRevisionId, lessonEditionId], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
   @@index([resolvedRevisionId, lessonEditionId])
 
@@ -3446,6 +3449,7 @@ model GroupFreezeOffer {
   status     GroupFreezeOfferStatus @default(RESERVED)
   createdAt  DateTime               @default(now())
   resolvedAt DateTime?
+  resolutionHistory Json?
 
   @@unique([groupId, dayKey])
   @@index([userId, groupId, status])

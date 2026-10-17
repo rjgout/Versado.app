@@ -206,9 +206,103 @@ try {
   await context.close();
   await pointer(original);
 
+  // ===== Scenario F/G: nooit een tijdelijk onjuiste markering na een kleurwijziging, ook niet tijdens een vertraagde readerrefresh =====
+  // Alleen de annotaties van deze scenario's tellen: de eerdere (tombstone via de bestaande kolom) staan buiten beeld.
+  await prisma.$executeRaw`UPDATE "Highlight" SET "deletedAt"=now() WHERE id=${hl.id}`;
+  await prisma.$executeRaw`UPDATE "Note" SET "deletedAt"=now() WHERE id=${note.id}`;
+  const blocks = passageBlocks(f.dto.lesson.body, section.id).filter((b) => b.id !== heading.id && chars(b.text).length >= 15);
+  const highlightTexts = (p) => p.evaluate(() => [...(CSS.highlights?.entries?.() ?? [])].filter(([k]) => k.startsWith("annotation-")).flatMap(([k, h]) => [...h].map((r) => ({ key: k, text: r.toString() }))));
+  const readerUrl = `${base}/study-lesson/${f.item.edition.lessonId}/${f.collection.id}`;
+  async function recolorWithDelayedRefresh(page, row, expectedText, wrongTexts, label) {
+    await page.route("**/api/annotations?view=reader*", async (route) => { await new Promise((r) => setTimeout(r, 3000)); await route.continue().catch(() => {}); });
+    await page.locator("details summary").click();
+    await page.locator("details button", { hasText: row.quote.slice(0, 20) }).first().click();
+    const dialog = page.locator("dialog[data-annotation-dialog][open]");
+    await dialog.waitFor();
+    const put = page.waitForResponse((r) => r.request().method() === "PUT" && r.url().includes("/api/annotations"));
+    await dialog.getByRole("button", { name: t("annotations.purple") }).click();
+    assert.equal((await put).status(), 200);
+    const seen = [];
+    const until = Date.now() + 2600;
+    while (Date.now() < until) { seen.push(await highlightTexts(page)); await page.waitForTimeout(100); }
+    const bad = seen.flat().filter((h) => wrongTexts.includes(h.text));
+    check(`${label}: tijdens de vertraagde refresh wordt nooit een onjuiste tekst gemarkeerd (${seen.length} metingen)`, bad.length === 0, JSON.stringify(bad.slice(0, 2)));
+    await page.waitForFunction(() => [...(CSS.highlights?.entries?.() ?? [])].some(([k, h]) => k.endsWith("-purple") && h.size > 0), null, { timeout: 10000 });
+    await page.waitForTimeout(3500);
+    const final = await highlightTexts(page);
+    check(`${label}: na de refresh staat de juiste tekst paars gemarkeerd, niets in groen`, final.filter((h) => h.text === expectedText).length === 1 && final.find((h) => h.text === expectedText).key.endsWith("-purple") && !final.some((h) => h.text === wrongTexts[0]), JSON.stringify(final));
+    await page.unroute("**/api/annotations?view=reader*");
+  }
+  // F: groene markering op revisie 1; revisie 2 heeft dezelfde tekst op een verschoven offset (bewezen anker, automatisch exact).
+  const blockF = blocks[0], textF = blockF.text, lenF = chars(textF).length;
+  const hlF = (await mutateAnnotation(owner.actor, command("highlight", { type: "lesson", lessonEditionId: f.item.lessonEditionId, revisionId: original, selector: selectorFor(f.dto.lesson.body, original, section.id, blockF.id, 0, lenF) }, 0, { color: "green" }))).annotation;
+  const blockG = blocks[1], lenG = 15;
+  const hlG = (await mutateAnnotation(owner.actor, command("highlight", { type: "lesson", lessonEditionId: f.item.lessonEditionId, revisionId: original, selector: selectorFor(f.dto.lesson.body, original, section.id, blockG.id, 0, lenG) }, 0, { color: "green" }))).annotation;
+  const bodyF = editBlock(f.dto.lesson.body, blockF.id, (b) => { b.content = [{ type: "text", text: `Nieuw: ${textF}` }]; });
+  const revF = await newRevision(bodyF, "F: verschoven offset");
+  await pointer(revF.id);
+  context = await open(); page = await context.newPage();
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto(readerUrl);
+  await page.waitForFunction(() => [...(CSS.highlights?.entries?.() ?? [])].some(([k, h]) => k.endsWith("-green") && h.size > 0), null, { timeout: 15000 });
+  const wrongF0 = chars(`Nieuw: ${textF}`).slice(0, lenF).join("");
+  const shifted = await highlightTexts(page);
+  const shiftedF = shifted.filter((h) => h.text === textF);
+  check("F: de markering is automatisch op de juiste, verschoven tekst geplaatst", shiftedF.length === 1 && shiftedF[0].key.endsWith("-green") && !shifted.some((h) => h.text === wrongF0), JSON.stringify(shifted));
+  const wrongF = chars(`Nieuw: ${textF}`).slice(0, lenF).join("");
+  await recolorWithDelayedRefresh(page, { quote: textF }, textF, [wrongF], "F");
+  const rowF = await prisma.highlight.findUniqueOrThrow({ where: { id: hlF.id } });
+  check("F: kleur paars opgeslagen; oorspronkelijke revisie, selector en id ongewijzigd", rowF.color === "purple" && rowF.revisionId === original && rowF.selector.ranges[0].start === 0 && rowF.id === hlF.id);
+  await context.close();
+
+  // G: handmatig bevestigde resolutie; daarna kleurwijziging met vertraagde refresh.
+  const newTextG = "Compleet nieuwe tekst voor deze plek";
+  const bodyG = editBlock(bodyF, blockG.id, (b) => { b.content = [{ type: "text", text: newTextG }]; });
+  const revG = await newRevision(bodyG, "G: tekst vervangen");
+  await pointer(revG.id);
+  context = await open(); page = await context.newPage();
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto(`${readerUrl}?annotation=highlight:${hlG.id}`);
+  await page.locator('[data-annotation-recovery="orphaned"]').waitFor();
+  await page.locator("[data-annotation-pick]").click();
+  await page.evaluate((id) => {
+    const el = document.querySelector(`[data-study-text="${id}"]`);
+    const node = document.createTreeWalker(el, NodeFilter.SHOW_TEXT).nextNode();
+    const range = document.createRange(); range.setStart(node, 0); range.setEnd(node, 12);
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  }, blockG.id);
+  await page.locator("[data-annotation-selection]").click();
+  await page.locator("[data-annotation-picked]").waitFor();
+  await page.locator("[data-annotation-pick-confirm]").click();
+  const pickedText = newTextG.slice(0, 12);
+  await page.waitForFunction((txt) => [...(CSS.highlights?.entries?.() ?? [])].some(([k, h]) => k.endsWith("-green") && [...h].some((r) => r.toString() === txt)), pickedText, { timeout: 15000 });
+  check("G: de handmatig bevestigde passage staat gemarkeerd op de gekozen tekst", (await highlightTexts(page)).some((h) => h.text === pickedText));
+  await page.locator("[data-annotation-recovery]").waitFor({ state: "detached" }).catch(() => {});
+  await page.route("**/api/annotations?view=reader*", async (route) => { await new Promise((r) => setTimeout(r, 3000)); await route.continue().catch(() => {}); });
+  await page.locator("details summary").click();
+  await page.locator("details button", { hasText: chars(blockG.text).slice(0, 15).join("") }).first().click();
+  const dialogG = page.locator("dialog[data-annotation-dialog][open]");
+  await dialogG.waitFor();
+  const putG = page.waitForResponse((r) => r.request().method() === "PUT" && r.url().includes("/api/annotations"));
+  await dialogG.getByRole("button", { name: t("annotations.purple") }).click();
+  assert.equal((await putG).status(), 200);
+  const seenG = [];
+  const untilG = Date.now() + 2600;
+  while (Date.now() < untilG) { seenG.push(await highlightTexts(page)); await page.waitForTimeout(100); }
+  const badG = seenG.flat().filter((h) => ![pickedText, textF, chars(blockG.text).slice(0, lenG).join("")].includes(h.text));
+  check(`G: tijdens de vertraagde refresh nooit een onjuiste tekst (${seenG.length} metingen)`, badG.length === 0, JSON.stringify(badG.slice(0, 2)));
+  await page.waitForTimeout(3500);
+  const finalG = await highlightTexts(page);
+  check("G: na de refresh staat de gekozen tekst paars", finalG.some((h) => h.key.endsWith("-purple") && h.text === pickedText) && !finalG.some((h) => h.key.endsWith("-green") && h.text === pickedText), JSON.stringify(finalG));
+  await page.unroute("**/api/annotations?view=reader*");
+  const rowG = await prisma.highlight.findUniqueOrThrow({ where: { id: hlG.id } });
+  check("G: kleur paars; resolutie en oorspronkelijke velden bewaard", rowG.color === "purple" && rowG.resolvedRevisionId === revG.id && rowG.revisionId === original && rowG.selector.ranges[0].end === lenG);
+  await context.close();
+  await pointer(original);
+
   // Alle vijf talen en responsiviteit van het herstelpaneel (voorstel-revisie).
   await pointer(proposalRevision.id);
-  await prisma.$executeRaw`UPDATE "Note" SET "resolvedRevisionId"=NULL, "resolvedSelector"=NULL, "resolvedAt"=NULL WHERE id=${note.id}`;
+  await prisma.$executeRaw`UPDATE "Note" SET "deletedAt"=NULL, "resolvedRevisionId"=NULL, "resolvedSelector"=NULL, "resolvedAt"=NULL, "resolutionHistory"=NULL WHERE id=${note.id}`;
   for (const language of ["nl", "en", "de", "fr", "es"]) {
     await prisma.user.update({ where: { id: owner.user.id }, data: { uiLanguage: language } });
     t = getT(language);

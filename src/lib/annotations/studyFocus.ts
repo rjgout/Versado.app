@@ -38,7 +38,7 @@ export async function resolveAnnotationFocus(
   const [kind, id] = parsed.data.split(":") as [AnnotationKind, string];
   const where = { id, userId: actor.id, deletedAt: null };
   const select = {
-    lessonEditionId: true, revisionId: true, selector: true, mutationVersion: true, resolvedRevisionId: true, resolvedSelector: true,
+    lessonEditionId: true, revisionId: true, selector: true, mutationVersion: true, resolvedRevisionId: true, resolvedSelector: true, resolutionHistory: true,
   } as const;
   const row = kind === "bookmark" ? await client.bookmark.findFirst({ where, select })
     : kind === "highlight" ? await client.highlight.findFirst({ where, select }) : await client.note.findFirst({ where, select });
