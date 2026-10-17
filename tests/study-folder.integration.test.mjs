@@ -310,3 +310,74 @@ test("geen XP, reeks, hints of credits door het openen van de map", async () => 
   const hash = createHash("sha256").update("x").digest("hex");
   assert.ok(hash);
 });
+
+test("kleurfilter: alleen markeringen van die kleur, vóór paginering, gecombineerd met zoeken en bron, geldige combinaties en cursorbinding", async () => {
+  const who = await referenceAccount(), other = await referenceAccount();
+  const colors = ["yellow", "green", "blue", "pink", "purple"];
+  const big = await makeChapter("content_bom", "Kleurboek", `bofm/folder-colors-${randomUUID().slice(0, 6)}`, 130);
+  const en = await makeChapter("content_bom_en", "Colour book EN", `bofm/folder-colors-en-${randomUUID().slice(0, 6)}`, 10);
+  const stamp = Date.UTC(2026, 2, 1);
+  // 130 markeringen met gemengde kleuren (26 per kleur) plus bladwijzers en notities op dezelfde verzen.
+  await prisma.highlight.createMany({ data: big.verses.map((v, i) => ({ userId: who.user.id, verseId: v.id, targetKey: `verse:${v.id}`, color: colors[i % 5], createdAt: new Date(stamp - Math.floor(i / 3) * 1000) })) });
+  await prisma.bookmark.createMany({ data: big.verses.slice(0, 40).map((v, i) => ({ userId: who.user.id, verseId: v.id, targetKey: `verse:${v.id}`, createdAt: new Date(stamp - i * 500) })) });
+  await prisma.note.createMany({ data: big.verses.slice(0, 40).map((v, i) => ({ userId: who.user.id, verseId: v.id, targetKey: `verse:${v.id}`, text: `Kleurnotitie ${i}`, createdAt: new Date(stamp - i * 700) })) });
+  await prisma.highlight.createMany({ data: en.verses.map((v, i) => ({ userId: who.user.id, verseId: v.id, targetKey: `verse:${v.id}`, color: "yellow", createdAt: new Date(stamp + 1000 + i) })) });
+  await prisma.highlight.createMany({ data: big.verses.slice(0, 30).map((v, i) => ({ userId: other.user.id, verseId: v.id, targetKey: `verse:${v.id}`, color: "yellow", createdAt: new Date(stamp) })) });
+  const expected = async (color) => (await prisma.highlight.findMany({ where: { userId: who.user.id, color, deletedAt: null } })).map((r) => r.id).sort();
+  const seen = [];
+  const spy = { $queryRaw: async (...args) => { const result = await prisma.$queryRaw(...args); seen.push(result.length); return result; }, contentCollection: prisma.contentCollection };
+  const walk = async (input, limit = 10) => {
+    const all = []; let cursor; let pages = 0;
+    do { const page = await listStudyFolder(who.actor, { ...input, cursor, limit }, spy); all.push(...page.items); cursor = page.nextCursor ?? undefined; pages += 1; assert.ok(pages < 60); } while (cursor);
+    return { all, pages };
+  };
+  const unfiltered = await walk({}, 50);
+  assert.equal(unfiltered.all.length, 130 + 40 + 40 + 10, "zonder kleurfilter alle annotaties");
+  for (const color of colors) {
+    const result = await walk({ color });
+    assert.ok(result.all.every((i) => i.kind === "highlight" && i.color === color), `${color}: alleen markeringen van die kleur`);
+    assert.deepEqual(result.all.map((i) => i.id).sort(), await expected(color), `${color}: geen dubbele of ontbrekende resultaten`);
+    assert.equal(new Set(result.all.map((i) => i.id)).size, result.all.length);
+    assert.ok(result.pages >= 3, "meerdere pagina's");
+    const expectedOrder = [...result.all].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.kind.localeCompare(b.kind) || a.id.localeCompare(b.id));
+    assert.deepEqual(result.all.map((i) => i.id), expectedOrder.map((i) => i.id), `${color}: deterministische volgorde`);
+  }
+  assert.ok(Math.max(...seen) <= 51, "queryresultaten blijven begrensd (limiet+1)");
+  assert.equal((await walk({ color: "yellow" })).all.length, 26 + 10);
+  assert.equal((await walk({ color: "yellow", type: "highlight" })).all.length, 26 + 10, "color + type=highlight is geldig en gelijk aan color alleen");
+  assert.equal((await walk({ color: "yellow", source: "content_bom_en" })).all.length, 10, "kleur + bronfilter");
+  assert.equal((await walk({ color: "yellow", q: "vers 6 van Kleurboek" })).all.length, 1, "kleur + zoeken op leesbare brontekst");
+  assert.equal((await walk({ color: "blue", q: "vers 6 van Kleurboek" })).all.length, 0);
+  assert.equal((await walk({ type: "highlight" }, 50)).all.length, 140, "zonder kleur alle markeringen");
+  for (const type of ["note", "bookmark"]) await assert.rejects(listStudyFolder(who.actor, { type, color: "yellow" }), (e) => e instanceof StudyFolderError && e.code === "INVALID");
+  for (const color of ["red", "", "YELLOW", "yellow;--"]) await assert.rejects(listStudyFolder(who.actor, { color }), (e) => e instanceof StudyFolderError && e.code === "INVALID", color);
+  // Cursor is aan de kleur gebonden.
+  const yellow = await listStudyFolder(who.actor, { color: "yellow", limit: 5 });
+  assert.ok(yellow.nextCursor);
+  await assert.rejects(listStudyFolder(who.actor, { color: "blue", cursor: yellow.nextCursor }), (e) => e.code === "INVALID");
+  await assert.rejects(listStudyFolder(who.actor, { cursor: yellow.nextCursor }), (e) => e.code === "INVALID");
+  assert.ok((await listStudyFolder(who.actor, { color: "yellow", type: "highlight", cursor: yellow.nextCursor, limit: 5 })).items.length > 0, "dezelfde filters (type volgt de kleur) blijven geldig");
+  // Geen gegevens van anderen en geen verborgen bron via het kleurfilter.
+  assert.equal((await listStudyFolder(other.actor, { color: "blue" })).items.length, 0);
+  assert.equal((await listStudyFolder(other.actor, { color: "yellow", limit: 50 })).items.length, 30);
+  assert.ok(!(await walk({ color: "yellow" })).all.some((i) => i.id && other.user.id && JSON.stringify(i).includes(other.user.id)));
+  // Een kleurwijziging via de 4A-writer verplaatst de markering tussen de gefilterde lijsten.
+  const target = (await walk({ color: "yellow" })).all[3];
+  const changed = await mutateAnnotation(who.actor, { kind: "highlight", target: target.target, expectedVersion: target.mutationVersion, actionId: randomUUID(), color: "blue" });
+  assert.equal(changed.annotation.color, "blue");
+  assert.ok(!(await walk({ color: "yellow" })).all.some((i) => i.id === target.id));
+  assert.ok((await walk({ color: "blue" })).all.some((i) => i.id === target.id));
+  // HTTP: validatie en combinaties.
+  const status = async (query, who2 = who) => (await http(`/api/study-folder?${query}`, "GET", undefined, who2)).status;
+  assert.equal(await status("color=yellow"), 200);
+  assert.equal(await status("type=highlight&color=blue&limit=10"), 200);
+  assert.equal(await status("type=note&color=yellow"), 400);
+  assert.equal(await status("type=bookmark&color=yellow"), 400);
+  assert.equal(await status("color=red"), 400);
+  assert.equal(await status("color=yellow&color=blue"), 400);
+  assert.equal(await status("color="), 400);
+  const body = await (await http("/api/study-folder?color=yellow&limit=5", "GET", undefined, who)).json();
+  assert.ok(body.nextCursor && body.items.every((i) => i.kind === "highlight" && i.color === "yellow"));
+  assert.equal(await status(`color=blue&cursor=${encodeURIComponent(body.nextCursor)}`), 400);
+  assert.equal(await status("color=yellow", null), 401);
+});

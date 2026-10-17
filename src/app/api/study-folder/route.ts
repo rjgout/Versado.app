@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/session";
 import { getT } from "@/lib/i18n";
-import { annotationKind } from "@/lib/annotations/contract";
+import { annotationKind, annotationColor } from "@/lib/annotations/contract";
 import { annotationResponse as response } from "@/lib/annotations/http";
 import {
   getStudyFolderItem, listStudyFolder, listStudyFolderSources, StudyFolderError,
@@ -14,6 +14,7 @@ const list = z.object({
   q: z.string().max(STUDY_FOLDER_MAX_QUERY * 4).optional(),
   type: annotationKind.optional(),
   source: z.string().min(1).max(128).optional(),
+  color: annotationColor.optional(),
   cursor: z.string().min(1).max(STUDY_FOLDER_MAX_CURSOR).optional(),
   limit: z.coerce.number().int().min(1).max(STUDY_FOLDER_MAX_LIMIT).optional(),
 }).strict();
@@ -38,6 +39,8 @@ export async function GET(req: NextRequest) {
       const [kind, id] = data.item.split(":") as [z.infer<typeof annotationKind>, string];
       return response({ item: await getStudyFolderItem(user, kind, id) });
     }
+    // Een kleur hoort alleen bij markeringen; een ander type met kleur is een ongeldige combinatie.
+    if (data.color && data.type && data.type !== "highlight") return response({ error: t("apiErrors.invalidInput") }, 400);
     return response(await listStudyFolder(user, data));
   } catch (error) {
     if (error instanceof StudyFolderError)

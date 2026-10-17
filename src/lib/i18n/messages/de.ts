@@ -11,6 +11,8 @@ export const de: PartialMessages = {
     "typeLabel": "Art",
     "type": { "all": "Alle Anmerkungen", "bookmark": "Lesezeichen", "highlight": "Markierungen", "note": "Notizen" },
     "kind": { "bookmark": "Lesezeichen", "highlight": "Markierung", "note": "Notiz" },
+    "colorLabel": "Markierungsfarbe",
+    "colorAll": "Alle Farben",
     "sourceLabel": "Quelle",
     "sourceAll": "Alle Quellen",
     "open": "Passage öffnen",

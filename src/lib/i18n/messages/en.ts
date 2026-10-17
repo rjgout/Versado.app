@@ -11,6 +11,8 @@ export const en: PartialMessages = {
     "typeLabel": "Type",
     "type": { "all": "All annotations", "bookmark": "Bookmarks", "highlight": "Highlights", "note": "Notes" },
     "kind": { "bookmark": "Bookmark", "highlight": "Highlight", "note": "Note" },
+    "colorLabel": "Highlight colour",
+    "colorAll": "All colours",
     "sourceLabel": "Source",
     "sourceAll": "All sources",
     "open": "Open passage",

@@ -221,7 +221,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
       "step2": "Tap an available source to switch directly.",
       "step3": "Choose an available text language or explicitly choose another edition.",
       "step4": "Versado opens a suitable destination; going back without choosing changes nothing.",
-      "more": "At the bottom of the content picker, above the language choice, you will find My study folder. It gathers all your bookmarks, highlights and private notes from every source, even if you have chosen another source or language right now. Search by text, filter by type or source and tap Open passage to return to the saved verse or study passage. Notes are private. If a lesson was updated or a source is no longer available, Versado does not move your note to another passage automatically; your original text is kept. Annotations award no XP or streak activity.",
+      "more": "At the bottom of the content picker, above the language choice, you will find My study folder. It gathers all your bookmarks, highlights and private notes from every source, even if you have chosen another source or language right now. Search by text, filter by type, highlight colour or source and tap Open passage to return to the saved verse or study passage. Notes are private. If a lesson was updated or a source is no longer available, Versado does not move your note to another passage automatically; your original text is kept. Annotations award no XP or streak activity.",
       "faq1": {
         "q": "What changes when I switch?",
         "a": "Your chosen source determines the available texts, courses and games."

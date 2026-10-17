@@ -11,6 +11,8 @@ export const fr: PartialMessages = {
     "typeLabel": "Type",
     "type": { "all": "Toutes les annotations", "bookmark": "Signets", "highlight": "Surlignages", "note": "Notes" },
     "kind": { "bookmark": "Signet", "highlight": "Surlignage", "note": "Note" },
+    "colorLabel": "Couleur de surlignage",
+    "colorAll": "Toutes les couleurs",
     "sourceLabel": "Source",
     "sourceAll": "Toutes les sources",
     "open": "Ouvrir le passage",

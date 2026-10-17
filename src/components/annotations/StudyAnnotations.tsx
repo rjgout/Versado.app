@@ -17,6 +17,7 @@ import {
   selectorRanges,
 } from "@/lib/annotations/domSelector";
 import type { AnnotationTarget } from "@/lib/annotations/contract";
+import { ANNOTATION_COLORS } from "@/lib/annotations/clientContract";
 import type {
   AnnotationList,
   AnnotationView,
@@ -118,7 +119,7 @@ export default function StudyAnnotations({
     ).Highlight;
     if (!css.highlights || !HighlightClass || !root.current) return;
     const keys: string[] = [];
-    for (const color of ["yellow", "green", "blue", "pink", "purple"]) {
+    for (const color of ANNOTATION_COLORS) {
       const ranges = rows
         .filter(
           (row) =>
@@ -166,12 +167,12 @@ export default function StudyAnnotations({
   return (
     <div ref={root} data-study-annotations>
       <style>
-        {["yellow", "green", "blue", "pink", "purple"]
-          .map(
-            (color, index) =>
-              `::highlight(annotation-${highlightId}-${color}) {background-color:${["#facc1540", "#4ade8040", "#60a5fa40", "#f472b640", "#c084fc40"][index]};color:inherit;}`,
-          )
-          .join("\n")}
+        {ANNOTATION_COLORS.map(
+          (color) =>
+            // Kleuren per thema uit globals.css. Alleen eigenschappen die ::highlight ondersteunt: achtergrond plus een
+            // gekleurde onderstreping als tweede aanwijzing; de tekstkleur blijft die van de pagina.
+            `::highlight(annotation-${highlightId}-${color}) {background-color:rgb(var(--vs-mark-${color}) / var(--vs-mark-alpha));color:inherit;text-decoration:underline;text-decoration-color:rgb(var(--vs-mark-${color}));text-decoration-thickness:2px;text-underline-offset:0.2em;}`,
+        ).join("\n")}
       </style>
       <button
         ref={selectionButton}

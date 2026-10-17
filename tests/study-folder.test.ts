@@ -7,6 +7,8 @@ import { isFocusRoute, isActivityRoute } from "../src/lib/focusMode";
 import { activeDestination } from "../src/lib/navigation";
 import { classifyContentRoute } from "../src/lib/contentRouting";
 import { nl } from "../src/lib/i18n/messages/nl";
+import { ANNOTATION_COLORS } from "../src/lib/annotations/clientContract";
+import { annotationColor } from "../src/lib/annotations/contract";
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -80,4 +82,29 @@ test("teksten bestaan in nl als bron; sleutels voor studiemap zijn aanwezig", ()
   const folder = (nl as unknown as { studyFolder: Record<string, unknown> }).studyFolder;
   for (const key of ["title", "intro", "searchLabel", "open", "edit", "loadMore", "noResults", "sourceUnavailable", "originalPassage", "revisionChanged", "readerChanged", "readerMissing"])
     assert.equal(typeof folder[key], "string", key);
+});
+
+test("kleurfilter: één kleurlijst voor client, schrijf-API en filter; cursor is aan de kleur gebonden", () => {
+  assert.deepEqual([...ANNOTATION_COLORS], ["yellow", "green", "blue", "pink", "purple"]);
+  assert.deepEqual(annotationColor.options, [...ANNOTATION_COLORS]);
+  for (const bad of ["red", "", "YELLOW", "yellow;--"]) assert.equal(annotationColor.safeParse(bad).success, false);
+  const row = { createdAt: new Date("2026-03-04T05:06:07.089Z"), kind: "highlight" as const, id: "abc" };
+  const cursor = encodeFolderCursor("u1", { type: "highlight", color: "yellow" }, row);
+  assert.doesNotThrow(() => decodeFolderCursor("u1", { type: "highlight", color: "yellow" }, cursor));
+  for (const filters of [{ type: "highlight" as const, color: "blue" as const }, { type: "highlight" as const }, {}])
+    assert.throws(() => decodeFolderCursor("u1", filters, cursor), StudyFolderError);
+});
+
+test("kleurweergave: tokens voor licht en donker, swatch en niet-kleurkenmerken in de CSS en componenten", () => {
+  const css = read("src/app/globals.css");
+  for (const color of ANNOTATION_COLORS) {
+    assert.match(css, new RegExp(`--vs-mark-${color}: \\d+ \\d+ \\d+;`));
+    assert.match(css, new RegExp(`\\[data-annotation-color="${color}"\\], \\[data-mark-swatch="${color}"\\]`));
+  }
+  assert.equal((css.match(new RegExp(`--vs-mark-yellow: `, "g")) ?? []).length, 2, "licht en donker hebben elk een eigen basiskleur");
+  assert.match(css, /\[data-annotation-color\] \{[^}]*linear-gradient/, "kleurbalk als niet-kleurkenmerk");
+  assert.match(read("src/components/annotations/StudyAnnotations.tsx"), /text-decoration:underline/);
+  assert.match(read("src/components/annotations/MarkSwatch.tsx"), /aria-hidden/);
+  assert.match(read("src/components/annotations/AnnotationActions.tsx"), /<MarkSwatch color=\{color\} checked=/);
+  assert.match(read("src/components/study-folder/StudyFolderClient.tsx"), /data-folder-color=/);
 });
