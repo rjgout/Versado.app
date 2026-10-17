@@ -3449,7 +3449,6 @@ model GroupFreezeOffer {
   status     GroupFreezeOfferStatus @default(RESERVED)
   createdAt  DateTime               @default(now())
   resolvedAt DateTime?
-  resolutionHistory Json?
 
   @@unique([groupId, dayKey])
   @@index([userId, groupId, status])
