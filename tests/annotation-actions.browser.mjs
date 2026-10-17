@@ -207,6 +207,11 @@ try {
   await page.locator('[data-study-rich-content]').waitFor();
   assert.deepEqual(await page.locator('[data-study-block]').evaluateAll(elements=>elements.map(element=>element.dataset.studyBlock)), f.dto.lesson.body.sections.flatMap(section=>section.blocks.map(block=>block.id)), 'ReadingPosition behoudt uitsluitend de bestaande hoofdblokankers');
   assert.equal(await page.locator('[data-study-anchor="item-first"] [data-study-text="item-first"]').count(),1,'Geneste annotatieankers zijn afzonderlijk beschikbaar');
+  // Firefox kan meerdere losse ranges aanbieden; nooit op een ander heel blok terugvallen.
+  await page.evaluate(()=>{window.__nativeGetSelection=window.getSelection;window.getSelection=()=>({isCollapsed:false,rangeCount:2});});
+  await page.locator('#study-paragraph-intro [data-annotation-trigger]').click();
+  await page.getByText(t('annotations.invalid'),{exact:true}).waitFor();assert.equal(await dialog.count(),0);
+  await page.evaluate(()=>{window.getSelection=window.__nativeGetSelection;});
   // Werkelijke DOM-adapter op de gerenderde tekst, niet alleen op een losse fixture.
   await page.locator("#study-paragraph-intro [data-study-text]").waitFor();
   await page.evaluate(() => {

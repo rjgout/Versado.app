@@ -63,6 +63,7 @@ export default function StudyAnnotations({
     try {
       const section = element.closest<HTMLElement>("[data-study-section]")!;
       const selection = window.getSelection();
+      if (selection && !selection.isCollapsed && selection.rangeCount !== 1) throw Error("SELECTION");
       const selector =
         selection && !selection.isCollapsed && selection.rangeCount === 1
           ? selectionToSelector(
