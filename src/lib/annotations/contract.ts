@@ -40,6 +40,17 @@ export const annotationPutSchema = z.object({
   : v.kind === "highlight" ? v.text === undefined : v.text === undefined && v.color === undefined);
 export const annotationDeleteSchema = z.object(mutation).strict();
 export type AnnotationAction = z.infer<typeof annotationPutSchema>;
+/** Fase 4D: bevestig een nieuwe locatie voor een bestaande eigen studieannotatie (identiteit blijft de oorspronkelijke id). */
+export const annotationResolveSchema = z.object({
+  kind: annotationKind,
+  id,
+  mode: z.enum(["proposal", "manual"]),
+  revisionId: id,
+  selector: selectorSchema,
+  expectedVersion: mutation.expectedVersion,
+  actionId: mutation.actionId,
+}).strict().refine(v => v.selector.originalRevisionId === v.revisionId);
+export type AnnotationResolveAction = z.infer<typeof annotationResolveSchema>;
 
 /** v1: NFC, Unicode-witruimte → één spatie, trim; offsets tellen Unicode-codepunten. */
 export function normalizeAnnotationText(value: string): string {

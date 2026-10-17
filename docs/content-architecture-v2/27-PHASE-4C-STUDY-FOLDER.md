@@ -1,7 +1,7 @@
 # Fase 4C — Mijn studiemap
 
 Status: geïmplementeerd in een draft-PR. Geen migratie, geen nieuwe tabel, geen wijziging aan de
-4A-service, geen XP/reeks. Fase 4D (herplaatsing van annotaties bij een gewijzigde revisie) is niet gestart.
+4A-service, geen XP/reeks. Fase 4D (herplaatsing van annotaties bij een gewijzigde revisie) staat in `28-PHASE-4D-ANNOTATION-RECOVERY.md`.
 
 ## 1. Plaatsing (definitief besluit van de eigenaar)
 
@@ -87,7 +87,7 @@ Voorrang: de kleur van een expliciete markering blijft; selectie, voorlezen en f
 
 ## 7. Bekende beperkingen en grens naar 4D
 
-* Geen herplaatsing van annotaties op een nieuwe revisie, geen taalremapping, geen sociale of gedeelde notities (fase 4D / buiten scope).
+* Herplaatsing van annotaties op een nieuwe revisie is fase 4D (`28-PHASE-4D-ANNOTATION-RECOVERY.md`); geen taalremapping, geen sociale of gedeelde notities (buiten scope).
 * Zoeken is hoofdletterongevoelig en NFC-bestendig, maar niet accent-ongevoelig (geen `unaccent`-extensie, geen migratie).
 * Na een bevestigde mutatie begint de lijst weer bij de eerste pagina (filters blijven); de al geladen pagina's worden alleen hersteld bij terugkeer uit een leespassage als er niets gewijzigd is. Wijzigingen van een ander toestel op een latere pagina worden pas zichtbaar na het opnieuw laden van die pagina.
 * Niet getest op fysieke iOS-/Android-toestellen (Chromium-emulatie met aanraking).

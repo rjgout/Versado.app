@@ -271,9 +271,9 @@ function ReaderVisit({
             />
           </div>
           {annotationFocus?.status === "exact" && <p role="status" className="sr-only">{t("studyFolder.readerFocused")}</p>}
-          {annotationFocus && annotationFocus.status !== "exact" && (
+          {annotationFocus?.status === "missing" && (
             <section data-annotation-focus-note={annotationFocus.status} role="status" className="rounded-2xl border border-vs-line bg-vs-elevated p-4 text-sm text-vs-fg">
-              <p>{t(annotationFocus.status === "revision" ? "studyFolder.readerChanged" : "studyFolder.readerMissing")}</p>
+              <p>{t("studyFolder.readerMissing")}</p>
               {annotationFocus.quote && (
                 <blockquote className="mt-2 whitespace-pre-line border-l-2 border-vs-line pl-3 text-vs-fg-2 [overflow-wrap:anywhere]">
                   <span className="block text-xs font-bold text-vs-fg-3">{t("studyFolder.originalPassage")}</span>
@@ -407,7 +407,7 @@ function ReaderVisit({
           lang={data.lesson.language}
           className="min-w-0 rounded-2xl border border-vs-line bg-vs-elevated p-4 sm:p-6"
         >
-          <BlockedReferencesContext.Provider value={data.blockedReferences ?? []}><StudyAnnotations document={data.lesson.body} editionId={data.lesson.editionId} revisionId={data.lesson.revisionId} sessionKey={sessionKey} disabled={!!reference || updating}><RichContentBlocks document={data.lesson.body} media={data.media}/ ></StudyAnnotations></BlockedReferencesContext.Provider>
+          <BlockedReferencesContext.Provider value={data.blockedReferences ?? []}><StudyAnnotations document={data.lesson.body} editionId={data.lesson.editionId} revisionId={data.lesson.revisionId} sessionKey={sessionKey} disabled={!!reference || updating} recovery={annotationFocus}><RichContentBlocks document={data.lesson.body} media={data.media}/ ></StudyAnnotations></BlockedReferencesContext.Provider>
         </article>
         </ReferenceActionsContext.Provider>
         {reference && <ReferencePreview key={`${sessionKey}:${reference.request.occurrenceKey}`} request={reference.request} label={reference.label} sessionKey={sessionKey} onClose={()=>setReference(null)} onMore={moreReference} returnFocus={reference.element}/ >}

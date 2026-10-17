@@ -269,7 +269,7 @@ test("deeplink item=<kind>:<id>: alleen eigen actieve annotaties; ander gebruike
   assert.equal((await listStudyFolder(other.actor, {})).items.length, 0);
 });
 
-test("studiepassage openen: exacte revisie, vervangen revisie en ontbrekend anker zonder fuzzy matching; geen privégegevens van anderen", async () => {
+test("studiepassage openen: exacte revisie, bewezen herplaatst anker en ontbrekend anker zonder fuzzy matching; geen privégegevens van anderen", async () => {
   const who = await referenceAccount(), other = await referenceAccount();
   const note = await mutateAnnotation(who.actor, command("note", lessonTarget, 0, { text: "Bij de eerste revisie" }));
   const href = `${f.href}?annotation=note:${note.annotation.id}`;
@@ -282,10 +282,13 @@ test("studiepassage openen: exacte revisie, vervangen revisie en ontbrekend anke
   assert.ok(!foreign.includes("Bij de eerste revisie"));
   await f.publish("updated");
   const replaced = await (await http(href, "GET", undefined, who)).text();
-  assert.ok(replaced.includes('data-annotation-focus-note="revision"'), "andere revisie: melding, geen gok");
-  assert.ok(replaced.includes(lessonTarget.selector.exact.slice(0, 20).replace(/&/g, "&amp;")), "oorspronkelijke quote blijft zichtbaar");
+  // Fase 4D: de bijgewerkte les heeft hetzelfde stabiele anker met dezelfde tekst; de passage is bewezen terug te vinden
+  // (zonder dat de oorspronkelijke selector wordt overschreven) en er is dus geen waarschuwing meer nodig.
+  assert.ok(!replaced.includes("data-annotation-focus-note"), "bewezen exact anker: geen melding");
+  assert.ok(!replaced.includes("data-annotation-recovery"), "geen herstelpaneel nodig");
   const listed = (await listStudyFolder(who.actor, {})).items.find((i) => i.id === note.annotation.id);
-  assert.equal(listed.source.status, "revision-changed");
+  assert.equal(listed.recovery, "found");
+  assert.equal(listed.source.status, "available");
   assert.equal(listed.quote, lessonTarget.selector.exact);
   const garbage = await http(`${f.href}?annotation=note:${"x".repeat(200)}`, "GET", undefined, who);
   assert.equal(garbage.status, 200);

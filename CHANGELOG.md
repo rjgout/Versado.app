@@ -4,6 +4,8 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Nieuw: je bladwijzers, markeringen en notities bij studielessen blijven bij je als een les wordt bijgewerkt. Staat je passage er nog precies zo in, dan vindt Versado haar vanzelf terug. Is de passage veranderd maar is er één duidelijke kandidaat, dan zie je in Mijn studiemap "Passage bijwerken" en vergelijk je de twee passages; er wordt niets gekoppeld zonder jouw bevestiging. Is er geen veilige plek meer, dan blijven je notitie en oorspronkelijke passage bewaard en kies je zelf een nieuwe passage. Je aantekeningen blijven privé en geven geen XP of reeks.
+
 - Verbeterd: de verslezer leest weer als doorlopende tekst. De rij met knoppen onder elk vers is weg; tik op een vers (of gebruik het versnummer met toetsenbord of schermlezer) voor bladwijzer, markering, privénotitie en nieuw: **Voorlezen vanaf vers N**, dat de bestaande voorleesspeler in de gekozen audiotaal bij dat vers laat beginnen. Selecteren, scrollen en een tik terwijl tekst geselecteerd is openen het menu niet.
 
 - Nieuw: persoonlijke puzzelrecords en vriendenranglijsten in de Legpuzzel. Je beste tijd per exacte puzzel
