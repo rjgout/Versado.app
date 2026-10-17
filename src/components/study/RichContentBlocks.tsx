@@ -1,8 +1,9 @@
 "use client";
 import Image from "next/image";
-import { useState, type ReactNode } from "react";
+import { useContext, useState, type ReactNode } from "react";
 import { useT } from "@/components/I18nProvider";
 import type { ReaderDocument } from "@/lib/studyContent/readingPositionContract";
+import { AnnotationTrigger, StudyAnnotationContext } from "@/components/annotations/AnnotationActions";
 import ReferenceLink from "./ReferenceLink";
 type Block = ReaderDocument["sections"][number]["blocks"][number];
 type Inline = Extract<Block, { type: "paragraph" }>["content"][number];
@@ -71,7 +72,7 @@ function StudyFigure({
         )}
       </div>
       {block.caption && (
-        <figcaption className="mt-2 text-sm text-vs-fg-2">
+        <figcaption data-study-text={block.id} className="mt-2 text-sm text-vs-fg-2">
           {inline(block.caption)}
         </figcaption>
       )}
@@ -87,30 +88,35 @@ export default function RichContentBlocks({
   media: readonly Media[];
   preview?: boolean;
 }) {
+  const annotations = useContext(StudyAnnotationContext);
+  const onAnnotate = annotations?.open, annotatedBlocks = annotations?.marked ?? [];
+  function text(id: string, parts: readonly Inline[]) { return <span data-study-text={id}>{inline(parts)}</span>; }
+  function action(id: string) { return onAnnotate && !preview ? <AnnotationTrigger onClick={element=>onAnnotate(id,element)} marked={annotatedBlocks.includes(id)}/> : null; }
   function render(block: Block): ReactNode {
     if (block.type === "heading") {
       const Tag = `h${block.level}` as "h2" | "h3" | "h4" | "h5" | "h6";
       return (
         <Tag className="text-xl font-extrabold leading-snug">
-          {inline(block.content)}
+          {text(block.id, block.content)}{action(block.id)}
         </Tag>
       );
     }
     if (block.type === "paragraph")
       return (
         <p className="whitespace-pre-wrap leading-relaxed">
-          {inline(block.content)}
+          {text(block.id, block.content)}{action(block.id)}
         </p>
       );
     if (block.type === "quote")
       return (
         <blockquote className="border-l-4 border-vs-accent pl-4">
-          <p>{inline(block.content)}</p>
+          <div data-study-text={block.id}><p>{inline(block.content)}</p>
+          {block.attribution && "\n"}
           {block.attribution && (
             <cite className="mt-2 block text-sm text-vs-fg-2">
               {inline(block.attribution)}
             </cite>
-          )}
+          )}</div>{action(block.id)}
         </blockquote>
       );
     if (block.type === "table")
@@ -119,7 +125,7 @@ export default function RichContentBlocks({
           <table className="w-full border-collapse text-left">
             <tbody>{block.rows.map((row) => <tr key={row.id}>{row.cells.map((cell) => {
               const Tag = cell.header ? "th" : "td";
-              return <Tag key={cell.id} colSpan={cell.colSpan} rowSpan={cell.rowSpan} className="border border-vs-line p-3 align-top">{inline(cell.content)}</Tag>;
+              return <Tag key={cell.id} colSpan={cell.colSpan} rowSpan={cell.rowSpan} className="border border-vs-line p-3 align-top">{text(cell.id, cell.content)}{action(cell.id)}</Tag>;
             })}</tr>)}</tbody>
           </table>
         </div>
@@ -131,14 +137,14 @@ export default function RichContentBlocks({
           className={`${block.ordered ? "list-decimal" : "list-disc"} space-y-3 pl-6`}
         >
           {block.items.map((item) => (
-            <li key={item.id} id={`study-${item.id}`}>
-              {inline(item.content)}
-              {item.blocks && <div className="mt-3 min-w-0 space-y-3">{item.blocks.map(child => <div key={child.id} id={`study-${child.id}`}>{render(child)}</div>)}</div>}
+            <li key={item.id} id={`study-${item.id}`} data-study-block={item.id}>
+              {text(item.id, item.content)}{action(item.id)}
+              {item.blocks && <div className="mt-3 min-w-0 space-y-3">{item.blocks.map(child => <div key={child.id} id={`study-${child.id}`} data-study-block={child.id}>{render(child)}</div>)}</div>}
               {item.children && (
                 <Tag className="ml-4 mt-2 list-[inherit] space-y-2">
                   {item.children.map((child) => (
-                    <li key={child.id} id={`study-${child.id}`}>
-                      {inline(child.content)}
+                    <li key={child.id} id={`study-${child.id}`} data-study-block={child.id}>
+                      {text(child.id, child.content)}{action(child.id)}
                     </li>
                   ))}
                 </Tag>
@@ -151,18 +157,18 @@ export default function RichContentBlocks({
     if (block.type === "question" || block.type === "assignment")
       return (
         <div className="rounded-xl bg-vs-subtle p-4">
-          <p className="font-semibold">{inline(block.content)}</p>
+          <p className="font-semibold">{text(block.id, block.content)}{action(block.id)}</p>
           {block.items && (
             <ul className="mt-3 list-disc space-y-2 pl-6">
               {block.items.map((item) => (
-                <li key={item.id} id={`study-${item.id}`}>
-                  {inline(item.content)}
-                  {item.blocks && <div className="mt-3 min-w-0 space-y-3">{item.blocks.map(child => <div key={child.id} id={`study-${child.id}`}>{render(child)}</div>)}</div>}
+                <li key={item.id} id={`study-${item.id}`} data-study-block={item.id}>
+                  {text(item.id, item.content)}{action(item.id)}
+                  {item.blocks && <div className="mt-3 min-w-0 space-y-3">{item.blocks.map(child => <div key={child.id} id={`study-${child.id}`} data-study-block={child.id}>{render(child)}</div>)}</div>}
                   {item.children && (
                     <ul className="mt-2 list-disc pl-6">
                       {item.children.map((child) => (
-                        <li key={child.id} id={`study-${child.id}`}>
-                          {inline(child.content)}
+                        <li key={child.id} id={`study-${child.id}`} data-study-block={child.id}>
+                          {text(child.id, child.content)}{action(child.id)}
                         </li>
                       ))}
                     </ul>
@@ -185,7 +191,7 @@ export default function RichContentBlocks({
     if (block.type === "reference")
       return (
         <div>
-          <ReferenceLink id={block.id} label={block.label}/>
+          <span data-study-text={block.id}><ReferenceLink id={block.id} label={block.label}/></span>{action(block.id)}
         </div>
       );
     return <hr className="border-vs-line" />;

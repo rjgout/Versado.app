@@ -8,6 +8,7 @@ import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson, ApiRequestError } from "@/lib/data/fetchJson";
 import type { StudyReaderDTO } from "@/lib/studyContent/reader";
 import type { ReadingPositionState } from "@/lib/studyContent/readingPositionContract";
+import StudyAnnotations from "@/components/annotations/StudyAnnotations";
 import RichContentBlocks from "./RichContentBlocks";
 import { useReadingPositionController } from "./ReadingPositionController";
 import ReferencePreview from "./ReferencePreview";
@@ -385,7 +386,7 @@ function ReaderVisit({
           lang={data.lesson.language}
           className="min-w-0 rounded-2xl border border-vs-line bg-vs-elevated p-4 sm:p-6"
         >
-          <BlockedReferencesContext.Provider value={data.blockedReferences ?? []}><RichContentBlocks document={data.lesson.body} media={data.media} /></BlockedReferencesContext.Provider>
+          <BlockedReferencesContext.Provider value={data.blockedReferences ?? []}><StudyAnnotations document={data.lesson.body} editionId={data.lesson.editionId} revisionId={data.lesson.revisionId} sessionKey={sessionKey} disabled={!!reference || updating}><RichContentBlocks document={data.lesson.body} media={data.media}/ ></StudyAnnotations></BlockedReferencesContext.Provider>
         </article>
         </ReferenceActionsContext.Provider>
         {reference && <ReferencePreview key={`${sessionKey}:${reference.request.occurrenceKey}`} request={reference.request} label={reference.label} sessionKey={sessionKey} onClose={()=>setReference(null)} onMore={moreReference} returnFocus={reference.element}/ >}

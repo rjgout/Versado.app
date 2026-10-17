@@ -100,7 +100,7 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
       step1: "Abre Aprender y elige un curso.",
       step2: "Lee el siguiente trozo.",
       step3: "Responde las preguntas. Tu progreso se guarda, así que siempre puedes continuar.",
-      more: "Leer por sí solo no da XP. Un capítulo o paso de lectura que terminas de forma explícita sí cuenta como actividad para tu racha, igual que un ejercicio completado.",
+      more: "Leer por sí solo no da XP. Un capítulo o paso de lectura que terminas de forma explícita sí cuenta como actividad para tu racha, igual que un ejercicio completado. Abre la acción junto a un versículo o bloque para un marcador, resaltado o nota privada. También puedes seleccionar texto dentro de una sección. Las anotaciones no otorgan XP ni actividad de racha.",
       faq1: {
         q: "¿Importa qué curso elija?",
         a: "Cada curso ofrece el mismo contenido de otra manera, por ejemplo en pasos cortos o capítulo por capítulo. Con el mismo contenido no ganas más XP en un curso que en otro.",

@@ -562,3 +562,10 @@ nav[data-main-nav] a {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+
+/* Bevestigde eigen markeringen; de tekst en native selectie blijven ongemoeid. */
+[data-annotation-color="yellow"] { background-color: #facc152e; }
+[data-annotation-color="green"] { background-color: #4ade802e; }
+[data-annotation-color="blue"] { background-color: #60a5fa2e; }
+[data-annotation-color="pink"] { background-color: #f472b62e; }
+[data-annotation-color="purple"] { background-color: #c084fc2e; }

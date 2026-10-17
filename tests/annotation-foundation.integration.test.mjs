@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import { prisma } from "../src/lib/db.ts";
-import { mutateAnnotation, getAnnotation, listAnnotations, legacyVerseAnnotation } from "../src/lib/annotations/service.ts";
+import { mutateAnnotation, getAnnotation, listAnnotations, readerAnnotations, legacyVerseAnnotation } from "../src/lib/annotations/service.ts";
 import { passageBlocks } from "../src/lib/annotations/contract.ts";
 import { appendStudyRevision } from "../src/lib/studyContent/revisions.ts";
 import { referenceFixture, referenceAccount, assertReferenceTestEnvironment } from "./fixtures/reference-content.mjs";
@@ -264,4 +264,20 @@ test('concrete taaleditie blijft deel van de identiteit en wordt niet stilzwijge
  const correct={...target,lessonEditionId:edition.id,revisionId:revision.id,selector:{...target.selector,originalRevisionId:revision.id}};
  const saved=await mutateAnnotation(who.actor,command('note',correct));assert.equal(saved.annotation.target.lessonEditionId,edition.id);
  assert.equal((await listAnnotations(who.actor,{lessonEditionId:target.lessonEditionId})).length,0);
+});
+
+test('readerreads zijn begrensd en expliciet onvolledig; exact target bevat eigen tombstone',async()=>{
+ const who=await referenceAccount(),other=await referenceAccount();
+ const verse={type:'verse',verseId};const saved=await mutateAnnotation(who.actor,command('note',verse));
+ const remove=command('note',verse,1);delete remove.text;await mutateAnnotation(who.actor,remove,true);
+ const exact=await http(`/api/annotations?view=reader&targetKey=${encodeURIComponent(saved.annotation.targetKey)}`,'GET',undefined,who);
+ assert.equal(exact.status,200);const result=await exact.json();assert.equal(result.complete,true);assert.equal(result.annotations[0].deleted,true);assert.equal(result.annotations[0].mutationVersion,2);
+ assert.deepEqual((await readerAnnotations(other.actor,{targetKey:saved.annotation.targetKey})).annotations,[]);
+ const book=await prisma.book.create({data:{slug:'annotations-limit-'+randomUUID(),name:'Eigen limietfixture',order:999,contentCollectionId:'content_bom'}});
+ const chapter=await prisma.chapter.create({data:{bookId:book.id,number:1,order:1}});
+ const verses=Array.from({length:201},(_,i)=>({id:randomUUID(),chapterId:chapter.id,number:i+1,text:'Synthetisch limietvers'}));
+ await prisma.verse.createMany({data:verses});await prisma.bookmark.createMany({data:verses.map(v=>({userId:who.user.id,verseId:v.id}))});
+ const limited=await http(`/api/annotations?view=reader&chapterId=${chapter.id}`,'GET',undefined,who);assert.equal(limited.status,200);
+ const list=await limited.json();assert.equal(list.complete,false);assert.equal(list.annotations.length,200);
+ assert.equal((await readerAnnotations(other.actor,{chapterId:chapter.id})).annotations.length,0);
 });

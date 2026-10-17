@@ -100,7 +100,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
       step1: "Open Learn and pick a course.",
       step2: "Read the next piece.",
       step3: "Answer the questions. Your progress is saved, so you can always continue.",
-      more: "Reading alone earns no XP. A chapter or reading step you explicitly finish does count as an activity for your streak, just like a completed exercise.",
+      more: "Reading alone earns no XP. A chapter or reading step you explicitly finish does count as an activity for your streak, just like a completed exercise. Open the action beside a verse or text block for a bookmark, highlight or private note. You can also select text within one section. Annotations award no XP or streak activity.",
       faq1: {
         q: "Does it matter which course I choose?",
         a: "Every course offers the same content in a different way, for example in short steps or chapter by chapter. For the same content you cannot earn more XP in one course than in another.",

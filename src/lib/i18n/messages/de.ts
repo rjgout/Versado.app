@@ -3,6 +3,39 @@ import { kompasDe } from "./kompas/de";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const de: PartialMessages = {
+  annotations: {
+    "cancel": "Abbrechen",
+    "open": "Anmerkungen öffnen",
+    "title": "Anmerkungen",
+    "close": "Schließen",
+    "bookmarkAdd": "Lesezeichen hinzufügen",
+    "bookmarkRemove": "Lesezeichen entfernen",
+    "bookmark": "Lesezeichen",
+    "highlight": "Markieren",
+    "highlightRemove": "Markierung entfernen",
+    "note": "Private Notiz",
+    "noteRemove": "Notiz löschen",
+    "save": "Speichern",
+    "saving": "Wird gespeichert…",
+    "saved": "Gespeichert",
+    "failed": "Speichern fehlgeschlagen. Dein Text bleibt erhalten.",
+    "conflict": "Auf einem anderen Gerät geändert. Lade bewusst die aktuelle Version; dein Entwurf wird dabei ersetzt.",
+    "reload": "Aktuelle Daten laden",
+    "retry": "Erneut versuchen",
+    "unsaved": "Es gibt ungespeicherte Änderungen oder einen ungewissen Speichervorgang.",
+    "discard": "Änderungen verwerfen",
+    "selection": "Ausgewählten Text kommentieren",
+    "invalid": "Diese Auswahl ist ungültig. Wähle Text innerhalb eines Abschnitts oder öffne die Aktion an einem Textblock.",
+    "incomplete": "Nicht alle Anmerkungen passen in diese Ansicht. Öffne die Aktion an der Passage für aktuelle Daten.",
+    "existing": "Anmerkungen zu dieser Lektion",
+    "yellow": "Gelb",
+    "green": "Grün",
+    "blue": "Blau",
+    "pink": "Rosa",
+    "purple": "Violett",
+    "help": "Öffne die Aktion an einem Vers oder Textblock für Lesezeichen, Markierungen oder private Notizen. Du kannst auch Text innerhalb eines Abschnitts auswählen. Anmerkungen geben keine XP oder Serienaktivität."
+},
+
   studyPublishing: {
     "older": "Ältere Revisionen",
     "newer": "Neuere Revisionen",

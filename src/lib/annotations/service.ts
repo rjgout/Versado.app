@@ -149,3 +149,16 @@ export async function listAnnotations(actor: Actor, target: { verseId: string } 
   ]);
   return [...bookmarks.map(r => view("bookmark", r)), ...highlights.map(r => view("highlight", r)), ...notes.map(r => view("note", r))];
 }
+
+/** Begrensde readerread: één hoofdstuk/revisie of exact target inclusief tombstones. */
+export async function readerAnnotations(actor: Actor, filter: { chapterId: string } | { lessonEditionId: string; revisionId: string } | { targetKey: string }, client: PrismaClient = prisma) {
+  const target = 'targetKey' in filter ? { OR: [{ targetKey: filter.targetKey }, ...(filter.targetKey.startsWith('verse:') ? [{ verseId: filter.targetKey.slice(6) }] : [])] }
+    : 'chapterId' in filter ? { verse: { chapterId: filter.chapterId } } : filter;
+  const where = { userId: actor.id, ...target, ...('targetKey' in filter ? {} : { deletedAt: null }) };
+  const groups = await Promise.all([
+    client.bookmark.findMany({ where, take: 201, orderBy: { id: 'asc' } }),
+    client.highlight.findMany({ where, take: 201, orderBy: { id: 'asc' } }),
+    client.note.findMany({ where, take: 201, orderBy: { id: 'asc' } }),
+  ]);
+  return { annotations: groups.flatMap((rows, index) => rows.slice(0,200).map(row => view((['bookmark','highlight','note'] as const)[index], row))), complete: groups.every(rows => rows.length <= 200) };
+}

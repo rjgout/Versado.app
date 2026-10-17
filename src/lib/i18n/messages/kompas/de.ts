@@ -100,7 +100,7 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
       step1: "Öffne Lernen und wähle einen Kurs.",
       step2: "Lies den nächsten Abschnitt.",
       step3: "Beantworte die Fragen. Dein Fortschritt bleibt gespeichert, du kannst also jederzeit weitermachen.",
-      more: "Lesen allein bringt keine XP. Ein Kapitel oder Leseschritt, den du ausdrücklich abschließt, zählt aber als Aktivität für deine Serie, genau wie eine abgeschlossene Übung.",
+      more: "Lesen allein bringt keine XP. Ein Kapitel oder Leseschritt, den du ausdrücklich abschließt, zählt aber als Aktivität für deine Serie, genau wie eine abgeschlossene Übung. Öffne die Aktion an einem Vers oder Textblock für Lesezeichen, Markierungen oder private Notizen. Du kannst auch Text innerhalb eines Abschnitts auswählen. Anmerkungen geben keine XP oder Serienaktivität.",
       faq1: {
         q: "Spielt es eine Rolle, welchen Kurs ich wähle?",
         a: "Jeder Kurs bietet denselben Inhalt auf andere Weise an, zum Beispiel in kurzen Schritten oder Kapitel für Kapitel. Für denselben Inhalt bekommst du in einem Kurs nicht mehr XP als in einem anderen.",

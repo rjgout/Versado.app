@@ -3,6 +3,39 @@ import { kompasEn } from "./kompas/en";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const en: PartialMessages = {
+  annotations: {
+    "cancel": "Cancel",
+    "open": "Open annotations",
+    "title": "Annotations",
+    "close": "Close",
+    "bookmarkAdd": "Add bookmark",
+    "bookmarkRemove": "Remove bookmark",
+    "bookmark": "Bookmark",
+    "highlight": "Highlight",
+    "highlightRemove": "Remove highlight",
+    "note": "Private note",
+    "noteRemove": "Delete note",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "failed": "Saving failed. Your text is preserved.",
+    "conflict": "Changed on another device. Deliberately load the current version; this replaces your draft.",
+    "reload": "Load current data",
+    "retry": "Retry",
+    "unsaved": "There are unsaved changes or an uncertain save.",
+    "discard": "Discard changes",
+    "selection": "Annotate selected text",
+    "invalid": "This selection is invalid. Select text within one section, or open the action beside a text block.",
+    "incomplete": "Not all annotations fit in this view. Open the action beside the passage for current data.",
+    "existing": "Annotations for this lesson",
+    "yellow": "Yellow",
+    "green": "Green",
+    "blue": "Blue",
+    "pink": "Pink",
+    "purple": "Purple",
+    "help": "Open the action beside a verse or text block for a bookmark, highlight or private note. You can also select text within one section. Annotations award no XP or streak activity."
+},
+
   studyPublishing: {
     "older": "Older revisions",
     "newer": "Newer revisions",
