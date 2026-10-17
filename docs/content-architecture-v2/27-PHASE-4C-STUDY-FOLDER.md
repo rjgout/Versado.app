@@ -48,8 +48,7 @@ ingetrokken bron geven 404.
 
 `AnnotationActions` (4B) wordt hergebruikt: expliciete PUT/DELETE, `expectedVersion`, stabiele `actionId`, 409-herstel en
 bescherming van onopgeslagen tekst. Na een mutatie ververst `annotationsChanged` de accountbrede `useLiveQuery`
-(`scopes: ["annotations"]`, geen `contentScoped`). Extra pagina's horen bij de eerste pagina en vervallen als die verandert;
-een tijdelijk tab-geheugen herstelt ze na terugkeer uit een leespassage. Notitietekst of selectors gaan nooit in realtime-events.
+(`scopes: ["annotations"]`, geen `contentScoped`). Extra pagina's horen bij de eerste pagina en vervallen als die verandert; een bevestigde mutatie (`onChanged` uit `AnnotationActions`) wist ook de extra pagina's en de tijdelijke paginacache, ververst de eerste pagina en laat een nog onderweg zijnde `loadMore`-response vervallen (requestgeneratie + laatste handtekening). Een tijdelijk tab-geheugen herstelt de pagina's na terugkeer uit een leespassage. Bij `?item=` verdwijnt de itemkaart na een definitieve 404 (alleen de melding blijft); een tijdelijke netwerkfout toont een fout en laat de kaart staan. Notitietekst of selectors gaan nooit in realtime-events.
 
 ## 5. Deeplinks en terugnavigatie
 
@@ -77,5 +76,5 @@ een tijdelijk tab-geheugen herstelt ze na terugkeer uit een leespassage. Notitie
 
 * Geen herplaatsing van annotaties op een nieuwe revisie, geen taalremapping, geen sociale of gedeelde notities (fase 4D / buiten scope).
 * Zoeken is hoofdletterongevoelig en NFC-bestendig, maar niet accent-ongevoelig (geen `unaccent`-extensie, geen migratie).
-* Bij veel gelijktijdige wijzigingen kan de lijst na een mutatie weer bij de eerste pagina beginnen; de al geladen pagina's worden alleen hersteld als de eerste pagina ongewijzigd is.
+* Na een bevestigde mutatie begint de lijst weer bij de eerste pagina (filters blijven); de al geladen pagina's worden alleen hersteld bij terugkeer uit een leespassage als er niets gewijzigd is. Wijzigingen van een ander toestel op een latere pagina worden pas zichtbaar na het opnieuw laden van die pagina.
 * Niet getest op fysieke iOS-/Android-toestellen (Chromium-emulatie met aanraking).

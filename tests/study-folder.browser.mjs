@@ -242,6 +242,138 @@ try {
   check("geen automatische content- of taalwissel tijdens het hele traject", unchanged.activeContentCollectionId === f.collection.id && unchanged.contentLanguage === before.contentLanguage);
   await context.close();
 
+  // ===== Latere pagina's, late responses en een direct geopend item =====
+  const pager = await chapter("content_bom", "Pagineerboek", `bofm/sf-pager-${randomUUID().slice(0, 6)}`, 70);
+  async function seedPager() {
+    const account = await referenceAccount();
+    const stamp = Date.now() - 3_600_000;
+    await prisma.bookmark.createMany({ data: pager.verses.map((v, i) => ({ userId: account.user.id, verseId: v.id, targetKey: `verse:${v.id}`, createdAt: new Date(stamp - i * 1000) })) });
+    await prisma.note.createMany({ data: pager.verses.map((v, i) => ({ userId: account.user.id, verseId: v.id, targetKey: `verse:${v.id}`, text: `Pagineernotitie ${String(i + 1).padStart(2, "0")}`, createdAt: new Date(stamp - i * 1000) })) });
+    const bookmarks = await prisma.bookmark.findMany({ where: { userId: account.user.id }, orderBy: [{ createdAt: "desc" }, { id: "asc" }] });
+    const notes = await prisma.note.findMany({ where: { userId: account.user.id }, orderBy: [{ createdAt: "desc" }, { id: "asc" }] });
+    return { account, bookmarks, notes };
+  }
+  const itemIds = (p) => p.locator("[data-folder-item]").evaluateAll((els) => els.map((e) => e.getAttribute("data-folder-item")));
+  const unique = (pageIds) => new Set(pageIds).size === pageIds.length;
+  const dlg = (p) => p.locator("dialog[data-annotation-dialog][open]");
+  async function loadPages(p, count) {
+    for (let n = 25; n < count; n += 25) {
+      const expected = Math.min(n + 25, 70);
+      await p.locator("[data-folder-more]").click();
+      await p.waitForFunction((want) => document.querySelectorAll("[data-folder-item]").length >= want, expected);
+    }
+  }
+  async function removeBookmarkVia(p, id) {
+    await p.locator(`[data-folder-item="bookmark:${id}"] [data-folder-edit]`).click();
+    await dlg(p).locator("button[aria-pressed]").first().click();
+    await dlg(p).getByText(t("annotations.saved")).waitFor();
+    await dlg(p).getByRole("button", { name: t("annotations.close") }).click();
+  }
+
+  // Bladwijzer op pagina 3 verwijderen: na de bevestigde mutatie niet meer zichtbaar, filter blijft, geen dubbelen.
+  let seeded = await seedPager();
+  let pc = await open({ width: 390, height: 844 }, { who: seeded.account }), pp = await pc.newPage();
+  pp.on("pageerror", (e) => errors.push(e.message));
+  await pp.goto(`${base}/study-folder?type=bookmark`);
+  await pp.locator("[data-folder-item]").first().waitFor();
+  await loadPages(pp, 70);
+  let pageIds = await itemIds(pp);
+  check("pagina's: drie pagina's geladen (70 bladwijzers) zonder dubbelen", pageIds.length === 70 && unique(pageIds));
+  const victim = seeded.bookmarks[60];
+  check("pagina's: het te verwijderen item staat op pagina 3", pageIds.indexOf(`bookmark:${victim.id}`) >= 50);
+  await removeBookmarkVia(pp, victim.id);
+  await pp.waitForFunction((id) => !document.querySelector(`[data-folder-item="bookmark:${id}"]`), victim.id);
+  check("pagina's: het verwijderde item blijft na de bevestigde mutatie niet staan", true);
+  check("pagina's: zoekterm en filters blijven behouden", pp.url().includes("type=bookmark") && (await pp.locator('[data-folder-type="bookmark"]').getAttribute("aria-pressed")) === "true");
+  await pp.waitForTimeout(600);
+  while (await pp.locator("[data-folder-more]").count()) { await pp.locator("[data-folder-more]").click(); await pp.waitForTimeout(300); }
+  pageIds = await itemIds(pp);
+  check("pagina's: opnieuw laden geeft 69 unieke items zonder het verwijderde", pageIds.length === 69 && unique(pageIds) && !pageIds.includes(`bookmark:${victim.id}`), String(pageIds.length));
+  await pc.close();
+
+  // Gewijzigde privénotitie op een later geladen pagina.
+  seeded = await seedPager();
+  pc = await open({ width: 390, height: 844 }, { who: seeded.account }); pp = await pc.newPage();
+  await pp.goto(`${base}/study-folder?type=note`);
+  await pp.locator("[data-folder-item]").first().waitFor();
+  await loadPages(pp, 70);
+  const noteVictim = seeded.notes[60];
+  const oldText = noteVictim.text;
+  check("pagina's: de te wijzigen notitie staat op een later geladen pagina", (await itemIds(pp)).indexOf(`note:${noteVictim.id}`) >= 50);
+  await pp.locator(`[data-folder-item="note:${noteVictim.id}"] [data-folder-edit]`).click();
+  await dlg(pp).locator("textarea:not([disabled])").waitFor();
+  await dlg(pp).locator("textarea").fill("Gewijzigd op pagina drie");
+  await dlg(pp).getByRole("button", { name: t("annotations.save"), exact: true }).click();
+  await dlg(pp).getByText(t("annotations.saved")).waitFor();
+  await dlg(pp).getByRole("button", { name: t("annotations.close") }).click();
+  await pp.waitForTimeout(800);
+  while (await pp.locator("[data-folder-more]").count()) { await pp.locator("[data-folder-more]").click(); await pp.waitForTimeout(300); }
+  pageIds = await itemIds(pp);
+  const body = await pp.locator("[data-study-folder]").innerText();
+  check("pagina's: de gewijzigde notitie toont de nieuwe tekst, niet de oude, zonder dubbelen", pageIds.length === 70 && unique(pageIds) && body.includes("Gewijzigd op pagina drie") && !body.includes(oldText), `${pageIds.length}`);
+  check("pagina's: het notitiefilter blijft behouden", pp.url().includes("type=note"));
+  await pc.close();
+
+  // Een late response mag de vernieuwde lijst niet vervuilen.
+  seeded = await seedPager();
+  pc = await open({ width: 390, height: 844 }, { who: seeded.account }); pp = await pc.newPage();
+  await pp.goto(`${base}/study-folder?type=bookmark`);
+  await pp.locator("[data-folder-item]").first().waitFor();
+  await loadPages(pp, 50);
+  check("late response: pagina 1 en 2 staan er (50 items)", (await itemIds(pp)).length === 50);
+  await pp.route(/\/api\/study-folder\?.*cursor=/, async (route) => {
+    const response = await route.fetch();
+    await new Promise((resolve) => setTimeout(resolve, 3500));
+    await route.fulfill({ response });
+  });
+  await pp.locator("[data-folder-more]").click();
+  await pp.waitForTimeout(500);
+  const onPageTwo = seeded.bookmarks[30];
+  await removeBookmarkVia(pp, onPageTwo.id);
+  await pp.waitForFunction((id) => !document.querySelector(`[data-folder-item="bookmark:${id}"]`), onPageTwo.id);
+  await pp.waitForTimeout(4500);
+  pageIds = await itemIds(pp);
+  check("late response: het oude antwoord voegt na de mutatie geen items toe", pageIds.length === 25 && unique(pageIds) && !pageIds.includes(`bookmark:${onPageTwo.id}`), String(pageIds.length));
+  await pp.unroute(/\/api\/study-folder\?.*cursor=/);
+  await pp.locator("[data-folder-more]").click();
+  await pp.waitForFunction(() => document.querySelectorAll("[data-folder-item]").length === 50);
+  check("late response: opnieuw laden werkt daarna normaal", unique(await itemIds(pp)));
+  await pc.close();
+
+  // Direct geopend item: definitieve 404 versus tijdelijke netwerkfout.
+  const direct404 = await referenceAccount();
+  const own = await mutateAnnotation(direct404.actor, command("note", { type: "verse", verseId: small.verses[3].id }, 0, { text: "Direct item dat verdwijnt" }));
+  pc = await open({ width: 390, height: 844 }, { who: direct404 }); pp = await pc.newPage();
+  await pp.goto(`${base}/study-folder?item=note:${own.annotation.id}`);
+  await pp.locator("[data-folder-focus] article").waitFor();
+  check("item: de eigen annotatie staat in de itemkaart", (await pp.locator("[data-folder-focus]").innerText()).includes("Direct item dat verdwijnt"));
+  await pp.locator("[data-folder-focus] [data-folder-edit]").click();
+  await dlg(pp).locator("textarea:not([disabled])").waitFor();
+  await dlg(pp).getByRole("button", { name: t("annotations.noteRemove"), exact: true }).click();
+  await dlg(pp).getByText(t("annotations.saved")).waitFor();
+  await dlg(pp).getByRole("button", { name: t("annotations.close") }).click();
+  await pp.waitForFunction((message) => document.querySelector("[data-folder-focus]")?.textContent.includes(message), t("studyFolder.itemGone"));
+  check("item: na de bevestigde 404 verdwijnt de oude itemkaart", (await pp.locator("[data-folder-focus] article").count()) === 0 && !(await pp.locator("[data-study-folder]").innerText()).includes("Direct item dat verdwijnt"));
+  check("item: alleen de bestaande melding blijft staan", (await pp.locator("[data-folder-focus]").innerText()).includes(t("studyFolder.itemGone")));
+  await pc.close();
+
+  const flaky = await referenceAccount();
+  const kept = await mutateAnnotation(flaky.actor, command("note", { type: "verse", verseId: small.verses[4].id }, 0, { text: "Blijft staan bij een netwerkfout" }));
+  pc = await open({ width: 390, height: 844 }, { who: flaky }); pp = await pc.newPage();
+  await pp.goto(`${base}/study-folder?item=note:${kept.annotation.id}`);
+  await pp.locator("[data-folder-focus] article").waitFor();
+  await pp.route(/\/api\/study-folder\?item=/, (route) => route.abort("failed"));
+  await pp.locator("[data-folder-focus] [data-folder-edit]").click();
+  await dlg(pp).locator("textarea:not([disabled])").waitFor();
+  await dlg(pp).locator("textarea").fill("Blijft staan bij een netwerkfout (bijgewerkt)");
+  await dlg(pp).getByRole("button", { name: t("annotations.save"), exact: true }).click();
+  await dlg(pp).getByText(t("annotations.saved")).waitFor();
+  await dlg(pp).getByRole("button", { name: t("annotations.close") }).click();
+  await pp.locator("[data-folder-focus] [role=alert]").waitFor({ timeout: 10000 });
+  check("item: een tijdelijke netwerkfout toont een fout en geen verwijdering", (await pp.locator("[data-folder-focus] article").count()) === 1 && !(await pp.locator("[data-folder-focus]").innerText()).includes(t("studyFolder.itemGone")));
+  await pp.unroute(/\/api\/study-folder\?item=/);
+  await pc.close();
+
   // ===== Responsive, thema, tekstschaling, talen, toetsenbord =====
   const sizes = [{ width: 320, height: 700 }, { width: 390, height: 844 }, { width: 820, height: 1100 }, { width: 1280, height: 900 }];
   for (const language of ["nl", "en", "de", "fr", "es"]) {

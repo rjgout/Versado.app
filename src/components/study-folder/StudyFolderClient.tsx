@@ -86,6 +86,11 @@ export default function StudyFolderClient() {
   const firstSignature = first.data ? JSON.stringify(first.data.items.map((i) => [i.kind, i.id, i.mutationVersion])) : null;
   const signature = `${filterKey}|${firstSignature}`;
   const [seen, setSeen] = useState<string | null>(null);
+  // Een aanvullende pagina geldt alleen voor de lijst waarvoor hij is opgevraagd: een bevestigde mutatie of een andere
+  // zoekopdracht maakt een nog onderweg zijnde response ongeldig (generatie + laatste handtekening, nooit een oude closure).
+  const generation = useRef(0);
+  const latestSignature = useRef(signature);
+  useEffect(() => { latestSignature.current = signature; });
   if (first.data && seen !== signature) {
     setSeen(signature);
     const remembered = loadedPages.get(filterKey);
@@ -98,20 +103,21 @@ export default function StudyFolderClient() {
 
   async function loadMore() {
     if (!nextCursor || more === "loading") return;
-    const requested = signature;
+    const requested = signature, requestedGeneration = generation.current;
+    const stale = () => generation.current !== requestedGeneration || latestSignature.current !== requested;
     setMore("loading");
     try {
       const page = await fetchJson<StudyFolderPage>(`/api/study-folder?${apiQuery(filters, { cursor: nextCursor })}`);
       // Een late response van een eerdere zoekopdracht of een inmiddels gewijzigde lijst wordt genegeerd.
+      if (stale()) return;
       setExtra((old) => {
-        if (signature !== requested) return old;
         const current = old && old.key === filterKey && old.first === signature ? old.pages : [];
         const next = [...current, page];
         loadedPages.set(filterKey, { first: signature, pages: next });
         return { key: filterKey, first: signature, pages: next };
       });
       setMore("idle");
-    } catch { setMore("error"); }
+    } catch { if (!stale()) setMore("error"); }
   }
 
   const returnTo = `${pathname}${search.toString() ? `?${search.toString()}` : ""}`;
@@ -120,9 +126,15 @@ export default function StudyFolderClient() {
   const focusGone = Boolean(itemParam) && focus.error instanceof ApiRequestError && focus.error.status === 404;
   const sourceList = sources.data?.sources ?? [];
 
+  // De bevestigde mutatie komt uit de 4A-writer (annotationsChanged ververst de eerste pagina al centraal). Latere pagina's kunnen
+  // een gewijzigd of verwijderd item nog bevatten: die en de tijdelijke paginacache vervallen, de huidige filters blijven staan.
   function onChanged(row: AnnotationView) {
-    // De sheet bewaart zijn eigen toestand; de lijst ververst via annotationsChanged (4A-writer).
     void row;
+    generation.current += 1;
+    loadedPages.clear();
+    setExtra(null);
+    setMore("idle");
+    void first.refetch();
   }
 
   return (
@@ -169,7 +181,7 @@ export default function StudyFolderClient() {
       {itemParam && (
         <section aria-labelledby="folder-focus-title" data-folder-focus className="flex flex-col gap-2">
           <h2 id="folder-focus-title" className="text-sm font-extrabold text-vs-fg-2">{t("studyFolder.focusTitle")}</h2>
-          {focus.data?.item && <FolderCard item={focus.data.item} t={t} date={dateFormat} returnTo={returnTo} emphasized onEdit={(element) => setEditing({ item: focus.data!.item, element })} />}
+          {!focusGone && focus.data?.item && <FolderCard item={focus.data.item} t={t} date={dateFormat} returnTo={returnTo} emphasized onEdit={(element) => setEditing({ item: focus.data!.item, element })} />}
           {focusGone && <p role="status" className="rounded-2xl border border-vs-line bg-vs-elevated p-3 text-sm text-vs-fg">{t("studyFolder.itemGone")}</p>}
           {Boolean(focus.error) && !focusGone && <p role="alert" className="rounded-2xl border border-vs-line bg-vs-elevated p-3 text-sm text-vs-fg">{t("studyFolder.loadFailed")}</p>}
         </section>
