@@ -147,7 +147,10 @@ try {
     await run("npx",["tsx","--test","tests/hymns-availability.integration.test.mjs"],env);
     if(process.argv.includes("--browser")) await run("npx",["tsx","tests/hymns-availability.browser.mjs"],env);
   }
-  if(process.argv.includes("--annotations")) await run("npx",["tsx","--test","tests/annotation-foundation.integration.test.mjs"],env);
+  if(process.argv.includes("--annotations")) {
+    await run("npx",["tsx","--test","tests/annotation-foundation.integration.test.mjs"],env);
+    if(process.argv.includes("--browser"))await run("npx",["tsx","tests/annotation-actions.browser.mjs"],env);
+  }
   if(process.argv.includes("--cfm-import")) {
     await run("npx",["tsx","--test","tests/cfm-2026-import.integration.test.mjs"],env);
     if(process.argv.includes("--browser")) await run("npx",["tsx","tests/cfm-2026-import.browser.mjs"],env);

@@ -100,7 +100,7 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
       step1: "Ouvre Apprendre et choisis un cours.",
       step2: "Lis le morceau suivant.",
       step3: "Réponds aux questions. Ta progression est enregistrée, tu peux donc toujours continuer.",
-      more: "Lire seul ne rapporte pas d’XP. Un chapitre ou une étape de lecture que tu termines explicitement compte en revanche comme activité pour ta série, comme un exercice terminé.",
+      more: "Lire seul ne rapporte pas d’XP. Un chapitre ou une étape de lecture que tu termines explicitement compte en revanche comme activité pour ta série, comme un exercice terminé. Ouvre l’action près d’un verset ou bloc pour un signet, un surlignage ou une note privée. Tu peux aussi sélectionner du texte dans une section. Les annotations ne donnent ni XP ni activité de série.",
       faq1: {
         q: "Est-ce important de choisir tel ou tel cours ?",
         a: "Chaque cours propose le même contenu d’une autre façon, par exemple en petites étapes ou chapitre par chapitre. Pour un même contenu, tu ne gagnes pas plus d’XP dans un cours que dans un autre.",

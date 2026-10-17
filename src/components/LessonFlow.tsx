@@ -1,5 +1,9 @@
 "use client";
 
+import AnnotationActions, { AnnotationTrigger } from "@/components/annotations/AnnotationActions";
+import { useLiveQuery } from "@/lib/data/hooks";
+import { fetchJson } from "@/lib/data/fetchJson";
+import type { AnnotationList, AnnotationView } from "@/lib/annotations/clientContract";
 import SystemIcon from "@/components/versado/SystemIcon";
 import AchievementIcon from "@/components/versado/AchievementIcon";
 import { StreakContinuationCard } from "@/components/StreakContinuation";
@@ -353,8 +357,16 @@ export function ReaderView({
 }) {
   const t = useT();
   const [scale, setScale] = useState(1);
-  const [verseState, setVerseState] = useState(verses);
-  const [openNoteFor, setOpenNoteFor] = useState<string | null>(null);
+  const [annotationTarget,setAnnotationTarget] = useState<{verseId:string;element:HTMLElement}|null>(null);
+  const annotations = useLiveQuery<AnnotationList>(["annotations","chapter",chapterId],()=>fetchJson(`/api/annotations?view=reader&chapterId=${encodeURIComponent(chapterId)}`),{scopes:["annotations"],contentScoped:true,enabled:!preview});
+  const [confirmed,setConfirmed]=useState<Record<string,Partial<VerseView>>>({});
+  const verseState = verses.map(verse=>{
+    const own=annotations.data?.annotations.filter(row=>row.target.type==='verse'&&row.target.verseId===verse.id);
+    if(!own||!annotations.data?.complete)return {...verse,...confirmed[verse.id]};
+    return {...verse,bookmarked:own.some(r=>r.kind==='bookmark'),highlighted:own.some(r=>r.kind==='highlight'),note:own.find(r=>r.kind==='note')?.text??''};
+  });
+  function annotationChanged(row:AnnotationView){if(row.target.type==='verse'){const id=row.target.verseId;setConfirmed(old=>({...old,[id]:{...old[id],...(row.kind==='bookmark'?{bookmarked:!row.deleted}:row.kind==='highlight'?{highlighted:!row.deleted}:{note:row.deleted?'':row.text??''})}}));}annotations.setData(old=>old?{...old,annotations:[...old.annotations.filter(r=>r.id!==row.id),...(!row.deleted?[row]:[])]}:old);}
+
   const { source, currentIndex, isPlaying } = useReadAloudPlayer();
   const readingVerse = !preview && source && source.id === chapterId && isPlaying ? source.verses[currentIndex]?.number ?? null : null;
   // Het opgevraagde vers licht even op, zodat je ziet waar je bent beland.
@@ -395,25 +407,6 @@ export function ReaderView({
     }
   }
 
-  async function toggleBookmark(verseId: string) {
-    setVerseState((vs) => vs.map((v) => (v.id === verseId ? { ...v, bookmarked: !v.bookmarked } : v)));
-    await fetch(`/api/verses/${verseId}/bookmark`, { method: "POST" }).catch(() => {});
-  }
-
-  async function toggleHighlight(verseId: string) {
-    setVerseState((vs) => vs.map((v) => (v.id === verseId ? { ...v, highlighted: !v.highlighted } : v)));
-    await fetch(`/api/verses/${verseId}/highlight`, { method: "POST" }).catch(() => {});
-  }
-
-  async function saveNote(verseId: string, text: string) {
-    setVerseState((vs) => vs.map((v) => (v.id === verseId ? { ...v, note: text } : v)));
-    await fetch(`/api/verses/${verseId}/note`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    }).catch(() => {});
-  }
-
   return (
     <>
       <div className="flex items-center justify-between">
@@ -447,11 +440,14 @@ export function ReaderView({
           language={language}
         />}
 
+      {!preview && annotations.data && !annotations.data.complete && <p role="status">{t("annotations.incomplete")}</p>}
+      {!preview && !!annotations.error && <p role="alert">{t("annotations.failed")}</p>}
       <div className={`${focus ? "" : "card "}flex flex-col gap-4`} style={{ "--reader-font-scale": scale } as React.CSSProperties}>
         {verseState.map((v) => (
           <div
             key={v.id}
             id={`vers-${v.number}`}
+            data-annotation-color={annotations.data?.annotations.find(row=>row.kind==='highlight'&&row.target.type==='verse'&&row.target.verseId===v.id)?.color}
             className={`reader-text flex flex-col gap-2 rounded-xl -mx-2 px-2 py-1 transition-colors duration-700 ${
               flashVerse === v.number
                 ? "bg-brand-100/70 dark:bg-brand-900/30 ring-2 ring-brand-400 dark:ring-brand-500"
@@ -466,65 +462,15 @@ export function ReaderView({
               <span className="text-brand-400 dark:text-brand-500 font-bold mr-2 select-none">{v.number}</span>
               {v.text}
             </p>
-            {!preview && <div className="flex items-center gap-3 text-sm">
-              <button
-                aria-label={v.bookmarked ? t("lesson.bookmarkRemove") : t("lesson.bookmarkAdd")}
-                onClick={() => toggleBookmark(v.id)}
-                className={v.bookmarked ? "opacity-100" : "opacity-40 hover:opacity-100"}
-              >
-                🔖
-              </button>
-              <button
-                aria-label={v.highlighted ? t("lesson.highlightRemove") : t("lesson.highlightAdd")}
-                onClick={() => toggleHighlight(v.id)}
-                className={v.highlighted ? "opacity-100" : "opacity-40 hover:opacity-100"}
-              >
-                🖍️
-              </button>
-              <button
-                aria-label={t("lesson.note")}
-                onClick={() => setOpenNoteFor(openNoteFor === v.id ? null : v.id)}
-                className={v.note ? "opacity-100" : "opacity-40 hover:opacity-100"}
-              >
-                📝
-              </button>
+            {!preview && <div className="flex items-center justify-end gap-2 text-sm text-vs-fg-2">
+              {(v.bookmarked||v.note)&&<span>{v.bookmarked?t("annotations.bookmark"):""}{v.bookmarked&&v.note?" · ":""}{v.note?t("annotations.note"):""}</span>}
+              <AnnotationTrigger marked={v.bookmarked||v.highlighted||!!v.note} onClick={element=>setAnnotationTarget({verseId:v.id,element})}/>
             </div>}
-            {!preview && openNoteFor === v.id && (
-              <NoteEditor initialText={v.note} onSave={(text) => saveNote(v.id, text)} />
-            )}
           </div>
         ))}
       </div>
+      {!preview && annotationTarget && verses.some(v=>v.id===annotationTarget.verseId) && <AnnotationActions key={annotationTarget.verseId} target={{type:'verse',verseId:annotationTarget.verseId}} returnFocus={annotationTarget.element} onClose={()=>setAnnotationTarget(null)} onChanged={annotationChanged}/>}
     </>
-  );
-}
-
-function NoteEditor({ initialText, onSave }: { initialText: string; onSave: (text: string) => void }) {
-  const t = useT();
-  const [text, setText] = useState(initialText);
-  const [saved, setSaved] = useState(true);
-
-  return (
-    <div className="flex flex-col gap-2">
-      <textarea
-        className="input !text-sm !py-2 min-h-[4rem]"
-        placeholder={t("lesson.notePlaceholder")}
-        value={text}
-        onChange={(e) => {
-          setText(e.target.value);
-          setSaved(false);
-        }}
-      />
-      <button
-        className="btn-secondary self-start !px-3 !py-1.5 !text-xs"
-        onClick={() => {
-          onSave(text);
-          setSaved(true);
-        }}
-      >
-        {saved ? t("lesson.noteSaved") : t("lesson.noteSave")}
-      </button>
-    </div>
   );
 }
 

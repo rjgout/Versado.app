@@ -5,6 +5,39 @@
 import { kompasNl } from "./kompas/nl";
 
 export const nl = {
+  annotations: {
+    "cancel": "Annuleren",
+    "open": "Annotaties openen",
+    "title": "Annotaties",
+    "close": "Sluiten",
+    "bookmarkAdd": "Bladwijzer toevoegen",
+    "bookmarkRemove": "Bladwijzer verwijderen",
+    "bookmark": "Bladwijzer",
+    "highlight": "Markeren",
+    "highlightRemove": "Markering verwijderen",
+    "note": "Privénotitie",
+    "noteRemove": "Notitie verwijderen",
+    "save": "Opslaan",
+    "saving": "Opslaan…",
+    "saved": "Opgeslagen",
+    "failed": "Opslaan mislukt. Je tekst is behouden.",
+    "conflict": "Gewijzigd op een ander toestel. Laad bewust de actuele versie; je concept wordt dan vervangen.",
+    "reload": "Actuele gegevens laden",
+    "retry": "Opnieuw proberen",
+    "unsaved": "Er zijn onopgeslagen wijzigingen of een onzekere opslag.",
+    "discard": "Wijzigingen verlaten",
+    "selection": "Geselecteerde tekst annoteren",
+    "invalid": "Deze selectie is niet geldig. Selecteer tekst binnen één sectie, of open de actieknop bij een tekstblok.",
+    "incomplete": "Niet alle annotaties passen in dit overzicht. Open de actie bij de gewenste passage voor de actuele gegevens.",
+    "existing": "Annotaties bij deze les",
+    "yellow": "Geel",
+    "green": "Groen",
+    "blue": "Blauw",
+    "pink": "Roze",
+    "purple": "Paars",
+    "help": "Open de actieknop bij een vers of tekstblok voor een bladwijzer, markering of privénotitie. Je kunt ook tekst binnen één sectie selecteren. Annotaties leveren geen XP of reeksactiviteit op."
+},
+
   studyPublishing: {
     "older": "Oudere revisies",
     "newer": "Nieuwere revisies",

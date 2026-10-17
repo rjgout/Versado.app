@@ -32,6 +32,7 @@ on:
       - 'tests/fixtures/reference-content.mjs'
       - 'src/lib/studyContent/**'
       - 'src/lib/annotations/**'
+      - 'src/components/annotations/**'
       - 'src/app/api/annotations/**'
       - 'tests/annotation-*'
       - 'src/lib/scrollRestore.ts'
@@ -154,10 +155,15 @@ jobs:
           npx tsc --noEmit
           rm -rf .next
           npm run build
+      - name: Annotatiebrowser klaarzetten
+        run: |
+          npm install --prefix "$RUNNER_TEMP/versado-browser" --no-save --no-package-lock playwright
+          "$RUNNER_TEMP/versado-browser/node_modules/.bin/playwright" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
       - name: Echte HTTP-toegang, studiecontext en migratiebehoud op eigen PostgreSQL
         run: |
           npm run test:study-content:integration
-          npm run test:annotations:integration
+          npm run test:annotations:integration -- --browser
       - name: Regressie, lint en vertalingen
         run: |
           npx tsx --test tests/admin-layout.test.ts tests/cfm-2026-manifest.test.ts tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/proxy-headers.test.ts tests/reading-path.test.ts tests/reading-courses.test.ts tests/streak-central.test.ts
@@ -166,6 +172,15 @@ jobs:
           npm run test:live-data
           npm run lint
           npx tsx scripts/i18n/check.ts
+
+      - name: Annotatiebrowserbewijs bewaren
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: annotation-actions-browser
+          path: /tmp/versado-annotation-actions-browser
+          if-no-files-found: warn
+          retention-days: 7
 
   quick-missionary-source:
     runs-on: ubuntu-latest

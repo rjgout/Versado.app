@@ -3,6 +3,39 @@ import { kompasFr } from "./kompas/fr";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const fr: PartialMessages = {
+  annotations: {
+    "cancel": "Annuler",
+    "open": "Ouvrir les annotations",
+    "title": "Annotations",
+    "close": "Fermer",
+    "bookmarkAdd": "Ajouter un signet",
+    "bookmarkRemove": "Retirer le signet",
+    "bookmark": "Signet",
+    "highlight": "Surligner",
+    "highlightRemove": "Retirer le surlignage",
+    "note": "Note privée",
+    "noteRemove": "Supprimer la note",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "saved": "Enregistré",
+    "failed": "Échec de l’enregistrement. Ton texte est conservé.",
+    "conflict": "Modifié sur un autre appareil. Charge volontairement la version actuelle ; cela remplace ton brouillon.",
+    "reload": "Charger les données actuelles",
+    "retry": "Réessayer",
+    "unsaved": "Des modifications ne sont pas enregistrées ou leur enregistrement est incertain.",
+    "discard": "Abandonner les modifications",
+    "selection": "Annoter le texte sélectionné",
+    "invalid": "Cette sélection est invalide. Sélectionne du texte dans une seule section ou ouvre l’action près d’un bloc.",
+    "incomplete": "Toutes les annotations ne tiennent pas dans cette vue. Ouvre l’action près du passage pour les données actuelles.",
+    "existing": "Annotations de cette leçon",
+    "yellow": "Jaune",
+    "green": "Vert",
+    "blue": "Bleu",
+    "pink": "Rose",
+    "purple": "Violet",
+    "help": "Ouvre l’action près d’un verset ou bloc pour un signet, un surlignage ou une note privée. Tu peux aussi sélectionner du texte dans une section. Les annotations ne donnent ni XP ni activité de série."
+},
+
   studyPublishing: {
     "older": "Révisions antérieures",
     "newer": "Révisions plus récentes",

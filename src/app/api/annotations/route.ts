@@ -4,12 +4,15 @@ import { getCurrentUser } from "@/lib/session";
 import { getT } from "@/lib/i18n";
 import { inventoryOriginAllowed } from "@/lib/content-inventory/origin";
 import { annotationKind } from "@/lib/annotations/contract";
-import { getAnnotation, listAnnotations, mutateAnnotation, AnnotationError } from "@/lib/annotations/service";
+import { getAnnotation, listAnnotations, readerAnnotations, mutateAnnotation, AnnotationError } from "@/lib/annotations/service";
 import { annotationJson, annotationResponse as response } from "@/lib/annotations/http";
 import { failureLockSeconds, registerFailure } from "@/lib/rateLimit";
 export const runtime = "nodejs";
 const id = z.string().min(1).max(128);
 const query = z.union([
+  z.object({ view: z.literal("reader"), chapterId: id }).strict(),
+  z.object({ view: z.literal("reader"), lessonEditionId: id, revisionId: id }).strict(),
+  z.object({ view: z.literal("reader"), targetKey: z.string().regex(/^(verse:.{1,128}|lesson:[a-f0-9]{64})$/) }).strict(),
   z.object({ kind: annotationKind, id }).strict(),
   z.object({ verseId: id }).strict(),
   z.object({ lessonEditionId: id }).strict(),
@@ -23,6 +26,7 @@ async function handle(req: NextRequest, method: "GET" | "PUT" | "DELETE") {
       if ([...req.nextUrl.searchParams.keys()].length !== new Set(req.nextUrl.searchParams.keys()).size) return response({ error: t("apiErrors.invalidInput") }, 400);
       const parsed = query.safeParse(Object.fromEntries(req.nextUrl.searchParams));
       if (!parsed.success) return response({ error: t("apiErrors.invalidInput") }, 400);
+      if ("view" in parsed.data) { const filter = "chapterId" in parsed.data ? { chapterId: parsed.data.chapterId } : "targetKey" in parsed.data ? { targetKey: parsed.data.targetKey } : { lessonEditionId: parsed.data.lessonEditionId, revisionId: parsed.data.revisionId }; return response(await readerAnnotations(user, filter)); }
       return response("id" in parsed.data ? await getAnnotation(user, parsed.data.kind, parsed.data.id) : await listAnnotations(user, parsed.data));
     }
     const key = `annotations:${user.id}`;

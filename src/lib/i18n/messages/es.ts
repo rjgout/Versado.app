@@ -3,6 +3,39 @@ import { kompasEs } from "./kompas/es";
 
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
+  annotations: {
+    "cancel": "Cancelar",
+    "open": "Abrir anotaciones",
+    "title": "Anotaciones",
+    "close": "Cerrar",
+    "bookmarkAdd": "Añadir marcador",
+    "bookmarkRemove": "Quitar marcador",
+    "bookmark": "Marcador",
+    "highlight": "Resaltar",
+    "highlightRemove": "Quitar resaltado",
+    "note": "Nota privada",
+    "noteRemove": "Eliminar nota",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "saved": "Guardado",
+    "failed": "No se pudo guardar. Tu texto se conserva.",
+    "conflict": "Modificado en otro dispositivo. Carga la versión actual de forma consciente; esto sustituye tu borrador.",
+    "reload": "Cargar datos actuales",
+    "retry": "Reintentar",
+    "unsaved": "Hay cambios sin guardar o un guardado incierto.",
+    "discard": "Descartar cambios",
+    "selection": "Anotar texto seleccionado",
+    "invalid": "Esta selección no es válida. Selecciona texto dentro de una sección o abre la acción junto a un bloque.",
+    "incomplete": "No todas las anotaciones caben en esta vista. Abre la acción junto al pasaje para ver los datos actuales.",
+    "existing": "Anotaciones de esta lección",
+    "yellow": "Amarillo",
+    "green": "Verde",
+    "blue": "Azul",
+    "pink": "Rosa",
+    "purple": "Morado",
+    "help": "Abre la acción junto a un versículo o bloque para un marcador, resaltado o nota privada. También puedes seleccionar texto dentro de una sección. Las anotaciones no otorgan XP ni actividad de racha."
+},
+
   studyPublishing: {
     "older": "Revisiones anteriores",
     "newer": "Revisiones más recientes",
