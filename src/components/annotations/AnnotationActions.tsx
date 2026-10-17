@@ -7,6 +7,7 @@ import {
   StickyNote,
   X,
   MoreHorizontal,
+  Play,
 } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import {
@@ -90,11 +91,14 @@ export default function AnnotationActions({
   returnFocus,
   onClose,
   onChanged,
+  audio,
 }: {
   target: AnnotationTarget;
   returnFocus: HTMLElement | null;
   onClose(): void;
   onChanged(row: AnnotationView): void;
+  /** Alleen voor bronnen met een voorleesfunctie (schriftverzen); start bewust vanaf dit target. */
+  audio?: { label: string; ready: boolean; onStart(): boolean };
 }) {
   const t = useT(),
     dialog = useRef<HTMLDialogElement>(null),
@@ -319,6 +323,27 @@ export default function AnnotationActions({
         </p>
       )}
       <div className="mt-3 flex flex-col gap-3">
+        {audio && (
+          <>
+            <button
+              type="button"
+              data-annotation-read-aloud
+              disabled={!audio.ready}
+              className={`${primaryButton} min-h-11`}
+              onClick={() => {
+                if (audio.onStart()) close();
+              }}
+            >
+              <Play className="h-5 w-5 shrink-0" aria-hidden />
+              {audio.label}
+            </button>
+            {!audio.ready && (
+              <p role="status" className="text-sm text-vs-fg-2">
+                {t("annotations.audioPreparing")}
+              </p>
+            )}
+          </>
+        )}
         <button
           type="button"
           disabled={disabled}

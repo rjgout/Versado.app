@@ -4,6 +4,9 @@ import { kompasDe } from "./kompas/de";
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const de: PartialMessages = {
   annotations: {
+    "readFrom": "Ab Vers {number} vorlesen",
+    "verseActions": "Aktionen für Vers {number}",
+    "audioPreparing": "Audio wird vorbereitet …",
     "cancel": "Abbrechen",
     "open": "Anmerkungen öffnen",
     "title": "Anmerkungen",
@@ -33,7 +36,7 @@ export const de: PartialMessages = {
     "blue": "Blau",
     "pink": "Rosa",
     "purple": "Violett",
-    "help": "Öffne die Aktion an einem Vers oder Textblock für Lesezeichen, Markierungen oder private Notizen. Du kannst auch Text innerhalb eines Abschnitts auswählen. Anmerkungen geben keine XP oder Serienaktivität."
+    "help": "Tippe auf einen Vers oder öffne die Aktion an einem Textblock für Lesezeichen, Markierungen oder private Notizen. Du kannst auch Text innerhalb eines Abschnitts auswählen. Anmerkungen geben keine XP oder Serienaktivität."
 },
 
   studyPublishing: {

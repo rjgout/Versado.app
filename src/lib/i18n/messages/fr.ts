@@ -4,6 +4,9 @@ import { kompasFr } from "./kompas/fr";
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const fr: PartialMessages = {
   annotations: {
+    "readFrom": "Lire à voix haute à partir du verset {number}",
+    "verseActions": "Actions pour le verset {number}",
+    "audioPreparing": "Préparation de l’audio…",
     "cancel": "Annuler",
     "open": "Ouvrir les annotations",
     "title": "Annotations",
@@ -33,7 +36,7 @@ export const fr: PartialMessages = {
     "blue": "Bleu",
     "pink": "Rose",
     "purple": "Violet",
-    "help": "Ouvre l’action près d’un verset ou bloc pour un signet, un surlignage ou une note privée. Tu peux aussi sélectionner du texte dans une section. Les annotations ne donnent ni XP ni activité de série."
+    "help": "Touche un verset, ou ouvre l’action près d’un bloc, pour un signet, un surlignage ou une note privée. Tu peux aussi sélectionner du texte dans une section. Les annotations ne donnent ni XP ni activité de série."
 },
 
   studyPublishing: {
