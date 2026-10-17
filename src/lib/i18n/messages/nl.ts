@@ -6,6 +6,10 @@ import { kompasNl } from "./kompas/nl";
 
 export const nl = {
   annotations: {
+    "readFrom": "Voorlezen vanaf vers {number}",
+    "verseActions": "Acties voor vers {number}",
+    "audioFailed": "Audiotalen konden niet worden geladen. Probeer het opnieuw om vanaf dit vers voor te lezen.",
+    "audioPreparing": "Audio wordt voorbereid…",
     "cancel": "Annuleren",
     "open": "Annotaties openen",
     "title": "Annotaties",
@@ -35,7 +39,7 @@ export const nl = {
     "blue": "Blauw",
     "pink": "Roze",
     "purple": "Paars",
-    "help": "Open de actieknop bij een vers of tekstblok voor een bladwijzer, markering of privénotitie. Je kunt ook tekst binnen één sectie selecteren. Annotaties leveren geen XP of reeksactiviteit op."
+    "help": "Tik op een vers, of open de actieknop bij een tekstblok, voor een bladwijzer, markering of privénotitie. Je kunt ook tekst binnen één sectie selecteren. Annotaties leveren geen XP of reeksactiviteit op."
 },
 
   studyPublishing: {

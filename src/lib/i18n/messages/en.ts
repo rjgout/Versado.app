@@ -4,6 +4,10 @@ import { kompasEn } from "./kompas/en";
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const en: PartialMessages = {
   annotations: {
+    "readFrom": "Read aloud from verse {number}",
+    "verseActions": "Actions for verse {number}",
+    "audioFailed": "The audio languages could not be loaded. Try again to read aloud from this verse.",
+    "audioPreparing": "Preparing audio…",
     "cancel": "Cancel",
     "open": "Open annotations",
     "title": "Annotations",
@@ -33,7 +37,7 @@ export const en: PartialMessages = {
     "blue": "Blue",
     "pink": "Pink",
     "purple": "Purple",
-    "help": "Open the action beside a verse or text block for a bookmark, highlight or private note. You can also select text within one section. Annotations award no XP or streak activity."
+    "help": "Tap a verse, or open the action beside a text block, for a bookmark, highlight or private note. You can also select text within one section. Annotations award no XP or streak activity."
 },
 
   studyPublishing: {

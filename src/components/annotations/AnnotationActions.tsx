@@ -7,6 +7,7 @@ import {
   StickyNote,
   X,
   MoreHorizontal,
+  Play,
 } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import {
@@ -90,11 +91,14 @@ export default function AnnotationActions({
   returnFocus,
   onClose,
   onChanged,
+  audio,
 }: {
   target: AnnotationTarget;
   returnFocus: HTMLElement | null;
   onClose(): void;
   onChanged(row: AnnotationView): void;
+  /** Alleen voor bronnen met een voorleesfunctie (schriftverzen); start bewust vanaf dit target. */
+  audio?: { label: string; status: "loading" | "ready" | "error"; onStart(): boolean; onRetry(): void };
 }) {
   const t = useT(),
     dialog = useRef<HTMLDialogElement>(null),
@@ -107,7 +111,8 @@ export default function AnnotationActions({
   const [busy, setBusy] = useState(false),
     [error, setError] = useState<"failed" | "conflict" | null>(null),
     [saved, setSaved] = useState<AnnotationKind | null>(null),
-    [discard, setDiscard] = useState(false);
+    [discard, setDiscard] = useState(false),
+    [audioPending, setAudioPending] = useState(false);
   const pending = useRef<{
     action: AnnotationAction;
     method: "PUT" | "DELETE";
@@ -181,8 +186,34 @@ export default function AnnotationActions({
   function close() {
     if (busy || lock.current) return;
     if (text !== savedText || uncertain) {
+      setAudioPending(false);
       setDiscard(true);
       return;
+    }
+    onClose();
+  }
+  // Een niet-opgeslagen notitie of onzekere opslag blijft beschermd: eerst bevestigen, dan pas audio starten.
+  function startAudio() {
+    if (!audio || busy || lock.current || uncertain) return;
+    if (text !== savedText) {
+      setAudioPending(true);
+      setDiscard(true);
+      return;
+    }
+    if (audio.onStart()) onClose();
+  }
+  function confirmDiscard() {
+    if (audioPending) {
+      setAudioPending(false);
+      // Een opslag die intussen loopt of onzeker is, gaat voor: nooit audio starten of sluiten tijdens een mutatie.
+      if (busy || lock.current || uncertain) {
+        setDiscard(false);
+        return;
+      }
+      if (!audio?.onStart()) {
+        setDiscard(false);
+        return;
+      }
     }
     onClose();
   }
@@ -196,6 +227,11 @@ export default function AnnotationActions({
     setBusy(true);
     setError(null);
     setSaved(null);
+    // Een openstaande audiobevestiging vervalt zodra een opslag start.
+    if (audioPending) {
+      setAudioPending(false);
+      setDiscard(false);
+    }
     if (!pending.current) {
       const row = rows.find((r) => r.kind === kind);
       pending.current = {
@@ -319,6 +355,37 @@ export default function AnnotationActions({
         </p>
       )}
       <div className="mt-3 flex flex-col gap-3">
+        {audio && (
+          <>
+            <button
+              type="button"
+              data-annotation-read-aloud
+              disabled={audio.status !== "ready" || busy || uncertain}
+              className={`${primaryButton} min-h-11`}
+              onClick={startAudio}
+            >
+              <Play className="h-5 w-5 shrink-0" aria-hidden />
+              {audio.label}
+            </button>
+            {audio.status === "loading" && (
+              <p role="status" className="text-sm text-vs-fg-2">
+                {t("annotations.audioPreparing")}
+              </p>
+            )}
+            {audio.status === "error" && (
+              <div role="alert" className="space-y-2 text-sm">
+                <p>{t("annotations.audioFailed")}</p>
+                <button
+                  type="button"
+                  className={secondaryButton}
+                  onClick={audio.onRetry}
+                >
+                  {t("player.retryLanguages")}
+                </button>
+              </div>
+            )}
+          </>
+        )}
         <button
           type="button"
           disabled={disabled}
@@ -444,13 +511,21 @@ export default function AnnotationActions({
         {discard && (
           <div className="space-y-2 border-t border-vs-line pt-3">
             <p>{t("annotations.unsaved")}</p>
-            <button type="button" className={secondaryButton} onClick={onClose}>
+            <button
+              type="button"
+              className={secondaryButton}
+              disabled={audioPending && (busy || uncertain)}
+              onClick={confirmDiscard}
+            >
               {t("annotations.discard")}
             </button>
             <button
               type="button"
               className={secondaryButton}
-              onClick={() => setDiscard(false)}
+              onClick={() => {
+                setDiscard(false);
+                setAudioPending(false);
+              }}
             >
               {t("annotations.cancel")}
             </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import AnnotationActions, { AnnotationTrigger } from "@/components/annotations/AnnotationActions";
+import AnnotationActions from "@/components/annotations/AnnotationActions";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
 import type { AnnotationList, AnnotationView } from "@/lib/annotations/clientContract";
@@ -9,7 +9,7 @@ import AchievementIcon from "@/components/versado/AchievementIcon";
 import { StreakContinuationCard } from "@/components/StreakContinuation";
 
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ACHIEVEMENT_DISPLAY } from "@/lib/achievementDisplay";
 import { useT } from "@/components/I18nProvider";
@@ -18,14 +18,14 @@ import type { TFunction } from "@/lib/i18n/core";
 import { normalizeAnswer } from "@/lib/exerciseGen";
 import { useActivityStatus } from "@/lib/useActivity";
 import { announceXpChanged } from "@/lib/xpBroadcast";
-import ReadAloudPlayer from "@/components/ReadAloudPlayer";
+import ReadAloudPlayer, { type ReadAloudControl, type ReadAloudStatus } from "@/components/ReadAloudPlayer";
 import { useReadAloudPlayer } from "@/lib/readAloudPlayerContext";
 import { chapterTerm, type ChapterTerm } from "@/lib/chapterTerm";
 import { ContentStatusLine, LongChapterNotice, type ReadState } from "@/components/learning/ContentStatus";
 import PersonalMascot from "@/components/versado/PersonalMascot";
 import FocusLayout from "@/components/versado/FocusLayout";
 import ExerciseFeedbackSheet from "@/components/ExerciseFeedbackSheet";
-import { Flag, CheckCircle2, XCircle } from "lucide-react";
+import { Flag, CheckCircle2, XCircle, Bookmark, StickyNote } from "lucide-react";
 import { exerciseProgress } from "@/lib/exerciseProgress";
 import type { ExerciseFeedbackContext } from "@/lib/exerciseFeedback";
 
@@ -397,6 +397,36 @@ export function ReaderView({
     }
   }, []);
 
+  const readAloud = useRef<ReadAloudControl | null>(null);
+  const [audioStatus, setAudioStatus] = useState<ReadAloudStatus>("loading");
+  const pointerStart = useRef<{ x: number; y: number; hadSelection: boolean } | null>(null);
+  function rememberPointer(event: React.PointerEvent) {
+    pointerStart.current = { x: event.clientX, y: event.clientY, hadSelection: !(window.getSelection()?.isCollapsed ?? true) };
+  }
+  // Een tik opent het menu; selecteren, slepen en scrollen niet.
+  function tapVerse(event: React.MouseEvent<HTMLElement>, verseId: string) {
+    const start = pointerStart.current;
+    pointerStart.current = null;
+    if ((event.target as HTMLElement).closest("button, a, input, textarea, select")) return;
+    if (start?.hadSelection || !(window.getSelection()?.isCollapsed ?? true)) return;
+    if (start && Math.hypot(event.clientX - start.x, event.clientY - start.y) > 10) return;
+    const number = event.currentTarget.querySelector<HTMLElement>("[data-annotation-trigger]");
+    setAnnotationTarget({ verseId, element: number ?? event.currentTarget });
+  }
+  function startReading(number: number) {
+    return readAloud.current?.startAtVerse(number) ?? false;
+  }
+  function audioFor(verseId: string) {
+    const verse = verses.find((item) => item.id === verseId);
+    if (!verse) return undefined;
+    return {
+      label: t("annotations.readFrom", { number: verse.number }),
+      status: audioStatus,
+      onStart: () => startReading(verse.number),
+      onRetry: () => readAloud.current?.retry(),
+    };
+  }
+
   function changeScale(delta: number) {
     const next = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.round((scale + delta) * 100) / 100));
     setScale(next);
@@ -438,19 +468,25 @@ export function ReaderView({
           audio={audio}
           subtitle={t("lesson.listenTo", { thisOne: term.thisOne })}
           language={language}
+          controlRef={readAloud}
+          onStatusChange={setAudioStatus}
         />}
 
       {!preview && annotations.data && !annotations.data.complete && <p role="status">{t("annotations.incomplete")}</p>}
       {!preview && !!annotations.error && <p role="alert">{t("annotations.failed")}</p>}
-      <div className={`${focus ? "" : "card "}flex flex-col gap-4`} style={{ "--reader-font-scale": scale } as React.CSSProperties}>
+      <div className={`${focus ? "" : "card "}flex flex-col gap-1`} style={{ "--reader-font-scale": scale } as React.CSSProperties}>
         {verseState.map((v) => (
           <div
             key={v.id}
             id={`vers-${v.number}`}
             data-annotation-color={annotations.data?.annotations.find(row=>row.kind==='highlight'&&row.target.type==='verse'&&row.target.verseId===v.id)?.color}
-            className={`reader-text flex flex-col gap-2 rounded-xl -mx-2 px-2 py-1 transition-colors duration-700 ${
+            onPointerDown={preview ? undefined : rememberPointer}
+            onClick={preview ? undefined : (event) => tapVerse(event, v.id)}
+            className={`reader-text rounded-xl -mx-2 px-2 py-1 transition-colors duration-700 ${preview ? "" : "cursor-pointer"} ${
               flashVerse === v.number
                 ? "bg-brand-100/70 dark:bg-brand-900/30 ring-2 ring-brand-400 dark:ring-brand-500"
+                : annotationTarget?.verseId === v.id
+                ? "bg-brand-50 dark:bg-brand-900/20"
                 : v.highlighted
                 ? "bg-gold-400/20 dark:bg-gold-400/10"
                 : readingVerse === v.number
@@ -459,17 +495,35 @@ export function ReaderView({
             }`}
           >
             <p className="whitespace-pre-line">
-              <span className="text-brand-400 dark:text-brand-500 font-bold mr-2 select-none">{v.number}</span>
+              {preview ? (
+                <span className="text-brand-400 dark:text-brand-500 font-bold mr-2 select-none">{v.number}</span>
+              ) : (
+                <button
+                  type="button"
+                  data-annotation-trigger
+                  aria-haspopup="dialog"
+                  aria-label={t("annotations.verseActions", { number: v.number })}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setAnnotationTarget({ verseId: v.id, element: event.currentTarget });
+                  }}
+                  className="mr-2 inline cursor-pointer select-none align-baseline font-bold text-brand-400 dark:text-brand-500 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vs-accent"
+                >
+                  {v.number}
+                  {(v.bookmarked || v.note) && (
+                    <span className="ml-0.5 inline-flex gap-0.5 align-[-0.1em] text-vs-accent">
+                      {v.bookmarked && <Bookmark aria-hidden className="h-[0.8em] w-[0.8em] fill-current" />}
+                      {v.note && <StickyNote aria-hidden className="h-[0.8em] w-[0.8em]" />}
+                    </span>
+                  )}
+                </button>
+              )}
               {v.text}
             </p>
-            {!preview && <div className="flex items-center justify-end gap-2 text-sm text-vs-fg-2">
-              {(v.bookmarked||v.note)&&<span>{v.bookmarked?t("annotations.bookmark"):""}{v.bookmarked&&v.note?" · ":""}{v.note?t("annotations.note"):""}</span>}
-              <AnnotationTrigger marked={v.bookmarked||v.highlighted||!!v.note} onClick={element=>setAnnotationTarget({verseId:v.id,element})}/>
-            </div>}
           </div>
         ))}
       </div>
-      {!preview && annotationTarget && verses.some(v=>v.id===annotationTarget.verseId) && <AnnotationActions key={annotationTarget.verseId} target={{type:'verse',verseId:annotationTarget.verseId}} returnFocus={annotationTarget.element} onClose={()=>setAnnotationTarget(null)} onChanged={annotationChanged}/>}
+      {!preview && annotationTarget && verses.some(v=>v.id===annotationTarget.verseId) && <AnnotationActions key={annotationTarget.verseId} target={{type:'verse',verseId:annotationTarget.verseId}} returnFocus={annotationTarget.element} onClose={()=>setAnnotationTarget(null)} onChanged={annotationChanged} audio={audioFor(annotationTarget.verseId)}/>}
     </>
   );
 }

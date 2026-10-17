@@ -2,7 +2,7 @@
 
 import { useT } from "@/components/I18nProvider";
 import AppSelect from "@/components/AppSelect";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type RefObject } from "react";
 import { getLanguage } from "@/lib/languages";
 import { useReadAloudPlayer, type ReadAloudSource, type ReadAloudVerse } from "@/lib/readAloudPlayerContext";
 
@@ -15,6 +15,19 @@ interface Props {
   subtitle?: string;
   /** Taal van de tekst, voor de computerstem (zie ReadAloudSource). */
   language?: string;
+  /** Laat de pagina bewust vanaf een vers starten, met de taal en bron die hier gekozen zijn. */
+  controlRef?: RefObject<ReadAloudControl | null>;
+  /** Laden, gereed of mislukt: alleen "ready" garandeert dat een gerichte start de juiste audiotaal en bron kent. */
+  onStatusChange?: (status: ReadAloudStatus) => void;
+}
+
+export type ReadAloudStatus = "loading" | "ready" | "error";
+
+export interface ReadAloudControl {
+  /** Moet synchroon vanuit een echte klik worden aangeroepen; false als het vers niet voorleesbaar is. */
+  startAtVerse(number: number): boolean;
+  /** Dezelfde nieuwe poging als de knop in de speler. */
+  retry(): void;
 }
 
 interface AudioEdition {
@@ -25,7 +38,7 @@ interface AudioEdition {
 
 const LANGUAGE_KEY = "jehovaapp-read-aloud-language";
 
-export default function ReadAloudPlayer({ sourceId, title, verses, audio, startVerse = 0, subtitle, language }: Props) {
+export default function ReadAloudPlayer({ sourceId, title, verses, audio, startVerse = 0, subtitle, language, controlRef, onStatusChange }: Props) {
   const t = useT();
   const { source, start, stop, currentIndex } = useReadAloudPlayer();
   const [editions, setEditions] = useState<{ id: string; items: AudioEdition[] } | null>(null);
@@ -69,6 +82,31 @@ export default function ReadAloudPlayer({ sourceId, title, verses, audio, startV
     && source.language === selectedLanguage
     && source.verses[0]?.number === verses[0]?.number
     && source.verses.at(-1)?.number === verses.at(-1)?.number;
+
+  // Een mislukte opvraag is geen "gereed": anders zou een gekozen audiotaal stilzwijgend door de tekstlaag vervangen worden.
+  const status: ReadAloudStatus = editions?.id === sourceId ? "ready" : failed ? "error" : "loading";
+  useEffect(() => {
+    onStatusChange?.(status);
+    return () => onStatusChange?.("loading");
+  }, [status, onStatusChange]);
+
+  // Elke commit ververst de koppeling, zodat een klik altijd de actuele taal en bron ziet.
+  useEffect(() => {
+    if (!controlRef) return;
+    controlRef.current = {
+      startAtVerse(number) {
+        if (status !== "ready") return false;
+        const index = spokenVerses.findIndex((verse) => verse.number === number);
+        if (index < 0) return false;
+        start({ id: sourceId, title, verses: spokenVerses, audio: selectedAudio, language: selectedLanguage }, index);
+        return true;
+      },
+      retry() {
+        setAttempt((value) => value + 1);
+      },
+    };
+  });
+  useEffect(() => () => { if (controlRef) controlRef.current = null; }, [controlRef]);
 
   function changeLanguage(value: string) {
     if (source?.id === sourceId) stop();

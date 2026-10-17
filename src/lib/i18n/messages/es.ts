@@ -4,6 +4,10 @@ import { kompasEs } from "./kompas/es";
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
   annotations: {
+    "readFrom": "Leer en voz alta desde el versículo {number}",
+    "verseActions": "Acciones para el versículo {number}",
+    "audioFailed": "No se pudieron cargar los idiomas de audio. Inténtalo de nuevo para leer en voz alta desde este versículo.",
+    "audioPreparing": "Preparando el audio…",
     "cancel": "Cancelar",
     "open": "Abrir anotaciones",
     "title": "Anotaciones",
@@ -33,7 +37,7 @@ export const es: PartialMessages = {
     "blue": "Azul",
     "pink": "Rosa",
     "purple": "Morado",
-    "help": "Abre la acción junto a un versículo o bloque para un marcador, resaltado o nota privada. También puedes seleccionar texto dentro de una sección. Las anotaciones no otorgan XP ni actividad de racha."
+    "help": "Toca un versículo, o abre la acción junto a un bloque, para un marcador, resaltado o nota privada. También puedes seleccionar texto dentro de una sección. Las anotaciones no otorgan XP ni actividad de racha."
 },
 
   studyPublishing: {

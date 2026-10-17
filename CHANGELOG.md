@@ -4,6 +4,8 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Verbeterd: de verslezer leest weer als doorlopende tekst. De rij met knoppen onder elk vers is weg; tik op een vers (of gebruik het versnummer met toetsenbord of schermlezer) voor bladwijzer, markering, privénotitie en nieuw: **Voorlezen vanaf vers N**, dat de bestaande voorleesspeler in de gekozen audiotaal bij dat vers laat beginnen. Selecteren, scrollen en een tik terwijl tekst geselecteerd is openen het menu niet.
+
 - Nieuw: persoonlijke puzzelrecords en vriendenranglijsten in de Legpuzzel. Je beste tijd per exacte puzzel
   (afbeelding, aantal stukjes en moeilijkheid) wordt bijgehouden, apart voor Solo en Tegen elkaar en apart
   zonder hints en met hints; elke hint telt, ook een gratis inbegrepen hint. Een snellere tijd verbetert je record, een
