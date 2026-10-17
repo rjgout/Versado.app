@@ -29,6 +29,10 @@ alleen de ingelogde gebruiker; er bestaat geen client-userId).
   (maximaal 50); `nextCursor` alleen als er meer is; er wordt nooit geteld.
 * Zoeken (`q`, NFC, maximaal 100 tekens, `ILIKE` met geëscapete `%`/`_`, beide kanten NFC-genormaliseerd): eigen notitietekst,
   eigen opgeslagen quote, en alleen voor nu leesbare bronnen verstekst en bronlabels. De client debounced op 350 ms.
+* Kleurfilter `color=yellow|green|blue|pink|purple` (lijst: `ANNOTATION_COLORS` in `clientContract.ts`, gedeeld met de 4A-schrijf-API). Alleen
+  `Highlight`-rijen komen terug: de bladwijzer- en notitietakken krijgen `AND FALSE`. Het filter staat in de `WHERE` vóór paginering, is geparameteriseerd en
+  eigenaar-gebonden; de cursorhash bevat de kleur, dus een cursor van Geel werkt niet voor Blauw. `color` met `type=note|bookmark` en een onbekende kleur geven
+  HTTP 400 (zonder `type` volgt `type=highlight` uit de kleur). Volgorde en paginagrootte blijven gelijk.
 * Bronfilter `source=<collectieId>`; de bronlijst (`?view=sources`) bevat alleen nu leesbare collecties.
 * `?item=<kind>:<id>` levert één eigen, actief item; een ander gebruiker, tombstone, verkeerd type en onbekend id geven allemaal 404.
 
@@ -70,7 +74,16 @@ bescherming van onopgeslagen tekst. Na een mutatie ververst `annotationsChanged`
   bronintrekking (3 varianten), 409/retry/gelijktijdige clients, geen cross-user-toegang, geen XP/hint/reeks-wijziging, revisie vervangen.
 * Browser: `tests/study-folder.browser.mjs` — kiezerkaart (volgorde, geen contextwissel), geen ingang op Leren/Hulpmiddelen, `/bookmarks`-redirect, zoeken/filters/URL/meer laden,
   vers- en passage-deeplinks, terugnavigatie met filters, bewerken/verwijderen, revisiemelding, 5 talen × 320/390/820/1280 px × licht/donker × 100/200%.
+* Kleuren en kleurfilter: `tests/study-folder-colors.browser.mjs` (kleurweergave in verslezer, studielezer, menu en map in licht/donker; alle filterscenario's, ook late respons,
+  kleurwijziging/verwijderen onder een actief filter, terugnavigatie, geen lek naar andere gebruikers, 320/390/1280 px × 100/200%) en een extra case in de integratietest.
 * De runner `npm run test:annotations:integration -- --browser` (CI-job `content-access`) voert alles uit; bewijs staat in het artifact `annotation-actions-browser`.
+
+### Kleurweergave
+
+Vijf tinten (geel, groen, blauw, roze, paars) als `--vs-mark-*`-tokens met een eigen basiskleur en alpha per thema (donker is sterker). Kleur is nooit de enige aanwijzing:
+een verse markering heeft een kleurbalk links (`background-image`, zodat de ring van voorlezen/selectie niet verdwijnt) en een markeerstift in de versknop, een studiepassage
+een gekleurde onderstreping, en de kleurknoppen/-chips tonen een omlijnd vierkant (`MarkSwatch`) met vinkje bij de gekozen kleur plus `aria-pressed`.
+Voorrang: de kleur van een expliciete markering blijft; selectie, voorlezen en focus liggen als ring eromheen. De gouden oude achtergrond geldt alleen zolang de kleur onbekend is.
 
 ## 7. Bekende beperkingen en grens naar 4D
 
@@ -78,3 +91,4 @@ bescherming van onopgeslagen tekst. Na een mutatie ververst `annotationsChanged`
 * Zoeken is hoofdletterongevoelig en NFC-bestendig, maar niet accent-ongevoelig (geen `unaccent`-extensie, geen migratie).
 * Na een bevestigde mutatie begint de lijst weer bij de eerste pagina (filters blijven); de al geladen pagina's worden alleen hersteld bij terugkeer uit een leespassage als er niets gewijzigd is. Wijzigingen van een ander toestel op een latere pagina worden pas zichtbaar na het opnieuw laden van die pagina.
 * Niet getest op fysieke iOS-/Android-toestellen (Chromium-emulatie met aanraking).
+* Het kleurfilter toont alleen markeringen; een bladwijzer of notitie heeft geen kleur. Een gouden vangnetvlak kan kort zichtbaar zijn voordat de kleur geladen is (overgang van 0,7 s).

@@ -1,9 +1,11 @@
 import { z } from "zod";
 import { studyAnchorSchema } from "@/lib/studyContent/schema";
+import { ANNOTATION_COLORS } from "./clientContract";
 
 const id = z.string().min(1).max(128);
 export const annotationKind = z.enum(["bookmark", "highlight", "note"]);
 export type AnnotationKind = z.infer<typeof annotationKind>;
+export const annotationColor = z.enum(ANNOTATION_COLORS);
 export const selectorSchema = z.object({
   normalizationVersion: z.literal(1),
   originalRevisionId: id,
@@ -33,7 +35,7 @@ const mutation = {
 export const annotationPutSchema = z.object({
   ...mutation,
   text: z.string().trim().min(1).max(2000).optional(),
-  color: z.enum(["yellow", "green", "blue", "pink", "purple"]).optional(),
+  color: annotationColor.optional(),
 }).strict().refine(v => v.kind === "note" ? !!v.text && v.color === undefined
   : v.kind === "highlight" ? v.text === undefined : v.text === undefined && v.color === undefined);
 export const annotationDeleteSchema = z.object(mutation).strict();

@@ -25,7 +25,7 @@ import { ContentStatusLine, LongChapterNotice, type ReadState } from "@/componen
 import PersonalMascot from "@/components/versado/PersonalMascot";
 import FocusLayout from "@/components/versado/FocusLayout";
 import ExerciseFeedbackSheet from "@/components/ExerciseFeedbackSheet";
-import { Flag, CheckCircle2, XCircle, Bookmark, StickyNote } from "lucide-react";
+import { Flag, CheckCircle2, XCircle, Bookmark, StickyNote, Highlighter } from "lucide-react";
 import { exerciseProgress } from "@/lib/exerciseProgress";
 import type { ExerciseFeedbackContext } from "@/lib/exerciseFeedback";
 
@@ -475,24 +475,34 @@ export function ReaderView({
       {!preview && annotations.data && !annotations.data.complete && <p role="status">{t("annotations.incomplete")}</p>}
       {!preview && !!annotations.error && <p role="alert">{t("annotations.failed")}</p>}
       <div className={`${focus ? "" : "card "}flex flex-col gap-1`} style={{ "--reader-font-scale": scale } as React.CSSProperties}>
-        {verseState.map((v) => (
+        {verseState.map((v) => {
+          const mark = annotations.data?.annotations.find(row=>row.kind==='highlight'&&row.target.type==='verse'&&row.target.verseId===v.id)?.color;
+          // Markeringskleur, selectie, voorlezen en focus staan op aparte lagen: de ring (voorlezen/selectie/focus) laat
+          // de kleurlaag van een expliciete markering ongemoeid. De gouden vangnetkleur geldt alleen zolang de kleur nog onbekend is.
+          const ring = flashVerse === v.number
+            ? "ring-2 ring-brand-400 dark:ring-brand-500"
+            : annotationTarget?.verseId === v.id
+            ? "ring-2 ring-brand-300 dark:ring-brand-600"
+            : readingVerse === v.number
+              ? "ring-2 ring-brand-300/70 dark:ring-brand-600/70"
+              : "";
+          const surface = mark ? "" : flashVerse === v.number
+            ? "bg-brand-100/70 dark:bg-brand-900/30"
+            : annotationTarget?.verseId === v.id
+            ? "bg-brand-50 dark:bg-brand-900/20"
+            : v.highlighted
+            ? "bg-gold-400/20 dark:bg-gold-400/10"
+            : readingVerse === v.number
+              ? "bg-brand-100/70 dark:bg-brand-900/30"
+              : "";
+          return (
           <div
             key={v.id}
             id={`vers-${v.number}`}
-            data-annotation-color={annotations.data?.annotations.find(row=>row.kind==='highlight'&&row.target.type==='verse'&&row.target.verseId===v.id)?.color}
+            data-annotation-color={mark}
             onPointerDown={preview ? undefined : rememberPointer}
             onClick={preview ? undefined : (event) => tapVerse(event, v.id)}
-            className={`reader-text rounded-xl -mx-2 px-2 py-1 transition-colors duration-700 ${preview ? "" : "cursor-pointer"} ${
-              flashVerse === v.number
-                ? "bg-brand-100/70 dark:bg-brand-900/30 ring-2 ring-brand-400 dark:ring-brand-500"
-                : annotationTarget?.verseId === v.id
-                ? "bg-brand-50 dark:bg-brand-900/20"
-                : v.highlighted
-                ? "bg-gold-400/20 dark:bg-gold-400/10"
-                : readingVerse === v.number
-                  ? "bg-brand-100/70 dark:bg-brand-900/30 ring-2 ring-brand-300/50 dark:ring-brand-700/50"
-                  : ""
-            }`}
+            className={`reader-text rounded-xl -mx-2 px-2 py-1 transition-colors duration-700 ${preview ? "" : "cursor-pointer"} ${ring} ${surface}`}
           >
             <p className="whitespace-pre-line">
               {preview ? (
@@ -510,8 +520,9 @@ export function ReaderView({
                   className="mr-2 inline cursor-pointer select-none align-baseline font-bold text-brand-400 dark:text-brand-500 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vs-accent"
                 >
                   {v.number}
-                  {(v.bookmarked || v.note) && (
+                  {(v.bookmarked || v.note || mark) && (
                     <span className="ml-0.5 inline-flex gap-0.5 align-[-0.1em] text-vs-accent">
+                      {mark && <Highlighter aria-hidden className="h-[0.8em] w-[0.8em]" style={{ color: "rgb(var(--m))" }} />}
                       {v.bookmarked && <Bookmark aria-hidden className="h-[0.8em] w-[0.8em] fill-current" />}
                       {v.note && <StickyNote aria-hidden className="h-[0.8em] w-[0.8em]" />}
                     </span>
@@ -521,7 +532,8 @@ export function ReaderView({
               {v.text}
             </p>
           </div>
-        ))}
+          );
+        })}
       </div>
       {!preview && annotationTarget && verses.some(v=>v.id===annotationTarget.verseId) && <AnnotationActions key={annotationTarget.verseId} target={{type:'verse',verseId:annotationTarget.verseId}} returnFocus={annotationTarget.element} onClose={()=>setAnnotationTarget(null)} onChanged={annotationChanged} audio={audioFor(annotationTarget.verseId)}/>}
     </>

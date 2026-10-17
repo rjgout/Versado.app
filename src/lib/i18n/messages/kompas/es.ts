@@ -221,7 +221,7 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
       "step2": "Toca una fuente disponible para cambiar directamente.",
       "step3": "Elige un idioma de texto disponible o elige explícitamente otra edición.",
       "step4": "Versado abre un destino adecuado; volver sin elegir no cambia nada.",
-      "more": "Al final del selector de contenido, encima de la elección de idioma, está Mi carpeta de estudio. Reúne todos tus marcadores, resaltados y notas privadas de todas las fuentes, aunque ahora hayas elegido otra fuente o idioma. Busca por texto, filtra por tipo o fuente y toca Abrir pasaje para volver al versículo o pasaje de estudio guardado. Las notas son privadas. Si una lección se actualizó o una fuente ya no está disponible, Versado no traslada tu nota automáticamente a otro pasaje; tu texto original se conserva. Las anotaciones no otorgan XP ni actividad de racha.",
+      "more": "Al final del selector de contenido, encima de la elección de idioma, está Mi carpeta de estudio. Reúne todos tus marcadores, resaltados y notas privadas de todas las fuentes, aunque ahora hayas elegido otra fuente o idioma. Busca por texto, filtra por tipo, color de resaltado o fuente y toca Abrir pasaje para volver al versículo o pasaje de estudio guardado. Las notas son privadas. Si una lección se actualizó o una fuente ya no está disponible, Versado no traslada tu nota automáticamente a otro pasaje; tu texto original se conserva. Las anotaciones no otorgan XP ni actividad de racha.",
       "faq1": {
         "q": "¿Qué cambia al cambiar de fuente?",
         "a": "Tu fuente determina los textos, cursos y juegos disponibles."

@@ -7,34 +7,34 @@ import { Bookmark, Highlighter, LoaderCircle, Pencil, Search, StickyNote, X, typ
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import PageIntro from "@/components/versado/PageIntro";
 import AnnotationActions from "@/components/annotations/AnnotationActions";
+import MarkSwatch from "@/components/annotations/MarkSwatch";
 import { primaryButton, secondaryButton, surfaceCard, focusRing } from "@/components/versado/styles";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson, ApiRequestError } from "@/lib/data/fetchJson";
 import { getLanguage } from "@/lib/languages";
 import type { AnnotationKind } from "@/lib/annotations/contract";
-import type { AnnotationView } from "@/lib/annotations/clientContract";
+import { ANNOTATION_COLORS, type AnnotationColor, type AnnotationView } from "@/lib/annotations/clientContract";
 import type { StudyFolderItem, StudyFolderPage, StudyFolderSources } from "@/lib/annotations/studyFolder";
 
 const KINDS: AnnotationKind[] = ["bookmark", "highlight", "note"];
 const KIND_ICON: Record<AnnotationKind, LucideIcon> = { bookmark: Bookmark, highlight: Highlighter, note: StickyNote };
-// Kleur is nooit het enige signaal: de kleurnaam staat ook als tekst bij de kaart.
-const COLOR_DOT: Record<string, string> = {
-  yellow: "bg-amber-300", green: "bg-emerald-400", blue: "bg-sky-400", pink: "bg-pink-400", purple: "bg-violet-400",
-};
 const COLOR_KEY = {
   yellow: "annotations.yellow", green: "annotations.green", blue: "annotations.blue", pink: "annotations.pink", purple: "annotations.purple",
 } as const;
 const DEBOUNCE_MS = 350;
 
-type Filters = { q: string; type: AnnotationKind | ""; source: string };
+type Filters = { q: string; type: AnnotationKind | ""; source: string; color: AnnotationColor | "" };
 // Tijdelijk geheugen (alleen deze tab): na terug uit een leespassage staan de al geladen pagina's er direct weer.
 const loadedPages = new Map<string, { first: string | null; pages: StudyFolderPage[] }>();
 
 function apiQuery(filters: Filters, extra: Record<string, string> = {}) {
   const params = new URLSearchParams();
   if (filters.q) params.set("q", filters.q);
-  if (filters.type) params.set("type", filters.type);
+  // Een kleur hoort alleen bij markeringen: het type volgt de kleur, zodat URL, query-sleutel en cursor dezelfde filters beschrijven.
+  const type = filters.color ? "highlight" : filters.type;
+  if (type) params.set("type", type);
   if (filters.source) params.set("source", filters.source);
+  if (filters.color) params.set("color", filters.color);
   for (const [key, value] of Object.entries(extra)) params.set(key, value);
   return params.toString();
 }
@@ -47,10 +47,13 @@ export default function StudyFolderClient() {
   const search = useSearchParams();
   const urlQ = search.get("q") ?? "";
   const rawType = search.get("type");
-  const type: Filters["type"] = KINDS.includes(rawType as AnnotationKind) ? (rawType as AnnotationKind) : "";
+  const rawColor = search.get("color");
+  // Een onbekende kleur of een kleur bij bladwijzers/notities in de URL telt niet mee; de server wijst zo'n combinatie af.
+  const color: Filters["color"] = ANNOTATION_COLORS.includes(rawColor as AnnotationColor) && (!rawType || rawType === "highlight") ? (rawColor as AnnotationColor) : "";
+  const type: Filters["type"] = color ? "highlight" : KINDS.includes(rawType as AnnotationKind) ? (rawType as AnnotationKind) : "";
   const source = search.get("source") ?? "";
   const itemParam = search.get("item") ?? "";
-  const filters: Filters = { q: urlQ, type, source };
+  const filters: Filters = { q: urlQ, type, source, color };
   const filterKey = apiQuery(filters);
   const [text, setText] = useState(urlQ);
   const pushed = useRef(urlQ);
@@ -122,7 +125,7 @@ export default function StudyFolderClient() {
 
   const returnTo = `${pathname}${search.toString() ? `?${search.toString()}` : ""}`;
   const dateFormat = (iso: string) => new Date(iso).toLocaleDateString(getLanguage(language).intlLocale, { dateStyle: "medium" });
-  const filtered = Boolean(urlQ || type || source);
+  const filtered = Boolean(urlQ || type || source || color);
   const focusGone = Boolean(itemParam) && focus.error instanceof ApiRequestError && focus.error.status === 404;
   const sourceList = sources.data?.sources ?? [];
 
@@ -158,13 +161,34 @@ export default function StudyFolderClient() {
           {(["", ...KINDS] as const).map((value) => (
             <button
               key={value || "all"} type="button" aria-pressed={type === value} data-folder-type={value || "all"}
-              onClick={() => navigate({ type: value }, true)}
+              onClick={() => navigate({ type: value, color: value === "highlight" ? color : "" }, true)}
               className={`inline-flex min-h-11 items-center rounded-full border px-3 py-2 text-sm font-bold ${type === value ? "border-vs-accent bg-vs-accent-soft text-vs-accent" : "border-vs-line text-vs-fg-2 hover:border-vs-accent"} ${focusRing}`}
             >
               {t(value ? `studyFolder.type.${value}` : "studyFolder.type.all")}
             </button>
           ))}
         </div>
+        {(type === "" || type === "highlight") && (
+          <div role="group" aria-label={t("studyFolder.colorLabel")} data-folder-colors className="flex flex-wrap gap-2">
+            <button
+              type="button" aria-pressed={color === ""} data-folder-color="all"
+              onClick={() => navigate({ color: "" }, true)}
+              className={`inline-flex min-h-11 items-center rounded-full border px-3 py-2 text-sm font-bold ${color === "" ? "border-vs-accent bg-vs-accent-soft text-vs-accent" : "border-vs-line text-vs-fg-2 hover:border-vs-accent"} ${focusRing}`}
+            >
+              {t("studyFolder.colorAll")}
+            </button>
+            {ANNOTATION_COLORS.map((value) => (
+              <button
+                key={value} type="button" aria-pressed={color === value} data-folder-color={value}
+                onClick={() => navigate({ type: "highlight", color: value }, true)}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-3 py-2 text-sm font-bold ${color === value ? "border-vs-accent bg-vs-accent-soft text-vs-accent" : "border-vs-line text-vs-fg-2 hover:border-vs-accent"} ${focusRing}`}
+              >
+                <MarkSwatch color={value} checked={color === value} />
+                {t(COLOR_KEY[value])}
+              </button>
+            ))}
+          </div>
+        )}
         <label className="flex min-w-0 flex-col gap-1 text-sm font-bold text-vs-fg sm:max-w-sm">
           {t("studyFolder.sourceLabel")}
           <select
@@ -198,7 +222,7 @@ export default function StudyFolderClient() {
         {first.data && items.length === 0 && (
           <div data-folder-empty className="rounded-2xl border border-dashed border-vs-line p-5 text-sm text-vs-fg-2">
             <p>{t(filtered ? "studyFolder.noResults" : "studyFolder.empty")}</p>
-            {filtered && <button type="button" className={`${secondaryButton} mt-3 min-h-11`} onClick={() => { setText(""); pushed.current = ""; navigate({ q: "", type: "", source: "" }); }}><X className="h-4 w-4" aria-hidden />{t("studyFolder.clearFilters")}</button>}
+            {filtered && <button type="button" className={`${secondaryButton} mt-3 min-h-11`} onClick={() => { setText(""); pushed.current = ""; navigate({ q: "", type: "", source: "", color: "" }); }}><X className="h-4 w-4" aria-hidden />{t("studyFolder.clearFilters")}</button>}
           </div>
         )}
         {items.length > 0 && <ul className="flex flex-col gap-3">
@@ -245,7 +269,7 @@ function FolderCard({ item, t, date, returnTo, emphasized = false, onEdit }: {
         </span>
         {item.color && (
           <span className="inline-flex items-center gap-1.5 text-vs-fg-2">
-            <span className={`h-3 w-3 shrink-0 rounded-full ${COLOR_DOT[item.color] ?? "bg-vs-fg-3"}`} aria-hidden />
+            {item.color in COLOR_KEY && <MarkSwatch color={item.color as AnnotationColor} />}
             {item.color in COLOR_KEY ? t(COLOR_KEY[item.color as keyof typeof COLOR_KEY]) : item.color}
           </span>
         )}

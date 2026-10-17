@@ -10,6 +10,7 @@ import {
   Play,
 } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
+import MarkSwatch from "./MarkSwatch";
 import {
   iconButton,
   primaryButton,
@@ -19,6 +20,7 @@ import { fetchJson, ApiRequestError } from "@/lib/data/fetchJson";
 import { jsonMutation } from "@/lib/data/mutation";
 import {
   clientTargetKey,
+  ANNOTATION_COLORS,
   type AnnotationView,
   type AnnotationList,
 } from "@/lib/annotations/clientContract";
@@ -406,7 +408,7 @@ export default function AnnotationActions({
             {t("annotations.highlight")}
           </legend>
           <div className="flex flex-wrap gap-2">
-            {(["yellow", "green", "blue", "pink", "purple"] as const).map(
+            {ANNOTATION_COLORS.map(
               (color) => (
                 <button
                   key={color}
@@ -415,6 +417,7 @@ export default function AnnotationActions({
                   className={`${secondaryButton} min-h-11 ${active("highlight")?.color === color ? "ring-2 ring-vs-accent" : ""}`}
                   onClick={() => void send("highlight", false, color)}
                 >
+                  <MarkSwatch color={color} checked={active("highlight")?.color === color} />
                   {t(`annotations.${color}`)}
                 </button>
               ),

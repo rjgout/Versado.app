@@ -227,7 +227,7 @@ export const kompasNl = {
       "step2": "Tik op een beschikbare bron om direct te wisselen.",
       "step3": "Kies een beschikbare teksttaal of expliciet een andere uitgave.",
       "step4": "Versado opent een passende bestemming; terug zonder keuze verandert niets.",
-      "more": "Onderaan de contentkiezer, boven de taalkeuze, staat Mijn studiemap. Daar vind je al je bladwijzers, markeringen en privénotities uit alle bronnen bij elkaar, ook als je nu een andere bron of taal hebt gekozen. Zoek op tekst, filter op soort of bron en tik op Open passage om terug te gaan naar het bewaarde vers of de studiepassage. Notities zijn privé. Is een les bijgewerkt of een bron niet meer beschikbaar, dan zet Versado je notitie niet automatisch om naar een andere passage; je oorspronkelijke tekst blijft bewaard. Annotaties leveren geen XP of reeksactiviteit op.",
+      "more": "Onderaan de contentkiezer, boven de taalkeuze, staat Mijn studiemap. Daar vind je al je bladwijzers, markeringen en privénotities uit alle bronnen bij elkaar, ook als je nu een andere bron of taal hebt gekozen. Zoek op tekst, filter op soort, markeringskleur of bron en tik op Open passage om terug te gaan naar het bewaarde vers of de studiepassage. Notities zijn privé. Is een les bijgewerkt of een bron niet meer beschikbaar, dan zet Versado je notitie niet automatisch om naar een andere passage; je oorspronkelijke tekst blijft bewaard. Annotaties leveren geen XP of reeksactiviteit op.",
       "faq1": {
         "q": "Wat verandert er als ik wissel?",
         "a": "Je gekozen bron bepaalt de beschikbare teksten, cursussen en spellen."

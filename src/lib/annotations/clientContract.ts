@@ -1,4 +1,8 @@
 import type { AnnotationKind, AnnotationTarget } from "./contract";
+
+/** Eén bron voor de vijf markeringskleuren (opslagwaarden); client en server gebruiken dezelfde lijst. */
+export const ANNOTATION_COLORS = ["yellow", "green", "blue", "pink", "purple"] as const;
+export type AnnotationColor = (typeof ANNOTATION_COLORS)[number];
 export type AnnotationView = {
   id: string;
   kind: AnnotationKind;

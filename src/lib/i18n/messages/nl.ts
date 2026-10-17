@@ -13,6 +13,8 @@ export const nl = {
     "typeLabel": "Soort",
     "type": { "all": "Alle annotaties", "bookmark": "Bladwijzers", "highlight": "Markeringen", "note": "Notities" },
     "kind": { "bookmark": "Bladwijzer", "highlight": "Markering", "note": "Notitie" },
+    "colorLabel": "Markeringskleur",
+    "colorAll": "Alle kleuren",
     "sourceLabel": "Bron",
     "sourceAll": "Alle bronnen",
     "open": "Open passage",

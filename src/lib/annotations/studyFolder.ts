@@ -3,7 +3,8 @@ import { z } from "zod";
 import { Prisma, type PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
-import { annotationKind, type AnnotationKind, type AnnotationTarget, type PassageSelector } from "./contract";
+import { annotationKind, annotationColor, type AnnotationKind, type AnnotationTarget, type PassageSelector } from "./contract";
+import type { AnnotationColor } from "./clientContract";
 
 type Actor = { id: string; isAdmin: boolean };
 
@@ -16,7 +17,7 @@ export class StudyFolderError extends Error {
   constructor(readonly code: "INVALID" | "NOT_FOUND") { super(code); }
 }
 
-export type StudyFolderFilters = { q?: string; type?: AnnotationKind; source?: string };
+export type StudyFolderFilters = { q?: string; type?: AnnotationKind; source?: string; color?: AnnotationColor };
 export type StudyFolderSource =
   | { status: "unavailable" }
   | {
@@ -67,7 +68,7 @@ function escapeLike(value: string) {
 }
 /** Een cursor hoort bij precies deze gebruiker en deze filters; elders hergebruiken is ongeldig. */
 function filterHash(userId: string, filters: StudyFolderFilters) {
-  return createHash("sha256").update(JSON.stringify([userId, filters.q ?? null, filters.type ?? null, filters.source ?? null])).digest("hex").slice(0, 32);
+  return createHash("sha256").update(JSON.stringify([userId, filters.q ?? null, filters.type ?? null, filters.source ?? null, filters.color ?? null])).digest("hex").slice(0, 32);
 }
 export function encodeFolderCursor(userId: string, filters: StudyFolderFilters, row: { createdAt: Date; kind: AnnotationKind; id: string }) {
   return Buffer.from(JSON.stringify({ t: row.createdAt.toISOString(), k: row.kind, i: row.id, h: filterHash(userId, filters) })).toString("base64url");
@@ -99,10 +100,12 @@ type Row = {
  */
 async function select(actor: Actor, filters: StudyFolderFilters, extra: Prisma.Sql, limit: number, client: PrismaClient): Promise<Row[]> {
   const type = (kind: AnnotationKind) => (filters.type && filters.type !== kind ? Prisma.sql`AND FALSE` : Prisma.empty);
+  // Alleen markeringen hebben een kleur: een actief kleurfilter sluit de andere twee takken uit en filtert vóór de paginering.
+  const colorFilter = (kind: AnnotationKind) => (filters.color ? (kind === "highlight" ? Prisma.sql`AND x.color = ${filters.color}` : Prisma.sql`AND FALSE`) : Prisma.empty);
   const branch = (kind: AnnotationKind, table: Prisma.Sql, text: Prisma.Sql, color: Prisma.Sql, updated: Prisma.Sql) => Prisma.sql`
     SELECT ${kind}::text AS kind, x.id, x."createdAt", ${updated} AS "updatedAt", ${text} AS text, ${color} AS color,
       x."verseId", x."lessonEditionId", x."revisionId", x.selector, x."anchorStatus", x."mutationVersion", x."targetKey"
-    FROM ${table} x WHERE x."userId" = ${actor.id} AND x."deletedAt" IS NULL ${type(kind)}`;
+    FROM ${table} x WHERE x."userId" = ${actor.id} AND x."deletedAt" IS NULL ${type(kind)} ${colorFilter(kind)}`;
   const query = filters.q ? `%${escapeLike(filters.q)}%` : null;
   const where: Prisma.Sql[] = [];
   if (filters.source) where.push(Prisma.sql`"collectionId" = ${filters.source}`);
@@ -188,10 +191,14 @@ function toItem(row: Row): StudyFolderItem {
 
 export async function listStudyFolder(
   actor: Actor,
-  input: { q?: string; type?: AnnotationKind; source?: string; cursor?: string; limit?: number },
+  input: { q?: string; type?: AnnotationKind; source?: string; color?: string; cursor?: string; limit?: number },
   client: PrismaClient = prisma,
 ): Promise<StudyFolderPage> {
-  const filters: StudyFolderFilters = { q: normalizeFolderQuery(input.q), type: input.type, source: input.source };
+  const color = input.color === undefined ? undefined : annotationColor.safeParse(input.color);
+  if (color && !color.success) throw new StudyFolderError("INVALID");
+  // Een kleur hoort alleen bij markeringen: een ander expliciet type is een ongeldige combinatie, geen stille uitzondering.
+  if (color && input.type && input.type !== "highlight") throw new StudyFolderError("INVALID");
+  const filters: StudyFolderFilters = { q: normalizeFolderQuery(input.q), type: color ? "highlight" : input.type, source: input.source, color: color?.data };
   if (filters.source !== undefined && (filters.source.length < 1 || filters.source.length > 128)) throw new StudyFolderError("INVALID");
   const limit = Math.min(Math.max(Math.trunc(input.limit ?? STUDY_FOLDER_DEFAULT_LIMIT), 1), STUDY_FOLDER_MAX_LIMIT);
   let after = Prisma.empty;

@@ -563,12 +563,50 @@ nav[data-main-nav] a {
   overscroll-behavior: contain;
 }
 
-/* Bevestigde eigen markeringen; de tekst en native selectie blijven ongemoeid. */
-[data-annotation-color="yellow"] { background-color: #facc152e; }
-[data-annotation-color="green"] { background-color: #4ade802e; }
-[data-annotation-color="blue"] { background-color: #60a5fa2e; }
-[data-annotation-color="pink"] { background-color: #f472b62e; }
-[data-annotation-color="purple"] { background-color: #c084fc2e; }
+/* Markeringskleuren (opslagwaarden yellow/green/blue/pink/purple), per thema afgestemd. Vijf duidelijk verschillende tinten
+ * (goud, groen, azuurblauw, roze, violet); de achtergrond blijft een gedempte laag zodat tekst leesbaar blijft, en een
+ * kleuraccent (balk, onderstreping, swatch) geeft een tweede aanwijzing. De alfa is in dark mode hoger omdat dezelfde
+ * donkere ondergrond anders alle tinten bijna gelijk maakt. */
+:root {
+  --vs-mark-alpha: 0.32;
+  --vs-mark-yellow: 234 179 8;
+  --vs-mark-green: 22 163 74;
+  --vs-mark-blue: 14 165 233;
+  --vs-mark-pink: 236 72 153;
+  --vs-mark-purple: 139 92 246;
+}
+.dark {
+  --vs-mark-alpha: 0.42;
+  --vs-mark-yellow: 250 204 21;
+  --vs-mark-green: 74 222 128;
+  --vs-mark-blue: 56 189 248;
+  --vs-mark-pink: 244 114 182;
+  --vs-mark-purple: 167 139 250;
+}
+[data-annotation-color="yellow"], [data-mark-swatch="yellow"] { --m: var(--vs-mark-yellow); }
+[data-annotation-color="green"], [data-mark-swatch="green"] { --m: var(--vs-mark-green); }
+[data-annotation-color="blue"], [data-mark-swatch="blue"] { --m: var(--vs-mark-blue); }
+[data-annotation-color="pink"], [data-mark-swatch="pink"] { --m: var(--vs-mark-pink); }
+[data-annotation-color="purple"], [data-mark-swatch="purple"] { --m: var(--vs-mark-purple); }
+/* Bevestigde eigen markering van een vers: kleurvlak plus een smalle kleurbalk links; de tekst en native selectie blijven ongemoeid.
+ * De balk staat in background-image, zodat de ring van voorlezen/selectie (box-shadow) en de kleurbalk elkaar niet overschrijven. */
+[data-annotation-color] {
+  background-color: rgb(var(--m) / var(--vs-mark-alpha));
+  background-image: linear-gradient(to right, rgb(var(--m)) 0 0.1875rem, transparent 0.1875rem);
+  background-repeat: no-repeat;
+}
+.mark-swatch {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  height: 1.25rem;
+  width: 1.25rem;
+  border-radius: 0.4rem;
+  background-color: rgb(var(--m));
+  border: 2px solid rgb(var(--vs-fg) / 0.4);
+  color: rgb(15 23 42);
+}
 
 /* Tijdelijke, rustige markering van een passage waar Mijn studiemap naartoe linkt (geen animatie nodig). */
 [data-annotation-focus] {
