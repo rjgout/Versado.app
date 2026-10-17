@@ -13,6 +13,7 @@ import { fetchJson } from "@/lib/data/fetchJson";
 import {
   blockSelector,
   selectionToSelector,
+  selectionTouchesBlock,
   selectorRanges,
 } from "@/lib/annotations/domSelector";
 import type { AnnotationTarget } from "@/lib/annotations/contract";
@@ -62,22 +63,14 @@ export default function StudyAnnotations({
     if (disabled) return;
     try {
       const section = element.closest<HTMLElement>("[data-study-section]")!;
+      // Een native selectie telt alleen mee als zij dit blok raakt of omvat. Een selectie elders blijft liggen en wordt
+      // genegeerd (blokdoel); een relevante maar ongeldige of ambigue selectie wordt geweigerd, nooit omgezet in een ander doel.
       const selection = window.getSelection();
-      if (selection && !selection.isCollapsed && selection.rangeCount !== 1) throw Error("SELECTION");
-      const selector =
-        selection && !selection.isCollapsed && selection.rangeCount === 1
-          ? selectionToSelector(
-              root.current!,
-              body,
-              revisionId,
-              selection.getRangeAt(0),
-            )
-          : blockSelector(
-              body,
-              revisionId,
-              section.dataset.studySection!,
-              blockId,
-            );
+      const relevant = !!selection && selectionTouchesBlock(selection, section, blockId);
+      if (relevant && selection!.rangeCount !== 1) throw Error("SELECTION");
+      const selector = relevant
+        ? selectionToSelector(root.current!, body, revisionId, selection!.getRangeAt(0))
+        : blockSelector(body, revisionId, section.dataset.studySection!, blockId);
       setSelected({
         target: {
           type: "lesson",

@@ -145,6 +145,28 @@ try {
       2,
     );
     reject(() => select(emoji), "halve surrogate geweigerd");
+    // Relevantie van een native selectie voor een blokactie: alleen als zij het blok raakt of omvat.
+    const sectionS = document.querySelector('[data-study-section="s"]');
+    const pick = (range) => { getSelection().removeAllRanges(); getSelection().addRange(range); };
+    const touches = (id) => api.selectionTouchesBlock(getSelection(), sectionS, id);
+    pick(full("p"));
+    expect(touches("p") === true && touches("li") === false && touches("q") === false, "selectie in blok A raakt alleen blok A");
+    const spanning = full("p");
+    spanning.setEnd(document.querySelector('[data-study-text="q"]').firstChild, 3);
+    pick(spanning);
+    expect(touches("p") && touches("li") && touches("q") && !touches("cell"), "selectie over meerdere blokken raakt elk omvat blok");
+    const elsewhere = document.createRange();
+    elsewhere.selectNodeContents(document.querySelector('[data-study-text="else"]'));
+    pick(elsewhere);
+    expect(touches("p") === false && touches("else") === false, "selectie in een andere sectie raakt geen blok van deze sectie");
+    getSelection().removeAllRanges();
+    expect(touches("p") === false, "zonder selectie raakt niets");
+    const caret = document.createRange();
+    caret.setStart(document.querySelector('[data-study-text="p"]').firstChild.firstChild, 1);
+    caret.collapse(true);
+    pick(caret);
+    expect(touches("p") === false, "een samengevouwen selectie is geen selectie");
+    getSelection().removeAllRanges();
     const duplicate = document
       .querySelector('[data-study-text="li"]')
       .cloneNode(true);
@@ -208,7 +230,7 @@ try {
   assert.deepEqual(await page.locator('[data-study-block]').evaluateAll(elements=>elements.map(element=>element.dataset.studyBlock)), f.dto.lesson.body.sections.flatMap(section=>section.blocks.map(block=>block.id)), 'ReadingPosition behoudt uitsluitend de bestaande hoofdblokankers');
   assert.equal(await page.locator('[data-study-anchor="item-first"] [data-study-text="item-first"]').count(),1,'Geneste annotatieankers zijn afzonderlijk beschikbaar');
   // Firefox kan meerdere losse ranges aanbieden; nooit op een ander heel blok terugvallen.
-  await page.evaluate(()=>{window.__nativeGetSelection=window.getSelection;window.getSelection=()=>({isCollapsed:false,rangeCount:2});});
+  await page.evaluate(()=>{window.__nativeGetSelection=window.getSelection;const range=document.createRange();range.selectNodeContents(document.querySelector('#study-paragraph-intro [data-study-text]'));window.getSelection=()=>({isCollapsed:false,rangeCount:2,getRangeAt:()=>range});});
   await page.locator('#study-paragraph-intro [data-annotation-trigger]').click();
   await page.getByText(t('annotations.invalid'),{exact:true}).waitFor();assert.equal(await dialog.count(),0);
   await page.evaluate(()=>{window.getSelection=window.__nativeGetSelection;});
@@ -227,6 +249,50 @@ try {
   await open();
   assert.equal(await dialog.locator("p").first().textContent(), "Synthetische");
   await close();
+  // Regressie: een bestaande native selectie in blok A mag nooit het doel van de actieknop van blok B worden.
+  const normalized = (value) => String(value).replace(/\s+/gu, " ").trim();
+  const blockB = "#study-question-intro";
+  const blockBText = normalized(await page.locator(`${blockB} [data-study-text]`).first().textContent());
+  assert.equal(await page.evaluate(() => !getSelection().isCollapsed), true, "de selectie in blok A blijft bestaan na sluiten");
+  await page.locator(`${blockB} [data-annotation-trigger]`).click();
+  await dialog.locator("textarea:not([disabled])").waitFor();
+  assert.equal(normalized(await dialog.locator("p").first().textContent()), blockBText, "de actieknop van blok B opent blok B, niet de selectie uit blok A");
+  assert.notEqual(normalized(await dialog.locator("p").first().textContent()), "Synthetische");
+  await close();
+  // Een geldige selectie binnen blok B wordt nog steeds exact gebruikt.
+  const pickedInB = await page.evaluate((selector) => {
+    const walker = document.createTreeWalker(document.querySelector(`${selector} [data-study-text]`), NodeFilter.SHOW_TEXT);
+    const node = walker.nextNode();
+    const range = document.createRange();
+    range.setStart(node, 0);
+    range.setEnd(node, Math.min(5, node.length));
+    getSelection().removeAllRanges();
+    getSelection().addRange(range);
+    return range.toString();
+  }, blockB);
+  await page.locator(`${blockB} [data-annotation-trigger]`).click();
+  await dialog.locator("textarea:not([disabled])").waitFor();
+  assert.equal(normalized(await dialog.locator("p").first().textContent()), normalized(pickedInB), "een geldige selectie binnen blok B wordt exact gebruikt");
+  await close();
+  // Een selectie die blok B raakt maar de sectiegrens overschrijdt is relevant én ongeldig: geweigerd, geen terugval op een ander doel.
+  await page.evaluate((selector) => {
+    const inB = document.querySelector(`${selector} [data-study-text]`);
+    const sections = [...document.querySelectorAll("[data-study-section]")];
+    const otherSection = sections.find((section) => !section.contains(inB));
+    if (!otherSection) return;
+    const otherText = otherSection.querySelector("[data-study-text]");
+    const range = document.createRange();
+    range.setStart(inB.firstChild ?? inB, 0);
+    range.setEnd(otherText, otherText.childNodes.length);
+    getSelection().removeAllRanges();
+    getSelection().addRange(range);
+  }, blockB);
+  if (await page.evaluate(() => document.querySelectorAll("[data-study-section]").length > 1)) {
+    await page.locator(`${blockB} [data-annotation-trigger]`).click();
+    await page.getByText(t("annotations.invalid"), { exact: true }).waitFor();
+    assert.equal(await dialog.count(), 0, "een relevante maar ongeldige selectie opent niets");
+  }
+  await page.evaluate(() => getSelection().removeAllRanges());
   await page.evaluate(() => getSelection().removeAllRanges());
   await open();
   await dialog.locator("textarea").fill("Eerste privénotitie 😀");

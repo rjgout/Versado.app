@@ -51,3 +51,17 @@ test("client-targetidentiteit is identiek aan de servercanonicalisatie en onafha
     "verse:verse-1",
   );
 });
+
+test("een blokactie gebruikt een native selectie alleen als zij het aangeklikte blok raakt; de algemene knop gebruikt altijd de selectie", async () => {
+  const { readFileSync } = await import("node:fs");
+  const source = readFileSync(new URL("../src/components/annotations/StudyAnnotations.tsx", import.meta.url), "utf8");
+  const open = source.slice(source.indexOf("function open("), source.indexOf("function select("));
+  assert.match(open, /selectionTouchesBlock\(selection, section, blockId\)/);
+  assert.match(open, /if \(relevant && selection!\.rangeCount !== 1\) throw Error\("SELECTION"\)/, "relevante ambigue selectie wordt geweigerd");
+  assert.match(open, /blockSelector\(body, revisionId, section\.dataset\.studySection!, blockId\)/, "geen relevante selectie: het aangeklikte blok");
+  assert.doesNotMatch(open, /!selection\.isCollapsed/, "geen blinde selectie meer, ook niet uit een ander blok");
+  // de expliciete knop "Geselecteerde tekst annoteren" blijft de actuele selectie gebruiken
+  const select = source.slice(source.indexOf("function select("), source.indexOf("useEffect("));
+  assert.match(select, /selection\.getRangeAt\(0\)/);
+  assert.doesNotMatch(select, /selectionTouchesBlock/);
+});

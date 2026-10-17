@@ -28,6 +28,17 @@ function anchor(node: Node) {
     node instanceof Element ? node : node.parentElement
   )?.closest<HTMLElement>("[data-study-text]");
 }
+/**
+ * Raakt of omvat de native selectie dit tekstblok? Alleen dan mag zij het doel van een actie bij dat blok zijn: een
+ * selectie in een andere alinea of sectie is niet van de gebruiker voor dit blok bedoeld.
+ */
+export function selectionTouchesBlock(selection: Selection, section: HTMLElement, blockId: string): boolean {
+  if (selection.isCollapsed) return false;
+  const block = section.querySelector<HTMLElement>(`[data-study-text="${CSS.escape(blockId)}"]`);
+  if (!block) return false;
+  for (let i = 0; i < selection.rangeCount; i++) if (selection.getRangeAt(i).intersectsNode(block)) return true;
+  return false;
+}
 export function blockSelector(
   document: ReaderDocument,
   revisionId: string,
