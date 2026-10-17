@@ -182,6 +182,7 @@ export default function StudyAnnotations({
       </style>
       <button
         ref={selectionButton}
+        data-annotation-selection
         type="button"
         className={`${secondaryButton} mb-4`}
         disabled={disabled}

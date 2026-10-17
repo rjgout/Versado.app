@@ -250,11 +250,15 @@ try {
       assert.equal(
         await page
           .locator(
-            "[data-study-reader-body] input, [data-study-reader-body] button:not([data-reference-key])",
+            "[data-study-reader-body] input, [data-study-reader-body] button:not([data-reference-key]):not([data-annotation-trigger]):not([data-annotation-selection])",
           )
           .count(),
         0,
+        "Alleen expliciete referentie- en annotatieacties; geen oefen- of afrondknoppen in de leestekst",
       );
+      assert.equal(await page.locator('[data-annotation-selection]').count(),1);
+      assert.ok(await page.locator('[data-annotation-trigger]').count()>0);
+      assert.equal(await page.locator('[data-annotation-trigger], [data-annotation-selection]').evaluateAll(elements=>elements.every(element=>element.getAttribute('type')==='button')),true);
       const saved = await read(page, f);
       await page.reload();
       await page.locator("[data-study-reader-body]").waitFor();

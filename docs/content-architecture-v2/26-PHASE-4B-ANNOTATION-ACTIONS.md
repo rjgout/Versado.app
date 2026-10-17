@@ -70,6 +70,7 @@ wordt door annotaties toegevoegd. De 4A-noodstop en rechten blijven leidend.
 | Productie-browserflow | Note, highlightkleur, bookmark, verwijderen, twee toestellen/409, echte netwerkfout en verloren proxyresponse na commit, identieke retry-UUID, late targetread en revisiewissel geslaagd |
 | Responsive browsermatrix | 28 combinaties: 320/390/768/1280px en 844×390; licht/donker; 100/200% tekst; aanvullend alle vijf talen op 320px bij 200% |
 | Focus en live-data | 28 en 52 tests geslaagd |
+| Bestaande ReadingPosition/StudyReader | 15 integratietests en 20 browserflows geslaagd |
 | TypeScript, productiebuild, i18n | Geslaagd; alle nieuwe teksten in vijf talen |
 | ESLint | Nul fouten; 160 bestaande waarschuwingen op deze main, geen in de nieuwe annotatiebestanden |
 
@@ -79,6 +80,10 @@ Een echte Tab-wrapfout aan het einde van de native dialoog is vervolgens
 hersteld en de oorspronkelijke focusassertie slaagt. Er zijn geen asserts
 verwijderd om een resultaat groen te krijgen. De suite controleert ook
 longpress zonder dubbele opening en bevestigde opslag zonder XP/hintwijziging.
+De bestaande readerassertie die alle niet-verwijzingsknoppen verbood, heeft nu
+een gerichte allowlist voor `data-annotation-trigger` en `data-annotation-selection`.
+De assertie blijft andere input/oefen-/afrondknoppen in de leestekst verbieden
+en controleert expliciet de nieuwe ingangen en hun `type=button`.
 De bestaande pg-client-deprecatiewaarschuwing in de geïsoleerde runner staat los
 van deze wijziging. De migratieketen is ongewijzigd en de databehoudproef slaagt.
 
