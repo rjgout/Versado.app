@@ -66,7 +66,9 @@ try {
     assert.ok(await page.evaluate(()=>document.querySelector('[data-content-language]').getBoundingClientRect().top>=document.querySelector('[data-content-group=studyPrograms]').getBoundingClientRect().bottom),'Taal volgt beide brongroepen');
     assert.equal(await page.locator('[data-content-menu]').count(),0);
     assert.equal(await page.locator('[data-content-picker] details, [data-content-picker] summary').count(),0);
-    assert.equal(await page.locator('[data-content-picker] a').count(),0,'Geen beheerlinks voor gewone gebruikers');
+    assert.equal(await page.locator('[data-content-picker] a:not([data-study-folder-link])').count(),0,'Geen beheerlinks voor gewone gebruikers');
+    assert.equal(await page.locator('[data-content-picker] [data-study-folder-link]').count(),1,'Mijn studiemap is er één keer, ook zonder beheer');
+    assert.ok(await page.evaluate(()=>{const entry=document.querySelector('[data-study-folder-entry]'),language=document.querySelector('[data-content-language]'),programs=document.querySelector('[data-content-group=studyPrograms]');return entry.nextElementSibling===language&&entry.getBoundingClientRect().top>=programs.getBoundingClientRect().bottom;}),'Mijn studiemap staat na de brongroepen en direct vóór de taalkeuze');
     assert.equal(await page.locator('[data-hymns-link]').count(),0,'Proef niet zichtbaar voor gewone gebruikers');
     assert.ok(!(await page.locator('[data-content-work]').allTextContents()).some(text=>text.includes('Beschikbaar in ')));
     const chips=await page.locator('[data-content-language] button').evaluateAll(buttons=>buttons.map(button=>({name:button.textContent,height:button.getBoundingClientRect().height,width:button.clientWidth,scrollWidth:button.scrollWidth,overflow:button.scrollWidth>button.clientWidth+1})));
@@ -195,7 +197,7 @@ try {
     await ready('/content');assert.equal(await page.locator('[data-content-work="old-testament"]').count(),0);assert.equal(await page.locator('[data-content-work="pgp"]').count(),0);assert.equal(await page.locator('[data-content-work="fsy"]').count(),0);
     await prisma.user.update({where:{id:user.id},data:{isAdmin:true}});
     await ready('/content');assert.equal(await page.locator('[data-content-work="old-testament"]').count(),1,'Admins mogen verborgen vrijgegeven bronnen selecteren');
-    assert.equal(await page.locator('[data-content-picker] a').count(),2);
+    assert.equal(await page.locator('[data-content-picker] a').count(),3,'Lofzangen, Mijn studiemap en de beheerlink');
     assert.equal(await page.locator('[data-admin-content-link]').getAttribute('href'),'/adminbackend/content/inspect');
     assert.equal(await page.locator('[data-hymns-link]').getAttribute('href'),'/dev/lofzangen');
     await page.locator('[data-hymns-link]').click();await page.waitForURL(`${base}/dev/lofzangen`);
