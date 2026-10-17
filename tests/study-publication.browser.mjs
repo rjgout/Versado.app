@@ -77,8 +77,16 @@ async function eventually(fn, label) {
   }
   throw new Error(`Niet bereikt: ${label}`);
 }
+// De testimport staat bewust onder de ingeklapte "Technische details".
+async function openTech(page, t) {
+  const control = page.getByLabel(t("studyPublishing.collection"), { exact: true });
+  if (await control.isVisible()) return;
+  await page.locator("summary", { hasText: t("studyPublishing.program.techTitle") }).click();
+  await control.waitFor();
+}
 async function importUi(page, f, key = "sample") {
   const t = getT(f.user.uiLanguage);
+  await openTech(page, t);
   await page
     .getByLabel(t("studyPublishing.collection"), { exact: true })
     .selectOption(f.collection.id);
@@ -345,6 +353,9 @@ try {
       const t = getT(language),
         first = await importUi(page, f);
       await preview(page, first.item, t);
+      // Ook met lessenlijst en preview open blijft het document binnen het scherm (anders zoomt een mobiele browser uit).
+      const wide = await page.evaluate(() => [...document.querySelectorAll("body *")].filter((el) => { const b = el.getBoundingClientRect(); return b.width > 0 && b.right > 321 && !el.closest("[data-main-nav],[data-sticky-header]") && getComputedStyle(el).position !== "fixed"; }).slice(0, 14).map((el) => `${el.tagName}.${String(el.className).slice(0, 50)}:${Math.round(el.getBoundingClientRect().left)}-${Math.round(el.getBoundingClientRect().right)}:${(el.textContent || "").slice(0, 30)}`));
+      assert.deepEqual(wide, [], `horizontale overflow ${language}`);
       await page
         .getByRole("button", {
           name: t("studyPublishing.publish"),
@@ -359,6 +370,7 @@ try {
           box.y >= 0 &&
           box.x + box.width <= 320 &&
           box.y + box.height <= 844,
+        `${language} ${scheme} ${JSON.stringify(box)} ${await page.evaluate(() => JSON.stringify({ iw: innerWidth, ih: innerHeight, sw: document.documentElement.scrollWidth, vv: window.visualViewport && [visualViewport.width, visualViewport.height, visualViewport.scale] }))}`,
       );
       await page.screenshot({
         path: `${output}/320-${scheme}-${language}-200-text.png`,
@@ -384,6 +396,7 @@ try {
   await page.route("**/api/admin/study-publications", (route) =>
     route.request().method() === "POST" ? route.abort() : route.continue(),
   );
+  await openTech(page, t);
   await page
     .getByLabel(t("studyPublishing.collection"), { exact: true })
     .selectOption(f.collection.id);

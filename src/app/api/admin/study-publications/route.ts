@@ -23,6 +23,8 @@ import {
   studyPublicationSchema,
 } from "@/lib/studyContent/publication";
 import { StudyPublishingError } from "@/lib/studyContent/policy";
+import { publishStudyProgram, studyProgramPublishSchema } from "@/lib/studyContent/programPublication";
+import { studyProgramReview } from "@/lib/studyContent/programReview";
 import { STUDY_FIXTURES } from "@/lib/studyContent/fixtureAdapter";
 import { auditStudyReferences } from "@/lib/references/audit";
 import type { MessageKey } from "@/lib/i18n/core";
@@ -35,6 +37,7 @@ const id = z.string().min(1).max(128);
 const querySchema = z.union([
   z.object({}).strict(),
   z.object({ editionId: id, revisionId: id }).strict(),
+  z.object({ collectionId: id, review: z.literal("1") }).strict(),
   z
     .object({
       editionId: id,
@@ -62,6 +65,7 @@ const actionSchema = z.discriminatedUnion("action", [
   studyCollectionReleaseSchema.extend({
     action: z.literal("release-collection"),
   }),
+  studyProgramPublishSchema.extend({ action: z.literal("publish-program") }),
 ]);
 async function input(req: NextRequest) {
   if (Number(req.headers.get("content-length") ?? 0) > 16384)
@@ -105,6 +109,8 @@ export async function GET(req: NextRequest) {
       { status: 400, headers },
     );
   try {
+    if ("review" in parsed.data)
+      return NextResponse.json(await studyProgramReview(user, parsed.data.collectionId), { headers });
     return NextResponse.json(
       "revisionId" in parsed.data
         ? await studyRevisionPreview(
@@ -167,6 +173,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(await releaseStudyCollection(user, request), {
         headers,
       });
+    }
+    if (action.action === "publish-program") {
+      const { action: _, ...request } = action;
+      void _;
+      return NextResponse.json(await publishStudyProgram(user, request), { headers });
     }
     if (action.action === "audit-references")
       return NextResponse.json(

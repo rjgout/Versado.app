@@ -55,7 +55,7 @@ try {
   await prisma.contentCollection.update({ where: { id: flow.collectionId }, data: { publicationState: "DRAFT", visibleToUsers: false } });
   // Alleen de wegwerpfixture terugzetten naar de reeds geïmporteerde concepttoestand.
   // Alle revisies, importaudit en eerdere publicatiehistorie blijven bewaard.
-  await prisma.$executeRaw`UPDATE "StudyLessonEdition" SET "draftRevisionId"="publishedRevisionId", "publishedRevisionId"=NULL WHERE "collectionId"=${flow.collectionId}`;
+  await prisma.$executeRaw`UPDATE "StudyLessonEdition" SET "draftRevisionId"="publishedRevisionId", "publishedRevisionId"=NULL WHERE "collectionId"=${flow.collectionId} AND "publishedRevisionId" IS NOT NULL`;
   try {
     const editions = await prisma.studyLessonEdition.findMany({ where: { collectionId: flow.collectionId }, orderBy: { lesson: { order: "asc" } }, include: { draftRevision: true, publishedRevision: true } });
     assert.equal(editions.length, 52);
@@ -68,6 +68,26 @@ try {
       if (text === 200) await page.addStyleTag({ content: "html{font-size:200% !important}" });
       const ids = await page.locator("[data-study-edition]").evaluateAll((nodes) => nodes.map((n) => n.getAttribute("data-study-edition")));
       assert.ok(editions.every((e) => ids.includes(e.id)), "Alle 52 verborgen concepten staan in beheer");
+      // Programmakaart per viewport: toetsenbordbediening, tellingen, geen horizontale overflow, schermlezer-labels.
+      const card = page.locator(`[data-study-program="${flow.collectionId}"]`);
+      await page.waitForFunction(() => document.querySelector("[data-program-review]") && !document.querySelector("[data-program-review]").disabled);
+      await card.locator("[data-program-review]").focus();
+      await page.keyboard.press("Enter");
+      await card.locator('[data-count="known"]').waitFor({ timeout: 90000 });
+      assert.equal(await card.locator('[data-count="known"]').innerText(), "553");
+      assert.equal(await card.locator("[data-lesson-status]").count(), 52);
+      for (const control of await card.locator("input, select, button, a[download]").all()) {
+        if (!(await control.isVisible())) continue;
+        const name = (await control.getAttribute("aria-label")) || (await control.innerText().catch(() => "")) || (await control.evaluate((el) => el.labels?.[0]?.innerText ?? ""));
+        assert.ok(name.trim().length > 0, "elk zichtbaar bedieningselement heeft een toegankelijke naam");
+        const box = await control.boundingBox();
+        assert.ok(box.x >= -1 && box.x + box.width <= width + 1, "bediening past binnen het scherm");
+      }
+      await card.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: `${output}/sp-program-${width}-${scheme}-${text}.png` });
+      await card.locator("input[type=search]").fill("zzzz-bestaat-niet");
+      await card.getByText("Geen lessen gevonden.").waitFor();
+      await card.locator("input[type=search]").fill("");
       for (const edition of [editions[40], editions[0]]) {
         const card=page.locator(`[data-study-edition="${edition.id}"]`);
         if(edition.draftRevision) await card.getByRole("button",{name:"Concept bekijken",exact:true}).click();
@@ -101,31 +121,55 @@ try {
     await page.locator("[data-study-publications]").waitFor();
     const cfmCards = page.locator(editions.map(edition => `[data-study-edition="${edition.id}"]`).join(","));
     assert.equal(await cfmCards.count(), 52, "Precies de 52 bestaande CFM-edities zijn via beheer bereikbaar; andere testcollecties blijven behouden");
-    for (const edition of editions) {
-      const reviewStartedAt = Date.now();
-      const card = page.locator(`[data-study-edition="${edition.id}"]`);
-      await card.getByRole("button", { name: "Concept bekijken", exact: true }).click();
-      await page.locator("[data-study-revision-content]").getByRole("heading", { level: 2, name: edition.draftRevision.title, exact: true }).waitFor();
-      const publish = page.getByRole("button", { name: "Revisie publiceren", exact: true });
-      const review = page.getByRole("checkbox");
-      if (await review.count()) {
-        assert.equal(await publish.isDisabled(), true, "Geblokkeerde verwijzingen vereisen revisiebeoordeling");
-        await review.check();
-      }
-      const sent = page.waitForResponse(response => response.url().endsWith("/api/admin/study-publications") && response.request().method() === "POST" && response.request().postDataJSON()?.action === "publish");
-      await publish.click();
-      await page.locator("dialog[open]").getByRole("button", { name: "Revisie publiceren", exact: true }).click();
-      const response = await sent;
-      assert.equal(response.status(), 200, "Elke revisie wordt via de beveiligde beheer-API gepubliceerd");
-      await card.getByRole("button", { name: "Concept bekijken", exact: true }).waitFor({ state: "hidden" });
-      // Behoud de echte 30-acties/minuut-grens, ook bij machinaal snelle beoordeling.
-      await delay(Math.max(0, 2100 - (Date.now() - reviewStartedAt)));
-    }
+    // Eén programmakaart: controleren, verslag, bevestigen en alle 52 lessen gezamenlijk publiceren (geen 52 losse bevestigingen).
+    const program = page.locator(`[data-study-program="${flow.collectionId}"]`);
+    await program.waitFor();
+    assert.equal(await program.locator('[data-count="expected"]').innerText(), "52");
+    assert.equal(await program.locator('[data-count="imported"]').innerText(), "52");
+    assert.equal(await program.locator('[data-count="published"]').innerText(), "0");
+    assert.equal(await page.locator("[data-test-import]").count(), 1, "testomgeving toont de synthetische testimport (alleen onder Technische details)");
+    assert.equal(await page.locator("[data-test-import]").isVisible(), false, "technische importbediening staat ingeklapt");
+    assert.ok(!(await page.locator("[data-study-publications]").innerText()).match(/[a-f0-9]{64}/), "geen SHA-256 op het hoofdscherm");
+    await program.locator("[data-next-action]").waitFor();
+    await page.waitForFunction(() => !document.querySelector("[data-program-review]")?.disabled);
+    await program.locator("[data-program-review]").click();
+    await program.locator('[data-count="blocking"]').waitFor({ timeout: 90000 });
+    assert.equal(await program.locator('[data-count="ready"]').innerText(), "52");
+    assert.equal(await program.locator('[data-count="known"]').innerText(), "553");
+    assert.equal(await program.locator('[data-count="blocking"]').innerText(), "Geen");
+    assert.equal(await program.locator("[data-lesson-status=ready]").count(), 52);
+    await program.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${output}/sp-program-reviewed-1280-light.png`, fullPage: false });
+    // Verslag: alle 52 lessen, geen persoonsgegevens, geen valse beoordelingsclaim.
+    const md = await context.request.get(await program.locator('[data-report-download="md"]').getAttribute("href").then((h) => base + h));
+    assert.equal(md.status(), 200);
+    const report = await md.text();
+    for (const edition of editions) assert.ok(report.includes(edition.draftRevision.title.replace(/\s+/g, " ").trim()), edition.draftRevision.title);
+    assert.ok(!report.includes(process.env.SESSION_SECRET ?? "geen-geheim"));
+    const jsonReport = await (await context.request.get(await program.locator('[data-report-download="json"]').getAttribute("href").then((h) => base + h))).json();
+    assert.equal(jsonReport.lessons.length, 52);
+    assert.equal(jsonReport.reviewStatus, "NOT_REVIEWED");
+    // Zonder uitdrukkelijke bevestiging kan niet worden gepubliceerd; Escape op de dialoog wijzigt niets.
+    const bulk = program.locator("[data-publish-program]");
+    assert.equal(await bulk.isDisabled(), true);
+    await program.locator("[data-confirm-reviewed]").check();
+    await bulk.click();
+    await page.locator("dialog[open]").waitFor();
+    await page.screenshot({ path: `${output}/sp-bulk-confirm-1280-light.png` });
+    await page.keyboard.press("Escape");
+    assert.equal(await prisma.studyLessonEdition.count({ where: { collectionId: flow.collectionId, publishedRevisionId: { not: null } } }), 0);
+    await bulk.click();
+    const sent = page.waitForResponse((response) => response.url().endsWith("/api/admin/study-publications") && response.request().method() === "POST" && response.request().postDataJSON()?.action === "publish-program");
+    await page.locator("dialog[open]").getByRole("button", { name: "52 lessen publiceren", exact: true }).click();
+    assert.equal((await sent).status(), 200);
+    await program.locator("[data-batch-result]").waitFor();
+    await page.waitForFunction((id) => document.querySelector(`[data-study-program="${id}"] [data-count="published"]`)?.textContent === "52", flow.collectionId);
+    await page.screenshot({ path: `${output}/sp-bulk-done-1280-light.png` });
     assert.equal(await prisma.studyLessonEdition.count({ where: { collectionId: flow.collectionId, publishedRevisionId: { not: null } } }), 52);
     assert.equal((await context.request.get(base + flow.href)).status(), 404, "Lespublicaties maken een DRAFT-collectie niet normaal leesbaar");
     const release = page.locator(`[data-release-collection="${flow.collectionId}"]`);
     await release.waitFor({ state: "attached" });
-    await page.locator("details").filter({ has: release }).locator("summary").first().click();
+    if (!(await release.isVisible())) await page.locator("details").filter({ has: release }).locator("summary").first().click();
     await release.click();
     await page.screenshot({ path: `${output}/cfm-collection-release-confirm.png` });
     const released = page.waitForResponse(response => response.url().endsWith("/api/admin/study-publications") && response.request().method() === "POST" && response.request().postDataJSON()?.action === "release-collection");
