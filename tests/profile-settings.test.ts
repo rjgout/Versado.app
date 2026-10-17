@@ -68,3 +68,14 @@ test("knoppen zijn standaard type=button; submit alleen als gevraagd", () => {
   assert.match(renderToStaticMarkup(h(SettingsButton, { type: "submit", variant: "primary" }, "Opslaan")), /^<button type="submit"/);
   assert.match(renderToStaticMarkup(h(SettingsButton, { variant: "danger" }, "Resetten")), /text-vs-danger/);
 });
+
+test("Jouw gids: eigen profielonderdeel, compacte rij onder Weergave en geen grote sectie op het overzicht", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { parseProfileView, profileViewHref, PROFILE_VIEWS } = await import("../src/lib/profileViews");
+  assert.equal(parseProfileView("guide"), "guide");
+  assert.equal(profileViewHref("guide"), "/profile?view=guide");
+  assert.equal(PROFILE_VIEWS.guide.title, "companion.profileTitle");
+  const client = readFileSync(new URL("../src/components/ProfileClient.tsx", import.meta.url), "utf8");
+  assert.equal((client.match(/<CompanionSection/g) ?? []).length, 1, "alleen op de gidspagina");
+  assert.ok(client.indexOf('openView("guide")') > client.indexOf("<ThemePreference") && client.indexOf('openView("guide")') < client.indexOf('openView("language")'), "na Weergave, vóór Taal");
+});

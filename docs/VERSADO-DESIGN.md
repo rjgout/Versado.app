@@ -283,8 +283,12 @@ Een state is een functionele toestand in Versado, niet zomaar een emotie.
   (`User.companion`, vertaald door `src/lib/companion.ts`) en geeft die aan
   `MascotSlot`. Geen feature implementeert zelf `user.companion ?? "novi"`.
   Kiezen: onboardingstap "Kies je gids" (overslaan kan pas na een opgeslagen
-  keuze) en de sectie "Jouw gids" op het profiel, beide met
-  `versado/CompanionPicker.tsx` en `PATCH /api/account { companion }`. Na
+  keuze) en het profielonderdeel "Jouw gids", beide met
+  `versado/CompanionPicker.tsx` en `PATCH /api/account { companion }`. Jouw
+  gids staat als compacte rij onder Voorkeuren (direct na Weergave); de
+  daadwerkelijke keuze bevindt zich op `/profile?view=guide` (op een telefoon
+  een horizontaal bladerbare rij met scroll-snap, vanaf `sm` drie kaarten
+  naast elkaar; `CompanionPicker size="carousel"`). Na
   een wijziging wisselt de gids meteen overal (`useCompanion`). Bestaande
   accounts hebben Novi en worden niet opnieuw door de onboarding gestuurd.
 - **Geen paden in pagina's.** Directe assetpaden (`/mascots/static/...`)
