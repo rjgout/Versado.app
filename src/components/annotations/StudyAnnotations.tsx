@@ -24,6 +24,9 @@ import type {
 } from "@/lib/annotations/clientContract";
 import type { ReaderDocument } from "@/lib/studyContent/readingPositionContract";
 import AnnotationActions, { StudyAnnotationContext } from "./AnnotationActions";
+import AnnotationRecovery from "./AnnotationRecovery";
+import type { AnnotationFocus } from "@/lib/annotations/studyFocus";
+import type { PassageSelector } from "@/lib/annotations/contract";
 import { secondaryButton } from "@/components/versado/styles";
 
 export default function StudyAnnotations({
@@ -33,12 +36,15 @@ export default function StudyAnnotations({
   sessionKey,
   children,
   disabled,
+  recovery = null,
 }: {
   document: ReaderDocument;
   editionId: string;
   revisionId: string;
   sessionKey: string;
   disabled: boolean;
+  /** Fase 4D: een voorstel of verloren passage van de geopende annotatie; anders null. */
+  recovery?: AnnotationFocus | null;
   children: ReactNode;
 }) {
   const t = useT(),
@@ -49,7 +55,9 @@ export default function StudyAnnotations({
       target: AnnotationTarget;
       element: HTMLElement;
     } | null>(null),
-    [invalid, setInvalid] = useState(false);
+    [invalid, setInvalid] = useState(false),
+    [pickMode, setPickMode] = useState(false),
+    [picked, setPicked] = useState<PassageSelector | null>(null);
   const list = useLiveQuery<AnnotationList>(
     ["annotations", "lesson", sessionKey, editionId, revisionId],
     () =>
@@ -59,9 +67,15 @@ export default function StudyAnnotations({
     { scopes: ["annotations"] },
   );
   const rows = useMemo(() => list.data?.annotations ?? [], [list.data]);
+  // Het oorspronkelijke target blijft de identiteit; de zichtbare plaats is alleen een bewezen exacte plaats (fase 4D).
+  // Zonder serverplaatsing (bv. direct na een bewerking) geldt de oorspronkelijke selector alleen als hij bij de werkelijk
+  // getoonde revisie hoort; anders liever tijdelijk geen markering dan een markering op de verkeerde tekst.
+  const effective = (row: AnnotationView): PassageSelector | null =>
+    row.placement ? (row.placement.status === "EXACT" ? (row.placement.selector ?? null) : null)
+      : row.target.type === "lesson" && row.target.selector.originalRevisionId === revisionId ? row.target.selector : null;
   if (disabled && selected) setSelected(null);
   function open(blockId: string, element: HTMLElement) {
-    if (disabled) return;
+    if (disabled || pickMode) return;
     try {
       const section = element.closest<HTMLElement>("[data-study-section]")!;
       // Een native selectie telt alleen mee als zij dit blok raakt of omvat. Een selectie elders blijft liggen en wordt
@@ -97,6 +111,9 @@ export default function StudyAnnotations({
         revisionId,
         selection.getRangeAt(0),
       );
+      setInvalid(false);
+      // Herstelactie: de gekozen passage wordt eerst getoond en pas na bevestiging aan de bestaande annotatie gekoppeld.
+      if (pickMode) { setPicked(selector); return; }
       setSelected({
         target: {
           type: "lesson",
@@ -106,7 +123,6 @@ export default function StudyAnnotations({
         },
         element: selectionButton.current!,
       });
-      setInvalid(false);
     } catch {
       setInvalid(true);
     }
@@ -129,11 +145,8 @@ export default function StudyAnnotations({
         )
         .flatMap((row) => {
           try {
-            return selectorRanges(
-              root.current!,
-              (row.target as Extract<AnnotationTarget, { type: "lesson" }>)
-                .selector,
-            );
+            const selector = effective(row);
+            return selector ? selectorRanges(root.current!, selector) : [];
           } catch {
             return [];
           }
@@ -145,25 +158,19 @@ export default function StudyAnnotations({
     return () => {
       keys.forEach((key) => css.highlights?.delete(key));
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, highlightId]);
   function changed(row: AnnotationView) {
-    list.setData((old) =>
-      old
-        ? {
-            ...old,
-            annotations: [
-              ...old.annotations.filter((r) => r.id !== row.id),
-              ...(!row.deleted ? [row] : []),
-            ],
-          }
-        : old,
-    );
+    list.setData((old) => {
+      if (!old) return old;
+      // Dezelfde annotatie-identiteit behoudt haar door de server bewezen plaats (alleen kleur/tekst veranderden); de
+      // centrale annotationsChanged-invalidatie haalt daarna de definitieve plaatsing op.
+      const previous = old.annotations.find((r) => r.id === row.id);
+      const next = !row.placement && previous?.placement && previous.targetKey === row.targetKey ? { ...row, placement: previous.placement } : row;
+      return { ...old, annotations: [...old.annotations.filter((r) => r.id !== row.id), ...(!row.deleted ? [next] : [])] };
+    });
   }
-  const marked = rows.flatMap((row) =>
-    row.target.type === "lesson"
-      ? row.target.selector.ranges.map((range) => range.blockId)
-      : [],
-  );
+  const marked = rows.flatMap((row) => effective(row)?.ranges.map((range) => range.blockId) ?? []);
   return (
     <div ref={root} data-study-annotations>
       <style>
@@ -185,6 +192,16 @@ export default function StudyAnnotations({
       >
         {t("annotations.selection")}
       </button>
+      {recovery && (recovery.status === "proposal" || recovery.status === "orphaned") && (
+        <AnnotationRecovery
+          recovery={recovery}
+          revisionId={revisionId}
+          pickMode={pickMode}
+          picked={picked}
+          onPick={() => { setPickMode(true); setPicked(null); }}
+          onCancelPick={() => { setPickMode(false); setPicked(null); }}
+        />
+      )}
       {invalid && (
         <p role="alert" className="mb-3 text-vs-fg-2">
           {t("annotations.invalid")}
@@ -219,6 +236,11 @@ export default function StudyAnnotations({
                   {row.target.type === "lesson"
                     ? row.target.selector.exact.slice(0, 120)
                     : ""}
+                  {row.placement && row.placement.status !== "EXACT" && (
+                    <span className="ml-2 text-xs text-vs-fg-3">
+                      ({t(row.placement.status === "NEEDS_REVIEW" ? "studyFolder.recoveryReview" : "studyFolder.recoveryMissing")})
+                    </span>
+                  )}
                 </button>
               </li>
             ))}

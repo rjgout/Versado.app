@@ -285,10 +285,19 @@ function FolderCard({ item, t, date, returnTo, emphasized = false, onEdit }: {
         </blockquote>
       )}
       {item.text && <p className="whitespace-pre-wrap rounded-xl bg-vs-subtle p-3 text-sm leading-relaxed text-vs-fg [overflow-wrap:anywhere]">{item.text}</p>}
-      {source.status === "revision-changed" && <p role="note" className="text-sm text-vs-fg-2">{t("studyFolder.revisionChanged")}</p>}
+      {item.recovery && (
+        <p data-folder-recovery={item.recovery} className="text-sm font-bold text-vs-fg">
+          {t(item.recovery === "found" ? "studyFolder.recoveryFound" : item.recovery === "review" ? "studyFolder.recoveryReview" : "studyFolder.recoveryMissing")}
+        </p>
+      )}
+      {source.status === "revision-changed" && (
+        <p role="note" className="text-sm text-vs-fg-2">
+          {t(item.recovery === "review" ? "studyFolder.recoveryReviewHelp" : item.recovery === "missing" ? "studyFolder.recoveryMissingHelp" : "studyFolder.revisionChanged")}
+        </p>
+      )}
       {source.status === "unavailable" && <p className="text-sm text-vs-fg-2">{t("studyFolder.sourceUnavailableHelp")}</p>}
       <footer className="mt-1 flex flex-wrap items-center gap-2">
-        {href && <Link href={href} data-folder-open className={primaryButton}>{t(source.status === "revision-changed" ? "studyFolder.openLesson" : "studyFolder.open")}</Link>}
+        {href && <Link href={href} data-folder-open className={primaryButton}>{t(item.recovery === "review" ? "studyFolder.recoveryCompare" : source.status === "revision-changed" ? "studyFolder.openLesson" : "studyFolder.open")}</Link>}
         <button type="button" data-folder-edit className={secondaryButton} aria-haspopup="dialog" aria-label={t("studyFolder.editAria", { label: title })} onClick={(event) => onEdit(event.currentTarget)}>
           <Pencil className="h-4 w-4" aria-hidden />{t("studyFolder.edit")}
         </button>

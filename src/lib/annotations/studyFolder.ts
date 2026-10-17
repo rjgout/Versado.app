@@ -3,6 +3,8 @@ import { z } from "zod";
 import { Prisma, type PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
+import { getPublishedStudyLesson } from "@/lib/studyContent/revisions";
+import { placeAnnotation, type PlacementLesson } from "./revisionResolution";
 import { annotationKind, annotationColor, type AnnotationKind, type AnnotationTarget, type PassageSelector } from "./contract";
 import type { AnnotationColor } from "./clientContract";
 
@@ -44,6 +46,11 @@ export type StudyFolderItem = {
   quote?: string;
   /** Alleen gevuld als de bron nu leesbaar is. */
   snippet?: string;
+  /**
+   * Fase 4D, alleen voor een studiepassage in een bijgewerkte les met leesbare bron: bewezen teruggevonden (found), een
+   * voorstel dat bevestiging vraagt (review) of geen veilige plaats (missing). Bevat nooit brontekst.
+   */
+  recovery?: "found" | "review" | "missing";
   source: StudyFolderSource;
 };
 export type StudyFolderPage = { items: StudyFolderItem[]; nextCursor: string | null };
@@ -86,6 +93,7 @@ type Row = {
   kind: AnnotationKind; id: string; createdAt: Date; updatedAt: Date; text: string | null; color: string | null;
   verseId: string | null; lessonEditionId: string | null; revisionId: string | null; selector: PassageSelector | null;
   anchorStatus: string; mutationVersion: number; targetKey: string | null;
+  resolvedRevisionId: string | null; resolvedSelector: unknown; resolutionHistory: unknown;
   open: boolean;
   collectionId: string | null; collectionName: string | null; collectionLanguage: string | null;
   bookName: string | null; chapterId: string | null; chapterNumber: number | null; verseNumber: number | null; verseText: string | null;
@@ -104,7 +112,8 @@ async function select(actor: Actor, filters: StudyFolderFilters, extra: Prisma.S
   const colorFilter = (kind: AnnotationKind) => (filters.color ? (kind === "highlight" ? Prisma.sql`AND x.color = ${filters.color}` : Prisma.sql`AND FALSE`) : Prisma.empty);
   const branch = (kind: AnnotationKind, table: Prisma.Sql, text: Prisma.Sql, color: Prisma.Sql, updated: Prisma.Sql) => Prisma.sql`
     SELECT ${kind}::text AS kind, x.id, x."createdAt", ${updated} AS "updatedAt", ${text} AS text, ${color} AS color,
-      x."verseId", x."lessonEditionId", x."revisionId", x.selector, x."anchorStatus", x."mutationVersion", x."targetKey"
+      x."verseId", x."lessonEditionId", x."revisionId", x.selector, x."anchorStatus", x."mutationVersion", x."targetKey",
+      x."resolvedRevisionId", x."resolvedSelector", x."resolutionHistory"
     FROM ${table} x WHERE x."userId" = ${actor.id} AND x."deletedAt" IS NULL ${type(kind)} ${colorFilter(kind)}`;
   const query = filters.q ? `%${escapeLike(filters.q)}%` : null;
   const where: Prisma.Sql[] = [];
@@ -140,7 +149,7 @@ async function select(actor: Actor, filters: StudyFolderFilters, extra: Prisma.S
       LEFT JOIN "ContentCollection" cc ON cc.id = COALESCE(bk."contentCollectionId", e."collectionId")
     ), gated AS (
       SELECT j.kind, j.id, j."createdAt", j."updatedAt", j.text, j.color, j."verseId", j."lessonEditionId", j."revisionId",
-        j.selector, j."anchorStatus", j."mutationVersion", j."targetKey", j.open,
+        j.selector, j."anchorStatus", j."mutationVersion", j."targetKey", j."resolvedRevisionId", j."resolvedSelector", j."resolutionHistory", j.open,
         CASE WHEN j.open THEN j.cc_id END AS "collectionId", CASE WHEN j.open THEN j.cc_name END AS "collectionName",
         CASE WHEN j.open THEN j.cc_language END AS "collectionLanguage", CASE WHEN j.open THEN j.bk_name END AS "bookName",
         CASE WHEN j.open THEN j.ch_id END AS "chapterId", CASE WHEN j.open THEN j.ch_number END AS "chapterNumber",
@@ -154,7 +163,7 @@ async function select(actor: Actor, filters: StudyFolderFilters, extra: Prisma.S
     LIMIT ${limit}`);
 }
 
-function toItem(row: Row): StudyFolderItem {
+function toItem(row: Row, recovery?: StudyFolderItem["recovery"]): StudyFolderItem {
   const selector = row.selector;
   const target: AnnotationTarget = row.verseId
     ? { type: "verse", verseId: row.verseId }
@@ -169,7 +178,7 @@ function toItem(row: Row): StudyFolderItem {
       };
     } else if (row.lessonId && row.lessonTitle) {
       source = {
-        status: row.publishedRevisionId === row.revisionId ? "available" : "revision-changed",
+        status: row.publishedRevisionId === row.revisionId || recovery === "found" ? "available" : "revision-changed",
         collectionId: row.collectionId, collectionName: row.collectionName!, language: row.collectionLanguage!,
         label: row.lessonTitle,
         href: `/study-lesson/${encodeURIComponent(row.lessonId)}/${encodeURIComponent(row.collectionId)}?annotation=${row.kind}:${encodeURIComponent(row.id)}`,
@@ -185,8 +194,29 @@ function toItem(row: Row): StudyFolderItem {
     targetKey: row.targetKey ?? `verse:${row.verseId}`, target,
     ...(selector ? { quote: selector.exact } : {}),
     ...(source.status !== "unavailable" && verseText ? { snippet: [...verseText].slice(0, 280).join("") } : {}),
+    ...(recovery ? { recovery } : {}),
     source,
   };
+}
+
+/**
+ * Fase 4D, begrensd tot de huidige pagina: per bijgewerkte studieles één gepubliceerde revisie, nooit alle annotaties of
+ * alle revisies. Een bron die niet leesbaar is (open=false) wordt niet geopend, dus er komt geen brontekst of nieuwe locatie vrij.
+ */
+async function recoveryFor(actor: Actor, rows: Row[], client: PrismaClient): Promise<Map<string, StudyFolderItem["recovery"]>> {
+  const changed = rows.filter((r) => r.open && r.lessonId && r.collectionId && r.lessonEditionId && r.publishedRevisionId && r.revisionId !== r.publishedRevisionId);
+  const lessons = new Map<string, Promise<PlacementLesson | null>>();
+  for (const row of changed) {
+    if (!lessons.has(row.lessonEditionId!)) lessons.set(row.lessonEditionId!, getPublishedStudyLesson(actor, row.lessonId!, row.collectionId!, client).catch(() => null));
+  }
+  const result = new Map<string, StudyFolderItem["recovery"]>();
+  for (const row of changed) {
+    const lesson = await lessons.get(row.lessonEditionId!);
+    if (!lesson) continue;
+    const placement = placeAnnotation(lesson, row);
+    result.set(`${row.kind}:${row.id}`, placement.status === "EXACT" ? "found" : placement.status === "NEEDS_REVIEW" ? "review" : "missing");
+  }
+  return result;
 }
 
 export async function listStudyFolder(
@@ -210,8 +240,9 @@ export async function listStudyFolder(
   const rows = await select(actor, filters, after, limit + 1, client);
   const page = rows.slice(0, limit);
   const last = page.at(-1);
+  const recovery = await recoveryFor(actor, page, client);
   return {
-    items: page.map(toItem),
+    items: page.map((row) => toItem(row, recovery.get(`${row.kind}:${row.id}`))),
     nextCursor: rows.length > limit && last ? encodeFolderCursor(actor.id, filters, last) : null,
   };
 }
@@ -221,7 +252,7 @@ export async function getStudyFolderItem(actor: Actor, kind: AnnotationKind, id:
   if (!id || id.length > 128) throw new StudyFolderError("NOT_FOUND");
   const rows = await select(actor, {}, Prisma.sql`kind = ${kind} AND id = ${id}`, 1, client);
   if (!rows[0]) throw new StudyFolderError("NOT_FOUND");
-  return toItem(rows[0]);
+  return toItem(rows[0], (await recoveryFor(actor, rows, client)).get(`${kind}:${id}`));
 }
 
 /** Alleen bronnen die nu leesbaar zijn: een verborgen of ingetrokken bron lekt geen naam. */

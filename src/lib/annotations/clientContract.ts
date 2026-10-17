@@ -1,4 +1,4 @@
-import type { AnnotationKind, AnnotationTarget } from "./contract";
+import type { AnnotationKind, AnnotationTarget, PassageSelector } from "./contract";
 
 /** Eén bron voor de vijf markeringskleuren (opslagwaarden); client en server gebruiken dezelfde lijst. */
 export const ANNOTATION_COLORS = ["yellow", "green", "blue", "pink", "purple"] as const;
@@ -13,6 +13,11 @@ export type AnnotationView = {
   anchorStatus: string;
   text?: string;
   color?: string;
+  /**
+   * Alleen in de studielezer (fase 4D): de effectieve plaats in de nu gepubliceerde revisie. `target` blijft de
+   * oorspronkelijke identiteit voor bewerken en verwijderen; alleen een bewezen EXACT-plaats heeft een selector.
+   */
+  placement?: { status: "EXACT" | "NEEDS_REVIEW" | "ORPHANED"; selector?: PassageSelector };
 };
 export type AnnotationList = {
   annotations: AnnotationView[];

@@ -684,6 +684,9 @@ model StudyRevision {
   annotationBookmark Bookmark[] @relation("BookmarkRevision")
   annotationHighlight Highlight[] @relation("HighlightRevision")
   annotationNote Note[] @relation("NoteRevision")
+  annotationBookmarkResolved Bookmark[] @relation("BookmarkResolvedRevision")
+  annotationHighlightResolved Highlight[] @relation("HighlightResolvedRevision")
+  annotationNoteResolved Note[] @relation("NoteResolvedRevision")
   id String @id @default(cuid())
   lessonEditionId String
   revisionNumber Int
@@ -1533,6 +1536,13 @@ model Bookmark {
   @@index([revisionId, lessonEditionId])
   @@index([userId, lessonEditionId, deletedAt])
 
+  resolvedRevisionId String?
+  resolvedSelector Json?
+  resolvedAt DateTime?
+  resolutionHistory Json?
+  resolvedRevision StudyRevision? @relation("BookmarkResolvedRevision", fields: [resolvedRevisionId, lessonEditionId], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
+  @@index([resolvedRevisionId, lessonEditionId])
+
 }
 
 model Highlight {
@@ -1561,6 +1571,13 @@ model Highlight {
   @@unique([userId, targetKey])
   @@index([revisionId, lessonEditionId])
   @@index([userId, lessonEditionId, deletedAt])
+
+  resolvedRevisionId String?
+  resolvedSelector Json?
+  resolvedAt DateTime?
+  resolutionHistory Json?
+  resolvedRevision StudyRevision? @relation("HighlightResolvedRevision", fields: [resolvedRevisionId, lessonEditionId], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
+  @@index([resolvedRevisionId, lessonEditionId])
 
 }
 
@@ -1591,6 +1608,13 @@ model Note {
   @@unique([userId, targetKey])
   @@index([revisionId, lessonEditionId])
   @@index([userId, lessonEditionId, deletedAt])
+
+  resolvedRevisionId String?
+  resolvedSelector Json?
+  resolvedAt DateTime?
+  resolutionHistory Json?
+  resolvedRevision StudyRevision? @relation("NoteResolvedRevision", fields: [resolvedRevisionId, lessonEditionId], references: [id, lessonEditionId], onDelete: Restrict, onUpdate: Restrict)
+  @@index([resolvedRevisionId, lessonEditionId])
 
 }
 
