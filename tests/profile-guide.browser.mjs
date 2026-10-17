@@ -74,7 +74,13 @@ try {
   check("gidspagina: huidige selectie Varo", await page.locator('input[value="varo"]').isChecked());
   const cards = page.locator("[data-companion]");
   const text = await cards.allInnerTexts();
-  check("gidspagina: naam, drie eigenschappen en Gekozen per kaart", text.length === 3 && text.every((x, i) => x.includes(NAMES[i]) || true) && (await cards.nth(1).innerText()).includes(t("companion.selected")) && (await cards.nth(1).locator("span.text-sm").count()) >= 3);
+  const expectedCards = [["Novi", "novi"], ["Varo", "varo"], ["Vera", "vera"]];
+  const cardOk = expectedCards.map(([name, key], i) => {
+    const traits = t(`home.mascots.${key}`).split(" · ");
+    const lines = text[i].split("\n").map((x) => x.trim()).filter(Boolean);
+    return traits.length === 3 && lines.includes(name) && traits.every((trait) => lines.includes(trait)) && (lines.includes(t("companion.selected")) === (key === "varo"));
+  });
+  check("gidspagina: elke kaart toont de juiste naam, de drie officiële eigenschappen en Gekozen alleen bij Varo", text.length === 3 && cardOk.every(Boolean), JSON.stringify({ cardOk, text }));
   check("gidspagina: afbeeldingen uit het mascottesysteem", (await cards.locator("img").evaluateAll((imgs) => imgs.every((i) => /\/mascots\/static\//.test(i.getAttribute("src") ?? "") || /mascots/.test(i.currentSrc)))) );
   check("gidspagina: intro zichtbaar", await page.getByText(t("companion.profileIntro")).isVisible());
   const rail = page.locator("[data-companion]").first().locator("xpath=..");
@@ -83,8 +89,9 @@ try {
   const varoBox = await cards.nth(1).boundingBox();
   const railBox = await rail.boundingBox();
   check("mobiel: gekozen gids staat bij openen in beeld (niet de eerste kaart)", varoBox.x >= railBox.x - 1 && varoBox.x + varoBox.width <= railBox.x + railBox.width + 1 && metrics.left > 0, JSON.stringify({ varoBox, railBox }));
-  const nextVisible = await cards.nth(2).boundingBox();
-  check("mobiel: de volgende kaart is deels zichtbaar als uitnodiging", nextVisible.x < railBox.x + railBox.width && nextVisible.x + nextVisible.width > railBox.x + railBox.width - 1 || nextVisible.x < railBox.x + railBox.width);
+  const nextBox = await cards.nth(2).boundingBox();
+  const visibleWidth = Math.min(nextBox.x + nextBox.width, railBox.x + railBox.width) - Math.max(nextBox.x, railBox.x);
+  check("mobiel: de volgende kaart is deels (niet volledig) zichtbaar binnen de scrollcontainer", visibleWidth > 8 && visibleWidth < nextBox.width - 1, JSON.stringify({ visibleWidth, nextBox, railBox }));
   const pageScroll = await page.evaluate(() => scrollY);
   await page.screenshot({ path: `${output}/guide-390-selected.png` });
 
