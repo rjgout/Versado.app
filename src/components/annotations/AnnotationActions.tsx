@@ -323,7 +323,7 @@ export default function AnnotationActions({
           type="button"
           disabled={disabled}
           aria-pressed={!!active("bookmark")}
-          className={secondaryButton}
+          className={`${secondaryButton} flex-col !px-3 sm:flex-row`}
           onClick={() => void send("bookmark", !!active("bookmark"))}
         >
           <Bookmark className="h-5 w-5 shrink-0" aria-hidden />
