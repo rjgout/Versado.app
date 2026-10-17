@@ -100,7 +100,7 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
       step1: "Öffne Lernen und wähle einen Kurs.",
       step2: "Lies den nächsten Abschnitt.",
       step3: "Beantworte die Fragen. Dein Fortschritt bleibt gespeichert, du kannst also jederzeit weitermachen.",
-      more: "Lesen allein bringt keine XP. Ein Kapitel oder Leseschritt, den du ausdrücklich abschließt, zählt aber als Aktivität für deine Serie, genau wie eine abgeschlossene Übung. Öffne die Aktion an einem Vers oder Textblock für Lesezeichen, Markierungen oder private Notizen. Du kannst auch Text innerhalb eines Abschnitts auswählen. Anmerkungen geben keine XP oder Serienaktivität.",
+      more: "Lesen allein bringt keine XP. Ein Kapitel oder Leseschritt, den du ausdrücklich abschließt, zählt aber als Aktivität für deine Serie, genau wie eine abgeschlossene Übung. Tippe auf einen Vers oder öffne die Aktion an einem Textblock für Lesezeichen, Markierungen oder private Notizen. Du kannst auch Text innerhalb eines Abschnitts auswählen. Alles findest du wieder in Meine Studienmappe, unten in der Inhaltsauswahl. Anmerkungen geben keine XP oder Serienaktivität.",
       faq1: {
         q: "Spielt es eine Rolle, welchen Kurs ich wähle?",
         a: "Jeder Kurs bietet denselben Inhalt auf andere Weise an, zum Beispiel in kurzen Schritten oder Kapitel für Kapitel. Für denselben Inhalt bekommst du in einem Kurs nicht mehr XP als in einem anderen.",
@@ -221,6 +221,7 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
       "step2": "Tippe auf eine verfügbare Quelle, um direkt zu wechseln.",
       "step3": "Wähle eine verfügbare Textsprache oder ausdrücklich eine andere Ausgabe.",
       "step4": "Versado öffnet ein passendes Ziel; Zurück ohne Auswahl ändert nichts.",
+      "more": "Unten in der Inhaltsauswahl, über der Sprachwahl, findest du Meine Studienmappe. Dort sind alle Lesezeichen, Markierungen und privaten Notizen aus allen Quellen versammelt, auch wenn du gerade eine andere Quelle oder Sprache gewählt hast. Suche nach Text, filtere nach Art oder Quelle und tippe auf Passage öffnen, um zum gespeicherten Vers oder zur Studienpassage zurückzukehren. Notizen sind privat. Wurde eine Lektion aktualisiert oder ist eine Quelle nicht mehr verfügbar, überträgt Versado deine Notiz nicht automatisch auf eine andere Passage; dein ursprünglicher Text bleibt erhalten. Anmerkungen geben keine XP oder Serienaktivität.",
       "faq1": {
         "q": "Was ändert sich beim Wechsel?",
         "a": "Deine Quelle bestimmt die verfügbaren Texte, Kurse und Spiele."

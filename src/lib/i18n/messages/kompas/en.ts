@@ -100,7 +100,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
       step1: "Open Learn and pick a course.",
       step2: "Read the next piece.",
       step3: "Answer the questions. Your progress is saved, so you can always continue.",
-      more: "Reading alone earns no XP. A chapter or reading step you explicitly finish does count as an activity for your streak, just like a completed exercise. Open the action beside a verse or text block for a bookmark, highlight or private note. You can also select text within one section. Annotations award no XP or streak activity.",
+      more: "Reading alone earns no XP. A chapter or reading step you explicitly finish does count as an activity for your streak, just like a completed exercise. Tap a verse, or open the action beside a text block, for a bookmark, highlight or private note. You can also select text within one section. You can find everything again in My study folder, at the bottom of the content picker. Annotations award no XP or streak activity.",
       faq1: {
         q: "Does it matter which course I choose?",
         a: "Every course offers the same content in a different way, for example in short steps or chapter by chapter. For the same content you cannot earn more XP in one course than in another.",
@@ -221,6 +221,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
       "step2": "Tap an available source to switch directly.",
       "step3": "Choose an available text language or explicitly choose another edition.",
       "step4": "Versado opens a suitable destination; going back without choosing changes nothing.",
+      "more": "At the bottom of the content picker, above the language choice, you will find My study folder. It gathers all your bookmarks, highlights and private notes from every source, even if you have chosen another source or language right now. Search by text, filter by type or source and tap Open passage to return to the saved verse or study passage. Notes are private. If a lesson was updated or a source is no longer available, Versado does not move your note to another passage automatically; your original text is kept. Annotations award no XP or streak activity.",
       "faq1": {
         "q": "What changes when I switch?",
         "a": "Your chosen source determines the available texts, courses and games."

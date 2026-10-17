@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Check, ChevronRight, Globe2, LoaderCircle, Music2 } from "lucide-react";
+import { BookHeart, Check, ChevronRight, Globe2, LoaderCircle, Music2 } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import PageIntro from "@/components/versado/PageIntro";
 import ContentIcon from "@/components/versado/ContentIcon";
@@ -152,6 +152,18 @@ export default function FullscreenContentPicker({ initialData, sessionKey, isAdm
       </div>
       {!works.some(work => pickerGroup(work.kind) === group) && <p className="rounded-2xl border border-dashed border-vs-line p-4 text-sm text-vs-fg-3">{t(group === "studyPrograms" ? "contentSwitcher.picker.emptyPrograms" : "contentSwitcher.picker.empty")}</p>}
     </section>)}
+    {/* Geen contentcollectie: een gewone link, zonder keuze, taalwissel of contextmutatie. */}
+    <section data-study-folder-entry aria-label={t("studyFolder.title")}>
+      <Link data-study-folder-link href="/study-folder" prefetch={false}
+        className={`flex min-h-12 w-full flex-wrap items-center gap-3 rounded-2xl border border-vs-line bg-vs-surface p-3.5 text-left shadow-sm transition hover:bg-vs-accent-soft active:scale-[0.99] ${focusClass}`}>
+        <BookHeart size={40} className="shrink-0 text-vs-accent" aria-hidden="true" />
+        <span className="min-w-0 flex-1 basis-40">
+          <span className="block text-base font-extrabold leading-snug text-vs-fg">{t("studyFolder.title")}</span>
+          <span className="mt-1 block text-sm font-semibold text-vs-fg-3">{t("studyFolder.intro")}</span>
+        </span>
+        <ChevronRight size={16} className="shrink-0 text-vs-fg-3" aria-hidden="true" />
+      </Link>
+    </section>
     <section data-content-language aria-labelledby="content-language-title" className="rounded-2xl border border-vs-line bg-vs-surface p-2.5 shadow-sm sm:p-3">
       <h2 id="content-language-title" className="flex items-center gap-2 text-sm font-extrabold text-vs-fg"><Globe2 className="h-4 w-4 shrink-0 text-vs-accent" aria-hidden />{t("contentSwitcher.picker.language")}</h2>
       <p className="mt-1 text-xs leading-relaxed text-vs-fg-3">{t("contentSwitcher.picker.languageHelp")}</p>

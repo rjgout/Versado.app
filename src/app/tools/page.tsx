@@ -6,7 +6,7 @@ import { DICTIONARY_COLLECTION_IDS } from "@/lib/dictionary";
 import { getT } from "@/lib/i18n";
 import { getLanguage } from "@/lib/languages";
 import type { MessageKey } from "@/lib/i18n/core";
-import { Bookmark, BookText, ChevronRight, Users, type LucideIcon } from "lucide-react";
+import { BookText, ChevronRight, Users, type LucideIcon } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { getDictionaryEntries } from "@/lib/dictionary";
 import SystemIcon from "@/components/versado/SystemIcon";
@@ -45,9 +45,9 @@ function toolFits(tool: Tool, collection: ContentCollectionView): boolean {
   return true;
 }
 
-// Woordenboek, bladwijzers en personages halen hun inhoud uit schriftverzen;
-// bij andere content (podcasts, leerplan) slaan ze nergens op. Bladwijzers
-// werken bij elk schrift in elke taal (per werk). Woordenboek en personages
+// Woordenboek en personages halen hun inhoud uit schriftverzen;
+// bij andere content (podcasts, leerplan) slaan ze nergens op. (Bladwijzers
+// zijn verhuisd naar Mijn studiemap onderaan de contentkiezer.) Woordenboek en personages
 // bestaan per uitgave: een woordenlijst en beschrijvingen zijn taalgebonden,
 // dus die tonen we alleen waar ze echt voor gemaakt zijn.
 // Personages bestaan voor deze collecties; bij andere content valt de pagina terug op het Boek van Mormon.
@@ -55,7 +55,6 @@ const PERSON_COLLECTIONS: Record<string, true> = { [BOM_COLLECTION_ID]: true, [D
 
 const TOOLS: Tool[] = [
   { href: "/tools/dictionary", titleKey: "pages.dictionary", textKey: "tools.dictionaryText", icon: BookText, tone: "accent", featured: true, collectionIds: DICTIONARY_COLLECTION_IDS },
-  { href: "/bookmarks", titleKey: "pages.bookmarks", textKey: "tools.bookmarksText", icon: Bookmark, tone: "league", works: ["bofm", "dc-testament", "pgp"] },
   { href: "/tools/xp-guide", titleKey: "pages.xpGuide", textKey: "tools.xpGuideText", icon: "xp", tone: "xp" },
   { href: "/tools/persons", titleKey: "pages.persons", textKey: "tools.personsText", icon: Users, tone: "streak", collectionIds: [BOM_COLLECTION_ID, DC_COLLECTION_ID] },
 ];

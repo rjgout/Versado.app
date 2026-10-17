@@ -13,6 +13,8 @@ export interface BackTargetOverride {
   parent: string;
   /** Een lokale activiteitstap kan teruggaan zonder de route te verlaten. */
   onBack?: () => void;
+  /** Terug is gewoon browser-terug (filters en scrollpositie blijven); `href` geldt alleen zonder vorige pagina in de app. */
+  soft?: boolean;
 }
 
 let current: BackTargetOverride | null = null;
@@ -29,10 +31,10 @@ function subscribe(listener: () => void) {
   };
 }
 
-export function useSetBackTarget(pathname: string, href: string, parent: string, onBack?: () => void, enabled = true): void {
+export function useSetBackTarget(pathname: string, href: string, parent: string, onBack?: () => void, enabled = true, soft = false): void {
   useEffect(() => {
     if(!enabled)return;
-    const target = { pathname, href, parent, onBack };
+    const target = { pathname, href, parent, onBack, soft };
     current = target;
     emit();
     return () => {
@@ -41,7 +43,7 @@ export function useSetBackTarget(pathname: string, href: string, parent: string,
         emit();
       }
     };
-  }, [pathname, href, parent, onBack, enabled]);
+  }, [pathname, href, parent, onBack, enabled, soft]);
 }
 
 /** Alleen de doorgegeven cursus van déze pagina: bij het wisselen van pagina geldt die niet meer. */

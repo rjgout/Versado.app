@@ -400,6 +400,10 @@ Controleer bij twijfel: `grep -rn "next/headers" src/lib src/server server.ts`
 - Leespaden: Stap voor stap, Hoofdstuk voor hoofdstuk en Vrije keuze delen één visuele familie en één Focusroute
   (`/courses/<id>/pad`) met gedeelde bouwstenen in `src/components/reading/`; alleen presentatie, de cursuslogica blijft
   ongewijzigd. Hoofdstukbeeld: eerst de expliciete scène, voor het Boek van Mormon daarna het boekbeeld, anders een neutrale kaart. Zie `docs/LEESPADEN.md`.
+- Mijn studiemap (`/study-folder`): één accountbrede, privéplek voor bladwijzers, markeringen en notities uit alle bronnen. De enige zichtbare
+  ingang is onderaan de contentkiezer, boven de taalkeuze (geen kaart op Leren of Hulpmiddelen). De map wisselt nooit van bron of taal; gegevens komen
+  uit de drie bestaande annotatietabellen via `src/lib/annotations/studyFolder.ts`, bewerken loopt via `AnnotationActions`. Zie
+  `docs/content-architecture-v2/27-PHASE-4C-STUDY-FOLDER.md`.
 - Profiel: elke profielpagina en instelling gebruikt de shell en bouwstenen
   uit `src/components/profile/` (`ProfilePage`, `SettingsSection`,
   `SettingsToggleRow`, ...). Geen eigen kaart-, rij- of formulierstijl en

@@ -100,7 +100,7 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
       step1: "Ouvre Apprendre et choisis un cours.",
       step2: "Lis le morceau suivant.",
       step3: "Réponds aux questions. Ta progression est enregistrée, tu peux donc toujours continuer.",
-      more: "Lire seul ne rapporte pas d’XP. Un chapitre ou une étape de lecture que tu termines explicitement compte en revanche comme activité pour ta série, comme un exercice terminé. Ouvre l’action près d’un verset ou bloc pour un signet, un surlignage ou une note privée. Tu peux aussi sélectionner du texte dans une section. Les annotations ne donnent ni XP ni activité de série.",
+      more: "Lire seul ne rapporte pas d’XP. Un chapitre ou une étape de lecture que tu termines explicitement compte en revanche comme activité pour ta série, comme un exercice terminé. Touche un verset, ou ouvre l’action près d’un bloc, pour un signet, un surlignage ou une note privée. Tu peux aussi sélectionner du texte dans une section. Tu retrouves tout dans Mon dossier d’étude, en bas du sélecteur de contenu. Les annotations ne donnent ni XP ni activité de série.",
       faq1: {
         q: "Est-ce important de choisir tel ou tel cours ?",
         a: "Chaque cours propose le même contenu d’une autre façon, par exemple en petites étapes ou chapitre par chapitre. Pour un même contenu, tu ne gagnes pas plus d’XP dans un cours que dans un autre.",
@@ -221,6 +221,7 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
       "step2": "Touche une source disponible pour changer directement.",
       "step3": "Choisis une langue de texte disponible ou explicitement une autre édition.",
       "step4": "Versado ouvre une destination adaptée ; revenir sans choisir ne change rien.",
+      "more": "En bas du sélecteur de contenu, au-dessus du choix de langue, se trouve Mon dossier d’étude. Il rassemble tous tes signets, surlignages et notes privées de toutes les sources, même si tu as choisi une autre source ou langue en ce moment. Recherche par texte, filtre par type ou source et touche Ouvrir le passage pour revenir au verset ou au passage d’étude enregistré. Les notes sont privées. Si une leçon a été mise à jour ou si une source n’est plus disponible, Versado ne déplace pas ta note automatiquement vers un autre passage ; ton texte d’origine est conservé. Les annotations ne donnent ni XP ni activité de série.",
       "faq1": {
         "q": "Que change un changement de source ?",
         "a": "Ta source détermine les textes, cours et jeux disponibles."
