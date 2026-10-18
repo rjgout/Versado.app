@@ -25,3 +25,5 @@ De actieve les wordt nooit automatisch gekozen door een reader-deeplink. Een bew
 Eerst 3C reviewen/mergen, daarna deze kleine UI/context-PR onafhankelijk reviewen. De eigenaar verzorgt de uitrol en live acceptatie. Geen migratie in 3D; een vorige appimage kan terug, maar een oude client begrijpt nieuwe `study:`-voorkeuren niet en moet die veilig als niet-beschikbaar laten staan. Niet verwijderen of terugschrijven naar een andere les. Geen productie-/NAS-acties door Codex.
 
 CI-vervolg: de nieuwe fout-/retrytest begrenst zijn alert-selector tot de programmakiezer. Next.js' eigen route-announcer kan eveneens role=alert hebben; dat is geen annotatie- of opslagfout. De bestaande foutasserties zijn behouden.
+
+De picker toont het werkelijke aantal beschikbare gepubliceerde lessen (bij truncatie uitsluitend de begrensde-melding). De componentidentiteit bindt account, werk en concrete collectie, zodat een gewijzigde uitgave lopende UI-selectie ongeldig maakt. Een eigen versiecommit remount de picker niet; realtimeverversing mag de bevestigde navigatie niet verliezen.
