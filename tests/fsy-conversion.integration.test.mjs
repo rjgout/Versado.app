@@ -10,6 +10,7 @@ import {getStudyContext,setStudyContext} from '../src/lib/studyContext.ts';
 import {validateStudyImage, installStudyMedia} from '../src/lib/studyContent/storage.ts';
 import {FIXTURE_IMAGE} from '../src/lib/studyContent/fixtureAdapter.ts';
 import {publishFsyLesson} from '../src/lib/fsyContent.ts';
+import {FSY_SLUG} from '../src/lib/courses.ts';
 const base=assertReferenceTestEnvironment();
 let admin, normal, collection;
 before(async()=>{
@@ -131,4 +132,44 @@ test('bestaand READY-medium blijft exact gepind; ontbrekend bestand blokkeert ha
  const fs=await import('node:fs/promises'),path=await import('node:path');const name=path.join(process.env.STUDY_MEDIA_DIR,image.storageKey);
  await fs.rename(name,name+'.missing');
  try {const next=await lesson({content:row.content,images:row.images});await assert.rejects(convertFsyLesson(admin.actor,next.id,action(next)),/MEDIA/);}finally{await fs.rename(name+'.missing',name);}
+});
+
+
+test('oude FSY-route activeert uitsluitend een bestaand abonnement, voor en na handover zonder leer- of beloningsmutaties',async()=>{
+ const subscriber=await referenceAccount(), outsider=await referenceAccount(), unsubscribed=await referenceAccount();
+ const course=await prisma.course.upsert({where:{slug:FSY_SLUG},create:{slug:FSY_SLUG,type:'FSY',name:'FSY routefixture',contentCollectionId:collection.id},update:{}});
+ const other=await prisma.course.create({data:{slug:randomUUID(),type:'FREE_CHOICE',name:'Bestaande andere cursus',contentCollectionId:collection.id}});
+ await prisma.userCourseProgress.create({data:{userId:subscriber.user.id,courseId:course.id,subscribed:true,comboCount:3,lastActivityAt:new Date('2025-01-02T03:04:05Z')}});
+ await prisma.userCourseProgress.create({data:{userId:unsubscribed.user.id,courseId:course.id,subscribed:false,comboCount:2}});
+ for(const actor of [subscriber,outsider,unsubscribed]) await prisma.user.update({where:{id:actor.user.id},data:{activeCourseId:other.id}});
+ const row=await lesson({...pub,status:'PUBLISHED'});
+ async function preserved(account){
+  const result={user:await prisma.user.findUniqueOrThrow({where:{id:account.user.id}})};
+  delete result.user.activeCourseId;
+  for(const table of ['userCourseProgress','userCourseLessonProgress','userStudyContext','contentProgress','readingSession','streakActivity','streakDay','activityFeedItem','xPTransaction','competitionXpEvent','contentExerciseCredit','bookmark','highlight','note']) result[table]=await prisma[table].findMany({where:{userId:account.user.id}});
+  return JSON.stringify(result);
+ }
+ async function visit(account,id,allowed,expectedCourse){
+  const before=await preserved(account);
+  const response=await fetch(base+'/fsy/'+id,{headers:{cookie:account.cookie},redirect:'manual'}), html=await response.text();
+  if(allowed){assert.equal(response.status,200);assert.ok(html.includes('Exact oude gepubliceerde tekst.'));}
+  else {assert.ok(response.status===404||html.includes('NEXT_HTTP_ERROR_FALLBACK;404'),'les geweigerd');assert.ok(!html.includes('Exact oude gepubliceerde tekst.'));}
+  assert.equal((await prisma.user.findUniqueOrThrow({where:{id:account.user.id}})).activeCourseId,expectedCourse);
+  assert.equal(await preserved(account),before,'abonnementen, voortgang, context, annotaties en beloningen ongewijzigd');
+ }
+ for(const mapped of [false,true]){
+  if(mapped)await convertFsyLesson(admin.actor,row.id,action(row));
+  await prisma.user.update({where:{id:subscriber.user.id},data:{activeCourseId:other.id}});
+  await visit(subscriber,row.id,true,course.id);
+  await visit(outsider,row.id,true,other.id);
+  await visit(unsubscribed,row.id,true,other.id);
+  await prisma.user.update({where:{id:subscriber.user.id},data:{activeCourseId:other.id}});
+  await prisma.contentCollection.update({where:{id:collection.id},data:{visibleToUsers:false}});
+  try{await visit(subscriber,row.id,false,other.id);}finally{await prisma.contentCollection.update({where:{id:collection.id},data:{visibleToUsers:true}});}
+  await visit(subscriber,'missing-'+randomUUID(),false,other.id);
+ }
+ const stored=await prisma.fsyLesson.findUniqueOrThrow({where:{id:row.id}});
+ await prisma.studyLessonEdition.update({where:{id:stored.studyLessonEditionId},data:{publishedRevisionId:null}});
+ await visit(subscriber,row.id,false,other.id);
+ assert.equal(await prisma.userCourseProgress.count({where:{userId:outsider.user.id}}),0,'geen nieuw abonnement');
 });

@@ -1,5 +1,6 @@
 "use client";
 
+import { FSY_CATEGORY_KEYS } from "@/lib/fsyPresentation";
 import { useT } from "@/components/I18nProvider";
 import FsyContentBlocks from "@/components/FsyContentBlocks";
 import FocusLayout from "@/components/versado/FocusLayout";
@@ -15,16 +16,7 @@ interface Props {
   sourceUrl: string;
 }
 
-export const FSY_CATEGORY_KEYS = {
-  INTRO: "courseViews.fsy.intro",
-  FAST_SUNDAY: "courseViews.fsy.fastSunday",
-  SECOND_SUNDAY: "courseViews.fsy.secondSunday",
-  THIRD_SUNDAY: "courseViews.fsy.thirdSunday",
-  LAST_SUNDAY_YOUNG_WOMEN: "courseViews.fsy.lastSundayYoungWomen",
-  LAST_SUNDAY_AARONIC_PRIESTHOOD: "courseViews.fsy.lastSundayAaronic",
-  ACTIVITY: "courseViews.fsy.activity",
-  OTHER: "courseViews.fsy.other",
-} as const;
+export { FSY_CATEGORY_KEYS } from "@/lib/fsyPresentation";
 
 export default function FsyLessonView({ title, month, year, category, blocks, sourceUrl }: Props) {
   const t = useT();

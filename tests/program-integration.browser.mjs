@@ -6,6 +6,8 @@ import {prisma} from '../src/lib/db.ts';
 import {referenceAccount,assertReferenceTestEnvironment} from './fixtures/reference-content.mjs';
 import {appendStudyRevision} from '../src/lib/studyContent/revisions.ts';
 import {getT} from '../src/lib/i18n/index.ts';
+import {getLanguage} from '../src/lib/languages.ts';
+import {FSY_CATEGORY_KEYS} from '../src/lib/fsyPresentation.ts';
 import {setStudyContext} from '../src/lib/studyContext.ts';
 import {SESSION_COOKIE} from '../src/lib/auth.ts';
 const base=assertReferenceTestEnvironment(),require=createRequire(import.meta.url),{chromium}=require(process.env.PLAYWRIGHT_MODULE??'playwright');
@@ -40,5 +42,28 @@ try{for(const [width,scheme,language,scale] of [[320,'light','nl',2],[390,'dark'
  await page.goBack();await page.locator('[data-program-context]').waitFor();await page.goForward();await page.locator('[data-study-reader]').waitFor();
  assert.equal((await prisma.userStudyContext.findUniqueOrThrow({where:{userId_workKey:{userId:f.user.id,workKey:key}}})).version,1,'zelfde keuze schrijft niets');
  assert.equal((await prisma.user.findUnique({where:{id:f.user.id}})).xpTotal,f.user.xpTotal);assert.equal(await prisma.contentProgress.count({where:{userId:f.user.id}}),0);
- results.push({width,scheme,language,scale,choose:true,todayLearnPlay:true,noRewards:true});await c.close();
+ // Echte FSY-kaartmetadata: gedeelde edities én een onbekende legacycategorie.
+ const fsyId='fsy-labels-'+randomUUID();
+ await prisma.contentWork.upsert({where:{key:'fsy'},create:{key:'fsy',kind:'STUDY_PROGRAM'},update:{}});
+ await prisma.contentCollection.create({data:{id:fsyId,slug:fsyId,name:'FSY labeltest',work:'fsy',editionKey:fsyId,language:'nl',publicationState:'LEGACY',visibleToUsers:true,icon:''}});
+ const fp=await prisma.studyPeriod.create({data:{workKey:'fsy',sourceKey:fsyId,year:2026,label:'2026'}});
+ for(const [index,category] of ['SECOND_SUNDAY','FAST_SUNDAY','ACTIVITY'].entries()){
+  const fl=await prisma.studyLesson.create({data:{workKey:'fsy',periodId:fp.id,sourceKey:'label-'+category,order:index+1,month:5,categoryKey:category}});
+  const fe=await prisma.studyLessonEdition.create({data:{lessonId:fl.id,collectionId:fsyId,workKey:'fsy',slug:'label-'+category.toLowerCase().replaceAll('_','-')}});
+  const fr=await appendStudyRevision(admin.actor,fe.id,{schemaVersion:1,title:'Label '+(index+1),body:{schemaVersion:1,sections:[{id:'intro',blocks:[{id:'text',type:'paragraph',content:[{type:'text',text:'Synthetische FSY-labeltekst.'}]}]}]},sourceMetadata:{sourceKey:fl.sourceKey},rightsMetadata:{holder:'Testbron',permission:'Testgebruik'}});
+  await prisma.studyLessonEdition.update({where:{id:fe.id},data:{publishedRevisionId:fr.id}});
+ }
+ await prisma.fsyLesson.create({data:{contentCollectionId:fsyId,year:2026,month:5,category:'historical_unknown',order:4,slug:randomUUID(),title:'Label 4',content:'[]',images:'[]',publishedTitle:'Label 4',publishedContent:JSON.stringify([{type:'paragraph',text:'Legacy publicatie'}]),publishedImages:'[]',status:'PUBLISHED',sourceUrl:'https://www.churchofjesuschrist.org/study/ftsoy/2026/05?lang=nld',sourceHash:'a'.repeat(64)}});
+ await prisma.user.update({where:{id:f.user.id},data:{activeContentCollectionId:fsyId}});
+ await page.setViewportSize({width:320,height:844});await page.goto(base+'/courses');await page.locator('[data-program-lesson]').first().waitFor();
+ await page.addStyleTag({content:'html{font-size:200% !important}'});
+ const month=new Intl.DateTimeFormat(getLanguage(language).intlLocale,{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date('2026-05-01T00:00:00Z'));
+ const labels=['SECOND_SUNDAY','FAST_SUNDAY','ACTIVITY'].map(category=>`${month} · ${t(FSY_CATEGORY_KEYS[category])}`);labels.push(`${month} · ${t('courseViews.fsy.lesson')}`);
+ for(const label of labels)await page.getByText(label,{exact:true}).waitFor();
+ const cards=page.locator('[data-program-lesson]');assert.equal(await cards.count(),4);
+ for(let index=0;index<4;index++)assert.ok((await cards.nth(index).innerText()).startsWith('Label '+(index+1)),'echte FSY-volgorde behouden');
+ assert.ok(!/SECOND_SUNDAY|FAST_SUNDAY|ACTIVITY|historical_unknown/.test(await page.locator('[data-program-context]').innerText()));
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'FSY-labels 320px/200% zonder overflow');
+ await page.screenshot({path:`${out}/fsy-labels-320-${language}.png`,fullPage:true});
+ results.push({width,scheme,language,scale,choose:true,todayLearnPlay:true,noRewards:true,fsyLabels:{width:320,scale:2,sharedAndLegacy:true,localizedCategoryAndMonth:true}});await c.close();
 }writeFileSync(out+'/results.json',JSON.stringify(results,null,2));console.log(JSON.stringify({programBrowser:results}));}finally{await browser.close();await prisma.$disconnect();}

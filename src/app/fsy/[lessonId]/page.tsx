@@ -10,6 +10,11 @@ import type { FsyContentBlock } from "@/lib/fsyContent";
 import { isContentCollectionSelectable } from "@/lib/contentCollections";
 import { getT } from "@/lib/i18n";
 
+async function activateSubscribedFsyCourse(userId: string) {
+  const course = await prisma.course.findUnique({ where: { slug: FSY_SLUG }, select: { id: true } });
+  if (course) await markCourseStarted(prisma, userId, course.id);
+}
+
 export default async function FsyLessonPage({ params }: { params: Promise<{ lessonId: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
@@ -36,12 +41,12 @@ export default async function FsyLessonPage({ params }: { params: Promise<{ less
     const sessionKey = await navigationSessionKey();
     const data = await getStudyReader(user, lesson.studyLessonEdition.lessonId, lesson.contentCollectionId, sessionKey);
     if (!data) notFound();
+    await activateSubscribedFsyCourse(user.id);
     return <StudyReader initial={data} sessionKey={sessionKey} />;
   }
   if (!lesson.publishedContent) notFound();
   if (!(await isContentCollectionSelectable(lesson.contentCollectionId, user.isAdmin))) notFound();
-  const fsyCourse = await prisma.course.findUnique({ where: { slug: FSY_SLUG }, select: { id: true } });
-  if (fsyCourse) await markCourseStarted(prisma, user.id, fsyCourse.id);
+  await activateSubscribedFsyCourse(user.id);
 
   return (
     <FsyLessonView

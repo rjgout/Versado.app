@@ -35,3 +35,5 @@ Een nog ongewijzigde overdracht kan via dezelfde beheeromgeving terug naar de le
 - Browserbewijs: CI-artifact `fsy-conversion-browser`, niet in Git. Geen echte iOS-/Android-toestellen of productie getest.
 
 CI-regressie: de oude 1B-test `draft-copy` is aangepast aan M3: een bewaarde publicatie blijft toegankelijk naast een gewijzigd legacyconcept. De vervangende positieve test controleert tevens dat concepttekst niet wordt geretourneerd en een echte ongepubliceerde les geweigerd blijft. De volledige geïsoleerde contentaccess-run (inclusief context, selectie en spellen) slaagt na deze correctie.
+
+Reviewcorrectie: de oude FSY-route activeert een reeds geabonneerde FSY-cursus na geslaagde toegang, zowel vóór als na handover. De bestaande `markCourseStarted` blijft leidend; geen nieuw abonnement of leer-/beloningsactie. Een HTTP-integratieregressie controleert beide readers, ontbrekende/niet-geabonneerde gebruikers, verborgen/ingetrokken publicatie en een ontbrekende les.
