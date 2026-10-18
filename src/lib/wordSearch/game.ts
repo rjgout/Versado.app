@@ -5,7 +5,10 @@ import { dayKey } from "@/lib/dates";
 import { awardCompetitionXp } from "@/lib/competitionXp";
 import { awardXp } from "@/lib/xp";
 import { generateWordSearch, selectionMatches, type WordSearchCandidate, type WordSearchDifficulty, type WordSearchPlacedWord, type WordSearchPosition } from "./generator";
-import { getWordSearchCandidates } from "./content";
+import { resolveGameContent } from "@/lib/gameContentResolver";
+import { collectionAccessWhere } from "@/lib/contentAccess";
+import { gameSettingEnabled } from "@/lib/gameAvailabilityPolicy";
+import { getGameSettings } from "@/lib/gameSettings";
 
 interface StoredGame {
   id: string;
@@ -84,10 +87,10 @@ export async function getActiveWordSearch(userId: string): Promise<WordSearchVie
 export async function startWordSearch(userId: string, difficulty: WordSearchDifficulty, theme = "RANDOM") {
   const active = await getActiveWordSearch(userId);
   if (active) return active;
-  const context = await assertWordSearchContext(userId);
-  if (!context) throw new Error("Woordzoeker is niet beschikbaar voor deze content.");
+  const content = await resolveGameContent({userId,gameId:"word-search",mode:"start"});
+  if (!content.available || !content.context || !content.wordCandidates) throw new Error("Woordzoeker is niet beschikbaar voor deze content.");
 
-  const candidates = await getWordSearchCandidates(context.active.id, context.active.language);
+  const candidates = content.wordCandidates;
   const recent = await prisma.wordSearchGame.findMany({
     where: { userId, difficulty, status: "COMPLETED" },
     orderBy: { createdAt: "desc" },
@@ -102,11 +105,20 @@ export async function startWordSearch(userId: string, difficulty: WordSearchDiff
   const game = await prisma.$transaction(async tx => {
     await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
     const existing = await tx.wordSearchGame.findFirst({ where: { userId, status: "IN_PROGRESS" }, orderBy: { createdAt: "desc" } });
-    if (existing) return existing;
+    if (existing) {
+      await tx.$queryRaw`SELECT id FROM "ContentCollection" WHERE id=${existing.contentCollectionId} FOR SHARE`;
+      if (!await tx.contentCollection.findFirst({where:{id:existing.contentCollectionId,...collectionAccessWhere({isAdmin:false})},select:{id:true}}))throw new Error("Woordzoeker is niet beschikbaar voor deze content.");
+      return existing;
+    }
+    await tx.$queryRaw`SELECT id FROM "ContentCollection" WHERE id=${content.context!.collectionId} FOR SHARE`;
+    const source = await tx.contentCollection.findFirst({where:{id:content.context!.collectionId,...collectionAccessWhere({isAdmin:false})}});
+    const scope = await tx.gameContentScope.findUnique({where:{gameKey_contentCollectionId:{gameKey:"word-search",contentCollectionId:content.context!.collectionId}}});
+    if(!source || source.editionKey!==content.context!.editionKey || source.language!==content.context!.language || !scope || !gameSettingEnabled("word-search",await getGameSettings(tx)))throw new Error("Woordzoeker is niet beschikbaar voor deze content.");
     return tx.wordSearchGame.create({
     data: {
       userId,
-      contentCollectionId: context.active.id,
+      contentCollectionId: content.context!.collectionId,
+      sourceContext: {...content.context!,normalizationVersion:1},
       difficulty,
       theme,
       size: puzzle.size,
