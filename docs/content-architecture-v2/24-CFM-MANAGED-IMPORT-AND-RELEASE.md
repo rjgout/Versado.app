@@ -388,3 +388,98 @@ bij de exacte gepushte PR-head vastgelegd. Er is niet op fysieke iOS-/Android-
 toestellen getest. De private branch-protectionconfiguratie is met deze GitHub-
 integratie niet uitleesbaar (403); de volledige zichtbare PR-checklijst wordt
 wel gecontroleerd.
+
+## Studielespublicaties: één programmakaart en gezamenlijke publicatie
+
+`/adminbackend/content/study-publications` is herbouwd voor een niet-technische
+beheerder. Er is geen nieuw publicatiemodel, geen tabel en geen migratie: de pagina
+is een leesbare laag over dezelfde import-, revisie- en auditgegevens, en lespublicatie
+blijft uitsluitend `publishStudyRevision`.
+
+### Wat de beheerder ziet
+
+Per studieprogramma één kaart (naam, bron/uitgave, taal; verwachte, geïmporteerde en
+gepubliceerde lessen; klaar-om-te-publiceren; afbeeldingen en verwijzingen; aantal
+echte blokkerende fouten; aantal bekende, gecontroleerde niet-klikbare verwijzingen;
+één volgende stap in gewone taal). De vier stappen zijn bewust gescheiden:
+1. **Controleren** (`Programma controleren`, op verzoek; geen polling);
+2. **Lessen publiceren** (alleen na het controleverslag en een uitdrukkelijke bevestiging);
+3. **Vrijgeven** (de bestaande `release-collection`, ongewijzigd);
+4. **Zichtbaarheid voor gebruikers** (blijft de bestaande schakelaar onder Beheer → Content;
+   deze pagina zet haar nooit aan of uit).
+
+De lessenlijst is compact, met zoekveld en statusfilter (klaar, geblokkeerd,
+gepubliceerd, ontbreekt). De volledige lespreview opent op verzoek. Importgeschiedenis,
+revisiegeschiedenis en de synthetische testimport staan onder **Technische details**
+(ingeklapt); op het hoofdscherm staan geen hashes, ruwe tijdstempels of diagnostiek.
+De synthetische fixtures zijn uitsluitend zichtbaar in een testprofiel
+(`studyReleaseAllowed("synthetic-v1")`); in productie verdwijnt de bediening, de
+testmogelijkheid zelf blijft bestaan.
+
+### Controleverslag
+
+`GET /api/admin/study-publications?collectionId=…&review=1` geeft de voorcontrole
+(`studyProgramReview`, `src/lib/studyContent/programReview.ts`); het verslag is te
+downloaden als Markdown of JSON (`/api/admin/study-publications/report`, alleen
+beheerders, `no-store`, `Content-Disposition: attachment`). Het bevat alle lessen met
+identiteit en titel, bronversie en volledigheid, media- en alttekstcontrole,
+verwijzingsstatussen, alle uitzonderingen en blokkerende fouten, en de concrete bron-,
+import- en revisie-identiteiten. Het bevat geen gebruikersgegevens, tokens of geheimen,
+en is expliciet gemarkeerd als `NOT_REVIEWED`: een controle is geen beoordeling, er is
+niets door een mens of AI goedgekeurd totdat de beheerder dat bevestigt.
+Verslag, kaart en publicatie-preflight gebruiken dezelfde functie, zodat ze niet uiteen
+kunnen lopen.
+
+### Gezamenlijke, hervatbare publicatie (`publish-program`)
+
+`publishStudyProgram` (`src/lib/studyContent/programPublication.ts`) publiceert de
+beoordeelde set. Aanvraag: `collectionId`, `reviewToken`, `batchId`, `confirmReviewed: true`.
+
+- **Eén poort per les.** Elke les gaat door `publishStudyRevision` met volledige bron-,
+  media-, rechten- en referentievalidatie, versiecontrole en audit. De 553 bekende
+  weergave-only verwijzingen worden alleen geaccepteerd als ze exact overeenkomen met de
+  vastgelegde lijst (`cfmDisplayOnlyKeys`); nieuwe, onbekende of gewijzigde onveilige
+  verwijzingen blokkeren de hele set vóór de eerste publicatie.
+- **De server herberekent de beoordeelde set.** `reviewToken` is de identiteit van alle
+  edities, revisies, inhoudshashes en importruns plus de hash van de controlelijsten
+  (zonder status, dus stabiel tijdens een hervatting). Een afwijkend token geeft `CONFLICT`;
+  een gewone gebruiker `FORBIDDEN`.
+- **Idempotent en hervatbaar zonder batchtabel.** De `actionId` per les is afgeleid van
+  batch + leseditie + revisie; een reeds gepubliceerde les wordt overgeslagen. Hervatten is
+  dezelfde aanvraag opnieuw. Eén verzoek werkt binnen een tijdsbudget (12 s na de
+  voorcontrole); de pagina herhaalt dezelfde aanvraag tot `done` of een fout.
+- **Gelijktijdigheid.** Een advisory lock per programma: een tweede batch krijgt `BUSY`.
+  Daarnaast gelden per les de bestaande locks (importscope → run → edition) en
+  `expectedVersion`.
+- **Gedeeltelijk mislukken.** Een les die faalt (bijvoorbeeld een gelijktijdig gewijzigd
+  concept) komt met titel en reden in `failed`; de overige lessen worden wel gepubliceerd.
+  Zolang niet alle edities gepubliceerd zijn, weigert `releaseStudyCollection` met
+  `INCOMPLETE`: een onvolledige subset wordt nooit vrijgegeven of zichtbaar.
+- **Behoud.** Geen tweede import, geen duplicaten, bestaande publicaties, revisies,
+  auditregels en gebruikersvoortgang blijven bytegelijk; publiceren raakt `visibleToUsers`
+  en `publicationState` niet.
+
+### Testbewijs
+
+`tests/cfm-2026-import.integration.test.mjs` (`bulkPublicationScenarios`, isolated
+PostgreSQL, volledige 52-lessenset): voorcontrole (52/52/0/52, 553 bekende verwijzingen,
+0 blokkerend), verslag met alle 52 titels zonder geheimen of beoordelingsclaim, HTTP-rechten
+(anoniem 401, gebruiker 403), verborgen fixtures in een productieprofiel, onveilige
+aanvragen zonder effect, een gewijzigd verwijzingsdoel dat de hele set blokkeert, een
+tijdsbudgetstap, een onderbreking midden in de batch (51 gepubliceerd, 1 mislukt, vrijgave
+geweigerd, niets zichtbaar), hervatten, twee gelijktijdige hervattingen (één voert uit,
+de ander `BUSY`), identieke herhaling als no-op, exact één auditregel per les, de
+beoordeelde revisies als gepubliceerde revisies, ongewijzigde persoonlijke tabellen.
+`tests/cfm-2026-import.browser.mjs` en `tests/study-publication.browser.mjs` dekken de
+pagina op 320 px/200 % tekst, 390 px donker en 1280 px (toetsenbord, toegankelijke
+namen, bevestigingsdialoog, geen overflow, geen hash op het hoofdscherm).
+
+Screenshots van de nieuwe pagina (isolated test, 52 CFM-lessen, geen productiegegevens)
+staan in `docs/evidence/study-program-publication/`: programmakaart na controle
+(1280 px, 390 px donker, 320 px met 200 % tekst), de bevestiging van de gezamenlijke
+publicatie, het eindresultaat met de aparte vrijgavestap, en de overzichten in
+Nederlands en Duits bij 200 % tekst.
+
+Beperkingen: er is niet op fysieke iOS-/Android-toestellen getest, en niet op productie
+(geen productie-import, -publicatie, zichtbaarheidsschakeling of NAS-handeling). De
+voorcontrole van 52 lessen duurt in de isolated testomgeving circa 10 seconden.

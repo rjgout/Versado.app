@@ -15,10 +15,169 @@ import { publishStudyRevision } from "../src/lib/studyContent/publication.ts";
 import { releaseStudyCollection, studyCollectionReleaseState } from "../src/lib/studyContent/collectionRelease.ts";
 import { cfmApprovedSnapshot,requireCfmApproval } from "../src/lib/studyContent/sourceApproval.ts";
 import { getPublishedStudyLesson } from "../src/lib/studyContent/revisions.ts";
+import { studyProgramReview } from "../src/lib/studyContent/programReview.ts";
+import { publishStudyProgram } from "../src/lib/studyContent/programPublication.ts";
+import { programReportJson, programReportMarkdown } from "../src/lib/studyContent/programReport.ts";
+import { studyPublishingOverview } from "../src/lib/studyContent/admin.ts";
 assertReferenceTestEnvironment();
 const root = process.env.CFM_TEST_ASSETS;
 if (!root?.startsWith("/tmp/")) throw Error("Eigen gepinde testassets vereist");
 after(() => prisma.$disconnect());
+const nowait = (promise) => promise.then((value) => ({ value }), (error) => ({ error }));
+// Gezamenlijke publicatie van de volledige CFM-set (zie docs/content-architecture-v2/24): voorcontrole, verslag,
+// onveilige invoer, onderbreking, hervatten, gelijktijdigheid en behoud van audit en zichtbaarheid.
+async function bulkPublicationScenarios({ f, collection, editions, report, beforeHashes, personalHashes }) {
+  const base = assertReferenceTestEnvironment();
+  // Een eerdere testfixture markeerde één concept als gepubliceerd zonder audit; de gezamenlijke publicatie start schoon.
+  await prisma.studyLessonEdition.update({ where: { id: editions[9].id }, data: { publishedRevisionId: null } });
+  const reviewStarted = Date.now();
+  const review = await studyProgramReview(f.admin.actor, collection.id);
+  console.log(`# voorcontrole 52 lessen: ${Date.now() - reviewStarted} ms`);
+  assert.equal(review.expected, 52);
+  assert.equal(review.imported, 52);
+  assert.equal(review.published, 0);
+  assert.equal(review.ready, 52);
+  assert.equal(review.blocked + review.missing, 0);
+  assert.equal(review.totals.blocking, 0);
+  assert.equal(review.totals.displayOnly, 553, "de 553 bekende, gecontroleerde niet-klikbare verwijzingen");
+  assert.equal(review.totals.figures, review.totals.mediaReady);
+  assert.equal(review.lessons.length, 52);
+  await assert.rejects(studyProgramReview(f.owner.actor, collection.id), (e) => e.code === "FORBIDDEN");
+  // Verslag: alle lessen, geen persoonsgegevens, geen valse beoordelingsclaim.
+  const markdown = programReportMarkdown(review), json = programReportJson(review);
+  for (const lesson of review.lessons) assert.ok(markdown.includes(lesson.title.replace(/\s+/g, " ").trim()), `verslag noemt ${lesson.title}`);
+  assert.equal(json.lessons.length, 52);
+  assert.equal(json.reviewStatus, "NOT_REVIEWED");
+  for (const secret of [f.admin.user.email, f.owner.user.email, process.env.SESSION_SECRET, f.admin.token]) assert.ok(!markdown.includes(secret) && !JSON.stringify(json).includes(secret));
+  assert.doesNotMatch(markdown, /goedgekeurd door|beoordeeld door (?:een )?(?:mens|ai|beheerder)/i);
+  // HTTP: alleen beheerders; rapport als download en niet cachebaar.
+  const reviewUrl = `${base}/api/admin/study-publications?collectionId=${collection.id}&review=1`;
+  for (const [cookie, status] of [[null, 401], [f.owner.cookie, 403]]) {
+    assert.equal((await fetch(reviewUrl, { headers: cookie ? { cookie } : {} })).status, status);
+    assert.equal((await fetch(`${base}/api/admin/study-publications/report?collectionId=${collection.id}&format=md`, { headers: cookie ? { cookie } : {} })).status, status);
+  }
+  const apiReview = await fetch(reviewUrl, { headers: { cookie: f.admin.cookie } });
+  assert.equal(apiReview.status, 200);
+  assert.equal((await apiReview.json()).reviewToken, review.reviewToken);
+  const download = await fetch(`${base}/api/admin/study-publications/report?collectionId=${collection.id}&format=md`, { headers: { cookie: f.admin.cookie } });
+  assert.equal(download.status, 200);
+  assert.match(download.headers.get("content-disposition") ?? "", /attachment/);
+  assert.match(download.headers.get("cache-control") ?? "", /no-store/);
+  // Productieprofiel verbergt de synthetische importbediening, de testomgeving niet.
+  assert.ok((await studyPublishingOverview(f.admin.actor)).fixtures.length > 0);
+  const profile = process.env.STUDY_PUBLICATION_PROFILE;
+  try { process.env.STUDY_PUBLICATION_PROFILE = "production"; assert.deepEqual((await studyPublishingOverview(f.admin.actor)).fixtures, []); } finally { process.env.STUDY_PUBLICATION_PROFILE = profile; }
+
+  const batchId = randomUUID();
+  const request = { collectionId: collection.id, reviewToken: review.reviewToken, batchId, confirmReviewed: true };
+  const publishedCount = () => prisma.studyLessonEdition.count({ where: { collectionId: collection.id, publishedRevisionId: { not: null } } });
+  const auditCount = () => prisma.studyPublicationAction.count({ where: { edition: { collectionId: collection.id }, kind: { in: ["PUBLISH", "PUBLISH_DISPLAY_ONLY"] } } });
+  // Onveilige aanvragen veranderen niets: geen bevestiging, vreemd token, gewone gebruiker.
+  await assert.rejects(publishStudyProgram(f.admin.actor, { ...request, confirmReviewed: false }));
+  await assert.rejects(publishStudyProgram(f.admin.actor, { ...request, reviewToken: "0".repeat(64) }), (e) => e.code === "CONFLICT");
+  await assert.rejects(publishStudyProgram(f.owner.actor, request), (e) => e.code === "FORBIDDEN");
+  assert.equal(await publishedCount(), 0);
+  // Exacte officiële catalogus is een poort vóór iedere lespublicatie, ook met een vers beoordelingstoken.
+  const sample = await prisma.studyLessonEdition.findUniqueOrThrow({ where: { id: editions[0].id }, include: { lesson: true } });
+  const other = await prisma.contentCollection.create({ data: { id: `catalogue-other-${randomUUID()}`, slug: `catalogue-other-${randomUUID()}`, icon: "BookOpen", name: "Geïsoleerde catalogustest", work: collection.work, editionKey: `${collection.editionKey}-catalogue-test`, language: collection.language, enabled: true, visibleToUsers: false, publicationState: "DRAFT" } });
+  async function rejectsCatalogue(label, mutate, restore, count) {
+    try {
+      await mutate();
+      const invalid = await studyProgramReview(f.admin.actor, collection.id);
+      assert.equal(invalid.lessons.length, count, label);
+      assert.equal(invalid.catalogueValid, false, label);
+      assert.ok(invalid.totals.blocking > 0, label);
+      await assert.rejects(publishStudyProgram(f.admin.actor, { ...request, reviewToken: invalid.reviewToken }), (e) => e.code === "INCOMPLETE", label);
+      assert.equal(await publishedCount(), 0, `${label}: geen enkele les gepubliceerd`);
+      assert.equal(await auditCount(), 0, `${label}: geen publicatie-audit`);
+    } finally { await restore(); }
+  }
+  await rejectsCatalogue("51 lessen", () => prisma.studyLessonEdition.update({ where: { id: sample.id }, data: { collectionId: other.id } }), () => prisma.studyLessonEdition.update({ where: { id: sample.id }, data: { collectionId: collection.id } }), 51);
+  const extra = await prisma.studyLesson.create({ data: { workKey: sample.workKey, periodId: sample.lesson.periodId, sourceKey: "onverwacht-extra", order: 53 } });
+  const extraId = `catalogue-extra-${randomUUID()}`;
+  await rejectsCatalogue("53 lessen", () => prisma.studyLessonEdition.create({ data: { id: extraId, collectionId: collection.id, workKey: sample.workKey, lessonId: extra.id, slug: "onverwacht-extra" } }), () => prisma.studyLessonEdition.delete({ where: { id: extraId } }), 53);
+  await prisma.studyLesson.delete({ where: { id: extra.id } });
+  await prisma.contentCollection.delete({ where: { id: other.id } });
+  await rejectsCatalogue("verkeerde sourceKey", () => prisma.studyLesson.update({ where: { id: sample.lessonId }, data: { sourceKey: "verkeerde-identiteit" } }), () => prisma.studyLesson.update({ where: { id: sample.lessonId }, data: { sourceKey: sample.lesson.sourceKey } }), 52);
+  await rejectsCatalogue("gewijzigde volgorde", () => prisma.studyLesson.update({ where: { id: sample.lessonId }, data: { order: 53 } }), () => prisma.studyLesson.update({ where: { id: sample.lessonId }, data: { order: sample.lesson.order } }), 52);
+  assert.equal((await studyProgramReview(f.admin.actor, collection.id)).reviewToken, review.reviewToken);
+  // Een nieuw/gewijzigd onveilig verwijzingsdoel blokkeert de hele set vóór de eerste publicatie.
+  const victim = await prisma.contentReference.findFirstOrThrow({ where: { revisionId: editions[30].draftRevisionId, diagnosis: { in: ["INTERNAL_VERIFIED", "EXTERNAL_VERIFIED"] } } });
+  await prisma.$executeRaw`ALTER TABLE "ContentReference" DISABLE TRIGGER USER`;
+  try {
+    await prisma.$executeRaw`UPDATE "ContentReference" SET "originalTarget" = '{"kind":"external","url":"https://onbekend.invalid/x"}'::jsonb WHERE id = ${victim.id}`;
+    const tampered = await studyProgramReview(f.admin.actor, collection.id);
+    assert.equal(tampered.blocked, 1);
+    assert.ok(tampered.totals.blocking >= 1);
+    await assert.rejects(publishStudyProgram(f.admin.actor, { ...request, reviewToken: tampered.reviewToken }), (e) => ["REFERENCES", "INCOMPLETE"].includes(e.code));
+    assert.equal(await publishedCount(), 0);
+  } finally {
+    await prisma.$executeRaw`UPDATE "ContentReference" SET "originalTarget" = ${JSON.stringify(victim.originalTarget)}::jsonb WHERE id = ${victim.id}`;
+    await prisma.$executeRaw`ALTER TABLE "ContentReference" ENABLE TRIGGER USER`;
+  }
+  assert.equal((await studyProgramReview(f.admin.actor, collection.id)).reviewToken, review.reviewToken, "herstel geeft dezelfde beoordeelde set");
+  // Onderbreking: een gelijktijdige wijziging van één concept laat precies die les mislukken; de rest wordt gepubliceerd.
+  const interferer = new Proxy(prisma, {
+    get(target, key) {
+      if (key !== "studyLessonEdition") return Reflect.get(target, key, target);
+      return new Proxy(target.studyLessonEdition, {
+        get(model, name) {
+          if (name !== "findUnique") return Reflect.get(model, name, model);
+          return async (args) => {
+            if (args?.where?.id === editions[20].id) await prisma.studyLessonEdition.update({ where: { id: editions[20].id }, data: { draftRevisionId: null } });
+            return model.findUnique(args);
+          };
+        },
+      });
+    },
+  });
+  // Eerst een stap met een minimaal tijdsbudget: er is voortgang, maar de batch is nog niet klaar.
+  const step = await publishStudyProgram(f.admin.actor, request, prisma, { budgetMs: 0 });
+  assert.equal(step.done, false);
+  assert.ok(step.published >= 1 && step.remaining > 0, JSON.stringify(step));
+  const partial = await publishStudyProgram(f.admin.actor, request, interferer, { budgetMs: 600_000 });
+  assert.equal(partial.done, false);
+  assert.equal(partial.published, 51, JSON.stringify(partial));
+  assert.equal(partial.failed.length, 1);
+  assert.equal(partial.failed[0].editionId, editions[20].id);
+  assert.equal(await publishedCount(), 51);
+  assert.equal(await auditCount(), 51);
+  // Een mislukte les blokkeert de collectievrijgave en maakt niets zichtbaar.
+  const partialRelease = await studyCollectionReleaseState(f.admin.actor, collection.id);
+  assert.equal(partialRelease.complete, false);
+  await assert.rejects(releaseStudyCollection(f.admin.actor, { collectionId: collection.id, releaseToken: partialRelease.releaseToken, actionId: randomUUID() }), (e) => e.code === "INCOMPLETE");
+  assert.equal(await getPublishedStudyLesson(f.owner.actor, editions[0].lessonId, collection.id), null);
+  const stillDraft = await prisma.contentCollection.findUniqueOrThrow({ where: { id: collection.id } });
+  assert.equal(stillDraft.publicationState, "DRAFT");
+  assert.equal(stillDraft.visibleToUsers, false);
+  // Herstel de onderbreking en hervat met dezelfde aanvraag, gelijktijdig tweemaal: hooguit één voert uit, geen dubbele audit.
+  await prisma.studyLessonEdition.update({ where: { id: editions[20].id }, data: { draftRevisionId: editions[20].draftRevisionId } });
+  assert.equal((await studyProgramReview(f.admin.actor, collection.id)).reviewToken, review.reviewToken, "het token blijft stabiel tijdens een hervatting");
+  const outcomes = await Promise.all([nowait(publishStudyProgram(f.admin.actor, request, prisma, { budgetMs: 600_000 })), nowait(publishStudyProgram(f.admin.actor, request, prisma, { budgetMs: 600_000 }))]);
+  assert.ok(outcomes.some((o) => o.value?.done === true));
+  for (const o of outcomes.filter((x) => x.error)) assert.equal(o.error.code, "BUSY");
+  assert.equal(await publishedCount(), 52);
+  assert.equal(await auditCount(), 52, "precies één publicatie-audit per les");
+  // Identieke herhaling is een no-op.
+  const again = await publishStudyProgram(f.admin.actor, request, prisma, { budgetMs: 600_000 });
+  assert.deepEqual([again.done, again.published, again.remaining, again.failed.length], [true, 52, 0, 0]);
+  assert.equal(await auditCount(), 52);
+  const done = await prisma.studyLessonEdition.findMany({ where: { collectionId: collection.id }, orderBy: { lesson: { order: "asc" } } });
+  assert.ok(done.every((e) => e.publishedRevisionId && e.publicationVersion === 1 && !e.draftRevisionId));
+  assert.deepEqual(done.map((e) => e.publishedRevisionId), review.lessons.map((l) => l.revisionId), "precies de beoordeelde revisies");
+  const kinds = await prisma.studyPublicationAction.groupBy({ by: ["kind"], where: { edition: { collectionId: collection.id } }, _count: true });
+  assert.ok(kinds.every((k) => ["PUBLISH", "PUBLISH_DISPLAY_ONLY"].includes(k.kind)));
+  assert.equal((await prisma.studyPublicationAction.count({ where: { edition: { collectionId: collection.id }, kind: "PUBLISH_DISPLAY_ONLY" } })) > 0, true, "technische audit van bekende verwijzingen blijft bewaard");
+  // Publicatie is geen zichtbaarheid: gewone gebruikers zien nog niets, de zichtbaarheidsvlag is ongewijzigd.
+  const after = await prisma.contentCollection.findUniqueOrThrow({ where: { id: collection.id } });
+  assert.equal(after.publicationState, "DRAFT");
+  assert.equal(after.visibleToUsers, false);
+  for (const e of editions) assert.equal(await getPublishedStudyLesson(f.owner.actor, e.lessonId, collection.id), null);
+  assert.deepEqual(await personalHashes(), beforeHashes, "persoonlijke gegevens en voortgang blijven ongewijzigd");
+  const finalReview = await studyProgramReview(f.admin.actor, collection.id);
+  assert.deepEqual([finalReview.published, finalReview.ready, finalReview.blocked], [52, 0, 0]);
+  void report;
+}
 test("auditmigratie is uitsluitend een atomaire constraintuitbreiding, herhaalbaar en terugrolbaar bij conflict", async () => {
   const sql = await fs.readFile("prisma/migrations/20261103120000_study_publication_audit_actions/migration.sql", "utf8");
   assert.doesNotMatch(sql, /\b(?:CREATE\s+TABLE|DROP\s+(?:TABLE|COLUMN)|UPDATE|INSERT|DELETE|TRUNCATE)\b/i);
@@ -356,10 +515,7 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
   );
   await prisma.contentCollection.update({where:{id:collection.id},data:{publicationState:"DRAFT",visibleToUsers:false}});
   await assert.rejects(releaseStudyCollection(f.admin.actor,{collectionId:collection.id,releaseToken:"0".repeat(64),actionId:randomUUID()}));
-  for(const [i,e] of editions.entries()){
-    await publishStudyRevision(f.admin.actor,{editionId:e.id,revisionId:e.draftRevisionId,importRunId:report.lessons[i].runId,kind:"PUBLISH",expectedVersion:0,actionId:randomUUID(),allowReviewedDisplayOnly:true});
-    assert.equal(await getPublishedStudyLesson(f.admin.actor,e.lessonId,collection.id),null,"Collectie blijft DRAFT tot afzonderlijke vrijgave");
-  }
+  await bulkPublicationScenarios({ f, collection, editions, report, beforeHashes, personalHashes });
   const release=await studyCollectionReleaseState(f.admin.actor,collection.id);
   assert.equal(release.complete,true);assert.equal(release.published,52);
   // Een intrekking tussen preflight en de schrijftransactie mag geen collectie vrijgeven.
