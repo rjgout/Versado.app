@@ -92,3 +92,19 @@ export const cfmOldTestament2026NlManifest: StudyManifest = {
     referenceStatus: "BLOCKED",
   })),
 };
+
+/** Gedeelde exacte cataloguscontrole voor voorcontrole, bulkpublicatie en collectievrijgave. */
+export function matchesCfm2026Catalogue(
+  collection: { id: string; work: string | null; editionKey: string | null; language: string },
+  editions: ReadonlyArray<{
+    collectionId: string; workKey: string;
+    lesson: { sourceKey: string; order: number; retiredAt: Date | null };
+  }>,
+): boolean {
+  const manifest = cfmOldTestament2026NlManifest;
+  return collection.work === manifest.workKey && collection.editionKey === manifest.editionKey &&
+    collection.language === manifest.language && editions.length === manifest.lessons.length &&
+    editions.every((edition, i) => edition.collectionId === collection.id && edition.workKey === manifest.workKey &&
+      edition.lesson.sourceKey === manifest.lessons[i].sourceKey && edition.lesson.order === manifest.lessons[i].order &&
+      !edition.lesson.retiredAt);
+}

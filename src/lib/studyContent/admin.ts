@@ -12,6 +12,7 @@ import {
 import { studyStorage, readStudyMedia } from "./storage";
 import { validateStoredStudyRevision, diffStudyRevisions } from "./publication";
 import { studyDocumentInventory } from "./fixtureAdapter";
+import { cfmOldTestament2026NlManifest as cfmManifest } from "./cfm2026Manifest";
 import { STUDY_FIXTURES } from "./fixtureAdapter";
 import { verifiedOfficialUrl } from "@/lib/references/evidence";
 
@@ -90,7 +91,7 @@ export async function studyPublishingOverview(actor: StudyAdmin) {
             { lesson: { order: "asc" } },
             { id: "asc" },
           ],
-          take: 100,
+          take: 400,
           select: {
             id: true,
             slug: true,
@@ -109,11 +110,37 @@ export async function studyPublishingOverview(actor: StudyAdmin) {
         }),
       ] as const,
   );
+  // Goedkope programma-telling (alleen database, geen bestandscontrole): de zware voorcontrole is een afzonderlijke actie.
+  const counts = await readStudyAdmin((db) =>
+    db.studyLessonEdition.findMany({
+      where: { collectionId: { in: collections.map((c) => c.id) }, lesson: { retiredAt: null } },
+      select: { collectionId: true, draftRevisionId: true, publishedRevisionId: true },
+    }),
+  );
+  const programs = collections.map((c) => {
+    const rows = counts.filter((e) => e.collectionId === c.id);
+    return {
+      id: c.id,
+      name: c.name,
+      work: c.work,
+      editionKey: c.editionKey,
+      language: c.language,
+      enabled: c.enabled,
+      publicationState: c.publicationState,
+      visibleToUsers: c.visibleToUsers,
+      expected: c.work === cfmManifest.workKey ? cfmManifest.lessons.length : rows.length,
+      imported: rows.filter((e) => e.draftRevisionId || e.publishedRevisionId).length,
+      published: rows.filter((e) => e.publishedRevisionId).length,
+      pending: rows.filter((e) => e.draftRevisionId).length,
+    };
+  });
   return {
     storageReady,
     importAllowed: studyReleaseAllowed("synthetic-v1"),
     publicationAllowed: studyReleaseAllowed("synthetic-v1"),
-    fixtures: STUDY_FIXTURES,
+    // Synthetische fixtures bestaan alleen in een testomgeving; in productie blijft de importbediening verborgen.
+    fixtures: studyReleaseAllowed("synthetic-v1") ? STUDY_FIXTURES : [],
+    programs,
     collections: await Promise.all(
       collections.map(async (c) => ({
         ...c,
