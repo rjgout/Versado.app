@@ -1,0 +1,2617 @@
+{
+  "schemaVersion": 1,
+  "scope": "bofm",
+  "assetCount": 36,
+  "conceptCount": 6,
+  "recommendedStyle": "modern-2.5d-pending-owner-approval",
+  "noApplicationCodeChanged": true,
+  "runtimeRegistrationApproved": false,
+  "projection": {
+    "tile": [
+      128,
+      64
+    ],
+    "yaw": 45,
+    "elevation": 30
+  },
+  "assets": [
+    {
+      "assetId": "building-family-house-l1",
+      "objectId": "vd-b001",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        3,
+        3
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/buildings/building-family-house-l1.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 1514300,
+        "sha256": "1c0c95c086a3db23f31d0517fac73ce866a6f8bf52761453e09faf0951b4c477"
+      },
+      "runtimePreview": {
+        "path": "assets/buildings/building-family-house-l1.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 49198,
+        "sha256": "1a18f073f8e6760c1ebc96d8d875c61523178d824cec01e1509b8aba4c7688cb"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          157,
+          118,
+          1160,
+          1132
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5251196172248804,
+          0.9027113237639554
+        ],
+        "sourcePixels": [
+          658.5,
+          1132.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.382851,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "building-family-house-l2",
+      "objectId": "vd-b001",
+      "level": 2,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        3,
+        3
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/buildings/building-family-house-l2.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 1625981,
+        "sha256": "adbbed3f6587a032543ba13834e13a1e39f0d0025eaa91bf9ecda60b4338bad0"
+      },
+      "runtimePreview": {
+        "path": "assets/buildings/building-family-house-l2.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 52076,
+        "sha256": "1d18a2526390a183134d06abf48bb5b018d925f912a0c6d63d64f000f2bb6827"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          157,
+          94,
+          1183,
+          1162
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5342902711323764,
+          0.9266347687400319
+        ],
+        "sourcePixels": [
+          670.0,
+          1162.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.374269,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "building-family-house-l3",
+      "objectId": "vd-b001",
+      "level": 3,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        3,
+        3
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/buildings/building-family-house-l3.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 1893045,
+        "sha256": "6c918072f9db82f733f53800bfc67f958586941e395aa061699f1bed3bdfaf81"
+      },
+      "runtimePreview": {
+        "path": "assets/buildings/building-family-house-l3.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 58182,
+        "sha256": "4e35b943c186f4defbe383cb9347fc47c63f417851c9159d0fbd494755fd8d65"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          112,
+          65,
+          1214,
+          1210
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5287081339712919,
+          0.9649122807017544
+        ],
+        "sourcePixels": [
+          663.0,
+          1210.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.348457,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "building-scribe-house-l1",
+      "objectId": "vd-b002",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        3,
+        3
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/buildings/building-scribe-house-l1.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 1733532,
+        "sha256": "0cc23917704a544f399432edaf77848f1c9d7ccc48d0dd3d044207dae2108cfa"
+      },
+      "runtimePreview": {
+        "path": "assets/buildings/building-scribe-house-l1.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 66954,
+        "sha256": "4c625980579eae9164a10528d354ac65edefdf7e983a6e57b3fec1de9c00d2c1"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          76,
+          145,
+          1181,
+          1131
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5011961722488039,
+          0.9019138755980861
+        ],
+        "sourcePixels": [
+          628.5,
+          1131.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.347511,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "building-scribe-house-l2",
+      "objectId": "vd-b002",
+      "level": 2,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        3,
+        3
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/buildings/building-scribe-house-l2.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 1995299,
+        "sha256": "361bf1255c287df3dfbb58cf69fc511241c9d95bd6f7cf002c918bd31c8c12e0"
+      },
+      "runtimePreview": {
+        "path": "assets/buildings/building-scribe-house-l2.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 70230,
+        "sha256": "65171be9f0b8fcb4651b2efd046a232db7fdad441a073ad2e7505eea1bb203d9"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          57,
+          120,
+          1210,
+          1168
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.50518341307815,
+          0.9314194577352473
+        ],
+        "sourcePixels": [
+          633.5,
+          1168.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.333044,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "building-scribe-house-l3",
+      "objectId": "vd-b002",
+      "level": 3,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        3,
+        3
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/buildings/building-scribe-house-l3.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 2272724,
+        "sha256": "59f9c237d5e9f72b5dd4f2463a4c73ed28f7d4efccbc1dc5ecbc4819e0d8121b"
+      },
+      "runtimePreview": {
+        "path": "assets/buildings/building-scribe-house-l3.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 82882,
+        "sha256": "78a7b710603d893ff9c08f027cb3bd18230baa91ba37679e5e8bb83de6580461"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          9,
+          68,
+          1252,
+          1219
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5027910685805422,
+          0.9720893141945773
+        ],
+        "sourcePixels": [
+          630.5,
+          1219.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.30893,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "building-assembly-house-l1",
+      "objectId": "vd-b003",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        4,
+        4
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/buildings/building-assembly-house-l1.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 1458173,
+        "sha256": "5a3af203f31847741fe184860b41a08489f403f5d911d23dcbe0e46f13616220"
+      },
+      "runtimePreview": {
+        "path": "assets/buildings/building-assembly-house-l1.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 50562,
+        "sha256": "d407147a5c6dbd41789c5e447549bdc7b9c71b34c316af223b77f9a926693626"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          99,
+          144,
+          1184,
+          1112
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5115629984051037,
+          0.886762360446571
+        ],
+        "sourcePixels": [
+          641.5,
+          1112.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.471889,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "building-assembly-house-l2",
+      "objectId": "vd-b003",
+      "level": 2,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        4,
+        4
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/buildings/building-assembly-house-l2.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 1747926,
+        "sha256": "807992a33b3c86232f52b52806528cf0c5c7d218bf349a365e2095b734d0349b"
+      },
+      "runtimePreview": {
+        "path": "assets/buildings/building-assembly-house-l2.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 58512,
+        "sha256": "a1ebd16818362bd2744ae20b587f11ac2451bd75e008e3a4fb481f16160faf2f"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          81,
+          131,
+          1207,
+          1131
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5135566188197768,
+          0.9019138755980861
+        ],
+        "sourcePixels": [
+          644.0,
+          1131.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.454707,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "building-assembly-house-l3",
+      "objectId": "vd-b003",
+      "level": 3,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        4,
+        4
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/buildings/building-assembly-house-l3.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 1900260,
+        "sha256": "c4f20ce8ae4b11c9638f8f177ebdbfe01ba723590cb2f8c16a2a85b75ea54d6e"
+      },
+      "runtimePreview": {
+        "path": "assets/buildings/building-assembly-house-l3.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 64734,
+        "sha256": "056f4839339330b37c3652c88dc7c17632a50a53797d766fef2983b269a8c993"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          42,
+          82,
+          1237,
+          1173
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5099681020733652,
+          0.9354066985645934
+        ],
+        "sourcePixels": [
+          639.5,
+          1173.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.428452,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "landmark-temple-l1",
+      "objectId": "vd-l001",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        12,
+        12
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/landmarks/landmark-temple-l1.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 1764971,
+        "sha256": "4d266f6c4baf1dbf852729b06c4874acfc85f49dd8e43d26dcf71a46055c45e7"
+      },
+      "runtimePreview": {
+        "path": "assets/landmarks/landmark-temple-l1.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 66322,
+        "sha256": "b36fccea28dd7fc4db6d4dcccc9f9b4bb2c0642491375f5c6ed2ec950eb3223a"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          15,
+          136,
+          1246,
+          1128
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5027910685805422,
+          0.8995215311004785
+        ],
+        "sourcePixels": [
+          630.5,
+          1128.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 1.247766,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "prop-jar",
+      "objectId": "vd-p001",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        1,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/props/prop-jar.png",
+        "pixels": [
+          1536,
+          1024
+        ],
+        "bytes": 1475060,
+        "sha256": "8f049e0c81af401978d43bf71e879277e2e985224829fc353963770fa07534e4"
+      },
+      "runtimePreview": {
+        "path": "assets/props/prop-jar.webp",
+        "pixels": [
+          512,
+          341
+        ],
+        "bytes": 19936,
+        "sha256": "4e32e9ac67c6566c87408679bf745df6d535b06c4f1b06a90c64c7959e603419"
+      },
+      "alpha": {
+        "range": [
+          0,
+          254
+        ],
+        "visibleBoundsAbove16": [
+          419,
+          93,
+          1102,
+          938
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.4951171875,
+          0.916015625
+        ],
+        "sourcePixels": [
+          760.5,
+          938.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.070278,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "prop-bench",
+      "objectId": "vd-p002",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        2,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/props/prop-bench.png",
+        "pixels": [
+          1774,
+          887
+        ],
+        "bytes": 979332,
+        "sha256": "4e5dbd9653bb72eadfdcb786e3d4f854a80867270011d43ad97fdc989471f095"
+      },
+      "runtimePreview": {
+        "path": "assets/props/prop-bench.webp",
+        "pixels": [
+          512,
+          256
+        ],
+        "bytes": 23896,
+        "sha256": "91501e0ed4af194ef6113a4704df11960fc940621d872832268848a69cc683d0"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          310,
+          50,
+          1448,
+          849
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.4954904171364149,
+          0.9571589627959414
+        ],
+        "sourcePixels": [
+          879.0,
+          849.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.112478,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "prop-well",
+      "objectId": "vd-p003",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        2,
+        2
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/props/prop-well.png",
+        "pixels": [
+          1536,
+          1024
+        ],
+        "bytes": 1624567,
+        "sha256": "c3bd45d29b6c150390f57ebd46cc1ce0b7591936035b2fb68e3bd9ee0ae0d780"
+      },
+      "runtimePreview": {
+        "path": "assets/props/prop-well.webp",
+        "pixels": [
+          512,
+          341
+        ],
+        "bytes": 28772,
+        "sha256": "0e1de4e587a2943798e9e81a6104e1d5d95fdf9713128410f5cec7babc806aa6"
+      },
+      "alpha": {
+        "range": [
+          0,
+          254
+        ],
+        "visibleBoundsAbove16": [
+          437,
+          39,
+          1120,
+          935
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5068359375,
+          0.9130859375
+        ],
+        "sourcePixels": [
+          778.5,
+          935.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.234261,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "prop-garden",
+      "objectId": "vd-p004",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        2,
+        2
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/props/prop-garden.png",
+        "pixels": [
+          1536,
+          1024
+        ],
+        "bytes": 2102227,
+        "sha256": "4d8e1e970bf6bae113d1919e52cb7da06045766657f1978f2bc8f62099044f0c"
+      },
+      "runtimePreview": {
+        "path": "assets/props/prop-garden.webp",
+        "pixels": [
+          512,
+          341
+        ],
+        "bytes": 42292,
+        "sha256": "2e226510f7f2014b2ec6cf28e2ddc3fe167eef82c032f5434794f7107a6379a8"
+      },
+      "alpha": {
+        "range": [
+          0,
+          254
+        ],
+        "visibleBoundsAbove16": [
+          185,
+          93,
+          1383,
+          932
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5104166666666666,
+          0.91015625
+        ],
+        "sourcePixels": [
+          784.0,
+          932.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.166945,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "prop-fence",
+      "objectId": "vd-p005",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        2,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/props/prop-fence.png",
+        "pixels": [
+          1774,
+          887
+        ],
+        "bytes": 769273,
+        "sha256": "fdef1c85e533185847ff36845561239d5c8f94ebe73e71d7a343fca4535fff84"
+      },
+      "runtimePreview": {
+        "path": "assets/props/prop-fence.webp",
+        "pixels": [
+          512,
+          256
+        ],
+        "bytes": 23638,
+        "sha256": "e0870a2bd9876606a61c54e0d5e51608fd8ebbec5630f591f179a4db9ad686dc"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          427,
+          17,
+          1463,
+          870
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5326944757609922,
+          0.9808342728297632
+        ],
+        "sourcePixels": [
+          945.0,
+          870.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.123552,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "prop-lantern",
+      "objectId": "vd-p006",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        1,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/props/prop-lantern.png",
+        "pixels": [
+          1536,
+          1024
+        ],
+        "bytes": 1348546,
+        "sha256": "5d89d0c07ca18751a8bddaeb5c6bce93552f7513f83ee8bea2ea48096c49cdcc"
+      },
+      "runtimePreview": {
+        "path": "assets/props/prop-lantern.webp",
+        "pixels": [
+          512,
+          341
+        ],
+        "bytes": 21534,
+        "sha256": "fb993e30a05bf3bfa35aa91971ca2d5e56f31674cebbd47911bdf6255b4ef59e"
+      },
+      "alpha": {
+        "range": [
+          0,
+          254
+        ],
+        "visibleBoundsAbove16": [
+          534,
+          22,
+          1078,
+          975
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5247395833333334,
+          0.9521484375
+        ],
+        "sourcePixels": [
+          806.0,
+          975.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.117524,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "prop-lectern",
+      "objectId": "vd-p007",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        1,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/props/prop-lectern.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 882511,
+        "sha256": "555bf786c053ab44919e2c271c1309dbc47dff8dabb3902484ea2c38850dbfcc"
+      },
+      "runtimePreview": {
+        "path": "assets/props/prop-lectern.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 34986,
+        "sha256": "4d8acd58d8a5019de539a1ccc86efc64ef2fc218ca503c18e7909da7277e0343"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          241,
+          114,
+          1054,
+          1118
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.516347687400319,
+          0.8915470494417863
+        ],
+        "sourcePixels": [
+          647.5,
+          1118.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.083641,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "prop-barrels",
+      "objectId": "vd-p008",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        2,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/props/prop-barrels.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 1378357,
+        "sha256": "c24cfe11841676140cc3e600dda7a456a5fe805e61bf18c7373eeb251bfbffc3"
+      },
+      "runtimePreview": {
+        "path": "assets/props/prop-barrels.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 53916,
+        "sha256": "38c8fd9ec712773e4f05ca84d3931d6efaf61a6f20932cf8ac518850eab4f7d6"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          148,
+          161,
+          1144,
+          1143
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5151515151515151,
+          0.9114832535885168
+        ],
+        "sourcePixels": [
+          646.0,
+          1143.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.104418,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "prop-basket",
+      "objectId": "vd-p009",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        1,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/props/prop-basket.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 678813,
+        "sha256": "cad5a886fcb0ef5eec985bf894b7f921d3ddafb01e731a00fb2b644ba3c9f862"
+      },
+      "runtimePreview": {
+        "path": "assets/props/prop-basket.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 27724,
+        "sha256": "1538aee2431a4257535411c52cfac754653ae0f2e219f0d311fc91f235494e64"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          297,
+          329,
+          958,
+          959
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5003987240829346,
+          0.7647527910685805
+        ],
+        "sourcePixels": [
+          627.5,
+          959.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.066566,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "nature-tree",
+      "objectId": "vd-n001",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        2,
+        2
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/props/nature-tree.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 1733464,
+        "sha256": "9bbabc3b931df57777800c818361ef28ee0761879d064aedaca9bdf2b8ca2667"
+      },
+      "runtimePreview": {
+        "path": "assets/props/nature-tree.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 100466,
+        "sha256": "f6bf230d30b9579346451eecb6d51eb926870292cbd6e472d2da67641ac52c81"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          22,
+          50,
+          1240,
+          1206
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5031897926634769,
+          0.9617224880382775
+        ],
+        "sourcePixels": [
+          631.0,
+          1206.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.180624,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "nature-cypress",
+      "objectId": "vd-n002",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        2,
+        2
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/props/nature-cypress.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 671815,
+        "sha256": "cad808f65c83514b8277ca72849e9e1632030d44597e66ee9f9c7b04d7c57dda"
+      },
+      "runtimePreview": {
+        "path": "assets/props/nature-cypress.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 35202,
+        "sha256": "a1133d423401f2ed0096c4f6410486a6e70b8b16856ee695ba74a2f2a469de3e"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          447,
+          18,
+          836,
+          1224
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5115629984051037,
+          0.9760765550239234
+        ],
+        "sourcePixels": [
+          641.5,
+          1224.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.282776,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "nature-rock",
+      "objectId": "vd-n004",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        2,
+        2
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/props/nature-rock.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 1125698,
+        "sha256": "6acac88853316a51309a3b8ae767e84b91f0822c6d3543edb4bf687ad52682cb"
+      },
+      "runtimePreview": {
+        "path": "assets/props/nature-rock.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 38264,
+        "sha256": "6e46a62c63717274ce900833d2e29e82a38708d93a38efcea54eb7161949a3f0"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          164,
+          182,
+          1090,
+          1074
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5,
+          0.8564593301435407
+        ],
+        "sourcePixels": [
+          627.0,
+          1074.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.172786,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "resident-nephi",
+      "objectId": "vd-c001",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        1,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/characters/resident-nephi.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 664482,
+        "sha256": "faeeac11904576462867fa33c8ac66e1f3df748200091821450f7819fcc8f7e3"
+      },
+      "runtimePreview": {
+        "path": "assets/characters/resident-nephi.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 30668,
+        "sha256": "a954b9e54cb08241cc89b5e070006ae76a461def271226080ceef0aa8b538403"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          420,
+          107,
+          833,
+          1122
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.505,
+          0.842
+        ],
+        "sourcePixels": [
+          633.27,
+          1055.87
+        ],
+        "type": "foot-midpoint",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.0867,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "resident-sariah",
+      "objectId": "vd-c002",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        1,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/characters/resident-sariah.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 830570,
+        "sha256": "ee410b4e61c23ec30b3a5f482e2a98fed6ee32d8eabb80b0538af73bc2603b1b"
+      },
+      "runtimePreview": {
+        "path": "assets/characters/resident-sariah.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 30510,
+        "sha256": "ad0992d08223d9bbb6a00cd73c9d7cc24386c0e6856f1e7513f7c524101dd17b"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          432,
+          52,
+          861,
+          1176
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.515,
+          0.905
+        ],
+        "sourcePixels": [
+          645.81,
+          1134.87
+        ],
+        "type": "foot-midpoint",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.078292,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "resident-ammon",
+      "objectId": "vd-c013",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        1,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/characters/resident-ammon.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 861415,
+        "sha256": "c4af16ad283409207cc9075f212b3b0c82de9fe430d3502f9cd1eceafbf30076"
+      },
+      "runtimePreview": {
+        "path": "assets/characters/resident-ammon.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 36500,
+        "sha256": "a02e6975f47ce02212fe967531c6e9ea9f2c89bc64c1127c689f2c5dade250ae"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          386,
+          37,
+          912,
+          1197
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.505,
+          0.886
+        ],
+        "sourcePixels": [
+          633.27,
+          1111.04
+        ],
+        "type": "foot-midpoint",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.075862,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "resident-lehi",
+      "objectId": "vd-c003",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        1,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/characters/resident-lehi.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 886459,
+        "sha256": "cafa926059afa14fb19c001d959600ed6d8fca16f9af5275e92b8903e554a891"
+      },
+      "runtimePreview": {
+        "path": "assets/characters/resident-lehi.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 33178,
+        "sha256": "2c6d1f26dc745477b6debbb72967ec28a212850964a6b9cc0ea710cf427f3379"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          378,
+          66,
+          904,
+          1177
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.505,
+          0.902
+        ],
+        "sourcePixels": [
+          633.27,
+          1131.11
+        ],
+        "type": "foot-midpoint",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.079208,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only"
+    },
+    {
+      "assetId": "forest-strip",
+      "objectId": "vd-f001",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        4,
+        2
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/forest/forest-strip.png",
+        "pixels": [
+          1774,
+          887
+        ],
+        "bytes": 1735465,
+        "sha256": "ed7716dfce6ae6bf33d807b6a20f5257b39e3d9c50a45b41d89b9c178c6993b7"
+      },
+      "runtimePreview": {
+        "path": "assets/forest/forest-strip.webp",
+        "pixels": [
+          512,
+          256
+        ],
+        "bytes": 56542,
+        "sha256": "6c013abe250e2d8839ef990587b94e9552e342174ab93e5eb5e81a28ac477fdf"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          211,
+          7,
+          1524,
+          874
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.48900789177001125,
+          0.9853438556933484
+        ],
+        "sourcePixels": [
+          867.5,
+          874.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.29246,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only",
+      "placementPolicy": "system only outside active buildable disk; organic overlap, not seamless edge stitching"
+    },
+    {
+      "assetId": "forest-corner",
+      "objectId": "vd-f002",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        4,
+        4
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/forest/forest-corner.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 2109548,
+        "sha256": "809154386ba2ab69c29681cae4dd5f54c08abed48c66883423ae789a2ef614f8"
+      },
+      "runtimePreview": {
+        "path": "assets/forest/forest-corner.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 120066,
+        "sha256": "17e5104680cf13b16ce8128a929ed62a9adb51cb19c1c3a72a4cc189b4947f4f"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          44,
+          38,
+          1235,
+          1177
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5099681020733652,
+          0.9385964912280702
+        ],
+        "sourcePixels": [
+          639.5,
+          1177.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.429891,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only",
+      "placementPolicy": "system only outside active buildable disk; organic overlap, not seamless edge stitching"
+    },
+    {
+      "assetId": "forest-cap",
+      "objectId": "vd-f003",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        2,
+        2
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/forest/forest-cap.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 2311285,
+        "sha256": "a4a86ce81bf600bd9ae5234fb6eaed155bc80f4692e18100c2eaff01b79a5df9"
+      },
+      "runtimePreview": {
+        "path": "assets/forest/forest-cap.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 141054,
+        "sha256": "5a7a08a77d74c4613ac3ee8d8d4298c4e17c1f737429526b0b7bc99856a25fce"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          17,
+          49,
+          1243,
+          1215
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5023923444976076,
+          0.9688995215311005
+        ],
+        "sourcePixels": [
+          630.0,
+          1215.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.208809,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only",
+      "placementPolicy": "system only outside active buildable disk; organic overlap, not seamless edge stitching"
+    },
+    {
+      "assetId": "forest-dense",
+      "objectId": "vd-f004",
+      "level": 1,
+      "usage": "production-pilot-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        4,
+        4
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/forest/forest-dense.png",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "bytes": 2577616,
+        "sha256": "196f893ccc43df07b3e902c5d81cc0f7754152cdc5e9d092fe6d59e93b24a916"
+      },
+      "runtimePreview": {
+        "path": "assets/forest/forest-dense.webp",
+        "pixels": [
+          512,
+          512
+        ],
+        "bytes": 142386,
+        "sha256": "7c96c5ee44ebd0c6dae6d209ff14a200f8e84d6daf0b4d458fe0fad287b7dcfa"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          40,
+          39,
+          1219,
+          1215
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.501993620414673,
+          0.9688995215311005
+        ],
+        "sourcePixels": [
+          629.5,
+          1215.0
+        ],
+        "type": "footprint-front-corner",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.434266,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only",
+      "placementPolicy": "system only outside active buildable disk; organic overlap, not seamless edge stitching"
+    },
+    {
+      "assetId": "terrain-grass",
+      "objectId": "vd-t001",
+      "level": 1,
+      "usage": "concept-terrain-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        1,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/terrain/terrain-grass.png",
+        "pixels": [
+          1774,
+          887
+        ],
+        "bytes": 1125513,
+        "sha256": "d7b02603ee149dc06ca62b21df15b477b2759d885402749bfb6eded6d2c6b84c"
+      },
+      "runtimePreview": {
+        "path": "assets/terrain/terrain-grass.webp",
+        "pixels": [
+          512,
+          256
+        ],
+        "bytes": 26750,
+        "sha256": "e9775cf717f470fffff0f5566024b043055ec974512576d3d373c23eb85f1407"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          159,
+          120,
+          1615,
+          774
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5,
+          0.503945885005637
+        ],
+        "sourcePixels": [
+          887.0,
+          447.0
+        ],
+        "type": "tile-center",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.087912,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only",
+      "seamStatus": "not-proven-seamless; UV and adjacency mask registration required",
+      "sourceDiamondProposal": [
+        [
+          887,
+          120
+        ],
+        [
+          1615,
+          447
+        ],
+        [
+          887,
+          774
+        ],
+        [
+          159,
+          447
+        ]
+      ]
+    },
+    {
+      "assetId": "terrain-dry-grass",
+      "objectId": "vd-t002",
+      "level": 1,
+      "usage": "concept-terrain-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        1,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/terrain/terrain-dry-grass.png",
+        "pixels": [
+          1774,
+          887
+        ],
+        "bytes": 1173067,
+        "sha256": "27c424c6c1844ddaf618cb34595215978d62454640fd117a7954ed9c58d609aa"
+      },
+      "runtimePreview": {
+        "path": "assets/terrain/terrain-dry-grass.webp",
+        "pixels": [
+          512,
+          256
+        ],
+        "bytes": 25492,
+        "sha256": "ba13ced213d18443f71e94b936421169a7f4c6a6073028d45c90c4355d87fed8"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          107,
+          76,
+          1668,
+          811
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5002818489289741,
+          0.5
+        ],
+        "sourcePixels": [
+          887.5,
+          443.5
+        ],
+        "type": "tile-center",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.081999,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only",
+      "seamStatus": "not-proven-seamless; UV and adjacency mask registration required",
+      "sourceDiamondProposal": [
+        [
+          887,
+          76
+        ],
+        [
+          1668,
+          443
+        ],
+        [
+          887,
+          811
+        ],
+        [
+          107,
+          443
+        ]
+      ]
+    },
+    {
+      "assetId": "terrain-flower-grass",
+      "objectId": "vd-t003",
+      "level": 1,
+      "usage": "concept-terrain-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        1,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/terrain/terrain-flower-grass.png",
+        "pixels": [
+          1774,
+          887
+        ],
+        "bytes": 1469110,
+        "sha256": "90dbbeb03faf17facc2bdac4912315a1f8d3184ed349a2710170d80d3e2ba565"
+      },
+      "runtimePreview": {
+        "path": "assets/terrain/terrain-flower-grass.webp",
+        "pixels": [
+          512,
+          256
+        ],
+        "bytes": 34844,
+        "sha256": "a187d92d87a8ca04947ae3f1eb8a63fe079b0918a7afdf4346523394ea458095"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          106,
+          53,
+          1668,
+          840
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5,
+          0.5033821871476888
+        ],
+        "sourcePixels": [
+          887.0,
+          446.5
+        ],
+        "type": "tile-center",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.081946,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only",
+      "seamStatus": "not-proven-seamless; UV and adjacency mask registration required",
+      "sourceDiamondProposal": [
+        [
+          887,
+          53
+        ],
+        [
+          1668,
+          446
+        ],
+        [
+          887,
+          840
+        ],
+        [
+          106,
+          446
+        ]
+      ]
+    },
+    {
+      "assetId": "terrain-sand",
+      "objectId": "vd-t004",
+      "level": 1,
+      "usage": "concept-terrain-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        1,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/terrain/terrain-sand.png",
+        "pixels": [
+          1774,
+          887
+        ],
+        "bytes": 1118346,
+        "sha256": "5f67ebb710eafb8c97a5f5b8b6b3be20f7b382023cf18e3f44e6265a7ca355fc"
+      },
+      "runtimePreview": {
+        "path": "assets/terrain/terrain-sand.webp",
+        "pixels": [
+          512,
+          256
+        ],
+        "bytes": 19572,
+        "sha256": "c9106976780b68a3a01ec39c32ba84d4928334f30ca87dfa63c1747698965982"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          128,
+          67,
+          1646,
+          820
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5,
+          0.5
+        ],
+        "sourcePixels": [
+          887.0,
+          443.5
+        ],
+        "type": "tile-center",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.084321,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only",
+      "seamStatus": "not-proven-seamless; UV and adjacency mask registration required",
+      "sourceDiamondProposal": [
+        [
+          887,
+          67
+        ],
+        [
+          1646,
+          443
+        ],
+        [
+          887,
+          820
+        ],
+        [
+          128,
+          443
+        ]
+      ]
+    },
+    {
+      "assetId": "terrain-path-straight",
+      "objectId": "vd-t005",
+      "level": 1,
+      "usage": "concept-terrain-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        1,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/terrain/terrain-path-straight.png",
+        "pixels": [
+          1774,
+          887
+        ],
+        "bytes": 1384351,
+        "sha256": "540af403544625ae9a829bd305b082e0ffb8401928f0873244d1481ab08cfd26"
+      },
+      "runtimePreview": {
+        "path": "assets/terrain/terrain-path-straight.webp",
+        "pixels": [
+          512,
+          256
+        ],
+        "bytes": 30400,
+        "sha256": "7f05ab8f5da047ad8934bf4650965c41e4901b47e77e43ea793dea896b5f1750"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          116,
+          68,
+          1658,
+          843
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5,
+          0.5135287485907554
+        ],
+        "sourcePixels": [
+          887.0,
+          455.5
+        ],
+        "type": "tile-center",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.083009,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only",
+      "seamStatus": "not-proven-seamless; UV and adjacency mask registration required",
+      "sourceDiamondProposal": [
+        [
+          887,
+          68
+        ],
+        [
+          1658,
+          455
+        ],
+        [
+          887,
+          843
+        ],
+        [
+          116,
+          455
+        ]
+      ]
+    },
+    {
+      "assetId": "terrain-path-corner",
+      "objectId": "vd-t006",
+      "level": 1,
+      "usage": "concept-terrain-source",
+      "engineReady": false,
+      "registrationStatus": "pilot-proposed-needs-renderer-validation",
+      "footprint": [
+        1,
+        1
+      ],
+      "upgradeFootprintInvariant": true,
+      "view": "orthographic-yaw45-elevation30-SW-front",
+      "worldRotation": 0,
+      "futureRequiredRotations": [
+        90,
+        180,
+        270
+      ],
+      "master": {
+        "path": "assets/terrain/terrain-path-corner.png",
+        "pixels": [
+          1774,
+          887
+        ],
+        "bytes": 1573486,
+        "sha256": "eaf03c44d00ed6c858b62ffea242b6a383321e358416b9b8ae2d9d173a8e3bcd"
+      },
+      "runtimePreview": {
+        "path": "assets/terrain/terrain-path-corner.webp",
+        "pixels": [
+          512,
+          256
+        ],
+        "bytes": 32612,
+        "sha256": "5be5f8893646e5b46b3cff36af0fe37af02ad90095171f9cf35f147160d3f909"
+      },
+      "alpha": {
+        "range": [
+          0,
+          255
+        ],
+        "visibleBoundsAbove16": [
+          88,
+          44,
+          1686,
+          844
+        ],
+        "trueRgba": true
+      },
+      "anchor": {
+        "normalized": [
+          0.5,
+          0.5005636978579482
+        ],
+        "sourcePixels": [
+          887.0,
+          444.0
+        ],
+        "type": "tile-center",
+        "status": "estimated-pilot-anchor",
+        "coordinateOrigin": "top-left-image"
+      },
+      "suggestedWorldScale": 0.0801,
+      "depthSort": "logical front-most footprint u+v; residents foot u+v; never PNG bottom or image center",
+      "animation": "static-only",
+      "seamStatus": "not-proven-seamless; UV and adjacency mask registration required",
+      "sourceDiamondProposal": [
+        [
+          887,
+          44
+        ],
+        [
+          1686,
+          444
+        ],
+        [
+          887,
+          844
+        ],
+        [
+          88,
+          444
+        ]
+      ]
+    }
+  ],
+  "concepts": [
+    {
+      "id": "style-classic",
+      "path": "concepts/concept-style-classic.png",
+      "pixels": [
+        1024,
+        1536
+      ],
+      "usage": "CONCEPT_ONLY_NOT_RUNTIME",
+      "exactPlacementProof": false,
+      "notAnEngineScreenshot": true
+    },
+    {
+      "id": "style-painted",
+      "path": "concepts/concept-style-painted.png",
+      "pixels": [
+        1024,
+        1536
+      ],
+      "usage": "CONCEPT_ONLY_NOT_RUNTIME",
+      "exactPlacementProof": false,
+      "notAnEngineScreenshot": true
+    },
+    {
+      "id": "style-modern",
+      "path": "concepts/concept-style-modern.png",
+      "pixels": [
+        1024,
+        1536
+      ],
+      "usage": "CONCEPT_ONLY_NOT_RUNTIME",
+      "exactPlacementProof": false,
+      "notAnEngineScreenshot": true
+    },
+    {
+      "id": "village-start",
+      "path": "concepts/concept-village-start.png",
+      "pixels": [
+        1024,
+        1536
+      ],
+      "usage": "CONCEPT_ONLY_NOT_RUNTIME",
+      "exactPlacementProof": false,
+      "notAnEngineScreenshot": true
+    },
+    {
+      "id": "village-mid",
+      "path": "concepts/concept-village-mid.png",
+      "pixels": [
+        1024,
+        1536
+      ],
+      "usage": "CONCEPT_ONLY_NOT_RUNTIME",
+      "exactPlacementProof": false,
+      "notAnEngineScreenshot": true
+    },
+    {
+      "id": "village-final",
+      "path": "concepts/concept-village-final.png",
+      "pixels": [
+        1024,
+        1536
+      ],
+      "usage": "CONCEPT_ONLY_NOT_RUNTIME",
+      "exactPlacementProof": false,
+      "notAnEngineScreenshot": true
+    }
+  ]
+}

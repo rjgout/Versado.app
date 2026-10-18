@@ -31,6 +31,9 @@ const FOCUS_ROUTES = [
   /^\/word-game$/,
   // Lofzangen (live meezingen): tekst centraal, alleen de terugbalk blijft.
   /^\/dev\/lofzangen$/,
+  // Afgeschermd technisch dorpsprototype: route blijft Focus, het actieve canvas
+  // vraagt via de bestaande override tijdelijk Immersive aan.
+  /^\/dev\/versado-dorp$/,
   /^\/jigsaw$/,
   // Legpuzzel Samen en Tegen elkaar: dezelfde fullscreen werktafel als Solo.
   /^\/jigsaw\/(samen|wedstrijd)\/[^/]+$/,
