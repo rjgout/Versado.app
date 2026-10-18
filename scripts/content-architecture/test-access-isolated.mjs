@@ -57,7 +57,7 @@ try {
   // Eerst dezelfde 133 historische migraties via Prisma op de eigen lege DB.
   // Daarna synthetische bestaande records vóór de nieuwe additieve migratie.
   const migrationPath = join(temporary, "migrations");
-  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context", "20261027120000_quick_missionary_source", "20261028120000_mystery_attempt", "20261029120000_study_identity", "20261030120000_study_import_publication", "20261031120000_reading_position", "20261101120000_content_selection_version", "20261102120000_hymns_content_visibility", "20261103120000_study_publication_audit_actions", "20261104120000_annotation_targets", "20261117120000_annotation_resolution", "20261118120000_fsy_study_handover"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
+  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context", "20261027120000_quick_missionary_source", "20261028120000_mystery_attempt", "20261029120000_study_identity", "20261030120000_study_import_publication", "20261031120000_reading_position", "20261101120000_content_selection_version", "20261102120000_hymns_content_visibility", "20261103120000_study_publication_audit_actions", "20261104120000_annotation_targets", "20261117120000_annotation_resolution", "20261118120000_fsy_study_handover", "20261119120000_word_search_source_context"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
   const config = join(temporary,"prisma.config.mjs");
   const require = createRequire(import.meta.url);
   writeFileSync(config, `import {defineConfig} from ${JSON.stringify(require.resolve("prisma/config"))}; export default defineConfig({schema:${JSON.stringify(resolve("prisma/schema.prisma"))},migrations:{path:${JSON.stringify(migrationPath)}},datasource:{url:process.env.DATABASE_URL}});`);
@@ -103,8 +103,12 @@ try {
   await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
   await run("node", ["tests/annotation-migration.mjs", "verify"], env);
   await run("node", ["tests/fsy-conversion-migration.mjs", "prepare"], env);
-  await run("npm", ["run", "db:migrate:deploy"], env);
+  cpSync("prisma/migrations/20261118120000_fsy_study_handover",join(migrationPath,"20261118120000_fsy_study_handover"),{recursive:true});
+  await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
   await run("node", ["tests/fsy-conversion-migration.mjs", "verify"], env);
+  await run("node", ["tests/game-resolver-migration.mjs", "prepare"], env);
+  await run("npm", ["run", "db:migrate:deploy"], env);
+  await run("node", ["tests/game-resolver-migration.mjs", "verify"], env);
   await run("npm", ["run", "db:migrate:deploy"], env);
   if (process.argv.includes("--availability-performance")) {
     await run("npx", ["tsx", "scripts/content-architecture/benchmark-availability.mjs", ...(process.argv.includes("--assert-budget") ? ["--assert-budget"] : [])], env);
@@ -146,6 +150,11 @@ try {
       await run("npx", ["tsx", "tests/fixtures/mystery-learning.mjs"], env);
       for (const suite of ["test:learning", "test:streak-return", "test:streak-calendar", "test:time"]) await run("npm", ["run", suite], env);
     }
+  }
+  if(process.argv.includes("--game-resolver")) {
+    await run("npx",["tsx","--test","tests/game-resolver.test.ts"],env);
+    await run("npx",["tsx","--test","tests/game-resolver.integration.test.mjs"],env);
+    await run("npx",["tsx","--test","tests/game-availability.integration.test.ts","tests/game-availability.test.ts"],env);
   }
   if(process.argv.includes("--program-integration")) {
     await run("npx",["tsx","--test","tests/fsy-presentation.test.ts","tests/program-integration.test.mjs"],env);

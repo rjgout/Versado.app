@@ -21,6 +21,7 @@ export async function getWordSearchCandidates(
   contentCollectionId: string,
   language: string
 ): Promise<WordSearchCandidate[]> {
+  if (!["nl", "en", "de", "fr", "es"].includes(language)) return [];
   const safeLanguage: LanguageCode = language === "en" || language === "de" || language === "fr" || language === "es" ? language : "nl";
   const sourceWords = safeLanguage === "en" ? ENGLISH_WORDS : safeLanguage === "es" ? SPANISH_WORDS : safeLanguage === "de" ? GERMAN_WORDS : safeLanguage === "fr" ? FRENCH_WORDS : DUTCH_WORDS;
   const stopwords = stopwordsFor(safeLanguage);

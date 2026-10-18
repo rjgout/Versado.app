@@ -101,6 +101,8 @@ on:
       - 'tests/genees-economy*'
       - 'tests/fixtures/quick-missionary.ts'
       - 'src/lib/gameAvailability*.ts'
+      - 'src/lib/gameContentResolver.ts'
+      - 'tests/game-resolver*'
       - 'src/lib/gameStartGuard.ts'
       - 'src/lib/study/startAvailability.ts'
       - 'src/app/api/study/create/**'
@@ -344,6 +346,8 @@ jobs:
         run: |
           npm run test:study-reader:integration
           npm run test:study-read:integration
+      - name: Concrete spelresolvers en bevroren Woordzoekerbron
+        run: node scripts/content-architecture/test-access-isolated.mjs --focused --game-resolver
       - name: Studieprogrammacontext in Vandaag, Leren en Spelen
         run: node scripts/content-architecture/test-access-isolated.mjs --focused --program-integration --browser
       - name: Browserbewijs bewaren
