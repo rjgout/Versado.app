@@ -1,0 +1,5395 @@
+{
+  "schemaVersion": 1,
+  "visibility": "public-safe-no-unlock-information",
+  "scope": "bofm",
+  "xpPricesStatus": "design-proposal-not-approved-balance",
+  "noNewResources": true,
+  "objects": [
+    {
+      "id": "vd-b025",
+      "name": "Aanlegplaats",
+      "kind": "building",
+      "footprint": [
+        6,
+        6
+      ],
+      "maxInstances": 1,
+      "functionalRole": "reis",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        3,
+        5
+      ],
+      "artBrief": "Aanlegplaats: herkenbaar eigen volume voor reis; crème steen/hout met spaarzaam navy/oranje; fundering 6×6; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "droge herinneringswerf met houten kadevorm binnen de basis"
+    },
+    {
+      "id": "vd-c019",
+      "name": "Aanvoerder Moroni",
+      "kind": "resident",
+      "canonicalCharacterId": "captain-moroni",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-t007",
+      "name": "Aardepad T-kruising",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-t006",
+      "name": "Aardepad bocht",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "terrain-path-corner"
+      ],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-t009",
+      "name": "Aardepad einde",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-t008",
+      "name": "Aardepad kruising",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-t005",
+      "name": "Aardepad recht",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "terrain-path-straight"
+      ],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c009",
+      "name": "Abinadi",
+      "kind": "resident",
+      "canonicalCharacterId": "abinadi",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c014",
+      "name": "Abish",
+      "kind": "resident",
+      "canonicalCharacterId": "abish",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b039",
+      "name": "Akkerhof",
+      "kind": "building",
+      "footprint": [
+        6,
+        6
+      ],
+      "maxInstances": 1,
+      "functionalRole": "natuur",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        3,
+        5
+      ],
+      "artBrief": "Akkerhof: herkenbaar eigen volume voor natuur; crème steen/hout met spaarzaam navy/oranje; fundering 6×6; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "klein schaduwhuis boven een decoratieve lage akkerhof"
+    },
+    {
+      "id": "vd-c011",
+      "name": "Alma de jongere",
+      "kind": "resident",
+      "canonicalCharacterId": "alma-younger",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c010",
+      "name": "Alma de oudere",
+      "kind": "resident",
+      "canonicalCharacterId": "alma-elder",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b024",
+      "name": "Ambachtshof",
+      "kind": "building",
+      "footprint": [
+        5,
+        5
+      ],
+      "maxInstances": 1,
+      "functionalRole": "ambacht",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        4
+      ],
+      "artBrief": "Ambachtshof: herkenbaar eigen volume voor ambacht; crème steen/hout met spaarzaam navy/oranje; fundering 5×5; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "drie kleine ambachtsnissen binnen één vierkante hof"
+    },
+    {
+      "id": "vd-c013",
+      "name": "Ammon, zoon van Mosiah",
+      "kind": "resident",
+      "canonicalCharacterId": "ammon-missionary",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [
+        "resident-ammon"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b020",
+      "name": "Archiefhuis",
+      "kind": "building",
+      "footprint": [
+        5,
+        5
+      ],
+      "maxInstances": 1,
+      "functionalRole": "overlevering",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        4
+      ],
+      "artBrief": "Archiefhuis: herkenbaar eigen volume voor overlevering; crème steen/hout met spaarzaam navy/oranje; fundering 5×5; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "massief vierkant archief met rustige hoge rolkasten"
+    },
+    {
+      "id": "vd-c017",
+      "name": "Aäron",
+      "kind": "resident",
+      "canonicalCharacterId": "aaron",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-t001",
+      "name": "Basisgras",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "terrain-grass"
+      ],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-l007",
+      "name": "Bewaarplaats van de kronieken",
+      "kind": "landmark",
+      "footprint": [
+        6,
+        6
+      ],
+      "maxInstances": 1,
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 500
+        },
+        {
+          "level": 3,
+          "xpCost": 1500
+        }
+      ],
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        3,
+        5
+      ],
+      "artBrief": "Bewaarplaats van de kronieken: herkenbaar eigen volume voor bijzonder herinneringsgebouw; crème steen/hout met spaarzaam navy/oranje; fundering 6×6; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis."
+    },
+    {
+      "id": "vd-n019",
+      "name": "Bladbed",
+      "kind": "nature",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-n003",
+      "name": "Bloeiende struik",
+      "kind": "nature",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p010",
+      "name": "Bloemenbak",
+      "kind": "prop",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p028",
+      "name": "Bloemenschaal",
+      "kind": "prop",
+      "footprint": [
+        2,
+        2
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-t003",
+      "name": "Bloemrijk gras",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "terrain-flower-grass"
+      ],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p026",
+      "name": "Bogenpoort",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b037",
+      "name": "Boomgaardhof",
+      "kind": "building",
+      "footprint": [
+        6,
+        6
+      ],
+      "maxInstances": 1,
+      "functionalRole": "natuur",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        3,
+        5
+      ],
+      "artBrief": "Boomgaardhof: herkenbaar eigen volume voor natuur; crème steen/hout met spaarzaam navy/oranje; fundering 6×6; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "open hof met drie lage vruchtboomvormen"
+    },
+    {
+      "id": "vd-n009",
+      "name": "Boomstam",
+      "kind": "nature",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p021",
+      "name": "Boomstambank",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-f002",
+      "name": "Bosrand bocht",
+      "kind": "forest-border",
+      "footprint": [
+        4,
+        4
+      ],
+      "buildable": false,
+      "playerPlaceable": false,
+      "maxLevel": 1,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "pilotAssets": [
+        "forest-corner"
+      ],
+      "interactions": [],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-f004",
+      "name": "Bosrand dichte achtergrond",
+      "kind": "forest-border",
+      "footprint": [
+        4,
+        4
+      ],
+      "buildable": false,
+      "playerPlaceable": false,
+      "maxLevel": 1,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "pilotAssets": [
+        "forest-dense"
+      ],
+      "interactions": [],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-f003",
+      "name": "Bosrand eindgroep",
+      "kind": "forest-border",
+      "footprint": [
+        2,
+        2
+      ],
+      "buildable": false,
+      "playerPlaceable": false,
+      "maxLevel": 1,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "pilotAssets": [
+        "forest-cap"
+      ],
+      "interactions": [],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-f001",
+      "name": "Bosrand strook",
+      "kind": "forest-border",
+      "footprint": [
+        4,
+        2
+      ],
+      "buildable": false,
+      "playerPlaceable": false,
+      "maxLevel": 1,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "pilotAssets": [
+        "forest-strip"
+      ],
+      "interactions": [],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b026",
+      "name": "Botenhuis",
+      "kind": "building",
+      "footprint": [
+        5,
+        5
+      ],
+      "maxInstances": 1,
+      "functionalRole": "reis",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        4
+      ],
+      "artBrief": "Botenhuis: herkenbaar eigen volume voor reis; crème steen/hout met spaarzaam navy/oranje; fundering 5×5; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "breed laag scheepsdak met geïntegreerde houten rompnis"
+    },
+    {
+      "id": "vd-b044",
+      "name": "Bronnenhof",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "voorziening",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Bronnenhof: herkenbaar eigen volume voor voorziening; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "ronde bronnis in een vierkante lage hof"
+    },
+    {
+      "id": "vd-p003",
+      "name": "Bronput",
+      "kind": "prop",
+      "footprint": [
+        2,
+        2
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "prop-well"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b008",
+      "name": "Broodhuis",
+      "kind": "building",
+      "footprint": [
+        3,
+        3
+      ],
+      "maxInstances": 1,
+      "functionalRole": "zorg",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        1,
+        2
+      ],
+      "artBrief": "Broodhuis: herkenbaar eigen volume voor zorg; crème steen/hout met spaarzaam navy/oranje; fundering 3×3; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "afgeronde bakoven binnen een klein beschut stenen huis"
+    },
+    {
+      "id": "vd-b042",
+      "name": "Brugwachtershuis",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "reis",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Brugwachtershuis: herkenbaar eigen volume voor reis; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "klein stenen brugmotief geïntegreerd in de eigen basis"
+    },
+    {
+      "id": "vd-n002",
+      "name": "Cipres",
+      "kind": "nature",
+      "footprint": [
+        2,
+        2
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "nature-cypress"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b049",
+      "name": "Deelhuis",
+      "kind": "building",
+      "footprint": [
+        5,
+        5
+      ],
+      "maxInstances": 1,
+      "functionalRole": "zorg",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        4
+      ],
+      "artBrief": "Deelhuis: herkenbaar eigen volume voor zorg; crème steen/hout met spaarzaam navy/oranje; fundering 5×5; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "open voorraadnissen en gezamenlijke uitgifteveranda"
+    },
+    {
+      "id": "vd-p035",
+      "name": "Doekenrek",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-t002",
+      "name": "Droog gras",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "terrain-dry-grass"
+      ],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c007",
+      "name": "Enos",
+      "kind": "resident",
+      "canonicalCharacterId": "enos",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c023",
+      "name": "Ether",
+      "kind": "resident",
+      "canonicalCharacterId": "ether",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b035",
+      "name": "Familiehof",
+      "kind": "building",
+      "footprint": [
+        5,
+        5
+      ],
+      "maxInstances": 1,
+      "functionalRole": "wonen",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        4
+      ],
+      "artBrief": "Familiehof: herkenbaar eigen volume voor wonen; crème steen/hout met spaarzaam navy/oranje; fundering 5×5; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "lage woonmuren met schaduwrijk binnenhof"
+    },
+    {
+      "id": "vd-b001",
+      "name": "Familiehuis",
+      "kind": "building",
+      "footprint": [
+        3,
+        3
+      ],
+      "maxInstances": 1,
+      "functionalRole": "wonen",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "building-family-house-l1",
+        "building-family-house-l2",
+        "building-family-house-l3"
+      ],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        1,
+        2
+      ],
+      "artBrief": "Familiehuis: herkenbaar eigen volume voor wonen; crème steen/hout met spaarzaam navy/oranje; fundering 3×3; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "compact zadeldak, één woondeur en eenvoudige navy gordijnnis"
+    },
+    {
+      "id": "vd-b013",
+      "name": "Gastenhuis",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "gastvrijheid",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Gastenhuis: herkenbaar eigen volume voor gastvrijheid; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "twee kleine slaapvolumes om een gezamenlijke deur"
+    },
+    {
+      "id": "vd-b034",
+      "name": "Gebedshuis",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "reflectie",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Gebedshuis: herkenbaar eigen volume voor reflectie; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "eenvoudige open gebedsnis zonder religieus logo"
+    },
+    {
+      "id": "vd-b033",
+      "name": "Gemeenschapsraad",
+      "kind": "building",
+      "footprint": [
+        6,
+        6
+      ],
+      "maxInstances": 1,
+      "functionalRole": "bestuur",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        3,
+        5
+      ],
+      "artBrief": "Gemeenschapsraad: herkenbaar eigen volume voor bestuur; crème steen/hout met spaarzaam navy/oranje; fundering 6×6; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "breed laag raadsdak en open binnenhof"
+    },
+    {
+      "id": "vd-b050",
+      "name": "Gemeenschapstafelhuis",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "gemeenschap",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Gemeenschapstafelhuis: herkenbaar eigen volume voor gemeenschap; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "lang laag huis met ingebouwde gezamenlijke tafel"
+    },
+    {
+      "id": "vd-b011",
+      "name": "Graanbewaarhuis",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "voorziening",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Graanbewaarhuis: herkenbaar eigen volume voor voorziening; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "breed gesloten opslagvolume op korte stenen sokkel"
+    },
+    {
+      "id": "vd-t019",
+      "name": "Gras-overgang zand",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-n005",
+      "name": "Graspol",
+      "kind": "nature",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p004",
+      "name": "Groentebed",
+      "kind": "prop",
+      "footprint": [
+        2,
+        2
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "prop-garden"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-n015",
+      "name": "Heester",
+      "kind": "nature",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p022",
+      "name": "Hekhoek",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p023",
+      "name": "Hekpoortje",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p005",
+      "name": "Hekwerk recht",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "prop-fence"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c018",
+      "name": "Helaman",
+      "kind": "resident",
+      "canonicalCharacterId": "helaman-son-alma",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b028",
+      "name": "Herbergshof",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "gastvrijheid",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Herbergshof: herkenbaar eigen volume voor gastvrijheid; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "open beschut overnachtingshof met één kleine slaapvleugel"
+    },
+    {
+      "id": "vd-l008",
+      "name": "Herinneringshaven",
+      "kind": "landmark",
+      "footprint": [
+        8,
+        8
+      ],
+      "maxInstances": 1,
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 500
+        },
+        {
+          "level": 3,
+          "xpCost": 1500
+        }
+      ],
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        4,
+        7
+      ],
+      "artBrief": "Herinneringshaven: herkenbaar eigen volume voor bijzonder herinneringsgebouw; crème steen/hout met spaarzaam navy/oranje; fundering 8×8; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis."
+    },
+    {
+      "id": "vd-p040",
+      "name": "Herinneringszuil zonder tekst",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p002",
+      "name": "Houten bank",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "prop-bench"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p016",
+      "name": "Houten kist",
+      "kind": "prop",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p031",
+      "name": "Houten trap",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c006",
+      "name": "Jakob",
+      "kind": "resident",
+      "canonicalCharacterId": "jacob-son-lehi",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-n014",
+      "name": "Jonge boom",
+      "kind": "nature",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b041",
+      "name": "Kanaalhuis",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "voorziening",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Kanaalhuis: herkenbaar eigen volume voor voorziening; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "compact huis met geïntegreerde ondiepe waternis"
+    },
+    {
+      "id": "vd-n018",
+      "name": "Kiezelgroep",
+      "kind": "nature",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p033",
+      "name": "Kleine brug",
+      "kind": "prop",
+      "footprint": [
+        3,
+        2
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p001",
+      "name": "Kleipot",
+      "kind": "prop",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "prop-jar"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c008",
+      "name": "Koning Benjamin",
+      "kind": "resident",
+      "canonicalCharacterId": "king-benjamin",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p020",
+      "name": "Korenbundel",
+      "kind": "prop",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b038",
+      "name": "Kuddehof",
+      "kind": "building",
+      "footprint": [
+        6,
+        6
+      ],
+      "maxInstances": 1,
+      "functionalRole": "natuur",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        3,
+        5
+      ],
+      "artBrief": "Kuddehof: herkenbaar eigen volume voor natuur; crème steen/hout met spaarzaam navy/oranje; fundering 6×6; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "lage omheinde hof met compact overdekt schaduwdeel"
+    },
+    {
+      "id": "vd-p024",
+      "name": "Lage stenen muur",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c015",
+      "name": "Lamoni",
+      "kind": "resident",
+      "canonicalCharacterId": "lamoni",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p006",
+      "name": "Lantaarnpaal",
+      "kind": "prop",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "prop-lantern"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b015",
+      "name": "Leerhuis",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "leren",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Leerhuis: herkenbaar eigen volume voor leren; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "laag leshuis met grote open leesnis"
+    },
+    {
+      "id": "vd-p007",
+      "name": "Leeslessenaar",
+      "kind": "prop",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "prop-lectern"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c003",
+      "name": "Lehi",
+      "kind": "resident",
+      "canonicalCharacterId": "lehi",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [
+        "resident-lehi"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b023",
+      "name": "Markthof",
+      "kind": "building",
+      "footprint": [
+        6,
+        6
+      ],
+      "maxInstances": 1,
+      "functionalRole": "gemeenschap",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        3,
+        5
+      ],
+      "artBrief": "Markthof: herkenbaar eigen volume voor gemeenschap; crème steen/hout met spaarzaam navy/oranje; fundering 6×6; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "lage afdakjes om een open centrale markthof"
+    },
+    {
+      "id": "vd-c022",
+      "name": "Mormon",
+      "kind": "resident",
+      "canonicalCharacterId": "mormon",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c024",
+      "name": "Moroni, zoon van Mormon",
+      "kind": "resident",
+      "canonicalCharacterId": "moroni-son-mormon",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c012",
+      "name": "Mosiah",
+      "kind": "resident",
+      "canonicalCharacterId": "mosiah-son-benjamin",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-n020",
+      "name": "Mosplek",
+      "kind": "nature",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p025",
+      "name": "Muurhoek",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c001",
+      "name": "Nephi",
+      "kind": "resident",
+      "canonicalCharacterId": "nephi",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [
+        "resident-nephi"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c020",
+      "name": "Nephi, zoon van Helaman",
+      "kind": "resident",
+      "canonicalCharacterId": "nephi-son-helaman",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p038",
+      "name": "Nettenrek",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-t020",
+      "name": "Oever-eindstuk",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": true,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-n016",
+      "name": "Oeversteen",
+      "kind": "nature",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-n012",
+      "name": "Olijfboom",
+      "kind": "nature",
+      "footprint": [
+        2,
+        2
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b032",
+      "name": "Onderwijspaviljoen",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "leren",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Onderwijspaviljoen: herkenbaar eigen volume voor leren; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "open lessenaarsdak met ingebouwde bankrij"
+    },
+    {
+      "id": "vd-b003",
+      "name": "Ontmoetingshuis",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "gemeenschap",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "building-assembly-house-l1",
+        "building-assembly-house-l2",
+        "building-assembly-house-l3"
+      ],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Ontmoetingshuis: herkenbaar eigen volume voor gemeenschap; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "lang laag dak, twee portiekpijlers en brede gemeenschapsdeur"
+    },
+    {
+      "id": "vd-t018",
+      "name": "Pad-overgang zand-steen",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b045",
+      "name": "Padwachttoren",
+      "kind": "building",
+      "footprint": [
+        3,
+        3
+      ],
+      "maxInstances": 1,
+      "functionalRole": "bescherming",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        1,
+        2
+      ],
+      "artBrief": "Padwachttoren: herkenbaar eigen volume voor bescherming; crème steen/hout met spaarzaam navy/oranje; fundering 3×3; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "smalle eenvoudige oriëntatietoren met helder dakprofiel"
+    },
+    {
+      "id": "vd-p014",
+      "name": "Picknickkleed",
+      "kind": "prop",
+      "footprint": [
+        2,
+        2
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p018",
+      "name": "Platenstandaard",
+      "kind": "prop",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b048",
+      "name": "Platenwerkplaats",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "overlevering",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Platenwerkplaats: herkenbaar eigen volume voor overlevering; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "twee stenen werktafels onder breed plat schrijversdak"
+    },
+    {
+      "id": "vd-b018",
+      "name": "Poorthuis",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "bescherming",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Poorthuis: herkenbaar eigen volume voor bescherming; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "brede open poortdoorgang onder klein dakvolume"
+    },
+    {
+      "id": "vd-b005",
+      "name": "Pottenbakkershuis",
+      "kind": "building",
+      "footprint": [
+        3,
+        3
+      ],
+      "maxInstances": 1,
+      "functionalRole": "ambacht",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        1,
+        2
+      ],
+      "artBrief": "Pottenbakkershuis: herkenbaar eigen volume voor ambacht; crème steen/hout met spaarzaam navy/oranje; fundering 3×3; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "rond ovenvolume onder laag dak, pottennis binnen de basis"
+    },
+    {
+      "id": "vd-b022",
+      "name": "Raadshuis",
+      "kind": "building",
+      "footprint": [
+        6,
+        6
+      ],
+      "maxInstances": 1,
+      "functionalRole": "bestuur",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        3,
+        5
+      ],
+      "artBrief": "Raadshuis: herkenbaar eigen volume voor bestuur; crème steen/hout met spaarzaam navy/oranje; fundering 6×6; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "breed rechthoekig raadspaviljoen met sober dak"
+    },
+    {
+      "id": "vd-b027",
+      "name": "Reiskamp",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "reis",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Reiskamp: herkenbaar eigen volume voor reis; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "lage doeken en drie eenvoudige slaapnissen binnen de basis"
+    },
+    {
+      "id": "vd-b016",
+      "name": "Reizigershuis",
+      "kind": "building",
+      "footprint": [
+        3,
+        3
+      ],
+      "maxInstances": 1,
+      "functionalRole": "reis",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        1,
+        2
+      ],
+      "artBrief": "Reizigershuis: herkenbaar eigen volume voor reis; crème steen/hout met spaarzaam navy/oranje; fundering 3×3; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "klein doekoverdekt reizigersportaal en lage bagagenis"
+    },
+    {
+      "id": "vd-p009",
+      "name": "Rieten mand",
+      "kind": "prop",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "prop-basket"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-n010",
+      "name": "Rietpol",
+      "kind": "nature",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-n004",
+      "name": "Rotsgroep",
+      "kind": "nature",
+      "footprint": [
+        2,
+        2
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "nature-rock"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c004",
+      "name": "Sam",
+      "kind": "resident",
+      "canonicalCharacterId": "sam",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c021",
+      "name": "Samuel de Lamaniet",
+      "kind": "resident",
+      "canonicalCharacterId": "samuel-lamanite",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c002",
+      "name": "Sariah",
+      "kind": "resident",
+      "canonicalCharacterId": "sariah",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [
+        "resident-sariah"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-n001",
+      "name": "Schaduwboom",
+      "kind": "nature",
+      "footprint": [
+        2,
+        2
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "nature-tree"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-l003",
+      "name": "Scheepsherinnering",
+      "kind": "landmark",
+      "footprint": [
+        8,
+        8
+      ],
+      "maxInstances": 1,
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 500
+        },
+        {
+          "level": 3,
+          "xpCost": 1500
+        }
+      ],
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        4,
+        7
+      ],
+      "artBrief": "Scheepsherinnering: herkenbaar eigen volume voor bijzonder herinneringsgebouw; crème steen/hout met spaarzaam navy/oranje; fundering 8×8; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis."
+    },
+    {
+      "id": "vd-p017",
+      "name": "Schriftrolhouder",
+      "kind": "prop",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b002",
+      "name": "Schrijvershuis",
+      "kind": "building",
+      "footprint": [
+        3,
+        3
+      ],
+      "maxInstances": 1,
+      "functionalRole": "overlevering",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "building-scribe-house-l1",
+        "building-scribe-house-l2",
+        "building-scribe-house-l3"
+      ],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        1,
+        2
+      ],
+      "artBrief": "Schrijvershuis: herkenbaar eigen volume voor overlevering; crème steen/hout met spaarzaam navy/oranje; fundering 3×3; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "laag plat houtdak, oranje schrijf-luifel en ingebouwde rollenplank"
+    },
+    {
+      "id": "vd-b046",
+      "name": "Schuilhuis",
+      "kind": "building",
+      "footprint": [
+        3,
+        3
+      ],
+      "maxInstances": 1,
+      "functionalRole": "zorg",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        1,
+        2
+      ],
+      "artBrief": "Schuilhuis: herkenbaar eigen volume voor zorg; crème steen/hout met spaarzaam navy/oranje; fundering 3×3; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "laag schuildak met diepe overdekte zitnis"
+    },
+    {
+      "id": "vd-b007",
+      "name": "Steenhouwershuis",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "ambacht",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Steenhouwershuis: herkenbaar eigen volume voor ambacht; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "lage stevige stenen werkmuur en vierkante werkhof"
+    },
+    {
+      "id": "vd-t012",
+      "name": "Steenpad T-kruising",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-t011",
+      "name": "Steenpad bocht",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-t014",
+      "name": "Steenpad einde",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-t013",
+      "name": "Steenpad kruising",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-t010",
+      "name": "Steenpad recht",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p012",
+      "name": "Stenen zitbank",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b052",
+      "name": "Stille bibliotheek",
+      "kind": "building",
+      "footprint": [
+        5,
+        5
+      ],
+      "maxInstances": 1,
+      "functionalRole": "leren",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        4
+      ],
+      "artBrief": "Stille bibliotheek: herkenbaar eigen volume voor leren; crème steen/hout met spaarzaam navy/oranje; fundering 5×5; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "rustig compact leesgebouw met diepe schaduwportiek"
+    },
+    {
+      "id": "vd-n008",
+      "name": "Stronk",
+      "kind": "nature",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b021",
+      "name": "Studiehuis",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "leren",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Studiehuis: herkenbaar eigen volume voor leren; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "twee leesnissen onder een zacht verspringend plat dak"
+    },
+    {
+      "id": "vd-p013",
+      "name": "Tafel",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-l001",
+      "name": "Tempelhof van Overvloed",
+      "kind": "landmark",
+      "footprint": [
+        12,
+        12
+      ],
+      "maxInstances": 1,
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 500
+        },
+        {
+          "level": 3,
+          "xpCost": 1500
+        }
+      ],
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "landmark-temple-l1"
+      ],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        6,
+        11
+      ],
+      "artBrief": "Tempelhof van Overvloed: herkenbaar eigen volume voor bijzonder herinneringsgebouw; crème steen/hout met spaarzaam navy/oranje; fundering 12×12; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis."
+    },
+    {
+      "id": "vd-p030",
+      "name": "Tentdoek",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b006",
+      "name": "Timmerhuis",
+      "kind": "building",
+      "footprint": [
+        3,
+        3
+      ],
+      "maxInstances": 1,
+      "functionalRole": "ambacht",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        1,
+        2
+      ],
+      "artBrief": "Timmerhuis: herkenbaar eigen volume voor ambacht; crème steen/hout met spaarzaam navy/oranje; fundering 3×3; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "twee open houten werkvakken onder asymmetrisch hellend dak"
+    },
+    {
+      "id": "vd-b047",
+      "name": "Toevluchtshof",
+      "kind": "building",
+      "footprint": [
+        6,
+        6
+      ],
+      "maxInstances": 1,
+      "functionalRole": "zorg",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        3,
+        5
+      ],
+      "artBrief": "Toevluchtshof: herkenbaar eigen volume voor zorg; crème steen/hout met spaarzaam navy/oranje; fundering 6×6; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "brede beschermende buitenmuur rond een rustige zorgbinnenhof"
+    },
+    {
+      "id": "vd-l004",
+      "name": "Toren van de toespraak",
+      "kind": "landmark",
+      "footprint": [
+        6,
+        6
+      ],
+      "maxInstances": 1,
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 500
+        },
+        {
+          "level": 3,
+          "xpCost": 1500
+        }
+      ],
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        3,
+        5
+      ],
+      "artBrief": "Toren van de toespraak: herkenbaar eigen volume voor bijzonder herinneringsgebouw; crème steen/hout met spaarzaam navy/oranje; fundering 6×6; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis."
+    },
+    {
+      "id": "vd-p032",
+      "name": "Tredenblok",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-l005",
+      "name": "Tuin bij de wateren van Mormon",
+      "kind": "landmark",
+      "footprint": [
+        8,
+        8
+      ],
+      "maxInstances": 1,
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 500
+        },
+        {
+          "level": 3,
+          "xpCost": 1500
+        }
+      ],
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        4,
+        7
+      ],
+      "artBrief": "Tuin bij de wateren van Mormon: herkenbaar eigen volume voor bijzonder herinneringsgebouw; crème steen/hout met spaarzaam navy/oranje; fundering 8×8; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis."
+    },
+    {
+      "id": "vd-l002",
+      "name": "Tuin van de levensboom",
+      "kind": "landmark",
+      "footprint": [
+        8,
+        8
+      ],
+      "maxInstances": 1,
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 500
+        },
+        {
+          "level": 3,
+          "xpCost": 1500
+        }
+      ],
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        4,
+        7
+      ],
+      "artBrief": "Tuin van de levensboom: herkenbaar eigen volume voor bijzonder herinneringsgebouw; crème steen/hout met spaarzaam navy/oranje; fundering 8×8; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis."
+    },
+    {
+      "id": "vd-p027",
+      "name": "Tuinboog",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b010",
+      "name": "Tuindershuis",
+      "kind": "building",
+      "footprint": [
+        3,
+        3
+      ],
+      "maxInstances": 1,
+      "functionalRole": "natuur",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        1,
+        2
+      ],
+      "artBrief": "Tuindershuis: herkenbaar eigen volume voor natuur; crème steen/hout met spaarzaam navy/oranje; fundering 3×3; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "licht open tuinhuis met houten lattenwand"
+    },
+    {
+      "id": "vd-b043",
+      "name": "Tuinpaviljoen",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "reflectie",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Tuinpaviljoen: herkenbaar eigen volume voor reflectie; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "luchtig tuinpaviljoen op vier eenvoudige houten dragers"
+    },
+    {
+      "id": "vd-b017",
+      "name": "Uitkijkpost",
+      "kind": "building",
+      "footprint": [
+        3,
+        3
+      ],
+      "maxInstances": 1,
+      "functionalRole": "bescherming",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        1,
+        2
+      ],
+      "artBrief": "Uitkijkpost: herkenbaar eigen volume voor bescherming; crème steen/hout met spaarzaam navy/oranje; fundering 3×3; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "smalle houten kijkverdieping op compacte stenen voet"
+    },
+    {
+      "id": "vd-n007",
+      "name": "Varen",
+      "kind": "nature",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p008",
+      "name": "Vatenpaar",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "prop-barrels"
+      ],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b029",
+      "name": "Verzameltent",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "gemeenschap",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Verzameltent: herkenbaar eigen volume voor gemeenschap; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "één groot laag gespannen doek op vier houten palen"
+    },
+    {
+      "id": "vd-n011",
+      "name": "Vijgenboom",
+      "kind": "nature",
+      "footprint": [
+        2,
+        2
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b040",
+      "name": "Vissershuis",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "voorziening",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Vissershuis: herkenbaar eigen volume voor voorziening; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "klein houten vissersafdak met opgehangen net binnen het dak"
+    },
+    {
+      "id": "vd-p034",
+      "name": "Voetgangersbrug",
+      "kind": "prop",
+      "footprint": [
+        3,
+        2
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p015",
+      "name": "Vouwkruk",
+      "kind": "prop",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b031",
+      "name": "Vredeshuis",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "vrede",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Vredeshuis: herkenbaar eigen volume voor vrede; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "rustig laag huis met brede open doorgang"
+    },
+    {
+      "id": "vd-p039",
+      "name": "Vredessteen",
+      "kind": "prop",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-l006",
+      "name": "Vredestuin",
+      "kind": "landmark",
+      "footprint": [
+        8,
+        8
+      ],
+      "maxInstances": 1,
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 500
+        },
+        {
+          "level": 3,
+          "xpCost": 1500
+        }
+      ],
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        4,
+        7
+      ],
+      "artBrief": "Vredestuin: herkenbaar eigen volume voor bijzonder herinneringsgebouw; crème steen/hout met spaarzaam navy/oranje; fundering 8×8; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis."
+    },
+    {
+      "id": "vd-c016",
+      "name": "Vrouw van Lamoni",
+      "kind": "resident",
+      "canonicalCharacterId": "lamoni-wife",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-c005",
+      "name": "Vrouw van Nephi",
+      "kind": "resident",
+      "canonicalCharacterId": "nephi-wife",
+      "footprint": [
+        1,
+        1
+      ],
+      "collisionPolicy": "walking-agent-no-permanent-building-occupation",
+      "maxInstances": 1,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "identityPolicy": "existing Versado canon only; verify canonical ID before production",
+      "upkeep": null,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-n013",
+      "name": "Vruchtboom",
+      "kind": "nature",
+      "footprint": [
+        2,
+        2
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p029",
+      "name": "Vuurplaats gedoofd",
+      "kind": "prop",
+      "footprint": [
+        2,
+        2
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b019",
+      "name": "Wachthuis",
+      "kind": "building",
+      "footprint": [
+        3,
+        3
+      ],
+      "maxInstances": 1,
+      "functionalRole": "bescherming",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        1,
+        2
+      ],
+      "artBrief": "Wachthuis: herkenbaar eigen volume voor bescherming; crème steen/hout met spaarzaam navy/oranje; fundering 3×3; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "gesloten lage wachtruimte met smalle kijknis"
+    },
+    {
+      "id": "vd-t015",
+      "name": "Water",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": true,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b012",
+      "name": "Waterhuis",
+      "kind": "building",
+      "footprint": [
+        3,
+        3
+      ],
+      "maxInstances": 1,
+      "functionalRole": "voorziening",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        1,
+        2
+      ],
+      "artBrief": "Waterhuis: herkenbaar eigen volume voor voorziening; crème steen/hout met spaarzaam navy/oranje; fundering 3×3; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "lage bronkamer met geïntegreerde goot"
+    },
+    {
+      "id": "vd-p019",
+      "name": "Waterkruik",
+      "kind": "prop",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-n017",
+      "name": "Waterlelie",
+      "kind": "nature",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-t017",
+      "name": "Wateroever bocht",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": true,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-t016",
+      "name": "Wateroever recht",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": true,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p011",
+      "name": "Wegwijzer zonder tekst",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-p037",
+      "name": "Werktuigenrek",
+      "kind": "prop",
+      "footprint": [
+        2,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b004",
+      "name": "Wevershuis",
+      "kind": "building",
+      "footprint": [
+        3,
+        3
+      ],
+      "maxInstances": 1,
+      "functionalRole": "ambacht",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        1,
+        2
+      ],
+      "artBrief": "Wevershuis: herkenbaar eigen volume voor ambacht; crème steen/hout met spaarzaam navy/oranje; fundering 3×3; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "open zijwand met compact weefraam en schuin lessenaarsdak"
+    },
+    {
+      "id": "vd-b051",
+      "name": "Wijkpoort",
+      "kind": "building",
+      "footprint": [
+        6,
+        6
+      ],
+      "maxInstances": 1,
+      "functionalRole": "bescherming",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        3,
+        5
+      ],
+      "artBrief": "Wijkpoort: herkenbaar eigen volume voor bescherming; crème steen/hout met spaarzaam navy/oranje; fundering 6×6; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "twee robuuste lage poortvolumes rond een brede opening"
+    },
+    {
+      "id": "vd-b036",
+      "name": "Wijngaardhof",
+      "kind": "building",
+      "footprint": [
+        6,
+        6
+      ],
+      "maxInstances": 1,
+      "functionalRole": "natuur",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 240
+        },
+        {
+          "level": 3,
+          "xpCost": 720
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        3,
+        5
+      ],
+      "artBrief": "Wijngaardhof: herkenbaar eigen volume voor natuur; crème steen/hout met spaarzaam navy/oranje; fundering 6×6; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "lage lattenpergola en wijnranken binnen de hof"
+    },
+    {
+      "id": "vd-n006",
+      "name": "Wilde bloemen",
+      "kind": "nature",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 64,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b009",
+      "name": "Zaadhuis",
+      "kind": "building",
+      "footprint": [
+        3,
+        3
+      ],
+      "maxInstances": 1,
+      "functionalRole": "natuur",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        1,
+        2
+      ],
+      "artBrief": "Zaadhuis: herkenbaar eigen volume voor natuur; crème steen/hout met spaarzaam navy/oranje; fundering 3×3; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "smal hoog zadeldak en rustige voorraadnissen"
+    },
+    {
+      "id": "vd-t004",
+      "name": "Zandgrond",
+      "kind": "terrain",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": null,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "blocking": false,
+      "renderStatus": "pilot-rendered-registration-pending",
+      "gameplayProduction": false,
+      "pilotAssets": [
+        "terrain-sand"
+      ],
+      "interactions": [
+        "paint-free",
+        "remove-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b030",
+      "name": "Zendingshuis",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "leren",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Zendingshuis: herkenbaar eigen volume voor leren; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "twee kleine lesnissen en eenvoudig beschut gesprekshof"
+    },
+    {
+      "id": "vd-p036",
+      "name": "Zitkussenpaar",
+      "kind": "prop",
+      "footprint": [
+        1,
+        1
+      ],
+      "maxInstances": 32,
+      "maxLevel": 1,
+      "xpCost": 0,
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "place-free",
+        "move-free",
+        "store-free"
+      ],
+      "producesCurrencyOrResources": false
+    },
+    {
+      "id": "vd-b014",
+      "name": "Zorghuis",
+      "kind": "building",
+      "footprint": [
+        4,
+        4
+      ],
+      "maxInstances": 1,
+      "functionalRole": "zorg",
+      "maxLevel": 3,
+      "upgradeFootprintPolicy": "fixed",
+      "levels": [
+        {
+          "level": 1,
+          "xpCost": 0
+        },
+        {
+          "level": 2,
+          "xpCost": 120
+        },
+        {
+          "level": 3,
+          "xpCost": 360
+        }
+      ],
+      "visualUpgradeRule": "L1 eenvoudige basis; L2 verfijnde gevel/dak/luifel; L3 materiaalaccenten en verfijnde bouwdelen binnen dezelfde basis",
+      "renderStatus": "planned",
+      "gameplayProduction": false,
+      "pilotAssets": [],
+      "interactions": [
+        "select",
+        "inspect",
+        "place-free",
+        "move-free",
+        "store-free",
+        "upgrade-with-existing-xp"
+      ],
+      "producesCurrencyOrResources": false,
+      "solidFootprint": true,
+      "upgradeEffects": "visual-only",
+      "storesLevelWhenUnplaced": true,
+      "entranceOffset": [
+        2,
+        3
+      ],
+      "artBrief": "Zorghuis: herkenbaar eigen volume voor zorg; crème steen/hout met spaarzaam navy/oranje; fundering 4×4; L1 eenvoudige basis, L2 verfijnde kozijnen/dak, L3 rijkere materialen; geen uitbreiding van de basis.",
+      "visualSignature": "brede rustige ingang en overdekte zorgveranda"
+    }
+  ]
+}
