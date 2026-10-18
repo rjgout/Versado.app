@@ -166,11 +166,11 @@ export class HymnFollowSession {
     const confident = this.confidence >= (this.wasConfident ? this.config.uncertainConfidence : this.config.lockConfidence);
     if (!confident) this.lowSince ??= frame.time;
     else {
-      if (!this.wasConfident && this.lowSince !== null && frame.time - this.lowSince >= 1 && this.phaseLayer.isSinging) this.cursor.permitJump();
+      if (!this.wasConfident && this.lowSince !== null && frame.time - this.lowSince >= 1 && this.phaseLayer.isSinging && this.tracker.source === "melody") this.cursor.permitJump();
       this.lowSince = null;
     }
     this.wasConfident = confident;
-    const reliable = (this.status === "locked" || this.status === "recovered") && confident;
+    const reliable = (this.status === "locked" || this.status === "recovered") && (confident || this.tracker.source !== "melody");
     const stanza = this.stanzas.current;
     const singing = this.phaseLayer.isSinging;
     // Tijdelijk syncverlies: de woorden lopen een beperkte tijd door op het laatst betrouwbare tempo (coast.ts); stilte bevriest ze.
