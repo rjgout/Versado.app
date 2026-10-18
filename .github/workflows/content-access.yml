@@ -103,6 +103,7 @@ on:
       - 'src/lib/gameAvailability*.ts'
       - 'src/lib/gameContentResolver.ts'
       - 'tests/game-resolver*'
+      - 'tests/lesson-word-pool*'
       - 'src/lib/gameStartGuard.ts'
       - 'src/lib/study/startAvailability.ts'
       - 'src/app/api/study/create/**'
@@ -346,6 +347,8 @@ jobs:
         run: |
           npm run test:study-reader:integration
           npm run test:study-read:integration
+      - name: Gepinde gepubliceerde leswoordpools zonder gameplay
+        run: node scripts/content-architecture/test-access-isolated.mjs --focused --lesson-word-pools
       - name: Concrete spelresolvers en bevroren Woordzoekerbron
         run: node scripts/content-architecture/test-access-isolated.mjs --focused --game-resolver
       - name: Studieprogrammacontext in Vandaag, Leren en Spelen
