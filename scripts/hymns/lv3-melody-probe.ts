@@ -48,7 +48,8 @@ const frame = (a: number[], p: number) => [...a].sort((x, y) => x - y)[Math.min(
 for (const name of names) {
   const ranks: number[] = [];
   const msPerFrame: number[] = [];
-  let top1 = 0, top5 = 0, top1Margin: number[] = [];
+  let top1 = 0, top5 = 0;
+  const top1Margin: number[] = [];
   for (const c of sample) {
     const num = groups.get(c.id)![0];
     const hymn = loadResolvedHymn(num)!;
