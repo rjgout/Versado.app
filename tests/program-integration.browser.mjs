@@ -29,8 +29,8 @@ try{for(const [width,scheme,language,scale] of [[320,'light','nl',2],[390,'dark'
  if(width===320)await page.route('**/api/study-context',async route=>{if(route.request().method()!=='PUT')return route.continue();sent.push(route.request().postDataJSON());if(sent.length===1)return route.abort('failed');return route.continue();});
  if(width===390)await setStudyContext(f.actor,{workKey:key,activeLessonKey:'study:'+lesson.id,expectedVersion:0,actionId:randomUUID()});
  await page.locator('[data-program-lesson]').focus();await page.keyboard.press('Enter');
- if(width===320){await page.getByRole('alert').waitFor();assert.equal(await page.locator('[data-program-lesson][aria-pressed=true]').count(),0);await page.getByRole('button',{name:t('programPicker.retry'),exact:true}).click();}
- if(width===390){await page.getByRole('alert').waitFor();await page.getByRole('button',{name:t('programPicker.reload'),exact:true}).click();await page.locator('[data-program-lesson][aria-pressed=true]').waitFor();await page.locator('[data-program-lesson]').click();}
+ if(width===320){await page.locator('[data-program-context]').getByRole('alert').waitFor();assert.equal(await page.locator('[data-program-lesson][aria-pressed=true]').count(),0);await page.getByRole('button',{name:t('programPicker.retry'),exact:true}).click();}
+ if(width===390){await page.locator('[data-program-context]').getByRole('alert').waitFor();await page.getByRole('button',{name:t('programPicker.reload'),exact:true}).click();await page.locator('[data-program-lesson][aria-pressed=true]').waitFor();await page.locator('[data-program-lesson]').click();}
  await page.locator('[data-study-reader]').waitFor();
  if(width===320){assert.equal(sent.length,2);assert.equal(sent[0].actionId,sent[1].actionId);}
 
