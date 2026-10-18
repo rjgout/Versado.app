@@ -47,7 +47,7 @@ export interface StudySnapshot {
   workKey: string;
   editionKey: string;
   language: "nl";
-  adapterName: "synthetic-v1" | "cfm-2026-nl-v1";
+  adapterName: "synthetic-v1" | "cfm-2026-nl-v1" | "fsy-legacy-v1";
   adapterVersion: "1" | "2";
   sourceVersion: string;
   synthetic: boolean;

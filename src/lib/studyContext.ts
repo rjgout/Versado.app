@@ -1,3 +1,4 @@
+import { decodePublishedStudyEdition } from "@/lib/studyContent/revisions";
 import type { Prisma, PrismaClient, UserStudyContext } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
@@ -31,12 +32,17 @@ async function lessonHref(db: DB, actor: Actor, workKey: string, key: string): P
   if (workKey !== "fsy" || !key.startsWith("fsy:") || key.length <= 4) return null;
   const lesson = await db.fsyLesson.findFirst({
     where: {
-      id: key.slice(4), status: "PUBLISHED",
+      id: key.slice(4), OR: [{ publishedContent: { not: null } }, { studyLessonEditionId: { not: null } }],
       contentCollection: { ...readingAccessWhere(actor), work: workKey },
     },
-    select: { id: true, publishedContent: true },
+    select: { id: true, publishedContent: true, studyLessonEdition: { include: { lesson: true, collection: true, publishedRevision: true } } },
   });
-  if (!lesson?.publishedContent) return null;
+  if (!lesson) return null;
+  if (lesson.studyLessonEdition) {
+    if (lesson.studyLessonEdition.lesson.retiredAt || !decodePublishedStudyEdition(lesson.studyLessonEdition)) return null;
+    return `/fsy/${encodeURIComponent(lesson.id)}`;
+  }
+  if (!lesson.publishedContent) return null;
   try {
     if (!publishedBlocks.safeParse(JSON.parse(lesson.publishedContent)).success) return null;
   } catch { return null; }

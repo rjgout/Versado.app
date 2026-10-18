@@ -1,3 +1,4 @@
+import { inventoryOriginAllowed } from "@/lib/content-inventory/origin";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
@@ -21,6 +22,7 @@ export async function GET() {
       orderBy: [{ year: "desc" }, { month: "desc" }, { order: "asc" }],
       select: {
         id: true,
+        studyLessonEditionId: true,
         year: true,
         month: true,
         category: true,
@@ -50,6 +52,7 @@ export async function PUT(req: NextRequest) {
   const auth = await requireAdmin();
   if ("response" in auth) return auth.response;
 
+  if (!inventoryOriginAllowed(req.headers, req.url, process.env.APP_URL)) return await apiError("apiErrors.forbidden", 403);
   const body = await req.json().catch(() => null);
   if (typeof body?.autoPublish !== "boolean") {
     return await apiError("apiErrors.invalidInput", 400);
@@ -59,9 +62,11 @@ export async function PUT(req: NextRequest) {
   return NextResponse.json(await getFsySettings(prisma));
 }
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   const auth = await requireAdmin();
   if ("response" in auth) return auth.response;
+
+  if (!inventoryOriginAllowed(req.headers, req.url, process.env.APP_URL)) return await apiError("apiErrors.forbidden", 403);
 
   // De gewone admin-knop "Content opnieuw laden" is de primaire handmatige
   // scraperactie. Dit endpoint is bewust aanvullend voor een gerichte FSY-check.

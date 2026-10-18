@@ -30,6 +30,11 @@ on:
       - 'tests/reference-*'
       - 'tests/content-selection-version-migration.mjs'
       - 'tests/fixtures/reference-content.mjs'
+      - 'src/lib/fsyContent.ts'
+      - 'src/app/fsy/**'
+      - 'src/app/api/admin/fsy/**'
+      - 'src/components/AdminFsyClient.tsx'
+      - 'tests/fsy-conversion*'
       - 'src/lib/studyContent/**'
       - 'src/lib/annotations/**'
       - 'src/components/annotations/**'
@@ -453,4 +458,32 @@ jobs:
         with:
           name: hymns-availability-browser
           path: /tmp/versado-hymns-availability-browser
+          if-no-files-found: ignore
+
+  fsy-conversion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx prisma validate && npm run db:generate && npm run build
+      - name: Browser klaarzetten
+        run: |
+          npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
+          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - run: npx tsx --test tests/fsy-conversion.test.ts
+      - run: npm run test:fsy-conversion:integration
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fsy-conversion-browser
+          path: /tmp/versado-fsy-conversion-browser
           if-no-files-found: ignore

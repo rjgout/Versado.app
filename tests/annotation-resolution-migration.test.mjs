@@ -14,7 +14,7 @@ const names = readdirSync(root).filter((n) => /^\d{14}_/.test(n)).sort();
 
 test("de 4D-migratie is uitsluitend additief (geen UPDATE, DELETE, DROP, INSERT of kolomwijziging)", () => {
   const sql = readFileSync(new URL(`${MIGRATION}/migration.sql`, root), "utf8").replace(/--[^\n]*/g, "");
-  assert.equal(names.at(-1), MIGRATION, "dit is de nieuwste migratie");
+  assert.ok(names.includes(MIGRATION), "de migratie blijft onderdeel van de geschiedenis");
   for (const forbidden of [/\bUPDATE\s+"/i, /\bDELETE\s+FROM\b/i, /\bDROP\b/i, /\bINSERT\b/i, /\bTRUNCATE\b/i, /ALTER COLUMN/i, /RENAME/i]) assert.doesNotMatch(sql, forbidden);
   assert.equal((sql.match(/ADD COLUMN/g) ?? []).length, 12);
 });

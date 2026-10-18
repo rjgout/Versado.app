@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useConfirm } from "@/components/ConfirmProvider";
 import FsyContentBlocks from "@/components/FsyContentBlocks";
 import type { FsyContentBlock } from "@/lib/fsyContent";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
@@ -12,6 +14,7 @@ import { primaryButton, secondaryButton } from "@/components/versado/styles";
 
 interface Lesson {
   id: string;
+  studyLessonEditionId: string | null;
   year: number;
   month: number;
   category: string;
@@ -36,6 +39,7 @@ interface Data {
 
 export default function AdminFsyClient() {
   const t = useT();
+  const confirm = useConfirm();
   const intlLocale = getLanguage(useUiLanguage()).intlLocale;
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -86,6 +90,24 @@ export default function AdminFsyClient() {
     await load();
   }
 
+  async function handover(lesson: Lesson, rollback = false) {
+    if (publishingId) return;
+    setPublishingId(lesson.id); setError(null);
+    try {
+      const url = `/api/admin/fsy/${encodeURIComponent(lesson.id)}/conversion`;
+      const reviewResponse = await fetch(url, { cache: "no-store" });
+      const review = await reviewResponse.json();
+      if (!reviewResponse.ok || (!rollback && !review.ready)) throw new Error(`${t("adminFsy.conversionBlocked")} ${(review.issues ?? []).filter((v: string) => v !== "LEGACY_INLINE_LINKS_NOT_RECONSTRUCTED").join(", ")}`);
+      if (!await confirm(t(rollback ? "adminFsy.rollbackConfirm" : "adminFsy.convertConfirm"), { native: true })) return;
+      const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rollback
+        ? { confirm: "RESTORE_LEGACY_FSY_WRITER", expectedVersion: review.publicationVersion }
+        : { confirm: "CONVERT_EXISTING_FSY", expectedLegacyHash: review.legacyHash, actionId: crypto.randomUUID() }) });
+      if (!response.ok) throw new Error(t("adminFsy.conversionBlocked"));
+      await load();
+    } catch (e) { setError(e instanceof Error ? e.message : t("adminFsy.conversionBlocked")); }
+    finally { setPublishingId(null); }
+  }
+
   if (!data) {
     return <section className="rounded-2xl border border-vs-line bg-vs-surface p-4 text-vs-fg-2">{t("adminFsy.loading")}</section>;
   }
@@ -97,7 +119,7 @@ export default function AdminFsyClient() {
     <AdminSection id="fsy-management" title={t("courseNames.fsy")}>
       <div>
         <p className="text-sm text-vs-fg-2">
-          {t("adminFsy.intro")}
+          {t("adminFsy.intro")}<br />{t("adminFsy.handoverHelp")}
         </p>
       </div>
 
@@ -132,10 +154,10 @@ export default function AdminFsyClient() {
       )}
       {error && <p className="text-sm font-semibold text-vs-danger">{error}</p>}
 
-      {drafts.length > 0 && (
+      {data.lessons.length > 0 && (
         <div className="flex flex-col gap-3">
-          <h3 className="font-extrabold text-vs-fg">{t("adminFsy.awaiting")}</h3>
-          {drafts.map((lesson) => (
+          <h3 className="font-extrabold text-vs-fg">{t("adminFsy.legacyLessons")}</h3>
+          {data.lessons.map((lesson) => (
             <details key={lesson.id} className="rounded-xl border border-vs-line p-3">
               <summary className="cursor-pointer list-none flex items-center justify-between gap-3">
                 <span className="min-w-0">
@@ -152,13 +174,17 @@ export default function AdminFsyClient() {
               <div className="mt-4 flex flex-col gap-4">
                 <FsyContentBlocks blocks={JSON.parse(lesson.content) as FsyContentBlock[]} />
                 <div className="flex flex-wrap gap-3">
-                  <button
+                  {!lesson.studyLessonEditionId && lesson.status === "DRAFT" && <button
                     className={primaryButton}
                     disabled={publishingId === lesson.id}
                     onClick={() => publish(lesson.id)}
                   >
                     {publishingId === lesson.id ? t("adminCommon.busy") : t("adminFsy.publish")}
-                  </button>
+                  </button>}
+                  {lesson.studyLessonEditionId ? <>
+                    <Link href="/adminbackend/content/study-publications" className={secondaryButton}>{t("adminFsy.sharedManagement")}</Link>
+                    <button className={secondaryButton} disabled={publishingId !== null} onClick={() => void handover(lesson, true)}>{t("adminFsy.rollbackWriter")}</button>
+                  </> : <button className={secondaryButton} disabled={publishingId !== null} onClick={() => void handover(lesson)}>{t("adminFsy.convert")}</button>}
                   <a href={lesson.sourceUrl} target="_blank" rel="noreferrer" className={secondaryButton}>
                     {t("adminFsy.openSource")}
                   </a>

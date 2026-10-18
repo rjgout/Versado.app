@@ -81,7 +81,7 @@ test("authenticatie, strikte payload/query en Origin: geen toegang tot andermans
   const text = await response.text(); assert.ok(!text.includes("PRIVE_CONCEPT")); assert.ok(!text.includes(a.id));
 });
 
-for (const name of ["hidden", "disabled", "draft-collection", "draft", "draft-copy", "empty", "invalid-content", "missing-publication", "wrong-work"]) test(`${name}: selectie geweigerd zonder bijeffect, adminpreview verruimt geen gewone keuze`, async () => {
+for (const name of ["hidden", "disabled", "draft-collection", "draft", "empty", "invalid-content", "missing-publication", "wrong-work"]) test(`${name}: selectie geweigerd zonder bijeffect, adminpreview verruimt geen gewone keuze`, async () => {
   for (const actor of (name === "hidden" ? [b] : [b, admin])) {
     const before = await prisma.user.findUniqueOrThrow({ where: { id: actor.id } });
     const response = await request(actor, "PUT", action(lessonIds[name], 0), "");
@@ -89,6 +89,18 @@ for (const name of ["hidden", "disabled", "draft-collection", "draft", "draft-co
     assert.equal(await prisma.userStudyContext.count({ where: { userId: actor.id } }), 0);
     assert.deepEqual(await prisma.user.findUniqueOrThrow({ where: { id: actor.id } }), before);
   }
+});
+
+test("legacyconcept met bewaarde publicatie blijft selecteerbaar zonder concepttekst te lekken", async () => {
+  const actor = await account();
+  const response = await request(actor, "PUT", action(lessonIds["draft-copy"], 0), "");
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.context.available, true);
+  assert.equal(body.context.activeLessonKey, lessonIds["draft-copy"]);
+  assert.equal(body.context.lessonHref, `/fsy/${lessonIds["draft-copy"].slice(4)}`);
+  assert.ok(!JSON.stringify(body).includes("PRIVE_CONCEPT"));
+  assert.equal((await request(actor, "PUT", action(lessonIds.draft, 1), "")).status, 404);
 });
 
 test("ongeldig werk, podcast/Schrifturen, ontbrekende les en fictieve CFM-key worden geweigerd", async () => {

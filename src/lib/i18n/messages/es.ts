@@ -3754,6 +3754,15 @@ export const es: PartialMessages = {
     "none": "Aún no hay informes."
   },
   "adminFsy": {
+    legacyLessons: "Lecciones FSY guardadas",
+    convert: "Transferir al lector compartido",
+    handoverHelp: "Se conservan los textos originales. Las lecciones transferidas usan solo la gestión compartida; la publicación automática solo afecta a las lecciones antiguas restantes.",
+    convertConfirm: "La copia publicada y el borrador se conservan por separado. La falta de derechos, fuentes o medios verificados bloquea la transferencia. ¿Continuar?",
+    conversionBlocked: "Transferencia bloqueada. Revisa la fuente, los derechos y los medios persistentes; una lección modificada requiere otra revisión.",
+    sharedManagement: "Gestión compartida de lecciones",
+    rollbackWriter: "Restaurar el sistema anterior",
+    rollbackConfirm: "Solo puede revertirse una transferencia sin cambios. Se retira la lección compartida; se conservan todas las revisiones. Se restauran el lector y el sistema anteriores. ¿Continuar?",
+
     "statusFailed": "No se pudo obtener el estado de FSY.",
     "settingFailed": "Error al guardar la configuración.",
     "publishFailed": "Error al publicar.",
