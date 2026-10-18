@@ -151,6 +151,9 @@ try {
       for (const suite of ["test:learning", "test:streak-return", "test:streak-calendar", "test:time"]) await run("npm", ["run", suite], env);
     }
   }
+  if(process.argv.includes("--lesson-word-pools")) {
+    await run("npx",["tsx","--test","tests/lesson-word-pool.test.ts","tests/lesson-word-pool.integration.test.mjs"],env);
+  }
   if(process.argv.includes("--game-resolver")) {
     await run("npx",["tsx","--test","tests/game-resolver.test.ts"],env);
     await run("npx",["tsx","--test","tests/game-resolver.integration.test.mjs"],env);
