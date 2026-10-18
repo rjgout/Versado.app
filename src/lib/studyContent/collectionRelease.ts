@@ -9,7 +9,7 @@ import {
   StudyPublishingError,
   type StudyAdmin,
 } from "./policy";
-import { cfmOldTestament2026NlManifest as manifest } from "./cfm2026Manifest";
+import { cfmOldTestament2026NlManifest as manifest, matchesCfm2026Catalogue } from "./cfm2026Manifest";
 import { readStudyMedia } from "./storage";
 
 export const studyCollectionReleaseSchema = z
@@ -33,16 +33,8 @@ function releaseCatalogueState(collection: ReleaseCollection | null, editions: R
     collection.work === manifest.workKey &&
     collection.editionKey === manifest.editionKey &&
     collection.language === manifest.language;
-  const complete =
-    supported &&
-    editions.length === manifest.lessons.length &&
-    editions.every(
-      (e, i) =>
-        e.lesson.sourceKey === manifest.lessons[i].sourceKey &&
-        e.lesson.order === manifest.lessons[i].order &&
-        !e.lesson.retiredAt &&
-        e.publishedRevisionId,
-    );
+  const complete = supported && matchesCfm2026Catalogue(collection!, editions) &&
+    editions.every((e) => e.publishedRevisionId);
   return {
     complete: Boolean(complete),
     published: editions.filter((e) => e.publishedRevisionId).length,

@@ -17,6 +17,8 @@ import type {
   StudyRevisionHistory,
 } from "@/lib/studyContent/admin";
 import type { StudyFixtureKey } from "@/lib/studyContent/fixtureAdapter";
+import type { LessonReviewStatus, ProgramReview, ReviewIssue } from "@/lib/studyContent/programReview";
+import type { StudyProgramPublishResult } from "@/lib/studyContent/programPublication";
 
 const button = "btn-secondary min-h-12 max-w-full whitespace-normal";
 export default function AdminStudyPublicationsClient({
@@ -114,6 +116,27 @@ export default function AdminStudyPublicationsClient({
       setBusy(false);
     }
   }
+  /** Eén beheeractie tegelijk, ook voor de gezamenlijke publicatie (die uit meerdere verzoeken bestaat). */
+  async function exclusive(run: () => Promise<void>) {
+    if (mutex.current) return;
+    mutex.current = true;
+    setError("");
+    setMessage("");
+    setBusy(true);
+    try {
+      await run();
+    } catch (e) {
+      invalidateData("studyContentChanged");
+      setError(
+        e instanceof ApiRequestError && !/^HTTP \d+$/.test(e.message)
+          ? e.message
+          : t("studyPublishing.failed"),
+      );
+    } finally {
+      mutex.current = false;
+      setBusy(false);
+    }
+  }
   function publication(kind: "PUBLISH" | "ROLLBACK") {
     if (!preview?.importRunId) return;
     const label = t(
@@ -147,7 +170,7 @@ export default function AdminStudyPublicationsClient({
     >
       <AdminPageHeader
         title={t("studyPublishing.title")}
-        text={t("studyPublishing.intro")}
+        text={t("studyPublishing.program.programsIntro")}
       />
       {Boolean(query.error) && (
         <AdminNotice kind="error">{t("studyPublishing.failed")}</AdminNotice>
@@ -165,69 +188,87 @@ export default function AdminStudyPublicationsClient({
                 : "studyPublishing.storageMissing",
             )}
           </AdminNotice>
-          <AdminSection defaultOpen title={t("studyPublishing.imports")}>
-            <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-              <label className="min-w-0 text-sm font-bold">
-                {t("studyPublishing.collection")}
-                <select
-                  className="input mt-1 w-full min-w-0"
-                  disabled={!ready || busy}
-                  aria-label={t("studyPublishing.collection")}
-                  value={collection}
-                  onChange={(e) => setCollection(e.target.value)}
-                >
-                  {data.importCollections.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} · {c.editionKey} · {c.language}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="min-w-0 text-sm font-bold">
-                {t("studyPublishing.fixture")}
-                <select
-                  className="input mt-1 w-full min-w-0"
-                  disabled={!ready || busy}
-                  aria-label={t("studyPublishing.fixture")}
-                  value={fixture}
-                  onChange={(e) =>
-                    setFixture(e.target.value as StudyFixtureKey)
+          {!data.programs.length && (
+            <p className="text-sm text-vs-fg-2">{t("studyPublishing.empty")}</p>
+          )}
+          {data.programs.map((program) => (
+            <ProgramCard
+              key={program.id}
+              program={program}
+              data={data}
+              ready={ready}
+              busy={busy}
+              exclusive={exclusive}
+              mutate={mutate}
+              onPreview={setSelected}
+              sessionKey={sessionKey}
+            />
+          ))}
+          <AdminSection
+            title={t("studyPublishing.program.techTitle")}
+            description={t("studyPublishing.program.techIntro")}
+          >
+            {data.runs.length === 0 && (
+              <p className="text-sm text-vs-fg-2">{t("studyPublishing.empty")}</p>
+            )}
+            {data.importAllowed && data.fixtures.length > 0 && (
+              <div data-test-import className="min-w-0 space-y-3">
+                <h3 className="font-bold">
+                  {t("studyPublishing.program.testImport")}
+                </h3>
+                <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+                  <label className="min-w-0 text-sm font-bold">
+                    {t("studyPublishing.collection")}
+                    <select
+                      className="input mt-1 w-full min-w-0"
+                      disabled={!ready || busy}
+                      aria-label={t("studyPublishing.collection")}
+                      value={collection}
+                      onChange={(e) => setCollection(e.target.value)}
+                    >
+                      {data.importCollections.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} · {c.editionKey} · {c.language}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="min-w-0 text-sm font-bold">
+                    {t("studyPublishing.fixture")}
+                    <select
+                      className="input mt-1 w-full min-w-0"
+                      disabled={!ready || busy}
+                      aria-label={t("studyPublishing.fixture")}
+                      value={fixture}
+                      onChange={(e) =>
+                        setFixture(e.target.value as StudyFixtureKey)
+                      }
+                    >
+                      {data.fixtures.map((key) => (
+                        <option key={key} value={key}>
+                          {t(`studyPublishing.fixtures.${key}`)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  className="btn-primary min-h-12 w-full whitespace-normal sm:w-auto"
+                  disabled={!ready || busy || !collection || !data.storageReady}
+                  onClick={() =>
+                    void mutate({
+                      action: "import",
+                      collectionId: collection,
+                      fixtureKey: fixture,
+                    })
                   }
                 >
-                  {data.fixtures.map((key) => (
-                    <option key={key} value={key}>
-                      {t(`studyPublishing.fixtures.${key}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <button
-              type="button"
-              className="btn-primary min-h-12 w-full whitespace-normal sm:w-auto"
-              disabled={
-                !ready ||
-                busy ||
-                !collection ||
-                !data.importAllowed ||
-                !data.storageReady
-              }
-              onClick={() =>
-                void mutate({
-                  action: "import",
-                  collectionId: collection,
-                  fixtureKey: fixture,
-                })
-              }
-            >
-              {busy
-                ? t("studyPublishing.loading")
-                : t("studyPublishing.importAction")}
-            </button>
-            {!data.runs.length && (
-              <p className="text-sm text-vs-fg-2">
-                {t("studyPublishing.empty")}
-              </p>
+                  {busy
+                    ? t("studyPublishing.loading")
+                    : t("studyPublishing.importAction")}
+                </button>
+              </div>
             )}
             <ul className="space-y-3">
               {data.runs.map((run) => (
@@ -280,83 +321,6 @@ export default function AdminStudyPublicationsClient({
               ))}
             </ul>
           </AdminSection>
-          <AdminSection defaultOpen title={t("studyPublishing.concepts")}>
-            {!data.editions.length && (
-              <p className="text-sm text-vs-fg-2">
-                {t("studyPublishing.empty")}
-              </p>
-            )}
-            {data.editions.map((edition) => (
-              <section
-                key={edition.id}
-                data-study-edition={edition.id}
-                className="min-w-0 space-y-3 rounded-xl border border-vs-line p-3"
-              >
-                <h2 className="font-extrabold">
-                  {edition.draftRevision?.title ??
-                    edition.publishedRevision?.title ??
-                    edition.slug}
-                </h2>
-                <p className="text-sm text-vs-fg-2">
-                  {edition.lesson.period.label} · {t("studyPublishing.version")}
-                  : {edition.publicationVersion}
-                </p>
-                <p className="text-sm">
-                  {t("studyPublishing.published")}:{" "}
-                  {edition.publishedRevision?.revisionNumber ?? "—"} ·{" "}
-                  {t("studyPublishing.draft")}:{" "}
-                  {edition.draftRevision?.revisionNumber ?? "—"}
-                </p>
-                {edition.draftRevision && (
-                  <button
-                    type="button"
-                    className={button}
-                    onClick={() =>
-                      setSelected({
-                        editionId: edition.id,
-                        revisionId: edition.draftRevision!.id,
-                      })
-                    }
-                  >
-                    {t("studyPublishing.preview")}
-                  </button>
-                )}
-                <RevisionHistory
-                  editionId={edition.id}
-                  sessionKey={sessionKey}
-                  select={(revisionId) =>
-                    setSelected({ editionId: edition.id, revisionId })
-                  }
-                />
-              </section>
-            ))}
-          </AdminSection>
-          {data.collections
-            .filter((c) => c.publicationState === "DRAFT" && c.release.complete)
-            .map((c) => (
-              <AdminSection key={c.id} title={c.name}>
-                <button
-                  data-release-collection={c.id}
-                  type="button"
-                  className="btn-primary min-h-12 max-w-full whitespace-normal"
-                  disabled={busy || !ready || !data.storageReady}
-                  onClick={() =>
-                    void mutate(
-                      {
-                        action: "release-collection",
-                        collectionId: c.id,
-                        releaseToken: c.release.releaseToken,
-                        actionId: crypto.randomUUID(),
-                      },
-                      t("managedContent.releaseConfirm"),
-                      t("managedContent.release"),
-                    )
-                  }
-                >
-                  {t("managedContent.release")}
-                </button>
-              </AdminSection>
-            ))}
           {selected && detail.error && (
             <AdminNotice kind="error">
               {t("studyPublishing.failed")}
@@ -541,6 +505,291 @@ export default function AdminStudyPublicationsClient({
         </>
       )}
     </div>
+  );
+}
+
+type Program = StudyPublishingOverview["programs"][number];
+type LessonFilter = "all" | LessonReviewStatus;
+const statusTone: Record<LessonReviewStatus, string> = {
+  published: "bg-vs-subtle text-vs-fg",
+  ready: "bg-vs-subtle text-vs-fg",
+  blocked: "bg-vs-subtle text-vs-danger",
+  missing: "bg-vs-subtle text-vs-danger",
+};
+
+function ProgramCard({
+  program,
+  data,
+  ready,
+  busy,
+  exclusive,
+  mutate,
+  onPreview,
+  sessionKey,
+}: {
+  program: Program;
+  data: StudyPublishingOverview;
+  ready: boolean;
+  busy: boolean;
+  exclusive: (run: () => Promise<void>) => Promise<void>;
+  mutate: (body: unknown, prompt?: string, label?: string) => Promise<void>;
+  onPreview: (target: { editionId: string; revisionId: string }) => void;
+  sessionKey: string;
+}) {
+  const t = useT(),
+    confirm = useConfirm();
+  const [review, setReview] = useState<ProgramReview | null>(null),
+    [reviewing, setReviewing] = useState(false),
+    [reviewError, setReviewError] = useState(false),
+    [confirmed, setConfirmed] = useState(false),
+    [result, setResult] = useState<StudyProgramPublishResult | null>(null),
+    [search, setSearch] = useState(""),
+    [filter, setFilter] = useState<LessonFilter>("all");
+  // Eén batch-id per bedoelde publicatie: dezelfde aanvraag opnieuw versturen = hervatten zonder dubbele werk.
+  const batchId = useRef<string | null>(null);
+  const collection = data.collections.find((c) => c.id === program.id);
+  const editions = data.editions.filter((e) => e.collectionId === program.id);
+  const reviewById = new Map((review?.lessons ?? []).map((l) => [l.editionId, l]));
+  const statusOf = (editionId: string, published: boolean): LessonReviewStatus | "unchecked" =>
+    reviewById.get(editionId)?.status ?? (review ? "missing" : published ? "published" : "unchecked");
+  const blockingNow = review?.totals.blocking ?? 0;
+  const issuesNow = review ? review.blocked + review.missing + (review.catalogueValid ? 0 : 1) : 0;
+  const allPublished = program.expected > 0 && program.published >= program.expected;
+  const nextKey: MessageKey = !program.imported || program.imported < program.expected
+    ? "studyPublishing.program.next_import"
+    : allPublished && collection && collection.publicationState === "DRAFT" && collection.release.complete
+      ? "studyPublishing.program.next_release"
+      : allPublished
+        ? program.publicationState === "PUBLISHED"
+          ? "studyPublishing.program.next_visibility"
+          : "studyPublishing.program.next_done"
+        : !review
+          ? "studyPublishing.program.next_review"
+          : issuesNow > 0
+            ? "studyPublishing.program.next_fix"
+            : "studyPublishing.program.next_publish";
+
+  async function runReview(explicit = true) {
+    setReviewing(true);
+    setReviewError(false);
+    if (explicit) {
+      setConfirmed(false);
+      setResult(null);
+      batchId.current = null;
+    }
+    try {
+      const next = await fetchJson<ProgramReview>(`/api/admin/study-publications?collectionId=${encodeURIComponent(program.id)}&review=1`);
+      if (!explicit && next.reviewToken !== review?.reviewToken) {
+        // Voortgang blijft zichtbaar, maar een gewijzigde set vereist een nieuwe beoordeling.
+        setConfirmed(false);
+        batchId.current = null;
+      }
+      setReview(next);
+    } catch {
+      setReview(null);
+      setConfirmed(false);
+      setReviewError(true);
+    } finally {
+      setReviewing(false);
+    }
+  }
+  const pendingCount = review ? review.ready : 0;
+  async function publishAll() {
+    if (!review || !confirmed) return;
+    if (
+      !(await confirm(t("studyPublishing.program.publishAllConfirm"), {
+        title: t("studyPublishing.program.publishAllTitle"),
+        confirmLabel: t("studyPublishing.program.publishAll", { count: pendingCount }),
+        native: true,
+      }))
+    )
+      return;
+    await exclusive(async () => {
+      const id = (batchId.current ??= crypto.randomUUID());
+      // De server werkt binnen een tijdsbudget per verzoek; dezelfde aanvraag herhalen gaat door waar het stopte.
+      for (let step = 0; step < 100; step++) {
+        const next = await jsonMutation<StudyProgramPublishResult>(
+          "/api/admin/study-publications",
+          { json: { action: "publish-program", collectionId: program.id, reviewToken: review.reviewToken, batchId: id, confirmReviewed: true } },
+          { invalidates: "studyContentChanged" },
+        );
+        setResult(next);
+        if (next.done) batchId.current = null;
+        if (next.done || next.failed.length || next.remaining === 0) break;
+      }
+      await runReview(false);
+    });
+  }
+
+  const shown = editions.filter((e) => {
+    const title = e.draftRevision?.title ?? e.publishedRevision?.title ?? e.slug;
+    const status = statusOf(e.id, Boolean(e.publishedRevision));
+    return (
+      (filter === "all" || status === filter) &&
+      `${title} ${e.lesson.sourceKey ?? ""} ${e.lesson.period.label}`.toLowerCase().includes(search.trim().toLowerCase())
+    );
+  });
+  const fact = "min-w-0 rounded-xl bg-vs-subtle p-2.5";
+  return (
+    <AdminSection
+      id={`program-${program.id}`}
+      defaultOpen
+      title={program.name}
+    >
+      <div data-study-program={program.id} aria-busy={reviewing || busy} className="flex min-w-0 flex-col gap-4">
+        <p className="[overflow-wrap:anywhere] text-sm text-vs-fg-2">
+          {t("studyPublishing.program.source")}: {program.editionKey ?? program.work ?? "—"} · {t("studyPublishing.program.language")}: {program.language.toUpperCase()} ·{" "}
+          {t(program.publicationState === "PUBLISHED" ? "studyPublishing.program.statePublished" : "studyPublishing.program.stateDraft")} ·{" "}
+          {t(program.visibleToUsers ? "studyPublishing.program.visibleYes" : "studyPublishing.program.visibleNo")}
+        </p>
+        <dl className="grid min-w-0 grid-cols-1 gap-2 text-sm min-[26rem]:grid-cols-2 sm:grid-cols-4">
+          <div className={fact}><dt className="text-vs-fg-2">{t("studyPublishing.program.expected")}</dt><dd className="text-lg font-extrabold" data-count="expected">{program.expected}</dd></div>
+          <div className={fact}><dt className="text-vs-fg-2">{t("studyPublishing.program.imported")}</dt><dd className="text-lg font-extrabold" data-count="imported">{program.imported}</dd></div>
+          <div className={fact}><dt className="text-vs-fg-2">{t("studyPublishing.program.publishedCount")}</dt><dd className="text-lg font-extrabold" data-count="published">{program.published}</dd></div>
+          <div className={fact}><dt className="text-vs-fg-2">{t("studyPublishing.program.ready")}</dt><dd className="text-lg font-extrabold" data-count="ready">{review ? review.ready : "—"}</dd></div>
+          {review && (
+            <>
+              <div className={fact}><dt className="text-vs-fg-2">{t("studyPublishing.program.media")}</dt><dd className="font-bold">{t("studyPublishing.program.mediaOk", { ready: review.totals.mediaReady, total: review.totals.figures })}</dd></div>
+              <div className={fact}><dt className="text-vs-fg-2">{t("studyPublishing.program.refs")}</dt><dd className="font-bold">{t("studyPublishing.program.refsOk", { verified: review.totals.referencesVerified })}</dd></div>
+              <div className={fact}><dt className="text-vs-fg-2">{t("studyPublishing.program.blocking")}</dt><dd className="text-lg font-extrabold" data-count="blocking">{blockingNow || t("studyPublishing.program.none")}</dd></div>
+              <div className={fact}><dt className="text-vs-fg-2">{t("studyPublishing.program.known")}</dt><dd className="text-lg font-extrabold" data-count="known">{review.totals.displayOnly}</dd></div>
+            </>
+          )}
+        </dl>
+        <p data-next-action className="rounded-xl bg-vs-subtle p-2.5 text-sm font-bold">{t(nextKey)}</p>
+
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <button type="button" data-program-review className="btn-secondary min-h-12 max-w-full whitespace-normal" disabled={!ready || busy || reviewing || !data.storageReady} onClick={() => void runReview()}>
+            {reviewing ? t("studyPublishing.program.reviewing") : t(review ? "studyPublishing.program.reviewAgain" : "studyPublishing.program.review")}
+          </button>
+          <a className="btn-secondary inline-flex min-h-12 max-w-full items-center whitespace-normal" data-report-download="md" href={`/api/admin/study-publications/report?collectionId=${encodeURIComponent(program.id)}&format=md`} download>{t("studyPublishing.program.downloadMd")}</a>
+          <a className="btn-secondary inline-flex min-h-12 max-w-full items-center whitespace-normal" data-report-download="json" href={`/api/admin/study-publications/report?collectionId=${encodeURIComponent(program.id)}&format=json`} download>{t("studyPublishing.program.downloadJson")}</a>
+        </div>
+        <p className="text-xs text-vs-fg-2">{t("studyPublishing.program.reviewNote")}</p>
+        {review && !review.catalogueValid && <AdminNotice kind="error">{t("studyPublishing.program.issue_CATALOGUE")}</AdminNotice>}
+        {reviewError && <AdminNotice kind="error">{t("studyPublishing.program.reviewFailed")}</AdminNotice>}
+
+        {review && pendingCount > 0 && issuesNow === 0 && (
+          <div className="flex min-w-0 flex-col gap-3 border-t border-vs-line pt-3">
+            <h3 className="font-bold">{t("studyPublishing.program.step2")}</h3>
+            <label className="flex min-h-12 items-start gap-3 text-sm">
+              <input type="checkbox" data-confirm-reviewed className="mt-1 shrink-0" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
+              <span>
+                {t("studyPublishing.program.confirmReviewed", { count: pendingCount })}
+                {review.totals.displayOnly > 0 && <span className="mt-1 block text-vs-fg-2">{t("studyPublishing.program.confirmKnown", { count: review.totals.displayOnly })}</span>}
+              </span>
+            </label>
+            <button type="button" data-publish-program className="btn-primary min-h-12 w-full whitespace-normal sm:w-auto" disabled={!ready || busy || !confirmed || !data.storageReady} onClick={() => void publishAll()}>
+              {busy ? t("studyPublishing.loading") : t("studyPublishing.program.publishAll", { count: pendingCount })}
+            </button>
+          </div>
+        )}
+        {result && (
+          <div data-batch-result role="status" className="min-w-0 space-y-2 text-sm">
+            <progress className="h-3 w-full" aria-label={t("studyPublishing.program.progressLabel")} max={result.total} value={result.published} />
+            <p className="font-bold">
+              {result.done
+                ? t("studyPublishing.program.batchDone", { count: result.total })
+                : t("studyPublishing.program.batchPartial", { published: result.published, total: result.total })}
+            </p>
+            {result.failed.length > 0 && (
+              <>
+                <h3 className="font-bold">{t("studyPublishing.program.batchFailedTitle")}</h3>
+                <ul className="space-y-1 text-vs-danger">
+                  {result.failed.map((f) => (
+                    <li key={f.editionId} className="[overflow-wrap:anywhere]">{f.title} — {t(`studyPublishing.errors.${f.code}` as MessageKey)}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {!result.done && result.remaining > 0 && pendingCount > 0 && issuesNow === 0 && (
+              <button type="button" className="btn-secondary min-h-12 whitespace-normal" disabled={busy || reviewing || !confirmed} onClick={() => void publishAll()}>{t("studyPublishing.program.resumeBatch")}</button>
+            )}
+          </div>
+        )}
+
+        {collection && collection.publicationState === "DRAFT" && collection.release.complete && (
+          <div className="flex min-w-0 flex-col gap-2 border-t border-vs-line pt-3">
+            <h3 className="font-bold">{t("studyPublishing.program.step3")}</h3>
+            <p className="text-sm text-vs-fg-2">{t("studyPublishing.program.releaseHint")}</p>
+            <button
+              data-release-collection={collection.id}
+              type="button"
+              className="btn-primary min-h-12 max-w-full whitespace-normal sm:w-auto"
+              disabled={busy || !ready || !data.storageReady}
+              onClick={() =>
+                void mutate(
+                  { action: "release-collection", collectionId: collection.id, releaseToken: collection.release.releaseToken, actionId: crypto.randomUUID() },
+                  t("managedContent.releaseConfirm"),
+                  t("managedContent.release"),
+                )
+              }
+            >
+              {t("managedContent.release")}
+            </button>
+          </div>
+        )}
+        <p className="text-xs text-vs-fg-2"><strong>{t("studyPublishing.program.step4")}.</strong> {t("studyPublishing.program.step4Text")}</p>
+
+        <section aria-labelledby={`lessons-${program.id}`} className="flex min-w-0 flex-col gap-3">
+          <h3 id={`lessons-${program.id}`} className="font-bold">{t("studyPublishing.program.lessonsTitle")} ({shown.length})</h3>
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+            <label className="min-w-0 text-sm font-bold">
+              {t("studyPublishing.program.search")}
+              <input type="search" className="input mt-1 w-full min-w-0" value={search} onChange={(e) => setSearch(e.target.value)} />
+            </label>
+            <label className="min-w-0 text-sm font-bold">
+              {t("studyPublishing.program.filter")}
+              <select className="input mt-1 w-full min-w-0" value={filter} onChange={(e) => setFilter(e.target.value as LessonFilter)}>
+                <option value="all">{t("studyPublishing.program.filterAll")}</option>
+                <option value="ready">{t("studyPublishing.program.filterReady")}</option>
+                <option value="blocked">{t("studyPublishing.program.filterBlocked")}</option>
+                <option value="published">{t("studyPublishing.program.filterPublished")}</option>
+                <option value="missing">{t("studyPublishing.program.filterMissing")}</option>
+              </select>
+            </label>
+          </div>
+          {!shown.length && <p className="text-sm text-vs-fg-2">{t("studyPublishing.program.noMatch")}</p>}
+          <ul className="flex min-w-0 flex-col gap-2">
+            {shown.map((edition) => {
+              const lesson = reviewById.get(edition.id);
+              const status = statusOf(edition.id, Boolean(edition.publishedRevision));
+              // Het concept is de gewone beoordelingsingang; eerdere en gepubliceerde revisies staan onder Technische details van de les.
+              const target = edition.draftRevision;
+              return (
+                <li key={edition.id} data-study-edition={edition.id} data-lesson-status={status} className="min-w-0 space-y-2 rounded-xl border border-vs-line p-2.5">
+                  <div className="flex min-w-0 flex-col items-start gap-1.5">
+                    <h4 className="min-w-0 [overflow-wrap:anywhere] font-extrabold">{edition.draftRevision?.title ?? edition.publishedRevision?.title ?? edition.slug}</h4>
+                    <span className={`max-w-full [overflow-wrap:anywhere] rounded-full px-2.5 py-1 text-xs font-bold ${status === "unchecked" ? "bg-vs-subtle text-vs-fg-2" : statusTone[status]}`}>
+                      {t(`studyPublishing.program.st_${status}` as MessageKey)}
+                    </span>
+                  </div>
+                  <p className="[overflow-wrap:anywhere] text-sm text-vs-fg-2">
+                    {edition.lesson.period.label}
+                    {lesson && lesson.references.total > 0 && <> · {t("studyPublishing.program.lessonRefs", { blocking: lesson.references.blocking, display: lesson.references.displayOnly })}</>}
+                  </p>
+                  {lesson && lesson.issues.length > 0 && lesson.status !== "published" && (
+                    <ul className="space-y-1 text-sm text-vs-danger">
+                      {lesson.issues.map((issue: ReviewIssue, index) => (
+                        <li key={`${issue.code}-${index}`} className="[overflow-wrap:anywhere]">{t(`studyPublishing.program.issue_${issue.code}` as MessageKey, { ref: issue.ref ?? "", count: issue.count ?? 0 })}</li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="flex min-w-0 flex-wrap gap-2">
+                    {target && (
+                      <button type="button" className={button} onClick={() => onPreview({ editionId: edition.id, revisionId: target.id })}>
+                        {t("studyPublishing.preview")}
+                      </button>
+                    )}
+                  </div>
+                  <RevisionHistory editionId={edition.id} sessionKey={sessionKey} select={(revisionId) => onPreview({ editionId: edition.id, revisionId })} />
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      </div>
+    </AdminSection>
   );
 }
 
