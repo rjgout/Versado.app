@@ -354,3 +354,46 @@ test("voltooiingskaart: met een hint is de categorie Met hints en het bestaande 
   const view = (await L.solo.resumeSoloPuzzle(user.id, state.id, "nl"))!.completion!;
   assert.equal(view.hintCategory, "WITH_HINTS"); assert.deepEqual(view.best, { elapsedMs: 54_321, thisAttempt: false });
 });
+
+// Vaste momenten, geen sleeps of afhankelijkheid van de klok/tijdzone van de CI-runner.
+// Reproduceert de oude browserfixture: Amsterdam als laatste dag, daarna UTC door TimeZoneSync.
+test("browserfixture met Amsterdam/UTC-mismatch reproduceert reeks 4 bij de CI-daggrens", { skip }, async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-17T23:35:19Z").getTime() });
+  const u = await account();
+  assert.equal(u.lastStudyDate, "2026-10-17"); // In Amsterdam is het al 18 oktober.
+  await L.db.user.update({ where: { id: u.id }, data: { timeZone: "UTC" } });
+  const puzzle = await solve(u.id);
+  const result = await L.solo.answerSoloPuzzle(u.id, puzzle.id, right(puzzle));
+  assert.ok(result && "correct" in result && result.correct);
+  assert.equal(result.streak?.dayEarned, false, "de reisregel geeft terecht geen gratis kalenderdag");
+  assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: u.id } })).currentStreak, 4);
+});
+
+for (const [iso, day] of [
+  ["2026-10-17T21:59:59.999Z", "2026-10-17"], // Amsterdam vóór middernacht
+  ["2026-10-17T22:00:00.000Z", "2026-10-18"], // Amsterdam na middernacht
+  ["2026-10-17T23:35:19.000Z", "2026-10-18"], // Exacte foutperiode uit CI
+  ["2026-10-17T23:59:59.999Z", "2026-10-18"], // UTC vóór middernacht
+  ["2026-10-18T00:00:00.000Z", "2026-10-18"], // UTC na middernacht
+  ["2026-03-29T00:59:59.999Z", "2026-03-29"], // Amsterdam 01:59, vóór zomertijd
+  ["2026-03-29T01:00:00.000Z", "2026-03-29"], // Amsterdam 03:00, na zomertijd
+  ["2026-10-25T00:59:59.999Z", "2026-10-25"], // Amsterdam 02:59, vóór wintertijd
+  ["2026-10-25T01:00:00.000Z", "2026-10-25"], // Amsterdam opnieuw 02:00
+  ["2026-12-10T22:59:59.999Z", "2026-12-10"], // Winter: vóór lokale middernacht
+  ["2026-12-10T23:00:00.000Z", "2026-12-11"], // Winter: na lokale middernacht
+]) {
+  test(`Amsterdam-fixture verlengt reeks 4 naar 5 op ${iso}`, { skip }, async (t) => {
+    t.mock.timers.enable({ apis: ["Date"], now: new Date(iso).getTime() });
+    const u = await account();
+    assert.equal(dayKeyInZone(new Date(), u.timeZone!), day);
+    assert.equal(u.lastStudyDate, addDays(day, -1));
+    const puzzle = await solve(u.id);
+    const result = await L.solo.answerSoloPuzzle(u.id, puzzle.id, right(puzzle));
+    assert.ok(result && "correct" in result && result.correct);
+    assert.equal(result.streak?.dayEarned, true);
+    const saved = await L.db.user.findUniqueOrThrow({ where: { id: u.id } });
+    assert.equal(saved.currentStreak, 5);
+    assert.equal(saved.lastStudyDate, day);
+    assert.equal(saved.lastStudyTimeZone, "Europe/Amsterdam");
+  });
+}

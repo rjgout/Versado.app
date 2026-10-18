@@ -245,3 +245,14 @@ test("oorspronkelijke Engelstalige video blijft exact dezelfde officiële URL me
   assert.equal(result.url, row.url);
   assert.equal(result.language, "en");
 });
+
+test("officiële CFM-catalogus vereist exact alle identiteiten, volgorde en uitgave", async () => {
+  const { cfmOldTestament2026NlManifest: manifest, matchesCfm2026Catalogue } = await import("../src/lib/studyContent/cfm2026Manifest");
+  const collection = { id: "test-cfm", work: manifest.workKey, editionKey: manifest.editionKey, language: manifest.language };
+  const editions = manifest.lessons.map((l) => ({ collectionId: collection.id, workKey: manifest.workKey, lesson: { sourceKey: l.sourceKey, order: l.order, retiredAt: null } }));
+  assert.equal(matchesCfm2026Catalogue(collection, editions), true);
+  for (const changed of [editions.slice(1), [...editions, editions[0]], [editions[0], ...editions.slice(0, -1)], [...editions].reverse(), editions.map((e, i) => i ? e : { ...e, lesson: { ...e.lesson, sourceKey: "onbekend" } }), editions.map((e, i) => i ? e : { ...e, collectionId: "andere-collectie" })])
+    assert.equal(matchesCfm2026Catalogue(collection, changed), false);
+  for (const changed of [{ ...collection, editionKey: "andere-uitgave" }, { ...collection, language: "en" }, { ...collection, work: "fsy" }])
+    assert.equal(matchesCfm2026Catalogue(changed, editions), false);
+});
