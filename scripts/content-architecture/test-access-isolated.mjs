@@ -157,7 +157,7 @@ try {
     await run("npx",["tsx","--test","tests/game-availability.integration.test.ts","tests/game-availability.test.ts"],env);
   }
   if(process.argv.includes("--program-integration")) {
-    await run("npx",["tsx","--test","tests/program-integration.test.mjs"],env);
+    await run("npx",["tsx","--test","tests/fsy-presentation.test.ts","tests/program-integration.test.mjs"],env);
     await run("npm",["run","test:kompas"],env);
     if(process.argv.includes("--browser")) await run("npx",["tsx","tests/program-integration.browser.mjs"],env);
   }
