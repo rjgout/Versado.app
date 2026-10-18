@@ -18,7 +18,7 @@ export default async function CoursesPage() {
     return <div data-study-catalogue className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 pb-6">
       <LiveRefresh scopes={["content","studyContent","studyContext","progress"]} token={data.token} staleTime={0}/>
       <PageIntro title={t("managedContent.lessons")}/>
-      <ProgramLessonPicker key={`${user.id}:${data.context.workKey}`} data={data} choose/>
+      <ProgramLessonPicker key={`${user.id}:${data.context.workKey}:${data.collectionId}`} data={data} choose/>
     </div>;
   }
   return <><ProgramContextPanel actor={user}/><CoursesClient/></>;

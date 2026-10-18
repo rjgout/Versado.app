@@ -3660,6 +3660,7 @@ export const fr: PartialMessages = {
     none: "Aucun signalement pour l’instant.",
   },
   programPicker: {
+    availableCount: "Leçons disponibles : {count}",
     remembered: "Votre leçon reste sélectionnée lorsque le calendrier ou la source change.",
     active: "Leçon active",
     read: "Lu",

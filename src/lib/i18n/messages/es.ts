@@ -3671,6 +3671,7 @@ export const es: PartialMessages = {
     "none": "Aún no hay informes."
   },
   programPicker: {
+    availableCount: "Lecciones disponibles: {count}",
     remembered: "Tu lección sigue seleccionada cuando cambia el calendario o la fuente.",
     active: "Lección activa",
     read: "Leído",
