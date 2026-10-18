@@ -14,7 +14,7 @@
    "firstMarkMedianS": null,
    "markedMedian": 0,
    "melodySource": 0,
-   "cpuMsPerAudioSecondMedian": 10.210745515695073
+   "cpuMsPerAudioSecondMedian": 11.325340663870564
   },
   {
    "scenario": "orgel",
@@ -29,112 +29,112 @@
    "firstMarkMedianS": null,
    "markedMedian": 0,
    "melodySource": 0,
-   "cpuMsPerAudioSecondMedian": 9.172940730864813
+   "cpuMsPerAudioSecondMedian": 9.880253767843215
   },
   {
    "scenario": "solo",
    "n": 12,
-   "exactMedian": 0.8064516129032258,
-   "withinOneMedian": 0.8921023359288098,
-   "withinOneP10": 0.19438877755511022,
-   "aheadMedian": 0.005230125523012552,
-   "noneMedian": 0.07730923694779117,
-   "delayMedianMs": 127.07482993197416,
-   "delayP90Ms": 765.5102040816324,
-   "firstMarkMedianS": 3.58671201814059,
+   "exactMedian": 0.7897489539748954,
+   "withinOneMedian": 0.8854282536151279,
+   "withinOneP10": 0.8127925117004681,
+   "aheadMedian": 0.0049261083743842365,
+   "noneMedian": 0.11457174638487208,
+   "delayMedianMs": 140.90702947845824,
+   "delayP90Ms": 784.1043083900221,
+   "firstMarkMedianS": 4.283310657596372,
    "markedMedian": 1,
    "melodySource": 11,
-   "cpuMsPerAudioSecondMedian": 9.620894287012952
+   "cpuMsPerAudioSecondMedian": 15.594085460956782
   },
   {
    "scenario": "solo-langzaam",
    "n": 12,
-   "exactMedian": 0.6213592233009708,
-   "withinOneMedian": 0.7245355541319667,
-   "withinOneP10": 0.09418282548476455,
-   "aheadMedian": 0.16848174247277387,
-   "noneMedian": 0.11624548736462094,
-   "delayMedianMs": 96.36363636363399,
-   "delayP90Ms": 942.2098536384249,
-   "firstMarkMedianS": 4.840589569160998,
+   "exactMedian": 0.7673130193905817,
+   "withinOneMedian": 0.8261363636363637,
+   "withinOneP10": 0.19972733469665985,
+   "aheadMedian": 0.025624599615631006,
+   "noneMedian": 0.12386363636363637,
+   "delayMedianMs": 141.08843537415083,
+   "delayP90Ms": 512.6077097505686,
+   "firstMarkMedianS": 4.979909297052155,
    "markedMedian": 1,
    "melodySource": 11,
-   "cpuMsPerAudioSecondMedian": 9.421308117904644
+   "cpuMsPerAudioSecondMedian": 15.555276921755043
   },
   {
    "scenario": "solo-snel",
    "n": 12,
-   "exactMedian": 0.6138855054811205,
-   "withinOneMedian": 0.7088915956151035,
-   "withinOneP10": 0.1547085201793722,
-   "aheadMedian": 0.0097442143727162,
-   "noneMedian": 0.2232746955345061,
-   "delayMedianMs": 119.83096268810556,
-   "delayP90Ms": 1485.949288806432,
-   "firstMarkMedianS": 3.3080725623582765,
+   "exactMedian": 0.7399103139013453,
+   "withinOneMedian": 0.8495702005730659,
+   "withinOneP10": 0.5677321156773212,
+   "aheadMedian": 0.001272264631043257,
+   "noneMedian": 0.1489971346704871,
+   "delayMedianMs": 141.76458462172724,
+   "delayP90Ms": 1903.9084724799009,
+   "firstMarkMedianS": 3.58671201814059,
    "markedMedian": 1,
    "melodySource": 11,
-   "cpuMsPerAudioSecondMedian": 9.70645018399868
+   "cpuMsPerAudioSecondMedian": 13.51570253022846
   },
   {
    "scenario": "solo-laag",
    "n": 12,
-   "exactMedian": 0.7502321262766946,
-   "withinOneMedian": 0.8112449799196787,
-   "withinOneP10": 0.1724137931034483,
-   "aheadMedian": 0.014040561622464899,
-   "noneMedian": 0.1684867394695788,
+   "exactMedian": 0.7323481116584565,
+   "withinOneMedian": 0.8102409638554217,
+   "withinOneP10": 0.6853333333333333,
+   "aheadMedian": 0.004449388209121246,
+   "noneMedian": 0.1897590361445783,
    "delayMedianMs": 150.34013605442098,
-   "delayP90Ms": 2776.3492063492067,
-   "firstMarkMedianS": 6.744625850340136,
+   "delayP90Ms": 3552.176870748298,
+   "firstMarkMedianS": 6.737664399092971,
    "markedMedian": 1,
    "melodySource": 11,
-   "cpuMsPerAudioSecondMedian": 8.937722443430607
+   "cpuMsPerAudioSecondMedian": 14.976663932967396
   },
   {
    "scenario": "solo-andere-toonsoort",
    "n": 12,
-   "exactMedian": 0.5849802371541502,
-   "withinOneMedian": 0.6837944664031621,
-   "withinOneP10": 0.33835341365461846,
-   "aheadMedian": 0.0781563126252505,
-   "noneMedian": 0.2233169129720854,
-   "delayMedianMs": -60.97505668934389,
-   "delayP90Ms": 4694.308390022676,
-   "firstMarkMedianS": 6.326666666666667,
+   "exactMedian": 0.4414976599063963,
+   "withinOneMedian": 0.5429017160686428,
+   "withinOneP10": 0,
+   "aheadMedian": 0.03413654618473896,
+   "noneMedian": 0.29518072289156627,
+   "delayMedianMs": 168.84353741496483,
+   "delayP90Ms": 7513.219954648527,
+   "firstMarkMedianS": 11.945895691609977,
    "markedMedian": 1,
    "melodySource": 11,
-   "cpuMsPerAudioSecondMedian": 11.099575955265442
+   "cpuMsPerAudioSecondMedian": 16.43149678969117
   },
   {
    "scenario": "solo-ademhaling",
    "n": 12,
-   "exactMedian": 0.7569230769230769,
-   "withinOneMedian": 0.8804414469650521,
-   "withinOneP10": 0.04013104013104013,
-   "aheadMedian": 0.0552434456928839,
-   "noneMedian": 0.16102564102564101,
-   "delayMedianMs": 116.71447046082051,
-   "delayP90Ms": 2086.71201814059,
-   "firstMarkMedianS": 4.190430839002268,
+   "exactMedian": 0.7538759689922481,
+   "withinOneMedian": 0.8877968877968878,
+   "withinOneP10": 0.7019681349578257,
+   "aheadMedian": 0.06475903614457831,
+   "noneMedian": 0.1122031122031122,
+   "delayMedianMs": 128.34712352204392,
+   "delayP90Ms": 1508.548752834467,
+   "firstMarkMedianS": 4.46907029478458,
    "markedMedian": 1,
    "melodySource": 11,
-   "cpuMsPerAudioSecondMedian": 8.784488398562651
+   "cpuMsPerAudioSecondMedian": 13.009753565006152
   },
   {
    "scenario": "groep",
    "n": 12,
-   "exactMedian": 0.33032128514056225,
-   "withinOneMedian": 0.37285491419656785,
+   "exactMedian": 0.29325317301269205,
+   "withinOneMedian": 0.3534136546184739,
    "withinOneP10": 0,
    "aheadMedian": 0,
-   "noneMedian": 0.5721757322175732,
-   "delayMedianMs": 2285.3854875283446,
-   "delayP90Ms": 19527.233560090703,
-   "firstMarkMedianS": 23.277233560090703,
-   "markedMedian": 0.9795918367346939,
+   "noneMedian": 0.6465863453815262,
+   "delayMedianMs": 3614.739229024945,
+   "delayP90Ms": 20538.469387755104,
+   "firstMarkMedianS": 25.413469387755104,
+   "markedMedian": 0.9791666666666666,
    "melodySource": 11,
-   "cpuMsPerAudioSecondMedian": 9.51696839080492
+   "cpuMsPerAudioSecondMedian": 12.550413846116633
   },
   {
    "scenario": "groep-4stemmig",
@@ -149,7 +149,7 @@
    "firstMarkMedianS": null,
    "markedMedian": 0,
    "melodySource": 0,
-   "cpuMsPerAudioSecondMedian": 9.34614773305721
+   "cpuMsPerAudioSecondMedian": 9.97160921384615
   },
   {
    "scenario": "solo+piano",
@@ -164,7 +164,7 @@
    "firstMarkMedianS": null,
    "markedMedian": 0,
    "melodySource": 0,
-   "cpuMsPerAudioSecondMedian": 8.897773310653553
+   "cpuMsPerAudioSecondMedian": 9.427779173753244
   },
   {
    "scenario": "gemeente+orgel",
@@ -179,7 +179,7 @@
    "firstMarkMedianS": null,
    "markedMedian": 0,
    "melodySource": 0,
-   "cpuMsPerAudioSecondMedian": 8.844065512087791
+   "cpuMsPerAudioSecondMedian": 9.663133324934805
   }
  ],
  "rows": [
@@ -198,7 +198,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 10.492071799660714
+   "cpuMsPerAudioSecond": 12.647089436596755
   },
   {
    "scenario": "piano",
@@ -215,7 +215,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 10.210745515695073
+   "cpuMsPerAudioSecond": 8.988548238492864
   },
   {
    "scenario": "piano",
@@ -232,7 +232,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 9.97832272707447
+   "cpuMsPerAudioSecond": 13.04231989954644
   },
   {
    "scenario": "piano",
@@ -249,7 +249,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 10.641188330639386
+   "cpuMsPerAudioSecond": 11.514207165948257
   },
   {
    "scenario": "piano",
@@ -266,7 +266,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 2.5030360413921784
+   "cpuMsPerAudioSecond": 3.323597390493943
   },
   {
    "scenario": "piano",
@@ -283,7 +283,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.970887837926636
+   "cpuMsPerAudioSecond": 10.804036416115318
   },
   {
    "scenario": "piano",
@@ -300,7 +300,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.907370689655238
+   "cpuMsPerAudioSecond": 8.924926698708154
   },
   {
    "scenario": "piano",
@@ -317,7 +317,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 10.505517642534635
+   "cpuMsPerAudioSecond": 11.325340663870564
   },
   {
    "scenario": "piano",
@@ -334,7 +334,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.868463994498503
+   "cpuMsPerAudioSecond": 10.346749465811984
   },
   {
    "scenario": "piano",
@@ -351,7 +351,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.815562598478849
+   "cpuMsPerAudioSecond": 11.330138533270718
   },
   {
    "scenario": "piano",
@@ -368,7 +368,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 10.441437056110786
+   "cpuMsPerAudioSecond": 12.570060879101524
   },
   {
    "scenario": "piano",
@@ -385,7 +385,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 10.582408654944013
+   "cpuMsPerAudioSecond": 7.736148256288047
   },
   {
    "scenario": "orgel",
@@ -402,7 +402,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 10.224064059798385
+   "cpuMsPerAudioSecond": 12.302588327406756
   },
   {
    "scenario": "orgel",
@@ -419,7 +419,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.549831000979424
+   "cpuMsPerAudioSecond": 9.920746127776919
   },
   {
    "scenario": "orgel",
@@ -436,7 +436,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 7.385254713758255
+   "cpuMsPerAudioSecond": 12.306461228702608
   },
   {
    "scenario": "orgel",
@@ -453,7 +453,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 11.199102415589067
+   "cpuMsPerAudioSecond": 10.199556326329095
   },
   {
    "scenario": "orgel",
@@ -470,7 +470,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 3.2216258797441357
+   "cpuMsPerAudioSecond": 3.393727263232357
   },
   {
    "scenario": "orgel",
@@ -487,7 +487,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 9.580239656815465
+   "cpuMsPerAudioSecond": 8.42304123033784
   },
   {
    "scenario": "orgel",
@@ -504,7 +504,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 11.002828298240132
+   "cpuMsPerAudioSecond": 9.880253767843215
   },
   {
    "scenario": "orgel",
@@ -521,7 +521,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 10.518785993315916
+   "cpuMsPerAudioSecond": 9.797851564229134
   },
   {
    "scenario": "orgel",
@@ -538,7 +538,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.882363321544402
+   "cpuMsPerAudioSecond": 9.198748127271905
   },
   {
    "scenario": "orgel",
@@ -555,7 +555,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 9.172940730864813
+   "cpuMsPerAudioSecond": 10.525572294860815
   },
   {
    "scenario": "orgel",
@@ -572,7 +572,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.055972800237763
+   "cpuMsPerAudioSecond": 9.86748146109849
   },
   {
    "scenario": "orgel",
@@ -589,7 +589,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.727252022640538
+   "cpuMsPerAudioSecond": 7.480120869082976
   },
   {
    "scenario": "solo",
@@ -598,15 +598,15 @@
     "words": 30,
     "marked": 1,
     "delayMedianMs": 143.4693877551041,
-    "delayP90Ms": 1336.7120181405899,
-    "exact": 0.856425702811245,
-    "withinOne": 0.9126506024096386,
+    "delayP90Ms": 2033.3106575963723,
+    "exact": 0.8393574297188755,
+    "withinOne": 0.9066265060240963,
     "ahead": 0.004016064257028112,
-    "none": 0.07730923694779117,
-    "firstMarkSeconds": 3.58671201814059
+    "none": 0.09236947791164658,
+    "firstMarkSeconds": 4.283310657596372
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.685549660718449
+   "cpuMsPerAudioSecond": 18.665217902815307
   },
   {
    "scenario": "solo",
@@ -614,16 +614,16 @@
    "m": {
     "words": 26,
     "marked": 1,
-    "delayMedianMs": 127.07482993197416,
-    "delayP90Ms": 4339.092970521541,
-    "exact": 0.3957307060755337,
-    "withinOne": 0.5106732348111659,
-    "ahead": 0.090311986863711,
-    "none": 0.29064039408866993,
-    "firstMarkSeconds": 4.422630385487528
+    "delayMedianMs": 147.95918367346772,
+    "delayP90Ms": 3294.1496598639455,
+    "exact": 0.7635467980295566,
+    "withinOne": 0.8275862068965517,
+    "ahead": 0.0049261083743842365,
+    "none": 0.16912972085385877,
+    "firstMarkSeconds": 4.794149659863946
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.622031854028224
+   "cpuMsPerAudioSecond": 13.257074570898423
   },
   {
    "scenario": "solo",
@@ -631,16 +631,16 @@
    "m": {
     "words": 32,
     "marked": 1,
-    "delayMedianMs": -8854.421768707483,
-    "delayP90Ms": 382.6303854875306,
-    "exact": 0.144,
-    "withinOne": 0.21866666666666668,
-    "ahead": 0.7528888888888889,
-    "none": 0.06577777777777778,
-    "firstMarkSeconds": 3.447392290249433
+    "delayMedianMs": 180.56689342403587,
+    "delayP90Ms": 784.1043083900221,
+    "exact": 0.7573333333333333,
+    "withinOne": 0.856,
+    "ahead": 0.011555555555555555,
+    "none": 0.144,
+    "firstMarkSeconds": 7.534104308390022
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.790931267081541
+   "cpuMsPerAudioSecond": 17.723462758766082
   },
   {
    "scenario": "solo",
@@ -648,16 +648,16 @@
    "m": {
     "words": 31,
     "marked": 1,
-    "delayMedianMs": 154.82993197278904,
-    "delayP90Ms": 765.5102040816324,
-    "exact": 0.8064516129032258,
-    "withinOne": 0.8921023359288098,
-    "ahead": 0.0033370411568409346,
-    "none": 0.10789766407119021,
-    "firstMarkSeconds": 4.515510204081632
+    "delayMedianMs": 140.90702947845824,
+    "delayP90Ms": 1044.1496598639458,
+    "exact": 0.8153503893214683,
+    "withinOne": 0.8854282536151279,
+    "ahead": 0.0011123470522803114,
+    "none": 0.11457174638487208,
+    "firstMarkSeconds": 4.794149659863946
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.657462508979776
+   "cpuMsPerAudioSecond": 15.85937969198995
   },
   {
    "scenario": "solo",
@@ -674,7 +674,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 3.1216595028441954
+   "cpuMsPerAudioSecond": 5.38346926519256
   },
   {
    "scenario": "solo",
@@ -682,16 +682,16 @@
    "m": {
     "words": 48,
     "marked": 1,
-    "delayMedianMs": -19707.346938775507,
-    "delayP90Ms": 192.01814058956933,
-    "exact": 0.15965263861055445,
-    "withinOne": 0.19438877755511022,
-    "ahead": 0.7875751503006012,
+    "delayMedianMs": 124.87528344671261,
+    "delayP90Ms": 401.0430839002268,
+    "exact": 0.8697394789579158,
+    "withinOne": 0.9599198396793587,
+    "ahead": 0.014028056112224449,
     "none": 0.04008016032064128,
     "firstMarkSeconds": 2.7902721088435376
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.620894287012952
+   "cpuMsPerAudioSecond": 15.511030416137164
   },
   {
    "scenario": "solo",
@@ -700,15 +700,15 @@
     "words": 61,
     "marked": 1,
     "delayMedianMs": 95.74829931973028,
-    "delayP90Ms": 228.0158730158721,
-    "exact": 0.8263598326359832,
-    "withinOne": 0.9225941422594143,
-    "ahead": 0.005230125523012552,
-    "none": 0.07740585774058577,
-    "firstMarkSeconds": 3.447392290249433
+    "delayP90Ms": 569.3083900226759,
+    "exact": 0.7897489539748954,
+    "withinOne": 0.8776150627615062,
+    "ahead": 0.007322175732217573,
+    "none": 0.12238493723849372,
+    "firstMarkSeconds": 5.444308390022676
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.133459019936947
+   "cpuMsPerAudioSecond": 15.594085460956782
   },
   {
    "scenario": "solo",
@@ -718,14 +718,14 @@
     "marked": 0.9795918367346939,
     "delayMedianMs": 113.06122448979572,
     "delayP90Ms": 384.8299319727886,
-    "exact": 0.751503006012024,
-    "withinOne": 0.8356713426853707,
-    "ahead": 0.12024048096192384,
-    "none": 0.056112224448897796,
-    "firstMarkSeconds": 3.9117913832199545
+    "exact": 0.7481629926519706,
+    "withinOne": 0.843687374749499,
+    "ahead": 0.12491649966599866,
+    "none": 0.05678022712090848,
+    "firstMarkSeconds": 3.9582312925170067
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.20530071433313
+   "cpuMsPerAudioSecond": 17.24938320293478
   },
   {
    "scenario": "solo",
@@ -734,15 +734,15 @@
     "words": 22,
     "marked": 1,
     "delayMedianMs": 140.9977324263032,
-    "delayP90Ms": 1011.6326530612243,
-    "exact": 0.8346333853354134,
-    "withinOne": 0.8861154446177847,
+    "delayP90Ms": 3194.3083900226757,
+    "exact": 0.7628705148205929,
+    "withinOne": 0.8127925117004681,
     "ahead": 0.0015600624024961,
-    "none": 0.10920436817472699,
-    "firstMarkSeconds": 3.2616326530612243
+    "none": 0.18252730109204368,
+    "firstMarkSeconds": 5.444308390022676
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.825620210727875
+   "cpuMsPerAudioSecond": 13.011388397681445
   },
   {
    "scenario": "solo",
@@ -751,15 +751,15 @@
     "words": 27,
     "marked": 1,
     "delayMedianMs": 161.9727891156444,
-    "delayP90Ms": 772.5623582766445,
-    "exact": 0.8449396471680595,
-    "withinOne": 0.924791086350975,
-    "ahead": 0.002785515320334262,
-    "none": 0.07520891364902507,
-    "firstMarkSeconds": 3.772471655328798
+    "delayP90Ms": 382.6303854875306,
+    "exact": 0.8560817084493965,
+    "withinOne": 0.9220055710306406,
+    "ahead": 0.003714020427112349,
+    "none": 0.07799442896935933,
+    "firstMarkSeconds": 3.9117913832199545
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.466321472940985
+   "cpuMsPerAudioSecond": 15.10181437867384
   },
   {
    "scenario": "solo",
@@ -767,16 +767,16 @@
    "m": {
     "words": 59,
     "marked": 1,
-    "delayMedianMs": 97.02947845804744,
-    "delayP90Ms": 774.2120181405899,
-    "exact": 0.8033596837944664,
-    "withinOne": 0.91600790513834,
-    "ahead": 0.02865612648221344,
-    "none": 0.07608695652173914,
-    "firstMarkSeconds": 3.58671201814059
+    "delayMedianMs": 99.22902494330899,
+    "delayP90Ms": 1470.8106575963723,
+    "exact": 0.7895256916996047,
+    "withinOne": 0.9021739130434783,
+    "ahead": 0.030632411067193676,
+    "none": 0.09090909090909091,
+    "firstMarkSeconds": 4.283310657596372
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 10.684973125622632
+   "cpuMsPerAudioSecond": 19.02153230147516
   },
   {
    "scenario": "solo",
@@ -784,16 +784,16 @@
    "m": {
     "words": 33,
     "marked": 1,
-    "delayMedianMs": 140.9977324263032,
-    "delayP90Ms": 334.9092970521532,
-    "exact": 0.8534136546184738,
-    "withinOne": 0.9317269076305221,
+    "delayMedianMs": 140.90702947845824,
+    "delayP90Ms": 427.78911564625946,
+    "exact": 0.8514056224899599,
+    "withinOne": 0.9307228915662651,
     "ahead": 0.002008032128514056,
     "none": 0.06827309236947791,
     "firstMarkSeconds": 3.1687528344671203
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 11.780102375786985
+   "cpuMsPerAudioSecond": 14.427323120901725
   },
   {
    "scenario": "solo-langzaam",
@@ -801,16 +801,16 @@
    "m": {
     "words": 30,
     "marked": 1,
-    "delayMedianMs": -7201.56256441971,
-    "delayP90Ms": 3707.528344671202,
-    "exact": 0.08933518005540166,
-    "withinOne": 0.09418282548476455,
-    "ahead": 0.2770083102493075,
-    "none": 0.29709141274238227,
-    "firstMarkSeconds": 4.840589569160998
+    "delayMedianMs": 172.4551638837255,
+    "delayP90Ms": 4263.949701092557,
+    "exact": 0.7673130193905817,
+    "withinOne": 0.8054016620498615,
+    "ahead": 0.00554016620498615,
+    "none": 0.18905817174515235,
+    "firstMarkSeconds": 4.979909297052155
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.693553127505927
+   "cpuMsPerAudioSecond": 21.273215517241336
   },
   {
    "scenario": "solo-langzaam",
@@ -818,16 +818,16 @@
    "m": {
     "words": 26,
     "marked": 1,
-    "delayMedianMs": 165.59472273758047,
-    "delayP90Ms": 5099.868068439497,
-    "exact": 0.5079545454545454,
-    "withinOne": 0.5795454545454546,
-    "ahead": 0.0125,
-    "none": 0.32727272727272727,
-    "firstMarkSeconds": 4.654829931972789
+    "delayMedianMs": 141.08843537415083,
+    "delayP90Ms": 1637.0933828076684,
+    "exact": 0.7511363636363636,
+    "withinOne": 0.8261363636363637,
+    "ahead": 0.0659090909090909,
+    "none": 0.12386363636363637,
+    "firstMarkSeconds": 3.81891156462585
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.761077151050005
+   "cpuMsPerAudioSecond": 13.326704670380064
   },
   {
    "scenario": "solo-langzaam",
@@ -835,33 +835,33 @@
    "m": {
     "words": 32,
     "marked": 1,
-    "delayMedianMs": -337.526283240571,
-    "delayP90Ms": 179.31560502988475,
-    "exact": 0.5667892156862745,
-    "withinOne": 0.7285539215686274,
-    "ahead": 0.3167892156862745,
-    "none": 0.10049019607843138,
-    "firstMarkSeconds": 3.447392290249433
+    "delayMedianMs": 85.57823129250153,
+    "delayP90Ms": 217.17996289424235,
+    "exact": 0.8278186274509803,
+    "withinOne": 0.9252450980392157,
+    "ahead": 0.07107843137254902,
+    "none": 0.07475490196078431,
+    "firstMarkSeconds": 5.676507936507937
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.897524110434299
+   "cpuMsPerAudioSecond": 17.977540175570734
   },
   {
    "scenario": "solo-langzaam",
    "hymn": 46,
    "m": {
     "words": 31,
-    "marked": 0.9032258064516129,
-    "delayMedianMs": 165.59472273758047,
-    "delayP90Ms": 6815.572047000618,
-    "exact": 0.6485034535686877,
-    "withinOne": 0.7528779739063699,
-    "ahead": 0.023791250959324637,
-    "none": 0.16653875671527243,
-    "firstMarkSeconds": 10.088299319727891
+    "marked": 1,
+    "delayMedianMs": 155.30406101834515,
+    "delayP90Ms": 4122.914862914863,
+    "exact": 0.7774366845740599,
+    "withinOne": 0.841903300076746,
+    "ahead": 0.024558710667689946,
+    "none": 0.15809669992325404,
+    "firstMarkSeconds": 9.577460317460318
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.139475759050601
+   "cpuMsPerAudioSecond": 12.28297908345137
   },
   {
    "scenario": "solo-langzaam",
@@ -878,7 +878,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 3.3479077761103504
+   "cpuMsPerAudioSecond": 3.340582573569138
   },
   {
    "scenario": "solo-langzaam",
@@ -886,33 +886,33 @@
    "m": {
     "words": 48,
     "marked": 1,
-    "delayMedianMs": -20825.244279529994,
-    "delayP90Ms": 249.04143475571948,
-    "exact": 0.27071823204419887,
-    "withinOne": 0.32642725598526706,
-    "ahead": 0.6482504604051565,
-    "none": 0.06123388581952118,
-    "firstMarkSeconds": 2.728002473716759
+    "delayMedianMs": -3579.2496392496387,
+    "delayP90Ms": 438.594104308379,
+    "exact": 0.6390423572744015,
+    "withinOne": 0.7279005524861878,
+    "ahead": 0.24631675874769798,
+    "none": 0.043738489871086556,
+    "firstMarkSeconds": 3.1924015666872814
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.794405155225869
+   "cpuMsPerAudioSecond": 18.526634713076483
   },
   {
    "scenario": "solo-langzaam",
    "hymn": 98,
    "m": {
     "words": 61,
-    "marked": 0.9836065573770492,
-    "delayMedianMs": 111.43681715110176,
-    "delayP90Ms": 942.2098536384249,
-    "exact": 0.7898916967509025,
-    "withinOne": 0.8837545126353791,
-    "ahead": 0.022382671480144403,
-    "none": 0.11624548736462094,
-    "firstMarkSeconds": 7.487664399092971
+    "marked": 1,
+    "delayMedianMs": 109.04555761698731,
+    "delayP90Ms": 256.57802514945337,
+    "exact": 0.8397111913357401,
+    "withinOne": 0.9386281588447654,
+    "ahead": 0.021660649819494584,
+    "none": 0.061371841155234655,
+    "firstMarkSeconds": 3.9582312925170067
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.530622704726591
+   "cpuMsPerAudioSecond": 16.09250438188573
   },
   {
    "scenario": "solo-langzaam",
@@ -920,16 +920,16 @@
    "m": {
     "words": 49,
     "marked": 0.9795918367346939,
-    "delayMedianMs": -25818.820861678007,
-    "delayP90Ms": 1499.4887652030498,
-    "exact": 0.5971454880294659,
-    "withinOne": 0.6933701657458563,
-    "ahead": 0.24677716390423574,
-    "none": 0.10451197053406998,
-    "firstMarkSeconds": 8.044943310657596
+    "delayMedianMs": 138.02102659244042,
+    "delayP90Ms": 512.6077097505686,
+    "exact": 0.7288213627992634,
+    "withinOne": 0.8103130755064457,
+    "ahead": 0.15331491712707182,
+    "none": 0.05939226519337017,
+    "firstMarkSeconds": 6.001587301587302
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 10.238064987182787
+   "cpuMsPerAudioSecond": 15.238022279444815
   },
   {
    "scenario": "solo-langzaam",
@@ -937,16 +937,16 @@
    "m": {
     "words": 22,
     "marked": 1,
-    "delayMedianMs": 157.01917130488852,
-    "delayP90Ms": 2171.5811172954036,
-    "exact": 0.6213592233009708,
-    "withinOne": 0.7227615965480043,
-    "ahead": 0.21359223300970873,
-    "none": 0.1262135922330097,
-    "firstMarkSeconds": 5.444308390022676
+    "delayMedianMs": 162.16450216450085,
+    "delayP90Ms": 4029.1774891774894,
+    "exact": 0.7421790722761596,
+    "withinOne": 0.7982740021574973,
+    "ahead": 0.011866235167206042,
+    "none": 0.19848975188781015,
+    "firstMarkSeconds": 7.301904761904762
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 7.567371104111427
+   "cpuMsPerAudioSecond": 13.507194327621106
   },
   {
    "scenario": "solo-langzaam",
@@ -954,16 +954,16 @@
    "m": {
     "words": 27,
     "marked": 1,
-    "delayMedianMs": -16141.673881673882,
+    "delayMedianMs": 75.28756957328397,
     "delayP90Ms": 454.52484023913087,
-    "exact": 0.6284433055733504,
-    "withinOne": 0.7245355541319667,
-    "ahead": 0.16848174247277387,
-    "none": 0.1108263933376041,
-    "firstMarkSeconds": 5.490748299319728
+    "exact": 0.8443305573350416,
+    "withinOne": 0.903267136450993,
+    "ahead": 0.025624599615631006,
+    "none": 0.08135810377962845,
+    "firstMarkSeconds": 4.654829931972789
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.421308117904644
+   "cpuMsPerAudioSecond": 14.605828319656544
   },
   {
    "scenario": "solo-langzaam",
@@ -971,16 +971,16 @@
    "m": {
     "words": 59,
     "marked": 1,
-    "delayMedianMs": 96.36363636363399,
-    "delayP90Ms": 581.838796124515,
-    "exact": 0.8207225630538514,
-    "withinOne": 0.9229720518064076,
-    "ahead": 0.04430811179277437,
-    "none": 0.06680299931833675,
-    "firstMarkSeconds": 4.561950113378685
+    "delayMedianMs": 12235.683364254794,
+    "delayP90Ms": 36508.410636982066,
+    "exact": 0.17586912065439672,
+    "withinOne": 0.19972733469665985,
+    "ahead": 0.03135650988411725,
+    "none": 0.6618950238582141,
+    "firstMarkSeconds": 40.59931972789116
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 10.064570502911158
+   "cpuMsPerAudioSecond": 18.92246853279021
   },
   {
    "scenario": "solo-langzaam",
@@ -989,15 +989,15 @@
     "words": 33,
     "marked": 1,
     "delayMedianMs": 153.58895073180713,
-    "delayP90Ms": 307.48711605853885,
-    "exact": 0.8912742382271468,
-    "withinOne": 0.9529085872576177,
-    "ahead": 0.006925207756232687,
-    "none": 0.04709141274238227,
-    "firstMarkSeconds": 3.1687528344671203
+    "delayP90Ms": 261.0472067614822,
+    "exact": 0.8898891966759003,
+    "withinOne": 0.9522160664819944,
+    "ahead": 0.008310249307479225,
+    "none": 0.04778393351800554,
+    "firstMarkSeconds": 3.2151927437641725
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.947402451598121
+   "cpuMsPerAudioSecond": 15.555276921755043
   },
   {
    "scenario": "solo-snel",
@@ -1006,15 +1006,15 @@
     "words": 30,
     "marked": 1,
     "delayMedianMs": 124.97629354771789,
-    "delayP90Ms": 1625.2690166975876,
-    "exact": 0.8310439560439561,
-    "withinOne": 0.9038461538461539,
-    "ahead": 0.0027472527472527475,
-    "none": 0.09615384615384616,
-    "firstMarkSeconds": 3.2616326530612243
+    "delayP90Ms": 1903.9084724799009,
+    "exact": 0.8228021978021978,
+    "withinOne": 0.8956043956043956,
+    "ahead": 0.0013736263736263737,
+    "none": 0.1043956043956044,
+    "firstMarkSeconds": 3.5402721088435376
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 12.871974034001207
+   "cpuMsPerAudioSecond": 18.339229553211943
   },
   {
    "scenario": "solo-snel",
@@ -1022,16 +1022,16 @@
    "m": {
     "words": 26,
     "marked": 1,
-    "delayMedianMs": -4873.745619459905,
-    "delayP90Ms": 2217.1634714491856,
-    "exact": 0.13901345291479822,
-    "withinOne": 0.1547085201793722,
-    "ahead": 0.3116591928251121,
-    "none": 0.35201793721973096,
-    "firstMarkSeconds": 3.3080725623582765
+    "delayMedianMs": 142.62213976499714,
+    "delayP90Ms": 2310.04329004329,
+    "exact": 0.7399103139013453,
+    "withinOne": 0.8318385650224215,
+    "ahead": 0,
+    "none": 0.16367713004484305,
+    "firstMarkSeconds": 3.400952380952381
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.70645018399868
+   "cpuMsPerAudioSecond": 9.227487477852282
   },
   {
    "scenario": "solo-snel",
@@ -1039,16 +1039,16 @@
    "m": {
     "words": 32,
     "marked": 1,
-    "delayMedianMs": 164.73716759431056,
-    "delayP90Ms": 6200.886415172128,
-    "exact": 0.6138855054811205,
-    "withinOne": 0.7088915956151035,
-    "ahead": 0.0097442143727162,
-    "none": 0.2911084043848965,
-    "firstMarkSeconds": 11.109977324263038
+    "delayMedianMs": 163.69820655534807,
+    "delayP90Ms": 471.9892805607095,
+    "exact": 0.7856272838002436,
+    "withinOne": 0.9062119366626066,
+    "ahead": 0.0048721071863581,
+    "none": 0.09378806333739342,
+    "firstMarkSeconds": 3.58671201814059
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.877027987919465
+   "cpuMsPerAudioSecond": 13.824519093556699
   },
   {
    "scenario": "solo-snel",
@@ -1056,16 +1056,16 @@
    "m": {
     "words": 31,
     "marked": 1,
-    "delayMedianMs": 204.31663574520798,
-    "delayP90Ms": 11215.539064110491,
-    "exact": 0.4840182648401826,
-    "withinOne": 0.54337899543379,
+    "delayMedianMs": 195.92249020820418,
+    "delayP90Ms": 10472.500515357659,
+    "exact": 0.5083713850837138,
+    "withinOne": 0.5677321156773212,
     "ahead": 0,
-    "none": 0.45662100456621,
-    "firstMarkSeconds": 13.94281179138322
+    "none": 0.4322678843226788,
+    "firstMarkSeconds": 13.199773242630386
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 10.377267493516186
+   "cpuMsPerAudioSecond": 11.93161652939199
   },
   {
    "scenario": "solo-snel",
@@ -1082,7 +1082,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 4.19316557112058
+   "cpuMsPerAudioSecond": 3.5231396282330842
   },
   {
    "scenario": "solo-snel",
@@ -1090,16 +1090,16 @@
    "m": {
     "words": 48,
     "marked": 1,
-    "delayMedianMs": -7297.015048443619,
-    "delayP90Ms": 245.61121418264253,
-    "exact": 0.2383134738771769,
-    "withinOne": 0.29605866177818513,
-    "ahead": 0.6828597616865261,
-    "none": 0.05316223648029331,
+    "delayMedianMs": 115.72459286744419,
+    "delayP90Ms": 348.7816944959832,
+    "exact": 0.846929422548121,
+    "withinOne": 0.9477543538038496,
+    "ahead": 0.002749770852428964,
+    "none": 0.05224564619615032,
     "firstMarkSeconds": 2.669738198309627
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.098203634168835
+   "cpuMsPerAudioSecond": 15.712841828119457
   },
   {
    "scenario": "solo-snel",
@@ -1107,16 +1107,16 @@
    "m": {
     "words": 61,
     "marked": 1,
-    "delayMedianMs": 178.18594104308616,
-    "delayP90Ms": 370.7153164296031,
-    "exact": 0.6217765042979942,
-    "withinOne": 0.8896848137535817,
+    "delayMedianMs": 179.90105132962597,
+    "delayP90Ms": 1295.135023706453,
+    "exact": 0.5974212034383954,
+    "withinOne": 0.8495702005730659,
     "ahead": 0,
-    "none": 0.10744985673352435,
-    "firstMarkSeconds": 3.4938321995464854
+    "none": 0.1489971346704871,
+    "firstMarkSeconds": 4.840589569160998
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.173789706553777
+   "cpuMsPerAudioSecond": 11.166071877140869
   },
   {
    "scenario": "solo-snel",
@@ -1124,16 +1124,16 @@
    "m": {
     "words": 49,
     "marked": 1,
-    "delayMedianMs": 95.32467532467592,
-    "delayP90Ms": 308.1632653061241,
-    "exact": 0.4816849816849817,
-    "withinOne": 0.5888278388278388,
-    "ahead": 0.3983516483516483,
-    "none": 0.06501831501831502,
+    "delayMedianMs": 143.66110080395345,
+    "delayP90Ms": 2590.5792620078287,
+    "exact": 0.728021978021978,
+    "withinOne": 0.847985347985348,
+    "ahead": 0.004578754578754579,
+    "none": 0.13003663003663005,
     "firstMarkSeconds": 3.3080725623582765
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 10.545477467971955
+   "cpuMsPerAudioSecond": 13.48085391223646
   },
   {
    "scenario": "solo-snel",
@@ -1141,16 +1141,16 @@
    "m": {
     "words": 22,
     "marked": 1,
-    "delayMedianMs": 119.83096268810556,
-    "delayP90Ms": 1485.949288806432,
-    "exact": 0.7867803837953091,
-    "withinOne": 0.8528784648187633,
+    "delayMedianMs": 120.68851783137546,
+    "delayP90Ms": 2693.386930529788,
+    "exact": 0.7334754797441365,
+    "withinOne": 0.7974413646055437,
     "ahead": 0,
-    "none": 0.14285714285714285,
-    "firstMarkSeconds": 3.122312925170068
+    "none": 0.19829424307036247,
+    "firstMarkSeconds": 4.329750566893424
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.790292330839058
+   "cpuMsPerAudioSecond": 9.339642282043092
   },
   {
    "scenario": "solo-snel",
@@ -1158,16 +1158,16 @@
    "m": {
     "words": 27,
     "marked": 1,
-    "delayMedianMs": -5589.705215419502,
-    "delayP90Ms": 824.8237476808908,
-    "exact": 0.43384223918575066,
-    "withinOne": 0.5038167938931297,
-    "ahead": 0.054707379134860054,
-    "none": 0.23282442748091603,
-    "firstMarkSeconds": 4.097551020408163
+    "delayMedianMs": 141.76458462172724,
+    "delayP90Ms": 639.064110492682,
+    "exact": 0.821882951653944,
+    "withinOne": 0.8931297709923665,
+    "ahead": 0.001272264631043257,
+    "none": 0.10687022900763359,
+    "firstMarkSeconds": 3.9117913832199545
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 11.254854888449987
+   "cpuMsPerAudioSecond": 13.51570253022846
   },
   {
    "scenario": "solo-snel",
@@ -1176,15 +1176,15 @@
     "words": 59,
     "marked": 1,
     "delayMedianMs": 119.83096268810556,
-    "delayP90Ms": 5627.969490826635,
-    "exact": 0.6684709066305818,
-    "withinOne": 0.7726657645466847,
-    "ahead": 0.010825439783491205,
-    "none": 0.2232746955345061,
-    "firstMarkSeconds": 7.67342403628118
+    "delayP90Ms": 5024.250669964955,
+    "exact": 0.6792963464140731,
+    "withinOne": 0.7916102841677943,
+    "ahead": 0.012178619756427604,
+    "none": 0.20568335588633288,
+    "firstMarkSeconds": 7.069705215419501
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.85386142241369
+   "cpuMsPerAudioSecond": 14.965200808189664
   },
   {
    "scenario": "solo-snel",
@@ -1192,16 +1192,16 @@
    "m": {
     "words": 33,
     "marked": 1,
-    "delayMedianMs": 123.26118326118163,
-    "delayP90Ms": 1033.3745619459905,
-    "exact": 0.8269230769230769,
-    "withinOne": 0.9052197802197802,
+    "delayMedianMs": 121.54607297464182,
+    "delayP90Ms": 1079.8144712430421,
+    "exact": 0.8282967032967034,
+    "withinOne": 0.9038461538461539,
     "ahead": 0,
-    "none": 0.09478021978021978,
-    "firstMarkSeconds": 3.2151927437641725
+    "none": 0.09615384615384616,
+    "firstMarkSeconds": 3.2616326530612243
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.615181767460083
+   "cpuMsPerAudioSecond": 13.591917747899593
   },
   {
    "scenario": "solo-laag",
@@ -1210,15 +1210,15 @@
     "words": 30,
     "marked": 1,
     "delayMedianMs": 150.34013605442098,
-    "delayP90Ms": 6491.541950113378,
-    "exact": 0.7720883534136547,
-    "withinOne": 0.8112449799196787,
+    "delayP90Ms": 6537.981859410431,
+    "exact": 0.7690763052208835,
+    "withinOne": 0.8102409638554217,
     "ahead": 0,
-    "none": 0.18875502008032127,
-    "firstMarkSeconds": 8.741541950113378
+    "none": 0.1897590361445783,
+    "firstMarkSeconds": 8.787981859410431
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 11.983691339346706
+   "cpuMsPerAudioSecond": 20.398706611098458
   },
   {
    "scenario": "solo-laag",
@@ -1226,16 +1226,16 @@
    "m": {
     "words": 26,
     "marked": 1,
-    "delayMedianMs": -5986.780045351473,
-    "delayP90Ms": 8263.219954648526,
-    "exact": 0.09523809523809523,
-    "withinOne": 0.1724137931034483,
-    "ahead": 0.047619047619047616,
-    "none": 0.6486042692939245,
-    "firstMarkSeconds": 9.763219954648527
+    "delayMedianMs": 147.95918367346772,
+    "delayP90Ms": 4037.1882086167802,
+    "exact": 0.7323481116584565,
+    "withinOne": 0.8013136288998358,
+    "ahead": 0.0049261083743842365,
+    "none": 0.19540229885057472,
+    "firstMarkSeconds": 5.53718820861678
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.937722443430607
+   "cpuMsPerAudioSecond": 12.12819577599102
   },
   {
    "scenario": "solo-laag",
@@ -1243,16 +1243,16 @@
    "m": {
     "words": 32,
     "marked": 1,
-    "delayMedianMs": 410.3854875283446,
-    "delayP90Ms": 9979.20634920635,
-    "exact": 0.5253333333333333,
-    "withinOne": 0.6488888888888888,
-    "ahead": 0.006222222222222222,
-    "none": 0.32,
-    "firstMarkSeconds": 16.72920634920635
+    "delayMedianMs": 429.07029478458014,
+    "delayP90Ms": 8864.648526077097,
+    "exact": 0.5786666666666667,
+    "withinOne": 0.6853333333333333,
+    "ahead": 0.0035555555555555557,
+    "none": 0.2986666666666667,
+    "firstMarkSeconds": 15.614648526077097
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.218943892830076
+   "cpuMsPerAudioSecond": 19.50814369875565
   },
   {
    "scenario": "solo-laag",
@@ -1260,24 +1260,24 @@
    "m": {
     "words": 31,
     "marked": 1,
-    "delayMedianMs": 275.73696145124416,
-    "delayP90Ms": 15626.281179138321,
-    "exact": 0.4794215795328142,
-    "withinOne": 0.5361512791991101,
-    "ahead": 0.0011123470522803114,
-    "none": 0.4638487208008899,
-    "firstMarkSeconds": 19.37628117913832
+    "delayMedianMs": 133.9455782312928,
+    "delayP90Ms": 1652.7210884353708,
+    "exact": 0.7819799777530589,
+    "withinOne": 0.8665183537263627,
+    "ahead": 0.004449388209121246,
+    "none": 0.11234705228031146,
+    "firstMarkSeconds": 4.701269841269841
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.991874955100382
+   "cpuMsPerAudioSecond": 14.748592223419704
   },
   {
    "scenario": "solo-laag",
    "hymn": 63,
    "m": {
     "words": 38,
-    "marked": 0.39473684210526316,
-    "delayMedianMs": 12483.480725623584,
+    "marked": 0.34210526315789475,
+    "delayMedianMs": 13608.480725623584,
     "delayP90Ms": 18483.480725623584,
     "exact": 0,
     "withinOne": 0,
@@ -1286,7 +1286,7 @@
     "firstMarkSeconds": 19.608480725623583
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 4.506880925217791
+   "cpuMsPerAudioSecond": 3.331482489474962
   },
   {
    "scenario": "solo-laag",
@@ -1294,16 +1294,16 @@
    "m": {
     "words": 48,
     "marked": 1,
-    "delayMedianMs": -102.65306122448692,
-    "delayP90Ms": 475.5102040816297,
-    "exact": 0.39879759519038077,
-    "withinOne": 0.49966599866399464,
-    "ahead": 0.4849699398797595,
-    "none": 0.06546426185704743,
-    "firstMarkSeconds": 2.83671201814059
+    "delayMedianMs": 131.83673469387713,
+    "delayP90Ms": 1487.6643990929708,
+    "exact": 0.7969271877087508,
+    "withinOne": 0.9031396125584502,
+    "ahead": 0.006012024048096192,
+    "none": 0.09686038744154976,
+    "firstMarkSeconds": 6.737664399092971
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.809656117184431
+   "cpuMsPerAudioSecond": 16.866633563181914
   },
   {
    "scenario": "solo-laag",
@@ -1311,33 +1311,33 @@
    "m": {
     "words": 61,
     "marked": 1,
-    "delayMedianMs": 91.07709750566784,
-    "delayP90Ms": 1869.6258503401361,
-    "exact": 0.7730125523012552,
-    "withinOne": 0.8483263598326359,
+    "delayMedianMs": 100.41950113378206,
+    "delayP90Ms": 2426.904761904762,
+    "exact": 0.7269874476987448,
+    "withinOne": 0.8075313807531381,
     "ahead": 0.0041841004184100415,
-    "none": 0.151673640167364,
-    "firstMarkSeconds": 6.744625850340136
+    "none": 0.19246861924686193,
+    "firstMarkSeconds": 7.301904761904762
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 7.856789238124344
+   "cpuMsPerAudioSecond": 14.976663932967396
   },
   {
    "scenario": "solo-laag",
    "hymn": 115,
    "m": {
     "words": 49,
-    "marked": 1,
-    "delayMedianMs": 117.82312925170046,
-    "delayP90Ms": 419.5464852607706,
-    "exact": 0.6760187040748163,
-    "withinOne": 0.7668670674682698,
-    "ahead": 0.20440881763527055,
-    "none": 0.052772211088844355,
-    "firstMarkSeconds": 3.6795918367346943
+    "marked": 0.9795918367346939,
+    "delayMedianMs": 164.26303854875357,
+    "delayP90Ms": 3552.176870748298,
+    "exact": 0.730126920507682,
+    "withinOne": 0.8450233800935204,
+    "ahead": 0.007348029392117568,
+    "none": 0.053440213760855046,
+    "firstMarkSeconds": 3.7260317460317465
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 10.37614951750686
+   "cpuMsPerAudioSecond": 17.433519391018535
   },
   {
    "scenario": "solo-laag",
@@ -1345,33 +1345,33 @@
    "m": {
     "words": 22,
     "marked": 1,
-    "delayMedianMs": 157.30158730158905,
-    "delayP90Ms": 2776.3492063492067,
-    "exact": 0.7644305772230889,
-    "withinOne": 0.8268330733229329,
-    "ahead": 0.014040561622464899,
-    "none": 0.1684867394695788,
-    "firstMarkSeconds": 5.026349206349207
+    "delayMedianMs": 168.84353741496483,
+    "delayP90Ms": 4680.385487528345,
+    "exact": 0.7051482059282371,
+    "withinOne": 0.7628705148205929,
+    "ahead": 0.0124804992199688,
+    "none": 0.23244929797191888,
+    "firstMarkSeconds": 6.930385487528345
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.102736669859778
+   "cpuMsPerAudioSecond": 12.459830226446448
   },
   {
    "scenario": "solo-laag",
    "hymn": 149,
    "m": {
     "words": 27,
-    "marked": 1,
+    "marked": 0.8518518518518519,
     "delayMedianMs": 161.9727891156444,
-    "delayP90Ms": 1986.87074829932,
-    "exact": 0.7502321262766946,
-    "withinOne": 0.8802228412256268,
-    "ahead": 0.04549675023212628,
-    "none": 0.11977715877437325,
-    "firstMarkSeconds": 4.23687074829932
+    "delayP90Ms": 1190.521541950112,
+    "exact": 0.6945218198700093,
+    "withinOne": 0.7771587743732591,
+    "ahead": 0.0018570102135561746,
+    "none": 0.1532033426183844,
+    "firstMarkSeconds": 4.561950113378685
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.433672826646848
+   "cpuMsPerAudioSecond": 14.798342089115769
   },
   {
    "scenario": "solo-laag",
@@ -1379,33 +1379,33 @@
    "m": {
     "words": 59,
     "marked": 1,
-    "delayMedianMs": 97.02947845804744,
-    "delayP90Ms": 2260.2891156462583,
-    "exact": 0.7895256916996047,
-    "withinOne": 0.8853754940711462,
-    "ahead": 0.020750988142292492,
-    "none": 0.10770750988142293,
-    "firstMarkSeconds": 5.072789115646258
+    "delayMedianMs": 99.1383219954649,
+    "delayP90Ms": 2771.1281179138323,
+    "exact": 0.7776679841897233,
+    "withinOne": 0.8745059288537549,
+    "ahead": 0.023715415019762844,
+    "none": 0.11857707509881422,
+    "firstMarkSeconds": 5.5836281179138325
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 10.693709206382362
+   "cpuMsPerAudioSecond": 19.486876486325777
   },
   {
    "scenario": "solo-laag",
    "hymn": 187,
    "m": {
     "words": 33,
-    "marked": 1,
+    "marked": 0.9696969696969697,
     "delayMedianMs": 124.78458049886498,
-    "delayP90Ms": 447.3922902494332,
-    "exact": 0.8524096385542169,
-    "withinOne": 0.9257028112449799,
+    "delayP90Ms": 726.0317460317465,
+    "exact": 0.8453815261044176,
+    "withinOne": 0.9196787148594378,
     "ahead": 0.002008032128514056,
-    "none": 0.07429718875502007,
-    "firstMarkSeconds": 3.447392290249433
+    "none": 0.08032128514056225,
+    "firstMarkSeconds": 3.7260317460317465
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.88587833980382
+   "cpuMsPerAudioSecond": 14.830083026131165
   },
   {
    "scenario": "solo-andere-toonsoort",
@@ -1413,16 +1413,16 @@
    "m": {
     "words": 30,
     "marked": 1,
-    "delayMedianMs": -5243.74149659864,
-    "delayP90Ms": 8256.258503401361,
-    "exact": 0.321285140562249,
-    "withinOne": 0.33835341365461846,
-    "ahead": 0.30120481927710846,
-    "none": 0.3634538152610442,
-    "firstMarkSeconds": 10.50625850340136
+    "delayMedianMs": 168.84353741496483,
+    "delayP90Ms": 7513.219954648527,
+    "exact": 0.7449799196787149,
+    "withinOne": 0.7891566265060241,
+    "ahead": 0.0030120481927710845,
+    "none": 0.21084337349397592,
+    "firstMarkSeconds": 9.763219954648527
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 11.500543829315273
+   "cpuMsPerAudioSecond": 19.398820690470917
   },
   {
    "scenario": "solo-andere-toonsoort",
@@ -1430,16 +1430,16 @@
    "m": {
     "words": 26,
     "marked": 1,
-    "delayMedianMs": -60.97505668934389,
-    "delayP90Ms": 2272.4716553287976,
-    "exact": 0.29720853858784896,
-    "withinOne": 0.3497536945812808,
-    "ahead": 0.42857142857142855,
-    "none": 0.2233169129720854,
-    "firstMarkSeconds": 3.772471655328798
+    "delayMedianMs": -5294.85260770975,
+    "delayP90Ms": 3154.829931972789,
+    "exact": 0.4269293924466338,
+    "withinOne": 0.48932676518883417,
+    "ahead": 0.2545155993431856,
+    "none": 0.2561576354679803,
+    "firstMarkSeconds": 4.654829931972789
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.505494529921757
+   "cpuMsPerAudioSecond": 13.380238744137255
   },
   {
    "scenario": "solo-andere-toonsoort",
@@ -1447,16 +1447,16 @@
    "m": {
     "words": 32,
     "marked": 1,
-    "delayMedianMs": 178.1859410430826,
-    "delayP90Ms": 9050.408163265307,
-    "exact": 0.6391111111111111,
-    "withinOne": 0.6977777777777778,
-    "ahead": 0.0044444444444444444,
-    "none": 0.3022222222222222,
-    "firstMarkSeconds": 15.800408163265306
+    "delayMedianMs": 210.61224489795904,
+    "delayP90Ms": 6867.7324263038545,
+    "exact": 0.648,
+    "withinOne": 0.7395555555555555,
+    "ahead": 0.0017777777777777779,
+    "none": 0.2604444444444444,
+    "firstMarkSeconds": 13.617732426303855
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 12.917722567889783
+   "cpuMsPerAudioSecond": 19.42620186297029
   },
   {
    "scenario": "solo-andere-toonsoort",
@@ -1464,16 +1464,16 @@
    "m": {
     "words": 31,
     "marked": 1,
-    "delayMedianMs": -11884.648526077097,
-    "delayP90Ms": 417.4376417233532,
-    "exact": 0.40044493882091214,
-    "withinOne": 0.44271412680756395,
-    "ahead": 0.407119021134594,
-    "none": 0.15239154616240266,
-    "firstMarkSeconds": 3.8653514739229022
+    "delayMedianMs": 8778.820861678003,
+    "delayP90Ms": 26028.820861678003,
+    "exact": 0.25139043381535037,
+    "withinOne": 0.28698553948832034,
+    "ahead": 0.0011123470522803114,
+    "none": 0.7130144605116796,
+    "firstMarkSeconds": 29.778820861678003
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.788157192888086
+   "cpuMsPerAudioSecond": 16.43149678969117
   },
   {
    "scenario": "solo-andere-toonsoort",
@@ -1490,7 +1490,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 3.086254700003424
+   "cpuMsPerAudioSecond": 3.421325742359207
   },
   {
    "scenario": "solo-andere-toonsoort",
@@ -1498,16 +1498,16 @@
    "m": {
     "words": 48,
     "marked": 1,
-    "delayMedianMs": 108.6621315192744,
-    "delayP90Ms": 540.6349206349148,
-    "exact": 0.6646626586506346,
-    "withinOne": 0.7735470941883767,
-    "ahead": 0.19171676686706746,
-    "none": 0.08216432865731463,
-    "firstMarkSeconds": 5.715986394557823
+    "delayMedianMs": -28280.136054421768,
+    "delayP90Ms": -1159.4104308390022,
+    "exact": 0.16633266533066132,
+    "withinOne": 0.36740146960587844,
+    "ahead": 0.25851703406813625,
+    "none": 0.26452905811623245,
+    "firstMarkSeconds": 4.090589569160998
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 10.997003666805604
+   "cpuMsPerAudioSecond": 17.32892965703458
   },
   {
    "scenario": "solo-andere-toonsoort",
@@ -1515,16 +1515,16 @@
    "m": {
     "words": 61,
     "marked": 1,
-    "delayMedianMs": 156.20181405896005,
-    "delayP90Ms": 15244.319727891156,
-    "exact": 0.45502092050209203,
-    "withinOne": 0.49581589958158995,
-    "ahead": 0.0031380753138075313,
-    "none": 0.50418410041841,
-    "firstMarkSeconds": 20.119319727891156
+    "delayMedianMs": -8696.507936507936,
+    "delayP90Ms": 8928.492063492064,
+    "exact": 0,
+    "withinOne": 0,
+    "ahead": 0.10355648535564854,
+    "none": 0.32322175732217573,
+    "firstMarkSeconds": 13.803492063492063
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 13.469573797172025
+   "cpuMsPerAudioSecond": 13.78506925372134
   },
   {
    "scenario": "solo-andere-toonsoort",
@@ -1532,33 +1532,33 @@
    "m": {
     "words": 49,
     "marked": 1,
-    "delayMedianMs": -18989.86394557823,
-    "delayP90Ms": 6656.4172335600915,
-    "exact": 0.6332665330661322,
-    "withinOne": 0.7688710754843019,
-    "ahead": 0.0781563126252505,
-    "none": 0.17835671342685372,
-    "firstMarkSeconds": 11.156417233560092
+    "delayMedianMs": -26466.689342403624,
+    "delayP90Ms": 252.74376417233668,
+    "exact": 0.6279225116900468,
+    "withinOne": 0.7575150300601202,
+    "ahead": 0.13293253173012692,
+    "none": 0.07949231796927188,
+    "firstMarkSeconds": 4.283310657596372
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 10.668410733256856
+   "cpuMsPerAudioSecond": 16.61138776227266
   },
   {
    "scenario": "solo-andere-toonsoort",
    "hymn": 131,
    "m": {
     "words": 22,
-    "marked": 0.9090909090909091,
-    "delayMedianMs": -6555.691609977324,
-    "delayP90Ms": 4694.308390022676,
-    "exact": 0.13884555382215288,
-    "withinOne": 0.35725429017160687,
-    "ahead": 0.07956318252730109,
-    "none": 0.20124804992199688,
-    "firstMarkSeconds": 4.7477097505668935
+    "marked": 0.9545454545454546,
+    "delayMedianMs": 728.5034013605447,
+    "delayP90Ms": 9695.895691609976,
+    "exact": 0.4414976599063963,
+    "withinOne": 0.5429017160686428,
+    "ahead": 0.0218408736349454,
+    "none": 0.44305772230889234,
+    "firstMarkSeconds": 11.945895691609977
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 12.866514423077682
+   "cpuMsPerAudioSecond": 11.011744001130047
   },
   {
    "scenario": "solo-andere-toonsoort",
@@ -1566,16 +1566,16 @@
    "m": {
     "words": 27,
     "marked": 1,
-    "delayMedianMs": -95.78231292517003,
-    "delayP90Ms": 1826.6666666666672,
-    "exact": 0.6768802228412256,
-    "withinOne": 0.7604456824512534,
-    "ahead": 0.06499535747446611,
-    "none": 0.18384401114206128,
-    "firstMarkSeconds": 6.326666666666667
+    "delayMedianMs": -7405.532879818594,
+    "delayP90Ms": 1594.467120181406,
+    "exact": 0.585886722376973,
+    "withinOne": 0.6536675951717734,
+    "ahead": 0.15134633240482823,
+    "none": 0.20334261838440112,
+    "firstMarkSeconds": 6.094467120181406
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.352517593630338
+   "cpuMsPerAudioSecond": 15.603652411217787
   },
   {
    "scenario": "solo-andere-toonsoort",
@@ -1583,16 +1583,16 @@
    "m": {
     "words": 59,
     "marked": 1,
-    "delayMedianMs": 157.39229024943313,
-    "delayP90Ms": 11594.71088435374,
-    "exact": 0.5849802371541502,
-    "withinOne": 0.6837944664031621,
-    "ahead": 0.039525691699604744,
-    "none": 0.30632411067193677,
-    "firstMarkSeconds": 14.407210884353741
+    "delayMedianMs": 12275.736961451244,
+    "delayP90Ms": 25678.185941043084,
+    "exact": 0.208498023715415,
+    "withinOne": 0.2707509881422925,
+    "ahead": 0.011857707509881422,
+    "none": 0.6126482213438735,
+    "firstMarkSeconds": 25.041950113378686
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 11.099575955265442
+   "cpuMsPerAudioSecond": 20.40858915544545
   },
   {
    "scenario": "solo-andere-toonsoort",
@@ -1600,16 +1600,16 @@
    "m": {
     "words": 33,
     "marked": 1,
-    "delayMedianMs": 159.5011337868488,
-    "delayP90Ms": 1422.630385487528,
-    "exact": 0.7931726907630522,
-    "withinOne": 0.9036144578313253,
-    "ahead": 0.02108433734939759,
-    "none": 0.09538152610441768,
-    "firstMarkSeconds": 4.422630385487528
+    "delayMedianMs": 187.4376417233563,
+    "delayP90Ms": 10664.172335600908,
+    "exact": 0.5933734939759037,
+    "withinOne": 0.6997991967871486,
+    "ahead": 0.03413654618473896,
+    "none": 0.29518072289156627,
+    "firstMarkSeconds": 13.664172335600908
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 11.332917516229656
+   "cpuMsPerAudioSecond": 12.21309296806131
   },
   {
    "scenario": "solo-ademhaling",
@@ -1619,14 +1619,14 @@
     "marked": 1,
     "delayMedianMs": 123.16946092035863,
     "delayP90Ms": 1940.4308390022677,
-    "exact": 0.8174157303370787,
+    "exact": 0.8192883895131086,
     "withinOne": 0.9157303370786517,
     "ahead": 0.0552434456928839,
     "none": 0.08426966292134831,
     "firstMarkSeconds": 4.190430839002268
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 11.940060379188271
+   "cpuMsPerAudioSecond": 16.178335363152993
   },
   {
    "scenario": "solo-ademhaling",
@@ -1634,33 +1634,33 @@
    "m": {
     "words": 26,
     "marked": 1,
-    "delayMedianMs": -5206.904123371571,
-    "delayP90Ms": 3579.7505668934245,
-    "exact": 0.2545180722891566,
-    "withinOne": 0.40512048192771083,
-    "ahead": 0.34789156626506024,
-    "none": 0.22289156626506024,
-    "firstMarkSeconds": 4.329750566893424
+    "delayMedianMs": 142.93714646970201,
+    "delayP90Ms": 3340.589569160998,
+    "exact": 0.733433734939759,
+    "withinOne": 0.8403614457831325,
+    "ahead": 0.06475903614457831,
+    "none": 0.1566265060240964,
+    "firstMarkSeconds": 4.840589569160998
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.546177794293135
+   "cpuMsPerAudioSecond": 11.377354756242463
   },
   {
    "scenario": "solo-ademhaling",
    "hymn": 32,
    "m": {
     "words": 32,
-    "marked": 0.6875,
-    "delayMedianMs": -8601.993333605848,
-    "delayP90Ms": 7910.294784580498,
-    "exact": 0.02293202293202293,
-    "withinOne": 0.04013104013104013,
-    "ahead": 0.4914004914004914,
-    "none": 0.48157248157248156,
-    "firstMarkSeconds": 12.410294784580499
+    "marked": 1,
+    "delayMedianMs": 118.94870494732146,
+    "delayP90Ms": 459.0249433106575,
+    "exact": 0.7821457821457821,
+    "withinOne": 0.8877968877968878,
+    "ahead": 0.06633906633906633,
+    "none": 0.1122031122031122,
+    "firstMarkSeconds": 5.11922902494331
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 7.474762493948248
+   "cpuMsPerAudioSecond": 12.966370635860137
   },
   {
    "scenario": "solo-ademhaling",
@@ -1669,15 +1669,15 @@
     "words": 31,
     "marked": 1,
     "delayMedianMs": 132.13522280148027,
-    "delayP90Ms": 3551.904761904762,
-    "exact": 0.7569230769230769,
-    "withinOne": 0.838974358974359,
-    "ahead": 0.033846153846153845,
-    "none": 0.16102564102564101,
-    "firstMarkSeconds": 7.301904761904762
+    "delayP90Ms": 1508.548752834467,
+    "exact": 0.7733333333333333,
+    "withinOne": 0.884102564102564,
+    "ahead": 0.05846153846153846,
+    "none": 0.1158974358974359,
+    "firstMarkSeconds": 5.258548752834467
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 10.507917283817136
+   "cpuMsPerAudioSecond": 12.624604975202667
   },
   {
    "scenario": "solo-ademhaling",
@@ -1694,7 +1694,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 3.1060228972606994
+   "cpuMsPerAudioSecond": 3.6394997224107057
   },
   {
    "scenario": "solo-ademhaling",
@@ -1703,15 +1703,15 @@
     "words": 48,
     "marked": 1,
     "delayMedianMs": 140.02517752377486,
-    "delayP90Ms": 2086.71201814059,
-    "exact": 0.7884733292458614,
-    "withinOne": 0.8804414469650521,
-    "ahead": 0.009196811771919068,
-    "none": 0.08645003065603923,
-    "firstMarkSeconds": 2.83671201814059
+    "delayP90Ms": 1300.1419519213541,
+    "exact": 0.6983445738810545,
+    "withinOne": 0.9037400367872471,
+    "ahead": 0.08828939301042306,
+    "none": 0.08338442673206621,
+    "firstMarkSeconds": 2.883151927437642
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 7.485314619841891
+   "cpuMsPerAudioSecond": 13.272577386840522
   },
   {
    "scenario": "solo-ademhaling",
@@ -1720,15 +1720,15 @@
     "words": 61,
     "marked": 1,
     "delayMedianMs": 112.2801576583683,
-    "delayP90Ms": 213.72312757952017,
-    "exact": 0.7625968992248062,
-    "withinOne": 0.9302325581395349,
+    "delayP90Ms": 217.20385320310243,
+    "exact": 0.7538759689922481,
+    "withinOne": 0.9195736434108527,
     "ahead": 0.06589147286821706,
-    "none": 0.06976744186046512,
-    "firstMarkSeconds": 3.3545124716553287
+    "none": 0.08042635658914729,
+    "firstMarkSeconds": 3.8653514739229022
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 12.44591341451836
+   "cpuMsPerAudioSecond": 13.009753565006152
   },
   {
    "scenario": "solo-ademhaling",
@@ -1736,16 +1736,16 @@
    "m": {
     "words": 49,
     "marked": 1,
-    "delayMedianMs": 131.93820565337688,
-    "delayP90Ms": 9675.011337868482,
-    "exact": 0.7033169533169533,
-    "withinOne": 0.8126535626535627,
-    "ahead": 0.07125307125307126,
-    "none": 0.18734643734643736,
-    "firstMarkSeconds": 14.175011337868481
+    "delayMedianMs": 123.85455663437028,
+    "delayP90Ms": 4102.222222222223,
+    "exact": 0.7678132678132679,
+    "withinOne": 0.8863636363636364,
+    "ahead": 0.07985257985257985,
+    "none": 0.11363636363636363,
+    "firstMarkSeconds": 8.602222222222222
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.784488398562651
+   "cpuMsPerAudioSecond": 16.985485507135454
   },
   {
    "scenario": "solo-ademhaling",
@@ -1753,16 +1753,16 @@
    "m": {
     "words": 22,
     "marked": 1,
-    "delayMedianMs": 226.82539682539726,
-    "delayP90Ms": 1147.286441624889,
-    "exact": 0.746031746031746,
-    "withinOne": 0.8946608946608947,
-    "ahead": 0.050505050505050504,
-    "none": 0.09379509379509379,
-    "firstMarkSeconds": 3.0294331065759637
+    "delayMedianMs": 190.64245069518648,
+    "delayP90Ms": 1240.1662602189951,
+    "exact": 0.7489177489177489,
+    "withinOne": 0.8903318903318903,
+    "ahead": 0.05194805194805195,
+    "none": 0.09523809523809523,
+    "firstMarkSeconds": 3.075873015873016
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 7.134013879996157
+   "cpuMsPerAudioSecond": 11.914820783408526
   },
   {
    "scenario": "solo-ademhaling",
@@ -1770,16 +1770,16 @@
    "m": {
     "words": 27,
     "marked": 1,
-    "delayMedianMs": -2836.358361719231,
-    "delayP90Ms": 3730.7029478458044,
-    "exact": 0.38544474393531,
-    "withinOne": 0.42048517520215634,
-    "ahead": 0.2416891284815813,
-    "none": 0.24258760107816713,
-    "firstMarkSeconds": 8.230702947845804
+    "delayMedianMs": 148.09097253294112,
+    "delayP90Ms": 5495.419501133787,
+    "exact": 0.7493261455525606,
+    "withinOne": 0.8068283917340521,
+    "ahead": 0.0071877807726864335,
+    "none": 0.1931716082659479,
+    "firstMarkSeconds": 9.995419501133787
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 6.877226509722189
+   "cpuMsPerAudioSecond": 14.43488517373573
   },
   {
    "scenario": "solo-ademhaling",
@@ -1787,16 +1787,16 @@
    "m": {
     "words": 59,
     "marked": 1,
-    "delayMedianMs": 109.97295344902369,
-    "delayP90Ms": 913.5317460317465,
-    "exact": 0.8003748828491096,
-    "withinOne": 0.9203373945641987,
-    "ahead": 0.01499531396438613,
-    "none": 0.07497656982193064,
-    "firstMarkSeconds": 3.7260317460317465
+    "delayMedianMs": 108.39002267573683,
+    "delayP90Ms": 1656.5702947845803,
+    "exact": 0.5895032802249297,
+    "withinOne": 0.7019681349578257,
+    "ahead": 0.204311152764761,
+    "none": 0.08997188378631678,
+    "firstMarkSeconds": 4.46907029478458
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 10.03169328151758
+   "cpuMsPerAudioSecond": 16.613183235509915
   },
   {
    "scenario": "solo-ademhaling",
@@ -1804,16 +1804,16 @@
    "m": {
     "words": 33,
     "marked": 1,
-    "delayMedianMs": 116.71447046082051,
+    "delayMedianMs": 128.34712352204392,
     "delayP90Ms": 303.938467593305,
-    "exact": 0.8626893939393939,
+    "exact": 0.8607954545454546,
     "withinOne": 0.9356060606060606,
-    "ahead": 0.017992424242424244,
+    "ahead": 0.016098484848484848,
     "none": 0.06439393939393939,
     "firstMarkSeconds": 3.1687528344671203
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 10.30171296653584
+   "cpuMsPerAudioSecond": 13.009441546012956
   },
   {
    "scenario": "groep",
@@ -1823,14 +1823,14 @@
     "marked": 1,
     "delayMedianMs": 14168.140589569162,
     "delayP90Ms": 27668.140589569164,
-    "exact": 0.33032128514056225,
+    "exact": 0.3232931726907631,
     "withinOne": 0.3534136546184739,
-    "ahead": 0.001004016064257028,
+    "ahead": 0,
     "none": 0.6465863453815262,
     "firstMarkSeconds": 29.918140589569163
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.87130601001578
+   "cpuMsPerAudioSecond": 16.888188085178793
   },
   {
    "scenario": "groep",
@@ -1847,24 +1847,24 @@
     "firstMarkSeconds": null
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.51696839080492
+   "cpuMsPerAudioSecond": 11.369200717747006
   },
   {
    "scenario": "groep",
    "hymn": 32,
    "m": {
     "words": 32,
-    "marked": 0.9375,
-    "delayMedianMs": 8072.970521541947,
+    "marked": 0.84375,
+    "delayMedianMs": 10322.970521541947,
     "delayP90Ms": 30572.970521541945,
-    "exact": 0.2782222222222222,
-    "withinOne": 0.32,
+    "exact": 0.184,
+    "withinOne": 0.23377777777777778,
     "ahead": 0,
     "none": 0.6711111111111111,
     "firstMarkSeconds": 35.07297052154195
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.729039530877424
+   "cpuMsPerAudioSecond": 16.46518186311569
   },
   {
    "scenario": "groep",
@@ -1874,14 +1874,14 @@
     "marked": 1,
     "delayMedianMs": 2277.2335600907036,
     "delayP90Ms": 19527.233560090703,
-    "exact": 0.35706340378198,
+    "exact": 0.3526140155728587,
     "withinOne": 0.44271412680756395,
-    "ahead": 0.012235817575083427,
+    "ahead": 0.004449388209121246,
     "none": 0.557285873192436,
     "firstMarkSeconds": 23.277233560090703
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 11.942721668462802
+   "cpuMsPerAudioSecond": 11.680685816271444
   },
   {
    "scenario": "groep",
@@ -1898,24 +1898,24 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 3.4215240865116967
+   "cpuMsPerAudioSecond": 3.307436268760322
   },
   {
    "scenario": "groep",
    "hymn": 78,
    "m": {
     "words": 48,
-    "marked": 1,
-    "delayMedianMs": 2084.7845804988624,
-    "delayP90Ms": 24986.25850340136,
-    "exact": 0.35404141616566465,
-    "withinOne": 0.4923179692718771,
+    "marked": 0.9791666666666666,
+    "delayMedianMs": 3614.739229024945,
+    "delayP90Ms": 24614.739229024945,
+    "exact": 0.29325317301269205,
+    "withinOne": 0.42217768871075484,
     "ahead": 0,
-    "none": 0.4348697394789579,
-    "firstMarkSeconds": 30.23625850340136
+    "none": 0.42952571810287243,
+    "firstMarkSeconds": 29.864739229024945
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 10.133064630526055
+   "cpuMsPerAudioSecond": 14.47040473152079
   },
   {
    "scenario": "groep",
@@ -1925,14 +1925,14 @@
     "marked": 1,
     "delayMedianMs": 2913.4693877551035,
     "delayP90Ms": 20538.469387755104,
-    "exact": 0.35460251046025104,
+    "exact": 0.33368200836820083,
     "withinOne": 0.41841004184100417,
-    "ahead": 0.0020920502092050207,
+    "ahead": 0.0010460251046025104,
     "none": 0.5721757322175732,
     "firstMarkSeconds": 25.413469387755104
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.951813438782152
+   "cpuMsPerAudioSecond": 12.362729906248449
   },
   {
    "scenario": "groep",
@@ -1940,33 +1940,33 @@
    "m": {
     "words": 49,
     "marked": 0.9795918367346939,
-    "delayMedianMs": 2704.7165532879803,
-    "delayP90Ms": 13478.4126984127,
-    "exact": 0.4081496325985304,
-    "withinOne": 0.49966599866399464,
+    "delayMedianMs": 4079.1383219954655,
+    "delayP90Ms": 13954.71655328798,
+    "exact": 0.3500334001336005,
+    "withinOne": 0.4635938543754175,
     "ahead": 0.004676018704074816,
-    "none": 0.19372077488309952,
-    "firstMarkSeconds": 13.478412698412699
+    "none": 0.20040080160320642,
+    "firstMarkSeconds": 13.94281179138322
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 8.656945575671603
+   "cpuMsPerAudioSecond": 12.502510692864396
   },
   {
    "scenario": "groep",
    "hymn": 131,
    "m": {
     "words": 22,
-    "marked": 0.5454545454545454,
-    "delayMedianMs": 923.4240362811796,
-    "delayP90Ms": 6923.42403628118,
-    "exact": 0.29797191887675506,
-    "withinOne": 0.37285491419656785,
+    "marked": 0,
+    "delayMedianMs": null,
+    "delayP90Ms": null,
+    "exact": 0,
+    "withinOne": 0,
     "ahead": 0,
-    "none": 0.2574102964118565,
-    "firstMarkSeconds": 7.67342403628118
+    "none": 1,
+    "firstMarkSeconds": null
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 10.649060688672426
+   "cpuMsPerAudioSecond": 8.982628020925231
   },
   {
    "scenario": "groep",
@@ -1974,16 +1974,16 @@
    "m": {
     "words": 27,
     "marked": 1,
-    "delayMedianMs": 280.4081632653066,
-    "delayP90Ms": 16269.478458049885,
-    "exact": 0.5283194057567316,
-    "withinOne": 0.584958217270195,
-    "ahead": 0.011142061281337047,
-    "none": 0.415041782729805,
-    "firstMarkSeconds": 20.769478458049885
+    "delayMedianMs": 429.07029478458014,
+    "delayP90Ms": 18359.274376417234,
+    "exact": 0.4883936861652739,
+    "withinOne": 0.5431754874651811,
+    "ahead": 0,
+    "none": 0.4568245125348189,
+    "firstMarkSeconds": 22.859274376417233
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 7.877865243015618
+   "cpuMsPerAudioSecond": 14.015060223623145
   },
   {
    "scenario": "groep",
@@ -2000,24 +2000,24 @@
     "firstMarkSeconds": null
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 7.765470522544162
+   "cpuMsPerAudioSecond": 14.738522491724384
   },
   {
    "scenario": "groep",
    "hymn": 187,
    "m": {
     "words": 33,
-    "marked": 0.5757575757575758,
-    "delayMedianMs": 2285.3854875283446,
-    "delayP90Ms": 5220.351473922903,
-    "exact": 0.25903614457831325,
-    "withinOne": 0.3072289156626506,
-    "ahead": 0,
-    "none": 0.1395582329317269,
-    "firstMarkSeconds": 6.465986394557823
+    "marked": 0.5454545454545454,
+    "delayMedianMs": 2948.185941043084,
+    "delayP90Ms": 6391.791383219953,
+    "exact": 0.2389558232931727,
+    "withinOne": 0.285140562248996,
+    "ahead": 0.001004016064257028,
+    "none": 0.14457831325301204,
+    "firstMarkSeconds": 6.698185941043084
    },
    "trackSource": "melody",
-   "cpuMsPerAudioSecond": 9.418128649724254
+   "cpuMsPerAudioSecond": 12.550413846116633
   },
   {
    "scenario": "groep-4stemmig",
@@ -2034,7 +2034,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 10.123209086386817
+   "cpuMsPerAudioSecond": 11.128149222751585
   },
   {
    "scenario": "groep-4stemmig",
@@ -2051,7 +2051,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 7.569678270449581
+   "cpuMsPerAudioSecond": 8.621568991289772
   },
   {
    "scenario": "groep-4stemmig",
@@ -2068,7 +2068,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.773632156044727
+   "cpuMsPerAudioSecond": 10.533232813136257
   },
   {
    "scenario": "groep-4stemmig",
@@ -2085,7 +2085,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 7.85435017061819
+   "cpuMsPerAudioSecond": 8.853225125718362
   },
   {
    "scenario": "groep-4stemmig",
@@ -2102,7 +2102,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 3.4478017040521043
+   "cpuMsPerAudioSecond": 3.2719709483563375
   },
   {
    "scenario": "groep-4stemmig",
@@ -2119,7 +2119,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 11.004379107698318
+   "cpuMsPerAudioSecond": 8.529110039762365
   },
   {
    "scenario": "groep-4stemmig",
@@ -2136,7 +2136,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 9.540603405892846
+   "cpuMsPerAudioSecond": 8.970948127521643
   },
   {
    "scenario": "groep-4stemmig",
@@ -2153,7 +2153,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 9.34614773305721
+   "cpuMsPerAudioSecond": 9.97160921384615
   },
   {
    "scenario": "groep-4stemmig",
@@ -2170,7 +2170,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.872588202427357
+   "cpuMsPerAudioSecond": 10.312006582180134
   },
   {
    "scenario": "groep-4stemmig",
@@ -2187,7 +2187,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 7.430689749864521
+   "cpuMsPerAudioSecond": 10.29495665035362
   },
   {
    "scenario": "groep-4stemmig",
@@ -2204,7 +2204,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 10.594225302888605
+   "cpuMsPerAudioSecond": 12.490965167753865
   },
   {
    "scenario": "groep-4stemmig",
@@ -2221,7 +2221,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 11.446514452093306
+   "cpuMsPerAudioSecond": 8.330794375754115
   },
   {
    "scenario": "solo+piano",
@@ -2238,7 +2238,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 11.81813588800421
+   "cpuMsPerAudioSecond": 11.894914241672673
   },
   {
    "scenario": "solo+piano",
@@ -2255,7 +2255,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.897773310653553
+   "cpuMsPerAudioSecond": 9.427779173753244
   },
   {
    "scenario": "solo+piano",
@@ -2272,7 +2272,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 9.659288029889336
+   "cpuMsPerAudioSecond": 11.67762022445864
   },
   {
    "scenario": "solo+piano",
@@ -2289,7 +2289,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 6.924007498205147
+   "cpuMsPerAudioSecond": 9.745480244253057
   },
   {
    "scenario": "solo+piano",
@@ -2306,7 +2306,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 2.4492022648393323
+   "cpuMsPerAudioSecond": 2.7590288869431534
   },
   {
    "scenario": "solo+piano",
@@ -2323,7 +2323,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 7.880930626451309
+   "cpuMsPerAudioSecond": 9.973262772203224
   },
   {
    "scenario": "solo+piano",
@@ -2340,7 +2340,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 11.052686633268781
+   "cpuMsPerAudioSecond": 9.681433433357371
   },
   {
    "scenario": "solo+piano",
@@ -2357,7 +2357,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 9.461722298149759
+   "cpuMsPerAudioSecond": 8.42581745772646
   },
   {
    "scenario": "solo+piano",
@@ -2374,7 +2374,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.371410317810685
+   "cpuMsPerAudioSecond": 7.582842924157278
   },
   {
    "scenario": "solo+piano",
@@ -2391,7 +2391,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.634286842463892
+   "cpuMsPerAudioSecond": 8.238265805860424
   },
   {
    "scenario": "solo+piano",
@@ -2408,7 +2408,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 9.17332868689072
+   "cpuMsPerAudioSecond": 8.396082647749072
   },
   {
    "scenario": "solo+piano",
@@ -2425,7 +2425,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 7.318449723519067
+   "cpuMsPerAudioSecond": 9.285190275013255
   },
   {
    "scenario": "gemeente+orgel",
@@ -2442,7 +2442,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 10.0342830432587
+   "cpuMsPerAudioSecond": 9.884027562554383
   },
   {
    "scenario": "gemeente+orgel",
@@ -2459,7 +2459,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.844065512087791
+   "cpuMsPerAudioSecond": 8.93183440930863
   },
   {
    "scenario": "gemeente+orgel",
@@ -2476,7 +2476,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 9.269685537448208
+   "cpuMsPerAudioSecond": 10.792484463133356
   },
   {
    "scenario": "gemeente+orgel",
@@ -2493,7 +2493,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 7.492241603806921
+   "cpuMsPerAudioSecond": 11.319410874640544
   },
   {
    "scenario": "gemeente+orgel",
@@ -2510,7 +2510,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 3.879538977890272
+   "cpuMsPerAudioSecond": 3.418470972458499
   },
   {
    "scenario": "gemeente+orgel",
@@ -2527,7 +2527,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.101094852232286
+   "cpuMsPerAudioSecond": 9.663133324934805
   },
   {
    "scenario": "gemeente+orgel",
@@ -2544,7 +2544,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.082008485064216
+   "cpuMsPerAudioSecond": 9.700562739464107
   },
   {
    "scenario": "gemeente+orgel",
@@ -2561,7 +2561,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 9.64233948253721
+   "cpuMsPerAudioSecond": 8.167673617259462
   },
   {
    "scenario": "gemeente+orgel",
@@ -2578,7 +2578,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 10.232980278023605
+   "cpuMsPerAudioSecond": 8.475431924796695
   },
   {
    "scenario": "gemeente+orgel",
@@ -2595,7 +2595,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.343568590540519
+   "cpuMsPerAudioSecond": 9.107475550724677
   },
   {
    "scenario": "gemeente+orgel",
@@ -2612,7 +2612,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 11.07032677073569
+   "cpuMsPerAudioSecond": 8.246299470546672
   },
   {
    "scenario": "gemeente+orgel",
@@ -2629,7 +2629,7 @@
     "firstMarkSeconds": null
    },
    "trackSource": "full",
-   "cpuMsPerAudioSecond": 8.663497455387718
+   "cpuMsPerAudioSecond": 9.689003441751208
   }
  ]
 }
