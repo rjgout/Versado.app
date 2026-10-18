@@ -2,7 +2,8 @@
 import {useEffect,useRef,useState} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
-import {useT} from '@/components/I18nProvider';
+import {useT,useUiLanguage} from '@/components/I18nProvider';
+import {fsyLessonMetadata} from '@/lib/fsyPresentation';
 import {jsonMutation} from '@/lib/data/mutation';
 import {ApiRequestError} from '@/lib/data/fetchJson';
 import {secondaryButton} from '@/components/versado/styles';
@@ -11,7 +12,7 @@ import type {StudyContextAction,StudyContextView} from '@/lib/studyContextContra
 type Catalogue=Awaited<ReturnType<typeof getStudyCatalogue>>;
 /** Alleen een bewuste klik kiest een les. Geen effect, kalenderreset of optimistische selectie. */
 export default function ProgramLessonPicker({data,choose=false}:{data:Catalogue;choose?:boolean}) {
- const t=useT(),router=useRouter(),pending=useRef<StudyContextAction|null>(null),locked=useRef(false);
+ const t=useT(),language=useUiLanguage(),router=useRouter(),pending=useRef<StudyContextAction|null>(null),locked=useRef(false);
  const latest=useRef(data.context);useEffect(()=>{latest.current=data.context;},[data.context]);
  const alive=useRef(true);useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  const [busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null),[retry,setRetry]=useState(false);
@@ -54,7 +55,7 @@ export default function ProgramLessonPicker({data,choose=false}:{data:Catalogue;
     const selected=l.lessonKey===context.activeLessonKey||(l.legacyKey!==null&&l.legacyKey===context.activeLessonKey);
     return <li key={l.id} className="min-w-0"><button data-program-lesson={l.id} data-study-lesson={l.id} type="button" disabled={busy||retry} aria-pressed={selected} onClick={()=>void select(l.lessonKey)} className="min-w-0 w-full min-h-14 rounded-xl border border-vs-line p-3 text-left text-vs-fg hover:bg-vs-accent-soft focus-visible:outline focus-visible:outline-vs-accent disabled:opacity-60">
      <span className="block [overflow-wrap:anywhere] font-bold">{selected?'✓ ':''}{l.title}</span>
-     <span className="block text-sm text-vs-fg-2">{[l.year,l.month,l.category,l.startsOn,l.read?t('programPicker.read'):null].filter(Boolean).join(' · ')}</span>
+     <span className="block text-sm text-vs-fg-2">{[...(l.workKey==='fsy'?[fsyLessonMetadata(l,language,t)]:[l.year,l.month,l.category,l.startsOn]),l.read?t('programPicker.read'):null].filter(Boolean).join(' · ')}</span>
     </button></li>;
    })}</ol>
   </>}

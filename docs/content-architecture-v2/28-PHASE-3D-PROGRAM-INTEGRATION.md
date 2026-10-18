@@ -27,3 +27,5 @@ Eerst 3C reviewen/mergen, daarna deze kleine UI/context-PR onafhankelijk reviewe
 CI-vervolg: de nieuwe fout-/retrytest begrenst zijn alert-selector tot de programmakiezer. Next.js' eigen route-announcer kan eveneens role=alert hebben; dat is geen annotatie- of opslagfout. De bestaande foutasserties zijn behouden.
 
 De picker toont het werkelijke aantal beschikbare gepubliceerde lessen (bij truncatie uitsluitend de begrensde-melding). De componentidentiteit bindt account, werk en concrete collectie, zodat een gewijzigde uitgave lopende UI-selectie ongeldig maakt. Een eigen versiecommit remount de picker niet; realtimeverversing mag de bevestigde navigatie niet verliezen.
+
+Reviewcorrectie: FSY-kaartmetadata gebruikt dezelfde `FSY_CATEGORY_KEYS` en bestaande vertalingen als de legacyreader. De sleutels staan gedeeld in `fsyPresentation`; de oude export blijft compatibel. De echte maand en het jaar worden in de UI-taal geformatteerd, onbekende historische categorieën gebruiken de bestaande lesfallback. Geen CFM-datum- of kalenderwijziging. Unit- en productiebrowserregressies controleren alle vijf talen, gedeelde en legacylessen, volgorde en 320px/200% tekst.
