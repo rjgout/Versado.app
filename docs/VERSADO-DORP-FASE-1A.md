@@ -2,7 +2,7 @@
 
 Branch: `codex/versado-dorp-fase-1a`
 
-Draft-PR: wordt na de definitieve controles aan dit rapport toegevoegd; niet mergen of deployen.
+Draft-PR: [#145](https://github.com/rjgout/Versado.app/pull/145); niet mergen of deployen.
 
 ## Scope en integratie
 
