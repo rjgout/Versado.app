@@ -14,7 +14,7 @@ export async function getStudyCatalogue(actor: {
     select: { activeContentCollectionId: true, timeZone: true, activeContentCollection: { include: { contentWork: { select: { kind: true } } } } },
   });
   if (!user?.activeContentCollectionId || !canAccessCollection(actor,user.activeContentCollection) || user.activeContentCollection?.contentWork?.kind !== "STUDY_PROGRAM")
-    return { lessons: [], context: null, programName: null, currentLessonKey: null, truncated: false, token: String(Date.now()) };
+    return { lessons: [], context: null, programName: null, collectionId: null, currentLessonKey: null, truncated: false, token: String(Date.now()) };
   const lessons = await prisma.studyLessonEdition.findMany({
     where: {
       collectionId: user.activeContentCollectionId,
@@ -43,5 +43,5 @@ export async function getStudyCatalogue(actor: {
   const bounded=result.slice(0,200);
   const today=userDayKey(user,now);
   const current=bounded.filter(l=>l.startsOn && l.endsOnExclusive && l.startsOn<=today && today<l.endsOnExclusive);
-  return { lessons: bounded, context, programName:user.activeContentCollection.name, currentLessonKey:current.length===1 ? current[0].lessonKey : null, truncated, token: String(Date.now()) };
+  return { lessons: bounded, context, programName:user.activeContentCollection.name, collectionId:user.activeContentCollectionId, currentLessonKey:current.length===1 ? current[0].lessonKey : null, truncated, token: String(Date.now()) };
 }

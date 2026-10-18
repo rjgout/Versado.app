@@ -3660,6 +3660,7 @@ export const de: PartialMessages = {
     none: "Noch keine Meldungen.",
   },
   programPicker: {
+    availableCount: "Verfügbare Lektionen: {count}",
     remembered: "Deine Lektionsauswahl bleibt auch bei Kalender- oder Quellenwechsel erhalten.",
     active: "Aktive Lektion",
     read: "Gelesen",

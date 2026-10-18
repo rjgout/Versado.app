@@ -39,6 +39,7 @@ export default function ProgramLessonPicker({data,choose=false}:{data:Catalogue;
  return <section data-program-context className="min-w-0 rounded-2xl border border-vs-line bg-vs-surface p-4 space-y-4">
   <h2 className="break-words text-lg font-extrabold text-vs-fg">{data.programName}</h2>
   <p className="text-sm text-vs-fg-2">{t('programPicker.remembered')}</p>
+  {choose&&!data.truncated&&<p className="text-sm text-vs-fg-2">{t('programPicker.availableCount',{count:data.lessons.length})}</p>}
   {context.activeLessonKey ? <div className="space-y-2">
    <p className="font-bold text-vs-fg">{active?.title??t('programPicker.active')}</p>
    <p className="text-sm text-vs-fg-2">{t(active?.read?'programPicker.read':'programPicker.reading')}</p>

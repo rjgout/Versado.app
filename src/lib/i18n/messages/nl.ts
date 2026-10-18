@@ -4162,6 +4162,7 @@ export const nl = {
     none: "Nog geen meldingen.",
   },
   programPicker: {
+    availableCount: "Beschikbare lessen: {count}",
     remembered: "Je leskeuze blijft bewaard, ook als de kalender of je contentbron verandert.",
     active: "Actieve les",
     read: "Gelezen",

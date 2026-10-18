@@ -3660,6 +3660,7 @@ export const en: PartialMessages = {
     none: "No reports yet.",
   },
   programPicker: {
+    availableCount: "Available lessons: {count}",
     remembered: "Your lesson stays selected when the calendar or content source changes.",
     active: "Active lesson",
     read: "Read",
