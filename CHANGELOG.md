@@ -4,6 +4,8 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Nieuw (Lofzangen): één knop "Start luisteren". Zonder gekozen lofzang herkent Versado de melodie uit de hele bibliotheek, ook bij orgel, piano, solozang of a capella; met een gekozen lofzang volgt Versado direct waar er gezongen wordt, in het tempo van de zangers, en blijft het meelezen rustig bij vertraging of herhaling. De woordmarkering is melodiegestuurd (geen echte woordherkenning) en alle analyse blijft op je toestel. Zie `docs/hymns/21-LOFZANGEN-V3.md`.
+
 - Verbeterd (beheer): Studielespublicaties is eenvoudiger. Per studieprogramma staat er één overzicht met aantallen, een duidelijke volgende stap en een downloadbaar controleverslag. Gecontroleerde lessen publiceer je samen na één bevestiging (hervatbaar, per les volledig gecontroleerd); vrijgeven en zichtbaarheid voor gebruikers blijven aparte stappen. Technische details en de testimport zijn ingeklapt of verborgen.
 
 - Nieuw: je bladwijzers, markeringen en notities bij studielessen blijven bij je als een les wordt bijgewerkt. Staat je passage er nog precies zo in, dan vindt Versado haar vanzelf terug. Is de passage veranderd maar is er één duidelijke kandidaat, dan zie je in Mijn studiemap "Passage bijwerken" en vergelijk je de twee passages; er wordt niets gekoppeld zonder jouw bevestiging. Is er geen veilige plek meer, dan blijven je notitie en oorspronkelijke passage bewaard en kies je zelf een nieuwe passage. Je aantekeningen blijven privé en geven geen XP of reeks.

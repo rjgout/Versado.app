@@ -21,7 +21,7 @@ export type SingPhase = "prelude" | "singing" | "interlude";
 /** Hoe de muziek begon, t.o.v. de cyclus van de melodie. */
 export type EntryKind = "unknown" | "start" | "mid" | "joined";
 
-export type StartReason = "wrap-tail" | "wrap-gap" | "manual";
+export type StartReason = "wrap-tail" | "wrap-gap" | "manual" | "voice-start";
 
 export interface PhaseConfig {
   /** Alleen waarnemingen met zo veel concentratie van de positie tellen mee. */
@@ -56,6 +56,15 @@ export interface PhaseConfig {
   jumpSeconds: number;
   /** Bewijs dat nodig is voor een automatisch zangbegin. */
   startThreshold: number;
+  /**
+   * Directe zangstart (a capella): alleen zang zonder begeleiding heeft geen voorspel. Als de melodiereferentie de klank beter verklaart dan
+   * de volledige partituur, de grondtoon stabiel is (zang) en de positie `directVoiceSeconds` aaneengesloten betrouwbaar is, begint het
+   * zingen zonder dat eerst een hele ronde voorbij moet zijn. Uit te zetten met `directVoiceStart: false`.
+   */
+  directVoiceStart: boolean;
+  directVoiceSeconds: number;
+  directVoiceMinShare: number;
+  directVoiceMinConcentration: number;
   weightWrap: number;
   weightTail: number;
   weightGap: number;
@@ -79,6 +88,10 @@ export const DEFAULT_PHASE_CONFIG: PhaseConfig = {
   jumpFraction: 0.15,
   jumpSeconds: 2,
   startThreshold: 0.8,
+  directVoiceStart: true,
+  directVoiceSeconds: 1.2,
+  directVoiceMinShare: 0.6,
+  directVoiceMinConcentration: 0.6,
   weightWrap: 0.3,
   weightTail: 0.55,
   weightGap: 0.6,
@@ -93,6 +106,11 @@ export interface PhaseObservation {
   held: boolean;
   silent: boolean;
   rmsDb: number;
+  /**
+   * Zangbewijs uit de hybride volger (alleen bij een gecontroleerde melodie): de melodiereferentie levert de positie en een groot deel
+   * van de recente frames had een stabiele grondtoon. Zonder dit veld is er nooit een directe zangstart.
+   */
+  voice?: { melodySource: boolean; voicedShare: number };
 }
 
 export type PhaseEvent =
@@ -166,6 +184,7 @@ export class SingingPhase {
   private lastGap: { start: number; end: number } | null = null;
   private heardBeats = 0;
   private lastFrameTime: number | null = null;
+  private voiceSince: number | null = null;
 
   private track: { pos: number; time: number } | null = null;
   private firstObsImplied: number | null = null;
@@ -254,6 +273,8 @@ export class SingingPhase {
       return events;
     }
 
+    this.checkDirectVoice(o, events);
+
     // --- continuïteit: past deze plek bij de vorige plek en het tempo?
     const expected = this.track.pos + bps * (o.time - this.track.time);
     const d = signedDist(o.position, expected, T);
@@ -284,6 +305,32 @@ export class SingingPhase {
       }
     }
     return events;
+  }
+
+  /** Directe zangstart: zie PhaseConfig.directVoiceStart. Alleen vanuit het voorspel; het voorspel van een instrument heeft nooit zangbewijs. */
+  private checkDirectVoice(o: PhaseObservation, events: PhaseEvent[]): void {
+    const cfg = this.config;
+    if (!cfg.directVoiceStart || (this.phase !== "prelude" && this.phase !== "interlude") || this.pendingManual) return;
+    const v = o.voice;
+    const sung = v && v.melodySource && v.voicedShare >= cfg.directVoiceMinShare && o.concentration >= cfg.directVoiceMinConcentration;
+    if (!sung) {
+      this.voiceSince = null;
+      return;
+    }
+    this.voiceSince ??= o.time;
+    if (o.time - this.voiceSince < cfg.directVoiceSeconds) return;
+    this.voiceSince = null;
+    if (this.phase === "interlude") {
+      // De positie sprong (een eerdere plek bleek niet te kloppen, of de zanger begon ergens anders) en de zang is weer stabiel: hervat
+      // zonder een rondegrens af te wachten. De rondetelling blijft ongemoeid.
+      this.phase = "singing";
+      this.tailSeconds = 0;
+      this.resetCoverage();
+      events.push({ time: o.time, type: "resume" });
+      return;
+    }
+    const mid = this.classifyEntry() !== "start";
+    this.startSinging(o.time, "voice-start", [`stabiele zangmelodie ${cfg.directVoiceSeconds} s`, mid ? "begon midden in het couplet" : "begon bij het begin"], events, mid);
   }
 
   private acceptObservation(o: PhaseObservation, events: PhaseEvent[], prev: number | null, dt: number): void {

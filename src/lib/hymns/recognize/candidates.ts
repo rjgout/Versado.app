@@ -6,6 +6,7 @@ export function candidatesFromBundle(bundle: {
   compositions: HymnComposition[];
   members: { compositionId: string; number: number; title: string }[];
   calibration?: Record<string, EvidenceCalibration>;
+  melodies?: Record<string, [number, number, number][]>;
 }): RecognitionCandidate[] {
   const byId = new Map(bundle.compositions.map((c) => [c.id, c]));
   const groups = new Map<string, { number: number; title: string }[]>();
@@ -14,7 +15,7 @@ export function candidatesFromBundle(bundle: {
   for (const [id, members] of groups) {
     const composition = byId.get(id);
     if (!composition) continue;
-    out.push({ id, number: members[0].number, title: members[0].title, composition, sharedWith: members.slice(1), calibration: bundle.calibration?.[id] });
+    out.push({ id, number: members[0].number, title: members[0].title, composition, sharedWith: members.slice(1), calibration: bundle.calibration?.[id], melody: bundle.melodies?.[id] });
   }
   return out;
 }

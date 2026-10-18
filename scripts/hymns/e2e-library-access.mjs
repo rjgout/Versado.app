@@ -81,7 +81,7 @@ await page.locator('[data-hymn-number="24"]').click();
 await page.getByRole("button", { name: "Start luisteren", exact: true }).waitFor({ timeout: 20000 });
 check("dezelfde lofzang twee keer openen: één verzoek (geheugen en lokale opslag)", apiHits.filter((p) => p === "/api/hymns/24").length === 1, JSON.stringify(apiHits));
 await page.getByRole("button", { name: "Andere lofzang", exact: true }).click();
-await page.getByRole("button", { name: "Herken lofzang", exact: true }).click();
+await page.getByRole("button", { name: "Start luisteren", exact: true }).click();
 await page.locator("[data-hymns-recognition]").waitFor({ timeout: 20000 });
 check("herkenningsgegevens worden bij het starten van de herkenning geladen", apiHits.includes("/api/hymns/recognition"), JSON.stringify(apiHits));
 await page.waitForTimeout(500);

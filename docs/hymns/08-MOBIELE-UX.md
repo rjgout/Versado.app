@@ -47,7 +47,7 @@ Termen **BEWEZEN** (gemeten of getest in deze repository), **AANNEMELIJK** en **
 - **A. Lofzang kiezen** (beginscherm): titel "Kies een lofzang", de drie proeflofzangen als keuzelijst
   (`radiogroup`), een regel "Het geluid blijft op dit toestel. Alleen voor beheerders, in ontwikkeling.
   Privacy" en de bediening: *Start luisteren* (volgt de gekozen lofzang) en de enige primaire actie
-  *Herken lofzang*.
+  *Start luisteren*.
 - **B. Live meezingen**: kop met nummer en titel, de snelle weergavewissel en de instellingenknop; een
   statusregel ("Luisteren…", "Voorspel", "Volgt muziek", "Even onzeker", "Handmatig volgen", "Tussenspel",
   "Synchronisatie verloren") met de microfoonindicator; de coupletnummers met een menu "⋯"; de tekst; de
@@ -59,8 +59,8 @@ Termen **BEWEZEN** (gemeten of getest in deze repository), **AANNEMELIJK** en **
 ## 4. Bediening per toestand (maximaal één primaire actie)
 
 | Toestand | Bediening |
-|---|---|
-| Kiezen | *Start luisteren* (secundair), **Herken lofzang** (primair) |
+| Kiezen | **Start luisteren** (primair; zonder gekozen lofzang herkent de app de melodie, met een gekozen lofzang volgt ze die) |
+| Kiezen | *Start luisteren* (secundair), **Start luisteren** (primair) |
 | Herkennen | "Luistert…" en *Stop* |
 | Voorspel | **Zang begint** (primair), *Stop* |
 | Zingen of tussenspel | *Opnieuw synchroniseren*, *Stop* |

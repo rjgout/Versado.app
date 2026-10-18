@@ -28,6 +28,18 @@ export interface SynthOptions {
   wrongNoteRange?: [number, number];
   /** Gemeentezang: niveau t.o.v. het instrument in dB (bijv. -8), nul/undefined = geen. */
   singersDb?: number;
+  /**
+   * Alleen zang, geen instrument (a capella). Het niveau van ruis, gebabbel en galm is dan relatief t.o.v. de zang.
+   * Zonder `voice` zingt één zanger de melodie.
+   */
+  voiceOnly?: boolean;
+  /** Eigenschappen van de zangers (alleen bij `voiceOnly` of `singersDb`). */
+  voice?: VoiceOptions;
+  /**
+   * Ademhalingspauzes: na elke `everyMeasures` maten een stilte van `seconds` (+ `jitterSeconds` willekeurig). Loopt via de bestaande
+   * pauzemechaniek, zodat de waarheid (beatAt/inPause) klopt.
+   */
+  breaths?: { everyMeasures: number; seconds: number; jitterSeconds?: number };
   /** Achtergrondruis (roze-achtig) t.o.v. het instrument in dB. */
   noiseDb?: number;
   /** Pratende of spelende kinderen: korte, hoge stembursten zonder verband met de melodie, in dB t.o.v. het instrument. */
@@ -43,6 +55,27 @@ export interface SynthOptions {
   notesOverride?: HymnComposition["notes"];
   /** Begin- en eindbeat van het te spelen deel binnen de uitgerolde cyclus (standaard alles). */
   startBeat?: number;
+}
+
+export interface VoiceOptions {
+  /** Aantal zangers (1 = solo). Elke zanger krijgt eigen stemafwijking en vertraging. */
+  singers?: number;
+  /** "melody": alleen de melodie (hoogste stem van de G-balk); "chords": alle stemmen zoals gemeentezang in vier stemmen. */
+  voicing?: "melody" | "chords";
+  /** Verschuiving in halve tonen t.o.v. de genoteerde melodie (bas -12, tenor -12, sopraan 0, kinderstem +12). */
+  registerShift?: number;
+  /** Diepte van het vibrato in cent (typisch 20 solo, 60 koor). */
+  vibratoCents?: number;
+  /** Standaardafwijking van de intonatie per noot in cent (0 = zuiver). */
+  intonationCents?: number;
+  /** Het toonhoogteverloop van de hele uitvoering zakt of stijgt zo veel cent over de tijd (veel gemeenten zakken). */
+  driftCents?: number;
+  /** Elke zanger heeft een iets ander tempogevoel: maximale vertraging (s) in het begin van een noot. */
+  lagSeconds?: number;
+  /** Aandeel noten waarvan de zanger een octaaf hoger of lager kiest (mannen en vrouwen door elkaar). */
+  octaveJumpProbability?: number;
+  /** Niveau van de zanger t.o.v. een standaardniveau (dB). */
+  levelDb?: number;
 }
 
 export interface SynthResult {
@@ -129,7 +162,16 @@ export function synthesizeHymn(comp: HymnComposition, o: SynthOptions): SynthRes
   const cycle = comp.totalBeats;
   const startBeat = o.startBeat ?? 0;
   const totalBeats = cycle * o.laps;
-  const tl = buildTimeline(totalBeats, startBeat, o);
+  const breathPauses: NonNullable<SynthOptions["pauses"]> = [];
+  if (o.breaths) {
+    // Een ademhaling na elke n-de maat; de lengte schommelt een beetje zoals bij echte zangers.
+    for (let lap = 0; lap < o.laps; lap += 1)
+      for (let m = o.breaths.everyMeasures; m < comp.measureStarts.length; m += o.breaths.everyMeasures) {
+        const at = lap * cycle + comp.measureStarts[m];
+        if (at > startBeat && at < totalBeats) breathPauses.push({ atBeat: at, seconds: o.breaths.seconds + rand() * (o.breaths.jitterSeconds ?? 0) });
+      }
+  }
+  const tl = buildTimeline(totalBeats, startBeat, { ...o, pauses: [...(o.pauses ?? []), ...breathPauses] });
   const tail = (o.reverbSeconds ?? 0) + 2;
   const length = Math.ceil((tl.end + tail) * fs);
   const out = new Float32Array(length);
@@ -138,7 +180,7 @@ export function synthesizeHymn(comp: HymnComposition, o: SynthOptions): SynthRes
   const wrongP = o.wrongNoteProbability ?? 0;
 
   // --- instrument
-  const render = (hz: number, t0: number, t1: number, amp: number, kind: "piano" | "organ" | "voice", buf: Float32Array) => {
+  const render = (hz: number, t0: number, t1: number, amp: number, kind: "piano" | "organ" | "voice", buf: Float32Array, vibratoDepth?: number) => {
     const startS = Math.floor(t0 * fs);
     const sustainEnd = Math.min(length - 1, Math.floor(t1 * fs));
     const releaseS = kind === "piano" ? 0.18 : kind === "organ" ? 0.07 : 0.1;
@@ -157,8 +199,12 @@ export function synthesizeHymn(comp: HymnComposition, o: SynthOptions): SynthRes
       amps.push(a);
     }
     const vibHz = 5 + rand();
-    const vibDepth = kind === "voice" ? 0.008 : 0;
+    const vibDepth = kind === "voice" ? (vibratoDepth ?? 0.008) : 0;
     const inharm = kind === "piano" ? 0.00012 : 0;
+    const properVibrato = kind === "voice" && vibratoDepth !== undefined;
+    // alleen bij echte vibratomodulatie een willekeurige beginfase (anders blijft de oude willekeurige reeks van bestaande tests gelijk)
+    let vibPhase = properVibrato ? rand() * Math.PI * 2 : 0;
+    const partialPhase = new Array(phases.length).fill(0);
     for (let i = startS; i <= endS; i += 1) {
       const t = (i - startS) / fs;
       let env: number;
@@ -172,12 +218,24 @@ export function synthesizeHymn(comp: HymnComposition, o: SynthOptions): SynthRes
         if (kind === "piano") base = Math.exp(-decay * (sustainEnd - startS) / fs) * 0.85 + 0.15 * Math.exp(-0.25 * (sustainEnd - startS) / fs);
         env = base * Math.max(0, 1 - tr / releaseS);
       }
-      const vib = vibDepth ? 1 + vibDepth * Math.sin(2 * Math.PI * vibHz * t) : 1;
       let v = 0;
-      for (let h = 0; h < phases.length; h += 1) {
-        const n = h + 1;
-        const f = hz * n * Math.sqrt(1 + inharm * n * n) * vib;
-        v += amps[h] * Math.sin(2 * Math.PI * f * t + phases[h]);
+      if (properVibrato) {
+        // Echte frequentiemodulatie: de fase wordt opgeteld (integraal van de momentane frequentie). De oude vorm hieronder
+        // vermenigvuldigt de frequentie met de tijd, wat bij lange noten een groeiende glijtoon geeft en alleen voor de
+        // bestaande gemeentezang-tests bewaard blijft.
+        vibPhase += (2 * Math.PI * vibHz) / fs;
+        const vib = 1 + vibDepth * Math.sin(vibPhase);
+        for (let h = 0; h < phases.length; h += 1) {
+          partialPhase[h] += (2 * Math.PI * hz * (h + 1) * vib) / fs;
+          v += amps[h] * Math.sin(partialPhase[h] + phases[h]);
+        }
+      } else {
+        const vib = vibDepth ? 1 + vibDepth * Math.sin(2 * Math.PI * vibHz * t) : 1;
+        for (let h = 0; h < phases.length; h += 1) {
+          const n = h + 1;
+          const f = hz * n * Math.sqrt(1 + inharm * n * n) * vib;
+          v += amps[h] * Math.sin(2 * Math.PI * f * t + phases[h]);
+        }
       }
       buf[i] += amp * env * v;
     }
@@ -197,25 +255,44 @@ export function synthesizeHymn(comp: HymnComposition, o: SynthOptions): SynthRes
       let t1 = tl.timeAtEnd(b1);
       // Een pauze is stilte: noten die erdoorheen lopen stoppen aan het begin ervan. Met `ringOut` klinkt het
       // akkoord nog even door (zoals een orgel in een kerk), daarna is het stil.
-      for (const p of o.pauses ?? []) {
+      for (const p of [...(o.pauses ?? []), ...breathPauses]) {
         if (b0 < p.atBeat && b1 >= p.atBeat - 1e-9 && p.atBeat > startBeat) {
           t1 = tl.timeAtEnd(p.atBeat) + (p.ringOut ? Math.min(p.seconds, 2.5) : 0.02);
         }
       }
       const level = 0.18 / Math.sqrt(1 + 0.04 * Math.abs(midi - 60));
-      render(midiHz(m, tuning), t0, Math.max(t0 + 0.05, t1 - (o.timbre === "piano" ? 0 : 0.03)), level, o.timbre, inst);
-      // gemeente zingt de melodie (hoogste stem in de G-sleutel), met een lichte vertraging
-      if (o.singersDb !== undefined && staffIdx === 0) {
-        const isTop = !notes.some((n) => n[3] === 0 && Math.abs(n[0] - t) < 1e-6 && n[2] > midi);
-        if (isTop) {
-          const lag = 0.06 + rand() * 0.1;
-          render(midiHz(m + (rand() < 0.15 ? 12 : 0), tuning + gauss() * 0.15), t0 + lag, t1 + lag, level * 0.9, "voice", voices);
+      if (!o.voiceOnly) render(midiHz(m, tuning), t0, Math.max(t0 + 0.05, t1 - (o.timbre === "piano" ? 0 : 0.03)), level, o.timbre, inst);
+      // zang: de melodie (hoogste stem in de G-sleutel), of bij "chords" alle stemmen, met een lichte vertraging per zanger
+      if (o.singersDb !== undefined || o.voiceOnly) {
+        const v = o.voice ?? {};
+        const chords = v.voicing === "chords";
+        const isTop = staffIdx === 0 && !notes.some((n) => n[3] === 0 && Math.abs(n[0] - t) < 1e-6 && n[2] > midi);
+        if (chords || isTop) {
+          const singers = Math.max(1, v.singers ?? 1);
+          const shift = v.registerShift ?? 0;
+          const driftAt = ((v.driftCents ?? 0) / 100) * Math.min(1, t0 / Math.max(1, tl.end));
+          for (let k = 0; k < singers; k += 1) {
+            // De oorspronkelijke gemeentezang (zonder `voice`) houdt exact zijn oude willekeurige reeks: bestaande tests hangen eraan.
+            const legacy = !o.voiceOnly && o.voice === undefined;
+            const lag = (legacy ? 0.06 : 0.04) + rand() * (v.lagSeconds ?? 0.1);
+            const octave = rand() < (v.octaveJumpProbability ?? (o.voiceOnly ? 0 : 0.15)) ? (legacy || rand() < 0.5 ? 12 : -12) : 0;
+            const cents = (v.intonationCents ?? (o.voiceOnly ? 0 : 15)) / 100;
+            render(
+              midiHz(m + shift + octave, tuning + driftAt + gauss() * cents),
+              t0 + lag, t1 + lag,
+              level * 0.9 * 10 ** ((v.levelDb ?? 0) / 20) / Math.sqrt(singers),
+              "voice", voices,
+              (v.vibratoCents ?? (o.voiceOnly ? 20 : undefined)) !== undefined ? (((v.vibratoCents ?? 20) / 1200) * Math.LN2) : undefined,
+            );
+          }
         }
       }
     }
   }
-  const instRms = rms(inst);
-  const gainVoices = o.singersDb !== undefined && rms(voices) > 0 ? (instRms * 10 ** (o.singersDb / 20)) / rms(voices) : 0;
+  // Zonder instrument is de zang zelf het referentieniveau (geen deling door nul bij het normaliseren van ruis en gebabbel).
+  const voiceRms = rms(voices);
+  const instRms = o.voiceOnly ? Math.max(voiceRms, 1e-6) : rms(inst);
+  const gainVoices = o.voiceOnly ? 1 : o.singersDb !== undefined && voiceRms > 0 ? (instRms * 10 ** (o.singersDb / 20)) / voiceRms : 0;
   for (let i = 0; i < length; i += 1) out[i] = inst[i] + voices[i] * gainVoices;
 
   // --- kinderstemmen: stemachtige bursts (grondtoon 250-450 Hz met glijdende toonhoogte en lettergreepritme)
@@ -247,7 +324,7 @@ export function synthesizeHymn(comp: HymnComposition, o: SynthOptions): SynthRes
         t += dur + 0.15 + rand() * 1.2;
       }
     }
-    const instRms0 = rms(inst);
+    const instRms0 = instRms;
     const g = rms(chat) > 0 ? (instRms0 * 10 ** ((o.chatterDb ?? -6) / 20)) / rms(chat) : 0;
     for (let i = 0; i < length; i += 1) out[i] += chat[i] * g;
     // roepen: 12 dB boven het gemiddelde gebabbel

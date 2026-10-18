@@ -47,6 +47,11 @@ export interface TrackerConfig {
   zMin: number;
   /** Gewicht van de onset-term (0 = uit). */
   onsetWeight: number;
+  /**
+   * Bij meerdere kandidaatposities met bijna evenveel gewicht (een melodie met herhaalde frasen) kiest de schatting de kandidaat die het
+   * dichtst bij de vorige schatting ligt, zolang diens gewicht minstens deze fractie van het grootste is. 0 = altijd de zwaarste (oud gedrag).
+   */
+  continuityRatio: number;
   seed: number;
 }
 
@@ -66,6 +71,7 @@ export const DEFAULT_TRACKER_CONFIG: TrackerConfig = {
   zBeta: 1.5,
   zMin: 2,
   onsetWeight: 0,
+  continuityRatio: 0,
   seed: 1,
 };
 
@@ -329,7 +335,21 @@ export class ScoreTracker {
         best = b;
       }
     }
-    const centre = (best + 0.5) * bin;
+    let chosen = best;
+    if (this.config.continuityRatio > 0 && this.framesSeen > 0 && !held) {
+      let nearest = Infinity;
+      for (let b = 0; b < bins; b += 1) {
+        const mass = hist[b] + 0.5 * (hist[(b + 1) % bins] + hist[(b - 1 + bins) % bins]);
+        if (mass < bestMass * this.config.continuityRatio) continue;
+        let d = (b + 0.5) * bin - this.lastEstimate;
+        d -= Math.round(d / T) * T;
+        if (Math.abs(d) < nearest) {
+          nearest = Math.abs(d);
+          chosen = b;
+        }
+      }
+    }
+    const centre = (chosen + 0.5) * bin;
     let sw = 0;
     let sp = 0;
     let sr = 0;

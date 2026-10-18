@@ -3,8 +3,9 @@ import { buildReference, type Reference } from "../score/reference";
 import { ScoreTracker, type TrackerConfig } from "../follow/tracker";
 import type { HymnComposition } from "../types";
 import { CandidatePrefilter, type PrefilterRanking } from "./prefilter";
+import { MelodyPrefilter } from "./melodyPrefilter";
 
-// "Herken lofzang": dezelfde score-follower, maar dan parallel voor elke kandidaat-lofzang, zonder dat de
+// "Start luisteren": dezelfde score-follower, maar dan parallel voor elke kandidaat-lofzang, zonder dat de
 // gebruiker eerst een nummer kiest. Er is bewust GEEN opname-fingerprint (die zou vastzitten aan één tempo
 // en één uitvoering): elke kandidaat probeert de gehoorde klank te volgen met zijn eigen partituur, en
 // het bewijs is hoeveel beter dat lukt dan met een nulmodel zonder muzikale continuïteit.
@@ -22,6 +23,8 @@ export interface RecognitionCandidate {
   composition: HymnComposition;
   /** Andere lofzangen met precies dezelfde melodie (zelfde compositie, andere tekst/nummer): de gebruiker kiest dan de tekst. */
   sharedWith?: { number: number; title: string }[];
+  /** Gecontroleerde melodie [beat, duur, midi] (score/melody.ts); zonder deze doet de kandidaat niet mee aan melodieherkenning van zang. */
+  melody?: [number, number, number][];
   /**
    * Wat deze compositie gemiddeld (en hoe wisselend) aan bewijs haalt op ANDERE muziek, op vaste luistermomenten
    * (scripts/hymns/calibrate-evidence.ts). Zonder dit geldt een vaste, voorzichtige aanname.
@@ -80,6 +83,10 @@ export interface RecognitionState {
   suggestion: CandidateScore | null;
   /** Diagnose (grote bibliotheek): de kop van het voorfilter, hoe lang al, en de voorsprong op de tweede (kosten-eenheden). */
   lead: { id: string; streak: number; margin: number; cost: number } | null;
+  /** Hoe de uitspraak tot stand kwam: via de toonklassen van de klank (chroma) of via de gezongen melodie (pitch). null zonder uitspraak. */
+  via: "chroma" | "melody" | null;
+  /** Diagnose van de melodieherkenning (zang): de kop, hoe lang al, voorsprong en het aantal gestemde stappen waarop dit steunt. */
+  melodyLead: { id: string; streak: number; margin: number; cost: number; voicedSteps: number } | null;
 }
 
 export interface RecognizerConfig {
@@ -121,6 +128,14 @@ export interface RecognizerConfig {
   /** De toegestane achterstand van de kop op de beste rivaal in tracker-bewijs (z), en de voorfilter-voorsprong die tegenspraak opweegt. */
   rivalSlackZ: number;
   strongMargin: number;
+  /** Melodieherkenning voor zang (pitch): hoe vaak (s) de ranglijst wordt herzien, en vanaf welk aandeel gestemde stappen er zang is. */
+  melodyEverySeconds: number;
+  melodyMinVoicedShare: number;
+  /** Minimaal aantal gestemde stappen (~0,19 s elk), aantal rondes achter elkaar eerste, voorsprong en maximale kosten voor een melodie-uitspraak. */
+  melodyMinSteps: number;
+  melodyStreak: number;
+  melodyMargin: number;
+  melodyMaxCost: number;
   /** Tweede weg: een kandidaat met z vanaf `trackerZ` en `trackerGapZ` boven de rest, die ook bovenaan het voorfilter staat. */
   trackerZ: number;
   trackerGapZ: number;
@@ -152,6 +167,12 @@ export const DEFAULT_RECOGNIZER_CONFIG: RecognizerConfig = {
   verifyZ: 1.5,
   rivalSlackZ: 1,
   strongMargin: 0.1,
+  melodyEverySeconds: 1,
+  melodyMinVoicedShare: 0.45,
+  melodyMinSteps: 36,
+  melodyStreak: 4,
+  melodyMargin: 0.03,
+  melodyMaxCost: 0.3,
   trackerZ: 6,
   trackerGapZ: 3,
   trackerStreak: 3,
@@ -185,12 +206,17 @@ export class HymnRecognizer {
   /** Kop van het voorfilter: wie de laatste rondes eerst stond en hoe lang al, met de voorsprong op de tweede. */
   private leader: { id: string; streak: number; margin: number; since: number; cost: number } | null = null;
   private prefilterRank = new Map<string, number>();
+  private readonly melodyPrefilter: MelodyPrefilter | null;
+  private melodyLeader: { id: string; streak: number; margin: number; cost: number; voicedSteps: number } | null = null;
+  private lastMelodySweep = -Infinity;
 
   constructor(candidates: RecognitionCandidate[], config: Partial<RecognizerConfig> = {}) {
     this.config = { ...DEFAULT_RECOGNIZER_CONFIG, ...config, tracker: { ...DEFAULT_RECOGNIZER_CONFIG.tracker, ...config.tracker } };
     this.candidates = candidates;
     this.prefilter = candidates.length > this.config.activeLimit ? new CandidatePrefilter(candidates, { everySeconds: this.config.prefilterEverySeconds }) : null;
     if (!this.prefilter) candidates.forEach((_, i) => this.activate(i, []));
+    const withMelody = candidates.filter((c) => c.melody && c.melody.length >= 12);
+    this.melodyPrefilter = withMelody.length >= 8 ? new MelodyPrefilter(withMelody.map((c) => ({ id: c.id, melody: c.melody!, totalBeats: c.composition.totalBeats }))) : null;
   }
 
   /** Aantal kandidaten waarvoor nu de volledige score-follower draait (diagnose). */
@@ -234,6 +260,7 @@ export class HymnRecognizer {
     const dt = this.lastTime === null ? 0 : Math.max(0, Math.min(1, frame.time - this.lastTime));
     this.lastTime = frame.time;
     if (!frame.silent) this.heard += dt;
+    if (this.melodyPrefilter) this.updateMelody(frame);
 
     if (this.prefilter) {
       this.ring.push(frame);
@@ -260,6 +287,29 @@ export class HymnRecognizer {
       }
     }
     return this.state();
+  }
+
+  /** Zang: een eigen, goedkope ranglijst op de gezongen melodie (pitch), los van de toonklassenherkenning van instrumenten. */
+  private updateMelody(frame: FeatureFrame): void {
+    const mp = this.melodyPrefilter!;
+    mp.push(frame);
+    if (frame.time - this.lastMelodySweep < this.config.melodyEverySeconds) return;
+    this.lastMelodySweep = frame.time;
+    // Alleen bij zang: een instrument of ruis heeft vrijwel nooit een stabiele grondtoon. Anders vervalt de melodiekop.
+    if (mp.tracker.voicedShare() < this.config.melodyMinVoicedShare) {
+      this.melodyLeader = null;
+      return;
+    }
+    const r = mp.rankNow(Math.min(22, this.config.melodyMinSteps));
+    if (!r || r.ranking.length < 2) return;
+    const top = r.ranking[0];
+    const margin = r.ranking[1].cost - top.cost;
+    if (this.melodyLeader && this.melodyLeader.id === top.id) {
+      this.melodyLeader.streak += 1;
+      this.melodyLeader.margin = margin;
+      this.melodyLeader.cost = top.cost;
+      this.melodyLeader.voicedSteps = r.voicedSteps;
+    } else this.melodyLeader = { id: top.id, streak: 1, margin, cost: top.cost, voicedSteps: r.voicedSteps };
   }
 
   private revise(now: number, result: PrefilterRanking): void {
@@ -380,7 +430,26 @@ export class HymnRecognizer {
         }
       }
     }
-    return { status, heardSeconds: this.heard, ranking, suggestion, lead: this.leader ? { id: this.leader.id, streak: this.leader.streak, margin: this.leader.margin, cost: this.leader.cost } : null };
+    let via: RecognitionState["via"] = suggestion ? "chroma" : null;
+    // Zang: de melodiekop beslist alleen als de toonklassenherkenning niets uitsprak (instrumenten blijven daar leidend).
+    const ml = this.melodyLeader;
+    if (!suggestion && ml && ml.streak >= cfg.melodyStreak && ml.margin >= cfg.melodyMargin && ml.cost <= cfg.melodyMaxCost && ml.voicedSteps >= cfg.melodyMinSteps) {
+      const cand = this.candidates.find((c) => c.id === ml.id);
+      if (cand) {
+        status = "identified";
+        via = "melody";
+        suggestion = { id: cand.id, number: cand.number, title: cand.title, evidence: 0, z: 0, probability: Math.min(0.99, 0.5 + ml.margin * 5), position: 0, sharedWith: cand.sharedWith ?? [] };
+      }
+    }
+    return {
+      status,
+      heardSeconds: this.heard,
+      ranking,
+      suggestion,
+      lead: this.leader ? { id: this.leader.id, streak: this.leader.streak, margin: this.leader.margin, cost: this.leader.cost } : null,
+      via,
+      melodyLead: this.melodyLeader ? { ...this.melodyLeader } : null,
+    };
   }
 
   reset(): void {
@@ -390,6 +459,9 @@ export class HymnRecognizer {
     this.leader = null;
     this.prefilterRank = new Map();
     this.prefilter?.reset();
+    this.melodyPrefilter?.reset();
+    this.melodyLeader = null;
+    this.lastMelodySweep = -Infinity;
     if (this.prefilter) this.active.clear();
     for (const e of this.active.values()) {
       e.tracker.reset("uniform");

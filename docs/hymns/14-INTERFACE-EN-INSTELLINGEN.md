@@ -8,7 +8,7 @@ maakt. Onveranderd en opnieuw gemeten: volledig couplet, karaoke per regel, acce
 
 | Scherm | Inhoud |
 |---|---|
-| **Kiezen** | zoekveld ("Nummer of titel") en de lijst van alle 205 lofzangen met alleen nummer en titel; onderaan "Herken lofzang". Geen technische labels in de lijst. |
+| **Kiezen** | zoekveld ("Nummer of titel") en de lijst van alle 205 lofzangen met alleen nummer en titel; onderaan "Start luisteren". Geen technische labels in de lijst. |
 | **Geopend** (lofzang gekozen, microfoon uit) | tekst klaar, coupletknoppen, "Andere lofzang" en "Start luisteren" (alleen als er gevalideerde muziek is). |
 | **Alleen tekst** | lofzangen zonder gevalideerde muziek (bijv. 86): volledige tekst, een korte rustige melding, geen luisterknop. |
 | **Geen tekst** | lofzang 54 en 151: nette melding dat de tekst niet beschikbaar is vanwege rechtenbeperkingen; nummer en titel blijven. |

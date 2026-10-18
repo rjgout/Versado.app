@@ -38,7 +38,7 @@ import { activeSeq, audioMissing, describeStatus, holdMeasure, lyricSequence, ne
 
 function toResolved(h: ReadableHymn): ResolvedHymn | null {
   if (!h.text || !h.composition) return null;
-  return { number: h.number, edition: h.edition, text: { ...h.text, compositionId: h.composition.id }, composition: h.composition };
+  return { number: h.number, edition: h.edition, text: { ...h.text, compositionId: h.composition.id }, composition: h.composition, melody: h.melody ?? null };
 }
 
 const UI_FLUSH_MS = 100;
@@ -339,6 +339,19 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
 
   const resync = () => {
     engineRef.current?.resync();
+    schedule(0);
+  };
+
+  /** Tijdens het luisteren van een gekozen lofzang overschakelen naar automatisch herkennen. Dezelfde microfoon en extractor blijven doorlopen. */
+  const recognizeAgain = () => {
+    const eng = getEngine();
+    bumpPlace();
+    const needBundle = !eng.hasCandidates;
+    eng.startRecognizing({ awaitCandidates: needBundle });
+    if (needBundle) loadBundleInto(eng);
+    dispatchReading({ type: "reset" });
+    setSearchSelf(false);
+    setLive(eng.state());
     schedule(0);
   };
 
@@ -847,7 +860,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
           {listening ? (
             <>
               {stage === "following" && phase === "prelude" ? (
-                <button type="button" className={primaryButton} onClick={confirmSinging} title={COPY.singingStartsHelp}>
+                <button type="button" className={secondaryButton} onClick={confirmSinging} title={COPY.singingStartsHelp} data-hymns-singing-starts>
                   <Play className="h-4 w-4" aria-hidden="true" />
                   {COPY.singingStarts}
                 </button>
@@ -856,6 +869,12 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
                 <button type="button" className={secondaryButton} onClick={resync}>
                   <RefreshCw className="h-4 w-4" aria-hidden="true" />
                   {COPY.resync}
+                </button>
+              ) : null}
+              {stage === "following" ? (
+                <button type="button" className={secondaryButton} onClick={recognizeAgain} data-hymns-recognize-again>
+                  <Music className="h-4 w-4" aria-hidden="true" />
+                  {COPY.recognizeAgain}
                 </button>
               ) : null}
               <button type="button" className={secondaryButton} onClick={stopMic}>

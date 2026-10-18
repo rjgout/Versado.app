@@ -3,7 +3,7 @@ import { HymnFollowSession, type FollowSnapshot, type SessionConfig } from "./fo
 import { HymnRecognizer, type RecognitionCandidate, type RecognitionState } from "./recognize/recognizer";
 import type { ResolvedHymn } from "./types";
 
-// Eén doorlopende luistersessie voor "Herken lofzang" én "Volgen". Er is één audiopijplijn (de microfoon en
+// Eén doorlopende luistersessie voor "Start luisteren" én "Volgen". Er is één audiopijplijn (de microfoon en
 // één kenmerkextractor); herkennen en volgen zijn twee fasen van dezelfde stroom kenmerkframes:
 //
 //  - recognizing: de herkenner draait parallel voor elke kandidaat;

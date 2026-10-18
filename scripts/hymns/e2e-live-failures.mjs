@@ -54,13 +54,13 @@ await ctx.request.post(`${BASE}/api/auth/register`, { data: { email: em, handle:
 execFileSync("psql", [process.env.PROMOTE_DB_URL, "-c", `update "User" set "isAdmin"=true where email='${em}'`]);
 await ctx.request.post(`${BASE}/api/auth/login`, { data: { identifier: em, password: pw } });
 await page.goto(`${BASE}/dev/lofzangen`, { waitUntil: "domcontentloaded", timeout: 120000 });
-await page.getByRole("button", { name: "Herken lofzang", exact: true }).waitFor({ timeout: 120000 });
+await page.getByRole("button", { name: "Start luisteren", exact: true }).waitFor({ timeout: 120000 });
 const micInfo = () => page.evaluate(() => ({ gum: window.__mic.gum, live: window.__mic.tracks.filter((t) => t.readyState === "live").length, ended: window.__mic.ended.length }));
 const status = async () => (await page.locator("[data-hymns-status], [data-hymns-recognition-status]").first().textContent({ timeout: 500 }).catch(() => null))?.trim() ?? null;
 const bodyText = async () => (await page.locator("body").innerText({ timeout: 1000 }).catch(() => "")) ?? "";
 let lastStatus = null, stoppedAt = null, locked = null, sawError = false, sawDiag = false;
 const t0 = Date.now();
-await page.getByRole("button", { name: "Herken lofzang", exact: true }).click();
+await page.getByRole("button", { name: "Start luisteren", exact: true }).click();
 if (SCENARIO === "bundleselect") {
   await page.locator("[data-hymns-bundle-error]").waitFor({ timeout: 40000 });
   await page.locator(`[data-hymn-number="82"]`).click();
