@@ -3660,6 +3660,15 @@ export const de: PartialMessages = {
     none: "Noch keine Meldungen.",
   },
   adminFsy: {
+    legacyLessons: "Gespeicherte FSY-Lektionen",
+    convert: "Zum gemeinsamen Leser übertragen",
+    handoverHelp: "Originaltexte bleiben erhalten. Übertragene Lektionen nutzen nur die gemeinsame Studienverwaltung; automatische Veröffentlichung gilt nur für übrige bisherige Lektionen.",
+    convertConfirm: "Veröffentlichte Kopie und Entwurf bleiben getrennt erhalten. Fehlende Rechte, Quelldaten oder geprüfte Medien blockieren die Übergabe. Fortfahren?",
+    conversionBlocked: "Übergabe blockiert. Prüfe Quelle, Rechte und dauerhafte Medien; geänderte Lektionen müssen erneut geprüft werden.",
+    sharedManagement: "Gemeinsame Studienverwaltung",
+    rollbackWriter: "Bisherigen Writer wiederherstellen",
+    rollbackConfirm: "Nur eine unveränderte Übergabe kann zurückgesetzt werden. Die gemeinsame Lektion wird zurückgezogen; alle Revisionen bleiben erhalten. Bisheriger Leser und Writer werden wieder verwendet. Fortfahren?",
+
     statusFailed: "FSY-Status konnte nicht abgerufen werden.",
     settingFailed: "Einstellung konnte nicht gespeichert werden.",
     publishFailed: "Veröffentlichen fehlgeschlagen.",

@@ -3660,6 +3660,15 @@ export const fr: PartialMessages = {
     none: "Aucun signalement pour l’instant.",
   },
   adminFsy: {
+    legacyLessons: "Leçons FSY enregistrées",
+    convert: "Transférer vers le lecteur commun",
+    handoverHelp: "Les textes originaux sont conservés. Les leçons transférées utilisent uniquement la gestion commune ; la publication automatique ne concerne que les autres anciennes leçons.",
+    convertConfirm: "La copie publiée et le brouillon restent séparés. Des droits, sources ou médias vérifiés manquants bloquent le transfert. Continuer ?",
+    conversionBlocked: "Transfert bloqué. Vérifiez la source, les droits et les médias persistants ; une leçon modifiée exige une nouvelle vérification.",
+    sharedManagement: "Gestion commune des leçons",
+    rollbackWriter: "Rétablir l’ancien système",
+    rollbackConfirm: "Seul un transfert inchangé peut être annulé. La leçon commune est retirée ; toutes les révisions sont conservées. Le lecteur et le système antérieurs sont rétablis. Continuer ?",
+
     statusFailed: "Impossible de récupérer l’état FSY.",
     settingFailed: "Échec de l’enregistrement du paramètre.",
     publishFailed: "Échec de la publication.",

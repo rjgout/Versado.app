@@ -250,20 +250,17 @@ async function publishLesson(
   lessonId: string,
   log: (msg: string) => void = console.log
 ): Promise<void> {
-  const lesson = await client.fsyLesson.findUnique({ where: { id: lessonId } });
-  if (!lesson) throw new Error("FSY-les niet gevonden.");
-
-  await client.fsyLesson.update({
-    where: { id: lessonId },
-    data: {
-      status: "PUBLISHED",
-      publishedTitle: lesson.title,
-      publishedContent: lesson.content,
-      publishedImages: lesson.images,
-      publishedAt: new Date(),
-    },
+  const title = await client.$transaction(async db => {
+    await db.$queryRaw`SELECT id FROM "FsyLesson" WHERE id=${lessonId} FOR UPDATE`;
+    const lesson = await db.fsyLesson.findUniqueOrThrow({ where: { id: lessonId } });
+    if (lesson.studyLessonEditionId) throw new Error("FSY_STUDY_WRITER_ACTIVE");
+    await db.fsyLesson.update({ where: { id: lessonId }, data: {
+      status: "PUBLISHED", publishedTitle: lesson.title, publishedContent: lesson.content,
+      publishedImages: lesson.images, publishedAt: new Date(),
+    } });
+    return lesson.title;
   });
-  log(`FSY gepubliceerd: ${lesson.title}`);
+  log(`FSY gepubliceerd: ${title}`);
 }
 
 export async function publishFsyLesson(client: PrismaClient, lessonId: string): Promise<void> {
@@ -361,6 +358,11 @@ async function runFsySync(
             where: { contentCollectionId_sourceUrl: { contentCollectionId: collection.id, sourceUrl: url } },
           });
 
+          if (existing?.studyLessonEditionId) {
+            log(`FSY gedeelde writer actief; legacyrij ${existing.id} blijft ongewijzigd.`);
+            continue;
+          }
+
           const baseData = {
             year,
             month,
@@ -398,14 +400,13 @@ async function runFsySync(
           }
 
           if (existing.sourceHash === hash) {
-            await client.fsyLesson.update({
-              where: { id: existing.id },
+            await client.fsyLesson.updateMany({
+              where: { id: existing.id, studyLessonEditionId: null },
               data: { lastScrapedAt: new Date(), order },
             });
             continue;
           }
 
-          changed++;
           const updateData: Record<string, unknown> = { ...baseData };
           if (autoPublish) {
             Object.assign(updateData, {
@@ -415,13 +416,13 @@ async function runFsySync(
               publishedImages: JSON.stringify(page.images),
               publishedAt: new Date(),
             });
-            published++;
           } else {
             updateData.status = "DRAFT";
             log(`Gewijzigde FSY-les als concept opgeslagen: ${page.title}`);
           }
 
-          await client.fsyLesson.update({ where: { id: existing.id }, data: updateData });
+          const updated = await client.fsyLesson.updateMany({ where: { id: existing.id, studyLessonEditionId: null }, data: updateData });
+          if (updated.count) { changed++; if (autoPublish) published++; }
         } catch (e) {
           log(`FSY-les ${url} overgeslagen: ${e instanceof Error ? e.message : String(e)}`);
         }

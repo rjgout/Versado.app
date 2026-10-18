@@ -4162,6 +4162,15 @@ export const nl = {
     none: "Nog geen meldingen.",
   },
   adminFsy: {
+    legacyLessons: "Opgeslagen FSY-lessen",
+    convert: "Overzetten naar gedeelde lezer",
+    handoverHelp: "De oorspronkelijke tekstkopieën blijven bewaard. Overgenomen lessen gebruiken uitsluitend gedeeld studiebeheer; automatisch publiceren geldt alleen voor de overige legacylessen.",
+    convertConfirm: "De gepubliceerde kopie en het concept worden afzonderlijk behouden. Ontbrekende rechten, brongegevens of gecontroleerde media blokkeren de overdracht. Doorgaan?",
+    conversionBlocked: "Overdracht geblokkeerd. Controleer de bron, rechten en persistente media; een gewijzigde les vereist een nieuwe controle.",
+    sharedManagement: "Gedeeld studiebeheer",
+    rollbackWriter: "Legacywriter herstellen",
+    rollbackConfirm: "Alleen een ongewijzigde overdracht kan terug. De gedeelde les wordt ingetrokken; alle revisies blijven bewaard. De oorspronkelijke legacyreader en writer worden opnieuw gebruikt. Doorgaan?",
+
     statusFailed: "Kon FSY-status niet ophalen.",
     settingFailed: "Instelling opslaan mislukt.",
     publishFailed: "Publiceren mislukt.",

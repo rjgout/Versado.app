@@ -1,3 +1,4 @@
+import { requireFsyPublicationSource } from "./fsyConversion";
 import { z } from "zod";
 import { cfmDisplayOnlyKeys } from "./cfmReview";
 import type { PrismaClient } from "@/generated/prisma/client";
@@ -140,6 +141,7 @@ export async function publishStudyRevision(
         currentRun.validatedItems !== currentRun.foundItems
       )
         throw new StudyPublishingError("INCOMPLETE");
+      if (run.adapterName === "fsy-legacy-v1") await requireFsyPublicationSource(db, currentRun, edition.id);
       const snapshot = currentRun.snapshot as unknown as StudySnapshot;
       if (
         snapshotIdentity(snapshot) !== currentRun.sourceHash ||

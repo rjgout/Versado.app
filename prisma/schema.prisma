@@ -652,6 +652,7 @@ model StudyLesson {
 }
 
 model StudyLessonEdition {
+  legacyFsyLesson FsyLesson? @relation("FsyStudyEdition")
   annotationBookmark Bookmark[] @relation("BookmarkEdition")
   annotationHighlight Highlight[] @relation("HighlightEdition")
   annotationNote Note[] @relation("NoteEdition")
@@ -1268,6 +1269,8 @@ model KidsStoryProgress {
 // versie staan apart zodat een bronwijziging niet automatisch zichtbaar wordt
 // wanneer autoPublish uitstaat.
 model FsyLesson {
+  studyLessonEditionId String? @unique
+  studyLessonEdition StudyLessonEdition? @relation("FsyStudyEdition", fields: [studyLessonEditionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   id                  String          @id @default(cuid())
   contentCollectionId String
   contentCollection   ContentCollection @relation(fields: [contentCollectionId], references: [id], onDelete: Cascade)

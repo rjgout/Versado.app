@@ -3660,6 +3660,15 @@ export const en: PartialMessages = {
     none: "No reports yet.",
   },
   adminFsy: {
+    legacyLessons: "Stored FSY lessons",
+    convert: "Move to shared reader",
+    handoverHelp: "Original text copies are retained. Converted lessons use shared study management exclusively; automatic publication applies only to remaining legacy lessons.",
+    convertConfirm: "The published copy and draft are retained separately. Missing rights, source data or verified media block the handover. Continue?",
+    conversionBlocked: "Handover blocked. Check the source, rights and persistent media; changed lessons require a new review.",
+    sharedManagement: "Shared study management",
+    rollbackWriter: "Restore legacy writer",
+    rollbackConfirm: "Only an unchanged handover can be reversed. The shared lesson is withdrawn; all revisions are retained. The original legacy reader and writer are restored. Continue?",
+
     statusFailed: "Couldn't fetch FSY status.",
     settingFailed: "Saving the setting failed.",
     publishFailed: "Publishing failed.",
