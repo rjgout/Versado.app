@@ -100,7 +100,7 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
       step1: "Öffne Lernen und wähle einen Kurs.",
       step2: "Lies den nächsten Abschnitt.",
       step3: "Beantworte die Fragen. Dein Fortschritt bleibt gespeichert, du kannst also jederzeit weitermachen.",
-      more: "Lesen allein bringt keine XP. Ein Kapitel oder Leseschritt, den du ausdrücklich abschließt, zählt aber als Aktivität für deine Serie, genau wie eine abgeschlossene Übung. Tippe auf einen Vers oder öffne die Aktion an einem Textblock für Lesezeichen, Markierungen oder private Notizen. Du kannst auch Text innerhalb eines Abschnitts auswählen. Alles findest du wieder in Meine Studienmappe, unten in der Inhaltsauswahl. Anmerkungen geben keine XP oder Serienaktivität.",
+      more: "Lesen allein bringt keine XP. Ein Kapitel oder Leseschritt, den du ausdrücklich abschließt, zählt aber als Aktivität für deine Serie, genau wie eine abgeschlossene Übung. Tippe auf einen Vers oder öffne die Aktion an einem Textblock für Lesezeichen, Markierungen oder private Notizen. Du kannst auch Text innerhalb eines Abschnitts auswählen. Alles findest du wieder in Meine Studienmappe, unten in der Inhaltsauswahl. Anmerkungen geben keine XP oder Serienaktivität. In Studienprogrammen wählst du bewusst eine aktive Lektion. Sie bleibt bei einer neuen Kalenderwoche oder Quelle ausgewählt. Heute und Spielen zeigen dieselbe Lektion; die Auswahl bringt weder XP noch einen Leseabschluss.",
       faq1: {
         q: "Spielt es eine Rolle, welchen Kurs ich wähle?",
         a: "Jeder Kurs bietet denselben Inhalt auf andere Weise an, zum Beispiel in kurzen Schritten oder Kapitel für Kapitel. Für denselben Inhalt bekommst du in einem Kurs nicht mehr XP als in einem anderen.",

@@ -106,7 +106,7 @@ export const kompasNl = {
       step1: "Open Leren en kies een cursus.",
       step2: "Lees het volgende stuk.",
       step3: "Beantwoord de vragen. Je voortgang blijft bewaard, dus je kunt altijd verdergaan.",
-      more: "Lezen alleen levert geen XP op. Een hoofdstuk of leesstap dat je uitdrukkelijk afrondt telt wel als activiteit voor je reeks, net als een afgeronde oefening. Tik op een vers, of open de actieknop bij een tekstblok, voor een bladwijzer, markering of privénotitie. Je kunt ook tekst binnen één sectie selecteren. Je vindt alles terug in Mijn studiemap, onderaan de contentkiezer. Annotaties leveren geen XP of reeksactiviteit op.",
+      more: "Lezen alleen levert geen XP op. Een hoofdstuk of leesstap dat je uitdrukkelijk afrondt telt wel als activiteit voor je reeks, net als een afgeronde oefening. Tik op een vers, of open de actieknop bij een tekstblok, voor een bladwijzer, markering of privénotitie. Je kunt ook tekst binnen één sectie selecteren. Je vindt alles terug in Mijn studiemap, onderaan de contentkiezer. Annotaties leveren geen XP of reeksactiviteit op. Bij studieprogramma’s kies je bewust een actieve les. Die blijft gekozen bij een nieuwe kalenderweek of een andere contentbron. Vandaag en Spelen tonen dezelfde les; kiezen geeft geen XP of leesafronding.",
       faq1: {
         q: "Maakt het uit welke cursus ik kies?",
         a: "Elke cursus biedt dezelfde inhoud op een andere manier aan, bijvoorbeeld in korte stappen of per hoofdstuk. Voor dezelfde inhoud kun je er niet meer XP mee verdienen dan met een andere cursus.",

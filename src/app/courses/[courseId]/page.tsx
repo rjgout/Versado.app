@@ -1,3 +1,4 @@
+import { decodePublishedStudyEdition } from "@/lib/studyContent/revisions";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
@@ -133,21 +134,22 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
 
   if (course.type === "FSY") {
     const lessons = await prisma.fsyLesson.findMany({
-      where: { contentCollectionId: course.contentCollectionId, publishedContent: { not: null } },
+      where: { contentCollectionId: course.contentCollectionId, OR: [{ publishedContent: { not: null } }, { studyLessonEdition: { publishedRevisionId: { not: null } } }] },
+      include: { studyLessonEdition: { include: { lesson: true, collection: true, publishedRevision: true } } },
       orderBy: [{ year: "desc" }, { month: "desc" }, { order: "desc" }],
     });
 
     return (
       <FsyCourseView
         courseName={courseName}
-        lessons={lessons.map((lesson) => {
-          const images = JSON.parse(lesson.publishedImages ?? "[]") as { url: string; alt: string }[];
+        lessons={lessons.filter(lesson => !lesson.studyLessonEdition || (!lesson.studyLessonEdition.lesson.retiredAt && decodePublishedStudyEdition(lesson.studyLessonEdition))).map((lesson) => {
+          const images = JSON.parse(lesson.studyLessonEdition ? "[]" : lesson.publishedImages ?? "[]") as { url: string; alt: string }[];
           return {
             id: lesson.id,
             year: lesson.year,
             month: lesson.month,
             category: lesson.category,
-            title: lesson.publishedTitle ?? lesson.title,
+            title: lesson.studyLessonEdition?.publishedRevision?.title ?? lesson.publishedTitle ?? lesson.title,
             image: images[0]?.url ?? null,
           };
         })}

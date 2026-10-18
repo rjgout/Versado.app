@@ -3753,6 +3753,24 @@ export const es: PartialMessages = {
   "adminFeedback": {
     "none": "Aún no hay informes."
   },
+  programPicker: {
+    availableCount: "Lecciones disponibles: {count}",
+    remembered: "Tu lección sigue seleccionada cuando cambia el calendario o la fuente.",
+    active: "Lección activa",
+    read: "Leído",
+    reading: "Aún no marcado como leído",
+    continue: "Continuar",
+    unavailable: "Esta lección no está disponible. Tu selección se conserva.",
+    noSelection: "Aún no has elegido una lección activa.",
+    choose: "Elegir una lección",
+    current: "Elegir la lección actual del calendario",
+    empty: "Todavía no hay lecciones publicadas.",
+    truncated: "Se muestran las primeras 200 lecciones.",
+    conflict: "Tu selección cambió en otro dispositivo. Actualízala.",
+    failed: "No se pudo confirmar la selección.",
+    retry: "Reintentar",
+    reload: "Actualizar selección",
+  },
   "adminFsy": {
     legacyLessons: "Lecciones FSY guardadas",
     convert: "Transferir al lector compartido",
