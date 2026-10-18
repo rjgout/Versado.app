@@ -33,3 +33,5 @@ Een nog ongewijzigde overdracht kan via dezelfde beheeromgeving terug naar de le
 - Integratierunner meldt een bestaande pg-query-deprecation; geen test is overgeslagen. De tests vonden en verholpen vóór oplevering een JSON-datumhashverschil en SQL-NULL-afhandeling in de nieuwe writerguard.
 - Lint: twee bestaande warnings in AdminFsyClient (effect/dependency); geen gerichte lintfouten. i18n meldt bestaande vertaalachterstand; alle nieuwe sleutels bestaan in vijf talen.
 - Browserbewijs: CI-artifact `fsy-conversion-browser`, niet in Git. Geen echte iOS-/Android-toestellen of productie getest.
+
+CI-regressie: de oude 1B-test `draft-copy` is aangepast aan M3: een bewaarde publicatie blijft toegankelijk naast een gewijzigd legacyconcept. De vervangende positieve test controleert tevens dat concepttekst niet wordt geretourneerd en een echte ongepubliceerde les geweigerd blijft. De volledige geïsoleerde contentaccess-run (inclusief context, selectie en spellen) slaagt na deze correctie.
