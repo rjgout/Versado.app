@@ -3659,6 +3659,23 @@ export const de: PartialMessages = {
   adminFeedback: {
     none: "Noch keine Meldungen.",
   },
+  programPicker: {
+    remembered: "Deine Lektionsauswahl bleibt auch bei Kalender- oder Quellenwechsel erhalten.",
+    active: "Aktive Lektion",
+    read: "Gelesen",
+    reading: "Noch nicht als gelesen markiert",
+    continue: "Fortsetzen",
+    unavailable: "Diese Lektion ist derzeit nicht verfügbar. Deine Auswahl bleibt erhalten.",
+    noSelection: "Du hast noch keine aktive Lektion gewählt.",
+    choose: "Lektion wählen",
+    current: "Aktuelle Kalenderlektion wählen",
+    empty: "Es sind noch keine veröffentlichten Lektionen verfügbar.",
+    truncated: "Die ersten 200 Lektionen werden angezeigt.",
+    conflict: "Deine Auswahl wurde auf einem anderen Gerät geändert. Lade sie erneut.",
+    failed: "Die Auswahl konnte nicht bestätigt werden.",
+    retry: "Erneut versuchen",
+    reload: "Auswahl neu laden",
+  },
   adminFsy: {
     legacyLessons: "Gespeicherte FSY-Lektionen",
     convert: "Zum gemeinsamen Leser übertragen",

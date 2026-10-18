@@ -2,7 +2,7 @@ name: Contentarchitectuur 1A–2D toegang, context, selectie en spellen
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, 'codex/v2-phase-*']
     paths:
       - 'src/lib/hymnAvailability.ts'
       - 'src/lib/hymnLibraryClient.ts'
@@ -61,6 +61,9 @@ on:
       - 'src/components/study/ReadingPositionController.ts'
       - 'src/components/study/RichContentBlocks.tsx'
       - 'src/components/study/StudyReader.tsx'
+      - 'src/components/study/Program*.tsx'
+      - 'src/app/dashboard/page.tsx'
+      - 'tests/program-integration*'
       - 'src/app/study-lesson/**'
       - 'src/app/api/reading-position/**'
       - 'src/app/api/study-read/**'
@@ -341,6 +344,8 @@ jobs:
         run: |
           npm run test:study-reader:integration
           npm run test:study-read:integration
+      - name: Studieprogrammacontext in Vandaag, Leren en Spelen
+        run: node scripts/content-architecture/test-access-isolated.mjs --focused --program-integration --browser
       - name: Browserbewijs bewaren
         if: always()
         uses: actions/upload-artifact@v4
@@ -349,6 +354,7 @@ jobs:
           path: |
             /tmp/versado-study-reader-browser
             /tmp/versado-study-read-browser
+            /tmp/versado-program-browser
           if-no-files-found: ignore
 
   reference-preview:

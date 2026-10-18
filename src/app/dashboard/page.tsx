@@ -1,3 +1,4 @@
+import ProgramContextPanel from "@/components/study/ProgramContextPanel";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { isEmailConfigured } from "@/lib/email";
@@ -57,6 +58,7 @@ export default async function DashboardPage() {
       <LiveRefresh scopes={["today"]} token={String(serverNow)} serverNow={serverNow} expiresAt={refreshExpiry} />
       <Greeting data={data} language={language} showMascot={!showRestState} />
       <StreakContinuationCard />
+      <ProgramContextPanel actor={user}/>
       {/* Permanente ingang naar uitleg (Versado Kompas), bewust geen extra tab onderaan. */}
       <KompasEntryCard />
       <div className="grid grid-cols-1 gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-x-8 lg:gap-y-10">

@@ -4161,6 +4161,23 @@ export const nl = {
   adminFeedback: {
     none: "Nog geen meldingen.",
   },
+  programPicker: {
+    remembered: "Je leskeuze blijft bewaard, ook als de kalender of je contentbron verandert.",
+    active: "Actieve les",
+    read: "Gelezen",
+    reading: "Nog niet als gelezen gemarkeerd",
+    continue: "Verdergaan",
+    unavailable: "Deze les is momenteel niet beschikbaar. Je keuze blijft bewaard.",
+    noSelection: "Je hebt nog geen actieve les gekozen.",
+    choose: "Les kiezen",
+    current: "Kies de actuele kalenderles",
+    empty: "Er zijn nog geen gepubliceerde lessen beschikbaar.",
+    truncated: "De eerste 200 lessen worden getoond.",
+    conflict: "Je leskeuze is op een ander toestel gewijzigd. Haal de actuele keuze op.",
+    failed: "De keuze kon niet worden bevestigd.",
+    retry: "Opnieuw proberen",
+    reload: "Actuele keuze ophalen",
+  },
   adminFsy: {
     legacyLessons: "Opgeslagen FSY-lessen",
     convert: "Overzetten naar gedeelde lezer",

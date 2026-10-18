@@ -147,6 +147,11 @@ try {
       for (const suite of ["test:learning", "test:streak-return", "test:streak-calendar", "test:time"]) await run("npm", ["run", suite], env);
     }
   }
+  if(process.argv.includes("--program-integration")) {
+    await run("npx",["tsx","--test","tests/program-integration.test.mjs"],env);
+    await run("npm",["run","test:kompas"],env);
+    if(process.argv.includes("--browser")) await run("npx",["tsx","tests/program-integration.browser.mjs"],env);
+  }
   if(process.argv.includes("--fsy-conversion")) {
     await run("npx",["tsx","--test","tests/fsy-conversion.integration.test.mjs"],env);
     if(process.argv.includes("--browser")) await run("npx",["tsx","tests/fsy-conversion.browser.mjs"],env);

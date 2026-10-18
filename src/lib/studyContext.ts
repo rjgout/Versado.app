@@ -1,4 +1,4 @@
-import { decodePublishedStudyEdition } from "@/lib/studyContent/revisions";
+import { getPublishedStudyLesson, decodePublishedStudyEdition } from "@/lib/studyContent/revisions";
 import type { Prisma, PrismaClient, UserStudyContext } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
@@ -8,7 +8,7 @@ import { studyContextActionSchema, type StudyContextAction, type StudyContextVie
 import { z } from "zod";
 
 type Actor = { id: string; isAdmin: boolean };
-type DB = Pick<Prisma.TransactionClient, "contentWork" | "userStudyContext" | "fsyLesson">;
+type DB = Pick<Prisma.TransactionClient, "contentWork" | "userStudyContext" | "fsyLesson" | "user" | "studyLessonEdition">;
 
 export class StudyContextError extends Error {
   constructor(readonly code: "UNAVAILABLE" | "INVALID_ACTION" | "CONFLICT", readonly context?: StudyContextView) {
@@ -22,6 +22,10 @@ const publishedBlocks = z.array(z.union([
   z.object({ type: z.literal("image"), url: z.string().min(1) }),
 ])).min(1);
 
+export function isLegacyFsyPublished(value: string | null) {
+  try { return value !== null && publishedBlocks.safeParse(JSON.parse(value)).success; } catch { return false; }
+}
+
 async function requireProgram(db: DB, workKey: string) {
   const work = await db.contentWork.findUnique({ where: { key: workKey }, select: { kind: true } });
   if (work?.kind !== "STUDY_PROGRAM") throw new StudyContextError("UNAVAILABLE");
@@ -29,6 +33,14 @@ async function requireProgram(db: DB, workKey: string) {
 
 /** Een legacy-key is geen toegangsbewijs: werk, bron én publicatie controleren. */
 async function lessonHref(db: DB, actor: Actor, workKey: string, key: string): Promise<string | null> {
+  if (key.startsWith("study:") && key.length > 6) {
+    // Logische leskey is taal-/editie-onafhankelijk; alleen de werkelijk gekozen
+    // collectie bepaalt de concrete reader. Geen willekeurige vertaalfallback.
+    const user = await db.user.findUnique({ where: { id: actor.id }, select: { activeContentCollectionId: true } });
+    if (!user?.activeContentCollectionId) return null;
+    const lesson = await getPublishedStudyLesson(actor, key.slice(6), user.activeContentCollectionId, db);
+    return lesson?.workKey === workKey ? `/study-lesson/${encodeURIComponent(lesson.lessonId)}/${encodeURIComponent(lesson.collectionId)}` : null;
+  }
   if (workKey !== "fsy" || !key.startsWith("fsy:") || key.length <= 4) return null;
   const lesson = await db.fsyLesson.findFirst({
     where: {
@@ -43,9 +55,7 @@ async function lessonHref(db: DB, actor: Actor, workKey: string, key: string): P
     return `/fsy/${encodeURIComponent(lesson.id)}`;
   }
   if (!lesson.publishedContent) return null;
-  try {
-    if (!publishedBlocks.safeParse(JSON.parse(lesson.publishedContent)).success) return null;
-  } catch { return null; }
+  if (!isLegacyFsyPublished(lesson.publishedContent)) return null;
   return `/fsy/${encodeURIComponent(lesson.id)}`;
 }
 
