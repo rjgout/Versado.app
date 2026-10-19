@@ -3,6 +3,7 @@ import { kompasEn } from "./kompas/en";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const en: PartialMessages = {
+  dorp2: {"controls": "Controls", "views": "View", "futureWorld": "World boundary", "fitMap": "My map", "paths": "Paths · free and unlimited", "paint": "Paint path", "erase": "Erase path", "residents": "Residents", "pathHelp": "Tap or drag to draw paths. Use two fingers to look around.", "dragHelp": "Drag the selected object. An invalid position changes nothing."},
   studyFolder: {
     "title": "My study folder",
     "intro": "All your bookmarks, highlights and notes in one place.",

@@ -5,6 +5,7 @@
 import { kompasNl } from "./kompas/nl";
 
 export const nl = {
+  dorp2: {"controls": "Bediening", "views": "Weergave", "futureWorld": "Wereldgrens", "fitMap": "Mijn kaart", "paths": "Paden · gratis en onbeperkt", "paint": "Pad aanleggen", "erase": "Pad wissen", "residents": "Bewoners", "pathHelp": "Tik of sleep om paden te tekenen. Gebruik twee vingers om te kijken.", "dragHelp": "Sleep het geselecteerde object. Een ongeldige plek verandert niets."},
   studyFolder: {
     "title": "Mijn studiemap",
     "intro": "Al je bladwijzers, markeringen en notities op één plek.",

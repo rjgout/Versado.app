@@ -3,6 +3,7 @@ import { kompasDe } from "./kompas/de";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const de: PartialMessages = {
+  dorp2: {"controls": "Bedienung", "views": "Ansicht", "futureWorld": "Weltgrenze", "fitMap": "Meine Karte", "paths": "Wege · kostenlos und unbegrenzt", "paint": "Weg anlegen", "erase": "Weg entfernen", "residents": "Bewohner", "pathHelp": "Tippen oder ziehen, um Wege anzulegen. Mit zwei Fingern die Karte bewegen.", "dragHelp": "Das ausgewählte Objekt ziehen. Eine ungültige Position ändert nichts."},
   studyFolder: {
     "title": "Meine Studienmappe",
     "intro": "Alle deine Lesezeichen, Markierungen und Notizen an einem Ort.",

@@ -21,7 +21,7 @@ import {
   suggestPlacement,
 } from "../src/lib/dorp/geometry";
 import { availableInstance, levelOwnedInstance, ownershipIsValid, placeOwnedInstance, placedObjects, reconcileInstancesForRadius, storeOwnedInstance } from "../src/lib/dorp/ownership";
-import { pathAssetIdForMask, pathConnectivity, pathVariantForMask } from "../src/lib/dorp/paths";
+import { paintPathSegment, paintPathTiles, pathAssetIdForMask, pathConnectivity, pathConnectivityFromKeys, pathKey, pathVariantForMask } from "../src/lib/dorp/paths";
 import { DEFAULT_DORP_STATE, DORP_STORAGE_KEY, parseDorpState, serializeDorpState } from "../src/lib/dorp/storage";
 import { sandCornerLabel, sandTransitionMask, terrainAssetId, terrainBufferBounds } from "../src/lib/dorp/terrain";
 import type { DorpOwnedInstance, PlacedDorpObject } from "../src/lib/dorp/types";
@@ -124,8 +124,8 @@ test("kaartverkleining bergt buitenliggende objecten deterministisch op zonder n
   assert.deepEqual(result.instances[0], { ...instance, position: null });
 });
 
-test("opslag v2 herlaadt, verwerpt v1 en saneert kaartverkleining", () => {
-  assert.match(DORP_STORAGE_KEY, /v2$/);
+test("opslag v3 herlaadt, migreert v2 en verwerpt v1 en saneert kaartverkleining", () => {
+  assert.match(DORP_STORAGE_KEY, /v3$/);
   assert.deepEqual(parseDorpState(serializeDorpState(DEFAULT_DORP_STATE)), DEFAULT_DORP_STATE);
   assert.deepEqual(parseDorpState(JSON.stringify({ version: 1, phase: 0, objects: [] })), DEFAULT_DORP_STATE);
   const far = { ...DEFAULT_DORP_STATE.instances.find((instance) => instance.objectId === "vd-b001")!, level: 3 as const, position: { u: 20, v: 20 } };
@@ -151,7 +151,7 @@ test("padconnectiviteit kiest alle logische basisvarianten zonder gebouwobjecten
   assert.equal(pathVariantForMask(pathConnectivity(center, [center, { u: -1, v: 0 }, { u: 1, v: 0 }, { u: 0, v: 1 }])), "tee");
   assert.equal(pathVariantForMask(15), "cross");
   assert.deepEqual(Array.from({ length: 16 }, (_, mask) => pathAssetIdForMask(mask)), [
-    "terrain-grass", "terrain-path-end-se", "terrain-path-end-sw", "terrain-path-corner",
+    "terrain-path-end-se", "terrain-path-end-se", "terrain-path-end-sw", "terrain-path-corner",
     "terrain-path-end-nw", "terrain-path-straight", "terrain-path-corner-sw-nw", "terrain-path-t-se-sw-nw",
     "terrain-path-end-ne", "terrain-path-corner-se-ne", "terrain-path-straight-sw-ne", "terrain-path-t-se-sw-ne",
     "terrain-path-corner-nw-ne", "terrain-path-t-se-nw-ne", "terrain-path-t-sw-nw-ne", "terrain-path-cross-se-sw-nw-ne",
@@ -251,4 +251,34 @@ test("ontwikkelroute vereist featureflag plus admin en lekt geen privémapping",
   assert.match(client, /aria-label="Testmenu"/);
   assert.equal(shellModeForRoute("/dev/versado-dorp"), "focus");
   assert.equal(existsSync(`${process.cwd()}/public/versado-dorp-bom-v1/server-only`), false);
+});
+
+
+test("penseel overgeslagen tegels blijft vierverbonden, begrensd en wisbaar", () => {
+  const paths = paintPathSegment([], {u:0,v:0}, {u:5,v:5}, 8);
+  const keys = new Set(paths.map(pathKey));
+  assert.ok(paths.length > 6);
+  for (const tile of paths) assert.ok(pathConnectivityFromKeys(tile, keys) !== 0);
+  assert.deepEqual(paintPathTiles(paths, paths, 8, true), []);
+  assert.deepEqual(paintPathTiles([], [{u:9,v:0},{u:.5,v:0}], 8), []);
+});
+
+test("paden hebben geen inventarislimiet en mogen onder gebouwen liggen", () => {
+  const tiles = [];
+  for(let u=-62;u<=62;u++)for(let v=-62;v<=62;v++)tiles.push({u,v});
+  const paths = paintPathTiles([], tiles, 62);
+  assert.equal(paths.length, 12061);
+  assert.equal(paintPathTiles(paths, tiles, 62).length, 12061);
+  const world = {...DEFAULT_DORP_STATE, paths};
+  assert.deepEqual(world.instances, DEFAULT_DORP_STATE.instances);
+});
+
+test("v2 opslag behoudt oude eigendommen en krijgt vijf ongeplaatste bewoners", () => {
+  const old = {...DEFAULT_DORP_STATE, version:2, instances:DEFAULT_DORP_STATE.instances.filter(i=>DORP_OBJECT_BY_ID.get(i.objectId)?.kind!=="resident")};
+  const restored=parseDorpState(JSON.stringify(old));
+  assert.equal(restored.version,3);
+  assert.deepEqual(restored.instances.filter(i=>DORP_OBJECT_BY_ID.get(i.objectId)?.kind!=="resident"),old.instances);
+  const residents=restored.instances.filter(i=>DORP_OBJECT_BY_ID.get(i.objectId)?.kind==="resident");
+  assert.equal(residents.length,5);
+  for(const resident of residents){assert.equal(resident.position,null);assert.deepEqual(DORP_OBJECT_BY_ID.get(resident.objectId)?.footprint,[1,1]);}
 });

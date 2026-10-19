@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, ChevronDown, ChevronUp, Crosshair, Focus, Globe2, Home, Minus, Package, Plus, RotateCcw, Sparkles, X } from "lucide-react";
+import { useT } from "@/components/I18nProvider";
 import ImmersiveLayout from "@/components/versado/ImmersiveLayout";
 import { useBackNavigation } from "@/lib/navigationHistory";
 import { useImmersiveShell } from "@/lib/shellModeOverride";
@@ -16,7 +17,6 @@ import {
   DORP_TERRAIN_RUNTIME_PATHS,
   assetForObject,
   forestAssetFor,
-  residentAssetFor,
 } from "@/lib/dorp/catalog";
 import {
   DETAIL_CAMERA_ZOOM,
@@ -41,13 +41,12 @@ import {
   footprintTiles,
   isoToWorld,
   placementIsValid,
-  projectedWorldBounds,
   radiusForPhase,
   suggestPlacement,
   worldToIso,
 } from "@/lib/dorp/geometry";
 import { availableInstance, levelOwnedInstance, placeOwnedInstance, placedObjects, reconcileInstancesForRadius, storeOwnedInstance } from "@/lib/dorp/ownership";
-import { normalizePaths, pathConnectivity, pathKey } from "@/lib/dorp/paths";
+import { normalizePaths, paintPathSegment, paintPathTiles, pathConnectivityFromKeys, pathKey } from "@/lib/dorp/paths";
 import { DEFAULT_DORP_STATE, DORP_LEGACY_STORAGE_KEYS, DORP_STORAGE_KEY, parseDorpState, serializeDorpState } from "@/lib/dorp/storage";
 import { boundsContainViewport, terrainAssetId, terrainBufferBounds, type TerrainWorldBounds } from "@/lib/dorp/terrain";
 import type { DorpObjectDefinition, DorpWorldState, PlacedDorpObject, TileCoordinate } from "@/lib/dorp/types";
@@ -68,7 +67,7 @@ type TerrainCache = {
 
 const MIN_PLAY_ZOOM = 0.22;
 const POINTER_MOVE_THRESHOLD = 6;
-const categories = ["Gebouwen", "Bijzondere gebouwen", "Decoraties", "Natuur"] as const;
+const categories = ["Gebouwen", "Bijzondere gebouwen", "Decoraties", "Natuur", "Bewoners"] as const;
 
 function drawDiamond(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, fill?: string, stroke?: string) {
   ctx.beginPath();
@@ -113,7 +112,7 @@ function DorpCanvas({
   selectedId,
   onPlacementMove,
   onSelectObject,
-  onSelectResident,
+  pathMode, onPathStroke, onDragPreview, onDragEnd, onExplore,
   onCameraChange,
   cameraCommand,
 }: {
@@ -122,7 +121,11 @@ function DorpCanvas({
   selectedId: string | null;
   onPlacementMove: (tile: TileCoordinate) => void;
   onSelectObject: (instanceId: string | null) => void;
-  onSelectResident: (objectId: string | null) => void;
+  pathMode: "paint" | "erase" | null;
+  onPathStroke: (tiles: TileCoordinate[], erase: boolean) => void;
+  onDragPreview: (instanceId: string, tile: TileCoordinate | null) => void;
+  onDragEnd: (instanceId: string, tile: TileCoordinate | null) => void;
+  onExplore: (hidden: boolean) => void;
   onCameraChange: (camera: DorpCamera) => void;
   cameraCommand: { id: number; kind: "detail" | "normal" | "current" | "full" | "in" | "out" | "center" };
 }) {
@@ -137,6 +140,9 @@ function DorpCanvas({
   const requestDrawRef = useRef<() => void>(() => undefined);
   const fitModeRef = useRef<"free" | "current" | "full">("free");
   const insetsRef = useRef<CameraInsets>({ top: 84, right: 12, bottom: 132, left: 12 });
+  const dragRef = useRef<{ instanceId: string; offset: TileCoordinate; active: boolean } | null>(null);
+  const strokeRef = useRef<TileCoordinate[]>([]);
+  const [pathPreview, setPathPreview] = useState<TileCoordinate | null>(null);
   const [assetRevision, setAssetRevision] = useState(0);
   const radius = radiusForPhase(world.phase);
   const objects = useMemo(() => placedObjects(world), [world]);
@@ -221,6 +227,7 @@ function DorpCanvas({
         ctx.drawImage(sprite, point.x - drawWidth * anchor[0], point.y - drawHeight * anchor[1], drawWidth, drawHeight);
       };
       const paths = new Map(world.paths.map((tile) => [pathKey(tile), tile]));
+      const pathKeys = new Set(paths.keys());
       const pathsKey = world.paths.map(pathKey).sort().join(";");
 
       const gradient = ctx.createLinearGradient(0, 0, 0, height);
@@ -232,16 +239,12 @@ function DorpCanvas({
 
       const overview = zoom < 0.18 || width / zoom + 384 > 8192 || height / zoom + 384 > 8192;
       if (overview) {
-        const outerBounds = projectedWorldBounds(radius);
-        const outerCenter = screen((outerBounds.minX + outerBounds.maxX) / 2, (outerBounds.minY + outerBounds.maxY) / 2);
-        const innerCenter = screen(0, 0);
-        ctx.beginPath();
-        ctx.ellipse(outerCenter.x, outerCenter.y, (outerBounds.maxX - outerBounds.minX) * zoom / 2, (outerBounds.maxY - outerBounds.minY) * zoom / 2, 0, 0, Math.PI * 2);
-        ctx.fillStyle = "#315b38"; ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(innerCenter.x, innerCenter.y, (radius * TILE_WIDTH / Math.SQRT2 + TILE_WIDTH / 2) * zoom, (radius * TILE_HEIGHT / Math.SQRT2 + TILE_HEIGHT / 2) * zoom, 0, 0, Math.PI * 2);
-        ctx.fillStyle = "#7eaa58"; ctx.fill();
-        ctx.strokeStyle = "rgba(255,255,255,.45)"; ctx.lineWidth = 2; ctx.stroke();
+        for(let u=-radius;u<=radius;u++) for(let v=-radius;v<=radius;v++) {
+          if(u*u+v*v>radius*radius) continue;
+          const point=isoToWorld(u,v), p=screen(point.x,point.y);
+          const path=paths.has(`${u},${v}`);
+          drawDiamond(ctx,p.x,p.y,TILE_WIDTH*zoom+.5,TILE_HEIGHT*zoom+.5,path?"#c5a56e":((u+v)%3===0?"#8eb65e":"#86ae57"));
+        }
       } else {
         const rasterScale = zoom < 0.36 ? 0.25 : zoom < 0.76 ? 0.5 : 1;
         let terrainCache = terrainCacheRef.current;
@@ -266,7 +269,7 @@ function DorpCanvas({
               if (worldPoint.x + TILE_WIDTH / 2 < terrainBounds.minX || worldPoint.x - TILE_WIDTH / 2 > terrainBounds.maxX
                 || worldPoint.y + TILE_HEIGHT / 2 < terrainBounds.minY || worldPoint.y - TILE_HEIGHT / 2 > terrainBounds.maxY) continue;
               const pathTile = paths.get(`${u},${v}`);
-              const assetId = terrainAssetId(u, v, pathTile ? pathConnectivity(pathTile, world.paths) : undefined);
+              const assetId = terrainAssetId(u, v, pathTile ? pathConnectivityFromKeys(pathTile, pathKeys) : undefined);
               const runtime = DORP_TERRAIN_RUNTIME_BY_ID.get(assetId);
               const terrainPath = rasterScale === 1 ? runtime?.full : rasterScale === 0.5 ? runtime?.half : runtime?.quarter;
               const terrain = terrainPath ? imagesRef.current.get(terrainPath) : undefined;
@@ -297,7 +300,7 @@ function DorpCanvas({
 
       type LayerItem = { depth: number; draw: () => void };
       const layers: LayerItem[] = [];
-      if (!overview) {
+      {
         for (const { index, u, v } of forestPlacements(radius)) {
           const point = isoToWorld(u, v);
           const registration = forestAssetFor(index, u, v);
@@ -323,39 +326,27 @@ function DorpCanvas({
         const worldPoint = isoToWorld(anchorTile.u, anchorTile.v);
         layers.push({ depth: anchorTile.u + anchorTile.v, draw: () => {
           const point = screen(worldPoint.x, worldPoint.y);
-          if (overview) {
-            const size = definition.kind === "landmark" ? 8 : 5;
-            ctx.fillStyle = definition.kind === "landmark" ? "#f8730c" : "#f9dcc8";
-            ctx.beginPath(); ctx.arc(point.x, point.y, size, 0, Math.PI * 2); ctx.fill();
-            return;
-          }
-          if (image) {
-            drawSprite(image, registration.path, point, registration.worldSize, registration.anchor);
-          }
           if (object.instanceId === selectedId) {
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 1.5;
             for (const tile of footprintTiles(object.u, object.v, definition.footprint)) {
               const p = isoToWorld(tile.u, tile.v); const s = screen(p.x, p.y);
-              drawDiamond(ctx, s.x, s.y, TILE_WIDTH * zoom, TILE_HEIGHT * zoom, "rgba(19,54,119,.13)", "#133677");
+              drawDiamond(ctx, s.x, s.y, TILE_WIDTH * zoom, TILE_HEIGHT * zoom, "rgba(255,255,255,.17)", "rgba(255,255,255,.7)");
             }
           }
+          if (image) drawSprite(image, registration.path, point, registration.worldSize, registration.anchor);
         }});
       }
 
-      if (!overview) {
-        for (const resident of DORP_RESIDENTS) {
-          const worldPoint = isoToWorld(resident.u, resident.v);
-          const registration = residentAssetFor(resident.assetId);
-          const image = imagesRef.current.get(registration.path);
-          layers.push({ depth: resident.u + resident.v + 0.25, draw: () => {
-            const point = screen(worldPoint.x, worldPoint.y);
-            if (image) drawSprite(image, registration.path, point, registration.worldSize, registration.anchor);
-          }});
-        }
-      }
       layers.sort((a, b) => a.depth - b.depth).forEach((layer) => layer.draw());
 
-      if (placement && !overview) {
+      if(pathMode && pathPreview) {
+        for(const tile of (strokeRef.current.length ? strokeRef.current : [pathPreview])) {
+          const p=isoToWorld(tile.u,tile.v), point=screen(p.x,p.y);
+          const valid=tile.u*tile.u+tile.v*tile.v<=radius*radius;
+          drawDiamond(ctx,point.x,point.y,TILE_WIDTH*zoom,TILE_HEIGHT*zoom,valid&&pathMode==="paint"?"rgba(202,159,83,.65)":"rgba(220,50,47,.45)","#fff");
+        }
+      }
+      if (placement) {
         const definition = DORP_OBJECT_BY_ID.get(placement.objectId);
         if (definition) {
           const valid = placementIsValid(placement, objects, radius);
@@ -392,7 +383,7 @@ function DorpCanvas({
     });
     resize.observe(container);
     return () => { resize.disconnect(); scheduler.cancel(); requestDrawRef.current = () => undefined; };
-  }, [assetRevision, objects, onCameraChange, placement, radius, selectedId, world.instances, world.paths]);
+  }, [assetRevision, objects, onCameraChange, placement, radius, selectedId, world.instances, world.paths, pathMode, pathPreview]);
 
   const eventToWorld = useCallback((clientX: number, clientY: number) => {
     const bounds = canvasRef.current?.getBoundingClientRect();
@@ -405,15 +396,13 @@ function DorpCanvas({
     const worldPoint = eventToWorld(x, y);
     const tile = worldToIso(worldPoint.x, worldPoint.y);
     if (placement) { onPlacementMove(tile); return; }
-    const resident = DORP_RESIDENTS.find((item) => item.u === tile.u && item.v === tile.v);
-    if (resident) { onSelectResident(resident.objectId); onSelectObject(null); return; }
     const object = [...objects].reverse().find((item) => {
       const definition = DORP_OBJECT_BY_ID.get(item.objectId);
       return definition && tile.u >= item.u && tile.u < item.u + definition.footprint[0] && tile.v >= item.v && tile.v < item.v + definition.footprint[1];
     });
-    onSelectResident(null);
+    onExplore(false);
     onSelectObject(object?.instanceId ?? null);
-  }, [eventToWorld, objects, onPlacementMove, onSelectObject, onSelectResident, placement]);
+  }, [eventToWorld, objects, onPlacementMove, onSelectObject, onExplore, placement]);
 
   return (
     <div ref={containerRef} className="absolute inset-0 touch-none select-none overflow-hidden" data-dorp-canvas>
@@ -435,7 +424,17 @@ function DorpCanvas({
           event.currentTarget.setPointerCapture(event.pointerId);
           if (pointersRef.current.size === 0) gestureRef.current = { moved: false, hadMultiplePointers: false, pinchDistance: 0, pinchZoom: cameraRef.current.zoom, pinchWorld: { x: 0, y: 0 } };
           pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY });
+          if(pointersRef.current.size===1) {
+            const wp=eventToWorld(event.clientX,event.clientY), tile=worldToIso(wp.x,wp.y);
+            const selected=objects.find(o=>o.instanceId===selectedId);
+            const definition=selected?DORP_OBJECT_BY_ID.get(selected.objectId):null;
+            dragRef.current=selected&&definition&&tile.u>=selected.u&&tile.v>=selected.v&&tile.u<selected.u+definition.footprint[0]&&tile.v<selected.v+definition.footprint[1]
+              ? {instanceId:selected.instanceId,offset:{u:tile.u-selected.u,v:tile.v-selected.v},active:false}:null;
+            if(pathMode) {strokeRef.current=[tile];setPathPreview(tile);}
+          }
           if (pointersRef.current.size === 2) {
+            if(dragRef.current)onDragEnd(dragRef.current.instanceId,null);
+            dragRef.current=null;strokeRef.current=[];setPathPreview(null);
             const points = [...pointersRef.current.values()];
             const bounds = canvasRef.current!.getBoundingClientRect();
             const midpoint = { x: (points[0].x + points[1].x) / 2 - bounds.left, y: (points[0].y + points[1].y) / 2 - bounds.top };
@@ -463,7 +462,18 @@ function DorpCanvas({
             camera.x = gestureRef.current.pinchWorld.x - (midpoint.x - bounds.width / 2) / zoom;
             camera.y = gestureRef.current.pinchWorld.y - (midpoint.y - bounds.height / 2) / zoom;
             camera.zoom = zoom;
-          } else if (points.length === 1) {
+          } else if (points.length === 1 && !gestureRef.current.hadMultiplePointers) {
+            const wp=eventToWorld(event.clientX,event.clientY), tile=worldToIso(wp.x,wp.y);
+            if(pathMode) {
+              const last=strokeRef.current.at(-1)??tile;
+              strokeRef.current=paintPathSegment(strokeRef.current,last,tile,radius);
+              setPathPreview(tile);renderCamera();return;
+            }
+            if(dragRef.current && gestureRef.current.moved) {
+              dragRef.current.active=true;
+              onDragPreview(dragRef.current.instanceId,{u:tile.u-dragRef.current.offset.u,v:tile.v-dragRef.current.offset.v});return;
+            }
+            if(gestureRef.current.moved)onExplore(true);
             camera.x -= dx / camera.zoom; camera.y -= dy / camera.zoom;
           }
           fitModeRef.current = "free";
@@ -472,10 +482,18 @@ function DorpCanvas({
         onPointerUp={(event) => {
           const wasTap = !gestureRef.current.moved && !gestureRef.current.hadMultiplePointers && pointersRef.current.size === 1;
           pointersRef.current.delete(event.pointerId);
-          if (wasTap) handleTap(event.clientX, event.clientY);
+          if(!gestureRef.current.hadMultiplePointers && pointersRef.current.size===0) {
+            if(pathMode && strokeRef.current.length)onPathStroke(strokeRef.current,pathMode==="erase");
+            else if(dragRef.current?.active) {
+              const wp=eventToWorld(event.clientX,event.clientY),tile=worldToIso(wp.x,wp.y);
+              onDragEnd(dragRef.current.instanceId,{u:tile.u-dragRef.current.offset.u,v:tile.v-dragRef.current.offset.v});
+            } else if(wasTap)handleTap(event.clientX,event.clientY);
+          }
+          dragRef.current=null;strokeRef.current=[];setPathPreview(null);
           renderCamera(true);
         }}
-        onPointerCancel={(event) => { pointersRef.current.delete(event.pointerId); gestureRef.current.hadMultiplePointers = true; renderCamera(true); }}
+        onLostPointerCapture={(event) => { if(!pointersRef.current.has(event.pointerId))return; if(dragRef.current)onDragEnd(dragRef.current.instanceId,null);dragRef.current=null;strokeRef.current=[];setPathPreview(null);pointersRef.current.delete(event.pointerId);gestureRef.current.hadMultiplePointers=true;renderCamera(true); }}
+        onPointerCancel={(event) => { if(dragRef.current)onDragEnd(dragRef.current.instanceId,null);dragRef.current=null;strokeRef.current=[];setPathPreview(null);pointersRef.current.delete(event.pointerId); gestureRef.current.hadMultiplePointers = true; renderCamera(true); }}
       />
     </div>
   );
@@ -483,6 +501,7 @@ function DorpCanvas({
 
 export default function DorpPrototypeClient() {
   useImmersiveShell();
+  const t=useT();
   const goBack = useBackNavigation("/adminbackend/spellen");
   const [world, setWorld] = useState<DorpWorldState>(DEFAULT_DORP_STATE);
   const [loaded, setLoaded] = useState(false);
@@ -490,21 +509,23 @@ export default function DorpPrototypeClient() {
   const [developerOpen, setDeveloperOpen] = useState(false);
   const [placement, setPlacement] = useState<Placement | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [residentId, setResidentId] = useState<string | null>(null);
+  const [pathMode,setPathMode]=useState<"paint"|"erase"|null>(null);
+  const [controlsHidden,setControlsHidden]=useState(false);
+  const [directDragging,setDirectDragging]=useState(false);
   const [phaseMessage, setPhaseMessage] = useState<string | null>(null);
   const [camera, setCamera] = useState<DorpCamera>({ x: 0, y: 0, zoom: NORMAL_CAMERA_ZOOM });
   const [cameraCommand, setCameraCommand] = useState<{ id: number; kind: "detail" | "normal" | "current" | "full" | "in" | "out" | "center" }>({ id: 0, kind: "normal" });
   const objects = useMemo(() => placedObjects(world), [world]);
   const selected = world.instances.find((instance) => instance.instanceId === selectedId && instance.position) ?? null;
   const selectedDefinition = selected ? DORP_OBJECT_BY_ID.get(selected.objectId) : null;
-  const selectedResident = DORP_RESIDENTS.find((resident) => resident.objectId === residentId) ?? null;
+  const selectedResident = DORP_RESIDENTS.find((resident) => resident.objectId === selected?.objectId) ?? null;
   const radius = radiusForPhase(world.phase);
   const activePhase = nearestPrototypePhase(world.phase);
 
   useEffect(() => {
     // Na hydration lezen voorkomt dat een eerdere lokale kaart een ander server-HTML-resultaat geeft.
     const timer = window.setTimeout(() => {
-      const stored = window.localStorage.getItem(DORP_STORAGE_KEY);
+      const stored = window.localStorage.getItem(DORP_STORAGE_KEY) ?? window.localStorage.getItem("versado-dorp-prototype-v2");
       const legacyPresent = stored === null && DORP_LEGACY_STORAGE_KEYS.some((key) => window.localStorage.getItem(key) !== null);
       setWorld(parseDorpState(stored));
       if (legacyPresent) setPhaseMessage("Prototypeopslag v1 is niet overgenomen door het nieuwe R8-eigendomsmodel. Gebruik ‘Testdata herstellen’ om de oude testopslag te wissen.");
@@ -525,7 +546,7 @@ export default function DorpPrototypeClient() {
     if (!instance) return;
     const proposed = suggestPlacement(definition.id, objects, radius, { u: 0, v: 0 }, instance.instanceId) ?? { u: 0, v: 0 };
     setPlacement({ objectId: definition.id, instanceId: instance.instanceId, ...proposed, moving: false });
-    setSelectedId(null); setResidentId(null); setInventoryOpen(false);
+    setSelectedId(null); setPathMode(null); setInventoryOpen(false);
     if (camera.zoom < MIN_PLAY_ZOOM) issueCameraCommand("normal");
   };
 
@@ -569,7 +590,7 @@ export default function DorpPrototypeClient() {
     if (!window.confirm("De lokale prototype-indeling wissen en de testopstelling herstellen?")) return;
     window.localStorage.removeItem(DORP_STORAGE_KEY);
     for (const key of DORP_LEGACY_STORAGE_KEYS) window.localStorage.removeItem(key);
-    setWorld(structuredClone(DEFAULT_DORP_STATE)); setPlacement(null); setSelectedId(null); setResidentId(null);
+    setWorld(structuredClone(DEFAULT_DORP_STATE)); setPlacement(null); setSelectedId(null); setPathMode(null);
     setPhaseMessage(null);
     issueCameraCommand("normal");
   };
@@ -584,7 +605,11 @@ export default function DorpPrototypeClient() {
         selectedId={selectedId}
         onPlacementMove={(tile) => placement && setPlacement({ ...placement, ...tile })}
         onSelectObject={setSelectedId}
-        onSelectResident={setResidentId}
+        pathMode={pathMode}
+        onExplore={setControlsHidden}
+        onPathStroke={(tiles,erase)=>setWorld(current=>({ ...current, paths:paintPathTiles(current.paths,tiles,radiusForPhase(current.phase),erase) }))}
+        onDragPreview={(id,tile)=>{setDirectDragging(true);const instance=world.instances.find(i=>i.instanceId===id);if(instance&&tile)setPlacement({objectId:instance.objectId,instanceId:id,...tile,moving:true});}}
+        onDragEnd={(id,tile)=>{setDirectDragging(false);if(tile)setWorld(current=>{const item=current.instances.find(i=>i.instanceId===id);return item&&placementIsValid({...tile,instanceId:id,objectId:item.objectId},placedObjects(current),radiusForPhase(current.phase))?{...current,instances:placeOwnedInstance(current.instances,id,tile)}:current;});setPlacement(null);}}
         onCameraChange={setCamera}
         cameraCommand={cameraCommand}
       />
@@ -615,26 +640,33 @@ export default function DorpPrototypeClient() {
           </section>
         )}
 
-        <div className="mt-auto grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
+        {controlsHidden && <button type="button" onClick={()=>setControlsHidden(false)} className="btn pointer-events-auto mt-auto self-end !bg-vs-surface/95">{t("dorp2.controls")}</button>}
+        <div className={`${controlsHidden?"hidden":"grid"} mt-auto w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-end gap-2`}>
           <div className="pointer-events-auto flex min-w-0 flex-col gap-2">
             <div className="flex rounded-2xl border border-white/40 bg-vs-surface/90 p-1 shadow-lg backdrop-blur">
               <button type="button" onClick={() => issueCameraCommand("out")} className="min-h-11 min-w-11 flex-1 rounded-xl" aria-label="Uitzoomen"><Minus className="mx-auto h-5 w-5" /></button>
               <button type="button" onClick={() => issueCameraCommand("in")} className="min-h-11 min-w-11 flex-1 rounded-xl" aria-label="Inzoomen"><Plus className="mx-auto h-5 w-5" /></button>
               <button type="button" onClick={() => issueCameraCommand("center")} className="min-h-11 min-w-11 flex-1 rounded-xl" aria-label="Camera centreren"><Crosshair className="mx-auto h-5 w-5" /></button>
             </div>
-            <div className="flex rounded-2xl border border-white/40 bg-vs-surface/90 p-1 text-[.6875rem] shadow-lg backdrop-blur sm:text-xs">
+            <details className="rounded-2xl border border-white/40 bg-vs-surface/90 p-1 text-xs shadow-lg backdrop-blur"><summary className="min-h-11 cursor-pointer p-2">{t("dorp2.views")}</summary><div className="flex flex-wrap">
               <button type="button" onClick={() => issueCameraCommand("detail")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1">Detail</button>
               <button type="button" onClick={() => issueCameraCommand("normal")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1">Normaal</button>
-              <button type="button" onClick={() => issueCameraCommand("current")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1" aria-label="Huidige kaart volledig tonen"><Focus className="mx-auto h-4 w-4" />Kaart</button>
-              <button type="button" onClick={() => issueCameraCommand("full")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1" aria-label="Maximale toekomstige wereld tonen"><Globe2 className="mx-auto h-4 w-4" />R62</button>
-            </div>
+              <button type="button" onClick={() => issueCameraCommand("current")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1" aria-label="Huidige kaart volledig tonen"><Focus className="mx-auto h-4 w-4" />{t("dorp2.fitMap")}</button>
+              <button type="button" onClick={() => issueCameraCommand("full")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1" aria-label="Maximale toekomstige wereld tonen"><Globe2 className="mx-auto h-4 w-4" />{t("dorp2.futureWorld")}</button>
+            </div></details>
           </div>
 
           <button type="button" onClick={() => setInventoryOpen(true)} className="btn pointer-events-auto min-h-12 shrink-0 whitespace-nowrap !border-white/40 !bg-vs-surface/95 px-2 text-sm shadow-xl backdrop-blur sm:px-4"><Package className="h-5 w-5" /> Bouwen</button>
         </div>
       </div>
 
-      {placement && (
+      {pathMode && <div className="absolute inset-x-3 bottom-[max(.75rem,var(--vs-safe-area-bottom))] z-20 flex flex-wrap gap-2 rounded-2xl bg-vs-surface/95 p-3 shadow-xl" data-dorp-path-mode>
+        <p className="w-full text-sm">{t("dorp2.pathHelp")}</p>
+        <button className="btn min-h-11" aria-pressed={pathMode==="paint"} onClick={()=>setPathMode("paint")}>{t("dorp2.paint")}</button>
+        <button className="btn min-h-11" aria-pressed={pathMode==="erase"} onClick={()=>setPathMode("erase")}>{t("dorp2.erase")}</button>
+        <button className="btn min-h-11" onClick={()=>setPathMode(null)}>{t("common.close")}</button>
+      </div>}
+      {placement && !directDragging && (
         <div className="absolute inset-x-0 bottom-[max(.75rem,var(--vs-safe-area-bottom))] z-20 mx-auto flex w-[min(calc(100%-1.5rem),32rem)] flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-vs-surface/95 p-3 shadow-2xl backdrop-blur">
           <p className="w-full text-center text-sm font-semibold">{DORP_OBJECT_BY_ID.get(placement.objectId)?.name} · {placementValid ? "geldige plek" : "ongeldige plek"}</p>
           <button type="button" onClick={propose} className="btn min-h-11 !bg-vs-surface"><Sparkles className="h-4 w-4" /> Stel een plek voor</button>
@@ -646,8 +678,9 @@ export default function DorpPrototypeClient() {
       {inventoryOpen && (
         <aside className="absolute inset-y-0 right-0 z-30 flex w-[min(92vw,27rem)] flex-col border-l border-vs-line bg-vs-surface shadow-2xl pt-[max(1rem,var(--vs-safe-area-top))] pr-[max(1rem,var(--vs-safe-area-right))] pb-[max(1rem,var(--vs-safe-area-bottom))] pl-4" aria-label="Bouwinventaris">
           <div className="flex items-center justify-between gap-3"><div><h2 className="text-xl font-bold">Bouwinventaris</h2><p className="text-xs text-vs-fg-3">Expliciete prototypefixtures · geen vrijspeelstatus</p></div><button type="button" onClick={() => setInventoryOpen(false)} className="min-h-11 min-w-11" aria-label="Inventaris sluiten"><X className="mx-auto h-5 w-5" /></button></div>
+          <button type="button" className="btn mt-3 min-h-11" onClick={()=>{setPathMode("paint");setPlacement(null);setSelectedId(null);setInventoryOpen(false);}}>{t("dorp2.paths")}</button>
           <div className="mt-4 flex-1 space-y-5 overflow-y-auto overscroll-contain pr-1">
-            {inventoryByCategory.map(({ category, objects: definitions }) => definitions.length > 0 && <section key={category}><h3 className="mb-2 text-sm font-bold text-vs-fg-2">{category}</h3><div className="grid grid-cols-2 gap-2">{definitions.map((object) => {
+            {inventoryByCategory.map(({ category, objects: definitions }) => definitions.length > 0 && <section key={category}><h3 className="mb-2 text-sm font-bold text-vs-fg-2">{category==="Bewoners"?t("dorp2.residents"):category}</h3><div className="grid grid-cols-2 gap-2">{definitions.map((object) => {
               const asset = DORP_ASSET_BY_ID.get(object.assetIds[0]);
               const owned = world.instances.filter((instance) => instance.objectId === object.id);
               const stored = owned.filter((instance) => instance.position === null).length;
@@ -660,18 +693,13 @@ export default function DorpPrototypeClient() {
       {selected && selectedDefinition && !placement && (
         <section className="absolute inset-x-3 bottom-[max(.75rem,var(--vs-safe-area-bottom))] z-20 mx-auto w-[min(calc(100%-1.5rem),30rem)] rounded-2xl border border-vs-line bg-vs-surface/95 p-3 shadow-2xl backdrop-blur">
           <div className="flex items-start justify-between gap-3"><div><h2 className="font-bold">{selectedDefinition.name}</h2><p className="text-xs text-vs-fg-3">Vaste footprint {selectedDefinition.footprint[0]} × {selectedDefinition.footprint[1]} · positie {selected.position?.u},{selected.position?.v}</p></div><button type="button" onClick={() => setSelectedId(null)} className="min-h-10 min-w-10" aria-label="Selectie sluiten"><ChevronDown className="mx-auto h-5 w-5" /></button></div>
+          {selectedResident && <p className="mt-2 text-sm text-vs-fg-2">{selectedResident.description}</p>}
+          <p className="mt-2 text-xs text-vs-fg-3">{t("dorp2.dragHelp")}</p>
           {selectedDefinition.maxLevel > 1 && <div className="mt-3 flex gap-2" aria-label="Visueel gebouwniveau">{([1, 2, 3] as const).map((level) => <button key={level} type="button" disabled={level > selectedDefinition.maxLevel} onClick={() => setLevel(level)} className={`btn min-h-11 flex-1 ${selected.level === level ? "!border-vs-accent !bg-vs-accent-soft" : "!bg-vs-surface"}`}>Niveau {level}</button>)}</div>}
           <div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={() => { if (!selected.position) return; setPlacement({ objectId: selected.objectId, instanceId: selected.instanceId, u: selected.position.u, v: selected.position.v, moving: true }); setSelectedId(null); }} className="btn min-h-11 flex-1 !bg-vs-surface"><Home className="h-4 w-4" /> Verplaatsen</button><button type="button" onClick={storeSelected} className="btn min-h-11 flex-1 !bg-vs-surface"><Package className="h-4 w-4" /> Terugnemen</button></div>
         </section>
       )}
 
-      {selectedResident && (
-        <section className="absolute inset-x-3 bottom-[max(.75rem,var(--vs-safe-area-bottom))] z-20 mx-auto flex w-[min(calc(100%-1.5rem),28rem)] items-center gap-3 rounded-2xl border border-vs-line bg-vs-surface/95 p-3 shadow-2xl backdrop-blur">
-          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-vs-surface-3"><Image src={residentAssetFor(selectedResident.assetId).path} alt="" fill sizes="6rem" className="object-contain" /></div>
-          <div className="min-w-0 flex-1"><h2 className="font-bold">{selectedResident.name}</h2><p className="mt-1 text-sm text-vs-fg-2">{selectedResident.description}</p><p className="mt-1 text-xs text-vs-fg-3">Canonieke ID: {selectedResident.characterId}</p></div>
-          <button type="button" onClick={() => setResidentId(null)} className="min-h-10 min-w-10 self-start" aria-label="Bewoner sluiten"><X className="mx-auto h-5 w-5" /></button>
-        </section>
-      )}
     </ImmersiveLayout>
   );
 }

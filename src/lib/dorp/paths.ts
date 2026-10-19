@@ -8,7 +8,7 @@ export const PATH_DIRECTIONS = [
 ] as const;
 
 const PATH_ASSET_BY_MASK = [
-  "terrain-grass",
+  "terrain-path-end-se",
   "terrain-path-end-se",
   "terrain-path-end-sw",
   "terrain-path-corner",
@@ -33,7 +33,10 @@ export function pathKey(tile: TileCoordinate): string {
 }
 
 export function pathConnectivity(tile: TileCoordinate, paths: readonly DorpPathTile[]): number {
-  const keys = new Set(paths.map(pathKey));
+  return pathConnectivityFromKeys(tile, new Set(paths.map(pathKey)));
+}
+
+export function pathConnectivityFromKeys(tile: TileCoordinate, keys: ReadonlySet<string>): number {
   return PATH_DIRECTIONS.reduce((mask, direction) => keys.has(`${tile.u + direction.du},${tile.v + direction.dv}`) ? mask | direction.bit : mask, 0);
 }
 
@@ -58,4 +61,31 @@ export function normalizePaths(paths: readonly DorpPathTile[], radius: number): 
     seen.add(key);
     return true;
   });
+}
+
+/** Vierverbonden penseelstreek, ook als pointerevents tegels overslaan. Geen inventarislimiet. */
+export function paintPathSegment(paths: readonly DorpPathTile[], from: TileCoordinate, to: TileCoordinate, radius: number, erase = false): DorpPathTile[] {
+  if (![from.u, from.v, to.u, to.v].every(Number.isInteger) || Math.max(Math.abs(to.u-from.u),Math.abs(to.v-from.v))>256) return [...paths];
+  const result = new Map(paths.map(tile => [pathKey(tile), tile]));
+  const apply = (tile: TileCoordinate) => {
+    if (tile.u*tile.u+tile.v*tile.v>radius*radius) return;
+    if(erase) result.delete(pathKey(tile)); else result.set(pathKey(tile), tile);
+  };
+  const steps=Math.max(Math.abs(to.u-from.u),Math.abs(to.v-from.v),1);
+  let previous=from; apply(from);
+  for(let i=1;i<=steps;i++){
+    const tile={u:Math.round(from.u+(to.u-from.u)*i/steps),v:Math.round(from.v+(to.v-from.v)*i/steps)};
+    if(tile.u!==previous.u&&tile.v!==previous.v) apply({u:tile.u,v:previous.v});
+    apply(tile); previous=tile;
+  }
+  return [...result.values()];
+}
+
+/** Eén index per streek; kosten lineair in bestaand padennet + penseeltegels. */
+export function paintPathTiles(paths: readonly DorpPathTile[], tiles: readonly TileCoordinate[], radius: number, erase = false): DorpPathTile[] {
+  const result = new Map(paths.map(tile => [pathKey(tile), tile]));
+  for (const tile of normalizePaths(tiles, radius)) {
+    if (erase) result.delete(pathKey(tile)); else result.set(pathKey(tile), tile);
+  }
+  return [...result.values()];
 }

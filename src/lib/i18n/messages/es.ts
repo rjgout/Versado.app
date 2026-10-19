@@ -3,6 +3,7 @@ import { kompasEs } from "./kompas/es";
 
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
+  dorp2: {"controls": "Controles", "views": "Vista", "futureWorld": "Límite del mundo", "fitMap": "Mi mapa", "paths": "Caminos · gratis e ilimitados", "paint": "Trazar camino", "erase": "Borrar camino", "residents": "Habitantes", "pathHelp": "Toca o arrastra para trazar caminos. Usa dos dedos para mover la vista.", "dragHelp": "Arrastra el objeto seleccionado. Una posición no válida no cambia nada."},
   studyFolder: {
     "title": "Mi carpeta de estudio",
     "intro": "Todos tus marcadores, resaltados y notas en un solo lugar.",

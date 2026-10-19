@@ -3,6 +3,7 @@ import { kompasFr } from "./kompas/fr";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const fr: PartialMessages = {
+  dorp2: {"controls": "Commandes", "views": "Vue", "futureWorld": "Limite du monde", "fitMap": "Ma carte", "paths": "Chemins · gratuits et illimités", "paint": "Tracer un chemin", "erase": "Effacer un chemin", "residents": "Habitants", "pathHelp": "Touchez ou faites glisser pour tracer. Utilisez deux doigts pour déplacer la vue.", "dragHelp": "Déplacez l’objet sélectionné. Une position incorrecte ne change rien."},
   studyFolder: {
     "title": "Mon dossier d’étude",
     "intro": "Tous tes signets, surlignages et notes au même endroit.",

@@ -5,7 +5,7 @@ import { normalizePaths } from "./paths";
 import { DORP_STORAGE_VERSION, type DorpLevel, type DorpOwnedInstance, type DorpWorldState, type TileCoordinate } from "./types";
 
 export const DORP_STORAGE_KEY = `versado-dorp-prototype-v${DORP_STORAGE_VERSION}`;
-export const DORP_LEGACY_STORAGE_KEYS = ["versado-dorp-prototype-v1"] as const;
+export const DORP_LEGACY_STORAGE_KEYS = ["versado-dorp-prototype-v2", "versado-dorp-prototype-v1"] as const;
 
 const placedFixtures = new Map<string, { instanceId: string; level: DorpLevel; position: TileCoordinate }>([
   ["vd-b001", { instanceId: "fixture-family", level: 1, position: { u: -5, v: -2 } }],
@@ -65,11 +65,16 @@ export function parseDorpState(raw: string | null): DorpWorldState {
   if (!raw) return structuredClone(DEFAULT_DORP_STATE);
   try {
     const value: unknown = JSON.parse(raw);
-    if (!isRecord(value) || value.version !== DORP_STORAGE_VERSION || !Number.isInteger(value.phase) || !Array.isArray(value.instances) || !Array.isArray(value.paths)) {
+    if (!isRecord(value) || (value.version !== DORP_STORAGE_VERSION && value.version !== 2) || !Number.isInteger(value.phase) || !Array.isArray(value.instances) || !Array.isArray(value.paths)) {
       return structuredClone(DEFAULT_DORP_STATE);
     }
     const phase = Math.max(0, Math.min(16, value.phase as number));
-    const instances = value.instances.map(parseOwnedInstance).filter((instance): instance is DorpOwnedInstance => instance !== null);
+    let instances = value.instances.map(parseOwnedInstance).filter((instance): instance is DorpOwnedInstance => instance !== null);
+    if (value.version === 2) {
+      // Alleen nieuwe bewonerrechten toevoegen; oude IDs, levels en indeling blijven intact.
+      const missing = DEFAULT_DORP_STATE.instances.filter((fixture) => DORP_OBJECT_BY_ID.get(fixture.objectId)?.kind === "resident" && !instances.some((item) => item.instanceId === fixture.instanceId));
+      instances = [...instances, ...structuredClone(missing)];
+    }
     const completeRights = instances.length === DEFAULT_DORP_STATE.instances.length && DEFAULT_DORP_STATE.instances.every((fixture) => instances.some((instance) => instance.instanceId === fixture.instanceId && instance.objectId === fixture.objectId));
     if (!completeRights || !ownershipIsValid(instances)) return structuredClone(DEFAULT_DORP_STATE);
     const reconciled = reconcileInstancesForRadius(instances, radiusForPhase(phase));
