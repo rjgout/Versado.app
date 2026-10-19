@@ -206,6 +206,14 @@ jobs:
           npm run lint
           npx tsx scripts/i18n/check.ts
 
+      - name: Dorp-browserbewijs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: versado-dorp-browser
+          path: /tmp/versado-dorp-browser
+          if-no-files-found: ignore
+
       - name: Annotatiebrowserbewijs bewaren
         if: always()
         uses: actions/upload-artifact@v4
@@ -505,12 +513,4 @@ jobs:
         with:
           name: fsy-conversion-browser
           path: /tmp/versado-fsy-conversion-browser
-          if-no-files-found: ignore
-
-      - name: Dorp-browserbewijs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: versado-dorp-browser
-          path: /tmp/versado-dorp-browser
           if-no-files-found: ignore
