@@ -23,7 +23,8 @@ const REGISTRY: Record<string, z.infer<typeof schema>> = {
 
 /** Alleen "Kom dan en volg Mij"-programma's hebben een persoonlijke studieroute; FSY en andere programma's niet. */
 export function isPersonalStudyWork(workKey: string) {
-  return workKey.startsWith("cfm-");
+  // "synthetic-study-cfm-" bestaat alleen in het geïsoleerde syntheticprofiel (testfixture), nooit in productie.
+  return workKey.startsWith("cfm-") || workKey.startsWith("synthetic-study-cfm-");
 }
 export function loadPersonalStudyOverrides(workKey: string, sourceKey: string): PersonalStudyOverrides {
   return REGISTRY[workKey]?.[sourceKey] ?? {};

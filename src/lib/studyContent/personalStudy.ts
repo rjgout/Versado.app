@@ -211,7 +211,7 @@ export function planPersonalStudy(
     return {
       index: s + 1,
       title: heading ? readingBlockText(heading) : scriptureTitle,
-      continued: !starting && owner.topic > 0,
+      continued: !starting && (owner.topic > 0 || s > 0),
       labels: stepBlocks.filter((b) => SCRIPTURE_LABEL_ID.test(b.id)).map((b) => readingBlockText(b)),
       blockIds: stepBlocks.map((b) => b.id),
       chars: slice.reduce((n, a) => n + a.chars, 0),

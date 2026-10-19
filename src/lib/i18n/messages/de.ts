@@ -229,6 +229,7 @@ export const de: PartialMessages = {
       "unresolved": "Synthetische Lektion mit ungeklärtem Verweis",
       "invalid": "Ungültige Struktur (Test)",
       "batch-error": "Fehler im zweiten Stapel (Test)",
+      "cfm-personal": "CFM – persönliches Studium (Test)",
       "rights-conflict": "Gleiches Bild, abweichende Rechte (Test)"
     },
     "changes": {

@@ -3,6 +3,8 @@ import { getStudyContext, isLegacyFsyPublished } from "@/lib/studyContext";
 import { userDayKey } from "@/lib/timeZone";
 import { canAccessCollection } from "@/lib/contentAccess";
 import { readingAccessWhere } from "@/lib/contentAccess";
+import { isPersonalStudyWork } from "./personalStudyOverrides";
+import { completedStepCounts } from "./stepProgress";
 
 /** Normale leslijst onder Leren; geen cursussen aanmaken of voorkeuren wijzigen. */
 export async function getStudyCatalogue(actor: {
@@ -30,13 +32,16 @@ export async function getStudyCatalogue(actor: {
   const context = workKey ? await getStudyContext(actor, workKey) : null;
   const safe = lessons.slice(0,200);
   const progress = await prisma.contentProgress.findMany({where:{userId:actor.id,contentKey:{in:safe.map(e=>`study:${e.workKey}:${e.lesson.periodId}:${e.lesson.sourceKey}`)}},select:{contentKey:true,readStatus:true}});
+  const stepCounts = await completedStepCounts(actor, safe.map(e=>({editionId:e.id,revisionId:e.publishedRevisionId!})));
   const result = safe.map(e=>({ id:e.id,lessonId:e.lessonId,collectionId:e.collectionId,title:e.publishedRevision!.title,lessonKey:`study:${e.lessonId}`,workKey:e.workKey,
     order:e.lesson.order,revisionId:e.publishedRevisionId!, legacyKey:e.legacyFsyLesson ? `fsy:${e.legacyFsyLesson.id}` : null,year:e.lesson.period.year,month:e.lesson.month,category:e.lesson.categoryKey,
     startsOn:e.lesson.startsOn?.toISOString().slice(0,10)??null,endsOnExclusive:e.lesson.endsOnExclusive?.toISOString().slice(0,10)??null,
-    read:progress.some(p=>p.contentKey===`study:${e.workKey}:${e.lesson.periodId}:${e.lesson.sourceKey}`&&p.readStatus==="READ") }));
+    read:progress.some(p=>p.contentKey===`study:${e.workKey}:${e.lesson.periodId}:${e.lesson.sourceKey}`&&p.readStatus==="READ"),
+    // Persoonlijke studie 2.0: alleen "Kom dan en volg Mij"-lessen hebben een zeven-stappenroute.
+    personal:isPersonalStudyWork(e.workKey), stepsDone:stepCounts.get(e.id)??0 }));
   if(workKey === "fsy") {
     const legacy=await prisma.fsyLesson.findMany({where:{contentCollectionId:user.activeContentCollectionId,studyLessonEditionId:null,publishedContent:{not:null}},orderBy:[{year:"asc"},{month:"asc"},{order:"asc"},{id:"asc"}],take:201});
-    for(const l of legacy.filter(l=>isLegacyFsyPublished(l.publishedContent))) result.push({id:l.id,lessonId:l.id,collectionId:l.contentCollectionId,title:l.publishedTitle??l.title,lessonKey:`fsy:${l.id}`,workKey:"fsy",order:l.order,revisionId:"",legacyKey:`fsy:${l.id}`,year:l.year,month:l.month,category:l.category,startsOn:null,endsOnExclusive:null,read:false});
+    for(const l of legacy.filter(l=>isLegacyFsyPublished(l.publishedContent))) result.push({id:l.id,lessonId:l.id,collectionId:l.contentCollectionId,title:l.publishedTitle??l.title,lessonKey:`fsy:${l.id}`,workKey:"fsy",order:l.order,revisionId:"",legacyKey:`fsy:${l.id}`,year:l.year,month:l.month,category:l.category,startsOn:null,endsOnExclusive:null,read:false,personal:false,stepsDone:0});
   }
   result.sort((a,b)=>(a.year??0)-(b.year??0)||(a.month??0)-(b.month??0)||a.order-b.order||a.id.localeCompare(b.id));
   const truncated=lessons.length>200||result.length>200;

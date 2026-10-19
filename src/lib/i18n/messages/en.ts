@@ -229,6 +229,7 @@ export const en: PartialMessages = {
       "unresolved": "Synthetic lesson with unresolved reference",
       "invalid": "Invalid structure (test)",
       "batch-error": "Error in second batch (test)",
+      "cfm-personal": "CFM personal study (test)",
       "rights-conflict": "Same image, conflicting rights (test)"
     },
     "changes": {

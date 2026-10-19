@@ -6,7 +6,9 @@ import {useT,useUiLanguage} from '@/components/I18nProvider';
 import {fsyLessonMetadata} from '@/lib/fsyPresentation';
 import {jsonMutation} from '@/lib/data/mutation';
 import {ApiRequestError} from '@/lib/data/fetchJson';
-import {secondaryButton} from '@/components/versado/styles';
+import {secondaryButton,surfaceCard,focusRing} from '@/components/versado/styles';
+import {BookOpen,ListChecks,ChevronRight} from 'lucide-react';
+import {formatWeekPeriod} from './PersonalStudyParts';
 import type {getStudyCatalogue} from '@/lib/studyContent/catalogue';
 import type {StudyContextAction,StudyContextView} from '@/lib/studyContextContract';
 type Catalogue=Awaited<ReturnType<typeof getStudyCatalogue>>;
@@ -17,6 +19,8 @@ export default function ProgramLessonPicker({data,choose=false}:{data:Catalogue;
  const alive=useRef(true);useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  const [busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null),[retry,setRetry]=useState(false);
  if(!data.context || !data.programName)return null;
+ const personalProgram=data.lessons.some(l=>l.personal),currentLesson=data.lessons.find(l=>l.lessonKey===data.currentLessonKey&&l.personal)??null;
+ const lessonPath=(l:{lessonId:string;collectionId:string})=>`/study-lesson/${encodeURIComponent(l.lessonId)}/${encodeURIComponent(l.collectionId)}`;
  const context=data.context,active=data.lessons.find(l=>l.lessonKey===context.activeLessonKey||(l.legacyKey!==null&&l.legacyKey===context.activeLessonKey));
  async function select(lessonKey:string){
   if(locked.current)return;
@@ -41,7 +45,17 @@ export default function ProgramLessonPicker({data,choose=false}:{data:Catalogue;
   <h2 className="break-words text-lg font-extrabold text-vs-fg">{data.programName}</h2>
   <p className="text-sm text-vs-fg-2">{t('programPicker.remembered')}</p>
   {choose&&!data.truncated&&<p className="text-sm text-vs-fg-2">{t('programPicker.availableCount',{count:data.lessons.length})}</p>}
-  {context.activeLessonKey ? <div className="space-y-2">
+  {personalProgram&&<div data-cfm-modes className="grid gap-2 sm:grid-cols-2">
+   {context.available&&context.lessonHref?<Link href={context.lessonHref} prefetch={false} className={`${surfaceCard} ${focusRing} flex min-h-16 min-w-0 items-center gap-3 p-3 hover:bg-vs-subtle`}>
+    <BookOpen aria-hidden className="h-6 w-6 shrink-0 text-vs-accent"/>
+    <span className="min-w-0 flex-1"><span className="block font-extrabold text-vs-fg">{t('cfmStudy.modeFree')}</span><span className="block break-words text-sm text-vs-fg-2">{active?.title??t('programPicker.continue')}</span></span>
+    <ChevronRight aria-hidden className="h-5 w-5 shrink-0 text-vs-fg-3"/></Link>:null}
+   {currentLesson?<Link href={`${lessonPath(currentLesson)}/stappen`} prefetch={false} className={`${surfaceCard} ${focusRing} flex min-h-16 min-w-0 items-center gap-3 p-3 hover:bg-vs-subtle`}>
+    <ListChecks aria-hidden className="h-6 w-6 shrink-0 text-vs-accent"/>
+    <span className="min-w-0 flex-1"><span className="block font-extrabold text-vs-fg">{t('cfmStudy.modeSteps')}</span><span className="block break-words text-sm text-vs-fg-2">{t('cfmStudy.currentWeek')} · {currentLesson.title}</span></span>
+    <ChevronRight aria-hidden className="h-5 w-5 shrink-0 text-vs-fg-3"/></Link>:<p role="status" className="text-sm text-vs-fg-2">{t('cfmStudy.noCurrentWeek')}</p>}
+  </div>}
+ {context.activeLessonKey ? <div className="space-y-2">
    <p className="font-bold text-vs-fg">{active?.title??t('programPicker.active')}</p>
    <p className="text-sm text-vs-fg-2">{t(active?.read?'programPicker.read':'programPicker.reading')}</p>
    {context.available&&context.lessonHref ? <Link className={secondaryButton} href={context.lessonHref} prefetch={false}>{t('programPicker.continue')}</Link>:<p role="status">{t('programPicker.unavailable')}</p>}
@@ -53,10 +67,12 @@ export default function ProgramLessonPicker({data,choose=false}:{data:Catalogue;
    {data.truncated&&<p role="status">{t('programPicker.truncated')}</p>}
    <ol className="grid min-w-0 gap-3">{data.lessons.map(l=>{
     const selected=l.lessonKey===context.activeLessonKey||(l.legacyKey!==null&&l.legacyKey===context.activeLessonKey);
-    return <li key={l.id} className="min-w-0"><button data-program-lesson={l.id} data-study-lesson={l.id} type="button" disabled={busy||retry} aria-pressed={selected} onClick={()=>void select(l.lessonKey)} className="min-w-0 w-full min-h-14 rounded-xl border border-vs-line p-3 text-left text-vs-fg hover:bg-vs-accent-soft focus-visible:outline focus-visible:outline-vs-accent disabled:opacity-60">
+    const week=l.personal?formatWeekPeriod(l.startsOn,l.endsOnExclusive,language):null;
+    const meta=l.personal?[week,l.lessonKey===data.currentLessonKey?t('cfmStudy.currentWeek'):null,l.read?t('programPicker.read'):l.stepsDone>0?t('cfmStudy.weekProgress',{done:l.stepsDone,total:7}):null]:[...(l.workKey==='fsy'?[fsyLessonMetadata(l,language,t)]:[l.year,l.month,l.category,l.startsOn]),l.read?t('programPicker.read'):null];
+    return <li key={l.id} className="flex min-w-0 gap-2"><button data-program-lesson={l.id} data-study-lesson={l.id} type="button" disabled={busy||retry} aria-pressed={selected} onClick={()=>void select(l.lessonKey)} className="min-w-0 flex-1 min-h-14 rounded-xl border border-vs-line p-3 text-left text-vs-fg hover:bg-vs-accent-soft focus-visible:outline focus-visible:outline-vs-accent disabled:opacity-60">
      <span className="block [overflow-wrap:anywhere] font-bold">{selected?'✓ ':''}{l.title}</span>
-     <span className="block text-sm text-vs-fg-2">{[...(l.workKey==='fsy'?[fsyLessonMetadata(l,language,t)]:[l.year,l.month,l.category,l.startsOn]),l.read?t('programPicker.read'):null].filter(Boolean).join(' · ')}</span>
-    </button></li>;
+     <span className="block text-sm text-vs-fg-2">{meta.filter(Boolean).join(' · ')}</span>
+    </button>{l.personal&&<Link href={`${lessonPath(l)}/stappen`} prefetch={false} aria-label={`${t('cfmStudy.modeSteps')}: ${l.title}`} className={`${secondaryButton} !rounded-xl self-stretch`}><ListChecks aria-hidden className="h-5 w-5 shrink-0"/><span className="sr-only sm:not-sr-only">{t('cfmStudy.openWeekSteps')}</span></Link>}</li>;
    })}</ol>
   </>}
  </section>;

@@ -104,31 +104,46 @@ export async function recordStepProgress(
       const step = plan.steps[input.stepIndex - 1];
       if (!step || step.fingerprint !== input.stepFingerprint) throw new StepProgressError("INVALID");
 
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${JSON.stringify([actor.id, "step", input.lessonEditionId])}, 0))`;
-      const key = { userId_lessonEditionId_stepFingerprint: { userId: actor.id, lessonEditionId: input.lessonEditionId, stepFingerprint: step.fingerprint } };
-      const existing = await tx.studyStepProgress.findUnique({ where: key, select: { status: true } });
-      const now = new Date();
-      let changed = false;
-      if (!existing) {
-        await tx.studyStepProgress.create({
-          data: {
-            userId: actor.id, lessonEditionId: input.lessonEditionId, stepFingerprint: step.fingerprint, stepIndex: step.index,
-            revisionId: published.revisionId, openedAt: now,
-            status: input.action === "COMPLETE" ? "COMPLETED" : "IN_PROGRESS", completedAt: input.action === "COMPLETE" ? now : null,
-          },
-        });
-        changed = true;
-      } else if (input.action === "COMPLETE" && existing.status !== "COMPLETED") {
-        await tx.studyStepProgress.update({ where: key, data: { status: "COMPLETED", completedAt: now, openedAt: now, revisionId: published.revisionId, stepIndex: step.index } });
-        changed = true;
-      } else {
-        // Heropenen of dubbele afronding: alleen "laatst geopend" en de revisie bijwerken, nooit de status verlagen.
-        await tx.studyStepProgress.update({ where: key, data: { openedAt: now, revisionId: published.revisionId, stepIndex: step.index } });
-      }
+      const changed = await applyStepProgress(tx, actor.id, { lessonEditionId: input.lessonEditionId, revisionId: published.revisionId, step, action: input.action });
       return { state: (await getStepProgress(actor, published, plan, tx))!, changed };
     },
     { maxWait: 5000, timeout: 10000 },
   );
+}
+
+type Tx = Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0];
+/**
+ * Schrijft de stapstatus binnen een transactie. Monotoon en idempotent: afgerond blijft afgerond, heropenen werkt alleen
+ * "laatst geopend" bij en een tweede afronding verandert niets (changed=false). De advisory lock serialiseert gelijktijdige
+ * verzoeken van dezelfde gebruiker voor dezelfde editie.
+ */
+export async function applyStepProgress(
+  tx: Tx,
+  userId: string,
+  input: { lessonEditionId: string; revisionId: string; step: { index: number; fingerprint: string }; action: "OPEN" | "COMPLETE" },
+): Promise<boolean> {
+  const { step } = input;
+  await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${JSON.stringify([userId, "step", input.lessonEditionId])}, 0))`;
+  const key = { userId_lessonEditionId_stepFingerprint: { userId, lessonEditionId: input.lessonEditionId, stepFingerprint: step.fingerprint } };
+  const existing = await tx.studyStepProgress.findUnique({ where: key, select: { status: true } });
+  const now = new Date();
+  if (!existing) {
+    await tx.studyStepProgress.create({
+      data: {
+        userId, lessonEditionId: input.lessonEditionId, stepFingerprint: step.fingerprint, stepIndex: step.index,
+        revisionId: input.revisionId, openedAt: now,
+        status: input.action === "COMPLETE" ? "COMPLETED" : "IN_PROGRESS", completedAt: input.action === "COMPLETE" ? now : null,
+      },
+    });
+    return true;
+  }
+  if (input.action === "COMPLETE" && existing.status !== "COMPLETED") {
+    await tx.studyStepProgress.update({ where: key, data: { status: "COMPLETED", completedAt: now, openedAt: now, revisionId: input.revisionId, stepIndex: step.index } });
+    return true;
+  }
+  // Heropenen of dubbele afronding: alleen "laatst geopend" en de revisie bijwerken, nooit de status verlagen.
+  await tx.studyStepProgress.update({ where: key, data: { openedAt: now, revisionId: input.revisionId, stepIndex: step.index } });
+  return false;
 }
 
 /** Leesroute voor de stapkaarten: eigen rechten, geen schrijfactie; null als de les niet beschikbaar of niet ondersteund is. */

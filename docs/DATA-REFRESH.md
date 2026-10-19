@@ -186,3 +186,11 @@ Scope `dorp` omvat de persoonlijke/gedeelde wereld en toegestane bezoekweergave.
 gebeurtenisnaam via de bestaande `data_event`-infrastructuur, geen inventaris,
 privéprofiel of giftpayload. Groepswijzigingen maken ook `dorp` verouderd.
 Geen nieuwe globale focus-, resume- of pollinglistener.
+
+### Persoonlijke studie: stapvoortgang (CFM)
+
+`studyStepsChanged` invalideert uitsluitend `studySteps` (de zeven stappen van één les) en `courses` (de weekkaarten
+tonen "n van 7 stappen"). De eigen query gebruikt sessionKey + editie + geopende revisie en vergelijkt voortgang op de
+inhoudsvingerafdruk van de stap, niet op het stapnummer. Stap openen of afronden loopt via `jsonMutation` naar
+`/api/study-steps`; dat is uitsluitend studievoortgang en dus nooit `activityCompleted`, XP, reeks of leesstatus.
+Geen polling en geen eigen focus-/online-listener.

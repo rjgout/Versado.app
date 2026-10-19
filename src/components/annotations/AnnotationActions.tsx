@@ -67,7 +67,9 @@ export function AnnotationTrigger({
         label ?? t(marked ? "annotations.existing" : "annotations.open")
       }
       aria-haspopup="dialog"
-      className={`${iconButton} !h-auto min-h-11 !w-11 ${quiet ? "sr-only focus-visible:not-sr-only focus-visible:ml-2 focus-visible:align-middle" : ""} ${marked ? "!text-vs-accent" : "opacity-60 hover:opacity-100"}`}
+      className={quiet
+        ? `sr-only focus-visible:not-sr-only focus-visible:ml-2 focus-visible:inline-flex focus-visible:h-11 focus-visible:w-11 focus-visible:items-center focus-visible:justify-center focus-visible:rounded-full focus-visible:align-middle focus-visible:ring-2 focus-visible:ring-vs-accent ${marked ? "text-vs-accent" : "text-vs-fg-3"}`
+        : `${iconButton} !h-auto min-h-11 !w-11 ${marked ? "!text-vs-accent" : "opacity-60 hover:opacity-100"}`}
       onPointerDown={(e) => {
         if (!window.getSelection()?.isCollapsed) e.preventDefault();
         fired.current = false;

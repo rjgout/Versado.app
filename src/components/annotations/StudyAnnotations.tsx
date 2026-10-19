@@ -37,6 +37,7 @@ export default function StudyAnnotations({
   children,
   disabled,
   recovery = null,
+  compact = false,
 }: {
   document: ReaderDocument;
   editionId: string;
@@ -45,6 +46,8 @@ export default function StudyAnnotations({
   disabled: boolean;
   /** Fase 4D: een voorstel of verloren passage van de geopende annotatie; anders null. */
   recovery?: AnnotationFocus | null;
+  /** Persoonlijke studie 2.0: de selectie-actie is een rustige, kleine knop in plaats van een dominante knop. */
+  compact?: boolean;
   children: ReactNode;
 }) {
   const t = useT(),
@@ -189,7 +192,7 @@ export default function StudyAnnotations({
         ref={selectionButton}
         data-annotation-selection
         type="button"
-        className={`${secondaryButton} mb-4`}
+        className={`${secondaryButton} ${compact ? "mb-3 !min-h-9 !px-3" : "mb-4"}`}
         disabled={disabled}
         onPointerDown={(e) => e.preventDefault()}
         onClick={select}

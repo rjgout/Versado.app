@@ -231,6 +231,7 @@ export const nl = {
       "unresolved": "Synthetische les met onopgeloste verwijzing",
       "invalid": "Ongeldige structuur (test)",
       "batch-error": "Fout in tweede batch (test)",
+      "cfm-personal": "CFM-persoonlijke studie (test)",
       "rights-conflict": "Zelfde afbeelding, afwijkende rechten (test)"
     },
     "changes": {
