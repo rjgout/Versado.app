@@ -207,26 +207,12 @@
   "suggestion": null
  },
  "122": {
-  "ok": false,
+  "ok": true,
   "seconds": null,
-  "wrong": "34@55.8s",
+  "wrong": null,
   "shared": false,
-  "detail": {
-   "t": 55.8,
-   "margin": 0.005,
-   "cost": 0.397,
-   "streak": 1,
-   "ev": 0,
-   "evOther": 91,
-   "evTruth": null,
-   "z": 0,
-   "zOther": 6.7,
-   "zTruth": null
-  },
-  "suggestion": {
-   "ok": false,
-   "t": 55.8
-  }
+  "detail": null,
+  "suggestion": null
  },
  "127": {
   "ok": true,
