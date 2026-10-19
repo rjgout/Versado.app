@@ -41,6 +41,8 @@ export const DORP_OBJECTS: readonly DorpObjectDefinition[] = publicCatalog.objec
       footprint: [object.footprint[0], object.footprint[1]] as const,
       // De tempel heeft in deze levering alleen L1; niet-bestaande niveaus worden niet gesimuleerd.
       maxLevel: Math.max(...availableLevels) as DorpLevel,
+      maxInstances: object.maxInstances ?? 1,
+      repeatable: (object.maxInstances ?? 1) > 1,
       assetIds: object.pilotAssets,
     };
   });
@@ -62,11 +64,17 @@ export const DORP_TERRAIN_ASSETS = {
 } as const;
 
 export const DORP_FOREST_ASSETS = [
-  `${PUBLIC_ASSET_ROOT}assets/forest/forest-strip.webp`,
-  `${PUBLIC_ASSET_ROOT}assets/forest/forest-corner.webp`,
-  `${PUBLIC_ASSET_ROOT}assets/forest/forest-cap.webp`,
-  `${PUBLIC_ASSET_ROOT}assets/forest/forest-dense.webp`,
+  { role: "strip", variants: [`${PUBLIC_ASSET_ROOT}assets/forest/forest-strip.webp`] },
+  { role: "corner", variants: [`${PUBLIC_ASSET_ROOT}assets/forest/forest-corner.webp`] },
+  { role: "cap", variants: [`${PUBLIC_ASSET_ROOT}assets/forest/forest-cap.webp`] },
+  { role: "dense", variants: [`${PUBLIC_ASSET_ROOT}assets/forest/forest-dense.webp`] },
 ] as const;
+
+export function forestAssetFor(index: number, u: number, v: number): string {
+  const group = DORP_FOREST_ASSETS[index % DORP_FOREST_ASSETS.length];
+  const variantIndex = Math.abs((u * 73_856_093) ^ (v * 19_349_663) ^ index) % group.variants.length;
+  return group.variants[variantIndex];
+}
 
 export const DORP_RESIDENTS = [
   { objectId: "vd-c001", characterId: "nephi", name: "Nephi", description: "Een vastberaden schriftkenner en bouwer.", asset: `${PUBLIC_ASSET_ROOT}assets/characters/resident-nephi.webp`, u: -1, v: 0 },

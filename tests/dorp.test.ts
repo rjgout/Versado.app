@@ -1,41 +1,145 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
-import { DORP_ASSETS, DORP_OBJECT_BY_ID, DORP_OBJECTS, DORP_RESIDENTS, assetForObject } from "../src/lib/dorp/catalog";
+import { createRenderScheduler, fitCameraToRadius, screenToWorld, zoomCameraAroundPoint } from "../src/lib/dorp/camera";
+import { DORP_ASSETS, DORP_FOREST_ASSETS, DORP_OBJECT_BY_ID, DORP_OBJECTS, DORP_RESIDENTS, assetForObject } from "../src/lib/dorp/catalog";
 import { canAccessDorpPrototype, dorpPrototypeEnabled } from "../src/lib/dorp/access";
 import {
+  EXPANSION_COUNT,
+  MAX_RADIUS,
   PROTOTYPE_PHASES,
+  START_RADIUS,
   buildableTileCount,
+  chapterThresholdForPhase,
   footprintTiles,
   isTileBuildable,
   placementIsValid,
+  projectedWorldBounds,
   radiusForPhase,
   suggestPlacement,
 } from "../src/lib/dorp/geometry";
+import { availableInstance, levelOwnedInstance, ownershipIsValid, placeOwnedInstance, placedObjects, reconcileInstancesForRadius, storeOwnedInstance } from "../src/lib/dorp/ownership";
+import { pathConnectivity, pathVariantForMask } from "../src/lib/dorp/paths";
 import { DEFAULT_DORP_STATE, DORP_STORAGE_KEY, parseDorpState, serializeDorpState } from "../src/lib/dorp/storage";
-import type { PlacedDorpObject } from "../src/lib/dorp/types";
+import type { DorpOwnedInstance, PlacedDorpObject } from "../src/lib/dorp/types";
 import { shellModeForRoute } from "../src/lib/focusMode";
 
-test("kaartgeometrie volgt exact het cirkelmasker en de zestien uitbreidingen", () => {
+test("kaart groeit in zestien stappen exact van R8 naar R62", () => {
+  const radii = Array.from({ length: EXPANSION_COUNT + 1 }, (_, phase) => radiusForPhase(phase));
+  assert.deepEqual(radii, [8, 11, 14, 18, 21, 24, 28, 31, 35, 38, 41, 45, 48, 51, 55, 58, 62]);
+  assert.equal(START_RADIUS, 8);
+  assert.equal(MAX_RADIUS, 62);
+  assert.equal(buildableTileCount(8), 197);
   assert.equal(buildableTileCount(14), 613);
   assert.equal(buildableTileCount(62), 12_061);
-  assert.equal(radiusForPhase(0), 14);
-  assert.equal(radiusForPhase(16), 62);
-  assert.equal(radiusForPhase(999), 62);
-  assert.equal(isTileBuildable(14, 0, 14), true);
-  assert.equal(isTileBuildable(14, 1, 14), false);
-  assert.deepEqual(PROTOTYPE_PHASES.map((phase) => phase.radius), [14, 17, 38, 62]);
+  assert.equal(radii.slice(1).filter((radius, index) => radius - radii[index] === 3).length, 10);
+  assert.equal(radii.slice(1).filter((radius, index) => radius - radii[index] === 4).length, 6);
+  assert.deepEqual(PROTOTYPE_PHASES.map((phase) => phase.radius), [8, 11, 14, 35, 62]);
 });
 
-test("footprints bepalen plaatsing, overlap en kaartgrens", () => {
+test("hoofdstukdrempels volgen de productformule zonder voortgang te activeren", () => {
+  assert.deepEqual(Array.from({ length: 16 }, (_, index) => chapterThresholdForPhase(index + 1)), [15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 239]);
+});
+
+test("footprints bepalen plaatsing, overlap en de fysieke tempelgrens", () => {
   const family: PlacedDorpObject = { instanceId: "a", objectId: "vd-b001", level: 1, u: -1, v: -1 };
-  assert.equal(placementIsValid(family, [], 14), true);
-  assert.equal(placementIsValid({ instanceId: "b", objectId: "vd-b002", u: 0, v: 0 }, [family], 14), false);
-  assert.equal(placementIsValid({ instanceId: "b", objectId: "vd-l001", u: 8, v: 8 }, [], 14), false);
-  assert.equal(placementIsValid({ ...family, u: 2, v: 2 }, [family], 14), true, "verplaatsen negeert de eigen oude footprint");
+  assert.equal(placementIsValid(family, [], 8), true);
+  assert.ok(suggestPlacement("vd-b001", [], 8), "een klein huis past op R8");
+  assert.equal(placementIsValid({ instanceId: "b", objectId: "vd-b002", u: 0, v: 0 }, [family], 8), false);
+  assert.equal(placementIsValid({ ...family, u: 2, v: 2 }, [family], 8), true, "verplaatsen negeert de eigen oude footprint");
   assert.equal(footprintTiles(0, 0, [12, 12]).length, 144);
-  assert.ok(suggestPlacement("vd-l001", [], 14), "de tempel past fysiek op R14");
-  assert.equal(suggestPlacement("vd-l001", [], 7), null, "de tempel past fysiek niet op R7");
+  assert.equal(suggestPlacement("vd-l001", [], 8), null, "de tempel past fysiek niet op R8");
+  assert.ok(suggestPlacement("vd-l001", [], 14), "R14 blijft als expliciet tempeltestniveau beschikbaar");
+  assert.equal(isTileBuildable(8, 0, 8), true);
+  assert.equal(isTileBuildable(8, 1, 8), false);
+});
+
+test("werkelijke geprojecteerde wereldgrenzen sturen een veilige, compacte fit", () => {
+  const bounds = projectedWorldBounds(8);
+  const insets = { top: 84, right: 12, bottom: 132, left: 12 };
+  const camera = fitCameraToRadius(390, 844, 8, insets);
+  const project = (x: number, y: number) => ({ x: 195 + (x - camera.x) * camera.zoom, y: 422 + (y - camera.y) * camera.zoom });
+  const topLeft = project(bounds.minX, bounds.minY);
+  const bottomRight = project(bounds.maxX, bounds.maxY);
+  assert.ok(topLeft.x >= insets.left - 0.001);
+  assert.ok(topLeft.y >= insets.top - 0.001);
+  assert.ok(bottomRight.x <= 390 - insets.right + 0.001);
+  assert.ok(bottomRight.y <= 844 - insets.bottom + 0.001);
+  assert.ok(camera.zoom > fitCameraToRadius(390, 844, 62, insets).zoom, "de huidige R8-kaart wordt niet zo klein als de maximale wereld");
+});
+
+test("cursorgerichte zoom behoudt het wereldpunt onder de aanwijzer", () => {
+  const camera = { x: 25, y: -10, zoom: 0.5 };
+  const before = screenToWorld(camera, 390, 844, 70, 220);
+  const zoomed = zoomCameraAroundPoint(camera, 390, 844, 70, 220, 0.9);
+  assert.deepEqual(screenToWorld(zoomed, 390, 844, 70, 220), before);
+});
+
+test("renderplanner tekent op het volgende frame en voegt dubbele aanvragen samen", () => {
+  const callbacks: FrameRequestCallback[] = [];
+  let draws = 0;
+  const scheduler = createRenderScheduler((callback) => { callbacks.push(callback); return callbacks.length; }, () => undefined, () => { draws += 1; });
+  scheduler.request(); scheduler.request();
+  assert.equal(callbacks.length, 1);
+  callbacks[0](0);
+  assert.equal(draws, 1);
+  scheduler.request();
+  assert.equal(callbacks.length, 2);
+});
+
+test("eigendom onderscheidt unieke en herhaalbare exemplaarrechten", () => {
+  assert.equal(ownershipIsValid(DEFAULT_DORP_STATE.instances), true);
+  for (const definition of DORP_OBJECTS.filter((object) => !object.repeatable)) {
+    assert.equal(DEFAULT_DORP_STATE.instances.filter((instance) => instance.objectId === definition.id).length, 1, definition.id);
+  }
+  const repeatable = DORP_OBJECTS.find((object) => object.repeatable)!;
+  assert.ok(DEFAULT_DORP_STATE.instances.filter((instance) => instance.objectId === repeatable.id).length > 1);
+  assert.equal(ownershipIsValid([...DEFAULT_DORP_STATE.instances, { ...DEFAULT_DORP_STATE.instances.find((instance) => instance.objectId === "vd-b001")!, instanceId: "dubbel" }]), false);
+});
+
+test("terugnemen en herplaatsen behouden instance-ID en upgradeniveau", () => {
+  const original = DEFAULT_DORP_STATE.instances.find((instance) => instance.objectId === "vd-b001")!;
+  let instances = levelOwnedInstance(DEFAULT_DORP_STATE.instances, original.instanceId, 3);
+  instances = storeOwnedInstance(instances, original.instanceId);
+  const stored = instances.find((instance) => instance.instanceId === original.instanceId)!;
+  assert.equal(stored.position, null);
+  assert.equal(stored.level, 3);
+  instances = placeOwnedInstance(instances, original.instanceId, { u: 0, v: 0 });
+  const replaced = instances.find((instance) => instance.instanceId === original.instanceId)!;
+  assert.equal(replaced.level, 3);
+  assert.deepEqual(replaced.position, { u: 0, v: 0 });
+  assert.equal(availableInstance({ instances }, "vd-b001"), undefined, "een uniek geplaatst gebouw kan niet opnieuw worden gekozen");
+});
+
+test("kaartverkleining bergt buitenliggende objecten deterministisch op zonder niveauverlies", () => {
+  const instance: DorpOwnedInstance = { instanceId: "ver", objectId: "vd-b001", level: 3, position: { u: 20, v: 20 } };
+  const result = reconcileInstancesForRadius([instance], 8);
+  assert.equal(result.storedCount, 1);
+  assert.deepEqual(result.instances[0], { ...instance, position: null });
+});
+
+test("opslag v2 herlaadt, verwerpt v1 en saneert kaartverkleining", () => {
+  assert.match(DORP_STORAGE_KEY, /v2$/);
+  assert.deepEqual(parseDorpState(serializeDorpState(DEFAULT_DORP_STATE)), DEFAULT_DORP_STATE);
+  assert.deepEqual(parseDorpState(JSON.stringify({ version: 1, phase: 0, objects: [] })), DEFAULT_DORP_STATE);
+  const far = { ...DEFAULT_DORP_STATE.instances.find((instance) => instance.objectId === "vd-b001")!, level: 3 as const, position: { u: 20, v: 20 } };
+  const instances = DEFAULT_DORP_STATE.instances.map((instance) => instance.instanceId === far.instanceId ? far : instance);
+  const parsed = parseDorpState(JSON.stringify({ version: 2, phase: 0, instances, paths: [{ u: 30, v: 30 }] }));
+  const stored = parsed.instances.find((instance) => instance.instanceId === far.instanceId)!;
+  assert.equal(stored.level, 3);
+  assert.equal(stored.position, null);
+  assert.deepEqual(parsed.paths, []);
+  assert.equal(placedObjects(parsed).some((object) => object.instanceId === far.instanceId), false);
+});
+
+test("padconnectiviteit kiest alle logische basisvarianten zonder gebouwobjecten", () => {
+  const center = { u: 0, v: 0 };
+  assert.equal(pathVariantForMask(pathConnectivity(center, [center])), "isolated");
+  assert.equal(pathVariantForMask(pathConnectivity(center, [center, { u: 1, v: 0 }])), "end");
+  assert.equal(pathVariantForMask(pathConnectivity(center, [center, { u: -1, v: 0 }, { u: 1, v: 0 }])), "straight");
+  assert.equal(pathVariantForMask(pathConnectivity(center, [center, { u: 1, v: 0 }, { u: 0, v: 1 }])), "corner");
+  assert.equal(pathVariantForMask(pathConnectivity(center, [center, { u: -1, v: 0 }, { u: 1, v: 0 }, { u: 0, v: 1 }])), "tee");
+  assert.equal(pathVariantForMask(15), "cross");
 });
 
 test("upgrades houden footprint en positie gelijk en niet-bestaande niveaus ontbreken", () => {
@@ -51,28 +155,11 @@ test("upgrades houden footprint en positie gelijk en niet-bestaande niveaus ontb
   assert.equal(assetForObject("vd-l001", 2), undefined);
 });
 
-test("lokale opslag herlaadt geldige data en verwerpt versies, overlap en ongeldige niveaus", () => {
-  assert.match(DORP_STORAGE_KEY, /v1$/);
-  assert.deepEqual(parseDorpState(serializeDorpState(DEFAULT_DORP_STATE)), DEFAULT_DORP_STATE);
-  assert.deepEqual(parseDorpState(JSON.stringify({ ...DEFAULT_DORP_STATE, version: 2 })), DEFAULT_DORP_STATE);
-  const parsed = parseDorpState(JSON.stringify({
-    version: 1,
-    phase: 0,
-    objects: [
-      { instanceId: "goed", objectId: "vd-b001", level: 3, u: 0, v: 0 },
-      { instanceId: "overlap", objectId: "vd-b002", level: 1, u: 1, v: 1 },
-      { instanceId: "niveau", objectId: "vd-b003", level: 8, u: 7, v: 7 },
-      { instanceId: "onbekend", objectId: "privé-object", level: 1, u: 7, v: 7 },
-    ],
-  }));
-  assert.deepEqual(parsed.objects.map((object) => object.instanceId), ["goed"]);
-});
-
-test("pilotcatalogus gebruikt bestaande Work-assets, footprints en canonieke bewoners", () => {
+test("pilotcatalogus gebruikt bestaande Work-assets, metadata en canonieke bewoners", () => {
   assert.ok(DORP_OBJECTS.length >= 10);
   assert.deepEqual(DORP_OBJECT_BY_ID.get("vd-b001")?.footprint, [3, 3]);
-  assert.deepEqual(DORP_OBJECT_BY_ID.get("vd-b002")?.footprint, [3, 3]);
-  assert.deepEqual(DORP_OBJECT_BY_ID.get("vd-b003")?.footprint, [4, 4]);
+  assert.equal(DORP_OBJECT_BY_ID.get("vd-b001")?.maxInstances, 1);
+  assert.equal(DORP_OBJECT_BY_ID.get("vd-p003")?.repeatable, true);
   assert.deepEqual(DORP_OBJECT_BY_ID.get("vd-l001")?.footprint, [12, 12]);
   for (const asset of DORP_ASSETS) {
     assert.match(asset.path, /^\/versado-dorp-bom-v1\/assets\//);
@@ -80,7 +167,17 @@ test("pilotcatalogus gebruikt bestaande Work-assets, footprints en canonieke bew
     assert.ok(asset.anchor[0] >= 0 && asset.anchor[0] <= 1);
     assert.ok(asset.anchor[1] >= 0 && asset.anchor[1] <= 1);
   }
+  assert.ok(DORP_FOREST_ASSETS.every((group) => group.variants.length > 0));
   assert.deepEqual(DORP_RESIDENTS.map((resident) => resident.characterId), ["nephi", "sariah", "ammon-missionary", "lehi"]);
+});
+
+test("camera-events vragen frames aan en pinch kan nooit als tap eindigen", () => {
+  const client = readFileSync(`${process.cwd()}/src/components/dorp/DorpPrototypeClient.tsx`, "utf8");
+  assert.doesNotMatch(client, /setInterval\s*\(/);
+  assert.match(client, /requestDrawRef\.current\(\)/);
+  assert.match(client, /hadMultiplePointers/);
+  assert.match(client, /POINTER_MOVE_THRESHOLD/);
+  assert.match(client, /zoomCameraAroundPoint/);
 });
 
 test("ontwikkelroute vereist featureflag plus admin en lekt geen privémapping", () => {
