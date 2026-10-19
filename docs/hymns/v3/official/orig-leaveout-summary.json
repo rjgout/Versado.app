@@ -1,0 +1,15 @@
+{
+ "hymns": 39,
+ "correct": 39,
+ "wrongSuggestion": 0,
+ "notIdentified": 0,
+ "secondsMedian": null,
+ "secondsP90": null,
+ "msPerFrameAvg": 8.02230358886776,
+ "msPerFrameMax": 257.280986,
+ "frames": 50232,
+ "tempo": 1,
+ "noise": 0,
+ "leaveOut": true,
+ "candidates": 171
+}
