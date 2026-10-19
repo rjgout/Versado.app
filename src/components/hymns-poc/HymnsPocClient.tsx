@@ -871,12 +871,6 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
                   {COPY.resync}
                 </button>
               ) : null}
-              {stage === "following" ? (
-                <button type="button" className={secondaryButton} onClick={recognizeAgain} data-hymns-recognize-again>
-                  <Music className="h-4 w-4" aria-hidden="true" />
-                  {COPY.recognizeAgain}
-                </button>
-              ) : null}
               <button type="button" className={secondaryButton} onClick={stopMic}>
                 <Square className="h-4 w-4" aria-hidden="true" />
                 {COPY.stop}
@@ -911,6 +905,21 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
 
       {sheet === "settings" ? (
         <Sheet title={COPY.settings} onClose={() => setSheet(null)}>
+          {listening && stage === "following" ? (
+            // Niet in de bedieningsbalk: een derde knop laat die op grote tekst en smalle schermen buiten beeld wrappen. De microfoon blijft aan.
+            <button
+              type="button"
+              className={`${secondaryButton} w-full`}
+              data-hymns-recognize-again
+              onClick={() => {
+                recognizeAgain();
+                setSheet(null);
+              }}
+            >
+              <Music className="h-4 w-4" aria-hidden="true" />
+              {COPY.recognizeAgain}
+            </button>
+          ) : null}
           {!choosing && index ? (
             <div className="space-y-2">
               <h3 className="text-sm font-bold text-vs-fg-2">{COPY.hymnLabel}</h3>

@@ -47,6 +47,7 @@ if (MODE === "recognize") {
 } else {
   const byNumber = page.locator(`[data-hymn-number="${HYMN}"]`);
   if (await byNumber.count()) await byNumber.click(); else await page.getByRole("button", { name: new RegExp(TITLE) }).first().click();
+  await page.waitForFunction((n) => document.querySelector("h1")?.textContent?.startsWith(`${n}.`), HYMN, { timeout: 30000 });
   await page.getByRole("button", { name: "Start luisteren", exact: true }).waitFor({ timeout: 20000 });
   await page.getByRole("button", { name: "Start luisteren", exact: true }).click();
 }

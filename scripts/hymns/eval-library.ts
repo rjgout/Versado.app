@@ -3,7 +3,7 @@
 //  - per lofzang: na hoeveel seconden luistertijd wordt de juiste lofzang voorgesteld, en wordt er ooit een verkeerde voorgesteld;
 //  - CPU per frame en het aantal actieve kandidaten van de volledige score-follower.
 // Opnamen zijn Engelstalige begeleiding van dezelfde melodieën; ze zijn de enige echte audio die beschikbaar is.
-// Aanroep: npx tsx scripts/hymns/eval-library.ts [--seconds 70] [--only 24,36] [--tempo 0.8] [--write]
+// Aanroep: npx tsx scripts/hymns/eval-library.ts [--seconds 70] [--only 24,36] [--tempo 0.8] [--every 4] [--no-melody] [--leave-out] [--noise 0.05]
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { ChromaExtractor } from "../../src/lib/hymns/audio/features";
@@ -54,6 +54,8 @@ const candidates: RecognitionCandidate[] = [...groups.entries()].map(([id, g]) =
   title: g[0].title,
   composition: compById.get(id)!,
   sharedWith: g.slice(1).map((m) => ({ number: m.number, title: m.title })),
+  // V3: gecontroleerde zangmelodie zoals in de app (candidatesFromBundle); met --no-melody de situatie van vóór V3.
+  ...(flag("no-melody") ? {} : { melody: bundle.melodies?.[id] }),
 }));
 void candidatesFromHymns;
 

@@ -67,11 +67,8 @@ const mic = (p = page) => p.evaluate(() => ({ g: window.__mic.getUserMedia, a: w
 const noOverflow = (p) => p.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
 const bar = (name) => ({ name, exact: true });
 
-// ---------- 1. openen vanuit de contentkiezer; scherm A (lofzang kiezen)
-await page.goto(`${BASE}/content`, { waitUntil: "domcontentloaded", timeout: 120000 });
-await page.locator("[data-admin-hymns-link]").waitFor({ timeout: 120000 });
-await page.locator("[data-admin-hymns-link]").click();
-await page.waitForURL("**/dev/lofzangen", { timeout: 60000 });
+// ---------- 1. openen; scherm A (lofzang kiezen). De ingang via de contentkiezer ("Zang & muziek") wordt door e2e-sunday.mjs gedekt.
+await page.goto(`${BASE}/dev/lofzangen`, { waitUntil: "domcontentloaded", timeout: 120000 });
 await page.locator("h1").first().waitFor({ timeout: 60000 });
 const shell = await page.evaluate(() => {
   const vis = (el) => !!el && getComputedStyle(el).display !== "none" && el.getBoundingClientRect().height > 0;
@@ -198,8 +195,11 @@ check("instellingen, weergave en tekstgrootte: het zingen blijft 'begonnen' en d
 check("de muzikale positie loopt door (geen reset)", Number.isFinite(beat(t1)) && Number.isFinite(beat(t0)) && (beat(t1) !== beat(t0)), `${beat(t0)} -> ${beat(t1)}`);
 check("de status blijft 'Volgt muziek'", /Volgt muziek|Handmatig/.test((await status()) ?? ""), String(await status()));
 await page.screenshot({ path: `${SHOTS}/04-karaoke.png` });
-await page.locator("[data-hymns-view-toggle]").click();
-check("de snelle weergavewissel in de kop schakelt terug naar volledig couplet", (await page.locator("[data-hymns-view]").getAttribute("data-hymns-view")) === "stanza");
+// De wissel in de kop doorloopt de drie weergaven (couplet -> karaoke -> bladmuziek -> couplet).
+const viewNow = () => page.locator("[data-hymns-view]").getAttribute("data-hymns-view");
+const seen = [];
+for (let i = 0; i < 3 && (await viewNow()) !== "stanza"; i += 1) { await page.locator("[data-hymns-view-toggle]").click(); await page.waitForTimeout(300); seen.push(await viewNow()); }
+check("de snelle weergavewissel in de kop doorloopt de weergaven en keert terug naar volledig couplet", (await viewNow()) === "stanza", seen.join(">"));
 
 // couplet en volgorde
 await page.getByRole("button", { name: "Couplet 3", exact: true }).click();
@@ -244,7 +244,9 @@ await page.getByText("Microfoon is actief").first().waitFor({ timeout: 10000 });
 await page.getByRole("button", { name: "Terug" }).click();
 await page.waitForURL("**/content", { timeout: 20000 });
 check("terugknop navigeert tijdens het luisteren naar de contentkiezer", new URL(page.url()).pathname === "/content");
-check("de microfoon stopt bij het verlaten van de pagina", await page.evaluate(() => window.__mic.tracks.every((t) => t.readyState === "ended")));
+const tracksEnded = () => page.evaluate(() => window.__mic.tracks.every((t) => t.readyState === "ended"));
+for (let i = 0; i < 20 && !(await tracksEnded()); i += 1) await page.waitForTimeout(250);
+check("de microfoon stopt bij het verlaten van de pagina", await tracksEnded(), JSON.stringify(await page.evaluate(() => window.__mic.tracks.map((t) => t.readyState))));
 check("geen paginafouten", errors.filter((e) => !/favicon|hydrat|sw\.js|caret-color|Failed to load resource/i.test(e)).length === 0, errors.slice(0, 3).join(" | "));
 
 // ---------- 7. schermmaten, thema, tekstschaal, landscape en gesimuleerde safe areas
@@ -324,6 +326,7 @@ for (const [w, h, kind] of SIZES) {
         const chooseOk = await p.evaluate(() => ({ x: document.documentElement.scrollWidth - window.innerWidth, y: document.documentElement.scrollHeight - window.innerHeight }));
         check(`${label}: kiesscherm zonder overflow`, chooseOk.x <= 1 && chooseOk.y <= 1, JSON.stringify(chooseOk));
         await p.locator('[data-hymn-number="82"]').click(); // lofzang 82: zes coupletten, de moeilijkste indeling
+        await p.waitForFunction(() => document.querySelector("h1")?.textContent?.startsWith("82."), null, { timeout: 30000 }); // pas daarna Start: op het kiesscherm betekent dezelfde knop automatisch herkennen
         await p.getByRole("button", bar("Start luisteren")).click();
         await p.getByText("Microfoon is actief").first().waitFor({ timeout: 15000 });
         await p.waitForTimeout(500);

@@ -41,6 +41,8 @@ export interface WordMetrics {
   withinOne: number;
   /** Aandeel van de zangtijd waarin de markering vóór het zingende woord loopt (de markering mag nooit voorlopen op de zang). */
   ahead: number;
+  /** Aandeel van de zangtijd waarin de markering meer dan één woord naast het zingende woord staat (een fout, geen "nog niet"). */
+  wrong: number;
   /** Aandeel van de zangtijd waarin er (nog) geen markering was terwijl er al gezongen werd. */
   none: number;
   /** Tijd (s) tussen het eerste woord en de eerste markering; null = nooit. */
@@ -66,6 +68,7 @@ export function evaluateWords(snaps: Pick<FollowSnapshot, "time" | "cursor">[], 
   let exact = 0;
   let within = 0;
   let ahead = 0;
+  let wrong = 0;
   let none = 0;
   const reach = new Array<number | null>(truth.length).fill(null);
   let firstMark: number | null = null;
@@ -86,6 +89,7 @@ export function evaluateWords(snaps: Pick<FollowSnapshot, "time" | "cursor">[], 
     else {
       if (marked === sung) exact += 1;
       if (Math.abs(marked - sung) <= 1) within += 1;
+      else wrong += 1;
       if (marked > sung) ahead += 1;
     }
   }
@@ -98,6 +102,7 @@ export function evaluateWords(snaps: Pick<FollowSnapshot, "time" | "cursor">[], 
     exact: frames ? exact / frames : 0,
     withinOne: frames ? within / frames : 0,
     ahead: frames ? ahead / frames : 0,
+    wrong: frames ? wrong / frames : 0,
     none: frames ? none / frames : 0,
     firstMarkSeconds: firstMark,
   };

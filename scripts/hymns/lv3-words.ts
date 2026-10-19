@@ -13,6 +13,7 @@ const args = process.argv.slice(2);
 const flag = (n: string, d?: string) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
 const COUNT = Number(flag("count", "12"));
 const VARIANT = flag("variant", "v3") as "base" | "v3";
+const CFG = JSON.parse(flag("cfg", "{}") as string);
 const SR = 22050;
 if (VARIANT === "base") DEFAULT_CHROMA_CONFIG.pitch = false;
 
@@ -48,7 +49,7 @@ for (const name of names) {
     if (truth.length < 10) continue;
     const end = truth[truth.length - 1].start + 3;
     const frames = extractFrames(synth.samples.subarray(0, Math.min(synth.samples.length, Math.ceil(end * SR))), SR);
-    const session = new HymnFollowSession(hymn, VARIANT === "base" ? { melodyTracking: false } : {});
+    const session = new HymnFollowSession(hymn, VARIANT === "base" ? { melodyTracking: false } : CFG);
     const snaps: FollowSnapshot[] = [];
     const t0 = performance.now();
     for (const f of frames) snaps.push(session.pushFrame(f));
@@ -67,6 +68,7 @@ const summary = names.map((name) => {
     withinOneMedian: pick((m) => m.withinOne),
     withinOneP10: q(r.map((x) => x.m.withinOne), 0.1),
     aheadMedian: pick((m) => m.ahead),
+    wrongMedian: pick((m) => m.wrong),
     noneMedian: pick((m) => m.none),
     delayMedianMs: pick((m) => m.delayMedianMs),
     delayP90Ms: q(r.map((x) => x.m.delayP90Ms).filter((v): v is number => v !== null), 0.5),

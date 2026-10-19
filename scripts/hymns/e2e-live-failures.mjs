@@ -64,6 +64,7 @@ await page.getByRole("button", { name: "Start luisteren", exact: true }).click()
 if (SCENARIO === "bundleselect") {
   await page.locator("[data-hymns-bundle-error]").waitFor({ timeout: 40000 });
   await page.locator(`[data-hymn-number="82"]`).click();
+  await page.waitForFunction(() => document.querySelector("h1")?.textContent?.startsWith("82."), null, { timeout: 30000 });
 }
 if (SCENARIO === "bundleretry") {
   await page.locator("[data-hymns-bundle-retry]").waitFor({ timeout: 40000 });
