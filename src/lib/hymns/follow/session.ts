@@ -23,6 +23,18 @@ export interface SessionConfig {
   lockSeconds: number;
   /** Onder deze betrouwbaarheid (langer dan `uncertainSeconds`) wordt de status "onzeker". */
   uncertainConfidence: number;
+  /** Hoe snel de vergrendelteller bij een dip terugloopt als de melodie de positie levert (1 = zoals bij instrumenten: meteen naar nul). */
+  melodyLockDecay: number;
+  /** Vertrouwen bij de melodiereferentie: kwaliteit (log-bewijs per frame) en concentratie van de positie waarbij het vertrouwen 0 resp. 1 is. */
+  melodyQualityFloor: number;
+  melodyQualityScale: number;
+  melodyConcFloor: number;
+  melodyConcScale: number;
+  /** Aandeel frames met betrouwbare toonhoogte waarboven de zang als "één heldere stem" geldt (van .. tot ..), en de strengere kwaliteitseis daarvoor. */
+  melodyCleanFrom: number;
+  melodyCleanTo: number;
+  melodyCleanQualityFloor: number;
+  melodyCleanQualityScale: number;
   uncertainSeconds: number;
   /** Onder deze betrouwbaarheid (langer dan `lostSeconds`) is de synchronisatie "verloren". */
   lostConfidence: number;
@@ -45,6 +57,15 @@ export const DEFAULT_SESSION_CONFIG: SessionConfig = {
   lockConfidence: 0.55,
   lockSeconds: 1.5,
   uncertainConfidence: 0.35,
+  melodyLockDecay: 0.5,
+  melodyQualityFloor: 0.01,
+  melodyQualityScale: 0.05,
+  melodyConcFloor: 0.8,
+  melodyConcScale: 0.1,
+  melodyCleanFrom: 0.6,
+  melodyCleanTo: 0.85,
+  melodyCleanQualityFloor: 0.08,
+  melodyCleanQualityScale: 0.12,
   uncertainSeconds: 1.5,
   lostConfidence: 0.2,
   lostSeconds: 5,
@@ -276,8 +297,18 @@ export class HymnFollowSession {
     this.quality += a * (out.logEvidence - out.logNull - this.quality);
     const b = 1 - Math.exp(-dt / 0.5);
     this.concEma += b * (out.concentration - this.concEma);
-    const q = clamp01((this.quality - 0.03) / 0.12);
-    const c = clamp01((this.concEma - 0.5) / 0.35);
+    // Bij de melodiereferentie zit het bewijs per frame lager (de zang is de enige bron, bij een koor zijn de stemmen verspreid), maar een
+    // ONJUISTE lofzang kan met toonhoogteklassen bijna even goed passen. Daarom is de ondergrens voor de kwaliteit lager en de eis aan de
+    // concentratie van de positie juist strenger: alleen als de positie echt op één plek samenkomt telt het als vertrouwen.
+    const melody = this.tracker.source === "melody";
+    const cfg = this.config;
+    // Eén heldere stem (veel frames met een betrouwbare toonhoogte) verklaart de juiste melodie sterk; een onjuiste lofzang haalt dan
+    // maar een deel van dat bewijs. Bij een koor (toonhoogte vaak onbetrouwbaar) is het bewijs per frame juist laag, ook bij de juiste.
+    const clean = melody ? clamp01(((this.tracker.voice?.voicedShare ?? 0) - cfg.melodyCleanFrom) / (cfg.melodyCleanTo - cfg.melodyCleanFrom)) : 0;
+    const qFloor = cfg.melodyQualityFloor + clean * (cfg.melodyCleanQualityFloor - cfg.melodyQualityFloor);
+    const qScale = cfg.melodyQualityScale + clean * (cfg.melodyCleanQualityScale - cfg.melodyQualityScale);
+    const q = melody ? clamp01((this.quality - qFloor) / qScale) : clamp01((this.quality - 0.03) / 0.12);
+    const c = melody ? clamp01((this.concEma - cfg.melodyConcFloor) / cfg.melodyConcScale) : clamp01((this.concEma - 0.5) / 0.35);
     const target = q * c;
     const k = 1 - Math.exp(-dt / 0.4);
     this.confidence += k * (target - this.confidence);
@@ -291,6 +322,17 @@ export class HymnFollowSession {
     this.aboveLock = 0;
     this.belowUncertain = 0;
     this.belowLost = 0;
+  }
+
+  /**
+   * Hoe lang het vertrouwen boven de vergrendelgrens zit. Bij zang volgens alleen de melodie (koor, meerdere stemmen met kleine
+   * tijds- en toonverschillen) schommelt het vertrouwen per frame sterk terwijl de positie wel klopt; elke dip zou de teller dan
+   * op nul zetten en de markering tientallen seconden vasthouden. Daar loopt de teller bij een dip maar half terug: wie meer dan
+   * een derde van de tijd boven de grens zit, vergrendelt. Bij instrumenten blijft het gedrag ongewijzigd (volledig terug naar 0).
+   */
+  private lockProgress(conf: number, dt: number): number {
+    if (conf >= this.config.lockConfidence) return this.aboveLock + dt;
+    return this.tracker.source === "melody" ? Math.max(0, this.aboveLock - dt * this.config.melodyLockDecay) : 0;
   }
 
   private updateStatus(time: number, out: TrackerOutput, dt: number): void {
@@ -307,7 +349,7 @@ export class HymnFollowSession {
 
     switch (this.status) {
       case "acquiring":
-        this.aboveLock = conf >= cfg.lockConfidence ? this.aboveLock + dt : 0;
+        this.aboveLock = this.lockProgress(conf, dt);
         if (this.aboveLock >= cfg.lockSeconds) this.setStatus(time, "locked");
         break;
       case "locked":
@@ -315,7 +357,7 @@ export class HymnFollowSession {
         if (this.belowUncertain >= cfg.uncertainSeconds) this.setStatus(time, "uncertain");
         break;
       case "uncertain":
-        this.aboveLock = conf >= cfg.lockConfidence ? this.aboveLock + dt : 0;
+        this.aboveLock = this.lockProgress(conf, dt);
         this.belowLost = conf < cfg.lostConfidence ? this.belowLost + dt : 0;
         if (this.aboveLock >= cfg.lockSeconds) {
           // kort onzeker geweest en positie klopt weer: gewoon weer gesynchroniseerd
