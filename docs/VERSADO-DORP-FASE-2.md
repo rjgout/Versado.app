@@ -73,8 +73,7 @@ houden dezelfde actionId. Een versieconflict vereist expliciet herladen. Globale
 
 ### Groei en groepsvertrek
 
-Persoonlijk: tel `ContentProgress` met READ en een hoofdstukverwijzing.
-Studieles-READ en oefeningen tellen niet mee. Groep: som die hoofdstukbijdragen
+Persoonlijk: tel uitsluitend `ContentProgress` met READ en één van de 239 canonieke Boek-van-Mormon-sleutels. De bestaande officiële hoofdstuklijst en `contentKeyForChapter` bepalen die sleutels; `UNIQUE(userId, contentKey)` dedupliceert talen, edities, leesroutes en herlezen. `lastChapterId` is slechts een optionele teruglink, geen identiteit of bewijs van groei. Andere schriftwerken, studieles-READ, onbekende hoofdstukken en oefeningen tellen niet mee. Groep: som die hoofdstukbijdragen
 van alle actuele leden (`leftAt = null`), plus drie hoofdstukequivalenten per
 extra lid. De bestaande zestien drempels bepalen R8–R62. De bonus is alleen
 kaartgrootte, geen XP of nieuwe leesvoortgang.
@@ -179,3 +178,27 @@ De gezamenlijke eindrun op de schone productiebuild is geslaagd:
   is alleen door de kaart begrensd (maximaal 12.061 tegels).
 - Geen fysieke iOS/Android-acceptatie geclaimd. Browserbewijs is Chromium op
   geïsoleerde data. De eigenaar verzorgt live acceptatie.
+
+
+### Reviewcorrectie: canonieke dorpsgroei
+
+`reconcileVillage` telt nu uitsluitend READ op de 239 canonieke BOM-identiteiten,
+hergebruikt uit `bomChapterHeadings.json`, `BOOK_KEYS_BY_SLUG` en
+`contentKeyForChapter`. De unieke `(userId, contentKey)` voorkomt dubbele
+bijdragen door taal, editie, leesroute of herlezen; hetzelfde hoofdstuk telt
+wel voor ieder huidig groepslid afzonderlijk. Geen voortgangs-, XP-, reeks-
+of divisieschrijfactie en geen schema-/migratiewijziging.
+
+Bij de eerstvolgende expliciete opening/herberekening kan onterecht verkregen
+kaartgroei afnemen. De bestaande krimplogica behoudt eigendom en levels en
+bergt objecten buiten de nieuwe grens op; paden buiten de kaart worden volgens
+de bestaande regels verwijderd.
+
+Gerichte verificatie: 49 dorp-/shelltests, 12 DB-/HTTP-tests (inclusief alle
+zestien groeidrempels tot R62, taal/edities, herlezen, andere bronnen, maximum
+239 per gebruiker, groepsvertrek en gifts), 33 sociale en 13 profielregressies
+slagen zonder skips. De bestaande migratieproef is opnieuw geslaagd:
+146 oude tabelinhouden, 412 constraints en 401 indexdefinities ongewijzigd;
+foutrollback en herhaalde deploy getest. TypeScript, gerichte ESLint en schone
+productiebuild slagen. De CI-status en browserartifacts op de gepushte
+herstelcommit worden in PR #149 vastgelegd; de stack op #148 blijft behouden.

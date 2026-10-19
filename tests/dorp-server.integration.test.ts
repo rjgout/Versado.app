@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 import {randomUUID} from "node:crypto";
 import {prisma} from "../src/lib/db";
 import {openVillage,readVillage,mutateVillage,visitVillage,sendVillageGift,phaseForContribution,leaveVillage,DorpError,type DorpSnapshot,type DorpCommand} from "../src/lib/dorp/service";
+import {BOFM_CANONICAL_CONTENT_KEYS,countCanonicalReadContributions} from "../src/lib/dorp/growth";
+import {chapterThresholdForPhase,radiusForPhase} from "../src/lib/dorp/geometry";
+import {contentKeyForChapter} from "../src/lib/learning/contentIdentity";
 import {createGroup,leaveGroup} from "../src/lib/social/groups";
 import {createSessionToken,SESSION_COOKIE} from "../src/lib/auth";
 const url=new URL(process.env.DORP_TEST_DATABASE_URL??"http://invalid");
@@ -61,10 +64,15 @@ test("persistente persoonlijke/groepswerelden, eigendom, krimp, privacy en XP-gi
   assert.deepEqual(groupA.world.paths,[{u:1,v:-3}]);
  });
  await t.test("echt lezen groeit kaart; vertrek krimpt zonder eigendom of levels te verliezen",async()=>{
-  const work=await prisma.contentWork.create({data:{key:`dorp-${randomUUID()}`,kind:"SCRIPTURE"}});
+  const work=await prisma.contentWork.upsert({where:{key:"bofm"},create:{key:"bofm",kind:"SCRIPTURE"},update:{}});
   const col=await prisma.contentCollection.create({data:{id:`dorp-${randomUUID()}`,name:"Synthetische hoofdstukken",slug:`dorp-${randomUUID()}`,icon:"",work:work.key,editionKey:"test",language:"nl",publicationState:"LEGACY"}});
-  const book=await prisma.book.create({data:{slug:`dorp-${randomUUID()}`,key:"dorp/test",name:"Testboek",order:1,contentCollectionId:col.id}});
-  for(let n=1;n<=180;n++){const chapter=await prisma.chapter.create({data:{bookId:book.id,number:n,order:n}});await prisma.contentProgress.create({data:{userId:a.id,contentKey:`dorp/test#${n}`,lastChapterId:chapter.id,readStatus:"READ"}});}
+  const books=new Map<string,string>();
+  for(const contentKey of BOFM_CANONICAL_CONTENT_KEYS.slice(0,180)){
+   const [key,number]=contentKey.split("#");
+   if(!books.has(key)){const book=await prisma.book.create({data:{slug:randomUUID(),key,name:"Canonfixture",order:books.size+1,contentCollectionId:col.id}});books.set(key,book.id);}
+   const chapter=await prisma.chapter.create({data:{bookId:books.get(key)!,number:Number(number),order:Number(number)}});
+   await prisma.contentProgress.create({data:{userId:a.id,contentKey,lastChapterId:chapter.id,readStatus:"READ"}});
+  }
   groupA=await openVillage(a.id,groupId);assert.equal(groupA.world.phase,phaseForContribution(180,2));assert.equal((await openVillage(a.id)).world.phase,phaseForContribution(180));
   groupB=await readVillage(b.id,groupA.villageId);const object=groupB.world.instances.find(i=>i.objectId==="vd-b001"&&groupB.ownedIds.includes(i.instanceId))!;
   groupB=await mutateVillage(b.id,action(groupB,{type:"upgrade",objectId:object.instanceId,expectedLevel:1}));
@@ -140,4 +148,60 @@ test("persistente persoonlijke/groepswerelden, eigendom, krimp, privacy en XP-gi
   assert.equal((await fetch(`${base}/dorp`,{headers:{Cookie:cookie}})).status,404);
   await prisma.contentSwitcherSettings.update({where:{id:"singleton"},data:{dorpVisibleToUsers:true}});
  });
+});
+
+
+test("dorpsgroei telt uitsluitend de 239 canonieke BOM-hoofdstukken per gebruiker",async()=>{
+ const a=await account(),b=await account();
+ const {id:groupId}=await createGroup(a.id,"Canonieke hoofdstukken");
+ await prisma.groupMembership.create({data:{groupId,userId:b.id,eligibleFromDay:"2026-01-01"}});
+ await prisma.socialGroup.update({where:{id:groupId},data:{memberCount:2}});
+ const work=await prisma.contentWork.upsert({where:{key:"bofm"},create:{key:"bofm",kind:"SCRIPTURE"},update:{}});
+ const chapters=[],family=randomUUID();
+ for(const [language,editionKey] of [["nl",family],["en",family],["nl",randomUUID()]]){
+  const col=await prisma.contentCollection.create({data:{id:randomUUID(),name:"Eigen canonfixture",slug:randomUUID(),icon:"",work:work.key,editionKey,language,publicationState:"LEGACY"}});
+  const book=await prisma.book.create({data:{slug:randomUUID(),key:"bofm/1-ne",name:"Nephi",order:1,contentCollectionId:col.id}});
+  chapters.push(await prisma.chapter.create({data:{bookId:book.id,number:1,order:1},include:{book:true}}));
+ }
+ const preserved=async()=>({users:await prisma.user.findMany({where:{id:{in:[a.id,b.id]}},orderBy:{id:"asc"}}),xp:await prisma.xPTransaction.findMany(),weekly:await prisma.weeklyScore.findMany(),competition:await prisma.competitionXpEvent.findMany(),streak:await prisma.streakDay.findMany()});
+ const before=await preserved();
+ assert.equal(radiusForPhase((await openVillage(a.id)).world.phase),8);
+ for(const chapter of [...chapters,...chapters]){
+  const contentKey=contentKeyForChapter({id:chapter.id,bookKey:chapter.book.key,number:chapter.number});
+  await prisma.contentProgress.upsert({where:{userId_contentKey:{userId:a.id,contentKey}},create:{userId:a.id,contentKey,lastChapterId:chapter.id,readStatus:"READ"},update:{lastChapterId:chapter.id,readStatus:"READ"}});
+  assert.equal(await countCanonicalReadContributions(prisma,[a.id]),1);
+ }
+ const otherWork=await prisma.contentWork.upsert({where:{key:"old-testament"},create:{key:"old-testament",kind:"SCRIPTURE"},update:{}});
+ const other=await prisma.contentCollection.create({data:{id:randomUUID(),slug:randomUUID(),name:"Ander werk",icon:"",work:otherWork.key}});
+ const otherBook=await prisma.book.create({data:{slug:randomUUID(),key:"old-testament/gen",name:"Genesis",order:1,contentCollectionId:other.id}});
+ const otherChapter=await prisma.chapter.create({data:{bookId:otherBook.id,number:1,order:1}});
+ await prisma.contentProgress.createMany({data:[
+  {userId:a.id,contentKey:"old-testament/gen#1",lastChapterId:otherChapter.id,readStatus:"READ"},
+  {userId:a.id,contentKey:"study:synthetic",lastChapterId:chapters[0].id,readStatus:"READ"},
+  {userId:a.id,contentKey:"bofm/alma#64",lastChapterId:chapters[0].id,readStatus:"READ"},
+  {userId:a.id,contentKey:"bofm/unknown#1",lastChapterId:chapters[0].id,readStatus:"READ"},
+  {userId:a.id,contentKey:"bofm/1-ne#2",lastChapterId:chapters[0].id,exerciseAnswered:12,exercisesCompletedAt:new Date()},
+  {userId:a.id,contentKey:"bofm/1-ne#3",lastChapterId:chapters[0].id,readStatus:"READING"},
+ ]});
+ assert.equal(await countCanonicalReadContributions(prisma,[a.id]),1);
+ // Hetzelfde hoofdstuk draagt bij ieder groepslid eenmaal bij.
+ await prisma.contentProgress.create({data:{userId:b.id,contentKey:"bofm/1-ne#1",lastChapterId:chapters[1].id,readStatus:"READ"}});
+ assert.equal(await countCanonicalReadContributions(prisma,[a.id,b.id]),2);
+ for(const contentKey of BOFM_CANONICAL_CONTENT_KEYS){
+  // lastChapterId is optioneel: een route- of editiegebonden teruglink is geen identiteit.
+  await prisma.contentProgress.upsert({where:{userId_contentKey:{userId:a.id,contentKey}},create:{userId:a.id,contentKey,readStatus:"READ"},update:{readStatus:"READ"}});
+  const count=await countCanonicalReadContributions(prisma,[a.id]);
+  if([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].some(phase=>count===chapterThresholdForPhase(phase)||count===chapterThresholdForPhase(phase)-1)){
+   const personal=await openVillage(a.id);
+   const expected=Array.from({length:16},(_,i)=>i+1).filter(phase=>count>=chapterThresholdForPhase(phase)).length;
+   assert.equal(personal.world.phase,expected);assert.equal(radiusForPhase(personal.world.phase),radiusForPhase(expected));
+  }
+ }
+ assert.equal(await countCanonicalReadContributions(prisma,[a.id]),239);
+ assert.equal(await countCanonicalReadContributions(prisma,[a.id,b.id]),240);
+ assert.equal(radiusForPhase((await openVillage(a.id)).world.phase),62);
+ const progress=await prisma.contentProgress.findMany({where:{userId:{in:[a.id,b.id]}},orderBy:{id:"asc"}});
+ await openVillage(a.id);await openVillage(a.id,groupId);
+ assert.deepEqual(await prisma.contentProgress.findMany({where:{userId:{in:[a.id,b.id]}},orderBy:{id:"asc"}}),progress);
+ assert.deepEqual(await preserved(),before);
 });

@@ -1,3 +1,4 @@
+import { BOFM_CANONICAL_CONTENT_KEYS } from "../src/lib/dorp/growth";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
@@ -281,4 +282,12 @@ test("v2 opslag behoudt oude eigendommen en krijgt vijf ongeplaatste bewoners", 
   const residents=restored.instances.filter(i=>DORP_OBJECT_BY_ID.get(i.objectId)?.kind==="resident");
   assert.equal(residents.length,5);
   for(const resident of residents){assert.equal(resident.position,null);assert.deepEqual(DORP_OBJECT_BY_ID.get(resident.objectId)?.footprint,[1,1]);}
+});
+
+
+test("dorpsgroei gebruikt exact de canonieke 239 BOM-identiteiten",()=>{
+  const keys=new Set(BOFM_CANONICAL_CONTENT_KEYS);
+  assert.equal(BOFM_CANONICAL_CONTENT_KEYS.length,239);assert.equal(keys.size,239);
+  assert.ok(keys.has("bofm/1-ne#22"));assert.ok(keys.has("bofm/alma#63"));assert.ok(keys.has("bofm/moro#10"));
+  for(const invalid of ["bofm/1-ne#0","bofm/1-ne#23","bofm/alma#64","bofm/unknown#1","old-testament/gen#1","study:fsy"]){assert.equal(keys.has(invalid),false);}
 });

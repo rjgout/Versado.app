@@ -1,3 +1,4 @@
+import { countCanonicalReadContributions } from "./growth";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import type { Prisma, DorpVillage } from "@/generated/prisma/client";
@@ -59,8 +60,7 @@ export async function reconcileVillage(tx:Tx,village:DorpVillage){
     await tx.dorpPath.deleteMany({where:{villageId:village.id,userId:{notIn:ids}}});
     await tx.dorpMember.deleteMany({where:{villageId:village.id,userId:{notIn:ids}}});
   }
-  // lastChapterId is alleen een hoofdstukverwijzing; studieles-READ telt niet mee.
-  const read=await tx.contentProgress.count({where:{userId:{in:ids},readStatus:"READ",lastChapterId:{not:null}}});
+  const read=await countCanonicalReadContributions(tx,ids);
   const phase=phaseForContribution(read,ids.length),radius=radiusForPhase(phase);
   const placements=await tx.dorpPlacement.findMany({where:{villageId:village.id},include:{object:true},orderBy:{objectId:"asc"}});
   const instances:DorpOwnedInstance[]=placements.map(p=>({instanceId:p.objectId,objectId:p.object.objectId,level:p.object.level as DorpLevel,position:{u:p.u,v:p.v}}));
