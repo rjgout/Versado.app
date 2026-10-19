@@ -1,4 +1,4 @@
-import { DORP_OBJECT_BY_ID } from "./catalog";
+import { DORP_OBJECT_BY_ID, forestAssetFor } from "./catalog";
 import type { PlacedDorpObject, TileCoordinate } from "./types";
 
 export const TILE_WIDTH = 128;
@@ -99,12 +99,14 @@ export type WorldBounds = { minX: number; minY: number; maxX: number; maxY: numb
 const worldBoundsCache = new Map<number, WorldBounds>();
 
 export function forestPlacements(radius: number): Array<TileCoordinate & { index: number }> {
-  const forestRadius = radius + 4;
-  const count = Math.max(20, Math.round(forestRadius * 2.3));
-  return Array.from({ length: count }, (_, index) => {
-    const angle = (index / count) * Math.PI * 2;
-    return { index, u: Math.round(Math.cos(angle) * forestRadius), v: Math.round(Math.sin(angle) * forestRadius) };
-  });
+  const total = Math.round(radius * 35 / 6 + 100 / 3);
+  const innerCount = Math.round(total * 0.46);
+  const rings = [{ distance: radius + 4, count: innerCount, offset: 0 }, { distance: radius + 7, count: total - innerCount, offset: 0.5 }];
+  let index = 0;
+  return rings.flatMap((ring) => Array.from({ length: ring.count }, (_, ringIndex) => {
+    const angle = ((ringIndex + ring.offset) / ring.count) * Math.PI * 2;
+    return { index: index++, u: Math.round(Math.cos(angle) * ring.distance), v: Math.round(Math.sin(angle) * ring.distance) };
+  }));
 }
 
 export function projectedWorldBounds(radius: number): WorldBounds {
@@ -123,10 +125,13 @@ export function projectedWorldBounds(radius: number): WorldBounds {
   }
   for (const forest of forestPlacements(radius)) {
     const point = isoToWorld(forest.u, forest.v);
-    const strip = forest.index % 4 === 0;
-    const width = strip ? 360 : 260;
-    const height = strip ? 180 : 260;
-    include(point.x - width / 2, point.y - height * 0.82, point.x + width / 2, point.y + height * 0.18);
+    const asset = forestAssetFor(forest.index, forest.u, forest.v);
+    include(
+      point.x - asset.worldSize[0] * asset.anchor[0],
+      point.y - asset.worldSize[1] * asset.anchor[1],
+      point.x + asset.worldSize[0] * (1 - asset.anchor[0]),
+      point.y + asset.worldSize[1] * (1 - asset.anchor[1]),
+    );
   }
   worldBoundsCache.set(radius, bounds);
   return bounds;

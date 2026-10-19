@@ -9,13 +9,14 @@ import { useImmersiveShell } from "@/lib/shellModeOverride";
 import {
   DORP_ASSETS,
   DORP_ASSET_BY_ID,
-  DORP_FOREST_ASSETS,
   DORP_OBJECT_BY_ID,
   DORP_OBJECTS,
   DORP_RESIDENTS,
-  DORP_TERRAIN_ASSETS,
+  DORP_TERRAIN_RUNTIME_BY_ID,
+  DORP_TERRAIN_RUNTIME_PATHS,
   assetForObject,
   forestAssetFor,
+  residentAssetFor,
 } from "@/lib/dorp/catalog";
 import {
   DETAIL_CAMERA_ZOOM,
@@ -46,13 +47,24 @@ import {
   worldToIso,
 } from "@/lib/dorp/geometry";
 import { availableInstance, levelOwnedInstance, placeOwnedInstance, placedObjects, reconcileInstancesForRadius, storeOwnedInstance } from "@/lib/dorp/ownership";
-import { normalizePaths, pathConnectivity, pathKey, pathVariantForMask } from "@/lib/dorp/paths";
+import { normalizePaths, pathConnectivity, pathKey } from "@/lib/dorp/paths";
 import { DEFAULT_DORP_STATE, DORP_LEGACY_STORAGE_KEYS, DORP_STORAGE_KEY, parseDorpState, serializeDorpState } from "@/lib/dorp/storage";
+import { boundsContainViewport, terrainAssetId, terrainBufferBounds, type TerrainWorldBounds } from "@/lib/dorp/terrain";
 import type { DorpObjectDefinition, DorpWorldState, PlacedDorpObject, TileCoordinate } from "@/lib/dorp/types";
 
 type Placement = { objectId: string; instanceId: string; u: number; v: number; moving: boolean };
 type PointerRecord = { x: number; y: number; startX: number; startY: number };
 type RenderImageMap = Map<string, HTMLImageElement>;
+type TerrainCache = {
+  scaledCanvas: HTMLCanvasElement;
+  scaledZoom: number;
+  dpr: number;
+  bounds: TerrainWorldBounds;
+  radius: number;
+  pathsKey: string;
+  assetRevision: number;
+  rasterScale: number;
+};
 
 const MIN_PLAY_ZOOM = 0.22;
 const POINTER_MOVE_THRESHOLD = 6;
@@ -69,22 +81,8 @@ function drawDiamond(ctx: CanvasRenderingContext2D, x: number, y: number, width:
   if (stroke) { ctx.strokeStyle = stroke; ctx.stroke(); }
 }
 
-function terrainKind(u: number, v: number): keyof typeof DORP_TERRAIN_ASSETS {
-  // De varianten blijven een vaste technische terreinproef; paden hebben een eigen logische laag.
-  if (u >= -4 && u <= -2 && v >= -4 && v <= -2) return "grass";
-  if ((u === -1 && v === -3) || (u === 0 && v === -3)) return "dryGrass";
-  if ((u === 1 && v === -3) || (u === 2 && v === -3)) return "flowerGrass";
-  if ((u === 3 && v === -3) || (u === 4 && v === -3)) return "sand";
-  return "grass";
-}
-
 function imageAssetPaths(): string[] {
-  return [...new Set([
-    ...DORP_ASSETS.map((asset) => asset.path),
-    ...Object.values(DORP_TERRAIN_ASSETS),
-    ...DORP_FOREST_ASSETS.flatMap((group) => group.variants),
-    ...DORP_RESIDENTS.map((resident) => resident.asset),
-  ])];
+  return [...new Set([...DORP_ASSETS.map((asset) => asset.path), ...DORP_TERRAIN_RUNTIME_PATHS])];
 }
 
 function spriteRegistration(object: PlacedDorpObject) {
@@ -131,6 +129,8 @@ function DorpCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imagesRef = useRef<RenderImageMap>(new Map());
+  const terrainCacheRef = useRef<TerrainCache | null>(null);
+  const spriteCacheRef = useRef(new Map<string, HTMLCanvasElement>());
   const cameraRef = useRef<DorpCamera>({ x: 0, y: 0, zoom: NORMAL_CAMERA_ZOOM });
   const pointersRef = useRef(new Map<number, PointerRecord>());
   const gestureRef = useRef({ moved: false, hadMultiplePointers: false, pinchDistance: 0, pinchZoom: NORMAL_CAMERA_ZOOM, pinchWorld: { x: 0, y: 0 } });
@@ -184,7 +184,9 @@ function DorpCanvas({
 
     const draw = () => {
       const bounds = container.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      // Op brede schermen is 1× voldoende voor deze geschilderde sprites en
+      // voorkomt een viervoudig Canvas-oppervlak tijdens camerabeweging.
+      const dpr = bounds.width >= 900 ? 1 : Math.min(window.devicePixelRatio || 1, 2);
       const pixelWidth = Math.max(1, Math.round(bounds.width * dpr));
       const pixelHeight = Math.max(1, Math.round(bounds.height * dpr));
       if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) { canvas.width = pixelWidth; canvas.height = pixelHeight; }
@@ -199,7 +201,27 @@ function DorpCanvas({
       const originX = Math.round((width / 2 - camera.x * zoom) * dpr) / dpr;
       const originY = Math.round((height / 2 - camera.y * zoom) * dpr) / dpr;
       const screen = (x: number, y: number) => ({ x: originX + x * zoom, y: originY + y * zoom });
+      const drawSprite = (image: HTMLImageElement, path: string, point: { x: number; y: number }, worldSize: readonly [number, number], anchor: readonly [number, number]) => {
+        const drawWidth = worldSize[0] * zoom;
+        const drawHeight = worldSize[1] * zoom;
+        const pixelWidth = Math.max(1, Math.round(drawWidth * dpr));
+        const pixelHeight = Math.max(1, Math.round(drawHeight * dpr));
+        const key = `${path}:${pixelWidth}x${pixelHeight}`;
+        let sprite = spriteCacheRef.current.get(key);
+        if (!sprite) {
+          sprite = document.createElement("canvas");
+          sprite.width = pixelWidth;
+          sprite.height = pixelHeight;
+          const spriteContext = sprite.getContext("2d", { alpha: true })!;
+          spriteContext.imageSmoothingEnabled = true;
+          spriteContext.drawImage(image, 0, 0, pixelWidth, pixelHeight);
+          if (spriteCacheRef.current.size > 160) spriteCacheRef.current.clear();
+          spriteCacheRef.current.set(key, sprite);
+        }
+        ctx.drawImage(sprite, point.x - drawWidth * anchor[0], point.y - drawHeight * anchor[1], drawWidth, drawHeight);
+      };
       const paths = new Map(world.paths.map((tile) => [pathKey(tile), tile]));
+      const pathsKey = world.paths.map(pathKey).sort().join(";");
 
       const gradient = ctx.createLinearGradient(0, 0, 0, height);
       gradient.addColorStop(0, "#b9d9dc");
@@ -208,7 +230,7 @@ function DorpCanvas({
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
 
-      const overview = zoom < 0.18;
+      const overview = zoom < 0.18 || width / zoom + 384 > 8192 || height / zoom + 384 > 8192;
       if (overview) {
         const outerBounds = projectedWorldBounds(radius);
         const outerCenter = screen((outerBounds.minX + outerBounds.maxX) / 2, (outerBounds.minY + outerBounds.maxY) / 2);
@@ -221,35 +243,56 @@ function DorpCanvas({
         ctx.fillStyle = "#7eaa58"; ctx.fill();
         ctx.strokeStyle = "rgba(255,255,255,.45)"; ctx.lineWidth = 2; ctx.stroke();
       } else {
-        const margin = TILE_WIDTH * zoom;
-        for (let sum = -radius * 2; sum <= radius * 2; sum += 1) {
-          for (let u = -radius; u <= radius; u += 1) {
-            const v = sum - u;
-            if (v < -radius || v > radius || u * u + v * v > radius * radius) continue;
-            const worldPoint = isoToWorld(u, v);
-            const point = screen(worldPoint.x, worldPoint.y);
-            if (point.x < -margin || point.x > width + margin || point.y < -margin || point.y > height + margin) continue;
-            const kind = terrainKind(u, v);
-            const terrain = imagesRef.current.get(DORP_TERRAIN_ASSETS[kind]);
-            if (terrain) ctx.drawImage(terrain, point.x - TILE_WIDTH * zoom / 2, point.y - TILE_HEIGHT * zoom / 2, TILE_WIDTH * zoom, TILE_HEIGHT * zoom);
-            else drawDiamond(ctx, point.x, point.y, TILE_WIDTH * zoom, TILE_HEIGHT * zoom, (u + v) % 3 === 0 ? "#8eb65e" : "#86ae57");
-            const pathTile = paths.get(`${u},${v}`);
-            if (pathTile) {
-              const mask = pathConnectivity(pathTile, world.paths);
-              const variant = pathVariantForMask(mask);
-              const path = variant === "straight" ? DORP_TERRAIN_ASSETS.pathStraight : variant === "corner" ? DORP_TERRAIN_ASSETS.pathCorner : null;
-              const pathImage = path ? imagesRef.current.get(path) : undefined;
-              if (pathImage) {
-                const flipX = variant === "straight" && mask === 10 ? -1 : 1;
-                const flipY = variant === "corner" && (mask === 3 || mask === 12) ? -1 : 1;
-                ctx.save();
-                ctx.translate(point.x, point.y); ctx.scale(flipX, flipY);
-                ctx.drawImage(pathImage, -TILE_WIDTH * zoom / 2, -TILE_HEIGHT * zoom / 2, TILE_WIDTH * zoom, TILE_HEIGHT * zoom);
-                ctx.restore();
-              }
+        const rasterScale = zoom < 0.36 ? 0.25 : zoom < 0.76 ? 0.5 : 1;
+        let terrainCache = terrainCacheRef.current;
+        if (!terrainCache
+          || terrainCache.radius !== radius
+          || terrainCache.pathsKey !== pathsKey
+          || terrainCache.assetRevision !== assetRevision
+          || terrainCache.rasterScale !== rasterScale
+          || terrainCache.dpr !== dpr
+          || !boundsContainViewport(terrainCache.bounds, camera.x, camera.y, zoom, width, height)) {
+          const terrainBounds = terrainBufferBounds(camera.x, camera.y, zoom, width, height, rasterScale);
+          const terrainCanvas = document.createElement("canvas");
+          terrainCanvas.width = (terrainBounds.maxX - terrainBounds.minX) * rasterScale;
+          terrainCanvas.height = (terrainBounds.maxY - terrainBounds.minY) * rasterScale;
+          const terrainContext = terrainCanvas.getContext("2d", { alpha: true })!;
+          terrainContext.imageSmoothingEnabled = false;
+          for (let sum = -radius * 2; sum <= radius * 2; sum += 1) {
+            for (let u = -radius; u <= radius; u += 1) {
+              const v = sum - u;
+              if (v < -radius || v > radius || u * u + v * v > radius * radius) continue;
+              const worldPoint = isoToWorld(u, v);
+              if (worldPoint.x + TILE_WIDTH / 2 < terrainBounds.minX || worldPoint.x - TILE_WIDTH / 2 > terrainBounds.maxX
+                || worldPoint.y + TILE_HEIGHT / 2 < terrainBounds.minY || worldPoint.y - TILE_HEIGHT / 2 > terrainBounds.maxY) continue;
+              const pathTile = paths.get(`${u},${v}`);
+              const assetId = terrainAssetId(u, v, pathTile ? pathConnectivity(pathTile, world.paths) : undefined);
+              const runtime = DORP_TERRAIN_RUNTIME_BY_ID.get(assetId);
+              const terrainPath = rasterScale === 1 ? runtime?.full : rasterScale === 0.5 ? runtime?.half : runtime?.quarter;
+              const terrain = terrainPath ? imagesRef.current.get(terrainPath) : undefined;
+              const x = (worldPoint.x - terrainBounds.minX) * rasterScale;
+              const y = (worldPoint.y - terrainBounds.minY) * rasterScale;
+              if (terrain) terrainContext.drawImage(terrain, x - TILE_WIDTH * rasterScale / 2, y - TILE_HEIGHT * rasterScale / 2);
+              else drawDiamond(terrainContext, x, y, TILE_WIDTH * rasterScale, TILE_HEIGHT * rasterScale, (u + v) % 3 === 0 ? "#8eb65e" : "#86ae57");
             }
           }
+          const scaledCanvas = document.createElement("canvas");
+          scaledCanvas.width = Math.max(1, Math.round(terrainCanvas.width / rasterScale * zoom * dpr));
+          scaledCanvas.height = Math.max(1, Math.round(terrainCanvas.height / rasterScale * zoom * dpr));
+          const scaledContext = scaledCanvas.getContext("2d", { alpha: true })!;
+          scaledContext.imageSmoothingEnabled = true;
+          scaledContext.drawImage(terrainCanvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+          terrainCache = { scaledCanvas, scaledZoom: zoom, dpr, bounds: terrainBounds, radius, pathsKey, assetRevision, rasterScale };
+          terrainCacheRef.current = terrainCache;
         }
+        const cachedScale = zoom / terrainCache.scaledZoom;
+        ctx.drawImage(
+          terrainCache.scaledCanvas,
+          originX + terrainCache.bounds.minX * zoom,
+          originY + terrainCache.bounds.minY * zoom,
+          terrainCache.scaledCanvas.width / terrainCache.dpr * cachedScale,
+          terrainCache.scaledCanvas.height / terrainCache.dpr * cachedScale,
+        );
       }
 
       type LayerItem = { depth: number; draw: () => void };
@@ -257,14 +300,16 @@ function DorpCanvas({
       if (!overview) {
         for (const { index, u, v } of forestPlacements(radius)) {
           const point = isoToWorld(u, v);
-          const path = forestAssetFor(index, u, v);
-          const image = imagesRef.current.get(path);
+          const registration = forestAssetFor(index, u, v);
+          const image = imagesRef.current.get(registration.path);
           if (!image) continue;
-          const worldWidth = path.includes("strip") ? 360 : 260;
-          const worldHeight = path.includes("strip") ? 180 : 260;
+          const position = screen(point.x, point.y);
+          const drawWidth = registration.worldSize[0] * zoom;
+          const drawHeight = registration.worldSize[1] * zoom;
+          if (position.x + drawWidth * (1 - registration.anchor[0]) < 0 || position.x - drawWidth * registration.anchor[0] > width
+            || position.y + drawHeight * (1 - registration.anchor[1]) < 0 || position.y - drawHeight * registration.anchor[1] > height) continue;
           layers.push({ depth: u + v - 0.5, draw: () => {
-            const position = screen(point.x, point.y);
-            ctx.drawImage(image, position.x - worldWidth * zoom / 2, position.y - worldHeight * zoom * 0.82, worldWidth * zoom, worldHeight * zoom);
+            drawSprite(image, registration.path, position, registration.worldSize, registration.anchor);
           }});
         }
       }
@@ -285,9 +330,7 @@ function DorpCanvas({
             return;
           }
           if (image) {
-            const drawWidth = registration.worldSize[0] * zoom;
-            const drawHeight = registration.worldSize[1] * zoom;
-            ctx.drawImage(image, point.x - drawWidth * registration.anchor[0], point.y - drawHeight * registration.anchor[1], drawWidth, drawHeight);
+            drawSprite(image, registration.path, point, registration.worldSize, registration.anchor);
           }
           if (object.instanceId === selectedId) {
             ctx.lineWidth = 3;
@@ -302,10 +345,11 @@ function DorpCanvas({
       if (!overview) {
         for (const resident of DORP_RESIDENTS) {
           const worldPoint = isoToWorld(resident.u, resident.v);
-          const image = imagesRef.current.get(resident.asset);
+          const registration = residentAssetFor(resident.assetId);
+          const image = imagesRef.current.get(registration.path);
           layers.push({ depth: resident.u + resident.v + 0.25, draw: () => {
             const point = screen(worldPoint.x, worldPoint.y);
-            if (image) ctx.drawImage(image, point.x - 48 * zoom, point.y - 92 * zoom, 96 * zoom, 96 * zoom);
+            if (image) drawSprite(image, registration.path, point, registration.worldSize, registration.anchor);
           }});
         }
       }
@@ -326,7 +370,7 @@ function DorpCanvas({
             const anchor = { u: placement.u + definition.footprint[0] - 1, v: placement.v + definition.footprint[1] - 1 };
             const p = isoToWorld(anchor.u, anchor.v); const s = screen(p.x, p.y);
             ctx.globalAlpha = 0.72;
-            ctx.drawImage(image, s.x - registration.worldSize[0] * zoom * registration.anchor[0], s.y - registration.worldSize[1] * zoom * registration.anchor[1], registration.worldSize[0] * zoom, registration.worldSize[1] * zoom);
+            drawSprite(image, registration.path, s, registration.worldSize, registration.anchor);
             ctx.globalAlpha = 1;
           }
         }
@@ -623,7 +667,7 @@ export default function DorpPrototypeClient() {
 
       {selectedResident && (
         <section className="absolute inset-x-3 bottom-[max(.75rem,var(--vs-safe-area-bottom))] z-20 mx-auto flex w-[min(calc(100%-1.5rem),28rem)] items-center gap-3 rounded-2xl border border-vs-line bg-vs-surface/95 p-3 shadow-2xl backdrop-blur">
-          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-vs-surface-3"><Image src={selectedResident.asset} alt="" fill sizes="6rem" className="object-contain" /></div>
+          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-vs-surface-3"><Image src={residentAssetFor(selectedResident.assetId).path} alt="" fill sizes="6rem" className="object-contain" /></div>
           <div className="min-w-0 flex-1"><h2 className="font-bold">{selectedResident.name}</h2><p className="mt-1 text-sm text-vs-fg-2">{selectedResident.description}</p><p className="mt-1 text-xs text-vs-fg-3">Canonieke ID: {selectedResident.characterId}</p></div>
           <button type="button" onClick={() => setResidentId(null)} className="min-h-10 min-w-10 self-start" aria-label="Bewoner sluiten"><X className="mx-auto h-5 w-5" /></button>
         </section>

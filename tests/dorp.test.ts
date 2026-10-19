@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { createRenderScheduler, fitCameraToRadius, screenToWorld, zoomCameraAroundPoint } from "../src/lib/dorp/camera";
@@ -12,6 +13,7 @@ import {
   buildableTileCount,
   chapterThresholdForPhase,
   footprintTiles,
+  forestPlacements,
   isTileBuildable,
   placementIsValid,
   projectedWorldBounds,
@@ -19,8 +21,9 @@ import {
   suggestPlacement,
 } from "../src/lib/dorp/geometry";
 import { availableInstance, levelOwnedInstance, ownershipIsValid, placeOwnedInstance, placedObjects, reconcileInstancesForRadius, storeOwnedInstance } from "../src/lib/dorp/ownership";
-import { pathConnectivity, pathVariantForMask } from "../src/lib/dorp/paths";
+import { pathAssetIdForMask, pathConnectivity, pathVariantForMask } from "../src/lib/dorp/paths";
 import { DEFAULT_DORP_STATE, DORP_STORAGE_KEY, parseDorpState, serializeDorpState } from "../src/lib/dorp/storage";
+import { sandCornerLabel, sandTransitionMask, terrainAssetId, terrainBufferBounds } from "../src/lib/dorp/terrain";
 import type { DorpOwnedInstance, PlacedDorpObject } from "../src/lib/dorp/types";
 import { shellModeForRoute } from "../src/lib/focusMode";
 
@@ -55,6 +58,9 @@ test("footprints bepalen plaatsing, overlap en de fysieke tempelgrens", () => {
 });
 
 test("werkelijke geprojecteerde wereldgrenzen sturen een veilige, compacte fit", () => {
+  assert.equal(forestPlacements(8).length, 80);
+  assert.equal(forestPlacements(14).length, 115);
+  assert.equal(forestPlacements(62).length, 395);
   const bounds = projectedWorldBounds(8);
   const insets = { top: 84, right: 12, bottom: 132, left: 12 };
   const camera = fitCameraToRadius(390, 844, 8, insets);
@@ -135,11 +141,36 @@ test("opslag v2 herlaadt, verwerpt v1 en saneert kaartverkleining", () => {
 test("padconnectiviteit kiest alle logische basisvarianten zonder gebouwobjecten", () => {
   const center = { u: 0, v: 0 };
   assert.equal(pathVariantForMask(pathConnectivity(center, [center])), "isolated");
+  assert.equal(pathConnectivity(center, [center, { u: 1, v: 0 }]), 1, "+u is de gebakken SE-richting");
+  assert.equal(pathConnectivity(center, [center, { u: 0, v: 1 }]), 2, "+v is de gebakken SW-richting");
+  assert.equal(pathConnectivity(center, [center, { u: -1, v: 0 }]), 4, "-u is de gebakken NW-richting");
+  assert.equal(pathConnectivity(center, [center, { u: 0, v: -1 }]), 8, "-v is de gebakken NE-richting");
   assert.equal(pathVariantForMask(pathConnectivity(center, [center, { u: 1, v: 0 }])), "end");
   assert.equal(pathVariantForMask(pathConnectivity(center, [center, { u: -1, v: 0 }, { u: 1, v: 0 }])), "straight");
   assert.equal(pathVariantForMask(pathConnectivity(center, [center, { u: 1, v: 0 }, { u: 0, v: 1 }])), "corner");
   assert.equal(pathVariantForMask(pathConnectivity(center, [center, { u: -1, v: 0 }, { u: 1, v: 0 }, { u: 0, v: 1 }])), "tee");
   assert.equal(pathVariantForMask(15), "cross");
+  assert.deepEqual(Array.from({ length: 16 }, (_, mask) => pathAssetIdForMask(mask)), [
+    "terrain-grass", "terrain-path-end-se", "terrain-path-end-sw", "terrain-path-corner",
+    "terrain-path-end-nw", "terrain-path-straight", "terrain-path-corner-sw-nw", "terrain-path-t-se-sw-nw",
+    "terrain-path-end-ne", "terrain-path-corner-se-ne", "terrain-path-straight-sw-ne", "terrain-path-t-se-sw-ne",
+    "terrain-path-corner-nw-ne", "terrain-path-t-se-nw-ne", "terrain-path-t-sw-nw-ne", "terrain-path-cross-se-sw-nw-ne",
+  ]);
+});
+
+test("terrein gebruikt gedeelde zandhoeklabels en één native compositiebuffer", () => {
+  for (let u = -2; u <= 7; u += 1) {
+    for (let v = -7; v <= 2; v += 1) {
+      const mask = sandTransitionMask(u, v);
+      assert.equal(Boolean(mask & 2), sandCornerLabel(u + 1, v));
+      assert.equal(Boolean(mask & 4), sandCornerLabel(u + 1, v + 1));
+      assert.match(terrainAssetId(u, v), /^terrain-(grass|dry-grass|flower-grass|sand(?:-transition-m(?:0[1-9]|1[0-4]))?)$/);
+    }
+  }
+  assert.equal(terrainAssetId(0, 0, 15), "terrain-path-cross-se-sw-nw-ne");
+  const bounds = terrainBufferBounds(0.25, -0.5, 0.73, 390, 844);
+  assert.ok(Number.isInteger(bounds.minX) && Number.isInteger(bounds.maxY));
+  assert.ok(bounds.maxX - bounds.minX > 390 / 0.73);
 });
 
 test("upgrades houden footprint en positie gelijk en niet-bestaande niveaus ontbreken", () => {
@@ -149,6 +180,8 @@ test("upgrades houden footprint en positie gelijk en niet-bestaande niveaus ontb
     assert.deepEqual(assetForObject(id, 1)?.objectId, id);
     assert.deepEqual(assetForObject(id, 2)?.objectId, id);
     assert.deepEqual(assetForObject(id, 3)?.objectId, id);
+    assert.equal(new Set([1, 2, 3].map((level) => assetForObject(id, level)!.anchor.join(","))).size, 1);
+    assert.equal(new Set([1, 2, 3].map((level) => assetForObject(id, level)!.worldSize.join("x"))).size, 1);
     assert.equal(new Set([1, 2, 3].map(() => definition.footprint.join("x"))).size, 1);
   }
   assert.equal(DORP_OBJECT_BY_ID.get("vd-l001")?.maxLevel, 1);
@@ -167,8 +200,28 @@ test("pilotcatalogus gebruikt bestaande Work-assets, metadata en canonieke bewon
     assert.ok(asset.anchor[0] >= 0 && asset.anchor[0] <= 1);
     assert.ok(asset.anchor[1] >= 0 && asset.anchor[1] <= 1);
   }
-  assert.ok(DORP_FOREST_ASSETS.every((group) => group.variants.length > 0));
-  assert.deepEqual(DORP_RESIDENTS.map((resident) => resident.characterId), ["nephi", "sariah", "ammon-missionary", "lehi"]);
+  assert.ok(DORP_FOREST_ASSETS.every((group) => group.variants.length === 2));
+  assert.deepEqual(DORP_RESIDENTS.map((resident) => resident.characterId), ["nephi", "sariah", "ammon-missionary", "lehi", "abish"]);
+});
+
+test("Fix-01 bevat exact 56 geldige veilige runtime-assets", () => {
+  const manifest = JSON.parse(readFileSync(`${process.cwd()}/src/lib/dorp/work/metadata/fix-01-runtime-manifest.json`, "utf8")) as {
+    assets: Array<{ assetId: string; objectId: string; footprint: [number, number]; path: string; sha256: string; lods: Array<{ path: string; sha256: string }>; anchor: [number, number]; worldSize: [number, number] }>;
+  };
+  assert.equal(manifest.assets.length, 56);
+  assert.equal(new Set(manifest.assets.map((asset) => asset.assetId)).size, 56);
+  for (const asset of manifest.assets) {
+    const file = `${process.cwd()}/public/versado-dorp-bom-v1/${asset.path}`;
+    assert.ok(existsSync(file), asset.path);
+    assert.equal(createHash("sha256").update(readFileSync(file)).digest("hex"), asset.sha256, asset.assetId);
+    assert.ok(asset.anchor.every((value) => value >= 0 && value <= 1), asset.assetId);
+    assert.ok(asset.worldSize.every((value) => value > 0), asset.assetId);
+    for (const lod of asset.lods) {
+      const lodFile = `${process.cwd()}/public/versado-dorp-bom-v1/${lod.path}`;
+      assert.equal(createHash("sha256").update(readFileSync(lodFile)).digest("hex"), lod.sha256, lod.path);
+    }
+  }
+  assert.equal(manifest.assets.flatMap((asset) => asset.lods).length, 66);
 });
 
 test("camera-events vragen frames aan en pinch kan nooit als tap eindigen", () => {
@@ -178,6 +231,8 @@ test("camera-events vragen frames aan en pinch kan nooit als tap eindigen", () =
   assert.match(client, /hadMultiplePointers/);
   assert.match(client, /POINTER_MOVE_THRESHOLD/);
   assert.match(client, /zoomCameraAroundPoint/);
+  assert.match(client, /document\.createElement\("canvas"\)/);
+  assert.match(client, /terrainCache\.scaledCanvas/);
 });
 
 test("ontwikkelroute vereist featureflag plus admin en lekt geen privémapping", () => {
