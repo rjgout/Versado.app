@@ -709,7 +709,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
             </p>
           </section>
         ) : (
-          <div className="relative min-h-[7rem] flex-1">
+          <div className="relative min-h-[5rem] flex-1">
             <div
               ref={scrollRef}
               role="region"
