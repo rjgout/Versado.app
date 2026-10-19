@@ -19,6 +19,8 @@ const truth = wordTruth(hymn.text, synth);
 const frames = extractFrames(synth.samples.subarray(0, Math.floor(Number(flag("seconds", "40")) * 22050)), 22050);
 const session = new HymnFollowSession(hymn, flag("variant", "v3") === "base" ? { melodyTracking: false } : {});
 const idx = new Map(truth.map((t, i) => [`${t.line}:${t.word}`, i]));
+// privé velden van de sessie, alleen voor diagnose
+const priv = session as unknown as { aboveLock: number; quality: number; concEma: number };
 let next = 0;
 for (const f of frames) {
   const s = session.pushFrame(f);
@@ -28,6 +30,6 @@ for (const f of frames) {
   for (let i = 0; i < truth.length && truth[i].start <= f.time; i += 1) sung = i;
   const c = s.cursor;
   const marked = c.section === "verse" && c.word !== null ? (idx.get(`${c.line}:${c.word}`) ?? "?") : "-";
-  console.log(`${f.time.toFixed(0).padStart(3)}s phase=${s.phase.phase.padEnd(8)} src=${(s.trackSource ?? "-").padEnd(6)} st=${s.status.padEnd(9)} conf=${s.confidence.toFixed(2)} pos=${s.position.toFixed(1).padStart(5)} sungWord=${String(sung).padStart(3)} marked=${String(marked).padStart(3)} above=${((session as any).aboveLock as number).toFixed(2)} q=${((session as any).quality as number).toFixed(3)} ce=${((session as any).concEma as number).toFixed(2)} frozen=${c.frozen ? 1 : 0} est=${c.estimated ? 1 : 0}`);
+  console.log(`${f.time.toFixed(0).padStart(3)}s phase=${s.phase.phase.padEnd(8)} src=${(s.trackSource ?? "-").padEnd(6)} st=${s.status.padEnd(9)} conf=${s.confidence.toFixed(2)} pos=${s.position.toFixed(1).padStart(5)} sungWord=${String(sung).padStart(3)} marked=${String(marked).padStart(3)} above=${priv.aboveLock.toFixed(2)} q=${priv.quality.toFixed(3)} ce=${priv.concEma.toFixed(2)} frozen=${c.frozen ? 1 : 0} est=${c.estimated ? 1 : 0}`);
 }
 console.log("firstTruth", truth[0].start.toFixed(1), "words", truth.length);
