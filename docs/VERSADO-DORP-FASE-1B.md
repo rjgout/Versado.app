@@ -2,7 +2,9 @@
 
 Branch: `codex/versado-dorp-fase-1a`
 
-Draft-PR: [#145](https://github.com/rjgout/Versado.app/pull/145); blijft draft en wordt niet gemerged of gedeployed.
+PR #145 is tijdens de uitvoering buiten deze opdracht om gemerged. De fase-1B-wijzigingen staan daarom in de
+open, mergeable [draft-PR #147](https://github.com/rjgout/Versado.app/pull/147); deze wordt niet gemerged of
+gedeployed.
 
 ## Uitgevoerde verbeteringen
 
