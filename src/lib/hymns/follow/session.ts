@@ -1,10 +1,14 @@
 import { ChromaExtractor, type FeatureFrame } from "../audio/features";
 import { buildReference, type Reference } from "../score/reference";
 import type { ResolvedHymn } from "../types";
-import { ScoreTracker, type TrackerConfig, type TrackerOutput } from "./tracker";
+import { type TrackerConfig, type TrackerOutput } from "./tracker";
+import { HybridScoreTracker, type TrackSource } from "./hybrid";
+import type { FeatureLayout } from "../audio/features";
+import { melodyComposition, type MelodyResult } from "../score/melody";
 import { StanzaPlan } from "./stanzas";
 import { StableCursor, sectionAt, type DisplayCursor } from "./display";
 import { SingingPhase, type PhaseConfig, type PhaseEvent, type PhaseState } from "./phase";
+import { PositionGate } from "./gate";
 import { PositionCoaster, type CoastConfig, type PositionSource } from "./coast";
 
 // Eén volg-sessie voor één lofzang: audio -> kenmerken -> tracker -> status/betrouwbaarheid -> rondes ->
@@ -19,6 +23,18 @@ export interface SessionConfig {
   lockSeconds: number;
   /** Onder deze betrouwbaarheid (langer dan `uncertainSeconds`) wordt de status "onzeker". */
   uncertainConfidence: number;
+  /** Hoe snel de vergrendelteller bij een dip terugloopt als de melodie de positie levert (1 = zoals bij instrumenten: meteen naar nul). */
+  melodyLockDecay: number;
+  /** Vertrouwen bij de melodiereferentie: kwaliteit (log-bewijs per frame) en concentratie van de positie waarbij het vertrouwen 0 resp. 1 is. */
+  melodyQualityFloor: number;
+  melodyQualityScale: number;
+  melodyConcFloor: number;
+  melodyConcScale: number;
+  /** Aandeel frames met betrouwbare toonhoogte waarboven de zang als "één heldere stem" geldt (van .. tot ..), en de strengere kwaliteitseis daarvoor. */
+  melodyCleanFrom: number;
+  melodyCleanTo: number;
+  melodyCleanQualityFloor: number;
+  melodyCleanQualityScale: number;
   uncertainSeconds: number;
   /** Onder deze betrouwbaarheid (langer dan `lostSeconds`) is de synchronisatie "verloren". */
   lostConfidence: number;
@@ -27,6 +43,8 @@ export interface SessionConfig {
   recoveredSeconds: number;
   /** Na zo lang stilte wordt de status onzeker (de positie blijft wel vastgehouden). */
   pauseUncertainSeconds: number;
+  /** Volg ook alleen de melodie (solozang, a capella) als de lofzang een gecontroleerde melodie heeft. */
+  melodyTracking: boolean;
   /** Regels voor de voorspel- en zangfase (zie phase.ts). */
   phase: Partial<PhaseConfig>;
   /** Doorlopen op het laatst betrouwbare tempo bij tijdelijk syncverlies (zie coast.ts). */
@@ -39,11 +57,21 @@ export const DEFAULT_SESSION_CONFIG: SessionConfig = {
   lockConfidence: 0.55,
   lockSeconds: 1.5,
   uncertainConfidence: 0.35,
+  melodyLockDecay: 0.5,
+  melodyQualityFloor: 0.01,
+  melodyQualityScale: 0.05,
+  melodyConcFloor: 0.8,
+  melodyConcScale: 0.1,
+  melodyCleanFrom: 0.6,
+  melodyCleanTo: 0.85,
+  melodyCleanQualityFloor: 0.08,
+  melodyCleanQualityScale: 0.12,
   uncertainSeconds: 1.5,
   lostConfidence: 0.2,
   lostSeconds: 5,
   recoveredSeconds: 4,
   pauseUncertainSeconds: 25,
+  melodyTracking: true,
   phase: {},
   coast: {},
 };
@@ -87,6 +115,8 @@ export interface FollowSnapshot {
   positionSource: PositionSource;
   /** Hoe lang (seconden) de positie nu al geschat wordt. */
   estimatedSeconds: number;
+  /** Welke partituurreferentie de positie levert: de volledige begeleiding of alleen de zangmelodie (hybride volger). */
+  trackSource?: TrackSource;
 }
 
 export class HymnFollowSession {
@@ -95,10 +125,11 @@ export class HymnFollowSession {
   readonly stanzas: StanzaPlan;
   readonly config: SessionConfig;
   readonly events: SessionEvent[] = [];
-  private tracker: ScoreTracker;
+  private tracker: HybridScoreTracker;
   private phaseLayer: SingingPhase;
   private readonly cursor = new StableCursor();
   private readonly coast: PositionCoaster;
+  private gate: PositionGate;
   private extractor: ChromaExtractor | null = null;
 
   private status: SyncStatus = "idle";
@@ -113,14 +144,19 @@ export class HymnFollowSession {
   private lastTime = 0;
   private lapUncertain = false;
   private lastOut: TrackerOutput | null = null;
+  private wasConfident = false;
+  private lowSince: number | null = null;
   private lastSnapshot: FollowSnapshot;
 
   constructor(hymn: ResolvedHymn, config: Partial<SessionConfig> = {}, reference?: Reference) {
     this.hymn = hymn;
     this.config = { ...DEFAULT_SESSION_CONFIG, ...config };
     this.reference = reference ?? buildReference(hymn.composition);
-    this.tracker = new ScoreTracker(this.reference, this.config.tracker);
+    // Met een gecontroleerde melodie volgt de sessie ook solozang (zie follow/hybrid.ts); zonder melodie alleen de volledige partituur.
+    const melody = this.config.melodyTracking && hymn.melody && hymn.melody.length >= 12 ? { ref: buildReference(asMelodyComposition(hymn, hymn.melody), { layout: FOLDED_LAYOUT }), notes: hymn.melody } : null;
+    this.tracker = new HybridScoreTracker(this.reference, melody, this.config.tracker);
     this.phaseLayer = new SingingPhase(this.reference.cycleBeats, this.config.phase);
+    this.gate = new PositionGate(this.reference.cycleBeats);
     this.stanzas = new StanzaPlan(hymn.text.stanzas.map((s) => s.n));
     this.coast = new PositionCoaster({ cycleBeats: this.reference.cycleBeats, fermatas: this.reference.fermatas, nominalBeatsPerSecond: this.reference.nominalBeatsPerSecond }, this.config.coast);
     this.lastSnapshot = this.snapshot(0, null);
@@ -143,15 +179,28 @@ export class HymnFollowSession {
     this.updateQuality(out, dt);
     this.updateStatus(frame.time, out, dt);
     this.applyPhaseEvents(
-      this.phaseLayer.observe({ time: frame.time, position: out.position, concentration: out.concentration, bpm: out.bpm, held: out.held, silent: frame.silent, rmsDb: frame.rmsDb }),
+      this.phaseLayer.observe({ time: frame.time, position: out.position, concentration: out.concentration, bpm: out.bpm, held: out.held, silent: frame.silent, rmsDb: frame.rmsDb, voice: this.tracker.voice }),
     );
-    const reliable = this.status === "locked" || this.status === "recovered";
+    // De markering volgt alleen een positie waar de volger op dat moment ook echt vertrouwen in heeft: een kort verkeerd slot (bij zang
+    // zonder begeleiding is het begin van een melodie vaak dubbelzinnig) zou de markering anders ver vooruit zetten, en daarna mag de
+    // markering binnen een ronde niet meer terug. Herstelt het vertrouwen na een slechte periode, dan mag de markering wel springen.
+    const confident = this.confidence >= (this.wasConfident ? this.config.uncertainConfidence : this.config.lockConfidence);
+    if (!confident) this.lowSince ??= frame.time;
+    else {
+      if (!this.wasConfident && this.lowSince !== null && frame.time - this.lowSince >= 1 && this.phaseLayer.isSinging && this.tracker.source === "melody") this.cursor.permitJump();
+      this.lowSince = null;
+    }
+    this.wasConfident = confident;
+    const reliable = (this.status === "locked" || this.status === "recovered") && (confident || this.tracker.source !== "melody");
     const stanza = this.stanzas.current;
     const singing = this.phaseLayer.isSinging;
     // Tijdelijk syncverlies: de woorden lopen een beperkte tijd door op het laatst betrouwbare tempo (coast.ts); stilte bevriest ze.
-    const place = this.coast.update({ time: frame.time, reliable: reliable && !out.held, held: out.held, singing, position: out.position, bpm: out.bpm });
+    // Zang met alleen de melodie: losse verkeerde frames (herhaalde frasen) mogen de woordmarkering niet blijvend verzetten (follow/gate.ts).
+    const markPosition = this.gate.filter(frame.time, out.position, out.bpm / 60);
+    const shown = this.tracker.source === "melody" ? markPosition : out.position;
+    const place = this.coast.update({ time: frame.time, reliable: reliable && !out.held, held: out.held, singing, position: shown, bpm: out.bpm });
     // Voor het zangbegin (voorspel) en tijdens een tussenspel staat de tekst klaar zonder markering.
-    const cursor = singing ? this.updateCursor(stanza, place.position ?? out.position, place.position === null ? reliable && !out.held : place.source === "measured" || place.source === "catching-up" || (place.source === "estimated" && !out.held), (place.source === "estimated" || place.source === "catching-up") && !out.held) : null;
+    const cursor = singing ? this.updateCursor(stanza, place.position ?? shown, place.position === null ? reliable && !out.held : place.source === "measured" || place.source === "catching-up" || (place.source === "estimated" && !out.held), (place.source === "estimated" || place.source === "catching-up") && !out.held) : null;
     this.lastSnapshot = this.snapshot(frame.time, cursor);
     return this.lastSnapshot;
   }
@@ -177,6 +226,7 @@ export class HymnFollowSession {
   resync(): void {
     this.applyPhaseEvents(this.phaseLayer.backToPrelude(this.lastTime));
     this.tracker.reset("uniform");
+    this.gate.reset();
     this.status = "idle";
     this.statusSince = this.lastTime;
     this.quality = 0;
@@ -247,8 +297,18 @@ export class HymnFollowSession {
     this.quality += a * (out.logEvidence - out.logNull - this.quality);
     const b = 1 - Math.exp(-dt / 0.5);
     this.concEma += b * (out.concentration - this.concEma);
-    const q = clamp01((this.quality - 0.03) / 0.12);
-    const c = clamp01((this.concEma - 0.5) / 0.35);
+    // Bij de melodiereferentie zit het bewijs per frame lager (de zang is de enige bron, bij een koor zijn de stemmen verspreid), maar een
+    // ONJUISTE lofzang kan met toonhoogteklassen bijna even goed passen. Daarom is de ondergrens voor de kwaliteit lager en de eis aan de
+    // concentratie van de positie juist strenger: alleen als de positie echt op één plek samenkomt telt het als vertrouwen.
+    const melody = this.tracker.source === "melody";
+    const cfg = this.config;
+    // Eén heldere stem (veel frames met een betrouwbare toonhoogte) verklaart de juiste melodie sterk; een onjuiste lofzang haalt dan
+    // maar een deel van dat bewijs. Bij een koor (toonhoogte vaak onbetrouwbaar) is het bewijs per frame juist laag, ook bij de juiste.
+    const clean = melody ? clamp01(((this.tracker.voice?.voicedShare ?? 0) - cfg.melodyCleanFrom) / (cfg.melodyCleanTo - cfg.melodyCleanFrom)) : 0;
+    const qFloor = cfg.melodyQualityFloor + clean * (cfg.melodyCleanQualityFloor - cfg.melodyQualityFloor);
+    const qScale = cfg.melodyQualityScale + clean * (cfg.melodyCleanQualityScale - cfg.melodyQualityScale);
+    const q = melody ? clamp01((this.quality - qFloor) / qScale) : clamp01((this.quality - 0.03) / 0.12);
+    const c = melody ? clamp01((this.concEma - cfg.melodyConcFloor) / cfg.melodyConcScale) : clamp01((this.concEma - 0.5) / 0.35);
     const target = q * c;
     const k = 1 - Math.exp(-dt / 0.4);
     this.confidence += k * (target - this.confidence);
@@ -262,6 +322,17 @@ export class HymnFollowSession {
     this.aboveLock = 0;
     this.belowUncertain = 0;
     this.belowLost = 0;
+  }
+
+  /**
+   * Hoe lang het vertrouwen boven de vergrendelgrens zit. Bij zang volgens alleen de melodie (koor, meerdere stemmen met kleine
+   * tijds- en toonverschillen) schommelt het vertrouwen per frame sterk terwijl de positie wel klopt; elke dip zou de teller dan
+   * op nul zetten en de markering tientallen seconden vasthouden. Daar loopt de teller bij een dip maar half terug: wie meer dan
+   * een derde van de tijd boven de grens zit, vergrendelt. Bij instrumenten blijft het gedrag ongewijzigd (volledig terug naar 0).
+   */
+  private lockProgress(conf: number, dt: number): number {
+    if (conf >= this.config.lockConfidence) return this.aboveLock + dt;
+    return this.tracker.source === "melody" ? Math.max(0, this.aboveLock - dt * this.config.melodyLockDecay) : 0;
   }
 
   private updateStatus(time: number, out: TrackerOutput, dt: number): void {
@@ -278,7 +349,7 @@ export class HymnFollowSession {
 
     switch (this.status) {
       case "acquiring":
-        this.aboveLock = conf >= cfg.lockConfidence ? this.aboveLock + dt : 0;
+        this.aboveLock = this.lockProgress(conf, dt);
         if (this.aboveLock >= cfg.lockSeconds) this.setStatus(time, "locked");
         break;
       case "locked":
@@ -286,7 +357,7 @@ export class HymnFollowSession {
         if (this.belowUncertain >= cfg.uncertainSeconds) this.setStatus(time, "uncertain");
         break;
       case "uncertain":
-        this.aboveLock = conf >= cfg.lockConfidence ? this.aboveLock + dt : 0;
+        this.aboveLock = this.lockProgress(conf, dt);
         this.belowLost = conf < cfg.lostConfidence ? this.belowLost + dt : 0;
         if (this.aboveLock >= cfg.lockSeconds) {
           // kort onzeker geweest en positie klopt weer: gewoon weer gesynchroniseerd
@@ -335,6 +406,7 @@ export class HymnFollowSession {
       displayPosition: this.phaseLayer.isSinging ? this.coast.value.position : null,
       positionSource: this.phaseLayer.isSinging ? this.coast.value.source : "none",
       estimatedSeconds: this.coast.value.estimatedSeconds,
+      trackSource: this.tracker.source,
     };
   }
 
@@ -345,6 +417,7 @@ export class HymnFollowSession {
   /** Alles weer op nul (nieuwe sessie met dezelfde lofzang), zonder het gekozen couplet te verliezen. */
   restart(): void {
     this.tracker.reset(this.config.tracker.start ?? "uniform");
+    this.gate.reset();
     this.extractor?.reset();
     this.phaseLayer = new SingingPhase(this.reference.cycleBeats, this.config.phase);
     this.cursor.reset();
@@ -358,11 +431,22 @@ export class HymnFollowSession {
     this.lastTime = 0;
     this.silentSince = null;
     this.lastOut = null;
+    this.wasConfident = false;
+    this.lowSince = null;
   }
 }
+
+/** Eén band (octaafonafhankelijk) voor de melodiereferentie; de frames worden daarvoor samengevouwen (follow/transpose.ts). */
+const FOLDED_LAYOUT: FeatureLayout = { splitsHz: [], power: 0.5 };
 
 const IDLE_CURSOR: DisplayCursor = { section: "verse", line: -1, word: null, frozen: false, estimated: false };
 
 function clamp01(x: number): number {
   return Math.max(0, Math.min(1, x));
+}
+
+/** Een compositie met alleen de gecontroleerde melodie (dezelfde beat-as) voor de melodiereferentie. */
+function asMelodyComposition(hymn: ResolvedHymn, melody: [number, number, number][]) {
+  const result: MelodyResult = { compositionId: hymn.composition.id, status: "ok", reasons: [], notes: melody, topAgreement: 1, syllableAnchors: null, coverage: 1 };
+  return melodyComposition(hymn.composition, result)!;
 }

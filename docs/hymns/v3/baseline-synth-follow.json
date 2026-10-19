@@ -1,0 +1,1464 @@
+{
+ "mode": "follow",
+ "leaveOut": false,
+ "bpm": 80,
+ "seconds": 60,
+ "compositions": 171,
+ "sampled": 12,
+ "summary": [
+  {
+   "scenario": "piano",
+   "n": 12,
+   "correct": 0,
+   "wrong": 0,
+   "notIdentified": 12,
+   "secondsMedian": null,
+   "secondsP90": null,
+   "within1Median": 1,
+   "within1P10": 0.9444444444444444,
+   "medianErrMs": 126.36405252342709,
+   "cpuMsPerAudioSecondMedian": 16.278858318584867
+  },
+  {
+   "scenario": "orgel",
+   "n": 12,
+   "correct": 0,
+   "wrong": 0,
+   "notIdentified": 12,
+   "secondsMedian": null,
+   "secondsP90": null,
+   "within1Median": 1,
+   "within1P10": 0.8768472906403941,
+   "medianErrMs": 104.25102998836914,
+   "cpuMsPerAudioSecondMedian": 15.990977133334551
+  },
+  {
+   "scenario": "solo",
+   "n": 12,
+   "correct": 0,
+   "wrong": 0,
+   "notIdentified": 12,
+   "secondsMedian": null,
+   "secondsP90": null,
+   "within1Median": 0.9863013698630136,
+   "within1P10": 0.6046511627906976,
+   "medianErrMs": 233.61330035533084,
+   "cpuMsPerAudioSecondMedian": 15.627302633334693
+  },
+  {
+   "scenario": "solo-laag",
+   "n": 12,
+   "correct": 0,
+   "wrong": 0,
+   "notIdentified": 12,
+   "secondsMedian": null,
+   "secondsP90": null,
+   "within1Median": 0.9813953488372092,
+   "within1P10": 0.7063492063492064,
+   "medianErrMs": 240.83354266202363,
+   "cpuMsPerAudioSecondMedian": 15.846126147060525
+  },
+  {
+   "scenario": "solo-andere-toonsoort",
+   "n": 12,
+   "correct": 0,
+   "wrong": 0,
+   "notIdentified": 12,
+   "secondsMedian": null,
+   "secondsP90": null,
+   "within1Median": 0,
+   "within1P10": 0,
+   "medianErrMs": 13744.820584147421,
+   "cpuMsPerAudioSecondMedian": 15.107918283332886
+  },
+  {
+   "scenario": "groep",
+   "n": 12,
+   "correct": 0,
+   "wrong": 0,
+   "notIdentified": 12,
+   "secondsMedian": null,
+   "secondsP90": null,
+   "within1Median": 0.916030534351145,
+   "within1P10": 0.7853881278538812,
+   "medianErrMs": 307.54988633034884,
+   "cpuMsPerAudioSecondMedian": 15.652398416665285
+  },
+  {
+   "scenario": "groep-4stemmig",
+   "n": 12,
+   "correct": 0,
+   "wrong": 0,
+   "notIdentified": 12,
+   "secondsMedian": null,
+   "secondsP90": null,
+   "within1Median": 1,
+   "within1P10": 0.9087301587301587,
+   "medianErrMs": 276.66641139582384,
+   "cpuMsPerAudioSecondMedian": 16.14182713684491
+  },
+  {
+   "scenario": "solo-ademhaling",
+   "n": 12,
+   "correct": 0,
+   "wrong": 0,
+   "notIdentified": 12,
+   "secondsMedian": null,
+   "secondsP90": null,
+   "within1Median": 1,
+   "within1P10": 0.9104477611940298,
+   "medianErrMs": 222.42763316708013,
+   "cpuMsPerAudioSecondMedian": 15.806919430044019
+  },
+  {
+   "scenario": "solo+ruis",
+   "n": 12,
+   "correct": 0,
+   "wrong": 0,
+   "notIdentified": 12,
+   "secondsMedian": null,
+   "secondsP90": null,
+   "within1Median": 0.9634703196347032,
+   "within1P10": 0.837037037037037,
+   "medianErrMs": 249.60521179227112,
+   "cpuMsPerAudioSecondMedian": 15.849883852950263
+  },
+  {
+   "scenario": "solo+piano",
+   "n": 12,
+   "correct": 0,
+   "wrong": 0,
+   "notIdentified": 12,
+   "secondsMedian": null,
+   "secondsP90": null,
+   "within1Median": 1,
+   "within1P10": 0.9444444444444444,
+   "medianErrMs": 139.055559040514,
+   "cpuMsPerAudioSecondMedian": 16.541945380529604
+  },
+  {
+   "scenario": "gemeente+orgel",
+   "n": 12,
+   "correct": 0,
+   "wrong": 0,
+   "notIdentified": 12,
+   "secondsMedian": null,
+   "secondsP90": null,
+   "within1Median": 1,
+   "within1P10": 0.9444444444444444,
+   "medianErrMs": 135.45431029460434,
+   "cpuMsPerAudioSecondMedian": 15.74530223043037
+  },
+  {
+   "scenario": "ruis+gebabbel",
+   "n": 12,
+   "correct": 0,
+   "wrong": 0,
+   "notIdentified": 12,
+   "secondsMedian": null,
+   "secondsP90": null,
+   "within1Median": 0.9518518518518518,
+   "within1P10": 0.8854961832061069,
+   "medianErrMs": 126.36662325551362,
+   "cpuMsPerAudioSecondMedian": 16.15865466513029
+  }
+ ],
+ "rows": [
+  {
+   "scenario": "piano",
+   "hymn": 2,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.5703703703703704,
+   "medianErrMs": 208.1471466712522,
+   "cpuMsPerAudioSecond": 18.955555266666725
+  },
+  {
+   "scenario": "piano",
+   "hymn": 18,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 118.18054326312911,
+   "cpuMsPerAudioSecond": 14.971965617647076
+  },
+  {
+   "scenario": "piano",
+   "hymn": 32,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 133.8021004950389,
+   "cpuMsPerAudioSecond": 18.202058083333213
+  },
+  {
+   "scenario": "piano",
+   "hymn": 46,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 125.23371587046816,
+   "cpuMsPerAudioSecond": 18.008818183653755
+  },
+  {
+   "scenario": "piano",
+   "hymn": 63,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 128.32445616415077,
+   "cpuMsPerAudioSecond": 9.449124079208307
+  },
+  {
+   "scenario": "piano",
+   "hymn": 78,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9888888888888889,
+   "medianErrMs": 126.36405252342709,
+   "cpuMsPerAudioSecond": 17.611949949999932
+  },
+  {
+   "scenario": "piano",
+   "hymn": 98,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 124.22511568687233,
+   "cpuMsPerAudioSecond": 15.099732905263188
+  },
+  {
+   "scenario": "piano",
+   "hymn": 115,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 123.89706522106192,
+   "cpuMsPerAudioSecond": 16.41273858333328
+  },
+  {
+   "scenario": "piano",
+   "hymn": 131,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9770992366412213,
+   "medianErrMs": 119.2978673639652,
+   "cpuMsPerAudioSecond": 15.137515911764721
+  },
+  {
+   "scenario": "piano",
+   "hymn": 149,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9444444444444444,
+   "medianErrMs": 122.99977483698797,
+   "cpuMsPerAudioSecond": 16.278858318584867
+  },
+  {
+   "scenario": "piano",
+   "hymn": 168,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9888888888888889,
+   "medianErrMs": 132.72661148354862,
+   "cpuMsPerAudioSecond": 16.12203643333396
+  },
+  {
+   "scenario": "piano",
+   "hymn": 187,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 130.83294074194652,
+   "cpuMsPerAudioSecond": 15.344055980196789
+  },
+  {
+   "scenario": "orgel",
+   "hymn": 2,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.8481481481481481,
+   "medianErrMs": 111.13878673301494,
+   "cpuMsPerAudioSecond": 17.47563906666546
+  },
+  {
+   "scenario": "orgel",
+   "hymn": 18,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 107.3464498805732,
+   "cpuMsPerAudioSecond": 14.905113941178783
+  },
+  {
+   "scenario": "orgel",
+   "hymn": 32,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 102.47151192975305,
+   "cpuMsPerAudioSecond": 15.990977133334551
+  },
+  {
+   "scenario": "orgel",
+   "hymn": 46,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 103.4218238908661,
+   "cpuMsPerAudioSecond": 16.51239311697114
+  },
+  {
+   "scenario": "orgel",
+   "hymn": 63,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 107.96474459656518,
+   "cpuMsPerAudioSecond": 9.744847742574247
+  },
+  {
+   "scenario": "orgel",
+   "hymn": 78,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9888888888888889,
+   "medianErrMs": 103.96200431700612,
+   "cpuMsPerAudioSecond": 15.736375799999587
+  },
+  {
+   "scenario": "orgel",
+   "hymn": 98,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.8768472906403941,
+   "medianErrMs": 110.11436354058584,
+   "cpuMsPerAudioSecond": 14.388748989474813
+  },
+  {
+   "scenario": "orgel",
+   "hymn": 115,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 95.33370833809212,
+   "cpuMsPerAudioSecond": 16.498624116667028
+  },
+  {
+   "scenario": "orgel",
+   "hymn": 131,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9923664122137404,
+   "medianErrMs": 100.45147422773563,
+   "cpuMsPerAudioSecond": 16.355179970588377
+  },
+  {
+   "scenario": "orgel",
+   "hymn": 149,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9444444444444444,
+   "medianErrMs": 107.2694506921189,
+   "cpuMsPerAudioSecond": 13.836725433628137
+  },
+  {
+   "scenario": "orgel",
+   "hymn": 168,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9925925925925926,
+   "medianErrMs": 104.25102998836914,
+   "cpuMsPerAudioSecond": 19.497230099999918
+  },
+  {
+   "scenario": "orgel",
+   "hymn": 187,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 104.18604941921937,
+   "cpuMsPerAudioSecond": 15.542460871286664
+  },
+  {
+   "scenario": "solo",
+   "hymn": 2,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 229.1120478618818,
+   "cpuMsPerAudioSecond": 18.068217783333118
+  },
+  {
+   "scenario": "solo",
+   "hymn": 18,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 259.4490686249762,
+   "cpuMsPerAudioSecond": 15.447309999999561
+  },
+  {
+   "scenario": "solo",
+   "hymn": 32,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9555555555555556,
+   "medianErrMs": 233.61330035533084,
+   "cpuMsPerAudioSecond": 16.537592949998604
+  },
+  {
+   "scenario": "solo",
+   "hymn": 46,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.6046511627906976,
+   "medianErrMs": 400.06466151503304,
+   "cpuMsPerAudioSecond": 12.09920345008211
+  },
+  {
+   "scenario": "solo",
+   "hymn": 63,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.4155251141552511,
+   "medianErrMs": 1697.8184249978985,
+   "cpuMsPerAudioSecond": 8.508336356435015
+  },
+  {
+   "scenario": "solo",
+   "hymn": 78,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9666666666666667,
+   "medianErrMs": 226.84073693253106,
+   "cpuMsPerAudioSecond": 15.627302633334693
+  },
+  {
+   "scenario": "solo",
+   "hymn": 98,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 227.43174778850852,
+   "cpuMsPerAudioSecond": 17.220053326315245
+  },
+  {
+   "scenario": "solo",
+   "hymn": 115,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.8851851851851852,
+   "medianErrMs": 247.46792288048968,
+   "cpuMsPerAudioSecond": 15.228107266668303
+  },
+  {
+   "scenario": "solo",
+   "hymn": 131,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9923664122137404,
+   "medianErrMs": 237.1605274844323,
+   "cpuMsPerAudioSecond": 17.229682647060734
+  },
+  {
+   "scenario": "solo",
+   "hymn": 149,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9404761904761905,
+   "medianErrMs": 226.7344410098633,
+   "cpuMsPerAudioSecond": 15.1651832920358
+  },
+  {
+   "scenario": "solo",
+   "hymn": 168,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9888888888888889,
+   "medianErrMs": 224.61616162477998,
+   "cpuMsPerAudioSecond": 16.35395106666765
+  },
+  {
+   "scenario": "solo",
+   "hymn": 187,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9863013698630136,
+   "medianErrMs": 207.24382735695832,
+   "cpuMsPerAudioSecond": 14.001569049504624
+  },
+  {
+   "scenario": "solo-laag",
+   "hymn": 2,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 232.92353202702955,
+   "cpuMsPerAudioSecond": 12.724970850000924
+  },
+  {
+   "scenario": "solo-laag",
+   "hymn": 18,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 263.77741707810736,
+   "cpuMsPerAudioSecond": 15.80396849999884
+  },
+  {
+   "scenario": "solo-laag",
+   "hymn": 32,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9333333333333333,
+   "medianErrMs": 249.2924554746363,
+   "cpuMsPerAudioSecond": 17.278593866666537
+  },
+  {
+   "scenario": "solo-laag",
+   "hymn": 46,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9813953488372092,
+   "medianErrMs": 240.83354266202363,
+   "cpuMsPerAudioSecond": 13.394624487777255
+  },
+  {
+   "scenario": "solo-laag",
+   "hymn": 63,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.3287671232876712,
+   "medianErrMs": 4874.545343665919,
+   "cpuMsPerAudioSecond": 8.728323287129722
+  },
+  {
+   "scenario": "solo-laag",
+   "hymn": 78,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9518518518518518,
+   "medianErrMs": 236.8728881422592,
+   "cpuMsPerAudioSecond": 15.87756106666978
+  },
+  {
+   "scenario": "solo-laag",
+   "hymn": 98,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 224.07932873985064,
+   "cpuMsPerAudioSecond": 14.370318778948308
+  },
+  {
+   "scenario": "solo-laag",
+   "hymn": 115,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.8851851851851852,
+   "medianErrMs": 255.0892257551065,
+   "cpuMsPerAudioSecond": 17.004230566665743
+  },
+  {
+   "scenario": "solo-laag",
+   "hymn": 131,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 237.66952461414803,
+   "cpuMsPerAudioSecond": 15.846126147060525
+  },
+  {
+   "scenario": "solo-laag",
+   "hymn": 149,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.7063492063492064,
+   "medianErrMs": 266.3835676284068,
+   "cpuMsPerAudioSecond": 17.0792470619459
+  },
+  {
+   "scenario": "solo-laag",
+   "hymn": 168,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9851851851851852,
+   "medianErrMs": 234.62943679574934,
+   "cpuMsPerAudioSecond": 18.33998040000224
+  },
+  {
+   "scenario": "solo-laag",
+   "hymn": 187,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.908675799086758,
+   "medianErrMs": 238.9052785146086,
+   "cpuMsPerAudioSecond": 15.60349485148171
+  },
+  {
+   "scenario": "solo-andere-toonsoort",
+   "hymn": 2,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0,
+   "medianErrMs": 21639.724553388678,
+   "cpuMsPerAudioSecond": 14.081689649999316
+  },
+  {
+   "scenario": "solo-andere-toonsoort",
+   "hymn": 18,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0,
+   "medianErrMs": 8848.200477013263,
+   "cpuMsPerAudioSecond": 15.074068911760525
+  },
+  {
+   "scenario": "solo-andere-toonsoort",
+   "hymn": 32,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0,
+   "medianErrMs": 23929.579556047054,
+   "cpuMsPerAudioSecond": 17.014796283335453
+  },
+  {
+   "scenario": "solo-andere-toonsoort",
+   "hymn": 46,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0,
+   "medianErrMs": 18301.263569103146,
+   "cpuMsPerAudioSecond": 14.4485000275315
+  },
+  {
+   "scenario": "solo-andere-toonsoort",
+   "hymn": 63,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.0684931506849315,
+   "medianErrMs": 11864.090196148767,
+   "cpuMsPerAudioSecond": 9.595626118814222
+  },
+  {
+   "scenario": "solo-andere-toonsoort",
+   "hymn": 78,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0,
+   "medianErrMs": 9825.79417648841,
+   "cpuMsPerAudioSecond": 15.107918283332886
+  },
+  {
+   "scenario": "solo-andere-toonsoort",
+   "hymn": 98,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0,
+   "medianErrMs": 11404.912244341558,
+   "cpuMsPerAudioSecond": 15.403671726316066
+  },
+  {
+   "scenario": "solo-andere-toonsoort",
+   "hymn": 115,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0,
+   "medianErrMs": 14021.892208511215,
+   "cpuMsPerAudioSecond": 16.058191683331824
+  },
+  {
+   "scenario": "solo-andere-toonsoort",
+   "hymn": 131,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.007633587786259542,
+   "medianErrMs": 2555.6456903849003,
+   "cpuMsPerAudioSecond": 14.36334061764886
+  },
+  {
+   "scenario": "solo-andere-toonsoort",
+   "hymn": 149,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.03968253968253968,
+   "medianErrMs": 13744.820584147421,
+   "cpuMsPerAudioSecond": 15.252798902650984
+  },
+  {
+   "scenario": "solo-andere-toonsoort",
+   "hymn": 168,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0,
+   "medianErrMs": 9987.756318508109,
+   "cpuMsPerAudioSecond": 16.636354850001954
+  },
+  {
+   "scenario": "solo-andere-toonsoort",
+   "hymn": 187,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0,
+   "medianErrMs": 14831.084778921047,
+   "cpuMsPerAudioSecond": 14.621235405940373
+  },
+  {
+   "scenario": "groep",
+   "hymn": 2,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9148148148148149,
+   "medianErrMs": 290.17174840409973,
+   "cpuMsPerAudioSecond": 15.652398416665285
+  },
+  {
+   "scenario": "groep",
+   "hymn": 18,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.916030534351145,
+   "medianErrMs": 297.94351291440023,
+   "cpuMsPerAudioSecond": 11.45751847058829
+  },
+  {
+   "scenario": "groep",
+   "hymn": 32,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.8074074074074075,
+   "medianErrMs": 329.21403338313246,
+   "cpuMsPerAudioSecond": 16.151268149999428
+  },
+  {
+   "scenario": "groep",
+   "hymn": 46,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.8883720930232558,
+   "medianErrMs": 385.4770440716699,
+   "cpuMsPerAudioSecond": 15.204610456771352
+  },
+  {
+   "scenario": "groep",
+   "hymn": 63,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.589041095890411,
+   "medianErrMs": 577.7089913901524,
+   "cpuMsPerAudioSecond": 10.223572712869666
+  },
+  {
+   "scenario": "groep",
+   "hymn": 78,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9296296296296296,
+   "medianErrMs": 266.62387451996443,
+   "cpuMsPerAudioSecond": 16.3742819000004
+  },
+  {
+   "scenario": "groep",
+   "hymn": 98,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9753694581280788,
+   "medianErrMs": 304.203769229851,
+   "cpuMsPerAudioSecond": 14.406732231580444
+  },
+  {
+   "scenario": "groep",
+   "hymn": 115,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9481481481481482,
+   "medianErrMs": 294.40725039947984,
+   "cpuMsPerAudioSecond": 17.98207583333327
+  },
+  {
+   "scenario": "groep",
+   "hymn": 131,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 339.8340953186472,
+   "cpuMsPerAudioSecond": 15.814017852940356
+  },
+  {
+   "scenario": "groep",
+   "hymn": 149,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9285714285714286,
+   "medianErrMs": 307.54988633034884,
+   "cpuMsPerAudioSecond": 16.982755469027968
+  },
+  {
+   "scenario": "groep",
+   "hymn": 168,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.8481481481481481,
+   "medianErrMs": 285.5453545920749,
+   "cpuMsPerAudioSecond": 15.34359316666402
+  },
+  {
+   "scenario": "groep",
+   "hymn": 187,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.7853881278538812,
+   "medianErrMs": 338.3774090498009,
+   "cpuMsPerAudioSecond": 12.470997900989351
+  },
+  {
+   "scenario": "groep-4stemmig",
+   "hymn": 2,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9851851851851852,
+   "medianErrMs": 276.66641139582384,
+   "cpuMsPerAudioSecond": 16.622205883331965
+  },
+  {
+   "scenario": "groep-4stemmig",
+   "hymn": 18,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 287.1230147478381,
+   "cpuMsPerAudioSecond": 17.208726000003963
+  },
+  {
+   "scenario": "groep-4stemmig",
+   "hymn": 32,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9703703703703703,
+   "medianErrMs": 284.53130211571704,
+   "cpuMsPerAudioSecond": 14.20184635000381
+  },
+  {
+   "scenario": "groep-4stemmig",
+   "hymn": 46,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 282.7451284885039,
+   "cpuMsPerAudioSecond": 15.886873723688163
+  },
+  {
+   "scenario": "groep-4stemmig",
+   "hymn": 63,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 272.4483623499156,
+   "cpuMsPerAudioSecond": 9.984319128720252
+  },
+  {
+   "scenario": "groep-4stemmig",
+   "hymn": 78,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9555555555555556,
+   "medianErrMs": 267.4814303418823,
+   "cpuMsPerAudioSecond": 14.461155016668393
+  },
+  {
+   "scenario": "groep-4stemmig",
+   "hymn": 98,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 268.84615170847275,
+   "cpuMsPerAudioSecond": 16.14182713684491
+  },
+  {
+   "scenario": "groep-4stemmig",
+   "hymn": 115,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 252.26206905885905,
+   "cpuMsPerAudioSecond": 16.576147866675456
+  },
+  {
+   "scenario": "groep-4stemmig",
+   "hymn": 131,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9465648854961832,
+   "medianErrMs": 274.48162013817546,
+   "cpuMsPerAudioSecond": 16.33747664706093
+  },
+  {
+   "scenario": "groep-4stemmig",
+   "hymn": 149,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9087301587301587,
+   "medianErrMs": 283.4487803299796,
+   "cpuMsPerAudioSecond": 16.333188619467727
+  },
+  {
+   "scenario": "groep-4stemmig",
+   "hymn": 168,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.4074074074074074,
+   "medianErrMs": 5669.401782842359,
+   "cpuMsPerAudioSecond": 14.636276749999768
+  },
+  {
+   "scenario": "groep-4stemmig",
+   "hymn": 187,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 273.99883474428424,
+   "cpuMsPerAudioSecond": 12.640595089115138
+  },
+  {
+   "scenario": "solo-ademhaling",
+   "hymn": 2,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 220.32636389297937,
+   "cpuMsPerAudioSecond": 16.501888483335886
+  },
+  {
+   "scenario": "solo-ademhaling",
+   "hymn": 18,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 217.62346481760707,
+   "cpuMsPerAudioSecond": 16.69895262516878
+  },
+  {
+   "scenario": "solo-ademhaling",
+   "hymn": 32,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9836734693877551,
+   "medianErrMs": 200.37461373328185,
+   "cpuMsPerAudioSecond": 17.479531666661206
+  },
+  {
+   "scenario": "solo-ademhaling",
+   "hymn": 46,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 201.87207561409153,
+   "cpuMsPerAudioSecond": 14.242534376829465
+  },
+  {
+   "scenario": "solo-ademhaling",
+   "hymn": 63,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.5799086757990868,
+   "medianErrMs": 552.6255874688804,
+   "cpuMsPerAudioSecond": 10.344295239169702
+  },
+  {
+   "scenario": "solo-ademhaling",
+   "hymn": 78,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9338842975206612,
+   "medianErrMs": 249.26582964172982,
+   "cpuMsPerAudioSecond": 12.910205783335066
+  },
+  {
+   "scenario": "solo-ademhaling",
+   "hymn": 98,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 236.78572285134814,
+   "cpuMsPerAudioSecond": 15.806919430044019
+  },
+  {
+   "scenario": "solo-ademhaling",
+   "hymn": 115,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 193.55065295701445,
+   "cpuMsPerAudioSecond": 19.049831550001304
+  },
+  {
+   "scenario": "solo-ademhaling",
+   "hymn": 131,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9104477611940298,
+   "medianErrMs": 258.64783254967017,
+   "cpuMsPerAudioSecond": 15.420805840109788
+  },
+  {
+   "scenario": "solo-ademhaling",
+   "hymn": 149,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9362549800796812,
+   "medianErrMs": 208.95962979738488,
+   "cpuMsPerAudioSecond": 16.361788401712108
+  },
+  {
+   "scenario": "solo-ademhaling",
+   "hymn": 168,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9840637450199203,
+   "medianErrMs": 236.18180041068328,
+   "cpuMsPerAudioSecond": 14.241267450005399
+  },
+  {
+   "scenario": "solo-ademhaling",
+   "hymn": 187,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 222.42763316708013,
+   "cpuMsPerAudioSecond": 11.531008413304013
+  },
+  {
+   "scenario": "solo+ruis",
+   "hymn": 2,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9962962962962963,
+   "medianErrMs": 235.08981065327063,
+   "cpuMsPerAudioSecond": 15.83441245000237
+  },
+  {
+   "scenario": "solo+ruis",
+   "hymn": 18,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9618320610687023,
+   "medianErrMs": 259.58274322460494,
+   "cpuMsPerAudioSecond": 16.46141255882257
+  },
+  {
+   "scenario": "solo+ruis",
+   "hymn": 32,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.837037037037037,
+   "medianErrMs": 287.74232793696467,
+   "cpuMsPerAudioSecond": 15.32913349999532
+  },
+  {
+   "scenario": "solo+ruis",
+   "hymn": 46,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.813953488372093,
+   "medianErrMs": 249.60521179227112,
+   "cpuMsPerAudioSecond": 15.973092016043644
+  },
+  {
+   "scenario": "solo+ruis",
+   "hymn": 63,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9406392694063926,
+   "medianErrMs": 328.3727879995262,
+   "cpuMsPerAudioSecond": 9.682285247518713
+  },
+  {
+   "scenario": "solo+ruis",
+   "hymn": 78,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9777777777777777,
+   "medianErrMs": 242.42428162393304,
+   "cpuMsPerAudioSecond": 15.628772833332187
+  },
+  {
+   "scenario": "solo+ruis",
+   "hymn": 98,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 228.90154235925266,
+   "cpuMsPerAudioSecond": 14.335877915786726
+  },
+  {
+   "scenario": "solo+ruis",
+   "hymn": 115,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9481481481481482,
+   "medianErrMs": 264.18227896483114,
+   "cpuMsPerAudioSecond": 16.207798033338136
+  },
+  {
+   "scenario": "solo+ruis",
+   "hymn": 131,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9465648854961832,
+   "medianErrMs": 249.46788510017325,
+   "cpuMsPerAudioSecond": 15.849883852950263
+  },
+  {
+   "scenario": "solo+ruis",
+   "hymn": 149,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.996031746031746,
+   "medianErrMs": 260.4535649974845,
+   "cpuMsPerAudioSecond": 14.627490743362156
+  },
+  {
+   "scenario": "solo+ruis",
+   "hymn": 168,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9925925925925926,
+   "medianErrMs": 242.72773055536675,
+   "cpuMsPerAudioSecond": 16.83403460000021
+  },
+  {
+   "scenario": "solo+ruis",
+   "hymn": 187,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9634703196347032,
+   "medianErrMs": 238.3882732263838,
+   "cpuMsPerAudioSecond": 16.536194534655337
+  },
+  {
+   "scenario": "solo+piano",
+   "hymn": 2,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.6333333333333333,
+   "medianErrMs": 190.29336753126879,
+   "cpuMsPerAudioSecond": 17.659573450000607
+  },
+  {
+   "scenario": "solo+piano",
+   "hymn": 18,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 135.13252352681323,
+   "cpuMsPerAudioSecond": 17.819486352942903
+  },
+  {
+   "scenario": "solo+piano",
+   "hymn": 32,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 139.055559040514,
+   "cpuMsPerAudioSecond": 16.81727036666707
+  },
+  {
+   "scenario": "solo+piano",
+   "hymn": 46,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 132.85318525095147,
+   "cpuMsPerAudioSecond": 13.962017877412704
+  },
+  {
+   "scenario": "solo+piano",
+   "hymn": 63,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 144.31063162860676,
+   "cpuMsPerAudioSecond": 9.721688495051591
+  },
+  {
+   "scenario": "solo+piano",
+   "hymn": 78,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9962962962962963,
+   "medianErrMs": 136.3118564226224,
+   "cpuMsPerAudioSecond": 17.400588433331965
+  },
+  {
+   "scenario": "solo+piano",
+   "hymn": 98,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 137.98502877757153,
+   "cpuMsPerAudioSecond": 16.13809671578745
+  },
+  {
+   "scenario": "solo+piano",
+   "hymn": 115,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 130.38259322723172,
+   "cpuMsPerAudioSecond": 14.3890246500038
+  },
+  {
+   "scenario": "solo+piano",
+   "hymn": 131,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9770992366412213,
+   "medianErrMs": 152.94956296778054,
+   "cpuMsPerAudioSecond": 16.422601382346542
+  },
+  {
+   "scenario": "solo+piano",
+   "hymn": 149,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9444444444444444,
+   "medianErrMs": 149.99330742455868,
+   "cpuMsPerAudioSecond": 16.541945380529604
+  },
+  {
+   "scenario": "solo+piano",
+   "hymn": 168,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9851851851851852,
+   "medianErrMs": 151.55070571337617,
+   "cpuMsPerAudioSecond": 18.290498316677017
+  },
+  {
+   "scenario": "solo+piano",
+   "hymn": 187,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 138.95669800039212,
+   "cpuMsPerAudioSecond": 15.693155920806129
+  },
+  {
+   "scenario": "gemeente+orgel",
+   "hymn": 2,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9740740740740741,
+   "medianErrMs": 140.48162431107863,
+   "cpuMsPerAudioSecond": 16.459977016671715
+  },
+  {
+   "scenario": "gemeente+orgel",
+   "hymn": 18,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 132.1394742106141,
+   "cpuMsPerAudioSecond": 14.985739264705712
+  },
+  {
+   "scenario": "gemeente+orgel",
+   "hymn": 32,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 140.16975948811046,
+   "cpuMsPerAudioSecond": 16.485114166676066
+  },
+  {
+   "scenario": "gemeente+orgel",
+   "hymn": 46,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 140.81912130579306,
+   "cpuMsPerAudioSecond": 15.74530223043037
+  },
+  {
+   "scenario": "gemeente+orgel",
+   "hymn": 63,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 128.5745004691461,
+   "cpuMsPerAudioSecond": 9.727241029708166
+  },
+  {
+   "scenario": "gemeente+orgel",
+   "hymn": 78,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 132.14623365490374,
+   "cpuMsPerAudioSecond": 16.232392616659247
+  },
+  {
+   "scenario": "gemeente+orgel",
+   "hymn": 98,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.8768472906403941,
+   "medianErrMs": 144.7471827376707,
+   "cpuMsPerAudioSecond": 15.152395094747312
+  },
+  {
+   "scenario": "gemeente+orgel",
+   "hymn": 115,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 131.23320636650615,
+   "cpuMsPerAudioSecond": 17.123748249993273
+  },
+  {
+   "scenario": "gemeente+orgel",
+   "hymn": 131,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 114.10955965129342,
+   "cpuMsPerAudioSecond": 14.128999529406428
+  },
+  {
+   "scenario": "gemeente+orgel",
+   "hymn": 149,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9444444444444444,
+   "medianErrMs": 140.178623486796,
+   "cpuMsPerAudioSecond": 14.542267061931707
+  },
+  {
+   "scenario": "gemeente+orgel",
+   "hymn": 168,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 135.45431029460434,
+   "cpuMsPerAudioSecond": 17.43508533332885
+  },
+  {
+   "scenario": "gemeente+orgel",
+   "hymn": 187,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 127.27347283730961,
+   "cpuMsPerAudioSecond": 15.39772764356959
+  },
+  {
+   "scenario": "ruis+gebabbel",
+   "hymn": 2,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.8148148148148148,
+   "medianErrMs": 126.36662325551362,
+   "cpuMsPerAudioSecond": 17.949577299990537
+  },
+  {
+   "scenario": "ruis+gebabbel",
+   "hymn": 18,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9465648854961832,
+   "medianErrMs": 113.0576412907798,
+   "cpuMsPerAudioSecond": 16.321376058827703
+  },
+  {
+   "scenario": "ruis+gebabbel",
+   "hymn": 32,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 123.27816216090115,
+   "cpuMsPerAudioSecond": 15.104664933328362
+  },
+  {
+   "scenario": "ruis+gebabbel",
+   "hymn": 46,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9441860465116279,
+   "medianErrMs": 115.85859259809773,
+   "cpuMsPerAudioSecond": 16.15865466513029
+  },
+  {
+   "scenario": "ruis+gebabbel",
+   "hymn": 63,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9771689497716894,
+   "medianErrMs": 134.46867900953657,
+   "cpuMsPerAudioSecond": 7.568903207935688
+  },
+  {
+   "scenario": "ruis+gebabbel",
+   "hymn": 78,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 1,
+   "medianErrMs": 108.0354882356074,
+   "cpuMsPerAudioSecond": 16.817161483335077
+  },
+  {
+   "scenario": "ruis+gebabbel",
+   "hymn": 98,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9211822660098522,
+   "medianErrMs": 132.9959363069944,
+   "cpuMsPerAudioSecond": 18.37067471579526
+  },
+  {
+   "scenario": "ruis+gebabbel",
+   "hymn": 115,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9518518518518518,
+   "medianErrMs": 122.39392670608052,
+   "cpuMsPerAudioSecond": 15.441806299993186
+  },
+  {
+   "scenario": "ruis+gebabbel",
+   "hymn": 131,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.8854961832061069,
+   "medianErrMs": 114.30866552225177,
+   "cpuMsPerAudioSecond": 15.732707617646906
+  },
+  {
+   "scenario": "ruis+gebabbel",
+   "hymn": 149,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9761904761904762,
+   "medianErrMs": 139.5144403708778,
+   "cpuMsPerAudioSecond": 16.51685010621003
+  },
+  {
+   "scenario": "ruis+gebabbel",
+   "hymn": 168,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9148148148148149,
+   "medianErrMs": 153.42543826032767,
+   "cpuMsPerAudioSecond": 14.133748116661446
+  },
+  {
+   "scenario": "ruis+gebabbel",
+   "hymn": 187,
+   "secondsToFollow": null,
+   "wrong": false,
+   "within1": 0.9771689497716894,
+   "medianErrMs": 128.6602963855754,
+   "cpuMsPerAudioSecond": 15.872520356435595
+  }
+ ]
+}

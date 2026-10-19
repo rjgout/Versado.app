@@ -1,5 +1,7 @@
 # Lofzangen: automatisch herkennen (proef)
 
+> V3: de knop heet nu "Start luisteren" (zie 21-LOFZANGEN-V3.md); dit document beschrijft de oorspronkelijke proef.
+
 "Herken lofzang": de gebruiker kiest geen nummer, de telefoon luistert en stelt een lofzang voor.
 Beperkt tot de drie proeflofzangen. Termen BEWEZEN, AANNEMELIJK en ONBEKEND: zie
 `01-SOURCE-AUDIT.md`. Alle metingen: `05-TEST-RESULTS.md`.

@@ -43,7 +43,7 @@ om verouderde of verkeerde gegevens van een ingelogde app te voorkomen).
 | Begrip | Status |
 |---|---|
 | **Offline muziekengine** (herkennen en volgen zonder netwerk) | **BEWEZEN**: alle analyse draait lokaal; met `fetch` uit werkt een volledige sessie. |
-| **Lokaal beschikbare bibliotheek** (na een eerste keer laden) | **BEWEZEN** voor lijst, geopende lofzangen en herkenningsbundel (zie 3). De herkenning moet dus vóór de dienst één keer met verbinding zijn voorbereid ("Herken lofzang" laadt de bundel). |
+| **Lokaal beschikbare bibliotheek** (na een eerste keer laden) | **BEWEZEN** voor lijst, geopende lofzangen en herkenningsbundel (zie 3). De herkenning moet dus vóór de dienst één keer met verbinding zijn voorbereid ("Start luisteren" laadt de bundel). |
 | **Volledig offline startbare webapp** | **NEE**: de pagina en de code worden bij het openen van het netwerk gehaald (service worker is een doorgeefluik, bewust niet aangepast). Een reeds geopende pagina met geladen gegevens blijft bruikbaar; opnieuw openen zonder verbinding niet. |
 
 ## 5. Rekentijd en geheugen

@@ -3,6 +3,7 @@ import path from "node:path";
 import { decodeNotation } from "../notation/decode";
 import { buildMusicXml } from "../notation/musicxml";
 import { syllablesOf } from "../notation/lyrics";
+import { reconstructMelody, type MelodyResult } from "../score/melody";
 import type { RawHymnNotation, SheetData, SheetStanzaStatus } from "../notation/types";
 import type { HymnCapabilities, HymnComposition, HymnIndexEntry, HymnLine, HymnStanza, HymnText, HymnbookEdition, ReadableHymn, ResolvedHymn } from "../types";
 
@@ -140,6 +141,37 @@ export function loadComposition(compositionId: string): HymnComposition | null {
   return readJson<HymnComposition>(`music/${slug}.json`);
 }
 
+const melodyCache = new Map<string, MelodyResult | null>();
+
+/**
+ * De betrouwbare melodie van een compositie (score/melody.ts), afgeleid van de notatielaag met de lettergrepen van couplet 1 als
+ * controle. Wordt per proces één keer uitgerekend; zonder notatie of bij twijfel is de status "uncertain" en blijft de melodie ongebruikt.
+ */
+export function loadMelody(compositionId: string): MelodyResult | null {
+  if (melodyCache.has(compositionId)) return melodyCache.get(compositionId) ?? null;
+  const composition = loadComposition(compositionId);
+  let result: MelodyResult | null = null;
+  if (composition) {
+    const slug = compositionId.replace(/^comp:/, "");
+    const raw = /^[a-z0-9-]+$/.test(slug) ? readJson<RawHymnNotation>(`notation/${slug}.json`) : null;
+    const first = readManifest().hymns.find((h) => h.music.compositionId === compositionId);
+    const stanza = first ? loadText(first.number)?.text.stanzas[0] : undefined;
+    const syllableBeats =
+      stanza && stanza.linking === "word"
+        ? stanza.lines.flatMap((l) => l.words).flatMap((w) => (w.syl ? w.syl.map((x) => x[1]) : w.b !== null ? [w.b] : []))
+        : [];
+    result = reconstructMelody(composition, raw ? decodeNotation(raw) : null, { syllableBeats });
+  }
+  melodyCache.set(compositionId, result);
+  return result;
+}
+
+/** Alleen de betrouwbare melodie (status "ok") als [beat, duur, midi]; anders null. */
+export function loadReliableMelody(compositionId: string): [number, number, number][] | null {
+  const m = loadMelody(compositionId);
+  return m && m.status === "ok" ? m.notes : null;
+}
+
 export function loadReadableHymn(number: number): ReadableHymn | null {
   const manifest = readManifest();
   const entry = manifest.hymns.find((h) => h.number === number);
@@ -151,6 +183,7 @@ export function loadReadableHymn(number: number): ReadableHymn | null {
     title: entry.title,
     text: loaded?.text ?? null,
     composition,
+    melody: composition ? loadReliableMelody(composition.id) : null,
     edition: NLD_EDITION,
     capabilities: entry.capabilities,
     unavailableReason: loaded ? null : "license",
@@ -161,7 +194,7 @@ export function loadReadableHymn(number: number): ReadableHymn | null {
 export function loadResolvedHymn(number: number): ResolvedHymn | null {
   const r = loadReadableHymn(number);
   if (!r || !r.text || !r.composition) return null;
-  return { number, edition: r.edition, text: { ...r.text, compositionId: r.composition.id }, composition: r.composition };
+  return { number, edition: r.edition, text: { ...r.text, compositionId: r.composition.id }, composition: r.composition, melody: r.melody ?? null };
 }
 
 export function listIndex(): HymnIndexEntry[] {
@@ -182,6 +215,8 @@ export function loadRecognitionBundle(): {
   compositions: HymnComposition[];
   members: { compositionId: string; number: number; title: string }[];
   calibration: Record<string, { t: number[]; mean: number[]; std: number[] }>;
+  /** Betrouwbare melodieën per compositie-id (alleen waar ze gecontroleerd zijn); ontbrekende composities herkennen alleen via chroma. */
+  melodies: Record<string, [number, number, number][]>;
 } {
   const manifest = readManifest();
   const members = manifest.hymns
@@ -191,7 +226,12 @@ export function loadRecognitionBundle(): {
   const compositions = ids.map((id) => loadComposition(id)).filter((c): c is HymnComposition => c !== null);
   // z-normalisatie van het tracker-bewijs per compositie (scripts/hymns/calibrate-evidence.ts); ontbreekt bij een nieuwe bibliotheek tot de kalibratie draait
   const calibration = readJson<Record<string, { t: number[]; mean: number[]; std: number[] }>>("evidence-calibration.json") ?? {};
-  return { compositions, members, calibration };
+  const melodies: Record<string, [number, number, number][]> = {};
+  for (const c of compositions) {
+    const m = loadReliableMelody(c.id);
+    if (m) melodies[c.id] = m.map(([t, d, n]) => [Math.round(t * 1000) / 1000, Math.round(d * 1000) / 1000, n] as [number, number, number]);
+  }
+  return { compositions, members, calibration, melodies };
 }
 
 export interface LibraryReport {

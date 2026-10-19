@@ -11,7 +11,7 @@ volledig faalt, moet de hele lofzang nog steeds zonder frustratie te lezen en te
 | Lofzang zelf gekozen | De volledige tekst staat er direct; coupletknoppen werken meteen; er wordt nergens op herkenning of "Zang begint" gewacht. |
 | "Start luisteren" op een gekozen lofzang | De lofzang is al bekend: geen herkenning, de engine volgt direct de muzikale positie (ook in het voorspel). Er wordt pas een woord gemarkeerd bij een betrouwbaar zangbegin of na "Zang begint". |
 | Voorspel | De tekst is leesbaar en bladerbaar; er wordt geen gezongen woord gemarkeerd; het voorspel telt niet als couplet. |
-| "Herken lofzang" | De microfoon start meteen. De herkenningsgegevens komen er tijdens het luisteren bij en de engine loopt dan het geheugen door: het begin van het voorspel gaat niet verloren aan het laden. "Zoek zelf op nummer of titel" staat vanaf de eerste seconde in beeld. |
+| "Start luisteren" | De microfoon start meteen. De herkenningsgegevens komen er tijdens het luisteren bij en de engine loopt dan het geheugen door: het begin van het voorspel gaat niet verloren aan het laden. "Zoek zelf op nummer of titel" staat vanaf de eerste seconde in beeld. |
 
 ## Twee onafhankelijke posities
 

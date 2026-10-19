@@ -54,6 +54,7 @@ execFileSync("psql", [process.env.PROMOTE_DB_URL, "-c", `update "User" set "isAd
 await ctx.request.post(`${BASE}/api/auth/login`, { data: { identifier: em, password: "Wachtwoord-123!" } });
 await page.goto(`${BASE}/dev/lofzangen`, { waitUntil: "domcontentloaded", timeout: 120000 });
 await page.locator(`[data-hymn-number="${HYMN}"]`).click({ timeout: 120000 });
+await page.waitForFunction((n) => document.querySelector("h1")?.textContent?.startsWith(`${n}.`), HYMN, { timeout: 30000 });
 await page.locator("[data-hymns-scroll]").waitFor({ timeout: 30000 });
 if (VIEW === "sheet") await page.locator("[data-hymns-sheet] svg").first().waitFor({ timeout: 30000 });
 

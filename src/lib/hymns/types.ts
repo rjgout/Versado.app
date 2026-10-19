@@ -133,6 +133,8 @@ export interface ResolvedHymn {
   edition: HymnbookEdition;
   text: HymnText;
   composition: HymnComposition;
+  /** Gecontroleerde melodie [beat, duur, midi]; zonder deze volgt de engine alleen met de volledige partituur. */
+  melody?: [number, number, number][] | null;
 }
 
 /** Wat een lofzang kan, afgeleid van wat aantoonbaar is gelezen en gevalideerd (zie docs/hymns/09). */
@@ -163,6 +165,8 @@ export interface ReadableHymn {
   text: HymnText | null;
   /** Alleen gevuld als er een gevalideerde compositie is; zonder blijft het een leesweergave. */
   composition: HymnComposition | null;
+  /** Gecontroleerde melodie [beat, duur, midi] voor volgen van solozang (score/melody.ts); null als die niet betrouwbaar is vast te stellen. */
+  melody?: [number, number, number][] | null;
   edition: HymnbookEdition;
   capabilities: HymnCapabilities;
   /** Netjes geformuleerde reden als de tekst niet beschikbaar is (rechtenbeperking). */

@@ -1,4 +1,5 @@
 import { RealFft, hannWindow } from "./fft";
+import { PitchAnalyzer, type PitchEstimate } from "./pitch";
 
 // Lokale audiokenmerken voor het volgen van live orgel- of pianospel. Alles hier werkt op losse
 // audiosamples in het geheugen; er wordt niets opgeslagen of verstuurd. De extractor houdt alleen een
@@ -42,6 +43,11 @@ export interface FeatureFrame {
   flux: number;
   /** True als het niveau niet boven de (zelflerende) ruisvloer uitkomt: een pauze of stilte. */
   silent: boolean;
+  /**
+   * Grondtoon van het midden van het venster (monofone zang), als de pitchanalyse aanstaat. Alleen aanvullend op `chroma`:
+   * bij meerstemmige klank is er meestal geen betrouwbare grondtoon (hz 0).
+   */
+  pitch?: PitchEstimate;
 }
 
 export interface ChromaConfig {
@@ -56,6 +62,8 @@ export interface ChromaConfig {
   /** Zo veel dB onder het recente pieklevel geldt als stilte. */
   silenceDropDb: number;
   layout: FeatureLayout;
+  /** Pitchanalyse naast de chroma (zie pitch.ts). Uit te zetten voor een lichtere pijplijn. */
+  pitch: boolean;
 }
 
 export const DEFAULT_CHROMA_CONFIG: Omit<ChromaConfig, "sampleRate"> = {
@@ -65,6 +73,7 @@ export const DEFAULT_CHROMA_CONFIG: Omit<ChromaConfig, "sampleRate"> = {
   silenceFloorDb: -62,
   silenceDropDb: 30,
   layout: DEFAULT_LAYOUT,
+  pitch: true,
 };
 
 const BAND_COUNT = 96; // semitoonbanden vanaf MIDI 24 (C1)
@@ -88,6 +97,7 @@ export class ChromaExtractor {
   readonly dim: number;
   private prevBands = new Float64Array(BAND_COUNT);
   private peakDb = -120;
+  private readonly pitchAnalyzer: PitchAnalyzer | null;
 
   constructor(config: Partial<ChromaConfig> & { sampleRate: number }) {
     this.config = { ...DEFAULT_CHROMA_CONFIG, ...config };
@@ -105,6 +115,7 @@ export class ChromaExtractor {
     this.lowBin = Math.max(1, Math.ceil(this.config.minHz / binHz));
     this.highBin = Math.min(this.frameSize / 2, Math.floor(this.config.maxHz / binHz));
     this.dim = layoutDim(this.config.layout);
+    this.pitchAnalyzer = this.config.pitch ? new PitchAnalyzer({ windowSize: Math.min(this.frameSize, 2 ** Math.round(Math.log2(0.09 * fs))) }) : null;
     this.binBand = new Uint8Array(this.highBin + 1);
     this.binPitch = new Float64Array(this.highBin + 1);
     for (let k = this.lowBin; k <= this.highBin; k += 1) {
@@ -182,7 +193,14 @@ export class ChromaExtractor {
       norm = Math.sqrt(norm) || 1;
       for (let c = 0; c < this.dim; c += 1) chroma[c] /= norm;
     }
-    return { time: (this.samplesSeen - n / 2) / this.config.sampleRate, chroma, rmsDb, flux, silent };
+    const frame: FeatureFrame = { time: (this.samplesSeen - n / 2) / this.config.sampleRate, chroma, rmsDb, flux, silent };
+    if (this.pitchAnalyzer) {
+      // Een korter venster (~90 ms) rond hetzelfde midden: genoeg perioden voor een zangstem, scherper in de tijd.
+      const w = this.pitchAnalyzer.config.windowSize;
+      const from = Math.max(0, Math.floor(n / 2 - w / 2));
+      frame.pitch = silent ? { hz: 0, clarity: 0 } : this.pitchAnalyzer.estimate(this.ring.subarray(from, from + w), this.config.sampleRate);
+    }
+    return frame;
   }
 
   private isSilent(rmsDb: number): boolean {

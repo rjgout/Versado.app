@@ -38,7 +38,7 @@ import { activeSeq, audioMissing, describeStatus, holdMeasure, lyricSequence, ne
 
 function toResolved(h: ReadableHymn): ResolvedHymn | null {
   if (!h.text || !h.composition) return null;
-  return { number: h.number, edition: h.edition, text: { ...h.text, compositionId: h.composition.id }, composition: h.composition };
+  return { number: h.number, edition: h.edition, text: { ...h.text, compositionId: h.composition.id }, composition: h.composition, melody: h.melody ?? null };
 }
 
 const UI_FLUSH_MS = 100;
@@ -339,6 +339,19 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
 
   const resync = () => {
     engineRef.current?.resync();
+    schedule(0);
+  };
+
+  /** Tijdens het luisteren van een gekozen lofzang overschakelen naar automatisch herkennen. Dezelfde microfoon en extractor blijven doorlopen. */
+  const recognizeAgain = () => {
+    const eng = getEngine();
+    bumpPlace();
+    const needBundle = !eng.hasCandidates;
+    eng.startRecognizing({ awaitCandidates: needBundle });
+    if (needBundle) loadBundleInto(eng);
+    dispatchReading({ type: "reset" });
+    setSearchSelf(false);
+    setLive(eng.state());
     schedule(0);
   };
 
@@ -696,7 +709,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
             </p>
           </section>
         ) : (
-          <div className="relative min-h-[7rem] flex-1">
+          <div className="relative min-h-[5rem] flex-1">
             <div
               ref={scrollRef}
               role="region"
@@ -847,7 +860,7 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
           {listening ? (
             <>
               {stage === "following" && phase === "prelude" ? (
-                <button type="button" className={primaryButton} onClick={confirmSinging} title={COPY.singingStartsHelp}>
+                <button type="button" className={secondaryButton} onClick={confirmSinging} title={COPY.singingStartsHelp} data-hymns-singing-starts>
                   <Play className="h-4 w-4" aria-hidden="true" />
                   {COPY.singingStarts}
                 </button>
@@ -892,6 +905,21 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
 
       {sheet === "settings" ? (
         <Sheet title={COPY.settings} onClose={() => setSheet(null)}>
+          {listening && stage === "following" ? (
+            // Niet in de bedieningsbalk: een derde knop laat die op grote tekst en smalle schermen buiten beeld wrappen. De microfoon blijft aan.
+            <button
+              type="button"
+              className={`${secondaryButton} w-full`}
+              data-hymns-recognize-again
+              onClick={() => {
+                recognizeAgain();
+                setSheet(null);
+              }}
+            >
+              <Music className="h-4 w-4" aria-hidden="true" />
+              {COPY.recognizeAgain}
+            </button>
+          ) : null}
           {!choosing && index ? (
             <div className="space-y-2">
               <h3 className="text-sm font-bold text-vs-fg-2">{COPY.hymnLabel}</h3>

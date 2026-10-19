@@ -14,6 +14,8 @@ export interface RecognitionBundle {
   compositions: HymnComposition[];
   members: { compositionId: string; number: number; title: string }[];
   calibration?: Record<string, { t: number[]; mean: number[]; std: number[] }>;
+  /** Gecontroleerde melodieën per compositie (zie score/melody.ts); oudere lokale kopieën hebben dit veld niet. */
+  melodies?: Record<string, [number, number, number][]>;
 }
 
 interface IndexResponse {
@@ -153,7 +155,8 @@ export async function loadHymn(number: number): Promise<ReadableHymn> {
   const mem = memory.get(key) as ReadableHymn | undefined;
   if (mem) return mem;
   const cached = await idbGet<ReadableHymn>(key);
-  if (cached && (knownVersion === null || cached.dataVersion === knownVersion)) {
+  // Een lokale kopie van vóór de melodieën (V3) mist `melody` en wordt vernieuwd.
+  if (cached && cached.value.melody !== undefined && (knownVersion === null || cached.dataVersion === knownVersion)) {
     memory.set(key, cached.value);
     return cached.value;
   }
@@ -206,7 +209,8 @@ async function loadRecognitionBundleInner(): Promise<RecognitionBundle> {
     return mem;
   }
   const cached = await idbGet<RecognitionBundle>("recognition");
-  if (cached && (knownVersion === null || cached.dataVersion === knownVersion)) {
+  // Een lokale kopie van vóór de melodieën (V3) mist `melodies` en wordt vernieuwd.
+  if (cached && cached.value.melodies !== undefined && (knownVersion === null || cached.dataVersion === knownVersion)) {
     memory.set("recognition", cached.value);
     diagnostics.bundleSource = "opslag";
     return cached.value;

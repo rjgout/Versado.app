@@ -36,17 +36,18 @@ await ctx.request.post(`${BASE}/api/auth/register`, { data: { email: em, handle:
 if (process.env.PROMOTE_DB_URL) execFileSync("psql", [process.env.PROMOTE_DB_URL, "-c", `update "User" set "isAdmin"=true where email='${em}'`]);
 await ctx.request.post(`${BASE}/api/auth/login`, { data: { identifier: em, password: pw } });
 await page.goto(`${BASE}/dev/lofzangen`, { waitUntil: "domcontentloaded", timeout: 120000 });
-await page.getByRole("button", { name: "Herken lofzang" }).or(page.locator(`[data-hymn-number="${HYMN}"]`)).first().waitFor({ timeout: 120000 });
+await page.getByRole("button", { name: "Start luisteren" }).or(page.locator(`[data-hymn-number="${HYMN}"]`)).first().waitFor({ timeout: 120000 });
 
 const status = async () => (await page.locator("[data-hymns-status]").first().textContent({ timeout: 500 }).catch(() => null))?.trim() ?? null;
 const micInfo = () => page.evaluate(() => ({ gum: window.__mic.gum, live: window.__mic.tracks.filter((t) => t.readyState === "live").length, ended: window.__mic.ended.length }));
 const micText = async () => (await page.locator("[data-hymns-mic]").first().textContent({ timeout: 500 }).catch(() => null))?.trim() ?? null;
 const t0 = Date.now();
 if (MODE === "recognize") {
-  await page.getByRole("button", { name: "Herken lofzang", exact: true }).click();
+  await page.getByRole("button", { name: "Start luisteren", exact: true }).click();
 } else {
   const byNumber = page.locator(`[data-hymn-number="${HYMN}"]`);
   if (await byNumber.count()) await byNumber.click(); else await page.getByRole("button", { name: new RegExp(TITLE) }).first().click();
+  await page.waitForFunction((n) => document.querySelector("h1")?.textContent?.startsWith(`${n}.`), HYMN, { timeout: 30000 });
   await page.getByRole("button", { name: "Start luisteren", exact: true }).waitFor({ timeout: 20000 });
   await page.getByRole("button", { name: "Start luisteren", exact: true }).click();
 }

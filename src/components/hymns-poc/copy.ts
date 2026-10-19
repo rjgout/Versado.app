@@ -9,7 +9,7 @@ import type { RecognitionStatus } from "@/lib/hymns/recognize/recognizer";
 export const COPY = {
   title: "Lofzangen",
   intro:
-    "Alleen voor beheerders, in ontwikkeling: de herkenning is nog niet getest met echte uitvoeringen in een kerk. De telefoon luistert naar het orgel of de piano, zet de tekst klaar en loopt mee zodra er wordt gezongen.",
+    "Alleen voor beheerders, in ontwikkeling: de herkenning is nog niet getest met echte uitvoeringen in een kerk. De telefoon luistert naar orgel, piano of zang, herkent de melodie en loopt mee met het tempo waarin er wordt gezongen.",
   privacy:
     "Het geluid wordt alleen op dit toestel geanalyseerd. Er wordt niets verzonden of opgeslagen. De microfoon stopt zodra je op Stop tikt, deze pagina verlaat of de app naar de achtergrond gaat.",
   start: "Start luisteren",
@@ -38,12 +38,14 @@ export const COPY = {
   sheetZoomIn: "Bladmuziek groter",
   sheetZoomOut: "Bladmuziek kleiner",
   sheetZoomFit: "Passende breedte",
-  stop: "Stop",
+  stop: "Stop luisteren",
   micOff: "Microfoon is uit",
   micOn: "Microfoon is actief",
   micRequesting: "Toestemming vragen…",
   hymnLabel: "Lofzang",
-  recognize: "Herken lofzang",
+  // Eén luisterknop: zonder gekozen lofzang herkent Versado de melodie, met een gekozen lofzang volgt het de zang. Dezelfde tekst, dezelfde knop.
+  recognize: "Start luisteren",
+  recognizeAgain: "Andere lofzang herkennen",
   recognizing: "Lofzang herkennen",
   recognizingStatus: "Luistert naar muziek",
   recognizingHint: "Versado probeert de lofzang te herkennen.",
