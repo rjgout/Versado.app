@@ -4,7 +4,7 @@ export type DorpCamera = { x: number; y: number; zoom: number };
 export type CameraInsets = { top: number; right: number; bottom: number; left: number };
 
 export const MAX_CAMERA_ZOOM = 1.4;
-export const NORMAL_CAMERA_ZOOM = 0.55;
+export const NORMAL_CAMERA_ZOOM = 0.36;
 export const DETAIL_CAMERA_ZOOM = 1;
 
 export function clampCameraZoom(value: number, minimum: number, maximum = MAX_CAMERA_ZOOM): number {

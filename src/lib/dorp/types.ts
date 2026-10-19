@@ -1,7 +1,7 @@
-export const DORP_STORAGE_VERSION = 2 as const;
+export const DORP_STORAGE_VERSION = 3 as const;
 
-export type DorpObjectKind = "building" | "landmark" | "prop" | "nature";
-export type DorpCategory = "Gebouwen" | "Bijzondere gebouwen" | "Decoraties" | "Natuur";
+export type DorpObjectKind = "building" | "landmark" | "prop" | "nature" | "resident";
+export type DorpCategory = "Gebouwen" | "Bijzondere gebouwen" | "Decoraties" | "Natuur" | "Bewoners";
 export type DorpLevel = 1 | 2 | 3;
 
 export type DorpObjectDefinition = {

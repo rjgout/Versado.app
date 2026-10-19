@@ -61,6 +61,15 @@ export const DORP_OBJECTS: readonly DorpObjectDefinition[] = publicCatalog.objec
     };
   });
 
+// Bewoners gebruiken hun bestaande, gevalideerde Work-registratie als één-celanker.
+for (const asset of DORP_ASSETS.filter((a) => a.assetId.startsWith("resident-"))) {
+  const source = publicCatalog.objects.find((o) => o.id === asset.objectId);
+  (DORP_OBJECTS as DorpObjectDefinition[]).push({
+    id: asset.objectId, name: source?.name ?? asset.objectId, kind: "resident", category: "Bewoners",
+    footprint: [1, 1], maxLevel: 1, maxInstances: 1, repeatable: false, assetIds: [asset.assetId],
+  });
+}
+
 export const DORP_OBJECT_BY_ID = new Map(DORP_OBJECTS.map((object) => [object.id, object]));
 export const DORP_ASSET_BY_ID = new Map(DORP_ASSETS.map((asset) => [asset.assetId, asset]));
 
