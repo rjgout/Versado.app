@@ -131,7 +131,7 @@ export function planPersonalStudy(
     if (i === personalAt) return record("SECTION_HEADING", true, "Kop van de persoonlijke studie.");
     if (i < personalAt) {
       if (block.type === "figure") return record("FIGURE", true, "Afbeelding bij de inleiding.");
-      if (block.type === "paragraph" && prev?.type === "figure" && prev.alt === "" && BOX_ID.test(block.id))
+      if (block.type === "paragraph" && prev?.type === "figure" && !prev.caption && BOX_ID.test(block.id))
         return record("CAPTION", true, "Bijschrift bij de voorgaande afbeelding.");
       return record("INTRO", true, "Inleiding van de les.");
     }
@@ -139,7 +139,7 @@ export function planPersonalStudy(
     if (block.type === "heading") return record("TOPIC_HEADING", true, "Onderwerp van de persoonlijke studie.");
     if (block.type === "figure") return record("FIGURE", true, "Afbeelding in de persoonlijke studie.");
     if (BOX_ID.test(block.id)) {
-      if (prev?.type === "figure" && prev.alt === "") return record("CAPTION", true, "Bijschrift bij de voorgaande afbeelding.");
+      if (prev?.type === "figure" && !prev.caption) return record("CAPTION", true, "Bijschrift bij de voorgaande afbeelding.");
       return record("SIDEBAR", true, "Kader uit de bron: staat in de persoonlijke studie tenzij een controleur het verbergt.", true);
     }
     return record("CONTENT", true, "Inhoud van de persoonlijke studie.");

@@ -1,7 +1,7 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { z } from "zod";
-import type { PersonalStudyOverrides } from "./personalStudy";
+import cfmOldTestament2026 from "../../../data/study-content/cfm-2026-nl/personal-study-overrides.json";
+import { planPersonalStudy, type PersonalStudyOverrides, type PersonalStudyPlan } from "./personalStudy";
+import type { ReaderDocument } from "./readingPositionContract";
 
 const schema = z.record(
   z.string(),
@@ -12,18 +12,23 @@ const schema = z.record(
     })
     .strict(),
 );
-let cache: z.infer<typeof schema> | null = null;
 /**
- * Handmatige correcties per les (bronsleutel), gebonden aan de brontekst via `text8`. Een wijziging van de officiële
- * tekst maakt een override vanzelf ongeldig; de brontekst zelf wordt nooit aangepast.
+ * Handmatige correcties per programma en les (bronsleutel), gebonden aan de brontekst via `text8`. Een wijziging van de
+ * officiële tekst maakt een override vanzelf ongeldig; de brontekst zelf wordt nooit aangepast. Een volgend CFM-jaar
+ * voegt hier alleen een eigen bestand toe.
  */
-export function loadPersonalStudyOverrides(sourceKey: string): PersonalStudyOverrides {
-  if (!cache) {
-    try {
-      cache = schema.parse(JSON.parse(readFileSync(join(process.cwd(), "data/study-content/cfm-2026-nl/personal-study-overrides.json"), "utf8")));
-    } catch {
-      cache = {};
-    }
-  }
-  return cache[sourceKey] ?? {};
+const REGISTRY: Record<string, z.infer<typeof schema>> = {
+  "cfm-old-testament-2026": schema.parse(cfmOldTestament2026),
+};
+
+/** Alleen "Kom dan en volg Mij"-programma's hebben een persoonlijke studieroute; FSY en andere programma's niet. */
+export function isPersonalStudyWork(workKey: string) {
+  return workKey.startsWith("cfm-");
+}
+export function loadPersonalStudyOverrides(workKey: string, sourceKey: string): PersonalStudyOverrides {
+  return REGISTRY[workKey]?.[sourceKey] ?? {};
+}
+export function personalStudyFor(lesson: { workKey: string; sourceKey: string; body: ReaderDocument }): PersonalStudyPlan {
+  if (!isPersonalStudyWork(lesson.workKey)) return { supported: false, reason: "Dit programma heeft geen persoonlijke studieroute." };
+  return planPersonalStudy(lesson.body, loadPersonalStudyOverrides(lesson.workKey, lesson.sourceKey));
 }

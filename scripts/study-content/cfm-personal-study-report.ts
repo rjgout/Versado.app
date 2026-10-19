@@ -45,7 +45,7 @@ for (const lesson of manifest.lessons) {
   if (only && lesson.sourceKey !== only) continue;
   const parsed = await loadCfmLesson(lesson.sourceKey);
   const before = JSON.stringify(parsed.document);
-  const overrides = loadPersonalStudyOverrides(lesson.sourceKey);
+  const overrides = loadPersonalStudyOverrides(manifest.workKey, lesson.sourceKey);
   const plan = planPersonalStudy(parsed.document, overrides);
   if (JSON.stringify(parsed.document) !== before) {
     failures++;

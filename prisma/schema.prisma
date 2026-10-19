@@ -148,6 +148,7 @@ model User {
   uiLanguage      String @default("nl")
   contentLanguage String @default("nl")
   readingPositions ReadingPosition[]
+  studyStepProgress StudyStepProgress[]
   studyContexts UserStudyContext[]
   contentImportRuns ContentImportRun[] @relation("StudyImportActor")
   studyPublications StudyPublicationAction[] @relation("StudyPublicationActor")
@@ -675,6 +676,7 @@ model StudyLessonEdition {
   draftRevisionId String?
   publicationVersion Int @default(0)
   readingPositions ReadingPosition[] @relation("StudyEditionReadingPositions")
+  stepProgress StudyStepProgress[] @relation("StudyEditionStepProgress")
   importItems ContentImportItem[]
   publications StudyPublicationAction[] @relation("StudyEditionPublications")
   lesson StudyLesson @relation(fields: [lessonId, workKey], references: [id, workKey], onDelete: Restrict, onUpdate: Restrict)
@@ -3906,6 +3908,30 @@ enum MysteryAttemptStatus {
 }
 
 // Persoonlijke positie, strikt los van gelezenstatus en beloningen.
+enum StudyStepStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+/// Persoonlijke studie 2.0: voortgang per stap. De sleutel is de inhoudsvingerafdruk van de stap, niet het stapnummer,
+/// zodat een nieuwe revisie met andere stapgrenzen nooit stil een inhoudelijk andere stap als afgerond toont.
+/// Alleen studievoortgang: geen READ-actie, reeks of beloning.
+model StudyStepProgress {
+  userId          String
+  lessonEditionId String
+  stepFingerprint String @db.VarChar(32)
+  stepIndex       Int
+  revisionId      String
+  status          StudyStepStatus
+  openedAt        DateTime @default(now())
+  completedAt     DateTime?
+  updatedAt       DateTime @updatedAt
+  user    User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  edition StudyLessonEdition @relation("StudyEditionStepProgress", fields: [lessonEditionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  @@id([userId, lessonEditionId, stepFingerprint])
+  @@index([lessonEditionId])
+}
+
 model ReadingPosition {
   userId          String
   lessonEditionId String

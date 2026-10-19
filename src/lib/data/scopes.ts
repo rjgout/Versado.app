@@ -23,6 +23,7 @@ export const DATA_SCOPES = [
   "studyContent",
   "readingPosition",
   "annotations",
+  "studySteps",
   "dorp",
   "games",
   "kompas",
@@ -43,6 +44,8 @@ export const DATA_EVENTS = {
   studyContentChanged: ["studyContent"],
   readingPositionChanged: ["readingPosition"],
   annotationsChanged: ["annotations"],
+  // Alleen stapvoortgang van de persoonlijke studie: geen XP, reeks of leesstatus.
+  studyStepsChanged: ["studySteps", "courses"],
   // Alleen studiecontext/-inhoud; bestaande pagina's hoeven niet te remounten.
   studyContextChanged: ["studyContext", "studyContent"],
   // Een les, oefening, hoofdstuk of spel is afgerond (ook vanaf een ander apparaat).

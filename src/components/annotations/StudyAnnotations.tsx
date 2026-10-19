@@ -26,7 +26,7 @@ import type { ReaderDocument } from "@/lib/studyContent/readingPositionContract"
 import AnnotationActions, { StudyAnnotationContext } from "./AnnotationActions";
 import AnnotationRecovery from "./AnnotationRecovery";
 import type { AnnotationFocus } from "@/lib/annotations/studyFocus";
-import type { PassageSelector } from "@/lib/annotations/contract";
+import type { AnnotationKind, PassageSelector } from "@/lib/annotations/contract";
 import { secondaryButton } from "@/components/versado/styles";
 
 export default function StudyAnnotations({
@@ -171,6 +171,10 @@ export default function StudyAnnotations({
     });
   }
   const marked = rows.flatMap((row) => effective(row)?.ranges.map((range) => range.blockId) ?? []);
+  const kinds: Record<string, AnnotationKind[]> = {};
+  for (const row of rows)
+    for (const range of effective(row)?.ranges ?? [])
+      if (!(kinds[range.blockId] ??= []).includes(row.kind)) kinds[range.blockId].push(row.kind);
   return (
     <div ref={root} data-study-annotations>
       <style>
@@ -211,7 +215,7 @@ export default function StudyAnnotations({
       {list.data && !list.data.complete && (
         <p role="status">{t("annotations.incomplete")}</p>
       )}
-      <StudyAnnotationContext.Provider value={{ open, marked }}>
+      <StudyAnnotationContext.Provider value={{ open, marked, kinds }}>
         {children}
       </StudyAnnotationContext.Provider>
       {/* Bestaande exacte passages blijven individueel bereikbaar, ook bij overlap. */}
