@@ -34,8 +34,9 @@ test("persistente persoonlijke/groepswerelden, eigendom, krimp, privacy en XP-gi
   personal=await mutateVillage(a.id,initial);
   groupA=await openVillage(a.id,groupId);groupB=await openVillage(b.id,groupId);
   groupA=await mutateVillage(a.id,action(groupA,{type:"place",objectId:family(),position:{u:-4,v:0}}));
-  personal=await mutateVillage(a.id,action(personal,{type:"upgrade",objectId:family()}));
+  personal=await mutateVillage(a.id,action(personal,{type:"upgrade",objectId:family(),expectedLevel:1}));
   assert.equal((await readVillage(a.id,groupA.villageId)).world.instances.find(i=>i.instanceId===family())?.level,2);
+  await assert.rejects(mutateVillage(a.id,action(groupA,{type:"upgrade",objectId:family(),expectedLevel:1})),rejection("CONFLICT"));
   assert.deepEqual(personal.world.instances.find(i=>i.instanceId===family())?.position,{u:0,v:0});
   assert.deepEqual((await readVillage(a.id,groupA.villageId)).world.instances.find(i=>i.instanceId===family())?.position,{u:-4,v:0});
   const retry=await mutateVillage(a.id,initial);assert.equal(retry.version,personal.version);assert.equal(retry.world.instances.find(i=>i.instanceId===family())?.level,2);
@@ -66,7 +67,7 @@ test("persistente persoonlijke/groepswerelden, eigendom, krimp, privacy en XP-gi
   for(let n=1;n<=180;n++){const chapter=await prisma.chapter.create({data:{bookId:book.id,number:n,order:n}});await prisma.contentProgress.create({data:{userId:a.id,contentKey:`dorp/test#${n}`,lastChapterId:chapter.id,readStatus:"READ"}});}
   groupA=await openVillage(a.id,groupId);assert.equal(groupA.world.phase,phaseForContribution(180,2));assert.equal((await openVillage(a.id)).world.phase,phaseForContribution(180));
   groupB=await readVillage(b.id,groupA.villageId);const object=groupB.world.instances.find(i=>i.objectId==="vd-b001"&&groupB.ownedIds.includes(i.instanceId))!;
-  groupB=await mutateVillage(b.id,action(groupB,{type:"upgrade",objectId:object.instanceId}));
+  groupB=await mutateVillage(b.id,action(groupB,{type:"upgrade",objectId:object.instanceId,expectedLevel:1}));
   groupB=await mutateVillage(b.id,action(groupB,{type:"place",objectId:object.instanceId,position:{u:25,v:0}}));
   await leaveGroup(a.id,groupId);
   groupB=await readVillage(b.id,groupA.villageId);assert.equal(groupB.world.phase,0);assert.equal(groupB.world.instances.find(i=>i.instanceId===object.instanceId)?.position,null);assert.equal(groupB.world.instances.find(i=>i.instanceId===object.instanceId)?.level,2);

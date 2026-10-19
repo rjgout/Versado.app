@@ -33,7 +33,7 @@ export default function ServerDorpClient({userId,groupId,ownerId}:{userId:string
    if((payload as {type:string}).type==="leave"){router.push("/dorp");return;}
    if("villageId"in data)setConfirmed(data);else if("giftAvailableAt"in data)setNextGift(data.giftAvailableAt??null);
    setPending(null);setConfirmGift(false);setMessage(t((payload as {type:string}).type==="gift"?"dorp2.giftSent":"dorp2.saved"));
-  }catch(e){if(mounted.current&&epoch===generation.current){setError(e instanceof ApiRequestError?e.message:t("dorp2.saveError"));if(e instanceof ApiRequestError&&e.status<500)setPending(null);if(e instanceof ApiRequestError&&e.status===404)setBlocked(true);}}
+  }catch(e){if(mounted.current&&epoch===generation.current){setError(e instanceof ApiRequestError&&e.status<500?e.message:t("dorp2.saveError"));if(e instanceof ApiRequestError&&e.status<500)setPending(null);if(e instanceof ApiRequestError&&e.status===404)setBlocked(true);}}
   finally{inFlight.current=false;if(mounted.current&&epoch===generation.current)setBusy(false);}
  }
  function command(operation:DorpCommand["operation"]){if(!snapshot||snapshot.readOnly||busy||pending)return;void perform({type:"mutate",command:{villageId:snapshot.villageId,expectedVersion:snapshot.version,actionId:crypto.randomUUID(),operation}});}
@@ -42,7 +42,7 @@ export default function ServerDorpClient({userId,groupId,ownerId}:{userId:string
   const previous=snapshot.world;
   for(const item of next.instances){
    const old=previous.instances.find(i=>i.instanceId===item.instanceId);if(!old)continue;
-   if(item.level!==old.level){command({type:"upgrade",objectId:item.instanceId});return;}
+   if(item.level!==old.level){command({type:"upgrade",objectId:item.instanceId,expectedLevel:old.level});return;}
    if(JSON.stringify(item.position)!==JSON.stringify(old.position)){command(item.position?{type:"place",objectId:item.instanceId,position:item.position}:{type:"store",objectId:item.instanceId});return;}
   }
   const before=new Set(previous.paths.map(p=>`${p.u},${p.v}`)),after=new Set(next.paths.map(p=>`${p.u},${p.v}`));

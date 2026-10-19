@@ -18,10 +18,10 @@ const token=await createSessionToken(admin.id);
 const browser=await chromium.launch({args:['--no-sandbox'],executablePath:process.env.CHROMIUM_PATH});
 const results=[];
 try{
- for(const [width,height,scale]of [[320,844,1],[390,844,1],[844,390,1],[1280,900,1],[320,844,2]].filter(v=>!process.env.DORP_BROWSER_LARGE_ONLY||v[2]===2))for(const scheme of ['light','dark']){
+ for(const [width,height,scale]of [[320,844,1],[390,844,1],[844,390,1],[1280,900,1],[320,844,2]].filter(v=>!process.env.DORP_BROWSER_SERVER_ONLY&&(!process.env.DORP_BROWSER_LARGE_ONLY||v[2]===2)))for(const scheme of ['light','dark']){
   const context=await browser.newContext({viewport:{width,height},colorScheme:scheme,hasTouch:width<900,isMobile:width<900});
   await context.addCookies([{name:SESSION_COOKIE,value:token,url:base}]);const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(`${base}/dev/versado-dorp`);await page.locator('canvas[aria-label="Interactieve isometrische dorpskaart"]').waitFor();
+  await page.goto(`${base}/dev/versado-dorp`);await page.locator('canvas[aria-label="Interactieve isometrische dorpskaart"][aria-busy="false"]').waitFor();
   await page.waitForFunction(()=>localStorage.getItem('versado-dorp-prototype-v3'));
   if(scale===2)await page.evaluate(()=>document.documentElement.style.fontSize='200%');
   await page.getByRole('button',{name:'Bouwen',exact:true}).click();
@@ -84,12 +84,12 @@ try{
  groupWorld=await openVillage(friend.id,group.id);await placeFixture(friend.id,groupWorld,'vd-b002',{u:2,v:0});
  for(const [width,height]of [[320,844],[390,844],[844,390],[1280,900]]){
   const context=await browser.newContext({viewport:{width,height},hasTouch:width<900,isMobile:width<900});await context.addCookies([{name:SESSION_COOKIE,value:token,url:base}]);const page=await context.newPage();
-  await page.goto(`${base}/dorp`);await page.getByRole('button',{name:'Dorp openen',exact:true}).click();await page.locator('canvas').waitFor();
+  await page.goto(`${base}/dorp`);await page.getByRole('button',{name:'Dorp openen',exact:true}).click();await page.locator('canvas[aria-busy="false"]').waitFor();
   if(!await prisma.dorpPlacement.count({where:{village:{ownerId:admin.id}}})){await page.getByRole('button',{name:'Bouwen',exact:true}).click();await page.getByRole('button',{name:new RegExp(DORP_OBJECT_BY_ID.get('vd-b001').name)}).click();await page.getByRole('button',{name:'Plaatsen',exact:true}).click();}
   await page.getByRole('status').filter({hasText:'Opgeslagen'}).waitFor();await page.screenshot({path:`${output}/personal-server-${width}.png`});
-  await page.goto(`${base}/dorp/groups/${group.id}`);await page.getByRole('button',{name:'Dorp openen',exact:true}).click();await page.locator('canvas').waitFor();await page.screenshot({path:`${output}/group-${width}.png`});
-  await page.goto(`${base}/friends/${friend.id}`);const preview=page.getByRole('link',{name:'Dorp bezoeken',exact:true});await preview.waitFor();await preview.screenshot({path:`${output}/profile-preview-${width}.png`});await preview.click();await page.locator('canvas').waitFor();assert.equal(await page.getByRole('button',{name:'Bouwen',exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'Testmenu',exact:true}).count(),0);
-  await page.screenshot({path:`${output}/visit-${width}.png`});
+  await page.goto(`${base}/dorp/groups/${group.id}`);await page.getByRole('button',{name:'Dorp openen',exact:true}).click();await page.locator('canvas[aria-busy="false"]').waitFor();await page.screenshot({path:`${output}/group-${width}.png`});
+  await page.goto(`${base}/friends/${friend.id}`);const preview=page.getByRole('link',{name:'Dorp bezoeken',exact:true});await preview.waitFor();await preview.screenshot({path:`${output}/profile-preview-${width}.png`});await preview.click();await page.waitForURL(`${base}/dorp/visit/${friend.id}`);await page.getByRole('button',{name:'Versado Dorp sluiten',exact:true}).waitFor();await page.locator('canvas[aria-busy="false"]').waitFor();await page.locator('[data-sticky-header]').waitFor({state:'hidden'});await page.locator('[data-main-nav]').waitFor({state:'hidden'});assert.equal(await page.getByRole('button',{name:'Bouwen',exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'Testmenu',exact:true}).count(),0);
+  const visitBox=await page.locator('canvas').boundingBox();assert.ok(Math.abs(visitBox.y)<2);assert.ok(visitBox.height>=height-2);await page.screenshot({path:`${output}/visit-${width}.png`});
   if(width===390){await page.getByRole('button',{name:'Geef 5 XP',exact:true}).click();await page.getByRole('group',{name:'5 XP van je eigen saldo aan deze vriend geven?'}).waitFor();await page.screenshot({path:`${output}/gift-confirm.png`});await page.getByRole('group').getByRole('button',{name:'Geef 5 XP',exact:true}).click();await page.getByRole('status').filter({hasText:'Presentje verstuurd'}).waitFor();await page.screenshot({path:`${output}/gift-received.png`});assert.equal((await prisma.user.findUniqueOrThrow({where:{id:admin.id}})).xpTotal,45);assert.equal((await prisma.user.findUniqueOrThrow({where:{id:friend.id}})).xpTotal,30);}
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
   results.push({width,height,server:true,group:true,friendPreview:true,readOnlyVisit:true});await context.close();

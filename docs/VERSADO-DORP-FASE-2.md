@@ -107,7 +107,7 @@ opnieuw gecontroleerd. Saldo -5/+5, twee XPTransaction-regels en één ontvangen
 melding worden atomair vastgelegd. Beide redenen zijn herkenbaar in
 XP-geschiedenis. Ontvangen én verzonden gifts wijzigen geen
 CompetitionXpEvent, WeeklyScore, reeks, ActivityFeed of voortgang: het is een
-saldo-overdracht, geen verdiende competitieactiviteit. Een identieke retry
+saldo-overdracht, geen verdiende competitieactiviteit. De bestaande landelijke ranglijst blijft op werkelijk XP-saldo gebaseerd; een gift kan die saldo-rangorde verplaatsen, maar creëert geen nieuwe competitie-/divisie-XP. Dit bestaande ranglijstbeleid is niet herschreven. Een identieke retry
 boekt niets extra; verschillende gelijktijdige acties krijgen één succes en
 één cooldown. Een serverklok bepaalt de rollende 24 uur, geen kalenderdag.
 
@@ -134,26 +134,46 @@ eigenaar-gestuurde noodmaatregel. Na een periode op oude groepscode moeten
 lidmaatschappen/plaatsingen worden herbeoordeeld voordat serverdorpen opnieuw
 worden ingeschakeld; de oude code kent de nieuwe vertrekhook niet.
 
-### Verificatie deel B (eindstand volgt)
+### Verificatie deel B
 
 De geïsoleerde migratieproef vergelijkt de oorspronkelijke kolomwaarden van
 alle 146 bestaande tabellen vóór/na foutinjectie, echte migratie en herhaalde
-migrate deploy. Alle hashes gelijk. Actuele schemaobjecten geteld: 155 tabellen
+migrate deploy. Alle hashes gelijk, ook voor synthetische bestaande notities (inclusief updatedAt), kleuren, bladwijzers, schrifttekst, voortgang en XP-audit. Alle 412 oude constraints en 401 oude indexdefinities behouden. Actuele schemaobjecten geteld: 155 tabellen
 (inclusief Prisma-audit), 418 indexen, 443 constraints. Geen oude telling als
 assertie gebruikt.
 
-De eerste gecombineerde integratierun had 10 geslaagde tests zonder skips:
-privacy, eigenaarschap, onafhankelijke posities/globale upgrades, races,
-groepskrimp, maximaal vijf dorpen, HTTP-auth/Origin, saldo-overdracht,
-24-uursgrens en ongewijzigde competitie/voortgang. Extra economie- en
-browsergevallen worden op de eindbuild herhaald. Profieltests: 13 geslaagd;
-live-data: 52 geslaagd na registratie van de nieuwe scope in DATA-REFRESH.md.
+De gezamenlijke eindrun op de schone productiebuild is geslaagd:
+
+- 48 dorps-/focus-/shelltests, 11 DB-/HTTP-integratiecontroles, 33 bestaande
+  sociale regressies, 13 profieltests en 52 live-data-tests; geen skips.
+- TypeScript, Prisma validate/generate, i18n en schone productiebuild geslaagd.
+  Gerichte lint van de nieuwe dorpcode en test-/runners: nul waarschuwingen.
+  Volledige repo-lint slaagt met bestaande waarschuwingen; twee nieuwe
+  browserfixture-waarschuwingen zijn opgelost.
+- Chromium: 10 prototypecombinaties (320×844, 390×844, 844×390, 1280×900 in
+  licht/donker, plus 320×844 op 200% in beide thema's) en vier volledige
+  serverflows op dezelfde schermformaten. Echte touch-events voor een padstreek;
+  direct slepen van gebouw en bewoner; ongeldige bestemming behoudt de positie.
+- De serverflow controleert persoonlijk bouwen, gedeelde objecten van twee
+  eigenaren, echte profielminiatuur, navigatie naar read-only bezoek en de
+  bevestigde gift/saldo-overdracht. De bezoekassertie wacht op de daadwerkelijke
+  nieuwe URL, geladen canvasassets en onzichtbare shellbalken; geen miniatuur
+  van de vorige pagina als bezoekbewijs.
+- Een eerste 200%-proef ontdekte verticale tekstafbraak in de kop. De kop,
+  camerabediening en het padpaneel zijn aangepast en de hele matrix herhaald.
+- Screenshots: `personal-server-*`, `path-*`, `resident-*`, `drag-building`,
+  `drag-resident`, `world-overview`, `group-*`, `profile-preview-*`, `visit-*`,
+  `gift-confirm`, `gift-received` en `results.json` in het CI-artifact
+  **versado-dorp-browser**. Grote gegenereerde bestanden staan niet in Git.
+- #148: 17 checks groen op `b92952b0`. De toepasselijke checks voor de finale
+  #149-head worden in de PR bijgehouden; na retargeten naar main opnieuw de
+  vereiste checks laten uitvoeren. Volgorde: eerst #148, daarna #149.
 
 ### Bewuste beperkingen
 
 - Geen definitieve aankoopeconomie/hoofdstukbeloningscatalogus, animaties,
   pathfinding of publiek hoofdmenu.
-- Verplaatsverzoeken zijn een eenvoudige veilige inbox, geen volledig sociaal
+- Verplaatsverzoeken zijn een eenvoudige veilige inbox (maximaal 100 recente verzoeken per weergave), geen volledig sociaal
   workflowcentrum. Paden van andere leden kunnen alleen door hun eigenaar weg.
 - Een penseelstreek is begrensd op 1024 tegels per serveractie; het padennet zelf
   is alleen door de kaart begrensd (maximaal 12.061 tegels).

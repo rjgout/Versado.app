@@ -21,7 +21,7 @@ const tile=z.object({u:z.number().int().min(-62).max(62),v:z.number().int().min(
 export const dorpCommand=z.object({villageId:id,expectedVersion:z.number().int().nonnegative(),actionId:z.string().uuid(),operation:z.discriminatedUnion("type",[
   z.object({type:z.literal("place"),objectId:id,position:tile}).strict(),
   z.object({type:z.literal("store"),objectId:id}).strict(),
-  z.object({type:z.literal("upgrade"),objectId:id}).strict(),
+  z.object({type:z.literal("upgrade"),objectId:id,expectedLevel:z.number().int().min(1).max(2)}).strict(),
   z.object({type:z.literal("paths"),tiles:z.array(tile).min(1).max(1024),erase:z.boolean()}).strict(),
   z.object({type:z.literal("request"),objectId:id}).strict(),
   z.object({type:z.literal("dismiss"),requestId:id}).strict(),
@@ -151,6 +151,7 @@ export async function mutateVillage(userId:string,input:unknown){
      await tx.dorpPlacement.upsert({where:{villageId_objectId:{villageId:village.id,objectId:object.id}},create:{villageId:village.id,objectId:object.id,...op.position},update:op.position});
     }else if(op.type==="store"){await tx.dorpPlacement.deleteMany({where:{villageId:village.id,objectId:object.id}});await tx.dorpMoveRequest.updateMany({where:{villageId:village.id,objectId:object.id,status:"OPEN"},data:{status:"CLOSED"}});}
     else{
+     if(object.level!==op.expectedLevel)throw new DorpError("CONFLICT",409);
      const max=DORP_OBJECT_BY_ID.get(object.objectId)?.maxLevel??1;
      if(object.level>=max)throw new DorpError("INVALID");
      await tx.dorpOwnedObject.update({where:{id:object.id},data:{level:{increment:1}}});

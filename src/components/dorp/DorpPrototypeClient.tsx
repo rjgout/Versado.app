@@ -417,6 +417,7 @@ export function DorpCanvas({
         ref={canvasRef}
         className="block h-full w-full cursor-grab active:cursor-grabbing"
         aria-label="Interactieve isometrische dorpskaart"
+        aria-busy={assetRevision < imageAssetPaths().length}
         onContextMenu={(event) => event.preventDefault()}
         onWheel={(event) => {
           event.preventDefault();
@@ -681,10 +682,10 @@ export default function DorpPrototypeClient({controlled}:{controlled?:DorpContro
       </div>
 
       {pathMode && !readOnly && <div className="absolute inset-x-3 bottom-[max(.75rem,var(--vs-safe-area-bottom))] z-20 grid max-h-[45dvh] [grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr))] gap-2 overflow-y-auto rounded-2xl bg-vs-surface/95 p-3 shadow-xl" data-dorp-path-mode>
-        <details className="col-span-full min-w-0 text-sm"><summary className="min-h-11 cursor-pointer py-2 font-semibold">{t("dorp2.paths")}</summary><p>{t("dorp2.pathHelp")}</p></details>
-        <button className="btn min-h-11" aria-pressed={pathMode==="paint"} onClick={()=>setPathMode("paint")}>{t("dorp2.paint")}</button>
-        <button className="btn min-h-11" aria-pressed={pathMode==="erase"} onClick={()=>setPathMode("erase")}>{t("dorp2.erase")}</button>
-        <button className="btn min-h-11" onClick={()=>setPathMode(null)}>{t("common.close")}</button>
+        <details className="col-span-full min-w-0 text-sm"><summary className="min-h-11 cursor-pointer py-2 font-semibold">{t("dorp2.pathTitle")}</summary><p>{t("dorp2.pathHelp")}</p></details>
+        <button className="btn min-h-[44px] !px-[12px] !py-[8px] break-normal [overflow-wrap:normal]" aria-pressed={pathMode==="paint"} onClick={()=>setPathMode("paint")}>{t("dorp2.paint")}</button>
+        <button className="btn min-h-[44px] !px-[12px] !py-[8px] break-normal [overflow-wrap:normal]" aria-pressed={pathMode==="erase"} onClick={()=>setPathMode("erase")}>{t("dorp2.erase")}</button>
+        <button className="btn min-h-[44px] !px-[12px] !py-[8px] break-normal [overflow-wrap:normal]" onClick={()=>setPathMode(null)}>{t("common.close")}</button>
       </div>}
       {placement && !directDragging && (
         <div className="absolute inset-x-0 bottom-[max(.75rem,var(--vs-safe-area-bottom))] z-20 mx-auto flex w-[min(calc(100%-1.5rem),32rem)] flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-vs-surface/95 p-3 shadow-2xl backdrop-blur">
