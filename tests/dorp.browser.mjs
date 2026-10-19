@@ -68,6 +68,10 @@ try{
    await page.getByRole('button',{name:'Selectie sluiten',exact:true}).click();
    await page.locator('summary').filter({hasText:'Weergave'}).click();await page.getByRole('button',{name:'Maximale toekomstige wereld tonen'}).click();
    await page.screenshot({path:`${output}/world-overview.png`});
+   assert.equal((await state()).phase,0);
+   await page.getByRole('button',{name:'Testmenu',exact:true}).click();await page.getByRole('button',{name:/Volledige kaart/}).click();await page.getByRole('button',{name:'Testmenu',exact:true}).click();
+   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('versado-dorp-prototype-v3')).phase===16);
+   await page.screenshot({path:`${output}/world-r62.png`});
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);assert.deepEqual(errors,[]);
   results.push({width,height,scheme,scale,paths:true,resident:true,overflow:false});await context.close();
@@ -84,6 +88,24 @@ try{
  groupWorld=await openVillage(friend.id,group.id);await placeFixture(friend.id,groupWorld,'vd-b002',{u:2,v:0});
  for(const [width,height]of [[320,844],[390,844],[844,390],[1280,900]]){
   const context=await browser.newContext({viewport:{width,height},hasTouch:width<900,isMobile:width<900});await context.addCookies([{name:SESSION_COOKIE,value:token,url:base}]);const page=await context.newPage();
+  if(width===320){
+   await page.goto(`${base}/adminbackend/content`);await page.locator('details').filter({has:page.locator('[data-dorp-availability]')}).locator('summary').first().click();await page.locator('[data-dorp-availability]').waitFor();await page.locator('[data-dorp-availability]').screenshot({path:`${output}/admin-availability.png`});
+   const beforeSettings=await (await context.request.get(`${base}/api/admin/content-switcher`)).json();
+   const ordinary=await prisma.user.create({data:{email:`dorp-ordinary-${randomUUID()}@example.invalid`,handle:'Dorpbezoeker',discriminator:'03',passwordHash:'synthetic',emailVerifiedAt:new Date()}});
+   const ordinaryContext=await browser.newContext();await ordinaryContext.addCookies([{name:SESSION_COOKIE,value:await createSessionToken(ordinary.id),url:base}]);
+   for(const visible of [false,true,false]){
+    const response=await context.request.put(`${base}/api/admin/content-switcher`,{headers:{Origin:base},data:{activity:'dorp',visibleToUsers:visible}});assert.equal(response.status(),200);const settings=await response.json();assert.equal(settings.dorpVisibleToUsers,visible);assert.equal(settings.hymnsVisibleToUsers,beforeSettings.hymnsVisibleToUsers);assert.equal(settings.enabled,beforeSettings.enabled);
+    assert.deepEqual(settings.collections.map(c=>[c.id,c.visibleToUsers]),beforeSettings.collections.map(c=>[c.id,c.visibleToUsers]));
+    assert.equal((await ordinaryContext.request.get(`${base}/api/dorp`)).status(),visible?200:404);
+   }
+   assert.equal((await ordinaryContext.request.put(`${base}/api/admin/content-switcher`,{headers:{Origin:base},data:{activity:'dorp',visibleToUsers:true}})).status(),403);await ordinaryContext.close();
+   for(const path of ['/dorp',`/dorp/visit/${friend.id}`]){
+    const direct=await context.newPage();await direct.goto(`${base}${path}`);
+    if(path==='/dorp')await direct.getByRole('button',{name:'Dorp openen',exact:true}).click();
+    await direct.locator('canvas[aria-busy="false"]').waitFor();await direct.getByRole('button',{name:'Versado Dorp sluiten',exact:true}).click();
+    await direct.waitForURL(`${base}${path==='/dorp'?'/dashboard':`/friends/${friend.id}`}`);await direct.locator('[data-sticky-header]').waitFor({state:'visible'});await direct.waitForLoadState('networkidle');await direct.close();
+   }
+  }
   await page.goto(`${base}/dorp`);await page.getByRole('button',{name:'Dorp openen',exact:true}).click();await page.locator('canvas[aria-busy="false"]').waitFor();
   if(!await prisma.dorpPlacement.count({where:{village:{ownerId:admin.id}}})){await page.getByRole('button',{name:'Bouwen',exact:true}).click();await page.getByRole('button',{name:new RegExp(DORP_OBJECT_BY_ID.get('vd-b001').name)}).click();await page.getByRole('button',{name:'Plaatsen',exact:true}).click();}
   await page.getByRole('status').filter({hasText:'Opgeslagen'}).waitFor();await page.screenshot({path:`${output}/personal-server-${width}.png`});

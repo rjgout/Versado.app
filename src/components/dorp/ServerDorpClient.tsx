@@ -72,5 +72,5 @@ export default function ServerDorpClient({userId,groupId,ownerId}:{userId:string
  </>;
  if(blocked||world.error)return <div className="page-fill p-4"><p role="alert">{t("dorp2.unavailable")}</p><button className="btn min-h-11" onClick={()=>void reload()}>{t("dorp2.reload")}</button></div>;
  if(!snapshot)return <div className="page-fill mx-auto flex max-w-lg flex-col gap-3 p-4"><h1 className="text-xl font-bold">Versado Dorp</h1>{controls}{!ownerId&&<button className="btn-primary min-h-12" disabled={busy||Boolean(pending)} onClick={()=>void perform({type:"open",...(groupId?{groupId}:{})})}>{t("dorp2.open")}</button>}</div>;
- return <DorpPrototypeClient controlled={{snapshot,busy:busy||Boolean(pending),onChange:change,onRequest:objectId=>command({type:"request",objectId}),controls}} />;
+ return <DorpPrototypeClient controlled={{snapshot,backHref:ownerId?`/friends/${ownerId}`:"/dashboard",busy:busy||Boolean(pending),onChange:change,onRequest:objectId=>command({type:"request",objectId}),controls}} />;
 }

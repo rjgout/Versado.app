@@ -244,6 +244,20 @@ export function DorpCanvas({
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
 
+      // De potentiële cirkel is dezelfde R62-geometrie, geen losstaande kaart.
+      // De actuele grond, paden en objecten blijven volledig uit world komen.
+      if(cameraCommand.kind === "full" && radius < MAX_RADIUS) {
+        ctx.save();ctx.beginPath();
+        for(let i=0;i<=96;i++) {
+          const angle=i*Math.PI*2/96;
+          const p=isoToWorld(MAX_RADIUS*Math.cos(angle),MAX_RADIUS*Math.sin(angle));
+          const s=screen(p.x,p.y);
+          if(i===0)ctx.moveTo(s.x,s.y);else ctx.lineTo(s.x,s.y);
+        }
+        ctx.closePath();ctx.fillStyle="rgba(72,120,61,.12)";ctx.fill();
+        ctx.strokeStyle="rgba(42,83,47,.65)";ctx.lineWidth=2;ctx.setLineDash([5,5]);ctx.stroke();ctx.restore();
+      }
+
       const overview = zoom < 0.18 || width / zoom + 384 > 8192 || height / zoom + 384 > 8192;
       if (overview) {
         for(let u=-radius;u<=radius;u++) for(let v=-radius;v<=radius;v++) {
@@ -390,7 +404,7 @@ export function DorpCanvas({
     });
     resize.observe(container);
     return () => { resize.disconnect(); scheduler.cancel(); requestDrawRef.current = () => undefined; };
-  }, [assetRevision, objects, onCameraChange, placement, radius, selectedId, world.instances, world.paths, pathMode, pathPreview, measureInsets]);
+  }, [assetRevision, objects, onCameraChange, placement, radius, selectedId, world.instances, world.paths, pathMode, pathPreview, measureInsets, cameraCommand.kind]);
 
   const eventToWorld = useCallback((clientX: number, clientY: number) => {
     const bounds = canvasRef.current?.getBoundingClientRect();
@@ -507,11 +521,11 @@ export function DorpCanvas({
   );
 }
 
-export type DorpControlledProps = { snapshot: DorpSnapshot; busy: boolean; onChange: (next:DorpWorldState)=>void; onRequest:(id:string)=>void; controls:ReactNode };
+export type DorpControlledProps = { snapshot: DorpSnapshot; backHref?: string; busy: boolean; onChange: (next:DorpWorldState)=>void; onRequest:(id:string)=>void; controls:ReactNode };
 export default function DorpPrototypeClient({controlled}:{controlled?:DorpControlledProps}={}) {
   useImmersiveShell();
   const t=useT();
-  const goBack = useBackNavigation("/adminbackend/spellen");
+  const goBack = useBackNavigation(controlled ? controlled.backHref ?? "/dashboard" : "/adminbackend/spellen");
   const [localWorld, setLocalWorld] = useState<DorpWorldState>(DEFAULT_DORP_STATE);
   const world=controlled?.snapshot.world??localWorld;
   const setWorld=(action:SetStateAction<DorpWorldState>)=>{
@@ -641,7 +655,7 @@ export default function DorpPrototypeClient({controlled}:{controlled?:DorpContro
           </button>
           <div className="pointer-events-none min-w-0 flex-1 rounded-2xl border border-white/40 bg-vs-surface/90 px-3 py-2 text-center shadow-lg backdrop-blur">
             <p className="truncate text-sm font-bold">{controlled?"Versado Dorp":"Versado Dorp · technisch prototype"}</p>
-            <p className="truncate text-xs text-vs-fg-3">{activePhase.label} · R{radius} · {buildableTileCount(radius).toLocaleString("nl-NL")} tegels</p>
+            <p className="truncate text-xs text-vs-fg-3">{cameraCommand.kind === "full" ? `${t("dorp2.futureWorld")} R${MAX_RADIUS} · ${t("dorp2.fitMap")} R${radius}` : `${activePhase.label} · R${radius} · ${buildableTileCount(radius).toLocaleString("nl-NL")} tegels`}</p>
           </div>
           {!controlled && <button type="button" onClick={() => setDeveloperOpen((value) => !value)} className="btn !h-[44px] !w-[44px] !min-w-[44px] shrink-0 !border-white/40 !bg-vs-surface/90 !p-0 shadow-lg backdrop-blur sm:!w-auto sm:!px-3" aria-expanded={developerOpen} aria-label="Testmenu">
             <Box className="h-[20px] w-[20px]" aria-hidden /> <span className="hidden sm:inline">Testmenu</span>

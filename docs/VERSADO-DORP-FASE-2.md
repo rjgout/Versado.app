@@ -10,7 +10,7 @@ Geen nieuwe engine of afbeeldingen. Eigendom/levels en plaatsingen blijven gesch
 - De vijf bestaande bewoners zijn echte inventarisobjecten met één cel. Ze beginnen opgeborgen: de oude vaste bewonerposities overlapten bestaande gebouwen. Geen willekeurige herplaatsing.
 - Lokale opslag v3 leest v2 compatibel: oude object-ID's, levels, plaatsingen en paden blijven; uitsluitend de vijf nieuwe bewonerrechten worden toegevoegd. v1 blijft expliciet ongeschikt. Deze lokale proefrechten worden niet geïmporteerd in toekomstige serverinventaris.
 - Pan verbergt secundaire bediening; de expliciete bedieningsknop brengt haar terug. Weergaven staan in een compacte uitklapper. De normale startzoom is 0,36. Het geselecteerde grondvlak wordt vóór de gevel getekend.
-- Het overzicht gebruikt dezelfde cirkelcellen, paden, objecten en bosrand; geen fictieve plattegrond.
+- Het overzicht gebruikt dezelfde cirkelcellen, paden, objecten en bosrand; geen fictieve plattegrond. De wereldgrensweergave tekent de werkelijke R62-contour rond het huidige dorp. De aparte R62-testfase toont de daadwerkelijke uitgebreide wereldstaat.
 
 ### Feitelijke verificatie deel A
 
@@ -30,7 +30,7 @@ Dit eerste deel behoudt de admin-only devroute en lokale prototypeopslag. Server
 Afhankelijk van deel A (#148). De devroute bewaart uitsluitend lokale
 prototypefixtures. `/dorp`, `/dorp/groups/[groupId]` en
 `/dorp/visit/[userId]` gebruiken dezelfde renderer en serverauthenticatie.
-Geen nieuwe hoofdmenu-ingang of tweede shell.
+Geen nieuwe hoofdmenu-ingang of tweede shell. Bij direct openen sluit het persoonlijke dorp naar Vandaag en een bezoek naar het vriendenprofiel; de admin-devroute behoudt zijn eigen terugvalroute.
 
 ### Opslag en rechten
 
@@ -69,7 +69,7 @@ Origincontrole, begrensde requestbody (100 KB), foutlimiter en privé/no-store
 responses. Lockvolgorde: gesorteerde User-rijen → bestaande SocialGroup → dorp.
 Een gift vergrendelt beide gebruikers en de actuele vriendschap. Een oude
 HTTP-response kan niet op een andere wereld terechtkomen; onzekere retries
-houden dezelfde actionId. Een versieconflict vereist expliciet herladen.
+houden dezelfde actionId. Een versieconflict vereist expliciet herladen. Globale upgrades controleren daarnaast `expectedLevel` onder de gebruikerslock: twee dorpen met een oud level kunnen geen dubbele upgrade uitvoeren. Dorpverlaten heeft eveneens een actionId en verwachte versie; een oude retry verwijdert geen plaatsingen na opnieuw deelnemen.
 
 ### Groei en groepsvertrek
 
@@ -154,7 +154,7 @@ De gezamenlijke eindrun op de schone productiebuild is geslaagd:
   licht/donker, plus 320×844 op 200% in beide thema's) en vier volledige
   serverflows op dezelfde schermformaten. Echte touch-events voor een padstreek;
   direct slepen van gebouw en bewoner; ongeldige bestemming behoudt de positie.
-- De serverflow controleert persoonlijk bouwen, gedeelde objecten van twee
+- De serverflow controleert ook de bestaande adminbeschikbaarheid (uit/aan/uit), weigering van gewone gebruikers op de admin-API en behoud van andere collectie-/Lofzangeninstellingen. Daarnaast controleert zij persoonlijk bouwen, gedeelde objecten van twee
   eigenaren, echte profielminiatuur, navigatie naar read-only bezoek en de
   bevestigde gift/saldo-overdracht. De bezoekassertie wacht op de daadwerkelijke
   nieuwe URL, geladen canvasassets en onzichtbare shellbalken; geen miniatuur
@@ -162,7 +162,7 @@ De gezamenlijke eindrun op de schone productiebuild is geslaagd:
 - Een eerste 200%-proef ontdekte verticale tekstafbraak in de kop. De kop,
   camerabediening en het padpaneel zijn aangepast en de hele matrix herhaald.
 - Screenshots: `personal-server-*`, `path-*`, `resident-*`, `drag-building`,
-  `drag-resident`, `world-overview`, `group-*`, `profile-preview-*`, `visit-*`,
+  `drag-resident`, `world-overview`, `world-r62`, `group-*`, `profile-preview-*`, `visit-*`,
   `gift-confirm`, `gift-received` en `results.json` in het CI-artifact
   **versado-dorp-browser**. Grote gegenereerde bestanden staan niet in Git.
 - #148: 17 checks groen op `b92952b0`. De toepasselijke checks voor de finale
