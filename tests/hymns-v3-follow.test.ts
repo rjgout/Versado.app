@@ -127,14 +127,14 @@ test("herkenning van zang: dezelfde luisterknop herkent een a capella melodie en
   const bundle = loadRecognitionBundle();
   const candidates = candidatesFromBundle(bundle);
   assert.ok(candidates.filter((c) => c.melody).length >= 150);
-  const number = 2;
+  const number = 98;
   const hymn = loadResolvedHymn(number)!;
   const synth = synthesizeHymn(hymn.composition, { ...BASE, seed: number, ...SOLO, voice: { singers: 1, registerShift: -5, vibratoCents: 20, intonationCents: 25 } });
   const engine = new HymnLiveEngine([]);
   engine.setCandidates(candidates);
   engine.startRecognizing();
   let followAt: number | null = null;
-  const audio = synth.samples.subarray(0, SAMPLE_RATE * 45);
+  const audio = synth.samples.subarray(0, SAMPLE_RATE * 60);
   for (let i = 0; i < audio.length; i += 4096) {
     engine.pushAudio(audio.subarray(i, i + 4096), SAMPLE_RATE, Infinity);
     const st = engine.state();
@@ -145,7 +145,8 @@ test("herkenning van zang: dezelfde luisterknop herkent een a capella melodie en
   const st = engine.state();
   assert.equal(st.hymn?.number, number);
   assert.equal(st.choice, "auto");
-  assert.ok(followAt < 30, `herkend na ${followAt} s`);
+  // de melodieroute eist acht seconden dezelfde kop (zie melodyStreak in recognizer.ts): later dan voor instrumenten, maar met veel minder valse herkenning
+  assert.ok(followAt < 40, `herkend na ${followAt} s`);
   // dezelfde extractor en dezelfde sessie: de volger loopt de gehoorde zang vanaf het begin door
   engine.drainAll();
   assert.equal(engine.state().snapshot?.trackSource, "melody");
@@ -154,13 +155,14 @@ test("herkenning van zang: dezelfde luisterknop herkent een a capella melodie en
 test("herkenning van zang: een onbekende melodie (niet in de bibliotheek) wordt niet ten onrechte herkend", () => {
   const bundle = loadRecognitionBundle();
   const candidates = candidatesFromBundle(bundle);
-  for (const number of [2, 18]) {
+  // 2 en 39 lieten met de vroegere regel (vier rondes dezelfde kop) een andere lofzang voorstellen (kalibratie in docs/hymns/v3)
+  for (const number of [2, 18, 39]) {
     const hymn = loadResolvedHymn(number)!;
     const synth = synthesizeHymn(hymn.composition, { ...BASE, seed: number, ...SOLO });
     const engine = new HymnLiveEngine([]);
     engine.setCandidates(candidates.filter((c) => c.id !== hymn.composition.id));
     engine.startRecognizing();
-    const audio = synth.samples.subarray(0, SAMPLE_RATE * 40);
+    const audio = synth.samples.subarray(0, SAMPLE_RATE * 50);
     for (let i = 0; i < audio.length; i += 4096) {
       engine.pushAudio(audio.subarray(i, i + 4096), SAMPLE_RATE, Infinity);
       const st = engine.state();

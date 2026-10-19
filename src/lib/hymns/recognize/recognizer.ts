@@ -66,8 +66,12 @@ export interface CandidateScore {
   evidence: number;
   /** Bewijs ten opzichte van wat deze lofzang op willekeurige andere muziek haalt (standaardafwijkingen). */
   z: number;
-  /** Kans uit het bewijs, voorzichtig gedempt (de frames zijn onderling sterk gecorreleerd). Alleen ter indicatie. */
-  probability: number;
+  /**
+   * Relatieve kans uit het bewijs van de score-followers (softmax met een nulmodel). Geen gekalibreerde kans en niet bedoeld om aan gebruikers te
+   * tonen. null bij een voorstel via de melodieroute (`via === "melody"`): die heeft geen bewijsgetal en een kans zou kunstmatige zekerheid
+   * suggereren; de betrouwbaarheid ervan staat in docs/hymns/21-LOFZANGEN-V3.md (herkenning, valse herkenning) en niet in een getal per voorstel.
+   */
+  probability: number | null;
   /** Waar in de partituur deze kandidaat de muziek nu denkt te horen (beats in de cyclus). */
   position: number;
   /** Andere lofzangen met dezelfde melodie; leeg als de melodie bij één lofzang hoort. */
@@ -170,7 +174,9 @@ export const DEFAULT_RECOGNIZER_CONFIG: RecognizerConfig = {
   melodyEverySeconds: 1,
   melodyMinVoicedShare: 0.45,
   melodyMinSteps: 36,
-  melodyStreak: 4,
+  // Acht rondes (ongeveer acht seconden) achter elkaar dezelfde kop. Met vier lieten onbekende melodieën (zang én piano) bij 28% resp. 3% van de
+  // metingen toch een lofzang voorstellen: over een lange opname en 171 kandidaten komt zo'n reeks bij toeval voor. Zie scripts/hymns/lv3-melody-rules.py.
+  melodyStreak: 8,
   melodyMargin: 0.03,
   melodyMaxCost: 0.3,
   trackerZ: 6,
@@ -438,7 +444,7 @@ export class HymnRecognizer {
       if (cand) {
         status = "identified";
         via = "melody";
-        suggestion = { id: cand.id, number: cand.number, title: cand.title, evidence: 0, z: 0, probability: Math.min(0.99, 0.5 + ml.margin * 5), position: 0, sharedWith: cand.sharedWith ?? [] };
+        suggestion = { id: cand.id, number: cand.number, title: cand.title, evidence: 0, z: 0, probability: null, position: 0, sharedWith: cand.sharedWith ?? [] };
       }
     }
     return {
