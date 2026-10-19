@@ -1,0 +1,355 @@
+{
+ "2": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "6": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "12": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": {
+   "ok": false,
+   "t": 45.8
+  }
+ },
+ "20": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "24": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": {
+   "ok": false,
+   "t": 41.8
+  }
+ },
+ "28": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "32": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "36": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "44": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "49": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "53": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "59": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "63": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "67": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "72": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": {
+   "ok": false,
+   "t": 38.6
+  }
+ },
+ "76": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "81": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "89": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "93": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "98": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "103": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": {
+   "ok": false,
+   "t": 26.9
+  }
+ },
+ "109": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": {
+   "ok": false,
+   "t": 47.9
+  }
+ },
+ "113": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "117": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "122": {
+  "ok": false,
+  "seconds": null,
+  "wrong": "34@55.8s",
+  "shared": false,
+  "detail": {
+   "t": 55.8,
+   "margin": 0.005,
+   "cost": 0.397,
+   "streak": 1,
+   "ev": 0,
+   "evOther": 91,
+   "evTruth": null,
+   "z": 0,
+   "zOther": 6.7,
+   "zTruth": null
+  },
+  "suggestion": {
+   "ok": false,
+   "t": 55.8
+  }
+ },
+ "127": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "131": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "135": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": {
+   "ok": false,
+   "t": 13.2
+  }
+ },
+ "153": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "158": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": {
+   "ok": false,
+   "t": 32.5
+  }
+ },
+ "162": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": {
+   "ok": false,
+   "t": 10
+  }
+ },
+ "168": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "173": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "177": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": {
+   "ok": false,
+   "t": 35.8
+  }
+ },
+ "187": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "192": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "196": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "200": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ },
+ "205": {
+  "ok": true,
+  "seconds": null,
+  "wrong": null,
+  "shared": false,
+  "detail": null,
+  "suggestion": null
+ }
+}
