@@ -281,7 +281,7 @@ export function NotificationsView({
   );
 }
 
-export function PrivacyView({ data, saving, onToggleSearchable, onToggleAchievements, onTogglePuzzleRecords }: { data: ProfileData; saving: boolean; onToggleSearchable: () => void; onToggleAchievements: () => void; onTogglePuzzleRecords: () => void }) {
+export function PrivacyView({ data, saving, onToggleSearchable, onToggleAchievements, onTogglePuzzleRecords, onToggleVillage, villageError }: { data: ProfileData; saving: boolean; onToggleSearchable: () => void; onToggleAchievements: () => void; onTogglePuzzleRecords: () => void; onToggleVillage: () => void; villageError?: string|null }) {
   const t = useT();
   return (
     <SettingsSection>
@@ -306,6 +306,8 @@ export function PrivacyView({ data, saving, onToggleSearchable, onToggleAchievem
         busy={saving}
         onChange={onTogglePuzzleRecords}
       />
+      <SettingsToggleRow label={t("dorp2.shareLabel")} description={t("dorp2.shareHelp")} checked={data.shareVillageWithFriends} busy={saving} onChange={onToggleVillage} />
+      {villageError && <p role="alert" className="px-4 text-sm text-vs-danger">{villageError}</p>}
       <Link href="/jigsaw/records" className="block min-h-11 px-4 py-3 text-sm font-semibold text-vs-accent underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent">{t("puzzleRecords.mine")}</Link>
     </SettingsSection>
   );

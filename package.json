@@ -59,7 +59,7 @@
     "test:registration": "tsx --test tests/registration.integration.test.ts",
     "test:reading-path": "tsx --test tests/reading-path.test.ts tests/reading-courses.test.ts",
     "test:learning": "tsx --test tests/learning-rules.test.ts tests/learning-progress.integration.test.ts",
-    "test:dorp:integration": "node scripts/dorp/test-isolated.mjs --prototype-only",
+    "test:dorp:integration": "node scripts/dorp/test-isolated.mjs",
     "test:dorp": "tsx --test tests/dorp.test.ts tests/focus-mode.test.ts tests/shell-layout.test.ts",
     "audio:mirror": "tsx scripts/mirrorAudio.ts",
     "otb:validate": "tsx scripts/otb/validate.ts",

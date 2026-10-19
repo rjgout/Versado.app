@@ -96,6 +96,7 @@ export async function GET() {
     searchableByEmail: user.searchableByEmail,
     shareAchievements: user.shareAchievements,
     sharePuzzleRecords: user.sharePuzzleRecords,
+    shareVillageWithFriends: user.shareVillageWithFriends,
     shareOnlineStatus: user.shareOnlineStatus,
     shareCurrentActivity: user.shareCurrentActivity,
     // Alleen of het (nog) actief is, nooit het exacte tijdstip — de client

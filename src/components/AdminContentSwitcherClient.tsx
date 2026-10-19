@@ -21,6 +21,8 @@ interface Snapshot {
   enabled: boolean;
   collections: Collection[];
   hymnsVisibleToUsers: boolean;
+  dorpVisibleToUsers: boolean;
+  dorpTechnicallyAvailable: boolean;
   hymnsTechnicallyAvailable: boolean;
 }
 
@@ -93,6 +95,13 @@ export default function AdminContentSwitcherClient() {
                   </label>
                 );
               })}
+              <label className="flex min-h-12 flex-wrap items-center gap-3 px-3 py-2.5" data-dorp-availability>
+                <span className="min-w-0 flex-1 text-sm font-semibold">Versado Dorp
+                  {!data.dorpTechnicallyAvailable && <span role="status" className="block text-xs text-vs-fg-2">{t("dorp2.technicalStop")}</span>}
+                </span>
+                {!data.dorpVisibleToUsers && <span className="rounded-full bg-vs-subtle px-2 py-0.5 text-xs font-bold">{t("adminContent.hidden")}</span>}
+                <ToggleSwitch ariaLabel="Versado Dorp" checked={data.dorpVisibleToUsers} onChange={(visibleToUsers)=>save({activity:"dorp",visibleToUsers})} disabled={saving||!data.dorpTechnicallyAvailable} compact />
+              </label>
               <label data-hymns-availability className="flex min-h-12 flex-wrap items-center gap-3 px-3 py-2.5">
                 <Music2 className="h-5 w-5 shrink-0 text-vs-accent" aria-hidden />
                 <span className="min-w-0 flex-1 basis-24 text-sm font-semibold text-vs-fg">{t("pages.hymns")}

@@ -1,3 +1,4 @@
+import { removeMemberFromVillage, syncGroupVillage } from "@/lib/dorp/service";
 // Groepen: aanmaken, uitnodigen, toetreden, vertrekken, beheerders en
 // instellingen. Een groep heeft bewust geen type: mensen bepalen zelf
 // waarvoor ze hem gebruiken. Alle limieten worden binnen één transactie met
@@ -102,6 +103,7 @@ export async function joinTx(tx: Tx, userId: string, groupId: string, now: Date)
   if (existing) await tx.groupMembership.update({ where: { id: existing.id }, data });
   else await tx.groupMembership.create({ data: { groupId, userId, ...data } });
   await tx.socialGroup.update({ where: { id: groupId }, data: { memberCount: { increment: 1 } } });
+  await syncGroupVillage(tx, groupId);
   // Lid geworden (bv. via een persoonlijke uitnodiging): een openstaand
   // toegangsverzoek heeft dan geen zin meer.
   await tx.groupJoinRequest.updateMany({ where: { groupId, userId, status: "PENDING" }, data: { status: "CANCELLED", openKey: null, decidedAt: now } });
@@ -297,6 +299,7 @@ async function departTx(tx: Tx, groupId: string, userId: string, kind: "MEMBER_L
     data: { leftAt: now, role: "MEMBER", adminSince: null, rejoinAfter: new Date(now.getTime() + GROUP_REJOIN_COOLDOWN_DAYS * DAY_MS) },
   });
   if (left.count === 0) return { promoted: null, deleted: false };
+  await removeMemberFromVillage(tx, groupId, userId);
   const group = await tx.socialGroup.update({ where: { id: groupId }, data: { memberCount: { decrement: 1 } } });
   await cancelOffersOnLeaveTx(tx, userId, groupId, now);
   await tx.groupInvite.updateMany({ where: { groupId, inviterId: userId, status: "PENDING" }, data: { status: "CANCELLED", respondedAt: now } });

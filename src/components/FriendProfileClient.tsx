@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import FriendVillagePreview from "@/components/dorp/FriendVillagePreview";
 import type { LeagueTier } from "@/generated/prisma/client";
 import { Gamepad2, Sparkles, Users } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
@@ -81,6 +82,7 @@ export default function FriendProfileClient({ userId }: { userId: string }) {
         </div>
       </section>
 
+      <FriendVillagePreview userId={userId} />
       {stats ? (
         <>
           <ProfileCard title={t("friends.sharedProgress")}>
