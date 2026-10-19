@@ -23,6 +23,7 @@ export const DATA_SCOPES = [
   "studyContent",
   "readingPosition",
   "annotations",
+  "dorp",
   "games",
   "kompas",
 ] as const;
@@ -36,6 +37,8 @@ export type DataScope = (typeof DATA_SCOPES)[number];
  * opnieuw opgehaald, de rest wordt alleen als verouderd gemarkeerd.
  */
 export const DATA_EVENTS = {
+  dorpChanged: ["dorp"],
+  dorpGiftChanged: ["dorp", "xp", "notifications"],
   // Alleen de nieuwe studiepublicaties/het beheer, geen progressie of economie.
   studyContentChanged: ["studyContent"],
   readingPositionChanged: ["readingPosition"],
@@ -51,7 +54,7 @@ export const DATA_EVENTS = {
   // Iemand heeft een score geplaatst in het klassement van het woord van de dag.
   wordGameScored: ["wordGameRanking"],
   friendsChanged: ["friends", "today", "activity", "notifications"],
-  groupsChanged: ["groups", "today", "activity"],
+  groupsChanged: ["groups", "today", "activity", "dorp"],
   notificationsChanged: ["notifications", "today"],
   // Een uitdaging, woordspel of live spel is gestart, geannuleerd of verlaten, of een uitnodiging is ingetrokken.
   gamesChanged: ["games", "today"],

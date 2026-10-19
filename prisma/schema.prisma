@@ -31,6 +31,15 @@ model User {
   shareAchievements  Boolean   @default(false)
   // Legpuzzel 2.0 fase 4: puzzelrecords zichtbaar voor geaccepteerde vrienden. Los van shareAchievements en standaard uit.
   sharePuzzleRecords Boolean   @default(false)
+  shareVillageWithFriends Boolean @default(false)
+  dorpPersonal DorpVillage? @relation("DorpOwner")
+  dorpObjects DorpOwnedObject[]
+  dorpMemberships DorpMember[]
+  dorpPaths DorpPath[]
+  dorpActions DorpAction[]
+  dorpRequests DorpMoveRequest[]
+  dorpGiftsSent DorpGift[] @relation("DorpGiftSender")
+  dorpGiftsReceived DorpGift[] @relation("DorpGiftReceiver")
   passwordHash       String
   // Verhoogd bij een wachtwoordreset/-wijziging zodat alle eerder uitgegeven sessietokens direct ongeldig worden.
   sessionVersion     Int       @default(0)
@@ -870,6 +879,7 @@ model ContentSwitcherSettings {
   id      String  @id @default("singleton")
   enabled Boolean @default(false)
   hymnsVisibleToUsers Boolean @default(false)
+  dorpVisibleToUsers Boolean @default(false)
 }
 
 // Singleton voor de automatische FSY-broncontrole. Nieuwe inhoud komt eerst
@@ -1833,6 +1843,8 @@ model ExerciseSession {
 // (user.xpTotal blijft een cache voor snelle reads, zie src/lib/xp.ts)
 
 enum XPReason {
+  VILLAGE_GIFT_SENT
+  VILLAGE_GIFT_RECEIVED
   LESSON_COMPLETED
   PERFECT_SCORE
   LIVE_GAME_PLAYED
@@ -3336,6 +3348,7 @@ model SocialGroup {
   paused            Boolean  @default(true)
   createdAt         DateTime @default(now())
 
+  dorpVillage DorpVillage?
   memberships  GroupMembership[]
   invites      GroupInvite[]
   days         GroupDay[]
@@ -3911,4 +3924,99 @@ model ReadingPosition {
   @@id([userId, lessonEditionId])
   @@index([lessonEditionId])
   @@index([revisionId, lessonEditionId])
+}
+
+
+// Versado Dorp: eigendom en levels zijn globaal; posities horen bij één wereld.
+model DorpVillage {
+  id String @id @default(cuid())
+  ownerId String? @unique
+  owner User? @relation("DorpOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  groupId String? @unique
+  group SocialGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  phase Int @default(0)
+  version Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  members DorpMember[]
+  placements DorpPlacement[]
+  paths DorpPath[]
+  actions DorpAction[]
+  requests DorpMoveRequest[]
+}
+model DorpMember {
+  villageId String
+  village DorpVillage @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt DateTime @default(now())
+  @@id([villageId, userId])
+  @@index([userId])
+}
+model DorpOwnedObject {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  objectId String
+  ordinal Int
+  level Int @default(1)
+  placements DorpPlacement[]
+  requests DorpMoveRequest[]
+  createdAt DateTime @default(now())
+  @@unique([userId, objectId, ordinal])
+}
+model DorpPlacement {
+  villageId String
+  village DorpVillage @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  objectId String
+  object DorpOwnedObject @relation(fields: [objectId], references: [id], onDelete: Cascade)
+  u Int
+  v Int
+  @@id([villageId, objectId])
+  @@index([objectId])
+}
+model DorpPath {
+  villageId String
+  village DorpVillage @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  u Int
+  v Int
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([villageId, u, v])
+  @@index([userId])
+}
+// Een bewaarde actie voorkomt dat een oude retry een recentere keuze terugdraait.
+model DorpAction {
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actionId String @db.Uuid
+  villageId String
+  village DorpVillage @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  payloadHash String @db.Char(64)
+  createdAt DateTime @default(now())
+  @@id([userId, actionId])
+}
+model DorpMoveRequest {
+  id String @id @default(cuid())
+  villageId String
+  village DorpVillage @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  objectId String
+  object DorpOwnedObject @relation(fields: [objectId], references: [id], onDelete: Cascade)
+  requesterId String
+  requester User @relation(fields: [requesterId], references: [id], onDelete: Cascade)
+  status String @default("OPEN")
+  createdAt DateTime @default(now())
+  @@unique([villageId, objectId, requesterId])
+}
+model DorpGift {
+  id String @id @default(cuid())
+  senderId String
+  sender User @relation("DorpGiftSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver User @relation("DorpGiftReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  actionId String @db.Uuid
+  amount Int @default(5)
+  createdAt DateTime @default(now())
+  @@unique([senderId, actionId])
+  @@index([senderId, receiverId, createdAt])
 }

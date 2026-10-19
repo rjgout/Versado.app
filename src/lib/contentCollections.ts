@@ -133,9 +133,9 @@ function selectableWhere(isAdmin: boolean) {
   return collectionAccessWhere({ isAdmin }, "catalog");
 }
 
-export async function getContentSwitcherSettings(): Promise<{ enabled: boolean; hymnsVisibleToUsers: boolean }> {
+export async function getContentSwitcherSettings(): Promise<{ enabled: boolean; hymnsVisibleToUsers: boolean; dorpVisibleToUsers: boolean }> {
   const row = await prisma.contentSwitcherSettings.findUnique({ where: { id: "singleton" } });
-  return { enabled: row?.enabled ?? false, hymnsVisibleToUsers: row?.hymnsVisibleToUsers ?? false };
+  return { enabled: row?.enabled ?? false, hymnsVisibleToUsers: row?.hymnsVisibleToUsers ?? false, dorpVisibleToUsers: row?.dorpVisibleToUsers ?? false };
 }
 
 /** Nieuwe spelstarts gebruiken gewone rechten en nooit een vervangende bron bij ingetrokken toegang. */

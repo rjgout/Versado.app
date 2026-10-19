@@ -11,7 +11,7 @@ import { enableBrowserPush, disableBrowserPush } from "@/lib/pushClient";
 import { getSocket } from "@/lib/socketClient";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
-import { liveMutation } from "@/lib/data/mutation";
+import { liveMutation, jsonMutation } from "@/lib/data/mutation";
 import { invalidateData } from "@/lib/data/client";
 import { startCountdown } from "@/lib/countdown";
 import ThemePreference from "@/components/ThemePreference";
@@ -88,6 +88,7 @@ export default function ProfileClient() {
   const [editingHandle, setEditingHandle] = useState(false);
   const [handleInput, setHandleInput] = useState("");
   const [savingHandle, setSavingHandle] = useState(false);
+  const [villagePrivacyError,setVillagePrivacyError]=useState<string|null>(null);
   const [handleError, setHandleError] = useState<string | null>(null);
   const [readAloudVoices, setReadAloudVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedReadAloudVoice, setSelectedReadAloudVoice] = useState("");
@@ -139,6 +140,18 @@ export default function ProfileClient() {
     setSavingPrivacy(false);
     // Vrienden met dit profiel open halen na de serverwijziging vers op.
     getSocket().emit("friend_profile_changed");
+  }
+
+  async function toggleShareVillage() {
+    if(!data||savingPrivacy)return;
+    const next=!data.shareVillageWithFriends;
+    setSavingPrivacy(true);setVillagePrivacyError(null);
+    try{
+      await jsonMutation("/api/account",{method:"PATCH",json:{shareVillageWithFriends:next}},{invalidates:["profile","dorp"]});
+      setData(current=>current?{...current,shareVillageWithFriends:next}:current);
+      getSocket().emit("friend_profile_changed");
+    }catch(error){setVillagePrivacyError(error instanceof Error?error.message:t("apiErrors.notSaved"));}
+    finally{setSavingPrivacy(false);}
   }
 
   async function toggleSharePuzzleRecords() {
@@ -443,7 +456,7 @@ export default function ProfileClient() {
         {view === "gameFeedback" && <GameFeedbackView />}
         {view === "readAloud" && <ReadAloudView voices={readAloudVoices} selectedVoice={selectedReadAloudVoice} speed={readAloudSpeed} testing={testingReadAloudVoice} onVoice={changeReadAloudVoice} onSpeed={changeReadAloudSpeed} onTest={testReadAloudVoice} />}
         {view === "notifications" && <NotificationsView data={data} saving={savingNotifications} pushError={pushError} testingPush={testingPush} pushCountdown={pushCountdown} pushTestMessage={pushTestMessage} onEmail={toggleEmailNotifications} onPush={togglePushNotifications} onTest={sendTestPush} onCategory={toggleCategory} onReminder={changeReminderTime} onDailyText={(time) => saveAccountPatch({ dailyTextTime: time }).then(() => setData((current) => current ? { ...current, dailyTextTime: time } : current))} onPodcast={togglePodcastNotifications} />}
-        {view === "privacy" && <PrivacyView data={data} saving={savingPrivacy} onToggleSearchable={toggleSearchableByEmail} onToggleAchievements={toggleShareAchievements} onTogglePuzzleRecords={toggleSharePuzzleRecords} />}
+        {view === "privacy" && <PrivacyView data={data} saving={savingPrivacy} onToggleSearchable={toggleSearchableByEmail} onToggleAchievements={toggleShareAchievements} onTogglePuzzleRecords={toggleSharePuzzleRecords} onToggleVillage={toggleShareVillage} villageError={villagePrivacyError} />}
         {view === "presence" && <PresenceView data={data} saving={savingPresence} onOnline={toggleShareOnlineStatus} onActivity={toggleShareCurrentActivity} onIncognito={activateIncognito} onIncognitoOff={deactivateIncognito} />}
         {view === "about" && <WhatsNewView enabled={data.changelogEnabled} saving={savingNotifications} onToggle={() => toggleCategory("changelogEnabled")} />}
         {view === "twoFactor" && <TwoFactorSettings isAdmin={data.isAdmin} />}

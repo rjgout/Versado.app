@@ -6,7 +6,7 @@ import { fetchJson } from "@/lib/data/fetchJson";
 import Link from "next/link";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { getLanguage } from "@/lib/languages";
-import { HeartPulse } from "lucide-react";
+import { HeartPulse, Gift } from "lucide-react";
 import SystemIcon from "@/components/versado/SystemIcon";
 
 
@@ -27,7 +27,9 @@ type XPReason =
   | "INTRO_LESSON_COMPLETED"
   | "ALLESKENNER_SOLO"
   | "WORD_SEARCH_COMPLETED"
-  | "STUDY_TOGETHER";
+  | "STUDY_TOGETHER"
+  | "VILLAGE_GIFT_SENT"
+  | "VILLAGE_GIFT_RECEIVED";
 
 interface XpPage {
   xpTotal: number;
@@ -44,6 +46,8 @@ interface XpTransaction {
 }
 
 const REASON_ICONS: Record<XPReason, ReactNode> = {
+  VILLAGE_GIFT_SENT: <Gift className="h-4 w-4" aria-hidden />,
+  VILLAGE_GIFT_RECEIVED: <Gift className="h-4 w-4" aria-hidden />,
   LESSON_COMPLETED: "📖",
   PERFECT_SCORE: "🎯",
   LIVE_GAME_PLAYED: "⚡",
@@ -207,7 +211,7 @@ export default function XpHistoryClient() {
                         {REASON_ICONS[tx.reason]}
                       </span>
                       <div className="min-w-0">
-                        <p className="font-semibold text-sm truncate dark:text-slate-100">{t(`xpHistory.reasons.${tx.reason}`)}</p>
+                        <p className="font-semibold text-sm truncate dark:text-slate-100">{tx.reason==="VILLAGE_GIFT_SENT"?t("dorp2.giftSent"):tx.reason==="VILLAGE_GIFT_RECEIVED"?t("dorp2.giftReceived"):t(`xpHistory.reasons.${tx.reason}`)}</p>
                         <p className="text-xs text-slate-400 dark:text-slate-500">{formatRowTime(tx.createdAt, group.label, intlLocale)}</p>
                       </div>
                     </div>

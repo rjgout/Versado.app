@@ -8,6 +8,7 @@ import { generateDiscriminator, HANDLE_REGEX, HANDLE_MIN_LENGTH, HANDLE_MAX_LENG
 import { setIncognito, INCOGNITO_DURATIONS_HOURS } from "@/lib/presence";
 import { LANGUAGES, getLanguage } from "@/lib/languages";
 import { apiError, apiErrorText } from "@/lib/apiError";
+import {inventoryOriginAllowed} from "@/lib/content-inventory/origin";
 import { leaveAllGroups } from "@/lib/social/groups";
 import { isValidTimeZone } from "@/lib/timeZone";
 import { PERSONAL_MASCOTS } from "@/lib/mascots";
@@ -43,6 +44,7 @@ const patchSchema = z.object({
   shareAchievements: z.boolean().optional(),
   // Los van shareAchievements: puzzelrecords zichtbaar voor geaccepteerde vrienden (standaard uit).
   sharePuzzleRecords: z.boolean().optional(),
+  shareVillageWithFriends: z.boolean().optional(),
   emailNotificationsEnabled: z.boolean().optional(),
   pushNotificationsEnabled: z.boolean().optional(),
   dailyReminderTime: z
@@ -135,6 +137,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) return await apiError("apiErrors.invalidInput", 400);
+  if (parsed.data.shareVillageWithFriends !== undefined && !inventoryOriginAllowed(req.headers, req.url, process.env.APP_URL)) return await apiError("apiErrors.forbidden", 403);
   if (Object.keys(parsed.data).length === 0) {
     return await apiError("apiErrors.nothingToSave", 400);
   }

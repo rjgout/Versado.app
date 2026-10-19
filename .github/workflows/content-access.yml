@@ -2,7 +2,7 @@ name: Contentarchitectuur 1A–2D toegang, context, selectie en spellen
 
 on:
   pull_request:
-    branches: [main, 'codex/v2-phase-*']
+    branches: [main, 'codex/v2-phase-*', 'codex/versado-dorp-*']
     paths:
       - 'src/lib/hymnAvailability.ts'
       - 'src/lib/hymnLibraryClient.ts'
@@ -201,7 +201,7 @@ jobs:
           npm run test:annotations
           npm run test:focus
           npm run test:dorp
-          npm run test:dorp:integration -- --browser
+          npm run test:dorp:integration -- --browser --regressions
           npm run test:live-data
           npm run lint
           npx tsx scripts/i18n/check.ts

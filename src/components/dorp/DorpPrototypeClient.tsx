@@ -49,6 +49,8 @@ import { availableInstance, levelOwnedInstance, placeOwnedInstance, placedObject
 import { normalizePaths, paintPathSegment, paintPathTiles, pathConnectivityFromKeys, pathKey } from "@/lib/dorp/paths";
 import { DEFAULT_DORP_STATE, DORP_LEGACY_STORAGE_KEYS, DORP_STORAGE_KEY, parseDorpState, serializeDorpState } from "@/lib/dorp/storage";
 import { boundsContainViewport, terrainAssetId, terrainBufferBounds, type TerrainWorldBounds } from "@/lib/dorp/terrain";
+import type { ReactNode, SetStateAction } from "react";
+import type { DorpSnapshot } from "@/lib/dorp/service";
 import type { DorpObjectDefinition, DorpWorldState, PlacedDorpObject, TileCoordinate } from "@/lib/dorp/types";
 
 type Placement = { objectId: string; instanceId: string; u: number; v: number; moving: boolean };
@@ -106,8 +108,10 @@ function nearestPrototypePhase(phase: number) {
   return PROTOTYPE_PHASES.reduce((best, item) => Math.abs(item.id - phase) < Math.abs(best.id - phase) ? item : best);
 }
 
-function DorpCanvas({
+export function DorpCanvas({
   world,
+  compact = false,
+  editableIds,
   placement,
   selectedId,
   onPlacementMove,
@@ -117,6 +121,8 @@ function DorpCanvas({
   cameraCommand,
 }: {
   world: DorpWorldState;
+  compact?: boolean;
+  editableIds?: ReadonlySet<string>;
   placement: Placement | null;
   selectedId: string | null;
   onPlacementMove: (tile: TileCoordinate) => void;
@@ -144,6 +150,7 @@ function DorpCanvas({
   const strokeRef = useRef<TileCoordinate[]>([]);
   const [pathPreview, setPathPreview] = useState<TileCoordinate | null>(null);
   const [assetRevision, setAssetRevision] = useState(0);
+  const measureInsets=useCallback(()=>compact?{top:4,right:4,bottom:4,left:4}:cameraInsets(),[compact]);
   const radius = radiusForPhase(world.phase);
   const objects = useMemo(() => placedObjects(world), [world]);
 
@@ -168,7 +175,7 @@ function DorpCanvas({
     const box = containerRef.current?.getBoundingClientRect();
     if (!box) return;
     const camera = cameraRef.current;
-    const insets = cameraInsets();
+    const insets = measureInsets();
     insetsRef.current = insets;
     const minimum = minimumCameraZoom(box.width, box.height, insets);
     if (cameraCommand.kind === "detail") { camera.zoom = Math.max(DETAIL_CAMERA_ZOOM, minimum); fitModeRef.current = "free"; }
@@ -179,7 +186,7 @@ function DorpCanvas({
     if (cameraCommand.kind === "full") { cameraRef.current = fitCameraToRadius(box.width, box.height, MAX_RADIUS, insets); fitModeRef.current = "full"; }
     if (cameraCommand.kind === "center") { camera.x = 0; camera.y = 0; fitModeRef.current = "free"; }
     renderCamera(true);
-  }, [cameraCommand, radius, renderCamera]);
+  }, [cameraCommand, radius, renderCamera, measureInsets]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -375,7 +382,7 @@ function DorpCanvas({
     scheduler.drawNow();
     const resize = new ResizeObserver(() => {
       const bounds = container.getBoundingClientRect();
-      insetsRef.current = cameraInsets();
+      insetsRef.current = measureInsets();
       if (fitModeRef.current === "current") cameraRef.current = fitCameraToRadius(bounds.width, bounds.height, radius, insetsRef.current);
       if (fitModeRef.current === "full") cameraRef.current = fitCameraToRadius(bounds.width, bounds.height, MAX_RADIUS, insetsRef.current);
       scheduler.request();
@@ -383,7 +390,7 @@ function DorpCanvas({
     });
     resize.observe(container);
     return () => { resize.disconnect(); scheduler.cancel(); requestDrawRef.current = () => undefined; };
-  }, [assetRevision, objects, onCameraChange, placement, radius, selectedId, world.instances, world.paths, pathMode, pathPreview]);
+  }, [assetRevision, objects, onCameraChange, placement, radius, selectedId, world.instances, world.paths, pathMode, pathPreview, measureInsets]);
 
   const eventToWorld = useCallback((clientX: number, clientY: number) => {
     const bounds = canvasRef.current?.getBoundingClientRect();
@@ -428,7 +435,7 @@ function DorpCanvas({
             const wp=eventToWorld(event.clientX,event.clientY), tile=worldToIso(wp.x,wp.y);
             const selected=objects.find(o=>o.instanceId===selectedId);
             const definition=selected?DORP_OBJECT_BY_ID.get(selected.objectId):null;
-            dragRef.current=selected&&definition&&tile.u>=selected.u&&tile.v>=selected.v&&tile.u<selected.u+definition.footprint[0]&&tile.v<selected.v+definition.footprint[1]
+            dragRef.current=selected&&(!editableIds||editableIds.has(selected.instanceId))&&definition&&tile.u>=selected.u&&tile.v>=selected.v&&tile.u<selected.u+definition.footprint[0]&&tile.v<selected.v+definition.footprint[1]
               ? {instanceId:selected.instanceId,offset:{u:tile.u-selected.u,v:tile.v-selected.v},active:false}:null;
             if(pathMode) {strokeRef.current=[tile];setPathPreview(tile);}
           }
@@ -499,11 +506,19 @@ function DorpCanvas({
   );
 }
 
-export default function DorpPrototypeClient() {
+export type DorpControlledProps = { snapshot: DorpSnapshot; busy: boolean; onChange: (next:DorpWorldState)=>void; onRequest:(id:string)=>void; controls:ReactNode };
+export default function DorpPrototypeClient({controlled}:{controlled?:DorpControlledProps}={}) {
   useImmersiveShell();
   const t=useT();
   const goBack = useBackNavigation("/adminbackend/spellen");
-  const [world, setWorld] = useState<DorpWorldState>(DEFAULT_DORP_STATE);
+  const [localWorld, setLocalWorld] = useState<DorpWorldState>(DEFAULT_DORP_STATE);
+  const world=controlled?.snapshot.world??localWorld;
+  const setWorld=(action:SetStateAction<DorpWorldState>)=>{
+    if(controlled){if(controlled.busy||controlled.snapshot.readOnly)return;controlled.onChange(typeof action==="function"?action(world):action);}
+    else setLocalWorld(action);
+  };
+  const ownedIds=controlled?new Set(controlled.snapshot.ownedIds):undefined;
+  const readOnly=controlled?.snapshot.readOnly??false;
   const [loaded, setLoaded] = useState(false);
   const [inventoryOpen, setInventoryOpen] = useState(false);
   const [developerOpen, setDeveloperOpen] = useState(false);
@@ -523,26 +538,27 @@ export default function DorpPrototypeClient() {
   const activePhase = nearestPrototypePhase(world.phase);
 
   useEffect(() => {
+    if(controlled)return;
     // Na hydration lezen voorkomt dat een eerdere lokale kaart een ander server-HTML-resultaat geeft.
     const timer = window.setTimeout(() => {
       const stored = window.localStorage.getItem(DORP_STORAGE_KEY) ?? window.localStorage.getItem("versado-dorp-prototype-v2");
       const legacyPresent = stored === null && DORP_LEGACY_STORAGE_KEYS.some((key) => window.localStorage.getItem(key) !== null);
-      setWorld(parseDorpState(stored));
+      setLocalWorld(parseDorpState(stored));
       if (legacyPresent) setPhaseMessage("Prototypeopslag v1 is niet overgenomen door het nieuwe R8-eigendomsmodel. Gebruik ‘Testdata herstellen’ om de oude testopslag te wissen.");
       setLoaded(true);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [controlled]);
 
   useEffect(() => {
-    if (loaded) window.localStorage.setItem(DORP_STORAGE_KEY, serializeDorpState(world));
-  }, [loaded, world]);
+    if (loaded && !controlled) window.localStorage.setItem(DORP_STORAGE_KEY, serializeDorpState(world));
+  }, [loaded, world, controlled]);
 
   const issueCameraCommand = (kind: typeof cameraCommand.kind) => setCameraCommand((value) => ({ id: value.id + 1, kind }));
   const placementValid = placement ? placementIsValid(placement, objects, radius) : false;
 
   const chooseObject = (definition: DorpObjectDefinition) => {
-    const instance = availableInstance(world, definition.id);
+    const instance = availableInstance({instances:world.instances.filter(i=>!ownedIds||ownedIds.has(i.instanceId))}, definition.id);
     if (!instance) return;
     const proposed = suggestPlacement(definition.id, objects, radius, { u: 0, v: 0 }, instance.instanceId) ?? { u: 0, v: 0 };
     setPlacement({ objectId: definition.id, instanceId: instance.instanceId, ...proposed, moving: false });
@@ -599,8 +615,10 @@ export default function DorpPrototypeClient() {
 
   return (
     <ImmersiveLayout className="relative overflow-hidden bg-vs-surface text-vs-fg-1" data-dorp-prototype>
+      <div className="absolute inset-0" style={controlled?.busy?{pointerEvents:"none"}:undefined}>
       <DorpCanvas
         world={world}
+        editableIds={ownedIds}
         placement={placement}
         selectedId={selectedId}
         onPlacementMove={(tile) => placement && setPlacement({ ...placement, ...tile })}
@@ -613,22 +631,24 @@ export default function DorpPrototypeClient() {
         onCameraChange={setCamera}
         cameraCommand={cameraCommand}
       />
+      </div>
 
       <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-[max(.75rem,var(--vs-safe-area-top))_max(.75rem,var(--vs-safe-area-right))_max(.75rem,var(--vs-safe-area-bottom))_max(.75rem,var(--vs-safe-area-left))]">
         <header className="pointer-events-auto flex min-w-0 items-start justify-between gap-2">
-          <button type="button" onClick={goBack} className="btn min-h-11 shrink-0 !border-white/40 !bg-vs-surface/90 px-3 shadow-lg backdrop-blur" aria-label="Versado Dorp sluiten">
-            <X className="h-5 w-5" aria-hidden /> <span className="hidden sm:inline">Sluiten</span>
+          <button type="button" onClick={goBack} className="btn !h-[44px] !w-[44px] !min-w-[44px] shrink-0 !border-white/40 !bg-vs-surface/90 !p-0 shadow-lg backdrop-blur sm:!w-auto sm:!px-3" aria-label="Versado Dorp sluiten">
+            <X className="h-[20px] w-[20px]" aria-hidden /> <span className="hidden sm:inline">Sluiten</span>
           </button>
           <div className="pointer-events-none min-w-0 flex-1 rounded-2xl border border-white/40 bg-vs-surface/90 px-3 py-2 text-center shadow-lg backdrop-blur">
-            <p className="truncate text-sm font-bold">Versado Dorp · technisch prototype</p>
-            <p className="text-xs text-vs-fg-3">{activePhase.label} · R{radius} · {buildableTileCount(radius).toLocaleString("nl-NL")} tegels</p>
+            <p className="truncate text-sm font-bold">{controlled?"Versado Dorp":"Versado Dorp · technisch prototype"}</p>
+            <p className="truncate text-xs text-vs-fg-3">{activePhase.label} · R{radius} · {buildableTileCount(radius).toLocaleString("nl-NL")} tegels</p>
           </div>
-          <button type="button" onClick={() => setDeveloperOpen((value) => !value)} className="btn min-h-11 shrink-0 !border-white/40 !bg-vs-surface/90 px-3 shadow-lg backdrop-blur" aria-expanded={developerOpen} aria-label="Testmenu">
-            <Box className="h-5 w-5" aria-hidden /> <span className="hidden sm:inline">Testmenu</span>
-          </button>
+          {!controlled && <button type="button" onClick={() => setDeveloperOpen((value) => !value)} className="btn !h-[44px] !w-[44px] !min-w-[44px] shrink-0 !border-white/40 !bg-vs-surface/90 !p-0 shadow-lg backdrop-blur sm:!w-auto sm:!px-3" aria-expanded={developerOpen} aria-label="Testmenu">
+            <Box className="h-[20px] w-[20px]" aria-hidden /> <span className="hidden sm:inline">Testmenu</span>
+          </button>}
         </header>
 
-        {developerOpen && (
+        {controlled && <div className="pointer-events-auto mt-2 max-h-[35dvh] overflow-y-auto rounded-2xl bg-vs-surface/95 p-2 shadow-lg">{controlled.controls}</div>}
+        {developerOpen && !controlled && (
           <section className="pointer-events-auto mt-2 ml-auto w-[min(100%,22rem)] rounded-2xl border border-vs-line bg-vs-surface/95 p-3 shadow-xl backdrop-blur" aria-label="Ontwikkelmenu kaartuitbreiding">
             <div className="mb-2 flex items-center justify-between gap-2"><h2 className="font-bold">Kaartfase testen</h2><button type="button" onClick={() => setDeveloperOpen(false)} aria-label="Testmenu sluiten"><ChevronUp className="h-5 w-5" /></button></div>
             <div className="grid grid-cols-2 gap-2">
@@ -641,12 +661,12 @@ export default function DorpPrototypeClient() {
         )}
 
         {controlsHidden && <button type="button" onClick={()=>setControlsHidden(false)} className="btn pointer-events-auto mt-auto self-end !bg-vs-surface/95">{t("dorp2.controls")}</button>}
-        <div className={`${controlsHidden?"hidden":"grid"} mt-auto w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-end gap-2`}>
-          <div className="pointer-events-auto flex min-w-0 flex-col gap-2">
+        <div className={`${controlsHidden||pathMode?"hidden":"flex"} mt-auto w-full min-w-0 flex-wrap items-end gap-2`}>
+          <div className="pointer-events-auto flex min-w-[132px] flex-1 flex-col gap-2">
             <div className="flex rounded-2xl border border-white/40 bg-vs-surface/90 p-1 shadow-lg backdrop-blur">
-              <button type="button" onClick={() => issueCameraCommand("out")} className="min-h-11 min-w-11 flex-1 rounded-xl" aria-label="Uitzoomen"><Minus className="mx-auto h-5 w-5" /></button>
-              <button type="button" onClick={() => issueCameraCommand("in")} className="min-h-11 min-w-11 flex-1 rounded-xl" aria-label="Inzoomen"><Plus className="mx-auto h-5 w-5" /></button>
-              <button type="button" onClick={() => issueCameraCommand("center")} className="min-h-11 min-w-11 flex-1 rounded-xl" aria-label="Camera centreren"><Crosshair className="mx-auto h-5 w-5" /></button>
+              <button type="button" onClick={() => issueCameraCommand("out")} className="min-h-[44px] min-w-[44px] flex-1 rounded-xl" aria-label="Uitzoomen"><Minus className="mx-auto h-5 w-5" /></button>
+              <button type="button" onClick={() => issueCameraCommand("in")} className="min-h-[44px] min-w-[44px] flex-1 rounded-xl" aria-label="Inzoomen"><Plus className="mx-auto h-5 w-5" /></button>
+              <button type="button" onClick={() => issueCameraCommand("center")} className="min-h-[44px] min-w-[44px] flex-1 rounded-xl" aria-label="Camera centreren"><Crosshair className="mx-auto h-5 w-5" /></button>
             </div>
             <details className="rounded-2xl border border-white/40 bg-vs-surface/90 p-1 text-xs shadow-lg backdrop-blur"><summary className="min-h-11 cursor-pointer p-2">{t("dorp2.views")}</summary><div className="flex flex-wrap">
               <button type="button" onClick={() => issueCameraCommand("detail")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1">Detail</button>
@@ -656,12 +676,12 @@ export default function DorpPrototypeClient() {
             </div></details>
           </div>
 
-          <button type="button" onClick={() => setInventoryOpen(true)} className="btn pointer-events-auto min-h-12 shrink-0 whitespace-nowrap !border-white/40 !bg-vs-surface/95 px-2 text-sm shadow-xl backdrop-blur sm:px-4"><Package className="h-5 w-5" /> Bouwen</button>
+          {!readOnly && <button type="button" onClick={() => setInventoryOpen(true)} className="btn pointer-events-auto min-h-12 max-w-full shrink-0 whitespace-normal !border-white/40 !bg-vs-surface/95 px-2 text-sm shadow-xl backdrop-blur sm:px-4"><Package className="h-5 w-5" /> Bouwen</button>}
         </div>
       </div>
 
-      {pathMode && <div className="absolute inset-x-3 bottom-[max(.75rem,var(--vs-safe-area-bottom))] z-20 flex flex-wrap gap-2 rounded-2xl bg-vs-surface/95 p-3 shadow-xl" data-dorp-path-mode>
-        <p className="w-full text-sm">{t("dorp2.pathHelp")}</p>
+      {pathMode && !readOnly && <div className="absolute inset-x-3 bottom-[max(.75rem,var(--vs-safe-area-bottom))] z-20 grid max-h-[45dvh] [grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr))] gap-2 overflow-y-auto rounded-2xl bg-vs-surface/95 p-3 shadow-xl" data-dorp-path-mode>
+        <details className="col-span-full min-w-0 text-sm"><summary className="min-h-11 cursor-pointer py-2 font-semibold">{t("dorp2.paths")}</summary><p>{t("dorp2.pathHelp")}</p></details>
         <button className="btn min-h-11" aria-pressed={pathMode==="paint"} onClick={()=>setPathMode("paint")}>{t("dorp2.paint")}</button>
         <button className="btn min-h-11" aria-pressed={pathMode==="erase"} onClick={()=>setPathMode("erase")}>{t("dorp2.erase")}</button>
         <button className="btn min-h-11" onClick={()=>setPathMode(null)}>{t("common.close")}</button>
@@ -675,14 +695,14 @@ export default function DorpPrototypeClient() {
         </div>
       )}
 
-      {inventoryOpen && (
+      {inventoryOpen && !readOnly && (
         <aside className="absolute inset-y-0 right-0 z-30 flex w-[min(92vw,27rem)] flex-col border-l border-vs-line bg-vs-surface shadow-2xl pt-[max(1rem,var(--vs-safe-area-top))] pr-[max(1rem,var(--vs-safe-area-right))] pb-[max(1rem,var(--vs-safe-area-bottom))] pl-4" aria-label="Bouwinventaris">
-          <div className="flex items-center justify-between gap-3"><div><h2 className="text-xl font-bold">Bouwinventaris</h2><p className="text-xs text-vs-fg-3">Expliciete prototypefixtures · geen vrijspeelstatus</p></div><button type="button" onClick={() => setInventoryOpen(false)} className="min-h-11 min-w-11" aria-label="Inventaris sluiten"><X className="mx-auto h-5 w-5" /></button></div>
+          <div className="flex items-center justify-between gap-3"><div><h2 className="text-xl font-bold">Bouwinventaris</h2><p className="text-xs text-vs-fg-3">{controlled?t("dorp2.pilot"):"Expliciete prototypefixtures · geen vrijspeelstatus"}</p></div><button type="button" onClick={() => setInventoryOpen(false)} className="min-h-11 min-w-11" aria-label="Inventaris sluiten"><X className="mx-auto h-5 w-5" /></button></div>
           <button type="button" className="btn mt-3 min-h-11" onClick={()=>{setPathMode("paint");setPlacement(null);setSelectedId(null);setInventoryOpen(false);}}>{t("dorp2.paths")}</button>
           <div className="mt-4 flex-1 space-y-5 overflow-y-auto overscroll-contain pr-1">
             {inventoryByCategory.map(({ category, objects: definitions }) => definitions.length > 0 && <section key={category}><h3 className="mb-2 text-sm font-bold text-vs-fg-2">{category==="Bewoners"?t("dorp2.residents"):category}</h3><div className="grid grid-cols-2 gap-2">{definitions.map((object) => {
               const asset = DORP_ASSET_BY_ID.get(object.assetIds[0]);
-              const owned = world.instances.filter((instance) => instance.objectId === object.id);
+              const owned = world.instances.filter((instance) => instance.objectId === object.id && (!ownedIds || ownedIds.has(instance.instanceId)));
               const stored = owned.filter((instance) => instance.position === null).length;
               return <button key={object.id} type="button" disabled={stored === 0} onClick={() => chooseObject(object)} className="card min-w-0 !border-vs-line !bg-vs-surface-2 p-2 text-left disabled:opacity-55"><div className="relative aspect-square overflow-hidden rounded-xl bg-vs-surface-3">{asset && <Image src={asset.path} alt="" fill sizes="10rem" className="object-contain" />}</div><span className="mt-2 block text-sm font-semibold">{object.name}</span><span className="block text-xs text-vs-fg-3">{object.footprint[0]} × {object.footprint[1]} · {stored > 0 ? `${stored} opgeborgen` : "geplaatst"}</span></button>;
             })}</div></section>)}
@@ -694,9 +714,10 @@ export default function DorpPrototypeClient() {
         <section className="absolute inset-x-3 bottom-[max(.75rem,var(--vs-safe-area-bottom))] z-20 mx-auto w-[min(calc(100%-1.5rem),30rem)] rounded-2xl border border-vs-line bg-vs-surface/95 p-3 shadow-2xl backdrop-blur">
           <div className="flex items-start justify-between gap-3"><div><h2 className="font-bold">{selectedDefinition.name}</h2><p className="text-xs text-vs-fg-3">Vaste footprint {selectedDefinition.footprint[0]} × {selectedDefinition.footprint[1]} · positie {selected.position?.u},{selected.position?.v}</p></div><button type="button" onClick={() => setSelectedId(null)} className="min-h-10 min-w-10" aria-label="Selectie sluiten"><ChevronDown className="mx-auto h-5 w-5" /></button></div>
           {selectedResident && <p className="mt-2 text-sm text-vs-fg-2">{selectedResident.description}</p>}
-          <p className="mt-2 text-xs text-vs-fg-3">{t("dorp2.dragHelp")}</p>
-          {selectedDefinition.maxLevel > 1 && <div className="mt-3 flex gap-2" aria-label="Visueel gebouwniveau">{([1, 2, 3] as const).map((level) => <button key={level} type="button" disabled={level > selectedDefinition.maxLevel} onClick={() => setLevel(level)} className={`btn min-h-11 flex-1 ${selected.level === level ? "!border-vs-accent !bg-vs-accent-soft" : "!bg-vs-surface"}`}>Niveau {level}</button>)}</div>}
-          <div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={() => { if (!selected.position) return; setPlacement({ objectId: selected.objectId, instanceId: selected.instanceId, u: selected.position.u, v: selected.position.v, moving: true }); setSelectedId(null); }} className="btn min-h-11 flex-1 !bg-vs-surface"><Home className="h-4 w-4" /> Verplaatsen</button><button type="button" onClick={storeSelected} className="btn min-h-11 flex-1 !bg-vs-surface"><Package className="h-4 w-4" /> Terugnemen</button></div>
+          {!readOnly && <p className="mt-2 text-xs text-vs-fg-3">{t(ownedIds&&!ownedIds.has(selected.instanceId)?"dorp2.ownOnly":"dorp2.dragHelp")}</p>}
+          {!readOnly && (!ownedIds||ownedIds.has(selected.instanceId)) && selectedDefinition.maxLevel > 1 && <div className="mt-3 flex gap-2" aria-label="Visueel gebouwniveau">{([1, 2, 3] as const).map((level) => <button key={level} type="button" disabled={level > selectedDefinition.maxLevel || Boolean(controlled && level !== selected.level+1)} onClick={() => setLevel(level)} className={`btn min-h-11 flex-1 ${selected.level === level ? "!border-vs-accent !bg-vs-accent-soft" : "!bg-vs-surface"}`}>Niveau {level}</button>)}</div>}
+          {!readOnly && (!ownedIds||ownedIds.has(selected.instanceId)) && <div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={() => { if (!selected.position) return; setPlacement({ objectId: selected.objectId, instanceId: selected.instanceId, u: selected.position.u, v: selected.position.v, moving: true }); setSelectedId(null); }} className="btn min-h-11 flex-1 !bg-vs-surface"><Home className="h-4 w-4" /> Verplaatsen</button><button type="button" onClick={storeSelected} className="btn min-h-11 flex-1 !bg-vs-surface"><Package className="h-4 w-4" /> Terugnemen</button></div>}
+          {!readOnly && ownedIds && !ownedIds.has(selected.instanceId) && <button className="btn mt-2 min-h-11" onClick={()=>controlled?.onRequest(selected.instanceId)}>{t("dorp2.request")}</button>}
         </section>
       )}
 

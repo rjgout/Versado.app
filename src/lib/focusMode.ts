@@ -34,6 +34,7 @@ const FOCUS_ROUTES = [
   // Afgeschermd technisch dorpsprototype: route blijft Focus, het actieve canvas
   // vraagt via de bestaande override tijdelijk Immersive aan.
   /^\/dev\/versado-dorp$/,
+  /^\/dorp(?:\/(?:groups|visit)\/[^/]+)?$/,
   /^\/jigsaw$/,
   // Legpuzzel Samen en Tegen elkaar: dezelfde fullscreen werktafel als Solo.
   /^\/jigsaw\/(samen|wedstrijd)\/[^/]+$/,

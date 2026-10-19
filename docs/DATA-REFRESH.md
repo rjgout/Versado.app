@@ -177,3 +177,12 @@ alleen hun eigen bezoek afhandelen. Nooit progressie-, XP-, reeks- of sociale sc
 Annotatiefundament: scope `annotations` en gebeurtenis `annotationsChanged`
 invalideren uitsluitend eigen annotatiedata na commit. Realtime bevat geen privétekst,
 selector of broninhoud; de bestaande bladwijzerquery gebruikt ook deze scope.
+
+### Versado Dorp
+
+Scope `dorp` omvat de persoonlijke/gedeelde wereld en toegestane bezoekweergave.
+`dorpChanged` invalideert uitsluitend die scope; `dorpGiftChanged` invalideert
+`dorp`, `xp` en `notifications`. De server verstuurt na commit uitsluitend de
+gebeurtenisnaam via de bestaande `data_event`-infrastructuur, geen inventaris,
+privéprofiel of giftpayload. Groepswijzigingen maken ook `dorp` verouderd.
+Geen nieuwe globale focus-, resume- of pollinglistener.

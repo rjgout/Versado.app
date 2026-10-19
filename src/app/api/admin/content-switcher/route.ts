@@ -1,3 +1,4 @@
+import { dorpPrototypeEnabled } from "@/lib/dorp/access";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/session";
@@ -14,13 +15,13 @@ import { apiError } from "@/lib/apiError";
 
 const bodySchema = z.union([
   z.object({ enabled: z.boolean() }).strict(),
-  z.object({ activity: z.literal("hymns"), visibleToUsers: z.boolean() }).strict(),
+  z.object({ activity: z.enum(["hymns", "dorp"]), visibleToUsers: z.boolean() }).strict(),
   z.object({ contentCollectionId: z.string().min(1).max(256), visibleToUsers: z.boolean() }).strict(),
 ]);
 
 async function snapshot() {
   const [settings, collections] = await Promise.all([getContentSwitcherSettings(), listContentCollectionsForAdmin()]);
-  return { ...settings, collections, hymnsTechnicallyAvailable: hymnsTechnicallyAvailable() };
+  return { ...settings, collections, hymnsTechnicallyAvailable: hymnsTechnicallyAvailable(), dorpTechnicallyAvailable: dorpPrototypeEnabled() };
 }
 
 export async function GET() {
@@ -46,8 +47,8 @@ export async function PUT(req: NextRequest) {
   } else if ("activity" in body) {
     await prisma.contentSwitcherSettings.upsert({
       where: { id: "singleton" },
-      create: { id: "singleton", hymnsVisibleToUsers: body.visibleToUsers },
-      update: { hymnsVisibleToUsers: body.visibleToUsers },
+      create: { id: "singleton", ...(body.activity === "dorp" ? { dorpVisibleToUsers: body.visibleToUsers } : { hymnsVisibleToUsers: body.visibleToUsers }) },
+      update: body.activity === "dorp" ? { dorpVisibleToUsers: body.visibleToUsers } : { hymnsVisibleToUsers: body.visibleToUsers },
     });
   } else {
     try {

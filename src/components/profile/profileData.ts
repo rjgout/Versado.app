@@ -29,6 +29,7 @@ export interface ProfileData {
   searchableByEmail: boolean;
   shareAchievements: boolean;
   sharePuzzleRecords: boolean;
+  shareVillageWithFriends: boolean;
   shareOnlineStatus: boolean;
   shareCurrentActivity: boolean;
   incognitoActive: boolean;
