@@ -314,13 +314,14 @@ try {
     const box = await painting.locator("div").first().boundingBox();
     assert.ok(box.width <= 390 && Math.abs(box.width / box.height - 4 / 3) < 0.02, "beeldverhouding behouden en binnen het scherm");
     await painting.getByText("Synthetisch schilderij, testkunstenaar").waitFor();
-    const scrollBefore = await page.evaluate(() => window.scrollY);
     await painting.locator("button").click();
     await page.locator("dialog[open]").waitFor();
+    const scrollBefore = await page.evaluate(() => window.scrollY);
     await page.keyboard.press("Escape");
     await page.locator("dialog[open]").waitFor({ state: "detached" });
     assert.equal(await page.evaluate(() => document.activeElement?.getAttribute("aria-haspopup")), "dialog", "focus keert terug naar de afbeelding");
-    assert.ok(Math.abs((await page.evaluate(() => window.scrollY)) - scrollBefore) < 2, "vergroten en sluiten verplaatst de leespositie niet");
+    const scrollAfter = await page.evaluate(() => window.scrollY);
+    assert.ok(Math.abs(scrollAfter - scrollBefore) < 2, `vergroten en sluiten verplaatst de leespositie niet (${scrollBefore} → ${scrollAfter})`);
     // Een afbeelding die niet laadt, valt terug op een nette melding zonder layoutbreuk.
     await page.route("**/api/study-media/**", (route) => route.abort());
     await page.reload();

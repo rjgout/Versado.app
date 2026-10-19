@@ -33,10 +33,14 @@ export default function ImageViewer({
   useEffect(() => {
     const element = dialog.current;
     if (!element) return;
+    // Het sluiten van een native dialoog zet de focus terug en kan daarbij de pagina een stukje laten scrollen; de leespositie
+    // moet exact blijven, dus herstel hier alleen wat de focusherstelling zelf heeft verschoven.
+    const scrollX = window.scrollX, scrollY = window.scrollY;
     if (!element.open) element.showModal();
     return () => {
       if (element.open) element.close();
       returnFocus?.focus({ preventScroll: true });
+      if (window.scrollX !== scrollX || window.scrollY !== scrollY) window.scrollTo({ left: scrollX, top: scrollY, behavior: "instant" });
     };
   }, [returnFocus]);
   return (
