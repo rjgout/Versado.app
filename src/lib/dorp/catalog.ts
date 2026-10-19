@@ -1,8 +1,10 @@
 import assetManifest from "./work/metadata/asset-manifest.json";
+import fix01Manifest from "./work/metadata/fix-01-runtime-manifest.json";
 import publicCatalog from "./work/catalog/public-object-catalog.json";
 import type { DorpAssetRegistration, DorpCategory, DorpLevel, DorpObjectDefinition, DorpObjectKind } from "./types";
 
 type WorkAsset = (typeof assetManifest.assets)[number];
+type FixAsset = (typeof fix01Manifest.assets)[number];
 type WorkObject = (typeof publicCatalog.objects)[number];
 
 const PUBLIC_ASSET_ROOT = "/versado-dorp-bom-v1/";
@@ -19,7 +21,8 @@ function isInventoryObject(object: WorkObject): object is WorkObject & { kind: D
   return inventoryKinds.has(object.kind) && Array.isArray(object.pilotAssets) && object.pilotAssets.length > 0;
 }
 
-export const DORP_ASSETS: readonly DorpAssetRegistration[] = assetManifest.assets.map((asset: WorkAsset) => ({
+const fixAssetIds = new Set(fix01Manifest.assets.map((asset) => asset.assetId));
+const originalAssets: readonly DorpAssetRegistration[] = assetManifest.assets.filter((asset) => !fixAssetIds.has(asset.assetId)).map((asset: WorkAsset) => ({
   assetId: asset.assetId,
   objectId: asset.objectId,
   level: asset.level as DorpLevel,
@@ -28,6 +31,17 @@ export const DORP_ASSETS: readonly DorpAssetRegistration[] = assetManifest.asset
   // De Work-schaal is uitgedrukt ten opzichte van het mastercanvas, niet de 512px-runtimepreview.
   worldSize: [asset.master.pixels[0] * asset.suggestedWorldScale, asset.master.pixels[1] * asset.suggestedWorldScale] as const,
 }));
+
+const fixAssets: readonly DorpAssetRegistration[] = fix01Manifest.assets.map((asset: FixAsset) => ({
+  assetId: asset.assetId,
+  objectId: asset.objectId,
+  level: asset.level as DorpLevel,
+  path: `${PUBLIC_ASSET_ROOT}${asset.path}`,
+  anchor: [asset.anchor[0], asset.anchor[1]] as const,
+  worldSize: [asset.worldSize[0], asset.worldSize[1]] as const,
+}));
+
+export const DORP_ASSETS: readonly DorpAssetRegistration[] = [...originalAssets, ...fixAssets];
 
 export const DORP_OBJECTS: readonly DorpObjectDefinition[] = publicCatalog.objects
   .filter(isInventoryObject)
@@ -41,6 +55,8 @@ export const DORP_OBJECTS: readonly DorpObjectDefinition[] = publicCatalog.objec
       footprint: [object.footprint[0], object.footprint[1]] as const,
       // De tempel heeft in deze levering alleen L1; niet-bestaande niveaus worden niet gesimuleerd.
       maxLevel: Math.max(...availableLevels) as DorpLevel,
+      maxInstances: object.maxInstances ?? 1,
+      repeatable: (object.maxInstances ?? 1) > 1,
       assetIds: object.pilotAssets,
     };
   });
@@ -61,16 +77,39 @@ export const DORP_TERRAIN_ASSETS = {
   pathCorner: `${PUBLIC_ASSET_ROOT}assets/terrain/terrain-path-corner.webp`,
 } as const;
 
+export const DORP_TERRAIN_RUNTIME_BY_ID = new Map(
+  fix01Manifest.assets
+    .filter((asset) => asset.category === "terrain")
+    .map((asset) => [asset.assetId, {
+      full: `${PUBLIC_ASSET_ROOT}${asset.path}`,
+      half: asset.lods.find((lod) => lod.pixels[0] === 64)?.path ? `${PUBLIC_ASSET_ROOT}${asset.lods.find((lod) => lod.pixels[0] === 64)!.path}` : `${PUBLIC_ASSET_ROOT}${asset.path}`,
+      quarter: asset.lods.find((lod) => lod.pixels[0] === 32)?.path ? `${PUBLIC_ASSET_ROOT}${asset.lods.find((lod) => lod.pixels[0] === 32)!.path}` : `${PUBLIC_ASSET_ROOT}${asset.path}`,
+    }]),
+);
+
+export const DORP_TERRAIN_RUNTIME_PATHS = [...DORP_TERRAIN_RUNTIME_BY_ID.values()].flatMap((runtime) => [runtime.full, runtime.half, runtime.quarter]);
+
 export const DORP_FOREST_ASSETS = [
-  `${PUBLIC_ASSET_ROOT}assets/forest/forest-strip.webp`,
-  `${PUBLIC_ASSET_ROOT}assets/forest/forest-corner.webp`,
-  `${PUBLIC_ASSET_ROOT}assets/forest/forest-cap.webp`,
-  `${PUBLIC_ASSET_ROOT}assets/forest/forest-dense.webp`,
+  { role: "strip", variants: ["forest-strip", "forest-strip-v2"] },
+  { role: "corner", variants: ["forest-corner", "forest-corner-v2"] },
+  { role: "cap", variants: ["forest-cap", "forest-cap-v2"] },
+  { role: "dense", variants: ["forest-dense", "forest-dense-v2"] },
 ] as const;
 
+export function forestAssetFor(index: number, u: number, v: number): DorpAssetRegistration {
+  const group = DORP_FOREST_ASSETS[index % DORP_FOREST_ASSETS.length];
+  const variantIndex = Math.abs((u * 73_856_093) ^ (v * 19_349_663) ^ index) % group.variants.length;
+  return DORP_ASSET_BY_ID.get(group.variants[variantIndex])!;
+}
+
 export const DORP_RESIDENTS = [
-  { objectId: "vd-c001", characterId: "nephi", name: "Nephi", description: "Een vastberaden schriftkenner en bouwer.", asset: `${PUBLIC_ASSET_ROOT}assets/characters/resident-nephi.webp`, u: -1, v: 0 },
-  { objectId: "vd-c002", characterId: "sariah", name: "Sariah", description: "Een wijze en moedige moeder in het verzameldorp.", asset: `${PUBLIC_ASSET_ROOT}assets/characters/resident-sariah.webp`, u: 1, v: 0 },
-  { objectId: "vd-c013", characterId: "ammon-missionary", name: "Ammon, zoon van Mosiah", description: "Een toegewijde zendeling die anderen dient.", asset: `${PUBLIC_ASSET_ROOT}assets/characters/resident-ammon.webp`, u: 0, v: 2 },
-  { objectId: "vd-c003", characterId: "lehi", name: "Lehi", description: "Een profeet en vader die zijn gezin leidt.", asset: `${PUBLIC_ASSET_ROOT}assets/characters/resident-lehi.webp`, u: 2, v: 2 },
+  { objectId: "vd-c001", characterId: "nephi", name: "Nephi", description: "Een vastberaden schriftkenner en bouwer.", assetId: "resident-nephi", u: -1, v: 0 },
+  { objectId: "vd-c002", characterId: "sariah", name: "Sariah", description: "Een wijze en moedige moeder in het verzameldorp.", assetId: "resident-sariah", u: 1, v: 0 },
+  { objectId: "vd-c013", characterId: "ammon-missionary", name: "Ammon, zoon van Mosiah", description: "Een toegewijde zendeling die anderen dient.", assetId: "resident-ammon", u: 0, v: 2 },
+  { objectId: "vd-c003", characterId: "lehi", name: "Lehi", description: "Een profeet en vader die zijn gezin leidt.", assetId: "resident-lehi", u: 2, v: 2 },
+  { objectId: "vd-c014", characterId: "abish", name: "Abish", description: "Een gelovige Lamanitische vrouw die anderen bijeenriep.", assetId: "resident-abish", u: 3, v: -1 },
 ] as const;
+
+export function residentAssetFor(assetId: string): DorpAssetRegistration {
+  return DORP_ASSET_BY_ID.get(assetId)!;
+}

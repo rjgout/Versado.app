@@ -1,4 +1,4 @@
-export const DORP_STORAGE_VERSION = 1 as const;
+export const DORP_STORAGE_VERSION = 2 as const;
 
 export type DorpObjectKind = "building" | "landmark" | "prop" | "nature";
 export type DorpCategory = "Gebouwen" | "Bijzondere gebouwen" | "Decoraties" | "Natuur";
@@ -11,6 +11,8 @@ export type DorpObjectDefinition = {
   category: DorpCategory;
   footprint: readonly [number, number];
   maxLevel: DorpLevel;
+  maxInstances: number;
+  repeatable: boolean;
   assetIds: readonly string[];
 };
 
@@ -31,10 +33,20 @@ export type PlacedDorpObject = {
   v: number;
 };
 
+export type DorpOwnedInstance = {
+  instanceId: string;
+  objectId: string;
+  level: DorpLevel;
+  position: TileCoordinate | null;
+};
+
+export type DorpPathTile = TileCoordinate;
+
 export type DorpWorldState = {
   version: typeof DORP_STORAGE_VERSION;
   phase: number;
-  objects: PlacedDorpObject[];
+  instances: DorpOwnedInstance[];
+  paths: DorpPathTile[];
 };
 
 export type TileCoordinate = { u: number; v: number };

@@ -1,0 +1,2145 @@
+{
+  "schemaVersion": 2,
+  "packageId": "versado-dorp-bom-v1-fix-01",
+  "assets": [
+    {
+      "assetId": "terrain-grass",
+      "objectId": "vd-t001",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-grass.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "005012b199feaed9052435a272639de2603e37d8d14982cc75a85669e5ebcfdf",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-grass-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 1938,
+          "sha256": "07aed2853a876bc518a39d760667ab832d49fd34ac77f4e272592636e392f0c6"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-grass-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 558,
+          "sha256": "4afe8207be2ac62bb6cc0bc9cb5b2f36048d419c468a4cd090af31865b646792"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "replaced"
+    },
+    {
+      "assetId": "terrain-dry-grass",
+      "objectId": "vd-t002",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-dry-grass.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "a78b90e32115462810ef70be68a31540a0f4c4408b7a4759811f474f9a63ed72",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-dry-grass-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 1996,
+          "sha256": "b97b323a2e77631a06d60d37082335cd5b171a4c147f63e51350292b5240b1a0"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-dry-grass-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 686,
+          "sha256": "1877782c7b8dbba5e4941da2ded3f9d1cd1ed6487cc93055d9646d3c9a584cc4"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "replaced"
+    },
+    {
+      "assetId": "terrain-flower-grass",
+      "objectId": "vd-t003",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-flower-grass.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "9aba1547b191db7b01f7e498d577bc291c2825964c51ba7bbcf4f3ec59f0edc2",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-flower-grass-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 1958,
+          "sha256": "cda6b8233da94f1e575dcb23064ff9ff7268b560a0a43b073b697ca99a166d12"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-flower-grass-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 682,
+          "sha256": "4c9404115665556404036cebd738f4832db22630c908d8b7bccc5562d264fce3"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "replaced"
+    },
+    {
+      "assetId": "terrain-sand",
+      "objectId": "vd-t004",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-sand.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "9d6e6cb4c507bd22e4393ddd26052120125da2d8bdbf14cd0e0b551e33c20d5b",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-sand-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 1508,
+          "sha256": "8924d9b861747b602ef20936c38a250c968249cc188bc106de069b42b7fc1267"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-sand-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 496,
+          "sha256": "4fe302daf56ed2dd5460dc475390f307e577beb69295ce2483484f8cdb9e623a"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "replaced"
+    },
+    {
+      "assetId": "terrain-path-end-se",
+      "objectId": "vd-t009",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-path-end-se.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "85325ff026ea28f0d4f47c5ce98d0c0633f36fe8fecda090fbeee99201021a6b",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-path-end-se-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2042,
+          "sha256": "825c0b1089132f308d5fcf655baf852f31d1ac9ce8917d57f7aa87736a25fe98"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-path-end-se-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 690,
+          "sha256": "dbce8d9630555468b363b57ed080e3cca5e955d2958155edb31f6d7a82dd551e"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-path-end-sw",
+      "objectId": "vd-t009",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-path-end-sw.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "5a571fd23e31e39d0ad6eed10926395abac70fbf16fd6cd266cb116c5d0e922a",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-path-end-sw-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2034,
+          "sha256": "10af4251efe2b716390205c746cbdceb3f2a4c0473d6f631ebf21b78b916c65f"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-path-end-sw-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 696,
+          "sha256": "7c9864f8d8aface588c522018f279601cb14e420d7a0ab4be4b25e7a93a57845"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-path-corner",
+      "objectId": "vd-t006",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-path-corner.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "e6a502a5ce2b0259159c504847d3ea559fcabf37f78fff6e62f7ac67dad87578",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-path-corner-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2028,
+          "sha256": "6baa10cf39e716bd13b864f09703356dc540f3c02319d1f2426e56ebd5ad458a"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-path-corner-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 680,
+          "sha256": "9c0648c4bbace04ea49875e5ec1a531a410c81ba7a3f97a6234e6c57099729fc"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "replaced"
+    },
+    {
+      "assetId": "terrain-path-end-nw",
+      "objectId": "vd-t009",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-path-end-nw.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "1185175c77d517eaaa4dccca2b627239ec5d8de232308afd123765d79a8b2cbb",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-path-end-nw-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2042,
+          "sha256": "1214dc3c53c59c9d7003d4cc0ec0370fd14691ef9b35640d0378ba1027a575f0"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-path-end-nw-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 700,
+          "sha256": "5218c814aeb0b4fd28cc135d95fee33da71b0b277cccb7922d06d48b1e6d18f0"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-path-straight",
+      "objectId": "vd-t005",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-path-straight.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "f19364eb9cf005da42d678b9252a3c82680f48e347f6d5ac78b59df0c7d3fa57",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-path-straight-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2032,
+          "sha256": "d02babea4bdbb90716892caf025fd777239761df494e19196ac709f874f32541"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-path-straight-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 684,
+          "sha256": "67c7f3ef6cc34822aff91dd3f4413bedf98eafb18fb1455f037ef9a653d9e319"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "replaced"
+    },
+    {
+      "assetId": "terrain-path-corner-sw-nw",
+      "objectId": "vd-t006",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-path-corner-sw-nw.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "5c43ea07ff01abc720cd1d2529444ee5593d0e02e7c353f81ca900dcd901f99f",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-path-corner-sw-nw-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2024,
+          "sha256": "a6d353e25c0e37dfb55bcf332ae8eb3b3b9c598642474f867a0ff9555e4360c4"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-path-corner-sw-nw-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 688,
+          "sha256": "11e4856ab80ee44d894c4a0a1ea242d2fbd6a4cd48d81734bd002d5e78d47792"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-path-t-se-sw-nw",
+      "objectId": "vd-t007",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-path-t-se-sw-nw.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "f27e118bfdd442858f24f4ef51766c309a418b74ab010685647958d7a3c3998a",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-path-t-se-sw-nw-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2004,
+          "sha256": "d374fe338ef4c47a7c6da78a0c61b1f0046d90c9f52f7451d88c380871bab586"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-path-t-se-sw-nw-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 678,
+          "sha256": "db21a0553e92c0d2d5f828e6cf4dc7f9c8bc4b9a6a8d16c77e418a4fda111c39"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-path-end-ne",
+      "objectId": "vd-t009",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-path-end-ne.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "47cfe566ebfe96012fccbe2b8bc478ee98a1dd5b61478712094b7f77b61d05a9",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-path-end-ne-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2056,
+          "sha256": "86aeec87b130dde07322efebfa50e659417d401c8946f4daeb3bc89cca8379f2"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-path-end-ne-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 696,
+          "sha256": "3aeca865ba1ffb871085d6209998f976099a1bf07902c3a0092d55851d897cc7"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-path-corner-se-ne",
+      "objectId": "vd-t006",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-path-corner-se-ne.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "7d0de8e0d1266d563fb30176aee3cba61a900cf0dee22ceed25cb62a1dcb8ec0",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-path-corner-se-ne-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2048,
+          "sha256": "c387aee47732827bc1e0a36e4b68ee7620aab980ec8543024fbae1c7f6396d87"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-path-corner-se-ne-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 674,
+          "sha256": "39a672303192923e1b4458c41d763a93b29aa17a0a85a7746e1ffa8d50ba9405"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-path-straight-sw-ne",
+      "objectId": "vd-t005",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-path-straight-sw-ne.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "a207c3c3edd3c62249c18ee9a77875357c2683fe47e50b3d0115c42d2b45654d",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-path-straight-sw-ne-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2044,
+          "sha256": "d3c3a5e760943858300c46915722c6637557f4bc5c1eb8a73fb6bcbdee4b58f2"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-path-straight-sw-ne-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 674,
+          "sha256": "8c6804312859f27c375c24db741d68109b44b93ce06282c4c794cb790d5ea1ae"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-path-t-se-sw-ne",
+      "objectId": "vd-t007",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-path-t-se-sw-ne.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "4d4dfafb79d079692837d0a7edf1c5c1624e6320a71220410ebdd758721b759f",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-path-t-se-sw-ne-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2028,
+          "sha256": "dfb2b06dfa5a2ff408c3dc13f32024ab87bd89cdb155628fc7c81acdcdd36c52"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-path-t-se-sw-ne-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 650,
+          "sha256": "e3124498216676f01b9b12bec9bac4833f7c5159935ec66d71c4845b9a989e48"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-path-corner-nw-ne",
+      "objectId": "vd-t006",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-path-corner-nw-ne.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "9abb4f006707900946190a45aa41e0e75aba7aa42c8bbefefb481c0ef02bf800",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-path-corner-nw-ne-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2038,
+          "sha256": "412259fa3b93c97e68b1222b58c473ea43128da74e2f2266689b8e178bec078d"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-path-corner-nw-ne-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 686,
+          "sha256": "0894ff9827d92d0de4613d5a287d8d680a0e04834f3e0a04497f28ee53f54613"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-path-t-se-nw-ne",
+      "objectId": "vd-t007",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-path-t-se-nw-ne.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "758d63cb04c023ce49c0f59036961801460b76f63117a372e0726e7b62e2977f",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-path-t-se-nw-ne-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2016,
+          "sha256": "65f5282b966577e9c2d5db6b6b5c0f83545002e5276b78577800711b062e73d6"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-path-t-se-nw-ne-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 666,
+          "sha256": "8a845ed9132ca548f1b53514d82cb903cb055dd1818fccf34cedbdb4d52a6555"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-path-t-sw-nw-ne",
+      "objectId": "vd-t007",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-path-t-sw-nw-ne.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "ee0fb799fde7849f2e678f821181911d1ab6794e64785c6c504b8790f119227f",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-path-t-sw-nw-ne-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2010,
+          "sha256": "376a5e4716352f8ff6a6529a4d78cb32a6acd3a95c5279e76f919af6d2874419"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-path-t-sw-nw-ne-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 672,
+          "sha256": "2378f6aa3c45b859422ee334692bf12ed136fa46822094fd5f064d3d44318560"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-path-cross-se-sw-nw-ne",
+      "objectId": "vd-t008",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-path-cross-se-sw-nw-ne.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "fc7661da026f95e41beeeb9071a3acbe6fce49b97f1369ed85f1337825bae35c",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-path-cross-se-sw-nw-ne-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 1996,
+          "sha256": "b2ce28609d2435e1474a5ea5351a57571d3c0bd3920c5651ce7208a971a015ff"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-path-cross-se-sw-nw-ne-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 638,
+          "sha256": "180e786396b9774c11e488851e4b2e96150eb70dc9ed6f061d60d2d9bbb2aad4"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-sand-transition-m01",
+      "objectId": "vd-t019",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-sand-transition-m01.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "b2cbc9ecb7bb9420c3e256089311a2c4fa24ae55e2789116bf2537ce50d0e4e3",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m01-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2242,
+          "sha256": "82d0a7a8de3818837136d593c40c683041c4ad2378502b9cf4222107aadaba81"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m01-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 728,
+          "sha256": "1ad6e8a49db1cdfee4fa405542ffe40086d134f926446bd01ac376c046051db9"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-sand-transition-m02",
+      "objectId": "vd-t019",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-sand-transition-m02.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "ebd1a17cf0bea27bfe684b828ad3ca5f172fe1615d2bca9d217e64a9b4616cbe",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m02-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2294,
+          "sha256": "4919dd9e7612193b48b00ce7cbf942e49b6e4b900173208e9e325f5921d74c12"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m02-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 718,
+          "sha256": "ecaf48f894c6d644958b80d6991ecfb04b48e3907eae2ef2204fa710f0e8aeaa"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-sand-transition-m03",
+      "objectId": "vd-t019",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-sand-transition-m03.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "2b80d009bacc827603870bc63015a6f98ff9f782bb52414943b7c271e03dc1eb",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m03-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2196,
+          "sha256": "63c75a12f2acc781e5da2747541ec6ed4d87383ff2ce97023943fd9b83497001"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m03-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 702,
+          "sha256": "bbe20f74a806e90ac3ed5fb7b38a9b6b10b64902236773fcfa970ce624060528"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-sand-transition-m04",
+      "objectId": "vd-t019",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-sand-transition-m04.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "3f62169961dc0874dc8cd1d2dbb0cbeab9d2b0e83c1341026bce5e7b3078ebff",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m04-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2240,
+          "sha256": "9338ed4d3b68c3e4da0c9cea6dc79c6d74a707bd13aa7f1de93d0af4586dad70"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m04-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 728,
+          "sha256": "b6f63f70916c6074ca1fbd199c4d273ff5f113bb9c4f7125a265b2a31f092fb7"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-sand-transition-m05",
+      "objectId": "vd-t019",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-sand-transition-m05.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "b9a50341da45e8ccbb1fec2db4b06a6dd74a8be731669d3a33653372a9b4663b",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m05-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2214,
+          "sha256": "c565a01928fa097e4cc625591f4f157b00141a2732562ac548f2fcd16dfb3b20"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m05-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 744,
+          "sha256": "30f70d7a8ca59e0faa5f5515e88b9116e977f69eea683c2e63dc912a8d0be4e7"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-sand-transition-m06",
+      "objectId": "vd-t019",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-sand-transition-m06.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "8ecd99c05708547e5471207f8f2460f8283cc70f42a79dccb66a15c9c0f38f13",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m06-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2192,
+          "sha256": "5c11b9f7c5b323b8be0450277910e6832d68cac39690e0511400d467a9f0f005"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m06-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 692,
+          "sha256": "4dd7bd7596d75b3e1eba9ffaa86014a333b2d895c08d9bd5169f8faea5ed8727"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-sand-transition-m07",
+      "objectId": "vd-t019",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-sand-transition-m07.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "a0ff1f6cf9dbe924e1544b1ed4171a450119972c72d943adb86a7d0e00b87b76",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m07-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2010,
+          "sha256": "8b5daa7439fef098fd58af0d425680730dd09d3d6ef8bc1a1f9064a8f7149f5f"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m07-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 620,
+          "sha256": "57ebc19981d03e779dd31821630f41678080169fcc04d67b36d641544f43b43b"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-sand-transition-m08",
+      "objectId": "vd-t019",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-sand-transition-m08.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "6aa0084bec382404da209209ed9b8b45b9b89a8a012a7cc81d8534317cca7f07",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m08-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2088,
+          "sha256": "b5f4ef5181a6e6f9303d0835ad1f791a15a7d2ca8038eb83e93489af89b508c4"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m08-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 728,
+          "sha256": "ba989288dbdab80cca28f6ed2e97ef03b3805f3fbb4148768abe307332adb103"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-sand-transition-m09",
+      "objectId": "vd-t019",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-sand-transition-m09.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "deee59dbc75be256d562b54f122862bf86b389728b17f7cc05b5b56ed51ac1df",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m09-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2202,
+          "sha256": "fabebdc85b24e9287388037c2059c156d7fa32e86f94ea7b46c867438834f295"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m09-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 714,
+          "sha256": "ed4aeb2e474ffb111b33e38aa6c87c633197fcaf61cee96e44a09e4420fdb540"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-sand-transition-m10",
+      "objectId": "vd-t019",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-sand-transition-m10.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "428f5a64bf4d737949072b5baf43185e20c90a726532c92b5125fb48d916aa4a",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m10-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2228,
+          "sha256": "672fda0020491104c9ff7441a043f4b0a0f501ca507b14a4533e35dd27264c09"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m10-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 742,
+          "sha256": "efda6939d85fad56f06ccb00f12c5032d05650b96b19a66d0d091f3429ed77c1"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-sand-transition-m11",
+      "objectId": "vd-t019",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-sand-transition-m11.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "4887bcd8dc4c78e7a3e7c551dc0099006b5a30dc46221ff9919f4ad72a3dcc8e",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m11-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2002,
+          "sha256": "a85c9cd00a50ba54ad6348701563f1db121d5f441965136b6439d03c80027c60"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m11-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 640,
+          "sha256": "80a93b8f67063a02f830e644c3ec69fb708ce479c06c97f04671691be8217f38"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-sand-transition-m12",
+      "objectId": "vd-t019",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-sand-transition-m12.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "96d4a60c70f6fe3515a4c2e09609c8c7eb81fd87b0f52b5b49a1c8831faab97a",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m12-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2178,
+          "sha256": "ea5af6ae88fe313bb2ca9bcd53e799c5ff610c38890274476cba34dabb466335"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m12-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 710,
+          "sha256": "83f425d59a7476608022d360aae55eda151cc09e0ad9a50dc8fda7a96fcdb67e"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-sand-transition-m13",
+      "objectId": "vd-t019",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-sand-transition-m13.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "03f204bfb41a53bb9d4cf93c68c2a9b80e8e01b33315952df510b1584f3e2b7b",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m13-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 2020,
+          "sha256": "b0fa10a12d31ca384bf41284cdd70a61d3ce01ab96d2a65e01b3fae80de8d6d3"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m13-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 638,
+          "sha256": "f351a6f1a4a4e282915d8fa4db78b9eb774d46bc52ad5812fa2e3af8af903b0b"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "terrain-sand-transition-m14",
+      "objectId": "vd-t019",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "terrain",
+      "path": "assets/terrain/terrain-sand-transition-m14.webp",
+      "pixels": [
+        128,
+        64
+      ],
+      "sha256": "e469d00d59b3c6c64481fa3caddfdcd54119b22eb226dc18a3e649f4e18bc4d6",
+      "lods": [
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m14-64.webp",
+          "pixels": [
+            64,
+            32
+          ],
+          "bytes": 1994,
+          "sha256": "1bd1da9c08f61d7fd437efdc8e555fbe19439695ea78a713118160912610c7ed"
+        },
+        {
+          "path": "assets/terrain/lod/terrain-sand-transition-m14-32.webp",
+          "pixels": [
+            32,
+            16
+          ],
+          "bytes": 604,
+          "sha256": "4a142ab1cbecc314f5b0e8a6594c697fdb55833acaf9bbe5f1cf0cf5963af37c"
+        }
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        64
+      ],
+      "suggestedWorldScale": 0.25,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "building-family-house-l1",
+      "objectId": "vd-b001",
+      "footprint": [
+        3,
+        3
+      ],
+      "level": 1,
+      "category": "buildings",
+      "path": "assets/buildings/building-family-house-l1.webp",
+      "pixels": [
+        768,
+        768
+      ],
+      "sha256": "17cf559c52a1f42c5f1eccfb0be473d97e10e24b8bee071ccc1555ef0a596ba3",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.81640625
+      ],
+      "worldSize": [
+        512,
+        512
+      ],
+      "suggestedWorldScale": 0.5,
+      "change": "replaced"
+    },
+    {
+      "assetId": "building-family-house-l2",
+      "objectId": "vd-b001",
+      "footprint": [
+        3,
+        3
+      ],
+      "level": 2,
+      "category": "buildings",
+      "path": "assets/buildings/building-family-house-l2.webp",
+      "pixels": [
+        768,
+        768
+      ],
+      "sha256": "e79a039be40e4e81f516d4aa0b66432a5559c6030032877e30c05104d38e5980",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.81640625
+      ],
+      "worldSize": [
+        512,
+        512
+      ],
+      "suggestedWorldScale": 0.5,
+      "change": "replaced"
+    },
+    {
+      "assetId": "building-family-house-l3",
+      "objectId": "vd-b001",
+      "footprint": [
+        3,
+        3
+      ],
+      "level": 3,
+      "category": "buildings",
+      "path": "assets/buildings/building-family-house-l3.webp",
+      "pixels": [
+        768,
+        768
+      ],
+      "sha256": "33bcef9e380967d535f598a9578a75e5d616707948b46bdc6f418f5852a11dcc",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.81640625
+      ],
+      "worldSize": [
+        512,
+        512
+      ],
+      "suggestedWorldScale": 0.5,
+      "change": "replaced"
+    },
+    {
+      "assetId": "building-scribe-house-l1",
+      "objectId": "vd-b002",
+      "footprint": [
+        3,
+        3
+      ],
+      "level": 1,
+      "category": "buildings",
+      "path": "assets/buildings/building-scribe-house-l1.webp",
+      "pixels": [
+        768,
+        768
+      ],
+      "sha256": "4c00736f05d7463cd16ec4328168c027a99b0ae47bec27a09fdcc7a71aa83721",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.81640625
+      ],
+      "worldSize": [
+        512,
+        512
+      ],
+      "suggestedWorldScale": 0.5,
+      "change": "replaced"
+    },
+    {
+      "assetId": "building-scribe-house-l2",
+      "objectId": "vd-b002",
+      "footprint": [
+        3,
+        3
+      ],
+      "level": 2,
+      "category": "buildings",
+      "path": "assets/buildings/building-scribe-house-l2.webp",
+      "pixels": [
+        768,
+        768
+      ],
+      "sha256": "c09d13bdf8b8903eb3f966847135b408f779b7e9b69c10254985323040961373",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.81640625
+      ],
+      "worldSize": [
+        512,
+        512
+      ],
+      "suggestedWorldScale": 0.5,
+      "change": "replaced"
+    },
+    {
+      "assetId": "building-scribe-house-l3",
+      "objectId": "vd-b002",
+      "footprint": [
+        3,
+        3
+      ],
+      "level": 3,
+      "category": "buildings",
+      "path": "assets/buildings/building-scribe-house-l3.webp",
+      "pixels": [
+        768,
+        768
+      ],
+      "sha256": "d0c3050b1e07cf71a0a98958f51380de3f46c8f7fe6035d6fd578288ba252edd",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.81640625
+      ],
+      "worldSize": [
+        512,
+        512
+      ],
+      "suggestedWorldScale": 0.5,
+      "change": "replaced"
+    },
+    {
+      "assetId": "building-assembly-house-l1",
+      "objectId": "vd-b003",
+      "footprint": [
+        4,
+        4
+      ],
+      "level": 1,
+      "category": "buildings",
+      "path": "assets/buildings/building-assembly-house-l1.webp",
+      "pixels": [
+        768,
+        768
+      ],
+      "sha256": "be8a0c7fbfcf0fc950c56442dce9a650f748c8ed43d32d5dd34bff49076d6e75",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.825
+      ],
+      "worldSize": [
+        640,
+        640
+      ],
+      "suggestedWorldScale": 0.5,
+      "change": "replaced"
+    },
+    {
+      "assetId": "building-assembly-house-l2",
+      "objectId": "vd-b003",
+      "footprint": [
+        4,
+        4
+      ],
+      "level": 2,
+      "category": "buildings",
+      "path": "assets/buildings/building-assembly-house-l2.webp",
+      "pixels": [
+        768,
+        768
+      ],
+      "sha256": "639163c21acc9e95e1ef41622882e9603866acb64029e2b972a6aeaf78deaed8",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.825
+      ],
+      "worldSize": [
+        640,
+        640
+      ],
+      "suggestedWorldScale": 0.5,
+      "change": "replaced"
+    },
+    {
+      "assetId": "building-assembly-house-l3",
+      "objectId": "vd-b003",
+      "footprint": [
+        4,
+        4
+      ],
+      "level": 3,
+      "category": "buildings",
+      "path": "assets/buildings/building-assembly-house-l3.webp",
+      "pixels": [
+        768,
+        768
+      ],
+      "sha256": "ff4b3bd9af9595ed795dc1b42392ab6eef7021bd94a001b728c35306ea0f74de",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.825
+      ],
+      "worldSize": [
+        640,
+        640
+      ],
+      "suggestedWorldScale": 0.5,
+      "change": "replaced"
+    },
+    {
+      "assetId": "landmark-temple-l1",
+      "objectId": "vd-l001",
+      "footprint": [
+        12,
+        12
+      ],
+      "level": 1,
+      "category": "landmarks",
+      "path": "assets/landmarks/landmark-temple-l1.webp",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "sha256": "6cea9b4ddf890c72c6f22526b4f656f9d7c8f890d978b5b7b3f9a78edb850c0a",
+      "lods": [],
+      "anchor": [
+        0.5023923444976076,
+        0.9405070441254652
+      ],
+      "worldSize": [
+        1567.244915,
+        1567.244915
+      ],
+      "suggestedWorldScale": 1.2497965825874695,
+      "change": "unchanged-png-runtime-reexported"
+    },
+    {
+      "assetId": "resident-nephi",
+      "objectId": "vd-c001",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "characters",
+      "path": "assets/characters/resident-nephi.webp",
+      "pixels": [
+        512,
+        512
+      ],
+      "sha256": "a954b9e54cb08241cc89b5e070006ae76a461def271226080ceef0aa8b538403",
+      "lods": [],
+      "anchor": [
+        0.5414673046251993,
+        0.8931419457735247
+      ],
+      "worldSize": [
+        113.887463,
+        113.887463
+      ],
+      "suggestedWorldScale": 0.09081934846989141,
+      "change": "unchanged-pixels-metadata-updated"
+    },
+    {
+      "assetId": "resident-sariah",
+      "objectId": "vd-c002",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "characters",
+      "path": "assets/characters/resident-sariah.webp",
+      "pixels": [
+        512,
+        512
+      ],
+      "sha256": "ad0992d08223d9bbb6a00cd73c9d7cc24386c0e6856f1e7513f7c524101dd17b",
+      "lods": [],
+      "anchor": [
+        0.5434609250398724,
+        0.9370015948963317
+      ],
+      "worldSize": [
+        102.731968,
+        102.731968
+      ],
+      "suggestedWorldScale": 0.0819234194122885,
+      "change": "unchanged-pixels-metadata-updated"
+    },
+    {
+      "assetId": "resident-ammon",
+      "objectId": "vd-c013",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "characters",
+      "path": "assets/characters/resident-ammon.webp",
+      "pixels": [
+        512,
+        512
+      ],
+      "sha256": "a02e6975f47ce02212fe967531c6e9ea9f2c89bc64c1127c689f2c5dade250ae",
+      "lods": [],
+      "anchor": [
+        0.5773524720893142,
+        0.9537480063795853
+      ],
+      "worldSize": [
+        99.540984,
+        99.540984
+      ],
+      "suggestedWorldScale": 0.07937877480586712,
+      "change": "unchanged-pixels-metadata-updated"
+    },
+    {
+      "assetId": "resident-lehi",
+      "objectId": "vd-c003",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "characters",
+      "path": "assets/characters/resident-lehi.webp",
+      "pixels": [
+        512,
+        512
+      ],
+      "sha256": "2c6d1f26dc745477b6debbb72967ec28a212850964a6b9cc0ea710cf427f3379",
+      "lods": [],
+      "anchor": [
+        0.5374800637958532,
+        0.9370015948963317
+      ],
+      "worldSize": [
+        104.028855,
+        104.028855
+      ],
+      "suggestedWorldScale": 0.0829576194770063,
+      "change": "unchanged-pixels-metadata-updated"
+    },
+    {
+      "assetId": "forest-strip",
+      "objectId": "vd-f001",
+      "footprint": [
+        4,
+        2
+      ],
+      "level": 1,
+      "category": "forest",
+      "path": "assets/forest/forest-strip.webp",
+      "pixels": [
+        512,
+        256
+      ],
+      "sha256": "6c013abe250e2d8839ef990587b94e9552e342174ab93e5eb5e81a28ac477fdf",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.8599999999999999
+      ],
+      "worldSize": [
+        360,
+        180
+      ],
+      "suggestedWorldScale": 0.20293122886133033,
+      "change": "unchanged-pixels-metadata-updated"
+    },
+    {
+      "assetId": "forest-corner",
+      "objectId": "vd-f002",
+      "footprint": [
+        4,
+        4
+      ],
+      "level": 1,
+      "category": "forest",
+      "path": "assets/forest/forest-corner.webp",
+      "pixels": [
+        512,
+        512
+      ],
+      "sha256": "17e5104680cf13b16ce8128a929ed62a9adb51cb19c1c3a72a4cc189b4947f4f",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.8600000000000001
+      ],
+      "worldSize": [
+        320,
+        320
+      ],
+      "suggestedWorldScale": 0.2551834130781499,
+      "change": "unchanged-pixels-metadata-updated"
+    },
+    {
+      "assetId": "forest-cap",
+      "objectId": "vd-f003",
+      "footprint": [
+        2,
+        2
+      ],
+      "level": 1,
+      "category": "forest",
+      "path": "assets/forest/forest-cap.webp",
+      "pixels": [
+        512,
+        512
+      ],
+      "sha256": "5a7a08a77d74c4613ac3ee8d8d4298c4e17c1f737429526b0b7bc99856a25fce",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.8600000000000001
+      ],
+      "worldSize": [
+        240,
+        240
+      ],
+      "suggestedWorldScale": 0.19138755980861244,
+      "change": "unchanged-pixels-metadata-updated"
+    },
+    {
+      "assetId": "forest-dense",
+      "objectId": "vd-f004",
+      "footprint": [
+        4,
+        4
+      ],
+      "level": 1,
+      "category": "forest",
+      "path": "assets/forest/forest-dense.webp",
+      "pixels": [
+        512,
+        512
+      ],
+      "sha256": "7c96c5ee44ebd0c6dae6d209ff14a200f8e84d6daf0b4d458fe0fad287b7dcfa",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.8600000000000001
+      ],
+      "worldSize": [
+        360,
+        360
+      ],
+      "suggestedWorldScale": 0.28708133971291866,
+      "change": "unchanged-pixels-metadata-updated"
+    },
+    {
+      "assetId": "forest-strip-v2",
+      "objectId": "vd-f001",
+      "footprint": [
+        4,
+        2
+      ],
+      "level": 1,
+      "category": "forest",
+      "path": "assets/forest/forest-strip-v2.webp",
+      "pixels": [
+        768,
+        384
+      ],
+      "sha256": "c9188383c7f47c2e4821feb4393d82beb83c4c0b2b78140ba4bedf32080b8a8c",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.8599999999999999
+      ],
+      "worldSize": [
+        360,
+        180
+      ],
+      "suggestedWorldScale": 0.20293122886133033,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "forest-corner-v2",
+      "objectId": "vd-f002",
+      "footprint": [
+        4,
+        4
+      ],
+      "level": 1,
+      "category": "forest",
+      "path": "assets/forest/forest-corner-v2.webp",
+      "pixels": [
+        768,
+        768
+      ],
+      "sha256": "f0c9642d7c77c0a63f4aae9ee6ad3326c9011710f096b26b194dcf4bb8c87e3d",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.8600000000000001
+      ],
+      "worldSize": [
+        320,
+        320
+      ],
+      "suggestedWorldScale": 0.2551834130781499,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "forest-cap-v2",
+      "objectId": "vd-f003",
+      "footprint": [
+        2,
+        2
+      ],
+      "level": 1,
+      "category": "forest",
+      "path": "assets/forest/forest-cap-v2.webp",
+      "pixels": [
+        768,
+        768
+      ],
+      "sha256": "e6c0c4c40d39fbefbd705347eae5a2d53b8bc2377e420a4ff2d5c276541cdd8c",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.8600000000000001
+      ],
+      "worldSize": [
+        240,
+        240
+      ],
+      "suggestedWorldScale": 0.19138755980861244,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "forest-dense-v2",
+      "objectId": "vd-f004",
+      "footprint": [
+        4,
+        4
+      ],
+      "level": 1,
+      "category": "forest",
+      "path": "assets/forest/forest-dense-v2.webp",
+      "pixels": [
+        768,
+        768
+      ],
+      "sha256": "6cc2d61d3e838574352cdc4715c13138e73d7e3e2fe49bd84f161457a294b10f",
+      "lods": [],
+      "anchor": [
+        0.5,
+        0.8600000000000001
+      ],
+      "worldSize": [
+        360,
+        360
+      ],
+      "suggestedWorldScale": 0.28708133971291866,
+      "change": "added-variant"
+    },
+    {
+      "assetId": "resident-abish",
+      "objectId": "vd-c014",
+      "footprint": [
+        1,
+        1
+      ],
+      "level": 1,
+      "category": "characters",
+      "path": "assets/characters/resident-abish.webp",
+      "pixels": [
+        512,
+        768
+      ],
+      "sha256": "2ee28a843adbbd02ca59dd58ca69e4a456a9660f7a292ba31b22ffad4020cc75",
+      "lods": [],
+      "anchor": [
+        0.435546875,
+        0.9811197916666666
+      ],
+      "worldSize": [
+        63.654054,
+        95.481081
+      ],
+      "suggestedWorldScale": 0.062162162162162166,
+      "change": "added-missing-canon"
+    }
+  ]
+}

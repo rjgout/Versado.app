@@ -1,18 +1,44 @@
-import { DORP_OBJECT_BY_ID } from "./catalog";
-import { placementIsValid, radiusForPhase } from "./geometry";
-import { DORP_STORAGE_VERSION, type DorpLevel, type DorpWorldState, type PlacedDorpObject } from "./types";
+import { DORP_OBJECTS, DORP_OBJECT_BY_ID } from "./catalog";
+import { radiusForPhase } from "./geometry";
+import { ownershipIsValid, reconcileInstancesForRadius } from "./ownership";
+import { normalizePaths } from "./paths";
+import { DORP_STORAGE_VERSION, type DorpLevel, type DorpOwnedInstance, type DorpWorldState, type TileCoordinate } from "./types";
 
 export const DORP_STORAGE_KEY = `versado-dorp-prototype-v${DORP_STORAGE_VERSION}`;
+export const DORP_LEGACY_STORAGE_KEYS = ["versado-dorp-prototype-v1"] as const;
+
+const placedFixtures = new Map<string, { instanceId: string; level: DorpLevel; position: TileCoordinate }>([
+  ["vd-b001", { instanceId: "fixture-family", level: 1, position: { u: -5, v: -2 } }],
+  ["vd-b002", { instanceId: "fixture-scribe", level: 2, position: { u: 1, v: -5 } }],
+  ["vd-b003", { instanceId: "fixture-assembly", level: 3, position: { u: -2, v: 2 } }],
+  ["vd-p003", { instanceId: "fixture-well", level: 1, position: { u: 3, v: 1 } }],
+  ["vd-n001", { instanceId: "fixture-tree", level: 1, position: { u: -5, v: 3 } }],
+]);
+
+function createPrototypeRights(): DorpOwnedInstance[] {
+  return DORP_OBJECTS.flatMap((definition) => {
+    const fixture = placedFixtures.get(definition.id);
+    const fixtureCount = definition.repeatable ? Math.min(2, definition.maxInstances) : 1;
+    return Array.from({ length: fixtureCount }, (_, index): DorpOwnedInstance => ({
+      instanceId: index === 0 && fixture ? fixture.instanceId : `fixture-${definition.id}-${index + 1}`,
+      objectId: definition.id,
+      level: index === 0 && fixture ? fixture.level : 1,
+      position: index === 0 && fixture ? fixture.position : null,
+    }));
+  });
+}
 
 export const DEFAULT_DORP_STATE: DorpWorldState = {
   version: DORP_STORAGE_VERSION,
   phase: 0,
-  objects: [
-    { instanceId: "fixture-family", objectId: "vd-b001", level: 1, u: -7, v: -5 },
-    { instanceId: "fixture-scribe", objectId: "vd-b002", level: 2, u: 2, v: -5 },
-    { instanceId: "fixture-assembly", objectId: "vd-b003", level: 3, u: -2, v: 3 },
-    { instanceId: "fixture-well", objectId: "vd-p003", level: 1, u: 4, v: 1 },
-    { instanceId: "fixture-tree", objectId: "vd-n001", level: 1, u: -7, v: 2 },
+  instances: createPrototypeRights(),
+  paths: [
+    { u: -6, v: 0 }, { u: -5, v: 0 }, { u: -4, v: 0 }, { u: -3, v: 0 }, { u: -2, v: 0 }, { u: -1, v: 0 },
+    { u: 0, v: 0 }, { u: 1, v: 0 }, { u: 2, v: 0 }, { u: 3, v: 0 }, { u: 4, v: 0 }, { u: 5, v: 0 }, { u: 6, v: 0 },
+    { u: 0, v: -6 }, { u: 0, v: -5 }, { u: 0, v: -4 }, { u: 0, v: -3 }, { u: 0, v: -2 }, { u: 0, v: -1 },
+    { u: 0, v: 1 }, { u: 0, v: 2 }, { u: 0, v: 3 }, { u: 0, v: 4 }, { u: 0, v: 5 }, { u: 0, v: 6 },
+    { u: 3, v: 1 }, { u: 3, v: 2 }, { u: 3, v: 3 }, { u: 3, v: 4 }, { u: 2, v: 4 }, { u: 1, v: 4 },
+    { u: -3, v: -1 }, { u: -3, v: -2 }, { u: -3, v: -3 }, { u: -3, v: -4 }, { u: -2, v: -4 }, { u: -1, v: -4 },
   ],
 };
 
@@ -20,32 +46,35 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function parsePlacedObject(value: unknown): PlacedDorpObject | null {
-  if (!isRecord(value) || typeof value.instanceId !== "string" || typeof value.objectId !== "string") return null;
-  if (!Number.isInteger(value.u) || !Number.isInteger(value.v) || !Number.isInteger(value.level)) return null;
+function parsePosition(value: unknown): TileCoordinate | null | undefined {
+  if (value === null) return null;
+  if (!isRecord(value) || !Number.isInteger(value.u) || !Number.isInteger(value.v)) return undefined;
+  return { u: value.u as number, v: value.v as number };
+}
+
+function parseOwnedInstance(value: unknown): DorpOwnedInstance | null {
+  if (!isRecord(value) || typeof value.instanceId !== "string" || typeof value.objectId !== "string" || !Number.isInteger(value.level)) return null;
   const definition = DORP_OBJECT_BY_ID.get(value.objectId);
   const level = value.level as number;
-  if (!definition || level < 1 || level > definition.maxLevel) return null;
-  return { instanceId: value.instanceId, objectId: value.objectId, u: value.u as number, v: value.v as number, level: level as DorpLevel };
+  const position = parsePosition(value.position);
+  if (!definition || position === undefined || level < 1 || level > definition.maxLevel) return null;
+  return { instanceId: value.instanceId, objectId: value.objectId, level: level as DorpLevel, position };
 }
 
 export function parseDorpState(raw: string | null): DorpWorldState {
   if (!raw) return structuredClone(DEFAULT_DORP_STATE);
   try {
     const value: unknown = JSON.parse(raw);
-    if (!isRecord(value) || value.version !== DORP_STORAGE_VERSION || !Number.isInteger(value.phase) || !Array.isArray(value.objects)) {
+    if (!isRecord(value) || value.version !== DORP_STORAGE_VERSION || !Number.isInteger(value.phase) || !Array.isArray(value.instances) || !Array.isArray(value.paths)) {
       return structuredClone(DEFAULT_DORP_STATE);
     }
     const phase = Math.max(0, Math.min(16, value.phase as number));
-    const objects: PlacedDorpObject[] = [];
-    const ids = new Set<string>();
-    for (const entry of value.objects) {
-      const object = parsePlacedObject(entry);
-      if (!object || ids.has(object.instanceId) || !placementIsValid(object, objects, radiusForPhase(phase))) continue;
-      ids.add(object.instanceId);
-      objects.push(object);
-    }
-    return { version: DORP_STORAGE_VERSION, phase, objects };
+    const instances = value.instances.map(parseOwnedInstance).filter((instance): instance is DorpOwnedInstance => instance !== null);
+    const completeRights = instances.length === DEFAULT_DORP_STATE.instances.length && DEFAULT_DORP_STATE.instances.every((fixture) => instances.some((instance) => instance.instanceId === fixture.instanceId && instance.objectId === fixture.objectId));
+    if (!completeRights || !ownershipIsValid(instances)) return structuredClone(DEFAULT_DORP_STATE);
+    const reconciled = reconcileInstancesForRadius(instances, radiusForPhase(phase));
+    const paths = normalizePaths(value.paths.filter(isRecord).map((tile) => ({ u: tile.u as number, v: tile.v as number })), radiusForPhase(phase));
+    return { version: DORP_STORAGE_VERSION, phase, instances: reconciled.instances, paths };
   } catch {
     return structuredClone(DEFAULT_DORP_STATE);
   }
