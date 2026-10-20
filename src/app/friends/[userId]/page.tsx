@@ -6,5 +6,5 @@ export default async function FriendProfilePage({ params }: { params: Promise<{ 
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   const { userId } = await params;
-  return <FriendProfileClient userId={userId} />;
+  return <FriendProfileClient userId={userId} viewerId={user.id} />;
 }

@@ -494,3 +494,29 @@ test("een serverpagina met verloopmoment (nieuw woord om 18:00) ververst op de e
   store.tick();
   assert.equal(refreshes, 1);
 });
+
+
+test("beschermde bezoekcache verdwijnt onmiddellijk, ook bij jitter, late response en heropenen",async()=>{
+ const {env,advance}=makeEnv(),store=new LiveDataStore(env);
+ let release:(value:unknown)=>void=()=>{};
+ let calls=0;
+ const key=["private-visit"],entryKey=JSON.stringify(key);
+ const fetcher=()=>{calls++;return calls===1?Promise.resolve({secret:"old"}):calls===2?new Promise(r=>{release=r;}):Promise.reject(Error("revoked"));};
+ const first=store.observe(key,{fetcher,scopes:["dorp"],discardOnRevalidate:true});await flush();
+ assert.deepEqual(store.getSnapshot(entryKey).data,{secret:"old"});
+ store.invalidate("dorpAccessChanged",{jitterMs:1500});
+ assert.equal(store.getSnapshot(entryKey).data,undefined);advance(2000);await flush();
+ store.invalidate("dorpAccessChanged");release({secret:"late"});await flush();await flush();
+ assert.equal(store.getSnapshot(entryKey).data,undefined);assert.ok(store.getSnapshot(entryKey).error);
+ first.release();assert.equal(store.getSnapshot(entryKey).data,undefined);
+ const reopened=store.observe(key,{fetcher:async()=>({secret:"fresh"}),scopes:["dorp"],discardOnRevalidate:true});await flush();
+ assert.deepEqual(store.getSnapshot(entryKey).data,{secret:"fresh"});reopened.release();assert.equal(store.getSnapshot(entryKey).data,undefined);
+});
+
+test("beschermde bezoekcache ververst opnieuw na unmount tijdens een lopende aanvraag",async()=>{
+ const {env}=makeEnv(),store=new LiveDataStore(env),key=["visit-race"],entryKey=JSON.stringify(key);
+ let release:(v:unknown)=>void=()=>{};
+ const first=store.observe(key,{fetcher:()=>new Promise(r=>{release=r;}),scopes:["dorp"],discardOnRevalidate:true});
+ first.release();store.observe(key,{fetcher:async()=>({fresh:true}),scopes:["dorp"],discardOnRevalidate:true});
+ release({stale:true});await flush();await flush();assert.deepEqual(store.getSnapshot(entryKey).data,{fresh:true});
+});

@@ -313,12 +313,13 @@ export async function resolveWeeklyPlacement(tx: Tx, userId: string, weekStart: 
  * circulaire import met competitionXp.ts te vermijden — dat bestand roept
  * dit weer aan nadat het de dagelijkse cap/afname heeft toegepast.
  */
-export async function applyWeeklyXp(tx: Tx, userId: string, xp: number): Promise<void> {
+/** `enroll: false` boekt alleen een bestaande deelname bij (bv. een dorpscadeau). */
+export async function applyWeeklyXp(tx: Tx, userId: string, xp: number, options: { enroll?: boolean } = {}): Promise<void> {
   const weekStart = weekStartKey();
   const existing = await tx.weeklyScore.findUnique({ where: { userId_weekStart: { userId, weekStart } } });
   if (existing) {
     await tx.weeklyScore.update({ where: { userId_weekStart: { userId, weekStart } }, data: { xp: { increment: xp } } });
-  } else {
+  } else if (options.enroll !== false) {
     const { tier, groupId } = await resolveWeeklyPlacement(tx, userId, weekStart);
     const activeSeason = await tx.season.findFirst({ where: { status: "ACTIVE" } });
     await tx.weeklyScore.create({ data: { userId, weekStart, xp, tier, groupId, seasonId: activeSeason?.id } });

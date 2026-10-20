@@ -57,9 +57,9 @@ function FeaturedAchievement({ achievement }: { achievement: NonNullable<FriendP
   );
 }
 
-export default function FriendProfileClient({ userId }: { userId: string }) {
+export default function FriendProfileClient({ userId, viewerId }: { userId: string; viewerId: string }) {
   const t = useT();
-  const query = useLiveQuery<FriendProfile>(["friend-profile", userId], () => fetchJson<FriendProfile>(`/api/friends/profiles/${encodeURIComponent(userId)}`), {
+  const query = useLiveQuery<FriendProfile>(["friend-profile", viewerId, userId], () => fetchJson<FriendProfile>(`/api/friends/profiles/${encodeURIComponent(userId)}`), {
     scopes: ["friends", "xp", "streak", "competition"],
   });
 
@@ -82,7 +82,7 @@ export default function FriendProfileClient({ userId }: { userId: string }) {
         </div>
       </section>
 
-      <FriendVillagePreview userId={userId} />
+      <FriendVillagePreview userId={userId} viewerId={viewerId} />
       {stats ? (
         <>
           <ProfileCard title={t("friends.sharedProgress")}>

@@ -1,3 +1,4 @@
+import { notifyVillagePrivacyChanged } from "@/lib/dorp/notifications";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@/generated/prisma/client";
@@ -195,6 +196,7 @@ export async function PATCH(req: NextRequest) {
   if (handle === undefined) {
     if (Object.keys(rest).length > 0) {
       await prisma.user.update({ where: { id: user.id }, data: rest });
+      if (rest.shareVillageWithFriends !== undefined) await notifyVillagePrivacyChanged(user.id);
     }
     return NextResponse.json({ ok: true });
   }
@@ -209,6 +211,7 @@ export async function PATCH(req: NextRequest) {
   for (const discriminator of candidates) {
     try {
       await prisma.user.update({ where: { id: user.id }, data: { handle, discriminator, ...rest } });
+      if (rest.shareVillageWithFriends !== undefined) await notifyVillagePrivacyChanged(user.id);
       return NextResponse.json({ ok: true, handle, discriminator });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {

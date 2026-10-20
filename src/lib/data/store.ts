@@ -55,6 +55,8 @@ export interface QueryOptions<T> {
   scopes: readonly DataScope[];
   /** Hoe lang data vers blijft (ms). Standaard 30 s. */
   staleTime?: number;
+  /** Beschermde previews: wis data vóór hercontrole, ook bij een fout of late response. */
+  discardOnRevalidate?: boolean;
   /** Alleen voor data zonder realtime: ophalen zolang in beeld, hooguit zo vaak (ms). */
   pollMs?: number;
   /** Server-gerenderde beginwaarde: telt als net opgehaald. */
@@ -92,6 +94,7 @@ interface Observer {
 }
 
 interface Entry {
+  discardOnRevalidate: boolean;
   key: string;
   snapshot: QuerySnapshot;
   observers: Set<Observer>;
@@ -158,6 +161,7 @@ export class LiveDataStore {
     let entry = this.entries.get(entryKey);
     if (!entry) {
       entry = {
+        discardOnRevalidate: false,
         key: entryKey,
         snapshot: { ...LOADING_SNAPSHOT },
         observers: new Set(),
@@ -177,6 +181,7 @@ export class LiveDataStore {
   observe<T>(key: QueryKey, options: QueryOptions<T>): { entryKey: string; release: () => void } {
     const entryKey = serializeKey(key);
     const entry = this.ensure(entryKey);
+    entry.discardOnRevalidate ||= options.discardOnRevalidate === true;
     if (options.initialData !== undefined && entry.snapshot.data === undefined) {
       this.patch(entry, { data: options.initialData, status: "success", fetchedAt: this.env.now() });
     }
@@ -198,7 +203,10 @@ export class LiveDataStore {
       entryKey,
       release: () => {
         target.observers.delete(observer);
-        if (target.observers.size === 0) target.lastReleasedAt = this.env.now();
+        if (target.observers.size === 0) {
+          target.lastReleasedAt = this.env.now();
+          if (target.discardOnRevalidate) { target.generation += 1; this.patch(target, { ...LOADING_SNAPSHOT, invalidated: true }); }
+        }
       },
     };
   }
@@ -249,6 +257,7 @@ export class LiveDataStore {
     for (const entry of this.entries.values()) {
       if (![...entry.scopes].some((scope) => wanted.has(scope))) continue;
       entry.generation += 1;
+      if (entry.discardOnRevalidate) this.patch(entry, { ...LOADING_SNAPSHOT, invalidated: true });
       if (!entry.snapshot.invalidated) this.patch(entry, { invalidated: true });
       if (entry.observers.size === 0) continue;
       this.later(() => this.maybeFetch(entry, true), options.jitterMs);
@@ -443,7 +452,7 @@ export class LiveDataStore {
     const fetcher = entry.lastObserverFetcher;
     if (!fetcher) return Promise.resolve();
     const generation = entry.generation;
-    this.patch(entry, { isFetching: true });
+    this.patch(entry, { ...(entry.discardOnRevalidate ? { ...LOADING_SNAPSHOT, invalidated: entry.snapshot.invalidated } : {}), isFetching: true });
     // De afronding hangt aan .finally zodat entry.inflight altijd pas ná de toewijzing leeg wordt.
     const run = this.runFetch(entry, fetcher, generation).finally(() => {
       entry.inflight = null;
@@ -456,6 +465,7 @@ export class LiveDataStore {
   private async runFetch(entry: Entry, fetcher: () => Promise<unknown>, generation: number): Promise<void> {
     try {
       const fetched = await fetcher();
+      if (entry.discardOnRevalidate && entry.generation !== generation) return;
       // Ongewijzigde data behoudt zijn verwijzing: geen onnodige renders en een lijst waar
       // je doorheen scrolt blijft staan na een stille controle.
       const data = sameJson(entry.snapshot.data, fetched) ? entry.snapshot.data : fetched;
@@ -469,6 +479,7 @@ export class LiveDataStore {
         invalidated: entry.generation !== generation,
       });
     } catch (error) {
+      if (entry.discardOnRevalidate && entry.generation !== generation) return;
       this.patch(entry, { error, isFetching: false, status: entry.snapshot.data !== undefined ? "success" : "error" });
     }
   }

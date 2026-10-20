@@ -26,14 +26,23 @@ export async function GET(req: NextRequest) {
 
   // Alleen op de eerste pagina nodig (voor de "deze week"-pil in de hero-
   // kaart) — bij "meer laden" onnodig opnieuw optellen.
-  let xpThisWeek: number | undefined;
+  let totals: Record<string, number> = {};
   if (skip === 0) {
-    const weekStart = new Date(`${weekStartKey()}T00:00:00.000Z`);
-    const agg = await prisma.xPTransaction.aggregate({
-      where: { userId: user.id, createdAt: { gte: weekStart }, amount: { gt: 0 } },
-      _sum: { amount: true },
-    });
-    xpThisWeek = agg._sum.amount ?? 0;
+    const weekKey = weekStartKey();
+    const weekStart = new Date(`${weekKey}T00:00:00.000Z`);
+    const [movements, score] = await Promise.all([
+      prisma.xPTransaction.groupBy({
+        by: ["reason"], where: { userId: user.id, createdAt: { gte: weekStart } },
+        _sum: { amount: true },
+      }),
+      prisma.weeklyScore.findUnique({ where: { userId_weekStart: { userId: user.id, weekStart: weekKey } }, select: { xp: true } }),
+    ]);
+    totals = {
+      xpThisWeek: movements.filter(m => m.reason !== "VILLAGE_GIFT_RECEIVED" && (m._sum.amount ?? 0) > 0).reduce((sum, m) => sum + (m._sum.amount ?? 0), 0),
+      xpReceivedThisWeek: movements.find(m => m.reason === "VILLAGE_GIFT_RECEIVED")?._sum.amount ?? 0,
+      xpSentThisWeek: -(movements.find(m => m.reason === "VILLAGE_GIFT_SENT")?._sum.amount ?? 0),
+      competitionXpThisWeek: score?.xp ?? 0,
+    };
   }
 
   const hasMore = transactions.length > PAGE_SIZE;
@@ -41,6 +50,6 @@ export async function GET(req: NextRequest) {
     transactions: transactions.slice(0, PAGE_SIZE),
     hasMore,
     xpTotal: user.xpTotal,
-    ...(xpThisWeek !== undefined ? { xpThisWeek } : {}),
-  });
+    ...totals,
+  }, { headers: { "Cache-Control": "no-store, private", Vary: "Cookie" } });
 }
