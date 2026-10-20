@@ -69,6 +69,8 @@ type TerrainCache = {
 };
 
 const MIN_PLAY_ZOOM = 0.22;
+// Stabiele lege lijst: anders herstart de ResizeObserver na elke camera-update.
+const NO_FRIEND_MARKERS: readonly {ownerId:string;label:string}[] = Object.freeze([]);
 const POINTER_MOVE_THRESHOLD = 6;
 const categories = ["Gebouwen", "Bijzondere gebouwen", "Decoraties", "Natuur", "Bewoners"] as const;
 
@@ -111,7 +113,7 @@ function nearestPrototypePhase(phase: number) {
 
 export function DorpCanvas({
   world,
-  markers = [],
+  markers = NO_FRIEND_MARKERS,
   compact = false,
   editableIds,
   placement,

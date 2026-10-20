@@ -116,8 +116,13 @@ try{
    await page.screenshot({path:`${output}/forest-r${radius}-${width}-${scheme}-${scale}.png`});
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);assert.deepEqual(errors,[]);
+  const idleDraws=await page.evaluate(async()=>{
+   const frames=async()=>{for(let i=0;i<8;i++)await new Promise(resolve=>requestAnimationFrame(resolve));};
+   await frames();const before=window.dorpDrawStats.frames;await frames();return window.dorpDrawStats.frames-before;
+  });
+  assert.ok(idleDraws<=1,`Een stilstaande kaart blijft stil: ${idleDraws} renders in acht frames`);
   const draws=await page.evaluate(()=>Math.max(window.dorpDrawStats.max,window.dorpDrawStats.current));assert.ok(draws<1000,`Schermbegrensde LOD: ${draws} sprite/blit-calls`);
-  results.push({width,height,scheme,scale,paths:true,resident:true,overflow:false,maxSpriteDraws:draws});await context.close();
+  results.push({width,height,scheme,scale,paths:true,resident:true,overflow:false,maxSpriteDraws:draws,idleDraws});await context.close();
  }
  if(!process.env.DORP_BROWSER_LARGE_ONLY){
  const friend=await prisma.user.create({data:{email:`dorp-friend-${randomUUID()}@example.invalid`,handle:'Dorpvriend',discriminator:'02',passwordHash:'synthetic',isAdmin:true,xpTotal:25,shareVillageWithFriends:true,emailVerifiedAt:new Date()}});

@@ -83,6 +83,9 @@ Kompas-profieluitleg is gericht bijgewerkt in alle vijf talen. Geen nieuwe tour.
 - Extra LOD-verificatie: vaste rasterstappen binnen zoombanden en maximaal
   400 extra bosposities voor de geteste viewports; de browser begrenst de
   werkelijk gemeten hoofdcanvas-sprite/blitcalls tot minder dan 1.000 per frame.
+  Een referentiestabiele lege markerlijst voorkomt een herinschrijf-lus van de
+  ResizeObserver: de idle-regressie mat eerst acht onnodige renders in acht
+  animatieframes en bewaakt na de correctie dat een stilstaande kaart stil blijft.
   Geen FPS-garantie voor fysieke toestellen.
 - Behoudproef bestaande migratie: 147 oorspronkelijke tabellen, 418 constraints
   en 403 indexen plus oorspronkelijke rijwaarden behouden; foutrollback en
