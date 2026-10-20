@@ -15,6 +15,7 @@ import { loadReadingPath } from "@/lib/readingPathData";
 import { loadChapterPath } from "@/lib/chapterPathData";
 import { isReadingPathType, isStudyCourseType, modeOfStudyCourse } from "@/lib/readingCourses";
 import { getStudyCatalogue } from "@/lib/studyContent/catalogue";
+import { resolveWeekSelection } from "@/lib/studyContent/weekSelection";
 import CfmCourseView from "@/components/study/CfmCourseView";
 import { navigationSessionKey } from "@/lib/session";
 
@@ -36,13 +37,16 @@ export default async function ReadingPathPage({ params }: { params: Promise<{ co
   if (!(await isContentCollectionSelectable(course.contentCollectionId, user.isAdmin))) redirect("/courses");
   // "Kom dan en volg Mij" (CFM): dezelfde cursuspagina met de weken als leerlijn; de leeswijze volgt uit de cursus.
   if (isStudyCourseType(course.type)) {
-    const data = await getStudyCatalogue(user);
+    // Altijd de collectie van deze cursus, nooit de toevallig actieve collectie van de gebruiker (collectie-isolatie).
+    const data = await getStudyCatalogue(user, new Date(), { collectionId: course.contentCollectionId });
     const weeks = data.lessons.filter((lesson) => lesson.personal).map((l) => ({
       id: l.id, lessonId: l.lessonId, collectionId: l.collectionId, lessonKey: l.lessonKey, title: l.title, startsOn: l.startsOn,
       endsOnExclusive: l.endsOnExclusive, read: l.read, stepsDone: l.stepsDone, imageMediaId: l.imageMediaId,
     }));
     if (!weeks.length) redirect("/courses");
-    const activeWeek = weeks.find((w) => w.lessonKey === data.currentLessonKey) ?? weeks.find((w) => w.lessonKey === data.context?.activeLessonKey) ?? weeks.find((w) => !w.read) ?? null;
+    // Dezelfde weekregel als de cursuskaart: kalenderweek, anders hervatweek (zie weekSelection.ts).
+    const selection = resolveWeekSelection(weeks, { today: data.today ?? "", selectedLessonKey: data.context?.activeLessonKey });
+    const activeWeek = selection.resume;
     const courseTitle = localizedCourse({ ...course, work: course.contentCollection.work }, user.uiLanguage).name;
     return (
       <>
@@ -52,6 +56,7 @@ export default async function ReadingPathPage({ params }: { params: Promise<{ co
           mode={modeOfStudyCourse(course.type)}
           weeks={weeks}
           activeWeekId={activeWeek?.id ?? null}
+          activeIsCalendar={selection.resumeReason === "calendar"}
           sessionKey={await navigationSessionKey()}
           context={data.context ? { workKey: data.context.workKey, version: data.context.version, activeLessonKey: data.context.activeLessonKey } : null}
         />

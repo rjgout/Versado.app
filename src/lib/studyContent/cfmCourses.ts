@@ -2,30 +2,57 @@ import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { markCourseStarted } from "@/lib/courses";
 import { modeOfStudyCourse, type StudyCourseType } from "@/lib/readingCourses";
 
-/** De CFM-collectie die de importadapter aanmaakt (zie cfm2026Import.ts). */
+/** De CFM-collectie van 2026 (Oude Testament, Nederlands); haar cursussen hebben de oorspronkelijke slugs. */
 export const CFM_COLLECTION_ID = "content_cfm_ot_2026_nl";
 
 /**
  * "Kom dan en volg Mij" in Leren: één gewone cursus per leeswijze, net als Stap voor stap en Vrije keuze bij de
  * leescursussen. De volgorde is bewust Stap voor stap eerst: dat is de standaard. De namen staan in het Nederlands
- * (zoals bij syncCourses); andere talen komen uit src/lib/courseText.ts.
+ * (zoals bij syncCourses); andere talen komen uit src/lib/courseText.ts op basis van het cursustype.
  */
-export const CFM_COURSES: ReadonlyArray<{ slug: string; type: StudyCourseType; name: string; description: string; order: number }> = [
-  { slug: "kom-dan-en-volg-mij-stap-voor-stap", type: "STUDY_STEPS", name: "Stap voor stap", description: "Elke week in zes stappen, in je eigen tempo.", order: 0 },
-  { slug: "kom-dan-en-volg-mij-vrije-studie", type: "STUDY_FREE", name: "Vrije studie", description: "De studie van de week als één doorlopende tekst.", order: 1 },
+export const CFM_COURSE_KINDS: ReadonlyArray<{ type: StudyCourseType; slugSuffix: string; name: string; description: string; order: number }> = [
+  { type: "STUDY_STEPS", slugSuffix: "stap-voor-stap", name: "Stap voor stap", description: "Elke week in zes stappen, in je eigen tempo.", order: 0 },
+  { type: "STUDY_FREE", slugSuffix: "vrije-studie", name: "Vrije studie", description: "De studie van de week als één doorlopende tekst.", order: 1 },
 ];
 
 /**
- * Maakt de cursussen aan als ze nog niet bestaan. Bestaande rijen blijven ongemoeid (ook een door de beheerder
- * uitgezette cursus), er wordt niemand ingeschreven en niets zichtbaar gemaakt: de collectie zelf bepaalt dat.
+ * De cursusidentiteit is (collectie, leeswijze): één cursus per CFM-collectie en type, onafhankelijk van naam of taal.
+ * De slug (wereldwijd uniek) is daar alleen een stabiel, afgeleid label van: de oorspronkelijke slugs voor CFM 2026 (bestaande
+ * cursus-ID's, inschrijvingen en voortgang blijven zo dezelfde rijen) en `kom-dan-en-volg-mij-<collectieslug>-<soort>` voor elke
+ * andere collectie, zodat een volgend jaar nooit een bestaande rij overschrijft of hergebruikt.
  */
-export async function ensureCfmCourses(db: Pick<Prisma.TransactionClient, "course">, collectionId: string) {
-  for (const course of CFM_COURSES)
-    await db.course.upsert({
-      where: { slug: course.slug },
-      update: {},
-      create: { slug: course.slug, type: course.type, name: course.name, description: course.description, order: course.order, contentCollectionId: collectionId },
-    });
+const LEGACY_SLUGS: Readonly<Record<string, Readonly<Partial<Record<StudyCourseType, string>>>>> = {
+  [CFM_COLLECTION_ID]: { STUDY_STEPS: "kom-dan-en-volg-mij-stap-voor-stap", STUDY_FREE: "kom-dan-en-volg-mij-vrije-studie" },
+};
+export function cfmCourseSlug(collection: { id: string; slug: string }, type: StudyCourseType): string {
+  const legacy = LEGACY_SLUGS[collection.id]?.[type];
+  if (legacy) return legacy;
+  const kind = CFM_COURSE_KINDS.find((k) => k.type === type);
+  if (!kind) throw new Error(`Onbekend CFM-cursustype ${type}`);
+  return `kom-dan-en-volg-mij-${collection.slug}-${kind.slugSuffix}`;
+}
+
+/** De twee cursussen van CFM 2026 met hun vaste slugs (voor tests en documentatie). */
+export const CFM_COURSES = CFM_COURSE_KINDS.map((kind) => ({ ...kind, slug: cfmCourseSlug({ id: CFM_COLLECTION_ID, slug: "" }, kind.type) }));
+
+/**
+ * Maakt de cursussen van één collectie aan als ze nog niet bestaan. Bestaande rijen (op collectie + type) blijven
+ * ongemoeid, ook een door de beheerder uitgezette of hernoemde cursus; er wordt niemand ingeschreven en niets zichtbaar
+ * gemaakt: de collectie zelf bepaalt dat. Herhaald of gelijktijdig aanroepen levert nooit dubbele cursussen op.
+ */
+export async function ensureCfmCourses(db: Pick<Prisma.TransactionClient, "course">, collection: { id: string; slug: string }) {
+  for (const kind of CFM_COURSE_KINDS) {
+    const existing = await db.course.findFirst({ where: { contentCollectionId: collection.id, type: kind.type }, select: { id: true } });
+    if (existing) continue;
+    try {
+      await db.course.create({
+        data: { slug: cfmCourseSlug(collection, kind.type), type: kind.type, name: kind.name, description: kind.description, order: kind.order, contentCollectionId: collection.id },
+      });
+    } catch (error) {
+      // Een gelijktijdige aanroep was ons voor (unieke slug); de rij bestaat dan en is goed.
+      if ((error as { code?: string }).code !== "P2002") throw error;
+    }
+  }
 }
 
 /**

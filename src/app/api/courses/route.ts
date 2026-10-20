@@ -53,7 +53,7 @@ export async function GET() {
 
       // CFM: de voortgang telt weken (lessen), niet hoofdstukken; de kaart toont het lesbeeld van de huidige week.
       if (isStudyCourseType(course.type)) {
-        const summary = await getStudyCourseSummary(user, course.type);
+        const summary = await getStudyCourseSummary(user, { type: course.type, contentCollectionId: course.contentCollectionId });
         return {
           id: course.id,
           slug: course.slug,

@@ -176,6 +176,19 @@ precies zes stappen "Stap 1…6" (zondag is rustdag, geen stap), nooit dagnamen 
 - Alleen `cfm-*`-programma's (`isPersonalStudyWork`) gebruiken dit; FSY en andere programma's behouden de bestaande lezer.
 - CFM staat in Leren als gewone cursus (`STUDY_STEPS` Stap voor stap en `STUDY_FREE` Vrije studie, `src/lib/studyContent/cfmCourses.ts`) met de bestaande cursuskaarten, Cursus toevoegen en leerlijnbouwstenen; geen tweede cursussysteem. Zie §16 van het CFM-document.
 
+## CFM-architectuur: collecties, cursusidentiteit en weekselectie
+
+Zie `docs/CFM-TECHNICAL-FINALIZATION.md`. Harde regels:
+
+- **Collectie-isolatie**: een CFM-cursus leest zijn weken altijd uit de collectie van die cursus
+  (`getStudyCatalogue(actor, now, { collectionId })`), nooit uit de toevallig actieve collectie, en wijzigt de actieve collectie niet.
+- **Cursusidentiteit per collectie**: (collectie, leeswijze) via `cfmCourseSlug`/`ensureCfmCourses` (`cfmCourses.ts`); nooit een vaste
+  slug of de naam als identiteit. Bestaande rijen blijven ongemoeid; niemand wordt ingeschreven; niets wordt vanzelf zichtbaar.
+- **Eén weekregel**: kalenderweek → laatst geopende week → eerste onafgeronde week → laatste week (`weekSelection.ts`); kaart, API en
+  leerlijn gebruiken dezelfde resolver. Alleen een echte kalenderweek heet "Deze week".
+- **Voortgang blijft behouden** (stappen, lezen, annotaties, leesposities) en **stapafronding is geen leesafronding**: alleen de bewuste
+  leesmarkering rondt de les af; een stap raakt nooit reeks, XP of beloning.
+
 ## Platformfundering: web/PWA, iOS en Android
 
 Versado blijft één product en één gedeelde codebase. De definitieve native
