@@ -158,7 +158,7 @@ export default function CfmWeekPath({
         const isOpen = opened.has(week.id);
         return (
           <Fragment key={week.id}>
-          <li data-week={week.id} data-week-state={state} className="min-w-0">
+          <li data-week={week.id} data-study-lesson={week.id} data-week-state={state} className="min-w-0">
             {state === "current" ? (
               <ActiveChapterCard
                 label={week.title}
