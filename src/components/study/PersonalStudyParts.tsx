@@ -5,40 +5,11 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import { focusRing, iconButton } from "@/components/versado/styles";
 import type { WeekContext } from "@/lib/studyContent/weekContext";
-import { rememberMode } from "@/lib/studyContent/personalStudyModeClient";
 
 export type PersonalMode = "free" | "steps" | "full";
 
 export function lessonBase(lessonId: string, collectionId: string) {
   return `/study-lesson/${encodeURIComponent(lessonId)}/${encodeURIComponent(collectionId)}`;
-}
-
-/** Keuze tussen Vrije studie en Stap voor stap; gewone links, dus altijd bereikbaar en met browser-terug. */
-export function ModeSwitch({ base, mode, stepsHref }: { base: string; mode: PersonalMode; stepsHref?: string }) {
-  const t = useT();
-  const items = [
-    { key: "free" as const, href: base, label: t("cfmStudy.modeFree") },
-    { key: "steps" as const, href: stepsHref ?? `${base}/stappen`, label: t("cfmStudy.modeSteps") },
-  ];
-  return (
-    <nav aria-label={t("cfmStudy.modeLabel")} className="inline-flex min-w-0 max-w-full rounded-full border border-vs-line-strong bg-vs-surface p-0.5">
-      {items.map((item) => (
-        <Link
-          key={item.key}
-          href={item.href}
-          prefetch={false}
-          aria-current={mode === item.key ? "page" : undefined}
-          // Een bewuste keuze wordt de voorkeur van de gebruiker (op alle apparaten); de link zelf werkt ook zonder.
-          onClick={() => void rememberMode(item.key === "free" ? "FREE" : "STEPS")}
-          className={`inline-flex min-h-9 items-center justify-center rounded-full px-3 text-center text-sm font-bold ${focusRing} ${
-            mode === item.key ? "bg-vs-accent text-vs-on-accent" : "text-vs-fg-2 hover:bg-vs-subtle"
-          }`}
-        >
-          {item.label}
-        </Link>
-      ))}
-    </nav>
-  );
 }
 
 /** Compact menu voor secundaire acties (opnieuw bovenaan, volledige les). Geen eigen laag buiten de pagina. */

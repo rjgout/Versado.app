@@ -183,7 +183,7 @@ export default function RichContentBlocks({
     }
     if (block.type === "paragraph")
       return (
-        <p className={compact ? "whitespace-pre-wrap leading-7" : "whitespace-pre-wrap leading-relaxed"}>
+        <p className={compact ? "whitespace-pre-wrap" : "whitespace-pre-wrap leading-relaxed"}>
           {text(block.id, block.content)}{action(block.id)}
         </p>
       );
@@ -215,7 +215,7 @@ export default function RichContentBlocks({
       const Tag = block.ordered ? "ol" : "ul";
       return (
         <Tag
-          className={`${block.ordered ? "list-decimal" : "list-disc"} ${compact ? "space-y-2 leading-7" : "space-y-3"} pl-6`}
+          className={`${block.ordered ? "list-decimal" : "list-disc"} ${compact ? "space-y-2" : "space-y-3"} pl-6`}
         >
           {block.items.map((item) => (
             <li key={item.id} id={`study-${item.id}`} data-study-anchor={item.id}>
@@ -238,7 +238,7 @@ export default function RichContentBlocks({
     if (block.type === "question" || block.type === "assignment")
       return (
         <div className={compact ? "rounded-lg bg-vs-subtle/60 px-3 py-2.5" : "rounded-xl bg-vs-subtle p-4"}>
-          <p className={compact ? "font-medium leading-7" : "font-semibold"}>{text(block.id, block.content)}{action(block.id)}</p>
+          <p className={compact ? "font-medium" : "font-semibold"}>{text(block.id, block.content)}{action(block.id)}</p>
           {block.items && (
             <ul className={compact ? "mt-2 list-disc space-y-2 pl-6" : "mt-3 list-disc space-y-2 pl-6"}>
               {block.items.map((item) => (
@@ -283,7 +283,8 @@ export default function RichContentBlocks({
       data-study-rich-content
       onPointerDown={compact && onAnnotate && !preview ? onPointerDown : undefined}
       onClick={compact && onAnnotate && !preview ? onTap : undefined}
-      className={compact ? "min-w-0 space-y-6 break-words text-base text-vs-fg" : "min-w-0 space-y-10 break-words text-base leading-relaxed text-vs-fg"}
+      // Eén regelafstand voor alle lopende tekst; koppen houden hun eigen leading-snug.
+      className={compact ? "min-w-0 space-y-6 break-words text-base leading-[1.6] text-vs-fg" : "min-w-0 space-y-10 break-words text-base leading-relaxed text-vs-fg"}
     >
       {document.sections.map((section) => (
         <section

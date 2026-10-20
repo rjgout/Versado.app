@@ -12,7 +12,7 @@ import type { ReaderDocument, ReadingPositionState } from "@/lib/studyContent/re
 import { stepOfBlock, PERSONAL_STUDY_STEPS, type PersonalStudyView } from "@/lib/studyContent/personalStudy";
 import type { StepProgressState } from "@/lib/studyContent/stepProgress";
 import type { WeekContext } from "@/lib/studyContent/weekContext";
-import { HeaderMenu, ModeSwitch, StepDots, WeekNav, lessonBase, menuItem } from "./PersonalStudyParts";
+import { HeaderMenu, StepDots, WeekNav, lessonBase, menuItem } from "./PersonalStudyParts";
 import { primaryButton, secondaryButton } from "@/components/versado/styles";
 import StudyAnnotations from "@/components/annotations/StudyAnnotations";
 import RichContentBlocks, { InlineContent } from "./RichContentBlocks";
@@ -265,7 +265,6 @@ function ReaderVisit({
   }
   const anchor = control.snapshot.pending?.blockAnchor ?? control.snapshot.state.position?.blockAnchor ?? null;
   const positionStep = view && anchor ? stepOfBlock(view, anchor) : null;
-  const stepsHref = pageMode === "step" || !positionStep ? `${base}/stappen` : `${base}/stappen/${positionStep}`;
   const headline = view?.weekTitle ?? data.lesson.title;
   // De schriftgedeelten in de kop zijn de oorspronkelijke verwijzingen van de bronkop, dus ze blijven openbaar als verwijzing.
   const scriptureBlock = view?.scriptureTitleId ? data.lesson.body.sections.flatMap((x) => x.blocks).find((b) => b.id === view.scriptureTitleId) : undefined;
@@ -335,8 +334,7 @@ function ReaderVisit({
   const newHeader = (
     <header className="space-y-3">
       <ReferenceReturn sessionKey={sessionKey} />
-      <div className="flex items-center justify-between gap-2">
-        <ModeSwitch base={base} mode={pageMode === "step" ? "steps" : pageMode === "free" ? "free" : "full"} stepsHref={stepsHref} />
+      <div className="flex items-center justify-end gap-2">
         <HeaderMenu>
           <button type="button" data-menu-item className={menuItem} onClick={() => void control.startOver()} disabled={startOverDisabled}>
             <RotateCcw className="h-5 w-5 shrink-0" aria-hidden />

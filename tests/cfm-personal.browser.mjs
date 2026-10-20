@@ -199,7 +199,9 @@ try {
       const range = document.createRange(); range.setStart(node, 10); range.setEnd(node, 40);
       const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range);
     });
-    await page.locator("[data-annotation-selection]").click();
+    // Geen permanente knop meer: de (voor toetsenbord en schermlezer bedoelde) actie van het blok gebruikt de actuele selectie.
+    assert.equal(await page.locator("[data-annotation-selection]").count(), 0, "geen permanente selectieknop");
+    await page.locator('[data-annotation-for="b-p3a"]').evaluate((el) => el.click());
     await dialog(page).locator("textarea:not([disabled])").waitFor();
     await dialog(page).getByRole("button", { name: t("annotations.close"), exact: true }).click();
     // Slepen met de muis om te selecteren opent niets; een gewone klik opent het paneel.
@@ -272,12 +274,8 @@ try {
       if (await page.evaluate(() => document.querySelector('[data-study-block="b-p4a"]').getBoundingClientRect().top < 300)) break;
     }
     await page.waitForTimeout(1800);
-    await page.getByRole("link", { name: t("cfmStudy.modeSteps"), exact: true }).click();
-    await page.waitForURL(/\/stappen\/[1-6]$/);
-    const current = Number(page.url().split("/").pop());
-    assert.ok(current >= 3, `de lezer staat in de stap met alinea b-p4a (nu stap ${current})`);
-    await page.getByRole("link", { name: t("cfmStudy.modeFree"), exact: true }).click();
-    await page.waitForURL((url) => !url.pathname.includes("/stappen"));
+    // De leeswijzekeuze staat niet meer in de les (die volgt uit de cursuskaart in Leren).
+    assert.equal(await page.getByRole("link", { name: t("cfmStudy.modeSteps"), exact: true }).count(), 0, "geen leeswijzeswitcher in de les");
     // Alle stappen afronden via de API-route van de pagina.
     for (let n = 1; n <= 6; n++) {
       await page.goto(`${base}${f.href}/stappen/${n}`);
