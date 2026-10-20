@@ -11,6 +11,7 @@ import {
 } from "./fixtures/reference-content.mjs";
 import { parseOtbChapter } from "../scripts/otb/chapterParser.ts";
 import { importCfm2026Drafts } from "../src/lib/studyContent/cfm2026Import.ts";
+import { CFM_COURSES } from "../src/lib/studyContent/cfmCourses.ts";
 import { publishStudyRevision } from "../src/lib/studyContent/publication.ts";
 import { releaseStudyCollection, studyCollectionReleaseState } from "../src/lib/studyContent/collectionRelease.ts";
 import { cfmApprovedSnapshot,requireCfmApproval } from "../src/lib/studyContent/sourceApproval.ts";
@@ -272,13 +273,15 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     prisma.gameContentScope,
     prisma.course,
   ];
+  // De import legt bewust de twee CFM-cursussen (Stap voor stap, Vrije studie) vast; alle andere cursussen blijven bytegelijk.
+  const cfmCourseSlugs = CFM_COURSES.map((c) => c.slug);
   const personalHashes = () =>
     Promise.all(
       personalModels.map(async (model) =>
         createHash("sha256")
           .update(
             JSON.stringify(
-              (await model.findMany()).map((row) => JSON.stringify(row)).sort(),
+              (await (model === prisma.course ? model.findMany({ where: { slug: { notIn: cfmCourseSlugs } } }) : model.findMany())).map((row) => JSON.stringify(row)).sort(),
             ),
           )
           .digest("hex"),
@@ -485,6 +488,12 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     await personalHashes(),
     beforeHashes,
     "21 persoonlijke, cursus-, spel- en economietabellen blijven bytegelijk",
+  );
+  const cfmCourses = await prisma.course.findMany({ where: { slug: { in: cfmCourseSlugs } }, orderBy: { order: "asc" } });
+  assert.deepEqual(
+    cfmCourses.map((c) => [c.slug, c.type, c.contentCollectionId]),
+    CFM_COURSES.map((c) => [c.slug, c.type, collection.id]),
+    "de import maakt precies de twee CFM-cursussen, gekoppeld aan de CFM-collectie",
   );
   assert.deepEqual(await prisma.studyLessonEdition.findMany({where:{id:{in:unrelatedPublications.map(e=>e.id)}},select:{id:true,publishedRevisionId:true,draftRevisionId:true,publicationVersion:true},orderBy:{id:"asc"}}),unrelatedPublications);
   // Zonder expliciete inhoudelijke beoordeling blijven deze verwijzingen blokkeren.

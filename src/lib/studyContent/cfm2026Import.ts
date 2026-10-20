@@ -3,6 +3,7 @@ import path from "node:path";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import sourceLock from "../../../data/study-content/cfm-2026-nl/source-lock.json";
+import { ensureCfmCourses } from "./cfmCourses";
 import mediaLock from "../../../data/study-content/cfm-2026-nl/media-lock.json";
 import { cfmOldTestament2026NlManifest as manifest } from "./cfm2026Manifest";
 import {
@@ -79,9 +80,9 @@ export async function ensureCfmDraftCollection(
       update: {},
       create: { key: manifest.workKey, kind: "STUDY_PROGRAM" },
     });
-    return (
+    const collection =
       existing ??
-      db.contentCollection.create({
+      (await db.contentCollection.create({
         data: {
           id: "content_cfm_ot_2026_nl",
           slug: "cfm-ot-2026-nl",
@@ -96,8 +97,10 @@ export async function ensureCfmDraftCollection(
           sourceName: "The Church of Jesus Christ of Latter-day Saints",
           sourceUrl: manifest.canonicalUrl,
         },
-      })
-    );
+      }));
+    // De leescursussen (Stap voor stap, Vrije studie) horen bij de collectie; nooit ingeschreven of zichtbaar gemaakt.
+    await ensureCfmCourses(db, collection.id);
+    return collection;
   });
 }
 /** De downloadcallback bestaat voor netwerkloze geïsoleerde tests; geen clientpayload. */

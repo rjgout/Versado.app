@@ -7,8 +7,7 @@ import { ActiveChapterCard, CARD, ChapterThumb, Connector, DoneMark, Heading, TH
 import { focusRing, primaryButton } from "@/components/versado/styles";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
-import { rememberMode } from "@/lib/studyContent/personalStudyModeClient";
-import { modeParam, type PersonalStudyModeValue } from "@/lib/studyContent/personalStudyMode";
+import type { PersonalStudyModeValue } from "@/lib/studyContent/personalStudyMode";
 import { PERSONAL_STUDY_STEPS } from "@/lib/studyContent/personalStudy";
 import type { StepProgressState } from "@/lib/studyContent/stepProgress";
 import { formatWeekPeriod, lessonBase } from "./PersonalStudyParts";
@@ -34,31 +33,6 @@ interface StepPlanRow { index: number; title: string | null; continued: boolean;
 interface StepPlanResponse { revisionId: string; state: StepProgressState; steps: StepPlanRow[] }
 
 const mediaSrc = (id: string | null) => (id ? `/api/study-media/${encodeURIComponent(id)}` : null);
-
-/** Keuze tussen Vrije studie en Stap voor stap; de keuze wordt bewaard (server-side) en een gewone link blijft werken zonder script. */
-export function PathModeSwitch({ mode }: { mode: PersonalStudyModeValue }) {
-  const t = useT();
-  const items = [
-    { key: "FREE" as const, label: t("cfmStudy.modeFree") },
-    { key: "STEPS" as const, label: t("cfmStudy.modeSteps") },
-  ];
-  return (
-    <nav aria-label={t("cfmStudy.modeLabel")} className="inline-flex min-w-0 max-w-full rounded-full border border-vs-line-strong bg-vs-surface p-0.5">
-      {items.map((item) => (
-        <Link
-          key={item.key}
-          href={`/courses?weergave=${modeParam(item.key)}`}
-          prefetch={false}
-          aria-current={mode === item.key ? "page" : undefined}
-          onClick={() => void rememberMode(item.key)}
-          className={`inline-flex min-h-9 items-center justify-center rounded-full px-3 text-center text-sm font-bold ${focusRing} ${mode === item.key ? "bg-vs-accent text-vs-on-accent" : "text-vs-fg-2 hover:bg-vs-subtle"}`}
-        >
-          {item.label}
-        </Link>
-      ))}
-    </nav>
-  );
-}
 
 function WeekSteps({ week, sessionKey }: { week: WeekRow; sessionKey: string }) {
   const t = useT();
@@ -159,8 +133,9 @@ export default function CfmWeekPath({
         const isOpen = opened.has(week.id);
         return (
           <Fragment key={week.id}>
-          <li data-week={week.id} data-study-lesson={week.id} data-week-state={state} className="min-w-0">
+          <li data-week={week.id} data-study-lesson={week.id} data-week-state={state} data-path-current={state === "current" ? "" : undefined} className="min-w-0">
             {state === "current" ? (
+              <div data-current-step onClickCapture={mode === "STEPS" ? () => onOpenWeek?.(week.lessonKey) : undefined}>
               <ActiveChapterCard
                 label={week.title}
                 subtitle={subtitle || t("cfmStudy.currentWeek")}
@@ -176,6 +151,7 @@ export default function CfmWeekPath({
                   </Link>
                 )}
               </ActiveChapterCard>
+              </div>
             ) : mode === "FREE" ? (
               <div className={`${CARD} relative ${state === "started" ? "border-vs-accent/50" : "border-vs-line"}`} data-chapter-card-state={state}>
                 {thumb && <ChapterThumb artworkKeys={[]} imageSrc={imageSrc} fadeTo="to-vs-surface" />}

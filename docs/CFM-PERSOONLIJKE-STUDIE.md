@@ -225,8 +225,8 @@ Voorlopig gekozen (omkeerbaar):
 * **Ontwerpbesluiten ongewijzigd**: 22 zichtbare tips/51 verborgen, staptitels inclusief "Vervolg", aparte tabel
   `StudyStepProgress`, ongewijzigde reeks-/XP-regels, versioneerde JSON-configuratie.
 * **Leeswijzevoorkeur** (`User.personalStudyMode`, nullable enum FREE/STEPS, migratie `20261122120000_user_personal_study_mode`
-  zonder backfill: bestaande gebruikers houden `NULL` en dus de standaard Vrije studie). Volgorde: expliciete deeplink
-  (`?weergave=vrij|stappen`) > opgeslagen voorkeur > Vrije studie (`resolvePersonalStudyMode`). Wisselen via de ModeSwitch bewaart
+  zonder backfill: bestaande gebruikers houden `NULL` en dus de standaard Stap voor stap, zie §16). Volgorde: expliciete deeplink
+  (cursus-, week- of staproute) > opgeslagen voorkeur > Stap voor stap (`resolvePersonalStudyMode`). Wisselen via de ModeSwitch bewaart
   de keuze via `PUT /api/study-preference`. De huidige-weekregel van Stap voor stap blijft ongewijzigd.
 * **Weekleerlijn** (`CfmWeekPath`): dezelfde bouwstenen als de leescursussen (`ActiveChapterCard`, `ChapterThumb`, `Connector`,
   `CARD`). Afbeelding = de officiële lesafbeelding (eerste figuur ≥ 300 px breed, READY, via `/api/study-media`); er is voor het
@@ -264,3 +264,29 @@ Voorlopig gekozen (omkeerbaar):
     nog geen oudere voortgang; de omzetting beschermt testomgevingen en eventuele eerdere previews.
 * **Afronding en reeks**: een stap afronden blijft uitsluitend stapvoortgang; alleen de bestaande actie "Markeren als gelezen"
   rondt de les af volgens de bestaande regels. Geen nieuwe reeks- of XP-logica.
+
+## 16. CFM als gewone cursus in Leren (uniform cursussysteem)
+
+* **Geen tweede systeem**: "Kom dan en volg Mij" gebruikt dezelfde cursusarchitectuur als de leescursussen van het Boek van Mormon
+  (`Course`, `UserCourseProgress.subscribed`, `UserListOrder`, `ContentCard`, `CardPicker`, `CoursePathHeader`, `MyStepNav`,
+  `pathParts`). De leeswijze is een cursus, zoals "Stap voor stap" en "Vrije keuze" bij de leescursussen:
+  * `CourseType.STUDY_STEPS` ("Stap voor stap", standaard, eerst in de lijst) en `STUDY_FREE` ("Vrije studie"), één rij per
+    cursus in de CFM-collectie (`src/lib/studyContent/cfmCourses.ts`). Migraties `20261124120000_study_course_types` (enumwaarden)
+    en `20261124130000_study_courses_backfill` (cursussen voor een reeds geïmporteerde collectie, niemand ingeschreven, niets
+    zichtbaar). Een verse import maakt ze via `ensureCfmDraftCollection`; bestaande rijen (ook door de beheerder uitgezet) blijven
+    ongemoeid. Zichtbaarheid blijft bij de collectie (beheer → Content); de cursussen publiceren niets.
+  * **Cursus toevoegen / verbergen / volgorde**: onveranderd (`/api/courses/*`, `subscribeUserToCourse`). Een toegevoegde cursus staat
+    niet meer onder toevoegen. Verbergen zet alleen `subscribed` uit: annotaties, leesposities, stapvoortgang en READ blijven.
+  * **Kaart**: voortgang in weken (een week is af bij gelezen of zes afgeronde stappen), "Ga verder" naar de huidige week (Stap voor
+    stap: het stappenoverzicht) en het officiële lesbeeld van die week (`getStudyCourseSummary`, zelfde bron als het weekpad).
+  * **Openen**: `/courses/<id>` → `/courses/<id>/pad` (Focusroute) met `CfmCourseView`: dezelfde kop, leerlijn (`CfmWeekPath`) en
+    "Naar mijn week"-knop (`MyStepNav kind="week"`); bij een nieuwe binnenkomst scrollt de leerlijn naar de huidige week
+    (scrollcoördinatie `NavigationScroll`: terug/vooruit herstelt de oude positie en wie al scrolde wordt nooit overschreven).
+    Zes vrij toegankelijke stappen onder de huidige week; geen sloten.
+* **Leeswijze en voorkeur**: de cursus bepaalt de leeswijze. Een week of stap openen bewaart die keuze server-side
+  (`User.personalStudyMode`, bestaande instelling, geen extra scherm) en maakt de bijbehorende ingeschreven cursus de huidige leerreis
+  (`markCfmCourseStarted` → `markCourseStarted`). De standaard is Stap voor stap. De bestaande routes (`/study-lesson/...`, `/stappen`,
+  `/stappen/n`, `?weergave=volledig`) en deeplinks blijven werken en gaan altijd voor.
+* **Wat CFM-specifiek bleef**: de weekkaarten met lesbeeld en zes stappen (`CfmWeekPath`, gebouwd uit de gedeelde `pathParts`), de
+  cursuskaartvoortgang in weken (`courseSummary.ts`), de enumwaarden en de cursusdefinities (`cfmCourses.ts`). Overige studieprogramma's
+  (FSY) behouden hun eigen lijst op Leren; `ProgramLessonPicker` bevat daarom geen CFM-weekpad meer.

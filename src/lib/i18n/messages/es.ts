@@ -980,7 +980,11 @@ export const es: PartialMessages = {
     "kids": "Historias del Libro de Mormón (para niños)",
     "kidsDesc": "Cuentos cortos ilustrados con un juego de imágenes y preguntas sencillas: diversión para los más pequeños.",
     "fsy": "Por la Fortaleza de la Juventud",
-    "fsyDesc": "Las lecciones semanales con texto e imágenes de la fuente oficial."
+    "fsyDesc": "Las lecciones semanales con texto e imágenes de la fuente oficial.",
+    "studySteps": "Paso a paso",
+    "studyStepsDesc": "Cada semana en seis pasos, a tu propio ritmo.",
+    "studyFree": "Estudio libre",
+    "studyFreeDesc": "El estudio de la semana como un texto continuo."
   },
   "courses": {
     "addCourse": "Añadir curso",
@@ -1010,7 +1014,9 @@ export const es: PartialMessages = {
       "byBook": "Por libro",
       "podcast": "Podcast",
       "kids": "Para niños",
-      "fsy": "Por la Fortaleza de la Juventud"
+      "fsy": "Por la Fortaleza de la Juventud",
+      "studySteps": "Ven, sígueme",
+      "studyFree": "Ven, sígueme"
     }
   },
   "courseView": {
@@ -1027,6 +1033,8 @@ export const es: PartialMessages = {
       "myStepAria": "Ir a mi siguiente paso",
       "myChapter": "Ir a mi capítulo",
       "myChapterAria": "Ir a mi siguiente capítulo",
+      "myWeek": "A mi semana",
+      "myWeekAria": "Ir a mi semana actual",
       "readChapter": "Leer el capítulo",
       "continueChapter": "Seguir leyendo",
       "chaptersDone": "{done}/{total} {unit} completados",
@@ -3835,7 +3843,9 @@ export const es: PartialMessages = {
       "PODCAST": "Podcast",
       "KIDS": "Para niños",
       "INTRO": "Introducción",
-      "FSY": "Plan de estudios"
+      "FSY": "Plan de estudios",
+      "STUDY_STEPS": "Paso a paso (estudio)",
+      "STUDY_FREE": "Estudio libre"
     }
   },
   "adminChangelog": {
@@ -4278,6 +4288,7 @@ export const es: PartialMessages = {
     "nextStep": "Paso siguiente",
     "allDone": "Los seis pasos están completados.",
     "sundayRest": "Dedica el domingo a reflexionar sobre lo que has aprendido.",
+    "weekUnit": "semanas",
     "markInvite": "¿Quieres marcar toda la lección como leída? Lo haces tú; nunca ocurre automáticamente.",
     "previousWeek": "Semana anterior",
     "nextWeek": "Semana siguiente",

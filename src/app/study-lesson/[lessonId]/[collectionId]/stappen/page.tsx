@@ -1,6 +1,8 @@
 import { redirect, notFound } from "next/navigation";
 import { z } from "zod";
 import { getCurrentUser, navigationSessionKey } from "@/lib/session";
+import { prisma } from "@/lib/db";
+import { markCfmCourseStarted } from "@/lib/studyContent/cfmCourses";
 import { loadPersonalStudyPage } from "@/lib/studyContent/personalStudyPage";
 import StepOverview from "@/components/study/StepOverview";
 export default async function Page({
@@ -20,6 +22,7 @@ export default async function Page({
   if (!page) notFound();
   if (!page.view || !page.progress)
     redirect(`/study-lesson/${encodeURIComponent(parsed.data.lessonId)}/${encodeURIComponent(parsed.data.collectionId)}`);
+  await markCfmCourseStarted(prisma, user.id, parsed.data.collectionId, "STEPS");
   return (
     <StepOverview
       key={`${page.reader.lesson.editionId}:${sessionKey}`}

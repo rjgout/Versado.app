@@ -17,6 +17,17 @@ export function usesChapterPath(type: string): type is "FRONT_TO_BACK" | "FREE_C
   return type === "FRONT_TO_BACK" || type === "FREE_CHOICE";
 }
 
+/** "Kom dan en volg Mij" (CFM): één cursus per leeswijze, met de weekleerlijn als pad (zie src/components/study/CfmCourseView.tsx). */
+export type StudyCourseType = "STUDY_STEPS" | "STUDY_FREE";
+export const STUDY_COURSE_TYPES: readonly StudyCourseType[] = ["STUDY_STEPS", "STUDY_FREE"];
+export function isStudyCourseType(type: string): type is StudyCourseType {
+  return (STUDY_COURSE_TYPES as readonly string[]).includes(type);
+}
+/** De leeswijze die bij een studiecursus hoort (dezelfde waarden als User.personalStudyMode). */
+export function modeOfStudyCourse(type: StudyCourseType): "STEPS" | "FREE" {
+  return type === "STUDY_STEPS" ? "STEPS" : "FREE";
+}
+
 export type ReadState = "UNREAD" | "READING" | "READ";
 
 export interface ChapterItem {

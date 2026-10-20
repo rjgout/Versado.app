@@ -13,7 +13,10 @@ import { localizedCourse } from "@/lib/courseText";
 import { getT } from "@/lib/i18n";
 import { loadReadingPath } from "@/lib/readingPathData";
 import { loadChapterPath } from "@/lib/chapterPathData";
-import { isReadingPathType } from "@/lib/readingCourses";
+import { isReadingPathType, isStudyCourseType, modeOfStudyCourse } from "@/lib/readingCourses";
+import { getStudyCatalogue } from "@/lib/studyContent/catalogue";
+import CfmCourseView from "@/components/study/CfmCourseView";
+import { navigationSessionKey } from "@/lib/session";
 
 // Het leespad van de drie schriftuurlijke leescursussen (Stap voor stap, Hoofdstuk voor hoofdstuk, Vrije keuze) in
 // Focusmodus (zie focusMode.ts): een navigatie- en selectiescherm, geen activiteit. Andere cursustypes horen hier niet en
@@ -31,6 +34,30 @@ export default async function ReadingPathPage({ params }: { params: Promise<{ co
   });
   if (!course) redirect("/courses");
   if (!(await isContentCollectionSelectable(course.contentCollectionId, user.isAdmin))) redirect("/courses");
+  // "Kom dan en volg Mij" (CFM): dezelfde cursuspagina met de weken als leerlijn; de leeswijze volgt uit de cursus.
+  if (isStudyCourseType(course.type)) {
+    const data = await getStudyCatalogue(user);
+    const weeks = data.lessons.filter((lesson) => lesson.personal).map((l) => ({
+      id: l.id, lessonId: l.lessonId, collectionId: l.collectionId, lessonKey: l.lessonKey, title: l.title, startsOn: l.startsOn,
+      endsOnExclusive: l.endsOnExclusive, read: l.read, stepsDone: l.stepsDone, imageMediaId: l.imageMediaId,
+    }));
+    if (!weeks.length) redirect("/courses");
+    const activeWeek = weeks.find((w) => w.lessonKey === data.currentLessonKey) ?? weeks.find((w) => w.lessonKey === data.context?.activeLessonKey) ?? weeks.find((w) => !w.read) ?? null;
+    const courseTitle = localizedCourse({ ...course, work: course.contentCollection.work }, user.uiLanguage).name;
+    return (
+      <>
+        <LiveRefresh scopes={["courses", "progress", "studySteps", "studyContext", "studyContent"]} token={data.token} />
+        <CfmCourseView
+          courseName={courseTitle}
+          mode={modeOfStudyCourse(course.type)}
+          weeks={weeks}
+          activeWeekId={activeWeek?.id ?? null}
+          sessionKey={await navigationSessionKey()}
+          context={data.context ? { workKey: data.context.workKey, version: data.context.version, activeLessonKey: data.context.activeLessonKey } : null}
+        />
+      </>
+    );
+  }
   if (!isReadingPathType(course.type)) redirect(`/courses/${course.id}`);
 
   const t = getT(user.uiLanguage);

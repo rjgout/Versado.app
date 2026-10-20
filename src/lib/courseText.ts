@@ -50,6 +50,10 @@ export function localizedCourse(course: CourseLike, uiLanguage: string | null | 
       return { name: t("courseNames.kids"), description: t("courseNames.kidsDesc") };
     case "FSY":
       return { name: t("courseNames.fsy"), description: t("courseNames.fsyDesc") };
+    case "STUDY_STEPS":
+      return { name: t("courseNames.studySteps"), description: t("courseNames.studyStepsDesc") };
+    case "STUDY_FREE":
+      return { name: t("courseNames.studyFree"), description: t("courseNames.studyFreeDesc") };
     default:
       return { name: course.name, description: course.description };
   }

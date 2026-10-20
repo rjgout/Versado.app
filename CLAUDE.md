@@ -174,6 +174,7 @@ precies zes stappen "Stap 1…6" (zondag is rustdag, geen stap), nooit dagnamen 
 - Stapvoortgang (`StudyStepProgress`, `/api/study-steps`) hangt aan de inhoudsvingerafdruk van de stap en is uitsluitend studievoortgang:
   nooit READ, reeks, XP of celebration. De hele les als gelezen markeren blijft de bestaande, bewuste actie.
 - Alleen `cfm-*`-programma's (`isPersonalStudyWork`) gebruiken dit; FSY en andere programma's behouden de bestaande lezer.
+- CFM staat in Leren als gewone cursus (`STUDY_STEPS` Stap voor stap en `STUDY_FREE` Vrije studie, `src/lib/studyContent/cfmCourses.ts`) met de bestaande cursuskaarten, Cursus toevoegen en leerlijnbouwstenen; geen tweede cursussysteem. Zie §16 van het CFM-document.
 
 ## Platformfundering: web/PWA, iOS en Android
 

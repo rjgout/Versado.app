@@ -67,6 +67,8 @@ erbij komt zonder opnieuw te ontwerpen. Code: `src/components/versado/ContentCar
 - Verbergen haalt een kaart alleen uit het eigen overzicht; er gaat nooit
   voortgang, score of geschiedenis verloren. Toevoegen (`CardPicker`)
   toont alleen wat nu verborgen is en zet het achteraan.
+- Studiecursussen (CFM: Stap voor stap en Vrije studie) gebruiken dezelfde kaart en hetzelfde toevoegen/verbergen; de kaart toont
+  voortgang in weken en het lesbeeld van de huidige week (`artwork.asset`). Zie `docs/CFM-PERSOONLIJKE-STUDIE.md` §16.
 - Cursussen: zichtbaar = `UserCourseProgress.subscribed`
   (`/api/courses/[id]/subscribe` en `.../unsubscribe`). Toevoegen maakt een
   cursus niet actief; dat gebeurt pas als je er een les of stap van opent

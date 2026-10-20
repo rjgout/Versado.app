@@ -1,6 +1,8 @@
 import { redirect, notFound } from "next/navigation";
 import { z } from "zod";
 import { getCurrentUser, navigationSessionKey } from "@/lib/session";
+import { prisma } from "@/lib/db";
+import { markCfmCourseStarted } from "@/lib/studyContent/cfmCourses";
 import { loadPersonalStudyPage } from "@/lib/studyContent/personalStudyPage";
 import StudyReader from "@/components/study/StudyReader";
 import ReaderBackTarget from "@/components/ReaderBackTarget";
@@ -45,6 +47,7 @@ export default async function Page({
       focus.status === "orphaned" ||
       (focus.status === "exact" && focus.blockIds.some((id) => !view.personalBlockIds.includes(id))));
   const mode = !view || weergave === "volledig" || outside ? "full" : "free";
+  if (mode === "free") await markCfmCourseStarted(prisma, user.id, parsed.data.collectionId, "FREE");
   return (
     <>
       {folderReturn && <ReaderBackTarget href={folderReturn} parent={getT(user.uiLanguage)("studyFolder.title")} soft />}

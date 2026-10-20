@@ -23,7 +23,7 @@ import VisualIdentityIcon from "@/components/versado/VisualIdentityIcon";
 interface CourseView {
   id: string;
   slug: string;
-  type: "FRONT_TO_BACK" | "FREE_CHOICE" | "BY_BOOK" | "PODCAST" | "KIDS" | "INTRO" | "READING_LESSONS" | "FSY";
+  type: "FRONT_TO_BACK" | "FREE_CHOICE" | "BY_BOOK" | "PODCAST" | "KIDS" | "INTRO" | "READING_LESSONS" | "FSY" | "STUDY_STEPS" | "STUDY_FREE";
   name: string;
   description: string | null;
   totalChapters: number;
@@ -34,6 +34,8 @@ interface CourseView {
   currentChapter: { id: string; bookName: string; number: number } | null;
   resumeHref: string;
   artwork: string[];
+  /** Officieel lesbeeld van de huidige week (studiecursussen); anders het artworkregister. */
+  imageSrc?: string | null;
 }
 
 interface CatalogCourseView {
@@ -55,6 +57,8 @@ const TYPE_LABELS: Record<CourseView["type"], MessageKey> = {
   PODCAST: "courses.types.podcast",
   KIDS: "courses.types.kids",
   FSY: "courses.types.fsy",
+  STUDY_STEPS: "courses.types.studySteps",
+  STUDY_FREE: "courses.types.studyFree",
 };
 
 const CARD_SIZES = "(min-width: 1024px) 320px, (min-width: 768px) 50vw, 100vw";
@@ -81,7 +85,7 @@ export default function CoursesClient() {
       ]);
       return applyPersonalOrder(data.courses ?? [], savedOrder);
     },
-    { scopes: ["courses", "progress"], contentScoped: true }
+    { scopes: ["courses", "progress", "studySteps"], contentScoped: true }
   );
   const courses = coursesQuery.data ?? null;
   const setCourses = coursesQuery.setData;
@@ -204,7 +208,7 @@ export default function CoursesClient() {
             priority
             title={activeCourse.name}
             href={`/courses/${activeCourse.id}`}
-            artwork={{ kind: "course", keys: activeCourse.artwork, sizes: "(min-width: 1024px) 480px, 100vw" }}
+            artwork={{ kind: "course", keys: activeCourse.artwork, sizes: "(min-width: 1024px) 480px, 100vw", asset: activeCourse.imageSrc ? { src: activeCourse.imageSrc } : null }}
             label={t(TYPE_LABELS[activeCourse.type])}
             chips={chipsOf(activeCourse)}
             description={activeCourse.description}
@@ -247,7 +251,7 @@ export default function CoursesClient() {
               <ContentCard
                 title={course.name}
                 href={`/courses/${course.id}`}
-                artwork={{ kind: "course", keys: course.artwork, sizes: CARD_SIZES }}
+                artwork={{ kind: "course", keys: course.artwork, sizes: CARD_SIZES, asset: course.imageSrc ? { src: course.imageSrc } : null }}
                 label={t(TYPE_LABELS[course.type])}
                 chips={chipsOf(course)}
                 description={course.description}

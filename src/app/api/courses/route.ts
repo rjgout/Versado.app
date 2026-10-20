@@ -9,6 +9,8 @@ import { getT } from "@/lib/i18n";
 import { apiError } from "@/lib/apiError";
 import { courseArtworkKeys } from "@/lib/artwork";
 import { readingResumeHref } from "@/lib/courseResume";
+import { isStudyCourseType } from "@/lib/readingCourses";
+import { getStudyCourseSummary } from "@/lib/studyContent/courseSummary";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -48,6 +50,26 @@ export async function GET() {
       let totalChapters = course._count.chapters;
       let completedCount = 0;
       let xpAvailable = 0;
+
+      // CFM: de voortgang telt weken (lessen), niet hoofdstukken; de kaart toont het lesbeeld van de huidige week.
+      if (isStudyCourseType(course.type)) {
+        const summary = await getStudyCourseSummary(user, course.type);
+        return {
+          id: course.id,
+          slug: course.slug,
+          type: course.type,
+          ...localizedCourse({ ...course, work: course.contentCollection.work }, user.uiLanguage),
+          totalChapters: summary?.totalWeeks ?? 0,
+          unitPlural: t("cfmStudy.weekUnit"),
+          completedCount: summary?.completedWeeks ?? 0,
+          xpAvailable: 0,
+          isActive: user.activeCourseId === course.id,
+          resumeHref: summary?.resumeHref ?? `/courses/${course.id}`,
+          artwork: courseArtworkKeys({ slug: course.slug, type: course.type, work: course.contentCollection.work }),
+          imageSrc: summary?.imageMediaId ? `/api/study-media/${summary.imageMediaId}` : null,
+          currentChapter: null,
+        };
+      }
 
       const chapterProgress = await getCourseChapterProgress(prisma, user.id, course, progress?.currentChapterId ?? null);
       if (chapterProgress) {

@@ -920,6 +920,10 @@ enum CourseType {
   // Singleton binnen de FSY-contentcollectie: de wekelijkse lessen staan
   // in FsyLesson en hebben bewust geen Chapter/Verse-structuur.
   FSY
+  // "Kom dan en volg Mij" (CFM): één cursus per leeswijze binnen de studiecollectie, net als de
+  // leescursussen van het Boek van Mormon. De lessen staan in StudyLessonEdition (geen CourseChapter-rijen).
+  STUDY_STEPS
+  STUDY_FREE
 }
 
 model Course {

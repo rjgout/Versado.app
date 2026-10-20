@@ -12,7 +12,7 @@ import FsyCourseView from "@/components/FsyCourseView";
 import StudyTogetherButton from "@/components/study/StudyTogetherButton";
 import { canStartStudy } from "@/lib/study/startAvailability";
 import { localizedCourse } from "@/lib/courseText";
-import { isReadingPathType } from "@/lib/readingCourses";
+import { isReadingPathType, isStudyCourseType } from "@/lib/readingCourses";
 
 export default async function CourseDetailPage({ params }: { params: Promise<{ courseId: string }> }) {
   const user = await getCurrentUser();
@@ -160,6 +160,8 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
   // De drie schriftuurlijke leescursussen (Stap voor stap, Hoofdstuk voor hoofdstuk, Vrije keuze) delen één Focus-route
   // met hetzelfde visuele leespad (zie focusMode.ts); alle andere cursustypes blijven hier.
   if (isReadingPathType(course.type)) redirect(`/courses/${course.id}/pad`);
+  // "Kom dan en volg Mij" (Stap voor stap, Vrije studie) gebruikt dezelfde padroute met de weken als leerlijn.
+  if (isStudyCourseType(course.type)) redirect(`/courses/${course.id}/pad`);
   // Een onbekend cursustype hoort hier niet: terug naar de lijst (nooit naar /pad, dat zou een lus geven).
   redirect("/courses");
 }

@@ -4,6 +4,8 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Verbeterd (Kom dan en volg Mij): staat nu in Leren als gewone cursus. Voeg Stap voor stap (standaard) of Vrije studie toe via Cursus toevoegen, zoals bij de andere leescursussen; de cursuskaart toont je voortgang in weken en brengt je naar je huidige week met de officiële afbeelding. Verbergen uit je overzicht wist niets: je annotaties, leesposities en voortgang blijven bewaard.
+
 - Nieuw (Kom dan en volg Mij): je kiest Vrije studie of Stap voor stap één keer en Versado onthoudt dat; een link met een expliciete weergave gaat altijd voor. De weken staan als leerlijn met de officiële lesafbeelding (zoals bij de leescursussen), zonder sloten. Na het openen van een schriftverwijzing kom je terug in dezelfde leeswijze, stap en leesplek.
 
 - Nieuw (Kom dan en volg Mij): persoonlijke studie in twee leeswijzen. **Vrije studie** toont de persoonlijke studie van de week als één compacte, doorlopende tekst; **Stap voor stap** verdeelt dezelfde tekst in precies zes stappen (Stap 1 t/m Stap 6), zodat de zondag vrij blijft voor rust en bezinning met een weekoverzicht, statussen (nog niet begonnen, bezig, afgerond) en bewust afronden per stap. Ideeën voor onderwijs aan kinderen en bijlagen staan niet meer in de persoonlijke route; de volledige officiële les blijft via het menu bereikbaar en de brontekst is ongewijzigd. Tik op een alinea voor bladwijzer, markering of privénotitie (de driepuntjes zijn weg); afbeeldingen zijn kleiner en vergrotbaar. Een stap afronden telt niet als de hele les gelezen en geeft geen XP of reeks; "Markeren als gelezen" staat onderaan de studie. Zie `docs/CFM-PERSOONLIJKE-STUDIE.md`.
