@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   const passwordHash = await hashPassword(parsed.data.newPassword);
   await prisma.user.update({
     where: { id: userId },
-    data: { passwordHash, mustChangePassword: false, sessionVersion: { increment: 1 } },
+    data: { passwordHash, passwordLoginEnabled: true, mustChangePassword: false, sessionVersion: { increment: 1 } },
   });
 
   // Een wachtwoordreset mag 2FA niet omzeilen. Als het account TOTP gebruikt,

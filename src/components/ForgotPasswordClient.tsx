@@ -49,6 +49,7 @@ export default function ForgotPasswordClient() {
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
         {t("password.forgotText")}
       </p>
+      <p className="text-sm text-vs-fg-3 mb-4">{t("nativeFoundation.appleResetHelp")}</p>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <input
           className="input"

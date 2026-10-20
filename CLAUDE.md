@@ -189,27 +189,41 @@ Zie `docs/CFM-TECHNICAL-FINALIZATION.md`. Harde regels:
 - **Voortgang blijft behouden** (stappen, lezen, annotaties, leesposities) en **stapafronding is geen leesafronding**: alleen de bewuste
   leesmarkering rondt de les af; een stap raakt nooit reeks, XP of beloning.
 
-## Platformfundering: web/PWA, iOS en Android
+## Multi-platform Development Standard
 
-Versado blijft één product en één gedeelde codebase. De definitieve native
-doelarchitectuur is hybride: een lokale Capacitor-client met de gedeelde UI en
-een remote Versado-backend, terwijl web/PWA de bestaande Next.js SSR-flow mag
-blijven gebruiken. De huidige repository is nog servergedreven; Capacitor's
-remote `server.url` is daarom alleen een expliciete `remote-preview` en geen
-storeproductieprofiel. `CAPACITOR_BUILD_PROFILE=release` wordt bewust geweigerd
-tot de client/API/auth-migratie is afgerond. Bouw geen aparte iOS/Android-
-frontend, router of businesslogica. De native identiteit is `app.versado.app`.
-De complete werkwijze, beperkingen en releasegate staan in
-`docs/PLATFORMEN.md`.
+Versado heeft één gedeelde codebase voor web/PWA, iOS/iPadOS en Android.
+De technische architectuur, migratieplanning en releasegates staan in
+[PLATFORMEN.md](docs/PLATFORMEN.md); houd beide documenten consistent.
 
-Nieuwe features worden standaard beoordeeld op web, PWA, iOS, Android,
-telefoon, tablet en desktop, inclusief safe areas, touch, toetsenbord, dark
-mode, toegankelijkheid, netwerk/resume, browserback, Android systeem-back en
-deep links. Native gedrag loopt via `src/lib/platform.ts` en
-`src/components/NativeAppBridge.tsx`; verspreide directe Capacitor-checks zijn
-niet de standaard. Native permissies worden pas toegevoegd wanneer de feature
-ze daadwerkelijk nodig heeft. De bestaande webpush blijft losstaan van
-toekomstige APNs/FCM-push.
+- Hergebruik React-componenten, hooks, tokens, types, versieerbare API-contracten
+  en domeinlogica. Platformcode uitsluitend waar nodig; behoud web/PWA.
+- Nieuwe clientfunctionaliteit krijgt geen onnodige afhankelijkheid van SSR,
+  Server Components, browsercookies of Prisma. Serverlogica blijft backendlogica.
+  Ondersteun oudere appversies; breaking API-wijzigingen vereisen een migratieplan.
+  Lokale bundeling moet mogelijk blijven zonder de remote website te laden.
+- Respecteer webauthenticatie en de afzonderlijke native sessielaag. Apple is een
+  externe identiteit van hetzelfde account. Gevoelige native gegevens uitsluitend
+  in Keychain/Keystore, nooit localStorage. Autorisatie, XP, reeksen, beloningen en
+  spelvalidatie blijven server-authoritative.
+- Telefoons (iPhone/Android) zijn portrait-only; tablets ondersteunen ook landscape;
+  web/PWA blijft responsive. Respecteer safe areas, statusbalk, toetsenbord en
+  systeemnavigatie. Native functies lopen via de centrale platformadapter.
+  Behoud de Versado-identiteit; passende native schermvarianten zijn toegestaan.
+- Netwerkverlies mag geen wit/vastgelopen scherm geven. Ondersteun herstel en
+  onderscheid lokale content van serverfuncties. Geen offline XP, reeks of
+  spelresultaten zonder expliciete servervalidatie.
+- Servercontent kan zelfstandig worden bijgewerkt; lokaal gebundelde clientcode
+  vereist een native build en mogelijk store-update. Development, remote-preview
+  en productie blijven onderscheiden. Omzeil nooit releasebeveiligingen;
+  `CAPACITOR_BUILD_PROFILE=release` blijft geblokkeerd. Native push volgt apart;
+  vraag geen onnodige permissies. Native identiteit: `app.versado.app`.
+- Controleer risicogebaseerd: web/PWA, Capacitor-preview, lokale native geschiktheid,
+  platformonafhankelijke API/auth, safe areas/keyboard/oriëntatie/navigatie,
+  offline/fouten en relevante regressies. Kleine tekstwijzigingen vereisen geen
+  volledige native builds. Claim geen apparaatvalidatie zonder echte test.
+- Documenteer platformafwijkingen en architectuurbesluiten. Meld wanneer iets nog
+  niet native-ready is met een concrete vervolgactie; blokkeer gewone
+  webontwikkeling niet onnodig. De eigenaar doet productie-uitrol en live tests.
 
 ## Harde regel: beheerbare beschikbaarheid van alle nieuwe content
 
