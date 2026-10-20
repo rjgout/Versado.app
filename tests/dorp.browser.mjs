@@ -23,7 +23,23 @@ try{
   await context.addCookies([{name:SESSION_COOKIE,value:token,url:base}]);const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(`${base}/dev/versado-dorp`);await page.locator('canvas[aria-label="Interactieve isometrische dorpskaart"][aria-busy="false"]').waitFor();
   await page.waitForFunction(()=>localStorage.getItem('versado-dorp-prototype-v3'));
+  const empty=JSON.parse(await page.evaluate(()=>localStorage.getItem('versado-dorp-prototype-v3')));
+  assert.deepEqual(empty.paths,[]);assert.ok(empty.instances.every(i=>i.position===null));
+  if(width===390&&scheme==='light'){
+   // Explicit old-world fixture, never a new-world default. Reload must preserve it.
+   await page.evaluate(()=>{const key='versado-dorp-prototype-v3',world=JSON.parse(localStorage.getItem(key));world.instances.find(i=>i.instanceId==='fixture-family').position={u:-5,v:-2};world.instances.find(i=>i.instanceId==='fixture-well').position={u:3,v:1};world.paths=[{u:-6,v:0}];localStorage.setItem(key,JSON.stringify(world));});
+   await page.reload();await page.locator('canvas[aria-busy="false"]').waitFor();
+   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('versado-dorp-prototype-v3')).instances.find(i=>i.instanceId==='fixture-family').position?.u===-5);
+  }
+  await page.evaluate(()=>{
+   const ctx=document.querySelector('canvas').getContext('2d'),draw=ctx.drawImage.bind(ctx),fill=ctx.fillRect.bind(ctx);
+   window.dorpDrawStats={current:0,max:0,frames:0};
+   ctx.fillRect=(...args)=>{const s=window.dorpDrawStats;s.max=Math.max(s.max,s.current);s.current=0;s.frames++;return fill(...args);};
+   ctx.drawImage=(...args)=>{window.dorpDrawStats.current++;return draw(...args);};
+  });
+
   if(scale===2)await page.evaluate(()=>document.documentElement.style.fontSize='200%');
+  if(width===844)await page.evaluate(()=>{for(const [edge,value] of Object.entries({top:20,right:24,bottom:16,left:24}))document.documentElement.style.setProperty(`--vs-safe-area-${edge}`,`${value}px`);});
   await page.getByRole('button',{name:'Bouwen',exact:true}).click();
   await page.getByRole('button',{name:/Paden ·/}).click();
   console.log('Dorp browser viewport',width,height,scheme,scale);await page.screenshot({path:`${output}/path-before-${width}-${scheme}-${scale}.png`});
@@ -32,6 +48,11 @@ try{
   await page.mouse.move(box.x+box.width*.4,box.y+box.height*.48);await page.mouse.down();await page.mouse.move(box.x+box.width*.65,box.y+box.height*.48,{steps:10});await page.mouse.up();
   await page.waitForFunction(count=>JSON.parse(localStorage.getItem('versado-dorp-prototype-v3')).paths.length!==count,before.paths.length);
   if(width===390&&scheme==='light'){
+   const count=JSON.parse(await page.evaluate(()=>localStorage.getItem('versado-dorp-prototype-v3'))).paths.length;
+   await page.getByRole('button',{name:'Pad wissen',exact:true}).click();
+   await page.mouse.move(box.x+box.width*.4,box.y+box.height*.48);await page.mouse.down();await page.mouse.move(box.x+box.width*.65,box.y+box.height*.48,{steps:10});await page.mouse.up();
+   await page.waitForFunction(count=>JSON.parse(localStorage.getItem('versado-dorp-prototype-v3')).paths.length<count,count);
+   await page.getByRole('button',{name:'Pad aanleggen',exact:true}).click();
    const cdp=await context.newCDPSession(page);
    const start={x:box.x+box.width/2-4*64*.36,y:box.y+box.height/2},end={x:box.x+box.width/2,y:box.y+box.height/2+4*32*.36};
    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[start]});
@@ -43,7 +64,16 @@ try{
   await page.screenshot({path:`${output}/path-${width}-${scheme}-${scale}.png`});
   await page.getByRole('button',{name:'Sluiten',exact:true}).last().click();
   await page.getByRole('button',{name:'Bouwen',exact:true}).click();
-  await page.getByRole('button',{name:/Nephi/}).click();await page.getByRole('button',{name:'Plaatsen',exact:true}).click();
+  await page.getByRole('button',{name:/Nephi/}).click();
+  if(width===390&&scheme==='light'){
+   const cdp=await context.newCDPSession(page),from={x:box.x+box.width/2,y:box.y+box.height/2},to={x:from.x-2*64*.36,y:from.y};
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[from]});
+   for(let i=1;i<=8;i++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:from.x+(to.x-from.x)*i/8,y:from.y}]});
+   assert.equal(JSON.parse(await page.evaluate(()=>localStorage.getItem('versado-dorp-prototype-v3'))).instances.find(i=>i.objectId==='vd-c001').position,null,'Preview moves before first placement');
+   await page.screenshot({path:`${output}/inventory-touch-preview.png`});
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.detach();
+   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('versado-dorp-prototype-v3')).instances.find(i=>i.objectId==='vd-c001').position?.u===-1);
+  }else await page.getByRole('button',{name:'Plaatsen',exact:true}).click();
   await page.screenshot({path:`${output}/resident-${width}-${scheme}-${scale}.png`});
   if(width===390&&scheme==='light'){
    const state=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('versado-dorp-prototype-v3')));
@@ -69,12 +99,30 @@ try{
    await page.locator('summary').filter({hasText:'Weergave'}).click();await page.getByRole('button',{name:'Maximale toekomstige wereld tonen'}).click();
    await page.screenshot({path:`${output}/world-overview.png`});
    assert.equal((await state()).phase,0);
+   await page.getByRole('button',{name:'Testmenu',exact:true}).click();await page.getByRole('button',{name:/Middenfase/}).click();await page.getByRole('button',{name:'Testmenu',exact:true}).click();
+   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('versado-dorp-prototype-v3')).phase===8);await page.screenshot({path:`${output}/world-r35.png`});
    await page.getByRole('button',{name:'Testmenu',exact:true}).click();await page.getByRole('button',{name:/Volledige kaart/}).click();await page.getByRole('button',{name:'Testmenu',exact:true}).click();
    await page.waitForFunction(()=>JSON.parse(localStorage.getItem('versado-dorp-prototype-v3')).phase===16);
    await page.screenshot({path:`${output}/world-r62.png`});
   }
+  const selection=page.locator('[data-dorp-selection]');
+  if(await selection.isVisible()){
+   const bounds=await selection.boundingBox();assert.ok(bounds.y>=80&&bounds.y+bounds.height<=height,'Objectbediening blijft volledig binnen de viewport');
+   await page.getByRole('button',{name:'Selectie sluiten',exact:true}).click();
+  }
+  for(const [label,phase,radius] of [['Middenfase',8,35],['Volledige kaart',16,62]]){
+   await page.getByRole('button',{name:'Testmenu',exact:true}).click();await page.getByRole('button',{name:new RegExp(label)}).click();await page.getByRole('button',{name:'Testmenu',exact:true}).click();
+   await page.waitForFunction(phase=>JSON.parse(localStorage.getItem('versado-dorp-prototype-v3')).phase===phase,phase);
+   await page.screenshot({path:`${output}/forest-r${radius}-${width}-${scheme}-${scale}.png`});
+  }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);assert.deepEqual(errors,[]);
-  results.push({width,height,scheme,scale,paths:true,resident:true,overflow:false});await context.close();
+  const idleDraws=await page.evaluate(async()=>{
+   const frames=async()=>{for(let i=0;i<8;i++)await new Promise(resolve=>requestAnimationFrame(resolve));};
+   await frames();const before=window.dorpDrawStats.frames;await frames();return window.dorpDrawStats.frames-before;
+  });
+  assert.ok(idleDraws<=1,`Een stilstaande kaart blijft stil: ${idleDraws} renders in acht frames`);
+  const draws=await page.evaluate(()=>Math.max(window.dorpDrawStats.max,window.dorpDrawStats.current));assert.ok(draws<1000,`Schermbegrensde LOD: ${draws} sprite/blit-calls`);
+  results.push({width,height,scheme,scale,paths:true,resident:true,overflow:false,maxSpriteDraws:draws,idleDraws});await context.close();
  }
  if(!process.env.DORP_BROWSER_LARGE_ONLY){
  const friend=await prisma.user.create({data:{email:`dorp-friend-${randomUUID()}@example.invalid`,handle:'Dorpvriend',discriminator:'02',passwordHash:'synthetic',isAdmin:true,xpTotal:25,shareVillageWithFriends:true,emailVerifiedAt:new Date()}});

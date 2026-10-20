@@ -207,7 +207,7 @@ export const kompasNl = {
       step1: "Tik rechtsboven op je avatar.",
       step2: "Kies Avatar wijzigen om een ander personage of je vrijgespeelde accessoires te kiezen.",
       step3: "Open Privacy om te bepalen of vrienden je prestaties mogen zien.",
-      more: "De taal van de app en de taal van de tekst van de Schriften zijn twee aparte keuzes. Je kiest ze allebei in je profiel; de taal van de tekst ook bovenaan bij de Schriften.",
+      more: "De taal van de app en de taal van de tekst van de Schriften zijn twee aparte keuzes. Je kiest ze allebei in je profiel; de taal van de tekst ook bovenaan bij de Schriften. Via Mijn dorp open je je dorp wanneer dit beschikbaar is. Bij Privacy kies je of vrienden het mogen bezoeken.",
     },
     start: {
       title: "Aan de slag",

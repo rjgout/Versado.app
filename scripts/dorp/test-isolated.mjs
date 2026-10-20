@@ -74,7 +74,7 @@ try{
  if(!healthy)throw Error('Productiebuild niet bereikbaar');
  if(!process.argv.includes('--prototype-only'))await run('npx',['tsx','--test','--test-concurrency=1','tests/dorp-server.integration.test.ts','tests/dorp-audit.integration.test.ts'],env);
  if(process.argv.includes('--browser')){await run('npx',['tsx','tests/dorp.browser.mjs'],env);await run('npx',['tsx','tests/dorp-privacy.browser.mjs'],env);}
- if(process.argv.includes('--regressions')){await run('npm',['run','test:social'],env);await run('npm',['run','test:profile'],env);await run('npm',['run','test:leagues'],env);await run('npm',['run','test:genees-economy'],env);}
+ if(process.argv.includes('--regressions')){await run('npm',['run','test:kompas'],env);await run('npm',['run','test:social'],env);await run('npm',['run','test:profile'],env);await run('npm',['run','test:leagues'],env);await run('npm',['run','test:genees-economy'],env);}
  }
 }finally{
  if(server){try{process.kill(-server.pid,'SIGTERM');}catch{}await Promise.race([new Promise(r=>server.once('exit',r)),delay(5000)]);}

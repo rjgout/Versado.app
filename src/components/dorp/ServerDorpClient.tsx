@@ -25,6 +25,7 @@ export default function ServerDorpClient({userId,groupId,ownerId}:{userId:string
  const target=ownerId?`ownerId=${encodeURIComponent(ownerId)}`:confirmed?`villageId=${encodeURIComponent(confirmed.villageId)}`:"";
  const world=useLiveQuery<Visit>(["dorp-world",userId,target],()=>fetchJson(`/api/dorp?${target}`),{scopes:["dorp"],enabled:Boolean(target),discardOnRevalidate:Boolean(ownerId),staleTime:ownerId?0:30000,pollMs:ownerId?15000:undefined});
  const choices=useLiveQuery<{groups:{id:string;name:string}[]}>(["dorp-choices",userId],()=>fetchJson("/api/dorp"),{scopes:["dorp","groups"],enabled:!ownerId});
+ const friends=useLiveQuery<{markers:{ownerId:string;label:string}[]}>(["dorp-markers",userId],()=>fetchJson("/api/dorp?markers=friends"),{scopes:["dorp","friends"],enabled:!ownerId,discardOnRevalidate:true,staleTime:0,pollMs:15000});
  const snapshot=ownerId?world.data:world.data&&(!confirmed||world.data.villageId===confirmed.villageId&&world.data.version>=confirmed.version)?world.data:confirmed;
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
  const giftAt=nextGift??snapshot?.giftAvailableAt;
@@ -78,5 +79,5 @@ export default function ServerDorpClient({userId,groupId,ownerId}:{userId:string
  </>;
  if(blocked||world.error)return <div className="page-fill p-4"><p role="alert">{t("dorp2.unavailable")}</p><button className="btn min-h-11" onClick={()=>void reload()}>{t("dorp2.reload")}</button></div>;
  if(!snapshot)return <div className="page-fill mx-auto flex max-w-lg flex-col gap-3 p-4"><h1 className="text-xl font-bold">Versado Dorp</h1>{controls}{!ownerId&&<button className="btn-primary min-h-12" disabled={!ready||busy||Boolean(pending)} onClick={()=>void perform({type:"open",...(groupId?{groupId}:{})})}>{t("dorp2.open")}</button>}</div>;
- return <DorpPrototypeClient controlled={{snapshot,backHref:ownerId?`/friends/${ownerId}`:"/dashboard",busy:busy||Boolean(pending),onChange:change,onRequest:objectId=>command({type:"request",objectId}),controls}} />;
+ return <DorpPrototypeClient controlled={{snapshot,markers:friends.data?.markers,backHref:ownerId?`/friends/${ownerId}`:"/dashboard",busy:busy||Boolean(pending),onChange:change,onRequest:objectId=>command({type:"request",objectId}),controls}} />;
 }

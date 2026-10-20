@@ -24,7 +24,7 @@ import {
 import { availableInstance, levelOwnedInstance, ownershipIsValid, placeOwnedInstance, placedObjects, reconcileInstancesForRadius, storeOwnedInstance } from "../src/lib/dorp/ownership";
 import { paintPathSegment, paintPathTiles, pathAssetIdForMask, pathConnectivity, pathConnectivityFromKeys, pathKey, pathVariantForMask } from "../src/lib/dorp/paths";
 import { DEFAULT_DORP_STATE, DORP_STORAGE_KEY, parseDorpState, serializeDorpState } from "../src/lib/dorp/storage";
-import { sandCornerLabel, sandTransitionMask, terrainAssetId, terrainBufferBounds } from "../src/lib/dorp/terrain";
+import { forestLodStep, terrainAssetId, terrainBufferBounds } from "../src/lib/dorp/terrain";
 import type { DorpOwnedInstance, PlacedDorpObject } from "../src/lib/dorp/types";
 import { shellModeForRoute } from "../src/lib/focusMode";
 
@@ -159,13 +159,10 @@ test("padconnectiviteit kiest alle logische basisvarianten zonder gebouwobjecten
   ]);
 });
 
-test("terrein gebruikt gedeelde zandhoeklabels en één native compositiebuffer", () => {
+test("nieuw terrein heeft geen zandvlak en behoudt één native compositiebuffer", () => {
   for (let u = -2; u <= 7; u += 1) {
     for (let v = -7; v <= 2; v += 1) {
-      const mask = sandTransitionMask(u, v);
-      assert.equal(Boolean(mask & 2), sandCornerLabel(u + 1, v));
-      assert.equal(Boolean(mask & 4), sandCornerLabel(u + 1, v + 1));
-      assert.match(terrainAssetId(u, v), /^terrain-(grass|dry-grass|flower-grass|sand(?:-transition-m(?:0[1-9]|1[0-4]))?)$/);
+      assert.equal(terrainAssetId(u,v),"terrain-grass");
     }
   }
   assert.equal(terrainAssetId(0, 0, 15), "terrain-path-cross-se-sw-nw-ne");
@@ -291,3 +288,21 @@ test("dorpsgroei gebruikt exact de canonieke 239 BOM-identiteiten",()=>{
   assert.ok(keys.has("bofm/1-ne#22"));assert.ok(keys.has("bofm/alma#63"));assert.ok(keys.has("bofm/moro#10"));
   for(const invalid of ["bofm/1-ne#0","bofm/1-ne#23","bofm/alma#64","bofm/unknown#1","old-testament/gen#1","study:fsy"]){assert.equal(keys.has(invalid),false);}
 });
+
+ test("nieuw bouwveld is leeg; bestaande proefpaden en geplaatste objecten blijven exact behouden",()=>{
+  assert.deepEqual(DEFAULT_DORP_STATE.paths,[]);
+  assert.ok(DEFAULT_DORP_STATE.instances.every(i=>i.position===null));
+  const world=structuredClone(DEFAULT_DORP_STATE);
+  const house=world.instances.find(i=>i.objectId==="vd-b001")!;
+  house.position={u:-3,v:1}; house.level=3;
+  world.paths=paintPathTiles([],[{u:0,v:0},{u:1,v:0},{u:0,v:1}],8);
+  for(const version of [2,3])assert.deepEqual(parseDorpState(JSON.stringify({...world,version})),world);
+ });
+
+ test("bos-LOD is wereldvast binnen een zoomband en schermbegrensd op mobiel en desktop",()=>{
+ for(const [a,b] of [[.36,.34],[.1,.11],[.02,.021]])assert.equal(forestLodStep(a),forestLodStep(b));
+ for(const zoom of [1.4,1,.36,.1,.02,.005])for(const [width,height] of [[320,844],[390,844],[844,390],[1280,900]]){
+  const step=forestLodStep(zoom),columns=Math.ceil(width/zoom/step)+3,rows=Math.ceil(height/zoom/step)+3;
+  assert.ok(step*zoom>=76);assert.ok(columns*rows<=400);
+ }
+ });

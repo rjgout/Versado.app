@@ -201,7 +201,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
       step1: "Tap your avatar at the top right.",
       step2: "Choose Change avatar to pick another character or your unlocked accessories.",
       step3: "Open Privacy to decide whether friends may view your achievements.",
-      more: "The language of the app and the language of the Scripture text are two separate choices. You choose both in your profile; the text language also at the top, next to the Scriptures.",
+      more: "The language of the app and the language of the Scripture text are two separate choices. You choose both in your profile; the text language also at the top, next to the Scriptures. Open My village in your profile when it is available. Under Privacy you choose whether friends may visit.",
     },
     start: {
       title: "Getting started",

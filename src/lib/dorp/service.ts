@@ -179,6 +179,17 @@ async function requireVisit(tx:Tx,viewerId:string,ownerId:string){
  await tx.$queryRaw`SELECT "id" FROM "Friendship" WHERE "id"=${friend.id} FOR UPDATE`;
  const still=await tx.friendship.findUnique({where:{id:friend.id},select:{status:true}});if(still?.status!=="ACCEPTED")throw new DorpError("UNAVAILABLE",404);
 }
+/** Begrensde marker-DTO zonder inventaris, privéprofielvelden of dorpsinhoud. */
+export async function villageMarkers(viewerId:string){
+ return prisma.$transaction(async tx=>{
+  await requireDorpAccess(tx,viewerId);
+  const owners=await tx.user.findMany({where:{shareVillageWithFriends:true,dorpPersonal:{isNot:null},OR:[
+   {sentFriendReqs:{some:{receiverId:viewerId,status:"ACCEPTED"}}},
+   {receivedFriendReqs:{some:{senderId:viewerId,status:"ACCEPTED"}}},
+  ]},select:{id:true,handle:true},orderBy:{id:"asc"},take:8});
+  return {markers:owners.map(owner=>({ownerId:owner.id,label:owner.handle}))};
+ });
+}
 export async function visitVillage(viewerId:string,ownerId:string){return prisma.$transaction(async tx=>{
  await lockUsers(tx,[viewerId,ownerId]);await requireVisit(tx,viewerId,ownerId);
  const village=await tx.dorpVillage.findUnique({where:{ownerId}});if(!village)throw new DorpError("UNAVAILABLE",404);

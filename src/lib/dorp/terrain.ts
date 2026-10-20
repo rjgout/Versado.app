@@ -2,27 +2,15 @@ import { pathAssetIdForMask } from "./paths";
 
 export type TerrainWorldBounds = { minX: number; minY: number; maxX: number; maxY: number };
 
-export function sandCornerLabel(u: number, v: number): boolean {
-  const x = (u - 4.5) / 2.5;
-  const y = (v + 2.5) / 2.5;
-  return x * x + y * y <= 1;
-}
-
-export function sandTransitionMask(u: number, v: number): number {
-  return (sandCornerLabel(u, v) ? 1 : 0)
-    | (sandCornerLabel(u + 1, v) ? 2 : 0)
-    | (sandCornerLabel(u + 1, v + 1) ? 4 : 0)
-    | (sandCornerLabel(u, v + 1) ? 8 : 0);
-}
-
+/** Alleen weergave: bestaande opgeslagen paden en objecten blijven intact. */
 export function terrainAssetId(u: number, v: number, pathMask?: number): string {
-  if (pathMask !== undefined) return pathAssetIdForMask(pathMask);
-  const sandMask = sandTransitionMask(u, v);
-  if (sandMask === 15) return "terrain-sand";
-  if (sandMask > 0) return `terrain-sand-transition-m${sandMask.toString().padStart(2, "0")}`;
-  if ((u === -1 && v === -3) || (u === 0 && v === -3)) return "terrain-dry-grass";
-  if ((u === 1 && v === -3) || (u === 2 && v === -3)) return "terrain-flower-grass";
-  return "terrain-grass";
+  void u; void v;
+  return pathMask === undefined ? "terrain-grass" : pathAssetIdForMask(pathMask);
+}
+
+/** Vaste wereldrasterstappen per LOD-band: bomen verschuiven niet tijdens pinch. */
+export function forestLodStep(zoom: number): number {
+  return 256 * 2 ** Math.max(0, Math.ceil(Math.log2(76 / (256 * zoom))));
 }
 
 export function terrainBufferBounds(cameraX: number, cameraY: number, zoom: number, viewportWidth: number, viewportHeight: number, rasterScale = 1): TerrainWorldBounds {
