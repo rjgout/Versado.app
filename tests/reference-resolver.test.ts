@@ -139,7 +139,8 @@ test("canonieke URL en bereik blijven exact; natuurlijke namen zijn geen mapping
     base + "&id=p0",
     base + "&id=p3-p1",
     base + "&id=p21",
-    base + "&id=p1,p2",
+    base + "&id=p2,p1",
+    base + "&id=p1,p1",
     base + "&lang=eng",
     base.replace("1-ne", "nephi"),
     base.replace("/1?", "/999?"),
@@ -588,6 +589,11 @@ test("fragmenten buiten de canonieke passage worden afgewezen", () => {
   assert.equal(parseScriptureUrl(base + "#p99"), null);
   assert.equal(parseScriptureUrl(base + "&id=p1-p3#p4"), null);
   assert.equal(parseScriptureUrl(base + "#p5")?.from, 5);
+  // Een samengestelde selectie (oplopend, zonder overlap) is geldig; het fragment moet in één van de bereiken liggen.
+  assert.deepEqual(parseScriptureUrl(base + "&id=p1-p3%2Cp5")?.ranges, [[1, 3], [5, 5]]);
+  assert.deepEqual(parseScriptureUrl(base + "&id=p1,p2")?.ranges, [[1, 1], [2, 2]]);
+  assert.equal(parseScriptureUrl(base + "&id=p1-p3%2Cp5#p4"), null);
+  assert.ok(parseScriptureUrl(base + "&id=p1-p3%2Cp5#p5"));
 });
 
 test("een studielesalias behoudt alleen zijn bewezen eigen externe bron", async () => {

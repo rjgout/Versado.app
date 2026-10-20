@@ -18,6 +18,16 @@ export type ReferenceResolution =
     }
   | { kind: "external"; url: string; diagnosticKey: string; language?: "en" }
   | {
+      /** Een lofzang uit het eigen zangboek (Lofzangen), gevonden op het officiële lofzang-id; het nummer is de stabiele sleutel. */
+      kind: "hymn";
+      diagnosticKey: string;
+      number: number;
+      title: string;
+      href: string;
+      /** De oorspronkelijke officiële bron, voor als de gebruiker de lofzang liever daar opent. */
+      url: string;
+    }
+  | {
       kind: "internal";
       diagnosticKey: string;
       collectionId: string;

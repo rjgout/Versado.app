@@ -23,6 +23,9 @@ import {
   type ReferenceResolution,
 } from "./contract";
 import { parseOtbPassage, parseOtbPassageSet, type OtbPassage } from "./otb";
+import { formatRanges, labelMatchesPassage } from "./standardWorks";
+import { hymnFromOfficialUrl } from "./hymns";
+import { getHymnsAccess } from "@/lib/hymnAvailability";
 export type ReferenceActor = { id: string; isAdmin: boolean };
 export const MAX_PREVIEW_VERSES = 40;
 export const MAX_PREVIEW_BYTES = 48_000;
@@ -132,6 +135,7 @@ export async function resolveReferenceTarget(
   prepared?: PreparedChapters,
   studies?: PreparedStudy,
   passageIndex = 0,
+  label?: string,
 ): Promise<ReferenceResolution> {
   const sourceKey =
     typeof target.sourceKey === "string" ? target.sourceKey : "";
@@ -195,13 +199,15 @@ export async function resolveReferenceTarget(
   if (passage) {
     // Expliciete bronmetadata is noodzakelijk; een URL of vertaalde naam alleen
     // bewijst niet dat de les deze lokale teksteditie bedoelt.
-    if (
-      target.workKey !== passage.book.work ||
-      target.editionKey !== passage.book.editionKey ||
-      target.language !== "nl" ||
-      passage.language !== "nl"
-    )
-      return fail("edition");
+    // Zonder metadata in het doel (bestaande, al gepubliceerde revisies) bewijst het label dat de officiële Nederlandse bron-URL
+    // exact deze passage bedoelt; het bewijs per hoofdstuk hieronder blijft de enige toegang tot de lokale tekst.
+    const declared = typeof target.workKey === "string";
+    const identified = declared
+      ? target.workKey === passage.book.work &&
+        target.editionKey === passage.book.editionKey &&
+        target.language === "nl"
+      : Boolean(label) && labelMatchesPassage(label!, passage);
+    if (!identified || passage.language !== "nl") return fail("edition");
     const cached = prepared?.get(proofKey(passage.bookKey, passage.chapter));
     const collection = prepared
       ? cached?.book.contentCollection
@@ -240,7 +246,7 @@ export async function resolveReferenceTarget(
       chapterEvidenceHash(chapter.verses) !== proof.hash
     )
       return fail("unverified");
-    if (passage.to - passage.from + 1 > MAX_PREVIEW_VERSES)
+    if (passage.ranges.reduce((sum, [from, to]) => sum + to - from + 1, 0) > MAX_PREVIEW_VERSES)
       return fail("too-large");
     const result: ReferenceResolution = {
       kind: "internal",
@@ -249,13 +255,13 @@ export async function resolveReferenceTarget(
       work: passage.book.work,
       editionKey: collection.editionKey,
       language: collection.language,
-      title: `${chapter.book.name} ${passage.chapter}:${passage.from}${passage.to === passage.from ? "" : `–${passage.to}`}`,
+      title: `${chapter.book.name} ${passage.chapter}:${formatRanges(passage.ranges)}`,
       href: `/scripture/${encodeURIComponent(chapter.id)}#vers-${passage.from}`,
       preview: {
         kind: "scripture",
         chapterId: chapter.id,
-        verses: chapter.verses.filter(
-          (v) => v.number >= passage.from && v.number <= passage.to,
+        verses: chapter.verses.filter((v) =>
+          passage.ranges.some(([from, to]) => v.number >= from && v.number <= to),
         ),
       },
     };
@@ -456,6 +462,8 @@ export async function resolveReferenceBatch(
     target: Record<string, unknown>;
     diagnosticKey: string;
     passageIndex?: number;
+    /** Het zichtbare label van de verwijzing; nodig om een doel zonder metadata aan de lokale tekst te koppelen. */
+    label?: string;
   }>,
 ) {
   if (references.length > 200) throw new Error("REFERENCE_LIMIT");
@@ -650,6 +658,7 @@ export async function resolveReferenceBatch(
         prepared,
         studies,
         ref.passageIndex,
+        ref.label,
       ),
     );
   return results;
@@ -690,14 +699,30 @@ export async function referenceInTransaction(
   )
     throw new Error("REFERENCE_UNAVAILABLE");
   if (!["INTERNAL_VERIFIED", "EXTERNAL_VERIFIED"].includes(row.diagnosis)) return {origin: origin.lesson, result: {kind:"unavailable" as const, reason:"unverified" as const, diagnosticKey:row.id}};
-  const [result] = await resolveReferenceBatch(db, actor, origin.lesson, [
+  const [resolved] = await resolveReferenceBatch(db, actor, origin.lesson, [
     {
       target: source.target,
       diagnosticKey: row.id,
       passageIndex: request.passageIndex,
+      label: source.label,
     },
   ]);
+  const result = await withHymnLink(db, actor, resolved);
   return { origin: origin.lesson, result };
+}
+/**
+ * Een verwijzing naar een lofzang die in het eigen zangboek staat opent daar, zolang de gebruiker Lofzangen mag gebruiken
+ * (beheerbare beschikbaarheid, zie hymnAvailability). Anders, of bij een onbekend lofzang-id, blijft de bewezen externe bron.
+ */
+export async function withHymnLink(
+  db: Pick<Prisma.TransactionClient, "contentSwitcherSettings">,
+  actor: ReferenceActor,
+  result: ReferenceResolution,
+): Promise<ReferenceResolution> {
+  if (result.kind !== "external") return result;
+  const hymn = hymnFromOfficialUrl(result.url);
+  if (!hymn || (await getHymnsAccess(actor, db)) !== "allow") return result;
+  return { kind: "hymn", diagnosticKey: result.diagnosticKey, number: hymn.number, title: hymn.title, href: hymn.href, url: result.url };
 }
 export async function resolveStudyReference(
   actor: ReferenceActor,
@@ -721,7 +746,7 @@ export function referenceDiagnosis(result: ReferenceResolution) {
     diagnosis:
       result.kind === "internal"
         ? "INTERNAL_VERIFIED"
-        : result.kind === "external"
+        : result.kind === "external" || result.kind === "hymn"
           ? "EXTERNAL_VERIFIED"
           : "UNRESOLVED",
     evidenceKey:
@@ -737,6 +762,7 @@ export function normalizedReference(result: ReferenceResolution) {
       url: result.url,
       ...(result.language ? { language: result.language } : {}),
     };
+  if (result.kind === "hymn") return { kind: result.kind, number: result.number, href: result.href };
   return {
     kind: result.kind,
     collectionId: result.collectionId,

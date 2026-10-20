@@ -17,6 +17,8 @@ export const NLD_EDITION_ID = "nld-lofzangen";
 
 interface ManifestHymn {
   number: number;
+  /** Officiële, taalonafhankelijke lofzang-id van de kerkwebsite (zie references/hymns.ts). */
+  slug?: string;
   title: string;
   textStatus: string;
   capabilities: HymnCapabilities;
