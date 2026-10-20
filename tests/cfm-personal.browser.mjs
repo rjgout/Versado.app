@@ -445,6 +445,53 @@ try {
     step("CFM als cursus in Leren: toevoegen, leeswijzen, weekleerlijn en verbergen");
   }
 
+  // 10b. Het cursuspad opent bij binnenkomst op de huidige week, netjes onder de vaste kop; een eigen scroll, terugnavigatie en
+  // een tweede render laten de positie met rust.
+  {
+    const fresh = await prisma.user.create({
+      data: { email: `${randomUUID()}@cfm-browser.invalid`, passwordHash: "test-only", handle: `C${randomUUID().slice(0, 8)}`, discriminator: "00", uiLanguage: "nl", isAdmin: false, timeZone: "UTC", activeContentCollectionId: f.key },
+    });
+    const g = { ...f, user: fresh, token: await createSessionToken(fresh.id) };
+    const stepsCourse = await prisma.course.findFirstOrThrow({ where: { contentCollectionId: f.key, type: "STUDY_STEPS" } });
+    await prisma.userCourseProgress.create({ data: { userId: fresh.id, courseId: stepsCourse.id } });
+    const { context, page } = await open(g, { width: 390, height: 420 });
+    await page.goto(`${base}/courses/${stepsCourse.id}/pad`);
+    await page.locator("[data-cfm-week-path]").waitFor();
+    await page.locator('[data-week-state="current"] [data-week-step]').first().waitFor();
+    await page.waitForTimeout(1800);
+    const place = () => page.evaluate(() => {
+      const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-offset")) || 0;
+      const card = document.querySelector('[data-week-state="current"]').getBoundingClientRect();
+      return { y: Math.round(scrollY), cardTop: Math.round(card.top), header: Math.round(header), viewport: innerHeight };
+    });
+    const first = await place();
+    assert.ok(first.cardTop >= first.header - 1, `de huidige week ligt niet onder de vaste kop: ${JSON.stringify(first)}`);
+    assert.ok(first.cardTop < first.viewport, `de huidige week is in beeld: ${JSON.stringify(first)}`);
+    assert.ok(first.y > 0, "de pagina is naar de huidige week gescrold");
+    // Een eigen scroll wordt nooit teruggedraaid door opnieuw automatisch scrollen.
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.waitForTimeout(1800);
+    assert.equal((await place()).y, 0, "geen herhaald automatisch scrollen");
+    // Terugnavigatie herstelt de plek van vóór het openen van een stap.
+    await page.mouse.move(195, 250);
+    await page.mouse.wheel(0, 60); // een echt scrollgebaar: alleen dat telt als eigen positie
+    await page.waitForTimeout(600);
+    // Playwright scrolt het doel zelf in beeld; die positie is de echte plek bij vertrek.
+    await page.locator('[data-week-state="current"] [data-week-step="1"]').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    const before = await place();
+    assert.ok(before.y > 0, "er is gescrold");
+    await page.locator('[data-week-state="current"] [data-week-step="1"]').click();
+    await page.waitForURL(/\/stappen\/1$/);
+    await page.goBack();
+    await page.locator("[data-cfm-week-path]").waitFor();
+    await page.waitForTimeout(1500);
+    const back = await place();
+    assert.ok(Math.abs(back.y - before.y) <= 4, `de oude scrollpositie is hersteld: ${JSON.stringify({ before, back })}`);
+    await context.close();
+    step("cursuspad: huidige week in beeld onder de kop, geen herhaald scrollen, terug herstelt de plek");
+  }
+
   // 8. Klein scherm, grote tekst en donkere modus.
   {
     for (const [width, scheme, height] of [[320, "light", 640], [320, "dark", 640], [360, "light", 800], [844, "light", 390], [768, "dark", 1024]]) {
