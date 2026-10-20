@@ -375,12 +375,17 @@ try {
       return r.bottom > header && r.top < innerHeight && el.contains(document.elementFromPoint(x, y));
     }, null, { timeout: 10000 });
     const overflow = await page.evaluate(() => {
-      const clipped = (el) => { for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) if (/(auto|scroll|hidden|clip)/.test(getComputedStyle(p).overflowX)) return true; return false; };
-      const offenders = [...document.querySelectorAll("body *")]
-        .filter((el) => el.getBoundingClientRect().right > innerWidth + 1 && !clipped(el))
-        .slice(0, 8)
-        .map((el) => `${el.tagName}.${String(el.className).slice(0, 80)} right=${Math.round(el.getBoundingClientRect().right)} text=${(el.textContent ?? "").slice(0, 40)}`);
-      return { ok: document.documentElement.scrollWidth <= innerWidth + 1, scrollWidth: document.documentElement.scrollWidth, offenders };
+      const describe = (el) => `${el.tagName}.${String(el.className).slice(0, 70)}[${getComputedStyle(el).position}/${getComputedStyle(el).overflowX}] left=${Math.round(el.getBoundingClientRect().left)} right=${Math.round(el.getBoundingClientRect().right)} w=${Math.round(el.getBoundingClientRect().width)} text=${(el.textContent ?? "").slice(0, 30)}`;
+      const all = [...document.querySelectorAll("html *")];
+      const outside = all.filter((el) => el.getBoundingClientRect().right > innerWidth + 1);
+      return {
+        ok: document.documentElement.scrollWidth <= innerWidth + 1,
+        scrollWidth: document.documentElement.scrollWidth,
+        bodyScrollWidth: document.body.scrollWidth,
+        // Elementen zonder bovenliggende elementen die ook buiten beeld vallen: de oorsprong van de overschrijding.
+        origins: outside.filter((el) => !outside.includes(el.parentElement)).slice(0, 10).map(describe),
+        scrollers: all.filter((el) => el.scrollWidth > el.clientWidth + 1 && /(auto|scroll)/.test(getComputedStyle(el).overflowX)).slice(0, 5).map(describe),
+      };
     });
     if (!overflow.ok) await page.screenshot({ path: `${output}/cfm-table-overflow-full.png`, fullPage: true });
     assert.ok(overflow.ok, `horizontale overflow op 320 px/200%: ${JSON.stringify(overflow)}`);
