@@ -77,11 +77,13 @@ export class NativeSessionClient {
       await this.refresh(); return this.request<T>(path, body, this.access ?? undefined, method);
     }
   }
-  async logout() {
+  async logout(onCommitted?: () => void) {
     this.generation++; this.access = null;
-    const saved = await this.saved(); if (!saved) return;
+    const saved = await this.saved(); if (!saved) { onCommitted?.(); return; }
     const pending = { ...saved, logoutPending: true, actionId: saved.actionId ?? crypto.randomUUID() };
+    // De UI mag pas uitgelogd tonen nadat deze duurzame intentie bestaat.
     await this.store.write(JSON.stringify(pending));
+    onCommitted?.();
     try { await this.request("logout", { refreshToken: pending.refreshToken, actionId: pending.actionId }); await this.store.clear(); }
     catch (error) { if (error instanceof NativeClientError && error.status === 401) await this.store.clear(); else throw error; }
   }

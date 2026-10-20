@@ -135,7 +135,7 @@ CLAUDE.md; AGENTS.md blijft dezelfde symlink. Geen tweede agentinstructiebestand
 
 | Controle | Resultaat |
 | --- | --- |
-| Native unit/contract/security | 11 geslaagd, 0 overgeslagen |
+| Native unit/contract/security | 12 geslaagd, 0 overgeslagen |
 | Eigen PostgreSQL: native + bestaande registratie | 17 geslaagd, 0 overgeslagen |
 | Contentrechten, learningregels, Focus/shell en live-data | 100 geslaagd, 0 overgeslagen |
 | Prisma validate/generate, TypeScript | Geslaagd |
@@ -160,7 +160,10 @@ Migratiebewijs: 155 bestaande tabellen en hun oude kolommen/rijinhoud onverander
 De eerste testfixture hergebruikte onterecht dezelfde handle/discriminator; die
 is uniek gemaakt. De browser vond een echte fetch-receiverfout, die is hersteld
 met aanvullende unitregressie. Logoutcontrole wacht op bevestigde revocation,
-zonder sleeps, retries of afgezwakte inhoudelijke asserties.
+zonder sleeps, retries of afgezwakte inhoudelijke asserties. De eerste CI-run vond
+vervolgens een echte logout/reload-race: de UI bevestigde uitloggen vóór de
+duurzame Keychain-intentie. De UI wacht nu op die opslagbevestiging; een extra
+unitregressie blokkeert opslag expliciet en controleert de volgorde en offline herstel.
 
 Niet uitgevoerd: Xcode/iOS-build, Android-build (geen Android SDK), simulator-/
 apparaatvalidatie, echte Keychain/Keystore- en Apple Developer-E2E. Java 21 is

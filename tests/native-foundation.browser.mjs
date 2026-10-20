@@ -10,6 +10,8 @@ const db=new URL(process.env.NATIVE_TEST_DATABASE_URL??'http://invalid');
 if(db.hostname!=='127.0.0.1'||db.pathname!=='/versado_content_access_test'||db.href!==process.env.DATABASE_URL)throw Error('Alleen eigen geïsoleerde database');
 const require=createRequire(import.meta.url),{chromium}=require(process.env.PLAYWRIGHT_MODULE??'playwright');
 const out='/tmp/versado-native-browser';rmSync(out,{recursive:true,force:true});mkdirSync(out,{recursive:true});
+// Maak een onveranderlijke asset-snapshot vóór de browser start.
+const stylesheet=readFileSync('dist/native/index.css');
 const bundle=await build({entryPoints:['tests/fixtures/native-foundation-client.tsx'],bundle:true,write:false,platform:'browser',define:{'process.env.NODE_ENV':'"production"'},minify:true});
 const secrets=new Map();let network=true;const backend=process.env.NATIVE_TEST_BASE_URL;
 const front=createServer(async(req,res)=>{
@@ -26,7 +28,7 @@ const front=createServer(async(req,res)=>{
    res.setHeader('Content-Type','application/json');res.end(JSON.stringify({value:secrets.get(id)??null}));return;
   }
   if(url.pathname==='/app.js'){res.setHeader('Content-Type','text/javascript');res.end(bundle.outputFiles[0].text);return;}
-  if(url.pathname==='/index.css'){res.setHeader('Content-Type','text/css');res.end(readFileSync('dist/native/index.css'));return;}
+  if(url.pathname==='/index.css'){res.setHeader('Content-Type','text/css');res.end(stylesheet);return;}
   if(url.pathname.startsWith('/icons/')||url.pathname.startsWith('/mascots/')){if(url.pathname.includes('..')){res.writeHead(404);res.end();return;}res.setHeader('Content-Type',url.pathname.endsWith('.png')?'image/png':'image/webp');res.end(readFileSync(`public${url.pathname}`));return;}
   res.setHeader('Content-Type','text/html');res.end('<!doctype html><html lang="nl"><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/index.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>');
  }catch{res.writeHead(500);res.end();}
@@ -42,7 +44,7 @@ try{
  for(const [width,height,scheme,scale,locale]of [[320,844,'light',2,'nl-NL'],[390,844,'dark',1,'nl-NL'],[1280,900,'light',1,'de-DE'],[844,390,'dark',1,'fr-FR']]){
   const context=await browser.newContext({viewport:{width,height},locale,hasTouch:width<900,isMobile:width<900,colorScheme:scheme});
   await context.addInitScript(({scheme,scale})=>{const apply=()=>{if(scheme==='dark')document.documentElement.classList.add('dark');document.documentElement.style.fontSize=`${100*scale}%`;};if(document.documentElement)apply();else document.addEventListener('DOMContentLoaded',apply,{once:true});},{scheme,scale});
-  let page=await context.newPage();const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error('Native browserfout:',e.message);});page.on('response',r=>{if(r.status()>=400)console.error('Native testresponse:',new URL(r.url()).pathname,r.status());});network=false;
+  let page=await context.newPage();const errors=[],failedResponses=[];page.on('pageerror',e=>{errors.push(e.message);console.error('Native browserfout:',e.message);});page.on('response',r=>{if(r.status()>=400){failedResponses.push({path:new URL(r.url()).pathname,status:r.status()});console.error('Native testresponse:',new URL(r.url()).pathname,r.status());}});network=false;
   try{
   const device=`${width}-${randomUUID()}`;
   await page.goto(`${origin}/?device=${device}`);await page.getByRole('heading',{level:1}).waitFor();await page.getByRole('alert').waitFor();
@@ -71,7 +73,7 @@ try{
    await page.getByRole('button',{name:'Opnieuw proberen',exact:true}).click({trial:true});
    assert.equal(secrets.has(`/test-keychain/${device}`),false,'Beveiligde logoutqueue is na serverbevestiging verwijderd');
   }
-  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Geen horizontale overflow');assert.deepEqual(errors,[]);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Geen horizontale overflow');assert.deepEqual(errors,[]);assert.deepEqual(failedResponses,[],'Geen ontbrekende stylesheets/assets of geweigerde geldige API-acties');
   await page.screenshot({path:`${out}/welcome-${width}-${scheme}-${scale}-${locale}.png`,fullPage:true});results.push({width,height,scheme,scale,locale,offlineStartup:true,overflow:false});
   }catch(error){console.error('Native testscherm:',await page.locator('body').innerText());await page.screenshot({path:`${out}/failure-${width}.png`,fullPage:true});throw error;}finally{await context.close();}
  }

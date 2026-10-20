@@ -84,7 +84,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/icons/icon-512.png" width="44" height="44" alt="" />
       <span className="text-xl font-extrabold">Versado</span>
-      {user && <button type="button" disabled={busy} className={`${button} ml-auto`} onClick={() => { sequence.current++; setUser(null); setChapter(null); setProfile(false); setPassword(""); setCode(""); setIdentifier(""); void action(() => client.logout()); }}><LogOut className="h-4 w-4" />{t("nativeFoundation.logout")}</button>}
+      {user && <button type="button" disabled={busy} className={`${button} ml-auto`} onClick={() => { setPassword(""); setCode(""); void action(() => client.logout(() => { setUser(null); setChapter(null); setProfile(false); setIdentifier(""); })); }}><LogOut className="h-4 w-4" />{t("nativeFoundation.logout")}</button>}
     </header>
     {offline && <p role="status" className="flex gap-2 rounded-xl bg-vs-surface p-3"><WifiOff className="h-5 w-5 shrink-0" />{t("nativeFoundation.offline")}</p>}
     {error && <p role="alert" className="rounded-xl border border-vs-line bg-vs-surface p-3">{error}</p>}

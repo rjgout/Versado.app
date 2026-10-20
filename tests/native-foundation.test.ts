@@ -124,3 +124,21 @@ test("falen van beveiligde opslag geeft geen ingelogde status en trekt uitgegeve
   assert.equal(paths.filter(path => path.endsWith("/logout")).length, 1);
   assert.equal(await client.restore(), false);
 });
+
+test("logoutbevestiging volgt pas na duurzame opslag, ook bij traag platform en netwerkverlies", async () => {
+  const gate = Promise.withResolvers<void>();
+  let raw: string | null = JSON.stringify({ refreshToken: "original-refresh" }), committed = false;
+  const client = new NativeSessionClient("https://example.invalid", {
+    async read() { return raw; },
+    async write(value) { await gate.promise; raw = value; },
+    async clear() { raw = null; },
+  }, async () => { throw new Error("offline"); });
+  const logout = client.logout(() => { committed = true; assert.equal(JSON.parse(raw!).logoutPending, true); });
+  await new Promise<void>(resolve => setImmediate(resolve));
+  assert.equal(committed, false, "nog geen uitlogbevestiging terwijl Keychain-write niet klaar is");
+  gate.resolve(); await assert.rejects(logout, /network_unavailable/);
+  assert.equal(committed, true); assert.equal(JSON.parse(raw!).logoutPending, true);
+  assert.equal(await new NativeSessionClient("https://example.invalid", {
+    async read() { return raw; }, async write(value) { raw = value; }, async clear() { raw = null; },
+  }, async url => { assert.ok(String(url).endsWith("/logout"), "heropenen hervat geen oude sessie");return response({ok:true}); }).restore(), false);
+});
