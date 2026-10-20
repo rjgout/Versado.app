@@ -17,7 +17,6 @@ import {
   DORP_TERRAIN_RUNTIME_BY_ID,
   DORP_TERRAIN_RUNTIME_PATHS,
   assetForObject,
-  forestAssetFor,
 } from "@/lib/dorp/catalog";
 import {
   DETAIL_CAMERA_ZOOM,
@@ -26,19 +25,18 @@ import {
   createRenderScheduler,
   fitCameraToRadius,
   minimumCameraZoom,
+  worldViewRadius,
   screenToWorld,
   zoomCameraAroundPoint,
   type CameraInsets,
   type DorpCamera,
 } from "@/lib/dorp/camera";
 import {
-  MAX_RADIUS,
   PROTOTYPE_PHASES,
   TILE_HEIGHT,
   TILE_WIDTH,
   buildableTileCount,
   chapterThresholdForPhase,
-  forestPlacements,
   footprintTiles,
   isoToWorld,
   placementIsValid,
@@ -49,10 +47,12 @@ import {
 import { availableInstance, levelOwnedInstance, placeOwnedInstance, placedObjects, reconcileInstancesForRadius, storeOwnedInstance } from "@/lib/dorp/ownership";
 import { normalizePaths, paintPathSegment, paintPathTiles, pathConnectivityFromKeys, pathKey } from "@/lib/dorp/paths";
 import { DEFAULT_DORP_STATE, DORP_LEGACY_STORAGE_KEYS, DORP_STORAGE_KEY, parseDorpState, serializeDorpState } from "@/lib/dorp/storage";
-import { boundsContainViewport, forestLodStep, terrainAssetId, terrainBufferBounds, type TerrainWorldBounds } from "@/lib/dorp/terrain";
+import { FOREST_PERIOD, forestTexturePoints, clippedTerrainBounds, containsTerrainBounds, terrainAssetId, terrainBufferBounds, type TerrainWorldBounds } from "@/lib/dorp/terrain";
 import type { ReactNode, SetStateAction } from "react";
 import type { DorpSnapshot } from "@/lib/dorp/service";
 import type { DorpObjectDefinition, DorpWorldState, PlacedDorpObject, TileCoordinate } from "@/lib/dorp/types";
+
+import { registeredSprite } from "@/lib/dorp/registration";
 
 type Placement = { objectId: string; instanceId: string; u: number; v: number; moving: boolean };
 type PointerRecord = { x: number; y: number; startX: number; startY: number };
@@ -144,6 +144,7 @@ export function DorpCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imagesRef = useRef<RenderImageMap>(new Map());
+  const forestCacheRef = useRef<{ count: number; canvas: HTMLCanvasElement; lods: Map<number, HTMLCanvasElement> } | null>(null);
   const terrainCacheRef = useRef<TerrainCache | null>(null);
   const spriteCacheRef = useRef(new Map<string, HTMLCanvasElement>());
   const cameraRef = useRef<DorpCamera>({ x: 0, y: 0, zoom: NORMAL_CAMERA_ZOOM });
@@ -159,6 +160,9 @@ export function DorpCanvas({
   const measureInsets=useCallback(()=>compact?{top:4,right:4,bottom:4,left:4}:cameraInsets(),[compact]);
   const radius = radiusForPhase(world.phase);
   const objects = useMemo(() => placedObjects(world), [world]);
+  const paths = useMemo(() => new Map(world.paths.map(tile => [pathKey(tile), tile])), [world.paths]);
+  const pathKeys = useMemo(() => new Set(paths.keys()), [paths]);
+  const pathsKey = useMemo(() => [...pathKeys].sort().join(";"), [pathKeys]);
 
   useEffect(() => {
     let active = true;
@@ -183,13 +187,13 @@ export function DorpCanvas({
     const camera = cameraRef.current;
     const insets = measureInsets();
     insetsRef.current = insets;
-    const minimum = minimumCameraZoom(box.width, box.height, insets);
+    const minimum = minimumCameraZoom(box.width, box.height, insets, radius);
     if (cameraCommand.kind === "detail") { camera.zoom = Math.max(DETAIL_CAMERA_ZOOM, minimum); fitModeRef.current = "free"; }
     if (cameraCommand.kind === "normal") { camera.zoom = Math.max(NORMAL_CAMERA_ZOOM, minimum); fitModeRef.current = "free"; }
     if (cameraCommand.kind === "in") { camera.zoom = clampCameraZoom(camera.zoom * 1.25, minimum); fitModeRef.current = "free"; }
     if (cameraCommand.kind === "out") { camera.zoom = clampCameraZoom(camera.zoom / 1.25, minimum); fitModeRef.current = "free"; }
     if (cameraCommand.kind === "current") { cameraRef.current = fitCameraToRadius(box.width, box.height, radius, insets); fitModeRef.current = "current"; }
-    if (cameraCommand.kind === "full") { cameraRef.current = fitCameraToRadius(box.width, box.height, MAX_RADIUS+25, insets); fitModeRef.current = "full"; }
+    if (cameraCommand.kind === "full") { cameraRef.current = fitCameraToRadius(box.width, box.height, worldViewRadius(radius), insets); fitModeRef.current = "full"; }
     if (cameraCommand.kind === "center") { camera.x = 0; camera.y = 0; fitModeRef.current = "free"; }
     renderCamera(true);
   }, [cameraCommand, radius, renderCamera, measureInsets]);
@@ -239,40 +243,42 @@ export function DorpCanvas({
         }
         ctx.drawImage(sprite, point.x - drawWidth * anchor[0], point.y - drawHeight * anchor[1], drawWidth, drawHeight);
       };
-      const paths = new Map(world.paths.map((tile) => [pathKey(tile), tile]));
-      const pathKeys = new Set(paths.keys());
-      const pathsKey = world.paths.map(pathKey).sort().join(";");
 
       ctx.fillStyle = "#416438";
       ctx.fillRect(0, 0, width, height);
-      // Wereldvast bos-LOD met begrensde schermdichtheid, ook buiten R62.
-      // Dichte, overlappende assets gebruiken dezelfde bestaande spritecache.
-      const step = forestLodStep(zoom);
-      const forestSize = Math.max(360, step * 1.8);
-      const minX = Math.floor((camera.x-width/2/zoom)/step)-1;
-      const minY = Math.floor((camera.y-height/2/zoom)/step)-1;
-      for(let gy=minY;gy<=minY+Math.ceil(height/zoom/step)+2;gy++) {
-        for(let gx=minX;gx<=minX+Math.ceil(width/zoom/step)+2;gx++) {
-          const hash=Math.abs((gx*73856093)^(gy*19349663));
-          const x=(gx+.25+(hash%19)/100)*step,y=(gy+.25+((hash>>>6)%19)/100)*step;
-          const tile=worldToIso(x,y);
-          if(Math.hypot(tile.u,tile.v)<radius-forestSize/24)continue;
-          const p=screen(x,y),asset=DORP_ASSET_BY_ID.get(hash%2?"forest-dense":"forest-dense-v2")!,image=imagesRef.current.get(asset.path);
-          if(image) {
-            drawSprite(image,asset.path,p,[forestSize,forestSize],asset.anchor);
+      // Eenmalig uit bestaande sprites opgebouwd, naadloos wereldvast patroon.
+      // Geen andere boomrasterstap, grasstijl of objectpositie bij een zoomgrens.
+      const forestAssets = ["forest-dense", "forest-dense-v2"].map(id => DORP_ASSET_BY_ID.get(id)!);
+      const forestCount = forestAssets.filter(asset => imagesRef.current.has(asset.path)).length;
+      if (!forestCacheRef.current || forestCacheRef.current.count !== forestCount) {
+        const tile = document.createElement("canvas"); tile.width = tile.height = FOREST_PERIOD;
+        const paint = tile.getContext("2d")!;
+        paint.fillStyle = "#416438"; paint.fillRect(0, 0, FOREST_PERIOD, FOREST_PERIOD);
+        for (const point of forestTexturePoints()) {
+          const asset = forestAssets[point.variant], image = imagesRef.current.get(asset.path);
+          if (!image) continue;
+          for (const dx of [-FOREST_PERIOD, 0, FOREST_PERIOD]) for (const dy of [-FOREST_PERIOD, 0, FOREST_PERIOD]) {
+            paint.drawImage(image, point.x + dx - 360 * asset.anchor[0], point.y + dy - 360 * asset.anchor[1], 360, 360);
           }
         }
+        forestCacheRef.current = { count: forestCount, canvas: tile, lods: new Map() };
+      }
+      const forestCache = forestCacheRef.current;
+      const lodSize = Math.max(96, Math.min(FOREST_PERIOD, FOREST_PERIOD / 2 ** Math.max(0, Math.floor(Math.log2(1 / (zoom * dpr))))));
+      let forestTile = forestCache.lods.get(lodSize);
+      if (!forestTile) {
+        forestTile = document.createElement("canvas"); forestTile.width = forestTile.height = lodSize;
+        forestTile.getContext("2d")!.drawImage(forestCache.canvas, 0, 0, lodSize, lodSize);
+        forestCache.lods.set(lodSize, forestTile);
+      }
+      const pattern = ctx.createPattern(forestTile, "repeat");
+      if (pattern) {
+        pattern.setTransform(new DOMMatrix().translate(originX, originY).scale(zoom * FOREST_PERIOD / lodSize));
+        ctx.fillStyle = pattern; ctx.fillRect(0, 0, width, height);
       }
 
-      const overview = zoom < 0.18 || width / zoom + 384 > 8192 || height / zoom + 384 > 8192;
-      if (overview) {
-        for(let u=-radius;u<=radius;u++) for(let v=-radius;v<=radius;v++) {
-          if(u*u+v*v>radius*radius) continue;
-          const point=isoToWorld(u,v), p=screen(point.x,point.y);
-          const path=paths.has(`${u},${v}`);
-          drawDiamond(ctx,p.x,p.y,TILE_WIDTH*zoom+.5,TILE_HEIGHT*zoom+.5,path?"#c5a56e":((u+v)%3===0?"#8eb65e":"#86ae57"));
-        }
-      } else {
+      const neededBounds = clippedTerrainBounds(terrainBufferBounds(camera.x, camera.y, zoom, width, height, .25), radius);
+      if (neededBounds) {
         const rasterScale = zoom < 0.36 ? 0.25 : zoom < 0.76 ? 0.5 : 1;
         let terrainCache = terrainCacheRef.current;
         if (!terrainCache
@@ -281,31 +287,41 @@ export function DorpCanvas({
           || terrainCache.assetRevision !== assetRevision
           || terrainCache.rasterScale !== rasterScale
           || terrainCache.dpr !== dpr
-          || !boundsContainViewport(terrainCache.bounds, camera.x, camera.y, zoom, width, height)) {
-          const terrainBounds = terrainBufferBounds(camera.x, camera.y, zoom, width, height, rasterScale);
+          || !containsTerrainBounds(terrainCache.bounds, clippedTerrainBounds(terrainBufferBounds(camera.x, camera.y, zoom, width, height, .25, 0), radius))) {
+          const terrainBounds = neededBounds;
           const terrainCanvas = document.createElement("canvas");
           terrainCanvas.width = (terrainBounds.maxX - terrainBounds.minX) * rasterScale;
           terrainCanvas.height = (terrainBounds.maxY - terrainBounds.minY) * rasterScale;
           const terrainContext = terrainCanvas.getContext("2d", { alpha: true })!;
           terrainContext.imageSmoothingEnabled = false;
-          for (let sum = -radius * 2; sum <= radius * 2; sum += 1) {
-            for (let u = -radius; u <= radius; u += 1) {
+          const grassRadius = radius + 4;
+          for (let sum = -grassRadius * 2; sum <= grassRadius * 2; sum += 1) {
+            for (let u = -grassRadius; u <= grassRadius; u += 1) {
               const v = sum - u;
-              if (v < -radius || v > radius || u * u + v * v > radius * radius) continue;
+              if (v < -grassRadius || v > grassRadius || u * u + v * v > grassRadius * grassRadius) continue;
               const worldPoint = isoToWorld(u, v);
               if (worldPoint.x + TILE_WIDTH / 2 < terrainBounds.minX || worldPoint.x - TILE_WIDTH / 2 > terrainBounds.maxX
                 || worldPoint.y + TILE_HEIGHT / 2 < terrainBounds.minY || worldPoint.y - TILE_HEIGHT / 2 > terrainBounds.maxY) continue;
               const pathTile = paths.get(`${u},${v}`);
               const assetId = terrainAssetId(u, v, pathTile ? pathConnectivityFromKeys(pathTile, pathKeys) : undefined);
               const runtime = DORP_TERRAIN_RUNTIME_BY_ID.get(assetId);
-              const terrainPath = rasterScale === 1 ? runtime?.full : rasterScale === 0.5 ? runtime?.half : runtime?.quarter;
+              const terrainPath = runtime?.full;
               const terrain = terrainPath ? imagesRef.current.get(terrainPath) : undefined;
               const x = (worldPoint.x - terrainBounds.minX) * rasterScale;
               const y = (worldPoint.y - terrainBounds.minY) * rasterScale;
-              if (terrain) terrainContext.drawImage(terrain, x - TILE_WIDTH * rasterScale / 2, y - TILE_HEIGHT * rasterScale / 2);
+              if (terrain) terrainContext.drawImage(terrain, x - TILE_WIDTH * rasterScale / 2, y - TILE_HEIGHT * rasterScale / 2, TILE_WIDTH * rasterScale, TILE_HEIGHT * rasterScale);
               else drawDiamond(terrainContext, x, y, TILE_WIDTH * rasterScale, TILE_HEIGHT * rasterScale, (u + v) % 3 === 0 ? "#8eb65e" : "#86ae57");
             }
           }
+          // Alle bouwbare tegelhoeken liggen binnen R+1. Daar blijft gras
+          // volledig dekkend; alleen de decoratieve rand vervaagt naar bos.
+          terrainContext.globalCompositeOperation = "destination-in";
+          terrainContext.translate(-terrainBounds.minX * rasterScale, -terrainBounds.minY * rasterScale);
+          terrainContext.scale(64 * Math.SQRT2 * rasterScale, 32 * Math.SQRT2 * rasterScale);
+          const fade = terrainContext.createRadialGradient(0, 0, radius + 1, 0, 0, radius + 3);
+          fade.addColorStop(0, "#fff"); fade.addColorStop(1, "transparent");
+          terrainContext.fillStyle = fade;
+          terrainContext.fillRect(-grassRadius * 2, -grassRadius * 2, grassRadius * 4, grassRadius * 4);
           const scaledCanvas = document.createElement("canvas");
           scaledCanvas.width = Math.max(1, Math.round(terrainCanvas.width / rasterScale * zoom * dpr));
           scaledCanvas.height = Math.max(1, Math.round(terrainCanvas.height / rasterScale * zoom * dpr));
@@ -328,28 +344,12 @@ export function DorpCanvas({
       // Deterministische, niet-geografische ring; geen volledige vriendendorpen.
       markers.forEach((marker,index)=>{
         const angle=index*Math.PI*2/Math.max(1,markers.length);
-        const world=isoToWorld(Math.cos(angle)*(MAX_RADIUS+14),Math.sin(angle)*(MAX_RADIUS+14));
+        const world=isoToWorld(Math.cos(angle)*(radius+8),Math.sin(angle)*(radius+8));
         const point=screen(world.x,world.y),link=markerRefs.current.get(marker.ownerId);
         if(link){link.style.left=`${point.x}px`;link.style.top=`${point.y}px`;link.hidden=!(cameraCommand.kind==="full"||zoom<.12)||point.x<32||point.x>width-32||point.y<48||point.y>height-48;}
       });
       type LayerItem = { depth: number; draw: () => void };
       const layers: LayerItem[] = [];
-      {
-        for (const { index, u, v } of forestPlacements(radius)) {
-          const point = isoToWorld(u, v);
-          const registration = forestAssetFor(index, u, v);
-          const image = imagesRef.current.get(registration.path);
-          if (!image) continue;
-          const position = screen(point.x, point.y);
-          const drawWidth = registration.worldSize[0] * zoom;
-          const drawHeight = registration.worldSize[1] * zoom;
-          if (position.x + drawWidth * (1 - registration.anchor[0]) < 0 || position.x - drawWidth * registration.anchor[0] > width
-            || position.y + drawHeight * (1 - registration.anchor[1]) < 0 || position.y - drawHeight * registration.anchor[1] > height) continue;
-          layers.push({ depth: u + v - 0.5, draw: () => {
-            drawSprite(image, registration.path, position, registration.worldSize, registration.anchor);
-          }});
-        }
-      }
 
       for (const object of objects) {
         const definition = DORP_OBJECT_BY_ID.get(object.objectId);
@@ -357,7 +357,8 @@ export function DorpCanvas({
         const image = registration ? imagesRef.current.get(registration.path) : undefined;
         if (!definition || !registration) continue;
         const anchorTile = { u: object.u + definition.footprint[0] - 1, v: object.v + definition.footprint[1] - 1 };
-        const worldPoint = isoToWorld(anchorTile.u, anchorTile.v);
+        const registered = registeredSprite(definition, registration, object);
+        const worldPoint = registered.point;
         layers.push({ depth: anchorTile.u + anchorTile.v, draw: () => {
           const point = screen(worldPoint.x, worldPoint.y);
           if (object.instanceId === selectedId) {
@@ -367,7 +368,7 @@ export function DorpCanvas({
               drawDiamond(ctx, s.x, s.y, TILE_WIDTH * zoom, TILE_HEIGHT * zoom, "rgba(255,255,255,.17)", "rgba(255,255,255,.7)");
             }
           }
-          if (image) drawSprite(image, registration.path, point, registration.worldSize, registration.anchor);
+          if (image) drawSprite(image, registration.path, point, registration.worldSize, registered.anchor);
         }});
       }
 
@@ -392,10 +393,10 @@ export function DorpCanvas({
           const registration = assetForObject(placement.objectId, world.instances.find((item) => item.instanceId === placement.instanceId)?.level ?? 1);
           const image = registration ? imagesRef.current.get(registration.path) : undefined;
           if (registration && image) {
-            const anchor = { u: placement.u + definition.footprint[0] - 1, v: placement.v + definition.footprint[1] - 1 };
-            const p = isoToWorld(anchor.u, anchor.v); const s = screen(p.x, p.y);
+            const registered = registeredSprite(definition, registration, placement);
+            const s = screen(registered.point.x, registered.point.y);
             ctx.globalAlpha = 0.72;
-            drawSprite(image, registration.path, s, registration.worldSize, registration.anchor);
+            drawSprite(image, registration.path, s, registration.worldSize, registered.anchor);
             ctx.globalAlpha = 1;
           }
         }
@@ -411,13 +412,13 @@ export function DorpCanvas({
       const bounds = container.getBoundingClientRect();
       insetsRef.current = measureInsets();
       if (fitModeRef.current === "current") cameraRef.current = fitCameraToRadius(bounds.width, bounds.height, radius, insetsRef.current);
-      if (fitModeRef.current === "full") cameraRef.current = fitCameraToRadius(bounds.width, bounds.height, MAX_RADIUS+25, insetsRef.current);
+      if (fitModeRef.current === "full") cameraRef.current = fitCameraToRadius(bounds.width, bounds.height, worldViewRadius(radius), insetsRef.current);
       scheduler.request();
       onCameraChange({ ...cameraRef.current });
     });
     resize.observe(container);
     return () => { resize.disconnect(); scheduler.cancel(); requestDrawRef.current = () => undefined; };
-  }, [assetRevision, objects, onCameraChange, placement, radius, selectedId, world.instances, world.paths, pathMode, pathPreview, measureInsets, cameraCommand.kind, markers]);
+  }, [assetRevision, objects, onCameraChange, placement, radius, selectedId, world.instances, world.paths, pathMode, pathPreview, measureInsets, cameraCommand.kind, markers, paths, pathKeys, pathsKey]);
 
   const eventToWorld = useCallback((clientX: number, clientY: number) => {
     const bounds = canvasRef.current?.getBoundingClientRect();
@@ -440,7 +441,7 @@ export function DorpCanvas({
 
   return (
     <div ref={containerRef} className="absolute inset-0 touch-none select-none overflow-hidden" data-dorp-canvas>
-      {markers.map(marker=><Link key={marker.ownerId} ref={node=>{if(node)markerRefs.current.set(marker.ownerId,node);else markerRefs.current.delete(marker.ownerId);}} hidden href={`/dorp/visit/${encodeURIComponent(marker.ownerId)}`} data-dorp-friend-marker className="absolute z-[1] flex min-h-11 min-w-11 max-w-28 -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-xl border border-vs-line bg-vs-surface/95 p-2 text-xs font-bold shadow-lg" aria-label={marker.label} title={marker.label}><Home className="h-5 w-5 shrink-0" aria-hidden/><span className="sm:hidden" aria-hidden>{Array.from(marker.label).slice(0,2).join("")}</span><span className="hidden truncate sm:inline">{marker.label}</span></Link>)}
+      {markers.map(marker=><Link key={marker.ownerId} ref={node=>{if(node)markerRefs.current.set(marker.ownerId,node);else markerRefs.current.delete(marker.ownerId);}} hidden prefetch={false} href={`/dorp/visit/${encodeURIComponent(marker.ownerId)}`} data-dorp-friend-marker className="absolute z-[1] flex min-h-11 min-w-11 max-w-28 -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-xl border border-vs-line bg-vs-surface/95 p-2 text-xs font-bold shadow-lg" aria-label={marker.label} title={marker.label}><Home className="h-5 w-5 shrink-0" aria-hidden/><span className="sm:hidden" aria-hidden>{Array.from(marker.label).slice(0,2).join("")}</span><span className="hidden truncate sm:inline">{marker.label}</span></Link>)}
       <canvas
         ref={canvasRef}
         className="block h-full w-full cursor-grab active:cursor-grabbing"
@@ -450,7 +451,7 @@ export function DorpCanvas({
         onWheel={(event) => {
           event.preventDefault();
           const bounds = canvasRef.current!.getBoundingClientRect();
-          const minimum = minimumCameraZoom(bounds.width, bounds.height, insetsRef.current);
+          const minimum = minimumCameraZoom(bounds.width, bounds.height, insetsRef.current, radius);
           const zoom = clampCameraZoom(cameraRef.current.zoom * Math.exp(-event.deltaY * 0.001), minimum);
           cameraRef.current = zoomCameraAroundPoint(cameraRef.current, bounds.width, bounds.height, event.clientX - bounds.left, event.clientY - bounds.top, zoom);
           fitModeRef.current = "free";
@@ -493,7 +494,7 @@ export function DorpCanvas({
             const distance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
             const bounds = canvasRef.current!.getBoundingClientRect();
             const midpoint = { x: (points[0].x + points[1].x) / 2 - bounds.left, y: (points[0].y + points[1].y) / 2 - bounds.top };
-            const minimum = minimumCameraZoom(bounds.width, bounds.height, insetsRef.current);
+            const minimum = minimumCameraZoom(bounds.width, bounds.height, insetsRef.current, radius);
             const zoom = clampCameraZoom(gestureRef.current.pinchZoom * distance / Math.max(1, gestureRef.current.pinchDistance), minimum);
             camera.x = gestureRef.current.pinchWorld.x - (midpoint.x - bounds.width / 2) / zoom;
             camera.y = gestureRef.current.pinchWorld.y - (midpoint.y - bounds.height / 2) / zoom;
@@ -540,7 +541,7 @@ export type DorpControlledProps = { snapshot: DorpSnapshot; backHref?: string; b
 export default function DorpPrototypeClient({controlled}:{controlled?:DorpControlledProps}={}) {
   useImmersiveShell();
   const t=useT();
-  const goBack = useBackNavigation(controlled ? controlled.backHref ?? "/dashboard" : "/adminbackend/spellen");
+  const goBack = useBackNavigation(controlled ? controlled.backHref ?? "/profile" : "/adminbackend/spellen");
   const [localWorld, setLocalWorld] = useState<DorpWorldState>(DEFAULT_DORP_STATE);
   const world=controlled?.snapshot.world??localWorld;
   const setWorld=(action:SetStateAction<DorpWorldState>)=>{
@@ -671,14 +672,14 @@ export default function DorpPrototypeClient({controlled}:{controlled?:DorpContro
           </button>
           <div className="pointer-events-none min-w-0 flex-1 rounded-2xl border border-white/40 bg-vs-surface/90 px-3 py-2 text-center shadow-lg backdrop-blur">
             <p className="truncate text-sm font-bold">{controlled?"Versado Dorp":"Versado Dorp · technisch prototype"}</p>
-            <p className="truncate text-xs text-vs-fg-3">{cameraCommand.kind === "full" ? `${t("dorp2.futureWorld")} R${MAX_RADIUS} · ${t("dorp2.fitMap")} R${radius}` : `${activePhase.label} · R${radius} · ${buildableTileCount(radius).toLocaleString("nl-NL")} tegels`}</p>
+            <p className="truncate text-xs text-vs-fg-3">{cameraCommand.kind === "full" ? `${t("dorp2.futureWorld")} · R${radius}` : `${activePhase.label} · R${radius} · ${buildableTileCount(radius).toLocaleString("nl-NL")} tegels`}</p>
           </div>
           {!controlled && <button type="button" onClick={() => setDeveloperOpen((value) => !value)} className="btn !h-[44px] !w-[44px] !min-w-[44px] shrink-0 !border-white/40 !bg-vs-surface/90 !p-0 shadow-lg backdrop-blur sm:!w-auto sm:!px-3" aria-expanded={developerOpen} aria-label="Testmenu">
             <Box className="h-[20px] w-[20px]" aria-hidden /> <span className="hidden sm:inline">Testmenu</span>
           </button>}
         </header>
 
-        {controlled && <div className="pointer-events-auto mt-2 max-h-[35dvh] overflow-y-auto rounded-2xl bg-vs-surface/95 p-2 shadow-lg">{controlled.controls}</div>}
+        {controlled && <div className="pointer-events-auto mt-2 max-h-[35dvh] overflow-y-auto w-fit max-w-full rounded-xl bg-vs-surface/95 px-3 shadow-sm">{controlled.controls}</div>}
         {developerOpen && !controlled && (
           <section className="pointer-events-auto mt-2 ml-auto max-h-[65dvh] w-[min(100%,22rem)] overflow-y-auto rounded-2xl border border-vs-line bg-vs-surface/95 p-3 shadow-xl backdrop-blur" aria-label="Ontwikkelmenu kaartuitbreiding">
             <div className="mb-2 flex items-center justify-between gap-2"><h2 className="font-bold">Kaartfase testen</h2><button type="button" onClick={() => setDeveloperOpen(false)} aria-label="Testmenu sluiten"><ChevronUp className="h-5 w-5" /></button></div>
@@ -703,7 +704,7 @@ export default function DorpPrototypeClient({controlled}:{controlled?:DorpContro
               <button type="button" onClick={() => issueCameraCommand("detail")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1">{t("dorp2.detail")}</button>
               <button type="button" onClick={() => issueCameraCommand("normal")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1">{t("dorp2.normal")}</button>
               <button type="button" onClick={() => issueCameraCommand("current")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1" aria-label="Huidige kaart volledig tonen"><Focus className="mx-auto h-4 w-4" />{t("dorp2.fitMap")}</button>
-              <button type="button" onClick={() => issueCameraCommand("full")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1" aria-label="Maximale toekomstige wereld tonen"><Globe2 className="mx-auto h-4 w-4" />{t("dorp2.futureWorld")}</button>
+              <button type="button" onClick={() => issueCameraCommand("full")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1" aria-label={t("dorp2.futureWorld")}><Globe2 className="mx-auto h-4 w-4" />{t("dorp2.futureWorld")}</button>
             </div></details>
           </div>
 

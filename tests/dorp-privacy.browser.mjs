@@ -30,7 +30,7 @@ try{
  await previewCard.waitFor();await canvas.waitFor();
  await map.goto(`${base}/profile`);await map.getByRole('link',{name:'Mijn dorp',exact:true}).waitFor();await map.getByRole('link',{name:'Mijn dorp',exact:true}).click();
  await map.getByRole('button',{name:'Dorp openen',exact:true}).click();await map.locator('canvas[aria-busy="false"]').waitFor();
- await map.locator('summary').filter({hasText:'Weergave'}).click();await map.getByRole('button',{name:'Maximale toekomstige wereld tonen'}).click();
+ await map.locator('summary').filter({hasText:'Weergave'}).click();await map.getByRole('button',{name:'Wereld'}).click();
  const marker=map.locator('[data-dorp-friend-marker]');await marker.waitFor();assert.equal(await marker.getAttribute('href'),`/dorp/visit/${owner.id}`);
  await map.screenshot({path:`${output}/friend-world-390.png`});
  const markerResponse=await previewContext.request.get(`${base}/api/dorp?markers=friends`);assert.equal(markerResponse.status(),200);assert.match(markerResponse.headers()['cache-control'],/no-store/);

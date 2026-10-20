@@ -96,7 +96,7 @@ try{
    const from=screen(family.position),to=screen(well.position);await page.mouse.move(from.x,from.y);await page.mouse.down();await page.mouse.move(to.x,to.y,{steps:8});await page.mouse.up();
    assert.deepEqual((await state()).instances.find(i=>i.instanceId===family.instanceId).position,family.position);
    await page.getByRole('button',{name:'Selectie sluiten',exact:true}).click();
-   await page.locator('summary').filter({hasText:'Weergave'}).click();await page.getByRole('button',{name:'Maximale toekomstige wereld tonen'}).click();
+   await page.locator('summary').filter({hasText:'Weergave'}).click();await page.getByRole('button',{name:'Wereld'}).click();
    await page.screenshot({path:`${output}/world-overview.png`});
    assert.equal((await state()).phase,0);
    await page.getByRole('button',{name:'Testmenu',exact:true}).click();await page.getByRole('button',{name:/Middenfase/}).click();await page.getByRole('button',{name:'Testmenu',exact:true}).click();
@@ -141,9 +141,9 @@ try{
   await page.route('**/_next/static/chunks/*.js',async route=>{await scripts.promise;await route.continue();});
   page.on('request',request=>{if(request.url().endsWith('/api/dorp')&&request.method()==='POST')writes++;});
   try{
-   await page.goto(`${base}/dorp`,{waitUntil:'commit'});const open=page.getByRole('button',{name:'Dorp openen',exact:true});await open.waitFor();
-   assert.equal(await open.isDisabled(),true,'SSR-acties wachten aantoonbaar op hydratatie');
-   scripts.resolve();await open.click();await page.locator('canvas[aria-busy="false"]').waitFor();assert.equal(writes,1);results.push({hydration:true,singleOpenRequest:true});
+   await page.goto(`${base}/dorp`,{waitUntil:'commit'});const open=page.getByRole('button',{name:'Dorp openen',exact:true});await page.getByRole('button',{name:'Versado Dorp sluiten',exact:true}).waitFor();
+   assert.equal(await open.count(),0,'Creatie verschijnt pas na de veilige GET, niet tijdens SSR');
+   assert.equal(writes,0);scripts.resolve();await open.click();await page.locator('canvas[aria-busy="false"]').waitFor();assert.equal(writes,1);results.push({hydration:true,singleOpenRequest:true});
   }finally{scripts.resolve();await context.close();}
  }
  for(const [width,height]of [[320,844],[390,844],[844,390],[1280,900]]){
@@ -165,14 +165,24 @@ try{
    assert.equal((await ordinaryContext.request.put(`${base}/api/admin/content-switcher`,{headers:{Origin:base},data:{activity:'dorp',visibleToUsers:true}})).status(),403);await ordinaryContext.close();
    for(const path of ['/dorp',`/dorp/visit/${friend.id}`]){
     const direct=await context.newPage();await direct.goto(`${base}${path}`);
-    if(path==='/dorp')await direct.getByRole('button',{name:'Dorp openen',exact:true}).click();
     await loadedCanvas(direct);await direct.getByRole('button',{name:'Versado Dorp sluiten',exact:true}).click();
-    await direct.waitForURL(`${base}${path==='/dorp'?'/dashboard':`/friends/${friend.id}`}`);await direct.locator('[data-sticky-header]').waitFor({state:'visible'});await direct.waitForLoadState('networkidle');await direct.close();
+    await direct.waitForURL(`${base}${path==='/dorp'?'/profile':`/friends/${friend.id}`}`);await direct.locator('[data-sticky-header]').waitFor({state:'visible'});await direct.waitForLoadState('networkidle');await direct.close();
    }
   }
-  await page.goto(`${base}/dorp`);await page.getByRole('button',{name:'Dorp openen',exact:true}).click();await loadedCanvas();
-  if(!await prisma.dorpPlacement.count({where:{village:{ownerId:admin.id}}})){await page.getByRole('button',{name:'Bouwen',exact:true}).click();await page.getByRole('button',{name:new RegExp(DORP_OBJECT_BY_ID.get('vd-b001').name)}).click();await page.getByRole('button',{name:'Plaatsen',exact:true}).click();}
-  await page.getByRole('status').filter({hasText:'Opgeslagen'}).waitFor();await page.screenshot({path:`${output}/personal-server-${width}.png`});
+  await page.goto(`${base}/dorp`);await loadedCanvas();
+  {
+   const before=await prisma.dorpVillage.findUniqueOrThrow({where:{ownerId:admin.id}});let writes=0;
+   const count=request=>{if(request.url().endsWith('/api/dorp')&&request.method()==='POST')writes++;};page.on('request',count);
+   await page.reload();await loadedCanvas();
+   await page.locator('summary').filter({hasText:'Kies een dorp'}).click();
+   await page.getByRole('button',{name:'Opnieuw laden',exact:true}).click();await loadedCanvas();
+   assert.equal(writes,0,'Herladen en openen van bestaand persoonlijk dorp zijn GET-only');
+   assert.deepEqual(await prisma.dorpVillage.findUniqueOrThrow({where:{id:before.id}}),before);
+   await page.locator('summary').filter({hasText:'Kies een dorp'}).click();page.off('request',count);
+  }
+
+  if(!await prisma.dorpPlacement.count({where:{village:{ownerId:admin.id}}})){await page.getByRole('button',{name:'Bouwen',exact:true}).click();await page.getByRole('button',{name:new RegExp(DORP_OBJECT_BY_ID.get('vd-b001').name)}).click();await page.getByRole('button',{name:'Plaatsen',exact:true}).click();await page.getByRole('status').filter({hasText:'Opgeslagen'}).waitFor();}
+  await page.screenshot({path:`${output}/personal-server-${width}.png`});
   await page.goto(`${base}/dorp/groups/${group.id}`);await page.getByRole('button',{name:'Dorp openen',exact:true}).click();await loadedCanvas();await page.screenshot({path:`${output}/group-${width}.png`});
   await page.goto(`${base}/friends/${friend.id}`);const preview=page.getByRole('link',{name:'Dorp bezoeken',exact:true});await preview.waitFor();await preview.screenshot({path:`${output}/profile-preview-${width}.png`});await preview.click();await page.waitForURL(`${base}/dorp/visit/${friend.id}`);await page.getByRole('button',{name:'Versado Dorp sluiten',exact:true}).waitFor();await loadedCanvas();await page.locator('[data-sticky-header]').waitFor({state:'hidden'});await page.locator('[data-main-nav]').waitFor({state:'hidden'});assert.equal(await page.getByRole('button',{name:'Bouwen',exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'Testmenu',exact:true}).count(),0);
   const visitBox=await page.locator('canvas').boundingBox();assert.ok(Math.abs(visitBox.y)<2);assert.ok(visitBox.height>=height-2);await page.screenshot({path:`${output}/visit-${width}.png`});
