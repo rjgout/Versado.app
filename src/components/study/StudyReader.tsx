@@ -250,7 +250,7 @@ function ReaderVisit({
     const deadline=setTimeout(()=>controller.abort(),15000);
     let result:{href:string;token:string;trip:ReferenceTrip};
     try{result=await jsonMutation<{href:string;token:string;trip:ReferenceTrip}>("/api/study-references",{
-      json:{action:"more",...reference.request,passageIndex,expectedSelection:morePending.current.expectedSelection,expectedSelectionVersion:morePending.current.expectedSelectionVersion,expectedPositionVersion:state.position?.version ?? 0},
+      json:{action:"more",...reference.request,passageIndex,expectedSelection:morePending.current.expectedSelection,expectedSelectionVersion:morePending.current.expectedSelectionVersion,expectedPositionVersion:state.position?.version ?? 0,...(legacy ? {} : {origin:pageMode==="step" && currentStep ? {mode:"steps" as const,step:currentStep.index} : {mode:pageMode==="full" ? "full" as const : "free" as const}})},
       headers:{"X-Reading-Session":sessionKey},signal:controller.signal,
     },{invalidates:"contentChanged"});}
     catch(error){

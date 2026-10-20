@@ -39,9 +39,14 @@ async function fixture() {
   const actor = { id: user.id, isAdmin: true };
   const run = await createStudyImport(actor, key, "cfm-personal");
   await executeStudyImport(actor, run.id);
-  const item = await prisma.contentImportItem.findFirstOrThrow({ where: { runId: run.id }, include: { edition: true } });
-  await publishStudyRevision(actor, { editionId: item.lessonEditionId, revisionId: item.revisionId, importRunId: run.id, expectedVersion: item.edition.publicationVersion, actionId: randomUUID(), kind: "PUBLISH" });
-  return { user, key, lessonId: item.edition.lessonId, editionId: item.lessonEditionId, token: await createSessionToken(user.id), href: `/study-lesson/${item.edition.lessonId}/${key}` };
+  const items = await prisma.contentImportItem.findMany({ where: { runId: run.id }, include: { edition: true } });
+  // Twee lessen: de vorige week (eerder in het programma) en de huidige week; beide worden gepubliceerd.
+  for (const item of items)
+    await publishStudyRevision(actor, { editionId: item.lessonEditionId, revisionId: item.revisionId, importRunId: run.id, expectedVersion: item.edition.publicationVersion, actionId: randomUUID(), kind: "PUBLISH" });
+  const item = items.find((i) => i.sourceKey === "fixture:cfm-lesson");
+  await prisma.user.update({ where: { id: user.id }, data: { activeContentCollectionId: key } });
+  return { user, key, lessonId: item.edition.lessonId, editionId: item.lessonEditionId, token: await createSessionToken(user.id), href: `/study-lesson/${item.edition.lessonId}/${key}`,
+    previousHref: `/study-lesson/${items.find((i) => i.sourceKey === "fixture:cfm-lesson-previous").edition.lessonId}/${key}` };
 }
 async function open(f, { width = 390, height = 844, scheme = "light" } = {}) {
   const context = await browser.newContext({ viewport: { width, height }, colorScheme: scheme, timezoneId: "UTC", hasTouch: width < 500, isMobile: width < 500, serviceWorkers: "block" });
@@ -352,6 +357,64 @@ try {
     assert.ok(top > -50 && top < 844, `leespositie hersteld (b-p4b op ${Math.round(top)}px)`);
     await context.close();
     step("afbeeldingen en herstel van de leespositie");
+  }
+
+  // 10. Weekpad (zelfde leerlijn als de leescursussen): lesafbeelding, geen vergrendelingen, in- en uitklappen, voorkeur per gebruiker.
+  {
+    // Een verse gebruiker zonder voorkeur (de eerdere scenario's hebben die van de hoofdgebruiker al gezet).
+    const fresh = await prisma.user.create({
+      data: { email: `${randomUUID()}@cfm-browser.invalid`, passwordHash: "test-only", handle: `C${randomUUID().slice(0, 8)}`, discriminator: "00", uiLanguage: "nl", isAdmin: false, timeZone: "UTC", activeContentCollectionId: f.key },
+    });
+    const g = { ...f, user: fresh, token: await createSessionToken(fresh.id) };
+    const { context, page } = await open(g);
+    await page.goto(base + "/courses");
+    await page.locator("[data-cfm-week-path]").waitFor();
+    assert.equal(await page.locator("[data-cfm-week-path]").getAttribute("data-path-mode"), "FREE", "zonder voorkeur geldt Vrije studie");
+    assert.equal(await page.locator("[data-week]").count(), 2, "alleen gepubliceerde weken");
+    assert.equal(await page.locator("[data-week-step]").count(), 0, "Vrije studie toont geen zevenstappenindeling");
+    assert.equal(await page.locator('[data-week] [aria-disabled="true"]').count(), 0, "geen vergrendelingen");
+    const current = page.locator('[data-week-state="current"]');
+    await current.locator('img[src^="/api/study-media/"]').first().waitFor();
+    assert.ok(await current.locator("img").first().evaluate((img) => img.complete && img.naturalWidth > 0), "officiële lesafbeelding geladen");
+    assert.equal(await prisma.user.findUniqueOrThrow({ where: { id: fresh.id }, select: { personalStudyMode: true } }).then((u) => u.personalStudyMode), null);
+    await page.screenshot({ path: `${output}/week-path-free-mobile.png`, fullPage: true });
+    // Kiezen voor Stap voor stap bewaart de voorkeur server-side en toont zeven stappen onder de actieve week.
+    await page.getByRole("link", { name: t("cfmStudy.modeSteps"), exact: true }).click();
+    await page.waitForURL(/weergave=stappen/);
+    await page.locator("[data-week-step]").first().waitFor();
+    assert.equal(await current.locator("[data-week-step]").count(), 7);
+    for (let i = 0; i < 40 && (await prisma.user.findUniqueOrThrow({ where: { id: fresh.id }, select: { personalStudyMode: true } })).personalStudyMode !== "STEPS"; i++) await page.waitForTimeout(150);
+    assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: fresh.id }, select: { personalStudyMode: true } })).personalStudyMode, "STEPS");
+    await page.goto(base + "/courses");
+    await page.locator("[data-cfm-week-path]").waitFor();
+    assert.equal(await page.locator("[data-cfm-week-path]").getAttribute("data-path-mode"), "STEPS", "de voorkeur geldt zonder parameter");
+    // Een expliciete deeplink gaat voor en overschrijft de voorkeur niet.
+    await page.goto(base + "/courses?weergave=vrij");
+    await page.locator('[data-cfm-week-path][data-path-mode="FREE"]').waitFor();
+    assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: fresh.id }, select: { personalStudyMode: true } })).personalStudyMode, "STEPS");
+    // Een andere week is vrij open- en dichtklapbaar en alle stappen zijn direct bereikbaar.
+    await page.goto(base + "/courses?weergave=stappen");
+    const other = page.locator('[data-week-state="open"], [data-week-state="started"], [data-week-state="done"]').first();
+    const toggle = other.getByRole("button");
+    await toggle.waitFor();
+    assert.equal(await toggle.getAttribute("aria-expanded"), "false");
+    await page.waitForTimeout(800);
+    await toggle.click();
+    await other.locator("[data-week-step]").first().waitFor();
+    assert.equal(await other.locator("[data-week-step]").count(), 7);
+    await page.screenshot({ path: `${output}/week-path-steps-mobile.png`, fullPage: true });
+    await other.locator('[data-week-step="5"]').click();
+    await page.waitForURL(/\/stappen\/5$/);
+    await page.goBack();
+    await page.locator("[data-cfm-week-path]").waitFor();
+    await page.waitForTimeout(800);
+    await other.getByRole("button").click();
+    await other.locator("[data-week-step]").first().waitFor();
+    await other.getByRole("button").click();
+    assert.equal(await other.locator("[data-week-step]").count(), 0, "inklappen verbergt de stappen");
+    assert.ok(await noOverflow(page));
+    await context.close();
+    step("weekpad met lesafbeelding, voorkeur en vrij in-/uitklappen");
   }
 
   // 8. Klein scherm, grote tekst en donkere modus.

@@ -160,5 +160,11 @@ export async function getStepProgressForEdition(actor: Actor, lessonEditionId: s
   if (!published || published.editionId !== lessonEditionId) return null;
   const plan = plannedSteps(published);
   const state = await getStepProgress(actor, published, plan, client);
-  return state ? { revisionId: published.revisionId, state } : null;
+  if (!state || !plan.supported) return null;
+  // De stapkaarten (titel, schriftgedeelten) komen mee zodat het weekpad een week lui kan uitklappen zonder de les te laden.
+  return {
+    revisionId: published.revisionId,
+    state,
+    steps: plan.steps.map((s) => ({ index: s.index, title: s.title, continued: s.continued, labels: s.labels, fingerprint: s.fingerprint })),
+  };
 }

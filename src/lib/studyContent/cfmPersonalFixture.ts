@@ -48,7 +48,7 @@ const text = (value: string) => [{ type: "text" as const, text: value }];
 const filler = (topic: number, part: number) =>
   `Synthetische studietekst ${topic}.${part}. Deze alinea is bewust lang genoeg om als een echte studiealinea te tellen, zodat de verdeling over zeven stappen en de leeslast gecontroleerd kunnen worden zonder officiële brontekst.`;
 
-export function cfmPersonalFixtureItem(): SnapshotItem {
+export function cfmPersonalFixtureItem(variant: "current" | "previous" = "current"): SnapshotItem {
   const painting = solidPng(400, 300);
   const topics = [1, 2, 3, 4, 5].flatMap((n) => [
     { type: "paragraph" as const, id: `b-scripture_title${n}`, content: text(`Synthetisch ${n}:1–10`) },
@@ -92,16 +92,18 @@ export function cfmPersonalFixtureItem(): SnapshotItem {
   // De huidige week (maandag t/m zondag, UTC) zodat de fixture vanzelf de actuele week is.
   const now = new Date();
   const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - ((now.getUTCDay() + 6) % 7)));
-  const day = (offset: number) => new Date(monday.getTime() + offset * 86_400_000).toISOString().slice(0, 10);
+  // De vorige week is een tweede les in dezelfde fixture, zodat het weekpad een afgeronde/ingeklapte week kan tonen.
+  const shift = variant === "previous" ? -7 : 0;
+  const day = (offset: number) => new Date(monday.getTime() + (offset + shift) * 86_400_000).toISOString().slice(0, 10);
   return {
     schemaVersion: 1,
-    title: "Synthetische CFM-les",
+    title: variant === "previous" ? "Synthetische CFM-les — vorige week" : "Synthetische CFM-les",
     body: parsed,
-    sourceMetadata: { sourceKey: "fixture:cfm-lesson", name: "Gecontroleerde synthetische CFM-fixture" },
+    sourceMetadata: { sourceKey: variant === "previous" ? "fixture:cfm-lesson-previous" : "fixture:cfm-lesson", name: "Gecontroleerde synthetische CFM-fixture" },
     rightsMetadata: rights,
-    sourceKey: "fixture:cfm-lesson",
-    slug: "synthetic-cfm-lesson",
-    order: 0,
+    sourceKey: variant === "previous" ? "fixture:cfm-lesson-previous" : "fixture:cfm-lesson",
+    slug: variant === "previous" ? "synthetic-cfm-lesson-previous" : "synthetic-cfm-lesson",
+    order: variant === "previous" ? 0 : 1,
     startsOn: day(0),
     endsOn: day(6),
     media: [

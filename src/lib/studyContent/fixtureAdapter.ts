@@ -202,7 +202,7 @@ export function studyFixture(
   if (key === "invalid")
     (body.sections[0].blocks[0] as { type: string }).type =
       "unknown-meaningful-block";
-  const items = [key === "cfm-personal" ? cfmPersonalFixtureItem() : item];
+  const items = key === "cfm-personal" ? [cfmPersonalFixtureItem("previous"), cfmPersonalFixtureItem("current")] : [item];
   if(key==="references"){
     const block=(body.sections[0].blocks.find(b=>b.type==="reference") as {label:string;target:Record<string,string>});
     block.label="1 Nephi 1:1–3";

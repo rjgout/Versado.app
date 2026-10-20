@@ -149,6 +149,7 @@ model User {
   contentLanguage String @default("nl")
   readingPositions ReadingPosition[]
   studyStepProgress StudyStepProgress[]
+  personalStudyMode PersonalStudyMode?
   studyContexts UserStudyContext[]
   contentImportRuns ContentImportRun[] @relation("StudyImportActor")
   studyPublications StudyPublicationAction[] @relation("StudyPublicationActor")
@@ -3908,6 +3909,12 @@ enum MysteryAttemptStatus {
 }
 
 // Persoonlijke positie, strikt los van gelezenstatus en beloningen.
+/// Voorkeur voor de leeswijze van de persoonlijke studie (CFM). NULL = nog geen keuze; dan geldt de standaard Vrije studie.
+enum PersonalStudyMode {
+  FREE
+  STEPS
+}
+
 enum StudyStepStatus {
   IN_PROGRESS
   COMPLETED

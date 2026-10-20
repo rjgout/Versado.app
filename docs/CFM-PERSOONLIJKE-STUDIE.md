@@ -96,7 +96,11 @@ gewone taal; niets verdwijnt zonder reden (test).
 * 1.714 blokken persoonlijk, 1.316 daarbuiten (allemaal met reden). Stapgrootte 247 tot 1.451 tekens (gemiddeld 772).
 * Twijfelgevallen: 73 kaders. **51 verborgen door expliciete override** (42 verwijzingen naar externe tijdschriftactiviteiten en
   9 duidelijke leerkrachttips), **22 blijven zichtbaar** (algemene studietips). Dit is een inhoudelijke keuze van de eigenaar;
-  zie §8.
+  zie §8. **Geschiktheid van de 22 zichtbare tips gecontroleerd** (alle 22 gelezen): het zijn zonder uitzondering
+  methoden voor eigen schriftstudie ("Let op symbolen", "Leer actief", "Gebruik muziek", "Wees geduldig", "Concentreer je op
+  het belangrijkste", "Vergelijk de Schriften met je leven", "Gebruik Schriftstudiewijzers" enz.). De 9 leerkrachttips
+  ("Leer je leerlingen kennen", "Geef leerlingen de kans te getuigen" enz.) en alle 42 verwijzingen naar tijdschriftactiviteiten
+  zijn verborgen. Geen wijziging nodig; een latere correctie loopt via het overrides-bestand.
 * Alle 52 lessen zijn aangetoond verdeelbaar zonder opvulling of verzonnen inhoud; er zijn geen lessen die als
   contentcontrolepunt gemeld moeten worden.
 
@@ -215,3 +219,22 @@ Voorlopig gekozen (omkeerbaar):
   `tests/study-reader.browser.mjs` faalt in deze omgeving ook op ongewijzigde `main` ("positie bewaard").
 * Handmatige controle voor de eigenaar: inhoudelijke keuze van de 73 kaders (zie §3 en het verslag), echte CFM-afbeeldingen in de browser na het laden van de
   gepubliceerde revisies, en de migratie `20261121120000_study_step_progress` bij de eerstvolgende uitrol.
+
+## 14. Voorkeur, weekleerlijn en retour van schriftverwijzingen (PR #150, ronde 3)
+
+* **Ontwerpbesluiten ongewijzigd**: 22 zichtbare tips/51 verborgen, staptitels inclusief "Vervolg", aparte tabel
+  `StudyStepProgress`, ongewijzigde reeks-/XP-regels, versioneerde JSON-configuratie.
+* **Leeswijzevoorkeur** (`User.personalStudyMode`, nullable enum FREE/STEPS, migratie `20261122120000_user_personal_study_mode`
+  zonder backfill: bestaande gebruikers houden `NULL` en dus de standaard Vrije studie). Volgorde: expliciete deeplink
+  (`?weergave=vrij|stappen`) > opgeslagen voorkeur > Vrije studie (`resolvePersonalStudyMode`). Wisselen via de ModeSwitch bewaart
+  de keuze via `PUT /api/study-preference`. De huidige-weekregel van Stap voor stap blijft ongewijzigd.
+* **Weekleerlijn** (`CfmWeekPath`): dezelfde bouwstenen als de leescursussen (`ActiveChapterCard`, `ChapterThumb`, `Connector`,
+  `CARD`). Afbeelding = de officiële lesafbeelding (eerste figuur ≥ 300 px breed, READY, via `/api/study-media`); er is voor het
+  Oude Testament geen boekafbeelding in het artworkregister, dus zonder lesafbeelding blijft de kaart een neutrale Versado-kaart
+  (geen verzonnen beeld). Geen sloten; afgeronde weken zijn in- en uitklapbaar.
+* **Retourcontract**: het getekende retourbewijs bevat nu een vaste `originHref`-vorm (Vrije studie, volledige les, stappenoverzicht
+  of `/stappen/N`), server-side opgebouwd uit `originViewSchema`; de leespositie (sectie/blok) komt uit het bestaande
+  positiesysteem. Oude bewijzen blijven geldig (dezelfde basis-href).
+* **Open acceptatiepunt**: browsercontrole met de echte geïmporteerde CFM-afbeeldingen is lokaal niet uitgevoerd (de echte import
+  vereist de volledige geïsoleerde Docker-omgeving met goedgekeurde snapshot). Afbeeldingsgedrag is gevalideerd met de
+  testfixture en de CI-import (`cfm-2026-import`); een volledige afbeeldingsvalidatie met echte bronbestanden wordt dus **niet** geclaimd.

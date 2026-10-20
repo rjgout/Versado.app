@@ -4,6 +4,8 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Nieuw (Kom dan en volg Mij): je kiest Vrije studie of Stap voor stap één keer en Versado onthoudt dat; een link met een expliciete weergave gaat altijd voor. De weken staan als leerlijn met de officiële lesafbeelding (zoals bij de leescursussen), zonder sloten. Na het openen van een schriftverwijzing kom je terug in dezelfde leeswijze, stap en leesplek.
+
 - Nieuw (Kom dan en volg Mij): persoonlijke studie in twee leeswijzen. **Vrije studie** toont de persoonlijke studie van de week als één compacte, doorlopende tekst; **Stap voor stap** verdeelt dezelfde tekst in precies zeven stappen (Stap 1 t/m Stap 7) met een weekoverzicht, statussen (nog niet begonnen, bezig, afgerond) en bewust afronden per stap. Ideeën voor onderwijs aan kinderen en bijlagen staan niet meer in de persoonlijke route; de volledige officiële les blijft via het menu bereikbaar en de brontekst is ongewijzigd. Tik op een alinea voor bladwijzer, markering of privénotitie (de driepuntjes zijn weg); afbeeldingen zijn kleiner en vergrotbaar. Een stap afronden telt niet als de hele les gelezen en geeft geen XP of reeks; "Markeren als gelezen" staat onderaan de studie. Zie `docs/CFM-PERSOONLIJKE-STUDIE.md`.
 
 - Nieuw (Lofzangen): één knop "Start luisteren". Zonder gekozen lofzang herkent Versado de melodie uit de hele bibliotheek, ook bij orgel, piano, solozang of a capella; met een gekozen lofzang volgt Versado direct waar er gezongen wordt, in het tempo van de zangers, en blijft het meelezen rustig bij vertraging of herhaling. De woordmarkering is melodiegestuurd (geen echte woordherkenning) en alle analyse blijft op je toestel. Zie `docs/hymns/21-LOFZANGEN-V3.md`.
