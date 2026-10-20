@@ -1,6 +1,8 @@
 import { redirect, notFound } from "next/navigation";
 import { z } from "zod";
 import { getCurrentUser, navigationSessionKey } from "@/lib/session";
+import { prisma } from "@/lib/db";
+import { markCfmCourseStarted } from "@/lib/studyContent/cfmCourses";
 import { loadPersonalStudyPage } from "@/lib/studyContent/personalStudyPage";
 import StudyReader from "@/components/study/StudyReader";
 export default async function Page({
@@ -26,6 +28,7 @@ export default async function Page({
   // Zonder persoonlijke indeling (ander programma of niet verdeelbaar) is er geen stap: toon de gewone lezer.
   if (!page.view) redirect(base);
   const stepIndex = Number(parsed.data.stap);
+  await markCfmCourseStarted(prisma, user.id, parsed.data.collectionId, "STEPS");
   return (
     <StudyReader
       key={`${page.reader.lesson.editionId}:${sessionKey}:step${stepIndex}`}

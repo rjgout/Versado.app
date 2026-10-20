@@ -84,6 +84,8 @@ export default function MediaArtwork({
           fill
           sizes={sizes}
           priority={priority}
+          // Beveiligde media-API (bv. het lesbeeld van een studiecursus): de beeldoptimalisatie heeft geen sessie.
+          unoptimized={image.src.startsWith("/api/")}
           onLoad={() => setState("loaded")}
           onError={() => setState("error")}
           className={`vs-motion transition-opacity duration-300 ${image.fit === "contain" ? "object-contain" : "object-cover"} ${

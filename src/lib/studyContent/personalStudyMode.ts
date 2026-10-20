@@ -5,7 +5,7 @@ export const personalStudyModeSchema = z.enum(["FREE", "STEPS"]);
 export type PersonalStudyModeValue = z.infer<typeof personalStudyModeSchema>;
 export const personalStudyModeRequestSchema = z.object({ mode: personalStudyModeSchema }).strict();
 
-export const DEFAULT_PERSONAL_STUDY_MODE: PersonalStudyModeValue = "FREE";
+export const DEFAULT_PERSONAL_STUDY_MODE: PersonalStudyModeValue = "STEPS";
 
 export function modeFromParam(value: string | null | undefined): PersonalStudyModeValue | null {
   return value === "stappen" ? "STEPS" : value === "vrij" ? "FREE" : null;
@@ -15,7 +15,7 @@ export function modeParam(mode: PersonalStudyModeValue): "vrij" | "stappen" {
 }
 /**
  * Een expliciete deeplink (URL-parameter) gaat altijd voor; daarna de opgeslagen voorkeur; zonder voorkeur de standaard.
- * De standaard is Vrije studie: dat is wat bestaande gebruikers al kenden, dus er verandert niets voor wie nooit koos.
+ * De standaard is Stap voor stap, zoals het eerste cursuskaartje in Leren; wie nooit koos had nog geen CFM-voorkeur (de functie is nieuw).
  */
 export function resolvePersonalStudyMode(param: string | null | undefined, saved: PersonalStudyModeValue | null): PersonalStudyModeValue {
   return modeFromParam(param) ?? saved ?? DEFAULT_PERSONAL_STUDY_MODE;

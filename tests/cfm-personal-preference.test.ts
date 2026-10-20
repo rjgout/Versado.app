@@ -8,10 +8,10 @@ test("een expliciete deeplink gaat voor de opgeslagen voorkeur", () => {
   assert.equal(resolvePersonalStudyMode("vrij", "STEPS"), "FREE");
   assert.equal(resolvePersonalStudyMode("stappen", "FREE"), "STEPS");
 });
-test("zonder deeplink geldt de voorkeur, zonder voorkeur Vrije studie", () => {
+test("zonder deeplink geldt de voorkeur, zonder voorkeur Stap voor stap", () => {
   assert.equal(resolvePersonalStudyMode(undefined, "STEPS"), "STEPS");
-  assert.equal(resolvePersonalStudyMode(null, null), "FREE");
-  assert.equal(resolvePersonalStudyMode("onzin", null), "FREE");
+  assert.equal(resolvePersonalStudyMode(null, null), "STEPS");
+  assert.equal(resolvePersonalStudyMode("onzin", null), "STEPS");
   assert.equal(modeFromParam("onzin"), null);
   assert.equal(modeParam("STEPS"), "stappen");
 });

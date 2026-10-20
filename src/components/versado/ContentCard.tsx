@@ -7,7 +7,7 @@ import { useT } from "@/components/I18nProvider";
 import MediaArtwork from "@/components/versado/MediaArtwork";
 import { interactiveCard } from "@/components/versado/styles";
 import { DragHandle, type DragHandleProps } from "@/components/SortableList";
-import type { ArtworkKeys, ArtworkKind } from "@/lib/artwork";
+import type { ArtworkAsset, ArtworkKeys, ArtworkKind } from "@/lib/artwork";
 
 // Eén kaarttaal voor cursussen (Leren) en spellen (Spelen); zie
 // docs/KAARTEN.md. Elke interactie heeft een eigen zone, zodat ze elkaar
@@ -174,7 +174,8 @@ export function ContentCard({
 }: {
   title: string;
   href: string;
-  artwork: { kind: ArtworkKind; keys: ArtworkKeys; sizes: string };
+  /** `asset`: een rechtstreeks meegegeven beeld (bv. het officiële lesbeeld van een studiecursus); gaat voor het register. */
+  artwork: { kind: ArtworkKind; keys: ArtworkKeys; sizes: string; asset?: ArtworkAsset | null };
   /** Kleine kop boven de titel, bv. het soort cursus. */
   label?: ReactNode;
   /** Statuslabels (StatusChip). */
@@ -207,6 +208,7 @@ export function ContentCard({
             <MediaArtwork
               kind={artwork.kind}
               artworkKey={artwork.keys}
+              asset={artwork.asset}
               ratio="21/9"
               sizes={artwork.sizes}
               priority={priority && !handle?.isOverlay}

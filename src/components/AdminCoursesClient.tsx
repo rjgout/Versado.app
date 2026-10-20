@@ -14,7 +14,7 @@ interface CourseView {
   collectionName: string;
 }
 
-const COURSE_TYPES = ["FRONT_TO_BACK", "FREE_CHOICE", "READING_LESSONS", "PODCAST", "KIDS", "INTRO", "FSY"] as const;
+const COURSE_TYPES = ["FRONT_TO_BACK", "FREE_CHOICE", "READING_LESSONS", "PODCAST", "KIDS", "INTRO", "FSY", "STUDY_STEPS", "STUDY_FREE"] as const;
 
 function CourseRow({ course, onToggle, saving }: { course: CourseView; onToggle: () => void; saving: boolean }) {
   const t = useT();

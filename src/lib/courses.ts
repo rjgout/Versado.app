@@ -2,6 +2,7 @@ import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { capitalize, chapterTerm } from "./chapterTerm";
 import { ensurePodcasts, PODCASTS, PODCASTS_COLLECTION_ID } from "./podcasts";
 import { splitVerseRange } from "./learning/exercisePlan";
+import { isStudyCourseType } from "./readingCourses";
 
 export const FRONT_TO_BACK_SLUG = "voor-naar-achter";
 export const FREE_CHOICE_SLUG = "vrije-keuze";
@@ -383,7 +384,8 @@ export async function advanceCourseProgress(
     where: { id: courseId },
     include: { chapters: { orderBy: { order: "asc" }, select: { chapterId: true } } },
   });
-  if (!course || course.type === "FREE_CHOICE") return;
+  // Studiecursussen (CFM) hebben geen hoofdstukcursor: de voortgang staat per les in de studiegegevens.
+  if (!course || course.type === "FREE_CHOICE" || isStudyCourseType(course.type)) return;
 
   if (course.type === "READING_LESSONS") {
     const lessons = await db.courseLesson.findMany({
@@ -451,7 +453,7 @@ export async function subscribeUserToCourse(db: PrismaClient, userId: string, co
 
   const course = await db.course.findUnique({ where: { id: courseId } });
   if (!course) return;
-  if (course.type === "FREE_CHOICE") {
+  if (course.type === "FREE_CHOICE" || isStudyCourseType(course.type)) {
     await db.userCourseProgress.create({ data: { userId, courseId } });
   } else {
     await advanceCourseProgress(db, userId, courseId);
