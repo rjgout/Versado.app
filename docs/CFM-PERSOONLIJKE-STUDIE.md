@@ -1,7 +1,7 @@
 # CFM Persoonlijke Studie 2.0
 
 Persoonlijke studie van "Kom dan en volg Mij" (CFM) in twee leeswijzen: **Vrije studie** (de persoonlijke studie van de
-week als één compacte, doorlopende tekst) en **Stap voor stap** (precies zeven stappen per week, "Stap 1" t/m "Stap 7",
+week als één compacte, doorlopende tekst) en **Stap voor stap** (precies zes stappen per week, "Stap 1" t/m "Stap 6",
 nooit dagnamen). Dit document is de Fase 0-audit, het ontwerp en de beslislijst. Het beschrijft ook wat bewust niet is
 gedaan.
 
@@ -61,7 +61,7 @@ Geverifieerd tegen de actuele `main` (`4fc35027`), niet tegen aannames.
   hetzelfde plan, dezelfde revisie en dezelfde voortgang.
 * **Routes** (onder de bestaande lesroute, deeplinks blijven werken):
   `/study-lesson/[les]/[collectie]` (Vrije studie; `?weergave=volledig` = volledige officiële les),
-  `…/stappen` (weekoverzicht met zeven kaarten) en `…/stappen/[1-7]`.
+  `…/stappen` (weekoverzicht met zes kaarten) en `…/stappen/[1-6]`.
 * **Leeswijze wisselen** zijn gewone links. Van Vrije studie naar Stap voor stap gaat de lezer naar de stap die de laatst
   opgeslagen alinea bevat; van een stap terug opent de gedeelde leespositie dezelfde alinea. Geen redirects of lussen.
 
@@ -75,8 +75,8 @@ gewone taal; niets verdwijnt zonder reden (test).
   bijschriften, video-verwijzingen uit de persoonlijke regio.
 * **Standaard verborgen (altijd bereikbaar via "Volledige les"):** metadata (staat in de leskop), alles vanaf "Ideeën voor
   onderwijs aan kinderen" (kinderen, handouts, promotie, bijlagen) en door een override verborgen kaders.
-* **Zeven stappen:** atomen (koppen en schriftlabels blijven bij het blok erna, een bijschrift bij zijn afbeelding; een alinea
-  wordt nooit gesplitst) worden met dynamisch programmeren in zeven aaneengesloten delen verdeeld: kwadratische afwijking
+* **Zes stappen:** atomen (koppen en schriftlabels blijven bij het blok erna, een bijschrift bij zijn afbeelding; een alinea
+  wordt nooit gesplitst) worden met dynamisch programmeren in zes aaneengesloten delen verdeeld: kwadratische afwijking
   van de leeslast (tekens, beeld telt als 200), straf voor een grens binnen een onderwerp en voor een stap die met een
   korte alinea of bijna alleen beeld begint. Gelijke uitkomst bij gelijke invoer; vroegste grens wint bij een gelijkspel.
 * **Staptitel:** de h3 van het onderwerp dat in de stap begint, anders van het onderwerp waarin de stap doorloopt
@@ -84,16 +84,16 @@ gewone taal; niets verdwijnt zonder reden (test).
 * **Overrides** (`data/study-content/cfm-2026-nl/personal-study-overrides.json`, per programma en les): `hide` (met
   `text8`, een hash van de brontekst; bij een gewijzigde tekst vervalt de override vanzelf en wordt dat gemeld) en `cuts`
   (6 blok-id's; ongeldig = terugval op automatisch). De brontekst wordt nooit aangeraakt.
-* **Niet verdeelbaar** (geen drie h2-koppen, minder dan zeven atomen): `supported: false`; de lezer toont dan de volledige
+* **Niet verdeelbaar** (geen drie h2-koppen, minder dan zes atomen): `supported: false`; de lezer toont dan de volledige
   les en er wordt niets verzonnen.
 
 ### Validatie (alle 52 lessen, offline)
 
 `npx tsx scripts/study-content/cfm-personal-study-report.ts [--steps] [--doubtful]`
 
-* 52/52 lessen ondersteund, **precies 7 niet-lege stappen**, 0 problemen; elk bronblok staat precies één keer en in
+* 52/52 lessen ondersteund, **precies 6 niet-lege stappen**, 0 problemen; elk bronblok staat precies één keer en in
   bronvolgorde in het plan; de stappen bevatten exact de persoonlijke blokken; het brondocument blijft byte-identiek.
-* 1.714 blokken persoonlijk, 1.316 daarbuiten (allemaal met reden). Stapgrootte 247 tot 1.451 tekens (gemiddeld 772).
+* 1.714 blokken persoonlijk, 1.316 daarbuiten (allemaal met reden). Stapgrootte per les gemeten in het controleverslag.
 * Twijfelgevallen: 73 kaders. **51 verborgen door expliciete override** (42 verwijzingen naar externe tijdschriftactiviteiten en
   9 duidelijke leerkrachttips), **22 blijven zichtbaar** (algemene studietips). Dit is een inhoudelijke keuze van de eigenaar;
   zie §8. **Geschiktheid van de 22 zichtbare tips gecontroleerd** (alle 22 gelezen): het zijn zonder uitzondering
@@ -121,7 +121,7 @@ gewone taal; niets verdwijnt zonder reden (test).
 ## 5. Voortgang, leespositie en reeks (Fase 5)
 
 * **Tabel `StudyStepProgress`** (migratie `20261121120000_study_step_progress`, additief): sleutel
-  `(userId, lessonEditionId, stepFingerprint)`; status `IN_PROGRESS`/`COMPLETED`; `CHECK` dat afgerond ⇔ tijdstip; stapnummer 1–7.
+  `(userId, lessonEditionId, stepFingerprint)`; status `IN_PROGRESS`/`COMPLETED`; `CHECK` dat afgerond ⇔ tijdstip; stapnummer 1–7 in de tabel (oude zevenstappenrijen blijven geldig); nieuwe stappen zijn 1–6.
 * **Vingerafdruk per stap** = hash van plan-versie, blok-id's en brontekst van de stap. Bij een nieuwe revisie met andere stapgrenzen
   of tekst is de vingerafdruk anders, dus een oude afronding wordt nooit stil een inhoudelijk andere stap. Onveranderde stappen
   behouden hun afronding. Wijzigt de regelversie (`PERSONAL_STUDY_VERSION`), dan start voortgang bewust opnieuw.
@@ -129,7 +129,7 @@ gewone taal; niets verdwijnt zonder reden (test).
   advisory lock per gebruiker+editie; **monotoon** (afgerond blijft afgerond; heropenen werkt alleen "laatst geopend" bij);
   herhaalde of gelijktijdige verzoeken geven één rij en één echte wijziging.
 * **Strikt gescheiden van de hele les:** stap openen/afronden roept nooit `markStudyLessonRead`, reeks, XP of celebration aan.
-  Na zeven afgeronde stappen nodigt de interface uit, de gebruiker markeert de les zelf (bestaande actie, ongewijzigd).
+  Na zes afgeronde stappen nodigt de interface uit, de gebruiker markeert de les zelf (bestaande actie, ongewijzigd).
 * **Live data:** scope `studySteps`, gebeurtenis `studyStepsChanged` (docs/DATA-REFRESH.md). Geen eigen polling.
 * **Leespositie:** gedeelde `ReadingPosition`; alleen bewuste scroll-interactie schrijft (bestaand gedrag); het openen van een
   annotatiepaneel verandert de positie niet. Zonder opgeslagen positie in het zichtbare deel begint de weergave bovenaan.
@@ -180,7 +180,7 @@ Voorlopig gekozen (omkeerbaar):
   stilzwijgend een andere les gekozen.
 * "Stap voor stap" op de Leren-kaart opent het **overzicht van de huidige week** (nooit direct een stap); het overzicht markeert de laatst geopende of
   eerstvolgende onafgeronde stap en biedt "Verder studeren". Een rechtstreekse link naar een week of stap wordt gerespecteerd en verandert de gekozen week niet.
-* De weeklijst (Leren → programma) toont per week de periode (`Intl`, UTC-kalenderdagen), de lestitel, "Deze week", gelezen of "n van 7 stappen",
+* De weeklijst (Leren → programma) toont per week de periode (`Intl`, UTC-kalenderdagen), de lestitel, "Deze week", gelezen of "n van 6 stappen",
   en een eigen link naar Stap voor stap. Er zijn geen vergrendelingen. Vorige/volgende gepubliceerde week staat onder elke weergave en behoudt de leeswijze
   (Vrije studie of `/stappen`). Een notitie gaat bij wisselen nooit verloren: elke annotatie wordt direct door het bestaande paneel opgeslagen.
 * Terugnavigatie: browser-terug en de Versado-terugbalk werken via de bestaande Focusroute; stappen en overzicht zijn gewone links (geen redirects, geen lussen).
@@ -189,7 +189,7 @@ Voorlopig gekozen (omkeerbaar):
 
 * Alle nieuwe teksten staan in `cfmStudy.*` in nl/en/de/fr/es (`npx tsx scripts/i18n/check.ts`); de officiële tekst blijft in de taal van de gepubliceerde editie.
 * Kopstructuur: één `h1` per pagina, het overzicht heeft een verborgen `h2` boven de stappenlijst; de stappen zijn een geordende lijst met `aria-current="step"`
-  voor de aanbevolen stap. Stapstatus is altijd tekst plus icoon, nooit alleen kleur; de zeven voortgangsblokjes hebben een tekstlabel.
+  voor de aanbevolen stap. Stapstatus is altijd tekst plus icoon, nooit alleen kleur; de zes voortgangsblokjes hebben een tekstlabel.
 * Toetsenbord: onzichtbare annotatieknop per tekstblok die bij focus zichtbaar wordt, het menu sluit met Escape, de afbeeldingsviewer is een native modaal
   dialoog (Escape, focusherstel). Aanraakdoelen zijn ≥ 44 px (`min-h-11/12`), tekst gebruikt rem-maten en `vs-motion` respecteert verminderde beweging.
 
@@ -238,3 +238,29 @@ Voorlopig gekozen (omkeerbaar):
 * **Open acceptatiepunt**: browsercontrole met de echte geïmporteerde CFM-afbeeldingen is lokaal niet uitgevoerd (de echte import
   vereist de volledige geïsoleerde Docker-omgeving met goedgekeurde snapshot). Afbeeldingsgedrag is gevalideerd met de
   testfixture en de CI-import (`cfm-2026-import`); een volledige afbeeldingsvalidatie met echte bronbestanden wordt dus **niet** geclaimd.
+
+## 15. Van zeven naar zes stappen (maandag t/m zaterdag, zondag rust)
+
+* **Ritme**: zes studiestappen, Stap 1 t/m Stap 6. De zondag blijft vrij voor rust, bezinning en gesprek; dat is een aanbeveling,
+  geen dagschema. Er is geen koppeling tussen stapnummer en weekdag, geen slot, en meerdere stappen op één dag mogen. Afgeronde
+  stappen zijn altijd opnieuw te openen. Na de zesde afgeronde stap verschijnt de subtiele interfacetekst
+  `cfmStudy.sundayRest` ("Neem zondag de tijd om stil te staan bij wat je hebt geleerd."); geen extra voortgang, beloning of activiteit.
+* **Indeling**: dezelfde deterministische, revisiegebonden planner met `PERSONAL_STUDY_STEPS = 6` en `PERSONAL_STUDY_VERSION = 2`.
+  Bronvolgorde, alinea's (nooit gesplitst), officiële tekst en persoonlijke inhoud blijven ongewijzigd; alleen de stapgrenzen
+  verschuiven. Validatie over alle 52 lessen: precies zes niet-lege stappen, elk bronblok precies één keer, geen tekstverlies,
+  stabiele bronankers, juiste volgorde (`docs/CFM-VALIDATIEVERSLAG.md`). Handmatige `cuts` zijn nu 5 stuks (stap 2 t/m 6).
+* **Bestaande voortgang** (`StudyStepProgress`): de vingerafdruk van een stap bevat de planversie en de brontekst van zijn blokken,
+  dus een zevenstappenvingerafdruk (versie 1) kan nooit samenvallen met een stap van de zesstappenindeling. De tabel kreeg
+  `planVersion` (migratie `20261123120000_study_step_plan_version`; bestaande rijen = versie 1, onveranderd bewaard).
+  * Omzetting: bij het openen van de les/het overzicht wordt een nieuwe stap alleen als afgerond gezet als **elke** oude stap die
+    een van zijn blokken bevat afgerond is met een identieke inhoudsvingerafdruk (`coverLegacyProgress`, idempotent, schrijft een
+    nieuwe rij met `planVersion = 2`, nooit een bestaande rij overschrijven of verlagen). De afrondingstijd is de laatste van die
+    oude stappen.
+  * **Wordt niet omgezet**: een nieuwe stap waarvan niet álle onderliggende oude stappen afgerond waren, een "bezig"-status (geen
+    betrouwbare dekking), en voortgang bij een gewijzigde brontekst of andere revisie. Die stappen beginnen opnieuw; de oude rijen
+    blijven staan. Weekkaarten tellen alleen rijen van de huidige planversie.
+  * Annotaties, leesposities (`ReadingPosition`) en "gelezen"-markeringen van de hele les (`READ`) hangen aan het brondocument en
+    blijven volledig ongemoeid. Omdat de zevenstappenvoortgang pas met deze pull request is ingevoerd, bestaat er in productie
+    nog geen oudere voortgang; de omzetting beschermt testomgevingen en eventuele eerdere previews.
+* **Afronding en reeks**: een stap afronden blijft uitsluitend stapvoortgang; alleen de bestaande actie "Markeren als gelezen"
+  rondt de les af volgens de bestaande regels. Geen nieuwe reeks- of XP-logica.

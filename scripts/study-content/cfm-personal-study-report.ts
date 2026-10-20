@@ -1,6 +1,6 @@
 // Controleverslag van de persoonlijke-studie-indeling van "Kom dan en volg Mij" (alle 52 lessen, offline).
 //   npx tsx scripts/study-content/cfm-personal-study-report.ts [--lesson 10] [--steps] [--doubtful]
-// Controleert per les: elk bronblok precies één keer en in volgorde, de zeven stappen vormen exact de persoonlijke
+// Controleert per les: elk bronblok precies één keer en in volgorde, de zes stappen vormen exact de persoonlijke
 // blokken, geen lege stap, bronteksten onveranderd (de planner leest alleen). Twijfelgevallen staan expliciet in de uitvoer.
 import { loadCfmLesson } from "../../src/lib/studyContent/cfm2026Import";
 import { cfmOldTestament2026NlManifest as manifest } from "../../src/lib/studyContent/cfm2026Manifest";

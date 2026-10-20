@@ -11,7 +11,7 @@ const requestSchema = z
   .object({
     lessonEditionId: z.string().min(1).max(128),
     revisionId: z.string().min(1).max(128),
-    stepIndex: z.number().int().min(1).max(7),
+    stepIndex: z.number().int().min(1).max(6),
     stepFingerprint: z.string().regex(/^[0-9a-f]{16}$/),
     action: z.enum(["OPEN", "COMPLETE"]),
   })

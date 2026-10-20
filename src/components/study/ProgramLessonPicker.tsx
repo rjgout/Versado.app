@@ -9,6 +9,7 @@ import {ApiRequestError} from '@/lib/data/fetchJson';
 import {secondaryButton,surfaceCard,focusRing} from '@/components/versado/styles';
 import {BookOpen,ListChecks,ChevronRight} from 'lucide-react';
 import {formatWeekPeriod} from './PersonalStudyParts';
+import {PERSONAL_STUDY_STEPS} from '@/lib/studyContent/personalStudy';
 import CfmWeekPath,{PathModeSwitch} from './CfmWeekPath';
 import type {PersonalStudyModeValue} from '@/lib/studyContent/personalStudyMode';
 import type {getStudyCatalogue} from '@/lib/studyContent/catalogue';
@@ -77,7 +78,7 @@ export default function ProgramLessonPicker({data,choose=false,mode='FREE',sessi
  {personalProgram?<div className="space-y-4"><PathModeSwitch mode={mode}/><CfmWeekPath weeks={weekRows} mode={mode} activeWeekId={activeWeek?.id??null} sessionKey={sessionKey} onOpenWeek={k=>void remember(k)}/></div>:<ol className="grid min-w-0 gap-3">{data.lessons.map(l=>{
     const selected=l.lessonKey===context.activeLessonKey||(l.legacyKey!==null&&l.legacyKey===context.activeLessonKey);
     const week=l.personal?formatWeekPeriod(l.startsOn,l.endsOnExclusive,language):null;
-    const meta=l.personal?[week,l.lessonKey===data.currentLessonKey?t('cfmStudy.currentWeek'):null,l.read?t('programPicker.read'):l.stepsDone>0?t('cfmStudy.weekProgress',{done:l.stepsDone,total:7}):null]:[...(l.workKey==='fsy'?[fsyLessonMetadata(l,language,t)]:[l.year,l.month,l.category,l.startsOn]),l.read?t('programPicker.read'):null];
+    const meta=l.personal?[week,l.lessonKey===data.currentLessonKey?t('cfmStudy.currentWeek'):null,l.read?t('programPicker.read'):l.stepsDone>0?t('cfmStudy.weekProgress',{done:l.stepsDone,total:PERSONAL_STUDY_STEPS}):null]:[...(l.workKey==='fsy'?[fsyLessonMetadata(l,language,t)]:[l.year,l.month,l.category,l.startsOn]),l.read?t('programPicker.read'):null];
     return <li key={l.id} className="flex min-w-0 gap-2"><button data-program-lesson={l.id} data-study-lesson={l.id} type="button" disabled={busy||retry} aria-pressed={selected} onClick={()=>void select(l.lessonKey)} className="min-w-0 flex-1 min-h-14 rounded-xl border border-vs-line p-3 text-left text-vs-fg hover:bg-vs-accent-soft focus-visible:outline focus-visible:outline-vs-accent disabled:opacity-60">
      <span className="block [overflow-wrap:anywhere] font-bold">{selected?'✓ ':''}{l.title}</span>
      <span className="block text-sm text-vs-fg-2">{meta.filter(Boolean).join(' · ')}</span>

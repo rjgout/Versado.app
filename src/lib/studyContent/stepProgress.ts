@@ -1,8 +1,8 @@
 import type { PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { getPublishedStudyLesson, type PublishedStudyDTO } from "./revisions";
-import { PERSONAL_STUDY_STEPS, validatePersonalPlan, type PersonalStudyPlan } from "./personalStudy";
-import { personalStudyFor } from "./personalStudyOverrides";
+import { PERSONAL_STUDY_STEPS, PERSONAL_STUDY_VERSION, validatePersonalPlan, type PersonalStudyPlan } from "./personalStudy";
+import { legacyPersonalPlan, personalStudyFor } from "./personalStudyOverrides";
 
 type Actor = { id: string; isAdmin: boolean };
 export type StepStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
@@ -53,16 +53,55 @@ function view(plan: Extract<PersonalStudyPlan, { supported: true }>, rows: Row[]
 
 export async function getStepProgress(
   actor: Actor,
-  lesson: Pick<PublishedStudyDTO, "editionId">,
+  lesson: Pick<PublishedStudyDTO, "editionId" | "revisionId" | "workKey" | "sourceKey" | "body">,
   plan: PersonalStudyPlan,
   client: Pick<PrismaClient, "studyStepProgress"> = prisma,
 ): Promise<StepProgressState | null> {
   if (!plan.supported) return null;
+  await coverLegacyProgress(actor, lesson, plan, client);
   const rows = await client.studyStepProgress.findMany({
     where: { userId: actor.id, lessonEditionId: lesson.editionId, stepFingerprint: { in: plan.steps.map((s) => s.fingerprint) } },
     select: { stepFingerprint: true, status: true, openedAt: true, completedAt: true },
   });
   return view(plan, rows);
+}
+
+/**
+ * Omzetting van de zevenstappenindeling (versie 1) naar de zesstappenindeling. Een nieuwe stap geldt alleen als afgerond
+ * als elke oude stap die ook maar één van zijn blokken bevat afgerond is, met een identieke inhoudsvingerafdruk (dus
+ * dezelfde brontekst). Alles wat zo niet volledig gedekt is begint opnieuw; oude rijen blijven ongemoeid bewaard.
+ * Idempotent: een bestaande rij van de nieuwe indeling wordt nooit overschreven of verlaagd.
+ */
+async function coverLegacyProgress(
+  actor: Actor,
+  lesson: Pick<PublishedStudyDTO, "editionId" | "revisionId" | "workKey" | "sourceKey" | "body">,
+  plan: Extract<PersonalStudyPlan, { supported: true }>,
+  client: Pick<PrismaClient, "studyStepProgress">,
+) {
+  const legacyRows = await client.studyStepProgress.findMany({
+    where: { userId: actor.id, lessonEditionId: lesson.editionId, planVersion: { lt: PERSONAL_STUDY_VERSION }, status: "COMPLETED" },
+    select: { stepFingerprint: true, completedAt: true },
+  });
+  if (!legacyRows.length) return;
+  const legacy = legacyPersonalPlan(lesson);
+  if (!legacy.supported) return;
+  const doneAt = new Map(legacyRows.map((r) => [r.stepFingerprint, r.completedAt]));
+  const legacyStepOfBlock = new Map<string, (typeof legacy.steps)[number]>();
+  for (const step of legacy.steps) for (const id of step.blockIds) legacyStepOfBlock.set(id, step);
+  const covered = plan.steps.flatMap((step) => {
+    const sources = new Set(step.blockIds.map((id) => legacyStepOfBlock.get(id)));
+    if (!sources.size || [...sources].some((source) => !source || !doneAt.has(source.fingerprint))) return [];
+    const at = [...sources].map((source) => doneAt.get(source!.fingerprint)!.getTime());
+    return [{ step, completedAt: new Date(Math.max(...at)) }];
+  });
+  if (!covered.length) return;
+  await client.studyStepProgress.createMany({
+    data: covered.map(({ step, completedAt }) => ({
+      userId: actor.id, lessonEditionId: lesson.editionId, stepFingerprint: step.fingerprint, stepIndex: step.index,
+      planVersion: PERSONAL_STUDY_VERSION, revisionId: lesson.revisionId, status: "COMPLETED" as const, openedAt: completedAt, completedAt,
+    })),
+    skipDuplicates: true,
+  });
 }
 
 /** Aantal afgeronde stappen per editie voor de weekkaarten; telt alleen rijen van de nu gepubliceerde revisie. */
@@ -73,7 +112,7 @@ export async function completedStepCounts(
 ): Promise<Map<string, number>> {
   if (!editions.length) return new Map();
   const rows = await client.studyStepProgress.findMany({
-    where: { userId: actor.id, status: "COMPLETED", lessonEditionId: { in: editions.map((e) => e.editionId) } },
+    where: { userId: actor.id, status: "COMPLETED", planVersion: PERSONAL_STUDY_VERSION, lessonEditionId: { in: editions.map((e) => e.editionId) } },
     select: { lessonEditionId: true, revisionId: true },
   });
   const current = new Map(editions.map((e) => [e.editionId, e.revisionId]));
@@ -136,7 +175,7 @@ export async function applyStepProgress(
   if (!existing) {
     await tx.studyStepProgress.create({
       data: {
-        userId, lessonEditionId: input.lessonEditionId, stepFingerprint: step.fingerprint, stepIndex: step.index,
+        userId, lessonEditionId: input.lessonEditionId, stepFingerprint: step.fingerprint, stepIndex: step.index, planVersion: PERSONAL_STUDY_VERSION,
         revisionId: input.revisionId, openedAt: now,
         status: input.action === "COMPLETE" ? "COMPLETED" : "IN_PROGRESS", completedAt: input.action === "COMPLETE" ? now : null,
       },

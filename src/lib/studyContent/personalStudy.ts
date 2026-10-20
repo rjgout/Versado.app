@@ -2,7 +2,7 @@
  * Persoonlijke studie van "Kom dan en volg Mij": een presentatielaag bovenop de gepubliceerde lesrevisie.
  *
  * De officiële brontekst, bloknamen, volgorde en ankers blijven onaangeroerd. Deze module beslist alleen welke
- * bronblokken standaard bij de persoonlijke studie horen en hoe die over zeven stappen verdeeld worden. Alles is
+ * bronblokken standaard bij de persoonlijke studie horen en hoe die over zes stappen verdeeld worden. Alles is
  * puur en deterministisch: dezelfde revisie en dezelfde overrides geven altijd dezelfde indeling. Er komt geen
  * trefwoordfilter aan te pas; de indeling volgt de structuur van de les (drie h2-koppen: lestitel, persoonlijke
  * studie, ideeën voor kinderen) en expliciete, per revisie gecontroleerde overrides.
@@ -13,8 +13,15 @@ import { readingBlockText, type ReaderDocument } from "./readingPositionContract
 type Block = ReaderDocument["sections"][number]["blocks"][number];
 
 /** Verhoog bij elke wijziging van de regels hieronder: opgeslagen voortgang hangt aan de vingerafdruk. */
-export const PERSONAL_STUDY_VERSION = 1;
-export const PERSONAL_STUDY_STEPS = 7;
+export const PERSONAL_STUDY_VERSION = 2;
+/** Maandag t/m zaterdag; de zondag blijft vrij als rustdag en is dus geen studiestap. Een aanbeveling, geen dagschema. */
+export const PERSONAL_STUDY_STEPS = 6;
+/** De eerste indeling (versie 1, zeven stappen). Alleen nog gebruikt om bestaande voortgang inhoudelijk te dekken. */
+export const LEGACY_PERSONAL_STUDY = { version: 1, steps: 7 } as const;
+export interface PersonalPlanOptions {
+  steps?: number;
+  version?: number;
+}
 
 export type PersonalRole =
   | "META" // brontitel en bronverwijzing: staan al in de leskop
@@ -51,7 +58,7 @@ export type PlanIssue = { code: string; message: string };
 export interface PersonalStudyOverrides {
   /** Verbergt een blok uit de persoonlijke route. `text8` bindt de keuze aan de brontekst van de revisie. */
   hide?: Array<{ id: string; text8: string; reason: string }>;
-  /** Eerste blok-id van stap 2 t/m 7 (6 stuks) om de automatische verdeling te vervangen. */
+  /** Eerste blok-id van stap 2 t/m 6 (5 stuks) om de automatische verdeling te vervangen. */
   cuts?: string[];
 }
 export type PersonalStudyPlan =
@@ -96,7 +103,10 @@ interface Atom {
 export function planPersonalStudy(
   document: ReaderDocument,
   overrides: PersonalStudyOverrides = {},
+  options: PersonalPlanOptions = {},
 ): PersonalStudyPlan {
+  const stepCount = options.steps ?? PERSONAL_STUDY_STEPS;
+  const planVersion = options.version ?? PERSONAL_STUDY_VERSION;
   if (document.sections.length !== 1) return { supported: false, reason: "De les heeft niet één doorlopende sectie." };
   const blocks = document.sections[0].blocks;
   const h2 = blocks.flatMap((b, i) => (b.type === "heading" && b.level === 2 ? [i] : []));
@@ -196,10 +206,10 @@ export function planPersonalStudy(
     last.blocks.push(...pending);
     last.weight += pending.reduce((n, b) => n + weight(b), 0);
   }
-  if (atoms.length < PERSONAL_STUDY_STEPS)
-    return { supported: false, reason: `Slechts ${atoms.length} onderdelen: niet verantwoord in ${PERSONAL_STUDY_STEPS} stappen te verdelen.` };
+  if (atoms.length < stepCount)
+    return { supported: false, reason: `Slechts ${atoms.length} onderdelen: niet verantwoord in ${stepCount} stappen te verdelen.` };
 
-  const starts = chooseStarts(atoms, overrides.cuts, issues);
+  const starts = chooseStarts(atoms, stepCount, overrides.cuts, issues);
 
   const steps: PlannedStep[] = starts.map((from, s) => {
     const to = s + 1 < starts.length ? starts[s + 1] : atoms.length;
@@ -210,7 +220,7 @@ export function planPersonalStudy(
     const topicBlocks = atoms.filter((a) => a.topic === owner.topic).flatMap((a) => a.blocks);
     const heading = topicBlocks.find((b) => b.type === "heading" && b.level >= 3) ?? topicBlocks.find((b) => SCRIPTURE_LABEL_ID.test(b.id));
     const stepFingerprint = sha(
-      `${PERSONAL_STUDY_VERSION}|` + stepBlocks.map((b) => `${b.id}:${sha(readingBlockText(b), 12)}`).join("|"),
+      `${planVersion}|` + stepBlocks.map((b) => `${b.id}:${sha(readingBlockText(b), 12)}`).join("|"),
     );
     return {
       index: s + 1,
@@ -222,13 +232,12 @@ export function planPersonalStudy(
       fingerprint: stepFingerprint,
     };
   });
-  const fingerprint = sha(`${PERSONAL_STUDY_VERSION}|${steps.map((s) => s.fingerprint).join("|")}`);
-  return { supported: true, version: PERSONAL_STUDY_VERSION, fingerprint, weekTitle, scriptureTitle, scriptureTitleId, blocks: planned, steps, issues };
+  const fingerprint = sha(`${planVersion}|${steps.map((s) => s.fingerprint).join("|")}`);
+  return { supported: true, version: planVersion, fingerprint, weekTitle, scriptureTitle, scriptureTitleId, blocks: planned, steps, issues };
 }
 
-/** Kiest de zeven beginatomen: gelijke leeslast, bij voorkeur op onderwerpgrenzen, nooit midden in een alinea. */
-function chooseStarts(atoms: Atom[], cuts: string[] | undefined, issues: PlanIssue[]): number[] {
-  const k = PERSONAL_STUDY_STEPS;
+/** Kiest de beginatomen van de stappen: gelijke leeslast, bij voorkeur op onderwerpgrenzen, nooit midden in een alinea. */
+function chooseStarts(atoms: Atom[], k: number, cuts: string[] | undefined, issues: PlanIssue[]): number[] {
   if (cuts?.length === k - 1) {
     const indexes = cuts.map((id) => atoms.findIndex((a) => a.blocks[0].id === id));
     if (indexes.every((v, i) => v > 0 && (i === 0 || v > indexes[i - 1]))) return [0, ...indexes];
@@ -285,7 +294,7 @@ export function validatePersonalPlan(document: ReaderDocument, plan: PersonalStu
   if (planned.join("|") !== ids.join("|")) problems.push("Niet elk bronblok staat precies één keer en in bronvolgorde in het plan.");
   const personal = plan.blocks.filter((b) => b.personal).map((b) => b.id);
   const stepped = plan.steps.flatMap((s) => s.blockIds);
-  if (personal.join("|") !== stepped.join("|")) problems.push("De zeven stappen bevatten niet exact de persoonlijke blokken in bronvolgorde.");
+  if (personal.join("|") !== stepped.join("|")) problems.push("De zes stappen bevatten niet exact de persoonlijke blokken in bronvolgorde.");
   if (plan.steps.length !== PERSONAL_STUDY_STEPS) problems.push(`Er zijn ${plan.steps.length} stappen in plaats van ${PERSONAL_STUDY_STEPS}.`);
   plan.steps.forEach((s) => {
     if (!s.blockIds.length) problems.push(`Stap ${s.index} is leeg.`);

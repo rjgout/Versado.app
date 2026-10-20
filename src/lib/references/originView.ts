@@ -5,7 +5,7 @@ import { z } from "zod";
  * Alleen deze vaste vorm gaat het getekende retourbewijs in; de href wordt altijd server-side opgebouwd en nooit vrij uit de client.
  */
 export const originViewSchema = z
-  .object({ mode: z.enum(["free", "steps", "full"]), step: z.number().int().min(1).max(7).optional() })
+  .object({ mode: z.enum(["free", "steps", "full"]), step: z.number().int().min(1).max(6).optional() })
   .strict()
   .refine((view) => view.step === undefined || view.mode === "steps", "Een stap hoort alleen bij Stap voor stap");
 export type OriginView = z.infer<typeof originViewSchema>;

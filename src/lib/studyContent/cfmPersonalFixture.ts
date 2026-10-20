@@ -46,7 +46,7 @@ function solidPng(width: number, height: number): string {
 }
 const text = (value: string) => [{ type: "text" as const, text: value }];
 const filler = (topic: number, part: number) =>
-  `Synthetische studietekst ${topic}.${part}. Deze alinea is bewust lang genoeg om als een echte studiealinea te tellen, zodat de verdeling over zeven stappen en de leeslast gecontroleerd kunnen worden zonder officiële brontekst.`;
+  `Synthetische studietekst ${topic}.${part}. Deze alinea is bewust lang genoeg om als een echte studiealinea te tellen, zodat de verdeling over zes stappen en de leeslast gecontroleerd kunnen worden zonder officiële brontekst.`;
 
 export function cfmPersonalFixtureItem(variant: "current" | "previous" = "current"): SnapshotItem {
   const painting = solidPng(400, 300);
@@ -75,7 +75,7 @@ export function cfmPersonalFixtureItem(variant: "current" | "previous" = "curren
           { type: "paragraph", id: "b-short_reference1", content: text("Synthetische korte bronverwijzing") },
           { type: "figure", id: "img-img1", mediaKey: "media-diagram", width: 8, height: 8, alt: "Synthetisch testvlak" },
           { type: "paragraph", id: "b-figure1_p1", content: text("Synthetisch bijschrift") },
-          { type: "paragraph", id: "b-title_number1", content: text("Synthetische week: ‘Test de zeven stappen’") },
+          { type: "paragraph", id: "b-title_number1", content: text("Synthetische week: ‘Test de zes stappen’") },
           { type: "heading", id: "b-title1", level: 2, content: text("Synthetisch 1–10") },
           { type: "paragraph", id: "b-p0a", content: text(filler(0, 1)) },
           { type: "paragraph", id: "b-p0b", content: text(filler(0, 2)) },

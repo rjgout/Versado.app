@@ -7,6 +7,8 @@ import { cfmOldTestament2026NlManifest as manifest } from "../src/lib/studyConte
 import { readingBlockText, type ReaderDocument } from "../src/lib/studyContent/readingPositionContract";
 import {
   PERSONAL_STUDY_STEPS,
+  PERSONAL_STUDY_VERSION,
+  LEGACY_PERSONAL_STUDY,
   personalStudyView,
   planPersonalStudy,
   stepOfBlock,
@@ -20,7 +22,7 @@ import { isFocusRoute, shellModeForRoute } from "../src/lib/focusMode";
 
 const lessons = await Promise.all(manifest.lessons.map(async (l) => ({ key: l.sourceKey, parsed: await loadCfmLesson(l.sourceKey) })));
 
-test("alle 52 lessen krijgen precies zeven niet-lege stappen zonder verlies van bronblokken", () => {
+test("alle 52 lessen krijgen precies zes niet-lege stappen zonder verlies van bronblokken", () => {
   assert.equal(lessons.length, 52);
   for (const { key, parsed } of lessons) {
     const before = JSON.stringify(parsed.document);
@@ -157,11 +159,33 @@ test("routes voor Vrije studie, het weekoverzicht en een stap horen bij dezelfde
   assert.equal(isFocusRoute("/study-lesson/a/b/stappen/3/extra"), false);
 });
 
-test("gebruikersgerichte stapteksten bevatten nergens dagnamen en de stapnamen zijn Stap 1 t/m Stap 7", () => {
+test("gebruikersgerichte stapteksten bevatten nergens dagnamen en de stapnamen zijn Stap 1 t/m Stap 6", () => {
   const nl = readFileSync(path.join(process.cwd(), "src/lib/i18n/messages/nl.ts"), "utf8");
   const section = nl.slice(nl.indexOf("  cfmStudy: {"), nl.indexOf("  studyReader: {"));
   assert.match(section, /"stepN": "Stap \{n\}"/);
-  assert.doesNotMatch(section, /maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag/i);
+  assert.doesNotMatch(section, /maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag/i);
+  // Zondag komt alleen voor in de rustboodschap na de zesde stap; er is geen zevende stap en geen dagkoppeling.
+  const sundays = section.split("\n").filter((line) => /zondag/i.test(line));
+  assert.equal(sundays.length, 1);
+  assert.match(sundays[0], /"sundayRest": "Neem zondag de tijd om stil te staan bij wat je hebt geleerd\."/);
+  assert.doesNotMatch(section, /Stap 7|zeven stappen/i);
+});
+
+test("er zijn zes stappen en een veilige omzetting van de zevenstappenindeling van versie 1", () => {
+  assert.equal(PERSONAL_STUDY_STEPS, 6);
+  assert.equal(PERSONAL_STUDY_VERSION, 2);
+  for (const { key, parsed } of lessons) {
+    const overrides = loadPersonalStudyOverrides(manifest.workKey, key);
+    const six = planPersonalStudy(parsed.document, overrides);
+    const seven = planPersonalStudy(parsed.document, overrides, LEGACY_PERSONAL_STUDY);
+    assert.ok(six.supported && seven.supported, key);
+    if (!six.supported || !seven.supported) continue;
+    assert.equal(seven.steps.length, 7, key);
+    // Dezelfde persoonlijke blokken in dezelfde volgorde; een vingerafdruk van versie 1 kan nooit een stap van versie 2 zijn.
+    assert.deepEqual(six.steps.flatMap((s) => s.blockIds), seven.steps.flatMap((s) => s.blockIds), key);
+    const fingerprints = new Set(six.steps.map((s) => s.fingerprint));
+    for (const old of seven.steps) assert.ok(!fingerprints.has(old.fingerprint), `${key}: oude vingerafdruk komt terug`);
+  }
 });
 
 test("stap afronden raakt nooit de READ-actie, de reeks of XP", () => {

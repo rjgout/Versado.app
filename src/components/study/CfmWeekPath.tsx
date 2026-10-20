@@ -9,12 +9,13 @@ import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
 import { rememberMode } from "@/lib/studyContent/personalStudyModeClient";
 import { modeParam, type PersonalStudyModeValue } from "@/lib/studyContent/personalStudyMode";
+import { PERSONAL_STUDY_STEPS } from "@/lib/studyContent/personalStudy";
 import type { StepProgressState } from "@/lib/studyContent/stepProgress";
 import { formatWeekPeriod, lessonBase } from "./PersonalStudyParts";
 
 // Het weekpad van de persoonlijke studie: dezelfde leerlijn als de Boek van Mormon-leescursussen (grote actieve kaart,
 // compacte inklapbare kaarten, verbindingsstukjes), maar zonder vergrendelingen. Elke beschikbare week en elke stap is direct
-// te openen. Vrije studie toont geen stappen; Stap voor stap toont de zeven stappen onder de actieve of uitgeklapte week.
+// te openen. Vrije studie toont geen stappen; Stap voor stap toont de zes stappen onder de actieve of uitgeklapte week.
 // Alleen presentatie; de bouwstenen komen uit components/reading/pathParts.tsx.
 
 export interface WeekRow {
@@ -143,14 +144,14 @@ export default function CfmWeekPath({
       return next;
     });
   const stateOf = (week: WeekRow): VisualState =>
-    week.id === activeWeekId ? "current" : week.read || week.stepsDone >= 7 ? "done" : week.stepsDone > 0 ? "started" : "open";
+    week.id === activeWeekId ? "current" : week.read || week.stepsDone >= PERSONAL_STUDY_STEPS ? "done" : week.stepsDone > 0 ? "started" : "open";
   const states = weeks.map(stateOf);
   return (
     <ol aria-label={t("cfmStudy.pathLabel")} data-cfm-week-path data-path-mode={mode} className="m-0 flex list-none flex-col items-stretch p-0">
       {weeks.map((week, index) => {
         const state = states[index];
         const period = formatWeekPeriod(week.startsOn, week.endsOnExclusive, language);
-        const progress = mode === "STEPS" ? t("cfmStudy.weekProgress", { done: week.stepsDone, total: 7 }) : week.read ? t("cfmStudy.weekRead") : null;
+        const progress = mode === "STEPS" ? t("cfmStudy.weekProgress", { done: week.stepsDone, total: PERSONAL_STUDY_STEPS }) : week.read ? t("cfmStudy.weekRead") : null;
         const subtitle = [period, progress].filter(Boolean).join(" · ");
         const imageSrc = mediaSrc(week.imageMediaId);
         const thumb = !!imageSrc;
@@ -165,7 +166,7 @@ export default function CfmWeekPath({
                 subtitle={subtitle || t("cfmStudy.currentWeek")}
                 artworkKeys={[]}
                 imageSrc={imageSrc}
-                progress={mode === "STEPS" ? { now: week.stepsDone, max: 7, percent: Math.round((week.stepsDone / 7) * 100) } : undefined}
+                progress={mode === "STEPS" ? { now: week.stepsDone, max: PERSONAL_STUDY_STEPS, percent: Math.round((week.stepsDone / PERSONAL_STUDY_STEPS) * 100) } : undefined}
               >
                 {mode === "STEPS" ? (
                   <WeekSteps week={week} sessionKey={sessionKey} />

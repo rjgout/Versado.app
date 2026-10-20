@@ -1,6 +1,6 @@
 import { z } from "zod";
 import cfmOldTestament2026 from "../../../data/study-content/cfm-2026-nl/personal-study-overrides.json";
-import { planPersonalStudy, validatePersonalPlan, type PersonalStudyOverrides, type PersonalStudyPlan } from "./personalStudy";
+import { LEGACY_PERSONAL_STUDY, planPersonalStudy, validatePersonalPlan, type PersonalStudyOverrides, type PersonalStudyPlan } from "./personalStudy";
 import type { ReaderDocument } from "./readingPositionContract";
 
 const schema = z.record(
@@ -8,7 +8,7 @@ const schema = z.record(
   z
     .object({
       hide: z.array(z.object({ id: z.string(), text8: z.string().length(8), reason: z.string().min(1) }).strict()).optional(),
-      cuts: z.array(z.string()).length(6).optional(),
+      cuts: z.array(z.string()).length(5).optional(),
     })
     .strict(),
 );
@@ -32,6 +32,12 @@ export function loadPersonalStudyOverrides(workKey: string, sourceKey: string): 
 export function personalStudyFor(lesson: { workKey: string; sourceKey: string; body: ReaderDocument }): PersonalStudyPlan {
   if (!isPersonalStudyWork(lesson.workKey)) return { supported: false, reason: "Dit programma heeft geen persoonlijke studieroute." };
   return planPersonalStudy(lesson.body, loadPersonalStudyOverrides(lesson.workKey, lesson.sourceKey));
+}
+
+/** De zevenstappenindeling van versie 1, uitsluitend om bestaande stapvoortgang inhoudelijk te kunnen dekken. */
+export function legacyPersonalPlan(lesson: { workKey: string; sourceKey: string; body: ReaderDocument }): PersonalStudyPlan {
+  if (!isPersonalStudyWork(lesson.workKey)) return { supported: false, reason: "Dit programma heeft geen persoonlijke studieroute." };
+  return planPersonalStudy(lesson.body, loadPersonalStudyOverrides(lesson.workKey, lesson.sourceKey), LEGACY_PERSONAL_STUDY);
 }
 
 /**

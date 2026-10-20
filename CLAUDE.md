@@ -163,7 +163,7 @@ kloppen voor die bron en mag geen functie beloven die er voor die bron niet is
 ## CFM Persoonlijke studie: Vrije studie en Stap voor stap
 
 Zie `docs/CFM-PERSOONLIJKE-STUDIE.md`. "Kom dan en volg Mij" heeft een persoonlijke studieroute (Vrije studie, en
-precies zeven stappen "Stap 1…7", nooit dagnamen) als **presentatielaag** op de gepubliceerde revisie. Harde regels:
+precies zes stappen "Stap 1…6" (zondag is rustdag, geen stap), nooit dagnamen als stapnaam) als **presentatielaag** op de gepubliceerde revisie. Harde regels:
 
 - De officiële brontekst, `block.id`/`section.id` en revisies veranderen nooit; de indeling
   (`src/lib/studyContent/personalStudy.ts`) is puur, deterministisch en revisiegebonden, zonder trefwoordfilter. Handmatige correcties

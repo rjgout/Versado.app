@@ -3928,6 +3928,8 @@ model StudyStepProgress {
   lessonEditionId String
   stepFingerprint String @db.VarChar(32)
   stepIndex       Int
+  // Versie van de indeling waarmee de vingerafdruk is gemaakt: 1 = zeven stappen, 2 = zes stappen.
+  planVersion     Int @default(1)
   revisionId      String
   status          StudyStepStatus
   openedAt        DateTime @default(now())

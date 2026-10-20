@@ -86,7 +86,7 @@ try {
     assert.ok(await noOverflow(page), "geen horizontale overflow");
     const h1 = await page.locator("h1").boundingBox();
     assert.ok(h1.y + h1.height < 844 * 0.4, "de leskop neemt minder dan 40% van het scherm");
-    assert.match(await page.locator("h1").innerText(), /Test de zeven stappen/);
+    assert.match(await page.locator("h1").innerText(), /Test de zes stappen/);
     // Geen zichtbare driepuntjes naast gewone alinea's: de toetsenbordknop is onzichtbaar tot focus.
     const sizes = await page.locator("[data-annotation-trigger]").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().width));
     assert.ok(sizes.length > 5 && sizes.every((w) => w <= 1), "annotatieknoppen zijn onzichtbaar tot focus");
@@ -215,12 +215,12 @@ try {
     step("tekstselectie en klik op desktop");
   }
 
-  // 5. Stap voor stap: weekoverzicht, zeven stappen, geen dagnamen, status, geen READ/reeks/XP.
+  // 5. Stap voor stap: weekoverzicht, zes stappen, geen dagnamen, status, geen READ/reeks/XP.
   {
     const { context, page } = await open(f);
     await page.goto(base + f.href + "/stappen");
     await page.locator("[data-step-overview]").waitFor();
-    assert.equal(await page.locator("[data-step]").count(), 7);
+    assert.equal(await page.locator("[data-step]").count(), 6);
     const labels = await page.locator("[data-step]").evaluateAll((els) => els.map((e) => e.innerText));
     labels.forEach((label, i) => assert.match(label, new RegExp(`Stap ${i + 1}\\b`)));
     assert.doesNotMatch(labels.join(" "), /maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag/i);
@@ -270,13 +270,13 @@ try {
     }
     await page.waitForTimeout(1800);
     await page.getByRole("link", { name: t("cfmStudy.modeSteps"), exact: true }).click();
-    await page.waitForURL(/\/stappen\/[1-7]$/);
+    await page.waitForURL(/\/stappen\/[1-6]$/);
     const current = Number(page.url().split("/").pop());
     assert.ok(current >= 3, `de lezer staat in de stap met alinea b-p4a (nu stap ${current})`);
     await page.getByRole("link", { name: t("cfmStudy.modeFree"), exact: true }).click();
     await page.waitForURL((url) => !url.pathname.includes("/stappen"));
     // Alle stappen afronden via de API-route van de pagina.
-    for (let n = 1; n <= 7; n++) {
+    for (let n = 1; n <= 6; n++) {
       await page.goto(`${base}${f.href}/stappen/${n}`);
       await page.locator("[data-reader-mode='step']").waitFor();
       await page.waitForTimeout(900);
@@ -285,6 +285,8 @@ try {
       await page.getByText(t("cfmStudy.stepDone")).waitFor();
     }
     await page.getByText(t("cfmStudy.allDone")).waitFor();
+    await page.getByText(t("cfmStudy.sundayRest")).waitFor();
+    assert.equal(await page.locator("[data-step]").count(), 0, "geen zevende studieonderdeel voor de zondag");
     assert.equal(await prisma.contentProgress.count({ where: { userId: f.user.id } }), 0, "alle stappen afgerond is nog geen gelezen les");
     await page.locator("[data-mark-study-read]").click();
     await page.locator("[data-study-read-status='read']").waitFor();
@@ -371,18 +373,18 @@ try {
     await page.locator("[data-cfm-week-path]").waitFor();
     assert.equal(await page.locator("[data-cfm-week-path]").getAttribute("data-path-mode"), "FREE", "zonder voorkeur geldt Vrije studie");
     assert.equal(await page.locator("[data-week]").count(), 2, "alleen gepubliceerde weken");
-    assert.equal(await page.locator("[data-week-step]").count(), 0, "Vrije studie toont geen zevenstappenindeling");
+    assert.equal(await page.locator("[data-week-step]").count(), 0, "Vrije studie toont geen zesstappenindeling");
     assert.equal(await page.locator('[data-week] [aria-disabled="true"]').count(), 0, "geen vergrendelingen");
     const current = page.locator('[data-week-state="current"]');
     await current.locator('img[src^="/api/study-media/"]').first().waitFor();
     assert.ok(await current.locator("img").first().evaluate((img) => img.complete && img.naturalWidth > 0), "officiële lesafbeelding geladen");
     assert.equal(await prisma.user.findUniqueOrThrow({ where: { id: fresh.id }, select: { personalStudyMode: true } }).then((u) => u.personalStudyMode), null);
     await page.screenshot({ path: `${output}/week-path-free-mobile.png`, fullPage: true });
-    // Kiezen voor Stap voor stap bewaart de voorkeur server-side en toont zeven stappen onder de actieve week.
+    // Kiezen voor Stap voor stap bewaart de voorkeur server-side en toont zes stappen onder de actieve week.
     await page.getByRole("link", { name: t("cfmStudy.modeSteps"), exact: true }).click();
     await page.waitForURL(/weergave=stappen/);
     await page.locator("[data-week-step]").first().waitFor();
-    assert.equal(await current.locator("[data-week-step]").count(), 7);
+    assert.equal(await current.locator("[data-week-step]").count(), 6);
     for (let i = 0; i < 40 && (await prisma.user.findUniqueOrThrow({ where: { id: fresh.id }, select: { personalStudyMode: true } })).personalStudyMode !== "STEPS"; i++) await page.waitForTimeout(150);
     assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: fresh.id }, select: { personalStudyMode: true } })).personalStudyMode, "STEPS");
     await page.goto(base + "/courses");
@@ -401,7 +403,7 @@ try {
     await page.waitForTimeout(800);
     await toggle.click();
     await other.locator("[data-week-step]").first().waitFor();
-    assert.equal(await other.locator("[data-week-step]").count(), 7);
+    assert.equal(await other.locator("[data-week-step]").count(), 6);
     await page.screenshot({ path: `${output}/week-path-steps-mobile.png`, fullPage: true });
     await other.locator('[data-week-step="5"]').click();
     await page.waitForURL(/\/stappen\/5$/);

@@ -117,6 +117,7 @@ export default function StepOverview({
           {state.allCompleted && (
             <div className="space-y-3 rounded-xl bg-vs-subtle/60 p-3">
               <p className="font-semibold">{t("cfmStudy.allDone")}</p>
+              <p className="text-sm text-vs-fg-2">{t("cfmStudy.sundayRest")}</p>
               <p className="text-sm text-vs-fg-2">{t("cfmStudy.markInvite")}</p>
               {readState.read ? (
                 <p data-study-read-status="read" role="status" className="flex items-center gap-2 font-semibold text-vs-success">

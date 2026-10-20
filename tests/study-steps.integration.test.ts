@@ -5,8 +5,9 @@ import { prisma } from "../src/lib/db";
 import { createStudyImport, executeStudyImport } from "../src/lib/studyContent/imports";
 import { publishStudyRevision } from "../src/lib/studyContent/publication";
 import { applyStepProgress, completedStepCounts, getStepProgress } from "../src/lib/studyContent/stepProgress";
-import { planPersonalStudy } from "../src/lib/studyContent/personalStudy";
+import { PERSONAL_STUDY_STEPS, planPersonalStudy } from "../src/lib/studyContent/personalStudy";
 import { loadCfmLesson } from "../src/lib/studyContent/cfm2026Import";
+import { legacyPersonalPlan } from "../src/lib/studyContent/personalStudyOverrides";
 
 // Eigen geïsoleerde database vereist, zoals de overige integratietests (nooit productie of een gedeelde database).
 const database = new URL(process.env.CONTENT_ACCESS_TEST_DATABASE_URL ?? "http://invalid");
@@ -108,13 +109,46 @@ test("de weergave koppelt voortgang aan de inhoudsvingerafdruk, niet aan het sta
   await prisma.studyStepProgress.create({
     data: { userId: user.id, lessonEditionId: editionId, stepFingerprint: plan.steps[2].fingerprint, stepIndex: 3, revisionId, status: "COMPLETED", completedAt: new Date() },
   });
-  const state = await getStepProgress(user, { editionId }, plan);
+  const lesson = { editionId, revisionId, workKey: "cfm-old-testament-2026", sourceKey: "10", body: document };
+  const state = await getStepProgress(user, lesson, plan);
   assert.equal(state?.steps[2].status, "COMPLETED");
   assert.equal(state?.steps[0].status, "NOT_STARTED");
   assert.equal(state?.completedCount, 1);
   // Een revisie met een andere stap 3 (andere vingerafdruk) toont die stap niet als afgerond.
   const changed = { ...plan, steps: plan.steps.map((s, i) => (i === 2 ? { ...s, fingerprint: "f".repeat(16) } : s)) };
-  assert.equal((await getStepProgress(user, { editionId }, changed))?.steps[2].status, "NOT_STARTED");
+  assert.equal((await getStepProgress(user, lesson, changed))?.steps[2].status, "NOT_STARTED");
+});
+
+test("zevenstappenvoortgang wordt alleen bij volledige inhoudelijke dekking naar zes stappen omgezet", async () => {
+  const { document } = await loadCfmLesson("10");
+  const plan = planPersonalStudy(document);
+  const legacy = legacyPersonalPlan({ workKey: "cfm-old-testament-2026", sourceKey: "10", body: document });
+  assert.ok(plan.supported && legacy.supported);
+  if (!plan.supported || !legacy.supported) return;
+  assert.equal(plan.steps.length, PERSONAL_STUDY_STEPS);
+  assert.equal(legacy.steps.length, 7);
+  const lesson = { editionId, revisionId, workKey: "cfm-old-testament-2026", sourceKey: "10", body: document };
+  const user = await account();
+  // Oude stappen 1 t/m 3 afgerond (versie 1), de rest niet.
+  const done = legacy.steps.slice(0, 3);
+  for (const old of done)
+    await prisma.studyStepProgress.create({ data: { userId: user.id, lessonEditionId: editionId, stepFingerprint: old.fingerprint, stepIndex: old.index, planVersion: 1, revisionId, status: "COMPLETED", completedAt: new Date() } });
+  // Zonder omzetting telt oude voortgang niet mee in de weekkaarten.
+  assert.equal((await completedStepCounts(user, [{ editionId, revisionId }])).get(editionId) ?? 0, 0);
+  const doneBlocks = new Set(done.flatMap((s) => s.blockIds));
+  const expected = plan.steps.map((s) => s.blockIds.every((id) => doneBlocks.has(id)));
+  assert.ok(expected.some(Boolean), "er is minstens één nieuwe stap volledig gedekt");
+  assert.ok(expected.some((v) => !v), "niet elke stap is gedekt");
+  const state = await getStepProgress(user, lesson, plan);
+  assert.deepEqual(state?.steps.map((s) => s.status === "COMPLETED"), expected);
+  // Idempotent en zonder dubbele rijen; de oude rijen blijven bewaard.
+  await getStepProgress(user, lesson, plan);
+  assert.equal(await prisma.studyStepProgress.count({ where: { userId: user.id, planVersion: 2 } }), expected.filter(Boolean).length);
+  assert.equal(await prisma.studyStepProgress.count({ where: { userId: user.id, planVersion: 1 } }), 3);
+  assert.equal((await completedStepCounts(user, [{ editionId, revisionId }])).get(editionId) ?? 0, expected.filter(Boolean).length);
+  // Een gebruiker zonder oude voortgang krijgt nooit afgeronde stappen.
+  const fresh = await account();
+  assert.equal((await getStepProgress(fresh, lesson, plan))?.completedCount, 0);
 });
 
 test("een gebruiker verwijderen ruimt de stapvoortgang op", async () => {

@@ -14,7 +14,7 @@ export default async function Page({
     .object({
       lessonId: z.string().min(1).max(128),
       collectionId: z.string().min(1).max(128),
-      stap: z.string().regex(/^[1-7]$/),
+      stap: z.string().regex(/^[1-6]$/),
     })
     .strict()
     .safeParse(await params);
