@@ -357,7 +357,8 @@ function ReaderVisit({
         </h1>
         {view?.scriptureTitle && (
           <p className="text-sm text-vs-fg-2">
-            {scriptureHeading ? <InlineContent parts={scriptureHeading.content} /> : view.scriptureTitle}
+            {/* In de volledige les staat de bronkop zelf met zijn verwijzingen in de tekst; een tweede klikbare kopie zou dezelfde verwijzing dubbel aanbieden. */}
+            {scriptureHeading && pageMode !== "full" ? <InlineContent parts={scriptureHeading.content} /> : view.scriptureTitle}
           </p>
         )}
       </div>
