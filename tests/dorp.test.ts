@@ -24,7 +24,7 @@ import {
 import { availableInstance, levelOwnedInstance, ownershipIsValid, placeOwnedInstance, placedObjects, reconcileInstancesForRadius, storeOwnedInstance } from "../src/lib/dorp/ownership";
 import { paintPathSegment, paintPathTiles, pathAssetIdForMask, pathConnectivity, pathConnectivityFromKeys, pathKey, pathVariantForMask } from "../src/lib/dorp/paths";
 import { DEFAULT_DORP_STATE, DORP_STORAGE_KEY, parseDorpState, serializeDorpState } from "../src/lib/dorp/storage";
-import { FOREST_PERIOD, forestTexturePoints, clippedTerrainBounds, containsTerrainBounds, clearingOpacity, terrainAssetId, terrainBufferBounds } from "../src/lib/dorp/terrain";
+import { FOREST_PERIOD, forestTexturePoints, clippedTerrainBounds, containsTerrainBounds, forestOverlayOpacity, grassTextureCenters, forestWindowBounds, terrainAssetId, terrainBufferBounds } from "../src/lib/dorp/terrain";
 import type { DorpOwnedInstance, PlacedDorpObject } from "../src/lib/dorp/types";
 import { shellModeForRoute } from "../src/lib/focusMode";
 
@@ -306,8 +306,8 @@ test("bos heeft op iedere zoom dezelfde 64 wereldpunten en een begrensde texture
  for(const radius of [8,35,62])for(const zoom of [1.4,1,.36,.18,.1,.02,.005]){
   const bounds=clippedTerrainBounds(terrainBufferBounds(0,0,zoom,1280,900,.25),radius)!;
   assert.ok((bounds.maxX-bounds.minX)*(bounds.maxY-bounds.minY)*.25**2<5_000_000);
-  assert.equal(clearingOpacity(radius+Math.SQRT1_2,radius),1,"bouwbare tegelhoeken volledig gras");
-  assert.equal(clearingOpacity(radius+3,radius),0);assert.equal(clearingOpacity(radius+2,radius),.5);
+  assert.equal(forestOverlayOpacity(radius+Math.SQRT1_2,radius),0,"geen bos over bouwbare tegelhoeken");
+  assert.equal(forestOverlayOpacity(radius+3,radius),1);assert.equal(forestOverlayOpacity(radius+2,radius),.5);
  }
  assert.equal(clippedTerrainBounds({minX:1e6,maxX:1e6+100,minY:0,maxY:100},8),null);
 });
@@ -316,7 +316,7 @@ import { registeredSprite } from "../src/lib/dorp/registration";
 import { isoToWorld } from "../src/lib/dorp/geometry";
 import { worldViewRadius } from "../src/lib/dorp/camera";
 test("grondregistratie deelt één anker voor preview en plaatsing; opgeslagen posities blijven intact",()=>{
- for(const id of ["vd-b001","vd-b002","vd-b003","vd-p002","vd-p003","vd-p006",...DORP_RESIDENTS.map(r=>r.objectId)]){
+ for(const id of ["vd-b001","vd-b002","vd-b003","vd-p005","vd-p002","vd-p003","vd-p006",...DORP_RESIDENTS.map(r=>r.objectId)]){
   const definition=DORP_OBJECT_BY_ID.get(id)!,asset=assetForObject(id,1)!,tile={u:-3,v:2};
   const before=JSON.stringify([tile,definition,asset]);const registered=registeredSprite(definition,asset,tile);
   assert.ok(registered.anchor.every(n=>n>=0&&n<=1));
@@ -331,16 +331,17 @@ test("grondregistratie deelt één anker voor preview en plaatsing; opgeslagen p
 
 test("gemeten grondcontacten van bank, put en lantaarn vallen binnen hun bestaande footprint",()=>{
  const contacts:Record<string,readonly (readonly [number,number])[]>={
+  "vd-p005":[[126,240],[152,251],[181,240],[358,162],[385,179],[414,165]],
   "vd-p002":[[143,139],[384,212],[318,245],[107,161]],
   "vd-p003":[[145,270],[259,246],[371,270],[259,310]],
   "vd-p006":[[185,298],[221,281],[264,304],[225,325]],
  };
  for(const [id,points]of Object.entries(contacts)){
   const definition=DORP_OBJECT_BY_ID.get(id)!,asset=assetForObject(id,1)!;
-  const pixels=id==="vd-p002"?[512,256]:[512,341];
-  const {point,anchor}=registeredSprite(definition,asset,{u:0,v:0});
+  const pixels=id==="vd-p002"||id==="vd-p005"?[512,256]:[512,341];
+  const {point,anchor,flipX}=registeredSprite(definition,asset,{u:0,v:0});
   for(const [px,py]of points){
-   const x=point.x+(px/pixels[0]-anchor[0])*asset.worldSize[0];
+   const x=point.x+((flipX?1-px/pixels[0]:px/pixels[0])-anchor[0])*asset.worldSize[0];
    const y=point.y+(py/pixels[1]-anchor[1])*asset.worldSize[1];
    const u=(x/64+y/32)/2,v=(y/32-x/64)/2;
    assert.ok(u>=-.5&&u<=definition.footprint[0]-.5&&v>=-.5&&v<=definition.footprint[1]-.5,id);
@@ -366,4 +367,32 @@ test("lege zichtbare terreinuitsnede vraagt geen cache-rebuild bij een overlappe
  // Exacte reproductie uit issuecomment-6293217810.
  assert.deepEqual(clippedTerrainBounds(terrainBufferBounds(1350,0,1,390,844,.25),8),{minX:960,maxX:1087,minY:-544,maxY:544});
  assert.equal(clippedTerrainBounds(terrainBufferBounds(1350,0,1,390,844,.25,0),8),null);
+});
+
+
+test("graspatroon bedekt ieder punt zonder radiusgrens; alleen bos en paden hebben een venster",()=>{
+ const centers=grassTextureCenters();
+ for(let y=.5;y<64;y++)for(let x=.5;x<128;x++){
+  assert.ok(centers.some(p=>Math.abs(x-p.x)/64+Math.abs(y-p.y)/32<=1),`geen gat bij ${x},${y}`);
+ }
+ for(const radius of [8,35,62]){
+  const bounds=forestWindowBounds(radius);
+  assert.ok(bounds.maxX>radius*64*Math.SQRT2&&bounds.maxY>radius*32*Math.SQRT2);
+  assert.equal(forestOverlayOpacity(0,radius),0);
+  assert.equal(forestOverlayOpacity(radius+4,radius),1);
+ }
+});
+
+test("alle geleverde hekvarianten volgen dezelfde grondregistratie bij preview, slepen en plaatsing",()=>{
+ const definition=DORP_OBJECT_BY_ID.get("vd-p005")!;
+ const assets=DORP_ASSETS.filter(a=>a.objectId===definition.id);
+ assert.deepEqual(assets.map(a=>a.assetId),["prop-fence"],"geen fictieve horizontale/verticale assets");
+ for(const asset of assets)for(const tile of [{u:0,v:0},{u:-3,v:2},{u:4,v:-1}]){
+  const registration=registeredSprite(definition,asset,tile);
+  assert.equal(registration.flipX,true,"geleverde v-richting sluit aan op bestaande u-footprint");
+  assert.deepEqual(registration.anchor,[1-270/512,204/256]);
+  assert.deepEqual(registration.point,isoToWorld(tile.u+.5,tile.v));
+  assert.deepEqual(registeredSprite(definition,asset,{...tile}),registration);
+ }
+ assert.equal(registeredSprite(DORP_OBJECT_BY_ID.get("vd-p002")!,assetForObject("vd-p002",1)!,{u:0,v:0}).flipX,false,"bank behoudt zijn juiste richting");
 });

@@ -18,6 +18,7 @@ export default function CfmCourseView({
   mode,
   weeks,
   activeWeekId,
+  activeIsCalendar,
   sessionKey,
   context,
 }: {
@@ -26,6 +27,8 @@ export default function CfmCourseView({
   mode: PersonalStudyModeValue;
   weeks: WeekRow[];
   activeWeekId: string | null;
+  /** True als de actieve week de werkelijke kalenderweek is; anders is het de hervatweek en heet hij nergens "deze week". */
+  activeIsCalendar: boolean;
   sessionKey: string;
   context: { workKey: string; version: number; activeLessonKey: string | null } | null;
 }) {
@@ -54,8 +57,8 @@ export default function CfmCourseView({
         anyProgress={weeks.some((week) => week.read || week.stepsDone > 0)}
         allDone={weeks.length > 0 && completed === weeks.length}
       />
-      <CfmWeekPath weeks={weeks} mode={mode} activeWeekId={activeWeekId} sessionKey={sessionKey} onOpenWeek={(key) => void remember(key)} />
-      <MyStepNav currentKey={activeWeekId} kind="week" />
+      <CfmWeekPath weeks={weeks} mode={mode} activeWeekId={activeWeekId} activeIsCalendar={activeIsCalendar} sessionKey={sessionKey} onOpenWeek={(key) => void remember(key)} />
+      <MyStepNav currentKey={activeWeekId} kind={activeIsCalendar ? "week" : "resumeWeek"} />
     </div>
   );
 }

@@ -96,12 +96,15 @@ export default function CfmWeekPath({
   weeks,
   mode,
   activeWeekId,
+  activeIsCalendar = true,
   sessionKey,
   onOpenWeek,
 }: {
   weeks: WeekRow[];
   mode: PersonalStudyModeValue;
   activeWeekId: string | null;
+  /** Alleen een echte kalenderweek heet "Deze week"; een hervatweek krijgt een neutrale aanduiding. */
+  activeIsCalendar?: boolean;
   sessionKey: string;
   /** Onthoudt de geopende week als actieve les (bestaande studiecontext); mag falen zonder de navigatie te raken. */
   onOpenWeek?: (lessonKey: string) => void;
@@ -138,7 +141,7 @@ export default function CfmWeekPath({
               <div data-current-step onClickCapture={mode === "STEPS" ? () => onOpenWeek?.(week.lessonKey) : undefined}>
               <ActiveChapterCard
                 label={week.title}
-                subtitle={subtitle || t("cfmStudy.currentWeek")}
+                subtitle={subtitle || t(activeIsCalendar ? "cfmStudy.currentWeek" : "cfmStudy.resumeWeek")}
                 artworkKeys={[]}
                 imageSrc={imageSrc}
                 progress={mode === "STEPS" ? { now: week.stepsDone, max: PERSONAL_STUDY_STEPS, percent: Math.round((week.stepsDone / PERSONAL_STUDY_STEPS) * 100) } : undefined}

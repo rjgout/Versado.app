@@ -5,6 +5,7 @@ import { canAccessCollection } from "@/lib/contentAccess";
 import { readingAccessWhere } from "@/lib/contentAccess";
 import { isPersonalStudyWork } from "./personalStudyOverrides";
 import { completedStepCounts } from "./stepProgress";
+import { calendarWeekOf } from "./weekSelection";
 
 /**
  * De officiële afbeelding bij een les: de eerste figuur van minimaal 300 px breed in de bron (de omslagafbeelding), met de
@@ -28,16 +29,23 @@ async function lessonImageMedia(revisionIds: string[]): Promise<Map<string, stri
 export async function getStudyCatalogue(actor: {
   id: string;
   isAdmin: boolean;
-}, now = new Date()) {
+}, now = new Date(), options: { collectionId?: string } = {}) {
   const user = await prisma.user.findUnique({
     where: { id: actor.id },
     select: { activeContentCollectionId: true, timeZone: true, personalStudyMode: true, activeContentCollection: { include: { contentWork: { select: { kind: true } } } } },
   });
-  if (!user?.activeContentCollectionId || !canAccessCollection(actor,user.activeContentCollection) || user.activeContentCollection?.contentWork?.kind !== "STUDY_PROGRAM")
-    return { personalMode: null as "FREE"|"STEPS"|null, lessons: [], context: null, programName: null, collectionId: null, currentLessonKey: null, truncated: false, token: String(Date.now()) };
+  // Een cursus (CFM) leest altijd uit de collectie van die cursus, niet uit de toevallig actieve collectie van de gebruiker;
+  // de actieve collectie verandert hierdoor nooit. Zonder collectionId blijft het de actieve collectie (Leren-overzicht).
+  const scoped = options.collectionId && options.collectionId !== user?.activeContentCollectionId
+    ? await prisma.contentCollection.findUnique({ where: { id: options.collectionId }, include: { contentWork: { select: { kind: true } } } })
+    : null;
+  const collection = options.collectionId ? (scoped ?? (options.collectionId === user?.activeContentCollectionId ? user.activeContentCollection : null)) : user?.activeContentCollection ?? null;
+  if (!user || !collection || !canAccessCollection(actor, collection) || collection.contentWork?.kind !== "STUDY_PROGRAM")
+    return { personalMode: null as "FREE"|"STEPS"|null, lessons: [], context: null, programName: null, collectionId: null, currentLessonKey: null, today: null as string|null, truncated: false, token: String(Date.now()) };
+  const collectionId = collection.id;
   const lessons = await prisma.studyLessonEdition.findMany({
     where: {
-      collectionId: user.activeContentCollectionId,
+      collectionId,
       collection: readingAccessWhere(actor),
       publishedRevisionId: { not: null },
       lesson: { retiredAt: null, work: { kind: "STUDY_PROGRAM" } },
@@ -46,7 +54,7 @@ export async function getStudyCatalogue(actor: {
     select: { id:true, lessonId:true, collectionId:true, workKey:true, publishedRevisionId:true, publishedRevision:{select:{title:true}}, legacyFsyLesson:{select:{id:true}}, lesson:{include:{period:true}} },
     take: 201,
   });
-  const workKey = user.activeContentCollection?.contentWork?.kind === "STUDY_PROGRAM" ? user.activeContentCollection.work : null;
+  const workKey = collection.work;
   const context = workKey ? await getStudyContext(actor, workKey) : null;
   const safe = lessons.slice(0,200);
   const progress = await prisma.contentProgress.findMany({where:{userId:actor.id,contentKey:{in:safe.map(e=>`study:${e.workKey}:${e.lesson.periodId}:${e.lesson.sourceKey}`)}},select:{contentKey:true,readStatus:true}});
@@ -61,13 +69,14 @@ export async function getStudyCatalogue(actor: {
     // Officiële lesafbeelding (eerste inhoudelijke figuur van de bron); null als de les er geen heeft.
     imageMediaId:images.get(e.publishedRevisionId!)??null }));
   if(workKey === "fsy") {
-    const legacy=await prisma.fsyLesson.findMany({where:{contentCollectionId:user.activeContentCollectionId,studyLessonEditionId:null,publishedContent:{not:null}},orderBy:[{year:"asc"},{month:"asc"},{order:"asc"},{id:"asc"}],take:201});
+    const legacy=await prisma.fsyLesson.findMany({where:{contentCollectionId:collectionId,studyLessonEditionId:null,publishedContent:{not:null}},orderBy:[{year:"asc"},{month:"asc"},{order:"asc"},{id:"asc"}],take:201});
     for(const l of legacy.filter(l=>isLegacyFsyPublished(l.publishedContent))) result.push({id:l.id,lessonId:l.id,collectionId:l.contentCollectionId,title:l.publishedTitle??l.title,lessonKey:`fsy:${l.id}`,workKey:"fsy",order:l.order,revisionId:"",legacyKey:`fsy:${l.id}`,year:l.year,month:l.month,category:l.category,startsOn:null,endsOnExclusive:null,read:false,personal:false,stepsDone:0,imageMediaId:null as string|null});
   }
   result.sort((a,b)=>(a.year??0)-(b.year??0)||(a.month??0)-(b.month??0)||a.order-b.order||a.id.localeCompare(b.id));
   const truncated=lessons.length>200||result.length>200;
   const bounded=result.slice(0,200);
   const today=userDayKey(user,now);
-  const current=bounded.filter(l=>l.startsOn && l.endsOnExclusive && l.startsOn<=today && today<l.endsOnExclusive);
-  return { personalMode: user.personalStudyMode, lessons: bounded, context, programName:user.activeContentCollection.name, collectionId:user.activeContentCollectionId, currentLessonKey:current.length===1 ? current[0].lessonKey : null, truncated, token: String(Date.now()) };
+  // Dezelfde kalenderweekregel als de weekselectie (weekSelection.ts): eenduidig of geen.
+  const current=calendarWeekOf(bounded.filter(l=>l.personal),today)??calendarWeekOf(bounded.filter(l=>!l.personal),today);
+  return { personalMode: user.personalStudyMode, lessons: bounded, context, programName:collection.name, collectionId, currentLessonKey:current?.lessonKey ?? null, today:today as string|null, truncated, token: String(Date.now()) };
 }
