@@ -19,7 +19,9 @@ export default function ReferenceLink({
     <button
       type="button"
       data-reference-key={id}
-      className="inline min-h-12 max-w-full text-left font-semibold text-vs-accent underline underline-offset-2 focus-visible:outline focus-visible:outline-2"
+      // Een knop is altijd inline-block: een minimale hoogte zou de regel waarin de verwijzing staat oprekken (grote gaten
+      // midden in een alinea). Als lopende-tekstlink telt hij onder de uitzondering voor inline doelen.
+      className="inline min-h-0 max-w-full align-baseline leading-[inherit] text-left font-semibold text-vs-accent underline underline-offset-2 focus-visible:outline focus-visible:outline-2"
       onClick={(e) => open(id, label, e.currentTarget)}
     >
       {label}

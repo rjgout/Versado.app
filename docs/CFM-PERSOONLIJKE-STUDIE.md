@@ -112,7 +112,7 @@ gewone taal; niets verdwijnt zonder reden (test).
   knop (`data-annotation-for`) die bij focus zichtbaar wordt; na sluiten keert de focus er terug. Geen geneste
   interactieve elementen: een tik op een verwijzing, link, knop of afbeeldingsvergroting houdt zijn eigen actie.
 * Een scrollgebaar (verplaatsing > 8 px) opent niets; selecteren door te slepen opent niets. Een tweede tik op geselecteerde
-  tekst of de bestaande "Geselecteerde tekst annoteren" opent het fragmentdoel.
+  tekst opent het fragmentdoel. De permanente knop "Geselecteerde tekst annoteren" bestaat in de compacte weergave niet meer (alleen tijdens het kiezen van een nieuwe passage bij herstel).
 * Een blok met annotaties krijgt een subtiele balk links plus een bladwijzer- of notitie-icoon; markeringen blijven
   zichtbaar via de CSS Highlight API.
 * `block.id`/`section.id` zijn onveranderd; een annotatie hoort bij hetzelfde bronblok in Vrije studie, Stap voor stap en de
@@ -226,8 +226,8 @@ Voorlopig gekozen (omkeerbaar):
   `StudyStepProgress`, ongewijzigde reeks-/XP-regels, versioneerde JSON-configuratie.
 * **Leeswijzevoorkeur** (`User.personalStudyMode`, nullable enum FREE/STEPS, migratie `20261122120000_user_personal_study_mode`
   zonder backfill: bestaande gebruikers houden `NULL` en dus de standaard Stap voor stap, zie §16). Volgorde: expliciete deeplink
-  (cursus-, week- of staproute) > opgeslagen voorkeur > Stap voor stap (`resolvePersonalStudyMode`). Wisselen via de ModeSwitch bewaart
-  de keuze via `PUT /api/study-preference`. De huidige-weekregel van Stap voor stap blijft ongewijzigd.
+  (cursus-, week- of staproute) > opgeslagen voorkeur > Stap voor stap (`resolvePersonalStudyMode`). De leeswijze kies je via de cursuskaart in Leren (de ModeSwitch in de les is vervallen); die keuze bewaart
+  de voorkeur via `PUT /api/study-preference`. De huidige-weekregel van Stap voor stap blijft ongewijzigd.
 * **Weekleerlijn** (`CfmWeekPath`): dezelfde bouwstenen als de leescursussen (`ActiveChapterCard`, `ChapterThumb`, `Connector`,
   `CARD`). Afbeelding = de officiële lesafbeelding (eerste figuur ≥ 300 px breed, READY, via `/api/study-media`); er is voor het
   Oude Testament geen boekafbeelding in het artworkregister, dus zonder lesafbeelding blijft de kaart een neutrale Versado-kaart
@@ -290,3 +290,10 @@ Voorlopig gekozen (omkeerbaar):
 * **Wat CFM-specifiek bleef**: de weekkaarten met lesbeeld en zes stappen (`CfmWeekPath`, gebouwd uit de gedeelde `pathParts`), de
   cursuskaartvoortgang in weken (`courseSummary.ts`), de enumwaarden en de cursusdefinities (`cfmCourses.ts`). Overige studieprogramma's
   (FSY) behouden hun eigen lijst op Leren; `ProgramLessonPicker` bevat daarom geen CFM-weekpad meer.
+
+## Leestypografie (compacte weergave)
+
+* Eén regelafstand van 1,6 voor alle lopende tekst, ingesteld op de container van `RichContentBlocks` (geen `leading-7` per blok).
+* Oorzaak van de ongelijke regelafstand: `ReferenceLink` was een `<button>` met `min-h-12`. Een knop is altijd inline-block, dus de
+  minimale hoogte van 48 px rekte elke regel met een schriftverwijzing op. Bij `min-h-0` blijft de regel gelijk; de brontekst zelf
+  (witruimte wordt bij de import genormaliseerd) was niet de oorzaak.
