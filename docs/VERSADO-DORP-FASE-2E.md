@@ -54,7 +54,9 @@ Nederlandse taal; bestaande sleutels zijn hergebruikt.
   Genees/Snelle Zendeling **58**. Geen skips in deze geïsoleerde suites.
 - **26** bestaande productiebuild-browserflows geslaagd; aanvullend profiel/
   forward/GET-only, **12** camera-/radiuscombinaties en **7** objectregistraties.
-  De aanvullende safe-area-leesfouttest wordt hieronder apart bevestigd.
+  Ook de leesfout onder 47px safe-area, GET-only herstel en werkelijke
+  pinch/pan zijn geslaagd: geen wereldmutatie, maximaal 2 sprite/blitcalls en
+  0 idle-renders in het aanvullende gebarenscenario.
 - De bestaande migratieproef behoudt **147** oude tabellen, **418** constraints
   en **403** indexen, inclusief geïnjecteerde fout/rollback en herhaald deploy.
   Actuele telling na bestaande migraties: **156** tabellen, **449** constraints,
@@ -62,6 +64,10 @@ Nederlandse taal; bestaande sleutels zijn hergebruikt.
 - Gemeten hoofdcanvas: maximaal **2–5** sprite-/blitcalls en **0** idle-renders
   in acht frames in de matrix. Dit zijn geen FPS- of GPU-tijdmetingen; het bos
   gebruikt een vooraf opgebouwde patternfill en begrensde LOD-cache.
+
+Het netwerkfoutscenario blokkeert alleen voor voorspelbare Playwright-interceptie
+de pass-through serviceworker; de gewone 26 browserflows behouden deze. Geen
+wijziging aan de PWA of cache-infrastructuur.
 
 De uitgebreide bestaande runner voert ook `tests/dorp-iphone.browser.mjs` uit; een gerichte rerun
 kan met `npm run test:dorp:integration -- --iphone-only`.

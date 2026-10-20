@@ -16,9 +16,9 @@ const base=process.env.DORP_TEST_BASE_URL,output=process.env.DORP_TEST_OUTPUT??'
 const user=await prisma.user.create({data:{email:`iphone-${randomUUID()}@example.invalid`,handle:'iPhonetest',discriminator:'01',passwordHash:'synthetic',isAdmin:true,emailVerifiedAt:new Date()}});
 const results=[];
 try{
- const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+ const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true,serviceWorkers:"block"});
  await context.addCookies([{name:SESSION_COOKIE,value:await createSessionToken(user.id),url:base}]);
- const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const page=await context.newPage();const errors=[],requests=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.url().includes('/api/dorp'))requests.push({url:r.url(),status:r.status()});});
  async function settled(){await page.locator('canvas[aria-busy="false"]').waitFor();await page.evaluate(async()=>{for(let i=0;i<3;i++)await new Promise(resolve=>requestAnimationFrame(resolve));});}
  await page.goto(`${base}/profile`);await page.getByRole('link',{name:'Mijn dorp',exact:true}).click();
  await page.getByRole('button',{name:'Dorp openen',exact:true}).waitFor();
@@ -28,10 +28,10 @@ try{
  const snapshot=await prisma.dorpVillage.findUniqueOrThrow({where:{ownerId:user.id}});
  let posts=0;page.on('request',r=>{if(r.method()==='POST'&&r.url().endsWith('/api/dorp'))posts++;});
  await page.reload();await settled();assert.equal(posts,0);assert.deepEqual(await prisma.dorpVillage.findUniqueOrThrow({where:{id:snapshot.id}}),snapshot);
- let recover=false;const recovery=Promise.withResolvers();
+ let recover=false,deniedRequests=0;const recovery=Promise.withResolvers();
  const denied=url=>url.pathname==='/api/dorp'&&url.searchParams.has('villageId');
- await page.route(denied,async route=>{if(!recover)return route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({error:'Niet beschikbaar'})});await recovery.promise;await route.continue();});
- await page.reload();await page.locator('p[role=alert]').filter({hasText:/^Dit dorp of deze actie is niet beschikbaar\.$/}).waitFor();
+ await page.route(denied,async route=>{if(!recover){deniedRequests++;return route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({error:'Niet beschikbaar'})});}await recovery.promise;await route.continue();});
+ await page.reload();try{await page.locator('p[role=alert]').filter({hasText:/^Dit dorp of deze actie is niet beschikbaar\.$/}).waitFor();}catch(error){console.error('Leesfoutfixture',JSON.stringify({deniedRequests,requests,body:await page.locator('body').innerText()}));await page.screenshot({path:`${output}/2e-failed-read-fixture.png`});throw error;}assert.ok(deniedRequests>0);
  await page.evaluate(()=>document.documentElement.style.setProperty('--vs-safe-area-top','47px'));
  const close=await page.getByRole('button',{name:'Versado Dorp sluiten',exact:true}).boundingBox();
  assert.ok(close.y>=47,'Ook bij een leesfout blijft sluiten onder de iPhone-safe-area');
