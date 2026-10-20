@@ -84,7 +84,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/icons/icon-512.png" width="44" height="44" alt="" />
       <span className="text-xl font-extrabold">Versado</span>
-      {user && <button type="button" disabled={busy} className={`${button} ml-auto`} onClick={() => { sequence.current++; setUser(null); setChapter(null); setProfile(false); void action(() => client.logout()); }}><LogOut className="h-4 w-4" />{t("nativeFoundation.logout")}</button>}
+      {user && <button type="button" disabled={busy} className={`${button} ml-auto`} onClick={() => { sequence.current++; setUser(null); setChapter(null); setProfile(false); setPassword(""); setCode(""); setIdentifier(""); void action(() => client.logout()); }}><LogOut className="h-4 w-4" />{t("nativeFoundation.logout")}</button>}
     </header>
     {offline && <p role="status" className="flex gap-2 rounded-xl bg-vs-surface p-3"><WifiOff className="h-5 w-5 shrink-0" />{t("nativeFoundation.offline")}</p>}
     {error && <p role="alert" className="rounded-xl border border-vs-line bg-vs-surface p-3">{error}</p>}
@@ -115,7 +115,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
         <p>{user.appleLinked ? t("nativeFoundation.appleLinked") : t("nativeFoundation.appleUnavailable")}</p>
         <label>{t("nativeFoundation.password")}<input type="password" autoComplete="current-password" className="input w-full" value={password} onChange={e => setPassword(e.target.value)} maxLength={256} /></label>
         <label>{t("nativeFoundation.code")}<input className="input w-full" value={code} onChange={e => setCode(e.target.value)} maxLength={100} /></label>
-        {(apple || user.appleLinked) && <button className={button} disabled={busy || !password || !user.passwordLoginEnabled} onClick={() => void action(async isCurrent => { if (user.appleLinked) { await client.api("apple", { password, ...(code ? { code } : {}) }, "DELETE"); setUser(null); setProfile(false); await client.logout(); } else await signInApple(true, isCurrent); })}>{t(user.appleLinked ? "nativeFoundation.appleUnlink" : "nativeFoundation.appleLink")}</button>}
+        {(apple || user.appleLinked) && <button className={button} disabled={busy || !password || !user.passwordLoginEnabled} onClick={() => void action(async isCurrent => { if (user.appleLinked) { await client.api("apple", { password, ...(code ? { code } : {}) }, "DELETE"); setUser(null); setProfile(false); setPassword(""); setCode(""); await client.logout(); } else await signInApple(true, isCurrent); })}>{t(user.appleLinked ? "nativeFoundation.appleUnlink" : "nativeFoundation.appleLink")}</button>}
         {!user.passwordLoginEnabled && <p>{t("nativeFoundation.alternativeRequired")}</p>}
       </> : chapter ? <>
         {chapter.verses.map(verse => <p key={verse.number} className="leading-relaxed"><sup className="mr-2">{verse.number}</sup>{verse.text}</p>)}

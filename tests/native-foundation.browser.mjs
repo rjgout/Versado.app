@@ -62,7 +62,10 @@ try{
    // Vernietig de WebView; alleen de gesimuleerde beveiligde platformopslag blijft bestaan.
    await page.close();page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
    await page.goto(`${origin}/?device=${device}`);await page.getByRole('heading',{name:/Vandaag/}).waitFor();
+   await page.getByRole('button',{name:'Accountinstellingen',exact:true}).click();
+   await page.getByLabel('Wachtwoord',{exact:true}).fill(password);
    await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
+   assert.equal(await page.getByLabel('Wachtwoord',{exact:true}).inputValue(),'','Logout bewaart geen herauthenticatiewachtwoord');
    await page.reload();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
    // Het welkomstscherm verschijnt direct; wacht ook op bevestigde intrekking na reload.
    await page.getByRole('button',{name:'Opnieuw proberen',exact:true}).click({trial:true});
