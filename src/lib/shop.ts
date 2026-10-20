@@ -1,3 +1,4 @@
+import { lockUsers } from "@/lib/social/common";
 import { emitToUser } from "@/lib/realtime";
 import { prisma } from "@/lib/db";
 import { awardXp } from "@/lib/xp";
@@ -22,6 +23,7 @@ export async function buyHints(userId: string, quantity: number): Promise<BuyHin
 
   try {
     const updated = await prisma.$transaction(async (tx) => {
+      await lockUsers(tx, [userId]);
       const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
       if (user.xpTotal < cost) {
         throw new InsufficientXpError();
@@ -67,6 +69,7 @@ export async function buyFreezes(userId: string, quantity: number): Promise<BuyF
 
   try {
     const updated = await prisma.$transaction(async (tx) => {
+      await lockUsers(tx, [userId]);
       const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
       if (user.xpTotal < cost) {
         throw new InsufficientXpError();

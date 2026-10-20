@@ -49,12 +49,12 @@ Datasets (scopes): `today`, `progress`, `courses`, `xp`, `streak`, `profile`,
 | `studyContextChanged` | bewuste actieve-leskeuze, na commit alleen naar de eigen account-room (`data_event`); geen XP, reeks of voortgang | studyContext, studyContent |
 | `contentChanged` | de set beschikbare content verandert (de gekozen content/taal zit al in de key) | content, today, courses, progress, wordGame, games |
 | `wordGameScored` | iemand plaatst of sluit een score (realtime-onderwerp `word-game-ranking`) | wordGameRanking |
-| `friendsChanged` | vriendschap of verzoek gewijzigd (`friends_changed`) | friends, today, activity, notifications |
-| `groupsChanged` | groep of lidmaatschap gewijzigd | groups, today, activity |
+| `friendsChanged` | vriendschap of verzoek gewijzigd (`friends_changed`) | friends, today, activity, notifications, dorp |
+| `groupsChanged` | groep of lidmaatschap gewijzigd | groups, today, activity, dorp |
 | `notificationsChanged` | nieuwe of gewiste melding (`notifications_changed`, `game_invite`, `scrabble_updated`, `puzzle_invites_changed`) | notifications, today |
 | `gamesChanged` | uitdaging/woordspel/live spel gestart, geannuleerd of verlaten, uitnodiging ingetrokken (`game_invite`, `scrabble_updated`, `game_invite_revoked`, `game_cancelled`, `game_left`, `puzzle_invites_changed`, `puzzle_match_changed`) | games, today |
 | `coursesChanged` | cursus toegevoegd of verborgen | courses, today |
-| `settingsChanged` | profiel- of accountinstelling gewijzigd (ook de schakelaar voor uitnodigingen van Kompas) | profile, today, kompas |
+| `settingsChanged` | profiel- of accountinstelling gewijzigd (ook de schakelaar voor uitnodigingen van Kompas) | profile, today, kompas, dorp |
 | `hintsChanged` | persoonlijke hintvoorraad verbruikt of gekocht; `/api/hints` is de gedeelde voorraadquery. `hints_changed` informeert andere apparaten na commit; ook betaalde Woord-van-de-Dag-kandidaten en de accountbrede cooldown verversen | games, wordGame |
 | `kompasChanged` | een uitleg of rondleiding van Versado Kompas bekeken, overgeslagen of afgerond; raakt nooit XP, reeks of resultaten | kompas |
 
@@ -186,6 +186,15 @@ Scope `dorp` omvat de persoonlijke/gedeelde wereld en toegestane bezoekweergave.
 gebeurtenisnaam via de bestaande `data_event`-infrastructuur, geen inventaris,
 privéprofiel of giftpayload. Groepswijzigingen maken ook `dorp` verouderd.
 Geen nieuwe globale focus-, resume- of pollinglistener.
+
+
+Dorpbezoeken gebruiken `discardOnRevalidate`: bij invalidatie, hercontrole of
+vertrek verdwijnt de beschermde cachewaarde direct; een oude response herstelt
+haar niet. `dorpAccessChanged` invalideert `dorp`, gericht naar de eigenaar en
+geaccepteerde vrienden bij privacywijziging, of via het bestaande topic
+`dorp-access` bij de beheerschakelaar. `dorpGiftChanged` raakt ook `competition`
+wegens de afschrijving bij de verzender. Bezoekers gebruiken de bestaande
+centrale 15-secondenklok als terugval voor gemiste signalen, geen eigen listener.
 
 ### Persoonlijke studie: stapvoortgang (CFM)
 

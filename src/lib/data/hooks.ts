@@ -36,6 +36,7 @@ export interface UseLiveQueryOptions<T> {
   contentScoped?: boolean;
   /** Hoe lang de data vers blijft (ms), standaard 30 s. */
   staleTime?: number;
+  discardOnRevalidate?: boolean;
   /** Alleen voor data zonder realtime-bron; wordt gepauzeerd in een verborgen tab. */
   pollMs?: number;
   /** Server-gerenderde beginwaarde. */
@@ -84,7 +85,7 @@ export function useLiveQuery<T>(key: QueryKey, fetcher: () => Promise<T>, option
   });
 
   const enabled = options.enabled !== false;
-  const { scopes, staleTime, pollMs } = options;
+  const { scopes, staleTime, pollMs, discardOnRevalidate } = options;
   // Een SSR-beginwaarde hoort uitsluitend bij de oorspronkelijke contentkey.
   // Na een bronwissel nooit oude cursussen/spellen in de nieuwe key zaaien.
   const [initialEntryKey] = useState(entryKey);
@@ -101,6 +102,7 @@ export function useLiveQuery<T>(key: QueryKey, fetcher: () => Promise<T>, option
       fetcher: () => fetcherRef.current(),
       scopes: scopesKey.split(",") as DataScope[],
       staleTime,
+      discardOnRevalidate,
       pollMs,
       initialData,
       validUntil: hasValidUntil ? (data, fetchedAt) => validUntilRef.current?.(data as T, fetchedAt) ?? null : undefined,
@@ -108,7 +110,7 @@ export function useLiveQuery<T>(key: QueryKey, fetcher: () => Promise<T>, option
     return handle.release;
     // initialData bewust niet als dependency: alleen de eerste waarde telt.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entryKey, enabled, scopesKey, staleTime, pollMs, hasValidUntil]);
+  }, [entryKey, enabled, scopesKey, staleTime, pollMs, hasValidUntil, discardOnRevalidate]);
 
   const snapshot = useSyncExternalStore(
     useCallback((listener: () => void) => liveData.subscribe(entryKey, listener), [entryKey]),

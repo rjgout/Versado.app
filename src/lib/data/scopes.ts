@@ -38,8 +38,9 @@ export type DataScope = (typeof DATA_SCOPES)[number];
  * opnieuw opgehaald, de rest wordt alleen als verouderd gemarkeerd.
  */
 export const DATA_EVENTS = {
+  dorpAccessChanged: ["dorp"],
   dorpChanged: ["dorp"],
-  dorpGiftChanged: ["dorp", "xp", "notifications"],
+  dorpGiftChanged: ["dorp", "xp", "competition", "notifications"],
   // Alleen de nieuwe studiepublicaties/het beheer, geen progressie of economie.
   studyContentChanged: ["studyContent"],
   readingPositionChanged: ["readingPosition"],
@@ -56,7 +57,7 @@ export const DATA_EVENTS = {
   contentChanged: ["content", "today", "courses", "progress", "wordGame", "games"],
   // Iemand heeft een score geplaatst in het klassement van het woord van de dag.
   wordGameScored: ["wordGameRanking"],
-  friendsChanged: ["friends", "today", "activity", "notifications"],
+  friendsChanged: ["friends", "today", "activity", "notifications", "dorp"],
   groupsChanged: ["groups", "today", "activity", "dorp"],
   notificationsChanged: ["notifications", "today"],
   // Een uitdaging, woordspel of live spel is gestart, geannuleerd of verlaten, of een uitnodiging is ingetrokken.
@@ -64,7 +65,7 @@ export const DATA_EVENTS = {
   // Cursus toegevoegd, verborgen of van volgorde gewisseld.
   coursesChanged: ["courses", "today"],
   // Profiel- of accountinstelling gewijzigd.
-  settingsChanged: ["profile", "today", "kompas"],
+  settingsChanged: ["profile", "today", "kompas", "dorp"],
   hintsChanged: ["games", "wordGame"],
   // Versado Kompas: een uitleg of rondleiding bekeken, overgeslagen of afgerond.
   kompasChanged: ["kompas"],
@@ -86,6 +87,7 @@ export function scopesForEvent(event: DataEvent): readonly DataScope[] {
  * Een lijst met vaste waarden: de server accepteert nooit een onbekend onderwerp.
  */
 export const LIVE_TOPICS = {
+  "dorp-access": "dorpAccessChanged",
   "word-game-ranking": "wordGameScored",
 } as const satisfies Record<string, DataEvent>;
 

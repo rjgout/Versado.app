@@ -34,6 +34,9 @@ type XPReason =
 interface XpPage {
   xpTotal: number;
   xpThisWeek?: number;
+  xpReceivedThisWeek?: number;
+  xpSentThisWeek?: number;
+  competitionXpThisWeek?: number;
   hasMore: boolean;
   transactions: XpTransaction[];
 }
@@ -182,6 +185,11 @@ export default function XpHistoryClient() {
         <SystemIcon kind="xp" className="h-10 w-10 text-gold-400" fill="currentColor" aria-hidden />
         <div className="text-5xl font-extrabold leading-none">{xpTotal}</div>
         <div className="text-brand-100 font-bold text-sm mt-1">{t("xpHistory.collected")}</div>
+        <div className="mt-2 flex max-w-full flex-col gap-1 text-center text-sm" data-xp-summary>
+          <p>{t("xpHistory.receivedThisWeek", { xp: page?.xpReceivedThisWeek ?? 0 })}</p>
+          <p>{t("xpHistory.sentThisWeek", { xp: page?.xpSentThisWeek ?? 0 })}</p>
+          <p>{t("xpHistory.competitionThisWeek", { xp: page?.competitionXpThisWeek ?? 0 })}</p>
+        </div>
         {xpThisWeek > 0 && (
           <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-black/15 px-3.5 py-1.5 text-xs font-bold text-gold-400">
             <SystemIcon kind="xp" className="h-4 w-4" fill="currentColor" aria-hidden />

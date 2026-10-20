@@ -2500,10 +2500,13 @@ export const es: PartialMessages = {
     "freezeText": "Guarda automáticamente tu racha diaria si alguna vez no tienes tiempo para practicar, al igual que una congelación que obtienes en un hito o que obtienes de un amigo."
   },
   "xpHistory": {
-    "loadFailed": "No se pudo cargar el XP. historial.",
+    "loadFailed": "No se pudo cargar el historial de XP.",
     "title": "Puntos de experiencia",
-    "collected": "XP recolectada",
-    "thisWeek": "Esta semana: {xp} XP",
+    "collected": "XP disponibles",
+    "thisWeek": "Ganados esta semana: +{xp} XP",
+    "receivedThisWeek": "Recibidos esta semana: +{xp} XP",
+    "sentThisWeek": "Enviados esta semana: −{xp} XP",
+    "competitionThisWeek": "Competición esta semana: {xp} XP",
     "whatEarns": "¿Qué gana esto?",
     "overview": "Vea la descripción general de cada actividad →",
     "history": "Historia",

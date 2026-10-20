@@ -2491,8 +2491,11 @@ export const fr: PartialMessages = {
   xpHistory: {
     loadFailed: "Impossible de charger l’historique d’XP.",
     title: "Points d’expérience",
-    collected: "XP accumulés",
-    thisWeek: "Cette semaine : +{xp} XP",
+    collected: "XP disponibles",
+    thisWeek: "Gagnés cette semaine : +{xp} XP",
+    receivedThisWeek: "Reçus cette semaine : +{xp} XP",
+    sentThisWeek: "Envoyés cette semaine : −{xp} XP",
+    competitionThisWeek: "Compétition cette semaine : {xp} XP",
     whatEarns: "Qu’est-ce que ça rapporte ?",
     overview: "Voir le récapitulatif de chaque activité →",
     history: "Historique",

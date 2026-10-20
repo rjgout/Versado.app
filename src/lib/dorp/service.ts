@@ -1,3 +1,5 @@
+import { awardXp } from "@/lib/xp";
+import { applyWeeklyXp } from "@/lib/leagues";
 import { countCanonicalReadContributions } from "./growth";
 import { createHash } from "node:crypto";
 import { z } from "zod";
@@ -28,7 +30,8 @@ export const dorpCommand=z.object({villageId:id,expectedVersion:z.number().int()
   z.object({type:z.literal("dismiss"),requestId:id}).strict(),
 ])}).strict();
 export type DorpCommand=z.infer<typeof dorpCommand>;
-export type DorpSnapshot={villageId:string;version:number;groupId:string|null;readOnly:boolean;world:DorpWorldState;ownedIds:string[];owners:Record<string,string>;requests:{id:string;objectId:string}[]};
+export const DORP_INVENTORY_POLICY = "ALPHA_PILOT_V1" as const;
+export type DorpSnapshot={inventoryPolicy:typeof DORP_INVENTORY_POLICY;villageId:string;version:number;groupId:string|null;readOnly:boolean;world:DorpWorldState;ownedIds:string[];owners:Record<string,string>;requests:{id:string;objectId:string}[]};
 
 export async function requireDorpAccess(tx: Pick<Tx,"user"|"contentSwitcherSettings">, userId:string) {
   if(!dorpPrototypeEnabled())throw new DorpError("UNAVAILABLE",404);
@@ -92,7 +95,7 @@ async function snapshot(tx:Tx,village:DorpVillage,userId:string,readOnly=false):
   ]);
   const byId=new Map(placements.map(p=>[p.objectId,p]));
   const objects=new Map([...placements.map(p=>p.object),...inventory].map(o=>[o.id,o]));
-  return {villageId:village.id,version:village.version,groupId:village.groupId,readOnly,ownedIds:inventory.map(o=>o.id),owners:Object.fromEntries(placements.map(p=>[p.objectId,p.object.userId])),requests,
+  return {inventoryPolicy:DORP_INVENTORY_POLICY,villageId:village.id,version:village.version,groupId:village.groupId,readOnly,ownedIds:inventory.map(o=>o.id),owners:Object.fromEntries(placements.map(p=>[p.objectId,p.object.userId])),requests,
     world:{version:3,phase:village.phase,paths,instances:[...objects.values()].map(o=>{const p=byId.get(o.id);return{instanceId:o.id,objectId:o.objectId,level:o.level as DorpLevel,position:p?{u:p.u,v:p.v}:null};})}};
 }
 export async function openVillage(userId:string,groupId?:string){
@@ -196,9 +199,12 @@ export async function sendVillageGift(senderId:string,input:unknown){
   if(last&&now.getTime()-last.createdAt.getTime()<86400000)throw new DorpError("COOLDOWN",409,new Date(last.createdAt.getTime()+86400000).toISOString());
   const sender=await tx.user.findUnique({where:{id:senderId},select:{xpTotal:true}});if(!sender||sender.xpTotal<5)throw new DorpError("BALANCE",409);
   const gift=await tx.dorpGift.create({data:{senderId,receiverId,actionId,createdAt:now}});
-  await tx.user.update({where:{id:senderId},data:{xpTotal:{decrement:5}}});await tx.user.update({where:{id:receiverId},data:{xpTotal:{increment:5}}});
-  await tx.xPTransaction.createMany({data:[{userId:senderId,amount:-5,reason:"VILLAGE_GIFT_SENT",metadata:JSON.stringify({giftId:gift.id})},{userId:receiverId,amount:5,reason:"VILLAGE_GIFT_RECEIVED",metadata:JSON.stringify({giftId:gift.id})}]});
-  // Gift-XP is een saldo-overdracht, nooit verdiende competitie-XP of een leeractiviteit.
+  await awardXp(tx,senderId,-5,"VILLAGE_GIFT_SENT",{giftId:gift.id});
+  // Bestaande uitgavenregel, maar een cadeau schrijft niemand in voor een nieuwe divisieweek.
+  await applyWeeklyXp(tx,senderId,-5,{enroll:false});
+  await tx.user.update({where:{id:receiverId},data:{xpTotal:{increment:5}}});
+  await tx.xPTransaction.create({data:{userId:receiverId,amount:5,reason:"VILLAGE_GIFT_RECEIVED",metadata:JSON.stringify({giftId:gift.id})}});
+  // De ontvanger krijgt saldo, geen verdiende competitie-XP of leeractiviteit.
   const receiver=await tx.user.findUnique({where:{id:receiverId},select:{uiLanguage:true}}),t=getT(receiver?.uiLanguage);
   await tx.notification.create({data:{userId:receiverId,kind:"friends",title:t("dorp2.giftReceived"),body:t("dorp2.giftReceivedBody"),url:"/dorp"}});
   return {id:gift.id,giftAvailableAt:new Date(now.getTime()+86400000).toISOString()};

@@ -2491,8 +2491,11 @@ export const de: PartialMessages = {
   xpHistory: {
     loadFailed: "Der XP-Verlauf konnte nicht geladen werden.",
     title: "Erfahrungspunkte",
-    collected: "XP gesammelt",
-    thisWeek: "Diese Woche: +{xp} XP",
+    collected: "Verfügbare XP",
+    thisWeek: "Diese Woche verdient: +{xp} XP",
+    receivedThisWeek: "Diese Woche erhalten: +{xp} XP",
+    sentThisWeek: "Diese Woche gesendet: −{xp} XP",
+    competitionThisWeek: "Wettbewerb diese Woche: {xp} XP",
     whatEarns: "Was bringt das?",
     overview: "Sieh dir die Übersicht aller Aktivitäten an →",
     history: "Verlauf",

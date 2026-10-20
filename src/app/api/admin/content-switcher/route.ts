@@ -1,3 +1,4 @@
+import { emitTopicEvent } from "@/lib/realtime";
 import { dorpPrototypeEnabled } from "@/lib/dorp/access";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -50,6 +51,7 @@ export async function PUT(req: NextRequest) {
       create: { id: "singleton", ...(body.activity === "dorp" ? { dorpVisibleToUsers: body.visibleToUsers } : { hymnsVisibleToUsers: body.visibleToUsers }) },
       update: body.activity === "dorp" ? { dorpVisibleToUsers: body.visibleToUsers } : { hymnsVisibleToUsers: body.visibleToUsers },
     });
+    if (body.activity === "dorp") emitTopicEvent("dorp-access");
   } else {
     try {
       await setContentCollectionVisibility(body.contentCollectionId, body.visibleToUsers);

@@ -2992,8 +2992,11 @@ export const nl = {
   xpHistory: {
     loadFailed: "Kon de XP-geschiedenis niet laden.",
     title: "Ervaringspunten",
-    collected: "XP verzameld",
-    thisWeek: "Deze week: +{xp} XP",
+    collected: "Beschikbare XP",
+    thisWeek: "Deze week verdiend: +{xp} XP",
+    receivedThisWeek: "Deze week ontvangen: +{xp} XP",
+    sentThisWeek: "Deze week verstuurd: −{xp} XP",
+    competitionThisWeek: "Competitie deze week: {xp} XP",
     whatEarns: "Wat levert dit op?",
     overview: "Bekijk het overzicht van elke activiteit →",
     history: "Geschiedenis",

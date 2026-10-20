@@ -60,6 +60,7 @@ export function startLiveDataListeners(): () => void {
       liveData.revalidate();
     } else {
       stopTicker();
+      liveData.invalidate("dorpAccessChanged");
       notifyDataPause();
     }
   });
@@ -70,6 +71,7 @@ export function startLiveDataListeners(): () => void {
   listen(window, "pageshow", (event) => {
     if ((event as PageTransitionEvent).persisted) liveData.revalidate({ force: true });
   });
+  listen(window, "offline", () => liveData.invalidate("dorpAccessChanged"));
   listen(window, "online", () => liveData.revalidate({ force: true }));
   // Native app (Capacitor) vanuit de achtergrond terug; zie NativeAppBridge.
   listen(window, "versado:app-resumed", () => liveData.revalidate({ force: true }));
@@ -82,6 +84,8 @@ export function startLiveDataListeners(): () => void {
     if (connectedBefore) liveData.revalidate({ force: true });
     connectedBefore = true;
   };
+  const onDisconnect = () => liveData.invalidate("dorpAccessChanged");
+  socket.on("disconnect", onDisconnect);
   const onDataEvent = (payload: unknown) => {
     const event = (payload as { event?: unknown } | null)?.event;
     if (isDataEvent(event)) liveData.invalidate(event, { jitterMs: REALTIME_JITTER_MS });
@@ -89,6 +93,7 @@ export function startLiveDataListeners(): () => void {
   socket.on("connect", onConnect);
   socket.on(DATA_EVENT_SOCKET_NAME, onDataEvent);
   cleanups.push(() => {
+    socket.off("disconnect", onDisconnect);
     socket.off("connect", onConnect);
     socket.off(DATA_EVENT_SOCKET_NAME, onDataEvent);
   });
