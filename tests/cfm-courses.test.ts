@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { isReadingPathType, isStudyCourseType, modeOfStudyCourse } from "../src/lib/readingCourses";
-import { CFM_COURSES } from "../src/lib/studyContent/cfmCourses";
+import { CFM_COLLECTION_ID, CFM_COURSES, cfmCourseSlug } from "../src/lib/studyContent/cfmCourses";
 import { localizedCourse } from "../src/lib/courseText";
 
 test("studiecursussen zijn een eigen cursustype met een vaste leeswijze, los van de leescursussen", () => {
@@ -59,4 +59,15 @@ test("een week of stap openen maakt de cursus de huidige leerreis, zonder reeks 
   assert.match(helper, /markCourseStarted/);
   const imports = helper.split("\n").filter((line) => /^import /.test(line)).join("\n");
   assert.doesNotMatch(imports, /streak|xp|learning|contentProgress/i);
+});
+
+test("cursusidentiteit: CFM 2026 houdt zijn slugs, een ander jaar krijgt eigen afgeleide slugs", () => {
+  assert.equal(cfmCourseSlug({ id: CFM_COLLECTION_ID, slug: "cfm-ot-2026-nl" }, "STUDY_STEPS"), "kom-dan-en-volg-mij-stap-voor-stap");
+  assert.equal(cfmCourseSlug({ id: CFM_COLLECTION_ID, slug: "cfm-ot-2026-nl" }, "STUDY_FREE"), "kom-dan-en-volg-mij-vrije-studie");
+  const next = { id: "content_cfm_nt_2027_nl", slug: "cfm-nt-2027-nl" };
+  const slugs = [cfmCourseSlug(next, "STUDY_STEPS"), cfmCourseSlug(next, "STUDY_FREE")];
+  assert.deepEqual(slugs, ["kom-dan-en-volg-mij-cfm-nt-2027-nl-stap-voor-stap", "kom-dan-en-volg-mij-cfm-nt-2027-nl-vrije-studie"]);
+  assert.ok(slugs.every((slug) => !CFM_COURSES.some((c) => c.slug === slug)), "geen botsing met 2026");
+  // De identiteit hangt niet af van de weergegeven of vertaalde naam.
+  assert.equal(cfmCourseSlug(next, "STUDY_STEPS"), cfmCourseSlug(next, "STUDY_STEPS"));
 });

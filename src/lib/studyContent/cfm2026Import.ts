@@ -99,7 +99,7 @@ export async function ensureCfmDraftCollection(
         },
       }));
     // De leescursussen (Stap voor stap, Vrije studie) horen bij de collectie; nooit ingeschreven of zichtbaar gemaakt.
-    await ensureCfmCourses(db, collection.id);
+    await ensureCfmCourses(db, collection);
     return collection;
   });
 }
