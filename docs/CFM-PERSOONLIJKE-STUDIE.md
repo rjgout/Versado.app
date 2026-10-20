@@ -297,3 +297,14 @@ Voorlopig gekozen (omkeerbaar):
 * Oorzaak van de ongelijke regelafstand: `ReferenceLink` was een `<button>` met `min-h-12`. Een knop is altijd inline-block, dus de
   minimale hoogte van 48 px rekte elke regel met een schriftverwijzing op. Bij `min-h-0` blijft de regel gelijk; de brontekst zelf
   (witruimte wordt bij de import genormaliseerd) was niet de oorzaak.
+
+## 17. Cursusidentiteit, weekselectie en collectie-isolatie (technische afronding)
+
+Zie `docs/CFM-TECHNICAL-FINALIZATION.md` voor oorzaken, keuzes en de handleiding voor een volgend jaar. Kort:
+
+* **Cursusidentiteit** is (collectie, leeswijze) (`ensureCfmCourses` zoekt op `contentCollectionId` + `type`). De slug is een afgeleid,
+  stabiel label (`cfmCourseSlug`): de oorspronkelijke slugs voor CFM 2026, anders `kom-dan-en-volg-mij-<collectieslug>-<soort>`.
+* **Eén weekregel** (`weekSelection.ts`): kalenderweek → laatst geopende week → eerste onafgeronde week → laatste week. Kaart, API en
+  weekleerlijn gebruiken dezelfde resolver; alleen een echte kalenderweek heet "Deze week" / "Naar mijn week".
+* **Collectie-isolatie**: `getStudyCatalogue(actor, now, { collectionId })` leest uit de collectie van de cursus (met de bestaande
+  `canAccessCollection`/`readingAccessWhere`), nooit stilzwijgend uit de actieve collectie, en wijzigt die niet.
