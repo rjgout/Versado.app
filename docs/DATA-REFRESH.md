@@ -195,3 +195,11 @@ geaccepteerde vrienden bij privacywijziging, of via het bestaande topic
 `dorp-access` bij de beheerschakelaar. `dorpGiftChanged` raakt ook `competition`
 wegens de afschrijving bij de verzender. Bezoekers gebruiken de bestaande
 centrale 15-secondenklok als terugval voor gemiste signalen, geen eigen listener.
+
+### Persoonlijke studie: stapvoortgang (CFM)
+
+`studyStepsChanged` invalideert uitsluitend `studySteps` (de zeven stappen van één les) en `courses` (de weekkaarten
+tonen "n van 7 stappen"). De eigen query gebruikt sessionKey + editie + geopende revisie en vergelijkt voortgang op de
+inhoudsvingerafdruk van de stap, niet op het stapnummer. Stap openen of afronden loopt via `jsonMutation` naar
+`/api/study-steps`; dat is uitsluitend studievoortgang en dus nooit `activityCompleted`, XP, reeks of leesstatus.
+Geen polling en geen eigen focus-/online-listener.

@@ -1,0 +1,127 @@
+"use client";
+import { useEffect, useRef, type ReactNode } from "react";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { useT } from "@/components/I18nProvider";
+import { focusRing, iconButton } from "@/components/versado/styles";
+import type { WeekContext } from "@/lib/studyContent/weekContext";
+import { rememberMode } from "@/lib/studyContent/personalStudyModeClient";
+
+export type PersonalMode = "free" | "steps" | "full";
+
+export function lessonBase(lessonId: string, collectionId: string) {
+  return `/study-lesson/${encodeURIComponent(lessonId)}/${encodeURIComponent(collectionId)}`;
+}
+
+/** Keuze tussen Vrije studie en Stap voor stap; gewone links, dus altijd bereikbaar en met browser-terug. */
+export function ModeSwitch({ base, mode, stepsHref }: { base: string; mode: PersonalMode; stepsHref?: string }) {
+  const t = useT();
+  const items = [
+    { key: "free" as const, href: base, label: t("cfmStudy.modeFree") },
+    { key: "steps" as const, href: stepsHref ?? `${base}/stappen`, label: t("cfmStudy.modeSteps") },
+  ];
+  return (
+    <nav aria-label={t("cfmStudy.modeLabel")} className="inline-flex min-w-0 max-w-full rounded-full border border-vs-line-strong bg-vs-surface p-0.5">
+      {items.map((item) => (
+        <Link
+          key={item.key}
+          href={item.href}
+          prefetch={false}
+          aria-current={mode === item.key ? "page" : undefined}
+          // Een bewuste keuze wordt de voorkeur van de gebruiker (op alle apparaten); de link zelf werkt ook zonder.
+          onClick={() => void rememberMode(item.key === "free" ? "FREE" : "STEPS")}
+          className={`inline-flex min-h-9 items-center justify-center rounded-full px-3 text-center text-sm font-bold ${focusRing} ${
+            mode === item.key ? "bg-vs-accent text-vs-on-accent" : "text-vs-fg-2 hover:bg-vs-subtle"
+          }`}
+        >
+          {item.label}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
+/** Compact menu voor secundaire acties (opnieuw bovenaan, volledige les). Geen eigen laag buiten de pagina. */
+export function HeaderMenu({ children }: { children: ReactNode }) {
+  const t = useT();
+  const details = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const close = (event: Event) => {
+      const element = details.current;
+      if (!element?.open) return;
+      if (event instanceof KeyboardEvent) {
+        if (event.key !== "Escape") return;
+        element.open = false;
+        element.querySelector("summary")?.focus();
+      } else if (!element.contains(event.target as Node)) element.open = false;
+    };
+    document.addEventListener("keydown", close);
+    document.addEventListener("pointerdown", close);
+    return () => {
+      document.removeEventListener("keydown", close);
+      document.removeEventListener("pointerdown", close);
+    };
+  }, []);
+  return (
+    <details ref={details} className="relative" onClick={(e) => { if ((e.target as HTMLElement).closest("a,button[data-menu-item]")) e.currentTarget.open = false; }}>
+      <summary aria-label={t("cfmStudy.menu")} className={`${iconButton} cursor-pointer list-none [&::-webkit-details-marker]:hidden`}>
+        <MoreHorizontal aria-hidden className="h-5 w-5" />
+      </summary>
+      <div className="absolute right-0 z-20 mt-1 flex w-64 max-w-[calc(100vw-2rem)] flex-col rounded-xl border border-vs-line bg-vs-elevated p-1 shadow-lg">{children}</div>
+    </details>
+  );
+}
+export const menuItem = `flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-sm font-semibold text-vs-fg hover:bg-vs-subtle disabled:opacity-50 ${focusRing}`;
+
+/** Vorige en volgende gepubliceerde week van hetzelfde programma; nooit een verzonnen of overgeslagen week. */
+export function WeekNav({ week, suffix = "" }: { week: WeekContext; suffix?: string }) {
+  const t = useT();
+  if (!week.prev && !week.next) return null;
+  const href = (link: { lessonId: string; collectionId: string }) => `${lessonBase(link.lessonId, link.collectionId)}${suffix}`;
+  const cell = `flex min-h-12 min-w-0 flex-1 items-center gap-2 rounded-xl border border-vs-line px-3 py-2 text-sm hover:bg-vs-subtle ${focusRing}`;
+  return (
+    <nav aria-label={t("cfmStudy.chooseWeek")} className="flex gap-2">
+      {week.prev ? (
+        <Link href={href(week.prev)} prefetch={false} className={cell}>
+          <ChevronLeft aria-hidden className="h-5 w-5 shrink-0" />
+          <span className="min-w-0"><span className="block font-bold">{t("cfmStudy.previousWeek")}</span><span className="block break-words text-vs-fg-2">{week.prev.title}</span></span>
+        </Link>
+      ) : <span className="flex-1" />}
+      {week.next ? (
+        <Link href={href(week.next)} prefetch={false} className={`${cell} justify-end text-right`}>
+          <span className="min-w-0"><span className="block font-bold">{t("cfmStudy.nextWeek")}</span><span className="block break-words text-vs-fg-2">{week.next.title}</span></span>
+          <ChevronRight aria-hidden className="h-5 w-5 shrink-0" />
+        </Link>
+      ) : <span className="flex-1" />}
+    </nav>
+  );
+}
+
+/** "2–8 maart" in de taal van de gebruiker, uit officiële kalenderdagen (eind exclusief); zonder tijdzonerekensom. */
+export function formatWeekPeriod(startsOn: string | null, endsOnExclusive: string | null, locale: string): string | null {
+  if (!startsOn || !endsOnExclusive) return null;
+  const start = new Date(`${startsOn}T00:00:00Z`);
+  const end = new Date(new Date(`${endsOnExclusive}T00:00:00Z`).getTime() - 86_400_000);
+  try {
+    return new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", timeZone: "UTC" }).formatRange(start, end);
+  } catch {
+    return `${startsOn} – ${end.toISOString().slice(0, 10)}`;
+  }
+}
+
+/** Zeven blokjes met de status per stap; de status staat ook als tekst (aria-label), nooit alleen als kleur. */
+export function StepDots({ statuses, current }: { statuses: ReadonlyArray<"NOT_STARTED" | "IN_PROGRESS" | "COMPLETED">; current: number }) {
+  const t = useT();
+  const done = statuses.filter((s) => s === "COMPLETED").length;
+  return (
+    <div role="img" aria-label={t("cfmStudy.stepsDots", { done, total: statuses.length, n: current })} className="flex gap-1">
+      {statuses.map((status, i) => (
+        <span
+          key={i}
+          aria-hidden
+          className={`h-1.5 flex-1 rounded-full ${status === "COMPLETED" ? "bg-vs-accent" : status === "IN_PROGRESS" ? "bg-vs-accent/50" : "bg-vs-subtle"} ${i + 1 === current ? "ring-2 ring-vs-accent ring-offset-1 ring-offset-vs-app" : ""}`}
+        />
+      ))}
+    </div>
+  );
+}

@@ -67,7 +67,7 @@ export function keySegment(id: string): string {
 const STATIC_TOPICS: readonly KompasTopic[] = [
   { id: KOMPAS_ROOT, parent: null, icon: "compass", version: 1, href: "/dashboard", tour: "start" },
   // De twee hoofdactiviteiten.
-  { id: "learn", parent: KOMPAS_ROOT, group: "main", icon: "learn", version: 4, href: "/courses", tour: "learn", routes: ["/courses"] },
+  { id: "learn", parent: KOMPAS_ROOT, group: "main", icon: "learn", version: 5, href: "/courses", tour: "learn", routes: ["/courses"] },
   { id: "play", parent: KOMPAS_ROOT, group: "main", icon: "play", version: 1, href: "/live", tour: "play", routes: ["/live"] },
   // Ondersteunende onderdelen.
   { id: "together", parent: KOMPAS_ROOT, group: "support", icon: "together", version: 1, href: "/friends", routes: ["/friends"] },

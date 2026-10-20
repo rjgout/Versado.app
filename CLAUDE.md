@@ -160,6 +160,21 @@ kloppen voor die bron en mag geen functie beloven die er voor die bron niet is
 (beschikbaarheid komt uit de echte gegevens, zie "Beschikbaarheid per bron" in
 `docs/KOMPAS.md`). Teststap: `npm run test:kompas`.
 
+## CFM Persoonlijke studie: Vrije studie en Stap voor stap
+
+Zie `docs/CFM-PERSOONLIJKE-STUDIE.md`. "Kom dan en volg Mij" heeft een persoonlijke studieroute (Vrije studie, en
+precies zes stappen "Stap 1…6" (zondag is rustdag, geen stap), nooit dagnamen als stapnaam) als **presentatielaag** op de gepubliceerde revisie. Harde regels:
+
+- De officiële brontekst, `block.id`/`section.id` en revisies veranderen nooit; de indeling
+  (`src/lib/studyContent/personalStudy.ts`) is puur, deterministisch en revisiegebonden, zonder trefwoordfilter. Handmatige correcties
+  alleen via `data/study-content/*/personal-study-overrides.json` (gebonden aan de brontekst); valideer met
+  `scripts/study-content/cfm-personal-study-report.ts` en `npm run test:cfm-personal`.
+- Annotaties blijven het ene bestaande systeem: `StudyAnnotations` krijgt altijd het volledige document, alleen de weergave filtert
+  (`RichContentBlocks compact`). Geen tweede annotatiesysteem en geen eigen CFM-annotatietabellen.
+- Stapvoortgang (`StudyStepProgress`, `/api/study-steps`) hangt aan de inhoudsvingerafdruk van de stap en is uitsluitend studievoortgang:
+  nooit READ, reeks, XP of celebration. De hele les als gelezen markeren blijft de bestaande, bewuste actie.
+- Alleen `cfm-*`-programma's (`isPersonalStudyWork`) gebruiken dit; FSY en andere programma's behouden de bestaande lezer.
+
 ## Platformfundering: web/PWA, iOS en Android
 
 Versado blijft één product en één gedeelde codebase. De definitieve native

@@ -13,6 +13,7 @@ import {
 import { readingAccessWhere } from "@/lib/contentAccess";
 import { getPublishedStudyLesson } from "@/lib/studyContent/revisions";
 
+import { originHref, type OriginView } from "./originView";
 import { referenceRequestSchema, type ReferenceRequest } from "./contract";
 import { referenceInTransaction, type ReferenceActor } from "./resolver";
 import {
@@ -84,6 +85,7 @@ export async function moreReference(
   expected: ContentSelection,
   expectedPositionVersion: number,
   expectedSelectionVersion: number,
+  originView?: OriginView,
 ) {
   const input = referenceRequestSchema.parse(raw),
     before = contentSelectionSchema.parse(expected);
@@ -167,7 +169,7 @@ export async function moreReference(
         },
         beforeVersion: expectedSelectionVersion,
         afterVersion: expectedSelectionVersion,
-        originHref: `/study-lesson/${origin.lessonId}/${origin.collectionId}`,
+        originHref: originHref(origin.lessonId, origin.collectionId, originView),
         targetHref: result.href,
       };
       sealReferenceTrip(trip); // Configuratie en routes vóór de voorkeurmutatie valideren.

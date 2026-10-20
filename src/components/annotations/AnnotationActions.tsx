@@ -33,15 +33,22 @@ import type {
 export const StudyAnnotationContext = createContext<{
   open(blockId: string, element: HTMLElement): void;
   marked: string[];
+  /** Soorten annotaties per blok-id (bladwijzer, notitie, markering), voor een subtiele indicatie in de tekst. */
+  kinds?: Record<string, readonly AnnotationKind[]>;
 } | null>(null);
 export function AnnotationTrigger({
   onClick,
   marked = false,
   label,
+  quiet = false,
+  forId,
 }: {
   onClick(element: HTMLElement): void;
   marked?: boolean;
   label?: string;
+  /** Alleen voor toetsenbord en schermlezer: onzichtbaar tot de knop focus krijgt. De tekst zelf is aantikbaar. */
+  quiet?: boolean;
+  forId?: string;
 }) {
   const t = useT();
   // De ingang zelf ondersteunt longpress, zonder native tekstselectie/scrollhandlers op de tekst.
@@ -55,11 +62,14 @@ export function AnnotationTrigger({
     <button
       type="button"
       data-annotation-trigger
+      data-annotation-for={forId}
       aria-label={
         label ?? t(marked ? "annotations.existing" : "annotations.open")
       }
       aria-haspopup="dialog"
-      className={`${iconButton} !h-auto min-h-11 !w-11 ${marked ? "!text-vs-accent" : "opacity-60 hover:opacity-100"}`}
+      className={quiet
+        ? `sr-only focus-visible:not-sr-only focus-visible:ml-2 focus-visible:inline-flex focus-visible:h-11 focus-visible:w-11 focus-visible:items-center focus-visible:justify-center focus-visible:rounded-full focus-visible:align-middle focus-visible:ring-2 focus-visible:ring-vs-accent ${marked ? "text-vs-accent" : "text-vs-fg-3"}`
+        : `${iconButton} !h-auto min-h-11 !w-11 ${marked ? "!text-vs-accent" : "opacity-60 hover:opacity-100"}`}
       onPointerDown={(e) => {
         if (!window.getSelection()?.isCollapsed) e.preventDefault();
         fired.current = false;

@@ -1,6 +1,9 @@
 # Versado Dorp — fase 2C: auditcorrecties
 
-Basis: main `4fc35027`, na #148 en #149. Audit:
+Basis: main `4fc35027`, na #148 en #149. Tijdens CI is #150 gemerged;
+de branch is daarna veilig met main `8caac0b1` gesynchroniseerd. Alleen
+`docs/DATA-REFRESH.md` conflicteerde: beide aanvullende secties zijn behouden.
+De CFM-stapvoortgang, leeswijze en vertalingen van #150 blijven intact. Audit:
 [#149, commentaar eigenaar](https://github.com/rjgout/Versado.app/pull/149#issuecomment-6271571301).
 Geen nieuwe assets, datamodel, migratie, contentimport of productiehandeling.
 
@@ -94,12 +97,13 @@ Publieke beschikbaarheid/delen blijven standaard uit; technische flag leidend.
 |---|---|
 | Dorp-/shelltests | 49 geslaagd |
 | Live-data/cachetests | 54 geslaagd |
+| CFM-persoonlijke studie na sync #150 | 20 geslaagd |
 | Dorp DB-/HTTP, XP en concurrency | 16 geslaagd, inclusief rollback-foutinjectie |
 | Sociale regressies | 33 geslaagd |
 | Profielregressies | 13 geslaagd |
 | Divisies, met geïsoleerde database | 5 geslaagd |
 | Genees/economie-regressies | 58 geslaagd |
-| Bestaande dorp-browsermatrix | 14 geslaagd |
+| Dorp-browsermatrix en hydratatie | 15 geslaagd |
 | Nieuwe privacy/XP-browserflows | 11 geslaagd, inclusief offline/online |
 
 Geen skips in de geïsoleerde regressierun. Een eerste rooktest zonder DB sloeg
@@ -107,13 +111,18 @@ twee DB-divisietests over; daarna zijn alle vijf mét eigen database uitgevoerd.
 De laatste browserherhaling corrigeerde uitsluitend een selector: Next heeft
 ook een lege `alert` voor routeaankondigingen. De test wacht nu specifiek op
 de echte toegangsweigering én afwezigheid van het canvas; geen versoepeling.
-Na die testcorrectie zijn de vier server-browserflows en alle elf nieuwe
-browserflows opnieuw geslaagd. De overige regressies waren al groen en hun
-code veranderde niet. CI controleert de hele set op de gepushte head opnieuw.
+Na synchronisatie met #150 is daarnaast een hydratatierace aangetoond:
+de SSR-knop kon al worden aangeklikt vóór React de actie kon verwerken.
+Met bewust geblokkeerde JavaScript-downloads faalde de nieuwe regressie eerst;
+`useSyncExternalStore` houdt de knop nu uit tot hydratatie. Daarna is precies
+één klik/POST en een geladen canvas gecontroleerd. Geen extra listener of retry.
+De laatste gecombineerde run heeft alle hierboven genoemde DB-, browser- en
+regressietests volledig opnieuw uitgevoerd, zonder skips. De definitieve
+CI-status op de gepushte head wordt bijgehouden in PR #151.
 
-Migratieproef: oorspronkelijke inhoud van 146 tabellen, 412 constraints en
-401 indexdefinities behouden; foutrollback/herhaalde deploy geslaagd.
-Actueel: 155 tabellen, 418 indexen, 443 constraints. Geen migratie gewijzigd.
+Migratieproef: oorspronkelijke inhoud van 147 tabellen, 418 constraints en
+403 indexdefinities behouden; foutrollback/herhaalde deploy geslaagd.
+Actueel: 156 tabellen, 420 indexen, 449 constraints. Geen migratie gewijzigd.
 TypeScript, Prisma-validatie, i18n en schone productiebuild geslaagd.
 Volledige ESLint: 0 fouten, 169 bestaande waarschuwingen; gerichte lint schoon.
 Vertaalachterstand blijft 418 sleutels per niet-Nederlandse taal; de nieuwe

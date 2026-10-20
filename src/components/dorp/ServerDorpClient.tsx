@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import {useRouter} from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useT } from "@/components/I18nProvider";
 import { useLiveQuery, useLiveTopic } from "@/lib/data/hooks";
 import { jsonMutation } from "@/lib/data/mutation";
@@ -11,9 +11,13 @@ import type { DorpCommand, DorpSnapshot } from "@/lib/dorp/service";
 import type { DorpWorldState } from "@/lib/dorp/types";
 import DorpPrototypeClient from "./DorpPrototypeClient";
 
+// Geen eigen listener: React controleert dit snapshot na hydratatie.
+const hydrationSubscribe=()=>()=>{};
+const clientReady=()=>true,serverReady=()=>false;
 type Visit=DorpSnapshot & {giftAvailableAt?:string|null};
 export default function ServerDorpClient({userId,groupId,ownerId}:{userId:string;groupId?:string;ownerId?:string}){
  useLiveTopic("dorp-access");
+ const ready=useSyncExternalStore(hydrationSubscribe,clientReady,serverReady);
  const t=useT(),router=useRouter();
  const [confirmed,setConfirmed]=useState<Visit|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null),[message,setMessage]=useState<string|null>(null);
  const [pending,setPending]=useState<unknown|null>(null),[confirmGift,setConfirmGift]=useState(false),[nextGift,setNextGift]=useState<string|null>(null),[clock,setClock]=useState(()=>Date.now()),[blocked,setBlocked]=useState(false);
@@ -26,7 +30,7 @@ export default function ServerDorpClient({userId,groupId,ownerId}:{userId:string
  const giftAt=nextGift??snapshot?.giftAvailableAt;
  useEffect(()=>{if(!giftAt)return;const remaining=new Date(giftAt).getTime()-Date.now();if(remaining>0){const timer=window.setTimeout(()=>setClock(Date.now()),Math.min(remaining+100,2147483647));return()=>clearTimeout(timer);}},[giftAt]);
  async function perform(payload:unknown,retry=false){
-  if(inFlight.current||(!retry&&pending))return;
+  if(!ready||inFlight.current||(!retry&&pending))return;
   inFlight.current=true;setBusy(true);setError(null);setMessage(null);setPending(payload);const epoch=generation.current;
   try{
    const data=await jsonMutation<Visit | {giftAvailableAt:string} | {left:true}>("/api/dorp",{json:payload},{invalidates:(payload as {type:string}).type==="gift"?"dorpGiftChanged":"dorpChanged"});
@@ -56,7 +60,7 @@ export default function ServerDorpClient({userId,groupId,ownerId}:{userId:string
   <div className="flex flex-wrap items-center gap-2 text-sm">
    <span className="font-bold">{t(ownerId?"dorp2.visit":groupId?"dorp2.group":"dorp2.personal")}</span>
    <span role="status" className="min-w-0 break-words">{busy?t("dorp2.saving"):message}</span>
-   <button className="btn min-h-11" disabled={busy} onClick={()=>void reload()}>{t("dorp2.reload")}</button>
+   <button className="btn min-h-11" disabled={!ready||busy} onClick={()=>void reload()}>{t("dorp2.reload")}</button>
   </div>
   {!ownerId&&snapshot?.inventoryPolicy==="ALPHA_PILOT_V1"&&<p data-dorp-inventory-policy="ALPHA_PILOT_V1" className="text-xs text-vs-fg-3">{t("dorp2.pilot")}</p>}
   {(error||world.error) && <p role="alert" className="text-sm text-vs-danger">{error??t("dorp2.unavailable")}</p>}
@@ -73,6 +77,6 @@ export default function ServerDorpClient({userId,groupId,ownerId}:{userId:string
   </div>}
  </>;
  if(blocked||world.error)return <div className="page-fill p-4"><p role="alert">{t("dorp2.unavailable")}</p><button className="btn min-h-11" onClick={()=>void reload()}>{t("dorp2.reload")}</button></div>;
- if(!snapshot)return <div className="page-fill mx-auto flex max-w-lg flex-col gap-3 p-4"><h1 className="text-xl font-bold">Versado Dorp</h1>{controls}{!ownerId&&<button className="btn-primary min-h-12" disabled={busy||Boolean(pending)} onClick={()=>void perform({type:"open",...(groupId?{groupId}:{})})}>{t("dorp2.open")}</button>}</div>;
+ if(!snapshot)return <div className="page-fill mx-auto flex max-w-lg flex-col gap-3 p-4"><h1 className="text-xl font-bold">Versado Dorp</h1>{controls}{!ownerId&&<button className="btn-primary min-h-12" disabled={!ready||busy||Boolean(pending)} onClick={()=>void perform({type:"open",...(groupId?{groupId}:{})})}>{t("dorp2.open")}</button>}</div>;
  return <DorpPrototypeClient controlled={{snapshot,backHref:ownerId?`/friends/${ownerId}`:"/dashboard",busy:busy||Boolean(pending),onChange:change,onRequest:objectId=>command({type:"request",objectId}),controls}} />;
 }
