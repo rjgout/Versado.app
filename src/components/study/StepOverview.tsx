@@ -10,7 +10,7 @@ import { PERSONAL_STUDY_STEPS, type PersonalStudyView } from "@/lib/studyContent
 import type { StepProgressState } from "@/lib/studyContent/stepProgress";
 import type { WeekContext } from "@/lib/studyContent/weekContext";
 import { focusRing, primaryButton } from "@/components/versado/styles";
-import { HeaderMenu, ModeSwitch, WeekNav, lessonBase, menuItem } from "./PersonalStudyParts";
+import { HeaderMenu, WeekNav, lessonBase, menuItem } from "./PersonalStudyParts";
 import { useStudyMarkRead } from "./useStudyMarkRead";
 
 /** Het weekoverzicht van Stap voor stap: precies zeven stappen, geen dagnamen en geen vergrendelingen. */
@@ -49,8 +49,7 @@ export default function StepOverview({
     <FocusLayout className="max-w-3xl">
       <div data-step-overview className="min-w-0 space-y-5 py-2">
         <header className="space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <ModeSwitch base={base} mode="steps" />
+          <div className="flex items-center justify-end gap-2">
             <HeaderMenu>
               <Link href={`${base}?weergave=volledig`} prefetch={false} className={menuItem}>{t("cfmStudy.viewFull")}</Link>
               <Link href="/courses" prefetch={false} className={menuItem}>{t("cfmStudy.pickWeek")}</Link>

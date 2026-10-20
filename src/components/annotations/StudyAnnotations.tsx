@@ -188,17 +188,21 @@ export default function StudyAnnotations({
             `::highlight(annotation-${highlightId}-${color}) {background-color:rgb(var(--vs-mark-${color}) / var(--vs-mark-alpha));color:inherit;text-decoration:underline;text-decoration-color:rgb(var(--vs-mark-${color}));text-decoration-thickness:2px;text-underline-offset:0.2em;}`,
         ).join("\n")}
       </style>
-      <button
-        ref={selectionButton}
-        data-annotation-selection
-        type="button"
-        className={`${secondaryButton} ${compact ? "mb-3 !min-h-9 !px-3" : "mb-4"}`}
-        disabled={disabled}
-        onPointerDown={(e) => e.preventDefault()}
-        onClick={select}
-      >
-        {t("annotations.selection")}
-      </button>
+      {/* Persoonlijke studie: geen permanente knop; de alinea aantikken (of een selectie in die alinea) opent de acties.
+          Alleen bij het kiezen van een nieuwe passage voor een verloren annotatie is de knop nodig. */}
+      {(!compact || pickMode) && (
+        <button
+          ref={selectionButton}
+          data-annotation-selection
+          type="button"
+          className={`${secondaryButton} ${compact ? "mb-3 !min-h-9 !px-3" : "mb-4"}`}
+          disabled={disabled}
+          onPointerDown={(e) => e.preventDefault()}
+          onClick={select}
+        >
+          {t("annotations.selection")}
+        </button>
+      )}
       {recovery && (recovery.status === "proposal" || recovery.status === "orphaned") && (
         <AnnotationRecovery
           recovery={recovery}
