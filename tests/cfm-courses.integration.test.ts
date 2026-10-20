@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { prisma } from "../src/lib/db";
 import { subscribeUserToCourse, markCourseStarted } from "../src/lib/courses";
-import { cfmCourseSlug, ensureCfmCourses, markCfmCourseStarted } from "../src/lib/studyContent/cfmCourses";
+import { cfmCourseBackTarget, cfmCourseSlug, ensureCfmCourses, markCfmCourseStarted } from "../src/lib/studyContent/cfmCourses";
 
 // Eigen geïsoleerde database vereist, zoals de overige integratietests (nooit productie of een gedeelde database).
 const database = new URL(process.env.CONTENT_ACCESS_TEST_DATABASE_URL ?? "http://invalid");
@@ -89,4 +89,21 @@ test("een week openen maakt alleen een ingeschreven cursus de huidige leerreis",
   await subscribeUserToCourse(prisma, userId, free.id);
   await markCourseStarted(prisma, userId, free.id);
   assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: userId } })).activeCourseId, free.id);
+});
+
+test("de terugbestemming van een CFM-les is het leerpad van de juiste cursus (collectie + leeswijze), nooit een andere collectie", async () => {
+  const a = await collection("terug-a"), b = await collection("terug-b"), none = await collection("terug-geen");
+  await ensureCfmCourses(prisma, a);
+  await ensureCfmCourses(prisma, b);
+  const rows = await prisma.course.findMany({ where: { contentCollectionId: { in: [a.id, b.id] } } });
+  const idOf = (collectionId: string, type: string) => rows.find((r) => r.contentCollectionId === collectionId && r.type === type)!.id;
+  assert.equal((await cfmCourseBackTarget(prisma, a.id, "STEPS", "nl"))?.href, `/courses/${idOf(a.id, "STUDY_STEPS")}/pad`);
+  assert.equal((await cfmCourseBackTarget(prisma, a.id, "FREE", "nl"))?.href, `/courses/${idOf(a.id, "STUDY_FREE")}/pad`);
+  assert.equal((await cfmCourseBackTarget(prisma, b.id, "STEPS", "nl"))?.href, `/courses/${idOf(b.id, "STUDY_STEPS")}/pad`);
+  assert.equal((await cfmCourseBackTarget(prisma, a.id, "STEPS", "nl"))?.name, "Stap voor stap");
+  assert.equal((await cfmCourseBackTarget(prisma, a.id, "FREE", "en"))?.name, "Free study", "de naam volgt de app-taal");
+  assert.equal(await cfmCourseBackTarget(prisma, none.id, "STEPS", "nl"), null, "zonder cursus geen bestemming (de terugbalk valt terug op Leren)");
+  // Een door de beheerder uitgezette cursus blijft de terugweg van een directe link, als er geen ingeschakelde is.
+  await prisma.course.update({ where: { id: idOf(a.id, "STUDY_STEPS") }, data: { enabled: false } });
+  assert.equal((await cfmCourseBackTarget(prisma, a.id, "STEPS", "nl"))?.href, `/courses/${idOf(a.id, "STUDY_STEPS")}/pad`);
 });

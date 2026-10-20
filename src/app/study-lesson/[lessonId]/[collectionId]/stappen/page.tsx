@@ -1,10 +1,11 @@
 import { redirect, notFound } from "next/navigation";
 import { z } from "zod";
 import { getCurrentUser, navigationSessionKey } from "@/lib/session";
-import { prisma } from "@/lib/db";
-import { markCfmCourseStarted } from "@/lib/studyContent/cfmCourses";
 import { loadPersonalStudyPage } from "@/lib/studyContent/personalStudyPage";
-import StepOverview from "@/components/study/StepOverview";
+import { activeStepIndex } from "@/lib/studyContent/stepProgress";
+
+// Geen tussenpagina: het oude stappenoverzicht stuurt (voor bestaande links en weekkaarten) rechtstreeks naar de stap waar de
+// gebruiker verder kan. De stap zelf markeert de cursus als gestart en toont de stapnavigatie.
 export default async function Page({
   params,
 }: {
@@ -20,18 +21,7 @@ export default async function Page({
   const sessionKey = await navigationSessionKey();
   const page = await loadPersonalStudyPage(user, parsed.data.lessonId, parsed.data.collectionId, sessionKey);
   if (!page) notFound();
-  if (!page.view || !page.progress)
-    redirect(`/study-lesson/${encodeURIComponent(parsed.data.lessonId)}/${encodeURIComponent(parsed.data.collectionId)}`);
-  await markCfmCourseStarted(prisma, user.id, parsed.data.collectionId, "STEPS");
-  return (
-    <StepOverview
-      key={`${page.reader.lesson.editionId}:${sessionKey}`}
-      data={page.reader}
-      view={page.view}
-      progress={page.progress}
-      week={page.week}
-      program={page.program}
-      sessionKey={sessionKey}
-    />
-  );
+  const base = `/study-lesson/${encodeURIComponent(parsed.data.lessonId)}/${encodeURIComponent(parsed.data.collectionId)}`;
+  if (!page.view || !page.progress) redirect(base);
+  redirect(`${base}/stappen/${activeStepIndex(page.view.steps, page.progress)}`);
 }

@@ -4,6 +4,8 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Verbeterd (Kom dan en volg Mij): verwijzingen naar het Boek van Mormon, de Leer en Verbonden en de Parel van Grote Waarde openen nu de eigen tekst in Versado (ook samengestelde verwijzingen zoals "1 Nephi 13:21–29, 38–42"), en een verwijzing naar een lofzang opent die lofzang in Lofzangen zodra die beschikbaar is. Kan een verwijzing niet met zekerheid worden gekoppeld, dan blijft de officiële bron de terugval. In Stap voor stap gaat de terugknop rechtstreeks naar het leerpad in Leren; het driepuntjesmenu en het tussenscherm met het stappenoverzicht zijn vervallen.
+
 - Verbeterd (Kom dan en volg Mij): staat nu in Leren als gewone cursus. Voeg Stap voor stap (standaard) of Vrije studie toe via Cursus toevoegen, zoals bij de andere leescursussen; de cursuskaart toont je voortgang in weken en brengt je naar je huidige week met de officiële afbeelding. Verbergen uit je overzicht wist niets: je annotaties, leesposities en voortgang blijven bewaard.
 
 - Nieuw (Kom dan en volg Mij): je kiest Vrije studie of Stap voor stap één keer en Versado onthoudt dat; een link met een expliciete weergave gaat altijd voor. De weken staan als leerlijn met de officiële lesafbeelding (zoals bij de leescursussen), zonder sloten. Na het openen van een schriftverwijzing kom je terug in dezelfde leeswijze, stap en leesplek.

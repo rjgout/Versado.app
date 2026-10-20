@@ -8,10 +8,13 @@ import HymnsPocClient from "@/components/hymns-poc/HymnsPocClient";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Lofzangen", robots: { index: false, follow: false } };
 
-export default async function HymnsPocPage() {
+export default async function HymnsPocPage({ searchParams }: { searchParams: Promise<{ lofzang?: string }> }) {
   const user = await getCurrentUser();
   const access = await getHymnsAccess(user);
   if (access === "login") redirect("/login");
   if (access === "hidden") notFound();
-  return <><LiveRefresh scopes={["content"]} token={String(Date.now())} staleTime={0} /><HymnsPocClient isAdmin={Boolean(user?.isAdmin)} /></>;
+  // Een verwijzing uit een studieles opent direct deze lofzang (nummer in het zangboek); alles anders wordt genegeerd.
+  const requested = (await searchParams).lofzang;
+  const initialNumber = requested && /^[1-9][0-9]{0,3}$/.test(requested) ? Number(requested) : undefined;
+  return <><LiveRefresh scopes={["content"]} token={String(Date.now())} staleTime={0} /><HymnsPocClient isAdmin={Boolean(user?.isAdmin)} initialNumber={initialNumber} /></>;
 }

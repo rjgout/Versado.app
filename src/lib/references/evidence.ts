@@ -31,9 +31,13 @@ export function chapterEvidenceHash(
     )
     .digest("hex");
 }
-/** Alleen de exact geïdentificeerde primaire bron; nooit een tekstlabel parseren. */
+/**
+ * Alleen de exact geïdentificeerde primaire bron; nooit een tekstlabel parseren. Een samengestelde selectie
+ * (`id=p10%2Cp13`, `id=p21-p29%2Cp38-p42`) is een oplopende, niet-overlappende lijst van bereiken; de enige toegestane
+ * procentcodering is de komma (`%2C`).
+ */
 export function parseScriptureUrl(raw: string) {
-  if (raw.length > 2048 || /[\u0000-\u0020\\%]/.test(raw)) return null;
+  if (raw.length > 2048 || /[\u0000-\u0020\\]/.test(raw) || /%(?!2c)/i.test(raw)) return null;
   let url: URL;
   try {
     url = new URL(raw);
@@ -72,24 +76,33 @@ export function parseScriptureUrl(raw: string) {
     >
   )[code ?? ""];
   if (!language) return null;
-  let from = 1,
-    to = row.verses;
+  let ranges: Array<[number, number]> = [[1, row.verses]];
   const id = url.searchParams.get("id");
   if (id) {
-    const range = /^p([1-9][0-9]{0,2})(?:-p?([1-9][0-9]{0,2}))?$/.exec(id);
-    if (!range) return null;
-    from = Number(range[1]);
-    to = Number(range[2] ?? range[1]);
+    const parts = id.split(",");
+    if (parts.length > 40) return null;
+    ranges = [];
+    for (const part of parts) {
+      const range = /^p([1-9][0-9]{0,2})(?:-p?([1-9][0-9]{0,2}))?$/.exec(part);
+      if (!range) return null;
+      const start = Number(range[1]),
+        end = Number(range[2] ?? range[1]);
+      // Oplopend en zonder overlap: een andere volgorde is geen betrouwbare selectie.
+      if (start > end || end > row.verses || (ranges.length && start <= ranges[ranges.length - 1][1])) return null;
+      ranges.push([start, end]);
+    }
   }
   if (url.hash) {
     if (!/^#p[1-9][0-9]{0,2}$/.test(url.hash)) return null;
     const anchor = Number(url.hash.slice(2));
-    if (anchor > row.verses || (id && (anchor < from || anchor > to)))
-      return null;
-    if (!id) from = to = anchor;
+    if (anchor > row.verses) return null;
+    if (id) {
+      if (!ranges.some(([start, end]) => anchor >= start && anchor <= end)) return null;
+    } else ranges = [[anchor, anchor]];
   }
-  if (from > to || to > row.verses) return null;
-  return { bookKey, book, chapter, from, to, language, url: url.href };
+  const from = ranges[0][0],
+    to = ranges[ranges.length - 1][1];
+  return { bookKey, book, chapter, from, to, ranges, wholeChapter: !id && !url.hash, language, url: url.href };
 }
 /** Geen host-only vrijbrief voor redirects, login, trackers of onbekende resources. */
 export function verifiedOfficialUrl(raw: unknown): string | null {

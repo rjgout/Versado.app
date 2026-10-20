@@ -718,3 +718,25 @@ test("Meer lezen naar een andere studieles bewaart beide contextversies en blokk
     selected,
   );
 });
+
+test("een Boek van Mormon-verwijzing zonder metadata wordt alleen intern als label en bron-URL dezelfde passage noemen", async () => {
+  const f = await referenceFixture();
+  const { resolveReferenceBatch } = await import("../src/lib/references/resolver.ts");
+  const url = "https://www.churchofjesuschrist.org/study/scriptures/bofm/1-ne/1?lang=nld";
+  const ask = (label, sourceKey = url + "&id=p1-p3%2Cp5#p1") =>
+    prisma.$transaction(async (db) => (await resolveReferenceBatch(db, f.owner.actor, f.dto.lesson, [{ target: { sourceKey, externalUrl: sourceKey }, diagnosticKey: "k", label }]))[0]);
+  const ok = await ask("1 Nephi 1:1–3, 5");
+  assert.equal(ok.kind, "internal");
+  assert.equal(ok.work, "bofm");
+  assert.equal(ok.title, "1 Nephi 1:1–3, 5");
+  assert.deepEqual(ok.preview.verses.map((v) => v.number), [1, 2, 3, 5]);
+  assert.match(ok.href, /^\/scripture\/[^#]+#vers-1$/);
+  // Zonder label, met een afwijkend bereik, hoofdstuk of boek: nooit een interne (mogelijk verkeerde) tekst, wel de bewezen bron.
+  for (const label of [undefined, "1 Nephi 1:1–3", "1 Nephi 2:1–3, 5", "Alma 1:1–3, 5", "vers 1–3"]) {
+    const result = await ask(label);
+    assert.equal(result.kind, "external", String(label));
+  }
+  // Een enkel bereik en het bare versnummer-label.
+  assert.equal((await ask("vers 1–3", url + "&id=p1-p3#p1")).kind, "internal");
+  assert.equal((await ask("1–3", url + "&id=p1-p3#p1")).kind, "internal");
+});

@@ -171,6 +171,22 @@ export default function ReferencePreview({
             </a>
           </div>
         )}
+        {result?.kind === "hymn" && (
+          <div className="space-y-4" data-reference-hymn={result.number}>
+            <p className="text-sm font-semibold text-vs-fg-2">
+              {t("referencePreview.hymnLabel", { n: result.number })} · {result.title}
+            </p>
+            <Link href={result.href} prefetch={false} className="btn-primary inline-flex min-h-12 gap-2">
+              {t("referencePreview.openHymn")}
+            </Link>
+            <p>
+              <a href={result.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 items-center gap-2 text-sm font-semibold text-vs-accent underline underline-offset-2">
+                <ExternalLink size={18} aria-hidden />
+                {t("referencePreview.external")}
+              </a>
+            </p>
+          </div>
+        )}
         {choices.length > 0 && (
           <fieldset className="mb-4 min-w-0 space-y-2" disabled={busy}>
             <legend className="mb-2 font-semibold">

@@ -1,5 +1,6 @@
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { markCourseStarted } from "@/lib/courses";
+import { localizedCourse } from "@/lib/courseText";
 import { modeOfStudyCourse, type StudyCourseType } from "@/lib/readingCourses";
 
 /** De CFM-collectie van 2026 (Oude Testament, Nederlands); haar cursussen hebben de oorspronkelijke slugs. */
@@ -65,6 +66,26 @@ export async function markCfmCourseStarted(db: PrismaClient, userId: string, col
     select: { id: true },
   });
   if (course) await markCourseStarted(db, userId, course.id);
+}
+
+/**
+ * De expliciete terugbestemming van een CFM-les: het leerpad (`/courses/<id>/pad`) van de cursus die bij deze collectie en
+ * leeswijze hoort. Geen browsergeschiedenis, dus ook een directe deeplink heeft een geldige terugweg. Zonder cursus (nog niet
+ * aangemaakt) is er geen bestemming en valt de terugbalk terug op het cursusoverzicht.
+ */
+export async function cfmCourseBackTarget(
+  db: Pick<PrismaClient, "course">,
+  collectionId: string,
+  mode: "STEPS" | "FREE",
+  uiLanguage: string,
+): Promise<{ href: string; name: string } | null> {
+  const course = await db.course.findFirst({
+    where: { contentCollectionId: collectionId, type: mode === "STEPS" ? "STUDY_STEPS" : "STUDY_FREE" },
+    orderBy: [{ enabled: "desc" }, { order: "asc" }],
+    include: { contentCollection: { select: { work: true } } },
+  });
+  if (!course) return null;
+  return { href: `/courses/${course.id}/pad`, name: localizedCourse({ ...course, work: course.contentCollection.work }, uiLanguage).name };
 }
 
 export { modeOfStudyCourse };

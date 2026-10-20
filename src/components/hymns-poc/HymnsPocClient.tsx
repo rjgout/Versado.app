@@ -80,7 +80,7 @@ function Choice({ pressed, onClick, children }: { pressed: boolean; onClick(): v
   );
 }
 
-export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean }) {
+export default function HymnsPocClient({ isAdmin = false, initialNumber }: { isAdmin?: boolean; initialNumber?: number }) {
   const [prefs, setPrefs] = useHymnPrefs();
   const [micState, setMicState] = useState<MicState>("idle");
   const [micDetail, setMicDetail] = useState<string | undefined>();
@@ -306,6 +306,14 @@ export default function HymnsPocClient({ isAdmin = false }: { isAdmin?: boolean 
     },
     [bumpPlace, getEngine, schedule]
   );
+
+  // Een verwijzing uit een studieles (?lofzang=<nummer>) opent die lofzang één keer, net als een keuze uit de lijst.
+  const openedFromLink = useRef(false);
+  useEffect(() => {
+    if (!initialNumber || openedFromLink.current) return;
+    openedFromLink.current = true;
+    void selectHymn(initialNumber);
+  }, [initialNumber, selectHymn]);
 
   const onStanzaTap = (n: number) => {
     bumpPlace();

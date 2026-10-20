@@ -207,3 +207,17 @@ export async function getStepProgressForEdition(actor: Actor, lessonEditionId: s
     steps: plan.steps.map((s) => ({ index: s.index, title: s.title, continued: s.continued, labels: s.labels, fingerprint: s.fingerprint })),
   };
 }
+
+/**
+ * De stap waar de gebruiker verder kan: de laatst geopende stap als die nog niet klaar is, anders de eerste onafgeronde.
+ * Zijn alle zes stappen af, dan de laatste stap (daar staat de uitnodiging om de les als gelezen te markeren). Nooit een vergrendeling.
+ */
+export function activeStepIndex(steps: ReadonlyArray<{ index: number; fingerprint: string }>, state: StepProgressState): number {
+  const statusOf = (fingerprint: string) => state.steps.find((s) => s.fingerprint === fingerprint)?.status ?? "NOT_STARTED";
+  const lastOpened = steps.find((s) => s.index === state.lastOpenedIndex);
+  const active =
+    (lastOpened && statusOf(lastOpened.fingerprint) !== "COMPLETED" ? lastOpened : null) ??
+    steps.find((s) => statusOf(s.fingerprint) !== "COMPLETED") ??
+    null;
+  return active?.index ?? steps[steps.length - 1]?.index ?? 1;
+}
