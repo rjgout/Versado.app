@@ -189,6 +189,8 @@ Zie `docs/CFM-TECHNICAL-FINALIZATION.md`. Harde regels:
 - **Voortgang blijft behouden** (stappen, lezen, annotaties, leesposities) en **stapafronding is geen leesafronding**: alleen de bewuste
   leesmarkering rondt de les af; een stap raakt nooit reeks, XP of beloning.
 
+- **Verwijzingen en navigatie**: zie `docs/CFM-VERWIJZINGEN-EN-NAVIGATIE.md`. Een verwijzing naar een standaardwerk wordt alleen intern als het label exact dezelfde passage noemt als de officiële bron-URL en het bewijs per hoofdstuk klopt (`standardWorks.ts`); een lofzang wordt gevonden op het officiële lofzang-id (`hymns.ts`, nummer als stabiele sleutel, nooit de titel) en alleen als Lofzangen voor de gebruiker beschikbaar is. Anders blijft de bewezen externe bron de terugval. In Stap voor stap heeft de hoofdterugknop een expliciete bestemming (het leerpad van de cursus, `cfmCourseBackTarget`), nooit `router.back()`; er is geen stappenoverzicht-tussenpagina of driepuntjesmenu in de stapweergave.
+
 ## Platformfundering: web/PWA, iOS en Android
 
 Versado blijft één product en één gedeelde codebase. De definitieve native
