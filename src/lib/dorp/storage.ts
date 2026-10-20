@@ -7,23 +7,24 @@ import { DORP_STORAGE_VERSION, type DorpLevel, type DorpOwnedInstance, type Dorp
 export const DORP_STORAGE_KEY = `versado-dorp-prototype-v${DORP_STORAGE_VERSION}`;
 export const DORP_LEGACY_STORAGE_KEYS = ["versado-dorp-prototype-v2", "versado-dorp-prototype-v1"] as const;
 
-const placedFixtures = new Map<string, { instanceId: string; level: DorpLevel; position: TileCoordinate }>([
-  ["vd-b001", { instanceId: "fixture-family", level: 1, position: { u: -5, v: -2 } }],
-  ["vd-b002", { instanceId: "fixture-scribe", level: 2, position: { u: 1, v: -5 } }],
-  ["vd-b003", { instanceId: "fixture-assembly", level: 3, position: { u: -2, v: 2 } }],
-  ["vd-p003", { instanceId: "fixture-well", level: 1, position: { u: 3, v: 1 } }],
-  ["vd-n001", { instanceId: "fixture-tree", level: 1, position: { u: -5, v: 3 } }],
+// Oude IDs blijven geldig; nieuwe werelden hebben geen geplaatste fixtures.
+const legacyFixtureIdentities = new Map<string, { instanceId: string; level: DorpLevel }>([
+  ["vd-b001", { instanceId: "fixture-family", level: 1 }],
+  ["vd-b002", { instanceId: "fixture-scribe", level: 2 }],
+  ["vd-b003", { instanceId: "fixture-assembly", level: 3 }],
+  ["vd-p003", { instanceId: "fixture-well", level: 1 }],
+  ["vd-n001", { instanceId: "fixture-tree", level: 1 }],
 ]);
 
 function createPrototypeRights(): DorpOwnedInstance[] {
   return DORP_OBJECTS.flatMap((definition) => {
-    const fixture = placedFixtures.get(definition.id);
+    const fixture = legacyFixtureIdentities.get(definition.id);
     const fixtureCount = definition.repeatable ? Math.min(2, definition.maxInstances) : 1;
     return Array.from({ length: fixtureCount }, (_, index): DorpOwnedInstance => ({
       instanceId: index === 0 && fixture ? fixture.instanceId : `fixture-${definition.id}-${index + 1}`,
       objectId: definition.id,
       level: index === 0 && fixture ? fixture.level : 1,
-      position: index === 0 && fixture ? fixture.position : null,
+      position: null,
     }));
   });
 }
@@ -32,14 +33,7 @@ export const DEFAULT_DORP_STATE: DorpWorldState = {
   version: DORP_STORAGE_VERSION,
   phase: 0,
   instances: createPrototypeRights(),
-  paths: [
-    { u: -6, v: 0 }, { u: -5, v: 0 }, { u: -4, v: 0 }, { u: -3, v: 0 }, { u: -2, v: 0 }, { u: -1, v: 0 },
-    { u: 0, v: 0 }, { u: 1, v: 0 }, { u: 2, v: 0 }, { u: 3, v: 0 }, { u: 4, v: 0 }, { u: 5, v: 0 }, { u: 6, v: 0 },
-    { u: 0, v: -6 }, { u: 0, v: -5 }, { u: 0, v: -4 }, { u: 0, v: -3 }, { u: 0, v: -2 }, { u: 0, v: -1 },
-    { u: 0, v: 1 }, { u: 0, v: 2 }, { u: 0, v: 3 }, { u: 0, v: 4 }, { u: 0, v: 5 }, { u: 0, v: 6 },
-    { u: 3, v: 1 }, { u: 3, v: 2 }, { u: 3, v: 3 }, { u: 3, v: 4 }, { u: 2, v: 4 }, { u: 1, v: 4 },
-    { u: -3, v: -1 }, { u: -3, v: -2 }, { u: -3, v: -3 }, { u: -3, v: -4 }, { u: -2, v: -4 }, { u: -1, v: -4 },
-  ],
+  paths: [],
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {

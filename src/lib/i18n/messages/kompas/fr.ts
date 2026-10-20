@@ -201,7 +201,7 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
       step1: "Touche ton avatar en haut à droite.",
       step2: "Choisis Modifier l’avatar pour choisir un autre personnage ou tes accessoires débloqués.",
       step3: "Ouvre Confidentialité pour décider si tes amis peuvent voir tes réussites.",
-      more: "La langue de l’application et la langue du texte des Écritures sont deux choix distincts. Tu fais les deux dans ton profil ; la langue du texte aussi en haut, à côté des Écritures.",
+      more: "La langue de l’application et la langue du texte des Écritures sont deux choix distincts. Tu fais les deux dans ton profil ; la langue du texte aussi en haut, à côté des Écritures. Ouvre Mon village dans ton profil lorsqu’il est disponible. Dans Confidentialité, choisis si tes amis peuvent le visiter.",
     },
     start: {
       title: "Pour commencer",

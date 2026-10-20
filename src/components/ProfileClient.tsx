@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
+import DorpEntry from "@/components/dorp/DorpEntry";
 import LanguageSettings from "@/components/LanguageSettings";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { LeagueTier } from "@/generated/prisma/client";
@@ -507,6 +508,7 @@ export default function ProfileClient() {
         <ProfileAction icon={<MessageSquare className="h-5 w-5 text-vs-accent" aria-hidden />} label={t("pages.feedback")} href="/feedback" />
       </div>
 
+      <DorpEntry userId={data.id} />
       <KompasEntryCard />
 
       <ProfileCard title={<><Trophy className="h-5 w-5 text-vs-xp" aria-hidden />{t("nav.competition")}</>}>

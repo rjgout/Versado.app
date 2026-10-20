@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { inventoryOriginAllowed } from "@/lib/content-inventory/origin";
 import { failureLockSeconds, registerFailure } from "@/lib/rateLimit";
-import { leaveVillage, requireDorpAccess, openVillage, readVillage, mutateVillage, visitVillage, sendVillageGift, DorpError } from "@/lib/dorp/service";
+import { villageMarkers, leaveVillage, requireDorpAccess, openVillage, readVillage, mutateVillage, visitVillage, sendVillageGift, DorpError } from "@/lib/dorp/service";
 import { getT } from "@/lib/i18n";
 export const runtime="nodejs";
 const json=(body:unknown,status=200)=>NextResponse.json(body,{status,headers:{"Cache-Control":"no-store, private",Vary:"Cookie"}});
@@ -12,7 +12,8 @@ const id=z.string().min(1).max(128);
 export async function GET(req:NextRequest){
  const user=await getCurrentUser();if(!user)return json({error:"Unauthorized"},401);
  try{
-  const query=z.union([z.object({villageId:id}).strict(),z.object({ownerId:id}).strict(),z.object({}).strict()]).parse(Object.fromEntries(req.nextUrl.searchParams));
+  const query=z.union([z.object({markers:z.literal("friends")}).strict(),z.object({villageId:id}).strict(),z.object({ownerId:id}).strict(),z.object({}).strict()]).parse(Object.fromEntries(req.nextUrl.searchParams));
+  if("markers"in query)return json(await villageMarkers(user.id));
   await requireDorpAccess(prisma,user.id);
   if("ownerId"in query)return json(await visitVillage(user.id,query.ownerId));
   if("villageId"in query)return json(await readVillage(user.id,query.villageId));

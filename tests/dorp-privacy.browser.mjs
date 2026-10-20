@@ -21,16 +21,24 @@ try{
  let friendship=await prisma.friendship.create({data:{senderId:owner.id,receiverId:viewer.id,status:'ACCEPTED'}});
  const world=await openVillage(owner.id),object=world.world.instances.find(i=>i.objectId==='vd-c001');
  await mutateVillage(owner.id,{villageId:world.villageId,expectedVersion:world.version,actionId:randomUUID(),operation:{type:'place',objectId:object.instanceId,position:{u:0,v:0}}});
- const ownerContext=await contextFor(owner),previewContext=await contextFor(viewer,{viewport:{width:390,height:844}}),visitContext=await contextFor(viewer,{viewport:{width:1280,height:900}});
- const preview=await previewContext.newPage(),visit=await visitContext.newPage(),frames=[];
- for(const page of [preview,visit])page.on('websocket',socket=>socket.on('framereceived',event=>frames.push({page:page===preview?'preview':'visit',payload:String(event.payload)})));
+ const ownerContext=await contextFor(owner),previewContext=await contextFor(viewer,{viewport:{width:390,height:844}}),visitContext=await contextFor(viewer,{viewport:{width:1280,height:900}}),mapContext=await contextFor(viewer,{viewport:{width:390,height:844}});
+ const preview=await previewContext.newPage(),visit=await visitContext.newPage(),map=await mapContext.newPage(),frames=[];
+ for(const page of [preview,visit,map])page.on('websocket',socket=>socket.on('framereceived',event=>frames.push({page:page===preview?'preview':'visit',payload:String(event.payload)})));
  await preview.goto(`${base}/friends/${owner.id}`);await visit.goto(`${base}/dorp/visit/${owner.id}`);
  const previewCard=preview.getByRole('link',{name:'Dorp bezoeken',exact:true});
  const canvas=visit.locator('canvas[aria-busy="false"]');
  await previewCard.waitFor();await canvas.waitFor();
+ await map.goto(`${base}/profile`);await map.getByRole('link',{name:'Mijn dorp',exact:true}).waitFor();await map.getByRole('link',{name:'Mijn dorp',exact:true}).click();
+ await map.getByRole('button',{name:'Dorp openen',exact:true}).click();await map.locator('canvas[aria-busy="false"]').waitFor();
+ await map.locator('summary').filter({hasText:'Weergave'}).click();await map.getByRole('button',{name:'Maximale toekomstige wereld tonen'}).click();
+ const marker=map.locator('[data-dorp-friend-marker]');await marker.waitFor();assert.equal(await marker.getAttribute('href'),`/dorp/visit/${owner.id}`);
+ await map.screenshot({path:`${output}/friend-world-390.png`});
+ const markerResponse=await previewContext.request.get(`${base}/api/dorp?markers=friends`);assert.equal(markerResponse.status(),200);assert.match(markerResponse.headers()['cache-control'],/no-store/);
+ assert.deepEqual(await markerResponse.json(),{markers:[{ownerId:owner.id,label:owner.handle}]});
+
  async function ownerPrivacy(value){const response=await ownerContext.request.patch(`${base}/api/account`,{headers:{Origin:base},data:{shareVillageWithFriends:value}});assert.equal(response.status(),200);}
- async function hidden(){await previewCard.waitFor({state:'hidden'});await visit.locator('p[role="alert"]').filter({hasText:/^Dit dorp of deze actie is niet beschikbaar\.$/}).waitFor();assert.equal(await visit.locator('canvas').count(),0);}
- async function shown(){await previewCard.waitFor();await canvas.waitFor();}
+ async function hidden(){await marker.waitFor({state:"hidden"});await previewCard.waitFor({state:'hidden'});await visit.locator('p[role="alert"]').filter({hasText:/^Dit dorp of deze actie is niet beschikbaar\.$/}).waitFor();assert.equal(await visit.locator('canvas').count(),0);}
+ async function shown(){await marker.waitFor();await previewCard.waitFor();await canvas.waitFor();}
  // Actieve HTTP-aanvraag bevat nog de oude toegestane wereld; de response wordt bewust vertraagd.
  let intercepted;const ready=Promise.withResolvers(),release=Promise.withResolvers();let once=true;
  await visit.route('**/api/dorp?ownerId=*',async route=>{if(!once)return route.continue();once=false;intercepted=await route.fetch();assert.equal(intercepted.status(),200);ready.resolve();await release.promise;await route.fulfill({response:intercepted});});
@@ -47,11 +55,16 @@ try{
  const disabled=await ownerContext.request.put(`${base}/api/admin/content-switcher`,{headers:{Origin:base},data:{activity:'dorp',visibleToUsers:false}});assert.equal(disabled.status(),200);await hidden();
  assert.ok(frames.some(f=>f.page==='preview'&&f.payload.includes('dorpAccessChanged')));assert.ok(frames.some(f=>f.page==='visit'&&f.payload.includes('dorpAccessChanged')));
  await ownerContext.request.put(`${base}/api/admin/content-switcher`,{headers:{Origin:base},data:{activity:'dorp',visibleToUsers:true}});await shown();
- await previewContext.setOffline(true);await visitContext.setOffline(true);
- await previewCard.waitFor({state:'hidden'});await visit.locator('canvas').waitFor({state:'hidden'});
- await previewContext.setOffline(false);await visitContext.setOffline(false);await shown();
- results.push({twoConcurrentSessions:true,privacyRevoked:true,unfriend:true,featureDisabled:true,lateResponseDiscarded:true,realtimeSignals:true,offlineHidesCache:true});
- await ownerContext.close();await previewContext.close();await visitContext.close();
+ await previewContext.setOffline(true);await visitContext.setOffline(true);await mapContext.setOffline(true);
+ await previewCard.waitFor({state:'hidden'});await visit.locator('canvas').waitFor({state:'hidden'});await marker.waitFor({state:'hidden'});
+ await previewContext.setOffline(false);await visitContext.setOffline(false);await mapContext.setOffline(false);await shown();
+ results.push({twoConcurrentSessions:true,privacyRevoked:true,unfriend:true,featureDisabled:true,lateResponseDiscarded:true,realtimeSignals:true,offlineHidesCache:true,worldMarkers:true,profileEntry:true});
+
+ await marker.focus();await marker.press('Enter');await map.waitForURL(`${base}/dorp/visit/${owner.id}`);
+ await map.locator('canvas[aria-busy="false"]').waitFor();assert.equal(await map.getByRole('button',{name:'Bouwen',exact:true}).count(),0);
+ await map.locator('summary').filter({hasText:'Weergave'}).click();await map.getByRole('button',{name:'Detail',exact:true}).click();
+ await map.screenshot({path:`${output}/friend-marker-visit-detail.png`});
+ await ownerContext.close();await previewContext.close();await visitContext.close();await mapContext.close();
  // De nieuwe XP-begrippen worden op echte pagina's en in alle vijf UI-talen gecontroleerd.
  await prisma.user.update({where:{id:viewer.id},data:{xpTotal:50}});
  await prisma.xPTransaction.createMany({data:[{userId:viewer.id,amount:12,reason:'ACHIEVEMENT'},{userId:viewer.id,amount:5,reason:'VILLAGE_GIFT_RECEIVED'},{userId:viewer.id,amount:-5,reason:'VILLAGE_GIFT_SENT'}]});

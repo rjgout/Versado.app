@@ -2,7 +2,7 @@ import test,{after} from "node:test";
 import assert from "node:assert/strict";
 import {randomUUID} from "node:crypto";
 import {prisma} from "../src/lib/db";
-import {openVillage,readVillage,mutateVillage,sendVillageGift,DorpError} from "../src/lib/dorp/service";
+import {openVillage,readVillage,mutateVillage,sendVillageGift,villageMarkers,DorpError} from "../src/lib/dorp/service";
 import {createGroup,leaveGroup,removeMember,joinTx} from "../src/lib/social/groups";
 import {BOFM_CANONICAL_CONTENT_KEYS} from "../src/lib/dorp/growth";
 import {buyHints,buyFreezes,HINT_PRICE_XP,FREEZE_PRICE_XP} from "../src/lib/shop";
@@ -115,3 +115,36 @@ test("gift: databasefout na saldo-/divisiemutatie rolt overdracht en audit volle
   await prisma.$executeRawUnsafe(`DROP FUNCTION dorp_test_gift_failure()`);
  }
 });
+
+ test("wereldmarkers: alleen geaccepteerd, gedeeld en bestaand; minimaal DTO, begrensd, direct ingetrokken",async()=>{
+ const prior=await prisma.contentSwitcherSettings.findUnique({where:{id:"singleton"},select:{dorpVisibleToUsers:true}});
+ try{
+ const {a,b}=await pair();
+ assert.deepEqual(await villageMarkers(a.id),{markers:[{ownerId:b.id,label:b.handle}]});
+ await prisma.user.update({where:{id:b.id},data:{shareVillageWithFriends:false}});
+ assert.deepEqual(await villageMarkers(a.id),{markers:[]});
+ await prisma.user.update({where:{id:b.id},data:{shareVillageWithFriends:true}});
+ await prisma.friendship.updateMany({where:{senderId:a.id,receiverId:b.id},data:{status:"PENDING"}});
+ assert.deepEqual(await villageMarkers(a.id),{markers:[]});
+ await prisma.friendship.updateMany({where:{senderId:a.id,receiverId:b.id},data:{status:"ACCEPTED"}});
+ await prisma.user.update({where:{id:a.id},data:{isAdmin:false}});
+ await prisma.contentSwitcherSettings.upsert({where:{id:"singleton"},create:{dorpVisibleToUsers:false},update:{dorpVisibleToUsers:false}});
+ await assert.rejects(villageMarkers(a.id),reject("UNAVAILABLE"));
+ const markerUrl=`${process.env.DORP_TEST_BASE_URL}/api/dorp?markers=friends`;
+ assert.equal((await fetch(markerUrl)).status,401);
+ const denied=await fetch(markerUrl,{headers:{Cookie:`${SESSION_COOKIE}=${await createSessionToken(a.id)}`}});
+ assert.equal(denied.status,404);assert.match(denied.headers.get("cache-control")!,/no-store/);
+
+ await prisma.contentSwitcherSettings.update({where:{id:"singleton"},data:{dorpVisibleToUsers:true}});
+ assert.equal((await villageMarkers(a.id)).markers.length,1);
+ const extra=Array.from({length:26},()=>{const uid=randomUUID();return{id:uid,email:`marker-${uid}@example.invalid`,handle:`Marker${uid.slice(0,6)}`,discriminator:"01",passwordHash:"synthetic",shareVillageWithFriends:true};});
+ await prisma.user.createMany({data:extra});
+ await prisma.friendship.createMany({data:extra.map(u=>({senderId:a.id,receiverId:u.id,status:"ACCEPTED" as const}))});
+ await prisma.dorpVillage.createMany({data:extra.map(u=>({ownerId:u.id}))});
+ const limited=await villageMarkers(a.id);assert.equal(limited.markers.length,8);assert.deepEqual(await villageMarkers(a.id),limited);
+ for(const marker of limited.markers)assert.deepEqual(Object.keys(marker).sort(),["label","ownerId"]);
+
+ process.env.VERSADO_DORP_PROTOTYPE_ENABLED="false";
+ try{await assert.rejects(villageMarkers(b.id),reject("UNAVAILABLE"));}finally{process.env.VERSADO_DORP_PROTOTYPE_ENABLED="true";}
+ }finally{if(prior)await prisma.contentSwitcherSettings.update({where:{id:"singleton"},data:{dorpVisibleToUsers:prior.dorpVisibleToUsers}});else await prisma.contentSwitcherSettings.deleteMany({where:{id:"singleton"}});}
+ });

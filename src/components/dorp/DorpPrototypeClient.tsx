@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, ChevronDown, ChevronUp, Crosshair, Focus, Globe2, Home, Minus, Package, Plus, RotateCcw, Sparkles, X } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
@@ -48,7 +49,7 @@ import {
 import { availableInstance, levelOwnedInstance, placeOwnedInstance, placedObjects, reconcileInstancesForRadius, storeOwnedInstance } from "@/lib/dorp/ownership";
 import { normalizePaths, paintPathSegment, paintPathTiles, pathConnectivityFromKeys, pathKey } from "@/lib/dorp/paths";
 import { DEFAULT_DORP_STATE, DORP_LEGACY_STORAGE_KEYS, DORP_STORAGE_KEY, parseDorpState, serializeDorpState } from "@/lib/dorp/storage";
-import { boundsContainViewport, terrainAssetId, terrainBufferBounds, type TerrainWorldBounds } from "@/lib/dorp/terrain";
+import { boundsContainViewport, forestLodStep, terrainAssetId, terrainBufferBounds, type TerrainWorldBounds } from "@/lib/dorp/terrain";
 import type { ReactNode, SetStateAction } from "react";
 import type { DorpSnapshot } from "@/lib/dorp/service";
 import type { DorpObjectDefinition, DorpWorldState, PlacedDorpObject, TileCoordinate } from "@/lib/dorp/types";
@@ -110,6 +111,7 @@ function nearestPrototypePhase(phase: number) {
 
 export function DorpCanvas({
   world,
+  markers = [],
   compact = false,
   editableIds,
   placement,
@@ -121,6 +123,7 @@ export function DorpCanvas({
   cameraCommand,
 }: {
   world: DorpWorldState;
+  markers?: readonly {ownerId:string;label:string}[];
   compact?: boolean;
   editableIds?: ReadonlySet<string>;
   placement: Placement | null;
@@ -135,6 +138,7 @@ export function DorpCanvas({
   onCameraChange: (camera: DorpCamera) => void;
   cameraCommand: { id: number; kind: "detail" | "normal" | "current" | "full" | "in" | "out" | "center" };
 }) {
+  const markerRefs = useRef(new Map<string,HTMLAnchorElement>());
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imagesRef = useRef<RenderImageMap>(new Map());
@@ -183,7 +187,7 @@ export function DorpCanvas({
     if (cameraCommand.kind === "in") { camera.zoom = clampCameraZoom(camera.zoom * 1.25, minimum); fitModeRef.current = "free"; }
     if (cameraCommand.kind === "out") { camera.zoom = clampCameraZoom(camera.zoom / 1.25, minimum); fitModeRef.current = "free"; }
     if (cameraCommand.kind === "current") { cameraRef.current = fitCameraToRadius(box.width, box.height, radius, insets); fitModeRef.current = "current"; }
-    if (cameraCommand.kind === "full") { cameraRef.current = fitCameraToRadius(box.width, box.height, MAX_RADIUS, insets); fitModeRef.current = "full"; }
+    if (cameraCommand.kind === "full") { cameraRef.current = fitCameraToRadius(box.width, box.height, MAX_RADIUS+25, insets); fitModeRef.current = "full"; }
     if (cameraCommand.kind === "center") { camera.x = 0; camera.y = 0; fitModeRef.current = "free"; }
     renderCamera(true);
   }, [cameraCommand, radius, renderCamera, measureInsets]);
@@ -237,25 +241,25 @@ export function DorpCanvas({
       const pathKeys = new Set(paths.keys());
       const pathsKey = world.paths.map(pathKey).sort().join(";");
 
-      const gradient = ctx.createLinearGradient(0, 0, 0, height);
-      gradient.addColorStop(0, "#b9d9dc");
-      gradient.addColorStop(0.55, "#dce8cf");
-      gradient.addColorStop(1, "#b6c999");
-      ctx.fillStyle = gradient;
+      ctx.fillStyle = "#416438";
       ctx.fillRect(0, 0, width, height);
-
-      // De potentiële cirkel is dezelfde R62-geometrie, geen losstaande kaart.
-      // De actuele grond, paden en objecten blijven volledig uit world komen.
-      if(cameraCommand.kind === "full" && radius < MAX_RADIUS) {
-        ctx.save();ctx.beginPath();
-        for(let i=0;i<=96;i++) {
-          const angle=i*Math.PI*2/96;
-          const p=isoToWorld(MAX_RADIUS*Math.cos(angle),MAX_RADIUS*Math.sin(angle));
-          const s=screen(p.x,p.y);
-          if(i===0)ctx.moveTo(s.x,s.y);else ctx.lineTo(s.x,s.y);
+      // Wereldvast bos-LOD met begrensde schermdichtheid, ook buiten R62.
+      // Dichte, overlappende assets gebruiken dezelfde bestaande spritecache.
+      const step = forestLodStep(zoom);
+      const forestSize = Math.max(360, step * 1.8);
+      const minX = Math.floor((camera.x-width/2/zoom)/step)-1;
+      const minY = Math.floor((camera.y-height/2/zoom)/step)-1;
+      for(let gy=minY;gy<=minY+Math.ceil(height/zoom/step)+2;gy++) {
+        for(let gx=minX;gx<=minX+Math.ceil(width/zoom/step)+2;gx++) {
+          const hash=Math.abs((gx*73856093)^(gy*19349663));
+          const x=(gx+.25+(hash%19)/100)*step,y=(gy+.25+((hash>>>6)%19)/100)*step;
+          const tile=worldToIso(x,y);
+          if(Math.hypot(tile.u,tile.v)<radius-forestSize/24)continue;
+          const p=screen(x,y),asset=DORP_ASSET_BY_ID.get(hash%2?"forest-dense":"forest-dense-v2")!,image=imagesRef.current.get(asset.path);
+          if(image) {
+            drawSprite(image,asset.path,p,[forestSize,forestSize],asset.anchor);
+          }
         }
-        ctx.closePath();ctx.fillStyle="rgba(72,120,61,.12)";ctx.fill();
-        ctx.strokeStyle="rgba(42,83,47,.65)";ctx.lineWidth=2;ctx.setLineDash([5,5]);ctx.stroke();ctx.restore();
       }
 
       const overview = zoom < 0.18 || width / zoom + 384 > 8192 || height / zoom + 384 > 8192;
@@ -319,6 +323,13 @@ export function DorpCanvas({
         );
       }
 
+      // Deterministische, niet-geografische ring; geen volledige vriendendorpen.
+      markers.forEach((marker,index)=>{
+        const angle=index*Math.PI*2/Math.max(1,markers.length);
+        const world=isoToWorld(Math.cos(angle)*(MAX_RADIUS+14),Math.sin(angle)*(MAX_RADIUS+14));
+        const point=screen(world.x,world.y),link=markerRefs.current.get(marker.ownerId);
+        if(link){link.style.left=`${point.x}px`;link.style.top=`${point.y}px`;link.hidden=!(cameraCommand.kind==="full"||zoom<.12)||point.x<32||point.x>width-32||point.y<48||point.y>height-48;}
+      });
       type LayerItem = { depth: number; draw: () => void };
       const layers: LayerItem[] = [];
       {
@@ -398,13 +409,13 @@ export function DorpCanvas({
       const bounds = container.getBoundingClientRect();
       insetsRef.current = measureInsets();
       if (fitModeRef.current === "current") cameraRef.current = fitCameraToRadius(bounds.width, bounds.height, radius, insetsRef.current);
-      if (fitModeRef.current === "full") cameraRef.current = fitCameraToRadius(bounds.width, bounds.height, MAX_RADIUS, insetsRef.current);
+      if (fitModeRef.current === "full") cameraRef.current = fitCameraToRadius(bounds.width, bounds.height, MAX_RADIUS+25, insetsRef.current);
       scheduler.request();
       onCameraChange({ ...cameraRef.current });
     });
     resize.observe(container);
     return () => { resize.disconnect(); scheduler.cancel(); requestDrawRef.current = () => undefined; };
-  }, [assetRevision, objects, onCameraChange, placement, radius, selectedId, world.instances, world.paths, pathMode, pathPreview, measureInsets, cameraCommand.kind]);
+  }, [assetRevision, objects, onCameraChange, placement, radius, selectedId, world.instances, world.paths, pathMode, pathPreview, measureInsets, cameraCommand.kind, markers]);
 
   const eventToWorld = useCallback((clientX: number, clientY: number) => {
     const bounds = canvasRef.current?.getBoundingClientRect();
@@ -427,6 +438,7 @@ export function DorpCanvas({
 
   return (
     <div ref={containerRef} className="absolute inset-0 touch-none select-none overflow-hidden" data-dorp-canvas>
+      {markers.map(marker=><Link key={marker.ownerId} ref={node=>{if(node)markerRefs.current.set(marker.ownerId,node);else markerRefs.current.delete(marker.ownerId);}} hidden href={`/dorp/visit/${encodeURIComponent(marker.ownerId)}`} data-dorp-friend-marker className="absolute z-[1] flex min-h-11 min-w-11 max-w-28 -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-xl border border-vs-line bg-vs-surface/95 p-2 text-xs font-bold shadow-lg" aria-label={marker.label} title={marker.label}><Home className="h-5 w-5 shrink-0" aria-hidden/><span className="sm:hidden" aria-hidden>{Array.from(marker.label).slice(0,2).join("")}</span><span className="hidden truncate sm:inline">{marker.label}</span></Link>)}
       <canvas
         ref={canvasRef}
         className="block h-full w-full cursor-grab active:cursor-grabbing"
@@ -450,7 +462,7 @@ export function DorpCanvas({
             const wp=eventToWorld(event.clientX,event.clientY), tile=worldToIso(wp.x,wp.y);
             const selected=objects.find(o=>o.instanceId===selectedId);
             const definition=selected?DORP_OBJECT_BY_ID.get(selected.objectId):null;
-            dragRef.current=selected&&(!editableIds||editableIds.has(selected.instanceId))&&definition&&tile.u>=selected.u&&tile.v>=selected.v&&tile.u<selected.u+definition.footprint[0]&&tile.v<selected.v+definition.footprint[1]
+            dragRef.current=placement ? {instanceId:placement.instanceId,offset:{u:0,v:0},active:false} : selected&&(!editableIds||editableIds.has(selected.instanceId))&&definition&&tile.u>=selected.u&&tile.v>=selected.v&&tile.u<selected.u+definition.footprint[0]&&tile.v<selected.v+definition.footprint[1]
               ? {instanceId:selected.instanceId,offset:{u:tile.u-selected.u,v:tile.v-selected.v},active:false}:null;
             if(pathMode) {strokeRef.current=[tile];setPathPreview(tile);}
           }
@@ -495,6 +507,7 @@ export function DorpCanvas({
               dragRef.current.active=true;
               onDragPreview(dragRef.current.instanceId,{u:tile.u-dragRef.current.offset.u,v:tile.v-dragRef.current.offset.v});return;
             }
+            if(placement) { onPlacementMove(tile); return; }
             if(gestureRef.current.moved)onExplore(true);
             camera.x -= dx / camera.zoom; camera.y -= dy / camera.zoom;
           }
@@ -521,7 +534,7 @@ export function DorpCanvas({
   );
 }
 
-export type DorpControlledProps = { snapshot: DorpSnapshot; backHref?: string; busy: boolean; onChange: (next:DorpWorldState)=>void; onRequest:(id:string)=>void; controls:ReactNode };
+export type DorpControlledProps = { snapshot: DorpSnapshot; backHref?: string; busy: boolean; onChange: (next:DorpWorldState)=>void; onRequest:(id:string)=>void; controls:ReactNode; markers?:readonly {ownerId:string;label:string}[] };
 export default function DorpPrototypeClient({controlled}:{controlled?:DorpControlledProps}={}) {
   useImmersiveShell();
   const t=useT();
@@ -633,6 +646,7 @@ export default function DorpPrototypeClient({controlled}:{controlled?:DorpContro
       <div className="absolute inset-0" style={controlled?.busy?{pointerEvents:"none"}:undefined}>
       <DorpCanvas
         world={world}
+        markers={controlled?.markers}
         editableIds={ownedIds}
         placement={placement}
         selectedId={selectedId}
@@ -642,7 +656,7 @@ export default function DorpPrototypeClient({controlled}:{controlled?:DorpContro
         onExplore={setControlsHidden}
         onPathStroke={(tiles,erase)=>setWorld(current=>({ ...current, paths:paintPathTiles(current.paths,tiles,radiusForPhase(current.phase),erase) }))}
         onDragPreview={(id,tile)=>{setDirectDragging(true);const instance=world.instances.find(i=>i.instanceId===id);if(instance&&tile)setPlacement({objectId:instance.objectId,instanceId:id,...tile,moving:true});}}
-        onDragEnd={(id,tile)=>{setDirectDragging(false);if(tile)setWorld(current=>{const item=current.instances.find(i=>i.instanceId===id);return item&&placementIsValid({...tile,instanceId:id,objectId:item.objectId},placedObjects(current),radiusForPhase(current.phase))?{...current,instances:placeOwnedInstance(current.instances,id,tile)}:current;});setPlacement(null);}}
+        onDragEnd={(id,tile)=>{setDirectDragging(false);const item=world.instances.find(i=>i.instanceId===id);if(!tile||!item||!placementIsValid({...tile,instanceId:id,objectId:item.objectId},objects,radius)){if(item?.position)setPlacement(null);return;}if(tile)setWorld(current=>{const item=current.instances.find(i=>i.instanceId===id);return item&&placementIsValid({...tile,instanceId:id,objectId:item.objectId},placedObjects(current),radiusForPhase(current.phase))?{...current,instances:placeOwnedInstance(current.instances,id,tile)}:current;});setPlacement(null);}}
         onCameraChange={setCamera}
         cameraCommand={cameraCommand}
       />
@@ -664,7 +678,7 @@ export default function DorpPrototypeClient({controlled}:{controlled?:DorpContro
 
         {controlled && <div className="pointer-events-auto mt-2 max-h-[35dvh] overflow-y-auto rounded-2xl bg-vs-surface/95 p-2 shadow-lg">{controlled.controls}</div>}
         {developerOpen && !controlled && (
-          <section className="pointer-events-auto mt-2 ml-auto w-[min(100%,22rem)] rounded-2xl border border-vs-line bg-vs-surface/95 p-3 shadow-xl backdrop-blur" aria-label="Ontwikkelmenu kaartuitbreiding">
+          <section className="pointer-events-auto mt-2 ml-auto max-h-[65dvh] w-[min(100%,22rem)] overflow-y-auto rounded-2xl border border-vs-line bg-vs-surface/95 p-3 shadow-xl backdrop-blur" aria-label="Ontwikkelmenu kaartuitbreiding">
             <div className="mb-2 flex items-center justify-between gap-2"><h2 className="font-bold">Kaartfase testen</h2><button type="button" onClick={() => setDeveloperOpen(false)} aria-label="Testmenu sluiten"><ChevronUp className="h-5 w-5" /></button></div>
             <div className="grid grid-cols-2 gap-2">
               {PROTOTYPE_PHASES.map((phase) => <button key={phase.id} type="button" onClick={() => changePhase(phase.id)} className={`btn min-h-11 break-normal text-xs ${world.phase === phase.id ? "!border-vs-accent !bg-vs-accent-soft" : "!bg-vs-surface"}`}>{phase.label}<br />R{phase.radius}</button>)}
@@ -683,9 +697,9 @@ export default function DorpPrototypeClient({controlled}:{controlled?:DorpContro
               <button type="button" onClick={() => issueCameraCommand("in")} className="min-h-[44px] min-w-[44px] flex-1 rounded-xl" aria-label="Inzoomen"><Plus className="mx-auto h-5 w-5" /></button>
               <button type="button" onClick={() => issueCameraCommand("center")} className="min-h-[44px] min-w-[44px] flex-1 rounded-xl" aria-label="Camera centreren"><Crosshair className="mx-auto h-5 w-5" /></button>
             </div>
-            <details className="rounded-2xl border border-white/40 bg-vs-surface/90 p-1 text-xs shadow-lg backdrop-blur"><summary className="min-h-11 cursor-pointer p-2">{t("dorp2.views")}</summary><div className="flex flex-wrap">
-              <button type="button" onClick={() => issueCameraCommand("detail")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1">Detail</button>
-              <button type="button" onClick={() => issueCameraCommand("normal")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1">Normaal</button>
+            <details className="rounded-2xl border border-white/40 bg-vs-surface/90 p-1 text-xs shadow-lg backdrop-blur"><summary className="min-h-11 cursor-pointer p-2">{t("dorp2.views")}</summary><div className="grid grid-cols-2 gap-1 [overflow-wrap:normal]">
+              <button type="button" onClick={() => issueCameraCommand("detail")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1">{t("dorp2.detail")}</button>
+              <button type="button" onClick={() => issueCameraCommand("normal")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1">{t("dorp2.normal")}</button>
               <button type="button" onClick={() => issueCameraCommand("current")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1" aria-label="Huidige kaart volledig tonen"><Focus className="mx-auto h-4 w-4" />{t("dorp2.fitMap")}</button>
               <button type="button" onClick={() => issueCameraCommand("full")} className="min-h-11 min-w-0 flex-1 rounded-xl px-1" aria-label="Maximale toekomstige wereld tonen"><Globe2 className="mx-auto h-4 w-4" />{t("dorp2.futureWorld")}</button>
             </div></details>
@@ -702,7 +716,7 @@ export default function DorpPrototypeClient({controlled}:{controlled?:DorpContro
         <button className="btn min-h-[44px] !px-[12px] !py-[8px] break-normal [overflow-wrap:normal]" onClick={()=>setPathMode(null)}>{t("common.close")}</button>
       </div>}
       {placement && !directDragging && (
-        <div className="absolute inset-x-0 bottom-[max(.75rem,var(--vs-safe-area-bottom))] z-20 mx-auto flex w-[min(calc(100%-1.5rem),32rem)] flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-vs-surface/95 p-3 shadow-2xl backdrop-blur">
+        <div className="absolute inset-x-0 bottom-[max(.75rem,var(--vs-safe-area-bottom))] z-20 mx-auto flex max-h-[45dvh] w-[min(calc(100%-1.5rem),32rem)] overflow-y-auto flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-vs-surface/95 p-3 shadow-2xl backdrop-blur">
           <p className="w-full text-center text-sm font-semibold">{DORP_OBJECT_BY_ID.get(placement.objectId)?.name} · {placementValid ? "geldige plek" : "ongeldige plek"}</p>
           <button type="button" onClick={propose} className="btn min-h-11 !bg-vs-surface"><Sparkles className="h-4 w-4" /> Stel een plek voor</button>
           <button type="button" onClick={() => setPlacement(null)} className="btn min-h-11 !bg-vs-surface">Annuleren</button>
@@ -713,7 +727,7 @@ export default function DorpPrototypeClient({controlled}:{controlled?:DorpContro
       {inventoryOpen && !readOnly && (
         <aside className="absolute inset-y-0 right-0 z-30 flex w-[min(92vw,27rem)] flex-col border-l border-vs-line bg-vs-surface shadow-2xl pt-[max(1rem,var(--vs-safe-area-top))] pr-[max(1rem,var(--vs-safe-area-right))] pb-[max(1rem,var(--vs-safe-area-bottom))] pl-4" aria-label="Bouwinventaris">
           <div className="flex items-center justify-between gap-3"><div><h2 className="text-xl font-bold">Bouwinventaris</h2><p className="text-xs text-vs-fg-3">{controlled?t("dorp2.pilot"):"Expliciete prototypefixtures · geen vrijspeelstatus"}</p></div><button type="button" onClick={() => setInventoryOpen(false)} className="min-h-11 min-w-11" aria-label="Inventaris sluiten"><X className="mx-auto h-5 w-5" /></button></div>
-          <button type="button" className="btn mt-3 min-h-11" onClick={()=>{setPathMode("paint");setPlacement(null);setSelectedId(null);setInventoryOpen(false);}}>{t("dorp2.paths")}</button>
+          <button type="button" className="btn-primary mt-3 min-h-14 w-full justify-start !whitespace-normal text-left" onClick={()=>{setPathMode("paint");setPlacement(null);setSelectedId(null);setInventoryOpen(false);}}>{t("dorp2.paths")}</button>
           <div className="mt-4 flex-1 space-y-5 overflow-y-auto overscroll-contain pr-1">
             {inventoryByCategory.map(({ category, objects: definitions }) => definitions.length > 0 && <section key={category}><h3 className="mb-2 text-sm font-bold text-vs-fg-2">{category==="Bewoners"?t("dorp2.residents"):category}</h3><div className="grid grid-cols-2 gap-2">{definitions.map((object) => {
               const asset = DORP_ASSET_BY_ID.get(object.assetIds[0]);
@@ -726,7 +740,7 @@ export default function DorpPrototypeClient({controlled}:{controlled?:DorpContro
       )}
 
       {selected && selectedDefinition && !placement && (
-        <section className="absolute inset-x-3 bottom-[max(.75rem,var(--vs-safe-area-bottom))] z-20 mx-auto w-[min(calc(100%-1.5rem),30rem)] rounded-2xl border border-vs-line bg-vs-surface/95 p-3 shadow-2xl backdrop-blur">
+        <section data-dorp-selection className="absolute inset-x-3 bottom-[max(.75rem,var(--vs-safe-area-bottom))] z-20 mx-auto max-h-[45dvh] overflow-y-auto w-[min(calc(100%-1.5rem),30rem)] rounded-2xl border border-vs-line bg-vs-surface/95 p-3 shadow-2xl backdrop-blur">
           <div className="flex items-start justify-between gap-3"><div><h2 className="font-bold">{selectedDefinition.name}</h2><p className="text-xs text-vs-fg-3">Vaste footprint {selectedDefinition.footprint[0]} × {selectedDefinition.footprint[1]} · positie {selected.position?.u},{selected.position?.v}</p></div><button type="button" onClick={() => setSelectedId(null)} className="min-h-10 min-w-10" aria-label="Selectie sluiten"><ChevronDown className="mx-auto h-5 w-5" /></button></div>
           {selectedResident && <p className="mt-2 text-sm text-vs-fg-2">{selectedResident.description}</p>}
           {!readOnly && <p className="mt-2 text-xs text-vs-fg-3">{t(ownedIds&&!ownedIds.has(selected.instanceId)?"dorp2.ownOnly":"dorp2.dragHelp")}</p>}
