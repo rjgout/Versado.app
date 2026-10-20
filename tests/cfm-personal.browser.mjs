@@ -450,8 +450,8 @@ try {
       const block = document.querySelector("[data-study-reader-body] [data-study-block]");
       if (!block) return;
       const holder = document.createElement("div");
-      holder.className = "max-w-full overflow-x-auto";
-      holder.innerHTML = '<table class="w-full border-collapse text-left"><tbody><tr><td class="border border-vs-line p-3 align-top">Boodschappen <a style="white-space:nowrap" href="#x">Jesaja 50:2, 5–9; 51:3–8, 15–16; 52:3, 9–10</a></td><td class="border border-vs-line p-3">Lofprijzingsverwijzingsgeschiedenis</td></tr></tbody></table>';
+      holder.className = "relative max-w-full overflow-x-auto";
+      holder.innerHTML = '<table class="w-full border-collapse text-left"><tbody><tr><td class="border border-vs-line p-3 align-top">Boodschappen <a style="white-space:nowrap" href="#x">Jesaja 50:2, 5–9; 51:3–8, 15–16; 52:3, 9–10</a></td><td class="border border-vs-line p-3">Lofprijzingsverwijzingsgeschiedenis<button type="button" class="sr-only"><svg class="h-5 w-5" viewBox="0 0 24 24"></svg></button></td></tr></tbody></table>';
       block.parentElement.insertBefore(holder, block);
     });
     assert.ok(await noOverflow(page), "volledige les 320 px/200%: geen overflow");

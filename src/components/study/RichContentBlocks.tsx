@@ -199,9 +199,10 @@ export default function RichContentBlocks({
           )}</div>{action(block.id)}
         </blockquote>
       );
+    // `relative` op het scrollvak: de onzichtbare annotatieknop (sr-only, absoluut) wordt anders niet door het vak geknipt en rekt de pagina op.
     if (block.type === "table")
       return (
-        <div className="max-w-full overflow-x-auto">
+        <div className="relative max-w-full overflow-x-auto">
           <table className="w-full border-collapse text-left">
             <tbody>{block.rows.map((row) => <tr key={row.id}>{row.cells.map((cell) => {
               const Tag = cell.header ? "th" : "td";
