@@ -2,7 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { z } from "zod";
 import { getCurrentUser, navigationSessionKey } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { markCfmCourseStarted } from "@/lib/studyContent/cfmCourses";
+import { cfmCourseBackTarget, markCfmCourseStarted } from "@/lib/studyContent/cfmCourses";
 import { loadPersonalStudyPage } from "@/lib/studyContent/personalStudyPage";
 import StudyReader from "@/components/study/StudyReader";
 import ReaderBackTarget from "@/components/ReaderBackTarget";
@@ -48,15 +48,18 @@ export default async function Page({
       (focus.status === "exact" && focus.blockIds.some((id) => !view.personalBlockIds.includes(id))));
   const mode = !view || weergave === "volledig" || outside ? "full" : "free";
   if (mode === "free") await markCfmCourseStarted(prisma, user.id, parsed.data.collectionId, "FREE");
+  // Vrije studie en de volledige les: terug naar het Vrije studie-leerpad, maar met browser-terug als er een vorige pagina in de app is.
+  const back = view && !folderReturn ? await cfmCourseBackTarget(prisma, parsed.data.collectionId, "FREE", user.uiLanguage) : null;
   return (
     <>
+      {back && <ReaderBackTarget href={back.href} parent={back.name} soft />}
       {folderReturn && <ReaderBackTarget href={folderReturn} parent={getT(user.uiLanguage)("studyFolder.title")} soft />}
       <StudyReader
         key={`${data.lesson.editionId}:${sessionKey}:${mode}`}
         initial={data}
         sessionKey={sessionKey}
         annotationFocus={focus}
-        personal={{ view, progress: page.progress, week: page.week, mode, stepIndex: null, forcedFull: outside }}
+        personal={{ view, progress: page.progress, week: page.week, mode, stepIndex: null, forcedFull: outside, coursePath: back?.href ?? null }}
       />
     </>
   );

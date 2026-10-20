@@ -85,9 +85,6 @@ function WeekSteps({ week, sessionKey }: { week: WeekRow; sessionKey: string }) 
           );
         })}
       </ol>
-      <Link href={`${base}/stappen`} prefetch={false} className={`inline-flex min-h-11 items-center text-sm font-bold text-vs-accent underline-offset-2 hover:underline ${focusRing}`}>
-        {t("cfmStudy.weekSteps")}
-      </Link>
     </div>
   );
 }

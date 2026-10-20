@@ -19,6 +19,6 @@ test("compacte studietekst gebruikt één regelafstand op de container", () => {
 });
 
 test("de studieles heeft geen leeswijzeswitcher en geen permanente annotatieknop", () => {
-  for (const file of ["StudyReader", "StepOverview"]) assert.doesNotMatch(read(`src/components/study/${file}.tsx`), /ModeSwitch/);
+  assert.doesNotMatch(read("src/components/study/StudyReader.tsx"), /ModeSwitch/);
   assert.match(read("src/components/annotations/StudyAnnotations.tsx"), /\(!compact \|\| pickMode\)/);
 });

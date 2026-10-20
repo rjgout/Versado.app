@@ -220,27 +220,51 @@ try {
     step("tekstselectie en klik op desktop");
   }
 
-  // 5. Stap voor stap: weekoverzicht, zes stappen, geen dagnamen, status, geen READ/reeks/XP.
+  // 5. Stap voor stap: zes stappen, geen tussenpagina, geen driepuntjesmenu, expliciete terugnavigatie, geen READ/reeks/XP.
   {
     const { context, page } = await open(f);
+    const stepsCourse = await prisma.course.findFirstOrThrow({ where: { contentCollectionId: f.key, type: "STUDY_STEPS" } });
+    const padHref = `/courses/${stepsCourse.id}/pad`;
+    // De oude stappenpagina is geen tussenpagina meer: ze stuurt naar de stap waar de gebruiker verder kan.
     await page.goto(base + f.href + "/stappen");
-    await page.locator("[data-step-overview]").waitFor();
-    assert.equal(await page.locator("[data-step]").count(), 6);
-    const labels = await page.locator("[data-step]").evaluateAll((els) => els.map((e) => e.innerText));
-    labels.forEach((label, i) => assert.match(label, new RegExp(`Stap ${i + 1}\\b`)));
-    assert.doesNotMatch(labels.join(" "), /maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag/i);
+    await page.waitForURL(/\/stappen\/1$/);
+    await page.locator("[data-complete-step]").waitFor();
+    assert.equal(await page.locator("[data-step-overview]").count(), 0, "geen stappenoverzicht");
+    // Geen driepuntjesmenu en geen aparte "terug naar overzicht"-link in de stapweergave.
+    assert.equal(await page.locator("header.space-y-3 details, [data-menu-item]").count(), 0, "geen driepuntjesmenu in Stap voor stap");
+    assert.equal(await page.getByRole("link", { name: t("cfmStudy.backToOverview") }).count(), 0);
     assert.ok(await noOverflow(page));
-    assert.equal(await page.locator('[data-step-status="COMPLETED"]').count(), 0);
-    assert.match(await page.locator("[data-step-overview]").innerText(), /Synthetische CFM/, "programmanaam bovenaan");
-    await page.getByRole("link", { name: new RegExp(t("cfmStudy.continueStudy")) }).waitFor();
+    // Zes stappen, geen dagnamen, voortgangsindicator.
+    assert.equal(await page.locator('[role="img"][aria-label*="1"]').count(), 1, "stapindicator");
+    assert.doesNotMatch(await page.locator("header.space-y-3").innerText(), /maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag/i);
+    // Eerste stap: geen vorige-stapknop; laatste stap: geen volgende maar terug naar het leerpad.
+    assert.equal(await page.locator("[data-step-prev]").count(), 0);
+    assert.equal(await page.locator("[data-step-next]").count(), 1);
+    await page.goto(base + f.href + "/stappen/6");
+    await page.locator("[data-complete-step]").waitFor();
+    assert.equal(await page.locator("[data-step-next]").count(), 0);
+    assert.equal(await page.locator("[data-step-prev]").count(), 1);
+    assert.equal(await page.locator("[data-step-to-path]").getAttribute("href"), padHref);
     // Vrije navigatie: stap 5 is direct te openen zonder stap 1 t/m 4.
     await page.goto(base + f.href + "/stappen/5");
     await page.locator("[data-complete-step]").waitFor();
-    await page.getByRole("link", { name: t("cfmStudy.backToOverview") }).waitFor();
     assert.equal(await page.locator('[role="img"][aria-label*="5"]').count(), 1, "stapstatus ook als tekst (aria-label)");
-    await page.goto(base + f.href + "/stappen");
-    await page.screenshot({ path: `${output}/steps-overview-mobile.png`, fullPage: true });
-    await page.locator('[data-step="1"]').click();
+    // De hoofdterugknop gaat naar het leerpad van Stap voor stap, ook bij een directe deeplink (geen geschiedenis).
+    await page.locator("[data-subpage-back-bar] button").click();
+    await page.waitForURL((url) => url.pathname === padHref);
+    await page.locator("[data-cfm-week-path]").waitFor();
+    // Met geschiedenis: pad → stap 1 → volgende stap → hoofdterugknop = pad, niet de vorige stap.
+    await page.locator('[data-week-state="current"] [data-week-step="1"]').click();
+    await page.waitForURL(/\/stappen\/1$/);
+    await page.locator("[data-step-next]").click();
+    await page.waitForURL(/\/stappen\/2$/);
+    await page.locator("[data-subpage-back-bar] button").click();
+    await page.waitForURL((url) => url.pathname === padHref);
+    // Vrije studie houdt zijn menu (opnieuw beginnen, volledige les) en heeft eigen terugnavigatie.
+    await page.goto(base + f.href);
+    await page.locator("[data-reader-mode='free']").waitFor();
+    assert.equal(await page.locator("header.space-y-3 details").count(), 1, "Vrije studie behoudt het menu");
+    await page.goto(base + f.href + "/stappen/1");
     await page.locator("[data-complete-step]").waitFor();
     await page.waitForTimeout(900);
     assert.match(await page.locator("[data-reader-mode]").getAttribute("data-reader-mode"), /step/);
@@ -251,15 +275,18 @@ try {
     await page.getByText(t("cfmStudy.stepDone")).waitFor();
     assert.equal(await prisma.contentProgress.count({ where: { userId: f.user.id } }), 0, "stap afronden registreert geen leesstatus");
     assert.equal(await prisma.streakDay.count({ where: { userId: f.user.id } }), 0, "stap afronden verlengt geen reeks");
+    // De status staat op de weekkaart in Leren; de oude stappenpagina leidt nu naar de volgende onafgeronde stap.
+    await page.goto(base + padHref);
+    await page.locator('[data-week-step="1"][data-step-status="COMPLETED"]').waitFor();
     await page.goto(base + f.href + "/stappen");
-    await page.locator('[data-step="1"][data-step-status="COMPLETED"]').waitFor();
+    await page.waitForURL(/\/stappen\/2$/);
     // Heropenen verliest de afronding niet en de tweede afronding doet niets.
-    await page.locator('[data-step="1"]').click();
+    await page.goto(base + f.href + "/stappen/1");
     await page.getByText(t("cfmStudy.stepDone")).waitFor();
     assert.equal(await page.locator("[data-complete-step]").count(), 0);
     assert.equal(await prisma.studyStepProgress.count({ where: { userId: f.user.id, status: "COMPLETED" } }), 1);
     await context.close();
-    step("stappenoverzicht, stap afronden zonder READ/reeks");
+    step("Stap voor stap: geen tussenpagina of menu, expliciete terugnavigatie, stap afronden zonder READ/reeks");
   }
 
   // 6. Wisselen van leeswijze behoudt de alinea; alle stappen afronden nodigt uit, zonder automatische READ.
@@ -496,7 +523,7 @@ try {
       const { context, page } = await open(f, { width, height, scheme });
       for (const route of ["", "/stappen", "/stappen/3"]) {
         await page.goto(base + f.href + route);
-        await page.locator("[data-reader-mode], [data-step-overview]").first().waitFor();
+        await page.locator("[data-reader-mode]").first().waitFor();
         assert.ok(await noOverflow(page), `${width}px ${scheme} ${route}: geen overflow`);
       }
       await page.screenshot({ path: `${output}/step-${width}-${scheme}.png`, fullPage: true });
@@ -537,7 +564,7 @@ try {
     const page = await context.newPage();
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(base + f.href + "/stappen");
-    await page.locator("[data-step-overview]").waitFor();
+    await page.locator("[data-reader-mode]").waitFor();
     assert.ok(await noOverflow(page));
     assert.equal(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches), true);
     await context.close();

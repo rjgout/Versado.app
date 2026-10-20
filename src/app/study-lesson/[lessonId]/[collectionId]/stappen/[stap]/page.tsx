@@ -2,9 +2,10 @@ import { redirect, notFound } from "next/navigation";
 import { z } from "zod";
 import { getCurrentUser, navigationSessionKey } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { markCfmCourseStarted } from "@/lib/studyContent/cfmCourses";
+import { cfmCourseBackTarget, markCfmCourseStarted } from "@/lib/studyContent/cfmCourses";
 import { loadPersonalStudyPage } from "@/lib/studyContent/personalStudyPage";
 import StudyReader from "@/components/study/StudyReader";
+import ReaderBackTarget from "@/components/ReaderBackTarget";
 export default async function Page({
   params,
 }: {
@@ -29,12 +30,17 @@ export default async function Page({
   if (!page.view) redirect(base);
   const stepIndex = Number(parsed.data.stap);
   await markCfmCourseStarted(prisma, user.id, parsed.data.collectionId, "STEPS");
+  // Terug = het leerpad van Stap voor stap in Leren: een expliciete bestemming (ook bij een directe link), nooit router.back().
+  const back = await cfmCourseBackTarget(prisma, parsed.data.collectionId, "STEPS", user.uiLanguage);
   return (
-    <StudyReader
-      key={`${page.reader.lesson.editionId}:${sessionKey}:step${stepIndex}`}
-      initial={page.reader}
-      sessionKey={sessionKey}
-      personal={{ view: page.view, progress: page.progress, week: page.week, mode: "step", stepIndex, forcedFull: false }}
-    />
+    <>
+      {back && <ReaderBackTarget href={back.href} parent={back.name} />}
+      <StudyReader
+        key={`${page.reader.lesson.editionId}:${sessionKey}:step${stepIndex}`}
+        initial={page.reader}
+        sessionKey={sessionKey}
+        personal={{ view: page.view, progress: page.progress, week: page.week, mode: "step", stepIndex, forcedFull: false, coursePath: back?.href ?? null }}
+      />
+    </>
   );
 }

@@ -40,6 +40,8 @@ export interface ReaderPersonal {
   stepIndex: number | null;
   /** De lezer toont de volledige les omdat de gevraagde annotatie buiten de persoonlijke studie valt. */
   forcedFull: boolean;
+  /** Het CFM-leerpad in Leren waar deze les bij hoort (expliciete bestemming, geen browsergeschiedenis). */
+  coursePath?: string | null;
 }
 
 /** Programma's zonder persoonlijke studieroute (bv. FSY) behouden de bestaande lezer. */
@@ -310,15 +312,25 @@ function ReaderVisit({
       )}
       {stepError && <p role="status" className="text-sm text-vs-danger">{stepError}</p>}
       {stepStatus === "COMPLETED" && <p className="text-sm text-vs-fg-2">{t("cfmStudy.stepDone")}</p>}
-      <nav className="flex gap-2" aria-label={t("cfmStudy.stepsOverview")}>
-        <Link href={stepNumber > 1 ? `${base}/stappen/${stepNumber - 1}` : `${base}/stappen`} prefetch={false} className={`${secondaryButton} min-h-12 flex-1`}>
-          <ChevronLeft aria-hidden className="h-5 w-5 shrink-0" />
-          {stepNumber > 1 ? t("cfmStudy.previousStep") : t("cfmStudy.stepsOverview")}
-        </Link>
-        <Link href={stepNumber < PERSONAL_STUDY_STEPS ? `${base}/stappen/${stepNumber + 1}` : `${base}/stappen`} prefetch={false} className={`${stepStatus === "COMPLETED" ? primaryButton : secondaryButton} min-h-12 flex-1`}>
-          {stepNumber < PERSONAL_STUDY_STEPS ? t("cfmStudy.nextStep") : t("cfmStudy.stepsOverview")}
-          <ChevronRight aria-hidden className="h-5 w-5 shrink-0" />
-        </Link>
+      <nav className="flex gap-2" aria-label={t("cfmStudy.stepNavigation")}>
+        {stepNumber > 1 && (
+          <Link href={`${base}/stappen/${stepNumber - 1}`} prefetch={false} data-step-prev className={`${secondaryButton} min-h-12 flex-1`}>
+            <ChevronLeft aria-hidden className="h-5 w-5 shrink-0" />
+            {t("cfmStudy.previousStep")}
+          </Link>
+        )}
+        {stepNumber < PERSONAL_STUDY_STEPS ? (
+          <Link href={`${base}/stappen/${stepNumber + 1}`} prefetch={false} data-step-next className={`${stepStatus === "COMPLETED" ? primaryButton : secondaryButton} min-h-12 flex-1`}>
+            {t("cfmStudy.nextStep")}
+            <ChevronRight aria-hidden className="h-5 w-5 shrink-0" />
+          </Link>
+        ) : (
+          // De laatste stap heeft geen volgende stap: terug naar het leerpad (expliciete bestemming).
+          <Link href={personal.coursePath ?? "/courses"} prefetch={false} data-step-to-path className={`${stepStatus === "COMPLETED" ? primaryButton : secondaryButton} min-h-12 flex-1`}>
+            {t("cfmStudy.backToPath")}
+            <ChevronRight aria-hidden className="h-5 w-5 shrink-0" />
+          </Link>
+        )}
       </nav>
       {stepState?.allCompleted && (
         <div className="space-y-3 rounded-xl bg-vs-subtle/60 p-3">
@@ -334,21 +346,23 @@ function ReaderVisit({
   const newHeader = (
     <header className="space-y-3">
       <ReferenceReturn sessionKey={sessionKey} />
-      <div className="flex items-center justify-end gap-2">
-        <HeaderMenu>
-          <button type="button" data-menu-item className={menuItem} onClick={() => void control.startOver()} disabled={startOverDisabled}>
-            <RotateCcw className="h-5 w-5 shrink-0" aria-hidden />
-            {t("studyReader.startOver")}
-          </button>
-          {pageMode === "full" ? (
-            <Link href={base} prefetch={false} className={menuItem}>{t("cfmStudy.backToPersonal")}</Link>
-          ) : (
-            <Link href={`${base}?weergave=volledig`} prefetch={false} className={menuItem}>{t("cfmStudy.viewFull")}</Link>
-          )}
-          {pageMode === "step" && <Link href={`${base}/stappen`} prefetch={false} className={menuItem}>{t("cfmStudy.stepsOverview")}</Link>}
-          <Link href="/courses" prefetch={false} className={menuItem}>{t("cfmStudy.pickWeek")}</Link>
-        </HeaderMenu>
-      </div>
+      {/* Het menu bestaat alleen in Vrije studie en de volledige les; in Stap voor stap staan terugnavigatie en stapnavigatie in de lezer zelf. */}
+      {pageMode !== "step" && (
+        <div className="flex items-center justify-end gap-2">
+          <HeaderMenu>
+            <button type="button" data-menu-item className={menuItem} onClick={() => void control.startOver()} disabled={startOverDisabled}>
+              <RotateCcw className="h-5 w-5 shrink-0" aria-hidden />
+              {t("studyReader.startOver")}
+            </button>
+            {pageMode === "full" ? (
+              <Link href={base} prefetch={false} className={menuItem}>{t("cfmStudy.backToPersonal")}</Link>
+            ) : (
+              <Link href={`${base}?weergave=volledig`} prefetch={false} className={menuItem}>{t("cfmStudy.viewFull")}</Link>
+            )}
+            <Link href={personal.coursePath ?? "/courses"} prefetch={false} className={menuItem}>{t("cfmStudy.pickWeek")}</Link>
+          </HeaderMenu>
+        </div>
+      )}
       <div className="space-y-1">
         <h1 ref={title} tabIndex={-1} className="text-xl font-extrabold leading-tight text-vs-fg focus:outline-none sm:text-2xl" lang={data.lesson.language}>
           {headline}
@@ -360,12 +374,6 @@ function ReaderVisit({
           </p>
         )}
       </div>
-      {currentStep && (
-        <Link href={`${base}/stappen`} prefetch={false} className="inline-flex min-h-11 items-center gap-1 text-sm font-bold text-vs-accent underline-offset-2 hover:underline">
-          <ChevronLeft aria-hidden className="h-4 w-4" />
-          {t("cfmStudy.backToOverview")}
-        </Link>
-      )}
       {currentStep && (
         <p className="font-bold text-vs-fg">
           {t("cfmStudy.stepOf", { n: currentStep.index, total: PERSONAL_STUDY_STEPS })}
