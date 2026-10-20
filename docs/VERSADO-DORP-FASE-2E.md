@@ -47,7 +47,7 @@ fouten (169 bestaande waarschuwingen, gerichte dorplint zonder waarschuwingen).
 i18n-check geslaagd met de bestaande achterstand van 418 sleutels per niet-
 Nederlandse taal; bestaande sleutels zijn hergebruikt.
 
-- Dorp/focus/shell: **53**; live-data: **54** tests.
+- Dorp/focus/shell: **54**; live-data: **54** tests.
 - Eigen PostgreSQL: **18** integratietests, inclusief GET-groei zonder writes,
   bouwen op de berekende grens, concurrency, vertrek, krimp, privacy en cadeaus.
 - Regressies: Kompas **69**, sociaal **33**, profiel **13**, divisies **5**,
@@ -111,3 +111,23 @@ uit en de technische flag blijft leidend. Controleer sluiten, bestaand dorp open
 paden/slepen en privacy met twee accounts. Approllback: vorige image terugzetten;
 geen databaseterugzetting nodig voor deze wijziging. Niet gemerged, niet gedeployed,
 geen productie- of NAS-handeling uitgevoerd.
+
+## Reviewcorrectie: terrein-cache bij de bosrand
+
+[Reviewcommentaar](https://github.com/rjgout/Versado.app/pull/154#issuecomment-6293217810).
+De buffer met padding kan nog gras raken terwijl de zichtbare uitsnede al leeg
+is. De non-null assertion verborg dit voor TypeScript, maar veroorzaakte een
+runtimefout op `inner.minX`. `containsTerrainBounds` behandelt een lege vereiste
+uitsnede nu als gedekt; de bestaande cache blijft behouden. Bij zichtbaar gras
+blijft de volledige dekkingscontrole gelden, inclusief bestaande invalidatie
+voor schaal, assets en wereldgegevens.
+
+De nieuwe unit- én productiebuild-browsertest reproduceren de fout op de oude
+code (R8, camera x=1350, zoom 1). Na herstel slagen de bovengenoemde suites,
+TypeScript, gerichte ESLint (geen fouten/waarschuwingen) en schone productiebuild.
+Aanvullende browserregressies doorlopen dorp → rand → bos → dorp op R8/R35/R62,
+met zoomwissels en herhaalde kleine panbewegingen: geen pageerrors, geen nieuwe
+canvasbuffers bij de herhaalde padding-only bewegingen, nul idle-renders en
+exact dezelfde opgeslagen objecten en paden. De screenshots
+`2e-terrain-cache-return-r{8,35,62}.png` komen in het bestaande CI-artifact.
+Geen schema-, asset-, rechten- of migratiewijziging.

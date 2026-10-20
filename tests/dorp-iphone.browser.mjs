@@ -79,6 +79,41 @@ try{
   assert.equal(stats.idle,0);assert.ok(Math.max(stats.max,stats.calls)<1000);
   results.push({pinchPan:true,worldUnchanged:true,maxSpriteDraws:stats.max,idleDraws:stats.idle});
  }
+ // Regressie #154: cache bestaat, padding raakt gras maar de viewport niet.
+ for(const [phase,radius]of [[0,8],[8,35],[16,62]]){
+  const state=structuredClone(DEFAULT_DORP_STATE);state.phase=phase;state.paths=[{u:0,v:0},{u:1,v:0}];
+  state.instances.find(i=>i.objectId==='vd-b001').position={u:-1,v:-1};
+  await page.evaluate(state=>localStorage.setItem('versado-dorp-prototype-v3',JSON.stringify(state)),state);await page.reload();await settled();
+  await page.locator('summary').filter({hasText:'Weergave'}).click();await page.getByRole('button',{name:'Detail',exact:true}).click();await settled();
+  await page.locator('summary').filter({hasText:'Weergave'}).click();
+  await page.evaluate(()=>{
+   const create=document.createElement.bind(document),ctx=document.querySelector('canvas').getContext('2d'),fill=ctx.fillRect.bind(ctx);
+   window.terrainEdgeStats={allocations:0,frames:0};
+   document.createElement=(name,...options)=>{if(name==='canvas')window.terrainEdgeStats.allocations++;return create(name,...options);};
+   ctx.fillRect=(...args)=>{window.terrainEdgeStats.frames++;return fill(...args);};
+  });
+  let cameraX=0,zoom=1;
+  async function panTo(x){
+   await page.mouse.move(300,350);await page.mouse.down();await page.mouse.move(300-(x-cameraX)*zoom,350,{steps:2});await page.mouse.up();cameraX=x;
+   await settled();assert.deepEqual(errors,[],`Geen rendercrash bij R${radius}, x=${x}, zoom=${zoom}`);
+  }
+  async function zoomTo(next){
+   await page.mouse.move(195,422);await page.mouse.wheel(0,-Math.log(next/zoom)/.001);zoom=next;
+   await settled();assert.deepEqual(errors,[],`Geen rendercrash tijdens zoomen bij R${radius}`);
+  }
+  const right=Math.ceil((radius+4)*64*Math.SQRT2),edge=right+195-64,paddingOnly=right+195+68;
+  await panTo(edge);await panTo(paddingOnly); // R8: exact x=1350 uit de review.
+  const before=await page.evaluate(()=>window.terrainEdgeStats.allocations);
+  for(const offset of [-1,1,-2,2,0])await panTo(paddingOnly+offset);
+  assert.equal(await page.evaluate(()=>window.terrainEdgeStats.allocations),before,'Geen nieuwe cache bij padding-only pan');
+  await zoomTo(.9);await panTo(paddingOnly+500);await zoomTo(.65);
+  await panTo(paddingOnly);await zoomTo(1);await panTo(edge);await panTo(0);
+  assert.deepEqual(JSON.parse(await page.evaluate(()=>localStorage.getItem('versado-dorp-prototype-v3'))),state,'Objecten en paden blijven behouden na dorp → rand → bos → dorp');
+  const idle=await page.evaluate(async()=>{const before=window.terrainEdgeStats.frames;for(let i=0;i<8;i++)await new Promise(resolve=>requestAnimationFrame(resolve));return window.terrainEdgeStats.frames-before;});
+  assert.equal(idle,0,'Geen idle-render na de cacheovergang');
+  await page.screenshot({path:`${output}/2e-terrain-cache-return-r${radius}.png`});
+  results.push({terrainCacheEdge:true,radius,paddingOnlyX:paddingOnly,zoomDuringTransition:true,stablePaddingCache:true,idleDraws:idle,worldUnchanged:true});
+ }
  for(const id of ['vd-b001','vd-b002','vd-b003','vd-p002','vd-p003','vd-p006','vd-c001']){
   const state=structuredClone(DEFAULT_DORP_STATE);state.instances.find(i=>i.objectId===id).position={u:0,v:0};
   await page.evaluate(state=>localStorage.setItem('versado-dorp-prototype-v3',JSON.stringify(state)),state);await page.reload();await settled();

@@ -43,8 +43,9 @@ export function clippedTerrainBounds(view: TerrainWorldBounds, radius: number): 
   const bounds = { minX: Math.max(-Math.ceil(x), view.minX), maxX: Math.min(Math.ceil(x), view.maxX), minY: Math.max(-Math.ceil(y), view.minY), maxY: Math.min(Math.ceil(y), view.maxY) };
   return bounds.minX < bounds.maxX && bounds.minY < bounds.maxY ? bounds : null;
 }
-export function containsTerrainBounds(outer: TerrainWorldBounds, inner: TerrainWorldBounds): boolean {
-  return outer.minX <= inner.minX && outer.minY <= inner.minY && outer.maxX >= inner.maxX && outer.maxY >= inner.maxY;
+/** Een lege zichtbare uitsnede vereist geen dekking of nieuwe padding-cache. */
+export function containsTerrainBounds(outer: TerrainWorldBounds, inner: TerrainWorldBounds | null): boolean {
+  return inner === null || outer.minX <= inner.minX && outer.minY <= inner.minY && outer.maxX >= inner.maxX && outer.maxY >= inner.maxY;
 }
 export function clearingOpacity(distance: number, radius: number): number {
   return Math.max(0, Math.min(1, (radius + 3 - distance) / 2));

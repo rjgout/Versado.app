@@ -24,7 +24,7 @@ import {
 import { availableInstance, levelOwnedInstance, ownershipIsValid, placeOwnedInstance, placedObjects, reconcileInstancesForRadius, storeOwnedInstance } from "../src/lib/dorp/ownership";
 import { paintPathSegment, paintPathTiles, pathAssetIdForMask, pathConnectivity, pathConnectivityFromKeys, pathKey, pathVariantForMask } from "../src/lib/dorp/paths";
 import { DEFAULT_DORP_STATE, DORP_STORAGE_KEY, parseDorpState, serializeDorpState } from "../src/lib/dorp/storage";
-import { FOREST_PERIOD, forestTexturePoints, clippedTerrainBounds, clearingOpacity, terrainAssetId, terrainBufferBounds } from "../src/lib/dorp/terrain";
+import { FOREST_PERIOD, forestTexturePoints, clippedTerrainBounds, containsTerrainBounds, clearingOpacity, terrainAssetId, terrainBufferBounds } from "../src/lib/dorp/terrain";
 import type { DorpOwnedInstance, PlacedDorpObject } from "../src/lib/dorp/types";
 import { shellModeForRoute } from "../src/lib/focusMode";
 
@@ -346,4 +346,24 @@ test("gemeten grondcontacten van bank, put en lantaarn vallen binnen hun bestaan
    assert.ok(u>=-.5&&u<=definition.footprint[0]-.5&&v>=-.5&&v<=definition.footprint[1]-.5,id);
   }
  }
+});
+
+test("lege zichtbare terreinuitsnede vraagt geen cache-rebuild bij een overlappende padding",()=>{
+ for(const radius of [8,35,62])for(const zoom of [.65,.9,1,1.2]){
+  const right=Math.ceil((radius+4)*64*Math.SQRT2),half=390/(2*zoom);
+  const x=right+half+68;
+  const padded=clippedTerrainBounds(terrainBufferBounds(x,0,zoom,390,844,.25),radius);
+  const visible=clippedTerrainBounds(terrainBufferBounds(x,0,zoom,390,844,.25,0),radius);
+  assert.ok(padded);assert.equal(visible,null);
+  const cache=clippedTerrainBounds(terrainBufferBounds(0,0,zoom,390,844,.25),radius)!;
+  assert.equal(containsTerrainBounds(cache,visible),true,"bestaande cache blijft geldig zonder zichtbare grond");
+  assert.equal(containsTerrainBounds(cache,padded),false,"padding is niet hetzelfde als zichtbare dekking");
+  const edge=clippedTerrainBounds(terrainBufferBounds(right+half-64,0,zoom,390,844,.25,0),radius)!;
+  assert.equal(containsTerrainBounds(cache,edge),false,"zichtbare terugkeer aan de rand vereist echte dekking");
+  assert.equal(containsTerrainBounds(padded,edge),true);
+  assert.equal(clippedTerrainBounds(terrainBufferBounds(x+500,0,zoom,390,844,.25),radius),null);
+ }
+ // Exacte reproductie uit issuecomment-6293217810.
+ assert.deepEqual(clippedTerrainBounds(terrainBufferBounds(1350,0,1,390,844,.25),8),{minX:960,maxX:1087,minY:-544,maxY:544});
+ assert.equal(clippedTerrainBounds(terrainBufferBounds(1350,0,1,390,844,.25,0),8),null);
 });

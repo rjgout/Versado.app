@@ -287,7 +287,7 @@ export function DorpCanvas({
           || terrainCache.assetRevision !== assetRevision
           || terrainCache.rasterScale !== rasterScale
           || terrainCache.dpr !== dpr
-          || !containsTerrainBounds(terrainCache.bounds, clippedTerrainBounds(terrainBufferBounds(camera.x, camera.y, zoom, width, height, .25, 0), radius)!)) {
+          || !containsTerrainBounds(terrainCache.bounds, clippedTerrainBounds(terrainBufferBounds(camera.x, camera.y, zoom, width, height, .25, 0), radius))) {
           const terrainBounds = neededBounds;
           const terrainCanvas = document.createElement("canvas");
           terrainCanvas.width = (terrainBounds.maxX - terrainBounds.minX) * rasterScale;
