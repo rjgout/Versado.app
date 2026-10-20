@@ -25,7 +25,8 @@ export const referenceTripSchema = z
     afterVersion: z.number().int().nonnegative().max(2147483647),
     originHref: z
       .string()
-      .regex(/^\/study-lesson\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+$/),
+      // Vrije studie, de volledige les, het weekoverzicht of een stap van dezelfde les (zie originView.ts).
+      .regex(/^\/study-lesson\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+(?:\/stappen(?:\/[1-6])?|\?weergave=volledig)?$/),
     targetHref: z
       .string()
       .regex(

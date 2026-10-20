@@ -65,8 +65,12 @@ export async function publishStudyProgram(
       if (blocked) throw new StudyPublishingError(blockCode(blocked));
       const pending = review.lessons.filter((l) => l.status === "ready");
       const failed: StudyProgramPublishResult["failed"] = [];
+      let attempted = 0;
       for (const lesson of pending) {
-        if (Date.now() - started > budget) break;
+        // Elke stap publiceert minstens één les, ook als de klok al voorbij het budget is: anders kan een trage
+        // server nooit vooruitgang boeken en blijft de hervatting op 0 staan.
+        if (attempted > 0 && Date.now() - started > budget) break;
+        attempted += 1;
         const edition = await client.studyLessonEdition.findUnique({ where: { id: lesson.editionId }, select: { publishedRevisionId: true, draftRevisionId: true, publicationVersion: true } });
         if (!edition || edition.publishedRevisionId === lesson.revisionId) continue;
         try {

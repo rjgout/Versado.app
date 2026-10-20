@@ -10,7 +10,8 @@ const FOCUS_ROUTES = [
   // Het leerpad van Stap voor stap (READING_LESSONS): een eigen route, want /courses/<id> is van alle cursustypes.
   // Een overzicht om uit te kiezen, geen activiteit (zie isActivityRoute).
   /^\/courses\/[^/]+\/pad$/,
-  /^\/study-lesson\/[^/]+\/[^/]+$/,
+  // Ook de persoonlijke-studieroutes (weekoverzicht en stap) horen bij dezelfde Focusroute; geen eigen shellmodus.
+  /^\/study-lesson\/[^/]+\/[^/]+(?:\/stappen(?:\/[^/]+)?)?$/,
   /^\/scripture\/[^/]+$/,
   // De avatar-editor is een zelfstandige bewerkflow: alleen de centrale
   // terugbalk blijft zichtbaar, zodat de vaste opslagactie niet concurreert

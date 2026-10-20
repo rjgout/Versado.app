@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { BookOpen, Check, Lock } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
@@ -27,16 +28,20 @@ export type VisualState = "done" | "current" | "started" | "open" | "locked";
  * bestaande koppeling uit het register; zonder beeld rendert de aanroeper deze laag niet. Decoratief en lui geladen
  * op miniatuurformaat, zodat honderden hoofdstukken geen honderden grote beelden ophalen.
  */
-export function ChapterThumb({ artworkKeys, fadeTo, dimmed = false }: { artworkKeys: string[]; fadeTo: string; dimmed?: boolean }) {
+export function ChapterThumb({ artworkKeys, fadeTo, dimmed = false, imageSrc = null }: { artworkKeys: string[]; fadeTo: string; dimmed?: boolean; /** Officiële afbeelding van een studieles (eigen, geautoriseerde media-URL); gaat voor het artworkregister. */ imageSrc?: string | null }) {
   return (
     <div aria-hidden data-chapter-thumb className="pointer-events-none absolute inset-y-0 left-0 hidden w-[120px] overflow-hidden rounded-l-2xl min-[380px]:block">
-      <MediaArtwork
-        kind="reading"
-        artworkKey={artworkKeys}
-        ratio="1/1"
-        sizes="120px"
-        className={`vs-decor !absolute inset-0 !aspect-auto h-full w-full ${dimmed ? "opacity-45 saturate-50" : "opacity-90"}`}
-      />
+      {imageSrc ? (
+        <Image unoptimized src={imageSrc} alt="" fill sizes="120px" loading="lazy" className={`vs-decor object-cover ${dimmed ? "opacity-45 saturate-50" : "opacity-90"}`} />
+      ) : (
+        <MediaArtwork
+          kind="reading"
+          artworkKey={artworkKeys}
+          ratio="1/1"
+          sizes="120px"
+          className={`vs-decor !absolute inset-0 !aspect-auto h-full w-full ${dimmed ? "opacity-45 saturate-50" : "opacity-90"}`}
+        />
+      )}
       <div className={`absolute inset-0 bg-gradient-to-r from-transparent ${dimmed ? "via-vs-subtle/50" : "via-vs-surface/50"} ${fadeTo}`} />
     </div>
   );
@@ -131,31 +136,39 @@ export function ActiveChapterCard({
   subtitle,
   artworkKeys,
   progress,
+  imageSrc = null,
   children,
 }: {
   label: string;
   subtitle: string;
   artworkKeys: string[];
+  /** Officiële afbeelding van een studieles; gaat voor het artworkregister. */
+  imageSrc?: string | null;
   /** Optioneel: een voortgangsbalk (Stap voor stap telt stappen). */
   progress?: { now: number; max: number; percent: number };
   children: React.ReactNode;
 }) {
   const hasImage = hasArtwork(artworkKeys);
+  const showImage = hasImage || !!imageSrc;
   return (
     <div className="vs-rise rounded-[1.125rem] bg-gradient-to-br from-vs-accent via-vs-accent to-vs-xp-fill p-[2px] shadow-lg shadow-vs-accent/25 ring-[3px] ring-vs-accent/15">
       <article className="overflow-hidden rounded-2xl bg-vs-surface" aria-label={label}>
-        <div className={`relative flex flex-col justify-end ${hasImage ? "min-h-[9.5rem] bg-vs-overlay sm:min-h-[11rem]" : "min-h-[6.5rem] bg-gradient-to-br from-vs-accent-soft to-vs-surface"}`}>
-          {hasImage ? (
+        <div className={`relative flex flex-col justify-end ${showImage ? "min-h-[9.5rem] bg-vs-overlay sm:min-h-[11rem]" : "min-h-[6.5rem] bg-gradient-to-br from-vs-accent-soft to-vs-surface"}`}>
+          {showImage ? (
             <>
-              <MediaArtwork kind="reading" artworkKey={artworkKeys} ratio="21/9" sizes="(min-width: 1024px) 640px, 100vw" className="vs-decor !absolute inset-0 !aspect-auto h-full w-full" />
+              {imageSrc ? (
+                <Image unoptimized src={imageSrc} alt="" fill sizes="(min-width: 1024px) 640px, 100vw" loading="eager" className="vs-decor object-cover" />
+              ) : (
+                <MediaArtwork kind="reading" artworkKey={artworkKeys} ratio="21/9" sizes="(min-width: 1024px) 640px, 100vw" className="vs-decor !absolute inset-0 !aspect-auto h-full w-full" />
+              )}
               <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-vs-overlay/90 via-vs-overlay/50 to-transparent" />
             </>
           ) : (
             <BookOpen aria-hidden className="pointer-events-none absolute right-3 top-3 h-14 w-14 text-vs-accent opacity-15" strokeWidth={1.5} />
           )}
           <div className="relative flex flex-col gap-1.5 px-[clamp(0.5rem,3vw,0.75rem)] pb-[clamp(0.5rem,3vw,0.75rem)] pt-10">
-            <h2 className={`vs-wrap text-xl font-extrabold leading-snug ${hasImage ? "text-white" : "text-vs-fg"}`}>{label}</h2>
-            <p className={`text-xs font-semibold ${hasImage ? "text-white/90" : "text-vs-accent"}`}>{subtitle}</p>
+            <h2 className={`vs-wrap text-xl font-extrabold leading-snug ${showImage ? "text-white" : "text-vs-fg"}`}>{label}</h2>
+            <p className={`text-xs font-semibold ${showImage ? "text-white/90" : "text-vs-accent"}`}>{subtitle}</p>
             {progress && (
               <div
                 role="progressbar"
@@ -163,7 +176,7 @@ export function ActiveChapterCard({
                 aria-valuemax={progress.max}
                 aria-valuenow={progress.now}
                 aria-label={subtitle}
-                className={`h-1.5 overflow-hidden rounded-full ${hasImage ? "bg-white/30" : "bg-vs-accent/15"}`}
+                className={`h-1.5 overflow-hidden rounded-full ${showImage ? "bg-white/30" : "bg-vs-accent/15"}`}
               >
                 <div className="vs-motion h-full rounded-full bg-vs-accent transition-all" style={{ width: `${progress.percent}%` }} />
               </div>

@@ -226,11 +226,11 @@ try {
     const card=a.locator('[data-content-work="cfm-old-testament-2026"]');await card.waitFor();if(scale===200)await a.addStyleTag({content:"html{font-size:200% !important}"});
     await card.getByRole("button").first().click();await a.waitForURL(base+"/courses");await a.locator('[data-study-catalogue]').waitFor();assert.equal(await a.locator('[data-study-lesson]').count(),52);if(scale===200)await a.addStyleTag({content:"html{font-size:200% !important}"});assert.equal(await a.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
     await a.screenshot({path:`${output}/cfm-catalogue-${width}-${scheme}.png`});
-    await a.locator('[data-study-lesson]').first().click();await a.locator('[data-study-reader]').waitFor();await a.goBack();await a.locator('[data-study-catalogue]').waitFor();
+    await a.locator('[data-study-lesson] a').first().click();await a.locator('[data-study-reader]').waitFor();await a.goBack();await a.locator('[data-study-catalogue]').waitFor();
     const user=await browser.newContext({viewport:{width,height:900},colorScheme:scheme,hasTouch:width<500});await user.addCookies([{name:SESSION_COOKIE,value:flow.token,url:base}]);assert.equal((await user.request.get(base+flow.href)).status(),404);
     await a.goto(base+"/adminbackend/content");const row=a.locator("label").filter({hasText:"Kom dan en volg Mij 2026 — Oude Testament"});await row.waitFor({state:"attached"});await a.locator("details").filter({has:row}).locator("summary").first().click();
     const enabled=a.waitForResponse(r=>r.url().endsWith("/api/admin/content-switcher")&&r.request().method()==="PUT");await row.click();assert.equal((await enabled).status(),200);
-    const u=await user.newPage();await u.goto(base+"/courses");await u.locator('[data-study-catalogue]').waitFor();assert.equal(await u.locator('[data-study-lesson]').count(),52);if(scale===200)await u.addStyleTag({content:"html{font-size:200% !important}"});assert.equal(await u.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);await u.locator('[data-study-lesson]').last().click();await u.locator('[data-study-reader]').waitFor();await u.goBack();await u.locator('[data-study-catalogue]').waitFor();
+    const u=await user.newPage();await u.goto(base+"/courses");await u.locator('[data-study-catalogue]').waitFor();assert.equal(await u.locator('[data-study-lesson]').count(),52);if(scale===200)await u.addStyleTag({content:"html{font-size:200% !important}"});assert.equal(await u.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);await u.locator('[data-study-lesson] a').last().click();await u.locator('[data-study-reader]').waitFor();await u.goBack();await u.locator('[data-study-catalogue]').waitFor();
     const disabled=a.waitForResponse(r=>r.url().endsWith("/api/admin/content-switcher")&&r.request().method()==="PUT");await row.click();assert.equal((await disabled).status(),200);assert.equal((await user.request.get(base+flow.href)).status(),404);assert.equal((await admin.request.get(base+flow.href)).status(),200);
     results.push({width,scheme,text:scale,adminHiddenCatalogue:52,publicToggle:true,normalReader:true,back:true});await user.close();await admin.close();
   }
@@ -348,13 +348,15 @@ try {
       { name: SESSION_COOKIE, value: flow.token, url: base },
     ]);
     const page = await context.newPage();
-    await page.goto(base + flow.tableHref);
+    await page.goto(base + flow.tableHref + "?weergave=volledig"); // volledige officiële les: deze flows toetsen bronverwijzingen, ook buiten de persoonlijke studie
     await page.locator("[data-study-reader]").waitFor();
     await page.addStyleTag({ content: "html{font-size:200% !important}" });
     const table = page.locator("table").first();
     // Wacht op gehydrateerde readerbediening vóór de gebruikersscroll; de
     // servergerenderde tabel alleen bewijst nog niet dat hervatten klaarstaat.
+    await page.getByLabel("Meer acties", { exact: true }).click();
     await page.getByRole("button", { name: "Opnieuw bovenaan beginnen", exact: true }).click({ trial: true });
+    await page.keyboard.press("Escape");
     await page.evaluate(() => document.fonts.ready);
     await page.mouse.move(160, 400);
     await page.mouse.wheel(0, 300);
@@ -372,11 +374,21 @@ try {
       const y = (Math.max(header + 1, r.top) + Math.min(innerHeight, r.bottom)) / 2;
       return r.bottom > header && r.top < innerHeight && el.contains(document.elementFromPoint(x, y));
     }, null, { timeout: 10000 });
-    assert.ok(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth + 1,
-      ),
-    );
+    const overflow = await page.evaluate(() => {
+      const describe = (el) => `${el.tagName}.${String(el.className).slice(0, 70)}[${getComputedStyle(el).position}/${getComputedStyle(el).overflowX}] left=${Math.round(el.getBoundingClientRect().left)} right=${Math.round(el.getBoundingClientRect().right)} w=${Math.round(el.getBoundingClientRect().width)} text=${(el.textContent ?? "").slice(0, 30)}`;
+      const all = [...document.querySelectorAll("html *")];
+      const outside = all.filter((el) => el.getBoundingClientRect().right > innerWidth + 1);
+      return {
+        ok: document.documentElement.scrollWidth <= innerWidth + 1,
+        scrollWidth: document.documentElement.scrollWidth,
+        bodyScrollWidth: document.body.scrollWidth,
+        // Elementen zonder bovenliggende elementen die ook buiten beeld vallen: de oorsprong van de overschrijding.
+        origins: outside.filter((el) => !outside.includes(el.parentElement)).slice(0, 10).map(describe),
+        scrollers: all.filter((el) => el.scrollWidth > el.clientWidth + 1 && /(auto|scroll)/.test(getComputedStyle(el).overflowX)).slice(0, 5).map(describe),
+      };
+    });
+    if (!overflow.ok) await page.screenshot({ path: `${output}/cfm-table-overflow-full.png`, fullPage: true });
+    assert.ok(overflow.ok, `horizontale overflow op 320 px/200%: ${JSON.stringify(overflow)}`);
     assert.ok((await page.locator("table td").count()) > 0);
     const screenshot = await page.screenshot({
       path: `${output}/cfm-table-320-large.png`,
@@ -403,7 +415,7 @@ try {
       { name: SESSION_COOKIE, value: flow.token, url: base },
     ]);
     const page = await context.newPage();
-    await page.goto(base + lesson.href);
+    await page.goto(base + lesson.href + "?weergave=volledig"); // volledige officiële les: deze flows toetsen bronverwijzingen, ook buiten de persoonlijke studie
     await page.locator("[data-study-reader]").waitFor();
     await delay(1200);
     await page.locator(`[data-reference-key="${lesson.reference}"]`).click();
@@ -441,7 +453,7 @@ try {
       { name: SESSION_COOKIE, value: flow.token, url: base },
     ]);
     const page = await context.newPage();
-    await page.goto(base + selection.href);
+    await page.goto(base + selection.href + "?weergave=volledig"); // volledige officiële les: deze flows toetsen bronverwijzingen, ook buiten de persoonlijke studie
     await page.locator("[data-study-reader]").waitFor();
     await page.locator(`[data-reference-key="${selection.reference}"]`).click();
     const dialog = page.locator("dialog[open]");
@@ -507,7 +519,7 @@ try {
       { name: SESSION_COOKIE, value: flow.token, url: base },
     ]);
     const page = await context.newPage();
-    await page.goto(base + external.href);
+    await page.goto(base + external.href + "?weergave=volledig"); // volledige officiële les: deze flows toetsen bronverwijzingen, ook buiten de persoonlijke studie
     await page.locator("[data-study-reader]").waitFor();
     await page.locator(`[data-reference-key="${external.anchor}"]`).click();
     const link = page.locator('dialog[open] a[target="_blank"]');

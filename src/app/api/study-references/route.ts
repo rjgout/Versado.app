@@ -4,6 +4,7 @@ import { getCurrentUser, navigationSessionKey } from "@/lib/session";
 import { inventoryOriginAllowed } from "@/lib/content-inventory/origin";
 import { contentSelectionSchema } from "@/lib/contentPickerContract";
 import { referenceRequestSchema } from "@/lib/references/contract";
+import { originViewSchema } from "@/lib/references/originView";
 import { resolveStudyReference } from "@/lib/references/resolver";
 import {
   moreReference,
@@ -20,6 +21,8 @@ const schema = z.discriminatedUnion("action", [
     expectedSelection: contentSelectionSchema,
     expectedSelectionVersion: z.number().int().nonnegative().max(2147483647),
     expectedPositionVersion: z.number().int().nonnegative().max(2147483647),
+    // Leeswijze en stap waar de gebruiker was, zodat de terugkeer precies daar uitkomt.
+    origin: originViewSchema.optional(),
   }),
   z
     .object({ action: z.literal("return"), token: z.string().min(1).max(6000) })
@@ -73,6 +76,7 @@ export async function POST(req: NextRequest) {
         expectedSelection,
         expectedPositionVersion,
         expectedSelectionVersion,
+        origin,
         ...request
       } = data;
       return response(
@@ -83,6 +87,7 @@ export async function POST(req: NextRequest) {
           expectedSelection,
           expectedPositionVersion,
           expectedSelectionVersion,
+          origin,
         ),
       );
     }
