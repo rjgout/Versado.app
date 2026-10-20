@@ -19,12 +19,14 @@ export default function StepOverview({
   view,
   progress,
   week,
+  program,
   sessionKey,
 }: {
   data: StudyReaderDTO;
   view: PersonalStudyView;
   progress: StepProgressState;
   week: WeekContext;
+  program: { name: string; year: number | null };
   sessionKey: string;
 }) {
   const t = useT();
@@ -51,9 +53,11 @@ export default function StepOverview({
             <ModeSwitch base={base} mode="steps" />
             <HeaderMenu>
               <Link href={`${base}?weergave=volledig`} prefetch={false} className={menuItem}>{t("cfmStudy.viewFull")}</Link>
+              <Link href="/courses" prefetch={false} className={menuItem}>{t("cfmStudy.pickWeek")}</Link>
             </HeaderMenu>
           </div>
           <div className="space-y-1">
+            {(program.name || program.year) && <p className="text-sm font-semibold text-vs-fg-2">{[program.name, program.year].filter(Boolean).join(" · ")}</p>}
             <h1 className="text-xl font-extrabold leading-tight text-vs-fg sm:text-2xl" lang={data.lesson.language}>
               {view.weekTitle ?? data.lesson.title}
             </h1>
@@ -66,6 +70,13 @@ export default function StepOverview({
             <p className="mt-1.5 text-sm text-vs-fg-2">{t("cfmStudy.stepsProgress", { done: state.completedCount, total: PERSONAL_STUDY_STEPS })}</p>
           </div>
         </header>
+        {active && (
+          <Link href={`${base}/stappen/${active.index}`} prefetch={false} className={`${primaryButton} min-h-12 w-full sm:w-auto`}>
+            <PlayCircle aria-hidden className="h-5 w-5 shrink-0" />
+            {t("cfmStudy.continueStudy")} · {t("cfmStudy.stepN", { n: active.index })}
+          </Link>
+        )}
+        <h2 className="sr-only">{t("cfmStudy.stepsList")}</h2>
         <ol aria-label={t("cfmStudy.stepsList")} className="grid min-w-0 gap-3 sm:grid-cols-2">
           {view.steps.map((step) => {
             const status = statusOf(step.fingerprint);
@@ -116,7 +127,7 @@ export default function StepOverview({
                 <div className="space-y-2">
                   <button type="button" data-mark-study-read className={`${primaryButton} min-h-12`} onClick={() => void markRead()} disabled={markingRead}>
                     <CheckCircle2 aria-hidden className="h-5 w-5 shrink-0" />
-                    {markingRead ? t("studyReader.markingRead") : t("studyReader.markRead")}
+                    {markingRead ? t("studyReader.markingRead") : t("cfmStudy.markWholeRead")}
                   </button>
                   {readError && <p role="status" className="text-sm text-vs-danger">{readError}</p>}
                 </div>

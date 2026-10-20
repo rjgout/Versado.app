@@ -13,7 +13,7 @@ import {
   text8,
   validatePersonalPlan,
 } from "../src/lib/studyContent/personalStudy";
-import { isPersonalStudyWork, loadPersonalStudyOverrides, personalStudyFor } from "../src/lib/studyContent/personalStudyOverrides";
+import { isPersonalStudyWork, loadPersonalStudyOverrides, personalStudyFor, safePersonalPlan } from "../src/lib/studyContent/personalStudyOverrides";
 import { classifyFigure, figureLayout } from "../src/lib/studyContent/figureDisplay";
 import { classifyContentRoute } from "../src/lib/contentRouting";
 import { isFocusRoute, shellModeForRoute } from "../src/lib/focusMode";
@@ -172,4 +172,28 @@ test("stap afronden raakt nooit de READ-actie, de reeks of XP", () => {
   }
   const source = readFileSync(path.join(process.cwd(), "src/lib/studyContent/stepProgress.ts"), "utf8");
   assert.ok(!/contentProgress\.|recordLearningActivity|markStudyLessonRead|emitToUser/.test(source));
+});
+
+test("een ongeldige indeling wordt gedetecteerd en valt veilig terug op de volledige les", () => {
+  const { parsed } = lessons[4];
+  const plan = planPersonalStudy(parsed.document);
+  assert.ok(plan.supported);
+  if (!plan.supported) return;
+  // Een dubbele toewijzing, een lege stap of een ontbrekend blok moet de validatie laten falen.
+  const duplicate = { ...plan, steps: plan.steps.map((s, i) => (i === 1 ? { ...s, blockIds: [...s.blockIds, plan.steps[0].blockIds[0]] } : s)) };
+  assert.ok(validatePersonalPlan(parsed.document, duplicate).length > 0);
+  const empty = { ...plan, steps: plan.steps.map((s, i) => (i === 3 ? { ...s, blockIds: [] } : s)) };
+  assert.ok(validatePersonalPlan(parsed.document, empty).some((m) => /leeg|bevatten/.test(m)));
+  const lost = { ...plan, blocks: plan.blocks.slice(1) };
+  assert.ok(validatePersonalPlan(parsed.document, lost).length > 0);
+  // Een geldige les geeft het plan ongewijzigd door.
+  const safe = safePersonalPlan({ workKey: manifest.workKey, sourceKey: lessons[4].key, body: parsed.document });
+  assert.ok(safe.supported);
+});
+
+test("toekomstige CFM-jaren gebruiken dezelfde laag zodra hun werksleutel met cfm- begint en de structuur klopt", () => {
+  const { parsed } = lessons[0];
+  const future = personalStudyFor({ workKey: "cfm-new-testament-2027", sourceKey: "01", body: parsed.document });
+  assert.ok(future.supported, "zelfde structuur, geen hardgecodeerd jaar of weeknummer");
+  assert.equal(personalStudyFor({ workKey: "fsy-2027", sourceKey: "01", body: parsed.document }).supported, false, "andere programma's worden niet automatisch geactiveerd");
 });

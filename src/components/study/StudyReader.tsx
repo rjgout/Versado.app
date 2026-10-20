@@ -12,7 +12,7 @@ import type { ReaderDocument, ReadingPositionState } from "@/lib/studyContent/re
 import { stepOfBlock, PERSONAL_STUDY_STEPS, type PersonalStudyView } from "@/lib/studyContent/personalStudy";
 import type { StepProgressState } from "@/lib/studyContent/stepProgress";
 import type { WeekContext } from "@/lib/studyContent/weekContext";
-import { HeaderMenu, ModeSwitch, WeekNav, lessonBase, menuItem } from "./PersonalStudyParts";
+import { HeaderMenu, ModeSwitch, StepDots, WeekNav, lessonBase, menuItem } from "./PersonalStudyParts";
 import { primaryButton, secondaryButton } from "@/components/versado/styles";
 import StudyAnnotations from "@/components/annotations/StudyAnnotations";
 import RichContentBlocks from "./RichContentBlocks";
@@ -35,6 +35,7 @@ export interface ReaderPersonal {
   view: PersonalStudyView | null;
   progress: StepProgressState | null;
   week: WeekContext;
+  program?: { name: string; year: number | null };
   mode: "free" | "step" | "full";
   stepIndex: number | null;
   /** De lezer toont de volledige les omdat de gevraagde annotatie buiten de persoonlijke studie valt. */
@@ -268,7 +269,8 @@ function ReaderVisit({
   const headline = view?.weekTitle ?? data.lesson.title;
   const saveVisible = status === "error" || status === "conflict" || status === "unavailable";
   const startOverDisabled = busy || status === "conflict" || status === "unavailable" || query.updatedAt === null;
-  const markReadSection = readState.read ? (
+  const markLabel = (invite: boolean) => (markingRead ? t("studyReader.markingRead") : invite ? t("cfmStudy.markWholeRead") : t("studyReader.markRead"));
+  const markReadFor = (invite: boolean) => readState.read ? (
     <section data-study-read-status="read" role="status" className="flex items-start gap-3 rounded-xl border border-vs-success/35 bg-vs-success-soft p-3 text-vs-fg">
       <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-vs-success" aria-hidden />
       <div className="min-w-0">
@@ -280,12 +282,13 @@ function ReaderVisit({
     <div className="space-y-2">
       <button type="button" data-mark-study-read className={`${primaryButton} min-h-12`} onClick={() => void markRead()} disabled={markingRead || busy}>
         <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
-        {markingRead ? t("studyReader.markingRead") : t("studyReader.markRead")}
+        {markLabel(invite)}
       </button>
       <p className="text-sm text-vs-fg-2">{t("studyReader.markReadNotice")}</p>
       {readError && <p role="status" className="text-sm text-vs-danger">{readError}</p>}
     </div>
   );
+  const markReadSection = markReadFor(false);
   const readMarked = justMarkedRead && (
     <p role="status" className="text-sm font-semibold text-vs-success">{t("studyReader.readMarked")}</p>
   );
@@ -319,7 +322,7 @@ function ReaderVisit({
         <div className="space-y-3 rounded-xl bg-vs-subtle/60 p-3">
           <p className="font-semibold">{t("cfmStudy.allDone")}</p>
           <p className="text-sm text-vs-fg-2">{t("cfmStudy.markInvite")}</p>
-          {markReadSection}
+          {markReadFor(true)}
           {readMarked}
         </div>
       )}
@@ -341,6 +344,7 @@ function ReaderVisit({
             <Link href={`${base}?weergave=volledig`} prefetch={false} className={menuItem}>{t("cfmStudy.viewFull")}</Link>
           )}
           {pageMode === "step" && <Link href={`${base}/stappen`} prefetch={false} className={menuItem}>{t("cfmStudy.stepsOverview")}</Link>}
+          <Link href="/courses" prefetch={false} className={menuItem}>{t("cfmStudy.pickWeek")}</Link>
         </HeaderMenu>
       </div>
       <div className="space-y-1">
@@ -350,12 +354,19 @@ function ReaderVisit({
         {view?.scriptureTitle && <p className="text-sm text-vs-fg-2">{view.scriptureTitle}</p>}
       </div>
       {currentStep && (
+        <Link href={`${base}/stappen`} prefetch={false} className="inline-flex min-h-11 items-center gap-1 text-sm font-bold text-vs-accent underline-offset-2 hover:underline">
+          <ChevronLeft aria-hidden className="h-4 w-4" />
+          {t("cfmStudy.backToOverview")}
+        </Link>
+      )}
+      {currentStep && (
         <p className="font-bold text-vs-fg">
           {t("cfmStudy.stepOf", { n: currentStep.index, total: PERSONAL_STUDY_STEPS })}
           {currentStep.title ? ` · ${currentStep.title}` : ""}
           {currentStep.continued ? ` · ${t("cfmStudy.continued")}` : ""}
         </p>
       )}
+      {currentStep && stepState && <StepDots statuses={stepState.steps.map((x) => x.status)} current={currentStep.index} />}
       <div role="progressbar" aria-label={t("studyReader.progress")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={control.progress} className="h-1 overflow-hidden rounded-full bg-vs-subtle">
         <div className="h-full bg-vs-accent" style={{ width: `${control.progress}%` }} />
       </div>

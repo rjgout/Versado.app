@@ -4,6 +4,9 @@
 // blokken, geen lege stap, bronteksten onveranderd (de planner leest alleen). Twijfelgevallen staan expliciet in de uitvoer.
 import { loadCfmLesson } from "../../src/lib/studyContent/cfm2026Import";
 import { cfmOldTestament2026NlManifest as manifest } from "../../src/lib/studyContent/cfm2026Manifest";
+import { createHash } from "node:crypto";
+import { writeFileSync } from "node:fs";
+import { classifyFigure } from "../../src/lib/studyContent/figureDisplay";
 import { readingBlockText } from "../../src/lib/studyContent/readingPositionContract";
 import { planPersonalStudy, validatePersonalPlan, text8 } from "../../src/lib/studyContent/personalStudy";
 import { loadPersonalStudyOverrides } from "../../src/lib/studyContent/personalStudyOverrides";
@@ -38,6 +41,8 @@ if (process.argv.includes("--suggest-overrides")) {
   console.log(JSON.stringify(out, null, 1));
   process.exit(0);
 }
+const writeDoc = process.argv.includes("--write-doc");
+const table: string[] = [];
 let failures = 0;
 let unsupported = 0;
 const totals = { personal: 0, other: 0, doubtful: 0, hiddenByOverride: 0 };
@@ -63,6 +68,23 @@ for (const lesson of manifest.lessons) {
   totals.doubtful += plan.blocks.filter((b) => b.doubtful).length;
   totals.hiddenByOverride += plan.blocks.filter((b) => b.role === "OVERRIDE_HIDDEN").length;
   const chars = plan.steps.map((s) => s.chars);
+  // Verslagregel (Fase 8.2): identiteit, aantallen, verdeling en integriteitscontroles per les.
+  const all = parsed.document.sections.flatMap((x) => x.blocks);
+  const planIds = plan.blocks.map((b) => b.id);
+  const stepIds = plan.steps.flatMap((x) => x.blockIds);
+  const missing = all.filter((b) => !planIds.includes(b.id)).length;
+  const duplicates = stepIds.length - new Set(stepIds).size + (planIds.length - new Set(planIds).size);
+  const sourceText = all.map(readingBlockText).join("\n");
+  const planText = planIds.map((id) => readingBlockText(all.find((b) => b.id === id)!)).join("\n");
+  const checkImages = all.filter((b) => b.type === "figure" && plan.blocks.find((x) => x.id === b.id)?.personal).filter((b) => {
+    if (b.type !== "figure") return false;
+    const ratio = b.width / b.height;
+    return ratio > 3 || ratio < 0.33 || classifyFigure({ id: b.id, width: b.width, height: b.height, hasCaption: !!b.caption }) === "POSTER";
+  }).length;
+  const hash = createHash("sha256").update(JSON.stringify(parsed.document)).digest("hex").slice(0, 10);
+  const doubtful = plan.blocks.filter((b) => b.doubtful).length;
+  table.push(`| ${lesson.sourceKey} | \`${lesson.sourceKey}\` | \`${hash}\` | ${all.length} | ${plan.blocks.filter((b) => b.personal).length} | ${plan.blocks.filter((b) => !b.personal).length} | ${plan.steps.map((x) => x.blockIds.length).join("/")} | ${plan.steps.filter((x) => !x.blockIds.length).length} | ${missing} | ${duplicates} | ${sourceText === planText ? "nee" : "JA"} | ${checkImages} | ${doubtful} |`);
+  if (missing || duplicates || sourceText !== planText) failures++;
   console.log(
     `${lesson.sourceKey}: ${plan.steps.length} stappen, tekens ${chars.join("/")}, twijfel ${plan.blocks.filter((b) => b.doubtful).length}${problems.length ? ` — PROBLEMEN: ${problems.join("; ")}` : ""}`,
   );
@@ -74,5 +96,11 @@ for (const lesson of manifest.lessons) {
       console.log(`   twijfel ${b.id} [${b.role}] ${text8(block)} — ${readingBlockText(block).slice(0, 90)}`);
     }
 }
+if (writeDoc)
+  writeFileSync(
+    "docs/CFM-VALIDATIEVERSLAG.md",
+    `# CFM-validatieverslag persoonlijke studie\n\nGegenereerd met \`npx tsx scripts/study-content/cfm-personal-study-report.ts --write-doc\` uit de gepinde offline bronbestanden (\`data/study-content/cfm-2026-nl/source\`); er is geen databasetoegang of productiegegeven gebruikt. "Bronvingerafdruk" is een hash van het geparste brondocument (de gepubliceerde revisie-id bestaat alleen in de database; de app vergelijkt per revisie opnieuw).\n\n` +
+      `| Les | Lesidentiteit | Bronvingerafdruk | Bronblokken | Persoonlijk | Overig | Blokken per stap | Lege stappen | Ontbrekende ankers | Dubbele toewijzingen | Tekstverlies | Beelden te controleren | Ambigue |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|\n${table.join("\n")}\n\nTotaal: ${totals.personal} persoonlijke blokken, ${totals.other} overige, ${totals.doubtful} ambigue kaders (${totals.hiddenByOverride} verborgen via override); niet ondersteund: ${unsupported}; problemen: ${failures}.\n\nNiet te controleren zonder database: de actuele gepubliceerde \`revisionId\` en media-binding per les; de app controleert die bij elke weergave.\n`,
+  );
 console.log(`\nTotaal: persoonlijk ${totals.personal} blokken, daarbuiten ${totals.other}, twijfelgevallen ${totals.doubtful} (waarvan door override verborgen ${totals.hiddenByOverride}); niet ondersteund ${unsupported}; problemen ${failures}.`);
 process.exit(failures || unsupported ? 1 : 0);

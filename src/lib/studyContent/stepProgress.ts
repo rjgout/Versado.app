@@ -1,11 +1,17 @@
 import type { PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { getPublishedStudyLesson, type PublishedStudyDTO } from "./revisions";
-import { PERSONAL_STUDY_STEPS, type PersonalStudyPlan } from "./personalStudy";
+import { PERSONAL_STUDY_STEPS, validatePersonalPlan, type PersonalStudyPlan } from "./personalStudy";
 import { personalStudyFor } from "./personalStudyOverrides";
 
 type Actor = { id: string; isAdmin: boolean };
 export type StepStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+
+/** Dezelfde veilige terugval als de lezer: een ongeldige indeling kent geen stappen. */
+function plannedSteps(lesson: Parameters<typeof personalStudyFor>[0]): PersonalStudyPlan {
+  const plan = personalStudyFor(lesson);
+  return plan.supported && validatePersonalPlan(lesson.body, plan).length ? { supported: false, reason: "ongeldige indeling" } : plan;
+}
 
 export class StepProgressError extends Error {
   constructor(
@@ -97,7 +103,7 @@ export async function recordStepProgress(
       if (!edition) throw new StepProgressError("UNAVAILABLE");
       const published = await getPublishedStudyLesson(actor, edition.lessonId, edition.collectionId, tx);
       if (!published || published.editionId !== input.lessonEditionId) throw new StepProgressError("UNAVAILABLE");
-      const plan = personalStudyFor(published);
+      const plan = plannedSteps(published);
       if (!plan.supported) throw new StepProgressError("INVALID");
       if (published.revisionId !== input.revisionId)
         throw new StepProgressError("REVISION_CHANGED", (await getStepProgress(actor, published, plan, tx)) ?? undefined);
@@ -152,7 +158,7 @@ export async function getStepProgressForEdition(actor: Actor, lessonEditionId: s
   if (!edition) return null;
   const published = await getPublishedStudyLesson(actor, edition.lessonId, edition.collectionId, client);
   if (!published || published.editionId !== lessonEditionId) return null;
-  const plan = personalStudyFor(published);
+  const plan = plannedSteps(published);
   const state = await getStepProgress(actor, published, plan, client);
   return state ? { revisionId: published.revisionId, state } : null;
 }

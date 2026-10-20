@@ -27,6 +27,7 @@ export default async function Page({
       view={page.view}
       progress={page.progress}
       week={page.week}
+      program={page.program}
       sessionKey={sessionKey}
     />
   );

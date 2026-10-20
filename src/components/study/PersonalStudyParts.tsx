@@ -105,3 +105,20 @@ export function formatWeekPeriod(startsOn: string | null, endsOnExclusive: strin
     return `${startsOn} – ${end.toISOString().slice(0, 10)}`;
   }
 }
+
+/** Zeven blokjes met de status per stap; de status staat ook als tekst (aria-label), nooit alleen als kleur. */
+export function StepDots({ statuses, current }: { statuses: ReadonlyArray<"NOT_STARTED" | "IN_PROGRESS" | "COMPLETED">; current: number }) {
+  const t = useT();
+  const done = statuses.filter((s) => s === "COMPLETED").length;
+  return (
+    <div role="img" aria-label={t("cfmStudy.stepsDots", { done, total: statuses.length, n: current })} className="flex gap-1">
+      {statuses.map((status, i) => (
+        <span
+          key={i}
+          aria-hidden
+          className={`h-1.5 flex-1 rounded-full ${status === "COMPLETED" ? "bg-vs-accent" : status === "IN_PROGRESS" ? "bg-vs-accent/50" : "bg-vs-subtle"} ${i + 1 === current ? "ring-2 ring-vs-accent ring-offset-1 ring-offset-vs-app" : ""}`}
+        />
+      ))}
+    </div>
+  );
+}

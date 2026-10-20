@@ -1,6 +1,6 @@
 import { z } from "zod";
 import cfmOldTestament2026 from "../../../data/study-content/cfm-2026-nl/personal-study-overrides.json";
-import { planPersonalStudy, type PersonalStudyOverrides, type PersonalStudyPlan } from "./personalStudy";
+import { planPersonalStudy, validatePersonalPlan, type PersonalStudyOverrides, type PersonalStudyPlan } from "./personalStudy";
 import type { ReaderDocument } from "./readingPositionContract";
 
 const schema = z.record(
@@ -33,3 +33,20 @@ export function personalStudyFor(lesson: { workKey: string; sourceKey: string; b
   if (!isPersonalStudyWork(lesson.workKey)) return { supported: false, reason: "Dit programma heeft geen persoonlijke studieroute." };
   return planPersonalStudy(lesson.body, loadPersonalStudyOverrides(lesson.workKey, lesson.sourceKey));
 }
+
+/**
+ * Een plan dat de onveranderlijke regels schendt (dubbele of ontbrekende blokken, lege stap) wordt nooit getoond: de lezer valt
+ * terug op de volledige, ongewijzigde les en de fout komt in het serverlog. Annotaties en bronidentiteiten blijven daardoor intact.
+ */
+export function safePersonalPlan(lesson: Parameters<typeof personalStudyFor>[0]): PersonalStudyPlan {
+  const plan = personalStudyFor(lesson);
+  if (!plan.supported) return plan;
+  const problems = validatePersonalPlan(lesson.body, plan);
+  if (problems.length) {
+    console.error(`[persoonlijke studie] ongeldige indeling voor ${lesson.workKey}/${lesson.sourceKey}: ${problems.join(" | ")}`);
+    return { supported: false, reason: "De indeling is niet geldig; de volledige les wordt getoond." };
+  }
+  for (const issue of plan.issues) console.warn(`[persoonlijke studie] ${lesson.workKey}/${lesson.sourceKey}: ${issue.code} ${issue.message}`);
+  return plan;
+}
+

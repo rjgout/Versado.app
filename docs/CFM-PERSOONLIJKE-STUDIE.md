@@ -165,5 +165,53 @@ Voorlopig gekozen (omkeerbaar):
 ## 9. Bekende beperkingen
 
 * Na een Schriftverwijzing keert de lezer terug naar Vrije studie (het retourcontract kent alleen het basispad); de leespositie blijft behouden.
-* Het deel van de opdracht na "6.4 … Mogelijke statussen" was bij de laatste oplevering nog niet aangeleverd; alleen wat in de opdracht stond is gebouwd.
 * De browsertest draait tegen de eigen wegwerpdatabase; `executeStudyImport` valideert de echte afmetingen van afbeeldingen, daarom genereert de fixture eigen PNG-bestanden.
+
+## 10. Weeknavigatie en de huidige week (Fase 6)
+
+* **Huidige week** komt uit `getStudyCatalogue`: de gepubliceerde les waarvan `startsOn <= vandaag < endsOnExclusive`, met "vandaag" in de tijdzone
+  van de gebruiker (`userDayKey`). Server en client rekenen dus op dezelfde kalenderdag; er zijn geen hardgecodeerde weeknummers, jaarovergangen
+  volgen vanzelf uit de officiële periodes (bv. les 01: 29 dec – 4 jan) en toekomstige jaren werken zodra hun lessen gepubliceerd zijn.
+  Bestaat er geen gepubliceerde les voor vandaag, dan toont de kaart een melding en blijft de weeklijst beschikbaar; er wordt niets verzonnen en niet
+  stilzwijgend een andere les gekozen.
+* "Stap voor stap" op de Leren-kaart opent het **overzicht van de huidige week** (nooit direct een stap); het overzicht markeert de laatst geopende of
+  eerstvolgende onafgeronde stap en biedt "Verder studeren". Een rechtstreekse link naar een week of stap wordt gerespecteerd en verandert de gekozen week niet.
+* De weeklijst (Leren → programma) toont per week de periode (`Intl`, UTC-kalenderdagen), de lestitel, "Deze week", gelezen of "n van 7 stappen",
+  en een eigen link naar Stap voor stap. Er zijn geen vergrendelingen. Vorige/volgende gepubliceerde week staat onder elke weergave en behoudt de leeswijze
+  (Vrije studie of `/stappen`). Een notitie gaat bij wisselen nooit verloren: elke annotatie wordt direct door het bestaande paneel opgeslagen.
+* Terugnavigatie: browser-terug en de Versado-terugbalk werken via de bestaande Focusroute; stappen en overzicht zijn gewone links (geen redirects, geen lussen).
+
+## 11. Toegankelijkheid en internationalisatie (Fase 7)
+
+* Alle nieuwe teksten staan in `cfmStudy.*` in nl/en/de/fr/es (`npx tsx scripts/i18n/check.ts`); de officiële tekst blijft in de taal van de gepubliceerde editie.
+* Kopstructuur: één `h1` per pagina, het overzicht heeft een verborgen `h2` boven de stappenlijst; de stappen zijn een geordende lijst met `aria-current="step"`
+  voor de aanbevolen stap. Stapstatus is altijd tekst plus icoon, nooit alleen kleur; de zeven voortgangsblokjes hebben een tekstlabel.
+* Toetsenbord: onzichtbare annotatieknop per tekstblok die bij focus zichtbaar wordt, het menu sluit met Escape, de afbeeldingsviewer is een native modaal
+  dialoog (Escape, focusherstel). Aanraakdoelen zijn ≥ 44 px (`min-h-11/12`), tekst gebruikt rem-maten en `vs-motion` respecteert verminderde beweging.
+
+## 12. Nieuwe revisies, configuratie en toekomstige jaren (Fase 8)
+
+* **Configuratie is revisiegebonden:** `hide` is gebonden aan een hash van de brontekst (`text8`); een nieuwe revisie met gewijzigde tekst laat de
+  override vervallen (gemeld als `OVERRIDE_STALE`, het blok blijft dan zichtbaar). Ongeldige handmatige `cuts` vallen terug op de automatische indeling.
+* **Veilige terugval:** voldoet een plan niet aan de onveranderlijke regels (dubbele of ontbrekende blokken, lege stap, tekstverlies) of is de les niet
+  verdeelbaar, dan toont Versado de volledige, ongewijzigde les, schrijft een duidelijke fout naar het serverlog (`safePersonalPlan`) en staat stapvoortgang uit.
+  Er is nooit een lege of gedeeltelijke studie; annotaties en bronidentiteiten blijven ongemoeid. Een nieuwe import overschrijft geen indeling: er wordt niets
+  opgeslagen, de indeling volgt altijd de gepubliceerde revisie.
+* **Voortgang bij een nieuwe revisie:** onveranderde stappen houden hun afronding (zelfde vingerafdruk); gewijzigde stappen beginnen opnieuw.
+* **Toekomstige jaren:** `isPersonalStudyWork` accepteert elke `cfm-*`-werksleutel en de planner is taal- en jaarloos (posities, geen koppentekst);
+  overrides staan per werksleutel in een register. Andere programma's worden nooit vanzelf geactiveerd.
+* **Validatierapport:** `npx tsx scripts/study-content/cfm-personal-study-report.ts --write-doc` schrijft `docs/CFM-VALIDATIEVERSLAG.md` met per les
+  identiteit, bronvingerafdruk, aantallen, verdeling over de stappen, lege stappen, ontbrekende ankers, dubbele toewijzingen, tekstverlies,
+  te controleren beelden (video-posters en extreme verhoudingen) en ambigue kaders. Resultaat: 52/52 zonder lege stappen, ontbrekende ankers, dubbelen of tekstverlies.
+  De actuele `revisionId` en media-binding bestaan alleen in de database en zijn dus niet offline te controleren.
+
+## 13. Uitgevoerde controles en wat niet is gedaan
+
+* Uitgevoerd: `tsc`, ESLint op alle gewijzigde bestanden, i18n-controle, `test:cfm-personal` (14), `test:annotations`, `test:focus`, `test:content-picker`,
+  `test:live-data`, `test:study-reader`, `test:cfm-2026`, `test:kompas`, `test:study-publication`, `test:study-context`, de stapvoortgang-integratietest
+  (eigen lokale PostgreSQL) en de browsertest `tests/cfm-personal.browser.mjs` op een schone productiebuild (Chromium via Playwright).
+* **Niet uitgevoerd:** fysieke iPhone Safari of echte Android-toestellen (alleen Chromium met mobiele emulatie: 320, 360, 390, 768 en liggend 844×390, donker, 200% tekst,
+  verminderde beweging); productie-uitrol; de Docker-gebonden integratieharnassen (`test-access-isolated.mjs`, geen Docker in deze omgeving);
+  `tests/study-reader.browser.mjs` faalt in deze omgeving ook op ongewijzigde `main` ("positie bewaard").
+* Handmatige controle voor de eigenaar: inhoudelijke keuze van de 73 kaders (zie §3 en het verslag), echte CFM-afbeeldingen in de browser na het laden van de
+  gepubliceerde revisies, en de migratie `20261121120000_study_step_progress` bij de eerstvolgende uitrol.

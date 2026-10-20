@@ -221,6 +221,14 @@ try {
     assert.doesNotMatch(labels.join(" "), /maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag/i);
     assert.ok(await noOverflow(page));
     assert.equal(await page.locator('[data-step-status="COMPLETED"]').count(), 0);
+    assert.match(await page.locator("[data-step-overview]").innerText(), /Synthetische CFM/, "programmanaam bovenaan");
+    await page.getByRole("link", { name: new RegExp(t("cfmStudy.continueStudy")) }).waitFor();
+    // Vrije navigatie: stap 5 is direct te openen zonder stap 1 t/m 4.
+    await page.goto(base + f.href + "/stappen/5");
+    await page.locator("[data-complete-step]").waitFor();
+    await page.getByRole("link", { name: t("cfmStudy.backToOverview") }).waitFor();
+    assert.equal(await page.locator('[role="img"][aria-label*="5"]').count(), 1, "stapstatus ook als tekst (aria-label)");
+    await page.goto(base + f.href + "/stappen");
     await page.screenshot({ path: `${output}/steps-overview-mobile.png`, fullPage: true });
     await page.locator('[data-step="1"]').click();
     await page.locator("[data-complete-step]").waitFor();
@@ -348,8 +356,8 @@ try {
 
   // 8. Klein scherm, grote tekst en donkere modus.
   {
-    for (const [width, scheme] of [[320, "light"], [320, "dark"]]) {
-      const { context, page } = await open(f, { width, height: 640, scheme });
+    for (const [width, scheme, height] of [[320, "light", 640], [320, "dark", 640], [360, "light", 800], [844, "light", 390], [768, "dark", 1024]]) {
+      const { context, page } = await open(f, { width, height, scheme });
       for (const route of ["", "/stappen", "/stappen/3"]) {
         await page.goto(base + f.href + route);
         await page.locator("[data-reader-mode], [data-step-overview]").first().waitFor();
@@ -366,7 +374,20 @@ try {
     await context.close();
     step("320 px, donker en 200% tekst");
   }
-  assert.deepEqual(errors, [], "geen pagina- of consolefouten");
+  // Verminderde beweging: dezelfde pagina's laden zonder fouten en zonder horizontale overflow.
+  {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce", serviceWorkers: "block" });
+    await context.addCookies([{ name: SESSION_COOKIE, value: f.token, url: base }]);
+    const page = await context.newPage();
+    page.on("pageerror", (e) => errors.push(e.message));
+    await page.goto(base + f.href + "/stappen");
+    await page.locator("[data-step-overview]").waitFor();
+    assert.ok(await noOverflow(page));
+    assert.equal(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches), true);
+    await context.close();
+    step("verminderde beweging");
+  }
+  assert.deepEqual(errors, [], "geen pagina- of consolefouten: " + JSON.stringify(errors).slice(0, 800));
   console.log(`OK (${results.length}):\n- ${results.join("\n- ")}`);
 } catch (error) {
   await lastPage?.screenshot({ path: `${output}/failure.png`, fullPage: false }).catch(() => {});
