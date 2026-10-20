@@ -437,6 +437,25 @@ try {
     await context.close();
     step("320 px, donker en 200% tekst");
   }
+  // Volledige officiële les op 320 px met 200% tekst: de kop met leeswijze en menu blijft binnen het scherm.
+  {
+    const { context, page } = await open(f, { width: 320 });
+    await page.goto(base + f.href + "?weergave=volledig");
+    await page.addStyleTag({ content: "html{font-size:200% !important}" });
+    await page.locator("[data-study-reader]").waitFor();
+    // Een brede tabel (zoals in de officiële lessen) scrolt in zijn eigen vak en rekt de pagina niet op.
+    await page.evaluate(() => {
+      const block = document.querySelector("[data-study-reader-body] [data-study-block]");
+      if (!block) return;
+      const holder = document.createElement("div");
+      holder.className = "max-w-full overflow-x-auto";
+      holder.innerHTML = '<table class="w-full border-collapse text-left"><tbody><tr><td class="border border-vs-line p-3 align-top">Boodschappen <a style="white-space:nowrap" href="#x">Jesaja 50:2, 5–9; 51:3–8, 15–16; 52:3, 9–10</a></td><td class="border border-vs-line p-3">Lofprijzingsverwijzingsgeschiedenis</td></tr></tbody></table>';
+      block.parentElement.insertBefore(holder, block);
+    });
+    assert.ok(await noOverflow(page), "volledige les 320 px/200%: geen overflow");
+    await context.close();
+    step("volledige les, 320 px en 200% tekst");
+  }
   // Verminderde beweging: dezelfde pagina's laden zonder fouten en zonder horizontale overflow.
   {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce", serviceWorkers: "block" });

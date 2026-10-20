@@ -374,11 +374,16 @@ try {
       const y = (Math.max(header + 1, r.top) + Math.min(innerHeight, r.bottom)) / 2;
       return r.bottom > header && r.top < innerHeight && el.contains(document.elementFromPoint(x, y));
     }, null, { timeout: 10000 });
-    assert.ok(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth + 1,
-      ),
-    );
+    const overflow = await page.evaluate(() => {
+      const clipped = (el) => { for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) if (/(auto|scroll|hidden|clip)/.test(getComputedStyle(p).overflowX)) return true; return false; };
+      const offenders = [...document.querySelectorAll("body *")]
+        .filter((el) => el.getBoundingClientRect().right > innerWidth + 1 && !clipped(el))
+        .slice(0, 8)
+        .map((el) => `${el.tagName}.${String(el.className).slice(0, 80)} right=${Math.round(el.getBoundingClientRect().right)} text=${(el.textContent ?? "").slice(0, 40)}`);
+      return { ok: document.documentElement.scrollWidth <= innerWidth + 1, scrollWidth: document.documentElement.scrollWidth, offenders };
+    });
+    if (!overflow.ok) await page.screenshot({ path: `${output}/cfm-table-overflow-full.png`, fullPage: true });
+    assert.ok(overflow.ok, `horizontale overflow op 320 px/200%: ${JSON.stringify(overflow)}`);
     assert.ok((await page.locator("table td").count()) > 0);
     const screenshot = await page.screenshot({
       path: `${output}/cfm-table-320-large.png`,
