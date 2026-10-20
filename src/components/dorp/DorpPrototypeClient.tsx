@@ -47,7 +47,7 @@ import {
 import { availableInstance, levelOwnedInstance, placeOwnedInstance, placedObjects, reconcileInstancesForRadius, storeOwnedInstance } from "@/lib/dorp/ownership";
 import { normalizePaths, paintPathSegment, paintPathTiles, pathConnectivityFromKeys, pathKey } from "@/lib/dorp/paths";
 import { DEFAULT_DORP_STATE, DORP_LEGACY_STORAGE_KEYS, DORP_STORAGE_KEY, parseDorpState, serializeDorpState } from "@/lib/dorp/storage";
-import { FOREST_PERIOD, forestTexturePoints, clippedTerrainBounds, containsTerrainBounds, terrainAssetId, terrainBufferBounds, type TerrainWorldBounds } from "@/lib/dorp/terrain";
+import { FOREST_PERIOD, forestTexturePoints, grassTextureCenters, forestWindowBounds, forestOverlayOpacity, clippedTerrainBounds, containsTerrainBounds, terrainAssetId, terrainBufferBounds, type TerrainWorldBounds } from "@/lib/dorp/terrain";
 import type { ReactNode, SetStateAction } from "react";
 import type { DorpSnapshot } from "@/lib/dorp/service";
 import type { DorpObjectDefinition, DorpWorldState, PlacedDorpObject, TileCoordinate } from "@/lib/dorp/types";
@@ -66,6 +66,7 @@ type TerrainCache = {
   pathsKey: string;
   assetRevision: number;
   rasterScale: number;
+  forestLod: number;
 };
 
 const MIN_PLAY_ZOOM = 0.22;
@@ -145,6 +146,7 @@ export function DorpCanvas({
   const containerRef = useRef<HTMLDivElement>(null);
   const imagesRef = useRef<RenderImageMap>(new Map());
   const forestCacheRef = useRef<{ count: number; canvas: HTMLCanvasElement; lods: Map<number, HTMLCanvasElement> } | null>(null);
+  const grassCacheRef = useRef<{ image: HTMLImageElement | undefined; canvas: HTMLCanvasElement } | null>(null);
   const terrainCacheRef = useRef<TerrainCache | null>(null);
   const spriteCacheRef = useRef(new Map<string, HTMLCanvasElement>());
   const cameraRef = useRef<DorpCamera>({ x: 0, y: 0, zoom: NORMAL_CAMERA_ZOOM });
@@ -224,12 +226,12 @@ export function DorpCanvas({
       const originX = Math.round((width / 2 - camera.x * zoom) * dpr) / dpr;
       const originY = Math.round((height / 2 - camera.y * zoom) * dpr) / dpr;
       const screen = (x: number, y: number) => ({ x: originX + x * zoom, y: originY + y * zoom });
-      const drawSprite = (image: HTMLImageElement, path: string, point: { x: number; y: number }, worldSize: readonly [number, number], anchor: readonly [number, number]) => {
+      const drawSprite = (image: HTMLImageElement, path: string, point: { x: number; y: number }, worldSize: readonly [number, number], anchor: readonly [number, number], flipX = false) => {
         const drawWidth = worldSize[0] * zoom;
         const drawHeight = worldSize[1] * zoom;
         const pixelWidth = Math.max(1, Math.round(drawWidth * dpr));
         const pixelHeight = Math.max(1, Math.round(drawHeight * dpr));
-        const key = `${path}:${pixelWidth}x${pixelHeight}`;
+        const key = `${path}:${pixelWidth}x${pixelHeight}:${flipX}`;
         let sprite = spriteCacheRef.current.get(key);
         if (!sprite) {
           sprite = document.createElement("canvas");
@@ -237,6 +239,7 @@ export function DorpCanvas({
           sprite.height = pixelHeight;
           const spriteContext = sprite.getContext("2d", { alpha: true })!;
           spriteContext.imageSmoothingEnabled = true;
+          if (flipX) { spriteContext.translate(pixelWidth, 0); spriteContext.scale(-1, 1); }
           spriteContext.drawImage(image, 0, 0, pixelWidth, pixelHeight);
           if (spriteCacheRef.current.size > 160) spriteCacheRef.current.clear();
           spriteCacheRef.current.set(key, sprite);
@@ -244,7 +247,21 @@ export function DorpCanvas({
         ctx.drawImage(sprite, point.x - drawWidth * anchor[0], point.y - drawHeight * anchor[1], drawWidth, drawHeight);
       };
 
-      ctx.fillStyle = "#416438";
+      // Volledig dekkende grasbasis, ook ver buiten het bouwgebied. Geen clearing-masker.
+      const grassPath = DORP_TERRAIN_RUNTIME_BY_ID.get("terrain-grass")!.full;
+      const grassImage = imagesRef.current.get(grassPath);
+      if (!grassCacheRef.current || grassCacheRef.current.image !== grassImage) {
+        const tile = document.createElement("canvas"); tile.width = TILE_WIDTH; tile.height = TILE_HEIGHT;
+        const paint = tile.getContext("2d")!;
+        paint.fillStyle = "#86ae57"; paint.fillRect(0, 0, TILE_WIDTH, TILE_HEIGHT);
+        if (grassImage) for (const point of grassTextureCenters()) {
+          paint.drawImage(grassImage, point.x - TILE_WIDTH / 2, point.y - TILE_HEIGHT / 2, TILE_WIDTH, TILE_HEIGHT);
+        }
+        grassCacheRef.current = { image: grassImage, canvas: tile };
+      }
+      const grassPattern = ctx.createPattern(grassCacheRef.current.canvas, "repeat");
+      grassPattern?.setTransform(new DOMMatrix().translate(originX, originY).scale(zoom));
+      ctx.fillStyle = grassPattern ?? "#86ae57";
       ctx.fillRect(0, 0, width, height);
       // Eenmalig uit bestaande sprites opgebouwd, naadloos wereldvast patroon.
       // Geen andere boomrasterstap, grasstijl of objectpositie bij een zoomgrens.
@@ -253,7 +270,7 @@ export function DorpCanvas({
       if (!forestCacheRef.current || forestCacheRef.current.count !== forestCount) {
         const tile = document.createElement("canvas"); tile.width = tile.height = FOREST_PERIOD;
         const paint = tile.getContext("2d")!;
-        paint.fillStyle = "#416438"; paint.fillRect(0, 0, FOREST_PERIOD, FOREST_PERIOD);
+        // Transparante bosoverlay: openingen tonen altijd de grasbasis.
         for (const point of forestTexturePoints()) {
           const asset = forestAssets[point.variant], image = imagesRef.current.get(asset.path);
           if (!image) continue;
@@ -274,7 +291,12 @@ export function DorpCanvas({
       const pattern = ctx.createPattern(forestTile, "repeat");
       if (pattern) {
         pattern.setTransform(new DOMMatrix().translate(originX, originY).scale(zoom * FOREST_PERIOD / lodSize));
-        ctx.fillStyle = pattern; ctx.fillRect(0, 0, width, height);
+        // Buiten het begrensde maskervenster direct uit dezelfde bos-texture.
+        const window = forestWindowBounds(radius);
+        ctx.save(); ctx.beginPath(); ctx.rect(0, 0, width, height);
+        ctx.rect(originX + window.minX * zoom, originY + window.minY * zoom,
+          (window.maxX - window.minX) * zoom, (window.maxY - window.minY) * zoom);
+        ctx.clip("evenodd"); ctx.fillStyle = pattern; ctx.fillRect(0, 0, width, height); ctx.restore();
       }
 
       const neededBounds = clippedTerrainBounds(terrainBufferBounds(camera.x, camera.y, zoom, width, height, .25), radius);
@@ -286,6 +308,7 @@ export function DorpCanvas({
           || terrainCache.pathsKey !== pathsKey
           || terrainCache.assetRevision !== assetRevision
           || terrainCache.rasterScale !== rasterScale
+          || terrainCache.forestLod !== lodSize
           || terrainCache.dpr !== dpr
           || !containsTerrainBounds(terrainCache.bounds, clippedTerrainBounds(terrainBufferBounds(camera.x, camera.y, zoom, width, height, .25, 0), radius))) {
           const terrainBounds = neededBounds;
@@ -293,42 +316,40 @@ export function DorpCanvas({
           terrainCanvas.width = (terrainBounds.maxX - terrainBounds.minX) * rasterScale;
           terrainCanvas.height = (terrainBounds.maxY - terrainBounds.minY) * rasterScale;
           const terrainContext = terrainCanvas.getContext("2d", { alpha: true })!;
-          terrainContext.imageSmoothingEnabled = false;
-          const grassRadius = radius + 4;
-          for (let sum = -grassRadius * 2; sum <= grassRadius * 2; sum += 1) {
-            for (let u = -grassRadius; u <= grassRadius; u += 1) {
-              const v = sum - u;
-              if (v < -grassRadius || v > grassRadius || u * u + v * v > grassRadius * grassRadius) continue;
-              const worldPoint = isoToWorld(u, v);
-              if (worldPoint.x + TILE_WIDTH / 2 < terrainBounds.minX || worldPoint.x - TILE_WIDTH / 2 > terrainBounds.maxX
-                || worldPoint.y + TILE_HEIGHT / 2 < terrainBounds.minY || worldPoint.y - TILE_HEIGHT / 2 > terrainBounds.maxY) continue;
-              const pathTile = paths.get(`${u},${v}`);
-              const assetId = terrainAssetId(u, v, pathTile ? pathConnectivityFromKeys(pathTile, pathKeys) : undefined);
-              const runtime = DORP_TERRAIN_RUNTIME_BY_ID.get(assetId);
-              const terrainPath = runtime?.full;
-              const terrain = terrainPath ? imagesRef.current.get(terrainPath) : undefined;
-              const x = (worldPoint.x - terrainBounds.minX) * rasterScale;
-              const y = (worldPoint.y - terrainBounds.minY) * rasterScale;
-              if (terrain) terrainContext.drawImage(terrain, x - TILE_WIDTH * rasterScale / 2, y - TILE_HEIGHT * rasterScale / 2, TILE_WIDTH * rasterScale, TILE_HEIGHT * rasterScale);
-              else drawDiamond(terrainContext, x, y, TILE_WIDTH * rasterScale, TILE_HEIGHT * rasterScale, (u + v) % 3 === 0 ? "#8eb65e" : "#86ae57");
-            }
+          terrainContext.setTransform(rasterScale, 0, 0, rasterScale, -terrainBounds.minX * rasterScale, -terrainBounds.minY * rasterScale);
+          const overlay = terrainContext.createPattern(forestTile, "repeat");
+          if (overlay) {
+            overlay.setTransform(new DOMMatrix().scale(FOREST_PERIOD / lodSize));
+            terrainContext.fillStyle = overlay;
+            terrainContext.fillRect(terrainBounds.minX, terrainBounds.minY, terrainBounds.maxX - terrainBounds.minX, terrainBounds.maxY - terrainBounds.minY);
           }
-          // Alle bouwbare tegelhoeken liggen binnen R+1. Daar blijft gras
-          // volledig dekkend; alleen de decoratieve rand vervaagt naar bos.
+          // Alleen bomen verdwijnen in de open plek; gras wordt nooit uitgeknipt.
           terrainContext.globalCompositeOperation = "destination-in";
-          terrainContext.translate(-terrainBounds.minX * rasterScale, -terrainBounds.minY * rasterScale);
-          terrainContext.scale(64 * Math.SQRT2 * rasterScale, 32 * Math.SQRT2 * rasterScale);
+          terrainContext.save(); terrainContext.scale(64 * Math.SQRT2, 32 * Math.SQRT2);
           const fade = terrainContext.createRadialGradient(0, 0, radius + 1, 0, 0, radius + 3);
-          fade.addColorStop(0, "#fff"); fade.addColorStop(1, "transparent");
+          fade.addColorStop(0, `rgba(255,255,255,${forestOverlayOpacity(radius + 1, radius)})`);
+          fade.addColorStop(1, `rgba(255,255,255,${forestOverlayOpacity(radius + 3, radius)})`);
           terrainContext.fillStyle = fade;
-          terrainContext.fillRect(-grassRadius * 2, -grassRadius * 2, grassRadius * 4, grassRadius * 4);
+          terrainContext.fillRect(-2 * (radius + 4), -2 * (radius + 4), 4 * (radius + 4), 4 * (radius + 4));
+          terrainContext.restore(); terrainContext.globalCompositeOperation = "source-over";
+          // Paden liggen op de grasbasis, zonder extra gras-raster of wereldgrens.
+          for (const tile of paths.values()) {
+            const point = isoToWorld(tile.u, tile.v);
+            if (point.x + TILE_WIDTH / 2 < terrainBounds.minX || point.x - TILE_WIDTH / 2 > terrainBounds.maxX
+              || point.y + TILE_HEIGHT / 2 < terrainBounds.minY || point.y - TILE_HEIGHT / 2 > terrainBounds.maxY) continue;
+            const assetId = terrainAssetId(tile.u, tile.v, pathConnectivityFromKeys(tile, pathKeys));
+            const path = DORP_TERRAIN_RUNTIME_BY_ID.get(assetId)?.full;
+            const image = path ? imagesRef.current.get(path) : undefined;
+            if (image) terrainContext.drawImage(image, point.x - TILE_WIDTH / 2, point.y - TILE_HEIGHT / 2, TILE_WIDTH, TILE_HEIGHT);
+            else drawDiamond(terrainContext, point.x, point.y, TILE_WIDTH, TILE_HEIGHT, "#caa876");
+          }
           const scaledCanvas = document.createElement("canvas");
           scaledCanvas.width = Math.max(1, Math.round(terrainCanvas.width / rasterScale * zoom * dpr));
           scaledCanvas.height = Math.max(1, Math.round(terrainCanvas.height / rasterScale * zoom * dpr));
           const scaledContext = scaledCanvas.getContext("2d", { alpha: true })!;
           scaledContext.imageSmoothingEnabled = true;
           scaledContext.drawImage(terrainCanvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
-          terrainCache = { scaledCanvas, scaledZoom: zoom, dpr, bounds: terrainBounds, radius, pathsKey, assetRevision, rasterScale };
+          terrainCache = { scaledCanvas, scaledZoom: zoom, dpr, bounds: terrainBounds, radius, pathsKey, assetRevision, rasterScale, forestLod: lodSize };
           terrainCacheRef.current = terrainCache;
         }
         const cachedScale = zoom / terrainCache.scaledZoom;
@@ -368,7 +389,7 @@ export function DorpCanvas({
               drawDiamond(ctx, s.x, s.y, TILE_WIDTH * zoom, TILE_HEIGHT * zoom, "rgba(255,255,255,.17)", "rgba(255,255,255,.7)");
             }
           }
-          if (image) drawSprite(image, registration.path, point, registration.worldSize, registered.anchor);
+          if (image) drawSprite(image, registration.path, point, registration.worldSize, registered.anchor, registered.flipX);
         }});
       }
 
@@ -396,7 +417,7 @@ export function DorpCanvas({
             const registered = registeredSprite(definition, registration, placement);
             const s = screen(registered.point.x, registered.point.y);
             ctx.globalAlpha = 0.72;
-            drawSprite(image, registration.path, s, registration.worldSize, registered.anchor);
+            drawSprite(image, registration.path, s, registration.worldSize, registered.anchor, registered.flipX);
             ctx.globalAlpha = 1;
           }
         }
