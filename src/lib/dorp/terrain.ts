@@ -1,4 +1,5 @@
 import { pathAssetIdForMask } from "./paths";
+import { TILE_WIDTH, TILE_HEIGHT } from "./geometry";
 
 export type TerrainWorldBounds = { minX: number; minY: number; maxX: number; maxY: number };
 
@@ -37,16 +38,28 @@ export function forestTexturePoints() {
   });
 }
 
-/** Begrens ook bij Wereld het offscreen-geheugen tot de echte grasomgeving. */
+/** Gras herhaalt zonder wereldgrens; alleen bosmasker en paden vragen een venstercache. */
+export function grassTextureCenters() {
+  return [{ x: 0, y: 0 }, { x: TILE_WIDTH, y: 0 },
+    { x: TILE_WIDTH / 2, y: TILE_HEIGHT / 2 },
+    { x: 0, y: TILE_HEIGHT }, { x: TILE_WIDTH, y: TILE_HEIGHT }];
+}
+
+export function forestWindowBounds(radius: number): TerrainWorldBounds {
+  const x = Math.ceil((radius + 4) * 64 * Math.SQRT2), y = Math.ceil((radius + 4) * 32 * Math.SQRT2);
+  return { minX: -x, maxX: x, minY: -y, maxY: y };
+}
+
+/** Begrens het offscreen-geheugen; de grasbasis zelf wordt nooit geclipt. */
 export function clippedTerrainBounds(view: TerrainWorldBounds, radius: number): TerrainWorldBounds | null {
-  const x = (radius + 4) * 64 * Math.SQRT2, y = x / 2;
-  const bounds = { minX: Math.max(-Math.ceil(x), view.minX), maxX: Math.min(Math.ceil(x), view.maxX), minY: Math.max(-Math.ceil(y), view.minY), maxY: Math.min(Math.ceil(y), view.maxY) };
+  const window = forestWindowBounds(radius);
+  const bounds = { minX: Math.max(window.minX, view.minX), maxX: Math.min(window.maxX, view.maxX), minY: Math.max(window.minY, view.minY), maxY: Math.min(window.maxY, view.maxY) };
   return bounds.minX < bounds.maxX && bounds.minY < bounds.maxY ? bounds : null;
 }
 /** Een lege zichtbare uitsnede vereist geen dekking of nieuwe padding-cache. */
 export function containsTerrainBounds(outer: TerrainWorldBounds, inner: TerrainWorldBounds | null): boolean {
   return inner === null || outer.minX <= inner.minX && outer.minY <= inner.minY && outer.maxX >= inner.maxX && outer.maxY >= inner.maxY;
 }
-export function clearingOpacity(distance: number, radius: number): number {
-  return Math.max(0, Math.min(1, (radius + 3 - distance) / 2));
+export function forestOverlayOpacity(distance: number, radius: number): number {
+  return Math.max(0, Math.min(1, (distance - radius - 1) / 2));
 }
