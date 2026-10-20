@@ -41,6 +41,10 @@ model User {
   dorpGiftsSent DorpGift[] @relation("DorpGiftSender")
   dorpGiftsReceived DorpGift[] @relation("DorpGiftReceiver")
   passwordHash       String
+  passwordLoginEnabled Boolean @default(true)
+  externalIdentities ExternalIdentity[]
+  nativeSessions NativeSession[]
+  nativeChallenges NativeAuthChallenge[]
   // Verhoogd bij een wachtwoordreset/-wijziging zodat alle eerder uitgegeven sessietokens direct ongeldig worden.
   sessionVersion     Int       @default(0)
   // Optionele TOTP-tweestapsverificatie; het geheime seed wordt versleuteld opgeslagen.
@@ -4058,4 +4062,49 @@ model DorpGift {
   createdAt DateTime @default(now())
   @@unique([senderId, actionId])
   @@index([senderId, receiverId, createdAt])
+}
+
+
+// Native Foundation: websessies en bestaande User-identiteiten blijven intact.
+enum ExternalIdentityProvider {
+  APPLE
+}
+
+model ExternalIdentity {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider ExternalIdentityProvider
+  scope String @db.VarChar(128)
+  subject String @db.VarChar(255)
+  displayName String? @db.VarChar(100)
+  createdAt DateTime @default(now())
+  @@unique([provider, scope, subject])
+  @@unique([userId, provider, scope])
+}
+
+model NativeSession {
+  id String @id @default(uuid()) @db.Uuid
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionVersion Int
+  refreshHash String @unique @db.VarChar(64)
+  previousRefreshHash String? @db.VarChar(64)
+  lastActionId String? @db.Uuid
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([userId, revokedAt])
+}
+
+model NativeAuthChallenge {
+  id String @id @default(uuid()) @db.Uuid
+  userId String?
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  intent String @db.VarChar(10)
+  nonceHash String @unique @db.VarChar(64)
+  stateHash String @db.VarChar(64)
+  expiresAt DateTime
+  consumedAt DateTime?
+  @@index([expiresAt])
 }

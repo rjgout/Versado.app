@@ -72,3 +72,35 @@ export async function lightHaptic(): Promise<void> {
     // Haptics mogen delen of navigeren nooit blokkeren.
   }
 }
+
+
+/** Lokale foundation gebruikt dezelfde platformgrens als web/remote-preview. */
+export async function dismissNativeKeyboard(): Promise<void> {
+  if (!isNativeApp()) return;
+  const { Keyboard } = await import("@capacitor/keyboard");
+  await Keyboard.hide();
+}
+
+export async function nativeAppleAuthorization(nonce: string, state: string) {
+  if (!isIOSApp()) throw new Error("apple_not_supported");
+  const { nativeBridge } = await import("./native/bridge");
+  const result = await nativeBridge.signInWithApple({ nonce, state });
+  if (result.state !== state) throw new Error("apple_state_invalid");
+  return result;
+}
+
+export async function startNativeFoundationRuntime(options: { onResume: () => void; onBack: () => boolean; onUrl: (url: string) => void }) {
+  if (!isNativeApp()) return () => {};
+  const { App } = await import("@capacitor/app");
+  const { Keyboard } = await import("@capacitor/keyboard");
+  const handles = await Promise.all([
+    App.addListener("appStateChange", ({ isActive }) => { if (isActive) options.onResume(); }),
+    App.addListener("appUrlOpen", ({ url }) => options.onUrl(url)),
+    App.addListener("backButton", () => { if (!options.onBack()) void App.exitApp(); }),
+    Keyboard.addListener("keyboardWillShow", () => { document.documentElement.dataset.keyboard = "true"; }),
+    Keyboard.addListener("keyboardWillHide", () => { delete document.documentElement.dataset.keyboard; }),
+  ]);
+  if (isIOSApp()) await Keyboard.setAccessoryBarVisible({ isVisible: true });
+  const launch = await App.getLaunchUrl(); if (launch?.url) options.onUrl(launch.url);
+  return () => { for (const handle of handles) void handle.remove(); };
+}

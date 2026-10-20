@@ -1,0 +1,65 @@
+name: Native Foundation
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/lib/native/**'
+      - 'src/components/native/**'
+      - 'src/app/api/v1/**'
+      - 'src/lib/auth.ts'
+      - 'src/lib/registration.ts'
+      - 'src/app/api/auth/**'
+      - 'src/lib/platform.ts'
+      - 'capacitor.config.ts'
+      - 'ios/**'
+      - 'android/**'
+      - 'prisma/**'
+      - 'package*.json'
+      - 'scripts/native/**'
+      - 'tests/native-foundation*'
+      - 'tests/fixtures/native-foundation*'
+      - '.github/workflows/native-foundation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: native-foundation-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  native-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Contracten, types, lint en webbuild
+        run: |
+          npx prisma validate
+          npm run db:generate
+          npm run test:native
+          npm run lint
+          npx tsx scripts/i18n/check.ts
+          npm run build
+          npx tsc --noEmit
+      - name: Lokale bundle en Capacitor-sync (geen apparaatbuild)
+        run: |
+          NATIVE_API_BASE_URL=https://versado.app npm run native:build
+          CAPACITOR_BUILD_PROFILE=local-development npx cap sync
+      - name: Browser klaarzetten
+        run: |
+          npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
+          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Migratie, sessies, Apple en lokale leesflow op geïsoleerde PostgreSQL
+        run: npm run test:native:integration
+      - name: Browserbewijs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-foundation-browser
+          path: /tmp/versado-native-browser
+          retention-days: 7

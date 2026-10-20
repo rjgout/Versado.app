@@ -5,6 +5,8 @@ import nextTypescript from "eslint-config-next/typescript";
 // De officiële Next-configuraties behouden hier de bestaande React-,
 // toegankelijkheids- en Next-regels zonder een tweede lokale regelsset.
 const config = [
+  // Gegenereerde lokale native bundle; de bronbestanden blijven volledig gecontroleerd.
+  { ignores: ["dist/native/**", "ios/App/App/public/**", "android/app/src/main/assets/public/**"] },
   ...nextVitals,
   ...nextTypescript,
   {

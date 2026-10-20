@@ -59,7 +59,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
 
   const tempPassword = generateTempPassword();
   const passwordHash = await hashPassword(tempPassword);
-  await prisma.user.update({ where: { id: userId }, data: { passwordHash, mustChangePassword: true, sessionVersion: { increment: 1 } } });
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash, passwordLoginEnabled: true, mustChangePassword: true, sessionVersion: { increment: 1 } } });
 
   return NextResponse.json({ tempPassword });
 }
