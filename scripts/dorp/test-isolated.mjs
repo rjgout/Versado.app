@@ -72,8 +72,9 @@ try{
  server=spawn('node',['--import','tsx','scripts/dorp/test-server.ts'],{env,stdio:'inherit',detached:true});
  let healthy=false;for(let i=0;i<100;i++){try{if((await fetch(`${base}/api/health`)).ok){healthy=true;break;}}catch{}if(server.exitCode!==null)throw Error('Testserver gestopt');await delay(500);}
  if(!healthy)throw Error('Productiebuild niet bereikbaar');
- if(!process.argv.includes('--prototype-only'))await run('npx',['tsx','--test','--test-concurrency=1','tests/dorp-server.integration.test.ts','tests/dorp-audit.integration.test.ts'],env);
- if(process.argv.includes('--browser')){await run('npx',['tsx','tests/dorp.browser.mjs'],env);await run('npx',['tsx','tests/dorp-privacy.browser.mjs'],env);}
+ if(!process.argv.includes('--prototype-only')&&!process.argv.includes('--iphone-only'))await run('npx',['tsx','--test','--test-concurrency=1','tests/dorp-server.integration.test.ts','tests/dorp-audit.integration.test.ts'],env);
+ if(process.argv.includes('--browser')){await run('npx',['tsx','tests/dorp.browser.mjs'],env);await run('npx',['tsx','tests/dorp-privacy.browser.mjs'],env);await run('npx',['tsx','tests/dorp-iphone.browser.mjs'],env);}
+ if(process.argv.includes('--iphone-only'))await run('npx',['tsx','tests/dorp-iphone.browser.mjs'],env);
  if(process.argv.includes('--regressions')){await run('npm',['run','test:kompas'],env);await run('npm',['run','test:social'],env);await run('npm',['run','test:profile'],env);await run('npm',['run','test:leagues'],env);await run('npm',['run','test:genees-economy'],env);}
  }
 }finally{

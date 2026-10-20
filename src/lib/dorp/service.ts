@@ -122,17 +122,28 @@ async function authorizeVillage(tx:Tx,userId:string,villageId:string){
  }
  await lockVillage(tx,villageId);return (await tx.dorpVillage.findUnique({where:{id:villageId}}))!;
 }
+/** Pure leesprojectie: dezelfde canonieke groei, zonder creatie of onderhoudswrites. */
+async function readSnapshot(tx:Tx,village:DorpVillage,userId:string,readOnly=false){
+ const ids=await contributors(tx,village);
+ const phase=phaseForContribution(await countCanonicalReadContributions(tx,ids),ids.length);
+ const result=await snapshot(tx,{...village,phase},userId,readOnly),radius=radiusForPhase(phase);
+ result.world.instances=reconcileInstancesForRadius(result.world.instances,radius).instances;
+ result.world.paths=result.world.paths.filter(p=>p.u*p.u+p.v*p.v<=radius*radius);
+ return result;
+}
 export async function readVillage(userId:string,villageId:string){return prisma.$transaction(async tx=>{
- await lockUsers(tx,[userId]);const village=await authorizeVillage(tx,userId,villageId);return snapshot(tx,village,userId);
+ await lockUsers(tx,[userId]);const village=await authorizeVillage(tx,userId,villageId);return readSnapshot(tx,village,userId);
 });}
 export async function mutateVillage(userId:string,input:unknown){
  const parsed=dorpCommand.safeParse(input);if(!parsed.success)throw new DorpError("INVALID");const command=parsed.data;
  const hash=createHash("sha256").update(JSON.stringify(command)).digest("hex");
  const result=await prisma.$transaction(async tx=>{
-  await lockUsers(tx,[userId]);const village=await authorizeVillage(tx,userId,command.villageId);
+  await lockUsers(tx,[userId]);let village=await authorizeVillage(tx,userId,command.villageId);
   const previous=await tx.dorpAction.findUnique({where:{userId_actionId:{userId,actionId:command.actionId}}});
-  if(previous){if(previous.payloadHash!==hash)throw new DorpError("CONFLICT",409);return snapshot(tx,village,userId);}
+  if(previous){if(previous.payloadHash!==hash)throw new DorpError("CONFLICT",409);return readSnapshot(tx,village,userId);}
   if(village.version!==command.expectedVersion)throw new DorpError("CONFLICT",409);
+  // Pas na de versiecontrole, binnen dezelfde User→Group→Village-locks.
+  village=await reconcileVillage(tx,village);
   const op=command.operation,radius=radiusForPhase(village.phase);
   if(op.type==="paths"){
    if(op.tiles.some(p=>p.u*p.u+p.v*p.v>radius*radius))throw new DorpError("INVALID");
@@ -195,7 +206,7 @@ export async function visitVillage(viewerId:string,ownerId:string){return prisma
  const village=await tx.dorpVillage.findUnique({where:{ownerId}});if(!village)throw new DorpError("UNAVAILABLE",404);
  await lockVillage(tx,village.id);
  const last=await tx.dorpGift.findFirst({where:{senderId:viewerId,receiverId:ownerId},orderBy:{createdAt:"desc"},select:{createdAt:true}});
- return {...await snapshot(tx,village,viewerId,true),giftAvailableAt:last?new Date(last.createdAt.getTime()+86400000).toISOString():null};
+ return {...await readSnapshot(tx,village,viewerId,true),giftAvailableAt:last?new Date(last.createdAt.getTime()+86400000).toISOString():null};
 });}
 export async function sendVillageGift(senderId:string,input:unknown){
  const parsed=z.object({receiverId:id,actionId:z.string().uuid()}).strict().safeParse(input);if(!parsed.success)throw new DorpError("INVALID");const {receiverId,actionId}=parsed.data;

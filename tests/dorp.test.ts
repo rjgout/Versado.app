@@ -24,7 +24,7 @@ import {
 import { availableInstance, levelOwnedInstance, ownershipIsValid, placeOwnedInstance, placedObjects, reconcileInstancesForRadius, storeOwnedInstance } from "../src/lib/dorp/ownership";
 import { paintPathSegment, paintPathTiles, pathAssetIdForMask, pathConnectivity, pathConnectivityFromKeys, pathKey, pathVariantForMask } from "../src/lib/dorp/paths";
 import { DEFAULT_DORP_STATE, DORP_STORAGE_KEY, parseDorpState, serializeDorpState } from "../src/lib/dorp/storage";
-import { forestLodStep, terrainAssetId, terrainBufferBounds } from "../src/lib/dorp/terrain";
+import { FOREST_PERIOD, forestTexturePoints, clippedTerrainBounds, clearingOpacity, terrainAssetId, terrainBufferBounds } from "../src/lib/dorp/terrain";
 import type { DorpOwnedInstance, PlacedDorpObject } from "../src/lib/dorp/types";
 import { shellModeForRoute } from "../src/lib/focusMode";
 
@@ -299,10 +299,51 @@ test("dorpsgroei gebruikt exact de canonieke 239 BOM-identiteiten",()=>{
   for(const version of [2,3])assert.deepEqual(parseDorpState(JSON.stringify({...world,version})),world);
  });
 
- test("bos-LOD is wereldvast binnen een zoomband en schermbegrensd op mobiel en desktop",()=>{
- for(const [a,b] of [[.36,.34],[.1,.11],[.02,.021]])assert.equal(forestLodStep(a),forestLodStep(b));
- for(const zoom of [1.4,1,.36,.1,.02,.005])for(const [width,height] of [[320,844],[390,844],[844,390],[1280,900]]){
-  const step=forestLodStep(zoom),columns=Math.ceil(width/zoom/step)+3,rows=Math.ceil(height/zoom/step)+3;
-  assert.ok(step*zoom>=76);assert.ok(columns*rows<=400);
+test("bos heeft op iedere zoom dezelfde 64 wereldpunten en een begrensde texture",()=>{
+ const points=forestTexturePoints();assert.equal(points.length,64);assert.equal(FOREST_PERIOD,1536);
+ for(const p of points)assert.ok(p.x>=0&&p.x<FOREST_PERIOD&&p.y>=0&&p.y<FOREST_PERIOD);
+ assert.deepEqual(forestTexturePoints(),points);
+ for(const radius of [8,35,62])for(const zoom of [1.4,1,.36,.18,.1,.02,.005]){
+  const bounds=clippedTerrainBounds(terrainBufferBounds(0,0,zoom,1280,900,.25),radius)!;
+  assert.ok((bounds.maxX-bounds.minX)*(bounds.maxY-bounds.minY)*.25**2<5_000_000);
+  assert.equal(clearingOpacity(radius+Math.SQRT1_2,radius),1,"bouwbare tegelhoeken volledig gras");
+  assert.equal(clearingOpacity(radius+3,radius),0);assert.equal(clearingOpacity(radius+2,radius),.5);
  }
- });
+ assert.equal(clippedTerrainBounds({minX:1e6,maxX:1e6+100,minY:0,maxY:100},8),null);
+});
+
+import { registeredSprite } from "../src/lib/dorp/registration";
+import { isoToWorld } from "../src/lib/dorp/geometry";
+import { worldViewRadius } from "../src/lib/dorp/camera";
+test("grondregistratie deelt één anker voor preview en plaatsing; opgeslagen posities blijven intact",()=>{
+ for(const id of ["vd-b001","vd-b002","vd-b003","vd-p002","vd-p003","vd-p006",...DORP_RESIDENTS.map(r=>r.objectId)]){
+  const definition=DORP_OBJECT_BY_ID.get(id)!,asset=assetForObject(id,1)!,tile={u:-3,v:2};
+  const before=JSON.stringify([tile,definition,asset]);const registered=registeredSprite(definition,asset,tile);
+  assert.ok(registered.anchor.every(n=>n>=0&&n<=1));
+  const width=definition.footprint[0],height=definition.footprint[1];
+  if(definition.kind==="resident"||id.startsWith("vd-p"))assert.deepEqual(registered.point,isoToWorld(tile.u+(width-1)/2,tile.v+(height-1)/2));
+  else {const point=isoToWorld(tile.u+width-1,tile.v+height-1);assert.deepEqual(registered.point,{x:point.x,y:point.y+32});}
+  assert.equal(JSON.stringify([tile,definition,asset]),before);
+ }
+ for(const radius of [8,35,62])assert.ok(worldViewRadius(radius)>radius);
+ assert.ok(worldViewRadius(8)<worldViewRadius(35));
+});
+
+test("gemeten grondcontacten van bank, put en lantaarn vallen binnen hun bestaande footprint",()=>{
+ const contacts:Record<string,readonly (readonly [number,number])[]>={
+  "vd-p002":[[143,139],[384,212],[318,245],[107,161]],
+  "vd-p003":[[145,270],[259,246],[371,270],[259,310]],
+  "vd-p006":[[185,298],[221,281],[264,304],[225,325]],
+ };
+ for(const [id,points]of Object.entries(contacts)){
+  const definition=DORP_OBJECT_BY_ID.get(id)!,asset=assetForObject(id,1)!;
+  const pixels=id==="vd-p002"?[512,256]:[512,341];
+  const {point,anchor}=registeredSprite(definition,asset,{u:0,v:0});
+  for(const [px,py]of points){
+   const x=point.x+(px/pixels[0]-anchor[0])*asset.worldSize[0];
+   const y=point.y+(py/pixels[1]-anchor[1])*asset.worldSize[1];
+   const u=(x/64+y/32)/2,v=(y/32-x/64)/2;
+   assert.ok(u>=-.5&&u<=definition.footprint[0]-.5&&v>=-.5&&v<=definition.footprint[1]-.5,id);
+  }
+ }
+});

@@ -205,3 +205,21 @@ test("dorpsgroei telt uitsluitend de 239 canonieke BOM-hoofdstukken per gebruike
  assert.deepEqual(await prisma.contentProgress.findMany({where:{userId:{in:[a.id,b.id]}},orderBy:{id:"asc"}}),progress);
  assert.deepEqual(await preserved(),before);
 });
+
+test("bestaand dorp leest actuele groei zonder writes; bouwen gebruikt daarna dezelfde grens",async()=>{
+ const user=await account(),initial=await openVillage(user.id);
+ await prisma.contentProgress.createMany({data:BOFM_CANONICAL_CONTENT_KEYS.slice(0,15).map(contentKey=>({userId:user.id,contentKey,readStatus:"READ" as const}))});
+ const village=await prisma.dorpVillage.findUniqueOrThrow({where:{id:initial.villageId}});
+ const progress=await prisma.contentProgress.findMany({where:{userId:user.id},orderBy:{id:"asc"}});
+ const beforeUser=await prisma.user.findUniqueOrThrow({where:{id:user.id}});
+ const state=await readVillage(user.id,initial.villageId);
+ assert.equal(state.world.phase,1);assert.equal(state.version,village.version);
+ assert.deepEqual(await prisma.dorpVillage.findUniqueOrThrow({where:{id:initial.villageId}}),village);
+ const resident=state.world.instances.find(i=>i.objectId==="vd-c001")!;
+ const built=await mutateVillage(user.id,action(state,{type:"place",objectId:resident.instanceId,position:{u:10,v:0}}));
+ assert.equal(built.world.phase,1);assert.deepEqual(built.world.instances.find(i=>i.instanceId===resident.instanceId)?.position,{u:10,v:0});
+ assert.deepEqual(await prisma.contentProgress.findMany({where:{userId:user.id},orderBy:{id:"asc"}}),progress);
+ assert.deepEqual(await prisma.user.findUniqueOrThrow({where:{id:user.id}}),beforeUser);
+ assert.equal(await prisma.xPTransaction.count({where:{userId:user.id}}),0);
+ assert.equal(await prisma.streakDay.count({where:{userId:user.id}}),0);
+});

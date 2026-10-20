@@ -8,13 +8,7 @@ export function terrainAssetId(u: number, v: number, pathMask?: number): string 
   return pathMask === undefined ? "terrain-grass" : pathAssetIdForMask(pathMask);
 }
 
-/** Vaste wereldrasterstappen per LOD-band: bomen verschuiven niet tijdens pinch. */
-export function forestLodStep(zoom: number): number {
-  return 256 * 2 ** Math.max(0, Math.ceil(Math.log2(76 / (256 * zoom))));
-}
-
-export function terrainBufferBounds(cameraX: number, cameraY: number, zoom: number, viewportWidth: number, viewportHeight: number, rasterScale = 1): TerrainWorldBounds {
-  const padding = 192;
+export function terrainBufferBounds(cameraX: number, cameraY: number, zoom: number, viewportWidth: number, viewportHeight: number, rasterScale = 1, padding = 192): TerrainWorldBounds {
   const unit = 1 / rasterScale;
   return {
     minX: Math.floor((cameraX - viewportWidth / (2 * zoom) - padding) / unit) * unit,
@@ -31,4 +25,27 @@ export function boundsContainViewport(bounds: TerrainWorldBounds, cameraX: numbe
     && cameraX + halfWidth <= bounds.maxX
     && cameraY - halfHeight >= bounds.minY
     && cameraY + halfHeight <= bounds.maxY;
+}
+
+// Eén herhaalbaar wereldpatroon; LOD schaalt pixels, nooit boomposities.
+export const FOREST_PERIOD = 1536;
+export function forestTexturePoints() {
+  return Array.from({ length: 64 }, (_, i) => {
+    const gx = i % 8, gy = Math.floor(i / 8);
+    const hash = Math.abs((gx * 73856093) ^ (gy * 19349663));
+    return { x: (gx + .05 + hash % 89 / 100) * 192, y: (gy + .05 + (hash >>> 6) % 89 / 100) * 192, variant: (hash >>> 7) % 2 };
+  });
+}
+
+/** Begrens ook bij Wereld het offscreen-geheugen tot de echte grasomgeving. */
+export function clippedTerrainBounds(view: TerrainWorldBounds, radius: number): TerrainWorldBounds | null {
+  const x = (radius + 4) * 64 * Math.SQRT2, y = x / 2;
+  const bounds = { minX: Math.max(-Math.ceil(x), view.minX), maxX: Math.min(Math.ceil(x), view.maxX), minY: Math.max(-Math.ceil(y), view.minY), maxY: Math.min(Math.ceil(y), view.maxY) };
+  return bounds.minX < bounds.maxX && bounds.minY < bounds.maxY ? bounds : null;
+}
+export function containsTerrainBounds(outer: TerrainWorldBounds, inner: TerrainWorldBounds): boolean {
+  return outer.minX <= inner.minX && outer.minY <= inner.minY && outer.maxX >= inner.maxX && outer.maxY >= inner.maxY;
+}
+export function clearingOpacity(distance: number, radius: number): number {
+  return Math.max(0, Math.min(1, (radius + 3 - distance) / 2));
 }

@@ -36,8 +36,12 @@ export function fitCameraToRadius(
   };
 }
 
-export function minimumCameraZoom(width: number, height: number, insets?: CameraInsets): number {
-  return fitCameraToRadius(width, height, MAX_RADIUS + 25, insets).zoom;
+export function worldViewRadius(radius: number): number {
+  return Math.max(radius + 12, Math.ceil(radius * 1.35));
+}
+
+export function minimumCameraZoom(width: number, height: number, insets?: CameraInsets, radius = MAX_RADIUS): number {
+  return fitCameraToRadius(width, height, worldViewRadius(radius), insets).zoom;
 }
 
 export function screenToWorld(camera: DorpCamera, width: number, height: number, screenX: number, screenY: number) {
