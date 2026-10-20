@@ -6,7 +6,7 @@ import {mkdirSync,writeFileSync} from 'node:fs';
 import {prisma} from '../src/lib/db.ts';
 import {SESSION_COOKIE,createSessionToken} from '../src/lib/auth.ts';
 import {DEFAULT_DORP_STATE} from '../src/lib/dorp/storage.ts';
-import {DORP_OBJECT_BY_ID} from '../src/lib/dorp/catalog.ts';
+import {DORP_OBJECT_BY_ID,assetForObject} from '../src/lib/dorp/catalog.ts';
 const db=new URL(process.env.DORP_TEST_DATABASE_URL??'http://invalid');
 if(db.hostname!=='127.0.0.1'||db.pathname!=='/versado_content_access_test'||db.href!==process.env.DATABASE_URL)throw Error('Alleen geïsoleerde testdatabase');
 const require=createRequire(import.meta.url),{chromium,webkit}=require(process.env.PLAYWRIGHT_MODULE??'playwright');
@@ -17,6 +17,38 @@ const user=await prisma.user.create({data:{email:`iphone-${randomUUID()}@example
 const results=[];
 try{
  const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true,serviceWorkers:"block"});
+ // Observeer echte canvaslagen; geen testhaak in de productierenderer.
+ await context.addInitScript(()=>{
+  const proto=CanvasRenderingContext2D.prototype,create=proto.createPattern,fill=proto.fillRect,draw=proto.drawImage,patterns=new WeakMap(),sources=new WeakMap(),sprites=new WeakMap();
+  proto.createPattern=function(source,...args){
+   const pattern=create.call(this,source,...args);
+   if(pattern&&source instanceof HTMLCanvasElement){
+    let info=sources.get(source);
+    if(!info){
+     const grass=source.width===128&&source.height===64;
+     let minAlpha=255;const min=[255,255,255],max=[0,0,0];
+     if(grass){const data=source.getContext('2d').getImageData(0,0,128,64).data;for(let i=0;i<data.length;i+=4){minAlpha=Math.min(minAlpha,data[i+3]);for(let c=0;c<3;c++){min[c]=Math.min(min[c],data[i+c]);max[c]=Math.max(max[c],data[i+c]);}}}
+     info={grass,minAlpha,min,max};sources.set(source,info);
+    }
+    patterns.set(pattern,info);
+   }
+   return pattern;
+  };
+  proto.fillRect=function(...args){
+   const result=fill.apply(this,args),info=patterns.get(this.fillStyle);
+   if(this.canvas.matches?.('canvas[aria-label="Interactieve isometrische dorpskaart"]')&&info){
+    if(info.grass){window.dorpSpriteDraws=[];window.dorpTerrainLayers={order:['grass'],minAlpha:info.minAlpha,min:info.min,max:info.max,fullViewport:args[0]===0&&args[1]===0&&Math.abs(args[2]*this.getTransform().a-this.canvas.width)<=1&&Math.abs(args[3]*this.getTransform().d-this.canvas.height)<=1};}
+    else window.dorpTerrainLayers?.order.push('forest');
+   }
+   return result;
+  };
+  proto.drawImage=function(source,...args){
+   if(source instanceof HTMLImageElement&&/prop-(fence|bench)\.webp$/.test(source.src))sprites.set(this.canvas,{asset:source.src.split('/').pop(),flipped:this.getTransform().a<0});
+   const info=sprites.get(source);
+   if(info&&this.canvas.matches?.('canvas[aria-label="Interactieve isometrische dorpskaart"]'))window.dorpSpriteDraws?.push({...info,rect:args,alpha:this.globalAlpha});
+   return draw.call(this,source,...args);
+  };
+ });
  await context.addCookies([{name:SESSION_COOKIE,value:await createSessionToken(user.id),url:base}]);
  const page=await context.newPage();const errors=[],requests=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.url().includes('/api/dorp'))requests.push({url:r.url(),status:r.status()});});
  async function settled(){await page.locator('canvas[aria-busy="false"]').waitFor();await page.evaluate(async()=>{for(let i=0;i<3;i++)await new Promise(resolve=>requestAnimationFrame(resolve));});}
@@ -54,6 +86,9 @@ try{
   for(const [name,label]of [['Detail','detail'],['Normaal','normal'],['Huidige kaart volledig tonen','map'],['Wereld','world']]){
    await page.getByRole('button',{name,exact:true}).click();await settled();
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+   const layers=await page.evaluate(()=>window.dorpTerrainLayers);
+   assert.deepEqual(layers.order.slice(0,2),['grass','forest'],`Gras onder bos bij R${radius}/${label}`);
+   assert.equal(layers.minAlpha,255,'Grastextuur is volledig dekkend');assert.equal(layers.fullViewport,true,'Gras bedekt de volledige viewport');
    await page.screenshot({path:`${output}/2e-r${radius}-${label}.png`});
   }
   results.push({radius,views:4});
@@ -114,15 +149,59 @@ try{
   await page.screenshot({path:`${output}/2e-terrain-cache-return-r${radius}.png`});
   results.push({terrainCacheEdge:true,radius,paddingOnlyX:paddingOnly,zoomDuringTransition:true,stablePaddingCache:true,idleDraws:idle,worldUnchanged:true});
  }
- for(const id of ['vd-b001','vd-b002','vd-b003','vd-p002','vd-p003','vd-p006','vd-c001']){
+ // Verwijder uitsluitend decoratie in deze fixture: er mag nergens een kale
+ // achtergrond of uitgeknipt eiland onder het bos verscholen zitten.
+ const transparent=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=1;return c.toDataURL().split(',')[1];});
+ const forestRoute=/\/assets\/forest\/forest-dense(?:-v2)?\.webp$/;let replacedForests=0;
+ await page.route(forestRoute,route=>{replacedForests++;return route.fulfill({contentType:'image/png',body:Buffer.from(transparent,'base64')});});
+ for(const [phase,radius]of [[0,8],[8,35],[16,62]]){
+  const state=structuredClone(DEFAULT_DORP_STATE);state.phase=phase;
+  await page.evaluate(state=>localStorage.setItem('versado-dorp-prototype-v3',JSON.stringify(state)),state);await page.reload();await settled();
+  await page.locator('summary').filter({hasText:'Weergave'}).click();
+  for(const name of ['Detail','Normaal','Huidige kaart volledig tonen','Wereld']){
+   await page.getByRole('button',{name,exact:true}).click();await settled();
+   const bad=await page.evaluate(()=>{
+    const canvas=document.querySelector('canvas'),data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data,{min,max}=window.dorpTerrainLayers;
+    let bad=0;for(let i=0;i<data.length;i+=4*97){if(data[i+3]!==255||[0,1,2].some(c=>data[i+c]<min[c]-2||data[i+c]>max[c]+2))bad++;}return bad;
+   });
+   assert.equal(bad,0,`Doorlopende grasbasis zonder bosdecoratie: R${radius}/${name}`);
+  }
+  assert.deepEqual(JSON.parse(await page.evaluate(()=>localStorage.getItem('versado-dorp-prototype-v3'))),state);
+  results.push({grassUnderForest:true,radius,views:4,noBarePixels:true});
+ }
+ assert.ok(replacedForests>=6,'Bosoverlay is daadwerkelijk vervangen door een transparante testfixture');
+ await page.unroute(forestRoute);
+ for(const id of ['vd-b001','vd-b002','vd-b003','vd-p002','vd-p003','vd-p005','vd-p006','vd-c001']){
   const state=structuredClone(DEFAULT_DORP_STATE);state.instances.find(i=>i.objectId===id).position={u:0,v:0};
   await page.evaluate(state=>localStorage.setItem('versado-dorp-prototype-v3',JSON.stringify(state)),state);await page.reload();await settled();
   const box=await page.locator('canvas').boundingBox();await page.mouse.click(box.x+box.width/2,box.y+box.height/2);
   await page.locator('[data-dorp-selection]').getByRole('heading',{name:DORP_OBJECT_BY_ID.get(id).name,exact:true}).waitFor();
   await page.screenshot({path:`${output}/2e-registration-${id}.png`});
   assert.deepEqual(JSON.parse(await page.evaluate(()=>localStorage.getItem('versado-dorp-prototype-v3'))),state,'Selectie en weergave behouden opgeslagen coördinaten');
+  if(id==='vd-p005'||id==='vd-p002'){
+   const before=await page.evaluate(()=>window.dorpSpriteDraws.find(d=>d.alpha===1));
+   assert.ok(before);assert.equal(before.flipped,id==='vd-p005','Hek volgt de u-footprint; bank behoudt zijn richting');
+   await page.getByRole('button',{name:'Verplaatsen',exact:true}).click();await settled();
+   const preview=await page.evaluate(()=>window.dorpSpriteDraws.find(d=>d.alpha<1));
+   assert.ok(preview);assert.deepEqual(preview.rect,before.rect,'Preview heeft exact dezelfde spritepositie en -maat');
+   await page.getByRole('button',{name:'Plaatsen',exact:true}).click();await settled();
+   const after=await page.evaluate(()=>window.dorpSpriteDraws.find(d=>d.alpha===1));
+   assert.deepEqual(after,before,'Definitieve plaatsing deelt ook spiegeling en grondanker');
+   assert.deepEqual(JSON.parse(await page.evaluate(()=>localStorage.getItem('versado-dorp-prototype-v3'))),state);
+   const zoom=after.rect[2]/assetForObject(id,1).worldSize[0],cx=box.x+box.width/2,cy=box.y+box.height/2;
+   await page.mouse.move(cx,cy);await page.mouse.down();await page.mouse.move(cx,cy+64*zoom,{steps:4});await settled();
+   const drag=await page.evaluate(()=>window.dorpSpriteDraws.find(d=>d.alpha<1));assert.ok(drag);
+   await page.mouse.up();await settled();
+   const dropped=await page.evaluate(()=>window.dorpSpriteDraws.find(d=>d.alpha===1));
+   assert.deepEqual(dropped.rect,drag.rect,'Slepen en loslaten behouden exact dezelfde grondregistratie');
+   assert.equal(dropped.flipped,before.flipped);
+   state.instances.find(i=>i.objectId===id).position={u:1,v:1};
+   assert.deepEqual(JSON.parse(await page.evaluate(()=>localStorage.getItem('versado-dorp-prototype-v3'))),state,'Alleen de bewust gesleepte positie wijzigt');
+   await page.screenshot({path:`${output}/2e-registration-drag-${id}.png`});
+   results.push({registration:id,previewEqualsPlaced:true,directDragEqualsPlaced:true});
+  }
  }
- assert.deepEqual(errors,[]);results.push({registeredObjects:7,positionsPreserved:true});await context.close();
+ assert.deepEqual(errors,[]);results.push({registeredObjects:8,positionsPreserved:true});await context.close();
  writeFileSync(`${output}/2e-${engine===webkit?'webkit':'chromium'}-results.json`,JSON.stringify(results,null,2));
  console.log('Dorp 2E browserbewijs:',JSON.stringify(results));
 }finally{await browser.close();await prisma.$disconnect();}

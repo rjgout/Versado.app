@@ -1,6 +1,7 @@
 # Versado Dorp — fase 2E: iPhone-correcties
 
-Basis: `40c56c04` (actuele main na #152). Geen schema- of assetwijziging.
+Basis oorspronkelijke 2E: `40c56c04` na #152; aanvullende gras-/hekcorrectie vanaf
+`387d418d` (main inclusief #153 en #154). Geen schema- of assetwijziging.
 
 ## Correcties
 
@@ -19,15 +20,16 @@ Basis: `40c56c04` (actuele main na #152). Geen schema- of assetwijziging.
   staan daarbinnen; bevestigde gewone opslag wordt alleen toegankelijk aangekondigd.
   Laden, fouten en cadeaubevestiging blijven zichtbaar wanneer relevant.
 - Geen alternatief gekleurd ruitjesraster meer bij Wereld. Hetzelfde gras-/padasset
-  wordt op alle zoomniveaus gerasterd. De decoratieve grasrand loopt tot R+3 uit;
-  binnen R+1 is hij volledig dekkend, inclusief alle bouwbare tegelhoeken.
+  wordt op alle zoomniveaus gebruikt. De 128×64-grastextuur herhaalt volledig
+  dekkend over de hele viewport, zonder radiusclip of grasfade. Alleen de
+  bosoverlay is binnen R+1 transparant en vanaf R+3 volledig zichtbaar.
   De echte bouwgrens en collisions blijven R8–R62.
-- Bos staat achter gras en objecten. Een naadloze 1536²-texture uit 64 vaste punten
+- Bos ligt boven de doorlopende grasbasis en onder objecten. Een naadloze 1536²-texture uit 64 vaste punten
   gebruikt bestaande bosassets; kleinere LOD-textures zijn afgeleiden van exact
   hetzelfde patroon. Zoom verandert geen boomposities of bosraster. Geen extra
   boslaag door plaatsingsvlakken. Wereld past bij de huidige dorpgrootte in plaats
   van ieder R8-dorp als een stip in een R87-wereld te tonen.
-- Terreinbuffers zijn begrensd tot de echte grasomgeving (op laagste rasterresolutie
+- Buffers voor bosmasker en paden zijn begrensd tot de dorpsomgeving (op laagste rasterresolutie
   minder dan 5 miljoen pixels op R62). Bestaande paddingcache, spritecache en
   render-on-demand blijven. Padenindexering is gememoiseerd. Vriendenmarkers blijven
   maximaal acht, op een deterministische niet-geografische ring. Geen automatische
@@ -35,7 +37,7 @@ Basis: `40c56c04` (actuele main na #152). Geen schema- of assetwijziging.
 - `registeredSprite` deelt de grondregistratie tussen preview en geplaatst object.
   Familiehuis, schrijvershuis en ontmoetingshuis gebruiken de voorste footprint-
   **hoek**, niet het midden van de laatste tegel (verschil 32 wereldpixels).
-  Bank, put en lantaarn gebruiken gemeten grondcontacten van hun bestaande assets,
+  Bank, hek, put en lantaarn gebruiken gemeten grondcontacten van hun bestaande assets,
   niet het totale afbeeldings-boundingboxmiddelpunt. Bewoners behouden hun voetanker.
   WorldSize, footprints, collisionregels, opgeslagen posities, IDs en levels blijven.
   De contactkalibratie is visueel; zij is geen nieuwe automatische herplaatsing.
@@ -47,7 +49,7 @@ fouten (169 bestaande waarschuwingen, gerichte dorplint zonder waarschuwingen).
 i18n-check geslaagd met de bestaande achterstand van 418 sleutels per niet-
 Nederlandse taal; bestaande sleutels zijn hergebruikt.
 
-- Dorp/focus/shell: **54**; live-data: **54** tests.
+- Dorp/focus/shell: **56**; live-data: **54** tests.
 - Eigen PostgreSQL: **18** integratietests, inclusief GET-groei zonder writes,
   bouwen op de berekende grens, concurrency, vertrek, krimp, privacy en cadeaus.
 - Regressies: Kompas **69**, sociaal **33**, profiel **13**, divisies **5**,
@@ -131,3 +133,35 @@ canvasbuffers bij de herhaalde padding-only bewegingen, nul idle-renders en
 exact dezelfde opgeslagen objecten en paden. De screenshots
 `2e-terrain-cache-return-r{8,35,62}.png` komen in het bestaande CI-artifact.
 Geen schema-, asset-, rechten- of migratiewijziging.
+
+## Aanvullende grasbasis en hekregistratie
+
+De oude laagvolgorde (bosachtergrond, gemaskeerde gras-clearing) is omgedraaid:
+volledig dekkend gras → transparante bosoverlay/paden → objecten. Een kleine
+herhaalbare grastextuur vervangt het radiusgebonden grasraster. Alleen het
+bosmasker en de paden behouden de begrensde paddingcache; LOD wisselt geen
+wereldposities. Het masker kan de grasbasis niet verwijderen.
+
+Het enige geleverde hekasset, `prop-fence`, loopt langs v terwijl de bestaande
+2×1-footprint langs u loopt. De renderer spiegelt deze sprite en gebruikt het
+gemeten midden van de paalvoeten (270/512, 204/256). Zowel spiegelen als het
+bijbehorende anker zitten in de gedeelde `registeredSprite`-registratie.
+Preview, slepen en geplaatste weergave gebruiken dezelfde spritecache. Geen
+nieuwe rotaties/assets, herplaatsing of wijziging van footprint, worldSize,
+opslagcoördinaten of eigendom; de bank behoudt zijn bestaande richting.
+
+De productiebuild-browserproef controleert laagvolgorde en volledige dekking op
+R8/R35/R62 in Detail/Normaal/Mijn kaart/Wereld. Een afzonderlijke fixture vervangt
+alleen bosdecoratie door transparantie: geen pixel buiten het grasbereik in alle
+12 combinaties. Preview en definitieve plaatsing én drag/loslaten van hek en bank
+hebben exact dezelfde sprite-rechthoek en spiegeling. Alleen de bewust gesleepte
+positie verandert; bestaande pan/pinch-, cache- en idle-renderasserties blijven.
+Aanvullend screenshot: `2e-registration-vd-p005.png` en
+`2e-registration-drag-vd-p{002,005}.png` in het bestaande browserartifact.
+
+Hercontrole: 56 dorp/focus/shell, 54 live-data, 18 PostgreSQL-integratietests,
+26 bestaande browserflows plus de bovenstaande iPhone-/gras-/registratieproeven;
+Kompas 69, sociaal 33, profiel 13, divisies 5 en Genees 58: allemaal geslaagd,
+geen skips. TypeScript, gerichte ESLint, Prisma-validatie/generatie, i18n en een
+schone productiebuild geslaagd. De bestaande 418 ontbrekende vertaalsleutels per
+niet-Nederlandse taal zijn ongewijzigd. Geen fysieke iPhone/Android getest.
