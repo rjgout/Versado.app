@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     return await apiError(sent ? "apiErrors.emailNotConfirmedSent" : "apiErrors.emailNotConfirmed", 403);
   }
 
-  const valid = await verifyPassword(password, user.passwordHash);
+  const valid = user.passwordLoginEnabled && await verifyPassword(password, user.passwordHash);
   if (!valid) return fail();
   clearFailures(accountKey);
 

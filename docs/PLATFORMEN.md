@@ -25,15 +25,16 @@ De definitieve native doelarchitectuur is een **hybride client/servermodel**:
 Die doelarchitectuur is bewust nog niet als grote migratie uitgevoerd. De
 huidige repository is daarvoor nog niet client-side genoeg: de native shell
 zou anders een kunstmatige kopie van alle pagina's en logica nodig hebben.
-Tot die migratie veilig kan gebeuren is Capacitor alleen beschikbaar als
-expliciete **remote-preview**. Dit is geen productie- of storeprofiel.
+Native Foundation fase 1 voegt daarnaast een beperkte **local-development**-client
+toe. Remote-preview blijft bestaan. Beide zijn ontwikkelprofielen; geen van beide
+is een productie- of storeprofiel.
 
 De keuze is dus niet: `server.url` stiekem als eindarchitectuur laten staan.
 De keuze is: de bestaande server-rendered app behouden, remote preview
 expliciet begrenzen, en de lokale native client/API-grens gecontroleerd
 uitwerken voordat een store-release wordt toegestaan.
 
-## Repository-audit
+## Historische repository-audit
 
 De audit is uitgevoerd tegen commit `388ca8a` op `main`.
 
@@ -330,3 +331,53 @@ builds zijn hier daarom niet geclaimd als geslaagd.
 7. Test daarna op de echte iPhone. Dit is een remote preview, geen bewijs
    voor App Store-readiness; voer dezelfde test uit na een echte lokale-client
    migratie voordat je archiveert of indient.
+
+
+## Native Foundation fase 1 — actuele uitbreiding
+
+Zie [architectuur, contracten en testbewijs](NATIVE-FOUNDATION-PHASE-1.md) en
+[Apple Developer-configuratie](APPLE-SIGN-IN-SETUP.md). De oudere inventaris hierboven
+beschrijft de uitgangssituatie; de volledige Next.js-app blijft servergedreven.
+
+De lokale entry `src/components/native/entry.tsx` bundelt gedeelde React-componenten,
+vertalingen, design tokens en assets. Geen Next.js-export en geen tweede domeinlaag.
+De beperkte verticale proef is aanmelden → Vandaag-leeskaart → hoofdstuk → bewust
+als gelezen markeren → sessie herstellen. De volledige planner, onboarding,
+studielezer, spellen, realtime en overige schermen moeten nog gericht migreren.
+
+```sh
+NATIVE_API_BASE_URL=https://versado.app npm run native:build
+CAPACITOR_BUILD_PROFILE=local-development npx cap sync
+# Remote-preview blijft expliciet beschikbaar:
+CAPACITOR_BUILD_PROFILE=remote-preview CAPACITOR_SERVER_URL=https://versado.app npx cap sync
+```
+
+De eerste opdracht bouwt uitsluitend lokale bestanden; zij doet geen productiecall.
+Gebruik voor echte ontwikkeltests een eigen backend. Lokale HTTP-backends vereisen
+expliciet `NATIVE_ALLOW_LOCAL_HTTP_API=1`; dit is geen releaseconfiguratie.
+
+Backend: `NATIVE_API_ENABLED=1` en een afzonderlijk willekeurig
+`NATIVE_SESSION_SECRET` van minimaal 32 tekens. Standaard blijft de API uit.
+`/api/v1/native/*` accepteert uitsluitend de twee vaste Capacitor-origins,
+`X-Versado-Client: native-v1` en eigen Bearer-tokens; webcookies geven geen native
+rechten. Access-tokens leven vijf minuten; refreshsessies maximaal dertig dagen.
+Refreshgeheimen staan alleen gehasht in PostgreSQL en versleuteld in native
+platformopslag. Uitloggen trekt de sessie in; offline uitloggen bewaart uitsluitend
+een veilige intrekkingsopdracht. Wachtwoordwijziging en accountverwijdering maken
+native sessies ongeldig. Webauthenticatie en webpush blijven afzonderlijk werken.
+
+De eigen Capacitor 8-bridge gebruikt iOS Keychain, Android Keystore/AES-GCM en
+AuthenticationServices. Alleen de lokale app-origin mag platformgeheimen openen;
+remote-preview krijgt deze bevoegdheid niet. JavaScript houdt access-tokens alleen
+in geheugen. CSP begrenst de lokale bundle; een XSS blijft een serieus risico en
+mag niet via onbetrouwbare scripts/HTML worden geïntroduceerd.
+
+Telefoons zijn portrait-only; tablets ondersteunen beide richtingen. De gedeelde
+platformadapter verzorgt lifecycle, keyboard-sluitactie, delen en haptics.
+De lokale deeplinkondersteuning is voorlopig beperkt tot de vertrouwde
+Vandaag-bestemming. Geen permissies voor native push toegevoegd.
+
+Release blijft geblokkeerd totdat echte builds/apparaatvalidatie, Apple-configuratie,
+accountlevenscyclus, juridische URLs en de resterende schermmigratie zijn beoordeeld.
+Een geslaagde webbuild, Capacitor-sync of synthetische browserflow bewijst geen
+werkende App Store-/Play Store-release.

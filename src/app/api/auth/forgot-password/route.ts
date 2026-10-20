@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       })
     : await prisma.user.findUnique({ where: { email: identifier.toLowerCase() } });
 
-  if (user) {
+  if (user?.passwordLoginEnabled) {
     const rawToken = await createAuthToken(user.id, "PASSWORD_RESET");
     const link = `${getBaseUrl(req)}/reset-password?token=${rawToken}`;
     const { subject, html, text } = resetPasswordTemplate(getT(user.uiLanguage), link);

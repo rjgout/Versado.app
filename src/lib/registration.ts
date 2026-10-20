@@ -56,6 +56,7 @@ export interface NewAccount {
   contentLanguage: string;
   inviteCode?: string | null;
   emailVerifiedAt: Date | null;
+  externalIdentity?: { scope: string; subject: string; displayName?: string };
 }
 
 /**
@@ -88,7 +89,9 @@ export async function createAccount(input: NewAccount): Promise<User> {
           handle: input.handle,
           discriminator: generateDiscriminator(),
           passwordHash: input.passwordHash,
-          isAdmin: isFirstUser,
+          passwordLoginEnabled: !input.externalIdentity,
+          ...(input.externalIdentity ? { externalIdentities: { create: { provider: "APPLE" as const, ...input.externalIdentity } } } : {}),
+          isAdmin: isFirstUser && !input.externalIdentity,
           activeCourseId: defaultCourse?.id,
           uiLanguage: input.uiLanguage,
           contentLanguage: input.contentLanguage,
@@ -99,6 +102,7 @@ export async function createAccount(input: NewAccount): Promise<User> {
       if (!(e instanceof Prisma.PrismaClientKnownRequestError) || e.code !== "P2002") throw e;
       const target = (e.meta?.target as string[] | string | undefined) ?? [];
       if (String(target).includes("email")) throw new EmailTakenError();
+      if (input.externalIdentity && String(target).includes("provider")) throw e;
     }
   }
   if (!user) throw new Error("Geen vrij nummer gevonden voor deze gebruikersnaam.");
