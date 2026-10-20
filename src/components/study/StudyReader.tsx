@@ -15,7 +15,7 @@ import type { WeekContext } from "@/lib/studyContent/weekContext";
 import { HeaderMenu, ModeSwitch, StepDots, WeekNav, lessonBase, menuItem } from "./PersonalStudyParts";
 import { primaryButton, secondaryButton } from "@/components/versado/styles";
 import StudyAnnotations from "@/components/annotations/StudyAnnotations";
-import RichContentBlocks from "./RichContentBlocks";
+import RichContentBlocks, { InlineContent } from "./RichContentBlocks";
 import { useAnnotationFocus } from "./useAnnotationFocus";
 import { useStudyMarkRead } from "./useStudyMarkRead";
 import type { AnnotationFocus } from "@/lib/annotations/studyFocus";
@@ -267,6 +267,9 @@ function ReaderVisit({
   const positionStep = view && anchor ? stepOfBlock(view, anchor) : null;
   const stepsHref = pageMode === "step" || !positionStep ? `${base}/stappen` : `${base}/stappen/${positionStep}`;
   const headline = view?.weekTitle ?? data.lesson.title;
+  // De schriftgedeelten in de kop zijn de oorspronkelijke verwijzingen van de bronkop, dus ze blijven openbaar als verwijzing.
+  const scriptureBlock = view?.scriptureTitleId ? data.lesson.body.sections.flatMap((x) => x.blocks).find((b) => b.id === view.scriptureTitleId) : undefined;
+  const scriptureHeading = scriptureBlock?.type === "heading" ? scriptureBlock : null;
   const saveVisible = status === "error" || status === "conflict" || status === "unavailable";
   const startOverDisabled = busy || status === "conflict" || status === "unavailable" || query.updatedAt === null;
   const markLabel = (invite: boolean) => (markingRead ? t("studyReader.markingRead") : invite ? t("cfmStudy.markWholeRead") : t("studyReader.markRead"));
@@ -351,7 +354,11 @@ function ReaderVisit({
         <h1 ref={title} tabIndex={-1} className="text-xl font-extrabold leading-tight text-vs-fg focus:outline-none sm:text-2xl" lang={data.lesson.language}>
           {headline}
         </h1>
-        {view?.scriptureTitle && <p className="text-sm text-vs-fg-2">{view.scriptureTitle}</p>}
+        {view?.scriptureTitle && (
+          <p className="text-sm text-vs-fg-2">
+            {scriptureHeading ? <InlineContent parts={scriptureHeading.content} /> : view.scriptureTitle}
+          </p>
+        )}
       </div>
       {currentStep && (
         <Link href={`${base}/stappen`} prefetch={false} className="inline-flex min-h-11 items-center gap-1 text-sm font-bold text-vs-accent underline-offset-2 hover:underline">
@@ -417,6 +424,8 @@ function ReaderVisit({
         data-reader-mode={pageMode}
         className="vs-motion min-w-0 space-y-5 py-2"
       >
+        <ReferenceActionsContext.Provider value={(id,label,element)=>setReference({request:{lessonEditionId:data.lesson.editionId,revisionId:data.lesson.revisionId,occurrenceKey:id,...(data.visitProof ? {visitProof:data.visitProof} : {})},label,element})}>
+        <BlockedReferencesContext.Provider value={data.blockedReferences ?? []}>
         {legacy ? (
         <header className="space-y-4">
             <ReferenceReturn sessionKey={sessionKey}/>
@@ -572,15 +581,15 @@ function ReaderVisit({
             )}
           </header>
         ) : newHeader}
-        <ReferenceActionsContext.Provider value={(id,label,element)=>setReference({request:{lessonEditionId:data.lesson.editionId,revisionId:data.lesson.revisionId,occurrenceKey:id,...(data.visitProof ? {visitProof:data.visitProof} : {})},label,element})}>
         <article
           ref={root}
           data-study-reader-body
           lang={data.lesson.language}
           className={legacy ? "min-w-0 rounded-2xl border border-vs-line bg-vs-elevated p-4 sm:p-6" : "min-w-0"}
         >
-          <BlockedReferencesContext.Provider value={data.blockedReferences ?? []}><StudyAnnotations document={data.lesson.body} editionId={data.lesson.editionId} revisionId={data.lesson.revisionId} sessionKey={sessionKey} disabled={!!reference || updating} recovery={annotationFocus} compact={!legacy}><RichContentBlocks document={displayDoc} media={data.media} compact={!legacy}/ ></StudyAnnotations></BlockedReferencesContext.Provider>
+          <StudyAnnotations document={data.lesson.body} editionId={data.lesson.editionId} revisionId={data.lesson.revisionId} sessionKey={sessionKey} disabled={!!reference || updating} recovery={annotationFocus} compact={!legacy}><RichContentBlocks document={displayDoc} media={data.media} compact={!legacy}/ ></StudyAnnotations>
         </article>
+        </BlockedReferencesContext.Provider>
         </ReferenceActionsContext.Provider>
         {!legacy && pageMode !== "step" && (
           <footer className="space-y-4 border-t border-vs-line pt-4">

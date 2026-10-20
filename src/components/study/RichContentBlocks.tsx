@@ -38,6 +38,10 @@ function inline(parts: readonly Inline[]): ReactNode {
     );
   });
 }
+/** Alleen de inline inhoud (tekst, links, verwijzingen) van een bronblok, bv. voor de schriftgedeelten in de leskop. */
+export function InlineContent({ parts }: { parts: readonly Inline[] }) {
+  return <>{inline(parts)}</>;
+}
 function StudyFigure({
   block,
   media,

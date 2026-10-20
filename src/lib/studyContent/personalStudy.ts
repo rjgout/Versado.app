@@ -62,6 +62,8 @@ export type PersonalStudyPlan =
       fingerprint: string;
       weekTitle: string | null;
       scriptureTitle: string | null;
+      /** Blok-id van de kop met de schriftgedeelten; de leskop toont de oorspronkelijke verwijzingen daaruit. */
+      scriptureTitleId: string | null;
       blocks: PlannedBlock[];
       steps: PlannedStep[];
       issues: PlanIssue[];
@@ -107,6 +109,7 @@ export function planPersonalStudy(
   const shown: Array<{ block: Block; role: PersonalRole }> = [];
   let weekTitle: string | null = null;
   let scriptureTitle: string | null = null;
+  let scriptureTitleId: string | null = null;
 
   blocks.forEach((block, i) => {
     const prev = blocks[i - 1];
@@ -121,6 +124,7 @@ export function planPersonalStudy(
     }
     if (i === titleAt) {
       scriptureTitle = readingBlockText(block);
+      scriptureTitleId = block.id;
       return record("META", false, "Kop met de schriftgedeelten; staat in de leskop.");
     }
     const override = hidden.get(block.id);
@@ -219,7 +223,7 @@ export function planPersonalStudy(
     };
   });
   const fingerprint = sha(`${PERSONAL_STUDY_VERSION}|${steps.map((s) => s.fingerprint).join("|")}`);
-  return { supported: true, version: PERSONAL_STUDY_VERSION, fingerprint, weekTitle, scriptureTitle, blocks: planned, steps, issues };
+  return { supported: true, version: PERSONAL_STUDY_VERSION, fingerprint, weekTitle, scriptureTitle, scriptureTitleId, blocks: planned, steps, issues };
 }
 
 /** Kiest de zeven beginatomen: gelijke leeslast, bij voorkeur op onderwerpgrenzen, nooit midden in een alinea. */
@@ -296,6 +300,7 @@ export interface PersonalStudyView {
   fingerprint: string;
   weekTitle: string | null;
   scriptureTitle: string | null;
+  scriptureTitleId: string | null;
   steps: PlannedStep[];
   personalBlockIds: string[];
   /** Blokken buiten de persoonlijke route; bereikbaar via de volledige les. */
@@ -308,6 +313,7 @@ export function personalStudyView(plan: PersonalStudyPlan): PersonalStudyView | 
     fingerprint: plan.fingerprint,
     weekTitle: plan.weekTitle,
     scriptureTitle: plan.scriptureTitle,
+    scriptureTitleId: plan.scriptureTitleId,
     steps: plan.steps,
     personalBlockIds: plan.blocks.filter((b) => b.personal).map((b) => b.id),
     otherBlockIds: plan.blocks.filter((b) => !b.personal).map((b) => b.id),

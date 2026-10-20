@@ -348,13 +348,15 @@ try {
       { name: SESSION_COOKIE, value: flow.token, url: base },
     ]);
     const page = await context.newPage();
-    await page.goto(base + flow.tableHref);
+    await page.goto(base + flow.tableHref + "?weergave=volledig"); // volledige officiële les: deze flows toetsen bronverwijzingen, ook buiten de persoonlijke studie
     await page.locator("[data-study-reader]").waitFor();
     await page.addStyleTag({ content: "html{font-size:200% !important}" });
     const table = page.locator("table").first();
     // Wacht op gehydrateerde readerbediening vóór de gebruikersscroll; de
     // servergerenderde tabel alleen bewijst nog niet dat hervatten klaarstaat.
+    await page.getByLabel("Meer acties", { exact: true }).click();
     await page.getByRole("button", { name: "Opnieuw bovenaan beginnen", exact: true }).click({ trial: true });
+    await page.keyboard.press("Escape");
     await page.evaluate(() => document.fonts.ready);
     await page.mouse.move(160, 400);
     await page.mouse.wheel(0, 300);
@@ -403,7 +405,7 @@ try {
       { name: SESSION_COOKIE, value: flow.token, url: base },
     ]);
     const page = await context.newPage();
-    await page.goto(base + lesson.href);
+    await page.goto(base + lesson.href + "?weergave=volledig"); // volledige officiële les: deze flows toetsen bronverwijzingen, ook buiten de persoonlijke studie
     await page.locator("[data-study-reader]").waitFor();
     await delay(1200);
     await page.locator(`[data-reference-key="${lesson.reference}"]`).click();
@@ -441,7 +443,7 @@ try {
       { name: SESSION_COOKIE, value: flow.token, url: base },
     ]);
     const page = await context.newPage();
-    await page.goto(base + selection.href);
+    await page.goto(base + selection.href + "?weergave=volledig"); // volledige officiële les: deze flows toetsen bronverwijzingen, ook buiten de persoonlijke studie
     await page.locator("[data-study-reader]").waitFor();
     await page.locator(`[data-reference-key="${selection.reference}"]`).click();
     const dialog = page.locator("dialog[open]");
@@ -507,7 +509,7 @@ try {
       { name: SESSION_COOKIE, value: flow.token, url: base },
     ]);
     const page = await context.newPage();
-    await page.goto(base + external.href);
+    await page.goto(base + external.href + "?weergave=volledig"); // volledige officiële les: deze flows toetsen bronverwijzingen, ook buiten de persoonlijke studie
     await page.locator("[data-study-reader]").waitFor();
     await page.locator(`[data-reference-key="${external.anchor}"]`).click();
     const link = page.locator('dialog[open] a[target="_blank"]');

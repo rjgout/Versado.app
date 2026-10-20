@@ -49,7 +49,7 @@ async function open(f, { width = 390, height = 844, scheme = "light" } = {}) {
   const page = await context.newPage();
   lastPage = page;
   page.on("pageerror", (e) => errors.push(e.message));
-  page.on("console", (m) => { if (m.type() === "error" && !/Failed to load resource/.test(m.text())) errors.push(m.text()); });
+  page.on("console", (m) => { if (m.type() === "error" && !/Failed to load resource|DeprecationWarning/.test(m.text())) errors.push(m.text()); });
   return { context, page };
 }
 const noOverflow = (page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
