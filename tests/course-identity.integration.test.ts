@@ -511,6 +511,84 @@ test("na de codecorrectie: een verhuisde historische cursus keert terug naar het
   assert.deepEqual((await L.integrity.findDuplicateReadingCourses(L.db)).filter((g) => g.contentCollectionId === L.ids.BOM_COLLECTION_ID), []);
 });
 
+test("volledige gebruikerssituatie: zichtbare dubbele kaarten, vier soorten gebruikers, herstel, hervatten en een volgende synchronisatie", { skip }, async () => {
+  const { contentKeyForChapter } = await import("../src/lib/learning/contentIdentity");
+  const { getCourseChapterProgress } = await import("../src/lib/learning/courseProgress");
+  const { readingResumeHref } = await import("../src/lib/courseResume");
+  const canonical = Object.fromEntries((await bomCourses()).map((c) => [c.type, c]));
+  const duplicates = Object.fromEntries((await makeDuplicates()).map((c) => [c.type, c]));
+  const canonicalLessons = await L.db.courseLesson.findMany({ where: { courseId: canonical.READING_LESSONS.id }, orderBy: { order: "asc" } });
+  for (const lesson of canonicalLessons)
+    await L.db.courseLesson.create({ data: { courseId: duplicates.READING_LESSONS.id, chapterId: lesson.chapterId, startVerse: lesson.startVerse, endVerse: lesson.endVerse, order: lesson.order } });
+  // Zoals in productie hebben de dubbele cursussen dezelfde hoofdstukkoppelingen als de canonieke.
+  for (const type of ["FREE_CHOICE", "FRONT_TO_BACK"] as const)
+    for (const row of await L.db.courseChapter.findMany({ where: { courseId: canonical[type].id } })) await L.db.courseChapter.create({ data: { courseId: duplicates[type].id, chapterId: row.chapterId, order: row.order } });
+  const dupLessons = await L.db.courseLesson.findMany({ where: { courseId: duplicates.READING_LESSONS.id }, orderBy: { order: "asc" } });
+  const lessonIndex = new Map(dupLessons.map((lesson, i) => [lesson.id, i]));
+
+  const userCanonical = await makeUser(), userDuplicate = await makeUser(), userBoth = await makeUser();
+  // Hoofdstukvoortgang hoort bij de inhoud (niet bij de cursus): hier twee hoofdstukken gelezen en geoefend.
+  const chapters = await L.db.chapter.findMany({ where: { id: { in: bomChapterIds } }, include: { book: { select: { key: true } } }, orderBy: { number: "asc" } });
+  for (const userId of [userCanonical, userDuplicate, userBoth])
+    for (const chapter of chapters)
+      await L.db.contentProgress.create({ data: { userId, contentKey: contentKeyForChapter({ id: chapter.id, number: chapter.number, bookKey: chapter.book.key }), lastChapterId: chapter.id, readStatus: "READ", readAt: new Date(), readVerse: 12, exercisesCompletedAt: new Date() } });
+  const subscribe = (userId: string, course: { id: string }, data: object = {}) => L.db.userCourseProgress.create({ data: { userId, courseId: course.id, subscribed: true, ...data } });
+  for (const type of TYPES) {
+    await subscribe(userCanonical, canonical[type], { currentChapterId: bomChapterIds[0] });
+    await subscribe(userDuplicate, duplicates[type], { currentChapterId: bomChapterIds[1], comboCount: 2 });
+    await subscribe(userBoth, canonical[type], { currentChapterId: bomChapterIds[0], lastActivityAt: new Date(Date.now() - 86_400_000) });
+    await subscribe(userBoth, duplicates[type], { currentChapterId: bomChapterIds[1], comboCount: 5 });
+  }
+  await L.db.userCourseProgress.updateMany({ where: { userId: userCanonical, courseId: canonical.READING_LESSONS.id }, data: { currentLessonId: canonicalLessons[0].id } });
+  await L.db.userCourseProgress.updateMany({ where: { userId: userDuplicate, courseId: duplicates.READING_LESSONS.id }, data: { currentLessonId: dupLessons[2].id } });
+  await L.db.userCourseProgress.updateMany({ where: { userId: userBoth, courseId: duplicates.READING_LESSONS.id }, data: { currentLessonId: dupLessons[1].id } });
+  await L.db.user.update({ where: { id: userDuplicate }, data: { activeCourseId: duplicates.READING_LESSONS.id } });
+
+  // Wat Leren toont (de bron van /api/courses): ingeschakelde cursussen van de collectie waarop de gebruiker geabonneerd is.
+  const visible = async (userId: string) => {
+    const progress = await L.db.userCourseProgress.findMany({ where: { userId, subscribed: true } });
+    const ids = new Set(progress.map((p) => p.courseId));
+    const courses = (await L.db.course.findMany({ where: { enabled: true, contentCollectionId: L.ids.BOM_COLLECTION_ID, type: { in: [...TYPES] } } })).filter((c) => ids.has(c.id));
+    return Object.fromEntries(TYPES.map((type) => [type, courses.filter((c) => c.type === type).length]));
+  };
+  const doneCount = async (userId: string, course: { id: string; type: string }) => (await getCourseChapterProgress(L.db, userId, course, null))!.completedCount;
+  assert.deepEqual(await visible(userBoth), { FREE_CHOICE: 2, FRONT_TO_BACK: 2, READING_LESSONS: 2 }, "voor het herstel: dubbele kaarten");
+  const doneBefore = await doneCount(userBoth, canonical.FREE_CHOICE);
+  assert.equal(doneBefore, 2, "hoofdstukvoortgang is inhoudsgebonden en voor beide kaarten gelijk");
+  assert.equal(await doneCount(userBoth, duplicates.FREE_CHOICE), doneBefore, "twee verschillende cursus-id's tonen dezelfde voortgang");
+
+  const plans = await L.repair.planDuplicateRepair(L.db);
+  assert.ok(plans.every((p) => p.verdict === "merge"), JSON.stringify(plans.map((p) => p.notes)));
+  const result = await L.repair.applyDuplicateRepair(L.db, plans);
+  assert.equal(result.merged.length, 3);
+
+  for (const userId of [userCanonical, userDuplicate, userBoth]) {
+    assert.deepEqual(await visible(userId), { FREE_CHOICE: 1, FRONT_TO_BACK: 1, READING_LESSONS: 1 }, "na het herstel: één kaart per leeswijze");
+    for (const type of TYPES) assert.equal(await doneCount(userId, canonical[type]), 2, "hoofdstukvoortgang volledig behouden");
+  }
+  // Alleen canoniek, alleen duplicaat, beide met verschillende voortgang.
+  const get = (userId: string, type: (typeof TYPES)[number]) => L.db.userCourseProgress.findUniqueOrThrow({ where: { userId_courseId: { userId, courseId: canonical[type].id } } });
+  assert.deepEqual((await get(userCanonical, "FREE_CHOICE")).currentChapterId, bomChapterIds[0]);
+  const onlyDuplicate = await get(userDuplicate, "FREE_CHOICE");
+  assert.deepEqual([onlyDuplicate.subscribed, onlyDuplicate.currentChapterId, onlyDuplicate.comboCount], [true, bomChapterIds[1], 2]);
+  const both = await get(userBoth, "FREE_CHOICE");
+  assert.deepEqual([both.subscribed, both.currentChapterId, both.comboCount], [true, bomChapterIds[1], 5], "de nieuwste voortgang wint, niets wordt overschreven met oudere voortgang");
+  // De actieve cursus werkt en de cursus is te hervatten (Stap voor stap: dezelfde stap in de canonieke cursus, Vrije keuze: hetzelfde hoofdstuk).
+  assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: userDuplicate } })).activeCourseId, canonical.READING_LESSONS.id);
+  const resumeSteps = await get(userDuplicate, "READING_LESSONS");
+  assert.equal(resumeSteps.currentLessonId, canonicalLessons[lessonIndex.get(dupLessons[2].id)!].id);
+  assert.equal(readingResumeHref({ courseId: canonical.READING_LESSONS.id, type: "READING_LESSONS", currentChapterId: resumeSteps.currentChapterId, currentLessonId: resumeSteps.currentLessonId }), `/reading-lesson/${resumeSteps.currentLessonId}`);
+  assert.ok(await L.db.courseLesson.findUnique({ where: { id: resumeSteps.currentLessonId! } }), "de hervatstap bestaat in de canonieke cursus");
+  assert.equal(readingResumeHref({ courseId: canonical.FREE_CHOICE.id, type: "FREE_CHOICE", currentChapterId: both.currentChapterId, currentLessonId: null }), `/lesson/${bomChapterIds[1]}?cursus=${canonical.FREE_CHOICE.id}`);
+
+  // Volgende synchronisatie en tweede herstelpoging veranderen niets.
+  const before = JSON.stringify(await L.db.userCourseProgress.findMany({ where: { userId: { in: [userCanonical, userDuplicate, userBoth] } }, orderBy: [{ userId: "asc" }, { courseId: "asc" }] }));
+  await L.courses.syncCourses(L.db);
+  assert.equal((await bomCourses()).length, 3);
+  assert.deepEqual(await L.repair.applyDuplicateRepair(L.db), { merged: [], blocked: [] });
+  assert.equal(JSON.stringify(await L.db.userCourseProgress.findMany({ where: { userId: { in: [userCanonical, userDuplicate, userBoth] } }, orderBy: [{ userId: "asc" }, { courseId: "asc" }] })), before);
+});
+
 test("andere cursussoorten (podcasts, kinderen, introductie) tellen niet mee in de invariant", { skip }, async () => {
   assert.equal(await L.db.course.count({ where: { type: "PODCAST" } }) >= 2, true, "meerdere podcastcursussen per collectie zijn toegestaan");
   assert.deepEqual(await L.integrity.findDuplicateReadingCourses(L.db), []);

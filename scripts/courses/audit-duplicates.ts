@@ -5,6 +5,10 @@
 // oordeel van het herstelplan ("merge" of "blocked"). Exitcode 1 zodra er dubbele cursussen zijn (bruikbaar als controle).
 import { createPrismaClient } from "../../src/lib/db";
 import { planDuplicateRepair } from "../../src/lib/courseRepair";
+import { databaseTarget } from "./target";
+
+const target = databaseTarget();
+console.error(`Doeldatabase (alleen lezen): ${target.host}:${target.port}/${target.database}`);
 
 const client = createPrismaClient();
 try {
@@ -15,7 +19,7 @@ try {
   });
   const collections = await client.contentCollection.findMany({ select: { id: true, slug: true, order: true, enabled: true, language: true }, orderBy: [{ order: "asc" }, { id: "asc" }] });
   const plans = await planDuplicateRepair(client);
-  console.log(JSON.stringify({ collections, readingCourses: all, duplicateGroups: plans }, null, 2));
+  console.log(JSON.stringify({ target, collections, readingCourses: all, duplicateGroups: plans }, null, 2));
   if (plans.length > 0) {
     console.error(`${plans.length} groep(en) met dubbele leescursussen. Herstel: npx tsx scripts/courses/repair-duplicates.ts (dry-run), daarna --apply na goedkeuring.`);
     process.exitCode = 1;

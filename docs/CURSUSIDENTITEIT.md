@@ -45,7 +45,7 @@ Niets hiervan draait vanzelf: niet bij een build, uitrol, migratie of normale im
 1. **Back-up** (`scripts/backup.sh`) en uitrol van de code met de structurele correctie. De eerstvolgende import/sync zet een verhuisde historische cursus terug naar het Boek van Mormon (alleen de collectiekoppeling; er wordt niets verwijderd).
 2. **Diagnose (alleen lezen):** `npm run courses:audit` (of `npx tsx scripts/courses/audit-duplicates.ts`). Toont collecties, alle leescursussen met afhankelijkheden (hoofdstukken, lessen, abonnementen, gebruikers met voortgang, actieve cursus, lesvoortgang, oefensessies, Samen studeren, persoonlijke volgorde, feedback) en per groep het oordeel `merge` of `blocked`. Exitcode 1 bij duplicaten.
 3. **Dry-run:** `npm run courses:repair` toont hetzelfde plan en schrijft niets.
-4. **Uitvoeren na goedkeuring:** `npm run courses:repair -- --apply --backup-gemaakt`.
+4. **Uitvoeren na goedkeuring:** `npm run courses:repair -- --apply --backup-gemaakt --verwacht-database=<naam>`. Beide scripts tonen eerst de doeldatabase (host, poort, naam; nooit geheimen) en `--apply` weigert als de bevestigde naam niet overeenkomt.
 5. **Controle:** `npm run courses:audit` moet exitcode 0 geven; kijk in `/courses` of elke leeswijze één keer staat en of abonnementen en de actieve cursus kloppen.
 6. Daarna pas de partiële unieke index (vorige sectie) als migratie voorstellen.
 
@@ -65,7 +65,7 @@ Een groep die `blocked` is wordt nooit aangeraakt; beoordeel haar met de notitie
 
 De correctie (PR #162) voorkomt dat **nieuwe** duplicaten ontstaan; ze verwijdert geen bestaande records. Zolang de herstelprocedure niet is uitgevoerd blijven bestaande dubbele cursusrecords in `content_bom` staan en tonen `/courses` en `/api/courses` ze allemaal: de API filtert uitsluitend op de actieve collectie (`src/app/api/courses/route.ts`) en dedupliceert bewust niet in de weergave. Gebeurde de wissel van de standaardcollectie in het verleden, dan zette de eerstvolgende synchronisatie na de uitrol de verhuisde historische cursussen juist terug naar het Boek van Mormon (alleen de koppeling), waardoor de duplicaten pas dan naast elkaar zichtbaar worden. `tests/course-identity.integration.test.ts` bewijst dit pad en dat het herstel daarna abonnement, plek, combo en actieve cursus behoudt.
 
-Wat daarom nog bevestigd moet worden met `npm run courses:audit` op de echte database (alleen lezen; niet in deze repository beschikbaar): welke records in `content_bom` bestaan, onder welke slugs, en op welk record de voortgang van de gebruiker staat (bijvoorbeeld de 11 van 239 voltooide hoofdstukken). Pas daarna volgt de dry-run en, na afzonderlijke goedkeuring, `--apply --backup-gemaakt`. Is de auditoutput bekend, dan bepaalt het oordeel `merge` of `blocked` per groep of er handmatige beoordeling nodig is.
+Wat daarom nog bevestigd moet worden met `npm run courses:audit` op de echte database (alleen lezen; niet in deze repository beschikbaar): welke records in `content_bom` bestaan, onder welke slugs, en op welk record de voortgang van de gebruiker staat (bijvoorbeeld de 11 van 239 voltooide hoofdstukken). Pas daarna volgt de dry-run en, na afzonderlijke goedkeuring, `--apply --backup-gemaakt --verwacht-database=<naam>`. Is de auditoutput bekend, dan bepaalt het oordeel `merge` of `blocked` per groep of er handmatige beoordeling nodig is.
 
 ## Tests
 
