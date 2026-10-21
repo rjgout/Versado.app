@@ -236,6 +236,11 @@ test("de herstelscripts zijn standaard een dry-run en vereisen een bevestigde ba
   const repair = read("scripts/courses/repair-duplicates.ts");
   assert.match(repair, /--backup-gemaakt/);
   assert.match(repair, /const apply = process\.argv\.includes\("--apply"\)/);
+  assert.match(repair, /--verwacht-database=/, "--apply bevestigt de naam van de doeldatabase");
+  assert.match(repair, /resolveDatabase\(\)/);
+  assert.match(repair, /confirmsDatabaseIdentity\(target, confirmation\)/, "host, poort en databasenaam worden bevestigd");
+  assert.match(read("scripts/courses/audit-duplicates.ts"), /resolveDatabase\(\)/, "de audit toont eerst de doeldatabase");
+  assert.doesNotMatch(read("scripts/courses/target.ts"), /username|password/, "de doelweergave bevat nooit geheimen");
   assert.doesNotMatch(read("scripts/courses/audit-duplicates.ts"), /\.(create|update|delete|upsert)\w*\(/, "de diagnose schrijft niets");
 });
 
