@@ -61,6 +61,12 @@ Wat het herstel doet (`src/lib/courseRepair.ts`), per dubbele cursus in een eige
 
 Een groep die `blocked` is wordt nooit aangeraakt; beoordeel haar met de notities uit het plan.
 
+## Diagnose: waarom duplicaten zichtbaar blijven na de codecorrectie
+
+De correctie (PR #162) voorkomt dat **nieuwe** duplicaten ontstaan; ze verwijdert geen bestaande records. Zolang de herstelprocedure niet is uitgevoerd blijven bestaande dubbele cursusrecords in `content_bom` staan en tonen `/courses` en `/api/courses` ze allemaal: de API filtert uitsluitend op de actieve collectie (`src/app/api/courses/route.ts`) en dedupliceert bewust niet in de weergave. Gebeurde de wissel van de standaardcollectie in het verleden, dan zette de eerstvolgende synchronisatie na de uitrol de verhuisde historische cursussen juist terug naar het Boek van Mormon (alleen de koppeling), waardoor de duplicaten pas dan naast elkaar zichtbaar worden. `tests/course-identity.integration.test.ts` bewijst dit pad en dat het herstel daarna abonnement, plek, combo en actieve cursus behoudt.
+
+Wat daarom nog bevestigd moet worden met `npm run courses:audit` op de echte database (alleen lezen; niet in deze repository beschikbaar): welke records in `content_bom` bestaan, onder welke slugs, en op welk record de voortgang van de gebruiker staat (bijvoorbeeld de 11 van 239 voltooide hoofdstukken). Pas daarna volgt de dry-run en, na afzonderlijke goedkeuring, `--apply --backup-gemaakt`. Is de auditoutput bekend, dan bepaalt het oordeel `merge` of `blocked` per groep of er handmatige beoordeling nodig is.
+
 ## Tests
 
 `npm run test:course-identity` (unit + integratie, vereist `LEARNING_TEST_DATABASE_URL`, een wegwerpdatabase) en `tests/course-sync.integration.test.ts` (lessenplan). In CI draait `tests/course-identity.integration.test.ts` in de job `content-access`.
