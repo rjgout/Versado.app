@@ -312,7 +312,8 @@ try {
     await page.waitForURL((url) => url.pathname === padHref);
     assert.equal(await page.evaluate(() => history.length), lengthBefore, "geen extra geschiedenisitem bij Terug naar het leerpad");
     await page.goBack();
-    assert.notEqual(new URL(page.url()).pathname, padHref, "het weekpad staat maar één keer op de geschiedenis (terug gaat niet naar nog een weekpad)");
+    // Het weekpad staat maar één keer op de geschiedenis: terug gaat niet naar nog een weekpad.
+    await page.waitForURL((url) => url.pathname !== padHref, { timeout: 8000 });
     // Twee opeenvolgende studieactiviteiten vanuit verschillende ingangen (weekpad, daarna Vandaag): elk zijn eigen herkomst.
     await page.goto(base + padHref);
     await page.locator('[data-week-state="current"] [data-week-step="2"]').click();
@@ -380,6 +381,8 @@ try {
       const direct = await safari.context.newPage();
       await direct.goto(base + f.href + "/stappen/3");
       await direct.locator("[data-complete-step]").waitFor();
+      // De terugbalk kent de cursus pas als de pagina de terugbestemming heeft geregistreerd (de cursusnaam staat dan als ondertitel).
+      await direct.locator("[data-subpage-back-bar]").getByText("Stap voor stap").waitFor();
       await direct.locator("[data-subpage-back-bar] button").click();
       await direct.waitForURL((url) => url.pathname === padHref);
       await safari.context.close();
