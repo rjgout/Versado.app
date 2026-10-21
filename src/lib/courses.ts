@@ -194,12 +194,12 @@ async function syncScriptureCourses(
 
   async function upsertCourse(base: string, type: "FREE_CHOICE" | "FRONT_TO_BACK" | "READING_LESSONS", name: string, description: string, order: number) {
     const slug = slugFor(base);
-    // Een andere collectie dan het Boek van Mormon: bestaat er al een cursus van dit soort voor déze collectie onder een andere slug
-    // (bijvoorbeeld na het hernoemen van de collectieslug), dan hergebruiken we die in plaats van een tweede aan te maken.
-    // Het Boek van Mormon houdt zijn vaste, historische slugs en wordt nooit onder een andere slug overgenomen.
+    // Een andere collectie dan het Boek van Mormon: bestaat er al precies één cursus van dit soort voor déze collectie onder een andere slug
+    // (bijvoorbeeld na het hernoemen van de collectieslug), dan nemen we die over (en zetten de slug recht) in plaats van een tweede aan te maken.
+    // Bij meerdere kandidaten kiezen we nooit willekeurig. Het Boek van Mormon houdt zijn vaste, historische slugs en wordt nooit overgenomen.
     if (!isDefault && !(await db.course.findUnique({ where: { slug }, select: { id: true } }))) {
-      const adopted = await db.course.findFirst({ where: { contentCollectionId: collection.id, type }, orderBy: [{ order: "asc" }, { id: "asc" }], select: { id: true } });
-      if (adopted) return db.course.update({ where: { id: adopted.id }, data: { name, description, order } });
+      const candidates = await db.course.findMany({ where: { contentCollectionId: collection.id, type }, select: { id: true }, take: 2 });
+      if (candidates.length === 1) return db.course.update({ where: { id: candidates[0].id }, data: { slug, name, description, order } });
     }
     return db.course.upsert({
       where: { slug },

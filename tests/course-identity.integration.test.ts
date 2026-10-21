@@ -113,7 +113,7 @@ test("een collectie in- of uitschakelen (ook het Boek van Mormon zelf) maakt gee
   assert.deepEqual(await snapshot(), before);
 });
 
-test("een gewijzigde collectieslug maakt geen tweede set cursussen voor die collectie (hergebruik van het bestaande record)", { skip }, async () => {
+test("een gewijzigde collectieslug maakt geen tweede set cursussen voor die collectie (één bestaand record per soort wordt overgenomen)", { skip }, async () => {
   const before = await snapshot();
   const renamed = `${otherSlug}-nieuw`;
   await L.db.contentCollection.update({ where: { id: otherId }, data: { slug: renamed } });
@@ -121,7 +121,28 @@ test("een gewijzigde collectieslug maakt geen tweede set cursussen voor die coll
   const after = await snapshot();
   assert.equal(after.length, before.length, "geen extra cursussen");
   assert.deepEqual(after.map((c) => c.id).sort(), before.map((c) => c.id).sort(), "dezelfde records");
+  assert.ok(after.filter((c) => c.contentCollectionId === otherId).every((c) => c.slug.endsWith(renamed)), "de slug is rechtgezet");
   await L.db.contentCollection.update({ where: { id: otherId }, data: { slug: otherSlug } });
+  await L.courses.syncCourses(L.db);
+  assert.deepEqual((await snapshot()).map((c) => c.id).sort(), before.map((c) => c.id).sort());
+  // Twee bestaande kandidaten (al dubbel) worden nooit willekeurig overgenomen en leiden niet tot nog een extra record per sync.
+  const stillThere = await L.db.course.count({ where: { contentCollectionId: otherId, type: { in: [...TYPES] } } });
+  await L.courses.syncCourses(L.db);
+  assert.equal(await L.db.course.count({ where: { contentCollectionId: otherId, type: { in: [...TYPES] } } }), stillThere);
+});
+
+test("meerdere bestaande cursussen van hetzelfde soort onder eigen slugs (fixture) laten de synchronisatie idempotent", { skip }, async () => {
+  const extra = [];
+  for (const slug of [`identity-fx-a-${stamp}`, `identity-fx-b-${stamp}`]) extra.push(await L.db.course.create({ data: { slug, type: "READING_LESSONS", name: slug, order: 2, contentCollectionId: otherId } }));
+  const lessonsOf = async () => (await L.db.courseLesson.findMany({ orderBy: [{ courseId: "asc" }, { order: "asc" }], select: { id: true, courseId: true, order: true, chapterId: true, startVerse: true } }));
+  await L.courses.syncCourses(L.db);
+  const first = await lessonsOf();
+  const firstCourses = await snapshot();
+  await L.courses.syncCourses(L.db);
+  await L.courses.syncCourses(L.db);
+  assert.deepEqual(await lessonsOf(), first, "geen willekeurige overname van een van de bestaande cursussen");
+  assert.deepEqual(await snapshot(), firstCourses);
+  await L.db.course.deleteMany({ where: { id: { in: extra.map((c) => c.id) } } });
 });
 
 test("abonnementen, hoofdstukvoortgang, lesvoortgang, scores en XP blijven bewaard na herhaalde synchronisatie", { skip }, async () => {
