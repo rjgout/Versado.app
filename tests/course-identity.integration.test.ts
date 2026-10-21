@@ -479,6 +479,38 @@ test("een fout tijdens het herstel draait de hele groep terug: voortgang, rondes
   await L.db.feedback.deleteMany({ where: { userId } });
 });
 
+test("na de codecorrectie: een verhuisde historische cursus keert terug naar het Boek van Mormon, de bestaande duplicaten blijven tot het herstel draait en het herstel behoudt de voortgang", { skip }, async () => {
+  // Toestand zoals de oude code die kon achterlaten: de historische cursussen zitten in een andere collectie en het Boek van Mormon heeft
+  // een tweede set onder `…-boek-van-mormon` waar de gebruiker inmiddels op studeert.
+  const historical = await bomCourses();
+  assert.equal(historical.length, 3);
+  const userId = await makeUser();
+  const duplicates = await makeDuplicates();
+  const dupFree = duplicates.find((c) => c.type === "FREE_CHOICE")!;
+  await L.db.userCourseProgress.create({ data: { userId, courseId: dupFree.id, subscribed: true, currentChapterId: bomChapterIds[0], comboCount: 4 } });
+  await L.db.user.update({ where: { id: userId }, data: { activeCourseId: dupFree.id } });
+  await L.db.course.updateMany({ where: { id: { in: historical.map((c) => c.id) } }, data: { contentCollectionId: otherId } });
+  assert.equal((await bomCourses()).length, 3, "in het Boek van Mormon staat alleen nog de tweede set");
+
+  // Een gewone synchronisatie (wat een uitrol/import doet) brengt de historische cursussen terug: nu zijn de duplicaten zichtbaar.
+  await L.courses.syncCourses(L.db);
+  assert.equal(await L.db.course.count({ where: { id: { in: historical.map((c) => c.id) }, contentCollectionId: L.ids.BOM_COLLECTION_ID } }), 3);
+  assert.equal((await bomCourses()).length, 6, "de codecorrectie ruimt bestaande duplicaten niet zelf op");
+  const bomGroups = (await L.integrity.findDuplicateReadingCourses(L.db)).filter((g) => g.contentCollectionId === L.ids.BOM_COLLECTION_ID);
+  assert.equal(bomGroups.length, 3);
+
+  // Het herstel behoudt abonnement, plek, combo en actieve cursus op de canonieke cursus.
+  const plans = (await L.repair.planDuplicateRepair(L.db)).filter((p) => p.group.contentCollectionId === L.ids.BOM_COLLECTION_ID);
+  assert.ok(plans.every((p) => p.verdict === "merge"), JSON.stringify(plans.map((p) => p.notes)));
+  await L.repair.applyDuplicateRepair(L.db, plans);
+  assert.equal((await bomCourses()).length, 3);
+  const canonicalFree = historical.find((c) => c.type === "FREE_CHOICE")!;
+  const progress = await L.db.userCourseProgress.findUniqueOrThrow({ where: { userId_courseId: { userId, courseId: canonicalFree.id } } });
+  assert.deepEqual([progress.subscribed, progress.comboCount, progress.currentChapterId], [true, 4, bomChapterIds[0]]);
+  assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: userId } })).activeCourseId, canonicalFree.id);
+  assert.deepEqual((await L.integrity.findDuplicateReadingCourses(L.db)).filter((g) => g.contentCollectionId === L.ids.BOM_COLLECTION_ID), []);
+});
+
 test("andere cursussoorten (podcasts, kinderen, introductie) tellen niet mee in de invariant", { skip }, async () => {
   assert.equal(await L.db.course.count({ where: { type: "PODCAST" } }) >= 2, true, "meerdere podcastcursussen per collectie zijn toegestaan");
   assert.deepEqual(await L.integrity.findDuplicateReadingCourses(L.db), []);
