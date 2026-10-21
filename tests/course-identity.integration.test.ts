@@ -5,7 +5,7 @@
 //   LEARNING_TEST_DATABASE_URL=postgresql://... npx tsx --test tests/course-identity.integration.test.ts
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import pg from "pg";
 
 // Deze tests werken op de vaste Boek-van-Mormon-collectie en eisen dus een leeg vertrekpunt: de gedeelde testdatabase bevat fixtures van andere
@@ -587,6 +587,45 @@ test("volledige gebruikerssituatie: zichtbare dubbele kaarten, vier soorten gebr
   assert.equal((await bomCourses()).length, 3);
   assert.deepEqual(await L.repair.applyDuplicateRepair(L.db), { merged: [], blocked: [] });
   assert.equal(JSON.stringify(await L.db.userCourseProgress.findMany({ where: { userId: { in: [userCanonical, userDuplicate, userBoth] } }, orderBy: [{ userId: "asc" }, { courseId: "asc" }] })), before);
+});
+
+test("de scripts courses:audit en courses:repair (dry-run) wijzigen geen databasegegevens en --apply weigert bij een verkeerde bevestiging", { skip }, async () => {
+  const duplicates = await makeDuplicates();
+  const userId = await makeUser();
+  const dupFree = duplicates.find((c) => c.type === "FREE_CHOICE")!;
+  await L.db.userCourseProgress.create({ data: { userId, courseId: dupFree.id, subscribed: true, comboCount: 3 } });
+  // Vingerafdruk van alle tabellen waar het herstel aan zou kunnen komen (inclusief volgorde en inhoud).
+  const tables = ["Course", "CourseChapter", "CourseLesson", "UserCourseProgress", "UserCourseLessonProgress", "ExerciseSession", "StudySession", "StudyRound", "Feedback", "UserListOrder", "User"];
+  const fingerprint = () => withAdmin(async () => {
+    const client = new pg.Client({ connectionString: databaseUrl(isolatedName) });
+    await client.connect();
+    try {
+      const parts: string[] = [];
+      for (const table of tables) parts.push(`${table}:${(await client.query(`SELECT count(*)::int AS n, coalesce(md5(string_agg(t::text, '|' ORDER BY t::text)), '') AS h FROM "${table}" t`)).rows[0].n}:${(await client.query(`SELECT coalesce(md5(string_agg(t::text, '|' ORDER BY t::text)), '') AS h FROM "${table}" t`)).rows[0].h}`);
+      return parts.join("\n");
+    } finally {
+      await client.end();
+    }
+  });
+  const before = await fingerprint();
+  const env = { ...process.env, DATABASE_URL: databaseUrl(isolatedName) };
+  const run = (script: string, args: string[] = []) => spawnSync("npx", ["tsx", `scripts/courses/${script}`, ...args], { env, encoding: "utf8", timeout: 120_000 });
+  const audit = run("audit-duplicates.ts");
+  assert.equal(audit.status, 1, "de audit meldt duplicaten met exitcode 1");
+  assert.match(audit.stderr, new RegExp(`Doeldatabase.*/${isolatedName}`));
+  assert.ok(!audit.stdout.includes("passwordHash") && !audit.stderr.includes(new URL(databaseUrl(isolatedName)).password || "\u0000"), "geen geheimen");
+  const dry = run("repair-duplicates.ts");
+  assert.equal(dry.status, 0, dry.stderr);
+  assert.match(dry.stderr, /Dry-run: er is niets gewijzigd/);
+  assert.equal(await fingerprint(), before, "audit en dry-run veranderen niets");
+  const wrong = run("repair-duplicates.ts", ["--apply", "--backup-gemaakt", "--verwacht-database=andere_database"]);
+  assert.equal(wrong.status, 2);
+  assert.equal(await fingerprint(), before, "een geweigerde --apply verandert niets");
+  // Met de juiste bevestiging werkt het herstel wél, op de wegwerpdatabase.
+  const applied = run("repair-duplicates.ts", ["--apply", "--backup-gemaakt", `--verwacht-database=${isolatedName}`]);
+  assert.equal(applied.status, 0, applied.stderr);
+  assert.deepEqual(await L.integrity.findDuplicateReadingCourses(L.db), []);
+  assert.equal((await L.db.userCourseProgress.findUniqueOrThrow({ where: { userId_courseId: { userId, courseId: (await bomCourses("FREE_CHOICE"))[0].id } } })).comboCount, 3);
 });
 
 test("andere cursussoorten (podcasts, kinderen, introductie) tellen niet mee in de invariant", { skip }, async () => {

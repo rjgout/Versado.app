@@ -32,7 +32,7 @@
     "test:study": "tsx --test tests/study-scoring.test.ts",
     "test:content-edition": "tsx --test tests/content-edition.test.ts tests/content-switch.test.ts tests/content-switch.integration.test.ts",
     "test:course-sync": "tsx --test tests/course-sync.integration.test.ts",
-    "test:course-identity": "tsx --test tests/reading-courses.test.ts tests/course-identity.integration.test.ts",
+    "test:course-identity": "tsx --test tests/reading-courses.test.ts tests/course-scripts.test.ts tests/course-identity.integration.test.ts",
     "courses:audit": "tsx scripts/courses/audit-duplicates.ts",
     "courses:repair": "tsx scripts/courses/repair-duplicates.ts",
     "test:otb": "tsx --test tests/otb.test.ts",

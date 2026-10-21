@@ -3,14 +3,17 @@
 // Schrijft niets. Toont per schriftcollectie en type de cursusrecords en per record de afhankelijkheden (hoofdstukken, lessen,
 // abonnementen, voortgang, actieve cursus, lesvoortgang, oefensessies, Samen studeren, persoonlijke volgorde, feedback) plus het
 // oordeel van het herstelplan ("merge" of "blocked"). Exitcode 1 zodra er dubbele cursussen zijn (bruikbaar als controle).
-import { createPrismaClient } from "../../src/lib/db";
 import { planDuplicateRepair } from "../../src/lib/courseRepair";
-import { databaseTarget } from "./target";
+import { resolveDatabase } from "./target";
 
-const target = databaseTarget();
+// De verbinding wordt eenmaal vastgesteld en expliciet aan de client doorgegeven; src/lib/db wordt pas daarna geladen.
+const database = resolveDatabase();
+const target = database.label;
 console.error(`Doeldatabase (alleen lezen): ${target.host}:${target.port}/${target.database}`);
+process.env.DATABASE_URL = database.url;
+const { createPrismaClient } = await import("../../src/lib/db");
 
-const client = createPrismaClient();
+const client = createPrismaClient({ url: database.url });
 try {
   const all = await client.course.findMany({
     where: { type: { in: ["READING_LESSONS", "FRONT_TO_BACK", "FREE_CHOICE"] } },

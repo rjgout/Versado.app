@@ -3,16 +3,17 @@
 //   npx tsx scripts/courses/repair-duplicates.ts --apply --backup-gemaakt --verwacht-database=<naam> # voert alleen de groepen met oordeel "merge" uit
 // Voorwaarden voor --apply: een verse databaseback-up (scripts/backup.sh) en een gecontroleerd dry-run-plan. Geblokkeerde groepen
 // worden nooit aangeraakt. Herhaald draaien is veilig: na een geslaagde run is er niets meer te doen.
-import { createPrismaClient } from "../../src/lib/db";
 import { applyDuplicateRepair, planDuplicateRepair } from "../../src/lib/courseRepair";
-import { databaseTarget } from "./target";
+import { resolveDatabase } from "./target";
 
 const apply = process.argv.includes("--apply");
 if (apply && !process.argv.includes("--backup-gemaakt")) {
   console.error("Weigering: --apply vereist --backup-gemaakt (bevestiging dat een verse databaseback-up bestaat).");
   process.exit(2);
 }
-const target = databaseTarget();
+// De verbinding wordt eenmaal vastgesteld, vóór er een client bestaat, en expliciet aan de client doorgegeven.
+const database = resolveDatabase();
+const target = database.label;
 console.error(`Doeldatabase: ${target.host}:${target.port}/${target.database}${apply ? " (WIJZIGT GEGEVENS)" : " (dry-run)"}`);
 // Tegen een verkeerde omgeving: --apply werkt alleen als de operator de naam van de doeldatabase letterlijk bevestigt.
 const expected = process.argv.find((arg) => arg.startsWith("--verwacht-database="))?.split("=")[1];
@@ -20,7 +21,9 @@ if (apply && expected !== target.database) {
   console.error(`Weigering: --apply vereist --verwacht-database=${target.database} (de database waarop dit script nu verbonden is).`);
   process.exit(2);
 }
-const client = createPrismaClient();
+process.env.DATABASE_URL = database.url;
+const { createPrismaClient } = await import("../../src/lib/db");
+const client = createPrismaClient({ url: database.url });
 try {
   const plans = await planDuplicateRepair(client);
   console.log(JSON.stringify(plans, null, 2));
