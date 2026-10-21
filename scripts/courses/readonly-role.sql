@@ -1,7 +1,9 @@
 -- Alleen-lezen databasegebruiker voor courses:audit en courses:repair (dry-run). Uitvoeren als databasebeheerder (bijvoorbeeld de gebruiker "bom"):
---   psql -U bom -d bom -v rolnaam=courses_ro -v wachtwoord='<kies-een-lang-willekeurig-wachtwoord>' -v database=bom -f readonly-role.sql
--- Het wachtwoord staat nergens in Git; geef het alleen mee aan psql en aan de Portainer-stackvariabele.
-CREATE ROLE :"rolnaam" LOGIN PASSWORD :'wachtwoord' NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT CONNECTION LIMIT 10;
+--   psql -U bom -d bom -v rolnaam=courses_ro -v database=bom          (daarna dit script plakken, of: -f readonly-role.sql)
+-- De rol wordt aangemaakt ZONDER wachtwoord en nog zonder inlogrecht (NOLOGIN). Het wachtwoord stel je daarna veilig in met \password in psql
+-- (verborgen invoer, het wachtwoord komt niet in de commandoregel, shellgeschiedenis, procesinformatie of dit bestand) en pas dan geef je
+-- inlogrecht: ALTER ROLE <rolnaam> LOGIN; Zie docs/DEPLOY-SYNOLOGY.md ("Cursusonderhoud").
+CREATE ROLE :"rolnaam" NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT CONNECTION LIMIT 10;
 -- De Prisma-client opent voor de parallelle tellingen tot 10 verbindingen (pg-poolstandaard); een lagere limiet laat de audit falen.
 -- Tweede slot naast de rechten: elke sessie van deze gebruiker is alleen-lezen en kan niet eindeloos draaien.
 ALTER ROLE :"rolnaam" SET default_transaction_read_only = on;

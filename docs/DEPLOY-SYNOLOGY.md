@@ -228,20 +228,27 @@ Gebruik een **digest** (`sha256:` + 64 hexcijfers). Een tag zoals `latest` kan n
 
 De gebruiker mag alleen lezen wat de cursusaudit nodig heeft: `SELECT` op tien cursustabellen, en op de persoonsgevoelige tabellen `User` en `Feedback`
 alleen enkele id-kolommen (nooit e-mail, wachtwoordhash of feedbacktekst). Daarnaast staat de sessie standaard op alleen-lezen (`default_transaction_read_only`),
-met een tijdslimiet, zodat ook een per ongeluk te ruim recht niets kan schrijven. Het wachtwoord komt nooit in Git.
+met een tijdslimiet, zodat ook een per ongeluk te ruim recht niets kan schrijven.
 
-1. Bedenk een lang willekeurig wachtwoord (bijvoorbeeld `openssl rand -base64 33` op je Mac) en bewaar het in je wachtwoordmanager.
-2. Open in Portainer *Containers → jehova-db → Console* (command `sh`). Plak het SQL-bestand hieronder in `/tmp/readonly-role.sql` en voer uit, met jouw waarden (database en beheerder heten standaard `bom`):
+**Het wachtwoord typ je nooit in een commandoregel.** Het SQL-bestand maakt de gebruiker aan *zonder* wachtwoord en nog *zonder* inlogrecht. Het wachtwoord stel je daarna in met het
+commando `\password` van psql: dat vraagt het wachtwoord met verborgen invoer (je ziet niets terwijl je typt of plakt), verstuurt het alleen versleuteld en bewaart het niet in de
+shellgeschiedenis, in de procesinformatie, in logs of in een bestand. Er zijn geen tijdelijke bestanden en je hoeft niets te installeren.
 
-   `psql -U bom -d bom -v rolnaam=courses_ro -v wachtwoord='<jouw-wachtwoord>' -v database=bom -f /tmp/readonly-role.sql`
+1. Bedenk een wachtwoord dat veilig in een URL past (alleen letters en cijfers): voer op je Mac `openssl rand -hex 24` uit en bewaar het resultaat in je wachtwoordmanager. Plak het straks alleen op de plekken die hieronder staan.
+2. Open in Portainer *Containers → `jehova-db` → Console → Connect* (command `sh`, user `root`). Start psql (database en beheerder heten standaard `bom`; er staat hier geen wachtwoord in):
 
-   Verwijder het bestand daarna: `rm /tmp/readonly-role.sql`. Het SQL-bestand is `scripts/courses/readonly-role.sql` (identiek aan dit blok):
+   `psql -U bom -d bom -v rolnaam=courses_ro -v database=bom`
+
+   Je ziet nu de prompt `bom=#`.
+3. Plak het hele SQL-blok hieronder in één keer en druk op Enter. Het is exact `scripts/courses/readonly-role.sql`. Als antwoord zie je alleen `CREATE ROLE`, `ALTER ROLE` en `GRANT`, zonder foutmelding.
 
 ```sql
 -- Alleen-lezen databasegebruiker voor courses:audit en courses:repair (dry-run). Uitvoeren als databasebeheerder (bijvoorbeeld de gebruiker "bom"):
---   psql -U bom -d bom -v rolnaam=courses_ro -v wachtwoord='<kies-een-lang-willekeurig-wachtwoord>' -v database=bom -f readonly-role.sql
--- Het wachtwoord staat nergens in Git; geef het alleen mee aan psql en aan de Portainer-stackvariabele.
-CREATE ROLE :"rolnaam" LOGIN PASSWORD :'wachtwoord' NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT CONNECTION LIMIT 10;
+--   psql -U bom -d bom -v rolnaam=courses_ro -v database=bom          (daarna dit script plakken, of: -f readonly-role.sql)
+-- De rol wordt aangemaakt ZONDER wachtwoord en nog zonder inlogrecht (NOLOGIN). Het wachtwoord stel je daarna veilig in met \password in psql
+-- (verborgen invoer, het wachtwoord komt niet in de commandoregel, shellgeschiedenis, procesinformatie of dit bestand) en pas dan geef je
+-- inlogrecht: ALTER ROLE <rolnaam> LOGIN; Zie docs/DEPLOY-SYNOLOGY.md ("Cursusonderhoud").
+CREATE ROLE :"rolnaam" NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT CONNECTION LIMIT 10;
 -- De Prisma-client opent voor de parallelle tellingen tot 10 verbindingen (pg-poolstandaard); een lagere limiet laat de audit falen.
 -- Tweede slot naast de rechten: elke sessie van deze gebruiker is alleen-lezen en kan niet eindeloos draaien.
 ALTER ROLE :"rolnaam" SET default_transaction_read_only = on;
@@ -255,8 +262,11 @@ GRANT SELECT ("id", "activeCourseId") ON "User" TO :"rolnaam";
 GRANT SELECT ("id", "courseId", "lessonId") ON "Feedback" TO :"rolnaam";
 ```
 
-3. De verbinding voor de stackvariabele is: `postgresql://courses_ro:<jouw-wachtwoord>@jehova-db:5432/bom?schema=public` (URL-codeer het wachtwoord als het speciale tekens bevat).
-4. Na afloop van het onderhoud verwijder je de gebruiker (zie Stap 9).
+4. Stel het wachtwoord in: typ `\password courses_ro` en druk op Enter. psql vraagt twee keer om het wachtwoord (*Enter new password*, *Enter it again*). Plak het wachtwoord (Cmd+V); je ziet niets verschijnen, dat is normaal. Druk op Enter.
+5. Geef pas nu inlogrecht: typ `ALTER ROLE courses_ro LOGIN;` en druk op Enter. Vergeet je dit, dan weigert PostgreSQL de verbinding (veilige fout: "role is not permitted to log in").
+6. Verlaat psql met `\q`.
+7. De verbinding voor de stackvariabele is: `postgresql://courses_ro:<jouw-wachtwoord>@jehova-db:5432/bom?schema=public`. Je vult deze **alleen** in als waarde van `MAINTENANCE_READONLY_DATABASE_URL` in Portainer (Stap 4); zet hem nergens in een bestand, in Git of in een chatbericht.
+8. Typfout in het wachtwoord? Start psql opnieuw en herhaal alleen stap 4.
 
 ### Stap 4 — De onderhoudsstack toevoegen in Portainer
 

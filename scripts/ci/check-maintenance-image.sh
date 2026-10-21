@@ -57,7 +57,11 @@ echo "== 7. Met een aparte alleen-lezen databasegebruiker (scripts/courses/reado
 DB_NAME="${DB_URL##*/}"; HOST_PART="${DB_URL#*@}"; RO_PASSWORD="ro-ci-wachtwoord-$RANDOM$RANDOM"
 RO_URL="postgresql://courses_ro_ci:${RO_PASSWORD}@${HOST_PART}"
 docker run --rm --network host -e PGPASSWORD="$SECRET" -v "$(pwd)/scripts/courses/readonly-role.sql:/readonly-role.sql:ro" postgres:16-alpine \
-  psql "$DB_URL" -v ON_ERROR_STOP=1 -q -v rolnaam=courses_ro_ci -v wachtwoord="$RO_PASSWORD" -v database="$DB_NAME" -f /readonly-role.sql
+  psql "$DB_URL" -v ON_ERROR_STOP=1 -q -v rolnaam=courses_ro_ci -v database="$DB_NAME" -f /readonly-role.sql
+# Het SQL-bestand maakt de rol zonder wachtwoord en zonder inlogrecht (NOLOGIN); inloggen kan pas na wachtwoord + LOGIN (in de documentatie via \password).
+set +e; OUT="$(docker run --rm --network host postgres:16-alpine psql "postgresql://courses_ro_ci:geenwachtwoord@${HOST_PART}" -c 'select 1' 2>&1)"; CODE=$?; set -e
+[ "$CODE" -ne 0 ] || fail "de rol mag niet kunnen inloggen vóór wachtwoord en LOGIN"
+psql_run -c "ALTER ROLE courses_ro_ci LOGIN PASSWORD '$RO_PASSWORD'"
 BEFORE_RO="$(psql_run -c "$FINGERPRINT")"
 # Bewust zonder DATABASE_URL: alleen de alleen-lezen verbinding is aanwezig, zoals in de onderhoudsstack.
 set +e; OUT="$(run -e COURSES_READONLY_DATABASE_URL="$RO_URL" "$IMAGE" npm run courses:audit 2>&1)"; CODE=$?; set -e

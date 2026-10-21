@@ -84,7 +84,9 @@ test("de alleen-lezen rol: minimale rechten, geen wachtwoord in Git, en de docum
   assert.match(statements, /GRANT SELECT \("id", "activeCourseId"\) ON "User"/);
   assert.match(statements, /GRANT SELECT \("id", "courseId", "lessonId"\) ON "Feedback"/);
   assert.doesNotMatch(statements, /ON[^;]*"User"[^;]*;[\s\S]*GRANT SELECT ON[^;]*"User"/);
-  assert.doesNotMatch(sql, /PASSWORD '[^']+'/, "geen letterlijk wachtwoord");
+  assert.doesNotMatch(sql.replace(/^--.*$/gm, ""), /PASSWORD/i, "het SQL-bestand bevat geen wachtwoord");
+  assert.doesNotMatch(sql, /:'wachtwoord'|-v wachtwoord/, "het wachtwoord is geen psql-variabele of commandoregelargument");
+  assert.match(statements, /CREATE ROLE :"rolnaam" NOLOGIN /, "de rol kan pas inloggen na een bewust ingesteld wachtwoord en LOGIN");
   const doc = read("docs/DEPLOY-SYNOLOGY.md");
   const block = doc.match(/```sql\n([\s\S]*?)\n```/)?.[1];
   assert.ok(block, "SQL-blok in de documentatie");
@@ -124,6 +126,26 @@ test("het CI-controlescript dekt aanwezigheid, niet-startgedrag, foutmelding, --
   // Nooit een echt herstel: geen schrijfverbinding voor --apply, en de enige --apply met bevestiging draait met uitsluitend de alleen-lezen verbinding (faalt dus).
   assert.doesNotMatch(script, /COURSES_REPAIR_DATABASE_URL/);
   for (const line of script.split("\n").filter((entry) => entry.includes("--verwacht-database"))) assert.match(line, /COURSES_READONLY_DATABASE_URL="\$RO_URL"/, line);
+});
+
+test("de documentatie voert het wachtwoord veilig in: verborgen \\password, nooit als argument, bestand of variabele", () => {
+  const doc = read("docs/DEPLOY-SYNOLOGY.md");
+  const section = doc.slice(doc.indexOf("## Cursusonderhoud"), doc.indexOf("## Back-ups"));
+  assert.match(section, /\\password courses_ro/);
+  assert.match(section, /ALTER ROLE courses_ro LOGIN;/);
+  // Geen wachtwoord op een commandoregel of in een psql-variabele, en geen tijdelijk bestand om het SQL-bestand of het wachtwoord in te zetten.
+  assert.doesNotMatch(section, /-v wachtwoord|wachtwoord=|PASSWORD\s+'|PGPASSWORD|--password|-W\b/);
+  assert.doesNotMatch(section, /cat > \/tmp|\/tmp\/readonly-role|<<\s*'?EOF/);
+  // Elke psql-commandoregel in de sectie bevat geen geheimen.
+  for (const line of section.split("\n").filter((entry) => /^\s*`?psql /.test(entry))) assert.doesNotMatch(line, /wachtwoord|password|PASSWORD/i, line);
+  // Het wachtwoord mag in een URL (letters en cijfers) en wordt gegenereerd, niet verzonnen of hardcoded.
+  assert.match(section, /openssl rand -hex 24/);
+  assert.doesNotMatch(section, /openssl rand -base64/);
+});
+
+test("de bestaande productie-compose en de app-image kennen de onderhoudsimage niet", () => {
+  for (const file of ["docker-compose.yml", "deploy/docker-compose.yml"]) assert.doesNotMatch(read(file), /maintenance-stack|jehova-maintenance|COURSES_|MAINTENANCE_/, file);
+  assert.doesNotMatch(read("deploy/agent/server.js"), /jehova-maintenance/, "de deploy-agent beheert de onderhoudsimage niet");
 });
 
 test("de documentatie beschrijft de Portainer-route en verwijst naar de bevestigingen", () => {

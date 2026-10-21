@@ -643,11 +643,17 @@ test("met de aparte alleen-lezen databasegebruiker werken audit en dry-run, schr
   // Exact het SQL-bestand uit de documentatie, met de psql-variabelen ingevuld.
   const sql = readFileSync(join(import.meta.dirname, "../scripts/courses/readonly-role.sql"), "utf8")
     .split("\n").filter((line) => !line.startsWith("--")).join("\n")
-    .replaceAll(':"rolnaam"', `"${readonlyRole}"`).replaceAll(":'wachtwoord'", `'${readonlyPassword}'`).replaceAll(':"database"', `"${isolatedName}"`);
+    .replaceAll(':"rolnaam"', `"${readonlyRole}"`).replaceAll(':"database"', `"${isolatedName}"`);
+  assert.ok(!sql.includes("wachtwoord") && !/PASSWORD/i.test(sql), "het SQL-bestand bevat geen wachtwoord en neemt er geen als variabele");
   const admin = new pg.Client({ connectionString: databaseUrl(isolatedName) });
   await admin.connect();
   try {
     await admin.query(sql);
+    // Zonder wachtwoord en inlogrecht kan de rol nog niet verbinden (in de documentatie volgt \password en daarna LOGIN).
+    const early = new pg.Client({ connectionString: Object.assign(new URL(databaseUrl(isolatedName)), { username: readonlyRole, password: "geen" }).toString() });
+    await assert.rejects(() => early.connect(), /./);
+    await early.end().catch(() => undefined);
+    await admin.query(`ALTER ROLE "${readonlyRole}" LOGIN PASSWORD '${readonlyPassword}'`);
   } finally {
     await admin.end();
   }
