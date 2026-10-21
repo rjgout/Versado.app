@@ -23,6 +23,8 @@ export interface CourseInventory {
   studySessions: number;
   listOrderRows: number;
   feedbackRows: number;
+  /** Samen-studeren-rondes en feedbackregels die via tekst naar een les van deze cursus wijzen. */
+  looseLessonRefs: number;
 }
 
 export interface RepairGroupPlan {
@@ -38,6 +40,9 @@ export interface RepairGroupPlan {
 type Db = PrismaClient | Prisma.TransactionClient;
 
 async function inventory(db: Db, course: { id: string; slug: string; canonical: boolean }): Promise<CourseInventory> {
+  const lessonIds = (await db.courseLesson.findMany({ where: { courseId: course.id }, select: { id: true } })).map((lesson) => lesson.id);
+  const loose = await looseLessonRefs(db, lessonIds);
+  const looseCount = [...loose.rounds.values(), ...loose.feedback.values()].reduce((sum, count) => sum + count, 0);
   const [chapters, lessons, subscriptions, usersWithProgress, activeForUsers, lessonProgressRows, exerciseSessions, studySessions, listOrderRows, feedbackRows] = await Promise.all([
     db.courseChapter.count({ where: { courseId: course.id } }),
     db.courseLesson.count({ where: { courseId: course.id } }),
@@ -50,23 +55,58 @@ async function inventory(db: Db, course: { id: string; slug: string; canonical: 
     db.userListOrder.count({ where: { listKey: "courses", itemKey: course.id } }),
     db.feedback.count({ where: { courseId: course.id } }),
   ]);
-  return { id: course.id, slug: course.slug, canonical: course.canonical, chapters, lessons, subscriptions, usersWithProgress, activeForUsers, lessonProgressRows, exerciseSessions, studySessions, listOrderRows, feedbackRows };
+  return { id: course.id, slug: course.slug, canonical: course.canonical, chapters, lessons, subscriptions, usersWithProgress, activeForUsers, lessonProgressRows, exerciseSessions, studySessions, listOrderRows, feedbackRows, looseLessonRefs: looseCount };
 }
 
-const lessonKey = (lesson: { chapterId: string; startVerse: number }) => `${lesson.chapterId}:${lesson.startVerse}`;
+// Gelijkwaardig = zelfde hoofdstuk, beginvers én eindvers: dezelfde beginvers met een ander eindvers is een ander leesgedeelte
+// (andere oefeningen), en daar mag voortgang niet in samenvloeien.
+const lessonKey = (lesson: { chapterId: string; startVerse: number; endVerse: number }) => `${lesson.chapterId}:${lesson.startVerse}:${lesson.endVerse}`;
 
-/** Lessen van de dubbele cursus met gebruikersgegevens die geen gelijkwaardige les (zelfde hoofdstuk en beginvers) in de canonieke cursus hebben. */
+/** Samen studeren bewaart een les als tekst ("rl:<courseLessonId>") zonder foreign key. */
+const studyUnitKey = (lessonId: string) => `rl:${lessonId}`;
+
+/**
+ * Losse verwijzingen (tekst, geen foreign key) naar lessen van de dubbele cursus: Samen-studeren-rondes (`StudyRound.unitKey`)
+ * en feedback (`Feedback.lessonId`, bij leeslesvragen een CourseLesson-id). Een id kan alleen een lesverwijzing zijn als het
+ * een bestaande les van de dubbele cursus is; id's van intro-, kinder- en podcastlessen botsen daar niet mee (cuid).
+ */
+async function looseLessonRefs(db: Db, lessonIds: string[]): Promise<{ rounds: Map<string, number>; feedback: Map<string, number> }> {
+  const rounds = new Map<string, number>();
+  const feedback = new Map<string, number>();
+  if (lessonIds.length === 0) return { rounds, feedback };
+  const [roundRows, feedbackRows] = await Promise.all([
+    db.studyRound.groupBy({ by: ["unitKey"], where: { unitKey: { in: lessonIds.map(studyUnitKey) } }, _count: { _all: true } }),
+    db.feedback.groupBy({ by: ["lessonId"], where: { lessonId: { in: lessonIds } }, _count: { _all: true } }),
+  ]);
+  for (const row of roundRows) rounds.set(row.unitKey.slice(3), row._count._all);
+  for (const row of feedbackRows) if (row.lessonId) feedback.set(row.lessonId, row._count._all);
+  return { rounds, feedback };
+}
+
+/**
+ * Lessen van de dubbele cursus met gebruikersgegevens of losse verwijzingen die geen gelijkwaardige les (hoofdstuk, beginvers
+ * en eindvers) in de canonieke cursus hebben. Zulke gegevens kunnen niet veilig worden vertaald: de groep wordt dan geblokkeerd.
+ */
 async function unmappedLessonsWithData(db: Db, canonicalId: string, duplicateId: string): Promise<string[]> {
   const [canonical, duplicate] = await Promise.all([
-    db.courseLesson.findMany({ where: { courseId: canonicalId }, select: { chapterId: true, startVerse: true } }),
+    db.courseLesson.findMany({ where: { courseId: canonicalId }, select: { chapterId: true, startVerse: true, endVerse: true } }),
     db.courseLesson.findMany({
       where: { courseId: duplicateId },
-      select: { id: true, chapterId: true, startVerse: true, _count: { select: { progress: true, exerciseSessions: true, currentForCourseProgress: true } } },
+      select: { id: true, chapterId: true, startVerse: true, endVerse: true, _count: { select: { progress: true, exerciseSessions: true, currentForCourseProgress: true } } },
     }),
   ]);
   const known = new Set(canonical.map(lessonKey));
+  const refs = await looseLessonRefs(db, duplicate.map((lesson) => lesson.id));
   return duplicate
-    .filter((lesson) => !known.has(lessonKey(lesson)) && (lesson._count.progress > 0 || lesson._count.exerciseSessions > 0 || lesson._count.currentForCourseProgress > 0))
+    .filter(
+      (lesson) =>
+        !known.has(lessonKey(lesson)) &&
+        (lesson._count.progress > 0 ||
+          lesson._count.exerciseSessions > 0 ||
+          lesson._count.currentForCourseProgress > 0 ||
+          refs.rounds.has(lesson.id) ||
+          refs.feedback.has(lesson.id)),
+    )
     .map((lesson) => lesson.id);
 }
 
@@ -87,7 +127,7 @@ export async function planDuplicateRepair(db: PrismaClient): Promise<RepairGroup
         const lost = await unmappedLessonsWithData(db, canonicalId, duplicateId);
         if (lost.length > 0) {
           verdict = "blocked";
-          notes.push(`Cursus ${duplicateId}: ${lost.length} les(sen) met gebruikersgegevens zonder gelijkwaardige les (hoofdstuk + beginvers) in de canonieke cursus; handmatige beoordeling nodig.`);
+          notes.push(`Cursus ${duplicateId}: ${lost.length} les(sen) met gebruikersgegevens of verwijzingen (voortgang, oefensessies, Samen-studeren-rondes, feedback) zonder gelijkwaardige les (hoofdstuk + beginvers + eindvers) in de canonieke cursus; handmatige beoordeling nodig.`);
         }
       }
     }
@@ -113,13 +153,15 @@ async function mergeOne(tx: Prisma.TransactionClient, type: ReadingPathCourseTyp
   if (canonicalCourse.type !== type || duplicateCourse.type !== type || canonicalCourse.contentCollectionId !== duplicateCourse.contentCollectionId)
     throw new Error("Cursussen horen niet bij dezelfde collectie en hetzelfde type; herstel afgebroken.");
 
-  // Lessen (alleen Stap voor stap): gelijkwaardig = zelfde hoofdstuk en beginvers.
+  // Lessen (alleen Stap voor stap): gelijkwaardig = zelfde hoofdstuk, beginvers en eindvers.
   const lessonMap = new Map<string, string>();
+  let duplicateLessonIds: string[] = [];
   if (type === "READING_LESSONS") {
     const [canonicalLessons, duplicateLessons] = await Promise.all([
-      tx.courseLesson.findMany({ where: { courseId: canonicalId }, select: { id: true, chapterId: true, startVerse: true } }),
-      tx.courseLesson.findMany({ where: { courseId: duplicateId }, select: { id: true, chapterId: true, startVerse: true } }),
+      tx.courseLesson.findMany({ where: { courseId: canonicalId }, select: { id: true, chapterId: true, startVerse: true, endVerse: true } }),
+      tx.courseLesson.findMany({ where: { courseId: duplicateId }, select: { id: true, chapterId: true, startVerse: true, endVerse: true } }),
     ]);
+    duplicateLessonIds = duplicateLessons.map((lesson) => lesson.id);
     const byKey = new Map(canonicalLessons.map((lesson) => [lessonKey(lesson), lesson.id]));
     for (const lesson of duplicateLessons) {
       const target = byKey.get(lessonKey(lesson));
@@ -148,6 +190,9 @@ async function mergeOne(tx: Prisma.TransactionClient, type: ReadingPathCourseTyp
         bump("lessonProgress");
       }
       bump("exerciseSessions", (await tx.exerciseSession.updateMany({ where: { courseLessonId: fromId }, data: { courseLessonId: toId } })).count);
+      // Losse tekstverwijzingen naar dezelfde les: Samen-studeren-rondes ("rl:<id>") en feedbackcontext.
+      bump("studyRounds", (await tx.studyRound.updateMany({ where: { unitKey: studyUnitKey(fromId) }, data: { unitKey: studyUnitKey(toId) } })).count);
+      bump("feedbackLessons", (await tx.feedback.updateMany({ where: { lessonId: fromId }, data: { lessonId: toId } })).count);
     }
   }
 
@@ -194,7 +239,7 @@ async function mergeOne(tx: Prisma.TransactionClient, type: ReadingPathCourseTyp
     bump("listOrder");
   }
 
-  // Eindcontrole: er mag niets meer naar de dubbele cursus wijzen dat niet afgeleid is (hoofdstukkoppelingen, lessen en hun oefeningen).
+  // Eindcontrole: er mag niets meer naar de dubbele cursus wijzen dat niet afgeleid is (hoofdstukkoppelingen, lessen en hun oefeningen), ook geen losse tekstverwijzingen.
   const left = {
     progress: await tx.userCourseProgress.count({ where: { courseId: duplicateId } }),
     lessonProgress: await tx.userCourseLessonProgress.count({ where: { lesson: { courseId: duplicateId } } }),
@@ -203,6 +248,9 @@ async function mergeOne(tx: Prisma.TransactionClient, type: ReadingPathCourseTyp
     study: await tx.studySession.count({ where: { courseId: duplicateId } }),
     order: await tx.userListOrder.count({ where: { listKey: "courses", itemKey: duplicateId } }),
     current: await tx.userCourseProgress.count({ where: { currentLesson: { courseId: duplicateId } } }),
+    // Losse verwijzingen die niet naar de lessen van de dubbele cursus mogen blijven wijzen (die verdwijnen met de cursus).
+    studyRounds: duplicateLessonIds.length ? await tx.studyRound.count({ where: { unitKey: { in: duplicateLessonIds.map(studyUnitKey) } } }) : 0,
+    feedbackLessons: duplicateLessonIds.length ? await tx.feedback.count({ where: { lessonId: { in: duplicateLessonIds } } }) : 0,
   };
   if (Object.values(left).some((count) => count > 0)) throw new Error(`Er verwijzen nog gegevens naar de dubbele cursus (${JSON.stringify(left)}); herstel teruggedraaid.`);
   await tx.course.delete({ where: { id: duplicateId } });

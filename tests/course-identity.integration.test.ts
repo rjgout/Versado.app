@@ -338,6 +338,147 @@ test("een voortgangsconflict dat niet veilig samen te voegen is, blokkeert de gr
   await L.db.course.delete({ where: { id: duplicate.id } });
 });
 
+// --- Losse tekstverwijzingen naar lessen (Samen studeren "rl:<id>", Feedback.lessonId) en volledige lesidentiteit ---
+
+const DUP_SLUG = "lezen-van-voor-naar-achter-boek-van-mormon";
+async function stepsPair(mirror: "all" | "none" = "all") {
+  const canonical = (await bomCourses("READING_LESSONS")).find((c) => !c.slug.endsWith("-boek-van-mormon"))!;
+  const duplicate = await L.db.course.create({ data: { slug: DUP_SLUG, type: "READING_LESSONS", name: canonical.name, order: canonical.order, contentCollectionId: L.ids.BOM_COLLECTION_ID } });
+  const canonicalLessons = await L.db.courseLesson.findMany({ where: { courseId: canonical.id }, orderBy: { order: "asc" } });
+  if (mirror === "all")
+    for (const lesson of canonicalLessons)
+      await L.db.courseLesson.create({ data: { courseId: duplicate.id, chapterId: lesson.chapterId, startVerse: lesson.startVerse, endVerse: lesson.endVerse, order: lesson.order } });
+  const duplicateLessons = await L.db.courseLesson.findMany({ where: { courseId: duplicate.id }, orderBy: { order: "asc" } });
+  return { canonical, duplicate, canonicalLessons, duplicateLessons };
+}
+async function studyRound(userId: string, courseId: string, unitKey: string, number = 1) {
+  const game = await L.db.liveGame.create({ data: { code: `T${stamp.slice(-5)}${Math.random().toString(36).slice(2, 7)}`.toUpperCase(), hostId: userId, mode: "STUDY" } });
+  const session = await L.db.studySession.create({ data: { gameId: game.id, courseId } });
+  return L.db.studyRound.create({ data: { sessionId: session.id, number, unitKey, unitLabel: "Stap", questions: "[]" } });
+}
+const feedback = (userId: string, courseId: string, lessonId: string | null) =>
+  L.db.feedback.create({ data: { userId, message: "vraag", respondToken: `tok-${stamp}-${Math.random()}`, courseId, lessonId } });
+async function cleanup(duplicateId: string) {
+  await L.db.$executeRawUnsafe(`DROP TRIGGER IF EXISTS blokkeer_cursus_verwijderen ON "Course"`);
+  await L.db.studySession.deleteMany({ where: { courseId: duplicateId } });
+  await L.db.feedback.deleteMany({ where: { courseId: duplicateId } });
+  await L.db.course.deleteMany({ where: { id: duplicateId } });
+}
+
+test("Samen-studeren-rondes (rl:) en feedback met een lesverwijzing verhuizen mee naar de canonieke les; andere verwijzingen blijven", { skip }, async () => {
+  const { canonical, duplicate, canonicalLessons, duplicateLessons } = await stepsPair();
+  const userId = await makeUser();
+  const round = await studyRound(userId, duplicate.id, `rl:${duplicateLessons[1].id}`);
+  const chapterRound = await studyRound(userId, duplicate.id, `ch:${bomChapterIds[0]}`);
+  const fb = await feedback(userId, duplicate.id, duplicateLessons[1].id);
+  const foreign = await feedback(userId, duplicate.id, "intro-les-zonder-cursusles"); // intro-/kinder-/podcastlessen zijn geen cursuslessen
+  const noLesson = await feedback(userId, duplicate.id, null);
+
+  const plans = await L.repair.planDuplicateRepair(L.db);
+  assert.equal(plans.length, 1);
+  assert.equal(plans[0].verdict, "merge", plans[0].notes.join(" "));
+  assert.equal(plans[0].inventory.find((inv) => inv.id === duplicate.id)!.looseLessonRefs, 2, "rl:-ronde en feedback met lesverwijzing");
+  const result = await L.repair.applyDuplicateRepair(L.db, plans);
+  assert.equal(result.merged.length, 1);
+  assert.equal(result.merged[0].moved.studyRounds, 1);
+  assert.equal(result.merged[0].moved.feedbackLessons, 1);
+
+  assert.equal((await L.db.studyRound.findUniqueOrThrow({ where: { id: round.id } })).unitKey, `rl:${canonicalLessons[1].id}`);
+  assert.equal((await L.db.studyRound.findUniqueOrThrow({ where: { id: chapterRound.id } })).unitKey, `ch:${bomChapterIds[0]}`);
+  const afterFb = await L.db.feedback.findUniqueOrThrow({ where: { id: fb.id } });
+  assert.deepEqual([afterFb.courseId, afterFb.lessonId], [canonical.id, canonicalLessons[1].id]);
+  const afterForeign = await L.db.feedback.findUniqueOrThrow({ where: { id: foreign.id } });
+  assert.deepEqual([afterForeign.courseId, afterForeign.lessonId], [canonical.id, "intro-les-zonder-cursusles"]);
+  assert.equal((await L.db.feedback.findUniqueOrThrow({ where: { id: noLesson.id } })).lessonId, null);
+  assert.equal((await L.db.studySession.findFirstOrThrow({ where: { rounds: { some: { id: round.id } } } })).courseId, canonical.id);
+
+  // Idempotent: een tweede run vindt niets meer en wijzigt niets.
+  assert.deepEqual(await L.repair.applyDuplicateRepair(L.db), { merged: [], blocked: [] });
+  assert.equal((await L.db.studyRound.findUniqueOrThrow({ where: { id: round.id } })).unitKey, `rl:${canonicalLessons[1].id}`);
+  assert.equal((await L.db.feedback.findUniqueOrThrow({ where: { id: fb.id } })).lessonId, canonicalLessons[1].id);
+  await L.db.studySession.deleteMany({ where: { courseId: canonical.id } });
+  await L.db.feedback.deleteMany({ where: { userId } });
+});
+
+test("dezelfde beginvers met een ander eindvers is een andere les: voortgang wordt niet samengevoegd en de groep wordt geblokkeerd", { skip }, async () => {
+  const { duplicate, canonicalLessons, duplicateLessons } = await stepsPair();
+  const target = duplicateLessons[0];
+  assert.equal(target.startVerse, canonicalLessons[0].startVerse);
+  await L.db.courseLesson.update({ where: { id: target.id }, data: { endVerse: target.endVerse + 1 } });
+  const userId = await makeUser();
+  await L.db.userCourseLessonProgress.create({ data: { userId, lessonId: target.id, completed: true, bestScore: 88, xpEarned: 40, completedAt: new Date() } });
+  const plans = await L.repair.planDuplicateRepair(L.db);
+  assert.equal(plans[0].verdict, "blocked");
+  assert.match(plans[0].notes.join(" "), /eindvers/);
+  assert.deepEqual((await L.repair.applyDuplicateRepair(L.db)).merged, []);
+  // Niets samengevoegd: de voortgang staat nog op de dubbele les en de canonieke les heeft er geen bij gekregen.
+  assert.equal((await L.db.userCourseLessonProgress.findUniqueOrThrow({ where: { userId_lessonId: { userId, lessonId: target.id } } })).bestScore, 88);
+  assert.equal(await L.db.userCourseLessonProgress.count({ where: { lessonId: canonicalLessons[0].id, userId } }), 0);
+  assert.ok(await L.db.course.findUnique({ where: { id: duplicate.id } }));
+  await L.db.userCourseLessonProgress.deleteMany({ where: { userId } });
+  await cleanup(duplicate.id);
+});
+
+test("een afwijkend eindvers zonder gebruikersgegevens of verwijzingen blokkeert niet: de les is dan gewoon afgeleide inhoud", { skip }, async () => {
+  const { canonical, duplicate, duplicateLessons } = await stepsPair();
+  await L.db.courseLesson.update({ where: { id: duplicateLessons[0].id }, data: { endVerse: duplicateLessons[0].endVerse + 1 } });
+  const plans = await L.repair.planDuplicateRepair(L.db);
+  assert.equal(plans[0].verdict, "merge", plans[0].notes.join(" "));
+  assert.equal((await L.repair.applyDuplicateRepair(L.db)).merged.length, 1);
+  assert.equal(await L.db.course.count({ where: { id: duplicate.id } }), 0);
+  assert.ok(await L.db.course.findUnique({ where: { id: canonical.id } }));
+});
+
+test("een rl:-ronde of feedback naar een les zonder gelijkwaardige canonieke les blokkeert de groep zonder iets te wijzigen", { skip }, async () => {
+  for (const kind of ["ronde", "feedback"] as const) {
+    const { duplicate, duplicateLessons } = await stepsPair();
+    const orphan = duplicateLessons[0];
+    await L.db.courseLesson.update({ where: { id: orphan.id }, data: { startVerse: 2 } }); // geen canoniek equivalent
+    const userId = await makeUser();
+    const ref = kind === "ronde" ? await studyRound(userId, duplicate.id, `rl:${orphan.id}`) : await feedback(userId, duplicate.id, orphan.id);
+    const plans = await L.repair.planDuplicateRepair(L.db);
+    assert.equal(plans[0].verdict, "blocked", kind);
+    const result = await L.repair.applyDuplicateRepair(L.db);
+    assert.deepEqual(result.merged, [], kind);
+    assert.ok(await L.db.course.findUnique({ where: { id: duplicate.id } }), kind);
+    if (kind === "ronde") assert.equal((await L.db.studyRound.findUniqueOrThrow({ where: { id: ref.id } })).unitKey, `rl:${orphan.id}`);
+    else assert.equal((await L.db.feedback.findUniqueOrThrow({ where: { id: ref.id } })).lessonId, orphan.id);
+    await cleanup(duplicate.id);
+    await L.db.feedback.deleteMany({ where: { userId } });
+  }
+});
+
+test("een fout tijdens het herstel draait de hele groep terug: voortgang, rondes en feedback blijven onaangetast", { skip }, async () => {
+  const { canonical, duplicate, canonicalLessons, duplicateLessons } = await stepsPair();
+  const userId = await makeUser();
+  await L.db.userCourseLessonProgress.create({ data: { userId, lessonId: duplicateLessons[1].id, completed: true, bestScore: 70, xpEarned: 25, completedAt: new Date() } });
+  await L.db.userCourseProgress.create({ data: { userId, courseId: duplicate.id, currentLessonId: duplicateLessons[1].id, subscribed: true } });
+  const round = await studyRound(userId, duplicate.id, `rl:${duplicateLessons[1].id}`);
+  const fb = await feedback(userId, duplicate.id, duplicateLessons[1].id);
+  await L.db.user.update({ where: { id: userId }, data: { activeCourseId: duplicate.id } });
+  // Alles is al verhuisd wanneer de laatste stap (het verwijderen van de dubbele cursus) faalt.
+  await L.db.$executeRawUnsafe(`CREATE OR REPLACE FUNCTION blokkeer_cursus_verwijderen() RETURNS trigger AS $$ BEGIN RAISE EXCEPTION 'testfout bij verwijderen'; END; $$ LANGUAGE plpgsql`);
+  await L.db.$executeRawUnsafe(`CREATE TRIGGER blokkeer_cursus_verwijderen BEFORE DELETE ON "Course" FOR EACH ROW EXECUTE FUNCTION blokkeer_cursus_verwijderen()`);
+  await assert.rejects(() => L.repair.applyDuplicateRepair(L.db), /testfout/);
+  await L.db.$executeRawUnsafe(`DROP TRIGGER blokkeer_cursus_verwijderen ON "Course"`);
+
+  assert.ok(await L.db.course.findUnique({ where: { id: duplicate.id } }));
+  assert.equal((await L.db.userCourseLessonProgress.findUniqueOrThrow({ where: { userId_lessonId: { userId, lessonId: duplicateLessons[1].id } } })).bestScore, 70);
+  assert.equal(await L.db.userCourseLessonProgress.count({ where: { lessonId: canonicalLessons[1].id, userId } }), 0);
+  assert.equal((await L.db.userCourseProgress.findUniqueOrThrow({ where: { userId_courseId: { userId, courseId: duplicate.id } } })).currentLessonId, duplicateLessons[1].id);
+  assert.equal((await L.db.studyRound.findUniqueOrThrow({ where: { id: round.id } })).unitKey, `rl:${duplicateLessons[1].id}`);
+  assert.deepEqual((({ courseId, lessonId }) => [courseId, lessonId])(await L.db.feedback.findUniqueOrThrow({ where: { id: fb.id } })), [duplicate.id, duplicateLessons[1].id]);
+  assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: userId } })).activeCourseId, duplicate.id);
+  assert.equal(await L.db.userCourseProgress.count({ where: { userId, courseId: canonical.id } }), 0);
+
+  // Na het wegnemen van de storing slaagt hetzelfde herstel volledig, en daarna is er niets meer te doen.
+  assert.equal((await L.repair.applyDuplicateRepair(L.db)).merged.length, 1);
+  assert.equal((await L.db.studyRound.findUniqueOrThrow({ where: { id: round.id } })).unitKey, `rl:${canonicalLessons[1].id}`);
+  assert.deepEqual(await L.repair.applyDuplicateRepair(L.db), { merged: [], blocked: [] });
+  await L.db.studySession.deleteMany({ where: { courseId: canonical.id } });
+  await L.db.feedback.deleteMany({ where: { userId } });
+});
+
 test("andere cursussoorten (podcasts, kinderen, introductie) tellen niet mee in de invariant", { skip }, async () => {
   assert.equal(await L.db.course.count({ where: { type: "PODCAST" } }) >= 2, true, "meerdere podcastcursussen per collectie zijn toegestaan");
   assert.deepEqual(await L.integrity.findDuplicateReadingCourses(L.db), []);
