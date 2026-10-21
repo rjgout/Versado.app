@@ -2,6 +2,7 @@
 
 import { useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { ArrowDown, ArrowUp, EyeOff, Info, MoreHorizontal, Plus, X, type LucideIcon } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import MediaArtwork from "@/components/versado/MediaArtwork";
@@ -60,7 +61,9 @@ export function CardMenu({ title, actions }: { title: string; actions: CardMenuA
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const lastOnOpen = useRef(false);
-  const [position, setPosition] = useState<CSSProperties>({});
+  const focusOnOpen = useRef(false);
+  const pointerType = useRef<string | null>(null);
+  const [position, setPosition] = useState<CSSProperties>({ visibility: "hidden" });
   const menuId = useId();
 
   function close(restoreFocus = true) {
@@ -75,7 +78,6 @@ export function CardMenu({ title, actions }: { title: string; actions: CardMenuA
     if (!menu) return;
     const itemRect = button.getBoundingClientRect();
     const menuRect = menu.getBoundingClientRect();
-    // Scroll alleen binnen het menu, nooit de pagina achter de kaarten.
     menu.scrollTop += itemRect.top < menuRect.top
       ? itemRect.top - menuRect.top
       : Math.max(0, itemRect.bottom - menuRect.bottom);
@@ -90,55 +92,90 @@ export function CardMenu({ title, actions }: { title: string; actions: CardMenuA
     if (!open) return;
     const menu = menuRef.current;
     if (!menu) return;
+
     function place() {
       const anchor = triggerRef.current?.getBoundingClientRect();
       if (!anchor || !menu) return;
+      const viewport = window.visualViewport;
+      const viewportLeft = viewport?.offsetLeft ?? 0;
+      const viewportTop = viewport?.offsetTop ?? 0;
+      const viewportRight = viewportLeft + (viewport?.width ?? window.innerWidth);
+      const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight);
       const header = document.querySelector("[data-sticky-header]")?.getBoundingClientRect();
       const nav = document.querySelector("[data-main-nav]")?.getBoundingClientRect();
-      const top = Math.max(8, header?.bottom ?? 0) + 8;
-      const bottom = Math.min(window.innerHeight - 8, nav && nav.height > 0 ? nav.top - 8 : window.innerHeight - 8);
+      const top = Math.max(viewportTop + 8, header?.bottom ?? 0) + 8;
+      const bottom = Math.min(viewportBottom - 8, nav && nav.height > 0 ? nav.top - 8 : viewportBottom - 8);
       const maxHeight = Math.max(44, bottom - top);
       const height = Math.min(menu.scrollHeight, maxHeight);
       const width = menu.getBoundingClientRect().width;
+      // Het menu staat in een portal met fixed-positionering: kaarten,
+      // afbeeldingen en scrollcontainers kunnen het niet afknippen.
       setPosition({
-        left: Math.max(8, Math.min(anchor.right - width, window.innerWidth - width - 8)) - anchor.left,
-        top: Math.max(top, Math.min(anchor.bottom + 8, bottom - height)) - anchor.top,
+        left: Math.max(viewportLeft + 8, Math.min(anchor.right - width, viewportRight - width - 8)),
+        top: Math.max(top, Math.min(anchor.bottom + 8, bottom - height)),
         maxHeight,
+        visibility: "visible",
       });
     }
+
     function onPointer(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (!rootRef.current?.contains(target) && !menuRef.current?.contains(target)) close(false);
     }
+
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") {
         event.preventDefault();
         close();
+      } else if (event.key === "Tab" && event.target === triggerRef.current) {
+        // Tab vanaf de trigger moet gewoon naar de volgende tabstop kunnen.
+        close(false);
+      } else if (
+        !event.defaultPrevented &&
+        ["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key) &&
+        (document.activeElement === triggerRef.current || document.activeElement === document.body)
+      ) {
+        event.preventDefault();
+        const buttons = [...menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled])')];
+        focusItem(event.key === "ArrowUp" || event.key === "End" ? buttons[buttons.length - 1] : buttons[0]);
       }
     }
+
     place();
-    const buttons = menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled])');
-    focusItem(lastOnOpen.current ? buttons[buttons.length - 1] : buttons[0]);
+    // Op iPhone Safari kan het focussen van een menu-item tijdens een
+    // aanraking de click onderbreken. Alleen toetsenbord/muis focust direct.
+    if (focusOnOpen.current) {
+      const buttons = menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled])');
+      focusItem(lastOnOpen.current ? buttons[buttons.length - 1] : buttons[0]);
+    }
     document.addEventListener("pointerdown", onPointer);
     document.addEventListener("keydown", onKey);
     window.addEventListener("resize", place);
-    window.addEventListener("scroll", place);
+    window.addEventListener("scroll", place, true);
+    window.visualViewport?.addEventListener("resize", place);
+    window.visualViewport?.addEventListener("scroll", place);
     return () => {
       document.removeEventListener("pointerdown", onPointer);
       document.removeEventListener("keydown", onKey);
       window.removeEventListener("resize", place);
-      window.removeEventListener("scroll", place);
+      window.removeEventListener("scroll", place, true);
+      window.visualViewport?.removeEventListener("resize", place);
+      window.visualViewport?.removeEventListener("scroll", place);
     };
   }, [open]);
 
   function onMenuKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
     if (event.key === "Tab") {
-      // Eerst terug naar het anker, daarna volgt de gewone tabvolgorde.
-      close();
+      // Vanuit een portal zou Tab anders achteraan in de documentvolgorde
+      // uitkomen. Zet focus eerst terug op de trigger, zonder scrollsprong.
+      triggerRef.current?.focus({ preventScroll: true });
+      close(false);
       return;
     }
     if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
     event.preventDefault();
     const buttons = [...(menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled])') ?? [])];
+    if (buttons.length === 0) return;
     const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
     const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : (index + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length;
     focusItem(buttons[next]);
@@ -153,14 +190,17 @@ export function CardMenu({ title, actions }: { title: string; actions: CardMenuA
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        onClick={() => {
+        onPointerDown={(event) => { pointerType.current = event.pointerType; }}
+        onClick={(event) => {
           lastOnOpen.current = false;
+          focusOnOpen.current = event.detail === 0 || pointerType.current !== "touch";
           setOpen((value) => !value);
         }}
         onKeyDown={(event) => {
           if (event.key === "ArrowDown" || event.key === "ArrowUp") {
             event.preventDefault();
             lastOnOpen.current = event.key === "ArrowUp";
+            focusOnOpen.current = true;
             setOpen(true);
           }
         }}
@@ -168,18 +208,15 @@ export function CardMenu({ title, actions }: { title: string; actions: CardMenuA
       >
         <MoreHorizontal className="h-5 w-5" aria-hidden />
       </button>
-      {open && (
+      {open && createPortal(
         <div
           ref={menuRef}
           id={menuId}
           role="menu"
           style={position}
-          onBlur={(event) => {
-            if (!rootRef.current?.contains(event.relatedTarget as Node)) setOpen(false);
-          }}
           aria-label={t("cards.menu", { title })}
           onKeyDown={onMenuKeyDown}
-          className="absolute right-0 top-14 w-[min(18rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-vs-line bg-vs-elevated p-1 shadow-lg"
+          className="fixed z-[100] w-[min(18rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-vs-line bg-vs-elevated p-1 shadow-lg"
         >
           {actions.map(({ label, icon: Icon, onSelect, disabled }) => (
             <button
@@ -197,7 +234,8 @@ export function CardMenu({ title, actions }: { title: string; actions: CardMenuA
               {label}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
