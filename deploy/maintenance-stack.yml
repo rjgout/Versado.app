@@ -1,0 +1,37 @@
+# Onderhoudscontainer voor cursusdiagnose en -herstel (zie docs/DEPLOY-SYNOLOGY.md, "Cursusonderhoud"). Een APARTE Portainer-stack
+# naast de hoofdstack: hij start nooit vanzelf iets, is niet bereikbaar van buiten en wordt na gebruik verwijderd. De bestaande Versado-stack
+# en -containers hoeven hiervoor niet aangepast te worden.
+#
+# Stackvariabelen (Portainer: "Environment variables"); niets hiervan staat in Git:
+#   MAINTENANCE_IMAGE_DIGEST         verplicht: de vastgepinde image-identiteit, `sha256:<64 hex>` (geen tag, nooit "latest")
+#   MAINTENANCE_READONLY_DATABASE_URL verplicht: verbinding van een aparte alleen-lezen PostgreSQL-gebruiker (scripts/courses/readonly-role.sql)
+#   JEHOVA_NETWORK                   verplicht: de naam van het Docker-netwerk van de hoofdstack (bv. jehova-app_default)
+#   MAINTENANCE_REPAIR_DATABASE_URL  leeg laten voor audit en dry-run; alleen na uitdrukkelijke goedkeuring invullen voor --apply
+#
+# Bewust NIET aanwezig: poorten, volumes, Docker-socket, restart-beleid en een algemene DATABASE_URL. Er is dus niets om te beschadigen of
+# aan te vallen; de container doet alleen wat je er zelf in uitvoert.
+services:
+  jehova-maintenance:
+    # Alleen op digest: een tag (ook "latest") kan na een nieuwe publicatie naar andere code wijzen. Met `@${...}` is een tag als waarde
+    # ongeldig, dus de stack kan nooit stilzwijgend terugvallen op een andere versie.
+    image: ghcr.io/rjgout/jehova-maintenance@${MAINTENANCE_IMAGE_DIGEST:?Zet MAINTENANCE_IMAGE_DIGEST op de vastgepinde image-digest (sha256:...)}
+    container_name: jehova-maintenance
+    restart: "no"
+    # Blijft draaiende zodat je in Portainer een Console kunt openen; de image zelf start niets.
+    command: ["tail", "-f", "/dev/null"]
+    environment:
+      # Audit en dry-run lezen via deze alleen-lezen gebruiker. DATABASE_URL wordt bewust niet gezet.
+      COURSES_READONLY_DATABASE_URL: ${MAINTENANCE_READONLY_DATABASE_URL:?Zet MAINTENANCE_READONLY_DATABASE_URL op de verbinding van de alleen-lezen gebruiker}
+      # Aparte schrijfverbinding, uitsluitend gelezen door `courses:repair --apply`. Leeg = er kan niets worden hersteld.
+      COURSES_REPAIR_DATABASE_URL: ${MAINTENANCE_REPAIR_DATABASE_URL:-}
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - jehova
+
+networks:
+  jehova:
+    external: true
+    name: ${JEHOVA_NETWORK:?Zet JEHOVA_NETWORK op de netwerknaam van de hoofdstack}

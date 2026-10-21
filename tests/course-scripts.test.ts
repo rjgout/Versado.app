@@ -39,6 +39,42 @@ test("het label bevat nooit gebruikersnaam, wachtwoord of query", () => {
   for (const secret of [SECRET, "gebruiker", "sslmode"]) assert.ok(!shown.includes(secret), secret);
 });
 
+const RO_URL = `postgresql://courses_ro:${SECRET}@db-a.example.invalid:5433/database_a`;
+const REPAIR_URL = `postgresql://courses_rw:${SECRET}@db-a.example.invalid:5433/database_a`;
+const noEnvFile = () => { throw new Error("ENOENT"); };
+
+test("resolveDatabase (lezen): de alleen-lezen verbinding gaat voor DATABASE_URL, en is de enige die nodig is", () => {
+  const both = resolveDatabase({ COURSES_READONLY_DATABASE_URL: RO_URL, DATABASE_URL: URL_B }, noEnvFile, "read");
+  assert.equal(both.url, RO_URL);
+  assert.equal(both.source, "COURSES_READONLY_DATABASE_URL");
+  const onlyRo = resolveDatabase({ COURSES_READONLY_DATABASE_URL: RO_URL }, noEnvFile, "read");
+  assert.equal(onlyRo.url, RO_URL);
+  const fallback = resolveDatabase({ DATABASE_URL: URL_B }, noEnvFile, "read");
+  assert.deepEqual([fallback.source, fallback.url], ["DATABASE_URL", URL_B]);
+});
+
+test("resolveDatabase (--apply): de alleen-lezen verbinding wordt nooit als schrijfverbinding gebruikt", () => {
+  assert.throws(() => resolveDatabase({ COURSES_READONLY_DATABASE_URL: RO_URL }, noEnvFile, "apply"), /Geen schrijfverbinding/);
+  const repair = resolveDatabase({ COURSES_READONLY_DATABASE_URL: RO_URL, COURSES_REPAIR_DATABASE_URL: REPAIR_URL, DATABASE_URL: URL_B }, noEnvFile, "apply");
+  assert.deepEqual([repair.source, repair.url], ["COURSES_REPAIR_DATABASE_URL", REPAIR_URL]);
+  const local = resolveDatabase({ COURSES_READONLY_DATABASE_URL: RO_URL, DATABASE_URL: URL_B }, noEnvFile, "apply");
+  assert.deepEqual([local.source, local.url], ["DATABASE_URL", URL_B]);
+  assert.throws(() => resolveDatabase({ COURSES_READONLY_DATABASE_URL: RO_URL, COURSES_REPAIR_DATABASE_URL: RO_URL }, noEnvFile, "apply"), /gelijk aan de alleen-lezen verbinding/);
+  assert.throws(() => resolveDatabase({ COURSES_READONLY_DATABASE_URL: RO_URL, DATABASE_URL: RO_URL }, noEnvFile, "apply"), /gelijk aan de alleen-lezen verbinding/);
+});
+
+test("resolveDatabase: een lege variabele telt als niet gezet en foutmeldingen bevatten nooit een verbindings-URL of wachtwoord", () => {
+  assert.throws(() => resolveDatabase({ COURSES_READONLY_DATABASE_URL: "", DATABASE_URL: "" }, noEnvFile, "read"), /DATABASE_URL is niet gezet/);
+  assert.throws(() => resolveDatabase({ COURSES_REPAIR_DATABASE_URL: "", COURSES_READONLY_DATABASE_URL: RO_URL }, noEnvFile, "apply"), /Geen schrijfverbinding/);
+  for (const attempt of [
+    () => resolveDatabase({ COURSES_READONLY_DATABASE_URL: "niet-een-url" }, noEnvFile, "read"),
+    () => resolveDatabase({ COURSES_READONLY_DATABASE_URL: RO_URL, COURSES_REPAIR_DATABASE_URL: RO_URL }, noEnvFile, "apply"),
+    () => resolveDatabase({ COURSES_READONLY_DATABASE_URL: RO_URL }, noEnvFile, "apply"),
+  ]) {
+    try { attempt(); assert.fail("moest falen"); } catch (error) { assert.ok(!String((error as Error).message).includes(SECRET)); assert.ok(!String((error as Error).message).includes("postgresql://")); }
+  }
+});
+
 function runScript(script: string, args: string[], options: { env: Record<string, string | undefined>; cwd?: string }) {
   const result = spawnSync(join(root, "node_modules/.bin/tsx"), [join(root, "scripts/courses", script), ...args], {
     cwd: options.cwd ?? root,
@@ -131,6 +167,21 @@ test("de scripts geven de vastgestelde URL expliciet aan createPrismaClient", as
     const source = readFileSync(join(root, "scripts/courses", script), "utf8");
     assert.match(source, /createPrismaClient\(\{ url: database\.url \}\)/, script);
     assert.doesNotMatch(source, /createPrismaClient\(\)/, script);
-    assert.ok(source.indexOf("resolveDatabase()") < source.indexOf("createPrismaClient("), `${script}: eerst vaststellen, dan de client`);
+    assert.ok(source.indexOf("resolveDatabase(") < source.indexOf("createPrismaClient("), `${script}: eerst vaststellen, dan de client`);
+  }
+});
+
+test("--apply met alleen een alleen-lezen verbinding weigert, vóór er een databaseverbinding wordt gemaakt, en toont geen wachtwoord", () => {
+  const result = runScript("repair-duplicates.ts", ["--apply", "--backup-gemaakt", "--verwacht-database=db-a.example.invalid:5433/database_a"], { env: { COURSES_READONLY_DATABASE_URL: RO_URL } });
+  assert.notEqual(result.status, 0);
+  assert.match(result.out, /Geen schrijfverbinding/);
+  assert.ok(!result.out.includes(SECRET));
+});
+
+test("audit en dry-run tonen via welke verbinding ze draaien (zonder wachtwoord)", () => {
+  for (const script of ["audit-duplicates.ts", "repair-duplicates.ts"]) {
+    const result = runScript(script, [], { env: { COURSES_READONLY_DATABASE_URL: "postgresql://courses_ro:" + SECRET + "@127.0.0.1:1/ro_database" } });
+    assert.match(result.out, /via COURSES_READONLY_DATABASE_URL\): 127\.0\.0\.1:1\/ro_database/, script);
+    assert.ok(!result.out.includes(SECRET), script);
   }
 });

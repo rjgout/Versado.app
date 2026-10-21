@@ -6,6 +6,8 @@
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import pg from "pg";
 
 // Deze tests werken op de vaste Boek-van-Mormon-collectie en eisen dus een leeg vertrekpunt: de gedeelde testdatabase bevat fixtures van andere
@@ -14,6 +16,7 @@ import pg from "pg";
 const url = process.env.LEARNING_TEST_DATABASE_URL;
 const stamp = `${Date.now()}`;
 const isolatedName = `identity_${stamp}`;
+const readonlyRole = `courses_ro_${stamp}`;
 function databaseUrl(name: string): string {
   const parsed = new URL(url!);
   parsed.pathname = `/${name}`;
@@ -83,6 +86,8 @@ after(async () => {
   if (skip) return;
   await L.db.$disconnect();
   await withAdmin((client) => client.query(`DROP DATABASE IF EXISTS ${isolatedName} WITH (FORCE)`));
+  // Rollen horen bij de server, niet bij de wegwerpdatabase.
+  await withAdmin((client) => client.query(`DROP ROLE IF EXISTS "${readonlyRole}"`));
 });
 
 test("een verse synchronisatie geeft het Boek van Mormon precies drie leeswijzen met de historische slugs", { skip }, async () => {
@@ -631,6 +636,107 @@ test("de scripts courses:audit en courses:repair (dry-run) wijzigen geen databas
   assert.equal(applied.status, 0, applied.stderr);
   assert.deepEqual(await L.integrity.findDuplicateReadingCourses(L.db), []);
   assert.equal((await L.db.userCourseProgress.findUniqueOrThrow({ where: { userId_courseId: { userId, courseId: (await bomCourses("FREE_CHOICE"))[0].id } } })).comboCount, 3);
+});
+
+test("met de aparte alleen-lezen databasegebruiker werken audit en dry-run, schrijven wordt door PostgreSQL geweigerd en --apply gebruikt uitsluitend een aparte schrijfverbinding", { skip }, async () => {
+  const readonlyPassword = `ro-${stamp}-geheim`;
+  // Exact het SQL-bestand uit de documentatie, met de psql-variabelen ingevuld.
+  const sql = readFileSync(join(import.meta.dirname, "../scripts/courses/readonly-role.sql"), "utf8")
+    .split("\n").filter((line) => !line.startsWith("--")).join("\n")
+    .replaceAll(':"rolnaam"', `"${readonlyRole}"`).replaceAll(':"database"', `"${isolatedName}"`);
+  assert.ok(!sql.includes("wachtwoord") && !/PASSWORD/i.test(sql), "het SQL-bestand bevat geen wachtwoord en neemt er geen als variabele");
+  const admin = new pg.Client({ connectionString: databaseUrl(isolatedName) });
+  await admin.connect();
+  try {
+    await admin.query(sql);
+    // Zonder wachtwoord en inlogrecht kan de rol nog niet verbinden (in de documentatie volgt \password en daarna LOGIN).
+    const early = new pg.Client({ connectionString: Object.assign(new URL(databaseUrl(isolatedName)), { username: readonlyRole, password: "geen" }).toString() });
+    await assert.rejects(() => early.connect(), /./);
+    await early.end().catch(() => undefined);
+    await admin.query(`ALTER ROLE "${readonlyRole}" LOGIN PASSWORD '${readonlyPassword}'`);
+  } finally {
+    await admin.end();
+  }
+  const duplicates = await makeDuplicates();
+  const userId = await makeUser();
+  await L.db.userCourseProgress.create({ data: { userId, courseId: duplicates.find((c) => c.type === "FREE_CHOICE")!.id, subscribed: true, comboCount: 6 } });
+  const target = new URL(databaseUrl(isolatedName));
+  const readonlyUrl = new URL(target); readonlyUrl.username = readonlyRole; readonlyUrl.password = readonlyPassword;
+  const adminUrl = databaseUrl(isolatedName);
+  const adminPassword = target.password;
+  const identity = `${target.hostname}:${target.port || "5432"}/${isolatedName}`;
+  // Bewust zonder DATABASE_URL: zoals in de onderhoudsstack is alleen de alleen-lezen verbinding aanwezig.
+  const baseEnv = Object.fromEntries(Object.entries(process.env).filter(([key]) => key !== "DATABASE_URL" && !key.startsWith("COURSES_")));
+  const run = (script: string, args: string[], env: Record<string, string>) => spawnSync("npx", ["tsx", `scripts/courses/${script}`, ...args], { env: { ...baseEnv, ...env } as NodeJS.ProcessEnv, encoding: "utf8", timeout: 120_000 });
+  const asReadonly = { COURSES_READONLY_DATABASE_URL: readonlyUrl.toString() };
+  const outputs: string[] = [];
+  const noSecrets = () => outputs.forEach((out) => { assert.ok(!out.includes(readonlyPassword), "geen alleen-lezen wachtwoord in de uitvoer"); assert.ok(!out.includes("postgresql://"), "geen verbindings-URL in de uitvoer"); assert.ok(!out.includes(`${target.username}:${adminPassword}`), "geen beheerdersreferenties in de uitvoer"); if (adminPassword.length >= 8) assert.ok(!out.includes(adminPassword), "geen beheerderswachtwoord in de uitvoer"); });
+  const fingerprint = async () => {
+    const client = new pg.Client({ connectionString: adminUrl });
+    await client.connect();
+    try {
+      return (await Promise.all(["Course", "UserCourseProgress", "UserCourseLessonProgress", "UserListOrder", "User"].map(async (table) => `${table}:${(await client.query(`SELECT count(*)::int AS n, coalesce(md5(string_agg(t::text, '|' ORDER BY t::text)), '') AS h FROM "${table}" t`)).rows[0].h}`))).join("|");
+    } finally {
+      await client.end();
+    }
+  };
+  const before = await fingerprint();
+
+  const audit = run("audit-duplicates.ts", [], asReadonly);
+  outputs.push(audit.stdout, audit.stderr);
+  assert.equal(audit.status, 1, audit.stderr);
+  assert.match(audit.stderr, /via COURSES_READONLY_DATABASE_URL/);
+  assert.equal(JSON.parse(audit.stdout).duplicateGroups.length, 3, "de audit leest alles wat hij nodig heeft met alleen de leesrechten");
+  const dry = run("repair-duplicates.ts", [], asReadonly);
+  outputs.push(dry.stdout, dry.stderr);
+  assert.equal(dry.status, 0, dry.stderr);
+  assert.match(dry.stderr, /Dry-run: er is niets gewijzigd/);
+
+  // PostgreSQL zelf weigert schrijven en het lezen van persoonsgegevens, ook als de client dat zou proberen.
+  const readonlyClient = new pg.Client({ connectionString: readonlyUrl.toString() });
+  await readonlyClient.connect();
+  try {
+    for (const statement of [`UPDATE "Course" SET name = 'x'`, `DELETE FROM "UserCourseProgress"`, `INSERT INTO "UserListOrder"(id,"userId","listKey","itemKey","order") VALUES ('x','x','x','x',1)`, `CREATE TABLE ro_probe(x int)`, `SELECT "passwordHash" FROM "User"`, `SELECT message FROM "Feedback"`]) {
+      await assert.rejects(() => readonlyClient.query(statement), /read-only transaction|permission denied/, statement);
+    }
+    // Ook als de sessie-instelling wordt omzeild blijven de tabelrechten het tweede slot.
+    await readonlyClient.query("SET default_transaction_read_only = off");
+    await assert.rejects(() => readonlyClient.query(`UPDATE "Course" SET name = 'x'`), /permission denied/);
+  } finally {
+    await readonlyClient.end();
+  }
+  assert.equal(await fingerprint(), before, "audit, dry-run en geweigerde schrijfpogingen veranderen niets");
+
+  // --apply met alleen de alleen-lezen verbinding: geweigerd, ook mét juiste bevestiging.
+  const refused = run("repair-duplicates.ts", ["--apply", "--backup-gemaakt", `--verwacht-database=${identity}`], asReadonly);
+  outputs.push(refused.stdout, refused.stderr);
+  assert.notEqual(refused.status, 0);
+  assert.match(refused.stderr, /Geen schrijfverbinding/);
+  // Een schrijfverbinding die gelijk is aan de alleen-lezen verbinding wordt geweigerd.
+  const same = run("repair-duplicates.ts", ["--apply", "--backup-gemaakt", `--verwacht-database=${identity}`], { ...asReadonly, COURSES_REPAIR_DATABASE_URL: readonlyUrl.toString() });
+  outputs.push(same.stdout, same.stderr);
+  assert.notEqual(same.status, 0);
+  assert.match(same.stderr, /gelijk aan de alleen-lezen verbinding/);
+  // De bestaande bevestigingen blijven gelden, ook met een echte schrijfverbinding.
+  const separate = { ...asReadonly, COURSES_REPAIR_DATABASE_URL: adminUrl };
+  const noBackup = run("repair-duplicates.ts", ["--apply", `--verwacht-database=${identity}`], separate);
+  const wrongIdentity = run("repair-duplicates.ts", ["--apply", "--backup-gemaakt", `--verwacht-database=${isolatedName}`], separate);
+  outputs.push(noBackup.stdout, noBackup.stderr, wrongIdentity.stdout, wrongIdentity.stderr);
+  assert.equal(noBackup.status, 2);
+  assert.equal(wrongIdentity.status, 2);
+  assert.equal(await fingerprint(), before, "geweigerde --apply-pogingen veranderen niets");
+  // Alleen met aparte schrijfverbinding, back-upbevestiging en juiste identiteit wordt er hersteld.
+  const applied = run("repair-duplicates.ts", ["--apply", "--backup-gemaakt", `--verwacht-database=${identity}`], separate);
+  outputs.push(applied.stdout, applied.stderr);
+  assert.equal(applied.status, 0, applied.stderr);
+  assert.match(applied.stderr, /via COURSES_REPAIR_DATABASE_URL/);
+  assert.deepEqual(await L.integrity.findDuplicateReadingCourses(L.db), []);
+  assert.equal((await L.db.userCourseProgress.findUniqueOrThrow({ where: { userId_courseId: { userId, courseId: (await bomCourses("FREE_CHOICE"))[0].id } } })).comboCount, 6);
+  // Na het herstel is de audit met de alleen-lezen gebruiker schoon.
+  const clean = run("audit-duplicates.ts", [], asReadonly);
+  outputs.push(clean.stdout, clean.stderr);
+  assert.equal(clean.status, 0, clean.stderr);
+  noSecrets();
 });
 
 test("andere cursussoorten (podcasts, kinderen, introductie) tellen niet mee in de invariant", { skip }, async () => {

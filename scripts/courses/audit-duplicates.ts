@@ -9,7 +9,7 @@ import { formatDatabaseIdentity, resolveDatabase } from "./target";
 // De verbinding wordt eenmaal vastgesteld en expliciet aan de client doorgegeven; src/lib/db wordt pas daarna geladen.
 const database = resolveDatabase();
 const target = database.label;
-console.error(`Doeldatabase (alleen lezen): ${formatDatabaseIdentity(target)}`);
+console.error(`Doeldatabase (alleen lezen, via ${database.source}): ${formatDatabaseIdentity(target)}`);
 process.env.DATABASE_URL = database.url;
 const { createPrismaClient } = await import("../../src/lib/db");
 
@@ -22,7 +22,7 @@ try {
   });
   const collections = await client.contentCollection.findMany({ select: { id: true, slug: true, order: true, enabled: true, language: true }, orderBy: [{ order: "asc" }, { id: "asc" }] });
   const plans = await planDuplicateRepair(client);
-  console.log(JSON.stringify({ target, collections, readingCourses: all, duplicateGroups: plans }, null, 2));
+  console.log(JSON.stringify({ target, maintenanceBuild: process.env.NEXT_PUBLIC_BUILD_SHA ?? "onbekend", collections, readingCourses: all, duplicateGroups: plans }, null, 2));
   if (plans.length > 0) {
     console.error(`${plans.length} groep(en) met dubbele leescursussen. Herstel: npx tsx scripts/courses/repair-duplicates.ts (dry-run), daarna --apply na goedkeuring.`);
     process.exitCode = 1;
