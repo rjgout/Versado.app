@@ -589,10 +589,10 @@ function Round369({ state, can }: { state: AkStateView; can: Abilities }) {
       {can.isQuizmaster && state.quizmaster?.answer369 && !q.reveal && (
         <QuizmasterBox title={t("akGame.answer", { answer: state.quizmaster.answer369 })}>
           <div className="grid grid-cols-2 gap-2">
-            <button className="btn-primary !bg-green-600" onClick={() => socket.emit("ak:qm_369", { correct: true })}>
+            <button className="btn-primary !bg-green-600 !text-white" onClick={() => socket.emit("ak:qm_369", { correct: true })}>
               {t("akGame.markCorrect")}
             </button>
-            <button className="btn-primary !bg-red-500" onClick={() => socket.emit("ak:qm_369", { correct: false })}>
+            <button className="btn-primary !bg-red-500 !text-white" onClick={() => socket.emit("ak:qm_369", { correct: false })}>
               {t("akGame.markWrong")}
             </button>
           </div>
@@ -811,10 +811,10 @@ function RoundGallery({ state, can }: { state: AkStateView; can: Abilities }) {
       {can.isQuizmaster && state.quizmaster?.galleryAnswer && (
         <QuizmasterBox title={t("akGame.answer", { answer: state.quizmaster.galleryAnswer })}>
           <div className="grid grid-cols-2 gap-2">
-            <button className="btn-primary !bg-green-600" onClick={() => socket.emit("ak:qm_gallery", { correct: true })}>
+            <button className="btn-primary !bg-green-600 !text-white" onClick={() => socket.emit("ak:qm_gallery", { correct: true })}>
               {t("akGame.markCorrect")}
             </button>
-            <button className="btn-primary !bg-red-500" onClick={() => socket.emit("ak:qm_gallery", { correct: false })}>
+            <button className="btn-primary !bg-red-500 !text-white" onClick={() => socket.emit("ak:qm_gallery", { correct: false })}>
               {t("akGame.markWrongNext")}
             </button>
           </div>
