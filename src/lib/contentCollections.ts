@@ -1,4 +1,5 @@
 import type { Prisma } from "@/generated/prisma/client";
+import { BOM_COLLECTION_ID } from "@/lib/contentCollectionIds";
 import { getHymnsAccess } from "@/lib/hymnAvailability";
 import { availableGameKeys } from "@/lib/gameAvailability";
 import { prisma } from "@/lib/db";
@@ -80,8 +81,8 @@ function pickEditions(collections: ContentCollectionView[], language: string): W
 
 // Vaste id uit migratie 20260922120000_content_collections; ook gebruikt om
 // onderdelen aan te wijzen die alleen bij het Boek van Mormon horen (zie
-// src/app/tools/page.tsx).
-export const BOM_COLLECTION_ID = "content_bom";
+// src/app/tools/page.tsx). De definitie staat in contentCollectionIds.ts, zonder databaseclient.
+export { BOM_COLLECTION_ID };
 // Zie migratie 20260924200000_dc_pgp_collections.
 export const DC_COLLECTION_ID = "content_dc";
 export const PGP_COLLECTION_ID = "content_pgp";

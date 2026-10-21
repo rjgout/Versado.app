@@ -567,6 +567,10 @@ realtime-bron.
   `migration.sql` handmatig volgens het patroon hierboven, en pas toe met
   `prisma migrate deploy`.
 
+## ⚠️ Harde regel: identiteit van de leescursussen
+
+Zie `docs/CURSUSIDENTITEIT.md`. Per schriftcollectie maximaal één cursus per type Stap voor stap, Hoofdstuk voor hoofdstuk en Vrije keuze. De historische slugs (`vrije-keuze`, `voor-naar-achter`, `lezen-van-voor-naar-achter`) horen bij het Boek van Mormon op **vast id** (`BOM_COLLECTION_ID`, `src/lib/contentCollectionIds.ts`), nooit bij "de eerste ingeschakelde collectie op volgorde": `ContentCollection.order` heeft default 0 en een nieuwe collectie of een wijziging van `enabled` mag de cursusidentiteit niet veranderen. Een import gebruikt altijd een expliciete doelcollectie (`importBooks` valt terug op het Boek van Mormon). Duplicaten worden alleen hersteld met `scripts/courses/repair-duplicates.ts` (dry-run standaard, `--apply --backup-gemaakt` na goedkeuring van de eigenaar); nooit met een blinde `deleteMany`, en nooit met deduplicatie in React. Getest met `npm run test:course-identity`.
+
 ## Prisma schema en migraties — synchroniteit
 
 Bij iedere wijziging aan de database moeten **schema, migratie en gebruikende code als één geheel** worden behandeld:

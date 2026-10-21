@@ -210,3 +210,40 @@ test("alle nieuwe tekst loopt via i18n in alle talen", () => {
     }
   }
 });
+
+// --- Cursusidentiteit (zie docs/CURSUSIDENTITEIT.md) --------------------------------------------------------------------------------
+
+test("de canonieke slugs: het Boek van Mormon houdt de historische slugs, andere collecties krijgen de collectieslug erachter", async () => {
+  const { canonicalReadingSlug } = await import("../src/lib/courseIntegrity");
+  const { BOM_COLLECTION_ID } = await import("../src/lib/contentCollectionIds");
+  assert.equal(BOM_COLLECTION_ID, "content_bom");
+  const bom = { id: BOM_COLLECTION_ID, slug: "boek-van-mormon" };
+  assert.deepEqual(READING_PATH_TYPES.map((type) => canonicalReadingSlug(bom, type)), ["lezen-van-voor-naar-achter", "voor-naar-achter", "vrije-keuze"]);
+  assert.equal(canonicalReadingSlug({ id: "content_dc", slug: "leer-en-verbonden" }, "FRONT_TO_BACK"), "voor-naar-achter-leer-en-verbonden");
+});
+
+test("syncCourses kiest de standaardcollectie op vast id, nooit op volgorde of ingeschakelde status", () => {
+  const courses = read("src/lib/courses.ts");
+  const sync = courses.slice(courses.indexOf("export async function syncCourses"), courses.indexOf("const books = await db.book.findMany"));
+  assert.match(sync, /findUnique\(\{\s*where: \{ id: BOM_COLLECTION_ID \}/);
+  assert.doesNotMatch(sync, /enabled: true|orderBy/);
+  assert.match(read("src/lib/contentCollections.ts"), /export \{ BOM_COLLECTION_ID \}/, "één constante, ook voor de rest van de app");
+  const importContent = read("prisma/importContent.ts");
+  assert.doesNotMatch(importContent.slice(importContent.indexOf("export async function importBooks")), /findFirst\(\{\s*where: \{ enabled: true \}/, "geen impliciete eerste collectie als importdoel");
+});
+
+test("de herstelscripts zijn standaard een dry-run en vereisen een bevestigde back-up voor --apply", () => {
+  const repair = read("scripts/courses/repair-duplicates.ts");
+  assert.match(repair, /--backup-gemaakt/);
+  assert.match(repair, /const apply = process\.argv\.includes\("--apply"\)/);
+  assert.doesNotMatch(read("scripts/courses/audit-duplicates.ts"), /\.(create|update|delete|upsert)\w*\(/, "de diagnose schrijft niets");
+});
+
+test("de drie leeswijzen krijgen in elke app-taal drie verschillende namen (vertaling veroorzaakt geen schijnduplicaten)", async () => {
+  const { localizedCourse } = await import("../src/lib/courseText");
+  for (const language of ["nl", "en", "de", "fr", "es"]) {
+    const names = READING_PATH_TYPES.map((type) => localizedCourse({ type, name: { READING_LESSONS: "Stap voor stap", FRONT_TO_BACK: "Hoofdstuk voor hoofdstuk", FREE_CHOICE: "Vrije keuze" }[type], description: null, work: "bofm" }, language).name);
+    assert.equal(new Set(names).size, 3, `${language}: ${names.join(" / ")}`);
+    assert.ok(names.every((name) => name.length > 0));
+  }
+});

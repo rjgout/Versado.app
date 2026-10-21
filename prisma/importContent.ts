@@ -9,6 +9,7 @@ import {
 } from "../src/lib/exerciseGen";
 import { generateExerciseHint } from "../src/lib/exerciseHints";
 import { syncCourses } from "../src/lib/courses";
+import { BOM_COLLECTION_ID } from "../src/lib/contentCollectionIds";
 import { inPhase } from "../src/lib/importPhase";
 import type { SeedBook } from "./content";
 import { BOOK_KEYS_BY_SLUG } from "./bookKeys";
@@ -199,14 +200,10 @@ export async function importBooks(
   log: (msg: string) => void = console.log,
   contentCollectionId?: string
 ) {
-  const collection = contentCollectionId
-    ? await prisma.contentCollection.findUnique({ where: { id: contentCollectionId }, select: { id: true, language: true } })
-    : await prisma.contentCollection.findFirst({
-        where: { enabled: true },
-        orderBy: { order: "asc" },
-        select: { id: true, language: true },
-      });
-  if (!collection) throw new Error("Geen contentcollectie beschikbaar om boeken aan te koppelen.");
+  // Zonder expliciete doelcollectie geldt het Boek van Mormon (vast id); nooit "de eerste ingeschakelde collectie op volgorde": bij gelijke
+  // `order` is dat een toevallige andere collectie (zie docs/CURSUSIDENTITEIT.md).
+  const collection = await prisma.contentCollection.findUnique({ where: { id: contentCollectionId ?? BOM_COLLECTION_ID }, select: { id: true, language: true } });
+  if (!collection) throw new Error(`Contentcollectie ${contentCollectionId ?? BOM_COLLECTION_ID} bestaat niet; boeken worden niet gekoppeld.`);
   const collectionId = collection.id;
   const language = toLanguageCode(collection.language);
 
