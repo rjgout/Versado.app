@@ -29,7 +29,7 @@ const step = (name) => results.push(name);
 
 async function fixture() {
   const user = await prisma.user.create({
-    data: { email: `${randomUUID()}@cfm-browser.invalid`, passwordHash: "test-only", handle: `C${randomUUID().slice(0, 8)}`, discriminator: "00", uiLanguage: "nl", isAdmin: false, timeZone: "UTC" },
+    data: { email: `${randomUUID()}@cfm-browser.invalid`, passwordHash: "test-only", handle: `C${randomUUID().slice(0, 8)}`, discriminator: "00", uiLanguage: "nl", isAdmin: false, timeZone: "UTC", onboardingSeenAt: new Date(), onboardingProfilePrivacyAt: new Date(), avatarCharacterId: "nephi", kompasOffersEnabled: false },
   });
   const key = `synthetic-study-cfm-${randomUUID()}`;
   await prisma.contentWork.create({ data: { key, kind: "STUDY_PROGRAM" } });
