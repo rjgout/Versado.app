@@ -224,6 +224,14 @@ De technische architectuur, migratieplanning en releasegates staan in
   platformonafhankelijke API/auth, safe areas/keyboard/oriëntatie/navigatie,
   offline/fouten en relevante regressies. Kleine tekstwijzigingen vereisen geen
   volledige native builds. Claim geen apparaatvalidatie zonder echte test.
+- Een nieuwe feature is pas **functioneel afgerond** wanneer zij beschikbaar en
+  bruikbaar is op web/PWA, iOS/iPadOS en Android, of wanneer de eigenaar een
+  expliciete platformuitzondering heeft goedgekeurd. Leg die goedkeuring en het
+  testbewijs vast in [NATIVE-FEATURE-PARITY.md](docs/NATIVE-FEATURE-PARITY.md).
+  Een geregistreerde route, remote-preview of Chromium-test is geen bewijs van
+  native pariteit. Voer `npm run native:parity:check` uit; actualiseer bij wijzigingen
+  de inventaris en beoordeel de functie afzonderlijk. Noem native achterstand
+  expliciet en presenteer een web-implementatie niet als volledige platformoplevering.
 - Documenteer platformafwijkingen en architectuurbesluiten. Meld wanneer iets nog
   niet native-ready is met een concrete vervolgactie; blokkeer gewone
   webontwikkeling niet onnodig. De eigenaar doet productie-uitrol en live tests.

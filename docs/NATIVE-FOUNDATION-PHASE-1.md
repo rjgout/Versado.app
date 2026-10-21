@@ -57,6 +57,15 @@ fase 1 geeft een beperkte leesproef, geen volledige onboardingmigratie.
   geblokkeerd tot echte device-/signing-/securityacceptatie. Ontbrekende Apple Team,
   audience, entitlements of signing betekenen geen werkende Apple-E2E-claim.
 
+## Volledige native uitbreiding
+
+De huidige vervolgopdracht omvat alle bestaande functies; zie
+[NATIVE-FEATURE-PARITY.md](NATIVE-FEATURE-PARITY.md). Deze Foundation-proef is
+alleen het uitgangspunt. De nieuwe inventaris houdt ontbrekende schermen,
+contracten, veilige sessiewisselingen, realtime/media/push en apparaat-/storebewijs
+expliciet open. Geen ontbrekende functie is als web-only uitzondering goedgekeurd.
+De zelfstandige broncontrole is geen onafhankelijke audit of native-acceptatie.
+
 ## Migratie van overige schermen
 
 Na deze proef per feature: serverdata achter versiecontract, gedeelde clientcomponent,
