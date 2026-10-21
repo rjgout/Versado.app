@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ArrowRight, EyeOff } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import type { MessageKey } from "@/lib/i18n/core";
+import { weekLabelKey } from "@/lib/studyContent/weekLabels";
+import type { ResumeReason } from "@/lib/studyContent/weekSelection";
 import { SortableList } from "@/components/SortableList";
 import { applyPersonalOrder, fetchListOrder, saveListOrder } from "@/lib/listOrder";
 import { useLiveQuery } from "@/lib/data/hooks";
@@ -33,6 +35,8 @@ interface CourseView {
   isActive: boolean;
   currentChapter: { id: string; bookName: string; number: number } | null;
   resumeHref: string;
+  /** Alleen CFM: waarom de hervatweek die week is (bepaalt het label op de kaart). */
+  resumeReason?: ResumeReason | null;
   artwork: string[];
   /** Officieel lesbeeld van de huidige week (studiecursussen); anders het artworkregister. */
   imageSrc?: string | null;
@@ -62,6 +66,8 @@ const TYPE_LABELS: Record<CourseView["type"], MessageKey> = {
 };
 
 const CARD_SIZES = "(min-width: 1024px) 320px, (min-width: 768px) 50vw, 100vw";
+
+const isStudyType = (type: string) => type === "STUDY_STEPS" || type === "STUDY_FREE";
 
 export default function CoursesClient() {
   const t = useT();
@@ -220,13 +226,16 @@ export default function CoursesClient() {
               </p>
             )}
             {progressOf(activeCourse)}
+            {isStudyType(activeCourse.type) && activeCourse.resumeReason && (
+              <p className="text-sm font-bold text-vs-fg" data-cfm-resume-label>{t(weekLabelKey(activeCourse.resumeReason)!)}</p>
+            )}
             {/* Hervatten bij de volgende stap; de afbeelding en titel openen
                 het cursusoverzicht. */}
             <Link
               href={activeCourse.resumeHref}
               className="inline-flex min-h-11 items-center gap-2 self-start rounded-xl bg-vs-accent px-4 text-sm font-extrabold text-vs-on-accent transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent focus-visible:ring-offset-2 focus-visible:ring-offset-vs-surface"
             >
-              {t("courses.continue").replace(/\s*→\s*$/, "")}
+              {isStudyType(activeCourse.type) && !activeCourse.resumeReason ? t("cfmToday.viewWeeks") : t("courses.continue").replace(/\s*→\s*$/, "")}
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </ContentCard>

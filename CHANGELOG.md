@@ -4,6 +4,8 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Verbeterd (Kom dan en volg Mij): de studie draait om deze week in plaats van om voltooiing. Het totaalpercentage, de weektelling en de voltooiingsmeldingen zijn weg; per week blijven de zes stappen met hun eigen status en pak je op waar je bleef. Op Vandaag staat een nieuwe kaart met de les van deze week, de officiële afbeelding en één knop om te beginnen of verder te gaan. De terugknop in een studieles brengt je terug naar waar je vandaan kwam (Vandaag of het weekpad). Zonder studieweek voor vandaag stuurt Versado je naar de laatst bestudeerde week of toont de beschikbare weken, nooit naar een oudere onafgeronde week.
+
 - Verbeterd (Kom dan en volg Mij): verwijzingen naar het Boek van Mormon, de Leer en Verbonden en de Parel van Grote Waarde openen nu de eigen tekst in Versado (ook samengestelde verwijzingen zoals "1 Nephi 13:21–29, 38–42"), en een verwijzing naar een lofzang opent die lofzang in Lofzangen zodra die beschikbaar is. Kan een verwijzing niet met zekerheid worden gekoppeld, dan blijft de officiële bron de terugval. In Stap voor stap gaat de terugknop rechtstreeks naar het leerpad in Leren; het driepuntjesmenu en het tussenscherm met het stappenoverzicht zijn vervallen.
 
 - Verbeterd (Kom dan en volg Mij): staat nu in Leren als gewone cursus. Voeg Stap voor stap (standaard) of Vrije studie toe via Cursus toevoegen, zoals bij de andere leescursussen; de cursuskaart toont je voortgang in weken en brengt je naar je huidige week met de officiële afbeelding. Verbergen uit je overzicht wist niets: je annotaties, leesposities en voortgang blijven bewaard.

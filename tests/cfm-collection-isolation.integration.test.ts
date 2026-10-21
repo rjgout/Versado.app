@@ -71,7 +71,7 @@ test("cursuskaart en hervatlink horen bij de collectie van de cursus", async () 
   const stepsB = await getStudyCourseSummary(admin, { type: "STUDY_STEPS", contentCollectionId: b.id });
   assert.ok(stepsB);
   assert.match(stepsB.resumeHref, new RegExp(`/${b.id}/stappen$`));
-  assert.equal(stepsB.totalWeeks, 2);
+  assert.equal("totalWeeks" in stepsB || "completedWeeks" in stepsB, false, "CFM heeft geen totaalvoortgang meer");
   const freeA = await getStudyCourseSummary(admin, { type: "STUDY_FREE", contentCollectionId: a.id });
   assert.ok(freeA);
   assert.match(freeA.resumeHref, new RegExp(`/${a.id}$`));
