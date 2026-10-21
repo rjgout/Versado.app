@@ -18,6 +18,12 @@ Er komt geen algemene bearer-bypass of build-time Next.js-shim.
 Release en publicatie blijven afzonderlijk geblokkeerd tot de verplichte
 technische tests, echte apparaten en onafhankelijke acceptatie zijn afgerond.
 
+De gedeelde navigatiepoort is aangesloten op de webshell en een lokale
+hashrouter voor de bestaande Foundation-schermen en privacy/cookies. Juridische
+inhoud en vertalingen zijn gedeeld, ook offline. Volledige Vandaag/Leren/Spelen/
+Vrienden, data-adapters en overige routes blijven open in de matrix. Browser-
+controle of route-registratie is geen apparaatacceptatie.
+
 ## Architectuurbesluit
 
 Versado blijft één product, één datamodel en één gedeelde codebase. De

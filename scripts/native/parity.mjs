@@ -112,9 +112,10 @@ export function renderInventory(inventory) {
     "De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.", "",
     "### Iedere webpagina", "", "Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en authbewijs in bron | Testbewijs", "--- | --- | --- | --- | --- | ---"];
   for (const row of pages) {
-    const partial = /^\/(login|register|forgot-password|dashboard|lesson\/\[chapterId\])$/.test(row.route);
+    const partial = /^\/(login|register|forgot-password|dashboard|profile|lesson\/\[chapterId\])$/.test(row.route);
+    const legal = row.route === "/privacy" || row.route === "/cookies";
     lines.push([`\`${row.route}\``, `${link(row.file)}; ${row.boundary === "client" ? "expliciete clientgrens" : "Server Component-entry"}`, row.domain,
-      partial ? "Foundation-toestand, gedeeltelijk; geen volledige routepariteit" : "Zelfde doel-URL; ontbreekt in lokale router",
+      legal ? "Lokale gedeelde inhoud; apparaatbewijs open" : partial ? "Lokale route; Foundation gedeeltelijk, geen volledige functiepariteit" : "Zelfde doel-URL; ontbreekt in lokale router",
       [...row.authEvidence, ...row.directModules.filter(file => file.startsWith("src/lib/"))].map(cell).join("; ") || "Zie bron en rootlayout; nog expliciet beoordelen",
       "Webtests: JSON-index; native: geen volledig route-/apparaatbewijs",
     ].map(cell).join(" | "));

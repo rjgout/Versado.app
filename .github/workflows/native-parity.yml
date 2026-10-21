@@ -1,7 +1,7 @@
 name: Native bron- en functie-inventaris
 on:
   pull_request:
-    branches: [main]
+    branches: [main, 'feat/native-*', 'fix/native-*']
     paths:
       - 'src/**'
       - 'scripts/native/parity.mjs'
