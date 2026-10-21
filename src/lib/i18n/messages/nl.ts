@@ -4823,6 +4823,18 @@ export const nl = {
     "weekProgress": "{done} van {total} stappen",
     "weekRead": "Gelezen",
   },
+  cfmToday: {
+    brand: "Kom dan en volg Mij",
+    lastStudied: "Laatst bestudeerd",
+    invite: "Doe mee met de studie van deze week, op jouw manier en in jouw tempo.",
+    inviteResume: "Ga verder waar je gebleven was, wanneer het jou uitkomt.",
+    noWeekTitle: "Studieweken",
+    noWeekText: "Er is nu geen studieweek die bij vandaag hoort. Kies zelf een beschikbare week.",
+    start: "Begin met studeren",
+    continue: "Verder met studeren",
+    viewSteps: "Bekijk de zes stappen",
+    viewWeeks: "Bekijk de studieweken",
+  },
   studyReader: {
     "title": "Studieles",
     "mediaUnavailable": "Afbeelding niet beschikbaar",

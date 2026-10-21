@@ -314,19 +314,19 @@ function ReaderVisit({
       {stepStatus === "COMPLETED" && <p className="text-sm text-vs-fg-2">{t("cfmStudy.stepDone")}</p>}
       <nav className="flex gap-2" aria-label={t("cfmStudy.stepNavigation")}>
         {stepNumber > 1 && (
-          <Link href={`${base}/stappen/${stepNumber - 1}`} prefetch={false} data-step-prev className={`${secondaryButton} min-h-12 flex-1`}>
+          <Link href={`${base}/stappen/${stepNumber - 1}`} prefetch={false} replace data-step-prev className={`${secondaryButton} min-h-12 flex-1`}>
             <ChevronLeft aria-hidden className="h-5 w-5 shrink-0" />
             {t("cfmStudy.previousStep")}
           </Link>
         )}
         {stepNumber < PERSONAL_STUDY_STEPS ? (
-          <Link href={`${base}/stappen/${stepNumber + 1}`} prefetch={false} data-step-next className={`${stepStatus === "COMPLETED" ? primaryButton : secondaryButton} min-h-12 flex-1`}>
+          <Link href={`${base}/stappen/${stepNumber + 1}`} prefetch={false} replace data-step-next className={`${stepStatus === "COMPLETED" ? primaryButton : secondaryButton} min-h-12 flex-1`}>
             {t("cfmStudy.nextStep")}
             <ChevronRight aria-hidden className="h-5 w-5 shrink-0" />
           </Link>
         ) : (
-          // De laatste stap heeft geen volgende stap: terug naar het leerpad (expliciete bestemming).
-          <Link href={personal.coursePath ?? "/courses"} prefetch={false} data-step-to-path className={`${stepStatus === "COMPLETED" ? primaryButton : secondaryButton} min-h-12 flex-1`}>
+          // De laatste stap heeft geen volgende stap: naar het weekpad (een eigen knop, los van de hoofdterugknop). Stappen onderling vervangen elkaar in de geschiedenis, zodat de hoofdterugknop altijd naar de herkomst gaat.
+          <Link href={personal.coursePath ?? "/courses"} prefetch={false} replace data-step-to-path className={`${stepStatus === "COMPLETED" ? primaryButton : secondaryButton} min-h-12 flex-1`}>
             {t("cfmStudy.backToPath")}
             <ChevronRight aria-hidden className="h-5 w-5 shrink-0" />
           </Link>

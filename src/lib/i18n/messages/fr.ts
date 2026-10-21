@@ -4351,6 +4351,18 @@ export const fr: PartialMessages = {
     "weekProgress": "{done} étapes sur {total}",
     "weekRead": "Lue",
   },
+  cfmToday: {
+    brand: "Venez, suivez-moi",
+    lastStudied: "Dernière étude",
+    invite: "Participe à l’étude de cette semaine, à ta manière et à ton rythme.",
+    inviteResume: "Reprends là où tu t’étais arrêté, quand cela te convient.",
+    noWeekTitle: "Semaines d’étude",
+    noWeekText: "Aucune semaine d’étude ne correspond à aujourd’hui. Choisis toi-même une semaine disponible.",
+    start: "Commencer l’étude",
+    continue: "Continuer l’étude",
+    viewSteps: "Voir les six étapes",
+    viewWeeks: "Voir les semaines d’étude",
+  },
   studyReader: {
     "title": "Leçon d’étude",
     "mediaUnavailable": "Image indisponible",

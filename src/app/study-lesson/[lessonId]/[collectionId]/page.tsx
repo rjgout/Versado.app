@@ -2,7 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { z } from "zod";
 import { getCurrentUser, navigationSessionKey } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { cfmCourseBackTarget, markCfmCourseStarted } from "@/lib/studyContent/cfmCourses";
+import { cfmCoursePathTarget, markCfmCourseStarted } from "@/lib/studyContent/cfmCourses";
 import { loadPersonalStudyPage } from "@/lib/studyContent/personalStudyPage";
 import StudyReader from "@/components/study/StudyReader";
 import ReaderBackTarget from "@/components/ReaderBackTarget";
@@ -49,7 +49,7 @@ export default async function Page({
   const mode = !view || weergave === "volledig" || outside ? "full" : "free";
   if (mode === "free") await markCfmCourseStarted(prisma, user.id, parsed.data.collectionId, "FREE");
   // Vrije studie en de volledige les: terug naar het Vrije studie-leerpad, maar met browser-terug als er een vorige pagina in de app is.
-  const back = view && !folderReturn ? await cfmCourseBackTarget(prisma, parsed.data.collectionId, "FREE", user.uiLanguage) : null;
+  const back = view && !folderReturn ? await cfmCoursePathTarget(prisma, parsed.data.collectionId, "FREE", user.uiLanguage) : null;
   return (
     <>
       {back && <ReaderBackTarget href={back.href} parent={back.name} soft />}

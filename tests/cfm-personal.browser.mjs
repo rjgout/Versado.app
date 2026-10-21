@@ -249,17 +249,55 @@ try {
     await page.goto(base + f.href + "/stappen/5");
     await page.locator("[data-complete-step]").waitFor();
     assert.equal(await page.locator('[role="img"][aria-label*="5"]').count(), 1, "stapstatus ook als tekst (aria-label)");
-    // De hoofdterugknop gaat naar het leerpad van Stap voor stap, ook bij een directe deeplink (geen geschiedenis).
-    await page.locator("[data-subpage-back-bar] button").click();
-    await page.waitForURL((url) => url.pathname === padHref);
+    // Directe deeplink in een nieuw tabblad (geen vorige pagina in de app): veilige terugval naar het leerpad van Stap voor stap.
+    {
+      const direct = await context.newPage();
+      await direct.goto(base + f.href + "/stappen/5");
+      await direct.locator("[data-complete-step]").waitFor();
+      await direct.locator("[data-subpage-back-bar] button").click();
+      await direct.waitForURL((url) => url.pathname === padHref);
+      await direct.locator("[data-cfm-week-path]").waitFor();
+      await direct.close();
+    }
+    // Scenario A: Leren → weekpad → stap 1 → volgende stap → hoofdterugknop = weekpad (de herkomst), niet de vorige stap.
+    await page.goto(base + padHref);
     await page.locator("[data-cfm-week-path]").waitFor();
-    // Met geschiedenis: pad → stap 1 → volgende stap → hoofdterugknop = pad, niet de vorige stap.
     await page.locator('[data-week-state="current"] [data-week-step="1"]').click();
     await page.waitForURL(/\/stappen\/1$/);
     await page.locator("[data-step-next]").click();
     await page.waitForURL(/\/stappen\/2$/);
+    await page.locator("[data-step-next]").click();
+    await page.waitForURL(/\/stappen\/3$/);
     await page.locator("[data-subpage-back-bar] button").click();
     await page.waitForURL((url) => url.pathname === padHref);
+    // Scenario B: Vandaag → studieles → hoofdterugknop = Vandaag (niet het weekpad), ook na stapnavigatie en een refresh.
+    await page.goto(base + "/dashboard");
+    await page.locator("[data-cfm-today]").waitFor();
+    assert.equal(await page.locator("[data-cfm-today-primary]").count(), 1, "één primaire actie");
+    assert.equal(await page.locator("[data-cfm-today-secondary]").count(), 1, "één secundaire actie");
+    assert.doesNotMatch(await page.locator("[data-cfm-today]").innerText(), /%|van \d+ weken|voltooid/i, "geen totaalvoortgang op Vandaag");
+    assert.ok(await noOverflow(page));
+    await page.screenshot({ path: `${output}/today-card-mobile.png` });
+    await page.locator("[data-cfm-today-primary]").click();
+    await page.waitForURL(/\/stappen\/\d$/);
+    await page.locator("[data-complete-step]").waitFor();
+    await page.locator("[data-step-next]").click();
+    await page.waitForURL(/\/stappen\/\d$/);
+    await page.reload();
+    await page.locator("[data-complete-step]").waitFor();
+    await page.locator("[data-subpage-back-bar] button").click();
+    await page.waitForURL((url) => url.pathname === "/dashboard");
+    // Browser-terug en -vooruit blijven consistent (geen lus): vooruit = de les, terug = Vandaag.
+    await page.goForward();
+    await page.locator("[data-complete-step]").waitFor();
+    await page.goBack();
+    await page.waitForURL((url) => url.pathname === "/dashboard");
+    // Het secundaire pad (de zes stappen) opent het weekpad; daar gaat terug naar Vandaag.
+    await page.locator("[data-cfm-today-secondary]").click();
+    await page.waitForURL((url) => url.pathname === padHref);
+    await page.locator("[data-cfm-week-path]").waitFor();
+    await page.goBack();
+    await page.waitForURL((url) => url.pathname === "/dashboard");
     // Vrije studie houdt zijn menu (opnieuw beginnen, volledige les) en heeft eigen terugnavigatie.
     await page.goto(base + f.href);
     await page.locator("[data-reader-mode='free']").waitFor();
@@ -409,7 +447,7 @@ try {
     // Toegevoegd: een gewone cursuskaart met voortgang in weken; niet meer aangeboden onder toevoegen.
     const stepsCard = page.locator("article").filter({ hasText: "Stap voor stap" }).first();
     await stepsCard.waitFor();
-    assert.match(await stepsCard.innerText(), /0 \/ 2 weken voltooid/);
+    assert.doesNotMatch(await stepsCard.innerText(), /voltooid|\d+ \/ \d+|%/, "CFM toont geen totaalvoortgang in Leren");
     assert.equal(await page.locator("section li").filter({ hasText: "Stap voor stap" }).count(), 0, "niet dubbel aangeboden");
     assert.equal(await userRow().then((u) => u.activeCourseId), null, "toevoegen maakt de cursus niet actief");
     // De cursus openen: de leeswijze volgt uit de cursus (Stap voor stap), met de bestaande leerlijn.

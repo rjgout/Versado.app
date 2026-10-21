@@ -51,7 +51,7 @@ Onderzocht aan de hand van de gepinde bronbestanden (`data/study-content/cfm-202
 ## 4. Navigatie Stap voor stap
 
 * De hoofdterugknop (`SubpageBackBar` met `ReaderBackTarget`, niet-zacht) gaat met `router.replace` naar het leerpad van de cursus
-  (`/courses/<id>/pad`, `cfmCourseBackTarget`: collectie + leeswijze), ook bij een directe deeplink. Geen `router.back()`. Browser-terug blijft normaal.
+  (`/courses/<id>/pad`, `cfmCoursePathTarget`: collectie + leeswijze) is sinds §18 van `docs/CFM-PERSOONLIJKE-STUDIE.md` alleen de veilige terugval; de hoofdterugknop volgt de werkelijke herkomst (browser-terug), zodat Vandaag → les → terug weer op Vandaag uitkomt.
   Zonder cursus (nog niet aangemaakt) valt de balk terug op het cursusoverzicht.
 * Vrije studie en de volledige les: zelfde bestemming (leerpad van Vrije studie) maar **zacht**: browser-terug als er een vorige pagina in de app is.
 * Stapnavigatie: stap 1 heeft geen "vorige", stap 6 heeft geen "volgende" maar "Terug naar het leerpad".
@@ -84,3 +84,5 @@ samengestelde selecties), `tests/reference-resolver.integration.test.mjs` (label
 5. Een verwijzing naar een lofzang (bv. "Nader, mijn God, tot U"): "Lofzang openen" opent die lofzang; zonder toegang tot Lofzangen blijft de officiële bron.
 6. Vrije studie: menu (opnieuw beginnen, volledige les) werkt; terugknop volgt de browsergeschiedenis.
 7. Nieuwe versie/positie op een ander apparaat: de melding blijft verschijnen.
+
+> **Bijgewerkt:** de eerdere regel "hoofdterugknop = vast leerpad, nooit `router.back()`" is vervallen; zie het navigatiecontract in `docs/CFM-PERSOONLIJKE-STUDIE.md` §18.

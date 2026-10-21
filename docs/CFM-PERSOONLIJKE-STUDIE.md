@@ -277,7 +277,7 @@ Voorlopig gekozen (omkeerbaar):
     ongemoeid. Zichtbaarheid blijft bij de collectie (beheer → Content); de cursussen publiceren niets.
   * **Cursus toevoegen / verbergen / volgorde**: onveranderd (`/api/courses/*`, `subscribeUserToCourse`). Een toegevoegde cursus staat
     niet meer onder toevoegen. Verbergen zet alleen `subscribed` uit: annotaties, leesposities, stapvoortgang en READ blijven.
-  * **Kaart**: voortgang in weken (een week is af bij gelezen of zes afgeronde stappen), "Ga verder" naar de huidige week (Stap voor
+  * **Kaart**: (vanaf §18 zonder voortgang in weken) "Ga verder" naar de huidige week (Stap voor
     stap: het stappenoverzicht) en het officiële lesbeeld van die week (`getStudyCourseSummary`, zelfde bron als het weekpad).
   * **Openen**: `/courses/<id>` → `/courses/<id>/pad` (Focusroute) met `CfmCourseView`: dezelfde kop, leerlijn (`CfmWeekPath`) en
     "Naar mijn week"-knop (`MyStepNav kind="week"`); bij een nieuwe binnenkomst scrollt de leerlijn naar de huidige week
@@ -288,7 +288,7 @@ Voorlopig gekozen (omkeerbaar):
   (`markCfmCourseStarted` → `markCourseStarted`). De standaard is Stap voor stap. De bestaande routes (`/study-lesson/...`, `/stappen`,
   `/stappen/n`, `?weergave=volledig`) en deeplinks blijven werken en gaan altijd voor.
 * **Wat CFM-specifiek bleef**: de weekkaarten met lesbeeld en zes stappen (`CfmWeekPath`, gebouwd uit de gedeelde `pathParts`), de
-  cursuskaartvoortgang in weken (`courseSummary.ts`), de enumwaarden en de cursusdefinities (`cfmCourses.ts`). Overige studieprogramma's
+  de cursuskaart naar de hervatweek (`courseSummary.ts`), de enumwaarden en de cursusdefinities (`cfmCourses.ts`). Overige studieprogramma's
   (FSY) behouden hun eigen lijst op Leren; `ProgramLessonPicker` bevat daarom geen CFM-weekpad meer.
 
 ## Leestypografie (compacte weergave)
@@ -304,7 +304,51 @@ Zie `docs/CFM-TECHNICAL-FINALIZATION.md` voor oorzaken, keuzes en de handleiding
 
 * **Cursusidentiteit** is (collectie, leeswijze) (`ensureCfmCourses` zoekt op `contentCollectionId` + `type`). De slug is een afgeleid,
   stabiel label (`cfmCourseSlug`): de oorspronkelijke slugs voor CFM 2026, anders `kom-dan-en-volg-mij-<collectieslug>-<soort>`.
-* **Eén weekregel** (`weekSelection.ts`): kalenderweek → laatst geopende week → eerste onafgeronde week → laatste week. Kaart, API en
+* **Eén weekregel** (`weekSelection.ts`, bijgewerkt in §18): kalenderweek → laatst geopende week → laatst bestudeerde week → geen. Vandaag, kaart, API en
   weekleerlijn gebruiken dezelfde resolver; alleen een echte kalenderweek heet "Deze week" / "Naar mijn week".
 * **Collectie-isolatie**: `getStudyCatalogue(actor, now, { collectionId })` leest uit de collectie van de cursus (met de bestaande
   `canAccessCollection`/`readingAccessWhere`), nooit stilzwijgend uit de actieve collectie, en wijzigt die niet.
+
+## 18. Deelname in plaats van voltooiing; navigatiecontract; Vandaag-kaart
+
+**Principe.** Kom dan en volg Mij is een doorlopend studieprogramma waaraan je elke week meedoet, geen cursus die je moet afronden.
+De interface draait om de studie van deze week, zelf kiezen hoe en wanneer, eenvoudig verdergaan waar je bleef en de zes stappen als
+hulpmiddel. Geen druk om weken in te halen en geen jaarlange voltooiingspercentages. Dit geldt alleen voor CFM; de voortgang van
+gewone leescursussen (`CoursePathHeader`, `CardProgress`) is ongewijzigd.
+
+**Verwijderd uit de interface** (de gegevens blijven in de database): het totaalpercentage en de voortgangsbalk over alle weken, "x van 52
+weken", de voltooiingschip op de cursuskaart, de "alles voltooid"-melding en de voortgangsbalk op de actieve weekkaart. De CFM-kop
+(`CfmCourseView`) is nu een lichte titel met Samen studeren. `getStudyCourseSummary` levert geen week-totalen meer; de API geeft voor
+CFM `totalChapters: 0`, waardoor de bestaande kaart geen balk of chip toont. Behouden: per week de zes stappen met status (niet begonnen,
+bezig, afgerond; `data-step-status` en tekst voor schermlezers), de laatst geopende of eerstvolgende stap gemarkeerd, zes subtiele stippen
+in plaats van "x van 6" op een ingeklapte week, een vinkje bij een week die bewust is afgerond of waarvan alle stappen klaar zijn, en
+hervatten bij de juiste stap (`/stappen` → `activeStepIndex`). Een week hoeft niet af te zijn om mee te doen.
+
+**Hervatlogica** (`weekSelection.ts`, één bron voor Vandaag, de cursuskaart in Leren, de API, het weekpad en de studieles):
+1. de echte kalenderweek (tijdzone van de gebruiker), 2. de week die de gebruiker het laatst bewust opende, 3. de laatste week waarin
+daadwerkelijk is gestudeerd (een stap afgerond of de les als gelezen gemarkeerd), 4. anders geen hervatweek: een neutraal overzicht van de
+beschikbare weken. Nooit de oudste onafgeronde week. Een hervatweek heet alleen "Deze week" als hij de kalenderweek is.
+
+**Navigatiecontract** (hergebruikt `SubpageBackBar`, `useSetBackTarget` en `useBackNavigation`; geen tweede laag, geen `returnUrl`):
+
+| Ingang | Terugknop van de studieles | Terugknop van het weekpad |
+|---|---|---|
+| Leren → weekpad → studieles | weekpad | Leren |
+| Vandaag → studieles | Vandaag | n.v.t. |
+| andere geldige ingang (Mijn studiemap, ...) | die pagina | n.v.t. |
+| directe link, nieuwe tab, ontbrekende herkomst | het leerpad van de cursus (`cfmCoursePathTarget`, anders Leren) | Leren |
+| Vorige/Volgende stap | blijft de oorspronkelijke ingang | n.v.t. |
+
+Werking: de terugbalk van de studieles is *zacht* (`ReaderBackTarget soft`): browser-terug naar de werkelijke vorige pagina; `href` geldt
+alleen als `canGoBackInApp()` onwaar is (Navigation API, met de interne teller als terugval voor Safari-versies zonder die API). Stap-naar-stap
+gebruikt `replace`, dus de herkomst is altijd één item terug en er ontstaan geen lussen of dubbele items. Scrollherstel blijft van
+`NavigationScroll`. De knop "Terug naar het leerpad" bij stap 6 is een eigen actie (`replace`) en verandert de hoofdterugknop niet.
+**Voer nooit opnieuw een vaste (niet-zachte) terugbestemming in voor CFM**: dat dwingt gebruikers die via Vandaag kwamen naar het weekpad.
+Beperking: komt de gebruiker vanaf het weekpad en kiest hij bij stap 6 "Terug naar het leerpad", dan staat het weekpad twee keer in de
+geschiedenis (geen lus).
+
+**Vandaag-kaart** (`ProgramContextPanel` → `CfmTodayCard`): officiële lesafbeelding (anders de neutrale Versado-kop), "Kom dan en volg
+Mij" met de collectienaam, "Deze week" met de officiële periode, de echte lestitel en één uitnodigende zin. Primaire actie "Begin met
+studeren" of "Verder met studeren" naar de studieles volgens de gekozen leeswijze (Stap voor stap hervat zelf bij de juiste stap); secundair
+"Bekijk de zes stappen" naar het weekpad. Zonder kalenderweek heet de hervatweek "Laatst bestudeerd"; zonder hervatweek is er één neutrale
+ingang "Bekijk de studieweken". Geen percentage, geen aantal afgeronde weken, niets hardcoded.

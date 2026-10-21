@@ -134,13 +134,16 @@ export function ChapterLinkCard({ href, label, subtitle, artworkKeys, state }: {
 export function ActiveChapterCard({
   label,
   subtitle,
+  eyebrow,
   artworkKeys,
   progress,
   imageSrc = null,
   children,
 }: {
   label: string;
-  subtitle: string;
+  subtitle: React.ReactNode;
+  /** Optionele kleine kop boven de titel (bijvoorbeeld "Deze week"). */
+  eyebrow?: string;
   artworkKeys: string[];
   /** Officiële afbeelding van een studieles; gaat voor het artworkregister. */
   imageSrc?: string | null;
@@ -167,6 +170,7 @@ export function ActiveChapterCard({
             <BookOpen aria-hidden className="pointer-events-none absolute right-3 top-3 h-14 w-14 text-vs-accent opacity-15" strokeWidth={1.5} />
           )}
           <div className="relative flex flex-col gap-1.5 px-[clamp(0.5rem,3vw,0.75rem)] pb-[clamp(0.5rem,3vw,0.75rem)] pt-10">
+            {eyebrow && <p className={`text-xs font-extrabold uppercase tracking-wide ${showImage ? "text-white/90" : "text-vs-accent"}`}>{eyebrow}</p>}
             <h2 className={`vs-wrap text-xl font-extrabold leading-snug ${showImage ? "text-white" : "text-vs-fg"}`}>{label}</h2>
             <p className={`text-xs font-semibold ${showImage ? "text-white/90" : "text-vs-accent"}`}>{subtitle}</p>
             {progress && (
@@ -175,7 +179,7 @@ export function ActiveChapterCard({
                 aria-valuemin={0}
                 aria-valuemax={progress.max}
                 aria-valuenow={progress.now}
-                aria-label={subtitle}
+                aria-label={typeof subtitle === "string" ? subtitle : label}
                 className={`h-1.5 overflow-hidden rounded-full ${showImage ? "bg-white/30" : "bg-vs-accent/15"}`}
               >
                 <div className="vs-motion h-full rounded-full bg-vs-accent transition-all" style={{ width: `${progress.percent}%` }} />

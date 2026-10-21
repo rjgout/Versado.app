@@ -49,7 +49,7 @@ test("het cursusoverzicht gebruikt voor CFM dezelfde kaarten, hetzelfde toevoege
   const week = readFileSync("src/components/study/CfmWeekPath.tsx", "utf8");
   assert.match(week, /from "@\/components\/reading\/pathParts"/);
   const view = readFileSync("src/components/study/CfmCourseView.tsx", "utf8");
-  assert.match(view, /CoursePathHeader/);
+  assert.doesNotMatch(view, /CoursePathHeader/, "CFM heeft een lichte kop zonder totaalvoortgang (docs/CFM-PERSOONLIJKE-STUDIE.md §18)");
   assert.match(view, /MyStepNav/);
   assert.doesNotMatch(view, /fixed|sticky/, "geen eigen vaste lagen");
 });

@@ -89,6 +89,21 @@ function WeekSteps({ week, sessionKey }: { week: WeekRow; sessionKey: string }) 
   );
 }
 
+/** Zes subtiele stippen voor de stappen van één week: zonder cijfers en zonder afvinklijst, alleen waar je al geweest bent. */
+function StepDots({ done }: { done: number }) {
+  const t = useT();
+  return (
+    <span data-week-dots className="inline-flex items-center gap-1 align-middle">
+      <span aria-hidden className="inline-flex gap-1">
+        {Array.from({ length: PERSONAL_STUDY_STEPS }, (_, i) => (
+          <span key={i} className={`h-1.5 w-1.5 rounded-full ${i < done ? "bg-current" : "bg-current opacity-30"}`} />
+        ))}
+      </span>
+      <span className="sr-only">{t("cfmStudy.weekProgress", { done, total: PERSONAL_STUDY_STEPS })}</span>
+    </span>
+  );
+}
+
 export default function CfmWeekPath({
   weeks,
   mode,
@@ -125,8 +140,14 @@ export default function CfmWeekPath({
       {weeks.map((week, index) => {
         const state = states[index];
         const period = formatWeekPeriod(week.startsOn, week.endsOnExclusive, language);
-        const progress = mode === "STEPS" ? t("cfmStudy.weekProgress", { done: week.stepsDone, total: PERSONAL_STUDY_STEPS }) : week.read ? t("cfmStudy.weekRead") : null;
-        const subtitle = [period, progress].filter(Boolean).join(" · ");
+        const progress = mode === "STEPS" ? (week.stepsDone > 0 ? <StepDots done={week.stepsDone} /> : null) : week.read ? t("cfmStudy.weekRead") : null;
+        const subtitle: React.ReactNode = (
+          <>
+            {period}
+            {period && progress ? " · " : ""}
+            {progress}
+          </>
+        );
         const imageSrc = mediaSrc(week.imageMediaId);
         const thumb = !!imageSrc;
         const href = lessonBase(week.lessonId, week.collectionId);
@@ -138,10 +159,10 @@ export default function CfmWeekPath({
               <div data-current-step onClickCapture={mode === "STEPS" ? () => onOpenWeek?.(week.lessonKey) : undefined}>
               <ActiveChapterCard
                 label={week.title}
-                subtitle={subtitle || t(activeIsCalendar ? "cfmStudy.currentWeek" : "cfmStudy.resumeWeek")}
+                subtitle={subtitle}
+                eyebrow={t(activeIsCalendar ? "cfmStudy.currentWeek" : "cfmStudy.resumeWeek")}
                 artworkKeys={[]}
                 imageSrc={imageSrc}
-                progress={mode === "STEPS" ? { now: week.stepsDone, max: PERSONAL_STUDY_STEPS, percent: Math.round((week.stepsDone / PERSONAL_STUDY_STEPS) * 100) } : undefined}
               >
                 {mode === "STEPS" ? (
                   <WeekSteps week={week} sessionKey={sessionKey} />
