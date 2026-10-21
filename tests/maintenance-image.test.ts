@@ -46,16 +46,49 @@ test("de onderhoudsimage start niets zelf: geen migraties, geen server, geen hea
   assert.match(runner.body, /prisma migrate deploy/, "de app-image behoudt zijn eigen startgedrag");
 });
 
-test("de Portainer-stack heeft geen poorten, volumes, Docker-socket of herstartbeleid en vereist expliciete variabelen", () => {
+test("de Portainer-stack pint de image op digest, vereist expliciete variabelen en bevat geen algemene DATABASE_URL", () => {
   const stack = code(read("deploy/maintenance-stack.yml"));
-  assert.match(stack, /image: ghcr\.io\/rjgout\/jehova-maintenance:latest/);
+  // Image: alleen op digest, verplichte variabele, geen tag en nooit latest.
+  assert.match(stack, /image: ghcr\.io\/rjgout\/jehova-maintenance@\$\{MAINTENANCE_IMAGE_DIGEST:\?[^}]+\}/);
+  assert.doesNotMatch(stack, /ghcr\.io\/rjgout\/jehova-maintenance:/, "geen tag, ook niet latest");
+  assert.doesNotMatch(stack, /latest/i);
+  assert.doesNotMatch(stack, /MAINTENANCE_IMAGE_DIGEST:-/, "geen standaardwaarde voor de digest");
+  // Alleen-lezen verbinding verplicht; schrijfverbinding apart en standaard leeg; geen algemene DATABASE_URL.
+  assert.match(stack, /COURSES_READONLY_DATABASE_URL: \$\{MAINTENANCE_READONLY_DATABASE_URL:\?/);
+  assert.match(stack, /COURSES_REPAIR_DATABASE_URL: \$\{MAINTENANCE_REPAIR_DATABASE_URL:-\}/);
+  assert.doesNotMatch(stack, /^\s+DATABASE_URL:/m, "de onderhoudsstack kent geen algemene (schrijf)verbinding");
+  assert.match(stack, /JEHOVA_NETWORK:\?/);
   assert.match(stack, /restart: "no"/);
   for (const forbidden of [/^\s*ports:/m, /^\s*volumes:/m, /docker\.sock/, /privileged/, /network_mode/, /^\s*pid:/m, /^\s*devices:/m]) assert.doesNotMatch(stack, forbidden, String(forbidden));
   assert.match(stack, /cap_drop:\n\s+- ALL/);
   assert.match(stack, /no-new-privileges:true/);
-  assert.match(stack, /DATABASE_URL: \$\{MAINTENANCE_DATABASE_URL:\?/, "geen standaardverbinding");
-  assert.match(stack, /external: true/);
   assert.doesNotMatch(stack, /postgresql:\/\/[^$\s]/, "geen vaste verbindings-URL of wachtwoord in het bestand");
+});
+
+test("de workflow toont de digest van elke gepubliceerde image (om op te pinnen)", () => {
+  const workflow = code(read(".github/workflows/docker-publish.yml"));
+  assert.match(workflow, /id: build\n\s+uses: docker\/build-push-action/);
+  assert.match(workflow, /steps\.build\.outputs\.digest/);
+  assert.match(workflow, /GITHUB_STEP_SUMMARY/);
+});
+
+test("de alleen-lezen rol: minimale rechten, geen wachtwoord in Git, en de documentatie bevat exact dit SQL-bestand", () => {
+  const sql = read("scripts/courses/readonly-role.sql");
+  const statements = code(sql.replace(/^--.*$/gm, "#"));
+  assert.match(statements, /NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS/);
+  assert.match(statements, /default_transaction_read_only = on/);
+  assert.match(statements, /statement_timeout/);
+  assert.doesNotMatch(statements, /\b(INSERT|UPDATE|DELETE|TRUNCATE|ALL PRIVILEGES|CREATE ON|GRANT ALL|WITH GRANT OPTION)\b/i, "alleen leesrechten");
+  assert.ok([...statements.matchAll(/^GRANT (\w+)/gm)].every((match) => ["CONNECT", "USAGE", "SELECT"].includes(match[1])));
+  // Persoonsgevoelige tabellen alleen op kolommen.
+  assert.match(statements, /GRANT SELECT \("id", "activeCourseId"\) ON "User"/);
+  assert.match(statements, /GRANT SELECT \("id", "courseId", "lessonId"\) ON "Feedback"/);
+  assert.doesNotMatch(statements, /ON[^;]*"User"[^;]*;[\s\S]*GRANT SELECT ON[^;]*"User"/);
+  assert.doesNotMatch(sql, /PASSWORD '[^']+'/, "geen letterlijk wachtwoord");
+  const doc = read("docs/DEPLOY-SYNOLOGY.md");
+  const block = doc.match(/```sql\n([\s\S]*?)\n```/)?.[1];
+  assert.ok(block, "SQL-blok in de documentatie");
+  assert.equal(block!.trim(), sql.trim(), "de documentatie en scripts/courses/readonly-role.sql zijn identiek");
 });
 
 test("de workflow publiceert de onderhoudsimage en controleert hem in CI", () => {
@@ -81,14 +114,20 @@ test("het CI-controlescript dekt aanwezigheid, niet-startgedrag, foutmelding, --
     "Weigering",
     "prisma migrate deploy",
     "Dry-run: er is niets gewijzigd",
+    "readonly-role.sql",
+    "COURSES_READONLY_DATABASE_URL",
+    "Geen schrijfverbinding",
+    "PostgreSQL liet de alleen-lezen gebruiker toe",
     "heeft databasegegevens gewijzigd",
   ]) assert.ok(script.includes(needle), needle);
   assert.match(script, /alleen een lokale wegwerpdatabase/, "weigert elke andere database dan een lokale wegwerpdatabase");
-  assert.doesNotMatch(script, /--apply --backup-gemaakt --verwacht-database/, "voert nooit een echt herstel uit");
+  // Nooit een echt herstel: geen schrijfverbinding voor --apply, en de enige --apply met bevestiging draait met uitsluitend de alleen-lezen verbinding (faalt dus).
+  assert.doesNotMatch(script, /COURSES_REPAIR_DATABASE_URL/);
+  for (const line of script.split("\n").filter((entry) => entry.includes("--verwacht-database"))) assert.match(line, /COURSES_READONLY_DATABASE_URL="\$RO_URL"/, line);
 });
 
 test("de documentatie beschrijft de Portainer-route en verwijst naar de bevestigingen", () => {
   const doc = read("docs/DEPLOY-SYNOLOGY.md");
   assert.match(doc, /## Cursusonderhoud/);
-  for (const needle of ["jehova-maintenance", "MAINTENANCE_DATABASE_URL", "JEHOVA_NETWORK", "npm run courses:audit", "--verwacht-database=", "--backup-gemaakt"]) assert.ok(doc.includes(needle), needle);
+  for (const needle of ["jehova-maintenance", "MAINTENANCE_IMAGE_DIGEST", "MAINTENANCE_READONLY_DATABASE_URL", "MAINTENANCE_REPAIR_DATABASE_URL", "JEHOVA_NETWORK", "npm run courses:audit", "--verwacht-database=", "--backup-gemaakt", "sha256:", "imagetools inspect"]) assert.ok(doc.includes(needle), needle);
 });

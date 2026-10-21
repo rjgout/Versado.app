@@ -202,37 +202,114 @@ functioneren; voer ook de functionele controles uit het vrijgavedraaiboek uit.
 ## Cursusonderhoud (diagnose en herstel van dubbele leescursussen)
 
 De app-image bevat de onderhoudsscripts bewust niet (`scripts/courses`); `npm run courses:audit` geeft daar `ERR_MODULE_NOT_FOUND`. Daarvoor is
-er een aparte **onderhoudsimage**: `ghcr.io/rjgout/jehova-maintenance` (het `maintenance`-target van de root-`Dockerfile`, bij elke push naar
-`main` gepubliceerd naast `jehova-app`). Het is dezelfde runtime als de app (dezelfde `node_modules`, Prisma-client, `src` en `prisma`)
-plus alleen die scripts, en hij start niets zelf: geen migraties, geen server. Achtergrond en regels: `docs/CURSUSIDENTITEIT.md`.
+er een aparte **onderhoudsimage**: `ghcr.io/rjgout/jehova-maintenance` (het `maintenance`-target van de root-`Dockerfile`). Het is dezelfde runtime als
+de app (dezelfde `node_modules`, Prisma-client, `src` en `prisma`) plus alleen die scripts, en hij start niets zelf: geen migraties, geen server.
+Achtergrond en regels: `docs/CURSUSIDENTITEIT.md`. Je bestaande Versado-stack en -containers worden hiervoor **niet** aangepast: je voegt een
+aparte, tijdelijke stack toe en verwijdert die daarna weer.
 
-**Eenmalig:** maak het nieuwe package `jehova-maintenance` publiek op GitHub (zoals bij Stap 1), of log in Portainer in op ghcr.io.
+Principes: (1) de diagnose draait met een aparte **alleen-lezen databasegebruiker**; (2) de image staat **vastgepind op een digest**, niet op `latest`;
+(3) een eventueel herstel (`--apply`) gebruikt een **aparte schrijfverbinding** en blijft achter de eigen bevestigingen van het script zitten.
 
-**Starten** (Portainer): *Stacks → Add stack → Web editor* en plak `deploy/maintenance-stack.yml`. Naam bijvoorbeeld `jehova-maintenance`. Vul bij
-*Environment variables* in:
+### Stap 1 — De onderhoudsimage beschikbaar maken (na de merge)
 
-| Variabele | Waarde |
-|---|---|
-| `MAINTENANCE_DATABASE_URL` | exact de `DATABASE_URL` van `jehova-app` (Containers → jehova-app → Env; het wachtwoord blijft in Portainer) |
-| `JEHOVA_NETWORK` | de netwerknaam van de hoofdstack (Networks, bv. `jehova-app_default`) |
+1. Na het mergen van de PR naar `main` publiceert GitHub Actions automatisch `jehova-maintenance` naast `jehova-app` (workflow *Build and publish Docker image*).
+2. Eenmalig: maak het nieuwe package `jehova-maintenance` publiek op GitHub (*Packages → jehova-maintenance → Package settings → Change visibility*, zoals bij Stap 1 hierboven), of log in Portainer in op ghcr.io (*Registries*).
 
-Deploy de stack. De container heeft geen poorten, volumes of Docker-socket.
+### Stap 2 — De juiste imageversie (digest) vastpinnen
 
-**Gebruik:** Containers → `jehova-maintenance` → *Console* → *Connect* (command `sh`, user `root`):
+Gebruik een **digest** (`sha256:` + 64 hexcijfers). Een tag zoals `latest` kan na een nieuwe publicatie naar andere code wijzen; de stack accepteert daarom alleen een digest.
 
-```sh
-npm run courses:audit > /tmp/audit.json 2> /tmp/audit.err; cat /tmp/audit.err; cat /tmp/audit.json   # alleen lezen
-npm run courses:repair                                                                                  # dry-run: schrijft niets
+1. Open op GitHub *Actions → Build and publish Docker image* en kies de run van de push naar `main` met jouw merge. Open de job `build-and-push (jehova-maintenance, …)`; onder *Summary* staat `Image: ghcr.io/rjgout/jehova-maintenance@sha256:…`, de digest en de commit. Dat is de waarde voor `MAINTENANCE_IMAGE_DIGEST`.
+2. Controleer onafhankelijk (op de NAS via SSH, of op je Mac): `docker buildx imagetools inspect ghcr.io/rjgout/jehova-maintenance:sha-<eerste-7-tekens-van-de-commit>`; de regel `Digest:` moet gelijk zijn aan de digest uit stap 1.
+3. Noteer de digest en de commit en gebruik **dezelfde digest** voor audit, dry-run en eventueel later herstel. De audit en de dry-run tonen de build-SHA van de image (`maintenanceBuild`, `Onderhoudsimage build:`); die moet de commit zijn die je verwacht.
+4. Een nieuwe publicatie verandert deze stack niet: de referentie is `@sha256:…`, dus er kan nooit ongemerkt een andere onderhoudsversie draaien. Wil je later een nieuwere versie, dan kies je bewust een nieuwe digest.
+
+### Stap 3 — Een alleen-lezen databasegebruiker aanmaken
+
+De gebruiker mag alleen lezen wat de cursusaudit nodig heeft: `SELECT` op tien cursustabellen, en op de persoonsgevoelige tabellen `User` en `Feedback`
+alleen enkele id-kolommen (nooit e-mail, wachtwoordhash of feedbacktekst). Daarnaast staat de sessie standaard op alleen-lezen (`default_transaction_read_only`),
+met een tijdslimiet, zodat ook een per ongeluk te ruim recht niets kan schrijven. Het wachtwoord komt nooit in Git.
+
+1. Bedenk een lang willekeurig wachtwoord (bijvoorbeeld `openssl rand -base64 33` op je Mac) en bewaar het in je wachtwoordmanager.
+2. Open in Portainer *Containers → jehova-db → Console* (command `sh`). Plak het SQL-bestand hieronder in `/tmp/readonly-role.sql` en voer uit, met jouw waarden (database en beheerder heten standaard `bom`):
+
+   `psql -U bom -d bom -v rolnaam=courses_ro -v wachtwoord='<jouw-wachtwoord>' -v database=bom -f /tmp/readonly-role.sql`
+
+   Verwijder het bestand daarna: `rm /tmp/readonly-role.sql`. Het SQL-bestand is `scripts/courses/readonly-role.sql` (identiek aan dit blok):
+
+```sql
+-- Alleen-lezen databasegebruiker voor courses:audit en courses:repair (dry-run). Uitvoeren als databasebeheerder (bijvoorbeeld de gebruiker "bom"):
+--   psql -U bom -d bom -v rolnaam=courses_ro -v wachtwoord='<kies-een-lang-willekeurig-wachtwoord>' -v database=bom -f readonly-role.sql
+-- Het wachtwoord staat nergens in Git; geef het alleen mee aan psql en aan de Portainer-stackvariabele.
+CREATE ROLE :"rolnaam" LOGIN PASSWORD :'wachtwoord' NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT CONNECTION LIMIT 10;
+-- De Prisma-client opent voor de parallelle tellingen tot 10 verbindingen (pg-poolstandaard); een lagere limiet laat de audit falen.
+-- Tweede slot naast de rechten: elke sessie van deze gebruiker is alleen-lezen en kan niet eindeloos draaien.
+ALTER ROLE :"rolnaam" SET default_transaction_read_only = on;
+ALTER ROLE :"rolnaam" SET statement_timeout = '60s';
+GRANT CONNECT ON DATABASE :"database" TO :"rolnaam";
+GRANT USAGE ON SCHEMA public TO :"rolnaam";
+-- Alleen de tabellen die de cursusaudit leest.
+GRANT SELECT ON "Course", "CourseChapter", "CourseLesson", "ContentCollection", "UserCourseProgress", "UserCourseLessonProgress", "ExerciseSession", "StudySession", "StudyRound", "UserListOrder" TO :"rolnaam";
+-- Persoonsgevoelige tabellen alleen op de kolommen die de audit nodig heeft: nooit e-mail, wachtwoordhash of feedbacktekst.
+GRANT SELECT ("id", "activeCourseId") ON "User" TO :"rolnaam";
+GRANT SELECT ("id", "courseId", "lessonId") ON "Feedback" TO :"rolnaam";
 ```
 
-De eerste regel van `audit.err` en de dry-run tonen `Doeldatabase: <host>:<poort>/<database>`; controleer dat dit de productiedatabase is.
-`audit.json` bevat alleen id's en aantallen (geen persoonsgegevens of geheimen). Exitcode 1 van de audit betekent: duplicaten gevonden.
+3. De verbinding voor de stackvariabele is: `postgresql://courses_ro:<jouw-wachtwoord>@jehova-db:5432/bom?schema=public` (URL-codeer het wachtwoord als het speciale tekens bevat).
+4. Na afloop van het onderhoud verwijder je de gebruiker (zie Stap 9).
 
-**Herstel (`--apply`)** voer je pas uit na een verse back-up (zie *Back-ups*), een gecontroleerde dry-run en uitdrukkelijke goedkeuring. De scripts
-weigeren het anders: `npm run courses:repair -- --apply --backup-gemaakt --verwacht-database=<host>:<poort>/<database>`, met de waarde letterlijk uit de
-regel `Doeldatabase`.
+### Stap 4 — De onderhoudsstack toevoegen in Portainer
 
-**Opruimen:** verwijder de stack `jehova-maintenance` (Stacks → Remove) zodra je klaar bent. De image zelf bevat geen gegevens.
+*Stacks → Add stack → Web editor*, naam `jehova-maintenance`, plak de inhoud van `deploy/maintenance-stack.yml`. Vul bij *Environment variables* in:
+
+| Variabele | Verplicht | Waarde |
+|---|---|---|
+| `MAINTENANCE_IMAGE_DIGEST` | ja | de vastgepinde `sha256:…`-digest uit Stap 2 |
+| `MAINTENANCE_READONLY_DATABASE_URL` | ja | de alleen-lezen verbinding uit Stap 3 |
+| `JEHOVA_NETWORK` | ja | de netwerknaam van de hoofdstack (*Networks*, bv. `jehova-app_default`) |
+| `MAINTENANCE_REPAIR_DATABASE_URL` | nee | **leeg laten** voor audit en dry-run; alleen na uitdrukkelijke goedkeuring voor `--apply` |
+
+Ontbreekt een verplichte variabele, dan weigert Portainer de stack te starten (er is geen standaardwaarde en geen terugval op `latest`). De container heeft geen poorten,
+volumes of Docker-socket en je bestaande containers blijven ongewijzigd.
+
+### Stap 5 — De audit uitvoeren (alleen lezen)
+
+*Containers → `jehova-maintenance` → Console → Connect* (command `sh`):
+
+`npm run courses:audit > /tmp/audit.json 2> /tmp/audit.err; cat /tmp/audit.err`
+
+De eerste regel toont `Doeldatabase (alleen lezen, via COURSES_READONLY_DATABASE_URL): <host>:<poort>/<database>`; controleer dat dit de productiedatabase is.
+Exitcode 1 (en de regel "groep(en) met dubbele leescursussen") betekent: duplicaten gevonden. De uitvoer bevat alleen id's en aantallen.
+
+### Stap 6 — De dry-run uitvoeren
+
+`npm run courses:repair`
+
+Dit schrijft niets en is met de alleen-lezen gebruiker technisch ook niet mogelijk. Je ziet het plan per groep (`merge` of `blocked`) en de regel
+`Dry-run: er is niets gewijzigd` met de exacte waarde voor `--verwacht-database`.
+
+### Stap 7 — De resultaten veilig delen met ChatGPT
+
+1. Toon de uitvoer: `cat /tmp/audit.json` en de dry-run uit Stap 6. Beide bevatten alleen cursus-id's, slugs, collectie-id's en aantallen; de database-URL en het wachtwoord staan er niet in.
+2. Controleer vóór het plakken dat er geen e-mailadressen, wachtwoorden of tokens in staan (de scripts schrijven die niet, maar kijk altijd even).
+3. Noem erbij: de digest en de commit (`maintenanceBuild`) van de gebruikte image.
+4. Deel nooit de verbindings-URL, het alleen-lezen wachtwoord of de inhoud van de Portainer-stackvariabelen.
+
+### Stap 8 — Herstel (`--apply`), alleen na uitdrukkelijke goedkeuring
+
+Pas na een verse back-up (zie *Back-ups*), een gecontroleerde dry-run en goedkeuring. Gebruik **dezelfde digest** als bij audit en dry-run. Zet een aparte schrijfverbinding
+in `MAINTENANCE_REPAIR_DATABASE_URL` (bijvoorbeeld de bestaande database-eigenaar, tijdelijk) en werk de stack bij (*Update the stack*). Dan:
+
+`npm run courses:repair -- --apply --backup-gemaakt --verwacht-database=<host>:<poort>/<database>`
+
+De waarde komt letterlijk uit de regel `Doeldatabase` van de dry-run. Het script weigert zonder `--backup-gemaakt`, zonder exact overeenkomende `host:poort/database`, en gebruikt nooit de
+alleen-lezen verbinding om te schrijven. Een alleen-lezen gebruiker is een extra veiligheid, geen vervanging van deze bevestigingen.
+
+### Stap 9 — Opruimen
+
+1. Verwijder de stack: *Stacks → jehova-maintenance → Remove*.
+2. Verwijder de alleen-lezen gebruiker: in de console van `jehova-db`: `psql -U bom -d bom -c 'DROP OWNED BY courses_ro; DROP ROLE courses_ro;'`.
+3. Bewaar geen schrijfgegevens (`MAINTENANCE_REPAIR_DATABASE_URL`) in notities of Git. De image zelf bevat geen gegevens; de digest in je notities kun je bewaren voor de verslaglegging.
 
 ## Back-ups
 

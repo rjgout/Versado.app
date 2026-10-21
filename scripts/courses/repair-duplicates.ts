@@ -12,9 +12,10 @@ if (apply && !process.argv.includes("--backup-gemaakt")) {
   process.exit(2);
 }
 // De verbinding wordt eenmaal vastgesteld, vóór er een client bestaat, en expliciet aan de client doorgegeven.
-const database = resolveDatabase();
+const database = resolveDatabase(process.env, undefined, apply ? "apply" : "read");
 const target = database.label;
-console.error(`Doeldatabase: ${formatDatabaseIdentity(target)}${apply ? " (WIJZIGT GEGEVENS)" : " (dry-run)"}`);
+console.error(`Onderhoudsimage build: ${process.env.NEXT_PUBLIC_BUILD_SHA ?? "onbekend"}`);
+console.error(`Doeldatabase (via ${database.source}): ${formatDatabaseIdentity(target)}${apply ? " (WIJZIGT GEGEVENS)" : " (dry-run)"}`);
 // Tegen een verkeerde omgeving: --apply werkt alleen als de operator host, poort én databasenaam letterlijk bevestigt (dezelfde naam kan
 // op verschillende servers bestaan). Dit gebeurt vóór er een databaseverbinding wordt gemaakt.
 const confirmation = process.argv.find((arg) => arg.startsWith("--verwacht-database="))?.slice("--verwacht-database=".length);
