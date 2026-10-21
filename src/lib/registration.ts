@@ -9,7 +9,7 @@ import { sendMail } from "@/lib/email";
 import { verifyEmailTemplate } from "@/lib/emailTemplates";
 import { getT } from "@/lib/i18n";
 import { failureLockSeconds, registerFailure } from "@/lib/rateLimit";
-import { leaveAllGroups } from "@/lib/social/groups";
+import { deleteUserAccount } from "@/lib/accountDeletion";
 
 // Registreren met e-mailbevestiging: eerst een PendingRegistration, pas bij
 // het klikken op de link een User. Zonder e-mailconfiguratie maakt
@@ -265,8 +265,7 @@ export async function cleanupRegistrations(now: Date = new Date()): Promise<{ pe
     try {
       // Net als bij zelf verwijderen: eerst uit elke groep, zodat ledentallen
       // kloppen; de cascade ruimt de rest op.
-      await leaveAllGroups(id, now);
-      await prisma.user.delete({ where: { id } });
+      await deleteUserAccount(id);
       accounts++;
     } catch (e) {
       console.error(`Onbevestigd account ${id} opruimen mislukt:`, e);

@@ -1,0 +1,42 @@
+name: Beveiliging en privacy
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/app/api/**'
+      - 'src/app/feedback/**'
+      - 'src/components/FeedbackClient.tsx'
+      - 'src/lib/**'
+      - 'src/server/**'
+      - 'server.ts'
+      - 'prisma/**'
+      - 'package*.json'
+      - 'scripts/security/**'
+      - 'tests/security*'
+      - '.github/workflows/security.yml'
+      - '.env.example'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      APP_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx prisma validate && npm run db:generate && npm run build
+      - run: npm run test:security:integration
+      - run: npm run test:native && npm run test:profile && npm run test:exercise-feedback
+      - run: npx tsc --noEmit && npm run lint
+      - run: npm audit --omit=dev --audit-level=high

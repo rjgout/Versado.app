@@ -9,6 +9,7 @@ import { adminPasswordResetTemplate } from "@/lib/emailTemplates";
 import { getT } from "@/lib/i18n";
 import { getBaseUrl } from "@/lib/baseUrl";
 import { apiError } from "@/lib/apiError";
+import { disconnectUserSockets } from "@/lib/realtime";
 
 // Leesbaar tijdelijk wachtwoord — alleen nog als noodgreep wanneer er geen
 // e-mail geconfigureerd staat (zie hieronder). Met werkende e-mail (het
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
     // buitengesloten te raken zonder werkende link.
     const unusableHash = await hashPassword(randomBytes(32).toString("hex"));
     await prisma.user.update({ where: { id: userId }, data: { passwordHash: unusableHash, mustChangePassword: true, sessionVersion: { increment: 1 } } });
+    disconnectUserSockets(userId);
 
     return NextResponse.json({ emailed: true, email: target.email });
   }
@@ -60,6 +62,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
   const tempPassword = generateTempPassword();
   const passwordHash = await hashPassword(tempPassword);
   await prisma.user.update({ where: { id: userId }, data: { passwordHash, passwordLoginEnabled: true, mustChangePassword: true, sessionVersion: { increment: 1 } } });
+  disconnectUserSockets(userId);
 
   return NextResponse.json({ tempPassword });
 }

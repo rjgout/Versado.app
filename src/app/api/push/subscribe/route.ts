@@ -3,10 +3,14 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
+import { isAllowedPushEndpoint } from "@/lib/pushEndpoint";
 
 const schema = z.object({
-  endpoint: z.string().url(),
-  keys: z.object({ p256dh: z.string().min(1), auth: z.string().min(1) }),
+  endpoint: z.string().url().refine(isAllowedPushEndpoint),
+  keys: z.object({
+    p256dh: z.string().regex(/^[A-Za-z0-9_-]{87}={0,1}$/),
+    auth: z.string().regex(/^[A-Za-z0-9_-]{22}={0,2}$/),
+  }),
 });
 
 export async function POST(req: NextRequest) {

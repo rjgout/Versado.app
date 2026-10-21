@@ -33,7 +33,7 @@ interface ReportView {
 const MAX_DIMENSION = 1400;
 const JPEG_QUALITY = 0.8;
 
-export default function FeedbackClient() {
+export default function FeedbackClient({ recipient }: { recipient: string | null }) {
   const t = useT();
   const intlLocale = getLanguage(useUiLanguage()).intlLocale;
   const [reports, setReports] = useState<ReportView[] | null>(null);
@@ -114,7 +114,7 @@ export default function FeedbackClient() {
   return (
     <ProfilePage title={t("pages.feedback")}>
       <ProfileCard
-        description={t("feedback.intro")}
+        description={<span className="break-words">{`${t("feedback.intro")}${recipient ? ` ${t("feedback.recipient", { recipient })}` : ""}`}</span>}
         actions={
           <SettingsButton variant="primary" disabled={submitting || !message.trim()} onClick={submit}>
             {submitting ? t("feedback.busy") : t("feedback.send")}

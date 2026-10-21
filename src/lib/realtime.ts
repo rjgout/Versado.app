@@ -13,6 +13,11 @@ export function setRealtimeServer(server: SocketIOServer): void {
   realtimeGlobal.__versadoRealtimeServer = server;
 }
 
+/** Ook via de Redis-adapter open verbindingen op andere app-instanties sluiten. */
+export function disconnectUserSockets(userId: string): void {
+  realtimeGlobal.__versadoRealtimeServer?.in(`user:${userId}`).disconnectSockets(true);
+}
+
 export function emitToUser(userId: string, event: string, payload?: unknown): void {
   realtimeGlobal.__versadoRealtimeServer?.to(`user:${userId}`).emit(event, payload);
 }

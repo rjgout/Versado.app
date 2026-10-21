@@ -7,6 +7,7 @@ import { randomUUID } from "crypto";
 import type { ChapterGuessLevel, FamilyGameDiceMode } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth";
+import { applicationOrigin } from "@/lib/baseUrl";
 import { isLiveTopic, topicRoom } from "@/lib/data/scopes";
 import { parseCookieHeader } from "@/lib/parseCookieHeader";
 import { isExerciseCorrect } from "@/lib/exerciseGen";
@@ -624,7 +625,10 @@ function handleFamilyEventChoice(room: RoomState, socket: Socket, choiceIndex: n
 }
 
 export function initGameServer(httpServer: HttpServer) {
-  ioInstance = new SocketIOServer(httpServer, { path: "/socket.io" });
+  ioInstance = new SocketIOServer(httpServer, {
+    path: "/socket.io",
+    allowRequest: (req, callback) => callback(null, !req.headers.origin || req.headers.origin === applicationOrigin()),
+  });
   setRealtimeServer(ioInstance);
 
   // Een net gestarte instantie heeft per definitie nog geen enkele
@@ -673,6 +677,21 @@ export function initGameServer(httpServer: HttpServer) {
     socket.data.userId = user.id;
     socket.data.displayName = user.handle;
     socket.join(`user:${user.id}`);
+    const token = parseCookieHeader(socket.handshake.headers.cookie)[SESSION_COOKIE];
+    const stillValid = async () => !!token && !!(await verifySessionToken(token));
+    // Elke mutatie opnieuw controleren; een ingetrokken token mag geen spelactie meer uitvoeren.
+    socket.use((_packet, next) => {
+      stillValid().then(valid => {
+        if (!valid) { socket.disconnect(true); return; }
+        next();
+      }).catch(() => socket.disconnect(true));
+    });
+    // Ook passief luisterende clients sluiten zodra hun token verloopt of wordt ingetrokken.
+    const sessionCheck = setInterval(() => {
+      stillValid().then(valid => { if (!valid) socket.disconnect(true); }).catch(() => socket.disconnect(true));
+    }, 30_000);
+    sessionCheck.unref();
+    socket.once("disconnect", () => clearInterval(sessionCheck));
     registerAlleskennerHandlers(ioInstance!, socket, user);
     registerStudyHandlers(ioInstance!, socket, user);
     registerQuickMissionaryHandlers(ioInstance!, socket, user);

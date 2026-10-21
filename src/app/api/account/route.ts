@@ -10,7 +10,10 @@ import { setIncognito, INCOGNITO_DURATIONS_HOURS } from "@/lib/presence";
 import { LANGUAGES, getLanguage } from "@/lib/languages";
 import { apiError, apiErrorText } from "@/lib/apiError";
 import {inventoryOriginAllowed} from "@/lib/content-inventory/origin";
-import { leaveAllGroups } from "@/lib/social/groups";
+import { deleteUserAccount } from "@/lib/accountDeletion";
+import { disconnectUserSockets } from "@/lib/realtime";
+import { authBudget, authBudgetKey } from "@/lib/authBudget";
+import { boundedJson } from "@/lib/requestBody";
 import { isValidTimeZone } from "@/lib/timeZone";
 import { PERSONAL_MASCOTS } from "@/lib/mascots";
 import { mascotToCompanion } from "@/lib/companion";
@@ -94,8 +97,8 @@ const patchSchema = z.object({
 const MAX_DISCRIMINATOR_ATTEMPTS = 25;
 
 const passwordSchema = z.object({
-  currentPassword: z.string().min(1, "Vul je huidige (of tijdelijke) wachtwoord in."),
-  newPassword: z.string().min(8, "Nieuw wachtwoord moet minstens 8 tekens zijn."),
+  currentPassword: z.string().min(1, "Vul je huidige (of tijdelijke) wachtwoord in.").max(256),
+  newPassword: z.string().min(8, "Nieuw wachtwoord moet minstens 8 tekens zijn.").max(256),
 });
 
 // Zelf je wachtwoord wijzigen — ook het verplichte pad na een
@@ -104,7 +107,10 @@ export async function PUT(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
 
-  const body = await req.json().catch(() => null);
+  const limited = await authBudget(authBudgetKey("password-change", user.id), 10, 15 * 60_000);
+  if (limited) return limited;
+
+  const body = await boundedJson(req);
   const parsed = passwordSchema.safeParse(body);
   if (!parsed.success) {
     return await apiErrorText(parsed.error.issues[0].message, 400);
@@ -122,6 +128,7 @@ export async function PUT(req: NextRequest) {
     where: { id: user.id },
     data: { passwordHash, mustChangePassword: false, sessionVersion: { increment: 1 } },
   });
+  disconnectUserSockets(user.id);
 
   const res = NextResponse.json({ ok: true });
   res.cookies.set(SESSION_COOKIE, await createSessionToken(user.id), sessionCookieOptions);
@@ -234,8 +241,7 @@ export async function DELETE() {
 
   // Eerst netjes uit elke groep, zodat ledentallen kloppen en een groep
   // zonder beheerder een opvolger krijgt; daarna ruimt de cascade de rest op.
-  await leaveAllGroups(user.id);
-  await prisma.user.delete({ where: { id: user.id } });
+  await deleteUserAccount(user.id);
 
   const res = NextResponse.json({ ok: true });
   res.cookies.set(SESSION_COOKIE, "", { path: "/", maxAge: 0 });

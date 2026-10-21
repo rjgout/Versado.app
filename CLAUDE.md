@@ -940,8 +940,9 @@ npm run dev                 # tsx server.ts, vereist een lokale/bereikbare Postg
 
 Belangrijke env vars (zie `.env.example`): `DATABASE_URL`, `REDIS_URL`,
 `SESSION_SECRET`, `ALLOW_INSECURE_COOKIES` (alleen voor http-LAN-testen),
-`APP_URL` (optioneel, anders auto-detectie uit het
-verzoek), `PODCAST_FEED_URL` (optioneel). SMTP wordt niet via env
+`APP_URL` (verplicht in productie; canonieke oorsprong, nooit uit requestheaders),
+`FEEDBACK_RECIPIENT_EMAIL` (optionele ontvanger; anders feedback alleen in beheer),
+`PODCAST_FEED_URL` (optioneel). SMTP wordt niet via env
 geconfigureerd maar via `/adminbackend` in de app zelf.
 
 Vóór een codewijziging als afgerond geldt: voer `npx tsc --noEmit` uit, test

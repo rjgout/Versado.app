@@ -8,9 +8,12 @@ import { resetPasswordTemplate } from "@/lib/emailTemplates";
 import { getT } from "@/lib/i18n";
 import { getBaseUrl } from "@/lib/baseUrl";
 import { apiError, apiErrorText } from "@/lib/apiError";
+import { authBudget, authBudgetKey } from "@/lib/authBudget";
+import { clientIp } from "@/lib/rateLimit";
+import { boundedJson } from "@/lib/requestBody";
 
 const schema = z.object({
-  identifier: z.string().trim().min(1, "Vul je e-mailadres of gebruikersnaam in."),
+  identifier: z.string().trim().min(1, "Vul je e-mailadres of gebruikersnaam in.").max(320),
 });
 
 // Geeft altijd hetzelfde generieke antwoord terug, ongeacht of het account
@@ -22,12 +25,16 @@ const GENERIC_RESPONSE = {
 };
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => null);
+  const limited = await authBudget(authBudgetKey("forgot-ip", clientIp(req)), 30, 15 * 60_000);
+  if (limited) return limited;
+  const body = await boundedJson(req);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return await apiErrorText(parsed.error.issues[0].message, 400);
   }
   const { identifier } = parsed.data;
+  const mailLimit = await authBudget(authBudgetKey("forgot-account", identifier.toLowerCase()), 3, 60 * 60_000);
+  if (mailLimit) return mailLimit.status === 429 ? NextResponse.json(GENERIC_RESPONSE) : mailLimit;
 
   if (!(await isEmailConfigured())) {
     // Geen enumeratie-risico hier: dit is een instellingsprobleem, geen

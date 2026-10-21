@@ -98,7 +98,9 @@
     "test:fsy-conversion:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --fsy-conversion --browser",
     "native:build": "tsx scripts/native/build.ts",
     "test:native": "tsx --test tests/native-foundation.test.ts",
-    "test:native:integration": "node scripts/native/test-isolated.mjs"
+    "test:native:integration": "node scripts/native/test-isolated.mjs",
+    "test:security": "tsx --test tests/security-policy.test.ts",
+    "test:security:integration": "node scripts/security/test-isolated.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",
@@ -130,7 +132,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "rss-parser": "3.13.0",
-    "sharp": "0.35.4",
+    "sharp": "0.35.5",
     "socket.io": "4.8.4",
     "socket.io-client": "4.8.4",
     "tsx": "4.23.15",
@@ -156,6 +158,7 @@
   },
   "overrides": {
     "deepmerge-ts": "8.0.2",
-    "mysql2": "3.24.5"
+    "mysql2": "3.24.5",
+    "source-map-js": "1.2.2"
   }
 }

@@ -68,7 +68,7 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
       const input = path === "register"
         ? z.object({ email: z.email().max(320), handle: z.string().min(HANDLE_MIN_LENGTH).max(HANDLE_MAX_LENGTH), password: z.string().min(8).max(256), inviteCode: z.string().max(32).optional(), next: z.string().max(512).optional() }).strict().parse(await body(req))
         : z.object({ identifier: z.string().trim().min(1).max(320) }).strict().parse(await body(req));
-      const forwarded = new NextRequest(req.url, { method: "POST", headers: { "content-type": "application/json", host: req.headers.get("host") ?? req.nextUrl.host }, body: JSON.stringify(input) });
+      const forwarded = new NextRequest(req.url, { method: "POST", headers: { "content-type": "application/json", host: req.headers.get("host") ?? req.nextUrl.host, "x-real-ip": clientIp(req) }, body: JSON.stringify(input) });
       const handler = path === "register" ? (await import("@/app/api/auth/register/route")).POST : (await import("@/app/api/auth/forgot-password/route")).POST;
       const response = await handler(forwarded);
       return json(await response.json(), response.status);
