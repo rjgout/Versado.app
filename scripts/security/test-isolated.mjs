@@ -26,7 +26,7 @@ try {
   docker(["run", "-d", "--name", redisName, "-p", "127.0.0.1::6379", "redis:7-alpine"]);
   let ready = false;
   for (let i = 0; i < 60; i++) {
-    try { docker(["exec", pgName, "pg_isready", "-U", "security_test"]); docker(["exec", redisName, "redis-cli", "ping"]); ready = true; break; } catch { await delay(500); }
+    try { docker(["exec", pgName, "pg_isready", "-h", "127.0.0.1", "-U", "security_test"]); docker(["exec", redisName, "redis-cli", "ping"]); ready = true; break; } catch { await delay(500); }
   }
   if (!ready) throw new Error("Eigen Postgres/Redis niet beschikbaar");
   const pgPort = docker(["port", pgName, "5432/tcp"]).split(":").at(-1);

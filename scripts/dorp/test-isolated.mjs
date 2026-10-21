@@ -20,7 +20,7 @@ let server,volumes=[];
 try{
  docker(['run','--rm','-d','--name',container,'-p','127.0.0.1::5432','-e','POSTGRES_USER=dorp_test','-e','POSTGRES_PASSWORD=isolated_only','-e','POSTGRES_DB=versado_content_access_test','postgres:16-alpine']);
  volumes=JSON.parse(docker(['inspect',container]))[0].Mounts.filter(m=>m.Type==='volume').map(m=>m.Name);
- let ready=false;for(let i=0;i<60;i++){try{docker(['exec',container,'pg_isready','-U','dorp_test']);ready=true;break;}catch{await delay(500);}}
+ let ready=false;for(let i=0;i<60;i++){try{docker(['exec',container,'pg_isready','-h','127.0.0.1','-U','dorp_test']);ready=true;break;}catch{await delay(500);}}
  if(!ready)throw Error('Lokale wegwerpdatabase niet gestart');
  const dbPort=docker(['port',container,'5432/tcp']).split(':').at(-1);
  const database=`postgresql://dorp_test:isolated_only@127.0.0.1:${dbPort}/versado_content_access_test`;

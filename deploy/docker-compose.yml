@@ -65,10 +65,10 @@ services:
       # browser een Secure-cookie negeert zonder https. Weer op "false"
       # zetten (of de regel weghalen) zodra je via je https-domein test.
       ALLOW_INSECURE_COOKIES: "false"
-      # Optioneel: alleen nodig als de links in bevestigings-/resetmails niet
-      # vanzelf het juiste adres krijgen (zie .env.example). SMTP-instellingen
-      # zelf stel je in via /adminbackend in de app, niet hier.
-      # APP_URL: "https://jehova.jouwdomein.nl"
+      # Verplicht in de Portainer-stackvariabelen: de canonieke HTTPS-oorsprong.
+      # SMTP zelf blijft instelbaar via /adminbackend.
+      APP_URL: ${APP_URL:?Stel APP_URL in op de publieke HTTPS-oorsprong}
+      FEEDBACK_RECIPIENT_EMAIL: ${FEEDBACK_RECIPIENT_EMAIL:-}
       # Voor het "Nu deployen"/"Onderhoudsmodus"/"Rollback"-paneel in
       # /adminbackend — zelfde geheim als hieronder bij jehova-deploy.
       DEPLOY_AGENT_URL: "http://jehova-deploy:4000"
@@ -130,7 +130,7 @@ services:
     volumes:
       - /volume1/docker/jehova-app/postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bom -d bom"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U bom -d bom"]
       interval: 10s
       timeout: 5s
       retries: 5

@@ -44,7 +44,7 @@ try {
   ownedPgVolumes=JSON.parse(docker(["inspect",container]))[0].Mounts.filter(m=>m.Type==="volume").map(m=>m.Name);
   let ready = false;
   for (let i = 0; i < 60; i++) {
-    try { docker(["exec", container, "pg_isready", "-U", "content_access_test"]); ready = true; break; } catch { await delay(500); }
+    try { docker(["exec", container, "pg_isready", "-h", "127.0.0.1", "-U", "content_access_test"]); ready = true; break; } catch { await delay(500); }
   }
   if (!ready) throw new Error("Eigen testdatabase niet beschikbaar");
   const port = docker(["port", container, "5432/tcp"]).split(":").at(-1);

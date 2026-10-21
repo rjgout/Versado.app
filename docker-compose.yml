@@ -59,6 +59,7 @@ services:
       # meer inloggen). De containernaam hieronder is puur cosmetisch en
       # veilig om te wijzigen.
       DATABASE_URL: "postgresql://${POSTGRES_USER:-bom}:${POSTGRES_PASSWORD:?Zet POSTGRES_PASSWORD in .env}@jehova-db:5432/${POSTGRES_DB:-bom}?schema=public"
+      APP_URL: ${APP_URL:?Zet APP_URL in .env op de canonieke oorsprong}
       STUDY_MEDIA_DIR: /data/study-media
       REDIS_URL: "redis://:${REDIS_PASSWORD:?Zet REDIS_PASSWORD in .env}@jehova-redis:6379"
     volumes:
@@ -88,7 +89,7 @@ services:
     volumes:
       - jehova_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bom} -d ${POSTGRES_DB:-bom}"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${POSTGRES_USER:-bom} -d ${POSTGRES_DB:-bom}"]
       interval: 10s
       timeout: 5s
       retries: 5

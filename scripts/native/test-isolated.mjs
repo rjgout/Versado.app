@@ -16,7 +16,7 @@ const port=await new Promise(resolve=>{const s=createServer();s.listen(0,'127.0.
 let server;
 try{
  docker(['run','--rm','-d','--name',container,'-e','POSTGRES_PASSWORD=synthetic-only','-e','POSTGRES_DB=versado_content_access_test','-p','127.0.0.1::5432','postgres:16-alpine']);
- let ready=false;for(let i=0;i<60;i++){try{docker(['exec',container,'pg_isready','-U','postgres']);ready=true;break;}catch{}await delay(250);}if(!ready)throw Error('Eigen Postgres start niet');
+ let ready=false;for(let i=0;i<60;i++){try{docker(['exec',container,'pg_isready','-h','127.0.0.1','-U','postgres']);ready=true;break;}catch{}await delay(250);}if(!ready)throw Error('Eigen Postgres start niet');
  const dbPort=docker(['port',container,'5432/tcp']).split(':').at(-1),db=`postgresql://postgres:synthetic-only@127.0.0.1:${dbPort}/versado_content_access_test`,base=`http://127.0.0.1:${port}`;
  const env={...process.env,DATABASE_URL:db,CONTENT_ACCESS_TEST_DATABASE_URL:db,CONTENT_ACCESS_TEST_BASE_URL:base,NATIVE_TEST_DATABASE_URL:db,LEARNING_TEST_DATABASE_URL:db,NATIVE_TEST_BASE_URL:base,APP_URL:base,SESSION_SECRET:'native-isolated-web-secret-at-least-32-chars',NATIVE_SESSION_SECRET:'native-isolated-only-secret-at-least-32-chars',NATIVE_API_ENABLED:'1',APPLE_SIGN_IN_ENABLED:'1',APPLE_TEAM_ID:'TESTTEAM01',APPLE_IOS_CLIENT_ID:'app.versado.synthetic',NODE_ENV:'production'};
  // Gecontroleerde oude database: alle bestaande migraties zonder nieuwe auth-DDL.

@@ -24,7 +24,7 @@ try {
   docker(["run", "--rm", "-d", "--name", container, "-p", "127.0.0.1::5432", "-e", "POSTGRES_USER=layout_test", "-e", "POSTGRES_PASSWORD=layout_test", "-e", "POSTGRES_DB=versado_layout_test", "postgres:16-alpine"]);
   let ready = false;
   for (let i = 0; i < 60; i++) {
-    try { docker(["exec", container, "pg_isready", "-U", "layout_test"]); ready = true; break; } catch { await delay(500); }
+    try { docker(["exec", container, "pg_isready", "-h", "127.0.0.1", "-U", "layout_test"]); ready = true; break; } catch { await delay(500); }
   }
   if (!ready) throw new Error("Testdatabase niet beschikbaar");
   const port = docker(["port", container, "5432/tcp"]).split(":").at(-1);
