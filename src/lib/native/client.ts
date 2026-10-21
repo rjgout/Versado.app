@@ -1,19 +1,21 @@
 import { z } from "zod";
-import { nativeTokensSchema } from "./contract";
+import { nativeTokensSchema, nativeSetupSchema, type NativeSecuritySetup } from "./contract";
 export interface SecureSessionStore { read(): Promise<string | null>; write(value: string): Promise<void>; clear(): Promise<void> }
-const retirementSchema = z.object({ refreshToken: z.string().min(1).max(128), actionId: z.uuid() }).strict();
+const retirementSchema = z.object({ refreshToken: z.string().min(1).max(128), actionId: z.uuid(), kind: z.literal("setup").optional() }).strict();
 const savedSchema = z.object({
   refreshToken: z.string().min(1).max(128), actionId: z.uuid().optional(), logoutPending: z.boolean().optional(),
   pendingRevocations: z.array(retirementSchema).max(16).optional(),
-}).strict();
+  kind: z.literal("setup").optional(),
+}).strict().refine(value => !value.kind || value.logoutPending === true);
 export type SavedSession = z.infer<typeof savedSchema>;
 type Retirement = z.infer<typeof retirementSchema>;
+export interface NativeSignInOutcome { securitySetup?: NativeSecuritySetup; recoveryCodes?: string[] }
 export class NativeClientError extends Error {
   constructor(public code: string, public status = 0) { super(code); }
 }
 function retirements(saved: SavedSession | null): Retirement[] {
   if (!saved) return [];
-  return [...(saved.pendingRevocations ?? []), ...(saved.logoutPending ? [{ refreshToken: saved.refreshToken, actionId: saved.actionId ?? crypto.randomUUID() }] : [])];
+  return [...(saved.pendingRevocations ?? []), ...(saved.logoutPending ? [{ refreshToken: saved.refreshToken, actionId: saved.actionId ?? crypto.randomUUID(), ...(saved.kind ? { kind: saved.kind } : {}) }] : [])];
 }
 function pack(active: SavedSession | null, pending: Retirement[]): SavedSession | null {
   const unique = [...new Map(pending.filter(item => item.refreshToken !== active?.refreshToken).map(item => [item.refreshToken, item])).values()];
@@ -28,6 +30,7 @@ export class NativeSessionClient {
   private storageQueue: Promise<unknown> = Promise.resolve();
   private generation = 0;
   private authenticating: number | null = null;
+  private securitySetup: { value: NativeSecuritySetup; generation: number } | null = null;
   constructor(readonly baseUrl: string, private store: SecureSessionStore, private transport: typeof fetch = (input, init) => fetch(input, init)) {}
 
   // Lees + voorwaardelijke wijziging vormen samen één transactie in deze client.
@@ -74,11 +77,50 @@ export class NativeSessionClient {
 
   // Alle providers starten hun authenticatie vóór challenge/netwerk/OS-prompts.
   // Daardoor kan ook een laat Apple-antwoord na logout geen sessie herstellen.
-  async authenticate(authorize: (isCurrent: () => boolean) => Promise<unknown>): Promise<void> {
+  async authenticate(authorize: (isCurrent: () => boolean) => Promise<unknown>): Promise<NativeSignInOutcome> {
     const generation = ++this.generation;
-    this.authenticating = generation; this.access = null;
-    try { await this.install(await authorize(() => generation === this.generation && this.authenticating === generation), generation); }
-    finally { if (this.authenticating === generation) this.authenticating = null; }
+    this.authenticating = generation; this.access = null; this.securitySetup = null;
+    try { return await this.signInResult(await authorize(() => generation === this.generation && this.authenticating === generation), generation); }
+    finally { if (this.authenticating === generation) this.authenticating = null; void this.flushRevocations().catch(() => {}); }
+  }
+  private async signInResult(value: unknown, generation: number): Promise<NativeSignInOutcome> {
+    const setup = nativeSetupSchema.safeParse(value);
+    if (setup.success) {
+      const challenge = setup.data.securitySetup;
+      // Setup mag nooit als hervatbare sessie worden opgeslagen. Duurzaam
+      // bewaren we uitsluitend de intrekking bij logout/herstart. Zolang
+      // deze ene geheugenflow actief is, slaat de flusher haar intentie over.
+      if (generation === this.generation) this.securitySetup = { value: challenge, generation };
+      try {
+        await this.edit(current => {
+          const active = current && !current.logoutPending ? current : null;
+          const accepted = generation === this.generation;
+          return pack(accepted ? null : active, [...retirements(current),
+            ...(accepted && active ? [{ refreshToken: active.refreshToken, actionId: active.actionId ?? crypto.randomUUID() }] : []),
+            { refreshToken: challenge.token, actionId: crypto.randomUUID(), kind: "setup" },
+          ]);
+        });
+      } catch (error) {
+        if (this.securitySetup?.value.token === challenge.token) this.securitySetup = null;
+        await this.request("security-setup/cancel", { challengeToken: challenge.token }).catch(() => {});
+        throw error;
+      }
+      this.assertGeneration(generation);
+      return { securitySetup: challenge };
+    }
+    const extra = z.object({ recoveryCodes: z.array(z.string().min(1).max(100)).min(1).max(16).optional() }).safeParse(value);
+    if (!extra.success) throw new NativeClientError("invalid_response");
+    if (generation === this.generation) this.securitySetup = null;
+    await this.install(value, generation);
+    return extra.data;
+  }
+  async completeSecuritySetup(input: { newPassword?: string; code?: string }): Promise<NativeSignInOutcome> {
+    const setup = this.securitySetup;
+    if (!setup || setup.generation !== this.generation) throw new NativeClientError("setup_expired", 401);
+    if (this.authenticating !== null) throw new NativeClientError("authentication_in_progress", 409);
+    this.authenticating = setup.generation;
+    try { return await this.signInResult(await this.request("security-setup/complete", { challengeToken: setup.value.token, ...input }), setup.generation); }
+    finally { if (this.authenticating === setup.generation) this.authenticating = null; void this.flushRevocations().catch(() => {}); }
   }
   private async install(value: unknown, generation: number, rotation?: { refreshToken: string; actionId: string }) {
     const parsed = nativeTokensSchema.pick({ accessToken: true, refreshToken: true }).safeParse(value);
@@ -119,8 +161,8 @@ export class NativeSessionClient {
     // staat. Hun transport blokkeert de nieuwe accountweergave niet.
     void this.flushRevocations().catch(() => {});
   }
-  async login(identifier: string, password: string, code?: string) {
-    return this.authenticate(() => this.request("login", { identifier, password, ...(code ? { code } : {}) }));
+  async login(identifier: string, password: string, code?: string, supportsSecuritySetup = false) {
+    return this.authenticate(() => this.request("login", { identifier, password, ...(code ? { code } : {}), ...(supportsSecuritySetup ? { supportsSecuritySetup: true } : {}) }));
   }
   async restore(): Promise<boolean> {
     const generation = this.generation;
@@ -184,17 +226,17 @@ export class NativeSessionClient {
     if (this.revocationQueue) return this.revocationQueue;
     this.revocationQueue = (async () => {
       for (;;) {
-        const pending = retirements(await this.saved())[0]; if (!pending) return;
-        try { await this.request("logout", pending); }
+        const pending = retirements(await this.saved()).find(item => item.kind !== "setup" || item.refreshToken !== this.securitySetup?.value.token); if (!pending) return;
+        try { await this.request(pending.kind === "setup" ? "security-setup/cancel" : "logout", pending.kind === "setup" ? { challengeToken: pending.refreshToken } : pending); }
         catch (error) { if (!(error instanceof NativeClientError) || error.status !== 401) throw error; }
-        await this.edit(current => pack(current && !current.logoutPending ? current : null, retirements(current).filter(item => item.refreshToken !== pending.refreshToken)));
+        await this.edit(current => pack(current && !current.logoutPending ? current : null, retirements(current).filter(item => item.refreshToken !== pending.refreshToken || item.kind !== pending.kind)));
       }
     })().finally(() => { this.revocationQueue = null; });
     return this.revocationQueue;
   }
   async logout(onCommitted?: () => void) {
     const generation = ++this.generation;
-    this.access = null; this.authenticating = null;
+    this.access = null; this.authenticating = null; this.securitySetup = null;
     await this.edit(current => {
       if (!current) return null;
       return pack(null, [...retirements(current), ...(!current.logoutPending ? [{ refreshToken: current.refreshToken, actionId: current.actionId ?? crypto.randomUUID() }] : [])]);

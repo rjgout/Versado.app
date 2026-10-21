@@ -220,6 +220,11 @@ De technische architectuur, migratieplanning en releasegates staan in
   en productie blijven onderscheiden. Omzeil nooit releasebeveiligingen;
   `CAPACITOR_BUILD_PROFILE=release` blijft geblokkeerd. Native push volgt apart;
   vraag geen onnodige permissies. Native identiteit: `app.versado.app`.
+- Verplichte native wachtwoord-/beheerder-TOTP-setup gebruikt uitsluitend een
+  kortlevende, eenmalige account-/doel-/sessieversiechallenge. Die geeft nooit
+  gewone Bearer-/refresh- of algemene API-toegang. Pas na alle verplichte stappen
+  volgt een sessie. Na logout/heropening mag alleen de beveiligde intrekking
+  worden uitgevoerd; deel accountformulieren en domeinservices met web.
 - Controleer risicogebaseerd: web/PWA, Capacitor-preview, lokale native geschiktheid,
   platformonafhankelijke API/auth, safe areas/keyboard/oriëntatie/navigatie,
   offline/fouten en relevante regressies. Kleine tekstwijzigingen vereisen geen

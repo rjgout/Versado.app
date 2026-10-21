@@ -344,10 +344,11 @@
     },
     {
       "file": "src/app/api/account/route.ts",
-      "sha256": "e626868c475d1775c02b134a8f1c65a029bdb4574b6ae78c62a0923ba63b8672",
+      "sha256": "89019119b1f1563fd9fcc0fe284c73a11819e89118a5cfe63df3e360d2273720",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
+        "@/lib/account/password",
         "@/lib/accountDeletion",
         "@/lib/achievements",
         "@/lib/apiError",
@@ -364,7 +365,6 @@
         "@/lib/languages",
         "@/lib/mascots",
         "@/lib/presence",
-        "@/lib/realtime",
         "@/lib/requestBody",
         "@/lib/session",
         "@/lib/timeZone",
@@ -380,8 +380,7 @@
       "checks": [
         "canUseAccessory",
         "canUseAvatarCharacter",
-        "getCurrentUser",
-        "verifyPassword"
+        "getCurrentUser"
       ],
       "exports": [
         "DELETE",
@@ -8707,19 +8706,18 @@
     },
     {
       "file": "src/components/ChangePasswordClient.tsx",
-      "sha256": "f26c7d32bb109adfa2e8294e55aaa664df13c23aae15cda9518a2fba5770ccbb",
+      "sha256": "5418e8d6ad32066d07c2772cc824bc030b23803e9a1554d7bd6a1232bd4f3775",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/account/AccountActionsProvider",
+        "@/components/account/PasswordChangeForm",
+        "@/components/navigation/AppNavigation",
         "@/components/profile/ProfilePage",
-        "@/components/profile/settings",
-        "next/navigation",
-        "react"
+        "@/lib/account/web"
       ],
       "methods": [],
-      "requests": [
-        "/api/account"
-      ],
+      "requests": [],
       "checks": [],
       "exports": [
         "ChangePasswordClient"
@@ -10705,13 +10703,13 @@
     },
     {
       "file": "src/components/TwoFactorSettings.tsx",
-      "sha256": "762c0a6ac672cacfcadb3720a4facfeaaa4906637c1fb87a9ce91f36cf312a1f",
+      "sha256": "90b1b397099174d9cc9c3fc56662581eb20b1e6bc2c05f70123d4aad4f8ddb06",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/account/TwoFactorCards",
         "@/components/profile/settings",
         "lucide-react",
-        "qrcode-generator",
         "react"
       ],
       "methods": [],
@@ -10892,6 +10890,59 @@
       "checks": [],
       "exports": [
         "XpHistoryClient"
+      ]
+    },
+    {
+      "file": "src/components/account/AccountActionsProvider.tsx",
+      "sha256": "c284a846024fd6dbcea2a95d0080cb44dffed1a53b1c581d828adb0c94ad7df0",
+      "boundary": "client",
+      "imports": [
+        "@/lib/account/contracts",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AccountActionsProvider",
+        "useAccountActions"
+      ]
+    },
+    {
+      "file": "src/components/account/PasswordChangeForm.tsx",
+      "sha256": "962e5d1fac065fb01463d761833ae826dc52ff215a8261b98f9b8747d728b782",
+      "boundary": "client",
+      "imports": [
+        "./AccountActionsProvider",
+        "@/components/I18nProvider",
+        "@/components/profile/settings",
+        "@/lib/account/contracts",
+        "@/lib/data/fetchJson",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "PasswordChangeForm"
+      ]
+    },
+    {
+      "file": "src/components/account/TwoFactorCards.tsx",
+      "sha256": "75fd6076587a879389a6b8368213c0db0db9705bb488bc7d11dc05cfe87d6fad",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/profile/settings",
+        "qrcode-generator",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "RecoveryCodesCard",
+        "TwoFactorSetupCard"
       ]
     },
     {
@@ -12000,11 +12051,14 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "7bc3ebdbb0844ae70cb573094a0ec625da918ada0558e127d9860cde42b1e802",
+      "sha256": "3feb8e35c0c91513457b0530608e917fb05184d14d19bc414ba3afeffa22935a",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/StickyHeader",
+        "@/components/account/AccountActionsProvider",
+        "@/components/account/PasswordChangeForm",
+        "@/components/account/TwoFactorCards",
         "@/components/legal/CookiesContent",
         "@/components/legal/PrivacyContent",
         "@/components/navigation/AppNavigation",
@@ -12013,6 +12067,7 @@
         "@/components/versado/MascotSlot",
         "@/components/versado/styles",
         "@/lib/handle",
+        "@/lib/native/account",
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/navigation",
@@ -12200,12 +12255,12 @@
     },
     {
       "file": "src/components/profile/settings.tsx",
-      "sha256": "e5eb2711ab09de90f856e750dcd4c798908bc0c599e56e3c0095822748c3a1a7",
+      "sha256": "bc170814a6c580eb1485f0d30fdb41cf0bbde251061fba25c251ee7f760facf7",
       "boundary": "client",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/components/versado/ToggleSwitch",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -14273,6 +14328,55 @@
       "checks": [],
       "exports": [
         "useCardListSave"
+      ]
+    },
+    {
+      "file": "src/lib/account/contracts.ts",
+      "sha256": "03dee7f35a98e49d5f9a85bea5c4c4c2e351e0b55fa178d053d629e0e8e80bf3",
+      "boundary": "context-dependent",
+      "imports": [
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "passwordChangeSchema"
+      ]
+    },
+    {
+      "file": "src/lib/account/password.ts",
+      "sha256": "12fdd153022bba7542f3a9f6882b0a63bd931699d1312025835ce75e01a678ba",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/auth",
+        "@/lib/db",
+        "@/lib/realtime"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "verifyPassword"
+      ],
+      "exports": [
+        "changeAccountPassword"
+      ]
+    },
+    {
+      "file": "src/lib/account/web.ts",
+      "sha256": "b12c455071d538f8c2888d605e58368907e91e87674b8e74ed0ef2825337dc6b",
+      "boundary": "context-dependent",
+      "imports": [
+        "./contracts",
+        "@/lib/data/fetchJson"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/account"
+      ],
+      "checks": [],
+      "exports": [
+        "webAccountActions"
       ]
     },
     {
@@ -18709,15 +18813,38 @@
       "exports": []
     },
     {
+      "file": "src/lib/native/account.ts",
+      "sha256": "10d538b7fc96e70ca43827c4e6e0d0d8db1762a64980dfe250fa64183f28ee9e",
+      "boundary": "context-dependent",
+      "imports": [
+        "./client",
+        "@/lib/account/contracts",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [
+        "account/password"
+      ],
+      "checks": [],
+      "exports": [
+        "nativeAccountActions"
+      ]
+    },
+    {
       "file": "src/lib/native/api.ts",
-      "sha256": "bb36cfed8506337035006e43eb05aa5a5fff37aa5a03bb40f5fe969bc6e59071",
+      "sha256": "47595e2f687fba6af7837a0510aff12dada28c8e17a19f167fda5c0e77941b42",
       "boundary": "context-dependent",
       "imports": [
         "./apple",
+        "./contract",
         "./password",
+        "./securitySetup",
         "./sessions",
         "@/app/api/auth/forgot-password/route",
         "@/app/api/auth/register/route",
+        "@/lib/account/contracts",
+        "@/lib/account/password",
+        "@/lib/authBudget",
         "@/lib/contentAccess",
         "@/lib/db",
         "@/lib/handle",
@@ -18729,6 +18856,7 @@
       "methods": [],
       "requests": [],
       "checks": [
+        "cancelNativeSecuritySetup",
         "nativeUser"
       ],
       "exports": [
@@ -18739,7 +18867,7 @@
     },
     {
       "file": "src/lib/native/apple.ts",
-      "sha256": "d3540473064befeea641295835136ff630bdcd90d9447d0eb1063208aede96fe",
+      "sha256": "2878bf0c54e7eac9bacd023bee300122b934b64056df1fbd67a6629fcd5c288e",
       "boundary": "context-dependent",
       "imports": [
         "./password",
@@ -18787,7 +18915,7 @@
     },
     {
       "file": "src/lib/native/client.ts",
-      "sha256": "e19cf1b8fd07f87bbf7c28eb85bf19d6a478f6141d15649a3433d5ffc778c205",
+      "sha256": "7a53033a6f30176873d58464b01433b60ed90a7633fb58725f338f4d3511a42b",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
@@ -18800,7 +18928,7 @@
     },
     {
       "file": "src/lib/native/contract.ts",
-      "sha256": "649298496f3cf981a96c1d337ec11c29438c8bb47a9348fbefe338e69be67024",
+      "sha256": "c0634d88ef4ee497098d7391062d76771f70029eb5dc0dcea30e25d2a66c68ee",
       "boundary": "context-dependent",
       "imports": [
         "zod"
@@ -18810,14 +18938,17 @@
       "checks": [],
       "exports": [
         "nativeAccountSchema",
+        "nativeCapabilitiesSchema",
         "nativeChapterSchema",
+        "nativeSetupFinishSchema",
+        "nativeSetupSchema",
         "nativeTodaySchema",
         "nativeTokensSchema"
       ]
     },
     {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "ef7df3b50bcc4ce386de3536c69de2902909409446062cb735ca4c0a7cd82673",
+      "sha256": "4748cc63665fe2f03701f81f0a7209b844c5047195aa8ca03ffceda0ea4bf0fb",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -18830,7 +18961,7 @@
     },
     {
       "file": "src/lib/native/password.ts",
-      "sha256": "22faba8a9fbd3e3b985b17a3cd3386cc5d624555fc1872b501a8f96f66030965",
+      "sha256": "2412cccecd5b0f2250d7803e9727077c697d35dc045e286b95b0d17cdb03b2ef",
       "boundary": "context-dependent",
       "imports": [
         "./sessions",
@@ -18847,18 +18978,51 @@
       "requests": [],
       "checks": [
         "assertNativeAccount",
+        "assertNativeEmail",
         "verifyPassword",
         "verifyTotpCode"
       ],
       "exports": [
         "assertNativeAccount",
+        "assertNativeEmail",
         "nativePasswordLogin",
+        "nativePasswordProof",
         "nativeSecondFactor"
       ]
     },
     {
+      "file": "src/lib/native/securitySetup.ts",
+      "sha256": "1bf3ed1ce0f6fb6a5509814a3edc444e1a0beeb0d96cb6cde1c0d59bf86fe3cf",
+      "boundary": "context-dependent",
+      "imports": [
+        "./contract",
+        "./password",
+        "./sessions",
+        "@/generated/prisma/client",
+        "@/lib/auth",
+        "@/lib/authBudget",
+        "@/lib/db",
+        "@/lib/handle",
+        "@/lib/realtime",
+        "@/lib/totp",
+        "node:crypto"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "assertNativeEmail",
+        "verifyTotpCode"
+      ],
+      "exports": [
+        "cancelNativeSecuritySetup",
+        "finishNativeSecuritySetup",
+        "nativeSecurityStep",
+        "nativeSignInResult"
+      ]
+    },
+    {
       "file": "src/lib/native/sessions.ts",
-      "sha256": "cf6bc833420af258cc5ca06d9fe2d37cdc3d36efa3614c79992a5b779ffffe07",
+      "sha256": "623a74273f2791b39ec28e71b19a2bba596784224e4505f11e7838de70488fa3",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -25394,10 +25558,11 @@
     },
     {
       "file": "src/app/api/account/route.ts",
-      "sha256": "e626868c475d1775c02b134a8f1c65a029bdb4574b6ae78c62a0923ba63b8672",
+      "sha256": "89019119b1f1563fd9fcc0fe284c73a11819e89118a5cfe63df3e360d2273720",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
+        "@/lib/account/password",
         "@/lib/accountDeletion",
         "@/lib/achievements",
         "@/lib/apiError",
@@ -25414,7 +25579,6 @@
         "@/lib/languages",
         "@/lib/mascots",
         "@/lib/presence",
-        "@/lib/realtime",
         "@/lib/requestBody",
         "@/lib/session",
         "@/lib/timeZone",
@@ -25430,8 +25594,7 @@
       "checks": [
         "canUseAccessory",
         "canUseAvatarCharacter",
-        "getCurrentUser",
-        "verifyPassword"
+        "getCurrentUser"
       ],
       "exports": [
         "DELETE",
@@ -25443,6 +25606,7 @@
       "domain": "account",
       "dependencies": [
         "src/app/api/account/route.ts",
+        "src/lib/account/password.ts",
         "src/lib/accountDeletion.ts",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
@@ -25511,6 +25675,7 @@
         "src/lib/xp.ts"
       ],
       "directModules": [
+        "src/lib/account/password.ts",
         "src/lib/accountDeletion.ts",
         "src/lib/achievements.ts",
         "src/lib/apiError.ts",
@@ -25527,7 +25692,6 @@
         "src/lib/languages.ts",
         "src/lib/mascots.ts",
         "src/lib/presence.ts",
-        "src/lib/realtime.ts",
         "src/lib/requestBody.ts",
         "src/lib/session.ts",
         "src/lib/timeZone.ts"
@@ -25537,8 +25701,7 @@
       "authEvidence": [
         "canUseAccessory",
         "canUseAvatarCharacter",
-        "getCurrentUser",
-        "verifyPassword"
+        "getCurrentUser"
       ]
     },
     {
@@ -44619,6 +44782,8 @@
         "src/app/api/auth/forgot-password/route.ts",
         "src/app/api/auth/register/route.ts",
         "src/app/api/v1/native/[...path]/route.ts",
+        "src/lib/account/contracts.ts",
+        "src/lib/account/password.ts",
         "src/lib/accountDeletion.ts",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
@@ -44709,7 +44874,9 @@
         "src/lib/mysteries/types.ts",
         "src/lib/native/api.ts",
         "src/lib/native/apple.ts",
+        "src/lib/native/contract.ts",
         "src/lib/native/password.ts",
+        "src/lib/native/securitySetup.ts",
         "src/lib/native/sessions.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
@@ -46102,10 +46269,16 @@
         "src/components/ChangePasswordClient.tsx",
         "src/components/Footer.tsx",
         "src/components/I18nProvider.tsx",
+        "src/components/account/AccountActionsProvider.tsx",
+        "src/components/account/PasswordChangeForm.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfilePage.tsx",
         "src/components/profile/settings.tsx",
         "src/components/versado/ToggleSwitch.tsx",
+        "src/lib/account/contracts.ts",
+        "src/lib/account/web.ts",
         "src/lib/auth.ts",
+        "src/lib/data/fetchJson.ts",
         "src/lib/db.ts",
         "src/lib/i18n/core.ts",
         "src/lib/i18n/messages/kompas/nl.ts",
@@ -46122,6 +46295,9 @@
         "src/components/ChangePasswordClient.tsx",
         "src/components/Footer.tsx",
         "src/components/I18nProvider.tsx",
+        "src/components/account/AccountActionsProvider.tsx",
+        "src/components/account/PasswordChangeForm.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfilePage.tsx",
         "src/components/profile/settings.tsx",
         "src/components/versado/ToggleSwitch.tsx"
@@ -48363,6 +48539,7 @@
         "src/components/FeedbackClient.tsx",
         "src/components/Footer.tsx",
         "src/components/I18nProvider.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfilePage.tsx",
         "src/components/profile/settings.tsx",
         "src/components/versado/ToggleSwitch.tsx",
@@ -48399,6 +48576,7 @@
         "src/components/FeedbackClient.tsx",
         "src/components/Footer.tsx",
         "src/components/I18nProvider.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfilePage.tsx",
         "src/components/profile/settings.tsx",
         "src/components/versado/ToggleSwitch.tsx"
@@ -48688,6 +48866,7 @@
         "src/components/UserTag.tsx",
         "src/components/dorp/DorpPrototypeClient.tsx",
         "src/components/dorp/FriendVillagePreview.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/settings.tsx",
         "src/components/puzzle/RecordCard.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -48829,6 +49008,7 @@
         "src/components/ProfileCharacterHero.tsx",
         "src/components/dorp/DorpPrototypeClient.tsx",
         "src/components/dorp/FriendVillagePreview.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/settings.tsx",
         "src/components/puzzle/RecordCard.tsx",
         "src/components/versado/AchievementIcon.tsx",
@@ -57176,9 +57356,11 @@
         "src/components/SortableList.tsx",
         "src/components/ThemePreference.tsx",
         "src/components/TwoFactorSettings.tsx",
+        "src/components/account/TwoFactorCards.tsx",
         "src/components/dorp/DorpEntry.tsx",
         "src/components/kompas/KompasEntryCard.tsx",
         "src/components/kompas/KompasIcon.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfileContentViews.tsx",
         "src/components/profile/ProfilePage.tsx",
         "src/components/profile/ProfileSettingsViews.tsx",
@@ -57292,8 +57474,10 @@
         "src/components/SortableList.tsx",
         "src/components/ThemePreference.tsx",
         "src/components/TwoFactorSettings.tsx",
+        "src/components/account/TwoFactorCards.tsx",
         "src/components/dorp/DorpEntry.tsx",
         "src/components/kompas/KompasEntryCard.tsx",
+        "src/components/navigation/AppNavigation.tsx",
         "src/components/profile/ProfileContentViews.tsx",
         "src/components/profile/ProfilePage.tsx",
         "src/components/profile/ProfileSettingsViews.tsx",
@@ -64363,19 +64547,18 @@
     },
     {
       "file": "src/components/ChangePasswordClient.tsx",
-      "sha256": "f26c7d32bb109adfa2e8294e55aaa664df13c23aae15cda9518a2fba5770ccbb",
+      "sha256": "5418e8d6ad32066d07c2772cc824bc030b23803e9a1554d7bd6a1232bd4f3775",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/account/AccountActionsProvider",
+        "@/components/account/PasswordChangeForm",
+        "@/components/navigation/AppNavigation",
         "@/components/profile/ProfilePage",
-        "@/components/profile/settings",
-        "next/navigation",
-        "react"
+        "@/lib/account/web"
       ],
       "methods": [],
-      "requests": [
-        "/api/account"
-      ],
+      "requests": [],
       "checks": [],
       "exports": [
         "ChangePasswordClient"
@@ -66361,13 +66544,13 @@
     },
     {
       "file": "src/components/TwoFactorSettings.tsx",
-      "sha256": "762c0a6ac672cacfcadb3720a4facfeaaa4906637c1fb87a9ce91f36cf312a1f",
+      "sha256": "90b1b397099174d9cc9c3fc56662581eb20b1e6bc2c05f70123d4aad4f8ddb06",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/account/TwoFactorCards",
         "@/components/profile/settings",
         "lucide-react",
-        "qrcode-generator",
         "react"
       ],
       "methods": [],
@@ -66548,6 +66731,59 @@
       "checks": [],
       "exports": [
         "XpHistoryClient"
+      ]
+    },
+    {
+      "file": "src/components/account/AccountActionsProvider.tsx",
+      "sha256": "c284a846024fd6dbcea2a95d0080cb44dffed1a53b1c581d828adb0c94ad7df0",
+      "boundary": "client",
+      "imports": [
+        "@/lib/account/contracts",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "AccountActionsProvider",
+        "useAccountActions"
+      ]
+    },
+    {
+      "file": "src/components/account/PasswordChangeForm.tsx",
+      "sha256": "962e5d1fac065fb01463d761833ae826dc52ff215a8261b98f9b8747d728b782",
+      "boundary": "client",
+      "imports": [
+        "./AccountActionsProvider",
+        "@/components/I18nProvider",
+        "@/components/profile/settings",
+        "@/lib/account/contracts",
+        "@/lib/data/fetchJson",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "PasswordChangeForm"
+      ]
+    },
+    {
+      "file": "src/components/account/TwoFactorCards.tsx",
+      "sha256": "75fd6076587a879389a6b8368213c0db0db9705bb488bc7d11dc05cfe87d6fad",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/profile/settings",
+        "qrcode-generator",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "RecoveryCodesCard",
+        "TwoFactorSetupCard"
       ]
     },
     {
@@ -67567,11 +67803,14 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "7bc3ebdbb0844ae70cb573094a0ec625da918ada0558e127d9860cde42b1e802",
+      "sha256": "3feb8e35c0c91513457b0530608e917fb05184d14d19bc414ba3afeffa22935a",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/StickyHeader",
+        "@/components/account/AccountActionsProvider",
+        "@/components/account/PasswordChangeForm",
+        "@/components/account/TwoFactorCards",
         "@/components/legal/CookiesContent",
         "@/components/legal/PrivacyContent",
         "@/components/navigation/AppNavigation",
@@ -67580,6 +67819,7 @@
         "@/components/versado/MascotSlot",
         "@/components/versado/styles",
         "@/lib/handle",
+        "@/lib/native/account",
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/navigation",
@@ -67754,12 +67994,12 @@
     },
     {
       "file": "src/components/profile/settings.tsx",
-      "sha256": "e5eb2711ab09de90f856e750dcd4c798908bc0c599e56e3c0095822748c3a1a7",
+      "sha256": "bc170814a6c580eb1485f0d30fdb41cf0bbde251061fba25c251ee7f760facf7",
       "boundary": "client",
       "imports": [
+        "@/components/navigation/AppNavigation",
         "@/components/versado/ToggleSwitch",
         "lucide-react",
-        "next/link",
         "react"
       ],
       "methods": [],
@@ -69913,6 +70153,7 @@
     "tests/mystery001a.test.ts",
     "tests/mystery002.test.ts",
     "tests/mystery003-006.test.ts",
+    "tests/native-account.integration.test.ts",
     "tests/native-foundation.browser.mjs",
     "tests/native-foundation.integration.test.ts",
     "tests/native-foundation.test.ts",

@@ -97,6 +97,21 @@ lokaal gebundeld. StickyHeader, ShellMetrics en focusmodi worden hergebruikt.
 Volledige route-/functiepariteit en native data-adapters volgen per feature;
 een geregistreerde proefroute is geen volledige webfunctie.
 
+## Accountcontracten na de proef
+
+De gedeelde accountdatapoort en wachtwoord-/QR-/herstelcodecomponenten hebben
+web/native adapters. `account/password` gebruikt dezelfde actuele User-lock/
+sessieversieservice als web en vereist native wachtwoord/TOTP-herauthenticatie.
+Verplichte wachtwoord-/beheerder-TOTP-setup gebruikt het op 21 oktober 2026 door
+de eigenaar goedgekeurde eenmalige challengebeleid: maximaal vijf minuten,
+account/doel/versiegebonden, geen normale sessie of API-toegang tot voltooiing.
+Na logout/heropening wordt uitsluitend de beveiligd bewaarde intrekking uitgevoerd.
+
+De migratie `20261127120000_native_security_setup` voegt twee nullable challenge-
+velden toe en breidt uitsluitend de intent-check uit. Eigen PostgreSQL/Redis en
+rollback-/behoudtests controleren bestaande sessies, identiteiten en Apple-challenges.
+De volledige accountlevenscyclus en fysieke apparaten blijven open in de matrix.
+
 ## Externe voorwaarden
 
 Apple Team ID, Bundle ID/audience, Sign in with Apple capability en provisioning

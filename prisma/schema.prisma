@@ -4106,5 +4106,8 @@ model NativeAuthChallenge {
   stateHash String @db.VarChar(64)
   expiresAt DateTime
   consumedAt DateTime?
+  // Alleen de begrensde native beveiligingssetup; Apple-challenges houden null.
+  sessionVersion Int?
+  totpSecretEncrypted String?
   @@index([expiresAt])
 }

@@ -29,6 +29,7 @@ export async function issueNativeSession(userId: string, expectedVersion: number
     await lockNativeUser(tx, userId);
     const user = await tx.user.findUnique({ where: { id: userId } });
     if (!user || user.sessionVersion !== expectedVersion) throw new NativeAuthError("session_changed");
+    if (user.mustChangePassword || (user.isAdmin && !user.totpEnabled)) throw new NativeAuthError("web_security_setup_required", 403);
     return tx.nativeSession.create({ data: { id, userId, sessionVersion: user.sessionVersion, refreshHash: hashSecret(raw), expiresAt: new Date(Date.now() + 30 * 86400_000) } });
   });
   return tokens(session, raw);
@@ -48,7 +49,7 @@ export async function rotateNativeSession(raw: string, actionId: string, revoke 
     await lockNativeUser(tx, found.userId);
     await tx.$queryRaw`SELECT "id" FROM "NativeSession" WHERE "id" = ${id}::uuid FOR UPDATE`;
     const session = await tx.nativeSession.findUnique({ where: { id } });
-    const user = await tx.user.findUnique({ where: { id: found.userId }, select: { sessionVersion: true } });
+    const user = await tx.user.findUnique({ where: { id: found.userId }, select: { sessionVersion: true, mustChangePassword: true, isAdmin: true, totpEnabled: true } });
     if (!session || !user) return { error: "session_expired" } as const;
     const current = matchesHash(raw, session.refreshHash);
     const previous = !!session.previousRefreshHash && matchesHash(raw, session.previousRefreshHash);
@@ -57,7 +58,7 @@ export async function rotateNativeSession(raw: string, actionId: string, revoke 
       await tx.nativeSession.update({ where: { id }, data: { revokedAt: session.revokedAt ?? new Date() } });
       return { revoked: true } as const;
     }
-    if (session.revokedAt || session.expiresAt <= new Date() || session.sessionVersion !== user.sessionVersion) return { error: "session_expired" } as const;
+    if (session.revokedAt || session.expiresAt <= new Date() || session.sessionVersion !== user.sessionVersion || user.mustChangePassword || (user.isAdmin && !user.totpEnabled)) return { error: "session_expired" } as const;
     if (previous && session.lastActionId !== actionId) {
       await tx.nativeSession.update({ where: { id }, data: { revokedAt: new Date() } });
       return { error: "refresh_replayed" } as const;
@@ -81,6 +82,7 @@ export async function nativeUser(accessToken: string) {
     if (payload.purpose !== "native-access" || typeof payload.sid !== "string" || typeof payload.userId !== "string" || typeof payload.version !== "number") throw new Error();
     const session = await prisma.nativeSession.findUnique({ where: { id: payload.sid }, include: { user: true } });
     if (!session || session.userId !== payload.userId || session.revokedAt || session.expiresAt <= new Date() || session.sessionVersion !== payload.version || session.user.sessionVersion !== payload.version) throw new Error();
+    if (session.user.mustChangePassword || (session.user.isAdmin && !session.user.totpEnabled)) throw new Error();
     return session.user;
   } catch { throw new NativeAuthError("session_expired"); }
 }
