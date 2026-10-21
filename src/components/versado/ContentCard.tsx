@@ -1,20 +1,19 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowUp, EyeOff, Info, MoreHorizontal, Plus, X, type LucideIcon } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import MediaArtwork from "@/components/versado/MediaArtwork";
 import { interactiveCard } from "@/components/versado/styles";
-import { DragHandle, type DragHandleProps } from "@/components/SortableList";
 import type { ArtworkAsset, ArtworkKeys, ArtworkKind } from "@/lib/artwork";
 
 // Eén kaarttaal voor cursussen (Leren) en spellen (Spelen); zie
 // docs/KAARTEN.md. Elke interactie heeft een eigen zone, zodat ze elkaar
 // nooit raken:
 //   afbeelding of titel → openen     ⓘ → uitleg (alleen als er unieke uitleg is)
-//   greep links → verplaatsen          ⋯ op de afbeelding → beheren (verbergen, verplaatsen)
-// De kaart als geheel is dus géén link: dan zou elke tik op de greep of het
+//   ⋯ op de afbeelding → beheren (verbergen, verplaatsen)
+// De kaart als geheel is dus géén link: dan zou elke tik op het
 // menu ook navigeren.
 
 export interface CardMenuAction {
@@ -52,42 +51,79 @@ export function CardProgress({ done, total, text }: { done: number; total: numbe
 /**
  * Beheermenu (⋯) rechtsboven op de afbeelding. Een menu in plaats van een
  * losse ✕: verbergen gebeurt nooit per ongeluk, en verplaatsen kan hier ook
- * zonder slepen (toegankelijk alternatief voor de greep).
+ * via hetzelfde menu als verbergen.
  */
 export function CardMenu({ title, actions }: { title: string; actions: CardMenuAction[] }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const lastOnOpen = useRef(false);
+  const [position, setPosition] = useState<CSSProperties>({});
   const menuId = useId();
 
-  useEffect(() => {
+  function close(restoreFocus = true) {
+    setOpen(false);
+    if (restoreFocus) triggerRef.current?.focus({ preventScroll: true });
+  }
+
+  useLayoutEffect(() => {
     if (!open) return;
+    const menu = menuRef.current;
+    if (!menu) return;
+    function place() {
+      const anchor = triggerRef.current?.getBoundingClientRect();
+      if (!anchor || !menu) return;
+      const header = document.querySelector("[data-sticky-header]")?.getBoundingClientRect();
+      const nav = document.querySelector("[data-main-nav]")?.getBoundingClientRect();
+      const top = Math.max(8, header?.bottom ?? 0) + 8;
+      const bottom = Math.min(window.innerHeight - 8, nav && nav.height > 0 ? nav.top - 8 : window.innerHeight - 8);
+      const maxHeight = Math.max(44, bottom - top);
+      const height = Math.min(menu.scrollHeight, maxHeight);
+      const width = menu.getBoundingClientRect().width;
+      setPosition({
+        left: Math.max(8, Math.min(anchor.right - width, window.innerWidth - width - 8)) - anchor.left,
+        top: Math.max(top, Math.min(anchor.bottom + 8, bottom - height)) - anchor.top,
+        maxHeight,
+      });
+    }
     function onPointer(event: PointerEvent) {
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
     }
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        setOpen(false);
-        triggerRef.current?.focus();
+        event.preventDefault();
+        close();
       }
     }
+    place();
+    const buttons = menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled])');
+    (lastOnOpen.current ? buttons[buttons.length - 1] : buttons[0])?.focus({ preventScroll: true });
     document.addEventListener("pointerdown", onPointer);
     document.addEventListener("keydown", onKey);
-    // Eerste actie meteen bereikbaar met het toetsenbord.
-    rootRef.current?.querySelector<HTMLButtonElement>('[role="menuitem"]:not([disabled])')?.focus();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place);
     return () => {
       document.removeEventListener("pointerdown", onPointer);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place);
     };
   }, [open]);
 
   function onMenuKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    if (event.key === "Tab") {
+      // Eerst terug naar het anker, daarna volgt de gewone tabvolgorde.
+      close();
+      return;
+    }
+    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
     event.preventDefault();
-    const buttons = [...(rootRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled])') ?? [])];
+    const buttons = [...(menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled])') ?? [])];
     const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
-    buttons[(index + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length]?.focus();
+    const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : (index + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length;
+    buttons[next]?.focus({ preventScroll: true });
   }
 
   return (
@@ -99,18 +135,33 @@ export function CardMenu({ title, actions }: { title: string; actions: CardMenuA
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        onClick={() => setOpen((value) => !value)}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+        onClick={() => {
+          lastOnOpen.current = false;
+          setOpen((value) => !value);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            lastOnOpen.current = event.key === "ArrowUp";
+            setOpen(true);
+          }
+        }}
+        className="flex h-11 w-11 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
       >
         <MoreHorizontal className="h-5 w-5" aria-hidden />
       </button>
       {open && (
         <div
+          ref={menuRef}
           id={menuId}
           role="menu"
+          style={position}
+          onBlur={(event) => {
+            if (!rootRef.current?.contains(event.relatedTarget as Node)) setOpen(false);
+          }}
           aria-label={t("cards.menu", { title })}
           onKeyDown={onMenuKeyDown}
-          className="vs-rise absolute right-0 top-11 min-w-56 rounded-xl border border-vs-line bg-vs-elevated p-1 shadow-lg"
+          className="absolute right-0 top-14 w-[min(18rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-vs-line bg-vs-elevated p-1 shadow-lg"
         >
           {actions.map(({ label, icon: Icon, onSelect, disabled }) => (
             <button
@@ -119,7 +170,7 @@ export function CardMenu({ title, actions }: { title: string; actions: CardMenuA
               role="menuitem"
               disabled={disabled}
               onClick={() => {
-                setOpen(false);
+                close();
                 onSelect();
               }}
               className="flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-bold text-vs-fg transition hover:bg-vs-subtle focus-visible:bg-vs-subtle focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
@@ -144,17 +195,19 @@ export function cardActions({
   count,
   onMove,
   onHide,
+  busy = false,
 }: {
   t: ReturnType<typeof useT>;
   index: number;
   count: number;
   onMove: (from: number, to: number) => void;
   onHide: () => void;
+  busy?: boolean;
 }): CardMenuAction[] {
   return [
-    { label: t("cards.moveUp"), icon: ArrowUp, disabled: index <= 0, onSelect: () => onMove(index, index - 1) },
-    { label: t("cards.moveDown"), icon: ArrowDown, disabled: index >= count - 1, onSelect: () => onMove(index, index + 1) },
-    { label: t("cards.hide"), icon: EyeOff, onSelect: onHide },
+    { label: t("cards.moveUp"), icon: ArrowUp, disabled: busy || index <= 0, onSelect: () => onMove(index, index - 1) },
+    { label: t("cards.moveDown"), icon: ArrowDown, disabled: busy || index >= count - 1, onSelect: () => onMove(index, index + 1) },
+    { label: t("cards.hide"), icon: EyeOff, disabled: busy, onSelect: onHide },
   ];
 }
 
@@ -167,7 +220,6 @@ export function ContentCard({
   description,
   info,
   actions,
-  handle,
   wide = false,
   priority = false,
   children,
@@ -184,7 +236,6 @@ export function ContentCard({
   /** Alleen bij unieke uitleg die niet al op de kaart staat (speluitleg). */
   info?: { label: string; onClick: () => void };
   actions?: CardMenuAction[];
-  handle?: DragHandleProps;
   /** Breed op desktop (afbeelding links): de huidige cursus. */
   wide?: boolean;
   /** Eerste kaart bovenaan de pagina: beeld direct laden (zie MediaArtwork). */
@@ -211,19 +262,14 @@ export function ContentCard({
               asset={artwork.asset}
               ratio="21/9"
               sizes={artwork.sizes}
-              priority={priority && !handle?.isOverlay}
+              priority={priority}
               className={`transition-transform duration-300 group-hover/image:scale-[1.03] motion-reduce:transition-none sm:!aspect-[16/9] ${wide ? "lg:!aspect-auto lg:h-full lg:min-h-60" : ""}`}
             />
           </Link>
         </div>
-        {actions && actions.length > 0 && !handle?.isOverlay && <CardMenu title={title} actions={actions} />}
+        {actions && actions.length > 0 && <CardMenu title={title} actions={actions} />}
       </div>
       <div className="flex min-w-0 flex-1 gap-1 p-3 sm:p-4">
-        {handle && (
-          <div className="-my-1 -ml-1.5">
-            <DragHandle {...handle} />
-          </div>
-        )}
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           {(label || chips) && (
             <div className="flex min-h-5 flex-wrap items-center gap-x-2 gap-y-1">
@@ -268,7 +314,7 @@ export interface PickerItem {
 /**
  * "+ Cursus toevoegen" / "+ Spel toevoegen": toont alleen wat nu niet in het
  * overzicht staat. Toevoegen zet het item achteraan; daarna kun je het
- * verslepen.
+ * via het kaartmenu verplaatsen.
  */
 export function CardPicker({
   addLabel,
@@ -276,6 +322,7 @@ export function CardPicker({
   emptyText,
   items,
   busyId,
+  disabled = false,
   onOpen,
   onAdd,
 }: {
@@ -286,6 +333,7 @@ export function CardPicker({
   /** null = nog aan het laden. */
   items: PickerItem[] | null;
   busyId?: string | null;
+  disabled?: boolean;
   onOpen?: () => void;
   onAdd: (id: string) => void;
 }) {
@@ -349,7 +397,7 @@ export function CardPicker({
               </div>
               <button
                 type="button"
-                disabled={busyId === item.id}
+                disabled={disabled || busyId === item.id}
                 onClick={() => onAdd(item.id)}
                 className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-vs-line-strong px-3 text-sm font-bold text-vs-fg transition hover:bg-vs-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vs-accent disabled:opacity-50"
               >

@@ -1,4 +1,4 @@
-// Kleine, gedeelde helpers voor de persoonlijke sleepvolgorde van cursussen
+// Kleine, gedeelde helpers voor de persoonlijke kaartvolgorde van cursussen
 // (/courses) en spelletjes (/live) — zie /api/list-order en het
 // UserListOrder-model. Bewust geen "use client": applyPersonalOrder wordt ook
 // op de server gebruikt (Vandaag), en de fetch-helpers roep je alleen vanuit
@@ -39,17 +39,14 @@ export async function fetchListOrder(listKey: ListKey): Promise<string[]> {
   return (await fetchListState(listKey)).order;
 }
 
-/**
- * Fire-and-forget opslaan — de UI is al direct bijgewerkt (optimistisch),
- * dit hoeft niets terug te geven. Zonder `hiddenKeys` blijft wat verborgen
- * was verborgen; met `hiddenKeys` is dat de nieuwe verborgen set.
- */
-export function saveListOrder(listKey: ListKey, itemKeys: string[], hiddenKeys?: string[]): void {
-  fetch("/api/list-order", {
+/** Bewaart de bestaande voorkeuren; de aanroeper verwerkt fouten en optimistische updates. */
+export async function saveListOrder(listKey: ListKey, itemKeys: string[], hiddenKeys?: string[]): Promise<void> {
+  const response = await fetch("/api/list-order", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ listKey, itemKeys, hiddenKeys }),
-  }).catch(() => {});
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
 }
 
 /** Verbergt één item zonder een eventueel opgeslagen volgorde te wijzigen. */

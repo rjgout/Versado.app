@@ -42,12 +42,17 @@ try {
     await delay(500);
   }
   if (!available) throw new Error("Productie-app niet beschikbaar");
-  if (!process.argv.includes("--socket-only")) {
-  if (!process.argv.includes("--content-only")) await run("npx", ["tsx", "tests/header-wordsearch.browser.mjs", ...process.argv.slice(2)], env);
-  await run("npx", ["tsx", "tests/content-picker.browser.mjs", ...process.argv.slice(2)], env);
-  await run("npx", ["tsx", "tests/profile-guide.browser.mjs"], env);
+  if (process.argv.includes("--cards-only")) {
+    await run("npx", ["tsx", "tests/card-management.browser.mjs"], env);
+  } else {
+    if (!process.argv.includes("--socket-only")) {
+      if (!process.argv.includes("--content-only")) await run("npx", ["tsx", "tests/header-wordsearch.browser.mjs", ...process.argv.slice(2)], env);
+      await run("npx", ["tsx", "tests/content-picker.browser.mjs", ...process.argv.slice(2)], env);
+      await run("npx", ["tsx", "tests/profile-guide.browser.mjs"], env);
+      await run("npx", ["tsx", "tests/card-management.browser.mjs"], env);
+    }
+    await run("npx", ["tsx", "tests/game-availability.socket.mjs"], env);
   }
-  await run("npx", ["tsx", "tests/game-availability.socket.mjs"], env);
   await run("npm", ["run", "test:cards"], env);
 } catch (error) {
   console.error(error); process.exitCode = 1;

@@ -558,7 +558,7 @@ Gecontroleerd in de code; bestandsnamen om snel terug te vinden.
   database), getoond op het profiel.
 
 **Leren**
-- `/courses` (`CoursesClient`): eigen cursuslijst met sleepvolgorde. Typen
+- `/courses` (`CoursesClient`): eigen cursuslijst met volgorde via het kaartmenu. Typen
   (`CourseType`): FRONT_TO_BACK en READING_LESSONS (in de app "Hoofdstuk voor
   hoofdstuk" en "Stap voor stap"), FREE_CHOICE, BY_BOOK, PODCAST, KIDS,
   INTRO, FSY.
@@ -568,7 +568,7 @@ Gecontroleerd in de code; bestandsnamen om snel terug te vinden.
 - Meerdere werken en uitgaven via de contentkiezer (`ContentCollection` met
   `work` + `language`).
 
-**Spelen** (overzicht in `LiveLobbyForm` op `/live`, met sleepvolgorde)
+**Spelen** (overzicht in `LiveLobbyForm` op `/live`, met volgorde via het kaartmenu)
 - Legpuzzel, woordzoeker, woord van de dag, woordspel (asynchroon één tegen
   één), De Slimste Heilige (quizavond op eigen telefoons, seizoenen, solo van
   de dag en oefenen), gezinsavond (bordspel: samen aan tafel op één apparaat

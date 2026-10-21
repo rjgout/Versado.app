@@ -2,7 +2,7 @@ import type { MessageKey } from "@/lib/i18n/core";
 import type { TFunction } from "@/lib/i18n/core";
 import { DEFAULT_PERSONAL_MASCOT, personalMascotName, type PersonalMascotCharacter } from "@/lib/mascots";
 
-// Vaste spelcatalogus: sleutel (ook voor de sleepvolgorde, UserListOrder),
+// Vaste spelcatalogus: sleutel (ook voor de persoonlijke volgorde, UserListOrder),
 // instelling in GameSettings, route en teksten. Gedeeld door het
 // spellenoverzicht (LiveLobbyForm) en Vandaag, zodat een nieuw spel op één
 // plek bijkomt. Bewust zonder iconen of beeld: die horen bij de weergave en

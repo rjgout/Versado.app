@@ -6,13 +6,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { kompasHref } from "@/lib/kompas/registry";
 import { X } from "lucide-react";
 import ActiveGamesBanner from "@/components/ActiveGamesBanner";
-import { SortableList } from "@/components/SortableList";
 import { applyPersonalOrder, fetchListState, saveListOrder } from "@/lib/listOrder";
 import { useT } from "@/components/I18nProvider";
 import AppSelect from "@/components/AppSelect";
 import { GAME_CATALOG, gameTitle, isGameVisible, type GameCatalogEntry } from "@/lib/gameCatalog";
 import { gameArtworkKeys } from "@/lib/artwork";
 import { CardPicker, ContentCard, StatusChip, cardActions, type PickerItem } from "@/components/versado/ContentCard";
+import { useCardListSave } from "@/components/versado/useCardListSave";
 import PersonalMascot, { useCompanion } from "@/components/versado/PersonalMascot";
 
 interface ChapterOption {
@@ -57,6 +57,7 @@ type GameEntry = GameCatalogEntry;
 
 export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, contentName }: Props) {
   const t = useT();
+  const cardSave = useCardListSave();
   const router = useRouter();
   const search = useSearchParams();
   const { character } = useCompanion();
@@ -99,9 +100,11 @@ export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, cont
   // content horen en nu niet in beeld zijn, blijven zo verborgen.
   function save(nextGames: GameEntry[], nextHidden: string[]) {
     const ids = nextGames.map((g) => g.id);
-    setOrder(ids);
-    setHidden(nextHidden);
-    saveListOrder("games", ids, nextHidden);
+    void cardSave.run(
+      () => saveListOrder("games", ids, nextHidden),
+      () => { setOrder(ids); setHidden(nextHidden); },
+      () => { setOrder(order); setHidden(hidden); }
+    );
   }
 
   function move(from: number, to: number) {
@@ -206,19 +209,17 @@ export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, cont
       )}
       {available.length > 0 && order && games.length === 0 && <p className="text-sm text-vs-fg-2">{t("gamesHub.allHidden")}</p>}
 
+      {cardSave.failed && <p role="alert" className="text-sm text-vs-danger">{t("cards.saveFailed")}</p>}
+
       {order && (
         <div data-kompas-target="play-games">
-        <SortableList
-          dndId="games-list"
-          items={games}
-          onReorder={(next) => save(next, hidden)}
-          getItemLabel={(game) => gameTitle(t, game, character)}
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-          renderItem={(game, handle) => {
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {games.map((game, index) => {
             const enabled = settings[game.enabledKey];
             const title = gameTitle(t, game, character);
             return (
               <ContentCard
+                key={game.id}
                 title={title}
                 href={game.href}
                 artwork={{ kind: "game", keys: gameArtworkKeys(game.id, character), sizes: "(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw" }}
@@ -231,18 +232,17 @@ export default function LiveLobbyForm({ settings, isAdmin, allowedGameKeys, cont
                 }
                 description={text(game, "description")}
                 info={{ label: t("gamesHub.rulesFor", { title }), onClick: () => setRulesFor(game) }}
-                handle={handle}
-                priority={games.indexOf(game) === 0}
-                actions={cardActions({ t, index: games.indexOf(game), count: games.length, onMove: move, onHide: () => hide(game.id) })}
+                priority={index === 0}
+                actions={cardActions({ t, index, count: games.length, busy: cardSave.busy, onMove: move, onHide: () => hide(game.id) })}
               />
             );
-          }}
-        />
+          })}
+        </div>
         </div>
       )}
 
       {available.length > 0 && (
-        <CardPicker addLabel={t("gamesHub.addGame")} addHint={t("gamesHub.addGameHint")} emptyText={t("gamesHub.allAdded")} items={order ? pickerItems : null} onAdd={add} />
+        <CardPicker addLabel={t("gamesHub.addGame")} addHint={t("gamesHub.addGameHint")} emptyText={t("gamesHub.allAdded")} items={order ? pickerItems : null} disabled={cardSave.busy} onAdd={add} />
       )}
 
       {rulesFor && <GameRules title={gameTitle(t, rulesFor, character)} rules={[...(["rule1", "rule2", "rule3"] as const).map((rule) => text(rulesFor, rule)), ...(rulesFor.id === "word-game" ? [t("gamesHub.wordGame.rule4")] : []), ...(rulesFor.id === "jigsaw" ? [t("gamesHub.jigsaw.rule4"), t("gamesHub.jigsaw.rule5"), t("gamesHub.jigsaw.rule6")] : [])]} moreHref={kompasHref(`play.${rulesFor.id}`)} onClose={() => setRulesFor(null)} />}
