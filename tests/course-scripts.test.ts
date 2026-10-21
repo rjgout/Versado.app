@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { resolveDatabase } from "../scripts/courses/target";
+import { confirmsDatabaseIdentity, formatDatabaseIdentity, resolveDatabase } from "../scripts/courses/target";
 
 const root = resolve(import.meta.dirname, "..");
 const SECRET = "geheim-wachtwoord-123";
@@ -49,20 +49,37 @@ function runScript(script: string, args: string[], options: { env: Record<string
   return { status: result.status, out: `${result.stdout}${result.stderr}` };
 }
 
-test("--apply weigert bij een verkeerde of ontbrekende databasebevestiging, zonder te verbinden", () => {
-  const env = { DATABASE_URL: URL_A };
-  for (const args of [["--apply", "--backup-gemaakt"], ["--apply", "--backup-gemaakt", "--verwacht-database=database_b"]]) {
-    const result = runScript("repair-duplicates.ts", args, { env });
-    assert.equal(result.status, 2, result.out);
-    assert.match(result.out, /--verwacht-database=database_a/);
-    assert.ok(!result.out.includes(SECRET), "geen wachtwoord in de uitvoer");
+test("--apply weigert bij elke ontbrekende of afwijkende database-identiteit, zonder te verbinden", () => {
+  const env = { DATABASE_URL: URL_A }; // db-a.example.invalid:5433/database_a
+  const refusals: Array<[string, string[]]> = [
+    ["ontbrekende bevestiging", []],
+    ["alleen de databasenaam (oud formaat)", ["--verwacht-database=database_a"]],
+    ["juiste naam, verkeerde host", ["--verwacht-database=db-b.example.invalid:5433/database_a"]],
+    ["juiste host en naam, verkeerde poort", ["--verwacht-database=db-a.example.invalid:5432/database_a"]],
+    ["juiste host en poort, verkeerde naam", ["--verwacht-database=db-a.example.invalid:5433/database_b"]],
+    ["hoofdletters wijken af", ["--verwacht-database=DB-A.example.invalid:5433/database_a"]],
+    ["lege bevestiging", ["--verwacht-database="]],
+  ];
+  for (const [name, extra] of refusals) {
+    const result = runScript("repair-duplicates.ts", ["--apply", "--backup-gemaakt", ...extra], { env });
+    assert.equal(result.status, 2, `${name}: ${result.out}`);
+    assert.match(result.out, /--verwacht-database=db-a\.example\.invalid:5433\/database_a/, name);
+    assert.ok(!result.out.includes(SECRET), `${name}: geen wachtwoord`);
+    assert.ok(!result.out.includes("sslmode") && !result.out.includes("gebruiker"), `${name}: geen query of gebruikersnaam`);
   }
 });
 
-test("--apply vereist nog steeds de back-upbevestiging, ook met een juiste databasebevestiging", () => {
-  const result = runScript("repair-duplicates.ts", ["--apply", "--verwacht-database=database_a"], { env: { DATABASE_URL: URL_A } });
+test("--apply vereist nog steeds de back-upbevestiging, ook met een juiste database-identiteit", () => {
+  const result = runScript("repair-duplicates.ts", ["--apply", "--verwacht-database=db-a.example.invalid:5433/database_a"], { env: { DATABASE_URL: URL_A } });
   assert.equal(result.status, 2);
   assert.match(result.out, /--backup-gemaakt/);
+});
+
+test("de volledige identiteit gaat boven de naam: confirmsDatabaseIdentity is exact", () => {
+  const label = { host: "db-a.example.invalid", port: "5433", database: "database_a" };
+  assert.equal(formatDatabaseIdentity(label), "db-a.example.invalid:5433/database_a");
+  assert.ok(confirmsDatabaseIdentity(label, "db-a.example.invalid:5433/database_a"));
+  for (const wrong of [undefined, "", "database_a", "db-a.example.invalid:5433", "db-a.example.invalid:5433/database_a ", "x:5433/database_a"]) assert.ok(!confirmsDatabaseIdentity(label, wrong), String(wrong));
 });
 
 test("zonder DATABASE_URL en zonder .env stoppen audit en herstel met een duidelijke fout", () => {
@@ -88,9 +105,9 @@ test("een lokaal .env wordt gebruikt en getoond, zonder geheimen; de verbinding 
       assert.ok(!result.out.includes(SECRET), `${script}: geen wachtwoord in de uitvoer`);
     }
     // Ook de bevestiging gebruikt de database uit .env.
-    const refused = runScript("repair-duplicates.ts", ["--apply", "--backup-gemaakt", "--verwacht-database=anders"], { env: {}, cwd: dir });
+    const refused = runScript("repair-duplicates.ts", ["--apply", "--backup-gemaakt", "--verwacht-database=127.0.0.1:1/anders"], { env: {}, cwd: dir });
     assert.equal(refused.status, 2);
-    assert.match(refused.out, /--verwacht-database=env_database/);
+    assert.match(refused.out, /--verwacht-database=127\.0\.0\.1:1\/env_database/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

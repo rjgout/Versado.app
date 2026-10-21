@@ -4,12 +4,12 @@
 // abonnementen, voortgang, actieve cursus, lesvoortgang, oefensessies, Samen studeren, persoonlijke volgorde, feedback) plus het
 // oordeel van het herstelplan ("merge" of "blocked"). Exitcode 1 zodra er dubbele cursussen zijn (bruikbaar als controle).
 import { planDuplicateRepair } from "../../src/lib/courseRepair";
-import { resolveDatabase } from "./target";
+import { formatDatabaseIdentity, resolveDatabase } from "./target";
 
 // De verbinding wordt eenmaal vastgesteld en expliciet aan de client doorgegeven; src/lib/db wordt pas daarna geladen.
 const database = resolveDatabase();
 const target = database.label;
-console.error(`Doeldatabase (alleen lezen): ${target.host}:${target.port}/${target.database}`);
+console.error(`Doeldatabase (alleen lezen): ${formatDatabaseIdentity(target)}`);
 process.env.DATABASE_URL = database.url;
 const { createPrismaClient } = await import("../../src/lib/db");
 

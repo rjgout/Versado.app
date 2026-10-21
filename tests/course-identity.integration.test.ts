@@ -618,11 +618,16 @@ test("de scripts courses:audit en courses:repair (dry-run) wijzigen geen databas
   assert.equal(dry.status, 0, dry.stderr);
   assert.match(dry.stderr, /Dry-run: er is niets gewijzigd/);
   assert.equal(await fingerprint(), before, "audit en dry-run veranderen niets");
-  const wrong = run("repair-duplicates.ts", ["--apply", "--backup-gemaakt", "--verwacht-database=andere_database"]);
-  assert.equal(wrong.status, 2);
-  assert.equal(await fingerprint(), before, "een geweigerde --apply verandert niets");
+  const target = new URL(databaseUrl(isolatedName));
+  const identity = `${target.hostname}:${target.port || "5432"}/${isolatedName}`;
+  for (const wrongConfirmation of [isolatedName, `${target.hostname}:${target.port || "5432"}/andere_database`, `andere-host.invalid:${target.port || "5432"}/${isolatedName}`, `${target.hostname}:1/${isolatedName}`]) {
+    const wrong = run("repair-duplicates.ts", ["--apply", "--backup-gemaakt", `--verwacht-database=${wrongConfirmation}`]);
+    assert.equal(wrong.status, 2, wrongConfirmation);
+  }
+  assert.equal(run("repair-duplicates.ts", ["--apply", `--verwacht-database=${identity}`]).status, 2, "zonder back-upbevestiging");
+  assert.equal(await fingerprint(), before, "geweigerde --apply-pogingen veranderen niets");
   // Met de juiste bevestiging werkt het herstel wél, op de wegwerpdatabase.
-  const applied = run("repair-duplicates.ts", ["--apply", "--backup-gemaakt", `--verwacht-database=${isolatedName}`]);
+  const applied = run("repair-duplicates.ts", ["--apply", "--backup-gemaakt", `--verwacht-database=${identity}`]);
   assert.equal(applied.status, 0, applied.stderr);
   assert.deepEqual(await L.integrity.findDuplicateReadingCourses(L.db), []);
   assert.equal((await L.db.userCourseProgress.findUniqueOrThrow({ where: { userId_courseId: { userId, courseId: (await bomCourses("FREE_CHOICE"))[0].id } } })).comboCount, 3);

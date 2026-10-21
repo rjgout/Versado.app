@@ -39,3 +39,13 @@ export function resolveDatabase(
   }
   return { url: raw, label: { host: url.hostname, port: url.port || "5432", database: decodeURIComponent(url.pathname.replace(/^\//, "")) } };
 }
+
+/** De identiteit zoals de operator die bevestigt: `host:poort/databasenaam`. Dezelfde servernaam kan op meerdere servers voorkomen, dus de naam alleen volstaat niet. */
+export function formatDatabaseIdentity(label: DatabaseLabel): string {
+  return `${label.host}:${label.port}/${label.database}`;
+}
+
+/** Exacte vergelijking met de bevestiging van de operator; geen normalisatie, geen gedeeltelijke overeenkomst. */
+export function confirmsDatabaseIdentity(label: DatabaseLabel, confirmation: string | undefined): boolean {
+  return confirmation !== undefined && confirmation === formatDatabaseIdentity(label);
+}
