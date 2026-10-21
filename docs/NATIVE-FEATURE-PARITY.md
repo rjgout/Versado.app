@@ -126,6 +126,10 @@ De client serialiseert beveiligde read/wijzig/write-transacties en bindt authent
 
 `tests/native-foundation.test.ts` reproduceerde eerst drie oude races en bevat nu zeven extra regressies, waaronder offline heropening en een generatiewissel tijdens de native opslagwrite. Dit is technische clientverificatie met een opslagadapter; echte Keychain/Keystore- en Apple-apparaatacceptatie blijft open.
 
+## Platformcompilatie in CI
+
+De workflow [native-platform-builds.yml](../.github/workflows/native-platform-builds.yml) voegt echte Android-debug- en iOS-simulatorcompilatie toe met SDK's op CI-runners, met uitsluitend een lokale developmentbundel en gereserveerde compile-backend. De HTML/JS/CSS/buildmetadata wordt ook uit de verpakte app gecontroleerd. Lokaal zijn positieve en negatieve guards gecontroleerd; de SDK-jobs zijn nog niet als geslaagd gemarkeerd. Dit ontsluit geen ontbrekende functie en is geen apparaat-, Apple-, signing- of storeacceptatie.
+
 ## Permanente controle
 
 `npm run native:parity:update` actualiseert alleen bronfeiten; de reviewer moet de functionele statussen, rechten, contracten, uitzonderingen en tests afzonderlijk beoordelen. `npm run native:parity:check` controleert dat routes, modules en inventaris niet uit elkaar lopen. Deze controle bewijst registratie, niet werkende native schermen, en heft geen releaseblokkade op. Nieuwe of gewijzigde features zijn pas functioneel afgerond op web/PWA én iOS/Android, of met een expliciet goedgekeurde en gedocumenteerde platformuitzondering.

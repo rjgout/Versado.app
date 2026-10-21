@@ -219,3 +219,14 @@ productiemigratie of live tests. Geen verborgen skips in de hierboven genoemde t
 De nieuwe CI-job voert dezelfde migratie-, auth- en browserflow uit op de gepushte
 head. Definitieve CI-links/status worden in de draft-PR vastgelegd. Fase 1 levert
 het veilige ontwikkelfundament en de beperkte leesproef; de releasegate blijft dicht.
+
+
+## CI-platformcompilatie
+
+De aanvullende workflow `native-platform-builds.yml` compileert Android Debug en
+een ongetekende iOS-simulatorapp met echte SDK's op CI. Zij gebruikt alleen een
+lokale developmentbundel met een gereserveerde, onbereikbare compile-backend.
+Een digestcontrole vergelijkt de assets vóór en na verpakking met `dist/native`.
+De eerste runs zijn nog niet als geslaagd gemarkeerd; zie PLATFORMEN voor de
+actuele grens. Een compileprobe vervangt geen fysieke apparaat-/bridgeacceptatie,
+onafhankelijke audit of releaseprofiel.

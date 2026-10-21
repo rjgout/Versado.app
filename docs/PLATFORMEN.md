@@ -413,3 +413,26 @@ Release blijft geblokkeerd totdat echte builds/apparaatvalidatie, Apple-configur
 accountlevenscyclus, juridische URLs en de resterende schermmigratie zijn beoordeeld.
 Een geslaagde webbuild, Capacitor-sync of synthetische browserflow bewijst geen
 werkende App Store-/Play Store-release.
+
+
+## Automatische platformcompilatie voor development
+
+[Native platformcompilatie](../.github/workflows/native-platform-builds.yml) bouwt
+de lokale client op CI-runners met de benodigde SDK's: Android Debug met JDK 21/
+SDK 36 en een iOS-simulatorapp met Xcode. De backend is uitsluitend de gereserveerde
+`https://example.invalid`: deze artifacts zijn compileproeven, geen werkende
+productie-installaties. Beide jobs gebruiken `local-development`, zonder
+signingcredentials, App Store/Play-upload of deployment.
+
+`scripts/native/verify-development.mjs` vergelijkt de gesynchroniseerde én echt
+verpakte HTML/JS/CSS/buildmetadata met `dist/native`. Een remote `server.url`, een
+afgekeurde profiel-/releasevlag of afwijkende assets laat de controle mislukken.
+Android controleert de inhoud van de APK; iOS die van de gebouwde simulatorapp.
+Artifacts blijven zeven dagen beschikbaar bij de betreffende workflowrun.
+
+Deze controles leveren pas buildbewijs zodra de jobs op de gepushte commit groen
+zijn. De lokale workspace heeft geen Android SDK of Xcode. De positieve controles
+op beide gesynchroniseerde projecten en negatieve controles op remote-url,
+assetafwijking en releasevlag zijn lokaal uitgevoerd. De eerste SDK-builds zijn
+nog in te plannen; echte iPhone/iPad/Android-, Keychain/Keystore-, Apple- en
+lifecycleacceptatie blijven aparte open gates. `release` blijft geblokkeerd.
