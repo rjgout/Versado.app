@@ -5,9 +5,21 @@
 //   LEARNING_TEST_DATABASE_URL=postgresql://... npx tsx --test tests/course-identity.integration.test.ts
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import pg from "pg";
 
+// Deze tests werken op de vaste Boek-van-Mormon-collectie en eisen dus een leeg vertrekpunt: de gedeelde testdatabase bevat fixtures van andere
+// suites (eigen leescursussen, ook in content_bom) die hier niet bij horen. Daarom maakt de test zijn eigen, volledig gemigreerde database
+// op dezelfde server en ruimt die weer op; de opgegeven database wordt alleen gebruikt om de server te bereiken en blijft onaangeroerd.
 const url = process.env.LEARNING_TEST_DATABASE_URL;
-if (url) process.env.DATABASE_URL = url;
+const stamp = `${Date.now()}`;
+const isolatedName = `identity_${stamp}`;
+function databaseUrl(name: string): string {
+  const parsed = new URL(url!);
+  parsed.pathname = `/${name}`;
+  return parsed.toString();
+}
+if (url) process.env.DATABASE_URL = databaseUrl(isolatedName);
 process.env.SESSION_SECRET ??= "testsleutel-voor-cursusidentiteit-0123456789";
 const skip = !url && "LEARNING_TEST_DATABASE_URL niet gezet";
 
@@ -20,7 +32,6 @@ const load = async () => ({
 });
 let L: Awaited<ReturnType<typeof load>>;
 
-const stamp = `${Date.now()}`;
 const TYPES = ["FREE_CHOICE", "FRONT_TO_BACK", "READING_LESSONS"] as const;
 const BOM_SLUGS = { FREE_CHOICE: "vrije-keuze", FRONT_TO_BACK: "voor-naar-achter", READING_LESSONS: "lezen-van-voor-naar-achter" } as const;
 const otherId = `identity-other-${stamp}`;
@@ -28,7 +39,6 @@ const otherSlug = `identity-other-${stamp}`;
 const emails: string[] = [];
 const bomBookIds: string[] = [];
 const bomChapterIds: string[] = [];
-let preexistingBomCourses = 0;
 
 const bomCourses = (type?: string) => L.db.course.findMany({ where: { contentCollectionId: L.ids.BOM_COLLECTION_ID, type: type ? (type as never) : { in: [...TYPES] } }, orderBy: { slug: "asc" } });
 const snapshot = async () => (await L.db.course.findMany({ where: { type: { in: [...TYPES] } }, orderBy: { slug: "asc" }, select: { id: true, slug: true, type: true, contentCollectionId: true } }));
@@ -38,10 +48,21 @@ async function makeUser(): Promise<string> {
   return (await L.db.user.create({ data: { email, passwordHash: "x", handle: `Id${emails.length}`, discriminator: "22" } })).id;
 }
 
+async function withAdmin<T>(action: (client: pg.Client) => Promise<T>): Promise<T> {
+  const client = new pg.Client({ connectionString: databaseUrl("postgres") });
+  await client.connect();
+  try {
+    return await action(client);
+  } finally {
+    await client.end();
+  }
+}
+
 before(async () => {
   if (skip) return;
+  await withAdmin((client) => client.query(`CREATE DATABASE ${isolatedName}`));
+  execFileSync("npx", ["prisma", "migrate", "deploy"], { env: { ...process.env, DATABASE_URL: databaseUrl(isolatedName) }, stdio: "ignore" });
   L = await load();
-  preexistingBomCourses = await L.db.course.count({ where: { contentCollectionId: L.ids.BOM_COLLECTION_ID, type: { in: [...TYPES] } } });
   // Een Boek van Mormon met twee hoofdstukken van 12 verzen (twee stappen per hoofdstuk).
   const book = await L.db.book.create({ data: { slug: `identity-bom-${stamp}`, name: "Identiteitsboek", order: 999, contentCollectionId: L.ids.BOM_COLLECTION_ID } });
   bomBookIds.push(book.id);
@@ -60,14 +81,8 @@ before(async () => {
 
 after(async () => {
   if (skip) return;
-  await L.db.user.deleteMany({ where: { email: { in: emails } } });
-  await L.db.course.deleteMany({ where: { contentCollectionId: otherId } });
-  if (preexistingBomCourses === 0) await L.db.course.deleteMany({ where: { contentCollectionId: L.ids.BOM_COLLECTION_ID, type: { in: [...TYPES] } } });
-  await L.db.book.deleteMany({ where: { contentCollectionId: otherId } });
-  await L.db.book.deleteMany({ where: { id: { in: bomBookIds } } });
-  await L.db.contentCollection.deleteMany({ where: { id: otherId } });
-  await L.db.contentWork.deleteMany({ where: { key: otherId } });
   await L.db.$disconnect();
+  await withAdmin((client) => client.query(`DROP DATABASE IF EXISTS ${isolatedName} WITH (FORCE)`));
 });
 
 test("een verse synchronisatie geeft het Boek van Mormon precies drie leeswijzen met de historische slugs", { skip }, async () => {
