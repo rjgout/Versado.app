@@ -100,6 +100,32 @@ try {
     await action(card(), "cards.moveUp");
     await eventually(hrefs, original);
     await eventually(() => stored(key), original.map(itemKey));
+    // iPhone-achtig aanraakpad: het menu moet zichtbaar en klikbaar blijven,
+    // ook wanneer Safari na de aanraking focus verliest (relatedTarget=null).
+    const touchTrigger = menuButton(card());
+    await touchTrigger.scrollIntoViewIfNeeded();
+    await touchTrigger.tap();
+    const touchMenu = page.getByRole("menu");
+    await touchMenu.waitFor();
+    check(`${key}: tik opent zichtbaar kaartmenu`, await touchMenu.isVisible());
+    await page.evaluate(() => {
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    });
+    check(`${key}: focusverlies sluit aangeraakt menu niet`, await touchMenu.isVisible());
+    check(`${key}: menu ligt boven kaarten en is aantikbaar`, await page.evaluate(() => {
+      const item = document.querySelector('[role="menu"] [role="menuitem"]:not([disabled])');
+      if (!item) return false;
+      const box = item.getBoundingClientRect();
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      return item === hit || item.contains(hit);
+    }));
+    await page.getByRole("menuitem", { name: t("cards.moveDown") }).tap();
+    await eventually(hrefs, moved);
+    await eventually(() => stored(key), moved.map(itemKey));
+    check(`${key}: aanraking verplaatst kaart werkelijk`, new URL(page.url()).pathname === path);
+    await action(card(), "cards.moveUp");
+    await eventually(hrefs, original);
+    await eventually(() => stored(key), original.map(itemKey));
     await menuButton(cards().last()).click();
     check(`${key}: laatste positie begrenst omlaag`, await page.getByRole("menuitem", { name: t("cards.moveDown") }).isDisabled());
     await page.keyboard.press("Escape");

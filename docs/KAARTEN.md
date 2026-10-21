@@ -55,6 +55,12 @@ erbij komt zonder opnieuw te ontwerpen. Code: `src/components/versado/ContentCar
   staat los van deze lijst en heeft uitsluitend Verbergen in haar menu.
 - De menuafmetingen en positie blijven binnen het venster, tussen de shellbalken;
   lange vertalingen en 200% tekst kunnen afbreken en zo nodig binnen het menu scrollen.
+- Het menu wordt boven de kaarten in een viewport-gebonden portal geplaatst; geen
+  kaart, afbeelding of scrollcontainer mag de acties bedekken of afknippen.
+  Op aanraakschermen opent het menu zonder geforceerde focusverplaatsing:
+  iPhone Safari mag een tik of focusverlies niet als sluiten behandelen.
+  Tik buiten het menu sluit het zonder focus te stelen. Toetsenbordopening
+  behoudt pijl-, Home/End-, Escape- en Tab-bediening en focusherstel.
 - Andere onderdelen, waaronder uitgelichte prestaties op het profiel, behouden
   `SortableList` en `DragHandle`, inclusief sleep- en toetsenbordbediening.
 
