@@ -1,6 +1,7 @@
 import webpush from "web-push";
 import { prisma } from "@/lib/db";
 import { decryptSecret, encryptSecret } from "@/lib/crypto";
+import { isAllowedPushEndpoint } from "@/lib/pushEndpoint";
 
 /**
  * VAPID-sleutelpaar waarmee deze server zich bij pushdiensten (FCM/Mozilla/
@@ -51,7 +52,10 @@ export async function getVapidPublicKey(): Promise<string> {
  * vaststellen wie wel en wie geen push krijgt, zonder echte pushdienst.
  */
 export const pushTransport = {
-  send: (subscription: webpush.PushSubscription, payload: string) => webpush.sendNotification(subscription, payload),
+  send: (subscription: webpush.PushSubscription, payload: string) => {
+    if (!isAllowedPushEndpoint(subscription.endpoint)) return Promise.reject(new Error("Pushbestemming niet toegestaan."));
+    return webpush.sendNotification(subscription, payload, { timeout: 10_000 });
+  },
 };
 
 export interface PushPayload {
@@ -87,6 +91,11 @@ export async function sendPushToUser(userId: string, payload: PushPayload): Prom
 
   await Promise.all(
     subscriptions.map(async (sub) => {
+      // Ook oude database-inhoud opnieuw controleren, vóór transport of DNS.
+      if (!isAllowedPushEndpoint(sub.endpoint)) {
+        await prisma.pushSubscription.deleteMany({ where: { id: sub.id, userId } });
+        return;
+      }
       try {
         await pushTransport.send(
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
@@ -111,10 +120,9 @@ export async function sendPushToUser(userId: string, payload: PushPayload): Prom
         // afronden, vriendschapsverzoek, ...) mag hier terecht niet op
         // wachten/breken, maar dat mag niet betekenen dat de fout nergens
         // terug te vinden is.
-        const body = (e as { body?: string })?.body;
         console.error(
-          `Pushnotificatie mislukt voor subscriptie ${sub.id} (endpoint: ${sub.endpoint}):`,
-          statusCode ? `HTTP ${statusCode}${body ? ` — ${body}` : ""}` : e
+          `Pushnotificatie mislukt voor subscriptie ${sub.id}:`,
+          statusCode ? `HTTP ${statusCode}` : "Transportfout"
         );
       }
     })

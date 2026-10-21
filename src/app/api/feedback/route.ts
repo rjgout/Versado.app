@@ -24,9 +24,14 @@ export async function GET() {
   const reports = await prisma.feedback.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
+    select: {
+      id: true, message: true, screenshot: true, status: true, createdAt: true,
+      kind: true, questionId: true, questionSource: true, questionCategory: true,
+      verseRef: true, questionSnapshot: true,
+    },
   });
 
-  return NextResponse.json({ reports });
+  return NextResponse.json({ reports }, { headers: { "Cache-Control": "private, no-store" } });
 }
 
 export async function POST(req: NextRequest) {

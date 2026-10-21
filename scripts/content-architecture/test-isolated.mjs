@@ -23,7 +23,7 @@ try {
   docker(["run", "--rm", "-d", "--name", container, "-p", "127.0.0.1::5432", "-e", "POSTGRES_USER=inventory_test", "-e", "POSTGRES_PASSWORD=inventory_test", "-e", "POSTGRES_DB=versado_inventory_test", "postgres:16-alpine"]);
   let ready = false;
   for (let i = 0; i < 60; i++) {
-    try { docker(["exec", container, "pg_isready", "-U", "inventory_test"]); ready = true; break; } catch { await delay(500); }
+    try { docker(["exec", container, "pg_isready", "-h", "127.0.0.1", "-U", "inventory_test"]); ready = true; break; } catch { await delay(500); }
   }
   if (!ready) throw new Error("Testdatabase niet beschikbaar");
   const port = docker(["port", container, "5432/tcp"]).split(":").at(-1);

@@ -8,6 +8,7 @@ import { apiError, apiErrorText } from "@/lib/apiError";
 import { isEmailConfigured } from "@/lib/email";
 import { getBaseUrl } from "@/lib/baseUrl";
 import { findOpenPendingRegistration, resendPendingVerification } from "@/lib/registration";
+import { boundedJson } from "@/lib/requestBody";
 
 // Per IP+account een krappe grens tegen wachtwoord raden op één account,
 // per IP een ruimere tegen het afgaan van veel accounts. Bewust niet alleen
@@ -17,12 +18,12 @@ const MAX_FAILURES_PER_ACCOUNT = 10;
 const MAX_FAILURES_PER_IP = 30;
 
 const schema = z.object({
-  identifier: z.string().trim().min(1, "Vul je e-mailadres of gebruikersnaam in."),
-  password: z.string().min(1, "Vul je wachtwoord in."),
+  identifier: z.string().trim().min(1, "Vul je e-mailadres of gebruikersnaam in.").max(320),
+  password: z.string().min(1, "Vul je wachtwoord in.").max(256),
 });
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => null);
+  const body = await boundedJson(req);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return await apiErrorText(parsed.error.issues[0].message, 400);

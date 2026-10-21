@@ -50,7 +50,8 @@ async function user(name: string, extra: { freezeCount?: number; push?: boolean 
   });
   users.push(u.id);
   if (extra.push) {
-    await L.db.pushSubscription.create({ data: { userId: u.id, endpoint: `https://push.test.invalid/${u.id}`, p256dh: "p", auth: "a" } });
+    // Provider-vorm moet het productiebeleid doorstaan; het transport hieronder blijft volledig gemockt.
+    await L.db.pushSubscription.create({ data: { userId: u.id, endpoint: `https://fcm.googleapis.com/fcm/send/social-test/${u.id}`, p256dh: "p", auth: "a" } });
   }
   return u.id;
 }

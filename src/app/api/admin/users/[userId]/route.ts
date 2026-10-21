@@ -3,6 +3,8 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
+import { deleteUserAccount } from "@/lib/accountDeletion";
+import { disconnectUserSockets } from "@/lib/realtime";
 
 const schema = z.object({ isAdmin: z.boolean() });
 
@@ -29,9 +31,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ us
 
   const updated = await prisma.user.update({
     where: { id: userId },
-    data: { isAdmin: parsed.data.isAdmin },
+    data: { isAdmin: parsed.data.isAdmin, sessionVersion: { increment: 1 } },
     select: { id: true, isAdmin: true },
   });
+
+  disconnectUserSockets(userId);
 
   return NextResponse.json(updated);
 }
@@ -54,7 +58,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const target = await prisma.user.findUnique({ where: { id: userId } });
   if (!target) return await apiError("apiErrors.userNotFound", 404);
 
-  await prisma.user.delete({ where: { id: userId } });
+  await deleteUserAccount(userId);
 
   return NextResponse.json({ ok: true });
 }

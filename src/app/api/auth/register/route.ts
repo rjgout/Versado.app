@@ -13,9 +13,12 @@ import { BOFM_WORK, resolveEditionId } from "@/lib/contentCollections";
 import { createAccount, startPendingRegistration } from "@/lib/registration";
 import { safeReturnPath } from "@/lib/returnTo";
 import { apiError, apiErrorText } from "@/lib/apiError";
+import { authBudget, authBudgetKey } from "@/lib/authBudget";
+import { clientIp } from "@/lib/rateLimit";
+import { boundedJson } from "@/lib/requestBody";
 
 const schema = z.object({
-  email: z.string().trim().toLowerCase().email("Vul een geldig e-mailadres in."),
+  email: z.string().trim().toLowerCase().email("Vul een geldig e-mailadres in.").max(320),
   handle: z
     .string()
     .trim()
@@ -23,7 +26,7 @@ const schema = z.object({
     .max(HANDLE_MAX_LENGTH, `Gebruikersnaam mag maximaal ${HANDLE_MAX_LENGTH} tekens zijn.`)
     .regex(HANDLE_REGEX, "Alleen letters, cijfers, spaties, -, _ en emoji toegestaan.")
     .refine((v) => !containsForbiddenEmoji(v), "Deze emoji is niet toegestaan in een gebruikersnaam."),
-  password: z.string().min(8, "Wachtwoord moet minstens 8 tekens zijn."),
+  password: z.string().min(8, "Wachtwoord moet minstens 8 tekens zijn.").max(256),
   // Code uit een uitnodigingslink (zie src/lib/friendInvite.ts), optioneel.
   inviteCode: z.string().trim().max(32).optional(),
   // Waar iemand na bevestiging heen wil (bv. een groepslink), zie src/lib/returnTo.ts.
@@ -58,7 +61,9 @@ function maySendRegistrationNotice(email: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => null);
+  const limited = await authBudget(authBudgetKey("register-ip", clientIp(req)), 30, 15 * 60_000);
+  if (limited) return limited;
+  const body = await boundedJson(req);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return await apiErrorText(parsed.error.issues[0].message, 400);

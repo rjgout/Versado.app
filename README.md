@@ -180,6 +180,16 @@ tegelijk te draaien.
 
 ## Lokaal ontwikkelen zonder Docker
 
+Zet voor productie altijd `APP_URL=https://jouw-domein.nl` (alleen de oorsprong,
+zonder pad). Host- en forwarded-headers bepalen geen e-maillinks meer. Voor een
+lokale productiebuild mag bijvoorbeeld `APP_URL=http://localhost:3000`.
+Met `FEEDBACK_RECIPIENT_EMAIL` kies je expliciet de feedbackontvanger; zonder
+deze instelling blijven meldingen in `/adminbackend` en worden ze niet gemaild.
+De ingestelde ontvanger wordt op de feedbackpagina aan de indiener getoond.
+Bij de beveiligingsupdate vervallen eerder uitgegeven feedbackbeheerlinks;
+meldingen blijven beschikbaar in het ingelogde beheer. Uitloggen trekt alle
+sessies en open socketverbindingen van het account in.
+
 ```bash
 npm install
 npm run db:generate   # Prisma-client in src/generated/prisma (staat niet in git)

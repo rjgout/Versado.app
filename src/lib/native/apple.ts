@@ -5,6 +5,7 @@ import { resolveEditionId, BOFM_WORK } from "@/lib/contentCollections";
 import type { LanguageCode } from "@/lib/languages";
 import { createAccount } from "@/lib/registration";
 import { hashPassword } from "@/lib/auth";
+import { disconnectUserSockets } from "@/lib/realtime";
 import { hashSecret, matchesHash, lockNativeUser, NativeAuthError } from "./sessions";
 import { nativeSecondFactor, assertNativeAccount } from "./password";
 import type { User } from "@/generated/prisma/client";
@@ -92,4 +93,5 @@ export async function unlinkApple(user: User) {
     // Ook eerder via Apple uitgegeven sessies intrekken, geen voortgang wijzigen.
     await tx.user.update({ where: { id: user.id }, data: { sessionVersion: { increment: 1 } } });
   });
+  disconnectUserSockets(user.id);
 }

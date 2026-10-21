@@ -1,4 +1,5 @@
 import { randomBytes } from "crypto";
+import { z } from "zod";
 import type { FeedbackStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { sendMail } from "@/lib/email";
@@ -7,9 +8,17 @@ import { getT } from "@/lib/i18n";
 import { contentKeyForChapter } from "@/lib/learning/contentIdentity";
 import type { ExerciseFeedbackCategory, ExerciseFeedbackSource } from "@/lib/exerciseFeedback";
 
-// Bewust hardcoded (geen admin-instelling): dit is de vaste ontvanger van
-// alle feedback, niet iets dat per installatie hoeft te wisselen.
-const FEEDBACK_ADMIN_EMAIL = "raphael@gout.nl";
+export function feedbackRecipient(): string | null {
+  const recipient = z.email().safeParse(process.env.FEEDBACK_RECIPIENT_EMAIL?.trim());
+  return recipient.success ? recipient.data : null;
+}
+
+/** Zonder expliciete ontvanger blijft feedback uitsluitend in het beheer van deze instantie. */
+export async function sendFeedbackMail(input: Omit<Parameters<typeof sendMail>[0], "to">) {
+  const to = feedbackRecipient();
+  if (!to) return { ok: false, error: "Geen feedbackontvanger geconfigureerd." };
+  return sendMail({ ...input, to });
+}
 
 function escapeHtml(text: string): string {
   return text
@@ -43,8 +52,7 @@ export async function createFeedback(userId: string, message: string, screenshot
   const url = `${baseUrl}/feedback/respond/${respondToken}`;
   const parsed = screenshot ? parseDataUrl(screenshot) : null;
 
-  sendMail({
-    to: FEEDBACK_ADMIN_EMAIL,
+  sendFeedbackMail({
     subject: `Nieuwe feedback van ${user.handle} — ${APP_NAME}`,
     html: `
       <p><strong>${escapeHtml(user.handle)}</strong> (${escapeHtml(user.email)}) stuurde feedback:</p>
@@ -136,8 +144,7 @@ export async function createExerciseFeedback(input: ExerciseFeedbackInput) {
     });
 
     const contextLine = [verseRef, question.source, question.id].filter(Boolean).join(" · ");
-    sendMail({
-      to: FEEDBACK_ADMIN_EMAIL,
+    sendFeedbackMail({
       subject: `Nieuwe vraagfeedback van ${APP_NAME}`,
       html: `<p>${escapeHtml(t("feedback.exercise.reportTitle"))}</p><p><strong>${escapeHtml(contextLine)}</strong></p><p>${escapeHtml(categoryLabel)}</p><p style="white-space:pre-wrap">${escapeHtml(message)}</p><p><a href="${input.baseUrl}/feedback/respond/${respondToken}">Bekijk de melding en update de status →</a></p>`,
       text: `${t("feedback.exercise.reportTitle")}\n${contextLine}\n${categoryLabel}\n\n${input.baseUrl}/feedback/respond/${respondToken}`,

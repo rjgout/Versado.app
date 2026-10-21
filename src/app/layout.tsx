@@ -4,11 +4,10 @@ import { ConfirmProvider } from "@/components/ConfirmProvider";
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Fragment, Suspense } from "react";
-import { headers } from "next/headers";
 import "./globals.css";
 import { getCurrentUser, navigationSessionKey } from "@/lib/session";
 import { getBranding } from "@/lib/branding";
-import { cacheDetectedAppUrl, getAppUrl } from "@/lib/baseUrl";
+import { getAppUrl } from "@/lib/baseUrl";
 import NavUserBadges from "@/components/NavUserBadges";
 import PrimaryNav from "@/components/shell/PrimaryNav";
 import HeaderAvatar from "@/components/shell/HeaderAvatar";
@@ -135,21 +134,7 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-// Onthoudt bij elk paginabezoek het publieke adres (zie cacheDetectedAppUrl
-// in src/lib/baseUrl.ts) — hier, en niet in baseUrl.ts zelf, omdat dit
-// bestand (via Next's eigen bundeling) de enige veilige plek is om
-// "next/headers" te gebruiken. Fire-and-forget, mag de pagina nooit blokkeren.
-async function detectAppUrlFromHeaders(): Promise<void> {
-  if (process.env.APP_URL?.trim()) return; // env-override actief, niets te detecteren
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  if (!host) return;
-  const proto = h.get("x-forwarded-proto") ?? "https";
-  cacheDetectedAppUrl(`${proto}://${host}`, host);
-}
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  detectAppUrlFromHeaders().catch(() => {});
   const [user, { logoDataUrl, appName }] = await Promise.all([getCurrentUser(), getBranding()]);
   const [contentContext, tier] = user
     ? await Promise.all([getContentContext(user.id), displayTierFor(prisma, user.id).catch(() => null)])
