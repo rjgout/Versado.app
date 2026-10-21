@@ -58,8 +58,11 @@ try{
   await page.evaluate(()=>scrollTo(0,0));
   await page.waitForFunction(()=>{const heading=document.querySelector('h1'),bar=document.querySelector('[data-sticky-header]');return heading&&bar&&heading.getBoundingClientRect().top>=bar.getBoundingClientRect().bottom-1;});
   const barTop=await page.locator('[data-subpage-back-bar]').evaluate(el=>el.getBoundingClientRect().top);
+  const tall=await page.evaluate(()=>document.documentElement.hasAttribute('data-header-tall'));
+  assert.equal(await page.locator('[data-sticky-header]').evaluate(el=>getComputedStyle(el).position),tall?'absolute':'fixed','Grote tekst volgt het bestaande ShellMetrics-contract');
   await page.evaluate(()=>scrollTo(0,300));
-  assert.equal(Math.round(await page.locator('[data-subpage-back-bar]').evaluate(el=>el.getBoundingClientRect().top)),Math.round(barTop),'Terugbalk blijft bij scrollen zichtbaar');
+  const scroll=await page.evaluate(()=>scrollY);
+  assert.equal(Math.round(await page.locator('[data-subpage-back-bar]').evaluate(el=>el.getBoundingClientRect().top)),Math.round(barTop-(tall?scroll:0)),'Normale terugbalk blijft staan; een schermvullende tekstbalk scrollt volgens de shellregel mee');
   await page.locator('a[href="#/cookies"]').click();assert.equal(new URL(page.url()).hash,'#/cookies');
   await page.reload();await page.locator('table').waitFor();assert.equal(new URL(page.url()).hash,'#/cookies','Offline herladen bewaart de lokale route');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Ook juridische tekst heeft geen overflow');
