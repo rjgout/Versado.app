@@ -1391,6 +1391,7 @@ export const fr: PartialMessages = {
     },
   },
   cards: {
+    saveFailed: "La modification de ta carte n’a pas été enregistrée. Réessaie.",
     dragHandle: "Déplacer {title}",
     dragInstructions: "Appuie sur espace ou entrée pour saisir. Déplace avec les flèches, dépose avec espace ou entrée, ou annule avec échap.",
     dragStart: "{title} saisi, position {position} sur {total}.",

@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { apiError } from "@/lib/apiError";
 
-// Persoonlijke sleep-volgorde voor de cursussenlijst (/courses),
+// Persoonlijke kaartvolgorde voor de cursussenlijst (/courses),
 // spelletjeslijst (/live) en zichtbaarheid op Vandaag — één generiek
 // mechanisme voor die persoonlijke overzichten (zie
 // UserListOrder in schema.prisma) i.p.v. twee losse ad-hoc kolommen. Geen

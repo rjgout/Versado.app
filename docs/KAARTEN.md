@@ -2,8 +2,7 @@
 
 Hoe cursus- en spelkaarten werken, en hoe een nieuwe cursus of een nieuw spel
 erbij komt zonder opnieuw te ontwerpen. Code: `src/components/versado/ContentCard.tsx`
-(kaart, statuslabel, voortgang, beheermenu, toevoegpaneel) en
-`src/components/SortableList.tsx` (slepen). Gebruikt door `CoursesClient`
+(kaart, statuslabel, voortgang, beheermenu, toevoegpaneel). Gebruikt door `CoursesClient`
 (Leren, `/courses`) en `LiveLobbyForm` (Spelen, `/live`).
 
 ## De kaart (`ContentCard`)
@@ -12,10 +11,10 @@ erbij komt zonder opnieuw te ontwerpen. Code: `src/components/versado/ContentCar
 ┌─────────────────────────────┐
 │        AFBEELDING        ⋯ │  afbeelding → openen, ⋯ → beheren
 ├─────────────────────────────┤
-│ ⠿  LABEL  [status]          │  greep links → verplaatsen
-│    Titel                 ⓘ │  titel → openen, ⓘ → uitleg
-│    omschrijving (2 regels)  │
-│    voortgang / hervatten    │
+│ LABEL  [status]             │
+│ Titel                    ⓘ │  titel → openen, ⓘ → uitleg
+│ omschrijving (2 regels)     │
+│ voortgang / hervatten       │
 └─────────────────────────────┘
 ```
 
@@ -28,7 +27,8 @@ erbij komt zonder opnieuw te ontwerpen. Code: `src/components/versado/ContentCar
 - ⓘ (`info`) alleen bij unieke uitleg die niet al op de kaart staat (nu de
   speluitleg). Cursussen hebben er geen.
 - ⋯ (`actions`, meestal `cardActions`): Eerder in de lijst, Later in de
-  lijst (toegankelijk alternatief voor slepen) en Verbergen uit overzicht.
+  lijst en Verbergen uit overzicht. Dit is de enige handmatige bediening
+  voor positie en zichtbaarheid op Leren en Spelen.
   Geen losse ✕ op de kaart.
 - Statuslabels via `StatusChip` (Speel nu, Voltooid, Uitgeschakeld voor
   gebruikers), voortgang via `CardProgress`. Omschrijving maximaal twee
@@ -42,17 +42,21 @@ erbij komt zonder opnieuw te ontwerpen. Code: `src/components/versado/ContentCar
   cursusoverzicht.
 - Alleen `vs`-tokens: licht en donker gaan vanzelf goed.
 
-## Slepen (`SortableList`)
+## Bediening en toegankelijkheid
 
-- Alleen de greep (links, `touch-none`) start slepen; de rest van de kaart
-  scrolt en tikt gewoon. Touch heeft een korte vertraging.
-- Tijdens slepen: de oude plek blijft staan als grijze gestippelde
-  plaatshouder, de doelplek is een gestippeld vlak in de accentkleur, de
-  kaart zweeft los erboven (`DragOverlay`). Andere kaarten schuiven
-  vloeiend op (FLIP, niet onder `prefers-reduced-motion`).
-- Toetsenbord: spatie/enter op de greep, pijltoetsen (één plek per
-  toets), spatie/enter neerzetten, escape annuleren. Aankondigingen voor
-  schermlezers staan onder `cards.*` in de vertalingen.
+- Leren en Spelen hebben geen sleepgreep, draglisteners, sensoren of overlay.
+  De kaartinhoud gebruikt de volledige binnenbreedte. Tikken en scrollen op
+  de inhoud starten geen sleepactie.
+- Het kaartmenu heeft een aanraakvlak van minimaal 44 px. Enter/spatie of
+  pijl omhoog/omlaag opent het; pijlen, Home en End kiezen een beschikbare
+  actie. Escape sluit en herstelt focus. Tab verlaat het menu. Na verplaatsen
+  blijft focus op het menu van dezelfde kaart, zonder bewust scrollen.
+- Eerste/laatste positie begrenzen de verplaatsacties. De actieve cursus
+  staat los van deze lijst en heeft uitsluitend Verbergen in haar menu.
+- De menuafmetingen en positie blijven binnen het venster, tussen de shellbalken;
+  lange vertalingen en 200% tekst kunnen afbreken en zo nodig binnen het menu scrollen.
+- Andere onderdelen, waaronder uitgelichte prestaties op het profiel, behouden
+  `SortableList` en `DragHandle`, inclusief sleep- en toetsenbordbediening.
 
 ## Toevoegen, verbergen en volgorde
 
@@ -60,8 +64,7 @@ erbij komt zonder opnieuw te ontwerpen. Code: `src/components/versado/ContentCar
   kaart in dezelfde taal als de cursus- en spelkaarten: afgeronde rand, vlak en
   schaduw uit `interactiveCard`, een icoon in een accenttegel, het label en één
   regel uitleg (`addHint`), minimaal 4 rem hoog en als geheel aantikbaar. De
-  gestippelde rand is voorbehouden aan de plek waar je een kaart neerzet (slepen),
-  niet aan een knop. De gesloten kaart is er voor Leren en Spelen hetzelfde;
+  toevoegkaart gebruikt geen gestippelde rand. De gesloten kaart is er voor Leren en Spelen hetzelfde;
   alleen het label en de uitleg verschillen. Getest in `tests/cards.test.ts`.
 
 - Verbergen haalt een kaart alleen uit het eigen overzicht; er gaat nooit
@@ -78,16 +81,24 @@ erbij komt zonder opnieuw te ontwerpen. Code: `src/components/versado/ContentCar
   uitgeschakeld spel nooit zichtbaar maken.
 - Volgorde: `UserListOrder` per account (`/api/list-order`, `listKey`
   `courses` of `games`). Zonder `hiddenKeys` laat opslaan de verborgen set
-  ongemoeid.
+  ongemoeid. Geen wijziging aan database of API-contract.
+- Beide overzichten gebruiken `useCardListSave` voor één schrijfactie tegelijk.
+  Verplaatsen en spelzichtbaarheid worden optimistisch bijgewerkt; bij fouten
+  keert de eerdere weergave terug en verschijnt een vertaalde foutmelding.
+  Cursustoevoeging/verberging blijft de bestaande subscribe-API gebruiken.
+  Een herlaadactie leest de opgeslagen servervoorkeuren. Verschillende tabs
+  hebben geen versieconflictdetectie: de laatste geslaagde opslag geldt.
 
 ## Een nieuwe cursus of een nieuw spel
 
 - Spel: een regel in `GAME_CATALOG` (`src/lib/gameCatalog.ts`), teksten
   onder `gamesHub.<textKey>` (omschrijving, regels), een cover in
-  `GAME_COVERS` (`src/lib/artwork.ts`). Kaart, slepen, verbergen en
+  `GAME_COVERS` (`src/lib/artwork.ts`). Kaart, verplaatsen via het menu, verbergen en
   toevoegen werken dan vanzelf.
 - Cursus: komt uit de database (`syncCourses`); beeld via
   `courseArtworkKeys`. Een nieuw cursustype krijgt een label in
   `TYPE_LABELS` (`CoursesClient`) en, als het een eigen lespagina heeft,
   een aanroep van `markCourseStarted` daar.
-- Getest met `npm run test:cards`.
+- Getest met `npm run test:cards` en `npm run test:layout:browser -- --cards-only`.
+  De volledige layout-runner voert de kaartbrowsertest ook uit; mobiele screenshots
+  verschijnen bij de bestaande GitHub-browserartifacts.

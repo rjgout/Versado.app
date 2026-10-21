@@ -22,7 +22,8 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable } from "@dnd-kit/sortable";
 
-// Sleep-en-herordenen voor kaartlijsten (Leren, Spelen; zie docs/KAARTEN.md).
+// Sleep-en-herordenen voor onder meer uitgelichte prestaties op het profiel.
+// Leren en Spelen gebruiken uitsluitend hun kaartmenu (zie docs/KAARTEN.md).
 //
 // Bewust anders dan de standaard van dnd-kit, waarin de andere kaarten al
 // tijdens het slepen opschuiven en de oude plek opvullen: hier blijft de
@@ -75,7 +76,7 @@ export function SortableList<T extends { id: string }>({
   getItemLabel: (item: T) => string;
   className?: string;
   /**
-   * Vaste, unieke id voor deze DndContext (bv. "courses-list") — dnd-kit
+   * Vaste, unieke id voor deze DndContext (bv. "featured-achievements") — dnd-kit
    * genereert anders zelf een intern teller-ID voor aria-describedby, dat
    * op de server en de client uiteen kan lopen (hydration-waarschuwing).
    * Zie https://github.com/clauderic/dnd-kit/issues/900.

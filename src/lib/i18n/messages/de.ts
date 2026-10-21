@@ -1391,6 +1391,7 @@ export const de: PartialMessages = {
     },
   },
   cards: {
+    saveFailed: "Deine Kartenänderung wurde nicht gespeichert. Versuche es erneut.",
     dragHandle: "{title} verschieben",
     dragInstructions: "Drücke Leertaste oder Enter zum Aufnehmen. Verschiebe mit den Pfeiltasten, lege mit Leertaste oder Enter ab oder brich mit Escape ab.",
     dragStart: "{title} aufgenommen, Position {position} von {total}.",

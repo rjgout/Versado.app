@@ -1391,6 +1391,7 @@ export const en: PartialMessages = {
     },
   },
   cards: {
+    saveFailed: "Your card change was not saved. Please try again.",
     dragHandle: "Move {title}",
     dragInstructions: "Press space or enter to pick up. Move with the arrow keys, drop with space or enter, or cancel with escape.",
     dragStart: "Picked up {title}, position {position} of {total}.",

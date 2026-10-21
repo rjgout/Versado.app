@@ -7,16 +7,16 @@ import { useT } from "@/components/I18nProvider";
 import type { MessageKey } from "@/lib/i18n/core";
 import { weekLabelKey } from "@/lib/studyContent/weekLabels";
 import type { ResumeReason } from "@/lib/studyContent/weekSelection";
-import { SortableList } from "@/components/SortableList";
 import { applyPersonalOrder, fetchListOrder, saveListOrder } from "@/lib/listOrder";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
 import { liveMutation } from "@/lib/data/mutation";
 import { CardPicker, CardProgress, ContentCard, StatusChip, cardActions, type PickerItem } from "@/components/versado/ContentCard";
+import { useCardListSave } from "@/components/versado/useCardListSave";
 import VisualIdentityIcon from "@/components/versado/VisualIdentityIcon";
 
 // Leren: je eigen cursussen als kaarten (zie docs/KAARTEN.md). De huidige
-// cursus staat los bovenaan; de rest kun je verslepen, verbergen en via
+// cursus staat los bovenaan; de rest beheer je via het kaartmenu en via
 // "Cursus toevoegen" weer terugzetten. Verbergen = UserCourseProgress
 // .subscribed uit, de voortgang blijft; de volgorde staat in UserListOrder
 // ("courses"). Actief wordt een cursus pas als je er een les van opent
@@ -71,6 +71,7 @@ const isStudyType = (type: string) => type === "STUDY_STEPS" || type === "STUDY_
 
 export default function CoursesClient() {
   const t = useT();
+  const cardSave = useCardListSave();
   const [catalog, setCatalog] = useState<CatalogCourseView[] | null>(null);
   const [addingId, setAddingId] = useState<string | null>(null);
   /** Een volgorde die net lokaal is gekozen (na toevoegen), voordat de opgeslagen volgorde bijgewerkt is. */
@@ -128,10 +129,11 @@ export default function CoursesClient() {
   // volgorde; de rest in de volgorde van de lijst.
   function saveOrder(nextOthers: CourseView[]) {
     const next = activeCourse ? [activeCourse, ...nextOthers] : nextOthers;
-    setCourses(next);
-    saveListOrder(
-      "courses",
-      next.map((c) => c.id)
+    const previousOrder = courses!.map((course) => course.id);
+    void cardSave.run(
+      () => saveListOrder("courses", next.map((course) => course.id)),
+      () => setCourses(next),
+      () => setCourses((current) => applyPersonalOrder(current ?? [], previousOrder))
     );
   }
 
@@ -146,33 +148,36 @@ export default function CoursesClient() {
   // Verbergen uit het overzicht: de voortgang blijft (unsubscribe zet alleen
   // subscribed uit), dus geen bevestiging nodig; terugzetten kan altijd.
   async function hide(courseId: string) {
-    try {
+    const saved = await cardSave.run(async () => {
       await liveMutation(() => fetchJson(`/api/courses/${courseId}/unsubscribe`, { method: "POST" }), {
         invalidates: "coursesChanged",
         onSuccess: () => setCourses((cur) => cur?.filter((c) => c.id !== courseId) ?? []),
       });
-    } catch {
-      return;
-    }
+    });
+    if (!saved) return;
     setCatalog(null);
   }
 
   async function add(courseId: string) {
+    if (cardSave.busy) return;
     setAddingId(courseId);
     // Achteraan, ook als de cursus eerder al eens ergens anders stond.
     const order = [...(courses ?? []).map((c) => c.id), courseId];
-    orderOverride.current = order;
-    try {
-      await liveMutation(() => fetchJson(`/api/courses/${courseId}/subscribe`, { method: "POST" }), {
-        invalidates: "coursesChanged",
-      });
-    } catch {
-      orderOverride.current = null;
-      return;
-    } finally {
-      setAddingId(null);
-    }
-    saveListOrder("courses", order);
+    const saved = await cardSave.run(async () => {
+      orderOverride.current = order;
+      try {
+        await liveMutation(() => fetchJson(`/api/courses/${courseId}/subscribe`, { method: "POST" }), {
+          invalidates: "coursesChanged",
+        });
+        await saveListOrder("courses", order);
+      } catch (error) {
+        orderOverride.current = null;
+        await coursesQuery.refetch();
+        throw error;
+      }
+    });
+    setAddingId(null);
+    if (!saved) return;
     setCatalog((cur) => cur?.filter((c) => c.id !== courseId) ?? null);
   }
 
@@ -204,6 +209,8 @@ export default function CoursesClient() {
         <p className="text-sm text-vs-fg-2">{t("courses.intro")}</p>
       </div>
 
+      {cardSave.failed && <p role="alert" className="text-sm text-vs-danger">{t("cards.saveFailed")}</p>}
+
       {activeCourse && (
         <section className="flex flex-col gap-3" aria-labelledby="current-journey">
           <h2 id="current-journey" className="text-lg font-extrabold text-brand-800 dark:text-brand-300 sm:text-xl">
@@ -218,7 +225,7 @@ export default function CoursesClient() {
             label={t(TYPE_LABELS[activeCourse.type])}
             chips={chipsOf(activeCourse)}
             description={activeCourse.description}
-            actions={[{ label: t("cards.hide"), icon: EyeOff, onSelect: () => hide(activeCourse.id) }]}
+            actions={[{ label: t("cards.hide"), icon: EyeOff, onSelect: () => hide(activeCourse.id), disabled: cardSave.busy }]}
           >
             {activeCourse.currentChapter && (
               <p className="text-sm font-bold text-vs-fg">
@@ -250,28 +257,23 @@ export default function CoursesClient() {
           <h2 id="discover-courses" className="text-lg font-extrabold text-brand-800 dark:text-brand-300 sm:text-xl">
             {t("courses.discoverMore")}
           </h2>
-          <SortableList
-            dndId="courses-list"
-            items={others}
-            onReorder={saveOrder}
-            getItemLabel={(course) => course.name}
-            className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
-            renderItem={(course, handle) => (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {others.map((course, index) => (
               <ContentCard
+                key={course.id}
                 title={course.name}
                 href={`/courses/${course.id}`}
                 artwork={{ kind: "course", keys: course.artwork, sizes: CARD_SIZES, asset: course.imageSrc ? { src: course.imageSrc } : null }}
                 label={t(TYPE_LABELS[course.type])}
                 chips={chipsOf(course)}
                 description={course.description}
-                handle={handle}
-                priority={!activeCourse && others.indexOf(course) === 0}
-                actions={cardActions({ t, index: others.indexOf(course), count: others.length, onMove: move, onHide: () => hide(course.id) })}
+                priority={!activeCourse && index === 0}
+                actions={cardActions({ t, index, count: others.length, busy: cardSave.busy, onMove: move, onHide: () => hide(course.id) })}
               >
                 {progressOf(course)}
               </ContentCard>
-            )}
-          />
+            ))}
+          </div>
         </section>
       )}
 
@@ -282,6 +284,7 @@ export default function CoursesClient() {
         emptyText={t("courses.allAdded")}
         items={pickerItems}
         busyId={addingId}
+        disabled={cardSave.busy}
         onOpen={() => {
           if (!catalog) loadCatalog();
         }}

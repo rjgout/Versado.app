@@ -1403,6 +1403,7 @@ export const es: PartialMessages = {
     }
   },
   "cards": {
+    saveFailed: "El cambio de tu tarjeta no se ha guardado. Inténtalo de nuevo.",
     "dragHandle": "Mover {title}",
     "dragInstructions": "Pulsa espacio o intro para coger. Mueve con las flechas, suelta con espacio o intro, o cancela con escape.",
     "dragStart": "{title} cogido, posición {position} de {total}.",

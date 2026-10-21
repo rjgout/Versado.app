@@ -8,10 +8,10 @@ import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
 import { createElement as h } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { applyPersonalOrder } from "../src/lib/listOrder";
+import { applyPersonalOrder, saveListOrder } from "../src/lib/listOrder";
 import Module from "node:module";
 import { I18nProvider } from "../src/components/I18nProvider";
-import { messagesFor } from "../src/lib/i18n";
+import { getT, messagesFor } from "../src/lib/i18n";
 
 // next/image werkt alleen binnen Next; voor deze HTML-test volstaat een <img>.
 const localRequire = Module.createRequire(import.meta.url);
@@ -19,7 +19,7 @@ localRequire.cache[localRequire.resolve("next/image")] = {
   exports: { __esModule: true, default: (props: { alt?: string }) => h("img", { alt: props.alt ?? "" }) },
 } as unknown as NodeJS.Module;
 // Pas na het vervangen laden (een gewone import wordt vooraan uitgevoerd).
-const { ContentCard } = localRequire("../src/components/versado/ContentCard") as typeof import("../src/components/versado/ContentCard");
+const { ContentCard, cardActions } = localRequire("../src/components/versado/ContentCard") as typeof import("../src/components/versado/ContentCard");
 
 test("persoonlijke volgorde: opgeslagen eerst, onbekende achteraan in hun eigen volgorde", () => {
   const items = ["a", "b", "c", "d"].map((id) => ({ id }));
@@ -60,13 +60,10 @@ test("ⓘ en ⋯ alleen als ze er zijn, met een toegankelijke naam", () => {
   assert.match(full, /<button[^>]*aria-label="Beheer Woordzoeker"[^>]*aria-haspopup="menu"/);
 });
 
-test("de greep staat links van de titel en heet naar de kaart", () => {
-  const html = render({
-    handle: { attributes: {} as never, listeners: undefined, setActivatorNodeRef: () => {}, isDragging: false, label: "Woordzoeker" },
-  });
-  const handleAt = html.indexOf('aria-label="Woordzoeker verplaatsen"');
-  assert.ok(handleAt > 0, "greep ontbreekt");
-  assert.ok(handleAt < html.indexOf('class="card-title-link'), "greep staat niet vóór de titel");
+test("de kaart heeft geen sleepgreep of sleepbediening", () => {
+  const html = render({ actions: [{ label: "Later in de lijst", onSelect: () => {} }] });
+  assert.doesNotMatch(html, /verplaatsen|aria-roledescription="sortable"|draggable=|touch-none|cursor-grab/);
+  assert.match(html, /aria-haspopup="menu"/);
 });
 
 const url = process.env.LEARNING_TEST_DATABASE_URL;
@@ -74,20 +71,26 @@ if (url) process.env.DATABASE_URL = url;
 const skip = !url && "LEARNING_TEST_DATABASE_URL niet gezet";
 const load = async () => ({ db: (await import("../src/lib/db")).prisma, courses: await import("../src/lib/courses") });
 let L: Awaited<ReturnType<typeof load>>;
+let fixtureCourses: { id: string }[] = [];
 const email = `kaarten-${Date.now()}@test.invalid`;
 
 before(async () => {
   if (skip) return;
   L = await load();
+  fixtureCourses = await Promise.all([0, 1].map((index) => L.db.course.create({ data: {
+    slug: `card-test-${Date.now()}-${index}`, name: `Synthetische kaartcursus ${index}`,
+    type: "FREE_CHOICE", contentCollectionId: "content_bom",
+  }, select: { id: true } })));
 });
 after(async () => {
   if (skip) return;
   await L.db.user.deleteMany({ where: { email } });
+  await L.db.course.deleteMany({ where: { id: { in: fixtureCourses.map((course) => course.id) } } });
   await L.db.$disconnect();
 });
 
 test("bekijken of toevoegen maakt een cursus niet actief, een les openen wel", { skip }, async () => {
-  const [first, second] = await L.db.course.findMany({ where: { enabled: true }, orderBy: { order: "asc" }, take: 2, select: { id: true } });
+  const [first, second] = fixtureCourses;
   assert.ok(first && second, "geen cursussen in de testdatabase");
   const user = await L.db.user.create({ data: { email, passwordHash: "x", handle: "Kaart", discriminator: "07", activeCourseId: first.id } });
 
@@ -149,4 +152,35 @@ test("een plaatje in een kinderverhaal wisselt tussen klein en vergroot en heeft
     assert.match(messages, /"?zoomImage"?: "/, `${lang}: zoomImage ontbreekt`);
     assert.match(messages, /"?unzoomImage"?: "/, `${lang}: unzoomImage ontbreekt`);
   }
+});
+
+
+test("kaartmenu begrenst beide richtingen en bewaart dezelfde indexen", () => {
+  for (let index = 0; index < 3; index++) {
+    const moves: number[][] = [];
+    let hidden = false;
+    const actions = cardActions({ t: getT("nl"), index, count: 3, onMove: (from, to) => moves.push([from, to]), onHide: () => { hidden = true; } });
+    assert.equal(actions[0].disabled, index === 0);
+    assert.equal(actions[1].disabled, index === 2);
+    actions[0].onSelect(); actions[1].onSelect(); actions[2].onSelect();
+    assert.deepEqual(moves, [[index, index - 1], [index, index + 1]]);
+    assert.equal(hidden, true);
+  }
+  const busy = cardActions({ t: getT("nl"), index: 1, count: 3, busy: true, onMove: () => {}, onHide: () => {} });
+  assert.ok(busy.every((action) => action.disabled));
+});
+
+test("kaartopslag bewaart het API-contract en meldt HTTP- en netwerkfouten", async () => {
+  const original = globalThis.fetch;
+  const bodies: unknown[] = [];
+  try {
+    globalThis.fetch = async (_url, init) => { bodies.push(JSON.parse(String(init?.body))); return new Response("{}", { status: 200 }); };
+    await saveListOrder("courses", ["active", "b", "a"]);
+    await saveListOrder("games", ["b", "a"], ["hidden-other-content"]);
+    assert.deepEqual(bodies, [{ listKey: "courses", itemKeys: ["active", "b", "a"] }, { listKey: "games", itemKeys: ["b", "a"], hiddenKeys: ["hidden-other-content"] }]);
+    globalThis.fetch = async () => new Response("{}", { status: 503 });
+    await assert.rejects(saveListOrder("games", ["a"]), /HTTP 503/);
+    globalThis.fetch = async () => { throw new Error("offline"); };
+    await assert.rejects(saveListOrder("courses", ["a"]), /offline/);
+  } finally { globalThis.fetch = original; }
 });

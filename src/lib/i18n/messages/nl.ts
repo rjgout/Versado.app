@@ -1019,6 +1019,7 @@ export const nl = {
     },
   },
   cards: {
+    saveFailed: "Je kaartwijziging is niet opgeslagen. Probeer het opnieuw.",
     dragHandle: "{title} verplaatsen",
     dragInstructions: "Druk op spatie of enter om op te pakken. Verplaats met de pijltoetsen, zet neer met spatie of enter, of annuleer met escape.",
     dragStart: "{title} opgepakt, plek {position} van {total}.",
