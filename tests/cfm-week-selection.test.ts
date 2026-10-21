@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { calendarWeekOf, isWeekDone, resolveWeekSelection, type SelectableWeek } from "../src/lib/studyContent/weekSelection";
+import { calendarWeekOf, hasStudyActivity, isWeekDone, resolveWeekSelection, type SelectableWeek } from "../src/lib/studyContent/weekSelection";
 import { userDayKey } from "../src/lib/timeZone";
 
 // Synthetisch jaar: vier weken van maandag t/m zondag (einde exclusief), zoals de importer ze vastlegt.
@@ -32,32 +32,69 @@ test("laatste dag van 2026 valt in een week die over de jaargrens loopt", () => 
 test("na de laatste gepubliceerde week bestaat er geen kalenderweek en heet de hervatweek niet 'deze week'", () => {
   const after = select(base, "2027-01-11");
   assert.equal(after.calendar, null);
-  assert.equal(after.resumeReason, "unfinished");
-  assert.equal(key(after.resume), "study:w1", "eerste onafgeronde week");
-  assert.notEqual(after.resumeReason, "calendar");
+  // Niets bestudeerd en niets gekozen: geen impliciete achterstand, maar een neutraal weekoverzicht.
+  assert.equal(after.resume, null);
+  assert.equal(after.resumeReason, null);
 });
 
-test("voor het begin van het jaar is er ook geen kalenderweek", () => {
+test("de oudste onafgeronde week wordt nooit automatisch de hervatweek", () => {
+  // Week 1 is nooit geopend; week 3 is bestudeerd: hervatten gaat naar week 3, niet naar de 'achterstand' van week 1.
+  const studied = [base[0], base[1], { ...base[2], stepsDone: 2, lastStudiedAt: "2027-02-01T10:00:00Z" }, base[3]];
+  const result = select(studied, "2027-02-01");
+  assert.equal(key(result.resume), "study:w3");
+  assert.equal(result.resumeReason, "studied");
+});
+
+test("laatst bestudeerd is de week met de recentste activiteit, niet de chronologisch laatste week", () => {
+  // Eerst week 3 bestudeerd, daarna terug naar week 1: week 1 is de recentst bestudeerde week.
+  const weeks = [
+    { ...base[0], stepsDone: 1, lastStudiedAt: "2027-02-03T09:00:00Z" },
+    base[1],
+    { ...base[2], stepsDone: 6, lastStudiedAt: "2027-02-01T09:00:00Z" },
+    base[3],
+  ];
+  const result = select(weeks, "2027-03-01");
+  assert.equal(key(result.resume), "study:w1");
+  assert.equal(result.resumeReason, "studied");
+  // Gelijk tijdstip: de latere week wint (deterministisch).
+  const tie = [{ ...base[0], lastStudiedAt: "2027-02-03T09:00:00Z" }, base[1], { ...base[2], lastStudiedAt: "2027-02-03T09:00:00Z" }, base[3]];
+  assert.equal(key(select(tie, "2027-03-01").resume), "study:w3");
+});
+
+test("alleen bekeken of gekozen is niet bestudeerd; zonder betrouwbaar tijdstip geen verzonnen hervatweek", () => {
+  // Stappen afgerond maar zonder tijdstip (bijvoorbeeld een oude rij): niet op tijd te ordenen, dus geen 'laatst bestudeerd'.
+  const undated = [{ ...base[0], stepsDone: 3 }, { ...base[1], read: true }, base[2], base[3]];
+  assert.equal(select(undated, "2027-03-01").resume, null);
+  assert.equal(select(undated, "2027-03-01").resumeReason, null);
+  assert.equal(hasStudyActivity({ lastStudiedAt: null }), false);
+  assert.equal(hasStudyActivity({ lastStudiedAt: "2027-02-01T09:00:00Z" }), true);
+  // Een week alleen kiezen levert 'selected' op, nooit 'studied'.
+  assert.equal(select(base, "2027-03-01", "study:w2").resumeReason, "selected");
+});
+
+test("voor het begin van het jaar is er geen kalenderweek en geen hervatweek zonder studie", () => {
   const before = select(base, "2026-12-01");
   assert.equal(before.calendar, null);
-  assert.equal(key(before.resume), "study:w1");
+  assert.equal(before.resume, null);
 });
 
-test("alle weken afgerond: zonder kalenderweek de laatste week", () => {
-  const done = base.map((w, i) => (i % 2 ? { ...w, stepsDone: 6 } : { ...w, read: true }));
-  assert.ok(done.every(isWeekDone));
-  const result = select(done, "2027-03-01");
-  assert.equal(result.resumeReason, "last");
-  assert.equal(key(result.resume), "study:w4");
-  // Met een kalenderweek wint die, ook als ze al af is.
-  assert.equal(key(select(done, "2026-12-22").resume), "study:w2");
+test("de kalenderweek wint van een gekozen of bestudeerde week", () => {
+  const weeks = [{ ...base[0], lastStudiedAt: "2026-12-15T09:00:00Z" }, ...base.slice(1)];
+  assert.equal(key(select(weeks, "2026-12-22", "study:w1").resume), "study:w2");
+  assert.equal(select(weeks, "2026-12-22", "study:w1").resumeReason, "calendar");
 });
 
-test("een gedeeltelijk afgeronde week is nog niet af", () => {
-  const partial = [{ ...base[0], stepsDone: 5 }, ...base.slice(1)];
-  assert.equal(isWeekDone(partial[0]), false);
-  assert.equal(key(select(partial, "2027-02-01").resume), "study:w1");
+test("een gekozen week wint van een bestudeerde week buiten de kalenderweek", () => {
+  const weeks = [{ ...base[0], lastStudiedAt: "2027-02-03T09:00:00Z" }, ...base.slice(1)];
+  const result = select(weeks, "2027-03-01", "study:w3");
+  assert.equal(key(result.resume), "study:w3");
+  assert.equal(result.resumeReason, "selected");
+});
+
+test("een week is af bij gelezen of zes stappen; gedeeltelijk is niet af", () => {
+  assert.equal(isWeekDone({ ...base[0], stepsDone: 5 }), false);
   assert.equal(isWeekDone({ read: true, stepsDone: 0 }), true);
+  assert.equal(isWeekDone({ read: false, stepsDone: 6 }), true);
 });
 
 test("een zelf geopende oudere of toekomstige week wordt de hervatweek zolang er geen kalenderweek is", () => {
@@ -70,7 +107,7 @@ test("een zelf geopende oudere of toekomstige week wordt de hervatweek zolang er
   assert.equal(key(during.selected), "study:w4");
   // Een gekozen week die niet (meer) gepubliceerd is in deze collectie telt niet.
   assert.equal(select(base, "2027-02-01", "study:onbekend").selected, null);
-  assert.equal(select(base, "2027-02-01", "study:onbekend").resumeReason, "unfinished");
+  assert.equal(select(base, "2027-02-01", "study:onbekend").resumeReason, null);
 });
 
 test("zonder gepubliceerde lessen is er niets te kiezen", () => {

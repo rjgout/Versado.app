@@ -41,7 +41,7 @@ export default async function ReadingPathPage({ params }: { params: Promise<{ co
     const data = await getStudyCatalogue(user, new Date(), { collectionId: course.contentCollectionId });
     const weeks = data.lessons.filter((lesson) => lesson.personal).map((l) => ({
       id: l.id, lessonId: l.lessonId, collectionId: l.collectionId, lessonKey: l.lessonKey, title: l.title, startsOn: l.startsOn,
-      endsOnExclusive: l.endsOnExclusive, read: l.read, stepsDone: l.stepsDone, imageMediaId: l.imageMediaId,
+      endsOnExclusive: l.endsOnExclusive, read: l.read, stepsDone: l.stepsDone, imageMediaId: l.imageMediaId, lastStudiedAt: l.lastStudiedAt,
     }));
     if (!weeks.length) redirect("/courses");
     // Dezelfde weekregel als de cursuskaart: kalenderweek, anders hervatweek (zie weekSelection.ts).
@@ -56,7 +56,7 @@ export default async function ReadingPathPage({ params }: { params: Promise<{ co
           mode={modeOfStudyCourse(course.type)}
           weeks={weeks}
           activeWeekId={activeWeek?.id ?? null}
-          activeIsCalendar={selection.resumeReason === "calendar"}
+          resumeReason={selection.resumeReason}
           sessionKey={await navigationSessionKey()}
           context={data.context ? { workKey: data.context.workKey, version: data.context.version, activeLessonKey: data.context.activeLessonKey } : null}
         />

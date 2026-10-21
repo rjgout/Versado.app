@@ -2,7 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { z } from "zod";
 import { getCurrentUser, navigationSessionKey } from "@/lib/session";
 import { prisma } from "@/lib/db";
-import { cfmCourseBackTarget, markCfmCourseStarted } from "@/lib/studyContent/cfmCourses";
+import { cfmCoursePathTarget, markCfmCourseStarted } from "@/lib/studyContent/cfmCourses";
 import { loadPersonalStudyPage } from "@/lib/studyContent/personalStudyPage";
 import StudyReader from "@/components/study/StudyReader";
 import ReaderBackTarget from "@/components/ReaderBackTarget";
@@ -30,11 +30,11 @@ export default async function Page({
   if (!page.view) redirect(base);
   const stepIndex = Number(parsed.data.stap);
   await markCfmCourseStarted(prisma, user.id, parsed.data.collectionId, "STEPS");
-  // Terug = het leerpad van Stap voor stap in Leren: een expliciete bestemming (ook bij een directe link), nooit router.back().
-  const back = await cfmCourseBackTarget(prisma, parsed.data.collectionId, "STEPS", user.uiLanguage);
+  // Terug = de werkelijke herkomst (soft: browser-terug); het leerpad is alleen de terugval zonder vorige pagina in de app.
+  const back = await cfmCoursePathTarget(prisma, parsed.data.collectionId, "STEPS", user.uiLanguage);
   return (
     <>
-      {back && <ReaderBackTarget href={back.href} parent={back.name} />}
+      {back && <ReaderBackTarget href={back.href} parent={back.name} soft studyOrigin />}
       <StudyReader
         key={`${page.reader.lesson.editionId}:${sessionKey}:step${stepIndex}`}
         initial={page.reader}

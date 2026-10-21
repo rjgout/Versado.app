@@ -716,6 +716,14 @@ Gevonden bij dit onderzoek; niet aangepast, want buiten deze opdracht:
 - Werk dit document bij als de richting verandert of een deel van het
   redesign is uitgevoerd.
 
+## Vandaag: de CFM-kaart (deelname, geen voltooiing)
+
+"Kom dan en volg Mij" is een doorlopend programma waaraan je elke week meedoet. De kaart op Vandaag (`CfmTodayCard`) is daarom een uitnodiging
+voor de studie van deze week en geen cursusoverzicht: officiële lesafbeelding (anders de neutrale Versado-kop), merk en collectie, "Deze week"
+met de officiële periode, de echte lestitel en één primaire actie ("Begin met studeren" / "Verder met studeren") plus één secundaire ("Bekijk de
+zes stappen"). Nooit een jaarpercentage, een aantal afgeronde weken of een achterstandssuggestie; zonder kalenderweek heet de hervatweek "Laatst
+bestudeerd". De terugknop in de les gaat terug naar Vandaag. Details en het navigatiecontract: `docs/CFM-PERSOONLIJKE-STUDIE.md` §18.
+
 ## Hulpmiddelen en Woordenboek
 
 Het overzicht (`/tools`), het woordenboek, personages, bladwijzers en de XP-gids delen

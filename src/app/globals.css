@@ -432,13 +432,17 @@ html[data-keyboard] main {
   @apply inline-flex items-center justify-center rounded-2xl px-5 py-3 font-bold uppercase tracking-wide text-sm transition active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
 }
 
+/* Legacy knop-, kaart- en invoerklassen (nog in gebruik buiten de Versado-
+ * onderdelen). Vorm, padding en 3D-schaduw blijven gelijk; alleen de kleuren
+ * komen uit de `--vs-*`-tokens, zodat licht en donker overal één blauw en
+ * dezelfde contrasten volgen. De 3D-rand is een donkerdere mix van de
+ * achtergrond zelf. Zie docs/VERSADO-DESIGN.md. */
 .btn-primary {
-  @apply btn bg-brand-500 text-white shadow-[0_4px_0_0_theme(colors.brand.700)] hover:bg-brand-400 active:shadow-none active:translate-y-1;
+  @apply btn bg-vs-accent text-vs-on-accent shadow-[0_4px_0_0_color-mix(in_srgb,rgb(var(--vs-accent))_68%,black)] hover:brightness-110 active:shadow-none active:translate-y-1;
 }
 
 .btn-secondary {
-  @apply btn bg-white text-brand-600 border-2 border-brand-200 shadow-[0_4px_0_0_theme(colors.brand.200)] hover:bg-brand-50 active:shadow-none active:translate-y-1;
-  @apply dark:bg-slate-800 dark:text-brand-300 dark:border-slate-600 dark:shadow-[0_4px_0_0_theme(colors.slate.950)] dark:hover:bg-slate-700;
+  @apply btn bg-vs-surface text-vs-accent border-2 border-vs-line-strong shadow-[0_4px_0_0_rgb(var(--vs-line-strong))] hover:bg-vs-subtle active:shadow-none active:translate-y-1;
 }
 
 .btn-ice {
@@ -446,13 +450,11 @@ html[data-keyboard] main {
 }
 
 .card {
-  @apply bg-white rounded-3xl shadow-sm border border-slate-100 p-6 transition-colors;
-  @apply dark:bg-slate-800 dark:border-slate-700;
+  @apply bg-vs-surface rounded-3xl shadow-sm border border-vs-line p-6 transition-colors;
 }
 
 .input {
-  @apply w-full rounded-2xl border-2 border-slate-200 px-4 py-3 text-base outline-none focus:border-brand-400 transition bg-white text-slate-800;
-  @apply dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100;
+  @apply w-full rounded-2xl border-2 border-vs-line-strong px-4 py-3 text-base outline-none focus:border-vs-accent transition bg-vs-surface text-vs-fg placeholder:text-vs-fg-3;
 }
 
 /* --- Native-app-gevoel op touch devices ----------------------------------

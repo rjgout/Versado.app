@@ -274,7 +274,7 @@ export default function ChapterGuessSoloClient({ gameId }: { gameId: string }) {
             <button className="btn-secondary !px-3 !py-1.5 !text-xs" disabled={givingUp} onClick={() => setConfirmingGiveUp(false)}>
               {t("activeGames.cancel")}
             </button>
-            <button className="btn-primary !bg-red-500 !px-3 !py-1.5 !text-xs" disabled={givingUp} onClick={giveUp}>
+            <button className="btn-primary !bg-red-500 !text-white !px-3 !py-1.5 !text-xs" disabled={givingUp} onClick={giveUp}>
               {givingUp ? t("courses.busy") : t("chapterGuess.yesGiveUp")}
             </button>
           </div>

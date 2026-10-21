@@ -69,11 +69,21 @@ export async function markCfmCourseStarted(db: PrismaClient, userId: string, col
 }
 
 /**
- * De expliciete terugbestemming van een CFM-les: het leerpad (`/courses/<id>/pad`) van de cursus die bij deze collectie en
- * leeswijze hoort. Geen browsergeschiedenis, dus ook een directe deeplink heeft een geldige terugweg. Zonder cursus (nog niet
- * aangemaakt) is er geen bestemming en valt de terugbalk terug op het cursusoverzicht.
+ * Het leerpad (`/courses/<id>/pad`) van de cursus die bij deze collectie en leeswijze hoort. Dit is uitdrukkelijk NIET de
+ * bestemming van de terugknop: die volgt de werkelijke herkomst (Vandaag, weekpad, ...) via de browsergeschiedenis, en gebruikt
+ * dit pad alleen als veilige terugval zonder bruikbare vorige pagina (directe link, nieuwe tab). Zie docs/CFM-PERSOONLIJKE-STUDIE.md §18.
+ * Zonder cursus (nog niet aangemaakt) is er geen bestemming en valt de terugbalk terug op het cursusoverzicht.
  */
-export async function cfmCourseBackTarget(
+export async function cfmCoursePathHref(db: Pick<PrismaClient, "course">, collectionId: string, mode: "STEPS" | "FREE"): Promise<string | null> {
+  const course = await db.course.findFirst({
+    where: { contentCollectionId: collectionId, enabled: true, type: mode === "STEPS" ? "STUDY_STEPS" : "STUDY_FREE" },
+    orderBy: { order: "asc" },
+    select: { id: true },
+  });
+  return course ? `/courses/${course.id}/pad` : null;
+}
+
+export async function cfmCoursePathTarget(
   db: Pick<PrismaClient, "course">,
   collectionId: string,
   mode: "STEPS" | "FREE",

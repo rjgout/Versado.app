@@ -112,3 +112,6 @@ Een echte import is een apart, goedgekeurd werkpakket. Checklist (verwijzingen n
 * Bestaan en uniekheid van de twee 2026-cursussen: `SELECT slug, type, "contentCollectionId", enabled FROM "Course" WHERE type IN ('STUDY_STEPS','STUDY_FREE')`.
 * Geen automatische inschrijvingen: aantal `UserCourseProgress` voor deze cursussen vóór/na uitrol vergelijken.
 * Geen wijziging van `ContentCollection.visibleToUsers` voor CFM door de uitrol.
+
+
+> **Bijgewerkt (zie `docs/CFM-PERSOONLIJKE-STUDIE.md` §18):** de terugval "eerste onafgeronde week → laatste week" hierboven is vervangen door "laatst bestudeerde week → geen hervatweek" (CFM is deelname, geen inhaalprogramma); sinds de correctieronde telt daarbij alleen echte activiteit met een tijdstempel (`lastStudiedAt`) en heet een gekozen week "Laatst gekozen week" in plaats van "Laatst bestudeerd".

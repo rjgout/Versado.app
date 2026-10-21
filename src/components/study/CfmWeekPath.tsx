@@ -10,6 +10,8 @@ import { fetchJson } from "@/lib/data/fetchJson";
 import type { PersonalStudyModeValue } from "@/lib/studyContent/personalStudyMode";
 import { PERSONAL_STUDY_STEPS } from "@/lib/studyContent/personalStudy";
 import type { StepProgressState } from "@/lib/studyContent/stepProgress";
+import { weekLabelKey } from "@/lib/studyContent/weekLabels";
+import type { ResumeReason } from "@/lib/studyContent/weekSelection";
 import { formatWeekPeriod, lessonBase } from "./PersonalStudyParts";
 
 // Het weekpad van de persoonlijke studie: dezelfde leerlijn als de Boek van Mormon-leescursussen (grote actieve kaart,
@@ -89,19 +91,34 @@ function WeekSteps({ week, sessionKey }: { week: WeekRow; sessionKey: string }) 
   );
 }
 
+/** Zes subtiele stippen voor de stappen van één week: zonder cijfers en zonder afvinklijst, alleen waar je al geweest bent. */
+function StepDots({ done }: { done: number }) {
+  const t = useT();
+  return (
+    <span data-week-dots className="inline-flex items-center gap-1 align-middle">
+      <span aria-hidden className="inline-flex gap-1">
+        {Array.from({ length: PERSONAL_STUDY_STEPS }, (_, i) => (
+          <span key={i} className={`h-1.5 w-1.5 rounded-full ${i < done ? "bg-current" : "bg-current opacity-30"}`} />
+        ))}
+      </span>
+      <span className="sr-only">{t("cfmStudy.weekProgress", { done, total: PERSONAL_STUDY_STEPS })}</span>
+    </span>
+  );
+}
+
 export default function CfmWeekPath({
   weeks,
   mode,
   activeWeekId,
-  activeIsCalendar = true,
+  resumeReason = "calendar",
   sessionKey,
   onOpenWeek,
 }: {
   weeks: WeekRow[];
   mode: PersonalStudyModeValue;
   activeWeekId: string | null;
-  /** Alleen een echte kalenderweek heet "Deze week"; een hervatweek krijgt een neutrale aanduiding. */
-  activeIsCalendar?: boolean;
+  /** Alleen een echte kalenderweek heet "Deze week"; een gekozen of bestudeerde week krijgt zijn eigen label (weekLabels.ts). */
+  resumeReason?: ResumeReason | null;
   sessionKey: string;
   /** Onthoudt de geopende week als actieve les (bestaande studiecontext); mag falen zonder de navigatie te raken. */
   onOpenWeek?: (lessonKey: string) => void;
@@ -120,13 +137,20 @@ export default function CfmWeekPath({
   const stateOf = (week: WeekRow): VisualState =>
     week.id === activeWeekId ? "current" : week.read || week.stepsDone >= PERSONAL_STUDY_STEPS ? "done" : week.stepsDone > 0 ? "started" : "open";
   const states = weeks.map(stateOf);
+  const labelKey = weekLabelKey(resumeReason);
   return (
     <ol aria-label={t("cfmStudy.pathLabel")} data-cfm-week-path data-path-mode={mode} className="m-0 flex list-none flex-col items-stretch p-0">
       {weeks.map((week, index) => {
         const state = states[index];
         const period = formatWeekPeriod(week.startsOn, week.endsOnExclusive, language);
-        const progress = mode === "STEPS" ? t("cfmStudy.weekProgress", { done: week.stepsDone, total: PERSONAL_STUDY_STEPS }) : week.read ? t("cfmStudy.weekRead") : null;
-        const subtitle = [period, progress].filter(Boolean).join(" · ");
+        const progress = mode === "STEPS" ? (week.stepsDone > 0 ? <StepDots done={week.stepsDone} /> : null) : week.read ? t("cfmStudy.weekRead") : null;
+        const subtitle: React.ReactNode = (
+          <>
+            {period}
+            {period && progress ? " · " : ""}
+            {progress}
+          </>
+        );
         const imageSrc = mediaSrc(week.imageMediaId);
         const thumb = !!imageSrc;
         const href = lessonBase(week.lessonId, week.collectionId);
@@ -138,10 +162,10 @@ export default function CfmWeekPath({
               <div data-current-step onClickCapture={mode === "STEPS" ? () => onOpenWeek?.(week.lessonKey) : undefined}>
               <ActiveChapterCard
                 label={week.title}
-                subtitle={subtitle || t(activeIsCalendar ? "cfmStudy.currentWeek" : "cfmStudy.resumeWeek")}
+                subtitle={subtitle}
+                eyebrow={labelKey ? t(labelKey) : undefined}
                 artworkKeys={[]}
                 imageSrc={imageSrc}
-                progress={mode === "STEPS" ? { now: week.stepsDone, max: PERSONAL_STUDY_STEPS, percent: Math.round((week.stepsDone / PERSONAL_STUDY_STEPS) * 100) } : undefined}
               >
                 {mode === "STEPS" ? (
                   <WeekSteps week={week} sessionKey={sessionKey} />

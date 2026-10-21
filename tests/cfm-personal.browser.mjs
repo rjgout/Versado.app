@@ -29,7 +29,7 @@ const step = (name) => results.push(name);
 
 async function fixture() {
   const user = await prisma.user.create({
-    data: { email: `${randomUUID()}@cfm-browser.invalid`, passwordHash: "test-only", handle: `C${randomUUID().slice(0, 8)}`, discriminator: "00", uiLanguage: "nl", isAdmin: false, timeZone: "UTC" },
+    data: { email: `${randomUUID()}@cfm-browser.invalid`, passwordHash: "test-only", handle: `C${randomUUID().slice(0, 8)}`, discriminator: "00", uiLanguage: "nl", isAdmin: false, timeZone: "UTC", onboardingSeenAt: new Date(), onboardingProfilePrivacyAt: new Date(), avatarCharacterId: "nephi", kompasOffersEnabled: false },
   });
   const key = `synthetic-study-cfm-${randomUUID()}`;
   await prisma.contentWork.create({ data: { key, kind: "STUDY_PROGRAM" } });
@@ -51,9 +51,11 @@ async function fixture() {
   return { user, key, lessonId: item.edition.lessonId, editionId: item.lessonEditionId, token: await createSessionToken(user.id), href: `/study-lesson/${item.edition.lessonId}/${key}`,
     previousHref: `/study-lesson/${items.find((i) => i.sourceKey === "fixture:cfm-lesson-previous").edition.lessonId}/${key}` };
 }
-async function open(f, { width = 390, height = 844, scheme = "light" } = {}) {
+async function open(f, { width = 390, height = 844, scheme = "light", noNavigationApi = false } = {}) {
   const context = await browser.newContext({ viewport: { width, height }, colorScheme: scheme, timezoneId: "UTC", hasTouch: width < 500, isMobile: width < 500, serviceWorkers: "block" });
   await context.addCookies([{ name: SESSION_COOKIE, value: f.token, url: base }]);
+  // Oudere Safari kent de Navigation API niet: dan werkt de herkomst alleen via sessionStorage en de lengte van de geschiedenis.
+  if (noNavigationApi) await context.addInitScript(() => Object.defineProperty(window, "navigation", { value: undefined, configurable: true }));
   const page = await context.newPage();
   lastPage = page;
   page.on("pageerror", (e) => errors.push(`${e.message} @ ${page.url()}`));
@@ -249,17 +251,80 @@ try {
     await page.goto(base + f.href + "/stappen/5");
     await page.locator("[data-complete-step]").waitFor();
     assert.equal(await page.locator('[role="img"][aria-label*="5"]').count(), 1, "stapstatus ook als tekst (aria-label)");
-    // De hoofdterugknop gaat naar het leerpad van Stap voor stap, ook bij een directe deeplink (geen geschiedenis).
-    await page.locator("[data-subpage-back-bar] button").click();
-    await page.waitForURL((url) => url.pathname === padHref);
+    // Directe deeplink in een nieuw tabblad (geen vorige pagina in de app): veilige terugval naar het leerpad van Stap voor stap.
+    {
+      const direct = await context.newPage();
+      await direct.goto(base + f.href + "/stappen/5");
+      await direct.locator("[data-complete-step]").waitFor();
+      await direct.locator("[data-subpage-back-bar] button").click();
+      await direct.waitForURL((url) => url.pathname === padHref);
+      await direct.locator("[data-cfm-week-path]").waitFor();
+      await direct.close();
+    }
+    // Scenario A: Leren → weekpad → stap 1 → volgende stap → hoofdterugknop = weekpad (de herkomst), niet de vorige stap.
+    await page.goto(base + padHref);
     await page.locator("[data-cfm-week-path]").waitFor();
-    // Met geschiedenis: pad → stap 1 → volgende stap → hoofdterugknop = pad, niet de vorige stap.
     await page.locator('[data-week-state="current"] [data-week-step="1"]').click();
     await page.waitForURL(/\/stappen\/1$/);
     await page.locator("[data-step-next]").click();
     await page.waitForURL(/\/stappen\/2$/);
+    await page.locator("[data-step-next]").click();
+    await page.waitForURL(/\/stappen\/3$/);
     await page.locator("[data-subpage-back-bar] button").click();
     await page.waitForURL((url) => url.pathname === padHref);
+    // Scenario B: Vandaag → studieles → hoofdterugknop = Vandaag (niet het weekpad), ook na stapnavigatie en een refresh.
+    await page.goto(base + "/dashboard");
+    await page.locator("[data-cfm-today]").waitFor();
+    assert.equal(await page.locator("[data-cfm-today-primary]").count(), 1, "één primaire actie");
+    assert.equal(await page.locator("[data-cfm-today-secondary]").count(), 1, "één secundaire actie");
+    assert.doesNotMatch(await page.locator("[data-cfm-today]").innerText(), /%|van \d+ weken|voltooid/i, "geen totaalvoortgang op Vandaag");
+    assert.ok(await noOverflow(page));
+    await page.screenshot({ path: `${output}/today-card-mobile.png` });
+    await page.locator("[data-cfm-today-primary]").click();
+    await page.waitForURL(/\/stappen\/\d$/);
+    await page.locator("[data-complete-step]").waitFor();
+    await page.locator("[data-step-next]").click();
+    await page.waitForURL(/\/stappen\/\d$/);
+    await page.reload();
+    await page.locator("[data-complete-step]").waitFor();
+    await page.locator("[data-subpage-back-bar] button").click();
+    await page.waitForURL((url) => url.pathname === "/dashboard");
+    // Browser-terug en -vooruit blijven consistent (geen lus): vooruit = de les, terug = Vandaag.
+    await page.goForward();
+    await page.locator("[data-complete-step]").waitFor();
+    await page.goBack();
+    await page.waitForURL((url) => url.pathname === "/dashboard");
+    // Het secundaire pad (de zes stappen) opent het weekpad; daar gaat terug naar Vandaag.
+    await page.locator("[data-cfm-today-secondary]").click();
+    await page.waitForURL((url) => url.pathname === padHref);
+    await page.locator("[data-cfm-week-path]").waitFor();
+    await page.goBack();
+    await page.waitForURL((url) => url.pathname === "/dashboard");
+    // Scenario's vanuit Leren: weekpad → stap 1 → stap 6 → "Terug naar het leerpad" zet geen tweede weekpad op de geschiedenis.
+    await page.goto(base + "/courses");
+    await page.goto(base + padHref);
+    await page.locator("[data-cfm-week-path]").waitFor();
+    await page.locator('[data-week-state="current"] [data-week-step="1"]').click();
+    await page.waitForURL(/\/stappen\/1$/);
+    for (let n = 2; n <= 6; n++) { await page.locator("[data-step-next]").click(); await page.waitForURL(new RegExp(`/stappen/${n}$`)); }
+    const lengthBefore = await page.evaluate(() => history.length);
+    await page.locator("[data-step-to-path]").click();
+    await page.waitForURL((url) => url.pathname === padHref);
+    assert.equal(await page.evaluate(() => history.length), lengthBefore, "geen extra geschiedenisitem bij Terug naar het leerpad");
+    await page.goBack();
+    // Het weekpad staat maar één keer op de geschiedenis: terug gaat niet naar nog een weekpad.
+    await page.waitForURL((url) => url.pathname !== padHref, { timeout: 8000 });
+    // Twee opeenvolgende studieactiviteiten vanuit verschillende ingangen (weekpad, daarna Vandaag): elk zijn eigen herkomst.
+    await page.goto(base + padHref);
+    await page.locator('[data-week-state="current"] [data-week-step="2"]').click();
+    await page.waitForURL(/\/stappen\/2$/);
+    await page.locator("[data-subpage-back-bar] button").click();
+    await page.waitForURL((url) => url.pathname === padHref);
+    await page.goto(base + "/dashboard");
+    await page.locator("[data-cfm-today-primary]").click();
+    await page.waitForURL(/\/stappen\/\d$/);
+    await page.locator("[data-subpage-back-bar] button").click();
+    await page.waitForURL((url) => url.pathname === "/dashboard");
     // Vrije studie houdt zijn menu (opnieuw beginnen, volledige les) en heeft eigen terugnavigatie.
     await page.goto(base + f.href);
     await page.locator("[data-reader-mode='free']").waitFor();
@@ -285,6 +350,43 @@ try {
     await page.getByText(t("cfmStudy.stepDone")).waitFor();
     assert.equal(await page.locator("[data-complete-step]").count(), 0);
     assert.equal(await prisma.studyStepProgress.count({ where: { userId: f.user.id, status: "COMPLETED" } }), 1);
+    // Zonder Navigation API (oudere Safari): dezelfde contracten, nu via sessionStorage en de lengte van de geschiedenis.
+    {
+      const safari = await open(f, { noNavigationApi: true });
+      const sp = safari.page;
+      assert.equal(await sp.goto(base + "/dashboard").then(() => sp.evaluate(() => typeof window.navigation)), "undefined", "Navigation API is uitgeschakeld");
+      await sp.locator("[data-cfm-today-primary]").click();
+      await sp.waitForURL(/\/stappen\/\d$/);
+      await sp.locator("[data-step-next]").click();
+      await sp.waitForURL(/\/stappen\/\d$/);
+      await sp.reload();
+      await sp.locator("[data-complete-step]").waitFor();
+      await sp.locator("[data-subpage-back-bar] button").click();
+      await sp.waitForURL((url) => url.pathname === "/dashboard");
+      // Leren → weekpad → les → terug = weekpad; en stap 6 → terug naar het leerpad zonder dubbel item.
+      await sp.goto(base + padHref);
+      await sp.locator("[data-cfm-week-path]").waitFor();
+      await sp.locator('[data-week-state="current"] [data-week-step="1"]').click();
+      await sp.waitForURL(/\/stappen\/1$/);
+      await sp.locator("[data-subpage-back-bar] button").click();
+      await sp.waitForURL((url) => url.pathname === padHref);
+      await sp.locator('[data-week-state="current"] [data-week-step="1"]').click();
+      await sp.waitForURL(/\/stappen\/1$/);
+      for (let n = 2; n <= 6; n++) { await sp.locator("[data-step-next]").click(); await sp.waitForURL(new RegExp(`/stappen/${n}$`)); }
+      const before = await sp.evaluate(() => history.length);
+      await sp.locator("[data-step-to-path]").click();
+      await sp.waitForURL((url) => url.pathname === padHref);
+      assert.equal(await sp.evaluate(() => history.length), before, "Safari-fallback: geen dubbel weekpad");
+      // Directe link in een nieuw tabblad: veilige terugval.
+      const direct = await safari.context.newPage();
+      await direct.goto(base + f.href + "/stappen/3");
+      await direct.locator("[data-complete-step]").waitFor();
+      // De terugbalk kent de cursus pas als de pagina de terugbestemming heeft geregistreerd (de cursusnaam staat dan als ondertitel).
+      await direct.locator("[data-subpage-back-bar]").getByText("Stap voor stap").waitFor();
+      await direct.locator("[data-subpage-back-bar] button").click();
+      await direct.waitForURL((url) => url.pathname === padHref);
+      await safari.context.close();
+    }
     await context.close();
     step("Stap voor stap: geen tussenpagina of menu, expliciete terugnavigatie, stap afronden zonder READ/reeks");
   }
@@ -409,7 +511,7 @@ try {
     // Toegevoegd: een gewone cursuskaart met voortgang in weken; niet meer aangeboden onder toevoegen.
     const stepsCard = page.locator("article").filter({ hasText: "Stap voor stap" }).first();
     await stepsCard.waitFor();
-    assert.match(await stepsCard.innerText(), /0 \/ 2 weken voltooid/);
+    assert.doesNotMatch(await stepsCard.innerText(), /voltooid|\d+ \/ \d+|%/, "CFM toont geen totaalvoortgang in Leren");
     assert.equal(await page.locator("section li").filter({ hasText: "Stap voor stap" }).count(), 0, "niet dubbel aangeboden");
     assert.equal(await userRow().then((u) => u.activeCourseId), null, "toevoegen maakt de cursus niet actief");
     // De cursus openen: de leeswijze volgt uit de cursus (Stap voor stap), met de bestaande leerlijn.
