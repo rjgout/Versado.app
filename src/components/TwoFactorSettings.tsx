@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import qrcode from "qrcode-generator";
+import { RecoveryCodesCard, TwoFactorSetupCard } from "@/components/account/TwoFactorCards";
 import { ShieldCheck, Smartphone } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import {
@@ -27,12 +27,6 @@ const CODE_INPUT_PROPS = {
   autoComplete: "one-time-code",
 };
 
-function qrDataUrl(uri: string) {
-  const qr = qrcode(0, "M");
-  qr.addData(uri);
-  qr.make();
-  return qr.createDataURL(5, 2);
-}
 
 /**
  * Het profielonderdeel Tweestapsverificatie (/profile?view=twoFactor): status,
@@ -47,7 +41,6 @@ export default function TwoFactorSettings({ isAdmin }: { isAdmin: boolean }) {
   const [setup, setSetup] = useState<{ secret: string; otpauthUri: string } | null>(null);
   const [code, setCode] = useState("");
   const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null);
-  const [copied, setCopied] = useState(false);
   const [message, setMessage] = useState<Message>(null);
   const [busy, setBusy] = useState(false);
 
@@ -108,11 +101,6 @@ export default function TwoFactorSettings({ isAdmin }: { isAdmin: boolean }) {
     setMessage({ kind: "success", text: t("twoFactor.disabled") });
   }
 
-  async function copyRecoveryCodes() {
-    if (!recoveryCodes) return;
-    await navigator.clipboard?.writeText(recoveryCodes.join("\n")).catch(() => {});
-    setCopied(true);
-  }
 
   if (enabled === null) {
     return (
@@ -123,30 +111,7 @@ export default function TwoFactorSettings({ isAdmin }: { isAdmin: boolean }) {
   }
 
   // Alleen nu te zien: de herstelcodes na het instellen.
-  if (recoveryCodes) {
-    return (
-      <ProfileCard
-        title={t("twoFactor.saveCodes")}
-        description={t("twoFactor.saveCodesText")}
-        actions={
-          <>
-            <SettingsButton onClick={copyRecoveryCodes}>{copied ? t("twoFactor.copied") : t("twoFactor.copy")}</SettingsButton>
-            <SettingsButton variant="primary" onClick={() => setRecoveryCodes(null)}>
-              {t("twoFactor.savedSafely")}
-            </SettingsButton>
-          </>
-        }
-      >
-        <ul className="mt-1 grid grid-cols-2 gap-2 font-mono text-sm">
-          {recoveryCodes.map((item) => (
-            <li key={item} className="rounded-lg border border-vs-line bg-vs-subtle px-3 py-2 text-center text-vs-fg">
-              {item}
-            </li>
-          ))}
-        </ul>
-      </ProfileCard>
-    );
-  }
+  if (recoveryCodes) return <RecoveryCodesCard recoveryCodes={recoveryCodes} onSaved={() => setRecoveryCodes(null)} />;
 
   const statusBadge = (
     <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${enabled ? "bg-vs-success-soft text-vs-success" : "bg-vs-subtle text-vs-fg-2"}`}>
@@ -191,42 +156,7 @@ export default function TwoFactorSettings({ isAdmin }: { isAdmin: boolean }) {
         )}
       </SettingsSection>
 
-      {mode === "setup" && setup && (
-        <ProfileCard
-          actions={
-            <>
-              <input
-                className={`${settingsInlineFieldClass} w-36 text-center text-lg tracking-widest`}
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                aria-label={t("twoFactor.step3")}
-                placeholder="123456"
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              />
-              <SettingsButton variant="primary" onClick={verifySetup} disabled={busy || code.length !== 6}>
-                {busy ? t("courses.busy") : t("twoFactor.confirm")}
-              </SettingsButton>
-              {!enabled && <SettingsButton onClick={() => switchMode("idle")}>{t("activeGames.cancel")}</SettingsButton>}
-            </>
-          }
-        >
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-            {/* Altijd wit: een QR-code moet donker op licht staan om te scannen. */}
-            <div className="shrink-0 rounded-xl bg-white p-2 shadow-sm">
-              <img src={qrDataUrl(setup.otpauthUri)} alt={t("twoFactor.qrAlt")} className="h-40 w-40" />
-            </div>
-            <ol className="flex list-decimal flex-col gap-2 pl-5 text-sm text-vs-fg">
-              <li>{t("twoFactor.step1")}</li>
-              <li>
-                {t("twoFactor.step2")}
-                <span className="mt-1 block break-all font-mono text-xs text-vs-fg-2">{setup.secret}</span>
-              </li>
-              <li>{t("twoFactor.step3")}</li>
-            </ol>
-          </div>
-        </ProfileCard>
-      )}
+      {mode === "setup" && setup && <TwoFactorSetupCard setup={setup} code={code} onCode={setCode} onConfirm={verifySetup} onCancel={!enabled ? () => switchMode("idle") : undefined} busy={busy} />}
 
       {(mode === "reset-code" || mode === "disable-code") && (
         <ProfileCard
