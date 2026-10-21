@@ -51,6 +51,15 @@ erbij komt zonder opnieuw te ontwerpen. Code: `src/components/versado/ContentCar
   pijl omhoog/omlaag opent het; pijlen, Home en End kiezen een beschikbare
   actie. Escape sluit en herstelt focus. Tab verlaat het menu. Na verplaatsen
   blijft focus op het menu van dezelfde kaart, zonder bewust scrollen.
+- **iPhone Safari**: een tik geeft een knop daar geen focus. Het menu-item dat bij openen
+  programmatisch focus kreeg, verliest die dan met `relatedTarget = null`, nog vóór de click.
+  Het menu mag daarom nooit sluiten op een blur zonder `relatedTarget` (dat haalde het menu weg
+  vóór de gekozen actie liep); alleen focus die aantoonbaar naar een element buiten het menu gaat
+  (toetsenbord, schermlezer) of een pointerdown buiten het menu sluit. De browsertest emuleert
+  dit gedrag met `touchscreen.tap()`; Chromium-emulatie vervangt geen test op een echte iPhone.
+  Nog handmatig op een toestel te doen: ⋯ tikken op Leren en Spelen, Eerder/Later/Verbergen
+  kiezen, buiten het menu tikken, scrollen met open menu, en dit met grotere tekst en
+  VoiceOver aan.
 - Eerste/laatste positie begrenzen de verplaatsacties. De actieve cursus
   staat los van deze lijst en heeft uitsluitend Verbergen in haar menu.
 - De menuafmetingen en positie blijven binnen het venster, tussen de shellbalken;

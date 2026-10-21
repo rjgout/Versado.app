@@ -175,7 +175,12 @@ export function CardMenu({ title, actions }: { title: string; actions: CardMenuA
           role="menu"
           style={position}
           onBlur={(event) => {
-            if (!rootRef.current?.contains(event.relatedTarget as Node)) setOpen(false);
+            // iPhone Safari geeft een knop bij een tik geen focus: het menu-item dat wij zelf focusten verliest dan
+            // focus met relatedTarget null, nog vóór de click. Sluiten op dat moment haalt het menu weg voordat de
+            // gekozen actie loopt. Alleen focus die aantoonbaar naar een element buiten het menu gaat (toetsenbord,
+            // schermlezer) sluit hier; tikken buiten het menu sluit via pointerdown.
+            const next = event.relatedTarget as Node | null;
+            if (next && !rootRef.current?.contains(next)) setOpen(false);
           }}
           aria-label={t("cards.menu", { title })}
           onKeyDown={onMenuKeyDown}
