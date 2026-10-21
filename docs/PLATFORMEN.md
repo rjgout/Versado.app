@@ -433,6 +433,9 @@ Artifacts blijven zeven dagen beschikbaar bij de betreffende workflowrun.
 Deze controles leveren pas buildbewijs zodra de jobs op de gepushte commit groen
 zijn. De lokale workspace heeft geen Android SDK of Xcode. De positieve controles
 op beide gesynchroniseerde projecten en negatieve controles op remote-url,
-assetafwijking en releasevlag zijn lokaal uitgevoerd. De eerste SDK-builds zijn
-nog in te plannen; echte iPhone/iPad/Android-, Keychain/Keystore-, Apple- en
+assetafwijking en releasevlag zijn lokaal uitgevoerd. De eerste SDK-builds zijn beide geslaagd op appcodecommit
+`e8714bbc7a8e7bb152ebf5f88aa4e9e4ca2254f7`; zie
+[workflowrun 39654191278](https://github.com/rjgout/Versado.app/actions/runs/39654191278).
+Android-APK en iOS-simulatorapp zijn werkelijk gecompileerd en hun verpakte assets
+zijn gecontroleerd. Echte iPhone/iPad/Android-, Keychain/Keystore-, Apple- en
 lifecycleacceptatie blijven aparte open gates. `release` blijft geblokkeerd.

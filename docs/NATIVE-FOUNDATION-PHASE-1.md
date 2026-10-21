@@ -227,6 +227,7 @@ De aanvullende workflow `native-platform-builds.yml` compileert Android Debug en
 een ongetekende iOS-simulatorapp met echte SDK's op CI. Zij gebruikt alleen een
 lokale developmentbundel met een gereserveerde, onbereikbare compile-backend.
 Een digestcontrole vergelijkt de assets vóór en na verpakking met `dist/native`.
-De eerste runs zijn nog niet als geslaagd gemarkeerd; zie PLATFORMEN voor de
-actuele grens. Een compileprobe vervangt geen fysieke apparaat-/bridgeacceptatie,
+Beide SDK-runs zijn geslaagd op appcodecommit
+`e8714bbc7a8e7bb152ebf5f88aa4e9e4ca2254f7` (run 39654191278);
+zie PLATFORMEN voor de artifacts en actuele grens. Een compileprobe vervangt geen fysieke apparaat-/bridgeacceptatie,
 onafhankelijke audit of releaseprofiel.
