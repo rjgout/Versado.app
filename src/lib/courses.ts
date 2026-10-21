@@ -3,6 +3,8 @@ import { capitalize, chapterTerm } from "./chapterTerm";
 import { ensurePodcasts, PODCASTS, PODCASTS_COLLECTION_ID } from "./podcasts";
 import { splitVerseRange } from "./learning/exercisePlan";
 import { isStudyCourseType } from "./readingCourses";
+import { BOM_COLLECTION_ID } from "./contentCollectionIds";
+import { findDuplicateReadingCourses } from "./courseIntegrity";
 
 export const FRONT_TO_BACK_SLUG = "voor-naar-achter";
 export const FREE_CHOICE_SLUG = "vrije-keuze";
@@ -187,9 +189,18 @@ async function syncScriptureCourses(
 ): Promise<void> {
   const slugFor = (base: string) => (isDefault ? base : `${base}-${collection.slug}`);
   const chapters = books.flatMap((book) => book.chapters);
+  // Zonder hoofdstukken is er niets op te bouwen; vooral geen lessenplan toepassen: een leeg plan zou alle bestaande lessen weggooien.
+  if (chapters.length === 0) return;
 
   async function upsertCourse(base: string, type: "FREE_CHOICE" | "FRONT_TO_BACK" | "READING_LESSONS", name: string, description: string, order: number) {
     const slug = slugFor(base);
+    // Een andere collectie dan het Boek van Mormon: bestaat er al precies één cursus van dit soort voor déze collectie onder een andere slug
+    // (bijvoorbeeld na het hernoemen van de collectieslug), dan nemen we die over (en zetten de slug recht) in plaats van een tweede aan te maken.
+    // Bij meerdere kandidaten kiezen we nooit willekeurig. Het Boek van Mormon houdt zijn vaste, historische slugs en wordt nooit overgenomen.
+    if (!isDefault && !(await db.course.findUnique({ where: { slug }, select: { id: true } }))) {
+      const candidates = await db.course.findMany({ where: { contentCollectionId: collection.id, type }, select: { id: true }, take: 2 });
+      if (candidates.length === 1) return db.course.update({ where: { id: candidates[0].id }, data: { slug, name, description, order } });
+    }
     return db.course.upsert({
       where: { slug },
       update: { name, description, order, contentCollectionId: collection.id },
@@ -230,12 +241,14 @@ async function syncScriptureCourses(
  * 20260924210000_remove_by_book_courses).
  */
 export async function syncCourses(db: PrismaClient): Promise<void> {
-  const defaultCollection = await db.contentCollection.findFirst({
-    where: { enabled: true },
-    orderBy: { order: "asc" },
+  // De historische standaardcursussen (en hun slugs) horen bij het Boek van Mormon, vastgelegd op id. Nooit "de eerste ingeschakelde
+  // collectie op volgorde": een nieuwe collectie met dezelfde `order` (of een uitgeschakeld Boek van Mormon) maakte van een andere
+  // collectie de standaard, waardoor de historische cursussen verhuisden en het Boek van Mormon een tweede set kreeg.
+  const defaultCollection = await db.contentCollection.findUnique({
+    where: { id: BOM_COLLECTION_ID },
     select: { id: true, slug: true, name: true },
   });
-  if (!defaultCollection) throw new Error("Geen contentcollectie beschikbaar.");
+  if (!defaultCollection) throw new Error(`Standaardcollectie ${BOM_COLLECTION_ID} ontbreekt; de cursussen worden niet gesynchroniseerd.`);
 
   const books = await db.book.findMany({
     where: { contentCollectionId: defaultCollection.id },
@@ -261,6 +274,7 @@ export async function syncCourses(db: PrismaClient): Promise<void> {
     },
   });
 
+  // Een Boek van Mormon zonder hoofdstukken (nog niet geïmporteerd) laat de bestaande cursussen ongemoeid.
   await syncScriptureCourses(db, defaultCollection, books, true, {
     freeChoice: "Kies zelf welk hoofdstuk je wil doen, in elke volgorde.",
     frontToBack: "Eén vaste volgorde door alle boeken heen, hoofdstuk na hoofdstuk.",
@@ -366,6 +380,15 @@ export async function syncCourses(db: PrismaClient): Promise<void> {
       },
     });
   }
+
+  await warnOnDuplicateReadingCourses(db);
+}
+
+/** Meldt dubbele leescursussen (zie courseIntegrity.ts); breekt een import niet af, want herstel is een aparte, goed te keuren stap. */
+async function warnOnDuplicateReadingCourses(db: PrismaClient): Promise<void> {
+  const duplicates = await findDuplicateReadingCourses(db);
+  for (const group of duplicates)
+    console.warn(`[cursussen] ${group.courses.length}x ${group.type} voor ${group.contentCollectionId}: ${group.courses.map((c) => c.slug).join(", ")} — zie docs/CURSUSIDENTITEIT.md`);
 }
 
 /**
