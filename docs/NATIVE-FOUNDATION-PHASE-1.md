@@ -66,7 +66,20 @@ contracten, veilige sessiewisselingen, realtime/media/push en apparaat-/storebew
 expliciet open. Geen ontbrekende functie is als web-only uitzondering goedgekeurd.
 De zelfstandige broncontrole is geen onafhankelijke audit of native-acceptatie.
 
+## Sessiewisselingen na de proef
+
+De client bewaakt nu sessiegeneraties vóór en na refresh, API-antwoorden en
+provider-authenticatie. Read/wijzig/write is geserialiseerd; offline intrekkingen
+blijven duurzaam naast een nieuw account staan. Late logoutbevestigingen wissen
+geen nieuwe sessie. Een generatiewissel tijdens de native write maakt het late
+paar uitsluitend een intrekkingsintentie. Zeven extra clientregressies bewaken dit;
+ze vervangen geen fysieke Keychain/Keystore- of Apple-tests.
+
 ## Migratie van overige schermen
+
+De eigenaar heeft de gedeelde navigatie- en datalaag per functie goedgekeurd
+(21 oktober 2026), met expliciete native versiecontracten en stapsgewijs hergebruik
+van de bestaande componenten. Geen build-time Next.js-compatibiliteitsshims.
 
 Na deze proef per feature: serverdata achter versiecontract, gedeelde clientcomponent,
 rechten-/reconnecttests, daarna native navigatie. Volgorde: onboarding en accountbeheer,

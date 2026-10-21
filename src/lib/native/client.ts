@@ -1,23 +1,65 @@
+import { z } from "zod";
 import { nativeTokensSchema } from "./contract";
 export interface SecureSessionStore { read(): Promise<string | null>; write(value: string): Promise<void>; clear(): Promise<void> }
-export type SavedSession = { refreshToken: string; actionId?: string; logoutPending?: boolean };
+const retirementSchema = z.object({ refreshToken: z.string().min(1).max(128), actionId: z.uuid() }).strict();
+const savedSchema = z.object({
+  refreshToken: z.string().min(1).max(128), actionId: z.uuid().optional(), logoutPending: z.boolean().optional(),
+  pendingRevocations: z.array(retirementSchema).max(16).optional(),
+}).strict();
+export type SavedSession = z.infer<typeof savedSchema>;
+type Retirement = z.infer<typeof retirementSchema>;
 export class NativeClientError extends Error {
   constructor(public code: string, public status = 0) { super(code); }
 }
+function retirements(saved: SavedSession | null): Retirement[] {
+  if (!saved) return [];
+  return [...(saved.pendingRevocations ?? []), ...(saved.logoutPending ? [{ refreshToken: saved.refreshToken, actionId: saved.actionId ?? crypto.randomUUID() }] : [])];
+}
+function pack(active: SavedSession | null, pending: Retirement[]): SavedSession | null {
+  const unique = [...new Map(pending.filter(item => item.refreshToken !== active?.refreshToken).map(item => [item.refreshToken, item])).values()];
+  if (active) return { refreshToken: active.refreshToken, ...(active.actionId ? { actionId: active.actionId } : {}), ...(unique.length ? { pendingRevocations: unique } : {}) };
+  const [first, ...rest] = unique;
+  return first ? { ...first, logoutPending: true, ...(rest.length ? { pendingRevocations: rest } : {}) } : null;
+}
 export class NativeSessionClient {
   private access: string | null = null;
-  private refreshQueue: Promise<void> | null = null;
+  private refreshQueue: { generation: number; promise: Promise<void> } | null = null;
+  private revocationQueue: Promise<void> | null = null;
+  private storageQueue: Promise<unknown> = Promise.resolve();
   private generation = 0;
-  private store: SecureSessionStore;
-  constructor(readonly baseUrl: string, store: SecureSessionStore, private transport: typeof fetch = (input, init) => fetch(input, init)) {
-    let tail: Promise<unknown> = Promise.resolve();
-    const run = <T>(operation: () => Promise<T>) => { const next = tail.then(operation); tail = next.catch(() => {}); return next; };
-    this.store = { read: () => run(() => store.read()), write: value => run(() => store.write(value)), clear: () => run(() => store.clear()) };
+  private authenticating: number | null = null;
+  constructor(readonly baseUrl: string, private store: SecureSessionStore, private transport: typeof fetch = (input, init) => fetch(input, init)) {}
+
+  // Lees + voorwaardelijke wijziging vormen samen één transactie in deze client.
+  // Een losse queue per read/write beschermt niet tegen laat bevestigde logout.
+  private serialized<T>(operation: () => Promise<T>): Promise<T> {
+    const next = this.storageQueue.then(operation);
+    this.storageQueue = next.catch(() => {});
+    return next;
   }
-  private async saved(): Promise<SavedSession | null> {
+  private async readSaved(): Promise<SavedSession | null> {
     const raw = await this.store.read(); if (!raw) return null;
-    try { const value = JSON.parse(raw); if (typeof value.refreshToken === "string" && value.refreshToken.length <= 128) return value; } catch {}
-    await this.store.clear(); return null;
+    try {
+      if (new TextEncoder().encode(raw).byteLength > 4096) throw new Error();
+      return savedSchema.parse(JSON.parse(raw));
+    } catch { await this.store.clear(); return null; }
+  }
+  private saved() { return this.serialized(() => this.readSaved()); }
+  private edit(change: (current: SavedSession | null) => SavedSession | null): Promise<SavedSession | null> {
+    return this.serialized(async () => {
+      const current = await this.readSaved(), next = change(current);
+      if (next === current) return current;
+      if (!next) { await this.store.clear(); return null; }
+      const parsed = savedSchema.safeParse(next), raw = JSON.stringify(next);
+      // Dezelfde limiet als de echte Keychain/Keystore-bridge; nooit oude
+      // intrekkingsintenties weggooien om een nieuwe login passend te maken.
+      if (!parsed.success || new TextEncoder().encode(raw).byteLength > 4096) throw new NativeClientError("secure_storage_unavailable");
+      await this.store.write(raw);
+      return next;
+    });
+  }
+  private assertGeneration(generation: number) {
+    if (generation !== this.generation) throw new NativeClientError("session_changed", 409);
   }
   private async request<T>(path: string, body?: unknown, token?: string, method = body === undefined ? "GET" : "POST"): Promise<T> {
     let response;
@@ -29,62 +71,135 @@ export class NativeSessionClient {
     return data as T;
   }
   async publicRequest<T>(path: string, body?: unknown) { return this.request<T>(path, body); }
-  async accept(pair: { accessToken: string; refreshToken: string }, generation = this.generation) {
-    pair = nativeTokensSchema.pick({ accessToken: true, refreshToken: true }).parse(pair);
-    // Eerst veilig opslaan; zonder Keychain/Keystore geen ingelogde status.
-    if (generation !== this.generation) {
-      await this.request("logout", { refreshToken: pair.refreshToken, actionId: crypto.randomUUID() }).catch(() => {}); return;
+
+  // Alle providers starten hun authenticatie vóór challenge/netwerk/OS-prompts.
+  // Daardoor kan ook een laat Apple-antwoord na logout geen sessie herstellen.
+  async authenticate(authorize: (isCurrent: () => boolean) => Promise<unknown>): Promise<void> {
+    const generation = ++this.generation;
+    this.authenticating = generation; this.access = null;
+    try { await this.install(await authorize(() => generation === this.generation && this.authenticating === generation), generation); }
+    finally { if (this.authenticating === generation) this.authenticating = null; }
+  }
+  private async install(value: unknown, generation: number, rotation?: { refreshToken: string; actionId: string }) {
+    const parsed = nativeTokensSchema.pick({ accessToken: true, refreshToken: true }).safeParse(value);
+    if (!parsed.success) throw new NativeClientError("invalid_response");
+    const pair = parsed.data;
+    let accepted = false;
+    try {
+      await this.edit(current => {
+        const active = current && !current.logoutPending ? current : null;
+        const pending = retirements(current);
+        const matchingRotation = !rotation || (active?.refreshToken === rotation.refreshToken && active.actionId === rotation.actionId);
+        accepted = generation === this.generation && matchingRotation && (rotation ? this.authenticating === null : this.authenticating === generation);
+        if (!accepted) return pack(active, [...pending, { refreshToken: pair.refreshToken, actionId: crypto.randomUUID() }]);
+        if (!rotation && active && active.refreshToken !== pair.refreshToken) pending.push({ refreshToken: active.refreshToken, actionId: active.actionId ?? crypto.randomUUID() });
+        return pack({ refreshToken: pair.refreshToken }, pending);
+      });
+    } catch (error) {
+      // Zonder bevestigde veilige opslag mag het nieuwe paar niet bruikbaar
+      // blijven. Bestaande veilige staat wordt hierbij niet blind gewist.
+      await this.request("logout", { refreshToken: pair.refreshToken, actionId: crypto.randomUUID() }).catch(() => {});
+      throw error;
     }
-    try { await this.store.write(JSON.stringify({ refreshToken: pair.refreshToken })); }
-    catch (error) { await this.request("logout", { refreshToken: pair.refreshToken, actionId: crypto.randomUUID() }).catch(() => {}); throw error; }
-    if (generation === this.generation) this.access = pair.accessToken;
+    if (generation !== this.generation && accepted) {
+      // De generatie kan tijdens de native write zijn gewijzigd. Trek alleen
+      // dit oude paar in; raak een inmiddels opgeslagen nieuw account niet aan.
+      await this.edit(current => current?.refreshToken === pair.refreshToken && !current.logoutPending
+        ? pack(null, [...retirements(current), { refreshToken: pair.refreshToken, actionId: crypto.randomUUID() }])
+        : current);
+      accepted = false;
+    }
+    if (!accepted) {
+      await this.flushRevocations().catch(() => {});
+      throw new NativeClientError("session_changed", 409);
+    }
+    this.assertGeneration(generation);
+    this.access = pair.accessToken;
+    // Eerdere offline intenties staan al duurzaam in dezelfde beveiligde
+    // staat. Hun transport blokkeert de nieuwe accountweergave niet.
+    void this.flushRevocations().catch(() => {});
   }
   async login(identifier: string, password: string, code?: string) {
-    const generation = ++this.generation;
-    const pair = await this.request<{ accessToken: string; refreshToken: string }>("login", { identifier, password, ...(code ? { code } : {}) });
-    await this.accept(pair, generation);
+    return this.authenticate(() => this.request("login", { identifier, password, ...(code ? { code } : {}) }));
   }
   async restore(): Promise<boolean> {
-    const saved = await this.saved();
+    const generation = this.generation;
+    if (this.authenticating !== null) throw new NativeClientError("authentication_in_progress", 409);
+    const saved = await this.saved(); this.assertGeneration(generation);
     if (!saved) return false;
-    if (saved.logoutPending) { await this.logout(); return false; }
-    await this.refresh(); return !!this.access;
+    if (saved.logoutPending) { await this.flushRevocations(); this.assertGeneration(generation); return false; }
+    void this.flushRevocations().catch(() => {});
+    await this.refresh(); this.assertGeneration(generation); return !!this.access;
   }
   private async refresh() {
-    if (this.refreshQueue) return this.refreshQueue;
     const generation = this.generation;
-    this.refreshQueue = (async () => {
-      const saved = await this.saved(); if (!saved || saved.logoutPending) throw new NativeClientError("session_expired", 401);
-      const actionId = saved.actionId ?? crypto.randomUUID();
-      // Ook na procesbeëindiging krijgt een onzekere refresh dezelfde actie-ID.
-      await this.store.write(JSON.stringify({ ...saved, actionId }));
+    if (this.authenticating !== null) throw new NativeClientError("authentication_in_progress", 409);
+    if (this.refreshQueue?.generation === generation) return this.refreshQueue.promise;
+    const slot = { generation, promise: Promise.resolve() };
+    slot.promise = (async () => {
+      let claimed: SavedSession | null = null;
+      await this.edit(current => {
+        this.assertGeneration(generation);
+        if (!current || current.logoutPending) throw new NativeClientError("session_expired", 401);
+        claimed = { ...current, actionId: current.actionId ?? crypto.randomUUID() };
+        return claimed;
+      });
+      const saved = claimed as SavedSession | null;
+      if (!saved?.actionId) throw new NativeClientError("session_expired", 401);
       try {
-        const pair = await this.request<{ accessToken: string; refreshToken: string }>("refresh", { refreshToken: saved.refreshToken, actionId });
-        await this.accept(pair, generation);
+        const pair = await this.request("refresh", { refreshToken: saved.refreshToken, actionId: saved.actionId });
+        await this.install(pair, generation, { refreshToken: saved.refreshToken, actionId: saved.actionId });
       } catch (error) {
-        if (error instanceof NativeClientError && (error.status === 401 || error.status === 400) && generation === this.generation) { this.access = null; await this.store.clear(); }
+        if (error instanceof NativeClientError && (error.status === 401 || error.status === 400)) {
+          await this.edit(current => {
+            if (generation !== this.generation || current?.refreshToken !== saved.refreshToken) return current;
+            this.access = null;
+            return pack(null, retirements(current));
+          });
+        }
         throw error;
       }
-    })().finally(() => { this.refreshQueue = null; });
-    return this.refreshQueue;
+    })().finally(() => { if (this.refreshQueue === slot) this.refreshQueue = null; });
+    this.refreshQueue = slot;
+    return slot.promise;
   }
   async api<T>(path: string, body?: unknown, method?: string): Promise<T> {
     const generation = this.generation;
+    if (this.authenticating !== null) throw new NativeClientError("authentication_in_progress", 409);
     if (!this.access) await this.refresh();
-    try { return await this.request<T>(path, body, this.access ?? undefined, method); }
-    catch (error) {
-      if (!(error instanceof NativeClientError) || error.status !== 401 || error.code !== "session_expired" || generation !== this.generation) throw error;
-      await this.refresh(); return this.request<T>(path, body, this.access ?? undefined, method);
+    this.assertGeneration(generation);
+    const token = this.access;
+    try {
+      const data = await this.request<T>(path, body, token ?? undefined, method);
+      this.assertGeneration(generation); return data;
+    } catch (error) {
+      this.assertGeneration(generation);
+      if (!(error instanceof NativeClientError) || error.status !== 401 || error.code !== "session_expired") throw error;
+      await this.refresh(); this.assertGeneration(generation);
+      const data = await this.request<T>(path, body, this.access ?? undefined, method);
+      this.assertGeneration(generation); return data;
     }
   }
+  private flushRevocations(): Promise<void> {
+    if (this.revocationQueue) return this.revocationQueue;
+    this.revocationQueue = (async () => {
+      for (;;) {
+        const pending = retirements(await this.saved())[0]; if (!pending) return;
+        try { await this.request("logout", pending); }
+        catch (error) { if (!(error instanceof NativeClientError) || error.status !== 401) throw error; }
+        await this.edit(current => pack(current && !current.logoutPending ? current : null, retirements(current).filter(item => item.refreshToken !== pending.refreshToken)));
+      }
+    })().finally(() => { this.revocationQueue = null; });
+    return this.revocationQueue;
+  }
   async logout(onCommitted?: () => void) {
-    this.generation++; this.access = null;
-    const saved = await this.saved(); if (!saved) { onCommitted?.(); return; }
-    const pending = { ...saved, logoutPending: true, actionId: saved.actionId ?? crypto.randomUUID() };
-    // De UI mag pas uitgelogd tonen nadat deze duurzame intentie bestaat.
-    await this.store.write(JSON.stringify(pending));
-    onCommitted?.();
-    try { await this.request("logout", { refreshToken: pending.refreshToken, actionId: pending.actionId }); await this.store.clear(); }
-    catch (error) { if (error instanceof NativeClientError && error.status === 401) await this.store.clear(); else throw error; }
+    const generation = ++this.generation;
+    this.access = null; this.authenticating = null;
+    await this.edit(current => {
+      if (!current) return null;
+      return pack(null, [...retirements(current), ...(!current.logoutPending ? [{ refreshToken: current.refreshToken, actionId: current.actionId ?? crypto.randomUUID() }] : [])]);
+    });
+    if (generation === this.generation) onCommitted?.();
+    await this.flushRevocations();
   }
 }

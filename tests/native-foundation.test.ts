@@ -78,7 +78,7 @@ test("late loginresponse kan logout niet ongedaan maken", async () => {
   const client = new NativeSessionClient("https://example.invalid", saved.adapter, async url => String(url).endsWith("/login") ? gate.promise : response({ ok: true }));
   const login = client.login("synthetic@example.invalid", "password");
   await client.logout();
-  gate.resolve(response({ accessToken: "access", refreshToken: "new-refresh", expiresIn: 300 })); await login;
+  gate.resolve(response({ accessToken: "access", refreshToken: "new-refresh", expiresIn: 300 })); await assert.rejects(login, error => error instanceof NativeClientError && error.code === "session_changed");
   assert.equal(saved.value(), null);
 });
 test("verkeerd wachtwoord wordt niet als verlopen access-token opnieuw verstuurd", async () => {
@@ -141,4 +141,121 @@ test("logoutbevestiging volgt pas na duurzame opslag, ook bij traag platform en 
   assert.equal(await new NativeSessionClient("https://example.invalid", {
     async read() { return raw; }, async write(value) { raw = value; }, async clear() { raw = null; },
   }, async url => { assert.ok(String(url).endsWith("/logout"), "heropenen hervat geen oude sessie");return response({ok:true}); }).restore(), false);
+});
+
+test("laat bevestigde logout wist nooit een later ingelogd account", async () => {
+  const saved = store(), started = Promise.withResolvers<void>(), release = Promise.withResolvers<Response>();
+  const client = new NativeSessionClient("https://example.invalid", saved.adapter, async (url, options) => {
+    if (String(url).endsWith("/login")) return response({ accessToken: "account-b-access", refreshToken: "account-b-refresh", expiresIn: 300 });
+    if (String(url).endsWith("/logout") && JSON.parse(String(options?.body)).refreshToken === "old-refresh") { started.resolve(); return release.promise; }
+    return response({ ok: true });
+  });
+  const logout = client.logout();
+  await started.promise;
+  await client.login("b@example.invalid", "password");
+  release.resolve(response({ ok: true })); await logout;
+  assert.equal(saved.value()?.refreshToken, "account-b-refresh");
+  assert.notEqual(saved.value()?.logoutPending, true);
+});
+
+test("data uit de vorige accountsessie bereikt de nieuwe accountweergave niet", async () => {
+  const saved = store(), started = Promise.withResolvers<void>(), release = Promise.withResolvers<Response>();
+  const client = new NativeSessionClient("https://example.invalid", saved.adapter, async url => {
+    if (String(url).endsWith("/refresh")) return response({ accessToken: "account-a-access", refreshToken: "account-a-refresh", expiresIn: 300 });
+    if (String(url).endsWith("/login")) return response({ accessToken: "account-b-access", refreshToken: "account-b-refresh", expiresIn: 300 });
+    if (String(url).endsWith("/me")) { started.resolve(); return release.promise; }
+    return response({ ok: true });
+  });
+  await client.restore();
+  const data = client.api("me");
+  await started.promise; await client.login("b@example.invalid", "password");
+  release.resolve(response({ id: "account-a", handle: "A" }));
+  await assert.rejects(data, error => error instanceof NativeClientError && error.code === "session_changed");
+});
+
+test("een verzoek dat op oude refresh wacht wordt niet met het token van het nieuwe account verzonden", async () => {
+  const saved = store(), started = Promise.withResolvers<void>(), release = Promise.withResolvers<Response>();
+  const headers: string[] = [];
+  const client = new NativeSessionClient("https://example.invalid", saved.adapter, async (url, options) => {
+    if (String(url).endsWith("/refresh")) { started.resolve(); return release.promise; }
+    if (String(url).endsWith("/login")) return response({ accessToken: "account-b-access", refreshToken: "account-b-refresh", expiresIn: 300 });
+    if (String(url).endsWith("/chapters/account-a-chapter/complete")) headers.push(new Headers(options?.headers).get("authorization") ?? "");
+    return response({ ok: true });
+  });
+  const stale = client.api("chapters/account-a-chapter/complete", {});
+  await started.promise; await client.login("b@example.invalid", "password");
+  release.resolve(response({ accessToken: "account-a-access", refreshToken: "account-a-refresh", expiresIn: 300 }));
+  await assert.rejects(stale, error => error instanceof NativeClientError && error.code === "session_changed");
+  assert.deepEqual(headers, [], "oude intentie mag het nieuwe account niet muteren");
+});
+
+test("een vertraagde provider-login na logout wordt ingetrokken en niet hervat", async () => {
+  const saved = store(null), provider = Promise.withResolvers<unknown>();
+  const retired: string[] = [];
+  const client = new NativeSessionClient("https://example.invalid", saved.adapter, async (url, options) => {
+    assert.ok(String(url).endsWith("/logout")); retired.push(JSON.parse(String(options?.body)).refreshToken);
+    return response({ ok: true });
+  });
+  const login = client.authenticate(() => provider.promise);
+  await client.logout();
+  provider.resolve({ accessToken: "late-apple-access", refreshToken: "late-apple-refresh" });
+  await assert.rejects(login, error => error instanceof NativeClientError && error.code === "session_changed");
+  assert.equal(saved.value(), null); assert.deepEqual(retired, ["late-apple-refresh"]);
+});
+
+test("oude offline uitlogintentie overleeft accountwissel en heropening", async () => {
+  const saved = store(), retired: { refreshToken: string; actionId: string }[] = [];
+  const client = new NativeSessionClient("https://example.invalid", saved.adapter, async url => {
+    if (String(url).endsWith("/login")) return response({ accessToken: "b-access", refreshToken: "b-refresh" });
+    throw Error("synthetic offline logout");
+  });
+  await assert.rejects(client.logout());
+  const actionId = saved.value().actionId;
+  await client.login("b@example.invalid", "password");
+  assert.equal(saved.value().refreshToken, "b-refresh");
+  assert.ok(saved.value().pendingRevocations.some((item: { refreshToken: string; actionId: string }) => item.refreshToken === "old-refresh" && item.actionId === actionId));
+  const reopened = new NativeSessionClient("https://example.invalid", saved.adapter, async (url, options) => {
+    if (String(url).endsWith("/logout")) { retired.push(JSON.parse(String(options?.body))); return response({ ok: true }); }
+    assert.ok(String(url).endsWith("/refresh"));
+    assert.equal(JSON.parse(String(options?.body)).refreshToken, "b-refresh");
+    return response({ accessToken: "b-new-access", refreshToken: "b-new-refresh" });
+  });
+  assert.equal(await reopened.restore(), true);
+  // De intrekkingsqueue is bewust onafhankelijk van het ophalen van data.
+  for (let i = 0; i < 20 && saved.value()?.pendingRevocations?.length; i++) await new Promise<void>(resolve => setImmediate(resolve));
+  assert.deepEqual(retired, [{ refreshToken: "old-refresh", actionId }]);
+  assert.deepEqual(saved.value(), { refreshToken: "b-new-refresh" });
+});
+
+test("authenticatie die nog loopt mag geen oude sessie voor een nieuwe actie gebruiken", async () => {
+  const saved = store(), provider = Promise.withResolvers<unknown>();
+  const calls: string[] = [];
+  const client = new NativeSessionClient("https://example.invalid", saved.adapter, async url => { calls.push(String(url)); return response({ ok: true }); });
+  const login = client.authenticate(() => provider.promise);
+  await assert.rejects(client.api("chapters/old/complete", {}), error => error instanceof NativeClientError && error.code === "authentication_in_progress");
+  assert.deepEqual(calls, []);
+  provider.resolve({ accessToken: "b-access", refreshToken: "b-refresh" }); await login;
+});
+
+test("generatiewissel tijdens Keychain-write maakt de late sessie duurzaam ongeldig", async () => {
+  let raw: string | null = null, block = true;
+  const started = Promise.withResolvers<void>(), release = Promise.withResolvers<void>();
+  const saved: SecureSessionStore = {
+    async read() { return raw; },
+    async write(value) { if (block) { block = false; started.resolve(); await release.promise; } raw = value; },
+    async clear() { raw = null; },
+  };
+  const client = new NativeSessionClient("https://example.invalid", saved, async url => {
+    if (String(url).endsWith("/login")) return response({ error: "wrong_credentials" }, 401);
+    throw Error("offline revocation");
+  });
+  const old = client.authenticate(async () => ({ accessToken: "a-access", refreshToken: "a-refresh" }));
+  await started.promise;
+  await assert.rejects(client.login("b@example.invalid", "wrong"));
+  release.resolve();
+  await assert.rejects(old, error => error instanceof NativeClientError && error.code === "session_changed");
+  assert.equal(JSON.parse(raw!).logoutPending, true);
+  let refreshes = 0;
+  const reopened = new NativeSessionClient("https://example.invalid", saved, async url => { if (String(url).endsWith("/refresh")) refreshes++; return response({ ok: true }); });
+  assert.equal(await reopened.restore(), false); assert.equal(refreshes, 0); assert.equal(raw, null);
 });
