@@ -68,6 +68,24 @@ export function CardMenu({ title, actions }: { title: string; actions: CardMenuA
     if (restoreFocus) triggerRef.current?.focus({ preventScroll: true });
   }
 
+  function focusItem(button: HTMLButtonElement | undefined) {
+    if (!button) return;
+    button.focus({ preventScroll: true });
+    const menu = menuRef.current;
+    if (!menu) return;
+    const itemRect = button.getBoundingClientRect();
+    const menuRect = menu.getBoundingClientRect();
+    // Scroll alleen binnen het menu, nooit de pagina achter de kaarten.
+    menu.scrollTop += itemRect.top < menuRect.top
+      ? itemRect.top - menuRect.top
+      : Math.max(0, itemRect.bottom - menuRect.bottom);
+  }
+
+  useLayoutEffect(() => {
+    const active = document.activeElement;
+    if (active instanceof HTMLButtonElement && menuRef.current?.contains(active)) focusItem(active);
+  }, [position]);
+
   useLayoutEffect(() => {
     if (!open) return;
     const menu = menuRef.current;
@@ -99,7 +117,7 @@ export function CardMenu({ title, actions }: { title: string; actions: CardMenuA
     }
     place();
     const buttons = menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled])');
-    (lastOnOpen.current ? buttons[buttons.length - 1] : buttons[0])?.focus({ preventScroll: true });
+    focusItem(lastOnOpen.current ? buttons[buttons.length - 1] : buttons[0]);
     document.addEventListener("pointerdown", onPointer);
     document.addEventListener("keydown", onKey);
     window.addEventListener("resize", place);
@@ -123,7 +141,7 @@ export function CardMenu({ title, actions }: { title: string; actions: CardMenuA
     const buttons = [...(menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled])') ?? [])];
     const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
     const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : (index + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length;
-    buttons[next]?.focus({ preventScroll: true });
+    focusItem(buttons[next]);
   }
 
   return (

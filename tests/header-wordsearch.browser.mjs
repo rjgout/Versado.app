@@ -189,7 +189,7 @@ try {
       }
     }
 
-    // Kaartacties, echte FLIP-frames en sleepkaart boven kaarten/onder navigatie.
+    // Kaartacties en kaartmenu's blijven onder de vaste navigatie.
     for (const [width, height] of [[390, 844], [1280, 900]]) {
     await context.close();
     context = await browser.newContext({ viewport: { width, height }, isMobile: width === 390, hasTouch: width === 390, serviceWorkers: "block" });
@@ -208,34 +208,27 @@ try {
       const moved = page.waitForResponse((r) => r.url().includes("/api/list-order") && r.request().method() === "PUT");
       moved.catch(() => {}); // Bij een eerdere UI-fout blijft de buitenste catch het bewijs opslaan.
       await menu.getByRole("menuitem", { name: "Eerder in de lijst", exact: true }).click();
-      // Gedurende de bestaande FLIP-transform én na afloop blijven de balken boven.
+      // Tijdens de herordening én na afloop blijven de balken boven.
       for (let i = 0; i < 4; i++) {
         const frame = await page.evaluate(() => ({ transforms: document.getAnimations().filter((a) => a.playState === "running").length,
           headerOnTop: document.querySelector("[data-sticky-header]").contains(document.elementFromPoint(innerWidth / 2, 30)) }));
-        assert.ok(frame.headerOnTop); results.push({ path, flipFrame: frame }); await page.waitForTimeout(50);
+        assert.ok(frame.headerOnTop); results.push({ path, reorderFrame: frame }); await page.waitForTimeout(50);
       }
       assert.equal((await moved).status(), 200);
       await page.waitForTimeout(250);
-      const handle = page.getByRole("button", { name: `${title} verplaatsen`, exact: true }); await handle.scrollIntoViewIfNeeded();
-      await handle.evaluate((button) => {
-        const r = button.getBoundingClientRect(), header = document.querySelector("[data-sticky-header]").getBoundingClientRect();
-        scrollTo(0, scrollY + r.top - Math.max(header.bottom + 60, innerHeight / 2));
-      });
-      assert.ok(await handle.evaluate((button) => { const r = button.getBoundingClientRect(); return button.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)); }), "sleepgreep bedekt");
-      const h = await handle.boundingBox(); await page.mouse.move(h.x + h.width / 2, h.y + h.height / 2); await page.mouse.down();
-      await page.mouse.move(h.x + h.width / 2 + 20, h.y + h.height / 2, { steps: 3 });
-      const overlaySelector = 'main div[style*="position: fixed"]';
-      const drag = page.locator(overlaySelector).filter({ has: page.locator("article") }); await drag.waitFor();
-      const layering = await drag.evaluate((element) => ({ drag: Number(getComputedStyle(element).zIndex), bars: Number(getComputedStyle(document.querySelector("[data-sticky-header]")).zIndex), local: Number(getComputedStyle(document.querySelector('article button[aria-haspopup="menu"]')?.parentElement).zIndex) }));
-      assert.ok(layering.local < layering.drag && layering.drag < layering.bars);
-      await page.mouse.move(330, 25, { steps: 5 });
-      assert.ok(await page.evaluate(() => document.querySelector("[data-sticky-header]").contains(document.elementFromPoint(330, 25))));
-      await page.screenshot({ path: `${output}/drag-${path.slice(1)}-header-${width}.png` });
+      assert.equal(await page.locator('main .lucide-grip-vertical, main [aria-roledescription="sortable"], [id^="DndLiveRegion"]').count(), 0, "Leren en Spelen bieden geen slepen meer aan");
+      await trigger.scrollIntoViewIfNeeded(); await trigger.click(); await menu.waitFor();
+      const layering = await trigger.evaluate((button) => ({
+        bars: Number(getComputedStyle(document.querySelector("[data-sticky-header]")).zIndex),
+        local: Number(getComputedStyle(button.parentElement).zIndex),
+      }));
+      assert.ok(layering.local < layering.bars, "kaartmenu blijft onder de shell");
+      assert.ok(await page.evaluate(() => document.querySelector("[data-sticky-header]").contains(document.elementFromPoint(innerWidth / 2, 25))));
+      await page.screenshot({ path: `${output}/card-menu-${path.slice(1)}-header-${width}.png` });
       if (width === 390) {
-        await page.mouse.move(195, 820, { steps: 5 });
         assert.ok(await page.evaluate(() => document.querySelector("[data-main-nav]").contains(document.elementFromPoint(195, 820))));
       }
-      await page.keyboard.press("Escape"); await page.mouse.up(); await drag.waitFor({ state: "detached" });
+      await page.keyboard.press("Escape"); await menu.waitFor({ state: "detached" });
       results.push({ path, layering });
       await page.reload(); await cards.first().waitFor(); assert.equal(await cards.nth(1).locator(".card-title-link").textContent(), title, "herordening niet bewaard");
     }
@@ -302,7 +295,7 @@ try {
     }
     assert.deepEqual(errors, [], "clientfouten");
     writeFileSync(`${output}/results.json`, JSON.stringify(results, null, 2));
-    console.log(`${interactionsOnly ? "Gerichte interacties" : "Browser: 28 viewport/thema/tekstcombinaties, Vandaag/Leren/Spelen"}, kaartmenu/FLIP/drag/navigatie/contentkiezer, vijf talen en alle drie echte Woordzoeker-spellen geslaagd.`);
+    console.log(`${interactionsOnly ? "Gerichte interacties" : "Browser: 28 viewport/thema/tekstcombinaties, Vandaag/Leren/Spelen"}, kaartmenu/herordenen/navigatie/contentkiezer, vijf talen en alle drie echte Woordzoeker-spellen geslaagd.`);
   }
 } catch (error) {
   writeFileSync(`${output}/failure.json`, JSON.stringify({ error: String(error.stack), results }, null, 2));

@@ -30,7 +30,7 @@ async function eventually(read, expected) {
 }
 try {
   await prisma.contentCollection.update({ where: { id: "content_bom" }, data: { enabled: true, visibleToUsers: true } });
-  book = await prisma.book.create({ data: { slug: `cards-${randomUUID()}`, key: "bofm/1-ne", name: "Synthetisch kaartboek", order: 100, contentCollectionId: "content_bom" } });
+  book = await prisma.book.create({ data: { slug: `cards-${randomUUID()}`, key: `cards/${randomUUID()}`, name: "Synthetisch kaartboek", order: 100, contentCollectionId: "content_bom" } });
   const chapter = await prisma.chapter.create({ data: { bookId: book.id, number: 1, order: 1, verses: { create: { number: 1, text: "Synthetische tekst voor kaarttests." } } } });
   for (let i = 0; i < 4; i++) courses.push(await prisma.course.create({ data: {
     slug: `cards-${randomUUID()}`, name: `Kaartcursus ${i}`, description: "Een synthetische cursus met voortgang en een kaartafbeelding.",
@@ -177,8 +177,8 @@ try {
   for (const language of ["nl", "de"]) {
     await prisma.user.update({ where: { id: user.id }, data: { uiLanguage: language } });
     const tr = getT(language);
-    for (const [width, font, scheme] of [[320, 100, "light"], [320, 200, "dark"], [1280, 100, "light"]]) {
-      await page.setViewportSize({ width, height: 844 }); await page.emulateMedia({ colorScheme: scheme });
+    for (const [width, font, scheme, height = 844] of [[320, 100, "light"], [320, 200, "dark"], [320, 200, "dark", 568], [1280, 100, "light"]]) {
+      await page.setViewportSize({ width, height }); await page.emulateMedia({ colorScheme: scheme });
       for (const path of ["/courses", "/live"]) {
         await open(path);
         await page.evaluate(font => { document.documentElement.style.fontSize = `${16 * font / 100}px`; }, font);
@@ -188,7 +188,13 @@ try {
         await page.waitForFunction(() => { const el = document.querySelector('[role="menu"]'); if (!el) return false; const r = el.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 1 && r.top >= 0 && r.bottom <= innerHeight + 1; });
         check(`${path}/${language}/${width}/${font}: menu past en geen horizontale overflow`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
         const box = await trigger.boundingBox(); check(`${path}/${language}/${width}/${font}: menuaanraakvlak`, box.width >= 44 && box.height >= 44);
-        await page.screenshot({ path: `${output}/cards-${path.slice(1)}-${language}-${width}-${font}.png` });
+        await page.keyboard.press("End");
+        check(`${path}/${language}/${width}x${height}/${font}: toetsenbordfocus zichtbaar in menu`, await page.evaluate(() => {
+          const item = document.activeElement.getBoundingClientRect();
+          const menu = document.querySelector('[role="menu"]').getBoundingClientRect();
+          return item.top >= menu.top - 1 && item.bottom <= menu.bottom + 1;
+        }));
+        await page.screenshot({ path: `${output}/cards-${path.slice(1)}-${language}-${width}x${height}-${font}.png` });
         await page.keyboard.press("Escape");
         check(`${path}/${language}/${width}/${font}: focusherstel`, await trigger.evaluate(el => el === document.activeElement));
         await trigger.press("Enter"); await page.getByRole("menu").waitFor(); await page.keyboard.press("Tab");
@@ -204,6 +210,9 @@ try {
   await handle.waitFor(); await handle.scrollIntoViewIfNeeded(); await handle.focus(); await handle.press("Space");
   await eventually(() => handle.getAttribute("aria-pressed"), "true");
   await page.waitForFunction(() => [...document.querySelectorAll("[aria-live]")].some(el => el.textContent.includes("plek 1 van 2")));
+  const overlay = page.locator('main div[style*="position: fixed"]').filter({ has: page.locator(".lucide-grip-vertical") });
+  await overlay.waitFor();
+  check("profielsleepkaart blijft onder de vaste navigatie", await overlay.evaluate(element => Number(getComputedStyle(element).zIndex) < Number(getComputedStyle(document.querySelector("[data-sticky-header]")).zIndex)));
   await page.keyboard.press("ArrowDown");
   await page.waitForFunction(() => [...document.querySelectorAll("[aria-live]")].some(el => el.textContent.includes("gaat naar plek 2")));
   await page.keyboard.press("Space");
