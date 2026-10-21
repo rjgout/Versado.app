@@ -52,7 +52,7 @@ try {
     await delay(500);
   }
   if (!ready) throw new Error("App niet gezond");
-  await run(process.execPath, ["node_modules/tsx/dist/cli.mjs", "--test", "--test-concurrency=1", "tests/security-policy.test.ts", "tests/security-hardening.integration.test.ts", "tests/registration.integration.test.ts"], env);
+  await run(process.execPath, ["node_modules/tsx/dist/cli.mjs", "--test", "--test-concurrency=1", "tests/security-policy.test.ts", "tests/security-hardening.integration.test.ts", "tests/registration.integration.test.ts", "tests/social-rules.test.ts", "tests/social.integration.test.ts", "tests/social-links.integration.test.ts"], env);
   console.log("Beveiligingsregressies en bestaande registratieflow geslaagd; eigen testcontainers worden verwijderd.");
 } catch (error) {
   if (existsSync(log)) process.stderr.write(readFileSync(log, "utf8").slice(-8000));
