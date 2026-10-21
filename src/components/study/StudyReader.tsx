@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { CheckCircle2, ChevronLeft, ChevronRight, RotateCcw, RefreshCw } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import FocusLayout from "@/components/versado/FocusLayout";
@@ -24,6 +24,7 @@ import ReferencePreview from "./ReferencePreview";
 import ReferenceReturn from "./ReferenceReturn";
 import { ReferenceActionsContext, BlockedReferencesContext } from "./ReferenceLink";
 import { currentEntryKey } from "@/lib/navigationHistory";
+import { useStudyReturnToPath } from "@/lib/studyOrigin";
 import { jsonMutation } from "@/lib/data/mutation";
 import { rememberReferenceTrip } from "@/lib/references/returnContext";
 import type { ReferenceTrip } from "@/lib/references/tripContract";
@@ -113,6 +114,8 @@ function ReaderVisit({
   },[sessionKey]);
   const morePending=useRef<{occurrenceKey:string;expectedSelection:ContentSelection;expectedSelectionVersion:number}|null>(null);
   const { view, week } = personal;
+  const pathname = usePathname();
+  const returnToPath = useStudyReturnToPath(pathname, personal.coursePath ?? "/courses");
   const legacy = !view;
   const pageMode = legacy ? "full" : personal.mode;
   const currentStep = view && pageMode === "step" && personal.stepIndex ? view.steps[personal.stepIndex - 1] ?? null : null;
@@ -326,7 +329,17 @@ function ReaderVisit({
           </Link>
         ) : (
           // De laatste stap heeft geen volgende stap: naar het weekpad (een eigen knop, los van de hoofdterugknop). Stappen onderling vervangen elkaar in de geschiedenis, zodat de hoofdterugknop altijd naar de herkomst gaat.
-          <Link href={personal.coursePath ?? "/courses"} prefetch={false} replace data-step-to-path className={`${stepStatus === "COMPLETED" ? primaryButton : secondaryButton} min-h-12 flex-1`}>
+          <Link
+            href={personal.coursePath ?? "/courses"}
+            prefetch={false}
+            data-step-to-path
+            onClick={(event) => {
+              // Komt de gebruiker van het weekpad, dan terug in plaats van een tweede weekpad op de geschiedenis te zetten.
+              event.preventDefault();
+              returnToPath();
+            }}
+            className={`${stepStatus === "COMPLETED" ? primaryButton : secondaryButton} min-h-12 flex-1`}
+          >
             {t("cfmStudy.backToPath")}
             <ChevronRight aria-hidden className="h-5 w-5 shrink-0" />
           </Link>

@@ -4,6 +4,8 @@ import MyStepNav from "@/components/reading/MyStepNav";
 import { jsonMutation } from "@/lib/data/mutation";
 import type { PersonalStudyModeValue } from "@/lib/studyContent/personalStudyMode";
 import { rememberMode } from "@/lib/studyContent/personalStudyModeClient";
+import { myWeekKind } from "@/lib/studyContent/weekLabels";
+import type { ResumeReason } from "@/lib/studyContent/weekSelection";
 import CfmWeekPath, { type WeekRow } from "./CfmWeekPath";
 
 // Het pad van een studiecursus (CFM): een lichte kop (geen totaalvoortgang: CFM is deelname, geen cursus om te voltooien),
@@ -15,7 +17,7 @@ export default function CfmCourseView({
   mode,
   weeks,
   activeWeekId,
-  activeIsCalendar,
+  resumeReason,
   sessionKey,
   context,
 }: {
@@ -24,8 +26,8 @@ export default function CfmCourseView({
   mode: PersonalStudyModeValue;
   weeks: WeekRow[];
   activeWeekId: string | null;
-  /** True als de actieve week de werkelijke kalenderweek is; anders is het de hervatweek en heet hij nergens "deze week". */
-  activeIsCalendar: boolean;
+  /** Waarom de actieve week de actieve week is (kalenderweek, laatst gekozen, laatst bestudeerd); bepaalt het label. */
+  resumeReason: ResumeReason | null;
   sessionKey: string;
   context: { workKey: string; version: number; activeLessonKey: string | null } | null;
 }) {
@@ -46,8 +48,8 @@ export default function CfmCourseView({
         <h1 className="vs-wrap text-2xl font-extrabold text-vs-fg">{courseName}</h1>
         {studyAction}
       </div>
-      <CfmWeekPath weeks={weeks} mode={mode} activeWeekId={activeWeekId} activeIsCalendar={activeIsCalendar} sessionKey={sessionKey} onOpenWeek={(key) => void remember(key)} />
-      <MyStepNav currentKey={activeWeekId} kind={activeIsCalendar ? "week" : "resumeWeek"} />
+      <CfmWeekPath weeks={weeks} mode={mode} activeWeekId={activeWeekId} resumeReason={resumeReason} sessionKey={sessionKey} onOpenWeek={(key) => void remember(key)} />
+      <MyStepNav currentKey={activeWeekId} kind={myWeekKind(resumeReason)} />
     </div>
   );
 }

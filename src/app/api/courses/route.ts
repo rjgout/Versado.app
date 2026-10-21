@@ -65,6 +65,7 @@ export async function GET() {
           xpAvailable: 0,
           isActive: user.activeCourseId === course.id,
           resumeHref: summary?.resumeHref ?? `/courses/${course.id}/pad`,
+          resumeReason: summary?.resumeReason ?? null,
           artwork: courseArtworkKeys({ slug: course.slug, type: course.type, work: course.contentCollection.work }),
           imageSrc: summary?.imageMediaId ? `/api/study-media/${summary.imageMediaId}` : null,
           currentChapter: null,

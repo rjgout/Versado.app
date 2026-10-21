@@ -325,30 +325,47 @@ in plaats van "x van 6" op een ingeklapte week, een vinkje bij een week die bewu
 hervatten bij de juiste stap (`/stappen` → `activeStepIndex`). Een week hoeft niet af te zijn om mee te doen.
 
 **Hervatlogica** (`weekSelection.ts`, één bron voor Vandaag, de cursuskaart in Leren, de API, het weekpad en de studieles):
-1. de echte kalenderweek (tijdzone van de gebruiker), 2. de week die de gebruiker het laatst bewust opende, 3. de laatste week waarin
-daadwerkelijk is gestudeerd (een stap afgerond of de les als gelezen gemarkeerd), 4. anders geen hervatweek: een neutraal overzicht van de
-beschikbare weken. Nooit de oudste onafgeronde week. Een hervatweek heet alleen "Deze week" als hij de kalenderweek is.
+1. de echte kalenderweek (tijdzone van de gebruiker), 2. de week die de gebruiker het laatst bewust koos (studiecontext), mits die nog in deze
+collectie gepubliceerd is, 3. de week met de **recentste studieactiviteit** (`lastStudiedAt`), 4. anders geen hervatweek: een neutraal overzicht
+van de beschikbare weken. Nooit de oudste onafgeronde week, en nooit de chronologisch laatste week met activiteit: wie week 40 en daarna weer
+week 12 bestudeert, heeft week 12 als laatst bestudeerde week.
 
-**Navigatiecontract** (hergebruikt `SubpageBackBar`, `useSetBackTarget` en `useBackNavigation`; geen tweede laag, geen `returnUrl`):
+*Laatst gekozen is niet laatst bestudeerd.* Het label volgt de reden (`weekLabels.ts`): kalenderweek = "Deze week"; bewust gekozen week = "Laatst
+gekozen week"; aantoonbaar bestudeerd = "Laatst bestudeerd"; zonder hervatweek "Bekijk de studieweken". Dit geldt voor Vandaag, de CFM-kaart in
+Leren, het weekpad en de hervatknop ("Naar mijn laatst gekozen/bestudeerde week"), in nl/en/de/fr/es.
+
+*Welke tijdstempel telt als studeren* (`catalogue.ts`, `lastStudiedByEdition`; geen migratie): de laatste van `StudyStepProgress.openedAt` (wordt bij
+elke heropening van een stap bijgewerkt) en `completedAt`, `ReadingPosition.updatedAt` (alleen geschreven bij echt lezen) en `ContentProgress.readAt`
+(bewuste leesmarkering). Het weekpad bekijken en een week kiezen schrijven niets en tellen dus niet. Is er voor een week activiteit zonder
+betrouwbaar tijdstip (bijvoorbeeld een oude rij zonder `readAt`), dan wordt er geen tijdstip verzonnen: die week kan niet als "laatst bestudeerd" gelden
+en de interface valt terug op het neutrale overzicht. Beperking: een stap openen telt als studeren in Stap voor stap, ook als de gebruiker
+meteen weer weggaat; een echt "leestijd per week"-gegeven (bijvoorbeeld `StudyWeekActivity.lastActiveAt`) zou dat verfijnen, maar is niet nodig voor deze regel.
+
+**Navigatiecontract** (hergebruikt `SubpageBackBar`, `useSetBackTarget` en de routebewaker `NavigationScroll`; geen tweede laag, geen `returnUrl`):
 
 | Ingang | Terugknop van de studieles | Terugknop van het weekpad |
 |---|---|---|
 | Leren → weekpad → studieles | weekpad | Leren |
 | Vandaag → studieles | Vandaag | n.v.t. |
-| andere geldige ingang (Mijn studiemap, ...) | die pagina | n.v.t. |
-| directe link, nieuwe tab, ontbrekende herkomst | het leerpad van de cursus (`cfmCoursePathTarget`, anders Leren) | Leren |
+| Mijn studiemap / andere geldige ingang | die pagina | n.v.t. |
+| directe link, nieuwe tab, ontbrekende of oude herkomst | het leerpad van de cursus (`cfmCoursePathTarget`, anders Leren), met `replace` | Leren |
 | Vorige/Volgende stap | blijft de oorspronkelijke ingang | n.v.t. |
 
-Werking: de terugbalk van de studieles is *zacht* (`ReaderBackTarget soft`): browser-terug naar de werkelijke vorige pagina; `href` geldt
-alleen als `canGoBackInApp()` onwaar is (Navigation API, met de interne teller als terugval voor Safari-versies zonder die API). Stap-naar-stap
-gebruikt `replace`, dus de herkomst is altijd één item terug en er ontstaan geen lussen of dubbele items. Scrollherstel blijft van
-`NavigationScroll`. De knop "Terug naar het leerpad" bij stap 6 is een eigen actie (`replace`) en verandert de hoofdterugknop niet.
-**Voer nooit opnieuw een vaste (niet-zachte) terugbestemming in voor CFM**: dat dwingt gebruikers die via Vandaag kwamen naar het weekpad.
-Beperking: komt de gebruiker vanaf het weekpad en kiest hij bij stap 6 "Terug naar het leerpad", dan staat het weekpad twee keer in de
-geschiedenis (geen lus).
+Werking (`src/lib/studyOrigin.ts`): de routebewaker legt bij het *binnenkomen* van een les (vanaf een pagina buiten die les) één herkomst vast in
+`sessionStorage` (tab-gebonden): `{ les, herkomst, lengte van de geschiedenis }`. Alleen veilige interne routes worden bewaard (`safeStudyOrigin`);
+er is geen URL-parameter. Stap-naar-stap vervangt het geschiedenisitem en verandert de herkomst niet; een nieuwe les of ingang vervangt de oude
+herkomst, zodat een eerdere activiteit nooit doorwerkt. Een uitstapje naar een verwijzing of lofzang en terug laat de herkomst staan.
+De terugknop doet `router.back()` alleen als de herkomst **aantoonbaar** het vorige geschiedenisitem is: met Navigation API het adres van het
+vorige item, zonder (oudere Safari) een ongewijzigde lengte van de geschiedenis sinds het binnenkomen. Anders vervangt hij de les door het weekpad.
+Na een herlaad blijft dit werken (opslag en geschiedenis blijven). Terug/vooruit naar een les laat de eigen herkomst staan (oudere Safari meldt dat
+pas na de routewissel: dan wordt de net vastgelegde herkomst ongedaan gemaakt).
+"Terug naar het leerpad" bij stap 6 is een eigen actie: kwam de gebruiker van het weekpad, dan is het browser-terug (geen tweede weekpad op de
+geschiedenis), anders `replace`. **Voer nooit opnieuw een vaste (niet-zachte) terugbestemming in voor CFM**: dat dwingt gebruikers die via Vandaag
+kwamen naar het weekpad. Beperkingen: zonder Navigation API is de controle op de geschiedenislengte een heuristiek (bij twijfel geldt de veilige
+terugval, nooit een verkeerde pagina); de Safari-situatie is geautomatiseerd getest met uitgeschakelde Navigation API, niet op een fysieke iPhone.
 
 **Vandaag-kaart** (`ProgramContextPanel` → `CfmTodayCard`): officiële lesafbeelding (anders de neutrale Versado-kop), "Kom dan en volg
 Mij" met de collectienaam, "Deze week" met de officiële periode, de echte lestitel en één uitnodigende zin. Primaire actie "Begin met
 studeren" of "Verder met studeren" naar de studieles volgens de gekozen leeswijze (Stap voor stap hervat zelf bij de juiste stap); secundair
-"Bekijk de zes stappen" naar het weekpad. Zonder kalenderweek heet de hervatweek "Laatst bestudeerd"; zonder hervatweek is er één neutrale
+"Bekijk de zes stappen" naar het weekpad. Zonder kalenderweek heet de hervatweek "Laatst gekozen week" of "Laatst bestudeerd" (zie hierboven); zonder hervatweek is er één neutrale
 ingang "Bekijk de studieweken". Geen percentage, geen aantal afgeronde weken, niets hardcoded.

@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { pruneReferenceTrip } from "@/lib/references/returnContext";
+import { recordStudyRouteChange, settleStudyTraverseInBrowser } from "@/lib/studyOrigin";
 import {
   currentEntryKey,
   noteInAppNavigation,
@@ -137,6 +138,8 @@ export default function NavigationScroll() {
     // hem al als nieuwe pagina behandeld en hier volgt het herstel.
     const onPopState = () => {
       if (stopTraverse) return;
+      // Oudere Safari meldt terug/vooruit pas na de routewissel: een zojuist vastgelegde studieherkomst vervalt dan weer.
+      settleStudyTraverseInBrowser();
       startTraverse(savedScrollPosition(currentEntryKey()), browserLocationKey());
     };
     const onPageHide = () => persistScrollPositions();
@@ -180,6 +183,7 @@ export default function NavigationScroll() {
     if (previous === location) return;
     bindContentDepartureEntry(previous.split("?")[0], pathname);
     pruneReferenceTrip(pathname);
+    recordStudyRouteChange(previous, pathname, Boolean(pendingPop.current));
 
     const pop = pendingPop.current;
     pendingPop.current = null;

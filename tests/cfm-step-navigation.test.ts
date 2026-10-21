@@ -50,10 +50,10 @@ test("navigatiecontract: de hoofdterugknop volgt de werkelijke herkomst, het lee
   const step = read("src/app/study-lesson/[lessonId]/[collectionId]/stappen/[stap]/page.tsx");
   assert.match(step, /cfmCoursePathTarget\(prisma, parsed\.data\.collectionId, "STEPS"/);
   // Zacht: browser-terug naar de herkomst (Vandaag, weekpad, ...); `href` geldt alleen zonder vorige pagina in de app.
-  assert.match(step, /<ReaderBackTarget href=\{back\.href\} parent=\{back\.name\} soft \/>/, "Stap voor stap forceert de terugbestemming niet meer");
+  assert.match(step, /<ReaderBackTarget href=\{back\.href\} parent=\{back\.name\} soft studyOrigin \/>/, "Stap voor stap forceert de terugbestemming niet meer");
   const free = read("src/app/study-lesson/[lessonId]/[collectionId]/page.tsx");
   assert.match(free, /cfmCoursePathTarget\(prisma, parsed\.data\.collectionId, "FREE"/);
-  assert.match(free, /<ReaderBackTarget href=\{back\.href\} parent=\{back\.name\} soft \/>/);
+  assert.match(free, /<ReaderBackTarget href=\{back\.href\} parent=\{back\.name\} soft studyOrigin \/>/);
   // De terugbalk gebruikt alleen een niet-zachte override om te forceren; CFM gebruikt die niet.
   const bar = read("src/components/SubpageBackBar.tsx");
   assert.match(bar, /forceFallback: page\?\.forceFallback \|\| \(Boolean\(override\) && !override\?\.soft\)/);
@@ -61,14 +61,15 @@ test("navigatiecontract: de hoofdterugknop volgt de werkelijke herkomst, het lee
   assert.match(courses, /href: `\/courses\/\$\{course\.id\}\/pad`/);
   assert.doesNotMatch(courses, /cfmCourseBackTarget/, "de oude, geforceerde naam is weg");
   // Er is geen tweede navigatielaag: geen returnUrl/redirect-parameter en geen eigen herkomstopslag voor de studieles.
-  for (const file of [step, read("src/components/study/StudyReader.tsx")]) assert.doesNotMatch(file, /returnUrl|returnTo|searchParams\.get\("(?:terug|return)/i);
+  for (const file of [step, read("src/components/study/StudyReader.tsx")]) assert.doesNotMatch(file, /returnUrl|[?&]returnTo=|searchParams\.get\("(?:terug|return)/i);
 });
 
 test("stap-naar-stap vervangt het geschiedenisitem, zodat de hoofdterugknop altijd bij de herkomst uitkomt", () => {
   const reader = read("src/components/study/StudyReader.tsx");
   assert.match(reader, /stappen\/\$\{stepNumber - 1\}`\} prefetch=\{false\} replace data-step-prev/);
   assert.match(reader, /stappen\/\$\{stepNumber \+ 1\}`\} prefetch=\{false\} replace data-step-next/);
-  assert.match(reader, /prefetch=\{false\} replace data-step-to-path/, "een eigen knop naar het weekpad, los van de hoofdterugknop");
+  assert.match(reader, /data-step-to-path/, "een eigen knop naar het weekpad, los van de hoofdterugknop");
+  assert.match(reader, /useStudyReturnToPath/, "geen tweede weekpad op de geschiedenis (zie tests/cfm-study-origin.test.ts)");
 });
 
 // Model van de browsergeschiedenis: push voor een gewone link, replace voor stap-naar-stap, back voor de zachte terugknop.

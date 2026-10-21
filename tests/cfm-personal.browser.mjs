@@ -51,9 +51,11 @@ async function fixture() {
   return { user, key, lessonId: item.edition.lessonId, editionId: item.lessonEditionId, token: await createSessionToken(user.id), href: `/study-lesson/${item.edition.lessonId}/${key}`,
     previousHref: `/study-lesson/${items.find((i) => i.sourceKey === "fixture:cfm-lesson-previous").edition.lessonId}/${key}` };
 }
-async function open(f, { width = 390, height = 844, scheme = "light" } = {}) {
+async function open(f, { width = 390, height = 844, scheme = "light", noNavigationApi = false } = {}) {
   const context = await browser.newContext({ viewport: { width, height }, colorScheme: scheme, timezoneId: "UTC", hasTouch: width < 500, isMobile: width < 500, serviceWorkers: "block" });
   await context.addCookies([{ name: SESSION_COOKIE, value: f.token, url: base }]);
+  // Oudere Safari kent de Navigation API niet: dan werkt de herkomst alleen via sessionStorage en de lengte van de geschiedenis.
+  if (noNavigationApi) await context.addInitScript(() => Object.defineProperty(window, "navigation", { value: undefined, configurable: true }));
   const page = await context.newPage();
   lastPage = page;
   page.on("pageerror", (e) => errors.push(`${e.message} @ ${page.url()}`));
@@ -298,6 +300,30 @@ try {
     await page.locator("[data-cfm-week-path]").waitFor();
     await page.goBack();
     await page.waitForURL((url) => url.pathname === "/dashboard");
+    // Scenario's vanuit Leren: weekpad → stap 1 → stap 6 → "Terug naar het leerpad" zet geen tweede weekpad op de geschiedenis.
+    await page.goto(base + "/courses");
+    await page.goto(base + padHref);
+    await page.locator("[data-cfm-week-path]").waitFor();
+    await page.locator('[data-week-state="current"] [data-week-step="1"]').click();
+    await page.waitForURL(/\/stappen\/1$/);
+    for (let n = 2; n <= 6; n++) { await page.locator("[data-step-next]").click(); await page.waitForURL(new RegExp(`/stappen/${n}$`)); }
+    const lengthBefore = await page.evaluate(() => history.length);
+    await page.locator("[data-step-to-path]").click();
+    await page.waitForURL((url) => url.pathname === padHref);
+    assert.equal(await page.evaluate(() => history.length), lengthBefore, "geen extra geschiedenisitem bij Terug naar het leerpad");
+    await page.goBack();
+    assert.notEqual(new URL(page.url()).pathname, padHref, "het weekpad staat maar één keer op de geschiedenis (terug gaat niet naar nog een weekpad)");
+    // Twee opeenvolgende studieactiviteiten vanuit verschillende ingangen (weekpad, daarna Vandaag): elk zijn eigen herkomst.
+    await page.goto(base + padHref);
+    await page.locator('[data-week-state="current"] [data-week-step="2"]').click();
+    await page.waitForURL(/\/stappen\/2$/);
+    await page.locator("[data-subpage-back-bar] button").click();
+    await page.waitForURL((url) => url.pathname === padHref);
+    await page.goto(base + "/dashboard");
+    await page.locator("[data-cfm-today-primary]").click();
+    await page.waitForURL(/\/stappen\/\d$/);
+    await page.locator("[data-subpage-back-bar] button").click();
+    await page.waitForURL((url) => url.pathname === "/dashboard");
     // Vrije studie houdt zijn menu (opnieuw beginnen, volledige les) en heeft eigen terugnavigatie.
     await page.goto(base + f.href);
     await page.locator("[data-reader-mode='free']").waitFor();
@@ -323,6 +349,41 @@ try {
     await page.getByText(t("cfmStudy.stepDone")).waitFor();
     assert.equal(await page.locator("[data-complete-step]").count(), 0);
     assert.equal(await prisma.studyStepProgress.count({ where: { userId: f.user.id, status: "COMPLETED" } }), 1);
+    // Zonder Navigation API (oudere Safari): dezelfde contracten, nu via sessionStorage en de lengte van de geschiedenis.
+    {
+      const safari = await open(f, { noNavigationApi: true });
+      const sp = safari.page;
+      assert.equal(await sp.goto(base + "/dashboard").then(() => sp.evaluate(() => typeof window.navigation)), "undefined", "Navigation API is uitgeschakeld");
+      await sp.locator("[data-cfm-today-primary]").click();
+      await sp.waitForURL(/\/stappen\/\d$/);
+      await sp.locator("[data-step-next]").click();
+      await sp.waitForURL(/\/stappen\/\d$/);
+      await sp.reload();
+      await sp.locator("[data-complete-step]").waitFor();
+      await sp.locator("[data-subpage-back-bar] button").click();
+      await sp.waitForURL((url) => url.pathname === "/dashboard");
+      // Leren → weekpad → les → terug = weekpad; en stap 6 → terug naar het leerpad zonder dubbel item.
+      await sp.goto(base + padHref);
+      await sp.locator("[data-cfm-week-path]").waitFor();
+      await sp.locator('[data-week-state="current"] [data-week-step="1"]').click();
+      await sp.waitForURL(/\/stappen\/1$/);
+      await sp.locator("[data-subpage-back-bar] button").click();
+      await sp.waitForURL((url) => url.pathname === padHref);
+      await sp.locator('[data-week-state="current"] [data-week-step="1"]').click();
+      await sp.waitForURL(/\/stappen\/1$/);
+      for (let n = 2; n <= 6; n++) { await sp.locator("[data-step-next]").click(); await sp.waitForURL(new RegExp(`/stappen/${n}$`)); }
+      const before = await sp.evaluate(() => history.length);
+      await sp.locator("[data-step-to-path]").click();
+      await sp.waitForURL((url) => url.pathname === padHref);
+      assert.equal(await sp.evaluate(() => history.length), before, "Safari-fallback: geen dubbel weekpad");
+      // Directe link in een nieuw tabblad: veilige terugval.
+      const direct = await safari.context.newPage();
+      await direct.goto(base + f.href + "/stappen/3");
+      await direct.locator("[data-complete-step]").waitFor();
+      await direct.locator("[data-subpage-back-bar] button").click();
+      await direct.waitForURL((url) => url.pathname === padHref);
+      await safari.context.close();
+    }
     await context.close();
     step("Stap voor stap: geen tussenpagina of menu, expliciete terugnavigatie, stap afronden zonder READ/reeks");
   }

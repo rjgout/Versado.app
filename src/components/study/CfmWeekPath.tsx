@@ -10,6 +10,8 @@ import { fetchJson } from "@/lib/data/fetchJson";
 import type { PersonalStudyModeValue } from "@/lib/studyContent/personalStudyMode";
 import { PERSONAL_STUDY_STEPS } from "@/lib/studyContent/personalStudy";
 import type { StepProgressState } from "@/lib/studyContent/stepProgress";
+import { weekLabelKey } from "@/lib/studyContent/weekLabels";
+import type { ResumeReason } from "@/lib/studyContent/weekSelection";
 import { formatWeekPeriod, lessonBase } from "./PersonalStudyParts";
 
 // Het weekpad van de persoonlijke studie: dezelfde leerlijn als de Boek van Mormon-leescursussen (grote actieve kaart,
@@ -108,15 +110,15 @@ export default function CfmWeekPath({
   weeks,
   mode,
   activeWeekId,
-  activeIsCalendar = true,
+  resumeReason = "calendar",
   sessionKey,
   onOpenWeek,
 }: {
   weeks: WeekRow[];
   mode: PersonalStudyModeValue;
   activeWeekId: string | null;
-  /** Alleen een echte kalenderweek heet "Deze week"; een hervatweek krijgt een neutrale aanduiding. */
-  activeIsCalendar?: boolean;
+  /** Alleen een echte kalenderweek heet "Deze week"; een gekozen of bestudeerde week krijgt zijn eigen label (weekLabels.ts). */
+  resumeReason?: ResumeReason | null;
   sessionKey: string;
   /** Onthoudt de geopende week als actieve les (bestaande studiecontext); mag falen zonder de navigatie te raken. */
   onOpenWeek?: (lessonKey: string) => void;
@@ -135,6 +137,7 @@ export default function CfmWeekPath({
   const stateOf = (week: WeekRow): VisualState =>
     week.id === activeWeekId ? "current" : week.read || week.stepsDone >= PERSONAL_STUDY_STEPS ? "done" : week.stepsDone > 0 ? "started" : "open";
   const states = weeks.map(stateOf);
+  const labelKey = weekLabelKey(resumeReason);
   return (
     <ol aria-label={t("cfmStudy.pathLabel")} data-cfm-week-path data-path-mode={mode} className="m-0 flex list-none flex-col items-stretch p-0">
       {weeks.map((week, index) => {
@@ -160,7 +163,7 @@ export default function CfmWeekPath({
               <ActiveChapterCard
                 label={week.title}
                 subtitle={subtitle}
-                eyebrow={t(activeIsCalendar ? "cfmStudy.currentWeek" : "cfmStudy.resumeWeek")}
+                eyebrow={labelKey ? t(labelKey) : undefined}
                 artworkKeys={[]}
                 imageSrc={imageSrc}
               >

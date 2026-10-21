@@ -40,7 +40,7 @@ export function currentScrollTarget(): number | null {
  * @param currentKey id van de actieve stap of het actieve hoofdstuk; null = niets te positioneren (alles af of Vrije keuze)
  * @param revealKey wijzigt wanneer het doel kan verschijnen of verdwijnen (bv. een boek dat wordt in- of uitgeklapt)
  */
-export default function MyStepNav({ currentKey, revealKey = "", kind = "step" }: { currentKey: string | null; revealKey?: string; kind?: "step" | "chapter" | "week" | "resumeWeek" }) {
+export default function MyStepNav({ currentKey, revealKey = "", kind = "step" }: { currentKey: string | null; revealKey?: string; kind?: "step" | "chapter" | "week" | "chosenWeek" | "studiedWeek" }) {
   const t = useT();
   const sig = `${currentKey ?? ""}|${revealKey}`;
   const [seen, setSeen] = useState<{ sig: string; direction: MyStepDirection | null }>({ sig: "", direction: null });
@@ -89,13 +89,13 @@ export default function MyStepNav({ currentKey, revealKey = "", kind = "step" }:
     <button
       type="button"
       onClick={goToMyStep}
-      aria-label={t(kind === "chapter" ? "courseView.path.myChapterAria" : kind === "week" ? "courseView.path.myWeekAria" : kind === "resumeWeek" ? "courseView.path.myResumeWeekAria" : "courseView.path.myStepAria")}
+      aria-label={t(kind === "chapter" ? "courseView.path.myChapterAria" : kind === "week" ? "courseView.path.myWeekAria" : kind === "chosenWeek" ? "courseView.path.myChosenWeekAria" : kind === "studiedWeek" ? "courseView.path.myStudiedWeekAria" : "courseView.path.myStepAria")}
       data-my-step
       data-direction={direction}
       className={`${primaryButton} vs-rise fixed right-3 z-20 !min-h-8 !gap-1 !px-2.5 !py-1 !text-xs shadow-md bottom-[calc(var(--nav-height,0px)+var(--vs-safe-area-bottom,0px)+0.75rem)]`}
     >
       {direction === "down" ? <ArrowDown size={14} className="shrink-0" aria-hidden /> : <ArrowUp size={14} className="shrink-0" aria-hidden />}
-      {t(kind === "chapter" ? "courseView.path.myChapter" : kind === "week" ? "courseView.path.myWeek" : kind === "resumeWeek" ? "courseView.path.myResumeWeek" : "courseView.path.myStep")}
+      {t(kind === "chapter" ? "courseView.path.myChapter" : kind === "week" ? "courseView.path.myWeek" : kind === "chosenWeek" ? "courseView.path.myChosenWeek" : kind === "studiedWeek" ? "courseView.path.myStudiedWeek" : "courseView.path.myStep")}
     </button>
   );
 }

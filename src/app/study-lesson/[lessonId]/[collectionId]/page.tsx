@@ -52,7 +52,7 @@ export default async function Page({
   const back = view && !folderReturn ? await cfmCoursePathTarget(prisma, parsed.data.collectionId, "FREE", user.uiLanguage) : null;
   return (
     <>
-      {back && <ReaderBackTarget href={back.href} parent={back.name} soft />}
+      {back && <ReaderBackTarget href={back.href} parent={back.name} soft studyOrigin />}
       {folderReturn && <ReaderBackTarget href={folderReturn} parent={getT(user.uiLanguage)("studyFolder.title")} soft />}
       <StudyReader
         key={`${data.lesson.editionId}:${sessionKey}:${mode}`}

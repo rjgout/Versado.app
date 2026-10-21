@@ -86,3 +86,5 @@ samengestelde selecties), `tests/reference-resolver.integration.test.mjs` (label
 7. Nieuwe versie/positie op een ander apparaat: de melding blijft verschijnen.
 
 > **Bijgewerkt:** de eerdere regel "hoofdterugknop = vast leerpad, nooit `router.back()`" is vervallen; zie het navigatiecontract in `docs/CFM-PERSOONLIJKE-STUDIE.md` §18.
+
+> **Verouderd (vervangen door `docs/CFM-PERSOONLIJKE-STUDIE.md` §18):** de hoofdterugknop is niet langer een vaste bestemming; de werkelijke herkomst heeft voorrang (`src/lib/studyOrigin.ts`) en het weekpad is alleen de veilige terugval. De regels hierboven over `cfmCourseBackTarget` en "nooit `router.back()`" gelden niet meer.

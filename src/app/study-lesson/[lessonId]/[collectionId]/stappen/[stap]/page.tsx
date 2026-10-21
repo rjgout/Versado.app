@@ -34,7 +34,7 @@ export default async function Page({
   const back = await cfmCoursePathTarget(prisma, parsed.data.collectionId, "STEPS", user.uiLanguage);
   return (
     <>
-      {back && <ReaderBackTarget href={back.href} parent={back.name} soft />}
+      {back && <ReaderBackTarget href={back.href} parent={back.name} soft studyOrigin />}
       <StudyReader
         key={`${page.reader.lesson.editionId}:${sessionKey}:step${stepIndex}`}
         initial={page.reader}

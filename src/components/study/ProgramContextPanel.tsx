@@ -20,7 +20,7 @@ export default async function ProgramContextPanel({actor}:{actor:{id:string;isAd
    programName={data.programName??''}
    mode={data.personalMode??'STEPS'}
    weeksHref={weeksHref??'/courses'}
-   isCalendar={selection.resumeReason==='calendar'}
+   resumeReason={selection.resumeReason}
    week={week?{lessonId:week.lessonId,collectionId:week.collectionId,title:week.title,startsOn:week.startsOn,endsOnExclusive:week.endsOnExclusive,imageMediaId:week.imageMediaId,started:week.read||week.stepsDone>0||week.lessonKey===data.context.activeLessonKey}:null}
   />;
  } else body=<ProgramLessonPicker key={`${actor.id}:${data.context.workKey}:${data.collectionId}`} data={data}/>;

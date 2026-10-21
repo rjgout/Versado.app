@@ -114,4 +114,4 @@ Een echte import is een apart, goedgekeurd werkpakket. Checklist (verwijzingen n
 * Geen wijziging van `ContentCollection.visibleToUsers` voor CFM door de uitrol.
 
 
-> **Bijgewerkt (zie `docs/CFM-PERSOONLIJKE-STUDIE.md` §18):** de terugval "eerste onafgeronde week → laatste week" hierboven is vervangen door "laatst bestudeerde week → geen hervatweek" (CFM is deelname, geen inhaalprogramma).
+> **Bijgewerkt (zie `docs/CFM-PERSOONLIJKE-STUDIE.md` §18):** de terugval "eerste onafgeronde week → laatste week" hierboven is vervangen door "laatst bestudeerde week → geen hervatweek" (CFM is deelname, geen inhaalprogramma); sinds de correctieronde telt daarbij alleen echte activiteit met een tijdstempel (`lastStudiedAt`) en heet een gekozen week "Laatst gekozen week" in plaats van "Laatst bestudeerd".

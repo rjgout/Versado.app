@@ -5,6 +5,8 @@ import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { focusRing, primaryButton, secondaryButton } from "@/components/versado/styles";
+import { weekLabelKey } from "@/lib/studyContent/weekLabels";
+import type { ResumeReason } from "@/lib/studyContent/weekSelection";
 import { formatWeekPeriod, lessonBase } from "./PersonalStudyParts";
 
 export interface TodayWeek {
@@ -34,17 +36,18 @@ export default function CfmTodayCard({
   programName,
   mode,
   weeksHref,
-  isCalendar,
+  resumeReason,
   week,
 }: {
   programName: string;
   mode: "FREE" | "STEPS";
   weeksHref: string;
-  isCalendar: boolean;
+  resumeReason: ResumeReason | null;
   week: TodayWeek | null;
 }) {
   const t = useT();
   const language = useUiLanguage();
+  const labelKey = weekLabelKey(resumeReason);
   const period = week ? formatWeekPeriod(week.startsOn, week.endsOnExclusive, language) : null;
   const base = week ? lessonBase(week.lessonId, week.collectionId) : null;
   const studyHref = base ? (mode === "STEPS" ? `${base}/stappen` : base) : null;
@@ -70,12 +73,12 @@ export default function CfmTodayCard({
         <div className="min-w-0">
           {week && (
             <p className="text-xs font-extrabold uppercase tracking-wide text-vs-accent">
-              {isCalendar ? t("cfmStudy.currentWeek") : t("cfmToday.lastStudied")}
+              {labelKey ? t(labelKey) : null}
               {period ? <span className="font-semibold normal-case tracking-normal text-vs-fg-2"> · {period}</span> : null}
             </p>
           )}
           <h2 className="vs-wrap text-lg font-extrabold leading-snug text-vs-fg">{heading}</h2>
-          <p className="mt-1 text-sm text-vs-fg-2">{week ? t(isCalendar ? "cfmToday.invite" : "cfmToday.inviteResume") : t("cfmToday.noWeekText")}</p>
+          <p className="mt-1 text-sm text-vs-fg-2">{week ? t(resumeReason === "calendar" ? "cfmToday.invite" : "cfmToday.inviteResume") : t("cfmToday.noWeekText")}</p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           {studyHref ? (
