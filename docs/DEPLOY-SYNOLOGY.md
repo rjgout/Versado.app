@@ -199,6 +199,41 @@ Voer niet blind `migrate resolve`, een downmigratie of herstel uit. Een groene
 `/api/health` bewijst alleen basisgezondheid, niet dat alle lessen en media
 functioneren; voer ook de functionele controles uit het vrijgavedraaiboek uit.
 
+## Cursusonderhoud (diagnose en herstel van dubbele leescursussen)
+
+De app-image bevat de onderhoudsscripts bewust niet (`scripts/courses`); `npm run courses:audit` geeft daar `ERR_MODULE_NOT_FOUND`. Daarvoor is
+er een aparte **onderhoudsimage**: `ghcr.io/rjgout/jehova-maintenance` (het `maintenance`-target van de root-`Dockerfile`, bij elke push naar
+`main` gepubliceerd naast `jehova-app`). Het is dezelfde runtime als de app (dezelfde `node_modules`, Prisma-client, `src` en `prisma`)
+plus alleen die scripts, en hij start niets zelf: geen migraties, geen server. Achtergrond en regels: `docs/CURSUSIDENTITEIT.md`.
+
+**Eenmalig:** maak het nieuwe package `jehova-maintenance` publiek op GitHub (zoals bij Stap 1), of log in Portainer in op ghcr.io.
+
+**Starten** (Portainer): *Stacks → Add stack → Web editor* en plak `deploy/maintenance-stack.yml`. Naam bijvoorbeeld `jehova-maintenance`. Vul bij
+*Environment variables* in:
+
+| Variabele | Waarde |
+|---|---|
+| `MAINTENANCE_DATABASE_URL` | exact de `DATABASE_URL` van `jehova-app` (Containers → jehova-app → Env; het wachtwoord blijft in Portainer) |
+| `JEHOVA_NETWORK` | de netwerknaam van de hoofdstack (Networks, bv. `jehova-app_default`) |
+
+Deploy de stack. De container heeft geen poorten, volumes of Docker-socket.
+
+**Gebruik:** Containers → `jehova-maintenance` → *Console* → *Connect* (command `sh`, user `root`):
+
+```sh
+npm run courses:audit > /tmp/audit.json 2> /tmp/audit.err; cat /tmp/audit.err; cat /tmp/audit.json   # alleen lezen
+npm run courses:repair                                                                                  # dry-run: schrijft niets
+```
+
+De eerste regel van `audit.err` en de dry-run tonen `Doeldatabase: <host>:<poort>/<database>`; controleer dat dit de productiedatabase is.
+`audit.json` bevat alleen id's en aantallen (geen persoonsgegevens of geheimen). Exitcode 1 van de audit betekent: duplicaten gevonden.
+
+**Herstel (`--apply`)** voer je pas uit na een verse back-up (zie *Back-ups*), een gecontroleerde dry-run en uitdrukkelijke goedkeuring. De scripts
+weigeren het anders: `npm run courses:repair -- --apply --backup-gemaakt --verwacht-database=<host>:<poort>/<database>`, met de waarde letterlijk uit de
+regel `Doeldatabase`.
+
+**Opruimen:** verwijder de stack `jehova-maintenance` (Stacks → Remove) zodra je klaar bent. De image zelf bevat geen gegevens.
+
 ## Back-ups
 
 De database staat op je NAS onder `/volume1/docker/jehova-app/postgres` (zie

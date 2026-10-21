@@ -17,7 +17,10 @@ COPY . .
 RUN npx prisma generate
 RUN npm run build
 
-FROM base AS runner
+# Gedeelde basis van de app-image (runner) en de onderhoudsimage (maintenance): dezelfde node_modules, Prisma-client, src en
+# prisma-map, zodat onderhoudscommando's exact met productiecode en -client draaien. CMD/HEALTHCHECK staan bewust pas in de
+# eindstages hieronder. `runner` blijft de LAATSTE stage: een `docker build` zonder --target bouwt dus nog steeds de app.
+FROM base AS runtime-base
 ARG NEXT_PUBLIC_BUILD_SHA=unknown
 ENV NODE_ENV=production
 # Eigen kopie van de voorgelezen hoofdstukken (zie src/lib/audioMirror.ts).
@@ -60,6 +63,17 @@ RUN npm prune --omit=dev
 RUN node scripts/content-architecture/diagnose-otb-production-readonly.mjs >/dev/null 2>&1; test $? -eq 2 \
   && env -u DATABASE_URL node scripts/content-architecture/diagnose-otb-production-readonly.mjs --confirm-readonly >/dev/null 2>&1; test $? -eq 2
 
+# Onderhoudsimage (`--target maintenance`, gepubliceerd als jehova-maintenance): alleen de cursusonderhoudsscripts erbovenop. Bewust een
+# aparte image: de app-image blijft zonder onderhoudsscripts. De standaard-CMD start NIETS (geen migraties, geen server); het
+# onderhoudscommando geef je zelf mee, zie docs/DEPLOY-SYNOLOGY.md ("Cursusonderhoud"). Herstel (--apply) blijft achter de eigen
+# bevestigingen van scripts/courses/repair-duplicates.ts zitten.
+FROM runtime-base AS maintenance
+COPY scripts/courses ./scripts/courses
+HEALTHCHECK NONE
+RUN test -f scripts/courses/audit-duplicates.ts && test -f scripts/courses/repair-duplicates.ts && test -f scripts/courses/target.ts
+CMD ["sh", "-c", "echo 'jehova-maintenance: start niets zelf. Voorbeeld: npm run courses:audit  (zie docs/DEPLOY-SYNOLOGY.md)'"]
+
+FROM runtime-base AS runner
 EXPOSE 3000
 
 # Kritiek voor Docker Compose depends_on/orchestratie: geeft aan of de app

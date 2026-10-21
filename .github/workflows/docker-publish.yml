@@ -54,6 +54,12 @@ jobs:
           - name: jehova-deploy-agent
             context: ./deploy/agent
             dockerfile: ./deploy/agent/Dockerfile
+          # Aparte onderhoudsimage (target `maintenance` van de root-Dockerfile): dezelfde runtime als jehova-app plus de
+          # cursusonderhoudsscripts, zie docs/DEPLOY-SYNOLOGY.md ("Cursusonderhoud"). Start niets zelf.
+          - name: jehova-maintenance
+            context: .
+            dockerfile: ./Dockerfile
+            target: maintenance
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -87,6 +93,7 @@ jobs:
         with:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
+          target: ${{ matrix.target }}
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
@@ -94,3 +101,49 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+  # Bouwt de onderhoudsimage lokaal (nooit gepubliceerd door deze job) en bewijst dat de cursusscripts er echt in zitten en werken:
+  # aanwezig, geen migraties bij het starten, duidelijke fout zonder DATABASE_URL, --apply weigert zonder bevestiging, en audit en
+  # dry-run werken met dezelfde Prisma-client tegen een wegwerp-PostgreSQL zonder gegevens te wijzigen.
+  maintenance-image:
+    name: maintenance-image
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: maintenance_ci
+          POSTGRES_PASSWORD: maintenance_ci_wachtwoord
+          POSTGRES_DB: maintenance_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U maintenance_ci -d maintenance_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build onderhoudsimage (alleen laden, niet publiceren)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          target: maintenance
+          load: true
+          push: false
+          tags: jehova-maintenance:ci
+          build-args: |
+            NEXT_PUBLIC_BUILD_SHA=${{ github.sha }}
+          cache-from: |
+            type=gha,scope=jehova-maintenance
+            type=gha,scope=jehova-app
+          cache-to: type=gha,mode=max,scope=jehova-maintenance
+
+      - name: Controleer de onderhoudsimage
+        run: scripts/ci/check-maintenance-image.sh jehova-maintenance:ci "postgresql://maintenance_ci:maintenance_ci_wachtwoord@127.0.0.1:5432/maintenance_ci"
