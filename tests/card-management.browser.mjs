@@ -80,6 +80,50 @@ try {
       await page.keyboard.press("Escape");
       check("actieve cursus houdt hervatten en voortgang", await cards().first().getByRole("link", { name: /Ga verder/ }).count() === 1 && await cards().first().getByRole("progressbar").count() === 1);
     }
+    // iPhone Safari: een tik geeft een knop geen focus en laat het eerder gefocuste element blur-en zonder relatedTarget.
+    // Chromium-touch bewijst geen echte iPhone, maar deze emulatie reproduceert het enige verschil dat het menu brak
+    // (een onBlur-sluiting vóór de click); op de oude code verdwijnt het menu en loopt de actie niet.
+    await page.evaluate(() => {
+      window.__safariTap?.forEach(([type, handler]) => document.removeEventListener(type, handler, true));
+      const onPointerDown = () => { const active = document.activeElement; if (active && active !== document.body) active.blur(); };
+      const onMouseDown = event => { if (event.target instanceof Element && event.target.closest("button")) event.preventDefault(); };
+      document.addEventListener("pointerdown", onPointerDown, true);
+      document.addEventListener("mousedown", onMouseDown, true);
+      window.__safariTap = [["pointerdown", onPointerDown], ["mousedown", onMouseDown]];
+    });
+    const tap = async locator => {
+      await locator.scrollIntoViewIfNeeded();
+      const box = await locator.boundingBox();
+      await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    };
+    await tap(menuButton(card()));
+    await page.getByRole("menu").waitFor();
+    const menuBox = await page.getByRole("menu").boundingBox();
+    const headerBox = await page.locator("[data-sticky-header]").boundingBox();
+    const navBox = await page.locator("[data-main-nav]").boundingBox();
+    check(`${key}: touch-tik opent een zichtbaar menu tussen de vaste balken`, menuBox.y >= headerBox.y + headerBox.height - 1 && (!navBox || navBox.height === 0 || menuBox.y + menuBox.height <= navBox.y + 1));
+    const hit = await page.getByRole("menuitem", { name: t("cards.moveDown"), exact: true }).evaluate(el => {
+      const r = el.getBoundingClientRect();
+      const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      return el === top || el.contains(top);
+    });
+    check(`${key}: menu-item ligt bovenaan (geen kaart ervoor)`, hit);
+    await tap(page.getByRole("menuitem", { name: t("cards.moveDown"), exact: true }));
+    const movedByTouch = [...original]; [movedByTouch[offset], movedByTouch[offset + 1]] = [movedByTouch[offset + 1], movedByTouch[offset]];
+    await eventually(hrefs, movedByTouch);
+    await eventually(() => stored(key), movedByTouch.map(itemKey));
+    check(`${key}: touch-tik verplaatst de kaart ondanks blur zonder relatedTarget`, true);
+    await tap(menuButton(card()));
+    await page.getByRole("menu").waitFor();
+    await tap(page.getByRole("menuitem", { name: t("cards.moveUp"), exact: true }));
+    await eventually(hrefs, original);
+    await eventually(() => stored(key), original.map(itemKey));
+    await tap(menuButton(card()));
+    await page.getByRole("menu").waitFor();
+    await page.touchscreen.tap(5, 300);
+    await page.getByRole("menu").waitFor({ state: "detached" });
+    check(`${key}: touch-tik buiten het menu sluit het`, true);
+    await page.evaluate(() => { window.__safariTap?.forEach(([type, handler]) => document.removeEventListener(type, handler, true)); });
     await menuButton(card()).focus();
     await page.keyboard.press("ArrowDown");
     check(`${key}: eerste positie begrenst omhoog`, await page.getByRole("menuitem", { name: t("cards.moveUp") }).isDisabled());
