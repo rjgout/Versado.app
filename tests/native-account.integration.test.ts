@@ -9,6 +9,7 @@ import { issueNativeSession, nativeUser, rotateNativeSession } from "../src/lib/
 import { nativeSetupSchema } from "../src/lib/native/contract";
 import { finishNativeSecuritySetup, nativeSignInResult } from "../src/lib/native/securitySetup";
 import { createAppleChallenge, finishAppleChallenge } from "../src/lib/native/apple";
+import { createAuthToken } from "../src/lib/authTokens";
 import { changeAccountPassword } from "../src/lib/account/password";
 
 const database = new URL(process.env.NATIVE_TEST_DATABASE_URL ?? "http://invalid");
@@ -124,4 +125,34 @@ test("web behoudt zijn wachtwoordflow; gelijktijdige beveiligingswijziging overs
   const outcomes = await Promise.allSettled([changeAccountPassword(current, nextPassword, "Synthetic-parallel-A"), changeAccountPassword(current, nextPassword, "Synthetic-parallel-B")]);
   assert.equal(outcomes.filter(row => row.status === 'fulfilled').length, 1);
   const after = await prisma.user.findUniqueOrThrow({ where: { id: user.id } }); assert.equal(after.sessionVersion, 2); assert.equal(await verifyPassword(nextPassword, after.passwordHash), false);
+});
+
+test("native reset verbruikt het bestaande mailbewijs eenmaal, trekt sessies in en omzeilt TOTP niet", async () => {
+  const secret = generateTotpSecret(), user = await account({ xpTotal: 43, currentStreak: 5, totpEnabled: true, totpSecretEncrypted: encryptTotpSecret(secret) });
+  const old = await issueNativeSession(user.id, 0), web = await createSessionToken(user.id);
+  const first = await createAuthToken(user.id, "PASSWORD_RESET"), second = await createAuthToken(user.id, "PASSWORD_RESET");
+  const done = await call("reset-password", { token: first, newPassword: nextPassword });
+  assert.equal(done.response.status, 200); assert.deepEqual(done.data, { ok: true, reauthenticationRequired: true });
+  assert.equal(done.response.headers.get("set-cookie"), null); assert.equal(done.response.headers.get("cache-control"), "private, no-store");
+  await assert.rejects(nativeUser(old.accessToken)); await assert.rejects(rotateNativeSession(old.refreshToken, randomUUID())); assert.equal(await verifySessionToken(web), null);
+  assert.equal((await call("reset-password", { token: first, newPassword: "Replayed-password-42" })).response.status, 400);
+  assert.equal((await call("reset-password", { token: second, newPassword: "Second-password-42" })).response.status, 400);
+  assert.equal((await call("login", { identifier: user.email, password: nextPassword })).response.status, 401);
+  const after = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+  assert.equal(after.sessionVersion, 1); assert.equal(after.xpTotal, 43); assert.equal(after.currentStreak, 5); assert.equal(after.totpEnabled, true);
+  assert.equal(await prisma.nativeSession.count({ where: { userId: user.id } }), 1, "Reset geeft geen NativeSession uit");
+  assert.equal((await call("login", { identifier: user.email, password: nextPassword, code: generateTotpCode(secret) })).response.status, 200);
+});
+
+test("native reset accepteert geen verkeerd doel, verlopen bewijs of clientgekozen eigenaar; parallel slechts één winnaar", async () => {
+  const user = await account(), other = await account();
+  const verification = await createAuthToken(user.id, "EMAIL_VERIFY"), expired = await createAuthToken(user.id, "PASSWORD_RESET");
+  await prisma.authToken.updateMany({ where: { userId: user.id, type: "PASSWORD_RESET" }, data: { expiresAt: new Date(0) } });
+  for (const token of [verification, expired, "invalid-token"]) assert.equal((await call("reset-password", { token, newPassword: nextPassword })).response.status, 400);
+  const first = await createAuthToken(user.id, "PASSWORD_RESET"), second = await createAuthToken(user.id, "PASSWORD_RESET");
+  assert.equal((await call("reset-password", { token: first, newPassword: nextPassword, userId: other.id })).response.status, 400);
+  const outcomes = await Promise.all([call("reset-password", { token: first, newPassword: nextPassword }), call("reset-password", { token: second, newPassword: "Other-password-42" })]);
+  assert.deepEqual(outcomes.map(row => row.response.status).sort(), [200, 400]);
+  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).sessionVersion, 1);
+  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: other.id } })).passwordHash, passwordHash);
 });

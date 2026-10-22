@@ -3257,6 +3257,10 @@ export const nl = {
     logIn: "Log in",
   },
   password: {
+    resetLinkLabel: "Resetlink uit je e-mail",
+    openResetLink: "Resetlink openen",
+    resetCompleteSignIn: "Je wachtwoord is gewijzigd. Log opnieuw in; tweestapsverificatie blijft vereist als die is ingeschakeld.",
+
     newMismatch: "De twee nieuwe wachtwoorden komen niet overeen.",
     forcedReset: "Een admin heeft je wachtwoord gereset. Kies hieronder eerst een eigen, nieuw wachtwoord voordat je verder kan.",
     temporary: "Tijdelijk wachtwoord",

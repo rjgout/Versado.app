@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { NativeNavigator, nativeDeepLink, nativeRoute } from "../src/lib/native/navigation";
+import { NativeNavigator, nativeDeepLink, nativeRoute, nativePasswordResetLink } from "../src/lib/native/navigation";
 
 function browser(hash = "", state: unknown = null) {
   const entries = [{ hash, state }]; let cursor = 0;
@@ -50,4 +50,14 @@ test("herladen en dezelfde bestemming maken geen dubbele geschiedenisitems", () 
   const window = browser(), router = new NativeNavigator(window), initial = router.getSnapshot();
   router.push("/dashboard"); assert.equal(router.getSnapshot(), initial);
   router.refresh(); assert.equal(router.getSnapshot().revision, 1); assert.equal(window.entries.length, 1);
+});
+
+test("resetlinks leveren alleen een bewijs in geheugen; lokale geschiedenis blijft vrij van geheimen", () => {
+  const token = "R".repeat(43), base = "https://versado.app";
+  assert.equal(nativePasswordResetLink(`${base}/reset-password?token=${token}`, base), token);
+  for (const raw of [ `${base}.evil.invalid/reset-password?token=${token}`, `http://versado.app/reset-password?token=${token}`, `${base}:444/reset-password?token=${token}`, `https://name:password@versado.app/reset-password?token=${token}`, `${base}/reset-password?token=${token}#secret`, `${base}/reset-password?token=${token}&token=${token}`, `${base}/reset-password?token=${token}&next=/adminbackend`, `${base}/reset-password?token=short`, `${base}/privacy?token=${token}`, `${base}/reset-password?token=${token} `, `${base}/reset-password?token=${"X".repeat(2049)}` ]) assert.equal(nativePasswordResetLink(raw, base), null, raw);
+  const window = browser(), router = new NativeNavigator(window);
+  router.push("/reset-password"); assert.equal(window.location.hash, "#/reset-password");
+  assert.ok(!JSON.stringify(window.entries).includes(token));
+  assert.equal(nativeDeepLink(`${base}/reset-password?token=${token}`, base), null);
 });

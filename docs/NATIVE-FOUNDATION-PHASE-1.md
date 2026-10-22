@@ -112,6 +112,27 @@ velden toe en breidt uitsluitend de intent-check uit. Eigen PostgreSQL/Redis en
 rollback-/behoudtests controleren bestaande sessies, identiteiten en Apple-challenges.
 De volledige accountlevenscyclus en fysieke apparaten blijven open in de matrix.
 
+## Lokaal wachtwoordherstel
+
+`PasswordResetForm` deelt de bestaande velden, styling en web-TOTP-stap met de
+lokale app, met aparte data-adapters. Native `POST reset-password` accepteert alleen
+`token` en `newPassword`, gebruikt dezelfde `resetPasswordWithToken` (eenmalig,
+vervaltijd, User-lock, intrekking van overige resetlinks en sessieversie) en geeft
+uitsluitend `{ok:true, reauthenticationRequired:true}` terug: geen sessie/cookie of
+2FA-bypass. Dezelfde gedeelde IP-budgetnaam als web beschermt tegen kanaalwisselen.
+
+In Wachtwoord vergeten → Resetlink openen kan de gebruiker de bestaande mail-URL
+plakken. De parser aanvaardt uitsluitend de geconfigureerde backend-origin, het
+exacte herstelpad en één token van de bestaande 43-tekensvorm. OS-launch-/openlinks
+gebruiken dezelfde parser. De native hash/history bevatten alleen het lokale pad;
+resetbewijzen blijven in werkgeheugen en verdwijnen bij verlaten/herladen/afronden.
+Geen automatische login of herhaling van de mutatie. Na voltooiing kiest de
+gebruiker Terug naar inloggen; de lokale sessie wordt dan veilig uitgelogd.
+
+Universal Links / Android App Links, mail→OS-dispatch en echte apparaten zijn nog
+niet geconfigureerd/bewezen. De plakflow werkt zonder die associaties; Chromium is
+geen bewijs voor OS-dispatch, Keychain/Keystore of fysieke toetsenbordbediening.
+
 ## Externe voorwaarden
 
 Apple Team ID, Bundle ID/audience, Sign in with Apple capability en provisioning
@@ -126,6 +147,7 @@ niet actief. Geen token in deeplink of querystring. Zie de configuratiehandleidi
 | --- | --- |
 | GET capabilities | Versie 1 en werkelijk geconfigureerde Apple-mogelijkheid |
 | POST login, register, forgot-password | Begrensde invoer; bestaande accounts/mail/TOTP |
+| POST reset-password | Bestaand eenmalig resetmailbewijs + nieuw wachtwoord; geen sessie, opnieuw inloggen |
 | POST refresh, logout | Refreshgeheim + UUID actionId; rotatie/intrekking |
 | POST apple/challenge, apple/complete | Eenmalige state/nonce, serververificatie |
 | DELETE apple | Eigen account, actuele wachtwoord/TOTP-herauthenticatie |

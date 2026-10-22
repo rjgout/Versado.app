@@ -10374,19 +10374,15 @@
     },
     {
       "file": "src/components/ResetPasswordClient.tsx",
-      "sha256": "851aca11fbdd22874ac2a4f38d4fcedd1437cebf94f669e8b4118f2b039000d8",
+      "sha256": "3d7b5892df6fd5643913610771f14765ebf4b6ae2c734f36c1cec083eaf6874a",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "next/link",
-        "next/navigation",
-        "react"
+        "@/components/account/PasswordResetForm",
+        "@/lib/account/passwordResetWeb",
+        "next/navigation"
       ],
       "methods": [],
-      "requests": [
-        "/api/auth/login/2fa",
-        "/api/auth/reset-password"
-      ],
+      "requests": [],
       "checks": [],
       "exports": [
         "ResetPasswordClient"
@@ -10925,6 +10921,24 @@
       "checks": [],
       "exports": [
         "PasswordChangeForm"
+      ]
+    },
+    {
+      "file": "src/components/account/PasswordResetForm.tsx",
+      "sha256": "d790e5b6cb33f43bd8ef5107cc28a9ca7e585eeb72765a1ec7841994828c1440",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/lib/account/passwordReset",
+        "@/lib/data/fetchJson",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "PasswordResetForm"
       ]
     },
     {
@@ -12051,9 +12065,10 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "3feb8e35c0c91513457b0530608e917fb05184d14d19bc414ba3afeffa22935a",
+      "sha256": "fed9fc5e8565f1fef5b9ef46fcf71883dfafceb3c534969f5c53ea07e6c20f26",
       "boundary": "client",
       "imports": [
+        "./NativePasswordReset",
         "@/components/I18nProvider",
         "@/components/StickyHeader",
         "@/components/account/AccountActionsProvider",
@@ -12108,6 +12123,27 @@
       ],
       "exports": [
         "NativeNavigationProvider"
+      ]
+    },
+    {
+      "file": "src/components/native/NativePasswordReset.tsx",
+      "sha256": "565deae28e600d8abea2bebfd8881d6983989e1f263256b8a864d90935399ea0",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/account/PasswordResetForm",
+        "@/components/navigation/AppNavigation",
+        "@/components/profile/settings",
+        "@/lib/native/client",
+        "@/lib/native/navigation",
+        "@/lib/native/passwordReset",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativePasswordReset"
       ]
     },
     {
@@ -14360,6 +14396,39 @@
       ],
       "exports": [
         "changeAccountPassword"
+      ]
+    },
+    {
+      "file": "src/lib/account/passwordReset.ts",
+      "sha256": "e8a566787ea4e2a9a52e3299668f803d0ee80fdcab977a996e4415d640f239dd",
+      "boundary": "context-dependent",
+      "imports": [
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "passwordResetSchema"
+      ]
+    },
+    {
+      "file": "src/lib/account/passwordResetWeb.ts",
+      "sha256": "169e2044b7b43a591009a105c7a86c1351a5f90e7ba8b1550da9ae6570c6a905",
+      "boundary": "context-dependent",
+      "imports": [
+        "./passwordReset",
+        "@/lib/data/fetchJson",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/auth/login/2fa",
+        "/api/auth/reset-password"
+      ],
+      "checks": [],
+      "exports": [
+        "webPasswordResetActions"
       ]
     },
     {
@@ -17499,7 +17568,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "3f4d311fef28a076b2569909a09018429385c7d1050a1324be88ed19b295b795",
+      "sha256": "5e9a9d99ad33c33637ee685f67bed4a92fe9c3968d69251693be72cff2fe239d",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17514,7 +17583,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "b8212fbd9478496705f4d5ec6b1f603a36400885e4ee7c76305736b7d27fece5",
+      "sha256": "bc046001ba6708c6b26304291fe37701b01593649b615c81385f7be8f8ef3a4e",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17529,7 +17598,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "bd34af4df19ac2c39266c9132e6dbc5c19397a85bf3d6dd98a517cbbd1183726",
+      "sha256": "58c73de6fe69a6d49f279f835914a69d0346b547a51a61a21e96a79109092e01",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17544,7 +17613,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "0afa8e5e504605a4b4dbc0c78ad7d047db8886edb0ceeaf2b091ba405d9a5536",
+      "sha256": "40c27d260b279ce84563e95ae51abbd2f872a277ea5188f04a0715c37ed6e636",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17627,7 +17696,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "2859ebe89552159db4dc6d909f824a343dff4e7237c1c8ec9f768505fde2ab2f",
+      "sha256": "0a409225d0974d3981846ec4a3e2d5f4267824647237d3fe185eceda8bf75224",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -18832,7 +18901,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "47595e2f687fba6af7837a0510aff12dada28c8e17a19f167fda5c0e77941b42",
+      "sha256": "b2030bc755cf9d508160902cadac0cac70eef8bc067d971d844ecd7130c6ae94",
       "boundary": "context-dependent",
       "imports": [
         "./apple",
@@ -18844,12 +18913,16 @@
         "@/app/api/auth/register/route",
         "@/lib/account/contracts",
         "@/lib/account/password",
+        "@/lib/account/passwordReset",
+        "@/lib/auth",
         "@/lib/authBudget",
+        "@/lib/authTokens",
         "@/lib/contentAccess",
         "@/lib/db",
         "@/lib/handle",
         "@/lib/learning/contentProgress",
         "@/lib/rateLimit",
+        "@/lib/realtime",
         "next/server",
         "zod"
       ],
@@ -18948,7 +19021,7 @@
     },
     {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "4748cc63665fe2f03701f81f0a7209b844c5047195aa8ca03ffceda0ea4bf0fb",
+      "sha256": "84e1a911a74be6049d4abb757735d210cc3f9f43c35bf472cce8c99b4432e93f",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -18956,6 +19029,7 @@
       "checks": [],
       "exports": [
         "nativeDeepLink",
+        "nativePasswordResetLink",
         "nativeRoute"
       ]
     },
@@ -18988,6 +19062,24 @@
         "nativePasswordLogin",
         "nativePasswordProof",
         "nativeSecondFactor"
+      ]
+    },
+    {
+      "file": "src/lib/native/passwordReset.ts",
+      "sha256": "1cdd8906ec1b8d2a0b6723d9cea357989b72bfd1bc832fb39de445f49cc99241",
+      "boundary": "context-dependent",
+      "imports": [
+        "./client",
+        "@/lib/account/passwordReset",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [
+        "reset-password"
+      ],
+      "checks": [],
+      "exports": [
+        "nativePasswordResetActions"
       ]
     },
     {
@@ -44784,6 +44876,7 @@
         "src/app/api/v1/native/[...path]/route.ts",
         "src/lib/account/contracts.ts",
         "src/lib/account/password.ts",
+        "src/lib/account/passwordReset.ts",
         "src/lib/accountDeletion.ts",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
@@ -57961,6 +58054,11 @@
         "src/app/reset-password/page.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/ResetPasswordClient.tsx",
+        "src/components/account/PasswordResetForm.tsx",
+        "src/components/navigation/AppNavigation.tsx",
+        "src/lib/account/passwordReset.ts",
+        "src/lib/account/passwordResetWeb.ts",
+        "src/lib/data/fetchJson.ts",
         "src/lib/i18n/core.ts",
         "src/lib/i18n/messages/kompas/nl.ts",
         "src/lib/i18n/messages/nl.ts",
@@ -57971,7 +58069,9 @@
       ],
       "clientBoundaries": [
         "src/components/I18nProvider.tsx",
-        "src/components/ResetPasswordClient.tsx"
+        "src/components/ResetPasswordClient.tsx",
+        "src/components/account/PasswordResetForm.tsx",
+        "src/components/navigation/AppNavigation.tsx"
       ],
       "requestEvidence": [
         "/api/auth/login/2fa",
@@ -66215,19 +66315,15 @@
     },
     {
       "file": "src/components/ResetPasswordClient.tsx",
-      "sha256": "851aca11fbdd22874ac2a4f38d4fcedd1437cebf94f669e8b4118f2b039000d8",
+      "sha256": "3d7b5892df6fd5643913610771f14765ebf4b6ae2c734f36c1cec083eaf6874a",
       "boundary": "client",
       "imports": [
-        "@/components/I18nProvider",
-        "next/link",
-        "next/navigation",
-        "react"
+        "@/components/account/PasswordResetForm",
+        "@/lib/account/passwordResetWeb",
+        "next/navigation"
       ],
       "methods": [],
-      "requests": [
-        "/api/auth/login/2fa",
-        "/api/auth/reset-password"
-      ],
+      "requests": [],
       "checks": [],
       "exports": [
         "ResetPasswordClient"
@@ -66766,6 +66862,24 @@
       "checks": [],
       "exports": [
         "PasswordChangeForm"
+      ]
+    },
+    {
+      "file": "src/components/account/PasswordResetForm.tsx",
+      "sha256": "d790e5b6cb33f43bd8ef5107cc28a9ca7e585eeb72765a1ec7841994828c1440",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation",
+        "@/lib/account/passwordReset",
+        "@/lib/data/fetchJson",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "PasswordResetForm"
       ]
     },
     {
@@ -67803,9 +67917,10 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "3feb8e35c0c91513457b0530608e917fb05184d14d19bc414ba3afeffa22935a",
+      "sha256": "fed9fc5e8565f1fef5b9ef46fcf71883dfafceb3c534969f5c53ea07e6c20f26",
       "boundary": "client",
       "imports": [
+        "./NativePasswordReset",
         "@/components/I18nProvider",
         "@/components/StickyHeader",
         "@/components/account/AccountActionsProvider",
@@ -67860,6 +67975,27 @@
       ],
       "exports": [
         "NativeNavigationProvider"
+      ]
+    },
+    {
+      "file": "src/components/native/NativePasswordReset.tsx",
+      "sha256": "565deae28e600d8abea2bebfd8881d6983989e1f263256b8a864d90935399ea0",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/account/PasswordResetForm",
+        "@/components/navigation/AppNavigation",
+        "@/components/profile/settings",
+        "@/lib/native/client",
+        "@/lib/native/navigation",
+        "@/lib/native/passwordReset",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativePasswordReset"
       ]
     },
     {
