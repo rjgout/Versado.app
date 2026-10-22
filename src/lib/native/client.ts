@@ -29,6 +29,14 @@ export class NativeSessionClient {
   private revocationQueue: Promise<void> | null = null;
   private storageQueue: Promise<unknown> = Promise.resolve();
   private generation = 0;
+  private sessionListeners = new Set<() => void>();
+  onSessionChange(listener: () => void) { this.sessionListeners.add(listener); return () => { this.sessionListeners.delete(listener); }; }
+  private advanceSession(authenticating: boolean) {
+    const generation = ++this.generation;
+    this.access = null; this.securitySetup = null; this.authenticating = authenticating ? generation : null;
+    for (const listener of this.sessionListeners) { try { listener(); } catch {} }
+    return generation;
+  }
   private authenticating: number | null = null;
   private securitySetup: { value: NativeSecuritySetup; generation: number } | null = null;
   constructor(readonly baseUrl: string, private store: SecureSessionStore, private transport: typeof fetch = (input, init) => fetch(input, init)) {}
@@ -78,9 +86,8 @@ export class NativeSessionClient {
   // Alle providers starten hun authenticatie vóór challenge/netwerk/OS-prompts.
   // Daardoor kan ook een laat Apple-antwoord na logout geen sessie herstellen.
   async authenticate(authorize: (isCurrent: () => boolean) => Promise<unknown>): Promise<NativeSignInOutcome> {
-    const generation = ++this.generation;
-    this.authenticating = generation; this.access = null; this.securitySetup = null;
-    try { return await this.signInResult(await authorize(() => generation === this.generation && this.authenticating === generation), generation); }
+    const generation = this.advanceSession(true);
+    try { this.assertGeneration(generation); return await this.signInResult(await authorize(() => generation === this.generation && this.authenticating === generation), generation); }
     finally { if (this.authenticating === generation) this.authenticating = null; void this.flushRevocations().catch(() => {}); }
   }
   private async signInResult(value: unknown, generation: number): Promise<NativeSignInOutcome> {
@@ -235,8 +242,7 @@ export class NativeSessionClient {
     return this.revocationQueue;
   }
   async logout(onCommitted?: () => void) {
-    const generation = ++this.generation;
-    this.access = null; this.authenticating = null; this.securitySetup = null;
+    const generation = this.advanceSession(false);
     await this.edit(current => {
       if (!current) return null;
       return pack(null, [...retirements(current), ...(!current.logoutPending ? [{ refreshToken: current.refreshToken, actionId: current.actionId ?? crypto.randomUUID() }] : [])]);

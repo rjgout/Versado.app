@@ -4,6 +4,8 @@ on:
     branches: [main, 'feat/native-*', 'fix/native-*']
     paths:
       - 'src/lib/native/**'
+      - 'src/server/gameServer.ts'
+      - 'src/lib/realtime.ts'
       - 'src/lib/account/**'
       - 'src/components/account/**'
       - 'src/components/profile/**'
@@ -34,6 +36,8 @@ on:
       - 'tests/native-foundation*'
       - 'tests/native-navigation*'
       - 'tests/native-account*'
+      - 'tests/native-socket*'
+      - 'tests/fixtures/native-socket*'
       - 'tests/fixtures/native-foundation*'
       - '.github/workflows/native-foundation.yml'
   workflow_dispatch:

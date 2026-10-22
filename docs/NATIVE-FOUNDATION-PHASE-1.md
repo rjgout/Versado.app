@@ -155,6 +155,28 @@ hermailing gebruikt de bestaande `resendPendingVerification` en mailgrens. Oude
 onbevestigde accounts opnieuw mailen, onboarding, overige accountfuncties, echte
 mail→OS-dispatch en fysieke apparaten blijven open.
 
+## Native sockettransport
+
+De eigenaar heeft een eenmalig bewijs van maximaal 60s goedgekeurd; zie het
+[exacte contract en de levensduurcontroles](PLATFORMEN.md#native-realtime-eenmalig-handshakebewijs).
+`socketTickets.ts` maakt een onvoorspelbaar bewijs en verbruikt de Redis-hashkey
+atomair. `socketAuth.ts` scheidt de native handshake expliciet van webcookies.
+`activeNativeSession` is dezelfde DB-bron voor API en verbonden native sockets;
+het ticket geeft geen eigen verversbare sessie of andere rechten.
+
+`NativeSocketConnection` haalt bij elke poging een vers bewijs op en bewaart het
+alleen tot handshake-uitkomst. Een sessiegeneratiewissel sluit direct het oude
+transport; late bewijzen kunnen de nieuwe gebruiker niet verbinden. Runtime-
+herstel sluit aan op de bestaande lokale app. Webauthenticatie, Redis-adapter,
+server-authoritative spelhandlers en bestaande gebruikersrooms blijven behouden.
+
+De geïsoleerde runner start twee afzonderlijke processen met echte Next-routes en
+de echte Socket.io-server op dezelfde eigen PostgreSQL/Redis. Gerichte tests staan
+in `tests/native-socket.test.ts` en `tests/native-socket.integration.test.ts`.
+De fixture heeft uitsluitend testevents; zij wordt nooit als appcode gebundeld.
+Echte spelhervatting/HA en fysieke platforms moeten later per functie volgen.
+Geen merge, deployment of onafhankelijke acceptatie door deze implementatie.
+
 ## Externe voorwaarden
 
 Apple Team ID, Bundle ID/audience, Sign in with Apple capability en provisioning
@@ -171,6 +193,7 @@ niet actief. Geen token in deeplink of querystring. Zie de configuratiehandleidi
 | POST login, register, forgot-password | Begrensde invoer; bestaande accounts/mail/TOTP |
 | POST verify-email | Bestaand eenmalig registratie-/EMAIL_VERIFY-bewijs; alleen status, geen sessie |
 | POST reset-password | Bestaand eenmalig resetmailbewijs + nieuw wachtwoord; geen sessie, opnieuw inloggen |
+| POST realtime/session | Actuele NativeSession; eenmalig Redis-handshakebewijs van maximaal 60s, geen tweede sessie |
 | POST refresh, logout | Refreshgeheim + UUID actionId; rotatie/intrekking |
 | POST apple/challenge, apple/complete | Eenmalige state/nonce, serververificatie |
 | DELETE apple | Eigen account, actuele wachtwoord/TOTP-herauthenticatie |

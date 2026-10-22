@@ -1,3 +1,5 @@
+import { authenticateRealtimeSocket, socketOriginAllowed, socketSecurityState, validateNativeSocket } from "@/lib/native/socketAuth";
+import type { NativeSessionBinding } from "@/lib/native/sessions";
 import { canResumeLiveGame } from "@/lib/gameAvailability";
 import type { Server as HttpServer } from "http";
 import { Server as SocketIOServer, Socket } from "socket.io";
@@ -164,14 +166,7 @@ function collectChapterIds(questions: LiveQuestionSeed[]): string[] {
   return [...ids];
 }
 
-async function authenticateSocket(socket: Socket) {
-  const cookies = parseCookieHeader(socket.handshake.headers.cookie);
-  const token = cookies[SESSION_COOKIE];
-  if (!token) return null;
-  const session = await verifySessionToken(token);
-  if (!session) return null;
-  return prisma.user.findUnique({ where: { id: session.userId } });
-}
+const authenticateSocket = authenticateRealtimeSocket;
 
 function serializePlayers(room: RoomState) {
   return [...room.players.values()]
@@ -627,7 +622,7 @@ function handleFamilyEventChoice(room: RoomState, socket: Socket, choiceIndex: n
 export function initGameServer(httpServer: HttpServer) {
   ioInstance = new SocketIOServer(httpServer, {
     path: "/socket.io",
-    allowRequest: (req, callback) => callback(null, !req.headers.origin || req.headers.origin === applicationOrigin()),
+    allowRequest: (req, callback) => callback(null, socketOriginAllowed(req.headers.origin, applicationOrigin())),
   });
   setRealtimeServer(ioInstance);
 
@@ -678,18 +673,27 @@ export function initGameServer(httpServer: HttpServer) {
     socket.data.displayName = user.handle;
     socket.join(`user:${user.id}`);
     const token = parseCookieHeader(socket.handshake.headers.cookie)[SESSION_COOKIE];
-    const stillValid = async () => !!token && !!(await verifySessionToken(token));
+    const native = socket.data.nativeSession as NativeSessionBinding | undefined;
+    const securityState = native ? socketSecurityState(user) : null;
+    if (native) socket.join(`native-session:${native.sessionId}`);
+    const stillValid = async () => {
+      if (!socket.connected) return false;
+      if (!native) return !!token && !!(await verifySessionToken(token));
+      const current = await validateNativeSocket(native, securityState!);
+      Object.assign(user, current);
+      return true;
+    };
     // Elke mutatie opnieuw controleren; een ingetrokken token mag geen spelactie meer uitvoeren.
     socket.use((_packet, next) => {
       stillValid().then(valid => {
-        if (!valid) { socket.disconnect(true); return; }
+        if (!valid || !socket.connected) { socket.disconnect(true); return; }
         next();
       }).catch(() => socket.disconnect(true));
     });
     // Ook passief luisterende clients sluiten zodra hun token verloopt of wordt ingetrokken.
     const sessionCheck = setInterval(() => {
       stillValid().then(valid => { if (!valid) socket.disconnect(true); }).catch(() => socket.disconnect(true));
-    }, 30_000);
+    }, native ? 5_000 : 30_000);
     sessionCheck.unref();
     socket.once("disconnect", () => clearInterval(sessionCheck));
     registerAlleskennerHandlers(ioInstance!, socket, user);

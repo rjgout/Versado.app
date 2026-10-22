@@ -22,8 +22,10 @@ import { passwordChangeSchema } from "@/lib/account/contracts";
 import { authBudget, authBudgetKey } from "@/lib/authBudget";
 import { appleConfiguration, createAppleChallenge, finishAppleChallenge, unlinkApple } from "./apple";
 
-export const NATIVE_ORIGINS = ["capacitor://localhost", "https://localhost"] as const;
-export function nativeOriginAllowed(origin: string | null) { return !!origin && (NATIVE_ORIGINS as readonly string[]).includes(origin); }
+import { issueSocketTicket } from "./socketTickets";
+import { nativeSocketEnabled } from "./socketAuth";
+import { nativeOriginAllowed } from "./origin";
+export { NATIVE_ORIGINS, nativeOriginAllowed } from "./origin";
 const credentials = { password: z.string().min(1).max(256), code: z.string().min(1).max(100).optional() };
 const refresh = z.object({ refreshToken: z.string().min(1).max(128), actionId: z.uuid() }).strict();
 const budgets = new Map<string, { n: number; until: number }>();
@@ -64,7 +66,7 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
   const ip = hashSecret(clientIp(req)), failureKey = `native-auth:${ip}`;
   try {
     if (mutation && req.headers.get("content-type")?.split(";")[0] !== "application/json") throw new NativeAuthError("json_required", 415);
-    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1"] });
+    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1", ...(nativeSocketEnabled() ? ["realtime-ticket-v1"] : [])] });
     if (req.method === "POST" && path === "login") {
       if (failureLockSeconds(failureKey, 30)) throw new NativeAuthError("too_many_attempts", 429);
       const input = z.object({ identifier: z.string().trim().min(1).max(320), ...credentials, supportsSecuritySetup: z.boolean().optional() }).strict().parse(await body(req));
@@ -149,6 +151,15 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
       const user = await finishAppleChallenge(input, owner, undefined, setup);
       if (setup) return json(await nativeSignInResult(user, input.code));
       return json(owner ? { ok: true } : await issueNativeSession(user.id, user.sessionVersion));
+    }
+    if (req.method === "POST" && path === "realtime/session") {
+      const header = req.headers.get("authorization");
+      if (!header?.startsWith("Bearer ") || header.length > 2048) throw new NativeAuthError("session_expired");
+      z.object({}).strict().parse(await body(req));
+      const identity = await nativeUser(header.slice(7));
+      const limited = await authBudget(authBudgetKey("native-socket-ticket", identity.id), 60, 60_000);
+      if (limited) throw new NativeAuthError(limited.status === 503 ? "security_check_unavailable" : "too_many_attempts", limited.status);
+      return json(await issueSocketTicket(header.slice(7)));
     }
     const user = await authenticated(req);
     if (req.method === "DELETE" && path === "apple") {

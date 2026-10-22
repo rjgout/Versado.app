@@ -13,7 +13,7 @@ for(const key of ['DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY
 function docker(args){const r=spawnSync('docker',['--host=unix:///var/run/docker.sock',...args],{env:dockerEnv,encoding:'utf8'});if(r.status!==0)throw Error(r.stderr||'Lokale Docker mislukt');return r.stdout.trim();}
 function run(cmd,args,env){return new Promise((resolve,reject)=>{const p=spawn(cmd,args,{env,stdio:'inherit'});p.on('error',reject);p.on('exit',c=>c===0?resolve():reject(Error(`${cmd} stopte met ${c}`)));});}
 const port=await new Promise(resolve=>{const s=createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>resolve(p));});});
-let server;
+let server;const socketServers=[];
 try{
  docker(['run','--rm','-d','--name',container,'-e','POSTGRES_PASSWORD=synthetic-only','-e','POSTGRES_DB=versado_content_access_test','-p','127.0.0.1::5432','postgres:16-alpine']);
  let ready=false;for(let i=0;i<60;i++){try{docker(['exec',container,'pg_isready','-h','127.0.0.1','-U','postgres']);ready=true;break;}catch{}await delay(250);}if(!ready)throw Error('Eigen Postgres start niet');
@@ -64,8 +64,19 @@ try{
  server=spawn('node',['scripts/content-architecture/test-server.mjs'],{env,stdio:'inherit',detached:true});
  let healthy=false;for(let i=0;i<100;i++){try{if((await fetch(`${base}/api/health`)).ok){healthy=true;break;}}catch{}if(server.exitCode!==null)throw Error('Testserver gestopt');await delay(500);}if(!healthy)throw Error('Productiebuild niet bereikbaar');
  await run('npx',['tsx','--test','--test-concurrency=1','tests/native-foundation.integration.test.ts','tests/native-account.integration.test.ts','tests/registration.integration.test.ts'],env);
+ // Twee onafhankelijke processen, dezelfde bestaande database/Redis-adapter.
+ const available=()=>new Promise(resolve=>{const listener=createServer();listener.listen(0,'127.0.0.1',()=>{const chosen=listener.address().port;listener.close(()=>resolve(chosen));});});
+ const socketA=`http://127.0.0.1:${await available()}`;let socketB;do{socketB=`http://127.0.0.1:${await available()}`;}while(socketB===socketA);
+ const socketEnv={...env,APP_URL:socketA,NATIVE_SOCKET_TEST_A:socketA,NATIVE_SOCKET_TEST_B:socketB};
+ for(const instance of [socketA,socketB]){
+  const child=spawn('npx',['tsx','tests/fixtures/native-socket-server.ts'],{env:{...socketEnv,SOCKET_TEST_INSTANCE_URL:instance},stdio:'inherit',detached:true});socketServers.push(child);
+  let started=false;for(let attempt=0;attempt<100;attempt++){try{if((await fetch(`${instance}/api/health`)).ok){started=true;break;}}catch{}if(child.exitCode!==null)throw Error('Sockettestserver gestopt');await delay(500);}if(!started)throw Error('Sockettestserver niet bereikbaar');
+ }
+ await run('npx',['tsx','--test','--test-concurrency=1','tests/native-socket.integration.test.ts'],socketEnv);
+ for(const child of socketServers){try{process.kill(-child.pid,'SIGTERM');}catch{}}
  if(!process.argv.includes('--no-browser'))await run('npx',['tsx','tests/native-foundation.browser.mjs'],env);
 }finally{
+ for(const child of socketServers){try{process.kill(-child.pid,'SIGTERM');}catch{}}
  if(server){try{process.kill(-server.pid,'SIGTERM');}catch{}await Promise.race([new Promise(r=>server.once('exit',r)),delay(5000)]);}
  try{docker(['stop',container]);}catch{}
  try{docker(['stop',redisContainer]);}catch{}

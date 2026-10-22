@@ -86,6 +86,7 @@ GET chapters/:id | Tekstverzen + leesstatus, bronrechten; begrensde hoofdstukgro
 POST chapters/:id/complete | Bestaande completeChapterReading-service | Geen volledige cursus-/leer-/spelcompletion
 POST security-setup/complete | Gehashte, kortlevende eenmalige doel-/account-/versiechallenge; nieuwe wachtwoord- of echte TOTP-stap | Alleen vereiste setup; algemeen TOTP-beheer ontbreekt nog lokaal
 POST security-setup/cancel | Bezit van hetzelfde opaque setupbewijs; idempotente intrekking | Offline intentie uitsluitend beveiligd; nooit als sessie hervatten
+POST realtime/session | Actuele NativeSession, lege JSON, gedeeld uitgiftebudget; eenmalig Redis-GETDEL-bewijs ≤60s | Handshake-only; daarna NativeSession/User per pakket en passief controleren, vers bewijs bij reconnect |
 POST verify-email | Eenmalig bestaand registratie-/EMAIL_VERIFY-bewijs, begrensde publieke statusrespons | Lokale gedeelde uitkomstkaart; geen User/returnTo/cookie/NativeSession, daarna gewone login |
 POST reset-password | Bestaand eenmalig mailbewijs; gedeelde User-lock/claim en IP-budget, overige resetlinks en sessies intrekken | Lokale gedeelde resetpagina, opnieuw inloggen met alle bestaande accountpoorten; geen cookie/NativeSession |
 POST account/password | Actuele native sessie, wachtwoord en bestaande TOTP; gedeelde User-lock-/versieservice | Lokale gedeelde wachtwoordpagina; alle sessies intrekken, opnieuw inloggen
@@ -186,6 +187,38 @@ Overige accountfuncties blijven afzonderlijk open: onboarding, het opnieuw
 versturen van oude onbevestigde accountmails, algemeen TOTP-beheer en verwijderen.
 OS-linkassociaties, uitnodigingsbestemmingen en apparaatacceptatie zijn hiermee
 nog niet voltooid. Er is geen onafhankelijke acceptatie toegekend.
+
+### Native socketbewijs — goedgekeurd op 22 oktober 2026
+
+Het eigenaarbesluit is **eenmalig, maximaal 60s, uitsluitend handshake**, gebonden
+aan de bestaande gebruiker/NativeSession. `realtime-ticket-v1` en `realtime/session`
+leveren geen tweede sessiesysteem. Redis-GETDEL deelt de replaybescherming tussen
+processen; alleen de hash van het willekeurige bewijs staat als sleutel opgeslagen.
+DB-gebonden autorisatie en aanvullende beveiligingsstatus worden bij connect, elk
+pakket en iedere vijf seconden voor passieve verbindingen opnieuw gecontroleerd.
+Logout/replay intrekken per sessieroom; wachtwoordwijziging/account wissen via de
+bestaande gebruikersrooms, ook over de Redis-adapter. Webcookies blijven uitsluitend
+webidentiteit; een ambient cookie van B verandert nooit de native ticketactor A.
+
+De lokale app gebruikt een accountgebonden socketclient: nieuwe handshakebewijzen
+bij reconnect, geen bewijs in URL/opslag, directe afsluiting bij accountwissel en
+bescherming tegen late antwoorden. Bestaande buffers/listeners van A verdwijnen;
+het gedeelde event-/spelprotocol wordt niet vervangen. De backend-origin krijgt
+uitsluitend zijn bijbehorende ws/wss-origin in de lokale CSP.
+
+Gerichte unit-/twee-proces-integratietests dekken TTL, binding, replay, doel/origin-
+isolatie, onbereikbare Redis, roomupdates, intrekking, account wissen, relevante
+beveiligingswijzigingen, tokenrefresh/replay en reconnect met vers bewijs. Dit is
+geen volledige native spel-/sociale pariteit of algemene multi-instance-spel-HA;
+die UI, spelhervatting en daadwerkelijke apparaten blijven afzonderlijk open.
+Lokaal technisch bewijs: 41 native unit-/navigatie-/auth-tests, 30 bestaande
+geïsoleerde API/account/registratietests en 10 echte socketintegratietests met twee
+processen groen. Inclusief echte Redis-uitval, een geblokkeerde PostgreSQL-controle
+met gesloten afsluiting, dezelfde gebruiker over reconnect en geen herhaalde actie.
+Vier native browserformaten en de volledige webbrowser-suite (inclusief 45 bestaande
+websocketcontroles) blijven groen. TypeScript, lint/i18n, schone webbuild en verpakte
+native assets gecontroleerd. Dit is geen fysieke apparaat-/OS-lifecyclevalidatie.
+De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)

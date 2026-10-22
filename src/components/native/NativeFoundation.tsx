@@ -6,7 +6,7 @@ import { ArrowLeft, LogOut, WifiOff } from "lucide-react";
 import MascotSlot from "@/components/versado/MascotSlot";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
 import { primaryButton, secondaryButton } from "@/components/versado/styles";
-import { dismissNativeKeyboard, isIOSApp, lightHaptic, nativeAppleAuthorization, openExternalUrl, startNativeFoundationRuntime } from "@/lib/platform";
+import { isNativeApp, dismissNativeKeyboard, isIOSApp, lightHaptic, nativeAppleAuthorization, openExternalUrl, startNativeFoundationRuntime } from "@/lib/platform";
 import { nativeAccountSchema, nativeTodaySchema, nativeChapterSchema, nativeCapabilitiesSchema, type NativeAccount, type NativeChapter, type NativeSecuritySetup } from "@/lib/native/contract";
 import { NativeClientError, type NativeSessionClient, type NativeSignInOutcome } from "@/lib/native/client";
 import { AppLink, useAppNavigation } from "@/components/navigation/AppNavigation";
@@ -19,6 +19,7 @@ import PasswordChangeForm from "@/components/account/PasswordChangeForm";
 import { AccountActionsProvider } from "@/components/account/AccountActionsProvider";
 import { RecoveryCodesCard, TwoFactorSetupCard } from "@/components/account/TwoFactorCards";
 import { nativeAccountActions } from "@/lib/native/account";
+import { NativeSocketConnection } from "@/lib/native/socketClient";
 import NativeEmailConfirmation from "./NativeEmailConfirmation";
 import NativePasswordReset from "./NativePasswordReset";
 import { nativeDeepLink, nativePasswordResetLink, nativeEmailConfirmationLink } from "@/lib/native/navigation";
@@ -108,6 +109,15 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
     return () => { disposed = true; invalidate(); cleanup?.(); window.removeEventListener("online", online); window.removeEventListener("offline", offline); };
   }, [bootstrap, client, report]);
   const accountId = user?.id;
+  const realtime = features.includes("realtime-ticket-v1");
+  useEffect(() => {
+    if (!accountId || !realtime || !isNativeApp()) return;
+    const connection = new NativeSocketConnection(client, error => {
+      if (error instanceof NativeClientError && error.status === 401) report(error);
+    });
+    connection.start();
+    return () => connection.dispose();
+  }, [accountId, realtime, reloadKey, client, report]);
   useEffect(() => {
     if (!chapterId || !accountId) return;
     const id = ++sequence.current;
