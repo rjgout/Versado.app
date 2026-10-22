@@ -1101,7 +1101,7 @@ function SummaryScreen({
         <ContentStatusLine read={summary.content.read} exercisesAnswered={summary.content.exercisesAnswered} exercisesTotal={summary.content.exercisesTotal} className="justify-center" />
       )}
 
-      <div className="flex gap-6 mt-2">
+      <div className="mt-2 flex flex-wrap justify-center gap-x-6 gap-y-3">
         <StreakContinuationCard />
         <div>
           <div className="flex items-center gap-1 text-xl font-extrabold text-ice-600"><SystemIcon kind="freeze" className="h-5 w-5" aria-hidden />{summary.freezeCount}</div>
