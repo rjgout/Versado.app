@@ -8,6 +8,7 @@ import { getT } from "@/lib/i18n";
 import type { MessageKey } from "@/lib/i18n/core";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { runSeed } from "@/lib/seed";
+import { clearExercisePlanCache } from "@/lib/learning/contentProgress";
 import type { OtbImportProgress } from "../../scripts/otb/import-core";
 
 export type ReseedJobStatus = "idle" | "running" | "done" | "error";
@@ -110,6 +111,7 @@ export function startReseedJob(
     studyImport,
   )
     .then(() => {
+      clearExercisePlanCache();
       current.status = "done";
       current.finishedAt = new Date().toISOString();
     })

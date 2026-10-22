@@ -9,6 +9,7 @@ import {
 } from "../src/lib/exerciseGen";
 import { generateExerciseHint } from "../src/lib/exerciseHints";
 import { syncCourses } from "../src/lib/courses";
+import { exerciseSignature, optionsFingerprint, planExerciseSync } from "../src/lib/exerciseSync";
 import { BOM_COLLECTION_ID } from "../src/lib/contentCollectionIds";
 import { inPhase } from "../src/lib/importPhase";
 import type { SeedBook } from "./content";
@@ -179,15 +180,149 @@ function chapterExercises(
   return { exerciseRows, optionRows };
 }
 
+export interface BooksImportStats {
+  chapters: { created: number; updated: number };
+  verses: { created: number; updated: number; deleted: number };
+  exercises: ExerciseSyncStats;
+}
+
+export interface ExerciseSyncStats {
+  kept: number;
+  updated: number;
+  created: number;
+  /** Buiten gebruik gesteld omdat iemand ze al kreeg of beantwoordde (status REJECTED, niet verwijderd). */
+  retired: number;
+  /** Verwijderd omdat niemand ze ooit kreeg. */
+  deleted: number;
+}
+
+/**
+ * Brengt de oefeningen van de opgegeven hoofdstukken in overeenstemming met de gegenereerde set, zonder ongewijzigde
+ * oefeningen aan te raken (zie exerciseSync.ts). Eén transactie: een fout laat de oude oefeningen volledig staan.
+ */
+async function syncChapterExercises(
+  prisma: PrismaClient,
+  generatedByChapter: Map<string, { exerciseRows: ExerciseRow[]; optionRows: OptionRow[] }>
+): Promise<ExerciseSyncStats> {
+  const chapterIds = [...generatedByChapter.keys()];
+  const stats: ExerciseSyncStats = { kept: 0, updated: 0, created: 0, retired: 0, deleted: 0 };
+
+  const existingRows: {
+    id: string; chapterId: string; order: number; status: string; hint: string | null; sourceVerseId: string | null; signature: string; options: string;
+  }[] = [];
+  for (let i = 0; i < chapterIds.length; i += 500) {
+    const rows = await prisma.exercise.findMany({
+      where: { chapterId: { in: chapterIds.slice(i, i + 500) }, status: "APPROVED" },
+      orderBy: [{ chapterId: "asc" }, { order: "asc" }],
+      include: { options: { orderBy: { order: "asc" }, select: { label: true, isCorrect: true } } },
+    });
+    for (const row of rows) {
+      existingRows.push({ id: row.id, chapterId: row.chapterId, order: row.order, status: row.status, hint: row.hint, sourceVerseId: row.sourceVerseId, signature: exerciseSignature(row), options: optionsFingerprint(row.options) });
+    }
+  }
+  const existingByChapter = new Map<string, typeof existingRows>();
+  for (const row of existingRows) {
+    const list = existingByChapter.get(row.chapterId) ?? [];
+    list.push(row);
+    existingByChapter.set(row.chapterId, list);
+  }
+
+  const creates: ExerciseRow[] = [];
+  const createdOptions: OptionRow[] = [];
+  const updates: { id: string; order: number; hint: string | null; sourceVerseId: string | null }[] = [];
+  const optionReplacements: { exerciseId: string; options: OptionRow[] }[] = [];
+  const unmatched: string[] = [];
+
+  for (const [chapterId, generated] of generatedByChapter) {
+    const optionsByExercise = new Map<string, OptionRow[]>();
+    for (const option of generated.optionRows) {
+      const list = optionsByExercise.get(option.exerciseId) ?? [];
+      list.push(option);
+      optionsByExercise.set(option.exerciseId, list);
+    }
+    const orderedOptions = (id: string) => (optionsByExercise.get(id) ?? []).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map((o) => ({ label: o.label, isCorrect: o.isCorrect ?? false }));
+    const desiredSignatures = generated.exerciseRows.map((row) =>
+      exerciseSignature({ type: row.type, verseRef: row.verseRef, prompt: row.prompt, answers: row.answers, wordBank: row.wordBank, options: orderedOptions(row.id!) })
+    );
+    const plan = planExerciseSync(existingByChapter.get(chapterId) ?? [], desiredSignatures);
+    generated.exerciseRows.forEach((row, index) => {
+      const keep = plan.keep[index];
+      if (!keep) {
+        creates.push(row);
+        createdOptions.push(...(optionsByExercise.get(row.id!) ?? []));
+        return;
+      }
+      stats.kept++;
+      // Dezelfde vraag, andere afleiders: de opties van deze oefening vervangen, het id en alles wat eraan hangt blijft.
+      if (keep.options !== optionsFingerprint(orderedOptions(row.id!))) {
+        optionReplacements.push({ exerciseId: keep.id, options: (optionsByExercise.get(row.id!) ?? []).map((o) => ({ ...o, exerciseId: keep.id })) });
+      }
+      const hint = (row.hint as string | null | undefined) ?? null;
+      const sourceVerseId = (row.sourceVerseId as string | null | undefined) ?? null;
+      if (keep.order !== row.order || keep.hint !== hint || keep.sourceVerseId !== sourceVerseId) {
+        updates.push({ id: keep.id, order: row.order, hint, sourceVerseId });
+      }
+    });
+    unmatched.push(...plan.unmatched.map((row) => row.id));
+  }
+
+  // Wie is al aan een oefening begonnen? Dan blijft ze bestaan (buiten gebruik); anders kan ze veilig weg.
+  const used = new Set<string>();
+  for (let i = 0; i < unmatched.length; i += CHUNK) {
+    const ids = unmatched.slice(i, i + CHUNK);
+    for (const row of await prisma.exerciseAttempt.findMany({ where: { exerciseId: { in: ids } }, select: { exerciseId: true }, distinct: ["exerciseId"] })) used.add(row.exerciseId);
+    for (const row of await prisma.contentExerciseCredit.findMany({ where: { exerciseId: { in: ids } }, select: { exerciseId: true }, distinct: ["exerciseId"] })) used.add(row.exerciseId);
+  }
+  if (unmatched.length > 0) {
+    const unmatchedSet = new Set(unmatched);
+    const openSessions = await prisma.exerciseSession.findMany({ where: { submittedAt: null, chapterId: { in: chapterIds } }, select: { exerciseIds: true } });
+    for (const session of openSessions) {
+      for (const id of JSON.parse(session.exerciseIds) as string[]) if (unmatchedSet.has(id)) used.add(id);
+    }
+  }
+  const retire = unmatched.filter((id) => used.has(id));
+  const remove = unmatched.filter((id) => !used.has(id));
+
+  stats.updated = new Set([...updates.map((u) => u.id), ...optionReplacements.map((r) => r.exerciseId)]).size;
+  stats.created = creates.length;
+  stats.retired = retire.length;
+  stats.deleted = remove.length;
+  if (updates.length + optionReplacements.length + creates.length + retire.length + remove.length === 0) return stats;
+
+  await prisma.$transaction(
+    async (tx) => {
+      if (retire.length > 0) await inChunks(retire, (ids) => tx.exercise.updateMany({ where: { id: { in: ids } }, data: { status: "REJECTED" } }));
+      if (remove.length > 0) await inChunks(remove, (ids) => tx.exercise.deleteMany({ where: { id: { in: ids } } }));
+      for (const update of updates) await tx.exercise.update({ where: { id: update.id }, data: { order: update.order, hint: update.hint, sourceVerseId: update.sourceVerseId } });
+      if (optionReplacements.length > 0) {
+        await inChunks(optionReplacements.map((r) => r.exerciseId), (ids) => tx.questionOption.deleteMany({ where: { exerciseId: { in: ids } } }));
+        await inChunks(optionReplacements.flatMap((r) => r.options), (data) => tx.questionOption.createMany({ data }));
+      }
+      await inChunks(creates, (data) => tx.exercise.createMany({ data }));
+      await inChunks(createdOptions, (data) => tx.questionOption.createMany({ data }));
+    },
+    { maxWait: 30_000, timeout: 10 * 60_000 }
+  );
+  return stats;
+}
+
 /**
  * Laadt boeken/hoofdstukken/verzen in de database en genereert er
- * invuloefeningen bij. Idempotent: herdraaien werkt de verzen bij en vervangt
- * de oefeningen van dezelfde hoofdstukken.
+ * invuloefeningen bij. Idempotent én inhoudsgestuurd: herdraaien met dezelfde
+ * bron verandert niets (geen enkel id, geen enkele rij).
  *
  * Verzen worden op hun plek bijgewerkt (zelfde ID, alleen gewijzigde tekst
  * wordt geschreven) in plaats van verwijderd en opnieuw aangemaakt: aan een
  * vers hangen bladwijzers, markeringen en notities van gebruikers, die bij
  * verwijderen mee zouden verdwijnen (cascade).
+ *
+ * Oefeningen volgen dezelfde regel (src/lib/exerciseSync.ts): een oefening met
+ * ongewijzigde inhoud behoudt haar id, haar opties, haar antwoordgeschiedenis,
+ * haar XP-bijschrijving en haar plek in elke uitgedeelde oefenset. Alleen wat
+ * inhoudelijk anders is wordt nieuw aangemaakt; een verdwenen of gewijzigde
+ * oefening wordt verwijderd als niemand haar gebruikte, en anders buiten
+ * gebruik gesteld (status REJECTED, dus nooit meer uitgedeeld) maar niet
+ * gewist, zodat wie haar al kreeg haar nog kan afronden en niets verdwijnt.
  *
  * Alles wat er al staat, wordt in één keer opgehaald en alle nieuwe rijen
  * gaan in grote blokken naar de database, in plaats van een handvol
@@ -198,8 +333,9 @@ export async function importBooks(
   prisma: PrismaClient,
   books: SeedBook[],
   log: (msg: string) => void = console.log,
-  contentCollectionId?: string
-) {
+  contentCollectionId?: string,
+  options: { syncCourses?: boolean } = {}
+): Promise<BooksImportStats> {
   // Zonder expliciete doelcollectie geldt het Boek van Mormon (vast id); nooit "de eerste ingeschakelde collectie op volgorde": bij gelijke
   // `order` is dat een toevallige andere collectie (zie docs/CURSUSIDENTITEIT.md).
   const collection = await prisma.contentCollection.findUnique({ where: { id: contentCollectionId ?? BOM_COLLECTION_ID }, select: { id: true, language: true } });
@@ -230,8 +366,7 @@ export async function importBooks(
   const verseCreates: Prisma.VerseCreateManyInput[] = [];
   const verseUpdates: { id: string; text: string }[] = [];
   const verseDeletes: string[] = [];
-  const exerciseRows: ExerciseRow[] = [];
-  const optionRows: OptionRow[] = [];
+  const generatedByChapter = new Map<string, { exerciseRows: ExerciseRow[]; optionRows: OptionRow[] }>();
   const chapterIds: string[] = [];
 
   books.forEach((seedBook, bookIndex) => {
@@ -264,8 +399,7 @@ export async function importBooks(
       }
 
       const generated = chapterExercises(seedBook, seedChapter, chapterId, verseIds, language);
-      exerciseRows.push(...generated.exerciseRows);
-      optionRows.push(...generated.optionRows);
+      generatedByChapter.set(chapterId, generated);
       bookExercises += generated.exerciseRows.length;
     });
     log(`  - ${seedBook.name}: ${seedBook.chapters.length} hoofdstukken, ${bookExercises} oefeningen`);
@@ -281,18 +415,16 @@ export async function importBooks(
   );
   log(`  Verzen: ${verseCreates.length} nieuw, ${verseUpdates.length} gewijzigd, ${verseDeletes.length} verwijderd.`);
 
-  // In één transactie: er is geen moment waarop een hoofdstuk even zonder
-  // oefeningen zit, en een fout halverwege laat de oude oefeningen staan.
-  await prisma.$transaction(
-    async (tx) => {
-      await tx.exercise.deleteMany({ where: { chapterId: { in: chapterIds } } });
-      await inChunks(exerciseRows, (data) => tx.exercise.createMany({ data }));
-      await inChunks(optionRows, (data) => tx.questionOption.createMany({ data }));
-    },
-    { maxWait: 30_000, timeout: 10 * 60_000 }
-  );
-  // Pas na de nieuwe oefeningen: die verwijzen alleen nog naar bestaande verzen.
+  const exercises = await syncChapterExercises(prisma, generatedByChapter);
+  log(`  Oefeningen: ${exercises.kept} ongewijzigd behouden, ${exercises.updated} bijgewerkt, ${exercises.created} nieuw, ${exercises.retired} buiten gebruik gesteld, ${exercises.deleted} verwijderd (ongebruikt).`);
+  // Pas na de oefeningen: die verwijzen alleen nog naar bestaande verzen.
   if (verseDeletes.length > 0) await prisma.verse.deleteMany({ where: { id: { in: verseDeletes } } });
 
-  await inPhase("Cursussen", () => syncCourses(prisma));
+  // Een lopende reseed synchroniseert de cursussen één keer na alle collecties (zie runSeed); losse aanroepen doen het zelf.
+  if (options.syncCourses !== false) await inPhase("Cursussen", () => syncCourses(prisma));
+  return {
+    chapters: { created: chapterCreates.length, updated: chapterUpdates.length },
+    verses: { created: verseCreates.length, updated: verseUpdates.length, deleted: verseDeletes.length },
+    exercises,
+  };
 }

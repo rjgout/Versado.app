@@ -107,6 +107,9 @@ Gebruik **Content opnieuw laden** in `/adminbackend`. Voor CFM bevestig je de
 getoonde gepinde bronsnapshot; de bestaande importer maakt uitsluitend concepten
 en behoudt bestaande publicaties. Er is voor normale contentupdates geen
 Docker-console nodig. Niet-goedgekeurde snapshots worden niet geïmporteerd.
+Voer vóór de eerste reload na een uitrol een database-back-up uit en de alleen-lezen diagnose
+`scripts/content-architecture/diagnose-content-integrity-readonly.mjs`; zie `docs/CONTENTBEHEER.md`
+("Uitrol en herstel").
 
 Al geïmporteerde CFM-concepten hoeven niet opnieuw te worden geladen: beoordeel
 en publiceer de revisies onder **Content → Studielespublicaties**, geef daarna de

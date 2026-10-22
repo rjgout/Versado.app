@@ -50,6 +50,10 @@ const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 const PLAN_TTL_MS = 10 * 60 * 1000;
 const planCache = new Map<string, { plan: ExercisePlan; at: number }>();
+/** Na een contentimport in hetzelfde proces: de volgende oefenset gebruikt meteen het actuele plan. */
+export function clearExercisePlanCache(): void {
+  planCache.clear();
+}
 
 export async function getExercisePlans(db: Db, chapterIds: string[]): Promise<Map<string, ExercisePlan>> {
   const now = Date.now();
