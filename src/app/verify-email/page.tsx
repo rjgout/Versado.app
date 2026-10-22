@@ -1,3 +1,4 @@
+import EmailConfirmationCard from "@/components/account/EmailConfirmationCard";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
@@ -23,11 +24,9 @@ export default async function VerifyEmailPage({
 
   if (status === "confirmed") {
     return (
-      <div className="max-w-md mx-auto card text-center flex flex-col gap-4">
-        <div className="text-5xl">✅</div>
-        <h1 className="text-xl font-extrabold text-brand-800 dark:text-brand-300">{t("verify.confirmed")}</h1>
+      <EmailConfirmationCard status="confirmed" title={t("verify.confirmed")}>
         <ContinueAfterVerify next={safeReturnPath(next)} />
-      </div>
+      </EmailConfirmationCard>
     );
   }
 
@@ -37,8 +36,7 @@ export default async function VerifyEmailPage({
     // nieuwe link aan; verder loopt een nieuwe link via inloggen.
     const legacyUnverified = status !== "already" && user && !user.emailVerifiedAt;
     return (
-      <div className="max-w-md mx-auto card text-center flex flex-col gap-4">
-        <h1 className={`text-xl font-extrabold ${status === "already" ? "text-brand-800 dark:text-brand-300" : "text-red-600 dark:text-red-400"}`}>{title}</h1>
+      <EmailConfirmationCard status={status} title={title}>
         {legacyUnverified ? (
           <>
             <p className="text-slate-500 dark:text-slate-400 text-sm">{t("verify.requestNew")}</p>
@@ -54,7 +52,7 @@ export default async function VerifyEmailPage({
             </Link>
           </>
         )}
-      </div>
+      </EmailConfirmationCard>
     );
   }
 

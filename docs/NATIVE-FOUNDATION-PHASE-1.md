@@ -133,6 +133,28 @@ Universal Links / Android App Links, mail→OS-dispatch en echte apparaten zijn 
 niet geconfigureerd/bewezen. De plakflow werkt zonder die associaties; Chromium is
 geen bewijs voor OS-dispatch, Keychain/Keystore of fysieke toetsenbordbediening.
 
+## Lokale e-mailbevestiging
+
+`POST verify-email` accepteert uitsluitend een begrensd mailbewijs en geeft alleen
+`status: confirmed/already/expired/invalid`. De bestaande registratieclaim maakt
+precies hetzelfde account met dezelfde cursus-/uitnodigingsregels; native krijgt
+geen User, returnTo, cookie of NativeSession. Oude EMAIL_VERIFY-links bevestigen
+het bestaande account via een atomische User-lock-/tokenclaimtransactie. Web
+behoudt redirect/cookie voor nieuwe registraties en bevestigt oude links zonder
+nieuwe cookie. Native vereist daarna gewone login met alle beveiligingspoorten.
+
+`EmailConfirmationCard` is de bestaande web-uitkomstkaart; `MailLinkForm` deelt
+lokale linkinvoer met reset. Dezelfde strikte backend-origin-/tokenparser bewaakt
+plakken en OS-launch/open. Bevestigen vereist een expliciete actie; bewijs blijft
+in geheugen. De runtime onderscheidt launch en nieuwe openacties om een oude
+launchlink niet opnieuw te openen bij herbinden na een taalwijziging. Ontvangen
+links na het opruimen van de vorige runtime worden genegeerd.
+
+Een open registratie wordt bij native login alleen na juist wachtwoord herkend;
+hermailing gebruikt de bestaande `resendPendingVerification` en mailgrens. Oude
+onbevestigde accounts opnieuw mailen, onboarding, overige accountfuncties, echte
+mail→OS-dispatch en fysieke apparaten blijven open.
+
 ## Externe voorwaarden
 
 Apple Team ID, Bundle ID/audience, Sign in with Apple capability en provisioning
@@ -147,6 +169,7 @@ niet actief. Geen token in deeplink of querystring. Zie de configuratiehandleidi
 | --- | --- |
 | GET capabilities | Versie 1 en werkelijk geconfigureerde Apple-mogelijkheid |
 | POST login, register, forgot-password | Begrensde invoer; bestaande accounts/mail/TOTP |
+| POST verify-email | Bestaand eenmalig registratie-/EMAIL_VERIFY-bewijs; alleen status, geen sessie |
 | POST reset-password | Bestaand eenmalig resetmailbewijs + nieuw wachtwoord; geen sessie, opnieuw inloggen |
 | POST refresh, logout | Refreshgeheim + UUID actionId; rotatie/intrekking |
 | POST apple/challenge, apple/complete | Eenmalige state/nonce, serververificatie |

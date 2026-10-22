@@ -115,8 +115,9 @@ export function renderInventory(inventory) {
     const partial = /^\/(login|register|forgot-password|dashboard|profile|lesson\/\[chapterId\])$/.test(row.route);
     const legal = row.route === "/privacy" || row.route === "/cookies";
     const password = ["/change-password", "/reset-password"].includes(row.route);
+    const confirmation = row.route === "/verify-email";
     lines.push([`\`${row.route}\``, `${link(row.file)}; ${row.boundary === "client" ? "expliciete clientgrens" : "Server Component-entry"}`, row.domain,
-      legal ? "Lokale gedeelde inhoud; apparaatbewijs open" : password ? "Lokale gedeelde wachtwoordflow; apparaatbewijs open" : partial ? "Lokale route; Foundation gedeeltelijk, geen volledige functiepariteit" : "Zelfde doel-URL; ontbreekt in lokale router",
+      legal ? "Lokale gedeelde inhoud; apparaatbewijs open" : password ? "Lokale gedeelde wachtwoordflow; apparaatbewijs open" : confirmation ? "Lokale gedeelde bevestigingsflow; apparaatbewijs open" : partial ? "Lokale route; Foundation gedeeltelijk, geen volledige functiepariteit" : "Zelfde doel-URL; ontbreekt in lokale router",
       [...row.authEvidence, ...row.directModules.filter(file => file.startsWith("src/lib/"))].map(cell).join("; ") || "Zie bron en rootlayout; nog expliciet beoordelen",
       "Webtests: JSON-index; native: geen volledig route-/apparaatbewijs",
     ].map(cell).join(" | "));

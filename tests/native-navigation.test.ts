@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { NativeNavigator, nativeDeepLink, nativeRoute, nativePasswordResetLink } from "../src/lib/native/navigation";
+import { NativeNavigator, nativeDeepLink, nativeRoute, nativePasswordResetLink, nativeEmailConfirmationLink } from "../src/lib/native/navigation";
 
 function browser(hash = "", state: unknown = null) {
   const entries = [{ hash, state }]; let cursor = 0;
@@ -60,4 +60,12 @@ test("resetlinks leveren alleen een bewijs in geheugen; lokale geschiedenis blij
   router.push("/reset-password"); assert.equal(window.location.hash, "#/reset-password");
   assert.ok(!JSON.stringify(window.entries).includes(token));
   assert.equal(nativeDeepLink(`${base}/reset-password?token=${token}`, base), null);
+});
+
+test("bevestigingslinks blijven strikt gescheiden van resetlinks en lokale URL-opslag", () => {
+  const base = "https://versado.app", token = "V".repeat(43), url = `${base}/verify-email?token=${token}`;
+  assert.equal(nativeEmailConfirmationLink(url, base), token); assert.equal(nativePasswordResetLink(url, base), null);
+  assert.equal(nativeEmailConfirmationLink(`${base}/reset-password?token=${token}`, base), null);
+  for (const raw of [`https://evil.invalid/verify-email?token=${token}`, `${url}&next=/adminbackend`, `${url}&token=${token}`, `${url}#secret`, `${base}/verify-email?token=invalid`]) assert.equal(nativeEmailConfirmationLink(raw, base), null);
+  const window = browser(), router = new NativeNavigator(window);router.push("/verify-email");assert.equal(window.location.hash, "#/verify-email");assert.ok(!JSON.stringify(window.entries).includes(token));
 });

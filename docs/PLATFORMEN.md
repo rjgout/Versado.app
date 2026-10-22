@@ -34,7 +34,12 @@ backendservice als web. De bestaande resetmail kan lokaal worden geplakt; een
 ontvangen OS-link gaat door dezelfde exacte backend-origin-/tokenvalidatie. Alleen
 het lokale `/reset-password` komt in geschiedenis; het bewijs blijft in geheugen.
 Na reset volgt opnieuw inloggen inclusief bestaande TOTP/verplichte setup. Universal/
-App Links vereisen nog eigenaarconfiguratie en apparaatbewijs. Algemeen TOTP-beheer,
+App Links vereisen nog eigenaarconfiguratie en apparaatbewijs. E-mailbevestiging
+gebruikt lokaal dezelfde registratieclaim en een gedeelde uitkomstkaart; de native
+respons bevat alleen een uitkomst en geeft geen sessie. Oude accountlinks worden
+atomair verbruikt/bevestigd; web behoudt zijn redirect/cookiegedrag. Een nog niet
+bevestigde registratie krijgt na juist wachtwoord dezelfde begrensde mailherhaling
+als web. Legacy-mailherhaling, algemeen TOTP-beheer,
 account wissen, onboarding en volledige profielpariteit blijven open.
 
 ## Architectuurbesluit

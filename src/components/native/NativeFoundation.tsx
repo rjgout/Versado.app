@@ -19,8 +19,9 @@ import PasswordChangeForm from "@/components/account/PasswordChangeForm";
 import { AccountActionsProvider } from "@/components/account/AccountActionsProvider";
 import { RecoveryCodesCard, TwoFactorSetupCard } from "@/components/account/TwoFactorCards";
 import { nativeAccountActions } from "@/lib/native/account";
+import NativeEmailConfirmation from "./NativeEmailConfirmation";
 import NativePasswordReset from "./NativePasswordReset";
-import { nativeDeepLink, nativePasswordResetLink } from "@/lib/native/navigation";
+import { nativeDeepLink, nativePasswordResetLink, nativeEmailConfirmationLink } from "@/lib/native/navigation";
 
 type Account = NativeAccount;
 type Chapter = NativeChapter;
@@ -28,7 +29,8 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
   const t = useT(), uiLanguage = useUiLanguage(), navigation = useAppNavigation();
   const profile = navigation.pathname === "/profile";
   const resetPage = navigation.pathname === "/reset-password";
-  const [resetRequest, setResetRequest] = useState<{ token: string | null; id: number }>({ token: null, id: 0 });
+  const confirmationPage = navigation.pathname === "/verify-email";
+  const [mailRequest, setMailRequest] = useState<{ token: string | null; id: number; route: string }>({ token: null, id: 0, route: "" });
   const passwordPage = navigation.pathname === "/change-password";
   const legal = navigation.pathname === "/privacy" || navigation.pathname === "/cookies";
   const chapterId = navigation.pathname.startsWith("/lesson/") ? navigation.pathname.slice(8) : null;
@@ -39,6 +41,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
   const chapter = loadedChapter?.id === chapterId ? loadedChapter : null;
   const [identifier, setIdentifier] = useState(""), [password, setPassword] = useState(""), [code, setCode] = useState(""), [handle, setHandle] = useState("");
   const [error, setError] = useState(""), [notice, setNotice] = useState(false), [busy, setBusy] = useState(false), [offline, setOffline] = useState(false), [apple, setApple] = useState(false), [saved, setSaved] = useState(false);
+  const launchHandled = useRef(false);
   const sequence = useRef(0), current = useRef({ busy, navigation, setup, recoveryCodes });
   useEffect(() => { current.current = { busy, navigation, setup, recoveryCodes }; }, [busy, navigation, setup, recoveryCodes]);
   useEffect(() => { if (user?.uiLanguage) onLanguage?.(user.uiLanguage); }, [user?.uiLanguage, onLanguage]);
@@ -46,7 +49,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
   const report = useCallback((err: unknown) => {
     const key = err instanceof NativeClientError ? err.code : "request_failed";
     const mapping = { wrong_credentials: "wrongCredentials", two_factor_required: "twoFactorRequired", sign_in_then_link_apple: "appleConflict", alternative_login_required: "alternativeRequired", network_unavailable: "offline", session_expired: "sessionExpired", secure_storage_unavailable: "storageUnavailable" } as const;
-    setError(key === "wrong_code" ? t("apiErrors.verificationCodeWrong") : t(`nativeFoundation.${mapping[key as keyof typeof mapping] ?? "error"}`));
+    setError(key === "email_confirmation_required" ? t("apiErrors.emailNotConfirmed") : key === "email_confirmation_sent" ? t("apiErrors.emailNotConfirmedSent") : key === "wrong_code" ? t("apiErrors.verificationCodeWrong") : t(`nativeFoundation.${mapping[key as keyof typeof mapping] ?? "error"}`));
     if (key === "network_unavailable") setOffline(true);
     if (err instanceof NativeClientError && err.status === 401 && key !== "two_factor_required" && key !== "wrong_credentials") { setUser(null); setChapter(null); setSetup(null); setRecoveryCodes(null); }
   }, [t]);
@@ -70,7 +73,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
   }, [client, load, report]);
   useEffect(() => {
     const id = ++sequence.current;
-    void Promise.resolve().then(() => { if (id === sequence.current && navigation.pathname !== "/reset-password") setResetRequest(value => ({ token: null, id: value.id })); });
+    void Promise.resolve().then(() => { if (id === sequence.current) setMailRequest(value => value.route === navigation.pathname ? value : { token: null, id: value.id, route: navigation.pathname }); });
     void Promise.resolve().then(() => { if (id === sequence.current) { setBusy(false); setError(""); setNotice(false); setPassword(""); setCode(""); } });
   }, [navigation.pathname]);
   useEffect(() => {
@@ -86,12 +89,18 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
       }
       if (nav.canGoBack() || (nav.pathname !== "/dashboard" && nav.pathname !== "/login")) { nav.back(); return true; }
       return false;
-    }, onUrl: raw => {
-      const token = nativePasswordResetLink(raw, client.baseUrl);
+    }, onUrl: (raw, source) => {
+      if (disposed) return;
+      // Opnieuw binden bij taal-/contextwijziging mag het oorspronkelijke
+      // mailbewijs niet opnieuw openen. Expliciete nieuwe OS-openacties wel.
+      if (source === "launch") { if (launchHandled.current) return; launchHandled.current = true; }
+      const reset = nativePasswordResetLink(raw, client.baseUrl), confirmation = nativeEmailConfirmationLink(raw, client.baseUrl);
+      const token = reset ?? confirmation;
       if (token) {
         sequence.current++;
-        setResetRequest(value => ({ token, id: value.id + 1 }));
-        current.current.navigation.push("/reset-password"); return;
+        const route = reset ? "/reset-password" : "/verify-email";
+        setMailRequest(value => ({ token, id: value.id + 1, route }));
+        current.current.navigation.push(route); return;
       }
       const route = nativeDeepLink(raw, client.baseUrl);
       if (route) current.current.navigation.push(route);
@@ -154,7 +163,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
     const data = await load(); if (!isCurrent()) return; setUser(data.me); setActivity(data.today.activity); setPassword("");
   }
   const button = `${secondaryButton} min-h-12 whitespace-normal`;
-  const detail = legal || profile || passwordPage || resetPage || !!chapterId;
+  const detail = legal || profile || passwordPage || resetPage || confirmationPage || !!chapterId;
   return <AccountActionsProvider actions={accountActions}><FocusModeController>
     <ShellMetrics />
     <StickyHeader>
@@ -174,7 +183,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
     {offline && <p role="status" className="flex gap-2 rounded-xl bg-vs-surface p-3"><WifiOff className="h-5 w-5 shrink-0" />{t("nativeFoundation.offline")}</p>}
     {error && <p role="alert" className="rounded-xl border border-vs-line bg-vs-surface p-3">{error}</p>}
     {busy && <p role="status">{t("nativeFoundation.loading")}</p>}
-    {legal ? navigation.pathname === "/privacy" ? <PrivacyContent /> : <CookiesContent /> : resetPage ? <NativePasswordReset key={resetRequest.id} client={client} initialToken={resetRequest.token} onTokenCleared={() => setResetRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); setChapter(null); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : recoveryCodes ? <>
+    {legal ? navigation.pathname === "/privacy" ? <PrivacyContent /> : <CookiesContent /> : resetPage ? <NativePasswordReset key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); setChapter(null); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : confirmationPage ? <NativeEmailConfirmation key={mailRequest.id} client={client} initialToken={mailRequest.route === navigation.pathname ? mailRequest.token : null} onTokenCleared={() => setMailRequest(value => ({ ...value, token: null }))} onContinue={() => void action(() => client.logout(() => { setUser(null); setChapter(null); setSetup(null); setRecoveryCodes(null); navigation.replace("/login"); }))} /> : recoveryCodes ? <>
       <h1 tabIndex={-1} className="text-2xl font-extrabold">{t("profile.twoFactor")}</h1>
       <RecoveryCodesCard recoveryCodes={recoveryCodes} onSaved={() => setRecoveryCodes(null)} />
     </> : setup ? <>
@@ -203,6 +212,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
         <button disabled={busy} className={`${primaryButton} min-h-12 whitespace-normal`} type="submit">{t(mode === "login" ? "nativeFoundation.login" : mode === "register" ? "nativeFoundation.register" : "nativeFoundation.forgot")}</button>
       </form>
       {mode === "forgot" && features.includes("password-reset-v1") && <AppLink className={button} href="/reset-password">{t("password.openResetLink")}</AppLink>}
+      {features.includes("email-confirmation-v1") && <AppLink className={button} href="/verify-email">{t("verify.openLink")}</AppLink>}
       {notice && <p role="status">{t("nativeFoundation.registrationSent")}</p>}
       {isIOSApp() && <button type="button" disabled={busy || !apple} className={`${button} !bg-black !text-white`} onClick={() => void action(isCurrent => signInApple(false, isCurrent))}>{t("nativeFoundation.apple")}</button>}
       {isIOSApp() && !apple && <p>{t("nativeFoundation.appleUnavailable")}</p>}

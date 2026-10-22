@@ -1768,14 +1768,12 @@
     },
     {
       "file": "src/app/api/auth/verify-email/confirm/route.ts",
-      "sha256": "fc156d3adeba008287f2fbf87d3e4242db907df5a7b509af07501b910c0beec6",
+      "sha256": "a145ed22c3c7effc8e8f453fb3b804affe7e2864598f94aa5433b5866baab6c2",
       "boundary": "context-dependent",
       "imports": [
+        "@/lib/account/emailConfirmation",
         "@/lib/auth",
-        "@/lib/authTokens",
         "@/lib/baseUrl",
-        "@/lib/db",
-        "@/lib/registration",
         "next/server"
       ],
       "methods": [
@@ -8141,11 +8139,12 @@
     },
     {
       "file": "src/app/verify-email/page.tsx",
-      "sha256": "3b01929162eb8bdd1a9599dcb173a6e9a19e85ddc1c1ed0afb1ceee84d3054dd",
+      "sha256": "fdee248ec45265c7cdb71ce9734c5aa15185d69d243c0f2935c57283c966ee2d",
       "boundary": "context-dependent",
       "imports": [
         "@/components/ContinueAfterVerify",
         "@/components/ResendVerificationButton",
+        "@/components/account/EmailConfirmationCard",
         "@/lib/i18n",
         "@/lib/i18n/rich",
         "@/lib/requestLanguage",
@@ -10905,6 +10904,36 @@
       ]
     },
     {
+      "file": "src/components/account/EmailConfirmationCard.tsx",
+      "sha256": "2cc22330a5f96f00e3a055e22e5e19767c82cc74794236e8c20afbcb58da2757",
+      "boundary": "context-dependent",
+      "imports": [
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "EmailConfirmationCard"
+      ]
+    },
+    {
+      "file": "src/components/account/MailLinkForm.tsx",
+      "sha256": "568861e7a7be7493a5be72ae98e4078a42bf641ca34f803720313694a9ba9b86",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/profile/settings",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "MailLinkForm"
+      ]
+    },
+    {
       "file": "src/components/account/PasswordChangeForm.tsx",
       "sha256": "962e5d1fac065fb01463d761833ae826dc52ff215a8261b98f9b8747d728b782",
       "boundary": "client",
@@ -12064,10 +12093,32 @@
       ]
     },
     {
-      "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "fed9fc5e8565f1fef5b9ef46fcf71883dfafceb3c534969f5c53ea07e6c20f26",
+      "file": "src/components/native/NativeEmailConfirmation.tsx",
+      "sha256": "1309d90fd85806c061585b9f6d4d5111e761b9add108bc2ab0a70cb3c7e7379c",
       "boundary": "client",
       "imports": [
+        "@/components/I18nProvider",
+        "@/components/account/EmailConfirmationCard",
+        "@/components/account/MailLinkForm",
+        "@/components/profile/settings",
+        "@/lib/native/client",
+        "@/lib/native/emailConfirmation",
+        "@/lib/native/navigation",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeEmailConfirmation"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeFoundation.tsx",
+      "sha256": "f856733ab53fdaea3c0ae62bdd3c92b45f595f5d63fc00f1028d75eea3aef683",
+      "boundary": "client",
+      "imports": [
+        "./NativeEmailConfirmation",
         "./NativePasswordReset",
         "@/components/I18nProvider",
         "@/components/StickyHeader",
@@ -12127,10 +12178,11 @@
     },
     {
       "file": "src/components/native/NativePasswordReset.tsx",
-      "sha256": "565deae28e600d8abea2bebfd8881d6983989e1f263256b8a864d90935399ea0",
+      "sha256": "233421ce9623a02ff4639ef8f1b3fe270473df0f50e6226f20243d7baed744e4",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/account/MailLinkForm",
         "@/components/account/PasswordResetForm",
         "@/components/navigation/AppNavigation",
         "@/components/profile/settings",
@@ -14378,6 +14430,24 @@
       "checks": [],
       "exports": [
         "passwordChangeSchema"
+      ]
+    },
+    {
+      "file": "src/lib/account/emailConfirmation.ts",
+      "sha256": "af3b7d4e1300e963925007be6998ff4e2c2b09c3d9c5cd5f449b86a5767a3c18",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/generated/prisma/client",
+        "@/lib/authTokens",
+        "@/lib/db",
+        "@/lib/registration",
+        "node:crypto"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "confirmAccountEmail"
       ]
     },
     {
@@ -17568,7 +17638,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "5e9a9d99ad33c33637ee685f67bed4a92fe9c3968d69251693be72cff2fe239d",
+      "sha256": "737d07cb364f13dfa4610041e92451511abf888060bd841aefe13f9dc0a4d757",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17583,7 +17653,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "bc046001ba6708c6b26304291fe37701b01593649b615c81385f7be8f8ef3a4e",
+      "sha256": "678eb3ea2a5003350932a04abe897daea441e6d4d519d60c857489b9aee92860",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17598,7 +17668,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "58c73de6fe69a6d49f279f835914a69d0346b547a51a61a21e96a79109092e01",
+      "sha256": "dd777938bc0e4c44bd1e27c37fcee3153404fe88a0a8f47f78deb0f78ecd16b8",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17613,7 +17683,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "40c27d260b279ce84563e95ae51abbd2f872a277ea5188f04a0715c37ed6e636",
+      "sha256": "b956402b618b15e5c7f37cfcb773b5c70ae184da4b020213ff38eed5c300e5e5",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17696,7 +17766,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "0a409225d0974d3981846ec4a3e2d5f4267824647237d3fe185eceda8bf75224",
+      "sha256": "1a7e602cb34464f0dd323d71780359bcea7a9ce6a7aba2321d785e3a4edfeece",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -18901,7 +18971,7 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "b2030bc755cf9d508160902cadac0cac70eef8bc067d971d844ecd7130c6ae94",
+      "sha256": "bb96c8a1683e0a2cb6d25ad4815abcc218081e850f9eeb4d051adf2b11958df1",
       "boundary": "context-dependent",
       "imports": [
         "./apple",
@@ -18912,17 +18982,21 @@
         "@/app/api/auth/forgot-password/route",
         "@/app/api/auth/register/route",
         "@/lib/account/contracts",
+        "@/lib/account/emailConfirmation",
         "@/lib/account/password",
         "@/lib/account/passwordReset",
         "@/lib/auth",
         "@/lib/authBudget",
         "@/lib/authTokens",
+        "@/lib/baseUrl",
         "@/lib/contentAccess",
         "@/lib/db",
+        "@/lib/email",
         "@/lib/handle",
         "@/lib/learning/contentProgress",
         "@/lib/rateLimit",
         "@/lib/realtime",
+        "@/lib/registration",
         "next/server",
         "zod"
       ],
@@ -18930,7 +19004,8 @@
       "requests": [],
       "checks": [
         "cancelNativeSecuritySetup",
-        "nativeUser"
+        "nativeUser",
+        "verifyPassword"
       ],
       "exports": [
         "NATIVE_ORIGINS",
@@ -19020,8 +19095,26 @@
       ]
     },
     {
+      "file": "src/lib/native/emailConfirmation.ts",
+      "sha256": "2f469dccc7daded414a17210fe794e62edcdd4f283e63a39cd28e20830ea548f",
+      "boundary": "context-dependent",
+      "imports": [
+        "./client",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [
+        "verify-email"
+      ],
+      "checks": [],
+      "exports": [
+        "confirmNativeEmail",
+        "emailConfirmationStatus"
+      ]
+    },
+    {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "84e1a911a74be6049d4abb757735d210cc3f9f43c35bf472cce8c99b4432e93f",
+      "sha256": "6735587f09a29173a882f043ff4a1abdce4cd2dd432ed8a2f8c718dac0c546da",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -19029,6 +19122,7 @@
       "checks": [],
       "exports": [
         "nativeDeepLink",
+        "nativeEmailConfirmationLink",
         "nativePasswordResetLink",
         "nativeRoute"
       ]
@@ -19338,7 +19432,7 @@
     },
     {
       "file": "src/lib/platform.ts",
-      "sha256": "b30ab94691f6afe2ab18b5a5a27db27690594d858ace0a1071134cc44fd84759",
+      "sha256": "49831d28ae440ac4c45e2bd21819ab01cd2cb0006ddc410affc3f2a66bbb6117",
       "boundary": "client",
       "imports": [
         "./native/bridge",
@@ -30094,14 +30188,12 @@
     },
     {
       "file": "src/app/api/auth/verify-email/confirm/route.ts",
-      "sha256": "fc156d3adeba008287f2fbf87d3e4242db907df5a7b509af07501b910c0beec6",
+      "sha256": "a145ed22c3c7effc8e8f453fb3b804affe7e2864598f94aa5433b5866baab6c2",
       "boundary": "context-dependent",
       "imports": [
+        "@/lib/account/emailConfirmation",
         "@/lib/auth",
-        "@/lib/authTokens",
         "@/lib/baseUrl",
-        "@/lib/db",
-        "@/lib/registration",
         "next/server"
       ],
       "methods": [
@@ -30117,6 +30209,7 @@
       "domain": "account",
       "dependencies": [
         "src/app/api/auth/verify-email/confirm/route.ts",
+        "src/lib/account/emailConfirmation.ts",
         "src/lib/accountDeletion.ts",
         "src/lib/achievements.ts",
         "src/lib/activityFeed.ts",
@@ -30224,11 +30317,9 @@
         "src/lib/xp.ts"
       ],
       "directModules": [
+        "src/lib/account/emailConfirmation.ts",
         "src/lib/auth.ts",
-        "src/lib/authTokens.ts",
-        "src/lib/baseUrl.ts",
-        "src/lib/db.ts",
-        "src/lib/registration.ts"
+        "src/lib/baseUrl.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
@@ -44875,6 +44966,7 @@
         "src/app/api/auth/register/route.ts",
         "src/app/api/v1/native/[...path]/route.ts",
         "src/lib/account/contracts.ts",
+        "src/lib/account/emailConfirmation.ts",
         "src/lib/account/password.ts",
         "src/lib/account/passwordReset.ts",
         "src/lib/accountDeletion.ts",
@@ -60795,11 +60887,12 @@
     },
     {
       "file": "src/app/verify-email/page.tsx",
-      "sha256": "3b01929162eb8bdd1a9599dcb173a6e9a19e85ddc1c1ed0afb1ceee84d3054dd",
+      "sha256": "fdee248ec45265c7cdb71ce9734c5aa15185d69d243c0f2935c57283c966ee2d",
       "boundary": "context-dependent",
       "imports": [
         "@/components/ContinueAfterVerify",
         "@/components/ResendVerificationButton",
+        "@/components/account/EmailConfirmationCard",
         "@/lib/i18n",
         "@/lib/i18n/rich",
         "@/lib/requestLanguage",
@@ -60824,6 +60917,7 @@
         "src/components/ContinueAfterVerify.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/ResendVerificationButton.tsx",
+        "src/components/account/EmailConfirmationCard.tsx",
         "src/lib/auth.ts",
         "src/lib/db.ts",
         "src/lib/i18n/core.ts",
@@ -60847,6 +60941,7 @@
       "directModules": [
         "src/components/ContinueAfterVerify.tsx",
         "src/components/ResendVerificationButton.tsx",
+        "src/components/account/EmailConfirmationCard.tsx",
         "src/lib/i18n/index.ts",
         "src/lib/i18n/rich.tsx",
         "src/lib/requestLanguage.ts",
@@ -64082,11 +64177,12 @@
     },
     {
       "file": "src/app/verify-email/page.tsx",
-      "sha256": "3b01929162eb8bdd1a9599dcb173a6e9a19e85ddc1c1ed0afb1ceee84d3054dd",
+      "sha256": "fdee248ec45265c7cdb71ce9734c5aa15185d69d243c0f2935c57283c966ee2d",
       "boundary": "context-dependent",
       "imports": [
         "@/components/ContinueAfterVerify",
         "@/components/ResendVerificationButton",
+        "@/components/account/EmailConfirmationCard",
         "@/lib/i18n",
         "@/lib/i18n/rich",
         "@/lib/requestLanguage",
@@ -66846,6 +66942,36 @@
       ]
     },
     {
+      "file": "src/components/account/EmailConfirmationCard.tsx",
+      "sha256": "2cc22330a5f96f00e3a055e22e5e19767c82cc74794236e8c20afbcb58da2757",
+      "boundary": "context-dependent",
+      "imports": [
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "EmailConfirmationCard"
+      ]
+    },
+    {
+      "file": "src/components/account/MailLinkForm.tsx",
+      "sha256": "568861e7a7be7493a5be72ae98e4078a42bf641ca34f803720313694a9ba9b86",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/profile/settings",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "MailLinkForm"
+      ]
+    },
+    {
       "file": "src/components/account/PasswordChangeForm.tsx",
       "sha256": "962e5d1fac065fb01463d761833ae826dc52ff215a8261b98f9b8747d728b782",
       "boundary": "client",
@@ -67916,10 +68042,32 @@
       ]
     },
     {
-      "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "fed9fc5e8565f1fef5b9ef46fcf71883dfafceb3c534969f5c53ea07e6c20f26",
+      "file": "src/components/native/NativeEmailConfirmation.tsx",
+      "sha256": "1309d90fd85806c061585b9f6d4d5111e761b9add108bc2ab0a70cb3c7e7379c",
       "boundary": "client",
       "imports": [
+        "@/components/I18nProvider",
+        "@/components/account/EmailConfirmationCard",
+        "@/components/account/MailLinkForm",
+        "@/components/profile/settings",
+        "@/lib/native/client",
+        "@/lib/native/emailConfirmation",
+        "@/lib/native/navigation",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeEmailConfirmation"
+      ]
+    },
+    {
+      "file": "src/components/native/NativeFoundation.tsx",
+      "sha256": "f856733ab53fdaea3c0ae62bdd3c92b45f595f5d63fc00f1028d75eea3aef683",
+      "boundary": "client",
+      "imports": [
+        "./NativeEmailConfirmation",
         "./NativePasswordReset",
         "@/components/I18nProvider",
         "@/components/StickyHeader",
@@ -67979,10 +68127,11 @@
     },
     {
       "file": "src/components/native/NativePasswordReset.tsx",
-      "sha256": "565deae28e600d8abea2bebfd8881d6983989e1f263256b8a864d90935399ea0",
+      "sha256": "233421ce9623a02ff4639ef8f1b3fe270473df0f50e6226f20243d7baed744e4",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
+        "@/components/account/MailLinkForm",
         "@/components/account/PasswordResetForm",
         "@/components/navigation/AppNavigation",
         "@/components/profile/settings",

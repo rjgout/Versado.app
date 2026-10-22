@@ -9,6 +9,7 @@ import { issueNativeSession, nativeUser, rotateNativeSession } from "../src/lib/
 import { nativeSetupSchema } from "../src/lib/native/contract";
 import { finishNativeSecuritySetup, nativeSignInResult } from "../src/lib/native/securitySetup";
 import { createAppleChallenge, finishAppleChallenge } from "../src/lib/native/apple";
+import { startPendingRegistration } from "../src/lib/registration";
 import { createAuthToken } from "../src/lib/authTokens";
 import { changeAccountPassword } from "../src/lib/account/password";
 
@@ -155,4 +156,61 @@ test("native reset accepteert geen verkeerd doel, verlopen bewijs of clientgekoz
   assert.deepEqual(outcomes.map(row => row.response.status).sort(), [200, 400]);
   assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).sessionVersion, 1);
   assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: other.id } })).passwordHash, passwordHash);
+});
+
+test("native e-mailbevestiging maakt hetzelfde account precies eenmaal zonder cookie of sessie", async () => {
+  const email = `native-verify-${randomUUID()}@example.invalid`;
+  const token = await startPendingRegistration({ email, handle: "Bevestigd", passwordHash, uiLanguage: "nl", contentLanguage: "nl", returnTo: "/adminbackend" }, base); assert.ok(token);
+  assert.equal((await call("login", { identifier: email, password: "Wrong-password-42" })).response.status, 401);
+  const pendingLogin = await call("login", { identifier: email, password }); assert.equal(pendingLogin.response.status, 403); assert.equal(pendingLogin.data.error, "email_confirmation_required");
+  assert.equal(await prisma.user.count({ where: { email } }), 0);
+  assert.equal((await call("verify-email", { token, userId: "other" })).response.status, 400);
+  const outcomes = await Promise.all([call("verify-email", { token }), call("verify-email", { token })]);
+  assert.deepEqual(outcomes.map(row => row.data.status).sort(), ["already", "confirmed"]);
+  for (const result of outcomes) { assert.deepEqual(Object.keys(result.data), ["status"]); assert.equal(result.response.headers.get("set-cookie"), null); }
+  const user = await prisma.user.findUniqueOrThrow({ where: { email } }); assert.ok(user.emailVerifiedAt);
+  assert.equal(await prisma.nativeSession.count({ where: { userId: user.id } }), 0); assert.equal(user.xpTotal, 0);
+  assert.equal((await call("verify-email", { token })).data.status, "already");
+  assert.equal((await call("login", { identifier: email, password })).response.status, 200);
+});
+
+test("oude e-maillinks bevestigen atomair; ander doel en verlopen links bevestigen niemand", async () => {
+  const user = await account({ emailVerifiedAt: null }), other = await account({ emailVerifiedAt: null });
+  const token = await createAuthToken(user.id, "EMAIL_VERIFY"), reset = await createAuthToken(other.id, "PASSWORD_RESET");
+  const outcomes = await Promise.all([call("verify-email", { token }), call("verify-email", { token })]);
+  assert.deepEqual(outcomes.map(row => row.data.status).sort(), ["confirmed", "invalid"]);
+  assert.ok((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).emailVerifiedAt);
+  assert.equal((await call("verify-email", { token: reset })).data.status, "invalid");
+  const expired = await createAuthToken(other.id, "EMAIL_VERIFY");
+  await prisma.authToken.updateMany({ where: { userId: other.id, type: "EMAIL_VERIFY" }, data: { expiresAt: new Date(0) } });
+  assert.equal((await call("verify-email", { token: expired })).data.status, "invalid");
+  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: other.id } })).emailVerifiedAt, null);
+  const email = `native-verify-expired-${randomUUID()}@example.invalid`, pending = await startPendingRegistration({ email, handle: "Verlopen", passwordHash, uiLanguage: "nl", contentLanguage: "nl" }, base);assert.ok(pending);
+  await prisma.pendingRegistration.update({ where: { email }, data: { expiresAt: new Date(0) } });
+  assert.equal((await call("verify-email", { token: pending })).data.status, "expired");assert.equal(await prisma.user.count({ where: { email } }), 0);
+});
+
+test("webbevestiging behoudt redirect en cookie voor nieuwe registratie, oude accountlink blijft zonder nieuwe cookie", async () => {
+  const email = `web-verify-${randomUUID()}@example.invalid`, token = await startPendingRegistration({ email, handle: "Webbevestigd", passwordHash, uiLanguage: "nl", contentLanguage: "nl", returnTo: "/groups" }, base);assert.ok(token);
+  const response = await fetch(`${base}/api/auth/verify-email/confirm?token=${token}`, { redirect: "manual" });
+  assert.equal(response.status, 303);assert.ok(response.headers.get("set-cookie")?.includes("bvm_session="));
+  const destination = new URL(response.headers.get("location")!);assert.equal(destination.pathname, "/verify-email");assert.equal(destination.searchParams.get("status"), "confirmed");assert.equal(destination.searchParams.get("next"), "/groups");assert.equal(destination.searchParams.has("token"), false);
+  const user = await account({ emailVerifiedAt: null }), legacy = await createAuthToken(user.id, "EMAIL_VERIFY");
+  const old = await fetch(`${base}/api/auth/verify-email/confirm?token=${legacy}`, { redirect: "manual" });assert.equal(old.status, 303);assert.equal(old.headers.get("set-cookie"), null);assert.ok((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).emailVerifiedAt);
+});
+
+test("mislukte oude accountbevestiging rolt ook tokenverbruik terug en blijft herstelbaar", async () => {
+  const user = await account({ emailVerifiedAt: null }), token = await createAuthToken(user.id, "EMAIL_VERIFY");
+  // Alleen deze wegwerpdatabase; geen productie. Fout ná tokenclaim afdwingen.
+  await prisma.$executeRawUnsafe(`CREATE FUNCTION native_verify_fault() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'synthetic verification fault'; END; $$`);
+  try {
+    await prisma.$executeRawUnsafe(`CREATE TRIGGER native_verify_fault BEFORE UPDATE OF "emailVerifiedAt" ON "User" FOR EACH ROW EXECUTE FUNCTION native_verify_fault()`);
+    assert.equal((await call("verify-email", { token })).response.status, 500);
+    assert.equal((await prisma.authToken.findFirstOrThrow({ where: { userId: user.id, type: "EMAIL_VERIFY" } })).usedAt, null);
+    assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).emailVerifiedAt, null);
+  } finally {
+    await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS native_verify_fault ON "User"`);
+    await prisma.$executeRawUnsafe(`DROP FUNCTION native_verify_fault()`);
+  }
+  assert.equal((await call("verify-email", { token })).data.status, "confirmed");
 });
