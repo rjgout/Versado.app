@@ -38,9 +38,20 @@ Verwachte dubbele slugs in een aangetaste database: `vrije-keuze-boek-van-mormon
 
 Een partiële unieke index op `("contentCollectionId", "type") WHERE type IN ('READING_LESSONS','FRONT_TO_BACK','FREE_CHOICE')` zou de invariant in de database afdwingen en is compatibel met podcasts en andere soorten. Hij **faalt echter zolang er in productie duplicaten staan** en zou de uitrol blokkeren. Daarom: eerst herstel (hieronder) en verificatie, daarna een aparte migratie (`CREATE UNIQUE INDEX CONCURRENTLY … WHERE …`, zonder backfill). Tot dan dwingt de synchronisatielaag de invariant af en meldt `findDuplicateReadingCourses` overtredingen.
 
-## Productiegegevenscorrectie (aparte goedkeuring nodig)
+## Automatisch herstel bij het opstarten
 
-Niets hiervan draait vanzelf: niet bij een build, uitrol, migratie of normale import.
+Op verzoek van de eigenaar worden bestaande duplicaten niet langer alleen met de handmatige scripts hersteld. Bij elke start van de app roept `server.ts` `healDuplicateReadingCourses` aan (`src/lib/courseAutoRepair.ts`), zonder te wachten en zonder het opstarten te kunnen blokkeren (een fout wordt als waarschuwing gelogd):
+
+- Het gebruikt precies de herstelmodule hieronder (`courseRepair.ts`): per duplicaat een eigen transactie met hervalidatie en eindcontrole, voortgang nooit overschreven met minder, abonnementen, actieve cursus, plek, combo, lesvoortgang, oefensessies, Samen studeren, feedback en persoonlijke volgorde verhuizen mee.
+- Alleen groepen met oordeel `merge` worden samengevoegd. Een groep met oordeel `blocked` (bijvoorbeeld een les met gebruikersgegevens zonder gelijkwaardige canonieke les) blijft onaangeroerd en wordt gelogd (`niet automatisch samengevoegd`); die kan met de handmatige scripts worden beoordeeld.
+- De logregels bevatten alleen cursus-id's en aantallen.
+- Zonder duplicaten is het één leesquery. Het is idempotent en veilig bij een herhaalde of gelijktijdige start (een tweede run vindt niets of breekt zijn transactie af).
+- **Noodstop:** `COURSES_AUTO_REPAIR=off` in de omgeving van `jehova-app` zet het automatische herstel uit.
+- **Maak vóór de uitrol een back-up** (`docs/DEPLOY-SYNOLOGY.md`, *Back-ups*): een samenvoeging is niet terug te draaien door de applicatie-rollback van de deployagent.
+
+## Handmatige productiegegevenscorrectie (optioneel)
+
+De handmatige scripts blijven beschikbaar voor een dry-run, controle of een geblokkeerde groep. Ze draaien niet vanzelf.
 
 1. **Back-up** (`scripts/backup.sh`) en uitrol van de code met de structurele correctie. De eerstvolgende import/sync zet een verhuisde historische cursus terug naar het Boek van Mormon (alleen de collectiekoppeling; er wordt niets verwijderd).
 2. **Diagnose (alleen lezen):** `npm run courses:audit` (of `npx tsx scripts/courses/audit-duplicates.ts`). Toont collecties, alle leescursussen met afhankelijkheden (hoofdstukken, lessen, abonnementen, gebruikers met voortgang, actieve cursus, lesvoortgang, oefensessies, Samen studeren, persoonlijke volgorde, feedback) en per groep het oordeel `merge` of `blocked`. Exitcode 1 bij duplicaten.

@@ -252,3 +252,14 @@ test("de drie leeswijzen krijgen in elke app-taal drie verschillende namen (vert
     assert.ok(names.every((name) => name.length > 0));
   }
 });
+
+test("het automatische herstel bij het opstarten blokkeert de start nooit en staat niet in de Next-laag", () => {
+  const server = read("server.ts");
+  assert.match(server, /healDuplicateReadingCourses\(prisma\)\.catch\(/, "fouten worden afgevangen en melden alleen een waarschuwing");
+  assert.ok(server.indexOf("healDuplicateReadingCourses(prisma)") < server.indexOf("httpServer.listen"), "gestart vóór de server luistert, maar zonder await");
+  assert.doesNotMatch(server, /await healDuplicateReadingCourses/);
+  const auto = read("src/lib/courseAutoRepair.ts");
+  assert.doesNotMatch(auto, /from "next|next\/headers|next\/server/, "eager-importketen van server.ts: geen Next-API's");
+  assert.match(auto, /applyDuplicateRepair\(db, plans\)/, "dezelfde herstelmodule als de handmatige scripts");
+  assert.match(auto, /COURSES_AUTO_REPAIR/);
+});
