@@ -4,6 +4,9 @@ import { cfmOldTestament2026NlManifest } from "./cfm2026Manifest";
 import { OT_SCRIPTURE, type CfmScriptureProfile } from "./cfmScripture";
 import sourceLock2026 from "../../../data/study-content/cfm-2026-nl/source-lock.json";
 import mediaLock2026 from "../../../data/study-content/cfm-2026-nl/media-lock.json";
+import { cfmNewTestament2027NlManifest } from "./cfm2027Manifest";
+import sourceLock2027 from "../../../data/study-content/cfm-2027-nl/source-lock.json";
+import mediaLock2027 from "../../../data/study-content/cfm-2027-nl/media-lock.json";
 import referenceReview2026 from "../../../data/study-content/cfm-2026-nl/reference-review.json";
 
 /** De handmatige verwijzingsbeoordeling van een jaargang (alleen CFM 2026 heeft er een; zie cfmReview.ts). */
@@ -84,8 +87,27 @@ export const CFM_SOURCE_2026: CfmVolumeSource = {
   approvalFiles: ["source-lock.json", "media-lock.json", "otb-index.json", "reference-source-checks.json", "reference-review.json"],
 };
 
+/**
+ * Nieuwe Testament 2027. Geen schriftuurprofiel: de OTB-index dekt alleen het Oude Testament, dus verwijzingen blijven de
+ * officiële bron-URL en worden zonder bewijs veilige, niet-klikbare tekst.
+ */
+export const CFM_SOURCE_2027: CfmVolumeSource = {
+  volume: volumeOfWork(cfmNewTestament2027NlManifest.workKey),
+  manifest: cfmNewTestament2027NlManifest,
+  adapter: "cfm-2027-nl-v1" satisfies CfmAdapterName,
+  dataDir: "data/study-content/cfm-2027-nl",
+  manualSlug: "come-follow-me-for-home-and-church-new-testament-2027",
+  churchLang: "nld",
+  collectionName: "Kom dan en volg Mij 2027 — Nieuwe Testament",
+  sourceLock: sourceLock2027,
+  mediaLock: mediaLock2027,
+  referenceReview: null,
+  scripture: null,
+  approvalFiles: ["source-lock.json", "media-lock.json"],
+};
+
 /** Alle jaargangen met een gepinde officiële bron, chronologisch. Een jaargang zonder bron staat hier (nog) niet. */
-export const CFM_SOURCES: readonly CfmVolumeSource[] = [CFM_SOURCE_2026];
+export const CFM_SOURCES: readonly CfmVolumeSource[] = [CFM_SOURCE_2026, CFM_SOURCE_2027];
 
 export const cfmSourceOfWork = (workKey: string | null | undefined) => CFM_SOURCES.find((s) => s.manifest.workKey === workKey);
 export const cfmSourceOfAdapter = (adapter: string | null | undefined) => (adapter ? CFM_SOURCES.find((s) => s.adapter === adapter) : undefined);

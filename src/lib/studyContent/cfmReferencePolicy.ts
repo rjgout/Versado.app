@@ -15,8 +15,13 @@ export type CfmUnresolvedClass =
   /** Een doel waarvan de structuur niet te herkennen is: blokkeert. */
   | "UNKNOWN";
 
+/**
+ * De hosts waarvan de officiële CFM-bron zelf MP4-bestanden aanbiedt: de huidige videohost en het oudere CDN van de Kerk
+ * (`ldscdn.org`), dat in de officiële lespagina's nog voorkomt. Exacte hostnamen; geen wildcard en geen subdomeinraden.
+ */
+export const CFM_VIDEO_HOSTS: readonly string[] = ["assets.churchofjesuschrist.org", "media2.ldscdn.org"];
 /** Alleen de officiële bronhosts van CFM (lessen, afbeeldingen, video's); geen wildcard en geen subdomeinraden. */
-export const CFM_OFFICIAL_HOSTS: readonly string[] = ["www.churchofjesuschrist.org", "assets.churchofjesuschrist.org"];
+export const CFM_OFFICIAL_HOSTS: readonly string[] = ["www.churchofjesuschrist.org", ...CFM_VIDEO_HOSTS];
 
 /** Markeringen die de adapter zelf zet wanneer een verwijzing niet bewezen kan worden (nooit een gokken van een doel). */
 const KNOWN_MARKERS = ["unverified-numbering:", "unverified-range:"];
@@ -27,17 +32,27 @@ export interface CfmReferenceTargetShape {
   externalUrl?: string | null;
 }
 
-function safeOfficialUrl(raw: string | null | undefined): boolean | null {
+/**
+ * Een https-URL met een gewone openbare hostnaam, zonder inloggegevens, poort, IP-adres of vreemde tekens. Zo'n URL wordt als
+ * *tekst* getoond (nooit als link, tenzij de centrale resolver hem bewijst), dus een externe host zoals familysearch.org is
+ * veilig; een niet-https-, `javascript:`-, `data:`-, lokale of malafide URL is dat niet.
+ */
+function safeUrl(raw: string | null | undefined): boolean | null {
   if (!raw) return null;
-  if (raw.length > 2048 || /[\u0000- \\]/.test(raw)) return false;
+  if (raw.length > 2048 || /[\u0000-\u0020\\]/.test(raw)) return false;
   let url: URL;
   try {
     url = new URL(raw);
   } catch {
     return false;
   }
-  return url.protocol === "https:" && !url.username && !url.password && !url.port && CFM_OFFICIAL_HOSTS.includes(url.hostname);
+  const host = url.hostname;
+  return (
+    url.protocol === "https:" && !url.username && !url.password && !url.port &&
+    /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i.test(host) && host.toLowerCase() !== "localhost"
+  );
 }
+const safeOfficialUrl = safeUrl;
 
 /** Classificeert een verwijzing die de centrale resolver niet kon oplossen. */
 export function classifyUnresolvedCfmReference(target: CfmReferenceTargetShape): CfmUnresolvedClass {

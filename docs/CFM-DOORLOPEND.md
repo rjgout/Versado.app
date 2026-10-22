@@ -179,3 +179,52 @@ meer en worden als veilige, niet-klikbare tekst getoond; er wordt nooit een URL 
 Het besluit en de aantallen staan in het importverslag en in de voorcontrole (`totals.displayOnly`/`blocking`). Voor CFM 2026
 zijn dat 553 reeds beoordeelde gevallen (bevestigd door `tests/cfm-2026-import.integration.test.mjs`); het nieuwe beleid
 voegt geen klikbare links toe en verandert geen oorspronkelijke targets of normalisaties.
+
+## 9. CFM 2027 — Nieuwe Testament (fase C)
+
+**Bron:** `https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-new-testament-2027?lang=nld`
+(de officiële Nederlandstalige uitgave; gecontroleerd op 22 oktober 2026: inhoudsopgave, weekdatums en alle lessen zijn
+beschikbaar). Gepind met `scripts/study-content/fetch-cfm-volume.ts` in `data/study-content/cfm-2027-nl/`.
+
+| Onderdeel | Aantal / besluit |
+|---|---|
+| Weeklessen (01–52) | 52, gepind per bestand met sha256 (`source-lock.json`) |
+| Weekdatums | uit de officiële inhoudsopgave; week 1 = 28 december 2026 – 3 januari 2027, sluit dag na dag aan op de laatste week van 2026 |
+| Volgorde | kalendervolgorde: Paasweek (14, 22–28 maart) staat vóór les 13 |
+| Afbeeldingen | 367 gepinde afbeeldingen (inclusief videoposters) in `media-lock.json`, hergebruikt per checksum |
+| Verwijzingen | alle als officiële bron-URL; **geen interne schriftlinks** (nog geen bewezen NT-index); zonder bewijs veilige tekst |
+| Video's | 110 videoverwijzingen met officiële MP4's (hosts `assets.churchofjesuschrist.org`, `media2.ldscdn.org`); zie fase D |
+| Niet opgenomen | inleidende pagina's 00a–00c, leeshulpen 31a en 48a ("Goed om in gedachten te houden"), bijlagen A en B: ze hebben geen officiële lesweek en horen niet in de weekkalender |
+| Bekende beperking | een "PDF openen"-link naast een afbeelding (bijlagepagina's) blijft behouden als bronverwijzing en wordt zonder bewijs veilige tekst |
+
+Identiteit: werk `cfm-new-testament-2027`, uitgave `church-cfm-nt-2027`, collectie `content_cfm_nt_2027_nl`, adapter
+`cfm-2027-nl-v1`. De collectie ontstaat pas bij de bewuste beheeractie *Content opnieuw laden*, blijft daarna verborgen
+(`visibleToUsers=false`) en heeft geen eigen cursussen of kiezerkaart (zie §1). Tests: `tests/cfm-2027.test.ts`,
+`tests/cfm-2027.integration.test.ts`.
+
+**Ontbrekende of afwijkende bron:** een bronbestand waarvan de hash niet klopt, of een les met een onbekend element of
+tekstverlies, wordt niet geïmporteerd (de hele import valideert alle lessen vóór de eerste databasewrite). Zo bleken bij de
+eerste lezing twee dingen te ontbreken in de adapter: een video van het oudere Church-CDN (`media2.ldscdn.org`, nu een
+expliciet toegestane host) en een "PDF openen"-link naast een afbeelding in een figure (nu behouden). Beide wijzigingen
+laten de 2026-uitvoer ongewijzigd (alle 2026-tests blijven groen).
+
+## 10. CFM 2028 — Boek van Mormon (voorbereid, niet geregistreerd)
+
+Gecontroleerd op 22 oktober 2026:
+
+- Nederlands (`…book-of-mormon-2028?lang=nld`): **HTTP 404**, de officiële Nederlandse editie bestaat nog niet.
+- Engels (`…book-of-mormon-2028?lang=eng`): niet bereikbaar zonder toegang (HTTP 401).
+
+Daarom is 2028 **niet** geregistreerd in `cfmVolumes.ts`/`cfmSources.ts`: de jaargang verschijnt nergens in de app, het archief
+of de kiezer, en er zijn geen vertaalde of Engelse vervangende lessen (een Engelse bron wordt nooit stilzwijgend als
+Nederlands getoond). De architectuur heeft niets meer nodig dan:
+
+1. Zodra de Nederlandse inhoudsopgave bestaat: `npx tsx scripts/study-content/fetch-cfm-volume.ts --slug come-follow-me-for-home-and-church-book-of-mormon-2028 --dir data/study-content/cfm-2028-nl`
+2. Een `cfm2028Manifest.ts` (de script-uitvoer geeft de weekregels) en een `CfmVolumeSource` in `cfmSources.ts`; een regel in
+   `cfmVolumes.ts` (`scripture: "book-of-mormon"`, `workKey: "cfm-book-of-mormon-2028"`, `editionKey: "church-cfm-bofm-2028"`,
+   `collectionId: "content_cfm_bofm_2028_nl"`).
+3. Voor interne links naar het Boek van Mormon is eerst een bewezen hoofdstuk-/verzenindex nodig (profiel in `cfmScripture.ts`);
+   zonder profiel blijven verwijzingen officiële bron of veilige tekst.
+4. Bron in een PR, goedkeuring van de snapshot en import via *Content opnieuw laden*.
+
+Ontbrekende bronnen voor 2028 nu: de Nederlandse inhoudsopgave en alle lessen, de weekdatums en de gepinde media.

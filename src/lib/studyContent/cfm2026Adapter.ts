@@ -10,6 +10,7 @@ import {
 } from "@/lib/references/otb";
 import { verifiedOfficialUrl } from "@/lib/references/evidence";
 import { passageKey } from "./cfmScripture";
+import { CFM_VIDEO_HOSTS } from "./cfmReferencePolicy";
 import { CFM_SOURCE_2026, type CfmMedia, type CfmSource, type CfmVolumeSource } from "./cfmSources";
 
 type Node = DefaultTreeAdapterMap["node"];
@@ -412,10 +413,7 @@ export function parseCfmLesson(
         url = attr(video, "src")!;
       // Bewaar de werkelijk aangeboden media-URL; geen speler of verzonnen resource-link.
       const u = new URL(url);
-      if (
-        u.protocol !== "https:" ||
-        u.hostname !== "assets.churchofjesuschrist.org"
-      )
+      if (u.protocol !== "https:" || u.username || u.password || u.port || !CFM_VIDEO_HOSTS.includes(u.hostname))
         throw Error("CFM_VIDEO_URL");
       blocks.push({
         type: "reference",
@@ -435,6 +433,9 @@ export function parseCfmLesson(
         cap = descendants(n, "figcaption")[0];
       if (cap) {
         image(img, scope, content(cap, `${scope}-caption`));
+        // Een tekstlink naast de afbeelding in dezelfde figure (bv. "PDF openen") hoort bij de bron en mag niet verloren gaan.
+        for (const [i, link] of children(n).entries())
+          if (element(link) && link.tagName === "a" && !descendants(link, "img").length) visit(link, `${scope}-link${i}`);
         return;
       }
     }

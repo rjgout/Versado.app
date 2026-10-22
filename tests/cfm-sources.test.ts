@@ -64,27 +64,28 @@ test("verwijzingsbeleid: alleen een goed gevormd, veilig officieel doel mag als 
   assert.equal(isKnownUnresolvableCfmReference({ sourceKey: "otb:gen:1", externalUrl: official }), true);
 });
 
-test("verwijzingsbeleid: onveilige URL's, vreemde hosts en onherkenbare doelen blokkeren altijd", () => {
+test("verwijzingsbeleid: onveilige URL's en onherkenbare doelen blokkeren altijd; een externe https-host wordt alleen tekst", () => {
   const unsafe = [
     "http://www.churchofjesuschrist.org/study/x",
     "https://user:pw@www.churchofjesuschrist.org/study/x",
     "https://www.churchofjesuschrist.org:8443/study/x",
-    "https://evil.example/study/x",
-    "https://www.churchofjesuschrist.org.evil.example/study/x",
-    "https://churchofjesuschrist.org/study/x", // geen wildcard of bijna-host
+    "https://127.0.0.1/study/x",
+    "https://localhost/study/x",
+    "https://[::1]/study/x",
+    "ftp://www.churchofjesuschrist.org/x",
     "javascript:alert(1)",
     "data:text/html;base64,AAAA",
     "https://www.churchofjesuschrist.org/study/\u0000x",
     "https://www.churchofjesuschrist.org/study/with space",
   ];
   for (const url of unsafe) {
-    const klass = classifyUnresolvedCfmReference({ sourceKey: url, externalUrl: url });
-    assert.notEqual(klass, "KNOWN_UNRESOLVABLE", url);
+    assert.equal(classifyUnresolvedCfmReference({ sourceKey: url, externalUrl: url }), "UNSAFE_URL", url);
     assert.equal(isKnownUnresolvableCfmReference({ sourceKey: "otb:gen:1", externalUrl: url }), false, `${url} als externalUrl`);
   }
-  assert.equal(classifyUnresolvedCfmReference({ sourceKey: "https://evil.example/x", externalUrl: "https://evil.example/x" }), "UNSAFE_URL");
+  // Een externe https-host (bv. familysearch.org) wordt nooit een link, alleen veilige tekst.
+  assert.equal(classifyUnresolvedCfmReference({ sourceKey: "https://www.familysearch.org/discovery", externalUrl: "https://www.familysearch.org/discovery" }), "KNOWN_UNRESOLVABLE");
   assert.equal(classifyUnresolvedCfmReference({ sourceKey: "iets-onbekends" }), "UNKNOWN");
-  assert.equal(classifyUnresolvedCfmReference({ sourceKey: "otb:gen:1" }), "UNKNOWN", "een intern doel zonder officiële bron-URL is niet te herkennen");
+  assert.equal(classifyUnresolvedCfmReference({ sourceKey: "otb:gen:1" }), "UNKNOWN", "een intern doel zonder bron-URL is niet te herkennen");
   assert.equal(classifyUnresolvedCfmReference({ sourceKey: "" }), "UNKNOWN");
 });
 
@@ -116,7 +117,7 @@ test("CFM 2026: de bestaande beoordeelde lijst blijft een deelverzameling van wa
   }
   assert.ok(total > 1000, "de jaargang heeft veel verwijzingen");
   assert.ok(reviewed >= 553, `minstens de 553 beoordeelde verwijzingen (${reviewed})`);
-  assert.ok(unsafe <= 10, "de officiële bron bevat maar een handvol verwijzingen naar niet-officiële hosts");
+  assert.equal(unsafe, 0, "de officiële bron bevat geen onveilige verwijzing");
 });
 
 test("zonder schriftuurprofiel legt een jaargang nooit een interne link: de bron-URL blijft de enige identiteit", () => {
