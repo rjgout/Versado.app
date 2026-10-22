@@ -28,6 +28,7 @@ const load = async () => ({
   courses: await import("../src/lib/courses"),
   integrity: await import("../src/lib/courseIntegrity"),
   repair: await import("../src/lib/courseRepair"),
+  auto: await import("../src/lib/courseAutoRepair"),
   ids: await import("../src/lib/contentCollectionIds"),
 });
 let L: Awaited<ReturnType<typeof load>>;
@@ -631,6 +632,71 @@ test("de scripts courses:audit en courses:repair (dry-run) wijzigen geen databas
   assert.equal(applied.status, 0, applied.stderr);
   assert.deepEqual(await L.integrity.findDuplicateReadingCourses(L.db), []);
   assert.equal((await L.db.userCourseProgress.findUniqueOrThrow({ where: { userId_courseId: { userId, courseId: (await bomCourses("FREE_CHOICE"))[0].id } } })).comboCount, 3);
+});
+
+test("automatisch herstel bij het opstarten: dubbele kaarten verdwijnen, voortgang blijft, een tweede keer doet niets en de noodstop werkt", { skip }, async () => {
+  const lines: string[] = [];
+  const logger = { log: (line: string) => lines.push(line), warn: (line: string) => lines.push(line) };
+  const canonical = Object.fromEntries((await bomCourses()).map((c) => [c.type, c]));
+  const duplicates = Object.fromEntries((await makeDuplicates()).map((c) => [c.type, c]));
+  for (const type of ["FREE_CHOICE", "FRONT_TO_BACK"] as const)
+    for (const row of await L.db.courseChapter.findMany({ where: { courseId: canonical[type].id } })) await L.db.courseChapter.create({ data: { courseId: duplicates[type].id, chapterId: row.chapterId, order: row.order } });
+  const canonicalLessons = await L.db.courseLesson.findMany({ where: { courseId: canonical.READING_LESSONS.id }, orderBy: { order: "asc" } });
+  for (const lesson of canonicalLessons)
+    await L.db.courseLesson.create({ data: { courseId: duplicates.READING_LESSONS.id, chapterId: lesson.chapterId, startVerse: lesson.startVerse, endVerse: lesson.endVerse, order: lesson.order } });
+  const dupLessons = await L.db.courseLesson.findMany({ where: { courseId: duplicates.READING_LESSONS.id }, orderBy: { order: "asc" } });
+  // De gebruiker uit productie: geabonneerd op beide kaarten, actieve cursus is het duplicaat, voortgang op het duplicaat.
+  const userId = await makeUser();
+  for (const type of TYPES) {
+    await L.db.userCourseProgress.create({ data: { userId, courseId: canonical[type].id, subscribed: true, lastActivityAt: new Date(Date.now() - 86_400_000) } });
+    await L.db.userCourseProgress.create({ data: { userId, courseId: duplicates[type].id, subscribed: true, comboCount: 7, currentChapterId: bomChapterIds[1] } });
+  }
+  await L.db.userCourseProgress.updateMany({ where: { userId, courseId: duplicates.READING_LESSONS.id }, data: { currentLessonId: dupLessons[1].id } });
+  await L.db.user.update({ where: { id: userId }, data: { activeCourseId: duplicates.READING_LESSONS.id } });
+  await L.db.userCourseLessonProgress.create({ data: { userId, lessonId: dupLessons[0].id, completed: true, bestScore: 80, xpEarned: 40, completedAt: new Date() } });
+  const before = await bomCourses();
+  assert.equal(before.length, 6);
+
+  // Noodstop: niets gebeurt, ook niet als er duplicaten zijn.
+  assert.deepEqual(await L.auto.healDuplicateReadingCourses(L.db, { env: { COURSES_AUTO_REPAIR: "off" }, logger }), { status: "disabled", merged: 0, blocked: 0 });
+  assert.equal((await bomCourses()).length, 6);
+
+  const outcome = await L.auto.healDuplicateReadingCourses(L.db, { env: {}, logger });
+  assert.deepEqual(outcome, { status: "done", merged: 3, blocked: 0 });
+  assert.equal((await bomCourses()).length, 3, "per leeswijze nog precies één cursus");
+  assert.deepEqual((await bomCourses()).map((c) => c.id).sort(), Object.values(canonical).map((c) => c.id).sort(), "de historische cursussen blijven bestaan");
+  assert.deepEqual(await L.integrity.findDuplicateReadingCourses(L.db), []);
+  // Voortgang, abonnement, combo, plek, actieve cursus en lesvoortgang zijn behouden.
+  const steps = await L.db.userCourseProgress.findUniqueOrThrow({ where: { userId_courseId: { userId, courseId: canonical.READING_LESSONS.id } } });
+  assert.deepEqual([steps.subscribed, steps.comboCount, steps.currentLessonId], [true, 7, canonicalLessons[1].id]);
+  assert.equal((await L.db.userCourseProgress.findUniqueOrThrow({ where: { userId_courseId: { userId, courseId: canonical.FREE_CHOICE.id } } })).currentChapterId, bomChapterIds[1]);
+  assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: userId } })).activeCourseId, canonical.READING_LESSONS.id);
+  assert.deepEqual((({ completed, bestScore, xpEarned }) => [completed, bestScore, xpEarned])(await L.db.userCourseLessonProgress.findUniqueOrThrow({ where: { userId_lessonId: { userId, lessonId: canonicalLessons[0].id } } })), [true, 80, 40]);
+  // Logregels bevatten alleen technische id's, geen gebruikersgegevens.
+  assert.ok(lines.length >= 3 && lines.every((line) => !line.includes("@") && !line.includes(userId)), lines.join("\n"));
+  // Tweede keer en volgende synchronisatie: niets te doen.
+  assert.deepEqual(await L.auto.healDuplicateReadingCourses(L.db, { env: {}, logger }), { status: "clean", merged: 0, blocked: 0 });
+  await L.courses.syncCourses(L.db);
+  assert.equal((await bomCourses()).length, 3);
+});
+
+test("automatisch herstel laat een niet veilig te vertalen groep ongemoeid en meldt die", { skip }, async () => {
+  const lines: string[] = [];
+  const logger = { log: (line: string) => lines.push(line), warn: (line: string) => lines.push(line) };
+  const canonical = (await bomCourses("READING_LESSONS"))[0];
+  const duplicate = await L.db.course.create({ data: { slug: "lezen-van-voor-naar-achter-boek-van-mormon", type: "READING_LESSONS", name: canonical.name, order: canonical.order, contentCollectionId: L.ids.BOM_COLLECTION_ID } });
+  // Een les met gebruikersvoortgang zonder gelijkwaardige canonieke les (ander eindvers): handmatige beoordeling nodig.
+  const orphan = await L.db.courseLesson.create({ data: { courseId: duplicate.id, chapterId: bomChapterIds[0], startVerse: 2, endVerse: 3, order: 0 } });
+  const userId = await makeUser();
+  await L.db.userCourseLessonProgress.create({ data: { userId, lessonId: orphan.id, completed: true, bestScore: 91, xpEarned: 60, completedAt: new Date() } });
+  const outcome = await L.auto.healDuplicateReadingCourses(L.db, { env: {}, logger });
+  assert.deepEqual(outcome, { status: "done", merged: 0, blocked: 1 });
+  assert.ok(await L.db.course.findUnique({ where: { id: duplicate.id } }), "niets verwijderd");
+  assert.equal((await L.db.userCourseLessonProgress.findUniqueOrThrow({ where: { userId_lessonId: { userId, lessonId: orphan.id } } })).bestScore, 91);
+  assert.ok(lines.some((line) => line.includes("niet automatisch samengevoegd")), lines.join("\n"));
+  await L.db.userCourseLessonProgress.deleteMany({ where: { userId } });
+  await L.db.courseLesson.deleteMany({ where: { id: orphan.id } });
+  await L.db.course.delete({ where: { id: duplicate.id } });
 });
 
 test("andere cursussoorten (podcasts, kinderen, introductie) tellen niet mee in de invariant", { skip }, async () => {

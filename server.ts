@@ -4,6 +4,8 @@ import { initGameServer } from "./src/server/gameServer";
 import { startNotificationSchedulers } from "./src/lib/scheduler";
 import { APP_NAME } from "./src/lib/brand";
 import { syncBrandingAssets } from "./src/lib/branding";
+import { healDuplicateReadingCourses } from "./src/lib/courseAutoRepair";
+import { prisma } from "./src/lib/db";
 import { applicationOrigin } from "./src/lib/baseUrl";
 import { requestSecurityError } from "./src/lib/requestSecurity";
 
@@ -20,6 +22,12 @@ app.prepare().then(() => {
     // De app moet ook zonder de optionele gedeelde branding-map kunnen
     // starten; Huisstijl kan bij de volgende wijziging opnieuw synchroniseren.
     console.warn("Huisstijl kon niet naar de onderhoudsproxy worden gesynchroniseerd.", error);
+  });
+
+  // Bestaande dubbele leescursussen (zie docs/CURSUSIDENTITEIT.md) worden veilig samengevoegd met de bestaande herstelmodule; geblokkeerde
+  // groepen blijven staan en worden gelogd. Een fout hier mag het opstarten nooit blokkeren.
+  healDuplicateReadingCourses(prisma).catch((error) => {
+    console.warn("Cursussen: automatisch herstel van dubbele leescursussen is mislukt; de app start gewoon door.", error instanceof Error ? error.message : error);
   });
 
   // Zonder eigen geparste URL: Next leest req.url zelf. Het oude
