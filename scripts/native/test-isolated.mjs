@@ -72,9 +72,11 @@ try{
   const child=spawn('npx',['tsx','tests/fixtures/native-socket-server.ts'],{env:{...socketEnv,SOCKET_TEST_INSTANCE_URL:instance},stdio:'inherit',detached:true});socketServers.push(child);
   let started=false;for(let attempt=0;attempt<100;attempt++){try{if((await fetch(`${instance}/api/health`)).ok){started=true;break;}}catch{}if(child.exitCode!==null)throw Error('Sockettestserver gestopt');await delay(500);}if(!started)throw Error('Sockettestserver niet bereikbaar');
  }
- await run('npx',['tsx','--test','--test-concurrency=1','tests/native-socket.integration.test.ts'],socketEnv);
+ let socketFailure;
+ try{await run('npx',['tsx','--test','--test-concurrency=1','tests/native-socket.integration.test.ts'],socketEnv);}catch(error){socketFailure=error;}
  for(const child of socketServers){try{process.kill(-child.pid,'SIGTERM');}catch{}}
  if(!process.argv.includes('--no-browser'))await run('npx',['tsx','tests/native-foundation.browser.mjs'],env);
+ if(socketFailure)throw socketFailure; // Browserbewijs verzamelen wist nooit een falende beveiligingstest.
 }finally{
  for(const child of socketServers){try{process.kill(-child.pid,'SIGTERM');}catch{}}
  if(server){try{process.kill(-server.pid,'SIGTERM');}catch{}await Promise.race([new Promise(r=>server.once('exit',r)),delay(5000)]);}

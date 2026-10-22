@@ -190,6 +190,14 @@ nog niet voltooid. Er is geen onafhankelijke acceptatie toegekend.
 
 ### Native socketbewijs — goedgekeurd op 22 oktober 2026
 
+**Aanvullende acceptatiecontrole:** de nieuwe [technische hardeningmatrix](NATIVE-SOCKET-HARDENING.md)
+vervangt onderstaande eerdere groene teststand als acceptatieoordeel. De vertraagde
+deelname en lobbyannulering zijn gericht gecorrigeerd; de uitgebreide suite bevat
+20 sockettests met een zichtbare falende regressie voor dubbele hintbeloning over
+twee instanties. Overige gemarkeerde asynchrone domeincommits zijn niet vrijgegeven.
+PR #179 blijft draft en de technische conclusie is **nog niet klaar**. Dit verandert
+de goedgekeurde eenmalige 60s-handshakearchitectuur niet.
+
 Het eigenaarbesluit is **eenmalig, maximaal 60s, uitsluitend handshake**, gebonden
 aan de bestaande gebruiker/NativeSession. `realtime-ticket-v1` en `realtime/session`
 leveren geen tweede sessiesysteem. Redis-GETDEL deelt de replaybescherming tussen

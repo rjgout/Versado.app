@@ -19225,7 +19225,7 @@
     },
     {
       "file": "src/lib/native/sessions.ts",
-      "sha256": "ef2d6694035166afdcebe1c68f478192947a85e587973d0a6e4f15847c8818a4",
+      "sha256": "2f47a7e3ed76ebfd7299b1f669f99e7e261ff931fc26eae203740b608d58016b",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -19291,6 +19291,24 @@
       ],
       "checks": [],
       "exports": []
+    },
+    {
+      "file": "src/lib/native/socketMutation.ts",
+      "sha256": "0cbf4a5145981866c45e18faaf3afb1f9485eadc46aa0065c49f33844c8fa8eb",
+      "boundary": "context-dependent",
+      "imports": [
+        "./sessions",
+        "./socketAuth",
+        "@/generated/prisma/client",
+        "@/lib/db",
+        "socket.io"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "commitSocketMutation"
+      ]
     },
     {
       "file": "src/lib/native/socketTickets.ts",
@@ -23699,7 +23717,7 @@
     },
     {
       "file": "src/server/gameServer.ts",
-      "sha256": "075b5c4bb079dfbb7d435cad8c31b773d6e2596993a2bd99653a46440e65e63e",
+      "sha256": "80c0299425969e8b79400e695db2a3bf816a91f2b52dac0dec507aa541fea0db",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -23716,6 +23734,7 @@
         "@/lib/i18n/core",
         "@/lib/native/sessions",
         "@/lib/native/socketAuth",
+        "@/lib/native/socketMutation",
         "@/lib/notify",
         "@/lib/parseCookieHeader",
         "@/lib/presence",

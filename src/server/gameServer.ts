@@ -1,4 +1,5 @@
 import { authenticateRealtimeSocket, socketOriginAllowed, socketSecurityState, validateNativeSocket } from "@/lib/native/socketAuth";
+import { commitSocketMutation } from "@/lib/native/socketMutation";
 import type { NativeSessionBinding } from "@/lib/native/sessions";
 import { canResumeLiveGame } from "@/lib/gameAvailability";
 import type { Server as HttpServer } from "http";
@@ -675,6 +676,7 @@ export function initGameServer(httpServer: HttpServer) {
     const token = parseCookieHeader(socket.handshake.headers.cookie)[SESSION_COOKIE];
     const native = socket.data.nativeSession as NativeSessionBinding | undefined;
     const securityState = native ? socketSecurityState(user) : null;
+    if (native) socket.data.nativeSecurityState = securityState;
     if (native) socket.join(`native-session:${native.sessionId}`);
     const stillValid = async () => {
       if (!socket.connected) return false;
@@ -917,19 +919,27 @@ export function initGameServer(httpServer: HttpServer) {
         rooms.set(upperCode, room);
       }
 
-      let player = room.players.get(user.id);
-
       // Een spel dat al bezig is, accepteert geen nieuwe spelers meer — maar
       // wie er al aan meedeed (bv. na wegnavigeren en teruggekomen, of een
       // paginaverversing) mag wél terug: zie resyncSocket hierboven.
-      if (room.status !== "LOBBY" && !player) {
+      if (room.status !== "LOBBY" && !room.players.has(user.id)) {
         socket.emit("error_message", { message: "Dit spel is al begonnen." });
         return;
       }
 
-      socket.join(upperCode);
-      socket.data.gameCode = upperCode;
-
+      // De eerdere pakketcontrole kan vóór de content-awaits zijn gebeurd.
+      // Eerst deelname committen onder dezelfde sessielocks als intrekking;
+      // pas daarna synchroon de socket en het geheugen bijwerken.
+      const joined = await commitSocketMutation(socket, async tx => {
+        if (room.status !== "LOBBY" && !room.players.has(user.id)) return false;
+        if (!room.players.has(user.id)) await tx.liveGamePlayer.upsert({
+          where: { gameId_userId: { gameId: room.id, userId: user.id } },
+          create: { gameId: room.id, userId: user.id }, update: {},
+        });
+        return true;
+      }).catch(() => false);
+      if (!joined || !socket.connected) return;
+      let player = room.players.get(user.id);
       if (!player) {
         player = {
           userId: user.id,
@@ -942,14 +952,9 @@ export function initGameServer(httpServer: HttpServer) {
         };
         room.players.set(user.id, player);
         if (room.mode === "FAMILY_GAME") room.turnOrder!.push(user.id);
-        await prisma.liveGamePlayer
-          .upsert({
-            where: { gameId_userId: { gameId: room.id, userId: user.id } },
-            create: { gameId: room.id, userId: user.id },
-            update: {},
-          })
-          .catch(() => {});
       }
+      socket.join(upperCode);
+      socket.data.gameCode = upperCode;
       player.socketIds.add(socket.id);
 
       if (room.status === "LOBBY") {
@@ -1185,24 +1190,27 @@ export function initGameServer(httpServer: HttpServer) {
         socket.emit("error_message", { message: "Kon dit spel niet beëindigen." });
         return;
       }
-      // Wie in de lobby zat, vóór het verwijderen ophalen (de spelersrijen
-      // gaan mee met het spel). Via ieders eigen user-room en niet via de
-      // spelcode: De Slimste Heilige zet spelers niet in die socket-room, en zo
-      // krijgen ook andere open tabbladen (bv. de actieve-spellenbanner) het
-      // mee.
-      const playerIds = (
-        await prisma.liveGamePlayer.findMany({ where: { gameId: game.id }, select: { userId: true } }).catch(() => [])
-      ).map((p) => p.userId);
-      await revokeOpenInvites(upperCode).catch(() => {});
-      await prisma.liveGame.delete({ where: { id: game.id } }).catch(() => {});
+      // Niet op de autorisatie vóór de read vertrouwen. Alleen deze korte
+      // commit krijgt sessielocks; notificaties/cache zijn gevolgen ná commit.
+      const cancelled = await commitSocketMutation(socket, async tx => {
+        const current = await tx.liveGame.findUnique({ where: { id: game.id }, select: { hostId: true, status: true } });
+        if (current?.hostId !== user.id || current.status !== "LOBBY") return null;
+        const players = await tx.liveGamePlayer.findMany({ where: { gameId: game.id }, select: { userId: true } });
+        const invites = await tx.liveGameInvite.findMany({ where: { gameId: game.id }, select: { userId: true } });
+        const removed = await tx.liveGame.deleteMany({ where: { id: game.id, hostId: user.id, status: "LOBBY" } });
+        return removed.count ? { playerIds: players.map(p => p.userId), inviteIds: invites.map(p => p.userId) } : null;
+      }).catch(() => null);
+      if (!cancelled) return;
       rooms.delete(upperCode);
       forgetAlleskennerRoom(upperCode);
       forgetStudyRoom(upperCode);
       forgetQuickMissionaryRoom(upperCode);
-      for (const playerId of new Set([...playerIds, user.id])) {
+      for (const inviteId of cancelled.inviteIds) ioInstance?.to(`user:${inviteId}`).emit("game_invite_revoked", { code: upperCode });
+      for (const playerId of new Set([...cancelled.playerIds, user.id])) {
         ioInstance?.to(`user:${playerId}`).emit("game_cancelled", { code: upperCode });
       }
       ioInstance?.in(upperCode).socketsLeave(upperCode);
+      await removeNotificationsByUrl(cancelled.inviteIds, `/live/${upperCode}`).catch(() => {});
     });
 
     // Een speler (niet de host) verlaat zelf de lobby. Alleen vóór de start:

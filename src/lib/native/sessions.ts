@@ -80,8 +80,8 @@ export async function rotateNativeSession(raw: string, actionId: string, revoke 
 }
 export interface NativeSessionBinding { userId: string; sessionId: string; sessionVersion: number }
 /** Eén bron van waarheid, voor HTTP en voor reeds verbonden native sockets. */
-export async function activeNativeSession(binding: NativeSessionBinding) {
-  const session = await prisma.nativeSession.findUnique({ where: { id: binding.sessionId }, include: { user: true } });
+export async function activeNativeSession(binding: NativeSessionBinding, db: Pick<Prisma.TransactionClient, "nativeSession"> = prisma) {
+  const session = await db.nativeSession.findUnique({ where: { id: binding.sessionId }, include: { user: true } });
   if (!session || session.userId !== binding.userId || session.revokedAt || session.expiresAt <= new Date() || session.sessionVersion !== binding.sessionVersion || session.user.sessionVersion !== binding.sessionVersion) throw new NativeAuthError("session_expired");
   if (session.user.mustChangePassword || (session.user.isAdmin && !session.user.totpEnabled)) throw new NativeAuthError("session_expired");
   return session.user;
