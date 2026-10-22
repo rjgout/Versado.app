@@ -349,7 +349,9 @@ export function parseCfmLesson(
       type: "figure",
       id: anchor,
       mediaKey,
-      alt: alt ?? "",
+      // De officiële bron geeft sommige (decoratieve) afbeeldingen geen beschrijving. We verzinnen er geen inhoud bij: een
+      // neutrale, eerlijke aanduiding houdt de les toegankelijk en publiceerbaar; het ontbreken staat in de diagnostiek.
+      alt: alt?.trim() ? alt : `Illustratie bij ${lesson.title}`,
       width: metadata.width,
       height: metadata.height,
       ...(caption?.length ? { caption } : {}),
