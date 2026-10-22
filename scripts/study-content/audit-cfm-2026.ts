@@ -171,7 +171,7 @@ const report = {
   missingImages: 0,
   unmirroredVideoResources: lessons
     .flatMap((l) => l.diagnostics)
-    .filter((d) => d.code === "VIDEO_EXTERNAL_REVIEW").length,
+    .filter((d) => d.code === "VIDEO_EMBEDDED").length,
   imagesAndPosters: lessons.reduce((n, l) => n + l.media, 0),
   missingSourceAlt: lessons
     .flatMap((l) => l.diagnostics)

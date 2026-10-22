@@ -4353,6 +4353,10 @@ export const fr: PartialMessages = {
     "weekProgress": "{done} étapes sur {total}",
     "weekRead": "Lue",
   },
+  studyVideo: {
+    failed: "Cette vidéo ne peut pas être lue. Réessaie plus tard ou ouvre la source officielle.",
+    openOfficial: "Ouvrir la vidéo sur le site officiel",
+  },
   cfmProgramme: {
     archiveLink: "Leçons précédentes",
     archiveTitle: "Leçons précédentes",

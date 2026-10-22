@@ -374,7 +374,7 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
   assert.equal(internal.length, 1960);
   assert.equal(
     refs.filter((r) => r.diagnosis === "EXTERNAL_VERIFIED").length,
-    1096,
+    1001,
   );
   assert.equal(refs.filter((r) => r.diagnosis === "UNRESOLVED").length, 553);
   const adminOverview = await fetch(`${assertReferenceTestEnvironment()}/api/admin/study-publications`, { headers: { cookie: f.admin.cookie } });

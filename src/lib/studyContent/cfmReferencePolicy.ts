@@ -1,3 +1,4 @@
+import { STUDY_VIDEO_HOSTS } from "./schema";
 /**
  * Beleid voor verwijzingen in officiële CFM-lessen die niet naar een interne of bewezen externe bron te leggen zijn.
  *
@@ -19,7 +20,7 @@ export type CfmUnresolvedClass =
  * De hosts waarvan de officiële CFM-bron zelf MP4-bestanden aanbiedt: de huidige videohost en het oudere CDN van de Kerk
  * (`ldscdn.org`), dat in de officiële lespagina's nog voorkomt. Exacte hostnamen; geen wildcard en geen subdomeinraden.
  */
-export const CFM_VIDEO_HOSTS: readonly string[] = ["assets.churchofjesuschrist.org", "media2.ldscdn.org"];
+export const CFM_VIDEO_HOSTS: readonly string[] = STUDY_VIDEO_HOSTS;
 /** Alleen de officiële bronhosts van CFM (lessen, afbeeldingen, video's); geen wildcard en geen subdomeinraden. */
 export const CFM_OFFICIAL_HOSTS: readonly string[] = ["www.churchofjesuschrist.org", ...CFM_VIDEO_HOSTS];
 

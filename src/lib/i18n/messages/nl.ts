@@ -4825,6 +4825,10 @@ export const nl = {
     "weekProgress": "{done} van {total} stappen",
     "weekRead": "Gelezen",
   },
+  studyVideo: {
+    failed: "Deze video kan niet worden afgespeeld. Probeer het later opnieuw of open de officiële bron.",
+    openOfficial: "Open de video op de officiële site",
+  },
   cfmProgramme: {
     archiveLink: "Eerdere lessen",
     archiveTitle: "Eerdere lessen",

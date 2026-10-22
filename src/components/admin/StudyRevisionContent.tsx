@@ -102,6 +102,13 @@ export default function StudyRevisionContent({
           )}
         </div>
       );
+    if (block.type === "video")
+      return (
+        <p>
+          <strong>{block.title}</strong>
+          {block.description ? ` — ${block.description}` : ""} (video: {block.sources.map((source) => `${source.width}×${source.height}`).join(", ")})
+        </p>
+      );
     if (block.type === "figure") {
       const media = preview.media.find((m) => m.mediaKey === block.mediaKey);
       return (
