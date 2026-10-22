@@ -15,6 +15,8 @@ controles is geen acceptatie van deze fout, alle spelmutaties of native pariteit
 De 60s-bewijzen blijven uitsluitend eenmalige handshakes; `NativeSession` blijft
 de bron van waarheid. De bestaande controle bij verbinding, elk pakket en iedere
 vijf seconden blijft behouden, evenals webcookies en de Redis-adapter.
+Ook uitnodigen vereist nu expliciet een host of vastgelegde deelnemer; alleen
+een vriendschap en kennis van de spelcode zijn daarvoor onvoldoende.
 
 Een pakketcontrole geeft een asynchrone handler geen blijvend mandaat. Voor de
 gecorrigeerde DB-mutaties is de grens de **commit van de transactie die ook de
@@ -69,7 +71,7 @@ staan hieronder; een inhouds-/deelnemerscheck vervangt geen actuele sessiecheck.
 | `submit_answer` | 3,4,5 | Deelnemer en lokaal `answeredAt` voorkomen herhaling binnen dezelfde room. Hintbonus is een losse User-increment; **geen gedeelde vraagclaim, bewezen dubbele beloning op twee instanties**. |
 | `use_hint` | 3,4,5 | Deelnemer, niveau, lokaal gebruikt-vlaggetje; SQL `hintBalance > 0` voorkomt negatief saldo, maar bewijst niet één afschrijving per vraag. Vlag wordt na await gezet; niet vrijgegeven voor dubbele events/instanties. |
 | `forfeit` | 3,4,5 | Huidige room/partij; lokale FINISHED-vlag voorkomt dubbele lokale afronding. XP/reeks via centrale activiteitssleutel; roomstate zelf niet gedeeld. |
-| `invite_friend` | 1,4 | Lobby en geaccepteerde vriendschap. Er ontbreekt een expliciete host/deelnemerscheck op het gekozen spel; apart herstelpunt, niet als afdoende autorisatie aangemerkt. Writes na awaits hebben nog geen sessiefence. |
+| `invite_friend` | 1,4 | Nu expliciet host/vastgelegde deelnemer, lobby en geaccepteerde vriendschap binnen dezelfde korte native commitfence. Uniek `(gameId,toUserId)` voor de uitnodiging; notificaties zijn postcommit, niet als idempotente spelbeloning aangemerkt. Buitenstaanderweigering en toegestane host/deelnemerflow getest. |
 | `cancel_game` | 2,3,4 | Host en lobby opnieuw bij de korte native deletecommit; unieke verwijdering. Gecontroleerde read → logout → hervatten faalt vóór fix en slaagt erna. |
 | `leave_game` | 2,3,4 | Niet-host, lobby; eigen deelnemer. Tijdelijke cache en DB-delete zijn nog verschillende stappen. |
 | alleskenner: `ak:join`, `ak:solo_join` | 2,3,4 | Uitnodiging/bestaande deelnemer/seizoenslid of eigen solorun. Laden, taalkeuze en deelname hebben awaits; geen native commitfence bij domeinwrites. |
@@ -114,6 +116,8 @@ Next/Socket.io-processen en synthetische accounts. Geen productieverbinding.
    zelf vers deelnemen, maar legitimeert de oude wachtende actie niet.
 3. `cancel_game`: read → gecommitte logout → vrijgeven. **Vóór fix lobby weg,
    na fix lobby behouden.** De eerste autorisatie was geen verwijdercommit.
+   Een aparte autorisatietest controleert dat een bevriende buitenstaander niet
+   namens een vreemde lobby kan uitnodigen en host/deelnemer dit wel kunnen.
 4. Beide instanties laden dezelfde lobby, starten dezelfde synthetische vraag
    op index 0 en verwerken een juist antwoord van dezelfde gebruiker. De fixture
    wacht op beide echte User-increments. **Gemeten bonus: 2; vereist: 1.** De test
@@ -128,7 +132,7 @@ Next/Socket.io-processen en synthetische accounts. Geen productieverbinding.
 Volledige herhaling: `npm run test:native:integration`. Alleen API/socket:
 `npm run test:native:integration -- --no-browser`. De runner verzamelt nu ook
 browserbewijs als een sockettest faalt en eindigt daarna nog steeds met foutstatus.
-De suite bevat 20 sockettests; één bekende beloningsblokkade is geen succesvolle suite.
+De suite bevat 21 sockettests; één bekende beloningsblokkade is geen succesvolle suite.
 
 ## Capaciteit: berekening versus meting
 
@@ -197,8 +201,10 @@ Dit vraagt een datamodel-/migratiebesluit en raakt gedeelde spelautoriteit. De
 opdracht verbiedt databasewijzigingen zonder voorafgaande toestemming en vraagt
 goedkeuring vóór ingrijpende architectuurwijzigingen. Daarom zijn **geen** nieuwe
 tabellen, migraties, gedeelde spelstate of globale locks geïntroduceerd. Ook de
-overige gemarkeerde async- en specifieke autorisatiepaden krijgen geen groen
-acceptatieoordeel op basis van alleen de twee gerepareerde handlers.
+overige gemarkeerde async-paden krijgen geen groen acceptatieoordeel op basis van
+alleen de drie gewijzigde handlers. De nieuwe User/sessie-lockvolgorde mag niet
+blind om bestaande domeintransacties worden gezet: onder meer match/run/user-
+locks en accountcascade moeten gezamenlijk op deadlocks en rollback worden getest.
 
 ## Accountregressies, PR-keten en acceptatie
 

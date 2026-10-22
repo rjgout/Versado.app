@@ -49,7 +49,7 @@ getIO()!.on("connection", socket => {
   socket.on("native_test:reward_drain", async (ack: () => void) => {
     await Promise.all([...(pendingRewards.get(socket.data.userId) ?? [])]); ack();
   });
-  for (const name of ["join_game", "cancel_game"]) {
+  for (const name of ["join_game", "cancel_game", "invite_friend"]) {
     const handlers = socket.listeners(name);
     socket.removeAllListeners(name);
     for (const handler of handlers) socket.on(name, (...args: unknown[]) => {

@@ -125,7 +125,9 @@ test("sessieverloop tijdens een geblokkeerde deelnamewrite rolt de write terug",
     await barrier.release();
     let blocked = false;
     for (let attempt = 0; attempt < 30; attempt++) {
-      const waiting = await tx.$queryRaw<{ n: bigint }[]>`SELECT count(*) AS n FROM pg_stat_activity WHERE pid != pg_backend_pid() AND wait_event_type = 'Lock' AND query LIKE '%LiveGamePlayer%'`;
+      // Een aparte autocommit-read: pg_stat_activity binnen de locktransactie
+      // kan dezelfde backend-statistieksnapshot blijven tonen.
+      const waiting = await prisma.$queryRaw<{ n: bigint }[]>`SELECT count(*) AS n FROM pg_stat_activity WHERE pid != pg_backend_pid() AND wait_event_type = 'Lock' AND query LIKE '%LiveGamePlayer%'`;
       if (Number(waiting[0].n) > 0) { blocked = true; break; }
       await delay(10);
     }
@@ -134,6 +136,25 @@ test("sessieverloop tijdens een geblokkeerde deelnamewrite rolt de write terug",
   }, { timeout: 5000 });
   await drained(id, "join_game");
   assert.equal(await prisma.liveGamePlayer.count({ where: { gameId: game.id, userId: user.id } }), 0);
+});
+
+test("een buitenstaander mag niet namens een andere spellobby vrienden uitnodigen", async () => {
+  const user = await account(), host = await account(), friend = await account();
+  await prisma.friendship.create({ data: { senderId: user.id, receiverId: friend.id, status: "ACCEPTED" } });
+  const code = `AUTH${randomUUID().replaceAll("-", "").slice(0, 10).toUpperCase()}`;
+  const game = await prisma.liveGame.create({ data: { code, hostId: host.id, mode: "FAMILY_GAME" } });
+  const pair = await issueNativeSession(user.id, 0), peer = (await open(await mint(pair.accessToken), b)).socket, id = peer.id!;
+  peer.emit("invite_friend", { code, toUserId: friend.id }); await drained(id, "invite_friend");
+  assert.equal(await prisma.liveGameInvite.count({ where: { gameId: game.id, userId: friend.id } }), 0);
+  await prisma.friendship.create({ data: { senderId: host.id, receiverId: friend.id, status: "ACCEPTED" } });
+  const hostPair = await issueNativeSession(host.id, 0), owner = (await open(await mint(hostPair.accessToken), b)).socket;
+  owner.emit("invite_friend", { code, toUserId: friend.id }); await drained(owner.id!, "invite_friend");
+  assert.equal(await prisma.liveGameInvite.count({ where: { gameId: game.id, userId: friend.id } }), 1, "De host mag een eigen vriend uitnodigen");
+  const secondFriend = await account();
+  await prisma.friendship.create({ data: { senderId: user.id, receiverId: secondFriend.id, status: "ACCEPTED" } });
+  await prisma.liveGamePlayer.create({ data: { gameId: game.id, userId: user.id } });
+  peer.emit("invite_friend", { code, toUserId: secondFriend.id }); await drained(id, "invite_friend");
+  assert.equal(await prisma.liveGameInvite.count({ where: { gameId: game.id, userId: secondFriend.id } }), 1, "Een vastgelegde deelnemer mag een eigen vriend uitnodigen");
 });
 
 test("dezelfde live-vraag mag over twee instanties hoogstens één hintbeloning geven", async () => {

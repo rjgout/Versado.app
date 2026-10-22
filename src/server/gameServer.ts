@@ -1135,32 +1135,36 @@ export function initGameServer(httpServer: HttpServer) {
     });
 
     socket.on("invite_friend", async ({ toUserId, code }: { toUserId: string; code: string }) => {
-      const game = await prisma.liveGame.findUnique({
-        where: { code: code.toUpperCase() },
-        include: { host: true, chapter: { include: { book: true } } },
-      });
-      if (!game || game.status !== "LOBBY") return;
-      const friendship = await prisma.friendship.findFirst({
-        where: {
-          status: "ACCEPTED",
-          OR: [
-            { senderId: user.id, receiverId: toUserId },
-            { senderId: toUserId, receiverId: user.id },
-          ],
-        },
-      });
-      if (!friendship) return;
-      // Persistent bijgehouden (naast de live pushnotificatie hieronder) zodat
-      // /api/activity-status een nog niet geaccepteerde uitnodiging kan tonen
-      // als "wachten op reactie" — anders zou zo'n lobby na het versturen van
-      // de uitnodiging nergens meer terug te vinden zijn voor de host.
-      await prisma.liveGameInvite
-        .upsert({
-          where: { gameId_userId: { gameId: game.id, userId: toUserId } },
-          create: { gameId: game.id, userId: toUserId },
-          update: {},
-        })
-        .catch(() => {});
+      const game = await commitSocketMutation(socket, async tx => {
+        const candidate = await tx.liveGame.findUnique({
+          where: { code: code.toUpperCase() },
+          include: { host: true, chapter: { include: { book: true } } },
+        });
+        if (!candidate || candidate.status !== "LOBBY") return null;
+        if (candidate.hostId !== user.id && !await tx.liveGamePlayer.findUnique({ where: { gameId_userId: { gameId: candidate.id, userId: user.id } } })) return null;
+        const friendship = await tx.friendship.findFirst({
+          where: {
+            status: "ACCEPTED",
+            OR: [
+              { senderId: user.id, receiverId: toUserId },
+              { senderId: toUserId, receiverId: user.id },
+            ],
+          },
+        });
+        if (!friendship) return null;
+        // Persistent bijgehouden (naast de live pushnotificatie hieronder) zodat
+        // /api/activity-status een nog niet geaccepteerde uitnodiging kan tonen
+        // als "wachten op reactie" — anders zou zo'n lobby na het versturen van
+        // de uitnodiging nergens meer terug te vinden zijn voor de host.
+        await tx.liveGameInvite
+          .upsert({
+            where: { gameId_userId: { gameId: candidate.id, userId: toUserId } },
+            create: { gameId: candidate.id, userId: toUserId },
+            update: {},
+          });
+        return candidate;
+      }).catch(() => null);
+      if (!game) return;
       // In de taal van de ontvanger: de melding bovenin toont dit letterlijk.
       const recipient = await prisma.user.findUnique({ where: { id: toUserId }, select: { uiLanguage: true } });
       const gameLabel = liveGameLabel(game, getT(recipient?.uiLanguage));
