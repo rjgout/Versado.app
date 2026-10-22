@@ -173,18 +173,13 @@ export default function RichContentBlocks({
     const id = element.dataset.studyText!;
     onAnnotate(id, e.currentTarget.querySelector<HTMLElement>(`[data-annotation-for="${CSS.escape(id)}"]`) ?? element);
   }
-  /** De poster van een video is zijn eigen gebonden afbeelding: figure `img-<naam>` hoort bij video `video-<naam>`. */
-  const posterId = (video: { id: string }) => (video.id.startsWith("video-") ? `img-${video.id.slice(6)}` : null);
-  function posterOf(video: Extract<Block, { type: "video" }>): string | null {
-    for (const section of document.sections)
-      for (const candidate of section.blocks)
-        if (candidate.type === "figure" && candidate.id === posterId(video)) {
-          const mediaId = media.find((m) => m.mediaKey === candidate.mediaKey)?.mediaId;
-          return mediaId ? `/api/${preview ? "admin/" : ""}study-media/${encodeURIComponent(mediaId)}` : null;
-        }
-    return null;
+  /** De poster van een video is de direct voorafgaande, gebonden afbeelding met een id op `-poster` (zie de CFM-adapter). */
+  const isPoster = (block: Block | undefined): block is Extract<Block, { type: "figure" }> => block?.type === "figure" && /-poster$/.test(block.id);
+  function posterUrl(figure: Extract<Block, { type: "figure" }> | null): string | null {
+    const mediaId = figure ? media.find((m) => m.mediaKey === figure.mediaKey)?.mediaId : null;
+    return mediaId ? `/api/${preview ? "admin/" : ""}study-media/${encodeURIComponent(mediaId)}` : null;
   }
-  function render(block: Block): ReactNode {
+  function render(block: Block, posterFigure: Extract<Block, { type: "figure" }> | null = null): ReactNode {
     if (block.type === "heading") {
       const Tag = `h${block.level}` as "h2" | "h3" | "h4" | "h5" | "h6";
       return (
@@ -288,7 +283,7 @@ export default function RichContentBlocks({
           <span data-study-text={block.id}><ReferenceLink id={block.id} label={block.label}/></span>{action(block.id)}
         </div>
       );
-    if (block.type === "video") return <StudyVideo block={block} poster={posterOf(block)} />;
+    if (block.type === "video") return <StudyVideo block={block} poster={posterUrl(posterFigure)} />;
     return <hr className="border-vs-line" />;
   }
   return (
@@ -315,7 +310,8 @@ export default function RichContentBlocks({
             const previous = section.blocks[index - 1];
             // De poster van een video staat in de speler zelf en wordt niet nog eens als losse afbeelding getoond.
             const next = section.blocks[index + 1];
-            const posterHidden = block.type === "figure" && next?.type === "video" && posterId(next) === block.id;
+            const posterHidden = isPoster(block) && next?.type === "video";
+            const posterFigure = block.type === "video" && isPoster(previous) ? previous : null;
             const caption = compact && block.type === "paragraph" && /^b-figure\d+_p\d+$/.test(block.id) && previous?.type === "figure" && !previous.caption;
             return (
             <div
@@ -329,7 +325,7 @@ export default function RichContentBlocks({
                   "calc(var(--header-offset,var(--header-default)) + 1rem)",
               }}
             >
-              {posterHidden ? null : caption ? <div className="-mt-2 text-center text-sm text-vs-fg-2 [&_p]:leading-snug">{render(block)}</div> : render(block)}
+              {posterHidden ? null : caption ? <div className="-mt-2 text-center text-sm text-vs-fg-2 [&_p]:leading-snug">{render(block)}</div> : render(block, posterFigure)}
             </div>
             );
           })}

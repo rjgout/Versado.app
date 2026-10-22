@@ -240,7 +240,7 @@ wordt genegeerd.
 **Model.** Een nieuw bloktype `video` in het studiedocument (`schema.ts`): titel, optionele beschrijving, 1–4 MP4-bronnen met
 afmetingen en een officiële terugvallink. Het vervangt het vroegere verwijzingsblok dat naar het MP4-bestand wees; het anker
 (`video-…`) en de annotatietekst (de titel) blijven gelijk, zodat bestaande annotaties hun plek behouden. De poster is de
-voorafgaande, gebonden afbeelding (`img-<naam>` bij `video-<naam>`), die de speler gebruikt en niet nog eens apart toont.
+direct voorafgaande, gebonden afbeelding (figure met een id op `-poster`), die de speler gebruikt en niet nog eens apart toont.
 Bestaande, al gepubliceerde revisies veranderen niet: pas een nieuwe import (met auto-publicatie) levert voor lessen met een video
 een nieuwe revisie op. In CFM 2026 zijn dat 95 video's (3609 → 3514 verwijzingen; 1096 → 1001 extern geverifieerde).
 
