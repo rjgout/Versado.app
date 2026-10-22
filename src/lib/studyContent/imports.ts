@@ -1,3 +1,4 @@
+import { cfmSourceOfAdapter, isCfmAdapter } from "./cfmSources";
 import { randomUUID } from "node:crypto";
 import type {
   Prisma,
@@ -115,7 +116,8 @@ export async function registerStudySnapshotImport(
   await studyStorage();
   const collection = await client.contentCollection.findFirst({where:{id:collectionId,...readingAccessWhere(actor,"admin-preview"),contentWork:{kind:"STUDY_PROGRAM"}}});
   if (!collection?.work || collection.work !== snapshot.workKey || collection.editionKey !== snapshot.editionKey || collection.language !== snapshot.language ||
-    (snapshot.adapterName === "cfm-2026-nl-v1" && (snapshot.synthetic || snapshot.workKey !== "cfm-old-testament-2026" || snapshot.editionKey !== "church-cfm-ot-2026" || snapshot.language !== "nl"))) throw new StudyPublishingError("UNAVAILABLE");
+    // Een officiële CFM-adapter hoort bij precies één geregistreerde jaargang (werk, uitgavefamilie en taal) en is nooit synthetisch.
+    (isCfmAdapter(snapshot.adapterName) && (snapshot.synthetic || cfmSourceOfAdapter(snapshot.adapterName)?.manifest.workKey !== snapshot.workKey || cfmSourceOfAdapter(snapshot.adapterName)?.manifest.editionKey !== snapshot.editionKey || cfmSourceOfAdapter(snapshot.adapterName)?.manifest.language !== snapshot.language))) throw new StudyPublishingError("UNAVAILABLE");
   const scopeKey = studyObjectHash([
     snapshot.adapterName,
     collection.id,

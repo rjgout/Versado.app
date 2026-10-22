@@ -1,6 +1,7 @@
 import { requireFsyPublicationSource } from "./fsyConversion";
 import { z } from "zod";
 import { cfmDisplayOnlyKeys } from "./cfmReview";
+import { cfmSourceOfAdapter, isCfmAdapter } from "./cfmSources";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import {
@@ -124,7 +125,7 @@ export async function publishStudyRevision(
         ![
           "LEGACY",
           "PUBLISHED",
-          ...(run.adapterName === "cfm-2026-nl-v1" ? ["DRAFT"] : []),
+          ...(isCfmAdapter(run.adapterName) ? ["DRAFT"] : []),
         ].includes(edition.collection.publicationState) ||
         edition.workKey !== run.workKey ||
         edition.collectionId !== run.collectionId ||
@@ -181,7 +182,7 @@ export async function publishStudyRevision(
           },
         }));
       const displayOnly =
-        run.adapterName === "cfm-2026-nl-v1"
+        isCfmAdapter(run.adapterName)
           ? historicDisplayOnly
             ? revision.references
                 .filter((r) => r.diagnosis === "UNRESOLVED")
@@ -190,6 +191,7 @@ export async function publishStudyRevision(
                 source.sourceKey,
                 content,
                 snapshot.sourceVersion,
+                cfmSourceOfAdapter(run.adapterName),
               )
           : [];
       const inventory = studyDocumentInventory(content.body);

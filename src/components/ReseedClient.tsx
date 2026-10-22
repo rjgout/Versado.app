@@ -101,7 +101,7 @@ export default function ReseedClient() {
         includeCfm &&
         studySource &&
         !(await confirm(
-          t("managedContent.approveImport", { snapshot: studySource.snapshot }),
+          t("managedContent.approveImport", { snapshot: studySource.snapshot, lessons: studySource.lessons }),
           { native: true },
         ))
       )
@@ -194,8 +194,8 @@ export default function ReseedClient() {
         <div className="flex flex-col gap-2">
           {job.progress && (
             <p className="text-sm text-vs-fg-2">
-              {job.progress.work === "cfm-old-testament-2026"
-                ? "CFM 2026"
+              {job.progress.work.startsWith("cfm-")
+                ? `CFM ${/(\d{4})$/.exec(job.progress.work)?.[1] ?? ""}`.trim()
                 : job.progress.work === "old-testament"
                   ? "Oude Testament"
                   : "Nieuwe Testament"}{" "}

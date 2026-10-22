@@ -3793,8 +3793,8 @@ export const es: PartialMessages = {
     "reviewBlocked": "He revisado las {count} referencias bloqueadas. Mostrarlas únicamente como texto sin enlace.",
     "release": "Aprobar el contenido de la colección",
     "releaseConfirm": "Todas las lecciones se han publicado individualmente. Autorizar el uso normal por los administradores. La visibilidad para usuarios no cambia.",
-    "approveImport": "CFM 2026: aprobar la instantánea {snapshot} para actualizar 52 borradores de lecciones. Las publicaciones y la visibilidad existentes no cambian.",
-    "includeCfm": "Actualizar los borradores de CFM 2026",
+    "approveImport": "Ven, sígueme: aprobar la instantánea {snapshot} para actualizar {lessons} lecciones oficiales. Las lecciones validadas técnicamente se publican automáticamente; la visibilidad para los usuarios no cambia.",
+    "includeCfm": "Actualizar Ven, sígueme y publicar automáticamente",
     "sourceMissing": "Faltan los archivos fuente fijados de CFM. No se realizará ninguna importación CFM.",
     "spaceMissing": "El almacenamiento persistente de medios no está disponible. Restáuralo antes de actualizar CFM."
 },

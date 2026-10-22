@@ -3,102 +3,26 @@ import { parseFragment, type DefaultTreeAdapterMap } from "parse5";
 import { createHash } from "node:crypto";
 import { parseStudyDocument, type StudyDocument } from "./schema";
 import { studyDocumentInventory, type SnapshotItem } from "./fixtureAdapter";
-import { cfmOldTestament2026NlManifest as manifest } from "./cfm2026Manifest";
 import {
   parseOtbPassage,
   parseOtbPassageSet,
   type OtbPassage,
 } from "@/lib/references/otb";
 import { verifiedOfficialUrl } from "@/lib/references/evidence";
-import otbIndex from "../../../data/study-content/cfm-2026-nl/otb-index.json";
+import { passageKey } from "./cfmScripture";
+import { CFM_SOURCE_2026, type CfmMedia, type CfmSource, type CfmVolumeSource } from "./cfmSources";
 
 type Node = DefaultTreeAdapterMap["node"];
 type Element = DefaultTreeAdapterMap["element"];
 type Block = StudyDocument["sections"][number]["blocks"][number];
 type Inline = Extract<Block, { type: "paragraph" }>["content"][number];
-export interface CfmSource {
-  uri: string;
-  restricted: boolean;
-  title: string;
-  attributes: Record<string, string>;
-  body: string;
-}
-export interface CfmMedia {
-  url: string;
-  checksum: string;
-  mimeType: string;
-  width: number;
-  height: number;
-  byteSize: number;
-  file: string;
-}
+export type { CfmMedia, CfmSource };
 export const CFM_ADAPTER = "cfm-2026-nl-v1" as const;
 export const CFM_RIGHTS = {
   holder: "The Church of Jesus Christ of Latter-day Saints",
   permission:
     "Volledig gebruik van officiële teksten en media door de Versado-eigenaar bevestigd; toestemming administratief buiten de repository bewaard.",
 };
-const bookCodes: Record<string, string> = {
-  gen: "gen",
-  ex: "exo",
-  lev: "lev",
-  num: "num",
-  deut: "deu",
-  josh: "jos",
-  judg: "jdg",
-  ruth: "rut",
-  "1-sam": "1sa",
-  "2-sam": "2sa",
-  "1-kgs": "1ki",
-  "2-kgs": "2ki",
-  "1-chr": "1ch",
-  "2-chr": "2ch",
-  ezra: "ezr",
-  neh: "neh",
-  esth: "est",
-  job: "job",
-  ps: "psa",
-  prov: "pro",
-  eccl: "ecc",
-  song: "sng",
-  isa: "isa",
-  jer: "jer",
-  lam: "lam",
-  ezek: "ezk",
-  dan: "dan",
-  hosea: "hos",
-  joel: "joe",
-  amos: "amo",
-  obad: "oba",
-  jonah: "jon",
-  micah: "mic",
-  nahum: "nah",
-  hab: "hab",
-  zeph: "zep",
-  hag: "hag",
-  zech: "zac",
-  mal: "mal",
-};
-/** Alleen bestaande hoofdstukken en expliciete verzen; grote bereiken worden
- * in echte selecties van maximaal 40 verzen verdeeld, nooit ingekort. */
-function passageKey(parts: OtbPassage[]): string | null {
-  const keys: string[] = [];
-  for (const p of parts) {
-    const row = otbIndex.chapters.find(
-      (c) => c.bookKey === p.bookKey && c.chapter === p.chapter,
-    );
-    if (!row || p.verses?.some((v) => !row.verses.includes(v))) return null;
-    if (!p.verses) keys.push(`${p.bookKey}:${p.chapter}`);
-    else
-      for (let i = 0; i < p.verses.length; i += 40)
-        keys.push(
-          `${p.bookKey}:${p.chapter}:${p.verses.slice(i, i + 40).join(",")}`,
-        );
-  }
-  if (keys.length === 1) return `otb:${keys[0]}`;
-  const key = `otb-set:${keys.join(";")}`;
-  return parseOtbPassageSet(key) ? key : null;
-}
 function element(n: Node): n is Element {
   return "tagName" in n;
 }
@@ -123,12 +47,12 @@ function descendants(n: Node, tag: string): Element[] {
 export function cfmSourceHash(raw: string) {
   return createHash("sha256").update(raw).digest("hex");
 }
-export function cfmSourceUrl(href: string, lessonUrl: string) {
+export function cfmSourceUrl(href: string, lessonUrl: string, churchLang = "nld") {
   const u = new URL(href, lessonUrl);
   if (u.protocol !== "https:" || u.username || u.password || u.port)
     throw Error("CFM_UNSAFE_URL");
   u.pathname = u.pathname.replace(/\.html$/, "");
-  if (u.pathname.startsWith("/study/")) u.searchParams.set("lang", "nld");
+  if (u.pathname.startsWith("/study/")) u.searchParams.set("lang", churchLang);
   return u.href;
 }
 /** Originele URL bepaalt boek/hoofdstuk. Een label met een hoofdstukbereik mag
@@ -137,22 +61,27 @@ export function cfmReferenceTarget(
   href: string,
   label: string,
   lessonUrl: string,
+  volume: CfmVolumeSource = CFM_SOURCE_2026,
 ): Extract<Inline, { type: "reference" }>["target"] {
-  const url = cfmSourceUrl(href, lessonUrl),
+  const url = cfmSourceUrl(href, lessonUrl, volume.churchLang),
     u = new URL(url);
-  const match = /^\/study\/scriptures\/ot\/([^/]+)\/(\d+)$/.exec(u.pathname);
+  // Zonder schriftuurprofiel (bv. Nieuwe Testament) leggen we nooit een interne link: de bron-URL blijft de enige identiteit.
+  const profile = volume.scripture;
+  const match = profile ? new RegExp(`^/study/scriptures/${profile.pathSegment}/([^/]+)/(\\d+)$`).exec(u.pathname) : null;
   if (
+    profile &&
     u.hostname === "www.churchofjesuschrist.org" &&
     match &&
-    bookCodes[match[1]] &&
+    profile.bookCodes[match[1]] &&
     !/\bBJS\b/i.test(label)
   ) {
-    const book = bookCodes[match[1]],
+    const otbIndex = profile.index;
+    const book = profile.bookCodes[match[1]],
       chapter = Number(match[2]);
     const identity = {
-      workKey: "old-testament",
-      editionKey: "otb",
-      language: manifest.language,
+      workKey: profile.workKey,
+      editionKey: profile.editionKey,
+      language: volume.manifest.language,
       externalUrl: url,
     };
     const uriKey = `otb:${book}:${chapter}${
@@ -295,14 +224,14 @@ export function parseCfmLesson(
   key: string,
   source: CfmSource,
   media: readonly CfmMedia[],
+  volume: CfmVolumeSource = CFM_SOURCE_2026,
 ) {
-  const found = manifest.lessons.find((l) => l.sourceKey === key);
+  const found = volume.manifest.lessons.find((l) => l.sourceKey === key);
   if (
     !found ||
     source.restricted ||
-    source.attributes.lang !== "nld" ||
-    source.attributes["data-uri"] !==
-      `/manual/come-follow-me-for-home-and-church-old-testament-2026/${key}` ||
+    source.attributes.lang !== volume.churchLang ||
+    source.attributes["data-uri"] !== `/manual/${volume.manualSlug}/${key}` ||
     !source.body ||
     !source.title
   )
@@ -331,7 +260,7 @@ export function parseCfmLesson(
       href = attr(n, "href") ?? attr(n, "data-legacy-href");
     if (!label || !href) throw Error("CFM_REFERENCE_EMPTY");
     const anchor = id("ref", n, scope),
-      target = cfmReferenceTarget(href, label, lesson.sourceUrl);
+      target = cfmReferenceTarget(href, label, lesson.sourceUrl, volume);
     if (
       !parseOtbPassage(target.sourceKey) &&
       !parseOtbPassageSet(target.sourceKey) &&
@@ -399,7 +328,7 @@ export function parseCfmLesson(
     return children(n).flatMap((c, i) => inline(c, `${scope}-${i}`));
   }
   function image(n: Element, scope: string, caption?: Inline[]) {
-    const url = cfmSourceUrl(attr(n, "src")!, lesson.sourceUrl),
+    const url = cfmSourceUrl(attr(n, "src")!, lesson.sourceUrl, volume.churchLang),
       metadata = media.find((m) => m.url === url);
     if (!metadata) throw Error(`CFM_MEDIA_MISSING:${url}`);
     const anchor = id("img", n, scope),
@@ -444,12 +373,13 @@ export function parseCfmLesson(
           .filter(Boolean)
           .join(" ");
       const safeLabel =
-        label || cfmSourceUrl(attr(n, "href")!, lesson.sourceUrl);
+        label || cfmSourceUrl(attr(n, "href")!, lesson.sourceUrl, volume.churchLang);
       const anchor = id("ref", n, scope),
         target = cfmReferenceTarget(
           attr(n, "href")!,
           safeLabel,
           lesson.sourceUrl,
+          volume,
         );
       blocks.push({ type: "reference", id: anchor, label: safeLabel, target });
       return;
@@ -641,6 +571,7 @@ export function parseCfmLesson(
   }
   return {
     lesson,
+    volume,
     title: source.title,
     document,
     assets,
@@ -654,17 +585,17 @@ export function cfmSnapshotItem(
   parsed: ReturnType<typeof parseCfmLesson>,
   bytes: (asset: CfmMedia) => Buffer,
 ): SnapshotItem {
-  const { lesson, document, assets, inventory } = parsed;
+  const { lesson, volume, document, assets, inventory } = parsed;
   return {
     schemaVersion: 1,
     title: parsed.title,
     body: document,
     sourceKey: lesson.sourceKey,
-    slug: `cfm-2026-${lesson.sourceKey}`,
+    slug: `cfm-${volume.volume.year}-${lesson.sourceKey}`,
     order: lesson.order,
     sourceMetadata: {
       sourceKey: lesson.sourceKey,
-      name: "Kom dan en volg Mij 2026 — Oude Testament",
+      name: volume.collectionName,
       url: lesson.sourceUrl,
     },
     rightsMetadata: CFM_RIGHTS,

@@ -3,10 +3,9 @@ import type { PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
 import { referenceDiagnosis, resolveReferenceBatch } from "@/lib/references/resolver";
-import review from "../../../data/study-content/cfm-2026-nl/reference-review.json";
-import sourceLock from "../../../data/study-content/cfm-2026-nl/source-lock.json";
 import { cfmDisplayOnlyKeys } from "./cfmReview";
-import { cfmOldTestament2026NlManifest as manifest, matchesCfm2026Catalogue } from "./cfm2026Manifest";
+import { matchesCfmCatalogue } from "./cfm2026Manifest";
+import { cfmSourceOfAdapter, cfmSourceOfWork, isCfmAdapter } from "./cfmSources";
 import { studyDocumentInventory } from "./fixtureAdapter";
 import { validateStoredStudyRevision } from "./publication";
 import { requireStudyAdmin, studyObjectHash, studyReleaseAllowed, StudyPublishingError, type StudyAdmin } from "./policy";
@@ -94,8 +93,9 @@ export function reviewSetToken(input: {
   });
 }
 function cfmControlLists(adapter: string | null) {
-  return adapter === "cfm-2026-nl-v1"
-    ? { referenceReview: studyObjectHash(review), sourceLock: studyObjectHash(sourceLock) }
+  const source = cfmSourceOfAdapter(adapter);
+  return source
+    ? { referenceReview: source.referenceReview ? studyObjectHash(source.referenceReview) : null, sourceLock: studyObjectHash(source.sourceLock) }
     : { referenceReview: null, sourceLock: null };
 }
 
@@ -180,9 +180,9 @@ async function reviewLesson(
     issues.push({ code: "INCOMPLETE" });
   // Verwijzingen: dezelfde beslissing als publishStudyRevision, met de exacte gecontroleerde CFM-lijst.
   let displayOnly: string[] = [];
-  if (pending && run?.adapterName === "cfm-2026-nl-v1") {
+  if (pending && isCfmAdapter(run?.adapterName)) {
     try {
-      displayOnly = await cfmDisplayOnlyKeys(content.sourceMetadata.sourceKey, content, run.sourceVersion);
+      displayOnly = await cfmDisplayOnlyKeys(content.sourceMetadata.sourceKey, content, run!.sourceVersion, cfmSourceOfAdapter(run!.adapterName));
     } catch {
       issues.push({ code: "SOURCE" });
     }
@@ -240,7 +240,8 @@ export async function studyProgramReview(actor: StudyAdmin, collectionId: string
   });
   if (!collection) throw new StudyPublishingError("UNAVAILABLE");
   const editions = await loadEditions(client, collection.id);
-  const catalogueValid = collection.work !== manifest.workKey || matchesCfm2026Catalogue(collection, editions);
+  const cfmSource = cfmSourceOfWork(collection.work);
+  const catalogueValid = !cfmSource || matchesCfmCatalogue(cfmSource.manifest, collection, editions);
   const revisionIds = editions.flatMap((e) => (e.draftRevisionId ?? e.publishedRevisionId ? [(e.draftRevisionId ?? e.publishedRevisionId)!] : []));
   const items = revisionIds.length
     ? await client.contentImportItem.findMany({
@@ -259,10 +260,10 @@ export async function studyProgramReview(actor: StudyAdmin, collectionId: string
     lesson.issues.push({ code: "CATALOGUE" });
     if (lesson.status !== "missing") lesson.status = "blocked";
   }
-  const adapter = [...runs.values()][0]?.adapterName ?? (collection.work === manifest.workKey ? "cfm-2026-nl-v1" : null);
+  const adapter = [...runs.values()][0]?.adapterName ?? cfmSource?.adapter ?? null;
   const controlLists = cfmControlLists(adapter);
   const total = (pick: (l: LessonReview) => number) => lessons.reduce((n, l) => n + pick(l), 0);
-  const manifestCount = collection.work === manifest.workKey ? manifest.lessons.length : editions.length;
+  const manifestCount = cfmSource ? cfmSource.manifest.lessons.length : editions.length;
   return {
     collectionId: collection.id,
     name: collection.name,

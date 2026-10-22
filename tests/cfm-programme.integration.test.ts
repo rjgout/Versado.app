@@ -21,6 +21,9 @@ if (database.hostname !== "127.0.0.1" || database.pathname !== "/versado_content
 // Twee synthetische jaargangen van het programma (de fixture-import vereist taal "nl"). Ze krijgen jaren vóór de echte
 // registratie, zodat de eerste synthetische jaargang het anker is. De registratie wordt alleen voor deze test uitgebreid en daarna hersteld.
 const registry = CFM_VOLUMES as unknown as CfmVolume[];
+// De echte jaargangen worden voor deze test tijdelijk uit het register gehaald: andere tests in dezelfde database mogen hun
+// collecties (met echte ID's) hebben, maar horen hier niet bij het programma onder test.
+const saved = registry.splice(0, registry.length);
 const registered: CfmVolume[] = [];
 const stamp = randomUUID().slice(0, 8);
 type Fx = { volume: CfmVolume; lessonIds: string[]; editionIds: string[] };
@@ -59,7 +62,7 @@ before(async () => {
   member = await user(false, a.volume.collectionId);
 });
 after(async () => {
-  for (const v of registered) registry.splice(registry.indexOf(v), 1);
+  registry.splice(0, registry.length, ...saved);
   await prisma.$disconnect();
 });
 
