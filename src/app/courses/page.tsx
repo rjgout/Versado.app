@@ -15,7 +15,7 @@ export default async function CoursesPage() {
   const data = await getStudyCatalogue(user);
   // "Kom dan en volg Mij" is een gewone cursus in Leren (Stap voor stap, Vrije studie): dezelfde kaarten, hetzelfde toevoegen
   // en verbergen als de leescursussen. Alleen overige studieprogramma's (FSY) houden hun eigen lijst.
-  if (data.lessons.some((lesson) => lesson.personal)) return <CoursesClient />;
+  if (data.lessons.some((lesson) => lesson.personal) || data.archivedCount > 0) return <CoursesClient />;
   if (data.context && data.lessons.length) {
     const t = getT(user.uiLanguage);
     return <div data-study-catalogue className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 pb-6">

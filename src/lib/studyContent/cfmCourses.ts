@@ -2,6 +2,7 @@ import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { markCourseStarted } from "@/lib/courses";
 import { localizedCourse } from "@/lib/courseText";
 import { modeOfStudyCourse, type StudyCourseType } from "@/lib/readingCourses";
+import { cfmAnchorCollectionId, cfmAnchorOfCollectionId } from "./cfmProgramme";
 
 /** De CFM-collectie van 2026 (Oude Testament, Nederlands); haar cursussen hebben de oorspronkelijke slugs. */
 export const CFM_COLLECTION_ID = "content_cfm_ot_2026_nl";
@@ -42,6 +43,9 @@ export const CFM_COURSES = CFM_COURSE_KINDS.map((kind) => ({ ...kind, slug: cfmC
  * gemaakt: de collectie zelf bepaalt dat. Herhaald of gelijktijdig aanroepen levert nooit dubbele cursussen op.
  */
 export async function ensureCfmCourses(db: Pick<Prisma.TransactionClient, "course">, collection: { id: string; slug: string }) {
+  // Eén programma, één set cursussen: alleen het anker (de eerste jaargang) draagt Stap voor stap en Vrije studie. Een latere
+  // jaargang krijgt nooit eigen cursuskaarten; zijn weken zitten in de cursussen van het programma.
+  if (cfmAnchorCollectionId(collection) !== collection.id) return;
   for (const kind of CFM_COURSE_KINDS) {
     const existing = await db.course.findFirst({ where: { contentCollectionId: collection.id, type: kind.type }, select: { id: true } });
     if (existing) continue;
@@ -62,7 +66,7 @@ export async function ensureCfmCourses(db: Pick<Prisma.TransactionClient, "cours
  */
 export async function markCfmCourseStarted(db: PrismaClient, userId: string, collectionId: string, mode: "STEPS" | "FREE") {
   const course = await db.course.findFirst({
-    where: { contentCollectionId: collectionId, enabled: true, type: mode === "STEPS" ? "STUDY_STEPS" : "STUDY_FREE" },
+    where: { contentCollectionId: cfmAnchorOfCollectionId(collectionId), enabled: true, type: mode === "STEPS" ? "STUDY_STEPS" : "STUDY_FREE" },
     select: { id: true },
   });
   if (course) await markCourseStarted(db, userId, course.id);
@@ -76,7 +80,7 @@ export async function markCfmCourseStarted(db: PrismaClient, userId: string, col
  */
 export async function cfmCoursePathHref(db: Pick<PrismaClient, "course">, collectionId: string, mode: "STEPS" | "FREE"): Promise<string | null> {
   const course = await db.course.findFirst({
-    where: { contentCollectionId: collectionId, enabled: true, type: mode === "STEPS" ? "STUDY_STEPS" : "STUDY_FREE" },
+    where: { contentCollectionId: cfmAnchorOfCollectionId(collectionId), enabled: true, type: mode === "STEPS" ? "STUDY_STEPS" : "STUDY_FREE" },
     orderBy: { order: "asc" },
     select: { id: true },
   });
@@ -90,7 +94,7 @@ export async function cfmCoursePathTarget(
   uiLanguage: string,
 ): Promise<{ href: string; name: string } | null> {
   const course = await db.course.findFirst({
-    where: { contentCollectionId: collectionId, type: mode === "STEPS" ? "STUDY_STEPS" : "STUDY_FREE" },
+    where: { contentCollectionId: cfmAnchorOfCollectionId(collectionId), type: mode === "STEPS" ? "STUDY_STEPS" : "STUDY_FREE" },
     orderBy: [{ enabled: "desc" }, { order: "asc" }],
     include: { contentCollection: { select: { work: true } } },
   });

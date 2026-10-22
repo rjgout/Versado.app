@@ -6,6 +6,9 @@ import { readingAccessWhere } from "@/lib/contentAccess";
 import { isPersonalStudyWork } from "./personalStudyOverrides";
 import { completedStepCounts } from "./stepProgress";
 import { calendarWeekOf } from "./weekSelection";
+import { CFM_PROGRAMME_NAME, cfmProgrammeCollectionIds, cfmVolumeOfCollection, cfmVolumeOfWork, splitByArchive } from "./cfmProgramme";
+import type { StudyContextView } from "@/lib/studyContextContract";
+import { getStudyContexts } from "@/lib/studyContext";
 
 /**
  * De officiële afbeelding bij een les: de eerste figuur van minimaal 300 px breed in de bron (de omslagafbeelding), met de
@@ -53,11 +56,14 @@ async function lastStudiedByEdition(
   return new Map([...result].map(([id, at]) => [id, new Date(at).toISOString()]));
 }
 
+/** Bovengrens van één catalogus: twee tot drie jaargangen met alle weken; de archiefpagina vraagt alleen het archief. */
+const MAX_LESSONS = 600;
+
 /** Normale leslijst onder Leren; geen cursussen aanmaken of voorkeuren wijzigen. */
 export async function getStudyCatalogue(actor: {
   id: string;
   isAdmin: boolean;
-}, now = new Date(), options: { collectionId?: string } = {}) {
+}, now = new Date(), options: { collectionId?: string; scope?: "current" | "archive" } = {}) {
   const user = await prisma.user.findUnique({
     where: { id: actor.id },
     select: { activeContentCollectionId: true, timeZone: true, personalStudyMode: true, activeContentCollection: { include: { contentWork: { select: { kind: true } } } } },
@@ -69,22 +75,35 @@ export async function getStudyCatalogue(actor: {
     : null;
   const collection = options.collectionId ? (scoped ?? (options.collectionId === user?.activeContentCollectionId ? user.activeContentCollection : null)) : user?.activeContentCollection ?? null;
   if (!user || !collection || !canAccessCollection(actor, collection) || collection.contentWork?.kind !== "STUDY_PROGRAM")
-    return { personalMode: null as "FREE"|"STEPS"|null, lessons: [], context: null, programName: null, collectionId: null, currentLessonKey: null, today: null as string|null, truncated: false, token: String(Date.now()) };
+    return { personalMode: null as "FREE"|"STEPS"|null, lessons: [], archivedCount: 0, contexts: {} as Record<string, StudyContextView>, context: null, programName: null, collectionId: null, currentLessonKey: null, today: null as string|null, truncated: false, token: String(Date.now()) };
   const collectionId = collection.id;
+  // "Kom dan en volg Mij" is één programma over meerdere jaargangscollecties (cfmProgramme.ts): de lessen komen uit alle
+  // jaargangen waartoe de gebruiker toegang heeft (de toegangsregel geldt per collectie), de collectie van de aanroeper blijft
+  // de identiteit van het resultaat. Een collectie buiten het programma leest alleen zichzelf, zoals voorheen.
+  const programmeVolume = cfmVolumeOfCollection(collection);
+  const collectionIds = cfmProgrammeCollectionIds(collection);
   const lessons = await prisma.studyLessonEdition.findMany({
     where: {
-      collectionId,
+      collectionId: { in: collectionIds },
       collection: readingAccessWhere(actor),
       publishedRevisionId: { not: null },
       lesson: { retiredAt: null, work: { kind: "STUDY_PROGRAM" } },
     },
     orderBy: [{ lesson: { period: { year: "asc" } } }, { lesson: { month: "asc" } }, { lesson: { order: "asc" } }, { id: "asc" }],
     select: { id:true, lessonId:true, collectionId:true, workKey:true, publishedRevisionId:true, publishedRevision:{select:{title:true}}, legacyFsyLesson:{select:{id:true}}, lesson:{include:{period:true}} },
-    take: 201,
+    take: MAX_LESSONS + 1,
   });
   const workKey = collection.work;
-  const context = workKey ? await getStudyContext(actor, workKey) : null;
-  const safe = lessons.slice(0,200);
+  const anchorContext = workKey ? await getStudyContext(actor, workKey) : null;
+  // Een keuze per jaargang (UserStudyContext hangt aan het werk); voor het programma geldt de recentst gewijzigde keuze.
+  const contexts: Record<string, StudyContextView> = anchorContext && workKey ? { [workKey]: anchorContext } : {};
+  if (programmeVolume) {
+    const workKeys = new Set(lessons.map((e) => e.workKey));
+    for (const view of await getStudyContexts(actor)) if (workKeys.has(view.workKey) && cfmVolumeOfWork(view.workKey)) contexts[view.workKey] = view;
+    for (const key of workKeys) if (!contexts[key]) contexts[key] = await getStudyContext(actor, key);
+  }
+  const context = Object.values(contexts).filter((c) => c.activeLessonKey).sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""))[0] ?? anchorContext;
+  const safe = lessons.slice(0,MAX_LESSONS);
   const progress = await prisma.contentProgress.findMany({where:{userId:actor.id,contentKey:{in:safe.map(e=>`study:${e.workKey}:${e.lesson.periodId}:${e.lesson.sourceKey}`)}},select:{contentKey:true,readStatus:true,readAt:true}});
   const images = await lessonImageMedia(safe.map(e=>e.publishedRevisionId!));
   const lastStudied = await lastStudiedByEdition(actor.id, safe.map(e=>({id:e.id,contentKey:`study:${e.workKey}:${e.lesson.periodId}:${e.lesson.sourceKey}`})),progress);
@@ -104,10 +123,14 @@ export async function getStudyCatalogue(actor: {
     for(const l of legacy.filter(l=>isLegacyFsyPublished(l.publishedContent))) result.push({id:l.id,lessonId:l.id,collectionId:l.contentCollectionId,title:l.publishedTitle??l.title,lessonKey:`fsy:${l.id}`,workKey:"fsy",order:l.order,revisionId:"",legacyKey:`fsy:${l.id}`,year:l.year,month:l.month,category:l.category,startsOn:null,endsOnExclusive:null,read:false,personal:false,stepsDone:0,lastStudiedAt:null as string|null,imageMediaId:null as string|null});
   }
   result.sort((a,b)=>(a.year??0)-(b.year??0)||(a.month??0)-(b.month??0)||a.order-b.order||a.id.localeCompare(b.id));
-  const truncated=lessons.length>200||result.length>200;
-  const bounded=result.slice(0,200);
+  const truncated=lessons.length>MAX_LESSONS||result.length>MAX_LESSONS;
+  const all=result.slice(0,MAX_LESSONS);
   const today=userDayKey(user,now);
+  // Het archief (één kalendermaand na het einde van de lesweek) is alleen een weergavegrens: niets wordt verwijderd en elke
+  // les houdt dezelfde identiteit. Alleen programmaweken hebben een officiële einddatum om op te archiveren.
+  const { current: visible, archived } = programmeVolume ? splitByArchive(all, today) : { current: all, archived: [] as typeof all };
+  const bounded = options.scope === "archive" ? archived : visible;
   // Dezelfde kalenderweekregel als de weekselectie (weekSelection.ts): eenduidig of geen.
   const current=calendarWeekOf(bounded.filter(l=>l.personal),today)??calendarWeekOf(bounded.filter(l=>!l.personal),today);
-  return { personalMode: user.personalStudyMode, lessons: bounded, context, programName:collection.name, collectionId, currentLessonKey:current?.lessonKey ?? null, today:today as string|null, truncated, token: String(Date.now()) };
+  return { personalMode: user.personalStudyMode, lessons: bounded, archivedCount: archived.length, contexts, context, programName:programmeVolume?CFM_PROGRAMME_NAME:collection.name, collectionId, currentLessonKey:current?.lessonKey ?? null, today:today as string|null, truncated, token: String(Date.now()) };
 }

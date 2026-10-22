@@ -81,6 +81,7 @@ on:
       - 'scripts/study-content/**'
       - 'data/study-content/cfm-2026-nl/**'
       - 'tests/cfm-2026*'
+      - 'tests/cfm-programme*'
       - 'tests/study-identity-migration.mjs'
       - 'tests/fixtures/study-content.ts'
       - 'src/lib/reseedJob.ts'
@@ -197,7 +198,7 @@ jobs:
           npm run test:annotations:integration -- --browser
       - name: Regressie, lint en vertalingen
         run: |
-          npx tsx --test tests/admin-layout.test.ts tests/cfm-2026-manifest.test.ts tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/proxy-headers.test.ts tests/reading-path.test.ts tests/reading-courses.test.ts tests/course-scripts.test.ts tests/streak-central.test.ts
+          npx tsx --test tests/admin-layout.test.ts tests/cfm-2026-manifest.test.ts tests/cfm-programme.test.ts tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/proxy-headers.test.ts tests/reading-path.test.ts tests/reading-courses.test.ts tests/course-scripts.test.ts tests/streak-central.test.ts
           npm run test:annotations
           npm run test:focus
           npm run test:dorp
