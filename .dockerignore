@@ -13,3 +13,6 @@ npm-debug.log*
 .DS_Store
 next-env.d.ts
 *.tsbuildinfo
+
+# Lokale gecontroleerde bronbestanden/modellen blijven buiten de runtime-image.
+.audio-v2-work

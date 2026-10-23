@@ -18,6 +18,8 @@ RUN npx prisma generate
 RUN npm run build
 
 FROM base AS runner
+# Ontvangende audiovalidatie: probe en volledige decode, geen spraakgenerator.
+RUN apk add --no-cache ffmpeg
 ARG NEXT_PUBLIC_BUILD_SHA=unknown
 ENV NODE_ENV=production
 # Eigen kopie van de voorgelezen hoofdstukken (zie src/lib/audioMirror.ts).
@@ -37,6 +39,9 @@ COPY src ./src
 # Handmatige OTB-validatie/proefimport; de bron zelf wordt bewust extern
 # aangeleverd via --source en zit niet in de production image.
 COPY scripts/otb ./scripts/otb
+# Beheer-CLI voor reeds gecontroleerde aanleveringen; broncontrole/ASR draaien extern.
+COPY scripts/audio/import-official.ts scripts/audio/export-targets.ts ./scripts/audio/
+COPY data/audio ./data/audio
 COPY scripts/study-content ./scripts/study-content
 # Gepinde CFM-broninhoud en controlemanifesten; media blijven op het eigen volume.
 COPY data/study-content/cfm-2026-nl ./data/study-content/cfm-2026-nl

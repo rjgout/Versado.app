@@ -3,6 +3,31 @@ import { kompasEs } from "./kompas/es";
 
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
+  audioLibrary: {
+    "local": "Disponible localmente",
+    "legacyCount": "Audio de capítulo existente",
+  "title": "Biblioteca de audio",
+  "intro": "Los paquetes nuevos se registran automáticamente. Un administrador publica; la grabación actual sigue activa hasta su sustitución.",
+  "chapters": "Capítulos",
+  "recordings": "Grabaciones",
+  "missing": "Grabaciones que faltan",
+  "storage": "Almacenamiento",
+  "publish": "Publicar",
+  "confirm": "¿Publicar esta grabación y sustituir la actual?",
+  "published": "Publicado",
+  "errors": "Errores de importación",
+  "review": "Se requiere revisión de calidad",
+  "view": "Ver grabaciones",
+  "refresh": "Actualizar",
+  "failed": "La acción falló. Actualiza y comprueba la fuente y la calidad.",
+  "empty": "No hay grabaciones registradas.",
+  "noErrors": "No hay errores de importación.",
+  "source": "Fuente",
+  "quality": "Calidad",
+  "import": "Importación",
+  "active": "Grabación activa",
+  "legacy": "Registros; se conserva el audio de capítulo existente."
+},
   nativeFoundation: {
   "welcome": "Bienvenido a Versado",
   "login": "Iniciar sesión",
