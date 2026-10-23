@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import assert from 'node:assert/strict';
 import pg from 'pg';
-const baseline = 'ef5e5e4bb614e9685fa7f09ad4a1be465d340f7f';
+const baseline = '29252462f0628329b006072dcb59315d216212be';
 const container = `versado-main-upgrade-${randomUUID()}`;
 const work = mkdtempSync(join(tmpdir(), 'versado-main-upgrade-'));
 const dockerEnv = { ...process.env };

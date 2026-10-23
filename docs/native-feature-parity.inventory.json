@@ -171,7 +171,7 @@
     },
     {
       "file": "src/app/adminbackend/page.tsx",
-      "sha256": "d791a8063cb5a01f6cc1f5f4bdfc01d28bd792df921d98b7201bfb6e63c2c3dc",
+      "sha256": "241861c600e65df142795ee66da3c38e5258e80c8926f1b0379710f99944c224",
       "boundary": "context-dependent",
       "imports": [
         "../../../package.json",
@@ -2507,13 +2507,14 @@
     },
     {
       "file": "src/app/api/exercises/[exerciseId]/check/route.ts",
-      "sha256": "d8a842d5b4a2da176da17e02eab469bea57ad89f140f615ca4303c7b3263debd",
+      "sha256": "8dcfc056bb39203563a4875e1d73f5d1d5f5b6d309eee2f6f5090d8859f85084",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
         "@/lib/contentAccess",
         "@/lib/db",
         "@/lib/exerciseGen",
+        "@/lib/learning/exerciseAccess",
         "@/lib/session",
         "next/server",
         "zod"
@@ -2531,7 +2532,7 @@
     },
     {
       "file": "src/app/api/exercises/[exerciseId]/hint/route.ts",
-      "sha256": "f88e9798bc3b8b929b550dc556703baff82dbaf59b070224f56c394fb0cab1fb",
+      "sha256": "98080b9713527345b4c050dafc8b4e99c7bd9929cf82f3947adbe7bf28a7cdd2",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
@@ -2539,6 +2540,7 @@
         "@/lib/db",
         "@/lib/exerciseHints",
         "@/lib/languages",
+        "@/lib/learning/exerciseAccess",
         "@/lib/session",
         "next/server"
       ],
@@ -15656,6 +15658,20 @@
       ]
     },
     {
+      "file": "src/lib/contentImportLock.ts",
+      "sha256": "021cfd548c18e0b47f815460a478e800d70fbbdbda9b39062e2c2526a3b86718",
+      "boundary": "context-dependent",
+      "imports": [
+        "pg"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "withContentImportLock"
+      ]
+    },
+    {
       "file": "src/lib/contentMetadata.ts",
       "sha256": "a2a8a0c6eb9f4f829ee4e8c224d53156a81d785fac9a54ed6e0eb71836449d3e",
       "boundary": "context-dependent",
@@ -15855,7 +15871,7 @@
     },
     {
       "file": "src/lib/courses.ts",
-      "sha256": "306d6809905c371588c420a8401b590da46e3d17935efeb2ade852a1a6ec9950",
+      "sha256": "2396b34a6e4f1f0070c8d035fbf5df1a89ea4f77801bd12c466b0069b03730e7",
       "boundary": "context-dependent",
       "imports": [
         "./chapterTerm",
@@ -16612,6 +16628,20 @@
       "checks": [],
       "exports": [
         "exerciseProgress"
+      ]
+    },
+    {
+      "file": "src/lib/exerciseSync.ts",
+      "sha256": "de5ccc57500fcb1d4f8e3ae7c2cc4f1927137393c7a65218a7d05ab67f0660cf",
+      "boundary": "context-dependent",
+      "imports": [],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "exerciseSignature",
+        "optionsFingerprint",
+        "planExerciseSync"
       ]
     },
     {
@@ -18183,7 +18213,7 @@
     },
     {
       "file": "src/lib/learning/contentProgress.ts",
-      "sha256": "1bae3076ccea58881780f0fbab2490779ab4bb6a447b297c312a5d7913c512d4",
+      "sha256": "9b885164e28ac8a6f52093685126f6383b059a1b678ed8f6d095d70c6f50e806",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -18203,6 +18233,7 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "clearExercisePlanCache",
         "completeChapterReading",
         "contentKeyOf",
         "countDoneChapters",
@@ -18232,6 +18263,21 @@
       "checks": [],
       "exports": [
         "getCourseChapterProgress"
+      ]
+    },
+    {
+      "file": "src/lib/learning/exerciseAccess.ts",
+      "sha256": "3838c34769cfba7b815a5604ef1b7fcabd951414cc516ed35e52bb929fe307c0",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/generated/prisma/client",
+        "@/lib/db"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "exerciseAccessWhere"
       ]
     },
     {
@@ -20961,13 +21007,14 @@
     },
     {
       "file": "src/lib/reseedJob.ts",
-      "sha256": "aa815017f497235d2168e188d3577ad23652bfabfe4f85e3181314260412ac3d",
+      "sha256": "3b6c601e60a8cc41bab07881014ea9f7ba6010f7a543a028544a713fe92c8686",
       "boundary": "context-dependent",
       "imports": [
         "../../scripts/otb/import-core",
         "@/generated/prisma/client",
         "@/lib/i18n",
         "@/lib/i18n/core",
+        "@/lib/learning/contentProgress",
         "@/lib/seed",
         "@/lib/studyContent/cfm2026Import",
         "@/lib/studyContent/policy",
@@ -21184,7 +21231,7 @@
     },
     {
       "file": "src/lib/seed.ts",
-      "sha256": "16209f34fc7f9f939a48f777f06580cfa8dfeb104af9bf27eb635b6a59f49845",
+      "sha256": "e1d68343a1ff83e4cb9577198021846b92f08e68776dae2a17e43e2d34b4aac7",
       "boundary": "context-dependent",
       "imports": [
         "../../prisma/alleskennerContent",
@@ -21222,6 +21269,8 @@
         "../../scripts/otb/source",
         "./audioMirror",
         "./contentCollections",
+        "./contentImportLock",
+        "./courses",
         "./fsyContent",
         "./importPhase",
         "./podcastFeed",
@@ -22270,7 +22319,7 @@
     },
     {
       "file": "src/lib/study/units.ts",
-      "sha256": "229089a3dc684ed64d9a66e95772b603029436ef72679014060c52358b302492",
+      "sha256": "a9b108a7a973fe12eac8be8b84cf7707b41a7d9babd7c8311957976a1b87360a",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -24244,7 +24293,7 @@
     },
     {
       "file": "src/app/adminbackend/page.tsx",
-      "sha256": "d791a8063cb5a01f6cc1f5f4bdfc01d28bd792df921d98b7201bfb6e63c2c3dc",
+      "sha256": "241861c600e65df142795ee66da3c38e5258e80c8926f1b0379710f99944c224",
       "boundary": "context-dependent",
       "imports": [
         "../../../package.json",
@@ -28290,23 +28339,32 @@
       "domain": "beheer",
       "dependencies": [
         "src/app/api/admin/reseed/route.ts",
+        "src/lib/achievements.ts",
+        "src/lib/activityFeed.ts",
         "src/lib/alleskenner/content.ts",
         "src/lib/alleskenner/validate.ts",
         "src/lib/apiError.ts",
         "src/lib/audioMirror.ts",
         "src/lib/auth.ts",
+        "src/lib/baseUrl.ts",
+        "src/lib/brand.ts",
         "src/lib/chapterTerm.ts",
+        "src/lib/competitionXp.ts",
         "src/lib/content-inventory/origin.ts",
         "src/lib/contentAccess.ts",
         "src/lib/contentCollectionIds.ts",
         "src/lib/contentCollections.ts",
+        "src/lib/contentImportLock.ts",
         "src/lib/contentPickerContract.ts",
         "src/lib/contentRouting.ts",
         "src/lib/courseIntegrity.ts",
         "src/lib/courseText.ts",
         "src/lib/courses.ts",
+        "src/lib/crypto.ts",
         "src/lib/data/scopes.ts",
+        "src/lib/dates.ts",
         "src/lib/db.ts",
+        "src/lib/email.ts",
         "src/lib/exerciseGen.ts",
         "src/lib/fsyContent.ts",
         "src/lib/gameAvailability.ts",
@@ -28339,7 +28397,15 @@
         "src/lib/importPhase.ts",
         "src/lib/jigsawQuestions.ts",
         "src/lib/languages.ts",
+        "src/lib/leagueTiers.ts",
+        "src/lib/leagues.ts",
+        "src/lib/learning/contentIdentity.ts",
+        "src/lib/learning/contentProgress.ts",
         "src/lib/learning/exercisePlan.ts",
+        "src/lib/learning/progressState.ts",
+        "src/lib/learning/rewards.ts",
+        "src/lib/learning/streakReturnRules.ts",
+        "src/lib/learning/streakRules.ts",
         "src/lib/mascots.ts",
         "src/lib/mysteries/game.ts",
         "src/lib/mysteries/mystery001a.ts",
@@ -28361,9 +28427,15 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/notificationGroups.ts",
+        "src/lib/notify.ts",
+        "src/lib/notifyCategories.ts",
         "src/lib/podcastChapters.ts",
         "src/lib/podcastFeed.ts",
         "src/lib/podcasts.ts",
+        "src/lib/push.ts",
+        "src/lib/pushEndpoint.ts",
+        "src/lib/puzzle/puzzleNotify.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
         "src/lib/references/contract.ts",
@@ -28376,6 +28448,8 @@
         "src/lib/reseedJob.ts",
         "src/lib/seed.ts",
         "src/lib/session.ts",
+        "src/lib/streak.ts",
+        "src/lib/streakContinuation.ts",
         "src/lib/studyContent/cfm2026Adapter.ts",
         "src/lib/studyContent/cfm2026Import.ts",
         "src/lib/studyContent/cfm2026Manifest.ts",
@@ -28395,8 +28469,12 @@
         "src/lib/studyContent/storage.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
+        "src/lib/timeZone.ts",
+        "src/lib/unsubscribe.ts",
         "src/lib/wordSearch/content.ts",
-        "src/lib/wordSearch/generator.ts"
+        "src/lib/wordSearch/generator.ts",
+        "src/lib/xp.ts",
+        "src/lib/xpRules.ts"
       ],
       "directModules": [
         "src/lib/apiError.ts",
@@ -33227,13 +33305,14 @@
     },
     {
       "file": "src/app/api/exercises/[exerciseId]/check/route.ts",
-      "sha256": "d8a842d5b4a2da176da17e02eab469bea57ad89f140f615ca4303c7b3263debd",
+      "sha256": "8dcfc056bb39203563a4875e1d73f5d1d5f5b6d309eee2f6f5090d8859f85084",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
         "@/lib/contentAccess",
         "@/lib/db",
         "@/lib/exerciseGen",
+        "@/lib/learning/exerciseAccess",
         "@/lib/session",
         "next/server",
         "zod"
@@ -33272,6 +33351,7 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
+        "src/lib/learning/exerciseAccess.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts"
       ],
@@ -33280,6 +33360,7 @@
         "src/lib/contentAccess.ts",
         "src/lib/db.ts",
         "src/lib/exerciseGen.ts",
+        "src/lib/learning/exerciseAccess.ts",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [],
@@ -33290,7 +33371,7 @@
     },
     {
       "file": "src/app/api/exercises/[exerciseId]/hint/route.ts",
-      "sha256": "f88e9798bc3b8b929b550dc556703baff82dbaf59b070224f56c394fb0cab1fb",
+      "sha256": "98080b9713527345b4c050dafc8b4e99c7bd9929cf82f3947adbe7bf28a7cdd2",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
@@ -33298,6 +33379,7 @@
         "@/lib/db",
         "@/lib/exerciseHints",
         "@/lib/languages",
+        "@/lib/learning/exerciseAccess",
         "@/lib/session",
         "next/server"
       ],
@@ -33338,6 +33420,7 @@
         "src/lib/i18n/messages/nl.ts",
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
+        "src/lib/learning/exerciseAccess.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts"
       ],
@@ -33347,6 +33430,7 @@
         "src/lib/db.ts",
         "src/lib/exerciseHints.ts",
         "src/lib/languages.ts",
+        "src/lib/learning/exerciseAccess.ts",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [],
@@ -61818,7 +61902,7 @@
     },
     {
       "file": "src/app/adminbackend/page.tsx",
-      "sha256": "d791a8063cb5a01f6cc1f5f4bdfc01d28bd792df921d98b7201bfb6e63c2c3dc",
+      "sha256": "241861c600e65df142795ee66da3c38e5258e80c8926f1b0379710f99944c224",
       "boundary": "context-dependent",
       "imports": [
         "../../../package.json",
@@ -70515,6 +70599,7 @@
     "tests/content-access.integration.test.ts",
     "tests/content-access.test.ts",
     "tests/content-edition.test.ts",
+    "tests/content-import.integration.test.ts",
     "tests/content-inventory-validation.test.mjs",
     "tests/content-inventory.test.ts",
     "tests/content-picker.browser.mjs",
@@ -70535,6 +70620,7 @@
     "tests/dorp.browser.mjs",
     "tests/dorp.test.ts",
     "tests/exercise-feedback.test.ts",
+    "tests/exercise-sync.test.ts",
     "tests/focus-mode.test.ts",
     "tests/friend-profiles.integration.test.ts",
     "tests/fsy-conversion.browser.mjs",

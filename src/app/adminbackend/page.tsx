@@ -23,7 +23,7 @@ export default async function AdminBackendPage() {
     prisma.user.count({ where: { isAdmin: false, onlineSocketCount: { gt: 0 } } }),
     prisma.book.count(),
     prisma.chapter.count(),
-    prisma.exercise.count(),
+    prisma.exercise.count({ where: { status: "APPROVED" } }),
     prisma.feedback.count({ where: { status: "NEW" } }),
     getEmailSettingsView(),
     getContentSwitcherSettings(),
