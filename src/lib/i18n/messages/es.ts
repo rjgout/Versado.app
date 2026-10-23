@@ -3793,7 +3793,7 @@ export const es: PartialMessages = {
     "reviewBlocked": "He revisado las {count} referencias bloqueadas. Mostrarlas únicamente como texto sin enlace.",
     "release": "Aprobar el contenido de la colección",
     "releaseConfirm": "Todas las lecciones se han publicado individualmente. Autorizar el uso normal por los administradores. La visibilidad para usuarios no cambia.",
-    "approveImport": "Ven, sígueme: aprobar la instantánea {snapshot} para actualizar {lessons} lecciones oficiales. Las lecciones validadas técnicamente se publican automáticamente; la visibilidad para los usuarios no cambia.",
+    "approveImport": "Ven, sígueme: aprobar la instantánea {snapshot} para actualizar {lessons} lecciones oficiales. Las lecciones validadas técnicamente se publican automáticamente; un volumen se hace visible para los usuarios en su primera publicación completa; después, el interruptor de visibilidad existente sigue siendo el que manda.",
     "includeCfm": "Actualizar Ven, sígueme y publicar automáticamente",
     "sourceMissing": "Faltan los archivos fuente fijados de CFM. No se realizará ninguna importación CFM.",
     "spaceMissing": "El almacenamiento persistente de medios no está disponible. Restáuralo antes de actualizar CFM."
