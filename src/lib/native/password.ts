@@ -25,18 +25,26 @@ export async function nativeSecondFactor(user: User, code?: string) {
   }
   clearFailures(failureKey);
 }
-export async function assertNativeAccount(user: User) {
-  if (user.mustChangePassword) throw new NativeAuthError("web_security_setup_required", 403);
+export async function assertNativeEmail(user: User) {
   if (!user.emailVerifiedAt && await isEmailConfigured()) throw new NativeAuthError("email_confirmation_required", 403);
 }
+export async function assertNativeAccount(user: User) {
+  if (user.mustChangePassword) throw new NativeAuthError("web_security_setup_required", 403);
+  await assertNativeEmail(user);
+}
 let dummyHash: Promise<string> | undefined;
-export async function nativePasswordLogin(identifier: string, password: string, code?: string, expectedUserId?: string) {
+/** Alleen wachtwoordbewijs; callers moeten daarna de account-/factorpoort kiezen. */
+export async function nativePasswordProof(identifier: string, password: string, expectedUserId?: string) {
   const tag = parseTag(identifier);
   const user = tag ? await prisma.user.findFirst({ where: { handle: { equals: tag.handle, mode: "insensitive" }, discriminator: tag.discriminator } })
     : await prisma.user.findUnique({ where: { email: identifier.toLowerCase() } });
   const hash = user?.passwordHash ?? await (dummyHash ??= hashPassword(randomBytes(32).toString("hex")));
   const valid = await verifyPassword(password, hash);
   if (!user || (expectedUserId && user.id !== expectedUserId) || !user.passwordLoginEnabled || !valid) throw new NativeAuthError("wrong_credentials");
+  return user;
+}
+export async function nativePasswordLogin(identifier: string, password: string, code?: string, expectedUserId?: string) {
+  const user = await nativePasswordProof(identifier, password, expectedUserId);
   await assertNativeAccount(user);
   await nativeSecondFactor(user, code);
   return user;

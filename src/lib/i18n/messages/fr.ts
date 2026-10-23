@@ -2756,6 +2756,10 @@ export const fr: PartialMessages = {
     logIn: "Se connecter",
   },
   password: {
+    resetLinkLabel: "Lien de réinitialisation reçu par e-mail",
+    openResetLink: "Ouvrir le lien de réinitialisation",
+    resetCompleteSignIn: "Ton mot de passe a été modifié. Reconnecte-toi ; la vérification en deux étapes reste obligatoire si elle est activée.",
+
     newMismatch: "Les deux nouveaux mots de passe ne correspondent pas.",
     forcedReset: "Un administrateur a réinitialisé ton mot de passe. Choisis d’abord ci-dessous ton propre nouveau mot de passe avant de continuer.",
     temporary: "Mot de passe temporaire",
@@ -2777,6 +2781,8 @@ export const fr: PartialMessages = {
     set: "Définir le mot de passe",
   },
   verify: {
+    linkLabel: "Lien de confirmation reçu par e-mail",
+    openLink: "Ouvrir le lien de confirmation",
     resend: "Renvoyer l’e-mail de confirmation",
     invalid: "Lien invalide ou expiré",
     requestNew: "Demande ci-dessous un nouvel e-mail de confirmation.",

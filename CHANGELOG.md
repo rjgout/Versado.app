@@ -4,6 +4,10 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Beveiliging: Next.js bijgewerkt naar 16.4.2 voor de gepubliceerde kwetsbaarheden in afbeeldingsoptimalisatie, Server Actions en caching.
+
+- Lokale native ontwikkelversie: privacy- en cookiepagina’s zijn offline beschikbaar, leesroutes herstellen bij herladen en accountwisselingen bewaren veilige uitlogintenties. Het native realtime-transport gebruikt eenmalige handshakebewijzen en sluit verbindingen bij sessie-intrekking. Registratie-e-mailbevestiging werkt lokaal met dezelfde accountservice en uitkomstkaart als web. Wachtwoordherstel kan lokaal worden voltooid met opnieuw inloggen; het resetformulier wordt met web gedeeld. Wachtwoordwijziging en verplichte wachtwoord-/beheerder-TOTP-setup gebruiken gedeelde webcomponenten. De volledige native app is nog in ontwikkeling; store-release blijft geblokkeerd.
+
 - Verbeterd (Kom dan en volg Mij): de studie draait om deze week in plaats van om voltooiing. Het totaalpercentage, de weektelling en de voltooiingsmeldingen zijn weg; per week blijven de zes stappen met hun eigen status en pak je op waar je bleef. Op Vandaag staat een nieuwe kaart met de les van deze week, de officiële afbeelding en één knop om te beginnen of verder te gaan. De terugknop in een studieles brengt je terug naar waar je vandaan kwam (Vandaag of het weekpad). Zonder studieweek voor vandaag stuurt Versado je naar de laatst bestudeerde week of toont de beschikbare weken, nooit naar een oudere onafgeronde week.
 
 - Verbeterd (Kom dan en volg Mij): verwijzingen naar het Boek van Mormon, de Leer en Verbonden en de Parel van Grote Waarde openen nu de eigen tekst in Versado (ook samengestelde verwijzingen zoals "1 Nephi 13:21–29, 38–42"), en een verwijzing naar een lofzang opent die lofzang in Lofzangen zodra die beschikbaar is. Kan een verwijzing niet met zekerheid worden gekoppeld, dan blijft de officiële bron de terugval. In Stap voor stap gaat de terugknop rechtstreeks naar het leerpad in Leren; het driepuntjesmenu en het tussenscherm met het stappenoverzicht zijn vervallen.

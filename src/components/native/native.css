@@ -1,14 +1,14 @@
 /* Dezelfde VS-tokens, zonder de nog servergebonden Next-shell te importeren. */
 :root {
-  --header-height: 0px; --header-offset: 0px; --nav-height: 0px;
+  --nav-default: 0px;
   --vs-safe-area-top: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
   --vs-safe-area-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
   --vs-safe-area-left: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
   --vs-safe-area-right: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
 }
 .native-foundation {
-  padding-top: calc(var(--vs-safe-area-top) + 1.25rem);
-  padding-bottom: calc(var(--vs-safe-area-bottom) + 1.25rem);
+  padding-top: var(--main-pad-top);
+  padding-bottom: var(--main-pad-bottom);
   padding-left: calc(var(--vs-safe-area-left) + 1.25rem);
   padding-right: calc(var(--vs-safe-area-right) + 1.25rem);
   overflow-wrap: anywhere;

@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { AppLink as Link, useAppNavigation } from "@/components/navigation/AppNavigation";
 import { useT } from "@/components/I18nProvider";
 import NavIcon from "@/components/shell/NavIcon";
 import { PRIMARY_NAV, activeDestination } from "@/lib/navigation";
@@ -12,7 +11,7 @@ import { PRIMARY_NAV, activeDestination } from "@/lib/navigation";
 // rechtsboven; Competitie en Activiteit zijn tabs onder Vrienden.
 export default function BottomNav() {
   const t = useT();
-  const active = activeDestination(usePathname());
+  const active = activeDestination(useAppNavigation().pathname);
   return (
     <nav
       // pb-[...]: telt de homeindicator-ruimte van een geïnstalleerde

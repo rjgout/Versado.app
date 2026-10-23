@@ -57,7 +57,29 @@ fase 1 geeft een beperkte leesproef, geen volledige onboardingmigratie.
   geblokkeerd tot echte device-/signing-/securityacceptatie. Ontbrekende Apple Team,
   audience, entitlements of signing betekenen geen werkende Apple-E2E-claim.
 
+## Volledige native uitbreiding
+
+De huidige vervolgopdracht omvat alle bestaande functies; zie
+[NATIVE-FEATURE-PARITY.md](NATIVE-FEATURE-PARITY.md). Deze Foundation-proef is
+alleen het uitgangspunt. De nieuwe inventaris houdt ontbrekende schermen,
+contracten, veilige sessiewisselingen, realtime/media/push en apparaat-/storebewijs
+expliciet open. Geen ontbrekende functie is als web-only uitzondering goedgekeurd.
+De zelfstandige broncontrole is geen onafhankelijke audit of native-acceptatie.
+
+## Sessiewisselingen na de proef
+
+De client bewaakt nu sessiegeneraties vóór en na refresh, API-antwoorden en
+provider-authenticatie. Read/wijzig/write is geserialiseerd; offline intrekkingen
+blijven duurzaam naast een nieuw account staan. Late logoutbevestigingen wissen
+geen nieuwe sessie. Een generatiewissel tijdens de native write maakt het late
+paar uitsluitend een intrekkingsintentie. Zeven extra clientregressies bewaken dit;
+ze vervangen geen fysieke Keychain/Keystore- of Apple-tests.
+
 ## Migratie van overige schermen
+
+De eigenaar heeft de gedeelde navigatie- en datalaag per functie goedgekeurd
+(21 oktober 2026), met expliciete native versiecontracten en stapsgewijs hergebruik
+van de bestaande componenten. Geen build-time Next.js-compatibiliteitsshims.
 
 Na deze proef per feature: serverdata achter versiecontract, gedeelde clientcomponent,
 rechten-/reconnecttests, daarna native navigatie. Volgorde: onboarding en accountbeheer,
@@ -65,6 +87,95 @@ Vandaag/contentcontext, cursussen/StudyReader/annotaties, sociale schermen, daar
 realtime/spellen/audio. Socket.io vereist eigen native sessiehandshake; niet impliciet
 het cookiecontract aanpassen. Native push volgt afzonderlijk. Geen offline
 voortgangsqueue zonder apart servervalidatiecontract.
+
+## Gedeelde navigatie na de proef
+
+`AppNavigation` heeft afzonderlijke Next- en lokale adapters. De bestaande
+Foundation-toestanden hebben lokale routes en delen geschiedenis met systeemterug;
+lezen herstelt bij herladen. Privacy/cookies delen hun componenten met web en zijn
+lokaal gebundeld. StickyHeader, ShellMetrics en focusmodi worden hergebruikt.
+Volledige route-/functiepariteit en native data-adapters volgen per feature;
+een geregistreerde proefroute is geen volledige webfunctie.
+
+## Accountcontracten na de proef
+
+De gedeelde accountdatapoort en wachtwoord-/QR-/herstelcodecomponenten hebben
+web/native adapters. `account/password` gebruikt dezelfde actuele User-lock/
+sessieversieservice als web en vereist native wachtwoord/TOTP-herauthenticatie.
+Verplichte wachtwoord-/beheerder-TOTP-setup gebruikt het op 21 oktober 2026 door
+de eigenaar goedgekeurde eenmalige challengebeleid: maximaal vijf minuten,
+account/doel/versiegebonden, geen normale sessie of API-toegang tot voltooiing.
+Na logout/heropening wordt uitsluitend de beveiligd bewaarde intrekking uitgevoerd.
+
+De migratie `20261127120000_native_security_setup` voegt twee nullable challenge-
+velden toe en breidt uitsluitend de intent-check uit. Eigen PostgreSQL/Redis en
+rollback-/behoudtests controleren bestaande sessies, identiteiten en Apple-challenges.
+De volledige accountlevenscyclus en fysieke apparaten blijven open in de matrix.
+
+## Lokaal wachtwoordherstel
+
+`PasswordResetForm` deelt de bestaande velden, styling en web-TOTP-stap met de
+lokale app, met aparte data-adapters. Native `POST reset-password` accepteert alleen
+`token` en `newPassword`, gebruikt dezelfde `resetPasswordWithToken` (eenmalig,
+vervaltijd, User-lock, intrekking van overige resetlinks en sessieversie) en geeft
+uitsluitend `{ok:true, reauthenticationRequired:true}` terug: geen sessie/cookie of
+2FA-bypass. Dezelfde gedeelde IP-budgetnaam als web beschermt tegen kanaalwisselen.
+
+In Wachtwoord vergeten → Resetlink openen kan de gebruiker de bestaande mail-URL
+plakken. De parser aanvaardt uitsluitend de geconfigureerde backend-origin, het
+exacte herstelpad en één token van de bestaande 43-tekensvorm. OS-launch-/openlinks
+gebruiken dezelfde parser. De native hash/history bevatten alleen het lokale pad;
+resetbewijzen blijven in werkgeheugen en verdwijnen bij verlaten/herladen/afronden.
+Geen automatische login of herhaling van de mutatie. Na voltooiing kiest de
+gebruiker Terug naar inloggen; de lokale sessie wordt dan veilig uitgelogd.
+
+Universal Links / Android App Links, mail→OS-dispatch en echte apparaten zijn nog
+niet geconfigureerd/bewezen. De plakflow werkt zonder die associaties; Chromium is
+geen bewijs voor OS-dispatch, Keychain/Keystore of fysieke toetsenbordbediening.
+
+## Lokale e-mailbevestiging
+
+`POST verify-email` accepteert uitsluitend een begrensd mailbewijs en geeft alleen
+`status: confirmed/already/expired/invalid`. De bestaande registratieclaim maakt
+precies hetzelfde account met dezelfde cursus-/uitnodigingsregels; native krijgt
+geen User, returnTo, cookie of NativeSession. Oude EMAIL_VERIFY-links bevestigen
+het bestaande account via een atomische User-lock-/tokenclaimtransactie. Web
+behoudt redirect/cookie voor nieuwe registraties en bevestigt oude links zonder
+nieuwe cookie. Native vereist daarna gewone login met alle beveiligingspoorten.
+
+`EmailConfirmationCard` is de bestaande web-uitkomstkaart; `MailLinkForm` deelt
+lokale linkinvoer met reset. Dezelfde strikte backend-origin-/tokenparser bewaakt
+plakken en OS-launch/open. Bevestigen vereist een expliciete actie; bewijs blijft
+in geheugen. De runtime onderscheidt launch en nieuwe openacties om een oude
+launchlink niet opnieuw te openen bij herbinden na een taalwijziging. Ontvangen
+links na het opruimen van de vorige runtime worden genegeerd.
+
+Een open registratie wordt bij native login alleen na juist wachtwoord herkend;
+hermailing gebruikt de bestaande `resendPendingVerification` en mailgrens. Oude
+onbevestigde accounts opnieuw mailen, onboarding, overige accountfuncties, echte
+mail→OS-dispatch en fysieke apparaten blijven open.
+
+## Native sockettransport
+
+De eigenaar heeft een eenmalig bewijs van maximaal 60s goedgekeurd; zie het
+[exacte contract en de levensduurcontroles](PLATFORMEN.md#native-realtime-eenmalig-handshakebewijs).
+`socketTickets.ts` maakt een onvoorspelbaar bewijs en verbruikt de Redis-hashkey
+atomair. `socketAuth.ts` scheidt de native handshake expliciet van webcookies.
+`activeNativeSession` is dezelfde DB-bron voor API en verbonden native sockets;
+het ticket geeft geen eigen verversbare sessie of andere rechten.
+
+`NativeSocketConnection` haalt bij elke poging een vers bewijs op en bewaart het
+alleen tot handshake-uitkomst. Een sessiegeneratiewissel sluit direct het oude
+transport; late bewijzen kunnen de nieuwe gebruiker niet verbinden. Runtime-
+herstel sluit aan op de bestaande lokale app. Webauthenticatie, Redis-adapter,
+server-authoritative spelhandlers en bestaande gebruikersrooms blijven behouden.
+
+De geïsoleerde runner start twee afzonderlijke processen met echte Next-routes en
+de echte Socket.io-server op dezelfde eigen PostgreSQL/Redis. Gerichte tests staan
+in `tests/native-socket.test.ts` en `tests/native-socket.integration.test.ts`.
+De fixture heeft uitsluitend testevents; zij wordt nooit als appcode gebundeld.
+Echte spelhervatting/HA en fysieke platforms moeten later per functie volgen.
+Geen merge, deployment of onafhankelijke acceptatie door deze implementatie.
 
 ## Externe voorwaarden
 
@@ -80,6 +191,9 @@ niet actief. Geen token in deeplink of querystring. Zie de configuratiehandleidi
 | --- | --- |
 | GET capabilities | Versie 1 en werkelijk geconfigureerde Apple-mogelijkheid |
 | POST login, register, forgot-password | Begrensde invoer; bestaande accounts/mail/TOTP |
+| POST verify-email | Bestaand eenmalig registratie-/EMAIL_VERIFY-bewijs; alleen status, geen sessie |
+| POST reset-password | Bestaand eenmalig resetmailbewijs + nieuw wachtwoord; geen sessie, opnieuw inloggen |
+| POST realtime/session | Actuele NativeSession; eenmalig Redis-handshakebewijs van maximaal 60s, geen tweede sessie |
 | POST refresh, logout | Refreshgeheim + UUID actionId; rotatie/intrekking |
 | POST apple/challenge, apple/complete | Eenmalige state/nonce, serververificatie |
 | DELETE apple | Eigen account, actuele wachtwoord/TOTP-herauthenticatie |
@@ -173,3 +287,15 @@ productiemigratie of live tests. Geen verborgen skips in de hierboven genoemde t
 De nieuwe CI-job voert dezelfde migratie-, auth- en browserflow uit op de gepushte
 head. Definitieve CI-links/status worden in de draft-PR vastgelegd. Fase 1 levert
 het veilige ontwikkelfundament en de beperkte leesproef; de releasegate blijft dicht.
+
+
+## CI-platformcompilatie
+
+De aanvullende workflow `native-platform-builds.yml` compileert Android Debug en
+een ongetekende iOS-simulatorapp met echte SDK's op CI. Zij gebruikt alleen een
+lokale developmentbundel met een gereserveerde, onbereikbare compile-backend.
+Een digestcontrole vergelijkt de assets vóór en na verpakking met `dist/native`.
+Beide SDK-runs zijn geslaagd op appcodecommit
+`e8714bbc7a8e7bb152ebf5f88aa4e9e4ca2254f7` (run 39654191278);
+zie PLATFORMEN voor de artifacts en actuele grens. Een compileprobe vervangt geen fysieke apparaat-/bridgeacceptatie,
+onafhankelijke audit of releaseprofiel.

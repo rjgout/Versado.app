@@ -220,10 +220,33 @@ De technische architectuur, migratieplanning en releasegates staan in
   en productie blijven onderscheiden. Omzeil nooit releasebeveiligingen;
   `CAPACITOR_BUILD_PROFILE=release` blijft geblokkeerd. Native push volgt apart;
   vraag geen onnodige permissies. Native identiteit: `app.versado.app`.
+- Verplichte native wachtwoord-/beheerder-TOTP-setup gebruikt uitsluitend een
+  kortlevende, eenmalige account-/doel-/sessieversiechallenge. Die geeft nooit
+  gewone Bearer-/refresh- of algemene API-toegang. Pas na alle verplichte stappen
+  volgt een sessie. Na logout/heropening mag alleen de beveiligde intrekking
+  worden uitgevoerd; deel accountformulieren en domeinservices met web.
+- Native reset-/bevestigingsmailbewijzen geven nooit een sessie of TOTP-bypass. Gebruik dezelfde
+  eenmalige backendclaim als web; het ontvangen bewijs blijft in werkgeheugen,
+  nooit in lokale hash/history, browseropslag of Keychain/Keystore. Alleen exact
+  gevalideerde backendlinks verwerken; na reset opnieuw inloggen via alle poorten.
+- Native realtime gebruikt uitsluitend een eenmalig handshakebewijs van maximaal
+  60s, gebonden aan de bestaande User/NativeSession. Redis verbruikt het atomair;
+  geen tweede sessiesysteem of lokale replay-noodopslag. Per verbinding/pakket
+  en gedurende de levensduur opnieuw sessiegeldigheid controleren. Cookies zijn
+  nooit native identiteit/terugval; reconnect haalt een nieuw bewijs op en
+  accountwissel sluit oude sockets/listeners/buffers vóór netwerkbevestiging.
 - Controleer risicogebaseerd: web/PWA, Capacitor-preview, lokale native geschiktheid,
   platformonafhankelijke API/auth, safe areas/keyboard/oriëntatie/navigatie,
   offline/fouten en relevante regressies. Kleine tekstwijzigingen vereisen geen
   volledige native builds. Claim geen apparaatvalidatie zonder echte test.
+- Een nieuwe feature is pas **functioneel afgerond** wanneer zij beschikbaar en
+  bruikbaar is op web/PWA, iOS/iPadOS en Android, of wanneer de eigenaar een
+  expliciete platformuitzondering heeft goedgekeurd. Leg die goedkeuring en het
+  testbewijs vast in [NATIVE-FEATURE-PARITY.md](docs/NATIVE-FEATURE-PARITY.md).
+  Een geregistreerde route, remote-preview of Chromium-test is geen bewijs van
+  native pariteit. Voer `npm run native:parity:check` uit; actualiseer bij wijzigingen
+  de inventaris en beoordeel de functie afzonderlijk. Noem native achterstand
+  expliciet en presenteer een web-implementatie niet als volledige platformoplevering.
 - Documenteer platformafwijkingen en architectuurbesluiten. Meld wanneer iets nog
   niet native-ready is met een concrete vervolgactie; blokkeer gewone
   webontwikkeling niet onnodig. De eigenaar doet productie-uitrol en live tests.

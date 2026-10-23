@@ -48,6 +48,7 @@ import { companionToMascot } from "@/lib/companion";
 import { messagesFor } from "@/lib/i18n";
 import { requestLanguage } from "@/lib/requestLanguage";
 import { APP_TAGLINE, resolveAppName } from "@/lib/brand";
+import NextNavigationProvider from "@/components/navigation/NextNavigationProvider";
 
 // PWA: manifest + icons zijn wat een browser nodig heeft om "toevoegen aan
 // startscherm"/installeren aan te bieden (samen met de service worker, zie
@@ -150,6 +151,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         <I18nProvider language={uiLanguage} messages={messagesFor(uiLanguage)}>
+        <NextNavigationProvider>
         <LiveDataProvider userId={user?.id} collectionId={contentContext?.active.id} language={contentContext?.contentLanguage} initialContentContext={contentContext ?? undefined} sessionKey={sessionKey}>
         <CompanionProvider character={companionToMascot(user?.companion)}>
         <StreakContinuationProvider userId={user?.id}>
@@ -254,6 +256,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </StreakContinuationProvider>
         </CompanionProvider>
         </LiveDataProvider>
+        </NextNavigationProvider>
         </I18nProvider>
       </body>
     </html>
