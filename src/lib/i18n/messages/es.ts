@@ -4,6 +4,17 @@ import { kompasEs } from "./kompas/es";
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
   accountDeletion: {
+    whatTitle: "¿Qué se elimina?",
+    whatBody: "Tu cuenta y los datos vinculados a ella, como el progreso, las amistades, las notas y los ajustes, se borran y no se pueden recuperar. Puedes leer más sobre tus datos en la {link}.",
+    privacyLink: "declaración de privacidad",
+    howTitle: "¿Cómo eliminas tu cuenta?",
+    howApp: "En la aplicación: abre tu perfil y elige «Eliminar cuenta».",
+    howWeb: "En el sitio web: inicia sesión y confirma con tu contraseña y, si usas la verificación en dos pasos, con tu código.",
+    noAccessTitle: "¿Ya no tienes acceso?",
+    noAccessBody: "¿No puedes entrar en tu cuenta? Primero establece una contraseña nueva; después podrás eliminar tu cuenta aquí. Una cuenta a la que solo accedes con Apple todavía no se puede eliminar aquí.",
+    signedOutHint: "Inicia sesión para eliminar tu cuenta.",
+    loginCta: "Iniciar sesión",
+    forgotCta: "Contraseña olvidada",
     title: "Eliminar cuenta",
     intro: "Confirma con tu contraseña para eliminar tu cuenta de forma permanente. No se puede deshacer.",
     withCode: "Introduce también el código de tu aplicación de autenticación o un código de recuperación.",

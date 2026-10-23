@@ -1,12 +1,10 @@
-import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import AccountDeletionClient from "@/components/AccountDeletionClient";
 
 export const dynamic = "force-dynamic";
 
-// Alleen voor ingelogde gebruikers; de publieke uitleg voor wie de app niet meer heeft volgt apart (WP4).
+// Bewust zonder login-redirect: wie de app niet meer heeft, vindt hier uitleg en een weg naar inloggen of een nieuw wachtwoord.
 export default async function AccountDeletionPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
-  return <AccountDeletionClient passwordLoginEnabled={user.passwordLoginEnabled} totpEnabled={user.totpEnabled} />;
+  return <AccountDeletionClient signedIn={!!user} passwordLoginEnabled={user?.passwordLoginEnabled ?? true} totpEnabled={user?.totpEnabled ?? false} />;
 }
