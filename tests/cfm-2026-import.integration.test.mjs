@@ -503,6 +503,7 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
   });
   const chosen = editions[2],
     chosenRun = report.lessons[2];
+  console.log("DBG", JSON.stringify({ chosen: { id: chosen.id, draft: chosen.draftRevisionId, ver: chosen.publicationVersion }, now: await prisma.studyLessonEdition.findUnique({ where: { id: chosen.id }, select: { draftRevisionId: true, publishedRevisionId: true, publicationVersion: true } }), run: chosenRun.runId, rev: chosenRun.revisionId }));
   await assert.rejects(
     publishStudyRevision(f.admin.actor, {
       editionId: chosen.id,
