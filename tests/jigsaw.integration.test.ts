@@ -72,20 +72,20 @@ test("een goed antwoord telt eenmalig als reeksactiviteit en geeft geen XP", { s
   assert.equal((await get(u.id)).currentStreak, 5);
 });
 
-test("een fout antwoord is definitief: geen reeks, juist antwoord getoond, geen tweede kans", { skip }, async () => {
+test("een fout antwoord is definitief en telt voor de reeks: juist antwoord getoond, geen tweede kans", { skip }, async () => {
   const u = await account();
   const { state, right, wrong } = await solved(u.id, 4, 12);
   const outcome = await L.game.answerJigsaw(u.id, state.token, wrong);
   assert.equal(outcome.status, "ok");
   if (outcome.status !== "ok") return;
   assert.equal(outcome.result.correct, false);
-  assert.equal(outcome.result.counted, false);
-  assert.equal(outcome.result.streak, null);
+  assert.equal(outcome.result.counted, true);
+  assert.equal(outcome.result.streak?.dayEarned, true);
   assert.equal(outcome.result.correctChoice, right);
-  assert.equal((await get(u.id)).currentStreak, 4);
+  assert.equal((await get(u.id)).currentStreak, 5);
   // Met hetzelfde token alsnog het goede antwoord proberen werkt niet.
   assert.equal((await L.game.answerJigsaw(u.id, state.token, right)).status, "already-answered");
-  assert.equal((await get(u.id)).currentStreak, 4);
+  assert.equal((await get(u.id)).currentStreak, 5);
 });
 
 test("een onvolledige of vervalste puzzel kan geen antwoord geven", { skip }, async () => {

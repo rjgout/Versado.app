@@ -41,11 +41,11 @@ test("clients werken de reeks niet zelf bij", () => {
   }
 });
 
-test("Woordzoeker blijft de gedocumenteerde tijdelijke uitzondering", () => {
+test("Woordzoeker telt bij afronding via de centrale reeksservice", () => {
   const doc = readFileSync("docs/LEERVOORTGANG.md", "utf8");
-  assert.ok(/Woordzoeker/.test(doc) && /tijdelijke uitzondering/i.test(doc));
+  assert.ok(/Woordzoeker/.test(doc) && /Alle woorden gevonden/.test(doc));
   const game = readFileSync("src/lib/wordSearch/game.ts", "utf8");
-  assert.ok(!/recordLearningActivity|finishActivity/.test(game), "Woordzoeker is in dit werk niet aangepast");
+  assert.ok(/recordLearningActivity/.test(game), "Woordzoeker gebruikt de centrale reeksservice");
 });
 
 test("de uitleg noemt geen verouderde reeksregel meer", () => {

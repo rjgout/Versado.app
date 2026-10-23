@@ -21,6 +21,15 @@ De bestaande lokale entry is `src/components/native/entry.tsx`; `NativeNavigatio
 
 De actuele broninventaris staat hieronder; de bijlage [native-feature-parity.inventory.json](native-feature-parity.inventory.json) bevat alle gevonden bestanden met inhoudshashes, importafhankelijkheden, requestpaden en bestaande testbestanden. De historische aantallen in PLATFORMEN beschrijven een oudere uitgangssituatie en gelden niet als actuele dekking.
 
+De reeksregel voor afgeronde spellen is gedeelde backendlogica: ook een fout
+puzzelantwoord, een voltooide Woordzoeker en een gespeelde, afgeronde run van
+Snelle Zendeling tellen via dezelfde reeksservice. Samen puzzelen telt vanaf één
+eigen geldige verbinding. Dit is gecontroleerd met geïsoleerde database- en
+webbrowsertests (`tests/game-streak-completion.integration.test.ts`,
+`tests/puzzle-completion.browser.mjs`). De bestaande beperkingen voor lokale
+native spelschermen in de matrix blijven open; er is geen apparaatvalidatie
+uitgevoerd voor deze wijziging.
+
 ## Gedeelde voorwaarden per functie
 
 Elke paginarij hieronder erft het bijbehorende domeinbeleid uit de functiematrix, inclusief opslag, fouten, beide native platformen, testvereisten en blokkades. De pagina- en API-tabellen voegen de exacte route, bron, rendergrens en aangetroffen contract-/authinformatie toe. Een lege native contractdekking betekent **ontbreekt**, niet toegestaan via een algemene bearer-bypass.

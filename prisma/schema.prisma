@@ -2047,9 +2047,12 @@ model StreakActivity {
   userId String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   key String
+  // Eigen kalenderdag van een geldige activiteit; retries behouden de oorspronkelijke dag.
+  dayKey String?
   createdAt DateTime @default(now())
 
   @@unique([userId, key])
+  @@index([userId, dayKey])
 }
 
 model StreakDay {
@@ -3283,8 +3286,8 @@ model AlleskennerEvening {
 // --- Samen: vriendenreeksen, groepen en seintjes --------------------------
 //
 // Zie docs/SAMEN.md. De persoonlijke reeks blijft de enige bron van waarheid:
-// een dag telt voor een vriendenreeks of groepsreeks als die gebruiker op zijn
-// eigen kalenderdag een StreakDay heeft (gestudeerd of bevroren). Hier staat
+// een vriendenreeks volgt StreakDay; voor groepen telt ook de eerste geldige
+// activiteit tijdens terugkeer via StreakActivity.dayKey. Hier staat
 // dus geen eigen activiteit, alleen de stand van de sociale reeksen zelf.
 
 enum FriendStreakStatus {

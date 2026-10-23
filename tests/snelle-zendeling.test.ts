@@ -232,7 +232,7 @@ describe("Snelle Zendeling gameplay", () => {
     assert.match(source, /quickMissionary\.backToGames/);
     assert.match(source, /keepalive: true/);
     assert.doesNotMatch(source, /SubpageBackBar|FocusLayout/);
-    assert.doesNotMatch(server, /recordLearningActivity|competitionXp|awardXp/);
+    assert.doesNotMatch(server, /competitionXp|awardXp/);
   });
 
   it("vraagt bevestiging vóór een Genees-noodkoop in solo en samen spelen", () => {

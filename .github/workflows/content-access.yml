@@ -83,6 +83,7 @@ on:
       - 'data/study-content/cfm-2027-nl/**'
       - 'tests/cfm-2027*'
       - 'tests/cfm-sources*'
+      - 'Dockerfile'
       - 'tests/cfm-auto-publish*'
       - 'tests/cfm-2026*'
       - 'tests/cfm-programme*'
