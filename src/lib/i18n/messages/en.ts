@@ -3788,8 +3788,8 @@ export const en: PartialMessages = {
     "reviewBlocked": "I have reviewed the {count} blocked references. Display these only as non-clickable text.",
     "release": "Release collection content",
     "releaseConfirm": "All lessons have been published individually. Release the collection for normal administrator use. User visibility remains unchanged.",
-    "approveImport": "CFM 2026: approve snapshot {snapshot} to update 52 draft lessons. Existing publications and visibility remain unchanged.",
-    "includeCfm": "Update CFM 2026 drafts",
+    "approveImport": "Come, Follow Me: approve snapshot {snapshot} to update {lessons} official lessons. Technically validated lessons are published automatically; a volume becomes visible to users at its first complete release; after that the existing visibility switch stays in control.",
+    "includeCfm": "Update Come, Follow Me and publish automatically",
     "sourceMissing": "The pinned CFM source files are missing. No CFM import will run.",
     "spaceMissing": "Persistent study media storage is unavailable. Restore storage before updating CFM."
 },

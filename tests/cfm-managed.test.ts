@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { cfmApprovedSnapshot, requireCfmApproval } from "../src/lib/studyContent/sourceApproval";
-import { cfmDisplayOnlyKeys } from "../src/lib/studyContent/cfmReview";
+import { cfmDisplayOnlyKeys, cfmReviewedDisplayOnlyKeys } from "../src/lib/studyContent/cfmReview";
 import { loadCfmLesson } from "../src/lib/studyContent/cfm2026Import";
 import { cfmSnapshotItem } from "../src/lib/studyContent/cfm2026Adapter";
 
@@ -16,7 +16,7 @@ test("alle 52 lessen behouden 3200 blokken; alleen de 553 exact beoordeelde verw
  for(let i=1;i<=52;i++){
   const parsed=await loadCfmLesson(String(i).padStart(2,"0"));blocks+=parsed.inventory.blockCount;
   const item=cfmSnapshotItem(parsed,()=>Buffer.alloc(0));
-  const keys=await cfmDisplayOnlyKeys(item.sourceKey,item);blocked+=keys.length;
+  const keys=await cfmReviewedDisplayOnlyKeys(item.sourceKey,item);blocked+=keys.length;const permitted=await cfmDisplayOnlyKeys(item.sourceKey,item);assert.ok(keys.every(k=>permitted.includes(k)),"de beoordeelde verwijzingen blijven toegestaan");
   if(i===1){await assert.rejects(cfmDisplayOnlyKeys(item.sourceKey,{...item,title:"Gewijzigde ongereviewde inhoud"}));await assert.rejects(cfmDisplayOnlyKeys(item.sourceKey,item,"0".repeat(64)));}
  }
  assert.equal(blocked,553);assert.equal(blocks,3200);

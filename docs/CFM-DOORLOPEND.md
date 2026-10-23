@@ -101,10 +101,86 @@ verschijnen of verdwijnen van een jaargang en het archief deze rijen niet wijzig
   cursussen, toegang per jaargang, kiezer, bewaren per jaargang, archief, behoud van gebruikersgegevens).
 - `npm run test:kompas`, `npm run test:focus`, `npx tsx scripts/i18n/check.ts`.
 
-## 6. Een nieuwe jaargang toevoegen (fase A: register)
+## 6. Een nieuwe jaargang toevoegen
 
-1. Voeg een regel toe aan `CFM_VOLUMES` (`cfmVolumes.ts`): jaar, schriftuuronderdeel, `workKey`, `editionKey`, taal,
-   `collectionId`, `collectionSlug` (vast, nooit afgeleid van volgorde of naam).
-2. Het bronmanifest en de import volgen in de generieke importroute (zie de latere paragrafen van dit document).
-3. Er is geen datamodelmigratie, geen nieuwe cursus en geen nieuwe kiezerkeuze nodig; de collectie blijft standaard
-   verborgen (`visibleToUsers=false`, `DRAFT`) tot beheer haar vrijgeeft (docs/CONTENT-AVAILABILITY.md).
+1. **Register** (`cfmVolumes.ts`): een regel in `CFM_VOLUMES` met jaar, schriftuuronderdeel, `workKey`, `editionKey`, taal,
+   `collectionId` en `collectionSlug` (vast, nooit afgeleid van volgorde of naam).
+2. **Bron** (`cfmSources.ts`): een `CfmVolumeSource` met het manifest (officiële weekdatums, `cfmXXXXManifest.ts`), de
+   adapteridentiteit (`cfm-<jaar>-<taal>-v1`), de gegevensmap `data/study-content/cfm-<jaar>-<taal>/` (gepinde `source/*.json`,
+   `source-lock.json`, `media-lock.json`), het schriftuurprofiel (of `null`, zie §7) en de goedkeuringsbestanden.
+3. Er is geen datamodelmigratie, geen nieuwe cursus en geen nieuwe kiezerkeuze nodig. De collectie blijft standaard
+   verborgen (`visibleToUsers=false`, `DRAFT`) tot beheer haar zichtbaar maakt (docs/CONTENT-AVAILABILITY.md).
+4. Importeren en publiceren gaat via **Adminbackend → Content opnieuw laden** (zie §8); nooit via de terminal als normale
+   beheerworkflow.
+
+Tests die een nieuwe jaargang automatisch meenemen: `tests/cfm-sources.test.ts` (registerconsistentie, adapteridentiteit,
+gepinde hashes per les) en `tests/cfm-programme.test.ts`.
+
+## 7. Generieke importarchitectuur (fase B)
+
+Er is één importengine. Wat jaargebonden was, hangt nu aan een `CfmVolumeSource` (`cfmSources.ts`):
+
+| Onderdeel | Generiek | Compatibel met 2026 |
+|---|---|---|
+| Adapter/parser (`cfm2026Adapter.ts`) | `parseCfmLesson(key, bron, media, volume)`, `cfmReferenceTarget(..., volume)` | zonder `volume` = CFM 2026, ongewijzigde uitvoer en hashes |
+| Import (`cfm2026Import.ts`) | `importCfmDrafts(actor, volume, opties)`, `importAllCfmDrafts` | `importCfm2026Drafts`, `loadCfmLesson(key)` |
+| Locks | `cfm-<jaar>-catalogue` + de bestaande per-les import- en publicatielocks | `cfm-2026-catalogue` ongewijzigd |
+| Beleid/rechten (`policy.ts`) | `isCfmAdapter`: alleen een geregistreerde, gepinde adapter | `cfm-2026-nl-v1` |
+| Voorcontrole, vrijgave, beheeroverzicht | `matchesCfmCatalogue(manifest, ...)`, `cfmSourceOfCollection` | `matchesCfm2026Catalogue` |
+| Goedkeuring (`sourceApproval.ts`) | één snapshot over alle geregistreerde jaargangen | snapshot van een ongewijzigde 2026 gelijk |
+
+Bestaande bronidentiteiten (`cfm-2026-nl-v1`, werk/editie/collectie, importruns, revisies, mediahashes) blijven ongewijzigd.
+De import hergebruikt snapshots, revisies, leases/fencing, hashes en media (hergebruik per checksum) en maakt nooit een
+tweede collectie of dubbele lessen aan. Een deploy of herstart importeert niets.
+
+**Schriftuurprofiel.** Alleen het Oude Testament (OTB) heeft een bewezen hoofdstuk- en verzenindex
+(`cfmScripture.ts`, `OT_SCRIPTURE`). Een jaargang zonder profiel (Nieuwe Testament, later Boek van Mormon) legt nooit een
+interne schriftlink: de officiële bron-URL blijft de enige identiteit en de verwijzing volgt daarna de gewone regels.
+Een interne link voor een nieuw werk vereist eerst een eigen bewezen index; er wordt nooit een link gegokt.
+
+## 8. Automatische publicatie
+
+**Toestemming.** De projecteigenaar bevestigt dat Versado volledige gebruiksrechten heeft voor de officiële CFM-teksten en
+media en geeft toestemming om CFM-lessen automatisch te publiceren zonder handmatige inhoudelijke goedkeuring per les. De
+schriftelijke bewijsstukken blijven administratief buiten de repository. Deze toestemming geldt voor de werking van de
+voorziening na een goedgekeurde uitrol, niet voor het onmiddellijk wijzigen van de huidige productieomgeving.
+
+**Werking** (`cfmAutoPublish.ts`, `autoPublishCfmVolume`): alleen na de bewuste beheeractie *Content opnieuw laden* met de
+goedgekeurde snapshot (nooit bij opstarten, deploy of migratie):
+
+1. De import schrijft uitsluitend conceptrevisies.
+2. Per jaargang draait de bestaande voorcontrole (`studyProgramReview`: bron, media, rechten, verwijzingen, catalogus).
+3. Elke les met status `ready` gaat door `publishStudyRevision` (dezelfde bron-, media-, rechten-, verwijzings- en
+   versievalidatie en audit als bij handmatige publicatie). De actie-ID is afgeleid van jaargang + les + revisie, dus een
+   herhaling na een onderbreking is idempotent en een mislukte update laat reeds gepubliceerde lessen ongemoeid.
+4. Een les die de voorcontrole blokkeert blijft concept en staat met zijn codes in het rapport; de overige lessen worden wel
+   gepubliceerd. Een ongeldige catalogus publiceert niets.
+5. Is de hele set gepubliceerd, dan volgt de bestaande inhoudelijke vrijgave van de collectie (`releaseStudyCollection`,
+   `publicationState` → `PUBLISHED`).
+6. **Zichtbaarheid na de eerste volledige vrijgave:** is de collectie volledig vrijgegeven (`PUBLISHED`, `enabled`) en nog
+   niet zichtbaar, dan zet `autoPublishCfmVolume` éénmalig `visibleToUsers=true` (voorwaardelijke `updateMany`), zodat beheer
+   niet na elke import handmatig een jaargang hoeft te activeren. Een door beheer verborgen collectie wordt bij een latere
+   import nooit opnieuw getoond (alleen de eerste vrijgave schakelt in). Veiligheid: alleen via de beheeractie met goedgekeurde
+   snapshot, nooit bij opstarten/deploy/migratie; een geblokkeerde les houdt de collectie op concept en dus verborgen.
+   Noodstoppen: `CFM_AUTO_PUBLISH=off` (geen publicatie) en `CFM_AUTO_VISIBLE=off` (wel publiceren, niet tonen). Een
+   gelijktijdige run krijgt `busy` (dezelfde lock als de beheerbatch).
+
+Het rapport (jobverslag van *Content opnieuw laden*) noemt per jaargang: status, nieuw/al gepubliceerd, geblokkeerd,
+mislukt en de verwijzingsaantallen (bewezen, als tekst, blokkerend).
+
+### Verwijzingen die niet te openen zijn
+
+De eigenaar accepteert dat CFM-inhoud bekende, inhoudelijk onoplosbare verwijzingen bevat. Die blokkeren de publicatie niet
+meer en worden als veilige, niet-klikbare tekst getoond; er wordt nooit een URL verzonnen of geraden
+(`cfmReferencePolicy.ts`). Vier categorieën:
+
+| Categorie | Voorbeeld | Behandeling |
+|---|---|---|
+| Bekende, inhoudelijk onoplosbare verwijzing | goed gevormde officiële verwijzing die de centrale resolver niet bewijst (`otb:`‑doel zonder bewijs, `unverified-numbering/-range`, officiële `assets`‑video) | **als tekst gepubliceerd** (alleen als de resolver ze werkelijk niet oplost) |
+| Onveilige URL | geen https, inloggegevens, poort, host buiten `www`/`assets.churchofjesuschrist.org`, `javascript:`, `data:` | blokkeert de les, tenzij uitdrukkelijk eerder beoordeeld (`reference-review.json`) |
+| Kapotte bronstructuur | ontbrekende anker, tekstverlies, onbekend element | de import weigert de bron (hash- en tekstvolledigheidscontrole) |
+| Onbekende fout | niet te classificeren doel | blokkeert de les |
+
+Het besluit en de aantallen staan in het importverslag en in de voorcontrole (`totals.displayOnly`/`blocking`). Voor CFM 2026
+zijn dat 553 reeds beoordeelde gevallen (bevestigd door `tests/cfm-2026-import.integration.test.mjs`); het nieuwe beleid
+voegt geen klikbare links toe en verandert geen oorspronkelijke targets of normalisaties.

@@ -295,7 +295,17 @@ importadapter verwerkt. Iedere import gebruikt een expliciete doelcollectie;
 nooit de eerste enabled collectie of de actuele profielkeuze als impliciet
 doel voor canonieke bronbestanden. Een vereiste snapshotgoedkeuring wordt expliciet in het
 bestaande beheer gevraagd; geen Docker-terminal als normale beheerworkflow.
-Import, deployment en migrations publiceren nooit automatisch. Inhoudelijke
+Import, deployment en migrations publiceren nooit automatisch. **Enige uitzondering,
+op uitdrukkelijk verzoek van de eigenaar en alleen voor officiële CFM-bronnen**
+(geregistreerd in `cfmSources.ts`): na de bewuste beheeractie "Content opnieuw
+laden" met goedgekeurde snapshot publiceert `autoPublishCfmVolume`
+(`src/lib/studyContent/cfmAutoPublish.ts`) de technisch gevalideerde lessen via
+`publishStudyRevision` en geeft de collectie inhoudelijk vrij; een geblokkeerde
+les blijft concept, de eerste volledige vrijgave zet `visibleToUsers` aan (daarna
+blijft de bestaande beheerschakelaar leidend; noodstoppen `CFM_AUTO_PUBLISH=off`/
+`CFM_AUTO_VISIBLE=off`) en er is nooit publicatie bij opstarten, deploy of
+migratie. Dit is geen algemene toestemming voor automatische publicatie van
+andere content (zie `docs/CFM-DOORLOPEND.md` §8). Inhoudelijke
 vrijgave gebruikt de bestaande revisie-/publicatieaudit. Een beheerder kan
 LEGACY/PUBLISHED én enabled content via de normale kiezer/reader gebruiken,
 ook als visibleToUsers=false; DRAFT blijft uitsluitend beheerpreview.

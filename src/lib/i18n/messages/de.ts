@@ -3788,8 +3788,8 @@ export const de: PartialMessages = {
     "reviewBlocked": "Ich habe die {count} gesperrten Verweise geprüft. Diese ausschließlich als nicht anklickbaren Text anzeigen.",
     "release": "Sammlungsinhalt freigeben",
     "releaseConfirm": "Alle Lektionen wurden einzeln veröffentlicht. Die Sammlung für die normale Nutzung durch Administratoren freigeben. Die Sichtbarkeit für Benutzer bleibt unverändert.",
-    "approveImport": "CFM 2026: Snapshot {snapshot} für die Aktualisierung von 52 Lektionsentwürfen genehmigen. Bestehende Veröffentlichungen und Sichtbarkeit bleiben unverändert.",
-    "includeCfm": "CFM-2026-Entwürfe aktualisieren",
+    "approveImport": "Komm, folge mir nach: Snapshot {snapshot} genehmigen, um {lessons} offizielle Lektionen zu aktualisieren. Technisch validierte Lektionen werden automatisch veröffentlicht; ein Jahrgang wird bei der ersten vollständigen Freigabe für Benutzer sichtbar; danach bleibt der bestehende Sichtbarkeitsschalter maßgeblich.",
+    "includeCfm": "Komm, folge mir nach aktualisieren und automatisch veröffentlichen",
     "sourceMissing": "Die fixierten CFM-Quelldateien fehlen. Es wird kein CFM-Import ausgeführt.",
     "spaceMissing": "Der dauerhafte Medienspeicher ist nicht verfügbar. Vor der CFM-Aktualisierung den Speicher wiederherstellen."
 },

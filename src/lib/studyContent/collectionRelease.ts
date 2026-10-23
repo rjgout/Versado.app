@@ -9,7 +9,8 @@ import {
   StudyPublishingError,
   type StudyAdmin,
 } from "./policy";
-import { cfmOldTestament2026NlManifest as manifest, matchesCfm2026Catalogue } from "./cfm2026Manifest";
+import { matchesCfmCatalogue } from "./cfm2026Manifest";
+import { cfmSourceOfCollection } from "./cfmSources";
 import { readStudyMedia } from "./storage";
 
 export const studyCollectionReleaseSchema = z
@@ -28,12 +29,9 @@ type ReleaseEdition = Prisma.StudyLessonEditionGetPayload<{
 }>;
 /** Dezelfde catalogusvoorwaarden voor overzicht én de gecontroleerde schrijftransactie. */
 function releaseCatalogueState(collection: ReleaseCollection | null, editions: ReleaseEdition[]) {
-  const supported =
-    collection?.contentWork?.kind === "STUDY_PROGRAM" &&
-    collection.work === manifest.workKey &&
-    collection.editionKey === manifest.editionKey &&
-    collection.language === manifest.language;
-  const complete = supported && matchesCfm2026Catalogue(collection!, editions) &&
+  const source = collection ? cfmSourceOfCollection(collection) : undefined;
+  const supported = collection?.contentWork?.kind === "STUDY_PROGRAM" && Boolean(source);
+  const complete = supported && matchesCfmCatalogue(source!.manifest, collection!, editions) &&
     editions.every((e) => e.publishedRevisionId);
   return {
     complete: Boolean(complete),
@@ -84,8 +82,9 @@ export async function releaseStudyCollection(
     },
   });
   if (recorded.length) {
+    const target = await client.contentCollection.findUnique({ where: { id: input.collectionId }, select: { work: true, editionKey: true, language: true } });
     if (
-      recorded.length !== manifest.lessons.length ||
+      recorded.length !== (target ? cfmSourceOfCollection(target)?.manifest.lessons.length : undefined) ||
       recorded.some(
         (a) => a.actorKey !== actor.id || a.requestHash !== requestHash,
       )
@@ -145,7 +144,7 @@ export async function releaseStudyCollection(
         },
       });
       if (
-        prior.length === manifest.lessons.length &&
+        prior.length === cfmSourceOfCollection(collection)?.manifest.lessons.length &&
         collection.publicationState === "PUBLISHED"
       ) {
         if (prior.some((a) => a.requestHash !== requestHash))
