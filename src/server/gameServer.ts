@@ -315,13 +315,20 @@ async function syncQuizRoom(room: RoomState): Promise<void> {
   if (room.quizSync) return room.quizSync;
   room.quizSync = (async () => {
     if (rooms.get(room.code) !== room) return;
-    // Een verlaten lobby mag geen blijvende SQL-poller worden. Een nieuwe
-    // join start het verversen opnieuw; actieve quizzen mogen wel afronden.
-    if (room.status === "LOBBY" && !ioInstance?.sockets.adapter.rooms.get(room.code)?.size) return;
+    // Een verlaten quizlobby houdt geen poller of persoonsgegevens in de
+    // cache vast. Een volgende join herlaadt de bestaande DB-deelname.
+    if (room.status === "LOBBY" && !ioInstance?.sockets.adapter.rooms.get(room.code)?.size) {
+      rooms.delete(room.code);
+      return;
+    }
     if (room.timer) clearTimeout(room.timer);
     await advanceLiveQuiz(room.id);
     const game = await readLiveQuiz(room.id);
-    if (!game) return;
+    if (!game) {
+      // Ook accountcascade kan het spel verwijderen zonder lokale cancel.
+      if (rooms.get(room.code) === room) rooms.delete(room.code);
+      return;
+    }
     if (game.quizIndex === null) { scheduleQuizRetry(room); return; }
     const payloads = game.quizQuestions.map(q => q.payload as unknown as QuizPayload);
     room.exercises = payloads.flatMap(p => p.mode === "EXERCISES" ? [p.exercise] : []);

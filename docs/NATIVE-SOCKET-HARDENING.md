@@ -273,8 +273,9 @@ antwoordden of de deadline voorbij is. Na de bestaande revealpauze wordt de
 volgende duurzame ronde geopend. Twee timers kunnen geen verschillende geldige
 rondes maken. Iedere betrokken instantie ververst zijn quizcache maximaal elke
 seconde met één in-flight-verversing per room en toont alleen de canonieke vragen.
-Een verlaten lobby stopt die poller. Dit is geen gemeten capaciteitstest; deze
-extra roomqueries komen bovenop de eerder beschreven sessiecontroles.
+Een verlaten quizlobby verwijdert haar cache en stopt die poller. Ook een door
+accountcascade verwijderd spel wordt uit de cache verwijderd. Dit is geen gemeten
+capaciteitstest; deze extra roomqueries komen bovenop de eerder beschreven sessiecontroles.
 
 Nieuwe clients sturen questionIndex mee. Oudere payloads zonder index worden
 gebonden aan de laatst aan die socket getoonde canonieke vraag; de bestaande
@@ -358,6 +359,12 @@ essentieel om oude retries ook na een code-rollback niet opnieuw betaalbaar te m
   Tailwind meldt gemengde schermmaat-eenheden; de i18n-inventaris meldt bestaande
   ontbrekende vertalingen. De SQL-/Redis-fouten in de foutinjectietests zijn
   verwachte testcondities, geen genegeerde testfailures.
+- De eerste brede browser-CI op `6b92eaef` faalde bij bestaand scrollherstel op
+  `/live` (180 verwacht, 196 gemeten). Geen scrolltest is versoepeld. De ongewijzigde
+  contentkiezerproef slaagt bij lokale herhaling op alle 48 combinaties; de
+  definitieve head krijgt opnieuw de volledige Actions-browsercontrole. Dit
+  incidentele resultaat blijft afzonderlijk zichtbaar, geen claim van een
+  gerepareerde navigatiebug.
 - Android-debugbuild, iOS-simulatorbuild en volledige browserregressies worden
   op de gepushte head door Actions gecontroleerd; links en uitslag staan op PR #179.
   Geen lokale Xcode/Android-SDK- of fysieke apparaatvalidatie geclaimd.
