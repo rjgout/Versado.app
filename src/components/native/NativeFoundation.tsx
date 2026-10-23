@@ -69,12 +69,20 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
     finally { if (id === sequence.current) setBusy(false); }
   }
   async function signInApple(link = false, isCurrent: () => boolean = () => true) {
-    const challenge = link ? await client.api<{ id: string; nonce: string; state: string }>("apple/challenge", { intent: "link", password, ...(code ? { code } : {}) })
+    const authorize = async (authCurrent: () => boolean = isCurrent) => {
+      const check = () => { if (!isCurrent() || !authCurrent()) throw new NativeClientError("session_changed", 409); };
+      check();
+      const challenge = link ? await client.api<{ id: string; nonce: string; state: string }>("apple/challenge", { intent: "link", password, ...(code ? { code } : {}) })
       : await client.publicRequest<{ id: string; nonce: string; state: string }>("apple/challenge", { intent: "signin" });
-    const result = await nativeAppleAuthorization(challenge.nonce, challenge.state);
-    const input = { uiLanguage, challengeId: challenge.id, identityToken: result.identityToken, state: result.state, ...(result.displayName ? { displayName: result.displayName } : {}), ...(code ? { code } : {}) };
-    if (link) await client.api("apple/complete", input);
-    else await client.accept(await client.publicRequest("apple/complete", input));
+      check();
+      const result = await nativeAppleAuthorization(challenge.nonce, challenge.state);
+      check();
+      const input = { uiLanguage, challengeId: challenge.id, identityToken: result.identityToken, state: result.state, ...(result.displayName ? { displayName: result.displayName } : {}), ...(code ? { code } : {}) };
+      if (link) return client.api("apple/complete", input);
+      return client.publicRequest("apple/complete", input);
+    };
+    if (link) await authorize();
+    else await client.authenticate(authorize);
     const data = await load(); if (!isCurrent()) return; setUser(data.me); setActivity(data.today.activity); setPassword("");
   }
   const button = `${secondaryButton} min-h-12 whitespace-normal`;

@@ -85,9 +85,15 @@ OPTIONS catch-all | Exacte native CORS-preflight | Geen uitbreiding naar willeke
 
 De bestaande hybride architectuur uit [PLATFORMEN.md](PLATFORMEN.md) blijft staan. Er komt geen remote-websiteproductieprofiel, algemene cookie/bearer-bypass, tweede frontendproduct of nieuwe offline beloningsbron.
 
-Voor het ontsluiten van alle schermen is één grote keuze voorgelegd: bestaande componenten per functie geschikt maken via gedeelde navigatie-/datapoorten (aanbevolen), of Next.js-imports alleen tijdens native bundeling vervangen door compatibiliteitsadapters. `CoursesClient`, `ProfileClient`, `LiveLobbyForm` en spelcomponenten gebruiken nu `next/link`, `next/navigation` en relatieve cookie-API's. De keuze bepaalt hoe alle schermen worden gedeeld en kan daarom niet stilzwijgend worden gemaakt. Tot het besluit worden deze brede UI-/API-migraties niet uitgevoerd; de inventaris, borging en gerichte sessiecorrecties kunnen wel voortgaan.
+De eigenaar heeft op 21 oktober 2026 gekozen voor **gedeelde navigatie- en datalaag per functie**: bestaande schermcomponenten worden stapsgewijs bruikbaar voor Next.js én de lokale app, met expliciete native API-contracten. `CoursesClient`, `ProfileClient`, `LiveLobbyForm` en spelcomponenten gebruiken nu nog Next-imports en relatieve cookie-API's. Die afhankelijkheden worden per functie vervangen door gedeelde poorten met afzonderlijke web/native adapters; er komen geen build-time Next.js-compatibiliteitsshims.
 
 Vervolg-PR's blijven afhankelijk van deze eerste matrix, het router/data-besluit en geteste authcorrecties. Daarna: shell/context/account → bestaande lees-/leer-/spelroutes → sociaal/realtime → media/push → release-/storevoorbereiding. Geen fase wordt technisch voltooid verklaard zolang een bestaande functie ontbreekt of apparaat-/onafhankelijk bewijs ontbreekt.
+
+## Verificatie sessiewisselingen
+
+De client serialiseert beveiligde read/wijzig/write-transacties en bindt authenticatie, refresh en API-antwoorden aan één sessiegeneratie. Een laat antwoord van account A levert geen data of mutatie onder account B op. Ook de Apple-challenge begint binnen die generatie. Oude refreshgeheimen blijven als intrekkingsintentie in dezelfde Keychain/Keystore-status, naast een later ingelogd account, totdat de backend intrekking bevestigt. Een late logout wist alleen zijn eigen intentie. De 4096-byte bridgegrens blijft gelden; er worden geen intenties weggegooid om een nieuwe login passend te maken.
+
+`tests/native-foundation.test.ts` reproduceerde eerst drie oude races en bevat nu zeven extra regressies, waaronder offline heropening en een generatiewissel tijdens de native opslagwrite. Dit is technische clientverificatie met een opslagadapter; echte Keychain/Keystore- en Apple-apparaatacceptatie blijft open.
 
 ## Permanente controle
 

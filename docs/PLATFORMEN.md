@@ -11,9 +11,10 @@ route- of functie-dekking.
 
 Een nieuwe feature is pas functioneel afgerond op web/PWA én iOS/iPadOS/Android,
 of na een expliciete goedgekeurde platformuitzondering in de pariteitsmatrix.
-Brede native schermmigratie volgt de bestaande hybride architectuur; de keuze
-voor gedeelde routing-/datapoorten is ter besluitvorming voorgelegd. Tot die
-keuze is vastgelegd worden geen algemene bearer-bypass of Next.js-shims ingevoerd.
+Brede native schermmigratie volgt de bestaande hybride architectuur. De eigenaar
+heeft op 21 oktober 2026 de gedeelde navigatie- en datalaag per functie goedgekeurd:
+bestaande componenten krijgen web/native adapters en expliciete native contracten.
+Er komt geen algemene bearer-bypass of build-time Next.js-shim.
 Release en publicatie blijven afzonderlijk geblokkeerd tot de verplichte
 technische tests, echte apparaten en onafhankelijke acceptatie zijn afgerond.
 

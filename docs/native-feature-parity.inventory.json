@@ -11979,7 +11979,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "18526265875587f5c181d451937e3b9a994416fbed01d6f04930eb337db988f4",
+      "sha256": "afdd67417c282c76916781c0bc20aca46b95f3411db9d97bd9aa8f531818ea61",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -18707,10 +18707,11 @@
     },
     {
       "file": "src/lib/native/client.ts",
-      "sha256": "4840222954610857497703f1526ad2032fa2afe298a470b6abe2357d89b779aa",
+      "sha256": "e19cf1b8fd07f87bbf7c28eb85bf19d6a478f6141d15649a3433d5ffc778c205",
       "boundary": "context-dependent",
       "imports": [
-        "./contract"
+        "./contract",
+        "zod"
       ],
       "methods": [],
       "requests": [],
@@ -67486,7 +67487,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "18526265875587f5c181d451937e3b9a994416fbed01d6f04930eb337db988f4",
+      "sha256": "afdd67417c282c76916781c0bc20aca46b95f3411db9d97bd9aa8f531818ea61",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
