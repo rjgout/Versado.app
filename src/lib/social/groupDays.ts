@@ -8,7 +8,7 @@ import type { Db } from "@/lib/social/common";
 export interface GroupDayCounts {
   /** Leden die op deze dag meetellen (lid, en ingestapt vóór deze dag). */
   eligible: number;
-  /** Daarvan: wie de persoonlijke reeks die dag behield. */
+  /** Daarvan: wie die dag een geldige activiteit afrondde of de reeks behield. */
   contributors: number;
 }
 
@@ -18,7 +18,9 @@ export async function groupDayCounts(db: Db, groupIds: string[], dayKey: string)
   const rows = await db.$queryRaw<{ groupId: string; eligible: bigint; contributors: bigint }[]>(Prisma.sql`
     SELECT m."groupId",
            count(*) AS "eligible",
-           count(s."userId") AS "contributors"
+           count(*) FILTER (WHERE s."userId" IS NOT NULL OR EXISTS (
+             SELECT 1 FROM "StreakActivity" a WHERE a."userId" = m."userId" AND a."dayKey" = ${dayKey}
+           )) AS "contributors"
     FROM "GroupMembership" m
     LEFT JOIN "StreakDay" s ON s."userId" = m."userId" AND s."dayKey" = ${dayKey}
     WHERE m."groupId" = ANY(${groupIds}::text[]) AND m."leftAt" IS NULL AND m."eligibleFromDay" <= ${dayKey}

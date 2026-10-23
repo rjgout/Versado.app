@@ -529,7 +529,10 @@ In de praktijk:
 
 Zie `docs/SAMEN.md`. Sociale reeksen hebben geen eigen activiteitsregels:
 iemand draagt bij als hij op zijn eigen kalenderdag een `StreakDay` heeft
-(gestudeerd of bevroren). Dus nooit een tweede plek die bepaalt of iemand
+(gestudeerd, hersteld of bevroren). Voor groepen telt ook de eerste geldige
+activiteit tijdens terugkeer mee via `StreakActivity.dayKey`, vastgelegd door
+`recordLearningActivity`; persoonlijk herstel en vriendenreeksen wachten op
+`StreakDay`. Dus nooit een tweede plek die bepaalt of iemand
 vandaag "geldig actief" was, geen XP voor bijdragen, seintjes of geschonken
 bevriezingen, en limieten (5 vriendenreeksen, 10 groepen, 500 leden, 7 en 30
 dagen wachttijd) alleen via `src/lib/social/rules.ts` en de bestaande

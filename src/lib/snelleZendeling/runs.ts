@@ -1,3 +1,4 @@
+import { recordFinishedRun, announceRunStreaks, type RunStreakEvent } from "./streak";
 import { collectionAccessWhere } from "@/lib/contentAccess";
 import { prisma } from "@/lib/db";
 import { requireQuickMissionarySource, runSource, hasUsableReviveQuestions, type SourceReason } from "./source";
@@ -172,9 +173,9 @@ async function checkScore(tx: Tx, run: { matchId: string | null; startedAt: Date
 /** Na een wijziging in een wedstrijd: afsluiten als dat moet en de deelnemers laten verversen. */
 async function afterMatchChange(tx: Tx, matchId: string | null, at: Date): Promise<MatchAnnouncement | null> {
   if (!matchId) return null;
-  const { ended } = await settleMatch(tx, matchId, at);
+  const { ended, streaks } = await settleMatch(tx, matchId, at);
   const game = await tx.quickMissionaryMatch.findUniqueOrThrow({ where: { id: matchId }, select: { liveGame: { select: { code: true } }, runs: { select: { userId: true } } } });
-  return { code: game.liveGame.code, endedFor: ended ? game.runs.map((run) => run.userId) : null };
+  return { code: game.liveGame.code, endedFor: ended ? game.runs.map((run) => run.userId) : null, streaks };
 }
 
 /**
@@ -239,6 +240,7 @@ export async function reportDeath(runId: string, userId: string, score: number):
 }
 
 export async function finishQuickMissionaryRun(runId: string, userId: string, score: number): Promise<void> {
+  const streaks: RunStreakEvent[] = [];
   const code = await prisma.$transaction(async (tx) => {
     const run = await lockRun(tx, runId, userId);
     if (run.status === "FINISHED") return null;
@@ -248,6 +250,8 @@ export async function finishQuickMissionaryRun(runId: string, userId: string, sc
     if (!check.ok) throw new Error(check.reason);
     if (!run.matchId) {
       await tx.quickMissionaryRun.update({ where: { id: run.id }, data: { score: check.score, status: "FINISHED", finishedAt: at } });
+      const event = await recordFinishedRun(tx, { ...run, score: check.score }, at);
+      if (event) streaks.push(event);
       return null;
     }
     // In een wedstrijd is afsluiten een definitieve eliminatie: opgegeven of
@@ -258,6 +262,7 @@ export async function finishQuickMissionaryRun(runId: string, userId: string, sc
     return afterMatchChange(tx, run.matchId, at);
   });
   announceMatchChanged(code);
+  announceRunStreaks(streaks);
 }
 
 const MAX_UNUSABLE_QUESTIONS = 50;
@@ -356,6 +361,7 @@ export async function requestReviveQuestion(runId: string, userId: string): Prom
 
 export async function answerReviveQuestion(runId: string, userId: string, exerciseId: string, optionId: string): Promise<{ correct: boolean; view: QuickMissionaryRunView }> {
   let announce: MatchAnnouncement | null = null;
+  const streaks: RunStreakEvent[] = [];
   const result = await prisma.$transaction(async (tx) => {
     const run = await lockRun(tx, runId, userId);
     // Na afsluiting van de wedstrijd is de run FINISHED: een goed antwoord brengt
@@ -382,6 +388,8 @@ export async function answerReviveQuestion(runId: string, userId: string, exerci
       await eliminateRun(tx, run.matchId, run.id, "GENEES_WRONG", at);
     } else {
       await tx.quickMissionaryRun.update({ where: { id: run.id }, data: { status: nextStatus, finishedAt: at } });
+      const event = await recordFinishedRun(tx, run, at);
+      if (event) streaks.push(event);
     }
 
     // Geschiedenis en plek: goed -> volgend hoofdstuk, fout -> hetzelfde
@@ -402,6 +410,7 @@ export async function answerReviveQuestion(runId: string, userId: string, exerci
     return option.isCorrect;
   });
   announceMatchChanged(announce);
+  announceRunStreaks(streaks);
   return { correct: result, view: await getQuickMissionaryRunView(runId, userId) };
 }
 

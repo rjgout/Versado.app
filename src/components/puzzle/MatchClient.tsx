@@ -166,7 +166,7 @@ export default function MatchClient({ initial, meId }: { initial: MatchView; meI
                   <button type="button" className="btn-primary min-h-12 w-full max-w-[440px]" onClick={() => { writeStage("COMPLETE"); setFlow((value) => value + 1); }}>{t("puzzleTogether.match.questionOpen")}</button>
                 </div>
               ) : (
-                <p className="text-sm text-vs-fg-2" data-question-status>{match.me.question.correct === false ? t("puzzleTogether.match.questionWrong") : match.me.question.correct === true ? `${t("puzzleTogether.match.questionRight")} ${answerFeedback?.counted ? t("puzzleTogether.match.questionStreak") : ""}` : t("puzzleTogether.match.questionDone")}</p>
+                <p className="text-sm text-vs-fg-2" data-question-status>{match.me.question.correct === false ? t("puzzleTogether.match.questionWrong") : match.me.question.correct === true ? t("puzzleTogether.match.questionRight") : t("puzzleTogether.match.questionDone")} {answerFeedback?.counted ? t("puzzleTogether.match.questionStreak") : ""}</p>
               )}
             </>
           )}

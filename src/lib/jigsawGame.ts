@@ -135,7 +135,7 @@ export type JigsawAnswerOutcome =
   | { status: "already-answered" };
 
 /**
- * Het definitieve antwoord op de inhoudsvraag. Alleen een juist antwoord op
+ * Het definitieve antwoord op de inhoudsvraag. Elk geldig antwoord op
  * een echt complete puzzel telt als afgeronde activiteit; de reeks loopt via
  * recordLearningActivity (completeJigsaw). De puzzel zelf blijft gelegd,
  * ook bij een fout antwoord.

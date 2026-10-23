@@ -7,7 +7,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { dayKeyInZone, resolveTimeZone } from "@/lib/timeZone";
 import { GROUP_LIMIT_PER_USER, GROUP_MAX_MEMBERS, GROUP_MIN_MEMBERS, requiredContributors } from "@/lib/social/rules";
-import { keptOn, personSelect, type PersonSummary } from "@/lib/social/common";
+import { contributedOn, personSelect, type PersonSummary } from "@/lib/social/common";
 import { groupDayCounts } from "@/lib/social/groupDays";
 import { freezeCooldownUntil } from "@/lib/social/groupFreeze";
 import { nudgeAvailability, nudgesDisabled } from "@/lib/social/nudges";
@@ -53,7 +53,7 @@ async function todayFor(
     groupDayCounts(prisma, ids, dayKey),
     prisma.groupDay.findMany({ where: { groupId: { in: ids }, dayKey }, select: { groupId: true, status: true, contributorCount: true } }),
     prisma.groupFreezeOffer.findMany({ where: { groupId: { in: ids }, dayKey, status: { in: ["RESERVED", "CONSUMED"] } }, include: { user: { select: personSelect } } }),
-    keptOn(prisma, [userId], dayKey),
+    contributedOn(prisma, [userId], dayKey),
   ]);
   const result = new Map<string, GroupToday>();
   for (const group of groups) {
@@ -131,7 +131,9 @@ export async function groupDetail(groupId: string, userId: string, timeZone: str
     // Eigen bijdrage, eerlijk vanaf de eigen instapdag: alleen afgesloten
     // dagen waarop de reeks liep (gepauzeerde dagen tellen niet).
     prisma.$queryRaw<{ days: number; contributed: number }[]>(Prisma.sql`
-      SELECT count(*)::int AS "days", count(s."userId")::int AS "contributed"
+      SELECT count(*)::int AS "days", count(*) FILTER (WHERE s."userId" IS NOT NULL OR EXISTS (
+        SELECT 1 FROM "StreakActivity" a WHERE a."userId" = ${userId} AND a."dayKey" = d."dayKey"
+      ))::int AS "contributed"
       FROM "GroupDay" d
       LEFT JOIN "StreakDay" s ON s."userId" = ${userId} AND s."dayKey" = d."dayKey"
       WHERE d."groupId" = ${groupId} AND d."settledAt" IS NOT NULL AND d."status" <> 'PAUSED'
@@ -159,7 +161,7 @@ export async function groupDetail(groupId: string, userId: string, timeZone: str
   }
   const friendList = [...friendIds];
   const [friendKept, availability, disabled] = await Promise.all([
-    keptOn(prisma, friendList, dayKey),
+    contributedOn(prisma, friendList, dayKey),
     nudgeAvailability(prisma, userId, friendList, now),
     nudgesDisabled(prisma, friendList),
   ]);
