@@ -3055,7 +3055,7 @@ export const nl = {
     note3: "Koop je iets in een week waarin je nog niet geoefend hebt, dan doe je die week toch mee in je divisie, met een negatieve score. Dan kun je degraderen.",
     hints: "Hints",
     hintTitle: "💡 Hint",
-    hintText: "Highlight bij het Woordspel welke letters op je rek samen een woord kunnen vormen — overal inzetbaar waar hints gebruikt kunnen worden, ongeacht hoeveel je er verzamelt.",
+    hintText: "Gebruik hints voor extra hulp tijdens het spelen, bijvoorbeeld bij het Woordspel, Woord van de dag, Raad het hoofdstuk en de Legpuzzel. Alle spellen waarin je hints kunt inzetten gebruiken dezelfde voorraad. Je kiest in het spel welke beschikbare hulp je gebruikt.",
     quantity: "Aantal",
     geneesTitle: "Genees",
     geneesText: "Ga na een botsing verder in Vliegende Novi, Varo of Vera door één vraag over het Boek van Mormon goed te beantwoorden. Elke Genees hoort bij je account en werkt solo en in gezamenlijke runs.",
