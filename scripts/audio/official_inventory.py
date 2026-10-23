@@ -164,7 +164,7 @@ def inspect(task, options):
         row["actualVerseCount"] = len(verses)
         heading = re.findall(r'class="study-summary"[^>]*>(.*?)</p>', page["content"]["body"], re.S)
         row["sourcePageHash"] = canonical_hash({"heading": clean(heading[0]) if heading else None, "verses": [{"number": i + 1, "text": text} for i, text in enumerate(verses)]})
-        row["textStatus"] = ("EXACT_TEXT_MATCH" if verses == chapter["verses"] else "EDITION_MISMATCH") if task["textSeedAvailable"] else "EDITION_NOT_REGISTERED_IN_REPOSITORY"
+        row["textStatus"] = ("EXACT_TEXT_MATCH" if verses == chapter["verses"] and row["sourcePageHash"] == row["sourceHash"] else "EDITION_MISMATCH") if task["textSeedAvailable"] else "EDITION_NOT_REGISTERED_IN_REPOSITORY"
         row["differentVerses"] = [i + 1 for i, (a, b) in enumerate(zip(verses, chapter["verses"])) if a != b]
         sources = page.get("meta", {}).get("audio") or []
         row["officialStatus"] = "PRESENT" if sources else "NO_OFFICIAL_AUDIO"

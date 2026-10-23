@@ -54,7 +54,7 @@ test("gepubliceerde controlemetadata bindt alle doelen aan de echte tekstuitgave
  const seeds=new Map<string, {key?:string;slug:string;chapters:{number:number;heading?:string;verses:string[]}[]}[]>();
  const seen=new Set<string>(),referenced=new Set<string>();
  for(const row of inventory.chapters){
-  assert.equal(row.editionKey,row.work);assert.equal(row.pageIdentityStatus,"EXACT_LANGUAGE_AND_CHAPTER");assert.equal(row.textStatus,"EXACT_TEXT_MATCH");
+  assert.equal(row.sourcePageHash,row.sourceHash);assert.equal(row.editionKey,row.work);assert.equal(row.pageIdentityStatus,"EXACT_LANGUAGE_AND_CHAPTER");assert.equal(row.textStatus,"EXACT_TEXT_MATCH");
   const target=`${row.work}:${row.language}:${row.bookKey}:${row.chapterNumber}`;assert.ok(!seen.has(target));seen.add(target);
   const file=`prisma/${row.prefix}Content${row.language==="nl"?"":"."+row.language}.json`;
   if(!seeds.has(file))seeds.set(file,JSON.parse(await fs.readFile(file,"utf8")));

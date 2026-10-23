@@ -22,8 +22,8 @@ try {
     const collectionId = collection.id;
     const chapter = await db.chapter.findFirst({ where: { number: row.chapterNumber, book: { key: row.bookKey, contentCollectionId: collectionId } }, include: { verses: { orderBy: { number: "asc" } } } });
     if (!chapter) { mismatched++; continue; }
-    const pageHash = row.sourceHash ?? row.sourcePageHash;
-    if (chapterSourceHash(chapter) !== pageHash) { mismatched++; continue; }
+    const pageHash = row.sourcePageHash;
+    if (!pageHash || row.sourceHash !== pageHash || chapterSourceHash(chapter) !== pageHash) { mismatched++; continue; }
     for (const recording of row.recordings) {
       if (recording.status !== "DOWNLOADED_VALIDATED") continue;
       if (!/^audio\/[a-f0-9]{64}\.mp3$/.test(recording.localFile ?? "")) throw new Error("Ongeldig lokaal bronpad in inventaris.");

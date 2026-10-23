@@ -64,7 +64,7 @@ Alle uitlijningsuitkomsten en overige reviewpunten staan in [official-alignments
 
 - 7 audiounit-tests geslaagd (bronhash, segmenten, URL-schema, NL-seed, bestandstypes, Range/HEAD).
 - 25 geïsoleerde audio-integratietests geslaagd, inclusief twee Node-processen, rollback, sessierace, albumafbeeldingen en zes verborgen tekstuitgaven.
-- 4 Python-bron-/uitlijningsregressies geslaagd (host/taal/hoofdstukbinding, bestaande BOM-units, ontbrekende kop).
+- 5 Python-bron-/uitlijningsregressies geslaagd (host/taal/hoofdstukbinding, gewijzigde officiële kop, bestaande BOM-units, ontbrekende kop).
 - 43 bestaande native unit-tests geslaagd.
 - Productiedependencyaudit: 0 bekende kwetsbaarheden.
 - Kompas-opdracht: 60 geslaagd, 9 databaseafhankelijke tests overgeslagen in die opdracht; geen volledige Kompas-integratieclaim.
