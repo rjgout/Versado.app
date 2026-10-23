@@ -126,7 +126,7 @@ beslissing. Een blokkade met "alleen bij …" geldt alleen als die functie in de
 | `android-ci-bundle` | Geen CI-bewijs voor een Android App Bundle-release-build | code | **WP0 (deze PR)** |
 | `android-app-links` | Geen `autoVerify`-intent-filter | code + eigenaar (fingerprint) | WP7 |
 | `well-known-association` | Geen `apple-app-site-association` / `assetlinks.json` | code + eigenaar (Team ID, fingerprint) | WP7 |
-| `native-account-deletion` | Accountverwijdering niet vanuit de native app te starten | code | WP4 |
+| `native-account-deletion` | Accountverwijdering niet vanuit de native app te starten. **Deel 1 (WP4, `docs/ACCOUNT-VERWIJDERING.md`):** beveiligd API-contract en gedeeld formulier staan er; het native scherm ontbreekt nog, dus de blokkade blijft open | code | WP4 |
 | `web-account-deletion` | Geen publieke verwijderpagina (Google Play vraagt een weblink) | code + besluit | WP4 |
 | `terms-of-use` | Geen voorwaardenpagina | besluit + eigenaar (juridische tekst) | WP4 |
 | `apple-token-revocation` | Sign in with Apple: tokenintrekking en server-naar-server-meldingen ontbreken (alleen bij `apple-signin`) | code | WP4 |

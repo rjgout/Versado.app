@@ -28,7 +28,8 @@ const completeFiles = () => ({
   "public/.well-known/apple-app-site-association": "{}",
   "public/.well-known/assetlinks.json": "[]",
   "src/lib/native/api.ts": 'req.method === "DELETE" && path === "account"; minimumNativeVersion',
-  "src/app/account-verwijderen/page.tsx": "",
+  "src/app/account-verwijderen/page.tsx": "export default function Page() { return null; }",
+  "src/components/native/NativeFoundation.tsx": "<AccountDeletionForm />",
   "src/app/voorwaarden/page.tsx": "",
   "src/lib/appleRevoke.ts": "https://appleid.apple.com/auth/revoke",
   "package.json": '{"dependencies":{"@capacitor/push-notifications":"8"}}',
@@ -95,4 +96,13 @@ test("zonder vastgelegde origins blijft de eigenaarsblokkade open, ook als de co
     assert.equal(report.blockers.find((item) => item.id === "distribution-origins-configured").ok, false);
   }
   assert.equal(evaluate(memoryFs({ ...files, "scripts/native/distribution-origins.json": "{kapot" })).blockers.find((item) => item.id === "distribution-origins-configured").ok, false);
+});
+
+test("accountverwijdering telt pas als opgelost met een native scherm en een openbare webpagina (niet de ingelogde variant)", () => {
+  const files = completeFiles();
+  const blocker = (id, patch) => evaluate(memoryFs({ ...files, ...patch })).blockers.find((item) => item.id === id).ok;
+  assert.equal(blocker("native-account-deletion", {}), true);
+  assert.equal(blocker("native-account-deletion", { "src/components/native/NativeFoundation.tsx": "" }), false, "alleen een API-contract is geen scherm");
+  assert.equal(blocker("web-account-deletion", {}), true);
+  assert.equal(blocker("web-account-deletion", { "src/app/account-verwijderen/page.tsx": 'if (!user) redirect("/login");' }), false, "een ingelogde pagina is niet publiek");
 });

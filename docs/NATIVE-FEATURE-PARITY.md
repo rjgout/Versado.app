@@ -252,7 +252,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **140 pagina's**, **235 fysieke routehandlers**, **418 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **141 pagina's**, **235 fysieke routehandlers**, **421 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -261,6 +261,7 @@ De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clien
 Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en authbewijs in bron | Testbewijs
 --- | --- | --- | --- | --- | ---
 `/` | [src/app/page.tsx](../src/app/page.tsx); Server Component-entry | overig-vandaag | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/brand.ts; src/lib/branding.ts; src/lib/gameSettings.ts; src/lib/i18n/index.ts; src/lib/requestLanguage.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/account-verwijderen` | [src/app/account-verwijderen/page.tsx](../src/app/account-verwijderen/page.tsx); Server Component-entry | overig-vandaag | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/acties` | [src/app/acties/page.tsx](../src/app/acties/page.tsx); Server Component-entry | overig-vandaag | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/activity` | [src/app/activity/page.tsx](../src/app/activity/page.tsx); Server Component-entry | sociaal | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend` | [src/app/adminbackend/page.tsx](../src/app/adminbackend/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/contentCollections.ts; src/lib/db.ts; src/lib/deployAgent.ts; src/lib/email.ts; src/lib/i18n/index.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
@@ -645,6 +646,7 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 
 Module | Eigen grens | Geëxporteerde namen
 --- | --- | ---
+[src/app/account-verwijderen/page.tsx](../src/app/account-verwijderen/page.tsx) | contextafhankelijk / server-entry waar page/layout | AccountDeletionPage, dynamic
 [src/app/acties/page.tsx](../src/app/acties/page.tsx) | contextafhankelijk / server-entry waar page/layout | ActionsPage
 [src/app/activity/page.tsx](../src/app/activity/page.tsx) | contextafhankelijk / server-entry waar page/layout | ActivityPage
 [src/app/adminbackend/communicatie/page.tsx](../src/app/adminbackend/communicatie/page.tsx) | contextafhankelijk / server-entry waar page/layout | AdminCommunicationPage
@@ -787,6 +789,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/app/word-search/[gameId]/page.tsx](../src/app/word-search/[gameId]/page.tsx) | contextafhankelijk / server-entry waar page/layout | WordSearchGamePage
 [src/app/word-search/page.tsx](../src/app/word-search/page.tsx) | contextafhankelijk / server-entry waar page/layout | WordSearchPage
 [src/app/xp/page.tsx](../src/app/xp/page.tsx) | contextafhankelijk / server-entry waar page/layout | XpPage
+[src/components/AccountDeletionClient.tsx](../src/components/AccountDeletionClient.tsx) | use client | AccountDeletionClient
 [src/components/ActionsClient.tsx](../src/components/ActionsClient.tsx) | use client | ActionsClient
 [src/components/ActiveGamesBanner.tsx](../src/components/ActiveGamesBanner.tsx) | use client | ActiveGamesBanner
 [src/components/ActivityFeedClient.tsx](../src/components/ActivityFeedClient.tsx) | use client | ActivityFeedClient
@@ -906,6 +909,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/WordSearchClient.tsx](../src/components/WordSearchClient.tsx) | use client | WordSearchClient
 [src/components/XpHistoryClient.tsx](../src/components/XpHistoryClient.tsx) | use client | XpHistoryClient
 [src/components/account/AccountActionsProvider.tsx](../src/components/account/AccountActionsProvider.tsx) | use client | AccountActionsProvider, useAccountActions
+[src/components/account/AccountDeletionForm.tsx](../src/components/account/AccountDeletionForm.tsx) | use client | AccountDeletionForm
 [src/components/account/EmailConfirmationCard.tsx](../src/components/account/EmailConfirmationCard.tsx) | contextafhankelijk / server-entry waar page/layout | EmailConfirmationCard
 [src/components/account/MailLinkForm.tsx](../src/components/account/MailLinkForm.tsx) | use client | MailLinkForm
 [src/components/account/PasswordChangeForm.tsx](../src/components/account/PasswordChangeForm.tsx) | use client | PasswordChangeForm
