@@ -612,19 +612,24 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     (r) =>
       r.diagnosis === "EXTERNAL_VERIFIED" && r.normalized.url?.endsWith(".pdf"),
   );
-  const externalVideo = report.lessons[0].references.find(
-    (r) =>
-      r.diagnosis === "EXTERNAL_VERIFIED" &&
-      r.normalized.url?.endsWith("-nl.mp4"),
-  );
-  const externalEnglish = report.lessons[2].references.find(
-    (r) =>
-      r.diagnosis === "EXTERNAL_VERIFIED" &&
-      r.normalized.url?.endsWith("-en.mp4"),
-  );
-  assert.ok(externalEnglish);
+  // Officiële video's zijn sinds fase D geen verwijzing meer maar een eigen videoblok (anker video-…, titel als annotatietekst).
+  const videoOf = async (edition, suffix) => {
+    const revision = await prisma.studyRevision.findUniqueOrThrow({ where: { id: edition.draftRevisionId } });
+    let found;
+    (function walk(v) {
+      if (Array.isArray(v)) return v.forEach(walk);
+      if (v && typeof v === "object") {
+        if (v.type === "video" && v.externalUrl.endsWith(suffix) && !found) found = v;
+        Object.values(v).forEach(walk);
+      }
+    })(revision.body);
+    return found;
+  };
+  const videoNl = await videoOf(editions[0], "-nl.mp4");
+  const videoEn = await videoOf(chosen ?? editions[2], "-en.mp4");
+  assert.ok(videoEn);
   assert.ok(externalPdf);
-  assert.ok(externalVideo);
+  assert.ok(videoNl);
   const flow = {
     adminToken: f.admin.token,
     adminId: f.admin.user.id,
@@ -633,22 +638,13 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     externals: [
       {
         href: `/study-lesson/${chosen.lessonId}/${collection.id}`,
-        anchor: externalEnglish.anchor,
-        url: externalEnglish.normalized.url,
-        language: "en",
-        label: externalEnglish.label,
-      },
-      {
-        href: `/study-lesson/${chosen.lessonId}/${collection.id}`,
         anchor: externalPdf.anchor,
         url: externalPdf.normalized.url,
       },
-      {
-        href: `/study-lesson/${editions[0].lessonId}/${collection.id}`,
-        anchor: externalVideo.anchor,
-        url: externalVideo.normalized.url,
-        label: externalVideo.label,
-      },
+    ],
+    videos: [
+      { href: `/study-lesson/${chosen.lessonId}/${collection.id}`, id: videoEn.id, url: videoEn.externalUrl, title: videoEn.title, language: "en" },
+      { href: `/study-lesson/${editions[0].lessonId}/${collection.id}`, id: videoNl.id, url: videoNl.externalUrl, title: videoNl.title },
     ],
     ntHref: `/study-lesson/${editions[0].lessonId}/${collection.id}`,
     tableHref: `/study-lesson/${editions[40].lessonId}/${collection.id}`,

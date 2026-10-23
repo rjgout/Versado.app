@@ -524,6 +524,29 @@ try {
     });
     await context.close();
   }
+  // Ingebedde video's: gewone HTML5-speler (geen iframe, geen autoplay), titel, officiële terugvallink en vaste beeldverhouding.
+  for (const video of flow.videos) {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true });
+    await context.addCookies([{ name: SESSION_COOKIE, value: flow.token, url: base }]);
+    const page = await context.newPage();
+    await page.goto(base + video.href + "?weergave=volledig");
+    await page.locator("[data-study-reader]").waitFor();
+    const block = page.locator(`[data-study-video="${video.id}"]`);
+    await block.scrollIntoViewIfNeeded();
+    await block.waitFor();
+    const element = block.locator("video");
+    assert.equal(await element.getAttribute("preload"), "none", "video laadt niet vooraf");
+    assert.equal(await element.evaluate((v) => v.autoplay), false, "geen automatisch afspelen");
+    assert.equal(await element.evaluate((v) => v.controls), true, "systeembediening aanwezig");
+    assert.equal(await page.locator("iframe").count(), 0, "geen iframe in de les");
+    assert.ok((await block.getByText(video.title, { exact: true }).count()) > 0, "titel zichtbaar");
+    const link = block.locator('a[target="_blank"]');
+    assert.equal(await link.getAttribute("href"), video.url);
+    assert.match(await link.getAttribute("rel"), /noopener/);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, "geen horizontale overflow");
+    await page.screenshot({ path: `${output}/cfm-video-${video.language === "en" ? "en" : "nl"}.png` });
+    await context.close();
+  }
   for (const external of flow.externals) {
     const context = await browser.newContext({
       viewport: { width: 390, height: 844 },
