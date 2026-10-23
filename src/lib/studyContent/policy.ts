@@ -1,3 +1,4 @@
+import { isCfmAdapter } from "./cfmSources";
 import { createHash } from "node:crypto";
 import { canonicalJson } from "./revisions";
 
@@ -41,9 +42,10 @@ export function syntheticStudyEnvironment() {
 }
 export function studyReleaseAllowed(adapter: string) {
   // Eén gecontroleerde officiële adapter; zijn inhoud/media/referenties worden opnieuw getoetst.
-  return adapter === "cfm-2026-nl-v1" || adapter === "fsy-legacy-v1" || (adapter === "synthetic-v1" && syntheticStudyEnvironment());
+  // Alleen een geregistreerde, gepinde officiële CFM-bron (cfmSources.ts): geen naamherkenning op een vrij adapterlabel.
+  return isCfmAdapter(adapter) || adapter === "fsy-legacy-v1" || (adapter === "synthetic-v1" && syntheticStudyEnvironment());
 }
 /** Conceptimport is geen publicatie. Onbekende adapters blijven gesloten. */
 export function studyImportAllowed(adapter: string) {
-  return adapter === "cfm-2026-nl-v1" || studyReleaseAllowed(adapter);
+  return isCfmAdapter(adapter) || studyReleaseAllowed(adapter);
 }

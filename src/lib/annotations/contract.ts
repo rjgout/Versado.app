@@ -73,6 +73,8 @@ export function passageBlocks(document: PassageDocument, sectionAnchor: string) 
     if (v.type === "quote" && v.attribution) text += "\n" + inline(v.attribution);
     if (v.type === "figure") text = inline(v.caption);
     if (v.type === "reference") text = String(v.label);
+    // Een video behoudt als annotatietekst zijn titel: dezelfde tekst die het blok eerder (als verwijzing) had.
+    if (v.type === "video") text = String(v.title);
     text = normalizeAnnotationText(text);
     if (text && typeof v.id === "string") result.push({ id: v.id, text });
     for (const key of ["items", "blocks", "children", "rows", "cells"]) walk(v[key]);

@@ -1,4 +1,6 @@
-import { importCfm2026Drafts } from "@/lib/studyContent/cfm2026Import";
+import { importAllCfmDrafts } from "@/lib/studyContent/cfm2026Import";
+import { autoPublishCfmVolume } from "@/lib/studyContent/cfmAutoPublish";
+import { CFM_SOURCES } from "@/lib/studyContent/cfmSources";
 import { requireCfmApproval } from "@/lib/studyContent/sourceApproval";
 import {
   StudyPublishingError,
@@ -76,18 +78,34 @@ export function startReseedJob(
     ? async () => {
         await requireCfmApproval(study.approvedSnapshot);
         try {
-          await importCfm2026Drafts(study.actor, {
+          // Alle geregistreerde jaargangen, chronologisch en idempotent; daarna per jaargang de automatische publicatie van
+          // technisch gevalideerde lessen (uitdrukkelijke toestemming van de eigenaar; zie docs/CFM-DOORLOPEND.md). Een
+          // mislukte jaargang stopt de volgende niet en laat reeds gepubliceerde lessen ongemoeid.
+          let workKey = CFM_SOURCES[0].manifest.workKey;
+          const results = await importAllCfmDrafts(study.actor, {
             client: prisma,
+            onVolume: (volume) => {
+              workKey = volume.manifest.workKey;
+            },
             progress: (current, total, label) => {
-              currentJob.progress = {
-                current,
-                total,
-                label,
-                language: "nl",
-                work: "cfm-old-testament-2026",
-              };
+              currentJob.progress = { current, total, label, language: "nl", work: workKey };
             },
           });
+          for (const result of results) {
+            const volume = CFM_SOURCES.find((s) => s.volume.year === result.year)!;
+            if (!result.ok) {
+              currentJob.logs.push(`CFM ${result.year}: import mislukt`);
+              continue;
+            }
+            const report = await autoPublishCfmVolume(study.actor, volume, prisma);
+            currentJob.logs.push(
+              `CFM ${result.year}: ${report.status}; ${report.publishedNow} nieuw gepubliceerd, ${report.alreadyPublished} al gepubliceerd, ${report.blocked.length} geblokkeerd, ${report.failed.length} mislukt; ` +
+                `${report.madeVisible ? "zichtbaar voor gebruikers; " : ""}verwijzingen: ${report.references.verified} bewezen, ${report.references.displayOnly} als tekst, ${report.references.blocking} blokkerend`,
+            );
+          }
+          // De eerste fout bepaalt de melding (bv. ontbrekende mediaopslag), zodat de beheerder dezelfde code ziet als voorheen.
+          const failure = results.find((r) => !r.ok);
+          if (failure && !failure.ok) throw failure.error;
         } catch (error) {
           const code =
             error instanceof StudyPublishingError ? error.code : "INCOMPLETE";

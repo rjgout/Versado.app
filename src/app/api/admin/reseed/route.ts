@@ -1,3 +1,4 @@
+import { CFM_SOURCES } from "@/lib/studyContent/cfmSources";
 import { z } from "zod";
 import { inventoryOriginAllowed } from "@/lib/content-inventory/origin";
 import {
@@ -87,7 +88,7 @@ export async function GET() {
       await studyStorage();
       storageReady = true;
     } catch {}
-    studySource = { snapshot, lessons: 52, storageReady };
+    studySource = { snapshot, lessons: CFM_SOURCES.reduce((n, s) => n + s.manifest.lessons.length, 0), storageReady };
   } catch {}
   return NextResponse.json(
     { job: getReseedJob(), studySource },

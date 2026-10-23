@@ -26,7 +26,25 @@ const inlines = z.array(inline).min(1).max(200);
 const prose = { id: studyAnchorSchema, content: inlines };
 const figure = z.object({ id: studyAnchorSchema, type: z.literal("figure"), mediaKey: studyAnchorSchema, alt: text.or(z.literal("")),
   caption: inlines.optional(), width: z.number().int().min(1).max(16_384), height: z.number().int().min(1).max(16_384) }).strict();
-const embedded = z.discriminatedUnion("type", [z.object({ ...prose, type: z.literal("paragraph") }).strict(), figure, reference]);
+/**
+ * Een ingebedde video: uitsluitend een officieel MP4-bestand van een exact toegestane host (cfmReferencePolicy.ts: CFM_VIDEO_HOSTS)
+ * dat de speler als gewone HTML5-video afspeelt, nooit een iframe of een willekeurige URL. `externalUrl` is de officiële link
+ * als terugval (bv. als het afspelen mislukt). Een poster is de voorafgaande figure met een id op `-poster`; die staat dus als
+ * gewone, gebonden media in het document en niet als vrije URL.
+ */
+export const STUDY_VIDEO_HOSTS: readonly string[] = ["assets.churchofjesuschrist.org", "media2.ldscdn.org"];
+export const studyVideoUrlSchema = safeStudyUrlSchema.refine(value => {
+  try {
+    const url = new URL(value);
+    return !url.port && STUDY_VIDEO_HOSTS.includes(url.hostname) && /\.mp4$/i.test(url.pathname) && !url.search && !url.hash;
+  } catch { return false; }
+}, "Alleen een officiële MP4-bron van een toegestane videohost");
+const videoSource = z.object({ url: studyVideoUrlSchema, width: z.number().int().min(1).max(8192), height: z.number().int().min(1).max(8192) }).strict();
+const video = z.object({
+  id: studyAnchorSchema, type: z.literal("video"), title: text, description: text.optional(),
+  sources: z.array(videoSource).min(1).max(4), externalUrl: studyVideoUrlSchema,
+}).strict();
+const embedded = z.discriminatedUnion("type", [z.object({ ...prose, type: z.literal("paragraph") }).strict(), figure, reference, video]);
 const nestedItem = z.object({ id: studyAnchorSchema, content: inlines, blocks: z.array(embedded).min(1).max(100).optional() }).strict();
 const nestedList = z.object({ id: studyAnchorSchema, type: z.literal("list"), ordered: z.boolean(), items: z.array(nestedItem).min(1).max(100) }).strict();
 const listItem = z.object({ id: studyAnchorSchema, content: inlines,
@@ -47,6 +65,7 @@ export const studyBlockSchema = z.discriminatedUnion("type", [
   z.object({ ...prose, type: z.literal("assignment"), items: z.array(listItem).min(1).max(100).optional() }).strict(),
   figure,
   reference,
+  video,
   z.object({ id: studyAnchorSchema, type: z.literal("divider") }).strict(),
 ]);
 export const studyDocumentSchema = z.object({

@@ -10,7 +10,7 @@ export default async function ProgramContextPanel({actor}:{actor:{id:string;isAd
  if(!data.context)return null;
  const weeks=data.lessons.filter(l=>l.personal);
  let body;
- if(weeks.length&&data.collectionId){
+ if((weeks.length||data.archivedCount>0)&&data.collectionId){
   // Dezelfde weekregel als de cursuskaart en het weekpad (weekSelection.ts): kalenderweek, anders laatst gekozen/bestudeerde week, anders geen.
   const selection=resolveWeekSelection(weeks,{today:data.today??'',selectedLessonKey:data.context.activeLessonKey});
   const week=selection.resume;

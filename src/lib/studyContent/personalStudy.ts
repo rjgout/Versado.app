@@ -89,7 +89,7 @@ export function text8(block: Block) {
 /** Gewicht voor de leeslast: tekens, met een vaste waarde voor beeld en verwijzingen zonder tekst. */
 function weight(block: Block) {
   const chars = readingBlockText(block).length;
-  return block.type === "figure" || block.type === "reference" ? Math.max(chars, 200) : chars;
+  return block.type === "figure" || block.type === "reference" || block.type === "video" ? Math.max(chars, 200) : chars;
 }
 
 interface Atom {

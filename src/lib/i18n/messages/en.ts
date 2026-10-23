@@ -3733,7 +3733,7 @@ export const en: PartialMessages = {
   },
   adminReseed: {
     title: "Fetch new content",
-    text: "Fetches new podcast episodes, FSY content, Bible and CFM drafts and other new content. Scripture texts, their exercises and read-aloud audio are left untouched: update those with \"Update scripture sources\". Study lessons are never automatically published or made visible. Existing users, progress, streaks and scores are preserved. You can leave this page and check progress later.",
+    text: "Fetches new podcast episodes, FSY content, CFM drafts and other new content. Scripture texts, their exercises and read-aloud audio are left untouched: update those with \"Update scripture sources\". Study lessons are never automatically published or made visible. Existing users, progress, streaks and scores are preserved. You can leave this page and check progress later.",
     failed: "Fetching new content failed.",
     done: "Done — new content has been fetched.",
   },
@@ -3832,8 +3832,8 @@ export const en: PartialMessages = {
     "reviewBlocked": "I have reviewed the {count} blocked references. Display these only as non-clickable text.",
     "release": "Release collection content",
     "releaseConfirm": "All lessons have been published individually. Release the collection for normal administrator use. User visibility remains unchanged.",
-    "approveImport": "CFM 2026: approve snapshot {snapshot} to update 52 draft lessons. Existing publications and visibility remain unchanged.",
-    "includeCfm": "Update CFM 2026 drafts",
+    "approveImport": "Come, Follow Me: approve snapshot {snapshot} to update {lessons} official lessons. Technically validated lessons are published automatically; a volume becomes visible to users at its first complete release; after that the existing visibility switch stays in control.",
+    "includeCfm": "Update Come, Follow Me and publish automatically",
     "sourceMissing": "The pinned CFM source files are missing. No CFM import will run.",
     "spaceMissing": "Persistent study media storage is unavailable. Restore storage before updating CFM."
 },
@@ -4405,6 +4405,23 @@ export const en: PartialMessages = {
     "week": "Week",
     "weekProgress": "{done} of {total} steps",
     "weekRead": "Read",
+  },
+  studyVideo: {
+    failed: "This video can’t be played. Try again later or open the official source.",
+    openOfficial: "Open the video on the official site",
+  },
+  cfmProgramme: {
+    archiveLink: "Earlier lessons",
+    archiveTitle: "Earlier lessons",
+    archiveIntro: "Lessons that ended more than a month ago. Your notes and progress are kept.",
+    yearHeading: "{year} — {scripture}",
+    archiveEmpty: "There are no earlier lessons yet.",
+    scripture: {
+      oldTestament: "Old Testament",
+      newTestament: "New Testament",
+      bookOfMormon: "Book of Mormon",
+      doctrineAndCovenants: "Doctrine and Covenants",
+    },
   },
   cfmToday: {
     brand: "Come, Follow Me",

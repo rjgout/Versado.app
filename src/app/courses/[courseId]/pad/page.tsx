@@ -40,10 +40,11 @@ export default async function ReadingPathPage({ params }: { params: Promise<{ co
     // Altijd de collectie van deze cursus, nooit de toevallig actieve collectie van de gebruiker (collectie-isolatie).
     const data = await getStudyCatalogue(user, new Date(), { collectionId: course.contentCollectionId });
     const weeks = data.lessons.filter((lesson) => lesson.personal).map((l) => ({
-      id: l.id, lessonId: l.lessonId, collectionId: l.collectionId, lessonKey: l.lessonKey, title: l.title, startsOn: l.startsOn,
+      id: l.id, lessonId: l.lessonId, collectionId: l.collectionId, lessonKey: l.lessonKey, workKey: l.workKey, title: l.title, startsOn: l.startsOn,
       endsOnExclusive: l.endsOnExclusive, read: l.read, stepsDone: l.stepsDone, imageMediaId: l.imageMediaId, lastStudiedAt: l.lastStudiedAt,
     }));
-    if (!weeks.length) redirect("/courses");
+    // Zijn alle lessen al gearchiveerd (bijvoorbeeld tussen twee jaargangen), dan is het archief de ingang.
+    if (!weeks.length) redirect(data.archivedCount > 0 ? `/courses/${course.id}/archief` : "/courses");
     // Dezelfde weekregel als de cursuskaart: kalenderweek, anders hervatweek (zie weekSelection.ts).
     const selection = resolveWeekSelection(weeks, { today: data.today ?? "", selectedLessonKey: data.context?.activeLessonKey });
     const activeWeek = selection.resume;
@@ -58,7 +59,8 @@ export default async function ReadingPathPage({ params }: { params: Promise<{ co
           activeWeekId={activeWeek?.id ?? null}
           resumeReason={selection.resumeReason}
           sessionKey={await navigationSessionKey()}
-          context={data.context ? { workKey: data.context.workKey, version: data.context.version, activeLessonKey: data.context.activeLessonKey } : null}
+          contexts={Object.fromEntries(Object.entries(data.contexts).map(([key, c]) => [key, { workKey: c.workKey, version: c.version, activeLessonKey: c.activeLessonKey }]))}
+          archiveHref={data.archivedCount > 0 ? `/courses/${course.id}/archief` : null}
         />
       </>
     );

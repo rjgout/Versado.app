@@ -2,7 +2,7 @@ name: Contentarchitectuur 1A–2D toegang, context, selectie en spellen
 
 on:
   pull_request:
-    branches: [main, 'codex/v2-phase-*', 'codex/versado-dorp-*']
+    branches: [main, 'codex/v2-phase-*', 'codex/versado-dorp-*', 'claude/cfm-doorlopend-*']
     paths:
       - 'src/lib/hymnAvailability.ts'
       - 'src/lib/hymnLibraryClient.ts'
@@ -80,7 +80,12 @@ on:
       - 'tests/study-publication*'
       - 'scripts/study-content/**'
       - 'data/study-content/cfm-2026-nl/**'
+      - 'data/study-content/cfm-2027-nl/**'
+      - 'tests/cfm-2027*'
+      - 'tests/cfm-sources*'
+      - 'tests/cfm-auto-publish*'
       - 'tests/cfm-2026*'
+      - 'tests/cfm-programme*'
       - 'tests/study-identity-migration.mjs'
       - 'tests/fixtures/study-content.ts'
       - 'src/lib/reseedJob.ts'
@@ -199,7 +204,7 @@ jobs:
           npm run test:annotations:integration -- --browser
       - name: Regressie, lint en vertalingen
         run: |
-          npx tsx --test tests/admin-layout.test.ts tests/cfm-2026-manifest.test.ts tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/proxy-headers.test.ts tests/reading-path.test.ts tests/reading-courses.test.ts tests/course-scripts.test.ts tests/streak-central.test.ts
+          npx tsx --test tests/admin-layout.test.ts tests/cfm-2026-manifest.test.ts tests/cfm-programme.test.ts tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/proxy-headers.test.ts tests/reading-path.test.ts tests/reading-courses.test.ts tests/course-scripts.test.ts tests/streak-central.test.ts
           npm run test:annotations
           npm run test:focus
           npm run test:dorp
@@ -452,6 +457,36 @@ jobs:
           name: cfm-2026-import-browser
           path: /tmp/versado-cfm-import-browser
           if-no-files-found: ignore
+
+  cfm-programme:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - cfm-programme.integration.test.ts
+          - cfm-auto-publish.integration.test.ts
+          - cfm-2027.integration.test.ts
+          - cfm-video-revision.integration.test.ts
+    env:
+      DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
+      SESSION_SECRET: cfm-ci-build-only-secret
+      NEXT_TELEMETRY_DISABLED: '1'
+      CFM_TEST_ASSETS: /tmp/versado-cfm-test-assets
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run build
+      - name: Gepinde publieke OTB- en mediabestanden voorbereiden
+        run: node scripts/study-content/prepare-cfm-test-assets.mjs
+      - name: Integratietest op eigen verse database
+        run: node scripts/content-architecture/test-access-isolated.mjs --cfm-suite=${{ matrix.suite }}
 
   hymns-availability:
     runs-on: ubuntu-latest

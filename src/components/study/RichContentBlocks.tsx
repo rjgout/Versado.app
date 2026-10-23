@@ -7,6 +7,7 @@ import type { ReaderDocument } from "@/lib/studyContent/readingPositionContract"
 import { AnnotationTrigger, StudyAnnotationContext } from "@/components/annotations/AnnotationActions";
 import ReferenceLink from "./ReferenceLink";
 import ImageViewer from "./ImageViewer";
+import StudyVideo from "./StudyVideo";
 import { classifyFigure, figureLayout } from "@/lib/studyContent/figureDisplay";
 type Block = ReaderDocument["sections"][number]["blocks"][number];
 type Inline = Extract<Block, { type: "paragraph" }>["content"][number];
@@ -172,7 +173,13 @@ export default function RichContentBlocks({
     const id = element.dataset.studyText!;
     onAnnotate(id, e.currentTarget.querySelector<HTMLElement>(`[data-annotation-for="${CSS.escape(id)}"]`) ?? element);
   }
-  function render(block: Block): ReactNode {
+  /** De poster van een video is de direct voorafgaande, gebonden afbeelding met een id op `-poster` (zie de CFM-adapter). */
+  const isPoster = (block: Block | undefined): block is Extract<Block, { type: "figure" }> => block?.type === "figure" && /-poster$/.test(block.id);
+  function posterUrl(figure: Extract<Block, { type: "figure" }> | null): string | null {
+    const mediaId = figure ? media.find((m) => m.mediaKey === figure.mediaKey)?.mediaId : null;
+    return mediaId ? `/api/${preview ? "admin/" : ""}study-media/${encodeURIComponent(mediaId)}` : null;
+  }
+  function render(block: Block, posterFigure: Extract<Block, { type: "figure" }> | null = null): ReactNode {
     if (block.type === "heading") {
       const Tag = `h${block.level}` as "h2" | "h3" | "h4" | "h5" | "h6";
       return (
@@ -276,6 +283,7 @@ export default function RichContentBlocks({
           <span data-study-text={block.id}><ReferenceLink id={block.id} label={block.label}/></span>{action(block.id)}
         </div>
       );
+    if (block.type === "video") return <StudyVideo block={block} poster={posterUrl(posterFigure)} />;
     return <hr className="border-vs-line" />;
   }
   return (
@@ -300,6 +308,10 @@ export default function RichContentBlocks({
           {section.blocks.map((block, index) => {
             // Een bronbijschrift staat als losse alinea direct na zijn afbeelding; in de compacte weergave krijgt het ook de opmaak van een bijschrift.
             const previous = section.blocks[index - 1];
+            // De poster van een video staat in de speler zelf en wordt niet nog eens als losse afbeelding getoond.
+            const next = section.blocks[index + 1];
+            const posterHidden = isPoster(block) && next?.type === "video";
+            const posterFigure = block.type === "video" && isPoster(previous) ? previous : null;
             const caption = compact && block.type === "paragraph" && /^b-figure\d+_p\d+$/.test(block.id) && previous?.type === "figure" && !previous.caption;
             return (
             <div
@@ -313,7 +325,7 @@ export default function RichContentBlocks({
                   "calc(var(--header-offset,var(--header-default)) + 1rem)",
               }}
             >
-              {caption ? <div className="-mt-2 text-center text-sm text-vs-fg-2 [&_p]:leading-snug">{render(block)}</div> : render(block)}
+              {posterHidden ? null : caption ? <div className="-mt-2 text-center text-sm text-vs-fg-2 [&_p]:leading-snug">{render(block)}</div> : render(block, posterFigure)}
             </div>
             );
           })}

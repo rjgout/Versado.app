@@ -93,18 +93,24 @@ export const cfmOldTestament2026NlManifest: StudyManifest = {
   })),
 };
 
-/** Gedeelde exacte cataloguscontrole voor voorcontrole, bulkpublicatie en collectievrijgave. */
-export function matchesCfm2026Catalogue(
+/** Gedeelde exacte cataloguscontrole voor voorcontrole, bulkpublicatie en collectievrijgave (elke CFM-jaargang). */
+export function matchesCfmCatalogue(
+  manifest: StudyManifest,
   collection: { id: string; work: string | null; editionKey: string | null; language: string },
   editions: ReadonlyArray<{
     collectionId: string; workKey: string;
     lesson: { sourceKey: string; order: number; retiredAt: Date | null };
   }>,
 ): boolean {
-  const manifest = cfmOldTestament2026NlManifest;
   return collection.work === manifest.workKey && collection.editionKey === manifest.editionKey &&
     collection.language === manifest.language && editions.length === manifest.lessons.length &&
     editions.every((edition, i) => edition.collectionId === collection.id && edition.workKey === manifest.workKey &&
       edition.lesson.sourceKey === manifest.lessons[i].sourceKey && edition.lesson.order === manifest.lessons[i].order &&
       !edition.lesson.retiredAt);
 }
+
+/** De 2026-ingang blijft bestaan voor bestaande aanroepers en tests. */
+export const matchesCfm2026Catalogue = (
+  collection: Parameters<typeof matchesCfmCatalogue>[1],
+  editions: Parameters<typeof matchesCfmCatalogue>[2],
+) => matchesCfmCatalogue(cfmOldTestament2026NlManifest, collection, editions);

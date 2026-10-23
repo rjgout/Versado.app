@@ -3842,8 +3842,8 @@ export const es: PartialMessages = {
     "reviewBlocked": "He revisado las {count} referencias bloqueadas. Mostrarlas únicamente como texto sin enlace.",
     "release": "Aprobar el contenido de la colección",
     "releaseConfirm": "Todas las lecciones se han publicado individualmente. Autorizar el uso normal por los administradores. La visibilidad para usuarios no cambia.",
-    "approveImport": "CFM 2026: aprobar la instantánea {snapshot} para actualizar 52 borradores de lecciones. Las publicaciones y la visibilidad existentes no cambian.",
-    "includeCfm": "Actualizar los borradores de CFM 2026",
+    "approveImport": "Ven, sígueme: aprobar la instantánea {snapshot} para actualizar {lessons} lecciones oficiales. Las lecciones validadas técnicamente se publican automáticamente; un volumen se hace visible para los usuarios en su primera publicación completa; después, el interruptor de visibilidad existente sigue siendo el que manda.",
+    "includeCfm": "Actualizar Ven, sígueme y publicar automáticamente",
     "sourceMissing": "Faltan los archivos fuente fijados de CFM. No se realizará ninguna importación CFM.",
     "spaceMissing": "El almacenamiento persistente de medios no está disponible. Restáuralo antes de actualizar CFM."
 },
@@ -4412,6 +4412,23 @@ export const es: PartialMessages = {
     "week": "Semana",
     "weekProgress": "{done} de {total} pasos",
     "weekRead": "Leída",
+  },
+  studyVideo: {
+    failed: "No se puede reproducir este vídeo. Inténtalo más tarde o abre la fuente oficial.",
+    openOfficial: "Abrir el vídeo en el sitio oficial",
+  },
+  cfmProgramme: {
+    archiveLink: "Lecciones anteriores",
+    archiveTitle: "Lecciones anteriores",
+    archiveIntro: "Lecciones que terminaron hace más de un mes. Tus notas y tu progreso se conservan.",
+    yearHeading: "{year} — {scripture}",
+    archiveEmpty: "Todavía no hay lecciones anteriores.",
+    scripture: {
+      oldTestament: "Antiguo Testamento",
+      newTestament: "Nuevo Testamento",
+      bookOfMormon: "Libro de Mormón",
+      doctrineAndCovenants: "Doctrina y Convenios",
+    },
   },
   cfmToday: {
     brand: "Ven, sígueme",

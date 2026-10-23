@@ -4235,7 +4235,7 @@ export const nl = {
   },
   adminReseed: {
     title: "Nieuwe content ophalen",
-    text: "Haalt nieuwe podcastafleveringen, FSY-content, Bijbel- en CFM-concepten en overige nieuwe content op. De Schriftteksten, hun oefeningen en voorgelezen audio blijven hierbij onaangeroerd: die werk je bij met \"Schriftbronnen bijwerken\". Studielessen worden niet automatisch gepubliceerd of zichtbaar gemaakt. Bestaande gebruikers, voortgang, reeksen en scores blijven behouden. Je kunt deze pagina verlaten en later de voortgang opnieuw bekijken.",
+    text: "Haalt nieuwe podcastafleveringen, FSY-content, CFM-concepten en overige nieuwe content op. De Schriftteksten, hun oefeningen en voorgelezen audio blijven hierbij onaangeroerd: die werk je bij met \"Schriftbronnen bijwerken\". Studielessen worden niet automatisch gepubliceerd of zichtbaar gemaakt. Bestaande gebruikers, voortgang, reeksen en scores blijven behouden. Je kunt deze pagina verlaten en later de voortgang opnieuw bekijken.",
     failed: "Nieuwe content ophalen is mislukt.",
     done: "Klaar — nieuwe content is opgehaald.",
   },
@@ -4334,8 +4334,8 @@ export const nl = {
     "reviewBlocked": "Ik heb de {count} geblokkeerde verwijzingen beoordeeld. Toon deze uitsluitend als niet-klikbare tekst.",
     "release": "Collectie inhoudelijk vrijgeven",
     "releaseConfirm": "Alle lessen zijn afzonderlijk gepubliceerd. Geef de collectie vrij voor normaal gebruik door beheerders. De gebruikerszichtbaarheid blijft ongewijzigd.",
-    "approveImport": "CFM 2026: keur snapshot {snapshot} goed voor het bijwerken van 52 conceptlessen. Bestaande publicaties en zichtbaarheid blijven ongewijzigd.",
-    "includeCfm": "CFM 2026 als concept bijwerken",
+    "approveImport": "Kom dan en volg Mij: keur snapshot {snapshot} goed om {lessons} officiële lessen bij te werken. Lessen die technisch zijn gevalideerd worden automatisch gepubliceerd; een jaargang wordt bij de eerste volledige vrijgave zichtbaar voor gebruikers; daarna blijft de bestaande zichtbaarheidsschakelaar leidend.",
+    "includeCfm": "Kom dan en volg Mij bijwerken en automatisch publiceren",
     "sourceMissing": "De gepinde CFM-bronbestanden ontbreken. Er wordt geen CFM-import uitgevoerd.",
     "spaceMissing": "De persistente studiemediaopslag is niet beschikbaar. Herstel de opslag voordat je CFM bijwerkt."
 },
@@ -4874,6 +4874,23 @@ export const nl = {
     "week": "Week",
     "weekProgress": "{done} van {total} stappen",
     "weekRead": "Gelezen",
+  },
+  studyVideo: {
+    failed: "Deze video kan niet worden afgespeeld. Probeer het later opnieuw of open de officiële bron.",
+    openOfficial: "Open de video op de officiële site",
+  },
+  cfmProgramme: {
+    archiveLink: "Eerdere lessen",
+    archiveTitle: "Eerdere lessen",
+    archiveIntro: "Lessen die langer dan een maand geleden zijn afgelopen. Je aantekeningen en voortgang blijven bewaard.",
+    yearHeading: "{year} — {scripture}",
+    archiveEmpty: "Er zijn nog geen eerdere lessen.",
+    scripture: {
+      oldTestament: "Oude Testament",
+      newTestament: "Nieuwe Testament",
+      bookOfMormon: "Boek van Mormon",
+      doctrineAndCovenants: "Leer en Verbonden",
+    },
   },
   cfmToday: {
     brand: "Kom dan en volg Mij",

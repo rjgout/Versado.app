@@ -24,6 +24,8 @@ export interface WeekRow {
   lessonId: string;
   collectionId: string;
   lessonKey: string;
+  /** Het werk (de jaargang) van de les; de studiecontext (actieve les) wordt per jaargang bewaard. */
+  workKey?: string;
   title: string;
   startsOn: string | null;
   endsOnExclusive: string | null;
@@ -121,7 +123,7 @@ export default function CfmWeekPath({
   resumeReason?: ResumeReason | null;
   sessionKey: string;
   /** Onthoudt de geopende week als actieve les (bestaande studiecontext); mag falen zonder de navigatie te raken. */
-  onOpenWeek?: (lessonKey: string) => void;
+  onOpenWeek?: (lessonKey: string, workKey?: string) => void;
 }) {
   const t = useT();
   const language = useUiLanguage();
@@ -159,7 +161,7 @@ export default function CfmWeekPath({
           <Fragment key={week.id}>
           <li data-week={week.id} data-study-lesson={week.id} data-week-state={state} data-path-current={state === "current" ? "" : undefined} className="min-w-0">
             {state === "current" ? (
-              <div data-current-step onClickCapture={mode === "STEPS" ? () => onOpenWeek?.(week.lessonKey) : undefined}>
+              <div data-current-step onClickCapture={mode === "STEPS" ? () => onOpenWeek?.(week.lessonKey, week.workKey) : undefined}>
               <ActiveChapterCard
                 label={week.title}
                 subtitle={subtitle}
@@ -170,7 +172,7 @@ export default function CfmWeekPath({
                 {mode === "STEPS" ? (
                   <WeekSteps week={week} sessionKey={sessionKey} />
                 ) : (
-                  <Link href={href} prefetch={false} onClick={() => onOpenWeek?.(week.lessonKey)} className={`${primaryButton} min-h-12 w-full sm:w-auto`}>
+                  <Link href={href} prefetch={false} onClick={() => onOpenWeek?.(week.lessonKey, week.workKey)} className={`${primaryButton} min-h-12 w-full sm:w-auto`}>
                     {week.read ? t("cfmStudy.openWeek") : t("cfmStudy.continueWeek")}
                   </Link>
                 )}
@@ -179,7 +181,7 @@ export default function CfmWeekPath({
             ) : mode === "FREE" ? (
               <div className={`${CARD} relative ${state === "started" ? "border-vs-accent/50" : "border-vs-line"}`} data-chapter-card-state={state}>
                 {thumb && <ChapterThumb artworkKeys={[]} imageSrc={imageSrc} fadeTo="to-vs-surface" />}
-                <Link href={href} prefetch={false} onClick={() => onOpenWeek?.(week.lessonKey)} className={`relative flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${thumb ? THUMB_PAD : ""} ${focusRing}`}>
+                <Link href={href} prefetch={false} onClick={() => onOpenWeek?.(week.lessonKey, week.workKey)} className={`relative flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${thumb ? THUMB_PAD : ""} ${focusRing}`}>
                   <Heading label={week.title} subtitle={subtitle} />
                   {state === "done" && <DoneMark />}
                 </Link>
@@ -202,7 +204,7 @@ export default function CfmWeekPath({
                   </button>
                 </div>
                 {isOpen && (
-                  <div id={`week-${week.id}`} onClickCapture={() => onOpenWeek?.(week.lessonKey)} className="border-t border-vs-line p-[clamp(0.5rem,3vw,0.75rem)]">
+                  <div id={`week-${week.id}`} onClickCapture={() => onOpenWeek?.(week.lessonKey, week.workKey)} className="border-t border-vs-line p-[clamp(0.5rem,3vw,0.75rem)]">
                     <WeekSteps week={week} sessionKey={sessionKey} />
                   </div>
                 )}

@@ -232,7 +232,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **138 pagina's**, **235 fysieke routehandlers**, **413 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **139 pagina's**, **235 fysieke routehandlers**, **416 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -267,6 +267,7 @@ Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en au
 `/cookies` | [src/app/cookies/page.tsx](../src/app/cookies/page.tsx); Server Component-entry | hulp-juridisch | Lokale gedeelde inhoud; apparaatbewijs open | Zie bron en rootlayout; nog expliciet beoordelen | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/courses` | [src/app/courses/page.tsx](../src/app/courses/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/i18n/index.ts; src/lib/session.ts; src/lib/studyContent/catalogue.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/courses/[courseId]` | [src/app/courses/[courseId]/page.tsx](../src/app/courses/[courseId]/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | canStartStudy; getCurrentUser; src/lib/contentCollections.ts; src/lib/courseText.ts; src/lib/db.ts; src/lib/email.ts; src/lib/podcastChapters.ts; src/lib/readingCourses.ts; src/lib/session.ts; src/lib/study/startAvailability.ts; src/lib/studyContent/revisions.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/courses/[courseId]/archief` | [src/app/courses/[courseId]/archief/page.tsx](../src/app/courses/[courseId]/archief/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/contentCollections.ts; src/lib/courseText.ts; src/lib/db.ts; src/lib/email.ts; src/lib/readingCourses.ts; src/lib/session.ts; src/lib/studyContent/catalogue.ts; src/lib/studyContent/cfmProgramme.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/courses/[courseId]/chapter/[chapterId]` | [src/app/courses/[courseId]/chapter/[chapterId]/page.tsx](../src/app/courses/[courseId]/chapter/[chapterId]/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/chapterTerm.ts; src/lib/contentAccess.ts; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/learning/contentProgress.ts; src/lib/readingLessons.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/courses/[courseId]/pad` | [src/app/courses/[courseId]/pad/page.tsx](../src/app/courses/[courseId]/pad/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | canStartStudy; getCurrentUser; src/lib/chapterPathData.ts; src/lib/chapterTerm.ts; src/lib/contentCollections.ts; src/lib/courseText.ts; src/lib/db.ts; src/lib/email.ts; src/lib/i18n/index.ts; src/lib/readingCourses.ts; src/lib/readingPathData.ts; src/lib/session.ts; src/lib/study/startAvailability.ts; src/lib/studyContent/catalogue.ts; src/lib/studyContent/weekSelection.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/dashboard` | [src/app/dashboard/page.tsx](../src/app/dashboard/page.tsx); Server Component-entry | overig-vandaag | Lokale route; Foundation gedeeltelijk, geen volledige functiepariteit | getCurrentUser; src/lib/email.ts; src/lib/generalConference.ts; src/lib/hymns/sunday.ts; src/lib/session.ts; src/lib/timeZone.ts; src/lib/today.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
@@ -647,6 +648,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/app/competition/page.tsx](../src/app/competition/page.tsx) | contextafhankelijk / server-entry waar page/layout | CompetitionPage
 [src/app/content/page.tsx](../src/app/content/page.tsx) | contextafhankelijk / server-entry waar page/layout | ContentPage
 [src/app/cookies/page.tsx](../src/app/cookies/page.tsx) | contextafhankelijk / server-entry waar page/layout | CookiesPage
+[src/app/courses/[courseId]/archief/page.tsx](../src/app/courses/[courseId]/archief/page.tsx) | contextafhankelijk / server-entry waar page/layout | CfmArchivePage
 [src/app/courses/[courseId]/chapter/[chapterId]/page.tsx](../src/app/courses/[courseId]/chapter/[chapterId]/page.tsx) | contextafhankelijk / server-entry waar page/layout | ReadingChapterPage
 [src/app/courses/[courseId]/pad/page.tsx](../src/app/courses/[courseId]/pad/page.tsx) | contextafhankelijk / server-entry waar page/layout | ReadingPathPage
 [src/app/courses/[courseId]/page.tsx](../src/app/courses/[courseId]/page.tsx) | contextafhankelijk / server-entry waar page/layout | CourseDetailPage
@@ -988,6 +990,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/social/NewGroupClient.tsx](../src/components/social/NewGroupClient.tsx) | use client | NewGroupClient
 [src/components/social/shared.tsx](../src/components/social/shared.tsx) | use client | NudgeButton, ProgressBar, SocialHeading, StreakBadge, chip, socialRequest
 [src/components/study-folder/StudyFolderClient.tsx](../src/components/study-folder/StudyFolderClient.tsx) | use client | StudyFolderClient
+[src/components/study/CfmArchiveView.tsx](../src/components/study/CfmArchiveView.tsx) | use client | CfmArchiveView
 [src/components/study/CfmCourseView.tsx](../src/components/study/CfmCourseView.tsx) | use client | CfmCourseView
 [src/components/study/CfmTodayCard.tsx](../src/components/study/CfmTodayCard.tsx) | use client | CfmTodayCard
 [src/components/study/CfmWeekPath.tsx](../src/components/study/CfmWeekPath.tsx) | use client | CfmWeekPath
@@ -1002,6 +1005,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/study/StudyReader.tsx](../src/components/study/StudyReader.tsx) | use client | StudyReader
 [src/components/study/StudyRoom.tsx](../src/components/study/StudyRoom.tsx) | use client | StudyRoom
 [src/components/study/StudyTogetherButton.tsx](../src/components/study/StudyTogetherButton.tsx) | use client | StudyTogetherButton
+[src/components/study/StudyVideo.tsx](../src/components/study/StudyVideo.tsx) | use client | StudyVideo
 [src/components/today/ContinueSection.tsx](../src/components/today/ContinueSection.tsx) | use client | ContinueSection
 [src/components/today/DiscoverySection.tsx](../src/components/today/DiscoverySection.tsx) | contextafhankelijk / server-entry waar page/layout | DiscoverySection
 [src/components/today/FriendRequestButtons.tsx](../src/components/today/FriendRequestButtons.tsx) | use client | FriendRequestButtons

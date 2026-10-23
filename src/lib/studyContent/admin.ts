@@ -12,7 +12,7 @@ import {
 import { studyStorage, readStudyMedia } from "./storage";
 import { validateStoredStudyRevision, diffStudyRevisions } from "./publication";
 import { studyDocumentInventory } from "./fixtureAdapter";
-import { cfmOldTestament2026NlManifest as cfmManifest } from "./cfm2026Manifest";
+import { cfmSourceOfAdapter, cfmSourceOfWork, isCfmAdapter } from "./cfmSources";
 import { STUDY_FIXTURES } from "./fixtureAdapter";
 import { verifiedOfficialUrl } from "@/lib/references/evidence";
 
@@ -128,7 +128,7 @@ export async function studyPublishingOverview(actor: StudyAdmin) {
       enabled: c.enabled,
       publicationState: c.publicationState,
       visibleToUsers: c.visibleToUsers,
-      expected: c.work === cfmManifest.workKey ? cfmManifest.lessons.length : rows.length,
+      expected: cfmSourceOfWork(c.work)?.manifest.lessons.length ?? rows.length,
       imported: rows.filter((e) => e.draftRevisionId || e.publishedRevisionId).length,
       published: rows.filter((e) => e.publishedRevisionId).length,
       pending: rows.filter((e) => e.draftRevisionId).length,
@@ -235,12 +235,13 @@ export async function studyRevisionPreview(
       })
     : null;
   let displayOnlyKeys: string[] = [];
-  if (importRun?.adapterName === "cfm-2026-nl-v1")
+  if (isCfmAdapter(importRun?.adapterName))
     try {
       displayOnlyKeys = await cfmDisplayOnlyKeys(
         content.sourceMetadata.sourceKey,
         content,
-        importRun.sourceVersion,
+        importRun!.sourceVersion,
+        cfmSourceOfAdapter(importRun!.adapterName),
       );
     } catch {}
   return {

@@ -3733,7 +3733,7 @@ export const fr: PartialMessages = {
   },
   adminReseed: {
     title: "Récupérer le nouveau contenu",
-    text: "Récupère les nouveaux épisodes de podcast, le contenu FSY, les brouillons de la Bible et de CFM et d'autres nouveaux contenus. Les textes des Écritures, leurs exercices et l'audio lu restent intacts : mets-les à jour avec « Mettre à jour les sources des Écritures ». Les leçons d'étude ne sont jamais publiées ni rendues visibles automatiquement. Les utilisateurs, la progression, les séries et les scores sont conservés. Tu peux quitter cette page et consulter la progression plus tard.",
+    text: "Récupère les nouveaux épisodes de podcast, le contenu FSY, les brouillons CFM et d'autres nouveaux contenus. Les textes des Écritures, leurs exercices et l'audio lu restent intacts : mets-les à jour avec « Mettre à jour les sources des Écritures ». Les leçons d'étude ne sont jamais publiées ni rendues visibles automatiquement. Les utilisateurs, la progression, les séries et les scores sont conservés. Tu peux quitter cette page et consulter la progression plus tard.",
     failed: "La récupération du nouveau contenu a échoué.",
     done: "Terminé : le nouveau contenu a été récupéré.",
   },
@@ -3832,8 +3832,8 @@ export const fr: PartialMessages = {
     "reviewBlocked": "J’ai vérifié les {count} références bloquées. Les afficher uniquement comme texte non cliquable.",
     "release": "Valider le contenu de la collection",
     "releaseConfirm": "Toutes les leçons ont été publiées individuellement. Autoriser l’utilisation normale par les administrateurs. La visibilité des utilisateurs reste inchangée.",
-    "approveImport": "CFM 2026 : approuver l’instantané {snapshot} pour mettre à jour 52 brouillons de leçons. Les publications et la visibilité existantes restent inchangées.",
-    "includeCfm": "Mettre à jour les brouillons CFM 2026",
+    "approveImport": "Viens, suis-moi : approuver l’instantané {snapshot} pour mettre à jour {lessons} leçons officielles. Les leçons validées techniquement sont publiées automatiquement ; un volume devient visible pour les utilisateurs dès sa première publication complète ; ensuite, l’interrupteur de visibilité existant reste déterminant.",
+    "includeCfm": "Mettre à jour Viens, suis-moi et publier automatiquement",
     "sourceMissing": "Les fichiers sources CFM vérifiés sont absents. Aucun import CFM ne sera effectué.",
     "spaceMissing": "Le stockage permanent des médias est indisponible. Rétablissez-le avant de mettre à jour CFM."
 },
@@ -4402,6 +4402,23 @@ export const fr: PartialMessages = {
     "week": "Semaine",
     "weekProgress": "{done} étapes sur {total}",
     "weekRead": "Lue",
+  },
+  studyVideo: {
+    failed: "Cette vidéo ne peut pas être lue. Réessaie plus tard ou ouvre la source officielle.",
+    openOfficial: "Ouvrir la vidéo sur le site officiel",
+  },
+  cfmProgramme: {
+    archiveLink: "Leçons précédentes",
+    archiveTitle: "Leçons précédentes",
+    archiveIntro: "Leçons terminées depuis plus d’un mois. Tes notes et ta progression sont conservées.",
+    yearHeading: "{year} — {scripture}",
+    archiveEmpty: "Il n’y a pas encore de leçons précédentes.",
+    scripture: {
+      oldTestament: "Ancien Testament",
+      newTestament: "Nouveau Testament",
+      bookOfMormon: "Livre de Mormon",
+      doctrineAndCovenants: "Doctrine et Alliances",
+    },
   },
   cfmToday: {
     brand: "Venez, suivez-moi",
