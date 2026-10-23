@@ -91,3 +91,11 @@ test("de Gradle-poort en de guard hanteren dezelfde regels, en signing blijft op
   assert.match(gradle, /if \(uploadKeystorePath\) signingConfig signingConfigs\.release/);
   assert.doesNotMatch(gradle, /signingConfigs\.debug|storePassword\s+"[^"]|keyPassword\s+"[^"]/);
 });
+
+test("workflowinvoer wordt nooit in shelltekst geïnterpoleerd (alleen via env), en de versienaam wordt vooraf gevalideerd", () => {
+  const text = readFileSync(".github/workflows/native-android-release.yml", "utf8");
+  for (const line of text.split("\n")) {
+    if (/\$\{\{\s*(inputs|github\.event)\./.test(line)) assert.match(line, /^\s+[A-Z_]+:\s*\$\{\{/, `invoer buiten een env-toewijzing: ${line.trim()}`);
+  }
+  assert.match(text, /\^\[0-9\]\+\\\.\[0-9\]\+\\\.\[0-9\]\+\$/);
+});
