@@ -440,6 +440,39 @@ Alle nieuwe UI-tekst via `useT()`/`getT()`, in alle talen met
 scripts/i18n/check.ts`). Geen vaste Nederlandse UI-tekst. Details in
 CLAUDE.md ("Talen").
 
+### Nederlandse terminologie voor reeksen
+
+Dit is de enige plek waar de Nederlandse woorden voor reeksen staan. In alle
+Nederlandse zichtbare tekst (app, meldingen, e-mails, pushberichten, speluitleg,
+Kompas, beheer, prestaties, README en gebruikersdocumentatie):
+
+| Niet | Wel |
+|---|---|
+| streak | reeks |
+| streaks | reeksen |
+| streak freeze, freeze (als bescherming van de reeks) | reeksbevriezing |
+| streak freezes, freezes | reeksbevriezingen |
+| losse "bevriezing" | reeksbevriezing |
+
+Zinnen in de stijl van Versado (vriendelijk, helder, positief): "Je reeks is nu 7
+dagen lang.", "Je hebt 2 reeksbevriezingen.", "Een reeksbevriezing heeft je reeks
+beschermd.", "Geef een reeksbevriezing cadeau.", "Je reeks is onderbroken.", "Je
+kunt je reeks voortzetten." Enkelvoud en meervoud volgen het aantal (`…One` en
+`…Many` in de sleutels). Parameters (`{n}`, `{name}`, `{tag}`, `{app}`) blijven
+ongewijzigd.
+
+Engels blijft in technische identifiers: `currentStreak`, `longestStreak`,
+`freezeCount`, `StreakDay`, `FreezeTransaction`, kolommen en modellen, API-routes
+en JSON-velden, i18n-sleutels, prestatieslugs (`streak-7`, `first-freeze-earned`),
+iconenpaden, historische migraties en de opgeslagen transactiereden
+`FreezeTransaction.reason` (nooit zichtbaar in de interface; de oude tekst "Streak
+beschermd op …" wordt alleen door de historische migratie
+`20260914190153_streak_calendar` herkend en blijft daarom ongemoeid). Prestatieteksten
+komen uit de vertaalsleutels (`achievements.<slug>.*`); de teksten in `seed.ts` en
+`achievementDisplay.ts` zijn de terugval en worden bij een seed bijgewerkt zonder
+behaalde prestaties te raken. `tests/nl-terminology.test.ts` bewaakt dat Engelse
+reekswoorden niet terugkomen in Nederlandse tekstwaarden.
+
 ### Content- en taalwissel
 
 De contentswitcher houdt je op dezelfde plek: bij een wissel zoekt de server het
@@ -521,7 +554,7 @@ Gecontroleerd in de code; bestandsnamen om snel terug te vinden.
 
 **Vrienden en sociaal**
 - `/friends` (`FriendsClient`): lijst, verzoeken, zoeken (handle#nummer,
-  e-mail alleen als de ander dat toestaat), uitnodigingslink, freeze cadeau
+  e-mail alleen als de ander dat toestaat), uitnodigingslink, reeksbevriezing cadeau
   geven, online-status en huidige activiteit.
 - Aanwezigheid: `src/lib/presence.ts`, `ActivityTracker`, Socket.io.
   Privacy standaard uit en server-side afgedwongen: `shareOnlineStatus`,
@@ -552,7 +585,7 @@ Gecontroleerd in de code; bestandsnamen om snel terug te vinden.
   component.
 - XP: `src/lib/xp.ts` (bron van waarheid, `XPTransaction`),
   competitie-XP `competitionXp.ts`, historie `/xp`.
-- Reeks: `src/lib/streak.ts`, `/streak`, freezes (ook automatisch ingezet
+- Reeks: `src/lib/streak.ts`, `/streak`, reeksbevriezingen (ook automatisch ingezet
   door de minuuttick in `scheduler.ts`), winkel `/shop`.
 - Prestaties: `src/lib/achievements.ts`, `Achievement` (icoon als emoji in de
   database), getoond op het profiel.
@@ -578,7 +611,7 @@ Gecontroleerd in de code; bestandsnamen om snel terug te vinden.
 - Live spellen draaien in-memory in `src/server/gameServer.ts` (Socket.io).
 
 **Profiel** (`ProfileClient`)
-- Bovenaan wie je bent (avatar, naam, reeks, XP, freezes, hoofdstukken,
+- Bovenaan wie je bent (avatar, naam, reeks, XP, reeksbevriezingen, hoofdstukken,
   divisie), daaronder de acties Winkel en Feedback (de enige ingang naar de
   winkel), dan competitie en voortgang (prestaties, leesvoortgang),
   Voorkeuren (weergave, taal, voorlezen, meldingen, online en activiteit,

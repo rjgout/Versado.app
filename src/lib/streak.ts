@@ -481,10 +481,10 @@ export async function completeIntroLesson(
   });
 }
 
-/** Geeft een streak freeze weg aan een vriend. */
+/** Geeft een reeksbevriezing weg aan een vriend. */
 export async function giftFreeze(fromUserId: string, toUserId: string) {
   if (fromUserId === toUserId) {
-    throw new Error("Je kan geen freeze aan jezelf geven.");
+    throw new Error("Je kunt jezelf geen reeksbevriezing geven.");
   }
   const sender = await prisma.$transaction(async (tx) => {
     const sender = await tx.user.findUniqueOrThrow({ where: { id: fromUserId } });
@@ -495,7 +495,7 @@ export async function giftFreeze(fromUserId: string, toUserId: string) {
       data: { freezeCount: { decrement: 1 } },
     });
     if (debited.count === 0) {
-      throw new Error("Je hebt geen streak freeze om weg te geven.");
+      throw new Error("Je hebt geen reeksbevriezing om weg te geven.");
     }
     await tx.user.update({
       where: { id: toUserId },

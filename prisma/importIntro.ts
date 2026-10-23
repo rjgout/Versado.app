@@ -1,5 +1,7 @@
 import { PrismaClient, Prisma } from "../src/generated/prisma/client";
 import { randomUUID } from "crypto";
+import { exerciseSignature } from "../src/lib/exerciseSync";
+import { reconcileSimpleExercises } from "./reconcileExercises";
 import type { IntroLessonSeed } from "./introContent";
 import type { IntroPersonSeed } from "./introPersons";
 
@@ -36,8 +38,6 @@ export async function importIntroLessons(
       },
     });
 
-    await prisma.introExercise.deleteMany({ where: { lessonId: lesson.id } });
-
     const exerciseRows: Prisma.IntroExerciseCreateManyInput[] = [];
     const optionRows: Prisma.IntroExerciseOptionCreateManyInput[] = [];
 
@@ -57,14 +57,20 @@ export async function importIntroLessons(
       });
     });
 
-    if (exerciseRows.length > 0) {
-      await prisma.introExercise.createMany({ data: exerciseRows });
-    }
-    if (optionRows.length > 0) {
-      await prisma.introExerciseOption.createMany({ data: optionRows });
-    }
+    const optionsOf = (exerciseId: string) => optionRows.filter((option) => option.exerciseId === exerciseId);
+    const existing = (await prisma.introExercise.findMany({ where: { lessonId: lesson.id }, orderBy: { order: "asc" }, include: { options: { orderBy: { order: "asc" } } } })).map((row) => ({
+      id: row.id, order: row.order, options: row.options.map((o) => ({ label: o.label, isCorrect: o.isCorrect })), signature: exerciseSignature({ type: row.type, verseRef: "", prompt: row.prompt, answers: row.answers, wordBank: row.wordBank, options: row.options }),
+    }));
+    const stats = await reconcileSimpleExercises({
+      existing,
+      desired: exerciseRows.map((row) => ({ row, signature: exerciseSignature({ type: row.type, verseRef: "", prompt: row.prompt, answers: row.answers, wordBank: row.wordBank, options: optionsOf(row.id!).map((o) => ({ label: o.label, isCorrect: o.isCorrect ?? false })) }), options: optionsOf(row.id!) })),
+      replaceOptions: async (exerciseId, options) => { await prisma.introExerciseOption.deleteMany({ where: { exerciseId } }); await prisma.introExerciseOption.createMany({ data: options.map((o) => ({ ...o, exerciseId })) }); },
+      setOrder: (id, order) => prisma.introExercise.update({ where: { id }, data: { order } }),
+      remove: (ids) => prisma.introExercise.deleteMany({ where: { id: { in: ids } } }),
+      create: async (rows, options) => { await prisma.introExercise.createMany({ data: rows }); if (options.length > 0) await prisma.introExerciseOption.createMany({ data: options }); },
+    });
 
-    log(`  - Les ${seed.number} (${seed.title}): ${seed.exercises.length} oefeningen`);
+    log(`  - Les ${seed.number} (${seed.title}): ${seed.exercises.length} oefeningen (${stats.kept} behouden, ${stats.created} nieuw, ${stats.deleted} verwijderd)`);
   }
 }
 
