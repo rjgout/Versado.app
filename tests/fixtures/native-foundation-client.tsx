@@ -5,6 +5,7 @@ import { I18nProvider } from "../../src/components/I18nProvider";
 import { messagesFor } from "../../src/lib/i18n";
 import { toLanguageCode } from "../../src/lib/languages";
 import NativeFoundation from "../../src/components/native/NativeFoundation";
+import NativeNavigationProvider from "../../src/components/native/NativeNavigationProvider";
 import { NativeSessionClient } from "../../src/lib/native/client";
 const key = new URLSearchParams(location.search).get("device") ?? "device-a";
 const storage = `/test-keychain/${encodeURIComponent(key)}`;
@@ -14,4 +15,4 @@ const client = new NativeSessionClient(location.origin, {
   async clear() { await fetch(storage,{method:"DELETE"}); },
 });
 const language=toLanguageCode(navigator.language);
-createRoot(document.getElementById("root")!).render(<I18nProvider language={language} messages={messagesFor(language)}><NativeFoundation client={client}/></I18nProvider>);
+createRoot(document.getElementById("root")!).render(<I18nProvider language={language} messages={messagesFor(language)}><NativeNavigationProvider><NativeFoundation client={client}/></NativeNavigationProvider></I18nProvider>);

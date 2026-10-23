@@ -1,5 +1,89 @@
 # Versado op web, PWA, iOS en Android
 
+## Actuele functiepariteit
+
+De volledige actuele inventaris, migratiestatus per functie, routes, API's,
+componentgrenzen, rechten, offline-/platformeisen en bewijsblokkades staan in
+[NATIVE-FEATURE-PARITY.md](NATIVE-FEATURE-PARITY.md). De bijbehorende broncheck
+voorkomt dat nieuwe routes ongemerkt buiten de inventaris vallen; zij bewijst
+geen werkende native schermen. De historische audit hieronder is geen actuele
+route- of functie-dekking.
+
+Een nieuwe feature is pas functioneel afgerond op web/PWA én iOS/iPadOS/Android,
+of na een expliciete goedgekeurde platformuitzondering in de pariteitsmatrix.
+Brede native schermmigratie volgt de bestaande hybride architectuur. De eigenaar
+heeft op 21 oktober 2026 de gedeelde navigatie- en datalaag per functie goedgekeurd:
+bestaande componenten krijgen web/native adapters en expliciete native contracten.
+Er komt geen algemene bearer-bypass of build-time Next.js-shim.
+Release en publicatie blijven afzonderlijk geblokkeerd tot de verplichte
+technische tests, echte apparaten en onafhankelijke acceptatie zijn afgerond.
+
+De gedeelde navigatiepoort is aangesloten op de webshell en een lokale
+hashrouter voor de bestaande Foundation-schermen en privacy/cookies. Juridische
+inhoud en vertalingen zijn gedeeld, ook offline. Volledige Vandaag/Leren/Spelen/
+Vrienden, data-adapters en overige routes blijven open in de matrix. Browser-
+controle of route-registratie is geen apparaatacceptatie.
+
+De eerste gedeelde accountdatapoort bedient het bestaande wachtwoordformulier
+via web/native adapters en één backendservice. De eigenaar heeft een eenmalige,
+vijf minuten geldige native setup-challenge goedgekeurd voor verplichte wachtwoord-
+en beheerder-TOTP-stappen. Die geeft geen gewone API-toegang; na voltooiing volgt
+pas een sessie. Zie de matrix voor contracten, migratie en werkelijk testbewijs.
+Wachtwoordherstel voltooit lokaal via een apart versie-1-contract en dezelfde
+backendservice als web. De bestaande resetmail kan lokaal worden geplakt; een
+ontvangen OS-link gaat door dezelfde exacte backend-origin-/tokenvalidatie. Alleen
+het lokale `/reset-password` komt in geschiedenis; het bewijs blijft in geheugen.
+Na reset volgt opnieuw inloggen inclusief bestaande TOTP/verplichte setup. Universal/
+App Links vereisen nog eigenaarconfiguratie en apparaatbewijs. E-mailbevestiging
+gebruikt lokaal dezelfde registratieclaim en een gedeelde uitkomstkaart; de native
+respons bevat alleen een uitkomst en geeft geen sessie. Oude accountlinks worden
+atomair verbruikt/bevestigd; web behoudt zijn redirect/cookiegedrag. Een nog niet
+bevestigde registratie krijgt na juist wachtwoord dezelfde begrensde mailherhaling
+als web. Legacy-mailherhaling, algemeen TOTP-beheer,
+account wissen, onboarding en volledige profielpariteit blijven open.
+
+## Native realtime: eenmalig handshakebewijs
+
+Op 22 oktober 2026 heeft de eigenaar een afzonderlijk, eenmalig native
+socketbewijs van **maximaal 60 seconden** goedgekeurd. Het eerdere voorstel
+van vijf minuten is daarmee vervangen. Er komt geen tweede sessiesysteem.
+
+- `POST /api/v1/native/realtime/session` vereist een actuele native Bearer-sessie,
+  strikt lege JSON-invoer en een gedeeld uitgiftebudget (60/gebruiker/minuut).
+  Respons: `{socketTicket, expiresIn:60}`; capability `realtime-ticket-v1`.
+- Ticket: 256 willekeurige bits; alleen de hash als Redis-key. Redis bewaart
+  userId, NativeSession-id, sessionVersion, doel en uitgifte/verval maximaal 60s.
+  Atomair GETDEL voorkomt replay, ook tussen instanties. Redis is verplicht;
+  bij onbereikbaarheid geen lokale noodopslag. Geen nieuwe sessietabel/migratie.
+- Handshake: `{client:"native-v1", ticket}` in Socket.io-auth, nooit in URL,
+  cookies, logs of persistente clientopslag. Alleen vaste native origins. Een
+  ambient webcookie wordt genegeerd en kan de native actor nooit vervangen;
+  zonder geldig ticket bestaat geen terugval op webauthenticatie. Web behoudt
+  zijn bestaande cookiepad. Een ticket is geen API-/refresh-/setupbewijs.
+- Na verbruik telt uitsluitend de bestaande NativeSession/User: controle bij
+  verbinding, elk inkomend pakket en maximaal iedere vijf seconden voor
+  passieve verbindingen. Een vastgelopen native DB-controle sluit na twee
+  seconden de verbinding gesloten af. Verloop, intrekking, sessieversie en verplichte
+  beveiligingsstappen worden opnieuw gecontroleerd. Wijzigingen aan wachtwoord,
+  wachtwoordlogin, TOTP-secret/status, beheerrechten of e-mailstatus sluiten ook
+  een oude verbinding. De 60s gelden alleen voor de handshake, niet als een
+  nieuwe sessieduur voor een al verbonden socket.
+- Logout/refresh-replay verbreken de NativeSession-room via de bestaande
+  Redis-adapter. Accountverwijdering en bestaande beveiligingswijzigingen
+  gebruiken de bestaande gebruikersroom-intrekking; periodieke DB-controle
+  vangt gemiste meldingen/directe wijzigingen op.
+- Client: een vers ticket per reconnect, alleen in geheugen; begrensde backoff,
+  geen hergebruik van het ticket. Accountwissel/logout sluit het oude transport
+  vóór opslag/netwerkbevestiging en wist oude listeners/buffers. De lokale app
+  start dit transport na sessieherstel/login als de capability beschikbaar is.
+  De native bundel staat WebSockets uitsluitend naar dezelfde backend toe.
+
+Dit bewijst transport/authenticatie; afzonderlijke spellen, snapshots, UI en
+sociale functies blijven per functie migreren. De twee-proces-tests bewijzen
+replaybescherming, gebruikersrooms en intrekking via Redis, geen algemene
+multi-instance-HA van alle spelstaat of aanwezigheidstellers. Fysieke apparaten,
+OS-lifecycleacceptatie en onafhankelijke ChatGPT-audit blijven releasegates.
+
 ## Architectuurbesluit
 
 Versado blijft één product, één datamodel en één gedeelde codebase. De
@@ -381,3 +465,29 @@ Release blijft geblokkeerd totdat echte builds/apparaatvalidatie, Apple-configur
 accountlevenscyclus, juridische URLs en de resterende schermmigratie zijn beoordeeld.
 Een geslaagde webbuild, Capacitor-sync of synthetische browserflow bewijst geen
 werkende App Store-/Play Store-release.
+
+
+## Automatische platformcompilatie voor development
+
+[Native platformcompilatie](../.github/workflows/native-platform-builds.yml) bouwt
+de lokale client op CI-runners met de benodigde SDK's: Android Debug met JDK 21/
+SDK 36 en een iOS-simulatorapp met Xcode. De backend is uitsluitend de gereserveerde
+`https://example.invalid`: deze artifacts zijn compileproeven, geen werkende
+productie-installaties. Beide jobs gebruiken `local-development`, zonder
+signingcredentials, App Store/Play-upload of deployment.
+
+`scripts/native/verify-development.mjs` vergelijkt de gesynchroniseerde én echt
+verpakte HTML/JS/CSS/buildmetadata met `dist/native`. Een remote `server.url`, een
+afgekeurde profiel-/releasevlag of afwijkende assets laat de controle mislukken.
+Android controleert de inhoud van de APK; iOS die van de gebouwde simulatorapp.
+Artifacts blijven zeven dagen beschikbaar bij de betreffende workflowrun.
+
+Deze controles leveren pas buildbewijs zodra de jobs op de gepushte commit groen
+zijn. De lokale workspace heeft geen Android SDK of Xcode. De positieve controles
+op beide gesynchroniseerde projecten en negatieve controles op remote-url,
+assetafwijking en releasevlag zijn lokaal uitgevoerd. De eerste SDK-builds zijn beide geslaagd op appcodecommit
+`e8714bbc7a8e7bb152ebf5f88aa4e9e4ca2254f7`; zie
+[workflowrun 39654191278](https://github.com/rjgout/Versado.app/actions/runs/39654191278).
+Android-APK en iOS-simulatorapp zijn werkelijk gecompileerd en hun verpakte assets
+zijn gecontroleerd. Echte iPhone/iPad/Android-, Keychain/Keystore-, Apple- en
+lifecycleacceptatie blijven aparte open gates. `release` blijft geblokkeerd.

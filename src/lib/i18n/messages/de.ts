@@ -2756,6 +2756,10 @@ export const de: PartialMessages = {
     logIn: "Anmelden",
   },
   password: {
+    resetLinkLabel: "Link zum Zurücksetzen aus deiner E-Mail",
+    openResetLink: "Link zum Zurücksetzen öffnen",
+    resetCompleteSignIn: "Dein Passwort wurde geändert. Melde dich erneut an; die Zwei-Faktor-Verifizierung bleibt erforderlich, wenn sie aktiviert ist.",
+
     newMismatch: "Die beiden neuen Passwörter stimmen nicht überein.",
     forcedReset: "Ein Admin hat dein Passwort zurückgesetzt. Wähle unten zuerst ein eigenes neues Passwort, bevor du weitermachen kannst.",
     temporary: "Vorläufiges Passwort",
@@ -2777,6 +2781,8 @@ export const de: PartialMessages = {
     set: "Passwort festlegen",
   },
   verify: {
+    linkLabel: "Bestätigungslink aus deiner E-Mail",
+    openLink: "Bestätigungslink öffnen",
     resend: "Bestätigungsmail erneut senden",
     invalid: "Link ungültig oder abgelaufen",
     requestNew: "Fordere unten eine neue Bestätigungsmail an.",

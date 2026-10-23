@@ -89,18 +89,18 @@ export async function nativeAppleAuthorization(nonce: string, state: string) {
   return result;
 }
 
-export async function startNativeFoundationRuntime(options: { onResume: () => void; onBack: () => boolean; onUrl: (url: string) => void }) {
+export async function startNativeFoundationRuntime(options: { onResume: () => void; onBack: () => boolean; onUrl: (url: string, source: "launch" | "open") => void }) {
   if (!isNativeApp()) return () => {};
   const { App } = await import("@capacitor/app");
   const { Keyboard } = await import("@capacitor/keyboard");
   const handles = await Promise.all([
     App.addListener("appStateChange", ({ isActive }) => { if (isActive) options.onResume(); }),
-    App.addListener("appUrlOpen", ({ url }) => options.onUrl(url)),
+    App.addListener("appUrlOpen", ({ url }) => options.onUrl(url, "open")),
     App.addListener("backButton", () => { if (!options.onBack()) void App.exitApp(); }),
     Keyboard.addListener("keyboardWillShow", () => { document.documentElement.dataset.keyboard = "true"; }),
     Keyboard.addListener("keyboardWillHide", () => { delete document.documentElement.dataset.keyboard; }),
   ]);
   if (isIOSApp()) await Keyboard.setAccessoryBarVisible({ isVisible: true });
-  const launch = await App.getLaunchUrl(); if (launch?.url) options.onUrl(launch.url);
+  const launch = await App.getLaunchUrl(); if (launch?.url) options.onUrl(launch.url, "launch");
   return () => { for (const handle of handles) void handle.remove(); };
 }

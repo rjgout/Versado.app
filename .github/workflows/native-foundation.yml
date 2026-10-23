@@ -1,14 +1,35 @@
 name: Native Foundation
 on:
   pull_request:
-    branches: [main]
+    branches: [main, 'feat/native-*', 'fix/native-*']
     paths:
       - 'src/lib/native/**'
+      - 'src/lib/liveQuiz.ts'
+      - 'src/lib/chapterGuess.ts'
+      - 'src/components/GameRoom.tsx'
+      - 'src/components/ChapterGuessGameRoom.tsx'
+      - 'src/server/gameServer.ts'
+      - 'src/lib/realtime.ts'
+      - 'src/lib/account/**'
+      - 'src/components/account/**'
+      - 'src/components/profile/**'
+      - 'src/components/ResetPasswordClient.tsx'
+      - 'src/components/ChangePasswordClient.tsx'
+      - 'src/components/TwoFactorSettings.tsx'
+      - 'src/app/api/account/**'
       - 'src/components/native/**'
+      - 'src/components/navigation/**'
+      - 'src/components/legal/**'
+      - 'src/components/shell/**'
+      - 'src/components/BottomNav.tsx'
+      - 'src/app/layout.tsx'
+      - 'src/app/privacy/**'
+      - 'src/app/cookies/**'
       - 'src/app/api/v1/**'
       - 'src/lib/auth.ts'
       - 'src/lib/registration.ts'
       - 'src/app/api/auth/**'
+      - 'src/app/verify-email/**'
       - 'src/lib/platform.ts'
       - 'capacitor.config.ts'
       - 'ios/**'
@@ -17,6 +38,10 @@ on:
       - 'package*.json'
       - 'scripts/native/**'
       - 'tests/native-foundation*'
+      - 'tests/native-navigation*'
+      - 'tests/native-account*'
+      - 'tests/native-socket*'
+      - 'tests/fixtures/native-socket*'
       - 'tests/fixtures/native-foundation*'
       - '.github/workflows/native-foundation.yml'
   workflow_dispatch:
@@ -41,6 +66,10 @@ jobs:
           npx prisma validate
           npm run db:generate
           npm run test:native
+          npm run test:focus
+          npm run test:profile
+          npm run test:native:parity
+          npm run native:parity:check
           npm run lint
           npx tsx scripts/i18n/check.ts
           npm run build

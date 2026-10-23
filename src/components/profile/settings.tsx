@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, type ButtonHTMLAttributes, type ReactNode } from "react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/navigation/AppNavigation";
 import { AlertCircle, AlertTriangle, CheckCircle2, ChevronRight, Info } from "lucide-react";
 import ToggleSwitch from "@/components/versado/ToggleSwitch";
 

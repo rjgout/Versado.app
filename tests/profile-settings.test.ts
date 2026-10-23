@@ -5,6 +5,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createElement as h } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { AppNavigationProvider, type AppLinkProps } from "../src/components/navigation/AppNavigation";
 import {
   ProfileCard,
   SettingsButton,
@@ -36,7 +37,10 @@ test("disabled is echt uit, busy houdt het veld focusbaar", () => {
 });
 
 test("een rij is een link met href, anders een knop, met waarde en pijl", () => {
-  const link = renderToStaticMarkup(h(SettingsRow, { label: "Wachtwoord wijzigen", href: "/change-password" }));
+  const link = renderToStaticMarkup(h(AppNavigationProvider, { adapter: {
+    pathname: "/profile", push: noop, replace: noop, back: noop, canGoBack: () => false, refresh: noop,
+    Link: (props: AppLinkProps) => h("a", props),
+  }, children: h(SettingsRow, { label: "Wachtwoord wijzigen", href: "/change-password" }) }));
   assert.match(link, /^<a [^>]*href="\/change-password"/);
   const button = renderToStaticMarkup(h(SettingsRow, { label: "Taal", value: "Nederlands", onClick: noop }));
   assert.match(button, /^<button type="button"/);

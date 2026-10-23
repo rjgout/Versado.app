@@ -2300,6 +2300,9 @@ model LiveGame {
   status        LiveGameStatus     @default(LOBBY)
   createdAt     DateTime           @default(now())
   players       LiveGamePlayer[]
+  // Alleen de twee live-quizmodi; null betekent een nog niet gestarte canonieke quiz.
+  quizIndex     Int?
+  quizQuestions LiveQuizQuestion[]
   invites       LiveGameInvite[]
   // Alleen bij een seizoensavond van De Alleskenner.
   alleskennerEvening AlleskennerEvening?
@@ -2322,6 +2325,7 @@ model LiveGamePlayer {
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   score    Int      @default(0)
   joinedAt DateTime @default(now())
+  quizActions LiveQuizAction[]
 
   @@unique([gameId, userId])
   @@index([contentCollectionId])
@@ -4106,5 +4110,41 @@ model NativeAuthChallenge {
   stateHash String @db.VarChar(64)
   expiresAt DateTime
   consumedAt DateTime?
+  // Alleen de begrensde native beveiligingssetup; Apple-challenges houden null.
+  sessionVersion Int?
+  totpSecretEncrypted String?
   @@index([expiresAt])
+}
+
+// Kleine, bevroren vraaginhoud; geen kopie van hoofdstukken of complete contentcollecties.
+model LiveQuizQuestion {
+  gameId String
+  questionIndex Int
+  game LiveGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  payload Json
+  startedAt DateTime?
+  deadline DateTime?
+  revealedAt DateTime?
+  actions LiveQuizAction[]
+
+  @@id([gameId, questionIndex])
+}
+
+enum LiveQuizActionKind {
+  ANSWER
+  HINT_USE
+}
+
+model LiveQuizAction {
+  gameId String
+  questionIndex Int
+  userId String
+  actionKind LiveQuizActionKind
+  question LiveQuizQuestion @relation(fields: [gameId, questionIndex], references: [gameId, questionIndex], onDelete: Cascade)
+  player LiveGamePlayer @relation(fields: [gameId, userId], references: [gameId, userId], onDelete: Cascade)
+  result Json
+  createdAt DateTime @default(now())
+
+  @@id([gameId, questionIndex, userId, actionKind])
+  @@index([gameId, userId])
 }
