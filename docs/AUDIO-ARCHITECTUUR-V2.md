@@ -2,7 +2,7 @@
 
 ## Grenzen en besluit
 
-Nieuwe branch vanaf main `7da9c704c36c4b19e7eeeb36d43623a3046d164e`.
+Nieuwe branch bijgewerkt naar main `ccf7b7aaef9963b62d01df2fd2b16b8e28f3395c` (inclusief #193).
 PR #187 blijft apart en ongemerged. De eigenaar koos automatische validatie/registratie,
 met **expliciete beheerpublicatie** van iedere nieuwe/vervangende opname. Er is geen automatische
 activering, contentvrijgave, productie-import of NAS-handeling uitgevoerd.

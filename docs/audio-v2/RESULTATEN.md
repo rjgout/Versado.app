@@ -100,6 +100,9 @@ Samenvatting per werk/taal (alleen de geïsoleerde testdatabase):
 | es | dc-testament | 138 | 138 | 137 | 1 |
 | es | pgp | 16 | 16 | 15 | 1 |
 
+De synchronisatie met main #193 wijzigde geen audio-servercode, Prisma-schema of audio-importscripts;
+het volledige bronbewijs blijft op identieke code van toepassing. De native inventaris is opnieuw gegenereerd.
+
 ## Afbakening
 
 Geen productie/NAS-handeling, merge, deploy of officiële audiopublicatie uitgevoerd. Alleen synthetische testpublicaties in de wegwerpdatabase.
