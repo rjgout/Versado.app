@@ -1,3 +1,5 @@
+import { recordFinishedRun, announceRunStreaks, type RunStreakEvent } from "./streak";
+import { lockUsers } from "@/lib/social/common";
 import { checkGameAvailability } from "@/lib/gameAvailability";
 import { randomBytes } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
@@ -37,6 +39,7 @@ export interface MatchAnnouncement {
   code: string;
   /** Gezet zodra de wedstrijd is afgesloten: wie "actief spel" moet laten verdwijnen. */
   endedFor: string[] | null;
+  streaks?: RunStreakEvent[];
 }
 
 /**
@@ -46,6 +49,7 @@ export interface MatchAnnouncement {
 export function announceMatchChanged(announcement: MatchAnnouncement | null): void {
   if (!announcement) return;
   notifyMatchChanged(announcement.code);
+  announceRunStreaks(announcement.streaks ?? []);
   for (const userId of announcement.endedFor ?? []) emitToUser(userId, "game_left", { code: announcement.code });
 }
 
@@ -78,6 +82,7 @@ export async function eliminateRun(tx: Tx, matchId: string, runId: string, how: 
 export interface SettleResult {
   ended: boolean;
   decision: MatchDecision;
+  streaks: RunStreakEvent[];
 }
 
 /**
@@ -88,16 +93,25 @@ export interface SettleResult {
  * doet niets, dus een dubbele aanroep maakt nooit een tweede duo-rij.
  * De aanroeper heeft de wedstrijd al vergrendeld.
  */
-export async function settleMatch(tx: Tx, matchId: string, at: Date): Promise<SettleResult> {
+export async function settleMatch(tx: Tx, matchId: string, at: Date, playedRunIds: string[] = []): Promise<SettleResult> {
   const match = await tx.quickMissionaryMatch.findUniqueOrThrow({ where: { id: matchId } });
-  if (match.status === "ENDED") return { ended: true, decision: { over: true, reason: (match.endReason as "LAST_STANDING" | "NOBODY_FLYING") ?? "NOBODY_FLYING", survivorId: null, voidedIds: [] } };
+  if (match.status === "ENDED") return { ended: true, streaks: [], decision: { over: true, reason: (match.endReason as "LAST_STANDING" | "NOBODY_FLYING") ?? "NOBODY_FLYING", survivorId: null, voidedIds: [] } };
 
-  const runs = await tx.quickMissionaryRun.findMany({ where: { matchId }, select: { id: true, userId: true, status: true, score: true, eliminatedSeq: true, user: { select: { timeZone: true } } } });
+  const runs = await tx.quickMissionaryRun.findMany({ where: { matchId }, select: { id: true, userId: true, status: true, score: true, reviveUsed: true, eliminatedHow: true, eliminatedSeq: true, user: { select: { timeZone: true } } } });
   const decision = decideMatch(runs.map((run) => ({ userId: run.userId, state: participantState(run), reviveGranted: run.status === "REVIVE_READY" })));
-  if (!decision.over) return { ended: false, decision };
+  const streaks: RunStreakEvent[] = [];
+  // Bij meerdere deelnemers altijd dezelfde gebruikersvolgorde, na de wedstrijd/run.
+  await lockUsers(tx, runs.map((run) => run.userId));
+  for (const run of runs.filter((run) => run.status === "FINISHED")) {
+    const event = await recordFinishedRun(tx, { ...run, played: playedRunIds.includes(run.id) }, at);
+    if (event) streaks.push(event);
+  }
+  if (!decision.over) return { ended: false, decision, streaks };
 
   for (const run of runs) {
     if (run.status === "FINISHED") continue;
+    const event = await recordFinishedRun(tx, { ...run, played: playedRunIds.includes(run.id) }, at);
+    if (event) streaks.push(event);
     if (decision.voidedIds.includes(run.userId)) {
       await eliminateRun(tx, matchId, run.id, "RUN_ENDED", at);
     } else {
@@ -124,7 +138,7 @@ export async function settleMatch(tx: Tx, matchId: string, at: Date): Promise<Se
       },
     });
   }
-  return { ended: true, decision };
+  return { ended: true, decision, streaks };
 }
 
 // --- Starten -----------------------------------------------------------------
@@ -203,14 +217,16 @@ export async function sweepStalePlayers(matchId: string, at: Date = new Date()):
     if (!match || match.status !== "RUNNING") return null;
     const runs = await tx.quickMissionaryRun.findMany({ where: { matchId, status: { not: "FINISHED" } }, select: { id: true, status: true, lastSeenAt: true } });
     let changed = false;
+    const playedRunIds: string[] = [];
     for (const run of runs) {
       const limit = run.status === "IN_PROGRESS" ? ACTIVE_GRACE_MS : PENDING_GRACE_MS;
       if (run.lastSeenAt && at.getTime() - run.lastSeenAt.getTime() > limit) {
+        if (run.status !== "IN_PROGRESS") playedRunIds.push(run.id);
         await eliminateRun(tx, matchId, run.id, "DISCONNECT", at);
         changed = true;
       }
     }
-    return changed ? settleMatch(tx, matchId, at) : null;
+    return changed ? settleMatch(tx, matchId, at, playedRunIds) : null;
   });
 }
 

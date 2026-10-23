@@ -21,6 +21,15 @@ De bestaande lokale entry is `src/components/native/entry.tsx`; `NativeNavigatio
 
 De actuele broninventaris staat hieronder; de bijlage [native-feature-parity.inventory.json](native-feature-parity.inventory.json) bevat alle gevonden bestanden met inhoudshashes, importafhankelijkheden, requestpaden en bestaande testbestanden. De historische aantallen in PLATFORMEN beschrijven een oudere uitgangssituatie en gelden niet als actuele dekking.
 
+De reeksregel voor afgeronde spellen is gedeelde backendlogica: ook een fout
+puzzelantwoord, een voltooide Woordzoeker en een gespeelde, afgeronde run van
+Snelle Zendeling tellen via dezelfde reeksservice. Samen puzzelen telt vanaf één
+eigen geldige verbinding. Dit is gecontroleerd met geïsoleerde database- en
+webbrowsertests (`tests/game-streak-completion.integration.test.ts`,
+`tests/puzzle-completion.browser.mjs`). De bestaande beperkingen voor lokale
+native spelschermen in de matrix blijven open; er is geen apparaatvalidatie
+uitgevoerd voor deze wijziging.
+
 ## Gedeelde voorwaarden per functie
 
 Elke paginarij hieronder erft het bijbehorende domeinbeleid uit de functiematrix, inclusief opslag, fouten, beide native platformen, testvereisten en blokkades. De pagina- en API-tabellen voegen de exacte route, bron, rendergrens en aangetroffen contract-/authinformatie toe. Een lege native contractdekking betekent **ontbreekt**, niet toegestaan via een algemene bearer-bypass.
@@ -243,7 +252,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **140 pagina's**, **237 fysieke routehandlers**, **418 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **140 pagina's**, **237 fysieke routehandlers**, **419 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -952,6 +961,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/mysteries/Mystery001aClient.tsx](../src/components/mysteries/Mystery001aClient.tsx) | use client | MysteryClient
 [src/components/mysteries/MysteryDetailPage.tsx](../src/components/mysteries/MysteryDetailPage.tsx) | contextafhankelijk / server-entry waar page/layout | MysteryDetailPage
 [src/components/mysteries/MysteryPlayPage.tsx](../src/components/mysteries/MysteryPlayPage.tsx) | contextafhankelijk / server-entry waar page/layout | MysteryPlayPage
+[src/components/native/NativeBuildBanner.tsx](../src/components/native/NativeBuildBanner.tsx) | use client | NativeBuildBanner
 [src/components/native/NativeEmailConfirmation.tsx](../src/components/native/NativeEmailConfirmation.tsx) | use client | NativeEmailConfirmation
 [src/components/native/NativeFoundation.tsx](../src/components/native/NativeFoundation.tsx) | use client | NativeFoundation
 [src/components/native/NativeNavigationProvider.tsx](../src/components/native/NativeNavigationProvider.tsx) | use client | NativeNavigationProvider

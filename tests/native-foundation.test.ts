@@ -9,6 +9,8 @@ import { nativePasswordResetActions } from "../src/lib/native/passwordReset";
 import { nativeAccountActions } from "../src/lib/native/account";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const { publicKey, privateKey } = await generateKeyPair("RS256");
 const jwk = await exportJWK(publicKey); jwk.kid = "synthetic-test";
@@ -98,8 +100,10 @@ test("alleen exacte native origins; geen null, subdomeinen of credential-CORS", 
   for (const origin of [null, "null", "http://localhost", "https://localhost:443", "https://localhost.evil.invalid", "https://versado.app", "*"]) assert.equal(nativeOriginAllowed(origin), false);
 });
 test("local-development is lokaal; remote-preview blijft beschikbaar en release blijft geblokkeerd", () => {
-  const run = (profile: string) => spawnSync(process.execPath, ["--import", "tsx", "-e", "import('./capacitor.config.ts').then(m=>console.log(JSON.stringify(m.default)))"], { encoding: "utf8", env: { ...process.env, CAPACITOR_BUILD_PROFILE: profile, CAPACITOR_SERVER_URL: profile === "remote-preview" ? "https://example.invalid" : "" } });
-  const local = run("local-development"); assert.equal(local.status, 0, local.stderr); const config = JSON.parse(local.stdout.trim()); assert.equal(config.webDir, "dist/native"); assert.equal(config.server.url, undefined);
+  // Een lege tijdelijke uitvoermap houdt de test los van een eerder gebouwde (mogelijk ander) profiel in dist/native.
+  const outdir = join(tmpdir(), `versado-foundation-profile-${process.pid}`);
+  const run = (profile: string) => spawnSync(process.execPath, ["--import", "tsx", "-e", "import('./capacitor.config.ts').then(m=>console.log(JSON.stringify(m.default)))"], { encoding: "utf8", env: { ...process.env, NATIVE_BUILD_OUTDIR: outdir, CAPACITOR_BUILD_PROFILE: profile, CAPACITOR_SERVER_URL: profile === "remote-preview" ? "https://example.invalid" : "" } });
+  const local = run("local-development"); assert.equal(local.status, 0, local.stderr); const config = JSON.parse(local.stdout.trim()); assert.equal(config.webDir, outdir); assert.equal(config.server.url, undefined);
   assert.equal(run("remote-preview").status, 0); assert.notEqual(run("release").status, 0);
 });
 test("native opslag is platformbeveiligd, ontbrekende configuratie geeft geen onveilige fallback", () => {

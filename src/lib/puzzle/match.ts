@@ -320,8 +320,8 @@ const flatAnswer = (participant: { status: string; answeredCorrect: boolean | nu
 /**
  * Het antwoord op de inhoudelijke vraag.
  * - Regelversie 2: alleen mogelijk na een voltooide puzzel; verandert nooit tijd, rang, winnaar of geldigheid.
- *   Eén antwoord per deelnemer (idempotent): een goed antwoord kan de persoonlijke reeks verlengen via
- *   de centrale regel, een fout of ontbrekend antwoord niet. De vraag blijft beantwoordbaar ook nadat
+ *   Eén antwoord per deelnemer (idempotent): ook een fout antwoord telt via de centrale reeksregel.
+ *   Zonder antwoord is er geen reeksactiviteit. De vraag blijft beantwoordbaar ook nadat
  *   de wedstrijd is afgesloten, omdat ze de uitslag niet meer beïnvloedt.
  * - Regelversie 1 (oude wedstrijden): de klok stopt hier en alleen een goed antwoord geeft een geldige tijd.
  */

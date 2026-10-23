@@ -159,7 +159,7 @@ test("de puzzel geeft geen XP en de reeks loopt uitsluitend via completeJigsaw",
   assert.ok(block.includes("jigsaw:${attemptId}") && block.includes("finishActivity(") && block.includes("null,"), "geen XP-bedrag");
 });
 
-test("Woordzoeker blijft een tijdelijke uitzondering: geen reeks-aanroep", () => {
+test("Woordzoeker gebruikt de centrale reeksservice", () => {
   const game = readFileSync("src/lib/wordSearch/game.ts", "utf8");
-  assert.ok(!/recordLearningActivity|completeJigsaw|finishActivity/.test(game));
+  assert.ok(/recordLearningActivity/.test(game));
 });

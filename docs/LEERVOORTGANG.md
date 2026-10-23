@@ -54,22 +54,23 @@ Vier aparte dingen, die niet meer hetzelfde mogen betekenen:
 | "Markeer als gelezen" | Ja (nieuw) | Hoofdstuk of gepubliceerde studieles voor het eerst als gelezen geregistreerd, één keer per logische inhoud (`read:<contentKey>`) |
 | Openen/scrollen/begonnen met lezen | Nee | Geen afronding |
 | Samen studeren: gezamenlijk lezen | Nee | De host start de vragen; niemand rondde het lezen uitdrukkelijk af. De afgeronde stap zelf telt wel |
-| Introductie-, kinder- en podcastles | Ja | Les ingeleverd met de slaagvoorwaarde van de les |
+| Introductie-, kinder- en podcastles | Ja | Alle vragen beantwoord, ongeacht de score |
 | Snelle ronde, Samen studeren (stap), live quiz | Ja | Afgeronde ronde/stap |
 | Raad het hoofdstuk, Woord van de dag, De Slimste Heilige | Ja | Afgerond potje/dag |
 | Het Mysterie | Ja | Eerste voltooiing per mysterie en moeilijkheid |
-| **Legpuzzel** | Ja (nieuw) | Puzzel compleet **en** de inhoudsvraag goed beantwoord (`jigsaw:<poging>`) |
-| Woordzoeker | Nee (tijdelijke uitzondering) | Ongewijzigd gelaten: geeft nog XP maar geen reeks. Eerst apart beoordelen |
+| **Legpuzzel** | Ja (nieuw) | Puzzel compleet en de inhoudsvraag beantwoord, ook bij een fout antwoord (`jigsaw:<poging>`) |
+| Woordzoeker | Ja | Alle woorden gevonden; ook na het bereiken van de XP-limiet |
 | Scrabble | Nee | Geen betrouwbare afrondingsregistratie per gebruiker (beurtspel, opgeven) |
 | Uitdagingen | Nee | Opgeven en tegenstander-afhankelijke afronding maken de afronding niet betrouwbaar per dag; scoort via de onderliggende oefenset, die zelf telt |
 | Gezinsavond | Nee | Geen afrondingsregistratie per gebruiker |
-| Snelle Zendeling | Nee | Arcadespel zonder afronding; bewust geen XP of reeks |
+| Snelle Zendeling | Ja | Gespeelde run definitief afgerond (solo of samen), ook na een fout Genees-antwoord; geen XP |
 | Uitleg lezen, rondleidingen (Kompas), instellingen | Nee | Geen leeractiviteit |
 
-**Woordzoeker is een expliciete, tijdelijke uitzondering.** Hij blijft zoals
-hij was (XP, geen reeks) en zijn uitleg belooft geen reeks. Zodra hij een
-betrouwbare serverafronding heeft die we bewust willen laten tellen, voegt hij
-zich via `recordLearningActivity` bij de rest; tot dan is dit geen vergeten gat.
+Woordzoeker telt bij serverbevestigde voltooiing eenmaal per puzzel. Snelle
+Zendeling telt eenmaal per gespeelde, definitief afgeronde run. Een botsing
+met nul punten telt ook; alleen starten en meteen sluiten telt niet. Samen
+puzzelen telt al vanaf één zelf gemaakte geldige verbinding. Iedere activiteit
+gebruikt `recordLearningActivity`; goed beantwoorde vragen zijn geen voorwaarde.
 
 ### Legpuzzel: afbeelding → verhaal → vraag
 
@@ -85,7 +86,7 @@ zich via `recordLearningActivity` bij de rest; tot dan is dit geen vergeten gat.
   de server één vraag en een optievolgorde en legt die vast in het token; een
   refresh (`resume`) en elke herhaalde aanvraag geven dezelfde vraag.
 - Het antwoord is definitief: `completeJigsaw` claimt `jigsaw-answer:<poging>`
-  in `StreakActivity`. Alleen een goed antwoord start daarna
+  in `StreakActivity`. Elk geldig ingeleverd antwoord start daarna
   `recordLearningActivity` met `jigsaw:<poging>`. Het goede antwoord verlaat de
   server pas na het antwoord. 6, 12, 24 en 48 stukjes tellen gelijk en de
   puzzel geeft geen XP.

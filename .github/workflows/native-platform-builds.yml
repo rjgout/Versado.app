@@ -20,9 +20,13 @@ concurrency:
   group: native-platform-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 env:
-  # Compileproef zonder productiebackend, accounts, signing of publicatie.
+  # Compileproef zonder productiebackend, accounts, signing of publicatie. Het .invalid-domein (RFC 2606) is de
+  # enige origin die distributieprofielen zonder allowlist accepteren; zulke builds zijn gemarkeerd als
+  # compileproef en nooit uploadbaar.
   NATIVE_API_BASE_URL: https://example.invalid
   CAPACITOR_BUILD_PROFILE: local-development
+  NATIVE_APP_VERSION: 0.1.0
+  NATIVE_BUILD_NUMBER: '1'
 jobs:
   android-development:
     runs-on: ubuntu-latest
@@ -46,19 +50,41 @@ jobs:
           npm run db:generate
           npm run native:build
           npx cap sync android
-          node scripts/native/verify-development.mjs android
+          node scripts/native/verify-distribution.mjs android
       - name: Echte Android-debugcompilatie
         working-directory: android
         run: bash ./gradlew :app:assembleDebug --no-daemon
-      - name: Android App Bundle-release zonder signing (compileproef)
-        # Bewijst uitsluitend dat de releasetaak bouwt; zonder uploadsleutel blijft de bundel ongetekend en
-        # wordt hij niet bewaard of geüpload. Geen Play-upload, geen signingcredentials.
-        working-directory: android
-        run: bash ./gradlew :app:bundleRelease --no-daemon
       - name: Controleer de assets in de APK
         run: |
           unzip -q android/app/build/outputs/apk/debug/app-debug.apk 'assets/*' -d "$RUNNER_TEMP/versado-android-artifact"
-          node scripts/native/verify-development.mjs android "$RUNNER_TEMP/versado-android-artifact/assets"
+          node scripts/native/verify-distribution.mjs android "$RUNNER_TEMP/versado-android-artifact/assets"
+      - name: Releaseprofiel blijft geblokkeerd
+        run: |
+          if CAPACITOR_BUILD_PROFILE=release npm run native:build; then echo "release is onverwacht gebouwd"; exit 1; fi
+      - name: Profiel local-internal (compileproef) bouwen, synchroniseren en verifiëren
+        env:
+          CAPACITOR_BUILD_PROFILE: local-internal
+          NATIVE_COMPILE_PROBE: '1'
+          NATIVE_DISTRIBUTION_CHANNEL: internal
+        run: |
+          npm run native:build
+          npx cap sync android
+          node scripts/native/verify-distribution.mjs android
+      - name: Profiel local-store-test (play-test, compileproef) en Android App Bundle zonder signing
+        # Bewijst dat de store-testketen bouwt; zonder uploadsleutel blijft de bundel ongetekend en wordt hij
+        # niet bewaard of geüpload. Geen Play-upload, geen signingcredentials.
+        env:
+          CAPACITOR_BUILD_PROFILE: local-store-test
+          NATIVE_COMPILE_PROBE: '1'
+          NATIVE_DISTRIBUTION_CHANNEL: play-test
+          VERSADO_VERSION_NAME: 0.1.0
+          VERSADO_VERSION_CODE: '1'
+        run: |
+          npm run native:build
+          npx cap sync android
+          node scripts/native/verify-distribution.mjs android
+          cd android
+          bash ./gradlew :app:bundleRelease --no-daemon
       - uses: actions/upload-artifact@v4
         with:
           name: versado-android-development-compileprobe
@@ -81,23 +107,42 @@ jobs:
           npm run db:generate
           npm run native:build
           npx cap sync ios
-          node scripts/native/verify-development.mjs ios
+          node scripts/native/verify-distribution.mjs ios
       - name: Echte iOS-simulatorcompilatie zonder signing
         run: |
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/versado-ios" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
-      - name: Controleer de SDK-eis van Apple en archiveer voor echte apparaten zonder signing (compileproef)
+      - name: Controleer de assets in de simulatorapp
+        run: |
+          node scripts/native/verify-distribution.mjs ios "$RUNNER_TEMP/versado-ios/Build/Products/Debug-iphonesimulator/App.app"
+          ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/versado-ios/Build/Products/Debug-iphonesimulator/App.app" "$RUNNER_TEMP/versado-ios-simulator.zip"
+      - name: Releaseprofiel blijft geblokkeerd
+        run: |
+          if CAPACITOR_BUILD_PROFILE=release npm run native:build; then echo "release is onverwacht gebouwd"; exit 1; fi
+      - name: Profiel local-internal (compileproef) bouwen, synchroniseren en verifiëren
+        env:
+          CAPACITOR_BUILD_PROFILE: local-internal
+          NATIVE_COMPILE_PROBE: '1'
+          NATIVE_DISTRIBUTION_CHANNEL: internal
+        run: |
+          npm run native:build
+          npx cap sync ios
+          node scripts/native/verify-distribution.mjs ios
+      - name: Profiel local-store-test (testflight, compileproef), SDK-eis van Apple en archive voor echte apparaten zonder signing
+        env:
+          CAPACITOR_BUILD_PROFILE: local-store-test
+          NATIVE_COMPILE_PROBE: '1'
+          NATIVE_DISTRIBUTION_CHANNEL: testflight
         # Apple vereist voor App Store Connect-uploads Xcode 26 met de iOS 26 SDK (sinds 28 april 2026).
         # De archive wordt niet bewaard of geüpload; het bewijst alleen de apparaatarchitectuur en SDK-keten.
         run: |
+          npm run native:build
+          npx cap sync ios
+          node scripts/native/verify-distribution.mjs ios
           xcodebuild -version
           sdk="$(xcrun --sdk iphoneos --show-sdk-version)"
           echo "iphoneos SDK: $sdk"
           test "${sdk%%.*}" -ge 26
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/Versado-compileprobe.xcarchive" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO archive
-      - name: Controleer de assets in de simulatorapp
-        run: |
-          node scripts/native/verify-development.mjs ios "$RUNNER_TEMP/versado-ios/Build/Products/Debug-iphonesimulator/App.app"
-          ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/versado-ios/Build/Products/Debug-iphonesimulator/App.app" "$RUNNER_TEMP/versado-ios-simulator.zip"
       - uses: actions/upload-artifact@v4
         with:
           name: versado-ios-simulator-development-compileprobe

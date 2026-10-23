@@ -481,13 +481,16 @@ werkende App Store-/Play Store-release.
 de lokale client op CI-runners met de benodigde SDK's: Android Debug met JDK 21/
 SDK 36 en een iOS-simulatorapp met Xcode. De backend is uitsluitend de gereserveerde
 `https://example.invalid`: deze artifacts zijn compileproeven, geen werkende
-productie-installaties. Beide jobs gebruiken `local-development`, zonder
+productie-installaties. Beide jobs bouwen `local-development` en daarna `local-internal` en
+`local-store-test` als compileproef (origin `https://example.invalid`, gemarkeerd als niet-uploadbaar; zie
+`docs/NATIVE-STORE-RELEASE-PLAN.md` §5.1) en controleren dat `release` faalt, zonder
 signingcredentials, App Store/Play-upload of deployment.
 
-`scripts/native/verify-development.mjs` vergelijkt de gesynchroniseerde én echt
+`scripts/native/verify-distribution.mjs` vergelijkt de gesynchroniseerde én echt
 verpakte HTML/JS/CSS/buildmetadata met `dist/native`. Een remote `server.url`, een
 afgekeurde profiel-/releasevlag of afwijkende assets laat de controle mislukken.
-Android controleert de inhoud van de APK; iOS die van de gebouwde simulatorapp.
+Het profielcontract staat in `scripts/native/profiles.cjs` (één bron voor `capacitor.config.ts`, build en
+verificatie). Android controleert de inhoud van de APK; iOS die van de gebouwde simulatorapp.
 Artifacts blijven zeven dagen beschikbaar bij de betreffende workflowrun.
 
 Deze controles leveren pas buildbewijs zodra de jobs op de gepushte commit groen

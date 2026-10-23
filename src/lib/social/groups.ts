@@ -374,9 +374,11 @@ async function memberActivity(tx: Tx, groupId: string): Promise<MemberActivity[]
   return tx.$queryRaw<MemberActivity[]>`
     SELECT m."userId", m."role", m."joinedAt", m."adminSince", u."timeZone",
       (SELECT max(s."dayKey") FROM "StreakDay" s WHERE s."userId" = m."userId" AND s."status" = 'STUDIED') AS "lastStudied",
-      (SELECT count(*)::int FROM "GroupDay" d JOIN "StreakDay" s ON s."userId" = m."userId" AND s."dayKey" = d."dayKey"
+      (SELECT count(*)::int FROM "GroupDay" d
         WHERE d."groupId" = m."groupId" AND d."status" = 'ACHIEVED' AND g."streakStartDay" IS NOT NULL
-          AND d."dayKey" >= g."streakStartDay" AND d."dayKey" >= m."eligibleFromDay") AS "contribution"
+          AND d."dayKey" >= g."streakStartDay" AND d."dayKey" >= m."eligibleFromDay"
+          AND (EXISTS (SELECT 1 FROM "StreakDay" s WHERE s."userId" = m."userId" AND s."dayKey" = d."dayKey")
+            OR EXISTS (SELECT 1 FROM "StreakActivity" a WHERE a."userId" = m."userId" AND a."dayKey" = d."dayKey"))) AS "contribution"
     FROM "GroupMembership" m
     JOIN "User" u ON u."id" = m."userId"
     JOIN "SocialGroup" g ON g."id" = m."groupId"

@@ -4,7 +4,7 @@ import { listFriendStreaks } from "@/lib/social/friendStreaks";
 import { refreshFriendStreaksFor } from "@/lib/social/friendStreaks";
 import { refreshGroupsFor } from "@/lib/social/groupStreak";
 import { groupDayCounts } from "@/lib/social/groupDays";
-import { keptOn, personSelect, type PersonSummary } from "@/lib/social/common";
+import { contributedOn, personSelect, type PersonSummary } from "@/lib/social/common";
 import { nudgeAvailability, nudgesDisabled } from "@/lib/social/nudges";
 import { requiredContributors } from "@/lib/social/rules";
 
@@ -133,7 +133,7 @@ export async function getStreakCelebrationSocial(userId: string, now = new Date(
   const groupFriendIds = new Set(friendships.map((friendship) => friendship.senderId === userId ? friendship.receiverId : friendship.senderId));
   const allGroupMemberIds = [...new Set(memberRows.map((row) => row.userId))];
   const [kept, groupCounts, groupDays, groupNudgeAvailability, groupNudgesDisabled] = await Promise.all([
-    keptOn(prisma, allGroupMemberIds, dayKey),
+    contributedOn(prisma, allGroupMemberIds, dayKey),
     groupDayCounts(prisma, groupIds, dayKey),
     prisma.groupDay.findMany({ where: { groupId: { in: groupIds }, dayKey }, select: { groupId: true, status: true } }),
     nudgeAvailability(prisma, userId, [...groupFriendIds], now),

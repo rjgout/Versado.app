@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { getContentContext, BOFM_WORK } from "@/lib/contentCollections";
 import { dayKey } from "@/lib/dates";
 import { awardCompetitionXp } from "@/lib/competitionXp";
+import { recordLearningActivity, type StreakSnapshot } from "@/lib/streak";
+import { emitToUser } from "@/lib/realtime";
 import { awardXp } from "@/lib/xp";
 import { generateWordSearch, selectionMatches, type WordSearchCandidate, type WordSearchDifficulty, type WordSearchPlacedWord, type WordSearchPosition } from "./generator";
 import { resolveGameContent } from "@/lib/gameContentResolver";
@@ -172,6 +174,7 @@ async function tryFindWordSearchWord(userId: string, gameId: string, start: Word
   if (!match || game.status !== "IN_PROGRESS") return { correct: false, view: toView(game) };
   const nextFound = [...foundWords, match.normalized];
   const completed = nextFound.length === words.length;
+  let streak: StreakSnapshot | null = null;
   const updated = await prisma.$transaction(async (tx) => {
     const xpToday = await tx.wordSearchGame.count({
       where: {
@@ -192,6 +195,7 @@ async function tryFindWordSearchWord(userId: string, gameId: string, start: Word
       },
     });
     if (saved.count === 0) return null;
+    if (completed) streak = await recordLearningActivity(tx, userId, { kind: "GAME", answered: nextFound.length, required: words.length, key: `word-search:${game.id}` });
     if (completed && xpEarned > 0) {
       await awardXp(tx, userId, xpEarned, "WORD_SEARCH_COMPLETED", { difficulty: game.difficulty, wordCount: words.length });
       await awardCompetitionXp(tx, userId, "WORD_SEARCH", xpEarned, {
@@ -203,5 +207,9 @@ async function tryFindWordSearchWord(userId: string, gameId: string, start: Word
     return tx.wordSearchGame.findUniqueOrThrow({ where: { id: game.id } });
   });
   if (!updated) return "CONFLICT" as const;
+  if (streak) {
+    const result = streak as StreakSnapshot;
+    emitToUser(userId, "streak_changed", { dayEarned: result.dayEarned, currentStreak: result.currentStreak });
+  }
   return { correct: true, word: match.normalized, view: toView(updated) };
 }

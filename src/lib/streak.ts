@@ -84,11 +84,12 @@ export async function recordLearningActivity(
 
   // De stabiele sleutel hoort bij de echte sessie/ronde, niet bij de request.
   // Hierdoor tellen retries ook op een latere dag niet opnieuw.
+  const qualifies = qualifiesForStreak(activity);
   const claimed = await tx.streakActivity.createMany({
-    data: [{ userId, key: activity.key }], skipDuplicates: true,
+    data: [{ userId, key: activity.key, dayKey: qualifies ? view.day : null }], skipDuplicates: true,
   });
   if (!claimed.count) return { ...snapshot, duplicate: true };
-  if (!qualifiesForStreak(activity)) return snapshot;
+  if (!qualifies) return snapshot;
 
   if (user.streakInterruptedDay) {
     const completed = view.completed + 1;
@@ -195,7 +196,7 @@ export interface JigsawCompletion {
 /**
  * Het definitieve antwoord op de inhoudsvraag van een legpuzzel. Het antwoord
  * wordt per poging precies één keer geclaimd (een tweede poging met dezelfde
- * puzzel kan dus niet alsnog goed zijn). Alleen een juist antwoord telt als
+ * puzzel kan dus niet alsnog goed zijn). Ook een fout antwoord telt als
  * afgeronde activiteit; de puzzel geeft bewust geen XP.
  */
 export async function completeJigsaw(userId: string, attemptId: string, correct: boolean, transaction?: Tx): Promise<JigsawCompletion> {
@@ -206,13 +207,12 @@ export async function completeJigsaw(userId: string, attemptId: string, correct:
       data: [{ userId, key: `jigsaw-answer:${attemptId}` }], skipDuplicates: true,
     });
     if (!claimed.count) return { alreadyAnswered: true, counted: false, result: null };
-    if (!correct) return { alreadyAnswered: false, counted: false, result: null };
     const result = await finishActivity(
       tx,
       userId,
       { kind: "GAME", answered: 1, required: 1, key: `jigsaw:${attemptId}` },
       null,
-      { chapterCompleted: false, scorePercent: 100 }
+      { chapterCompleted: false, scorePercent: correct ? 100 : 0 }
     );
     return { alreadyAnswered: false, counted: !result.duplicate, result };
   };
