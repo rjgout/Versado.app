@@ -198,3 +198,16 @@ Twee afzonderlijke kaarten, beide onder de importlock (`withContentImportLock`) 
 Getest met `tests/content-update.integration.test.ts` (droogloop schrijft niets; handtekening stabiel en inhoudsgebonden; verouderd of afwijkend plan geweigerd; OTB in de
 droogloop, download alleen bij voorbereiden, publiceren behoudt beheerinstellingen; alleen het gewijzigde hoofdstuk krijgt een audiomarkering; tweede identieke update zonder
 wijzigingen; lock bezet; onderbroken run; normale update raakt OTB en audiospiegeling niet).
+
+### Samenwerking met Audio V2 (#194)
+
+De schriftupdatecontroles en `ChapterAudioCheck` blijven bestaan naast de onveranderlijke opnamen en expliciete publicatiepointer van
+Audio V2. Een bevestiging van legacy-audio wijzigt geen V2-opname of publicatie en omzeilt nooit de exacte brontekstbinding van V2.
+Ontbrekende of ongeldige legacy-audiogegevens behouden bestaande audio en tijdcodes; ook hoofdstukkoptijden moeten eindig, niet-negatief
+én geordend zijn. Ongewijzigde audiogegevens lossen een openstaande controle niet op. Bij nieuwe geldige gegevens worden hoofdstukaudio,
+verstijdcodes en de bijbehorende controle per hoofdstuk in dezelfde transactie bijgewerkt; een schrijffout draait alle drie terug.
+
+De bestaande migratienamen blijven intact. De geïsoleerde audiorunner test expliciet dat `20261127120000_content_beheer_v2` ook ná
+`20261204120000_audio_library_v2` kan worden toegepast, inclusief de controlebackfill voor al aanwezige audio en behoud van bestaande data.
+De audio-integratietests bewaken rollback/retry, de ongewijzigde V2-publicatie en het ontbreken van een brontekstbypass via legacy-bevestiging.
+Browserregressies bewaken beide beheerschermen, rechten/origin, planbevestiging, annuleren, lopende taken, 320/390/768 px en tekstschaling.

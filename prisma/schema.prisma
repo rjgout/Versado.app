@@ -505,6 +505,7 @@ model Book {
 }
 
 model Chapter {
+  recordings AudioRecording[]
   id                   String               @id @default(cuid())
   bookId               String
   book                 Book                 @relation(fields: [bookId], references: [id], onDelete: Cascade)
@@ -584,6 +585,7 @@ model UserStudyContext {
 }
 
 model ContentCollection {
+  recordings AudioRecording[]
   id        String   @id
   slug      String   @unique
   name      String
@@ -699,6 +701,7 @@ model StudyLessonEdition {
 
 // INSERT-only, ook buiten Prisma: de migratie blokkeert UPDATE en DELETE.
 model StudyRevision {
+  recordings AudioRecording[]
   annotationBookmark Bookmark[] @relation("BookmarkRevision")
   annotationHighlight Highlight[] @relation("HighlightRevision")
   annotationNote Note[] @relation("NoteRevision")
@@ -4213,4 +4216,60 @@ model LiveQuizAction {
 
   @@id([gameId, questionIndex, userId, actionKind])
   @@index([gameId, userId])
+}
+
+// Audio V2: onveranderlijke opname; publicatie is een apart, atomair verwisselbaar anker.
+model AudioPackage {
+  id String @id
+  manifestHash String
+  status String @default("PROCESSING")
+  attempts Int @default(1)
+  leaseToken String
+  leaseUntil DateTime
+  errorCode String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  recording AudioRecording?
+  @@index([status, leaseUntil])
+}
+
+model AudioRecording {
+  id String @id @default(cuid())
+  packageId String @unique
+  package AudioPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  targetKey String
+  collectionId String
+  work String
+  editionKey String
+  language String
+  collection ContentCollection @relation(fields: [collectionId, work, editionKey, language], references: [id, work, editionKey, language], onDelete: Cascade, onUpdate: Restrict)
+  chapterId String?
+  chapter Chapter? @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  studyRevisionId String?
+  studyRevision StudyRevision? @relation(fields: [studyRevisionId], references: [id], onDelete: Restrict)
+  sourceHash String
+  sourceKind String
+  sourceMetadata Json
+  voice Json
+  quality Json
+  segments Json
+  sha256 String
+  byteSize Int
+  duration Float
+  mimeType String @default("audio/mpeg")
+  createdAt DateTime @default(now())
+  publication AudioPublication?
+  @@unique([id, targetKey])
+  @@index([collectionId, chapterId])
+}
+
+model AudioPublication {
+  targetKey String @id
+  recordingId String @unique
+  recording AudioRecording @relation(fields: [recordingId, targetKey], references: [id, targetKey], onDelete: Cascade, onUpdate: Restrict)
+  version Int @default(1)
+  publishedAt DateTime @default(now())
+  // Auditanker, geen gebruikersdata en geen nieuwe sessie- of contentpublicatielaag.
+  publishedBy String
+  @@unique([recordingId, targetKey])
 }

@@ -2,6 +2,17 @@
 
 Gecontroleerde ontwikkelbasis: `origin/main` op `e76bc9f7c04b7b9e6faffb97c255184e0c5fb018`. Inventarisatie op 21 oktober 2026. Roadmap: [issue #163](https://github.com/rjgout/Versado.app/issues/163). Dit is implementatievoorbereiding en technische verificatie, geen onafhankelijke acceptatie-audit.
 
+## Audio V2 — ontwikkelstatus
+
+De audiobibliotheek en de beheerroute `/adminbackend/content/audio` zijn toegevoegd op de webbackend.
+De nieuwe afspeelroutes blijven achter bestaande websessie- en contentrechten; er is geen algemene
+Bearer-bypass, token in URL of cookie-terugval voor native toegevoegd. De lokale native lezer mist
+nog veilige media-/Range-integratie en dezelfde spelerbediening. Dit blijft een expliciete ontbrekende
+functie; er is geen web-only uitzondering goedgekeurd en dit document claimt geen volledige native
+oplevering. Android-/iOS-compilatie is uitsluitend een regressiecontrole. Fysieke toestellen,
+achtergrondaudio, hoofdtelefoonbediening en herstel na lifecycle-wissels zijn niet hiermee bewezen.
+Zie [Audioarchitectuur V2](AUDIO-ARCHITECTUUR-V2.md).
+
 ## Doel, bewijs en grens
 
 Iedere bestaande functie moet bruikbaar zijn op web/PWA, lokaal gebundeld iOS/iPadOS en Android. Er zijn **geen goedgekeurde web-only uitzonderingen**. Remote-preview, een link naar de website, een lege route of een route in deze inventaris is geen native equivalent. `CAPACITOR_BUILD_PROFILE=release` blijft geblokkeerd.
@@ -232,7 +243,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **139 pagina's**, **235 fysieke routehandlers**, **416 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **140 pagina's**, **237 fysieke routehandlers**, **418 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -247,6 +258,7 @@ Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en au
 `/adminbackend/communicatie` | [src/app/adminbackend/communicatie/page.tsx](../src/app/adminbackend/communicatie/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/email.ts; src/lib/i18n/index.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend/content` | [src/app/adminbackend/content/page.tsx](../src/app/adminbackend/content/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/i18n/index.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend/content-preview` | [src/app/adminbackend/content-preview/page.tsx](../src/app/adminbackend/content-preview/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/chapterTerm.ts; src/lib/contentAccess.ts; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/adminbackend/content/audio` | [src/app/adminbackend/content/audio/page.tsx](../src/app/adminbackend/content/audio/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/audio/library.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend/content/inspect` | [src/app/adminbackend/content/inspect/page.tsx](../src/app/adminbackend/content/inspect/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminContentInspection.ts; src/lib/adminGuard.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend/content/study-publications` | [src/app/adminbackend/content/study-publications/page.tsx](../src/app/adminbackend/content/study-publications/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/studyContent/admin.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend/gebruikers` | [src/app/adminbackend/gebruikers/page.tsx](../src/app/adminbackend/gebruikers/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/dates.ts; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/i18n/serverTexts.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
@@ -395,6 +407,7 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/activity-status` | GET | [src/app/api/activity-status/route.ts](../src/app/api/activity-status/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/alleskenner` | GET | [src/app/api/admin/alleskenner/route.ts](../src/app/api/admin/alleskenner/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/alleskenner/[id]` | PUT | [src/app/api/admin/alleskenner/[id]/route.ts](../src/app/api/admin/alleskenner/[id]/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/admin/audio` | GET, POST | [src/app/api/admin/audio/route.ts](../src/app/api/admin/audio/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/audio-checks` | GET, POST | [src/app/api/admin/audio-checks/route.ts](../src/app/api/admin/audio-checks/route.ts) | beheer; getCurrentUser, requireAdmin | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/branding` | GET, PUT | [src/app/api/admin/branding/route.ts](../src/app/api/admin/branding/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/changelog` | GET, POST | [src/app/api/admin/changelog/route.ts](../src/app/api/admin/changelog/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
@@ -437,6 +450,7 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/annotations` | DELETE, GET, PUT | [src/app/api/annotations/route.ts](../src/app/api/annotations/route.ts) | leren; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/annotations/resolve` | POST | [src/app/api/annotations/resolve/route.ts](../src/app/api/annotations/resolve/route.ts) | leren; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/audio/[file]` | GET, HEAD | [src/app/api/audio/[file]/route.ts](../src/app/api/audio/[file]/route.ts) | media-hulpmiddelen; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/audio/recordings/[id]` | GET, HEAD | [src/app/api/audio/recordings/[id]/route.ts](../src/app/api/audio/recordings/[id]/route.ts) | media-hulpmiddelen; getCurrentUser, verifyObject | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/auth/forgot-password` | POST | [src/app/api/auth/forgot-password/route.ts](../src/app/api/auth/forgot-password/route.ts) | account; controle in bron/service nodig | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/auth/login` | POST | [src/app/api/auth/login/route.ts](../src/app/api/auth/login/route.ts) | account; verifyPassword | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/auth/login/2fa` | POST | [src/app/api/auth/login/2fa/route.ts](../src/app/api/auth/login/2fa/route.ts) | account; verifyTotpCode, verifyTwoFactorChallengeToken | Geen algemene bearer-toegang; expliciet contract vereist
@@ -628,6 +642,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/app/activity/page.tsx](../src/app/activity/page.tsx) | contextafhankelijk / server-entry waar page/layout | ActivityPage
 [src/app/adminbackend/communicatie/page.tsx](../src/app/adminbackend/communicatie/page.tsx) | contextafhankelijk / server-entry waar page/layout | AdminCommunicationPage
 [src/app/adminbackend/content-preview/page.tsx](../src/app/adminbackend/content-preview/page.tsx) | contextafhankelijk / server-entry waar page/layout | ContentPreviewPage
+[src/app/adminbackend/content/audio/page.tsx](../src/app/adminbackend/content/audio/page.tsx) | contextafhankelijk / server-entry waar page/layout | AudioPage
 [src/app/adminbackend/content/inspect/page.tsx](../src/app/adminbackend/content/inspect/page.tsx) | contextafhankelijk / server-entry waar page/layout | AdminContentInspectionPage
 [src/app/adminbackend/content/page.tsx](../src/app/adminbackend/content/page.tsx) | contextafhankelijk / server-entry waar page/layout | AdminContentPage
 [src/app/adminbackend/content/study-publications/page.tsx](../src/app/adminbackend/content/study-publications/page.tsx) | contextafhankelijk / server-entry waar page/layout | StudyPublicationsPage
@@ -889,6 +904,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/account/PasswordChangeForm.tsx](../src/components/account/PasswordChangeForm.tsx) | use client | PasswordChangeForm
 [src/components/account/PasswordResetForm.tsx](../src/components/account/PasswordResetForm.tsx) | use client | PasswordResetForm
 [src/components/account/TwoFactorCards.tsx](../src/components/account/TwoFactorCards.tsx) | use client | RecoveryCodesCard, TwoFactorSetupCard
+[src/components/admin/AdminAudioClient.tsx](../src/components/admin/AdminAudioClient.tsx) | use client | AdminAudioClient
 [src/components/admin/AdminCategoryCard.tsx](../src/components/admin/AdminCategoryCard.tsx) | contextafhankelijk / server-entry waar page/layout | AdminCategoryCard
 [src/components/admin/AdminContentInspectionClient.tsx](../src/components/admin/AdminContentInspectionClient.tsx) | use client | AdminContentInspectionClient
 [src/components/admin/AdminNotice.tsx](../src/components/admin/AdminNotice.tsx) | contextafhankelijk / server-entry waar page/layout | AdminNotice

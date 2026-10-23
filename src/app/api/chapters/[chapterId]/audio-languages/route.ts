@@ -5,6 +5,7 @@ import { apiError } from "@/lib/apiError";
 import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
 import { playableAudioUrl } from "@/lib/audioMirror";
+import { activeChapterAudio } from "@/lib/audio/library";
 import { LANGUAGES } from "@/lib/languages";
 import { pickEditionInFamily } from "@/lib/contentEdition";
 
@@ -31,15 +32,19 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ cha
       book: { key, contentCollection: { ...selectable, work: contentCollection.work, editionKey: contentCollection.editionKey } },
     },
     select: {
-      audioUrl: true,
+      id: true, heading: true, audioUrl: true,
       book: { select: { contentCollection: { select: { language: true, work: true, editionKey: true } } } },
-      verses: { orderBy: { number: "asc" }, select: { number: true, text: true, audioStart: true } },
+      verses: { orderBy: { number: "asc" }, select: { id: true, number: true, text: true, audioStart: true } },
     },
   });
+  const resolved = await Promise.all(chapters.map(async (item) => {
+    const recording = await activeChapterAudio(item);
+    return recording === undefined ? item : recording ? { ...item, audioUrl: recording.url, verses: item.verses.map((v, i) => ({ ...v, audioStart: recording.verses[i].audioStart })) } : { ...item, audioUrl: null, verses: item.verses.map((v) => ({ ...v, audioStart: null })) };
+  }));
   return NextResponse.json({
     editions: LANGUAGES.flatMap(({ code }) => {
       const edition = pickEditionInFamily(
-        chapters.map((item) => ({ ...item, ...item.book.contentCollection })),
+        resolved.map((item) => ({ ...item, ...item.book.contentCollection })),
         contentCollection,
         code,
       );

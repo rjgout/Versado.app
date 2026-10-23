@@ -81,13 +81,15 @@ def units_for(page):
     body = page["content"]["body"]
     before = body.split('class="verse"')[0]
     pre = [clean(t) for _, t in re.findall(r'<(?:p|h1|h2|div)[^>]*class="(subtitle|intro|study-intro|title)"[^>]*>(.*?)</(?:p|h1|h2|div)>', before, re.S)]
-    num = clean(re.findall(r'class="title-number"[^>]*>(.*?)<', before, re.S)[0])
-    head = clean(re.findall(r'class="study-summary"[^>]*>(.*?)</p>', body, re.S)[0])
+    nums = re.findall(r'class="title-number"[^>]*>(.*?)<', before, re.S)
+    num = clean(nums[0]) if nums else ""
+    heads = re.findall(r'class="study-summary"[^>]*>(.*?)</p>', body, re.S)
+    head = clean(heads[0]) if heads else ""
     verses = [re.sub(r"^\d+\s*", "", clean(v)) for v in re.findall(r'<p[^>]*class="verse"[^>]*>(.*?)</p>', body, re.S)]
     units = []
     if pre:
         units.append(("pre", " ".join(pre)))
-    units += [("num", num), ("head", head)]
+    units += [(key, value) for key, value in [("num", num), ("head", head)] if value]
     units += [(f"v{i + 1}", v) for i, v in enumerate(verses)]
     return units
 
