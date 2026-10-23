@@ -510,9 +510,21 @@ try {
           { name: SESSION_COOKIE, value: f.owner.token, url: base },
         ]);
         const p = await c.newPage();
+        // Optionele stresstest: CPU_THROTTLE=2 vertraagt de pagina om hydratatie- en herstelvolgorde te toetsen.
+        if (process.env.CPU_THROTTLE) {
+          const cdp = await c.newCDPSession(p);
+          await cdp.send("Emulation.setCPUThrottlingRate", { rate: Number(process.env.CPU_THROTTLE) });
+        }
         p.on("pageerror", (e) => errors.push(e.message));
         await p.goto(base + f.href);
         await p.addStyleTag({ content: `html{font-size:${scale}%}` });
+        // Eerst wachten tot de reader gehydrateerd is. Een gebruiker die vóór de hydratatie scrolt, kan door het
+        // herstel van de beginpositie worden teruggezet; dat is geen sheetgedrag en hoort niet in deze meting.
+        await p.getByRole("button", { name: tr("studyReader.startOver"), exact: true }).click({ trial: true, timeout: 15000 });
+        // Een echte gebruikersscroll (zoals in study-reader.browser.mjs) beëindigt het herstel van de beginpositie,
+        // zodat de positie die hieronder als uitgangspunt dient niet meer verschuift.
+        await p.mouse.move(size.width / 2, size.height / 2);
+        await p.mouse.wheel(0, 1);
         const trigger = p.locator(
           "#study-paragraph-intro [data-annotation-trigger]",
         );
@@ -547,8 +559,15 @@ try {
         });
         await p.keyboard.press("Escape");
         await sheet.waitFor({ state: "detached" });
+        // Escape sluit de dialoog echt (geen open dialoog, ook niet verborgen) en de focus staat op de oorspronkelijke,
+        // zichtbare knop: niet op body of een verborgen element.
+        assert.equal(await p.locator("dialog[open]").count(), 0);
         assert.equal(
           await trigger.evaluate((e) => document.activeElement === e),
+          true,
+        );
+        assert.equal(
+          await trigger.evaluate((e) => e.getClientRects().length > 0 && getComputedStyle(e).visibility !== "hidden" && !e.closest("[inert],[hidden]")),
           true,
         );
         assert.ok(Math.abs((await p.evaluate(() => scrollY)) - before) < 2);
