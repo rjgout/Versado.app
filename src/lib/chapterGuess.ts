@@ -389,10 +389,9 @@ export function computeHintEffect(
   return { bookId: correctChapter?.bookId, bookName: correctChapter?.bookName };
 }
 
-// Genereert een volledige, in-het-geheugen vragenlijst voor een live potje
-// (zie src/server/gameServer.ts) — geen database-rijen per vraag nodig zoals
-// bij het alleen-spelen-spel, want een live kamer leeft toch al alleen in het
-// geheugen van het proces (net als de bestaande hoofdstuk-oefeningen-race).
+// Bereidt live-vragen voor buiten een korte transactie. Pas de eenmalige
+// PostgreSQL-startcommit in liveQuiz.ts maakt deze seeds canoniek; andere
+// processen nemen daarna uitsluitend de vastgelegde vragen over.
 export interface LiveQuestionSeed {
   chapterId: string;
   introText: string;

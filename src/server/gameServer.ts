@@ -13,7 +13,7 @@ import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth";
 import { applicationOrigin } from "@/lib/baseUrl";
 import { isLiveTopic, topicRoom } from "@/lib/data/scopes";
 import { parseCookieHeader } from "@/lib/parseCookieHeader";
-import { isExerciseCorrect } from "@/lib/exerciseGen";
+import { actInLiveQuiz, advanceLiveQuiz, readLiveQuiz, startLiveQuiz, type QuizPayload } from "@/lib/liveQuiz";
 import { completeLiveQuiz, completeChapterGuess } from "@/lib/streak";
 import { checkAndAwardAchievements } from "@/lib/achievements";
 import { notifyGameInvite, notifyNewAchievements, removeNotificationsByUrl } from "@/lib/notify";
@@ -28,7 +28,7 @@ import {
   clearCurrentActivity,
   getAcceptedFriendIds,
 } from "@/lib/presence";
-import { generateChapterGuessQuestions, labelsFor, computeHintEffect, type LiveQuestionSeed, type ChapterLabel } from "@/lib/chapterGuess";
+import { generateChapterGuessQuestions, labelsFor, type LiveQuestionSeed, type ChapterLabel } from "@/lib/chapterGuess";
 import {
   BOARD,
   finishIndexFor,
@@ -118,6 +118,9 @@ interface RoomState {
   questionStartedAt: number;
   players: Map<string, RoomPlayer>;
   timer?: NodeJS.Timeout;
+  quizPresentationKey?: string;
+  quizSync?: Promise<void>;
+  quizSettled?: boolean;
   // Gezet zodra iemand opgeeft (alleen relevant met vrienden/live) — de
   // tegenstander(s) winnen dan altijd, los van de stand op dat moment.
   forfeitedBy?: string;
@@ -285,6 +288,17 @@ function resyncSocket(socket: Socket, room: RoomState) {
 
   const total = totalQuestions(room);
   if (room.questionIndex >= total) return; // staat op het punt af te ronden
+  socket.data.quizQuestionIndex = room.questionIndex;
+  if (room.quizPresentationKey === `${room.questionIndex}:reveal`) {
+    const q = room.cgQuestions[room.questionIndex];
+    socket.emit("reveal", {
+      index: room.questionIndex,
+      correctAnswer: room.mode === "EXERCISES" ? room.exercises[room.questionIndex].answers : [q.chapterId],
+      correctChapterLabel: q ? room.cgChapterLabels.get(q.chapterId)?.label : undefined,
+      scoreboard: serializePlayers(room),
+    });
+    return;
+  }
   const remaining = Math.max(0, room.timeLimitMs - (Date.now() - room.questionStartedAt));
   if (room.mode === "EXERCISES") {
     const exercise = room.exercises[room.questionIndex];
@@ -296,94 +310,81 @@ function resyncSocket(socket: Socket, room: RoomState) {
   }
 }
 
-function askQuestion(room: RoomState) {
-  const total = totalQuestions(room);
-  if (room.questionIndex >= total) {
-    finishGame(room);
-    return;
-  }
-  for (const p of room.players.values()) {
-    p.answeredAt = undefined;
-    p.given = undefined;
-    p.correct = undefined;
-    p.hintUsedThisQuestion = false;
-  }
-  room.questionStartedAt = Date.now();
-
-  if (room.mode === "EXERCISES") {
-    const exercise = room.exercises[room.questionIndex];
-    ioInstance?.to(room.code).emit("question", {
-      mode: "EXERCISES",
-      index: room.questionIndex,
-      total,
-      timeLimitMs: room.timeLimitMs,
-      ...sanitizeExercise(exercise),
-    });
-  } else {
-    const q = room.cgQuestions[room.questionIndex];
-    const options = q.optionIds?.map((id) => ({ id, label: room.cgChapterLabels.get(id)?.label ?? "?" }));
-    ioInstance?.to(room.code).emit("question", {
-      mode: "CHAPTER_GUESS",
-      index: room.questionIndex,
-      total,
-      timeLimitMs: room.timeLimitMs,
-      introText: q.introText,
-      introAudio: q.introAudio,
-      options,
-    });
-  }
-
-  room.timer = setTimeout(() => revealAndAdvance(room), room.timeLimitMs);
-}
-
-function allAnswered(room: RoomState) {
-  return [...room.players.values()].every((p) => p.answeredAt !== undefined);
-}
-
-function revealAndAdvance(room: RoomState) {
-  if (room.timer) clearTimeout(room.timer);
-  const total = totalQuestions(room);
-
-  let correctAnswer: string[];
-  let correctChapterLabel: string | undefined;
-  if (room.mode === "EXERCISES") {
-    correctAnswer = room.exercises[room.questionIndex].answers;
-  } else {
-    const q = room.cgQuestions[room.questionIndex];
-    correctAnswer = [q.chapterId];
-    correctChapterLabel = room.cgChapterLabels.get(q.chapterId)?.label;
-  }
-
-  ioInstance?.to(room.code).emit("reveal", {
-    index: room.questionIndex,
-    correctAnswer,
-    correctChapterLabel,
-    scoreboard: serializePlayers(room),
-  });
-
-  room.questionIndex += 1;
-  room.timer = setTimeout(() => {
-    if (room.questionIndex >= total) {
-      finishGame(room);
-    } else {
-      askQuestion(room);
+// De cache is uitsluitend presentatie. PostgreSQL bezit vragen, rondes en resultaten.
+async function syncQuizRoom(room: RoomState): Promise<void> {
+  if (room.quizSync) return room.quizSync;
+  room.quizSync = (async () => {
+    if (rooms.get(room.code) !== room) return;
+    // Een verlaten lobby mag geen blijvende SQL-poller worden. Een nieuwe
+    // join start het verversen opnieuw; actieve quizzen mogen wel afronden.
+    if (room.status === "LOBBY" && !ioInstance?.sockets.adapter.rooms.get(room.code)?.size) return;
+    if (room.timer) clearTimeout(room.timer);
+    await advanceLiveQuiz(room.id);
+    const game = await readLiveQuiz(room.id);
+    if (!game) return;
+    if (game.quizIndex === null) { scheduleQuizRetry(room); return; }
+    const payloads = game.quizQuestions.map(q => q.payload as unknown as QuizPayload);
+    room.exercises = payloads.flatMap(p => p.mode === "EXERCISES" ? [p.exercise] : []);
+    room.cgQuestions = payloads.flatMap(p => p.mode === "CHAPTER_GUESS" ? [p.question] : []);
+    room.cgChapterLabels = new Map(payloads.flatMap(p => p.mode === "CHAPTER_GUESS" ? p.labels.map(l => [l.chapterId, l] as const) : []));
+    room.questionIndex = game.quizIndex;
+    const question = game.quizQuestions.find(q => q.questionIndex === game.quizIndex);
+    room.questionStartedAt = question?.startedAt?.getTime() ?? 0;
+    for (const p of game.players) {
+      const current = p.quizActions.find(a => a.questionIndex === game.quizIndex);
+      const result = current?.result as { correct?: boolean } | undefined;
+      const previous = room.players.get(p.userId);
+      room.players.set(p.userId, {
+        userId: p.userId, displayName: p.user.handle, socketIds: previous?.socketIds ?? new Set(), score: p.score,
+        correctCount: p.quizActions.filter(a => (a.result as { correct?: boolean }).correct).length,
+        answeredAt: current?.createdAt.getTime(), correct: result?.correct, hintUsedThisQuestion: false,
+      });
     }
-  }, REVEAL_PAUSE_MS);
+    for (const id of room.players.keys()) if (!game.players.some(p => p.userId === id)) room.players.delete(id);
+    if (game.status === "FINISHED") { await finishGame(room); return; }
+    room.status = "IN_PROGRESS";
+    if (!question) return;
+    const key = `${game.quizIndex}:${question.revealedAt ? "reveal" : "open"}`;
+    if (room.quizPresentationKey !== key) {
+      room.quizPresentationKey = key;
+      if (question.revealedAt) {
+        const payload = question.payload as unknown as QuizPayload;
+        ioInstance?.local.to(room.code).emit("reveal", {
+          index: game.quizIndex,
+          correctAnswer: payload.mode === "EXERCISES" ? payload.exercise.answers : [payload.question.chapterId],
+          correctChapterLabel: payload.mode === "CHAPTER_GUESS" ? room.cgChapterLabels.get(payload.question.chapterId)?.label : undefined,
+          scoreboard: serializePlayers(room),
+        });
+      } else {
+        // Ieder proces verstuurt alleen naar eigen sockets; de Redis-adapter
+        // blijft voor overige realtime-events bestaan. Dit bindt oude clients
+        // zonder index aan de werkelijk door dit proces getoonde vraag.
+        for (const socket of ioInstance?.sockets.sockets.values() ?? []) {
+          if (socket.rooms.has(room.code)) resyncSocket(socket, room);
+        }
+      }
+    }
+    room.timer = setTimeout(() => { void syncQuizRoom(room).catch(() => scheduleQuizRetry(room)); }, 1000);
+    room.timer.unref();
+  })().finally(() => { room.quizSync = undefined; });
+  return room.quizSync;
+}
+function scheduleQuizRetry(room: RoomState) {
+  if (room.timer) clearTimeout(room.timer);
+  room.timer = setTimeout(() => { void syncQuizRoom(room).catch(() => scheduleQuizRetry(room)); }, 1000);
+  room.timer.unref();
 }
 
 async function finishGame(room: RoomState) {
   if (room.timer) clearTimeout(room.timer);
-  if (room.status === "FINISHED") return; // al afgerond (bv. dubbele opgave-klik)
+  if (room.status === "FINISHED" && (room.mode === "FAMILY_GAME" || room.quizSettled)) return;
   room.status = "FINISHED";
-  ioInstance?.to(room.code).emit("game_finished", { scoreboard: serializePlayers(room), forfeitedBy: room.forfeitedBy });
+  if (room.mode === "FAMILY_GAME") ioInstance?.to(room.code).emit("game_finished", { scoreboard: serializePlayers(room), forfeitedBy: room.forfeitedBy });
   await prisma.liveGame.update({ where: { code: room.code }, data: { status: "FINISHED" } }).catch(() => {});
 
   if (room.mode === "EXERCISES") {
     const maxScore = Math.max(0, ...[...room.players.values()].map((p) => p.score));
     for (const p of room.players.values()) {
-      await prisma.liveGamePlayer
-        .update({ where: { gameId_userId: { gameId: room.id, userId: p.userId } }, data: { score: p.score } })
-        .catch(() => {});
 
       const percent = room.exercises.length === 0 ? 0 : Math.round((p.correctCount / room.exercises.length) * 100);
       const xp = Math.round(p.score / 5);
@@ -392,15 +393,12 @@ async function finishGame(room: RoomState) {
       // telt als vandaag gestudeerd, net als bij CHAPTER_GUESS hieronder.
       // completeLiveQuiz/awardXp behandelen xp = 0 zelf al als no-op voor de
       // XP-boekhouding.
-      await completeLiveQuiz(p.userId, room.chapterId!, percent, xp, won, `live:${room.id}`).catch(() => {});
+      await completeLiveQuiz(p.userId, room.chapterId!, percent, xp, won, `live:${room.id}`);
     }
   } else if (room.mode === "CHAPTER_GUESS") {
     const total = room.cgQuestions.length;
     for (const p of room.players.values()) {
-      await prisma.liveGamePlayer
-        .update({ where: { gameId_userId: { gameId: room.id, userId: p.userId } }, data: { score: p.score } })
-        .catch(() => {});
-      await completeChapterGuess(p.userId, p.correctCount, total, room.level ?? undefined, `live:${room.id}`).catch(() => {});
+      await completeChapterGuess(p.userId, p.correctCount, total, room.level ?? undefined, `live:${room.id}`);
     }
   } else {
     // FAMILY_GAME: bewust GEEN XP/streak — dit spel moet op zichzelf leuk
@@ -418,56 +416,11 @@ async function finishGame(room: RoomState) {
       if (newAchievements.length > 0) notifyNewAchievements(p.userId, newAchievements).catch(() => {});
     }
   }
-  setTimeout(() => rooms.delete(room.code), 5 * 60_000);
-}
-
-function registerAnswer(room: RoomState, userId: string, given: string[]) {
-  const player = room.players.get(userId);
-  if (!player || player.answeredAt !== undefined) return;
-
-  let correct: boolean;
-  if (room.mode === "EXERCISES") {
-    const exercise = room.exercises[room.questionIndex];
-    if (!exercise) return;
-    correct = isExerciseCorrect(exercise.type, given, exercise.answers);
-  } else {
-    const question = room.cgQuestions[room.questionIndex];
-    if (!question) return;
-    correct = given[0] === question.chapterId;
+  if (room.mode !== "FAMILY_GAME") {
+    room.quizSettled = true;
+    ioInstance?.local.to(room.code).emit("game_finished", { scoreboard: serializePlayers(room), forfeitedBy: room.forfeitedBy });
   }
-
-  const elapsed = Date.now() - room.questionStartedAt;
-  const remainingFraction = Math.max(0, 1 - elapsed / room.timeLimitMs);
-  const points = correct ? Math.round(50 + 50 * remainingFraction) : 0;
-
-  player.answeredAt = Date.now();
-  player.given = given;
-  player.correct = correct;
-  player.score += points;
-  if (correct) {
-    player.correctCount += 1;
-    // Net als bij het alleen-spelen-spel: geen nieuwe hints te verdienen op
-    // EXPERT, daar mogen ze toch niet gebruikt worden. Rechtstreeks naar het
-    // gedeelde User.hintBalance (zie src/lib/shop.ts) i.p.v. een los
-    // per-partij tegoed, zodat dit overal hetzelfde getal blijft — synchroon
-    // wegschrijven kan hier niet (registerAnswer is niet async), dus "fire
-    // and forget" net als de andere niet-kritieke schrijfacties in dit bestand.
-    if (room.mode === "CHAPTER_GUESS" && room.level !== "EXPERT" && !player.isGuest) {
-      prisma.user.update({ where: { id: player.userId }, data: { hintBalance: { increment: 1 } } }).catch(() => {});
-    }
-  }
-
-  ioInstance?.to(room.code).emit("answer_received", {
-    userId,
-    total: room.players.size,
-    answered: [...room.players.values()].filter((p) => p.answeredAt !== undefined).length,
-  });
-
-  // Iedereen beantwoord? Dan meteen door, ook als de tijd nog niet om is
-  // (net zoals bij de bestaande oefeningen-race).
-  if (allAnswered(room)) {
-    revealAndAdvance(room);
-  }
+  setTimeout(() => rooms.delete(room.code), 5 * 60_000).unref();
 }
 
 // --- FAMILY_GAME ----------------------------------------------------------
@@ -852,7 +805,7 @@ export function initGameServer(httpServer: HttpServer) {
 
       if (!room) {
         const game = await prisma.liveGame.findUnique({ where: { code: upperCode } });
-        if (!game || game.status === "FINISHED") {
+        if (!game || game.status === "FINISHED" && game.quizIndex === null) {
           socket.emit("error_message", { message: "Spel niet gevonden of al afgelopen." });
           return;
         }
@@ -922,7 +875,7 @@ export function initGameServer(httpServer: HttpServer) {
       // Een spel dat al bezig is, accepteert geen nieuwe spelers meer — maar
       // wie er al aan meedeed (bv. na wegnavigeren en teruggekomen, of een
       // paginaverversing) mag wél terug: zie resyncSocket hierboven.
-      if (room.status !== "LOBBY" && !room.players.has(user.id)) {
+      if (room.mode === "FAMILY_GAME" && room.status !== "LOBBY" && !room.players.has(user.id)) {
         socket.emit("error_message", { message: "Dit spel is al begonnen." });
         return;
       }
@@ -931,13 +884,16 @@ export function initGameServer(httpServer: HttpServer) {
       // Eerst deelname committen onder dezelfde sessielocks als intrekking;
       // pas daarna synchroon de socket en het geheugen bijwerken.
       const joined = await commitSocketMutation(socket, async tx => {
-        if (room.status !== "LOBBY" && !room.players.has(user.id)) return false;
-        if (!room.players.has(user.id)) await tx.liveGamePlayer.upsert({
+        if (room.mode !== "FAMILY_GAME") await tx.$queryRaw`SELECT "id" FROM "LiveGame" WHERE "id" = ${room.id} FOR UPDATE`;
+        const current = await tx.liveGame.findUnique({ where: { id: room.id } });
+        const member = await tx.liveGamePlayer.findUnique({ where: { gameId_userId: { gameId: room.id, userId: user.id } } });
+        if (!current || current.status !== "LOBBY" && !member) return false;
+        if (!member) await tx.liveGamePlayer.upsert({
           where: { gameId_userId: { gameId: room.id, userId: user.id } },
           create: { gameId: room.id, userId: user.id }, update: {},
         });
         return true;
-      }).catch(() => false);
+      }, room.mode !== "FAMILY_GAME").catch(() => false);
       if (!joined || !socket.connected) return;
       let player = room.players.get(user.id);
       if (!player) {
@@ -957,11 +913,21 @@ export function initGameServer(httpServer: HttpServer) {
       socket.data.gameCode = upperCode;
       player.socketIds.add(socket.id);
 
-      if (room.status === "LOBBY") {
-        broadcastLobby(room);
-      } else {
-        resyncSocket(socket, room);
+      if (room.mode !== "FAMILY_GAME") {
+        const current = await prisma.liveGame.findUnique({ where: { id: room.id } });
+        if (current?.quizIndex !== null && current?.quizIndex !== undefined) {
+          await syncQuizRoom(room).catch(() => scheduleQuizRetry(room));
+          resyncSocket(socket, room);
+          return;
+        }
+        if (current?.status === "IN_PROGRESS") {
+          socket.emit("error_message", { message: "Deze oudere live-ronde kan na een serverwissel niet veilig worden hervat." });
+          return;
+        }
       }
+      if (room.mode !== "FAMILY_GAME") scheduleQuizRetry(room);
+      if (room.status === "LOBBY") broadcastLobby(room);
+      else resyncSocket(socket, room);
     });
 
     // Alleen de host kan een gast toevoegen — gasten bestaan alleen op het
@@ -1024,11 +990,13 @@ export function initGameServer(httpServer: HttpServer) {
         return;
       }
 
-      room.status = "IN_PROGRESS";
-      await prisma.liveGame.update({ where: { code }, data: { status: "IN_PROGRESS" } });
+      const candidates: QuizPayload[] = room.mode === "EXERCISES"
+        ? room.exercises.map(exercise => ({ mode: "EXERCISES", exercise }))
+        : room.cgQuestions.map(question => ({ mode: "CHAPTER_GUESS", question, level: room.level!, labels: [...room.cgChapterLabels.values()].filter(l => l.chapterId === question.chapterId || question.optionIds?.includes(l.chapterId)) }));
+      const started = await startLiveQuiz(socket, room.id, candidates).catch(() => false);
+      if (!started) return;
       revokeOpenInvites(code).catch(() => {});
-      broadcastLobby(room);
-      askQuestion(room);
+      await syncQuizRoom(room).catch(() => scheduleQuizRetry(room));
     });
 
     // Dobbelsteen (DIGITAL): de server gooit, nooit de client — anders zou
@@ -1083,55 +1051,49 @@ export function initGameServer(httpServer: HttpServer) {
       handleFamilyEventChoice(room, socket, choiceIndex);
     });
 
-    socket.on("submit_answer", ({ given }: { given: string[] }) => {
+    socket.on("submit_answer", async (payload: { given?: unknown; questionIndex?: number } = {}) => {
+      const room = rooms.get(socket.data.gameCode as string);
+      if (!room || room.mode === "FAMILY_GAME") return;
+      const index = payload.questionIndex ?? socket.data.quizQuestionIndex;
+      const result = await actInLiveQuiz(socket, room.id, index, "ANSWER", payload.given).catch(() => null);
+      if (!result || "error" in result) return;
+      // Het event betekent vanaf nu dat de uitkomst definitief gecommit is.
+      const state = await readLiveQuiz(room.id);
+      const answered = state?.players.filter(p => p.quizActions.some(a => a.questionIndex === index)).length ?? 0;
+      ioInstance?.to(room.code).emit("answer_received", { userId: user.id, questionIndex: index, answered, total: state?.players.length ?? 0 });
+      socket.emit("answer_result", { questionIndex: index, result });
+      await syncQuizRoom(room).catch(() => scheduleQuizRetry(room));
+    });
+
+    socket.on("use_hint", async (payload?: { questionIndex?: number }) => {
+      const room = rooms.get(socket.data.gameCode as string);
+      if (!room || room.mode !== "CHAPTER_GUESS") return;
+      const result = await actInLiveQuiz(socket, room.id, payload?.questionIndex ?? socket.data.quizQuestionIndex, "HINT_USE").catch(() => null);
+      if (!result) return;
+      if ("error" in result) socket.emit("hint_error", { message: result.error });
+      else socket.emit("hint_result", result);
+    });
+
+    socket.on("forfeit", async () => {
       const code = socket.data.gameCode as string | undefined;
       if (!code) return;
       const room = rooms.get(code);
       if (!room || room.status !== "IN_PROGRESS") return;
-      registerAnswer(room, user.id, given);
-    });
-
-    socket.on("use_hint", async () => {
-      const code = socket.data.gameCode as string | undefined;
-      if (!code) return;
-      const room = rooms.get(code);
-      if (!room || room.status !== "IN_PROGRESS" || room.mode !== "CHAPTER_GUESS") return;
-      if (room.level === "EXPERT") {
-        socket.emit("hint_error", { message: "Hints zijn niet beschikbaar op expert-niveau." });
-        return;
+      if (room.mode !== "FAMILY_GAME") {
+        const closed = await commitSocketMutation(socket, async tx => {
+          await tx.$queryRaw`SELECT "id" FROM "LiveGame" WHERE "id" = ${room.id} FOR UPDATE`;
+          const member = await tx.liveGamePlayer.findUnique({ where: { gameId_userId: { gameId: room.id, userId: user.id } } });
+          if (!member) return false;
+          await tx.liveGame.updateMany({ where: { id: room.id, status: "IN_PROGRESS" }, data: { status: "FINISHED" } });
+          return true;
+        }, true).catch(() => false);
+        if (!closed) return;
+        room.forfeitedBy = user.id;
+        await syncQuizRoom(room).catch(() => scheduleQuizRetry(room));
+      } else {
+        room.forfeitedBy = user.id;
+        await finishGame(room);
       }
-      const player = room.players.get(user.id);
-      if (!player || player.hintUsedThisQuestion) return;
-
-      // Eén gedeeld tegoed (User.hintBalance, zie src/lib/shop.ts) — de
-      // `gt: 0`-voorwaarde maakt dit race-veilig bij een dubbelklik.
-      const result = await prisma.user.updateMany({
-        where: { id: user.id, hintBalance: { gt: 0 } },
-        data: { hintBalance: { decrement: 1 } },
-      });
-      if (result.count === 0) {
-        // Los "hint_error"-event i.p.v. het generieke "error_message": dat
-        // laatste zet de client naar een volle foutpagina (spel niet
-        // gevonden/al gestart e.d.), wat hier te drastisch zou zijn voor
-        // "geen hint over" — de vraag loopt gewoon door.
-        socket.emit("hint_error", { message: "Je hebt geen hint beschikbaar — geef eerst een goed antwoord, of koop er een in de winkel." });
-        return;
-      }
-      player.hintUsedThisQuestion = true;
-
-      const question = room.cgQuestions[room.questionIndex];
-      const effect = computeHintEffect(room.level!, question.chapterId, question.optionIds, room.cgChapterLabels.get(question.chapterId) ?? null);
-      const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { hintBalance: true } });
-      socket.emit("hint_result", { ...effect, hintBalance: dbUser?.hintBalance ?? 0 });
-    });
-
-    socket.on("forfeit", () => {
-      const code = socket.data.gameCode as string | undefined;
-      if (!code) return;
-      const room = rooms.get(code);
-      if (!room || room.status !== "IN_PROGRESS") return;
-      room.forfeitedBy = user.id;
-      finishGame(room);
     });
 
     socket.on("invite_friend", async ({ toUserId, code }: { toUserId: string; code: string }) => {
@@ -1224,6 +1186,27 @@ export function initGameServer(httpServer: HttpServer) {
       if (typeof code !== "string") return;
       const upperCode = code.toUpperCase();
       const room = rooms.get(upperCode);
+      const candidate = await prisma.liveGame.findUnique({ where: { code: upperCode }, select: { id: true, mode: true } });
+      if (candidate && ["EXERCISES", "CHAPTER_GUESS"].includes(candidate.mode)) {
+        const left = await commitSocketMutation(socket, async tx => {
+          await tx.$queryRaw`SELECT "id" FROM "LiveGame" WHERE "id" = ${candidate.id} FOR UPDATE`;
+          const game = await tx.liveGame.findUnique({ where: { id: candidate.id } });
+          if (!game || game.hostId === user.id || game.status !== "LOBBY") return false;
+          await tx.liveGamePlayer.deleteMany({ where: { gameId: game.id, userId: user.id } });
+          return true;
+        }, true).catch(() => false);
+        if (!left) return;
+        const player = room?.players.get(user.id);
+        room?.players.delete(user.id);
+        for (const id of player?.socketIds ?? []) {
+          const peer = ioInstance?.sockets.sockets.get(id);
+          peer?.leave(upperCode);
+          if (peer?.data.gameCode === upperCode) peer.data.gameCode = undefined;
+        }
+        if (room) broadcastLobby(room);
+        ioInstance?.to(`user:${user.id}`).emit("game_left", { code: upperCode });
+        return;
+      }
       let gameId = room?.id ?? null;
       if (room) {
         if (room.status !== "LOBBY" || room.hostId === user.id) return;

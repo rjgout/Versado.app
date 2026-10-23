@@ -188,7 +188,7 @@ export default function ChapterGuessGameRoom({ code, myUserId }: { code: string;
   function submitAnswer(chapterId: string) {
     if (submitted) return;
     setChoice(chapterId);
-    socket.emit("submit_answer", { given: [chapterId] });
+    socket.emit("submit_answer", { given: [chapterId], questionIndex: question?.index });
     setSubmitted(true);
   }
 
@@ -201,7 +201,7 @@ export default function ChapterGuessGameRoom({ code, myUserId }: { code: string;
     if (hintLoading || hint) return;
     setHintError(null);
     setHintLoading(true);
-    socket.emit("use_hint");
+    socket.emit("use_hint", { questionIndex: question?.index });
   }
 
   async function forfeit() {

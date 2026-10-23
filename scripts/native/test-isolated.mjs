@@ -23,13 +23,16 @@ try{
  const dbPort=docker(['port',container,'5432/tcp']).split(':').at(-1),db=`postgresql://postgres:synthetic-only@127.0.0.1:${dbPort}/versado_content_access_test`,base=`http://127.0.0.1:${port}`;
  const env={...process.env,REDIS_URL:`redis://127.0.0.1:${redisPort}`,DATABASE_URL:db,CONTENT_ACCESS_TEST_DATABASE_URL:db,CONTENT_ACCESS_TEST_BASE_URL:base,NATIVE_TEST_DATABASE_URL:db,LEARNING_TEST_DATABASE_URL:db,NATIVE_TEST_BASE_URL:base,APP_URL:base,SESSION_SECRET:'native-isolated-web-secret-at-least-32-chars',NATIVE_SESSION_SECRET:'native-isolated-only-secret-at-least-32-chars',NATIVE_API_ENABLED:'1',APPLE_SIGN_IN_ENABLED:'1',APPLE_TEAM_ID:'TESTTEAM01',APPLE_IOS_CLIENT_ID:'app.versado.synthetic',NODE_ENV:'production'};
  // Gecontroleerde oude database: alle bestaande migraties zonder nieuwe auth-DDL.
- const migration='20261125120000_native_auth_foundation',setupMigration='20261127120000_native_security_setup',work=mkdtempSync(join(tmpdir(),'versado-native-')),path=join(work,'migrations');
- cpSync('prisma/migrations',path,{recursive:true,filter:src=>![migration,setupMigration].some(name=>src.endsWith(name)||src.includes(`${name}/`))});
+ const migration='20261125120000_native_auth_foundation',setupMigration='20261127120000_native_security_setup',quizMigration='20261203120000_live_quiz_actions',work=mkdtempSync(join(tmpdir(),'versado-native-')),path=join(work,'migrations');
+ cpSync('prisma/migrations',path,{recursive:true,filter:src=>![migration,setupMigration,quizMigration].some(name=>src.endsWith(name)||src.includes(`${name}/`))});
  const config=join(work,'prisma.config.ts');writeFileSync(config,`export default ${JSON.stringify({schema:resolve('prisma/schema.prisma'),migrations:{path},datasource:{url:db}})}`);
  await run('npx',['prisma','migrate','deploy','--config',config],env);
  const client=new pg.Client({connectionString:db});await client.connect();
  try{
   await client.query(`INSERT INTO "User" (id,email,handle,discriminator,"passwordHash") VALUES ('native-preserved','preserved@example.invalid','Bewaar','01','synthetic-hash')`);
+  await client.query(`UPDATE "User" SET "hintBalance"=7,"xpTotal"=11 WHERE id='native-preserved'`);
+  await client.query(`INSERT INTO "LiveGame" (id,code,"hostId") VALUES ('quiz-preserved','PRESERVED','native-preserved')`);
+  await client.query(`INSERT INTO "LiveGamePlayer" (id,"gameId","userId",score) VALUES ('quiz-preserved-player','quiz-preserved','native-preserved',23)`);
   const tables=(await client.query(`SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE' AND table_name!='_prisma_migrations' ORDER BY table_name`)).rows;
   const columns=new Map();for(const {table_name}of tables)columns.set(table_name,(await client.query(`SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name=$1 ORDER BY ordinal_position`,[table_name])).rows.map(r=>r.column_name));
   const quoted=value=>'"'+value.replaceAll('"','""')+'"';
@@ -39,7 +42,7 @@ try{
   await assert.rejects(client.query(sql.replace(/COMMIT;\s*$/,'SELECT 1/0; COMMIT;')));await client.query('ROLLBACK');assert.deepEqual(await snapshot(),before);
   // Bestaand native fundament met echte sessie-/identiteits-/Apple-challengerijen
   // vóór de additieve setupmigratie; controleer ook hun behoud en foutrollback.
-  const priorPath=join(work,'prior-migrations');cpSync('prisma/migrations',priorPath,{recursive:true,filter:src=>!src.endsWith(setupMigration)&&!src.includes(`${setupMigration}/`)});
+  const priorPath=join(work,'prior-migrations');cpSync('prisma/migrations',priorPath,{recursive:true,filter:src=>![setupMigration,quizMigration].some(name=>src.endsWith(name)||src.includes(`${name}/`))});
   const priorConfig=join(work,'prior.config.ts');writeFileSync(priorConfig,`export default ${JSON.stringify({schema:resolve('prisma/schema.prisma'),migrations:{path:priorPath},datasource:{url:db}})}`);
   await run('npx',['prisma','migrate','deploy','--config',priorConfig],env);
   await client.query(`INSERT INTO "NativeSession" (id,"userId","sessionVersion","refreshHash","expiresAt") VALUES ($1,'native-preserved',0,$2,NOW()+INTERVAL '1 day')`,[randomUUID(),'a'.repeat(64)]);
@@ -52,7 +55,19 @@ try{
   await assert.rejects(client.query(setupSql.replace(/COMMIT;\s*$/,'SELECT 1/0; COMMIT;')));await client.query('ROLLBACK');
   assert.equal((await client.query(`SELECT column_name FROM information_schema.columns WHERE table_name='NativeAuthChallenge' AND column_name IN ('sessionVersion','totpSecretEncrypted')`)).rowCount,0);
   assert.deepEqual(await nativeSnapshot(),nativeBefore);
+  const preQuizPath=join(work,'pre-quiz');cpSync('prisma/migrations',preQuizPath,{recursive:true,filter:src=>!src.endsWith(quizMigration)&&!src.includes(`${quizMigration}/`)});
+  const preQuizConfig=join(work,'pre-quiz.config.ts');writeFileSync(preQuizConfig,`export default ${JSON.stringify({schema:resolve('prisma/schema.prisma'),migrations:{path:preQuizPath},datasource:{url:db}})}`);
+  await run('npx',['prisma','migrate','deploy','--config',preQuizConfig],env);
+  const quizSql=readFileSync(`prisma/migrations/${quizMigration}/migration.sql`,'utf8');
+  await assert.rejects(client.query(quizSql.replace(/COMMIT;\s*$/,'SELECT 1/0; COMMIT;')));await client.query('ROLLBACK');
+  assert.equal((await client.query(`SELECT to_regclass('"LiveQuizAction"') AS name`)).rows[0].name,null);
+  assert.equal((await client.query(`SELECT column_name FROM information_schema.columns WHERE table_name='LiveGame' AND column_name='quizIndex'`)).rowCount,0);
+  assert.deepEqual(await snapshot(),before);assert.deepEqual(await nativeSnapshot(),nativeBefore);
   await run('npx',['prisma','migrate','deploy'],env);await run('npx',['prisma','migrate','deploy'],env);
+  assert.equal((await client.query(`SELECT "quizIndex" FROM "LiveGame" WHERE id='quiz-preserved'`)).rows[0].quizIndex,null);
+  assert.equal((await client.query(`SELECT conname FROM pg_constraint WHERE conrelid='"LiveQuizAction"'::regclass AND contype='f'`)).rowCount,2);
+  assert.equal((await client.query(`SELECT pg_get_constraintdef(oid) AS definition FROM pg_constraint WHERE conname='LiveQuizAction_pkey'`)).rows[0].definition,'PRIMARY KEY ("gameId", "questionIndex", "userId", "actionKind")');
+  console.log('Live-quizmigratie: gegevensbehoud, volledige foutrollback, unieke actie-identiteit, foreign keys en herhaalde deploy gecontroleerd.');
   assert.deepEqual(await nativeSnapshot(),nativeBefore);
   assert.deepEqual((await client.query(`SELECT "sessionVersion","totpSecretEncrypted" FROM "NativeAuthChallenge" WHERE id=$1`,[preservedChallenge])).rows[0],{sessionVersion:null,totpSecretEncrypted:null});
   assert.deepEqual(await snapshot(),before);

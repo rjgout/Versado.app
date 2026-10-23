@@ -1,6 +1,9 @@
 import test, { after, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { spawn, spawnSync } from "node:child_process";
+import { createServer } from "node:net";
+import type { QuizOutcome, QuizPayload } from "../src/lib/liveQuiz";
 import { setTimeout as delay } from "node:timers/promises";
 import { io, type Socket } from "socket.io-client";
 import Redis from "ioredis";
@@ -184,6 +187,12 @@ test("dezelfde live-vraag mag over twee instanties hoogstens één hintbeloning 
   await Promise.all(peers.map(peer => peer.timeout(3000).emitWithAck("native_test:reward_drain")));
   const after = (await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).hintBalance;
   assert.equal(after - before, 1, "Eén LiveGame/vraagindex/gebruiker mag niet tweemaal beloond worden");
+  const game = await prisma.liveGame.findUniqueOrThrow({ where: { code } });
+  const claims = await prisma.liveQuizAction.findMany({ where: { gameId: game.id, actionKind: "ANSWER" } });
+  assert.equal(claims.length, 1);
+  const outcome = claims[0].result as unknown as QuizOutcome;
+  assert.equal(outcome.correct, true);
+  assert.equal((await prisma.liveGamePlayer.findUniqueOrThrow({ where: { gameId_userId: { gameId: game.id, userId: user.id } } })).score, outcome.points);
   // De eigen wegwerpdatabase ruimt deze data op, nadat de servertimers stoppen.
 });
 
@@ -314,4 +323,357 @@ test("vastgelopen databasecontrole sluit de verbinding gesloten af vóór een be
     await tx.$executeRawUnsafe('LOCK TABLE "NativeSession" IN ACCESS EXCLUSIVE MODE');
     const ended=event(joined.socket,"disconnect",4000);joined.socket.emit("native_test:action",()=>{});await ended;assert.equal(await actions(b,user.id),0);
   });
+});
+
+
+async function quizFixture(mode: "EXERCISES" | "CHAPTER_GUESS" = "CHAPTER_GUESS", count = 1, level: "BEGINNER" | "ADVANCED" | "EXPERT" = "BEGINNER", opponents = 0, start = true) {
+  const users = await Promise.all(Array.from({ length: opponents + 1 }, () => account()));
+  for (const user of users) await prisma.user.update({ where: { id: user.id }, data: { hintBalance: 3 } });
+  const pairs = await Promise.all(users.map(user => issueNativeSession(user.id, 0)));
+  const book = await prisma.book.create({ data: {
+    slug: `quiz-${randomUUID()}`, name: "Synthetische transactieproef", order: 1, contentCollectionId: "content_bom",
+    chapters: { create: Array.from({ length: Math.max(4, count) }, (_, i) => ({ number: i + 1, order: i + 1, heading: `Transactievraag ${randomUUID()}` })) },
+  }, include: { chapters: { orderBy: { number: "asc" } } } });
+  if (mode === "EXERCISES") await prisma.exercise.createMany({ data: Array.from({ length: count }, (_, order) => ({ chapterId: book.chapters[0].id, order, type: "TRUE_FALSE" as const, verseRef: "Synthetisch", prompt: "Waar?", answers: '["true"]' })) });
+  const game = await prisma.liveGame.create({ data: { code: `TX${randomUUID().replaceAll("-", "").slice(0, 10).toUpperCase()}`, hostId: users[0].id, mode, level, questionCount: count, chapterId: mode === "EXERCISES" ? book.chapters[0].id : null } });
+  const peers: Socket[] = [];
+  for (const [index, base] of [a, b, ...users.slice(1).map(() => b)].entries()) {
+    const pair = pairs[Math.max(0, index - 1)];
+    const peer = (await open(await mint(pair.accessToken), base)).socket;
+    const joined = event(peer, "lobby_update"); peer.emit("join_game", { code: game.code }); await joined;
+    peers.push(peer);
+  }
+  if (start) {
+    const questions = peers.map(peer => event(peer, "question"));
+    peers[0].emit("start_game"); await Promise.all(questions);
+  }
+  async function correct(index = 0) {
+    const row = await prisma.liveQuizQuestion.findUniqueOrThrow({ where: { gameId_questionIndex: { gameId: game.id, questionIndex: index } } });
+    const payload = row.payload as unknown as QuizPayload;
+    return payload.mode === "EXERCISES" ? payload.exercise.answers : [payload.question.chapterId];
+  }
+  return { users, pairs, peers, game, correct };
+}
+async function eventually(check: () => Promise<boolean>, timeout = 8000) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) { if (await check()) return; await delay(30); }
+  assert.fail("Verwachte duurzame toestand niet bereikt");
+}
+async function answer(peer: Socket, given: string[], questionIndex = 0) {
+  const response = event(peer, "answer_result"); const id = peer.id!;
+  peer.emit("submit_answer", { given, questionIndex });
+  const outcome = await response as { result: QuizOutcome }; await drained(id, "submit_answer");
+  return outcome.result;
+}
+async function hint(peer: Socket, questionIndex = 0) {
+  const response = event(peer, "hint_result"); const id = peer.id!;
+  peer.emit("use_hint", { questionIndex });
+  const outcome = await response as QuizOutcome; await drained(id, "use_hint"); return outcome;
+}
+
+test("canonieke meerdeelnemerrondes: hintreplay, foute antwoorden, volgende vraag en eenmalige XP/reeks", async () => {
+  const f = await quizFixture("CHAPTER_GUESS", 2, "BEGINNER", 1);
+  const outcomes = await Promise.all(f.peers.slice(0, 2).map(peer => hint(peer)));
+  assert.deepEqual(outcomes[0], outcomes[1]);
+  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 2);
+  assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id, actionKind: "HINT_USE" } }), 1);
+  await answer(f.peers[2], ["verkeerd"]);
+  const secondQuestion = event(f.peers[0], "question");
+  const answers = await Promise.all(f.peers.slice(0, 2).map(async peer => answer(peer, await f.correct())));
+  assert.deepEqual(answers[0], answers[1]);
+  assert.equal((await secondQuestion as { index: number }).index, 1);
+  await hint(f.peers[1], 1);
+  assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id, actionKind: "HINT_USE" } }), 2);
+  const old = await answer(f.peers[1], ["andere herhaling"], 0);
+  assert.deepEqual(old, answers[0], "Retry geeft de oorspronkelijke uitkomst, ook na rondewissel");
+  await answer(f.peers[0], await f.correct(1), 1);
+  const finished = event(f.peers[0], "game_finished"); await answer(f.peers[2], ["verkeerd"], 1); await finished;
+  await eventually(async () => await prisma.streakActivity.count({ where: { userId: f.users[0].id, key: `live:${f.game.id}` } }) === 1);
+  assert.equal(await prisma.xPTransaction.count({ where: { userId: f.users[0].id, reason: "CHAPTER_GUESS_COMPLETED" } }), 1);
+  assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id, actionKind: "ANSWER" } }), 4);
+  assert.equal((await prisma.liveGamePlayer.findUniqueOrThrow({ where: { gameId_userId: { gameId: f.game.id, userId: f.users[1].id } } })).score, 0);
+});
+
+for (const level of ["ADVANCED", "EXPERT"] as const) test(`canonieke ${level}-spelregels blijven behouden`, async () => {
+  const f = await quizFixture("CHAPTER_GUESS", 1, level);
+  if (level === "ADVANCED") { const effect = await hint(f.peers[0]); assert.ok(effect.bookId); }
+  else { const rejected = event(f.peers[0], "hint_error"); f.peers[0].emit("use_hint", { questionIndex: 0 }); await rejected; await drained(f.peers[0].id!, "use_hint"); }
+  await Promise.all(f.peers.map(async peer => answer(peer, await f.correct())));
+  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 3);
+  assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id, actionKind: "HINT_USE" } }), level === "EXPERT" ? 0 : 1);
+});
+
+test("oefeningen: twee processen krijgen één score, geen hintbeloning, oude webcookie blijft werken", async () => {
+  const f = await quizFixture("EXERCISES");
+  const cookie = `${SESSION_COOKIE}=${await createSessionToken(f.users[0].id)}`;
+  const web = (await open("", b, null, { auth: {}, extraHeaders: { Cookie: cookie } })).socket;
+  const question = event(web, "question"); web.emit("join_game", { code: f.game.code }); await question;
+  const outcomes = await Promise.all([f.peers[0], web].map(async peer => answer(peer, await f.correct())));
+  assert.deepEqual(outcomes[0], outcomes[1]);
+  assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id } }), 1);
+  assert.equal((await prisma.liveGamePlayer.findUniqueOrThrow({ where: { gameId_userId: { gameId: f.game.id, userId: f.users[0].id } } })).score, outcomes[0].points);
+  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 3);
+});
+
+test("hintvoorraad nul blijft nul en een latere geldige aanvraag wordt niet door een mislukte claim geblokkeerd", async () => {
+  const f = await quizFixture();
+  await prisma.user.update({ where: { id: f.users[0].id }, data: { hintBalance: 0 } });
+  for (const peer of f.peers) { const rejected = event(peer, "hint_error"); peer.emit("use_hint", { questionIndex: 0 }); await rejected; await drained(peer.id!, "use_hint"); }
+  assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id } }), 0);
+  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 0);
+  await prisma.user.update({ where: { id: f.users[0].id }, data: { hintBalance: 1 } });
+  await Promise.all(f.peers.map(peer => hint(peer)));
+  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 0);
+});
+
+for (const reason of ["logout", "refresh-replay", "wachtwoord", "account wissen", "andere sessie", "twee instanties"] as const) test(`quizactie na ${reason}: geen claim, score of beloning uit een ingetrokken sessie`, async () => {
+  const f = await quizFixture();
+  const pending = [];
+  for (const peer of reason === "twee instanties" ? f.peers : [f.peers[1]]) {
+    const id = peer.id!, key = `native-test:action-gate:${id}:submit_answer`;
+    await redis.set(key, "1", "EX", 30);
+    peer.emit("submit_answer", { questionIndex: 0, given: await f.correct() });
+    assert.ok(await redis.blpop(`${key}:reached`, 10)); pending.push({ id, key });
+  }
+  if (reason === "refresh-replay") {
+    assert.equal((await api("refresh", { refreshToken: f.pairs[0].refreshToken, actionId: randomUUID() })).response.status, 200);
+    assert.equal((await api("refresh", { refreshToken: f.pairs[0].refreshToken, actionId: randomUUID() })).response.status, 401);
+  } else if (reason === "wachtwoord") {
+    assert.equal((await api("account/password", { currentPassword: password, newPassword: "Native-quiz-password-44" }, f.pairs[0].accessToken)).response.status, 200);
+  } else if (reason === "account wissen") {
+    assert.equal((await fetch(`${a}/api/account`, { method: "DELETE", headers: { Origin: a, Cookie: `${SESSION_COOKIE}=${await createSessionToken(f.users[0].id)}` } })).status, 200);
+  } else assert.equal((await api("logout", { refreshToken: f.pairs[0].refreshToken, actionId: randomUUID() })).response.status, 200);
+  for (const item of pending) { await redis.lpush(`${item.key}:release`, "1"); await drained(item.id, "submit_answer"); }
+  assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id } }), 0);
+  if (reason !== "account wissen") {
+    assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 3);
+    assert.equal((await prisma.liveGamePlayer.findUniqueOrThrow({ where: { gameId_userId: { gameId: f.game.id, userId: f.users[0].id } } })).score, 0);
+    if (reason === "andere sessie") {
+      const fresh = await issueNativeSession(f.users[0].id, 0), peer = (await open(await mint(fresh.accessToken), b)).socket;
+      const question = event(peer, "question"); peer.emit("join_game", { code: f.game.code }); await question;
+      await answer(peer, await f.correct());
+      assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id, actionKind: "ANSWER" } }), 1);
+    }
+  }
+});
+
+test("verloop tijdens echte SQL-lockwacht rolt antwoordclaim, score en hintbeloning terug", async () => {
+  const f = await quizFixture(), peer = f.peers[1], id = peer.id!;
+  const expiry = new Date(Date.now() + 1100);
+  await prisma.nativeSession.update({ where: { id: f.pairs[0].refreshToken.split(".")[0] }, data: { expiresAt: expiry } });
+  await prisma.$transaction(async tx => {
+    await tx.$executeRaw`LOCK TABLE "LiveQuizAction" IN ACCESS EXCLUSIVE MODE`;
+    peer.emit("submit_answer", { questionIndex: 0, given: await f.correct() });
+    await eventually(async () => {
+      const rows = await prisma.$queryRaw<{ n: bigint }[]>`SELECT count(*) AS n FROM pg_stat_activity WHERE pid != pg_backend_pid() AND wait_event_type = 'Lock' AND query LIKE '%LiveQuizAction%'`;
+      return Number(rows[0].n) > 0;
+    }, 800);
+    await delay(Math.max(0, expiry.getTime() - Date.now()) + 30);
+  });
+  await drained(id, "submit_answer");
+  assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id } }), 0);
+  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 3);
+  assert.equal((await prisma.liveGamePlayer.findUniqueOrThrow({ where: { gameId_userId: { gameId: f.game.id, userId: f.users[0].id } } })).score, 0);
+});
+
+for (const kind of ["ANSWER", "HINT_USE"] as const) test(`SQL-fout ná ${kind}-claim rolt alles terug; reconnect kan veilig opnieuw proberen`, async () => {
+  const f = await quizFixture(), id = f.peers[0].id!;
+  await prisma.$executeRawUnsafe(`CREATE FUNCTION native_quiz_fault() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.id = '${f.users[0].id}' AND NEW."hintBalance" != OLD."hintBalance" THEN RAISE EXCEPTION 'synthetic reward failure'; END IF; RETURN NEW; END $$`);
+  await prisma.$executeRawUnsafe('CREATE TRIGGER native_quiz_fault BEFORE UPDATE ON "User" FOR EACH ROW EXECUTE FUNCTION native_quiz_fault()');
+  try {
+    const name = kind === "ANSWER" ? "submit_answer" : "use_hint";
+    f.peers[0].emit(name, { questionIndex: 0, given: await f.correct() }); await drained(id, name);
+    assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id } }), 0);
+    assert.equal((await prisma.liveGamePlayer.findUniqueOrThrow({ where: { gameId_userId: { gameId: f.game.id, userId: f.users[0].id } } })).score, 0);
+    assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 3);
+  } finally {
+    await prisma.$executeRawUnsafe('DROP TRIGGER native_quiz_fault ON "User"'); await prisma.$executeRawUnsafe('DROP FUNCTION native_quiz_fault()');
+  }
+  const peer = (await open(await mint(f.pairs[0].accessToken), b)).socket;
+  const question = event(peer, "question"); peer.emit("join_game", { code: f.game.code }); await question;
+  const outcome = kind === "ANSWER" ? await answer(peer, await f.correct()) : await hint(peer);
+  assert.equal(outcome.hintBalance, kind === "ANSWER" ? 4 : 2);
+});
+
+test("oude onbeantwoorde vraag kan na gedeelde rondewissel geen nieuwe beloning geven", async () => {
+  const f = await quizFixture("CHAPTER_GUESS", 2);
+  const next = event(f.peers[0], "question");
+  await prisma.liveQuizQuestion.update({ where: { gameId_questionIndex: { gameId: f.game.id, questionIndex: 0 } }, data: { deadline: new Date(Date.now() - 5000), revealedAt: new Date(Date.now() - 4000) } });
+  assert.equal((await next as { index: number }).index, 1);
+  f.peers[1].emit("submit_answer", { questionIndex: 0, given: await f.correct() }); await drained(f.peers[1].id!, "submit_answer");
+  assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id } }), 0);
+  await answer(f.peers[1], await f.correct(1), 1);
+  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 4);
+});
+
+async function ownedQuizProcess(redisUrl = process.env.REDIS_URL!) {
+  const port = await new Promise<number>(resolve => { const server = createServer(); server.listen(0, "127.0.0.1", () => { const address = server.address(); assert.ok(address && typeof address === "object"); server.close(() => resolve(address.port)); }); });
+  const base = `http://127.0.0.1:${port}`;
+  const child = spawn(process.execPath, ["--import", "tsx", "tests/fixtures/native-socket-server.ts"], { env: { ...process.env, REDIS_URL: redisUrl, SOCKET_TEST_INSTANCE_URL: base }, detached: true, stdio: "inherit" });
+  const stop = async () => { if (child.exitCode === null && child.signalCode === null) { const exit = new Promise<void>(resolve => child.once("exit", () => resolve())); process.kill(-child.pid!, "SIGKILL"); await exit; } };
+  try { await eventually(async () => { if (child.exitCode !== null) throw Error("Eigen crashfixture stopte te vroeg"); try { return (await fetch(`${base}/api/health`)).ok; } catch { return false; } }, 15000); }
+  catch (error) { await stop(); throw error; }
+  return { base, stop };
+}
+for (const point of ["voor commit", "na commit vóór broadcast"] as const) test(`echte procesuitval ${point}: herstel op andere instantie zonder dubbele beloning`, async () => {
+  const f = await quizFixture(), owned = await ownedQuizProcess();
+  try {
+    const peer = (await open(await mint(f.pairs[0].accessToken), owned.base)).socket;
+    const question = event(peer, "question"); peer.emit("join_game", { code: f.game.code }); await question;
+    if (point === "voor commit") {
+      await prisma.$executeRawUnsafe(`CREATE FUNCTION native_quiz_crash() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW."gameId" = '${f.game.id}' THEN PERFORM pg_sleep(3); END IF; RETURN NEW; END $$`);
+      await prisma.$executeRawUnsafe('CREATE TRIGGER native_quiz_crash BEFORE INSERT ON "LiveQuizAction" FOR EACH ROW EXECUTE FUNCTION native_quiz_crash()');
+      try {
+        peer.emit("submit_answer", { questionIndex: 0, given: await f.correct() });
+        await eventually(async () => { const rows = await prisma.$queryRaw<{ n: bigint }[]>`SELECT count(*) AS n FROM pg_stat_activity WHERE wait_event = 'PgSleep' AND query LIKE '%LiveQuizAction%'`; return Number(rows[0].n) > 0; });
+        await owned.stop(); await delay(3200);
+      } finally { await prisma.$executeRawUnsafe('DROP TRIGGER native_quiz_crash ON "LiveQuizAction"'); await prisma.$executeRawUnsafe('DROP FUNCTION native_quiz_crash()'); }
+      assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id } }), 0);
+      assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 3);
+    } else {
+      const key = `native-test:commit-gate:${new URL(owned.base).port}`; await redis.set(key, "1", "EX", 30);
+      peer.emit("submit_answer", { questionIndex: 0, given: await f.correct() });
+      assert.ok(await redis.blpop(`${key}:reached`, 10));
+      assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id, actionKind: "ANSWER" } }), 1);
+      await owned.stop();
+    }
+    const outcome = await answer(f.peers[1], await f.correct());
+    assert.equal(outcome.hintBalance, 4);
+    assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id, actionKind: "ANSWER" } }), 1);
+    assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 4);
+  } finally { await owned.stop(); }
+});
+
+test("cascade verwijdert vragen en claims zonder hintvoorraad of andere spelvoortgang te wissen", async () => {
+  const f = await quizFixture(); await answer(f.peers[0], await f.correct());
+  await prisma.liveGame.delete({ where: { id: f.game.id } });
+  assert.equal(await prisma.liveQuizQuestion.count({ where: { gameId: f.game.id } }), 0);
+  assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id } }), 0);
+  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 4);
+});
+
+
+test("hervatten van definitieve quizuitslag na procesverlies herstelt XP/reeks precies eenmaal", async () => {
+  const user = await account(), pair = await issueNativeSession(user.id, 0);
+  const game = await prisma.liveGame.create({ data: { code: `END${randomUUID().replaceAll("-", "").slice(0, 9).toUpperCase()}`, hostId: user.id, mode: "CHAPTER_GUESS", level: "EXPERT", questionCount: 1, status: "IN_PROGRESS", quizIndex: 0, players: { create: { userId: user.id, score: 75 } }, quizQuestions: { create: { questionIndex: 0, payload: { mode: "CHAPTER_GUESS", level: "EXPERT", question: { chapterId: "synthetic", introText: "Vraag", introAudio: null, optionIds: null }, labels: [] }, startedAt: new Date(), deadline: new Date(Date.now() + 60000) } } } });
+  await prisma.liveQuizAction.create({ data: { gameId: game.id, questionIndex: 0, userId: user.id, actionKind: "ANSWER", result: { correct: true, points: 75, score: 75, hintBalance: 0 } } });
+  await prisma.liveGame.update({ where: { id: game.id }, data: { status: "FINISHED" } });
+  for (const base of [a, b]) {
+    const peer = (await open(await mint(pair.accessToken), base)).socket;
+    const finished = event(peer, "game_finished"); peer.emit("join_game", { code: game.code }); await finished;
+  }
+  assert.equal(await prisma.streakActivity.count({ where: { userId: user.id, key: `live:${game.id}` } }), 1);
+  assert.equal(await prisma.xPTransaction.count({ where: { userId: user.id, reason: "CHAPTER_GUESS_COMPLETED" } }), 1);
+});
+
+test("accountcascade verwijdert eigen claims en behoudt canonieke vragen en andere deelnemers", async () => {
+  const f = await quizFixture("CHAPTER_GUESS", 1, "BEGINNER", 1);
+  await answer(f.peers[2], await f.correct());
+  await prisma.user.delete({ where: { id: f.users[1].id } });
+  assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id } }), 0);
+  assert.equal(await prisma.liveQuizQuestion.count({ where: { gameId: f.game.id } }), 1);
+  assert.equal(await prisma.liveGamePlayer.count({ where: { gameId: f.game.id } }), 1);
+  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 3);
+});
+
+test("echte Redis-uitval na verbinding kan SQL-uitkomst niet opnieuw belonen en omzeilt intrekking niet", async () => {
+  const f = await quizFixture(), name = `versado-quiz-outage-${randomUUID()}`, dockerEnv = { ...process.env };
+  for (const key of ["DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_TLS", "DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH"]) delete dockerEnv[key];
+  function docker(args: string[]) { const result = spawnSync("docker", ["--host=unix:///var/run/docker.sock", ...args], { env: dockerEnv, encoding: "utf8" }); if (result.status !== 0) throw Error(result.stderr); return result.stdout.trim(); }
+  let owned: Awaited<ReturnType<typeof ownedQuizProcess>> | undefined;
+  try {
+    docker(["run", "--rm", "-d", "--name", name, "-p", "127.0.0.1::6379", "redis:7-alpine"]);
+    await eventually(async () => docker(["exec", name, "redis-cli", "ping"]) === "PONG");
+    const port = docker(["port", name, "6379/tcp"]).split(":").at(-1)!;
+    owned = await ownedQuizProcess(`redis://127.0.0.1:${port}`);
+    const peer = (await open(await mint(f.pairs[0].accessToken, owned.base), owned.base)).socket;
+    const question = event(peer, "question"); peer.emit("join_game", { code: f.game.code }); await question;
+    await peer.timeout(3000).emitWithAck("native_test:bypass_gates");
+    docker(["stop", name]); // Alleen de extra, eigen Redis; de andere testinstanties blijven intact.
+    const results: QuizOutcome[] = [];
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const response = event(peer, "answer_result"); peer.emit("submit_answer", { questionIndex: 0, given: await f.correct() });
+      results.push((await response as { result: QuizOutcome }).result);
+    }
+    assert.deepEqual(results[0], results[1]);
+    assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id, actionKind: "ANSWER" } }), 1);
+    assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 4);
+    assert.equal((await api("logout", { refreshToken: f.pairs[0].refreshToken, actionId: randomUUID() })).response.status, 200);
+    const ended = event(peer, "disconnect"); peer.emit("use_hint", { questionIndex: 0 }); await ended;
+    assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id, actionKind: "HINT_USE" } }), 0);
+  } finally { await owned?.stop(); try { docker(["stop", name]); } catch {} }
+});
+
+
+test("verloren serverresponse: reconnect met nieuw bewijs krijgt de vastgelegde uitkomst zonder nieuwe beloning", async () => {
+  const f = await quizFixture(), first = f.peers[0], id = first.id!;
+  await first.timeout(3000).emitWithAck("native_test:drop_response");
+  first.emit("submit_answer", { questionIndex: 0, given: await f.correct() }); await drained(id, "submit_answer");
+  const prior = await prisma.liveQuizAction.findFirstOrThrow({ where: { gameId: f.game.id, actionKind: "ANSWER" } });
+  first.disconnect();
+  const replacement = (await open(await mint(f.pairs[0].accessToken), b)).socket;
+  const lobby = event(replacement, "lobby_update"); replacement.emit("join_game", { code: f.game.code }); await lobby;
+  const result = await answer(replacement, ["andere retry"]);
+  assert.deepEqual(result, prior.result);
+  assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id, actionKind: "ANSWER" } }), 1);
+  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 4);
+});
+
+
+for (const expires of ["sessie", "vraag"] as const) test(`deferred commitcontrole blokkeert verlopen ${expires} ná de laatste applicatiecontrole`, async () => {
+  const f = await quizFixture(), peer = f.peers[0], id = peer.id!;
+  // Alphabetisch vóór de productietrigger: de vertraging vindt pas bij COMMIT
+  // plaats, nadat commitSocketMutation zijn laatste Date-check heeft uitgevoerd.
+  await prisma.$executeRawUnsafe("CREATE FUNCTION native_quiz_commit_delay() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN PERFORM pg_sleep(1.2); RETURN NULL; END $$");
+  await prisma.$executeRawUnsafe('CREATE CONSTRAINT TRIGGER "AAA_native_quiz_commit_delay" AFTER INSERT ON "LiveQuizAction" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION native_quiz_commit_delay()');
+  try {
+    if (expires === "sessie") await prisma.nativeSession.update({ where: { id: f.pairs[0].refreshToken.split(".")[0] }, data: { expiresAt: new Date(Date.now() + 900) } });
+    else await prisma.liveQuizQuestion.update({ where: { gameId_questionIndex: { gameId: f.game.id, questionIndex: 0 } }, data: { deadline: new Date(Date.now() + 900) } });
+    peer.emit("submit_answer", { questionIndex: 0, given: await f.correct() });
+    await eventually(async () => {
+      const rows = await prisma.$queryRaw<{ n: bigint }[]>`SELECT count(*) AS n FROM pg_stat_activity WHERE wait_event = 'PgSleep' AND query ILIKE '%COMMIT%'`;
+      return Number(rows[0].n) > 0;
+    }, 800);
+    await drained(id, "submit_answer");
+    assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id } }), 0);
+    assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: f.users[0].id } })).hintBalance, 3);
+    assert.equal((await prisma.liveGamePlayer.findUniqueOrThrow({ where: { gameId_userId: { gameId: f.game.id, userId: f.users[0].id } } })).score, 0);
+  } finally {
+    await prisma.$executeRawUnsafe('DROP TRIGGER "AAA_native_quiz_commit_delay" ON "LiveQuizAction"');
+    await prisma.$executeRawUnsafe('DROP FUNCTION native_quiz_commit_delay()');
+  }
+});
+
+
+test("een achterlopende lobbycache mag na quizstart geen deelnemer en diens actiehistorie verwijderen", async () => {
+  const f = await quizFixture("CHAPTER_GUESS", 1, "BEGINNER", 1, false), peer = f.peers[2], id = peer.id!;
+  const key = `native-test:action-gate:${id}:leave_game`; await redis.set(key, "1", "EX", 30);
+  peer.emit("leave_game", { code: f.game.code }); assert.ok(await redis.blpop(`${key}:reached`, 10));
+  const question = event(f.peers[0], "question"); f.peers[0].emit("start_game"); await question;
+  await redis.lpush(`${key}:release`, "1"); await drained(id, "leave_game");
+  assert.equal(await prisma.liveGamePlayer.count({ where: { gameId: f.game.id } }), 2);
+  await answer(peer, await f.correct());
+  assert.equal(await prisma.liveQuizAction.count({ where: { gameId: f.game.id, userId: f.users[1].id } }), 1);
+});
+
+
+test("startcommit na sessieverloop draait rondepositie en alle canonieke vragen terug", async () => {
+  const f = await quizFixture("CHAPTER_GUESS", 1, "BEGINNER", 0, false), peer = f.peers[0], id = peer.id!;
+  await prisma.$executeRawUnsafe("CREATE FUNCTION native_quiz_start_delay() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN PERFORM pg_sleep(1.2); RETURN NULL; END $$");
+  await prisma.$executeRawUnsafe('CREATE CONSTRAINT TRIGGER "AAA_native_quiz_start_delay" AFTER UPDATE ON "LiveGame" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION native_quiz_start_delay()');
+  try {
+    await prisma.nativeSession.update({ where: { id: f.pairs[0].refreshToken.split(".")[0] }, data: { expiresAt: new Date(Date.now() + 900) } });
+    peer.emit("start_game");
+    await eventually(async () => {
+      const rows = await prisma.$queryRaw<{ n: bigint }[]>`SELECT count(*) AS n FROM pg_stat_activity WHERE wait_event = 'PgSleep' AND query ILIKE '%COMMIT%'`;
+      return Number(rows[0].n) > 0;
+    }, 800);
+    await drained(id, "start_game");
+    const game = await prisma.liveGame.findUniqueOrThrow({ where: { id: f.game.id } });
+    assert.equal(game.status, "LOBBY"); assert.equal(game.quizIndex, null);
+    assert.equal(await prisma.liveQuizQuestion.count({ where: { gameId: f.game.id } }), 0);
+  } finally {
+    await prisma.$executeRawUnsafe('DROP TRIGGER "AAA_native_quiz_start_delay" ON "LiveGame"');
+    await prisma.$executeRawUnsafe('DROP FUNCTION native_quiz_start_delay()');
+  }
 });

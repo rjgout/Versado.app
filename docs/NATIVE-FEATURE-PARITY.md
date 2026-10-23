@@ -190,13 +190,14 @@ nog niet voltooid. Er is geen onafhankelijke acceptatie toegekend.
 
 ### Native socketbewijs — goedgekeurd op 22 oktober 2026
 
-**Aanvullende acceptatiecontrole:** de nieuwe [technische hardeningmatrix](NATIVE-SOCKET-HARDENING.md)
-vervangt onderstaande eerdere groene teststand als acceptatieoordeel. De vertraagde
-deelname en lobbyannulering zijn gericht gecorrigeerd; de uitgebreide suite bevat
-21 sockettests met een zichtbare falende regressie voor dubbele hintbeloning over
-twee instanties. Overige gemarkeerde asynchrone domeincommits zijn niet vrijgegeven.
-PR #179 blijft draft en de technische conclusie is **nog niet klaar**. Dit verandert
-de goedgekeurde eenmalige 60s-handshakearchitectuur niet.
+**Aanvullende acceptatiecontrole:** de [technische hardeningmatrix](NATIVE-SOCKET-HARDENING.md)
+bevat de gerichte transactionele uitbreiding van 23 oktober. Canonieke live-vragen,
+ANSWER-/HINT_USE-claims en score/voorraad delen nu een PostgreSQL-commit, met native
+sessiecontrole tot in de deferred commitfase. De oorspronkelijke dubbele beloningsrace
+is behouden als regressietest en slaagt. De socketinventaris groeit van 21 naar 47
+tests; het rapport en PR #179 vermelden de werkelijk uitgevoerde eindtests en CI-head.
+Andere gemarkeerde asynchrone spelmodi blijven afzonderlijk onbeoordeeld. PR #179
+blijft draft; dit is geen volledige native pariteit of onafhankelijke acceptatie.
 
 Het eigenaarbesluit is **eenmalig, maximaal 60s, uitsluitend handshake**, gebonden
 aan de bestaande gebruiker/NativeSession. `realtime-ticket-v1` en `realtime/session`

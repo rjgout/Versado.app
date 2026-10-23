@@ -8743,7 +8743,7 @@
     },
     {
       "file": "src/components/ChapterGuessGameRoom.tsx",
-      "sha256": "faa38325ea861cbbe13986c08f4a3e7c30ac384f0fb7d6b7494d2f06d96bea5b",
+      "sha256": "f48a3eaed3e0385c13f821de891c10dbdf7e4daf2e4b5ce0ef13a3bed10db75e",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -9394,7 +9394,7 @@
     },
     {
       "file": "src/components/GameRoom.tsx",
-      "sha256": "93cf61f241cd5455d90106ecfb6be6b3c516cca5842f8d028d4090ee3dcfe75d",
+      "sha256": "709fb87ee67dc1e62b6142ea9e85bf251956d08f8c6c4bf48ca7bf4ac7e43400",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -15360,7 +15360,7 @@
     },
     {
       "file": "src/lib/chapterGuess.ts",
-      "sha256": "9bb27459b579213e261967a93c75041876155cdaf6dc3d2d16ab8d60a947ea3c",
+      "sha256": "f9a3847747cb791282eabbd2959fdee818a8479d1feb430c136951523704f2a9",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -18358,6 +18358,29 @@
       ]
     },
     {
+      "file": "src/lib/liveQuiz.ts",
+      "sha256": "daaf40715470560f59cfcaa25a264d35900ddecd6f19f4a72d2535caf43ff1f3",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/generated/prisma/client",
+        "@/lib/chapterGuess",
+        "@/lib/db",
+        "@/lib/exerciseGen",
+        "@/lib/native/socketMutation",
+        "socket.io"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "actInLiveQuiz",
+        "advanceLiveQuiz",
+        "evaluateQuizAnswer",
+        "readLiveQuiz",
+        "startLiveQuiz"
+      ]
+    },
+    {
       "file": "src/lib/mailAddress.ts",
       "sha256": "e999a011ca2eff106cee0217a40b2db5a22708ed5b963d2b56766086987a5437",
       "boundary": "context-dependent",
@@ -19294,7 +19317,7 @@
     },
     {
       "file": "src/lib/native/socketMutation.ts",
-      "sha256": "e0a0dec79877785d33f129baa1e0843bd0ae0dcbac6a102a04e6e0ae4c18d7d3",
+      "sha256": "c9c99240b6f0792478abf8f18ba872f256c56a65fa839016bc86fad97e9a84d7",
       "boundary": "context-dependent",
       "imports": [
         "./sessions",
@@ -23717,7 +23740,7 @@
     },
     {
       "file": "src/server/gameServer.ts",
-      "sha256": "a7433257523375041eeab418e07e05f4c61457e92d2070aa3cb88e44b4d39770",
+      "sha256": "522c10a220a039360f5316b37d38e8832472ae0b0719ddd9aa5e7e3975bed6fe",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -23727,11 +23750,11 @@
         "@/lib/chapterGuess",
         "@/lib/data/scopes",
         "@/lib/db",
-        "@/lib/exerciseGen",
         "@/lib/familyGame",
         "@/lib/gameAvailability",
         "@/lib/i18n",
         "@/lib/i18n/core",
+        "@/lib/liveQuiz",
         "@/lib/native/sessions",
         "@/lib/native/socketAuth",
         "@/lib/native/socketMutation",
@@ -64894,7 +64917,7 @@
     },
     {
       "file": "src/components/ChapterGuessGameRoom.tsx",
-      "sha256": "faa38325ea861cbbe13986c08f4a3e7c30ac384f0fb7d6b7494d2f06d96bea5b",
+      "sha256": "f48a3eaed3e0385c13f821de891c10dbdf7e4daf2e4b5ce0ef13a3bed10db75e",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -65545,7 +65568,7 @@
     },
     {
       "file": "src/components/GameRoom.tsx",
-      "sha256": "93cf61f241cd5455d90106ecfb6be6b3c516cca5842f8d028d4090ee3dcfe75d",
+      "sha256": "709fb87ee67dc1e62b6142ea9e85bf251956d08f8c6c4bf48ca7bf4ac7e43400",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",

@@ -1,4 +1,5 @@
 import test from "node:test";
+import { evaluateQuizAnswer, type QuizPayload } from "../src/lib/liveQuiz";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createSocketTicket, consumeSocketTicket, socketTicketKey, type SocketTicketStore } from "../src/lib/native/socketTickets";
@@ -70,4 +71,22 @@ test("logout kan een door een sessieluisteraar gestarte nieuwe login niet oversc
   });
   await client.login("A","synthetic");let stop=()=>{};stop=client.onSessionChange(()=>{stop();next=client.login("B","synthetic");});
   await client.logout();await next;assert.equal((await client.api<{authorization:string}>("me")).authorization,"Bearer B-access");assert.equal(JSON.parse(stored!).refreshToken,"B-refresh");
+});
+
+
+test("canonieke quizregels begrenzen tijdsscore en kennen alleen toegestane hintbeloningen toe", () => {
+  for (const level of ["BEGINNER", "ADVANCED", "EXPERT"] as const) {
+    const payload: QuizPayload = { mode: "CHAPTER_GUESS", level, question: { chapterId: "correct", introText: "Vraag", introAudio: null, optionIds: ["correct", "wrong"] }, labels: [] };
+    assert.deepEqual(evaluateQuizAnswer(payload, ["wrong"], 1000, 61000, 1000), { correct: false, points: 0, hintReward: 0 });
+    assert.equal(evaluateQuizAnswer(payload, ["correct", "extra"], 1000, 61000, 1000).correct, false);
+    const result = evaluateQuizAnswer(payload, ["correct"], 1000, 61000, 31000);
+    assert.equal(result.points, 75); assert.equal(result.hintReward, level === "EXPERT" ? 0 : 1);
+    assert.equal(evaluateQuizAnswer(payload, ["correct"], 1000, 61000, 0).points, 100);
+    assert.equal(evaluateQuizAnswer(payload, ["correct"], 1000, 61000, 62000).points, 50);
+  }
+});
+test("oefeningen behouden hun antwoordregels zonder hoofdstukraad-hintbeloning", () => {
+  const payload: QuizPayload = { mode: "EXERCISES", exercise: { id: "exercise", type: "SEQUENCE", prompt: "Volgorde", verseRef: "Test", answers: ["a", "b"] } };
+  assert.equal(evaluateQuizAnswer(payload, ["b", "a"], 0, 20000, 10000).correct, false);
+  assert.deepEqual(evaluateQuizAnswer(payload, ["a", "b"], 0, 20000, 10000), { correct: true, points: 75, hintReward: 0 });
 });

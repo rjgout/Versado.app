@@ -1,14 +1,15 @@
 # Native realtime — technische hardening en acceptatiecontrole
 
-Opdracht van 22 oktober 2026, PR #179 op `feat/native-socketbewijs`.
-Gecontroleerde beginsituatie: `925f4d305ed23362dc81794c0274ee7f8a1e68ce`.
+Opdracht van 23 oktober 2026, bestaande draft-PR #179 op `feat/native-socketbewijs`.
+Gecontroleerde beginsituatie: `b88f28c4b160e6f45e66d68cd228cd514785e126`.
+De eigenaar heeft de gerichte Prisma/PostgreSQL-uitbreiding expliciet goedgekeurd.
 Dit is technische verificatie door Codex; de onafhankelijke heraudit is van ChatGPT.
 
-**Nog niet klaar, met concrete blokkades.** De bewezen deelname- en
-annuleringsrace zijn gericht gecorrigeerd. De live-quiz kan over twee instanties
-nog steeds dezelfde vraag tweemaal met hintvoorraad belonen. De nieuwe test
-verwacht één beloning en blijft daarvoor rood. Een groen resultaat van andere
-controles is geen acceptatie van deze fout, alle spelmutaties of native pariteit.
+De dubbele hintbeloning is structureel vervangen door canonieke vragen en
+transactionele actieclaims voor **EXERCISES en CHAPTER_GUESS**. De oorspronkelijke
+rode proef is behouden en aangescherpt met claim-/scoreasserties. Andere
+spelengines krijgen hiermee geen algemene beveiligingsvrijgave. PR #176, #178
+én #179 blijven draft en ongemerged; er is niets gedeployd of gepubliceerd.
 
 ## Autorisatie en commitmoment
 
@@ -30,8 +31,10 @@ dan wacht intrekking tot die korte transactie commit of rollback uitvoert.
 Alleen de betreffende gebruiker/sessie wordt vergrendeld, geen globale lock.
 Lockwachten is begrensd op 1,5s, poolwachten op 2s en de transactie op 4s. Een
 fout sluit de native socket; er is geen permissieve terugval. Contentladen en
-notificaties vallen buiten deze korte transactie. De webauthenticatie verandert
-niet; web gebruikt de bestaande client zonder de native sessielocks.
+notificaties vallen buiten deze korte transactie. De quiz gebruikt ook voor web
+één echte transactie met een User-lock, op basis van de bestaande cookie-identiteit.
+Web heeft geen native sessie of handshakebewijs nodig. Overige bestaande webcalls
+naar de helper behouden hun bestaande gedrag.
 
 Bij `join_game` volgt de synchrone spelers-/socketcache pas na de gecommitte
 deelname; bij `cancel_game` zijn cacheverwijdering en notificaties gevolgen van
@@ -65,15 +68,15 @@ staan hieronder; een inhouds-/deelnemerscheck vervangt geen actuele sessiecheck.
 | `friendship_changed`, `friend_profile_changed`, `scrabble_changed` | 1 | Relatie/vrienden/speldeelnemer uit DB; uitsluitend ververssignalen. Herhaalde uitnodigingssignalen mogelijk, geen scorewrite. |
 | `join_game` | 2,3,4 | Code, bestaande deelnemer bij hervatten, lobbystatus; nieuwe deelname nu onder native commitfence. Uniek `(gameId,userId)`; geen late spookspeler. Zes racevarianten getest. |
 | `add_guest`, `remove_guest` | 3 | Host, family-lobby, gaststatus; synchrone lokale state. Add is geen idempotente request met actionId. |
-| `start_game` | 3,4 | Host/lobby; statewijziging en DB-/timervervolg. Geen gedeelde startclaim over instanties: dubbele start bewezen in beloningsproef. |
+| `start_game` | 3,4 | De twee quizmodi: host/deelnemer onder User → NativeSession → LiveGame; canonieke vragen en rondepositie eenmaal in één commit. FAMILY_GAME behoudt eigen lokale engine. |
 | `roll_dice`, `enter_physical_roll` | 3 | Huidige speler/host namens gast, dobbelmodus en waarde; positie wijzigt vóór async kaartladen. Pending-kaart/turnstate is lokaal, geen duurzame actionId. |
 | `submit_family_answer`, `choose_event` | 3 | `canActFor`, pending-kaart. Antwoord heeft awaits vóór score/reset van pending; twee vertraagde antwoorden zijn niet transactioneel afgebakend. Vervolgcontrole nodig. |
-| `submit_answer` | 3,4,5 | Deelnemer en lokaal `answeredAt` voorkomen herhaling binnen dezelfde room. Hintbonus is een losse User-increment; **geen gedeelde vraagclaim, bewezen dubbele beloning op twee instanties**. |
-| `use_hint` | 3,4,5 | Deelnemer, niveau, lokaal gebruikt-vlaggetje; SQL `hintBalance > 0` voorkomt negatief saldo, maar bewijst niet één afschrijving per vraag. Vlag wordt na await gezet; niet vrijgegeven voor dubbele events/instanties. |
-| `forfeit` | 3,4,5 | Huidige room/partij; lokale FINISHED-vlag voorkomt dubbele lokale afronding. XP/reeks via centrale activiteitssleutel; roomstate zelf niet gedeeld. |
+| `submit_answer` | 3,4,5 | Canonieke open vraag, deelname en sessie onder rijlocks. ANSWER-claim, score, hintbonus en uitkomst delen één commit met deferred DB-controle. Retry retourneert opgeslagen uitkomst. |
+| `use_hint` | 3,4,5 | HINT_USE-claim en afschrijving atomair; saldo > 0, geen EXPERT-hints. Effect en saldo-uitkomst opgeslagen; replay schrijft niets af en onthult geen tweede willekeurige hint. |
+| `forfeit` | 3,4,5 | Quiz: geautoriseerde FINISHED-write onder Game-lock; uitslag uit duurzame deelnemers/claims, bestaande XP/reekssleutel. FAMILY_GAME blijft lokaal. |
 | `invite_friend` | 1,4 | Nu expliciet host/vastgelegde deelnemer, lobby en geaccepteerde vriendschap binnen dezelfde korte native commitfence. Uniek `(gameId,toUserId)` voor de uitnodiging; notificaties zijn postcommit, niet als idempotente spelbeloning aangemerkt. Buitenstaanderweigering en toegestane host/deelnemerflow getest. |
 | `cancel_game` | 2,3,4 | Host en lobby opnieuw bij de korte native deletecommit; unieke verwijdering. Gecontroleerde read → logout → hervatten faalt vóór fix en slaagt erna. |
-| `leave_game` | 2,3,4 | Niet-host, lobby; eigen deelnemer. Tijdelijke cache en DB-delete zijn nog verschillende stappen. |
+| `leave_game` | 2,3,4 | Quiz: niet-host en actuele DB-lobby onder User/Session/Game-locks; pas na commit cacheverwijdering. Kan geen claims wissen door een achterlopende lobbycache. FAMILY_GAME behoudt eigen pad. |
 | alleskenner: `ak:join`, `ak:solo_join` | 2,3,4 | Uitnodiging/bestaande deelnemer/seizoenslid of eigen solorun. Laden, taalkeuze en deelname hebben awaits; geen native commitfence bij domeinwrites. |
 | `ak:set_role`, `ak:set_quizmaster`, `ak:set_length`, `ak:set_teams`, `ak:set_team`, `ak:set_leader` | 3 | Host in niet-startende lobby, seizoens-/teamregels. Synchrone lokale wijzigingen, geen directe beloning; geen instantie-overstijgende lobbyclaim. |
 | `ak:start` | 3,4 | Host; `starting` blokkeert lokaal dubbele start. Contentkeuze/seenregistratie/setup bevatten awaits, geen gedeelde sessie-/startcommit. |
@@ -96,8 +99,10 @@ staan hieronder; een inhouds-/deelnemerscheck vervangt geen actuele sessiecheck.
 
 Uitgesloten is geen enkele race uitsluitend omdat een service een transactie
 heeft. Evenmin is een stabiele XP-sleutel bewijs dat **hintvoorraad** idempotent is.
-`finishActivity` gebruikt de bestaande unieke activiteitssleutel vóór XP/competitie;
-de losse bonus in `registerAnswer` loopt daar niet doorheen.
+`finishActivity` gebruikt de bestaande unieke activiteitssleutel vóór XP/competitie.
+De vroegere losse hintbonus in `registerAnswer` is verwijderd. De quiz-lobbyjoin
+en het lobbyvertrek serialiseren nu ook met starten via de Game-lock: een oude
+lobbycache mag na starten geen nieuwe deelnemer toevoegen of actiehistorie wissen.
 
 ## Reproduceerbare bewijzen
 
@@ -120,8 +125,10 @@ Next/Socket.io-processen en synthetische accounts. Geen productieverbinding.
    namens een vreemde lobby kan uitnodigen en host/deelnemer dit wel kunnen.
 4. Beide instanties laden dezelfde lobby, starten dezelfde synthetische vraag
    op index 0 en verwerken een juist antwoord van dezelfde gebruiker. De fixture
-   wacht op beide echte User-increments. **Gemeten bonus: 2; vereist: 1.** De test
-   is niet geskipt of aangepast om de fout groen te kleuren.
+   wacht op het terugkeren van beide echte handlers. **Nulmeting: 2 hints; na
+   herstel: 1 hint, 1 ANSWER-claim en 1 scorewijziging.** De test is niet geskipt,
+   versoepeld of verwijderd. Twee onafhankelijke Node-processen delen dezelfde
+   eigen PostgreSQL- en Redis-instanties.
 5. Bestaande tien sockettests blijven behouden: 60s/GETDEL/replay, origins/cookies,
    rooms over Redis, logout/password/accountdelete, reconnect, refresh/replay,
    echte Redis-uitval en echte geblokkeerde PostgreSQL-controle. Een aanvullende
@@ -132,7 +139,8 @@ Next/Socket.io-processen en synthetische accounts. Geen productieverbinding.
 Volledige herhaling: `npm run test:native:integration`. Alleen API/socket:
 `npm run test:native:integration -- --no-browser`. De runner verzamelt nu ook
 browserbewijs als een sockettest faalt en eindigt daarna nog steeds met foutstatus.
-De suite bevat 21 sockettests; één bekende beloningsblokkade is geen succesvolle suite.
+De suite is uitgebreid van 21 naar 47 sockettests. De uiteindelijke uitslag staat
+in de verificatietabel hieronder en in Actions op de exacte PR-head.
 
 ## Capaciteit: berekening versus meting
 
@@ -180,31 +188,196 @@ geen langer geldige permissiecache. Redis-intrekkingssignalen versnellen het
 sluiten, maar vervangen de DB-autorisatie bij een definitieve domeincommit niet.
 Een dergelijke wijziging wordt eerst als concreet ontwerp ter goedkeuring aangeboden.
 
-## Nog benodigde gerichte ontwerpkeuze
+## Oorzaak, canonieke vragen en transactionele acties
 
-De beloningsfout kan niet betrouwbaar met alleen een Redis `SET NX` vóór een
-losse SQL-increment worden hersteld: proces-/DB-falen tussen die stappen verliest
-de beloning of maakt een retry opnieuw betaalbaar. De bestaande LiveGamePlayer
-heeft geen duurzame claim per vraag/actie. De StreakActivity-tabel voor een
-losse hintbonus misbruiken zou de betekenis van de leerregistratie veranderen.
+Voorheen koos iedere CHAPTER_GUESS-room willekeurige vragen in een lokale Map.
+`askQuestion` opende alleen lokale state; `registerAnswer` bepaalde correctheid,
+score en `answeredAt` lokaal en startte een losse, niet afgewachte hint-increment.
+`use_hint` schreef eerst SQL af en zette pas daarna een lokale vlag. Zowel twee
+processen als overlappende awaits konden daardoor dezelfde vraag meermaals betalen.
+LiveGamePlayer had alleen een totale score, geen vraag- of actie-identiteit.
+De bestaande StreakActivity voorkomt dubbele eind-XP, maar geen losse hintbonus.
 
-Voorstel voor afzonderlijke goedkeuring: sla de canonieke live-vragen en een
-actieclaim met unieke sleutel `(gameId, questionIndex, userId, actionKind)` in
-PostgreSQL op. Laat de bestaande domeinservice sessiecontrole, claim, score en
-voorraadwijziging in één transactie uitvoeren, met vaste domein/User/NativeSession-
-lockvolgorde en een geteste wisselwerking met accountcascade/delete. Een replay
-retourneert de eerdere uitkomst. Pas na commit volgt Redis-broadcast/cache.
-Dezelfde centrale guard moet bij de nog onbewezen asynchrone domeincommits
-worden aangesloten; geen gekopieerde autorisatie in iedere eventlistener.
+Het bestaande LiveGame/LiveGamePlayer/HintBalance-domein blijft in gebruik:
 
-Dit vraagt een datamodel-/migratiebesluit en raakt gedeelde spelautoriteit. De
-opdracht verbiedt databasewijzigingen zonder voorafgaande toestemming en vraagt
-goedkeuring vóór ingrijpende architectuurwijzigingen. Daarom zijn **geen** nieuwe
-tabellen, migraties, gedeelde spelstate of globale locks geïntroduceerd. Ook de
-overige gemarkeerde async-paden krijgen geen groen acceptatieoordeel op basis van
-alleen de drie gewijzigde handlers. De nieuwe User/sessie-lockvolgorde mag niet
-blind om bestaande domeintransacties worden gezet: onder meer match/run/user-
-locks en accountcascade moeten gezamenlijk op deadlocks en rollback worden getest.
+- `LiveGame.quizIndex`: duurzame actuele ronde, null vóór canonieke quizstart.
+- `LiveQuizQuestion`: PK `(gameId, questionIndex)`, een kleine JSON-snapshot van
+  vraag/oplossing/opties/modus/niveau en benodigde weergavevelden; plus startedAt,
+  deadline en revealedAt. Geen hele hoofdstukken, contentcollecties of mediabestanden.
+  Exercise-antwoorden en hoofdstuk-ID's worden uitsluitend server-side gelezen.
+- `LiveQuizAction`: PK **`(gameId, questionIndex, userId, actionKind)`**. ANSWER is
+  één definitieve poging (ook een fout antwoord); HINT_USE is één hintverbruik.
+  JSON bevat de definitieve correctheid/punten/score óf het hint-effect en het
+  saldo op dat commitmoment. Geen socket-ID, clienttijd of proces-ID in de sleutel.
+- FK naar de canonieke vraag én naar de bestaande deelnemer `(gameId,userId)`.
+  Gameverwijdering cascadeert vragen/claims; accountverwijdering cascadeert de
+  eigen deelnemers/claims. Andere gebruikersaldi en resultaten worden niet gewist.
+
+`startLiveQuiz` bereidt content buiten de transactie voor en schrijft onder de
+Game-lock de eerste canonieke vragenlijst en status/index. Een tweede start neemt
+de reeds opgeslagen lijst over, inclusief antwoordopties en oplossing. De klok
+voor vraagstart, deadline, score en voortgang komt uit PostgreSQL in UTC.
+
+`actInLiveQuiz` haalt de actor uitsluitend uit de bestaande socketauthenticatie.
+De volgorde is **User → NativeSession (alleen native) → LiveGame → eigen
+LiveGamePlayer/actie**. Onder deze locks worden sessie, fingerprint, deelname,
+spelmodus, actuele ronde en open vraag gecontroleerd. Dan volgen claim,
+antwoordvalidatie, score en hintwijziging en definitieve uitkomst in **dezelfde
+PostgreSQL-commit**. Geen Redis-aanroep of contentnetwerkwerk binnen de transactie.
+Een conflicterende insert gebruikt ON CONFLICT DO NOTHING en retourneert de
+bestaande uitkomst; geen tweede beloning. Er wordt geen tweede User-lock genomen
+nadat de Game-lock vaststaat. De bestaande shop vergrendelt eveneens eerst User.
+Systeemovergangen vergrendelen alleen Game en nemen geen User-/sessielocks.
+
+Een correcte BEGINNER-/ADVANCED-hoofdstukraadactie verdient één hint; EXPERT en
+EXERCISES geen. De bestaande 50–100 tijdsscore en hintkosten blijven behouden.
+Een hint kost één voorraadpunt, nooit meer dan één per vraag. Saldo nul geeft
+geen claim: na een latere aankoop kan dezelfde vraag alsnog een geldige hint
+geven. Een replay retourneert de oorspronkelijke saldo-snapshot; die is geen
+belofte dat het actuele saldo na andere aankopen/acties nog hetzelfde is.
+
+### Commitfase en sessieraces
+
+User-/NativeSession-locks serialiseren intrekking, refresh-replay,
+wachtwoordwijziging en accountdelete met de actie. Een eerder gecommitte
+intrekking sluit de actie uit; een reeds gecommitte actie wordt niet teruggedraaid.
+De bestaande pakket-/idlecontrole en eindcontrole in de helper blijven aanwezig.
+Ook klokverloop tijdens een lockwacht moet rollback geven.
+
+Voor het tijdvenster tussen de laatste applicatiecontrole en COMMIT gebruikt de
+migratie deferred constraint-triggers. Die controleren met PostgreSQL
+`clock_timestamp()` de vraagdeadline en (voor native) de bestaande NativeSession,
+User-versie en verplichte beveiligingsstatus. De helper geeft uitsluitend
+**transactielokale** sessie-ID-/versiemetadata via set_config(..., true) door;
+die verdwijnt bij commit/rollback en is geen persistent bewijs of sessiesysteem.
+De gedeelde native predicate geldt ook bij quizstart/deelname/vertrek/opgeven via
+LiveGame-/LiveGamePlayer-triggers. Zonder native binding volgt geen native-only
+eis voor web. Andere spelmodi zijn voor die statetriggers uitgezonderd.
+
+De test vertraagt expliciet de deferred COMMIT met pg_sleep en bevestigt via
+pg_stat_activity dat PostgreSQL werkelijk in COMMIT wacht. Verloop van sessie of
+vraag ná de applicatiecontrole moet claim, score en hint samen terugrollen.
+Een aparte startproef vereist dat status, rondepositie en álle canonieke vragen
+terugrollen wanneer de sessie in die commitfase verloopt.
+
+### Meerdere instanties, retries en procesverlies
+
+| Onderdeel | Autoriteit |
+| --- | --- |
+| Vragen, ronde/index, open/gesloten, acties, score, voorraad | PostgreSQL |
+| Timers, socketsets en schermpresentatie | Tijdelijke procescache |
+| Gebruikersnotificaties, overige realtime-events en intrekkingssignalen | Bestaande Redis/Socket.io-adapter |
+
+`advanceLiveQuiz` sluit alleen de actuele vraag wanneer alle duurzame deelnemers
+antwoordden of de deadline voorbij is. Na de bestaande revealpauze wordt de
+volgende duurzame ronde geopend. Twee timers kunnen geen verschillende geldige
+rondes maken. Iedere betrokken instantie ververst zijn quizcache maximaal elke
+seconde met één in-flight-verversing per room en toont alleen de canonieke vragen.
+Een verlaten lobby stopt die poller. Dit is geen gemeten capaciteitstest; deze
+extra roomqueries komen bovenop de eerder beschreven sessiecontroles.
+
+Nieuwe clients sturen questionIndex mee. Oudere payloads zonder index worden
+gebonden aan de laatst aan die socket getoonde canonieke vraag; de bestaande
+native transportlaag speelt geen gebufferde acties automatisch opnieuw af.
+Alleen een expliciete index kan een historische retry na rondewissel aanduiden.
+Een oude reeds geclaimde actie geeft dezelfde uitkomst; een ongeclaimde actie op
+een gesloten/achterhaalde vraag wordt geweigerd. Reconnect vraagt een nieuw
+handshakebewijs en hervat vanuit PostgreSQL, inclusief een reeds getoonde reveal.
+
+Procesverlies vóór commit laat geen claim of saldo-/scorewijziging achter.
+Na commit is de opgeslagen uitkomst leidend, ook zonder response of broadcast.
+Een retry op een ander proces betaalt nooit opnieuw. De tests stoppen echte,
+eigen Node-processen in beide vensters. Injectiefouten na claim/score of tijdens
+hintafschrijving rollen de gehele transactie terug. Redis-uitval tijdens een
+bestaande verbinding kan geen tweede SQL-beloning maken; nieuwe native bewijzen
+blijven gesloten afwijzen. DB-intrekking blijft bij pakketten/commit geldig.
+
+Eind-XP/reeks blijft de bestaande domeinservice met sleutel `live:${gameId}`
+gebruiken, los van de korte antwoordcommit. De uitslag wordt voortaan uit duurzame
+scores/ANSWER-claims opgebouwd; een achterlopende cache schrijft geen score terug.
+Een opnieuw geladen FINISHED-quiz hervat ontbrekende eindregistratie. Een fout
+wordt herprobeerd; alleen na succesvolle verwerking markeert de lokale cache
+haar afronding als klaar. Een al uitgekeerde activiteit betaalt niet opnieuw.
+Dit behoudt de bestaande spelregel dat deelname ook zonder gewonnen XP kan tellen.
+
+## Migratie, bestaande data en rollback
+
+Migratie: `prisma/migrations/20261203120000_live_quiz_actions/migration.sql`.
+Additief en transactioneel: één nullable veld, twee tabellen, één enum,
+PK-/FK-constraints, ondersteunende index en drie deferred guards met gedeelde
+sessiepredicate. Geen saldo-/voortgangsbackfill of dataverwijdering.
+Prisma-schema en gegenereerde client zijn gevalideerd; PostgreSQL-triggers staan
+expliciet als normale migratie-DDL in versiebeheer.
+
+De geïsoleerde migratieproef bewaart 155 bestaande tabellen, 449 constraints,
+drie native auth-tabellen en synthetische bestaande gebruikers-/spelgegevens
+(onder meer 7 hints, 11 XP en een score van 23). Een geïnjecteerde migratiefout
+laat geen halve tabellen, kolommen of triggers achter; twee keer deploy behoudt
+alle oude gegevens. Nieuwe FK-/unieke constraints en game-/accountcascades zijn
+apart gecontroleerd. Er is uitsluitend tegen eigen wegwerpdatabases gemigreerd.
+
+**Uitrolvoorwaarde voor de eigenaar, geen uitgevoerde deployment:** laat bestaande
+IN_PROGRESS-geheugenquizzen op de oude servercohort afronden vóór overschakeling.
+Hun vroegere willekeurige vraag is niet betrouwbaar uit de database te reconstrueren.
+Nieuwe code weigert zo'n oude actieve quiz veilig te hervatten; hij wist niets.
+Bestaande lobbyrecords kunnen wel onder de nieuwe code canoniek starten.
+
+Oude en nieuwe backendprocessen mogen dezelfde actieve quiz niet samen verwerken:
+oude code kan nog rechtstreeks hints incrementeren zonder actieclaim. De additieve
+DDL maakt die oude bonuscode niet veilig. Drain de betrokken quizflow en wissel de
+backendcohort als geheel; dit vereist geen oude appgegevens of voortgang te wissen.
+Oudere clients blijven met de beschreven optionele index compatibel. Andere
+spelmodi worden niet naar deze quizstructuur gemigreerd.
+
+Bij rollback: blokkeer eerst nieuwe betrokken quizacties en laat verwerking
+uitlopen/stoppen. Bewaar canonieke vragen en claims; zet niet de oude onbeschermde
+bonuscode naast actieve nieuwe quizzen. Rol bij voorkeur voorwaarts met een
+compatibele correctie. Geen DROP van gevulde actietabellen, reset, handmatige
+saldocorrectie of productiemigratie is uitgevoerd. Het bewaren van de ledger is
+essentieel om oude retries ook na een code-rollback niet opnieuw betaalbaar te maken.
+
+## Testinventaris en werkelijk resultaat
+
+- Nulmeting op b88f28c4: 20/21 sockettests; dubbele beloning **2 in plaats van 1**.
+- Na transactioneel herstel: alle oorspronkelijke 21 tests groen, geen skip of
+  versoepeling; vervolgens 44/44 sockettests, 30/30 API/accounttests, 43/43 native
+  unittests en vier native browserformaten groen.
+- Eindrun op de gewijzigde bron: **47/47 sockettests, 30/30 API/accounttests**,
+  nul failures/skips. Inclusief extra start-/vraag-commitverloop en lobbyvertrek
+  na start. De Actions-uitslag op de exacte gepushte head staat op PR #179.
+- Nieuwe dekking: twee echte instanties, canonieke start, score-/hintreplay,
+  fout antwoord, meerdere deelnemers/vragen, BEGINNER/ADVANCED/EXPERT/EXERCISES,
+  cookie-webclient, saldo nul, reconnect/verloren response, beide procesuitvallen,
+  antwoord-/hintrollback, Redis-uitval, zes intrekkingsvarianten, echte lockwacht,
+  commitklokverloop, eind-XP/reeksherstel, unieke sleutel en account-/gamecascade.
+- Overige lokale controles: 45/45 bestaande web-socketcontroles en 9/9 kaarttests;
+  native pariteitscontrole en 6/6 inventaristests; 28/28 focus- en 13/13 profieltests;
+  4/4 security-unitproeven; Prisma validate/generate, TypeScript, i18n-controle en
+  schone productiebuild geslaagd. Productie-dependencyaudit: 0 kwetsbaarheden.
+- Bestaande waarschuwingen afzonderlijk: ESLint 0 fouten/170 bestaande warnings;
+  Tailwind meldt gemengde schermmaat-eenheden; de i18n-inventaris meldt bestaande
+  ontbrekende vertalingen. De SQL-/Redis-fouten in de foutinjectietests zijn
+  verwachte testcondities, geen genegeerde testfailures.
+- Android-debugbuild, iOS-simulatorbuild en volledige browserregressies worden
+  op de gepushte head door Actions gecontroleerd; links en uitslag staan op PR #179.
+  Geen lokale Xcode/Android-SDK- of fysieke apparaatvalidatie geclaimd.
+- Andere asynchrone handlers: zie matrix; FAMILY_GAME, Alleskenner, Study,
+  QuickMissionary en Puzzle hebben hiermee **geen** algemene native commitfence
+  of herbouwde multi-instance-engine gekregen. Aanwezigheidsreset/tellers blijven
+  eveneens bestaande housekeeping, geen bewijs van volledige clusterconsistentie.
+
+## Gewijzigde bestanden in deze herstelopdracht
+
+- Domein/server: `src/lib/liveQuiz.ts`, `src/lib/native/socketMutation.ts`,
+  `src/lib/chapterGuess.ts`, `src/server/gameServer.ts`.
+- Database: `prisma/schema.prisma` en
+  `prisma/migrations/20261203120000_live_quiz_actions/migration.sql`.
+- Clients: `src/components/GameRoom.tsx`, `src/components/ChapterGuessGameRoom.tsx`.
+- Tests: `tests/native-socket.integration.test.ts`, `tests/native-socket.test.ts`,
+  `tests/fixtures/native-socket-server.ts`, `scripts/native/test-isolated.mjs`.
+- CI: `.github/workflows/native-foundation.yml`.
+- Rapportage: dit rapport, `docs/NATIVE-FEATURE-PARITY.md`,
+  `docs/native-feature-parity.inventory.json`.
 
 ## Accountregressies, PR-keten en acceptatie
 
@@ -228,7 +401,7 @@ MERGEABLE tegen hun eigen base. Geen van deze acht heads staat als ancestor op
 | #174 | `5680fe55` | `feat/native-accountcontracten` (#173) |
 | #176 | `28c40b85` | `feat/native-buildcontrole` (#174) |
 | #178 | `b5380b1b` | `feat/native-wachtwoordherstel` (#176) |
-| #179 | `925f4d30` | `feat/native-mailbevestiging` (#178) |
+| #179 | `b88f28c4` | `feat/native-mailbevestiging` (#178) |
 
 Er zijn nu geen gemelde mergeconflicten in die keten. Dat is een momentopname,
 geen bewijs van gecombineerde functionele acceptatie met toekomstige main-wijzigingen.
@@ -238,8 +411,8 @@ merge-toestemming. De latere PR's horen na elke merge opnieuw tegen de actuele
 base te worden gecontroleerd. #176/#178 worden niet stilzwijgend mee gemerged.
 
 De PR-beschrijving bevat de uiteindelijke exacte head-SHA, alle Actions-links en
-de werkelijke eindstatus (inclusief de falende beloningsregressie). Oude groene
-CI op `925f4d30` is geen bewijs voor de gewijzigde head. TypeScript, ESLint,
+de werkelijke eindstatus. Oude groene of rode
+CI op `b88f28c4` is geen bewijs voor de gewijzigde head. TypeScript, ESLint,
 unittests, account-/socket-/webbrowserproeven, platformbuilds en productie-audit
 worden afzonderlijk gerapporteerd; een failure wordt niet door andere groene
 checks vervangen.
@@ -249,4 +422,4 @@ achtergrond/foreground, OS-kill, netwerkovergangen, toetsenbord/safe areas,
 oriëntatie en echte OS-linkafhandeling. Simulator-/SDK-build en Chromium zijn
 geen vervanging daarvan. Geen productie-/NAS-toegang, deployment, release of merge.
 
-**Technische conclusie: nog niet klaar, met concrete blokkades.**
+**Eindconclusie volgt uitsluitend na de eindtests en Actions op de gepushte head; onafhankelijke heraudit blijft vereist.**
