@@ -43,8 +43,10 @@ COPY scripts/otb ./scripts/otb
 COPY scripts/audio/import-official.ts scripts/audio/export-targets.ts ./scripts/audio/
 COPY data/audio ./data/audio
 COPY scripts/study-content ./scripts/study-content
-# Gepinde CFM-broninhoud en controlemanifesten; media blijven op het eigen volume.
-COPY data/study-content/cfm-2026-nl ./data/study-content/cfm-2026-nl
+# Gepinde CFM-broninhoud en controlemanifesten van alle jaargangen; media blijven op het eigen volume. Bewust de hele map:
+# beheer (Content opnieuw laden) hasht en leest elke geregistreerde jaargang uit het bestandssysteem van deze image, en een
+# ontbrekende jaargangmap laat de hele CFM-import stilzwijgend verdwijnen (tests/cfm-sources-image.test.ts bewaakt dit).
+COPY data/study-content ./data/study-content
 # Read-only productiediagnose; neem geen andere contentarchitectuur-scripts
 # of testinfrastructuur op in de runtime-image.
 COPY scripts/content-architecture/diagnose-otb-production-readonly.mjs ./scripts/content-architecture/diagnose-otb-production-readonly.mjs
