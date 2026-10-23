@@ -69,6 +69,7 @@ Alle uitlijningsuitkomsten en overige reviewpunten staan in [official-alignments
 - Productiedependencyaudit: 0 bekende kwetsbaarheden.
 - Kompas-opdracht: 60 geslaagd, 9 databaseafhankelijke tests overgeslagen in die opdracht; geen volledige Kompas-integratieclaim.
 - Prisma-validatie en additieve migratieproef op een eigen lege database met vooraf bestaande tekst/audio/hintvoorraad uitgevoerd.
+- De bestaande stapsgewijze contentmigratieproef, inclusief alle historische tussenstappen en beschikbaarheidsbenchmark, is na de CI-correctie geslaagd. Nieuwe audio-FK’s worden daar pas na hun bestaande studie-/collectievoorwaarden toegepast; productie-SQL is niet aangepast.
 
 De afsluitende volledige proef (`scripts/audio/test-isolated.mjs --official --browser`) is geslaagd:
 
