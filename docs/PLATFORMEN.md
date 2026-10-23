@@ -42,6 +42,14 @@ bevestigde registratie krijgt na juist wachtwoord dezelfde begrensde mailherhali
 als web. Legacy-mailherhaling, algemeen TOTP-beheer,
 account wissen, onboarding en volledige profielpariteit blijven open.
 
+## Mobile 1.0: route naar de stores
+
+Het centrale stuurdocument voor de store-release (huidige status, objectieve blokkades, scopevoorstel,
+werkpakketten, TestFlight-/Play-trajecten, apparaattests en eigenaarstaken) is
+[NATIVE-STORE-RELEASE-PLAN.md](NATIVE-STORE-RELEASE-PLAN.md). De objectieve blokkades zijn uitleesbaar met
+`npm run native:store-readiness`. `CAPACITOR_BUILD_PROFILE=release` blijft geblokkeerd; een testkanaal is
+nooit een releasestatus.
+
 ## Native realtime: eenmalig handshakebewijs
 
 Op 22 oktober 2026 heeft de eigenaar een afzonderlijk, eenmalig native
