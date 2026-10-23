@@ -44,8 +44,8 @@ Draait er al een installatie onder de oude naamgeving (`bom-game`/`bom-db`/
    `jehova-proxy` publiceert voortaan diezelfde poort in plaats van
    `jehova-app` zelf.
 
-Persistente databasegegevens (gebruikers, wachtwoorden, leesvoortgang, XP, streaks,
-freezes, vrienden, competitie, quizresultaten, content, instellingen) staat
+Persistente databasegegevens (gebruikers, wachtwoorden, leesvoortgang, XP, reeksen,
+reeksbevriezingen, vrienden, competitie, quizresultaten, content, instellingen) staat
 in PostgreSQL, in een map op je NAS die losstaat van de containers. Studielesmedia
 en branding staan daarnaast in eigen persistente volumes. Containervervanging
 behoudt deze gegevens alleen wanneer de bestaande mounts en configuratie intact

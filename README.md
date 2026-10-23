@@ -43,11 +43,11 @@ van een specifieke cloud-hostingprovider.
   fundament voor een latere handmatige-of-AI-controleworkflow.
 - **XP**: elke mutatie is een auditbare `XPTransaction` (niet zomaar een
   teller) — reden, bedrag en tijdstip zijn altijd te herleiden.
-- **Dag-streak & streak freezes**: je verdient freezes door mijlpalen te
-  halen (een 7-daagse streak, of elke 10 voltooide hoofdstukken), ze
-  beschermen automatisch je streak als je een dag mist, en je kan ze
+- **Dagelijkse reeks & reeksbevriezingen**: je verdient reeksbevriezingen met
+  mijlpalen (een reeks van 7 dagen, of elke 10 voltooide hoofdstukken), ze
+  beschermen automatisch je reeks als je een dag mist, en je kunt ze
   weggeven aan vrienden.
-- **Vrienden**: verzoeken sturen/accepteren, elkaars streak en XP zien. Wie
+- **Vrienden**: verzoeken sturen/accepteren, elkaars reeks en XP zien. Wie
   zijn online-status deelt, krijgt een melding bovenin als een vriend (die dat
   ook deelt) online komt, zolang de app open staat; geen pushmelding. Uit te
   zetten bij de meldingen op het profiel.
@@ -68,8 +68,8 @@ van een specifieke cloud-hostingprovider.
   medailles voor plek 1-3; je profiel telt hoeveel gouden, zilveren en
   bronzen medailles je verdiende (afgeleid uit eerdere weken, alleen als
   er iemand onder je eindigde).
-- **Achievements**: badges voor mijlpalen (eerste week-streak, eerste
-  hoofdstuk, 1000 XP, eerste freeze verdiend/weggegeven, eerste vriend,
+- **Achievements**: badges voor mijlpalen (eerste reeks van een week, eerste
+  hoofdstuk, 1000 XP, eerste reeksbevriezing verdiend/weggegeven, eerste vriend,
   eerste gewonnen duel), zichtbaar op je profiel.
 - **Live multiplayer-quiz**: maak een spel aan voor een hoofdstuk, nodig
   vrienden uit (real-time pop-up als ze de site open hebben, of deel de
@@ -167,7 +167,7 @@ die deze toestemming niet apart geregeld heeft.
 | Container      | Rol                                                                 | Persistent? |
 |----------------|----------------------------------------------------------------------|-------------|
 | `jehova-app`   | Next.js-app + API-routes + de live-quiz Socket.io-server            | Nee — stateless, vervangbaar zonder dataverlies |
-| `jehova-db`    | PostgreSQL — alle gebruikers, voortgang, XP, streaks, freezes, vrienden, competitie, quizresultaten en content | Ja — Docker-volume `jehova_db_data` |
+| `jehova-db`    | PostgreSQL — alle gebruikers, voortgang, XP, reeksen, reeksbevriezingen, vrienden, competitie, quizresultaten en content | Ja — Docker-volume `jehova_db_data` |
 | `jehova-redis` | Redis, actief gebruikt als Socket.io-adapter voor de live multiplayer-quiz | Nee — tijdelijke, vervangbare realtime-state |
 
 `jehova-app` is bewust stateless: hij is op elk moment te verwijderen en
@@ -274,9 +274,9 @@ expliciet verwijderen van dat volume (`docker volume rm ...`) is destructief.
   datamodel), een leesplan-met-einddatum, een herhalingscursus en een
   bladwijzers-cursus staan gepland maar zijn nog niet gebouwd.
 - **Snelle ronde** (`/practice`): een korte, hoofdstukloze oefensessie uit al
-  voltooide hoofdstukken — redt je dagstreak (met minder XP dan een volledige
+  voltooide hoofdstukken — beschermt je dagelijkse reeks (met minder XP dan een volledige
   les) zonder een cursus vooruit te helpen, zodat een gemiste dag in je
-  van-voor-naar-achter-cursus nooit je streak hoeft te kosten.
+  van-voor-naar-achter-cursus nooit je reeks hoeft te kosten.
 - **Begrijpend lezen**: naast de drie automatisch gegenereerde oefeningtypes
   zijn er nu ook `MULTIPLE_CHOICE` (vrije vraag + N opties — kernboodschap,
   motivatie, wie-zei-dit) en `SEQUENCE` (gebeurtenissen in de juiste volgorde
