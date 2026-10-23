@@ -4359,6 +4359,19 @@ export const fr: PartialMessages = {
     "weekProgress": "{done} étapes sur {total}",
     "weekRead": "Lue",
   },
+  cfmProgramme: {
+    archiveLink: "Leçons précédentes",
+    archiveTitle: "Leçons précédentes",
+    archiveIntro: "Leçons terminées depuis plus d’un mois. Tes notes et ta progression sont conservées.",
+    yearHeading: "{year} — {scripture}",
+    archiveEmpty: "Il n’y a pas encore de leçons précédentes.",
+    scripture: {
+      oldTestament: "Ancien Testament",
+      newTestament: "Nouveau Testament",
+      bookOfMormon: "Livre de Mormon",
+      doctrineAndCovenants: "Doctrine et Alliances",
+    },
+  },
   cfmToday: {
     brand: "Venez, suivez-moi",
     lastChosen: "Dernière semaine choisie",

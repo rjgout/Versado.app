@@ -11,6 +11,7 @@ import type { StudyContextView } from "@/lib/studyContextContract";
 import { canAccessCollection } from "@/lib/contentAccess";
 import type { ContentPickerContext, ContentSelection } from "@/lib/contentPickerContract";
 import { validPickerEdition } from "@/lib/contentPickerContract";
+import { CFM_PROGRAMME_NAME, cfmAnchorCollectionId, cfmAnchorOfCollectionId, isCfmVolumeCollection } from "@/lib/studyContent/cfmProgramme";
 
 export interface ContentCollectionView {
   id: string;
@@ -129,6 +130,17 @@ const VIEW_SELECT = {
   licenseUrl: true,
 } as const;
 
+/**
+ * "Kom dan en volg Mij" is één programma: de kiezer toont alleen het anker (de eerste jaargang, die ook de programmacursussen
+ * draagt) onder de programmanaam, zonder jaartal of schriftuuronderdeel. De andere jaargangen zijn geen eigen keuze: hun weken
+ * zitten in het programma (cfmProgramme.ts). Beheer (listContentCollectionsForAdmin) blijft de volledige collecties tonen.
+ */
+function presentProgramme<T extends { id: string; work: string | null; name: string }>(collections: T[]): T[] {
+  return collections
+    .filter((c) => !isCfmVolumeCollection(c) || cfmAnchorCollectionId(c) === c.id)
+    .map((c) => (isCfmVolumeCollection(c) ? { ...c, name: CFM_PROGRAMME_NAME } : c));
+}
+
 /** Welke collecties iemand mag kiezen: beheerders ook de verborgen. */
 function selectableWhere(isAdmin: boolean) {
   return collectionAccessWhere({ isAdmin }, "catalog");
@@ -162,11 +174,12 @@ export async function getContentContext(userId: string): Promise<ContentContext>
       select: { activeContentCollectionId: true, isAdmin: true, contentLanguage: true },
     }),
   ]);
-  const collections = await prisma.contentCollection.findMany({
+  const collections = presentProgramme(await prisma.contentCollection.findMany({
     where: selectableWhere(user?.isAdmin ?? false),
     orderBy: { order: "asc" },
     select: VIEW_SELECT,
-  });
+  }));
+  const activeId = user?.activeContentCollectionId ? cfmAnchorOfCollectionId(user.activeContentCollectionId) : user?.activeContentCollectionId;
 
   // Alleen het oude active-label blijft non-null voor bestaande clients.
   // Een lege catalogus krijgt nooit synthetische selecteerbare inhoud.
@@ -175,7 +188,7 @@ export async function getContentContext(userId: string): Promise<ContentContext>
   const works = pickEditions(available, contentLanguage);
   // Nog geen expliciete keuze: het eerste werk, in de eigen contenttaal.
   const selected =
-    available.find((collection) => collection.id === user?.activeContentCollectionId) ?? works[0]?.edition ?? DEFAULT_COLLECTION;
+    available.find((collection) => collection.id === activeId) ?? works[0]?.edition ?? DEFAULT_COLLECTION;
   // In de kiezer staat bij het actieve werk de uitgave die nu open is.
   const worksWithActive = works.map((option) =>
     option.work === workOf(selected) ? { ...option, edition: selected } : option
@@ -245,10 +258,10 @@ export async function setActiveContentCollection(
 /** De publieke kiezer gebruikt echte catalogusgegevens en expliciete normale rechten. */
 export async function getContentPickerContext(userId: string, db = prisma): Promise<ContentPickerContext> {
   const user = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { isAdmin: true, activeContentCollectionId: true, contentLanguage: true, contentSelectionVersion: true } });
-  const collections = await db.contentCollection.findMany({
+  const collections = presentProgramme(await db.contentCollection.findMany({
     where: collectionAccessWhere(user, "catalog"), orderBy: [{ order: "asc" }, { id: "asc" }],
     select: { ...VIEW_SELECT, enabled: true, publicationState: true, contentWork: { select: { kind: true } } },
-  });
+  }));
   const works: ContentPickerContext["works"] = [];
   for (const collection of collections) {
     if (!collection.work || !collection.contentWork || !validPickerEdition(collection)) continue;
@@ -261,7 +274,7 @@ export async function getContentPickerContext(userId: string, db = prisma): Prom
     work.editions.push({ ...edition, selectable: canAccessCollection(user, collection), previewHref });
   }
   const readable = works.flatMap(w => w.editions).filter(e => e.selectable);
-  const selected = readable.find(e => e.id === user.activeContentCollectionId)
+  const selected = readable.find(e => e.id === (user.activeContentCollectionId ? cfmAnchorOfCollectionId(user.activeContentCollectionId) : null))
     ?? pickEditions(readable, user.contentLanguage)[0]?.edition;
   return { hymnsAvailable: (await getHymnsAccess(user, db)) === "allow", selectionVersion: user.contentSelectionVersion, selection: { activeContentCollectionId: user.activeContentCollectionId, contentLanguage: user.contentLanguage }, activeCollectionId: selected?.id ?? null, works };
 }

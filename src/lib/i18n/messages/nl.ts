@@ -4831,6 +4831,19 @@ export const nl = {
     "weekProgress": "{done} van {total} stappen",
     "weekRead": "Gelezen",
   },
+  cfmProgramme: {
+    archiveLink: "Eerdere lessen",
+    archiveTitle: "Eerdere lessen",
+    archiveIntro: "Lessen die langer dan een maand geleden zijn afgelopen. Je aantekeningen en voortgang blijven bewaard.",
+    yearHeading: "{year} — {scripture}",
+    archiveEmpty: "Er zijn nog geen eerdere lessen.",
+    scripture: {
+      oldTestament: "Oude Testament",
+      newTestament: "Nieuwe Testament",
+      bookOfMormon: "Boek van Mormon",
+      doctrineAndCovenants: "Leer en Verbonden",
+    },
+  },
   cfmToday: {
     brand: "Kom dan en volg Mij",
     lastChosen: "Laatst gekozen week",

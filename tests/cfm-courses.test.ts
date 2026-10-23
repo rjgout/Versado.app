@@ -42,7 +42,7 @@ test("de migraties voegen alleen enumwaarden toe en maken de cursussen aan zonde
 
 test("het cursusoverzicht gebruikt voor CFM dezelfde kaarten, hetzelfde toevoegen en verbergen als de leescursussen", () => {
   const page = readFileSync("src/app/courses/page.tsx", "utf8");
-  assert.match(page, /lesson\.personal\)\) return <CoursesClient \/>/);
+  assert.match(page, /lesson\.personal\) \|\| data\.archivedCount > 0\) return <CoursesClient \/>/, "ook als alle weken gearchiveerd zijn blijft de cursuskaart de ingang");
   const client = readFileSync("src/components/CoursesClient.tsx", "utf8");
   assert.match(client, /STUDY_STEPS: "courses\.types\.studySteps"/);
   // Geen tweede cursussysteem: de weekkaarten komen uit dezelfde bouwstenen als de leespaden.

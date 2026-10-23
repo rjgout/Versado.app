@@ -162,6 +162,9 @@ function detailPageFor(pathname: string, profileView: string | null, hash: strin
   if (chapter) return { fallback: `/courses/${chapter[1]}`, title: "pages.chapter" };
   // Leerpad van Stap voor stap (Focus): terug naar de cursuslijst.
   if (/^\/courses\/[^/]+\/pad$/.test(pathname)) return { fallback: "/courses", title: "pages.course" };
+  // Archief van "Kom dan en volg Mij": terug naar het leerpad van de cursus.
+  const archive = /^\/courses\/([^/]+)\/archief$/.exec(pathname);
+  if (archive) return { fallback: `/courses/${archive[1]}/pad`, title: "cfmProgramme.archiveTitle" };
   if (/^\/courses\/[^/]+$/.test(pathname)) return { fallback: "/courses", title: "pages.course" };
   return null;
 }

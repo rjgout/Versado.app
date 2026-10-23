@@ -6,6 +6,7 @@ import { emitToUser } from "@/lib/realtime";
 import { DATA_EVENT_SOCKET_NAME } from "@/lib/data/scopes";
 import { studyContextActionSchema, type StudyContextAction, type StudyContextView } from "@/lib/studyContextContract";
 import { z } from "zod";
+import { cfmProgrammeCollectionIds } from "@/lib/studyContent/cfmProgramme";
 
 type Actor = { id: string; isAdmin: boolean };
 type DB = Pick<Prisma.TransactionClient, "contentWork" | "userStudyContext" | "fsyLesson" | "user" | "studyLessonEdition">;
@@ -38,8 +39,13 @@ async function lessonHref(db: DB, actor: Actor, workKey: string, key: string): P
     // collectie bepaalt de concrete reader. Geen willekeurige vertaalfallback.
     const user = await db.user.findUnique({ where: { id: actor.id }, select: { activeContentCollectionId: true } });
     if (!user?.activeContentCollectionId) return null;
-    const lesson = await getPublishedStudyLesson(actor, key.slice(6), user.activeContentCollectionId, db);
-    return lesson?.workKey === workKey ? `/study-lesson/${encodeURIComponent(lesson.lessonId)}/${encodeURIComponent(lesson.collectionId)}` : null;
+    // "Kom dan en volg Mij" is één programma over jaargangscollecties: een les van een andere jaargang van het programma van de
+    // actieve collectie is dus ook bereikbaar. Elke collectie houdt haar eigen toegangsregel (getPublishedStudyLesson).
+    for (const collectionId of new Set([user.activeContentCollectionId, ...cfmProgrammeCollectionIds({ id: user.activeContentCollectionId })])) {
+      const lesson = await getPublishedStudyLesson(actor, key.slice(6), collectionId, db);
+      if (lesson?.workKey === workKey) return `/study-lesson/${encodeURIComponent(lesson.lessonId)}/${encodeURIComponent(lesson.collectionId)}`;
+    }
+    return null;
   }
   if (workKey !== "fsy" || !key.startsWith("fsy:") || key.length <= 4) return null;
   const lesson = await db.fsyLesson.findFirst({
