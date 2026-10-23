@@ -64,7 +64,23 @@ export async function applyLessonPlan(tx: Prisma.TransactionClient, courseId: st
   const result: LessonSyncResult = { created: 0, updated: 0, reordered: 0, removed: 0, remapped: 0 };
   const existingByKey = new Map(existing.map((lesson) => [keyOf(lesson.chapterId, lesson.startVerse), lesson]));
 
-  if (existing.length > 0) await tx.$executeRaw`UPDATE "CourseLesson" SET "order" = -"order" - 1 WHERE "courseId" = ${courseId} AND "order" >= 0`;
+  // Snelle weg: staat de cursus al precies zo, dan blijft alles van de les zelf onaangeroerd (geen tijdelijke volgorde, geen schrijfacties) en
+  // worden alleen de gekoppelde oefeningen vergeleken. Een herhaalde synchronisatie met dezelfde bron schrijft zo niets.
+  const unchanged = existing.length === plan.length && plan.every((lesson) => {
+    const known = existingByKey.get(keyOf(lesson.chapterId, lesson.startVerse));
+    return known && known.order === lesson.order && known.endVerse === lesson.endVerse;
+  });
+  if (existing.length > 0 && !unchanged) await tx.$executeRaw`UPDATE "CourseLesson" SET "order" = -"order" - 1 WHERE "courseId" = ${courseId} AND "order" >= 0`;
+
+  const knownLinks = new Map<string, string[]>();
+  if (existing.length > 0) {
+    const links = await tx.courseLessonExercise.findMany({ where: { lesson: { courseId } }, orderBy: [{ lessonId: "asc" }, { order: "asc" }], select: { lessonId: true, exerciseId: true } });
+    for (const link of links) {
+      const list = knownLinks.get(link.lessonId) ?? [];
+      list.push(link.exerciseId);
+      knownLinks.set(link.lessonId, list);
+    }
+  }
 
   const idByKey = new Map<string, string>();
   for (const lesson of plan) {
@@ -72,8 +88,8 @@ export async function applyLessonPlan(tx: Prisma.TransactionClient, courseId: st
     const known = existingByKey.get(key);
     let id: string;
     if (known) {
-      await tx.courseLesson.update({ where: { id: known.id }, data: { order: lesson.order, endVerse: lesson.endVerse } });
       id = known.id;
+      if (!unchanged) await tx.courseLesson.update({ where: { id: known.id }, data: { order: lesson.order, endVerse: lesson.endVerse } });
       if (known.order !== lesson.order) result.reordered++;
       else if (known.endVerse !== lesson.endVerse) result.updated++;
     } else {
@@ -81,6 +97,9 @@ export async function applyLessonPlan(tx: Prisma.TransactionClient, courseId: st
       result.created++;
     }
     idByKey.set(key, id);
+    // Alleen schrijven als de koppeling echt anders is (zelfde oefeningen in dezelfde volgorde = niets doen).
+    const current = knownLinks.get(id) ?? [];
+    if (current.length === lesson.exerciseIds.length && current.every((exerciseId, index) => exerciseId === lesson.exerciseIds[index])) continue;
     await tx.courseLessonExercise.deleteMany({ where: { lessonId: id } });
     if (lesson.exerciseIds.length > 0) {
       await tx.courseLessonExercise.createMany({ data: lesson.exerciseIds.map((exerciseId, index) => ({ lessonId: id, exerciseId, order: index })) });

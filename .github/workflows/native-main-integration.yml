@@ -1,0 +1,26 @@
+name: Native main-integratie upgradebewijs
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/native/test-main-upgrade.mjs'
+      - '.github/workflows/native-main-integration.yml'
+permissions:
+  contents: read
+jobs:
+  main-upgrade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: node scripts/native/test-main-upgrade.mjs
+      - run: npm run db:generate
+      - run: npx tsx --test tests/nl-terminology.test.ts tests/reading-courses.test.ts tests/course-scripts.test.ts

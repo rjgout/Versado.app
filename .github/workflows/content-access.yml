@@ -168,7 +168,9 @@ concurrency:
 jobs:
   content-access:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Een gewone run duurt 12-13 minuten; alleen "Annotatiebrowser klaarzetten" (playwright install --with-deps) schommelt van enkele
+    # seconden tot bijna 10 minuten. Met 20 minuten brak een verder geslaagde run daardoor soms af tijdens de regressiestap.
+    timeout-minutes: 30
     env:
       DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
       NEXT_TELEMETRY_DISABLED: '1'
@@ -197,7 +199,7 @@ jobs:
           npm run test:annotations:integration -- --browser
       - name: Regressie, lint en vertalingen
         run: |
-          npx tsx --test tests/admin-layout.test.ts tests/cfm-2026-manifest.test.ts tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/proxy-headers.test.ts tests/reading-path.test.ts tests/reading-courses.test.ts tests/streak-central.test.ts
+          npx tsx --test tests/admin-layout.test.ts tests/cfm-2026-manifest.test.ts tests/content-edition.test.ts tests/content-switch.test.ts tests/learning-rules.test.ts tests/proxy-headers.test.ts tests/reading-path.test.ts tests/reading-courses.test.ts tests/course-scripts.test.ts tests/streak-central.test.ts
           npm run test:annotations
           npm run test:focus
           npm run test:dorp

@@ -14,7 +14,7 @@ symlink nooit door een losse kopie; controleer bij twijfel met
 ## Wat dit is
 
 **Jehova** — een algemene, interactieve leeromgeving voor schriftstudie
-(lessen, oefeningen, XP, streaks, competitie, live multiplayer-quiz). Het
+(lessen, oefeningen, XP, reeksen, competitie, live multiplayer-quiz). Het
 datamodel (`Book`/`Chapter`/`Verse`/`Course`, zie Database & migraties
 hieronder) is bewust niet aan één specifiek schriftwerk gebonden: het Boek
 van Mormon is vandaag de enige/eerste cursus/contentcollectie, maar de
@@ -579,6 +579,10 @@ realtime-bron.
   `onboardingSeenAt = createdAt` zodat bestaande accounts de onboarding-flow
   nooit alsnog te zien krijgen). Patroon: DDL bovenaan `migration.sql`,
   backfill-`UPDATE`/`INSERT...SELECT` eronder, in hetzelfde bestand.
+- **Content importeren verwijdert nooit wat een gebruiker gebruikte** (`docs/CONTENTBEHEER.md`): importers vervangen geen oefeningen met nieuwe
+  id's maar koppelen op inhoud (`src/lib/exerciseSync.ts`, `prisma/reconcileExercises.ts`); een gewijzigde vraag wordt een nieuwe vraag en de
+  oude blijft, als iemand haar kreeg of beantwoordde, buiten gebruik bestaan. Een import overschrijft nooit `enabled`, `visibleToUsers`,
+  `publicationState`, naam of volgorde van een bestaande `ContentCollection`, en draait onder `withContentImportLock`.
 - Instellingen die een admin via `/adminbackend` aanpast staan in eigen
   singleton-modellen (`id String @id @default("singleton")`) — patroon:
   `EmailSettings`, `LeagueSettings`, `BrandingSettings`, `DetectedAppUrl`.
@@ -592,7 +596,7 @@ realtime-bron.
 
 ## ⚠️ Harde regel: identiteit van de leescursussen
 
-Zie `docs/CURSUSIDENTITEIT.md`. Per schriftcollectie maximaal één cursus per type Stap voor stap, Hoofdstuk voor hoofdstuk en Vrije keuze. De historische slugs (`vrije-keuze`, `voor-naar-achter`, `lezen-van-voor-naar-achter`) horen bij het Boek van Mormon op **vast id** (`BOM_COLLECTION_ID`, `src/lib/contentCollectionIds.ts`), nooit bij "de eerste ingeschakelde collectie op volgorde": `ContentCollection.order` heeft default 0 en een nieuwe collectie of een wijziging van `enabled` mag de cursusidentiteit niet veranderen. Een import gebruikt altijd een expliciete doelcollectie (`importBooks` valt terug op het Boek van Mormon). Duplicaten worden alleen hersteld met `scripts/courses/repair-duplicates.ts` (dry-run standaard, `--apply --backup-gemaakt` na goedkeuring van de eigenaar); nooit met een blinde `deleteMany`, en nooit met deduplicatie in React. Getest met `npm run test:course-identity`.
+Zie `docs/CURSUSIDENTITEIT.md`. Per schriftcollectie maximaal één cursus per type Stap voor stap, Hoofdstuk voor hoofdstuk en Vrije keuze. De historische slugs (`vrije-keuze`, `voor-naar-achter`, `lezen-van-voor-naar-achter`) horen bij het Boek van Mormon op **vast id** (`BOM_COLLECTION_ID`, `src/lib/contentCollectionIds.ts`), nooit bij "de eerste ingeschakelde collectie op volgorde": `ContentCollection.order` heeft default 0 en een nieuwe collectie of een wijziging van `enabled` mag de cursusidentiteit niet veranderen. Een import gebruikt altijd een expliciete doelcollectie (`importBooks` valt terug op het Boek van Mormon). Bestaande duplicaten worden, op uitdrukkelijk verzoek van de eigenaar (uitzondering op het verbod op automatische productiegegevenscorrectie, alleen voor dit geval), bij het opstarten van de app automatisch samengevoegd door `healDuplicateReadingCourses` (`src/lib/courseAutoRepair.ts`, aangeroepen vanuit `server.ts`, zonder het opstarten te blokkeren; noodstop `COURSES_AUTO_REPAIR=off`): uitsluitend via de transactionele herstelmodule `courseRepair.ts`; groepen met oordeel `blocked` blijven onaangeroerd en worden gelogd. Handmatig kan het nog met `scripts/courses/repair-duplicates.ts` (dry-run standaard; `--apply --backup-gemaakt --verwacht-database=<host>:<poort>/<database>`). Dit is geen algemene toestemming voor andere automatische gegevenscorrecties. Nooit met een blinde `deleteMany`, en nooit met deduplicatie in React. Getest met `npm run test:course-identity`.
 
 ## Prisma schema en migraties — synchroniteit
 
@@ -859,6 +863,7 @@ het hoofdstuk). Het fundament ligt er; zichtbaar is alles nog Nederlands.
   bevatten: `tsx` maakt van elke sleutel een variabele, en woorden als
   `yield` of `let` laten de app dan bij het opstarten crashen. Woordenlijsten
   in andere talen staan daarom als `[woord, aantal]`-paren.
+- **Terminologie reeksen**: in het Nederlands altijd "reeks" en "reeksbevriezing(en)", nooit "streak"/"freeze" in zichtbare tekst; zie "Nederlandse terminologie voor reeksen" in `docs/VERSADO-DESIGN.md` (bewaakt door `tests/nl-terminology.test.ts`).
 - **App-teksten**: `src/lib/i18n/messages/nl.ts` is de bron; de taalbestanden
   (`en.ts`, `de.ts`, `fr.ts`, `es.ts`) volgen die structuur;
   een ontbrekende tekst valt terug langs

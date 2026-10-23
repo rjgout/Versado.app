@@ -236,6 +236,11 @@ test("de herstelscripts zijn standaard een dry-run en vereisen een bevestigde ba
   const repair = read("scripts/courses/repair-duplicates.ts");
   assert.match(repair, /--backup-gemaakt/);
   assert.match(repair, /const apply = process\.argv\.includes\("--apply"\)/);
+  assert.match(repair, /--verwacht-database=/, "--apply bevestigt de naam van de doeldatabase");
+  assert.match(repair, /resolveDatabase\(\)/);
+  assert.match(repair, /confirmsDatabaseIdentity\(target, confirmation\)/, "host, poort en databasenaam worden bevestigd");
+  assert.match(read("scripts/courses/audit-duplicates.ts"), /resolveDatabase\(\)/, "de audit toont eerst de doeldatabase");
+  assert.doesNotMatch(read("scripts/courses/target.ts"), /username|password/, "de doelweergave bevat nooit geheimen");
   assert.doesNotMatch(read("scripts/courses/audit-duplicates.ts"), /\.(create|update|delete|upsert)\w*\(/, "de diagnose schrijft niets");
 });
 
@@ -246,4 +251,15 @@ test("de drie leeswijzen krijgen in elke app-taal drie verschillende namen (vert
     assert.equal(new Set(names).size, 3, `${language}: ${names.join(" / ")}`);
     assert.ok(names.every((name) => name.length > 0));
   }
+});
+
+test("het automatische herstel bij het opstarten blokkeert de start nooit en staat niet in de Next-laag", () => {
+  const server = read("server.ts");
+  assert.match(server, /healDuplicateReadingCourses\(prisma\)\.catch\(/, "fouten worden afgevangen en melden alleen een waarschuwing");
+  assert.ok(server.indexOf("healDuplicateReadingCourses(prisma)") < server.indexOf("httpServer.listen"), "gestart vóór de server luistert, maar zonder await");
+  assert.doesNotMatch(server, /await healDuplicateReadingCourses/);
+  const auto = read("src/lib/courseAutoRepair.ts");
+  assert.doesNotMatch(auto, /from "next|next\/headers|next\/server/, "eager-importketen van server.ts: geen Next-API's");
+  assert.match(auto, /applyDuplicateRepair\(db, plans\)/, "dezelfde herstelmodule als de handmatige scripts");
+  assert.match(auto, /COURSES_AUTO_REPAIR/);
 });

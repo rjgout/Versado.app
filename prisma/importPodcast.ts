@@ -1,5 +1,7 @@
 import { PrismaClient, Prisma } from "../src/generated/prisma/client";
 import { randomUUID } from "crypto";
+import { exerciseSignature } from "../src/lib/exerciseSync";
+import { reconcileSimpleExercises } from "./reconcileExercises";
 import { shuffleWithSeed } from "../src/lib/exerciseGen";
 import type { PodcastEpisodeSeed, PodcastComprehensionExercise } from "./podcastContent";
 import { ensurePodcasts } from "../src/lib/podcasts";
@@ -42,7 +44,7 @@ function toAnswersAndOptions(comp: PodcastComprehensionExercise, seed: number): 
 }
 
 /**
- * Idempotent: herdraaien overschrijft de oefeningen van dezelfde aflevering.
+ * Idempotent: herdraaien laat ongewijzigde oefeningen (en hun id's) ongemoeid en vervangt alleen wat inhoudelijk anders is.
  *
  * Batcht de oefeningen/opties per aflevering met `createMany` in plaats van
  * één losse insert-aanroep per oefening — zelfde reden en aanpak als
@@ -60,9 +62,11 @@ export async function importPodcastEpisodes(
     // order = -number, zodat de nieuwste (hoogst genummerde) aflevering
     // altijd bovenaan staat — ongeacht in welke volgorde ze hier of via de
     // feed-sync (zie src/lib/podcastFeed.ts) binnenkomen.
+    // Titel, omschrijving en luisterlink komen uit de feed (syncPodcastFeed); hier staan alleen plaatshouders. Een bestaande aflevering
+    // krijgt die dus nooit terug: bij een onbereikbare feed zouden echte titels anders door "Aflevering N" worden vervangen.
     const episode = await prisma.podcastEpisode.upsert({
       where: { podcastId_number: { podcastId, number: seed.number } },
-      update: { title: seed.title, summary: seed.summary, listenUrl: seed.listenUrl, order: -seed.number },
+      update: { order: -seed.number },
       create: {
         podcastId,
         number: seed.number,
@@ -72,8 +76,6 @@ export async function importPodcastEpisodes(
         order: -seed.number,
       },
     });
-
-    await prisma.podcastExercise.deleteMany({ where: { episodeId: episode.id } });
 
     const exerciseRows: Prisma.PodcastExerciseCreateManyInput[] = [];
     const optionRows: Prisma.PodcastExerciseOptionCreateManyInput[] = [];
@@ -104,13 +106,19 @@ export async function importPodcastEpisodes(
     addExercises(seed.content, "CONTENT");
     addExercises(seed.bomConnection, "BOM_CONNECTION");
 
-    if (exerciseRows.length > 0) {
-      await prisma.podcastExercise.createMany({ data: exerciseRows });
-    }
-    if (optionRows.length > 0) {
-      await prisma.podcastExerciseOption.createMany({ data: optionRows });
-    }
+    const optionsOf = (exerciseId: string) => optionRows.filter((option) => option.exerciseId === exerciseId);
+    const existing = (await prisma.podcastExercise.findMany({ where: { episodeId: episode.id }, orderBy: [{ mode: "asc" }, { order: "asc" }], include: { options: { orderBy: { order: "asc" } } } })).map((row) => ({
+      id: row.id, order: row.order, options: row.options.map((o) => ({ label: o.label, isCorrect: o.isCorrect })), signature: exerciseSignature({ type: row.type, verseRef: row.mode, prompt: row.prompt, answers: row.answers, wordBank: row.wordBank, options: row.options }),
+    }));
+    const stats = await reconcileSimpleExercises({
+      existing,
+      desired: exerciseRows.map((row) => ({ row, signature: exerciseSignature({ type: row.type, verseRef: row.mode, prompt: row.prompt, answers: row.answers, wordBank: row.wordBank, options: optionsOf(row.id!).map((o) => ({ label: o.label, isCorrect: o.isCorrect ?? false })) }), options: optionsOf(row.id!) })),
+      replaceOptions: async (exerciseId, options) => { await prisma.podcastExerciseOption.deleteMany({ where: { exerciseId } }); await prisma.podcastExerciseOption.createMany({ data: options.map((o) => ({ ...o, exerciseId })) }); },
+      setOrder: (id, order) => prisma.podcastExercise.update({ where: { id }, data: { order } }),
+      remove: (ids) => prisma.podcastExercise.deleteMany({ where: { id: { in: ids } } }),
+      create: async (rows, options) => { await prisma.podcastExercise.createMany({ data: rows }); if (options.length > 0) await prisma.podcastExerciseOption.createMany({ data: options }); },
+    });
 
-    log(`  - Aflevering ${seed.number}: ${seed.content.length} + ${seed.bomConnection.length} oefeningen`);
+    log(`  - Aflevering ${seed.number}: ${seed.content.length} + ${seed.bomConnection.length} oefeningen (${stats.kept} behouden, ${stats.created} nieuw, ${stats.deleted} verwijderd)`);
   }
 }
