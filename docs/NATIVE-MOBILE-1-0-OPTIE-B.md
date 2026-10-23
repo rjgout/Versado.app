@@ -41,8 +41,13 @@ Verplicht voor 1.0: WP2, WP3 (voorbereid), WP4 (accountverwijdering/juridisch), 
 datalaag), WP8 (Vandaag), WP9 (Leren), WP10 (lezer en oefeningen), WP11 (hoofdstukaudio, na besluit D7), WP13 (profiel),
 WP14 alleen voor CFM, WP15 (toesteltests), WP16 (storemetadata). Uitgesteld: WP12, WP17, WP18.
 
-## 5. Beslispunten voor de eigenaar
+## 5. Besluiten en beslispunten
 
-1. Keur de tabel in §2 goed (per rij of als geheel), waarna de pariteitsdocumentatie bijgewerkt wordt.
-2. Bevestig dat CFM in 1.0 de volledige studieroute heeft (Stap voor stap én Vrije studie) of alleen Stap voor stap.
-3. Bevestig dat hoofdstukaudio in 1.0 zit (D7) en daarmee de achtergrond- en lifecycletests van WP15.
+**Bevestigd door de eigenaar (planningsbasis, nog geen wijziging van het formele pariteitsbeleid):**
+- Optie B als scope voor Mobile 1.0.
+- CFM met Stap voor stap én Vrije studie.
+- Hoofdstukaudio wordt **gestreamd**; offline downloads en nieuwe audio-uitbreidingen zijn geen prioriteit.
+
+**Nog open voor de eigenaar:**
+1. Definitief akkoord op de tabel in §2. Pas daarna wordt `docs/NATIVE-FEATURE-PARITY.md` bijgewerkt, per onderdeel met testbewijs. Tot die tijd blijven alle niet-geïmplementeerde functies als native achterstand geregistreerd.
+2. Gevolgen van gestreamde audio voor WP15: achtergrondgedrag, onderbrekingen (bellen, andere audio), netwerkverlies tijdens afspelen en de bestaande geautoriseerde Range-stream; geen offline opslag.
