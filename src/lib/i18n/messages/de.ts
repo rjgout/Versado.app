@@ -53,6 +53,8 @@ export const de: PartialMessages = {
   "privacy": "Datenschutzerklärung",
   "terms": "Nutzungsbedingungen",
   "termsUnavailable": "Die Bedingungen sind noch nicht konfiguriert. Die Store-Freigabe bleibt gesperrt.",
+  "buildInternal": "Interner Test-Build {version} ({build}). Keine offizielle Version.",
+  "buildStoreTest": "Testversion {version} ({build}), Kanal {channel}. Keine offizielle Veröffentlichung.",
   "keyboardDone": "Tastatur schließen",
   "apple": "Mit Apple anmelden",
   "appleUnavailable": "Die Anmeldung mit Apple ist noch nicht konfiguriert.",

@@ -41,6 +41,7 @@ on:
       - 'tests/native-navigation*'
       - 'tests/native-account*'
       - 'tests/native-socket*'
+      - 'tests/native-distribution*'
       - 'tests/fixtures/native-socket*'
       - 'tests/fixtures/native-foundation*'
       - '.github/workflows/native-foundation.yml'

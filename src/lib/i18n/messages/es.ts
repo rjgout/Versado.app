@@ -53,6 +53,8 @@ export const es: PartialMessages = {
   "privacy": "Privacidad",
   "terms": "Condiciones",
   "termsUnavailable": "Las condiciones aún no están configuradas. La publicación en tiendas sigue bloqueada.",
+  "buildInternal": "Compilación de prueba interna {version} ({build}). No es una versión oficial.",
+  "buildStoreTest": "Versión de prueba {version} ({build}), canal {channel}. No es una publicación oficial.",
   "keyboardDone": "Cerrar teclado",
   "apple": "Iniciar sesión con Apple",
   "appleUnavailable": "El inicio de sesión con Apple aún no está configurado.",

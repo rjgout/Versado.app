@@ -43,7 +43,7 @@ Het stuurdocument verwijst naar de architectuurdocumenten in plaats van ze te he
    (`--strict` faalt zolang er een niet-gewaiveerde blokkade openstaat). Dit script bewijst
    nooit dat iets op een toestel werkt.
 9. Er is niets ingediend, gedeployed of gemerged; er zijn geen credentials gebruikt of verzonnen.
-10. **Eerstvolgende implementatie-PR: WP1 (distributieprofielen)**, gevolgd door WP2 en WP3 (§9).
+10. **WP1 (distributieprofielen) is geïmplementeerd** (§5.1); eerstvolgend zijn WP2 (iOS) en WP3 (Android) (§9). Voor een echte testbuild ontbreekt nog de backend-origin van de eigenaar (§5.1).
 
 ## 1. Huidige technische status
 
@@ -63,7 +63,7 @@ toestel uitgevoerd. **Ontbreekt** = in de repository niet aanwezig.
 | Onderdeel | Status | Bewijs |
 |---|---|---|
 | Capacitor 8.5.2 met plugins app, browser, haptics, keyboard, share | Compileert | `package.json`, `ios/App/CapApp-SPM/Package.swift` |
-| Lokale client (esbuild → `dist/native`, CSP, geen `server.url`) | Werkt (browser/Chromium en bundel-verificatie) | `scripts/native/build.ts`, `scripts/native/verify-development.mjs`, `tests/native-foundation.browser.mjs` |
+| Lokale client (esbuild → `dist/native`, CSP, geen `server.url`) | Werkt (browser/Chromium en bundel-verificatie) | `scripts/native/build.ts`, `scripts/native/verify-distribution.mjs`, `tests/native-foundation.browser.mjs` |
 | Eigen plugin `VersadoNative`: iOS Keychain, Android Keystore (AES-GCM), Sign in with Apple | Compileert | `ios/App/App/VersadoNativePlugin.swift`, `android/.../VersadoNativePlugin.java` |
 | Native API `/api/v1/native/*`: 17 endpoints (capabilities, login, register, forgot/reset-password, verify-email, security-setup, refresh, logout, apple, account/password, me, today, chapters/:id, chapters/:id/complete, realtime/session) | Werkt (integratietests) | `src/lib/native/api.ts`, `tests/native-*.test.ts` |
 | Eigen sessielaag (Bearer, refresh-rotatie, intrekking, versieverhoging bij wachtwoordwijziging) | Werkt | `src/lib/native/sessions.ts`, `tests/native-account.integration.test.ts` |
@@ -115,7 +115,8 @@ beslissing. Een blokkade met "alleen bij …" geldt alleen als die functie in de
 
 | Id (script) | Blokkade | Type | Werkpakket |
 |---|---|---|---|
-| `distribution-profile` | Geen expliciet distributieprofiel naast het geblokkeerde `release` | code | WP1 |
+| `distribution-profile` | Gescheiden distributieprofielen `local-internal` en `local-store-test` naast het geblokkeerde `release` (**opgelost in WP1**) | code | WP1 |
+| `distribution-origins-configured` | De eigenaar heeft de toegestane HTTPS-backend-origins voor intern en store-test nog niet vastgelegd in `scripts/native/distribution-origins.json` (lijsten zijn leeg: distributiebuilds weigeren te bouwen) | eigenaar | WP1 |
 | `ios-privacy-manifest` | Geen `PrivacyInfo.xcprivacy` in het app-target | code + besluit (privacylabels) | WP2 |
 | `ios-entitlements` | Geen echt entitlements-bestand gekoppeld (alleen nodig voor Apple-login/associated domains) | code + besluit | WP2 |
 | `ios-export-compliance` | `ITSAppUsesNonExemptEncryption` niet beantwoord | eigenaar bevestigt antwoord | WP2 |
@@ -140,7 +141,7 @@ er geen credentials in git komen.
 
 | Id (script) | Wat er bewaakt wordt |
 |---|---|
-| `release-profile-blocked` | `capacitor.config.ts` weigert elk profiel behalve `remote-preview`, `local-development` en (na WP1) de beschreven distributieprofielen; `release` blijft geweigerd |
+| `release-profile-blocked` | Het profiel komt uitsluitend uit `scripts/native/profiles.cjs`; `PROFILE_IDS` bevat geen `release` en geen enkele omgevingsvariabele opent het; `release` blijft geweigerd |
 | `bundle-never-release-approved` | De lokale bundel schrijft altijd `releaseApproved:false` |
 | `bundle-identity-consistent` | Eén bundle-/applicatie-ID `app.versado.app` in Capacitor, Android en iOS |
 | `phones-portrait` | Telefoons portrait-only (iPhone via Info.plist, Android via `MainActivity`) |
@@ -302,10 +303,12 @@ profiel per distributiekanaal** (WP1). Voorwaarden gelden in code, niet in een h
 | TestFlight / Play-test | `local-store-test` (nieuw) | alleen allowlist-origin met bereikbare `capabilities`; alleen in CI-omgeving | distributieprofiel / uploadsleutel uit secrets | "Testversie" + kanaal | `false` |
 | Productierelease | `release` | — | — | — | blijft **geweigerd** tot alle blokkades uit `native:store-readiness --strict` zijn opgelost én de eigenaar de wijziging expliciet goedkeurt |
 
-Regels: elk testprofiel schrijft `channel` in `dist/native/build.json`; `verify-development.mjs` wordt
-`verify-distribution` en vergelijkt kanaal, origin en assets met de verpakte bundel; een testkanaal
-verschijnt nooit als "release". De guards in `scripts/native/store-readiness.mjs` falen zodra
-`capacitor.config.ts` `release` zou accepteren of de bundel zichzelf goedkeurt.
+Regels: elk testprofiel schrijft `channel` in `dist/native/build.json`; `verify-distribution.mjs` (voorheen
+`verify-development.mjs`) vergelijkt kanaal, origin en assets met de verpakte bundel; een testkanaal
+verschijnt nooit als "release". De guards in `scripts/native/store-readiness.mjs` falen zodra het profiel
+`release` zou accepteren of de bundel zichzelf goedkeurt. **De tabel hierboven is het ontwerp; §5.1 beschrijft
+wat WP1 daadwerkelijk heeft gebouwd** (de allowlist staat in een gecommit bestand i.p.v. `NATIVE_ALLOWED_API_ORIGINS`,
+zodat de eigenaar de origins reviewbaar vastlegt en er geen tweede bron bestaat).
 
 Reproduceerbare builds (WP2/WP3): één workflow per platform met `workflow_dispatch`, beschermde
 GitHub-omgeving en secrets van de eigenaar. Versie uit `package.json`, buildnummer uit het CI-runnummer
@@ -316,6 +319,80 @@ Voorgestelde secretnamen (de eigenaar maakt en vult ze; er zijn geen waarden ver
 `APPLE_TEAM_ID`, `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` (base64), `ANDROID_UPLOAD_KEYSTORE_B64`,
 `ANDROID_UPLOAD_KEYSTORE_PASSWORD`, `ANDROID_UPLOAD_KEY_ALIAS`, `ANDROID_UPLOAD_KEY_PASSWORD`, optioneel
 `PLAY_SERVICE_ACCOUNT_JSON`. Deze worden pas in WP2/WP3 gebruikt.
+
+### 5.1 WP1 — gerealiseerd (distributieprofielen)
+
+**Eén bron van waarheid:** `scripts/native/profiles.cjs` (CommonJS, omdat de Capacitor-CLI `capacitor.config.ts`
+als CJS evalueert). `capacitor.config.ts`, `scripts/native/build.ts`, `verify-distribution.mjs` en de tests lezen
+alle profielregels daar; er is geen tweede lijst.
+
+| Profiel | Gebruik | Backend | Kanaal | Zichtbaar in de app | `releaseApproved` |
+|---|---|---|---|---|---|
+| `remote-preview` | Capacitor als venster op een remote preview (ongewijzigd) | `CAPACITOR_SERVER_URL` | `remote-preview` | n.v.t. | n.v.t. |
+| `local-development` | Lokale bundel voor ontwikkeling (ongewijzigd; HTTPS of loopback-HTTP met `NATIVE_ALLOW_LOCAL_HTTP_API=1`) | `NATIVE_API_BASE_URL` | `development` | nee | `false` |
+| `local-internal` | Interne apparaatbuild | HTTPS-origin uit allowlist `internal` | `internal` | banner "Interne build" | `false` |
+| `local-store-test` | TestFlight / Play-test | HTTPS-origin uit allowlist `store-test` | `testflight` (alleen iOS) of `play-test` (alleen Android) | banner "Testversie" | `false` |
+| `release` | — | — | — | — | **geblokkeerd**; geen omgevingsvariabele of flag opent dit |
+
+**Origin-regels voor distributieprofielen:** exacte, genormaliseerde `https://host[:poort]`; geen wildcard,
+credentials, pad/query/fragment, IP-adres, loopback of gereserveerd domein; geen HTTP en geen cleartext
+(`NATIVE_ALLOW_LOCAL_HTTP_API`/`CAPACITOR_ALLOW_CLEARTEXT` worden geweigerd); geen `CAPACITOR_SERVER_URL`. De
+origin moet voorkomen in `scripts/native/distribution-origins.json` (`internal` resp. `store-test`); een lege lijst,
+ontbrekende of onbekende origin weigert de build met een eigenaartaak, zonder standaardwaarde. De CSP in de
+bundel (`connect-src` met alleen die origin) blokkeert daarnaast elke redirect naar een andere host.
+
+**Compileproef (alleen CI):** `NATIVE_COMPILE_PROBE=1` accepteert uitsluitend `https://example.invalid` (RFC 2606),
+zodat CI de volledige keten kan bouwen zonder een testdomein te verzinnen. Zulke bundels staan in `build.json`
+als `compileProbe:true`, tonen dat in de bouwmelding en zijn nooit uploadbaar.
+
+**Buildmetadata (`dist/native/build.json`, schemaVersion 2):** `appId`, `profile`, `channel`, `distribution`,
+`compileProbe`, `apiOrigin`, `version`, `buildNumber`, `sourceCommit`, `releaseApproved:false` en de SHA-256 van
+elk bundelbestand. Bij `npx cap sync` controleert `capacitor.config.ts` dat de bundel bij het gevraagde profiel
+past (een verouderde of andersoortige bundel weigert); de verificatie vergelijkt daarna de verpakte assets
+(Android `assets/public`, iOS `App/public`) byte voor byte met de bron en met de hashes.
+
+**Verificatiecontract per profiel** (`node scripts/native/verify-distribution.mjs <android|ios> [map]`):
+app-ID `app.versado.app`; kanaal en platform kloppen; origin gelijk in `build.json`, CSP en `index.js`;
+geen externe scripts/stylesheets; geen onverwachte bestanden; `capacitor.config.json` zonder `server.url`,
+met `server.cleartext=false` voor distributie en zonder development-instellingen; geen `usesCleartextTraffic`/
+`debuggable`/`NSAllowsArbitraryLoads`; geen geheimen in de verpakte bestanden; `releaseApproved:false`.
+
+**Bouwcommando's** (voorbeeld; de waarden voor `NATIVE_API_BASE_URL` moeten eerst in de allowlist staan):
+
+```bash
+# development (ongewijzigd)
+CAPACITOR_BUILD_PROFILE=local-development NATIVE_API_BASE_URL=<https-origin> npm run native:build
+# interne build
+CAPACITOR_BUILD_PROFILE=local-internal NATIVE_API_BASE_URL=<origin uit allowlist internal> \
+  NATIVE_DISTRIBUTION_CHANNEL=internal NATIVE_APP_VERSION=0.1.0 NATIVE_BUILD_NUMBER=7 npm run native:build
+# store-test (testflight voor iOS, play-test voor Android)
+CAPACITOR_BUILD_PROFILE=local-store-test NATIVE_API_BASE_URL=<origin uit allowlist store-test> \
+  NATIVE_DISTRIBUTION_CHANNEL=testflight NATIVE_APP_VERSION=0.1.0 NATIVE_BUILD_NUMBER=7 npm run native:build
+npx cap sync <ios|android> && npm run native:verify -- <ios|android>
+```
+
+Vereiste omgevingsvariabelen: `CAPACITOR_BUILD_PROFILE`, `NATIVE_API_BASE_URL`; voor distributie ook
+`NATIVE_APP_VERSION` (x.y.z) en `NATIVE_BUILD_NUMBER` (geheel getal, store-test verplicht), `NATIVE_DISTRIBUTION_CHANNEL`
+(store-test) en een bepaalbare broncommit (`GITHUB_SHA` of git-checkout). Optioneel: `NATIVE_BUILD_OUTDIR` (binnen `dist/` of de tijdelijke map).
+
+**Intern versus store-test:** intern = ad-hoc/development-signing en eigen toestellen, eigen allowlist, kanaal
+`internal`; store-test = distributiesigning en upload door de eigenaar in WP2/WP3, andere allowlist, kanaal per
+platform, versie en buildnummer verplicht. Een origin uit de ene lijst wordt voor het andere profiel geweigerd.
+
+**Nog open voor de eigenaar (geen oplossing met een onveilige standaard):** de HTTPS-origin(s) van de testbackend
+in `scripts/native/distribution-origins.json` (reviewbare PR, blokkade `distribution-origins-configured`) en de
+overige taken uit §10. Tot dat moment bouwt CI uitsluitend compileproeven.
+
+**Testresultaten WP1:** `npm run test:native` (56, incl. 13 nieuwe profieltests: positief en negatief voor alle vier
+profielen, geblokkeerd release, onbekende/HTTP-origins, ontbrekende configuratie, metadata, verpakte assets),
+`npm run test:native:store-readiness`, `npm run test:native:parity`, `npm run native:parity:check`, `tsc`,
+i18n-check; CI: native-platform-builds bouwt voor Android en iOS de profielen development, internal en store-test
+(compileproef), controleert dat `release` faalt, bouwt de ongetekende AAB (play-test) en de iOS-archive (testflight).
+
+**Afhankelijkheden voor WP2 (iOS):** gebruikt `local-store-test` + kanaal `testflight`, `NATIVE_BUILD_NUMBER` →
+`CURRENT_PROJECT_VERSION`, allowlist-origin, privacy manifest/entitlements (blokkades WP2), Apple-secrets van de
+eigenaar. **WP3 (Android):** `local-store-test` + `play-test`, `NATIVE_BUILD_NUMBER` → `VERSADO_VERSION_CODE`, uploadsleutel
+uit secrets, allowlist-origin.
 
 ## 6. TestFlight-traject (iOS)
 
@@ -371,11 +448,11 @@ WP1 en de eigenaargegevens. WP15/16 lopen mee en sluiten M2/M3 af.
 - Tests: `npm run test:native:store-readiness`, `native:parity:check`, bestaande native-jobs.
 - Blokkades: geen nieuwe.
 
-**WP1 — Distributieprofielen (eerstvolgende implementatie)**
+**WP1 — Distributieprofielen (geïmplementeerd; zie §5.1)**
 - Doel: expliciete kanalen zonder `release` te openen (§5).
 - Afhankelijk van: WP0, D5 (backendorigin).
 - Scope: `capacitor.config.ts` (`DISTRIBUTION_PROFILES`), `scripts/native/build.ts` (`channel`, allowlist),
-  `verify-development.mjs` → `verify-distribution`, zichtbaar kanaal in de app, guards bijwerken.
+  `verify-development.mjs` is hernoemd naar `verify-distribution.mjs`, zichtbaar kanaal in de app, guards bijwerken.
 - Acceptatie: `release` blijft een fout; testprofielen weigeren cleartext, onbekende origin en ontbrekende
   versie; `build.json` bevat kanaal en `releaseApproved:false`; verpakte assets gelijk aan `dist/native`.
 - Tests: uitbreiding van `tests/native-foundation.test.ts` (profielvalidatie), negatieve CI-controles, readiness-test.

@@ -12221,6 +12221,20 @@
       ]
     },
     {
+      "file": "src/components/native/NativeBuildBanner.tsx",
+      "sha256": "e2f68114825bbbc1d5fb10f9ef094d793ada018e6e31397ce97989df0a151f80",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeBuildBanner"
+      ]
+    },
+    {
       "file": "src/components/native/NativeEmailConfirmation.tsx",
       "sha256": "1309d90fd85806c061585b9f6d4d5111e761b9add108bc2ab0a70cb3c7e7379c",
       "boundary": "client",
@@ -12243,7 +12257,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "a3026e981433c077a39390e1f0970fabd126ee88db5483dd8a923da30c12c988",
+      "sha256": "45acbe49a2edada1914bd70c842c42379c3b1719fe0187ad9cc8b8b2798181b6",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -12329,9 +12343,10 @@
     },
     {
       "file": "src/components/native/entry.tsx",
-      "sha256": "9c67e227b933d6f642d884f18a41a5634a61e5bb70f8b93eecfb2f1b02793c85",
+      "sha256": "94b892aaed42efc3965810a59fe11517ddb3bbf763ca1efd967c92c18453829d",
       "boundary": "context-dependent",
       "imports": [
+        "./NativeBuildBanner",
         "./NativeFoundation",
         "./NativeNavigationProvider",
         "./native.css",
@@ -17971,7 +17986,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "16c3fb92138afea646e24e3dd5c0d8ded6a00994c986b4315a267374b8cf4330",
+      "sha256": "c3a5d2ff13dd401cf79032c1b62707b37b9e8611ac3089005fe911f0eb84d0df",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17986,7 +18001,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "5810d0db54ad36734d36d60e8c03388a158d08c9bab42e5fe0aa5c1e73cfdafb",
+      "sha256": "9b3f6c004fc13d4af1f5242c0fff5f6ba4026be3cf2db0b4abefa2008d86dacd",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18001,7 +18016,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "130f424296901da7d74820f2e203055529cca7b80dbb6a138a653f9382f33140",
+      "sha256": "1a9b04c3de88bed39952c8b2a412408621252949d06b5f5880ca8ae1dcdf62df",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18016,7 +18031,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "f6b817bb2f43d05b2cf3e773c33dbe8fa14a0225103dbb7da29e71424ca934fd",
+      "sha256": "4047bf143e2c838c880cc1c323b9342bab528d515db7a076579d72679e53914f",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18099,7 +18114,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "6b272e0c577dfef75fe1aeff523ac0305322c8933c47ee2f5fc6555703b87706",
+      "sha256": "a47adb6f1fae8d22339fc6d54ee6d2130881e42d4ed3f02527751276b7a6c2fa",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -69705,6 +69720,20 @@
       ]
     },
     {
+      "file": "src/components/native/NativeBuildBanner.tsx",
+      "sha256": "e2f68114825bbbc1d5fb10f9ef094d793ada018e6e31397ce97989df0a151f80",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NativeBuildBanner"
+      ]
+    },
+    {
       "file": "src/components/native/NativeEmailConfirmation.tsx",
       "sha256": "1309d90fd85806c061585b9f6d4d5111e761b9add108bc2ab0a70cb3c7e7379c",
       "boundary": "client",
@@ -69727,7 +69756,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "a3026e981433c077a39390e1f0970fabd126ee88db5483dd8a923da30c12c988",
+      "sha256": "45acbe49a2edada1914bd70c842c42379c3b1719fe0187ad9cc8b8b2798181b6",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -69813,9 +69842,10 @@
     },
     {
       "file": "src/components/native/entry.tsx",
-      "sha256": "9c67e227b933d6f642d884f18a41a5634a61e5bb70f8b93eecfb2f1b02793c85",
+      "sha256": "94b892aaed42efc3965810a59fe11517ddb3bbf763ca1efd967c92c18453829d",
       "boundary": "context-dependent",
       "imports": [
+        "./NativeBuildBanner",
         "./NativeFoundation",
         "./NativeNavigationProvider",
         "./native.css",
@@ -72160,6 +72190,7 @@
     "tests/mystery002.test.ts",
     "tests/mystery003-006.test.ts",
     "tests/native-account.integration.test.ts",
+    "tests/native-distribution.test.ts",
     "tests/native-foundation.browser.mjs",
     "tests/native-foundation.integration.test.ts",
     "tests/native-foundation.test.ts",

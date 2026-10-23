@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { HANDLE_MAX_LENGTH } from "@/lib/handle";
 import { ArrowLeft, LogOut, WifiOff } from "lucide-react";
 import MascotSlot from "@/components/versado/MascotSlot";
@@ -26,7 +26,7 @@ import { nativeDeepLink, nativePasswordResetLink, nativeEmailConfirmationLink } 
 
 type Account = NativeAccount;
 type Chapter = NativeChapter;
-export default function NativeFoundation({ client, termsUrl = null, onLanguage }: { client: NativeSessionClient; termsUrl?: string | null; onLanguage?: (language: string) => void }) {
+export default function NativeFoundation({ client, termsUrl = null, onLanguage, buildBanner = null }: { client: NativeSessionClient; termsUrl?: string | null; onLanguage?: (language: string) => void; buildBanner?: ReactNode }) {
   const t = useT(), uiLanguage = useUiLanguage(), navigation = useAppNavigation();
   const profile = navigation.pathname === "/profile";
   const resetPage = navigation.pathname === "/reset-password";
@@ -190,6 +190,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
     </div>}
     </StickyHeader>
     <main className="native-foundation mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-5 bg-vs-bg text-vs-fg">
+    {buildBanner}
     {offline && <p role="status" className="flex gap-2 rounded-xl bg-vs-surface p-3"><WifiOff className="h-5 w-5 shrink-0" />{t("nativeFoundation.offline")}</p>}
     {error && <p role="alert" className="rounded-xl border border-vs-line bg-vs-surface p-3">{error}</p>}
     {busy && <p role="status">{t("nativeFoundation.loading")}</p>}
