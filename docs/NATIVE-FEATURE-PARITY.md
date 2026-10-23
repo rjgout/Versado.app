@@ -232,7 +232,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **138 pagina's**, **233 fysieke routehandlers**, **412 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **138 pagina's**, **235 fysieke routehandlers**, **413 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -394,6 +394,7 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/activity-status` | GET | [src/app/api/activity-status/route.ts](../src/app/api/activity-status/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/alleskenner` | GET | [src/app/api/admin/alleskenner/route.ts](../src/app/api/admin/alleskenner/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/alleskenner/[id]` | PUT | [src/app/api/admin/alleskenner/[id]/route.ts](../src/app/api/admin/alleskenner/[id]/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/admin/audio-checks` | GET, POST | [src/app/api/admin/audio-checks/route.ts](../src/app/api/admin/audio-checks/route.ts) | beheer; getCurrentUser, requireAdmin | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/branding` | GET, PUT | [src/app/api/admin/branding/route.ts](../src/app/api/admin/branding/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/changelog` | GET, POST | [src/app/api/admin/changelog/route.ts](../src/app/api/admin/changelog/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/changelog/[entryId]` | DELETE, PATCH | [src/app/api/admin/changelog/[entryId]/route.ts](../src/app/api/admin/changelog/[entryId]/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
@@ -419,6 +420,7 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/admin/live-games` | GET | [src/app/api/admin/live-games/route.ts](../src/app/api/admin/live-games/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/live-games/[gameId]` | DELETE | [src/app/api/admin/live-games/[gameId]/route.ts](../src/app/api/admin/live-games/[gameId]/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/reseed` | GET, POST | [src/app/api/admin/reseed/route.ts](../src/app/api/admin/reseed/route.ts) | beheer; getCurrentUser, requireAdmin, requireCfmApproval | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/admin/scripture-update` | GET, POST | [src/app/api/admin/scripture-update/route.ts](../src/app/api/admin/scripture-update/route.ts) | beheer; getCurrentUser, requireAdmin | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/study-media/[mediaId]` | GET | [src/app/api/admin/study-media/[mediaId]/route.ts](../src/app/api/admin/study-media/[mediaId]/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/study-publications` | GET, POST | [src/app/api/admin/study-publications/route.ts](../src/app/api/admin/study-publications/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/study-publications/report` | GET | [src/app/api/admin/study-publications/report/route.ts](../src/app/api/admin/study-publications/report/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
@@ -892,6 +894,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/admin/AdminSection.tsx](../src/components/admin/AdminSection.tsx) | contextafhankelijk / server-entry waar page/layout | AdminSection
 [src/components/admin/AdminStudyPublicationsClient.tsx](../src/components/admin/AdminStudyPublicationsClient.tsx) | use client | AdminStudyPublicationsClient
 [src/components/admin/AdminTable.tsx](../src/components/admin/AdminTable.tsx) | contextafhankelijk / server-entry waar page/layout | AdminTable
+[src/components/admin/ScriptureUpdateClient.tsx](../src/components/admin/ScriptureUpdateClient.tsx) | use client | ScriptureUpdateClient
 [src/components/admin/StudyRevisionContent.tsx](../src/components/admin/StudyRevisionContent.tsx) | contextafhankelijk / server-entry waar page/layout | StudyRevisionContent
 [src/components/alleskenner/AlleskennerGame.tsx](../src/components/alleskenner/AlleskennerGame.tsx) | use client | AlleskennerGame, TEAM_DOTS
 [src/components/alleskenner/AlleskennerRoom.tsx](../src/components/alleskenner/AlleskennerRoom.tsx) | use client | AlleskennerRoom

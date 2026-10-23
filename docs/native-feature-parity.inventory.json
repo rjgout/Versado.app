@@ -220,13 +220,14 @@
     },
     {
       "file": "src/app/adminbackend/systeem/page.tsx",
-      "sha256": "922dc5ea2bf6fb4a230d1febd6f63b5d344cf3382ebc6699dd25d8fa398f5262",
+      "sha256": "01aad0056886e4c60fb46e15818b897267a9aa4f33b591ad59aaeb15aefcf8fa",
       "boundary": "context-dependent",
       "imports": [
         "@/components/AdminBrandingClient",
         "@/components/AdminDeployClient",
         "@/components/ReseedClient",
         "@/components/admin/AdminPageHeader",
+        "@/components/admin/ScriptureUpdateClient",
         "@/lib/adminGuard",
         "@/lib/db",
         "@/lib/deployAgent",
@@ -625,6 +626,33 @@
       ],
       "exports": [
         "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/admin/audio-checks/route.ts",
+      "sha256": "51b8710d941d4d2261d210f2d320c91c58316b19bd4e84c62cca54fbd5455ffe",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/apiError",
+        "@/lib/audioCheck",
+        "@/lib/content-inventory/origin",
+        "@/lib/db",
+        "@/lib/session",
+        "next/server",
+        "zod"
+      ],
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "requests": [],
+      "checks": [
+        "getCurrentUser",
+        "requireAdmin"
+      ],
+      "exports": [
+        "GET",
+        "POST"
       ]
     },
     {
@@ -1208,6 +1236,35 @@
         "getCurrentUser",
         "requireAdmin",
         "requireCfmApproval"
+      ],
+      "exports": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/admin/scripture-update/route.ts",
+      "sha256": "f741183bc6ab6fdf214905b2071ec8c57492871983a7e7e6a93b11489115fd08",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/apiError",
+        "@/lib/content-inventory/origin",
+        "@/lib/contentUpdate",
+        "@/lib/db",
+        "@/lib/reseedJob",
+        "@/lib/scriptureUpdateJob",
+        "@/lib/session",
+        "next/server",
+        "zod"
+      ],
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "requests": [],
+      "checks": [
+        "getCurrentUser",
+        "requireAdmin"
       ],
       "exports": [
         "GET",
@@ -11063,7 +11120,7 @@
     },
     {
       "file": "src/components/admin/AdminSection.tsx",
-      "sha256": "48f881b70bde9cecbb85abca4448832b5deea6209e54469b35dc929796cfb571",
+      "sha256": "c7b8c822183bfd4625255c61ced03e62d5d219bc61cb591bb917759fdfec2a02",
       "boundary": "context-dependent",
       "imports": [
         "@/components/versado/styles",
@@ -11123,6 +11180,31 @@
       "checks": [],
       "exports": [
         "AdminTable"
+      ]
+    },
+    {
+      "file": "src/components/admin/ScriptureUpdateClient.tsx",
+      "sha256": "7e884fab1d8fe540d003c24dea3f96712c9dcd1048bd6ceddad8557dd30d3bc0",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/components/admin/AdminSection",
+        "@/components/versado/styles",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks",
+        "@/lib/data/mutation",
+        "@/lib/scriptureUpdateJob",
+        "react"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/admin/audio-checks",
+        "/api/admin/scripture-update"
+      ],
+      "checks": [],
+      "exports": [
+        "ScriptureUpdateClient"
       ]
     },
     {
@@ -15110,6 +15192,25 @@
       ]
     },
     {
+      "file": "src/lib/audioCheck.ts",
+      "sha256": "90557a1fa586c5892aba892f01bddfb72e3d9c7b0add5bf11bdec4fbde634c88",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/generated/prisma/client",
+        "node:crypto"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "changedVerseNumbers",
+        "chapterTextHash",
+        "currentChapterTexts",
+        "flagAudioForTextChanges",
+        "markAudioCurrent"
+      ]
+    },
+    {
       "file": "src/lib/audioMirror.ts",
       "sha256": "df2815ed6c438d04346d74b01981647162d6f46689a0fa0f83a943779a6103ea",
       "boundary": "context-dependent",
@@ -15752,6 +15853,41 @@
         "applyContentSwitch",
         "resolveContentSwitch",
         "unavailableNotice"
+      ]
+    },
+    {
+      "file": "src/lib/contentUpdate.ts",
+      "sha256": "85929e3312ebb68353981698c52060706e4e8dbac5a20f9d04163f15ba083387",
+      "boundary": "context-dependent",
+      "imports": [
+        "../../prisma/importAudio",
+        "../../prisma/importContent",
+        "../../scripts/otb/import-core",
+        "../../scripts/otb/source",
+        "../../scripts/otb/trialConfig",
+        "@/generated/prisma/client",
+        "@/lib/audioMirror",
+        "@/lib/contentImportLock",
+        "@/lib/courses",
+        "@/lib/learning/contentProgress",
+        "@/lib/scriptureSources",
+        "node:crypto"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "checkScriptures",
+        "collectionFingerprint",
+        "computeScripturePlan",
+        "countsOf",
+        "defaultOtbProvider",
+        "markInterruptedRuns",
+        "mirrorScriptureAudio",
+        "planHashOf",
+        "publishScriptures",
+        "recentUpdateRuns",
+        "sourceDigestOf"
       ]
     },
     {
@@ -17686,7 +17822,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "737d07cb364f13dfa4610041e92451511abf888060bd841aefe13f9dc0a4d757",
+      "sha256": "627072a2f82407634d4e5780c8a8db67e83b520df53be46c4e9b97a0d9db09d2",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17701,7 +17837,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "678eb3ea2a5003350932a04abe897daea441e6d4d519d60c857489b9aee92860",
+      "sha256": "9875e773bf01cfe79ad24f5bc9c3666556a99816d447f1ce3dfc3726af5ec71a",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17716,7 +17852,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "dd777938bc0e4c44bd1e27c37fcee3153404fe88a0a8f47f78deb0f78ecd16b8",
+      "sha256": "84a77c7c1dfb68ca3548063a9be52b5c21fa8e7f5ee7d97c3c58eadd7f0d0cf0",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17731,7 +17867,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "b956402b618b15e5c7f37cfcb773b5c70ae184da4b020213ff38eed5c300e5e5",
+      "sha256": "40a24eeafd8103cd9c5a85b4996ef87c8265faeb3835620799165a1921fd4fc1",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17814,7 +17950,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "d2e201a2dd76e52d32e85a6c3532c0147f589af9248c6f363bb6e8f98cbcdabb",
+      "sha256": "213274c0d363347a50d455a76ab2d27691f8e3999df29af20017d034141b6414",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -21007,7 +21143,7 @@
     },
     {
       "file": "src/lib/reseedJob.ts",
-      "sha256": "3b6c601e60a8cc41bab07881014ea9f7ba6010f7a543a028544a713fe92c8686",
+      "sha256": "cea06938644695947d7591751cf93b8364121f7b1fd21a1ea2a3cc5baeed4a48",
       "boundary": "context-dependent",
       "imports": [
         "../../scripts/otb/import-core",
@@ -21208,6 +21344,52 @@
       ]
     },
     {
+      "file": "src/lib/scriptureSources.ts",
+      "sha256": "efd46552a54cb96d270b50ec173d4a0ae4d96f8cac2651accd4ac5feaadc45b9",
+      "boundary": "context-dependent",
+      "imports": [
+        "../../prisma/bomAudio.de.json",
+        "../../prisma/bomAudio.en.json",
+        "../../prisma/bomAudio.es.json",
+        "../../prisma/bomAudio.fr.json",
+        "../../prisma/bomAudio.json",
+        "../../prisma/bomContent.de.json",
+        "../../prisma/bomContent.en.json",
+        "../../prisma/bomContent.es.json",
+        "../../prisma/bomContent.fr.json",
+        "../../prisma/content",
+        "../../prisma/dcContent.en.json",
+        "../../prisma/dcContent.json",
+        "../../prisma/importAudio",
+        "../../prisma/pgpContent.en.json",
+        "../../prisma/pgpContent.json",
+        "./contentCollections"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "SCRIPTURE_SOURCES"
+      ]
+    },
+    {
+      "file": "src/lib/scriptureUpdateJob.ts",
+      "sha256": "e970f044135f0be26a53e4e5723d407c7c09701cd102a8dbc92ec98dd3a74d02",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/generated/prisma/client",
+        "@/lib/contentImportLock",
+        "@/lib/contentUpdate"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "getScriptureJob",
+        "startScriptureJob"
+      ]
+    },
+    {
       "file": "src/lib/scrollRestore.ts",
       "sha256": "22f96afb7e3106a7359c98db707f3616767ec03c7a5084e6064c9c29e35c40a2",
       "boundary": "context-dependent",
@@ -21231,24 +21413,14 @@
     },
     {
       "file": "src/lib/seed.ts",
-      "sha256": "e1d68343a1ff83e4cb9577198021846b92f08e68776dae2a17e43e2d34b4aac7",
+      "sha256": "05b87b65c32a430b8103c450b89b3c1146dbe8f820d46cdbd0aa6c6a05e60d9e",
       "boundary": "context-dependent",
       "imports": [
         "../../prisma/alleskennerContent",
         "../../prisma/alleskennerGenerated",
         "../../prisma/alleskennerTranslate",
-        "../../prisma/bomAudio.de.json",
-        "../../prisma/bomAudio.en.json",
-        "../../prisma/bomAudio.es.json",
-        "../../prisma/bomAudio.fr.json",
         "../../prisma/bomAudio.json",
-        "../../prisma/bomContent.de.json",
-        "../../prisma/bomContent.en.json",
-        "../../prisma/bomContent.es.json",
-        "../../prisma/bomContent.fr.json",
         "../../prisma/content",
-        "../../prisma/dcContent.en.json",
-        "../../prisma/dcContent.json",
         "../../prisma/dcPersons",
         "../../prisma/genees",
         "../../prisma/importAlleskenner",
@@ -21262,8 +21434,6 @@
         "../../prisma/introPersons",
         "../../prisma/kastVanMormonContent",
         "../../prisma/kidsManifest.json",
-        "../../prisma/pgpContent.en.json",
-        "../../prisma/pgpContent.json",
         "../../prisma/podcastContent",
         "../../scripts/otb/import-core",
         "../../scripts/otb/source",
@@ -21275,6 +21445,7 @@
         "./importPhase",
         "./podcastFeed",
         "./podcasts",
+        "./scriptureSources",
         "@/generated/prisma/client"
       ],
       "methods": [],
@@ -25356,13 +25527,14 @@
     },
     {
       "file": "src/app/adminbackend/systeem/page.tsx",
-      "sha256": "922dc5ea2bf6fb4a230d1febd6f63b5d344cf3382ebc6699dd25d8fa398f5262",
+      "sha256": "01aad0056886e4c60fb46e15818b897267a9aa4f33b591ad59aaeb15aefcf8fa",
       "boundary": "context-dependent",
       "imports": [
         "@/components/AdminBrandingClient",
         "@/components/AdminDeployClient",
         "@/components/ReseedClient",
         "@/components/admin/AdminPageHeader",
+        "@/components/admin/ScriptureUpdateClient",
         "@/lib/adminGuard",
         "@/lib/db",
         "@/lib/deployAgent",
@@ -25388,12 +25560,50 @@
         "src/components/ReseedClient.tsx",
         "src/components/admin/AdminPageHeader.tsx",
         "src/components/admin/AdminSection.tsx",
+        "src/components/admin/ScriptureUpdateClient.tsx",
         "src/components/versado/PageIntro.tsx",
         "src/components/versado/styles.ts",
+        "src/lib/achievements.ts",
+        "src/lib/activityFeed.ts",
         "src/lib/adminGuard.ts",
+        "src/lib/alleskenner/content.ts",
+        "src/lib/alleskenner/validate.ts",
+        "src/lib/audioMirror.ts",
         "src/lib/auth.ts",
+        "src/lib/baseUrl.ts",
+        "src/lib/brand.ts",
+        "src/lib/chapterTerm.ts",
+        "src/lib/competitionXp.ts",
+        "src/lib/contentAccess.ts",
+        "src/lib/contentCollectionIds.ts",
+        "src/lib/contentCollections.ts",
+        "src/lib/contentImportLock.ts",
+        "src/lib/contentPickerContract.ts",
+        "src/lib/contentRouting.ts",
+        "src/lib/contentUpdate.ts",
+        "src/lib/courseIntegrity.ts",
+        "src/lib/courses.ts",
+        "src/lib/crypto.ts",
+        "src/lib/data/client.ts",
+        "src/lib/data/fetchJson.ts",
+        "src/lib/data/hooks.ts",
+        "src/lib/data/mutation.ts",
+        "src/lib/data/pause.ts",
+        "src/lib/data/scopes.ts",
+        "src/lib/data/store.ts",
+        "src/lib/data/topics.ts",
+        "src/lib/dates.ts",
         "src/lib/db.ts",
         "src/lib/deployAgent.ts",
+        "src/lib/email.ts",
+        "src/lib/exerciseGen.ts",
+        "src/lib/gameAvailability.ts",
+        "src/lib/gameAvailabilityPolicy.ts",
+        "src/lib/gameCatalog.ts",
+        "src/lib/gameContentResolver.ts",
+        "src/lib/gameSettings.ts",
+        "src/lib/hymnAvailability.ts",
+        "src/lib/hymns/access.ts",
         "src/lib/i18n/core.ts",
         "src/lib/i18n/index.ts",
         "src/lib/i18n/messages/de.ts",
@@ -25407,14 +25617,70 @@
         "src/lib/i18n/messages/kompas/nl.ts",
         "src/lib/i18n/messages/nl.ts",
         "src/lib/i18n/rich.tsx",
+        "src/lib/jigsawQuestions.ts",
         "src/lib/languages.ts",
-        "src/lib/session.ts"
+        "src/lib/leagueTiers.ts",
+        "src/lib/leagues.ts",
+        "src/lib/learning/contentIdentity.ts",
+        "src/lib/learning/contentProgress.ts",
+        "src/lib/learning/exercisePlan.ts",
+        "src/lib/learning/progressState.ts",
+        "src/lib/learning/rewards.ts",
+        "src/lib/learning/streakReturnRules.ts",
+        "src/lib/learning/streakRules.ts",
+        "src/lib/mascots.ts",
+        "src/lib/mysteries/game.ts",
+        "src/lib/mysteries/mystery001a.ts",
+        "src/lib/mysteries/mystery001b.ts",
+        "src/lib/mysteries/mystery001c.ts",
+        "src/lib/mysteries/mystery002a.ts",
+        "src/lib/mysteries/mystery002b.ts",
+        "src/lib/mysteries/mystery002c.ts",
+        "src/lib/mysteries/mystery003a.ts",
+        "src/lib/mysteries/mystery003b.ts",
+        "src/lib/mysteries/mystery003c.ts",
+        "src/lib/mysteries/mystery004a.ts",
+        "src/lib/mysteries/mystery004b.ts",
+        "src/lib/mysteries/mystery004c.ts",
+        "src/lib/mysteries/mystery005a.ts",
+        "src/lib/mysteries/mystery005b.ts",
+        "src/lib/mysteries/mystery005c.ts",
+        "src/lib/mysteries/mystery006a.ts",
+        "src/lib/mysteries/mystery006b.ts",
+        "src/lib/mysteries/mystery006c.ts",
+        "src/lib/mysteries/types.ts",
+        "src/lib/notificationGroups.ts",
+        "src/lib/notify.ts",
+        "src/lib/notifyCategories.ts",
+        "src/lib/podcasts.ts",
+        "src/lib/push.ts",
+        "src/lib/pushEndpoint.ts",
+        "src/lib/puzzle/puzzleNotify.ts",
+        "src/lib/readingCourses.ts",
+        "src/lib/realtime.ts",
+        "src/lib/scriptureSources.ts",
+        "src/lib/scriptureUpdateJob.ts",
+        "src/lib/session.ts",
+        "src/lib/socketClient.ts",
+        "src/lib/streak.ts",
+        "src/lib/streakContinuation.ts",
+        "src/lib/studyContent/revisions.ts",
+        "src/lib/studyContent/schema.ts",
+        "src/lib/studyContext.ts",
+        "src/lib/studyContextContract.ts",
+        "src/lib/timeZone.ts",
+        "src/lib/unsubscribe.ts",
+        "src/lib/wordSearch/content.ts",
+        "src/lib/wordSearch/generator.ts",
+        "src/lib/xp.ts",
+        "src/lib/xpRules.ts"
       ],
       "directModules": [
         "src/components/AdminBrandingClient.tsx",
         "src/components/AdminDeployClient.tsx",
         "src/components/ReseedClient.tsx",
         "src/components/admin/AdminPageHeader.tsx",
+        "src/components/admin/ScriptureUpdateClient.tsx",
         "src/lib/adminGuard.ts",
         "src/lib/db.ts",
         "src/lib/deployAgent.ts",
@@ -25425,13 +25691,21 @@
         "src/components/AdminDeployClient.tsx",
         "src/components/ConfirmProvider.tsx",
         "src/components/I18nProvider.tsx",
-        "src/components/ReseedClient.tsx"
+        "src/components/ReseedClient.tsx",
+        "src/components/admin/ScriptureUpdateClient.tsx",
+        "src/lib/data/client.ts",
+        "src/lib/data/hooks.ts",
+        "src/lib/data/mutation.ts",
+        "src/lib/data/topics.ts",
+        "src/lib/socketClient.ts"
       ],
       "requestEvidence": [
         "${url}${path}",
+        "/api/admin/audio-checks",
         "/api/admin/branding",
         "/api/admin/deploy/status",
-        "/api/admin/reseed"
+        "/api/admin/reseed",
+        "/api/admin/scripture-update"
       ],
       "authEvidence": [
         "requireAdminPage"
@@ -26813,6 +27087,73 @@
       "requestEvidence": [],
       "authEvidence": [
         "getCurrentUser"
+      ]
+    },
+    {
+      "file": "src/app/api/admin/audio-checks/route.ts",
+      "sha256": "51b8710d941d4d2261d210f2d320c91c58316b19bd4e84c62cca54fbd5455ffe",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/apiError",
+        "@/lib/audioCheck",
+        "@/lib/content-inventory/origin",
+        "@/lib/db",
+        "@/lib/session",
+        "next/server",
+        "zod"
+      ],
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "requests": [],
+      "checks": [
+        "getCurrentUser",
+        "requireAdmin"
+      ],
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "route": "/api/admin/audio-checks",
+      "kind": "api",
+      "domain": "beheer",
+      "dependencies": [
+        "src/app/api/admin/audio-checks/route.ts",
+        "src/lib/apiError.ts",
+        "src/lib/audioCheck.ts",
+        "src/lib/auth.ts",
+        "src/lib/content-inventory/origin.ts",
+        "src/lib/db.ts",
+        "src/lib/i18n/core.ts",
+        "src/lib/i18n/index.ts",
+        "src/lib/i18n/messages/de.ts",
+        "src/lib/i18n/messages/en.ts",
+        "src/lib/i18n/messages/es.ts",
+        "src/lib/i18n/messages/fr.ts",
+        "src/lib/i18n/messages/kompas/de.ts",
+        "src/lib/i18n/messages/kompas/en.ts",
+        "src/lib/i18n/messages/kompas/es.ts",
+        "src/lib/i18n/messages/kompas/fr.ts",
+        "src/lib/i18n/messages/kompas/nl.ts",
+        "src/lib/i18n/messages/nl.ts",
+        "src/lib/i18n/serverTexts.ts",
+        "src/lib/languages.ts",
+        "src/lib/requestLanguage.ts",
+        "src/lib/session.ts"
+      ],
+      "directModules": [
+        "src/lib/apiError.ts",
+        "src/lib/audioCheck.ts",
+        "src/lib/content-inventory/origin.ts",
+        "src/lib/db.ts",
+        "src/lib/session.ts"
+      ],
+      "clientBoundaries": [],
+      "requestEvidence": [],
+      "authEvidence": [
+        "getCurrentUser",
+        "requireAdmin"
       ]
     },
     {
@@ -28446,6 +28787,7 @@
         "src/lib/references/standardWorks.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/reseedJob.ts",
+        "src/lib/scriptureSources.ts",
         "src/lib/seed.ts",
         "src/lib/session.ts",
         "src/lib/streak.ts",
@@ -28491,6 +28833,195 @@
         "getCurrentUser",
         "requireAdmin",
         "requireCfmApproval"
+      ]
+    },
+    {
+      "file": "src/app/api/admin/scripture-update/route.ts",
+      "sha256": "f741183bc6ab6fdf214905b2071ec8c57492871983a7e7e6a93b11489115fd08",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/apiError",
+        "@/lib/content-inventory/origin",
+        "@/lib/contentUpdate",
+        "@/lib/db",
+        "@/lib/reseedJob",
+        "@/lib/scriptureUpdateJob",
+        "@/lib/session",
+        "next/server",
+        "zod"
+      ],
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "requests": [],
+      "checks": [
+        "getCurrentUser",
+        "requireAdmin"
+      ],
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "route": "/api/admin/scripture-update",
+      "kind": "api",
+      "domain": "beheer",
+      "dependencies": [
+        "src/app/api/admin/scripture-update/route.ts",
+        "src/lib/achievements.ts",
+        "src/lib/activityFeed.ts",
+        "src/lib/alleskenner/content.ts",
+        "src/lib/alleskenner/validate.ts",
+        "src/lib/apiError.ts",
+        "src/lib/audioMirror.ts",
+        "src/lib/auth.ts",
+        "src/lib/baseUrl.ts",
+        "src/lib/brand.ts",
+        "src/lib/chapterTerm.ts",
+        "src/lib/competitionXp.ts",
+        "src/lib/content-inventory/origin.ts",
+        "src/lib/contentAccess.ts",
+        "src/lib/contentCollectionIds.ts",
+        "src/lib/contentCollections.ts",
+        "src/lib/contentImportLock.ts",
+        "src/lib/contentPickerContract.ts",
+        "src/lib/contentRouting.ts",
+        "src/lib/contentUpdate.ts",
+        "src/lib/courseIntegrity.ts",
+        "src/lib/courseText.ts",
+        "src/lib/courses.ts",
+        "src/lib/crypto.ts",
+        "src/lib/data/scopes.ts",
+        "src/lib/dates.ts",
+        "src/lib/db.ts",
+        "src/lib/email.ts",
+        "src/lib/exerciseGen.ts",
+        "src/lib/fsyContent.ts",
+        "src/lib/gameAvailability.ts",
+        "src/lib/gameAvailabilityPolicy.ts",
+        "src/lib/gameCatalog.ts",
+        "src/lib/gameContentResolver.ts",
+        "src/lib/gameSettings.ts",
+        "src/lib/hymnAvailability.ts",
+        "src/lib/hymns/access.ts",
+        "src/lib/hymns/library/server.ts",
+        "src/lib/hymns/notation/decode.ts",
+        "src/lib/hymns/notation/lyrics.ts",
+        "src/lib/hymns/notation/musicxml.ts",
+        "src/lib/hymns/notation/types.ts",
+        "src/lib/hymns/score/melody.ts",
+        "src/lib/hymns/types.ts",
+        "src/lib/i18n/core.ts",
+        "src/lib/i18n/index.ts",
+        "src/lib/i18n/messages/de.ts",
+        "src/lib/i18n/messages/en.ts",
+        "src/lib/i18n/messages/es.ts",
+        "src/lib/i18n/messages/fr.ts",
+        "src/lib/i18n/messages/kompas/de.ts",
+        "src/lib/i18n/messages/kompas/en.ts",
+        "src/lib/i18n/messages/kompas/es.ts",
+        "src/lib/i18n/messages/kompas/fr.ts",
+        "src/lib/i18n/messages/kompas/nl.ts",
+        "src/lib/i18n/messages/nl.ts",
+        "src/lib/i18n/serverTexts.ts",
+        "src/lib/importPhase.ts",
+        "src/lib/jigsawQuestions.ts",
+        "src/lib/languages.ts",
+        "src/lib/leagueTiers.ts",
+        "src/lib/leagues.ts",
+        "src/lib/learning/contentIdentity.ts",
+        "src/lib/learning/contentProgress.ts",
+        "src/lib/learning/exercisePlan.ts",
+        "src/lib/learning/progressState.ts",
+        "src/lib/learning/rewards.ts",
+        "src/lib/learning/streakReturnRules.ts",
+        "src/lib/learning/streakRules.ts",
+        "src/lib/mascots.ts",
+        "src/lib/mysteries/game.ts",
+        "src/lib/mysteries/mystery001a.ts",
+        "src/lib/mysteries/mystery001b.ts",
+        "src/lib/mysteries/mystery001c.ts",
+        "src/lib/mysteries/mystery002a.ts",
+        "src/lib/mysteries/mystery002b.ts",
+        "src/lib/mysteries/mystery002c.ts",
+        "src/lib/mysteries/mystery003a.ts",
+        "src/lib/mysteries/mystery003b.ts",
+        "src/lib/mysteries/mystery003c.ts",
+        "src/lib/mysteries/mystery004a.ts",
+        "src/lib/mysteries/mystery004b.ts",
+        "src/lib/mysteries/mystery004c.ts",
+        "src/lib/mysteries/mystery005a.ts",
+        "src/lib/mysteries/mystery005b.ts",
+        "src/lib/mysteries/mystery005c.ts",
+        "src/lib/mysteries/mystery006a.ts",
+        "src/lib/mysteries/mystery006b.ts",
+        "src/lib/mysteries/mystery006c.ts",
+        "src/lib/mysteries/types.ts",
+        "src/lib/notificationGroups.ts",
+        "src/lib/notify.ts",
+        "src/lib/notifyCategories.ts",
+        "src/lib/podcastChapters.ts",
+        "src/lib/podcastFeed.ts",
+        "src/lib/podcasts.ts",
+        "src/lib/push.ts",
+        "src/lib/pushEndpoint.ts",
+        "src/lib/puzzle/puzzleNotify.ts",
+        "src/lib/readingCourses.ts",
+        "src/lib/realtime.ts",
+        "src/lib/references/contract.ts",
+        "src/lib/references/evidence.ts",
+        "src/lib/references/hymns.ts",
+        "src/lib/references/otb.ts",
+        "src/lib/references/resolver.ts",
+        "src/lib/references/standardWorks.ts",
+        "src/lib/requestLanguage.ts",
+        "src/lib/reseedJob.ts",
+        "src/lib/scriptureSources.ts",
+        "src/lib/scriptureUpdateJob.ts",
+        "src/lib/seed.ts",
+        "src/lib/session.ts",
+        "src/lib/streak.ts",
+        "src/lib/streakContinuation.ts",
+        "src/lib/studyContent/cfm2026Adapter.ts",
+        "src/lib/studyContent/cfm2026Import.ts",
+        "src/lib/studyContent/cfm2026Manifest.ts",
+        "src/lib/studyContent/cfmCourses.ts",
+        "src/lib/studyContent/cfmPersonalFixture.ts",
+        "src/lib/studyContent/download.ts",
+        "src/lib/studyContent/fixtureAdapter.ts",
+        "src/lib/studyContent/imports.ts",
+        "src/lib/studyContent/manifest.ts",
+        "src/lib/studyContent/policy.ts",
+        "src/lib/studyContent/readingPosition.ts",
+        "src/lib/studyContent/readingPositionContract.ts",
+        "src/lib/studyContent/readingVisitProof.ts",
+        "src/lib/studyContent/revisions.ts",
+        "src/lib/studyContent/schema.ts",
+        "src/lib/studyContent/sourceApproval.ts",
+        "src/lib/studyContent/storage.ts",
+        "src/lib/studyContext.ts",
+        "src/lib/studyContextContract.ts",
+        "src/lib/timeZone.ts",
+        "src/lib/unsubscribe.ts",
+        "src/lib/wordSearch/content.ts",
+        "src/lib/wordSearch/generator.ts",
+        "src/lib/xp.ts",
+        "src/lib/xpRules.ts"
+      ],
+      "directModules": [
+        "src/lib/apiError.ts",
+        "src/lib/content-inventory/origin.ts",
+        "src/lib/contentUpdate.ts",
+        "src/lib/db.ts",
+        "src/lib/reseedJob.ts",
+        "src/lib/scriptureUpdateJob.ts",
+        "src/lib/session.ts"
+      ],
+      "clientBoundaries": [],
+      "requestEvidence": [],
+      "authEvidence": [
+        "getCurrentUser",
+        "requireAdmin"
       ]
     },
     {
@@ -61951,13 +62482,14 @@
     },
     {
       "file": "src/app/adminbackend/systeem/page.tsx",
-      "sha256": "922dc5ea2bf6fb4a230d1febd6f63b5d344cf3382ebc6699dd25d8fa398f5262",
+      "sha256": "01aad0056886e4c60fb46e15818b897267a9aa4f33b591ad59aaeb15aefcf8fa",
       "boundary": "context-dependent",
       "imports": [
         "@/components/AdminBrandingClient",
         "@/components/AdminDeployClient",
         "@/components/ReseedClient",
         "@/components/admin/AdminPageHeader",
+        "@/components/admin/ScriptureUpdateClient",
         "@/lib/adminGuard",
         "@/lib/db",
         "@/lib/deployAgent",
@@ -67336,7 +67868,7 @@
     },
     {
       "file": "src/components/admin/AdminSection.tsx",
-      "sha256": "48f881b70bde9cecbb85abca4448832b5deea6209e54469b35dc929796cfb571",
+      "sha256": "c7b8c822183bfd4625255c61ced03e62d5d219bc61cb591bb917759fdfec2a02",
       "boundary": "context-dependent",
       "imports": [
         "@/components/versado/styles",
@@ -67396,6 +67928,31 @@
       "checks": [],
       "exports": [
         "AdminTable"
+      ]
+    },
+    {
+      "file": "src/components/admin/ScriptureUpdateClient.tsx",
+      "sha256": "7e884fab1d8fe540d003c24dea3f96712c9dcd1048bd6ceddad8557dd30d3bc0",
+      "boundary": "client",
+      "imports": [
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/components/admin/AdminSection",
+        "@/components/versado/styles",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks",
+        "@/lib/data/mutation",
+        "@/lib/scriptureUpdateJob",
+        "react"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/admin/audio-checks",
+        "/api/admin/scripture-update"
+      ],
+      "checks": [],
+      "exports": [
+        "ScriptureUpdateClient"
       ]
     },
     {
@@ -70608,6 +71165,7 @@
     "tests/content-source-icons.test.ts",
     "tests/content-switch.integration.test.ts",
     "tests/content-switch.test.ts",
+    "tests/content-update.integration.test.ts",
     "tests/course-identity.integration.test.ts",
     "tests/course-scripts.test.ts",
     "tests/course-sync.integration.test.ts",
