@@ -5,7 +5,8 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { apiError } from "@/lib/apiError";
 import { getScriptureJob, startScriptureJob } from "@/lib/scriptureUpdateJob";
-import { recentUpdateRuns } from "@/lib/contentUpdate";
+import { markInterruptedRuns, recentUpdateRuns } from "@/lib/contentUpdate";
+import { getReseedJob } from "@/lib/reseedJob";
 
 const headers = { "Cache-Control": "no-store, private" };
 
@@ -26,6 +27,7 @@ const bodySchema = z.discriminatedUnion("action", [
 export async function GET() {
   const auth = await requireAdmin();
   if (auth.error) return auth.error;
+  if (getScriptureJob().status !== "running" && getReseedJob().status !== "running") await markInterruptedRuns(prisma);
   const [runs, needsReview] = await Promise.all([
     recentUpdateRuns(prisma, ["SCRIPTURE_CHECK", "SCRIPTURE_PREPARE", "SCRIPTURE_PUBLISH"]),
     prisma.chapterAudioCheck.count({ where: { status: "NEEDS_REVIEW" } }),

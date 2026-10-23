@@ -255,3 +255,10 @@ test("een normale contentupdate raakt OTB en audiospiegeling niet: beide staan a
   const job = await readFile("src/lib/reseedJob.ts", "utf8");
   assert.match(job, /\{ scriptures: false \}/, "de beheerkaart Nieuwe content ophalen draait zonder Schriften");
 });
+
+test("een door een herstart onderbroken run blijft niet eeuwig bezig", { skip }, async () => {
+  const stale = await L.db.contentUpdateRun.create({ data: { kind: "SCRIPTURE_PUBLISH", createdById: admin, startedAt: new Date(Date.now() - 60_000) } });
+  assert.ok((await L.update.markInterruptedRuns(L.db)) >= 1);
+  const row = await L.db.contentUpdateRun.findUniqueOrThrow({ where: { id: stale.id } });
+  assert.deepEqual([row.status, row.error], ["FAILED", "INTERRUPTED"]);
+});

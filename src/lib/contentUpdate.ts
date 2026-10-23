@@ -332,3 +332,15 @@ export async function mirrorScriptureAudio(client: PrismaClient, opts: { adminId
 export async function recentUpdateRuns(client: PrismaClient, kinds: ("CONTENT_UPDATE" | "SCRIPTURE_CHECK" | "SCRIPTURE_PREPARE" | "SCRIPTURE_PUBLISH")[], take = 5) {
   return client.contentUpdateRun.findMany({ where: { kind: { in: kinds } }, orderBy: { startedAt: "desc" }, take });
 }
+
+/**
+ * Een run die RUNNING blijft terwijl er in dit proces geen taak loopt, is onderbroken (herstart of crash): de lock vervalt vanzelf met de
+ * verbinding, maar de logrij zou eeuwig "bezig" blijven. Alleen aanroepen als de aanroeper zeker weet dat er geen eigen taak loopt.
+ */
+export async function markInterruptedRuns(client: PrismaClient): Promise<number> {
+  const result = await client.contentUpdateRun.updateMany({
+    where: { status: "RUNNING", startedAt: { lt: new Date(Date.now() - 5_000) } },
+    data: { status: "FAILED", finishedAt: new Date(), error: "INTERRUPTED" },
+  });
+  return result.count;
+}
