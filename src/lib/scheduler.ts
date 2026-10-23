@@ -1,3 +1,4 @@
+import { scanAudioPackages } from "./audio/library";
 import { prisma } from "@/lib/db";
 import { addDays, weekStartKey, amsterdamNow, type AmsterdamTime } from "@/lib/dates";
 import { tierForWeek, getLeagueSettings, TIER_ORDER } from "@/lib/leagues";
@@ -472,6 +473,7 @@ export function startNotificationSchedulers(): void {
     runPuzzleMaintenance().catch((e) => console.error("Puzzelonderhoud mislukt:", e instanceof Error ? e.message : String(e)));
     runActivityReactionNotificationTick().catch((e) => console.error("Reactiemeldingen bundelen mislukt:", e));
     runFsyWeeklyCheckIfDue(prisma).catch((e) => console.error("FSY-weekcontrole mislukt:", e));
+    scanAudioPackages().catch(() => console.error("Audiopakketten controleren mislukt."));
     runPodcastFeedSyncTick().catch((e) => console.error("Podcastfeed-synchronisatie mislukt:", e instanceof Error ? e.message : String(e)));
   }, TICK_MS);
 }
