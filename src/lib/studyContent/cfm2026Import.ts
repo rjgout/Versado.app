@@ -242,7 +242,9 @@ export function importCfm2026Drafts(actor: StudyAdmin, options: CfmImportOptions
  */
 export async function importAllCfmDrafts(actor: StudyAdmin, options: CfmImportOptions & { onVolume?: (volume: CfmVolumeSource) => void } = {}) {
   const results: Array<{ year: number; ok: true; report: Awaited<ReturnType<typeof importCfmDrafts>> } | { year: number; ok: false; error: unknown }> = [];
-  for (const volume of CFM_SOURCES) {
+  // Noodstop/testbeperking: CFM_IMPORT_YEARS=2026 beperkt de reeks tot die jaargangen (standaard alle geregistreerde).
+  const only = process.env.CFM_IMPORT_YEARS?.split(",").map((y) => Number(y.trim())).filter(Number.isInteger);
+  for (const volume of CFM_SOURCES.filter((v) => !only?.length || only.includes(v.volume.year))) {
     options.onVolume?.(volume);
     try {
       results.push({ year: volume.volume.year, ok: true, report: await importCfmDrafts(actor, volume, options) });
