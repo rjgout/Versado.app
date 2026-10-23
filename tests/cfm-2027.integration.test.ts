@@ -36,7 +36,7 @@ test("beide jaargangen worden geïmporteerd en automatisch gepubliceerd; geen du
   }
   const collections = await prisma.contentCollection.findMany({ where: { id: { in: [c26, c27] } } });
   assert.equal(collections.length, 2);
-  assert.ok(collections.every((c) => c.publicationState === "PUBLISHED" && c.visibleToUsers === false), "inhoudelijk vrijgegeven, nog niet zichtbaar");
+  assert.ok(collections.every((c) => c.publicationState === "PUBLISHED" && c.visibleToUsers === true), "na de eerste volledige vrijgave vanzelf zichtbaar (geen handmatige activatie)");
   // Alleen het anker (2026) draagt de programmacursussen.
   assert.deepEqual((await prisma.course.findMany({ where: { contentCollectionId: { in: [c26, c27] } }, select: { contentCollectionId: true } })).map((c) => c.contentCollectionId), [c26, c26]);
 });
@@ -60,7 +60,10 @@ test("een tweede import en publicatie veranderen niets (idempotent, geen herimpo
 test("verborgen 2027 verschijnt niet voor gewone gebruikers; zichtbaar gemaakt neemt het programma de weken over en gaat de jaarwisseling vanzelf", async () => {
   const user = await prisma.user.create({ data: { email: `${randomUUID()}@cfm-2027.test.invalid`, passwordHash: "test-only", handle: `U${randomUUID().slice(0, 8)}`, discriminator: "00", timeZone: "UTC", contentLanguage: "nl", activeContentCollectionId: c26 } });
   const member = { id: user.id, isAdmin: false };
-  await prisma.contentCollection.update({ where: { id: c26 }, data: { visibleToUsers: true } });
+  // Beheer verbergt 2027 bewust: de volgende import toont haar niet opnieuw.
+  await prisma.contentCollection.update({ where: { id: c27 }, data: { visibleToUsers: false } });
+  await autoPublishCfmVolume(await admin(), CFM_SOURCES.find((x) => x.volume.year === 2027)!);
+  assert.equal((await prisma.contentCollection.findUniqueOrThrow({ where: { id: c27 } })).visibleToUsers, false);
   const only26 = await getStudyCatalogue(member, new Date("2026-12-28T12:00:00Z"));
   assert.equal(only26.lessons.length > 0 && only26.lessons.every((l) => l.collectionId === c26), true, "zolang 2027 verborgen is, alleen 2026");
   await prisma.contentCollection.update({ where: { id: c27 }, data: { visibleToUsers: true } });
