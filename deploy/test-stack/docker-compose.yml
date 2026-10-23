@@ -1,0 +1,115 @@
+# Gescheiden TESTSTACK voor native testbuilds (interne apparaatbuilds en TestFlight/Play-test).
+# Zie docs/NAS-TESTSTACK-PLAN.md. Dit is GEEN productiestack en deelt niets met productie.
+#
+# Harde afspraken (bewaakt door tests/nas-test-stack.test.mjs):
+#   - eigen containernamen, eigen netwerk en eigen benoemde volumes (geen /volume1-paden van productie);
+#   - geen docker.sock en geen deploy-agent;
+#   - database en Redis zijn niet gepubliceerd en staan op een intern netwerk;
+#   - elk geheim en elke omgevingswaarde is een verplichte Portainer-stackvariabele (":?"), zonder standaardwaarde en
+#     zonder placeholderwachtwoord dat per ongeluk kan blijven staan;
+#   - geen domein, URL of poort is ingevuld: de eigenaar kiest die na inrichting van DNS en TLS;
+#   - uitsluitend synthetische testgegevens; maak nooit een kopie van productiegegevens in deze stack.
+#
+# Gebruik (door de eigenaar, in Portainer): Stacks -> Add stack -> Web editor -> plak dit bestand ->
+# vul de stackvariabelen in (zie deploy/test-stack/.env.native-test.example) -> Deploy. Dit bestand wordt door
+# niemand anders uitgerold.
+
+name: versado-test
+
+services:
+  versado-test-proxy:
+    # Dezelfde proxy-image als productie (zet o.a. Permissions-Policy microphone=(self)); eigen container en eigen poort.
+    image: ghcr.io/rjgout/jehova-proxy:${APP_IMAGE_TAG:?Zet APP_IMAGE_TAG op een vaste tag of commit, niet op latest}
+    container_name: versado-test-proxy
+    restart: unless-stopped
+    depends_on:
+      - versado-test-app
+    ports:
+      - "${TEST_PROXY_PORT:?Kies zelf een vrije poort op de NAS die niet door productie wordt gebruikt}:80"
+    networks:
+      - versado-test-edge
+      - versado-test-internal
+
+  versado-test-app:
+    image: ghcr.io/rjgout/jehova-app:${APP_IMAGE_TAG:?Zet APP_IMAGE_TAG op een vaste tag of commit, niet op latest}
+    container_name: versado-test-app
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: "postgresql://versado_test:${TEST_POSTGRES_PASSWORD:?Zet een eigen testwachtwoord}@versado-test-db:5432/versado_test?schema=public"
+      REDIS_URL: "redis://:${TEST_REDIS_PASSWORD:?Zet een eigen testwachtwoord}@versado-test-redis:6379"
+      SESSION_SECRET: ${TEST_SESSION_SECRET:?Zet een eigen willekeurig geheim (minstens 32 tekens), anders dan productie}
+      NATIVE_API_ENABLED: "1"
+      NATIVE_SESSION_SECRET: ${TEST_NATIVE_SESSION_SECRET:?Zet een eigen willekeurig geheim (minstens 32 tekens), anders dan productie en SESSION_SECRET}
+      # De canonieke HTTPS-oorsprong van de teststack; de eigenaar kiest die na DNS en TLS.
+      APP_URL: ${TEST_APP_URL:?Zet de HTTPS-oorsprong van de teststack, na inrichting van DNS en TLS}
+      PORT: "3000"
+      ALLOW_INSECURE_COOKIES: "false"
+      # Sign in with Apple blijft uit tot de eigenaar de Apple-gegevens heeft ingesteld (zie docs/APPLE-SIGN-IN-SETUP.md).
+      APPLE_SIGN_IN_ENABLED: ${TEST_APPLE_SIGN_IN_ENABLED:-0}
+      APPLE_TEAM_ID: ${TEST_APPLE_TEAM_ID:-}
+      APPLE_IOS_CLIENT_ID: ${TEST_APPLE_IOS_CLIENT_ID:-}
+      # Geen SMTP, geen feedbackontvanger: er worden geen echte e-mails verstuurd.
+    volumes:
+      - versado_test_audio:/data/audio
+      - versado_test_study_media:/data/study-media
+    depends_on:
+      versado-test-db:
+        condition: service_healthy
+      versado-test-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    networks:
+      versado-test-internal:
+        # De productie-proxy-image verwijst vast naar de hostnaam "jehova-app". Deze alias bestaat alleen op het
+        # eigen interne testnetwerk en raakt dus nooit een productiecontainer.
+        aliases:
+          - jehova-app
+
+  versado-test-db:
+    image: postgres:16-alpine
+    container_name: versado-test-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: versado_test
+      POSTGRES_PASSWORD: ${TEST_POSTGRES_PASSWORD:?Zet een eigen testwachtwoord}
+      POSTGRES_DB: versado_test
+    volumes:
+      - versado_test_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U versado_test -d versado_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - versado-test-internal
+
+  versado-test-redis:
+    image: redis:7-alpine
+    container_name: versado-test-redis
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${TEST_REDIS_PASSWORD:?Zet een eigen testwachtwoord}"]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      REDIS_PASSWORD: ${TEST_REDIS_PASSWORD:?Zet een eigen testwachtwoord}
+    networks:
+      - versado-test-internal
+
+networks:
+  versado-test-edge: {}
+  # Intern: database en Redis zijn van buiten niet bereikbaar, ook niet vanaf de NAS zelf.
+  versado-test-internal:
+    internal: true
+
+volumes:
+  versado_test_postgres: {}
+  versado_test_audio: {}
+  versado_test_study_media: {}
