@@ -157,8 +157,13 @@ goedgekeurde snapshot (nooit bij opstarten, deploy of migratie):
    gepubliceerd. Een ongeldige catalogus publiceert niets.
 5. Is de hele set gepubliceerd, dan volgt de bestaande inhoudelijke vrijgave van de collectie (`releaseStudyCollection`,
    `publicationState` → `PUBLISHED`).
-6. **Publicatie is geen zichtbaarheid:** `visibleToUsers` blijft uit tot beheer de bestaande schakelaar onder Adminbackend →
-   Content aanzet. Een gelijktijdige run krijgt `busy` (dezelfde lock als de beheerbatch).
+6. **Zichtbaarheid na de eerste volledige vrijgave:** is de collectie volledig vrijgegeven (`PUBLISHED`, `enabled`) en nog
+   niet zichtbaar, dan zet `autoPublishCfmVolume` éénmalig `visibleToUsers=true` (voorwaardelijke `updateMany`), zodat beheer
+   niet na elke import handmatig een jaargang hoeft te activeren. Een door beheer verborgen collectie wordt bij een latere
+   import nooit opnieuw getoond (alleen de eerste vrijgave schakelt in). Veiligheid: alleen via de beheeractie met goedgekeurde
+   snapshot, nooit bij opstarten/deploy/migratie; een geblokkeerde les houdt de collectie op concept en dus verborgen.
+   Noodstoppen: `CFM_AUTO_PUBLISH=off` (geen publicatie) en `CFM_AUTO_VISIBLE=off` (wel publiceren, niet tonen). Een
+   gelijktijdige run krijgt `busy` (dezelfde lock als de beheerbatch).
 
 Het rapport (jobverslag van *Content opnieuw laden*) noemt per jaargang: status, nieuw/al gepubliceerd, geblokkeerd,
 mislukt en de verwijzingsaantallen (bewezen, als tekst, blokkerend).

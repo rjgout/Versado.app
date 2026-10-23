@@ -278,8 +278,9 @@ op uitdrukkelijk verzoek van de eigenaar en alleen voor officiële CFM-bronnen**
 laden" met goedgekeurde snapshot publiceert `autoPublishCfmVolume`
 (`src/lib/studyContent/cfmAutoPublish.ts`) de technisch gevalideerde lessen via
 `publishStudyRevision` en geeft de collectie inhoudelijk vrij; een geblokkeerde
-les blijft concept, de gebruikerszichtbaarheid (`visibleToUsers`) blijft de
-bestaande schakelaar en er is nooit publicatie bij opstarten, deploy of
+les blijft concept, de eerste volledige vrijgave zet `visibleToUsers` aan (daarna
+blijft de bestaande beheerschakelaar leidend; noodstoppen `CFM_AUTO_PUBLISH=off`/
+`CFM_AUTO_VISIBLE=off`) en er is nooit publicatie bij opstarten, deploy of
 migratie. Dit is geen algemene toestemming voor automatische publicatie van
 andere content (zie `docs/CFM-DOORLOPEND.md` §8). Inhoudelijke
 vrijgave gebruikt de bestaande revisie-/publicatieaudit. Een beheerder kan
