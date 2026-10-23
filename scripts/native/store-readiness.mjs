@@ -138,7 +138,8 @@ export const BLOCKERS = [
     // De pagina moet zonder login bereikbaar zijn: een pagina die naar /login doorverwijst is nog de ingelogde variant.
     check: (fs) => ({ ok: ["account-verwijderen", "delete-account", "verwijder-account"].some((name) => fs.exists(`src/app/${name}/page.tsx`) && !/redirect\(\s*["']\/login/.test(fs.read(`src/app/${name}/page.tsx`))), evidence: "src/app/account-verwijderen/page.tsx (zonder login-redirect)" }) },
   { id: "terms-of-use", area: "beide", wp: "WP4", title: "Voorwaarden als publieke pagina (de privacyverklaring bestaat al op /privacy)",
-    check: (fs) => ({ ok: fs.exists("src/app/voorwaarden/page.tsx"), evidence: "src/app/voorwaarden/page.tsx" }) },
+    // Pas opgelost als de eigenaar een echte tekst heeft aangeleverd: zolang TERMS null is, bestaat de pagina niet (404).
+    check: (fs) => ({ ok: fs.exists("src/app/voorwaarden/page.tsx") && fs.exists("src/lib/legal/terms.ts") && /export const TERMS\b/.test(fs.read("src/lib/legal/terms.ts")) && !/TERMS\s*:\s*[^=]+=\s*null\s*;/.test(fs.read("src/lib/legal/terms.ts")), evidence: "src/app/voorwaarden/page.tsx, src/lib/legal/terms.ts (TERMS niet null)" }) },
   { id: "apple-token-revocation", area: "iOS", wp: "WP4", conditional: "apple-signin", title: "Sign in with Apple: tokenintrekking via de Apple REST API en server-to-server-notificaties (alleen vereist als Sign in with Apple in 1.0 zit)",
     check: (fs) => ({ ok: fs.tree("src/lib").some((path) => /apple/i.test(path) && /auth\/revoke/.test(fs.read(path))), evidence: "src/lib/**" }) },
   { id: "min-version-policy", area: "beide", wp: "WP5", title: "Backend meldt een minimaal ondersteunde native versie zodat een te oude app netjes om een update vraagt",

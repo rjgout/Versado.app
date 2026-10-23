@@ -81,3 +81,15 @@ cross-origin/same-site/niet-JSON geweigerd, cookie gewist, herhaling 401, TOTP, 
 ## 7. Wat niet is veranderd
 
 Registratie, e-mailbevestiging, admin-verwijdering, periodieke opschoning, privacyverklaring en alle bewaartermijnen. De cascade-regels in `prisma/schema.prisma` zijn ongewijzigd.
+
+## 8. Voorbereiding (vervolg, gestapelde PR)
+
+| Onderdeel | Stand |
+|---|---|
+| Openbare pagina `/account-verwijderen` | Zonder login bereikbaar: uitleg wat verwijderd wordt (verwijst voor het overige naar de privacyverklaring), hoe verwijderen werkt, een weg naar inloggen of een nieuw wachtwoord; het formulier verschijnt alleen ingelogd. Geen bewaartermijnen of juridische beloftes op de pagina zelf. |
+| Native scherm | `/account-verwijderen` in de native shell (`AccountDeletionForm`, alleen als de server `account-deletion-v1` meldt), vanuit het accountscherm bereikbaar; na succes wissen sessie en weergave. Bewijs: unit- en contracttests; de bestaande native browsertest is niet uitgebreid en geen toesteltest is uitgevoerd. |
+| `/voorwaarden` | Alleen het skelet: `src/lib/legal/terms.ts` bevat `TERMS = null`, de pagina geeft dan 404 en de readiness-blokkade `terms-of-use` blijft open. De eigenaar levert de tekst aan; er is niets verzonnen. |
+| Inventaris persoonsgegevens | `docs/PERSOONSGEGEVENS-INVENTARIS.md`, gegenereerd uit het schema (`npm run privacy:inventory -- --write`), bewaakt door `npm run test:privacy` in de CI-job `security`. Feitelijk: 96 cascades, 6 SetNull, 0 blokkerend, 6 verwijzingen zonder relatie. Geen bewaartermijnen. |
+
+Opvallende bevinding voor D8: zes tekstvelden verwijzen naar een gebruiker zonder relatie (`LiveQuizAction.userId`, `PuzzleAction.userId`, `SocialEvent.userId`,
+`ScrabbleGame.turnUserId`/`winnerUserId`, `Challenge.winnerUserId`) en blijven bij verwijderen staan. Of dat acceptabel is of aanvullende opruiming vraagt, is een eigenaarsbesluit.

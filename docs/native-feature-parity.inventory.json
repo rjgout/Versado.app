@@ -3,12 +3,11 @@
   "modules": [
     {
       "file": "src/app/account-verwijderen/page.tsx",
-      "sha256": "2d34ef2ba8feaaf973f0d96bcef5b572954801a92194f3d55d6c8f8d0526f423",
+      "sha256": "2a33bd639bb3c649519c9bbb29a599c3a22a7b09c1ad2b1f22d77243a3f56fc1",
       "boundary": "context-dependent",
       "imports": [
         "@/components/AccountDeletionClient",
-        "@/lib/session",
-        "next/navigation"
+        "@/lib/session"
       ],
       "methods": [],
       "requests": [],
@@ -8286,6 +8285,22 @@
       ]
     },
     {
+      "file": "src/app/voorwaarden/page.tsx",
+      "sha256": "a699a32785d2aa108fe41fcb89c40ebb03ef828e689fa3dd7d8d4a74bfc1827e",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/legal/TermsContent",
+        "@/lib/legal/terms",
+        "next/navigation"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TermsPage"
+      ]
+    },
+    {
       "file": "src/app/word-game/page.tsx",
       "sha256": "4556eefde06f945292cfdae74a8b963b79315de472e51fe063b820363bd4005c",
       "boundary": "context-dependent",
@@ -8368,7 +8383,7 @@
     },
     {
       "file": "src/components/AccountDeletionClient.tsx",
-      "sha256": "1d4d3a5c67fee8357b70f7bc87ef185cede24688a5d6c1d24847f376c274fa45",
+      "sha256": "5c1b491bc4ff877962cae716eca966379ad245ace1145f4020fbb8983ea7e96d",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -8376,7 +8391,8 @@
         "@/components/account/AccountDeletionForm",
         "@/components/navigation/AppNavigation",
         "@/components/profile/ProfilePage",
-        "@/lib/account/web"
+        "@/lib/account/web",
+        "@/lib/i18n/rich"
       ],
       "methods": [],
       "requests": [],
@@ -12212,6 +12228,20 @@
       ]
     },
     {
+      "file": "src/components/legal/TermsContent.tsx",
+      "sha256": "71f4f112efe1dd73c6ae00befdcde5bc1fca92c095d5d416ac178ae7fcc5ab2f",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/legal/terms"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TermsContent"
+      ]
+    },
+    {
       "file": "src/components/mysteries/Mystery001aClient.tsx",
       "sha256": "18c163a62fbdc1f6c01093123522fcc259816b3c68661a967b550a44fea751b3",
       "boundary": "client",
@@ -12332,7 +12362,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "7d27b2ccb4425a18e061eb57d0cb967f7c25404c69166329f71efd6bbc48b18a",
+      "sha256": "1cf60ddaf1b3da4e0560c3e289211ea5bc34e63f04f18549bda3d3c266810ba5",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -12340,6 +12370,7 @@
         "@/components/I18nProvider",
         "@/components/StickyHeader",
         "@/components/account/AccountActionsProvider",
+        "@/components/account/AccountDeletionForm",
         "@/components/account/PasswordChangeForm",
         "@/components/account/TwoFactorCards",
         "@/components/legal/CookiesContent",
@@ -18085,7 +18116,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "455feb5fc0d36d8ee4f3ad84c18cb9453696b682df0582d59c61ba93e1aec26f",
+      "sha256": "ab90b2c5e10b641403396ec9b2a9858118e9c332f1e4bed59660a3ec197443ac",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18100,7 +18131,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "48071f5fe79eecbde816ff8d9188f535f5f18f673afc1b8ec1458a3557173bea",
+      "sha256": "2df3529078d4647b3e4024aed9a8c24eb5e8f9eddc55015a74402c1f593b27fb",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18115,7 +18146,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "c1b7f40ad517cb7b4669aa831233e5b9021d56e511f38957819799d087e93b75",
+      "sha256": "1bf31f41589f81957fc77e9f59d6af6e68b2f2a8eca7fb15997feff81ee466dd",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18130,7 +18161,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "aaf2dd916ca065435278f7e6ee149f6c82c3b4066be0e82e2862f5e418b57b53",
+      "sha256": "1c8deec0c90a4fc31a0d8980f209504c549078b21c40702ed398590e1e9065de",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18213,7 +18244,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "67d56e1b6dd5e80879c53c0271f95f4d61f9f4435ddee8d4b10bef9dfe049ef4",
+      "sha256": "56aa496275b306ccb4f650809586b39838bbf21fd9c0af4263e24f44b754daea",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -18798,6 +18829,18 @@
         "hasStudiedToday",
         "qualifiesForStreak",
         "streakDayGap"
+      ]
+    },
+    {
+      "file": "src/lib/legal/terms.ts",
+      "sha256": "ae5c96685d26a82b9d0c271f0a48f725e3b346547ba5d92b3ed03f0a065b7d6d",
+      "boundary": "context-dependent",
+      "imports": [],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TERMS"
       ]
     },
     {
@@ -19605,7 +19648,7 @@
     },
     {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "6735587f09a29173a882f043ff4a1abdce4cd2dd432ed8a2f8c718dac0c546da",
+      "sha256": "aa3934166f39fe4f0373ea67180ae91852b63264296160bc11056d98038d483c",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -24592,12 +24635,11 @@
     },
     {
       "file": "src/app/account-verwijderen/page.tsx",
-      "sha256": "2d34ef2ba8feaaf973f0d96bcef5b572954801a92194f3d55d6c8f8d0526f423",
+      "sha256": "2a33bd639bb3c649519c9bbb29a599c3a22a7b09c1ad2b1f22d77243a3f56fc1",
       "boundary": "context-dependent",
       "imports": [
         "@/components/AccountDeletionClient",
-        "@/lib/session",
-        "next/navigation"
+        "@/lib/session"
       ],
       "methods": [],
       "requests": [],
@@ -24631,6 +24673,7 @@
         "src/lib/i18n/core.ts",
         "src/lib/i18n/messages/kompas/nl.ts",
         "src/lib/i18n/messages/nl.ts",
+        "src/lib/i18n/rich.tsx",
         "src/lib/languages.ts",
         "src/lib/profileViews.ts",
         "src/lib/session.ts"
@@ -63058,6 +63101,37 @@
       ]
     },
     {
+      "file": "src/app/voorwaarden/page.tsx",
+      "sha256": "a699a32785d2aa108fe41fcb89c40ebb03ef828e689fa3dd7d8d4a74bfc1827e",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/legal/TermsContent",
+        "@/lib/legal/terms",
+        "next/navigation"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TermsPage"
+      ],
+      "route": "/voorwaarden",
+      "kind": "page",
+      "domain": "overig-vandaag",
+      "dependencies": [
+        "src/app/voorwaarden/page.tsx",
+        "src/components/legal/TermsContent.tsx",
+        "src/lib/legal/terms.ts"
+      ],
+      "directModules": [
+        "src/components/legal/TermsContent.tsx",
+        "src/lib/legal/terms.ts"
+      ],
+      "clientBoundaries": [],
+      "requestEvidence": [],
+      "authEvidence": []
+    },
+    {
       "file": "src/app/word-game/page.tsx",
       "sha256": "4556eefde06f945292cfdae74a8b963b79315de472e51fe063b820363bd4005c",
       "boundary": "context-dependent",
@@ -63656,12 +63730,11 @@
   "components": [
     {
       "file": "src/app/account-verwijderen/page.tsx",
-      "sha256": "2d34ef2ba8feaaf973f0d96bcef5b572954801a92194f3d55d6c8f8d0526f423",
+      "sha256": "2a33bd639bb3c649519c9bbb29a599c3a22a7b09c1ad2b1f22d77243a3f56fc1",
       "boundary": "context-dependent",
       "imports": [
         "@/components/AccountDeletionClient",
-        "@/lib/session",
-        "next/navigation"
+        "@/lib/session"
       ],
       "methods": [],
       "requests": [],
@@ -66423,6 +66496,22 @@
       ]
     },
     {
+      "file": "src/app/voorwaarden/page.tsx",
+      "sha256": "a699a32785d2aa108fe41fcb89c40ebb03ef828e689fa3dd7d8d4a74bfc1827e",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/legal/TermsContent",
+        "@/lib/legal/terms",
+        "next/navigation"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TermsPage"
+      ]
+    },
+    {
       "file": "src/app/word-game/page.tsx",
       "sha256": "4556eefde06f945292cfdae74a8b963b79315de472e51fe063b820363bd4005c",
       "boundary": "context-dependent",
@@ -66505,7 +66594,7 @@
     },
     {
       "file": "src/components/AccountDeletionClient.tsx",
-      "sha256": "1d4d3a5c67fee8357b70f7bc87ef185cede24688a5d6c1d24847f376c274fa45",
+      "sha256": "5c1b491bc4ff877962cae716eca966379ad245ace1145f4020fbb8983ea7e96d",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -66513,7 +66602,8 @@
         "@/components/account/AccountDeletionForm",
         "@/components/navigation/AppNavigation",
         "@/components/profile/ProfilePage",
-        "@/lib/account/web"
+        "@/lib/account/web",
+        "@/lib/i18n/rich"
       ],
       "methods": [],
       "requests": [],
@@ -70245,6 +70335,20 @@
       ]
     },
     {
+      "file": "src/components/legal/TermsContent.tsx",
+      "sha256": "71f4f112efe1dd73c6ae00befdcde5bc1fca92c095d5d416ac178ae7fcc5ab2f",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/legal/terms"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "TermsContent"
+      ]
+    },
+    {
       "file": "src/components/mysteries/Mystery001aClient.tsx",
       "sha256": "18c163a62fbdc1f6c01093123522fcc259816b3c68661a967b550a44fea751b3",
       "boundary": "client",
@@ -70365,7 +70469,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "7d27b2ccb4425a18e061eb57d0cb967f7c25404c69166329f71efd6bbc48b18a",
+      "sha256": "1cf60ddaf1b3da4e0560c3e289211ea5bc34e63f04f18549bda3d3c266810ba5",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -70373,6 +70477,7 @@
         "@/components/I18nProvider",
         "@/components/StickyHeader",
         "@/components/account/AccountActionsProvider",
+        "@/components/account/AccountDeletionForm",
         "@/components/account/PasswordChangeForm",
         "@/components/account/TwoFactorCards",
         "@/components/legal/CookiesContent",
@@ -72802,6 +72907,7 @@
     "tests/mystery001a.test.ts",
     "tests/mystery002.test.ts",
     "tests/mystery003-006.test.ts",
+    "tests/native-account-deletion.test.ts",
     "tests/native-account.integration.test.ts",
     "tests/native-distribution.test.ts",
     "tests/native-foundation.browser.mjs",
@@ -72819,6 +72925,7 @@
     "tests/otb-production-diagnosis-runtime.test.mjs",
     "tests/otb-production-diagnosis.test.mjs",
     "tests/otb.test.ts",
+    "tests/personal-data-inventory.test.mjs",
     "tests/podcast-feed.test.ts",
     "tests/profile-footer.test.ts",
     "tests/profile-guide.browser.mjs",

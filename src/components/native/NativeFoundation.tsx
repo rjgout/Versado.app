@@ -16,6 +16,7 @@ import StickyHeader from "@/components/StickyHeader";
 import ShellMetrics from "@/components/shell/ShellMetrics";
 import FocusModeController from "@/components/shell/FocusModeController";
 import PasswordChangeForm from "@/components/account/PasswordChangeForm";
+import AccountDeletionForm from "@/components/account/AccountDeletionForm";
 import { AccountActionsProvider } from "@/components/account/AccountActionsProvider";
 import { RecoveryCodesCard, TwoFactorSetupCard } from "@/components/account/TwoFactorCards";
 import { nativeAccountActions } from "@/lib/native/account";
@@ -34,6 +35,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
   const confirmationPage = navigation.pathname === "/verify-email";
   const [mailRequest, setMailRequest] = useState<{ token: string | null; id: number; route: string }>({ token: null, id: 0, route: "" });
   const passwordPage = navigation.pathname === "/change-password";
+  const deletionPage = navigation.pathname === "/account-verwijderen";
   const legal = navigation.pathname === "/privacy" || navigation.pathname === "/cookies";
   const chapterId = navigation.pathname.startsWith("/lesson/") ? navigation.pathname.slice(8) : null;
   const mode = navigation.pathname === "/register" ? "register" : navigation.pathname === "/forgot-password" ? "forgot" : "login";
@@ -55,7 +57,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
     if (key === "network_unavailable") setOffline(true);
     if (err instanceof NativeClientError && err.status === 401 && key !== "two_factor_required" && key !== "wrong_credentials") { setUser(null); setChapter(null); setSetup(null); setRecoveryCodes(null); }
   }, [t]);
-  const accountActions = useMemo(() => nativeAccountActions(client, () => report(new NativeClientError("session_expired", 401))), [client, report]);
+  const accountActions = useMemo(() => nativeAccountActions(client, () => report(new NativeClientError("session_expired", 401)), () => { const { navigation: nav } = current.current; setUser(null); setChapter(null); setRecoveryCodes(null); setSetup(null); nav.replace("/login"); }), [client, report]);
   const load = useCallback(async () => {
     const [me, today] = await Promise.all([client.api<Account>("me"), client.api<{ activity: typeof activity }>("today")]);
     return { me: nativeAccountSchema.parse(me), today: nativeTodaySchema.parse(today) };
@@ -174,7 +176,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
     const data = await load(); if (!isCurrent()) return; setUser(data.me); setActivity(data.today.activity); setPassword("");
   }
   const button = `${secondaryButton} min-h-12 whitespace-normal`;
-  const detail = legal || profile || passwordPage || resetPage || confirmationPage || !!chapterId;
+  const detail = legal || profile || passwordPage || deletionPage || resetPage || confirmationPage || !!chapterId;
   return <AccountActionsProvider actions={accountActions}><FocusModeController>
     <ShellMetrics />
     <StickyHeader>
@@ -232,8 +234,8 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
       <p className="text-sm">{t("nativeFoundation.appleResetHelp")}</p>
       {!termsUrl && <p className="text-sm">{t("nativeFoundation.termsUnavailable")}</p>}
     </> : <>
-      <h1 tabIndex={-1} className="text-2xl font-extrabold">{passwordPage ? t("profile.changePassword") : profile ? t("nativeFoundation.account") : (chapterId ? chapter?.title ?? t("pages.lesson") : `${t("nativeFoundation.today")}, ${user.handle}`)}</h1>
-      {passwordPage ? <PasswordChangeForm forced={false} requiresSecondFactor={user.totpEnabled} onChanged={async () => {
+      <h1 tabIndex={-1} className="text-2xl font-extrabold">{passwordPage ? t("profile.changePassword") : deletionPage ? t("accountDeletion.title") : profile ? t("nativeFoundation.account") : (chapterId ? chapter?.title ?? t("pages.lesson") : `${t("nativeFoundation.today")}, ${user.handle}`)}</h1>
+      {deletionPage ? <AccountDeletionForm passwordLoginEnabled={user.passwordLoginEnabled} totpEnabled={user.totpEnabled} /> : passwordPage ? <PasswordChangeForm forced={false} requiresSecondFactor={user.totpEnabled} onChanged={async () => {
         await client.logout(() => { setUser(null); setChapter(null); setRecoveryCodes(null); navigation.replace("/login"); }).catch(report);
       }} /> : profile ? <>
         <p>{user.appleLinked ? t("nativeFoundation.appleLinked") : t("nativeFoundation.appleUnavailable")}</p>
@@ -242,6 +244,7 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage, 
         {(apple || user.appleLinked) && <button className={button} disabled={busy || !password || !user.passwordLoginEnabled} onClick={() => void action(async isCurrent => { if (user.appleLinked) { await client.api("apple", { password, ...(code ? { code } : {}) }, "DELETE"); setUser(null); setPassword(""); setCode(""); await client.logout(); } else await signInApple(true, isCurrent); })}>{t(user.appleLinked ? "nativeFoundation.appleUnlink" : "nativeFoundation.appleLink")}</button>}
         {user.passwordLoginEnabled && features.includes("account-password-v1") && <AppLink className={button} href="/change-password">{t("profile.changePassword")}</AppLink>}
         {!user.passwordLoginEnabled && <p>{t("nativeFoundation.alternativeRequired")}</p>}
+        {features.includes("account-deletion-v1") && <AppLink className={button} href="/account-verwijderen">{t("profile.deleteAccount")}</AppLink>}
       </> : chapterId ? chapter ? <>
         {chapter.verses.map(verse => <p key={verse.number} className="leading-relaxed"><sup className="mr-2">{verse.number}</sup>{verse.text}</p>)}
         <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy || saved} onClick={() => void action(async isCurrent => { await client.api(`chapters/${encodeURIComponent(chapter.id)}/complete`, {}); if (!isCurrent()) return; setSaved(true); await lightHaptic(); })}>{t(saved ? "nativeFoundation.completeSaved" : "nativeFoundation.complete")}</button>
