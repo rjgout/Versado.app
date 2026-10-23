@@ -72,7 +72,8 @@ test("Twee echte productie-instances: lobbybron, uitnodiging, reconnect, dubbele
  const wrong=await db.quickMissionaryReviveOption.findFirstOrThrow({where:{questionId:enQuestion,isCorrect:false}});
  assert.equal((await post(1,b,`/api/snelle-zendeling/runs/${rb.id}/revive/answer`,{exerciseId:enQuestion,optionId:wrong.id})).status,200);
  assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:rb.id}})).eliminatedSeq,1);assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:ra.id}})).status,"FINISHED");assert.equal(await db.quickMissionaryDuoResult.count({where:{matchId:payload.match.matchId}}),1);
- assert.deepEqual(await state(a),beforeA);assert.deepEqual(await state(b),beforeB);
+ // Sinds #198 telt een afgeronde run mee voor de reeks (hooguit +1); XP, Genees en hints blijven ongemoeid.
+ for(const [user,before] of [[a,beforeA],[b,beforeB]]){const {currentStreak:streakBefore,...economyBefore}=before,{currentStreak:streakAfter,...economyAfter}=await state(user);assert.deepEqual(economyAfter,economyBefore);assert.equal(streakBefore,0);assert.ok(streakAfter===0||streakAfter===1)}
  assert.equal(await db.xPTransaction.count({where:{userId:{in:[a.id,b.id]}}}),0);
 });
 
