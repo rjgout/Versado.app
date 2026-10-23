@@ -22,7 +22,7 @@ Alle heads zitten aantoonbaar in #179 (`git merge-base --is-ancestor`); iedere o
 
 ## Integratie
 
-Geen tekstconflicten. De drie-wegmerge behoudt alle main-only wijzigingen, waaronder cursusreparatie in `server.ts` en `seed.ts`, doeldatabasebevestiging, Nederlandse reeksbenamingen, profielcomponenten en instructies. `server.ts` blijft gelijk aan main; `initGameServer` registreert de native realtime-authenticatie via `setRealtimeServer`. Next.js en eslint-config-next zijn 16.4.2. Native scripts en API-contracten blijven behouden. Geen auth-/beloningsrefactor, geen verandering aan webcookies, Bearer, TOTP of Apple-identiteit.
+Geen tekstconflicten. Alle 27 uitsluitend op main gewijzigde bestanden zijn byte-identiek behouden. Alleen CLAUDE.md, package.json, package-lock.json en nl.ts hadden wijzigingen op beide lijnen; die zijn gericht vergeleken. De drie-wegmerge behoudt alle main-only wijzigingen, waaronder cursusreparatie in `server.ts` en `seed.ts`, doeldatabasebevestiging, Nederlandse reeksbenamingen, profielcomponenten en instructies. `server.ts` blijft gelijk aan main; `initGameServer` registreert de native realtime-authenticatie via `setRealtimeServer`. Next.js en eslint-config-next zijn 16.4.2. Native scripts en API-contracten blijven behouden. Geen auth-/beloningsrefactor, geen verandering aan webcookies, Bearer, TOTP of Apple-identiteit.
 
 De broninventaris wordt opnieuw gegenereerd wegens gewijzigde bronhashes. Dit verhoogt geen functiepariteitsclaim.
 
@@ -30,7 +30,7 @@ De broninventaris wordt opnieuw gegenereerd wegens gewijzigde bronhashes. Dit ve
 
 De hoofdbranch bevat reeds migraties tot `20261126120000_feedback_token_rotation`, inclusief `20261125120000_native_auth_foundation`. De native keten voegt `20261127120000_native_security_setup` en daarna `20261203120000_live_quiz_actions` toe. Er is geen latere migratie. De quizguard verwijst naar NativeSession: hernoemen naar 23 oktober zou op een lege database vóór zijn afhankelijkheid komen.
 
-De naam blijft daarom intact: toekomstige datumdelen zijn hier bestaande volgorde-identiteiten, geen wachttijd tot uitvoering. Prisma deploy voert alle ontbrekende migraties in lexicografische volgorde uit. De bekende uitvoeringen van de quizmigratie zijn geïsoleerde tests; er is geen toegang tot blijvende databases en dus geen claim over hun feitelijke migratieregister. Een eventuele latere naamswijziging vereist die bevestiging én een naam ná de bestaande afhankelijkheden. Geen productiecontrole of productiequery uitgevoerd. Nieuwe afhankelijke migraties moeten ná deze migratie sorteren.
+De naam blijft daarom intact: toekomstige datumdelen zijn hier bestaande volgorde-identiteiten, geen wachttijd tot uitvoering. Prisma deploy voert alle ontbrekende migraties in lexicografische volgorde uit. De bekende uitvoeringen van de quizmigratie zijn geïsoleerde tests; er is geen toegang tot blijvende databases en dus geen claim over hun feitelijke migratieregister. De eigenaar bevestigde als status **onbekend**: er is geen productie-uitrol gerapporteerd, maar handmatige toepassing kan niet worden uitgesloten. Leescontrole door de eigenaar vóór uitrol: `SELECT migration_name, started_at, finished_at, rolled_back_at FROM _prisma_migrations ORDER BY migration_name;` (geen wijziging en geen geheimen delen). Een eventuele latere naamswijziging vereist die bevestiging én een naam ná de bestaande afhankelijkheden. Geen productiecontrole of productiequery uitgevoerd. Nieuwe afhankelijke migraties moeten ná deze migratie sorteren.
 
 `scripts/native/test-main-upgrade.mjs` haalt schema en migraties uit exact bovengenoemde main-commit, controleert byte-identieke bestaande SQL, maakt uitsluitend een eigen PostgreSQL-container, bewaart synthetische XP, hints, StreakDay, StreakActivity en historische spelscores, vergelijkt alle bestaande tabelkolommen vóór/na upgrade, herhaalt deploy en vergelijkt met een volledig verse database. De bestaande native suite controleert daarnaast foutrollback, unieke claims, cascades en deferred commit-triggers.
 
@@ -39,6 +39,43 @@ Prisma diff signaleert al op main bestaande verschillen: ActivityFeedItem.update
 ## Technische verificatie
 
 Resultaten en exacte integratie-SHA worden na de controles vastgelegd in de integratie-PR (een bestand kan zijn eigen commit-SHA niet bevatten). Actions moeten op die exacte head zijn uitgevoerd; oude #179-checks zijn geen bewijs. Native Foundation omvat 47 sockettests en native account-/sessie-/navigatie-/browserregressies. Aanvullend: contentarchitectuur/leesvoortgang/cursusidentiteit, volledige webbrowser/sockettests, security, parity, Android debug en iOS simulator. De aparte workflow `native-main-integration.yml` bewaakt de gepinde main-upgrade en main-terminologietests.
+
+### Vastgelegde resultaten op geïntegreerde code
+
+Integratiecommit (beide ouders, volledige code en testproef): `cc6b874001650fcca2dcf50aa3180ae16cdeae16`. Deze rapportage wordt daarna alleen documentair aangevuld; de uiteindelijke documentatie-head en de checks op die exacte head staan in [draft-PR #188](https://github.com/rjgout/Versado.app/pull/188). Geen zelfverwijzende SHA als vermeende eigen commit.
+
+| Controle | Resultaat op integratiecode |
+|---|---|
+| main-upgrade + lege database | geslaagd; 158 bestaande tabellen behouden; herhaalde deploy; geen nieuwe drift |
+| native units incl. #171/#172 | 43/43, geen skips |
+| native API/account/registratie | 30/30, geen skips |
+| native Socket.io, twee echte processen/PG/Redis | 47/47, geen skips; replay/reconnect/sessieraces/rollback/crash/commitguards |
+| native browser + gedeelde webaccountflow | vier formaten; TOTP/herstelcodes/wachtwoord/reset/mail; geslaagd |
+| focus / profiel / parity | 28/28, 13/13, 6/6 |
+| terminologie/leescursusregels/cursusscripts | 39/39 |
+| proxy/reeks/leerregels/studiescore | 28/28 |
+| content/cursusintegratie/leesvoortgang/XP/reeks | lokale volledige study-content-suite geslaagd, zonder skips; ook vier-gebruikerscursusherstel en rollback |
+| volledige webbrowser (Actions) | 28 shell/spelcombinaties, 48 contentkiezercombinaties, 80 profielchecks, 131 kaartchecks |
+| web Socket.io / kaartunits (Actions) | 45/45 en 9/9 |
+| Prisma validate/generate, TypeScript, schone productiebuild | geslaagd lokaal en Native Foundation |
+| ESLint / productie-audit | 0 fouten, 170 bestaande waarschuwingen / 0 kwetsbaarheden |
+| Android / iOS | echte debugcompilatie en simulatorcompilatie zonder signing geslaagd |
+
+De eerste lokale native-browserstart miste de in de nieuwe worktree nog niet gebouwde CSS-bundel; na native:build/cap sync slaagt dezelfde suite ongewijzigd. Geen productfix of testversoepeling. Tailwind meldt de bestaande mixed-units-waarschuwing; i18n rapporteert de bestaande vertaaldekking. Prisma-baselinedrift staat hierboven expliciet vermeld.
+
+Actions op `cc6b8740`:
+
+- [Native Foundation](https://github.com/rjgout/Versado.app/actions/runs/39914071232)
+- [Native parity](https://github.com/rjgout/Versado.app/actions/runs/39914071260)
+- [Android en iOS](https://github.com/rjgout/Versado.app/actions/runs/39914071162)
+- [Main-upgradebewijs](https://github.com/rjgout/Versado.app/actions/runs/39914071306)
+- [Security/privacy](https://github.com/rjgout/Versado.app/actions/runs/39914071103)
+- [Volledige webbrowser](https://github.com/rjgout/Versado.app/actions/runs/39914071183)
+- [Admininventaris](https://github.com/rjgout/Versado.app/actions/runs/39914071276)
+- [Betaalde hints](https://github.com/rjgout/Versado.app/actions/runs/39914071208)
+- [Legpuzzel](https://github.com/rjgout/Versado.app/actions/runs/39914071226)
+- [Docker build, zonder push](https://github.com/rjgout/Versado.app/actions/runs/39914071184)
+- [Contentarchitectuur](https://github.com/rjgout/Versado.app/actions/runs/39914071198): eerste poging acht jobs groen, content-access overschreed 20 minuten. Cacheherstel wachtte circa tien minuten met melding `Egress is over the account limit`; browserinstallatie kostte nog ruim zes minuten. Geen rode assertie; afgebroken tijdens annotatiemigraties. Ongewijzigde herhaling gestart; actuele einduitkomst en alle checks op de uiteindelijke head worden in #188 vastgelegd. De timeout is niet verhoogd en geen test is geskipt.
 
 ## Uitrol- en rollbackdraaiboek — uitsluitend eigenaar
 
@@ -81,6 +118,6 @@ Weblogin en native Bearer-login; verplichte TOTP/setup en Apple waar geconfigure
 
 Releaseprofiel blijft geblokkeerd; alleen Android-debug en iOS-simulator zonder signing. Geen storepublicatie. Niet-native functies blijven expliciet in de inventaris. Fysieke iPhone/iPad/Android-tests (Keychain/Keystore, levenscyclus, netwerkwissel, links, toetsenbord/orientatie) blijven een aparte releasevoorwaarde.
 
-Voorgestelde volgorde blijft #170 → #171 → #172 → #173 → #174 → #176 → #178 → #179. Iedere echte merge vereist toestemming, onafhankelijke review en opnieuw controle op de dan actuele base/head. De tijdelijke integratie-PR vervangt geen bestaande PR en mag niet worden gemerged. Geen force-push/basismodificatie. De integratietestbestanden en inventarisupdate moeten vóór een latere definitieve merge gecontroleerd naar de juiste featurebranch worden overgenomen; deze reviewbranch is geen alternatieve productielijn.
+Voorgestelde volgorde blijft #170 → #171 → #172 → #173 → #174 → #176 → #178 → #179. Iedere echte merge vereist toestemming, onafhankelijke review en opnieuw controle op de dan actuele base/head. Werk bij iedere stap zo nodig de broninventaris opnieuw bij tegen die base: de gecombineerde groene inventaris bewijst niet dat een eerdere stacked head na een basewissel automatisch actueel blijft. De tijdelijke integratie-PR vervangt geen bestaande PR en mag niet worden gemerged. Geen force-push/basismodificatie. De integratietestbestanden en inventarisupdate moeten vóór een latere definitieve merge gecontroleerd naar de juiste featurebranch worden overgenomen; deze reviewbranch is geen alternatieve productielijn.
 
 Open uitrolvoorwaarde: afdwingbare drain of aantoonbaar quiescente volledige stop, herstelbare backup en eigenaarsacceptatie. Andere asynchrone spelmodi krijgen door deze integratie geen nieuwe transactionele garantie; zie NATIVE-SOCKET-HARDENING.md.
