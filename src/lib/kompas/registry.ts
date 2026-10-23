@@ -75,7 +75,7 @@ const STATIC_TOPICS: readonly KompasTopic[] = [
   { id: "together.groups", parent: "together", icon: "groups", version: 1, href: "/groups", routes: ["/groups"] },
   { id: "progress", parent: KOMPAS_ROOT, group: "support", icon: "progress", version: 1, href: "/streak" },
   { id: "progress.xp", parent: "progress", icon: "xp", version: 1, href: "/xp", routes: ["/xp"] },
-  { id: "progress.streak", parent: "progress", icon: "streak", version: 2, href: "/streak", routes: ["/streak"] },
+  { id: "progress.streak", parent: "progress", icon: "streak", version: 3, href: "/streak", routes: ["/streak"] },
   { id: "progress.divisions", parent: "progress", icon: "division", version: 1, href: "/competition", routes: ["/competition"] },
   { id: "profile", parent: KOMPAS_ROOT, group: "support", icon: "profile", version: 3, href: "/profile" },
   { id: "start", parent: KOMPAS_ROOT, group: "support", icon: "start", version: 1, tour: "start" },

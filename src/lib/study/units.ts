@@ -98,7 +98,7 @@ export async function studyUnitsForCourse(course: CourseRef, t: TFunction): Prom
     }
     case "READING_LESSONS": {
       const rows = await prisma.courseLesson.findMany({
-        where: { courseId: course.id, exercises: { some: {} } },
+        where: { courseId: course.id, exercises: { some: { exercise: { status: "APPROVED" } } } },
         orderBy: { order: "asc" },
         select: { id: true, startVerse: true, endVerse: true, chapter: { select: { number: true, book: { select: { name: true } } } } },
       });
@@ -193,7 +193,7 @@ export async function loadStudyQuestions(course: CourseRef, unitKey: string, t: 
         startVerse: true,
         endVerse: true,
         chapter: { select: { number: true, book: { select: { name: true } } } },
-        exercises: { orderBy: { order: "asc" }, select: { exercise: { include: { options: { orderBy: { order: "asc" } } } } } },
+        exercises: { where: { exercise: { status: "APPROVED" } }, orderBy: { order: "asc" }, select: { exercise: { include: { options: { orderBy: { order: "asc" } } } } } },
       },
     });
     if (!lesson) return null;

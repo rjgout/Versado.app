@@ -22,6 +22,28 @@ const output = "/tmp/versado-annotation-actions-browser";
 mkdirSync(output, { recursive: true });
 const results = [],
   errors = [];
+// De reader herstelt na het laden tot 3 s lang de opgeslagen leespositie (NavigationScroll.restore, elke frame) en stopt zodra de
+// gebruiker invoert (wheel, touchstart, keydown, pointerdown). Een test die daar dwars doorheen scrolt en meet, krijgt een positie
+// die de herstelloop daarna nog verplaatst. Dus: eerst als gebruiker het overnemen, daarna begrensd wachten tot hoogte en positie
+// zich niet meer verplaatsen. Dit versoepelt de eis na het sluiten niet; alleen de beginstand is nu vastgesteld.
+async function takeOverScroll(page, quietMs = 400, timeout = 8000) {
+  await page.keyboard.press("Shift");
+  await settleScroll(page, quietMs, timeout);
+}
+async function settleScroll(page, quietMs = 400, timeout = 8000) {
+  await page.waitForFunction(
+    (quiet) => {
+      const now = performance.now(),
+        state = (window.__scrollSettle ??= { y: -1, h: -1, since: now }),
+        y = Math.round(scrollY * 100) / 100,
+        h = document.documentElement.scrollHeight;
+      if (y !== state.y || h !== state.h) Object.assign(state, { y, h, since: now });
+      return now - state.since >= quiet;
+    },
+    quietMs,
+    { timeout, polling: 50 },
+  );
+}
 try {
   const unit = await browser.newPage();
   const bundle = buildSync({
@@ -513,11 +535,13 @@ try {
         p.on("pageerror", (e) => errors.push(e.message));
         await p.goto(base + f.href);
         await p.addStyleTag({ content: `html{font-size:${scale}%}` });
+        await takeOverScroll(p);
         const trigger = p.locator(
           "#study-paragraph-intro [data-annotation-trigger]",
         );
         await trigger.scrollIntoViewIfNeeded();
         await trigger.focus();
+        await settleScroll(p);
         const before = await p.evaluate(() => scrollY);
         await p.keyboard.press("Enter");
         const sheet = p.locator("[data-annotation-dialog]");
@@ -551,7 +575,14 @@ try {
           await trigger.evaluate((e) => document.activeElement === e),
           true,
         );
-        assert.ok(Math.abs((await p.evaluate(() => scrollY)) - before) < 2);
+        // Begrensd conditioneel wachten (layout na het sluiten mag één frame nodig hebben); de eis blijft hetzelfde: terug op de beginpositie.
+        await p
+          .waitForFunction((from) => Math.abs(scrollY - from) < 2, before, { timeout: 1500, polling: 25 })
+          .catch(() => undefined);
+        assert.ok(
+          Math.abs((await p.evaluate(() => scrollY)) - before) < 2,
+          `scrollpositie niet hersteld na sluiten: ${await p.evaluate(() => scrollY)} i.p.v. ${before} (${size.width}x${size.height} ${lang} ${scheme} ${scale}%)`,
+        );
         if(index===0&&scheme==='light'&&scale===100){await p.keyboard.press('Space');await sheet.waitFor();await p.keyboard.press('Escape');await sheet.waitFor({state:'detached'});}
         if (index === 1 && scheme === "light" && scale === 100) {
           await trigger.dispatchEvent("pointerdown", { pointerType: "touch" });

@@ -160,11 +160,11 @@ relevant is:
   reeksbevriezing houdt de reeks actief;
 - **gepauzeerd**: minder dan drie leden tellen voor die dag mee; er wordt
   niets verloren en de reeks schuift niet op;
-- **onderbroken**: een dag werd gemist zonder groepsfreeze. De oude waarde
+- **onderbroken**: een dag werd gemist zonder reeksbevriezing van de groep. De oude waarde
   blijft bewaard en wordt hervat zodra de groep weer één normale groepsdag
   behaalt.
 
-Een groepsfreeze voorkomt dus een onderbreking, maar is geen extra reeksdag.
+Een reeksbevriezing van de groep voorkomt dus een onderbreking, maar is geen extra reeksdag.
 Een onderbroken groep hoeft alleen weer samen de bestaande
 `requiredContributors()`-voorwaarde te halen.
 

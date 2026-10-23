@@ -492,7 +492,8 @@ export default function ProfileClient() {
             </div>
             {data.tier && <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-black/15 py-1 pl-1.5 pr-3 text-sm font-bold text-gold-400"><DivisionEmblem tier={data.tier} className="h-7 w-7" />{tier(data.tier)}</span>}
           </div>
-        <div className="mt-5 grid grid-cols-4 divide-x divide-white/15 rounded-2xl bg-black/10 py-2">
+        {/* Twee kolommen op een telefoon: "reeksbevriezingen" past niet naast drie andere cijfers in één rij. */}
+        <div className="mt-5 grid grid-cols-2 gap-y-2 rounded-2xl bg-black/10 py-2 sm:grid-cols-4">
           <CompactHeroStat value={<><SystemIcon kind="streak" className="h-4 w-4" fill="currentColor" aria-hidden /> {data.currentStreak}</>} label={t("profile.streak")} href="/streak" />
           <CompactHeroStat value={<><SystemIcon kind="xp" className="h-4 w-4" fill="currentColor" aria-hidden /> {data.xpTotal}</>} label="XP" href="/xp" />
           <CompactHeroStat value={<><SystemIcon kind="freeze" className="h-4 w-4" aria-hidden /> {data.freezeCount}</>} label={t("lesson.freezes")} />
@@ -605,8 +606,9 @@ function ProfileAction({ icon, label, href }: { icon: ReactNode; label: string; 
 }
 
 function CompactHeroStat({ value, label, href }: { value: ReactNode; label: string; href?: string }) {
-  const content = <div className="flex min-w-0 flex-col items-center gap-0.5 px-1 text-center"><div className="flex items-center gap-1 text-sm font-extrabold text-white">{value}</div><div className="whitespace-nowrap text-[0.625rem] font-bold uppercase leading-tight text-brand-100">{label}</div></div>;
-  return href ? <Link href={href} className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">{content}</Link> : content;
+  const cell = "border-l border-white/15 max-sm:odd:border-l-0 sm:first:border-l-0";
+  const content = <div className={`flex min-w-0 flex-col items-center gap-0.5 px-1 text-center ${href ? "" : cell}`}><div className="flex items-center gap-1 text-sm font-extrabold text-white">{value}</div><div className="whitespace-nowrap text-[0.625rem] font-bold uppercase leading-tight text-brand-100">{label}</div></div>;
+  return href ? <Link href={href} className={`focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${cell}`}>{content}</Link> : content;
 }
 
 /**
