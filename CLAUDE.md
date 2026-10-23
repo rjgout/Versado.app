@@ -556,6 +556,10 @@ realtime-bron.
   `onboardingSeenAt = createdAt` zodat bestaande accounts de onboarding-flow
   nooit alsnog te zien krijgen). Patroon: DDL bovenaan `migration.sql`,
   backfill-`UPDATE`/`INSERT...SELECT` eronder, in hetzelfde bestand.
+- **Content importeren verwijdert nooit wat een gebruiker gebruikte** (`docs/CONTENTBEHEER.md`): importers vervangen geen oefeningen met nieuwe
+  id's maar koppelen op inhoud (`src/lib/exerciseSync.ts`, `prisma/reconcileExercises.ts`); een gewijzigde vraag wordt een nieuwe vraag en de
+  oude blijft, als iemand haar kreeg of beantwoordde, buiten gebruik bestaan. Een import overschrijft nooit `enabled`, `visibleToUsers`,
+  `publicationState`, naam of volgorde van een bestaande `ContentCollection`, en draait onder `withContentImportLock`.
 - Instellingen die een admin via `/adminbackend` aanpast staan in eigen
   singleton-modellen (`id String @id @default("singleton")`) — patroon:
   `EmailSettings`, `LeagueSettings`, `BrandingSettings`, `DetectedAppUrl`.

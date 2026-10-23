@@ -50,6 +50,10 @@ const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 const PLAN_TTL_MS = 10 * 60 * 1000;
 const planCache = new Map<string, { plan: ExercisePlan; at: number }>();
+/** Na een contentimport in hetzelfde proces: de volgende oefenset gebruikt meteen het actuele plan. */
+export function clearExercisePlanCache(): void {
+  planCache.clear();
+}
 
 export async function getExercisePlans(db: Db, chapterIds: string[]): Promise<Map<string, ExercisePlan>> {
   const now = Date.now();
@@ -295,8 +299,9 @@ export async function issueExerciseSession(
   });
   if (ids.length === 0) return { sessionId: null, exercises: [] };
 
+  // Alleen goedgekeurde oefeningen: een door een import buiten gebruik gestelde vraag wordt nooit meer uitgedeeld, ook niet uit een verouderd plan.
   const rows = await prisma.exercise.findMany({
-    where: { id: { in: ids } },
+    where: { id: { in: ids }, status: "APPROVED" },
     include: { options: { orderBy: { order: "asc" } } },
   });
   const byId = new Map(rows.map((row) => [row.id, row]));

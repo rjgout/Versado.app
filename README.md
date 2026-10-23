@@ -129,7 +129,10 @@ docker exec jehova-app npm run db:seed
 ```
 
 Dit kan ook zonder terminal: een admin-account heeft op `/adminbackend` een
-knop "Content opnieuw laden" die precies hetzelfde doet.
+knop "Content opnieuw laden" die precies hetzelfde doet. Herhaald laden is veilig:
+ongewijzigde content wordt overgeslagen (oefen-id's, antwoordgeschiedenis, XP, lessen en
+beheerinstellingen blijven), er loopt nooit meer dan één import tegelijk en een gewijzigde
+vraag wordt geversioneerd in plaats van vervangen. Zie `docs/CONTENTBEHEER.md`.
 
 Zie **Architectuur** hieronder voor wat elke container doet, en **Back-ups**
 voor hoe je de database veiligstelt.
