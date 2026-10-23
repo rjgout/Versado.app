@@ -45,7 +45,9 @@ permissions:
 jobs:
   puzzle-v2:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Een gewone run duurt 11-13 minuten; alleen "Browser klaarzetten" (playwright install --with-deps) schommelt van seconden tot
+    # bijna 10 minuten. Met 20 minuten brak een verder geslaagde run daardoor soms af tijdens de laatste regressiestap.
+    timeout-minutes: 30
     env:
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
