@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, 'claude/cfm-doorlopend-*']
   # Handmatige reviewcheck: registry-login/publicatie blijven uitsluitend push.
   workflow_dispatch:
 
