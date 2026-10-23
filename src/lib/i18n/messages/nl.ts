@@ -4284,7 +4284,7 @@ export const nl = {
     "reviewBlocked": "Ik heb de {count} geblokkeerde verwijzingen beoordeeld. Toon deze uitsluitend als niet-klikbare tekst.",
     "release": "Collectie inhoudelijk vrijgeven",
     "releaseConfirm": "Alle lessen zijn afzonderlijk gepubliceerd. Geef de collectie vrij voor normaal gebruik door beheerders. De gebruikerszichtbaarheid blijft ongewijzigd.",
-    "approveImport": "Kom dan en volg Mij: keur snapshot {snapshot} goed om {lessons} officiële lessen bij te werken. Lessen die technisch zijn gevalideerd worden automatisch gepubliceerd; de zichtbaarheid voor gebruikers blijft ongewijzigd.",
+    "approveImport": "Kom dan en volg Mij: keur snapshot {snapshot} goed om {lessons} officiële lessen bij te werken. Lessen die technisch zijn gevalideerd worden automatisch gepubliceerd; een jaargang wordt bij de eerste volledige vrijgave zichtbaar voor gebruikers; daarna blijft de bestaande zichtbaarheidsschakelaar leidend.",
     "includeCfm": "Kom dan en volg Mij bijwerken en automatisch publiceren",
     "sourceMissing": "De gepinde CFM-bronbestanden ontbreken. Er wordt geen CFM-import uitgevoerd.",
     "spaceMissing": "De persistente studiemediaopslag is niet beschikbaar. Herstel de opslag voordat je CFM bijwerkt."
