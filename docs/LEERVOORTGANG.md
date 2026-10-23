@@ -129,7 +129,7 @@ zich via `recordLearningActivity` bij de rest; tot dan is dit geen vergeten gat.
    - alleen de uitgedeelde vragen tellen, en ze moeten allemaal beantwoord zijn;
    - per gebruiker en inhoud wordt vergrendeld (advisory lock), zodat twee gelijktijdige sets samen nooit boven het maximum komen;
    - per vraag wordt bijgehouden of hij al gemaakt en goed was (`ContentExerciseCredit`), zodat dezelfde vraag nooit twee keer XP geeft;
-   - XP, reeks (`recordLearningActivity`), een freeze per 10 hoofdstukken met een gemaakte oefenset, en prestaties.
+   - XP, reeks (`recordLearningActivity`), een reeksbevriezing per 10 hoofdstukken met een gemaakte oefenset, en prestaties.
 3. **Routegebonden afhandeling.** Wat bij één route hoort, gaat via `SessionHooks`. Stap voor stap vinkt de stap af en zet de cursor; dat staat in `src/lib/readingLessons.ts`.
 
 ## Leesroutes
@@ -174,7 +174,7 @@ regel verandert de afzonderlijke regels voor vriendenreeksen/groepen niet.
 - `streakRules.ts` blijft de enige definitie van een geldige activiteit, ook
   voor terugkeer. Er is geen tweede lijst van activiteiten.
 - `streakContinuation.ts` verwerkt afgesloten dagen met een rijvergrendeling
-  op de gebruiker. Beschikbare freezes worden eerst verbruikt, ook als ze
+  op de gebruiker. Beschikbare reeksbevriezingen worden eerst verbruikt, ook als ze
   slechts een deel van de gemiste dagen dekken. Ze verhogen de reeks niet.
 - Daarna markeert `streakInterruptedDay` de eerste onbevroren gemiste dag.
   `currentStreak` blijft staan, zonder vervaldatum zolang het account bestaat.
@@ -203,7 +203,7 @@ regel verandert de afzonderlijke regels voor vriendenreeksen/groepen niet.
 
 Migratie `20261004090000_streak_continuation` behoudt alle tellers en
 historische kalenderregels. Bestaande lopende reeksen krijgen een lokale
-uitrolgrens (`streakGraceDay`), zodat oude ontbrekende dagen geen freezes
+uitrolgrens (`streakGraceDay`), zodat oude ontbrekende dagen geen reeksbevriezingen
 verbruiken of direct een onderbreking opleveren. De migratie maakt geen
 fictieve studiedagen en reconstrueert geen vroeger verloren reeksen. De nieuwe
 notificatiecategorie staat voor bestaande accounts uit tot zij haar aanzetten.
@@ -215,7 +215,7 @@ nieuwe startstand gebruikt met dezelfde lokale uitrolgrens; er wordt geen
 historische studiedag verzonnen en geen terugkeeropdracht opgelegd. Ook een
 reeds gemarkeerde onderbreking uit de eerste uitrol wordt eenmalig gewist, zodat
 de gebruiker vanaf deze uitrol normaal kan verdergaan. Vanaf de eerstvolgende
-nieuwe afwezigheid gelden de gewone freeze- en voortzettingsregels.
+nieuwe afwezigheid gelden de gewone regels voor reeksbevriezingen en voortzetting.
 
 `npm run test:streak-return` test de pure regels en, met
 `LEARNING_TEST_DATABASE_URL`, echte transacties, XP, gelijktijdigheid,
@@ -230,7 +230,7 @@ kalender, meldingen en de SQL-backfill op bestaande gebruikers.
   - Niemand verliest XP.
   - Niemand kan hem opnieuw verdienen.
   - Wat de (grotere) nieuwe oefenset méér waard is, blijft te verdienen.
-- **Ongemoeid.** XP-totalen, reeksen, freezes en behaalde prestaties veranderen niet.
+- **Ongemoeid.** XP-totalen, reeksen, reeksbevriezingen en behaalde prestaties veranderen niet.
 - **Prestaties.** Hoofdstukprestaties tellen voortaan hoofdstukken met een gemaakte oefenset (`exercisesCompletedAt`); "perfect" is een helemaal goede set (`rewardBonusAt`).
 
 ## Tests

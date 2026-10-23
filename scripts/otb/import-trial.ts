@@ -1,4 +1,5 @@
 import { createPrismaClient } from "../../src/lib/db";
+import { withContentImportLock } from "../../src/lib/contentImportLock";
 import { importOtbTrial } from "./import-core";
 import { preparePinnedOtbSource } from "./source";
 
@@ -8,7 +9,7 @@ async function main(): Promise<void> {
   if (!sourceRoot) throw new Error("Gebruik: npm run otb:import-trial -- --source /pad/naar/open-bible");
   const prisma = createPrismaClient();
   try {
-    await importOtbTrial(prisma, sourceRoot);
+    await withContentImportLock(() => importOtbTrial(prisma, sourceRoot));
   } finally {
     await prisma.$disconnect();
   }
