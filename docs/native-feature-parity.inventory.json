@@ -72470,6 +72470,7 @@
     "tests/cfm-programme.test.ts",
     "tests/cfm-reading-typography.test.ts",
     "tests/cfm-references.test.ts",
+    "tests/cfm-sources-image.test.ts",
     "tests/cfm-sources.test.ts",
     "tests/cfm-step-navigation.test.ts",
     "tests/cfm-study-origin.test.ts",
