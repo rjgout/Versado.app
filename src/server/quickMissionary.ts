@@ -220,7 +220,7 @@ async function sweepAll(): Promise<void> {
   for (const match of running) {
     const result = await sweepStalePlayers(match.id).catch(() => null);
     if (!result) continue;
-    announceMatchChanged({ code: match.liveGame.code, endedFor: result.ended ? match.runs.map((run) => run.userId) : null });
+    announceMatchChanged({ code: match.liveGame.code, endedFor: result.ended ? match.runs.map((run) => run.userId) : null, streaks: result.streaks });
   }
 }
 

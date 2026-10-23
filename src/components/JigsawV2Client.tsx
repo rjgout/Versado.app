@@ -468,7 +468,7 @@ function Question({ state, onSubmit, t, matchMode = false, onLater }: { state: S
 function Result({ state, answer, question, onChooseAnother, onReplay, t }: { state: State; answer: Answer | null; question: State["question"]; onChooseAnother: () => void; onReplay: () => void; t: ReturnType<typeof useT> }) {
   const result = answer && "correct" in answer ? answer : null;
   const text = result ? result.correct ? t("jigsaw.correct") : t("jigsaw.incorrect") : t("jigsaw.answerRecorded");
-  // Een onjuist antwoord is geen afgeronde activiteit: de kaart viert dan niet en zegt dat er niets is bijgeschreven.
+  // De activiteit telt ook bij een fout antwoord; de kaart geeft dan bemoedigende feedback.
   const wrong = result !== null && !result.correct; const elapsed = state.completion?.elapsedMs ?? null;
   return <CompletionCard image={state.image} imageAlt={t("jigsaw.completedImage")} title={wrong ? t("jigsaw.completion.resultIncorrectTitle") : t("jigsaw.complete")} mascot={wrong ? "encourage" : "celebrate"}
     time={elapsed !== null ? { label: t("jigsaw.completion.time"), value: formatPuzzleTime(elapsed) } : null}
