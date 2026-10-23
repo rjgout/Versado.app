@@ -29,6 +29,11 @@ jobs:
       # Niet-geheime omgevingsvariabele: de HTTPS-origin van de testbackend; moet in scripts/native/distribution-origins.json staan.
       NATIVE_API_BASE_URL: ${{ vars.NATIVE_STORE_TEST_API_ORIGIN }}
     steps:
+      - name: Versienaam valideren vóór alles (invoer nooit in shelltekst interpoleren)
+        env:
+          APP_VERSION: ${{ inputs.app_version }}
+        run: |
+          if ! [[ "$APP_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo "::error::app_version moet x.y.z zijn"; exit 1; fi
       - uses: actions/checkout@v7
       - name: Controleer de eigenaarsvoorwaarden (geen waarden in de log)
         env:
@@ -104,8 +109,8 @@ jobs:
           sha="$(shasum -a 256 "$ipa" | cut -d' ' -f1)"
           {
             echo "### iOS TestFlight-archief"
-            echo "- versie ${{ inputs.app_version }} (build ${{ github.run_number }})"
-            echo "- commit ${{ github.sha }}"
+            echo "- versie $NATIVE_APP_VERSION (build $NATIVE_BUILD_NUMBER)"
+            echo "- commit $GITHUB_SHA"
             echo "- $(xcodebuild -version | tr '\n' ' ')"
             echo "- sha256 \`$sha\`"
             echo "- Niet geüpload. De eigenaar plaatst de IPA handmatig in TestFlight (bijvoorbeeld met Transporter)."
