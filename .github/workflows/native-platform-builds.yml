@@ -116,9 +116,10 @@ jobs:
           VERSADO_VERSION_CODE: '1'
         run: |
           node -e 'const f="scripts/native/distribution-origins.json";const j=require("./"+f);j["store-test"]=["https://ci-selftest.versado-test.com"];require("fs").writeFileSync(f,JSON.stringify(j,null,2))'
+          trap 'git checkout -- scripts/native/distribution-origins.json' EXIT
           npm run native:build
-          git checkout -- scripts/native/distribution-origins.json
           npx cap sync android
+          git checkout -- scripts/native/distribution-origins.json
           node scripts/native/android-release-guard.mjs before
           keystore="$RUNNER_TEMP/selftest2.jks"; pw="$(openssl rand -hex 16)"
           keytool -genkeypair -keystore "$keystore" -storepass "$pw" -keypass "$pw" -alias selftest -dname "CN=CI Selftest" -keyalg RSA -keysize 2048 -validity 1
