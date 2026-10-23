@@ -1,34 +1,15 @@
 import { PrismaClient } from "@/generated/prisma/client";
 import { seedBooks } from "../../prisma/content";
 import { withContentImportLock } from "./contentImportLock";
+import { SCRIPTURE_SOURCES } from "./scriptureSources";
 import { syncCourses } from "./courses";
 import { importBooks } from "../../prisma/importContent";
 import { importChapterAudio, type ChapterAudioSeed } from "../../prisma/importAudio";
 import { mirrorChapterAudio } from "./audioMirror";
 import bomAudio from "../../prisma/bomAudio.json";
-import bomAudioEn from "../../prisma/bomAudio.en.json";
-import bomAudioDe from "../../prisma/bomAudio.de.json";
-import bomAudioFr from "../../prisma/bomAudio.fr.json";
-import bomAudioEs from "../../prisma/bomAudio.es.json";
-import dcContent from "../../prisma/dcContent.json";
-import pgpContent from "../../prisma/pgpContent.json";
-import bomContentEn from "../../prisma/bomContent.en.json";
-import bomContentEs from "../../prisma/bomContent.es.json";
-import bomContentDe from "../../prisma/bomContent.de.json";
-import bomContentFr from "../../prisma/bomContent.fr.json";
-import dcContentEn from "../../prisma/dcContent.en.json";
-import pgpContentEn from "../../prisma/pgpContent.en.json";
-import type { SeedBook } from "../../prisma/content";
 import {
-  BOM_EN_COLLECTION_ID,
-  BOM_ES_COLLECTION_ID,
-  BOM_DE_COLLECTION_ID,
-  BOM_FR_COLLECTION_ID,
   BOM_COLLECTION_ID,
   DC_COLLECTION_ID,
-  DC_EN_COLLECTION_ID,
-  PGP_COLLECTION_ID,
-  PGP_EN_COLLECTION_ID,
 } from "./contentCollections";
 import { podcastEpisodes } from "../../prisma/podcastContent";
 import { kastVanMormonEpisodes } from "../../prisma/kastVanMormonContent";
@@ -98,15 +79,6 @@ const achievementDefs = [
  * zodat de adminbackend de voortgangsregels kan opvangen en teruggeven aan
  * de admin, in plaats van dat ze alleen in de containerlogs verdwijnen.
  */
-// Begintijden per vers in de voorgelezen hoofdstukken per uitgave (berekend
-// met scripts/bom-audio). De Nederlandse staat hierboven los, omdat die bij
-// de standaardcollectie hoort die altijd bestaat.
-const audioByCollection: Partial<Record<string, ChapterAudioSeed[]>> = {
-  [BOM_EN_COLLECTION_ID]: bomAudioEn as ChapterAudioSeed[],
-  [BOM_DE_COLLECTION_ID]: bomAudioDe as ChapterAudioSeed[],
-  [BOM_FR_COLLECTION_ID]: bomAudioFr as ChapterAudioSeed[],
-  [BOM_ES_COLLECTION_ID]: bomAudioEs as ChapterAudioSeed[],
-};
 
 export async function runSeed(
   client: PrismaClient,
@@ -145,21 +117,11 @@ async function runSeedLocked(
   // Boek van Mormon zetten. De taal van de collectie bepaalt de taal van de
   // gegenereerde oefeningen en hints.
   try {
-    for (const [collectionId, books, label] of [
-      [DC_COLLECTION_ID, dcContent as SeedBook[], "Leer en Verbonden"],
-      [PGP_COLLECTION_ID, pgpContent as SeedBook[], "Parel van Grote Waarde"],
-      [BOM_EN_COLLECTION_ID, bomContentEn as SeedBook[], "Book of Mormon (Engels)"],
-      [BOM_ES_COLLECTION_ID, bomContentEs as SeedBook[], "Libro de Mormón (Spaans)"],
-      [BOM_DE_COLLECTION_ID, bomContentDe as SeedBook[], "Das Buch Mormon (Duits)"],
-      [BOM_FR_COLLECTION_ID, bomContentFr as SeedBook[], "Le Livre de Mormon (Frans)"],
-      [DC_EN_COLLECTION_ID, dcContentEn as SeedBook[], "Doctrine and Covenants (Engels)"],
-      [PGP_EN_COLLECTION_ID, pgpContentEn as SeedBook[], "Pearl of Great Price (Engels)"],
-    ] as const) {
+    for (const { id: collectionId, books, label, audio } of SCRIPTURE_SOURCES.filter((source) => source.id !== BOM_COLLECTION_ID)) {
       if (!(await client.contentCollection.findUnique({ where: { id: collectionId }, select: { id: true } }))) continue;
       log(`Seeding ${label}...`);
       await inPhase(`Boeken (${label})`, async () => {
         await importBooks(client, books, log, collectionId, { syncCourses: false });
-        const audio = audioByCollection[collectionId];
         if (audio) await importChapterAudio(client, audio, collectionId, log);
       });
     }

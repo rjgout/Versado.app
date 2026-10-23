@@ -1,4 +1,5 @@
 import type { PrismaClient } from "../src/generated/prisma/client";
+import { markAudioCurrent } from "../src/lib/audioCheck";
 
 // Voorgelezen hoofdstukken: per hoofdstuk het audiobestand van de kerk in de
 // taal van de uitgave, met de begintijd van elk vers en van de hoofdstukkop.
@@ -20,10 +21,19 @@ export interface ChapterAudioSeed {
 
 const CHUNK = 500;
 
+/** Tijdcodes zijn bruikbaar als er één per vers is en ze niet teruglopen; anders horen ze niet bij deze tekst. */
+export function audioEntryIsValid(entry: ChapterAudioSeed, verseCount: number): boolean {
+  if (entry.verseStarts.length !== verseCount) return false;
+  for (let i = 1; i < entry.verseStarts.length; i++) if (!(entry.verseStarts[i] >= entry.verseStarts[i - 1])) return false;
+  return entry.verseStarts.every((start) => Number.isFinite(start) && start >= 0);
+}
+
 /**
- * Zet de audio op de hoofdstukken en verzen. Idempotent: schrijft alleen wat
- * verschilt, en haalt audio weg bij hoofdstukken die niet (meer) in de lijst
- * staan. Draait na importBooks, want die maakt de verzen aan.
+ * Zet de audio op de hoofdstukken en verzen. Idempotent, en nooit destructief: alleen gevalideerde audiogegevens (één geldige begintijd
+ * per vers) worden toegepast, en wat er al staat wordt nooit weggehaald, ook niet als een hoofdstuk niet (meer) in de lijst staat of de
+ * gegevens niet bij de tekst passen. Zulke hoofdstukken blijven afspeelbaar en worden ter controle aangemerkt (ChapterAudioCheck).
+ * Alleen nieuwe, gevalideerde gegevens voor een hoofdstuk zetten het weer op "passend" (CURRENT). Draait na importBooks, want die
+ * maakt de verzen aan.
  */
 export async function importChapterAudio(
   prisma: PrismaClient,
@@ -40,6 +50,7 @@ export async function importChapterAudio(
       audioUrl: true,
       audioHeadingStart: true,
       audioHeadingEnd: true,
+      audioCheck: { select: { status: true } },
       book: { select: { slug: true, key: true } },
       verses: { select: { id: true, number: true, audioStart: true } },
     },
@@ -49,6 +60,7 @@ export async function importChapterAudio(
   let chapterUpdates = 0;
   let withAudio = 0;
   let skipped = 0;
+  let resolved = 0;
   for (const chapter of chapters) {
     // Nederlandse audiometadata gebruikt historisch de slug; nieuwe uitgaven
     // gebruiken de taaloverschrijdende Book.key. Zo blijft het bestaande
@@ -56,17 +68,24 @@ export async function importChapterAudio(
     const entry =
       (chapter.book.key ? byKey.get(`${chapter.book.key}:${chapter.number}`) : undefined) ??
       byKey.get(`${chapter.book.slug}:${chapter.number}`);
-    // Een telling die niet klopt met de verzen in de database hoort bij een
-    // andere tekst: dan liever geen audio dan verzen die verspringen.
-    const usable = entry && entry.verseStarts.length === chapter.verses.length ? entry : null;
+    const usable = entry && audioEntryIsValid(entry, chapter.verses.length) ? entry : null;
     if (entry && !usable) skipped += 1;
-    if (usable) withAudio += 1;
+    // Bestaande audio blijft staan als er geen (geldige) nieuwe gegevens voor zijn.
+    if (!usable) {
+      if (chapter.audioUrl) withAudio += 1;
+      if (entry && chapter.audioUrl && chapter.audioCheck?.status !== "NEEDS_REVIEW") {
+        await prisma.chapterAudioCheck.upsert({
+          where: { chapterId: chapter.id },
+          create: { chapterId: chapter.id, status: "NEEDS_REVIEW", textHash: "onbekend", flaggedAt: new Date(), detail: { reason: "AUDIO_DATA_INVALID", changedVerses: [], verseCountBefore: chapter.verses.length, verseCountAfter: entry.verseStarts.length } },
+          update: { status: "NEEDS_REVIEW", flaggedAt: new Date(), detail: { reason: "AUDIO_DATA_INVALID", changedVerses: [], verseCountBefore: chapter.verses.length, verseCountAfter: entry.verseStarts.length } },
+        });
+      }
+      continue;
+    }
+    withAudio += 1;
 
-    const data = {
-      audioUrl: usable?.url ?? null,
-      audioHeadingStart: usable?.headingStart ?? null,
-      audioHeadingEnd: usable?.headingEnd ?? null,
-    };
+    const data = { audioUrl: usable.url, audioHeadingStart: usable.headingStart, audioHeadingEnd: usable.headingEnd };
+    let changed = false;
     if (
       chapter.audioUrl !== data.audioUrl ||
       chapter.audioHeadingStart !== data.audioHeadingStart ||
@@ -74,10 +93,22 @@ export async function importChapterAudio(
     ) {
       await prisma.chapter.update({ where: { id: chapter.id }, data });
       chapterUpdates += 1;
+      changed = true;
     }
     for (const verse of chapter.verses) {
-      const start = usable?.verseStarts[verse.number - 1] ?? null;
-      if (verse.audioStart !== start) verseUpdates.push({ id: verse.id, audioStart: start });
+      const start = usable.verseStarts[verse.number - 1] ?? null;
+      if (verse.audioStart !== start) {
+        verseUpdates.push({ id: verse.id, audioStart: start });
+        changed = true;
+      }
+    }
+    // Zonder registratie: de gevalideerde gegevens gelden als passend bij de huidige tekst. Mét een openstaande controle zijn alleen
+    // gewijzigde audiogegevens bewijs dat er nieuwe audio voor de nieuwe tekst is; ongewijzigde gegevens lossen niets op.
+    const status = chapter.audioCheck?.status;
+    // (De hash hangt alleen van de verstekst af, niet van de tijdcodes; die worden hieronder in blokken weggeschreven.)
+    if (!chapter.audioCheck || (status === "NEEDS_REVIEW" && changed)) {
+      await markAudioCurrent(prisma, chapter.id);
+      if (status === "NEEDS_REVIEW") resolved += 1;
     }
   }
 
@@ -87,7 +118,8 @@ export async function importChapterAudio(
   }
   log(
     `  Audio: ${withAudio} hoofdstukken met audio, ${chapterUpdates} hoofdstukken en ${verseUpdates.length} verzen bijgewerkt` +
-      (skipped ? `, ${skipped} overgeslagen (aantal verzen klopt niet)` : "") +
+      (skipped ? `, ${skipped} niet toegepast (tijdcodes kloppen niet met de tekst; bestaande audio blijft staan, ter controle aangemerkt)` : "") +
+      (resolved ? `, ${resolved} controle(s) afgehandeld door nieuwe gevalideerde audiogegevens` : "") +
       "."
   );
 }

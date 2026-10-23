@@ -10,6 +10,7 @@ import {
 import { generateExerciseHint } from "../src/lib/exerciseHints";
 import { syncCourses } from "../src/lib/courses";
 import { exerciseSignature, optionsFingerprint, planExerciseSync } from "../src/lib/exerciseSync";
+import { flagAudioForTextChanges, type AudioFlagStats, type AudioTextChange } from "../src/lib/audioCheck";
 import { BOM_COLLECTION_ID } from "../src/lib/contentCollectionIds";
 import { inPhase } from "../src/lib/importPhase";
 import type { SeedBook } from "./content";
@@ -184,16 +185,33 @@ export interface BooksImportStats {
   chapters: { created: number; updated: number };
   verses: { created: number; updated: number; deleted: number };
   exercises: ExerciseSyncStats;
+  audio: AudioFlagStats;
+  /** Alleen de hoofdstukken waar iets verandert (leeg bij een ongewijzigde bron): voor de controle- en voorbereidingsstap. */
+  changes: ChapterChange[];
+  dryRun: boolean;
+}
+
+export interface ChapterChange {
+  bookSlug: string;
+  bookName: string;
+  chapter: number;
+  isNew: boolean;
+  verses: { created: number; updated: number; deleted: number; changedNumbers: number[] };
+  exercises: { kept: number; created: number; retired: number; deleted: number };
+  /** Heeft dit hoofdstuk voorgelezen audio die bij de oude tekst hoort? Dan wordt het na publicatie als NEEDS_REVIEW aangemerkt. */
+  audioAffected: boolean;
 }
 
 export interface ExerciseSyncStats {
   kept: number;
   updated: number;
   created: number;
-  /** Buiten gebruik gesteld omdat iemand ze al kreeg of beantwoordde (status REJECTED, niet verwijderd). */
+  /** Buiten gebruik gesteld omdat iemand ze al kreeg of beantwoordde (status RETIRED, niet verwijderd). */
   retired: number;
   /** Verwijderd omdat niemand ze ooit kreeg. */
   deleted: number;
+  /** Per hoofdstuk, alleen gevuld bij wijzigingen. */
+  perChapter?: Map<string, { kept: number; created: number; retired: number; deleted: number }>;
 }
 
 /**
@@ -202,7 +220,8 @@ export interface ExerciseSyncStats {
  */
 async function syncChapterExercises(
   prisma: PrismaClient,
-  generatedByChapter: Map<string, { exerciseRows: ExerciseRow[]; optionRows: OptionRow[] }>
+  generatedByChapter: Map<string, { exerciseRows: ExerciseRow[]; optionRows: OptionRow[] }>,
+  dryRun = false
 ): Promise<ExerciseSyncStats> {
   const chapterIds = [...generatedByChapter.keys()];
   const stats: ExerciseSyncStats = { kept: 0, updated: 0, created: 0, retired: 0, deleted: 0 };
@@ -227,6 +246,12 @@ async function syncChapterExercises(
     existingByChapter.set(row.chapterId, list);
   }
 
+  const perChapter = new Map<string, { kept: number; created: number; retired: number; deleted: number }>();
+  const bump = (chapterId: string, key: "kept" | "created" | "retired" | "deleted") => {
+    const row = perChapter.get(chapterId) ?? { kept: 0, created: 0, retired: 0, deleted: 0 };
+    row[key]++;
+    perChapter.set(chapterId, row);
+  };
   const creates: ExerciseRow[] = [];
   const createdOptions: OptionRow[] = [];
   const updates: { id: string; order: number; hint: string | null; sourceVerseId: string | null }[] = [];
@@ -248,11 +273,13 @@ async function syncChapterExercises(
     generated.exerciseRows.forEach((row, index) => {
       const keep = plan.keep[index];
       if (!keep) {
+        bump(chapterId, "created");
         creates.push(row);
         createdOptions.push(...(optionsByExercise.get(row.id!) ?? []));
         return;
       }
       stats.kept++;
+      bump(chapterId, "kept");
       // Dezelfde vraag, andere afleiders: de opties van deze oefening vervangen, het id en alles wat eraan hangt blijft.
       if (keep.options !== optionsFingerprint(orderedOptions(row.id!))) {
         optionReplacements.push({ exerciseId: keep.id, options: (optionsByExercise.get(row.id!) ?? []).map((o) => ({ ...o, exerciseId: keep.id })) });
@@ -282,16 +309,21 @@ async function syncChapterExercises(
   }
   const retire = unmatched.filter((id) => used.has(id));
   const remove = unmatched.filter((id) => !used.has(id));
+  const chapterOf = new Map(existingRows.map((row) => [row.id, row.chapterId]));
+  for (const id of retire) bump(chapterOf.get(id)!, "retired");
+  for (const id of remove) bump(chapterOf.get(id)!, "deleted");
 
   stats.updated = new Set([...updates.map((u) => u.id), ...optionReplacements.map((r) => r.exerciseId)]).size;
   stats.created = creates.length;
   stats.retired = retire.length;
   stats.deleted = remove.length;
-  if (updates.length + optionReplacements.length + creates.length + retire.length + remove.length === 0) return stats;
+  const changedChapters = new Map([...perChapter].filter(([, row]) => row.created + row.retired + row.deleted > 0));
+  if (changedChapters.size > 0) stats.perChapter = changedChapters;
+  if (dryRun || updates.length + optionReplacements.length + creates.length + retire.length + remove.length === 0) return stats;
 
   await prisma.$transaction(
     async (tx) => {
-      if (retire.length > 0) await inChunks(retire, (ids) => tx.exercise.updateMany({ where: { id: { in: ids } }, data: { status: "REJECTED" } }));
+      if (retire.length > 0) await inChunks(retire, (ids) => tx.exercise.updateMany({ where: { id: { in: ids } }, data: { status: "RETIRED" } }));
       if (remove.length > 0) await inChunks(remove, (ids) => tx.exercise.deleteMany({ where: { id: { in: ids } } }));
       for (const update of updates) await tx.exercise.update({ where: { id: update.id }, data: { order: update.order, hint: update.hint, sourceVerseId: update.sourceVerseId } });
       if (optionReplacements.length > 0) {
@@ -321,7 +353,7 @@ async function syncChapterExercises(
  * haar XP-bijschrijving en haar plek in elke uitgedeelde oefenset. Alleen wat
  * inhoudelijk anders is wordt nieuw aangemaakt; een verdwenen of gewijzigde
  * oefening wordt verwijderd als niemand haar gebruikte, en anders buiten
- * gebruik gesteld (status REJECTED, dus nooit meer uitgedeeld) maar niet
+ * gebruik gesteld (status RETIRED, dus nooit meer uitgedeeld) maar niet
  * gewist, zodat wie haar al kreeg haar nog kan afronden en niets verdwijnt.
  *
  * Alles wat er al staat, wordt in één keer opgehaald en alle nieuwe rijen
@@ -334,8 +366,9 @@ export async function importBooks(
   books: SeedBook[],
   log: (msg: string) => void = console.log,
   contentCollectionId?: string,
-  options: { syncCourses?: boolean } = {}
+  options: { syncCourses?: boolean; dryRun?: boolean } = {}
 ): Promise<BooksImportStats> {
+  const dryRun = options.dryRun === true;
   // Zonder expliciete doelcollectie geldt het Boek van Mormon (vast id); nooit "de eerste ingeschakelde collectie op volgorde": bij gelijke
   // `order` is dat een toevallige andere collectie (zie docs/CURSUSIDENTITEIT.md).
   const collection = await prisma.contentCollection.findUnique({ where: { id: contentCollectionId ?? BOM_COLLECTION_ID }, select: { id: true, language: true } });
@@ -343,10 +376,15 @@ export async function importBooks(
   const collectionId = collection.id;
   const language = toLanguageCode(collection.language);
 
+  // Een droogloop (controleren/voorbereiden) schrijft nooit: een nog niet bestaand boek telt dan als geheel nieuw.
   const bookIds: string[] = [];
   for (let bookOrder = 0; bookOrder < books.length; bookOrder++) {
     const seedBook = books[bookOrder];
     const key = seedBook.key ?? BOOK_KEYS_BY_SLUG[seedBook.slug] ?? null;
+    if (dryRun) {
+      bookIds.push((await prisma.book.findUnique({ where: { slug: seedBook.slug }, select: { id: true } }))?.id ?? `nieuw:${seedBook.slug}`);
+      continue;
+    }
     const book = await prisma.book.upsert({
       where: { slug: seedBook.slug },
       update: { name: seedBook.name, order: bookOrder, contentCollectionId: collectionId, key },
@@ -357,7 +395,7 @@ export async function importBooks(
 
   const existingChapters = await prisma.chapter.findMany({
     where: { bookId: { in: bookIds } },
-    select: { id: true, bookId: true, number: true, order: true, heading: true, verses: { select: { id: true, number: true, text: true } } },
+    select: { id: true, bookId: true, number: true, order: true, heading: true, audioUrl: true, audioCheck: { select: { id: true } }, verses: { select: { id: true, number: true, text: true } } },
   });
   const chapterByKey = new Map(existingChapters.map((c) => [`${c.bookId}:${c.number}`, c]));
 
@@ -368,6 +406,8 @@ export async function importBooks(
   const verseDeletes: string[] = [];
   const generatedByChapter = new Map<string, { exerciseRows: ExerciseRow[]; optionRows: OptionRow[] }>();
   const chapterIds: string[] = [];
+  const audioChanges: AudioTextChange[] = [];
+  const changeByChapter = new Map<string, ChapterChange>();
 
   books.forEach((seedBook, bookIndex) => {
     const bookId = bookIds[bookIndex];
@@ -377,6 +417,11 @@ export async function importBooks(
       const existing = chapterByKey.get(`${bookId}:${seedChapter.number}`);
       const chapterId = existing?.id ?? randomUUID();
       chapterIds.push(chapterId);
+      const change: ChapterChange = {
+        bookSlug: seedBook.slug, bookName: seedBook.name, chapter: seedChapter.number, isNew: !existing,
+        verses: { created: 0, updated: 0, deleted: 0, changedNumbers: [] }, exercises: { kept: 0, created: 0, retired: 0, deleted: 0 }, audioAffected: false,
+      };
+      changeByChapter.set(chapterId, change);
       if (!existing) {
         chapterCreates.push({ id: chapterId, bookId, number: seedChapter.number, order: chapterOrder, heading });
       } else if (existing.order !== chapterOrder || existing.heading !== heading) {
@@ -389,13 +434,33 @@ export async function importBooks(
         if (!current) {
           const id = randomUUID();
           verseCreates.push({ id, chapterId, number: i + 1, text });
+          change.verses.created++;
+          change.verses.changedNumbers.push(i + 1);
           return id;
         }
-        if (current.text !== text) verseUpdates.push({ id: current.id, text });
+        if (current.text !== text) {
+          verseUpdates.push({ id: current.id, text });
+          change.verses.updated++;
+          change.verses.changedNumbers.push(i + 1);
+        }
         return current.id;
       });
       for (const verse of existing?.verses ?? []) {
-        if (verse.number > seedChapter.verses.length) verseDeletes.push(verse.id);
+        if (verse.number > seedChapter.verses.length) {
+          verseDeletes.push(verse.id);
+          change.verses.deleted++;
+          change.verses.changedNumbers.push(verse.number);
+        }
+      }
+      // Een hoofdstuk met voorgelezen audio waarvan de tekst verandert: de audio hoort dan niet meer vanzelf bij de tekst.
+      if (existing && change.verses.changedNumbers.length > 0 && (existing.audioUrl || existing.audioCheck)) {
+        change.audioAffected = true;
+        audioChanges.push({
+          chapterId,
+          hasAudio: !!existing.audioUrl,
+          before: [...existing.verses].sort((a, b) => a.number - b.number).map((v) => v.text),
+          after: seedChapter.verses,
+        });
       }
 
       const generated = chapterExercises(seedBook, seedChapter, chapterId, verseIds, language);
@@ -405,26 +470,42 @@ export async function importBooks(
     log(`  - ${seedBook.name}: ${seedBook.chapters.length} hoofdstukken, ${bookExercises} oefeningen`);
   });
 
-  await inChunks(chapterCreates, (data) => prisma.chapter.createMany({ data }));
-  for (const c of chapterUpdates) {
-    await prisma.chapter.update({ where: { id: c.id }, data: { order: c.order, heading: c.heading } });
+  // De audiomarkering gebeurt vóór de verzen worden overschreven (de registratie bewaart de oude tekst als vastgestelde stand).
+  let audio: AudioFlagStats = { flagged: audioChanges.length, alreadyFlagged: 0, restored: 0 };
+  if (!dryRun) {
+    audio = await flagAudioForTextChanges(prisma, audioChanges);
+    await inChunks(chapterCreates, (data) => prisma.chapter.createMany({ data }));
+    for (const c of chapterUpdates) {
+      await prisma.chapter.update({ where: { id: c.id }, data: { order: c.order, heading: c.heading } });
+    }
+    await inChunks(verseCreates, (data) => prisma.verse.createMany({ data }));
+    await inChunks(verseUpdates, (chunk) =>
+      prisma.$transaction(chunk.map((v) => prisma.verse.update({ where: { id: v.id }, data: { text: v.text } })))
+    );
   }
-  await inChunks(verseCreates, (data) => prisma.verse.createMany({ data }));
-  await inChunks(verseUpdates, (chunk) =>
-    prisma.$transaction(chunk.map((v) => prisma.verse.update({ where: { id: v.id }, data: { text: v.text } })))
-  );
-  log(`  Verzen: ${verseCreates.length} nieuw, ${verseUpdates.length} gewijzigd, ${verseDeletes.length} verwijderd.`);
+  log(`  Verzen: ${verseCreates.length} nieuw, ${verseUpdates.length} gewijzigd, ${verseDeletes.length} verwijderd${dryRun ? " (droogloop, niets geschreven)" : ""}.`);
 
-  const exercises = await syncChapterExercises(prisma, generatedByChapter);
+  const exercises = await syncChapterExercises(prisma, generatedByChapter, dryRun);
   log(`  Oefeningen: ${exercises.kept} ongewijzigd behouden, ${exercises.updated} bijgewerkt, ${exercises.created} nieuw, ${exercises.retired} buiten gebruik gesteld, ${exercises.deleted} verwijderd (ongebruikt).`);
+  if (audioChanges.length > 0) log(`  Audio: ${audioChanges.length} hoofdstuk(ken) met gewijzigde tekst ${dryRun ? "zouden ter controle worden aangemerkt" : "ter controle aangemerkt"}; de audio zelf blijft ongewijzigd beschikbaar.`);
   // Pas na de oefeningen: die verwijzen alleen nog naar bestaande verzen.
-  if (verseDeletes.length > 0) await prisma.verse.deleteMany({ where: { id: { in: verseDeletes } } });
+  if (!dryRun && verseDeletes.length > 0) await prisma.verse.deleteMany({ where: { id: { in: verseDeletes } } });
 
   // Een lopende reseed synchroniseert de cursussen één keer na alle collecties (zie runSeed); losse aanroepen doen het zelf.
-  if (options.syncCourses !== false) await inPhase("Cursussen", () => syncCourses(prisma));
+  if (!dryRun && options.syncCourses !== false) await inPhase("Cursussen", () => syncCourses(prisma));
+
+  const changes: ChapterChange[] = [];
+  for (const [chapterId, change] of changeByChapter) {
+    const perExercise = exercises.perChapter?.get(chapterId);
+    if (perExercise) change.exercises = perExercise;
+    if (change.isNew || change.verses.changedNumbers.length > 0 || change.exercises.created + change.exercises.retired + change.exercises.deleted > 0) changes.push(change);
+  }
   return {
     chapters: { created: chapterCreates.length, updated: chapterUpdates.length },
     verses: { created: verseCreates.length, updated: verseUpdates.length, deleted: verseDeletes.length },
-    exercises,
+    exercises: { kept: exercises.kept, updated: exercises.updated, created: exercises.created, retired: exercises.retired, deleted: exercises.deleted },
+    audio,
+    changes,
+    dryRun,
   };
 }
