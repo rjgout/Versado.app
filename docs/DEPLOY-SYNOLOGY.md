@@ -44,8 +44,8 @@ Draait er al een installatie onder de oude naamgeving (`bom-game`/`bom-db`/
    `jehova-proxy` publiceert voortaan diezelfde poort in plaats van
    `jehova-app` zelf.
 
-Persistente databasegegevens (gebruikers, wachtwoorden, leesvoortgang, XP, streaks,
-freezes, vrienden, competitie, quizresultaten, content, instellingen) staat
+Persistente databasegegevens (gebruikers, wachtwoorden, leesvoortgang, XP, reeksen,
+reeksbevriezingen, vrienden, competitie, quizresultaten, content, instellingen) staat
 in PostgreSQL, in een map op je NAS die losstaat van de containers. Studielesmedia
 en branding staan daarnaast in eigen persistente volumes. Containervervanging
 behoudt deze gegevens alleen wanneer de bestaande mounts en configuratie intact
@@ -107,6 +107,9 @@ Gebruik **Content opnieuw laden** in `/adminbackend`. Voor CFM bevestig je de
 getoonde gepinde bronsnapshot; de bestaande importer maakt uitsluitend concepten
 en behoudt bestaande publicaties. Er is voor normale contentupdates geen
 Docker-console nodig. Niet-goedgekeurde snapshots worden niet geïmporteerd.
+Voer vóór de eerste reload na een uitrol een database-back-up uit en de alleen-lezen diagnose
+`scripts/content-architecture/diagnose-content-integrity-readonly.mjs`; zie `docs/CONTENTBEHEER.md`
+("Uitrol en herstel").
 
 Al geïmporteerde CFM-concepten hoeven niet opnieuw te worden geladen: beoordeel
 en publiceer de revisies onder **Content → Studielespublicaties**, geef daarna de

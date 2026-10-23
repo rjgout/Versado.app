@@ -51,18 +51,20 @@ async function readLocale(sourceRoot: string, locale: OtbLocale): Promise<Map<nu
   return result;
 }
 
-async function upsertCollection(client: PrismaClient, collection: typeof OTB_COLLECTIONS[number], sourceUrl: string, license: string, licenseUrl: string): Promise<void> {
+/**
+ * Maakt de OTB-collectie aan als ze nog niet bestaat. Een bestaande collectie krijgt alleen haar bronvermelding en
+ * werkidentiteit bijgewerkt: `enabled`, `visibleToUsers`, `publicationState`, naam, icoon en volgorde zijn beheerinstellingen en
+ * worden door een import nooit overschreven. (Eerder zette elke reload `visibleToUsers` terug op false, waardoor een door de
+ * beheerder vrijgegeven Bijbel uit de contentkiezer verdween.) Een nieuwe collectie blijft verborgen tot de beheerder haar vrijgeeft.
+ */
+export async function upsertOtbCollection(client: PrismaClient, collection: typeof OTB_COLLECTIONS[number], sourceUrl: string, license: string, licenseUrl: string): Promise<void> {
+  const source = { sourceName: "Open Translation Bible", sourceUrl, licenseName: license, licenseUrl };
   await client.contentCollection.upsert({
     where: { id: collection.id },
-    update: {
-      slug: collection.slug, name: otbCollectionName(collection.work, collection.language), icon: "📖", order: collection.order,
-      enabled: true, visibleToUsers: false, work: collection.work, editionKey: collection.editionKey, language: collection.language,
-      sourceName: "Open Translation Bible", sourceUrl, licenseName: license, licenseUrl,
-    },
+    update: { slug: collection.slug, work: collection.work, editionKey: collection.editionKey, language: collection.language, ...source },
     create: {
       id: collection.id, slug: collection.slug, name: otbCollectionName(collection.work, collection.language), icon: "📖", order: collection.order,
-      enabled: true, visibleToUsers: false, work: collection.work, editionKey: collection.editionKey, language: collection.language,
-      sourceName: "Open Translation Bible", sourceUrl, licenseName: license, licenseUrl,
+      enabled: true, visibleToUsers: false, work: collection.work, editionKey: collection.editionKey, language: collection.language, ...source,
     },
   });
 }
@@ -90,13 +92,14 @@ export async function importOtbFull(
   const totalChapters = validation.scans[0]?.chapterCount ?? 0;
   const totalImportChapters = validation.scans.reduce((total, scan) => total + scan.chapterCount, 0);
   let completedChapters = 0;
+  let skippedChapters = 0;
 
   for (const locale of OTB_LOCALES) {
     const chaptersByBook = await readLocale(sourceRoot, locale);
     const language = OTB_LANGUAGE_BY_LOCALE[locale];
     for (const collection of OTB_COLLECTIONS.filter((item) => item.locale === locale)) {
       const sourceUrl = `https://github.com/OpenTranslationBible/open-bible/tree/${lock.upstreamCommit}/lang/${collection.locale}`;
-      await upsertCollection(client, collection, sourceUrl, lock.license, lock.licenseUrl);
+      await upsertOtbCollection(client, collection, sourceUrl, lock.license, lock.licenseUrl);
       const bookNumbers = OTB_BOOK_NUMBERS.filter((number) => otbWorkForBookNumber(number) === collection.work);
       log(`${collection.work === "old-testament" ? "Oude Testament" : "Nieuwe Testament"} — ${language}: ${bookNumbers.length} boeken laden...`);
 
@@ -107,6 +110,16 @@ export async function importOtbFull(
         const bookInfo = validation.scans.find((scan) => scan.locale === locale)?.books.get(bookKey);
         const bookName = bookInfo?.name ?? chapters.values().next().value?.book ?? bookKey;
         log(`${collection.work === "old-testament" ? "Oude Testament" : "Nieuwe Testament"} — ${language}: boek ${bookIndex + 1}/${bookNumbers.length}: ${bookName}`);
+
+        // Eén query per boek om te zien wat er al staat: ongewijzigde hoofdstukken (de overgrote meerderheid bij een herhaalde
+        // import) kosten daarna geen enkele schrijfactie of transactie meer.
+        const bookSlug = `${collection.work}-otb-${collection.language}-${bookKey}`;
+        const storedBook = await client.book.findUnique({
+          where: { slug: bookSlug },
+          select: { name: true, order: true, key: true, contentCollectionId: true, chapters: { select: { number: true, order: true, verses: { select: { number: true, text: true } } } } },
+        });
+        const storedChapters = new Map((storedBook?.chapters ?? []).map((row) => [row.number, row]));
+        const bookUnchanged = !!storedBook && storedBook.name === bookName && storedBook.order === bookNumber - 1 && storedBook.key === bookKey && storedBook.contentCollectionId === collection.id;
 
         for (const chapterNumber of [...chapters.keys()].sort((a, b) => a - b)) {
           const chapter = chapters.get(chapterNumber)!;
@@ -122,6 +135,15 @@ export async function importOtbFull(
             chapterNumber,
             chapterCount: chapters.size,
           });
+
+          const stored = storedChapters.get(chapter.chapter);
+          if (
+            bookUnchanged && stored && stored.order === chapter.chapter - 1 && stored.verses.length === chapter.verses.size &&
+            stored.verses.every((verse) => chapter.verses.get(verse.number) === verse.text)
+          ) {
+            skippedChapters += 1;
+            continue;
+          }
 
           // Elke hoofdstukbatch is atomair; eerdere batches blijven staan en
           // een volgende reload kan ontbrekende batches veilig aanvullen.
@@ -160,7 +182,7 @@ export async function importOtbFull(
       }
     }
   }
-  log(`OTB-content bijgewerkt: ${totalChapters * OTB_LOCALES.length} hoofdstukken verwerkt.`);
+  log(`OTB-content gecontroleerd: ${totalChapters * OTB_LOCALES.length} hoofdstukken, waarvan ${skippedChapters} ongewijzigd overgeslagen.`);
 }
 
 // De CLI-naam blijft bestaan voor de bestaande workflow; de inhoud is nu volledig.

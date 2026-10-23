@@ -142,7 +142,8 @@ export default function ShopClient() {
         </ul>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 text-center">
+      {/* Onder elkaar op een telefoon: "reeksbevriezingen" breekt anders midden in het woord af. */}
+      <div className="grid grid-cols-1 gap-4 text-center sm:grid-cols-3">
         <div className="card !py-3 !px-5 !bg-brand-50 dark:!bg-slate-800 !border-brand-100 dark:!border-slate-700">
           <div className="text-xl font-extrabold text-brand-600 dark:text-brand-300">💡 {data.hintBalance}</div>
           <div className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{t("shop.hints")}</div>

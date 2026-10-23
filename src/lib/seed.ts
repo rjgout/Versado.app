@@ -1,5 +1,7 @@
 import { PrismaClient } from "@/generated/prisma/client";
 import { seedBooks } from "../../prisma/content";
+import { withContentImportLock } from "./contentImportLock";
+import { syncCourses } from "./courses";
 import { importBooks } from "../../prisma/importContent";
 import { importChapterAudio, type ChapterAudioSeed } from "../../prisma/importAudio";
 import { mirrorChapterAudio } from "./audioMirror";
@@ -52,10 +54,10 @@ import { GENEES_BANKS } from "../../prisma/genees";
 
 // Namen/omschrijvingen bij de achievement-slugs uit src/lib/achievements.ts.
 const achievementDefs = [
-  { slug: "streak-3", name: "Drie dagen volgehouden", icon: "🔥", description: "Hield 3 dagen op rij een streak vol." },
-  { slug: "streak-7", name: "Eerste week", icon: "🔥", description: "Hield 7 dagen op rij een streak vol." },
-  { slug: "streak-30", name: "Vol doorgezet", icon: "🔥", description: "Hield 30 dagen op rij een streak vol." },
-  { slug: "streak-100", name: "Honderd dagen sterk", icon: "💯", description: "Hield 100 dagen op rij een streak vol." },
+  { slug: "streak-3", name: "Drie dagen volgehouden", icon: "🔥", description: "Hield 3 dagen op rij een reeks vol." },
+  { slug: "streak-7", name: "Eerste week", icon: "🔥", description: "Hield 7 dagen op rij een reeks vol." },
+  { slug: "streak-30", name: "Vol doorgezet", icon: "🔥", description: "Hield 30 dagen op rij een reeks vol." },
+  { slug: "streak-100", name: "Honderd dagen sterk", icon: "💯", description: "Hield 100 dagen op rij een reeks vol." },
   { slug: "first-chapter", name: "Eerste hoofdstuk", icon: "📖", description: "Rondde je eerste hoofdstuk af." },
   { slug: "chapters-5", name: "Op dreef", icon: "📚", description: "Rondde 5 hoofdstukken af." },
   { slug: "chapters-10", name: "Tien hoofdstukken", icon: "📚", description: "Rondde 10 hoofdstukken af." },
@@ -66,8 +68,8 @@ const achievementDefs = [
   { slug: "xp-1000", name: "1000 XP", icon: "⭐", description: "Verdiende in totaal 1000 XP." },
   { slug: "xp-5000", name: "5000 XP", icon: "🌟", description: "Verdiende in totaal 5000 XP." },
   { slug: "xp-10000", name: "10.000 XP", icon: "🏆", description: "Verdiende in totaal 10.000 XP." },
-  { slug: "first-freeze-earned", name: "Eerste freeze", icon: "🧊", description: "Verdiende je eerste streak freeze." },
-  { slug: "first-freeze-gifted", name: "Vrijgevig", icon: "🎁", description: "Gaf je eerste streak freeze cadeau aan een vriend." },
+  { slug: "first-freeze-earned", name: "Eerste reeksbevriezing", icon: "🧊", description: "Verdiende je eerste reeksbevriezing." },
+  { slug: "first-freeze-gifted", name: "Vrijgevig", icon: "🎁", description: "Gaf je eerste reeksbevriezing cadeau aan een vriend." },
   { slug: "first-friend", name: "Niet alleen", icon: "👥", description: "Voegde je eerste vriend toe." },
   { slug: "friends-5", name: "Vriendenkring", icon: "👨‍👩‍👧‍👦", description: "Heeft 5 vrienden." },
   { slug: "first-duel-won", name: "Eerste overwinning", icon: "⚔️", description: "Won je eerste live Schriftduel." },
@@ -112,6 +114,16 @@ export async function runSeed(
   progress?: (progress: OtbImportProgress) => void,
   studyImport?: () => Promise<void>,
 ): Promise<void> {
+  // Nooit twee imports tegelijk (adminknop en terminal, of een dubbele klik): de tweede stopt netjes met een duidelijke melding.
+  await withContentImportLock(() => runSeedLocked(client, log, progress, studyImport));
+}
+
+async function runSeedLocked(
+  client: PrismaClient,
+  log: (msg: string) => void,
+  progress?: (progress: OtbImportProgress) => void,
+  studyImport?: () => Promise<void>,
+): Promise<void> {
   if (studyImport) await inPhase("Studiecontent", studyImport);
   log("Seeding boeken, hoofdstukken, verzen en oefeningen...");
   await inPhase("Boeken", () => importBooks(client, seedBooks, log, BOM_COLLECTION_ID));
@@ -132,23 +144,40 @@ export async function runSeed(
   // 20260925120000_english_editions), anders zou importBooks ze bij het
   // Boek van Mormon zetten. De taal van de collectie bepaalt de taal van de
   // gegenereerde oefeningen en hints.
-  for (const [collectionId, books, label] of [
-    [DC_COLLECTION_ID, dcContent as SeedBook[], "Leer en Verbonden"],
-    [PGP_COLLECTION_ID, pgpContent as SeedBook[], "Parel van Grote Waarde"],
-    [BOM_EN_COLLECTION_ID, bomContentEn as SeedBook[], "Book of Mormon (Engels)"],
-    [BOM_ES_COLLECTION_ID, bomContentEs as SeedBook[], "Libro de Mormón (Spaans)"],
-    [BOM_DE_COLLECTION_ID, bomContentDe as SeedBook[], "Das Buch Mormon (Duits)"],
-    [BOM_FR_COLLECTION_ID, bomContentFr as SeedBook[], "Le Livre de Mormon (Frans)"],
-    [DC_EN_COLLECTION_ID, dcContentEn as SeedBook[], "Doctrine and Covenants (Engels)"],
-    [PGP_EN_COLLECTION_ID, pgpContentEn as SeedBook[], "Pearl of Great Price (Engels)"],
-  ] as const) {
-    if (!(await client.contentCollection.findUnique({ where: { id: collectionId }, select: { id: true } }))) continue;
-    log(`Seeding ${label}...`);
-    await inPhase(`Boeken (${label})`, async () => {
-      await importBooks(client, books, log, collectionId);
-      const audio = audioByCollection[collectionId];
-      if (audio) await importChapterAudio(client, audio, collectionId, log);
+  let loopFailed = false;
+  try {
+    for (const [collectionId, books, label] of [
+      [DC_COLLECTION_ID, dcContent as SeedBook[], "Leer en Verbonden"],
+      [PGP_COLLECTION_ID, pgpContent as SeedBook[], "Parel van Grote Waarde"],
+      [BOM_EN_COLLECTION_ID, bomContentEn as SeedBook[], "Book of Mormon (Engels)"],
+      [BOM_ES_COLLECTION_ID, bomContentEs as SeedBook[], "Libro de Mormón (Spaans)"],
+      [BOM_DE_COLLECTION_ID, bomContentDe as SeedBook[], "Das Buch Mormon (Duits)"],
+      [BOM_FR_COLLECTION_ID, bomContentFr as SeedBook[], "Le Livre de Mormon (Frans)"],
+      [DC_EN_COLLECTION_ID, dcContentEn as SeedBook[], "Doctrine and Covenants (Engels)"],
+      [PGP_EN_COLLECTION_ID, pgpContentEn as SeedBook[], "Pearl of Great Price (Engels)"],
+    ] as const) {
+      if (!(await client.contentCollection.findUnique({ where: { id: collectionId }, select: { id: true } }))) continue;
+      log(`Seeding ${label}...`);
+      await inPhase(`Boeken (${label})`, async () => {
+        await importBooks(client, books, log, collectionId, { syncCourses: false });
+        const audio = audioByCollection[collectionId];
+        if (audio) await importChapterAudio(client, audio, collectionId, log);
+      });
+    }
+  } catch (error) {
+    loopFailed = true;
+    throw error;
+  } finally {
+    // De cursussen één keer na alle overige collecties (voorheen na elke collectie opnieuw), ook als er halverwege iets misging: wat wel
+    // is binnengekomen krijgt zo zijn lessen. Een fout hier verdringt nooit de oorspronkelijke fout; slaagde de lus wel, dan is een mislukte
+    // synchronisatie een echte fout van de run (anders blijven oefenkoppelingen onbemerkt achter).
+    log("Cursussen synchroniseren...");
+    let syncError: unknown = null;
+    await inPhase("Cursussen", () => syncCourses(client)).catch((error) => {
+      syncError = error;
+      log(`Cursussen synchroniseren mislukt: ${error instanceof Error ? error.message : String(error)}`);
     });
+    if (syncError && !loopFailed) throw syncError;
   }
 
   log("Seeding podcastafleveringen...");

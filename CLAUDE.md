@@ -14,7 +14,7 @@ symlink nooit door een losse kopie; controleer bij twijfel met
 ## Wat dit is
 
 **Jehova** — een algemene, interactieve leeromgeving voor schriftstudie
-(lessen, oefeningen, XP, streaks, competitie, live multiplayer-quiz). Het
+(lessen, oefeningen, XP, reeksen, competitie, live multiplayer-quiz). Het
 datamodel (`Book`/`Chapter`/`Verse`/`Course`, zie Database & migraties
 hieronder) is bewust niet aan één specifiek schriftwerk gebonden: het Boek
 van Mormon is vandaag de enige/eerste cursus/contentcollectie, maar de
@@ -567,6 +567,10 @@ realtime-bron.
   `onboardingSeenAt = createdAt` zodat bestaande accounts de onboarding-flow
   nooit alsnog te zien krijgen). Patroon: DDL bovenaan `migration.sql`,
   backfill-`UPDATE`/`INSERT...SELECT` eronder, in hetzelfde bestand.
+- **Content importeren verwijdert nooit wat een gebruiker gebruikte** (`docs/CONTENTBEHEER.md`): importers vervangen geen oefeningen met nieuwe
+  id's maar koppelen op inhoud (`src/lib/exerciseSync.ts`, `prisma/reconcileExercises.ts`); een gewijzigde vraag wordt een nieuwe vraag en de
+  oude blijft, als iemand haar kreeg of beantwoordde, buiten gebruik bestaan. Een import overschrijft nooit `enabled`, `visibleToUsers`,
+  `publicationState`, naam of volgorde van een bestaande `ContentCollection`, en draait onder `withContentImportLock`.
 - Instellingen die een admin via `/adminbackend` aanpast staan in eigen
   singleton-modellen (`id String @id @default("singleton")`) — patroon:
   `EmailSettings`, `LeagueSettings`, `BrandingSettings`, `DetectedAppUrl`.
@@ -847,6 +851,7 @@ het hoofdstuk). Het fundament ligt er; zichtbaar is alles nog Nederlands.
   bevatten: `tsx` maakt van elke sleutel een variabele, en woorden als
   `yield` of `let` laten de app dan bij het opstarten crashen. Woordenlijsten
   in andere talen staan daarom als `[woord, aantal]`-paren.
+- **Terminologie reeksen**: in het Nederlands altijd "reeks" en "reeksbevriezing(en)", nooit "streak"/"freeze" in zichtbare tekst; zie "Nederlandse terminologie voor reeksen" in `docs/VERSADO-DESIGN.md` (bewaakt door `tests/nl-terminology.test.ts`).
 - **App-teksten**: `src/lib/i18n/messages/nl.ts` is de bron; de taalbestanden
   (`en.ts`, `de.ts`, `fr.ts`, `es.ts`) volgen die structuur;
   een ontbrekende tekst valt terug langs
