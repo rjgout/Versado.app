@@ -140,7 +140,8 @@ try {
     await run("npx", ["tsx", "--test", "tests/content-access.test.ts", "tests/content-inventory.test.ts", "tests/content-inventory-validation.test.mjs", "tests/content-access.integration.test.ts", "tests/content-switch.integration.test.ts"], env);
     await run("npx", ["tsx", "--test", "tests/course-sync.integration.test.ts"], env);
     await run("npx", ["tsx", "--test", "tests/course-identity.integration.test.ts"], env);
-    await run("npx", ["tsx", "--test", "tests/exercise-sync.test.ts", "tests/content-import.integration.test.ts", "tests/content-update.integration.test.ts"], env);
+    // Achter elkaar (--test-concurrency=1): beide integratietests gebruiken dezelfde importlock en testen die ook zelf.
+    await run("npx", ["tsx", "--test", "--test-concurrency=1", "tests/exercise-sync.test.ts", "tests/content-import.integration.test.ts", "tests/content-update.integration.test.ts"], env);
     // Apart: fingerprints over alle oude tabellen en een tijdelijke fouttrigger mogen
     // niet samenvallen met fixtures van andere testprocessen.
     await run("npx", ["tsx", "--test", "tests/study-context.test.ts", "tests/study-context.integration.test.ts"], env);
