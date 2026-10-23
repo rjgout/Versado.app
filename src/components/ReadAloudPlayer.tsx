@@ -67,7 +67,8 @@ export default function ReadAloudPlayer({ sourceId, title, verses, audio, startV
     verses.every((verse) => edition.verses.some((item) => item.number === verse.number))
   ) : [];
   const textLanguage = language ?? "nl";
-  const selected = available.find((edition) => edition.language === preferredLanguage);
+  const selected = available.find((edition) => edition.language === preferredLanguage)
+    ?? available.find((edition) => edition.language === textLanguage);
   const selectedLanguage = selected?.language ?? textLanguage;
   const spokenVerses = selected
     ? verses.map((verse) => selected.verses.find((item) => item.number === verse.number)!)

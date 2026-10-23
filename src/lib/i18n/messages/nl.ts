@@ -5,6 +5,31 @@
 import { kompasNl } from "./kompas/nl";
 
 export const nl = {
+  audioLibrary: {
+    "local": "Lokaal aanwezig",
+    "legacyCount": "Bestaande hoofdstukaudio",
+  "title": "Audiobibliotheek",
+  "intro": "Nieuwe pakketten worden automatisch geregistreerd. Beheer publiceert; de huidige opname blijft actief tot vervanging.",
+  "chapters": "Hoofdstukken",
+  "recordings": "Opnamen",
+  "missing": "Ontbrekende opnamen",
+  "storage": "Opslag",
+  "publish": "Publiceren",
+  "confirm": "Deze opname publiceren en de huidige opname vervangen?",
+  "published": "Gepubliceerd",
+  "errors": "Importfouten",
+  "review": "Kwaliteitscontrole nodig",
+  "view": "Opnamen bekijken",
+  "refresh": "Vernieuwen",
+  "failed": "De actie is mislukt. Vernieuw het overzicht en controleer de bron en kwaliteit.",
+  "empty": "Geen opnamen geregistreerd.",
+  "noErrors": "Geen importfouten.",
+  "source": "Bron",
+  "quality": "Kwaliteit",
+  "import": "Import",
+  "active": "Actieve opname",
+  "legacy": "Registraties; bestaande hoofdstukaudio blijft behouden."
+},
   nativeFoundation: {
   "welcome": "Welkom bij Versado",
   "login": "Inloggen",
