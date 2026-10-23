@@ -4,6 +4,8 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Nieuw (beheer): audiobibliotheek met zelfstandige pakketontvangst, bron- en tekstversiecontrole en bewuste publicatie per opname. Bestaande hoofdstukaudio en apparaat-TTS blijven beschikbaar; onzekere verstijdcodes blijven ter beoordeling afgeschermd.
+
 - Beveiliging: Next.js bijgewerkt naar 16.4.2 voor de gepubliceerde kwetsbaarheden in afbeeldingsoptimalisatie, Server Actions en caching.
 
 - Lokale native ontwikkelversie: privacy- en cookiepagina’s zijn offline beschikbaar, leesroutes herstellen bij herladen en accountwisselingen bewaren veilige uitlogintenties. Het native realtime-transport gebruikt eenmalige handshakebewijzen en sluit verbindingen bij sessie-intrekking. Registratie-e-mailbevestiging werkt lokaal met dezelfde accountservice en uitkomstkaart als web. Wachtwoordherstel kan lokaal worden voltooid met opnieuw inloggen; het resetformulier wordt met web gedeeld. Wachtwoordwijziging en verplichte wachtwoord-/beheerder-TOTP-setup gebruiken gedeelde webcomponenten. De volledige native app is nog in ontwikkeling; store-release blijft geblokkeerd.

@@ -3,6 +3,31 @@ import { kompasFr } from "./kompas/fr";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const fr: PartialMessages = {
+  audioLibrary: {
+    "local": "Présent localement",
+    "legacyCount": "Audio de chapitre existant",
+  "title": "Bibliothèque audio",
+  "intro": "Les nouveaux paquets sont enregistrés automatiquement. Un administrateur publie ; l’enregistrement actuel reste actif jusqu’au remplacement.",
+  "chapters": "Chapitres",
+  "recordings": "Enregistrements",
+  "missing": "Enregistrements manquants",
+  "storage": "Stockage",
+  "publish": "Publier",
+  "confirm": "Publier cet enregistrement et remplacer l’enregistrement actuel ?",
+  "published": "Publié",
+  "errors": "Erreurs d’importation",
+  "review": "Vérification de qualité requise",
+  "view": "Voir les enregistrements",
+  "refresh": "Actualiser",
+  "failed": "L’action a échoué. Actualisez puis vérifiez la source et la qualité.",
+  "empty": "Aucun enregistrement inscrit.",
+  "noErrors": "Aucune erreur d’importation.",
+  "source": "Source",
+  "quality": "Qualité",
+  "import": "Importation",
+  "active": "Enregistrement actif",
+  "legacy": "Inscriptions ; les enregistrements de chapitre existants sont conservés."
+},
   nativeFoundation: {
   "welcome": "Bienvenue sur Versado",
   "login": "Se connecter",

@@ -6,7 +6,7 @@ import nextTypescript from "eslint-config-next/typescript";
 // toegankelijkheids- en Next-regels zonder een tweede lokale regelsset.
 const config = [
   // Gegenereerde lokale native bundle; de bronbestanden blijven volledig gecontroleerd.
-  { ignores: ["dist/native/**", "ios/App/App/public/**", "android/app/src/main/assets/public/**"] },
+  { ignores: [".audio-v2-work/**", "dist/native/**", "ios/App/App/public/**", "android/app/src/main/assets/public/**"] },
   ...nextVitals,
   ...nextTypescript,
   {

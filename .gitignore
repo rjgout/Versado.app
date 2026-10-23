@@ -25,3 +25,6 @@ __pycache__/
 # Lofzangen-proef: bronbestanden (auteursrechtelijk beschermd) en Python-omgeving
 .cache/hymns/
 .venv-hymns/
+
+# Lokale officiële broncontrole en uitlijning, geen productieaudio in git.
+.audio-v2-work/

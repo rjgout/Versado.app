@@ -86,6 +86,24 @@
       ]
     },
     {
+      "file": "src/app/adminbackend/content/audio/page.tsx",
+      "sha256": "27450a01991fc348d06dbd3670521c6c7bf997c71d279ee55b9f34aef0a6c992",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/admin/AdminAudioClient",
+        "@/lib/adminGuard",
+        "@/lib/audio/library"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "requireAdminPage"
+      ],
+      "exports": [
+        "AudioPage"
+      ]
+    },
+    {
       "file": "src/app/adminbackend/content/inspect/page.tsx",
       "sha256": "4c34921c7edbe5e75235c360b28a1fa675a11526fb9a4ee6d821716678a24d44",
       "boundary": "context-dependent",
@@ -106,7 +124,7 @@
     },
     {
       "file": "src/app/adminbackend/content/page.tsx",
-      "sha256": "33456d70332f9203edf17c8860d49590a92a03173c96c3773aab317cbb2dbb2b",
+      "sha256": "3da5cbcb3cd2a87ee7b02b0290f8c83177b9806bd863d4583267ed0c2135ea19",
       "boundary": "context-dependent",
       "imports": [
         "@/components/AdminContentInventoryClient",
@@ -625,6 +643,31 @@
       ],
       "exports": [
         "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/admin/audio/route.ts",
+      "sha256": "66542584a38996f3e7bded530472abecf0cdb117fcb308aa12f596c0b81f1cad",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/apiError",
+        "@/lib/audio/library",
+        "@/lib/content-inventory/origin",
+        "@/lib/session",
+        "next/server",
+        "zod"
+      ],
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "requests": [],
+      "checks": [
+        "getCurrentUser"
+      ],
+      "exports": [
+        "GET",
+        "POST"
       ]
     },
     {
@@ -1583,16 +1626,18 @@
     },
     {
       "file": "src/app/api/audio/[file]/route.ts",
-      "sha256": "ca3e41b32af5d6e2b5fefeef9b48707edb405aac3d99851f01dbdc19f5f35c4f",
+      "sha256": "afcfc6aa3b983be807ec1bc270eb3e335b0997f88bd8196b05d953df2792e69e",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
+        "@/lib/audio/storage",
+        "@/lib/audio/stream",
         "@/lib/audioMirror",
+        "@/lib/contentAccess",
+        "@/lib/db",
         "@/lib/session",
         "next/server",
-        "node:fs",
-        "node:path",
-        "node:stream"
+        "node:path"
       ],
       "methods": [
         "GET",
@@ -1601,6 +1646,33 @@
       "requests": [],
       "checks": [
         "getCurrentUser"
+      ],
+      "exports": [
+        "GET",
+        "HEAD"
+      ]
+    },
+    {
+      "file": "src/app/api/audio/recordings/[id]/route.ts",
+      "sha256": "3ee4fac96898a0290613707b50fe0b742d9471ac3d3da0603254262d65fb1ce6",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/apiError",
+        "@/lib/audio/library",
+        "@/lib/audio/storage",
+        "@/lib/audio/stream",
+        "@/lib/session",
+        "next/server",
+        "node:path"
+      ],
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "requests": [],
+      "checks": [
+        "getCurrentUser",
+        "verifyObject"
       ],
       "exports": [
         "GET",
@@ -2161,10 +2233,11 @@
     },
     {
       "file": "src/app/api/chapters/[chapterId]/audio-languages/route.ts",
-      "sha256": "2f3bcb2c0ae9dfa8d2b4e1f77e37a1f7fcc510676484bdf21bf0d6769990e46e",
+      "sha256": "fa4b3111be0dd977bdf7914a13c2b542367cffed861b96286288eba3609ad76c",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
+        "@/lib/audio/library",
         "@/lib/audioMirror",
         "@/lib/contentAccess",
         "@/lib/contentEdition",
@@ -10269,7 +10342,7 @@
     },
     {
       "file": "src/components/ReadAloudPlayer.tsx",
-      "sha256": "9791b66d0bcb6550570ab3cfbaa5c2337a1399cc8c54b3b4af4ac6cef2e9f3fd",
+      "sha256": "4661cd5fb7830a6faaff51a6fb592274a45d61ef0ed0c60ecc8cdba83b80e3cd",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -11016,6 +11089,31 @@
       "exports": [
         "RecoveryCodesCard",
         "TwoFactorSetupCard"
+      ]
+    },
+    {
+      "file": "src/components/admin/AdminAudioClient.tsx",
+      "sha256": "f7de6e24cb2091fd48dadad15db29c7149f90e85e6c64c2e2960856c6c4e5347",
+      "boundary": "client",
+      "imports": [
+        "./AdminNotice",
+        "./AdminPageHeader",
+        "./AdminSection",
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/lib/audio/library",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks",
+        "@/lib/data/mutation",
+        "react"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/admin/audio"
+      ],
+      "checks": [],
+      "exports": [
+        "AdminAudioClient"
       ]
     },
     {
@@ -15195,6 +15293,122 @@
       ]
     },
     {
+      "file": "src/lib/audio/contract.ts",
+      "sha256": "7bbe9ccc801ffc334accb6a7ce15ed0d145417ea1c88f3a4b2abb8ba3cec6840",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/studyContent/revisions",
+        "@/lib/studyContent/schema",
+        "node:crypto",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "canonicalJson"
+      ],
+      "exports": [
+        "chapterSourceHash",
+        "manifestSchema",
+        "objectHash",
+        "packageId",
+        "segmentsSchema",
+        "sha256",
+        "validateSegments"
+      ]
+    },
+    {
+      "file": "src/lib/audio/hiddenEditions.ts",
+      "sha256": "69a8284072f70d6b5f9138d42bb74d957afd7217e237876b286ccab180378903",
+      "boundary": "context-dependent",
+      "imports": [
+        "../../../prisma/content",
+        "../../../prisma/dcContent.de.json",
+        "../../../prisma/dcContent.es.json",
+        "../../../prisma/dcContent.fr.json",
+        "../../../prisma/pgpContent.de.json",
+        "../../../prisma/pgpContent.es.json",
+        "../../../prisma/pgpContent.fr.json",
+        "@/generated/prisma/client"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ensureHiddenAudioTextEditions"
+      ]
+    },
+    {
+      "file": "src/lib/audio/library.ts",
+      "sha256": "cd2d7cc3c0ec6c81030032b0e971ae3b5f2f8a7706a5ccd5313b9ed7dca8cc05",
+      "boundary": "context-dependent",
+      "imports": [
+        "./contract",
+        "./storage",
+        "@/generated/prisma/client",
+        "@/lib/audioMirror",
+        "@/lib/contentAccess",
+        "@/lib/db",
+        "node:crypto",
+        "node:fs",
+        "node:path"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "verifyObject"
+      ],
+      "exports": [
+        "accessibleRecording",
+        "activeChapterAudio",
+        "audioOverview",
+        "importAudioPackage",
+        "publishAudio",
+        "scanAudioPackages"
+      ]
+    },
+    {
+      "file": "src/lib/audio/storage.ts",
+      "sha256": "b83ca46391adae5e40eadfaaea6a45fb35a02d0af7d265be74542aae31a42a54",
+      "boundary": "context-dependent",
+      "imports": [
+        "./contract",
+        "@/lib/audioMirror",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:path",
+        "node:util"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "verifyObject"
+      ],
+      "exports": [
+        "audioRoot",
+        "readBounded",
+        "safeDirectory",
+        "storeAudio",
+        "verifyObject"
+      ]
+    },
+    {
+      "file": "src/lib/audio/stream.ts",
+      "sha256": "94a66300225bcbc89126914338ce8c471ef0b65becbbe81cca6654fb6814652f",
+      "boundary": "context-dependent",
+      "imports": [
+        "node:fs",
+        "node:stream"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "streamAudio"
+      ]
+    },
+    {
       "file": "src/lib/audioMirror.ts",
       "sha256": "df2815ed6c438d04346d74b01981647162d6f46689a0fa0f83a943779a6103ea",
       "boundary": "context-dependent",
@@ -17772,7 +17986,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "d81c733b7511987f6c12baa6bfa002cf9188b6fce34bd9de3d3c3d2e52c1f489",
+      "sha256": "c3a5d2ff13dd401cf79032c1b62707b37b9e8611ac3089005fe911f0eb84d0df",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17787,7 +18001,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "9c92bdf4a55103011c8fb47f6da214103fb669871ece56872bc03ac7953189bb",
+      "sha256": "9b3f6c004fc13d4af1f5242c0fff5f6ba4026be3cf2db0b4abefa2008d86dacd",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17802,7 +18016,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "b8ce31c81de164fa1f75f4207400c02990ebc65b0518be0c8d180d7ccf94ec30",
+      "sha256": "1a9b04c3de88bed39952c8b2a412408621252949d06b5f5880ca8ae1dcdf62df",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17817,7 +18031,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "72dd56be1147876ea1ed400badc1fe698e50135def89f86f570221266a32656b",
+      "sha256": "4047bf143e2c838c880cc1c323b9342bab528d515db7a076579d72679e53914f",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -17900,7 +18114,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "7ee97151688b420488e9e9d5fd7bb75706fc2f603a5b1909b98bd9a7bf725927",
+      "sha256": "a47adb6f1fae8d22339fc6d54ee6d2130881e42d4ed3f02527751276b7a6c2fa",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -21134,9 +21348,10 @@
     },
     {
       "file": "src/lib/scheduler.ts",
-      "sha256": "09143c3c17f28ee9fbc03682bcf981096f070f610b7094ed3720903b29fb7f17",
+      "sha256": "8432f6ed69b0dcf39520278e69912bcdea202daded2d5f2c41d5019652c84cf3",
       "boundary": "context-dependent",
       "imports": [
+        "./audio/library",
         "@/lib/activityReactionNotifications",
         "@/lib/dailyText",
         "@/lib/dates",
@@ -24756,7 +24971,7 @@
     },
     {
       "file": "src/app/adminbackend/content/page.tsx",
-      "sha256": "33456d70332f9203edf17c8860d49590a92a03173c96c3773aab317cbb2dbb2b",
+      "sha256": "3da5cbcb3cd2a87ee7b02b0290f8c83177b9806bd863d4583267ed0c2135ea19",
       "boundary": "context-dependent",
       "imports": [
         "@/components/AdminContentInventoryClient",
@@ -25147,6 +25362,126 @@
       ],
       "authEvidence": [
         "getCurrentUser"
+      ]
+    },
+    {
+      "file": "src/app/adminbackend/content/audio/page.tsx",
+      "sha256": "27450a01991fc348d06dbd3670521c6c7bf997c71d279ee55b9f34aef0a6c992",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/admin/AdminAudioClient",
+        "@/lib/adminGuard",
+        "@/lib/audio/library"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "requireAdminPage"
+      ],
+      "exports": [
+        "AudioPage"
+      ],
+      "route": "/adminbackend/content/audio",
+      "kind": "page",
+      "domain": "beheer",
+      "dependencies": [
+        "src/app/adminbackend/content/audio/page.tsx",
+        "src/components/ConfirmProvider.tsx",
+        "src/components/I18nProvider.tsx",
+        "src/components/admin/AdminAudioClient.tsx",
+        "src/components/admin/AdminNotice.tsx",
+        "src/components/admin/AdminPageHeader.tsx",
+        "src/components/admin/AdminSection.tsx",
+        "src/components/versado/PageIntro.tsx",
+        "src/components/versado/styles.ts",
+        "src/lib/adminGuard.ts",
+        "src/lib/alleskenner/content.ts",
+        "src/lib/alleskenner/validate.ts",
+        "src/lib/audio/contract.ts",
+        "src/lib/audio/library.ts",
+        "src/lib/audio/storage.ts",
+        "src/lib/audioMirror.ts",
+        "src/lib/auth.ts",
+        "src/lib/contentAccess.ts",
+        "src/lib/contentCollectionIds.ts",
+        "src/lib/contentCollections.ts",
+        "src/lib/contentPickerContract.ts",
+        "src/lib/contentRouting.ts",
+        "src/lib/data/client.ts",
+        "src/lib/data/fetchJson.ts",
+        "src/lib/data/hooks.ts",
+        "src/lib/data/mutation.ts",
+        "src/lib/data/pause.ts",
+        "src/lib/data/scopes.ts",
+        "src/lib/data/store.ts",
+        "src/lib/data/topics.ts",
+        "src/lib/db.ts",
+        "src/lib/exerciseGen.ts",
+        "src/lib/gameAvailability.ts",
+        "src/lib/gameAvailabilityPolicy.ts",
+        "src/lib/gameCatalog.ts",
+        "src/lib/gameContentResolver.ts",
+        "src/lib/gameSettings.ts",
+        "src/lib/hymnAvailability.ts",
+        "src/lib/hymns/access.ts",
+        "src/lib/i18n/core.ts",
+        "src/lib/i18n/messages/kompas/nl.ts",
+        "src/lib/i18n/messages/nl.ts",
+        "src/lib/jigsawQuestions.ts",
+        "src/lib/languages.ts",
+        "src/lib/mascots.ts",
+        "src/lib/mysteries/game.ts",
+        "src/lib/mysteries/mystery001a.ts",
+        "src/lib/mysteries/mystery001b.ts",
+        "src/lib/mysteries/mystery001c.ts",
+        "src/lib/mysteries/mystery002a.ts",
+        "src/lib/mysteries/mystery002b.ts",
+        "src/lib/mysteries/mystery002c.ts",
+        "src/lib/mysteries/mystery003a.ts",
+        "src/lib/mysteries/mystery003b.ts",
+        "src/lib/mysteries/mystery003c.ts",
+        "src/lib/mysteries/mystery004a.ts",
+        "src/lib/mysteries/mystery004b.ts",
+        "src/lib/mysteries/mystery004c.ts",
+        "src/lib/mysteries/mystery005a.ts",
+        "src/lib/mysteries/mystery005b.ts",
+        "src/lib/mysteries/mystery005c.ts",
+        "src/lib/mysteries/mystery006a.ts",
+        "src/lib/mysteries/mystery006b.ts",
+        "src/lib/mysteries/mystery006c.ts",
+        "src/lib/mysteries/types.ts",
+        "src/lib/realtime.ts",
+        "src/lib/session.ts",
+        "src/lib/socketClient.ts",
+        "src/lib/studyContent/cfmProgramme.ts",
+        "src/lib/studyContent/cfmVolumes.ts",
+        "src/lib/studyContent/revisions.ts",
+        "src/lib/studyContent/schema.ts",
+        "src/lib/studyContext.ts",
+        "src/lib/studyContextContract.ts",
+        "src/lib/wordSearch/content.ts",
+        "src/lib/wordSearch/generator.ts"
+      ],
+      "directModules": [
+        "src/components/admin/AdminAudioClient.tsx",
+        "src/lib/adminGuard.ts",
+        "src/lib/audio/library.ts"
+      ],
+      "clientBoundaries": [
+        "src/components/ConfirmProvider.tsx",
+        "src/components/I18nProvider.tsx",
+        "src/components/admin/AdminAudioClient.tsx",
+        "src/lib/data/client.ts",
+        "src/lib/data/hooks.ts",
+        "src/lib/data/mutation.ts",
+        "src/lib/data/topics.ts",
+        "src/lib/socketClient.ts"
+      ],
+      "requestEvidence": [
+        "/api/admin/audio"
+      ],
+      "authEvidence": [
+        "requireAdminPage"
       ]
     },
     {
@@ -27085,6 +27420,76 @@
         "src/lib/alleskenner/validate.ts",
         "src/lib/apiError.ts",
         "src/lib/db.ts",
+        "src/lib/session.ts"
+      ],
+      "clientBoundaries": [],
+      "requestEvidence": [],
+      "authEvidence": [
+        "getCurrentUser"
+      ]
+    },
+    {
+      "file": "src/app/api/admin/audio/route.ts",
+      "sha256": "66542584a38996f3e7bded530472abecf0cdb117fcb308aa12f596c0b81f1cad",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/apiError",
+        "@/lib/audio/library",
+        "@/lib/content-inventory/origin",
+        "@/lib/session",
+        "next/server",
+        "zod"
+      ],
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "requests": [],
+      "checks": [
+        "getCurrentUser"
+      ],
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "route": "/api/admin/audio",
+      "kind": "api",
+      "domain": "beheer",
+      "dependencies": [
+        "src/app/api/admin/audio/route.ts",
+        "src/lib/apiError.ts",
+        "src/lib/audio/contract.ts",
+        "src/lib/audio/library.ts",
+        "src/lib/audio/storage.ts",
+        "src/lib/audioMirror.ts",
+        "src/lib/auth.ts",
+        "src/lib/content-inventory/origin.ts",
+        "src/lib/contentAccess.ts",
+        "src/lib/db.ts",
+        "src/lib/i18n/core.ts",
+        "src/lib/i18n/index.ts",
+        "src/lib/i18n/messages/de.ts",
+        "src/lib/i18n/messages/en.ts",
+        "src/lib/i18n/messages/es.ts",
+        "src/lib/i18n/messages/fr.ts",
+        "src/lib/i18n/messages/kompas/de.ts",
+        "src/lib/i18n/messages/kompas/en.ts",
+        "src/lib/i18n/messages/kompas/es.ts",
+        "src/lib/i18n/messages/kompas/fr.ts",
+        "src/lib/i18n/messages/kompas/nl.ts",
+        "src/lib/i18n/messages/nl.ts",
+        "src/lib/i18n/serverTexts.ts",
+        "src/lib/languages.ts",
+        "src/lib/requestLanguage.ts",
+        "src/lib/session.ts",
+        "src/lib/studyContent/revisions.ts",
+        "src/lib/studyContent/schema.ts",
+        "src/lib/studyContextContract.ts"
+      ],
+      "directModules": [
+        "src/lib/apiError.ts",
+        "src/lib/audio/library.ts",
+        "src/lib/content-inventory/origin.ts",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [],
@@ -30108,16 +30513,18 @@
     },
     {
       "file": "src/app/api/audio/[file]/route.ts",
-      "sha256": "ca3e41b32af5d6e2b5fefeef9b48707edb405aac3d99851f01dbdc19f5f35c4f",
+      "sha256": "afcfc6aa3b983be807ec1bc270eb3e335b0997f88bd8196b05d953df2792e69e",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
+        "@/lib/audio/storage",
+        "@/lib/audio/stream",
         "@/lib/audioMirror",
+        "@/lib/contentAccess",
+        "@/lib/db",
         "@/lib/session",
         "next/server",
-        "node:fs",
-        "node:path",
-        "node:stream"
+        "node:path"
       ],
       "methods": [
         "GET",
@@ -30137,8 +30544,12 @@
       "dependencies": [
         "src/app/api/audio/[file]/route.ts",
         "src/lib/apiError.ts",
+        "src/lib/audio/contract.ts",
+        "src/lib/audio/storage.ts",
+        "src/lib/audio/stream.ts",
         "src/lib/audioMirror.ts",
         "src/lib/auth.ts",
+        "src/lib/contentAccess.ts",
         "src/lib/db.ts",
         "src/lib/i18n/core.ts",
         "src/lib/i18n/index.ts",
@@ -30155,17 +30566,98 @@
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
         "src/lib/requestLanguage.ts",
-        "src/lib/session.ts"
+        "src/lib/session.ts",
+        "src/lib/studyContent/revisions.ts",
+        "src/lib/studyContent/schema.ts",
+        "src/lib/studyContextContract.ts"
       ],
       "directModules": [
         "src/lib/apiError.ts",
+        "src/lib/audio/storage.ts",
+        "src/lib/audio/stream.ts",
         "src/lib/audioMirror.ts",
+        "src/lib/contentAccess.ts",
+        "src/lib/db.ts",
         "src/lib/session.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
       "authEvidence": [
         "getCurrentUser"
+      ]
+    },
+    {
+      "file": "src/app/api/audio/recordings/[id]/route.ts",
+      "sha256": "3ee4fac96898a0290613707b50fe0b742d9471ac3d3da0603254262d65fb1ce6",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/apiError",
+        "@/lib/audio/library",
+        "@/lib/audio/storage",
+        "@/lib/audio/stream",
+        "@/lib/session",
+        "next/server",
+        "node:path"
+      ],
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "requests": [],
+      "checks": [
+        "getCurrentUser",
+        "verifyObject"
+      ],
+      "exports": [
+        "GET",
+        "HEAD"
+      ],
+      "route": "/api/audio/recordings/[id]",
+      "kind": "api",
+      "domain": "media-hulpmiddelen",
+      "dependencies": [
+        "src/app/api/audio/recordings/[id]/route.ts",
+        "src/lib/apiError.ts",
+        "src/lib/audio/contract.ts",
+        "src/lib/audio/library.ts",
+        "src/lib/audio/storage.ts",
+        "src/lib/audio/stream.ts",
+        "src/lib/audioMirror.ts",
+        "src/lib/auth.ts",
+        "src/lib/contentAccess.ts",
+        "src/lib/db.ts",
+        "src/lib/i18n/core.ts",
+        "src/lib/i18n/index.ts",
+        "src/lib/i18n/messages/de.ts",
+        "src/lib/i18n/messages/en.ts",
+        "src/lib/i18n/messages/es.ts",
+        "src/lib/i18n/messages/fr.ts",
+        "src/lib/i18n/messages/kompas/de.ts",
+        "src/lib/i18n/messages/kompas/en.ts",
+        "src/lib/i18n/messages/kompas/es.ts",
+        "src/lib/i18n/messages/kompas/fr.ts",
+        "src/lib/i18n/messages/kompas/nl.ts",
+        "src/lib/i18n/messages/nl.ts",
+        "src/lib/i18n/serverTexts.ts",
+        "src/lib/languages.ts",
+        "src/lib/requestLanguage.ts",
+        "src/lib/session.ts",
+        "src/lib/studyContent/revisions.ts",
+        "src/lib/studyContent/schema.ts",
+        "src/lib/studyContextContract.ts"
+      ],
+      "directModules": [
+        "src/lib/apiError.ts",
+        "src/lib/audio/library.ts",
+        "src/lib/audio/storage.ts",
+        "src/lib/audio/stream.ts",
+        "src/lib/session.ts"
+      ],
+      "clientBoundaries": [],
+      "requestEvidence": [],
+      "authEvidence": [
+        "getCurrentUser",
+        "verifyObject"
       ]
     },
     {
@@ -32484,10 +32976,11 @@
     },
     {
       "file": "src/app/api/chapters/[chapterId]/audio-languages/route.ts",
-      "sha256": "2f3bcb2c0ae9dfa8d2b4e1f77e37a1f7fcc510676484bdf21bf0d6769990e46e",
+      "sha256": "fa4b3111be0dd977bdf7914a13c2b542367cffed861b96286288eba3609ad76c",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
+        "@/lib/audio/library",
         "@/lib/audioMirror",
         "@/lib/contentAccess",
         "@/lib/contentEdition",
@@ -32513,6 +33006,9 @@
       "dependencies": [
         "src/app/api/chapters/[chapterId]/audio-languages/route.ts",
         "src/lib/apiError.ts",
+        "src/lib/audio/contract.ts",
+        "src/lib/audio/library.ts",
+        "src/lib/audio/storage.ts",
         "src/lib/audioMirror.ts",
         "src/lib/auth.ts",
         "src/lib/contentAccess.ts",
@@ -32533,10 +33029,14 @@
         "src/lib/i18n/serverTexts.ts",
         "src/lib/languages.ts",
         "src/lib/requestLanguage.ts",
-        "src/lib/session.ts"
+        "src/lib/session.ts",
+        "src/lib/studyContent/revisions.ts",
+        "src/lib/studyContent/schema.ts",
+        "src/lib/studyContextContract.ts"
       ],
       "directModules": [
         "src/lib/apiError.ts",
+        "src/lib/audio/library.ts",
         "src/lib/audioMirror.ts",
         "src/lib/contentAccess.ts",
         "src/lib/contentEdition.ts",
@@ -62688,6 +63188,24 @@
       ]
     },
     {
+      "file": "src/app/adminbackend/content/audio/page.tsx",
+      "sha256": "27450a01991fc348d06dbd3670521c6c7bf997c71d279ee55b9f34aef0a6c992",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/admin/AdminAudioClient",
+        "@/lib/adminGuard",
+        "@/lib/audio/library"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "requireAdminPage"
+      ],
+      "exports": [
+        "AudioPage"
+      ]
+    },
+    {
       "file": "src/app/adminbackend/content/inspect/page.tsx",
       "sha256": "4c34921c7edbe5e75235c360b28a1fa675a11526fb9a4ee6d821716678a24d44",
       "boundary": "context-dependent",
@@ -62708,7 +63226,7 @@
     },
     {
       "file": "src/app/adminbackend/content/page.tsx",
-      "sha256": "33456d70332f9203edf17c8860d49590a92a03173c96c3773aab317cbb2dbb2b",
+      "sha256": "3da5cbcb3cd2a87ee7b02b0290f8c83177b9806bd863d4583267ed0c2135ea19",
       "boundary": "context-dependent",
       "imports": [
         "@/components/AdminContentInventoryClient",
@@ -67412,7 +67930,7 @@
     },
     {
       "file": "src/components/ReadAloudPlayer.tsx",
-      "sha256": "9791b66d0bcb6550570ab3cfbaa5c2337a1399cc8c54b3b4af4ac6cef2e9f3fd",
+      "sha256": "4661cd5fb7830a6faaff51a6fb592274a45d61ef0ed0c60ecc8cdba83b80e3cd",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -68159,6 +68677,31 @@
       "exports": [
         "RecoveryCodesCard",
         "TwoFactorSetupCard"
+      ]
+    },
+    {
+      "file": "src/components/admin/AdminAudioClient.tsx",
+      "sha256": "f7de6e24cb2091fd48dadad15db29c7149f90e85e6c64c2e2960856c6c4e5347",
+      "boundary": "client",
+      "imports": [
+        "./AdminNotice",
+        "./AdminPageHeader",
+        "./AdminSection",
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/lib/audio/library",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks",
+        "@/lib/data/mutation",
+        "react"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/admin/audio"
+      ],
+      "checks": [],
+      "exports": [
+        "AdminAudioClient"
       ]
     },
     {
@@ -71528,6 +72071,9 @@
     "tests/annotation-revision-resolution.test.ts",
     "tests/annotation-selector.test.ts",
     "tests/artwork.test.ts",
+    "tests/audio-library.browser.mjs",
+    "tests/audio-library.integration.test.ts",
+    "tests/audio-library.test.ts",
     "tests/avatar-editor.test.ts",
     "tests/card-management.browser.mjs",
     "tests/cards.test.ts",
