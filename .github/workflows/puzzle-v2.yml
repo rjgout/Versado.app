@@ -67,7 +67,7 @@ jobs:
       - name: Browser klaarzetten
         run: |
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
-          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          bash scripts/ci/install-browser.sh node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js"
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
       - name: Sessies, vraag, reeks, content en echte productie-browserflow
         env:
