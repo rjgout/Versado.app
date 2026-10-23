@@ -81,7 +81,10 @@ test("Een onbekende oude bron wordt nooit uit profiel/BOM afgeleid en kost geen 
  const run=await db.quickMissionaryRun.create({data:{userId:user,dayKey:"2026-10-11",status:"DEAD_AWAITING_REVIVE",reviveUsed:true}});
  const view=await runs.getQuickMissionaryRunView(run.id,user); assert.equal(view.reviveUnavailableReason,"legacy-source"); assert.equal(view.deathOption,"none");
  await assert.rejects(runs.requestReviveQuestion(run.id,user),/NO_QUESTION/); assert.equal((await runs.buyGeneesInRun(run.id,user)).result.ok,false);
- await runs.finishQuickMissionaryRun(run.id,user,0); assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:run.id}})).contentCollectionId,null); assert.deepEqual(await economy(user),before);
+ await runs.finishQuickMissionaryRun(run.id,user,0); assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:run.id}})).contentCollectionId,null);
+ // Sinds #198 telt een afgeronde spelrun (ook na een fout antwoord) mee voor de reeks. XP, Genees, hints en actieve cursus blijven ongemoeid.
+ const { currentStreak: streakBefore, ...economyBefore } = before; const { currentStreak: streakAfter, ...economyAfter } = await economy(user);
+ assert.deepEqual(economyAfter,economyBefore); assert.equal(streakBefore,0); assert.equal(streakAfter,1);
 });
 
 test("Oude reeds uitgegeven vraag herstelt alleen haar bewezen bron onder de runlock", {skip},async()=>{
