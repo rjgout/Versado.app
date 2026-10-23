@@ -1,5 +1,7 @@
 import { PrismaClient, Prisma } from "../src/generated/prisma/client";
 import { randomUUID } from "crypto";
+import { exerciseSignature } from "../src/lib/exerciseSync";
+import { reconcileSimpleExercises } from "./reconcileExercises";
 import {
   generateFillBlank,
   generateWordBank,
@@ -116,8 +118,6 @@ export async function importKidsStories(
       },
     });
 
-    await prisma.kidsExercise.deleteMany({ where: { storyId: story.id } });
-
     const sentences = splitSentences(seed.text).slice(0, MAX_TEXT_EXERCISES_PER_STORY);
     const distractorPool = buildDistractorPool(sentences, language);
 
@@ -189,13 +189,19 @@ export async function importKidsStories(
       });
     }
 
-    if (exerciseRows.length > 0) {
-      await prisma.kidsExercise.createMany({ data: exerciseRows });
-    }
-    if (optionRows.length > 0) {
-      await prisma.kidsExerciseOption.createMany({ data: optionRows });
-    }
+    const optionsOf = (exerciseId: string) => optionRows.filter((option) => option.exerciseId === exerciseId);
+    const existing = (await prisma.kidsExercise.findMany({ where: { storyId: story.id }, orderBy: { order: "asc" }, include: { options: { orderBy: { order: "asc" } } } })).map((row) => ({
+      id: row.id, order: row.order, options: row.options.map((o) => ({ label: o.label, isCorrect: o.isCorrect })), signature: exerciseSignature({ type: row.type, verseRef: "", prompt: row.prompt, answers: row.answers, wordBank: row.wordBank, options: row.options }),
+    }));
+    const stats = await reconcileSimpleExercises({
+      existing,
+      desired: exerciseRows.map((row) => ({ row, signature: exerciseSignature({ type: row.type, verseRef: "", prompt: row.prompt, answers: row.answers, wordBank: row.wordBank, options: optionsOf(row.id!).map((o) => ({ label: o.label, isCorrect: o.isCorrect ?? false })) }), options: optionsOf(row.id!) })),
+      replaceOptions: async (exerciseId, options) => { await prisma.kidsExerciseOption.deleteMany({ where: { exerciseId } }); await prisma.kidsExerciseOption.createMany({ data: options.map((o) => ({ ...o, exerciseId })) }); },
+      setOrder: (id, order) => prisma.kidsExercise.update({ where: { id }, data: { order } }),
+      remove: (ids) => prisma.kidsExercise.deleteMany({ where: { id: { in: ids } } }),
+      create: async (rows, options) => { await prisma.kidsExercise.createMany({ data: rows }); if (options.length > 0) await prisma.kidsExerciseOption.createMany({ data: options }); },
+    });
 
-    log(`  - Verhaal ${seed.number} (${seed.title}): ${order} oefeningen`);
+    log(`  - Verhaal ${seed.number} (${seed.title}): ${order} oefeningen (${stats.kept} behouden, ${stats.created} nieuw, ${stats.deleted} verwijderd)`);
   }
 }
