@@ -83,6 +83,7 @@ export default function ScriptureUpdateClient() {
     job?.status === "error" ? t(`adminContentUpdate.err${job.errorCode ?? "FAILED"}` as "adminContentUpdate.errFAILED")
     : job?.status === "done" && job.action === "publish"
       ? job.results.some((r) => r.status === "error") ? t("adminContentUpdate.publishPartial") : t("adminContentUpdate.publishDone")
+    : job?.status === "done" && job.action !== "publish" && job.action !== "mirror" && job.results.some((r) => r.status === "error") ? t("adminContentUpdate.checkFailed")
     : job?.status === "done" && job.action === "mirror" ? t("adminContentUpdate.mirrorDone")
     : job?.status === "done" && job.action === "prepare" ? (job.upToDate ? t("adminContentUpdate.upToDate") : t("adminContentUpdate.planReady"))
     : job?.status === "done" ? (job.upToDate ? t("adminContentUpdate.upToDate") : t("adminContentUpdate.checkDone"))

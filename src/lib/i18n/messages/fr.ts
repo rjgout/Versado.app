@@ -3771,6 +3771,7 @@ export const fr: PartialMessages = {
     mirrorText: "Récupère les fichiers audio manquants des chapitres lus vers ton propre serveur. C'est une action distincte qui peut être longue ; d'ici là, les chapitres sont lus depuis la source.",
     mirroring: "Copie des fichiers audio…",
     mirrorDone: "Terminé : fichiers audio copiés.",
+    checkFailed: "Toutes les sources n'ont pas pu être vérifiées. Voir ci-dessous ; aucune signature n'a été délivrée, la publication n'est donc pas encore possible.",
     lastRuns: "Dernières exécutions",
     needsReview: "{n} chapitres attendent une vérification audio"
   },

@@ -3771,6 +3771,7 @@ export const en: PartialMessages = {
     mirrorText: "Fetches missing audio files of the read-aloud chapters to your own server. This is a separate action and can take long; until then chapters play from the source.",
     mirroring: "Mirroring audio files…",
     mirrorDone: "Done — audio files mirrored.",
+    checkFailed: "Not all sources could be checked. See below; no signature was issued, so publishing is not possible yet.",
     lastRuns: "Latest runs",
     needsReview: "{n} chapters are waiting for an audio check"
   },

@@ -4273,6 +4273,7 @@ export const nl = {
     mirrorText: "Haalt ontbrekende audiobestanden van de voorgelezen hoofdstukken op naar de eigen server. Dit is een aparte actie en kan lang duren; tot die tijd spelen hoofdstukken van de bron.",
     mirroring: "Audiobestanden spiegelen…",
     mirrorDone: "Klaar — audiobestanden gespiegeld.",
+    checkFailed: "Niet alle bronnen konden worden gecontroleerd. Zie hieronder; er is geen handtekening gegeven, dus publiceren kan nog niet.",
     lastRuns: "Laatste runs",
     needsReview: "{n} hoofdstukken wachten op audiocontrole"
   },

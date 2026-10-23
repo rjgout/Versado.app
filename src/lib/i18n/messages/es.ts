@@ -3782,6 +3782,7 @@ export const es: PartialMessages = {
     "mirrorText": "Obtiene los archivos de audio que faltan de los capítulos leídos en tu propio servidor. Es una acción aparte y puede tardar; hasta entonces los capítulos se reproducen desde la fuente.",
     "mirroring": "Copiando archivos de audio…",
     "mirrorDone": "Listo: archivos de audio copiados.",
+    "checkFailed": "No se pudieron comprobar todas las fuentes. Mira abajo; no se emitió ninguna firma, por lo que aún no se puede publicar.",
     "lastRuns": "Últimas ejecuciones",
     "needsReview": "{n} capítulos esperan revisión de audio"
   },

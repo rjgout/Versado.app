@@ -3771,6 +3771,7 @@ export const de: PartialMessages = {
     mirrorText: "Lädt fehlende Audiodateien der vorgelesenen Kapitel auf den eigenen Server. Das ist eine eigene Aktion und kann lange dauern; bis dahin werden die Kapitel von der Quelle abgespielt.",
     mirroring: "Audiodateien werden gespiegelt …",
     mirrorDone: "Fertig – Audiodateien gespiegelt.",
+    checkFailed: "Nicht alle Quellen konnten geprüft werden. Siehe unten; es wurde keine Signatur erstellt, daher ist Veröffentlichen noch nicht möglich.",
     lastRuns: "Letzte Läufe",
     needsReview: "{n} Kapitel warten auf die Audioprüfung"
   },
