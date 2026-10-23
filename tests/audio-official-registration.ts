@@ -41,6 +41,13 @@ try {
    report.push({language,work,chapters:rows.length,officialChapters:rows.filter((r:{recordings:unknown[]})=>r.recordings.length>0).length,downloaded:rows.reduce((sum:number,r:{recordings:unknown[]})=>sum+r.recordings.length,0),registered:recordings.length,registeredChapters:new Set(recordings.map(r=>r.chapterId)).size,validated:recordings.filter(r=>(r.quality as {status:string}).status==="VALIDATED").length,review:recordings.filter(r=>(r.quality as {status:string}).status==="NEEDS_REVIEW").length});
    if(language!=="nl"&&language!=="en"&&prefix!=="bom") {const collection=await prisma.contentCollection.findUniqueOrThrow({where:{id}});assert.equal(collection.visibleToUsers,false);assert.equal(collection.enabled,false);assert.equal(collection.publicationState,"DRAFT");assert.equal(await prisma.course.count({where:{contentCollectionId:id}}),0);assert.equal(await prisma.exercise.count({where:{chapter:{book:{contentCollectionId:id}}}}),0);}
   }
+  const nlLegacy=JSON.parse(await fs.readFile("prisma/bomAudio.json","utf8")) as ChapterAudioSeed[];
+  for(const entry of nlLegacy){
+   const ch=await prisma.chapter.findFirstOrThrow({where:{number:entry.chapter,book:{contentCollectionId:"content_bom",slug:entry.book}},include:{verses:{orderBy:{number:"asc"}}}});
+   assert.equal(ch.audioUrl,entry.url);assert.equal(ch.audioHeadingStart,entry.headingStart);assert.equal(ch.audioHeadingEnd,entry.headingEnd);
+   assert.deepEqual(ch.verses.map(v=>v.audioStart),entry.verseStarts);
+  }
+  console.log(`${nlLegacy.length} bestaande Nederlandse audiohoofdstukken en alle verstijdcodes ongewijzigd na volledige V2-import.`);
   const published=await prisma.audioPublication.count({where:{recording:{packageId:{startsWith:"official-"}}}});assert.equal(published,0);
   const failed=await prisma.audioPackage.findMany({where:{id:{startsWith:"official-"},status:"FAILED"},select:{id:true,errorCode:true}});assert.equal(failed.length,0,JSON.stringify(failed));
   await fs.writeFile("/tmp/versado-audio-official-registration.json",JSON.stringify({isolated:true,published,report,chapters:chapterResults},null,2));console.log(JSON.stringify({isolated:true,published,report},null,2));

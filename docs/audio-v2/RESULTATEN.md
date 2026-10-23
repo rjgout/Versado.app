@@ -70,11 +70,39 @@ Alle uitlijningsuitkomsten en overige reviewpunten staan in [official-alignments
 - Kompas-opdracht: 60 geslaagd, 9 databaseafhankelijke tests overgeslagen in die opdracht; geen volledige Kompas-integratieclaim.
 - Prisma-validatie en additieve migratieproef op een eigen lege database met vooraf bestaande tekst/audio/hintvoorraad uitgevoerd.
 
-De afsluitende volledige registratie- en browserproef wordt hier pas als geslaagd gemeld na daadwerkelijke voltooiing.
+De afsluitende volledige proef (`scripts/audio/test-isolated.mjs --official --browser`) is geslaagd:
+
+- **1.974 officiële opnamen geregistreerd**, exact aan alle aanwezige hoofdstuk-/uitgavehashes gebonden.
+- **0 mislukte officiële imports**, **0 uitgavemismatches**, **0 officiële publicaties**.
+- **205 bestaande Nederlandse BOM-audiohoofdstukken**, inclusief alle URL’s, kop- en verstijdcodes, ongewijzigd na de volledige import.
+- **22 browsercontroles geslaagd**, inclusief beheerbevestiging/publicatie van uitsluitend synthetische audio, gewone gebruiker versus beheerpreview, GET/HEAD/Range, sessie-intrekking, verbergen, taalkeuze, minispeler, TTS, 320px, 200% tekst en lange Duitse vertaling.
+- De 25 integratietests zijn in dezelfde proef opnieuw geslaagd; geen skips.
+
+De volledige registratieproef gebruikte uitsluitend eigen wegwerp-PostgreSQL/Redis en een tijdelijk audiovolume.
+De bronbestanden zijn opnieuw door de ontvangende validator gehaald; het is geen SQL-backfill of nagebootste successtatus.
+Samenvatting per werk/taal (alleen de geïsoleerde testdatabase):
+
+| Taal | Werk | Geregistreerde opnamen | Hoofdstukken | Technisch gevalideerd | Review vereist |
+|---|---|---:|---:|---:|---:|
+| nl | bofm | 239 | 239 | 238 | 1 |
+| nl | dc-testament | 0 | 0 | 0 | 0 |
+| nl | pgp | 0 | 0 | 0 | 0 |
+| en | bofm | 478 | 239 | 478 | 0 |
+| en | dc-testament | 276 | 138 | 273 | 3 |
+| en | pgp | 32 | 16 | 30 | 2 |
+| de | bofm | 239 | 239 | 238 | 1 |
+| de | dc-testament | 0 | 0 | 0 | 0 |
+| de | pgp | 16 | 16 | 15 | 1 |
+| fr | bofm | 241 | 239 | 240 | 1 |
+| fr | dc-testament | 44 | 44 | 39 | 5 |
+| fr | pgp | 16 | 16 | 13 | 3 |
+| es | bofm | 239 | 239 | 239 | 0 |
+| es | dc-testament | 138 | 138 | 137 | 1 |
+| es | pgp | 16 | 16 | 15 | 1 |
 
 ## Afbakening
 
-Geen productie/NAS-handeling, merge, deploy, audioactivering of publicatie uitgevoerd.
+Geen productie/NAS-handeling, merge, deploy of officiële audiopublicatie uitgevoerd. Alleen synthetische testpublicaties in de wegwerpdatabase.
 De zes nieuwe officiële tekstuitgaven blijven verborgen/DRAFT/uitgeschakeld, zonder cursussen of oefeningen.
 Lokale native-audiopariteit ontbreekt al op de basisbranch en wordt hiermee niet als voltooid geclaimd.
 Eigenaaracceptatie op echte toestellen/NAS, inclusief achtergrondweergave, hoofdtelefoonbediening en lifecycle-herstel, blijft nodig.
