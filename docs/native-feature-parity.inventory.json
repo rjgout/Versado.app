@@ -72564,6 +72564,7 @@
     "tests/mystery001a.test.ts",
     "tests/mystery002.test.ts",
     "tests/mystery003-006.test.ts",
+    "tests/nas-test-stack.test.mjs",
     "tests/native-account.integration.test.ts",
     "tests/native-distribution.test.ts",
     "tests/native-foundation.browser.mjs",
