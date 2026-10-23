@@ -98,7 +98,7 @@ test("Browser: oude run afronden en oude lobby expliciet bevestigen, mobiel en d
    await page.goto(`http://localhost:${ports[0]}/snelle-zendeling/samen/${code}`);const confirm=page.getByRole("button",{name:"Gebruik mijn huidige uitgave"});await confirm.waitFor();
    if(width===320) await page.evaluate(()=>{document.documentElement.style.fontSize="200%"});
    await page.screenshot({path:`/tmp/versado-qm-source-browser/legacy-lobby-${width}.png`});if(width===1280){await confirm.focus();await page.keyboard.press("Enter")}else await confirm.click();await confirm.waitFor({state:"hidden"});
-   assert.equal((await db.liveGamePlayer.findUniqueOrThrow({where:{gameId_userId:{gameId:g.id,userId:a.id}}})).contentCollectionId,"content_bom");assert.deepEqual(await state(a),before);
+   assert.equal((await db.liveGamePlayer.findUniqueOrThrow({where:{gameId_userId:{gameId:g.id,userId:a.id}}})).contentCollectionId,"content_bom");{const {currentStreak:streakBefore,...economyBefore}=before,{currentStreak:streakAfter,...economyAfter}=await state(a);/* Sinds #198 telt een afgeronde run mee voor de reeks; XP, Genees en hints blijven ongemoeid. */assert.deepEqual(economyAfter,economyBefore);assert.equal(streakBefore,0);assert.equal(streakAfter,1)}
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));await ctx.close();
   }
  }finally{await browser.close()}
