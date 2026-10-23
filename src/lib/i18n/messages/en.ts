@@ -3766,6 +3766,11 @@ export const en: PartialMessages = {
     audioConfirmed: "Confirmed.",
     audioChanged: "Changed verses: {verses}",
     chapterNotFound: "This chapter has no audio check.",
+    sourceSkippedOtb: "Skipped: source not prepared yet. Use Prepare.",
+    mirror: "Mirror audio files locally",
+    mirrorText: "Fetches missing audio files of the read-aloud chapters to your own server. This is a separate action and can take long; until then chapters play from the source.",
+    mirroring: "Mirroring audio files…",
+    mirrorDone: "Done — audio files mirrored.",
     lastRuns: "Latest runs",
     needsReview: "{n} chapters are waiting for an audio check"
   },

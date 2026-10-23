@@ -4268,6 +4268,11 @@ export const nl = {
     audioConfirmed: "Bevestigd.",
     audioChanged: "Gewijzigde verzen: {verses}",
     chapterNotFound: "Dit hoofdstuk heeft geen audiocontrole.",
+    sourceSkippedOtb: "Overgeslagen: bron nog niet voorbereid. Gebruik Voorbereiden.",
+    mirror: "Audiobestanden lokaal spiegelen",
+    mirrorText: "Haalt ontbrekende audiobestanden van de voorgelezen hoofdstukken op naar de eigen server. Dit is een aparte actie en kan lang duren; tot die tijd spelen hoofdstukken van de bron.",
+    mirroring: "Audiobestanden spiegelen…",
+    mirrorDone: "Klaar — audiobestanden gespiegeld.",
     lastRuns: "Laatste runs",
     needsReview: "{n} hoofdstukken wachten op audiocontrole"
   },

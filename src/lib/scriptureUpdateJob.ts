@@ -1,8 +1,8 @@
 import type { PrismaClient } from "@/generated/prisma/client";
 import { ContentImportBusyError } from "@/lib/contentImportLock";
-import { checkScriptures, publishScriptures, PlanMismatchError, type SourceResult } from "@/lib/contentUpdate";
+import { checkScriptures, mirrorScriptureAudio, publishScriptures, PlanMismatchError, type SourceResult } from "@/lib/contentUpdate";
 
-export type ScriptureAction = "check" | "prepare" | "publish";
+export type ScriptureAction = "check" | "prepare" | "publish" | "mirror";
 
 export interface ScriptureJobState {
   status: "idle" | "running" | "done" | "error";
@@ -28,7 +28,9 @@ export function startScriptureJob(client: PrismaClient, action: ScriptureAction,
   if (job.status === "running") return { started: false, job };
   const current: ScriptureJobState = { status: "running", action, runId: null, planHash: null, upToDate: null, results: [], errorCode: null, startedAt: new Date().toISOString(), finishedAt: null };
   job = current;
-  const work = action === "publish"
+  const work = action === "mirror"
+    ? mirrorScriptureAudio(client, { adminId: opts.adminId })
+    : action === "publish"
     ? publishScriptures(client, { planHash: opts.planHash ?? "", adminId: opts.adminId }).then((outcome) => {
         current.runId = outcome.runId;
         current.results = outcome.results;

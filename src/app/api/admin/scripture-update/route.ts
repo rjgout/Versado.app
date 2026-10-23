@@ -19,6 +19,7 @@ async function requireAdmin() {
 const bodySchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("check") }).strict(),
   z.object({ action: z.literal("prepare") }).strict(),
+  z.object({ action: z.literal("mirror") }).strict(),
   z.object({ action: z.literal("publish"), planHash: z.string().regex(/^[a-f0-9]{64}$/) }).strict(),
 ]);
 

@@ -3766,6 +3766,11 @@ export const de: PartialMessages = {
     audioConfirmed: "Bestätigt.",
     audioChanged: "Geänderte Verse: {verses}",
     chapterNotFound: "Für dieses Kapitel gibt es keine Audioprüfung.",
+    sourceSkippedOtb: "Übersprungen: Quelle noch nicht vorbereitet. Verwende Vorbereiten.",
+    mirror: "Audiodateien lokal spiegeln",
+    mirrorText: "Lädt fehlende Audiodateien der vorgelesenen Kapitel auf den eigenen Server. Das ist eine eigene Aktion und kann lange dauern; bis dahin werden die Kapitel von der Quelle abgespielt.",
+    mirroring: "Audiodateien werden gespiegelt …",
+    mirrorDone: "Fertig – Audiodateien gespiegelt.",
     lastRuns: "Letzte Läufe",
     needsReview: "{n} Kapitel warten auf die Audioprüfung"
   },

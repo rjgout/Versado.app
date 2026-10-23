@@ -3766,6 +3766,11 @@ export const fr: PartialMessages = {
     audioConfirmed: "Confirmé.",
     audioChanged: "Versets modifiés : {verses}",
     chapterNotFound: "Ce chapitre n'a pas de vérification audio.",
+    sourceSkippedOtb: "Ignoré : source pas encore préparée. Utilise Préparer.",
+    mirror: "Copier les fichiers audio en local",
+    mirrorText: "Récupère les fichiers audio manquants des chapitres lus vers ton propre serveur. C'est une action distincte qui peut être longue ; d'ici là, les chapitres sont lus depuis la source.",
+    mirroring: "Copie des fichiers audio…",
+    mirrorDone: "Terminé : fichiers audio copiés.",
     lastRuns: "Dernières exécutions",
     needsReview: "{n} chapitres attendent une vérification audio"
   },

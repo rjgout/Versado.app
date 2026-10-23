@@ -3777,6 +3777,11 @@ export const es: PartialMessages = {
     "audioConfirmed": "Confirmado.",
     "audioChanged": "Versículos modificados: {verses}",
     "chapterNotFound": "Este capítulo no tiene revisión de audio.",
+    "sourceSkippedOtb": "Omitido: la fuente aún no está preparada. Usa Preparar.",
+    "mirror": "Copiar archivos de audio en local",
+    "mirrorText": "Obtiene los archivos de audio que faltan de los capítulos leídos en tu propio servidor. Es una acción aparte y puede tardar; hasta entonces los capítulos se reproducen desde la fuente.",
+    "mirroring": "Copiando archivos de audio…",
+    "mirrorDone": "Listo: archivos de audio copiados.",
     "lastRuns": "Últimas ejecuciones",
     "needsReview": "{n} capítulos esperan revisión de audio"
   },

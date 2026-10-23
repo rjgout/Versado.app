@@ -52,7 +52,7 @@ export default function ScriptureUpdateClient() {
   const preparedHash = latestPrepare && (!latestPublish || latestPublish.startedAt < latestPrepare.startedAt) ? latestPrepare.planHash : null;
   useEffect(() => { if (error || job?.status === "done" || job?.status === "error") outcome.current?.focus({ preventScroll: true }); }, [error, job?.status]);
 
-  async function start(action: "check" | "prepare" | "publish") {
+  async function start(action: "check" | "prepare" | "publish" | "mirror") {
     if (mutex.current) return;
     mutex.current = true;
     setError("");
@@ -83,6 +83,7 @@ export default function ScriptureUpdateClient() {
     job?.status === "error" ? t(`adminContentUpdate.err${job.errorCode ?? "FAILED"}` as "adminContentUpdate.errFAILED")
     : job?.status === "done" && job.action === "publish"
       ? job.results.some((r) => r.status === "error") ? t("adminContentUpdate.publishPartial") : t("adminContentUpdate.publishDone")
+    : job?.status === "done" && job.action === "mirror" ? t("adminContentUpdate.mirrorDone")
     : job?.status === "done" && job.action === "prepare" ? (job.upToDate ? t("adminContentUpdate.upToDate") : t("adminContentUpdate.planReady"))
     : job?.status === "done" ? (job.upToDate ? t("adminContentUpdate.upToDate") : t("adminContentUpdate.checkDone"))
     : "";
@@ -104,7 +105,7 @@ export default function ScriptureUpdateClient() {
 
       {running && (
         <p role="status" className="text-sm text-vs-fg-2">
-          {t(job?.action === "publish" ? "adminContentUpdate.publishing" : job?.action === "prepare" ? "adminContentUpdate.preparing" : "adminContentUpdate.checking")}
+          {t(job?.action === "mirror" ? "adminContentUpdate.mirroring" : job?.action === "publish" ? "adminContentUpdate.publishing" : job?.action === "prepare" ? "adminContentUpdate.preparing" : "adminContentUpdate.checking")}
         </p>
       )}
 
@@ -121,7 +122,7 @@ export default function ScriptureUpdateClient() {
             <li key={result.key} className="rounded-xl bg-vs-subtle p-3 text-sm">
               <p className="font-bold text-vs-fg">{result.label}</p>
               <p className={result.status === "error" ? "text-vs-danger" : "text-vs-fg-2"}>
-                {result.status === "ok" ? t("adminContentUpdate.sourceOk") : result.status === "skipped" ? t("adminContentUpdate.sourceSkipped") : t("adminContentUpdate.sourceError")}
+                {result.status === "ok" ? t("adminContentUpdate.sourceOk") : result.status === "skipped" ? t(result.message === "otbNotPrepared" ? "adminContentUpdate.sourceSkippedOtb" : "adminContentUpdate.sourceSkipped") : t("adminContentUpdate.sourceError")}
               </p>
               {result.counts && (
                 <ul className="mt-1 text-xs text-vs-fg-2">
@@ -140,6 +141,8 @@ export default function ScriptureUpdateClient() {
       <div className="flex flex-col gap-2 border-t border-vs-line pt-3">
         <h3 className="text-sm font-extrabold text-vs-fg">{t("adminContentUpdate.audioTitle")}</h3>
         <p className="text-xs text-vs-fg-2">{t("adminContentUpdate.audioText")}</p>
+        <p className="text-xs text-vs-fg-2">{t("adminContentUpdate.mirrorText")}</p>
+        <button className={`${secondaryButton} self-start`} disabled={resultsBusy} onClick={() => start("mirror")}>{t("adminContentUpdate.mirror")}</button>
         {audio.data && audio.data.items.length === 0 && <p role="status" className="text-sm text-vs-fg-2">{t("adminContentUpdate.audioNone")}</p>}
         <ul className="flex flex-col gap-2">
           {audio.data?.items.map((item) => (

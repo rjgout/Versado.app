@@ -81,7 +81,7 @@ const achievementDefs = [
  */
 
 export interface SeedOptions {
-  /** Standaard true (CLI en volledige seed). Bij false blijven de Schriftteksten, hun oefeningen en audio onaangeroerd: die lopen via de beheerflow "Schriftbronnen bijwerken". */
+  /** Standaard true (CLI en volledige seed). Bij false blijven de Schriftteksten (ook de Bijbel/OTB), hun oefeningen en de audio (inclusief het spiegelen van audiobestanden) onaangeroerd: die lopen via de beheerflow "Schriftbronnen bijwerken". */
   scriptures?: boolean;
 }
 
@@ -114,11 +114,13 @@ async function runSeedLocked(
   // De OTB-import staat los van de cursussen: hij gebruikt geen syncCourses en
   // draait pas na de eerste cursussynchronisatie, maar een fout daarin blijft
   // een Bijbelfout en een cursusfout hierboven blijft een cursusfout.
-  log("Open Translation Bible voorbereiden...");
-  await inPhase("Bijbel (OTB)", async () => {
-    const otbSource = await preparePinnedOtbSource(log);
-    await importOtbTrial(client, otbSource, log, progress);
-  });
+  if (scriptures) {
+    log("Open Translation Bible voorbereiden...");
+    await inPhase("Bijbel (OTB)", async () => {
+      const otbSource = await preparePinnedOtbSource(log);
+      await importOtbTrial(client, otbSource, log, progress);
+    });
+  }
 
   // Leer en Verbonden en de Parel van Grote Waarde, en de Engelse uitgaven
   // van alle drie, elk in een eigen collectie. Alleen als die collectie
@@ -199,8 +201,10 @@ async function runSeedLocked(
   // Als laatste: het ophalen van de audio kan bij een eerste keer lang duren
   // (ruim een gigabyte per taal), en de content hierboven hoort daar niet op
   // te wachten. Hoofdstukken zonder kopie spelen intussen van de bron.
-  log("Voorgelezen hoofdstukken spiegelen...");
-  await inPhase("Audio spiegelen", () => mirrorChapterAudio(client, log));
+  if (scriptures) {
+    log("Voorgelezen hoofdstukken spiegelen...");
+    await inPhase("Audio spiegelen", () => mirrorChapterAudio(client, log));
+  }
 
   log("Seed klaar.");
 }
