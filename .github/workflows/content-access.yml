@@ -2,7 +2,7 @@ name: Contentarchitectuur 1A–2D toegang, context, selectie en spellen
 
 on:
   pull_request:
-    branches: [main, 'codex/v2-phase-*', 'codex/versado-dorp-*']
+    branches: [main, 'codex/v2-phase-*', 'codex/versado-dorp-*', 'claude/cfm-doorlopend-*']
     paths:
       - 'src/lib/hymnAvailability.ts'
       - 'src/lib/hymnLibraryClient.ts'

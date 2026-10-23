@@ -2,7 +2,7 @@ name: Beveiliging en privacy
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, 'claude/cfm-doorlopend-*']
     paths:
       - 'src/app/api/**'
       - 'src/app/feedback/**'
