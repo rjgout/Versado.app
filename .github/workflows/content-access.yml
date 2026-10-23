@@ -191,7 +191,7 @@ jobs:
       - name: Annotatiebrowser klaarzetten
         run: |
           npm install --prefix "$RUNNER_TEMP/versado-browser" --no-save --no-package-lock playwright
-          "$RUNNER_TEMP/versado-browser/node_modules/.bin/playwright" install --with-deps chromium
+          bash scripts/ci/install-browser.sh "$RUNNER_TEMP/versado-browser/node_modules/.bin/playwright"
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
       - name: Echte HTTP-toegang, studiecontext en migratiebehoud op eigen PostgreSQL
         run: |
@@ -251,7 +251,7 @@ jobs:
       - name: Browser klaarzetten
         run: |
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
-          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          bash scripts/ci/install-browser.sh node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js"
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
       - name: Migratiebehoud, Genees-economie en twee productie-instances op eigen PostgreSQL/Redis
         run: npm run test:snelle-zendeling:integration
@@ -285,7 +285,7 @@ jobs:
       - name: Browser klaarzetten
         run: |
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
-          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          bash scripts/ci/install-browser.sh node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js"
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
       - name: Migratiebehoud, Mysterie-opslag, hints en browserflows op eigen PostgreSQL
         run: |
@@ -322,7 +322,7 @@ jobs:
       - name: Browser klaarzetten
         run: |
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
-          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          bash scripts/ci/install-browser.sh node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js"
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
       - name: Geïsoleerde import/publicatie, foutinjectie, databehoud en echte containervervanging
         run: npm run test:study-publication:integration
@@ -357,7 +357,7 @@ jobs:
       - name: Browser klaarzetten
         run: |
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
-          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          bash scripts/ci/install-browser.sh node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js"
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
       - name: Geïsoleerde migratie, privacy, conflicten, reader, hervatten en expliciet gelezen
         run: |
@@ -404,7 +404,7 @@ jobs:
       - name: Browser klaarzetten
         run: |
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
-          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          bash scripts/ci/install-browser.sh node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js"
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
       - name: Eigen PostgreSQL, migratiebehoud, versieconflicten en echte browserflows
         run: npm run test:references:integration
@@ -442,7 +442,7 @@ jobs:
       - name: Browser klaarzetten
         run: |
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
-          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          bash scripts/ci/install-browser.sh node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js"
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
       - name: 52 concepten, idempotentie, publicatiebehoud en echte readertrip
         run: npm run test:cfm-2026:integration
@@ -478,7 +478,7 @@ jobs:
       - name: Browser klaarzetten
         run: |
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
-          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          bash scripts/ci/install-browser.sh node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js"
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
       - name: Geïsoleerde migratie, backend, toegang, herstart en browser
         run: npm run test:hymns:availability
@@ -506,7 +506,7 @@ jobs:
       - name: Browser klaarzetten
         run: |
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
-          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          bash scripts/ci/install-browser.sh node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js"
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
       - run: npx tsx --test tests/fsy-conversion.test.ts
       - run: npm run test:fsy-conversion:integration

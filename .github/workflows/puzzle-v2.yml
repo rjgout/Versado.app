@@ -45,7 +45,9 @@ permissions:
 jobs:
   puzzle-v2:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Een gewone run duurt 11-13 minuten; alleen "Browser klaarzetten" (playwright install --with-deps) schommelt van seconden tot
+    # bijna 10 minuten. Met 20 minuten brak een verder geslaagde run daardoor soms af tijdens de laatste regressiestap.
+    timeout-minutes: 30
     env:
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
@@ -65,7 +67,7 @@ jobs:
       - name: Browser klaarzetten
         run: |
           npm install --prefix "$RUNNER_TEMP/versado-browser" playwright@1.64.0
-          node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js" install --with-deps chromium
+          bash scripts/ci/install-browser.sh node "$RUNNER_TEMP/versado-browser/node_modules/playwright/cli.js"
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/versado-browser/node_modules/playwright" >> "$GITHUB_ENV"
       - name: Sessies, vraag, reeks, content en echte productie-browserflow
         env:
