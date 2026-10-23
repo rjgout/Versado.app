@@ -1,0 +1,93 @@
+name: Native platformcompilatie
+on:
+  pull_request:
+    branches: [main, 'feat/native-*', 'fix/native-*']
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'android/**'
+      - 'ios/**'
+      - 'capacitor.config.ts'
+      - 'scripts/native/**'
+      - 'package*.json'
+      - 'tailwind.config.ts'
+      - 'tsconfig.json'
+      - '.github/workflows/native-platform-builds.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: native-platform-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+env:
+  # Compileproef zonder productiebackend, accounts, signing of publicatie.
+  NATIVE_API_BASE_URL: https://example.invalid
+  CAPACITOR_BUILD_PROFILE: local-development
+jobs:
+  android-development:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Android SDK van de CI-runner
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"'
+      - name: Lokaal bundelen en synchroniseren
+        run: |
+          npm ci
+          npm run db:generate
+          npm run native:build
+          npx cap sync android
+          node scripts/native/verify-development.mjs android
+      - name: Echte Android-debugcompilatie
+        working-directory: android
+        run: bash ./gradlew :app:assembleDebug --no-daemon
+      - name: Controleer de assets in de APK
+        run: |
+          unzip -q android/app/build/outputs/apk/debug/app-debug.apk 'assets/*' -d "$RUNNER_TEMP/versado-android-artifact"
+          node scripts/native/verify-development.mjs android "$RUNNER_TEMP/versado-android-artifact/assets"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: versado-android-development-compileprobe
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            dist/native/build.json
+          retention-days: 7
+  ios-simulator:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Lokaal bundelen en synchroniseren
+        run: |
+          npm ci
+          npm run db:generate
+          npm run native:build
+          npx cap sync ios
+          node scripts/native/verify-development.mjs ios
+      - name: Echte iOS-simulatorcompilatie zonder signing
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/versado-ios" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+      - name: Controleer de assets in de simulatorapp
+        run: |
+          node scripts/native/verify-development.mjs ios "$RUNNER_TEMP/versado-ios/Build/Products/Debug-iphonesimulator/App.app"
+          ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/versado-ios/Build/Products/Debug-iphonesimulator/App.app" "$RUNNER_TEMP/versado-ios-simulator.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: versado-ios-simulator-development-compileprobe
+          path: |
+            ${{ runner.temp }}/versado-ios-simulator.zip
+            dist/native/build.json
+          retention-days: 7
