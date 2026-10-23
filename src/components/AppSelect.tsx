@@ -58,9 +58,10 @@ export default function AppSelect({ value, options, onChange, disabled = false, 
       const bottom = Math.min(viewportBottom, ...visibleBounds("[data-main-nav]").map((bounds) => bounds.top)) - 8;
       const below = Math.max(0, bottom - rect.bottom - 4);
       const above = Math.max(0, rect.top - top - 4);
-      const preferred = parseFloat(getComputedStyle(document.documentElement).fontSize) * 16;
+      const rootFont = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const preferred = rootFont * 16;
       const upwards = below < preferred && above > below;
-      const width = Math.min(rect.width, Math.max(0, viewportRight - viewportLeft - 16));
+      const width = Math.min(Math.max(rect.width, rootFont * 6), Math.max(0, viewportRight - viewportLeft - 16));
       setPlacement({
         left: Math.max(viewportLeft + 8, Math.min(rect.left, viewportRight - width - 8)),
         width,

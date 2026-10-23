@@ -8717,7 +8717,7 @@
     },
     {
       "file": "src/components/AppSelect.tsx",
-      "sha256": "4f40f268dea8ce5f19fb109fcdb2f12c582f1466ec0822213b44eee3bae2c240",
+      "sha256": "9e1978be84d6a11f01a6fd8727d7d3bc7d3698eda6e017734ae2aea64807b10e",
       "boundary": "client",
       "imports": [
         "react",
@@ -66679,7 +66679,7 @@
     },
     {
       "file": "src/components/AppSelect.tsx",
-      "sha256": "4f40f268dea8ce5f19fb109fcdb2f12c582f1466ec0822213b44eee3bae2c240",
+      "sha256": "9e1978be84d6a11f01a6fd8727d7d3bc7d3698eda6e017734ae2aea64807b10e",
       "boundary": "client",
       "imports": [
         "react",
