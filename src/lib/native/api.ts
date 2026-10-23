@@ -10,8 +10,12 @@ import { nativePasswordLogin, nativePasswordProof } from "./password";
 import { cancelNativeSecuritySetup, finishNativeSecuritySetup, nativeSignInResult } from "./securitySetup";
 import { nativeSetupFinishSchema } from "./contract";
 import { AccountPasswordError, changeAccountPassword } from "@/lib/account/password";
+import { hashPassword, verifyPassword } from "@/lib/auth";
+import { findOpenPendingRegistration, resendPendingVerification } from "@/lib/registration";
+import { isEmailConfigured } from "@/lib/email";
+import { getBaseUrl } from "@/lib/baseUrl";
+import { confirmAccountEmail } from "@/lib/account/emailConfirmation";
 import { passwordResetSchema } from "@/lib/account/passwordReset";
-import { hashPassword } from "@/lib/auth";
 import { resetPasswordWithToken } from "@/lib/authTokens";
 import { disconnectUserSockets } from "@/lib/realtime";
 import { passwordChangeSchema } from "@/lib/account/contracts";
@@ -60,7 +64,7 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
   const ip = hashSecret(clientIp(req)), failureKey = `native-auth:${ip}`;
   try {
     if (mutation && req.headers.get("content-type")?.split(";")[0] !== "application/json") throw new NativeAuthError("json_required", 415);
-    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["security-setup-v1", "account-password-v1", "password-reset-v1"] });
+    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["security-setup-v1", "account-password-v1", "password-reset-v1", "email-confirmation-v1"] });
     if (req.method === "POST" && path === "login") {
       if (failureLockSeconds(failureKey, 30)) throw new NativeAuthError("too_many_attempts", 429);
       const input = z.object({ identifier: z.string().trim().min(1).max(320), ...credentials, supportsSecuritySetup: z.boolean().optional() }).strict().parse(await body(req));
@@ -70,7 +74,18 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
         if (input.supportsSecuritySetup) return json(await nativeSignInResult(await nativePasswordProof(input.identifier, input.password), input.code));
         const user = await nativePasswordLogin(input.identifier, input.password, input.code);
         return json(await issueNativeSession(user.id, user.sessionVersion));
-      } catch (error) { if (error instanceof NativeAuthError && error.code === "wrong_credentials") registerFailure(accountKey, 900_000); throw error; }
+      } catch (error) {
+        if (error instanceof NativeAuthError && error.code === "wrong_credentials") {
+          const existing = await prisma.user.findUnique({ where: { email: input.identifier.toLowerCase() }, select: { id: true } });
+          const pending = existing ? null : await findOpenPendingRegistration(input.identifier.toLowerCase());
+          if (pending && await verifyPassword(input.password, pending.passwordHash)) {
+            const sent = await isEmailConfigured() && await resendPendingVerification(pending, getBaseUrl(req));
+            throw new NativeAuthError(sent ? "email_confirmation_sent" : "email_confirmation_required", 403);
+          }
+          registerFailure(accountKey, 900_000);
+        }
+        throw error;
+      }
     }
     if (req.method === "POST" && path === "security-setup/complete") {
       challengeBudget(ip);
@@ -91,6 +106,14 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
       const handler = path === "register" ? (await import("@/app/api/auth/register/route")).POST : (await import("@/app/api/auth/forgot-password/route")).POST;
       const response = await handler(forwarded);
       return json(await response.json(), response.status);
+    }
+    if (req.method === "POST" && path === "verify-email") {
+      const limited = await authBudget(authBudgetKey("verify-ip", clientIp(req)), 30, 15 * 60_000);
+      if (limited) throw new NativeAuthError(limited.status === 503 ? "security_check_unavailable" : "too_many_attempts", limited.status);
+      const input = z.object({ token: z.string().min(1).max(128) }).strict().parse(await body(req));
+      const result = await confirmAccountEmail(input.token);
+      // Geen User, returnTo, cookie of NativeSession naar een publieke client.
+      return json({ status: result.status });
     }
     if (req.method === "POST" && path === "reset-password") {
       const limited = await authBudget(authBudgetKey("reset-ip", clientIp(req)), 30, 15 * 60_000);

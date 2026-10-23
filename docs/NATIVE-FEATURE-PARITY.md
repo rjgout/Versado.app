@@ -43,7 +43,7 @@ Versado Dorp (`/dorp/**`, `/dev/versado-dorp`) | bestaande dorpwereld, inventari
 Vrienden, groepen, activiteit, uitnodigingen (`/friends/**`, `/groups/**`, `/activity`, `/uitnodiging/**`) | social services, friendship/streak/group memberships, notifications en aanwezigheid | Zelfde profielen, groep, instellingen en uitnodigingslinks | A; privacy, vriendrelatie, MEMBER/ADMIN en eigenaarcontrole per actie | S; serverlidmaatschap, seintjes en intrekkingen | O; actuele snapshot na resume, geen dubbele uitnodiging/actie | P; deelblad, links en Android-back | social, social-links, group/privacy en sockettests | Ontbreekt | Geautoriseerde native contracten, pending deeplink na login en realtime
 Competitie, uitdagingen en ranglijsten (`/competition`, `/challenges`, `/groups/leaderboard`) | league/challenge/ranking services, één gezamenlijke competitie | Zelfde route/tab en uitnodigingen | A; deelnemer, zichtbaarheids-/scorebeleid | S; één serverranglijst en uitslag | O; recente weergave geen vervangende offline score | P | league/challenge/social tests | Ontbreekt | Native status-/actiecontracten en verversing
 Profiel, avatar, gids, prestaties, taal en meldingsvoorkeuren (`/profile/**`, alle `?view=`-schermen hieronder) | account/profile/featured-achievements, companion/avatar/languages | Zelfde profiel- en queryschermen; Foundation heeft alleen beperkte Apple-accounttoestand | A; eigen account, ontgrendelingen en privacy | S; bestaande User-/achievementvoorkeuren | O; geen stil verlies van wijziging; server herladen na fout | P; avatarassets, grote tekst, formulierkeyboard | profile, guide, avatar, privacy, cards en native me-schema | Volledige profielroutes ontbreken | Native profielcontracten en gedeelde bestaande UI
-Registratie, onboarding, login, wachtwoord en TOTP (`/login`, `/register`, `/onboarding`, `/forgot-password`, `/reset-password`, `/change-password`, `/verify-email`) | registration, authTokens, TOTP/recovery, nativePasswordLogin/sessions | Zelfde lokale accountflows; bestaande Foundation-login/register/resetaanvraag als uitgangspunt | A; bevestiging, mustChangePassword, admin-2FA; geen bypass | S; Keychain/Keystore, duurzame refresh/revocation; geen token in URL | O; pending logout nooit hervatten, auth-races afvangen | P; Apple AuthenticationServices, veilige input en lifecycle | native-foundation, registration, security-hardening en 2FA-tests | Gedeeltelijk; wachtwoordwijziging en verplichte wachtwoord-/TOTP-setup toegevoegd; onboarding/verificatie en algemeen TOTP-beheer ontbreken; resetafronding werkt lokaal | Overige accountcontracten en echte veilige opslag/apparaatflows bewijzen
+Registratie, onboarding, login, wachtwoord en TOTP (`/login`, `/register`, `/onboarding`, `/forgot-password`, `/reset-password`, `/change-password`, `/verify-email`) | registration, authTokens, TOTP/recovery, nativePasswordLogin/sessions | Zelfde lokale accountflows; bestaande Foundation-login/register/resetaanvraag als uitgangspunt | A; bevestiging, mustChangePassword, admin-2FA; geen bypass | S; Keychain/Keystore, duurzame refresh/revocation; geen token in URL | O; pending logout nooit hervatten, auth-races afvangen | P; Apple AuthenticationServices, veilige input en lifecycle | native-foundation, registration, security-hardening en 2FA-tests | Gedeeltelijk; wachtwoordwijziging en verplichte wachtwoord-/TOTP-setup toegevoegd; reset- en registratiebevestiging werken lokaal; onboarding, legacy-verificatiemail opnieuw aanvragen en algemeen TOTP-beheer ontbreken | Overige accountcontracten en echte veilige opslag/apparaatflows bewijzen
 Account wissen en Apple-identiteit | accountDeletion, ExternalIdentity, Apple-challenges; geen nieuw User-systeem | Lokale accountbeveiliging en wisbevestiging | A; expliciete reauth, TOTP, laatste inlogmethode, alle sessies/socket intrekken | S; bestaande complete wisprocedure incl. PendingRegistration; geen secrets loggen | O; gevoelige actie online, geen blinde retry | P; echte Apple capability/signing vereist | native identity-/security- en accountdeletiontests | Apple-fundament gedeeltelijk; native wissen ontbreekt | Native wis-/reauthcontract en Apple-accountlevenscyclus op apparaten
 Audio, podcast, zoeken en tools (`/tools/**`, `/dev/lofzangen`, audio-API's) | dictionary/persons, media/Range, hymn/search services, bronmetadata | Zelfde tools/zoek-/audiofuncties, inclusief bestaande dev-gate | A; bron-/bestandsrechten vóór stream; geen publieke privé-audio-URL | S; afspeelpositie waar bestaand; media alleen toegestaan cachen | O; expliciet download-/streambeleid; storingen en resume | P; WebView/OS-audio, externe URL's en lifecycle | audio, reference, hymns, dictionary en contentrechten | Ontbreekt | Veilige native mediatransportkeuze; streamheaders/Range en apparaten
 Notificatie-inbox en push | notifications, bestaande webpush/VAPID; nog geen APNs/FCM-model | Lokale inbox en bestaande voorkeuren; eigen native kanaal | A; eigen meldingen en device-token-eigendom | S; native device tokens apart van Web Push; dezelfde voorkeuren | O; inbox herladen; intrekking/rotatie op logout en reinstall | P; APNs/FCM-permissie/configuratie nog niet aanwezig | web push-/social tests; geen APNs/FCM devicebewijs | Ontbreekt | Apart device-model/providercontract en eigenaarcredentials; geen fictieve configuratie
@@ -86,6 +86,7 @@ GET chapters/:id | Tekstverzen + leesstatus, bronrechten; begrensde hoofdstukgro
 POST chapters/:id/complete | Bestaande completeChapterReading-service | Geen volledige cursus-/leer-/spelcompletion
 POST security-setup/complete | Gehashte, kortlevende eenmalige doel-/account-/versiechallenge; nieuwe wachtwoord- of echte TOTP-stap | Alleen vereiste setup; algemeen TOTP-beheer ontbreekt nog lokaal
 POST security-setup/cancel | Bezit van hetzelfde opaque setupbewijs; idempotente intrekking | Offline intentie uitsluitend beveiligd; nooit als sessie hervatten
+POST verify-email | Eenmalig bestaand registratie-/EMAIL_VERIFY-bewijs, begrensde publieke statusrespons | Lokale gedeelde uitkomstkaart; geen User/returnTo/cookie/NativeSession, daarna gewone login |
 POST reset-password | Bestaand eenmalig mailbewijs; gedeelde User-lock/claim en IP-budget, overige resetlinks en sessies intrekken | Lokale gedeelde resetpagina, opnieuw inloggen met alle bestaande accountpoorten; geen cookie/NativeSession |
 POST account/password | Actuele native sessie, wachtwoord en bestaande TOTP; gedeelde User-lock-/versieservice | Lokale gedeelde wachtwoordpagina; alle sessies intrekken, opnieuw inloggen
 OPTIONS catch-all | Exacte native CORS-preflight | Geen uitbreiding naar willekeurige origins
@@ -153,10 +154,43 @@ Dezelfde formulierflow blijft op de echte Next-resetpagina met TOTP beschikbaar.
 Plakken biedt lokale bediening zonder OS-associatie; daadwerkelijke mail→OS→app-
 dispatch, Universal/App Links en apparaatacceptatie blijven open.
 
+### Lokale e-mailbevestiging
+
+`/verify-email` deelt de bestaande uitkomstkaart met web en dezelfde linkinvoer
+met lokaal wachtwoordherstel. De nieuwe native adapter ontvangt uitsluitend
+`confirmed/already/expired/invalid`, geen User, retourbestemming of sessie. Een
+nieuw account ontstaat via de bestaande `confirmPendingRegistration`; oude
+EMAIL_VERIFY-links verbruiken het token en bevestigen de User samen onder
+User-lock in één transactie. De webadapter behoudt redirect, retourpad en cookie
+bij nieuwe registratie; oude accountlinks zetten geen nieuwe cookie.
+
+Een login bij een nog niet bevestigde registratie herkent die alleen na het
+juiste wachtwoord en vraagt binnen de bestaande mailgrens een nieuwe link aan,
+zoals web. Een verkeerd wachtwoord blijft een generieke fout. Bevestigen gebeurt
+pas na een expliciete actie; plakken/ontvangen opent alleen het lokale scherm.
+Nieuwe gewone login vereist alle bestaande account-/TOTP-poorten. Launchlinks
+worden niet opnieuw geopend bij alleen het herbinden van de runtime; expliciete
+nieuwe OS-openacties blijven mogelijk. Geen bewijs in history of opslag.
+
+Technisch bewijs: 34 native unit-/navigatie-/Apple-/configuratietests en 30
+geïsoleerde API/account/registratietests groen, inclusief afgedwongen databasefout
+ná de oude tokenclaim: token en e-mailstatus rollen samen terug en herhalen slaagt.
+Parallelle bevestiging maakt één account; verkeerde doelen/verlopen links krijgen
+geen bevestiging. Web behoudt redirect/retourpad/cookie en oude accountlinks.
+De lokale plak-/bevestigingsflow met expliciete actie, herladen, offline/herstel
+en gewone login is groen op 320px/200% en 390px/dark; de echte web-uitkomstkaart
+blijft bruikbaar op 320px/200%. Vier browserformaten en bestaande reset/setup-
+regressies slagen. Dit is geen fysieke OS-link- of apparaatacceptatie.
+
+Overige accountfuncties blijven afzonderlijk open: onboarding, het opnieuw
+versturen van oude onbevestigde accountmails, algemeen TOTP-beheer en verwijderen.
+OS-linkassociaties, uitnodigingsbestemmingen en apparaatacceptatie zijn hiermee
+nog niet voltooid. Er is geen onafhankelijke acceptatie toegekend.
+
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **138 pagina's**, **233 fysieke routehandlers**, **409 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **138 pagina's**, **233 fysieke routehandlers**, **412 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -297,7 +331,7 @@ Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en au
 `/uitnodiging/[code]` | [src/app/uitnodiging/[code]/page.tsx](../src/app/uitnodiging/[code]/page.tsx); Server Component-entry | sociaal | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/brand.ts; src/lib/branding.ts; src/lib/db.ts; src/lib/friendInvite.ts; src/lib/gameSettings.ts; src/lib/handle.ts; src/lib/i18n/index.ts; src/lib/requestLanguage.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/uitnodiging/groep/[token]` | [src/app/uitnodiging/groep/[token]/page.tsx](../src/app/uitnodiging/groep/[token]/page.tsx); Server Component-entry | sociaal | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/brand.ts; src/lib/branding.ts; src/lib/i18n/index.ts; src/lib/requestLanguage.ts; src/lib/session.ts; src/lib/social/joinLinks.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/uitschrijven/[token]` | [src/app/uitschrijven/[token]/page.tsx](../src/app/uitschrijven/[token]/page.tsx); Server Component-entry | hulp-juridisch | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; verifyPodcastUnsubscribeToken; verifyUnsubscribeToken; src/lib/i18n/index.ts; src/lib/languages.ts; src/lib/mailAddress.ts; src/lib/notifyCategories.ts; src/lib/requestLanguage.ts; src/lib/session.ts; src/lib/unsubscribe.ts; src/lib/unsubscribeActions.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
-`/verify-email` | [src/app/verify-email/page.tsx](../src/app/verify-email/page.tsx); Server Component-entry | account | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/i18n/index.ts; src/lib/i18n/rich.tsx; src/lib/requestLanguage.ts; src/lib/returnTo.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/verify-email` | [src/app/verify-email/page.tsx](../src/app/verify-email/page.tsx); Server Component-entry | account | Lokale gedeelde bevestigingsflow; apparaatbewijs open | getCurrentUser; src/lib/i18n/index.ts; src/lib/i18n/rich.tsx; src/lib/requestLanguage.ts; src/lib/returnTo.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/word-game` | [src/app/word-game/page.tsx](../src/app/word-game/page.tsx); Server Component-entry | spelen | Zelfde doel-URL; ontbreekt in lokale router | canResumeGameContent; canStartGame; getCurrentUser; src/lib/db.ts; src/lib/gameAvailability.ts; src/lib/session.ts; src/lib/wordGame.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/word-search` | [src/app/word-search/page.tsx](../src/app/word-search/page.tsx); Server Component-entry | spelen | Zelfde doel-URL; ontbreekt in lokale router | assertWordSearchContext; getCurrentUser; src/lib/gameSettings.ts; src/lib/session.ts; src/lib/wordSearch/game.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/word-search/[gameId]` | [src/app/word-search/[gameId]/page.tsx](../src/app/word-search/[gameId]/page.tsx); Server Component-entry | spelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts; src/lib/wordSearch/game.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
@@ -804,6 +838,8 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/WordSearchClient.tsx](../src/components/WordSearchClient.tsx) | use client | WordSearchClient
 [src/components/XpHistoryClient.tsx](../src/components/XpHistoryClient.tsx) | use client | XpHistoryClient
 [src/components/account/AccountActionsProvider.tsx](../src/components/account/AccountActionsProvider.tsx) | use client | AccountActionsProvider, useAccountActions
+[src/components/account/EmailConfirmationCard.tsx](../src/components/account/EmailConfirmationCard.tsx) | contextafhankelijk / server-entry waar page/layout | EmailConfirmationCard
+[src/components/account/MailLinkForm.tsx](../src/components/account/MailLinkForm.tsx) | use client | MailLinkForm
 [src/components/account/PasswordChangeForm.tsx](../src/components/account/PasswordChangeForm.tsx) | use client | PasswordChangeForm
 [src/components/account/PasswordResetForm.tsx](../src/components/account/PasswordResetForm.tsx) | use client | PasswordResetForm
 [src/components/account/TwoFactorCards.tsx](../src/components/account/TwoFactorCards.tsx) | use client | RecoveryCodesCard, TwoFactorSetupCard
@@ -853,6 +889,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/mysteries/Mystery001aClient.tsx](../src/components/mysteries/Mystery001aClient.tsx) | use client | MysteryClient
 [src/components/mysteries/MysteryDetailPage.tsx](../src/components/mysteries/MysteryDetailPage.tsx) | contextafhankelijk / server-entry waar page/layout | MysteryDetailPage
 [src/components/mysteries/MysteryPlayPage.tsx](../src/components/mysteries/MysteryPlayPage.tsx) | contextafhankelijk / server-entry waar page/layout | MysteryPlayPage
+[src/components/native/NativeEmailConfirmation.tsx](../src/components/native/NativeEmailConfirmation.tsx) | use client | NativeEmailConfirmation
 [src/components/native/NativeFoundation.tsx](../src/components/native/NativeFoundation.tsx) | use client | NativeFoundation
 [src/components/native/NativeNavigationProvider.tsx](../src/components/native/NativeNavigationProvider.tsx) | use client | NativeNavigationProvider
 [src/components/native/NativePasswordReset.tsx](../src/components/native/NativePasswordReset.tsx) | use client | NativePasswordReset

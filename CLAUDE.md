@@ -225,7 +225,7 @@ De technische architectuur, migratieplanning en releasegates staan in
   gewone Bearer-/refresh- of algemene API-toegang. Pas na alle verplichte stappen
   volgt een sessie. Na logout/heropening mag alleen de beveiligde intrekking
   worden uitgevoerd; deel accountformulieren en domeinservices met web.
-- Native resetmailbewijzen geven nooit een sessie of TOTP-bypass. Gebruik dezelfde
+- Native reset-/bevestigingsmailbewijzen geven nooit een sessie of TOTP-bypass. Gebruik dezelfde
   eenmalige backendclaim als web; het ontvangen bewijs blijft in werkgeheugen,
   nooit in lokale hash/history, browseropslag of Keychain/Keystore. Alleen exact
   gevalideerde backendlinks verwerken; na reset opnieuw inloggen via alle poorten.

@@ -4,6 +4,7 @@ import { generateKeyPair, exportJWK, createLocalJWKSet, SignJWT } from "jose";
 import { verifyAppleIdentity } from "../src/lib/native/apple";
 import { NativeSessionClient, NativeClientError, type SecureSessionStore } from "../src/lib/native/client";
 import { nativeOriginAllowed } from "../src/lib/native/api";
+import { confirmNativeEmail } from "../src/lib/native/emailConfirmation";
 import { nativePasswordResetActions } from "../src/lib/native/passwordReset";
 import { nativeAccountActions } from "../src/lib/native/account";
 import { spawnSync } from "node:child_process";
@@ -329,4 +330,14 @@ test("native reset gebruikt geen sessie, cookies, refresh of platformopslag en a
   assert.deepEqual(calls, ["https://example.invalid/api/v1/native/reset-password"]); assert.equal(saved.value(), null);
   reply = { accessToken: "unexpected", refreshToken: "unexpected", expiresIn: 300 };
   await assert.rejects(actions.reset({ token: "R".repeat(43), newPassword: "Synthetic-reset-42" })); assert.equal(saved.value(), null);
+});
+
+test("native bevestiging gebruikt uitsluitend een publiek statuscontract zonder sessieopslag", async () => {
+  const saved = store(null);let result: unknown = { status: "confirmed" };
+  const client = new NativeSessionClient("https://example.invalid", saved.adapter, async (url, init) => {
+    assert.equal(String(url), "https://example.invalid/api/v1/native/verify-email");assert.equal(init?.credentials, "omit");assert.equal(new Headers(init?.headers).has("authorization"), false);return response(result);
+  });
+  assert.equal(await confirmNativeEmail(client, "V".repeat(43)), "confirmed");assert.equal(saved.value(), null);
+  result = { status: "confirmed", user: { email: "unexpected@example.invalid" } };await assert.rejects(confirmNativeEmail(client, "V".repeat(43)));
+  assert.equal(saved.value(), null);
 });

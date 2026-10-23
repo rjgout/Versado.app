@@ -2781,6 +2781,8 @@ export const fr: PartialMessages = {
     set: "Définir le mot de passe",
   },
   verify: {
+    linkLabel: "Lien de confirmation reçu par e-mail",
+    openLink: "Ouvrir le lien de confirmation",
     resend: "Renvoyer l’e-mail de confirmation",
     invalid: "Lien invalide ou expiré",
     requestNew: "Demande ci-dessous un nouvel e-mail de confirmation.",

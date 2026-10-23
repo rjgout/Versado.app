@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { consumeAuthToken } from "@/lib/authTokens";
 import { createSessionToken, SESSION_COOKIE, sessionCookieOptions } from "@/lib/auth";
 import { getBaseUrl } from "@/lib/baseUrl";
-import { confirmPendingRegistration } from "@/lib/registration";
+import { confirmAccountEmail } from "@/lib/account/emailConfirmation";
 
 // De link uit de bevestigingsmail komt via /verify-email hier terecht: een
 // pagina kan geen cookie zetten, een route wel. Daarna terug naar
@@ -19,19 +17,13 @@ export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
   if (!token) return done(req, "invalid");
 
-  const result = await confirmPendingRegistration(token);
+  const result = await confirmAccountEmail(token);
   if (result.status === "confirmed") {
     // Pas nu bestaat het account; meteen ingelogd, zodat de klik in de mail
     // de laatste stap is.
     const res = done(req, "confirmed", result.returnTo);
-    res.cookies.set(SESSION_COOKIE, await createSessionToken(result.user.id), sessionCookieOptions);
+    if (result.user) res.cookies.set(SESSION_COOKIE, await createSessionToken(result.user.id), sessionCookieOptions);
     return res;
   }
-  if (result.status !== "notPending") return done(req, result.status);
-
-  // Oude links van accounts die vóór de aanmeldingsstap zijn aangemaakt.
-  const userId = await consumeAuthToken(token, "EMAIL_VERIFY");
-  if (!userId) return done(req, "invalid");
-  await prisma.user.update({ where: { id: userId }, data: { emailVerifiedAt: new Date() } });
-  return done(req, "confirmed");
+  return done(req, result.status);
 }

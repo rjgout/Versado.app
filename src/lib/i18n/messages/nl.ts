@@ -3282,6 +3282,8 @@ export const nl = {
     set: "Wachtwoord instellen",
   },
   verify: {
+    linkLabel: "Bevestigingslink uit je e-mail",
+    openLink: "Bevestigingslink openen",
     resend: "Bevestigingsmail opnieuw versturen",
     invalid: "Link ongeldig of verlopen",
     requestNew: "Vraag hieronder een nieuwe bevestigingsmail aan.",
