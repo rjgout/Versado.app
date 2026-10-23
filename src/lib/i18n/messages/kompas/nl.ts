@@ -189,7 +189,7 @@ export const kompasNl = {
       benefit: "Een reeks helpt je om elke dag een beetje te doen, ook als dat maar kort is.",
       step1: "Rond elke dag minstens één activiteit af, zoals een les, een oefenronde, een spel of een afgeronde leesstap. Hoe kort of lang die is, maakt niet uit.",
       step2: "Mis je een dag, dan gebruikt Versado automatisch een reeksbevriezing als je er een hebt. Die bewaart je reeks.",
-      step3: "Heb je geen reeksbevriezing meer, dan breekt je reeks.",
+      step3: "Heb je geen reeksbevriezing meer, dan is je reeks onderbroken, maar niet verloren. Je kunt je reeks voortzetten.",
       more: "De eerste afgeronde activiteit van de dag zet je reeks voort; een tweede activiteit diezelfde dag geeft geen extra reeksdag. XP en reeks zijn los van elkaar: ook een activiteit zonder XP kan meetellen. Alleen openen, bladeren of beginnen telt niet, het moet echt afgerond zijn. Een dag loopt volgens de tijdzone van je account.",
     },
     progressDivisions: {
