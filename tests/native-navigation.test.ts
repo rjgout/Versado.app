@@ -1,0 +1,53 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { NativeNavigator, nativeDeepLink, nativeRoute } from "../src/lib/native/navigation";
+
+function browser(hash = "", state: unknown = null) {
+  const entries = [{ hash, state }]; let cursor = 0;
+  const listeners = new Set<() => void>();
+  const location = { get hash() { return entries[cursor].hash; } };
+  const history = {
+    get state() { return entries[cursor].state; },
+    replaceState(state: unknown, _unused: string, url?: string | URL | null) { entries[cursor] = { state, hash: String(url) }; },
+    pushState(state: unknown, _unused: string, url?: string | URL | null) { entries.splice(cursor + 1); entries.push({ state, hash: String(url) }); cursor++; },
+    back() { if (cursor) { cursor--; for (const notify of listeners) notify(); } },
+  };
+  return { location, history, addEventListener(_type: "popstate", listener: () => void) { listeners.add(listener); }, removeEventListener(_type: "popstate", listener: () => void) { listeners.delete(listener); }, entries };
+}
+
+test("de lokale routegrens accepteert alleen bestaande schermen zonder URL-geheimen", () => {
+  for (const route of ["/dashboard", "/profile", "/privacy", "/cookies", "/login", "/register", "/forgot-password", "/lesson/chapter_1-test"]) assert.equal(nativeRoute(route), route);
+  for (const route of ["/courses", "/adminbackend", "https://evil.invalid/privacy", "//evil.invalid/privacy", "/privacy?token=secret", "/privacy#secret", "/lesson/a%2fb", "/lesson/../privacy", "/privacy\\", "/privacy ", "/lesson/", "/lesson/" + "a".repeat(129)]) assert.equal(nativeRoute(route), null, route);
+});
+test("deeplinks behouden de exacte backend-origin en laten geen querytokens of credentials door", () => {
+  assert.equal(nativeDeepLink("https://versado.app/lesson/chapter-1", "https://versado.app"), "/lesson/chapter-1");
+  for (const url of ["https://versado.app.evil.invalid/privacy", "http://versado.app/privacy", "https://user:secret@versado.app/privacy", "https://versado.app:444/privacy", "https://versado.app/privacy?token=x", "https://versado.app/privacy#token", "capacitor://localhost/privacy", "https://versado.app/courses"]) assert.equal(nativeDeepLink(url, "https://versado.app"), null, url);
+});
+test("push, replace en systeemterug delen dezelfde lokale geschiedenis", () => {
+  const window = browser(), router = new NativeNavigator(window), stop = router.listen();
+  let notifications = 0; const unsubscribe = router.subscribe(() => notifications++);
+  router.push("/privacy"); router.push("/cookies"); router.replace("/profile");
+  assert.equal(window.entries.length, 3); assert.equal(router.getSnapshot().href, "/profile");
+  router.back(); assert.equal(router.getSnapshot().href, "/privacy"); assert.equal(router.getSnapshot().traversal, true);
+  assert.equal(notifications, 4); unsubscribe(); stop();
+});
+test("heropening herstelt de route en kent zonder appgeschiedenis een veilige terugval", () => {
+  const window = browser("#/privacy"), router = new NativeNavigator(window);
+  assert.equal(router.getSnapshot().href, "/privacy"); assert.equal(router.canGoBack(), false);
+  router.back(); assert.equal(router.getSnapshot().href, "/dashboard");
+  const first = new NativeNavigator(browser("#https://evil.invalid")); assert.equal(first.getSnapshot().href, "/dashboard");
+  router.push("/profile"); const reopened = new NativeNavigator(window); assert.equal(reopened.canGoBack(), true);
+  assert.deepEqual(Object.keys(Object(window.history.state)).sort(), ["href", "index", "versadoNative"]);
+});
+test("ongeldige popstate of onbekende navigatie opent geen remote pagina", () => {
+  const window = browser(), router = new NativeNavigator(window); router.listen(); router.push("/privacy");
+  window.entries[0] = { hash: "#/adminbackend", state: { versadoNative: 1, index: 0 } };
+  router.back(); assert.equal(router.getSnapshot().href, "/dashboard");
+  assert.throws(() => router.push("//evil.invalid"), /native_route_unavailable/);
+  assert.equal(router.getSnapshot().href, "/dashboard");
+});
+test("herladen en dezelfde bestemming maken geen dubbele geschiedenisitems", () => {
+  const window = browser(), router = new NativeNavigator(window), initial = router.getSnapshot();
+  router.push("/dashboard"); assert.equal(router.getSnapshot(), initial);
+  router.refresh(); assert.equal(router.getSnapshot().revision, 1); assert.equal(window.entries.length, 1);
+});

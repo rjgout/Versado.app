@@ -9,25 +9,37 @@ import { primaryButton, secondaryButton } from "@/components/versado/styles";
 import { dismissNativeKeyboard, isIOSApp, lightHaptic, nativeAppleAuthorization, openExternalUrl, startNativeFoundationRuntime } from "@/lib/platform";
 import { nativeAccountSchema, nativeTodaySchema, nativeChapterSchema, type NativeAccount, type NativeChapter } from "@/lib/native/contract";
 import { NativeClientError, type NativeSessionClient } from "@/lib/native/client";
+import { AppLink, useAppNavigation } from "@/components/navigation/AppNavigation";
+import PrivacyContent from "@/components/legal/PrivacyContent";
+import CookiesContent from "@/components/legal/CookiesContent";
+import StickyHeader from "@/components/StickyHeader";
+import ShellMetrics from "@/components/shell/ShellMetrics";
+import FocusModeController from "@/components/shell/FocusModeController";
+import { nativeDeepLink } from "@/lib/native/navigation";
 
 type Account = NativeAccount;
 type Chapter = NativeChapter;
 export default function NativeFoundation({ client, termsUrl = null, onLanguage }: { client: NativeSessionClient; termsUrl?: string | null; onLanguage?: (language: string) => void }) {
-  const t = useT(), uiLanguage = useUiLanguage();
+  const t = useT(), uiLanguage = useUiLanguage(), navigation = useAppNavigation();
+  const profile = navigation.pathname === "/profile";
+  const legal = navigation.pathname === "/privacy" || navigation.pathname === "/cookies";
+  const chapterId = navigation.pathname.startsWith("/lesson/") ? navigation.pathname.slice(8) : null;
+  const mode = navigation.pathname === "/register" ? "register" : navigation.pathname === "/forgot-password" ? "forgot" : "login";
   const [user, setUser] = useState<Account | null>(null), [activity, setActivity] = useState<{ id: string; title: string } | null>(null);
-  const [chapter, setChapter] = useState<Chapter | null>(null), [profile, setProfile] = useState(false), [mode, setMode] = useState<"login" | "register" | "forgot">("login");
+  const [loadedChapter, setChapter] = useState<Chapter | null>(null), [reloadKey, setReloadKey] = useState(0);
+  const chapter = loadedChapter?.id === chapterId ? loadedChapter : null;
   const [identifier, setIdentifier] = useState(""), [password, setPassword] = useState(""), [code, setCode] = useState(""), [handle, setHandle] = useState("");
   const [error, setError] = useState(""), [notice, setNotice] = useState(false), [busy, setBusy] = useState(false), [offline, setOffline] = useState(false), [apple, setApple] = useState(false), [saved, setSaved] = useState(false);
-  const sequence = useRef(0), current = useRef({ chapter, profile, busy });
-  useEffect(() => { current.current = { chapter, profile, busy }; }, [chapter, profile, busy]);
+  const sequence = useRef(0), current = useRef({ busy, navigation });
+  useEffect(() => { current.current = { busy, navigation }; }, [busy, navigation]);
   useEffect(() => { if (user?.uiLanguage) onLanguage?.(user.uiLanguage); }, [user?.uiLanguage, onLanguage]);
-  useEffect(() => { document.querySelector<HTMLElement>("h1")?.focus(); }, [chapter?.id, profile, user?.id]);
+  useEffect(() => { document.querySelector<HTMLElement>("h1")?.focus(); }, [chapter?.id, navigation.pathname, user?.id]);
   const report = useCallback((err: unknown) => {
     const key = err instanceof NativeClientError ? err.code : "request_failed";
     const mapping = { wrong_credentials: "wrongCredentials", two_factor_required: "twoFactorRequired", sign_in_then_link_apple: "appleConflict", alternative_login_required: "alternativeRequired", network_unavailable: "offline", session_expired: "sessionExpired", secure_storage_unavailable: "storageUnavailable" } as const;
     setError(t(`nativeFoundation.${mapping[key as keyof typeof mapping] ?? "error"}`));
     if (key === "network_unavailable") setOffline(true);
-    if (err instanceof NativeClientError && err.status === 401 && key !== "two_factor_required" && key !== "wrong_credentials") { setUser(null); setChapter(null); setProfile(false); }
+    if (err instanceof NativeClientError && err.status === 401 && key !== "two_factor_required" && key !== "wrong_credentials") { setUser(null); setChapter(null); }
   }, [t]);
   const load = useCallback(async () => {
     const [me, today] = await Promise.all([client.api<Account>("me"), client.api<{ activity: typeof activity }>("today")]);
@@ -42,25 +54,46 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
       if (await client.restore()) {
         const data = await load(); if (id !== sequence.current) return; setUser(data.me); setActivity(data.today.activity);
       } else { setUser(null); setChapter(null); }
-      setOffline(false);
+      setOffline(false); setReloadKey(value => value + 1);
     } catch (err) { if (id === sequence.current) report(err); }
     finally { if (id === sequence.current) setBusy(false); }
   }, [client, load, report]);
+  useEffect(() => {
+    const id = ++sequence.current;
+    void Promise.resolve().then(() => { if (id === sequence.current) { setBusy(false); setError(""); setNotice(false); setPassword(""); setCode(""); } });
+  }, [navigation.pathname]);
   useEffect(() => {
     void Promise.resolve().then(bootstrap);
     const online = () => { if (!current.current.busy) void bootstrap(); }, offline = () => setOffline(true);
     window.addEventListener("online", online); window.addEventListener("offline", offline);
     const invalidate = () => { sequence.current++; };
     let disposed = false, cleanup: (() => void) | undefined;
-    void startNativeFoundationRuntime({ onResume: online, onBack: () => { if (current.current.busy) return true; if (current.current.chapter || current.current.profile) { sequence.current++; setChapter(null); setProfile(false); return true; } return false; }, onUrl: raw => {
-      try {
-        const url = new URL(raw); if (url.origin !== new URL(client.baseUrl).origin) return;
-        if (url.pathname === "/dashboard") { sequence.current++; setChapter(null); setProfile(false); }
-        // Andere deeplinks pas na migratie van het betreffende contract.
-      } catch {}
+    void startNativeFoundationRuntime({ onResume: online, onBack: () => {
+      const nav = current.current.navigation;
+      if (nav.canGoBack() || (nav.pathname !== "/dashboard" && nav.pathname !== "/login")) { nav.back(); return true; }
+      return false;
+    }, onUrl: raw => {
+      const route = nativeDeepLink(raw, client.baseUrl);
+      if (route) current.current.navigation.push(route);
     } }).then(stop => { if (disposed) stop(); else cleanup = stop; }).catch(() => {});
     return () => { disposed = true; invalidate(); cleanup?.(); window.removeEventListener("online", online); window.removeEventListener("offline", offline); };
   }, [bootstrap, client]);
+  const accountId = user?.id;
+  useEffect(() => {
+    if (!chapterId || !accountId) return;
+    const id = ++sequence.current;
+    let cancelled = false;
+    void Promise.resolve().then(async () => {
+      if (cancelled) return;
+      setBusy(true); setError("");
+      try {
+        const value = nativeChapterSchema.parse(await client.api(`chapters/${encodeURIComponent(chapterId)}`));
+        if (!cancelled && id === sequence.current) { setChapter(value); setSaved(value.state.read === "READ"); }
+      } catch (err) { if (!cancelled && id === sequence.current) report(err); }
+      finally { if (!cancelled && id === sequence.current) setBusy(false); }
+    });
+    return () => { cancelled = true; };
+  }, [chapterId, accountId, reloadKey, client, report]);
   async function action(run: (isCurrent: () => boolean) => Promise<void>) {
     if (busy) return;
     const id = ++sequence.current; setBusy(true); setError(""); setNotice(false);
@@ -86,22 +119,31 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
     const data = await load(); if (!isCurrent()) return; setUser(data.me); setActivity(data.today.activity); setPassword("");
   }
   const button = `${secondaryButton} min-h-12 whitespace-normal`;
-  return <main className="native-foundation mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-5 bg-vs-bg p-5 text-vs-fg">
-    <header className="flex flex-wrap items-center gap-3">
+  const detail = legal || profile || !!chapterId;
+  return <FocusModeController>
+    <ShellMetrics />
+    <StickyHeader>
+    <header data-app-global-header className="border-b border-vs-line bg-vs-elevated pt-[var(--vs-safe-area-top)]">
+    <div className="mx-auto flex min-h-14 max-w-2xl flex-wrap items-center gap-3 pl-[max(1.25rem,var(--vs-safe-area-left))] pr-[max(1.25rem,var(--vs-safe-area-right))] py-2">
       {/* Bestaand appicoon, geen nieuwe merkasset. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/icons/icon-512.png" width="44" height="44" alt="" />
       <span className="text-xl font-extrabold">Versado</span>
-      {user && <button type="button" disabled={busy} className={`${button} ml-auto`} onClick={() => { setPassword(""); setCode(""); void action(() => client.logout(() => { setUser(null); setChapter(null); setProfile(false); setIdentifier(""); })); }}><LogOut className="h-4 w-4" />{t("nativeFoundation.logout")}</button>}
-    </header>
+      {user && <button type="button" disabled={busy} className={`${button} ml-auto`} onClick={() => { setPassword(""); setCode(""); void action(() => client.logout(() => { setUser(null); setChapter(null); setIdentifier(""); navigation.replace("/login"); })); }}><LogOut className="h-4 w-4" />{t("nativeFoundation.logout")}</button>}
+    </div></header>
+    {detail && <div data-subpage-back-bar className="border-b border-vs-line bg-vs-elevated pl-[max(1.25rem,var(--vs-safe-area-left))] pr-[max(1.25rem,var(--vs-safe-area-right))] py-2">
+      <button className={button} onClick={() => navigation.back()}><ArrowLeft className="h-4 w-4" />{t("nativeFoundation.back")}</button>
+    </div>}
+    </StickyHeader>
+    <main className="native-foundation mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-5 bg-vs-bg text-vs-fg">
     {offline && <p role="status" className="flex gap-2 rounded-xl bg-vs-surface p-3"><WifiOff className="h-5 w-5 shrink-0" />{t("nativeFoundation.offline")}</p>}
     {error && <p role="alert" className="rounded-xl border border-vs-line bg-vs-surface p-3">{error}</p>}
     {busy && <p role="status">{t("nativeFoundation.loading")}</p>}
-    {!user ? <>
+    {legal ? navigation.pathname === "/privacy" ? <PrivacyContent /> : <CookiesContent /> : !user ? <>
       <MascotSlot character="novi" state="greeting" size={100} />
       <h1 tabIndex={-1} className="text-2xl font-extrabold">{t("nativeFoundation.welcome")}</h1>
       <form className="flex flex-col gap-4" onSubmit={event => { event.preventDefault(); void action(async isCurrent => {
-        if (mode === "login") { await client.login(identifier, password, code || undefined); const data = await load(); if (!isCurrent()) return; setUser(data.me); setActivity(data.today.activity); setPassword(""); setCode(""); }
+        if (mode === "login") { await client.login(identifier, password, code || undefined); const data = await load(); if (!isCurrent()) return; setUser(data.me); setActivity(data.today.activity); setPassword(""); setCode(""); if (["/login", "/register", "/forgot-password"].includes(navigation.pathname)) navigation.replace("/dashboard"); }
         else { await client.publicRequest(mode === "register" ? "register" : "forgot-password", mode === "register" ? { email: identifier, password, handle } : { identifier }); if (isCurrent()) setNotice(true); }
       }); }}>
         <label>{t("nativeFoundation.email")}<input className="input mt-1 w-full" value={identifier} onChange={e => setIdentifier(e.target.value)} autoComplete="username" inputMode="email" required maxLength={320} /></label>
@@ -113,32 +155,31 @@ export default function NativeFoundation({ client, termsUrl = null, onLanguage }
       {notice && <p role="status">{t("nativeFoundation.registrationSent")}</p>}
       {isIOSApp() && <button type="button" disabled={busy || !apple} className={`${button} !bg-black !text-white`} onClick={() => void action(isCurrent => signInApple(false, isCurrent))}>{t("nativeFoundation.apple")}</button>}
       {isIOSApp() && !apple && <p>{t("nativeFoundation.appleUnavailable")}</p>}
-      <div className="flex flex-wrap gap-3">{(["login", "register", "forgot"] as const).filter(v => v !== mode).map(value => <button className={button} disabled={busy} key={value} onClick={() => { setMode(value); setError(""); setNotice(false); }}>{t(`nativeFoundation.${value}`)}</button>)}</div>
+      <div className="flex flex-wrap gap-3">{(["login", "register", "forgot"] as const).filter(v => v !== mode).map(value => <button className={button} disabled={busy} key={value} onClick={() => { navigation.push(value === "forgot" ? "/forgot-password" : `/${value}`); setError(""); setNotice(false); }}>{t(`nativeFoundation.${value}`)}</button>)}</div>
       <p className="text-sm">{t("nativeFoundation.appleResetHelp")}</p>
       {!termsUrl && <p className="text-sm">{t("nativeFoundation.termsUnavailable")}</p>}
     </> : <>
-      {(chapter || profile) && <button className={button} disabled={busy} onClick={() => { sequence.current++; setChapter(null); setProfile(false); }}><ArrowLeft className="h-4 w-4" />{t("nativeFoundation.back")}</button>}
-      <h1 tabIndex={-1} className="text-2xl font-extrabold">{profile ? t("nativeFoundation.account") : chapter?.title ?? `${t("nativeFoundation.today")}, ${user.handle}`}</h1>
+      <h1 tabIndex={-1} className="text-2xl font-extrabold">{profile ? t("nativeFoundation.account") : (chapterId ? chapter?.title ?? t("pages.lesson") : `${t("nativeFoundation.today")}, ${user.handle}`)}</h1>
       {profile ? <>
         <p>{user.appleLinked ? t("nativeFoundation.appleLinked") : t("nativeFoundation.appleUnavailable")}</p>
         <label>{t("nativeFoundation.password")}<input type="password" autoComplete="current-password" className="input w-full" value={password} onChange={e => setPassword(e.target.value)} maxLength={256} /></label>
         <label>{t("nativeFoundation.code")}<input className="input w-full" value={code} onChange={e => setCode(e.target.value)} maxLength={100} /></label>
-        {(apple || user.appleLinked) && <button className={button} disabled={busy || !password || !user.passwordLoginEnabled} onClick={() => void action(async isCurrent => { if (user.appleLinked) { await client.api("apple", { password, ...(code ? { code } : {}) }, "DELETE"); setUser(null); setProfile(false); setPassword(""); setCode(""); await client.logout(); } else await signInApple(true, isCurrent); })}>{t(user.appleLinked ? "nativeFoundation.appleUnlink" : "nativeFoundation.appleLink")}</button>}
+        {(apple || user.appleLinked) && <button className={button} disabled={busy || !password || !user.passwordLoginEnabled} onClick={() => void action(async isCurrent => { if (user.appleLinked) { await client.api("apple", { password, ...(code ? { code } : {}) }, "DELETE"); setUser(null); setPassword(""); setCode(""); await client.logout(); } else await signInApple(true, isCurrent); })}>{t(user.appleLinked ? "nativeFoundation.appleUnlink" : "nativeFoundation.appleLink")}</button>}
         {!user.passwordLoginEnabled && <p>{t("nativeFoundation.alternativeRequired")}</p>}
-      </> : chapter ? <>
+      </> : chapterId ? chapter ? <>
         {chapter.verses.map(verse => <p key={verse.number} className="leading-relaxed"><sup className="mr-2">{verse.number}</sup>{verse.text}</p>)}
         <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy || saved} onClick={() => void action(async isCurrent => { await client.api(`chapters/${encodeURIComponent(chapter.id)}/complete`, {}); if (!isCurrent()) return; setSaved(true); await lightHaptic(); })}>{t(saved ? "nativeFoundation.completeSaved" : "nativeFoundation.complete")}</button>
-      </> : <>
+      </> : null : <>
         {user.onboardingRequired && <p>{t("nativeFoundation.onboardingNote")}</p>}
-        {activity ? <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy} onClick={() => void action(async isCurrent => { const value = await client.api<Chapter>(`chapters/${encodeURIComponent(activity.id)}`); if (!isCurrent()) return; setChapter(nativeChapterSchema.parse(value)); setSaved(value.state.read === "READ"); })}>{activity.title} — {t("nativeFoundation.continue")}</button> : <p>{t("nativeFoundation.empty")}</p>}
-        <button className={button} onClick={() => setProfile(true)}>{t("nativeFoundation.account")}</button>
+        {activity ? <button className={`${primaryButton} min-h-12 whitespace-normal`} disabled={busy} onClick={() => navigation.push(`/lesson/${encodeURIComponent(activity.id)}`)}>{activity.title} — {t("nativeFoundation.continue")}</button> : <p>{t("nativeFoundation.empty")}</p>}
+        <button className={button} onClick={() => navigation.push("/profile")}>{t("nativeFoundation.account")}</button>
       </>}
     </>}
     <footer className="mt-auto flex flex-wrap gap-3 pt-6">
       <button className={button} onClick={() => void bootstrap()} disabled={busy}>{t("nativeFoundation.retry")}</button>
       <button className={button} onClick={() => void dismissNativeKeyboard()}>{t("nativeFoundation.keyboardDone")}</button>
-      <button className={button} onClick={() => void openExternalUrl(`${client.baseUrl}/privacy`)}>{t("nativeFoundation.privacy")}</button>
+      <AppLink className={button} href="/privacy">{t("nativeFoundation.privacy")}</AppLink>
       <button className={button} disabled={!termsUrl} title={!termsUrl ? t("nativeFoundation.termsUnavailable") : undefined} onClick={() => { if (termsUrl) void openExternalUrl(termsUrl); }}>{t("nativeFoundation.terms")}</button>
     </footer>
-  </main>;
+  </main></FocusModeController>;
 }

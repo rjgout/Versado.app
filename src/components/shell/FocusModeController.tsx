@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useAppNavigation } from "@/components/navigation/AppNavigation";
 import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { resolveShellMode, shellModeForRoute } from "@/lib/focusMode";
 import { immersiveShellRequested, subscribeShellModeOverride, useEffectiveShellMode } from "@/lib/shellModeOverride";
@@ -11,7 +11,7 @@ import { immersiveShellRequested, subscribeShellModeOverride, useEffectiveShellM
  * krijgen zonder dat iedere pagina header/bottomnav-props hoeft door te geven.
  */
 export default function FocusModeController({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
+  const pathname = useAppNavigation().pathname;
   const routeMode = shellModeForRoute(pathname);
   // De route bepaalt de modus; een actief speelbord binnen een Focus-route mag hem tot Immersive verheffen (shellModeOverride.ts).
   const mode = useEffectiveShellMode(routeMode);

@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { AppLink as Link, useAppNavigation } from "@/components/navigation/AppNavigation";
 import { useT } from "@/components/I18nProvider";
 import NavIcon from "@/components/shell/NavIcon";
 import { PRIMARY_NAV, activeDestination } from "@/lib/navigation";
@@ -10,7 +9,7 @@ import { PRIMARY_NAV, activeDestination } from "@/lib/navigation";
 // desktopbreedte: daar is een balk onderaan geen natuurlijke plek.
 export default function PrimaryNav() {
   const t = useT();
-  const active = activeDestination(usePathname());
+  const active = activeDestination(useAppNavigation().pathname);
   return (
     <nav aria-label={t("nav.main")} className="vs-motion hidden lg:flex flex-wrap items-center justify-center gap-1">
       {PRIMARY_NAV.map((item) => {

@@ -88,6 +88,15 @@ realtime/spellen/audio. Socket.io vereist eigen native sessiehandshake; niet imp
 het cookiecontract aanpassen. Native push volgt afzonderlijk. Geen offline
 voortgangsqueue zonder apart servervalidatiecontract.
 
+## Gedeelde navigatie na de proef
+
+`AppNavigation` heeft afzonderlijke Next- en lokale adapters. De bestaande
+Foundation-toestanden hebben lokale routes en delen geschiedenis met systeemterug;
+lezen herstelt bij herladen. Privacy/cookies delen hun componenten met web en zijn
+lokaal gebundeld. StickyHeader, ShellMetrics en focusmodi worden hergebruikt.
+Volledige route-/functiepariteit en native data-adapters volgen per feature;
+een geregistreerde proefroute is geen volledige webfunctie.
+
 ## Externe voorwaarden
 
 Apple Team ID, Bundle ID/audience, Sign in with Apple capability en provisioning

@@ -43,12 +43,31 @@ try{
  const password='Synthetic-browser-42',user=await prisma.user.create({data:{email:`native-browser-${randomUUID()}@example.invalid`,handle:'Nativebrowser',discriminator:'01',passwordHash:await hashPassword(password),emailVerifiedAt:new Date(),onboardingSeenAt:new Date(),activeContentCollectionId:collection.id}});
  for(const [width,height,scheme,scale,locale]of [[320,844,'light',2,'nl-NL'],[390,844,'dark',1,'nl-NL'],[1280,900,'light',1,'de-DE'],[844,390,'dark',1,'fr-FR']]){
   const context=await browser.newContext({viewport:{width,height},locale,hasTouch:width<900,isMobile:width<900,colorScheme:scheme});
-  await context.addInitScript(({scheme,scale})=>{const apply=()=>{if(scheme==='dark')document.documentElement.classList.add('dark');document.documentElement.style.fontSize=`${100*scale}%`;};if(document.documentElement)apply();else document.addEventListener('DOMContentLoaded',apply,{once:true});},{scheme,scale});
+  await context.addInitScript(({scale})=>{const apply=()=>{document.documentElement.style.fontSize=`${100*scale}%`;for(const [edge,size]of Object.entries({top:24,bottom:18,left:12,right:12}))document.documentElement.style.setProperty(`--safe-area-inset-${edge}`,`${size}px`);};if(document.documentElement)apply();else document.addEventListener('DOMContentLoaded',apply,{once:true});},{scale});
   let page=await context.newPage();const errors=[],failedResponses=[];page.on('pageerror',e=>{errors.push(e.message);console.error('Native browserfout:',e.message);});page.on('response',r=>{if(r.status()>=400){failedResponses.push({path:new URL(r.url()).pathname,status:r.status()});console.error('Native testresponse:',new URL(r.url()).pathname,r.status());}});network=false;
   try{
   const device=`${width}-${randomUUID()}`;
   await page.goto(`${origin}/?device=${device}`);await page.getByRole('heading',{level:1}).waitFor();await page.getByRole('alert').waitFor();
-  assert.equal(await page.locator('form').count(),1,'Offline cold start toont lokale inloginterface');network=true;
+  assert.equal(await page.evaluate(()=>document.documentElement.classList.contains('dark')),scheme==='dark','De echte lokale adapter volgt het systeemthema');
+  await page.emulateMedia({colorScheme:scheme==='dark'?'light':'dark'});
+  await page.waitForFunction(expected=>document.documentElement.classList.contains('dark')===expected,scheme!=='dark');
+  await page.emulateMedia({colorScheme:scheme});
+  await page.waitForFunction(expected=>document.documentElement.classList.contains('dark')===expected,scheme==='dark');
+  assert.equal(await page.locator('form').count(),1,'Offline cold start toont lokale inloginterface');
+  await page.locator('a[href="#/privacy"]').click();assert.equal(new URL(page.url()).hash,'#/privacy');
+  await page.evaluate(()=>scrollTo(0,0));
+  await page.waitForFunction(()=>{const heading=document.querySelector('h1'),bar=document.querySelector('[data-sticky-header]');return heading&&bar&&heading.getBoundingClientRect().top>=bar.getBoundingClientRect().bottom-1;});
+  const barTop=await page.locator('[data-subpage-back-bar]').evaluate(el=>el.getBoundingClientRect().top);
+  const tall=await page.evaluate(()=>document.documentElement.hasAttribute('data-header-tall'));
+  assert.equal(await page.locator('[data-sticky-header]').evaluate(el=>getComputedStyle(el).position),tall?'absolute':'fixed','Grote tekst volgt het bestaande ShellMetrics-contract');
+  await page.evaluate(()=>scrollTo(0,300));
+  const scroll=await page.evaluate(()=>scrollY);
+  assert.equal(Math.round(await page.locator('[data-subpage-back-bar]').evaluate(el=>el.getBoundingClientRect().top)),Math.round(barTop-(tall?scroll:0)),'Normale terugbalk blijft staan; een schermvullende tekstbalk scrollt volgens de shellregel mee');
+  await page.locator('a[href="#/cookies"]').click();assert.equal(new URL(page.url()).hash,'#/cookies');
+  await page.reload();await page.locator('table').waitFor();assert.equal(new URL(page.url()).hash,'#/cookies','Offline herladen bewaart de lokale route');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Ook juridische tekst heeft geen overflow');
+  await page.goBack();await page.locator('a[href="#/cookies"]').waitFor();
+  await page.goBack();await page.locator('form').waitFor();network=true;
   // Nederlands voor functionele interacties; andere talen worden op layout/overflow getest.
   if(locale==='nl-NL'){
    await page.getByLabel('E-mail of gebruikerstag').fill(user.email);await page.getByLabel('Wachtwoord',{exact:true}).fill(password);await page.getByRole('button',{name:'Inloggen',exact:true}).click();
@@ -57,8 +76,9 @@ try{
    if(width===320)await page.getByRole('button',{name:'Markeer als gelezen',exact:true}).click();
    await page.getByRole('button',{name:'Opgeslagen op de server',exact:true}).waitFor();
    assert.equal((await prisma.user.findUniqueOrThrow({where:{id:user.id}})).xpTotal,0);
-   await page.reload();await page.getByRole('heading',{name:/Vandaag/}).waitFor();
-   await page.getByRole('button',{name:/Nativeboek 1/}).click();await page.getByRole('button',{name:'Opgeslagen op de server',exact:true}).waitFor();
+   await page.reload();await page.getByRole('heading',{name:'Nativeboek 1',exact:true}).waitFor();
+   await page.getByRole('button',{name:'Opgeslagen op de server',exact:true}).waitFor();
+   assert.match(new URL(page.url()).hash,/^#\/lesson\//,'Heropening herstelt de echte leesroute');
    assert.equal(await page.evaluate(()=>localStorage.length+sessionStorage.length),0,'Geen sessiegeheimen in webopslag');
    await page.screenshot({path:`${out}/reader-${width}-${scheme}-${scale}.png`,fullPage:true});
    // Vernietig de WebView; alleen de gesimuleerde beveiligde platformopslag blijft bestaan.
@@ -74,7 +94,7 @@ try{
    assert.equal(secrets.has(`/test-keychain/${device}`),false,'Beveiligde logoutqueue is na serverbevestiging verwijderd');
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Geen horizontale overflow');assert.deepEqual(errors,[]);assert.deepEqual(failedResponses,[],'Geen ontbrekende stylesheets/assets of geweigerde geldige API-acties');
-  await page.screenshot({path:`${out}/welcome-${width}-${scheme}-${scale}-${locale}.png`,fullPage:true});results.push({width,height,scheme,scale,locale,offlineStartup:true,overflow:false});
+  await page.screenshot({path:`${out}/welcome-${width}-${scheme}-${scale}-${locale}.png`,fullPage:true});results.push({width,height,scheme,scale,locale,offlineStartup:true,localLegalRoutes:true,routeReload:true,historyBack:true,systemTheme:true,safeAreaInsets:true,overflow:false});
   }catch(error){console.error('Native testscherm:',await page.locator('body').innerText());await page.screenshot({path:`${out}/failure-${width}.png`,fullPage:true});throw error;}finally{await context.close();}
  }
  writeFileSync(`${out}/results.json`,JSON.stringify(results,null,2));console.log('Native browserbewijs:',JSON.stringify(results));

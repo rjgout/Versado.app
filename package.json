@@ -101,7 +101,7 @@
     "test:cfm-2026:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --cfm-import --browser",
     "test:fsy-conversion:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --fsy-conversion --browser",
     "native:build": "tsx scripts/native/build.ts",
-    "test:native": "tsx --test tests/native-foundation.test.ts",
+    "test:native": "tsx --test tests/native-foundation.test.ts tests/native-navigation.test.ts",
     "test:native:integration": "node scripts/native/test-isolated.mjs",
     "test:security": "tsx --test tests/security-policy.test.ts",
     "test:security:integration": "node scripts/security/test-isolated.mjs",
