@@ -2756,6 +2756,10 @@ export const en: PartialMessages = {
     logIn: "Log in",
   },
   password: {
+    resetLinkLabel: "Reset link from your email",
+    openResetLink: "Open reset link",
+    resetCompleteSignIn: "Your password has changed. Sign in again; two-factor verification is still required if enabled.",
+
     newMismatch: "The two new passwords don't match.",
     forcedReset: "An admin has reset your password. First choose your own new password below before you can continue.",
     temporary: "Temporary password",

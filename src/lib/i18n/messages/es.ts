@@ -2767,6 +2767,9 @@ export const es: PartialMessages = {
     "logIn": "Iniciar sesión"
   },
   "password": {
+    "resetLinkLabel": "Enlace de restablecimiento de tu correo",
+    "openResetLink": "Abrir enlace de restablecimiento",
+    "resetCompleteSignIn": "Tu contraseña ha cambiado. Vuelve a iniciar sesión; la verificación en dos pasos sigue siendo obligatoria si está activada.",
     "newMismatch": "Las dos nuevas contraseñas no coinciden.",
     "forcedReset": "Un administrador restableció su contraseña. Primero elige tu nueva contraseña a continuación antes de poder continuar.",
     "temporary": "Contraseña temporal",

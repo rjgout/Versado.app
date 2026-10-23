@@ -29,8 +29,13 @@ via web/native adapters en één backendservice. De eigenaar heeft een eenmalige
 vijf minuten geldige native setup-challenge goedgekeurd voor verplichte wachtwoord-
 en beheerder-TOTP-stappen. Die geeft geen gewone API-toegang; na voltooiing volgt
 pas een sessie. Zie de matrix voor contracten, migratie en werkelijk testbewijs.
-Algemeen TOTP-beheer, account wissen, reset/onboarding en volledige profielpariteit
-blijven open.
+Wachtwoordherstel voltooit lokaal via een apart versie-1-contract en dezelfde
+backendservice als web. De bestaande resetmail kan lokaal worden geplakt; een
+ontvangen OS-link gaat door dezelfde exacte backend-origin-/tokenvalidatie. Alleen
+het lokale `/reset-password` komt in geschiedenis; het bewijs blijft in geheugen.
+Na reset volgt opnieuw inloggen inclusief bestaande TOTP/verplichte setup. Universal/
+App Links vereisen nog eigenaarconfiguratie en apparaatbewijs. Algemeen TOTP-beheer,
+account wissen, onboarding en volledige profielpariteit blijven open.
 
 ## Architectuurbesluit
 

@@ -10,6 +10,10 @@ import { nativePasswordLogin, nativePasswordProof } from "./password";
 import { cancelNativeSecuritySetup, finishNativeSecuritySetup, nativeSignInResult } from "./securitySetup";
 import { nativeSetupFinishSchema } from "./contract";
 import { AccountPasswordError, changeAccountPassword } from "@/lib/account/password";
+import { passwordResetSchema } from "@/lib/account/passwordReset";
+import { hashPassword } from "@/lib/auth";
+import { resetPasswordWithToken } from "@/lib/authTokens";
+import { disconnectUserSockets } from "@/lib/realtime";
 import { passwordChangeSchema } from "@/lib/account/contracts";
 import { authBudget, authBudgetKey } from "@/lib/authBudget";
 import { appleConfiguration, createAppleChallenge, finishAppleChallenge, unlinkApple } from "./apple";
@@ -56,7 +60,7 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
   const ip = hashSecret(clientIp(req)), failureKey = `native-auth:${ip}`;
   try {
     if (mutation && req.headers.get("content-type")?.split(";")[0] !== "application/json") throw new NativeAuthError("json_required", 415);
-    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["security-setup-v1", "account-password-v1"] });
+    if (req.method === "GET" && path === "capabilities") return json({ apiVersion: 1, apple: !!appleConfiguration(), registration: true, features: ["security-setup-v1", "account-password-v1", "password-reset-v1"] });
     if (req.method === "POST" && path === "login") {
       if (failureLockSeconds(failureKey, 30)) throw new NativeAuthError("too_many_attempts", 429);
       const input = z.object({ identifier: z.string().trim().min(1).max(320), ...credentials, supportsSecuritySetup: z.boolean().optional() }).strict().parse(await body(req));
@@ -87,6 +91,17 @@ export async function nativeApi(req: NextRequest, parts: string[]): Promise<Next
       const handler = path === "register" ? (await import("@/app/api/auth/register/route")).POST : (await import("@/app/api/auth/forgot-password/route")).POST;
       const response = await handler(forwarded);
       return json(await response.json(), response.status);
+    }
+    if (req.method === "POST" && path === "reset-password") {
+      const limited = await authBudget(authBudgetKey("reset-ip", clientIp(req)), 30, 15 * 60_000);
+      if (limited) throw new NativeAuthError(limited.status === 503 ? "security_check_unavailable" : "too_many_attempts", limited.status);
+      const input = passwordResetSchema.parse(await body(req));
+      const changed = await resetPasswordWithToken(input.token, await hashPassword(input.newPassword));
+      if (!changed) throw new NativeAuthError("invalid_reset_link", 400);
+      disconnectUserSockets(changed.id);
+      // Een resetbewijs is geen loginbewijs. Ook bij TOTP volgt altijd een
+      // nieuwe login via de bestaande wachtwoord-/Apple-/setup-poort.
+      return json({ ok: true, reauthenticationRequired: true });
     }
     if (req.method === "POST" && (path === "refresh" || path === "logout")) {
       if (failureLockSeconds(failureKey, 30)) throw new NativeAuthError("too_many_attempts", 429);

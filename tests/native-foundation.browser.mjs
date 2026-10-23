@@ -6,6 +6,7 @@ import {build} from 'esbuild';
 import {randomUUID} from 'node:crypto';
 import {prisma} from '../src/lib/db.ts';
 import {hashPassword,createSessionToken,verifySessionToken,verifyPassword} from '../src/lib/auth.ts';
+import {createAuthToken} from '../src/lib/authTokens.ts';
 import {decryptTotpSecret,generateTotpCode} from '../src/lib/totp.ts';
 const db=new URL(process.env.NATIVE_TEST_DATABASE_URL??'http://invalid');
 if(db.hostname!=='127.0.0.1'||db.pathname!=='/versado_content_access_test'||db.href!==process.env.DATABASE_URL)throw Error('Alleen eigen geïsoleerde database');
@@ -134,9 +135,29 @@ try{
    assert.equal(await prisma.nativeSession.count({where:{userId:admin.id}}),1,'Dataherstel na TOTP herhaalt de afronding niet');
    await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
 
+   // Bestaande herstelmail wordt lokaal afgehandeld, ook zonder OS-linkassociatie.
+   const resetToken=await createAuthToken(forced.id,'PASSWORD_RESET'),resetLink=`${origin}/reset-password?token=${resetToken}`,resetPassword='Synthetic-mail-reset-44';
+   await page.getByRole('button',{name:'Wachtwoord vergeten',exact:true}).click();
+   await page.getByRole('link',{name:'Resetlink openen',exact:true}).click();
+   await page.getByLabel('Resetlink uit je e-mail').fill(`https://evil.invalid/reset-password?token=${resetToken}`);await page.getByRole('button',{name:'Resetlink openen',exact:true}).click();
+   await page.getByRole('alert').waitFor();assert.equal(await page.getByLabel('Resetlink uit je e-mail').inputValue(),'','Ongeldige link wordt niet bewaard');
+   const openReset=async()=>{await page.getByLabel('Resetlink uit je e-mail').fill(resetLink);await page.getByRole('button',{name:'Resetlink openen',exact:true}).click();await page.getByLabel('Nieuw wachtwoord',{exact:true}).waitFor();};
+   await openReset();assert.equal(new URL(page.url()).hash,'#/reset-password');
+   assert.equal(await page.evaluate(token=>JSON.stringify(history.state).includes(token),resetToken),false);
+   await page.reload();await page.getByLabel('Resetlink uit je e-mail').waitFor();await openReset();
+   await page.getByLabel('Nieuw wachtwoord',{exact:true}).fill(resetPassword);await page.getByLabel('Bevestig nieuw wachtwoord',{exact:true}).fill(resetPassword);
+   network=false;await page.getByRole('button',{name:'Wachtwoord instellen',exact:true}).click();await page.getByRole('alert').waitFor();network=true;
+   await page.getByRole('button',{name:'Wachtwoord instellen',exact:true}).click();await page.getByText('Je wachtwoord is gewijzigd. Log opnieuw in; tweestapsverificatie blijft vereist als die is ingeschakeld.',{exact:true}).waitFor();
+   assert.equal(await page.evaluate(()=>localStorage.length+sessionStorage.length),0);assert.equal([...secrets.values()].some(value=>value.includes(resetToken)),false);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Resetformulier en succesmelding passen bij grote tekst');
+   await page.screenshot({path:`${out}/password-reset-${width}-${scheme}-${scale}.png`,fullPage:true});
+   await page.getByRole('button',{name:'Terug naar inloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
+   await login(forced.email,resetPassword);await page.getByRole('heading',{name:/Vandaag/}).waitFor();
+   await page.getByRole('button',{name:'Uitloggen',exact:true}).click();await page.getByRole('heading',{name:'Welkom bij Versado'}).waitFor();
+
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Geen horizontale overflow');assert.deepEqual(errors,[]);assert.deepEqual(failedResponses,[],'Geen ontbrekende stylesheets/assets of geweigerde geldige API-acties');
-  await page.screenshot({path:`${out}/welcome-${width}-${scheme}-${scale}-${locale}.png`,fullPage:true});results.push({width,height,scheme,scale,locale,offlineStartup:true,localLegalRoutes:true,routeReload:true,historyBack:true,systemTheme:true,safeAreaInsets:true,accountSetup:locale==='nl-NL',overflow:false});
+  await page.screenshot({path:`${out}/welcome-${width}-${scheme}-${scale}-${locale}.png`,fullPage:true});results.push({width,height,scheme,scale,locale,offlineStartup:true,localLegalRoutes:true,routeReload:true,historyBack:true,systemTheme:true,safeAreaInsets:true,accountSetup:locale==='nl-NL',passwordReset:locale==='nl-NL',overflow:false});
   }catch(error){console.error('Native testscherm:',await page.locator('body').innerText());await page.screenshot({path:`${out}/failure-${width}.png`,fullPage:true});throw error;}finally{await context.close();}
  }
  // Dezelfde geëxtraheerde formulieren/kaarten blijven op de echte Next-site werken.
@@ -158,7 +179,17 @@ try{
   await webPage.getByLabel('Nieuw wachtwoord',{exact:true}).fill('Synthetic-web-password-43');await webPage.getByLabel('Bevestig nieuw wachtwoord',{exact:true}).fill('Synthetic-web-password-43');
   await webPage.getByRole('button',{name:'Wachtwoord opslaan',exact:true}).click();await webPage.waitForURL(url=>url.pathname==='/dashboard');
   assert.equal(await verifyPassword('Synthetic-web-password-43',(await prisma.user.findUniqueOrThrow({where:{id:webUser.id}})).passwordHash),true);
-  assert.equal(await verifySessionToken(webCookie),null);assert.deepEqual(webErrors,[]);
+  assert.equal(await verifySessionToken(webCookie),null);
+  // Hetzelfde resetformulier behoudt de bestaande web-TOTP-stap en herstelt na netwerkuitval.
+  const webReset=await createAuthToken(webUser.id,'PASSWORD_RESET'),webResetPassword='Synthetic-web-reset-44';
+  await webContext.clearCookies();await webPage.goto(`${backend}/reset-password?token=${webReset}`);
+  await webPage.getByLabel('Nieuw wachtwoord',{exact:true}).fill(webResetPassword);await webPage.getByLabel('Bevestig nieuw wachtwoord',{exact:true}).fill(webResetPassword);
+  await webPage.route('**/api/auth/reset-password',route=>route.abort(),{times:1});await webPage.getByRole('button',{name:'Wachtwoord instellen',exact:true}).click();await webPage.getByRole('alert').waitFor();
+  await webPage.getByRole('button',{name:'Wachtwoord instellen',exact:true}).click();await webPage.getByLabel('2FA-code of herstelcode',{exact:true}).waitFor();
+  assert.equal((await webContext.cookies()).some(cookie=>cookie.name==='bvm_session'),false,'Reset slaat TOTP niet over');
+  await webPage.getByLabel('2FA-code of herstelcode',{exact:true}).fill(generateTotpCode(decryptTotpSecret(userSetup.totpSecretEncrypted)));
+  await webPage.getByRole('button',{name:'Wachtwoord instellen',exact:true}).click();await webPage.waitForURL(url=>url.pathname==='/dashboard');
+  assert.equal(await verifyPassword(webResetPassword,(await prisma.user.findUniqueOrThrow({where:{id:webUser.id}})).passwordHash),true);assert.deepEqual(webErrors,[]);
   await webPage.screenshot({path:`${out}/web-account-320-200.png`,fullPage:true});
   writeFileSync(`${out}/web-account-results.json`,JSON.stringify({web:true,width:320,scale:2,sharedQr:true,sharedRecoveryCodes:true,sharedPasswordChange:true,oldSessionRevoked:true},null,2));
   console.log('Gedeelde accountbrowser: web/Next TOTP, herstelcodes en wachtwoordwijziging op 320px/200% geslaagd.');

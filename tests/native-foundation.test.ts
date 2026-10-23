@@ -4,6 +4,7 @@ import { generateKeyPair, exportJWK, createLocalJWKSet, SignJWT } from "jose";
 import { verifyAppleIdentity } from "../src/lib/native/apple";
 import { NativeSessionClient, NativeClientError, type SecureSessionStore } from "../src/lib/native/client";
 import { nativeOriginAllowed } from "../src/lib/native/api";
+import { nativePasswordResetActions } from "../src/lib/native/passwordReset";
 import { nativeAccountActions } from "../src/lib/native/account";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -314,4 +315,18 @@ test("een foutieve setupcode kan worden gecorrigeerd; alleen de volledige uitkom
   await client.login('a', 'password', undefined, true); await assert.rejects(client.completeSecuritySetup({ code: '000000' }));
   assert.deepEqual((await client.completeSecuritySetup({ code: '123456' })).recoveryCodes, ['ABCDE-12345']);
   assert.equal(JSON.parse(stored!).refreshToken, 'complete-refresh'); assert.equal(JSON.stringify(stored).includes('ABCDE-12345'), false);
+});
+
+test("native reset gebruikt geen sessie, cookies, refresh of platformopslag en accepteert geen loginresponse", async () => {
+  const saved = store(null), calls: string[] = [];
+  let reply: unknown = { ok: true, reauthenticationRequired: true };
+  const client = new NativeSessionClient("https://example.invalid", saved.adapter, async (url, init) => {
+    calls.push(String(url)); assert.equal(init?.credentials, "omit"); assert.equal(init?.headers && new Headers(init.headers).has("authorization"), false);
+    return response(reply);
+  });
+  const actions = nativePasswordResetActions(client);
+  assert.deepEqual(await actions.reset({ token: "R".repeat(43), newPassword: "Synthetic-reset-42" }), {});
+  assert.deepEqual(calls, ["https://example.invalid/api/v1/native/reset-password"]); assert.equal(saved.value(), null);
+  reply = { accessToken: "unexpected", refreshToken: "unexpected", expiresIn: 300 };
+  await assert.rejects(actions.reset({ token: "R".repeat(43), newPassword: "Synthetic-reset-42" })); assert.equal(saved.value(), null);
 });

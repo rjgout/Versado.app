@@ -1,7 +1,7 @@
 /** Alleen daadwerkelijk lokaal geïmplementeerde routes worden geaccepteerd.
  * Breid deze grens samen met scherm, contract en tests uit, nooit als placeholder.
  */
-const ROUTES = [/^\/dashboard$/, /^\/profile$/, /^\/change-password$/, /^\/lesson\/[A-Za-z0-9_-]{1,128}$/, /^\/privacy$/, /^\/cookies$/, /^\/login$/, /^\/register$/, /^\/forgot-password$/];
+const ROUTES = [/^\/dashboard$/, /^\/profile$/, /^\/change-password$/, /^\/reset-password$/, /^\/lesson\/[A-Za-z0-9_-]{1,128}$/, /^\/privacy$/, /^\/cookies$/, /^\/login$/, /^\/register$/, /^\/forgot-password$/];
 export function nativeRoute(raw: string): string | null {
   if (!raw.startsWith("/") || raw.startsWith("//") || /[\\\s%?#]/.test(raw)) return null;
   return ROUTES.some(pattern => pattern.test(raw)) ? raw : null;
@@ -61,4 +61,17 @@ export class NativeNavigator {
   back = (fallback = "/dashboard") => { if (this.snapshot.index > 0) this.window.history.back(); else this.replace(fallback); };
   refresh = () => this.publish(this.snapshot.href, this.snapshot.index, true);
   canGoBack = () => this.snapshot.index > 0;
+}
+
+/** Alleen de bestaande herstelmail van de geconfigureerde backend. Het bewijs
+ * gaat uitsluitend naar werkgeheugen, nooit naar hash/history of sessieopslag. */
+export function nativePasswordResetLink(raw: string, backendOrigin: string): string | null {
+  if (raw.length > 2048 || /[\\\s]/.test(raw)) return null;
+  try {
+    const url = new URL(raw);
+    if (url.origin !== new URL(backendOrigin).origin || url.username || url.password || url.hash || url.pathname !== "/reset-password") return null;
+    const entries = [...url.searchParams.entries()];
+    if (entries.length !== 1 || entries[0][0] !== "token" || !/^[A-Za-z0-9_-]{43}$/.test(entries[0][1])) return null;
+    return entries[0][1];
+  } catch { return null; }
 }

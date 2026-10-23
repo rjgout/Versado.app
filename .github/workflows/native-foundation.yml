@@ -7,6 +7,7 @@ on:
       - 'src/lib/account/**'
       - 'src/components/account/**'
       - 'src/components/profile/**'
+      - 'src/components/ResetPasswordClient.tsx'
       - 'src/components/ChangePasswordClient.tsx'
       - 'src/components/TwoFactorSettings.tsx'
       - 'src/app/api/account/**'
