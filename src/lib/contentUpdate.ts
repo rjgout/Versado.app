@@ -230,6 +230,7 @@ export async function checkScriptures(client: PrismaClient, opts: PlanOptions & 
   try {
     const otb = await resolveOtbRoot(opts, opts.prepare);
     const { plan, results } = await withContentImportLock(() => computeScripturePlan(client, otb.root, opts));
+    if (otb.error) results.splice(0, results.length, ...results.filter((result) => result.key !== OTB_KEY));
     if (otb.error) results.push({ key: OTB_KEY, label: OTB_LABEL, status: "error", durationMs: 0, counts: null, message: otb.error });
     const status = aggregateStatus(results);
     // Een plan met een fout in een bron is niet publiceerbaar: de handtekening wordt dan niet gegeven.
