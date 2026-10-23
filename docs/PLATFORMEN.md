@@ -1,5 +1,22 @@
 # Versado op web, PWA, iOS en Android
 
+## Actuele functiepariteit
+
+De volledige actuele inventaris, migratiestatus per functie, routes, API's,
+componentgrenzen, rechten, offline-/platformeisen en bewijsblokkades staan in
+[NATIVE-FEATURE-PARITY.md](NATIVE-FEATURE-PARITY.md). De bijbehorende broncheck
+voorkomt dat nieuwe routes ongemerkt buiten de inventaris vallen; zij bewijst
+geen werkende native schermen. De historische audit hieronder is geen actuele
+route- of functie-dekking.
+
+Een nieuwe feature is pas functioneel afgerond op web/PWA én iOS/iPadOS/Android,
+of na een expliciete goedgekeurde platformuitzondering in de pariteitsmatrix.
+Brede native schermmigratie volgt de bestaande hybride architectuur; de keuze
+voor gedeelde routing-/datapoorten is ter besluitvorming voorgelegd. Tot die
+keuze is vastgelegd worden geen algemene bearer-bypass of Next.js-shims ingevoerd.
+Release en publicatie blijven afzonderlijk geblokkeerd tot de verplichte
+technische tests, echte apparaten en onafhankelijke acceptatie zijn afgerond.
+
 ## Architectuurbesluit
 
 Versado blijft één product, één datamodel en één gedeelde codebase. De

@@ -104,7 +104,10 @@
     "test:native": "tsx --test tests/native-foundation.test.ts",
     "test:native:integration": "node scripts/native/test-isolated.mjs",
     "test:security": "tsx --test tests/security-policy.test.ts",
-    "test:security:integration": "node scripts/security/test-isolated.mjs"
+    "test:security:integration": "node scripts/security/test-isolated.mjs",
+    "native:parity:update": "node scripts/native/parity.mjs --write",
+    "native:parity:check": "node scripts/native/parity.mjs --check",
+    "test:native:parity": "node --test tests/native-parity.test.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

@@ -1,0 +1,31 @@
+name: Native bron- en functie-inventaris
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'scripts/native/parity.mjs'
+      - 'tests/native-parity.test.mjs'
+      - 'docs/NATIVE-FEATURE-PARITY.md'
+      - 'docs/native-feature-parity.inventory.json'
+      - 'docs/PLATFORMEN.md'
+      - 'docs/NATIVE-FOUNDATION-PHASE-1.md'
+      - 'CLAUDE.md'
+      - 'package*.json'
+      - '.github/workflows/native-parity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run test:native:parity && npm run native:parity:check
+      - run: npx eslint scripts/native/parity.mjs tests/native-parity.test.mjs
