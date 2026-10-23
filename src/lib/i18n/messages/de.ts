@@ -2782,6 +2782,15 @@ export const de: PartialMessages = {
     haveAccount: "Hast du schon ein Konto?",
     logIn: "Anmelden",
   },
+  accountDeletion: {
+    title: "Konto löschen",
+    intro: "Bestätige mit deinem Passwort, um dein Konto endgültig zu löschen. Das lässt sich nicht rückgängig machen.",
+    withCode: "Gib außerdem den Code deiner Authenticator-App oder einen Wiederherstellungscode ein.",
+    tooManyAttempts: "Zu viele Versuche. Versuche es später erneut.",
+    lastAdmin: "Du bist der einzige Administrator. Lege zuerst einen weiteren Administrator an, bevor du dieses Konto löschst.",
+    reauthenticationUnavailable: "Ein Konto ohne Passwort (Anmeldung mit Apple) kann noch nicht in der App gelöscht werden. Diese Möglichkeit wird vorbereitet.",
+    submit: "Konto endgültig löschen",
+  },
   password: {
     resetLinkLabel: "Link zum Zurücksetzen aus deiner E-Mail",
     openResetLink: "Link zum Zurücksetzen öffnen",

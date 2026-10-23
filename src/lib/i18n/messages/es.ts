@@ -3,6 +3,15 @@ import { kompasEs } from "./kompas/es";
 
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
+  accountDeletion: {
+    title: "Eliminar cuenta",
+    intro: "Confirma con tu contraseña para eliminar tu cuenta de forma permanente. No se puede deshacer.",
+    withCode: "Introduce también el código de tu aplicación de autenticación o un código de recuperación.",
+    tooManyAttempts: "Demasiados intentos. Inténtalo de nuevo más tarde.",
+    lastAdmin: "Eres el único administrador. Crea primero otro administrador antes de eliminar esta cuenta.",
+    reauthenticationUnavailable: "Una cuenta sin contraseña (inicio de sesión con Apple) todavía no se puede eliminar desde la aplicación. Esta opción se está preparando.",
+    submit: "Eliminar la cuenta de forma permanente",
+  },
   audioLibrary: {
     "local": "Disponible localmente",
     "legacyCount": "Audio de capítulo existente",

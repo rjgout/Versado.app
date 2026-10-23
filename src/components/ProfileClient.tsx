@@ -76,7 +76,6 @@ export default function ProfileClient() {
   });
   const data = profile.data ?? null;
   const setData = profile.setData;
-  const [deleting, setDeleting] = useState(false);
   const [resettingReadingProgress, setResettingReadingProgress] = useState(false);
   const [resetReadingMessage, setResetReadingMessage] = useState<string | null>(null);
   const [resetReadingError, setResetReadingError] = useState<string | null>(null);
@@ -418,16 +417,9 @@ export default function ProfileClient() {
     router.refresh();
   }
 
-  async function deleteAccount() {
-    if (!(await confirm(t("profile.deleteWarning"), { title: t("profile.deleteAccount"), confirmLabel: t("profile.deleteConfirm"), destructive: true }))) return;
-    setDeleting(true);
-    const res = await fetch("/api/account", { method: "DELETE" });
-    if (res.ok) {
-      router.push("/");
-      router.refresh();
-    } else {
-      setDeleting(false);
-    }
+  // Verwijderen vraagt een vers bewijs (wachtwoord, evt. 2FA-code); dat gebeurt op een eigen pagina, niet in een dialoog.
+  function deleteAccount() {
+    router.push("/account-verwijderen");
   }
 
   if (!data) {
@@ -565,9 +557,9 @@ export default function ProfileClient() {
 
       {/* Bewust geen gewone rij: verwijderen hoort niet tussen de dagelijkse
           instellingen te concurreren. Bevestigen gaat via de dialoog. */}
-      <SettingsButton variant="quietDanger" className="self-center" disabled={deleting} onClick={deleteAccount}>
+      <SettingsButton variant="quietDanger" className="self-center" onClick={deleteAccount}>
         <Trash2 className="h-4 w-4" aria-hidden />
-        {deleting ? t("courses.busy") : t("profile.deleteAccount")}
+        {t("profile.deleteAccount")}
       </SettingsButton>
     </ProfilePage>
   );

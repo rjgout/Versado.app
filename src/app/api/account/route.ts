@@ -10,7 +10,9 @@ import { setIncognito, INCOGNITO_DURATIONS_HOURS } from "@/lib/presence";
 import { LANGUAGES, getLanguage } from "@/lib/languages";
 import { apiError, apiErrorText } from "@/lib/apiError";
 import {inventoryOriginAllowed} from "@/lib/content-inventory/origin";
-import { deleteUserAccount } from "@/lib/accountDeletion";
+import { AccountDeletionError, deleteAccountWithReauthentication } from "@/lib/account/deletion";
+import { accountDeletionSchema } from "@/lib/account/contracts";
+import { requestSecurityError } from "@/lib/requestSecurity";
 import { AccountPasswordError, changeAccountPassword } from "@/lib/account/password";
 import { authBudget, authBudgetKey } from "@/lib/authBudget";
 import { boundedJson } from "@/lib/requestBody";
@@ -228,15 +230,42 @@ export async function PATCH(req: NextRequest) {
 // kunnen verwijderen. Alle relaties naar User staan op onDelete: Cascade
 // (of SetNull voor freeze-gift-verwijzingen), dus dit verwijdert ook
 // voortgang, XP-historie, vriendschappen, quizresultaten en meer.
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return await apiError("apiErrors.notLoggedIn", 401);
+  // server.ts past dezelfde controle toe voor elke API-mutatie; hier nogmaals, zodat dit verwijderpad nooit
+  // alleen van die ene laag afhangt (cross-origin, same-site en niet-JSON worden geweigerd).
+  const securityError = requestSecurityError("DELETE", "/api/account", req.headers);
+  if (securityError) return await apiError("apiErrors.forbidden", securityError);
 
-  // Eerst netjes uit elke groep, zodat ledentallen kloppen en een groep
-  // zonder beheerder een opvolger krijgt; daarna ruimt de cascade de rest op.
-  await deleteUserAccount(user.id);
+  const limited = await authBudget(authBudgetKey("account-delete", user.id), 5, 15 * 60_000);
+  if (limited) return limited;
 
-  const res = NextResponse.json({ ok: true });
+  const parsed = accountDeletionSchema.safeParse(await boundedJson(req));
+  if (!parsed.success) return await apiError("apiErrors.invalidInput", 400);
+
+  try {
+    // Altijd een vers bewijs, nooit alleen de sessiecookie; daarna de bestaande gedeelde verwijderprocedure.
+    await deleteAccountWithReauthentication(user, parsed.data);
+  } catch (error) {
+    if (!(error instanceof AccountDeletionError)) throw error;
+    const failure = {
+      wrong_password: ["apiErrors.currentPasswordWrong", 401],
+      wrong_code: ["apiErrors.codeWrong", 401],
+      two_factor_required: ["apiErrors.enterVerificationOrRecovery", 400],
+      too_many_attempts: ["apiErrors.tooManyAttemptsMany", 429],
+      session_changed: ["apiErrors.notLoggedIn", 401],
+      last_admin: ["accountDeletion.lastAdmin", 409],
+      reauthentication_unavailable: ["accountDeletion.reauthenticationUnavailable", 409],
+    } as const;
+    const [key, status] = failure[error.code];
+    const response = await apiError(key, status, key === "apiErrors.tooManyAttemptsMany" ? { n: 15 } : undefined);
+    // Machineleesbare code naast de vertaalde tekst, zodat de client geen tekst hoeft te vergelijken.
+    const body = await response.json();
+    return NextResponse.json({ ...body, code: error.code === "session_changed" ? "session_expired" : error.code }, { status, headers: { "Cache-Control": "no-store" } });
+  }
+
+  const res = NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
   res.cookies.set(SESSION_COOKIE, "", { path: "/", maxAge: 0 });
   return res;
 }

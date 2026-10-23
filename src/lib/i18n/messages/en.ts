@@ -2782,6 +2782,15 @@ export const en: PartialMessages = {
     haveAccount: "Already have an account?",
     logIn: "Log in",
   },
+  accountDeletion: {
+    title: "Delete account",
+    intro: "Confirm with your password to permanently delete your account. This cannot be undone.",
+    withCode: "Also enter the code from your authenticator app or a recovery code.",
+    tooManyAttempts: "Too many attempts. Try again later.",
+    lastAdmin: "You are the only administrator. Create another administrator before deleting this account.",
+    reauthenticationUnavailable: "An account without a password (signed in with Apple) cannot be deleted from the app yet. This option is being prepared.",
+    submit: "Permanently delete account",
+  },
   password: {
     resetLinkLabel: "Reset link from your email",
     openResetLink: "Open reset link",

@@ -39,6 +39,15 @@ test("webmutaties controleren origin en JSON, met expliciete native- en RFC8058-
     assert.equal(check({ "sec-fetch-site": "cross-site" }), 403);
     assert.equal(check({ "sec-fetch-site": "same-site" }), 403);
     assert.equal(check({ origin: "https://versado.example", "content-type": "text/plain" }), 415);
+    // Account verwijderen (DELETE) valt onder dezelfde origin-, same-site- en JSON-grenzen als elke andere webmutatie.
+    const remove = (headers: Record<string, string>) => requestSecurityError("DELETE", "/api/account", new Headers(headers));
+    assert.equal(remove({ origin: "https://versado.example", "content-type": "application/json" }), null);
+    assert.equal(remove({ origin: "https://aanvaller.example", "content-type": "application/json" }), 403);
+    assert.equal(remove({ "sec-fetch-site": "cross-site" }), 403);
+    assert.equal(remove({ "sec-fetch-site": "same-site" }), 403);
+    assert.equal(remove({ origin: "null" }), 403);
+    assert.equal(remove({ origin: "https://versado.example", "content-type": "text/plain" }), 415);
+    assert.equal(remove({ origin: "https://versado.example", "content-type": "application/x-www-form-urlencoded" }), 415);
     assert.equal(check({ origin: "capacitor://localhost" }, "/api/v1/native/login"), null);
     assert.equal(check({ "content-type": "application/x-www-form-urlencoded" }, "/api/unsubscribe"), null);
   } finally { if (previous === undefined) delete process.env.APP_URL; else process.env.APP_URL = previous; }
