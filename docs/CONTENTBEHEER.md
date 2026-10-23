@@ -58,7 +58,7 @@ Geen schemawijziging, geen migratie, geen nieuwe afhankelijkheid.
 - **Versies**: een inhoudelijk gewijzigde vraag (andere tekst of ander juist antwoord) is een nieuwe vraag met een nieuw id. De oude
   wordt **verwijderd als niemand haar kreeg of beantwoordde**, en anders **buiten gebruik gesteld** (status `REJECTED`, nooit meer
   uitgedeeld, niet gewist). Wie haar al in een open set kreeg, rondt haar nog af; haar antwoordgeschiedenis blijft bestaan. Alle
-  gebruikers van oefeningen filteren al op `APPROVED`, dus een buiten gebruik gestelde vraag verschijnt nergens meer. Een gewijzigd
+  gebruikers van oefeningen filteren op `APPROVED` (ook het uitdelen van een set, de beheerderstelling en de koppelingen van Stap voor stap), dus een buiten gebruik gestelde vraag verschijnt nergens meer; alleen de losse check- en hintroutes (`exerciseAccessWhere`) tonen haar nog aan wie haar in een eigen, nog open set heeft, zodat de tussentijdse feedback het inleveren niet tegenspreekt. Een gewijzigd
   antwoord wordt zo nooit stilzwijgend als dezelfde vraag behandeld.
 - **Podcast-, kinder- en introductie-oefeningen**: dezelfde regel (`prisma/reconcileExercises.ts`), zonder "buiten gebruik"-status (die
   tabellen hebben die niet; hun voortgang hangt aan aflevering, verhaal of les). Een bestaande podcasttitel wordt niet meer door de
@@ -69,7 +69,7 @@ Geen schemawijziging, geen migratie, geen nieuwe afhankelijkheid.
 - **Sneller, zonder onnodig werk**: ongewijzigde oefeningen en OTB-hoofdstukken kosten geen schrijfactie of transactie; `syncCourses` slaat
   een ongewijzigde cursus over (geen tijdelijke volgorde, geen herschreven oefenkoppelingen) en draait in `runSeed` één keer na de
   overige collecties (en ook bij een fout halverwege) in plaats van na elke collectie. Zes Schriftcollecties herhaald: 108,7 s → 6,9 s.
-- **Eén import tegelijk** (`src/lib/contentImportLock.ts`): `runSeed` houdt een advisory-lock op een eigen databaseverbinding vast; een
+- **Eén import tegelijk** (`src/lib/contentImportLock.ts`): `runSeed`, `db:import` en de OTB-CLI houden een advisory-lock op een eigen databaseverbinding vast; een
   tweede start (andere knop of terminal) stopt direct met een duidelijke melding. De lock vervalt vanzelf bij een crash.
 - Na een import in hetzelfde proces wordt de oefenplan-cache gewist (`clearExercisePlanCache`).
 

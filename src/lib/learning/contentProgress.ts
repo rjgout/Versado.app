@@ -299,8 +299,9 @@ export async function issueExerciseSession(
   });
   if (ids.length === 0) return { sessionId: null, exercises: [] };
 
+  // Alleen goedgekeurde oefeningen: een door een import buiten gebruik gestelde vraag wordt nooit meer uitgedeeld, ook niet uit een verouderd plan.
   const rows = await prisma.exercise.findMany({
-    where: { id: { in: ids } },
+    where: { id: { in: ids }, status: "APPROVED" },
     include: { options: { orderBy: { order: "asc" } } },
   });
   const byId = new Map(rows.map((row) => [row.id, row]));

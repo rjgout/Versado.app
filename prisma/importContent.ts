@@ -218,6 +218,22 @@ export interface ExerciseSyncStats {
  * Brengt de oefeningen van de opgegeven hoofdstukken in overeenstemming met de gegenereerde set, zonder ongewijzigde
  * oefeningen aan te raken (zie exerciseSync.ts). Eén transactie: een fout laat de oude oefeningen volledig staan.
  */
+/** Oefeningen waar een gebruiker al mee bezig was: een antwoordpoging, een XP-bijschrijving of een open oefenset die haar bevat. */
+async function usedExerciseIds(db: PrismaClient, ids: string[], chapterIds: string[]): Promise<Set<string>> {
+  const used = new Set<string>();
+  if (ids.length === 0) return used;
+  for (let i = 0; i < ids.length; i += CHUNK) {
+    const part = ids.slice(i, i + CHUNK);
+    for (const row of await db.exerciseAttempt.findMany({ where: { exerciseId: { in: part } }, select: { exerciseId: true }, distinct: ["exerciseId"] })) used.add(row.exerciseId);
+    for (const row of await db.contentExerciseCredit.findMany({ where: { exerciseId: { in: part } }, select: { exerciseId: true }, distinct: ["exerciseId"] })) used.add(row.exerciseId);
+  }
+  const wanted = new Set(ids);
+  for (const session of await db.exerciseSession.findMany({ where: { submittedAt: null, chapterId: { in: chapterIds } }, select: { exerciseIds: true } })) {
+    for (const id of JSON.parse(session.exerciseIds) as string[]) if (wanted.has(id)) used.add(id);
+  }
+  return used;
+}
+
 async function syncChapterExercises(
   prisma: PrismaClient,
   generatedByChapter: Map<string, { exerciseRows: ExerciseRow[]; optionRows: OptionRow[] }>,
@@ -294,19 +310,7 @@ async function syncChapterExercises(
   }
 
   // Wie is al aan een oefening begonnen? Dan blijft ze bestaan (buiten gebruik); anders kan ze veilig weg.
-  const used = new Set<string>();
-  for (let i = 0; i < unmatched.length; i += CHUNK) {
-    const ids = unmatched.slice(i, i + CHUNK);
-    for (const row of await prisma.exerciseAttempt.findMany({ where: { exerciseId: { in: ids } }, select: { exerciseId: true }, distinct: ["exerciseId"] })) used.add(row.exerciseId);
-    for (const row of await prisma.contentExerciseCredit.findMany({ where: { exerciseId: { in: ids } }, select: { exerciseId: true }, distinct: ["exerciseId"] })) used.add(row.exerciseId);
-  }
-  if (unmatched.length > 0) {
-    const unmatchedSet = new Set(unmatched);
-    const openSessions = await prisma.exerciseSession.findMany({ where: { submittedAt: null, chapterId: { in: chapterIds } }, select: { exerciseIds: true } });
-    for (const session of openSessions) {
-      for (const id of JSON.parse(session.exerciseIds) as string[]) if (unmatchedSet.has(id)) used.add(id);
-    }
-  }
+  const used = await usedExerciseIds(prisma, unmatched, chapterIds);
   const retire = unmatched.filter((id) => used.has(id));
   const remove = unmatched.filter((id) => !used.has(id));
   const chapterOf = new Map(existingRows.map((row) => [row.id, row.chapterId]));

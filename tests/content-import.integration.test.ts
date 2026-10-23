@@ -224,3 +224,44 @@ test("podcast-, kinder- en introductieoefeningen behouden hun id's bij een herim
   await L.intro.importIntroLessons(L.db, [intro as never], quiet);
   assert.deepEqual((await L.db.introExercise.findMany({ where: { lessonId: lesson.id }, select: { id: true } })).map((e) => e.id), introBefore);
 });
+
+test("een buiten gebruik gestelde oefening blijft voor wie haar in een open set heeft bereikbaar voor check en hint, en voor niemand anders", { skip }, async () => {
+  const access = await import("../src/lib/learning/exerciseAccess");
+  const userId = await makeUser(); const other = await makeUser();
+  const chapter = await firstChapter();
+  const exercise = await L.db.exercise.findFirstOrThrow({ where: { chapterId: chapter.id, status: "APPROVED" } });
+  await L.db.exerciseSession.create({ data: { userId, chapterId: chapter.id, contentKey: `test:${collectionId}`, exerciseIds: JSON.stringify([exercise.id]) } });
+  await L.db.exercise.update({ where: { id: exercise.id }, data: { status: "REJECTED" } });
+  assert.ok(await L.db.exercise.findFirst({ where: await access.exerciseAccessWhere(userId, exercise.id, {}) }), "wie de set heeft, ziet de oefening nog");
+  assert.equal(await L.db.exercise.findFirst({ where: await access.exerciseAccessWhere(other, exercise.id, {}) }), null, "een ander ziet een buiten gebruik gestelde oefening niet");
+  await L.db.exercise.update({ where: { id: exercise.id }, data: { status: "APPROVED" } });
+});
+
+test("een buiten gebruik gestelde oefening wordt nooit uitgedeeld, ook niet uit een verouderd plan in het geheugen", { skip }, async () => {
+  const chapter = await firstChapter();
+  L.progress.clearExercisePlanCache();
+  const warm = await L.progress.issueExerciseSession(await makeUser(), chapter.id); // vult de plancache
+  assert.ok(warm.exercises.length > 0);
+  const victim = warm.exercises[0].id;
+  await L.db.exercise.update({ where: { id: victim }, data: { status: "REJECTED" } });
+  try {
+    for (let i = 0; i < 15; i++) {
+      const next = await L.progress.issueExerciseSession(await makeUser(), chapter.id);
+      assert.ok(next.exercises.every((e) => e.id !== victim), "de verouderde cache deelt haar niet meer uit");
+    }
+  } finally { await L.db.exercise.update({ where: { id: victim }, data: { status: "APPROVED" } }); L.progress.clearExercisePlanCache(); }
+});
+
+test("een wegvallende lockverbinding laat het proces niet crashen", { skip }, async () => {
+  const crashes: unknown[] = []; const trap = (error: unknown) => { crashes.push(error); }; process.on("uncaughtException", trap);
+  try {
+    const running = L.lock.withContentImportLock(async () => { await new Promise((resolve) => setTimeout(resolve, 1500)); return "klaar"; });
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    await L.db.$executeRawUnsafe(`SELECT pg_terminate_backend(l.pid) FROM pg_locks l WHERE l.locktype = 'advisory' AND l.objid = 726540101 AND l.pid <> pg_backend_pid()`);
+    // Het werk loopt door; de verbinding is weg maar dat is geen crash.
+    await running.catch(() => undefined);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    assert.deepEqual(crashes, [], "geen uncaught exception");
+    assert.equal(await L.lock.withContentImportLock(async () => "vrij"), "vrij", "de lock is daarna weer te nemen");
+  } finally { process.off("uncaughtException", trap); }
+});

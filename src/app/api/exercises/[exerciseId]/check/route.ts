@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { exerciseAccessWhere } from "@/lib/learning/exerciseAccess";
 import { prisma } from "@/lib/db";
 import { readingAccessWhere } from "@/lib/contentAccess";
 import { getCurrentUser } from "@/lib/session";
@@ -25,11 +26,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ exe
   }
 
   const exercise = await prisma.exercise.findFirst({
-    where: {
-      id: exerciseId,
-      chapter: { book: { contentCollection: readingAccessWhere(user) } },
-      status: "APPROVED",
-    },
+    where: await exerciseAccessWhere(user.id, exerciseId, { chapter: { book: { contentCollection: readingAccessWhere(user) } } }),
   });
   if (!exercise) {
     return await apiError("apiErrors.exerciseNotFound", 404);
