@@ -158,21 +158,43 @@ Dit raakt bestaande gebruikersgegevens: behandel het als productiegevoelig. Er i
 
 Twee afzonderlijke kaarten, beide onder de importlock (`withContentImportLock`) en beide met een logboekrij in `ContentUpdateRun`:
 
-- **Nieuwe content ophalen** (`/api/admin/reseed`, `reseedJob.ts`): `runSeed(..., { scriptures: false })`. Podcasts, FSY, Bijbel (OTB, gepind), CFM-concepten,
-  kindercursus, introductie, Genees, De Slimste Heilige en achievements. De Schriftteksten, hun oefeningen en audio blijven onaangeroerd. De CLI
-  `npm run db:seed` doet nog steeds alles.
+- **Nieuwe content ophalen** (`/api/admin/reseed`, `reseedJob.ts`): `runSeed(..., { scriptures: false })`. Podcasts, FSY, CFM-concepten, kindercursus,
+  introductie, Genees, De Slimste Heilige en achievements. De Schriftteksten, hun oefeningen, de **OTB-bijbel** en het **spiegelen van audiobestanden**
+  blijven onaangeroerd en staan alleen in de Schriftflow. De CLI `npm run db:seed` doet nog steeds alles.
 - **Schriftbronnen bijwerken** (`/api/admin/scripture-update`, `contentUpdate.ts`, `scriptureUpdateJob.ts`), drie stappen:
-  1. *Controleren*: droogloop (`importBooks({ dryRun: true })`) per bron uit `SCRIPTURE_SOURCES`; schrijft niets naar content, alleen een logrij.
-  2. *Voorbereiden*: dezelfde droogloop, maar bewaart het plan en geeft een `planHash` (sha256 over de tellingen en de gewijzigde hoofdstukken). Bij een
-     fout in een bron wordt geen handtekening gegeven.
-  3. *Publiceren*: alleen met een `planHash` van een geslaagde voorbereiding. Onder de lock wordt het plan opnieuw berekend; wijkt de hash af
-     (bronnen of database veranderd), dan wordt er niets geschreven (`PLAN_CHANGED`). Daarna per bron een eigen resultaat; één fout stopt de andere bronnen
-     niet maar maakt de run `PARTIAL`/`FAILED`. Cursussen worden één keer na alle bronnen gesynchroniseerd.
+  1. *Controleren*: droogloop (`importBooks({ dryRun: true })`) per bron uit `SCRIPTURE_SOURCES` plus de gepinde OTB-bijbel (`importOtbFull({ dryRun: true })`).
+     Schrijft niets naar content, alleen een logrij. De OTB-bron wordt hier nooit gedownload: staat ze niet in de cache, dan meldt de controle "bron nog niet voorbereid".
+  2. *Voorbereiden*: dezelfde droogloop, maar bewaart het plan en geeft een `planHash`. Alleen deze stap downloadt de gepinde OTB-bron (aparte bronvoorbereiding, vóór de
+     lock). De `planHash` is **inhoudsgebonden**: per bron de tellingen, de gewijzigde hoofdstukken, een sha256 over de volledige broninhoud (boeken, verzen, koppen,
+     audiotijden) en een md5 over de relevante databasestand van de collectie (verzen, hoofdstukken, oefeningstatus, audiocontrole; gebruiksgegevens zoals pogingen en
+     sessies horen er bewust niet bij, die wijzigen continu en de import vangt ze zelf af in de transactie). Voor de Bijbel: de gepinde OTB-commit en de inhoud van elk
+     wijzigend hoofdstuk. Bij een fout in een bron (ook een mislukte OTB-download) wordt geen handtekening gegeven.
+  3. *Publiceren*: alleen met een `planHash` van een geslaagde voorbereiding. Onder de lock wordt het plan opnieuw berekend; wijkt de hash af (bronnen of database
+     veranderd), dan wordt er niets geschreven (`PLAN_CHANGED`). Daarna per bron een eigen resultaat; één fout stopt de andere bronnen niet maar maakt de run
+     `PARTIAL`/`FAILED`. Cursussen worden één keer na alle bronnen gesynchroniseerd. Er wordt nooit iets gedownload of gespiegeld.
   Het gaat om een in-memory job (zoals `reseedJob.ts`); de kaart toont de voortgang met `useLiveQuery` en leidt het voorbereide plan af uit het logboek, dus het
-  overleeft een herlaad.
+  overleeft een herlaad en een herstart. Een run die na een herstart nog `RUNNING` staat, wordt als `FAILED` (`INTERRUPTED`) gemarkeerd (`markInterruptedRuns`).
 - **Audio ter controle** (`/api/admin/audio-checks`): hoofdstukken met `ChapterAudioCheck.status = NEEDS_REVIEW` (tekst veranderd). Audio blijft afspeelbaar en
-  wordt nooit verwijderd. Een beheerder bevestigt per hoofdstuk expliciet (`markAudioCurrent`); nieuwe, gevalideerde audiogegevens zetten het hoofdstuk ook weer op CURRENT.
-- Beperking: de gepinde OTB-bron wordt niet in de droogloop vergeleken (dat vraagt een download). Die blijft in *Nieuwe content ophalen*.
-- Extra schemabesluit: het model `ContentUpdateRun` (alleen contentgegevens, geen persoonsgegevens) is toegevoegd voor het logboek; zonder dat model gaat de status na een herstart verloren.
-- Getest met `tests/content-update.integration.test.ts` (droogloop schrijft niets, handtekening stabiel, verouderd plan geweigerd, alleen het gewijzigde
-  hoofdstuk krijgt een audiomarkering, audio en beheerinstellingen blijven, tweede identieke update zonder wijzigingen, lock bezet).
+  wordt nooit verwijderd. Een beheerder bevestigt per hoofdstuk expliciet (`markAudioCurrent`); nieuwe, gevalideerde audiogegevens zetten het hoofdstuk ook weer
+  op CURRENT. **Audiobestanden spiegelen** (`mirrorChapterAudio`) is een aparte knop op dezelfde kaart; tot dan spelen hoofdstukken van de bron.
+- Extra schemabesluit: het model `ContentUpdateRun` (alleen contentgegevens, geen persoonsgegevens) is toegevoegd voor het logboek; zonder dat model gaat de status
+  na een herstart verloren. De migratie is additief en verandert geen bestaande gegevens.
+
+### Aanbevolen volgorde bij een Schriftupdate (door de eigenaar uit te voeren)
+1. Deploy de nieuwe image (de migratie `20261127120000_content_beheer_v2` is additief) en controleer dat de app gezond start.
+2. *Nieuwe content ophalen* raakt de Schriften niet meer; gebruik die voor feeds en overige content.
+3. *Schriftbronnen bijwerken*: **Controleren** (niets wordt geschreven), dan **Voorbereiden** (downloadt de OTB-bron en toont per bron de tellingen), lees het plan
+   (verzen nieuw/gewijzigd/verwijderd, oefeningen behouden/nieuw/buiten gebruik, hoofdstukken met audio die ter controle worden aangemerkt) en pas daarna **Publiceren**.
+4. Loop de lijst *Audio ter controle* na; bevestig een hoofdstuk pas als de audio nog bij de tekst past.
+5. Spiegel eventueel nieuwe audiobestanden met de aparte knop.
+
+### Herstel
+- `PLAN_CHANGED` of "geen voorbereid plan": de bron of de database veranderde na het voorbereiden; bereid opnieuw voor. Er is dan niets geschreven.
+- "Er loopt al een contentimport": wacht tot die klaar is (de lock vervalt vanzelf met de verbinding).
+- `PARTIAL`: per bron staat wat gelukt is; een herhaalde publicatie na opnieuw voorbereiden doet alleen nog wat ontbreekt (idempotent).
+- Terugdraaien van tekst: publiceer de vorige bronversie; verzen behouden hun id's en `RETIRED`-oefeningen blijven bestaan voor wie ze kreeg.
+- Productie-uitrol, live tests en metingen (o.a. de duur van de OTB-validatie op echte bronnen) zijn aan de eigenaar.
+
+Getest met `tests/content-update.integration.test.ts` (droogloop schrijft niets; handtekening stabiel en inhoudsgebonden; verouderd of afwijkend plan geweigerd; OTB in de
+droogloop, download alleen bij voorbereiden, publiceren behoudt beheerinstellingen; alleen het gewijzigde hoofdstuk krijgt een audiomarkering; tweede identieke update zonder
+wijzigingen; lock bezet; onderbroken run; normale update raakt OTB en audiospiegeling niet).
