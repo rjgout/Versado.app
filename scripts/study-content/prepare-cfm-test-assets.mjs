@@ -5,9 +5,14 @@ import { createHash } from "node:crypto";
 const root = process.env.CFM_TEST_ASSETS;
 if (!root || !path.isAbsolute(root) || !root.startsWith("/tmp/"))
   throw Error("CFM_TEST_ASSETS moet een eigen map onder /tmp zijn.");
-const media = JSON.parse(
-  await fs.readFile("data/study-content/cfm-2026-nl/media-lock.json", "utf8"),
-);
+// Alle geregistreerde CFM-jaargangen met een gepinde media-lock (zie src/lib/studyContent/cfmSources.ts).
+const media = (
+  await Promise.all(
+    ["cfm-2026-nl", "cfm-2027-nl"].map(async (dir) =>
+      JSON.parse(await fs.readFile(`data/study-content/${dir}/media-lock.json`, "utf8")),
+    ),
+  )
+).flat();
 const index = JSON.parse(
   await fs.readFile("data/study-content/cfm-2026-nl/otb-index.json", "utf8"),
 );
