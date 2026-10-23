@@ -131,7 +131,7 @@ async function isPerfectWeek(tx: Tx, groupId: string, dayKey: string): Promise<b
 /** true = afgesloten; anders het moment waarop het opnieuw zin heeft om te kijken. */
 async function settleDay(tx: Tx, state: GroupState, dayKey: string, now: Date, effects: Effects): Promise<true | Date> {
   const members = await eligibleMemberIds(tx, state.id, dayKey);
-  const states = await memberDayStates(tx, members, dayKey, now);
+  const states = await memberDayStates(tx, members, dayKey, now, true);
   const pending = [...states.entries()].filter(([, s]) => s === "pending").map(([id]) => id);
   if (pending.length > 0) {
     // Alleen de leden die nog bezig zijn bepalen wanneer het weer zin heeft

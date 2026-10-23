@@ -44,10 +44,10 @@ export function isUniqueViolation(error: unknown): boolean {
 
 /**
  * De dagstatus van personen voor dag D, uitsluitend uit hun persoonlijke
- * reeks (StreakDay en de reeksvelden op User). Twee queries, ook voor 500
- * leden.
+ * reeks (StreakDay en de reeksvelden op User). Voor groepen telt ook de
+ * centraal vastgelegde activiteitsdag. Een vast aantal queries, ook voor 500 leden.
  */
-export async function memberDayStates(db: Db, userIds: string[], dayKey: string, now: Date): Promise<Map<string, MemberDayOutcome>> {
+export async function memberDayStates(db: Db, userIds: string[], dayKey: string, now: Date, forGroup = false): Promise<Map<string, MemberDayOutcome>> {
   const result = new Map<string, MemberDayOutcome>();
   if (userIds.length === 0) return result;
   const [users, days] = await Promise.all([
@@ -55,7 +55,8 @@ export async function memberDayStates(db: Db, userIds: string[], dayKey: string,
       where: { id: { in: userIds } },
       select: { id: true, timeZone: true, lastStudyDate: true, lastStudyTimeZone: true, currentStreak: true, streakInterruptedDay: true },
     }),
-    db.streakDay.findMany({ where: { userId: { in: userIds }, dayKey }, select: { userId: true } }),
+    forGroup ? contributedOn(db, userIds, dayKey).then((ids) => [...ids].map((userId) => ({ userId })))
+      : db.streakDay.findMany({ where: { userId: { in: userIds }, dayKey }, select: { userId: true } }),
   ]);
   const kept = new Set(days.map((d) => d.userId));
   for (const user of users) result.set(user.id, memberDayOutcome({ ...user, kept: kept.has(user.id) }, dayKey, now));
@@ -67,6 +68,16 @@ export async function keptOn(db: Db, userIds: string[], dayKey: string): Promise
   if (userIds.length === 0) return new Set();
   const rows = await db.streakDay.findMany({ where: { userId: { in: userIds }, dayKey }, select: { userId: true } });
   return new Set(rows.map((r) => r.userId));
+}
+
+/** Groepsbijdragen: een behouden dag of één centraal goedgekeurde activiteit, ook tijdens terugkeer. */
+export async function contributedOn(db: Db, userIds: string[], dayKey: string): Promise<Set<string>> {
+  if (userIds.length === 0) return new Set();
+  const [kept, activities] = await Promise.all([
+    keptOn(db, userIds, dayKey),
+    db.streakActivity.findMany({ where: { userId: { in: userIds }, dayKey }, select: { userId: true }, distinct: ["userId"] }),
+  ]);
+  return new Set([...kept, ...activities.map((row) => row.userId)]);
 }
 
 export type SocialEventKind =

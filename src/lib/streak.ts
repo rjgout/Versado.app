@@ -84,11 +84,12 @@ export async function recordLearningActivity(
 
   // De stabiele sleutel hoort bij de echte sessie/ronde, niet bij de request.
   // Hierdoor tellen retries ook op een latere dag niet opnieuw.
+  const qualifies = qualifiesForStreak(activity);
   const claimed = await tx.streakActivity.createMany({
-    data: [{ userId, key: activity.key }], skipDuplicates: true,
+    data: [{ userId, key: activity.key, dayKey: qualifies ? view.day : null }], skipDuplicates: true,
   });
   if (!claimed.count) return { ...snapshot, duplicate: true };
-  if (!qualifiesForStreak(activity)) return snapshot;
+  if (!qualifies) return snapshot;
 
   if (user.streakInterruptedDay) {
     const completed = view.completed + 1;
