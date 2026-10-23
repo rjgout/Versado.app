@@ -261,6 +261,22 @@ een nieuwe revisie op. In CFM 2026 zijn dat 95 video's (3609 → 3514 verwijzing
 voor iOS), `preload="none"` (lazy), 16:9-vlak met vaste beeldverhouding, standaardbron 720p, titel/beschrijving en een
 duidelijke foutstatus met de officiële link als afspelen niet lukt. Past in de bestaande lesweergave en Focus/Immersive-shell.
 
+**Bewijs voor behoud van gebruikersgegevens.** `tests/cfm-video-revision.integration.test.ts` (in `npm run test:cfm-personal:integration`)
+bootst de echte overgang na: eerst een gepubliceerde revisie zonder video's (de oude adapteruitvoer, via de testnaad `transformItem`),
+met een gebruiker met cursusabonnement, studiecontext, stapvoortgang, leesposities en bladwijzer/markering/notitie; daarna de gewone
+import met auto-publicatie. Uitkomst: precies de 42 lessen met video's (95 video's) krijgen een nieuwe revisie, alle edities en
+lesidentiteiten blijven gelijk, de persoonlijke gegevens zijn byte-identiek (hash over alle rijen), de oude revisies blijven bestaan
+(alleen erbij), de deeplink `/study-lesson/<lessonId>/<collectionId>` wijst naar dezelfde les en de annotaties zijn op de nieuwe
+revisie zichtbaar. Dezelfde test controleert archivering: na het jaareinde staan alle 52 weken in het archief, blijven ze te openen en
+verandert geen enkele inhouds- of persoonsrij.
+
+**H.264 / apparaattest (open punt).** In deze ontwikkelomgeving ontbreekt H.264 in alle beschikbare browsers (Playwright-Chromium en
+headless shell geven `canPlayType('video/mp4; codecs="avc1…"')` = leeg); echt afspelen van de officiële MP4-bestanden is hier dus niet
+te bewijzen en er is geen apparaatvalidatie uitgevoerd. De speler is een standaard HTML5-`video` (alleen MP4/H.264 van de officiële
+hosts) met de foutterugval naar de officiële link. Nog te doen door de eigenaar, op echte toestellen: iPhone (Safari, `playsInline`,
+volledig scherm), Android (Chrome) en desktop-Chrome/Safari — afspelen, pauzeren, volledig scherm, terug naar de les, en het gedrag
+zonder netwerk.
+
 **Bekende beperkingen:** het afspelen hangt af van de beschikbaarheid van het officiële MP4-bestand en van H.264-ondersteuning
 van het toestel (alle gangbare browsers); sommige 2027-video's bestaan alleen met Engelse audio, zoals ook op de officiële
 Nederlandse pagina. Ondertitels zijn niet beschikbaar in de MP4-bronnen.

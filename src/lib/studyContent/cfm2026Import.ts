@@ -20,6 +20,7 @@ import {
   StudyPublishingError,
 } from "./policy";
 import { downloadStudyImage } from "./download";
+import type { SnapshotItem } from "./fixtureAdapter";
 import {
   studyStorage,
   validateStudyImage,
@@ -100,6 +101,8 @@ export async function ensureCfmDraftCollection(
 export interface CfmImportOptions {
   mediaBytes?: (asset: CfmMedia) => Promise<Buffer>;
   client?: PrismaClient;
+  /** Alleen voor geïsoleerde tests: bootst een eerdere revisie van dezelfde les na (bv. zonder video's). Nooit in productie gebruikt. */
+  transformItem?: (item: SnapshotItem) => SnapshotItem;
   progress?: (current: number, total: number, label: string) => void;
 }
 /**
@@ -172,7 +175,8 @@ export async function importCfmDrafts(
       if (repair) await installStudyMedia(bytes, checked);
       cache.set(asset.checksum, bytes);
     }
-    const item = cfmSnapshotItem(parsed, (a) => cache.get(a.checksum)!);
+    const base = cfmSnapshotItem(parsed, (a) => cache.get(a.checksum)!);
+    const item = options.transformItem ? options.transformItem(base) : base;
     item.startsOn = parsed.lesson.startsOn;
     item.endsOn = parsed.lesson.endsOn;
     const run = await registerStudySnapshotImport(
