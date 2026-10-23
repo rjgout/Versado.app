@@ -14,6 +14,7 @@
 //   }
 // ]
 import { readFileSync } from "fs";
+import { withContentImportLock } from "../src/lib/contentImportLock";
 import { createPrismaClient } from "../src/lib/db";
 import { importBooks } from "./importContent";
 import type { SeedBook } from "./content";
@@ -30,7 +31,7 @@ async function main() {
   const raw = readFileSync(filePath, "utf-8");
   const books = JSON.parse(raw) as SeedBook[];
   console.log(`Importeren van ${books.length} boek(en) uit ${filePath}...`);
-  await importBooks(prisma, books);
+  await withContentImportLock(() => importBooks(prisma, books));
   console.log("Import klaar.");
 }
 

@@ -100,7 +100,7 @@ export function startReseedJob(
       }
     : undefined;
   const currentJob = current;
-  runSeed(
+  const runPromise = runSeed(
     prisma,
     (msg) => {
       current.logs.push(msg);
@@ -111,7 +111,6 @@ export function startReseedJob(
     studyImport,
   )
     .then(() => {
-      clearExercisePlanCache();
       current.status = "done";
       current.finishedAt = new Date().toISOString();
     })
@@ -121,5 +120,7 @@ export function startReseedJob(
       current.finishedAt = new Date().toISOString();
     });
 
+  // Ook na een fout halverwege: de oefeningen kunnen dan al zijn bijgewerkt.
+  void runPromise.finally(() => clearExercisePlanCache());
   return { started: true, job };
 }

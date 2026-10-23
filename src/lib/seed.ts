@@ -144,6 +144,7 @@ async function runSeedLocked(
   // 20260925120000_english_editions), anders zou importBooks ze bij het
   // Boek van Mormon zetten. De taal van de collectie bepaalt de taal van de
   // gegenereerde oefeningen en hints.
+  let loopFailed = false;
   try {
     for (const [collectionId, books, label] of [
       [DC_COLLECTION_ID, dcContent as SeedBook[], "Leer en Verbonden"],
@@ -163,11 +164,20 @@ async function runSeedLocked(
         if (audio) await importChapterAudio(client, audio, collectionId, log);
       });
     }
+  } catch (error) {
+    loopFailed = true;
+    throw error;
   } finally {
     // De cursussen één keer na alle overige collecties (voorheen na elke collectie opnieuw), ook als er halverwege iets misging: wat wel
-    // is binnengekomen krijgt zo zijn lessen. Een fout hier verdringt nooit de oorspronkelijke fout.
+    // is binnengekomen krijgt zo zijn lessen. Een fout hier verdringt nooit de oorspronkelijke fout; slaagde de lus wel, dan is een mislukte
+    // synchronisatie een echte fout van de run (anders blijven oefenkoppelingen onbemerkt achter).
     log("Cursussen synchroniseren...");
-    await inPhase("Cursussen", () => syncCourses(client)).catch((error) => log(`Cursussen synchroniseren mislukt: ${error instanceof Error ? error.message : String(error)}`));
+    let syncError: unknown = null;
+    await inPhase("Cursussen", () => syncCourses(client)).catch((error) => {
+      syncError = error;
+      log(`Cursussen synchroniseren mislukt: ${error instanceof Error ? error.message : String(error)}`);
+    });
+    if (syncError && !loopFailed) throw syncError;
   }
 
   log("Seeding podcastafleveringen...");

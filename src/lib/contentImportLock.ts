@@ -17,7 +17,10 @@ export async function withContentImportLock<T>(work: () => Promise<T>, connectio
   // Zonder bekende verbinding (bijvoorbeeld een test met alleen een client) kan er niet gelocked worden; de in-memory jobbewaking van de
   // adminknop blijft dan het enige slot.
   if (!connectionString) return work();
-  const lock = new Client({ connectionString, connectionTimeoutMillis: 15_000 });
+  const lock = new Client({ connectionString, connectionTimeoutMillis: 15_000, keepAlive: true });
+  // Een verbinding die tijdens een lange import wegvalt (databaseherstart, netwerkreset) stuurt een 'error'-event; zonder luisteraar zou dat het
+  // hele serverproces laten crashen. De import zelf loopt door; de lock is dan wel kwijt, en dat wordt gemeld.
+  lock.on("error", (error) => { console.error(`[contentImportLock] vergrendelingsverbinding verbroken: ${error.message}`); });
   await lock.connect();
   try {
     const { rows } = await lock.query<{ ok: boolean }>("SELECT pg_try_advisory_lock($1) AS ok", [CONTENT_IMPORT_LOCK_KEY]);
