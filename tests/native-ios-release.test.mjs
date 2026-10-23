@@ -80,3 +80,11 @@ test("privacy manifest en Info.plist: geen tracking, gebundeld in het app-target
   assert.doesNotMatch(info, /armv7/);
   assert.doesNotMatch(project, /DEVELOPMENT_TEAM\s*=\s*[A-Z0-9]{10}/); // geen Team ID in git
 });
+
+test("workflowinvoer wordt nooit in shelltekst geïnterpoleerd (alleen via env), en de versienaam wordt vooraf gevalideerd", () => {
+  const text = readFileSync(".github/workflows/native-ios-release.yml", "utf8");
+  for (const line of text.split("\n")) {
+    if (/\$\{\{\s*(inputs|github\.event)\./.test(line)) assert.match(line, /^\s+[A-Z_]+:\s*\$\{\{/, `invoer buiten een env-toewijzing: ${line.trim()}`);
+  }
+  assert.match(text, /\^\[0-9\]\+\\\.\[0-9\]\+\\\.\[0-9\]\+\$/);
+});
