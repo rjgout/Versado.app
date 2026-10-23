@@ -38,28 +38,33 @@ const workflows = (fs) => fs.list(".github/workflows").filter((name) => name.end
 export const GUARDS = [
   {
     id: "release-profile-blocked",
-    title: "capacitor.config.ts weigert elk profiel behalve remote-preview en local-development (of een expliciet beschreven distributieprofiel)",
+    title: "Het buildprofiel wordt uitsluitend door scripts/native/profiles.cjs bepaald en kent geen releaseprofiel",
     check: (fs) => {
-      const text = fs.read("capacitor.config.ts");
-      const blocked = /buildProfile !== "remote-preview" && buildProfile !== "local-development"/.test(text) || /DISTRIBUTION_PROFILES/.test(text);
-      return { ok: blocked && !/buildProfile === "release"/.test(text), evidence: "capacitor.config.ts" };
+      const config = fs.read("capacitor.config.ts");
+      const profiles = fs.read("scripts/native/profiles.cjs");
+      const ids = /PROFILE_IDS\s*=\s*\[([^\]]*)\]/.exec(profiles)?.[1] ?? "release";
+      const ok = /resolveBuildProfile/.test(config) && !/"release"/.test(ids) && !/(?:buildProfile|profile)\s*===\s*"release"/.test(config + profiles) && /releaseprofiel blijft geblokkeerd/.test(profiles);
+      return { ok, evidence: "capacitor.config.ts, scripts/native/profiles.cjs" };
     },
   },
   {
     id: "bundle-never-release-approved",
     title: "De lokale bundel markeert zichzelf nooit als release-goedgekeurd",
-    check: (fs) => ({ ok: /releaseApproved:\s*false/.test(fs.read("scripts/native/build.ts")) && !/releaseApproved:\s*true/.test(fs.read("scripts/native/build.ts")), evidence: "scripts/native/build.ts" }),
+    check: (fs) => {
+      const text = fs.read("scripts/native/profiles.cjs") + fs.read("scripts/native/build.ts");
+      return { ok: /releaseApproved:\s*false/.test(text) && !/releaseApproved:\s*true/.test(text), evidence: "scripts/native/profiles.cjs, scripts/native/build.ts" };
+    },
   },
   {
     id: "bundle-identity-consistent",
     title: `Eén bundle-/applicatie-ID (${APP_ID}) in Capacitor, Android en iOS`,
     check: (fs) => {
       const ids = [
-        fs.read("capacitor.config.ts").includes(`appId: "${APP_ID}"`),
+        fs.read("scripts/native/profiles.cjs").includes(`APP_ID = "${APP_ID}"`) && /APP_ID/.test(fs.read("capacitor.config.ts")),
         fs.read("android/app/build.gradle").includes(`applicationId "${APP_ID}"`),
         (fs.read("ios/App/App.xcodeproj/project.pbxproj").match(/PRODUCT_BUNDLE_IDENTIFIER = ([^;]+);/g) ?? []).every((line) => line.includes(APP_ID)),
       ];
-      return { ok: ids.every(Boolean), evidence: "capacitor.config.ts, android/app/build.gradle, project.pbxproj" };
+      return { ok: ids.every(Boolean), evidence: "profiles.cjs, capacitor.config.ts, android/app/build.gradle, project.pbxproj" };
     },
   },
   {
@@ -98,8 +103,14 @@ export const GUARDS = [
 // Blokkades die objectief uit de repository te lezen zijn. "owner" = vereist een handeling of
 // beslissing van de eigenaar buiten de code; de code-kant staat dan in de werkpakketten.
 export const BLOCKERS = [
-  { id: "distribution-profile", area: "beide", wp: "WP1", title: "Expliciet distributieprofiel (intern / TestFlight-Play-test) met controleerbare voorwaarden naast de geblokkeerde release",
-    check: (fs) => ({ ok: /DISTRIBUTION_PROFILES/.test(fs.read("capacitor.config.ts")), evidence: "capacitor.config.ts" }) },
+  { id: "distribution-profile", area: "beide", wp: "WP1", title: "Gescheiden distributieprofielen local-internal en local-store-test met controleerbare voorwaarden naast de geblokkeerde release",
+    check: (fs) => ({ ok: /DISTRIBUTION_PROFILES/.test(fs.read("scripts/native/profiles.cjs")) && /local-internal/.test(fs.read("scripts/native/profiles.cjs")) && /local-store-test/.test(fs.read("scripts/native/profiles.cjs")), evidence: "scripts/native/profiles.cjs" }) },
+  { id: "distribution-origins-configured", area: "beide", wp: "WP1", owner: true, title: "Eigenaar heeft de toegestane HTTPS-backend-origins voor intern en store-test vastgelegd in scripts/native/distribution-origins.json",
+    check: (fs) => {
+      let data = {};
+      try { data = JSON.parse(fs.read("scripts/native/distribution-origins.json")); } catch { /* ontbrekend of ongeldig = niet geconfigureerd */ }
+      return { ok: Array.isArray(data.internal) && data.internal.length > 0 && Array.isArray(data["store-test"]) && data["store-test"].length > 0, evidence: "scripts/native/distribution-origins.json" };
+    } },
   { id: "ios-privacy-manifest", area: "iOS", wp: "WP2", title: "PrivacyInfo.xcprivacy aanwezig in het app-target",
     check: (fs) => ({ ok: fs.tree("ios/App").some((path) => path.endsWith("PrivacyInfo.xcprivacy")), evidence: "ios/App/**/PrivacyInfo.xcprivacy" }) },
   { id: "ios-entitlements", area: "iOS", wp: "WP2", title: "Echt entitlements-bestand gekoppeld via CODE_SIGN_ENTITLEMENTS (Sign in with Apple en/of associated domains, alleen indien in scope)",

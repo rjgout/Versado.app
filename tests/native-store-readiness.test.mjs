@@ -13,7 +13,9 @@ const memoryFs = (files) => ({
 });
 
 const completeFiles = () => ({
-  "capacitor.config.ts": 'const DISTRIBUTION_PROFILES = {}; appId: "app.versado.app", buildProfile !== "remote-preview" && buildProfile !== "local-development"',
+  "capacitor.config.ts": "import { APP_ID, resolveBuildProfile } from './scripts/native/profiles.cjs';",
+  "scripts/native/profiles.cjs": 'const APP_ID = "app.versado.app"; const PROFILE_IDS = ["remote-preview", "local-development", "local-internal", "local-store-test"]; DISTRIBUTION_PROFILES local-internal local-store-test releaseApproved: false; "Het releaseprofiel blijft geblokkeerd"; ',
+  "scripts/native/distribution-origins.json": JSON.stringify({ internal: ["https://intern.example.test"], "store-test": ["https://test.example.test"] }),
   "scripts/native/build.ts": "releaseApproved: false",
   "android/variables.gradle": "targetSdkVersion = 36",
   "android/app/build.gradle": 'applicationId "app.versado.app"\nVERSADO_VERSION_CODE VERSADO_VERSION_NAME\nsigningConfigs {\nVERSADO_UPLOAD_KEYSTORE_PATH',
@@ -82,5 +84,15 @@ test("credentials in de native mappen laten de guard falen; een voorbeeldbestand
 test("een geopend releaseprofiel of een goedgekeurde bundel is een regressie", () => {
   const files = completeFiles();
   assert.equal(evaluate(memoryFs({ ...files, "scripts/native/build.ts": "releaseApproved: true" })).guards.find((g) => g.id === "bundle-never-release-approved").ok, false);
-  assert.equal(evaluate(memoryFs({ ...files, "capacitor.config.ts": 'appId: "app.versado.app"; if (buildProfile === "release") {}' })).guards.find((g) => g.id === "release-profile-blocked").ok, false);
+  assert.equal(evaluate(memoryFs({ ...files, "scripts/native/profiles.cjs": files["scripts/native/profiles.cjs"] + 'if (profile === "release") {}' })).guards.find((g) => g.id === "release-profile-blocked").ok, false);
+  assert.equal(evaluate(memoryFs({ ...files, "scripts/native/profiles.cjs": files["scripts/native/profiles.cjs"].replace('"local-store-test"]', '"local-store-test", "release"]') })).guards.find((g) => g.id === "release-profile-blocked").ok, false);
+});
+
+test("zonder vastgelegde origins blijft de eigenaarsblokkade open, ook als de code compleet is", () => {
+  const files = completeFiles();
+  for (const origins of [{ internal: [], "store-test": [] }, { internal: ["https://a.example.test"], "store-test": [] }]) {
+    const report = evaluate(memoryFs({ ...files, "scripts/native/distribution-origins.json": JSON.stringify(origins) }));
+    assert.equal(report.blockers.find((item) => item.id === "distribution-origins-configured").ok, false);
+  }
+  assert.equal(evaluate(memoryFs({ ...files, "scripts/native/distribution-origins.json": "{kapot" })).blockers.find((item) => item.id === "distribution-origins-configured").ok, false);
 });

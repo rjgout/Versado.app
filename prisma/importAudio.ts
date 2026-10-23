@@ -22,8 +22,7 @@ const CHUNK = 500;
 
 /**
  * Zet de audio op de hoofdstukken en verzen. Idempotent: schrijft alleen wat
- * verschilt, en haalt audio weg bij hoofdstukken die niet (meer) in de lijst
- * staan. Draait na importBooks, want die maakt de verzen aan.
+ * verschilt. Een onvolledige import verwijdert nooit bestaande audio. Draait na importBooks, want die maakt de verzen aan.
  */
 export async function importChapterAudio(
   prisma: PrismaClient,
@@ -58,9 +57,13 @@ export async function importChapterAudio(
       byKey.get(`${chapter.book.slug}:${chapter.number}`);
     // Een telling die niet klopt met de verzen in de database hoort bij een
     // andere tekst: dan liever geen audio dan verzen die verspringen.
-    const usable = entry && entry.verseStarts.length === chapter.verses.length ? entry : null;
+    const usable = entry && entry.verseStarts.length === chapter.verses.length
+      && [entry.headingStart, entry.headingEnd, ...entry.verseStarts].every((t) => Number.isFinite(t) && t >= 0)
+      && entry.headingEnd >= entry.headingStart
+      && entry.verseStarts.every((t, i) => i === 0 || t >= entry.verseStarts[i - 1]) ? entry : null;
     if (entry && !usable) skipped += 1;
-    if (usable) withAudio += 1;
+    if (!usable) continue;
+    withAudio += 1;
 
     const data = {
       audioUrl: usable?.url ?? null,

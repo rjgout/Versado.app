@@ -6,6 +6,8 @@ on:
       - 'src/**'
       - 'scripts/native/parity.mjs'
       - 'scripts/native/store-readiness.mjs'
+      - 'scripts/native/profiles.cjs'
+      - 'scripts/native/distribution-origins.json'
       - 'tests/native-store-readiness.test.mjs'
       - 'docs/NATIVE-STORE-RELEASE-PLAN.md'
       - 'android/app/build.gradle'
@@ -34,4 +36,4 @@ jobs:
       - run: npm ci
       - run: npm run test:native:parity && npm run native:parity:check
       - run: npm run test:native:store-readiness && npm run native:store-readiness
-      - run: npx eslint scripts/native/parity.mjs tests/native-parity.test.mjs scripts/native/store-readiness.mjs tests/native-store-readiness.test.mjs
+      - run: npx eslint scripts/native/parity.mjs tests/native-parity.test.mjs scripts/native/store-readiness.mjs tests/native-store-readiness.test.mjs scripts/native/verify-distribution.mjs
