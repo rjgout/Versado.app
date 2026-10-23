@@ -56,7 +56,7 @@ Geen schemawijziging, geen migratie, geen nieuwe afhankelijkheid.
   lesplek en elke uitgedeelde oefenset intact. Afleiders (onjuiste opties) horen niet bij de identiteit: veranderen alleen die, dan
   worden de opties van dezelfde oefening vervangen. Orde, hint en bronvers worden zo nodig op hun plaats bijgewerkt.
 - **Versies**: een inhoudelijk gewijzigde vraag (andere tekst of ander juist antwoord) is een nieuwe vraag met een nieuw id. De oude
-  wordt **verwijderd als niemand haar kreeg of beantwoordde**, en anders **buiten gebruik gesteld** (status `REJECTED`, nooit meer
+  wordt **verwijderd als niemand haar kreeg of beantwoordde**, en anders **buiten gebruik gesteld** (status `RETIRED`, nooit meer
   uitgedeeld, niet gewist). Wie haar al in een open set kreeg, rondt haar nog af; haar antwoordgeschiedenis blijft bestaan. Alle
   gebruikers van oefeningen filteren op `APPROVED` (ook het uitdelen van een set, de beheerderstelling en de koppelingen van Stap voor stap), dus een buiten gebruik gestelde vraag verschijnt nergens meer; alleen de losse check- en hintroutes (`exerciseAccessWhere`) tonen haar nog aan wie haar in een eigen, nog open set heeft, zodat de tussentijdse feedback het inleveren niet tegenspreekt. Een gewijzigd
   antwoord wordt zo nooit stilzwijgend als dezelfde vraag behandeld.
@@ -110,8 +110,8 @@ afspeelbaar; vervanging wordt eerst gevalideerd (aantal verzen, tijdcodes oplope
 Alternatief zonder schema: de controlekaart toont alleen het manifest per run (niet blijvend). Voorkeur: het model, omdat de status
 anders na elke herstart verloren gaat.
 
-**Stap 4 — optioneel** een expliciete `RETIRED`-status voor `ContentStatus` in plaats van `REJECTED` voor buiten gebruik gestelde
-oefeningen (nu is `REJECTED` dubbelzinnig met "handmatig afgewezen"). Eén `ALTER TYPE … ADD VALUE`, achterwaarts compatibel.
+**Stap 4 — gedaan (goedgekeurd):** `ContentStatus.RETIRED` is de aparte status voor buiten gebruik gestelde oefeningen (migratie
+`20261127120000_content_beheer_v2`, `ALTER TYPE … ADD VALUE`, achterwaarts compatibel). `REJECTED` blijft uitsluitend "handmatig afgewezen".
 
 ## 7. Wanneer gebruik je wat
 
@@ -139,7 +139,7 @@ Dit raakt bestaande gebruikersgegevens: behandel het als productiegevoelig. Er i
    antwoordgeschiedenis en XP-bijschrijvingen zijn **niet** uit de huidige database te reconstrueren; alleen een back-up van vóór die
    reload bevat ze. Een gerichte herstelroute (credits uit de back-up koppelen aan de nieuwe oefening met dezelfde inhoudshandtekening) is
    technisch mogelijk, maar wordt pas gebouwd na akkoord en na inzicht uit de diagnose.
-6. **Rollback**: geen schemawijziging, dus terug naar de vorige image is genoeg. Buiten gebruik gestelde oefeningen (`REJECTED`) worden
+6. **Rollback**: geen schemawijziging, dus terug naar de vorige image is genoeg. Buiten gebruik gestelde oefeningen (`RETIRED`) worden
    door de oude code ook niet uitgedeeld; er is dus niets terug te draaien. Houd na de uitrol de back-up uit stap 1 aan tot de eerste
    reload veilig is bevestigd.
 7. **Verificatie na uitrol**: `/api/health`, de diagnose (stap 2), een tweede reload (logboek meldt overal "0 nieuw, 0 verwijderd"), de
