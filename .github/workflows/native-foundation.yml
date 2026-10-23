@@ -4,6 +4,12 @@ on:
     branches: [main, 'feat/native-*', 'fix/native-*']
     paths:
       - 'src/lib/native/**'
+      - 'src/lib/account/**'
+      - 'src/components/account/**'
+      - 'src/components/profile/**'
+      - 'src/components/ChangePasswordClient.tsx'
+      - 'src/components/TwoFactorSettings.tsx'
+      - 'src/app/api/account/**'
       - 'src/components/native/**'
       - 'src/components/navigation/**'
       - 'src/components/legal/**'
@@ -25,6 +31,7 @@ on:
       - 'scripts/native/**'
       - 'tests/native-foundation*'
       - 'tests/native-navigation*'
+      - 'tests/native-account*'
       - 'tests/fixtures/native-foundation*'
       - '.github/workflows/native-foundation.yml'
   workflow_dispatch:
@@ -50,6 +57,7 @@ jobs:
           npm run db:generate
           npm run test:native
           npm run test:focus
+          npm run test:profile
           npm run test:native:parity
           npm run native:parity:check
           npm run lint

@@ -30,11 +30,12 @@ export async function createAppleChallenge(intent: "signin" | "link", userId?: s
   const challenge = await prisma.nativeAuthChallenge.create({ data: { intent, userId, nonceHash: nonce, stateHash: hashSecret(state), expiresAt: new Date(Date.now() + 300_000) } });
   return { id: challenge.id, nonce, state };
 }
-export async function finishAppleChallenge(input: { uiLanguage?: LanguageCode; challengeId: string; state: string; identityToken: string; handle?: string; displayName?: string; code?: string }, owner?: User, keys?: JWTVerifyGetKey) {
+export async function finishAppleChallenge(input: { uiLanguage?: LanguageCode; challengeId: string; state: string; identityToken: string; handle?: string; displayName?: string; code?: string }, owner?: User, keys?: JWTVerifyGetKey, securitySetup = false) {
   const config = appleConfiguration();
   if (!config) throw new NativeAuthError("apple_not_configured", 503);
   const challenge = await prisma.nativeAuthChallenge.findUnique({ where: { id: input.challengeId } });
-  if (!challenge || challenge.consumedAt || challenge.expiresAt <= new Date() || !matchesHash(input.state, challenge.stateHash) || (challenge.intent === "link" && challenge.userId !== owner?.id)) throw new NativeAuthError("apple_challenge_expired");
+  if (!challenge || !["signin", "link"].includes(challenge.intent) || challenge.consumedAt || challenge.expiresAt <= new Date() || !matchesHash(input.state, challenge.stateHash) || (challenge.intent === "link" && challenge.userId !== owner?.id)) throw new NativeAuthError("apple_challenge_expired");
+  if ((challenge.intent === "link") !== !!owner) throw new NativeAuthError("apple_challenge_expired");
   let identity;
   try { identity = await verifyAppleIdentity(input.identityToken, challenge.nonceHash, config.audience, keys); }
   catch { throw new NativeAuthError("apple_token_invalid"); }
@@ -79,6 +80,9 @@ export async function finishAppleChallenge(input: { uiLanguage?: LanguageCode; c
     linked = await prisma.externalIdentity.findUnique({ where, include: { user: true } });
   }
   if (!linked) throw new NativeAuthError("apple_account_conflict", 409);
+  // De expliciete setup-entry controleert hierna e-mail en bestaande TOTP,
+  // en geeft uitsluitend een doelgebonden challenge of een normale sessie.
+  if (securitySetup && !owner) return linked.user;
   await assertNativeAccount(linked.user);
   await nativeSecondFactor(linked.user, input.code);
   return linked.user;

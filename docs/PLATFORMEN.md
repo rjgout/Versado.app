@@ -24,6 +24,14 @@ inhoud en vertalingen zijn gedeeld, ook offline. Volledige Vandaag/Leren/Spelen/
 Vrienden, data-adapters en overige routes blijven open in de matrix. Browser-
 controle of route-registratie is geen apparaatacceptatie.
 
+De eerste gedeelde accountdatapoort bedient het bestaande wachtwoordformulier
+via web/native adapters en één backendservice. De eigenaar heeft een eenmalige,
+vijf minuten geldige native setup-challenge goedgekeurd voor verplichte wachtwoord-
+en beheerder-TOTP-stappen. Die geeft geen gewone API-toegang; na voltooiing volgt
+pas een sessie. Zie de matrix voor contracten, migratie en werkelijk testbewijs.
+Algemeen TOTP-beheer, account wissen, reset/onboarding en volledige profielpariteit
+blijven open.
+
 ## Architectuurbesluit
 
 Versado blijft één product, één datamodel en één gedeelde codebase. De

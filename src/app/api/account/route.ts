@@ -4,14 +4,14 @@ import { z } from "zod";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
-import { SESSION_COOKIE, createSessionToken, hashPassword, sessionCookieOptions, verifyPassword } from "@/lib/auth";
+import { SESSION_COOKIE, createSessionToken, sessionCookieOptions } from "@/lib/auth";
 import { generateDiscriminator, HANDLE_REGEX, HANDLE_MIN_LENGTH, HANDLE_MAX_LENGTH, containsForbiddenEmoji, isSingleEmoji } from "@/lib/handle";
 import { setIncognito, INCOGNITO_DURATIONS_HOURS } from "@/lib/presence";
 import { LANGUAGES, getLanguage } from "@/lib/languages";
 import { apiError, apiErrorText } from "@/lib/apiError";
 import {inventoryOriginAllowed} from "@/lib/content-inventory/origin";
 import { deleteUserAccount } from "@/lib/accountDeletion";
-import { disconnectUserSockets } from "@/lib/realtime";
+import { AccountPasswordError, changeAccountPassword } from "@/lib/account/password";
 import { authBudget, authBudgetKey } from "@/lib/authBudget";
 import { boundedJson } from "@/lib/requestBody";
 import { isValidTimeZone } from "@/lib/timeZone";
@@ -116,19 +116,12 @@ export async function PUT(req: NextRequest) {
     return await apiErrorText(parsed.error.issues[0].message, 400);
   }
 
-  const valid = await verifyPassword(parsed.data.currentPassword, user.passwordHash);
-  if (!valid) {
-    return await apiError("apiErrors.currentPasswordWrong", 401);
+  try {
+    await changeAccountPassword(user, parsed.data.currentPassword, parsed.data.newPassword);
+  } catch (error) {
+    if (!(error instanceof AccountPasswordError)) throw error;
+    return await apiError(error.code === "wrong_password" ? "apiErrors.currentPasswordWrong" : "apiErrors.notLoggedIn", 401);
   }
-
-  const passwordHash = await hashPassword(parsed.data.newPassword);
-  // sessionVersion ophogen logt alle andere apparaten uit (bv. als het oude
-  // wachtwoord is uitgelekt). Dit apparaat krijgt direct een nieuw token.
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { passwordHash, mustChangePassword: false, sessionVersion: { increment: 1 } },
-  });
-  disconnectUserSockets(user.id);
 
   const res = NextResponse.json({ ok: true });
   res.cookies.set(SESSION_COOKIE, await createSessionToken(user.id), sessionCookieOptions);

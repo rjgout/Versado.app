@@ -1,7 +1,7 @@
 /** Alleen daadwerkelijk lokaal geïmplementeerde routes worden geaccepteerd.
  * Breid deze grens samen met scherm, contract en tests uit, nooit als placeholder.
  */
-const ROUTES = [/^\/dashboard$/, /^\/profile$/, /^\/lesson\/[A-Za-z0-9_-]{1,128}$/, /^\/privacy$/, /^\/cookies$/, /^\/login$/, /^\/register$/, /^\/forgot-password$/];
+const ROUTES = [/^\/dashboard$/, /^\/profile$/, /^\/change-password$/, /^\/lesson\/[A-Za-z0-9_-]{1,128}$/, /^\/privacy$/, /^\/cookies$/, /^\/login$/, /^\/register$/, /^\/forgot-password$/];
 export function nativeRoute(raw: string): string | null {
   if (!raw.startsWith("/") || raw.startsWith("//") || /[\\\s%?#]/.test(raw)) return null;
   return ROUTES.some(pattern => pattern.test(raw)) ? raw : null;

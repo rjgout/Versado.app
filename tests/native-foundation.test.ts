@@ -4,6 +4,7 @@ import { generateKeyPair, exportJWK, createLocalJWKSet, SignJWT } from "jose";
 import { verifyAppleIdentity } from "../src/lib/native/apple";
 import { NativeSessionClient, NativeClientError, type SecureSessionStore } from "../src/lib/native/client";
 import { nativeOriginAllowed } from "../src/lib/native/api";
+import { nativeAccountActions } from "../src/lib/native/account";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
@@ -258,4 +259,59 @@ test("generatiewissel tijdens Keychain-write maakt de late sessie duurzaam ongel
   let refreshes = 0;
   const reopened = new NativeSessionClient("https://example.invalid", saved, async url => { if (String(url).endsWith("/refresh")) refreshes++; return response({ ok: true }); });
   assert.equal(await reopened.restore(), false); assert.equal(refreshes, 0); assert.equal(raw, null);
+});
+
+function setupResponse() { return { securitySetup: { token: `${crypto.randomUUID()}.${'A'.repeat(43)}`, step: 'password' as const, expiresAt: new Date(Date.now() + 300_000).toISOString() } }; }
+test("accountdatapoort beëindigt alleen een werkelijk verlopen sessie, niet een fout herauthenticatiewachtwoord", async () => {
+  let stored: string | null = null, code = 'wrong_credentials', status = 401, expired = 0;
+  const client = new NativeSessionClient('https://example.invalid', { async read() { return stored; }, async write(value) { stored = value; }, async clear() { stored = null; } }, async url => String(url).endsWith('/login') ? response({ accessToken: 'access', refreshToken: 'refresh' }) : response({ error: code }, status));
+  await client.login('a', 'password'); const actions = nativeAccountActions(client, () => expired++);
+  await assert.rejects(actions.changePassword({ currentPassword: 'wrong', newPassword: 'New-password-42' })); assert.equal(expired, 0);
+  code = 'session_changed'; await assert.rejects(actions.changePassword({ currentPassword: 'password', newPassword: 'New-password-42' })); assert.equal(expired, 1);
+  status = 409; await assert.rejects(actions.changePassword({ currentPassword: 'password', newPassword: 'New-password-42' })); assert.equal(expired, 1, 'Een afgebroken oude generatie logt het nieuwe account niet uit');
+});
+test("setupbewijs is nooit een hervatbare sessie en wordt bij heropening ingetrokken", async () => {
+  let stored: string | null = null; const paths: string[] = [], setup = setupResponse();
+  const store = { async read() { return stored; }, async write(value: string) { stored = value; }, async clear() { stored = null; } };
+  const transport: typeof fetch = async url => { const path = String(url).split('/api/v1/native/')[1]; paths.push(path); return response(path === 'login' ? setup : { ok: true }); };
+  const client = new NativeSessionClient('https://example.invalid', store, transport);
+  assert.equal((await client.login('account', 'password', undefined, true)).securitySetup?.token, setup.securitySetup.token);
+  await assert.rejects(client.api('me'), error => error instanceof NativeClientError && error.code === 'session_expired');
+  assert.equal(JSON.parse(stored!).logoutPending, true); assert.equal(JSON.parse(stored!).kind, 'setup');
+  assert.equal(paths.includes('security-setup/cancel'), false, 'De actieve geheugenflow wordt niet voortijdig ingetrokken');
+  assert.equal(await new NativeSessionClient('https://example.invalid', store, transport).restore(), false);
+  assert.equal(stored, null); assert.deepEqual(paths, ['login', 'security-setup/cancel']);
+});
+test("laat setupantwoord kan een nieuwer ingelogd account niet intrekken", async () => {
+  let stored: string | null = null; const gate = Promise.withResolvers<Response>(), setup = setupResponse(); let logins = 0;
+  const client = new NativeSessionClient('https://example.invalid', { async read() { return stored; }, async write(value) { stored = value; }, async clear() { stored = null; } }, async url => {
+    if (String(url).endsWith('/login')) return ++logins === 1 ? gate.promise : response({ accessToken: 'b-access', refreshToken: 'b-refresh' });
+    return response({ ok: true });
+  });
+  const old = client.login('a', 'password', undefined, true); await client.login('b', 'password');
+  gate.resolve(response(setup)); await assert.rejects(old, error => error instanceof NativeClientError && error.code === 'session_changed');
+  assert.equal(JSON.parse(stored!).refreshToken, 'b-refresh'); assert.notEqual(JSON.parse(stored!).logoutPending, true);
+});
+test("offline annulering van setup blijft duurzaam tot bevestigde intrekking", async () => {
+  let stored: string | null = null, online = true; const paths: string[] = [], setup = setupResponse();
+  const store = { async read() { return stored; }, async write(value: string) { stored = value; }, async clear() { stored = null; } };
+  const transport: typeof fetch = async url => { const path = String(url).split('/api/v1/native/')[1]; paths.push(path); if (!online) throw Error('synthetic offline'); return response(path === 'login' ? setup : { ok: true }); };
+  const client = new NativeSessionClient('https://example.invalid', store, transport); await client.login('a', 'password', undefined, true);
+  online = false; await assert.rejects(client.logout()); assert.equal(JSON.parse(stored!).kind, 'setup');
+  online = true; assert.equal(await new NativeSessionClient('https://example.invalid', store, transport).restore(), false);
+  assert.equal(stored, null); assert.equal(paths.includes('refresh'), false);
+});
+test("een foutieve setupcode kan worden gecorrigeerd; alleen de volledige uitkomst wordt als sessie opgeslagen", async () => {
+  let stored: string | null = null, attempts = 0; const setup = setupResponse();
+  const client = new NativeSessionClient('https://example.invalid', { async read() { return stored; }, async write(value) { stored = value; }, async clear() { stored = null; } }, async (url, init) => {
+    if (String(url).endsWith('/login')) return response(setup);
+    if (String(url).endsWith('/security-setup/complete')) {
+      assert.equal(JSON.parse(String(init?.body)).challengeToken, setup.securitySetup.token);
+      return ++attempts === 1 ? response({ error: 'wrong_code' }, 400) : response({ accessToken: 'complete-access', refreshToken: 'complete-refresh', recoveryCodes: ['ABCDE-12345'] });
+    }
+    return response({ ok: true });
+  });
+  await client.login('a', 'password', undefined, true); await assert.rejects(client.completeSecuritySetup({ code: '000000' }));
+  assert.deepEqual((await client.completeSecuritySetup({ code: '123456' })).recoveryCodes, ['ABCDE-12345']);
+  assert.equal(JSON.parse(stored!).refreshToken, 'complete-refresh'); assert.equal(JSON.stringify(stored).includes('ABCDE-12345'), false);
 });
