@@ -162,7 +162,7 @@ goedgekeurde snapshot (nooit bij opstarten, deploy of migratie):
    niet na elke import handmatig een jaargang hoeft te activeren. Een door beheer verborgen collectie wordt bij een latere
    import nooit opnieuw getoond (alleen de eerste vrijgave schakelt in). Veiligheid: alleen via de beheeractie met goedgekeurde
    snapshot, nooit bij opstarten/deploy/migratie; een geblokkeerde les houdt de collectie op concept en dus verborgen.
-   Noodstoppen: `CFM_AUTO_PUBLISH=off` (geen publicatie) en `CFM_AUTO_VISIBLE=off` (wel publiceren, niet tonen). Een
+   Noodstoppen: `CFM_IMPORT_YEARS=2026` (beperkt de beheerimport tot die jaargangen; ook gebruikt door de hermetische 2026-test, zodat 2027-media niet van het netwerk komen), `CFM_AUTO_PUBLISH=off` (geen publicatie) en `CFM_AUTO_VISIBLE=off` (wel publiceren, niet tonen). Een
    gelijktijdige run krijgt `busy` (dezelfde lock als de beheerbatch).
 
 Het rapport (jobverslag van *Content opnieuw laden*) noemt per jaargang: status, nieuw/al gepubliceerd, geblokkeerd,
