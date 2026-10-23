@@ -9,6 +9,7 @@ on:
       - 'ios/**'
       - 'capacitor.config.ts'
       - 'scripts/native/**'
+      - 'tests/native-ios-release*'
       - 'package*.json'
       - 'tailwind.config.ts'
       - 'tsconfig.json'
@@ -111,6 +112,19 @@ jobs:
       - name: Echte iOS-simulatorcompilatie zonder signing
         run: |
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/versado-ios" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+      - name: iOS-poort weigert de compileproef en het archief bevat versie en privacy manifest
+        # De poort moet de compileproef afkeuren, maar uitsluitend om die reden: een afwijkende versie, bundel-ID of een
+        # ontbrekend privacy manifest in het echte archief zou hier als extra melding verschijnen en de stap laten falen.
+        env:
+          CAPACITOR_BUILD_PROFILE: local-store-test
+          NATIVE_COMPILE_PROBE: '1'
+          NATIVE_DISTRIBUTION_CHANNEL: testflight
+        run: |
+          if node scripts/native/ios-release-guard.mjs before; then echo "de poort liet een compileproef door"; exit 1; fi
+          if node scripts/native/ios-release-guard.mjs after "$RUNNER_TEMP/Versado-compileprobe.xcarchive/Products/Applications/App.app" 2> "$RUNNER_TEMP/guard.txt"; then echo "de poort liet een compileproef-archief door"; exit 1; fi
+          cat "$RUNNER_TEMP/guard.txt"
+          grep -q "compileproef" "$RUNNER_TEMP/guard.txt"
+          if grep -E "PrivacyInfo|CFBundleIdentifier|Info.plist|build.json|buildNumber|version " "$RUNNER_TEMP/guard.txt"; then echo "onverwachte archiefafwijking"; exit 1; fi
       - name: Controleer de assets in de simulatorapp
         run: |
           node scripts/native/verify-distribution.mjs ios "$RUNNER_TEMP/versado-ios/Build/Products/Debug-iphonesimulator/App.app"

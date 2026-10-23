@@ -111,6 +111,7 @@
     "test:native:parity": "node --test tests/native-parity.test.mjs",
     "native:store-readiness": "node scripts/native/store-readiness.mjs",
     "test:native:store-readiness": "node --test tests/native-store-readiness.test.mjs",
+    "test:native:ios-release": "node --test tests/native-ios-release.test.mjs",
     "audio:inventory": "python3 scripts/audio/official_inventory.py --download",
     "audio:align": "python3 scripts/audio/align_official.py",
     "audio:import-official": "tsx scripts/audio/import-official.ts",

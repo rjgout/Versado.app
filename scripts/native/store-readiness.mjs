@@ -90,6 +90,17 @@ export const GUARDS = [
     },
   },
   {
+    id: "ios-signing-refuses-probe",
+    title: "iOS-archivering voor distributie weigert compileproef-, intern- en niet-testflight-bundels, en er is geen automatische App Store Connect-upload",
+    check: (fs) => {
+      const guard = fs.read("scripts/native/ios-release-guard.mjs");
+      const release = fs.read(".github/workflows/native-ios-release.yml");
+      const guardOk = /compileProbe !== false/.test(guard) && /local-store-test/.test(guard) && /testflight/.test(guard);
+      const noUpload = /<string>export<\/string>/.test(release) && !/(altool|iTMSTransporter|upload-testflight|testflight-upload|app-store-connect-upload|destination<\/key><string>upload)/i.test(release) && /workflow_dispatch/.test(release) && !/\n\s+(push|pull_request|schedule):/.test(release);
+      return { ok: guardOk && noUpload, evidence: "scripts/native/ios-release-guard.mjs, .github/workflows/native-ios-release.yml" };
+    },
+  },
+  {
     id: "no-credentials-in-git",
     title: "Geen certificaten, sleutels, provisioningprofielen of services-bestanden in de native projectmappen",
     check: (fs) => {
@@ -111,12 +122,14 @@ export const BLOCKERS = [
       try { data = JSON.parse(fs.read("scripts/native/distribution-origins.json")); } catch { /* ontbrekend of ongeldig = niet geconfigureerd */ }
       return { ok: Array.isArray(data.internal) && data.internal.length > 0 && Array.isArray(data["store-test"]) && data["store-test"].length > 0, evidence: "scripts/native/distribution-origins.json" };
     } },
-  { id: "ios-privacy-manifest", area: "iOS", wp: "WP2", title: "PrivacyInfo.xcprivacy aanwezig in het app-target",
-    check: (fs) => ({ ok: fs.tree("ios/App").some((path) => path.endsWith("PrivacyInfo.xcprivacy")), evidence: "ios/App/**/PrivacyInfo.xcprivacy" }) },
+  { id: "ios-privacy-manifest", area: "iOS", wp: "WP2", title: "PrivacyInfo.xcprivacy aanwezig en als resource in het app-target opgenomen (dataverzameling/labels beoordeelt de eigenaar in App Store Connect)",
+    check: (fs) => ({ ok: fs.tree("ios/App").some((path) => path.endsWith("PrivacyInfo.xcprivacy")) && /PrivacyInfo\.xcprivacy in Resources/.test(fs.read("ios/App/App.xcodeproj/project.pbxproj")), evidence: "ios/App/**/PrivacyInfo.xcprivacy, project.pbxproj" }) },
   { id: "ios-entitlements", area: "iOS", wp: "WP2", title: "Echt entitlements-bestand gekoppeld via CODE_SIGN_ENTITLEMENTS (Sign in with Apple en/of associated domains, alleen indien in scope)",
     check: (fs) => ({ ok: /CODE_SIGN_ENTITLEMENTS/.test(fs.read("ios/App/App.xcodeproj/project.pbxproj")), evidence: "project.pbxproj" }) },
   { id: "ios-export-compliance", area: "iOS", wp: "WP2", title: "ITSAppUsesNonExemptEncryption beantwoord in Info.plist (eigenaar bevestigt het antwoord)",
     check: (fs) => ({ ok: fs.read("ios/App/App/Info.plist").includes("ITSAppUsesNonExemptEncryption"), evidence: "ios/App/App/Info.plist" }) },
+  { id: "ios-testflight-workflow", area: "iOS", wp: "WP2", title: "Beschermde handmatige workflow die een ondertekende TestFlight-IPA exporteert (geen upload, alleen vanaf main, omgeving ios-testflight)",
+    check: (fs) => { const text = fs.read(".github/workflows/native-ios-release.yml"); return { ok: /workflow_dispatch/.test(text) && /environment:\s*ios-testflight/.test(text) && /refs\/heads\/main/.test(text) && /-exportArchive/.test(text), evidence: ".github/workflows/native-ios-release.yml" }; } },
   { id: "ios-ci-archive", area: "iOS", wp: "WP0", title: "CI bewijst een iOS-archive voor echte apparaten (zonder signing)",
     check: (fs) => ({ ok: workflows(fs).some((text) => /xcodebuild[^\n]*\barchive\b/.test(text)), evidence: ".github/workflows/*.yml" }) },
   { id: "android-version-injectable", area: "Android", wp: "WP0", title: "versionCode en versionName worden per build geïnjecteerd, niet hard gecodeerd",
