@@ -21,6 +21,7 @@ const load = async () => ({
   views: await import("../src/lib/social/groupViews"),
   common: await import("../src/lib/social/common"),
   days: await import("../src/lib/social/groupDays"),
+  learning: await import("../src/lib/streak"),
 });
 let L: Awaited<ReturnType<typeof load>>;
 
@@ -559,4 +560,50 @@ test("privacy: privégroep niet zichtbaar, openbare groep zonder leden", { skip 
   await L.groups.updateGroupSettings(a, gid, { membersCanInvite: false });
   await befriend(b, outsider);
   await rejects(L.groups.inviteToGroup(b, gid, outsider, noon(D1)), "together.errors.groupInviteNotAllowed");
+});
+
+
+test("terugkeer: eerste geldige activiteit telt voor groep, persoonlijke reeks wacht op herstel", { skip }, async () => {
+  const a = await user("ReturnA", "Asia/Tokyo");
+  const b = await user("ReturnB");
+  const c = await user("ReturnC");
+  const id = await newGroup(a, "Terugkeer", [b, c], noon(D0));
+  await L.db.user.update({ where: { id: a }, data: {
+    currentStreak: 20, longestStreak: 20, lastStudyDate: "2031-04-01", lastStudyTimeZone: "Asia/Tokyo",
+  } });
+  const at = new Date("2031-05-05T16:00:00Z"); // In Tokio al D1, in Nederland nog D0.
+  const activity = (key: string, answered = 3, now = at) => L.db.$transaction((tx) =>
+    L.learning.recordLearningActivity(tx, a, { kind: "PRACTICE", key, answered, required: 3 }, now));
+  await activity("return-incomplete", 1);
+  assert.equal((await L.days.groupDayCounts(L.db, [id], D1)).get(id)?.contributors ?? 0, 0);
+  assert.equal((await activity("return-first")).dayEarned, false);
+  assert.equal((await activity("return-first")).duplicate, true);
+  assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: a } })).streakReturnCount, 1);
+  assert.equal(await L.db.streakDay.count({ where: { userId: a, dayKey: D1 } }), 0);
+  assert.equal((await L.days.groupDayCounts(L.db, [id], D1)).get(id)?.contributors, 1);
+  assert.equal((await L.days.groupDayCounts(L.db, [id], D0)).get(id)?.contributors ?? 0, 0);
+  assert.equal((await L.common.keptOn(L.db, [a], D1)).has(a), false, "vriendenreeks wacht ook op herstel");
+  await activity("return-second");
+  assert.equal((await L.days.groupDayCounts(L.db, [id], D1)).get(id)?.contributors, 1, "maximaal één bijdrage per lid");
+  await kept(b, D1);
+  await kept(c, D1, "FROZEN");
+  await L.streak.refreshGroup(id, noon(D1));
+  assert.equal((await day(id, D1))?.status, "ACHIEVED");
+  const detail = await L.views.groupDetail(id, a, "Asia/Tokyo", at);
+  assert.equal(detail?.today.meContributed, true);
+  assert.equal(detail?.today.contributors, 3);
+  // Een latere terugkeerpoging wist de eerdere groepsbijdrage niet.
+  assert.equal((await activity("return-first", 3, noon(D2))).duplicate, true);
+  assert.equal((await L.days.groupDayCounts(L.db, [id], D2)).get(id)?.contributors ?? 0, 0);
+  await activity("return-next-day", 3, noon(D2));
+  await L.streak.refreshGroup(id, new Date("2031-05-07T16:00:00Z"));
+  assert.equal((await day(id, D1))?.contributorCount, 3);
+  assert.equal((await day(id, D1))?.perfect, true);
+  assert.ok((await day(id, D1))?.settledAt);
+  assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: a } })).currentStreak, 20);
+  const history = await L.views.groupDetail(id, a, "Asia/Tokyo", noon(D2));
+  assert.equal(history?.myContribution.contributed, 1);
+  for (let i = 0; i < 6; i++) await activity(`return-finish-${i}`, 3, noon(D2));
+  assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: a } })).currentStreak, 21);
+  assert.equal((await L.days.groupDayCounts(L.db, [id], D2)).get(id)?.contributors, 1, "herstel telt dezelfde bijdrage niet dubbel");
 });

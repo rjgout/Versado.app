@@ -134,9 +134,9 @@ test("V2 gelijktijdig starten maakt één poging; fout antwoord is definitief bi
   assert.notEqual(starts[4].id, starts[0].id, "een andere eigenaar heeft eigen speelstatus");
   const state = await solve(u.id, 100);
   const wrong = await L.solo.answerSoloPuzzle(u.id, state.id, (right(state) + 1) % 3);
-  assert.ok(wrong && "correct" in wrong); assert.equal(wrong.correct, false); assert.equal(wrong.counted, false);
+  assert.ok(wrong && "correct" in wrong); assert.equal(wrong.correct, false); assert.equal(wrong.counted, true);
   assert.deepEqual(await L.solo.answerSoloPuzzle(u.id, state.id, right(state)), wrong);
-  assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: u.id } })).currentStreak, 4);
+  assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: u.id } })).currentStreak, 5);
   assert.notEqual((await L.solo.startSoloPuzzle(u.id, 100, 6, "ADVENTURER", "nl")).id, state.id);
 });
 

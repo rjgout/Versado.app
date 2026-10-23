@@ -118,8 +118,8 @@ try {
       const record = await prisma.puzzleBestRecord.findFirst({ where: { userId: user.id, mode: "SOLO", hintCategory: "WITH_HINTS", NOT: { elapsedMs: 120_000 } } }); assert.ok(record, "de server heeft het record opgeslagen (clientweergave volgt de server)");
     } else {
       await page.screenshot({ path: `${shots}/solo24-result-wrong-phone.png` });
-      assert.equal(await page.locator("h1", { hasText: nl.jigsaw.completion.resultIncorrectTitle }).count(), 1, "onjuist: geen 'Puzzel compleet!' als afgeronde activiteit"); assert.equal(await page.locator("[data-record-notice]").count(), 0, "onjuist: geen record");
-      assert.equal(await page.getByText(nl.jigsaw.completion.resultIncorrectNote).count(), 1, "onjuist: zegt dat de activiteit niet is afgerond"); assert.equal(await page.getByText(nl.jigsaw.completion.resultCorrectNote).count(), 0);
+      assert.equal(await page.locator("h1", { hasText: nl.jigsaw.completion.resultIncorrectTitle }).count(), 1, "onjuist: de puzzel is wel afgerond"); assert.equal(await page.locator("[data-record-notice]").count(), 0, "onjuist: geen record");
+      assert.equal(await page.getByText(nl.jigsaw.completion.resultIncorrectNote).count(), 1, "onjuist: de activiteit telt voor de reeks"); assert.equal(await page.getByText(nl.jigsaw.completion.resultCorrectNote).count(), 0);
       assert.match(await page.locator('[data-completion-card] img[src*="/mascots/"]').getAttribute("src"), /encourage/i, "onjuist: bemoedigende gids"); await page.screenshot({ path: `${shots}/solo24-result-wrong-phone.png` });
       assert.equal(await prisma.puzzleBestRecord.count({ where: { userId: user.id, mode: "SOLO", NOT: { elapsedMs: 120_000 } } }), 0, "onjuist: geen record in de database");
     }

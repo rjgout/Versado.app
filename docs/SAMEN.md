@@ -16,16 +16,23 @@ Code: `src/lib/social/`, schermen in `src/components/social/` en
 ## De bron: de persoonlijke reeks
 
 Er is één regel voor wat een geldige dag is, en die zit in de persoonlijke
-reeks (`recordLearningActivity`, zie `docs/LEERVOORTGANG.md`). Samen voegt
-daar niets aan toe en verandert er niets aan:
+reeks (`recordLearningActivity`, zie `docs/LEERVOORTGANG.md`). Vriendenreeksen
+volgen de behouden persoonlijke reeksdag; groepen tellen ook
+de eerste geldige activiteit tijdens een onafgemaakte terugkeer mee:
 
 ```
-geldige activiteit → persoonlijke reeks (StreakDay) → sociale reeksen
+geldige activiteit → persoonlijke reeks (StreakDay) → vriendenreeksen
+                  → vastgelegde activiteitsdag (StreakActivity.dayKey) → groepen
 ```
 
 Iemand draagt op dag D bij als hij een `StreakDay` heeft voor zijn eigen
 kalenderdag D, gestudeerd (`STUDIED`) of bevroren (`FROZEN`, een persoonlijke
-reeksbevriezing). Een sociale reeks heeft dus geen eigen oefeningen,
+reeksbevriezing), of hersteld (`RETURNED`). Voor een groep telt ook één geldige
+afgeronde activiteit op dag D, zelfs als de persoonlijke terugkeer nog niet
+voltooid is. De centrale reeksservice legt die eigen kalenderdag vast op
+`StreakActivity.dayKey`; ongeldige activiteiten en retries leveren geen nieuwe
+bijdrage op. Meerdere activiteiten tellen samen als één bijdrage per lid per dag.
+Een sociale reeks heeft dus geen eigen oefeningen,
 activiteitsregels of XP. Bijdragen aan een groep, een seintje geven of een
 bevriezing schenken levert nooit XP op.
 

@@ -130,7 +130,7 @@ async function started(kind: "ASYNC" | "LIVE" = "ASYNC", extra = 0) {
   return made;
 }
 
-test("oude regels (versie 1): een fout antwoord geeft geen geldige tijd en geen reeks", { skip }, async () => {
+test("oude regels (versie 1): een fout antwoord geeft geen geldige tijd, maar telt voor de reeks", { skip }, async () => {
   const { people: [a, b], matchId } = await started();
   await legacy(matchId);
   const streakA = (await get(a.id)).currentStreak;
@@ -138,7 +138,7 @@ test("oude regels (versie 1): een fout antwoord geeft geen geldige tijd en geen 
   assert.equal((await participantRow(matchId, a.id)).status, "PLAYING", "onder de oude regels telt de puzzel pas met het antwoord");
   const wrong = await L.match.answerMatch(a.id, matchId, wrongChoice(stateA));
   assert.equal(wrong.valid, false); assert.equal(wrong.correctChoice, null);
-  assert.equal((await get(a.id)).currentStreak, streakA);
+  assert.equal((await get(a.id)).currentStreak, streakA + 1);
   const stateB = await solve(b.id, matchId);
   await L.match.answerMatch(b.id, matchId, rightChoice(stateB));
   const final = await L.match.getMatch(b.id, matchId);
@@ -165,10 +165,10 @@ test("nieuwe regels: de tijd stopt bij het voltooien van de puzzel en de vraag v
   const after = await participantRow(matchId, a.id);
   assert.equal(after.elapsedMs, official, "de vraagtijd telt niet mee");
   assert.equal(after.status, "FINISHED"); assert.equal(after.answeredCorrect, false); assert.ok(after.answeredAt);
-  assert.equal((await get(a.id)).currentStreak, streakBefore, "een fout antwoord verlengt de reeks niet");
+  assert.equal((await get(a.id)).currentStreak, streakBefore + 1, "ook een fout antwoord telt voor de reeks");
   // Tweede antwoord (ook een goed): geen tweede kans, geen tweede beloning.
   const again = await L.match.answerMatch(a.id, matchId, rightChoice(stateA));
-  assert.equal(again.correct, false); assert.equal((await get(a.id)).currentStreak, streakBefore);
+  assert.equal(again.correct, false); assert.equal((await get(a.id)).currentStreak, streakBefore + 1);
   const view = await L.match.getMatch(b.id, matchId);
   assert.equal(view.participants.find((p) => p.userId === a.id)!.result, null, "b ziet a's tijd pas na eigen finish");
   void b;

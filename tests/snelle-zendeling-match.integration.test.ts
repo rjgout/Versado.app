@@ -330,6 +330,7 @@ test("economie: gratis Genees is per run, voorraad daarna, noodkoop één keer, 
   r = await runRow(runId);
   assert.equal(r.status, "FINISHED", "een fout antwoord kost de poging en elimineert");
   assert.equal(r.eliminatedHow, "GENEES_WRONG");
+  assert.equal(await L.db.streakActivity.count({ where: { userId: a, key: `quick-missionary:${runId}` } }), 1, "ook het foute Genees-antwoord sluit een geldige reeksactiviteit af");
   assert.equal((await L.db.user.findUniqueOrThrow({ where: { id: a } })).geneesBalance, 0, "de gekochte Genees is verbruikt, ook bij een fout antwoord");
   assert.equal((await matchRow(m.matchId)).status, "RUNNING", "twee anderen vliegen nog");
 });
@@ -767,4 +768,29 @@ test("spectator 8: bij precies twee spelers eindigt de run direct, zonder specta
   const view = (await L.match.getMatchView(m.matchId))!;
   assert.equal(view.status, "ENDED");
   for (const user of [a, b]) assert.equal(viewModeFor(view.participants.find((p) => p.userId === user)!.state, view.status), "result");
+});
+
+test("reeks: gespeelde gezamenlijke runs tellen eenmaal, alleen starten en sluiten telt niet", { skip }, async () => {
+  const m = await startedMatch(3);
+  const [a, b, c] = m.userIds;
+  await L.runs.reportDeath(m.runOf(a), a, 0);
+  await L.runs.finishQuickMissionaryRun(m.runOf(a), a, 0);
+  assert.equal(await L.db.streakActivity.count({ where: { userId: a, key: `quick-missionary:${m.runOf(a)}` } }), 1);
+  await L.match.recordBeat(m.matchId, c, 4);
+  await L.runs.finishQuickMissionaryRun(m.runOf(b), b, 0);
+  assert.equal((await matchRow(m.matchId)).status, "ENDED");
+  assert.equal(await L.db.streakActivity.count({ where: { userId: b } }), 0);
+  assert.equal(await L.db.streakActivity.count({ where: { userId: c, key: `quick-missionary:${m.runOf(c)}` } }), 1, "de gespeelde run van de overlevende telt ook");
+  await L.runs.finishQuickMissionaryRun(m.runOf(a), a, 0);
+  assert.equal(await L.db.streakActivity.count({ where: { userId: a } }), 1);
+});
+
+test("reeks: nul punten en wegvallen tijdens Genees telt bij definitieve afsluiting", { skip }, async () => {
+  const m = await startedMatch(3);
+  const [a] = m.userIds;
+  await L.runs.reportDeath(m.runOf(a), a, 0);
+  const at = new Date();
+  await L.db.quickMissionaryRun.update({ where: { id: m.runOf(a) }, data: { lastSeenAt: new Date(at.getTime() - 100_000) } });
+  await L.match.sweepStalePlayers(m.matchId, at);
+  assert.equal(await L.db.streakActivity.count({ where: { userId: a, key: `quick-missionary:${m.runOf(a)}` } }), 1);
 });

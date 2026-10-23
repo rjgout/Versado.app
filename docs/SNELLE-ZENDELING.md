@@ -254,7 +254,7 @@ antwoord ook niet het goede antwoord. Het scherm toont "Niet helemaal." met
 "Lees {hoofdstuk} om het antwoord te ontdekken." en, als de leesroute bekend
 is, een knop daarheen (`chapterReadHref`). Boven de vraag staat altijd het
 hoofdstuk (`data-revive-chapter`). Dit pad schrijft geen oefenpoging en geeft
-geen XP, reeks of competitie-XP.
+geen XP of competitie-XP. Een definitief afgeronde, gespeelde run telt wel voor de reeks.
 
 **Vragenbank.** De Nederlandse bank voor het Boek van Mormon staat in
 `prisma/genees/bofm-nl/` (één bestand per groep boeken, formaat en regels in
@@ -313,7 +313,7 @@ Per gebruiker telt alleen de hoogste geldige score. Bij gelijke scores wint de
 run die die score het eerst server-side bereikte; daarna is `userId` een vaste
 laatste tie-breaker. De eigen positie wordt ook buiten de eerste 50 resultaten
 getoond. Genezen runs blijven gewone geldige runs en vormen geen apart
-klassement. Arcade-score geeft geen XP, reeks of competitie-XP.
+klassement. Arcade-score geeft geen XP of competitie-XP. Een definitief afgeronde, gespeelde run telt wel voor de reeks.
 
 Novi, Varo en Vera delen exact deze ene Vandaag- en All-time-ranking. Naam,
 sprite en cover zijn presentatielaag en worden niet als rankingcategorie
@@ -536,3 +536,9 @@ klok, toestanden, beslissingen en duo-regels) en
 spelers, samenloop, geen resurrectie, hartslag en wegvallen, economie in een
 wedstrijd, uitsluiting van de solo-ranking, Duo-ranking), beide in `npm run
 test:snelle-zendeling`. De integratietests vragen `LEARNING_TEST_DATABASE_URL`.
+
+## Reeksactiviteit bij afronding
+
+Een gespeelde, definitief afgeronde run telt eenmaal via de centrale reeksservice,
+zowel solo als samen. Ook een botsing zonder punten of een fout Genees-antwoord
+telt. Alleen starten en meteen sluiten telt niet. Het spel geeft geen XP.
