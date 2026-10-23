@@ -233,3 +233,67 @@ Nederlands getoond). De architectuur heeft niets meer nodig dan:
 4. Bron in een PR, goedkeuring van de snapshot en import via *Content opnieuw laden*.
 
 Ontbrekende bronnen voor 2028 nu: de Nederlandse inhoudsopgave en alle lessen, de weekdatums en de gepinde media.
+
+## 11. Ingebedde video's (fase D)
+
+**Onderzoek naar insluiten.** De officiële lespagina's bieden per video een HLS-stroom (`m3u8`, Brightcove) en officiële
+MP4-bestanden (`assets.churchofjesuschrist.org`, in enkele lessen het oudere CDN `media2.ldscdn.org`) in 360p, 720p en 1080p. Er
+is **geen insluitbare iframe**; we gebruiken ook geen omweg om iframebeperkingen te omzeilen (geen proxy, geen scraping van
+spelers, geen download naar de NAS). De video wordt dus rechtstreeks vanaf het officiële MP4-bestand afgespeeld; de HLS-stroom
+wordt genegeerd.
+
+**Model.** Een nieuw bloktype `video` in het studiedocument (`schema.ts`): titel, optionele beschrijving, 1–4 MP4-bronnen met
+afmetingen en een officiële terugvallink. Het vervangt het vroegere verwijzingsblok dat naar het MP4-bestand wees; het anker
+(`video-…`) en de annotatietekst (de titel) blijven gelijk, zodat bestaande annotaties hun plek behouden. De poster is de
+direct voorafgaande, gebonden afbeelding (figure met een id op `-poster`), die de speler gebruikt en niet nog eens apart toont.
+Bestaande, al gepubliceerde revisies veranderen niet: pas een nieuwe import (met auto-publicatie) levert voor lessen met een video
+een nieuwe revisie op. In CFM 2026 zijn dat 95 video's (3609 → 3514 verwijzingen; 1096 → 1001 extern geverifieerde).
+
+**Veiligheid.**
+- Alleen `https`, exacte hosts (`STUDY_VIDEO_HOSTS` in `schema.ts`, hergebruikt door het verwijzingsbeleid), pad op `.mp4`, geen
+  poort, inloggegevens, querystring of fragment. Het schema is strikt (geen onbekende velden) en de titel mag geen HTML bevatten.
+- Geen iframe, geen `dangerouslySetInnerHTML`, geen automatisch afspelen. De app heeft nergens een globale
+  Content-Security-Policy; omdat er geen iframe is, is er geen sandbox nodig. Een globale CSP (`media-src`/`img-src` voor de
+  twee hosts) is een aparte, bewuste vervolgstap en wordt hier niet stilzwijgend ingevoerd.
+- Er worden geen videobestanden opgeslagen of via de eigen server gestreamd: de browser laadt het officiële bestand.
+
+**Weergave** (`StudyVideo.tsx`): HTML5-speler met systeembediening (toetsenbord, schermlezer, volledig scherm; `playsInline`
+voor iOS), `preload="none"` (lazy), 16:9-vlak met vaste beeldverhouding, standaardbron 720p, titel/beschrijving en een
+duidelijke foutstatus met de officiële link als afspelen niet lukt. Past in de bestaande lesweergave en Focus/Immersive-shell.
+
+**Bewijs voor behoud van gebruikersgegevens.** `tests/cfm-video-revision.integration.test.ts` (in `npm run test:cfm-personal:integration`)
+bootst de echte overgang na: eerst een gepubliceerde revisie zonder video's (de oude adapteruitvoer, via de testnaad `transformItem`),
+met een gebruiker met cursusabonnement, studiecontext, stapvoortgang, leesposities en bladwijzer/markering/notitie; daarna de gewone
+import met auto-publicatie. Uitkomst: precies de 42 lessen met video's (95 video's) krijgen een nieuwe revisie, alle edities en
+lesidentiteiten blijven gelijk, de persoonlijke gegevens zijn byte-identiek (hash over alle rijen), de oude revisies blijven bestaan
+(alleen erbij), de deeplink `/study-lesson/<lessonId>/<collectionId>` wijst naar dezelfde les en de annotaties zijn op de nieuwe
+revisie zichtbaar. Dezelfde test controleert archivering: na het jaareinde staan alle 52 weken in het archief, blijven ze te openen en
+verandert geen enkele inhouds- of persoonsrij.
+
+**H.264 / apparaattest (open punt).** In deze ontwikkelomgeving ontbreekt H.264 in alle beschikbare browsers (Playwright-Chromium en
+headless shell geven `canPlayType('video/mp4; codecs="avc1…"')` = leeg); echt afspelen van de officiële MP4-bestanden is hier dus niet
+te bewijzen en er is geen apparaatvalidatie uitgevoerd. De speler is een standaard HTML5-`video` (alleen MP4/H.264 van de officiële
+hosts) met de foutterugval naar de officiële link. Nog te doen door de eigenaar, op echte toestellen: iPhone (Safari, `playsInline`,
+volledig scherm), Android (Chrome) en desktop-Chrome/Safari — afspelen, pauzeren, volledig scherm, terug naar de les, en het gedrag
+zonder netwerk.
+
+**Bekende beperkingen:** het afspelen hangt af van de beschikbaarheid van het officiële MP4-bestand en van H.264-ondersteuning
+van het toestel (alle gangbare browsers); sommige 2027-video's bestaan alleen met Engelse audio, zoals ook op de officiële
+Nederlandse pagina. Ondertitels zijn niet beschikbaar in de MP4-bronnen.
+
+## 12. Back-up en herstel
+
+Voor de uitrol: back-up van de database (`docs/DEPLOY-SYNOLOGY.md`, *Back-ups*) en de studiemediamap (`STUDY_MEDIA_DIR`).
+*Content opnieuw laden* wijzigt geen gebruikersgegevens en maakt alleen nieuwe, onveranderlijke revisies; een rollback van de
+applicatie laat gepubliceerde revisies staan (publicatiepointers zijn terug te zetten met de bestaande `ROLLBACK`-actie per les).
+Archiveren verwijdert niets: het is een weergavegrens op datum.
+
+## 13. Bekende beperkingen
+
+- Het anker (CFM 2026) moet beschikbaar blijven; het draagt de cursussen (§1).
+- Het Nieuwe Testament heeft nog geen bewezen interne schriftindex: alle schriftverwijzingen in 2027 zijn veilige tekst tot een
+  eigen index bestaat (§7).
+- 2028 ontbreekt (nog geen Nederlandse bron; §10).
+- Leeshulpen en bijlagen van 2027 hebben geen lesweek en staan niet in de weekkalender (§9).
+- Er is geen globale CSP (§11).
+- De 2026-integratietest met echte server (`test:cfm-2026:integration`) is hier niet lokaal te draaien; CI is de uitslag.

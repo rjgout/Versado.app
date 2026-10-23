@@ -52,7 +52,7 @@ try {
   const base = `http://127.0.0.1:${await freePort()}`;
   const mediaRoot=join(temporary,"study-media");mkdirSync(mediaRoot,{mode:0o700});
   writeFileSync(join(mediaRoot,".versado-study-volume.json"),JSON.stringify({version:1,purpose:"versado-study-media",volumeId:randomUUID()}),{mode:0o600});
-  const env = { ...process.env, NODE_ENV: "production", CFM_AUTO_PUBLISH: "off", CFM_IMPORT_YEARS: "2026", DATABASE_URL: database, CONTENT_ACCESS_TEST_DATABASE_URL: database,
+  const env = { ...process.env, NODE_ENV: "production", ...(process.argv.includes("--cfm-import") ? { CFM_AUTO_PUBLISH: "off", CFM_IMPORT_YEARS: "2026" } : {}), DATABASE_URL: database, CONTENT_ACCESS_TEST_DATABASE_URL: database,
     CONTENT_ACCESS_TEST_BASE_URL: base, LEARNING_TEST_DATABASE_URL: database, CONTENT_MIGRATION_TEST_STATE: join(temporary, "proof.json"), APP_URL: base, REDIS_URL: "", STUDY_MEDIA_DIR: mediaRoot, STUDY_MEDIA_TEST_ROOT: mediaRoot, STUDY_PUBLICATION_PROFILE: "synthetic-test", SESSION_SECRET: "content-access-isolated-secret-only", NEXT_TELEMETRY_DISABLED: "1" };
   // Eerst dezelfde 133 historische migraties via Prisma op de eigen lege DB.
   // Daarna synthetische bestaande records vóór de nieuwe additieve migratie.
@@ -190,6 +190,12 @@ try {
   if(process.argv.includes("--cfm-import")) {
     await run("npx",["tsx","--test","tests/cfm-2026-import.integration.test.mjs"],env);
     if(process.argv.includes("--browser")) await run("npx",["tsx","tests/cfm-2026-import.browser.mjs"],env);
+  }
+  // Eén CFM-doorlopend-integratietest per verse database (elke test gaat uit van een lege CFM-staat).
+  const cfmSuite = process.argv.find((a) => a.startsWith("--cfm-suite="))?.slice("--cfm-suite=".length);
+  if (cfmSuite) {
+    if (!/^cfm-[a-z0-9-]+\.integration\.test\.ts$/.test(cfmSuite)) throw new Error("Onbekende CFM-suite");
+    await run("npx",["tsx","--test",`tests/${cfmSuite}`],env);
   }
   if(process.argv.includes("--reference-preview")) {
     const longChapterOnly = process.argv.includes("--long-chapter-only");

@@ -458,6 +458,36 @@ jobs:
           path: /tmp/versado-cfm-import-browser
           if-no-files-found: ignore
 
+  cfm-programme:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - cfm-programme.integration.test.ts
+          - cfm-auto-publish.integration.test.ts
+          - cfm-2027.integration.test.ts
+          - cfm-video-revision.integration.test.ts
+    env:
+      DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation
+      SESSION_SECRET: cfm-ci-build-only-secret
+      NEXT_TELEMETRY_DISABLED: '1'
+      CFM_TEST_ASSETS: /tmp/versado-cfm-test-assets
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run build
+      - name: Gepinde publieke OTB- en mediabestanden voorbereiden
+        run: node scripts/study-content/prepare-cfm-test-assets.mjs
+      - name: Integratietest op eigen verse database
+        run: node scripts/content-architecture/test-access-isolated.mjs --cfm-suite=${{ matrix.suite }}
+
   hymns-availability:
     runs-on: ubuntu-latest
     timeout-minutes: 30

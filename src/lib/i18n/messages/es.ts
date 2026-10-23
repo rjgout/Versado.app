@@ -4369,6 +4369,10 @@ export const es: PartialMessages = {
     "weekProgress": "{done} de {total} pasos",
     "weekRead": "Leída",
   },
+  studyVideo: {
+    failed: "No se puede reproducir este vídeo. Inténtalo más tarde o abre la fuente oficial.",
+    openOfficial: "Abrir el vídeo en el sitio oficial",
+  },
   cfmProgramme: {
     archiveLink: "Lecciones anteriores",
     archiveTitle: "Lecciones anteriores",

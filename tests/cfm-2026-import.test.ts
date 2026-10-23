@@ -27,6 +27,7 @@ async function source(key: string) {
 test("52 echte gepinde lessen behouden tekst, media, tabellen, volgorde en perioden", async () => {
   let blocks = 0,
     refs = 0,
+    videos = 0,
     tables = 0,
     missingAlt = 0,
     embeddedFigures = 0,
@@ -62,6 +63,7 @@ test("52 echte gepinde lessen behouden tekst, media, tabellen, volgorde en perio
     walk(a.document);
     blocks += a.inventory.blockCount;
     refs += a.inventory.references.length;
+    videos += a.diagnostics.filter((d) => d.code === "VIDEO_EMBEDDED").length;
     tables += a.document.sections[0].blocks.filter(
       (b) => b.type === "table",
     ).length;
@@ -71,7 +73,10 @@ test("52 echte gepinde lessen behouden tekst, media, tabellen, volgorde en perio
     assert.equal(a.assets.length, a.inventory.figures.length);
   }
   assert.equal(blocks, 3200);
-  assert.equal(refs, 3609);
+  // 95 officiële video's zijn sinds de ingebedde speler geen (extern geverifieerde) verwijzing meer maar een videoblok:
+  // 3514 verwijzingen + 95 video's = de eerdere 3609.
+  assert.equal(refs, 3514);
+  assert.equal(videos, 95);
   assert.equal(tables, 10);
   assert.equal(missingAlt, 0);
   assert.equal(embeddedFigures, 56); // Twee bronafbeeldingen en 54 videoposters binnen lijstitems.
@@ -116,7 +121,7 @@ test("OTB-doelen hebben bestaande canonieke hoofdstukken/verzen of een expliciet
     }
   }
   assert.equal(valid, 1960);
-  assert.equal(external, 1096);
+  assert.equal(external, 1001, "1096 − 95 video's die nu een videoblok zijn");
   assert.equal(blocked, 553);
 });
 test("onbekende structuur, bronidentiteit en ontbrekende media stoppen; geen verzonnen vertaling", async () => {
@@ -207,4 +212,34 @@ test("onbekende structuur, bronidentiteit en ontbrekende media stoppen; geen ver
     { bookKey: "psa", chapter: 119, verses: [105, 140] },
   );
   assert.equal(studyReleaseAllowed("cfm-2026-nl-v1"), true);
+});
+
+test("video's: officiële MP4-bronnen op exacte hosts, standaard 720p, geen iframe of vrije URL", async () => {
+  const { CFM_VIDEO_HOSTS } = await import("../src/lib/studyContent/cfmReferencePolicy");
+  const { loadCfmLesson } = await import("../src/lib/studyContent/cfm2026Import");
+  let count = 0;
+  for (const lesson of manifest.lessons) {
+    const parsed = await loadCfmLesson(lesson.sourceKey);
+    const found: Array<{ id: string; sources: Array<{ url: string; width: number }>; externalUrl: string }> = [];
+    (function walk(value: unknown) {
+      if (!value || typeof value !== "object") return;
+      const row = value as Record<string, unknown>;
+      if (row.type === "video") found.push(row as never);
+      for (const child of Object.values(row)) walk(child);
+    })(parsed.document);
+    for (const video of found) {
+      count += 1;
+      assert.ok(video.sources.length >= 1 && video.sources.length <= 4);
+      for (const source of video.sources) {
+        const url = new URL(source.url);
+        assert.equal(url.protocol, "https:");
+        assert.ok(CFM_VIDEO_HOSTS.includes(url.hostname), source.url);
+        assert.match(url.pathname, /\.mp4$/);
+      }
+      assert.equal(video.externalUrl, video.sources[0].url, "de officiële terugvallink is de standaardbron");
+      // De standaardbron is 720p (of de grootste als er geen 720p is), niet de zwaarste en niet de kleinste.
+      assert.ok(video.sources[0].width === 1280 || video.sources.every((s) => s.width <= video.sources[0].width), `${lesson.sourceKey}: ${video.id}`);
+    }
+  }
+  assert.equal(count, 95);
 });

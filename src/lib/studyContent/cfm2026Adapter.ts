@@ -404,26 +404,31 @@ export function parseCfmLesson(
           },
           `${scope}-poster`,
         );
-      const video = children(n).find(
-        (c) =>
-          element(c) &&
-          c.tagName === "source" &&
-          attr(c, "type") === "video/mp4",
-      );
-      if (!video || !element(video)) throw Error("CFM_VIDEO_SOURCE");
-      const anchor = id("video", n, scope),
-        url = attr(video, "src")!;
-      // Bewaar de werkelijk aangeboden media-URL; geen speler of verzonnen resource-link.
-      const u = new URL(url);
-      if (u.protocol !== "https:" || u.username || u.password || u.port || !CFM_VIDEO_HOSTS.includes(u.hostname))
-        throw Error("CFM_VIDEO_URL");
-      blocks.push({
-        type: "reference",
-        id: anchor,
-        label: attr(n, "data-video-title") ?? source.title,
-        target: { sourceKey: url, externalUrl: url },
+      // Alleen officiële MP4-bronnen van exact toegestane hosts worden een ingebedde video (schema.ts: studyVideoUrlSchema); de
+      // HLS-stroom (m3u8) en alle andere bronnen worden genegeerd. Geen iframe en geen willekeurige URL.
+      const mp4 = children(n).filter((c): c is Element => element(c) && c.tagName === "source" && attr(c, "type") === "video/mp4");
+      if (!mp4.length) throw Error("CFM_VIDEO_SOURCE");
+      const anchor = id("video", n, scope);
+      const sources = mp4.map((c) => {
+        const u = new URL(attr(c, "src")!);
+        if (u.protocol !== "https:" || u.username || u.password || u.port || !CFM_VIDEO_HOSTS.includes(u.hostname))
+          throw Error("CFM_VIDEO_URL");
+        return { url: u.href, width: Number(attr(c, "data-width")) || 1280, height: Number(attr(c, "data-height")) || 720 };
       });
-      diagnostics.push({ anchor, code: "VIDEO_EXTERNAL_REVIEW", target: url });
+      // Eén standaardbron: de kleinste bron van minstens 1280 pixels breed (720p: scherp genoeg, niet onnodig zwaar), anders de grootste.
+      const sorted = [...sources].sort((x, y) => x.width - y.width);
+      const preferred = sorted.find((x) => x.width >= 1280) ?? sorted.at(-1)!;
+      const ordered = [preferred, ...sorted.filter((x) => x !== preferred)].slice(0, 4);
+      const description = clean(attr(n, "data-video-description") ?? "");
+      blocks.push({
+        type: "video",
+        id: anchor,
+        title: attr(n, "data-video-title") ?? source.title,
+        ...(description && !/<\/?[a-z][^>]*>/i.test(description) ? { description } : {}),
+        sources: ordered,
+        externalUrl: preferred.url,
+      } as Block);
+      diagnostics.push({ anchor, code: "VIDEO_EMBEDDED", target: preferred.url });
       return;
     }
     if (
@@ -477,7 +482,7 @@ export function parseCfmLesson(
           if (
             captured.some(
               (b) =>
-                !["paragraph", "figure", "reference", "list"].includes(b.type),
+                !["paragraph", "figure", "reference", "video", "list"].includes(b.type),
             )
           )
             throw Error("CFM_LIST_STRUCTURE");

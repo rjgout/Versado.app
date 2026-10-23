@@ -63,7 +63,7 @@ test("2027: geen interne schriftlinks, alleen bron-URL's; geen onveilige verwijz
   for (const lesson of manifest.lessons) {
     const parsed = await loadCfmLesson(lesson.sourceKey, CFM_SOURCE_2027);
     figures += parsed.inventory.figures.length;
-    videos += parsed.diagnostics.filter((d) => d.code === "VIDEO_EXTERNAL_REVIEW").length;
+    videos += parsed.diagnostics.filter((d) => d.code === "VIDEO_EMBEDDED").length;
     for (const reference of parsed.inventory.references) {
       references += 1;
       const target = reference.target as { sourceKey: string; externalUrl?: string; workKey?: string };
