@@ -28,6 +28,8 @@ export const en: PartialMessages = {
   "privacy": "Privacy policy",
   "terms": "Terms",
   "termsUnavailable": "Terms are not configured yet. Store release remains blocked.",
+  "buildInternal": "Internal test build {version} ({build}). Not an official release.",
+  "buildStoreTest": "Test version {version} ({build}), channel {channel}. Not an official release.",
   "keyboardDone": "Dismiss keyboard",
   "apple": "Sign in with Apple",
   "appleUnavailable": "Sign in with Apple is not configured yet.",

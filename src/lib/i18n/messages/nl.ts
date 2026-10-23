@@ -30,6 +30,8 @@ export const nl = {
   "privacy": "Privacyverklaring",
   "terms": "Voorwaarden",
   "termsUnavailable": "De voorwaarden zijn nog niet geconfigureerd. Store-release blijft geblokkeerd.",
+  "buildInternal": "Interne testbuild {version} ({build}). Geen officiële versie.",
+  "buildStoreTest": "Testversie {version} ({build}), kanaal {channel}. Geen officiële release.",
   "keyboardDone": "Toetsenbord sluiten",
   "apple": "Log in met Apple",
   "appleUnavailable": "Inloggen met Apple is nog niet geconfigureerd.",

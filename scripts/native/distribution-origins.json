@@ -1,0 +1,5 @@
+{
+  "_toelichting": "Enige bron voor toegestane backend-origins van distributiebuilds (scripts/native/profiles.mjs). Elke origin is een exacte HTTPS-origin zonder pad of slash, bv. https://<testbackend>. Een lege lijst betekent: bouwen wordt geweigerd. Toevoegen is een eigenaarshandeling via een reviewbare wijziging; er is geen omgevingsvariabele om dit te omzeilen.",
+  "internal": [],
+  "store-test": []
+}
