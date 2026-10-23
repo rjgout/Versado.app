@@ -143,7 +143,7 @@ export default function GameRoom({ code, myUserId }: { code: string; myUserId: s
   function submitAnswer() {
     if (!question) return;
     const given = question.type === "WORD_BANK" ? placed.map((p) => p.word) : [choice];
-    socket.emit("submit_answer", { given });
+    socket.emit("submit_answer", { given, questionIndex: question.index });
     setSubmitted(true);
   }
 

@@ -8743,7 +8743,7 @@
     },
     {
       "file": "src/components/ChapterGuessGameRoom.tsx",
-      "sha256": "faa38325ea861cbbe13986c08f4a3e7c30ac384f0fb7d6b7494d2f06d96bea5b",
+      "sha256": "f48a3eaed3e0385c13f821de891c10dbdf7e4daf2e4b5ce0ef13a3bed10db75e",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -9394,7 +9394,7 @@
     },
     {
       "file": "src/components/GameRoom.tsx",
-      "sha256": "93cf61f241cd5455d90106ecfb6be6b3c516cca5842f8d028d4090ee3dcfe75d",
+      "sha256": "709fb87ee67dc1e62b6142ea9e85bf251956d08f8c6c4bf48ca7bf4ac7e43400",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -12115,7 +12115,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "f856733ab53fdaea3c0ae62bdd3c92b45f595f5d63fc00f1028d75eea3aef683",
+      "sha256": "a3026e981433c077a39390e1f0970fabd126ee88db5483dd8a923da30c12c988",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -12137,6 +12137,7 @@
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/navigation",
+        "@/lib/native/socketClient",
         "@/lib/platform",
         "lucide-react",
         "react"
@@ -15359,7 +15360,7 @@
     },
     {
       "file": "src/lib/chapterGuess.ts",
-      "sha256": "9bb27459b579213e261967a93c75041876155cdaf6dc3d2d16ab8d60a947ea3c",
+      "sha256": "f9a3847747cb791282eabbd2959fdee818a8479d1feb430c136951523704f2a9",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -18357,6 +18358,29 @@
       ]
     },
     {
+      "file": "src/lib/liveQuiz.ts",
+      "sha256": "daaf40715470560f59cfcaa25a264d35900ddecd6f19f4a72d2535caf43ff1f3",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/generated/prisma/client",
+        "@/lib/chapterGuess",
+        "@/lib/db",
+        "@/lib/exerciseGen",
+        "@/lib/native/socketMutation",
+        "socket.io"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "actInLiveQuiz",
+        "advanceLiveQuiz",
+        "evaluateQuizAnswer",
+        "readLiveQuiz",
+        "startLiveQuiz"
+      ]
+    },
+    {
       "file": "src/lib/mailAddress.ts",
       "sha256": "e999a011ca2eff106cee0217a40b2db5a22708ed5b963d2b56766086987a5437",
       "boundary": "context-dependent",
@@ -18971,14 +18995,17 @@
     },
     {
       "file": "src/lib/native/api.ts",
-      "sha256": "bb96c8a1683e0a2cb6d25ad4815abcc218081e850f9eeb4d051adf2b11958df1",
+      "sha256": "d5ffe72bac6b52bfaa2bc439534868f07904db1354e9c8b7a13fd9b11dcbec6c",
       "boundary": "context-dependent",
       "imports": [
         "./apple",
         "./contract",
+        "./origin",
         "./password",
         "./securitySetup",
         "./sessions",
+        "./socketAuth",
+        "./socketTickets",
         "@/app/api/auth/forgot-password/route",
         "@/app/api/auth/register/route",
         "@/lib/account/contracts",
@@ -19063,7 +19090,7 @@
     },
     {
       "file": "src/lib/native/client.ts",
-      "sha256": "7a53033a6f30176873d58464b01433b60ed90a7633fb58725f338f4d3511a42b",
+      "sha256": "b1903d008c73fce414459a57955d303fa42badba0c8d2b2f22db1cdfe14ba3c8",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
@@ -19125,6 +19152,19 @@
         "nativeEmailConfirmationLink",
         "nativePasswordResetLink",
         "nativeRoute"
+      ]
+    },
+    {
+      "file": "src/lib/native/origin.ts",
+      "sha256": "dc8206c03726808bc367648647cec03980bd62ed7028279f980fc236db30ba5b",
+      "boundary": "context-dependent",
+      "imports": [],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "NATIVE_ORIGINS",
+        "nativeOriginAllowed"
       ]
     },
     {
@@ -19208,11 +19248,12 @@
     },
     {
       "file": "src/lib/native/sessions.ts",
-      "sha256": "623a74273f2791b39ec28e71b19a2bba596784224e4505f11e7838de70488fa3",
+      "sha256": "2f47a7e3ed76ebfd7299b1f669f99e7e261ff931fc26eae203740b608d58016b",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
         "@/lib/db",
+        "@/lib/realtime",
         "jose",
         "node:crypto"
       ],
@@ -19220,12 +19261,99 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "activeNativeSession",
         "hashSecret",
         "issueNativeSession",
         "lockNativeUser",
         "matchesHash",
+        "nativeSessionIdentity",
         "nativeUser",
         "rotateNativeSession"
+      ]
+    },
+    {
+      "file": "src/lib/native/socketAuth.ts",
+      "sha256": "30b20dccda58aa7872a3e24d45625e634e767b40c1bf54d8bf08bf8231d87352",
+      "boundary": "context-dependent",
+      "imports": [
+        "./origin",
+        "./sessions",
+        "./socketTickets",
+        "@/generated/prisma/client",
+        "@/lib/auth",
+        "@/lib/db",
+        "@/lib/parseCookieHeader",
+        "socket.io",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "verifySessionToken"
+      ],
+      "exports": [
+        "authenticateRealtimeSocket",
+        "nativeSocketEnabled",
+        "socketOriginAllowed",
+        "socketSecurityState",
+        "validateNativeSocket"
+      ]
+    },
+    {
+      "file": "src/lib/native/socketClient.ts",
+      "sha256": "5f13b1deed4a31ab43bb205b0dcf02152b427f9478255f222f39354ee91c3b10",
+      "boundary": "context-dependent",
+      "imports": [
+        "./client",
+        "socket.io-client",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [
+        "realtime/session"
+      ],
+      "checks": [],
+      "exports": []
+    },
+    {
+      "file": "src/lib/native/socketMutation.ts",
+      "sha256": "c9c99240b6f0792478abf8f18ba872f256c56a65fa839016bc86fad97e9a84d7",
+      "boundary": "context-dependent",
+      "imports": [
+        "./sessions",
+        "./socketAuth",
+        "@/generated/prisma/client",
+        "@/lib/db",
+        "socket.io"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "commitSocketMutation"
+      ]
+    },
+    {
+      "file": "src/lib/native/socketTickets.ts",
+      "sha256": "31280734327c57bb6a8e799a1e36419aa8cf7f4076c84aa9608810d89ee1f89b",
+      "boundary": "context-dependent",
+      "imports": [
+        "./sessions",
+        "ioredis",
+        "node:crypto",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "SOCKET_TICKET_TTL_SECONDS",
+        "closeSocketTicketStore",
+        "consumeSocketTicket",
+        "createSocketTicket",
+        "issueSocketTicket",
+        "redisSocketTicketStore",
+        "socketTicketKey"
       ]
     },
     {
@@ -20500,7 +20628,7 @@
     },
     {
       "file": "src/lib/realtime.ts",
-      "sha256": "d9e203c6a1896c546a6d3193b19a3ee926ec5ec58fe2f755ee97a4d9ad0c3f3f",
+      "sha256": "36395a9af439b4ea91cbd17f30f080e86065be335c2ff27762f4fd3bfbc6f326",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/data/scopes",
@@ -20510,6 +20638,7 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "disconnectNativeSessionSockets",
         "disconnectUserSockets",
         "emitToRoom",
         "emitToUser",
@@ -23611,7 +23740,7 @@
     },
     {
       "file": "src/server/gameServer.ts",
-      "sha256": "fa1da326e7dc5310acd8a601437fe9e6a522fc815c49eaf887a59b3ff6307468",
+      "sha256": "ffd6b5c34e7780412a86f7d305adee858547b0167c9a4b3ba5d9ad172fa9bd39",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -23621,11 +23750,14 @@
         "@/lib/chapterGuess",
         "@/lib/data/scopes",
         "@/lib/db",
-        "@/lib/exerciseGen",
         "@/lib/familyGame",
         "@/lib/gameAvailability",
         "@/lib/i18n",
         "@/lib/i18n/core",
+        "@/lib/liveQuiz",
+        "@/lib/native/sessions",
+        "@/lib/native/socketAuth",
+        "@/lib/native/socketMutation",
         "@/lib/notify",
         "@/lib/parseCookieHeader",
         "@/lib/presence",
@@ -45060,12 +45192,16 @@
         "src/lib/native/api.ts",
         "src/lib/native/apple.ts",
         "src/lib/native/contract.ts",
+        "src/lib/native/origin.ts",
         "src/lib/native/password.ts",
         "src/lib/native/securitySetup.ts",
         "src/lib/native/sessions.ts",
+        "src/lib/native/socketAuth.ts",
+        "src/lib/native/socketTickets.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/parseCookieHeader.ts",
         "src/lib/podcasts.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
@@ -64781,7 +64917,7 @@
     },
     {
       "file": "src/components/ChapterGuessGameRoom.tsx",
-      "sha256": "faa38325ea861cbbe13986c08f4a3e7c30ac384f0fb7d6b7494d2f06d96bea5b",
+      "sha256": "f48a3eaed3e0385c13f821de891c10dbdf7e4daf2e4b5ce0ef13a3bed10db75e",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -65432,7 +65568,7 @@
     },
     {
       "file": "src/components/GameRoom.tsx",
-      "sha256": "93cf61f241cd5455d90106ecfb6be6b3c516cca5842f8d028d4090ee3dcfe75d",
+      "sha256": "709fb87ee67dc1e62b6142ea9e85bf251956d08f8c6c4bf48ca7bf4ac7e43400",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -68064,7 +68200,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "f856733ab53fdaea3c0ae62bdd3c92b45f595f5d63fc00f1028d75eea3aef683",
+      "sha256": "a3026e981433c077a39390e1f0970fabd126ee88db5483dd8a923da30c12c988",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -68086,6 +68222,7 @@
         "@/lib/native/client",
         "@/lib/native/contract",
         "@/lib/native/navigation",
+        "@/lib/native/socketClient",
         "@/lib/platform",
         "lucide-react",
         "react"
@@ -70444,6 +70581,8 @@
     "tests/native-foundation.test.ts",
     "tests/native-navigation.test.ts",
     "tests/native-parity.test.mjs",
+    "tests/native-socket.integration.test.ts",
+    "tests/native-socket.test.ts",
     "tests/navigation.test.ts",
     "tests/onboarding-avatar-privacy.test.ts",
     "tests/open-actions.test.ts",

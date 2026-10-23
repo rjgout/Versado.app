@@ -18,6 +18,11 @@ export function disconnectUserSockets(userId: string): void {
   realtimeGlobal.__versadoRealtimeServer?.in(`user:${userId}`).disconnectSockets(true);
 }
 
+/** Alleen de ingetrokken native sessie, ook over de bestaande Redis-adapter. */
+export function disconnectNativeSessionSockets(sessionId: string): void {
+  realtimeGlobal.__versadoRealtimeServer?.in(`native-session:${sessionId}`).disconnectSockets(true);
+}
+
 export function emitToUser(userId: string, event: string, payload?: unknown): void {
   realtimeGlobal.__versadoRealtimeServer?.to(`user:${userId}`).emit(event, payload);
 }

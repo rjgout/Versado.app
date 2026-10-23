@@ -1,6 +1,7 @@
 import { createHash, createHmac, hkdfSync, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { SignJWT, jwtVerify } from "jose";
 import { prisma } from "@/lib/db";
+import { disconnectNativeSessionSockets } from "@/lib/realtime";
 import type { Prisma } from "@/generated/prisma/client";
 
 export class NativeAuthError extends Error {
@@ -72,17 +73,25 @@ export async function rotateNativeSession(raw: string, actionId: string, revoke 
     const updated = await tx.nativeSession.update({ where: { id }, data: { previousRefreshHash: session.refreshHash, refreshHash: hashSecret(next), lastActionId: actionId } });
     return { session: updated, raw: next } as const;
   });
+  if (("error" in result && result.error === "refresh_replayed") || "revoked" in result) disconnectNativeSessionSockets(id);
   if ("error" in result) throw new NativeAuthError(result.error ?? "session_expired");
   if ("revoked" in result) return null;
   return tokens(result.session, result.raw);
 }
-export async function nativeUser(accessToken: string) {
+export interface NativeSessionBinding { userId: string; sessionId: string; sessionVersion: number }
+/** Eén bron van waarheid, voor HTTP en voor reeds verbonden native sockets. */
+export async function activeNativeSession(binding: NativeSessionBinding, db: Pick<Prisma.TransactionClient, "nativeSession"> = prisma) {
+  const session = await db.nativeSession.findUnique({ where: { id: binding.sessionId }, include: { user: true } });
+  if (!session || session.userId !== binding.userId || session.revokedAt || session.expiresAt <= new Date() || session.sessionVersion !== binding.sessionVersion || session.user.sessionVersion !== binding.sessionVersion) throw new NativeAuthError("session_expired");
+  if (session.user.mustChangePassword || (session.user.isAdmin && !session.user.totpEnabled)) throw new NativeAuthError("session_expired");
+  return session.user;
+}
+export async function nativeSessionIdentity(accessToken: string) {
   try {
     const { payload } = await jwtVerify(accessToken, key("access"), { algorithms: ["HS256"], issuer: "versado-native-v1", audience: "versado-native-v1" });
     if (payload.purpose !== "native-access" || typeof payload.sid !== "string" || typeof payload.userId !== "string" || typeof payload.version !== "number") throw new Error();
-    const session = await prisma.nativeSession.findUnique({ where: { id: payload.sid }, include: { user: true } });
-    if (!session || session.userId !== payload.userId || session.revokedAt || session.expiresAt <= new Date() || session.sessionVersion !== payload.version || session.user.sessionVersion !== payload.version) throw new Error();
-    if (session.user.mustChangePassword || (session.user.isAdmin && !session.user.totpEnabled)) throw new Error();
-    return session.user;
+    const binding = { userId: payload.userId, sessionId: payload.sid, sessionVersion: payload.version };
+    return { binding, user: await activeNativeSession(binding) };
   } catch { throw new NativeAuthError("session_expired"); }
 }
+export async function nativeUser(accessToken: string) { return (await nativeSessionIdentity(accessToken)).user; }

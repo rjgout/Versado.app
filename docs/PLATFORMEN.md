@@ -42,6 +42,48 @@ bevestigde registratie krijgt na juist wachtwoord dezelfde begrensde mailherhali
 als web. Legacy-mailherhaling, algemeen TOTP-beheer,
 account wissen, onboarding en volledige profielpariteit blijven open.
 
+## Native realtime: eenmalig handshakebewijs
+
+Op 22 oktober 2026 heeft de eigenaar een afzonderlijk, eenmalig native
+socketbewijs van **maximaal 60 seconden** goedgekeurd. Het eerdere voorstel
+van vijf minuten is daarmee vervangen. Er komt geen tweede sessiesysteem.
+
+- `POST /api/v1/native/realtime/session` vereist een actuele native Bearer-sessie,
+  strikt lege JSON-invoer en een gedeeld uitgiftebudget (60/gebruiker/minuut).
+  Respons: `{socketTicket, expiresIn:60}`; capability `realtime-ticket-v1`.
+- Ticket: 256 willekeurige bits; alleen de hash als Redis-key. Redis bewaart
+  userId, NativeSession-id, sessionVersion, doel en uitgifte/verval maximaal 60s.
+  Atomair GETDEL voorkomt replay, ook tussen instanties. Redis is verplicht;
+  bij onbereikbaarheid geen lokale noodopslag. Geen nieuwe sessietabel/migratie.
+- Handshake: `{client:"native-v1", ticket}` in Socket.io-auth, nooit in URL,
+  cookies, logs of persistente clientopslag. Alleen vaste native origins. Een
+  ambient webcookie wordt genegeerd en kan de native actor nooit vervangen;
+  zonder geldig ticket bestaat geen terugval op webauthenticatie. Web behoudt
+  zijn bestaande cookiepad. Een ticket is geen API-/refresh-/setupbewijs.
+- Na verbruik telt uitsluitend de bestaande NativeSession/User: controle bij
+  verbinding, elk inkomend pakket en maximaal iedere vijf seconden voor
+  passieve verbindingen. Een vastgelopen native DB-controle sluit na twee
+  seconden de verbinding gesloten af. Verloop, intrekking, sessieversie en verplichte
+  beveiligingsstappen worden opnieuw gecontroleerd. Wijzigingen aan wachtwoord,
+  wachtwoordlogin, TOTP-secret/status, beheerrechten of e-mailstatus sluiten ook
+  een oude verbinding. De 60s gelden alleen voor de handshake, niet als een
+  nieuwe sessieduur voor een al verbonden socket.
+- Logout/refresh-replay verbreken de NativeSession-room via de bestaande
+  Redis-adapter. Accountverwijdering en bestaande beveiligingswijzigingen
+  gebruiken de bestaande gebruikersroom-intrekking; periodieke DB-controle
+  vangt gemiste meldingen/directe wijzigingen op.
+- Client: een vers ticket per reconnect, alleen in geheugen; begrensde backoff,
+  geen hergebruik van het ticket. Accountwissel/logout sluit het oude transport
+  vóór opslag/netwerkbevestiging en wist oude listeners/buffers. De lokale app
+  start dit transport na sessieherstel/login als de capability beschikbaar is.
+  De native bundel staat WebSockets uitsluitend naar dezelfde backend toe.
+
+Dit bewijst transport/authenticatie; afzonderlijke spellen, snapshots, UI en
+sociale functies blijven per functie migreren. De twee-proces-tests bewijzen
+replaybescherming, gebruikersrooms en intrekking via Redis, geen algemene
+multi-instance-HA van alle spelstaat of aanwezigheidstellers. Fysieke apparaten,
+OS-lifecycleacceptatie en onafhankelijke ChatGPT-audit blijven releasegates.
+
 ## Architectuurbesluit
 
 Versado blijft één product, één datamodel en één gedeelde codebase. De

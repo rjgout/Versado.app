@@ -229,6 +229,12 @@ De technische architectuur, migratieplanning en releasegates staan in
   eenmalige backendclaim als web; het ontvangen bewijs blijft in werkgeheugen,
   nooit in lokale hash/history, browseropslag of Keychain/Keystore. Alleen exact
   gevalideerde backendlinks verwerken; na reset opnieuw inloggen via alle poorten.
+- Native realtime gebruikt uitsluitend een eenmalig handshakebewijs van maximaal
+  60s, gebonden aan de bestaande User/NativeSession. Redis verbruikt het atomair;
+  geen tweede sessiesysteem of lokale replay-noodopslag. Per verbinding/pakket
+  en gedurende de levensduur opnieuw sessiegeldigheid controleren. Cookies zijn
+  nooit native identiteit/terugval; reconnect haalt een nieuw bewijs op en
+  accountwissel sluit oude sockets/listeners/buffers vóór netwerkbevestiging.
 - Controleer risicogebaseerd: web/PWA, Capacitor-preview, lokale native geschiktheid,
   platformonafhankelijke API/auth, safe areas/keyboard/oriëntatie/navigatie,
   offline/fouten en relevante regressies. Kleine tekstwijzigingen vereisen geen
