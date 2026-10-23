@@ -248,6 +248,10 @@ De technische architectuur, migratieplanning en releasegates staan in
   native pariteit. Voer `npm run native:parity:check` uit; actualiseer bij wijzigingen
   de inventaris en beoordeel de functie afzonderlijk. Noem native achterstand
   expliciet en presenteer een web-implementatie niet als volledige platformoplevering.
+- Versado Mobile 1.0 (store-release iOS/Android) heeft hoge prioriteit; het stuurdocument is
+  [NATIVE-STORE-RELEASE-PLAN.md](docs/NATIVE-STORE-RELEASE-PLAN.md) (werkpakketten, blokkades,
+  eigenaarstaken). Controleer objectieve releaseblokkades met `npm run native:store-readiness`; het
+  releaseprofiel blijft geblokkeerd en een testkanaal wordt nooit als releasegereed aangeduid.
 - Documenteer platformafwijkingen en architectuurbesluiten. Meld wanneer iets nog
   niet native-ready is met een concrete vervolgactie; blokkeer gewone
   webontwikkeling niet onnodig. De eigenaar doet productie-uitrol en live tests.

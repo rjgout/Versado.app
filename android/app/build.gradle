@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 
+// Versie en uploadsleutel komen uit Gradle-properties of de omgeving (CI-secrets), nooit uit git.
+// Zonder uploadsleutel blijft een releasebuild ongetekend: er is geen terugval naar de debugsleutel.
+def versadoSetting = { String name, String fallback ->
+    def value = rootProject.findProperty(name) ?: System.getenv(name)
+    return value ? value.toString() : fallback
+}
+def uploadKeystorePath = versadoSetting("VERSADO_UPLOAD_KEYSTORE_PATH", "")
+
 android {
     namespace = "app.versado.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +15,8 @@ android {
         applicationId "app.versado.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "0.1.0"
+        versionCode versadoSetting("VERSADO_VERSION_CODE", "1").toInteger()
+        versionName versadoSetting("VERSADO_VERSION_NAME", "0.1.0")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +24,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (uploadKeystorePath) {
+                storeFile file(uploadKeystorePath)
+                storePassword versadoSetting("VERSADO_UPLOAD_KEYSTORE_PASSWORD", "")
+                keyAlias versadoSetting("VERSADO_UPLOAD_KEY_ALIAS", "")
+                keyPassword versadoSetting("VERSADO_UPLOAD_KEY_PASSWORD", "")
+            }
+        }
+    }
     buildTypes {
         release {
+            if (uploadKeystorePath) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

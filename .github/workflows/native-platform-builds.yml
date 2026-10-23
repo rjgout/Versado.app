@@ -50,6 +50,11 @@ jobs:
       - name: Echte Android-debugcompilatie
         working-directory: android
         run: bash ./gradlew :app:assembleDebug --no-daemon
+      - name: Android App Bundle-release zonder signing (compileproef)
+        # Bewijst uitsluitend dat de releasetaak bouwt; zonder uploadsleutel blijft de bundel ongetekend en
+        # wordt hij niet bewaard of geüpload. Geen Play-upload, geen signingcredentials.
+        working-directory: android
+        run: bash ./gradlew :app:bundleRelease --no-daemon
       - name: Controleer de assets in de APK
         run: |
           unzip -q android/app/build/outputs/apk/debug/app-debug.apk 'assets/*' -d "$RUNNER_TEMP/versado-android-artifact"
@@ -80,6 +85,15 @@ jobs:
       - name: Echte iOS-simulatorcompilatie zonder signing
         run: |
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/versado-ios" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+      - name: Controleer de SDK-eis van Apple en archiveer voor echte apparaten zonder signing (compileproef)
+        # Apple vereist voor App Store Connect-uploads Xcode 26 met de iOS 26 SDK (sinds 28 april 2026).
+        # De archive wordt niet bewaard of geüpload; het bewijst alleen de apparaatarchitectuur en SDK-keten.
+        run: |
+          xcodebuild -version
+          sdk="$(xcrun --sdk iphoneos --show-sdk-version)"
+          echo "iphoneos SDK: $sdk"
+          test "${sdk%%.*}" -ge 26
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/Versado-compileprobe.xcarchive" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO archive
       - name: Controleer de assets in de simulatorapp
         run: |
           node scripts/native/verify-development.mjs ios "$RUNNER_TEMP/versado-ios/Build/Products/Debug-iphonesimulator/App.app"
