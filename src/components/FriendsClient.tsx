@@ -473,12 +473,13 @@ export default function FriendsClient({ appName }: { appName: string }) {
                 tag: <UserTag handle={pendingFreeze.handle} discriminator={pendingFreeze.discriminator} className="font-bold" />,
               })}
             </p>
-            <div className="mt-5 flex justify-end gap-2">
-              <button className="btn-secondary !px-3 !py-2" onClick={() => setPendingFreeze(null)}>
+            {/* Op een kleine telefoon onder elkaar: het woord "reeksbevriezing" mag niet midden in een woord afbreken. */}
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button className="btn-secondary !px-3 !py-2 sm:w-auto" onClick={() => setPendingFreeze(null)}>
                 {t("activeGames.cancel")}
               </button>
               <button
-                className="btn-ice !px-3 !py-2"
+                className="btn-ice !px-3 !py-2 sm:w-auto"
                 disabled={confirmingFreeze}
                 onClick={async () => {
                   setConfirmingFreeze(true);

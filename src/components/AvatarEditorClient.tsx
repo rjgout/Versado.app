@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import ProfilePage from "@/components/profile/ProfilePage";
 import ScriptureAvatar from "@/components/ScriptureAvatar";
 import { useT } from "@/components/I18nProvider";
+import { translateOr } from "@/lib/i18n/core";
 import { useConfirm } from "@/components/ConfirmProvider";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
@@ -167,7 +168,11 @@ export default function AvatarEditorClient() {
     return <ProfilePage title={t("profile.avatarEditorTitle")}><p className="text-sm text-vs-fg-3">{profile.error ? t("profile.avatarLoadFailed") : t("common.loading")}</p></ProfilePage>;
   }
 
-  const achievementName = (slug: string | null) => data.achievements.find((achievement) => achievement.slug === slug)?.name ?? slug ?? t("profile.avatarUnavailable");
+  // Eerst de vertaalde prestatienaam (zoals op de prestatiepagina); de opgeslagen naam is alleen de terugval, zodat een nog niet bijgewerkte database geen oude tekst toont.
+  const achievementName = (slug: string | null) => {
+    const found = data.achievements.find((achievement) => achievement.slug === slug);
+    return found ? translateOr(t, `achievements.${found.slug}.name`, found.name) : slug ?? t("profile.avatarUnavailable");
+  };
   const tabLabels: Record<EditorTab, string> = {
     characters: t("profile.avatarCharacters"),
     accessories: t("profile.avatarAccessories"),
