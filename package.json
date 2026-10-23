@@ -110,7 +110,8 @@
     "native:parity:check": "node scripts/native/parity.mjs --check",
     "test:native:parity": "node --test tests/native-parity.test.mjs",
     "native:store-readiness": "node scripts/native/store-readiness.mjs",
-    "test:native:store-readiness": "node --test tests/native-store-readiness.test.mjs"
+    "test:native:store-readiness": "node --test tests/native-store-readiness.test.mjs",
+    "test:native:android-release": "node --test tests/native-android-release.test.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

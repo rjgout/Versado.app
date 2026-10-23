@@ -1,0 +1,100 @@
+name: Android Play-testbundel (handmatig, beschermd)
+# WP3: ondertekent een Android App Bundle voor de interne/gesloten Play-test. Alleen handmatig te starten vanaf main,
+# in de beschermde GitHub-omgeving "android-play-test" (de eigenaar stelt vereiste goedkeurders en de secrets in).
+# Deze workflow uploadt NIETS naar Google Play: de eigenaar plaatst het artifact zelf in de Play Console.
+# Compileproef-bundels (compileProbe:true) worden nooit ondertekend; publieke release blijft geblokkeerd.
+on:
+  workflow_dispatch:
+    inputs:
+      app_version:
+        description: 'Versienaam (x.y.z)'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: native-android-release
+  cancel-in-progress: false
+jobs:
+  play-test-bundle:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment: android-play-test
+    env:
+      CAPACITOR_BUILD_PROFILE: local-store-test
+      NATIVE_DISTRIBUTION_CHANNEL: play-test
+      NATIVE_APP_VERSION: ${{ inputs.app_version }}
+      NATIVE_BUILD_NUMBER: ${{ github.run_number }}
+      VERSADO_VERSION_NAME: ${{ inputs.app_version }}
+      VERSADO_VERSION_CODE: ${{ github.run_number }}
+      # Niet-geheime omgevingsvariabele: de HTTPS-origin van de testbackend; moet in scripts/native/distribution-origins.json staan.
+      NATIVE_API_BASE_URL: ${{ vars.NATIVE_STORE_TEST_API_ORIGIN }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Controleer de eigenaarsvoorwaarden (geen waarden in de log)
+        env:
+          HAS_KEYSTORE: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_B64 != '' }}
+          HAS_STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD != '' }}
+          HAS_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS != '' }}
+          HAS_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD != '' }}
+          HAS_ORIGIN: ${{ vars.NATIVE_STORE_TEST_API_ORIGIN != '' }}
+        run: |
+          missing=""
+          [ "$HAS_KEYSTORE" = "true" ] || missing="$missing ANDROID_UPLOAD_KEYSTORE_B64"
+          [ "$HAS_STORE_PASSWORD" = "true" ] || missing="$missing ANDROID_UPLOAD_KEYSTORE_PASSWORD"
+          [ "$HAS_KEY_ALIAS" = "true" ] || missing="$missing ANDROID_UPLOAD_KEY_ALIAS"
+          [ "$HAS_KEY_PASSWORD" = "true" ] || missing="$missing ANDROID_UPLOAD_KEY_PASSWORD"
+          [ "$HAS_ORIGIN" = "true" ] || missing="$missing vars.NATIVE_STORE_TEST_API_ORIGIN"
+          if [ -n "$missing" ]; then echo "::error::Eigenaartaak: ontbrekende secrets/variabelen in omgeving android-play-test:$missing"; exit 1; fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Android SDK van de CI-runner
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"'
+      - name: Lokale bundel, synchronisatie en verificatie (weigert zonder allowlist-origin)
+        run: |
+          npm ci
+          npm run db:generate
+          npm run native:build
+          npx cap sync android
+          node scripts/native/verify-distribution.mjs android
+          node scripts/native/android-release-guard.mjs before
+      - name: Getekende App Bundle
+        env:
+          VERSADO_KEYSTORE_B64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_B64 }}
+          VERSADO_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          VERSADO_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          VERSADO_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+        run: |
+          umask 077
+          keystore="$RUNNER_TEMP/versado-upload.jks"
+          trap 'rm -f "$keystore"' EXIT
+          printf '%s' "$VERSADO_KEYSTORE_B64" | base64 -d > "$keystore"
+          cd android
+          VERSADO_UPLOAD_KEYSTORE_PATH="$keystore" bash ./gradlew :app:bundleRelease --no-daemon
+      - name: Controleer de getekende bundel
+        run: |
+          bundle=android/app/build/outputs/bundle/release/app-release.aab
+          node scripts/native/android-release-guard.mjs after "$bundle"
+          sha="$(sha256sum "$bundle" | cut -d' ' -f1)"
+          {
+            echo "### Android Play-testbundel"
+            echo "- versie ${{ inputs.app_version }} (versionCode ${{ github.run_number }})"
+            echo "- commit ${{ github.sha }}"
+            echo "- sha256 \`$sha\`"
+            echo "- Niet geüpload. De eigenaar plaatst het artifact handmatig in de interne Play-test."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: versado-android-play-test-${{ github.run_number }}
+          path: |
+            android/app/build/outputs/bundle/release/app-release.aab
+            dist/native/build.json
+          retention-days: 7
