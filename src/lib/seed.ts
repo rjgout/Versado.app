@@ -80,14 +80,20 @@ const achievementDefs = [
  * de admin, in plaats van dat ze alleen in de containerlogs verdwijnen.
  */
 
+export interface SeedOptions {
+  /** Standaard true (CLI en volledige seed). Bij false blijven de Schriftteksten, hun oefeningen en audio onaangeroerd: die lopen via de beheerflow "Schriftbronnen bijwerken". */
+  scriptures?: boolean;
+}
+
 export async function runSeed(
   client: PrismaClient,
   log: (msg: string) => void = console.log,
   progress?: (progress: OtbImportProgress) => void,
   studyImport?: () => Promise<void>,
+  options: SeedOptions = {},
 ): Promise<void> {
   // Nooit twee imports tegelijk (adminknop en terminal, of een dubbele klik): de tweede stopt netjes met een duidelijke melding.
-  await withContentImportLock(() => runSeedLocked(client, log, progress, studyImport));
+  await withContentImportLock(() => runSeedLocked(client, log, progress, studyImport, options));
 }
 
 async function runSeedLocked(
@@ -95,11 +101,15 @@ async function runSeedLocked(
   log: (msg: string) => void,
   progress?: (progress: OtbImportProgress) => void,
   studyImport?: () => Promise<void>,
+  options: SeedOptions = {},
 ): Promise<void> {
+  const scriptures = options.scriptures !== false;
   if (studyImport) await inPhase("Studiecontent", studyImport);
-  log("Seeding boeken, hoofdstukken, verzen en oefeningen...");
-  await inPhase("Boeken", () => importBooks(client, seedBooks, log, BOM_COLLECTION_ID));
-  await inPhase("Voorgelezen hoofdstukken", () => importChapterAudio(client, bomAudio as ChapterAudioSeed[], BOM_COLLECTION_ID, log));
+  if (scriptures) {
+    log("Seeding boeken, hoofdstukken, verzen en oefeningen...");
+    await inPhase("Boeken", () => importBooks(client, seedBooks, log, BOM_COLLECTION_ID));
+    await inPhase("Voorgelezen hoofdstukken", () => importChapterAudio(client, bomAudio as ChapterAudioSeed[], BOM_COLLECTION_ID, log));
+  }
 
   // De OTB-import staat los van de cursussen: hij gebruikt geen syncCourses en
   // draait pas na de eerste cursussynchronisatie, maar een fout daarin blijft
@@ -118,7 +128,7 @@ async function runSeedLocked(
   // gegenereerde oefeningen en hints.
   let loopFailed = false;
   try {
-    for (const { id: collectionId, books, label, audio } of SCRIPTURE_SOURCES.filter((source) => source.id !== BOM_COLLECTION_ID)) {
+    for (const { id: collectionId, books, label, audio } of scriptures ? SCRIPTURE_SOURCES.filter((source) => source.id !== BOM_COLLECTION_ID) : []) {
       if (!(await client.contentCollection.findUnique({ where: { id: collectionId }, select: { id: true } }))) continue;
       log(`Seeding ${label}...`);
       await inPhase(`Boeken (${label})`, async () => {
