@@ -10,6 +10,9 @@ const config = [
   ...nextVitals,
   ...nextTypescript,
   {
+    // De Next-configuratie registreert de react-hooks-plugin alleen voor deze extensies; een regelblok zonder
+    // files-filter faalt anders op CommonJS-bestanden zoals scripts/native/profiles.cjs.
+    files: ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"],
     rules: {
       // Deze React-compilerregels zijn strenger dan de bestaande Versado-
       // componentarchitectuur. Ze blijven zichtbaar als waarschuwing totdat
@@ -21,6 +24,11 @@ const config = [
       "react-hooks/set-state-in-effect": "warn",
       "react-hooks/static-components": "warn",
     },
+  },
+  {
+    // De profielmodule is bewust CommonJS (de Capacitor-CLI evalueert capacitor.config.ts als CJS).
+    files: ["**/*.cjs"],
+    rules: { "@typescript-eslint/no-require-imports": "off" },
   },
 ];
 

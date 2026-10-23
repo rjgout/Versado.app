@@ -8,7 +8,18 @@ import { createRequire } from "node:module";
 import * as profilesModule from "../scripts/native/profiles.cjs";
 import { verifyBundle } from "../scripts/native/verify-distribution.mjs";
 
-const profiles = ((profilesModule as { default?: unknown }).default ?? profilesModule) as Record<string, any>;
+type Env = Record<string, string | undefined>;
+type Resolved = { channel: string; distribution: boolean; cleartext: boolean; compileProbe: boolean; buildNumber: number | null; kind: string };
+type Settings = { webDir: string; server: { url?: string; cleartext?: boolean } };
+type NativeConfig = { appId: string; appName: string; webDir: string; server: NonNullable<Settings["server"]> };
+type Profiles = {
+  resolveBuildProfile: (env: Env, options?: Record<string, unknown>) => Resolved;
+  parseDistributionOrigin: (raw: string) => string;
+  capacitorSettings: (resolved: Resolved, env: Env) => Settings;
+  ProfileError: new (message: string) => Error;
+  COMPILE_PROBE_ORIGIN: string;
+};
+const profiles = ((profilesModule as { default?: unknown }).default ?? profilesModule) as Profiles;
 const { resolveBuildProfile, parseDistributionOrigin, capacitorSettings, ProfileError, COMPILE_PROBE_ORIGIN } = profiles;
 const require = createRequire(import.meta.url);
 void require;
@@ -106,10 +117,10 @@ function buildProbe(profile: string, channel: string) {
   return { outdir, root, env: probeEnv(profile, channel, outdir) };
 }
 
-function writeConfig(root: string, env: NodeJS.ProcessEnv, outdir: string, mutate?: (config: Record<string, any>) => void) {
+function writeConfig(root: string, env: NodeJS.ProcessEnv, outdir: string, mutate?: (config: NativeConfig) => void) {
   const resolved = resolveBuildProfile(env, { stage: "build" });
   const settings = capacitorSettings(resolved, env);
-  const config: Record<string, any> = { appId: "app.versado.app", appName: "Versado", webDir: settings.webDir, server: settings.server };
+  const config: NativeConfig = { appId: "app.versado.app", appName: "Versado", webDir: settings.webDir, server: settings.server };
   void outdir;
   mutate?.(config);
   writeFileSync(join(root, "capacitor.config.json"), JSON.stringify(config));
