@@ -480,6 +480,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run db:generate
+      - run: npm run build
       - name: Gepinde publieke OTB- en mediabestanden voorbereiden
         run: node scripts/study-content/prepare-cfm-test-assets.mjs
       - name: Integratietest op eigen verse database
