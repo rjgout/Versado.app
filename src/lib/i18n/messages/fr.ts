@@ -3782,7 +3782,7 @@ export const fr: PartialMessages = {
     "reviewBlocked": "J’ai vérifié les {count} références bloquées. Les afficher uniquement comme texte non cliquable.",
     "release": "Valider le contenu de la collection",
     "releaseConfirm": "Toutes les leçons ont été publiées individuellement. Autoriser l’utilisation normale par les administrateurs. La visibilité des utilisateurs reste inchangée.",
-    "approveImport": "Viens, suis-moi : approuver l’instantané {snapshot} pour mettre à jour {lessons} leçons officielles. Les leçons validées techniquement sont publiées automatiquement ; la visibilité pour les utilisateurs reste inchangée.",
+    "approveImport": "Viens, suis-moi : approuver l’instantané {snapshot} pour mettre à jour {lessons} leçons officielles. Les leçons validées techniquement sont publiées automatiquement ; un volume devient visible pour les utilisateurs dès sa première publication complète ; ensuite, l’interrupteur de visibilité existant reste déterminant.",
     "includeCfm": "Mettre à jour Viens, suis-moi et publier automatiquement",
     "sourceMissing": "Les fichiers sources CFM vérifiés sont absents. Aucun import CFM ne sera effectué.",
     "spaceMissing": "Le stockage permanent des médias est indisponible. Rétablissez-le avant de mettre à jour CFM."
