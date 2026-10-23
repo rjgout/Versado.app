@@ -1,6 +1,6 @@
 # Implementatieplan: NAS-teststack voor native testbuilds
 
-Status: **plan**, geen uitrol. Besluit van de eigenaar: een afzonderlijke HTTPS-testbackend op de NAS, gescheiden van productie.
+Status: **plan met technisch voorbeeld**, geen uitrol. Besluit van de eigenaar: een afzonderlijke HTTPS-testbackend op de NAS, gescheiden van productie.
 Dit document verzint geen domein of URL en gebruikt geen productiegegevens of productievolumes. De eigenaar voert de inrichting
 uit en levert pas daarna de origin voor `scripts/native/distribution-origins.json`.
 
@@ -47,3 +47,28 @@ zijn vast (`capacitor://localhost`, `https://localhost`); er komt **geen** wildc
 Testdata die per ongeluk echte persoonsgegevens bevat (alleen synthetisch), gedeelde geheimen met productie (verboden), TLS dat niet
 vertrouwd wordt door de toestellen, en content die onbedoeld zichtbaar wordt. De allowlist-PR en de readiness-gate
 (`distribution-origins-configured`) blijven de laatste controle vóór een echte testbuild.
+
+## 8. Technisch voorbeeld (toegevoegd)
+
+| Bestand | Doel |
+|---|---|
+| `deploy/test-stack/docker-compose.yml` | Portainer-stack (web editor) met `versado-test-proxy`, `-app`, `-db`, `-redis`; eigen netwerken (`versado-test-edge`, en `versado-test-internal` met `internal: true`), eigen benoemde volumes, vaste imagetag |
+| `deploy/test-stack/.env.native-test.example` | Alleen lege plaatsaanduidingen voor de Portainer-stackvariabelen; geen domein, geen waarden |
+| `scripts/native/check-test-backend.mjs` | Alleen-lezen controle van een door jou opgegeven origin (`npm run native:check-test-backend -- <origin> --profile store-test`) |
+| `tests/nas-test-stack.test.mjs` | Bewaakt de scheidingsregels hieronder en de beoordeling van het controlescript (`npm run test:nas-stack`) |
+
+**Scheiding van productie, afgedwongen door een test:** alleen `versado-test-*` containernamen; geen `docker.sock`, geen deploy-agent, geen `/volume1`-paden;
+database, Redis en app publiceren geen poort (alleen de proxy, op een poort die de eigenaar kiest); elk geheim en elke omgevingswaarde is een verplichte
+stackvariabele (`:?`) zonder standaardwaarde of placeholder; geen domein of URL in het bestand; geen `latest`-tag; geen SMTP of feedbackontvanger;
+`ALLOW_INSECURE_COOKIES=false`; `NATIVE_API_ENABLED=1`. De productie-proxy-image verwijst vast naar de hostnaam `jehova-app`; de teststack geeft de testapp die
+alias **alleen** op het eigen interne netwerk, zodat nooit een productiecontainer wordt bereikt.
+
+**Controlescript (`check-test-backend.mjs`):** valideert de origin exact als HTTPS (zelfde regels als de distributieprofielen), doet drie GET-verzoeken
+(`/api/v1/native/capabilities` met en zonder native origin, en `/`), volgt geen redirects en gebruikt geen onveilige TLS-opties. Het controleert: status 200, `apiVersion` 1,
+de verwachte capabilities, CORS alleen voor `capacitor://localhost` (een vreemde origin krijgt niets), `Permissions-Policy` met `microphone=(self)`, en optioneel dat de
+origin in de allowlist van het gekozen profiel staat. Met `VERSADO_PRODUCTION_ORIGIN` (optioneel, door de eigenaar gezet) weigert het de productie-origin als testbackend. Het maakt geen accounts en schrijft niets.
+
+**Wat nog bij de eigenaar ligt:** hostnaam en DNS, TLS-certificaat, kiezen van de poort en de imagetag, geheimen genereren, de stack in Portainer uitrollen, synthetische accounts
+en content aanmaken, en de allowlist-PR. Claude/Codex rolt niets uit en heeft geen NAS-toegang.
+
+**Eerste controle na uitrol:** `npm run native:check-test-backend -- <jouw-testorigin> --profile store-test`; daarna `npm run test:native:integration`-scenario's of handmatig inloggen met een synthetisch account.
