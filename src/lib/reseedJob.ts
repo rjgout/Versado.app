@@ -99,7 +99,7 @@ export function startReseedJob(
             const report = await autoPublishCfmVolume(study.actor, volume, prisma);
             currentJob.logs.push(
               `CFM ${result.year}: ${report.status}; ${report.publishedNow} nieuw gepubliceerd, ${report.alreadyPublished} al gepubliceerd, ${report.blocked.length} geblokkeerd, ${report.failed.length} mislukt; ` +
-                `verwijzingen: ${report.references.verified} bewezen, ${report.references.displayOnly} als tekst, ${report.references.blocking} blokkerend`,
+                `${report.madeVisible ? "zichtbaar voor gebruikers; " : ""}verwijzingen: ${report.references.verified} bewezen, ${report.references.displayOnly} als tekst, ${report.references.blocking} blokkerend`,
             );
           }
           // De eerste fout bepaalt de melding (bv. ontbrekende mediaopslag), zodat de beheerder dezelfde code ziet als voorheen.

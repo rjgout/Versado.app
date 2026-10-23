@@ -7,6 +7,8 @@ import { batchActionId, studyProgramReview } from "./programReview";
 import { cfmSourceOfCollection, type CfmVolumeSource } from "./cfmSources";
 import { requireStudyAdmin, StudyPublishingError, type StudyAdmin } from "./policy";
 import { studyStorage } from "./storage";
+import { emitToUser } from "@/lib/realtime";
+import { DATA_EVENT_SOCKET_NAME } from "@/lib/data/scopes";
 
 /**
  * Automatische publicatie van officiële CFM-lessen na technische validatie (uitdrukkelijke toestemming van de projecteigenaar,
@@ -17,9 +19,15 @@ import { studyStorage } from "./storage";
  * Wat dit nooit doet:
  *  - een les publiceren die de voorcontrole blokkeert (onveilige URL, onbekende fout, kapotte structuur, media/rechten);
  *    zo'n les blijft concept en komt met zijn codes in het rapport. De overige lessen worden wel gepubliceerd;
- *  - de zichtbaarheid voor gebruikers aanzetten (`visibleToUsers`): publicatie is geen zichtbaarheid. Dat blijft de bestaande
- *    schakelaar onder Adminbackend → Content;
- *  - iets doen buiten een uitdrukkelijke beheeractie (nooit bij opstarten, deploy of migratie).
+ *  - iets doen buiten een uitdrukkelijke beheeractie (nooit bij opstarten, deploy of migratie);
+ *  - een bewuste verbergmaatregel van de beheerder terugdraaien: de zichtbaarheid wordt alleen aangezet op het moment dat deze
+ *    run de collectie voor het eerst inhoudelijk vrijgeeft (concept → gepubliceerd) en alles technisch gevalideerd is.
+ *    Daarna beslist de bestaande schakelaar onder Adminbackend → Content; een latere import zet haar nooit terug aan.
+ *
+ * Zichtbaarheid: de eigenaar wil na een import niet per jaargang handmatig activeren. De veiligheid zit daarom in de poort
+ * vóór de actie (uitdrukkelijke beheeractie met goedgekeurde snapshot) en in de technische validatie van elke les, niet in
+ * een tweede handmatige stap. Noodstop: `CFM_AUTO_PUBLISH=off` publiceert niets; `CFM_AUTO_VISIBLE=off` publiceert wel maar
+ * laat de zichtbaarheid aan de beheerder.
  * Een mislukte update laat reeds gepubliceerde lessen ongemoeid: de publicatiewijziging is per les atomair.
  */
 export type CfmAutoPublishReport = {
@@ -27,7 +35,7 @@ export type CfmAutoPublishReport = {
   collectionId: string;
   status: "done" | "partial" | "skipped" | "busy";
   /** Waarom er niets is gepubliceerd (alleen bij `skipped`). */
-  reason?: "COLLECTION_MISSING" | "CATALOGUE_INVALID";
+  reason?: "COLLECTION_MISSING" | "CATALOGUE_INVALID" | "DISABLED";
   total: number;
   alreadyPublished: number;
   publishedNow: number;
@@ -38,7 +46,12 @@ export type CfmAutoPublishReport = {
   /** Aantallen uit de voorcontrole: bewezen verwijzingen en als veilige tekst gepubliceerde (bekend onoplosbare) verwijzingen. */
   references: { total: number; verified: number; displayOnly: number; blocking: number };
   released: boolean;
+  /** Is de collectie in deze run voor gebruikers zichtbaar gemaakt (alleen bij de eerste, volledige vrijgave)? */
+  madeVisible: boolean;
 };
+
+export const autoPublishEnabled = (env: Record<string, string | undefined> = process.env) => env.CFM_AUTO_PUBLISH !== "off";
+export const autoVisibleEnabled = (env: Record<string, string | undefined> = process.env) => env.CFM_AUTO_VISIBLE !== "off";
 
 export async function autoPublishCfmVolume(
   actor: StudyAdmin,
@@ -47,8 +60,9 @@ export async function autoPublishCfmVolume(
 ): Promise<CfmAutoPublishReport> {
   requireStudyAdmin(actor);
   await studyStorage();
+  if (!autoPublishEnabled()) return { year: volume.volume.year, collectionId: volume.volume.collectionId, status: "skipped", reason: "DISABLED", total: 0, alreadyPublished: 0, publishedNow: 0, blocked: [], failed: [], references: { total: 0, verified: 0, displayOnly: 0, blocking: 0 }, released: false, madeVisible: false };
   const base = { year: volume.volume.year, collectionId: volume.volume.collectionId };
-  const empty = { total: 0, alreadyPublished: 0, publishedNow: 0, blocked: [], failed: [], references: { total: 0, verified: 0, displayOnly: 0, blocking: 0 }, released: false };
+  const empty = { total: 0, alreadyPublished: 0, publishedNow: 0, blocked: [], failed: [], references: { total: 0, verified: 0, displayOnly: 0, blocking: 0 }, released: false, madeVisible: false };
   const collection = await client.contentCollection.findUnique({ where: { id: base.collectionId } });
   if (!collection || cfmSourceOfCollection(collection) !== volume) return { ...base, ...empty, status: "skipped", reason: "COLLECTION_MISSING" };
   // Eén automatische publicatie per jaargang tegelijk (ook tegenover de beheerbatch: dezelfde sleutel).
@@ -98,6 +112,20 @@ export async function autoPublishCfmVolume(
           // De vrijgave is een aparte stap; een mislukking laat de gepubliceerde lessen ongemoeid en komt bij herhaling opnieuw.
         }
       }
+      // Eerste, volledige vrijgave: de collectie wordt meteen zichtbaar voor gebruikers. De voorwaarde in de update (nog verborgen en
+      // zojuist gepubliceerd) maakt dit idempotent en laat een latere, bewuste verberging van de beheerder met rust.
+      let madeVisible = false;
+      if (released && autoVisibleEnabled()) {
+        const result = await client.contentCollection.updateMany({
+          where: { id: base.collectionId, enabled: true, publicationState: "PUBLISHED", visibleToUsers: false },
+          data: { visibleToUsers: true },
+        });
+        madeVisible = result.count === 1;
+        if (madeVisible) {
+          emitToUser(actor.id, DATA_EVENT_SOCKET_NAME, { event: "contentChanged" });
+          emitToUser(actor.id, DATA_EVENT_SOCKET_NAME, { event: "studyContentChanged" });
+        }
+      }
       const after = await studyProgramReview(actor, base.collectionId, client);
       return {
         ...base,
@@ -109,6 +137,7 @@ export async function autoPublishCfmVolume(
         failed,
         references: { total: after.totals.references, verified: after.totals.referencesVerified, displayOnly: after.totals.displayOnly, blocking: after.totals.blocking },
         released,
+        madeVisible,
       };
     },
     { timeout: 600_000, maxWait: 5000 },
