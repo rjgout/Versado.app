@@ -416,6 +416,10 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
   await prisma.$executeRawUnsafe(`CREATE TRIGGER "testCfmSeedBook" BEFORE INSERT OR UPDATE ON "Book" FOR EACH ROW EXECUTE FUNCTION "testCfmSeedBook"()`);
   await prisma.$executeRawUnsafe(`CREATE FUNCTION "testCfmSeedBoundary"() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'SYNTHETIC_LEGACY_BOUNDARY'; END $$`);
   await prisma.$executeRawUnsafe(`CREATE TRIGGER "testCfmSeedBoundary" BEFORE INSERT OR UPDATE ON "Podcast" FOR EACH ROW EXECUTE FUNCTION "testCfmSeedBoundary"()`);
+  // De gewone cursussynchronisatie na CFM mag in deze fixture geen andere cursus dan de twee CFM-cursussen aanraken.
+  const cfmSlugSql=`ARRAY[${cfmCourseSlugs.map((slug)=>`'${slug.replace(/'/g,"''")}'`).join(",")}]::text[]`;
+  await prisma.$executeRawUnsafe(`CREATE FUNCTION "testCfmSeedCourse"() RETURNS trigger LANGUAGE plpgsql AS $$ DECLARE s text; BEGIN IF TG_OP = 'DELETE' THEN s := OLD."slug"; ELSE s := NEW."slug"; END IF; IF s = ANY(${cfmSlugSql}) THEN IF TG_OP = 'DELETE' THEN RETURN OLD; END IF; RETURN NEW; END IF; RAISE EXCEPTION 'SYNTHETIC_LEGACY_BOUNDARY'; END $$`);
+  await prisma.$executeRawUnsafe(`CREATE TRIGGER "testCfmSeedCourse" BEFORE INSERT OR UPDATE OR DELETE ON "Course" FOR EACH ROW EXECUTE FUNCTION "testCfmSeedCourse"()`);
   try {
     const start=async()=>fetch(base+"/api/admin/reseed",{method:"POST",headers:{cookie:f.admin.cookie,Origin:base,"Content-Type":"application/json"},body:JSON.stringify({approvedSnapshot:await cfmApprovedSnapshot(),confirmDraftsOnly:true})});
     const response=await start();assert.equal(response.status,200);assert.equal((await response.json()).started,true);
@@ -425,6 +429,7 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
     assert.equal(status.status,"error");assert.match(status.error,/SYNTHETIC_LEGACY_BOUNDARY/);assert.ok(!status.error.includes("SCRIPTURE_WRITTEN_BY_RESEED"));assert.equal(status.progress.current,52);assert.equal(status.progress.work,"cfm-old-testament-2026");
   } finally {
     await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS "testCfmSeedBoundary" ON "Podcast"`);await prisma.$executeRawUnsafe(`DROP FUNCTION IF EXISTS "testCfmSeedBoundary"()`);
+    await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS "testCfmSeedCourse" ON "Course"`);await prisma.$executeRawUnsafe(`DROP FUNCTION IF EXISTS "testCfmSeedCourse"()`);
     await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS "testCfmSeedBook" ON "Book"`);await prisma.$executeRawUnsafe(`DROP FUNCTION IF EXISTS "testCfmSeedBook"()`);
     await prisma.contentCollection.update({where:{id:collection.id},data:{order:orderBefore}});
   }
