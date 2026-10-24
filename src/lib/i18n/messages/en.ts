@@ -470,7 +470,6 @@ export const en: PartialMessages = {
     friendsTitle: "Puzzle records",
     friendsMore: "All records for this puzzle",
     shareTitle: "Share your puzzle records?",
-    shareTextDay: "I have a 1-day streak on Versado!",
     shareText: "Your accepted friends can then see your best puzzle times and the hints you used. You can turn this off at any time.",
   },
   puzzleTogether: {
@@ -836,6 +835,7 @@ export const en: PartialMessages = {
     shareText: "I have a {n}-day streak on Versado!",
     shareCopied: "Your streak is copied. Paste it where you want to share.",
     shareFailed: "Could not copy. Please try again.",
+    shareTextDay: "I have a 1-day streak on Versado!",
     bannerTitle: "Streak extended!",
     bannerDay: "{n} day",
     bannerDays: "{n} days",

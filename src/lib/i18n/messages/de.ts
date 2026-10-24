@@ -470,7 +470,6 @@ export const de: PartialMessages = {
     friendsTitle: "Puzzle-Rekorde",
     friendsMore: "Alle Rekorde für dieses Puzzle",
     shareTitle: "Puzzle-Rekorde teilen?",
-    shareTextDay: "Ich habe eine Serie von einem Tag auf Versado!",
     shareText: "Deine bestätigten Freunde können dann deine besten Puzzlezeiten und die genutzten Hinweise sehen. Du kannst das jederzeit ausschalten.",
   },
   puzzleTogether: {
@@ -836,6 +835,7 @@ export const de: PartialMessages = {
     shareText: "Ich habe eine Serie von {n} Tagen auf Versado!",
     shareCopied: "Deine Serie wurde kopiert. Füge sie dort ein, wo du sie teilen möchtest.",
     shareFailed: "Kopieren fehlgeschlagen. Bitte versuche es erneut.",
+    shareTextDay: "Ich habe eine Serie von einem Tag auf Versado!",
     bannerTitle: "Serie verlängert!",
     bannerDay: "{n} Tag",
     bannerDays: "{n} Tage",
