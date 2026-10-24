@@ -14,7 +14,7 @@ if (url.hostname !== "127.0.0.1" || url.pathname !== "/versado_puzzle_test" || p
 const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE ?? "playwright");
 const browser = await chromium.launch({ args: ["--no-sandbox"], executablePath: process.env.CHROMIUM_PATH });
 const base = process.env.PUZZLE_TEST_BASE_URL ?? "http://localhost:3107";
-const output = process.env.SHOTS ?? "/tmp/versado-streak-banner";
+const output = process.env.SHOTS ?? "/tmp/versado-puzzle-browser/streak-banner";
 mkdirSync(output, { recursive: true });
 const users = [];
 const today = dayKeyInZone(new Date(), "Europe/Amsterdam");
