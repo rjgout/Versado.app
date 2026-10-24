@@ -61,7 +61,8 @@ try {
   const closedAfter=await page.locator('[data-week="closed"]').boundingBox();assert.equal(closedAfter.height,closedBefore.height);
   assert.equal(await current.getByRole('heading').count(),1);
   const banner=current.locator('[data-image-overlay]');
-  const eyebrow=await current.locator('p').first().boundingBox();const imageBox=await banner.boundingBox();assert.ok(eyebrow.y+eyebrow.height<=imageBox.y+1,JSON.stringify({eyebrow,imageBox}));
+  const eyebrow=await current.locator('[data-cfm-week-label]').boundingBox();const imageBox=await banner.boundingBox();assert.ok(eyebrow.y>=imageBox.y && eyebrow.y+eyebrow.height<=imageBox.y+imageBox.height,JSON.stringify({eyebrow,imageBox}));
+  const imageTop=await current.locator('img').boundingBox();assert.equal(imageTop.y,imageBox.y);assert.equal(eyebrow.y,imageBox.y);
   const cells=current.locator('[data-week-step]');assert.equal(await cells.count(),6);
   const a=await cells.nth(0).boundingBox(),b=await cells.nth(1).boundingBox();assert.ok(Math.abs(a.y-b.y)<1);assert.ok(b.x>a.x);assert.ok(a.y>=imageBox.y+imageBox.height);
   assert.equal(await cells.nth(0).getAttribute('data-step-status'),'COMPLETED');assert.equal(await cells.nth(2).getAttribute('data-step-status'),'IN_PROGRESS');assert.equal(await cells.nth(5).getAttribute('data-step-status'),'NOT_STARTED');
@@ -74,7 +75,7 @@ try {
     await page.setViewportSize({width,height:900});await page.evaluate(({dark,scale})=>{document.documentElement.classList.toggle('dark',dark);document.documentElement.style.fontSize=scale+'%';},{dark,scale});
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${width},dark=${dark},text=${scale}`);
     for(const overlay of await page.locator('[data-image-overlay]').all()) {
-      const box=await overlay.boundingBox();const text=await overlay.locator(':scope > span.relative').boundingBox();assert.ok(text.y>=box.y-1 && text.y+text.height<=box.y+box.height+1, JSON.stringify({width,dark,scale,box,text}));
+      const box=await overlay.boundingBox();const text=await overlay.locator('[data-cfm-heading-text]').boundingBox();assert.ok(text.y>=box.y-1 && text.y+text.height<=box.y+box.height+1, JSON.stringify({width,dark,scale,box,text}));
     }
   }
   await toggle.click();await toggle.click();assert.equal(await other.locator('img').count(),1);

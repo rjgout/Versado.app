@@ -6,7 +6,7 @@ PR #208 gaf `ActiveChapterCard` expliciet `imageSrc={null}` en plaatste een afzo
 
 `CfmWeekPath.tsx` gebruikt nu één lokale `LessonHeading` voor de open kaarten in Stap voor stap. De officiële afbeelding vormt de achtergrond, met de bestaande Versado-overlaygradient (`from-vs-overlay/90 via-vs-overlay/50`) en de bestaande titel-/datumhiërarchie onderaan. Voortgangsstippen, voltooiingsicoon, uitklapknop en stapstatussen blijven behouden. De beeldruimte reserveert 16:9; het tekstelement deelt dezelfde gridcel en kan de kop hoger maken bij lange titels of grote tekst, zodat niets wordt afgekapt. `object-cover` vult het vlak zonder vervorming, met dezelfde gecentreerde uitsnede als de bestaande actieve kaart.
 
-`ActiveChapterCard` in `reading/pathParts.tsx` krijgt één optionele `header`-slot. CFM gebruikt die uitsluitend bij Stap voor stap om het bestaande weeklabel boven de afbeelding te houden. De bestaande blauwe/gouden rand, bodyachtergrond en afrondingen blijven uit die gedeelde component komen. Alle andere aanroepers behouden de bestaande standaardkop. Vrije studie is niet aangepast.
+`ActiveChapterCard` in `reading/pathParts.tsx` krijgt één optionele `header`-slot. CFM gebruikt die uitsluitend bij Stap voor stap om het bestaande weeklabel linksboven op de afbeelding te houden. De bestaande blauwe/gouden rand, bodyachtergrond en afrondingen blijven uit die gedeelde component komen. Alle andere aanroepers behouden de bestaande standaardkop. Vrije studie is niet aangepast.
 
 De zes bestaande stapkaarten staan direct onder de kop, nu consequent in twee kolommen. Volgorde, statusbepaling, links en callbacks zijn ongewijzigd. Ingeklapte kaarten monteren geen afbeelding en houden hun oorspronkelijke `Heading`, klassen en bediening. Zonder beeld of na een laadfout blijft de volledige tekstkop met datum en voortgang zichtbaar, zonder lege beeldruimte of vervangend beeld.
 
@@ -41,7 +41,7 @@ De fixture vervangt uitsluitend datahooks, I18n, Next Link en Next Image; de pro
 
 ## Mobiele screenshots (375 px)
 
-Actieve kaart:
+Actieve kaart (weeklabel op de afbeelding, met een subtiele donkere bovengradient voor contrast; de titel/datum en totale kaarthoogte behouden hun positie):
 
 ![Actieve kaart met weeklabel en overlay](screenshots/cfm-overlay/active-mobile.png)
 

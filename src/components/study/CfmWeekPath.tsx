@@ -48,8 +48,8 @@ function LessonImage({ src }: { src: string }) {
 }
 
 /** Dezelfde overlaykleuren en teksthiërarchie als ActiveChapterCard; tekst blijft in de flow bij lange titels. */
-function LessonHeading({ imageSrc, title, subtitle, active = false, trailing }: {
-  imageSrc: string | null; title: string; subtitle: React.ReactNode; active?: boolean; trailing?: React.ReactNode;
+function LessonHeading({ imageSrc, title, subtitle, active = false, trailing, eyebrow }: {
+  imageSrc: string | null; title: string; subtitle: React.ReactNode; active?: boolean; trailing?: React.ReactNode; eyebrow?: string;
 }) {
   const [failed, setFailed] = useState(false);
   const showImage = !!imageSrc && !failed;
@@ -57,11 +57,15 @@ function LessonHeading({ imageSrc, title, subtitle, active = false, trailing }: 
   return (
     <span data-cfm-lesson-heading data-image-overlay={showImage || undefined} className={`relative grid w-full min-w-0 overflow-hidden ${showImage ? "bg-vs-overlay" : "bg-gradient-to-br from-vs-accent-soft to-vs-surface"}`}>
       {showImage && <>
-        <span aria-hidden className="col-start-1 row-start-1 aspect-video w-full" />
+        <span aria-hidden className={`col-start-1 aspect-video w-full ${eyebrow ? "row-start-2" : "row-start-1"}`} />
         <Image unoptimized src={imageSrc!} alt="" fill sizes="(min-width: 1024px) 640px, 100vw" loading="lazy" className="pointer-events-none object-cover" onError={() => setFailed(true)} />
         <span aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-vs-overlay/90 via-vs-overlay/50 to-transparent" />
       </>}
-      <span className={`relative col-start-1 row-start-1 flex min-w-0 self-end items-end gap-3 p-[clamp(0.5rem,3vw,0.75rem)] ${showImage ? "pt-10 text-white" : "text-vs-fg"}`}>
+      {eyebrow && <>
+        {showImage && <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-vs-overlay/80 to-transparent" />}
+        <span data-cfm-week-label className={`relative col-start-1 row-start-1 px-[clamp(0.5rem,3vw,0.75rem)] py-2 text-xs font-extrabold uppercase tracking-wide ${showImage ? "text-white/90" : "text-vs-accent"}`}>{eyebrow}</span>
+      </>}
+      <span data-cfm-heading-text className={`relative col-start-1 ${eyebrow ? "row-start-2" : "row-start-1"} flex min-w-0 self-end items-end gap-3 p-[clamp(0.5rem,3vw,0.75rem)] ${showImage ? "pt-10 text-white" : "text-vs-fg"}`}>
         <span className="min-w-0 flex-1">
           <span role={active ? "heading" : undefined} aria-level={active ? 2 : undefined} className={`vs-wrap block font-extrabold leading-snug ${active ? "text-xl" : "text-base"}`}>{title}</span>
           <span className={`vs-wrap mt-1 block text-xs ${active ? "font-semibold" : ""} ${showImage ? "text-white/90" : "text-vs-fg-3"}`}>{subtitle}</span>
@@ -201,10 +205,7 @@ export default function CfmWeekPath({
                 eyebrow={labelKey ? t(labelKey) : undefined}
                 artworkKeys={[]}
                 imageSrc={null}
-                header={mode === "STEPS" ? <>
-                  {labelKey && <p className="px-[clamp(0.5rem,3vw,0.75rem)] py-2 text-xs font-extrabold uppercase tracking-wide text-vs-accent">{t(labelKey)}</p>}
-                  <LessonHeading key={imageSrc} imageSrc={imageSrc} title={week.title} subtitle={subtitle} active />
-                </> : undefined}
+                header={mode === "STEPS" ? <LessonHeading key={imageSrc} imageSrc={imageSrc} title={week.title} subtitle={subtitle} active eyebrow={labelKey ? t(labelKey) : undefined} /> : undefined}
               >
                 {mode === "STEPS" ? (
                   <WeekSteps week={week} sessionKey={sessionKey} />
