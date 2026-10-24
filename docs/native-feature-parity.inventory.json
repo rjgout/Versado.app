@@ -10652,7 +10652,7 @@
     },
     {
       "file": "src/components/StreakCelebrationFlow.tsx",
-      "sha256": "6ae1676e77ed6db9b64171052cbfbffac128cd59669308e6b3a2808b05406577",
+      "sha256": "a6cfb2b43499ba2ea78d60eb3cfdf87a575f81fefe2fb88e15f92fbc10091b2c",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -18010,7 +18010,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "73edbe4c0246d4023b8f2510750635436cb222766baab821130d15aa13a893c2",
+      "sha256": "844c7656eb0790656f51cee5eb55611693d2eb4e989e850dad0b30f3fab356bc",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18025,7 +18025,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "1a537847d9cb1ccf10b0739c510fe1996f518d1508dc554fb4610ea7cb55fe4d",
+      "sha256": "5aa778bdd8cf02e7d50eb2d217a96ed27970c190e3dab39fb2629292e28a9717",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18040,7 +18040,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "64335835a984e41425519a092a6c0542800a0ac1817c597b6c0f2fe8abc9cadf",
+      "sha256": "24250de0d14c881bf701e36f806ea63cf48e0b5c7fe0b45e8f67ab2fc9f3a870",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18055,7 +18055,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "fd87b7d608563182b10b20a12344b6b66279b35fa3dff484d64fc23e6c711ddf",
+      "sha256": "5b8dfb5937c395f87ec3ed25198f6c0b5e1ca1aab356d257dad362b5a5bc197c",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18138,7 +18138,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "10a9d2dcca00f4e5349bff61a067d2391d5c7827c3967e8a98521e060c1bc787",
+      "sha256": "a82f02b1edfe73ad97c84b3f944d9227b45591d3cb556068080c61d928d7a664",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -68779,7 +68779,7 @@
     },
     {
       "file": "src/components/StreakCelebrationFlow.tsx",
-      "sha256": "6ae1676e77ed6db9b64171052cbfbffac128cd59669308e6b3a2808b05406577",
+      "sha256": "a6cfb2b43499ba2ea78d60eb3cfdf87a575f81fefe2fb88e15f92fbc10091b2c",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",

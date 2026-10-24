@@ -832,6 +832,7 @@ export const es: PartialMessages = {
   "streakCelebration": {
     share: "Comparte tu racha",
     shareCopy: "Copiar tu racha",
+    shareTextDay: "¡Tengo una racha de 1 día en Versado!",
     shareText: "¡Tengo una racha de {n} días en Versado!",
     shareCopied: "Tu racha se ha copiado. Pégala donde quieras compartirla.",
     shareFailed: "No se ha podido copiar. Inténtalo de nuevo.",

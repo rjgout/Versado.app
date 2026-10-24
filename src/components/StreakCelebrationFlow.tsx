@@ -141,7 +141,7 @@ export default function StreakCelebrationFlow({ value, onDone }: { value: Streak
     if (sharing) return;
     setSharing(true);
     setShareMessage("");
-    const content = { title: "Versado", text: t("streakCelebration.shareText", { n: value.streak }), url: "https://versado.app" };
+    const content = { title: "Versado", text: t(value.streak === 1 ? "streakCelebration.shareTextDay" : "streakCelebration.shareText", { n: value.streak }), url: "https://versado.app" };
     try {
       if (canShareContent()) {
         await shareContent(content);

@@ -470,6 +470,7 @@ export const fr: PartialMessages = {
     friendsTitle: "Records de puzzle",
     friendsMore: "Tous les records de ce puzzle",
     shareTitle: "Partager tes records de puzzle ?",
+    shareTextDay: "J’ai une série d’un jour sur Versado !",
     shareText: "Tes amis acceptés pourront alors voir tes meilleurs temps de puzzle et les indices utilisés. Tu peux le désactiver à tout moment.",
   },
   puzzleTogether: {

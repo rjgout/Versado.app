@@ -454,6 +454,7 @@ export const nl = {
   streakCelebration: {
     share: "Deel je reeks",
     shareCopy: "Kopieer je reeks",
+    shareTextDay: "Ik heb een reeks van 1 dag op Versado!",
     shareText: "Ik heb een reeks van {n} dagen op Versado!",
     shareCopied: "Je reeks is gekopieerd. Plak hem waar je wilt delen.",
     shareFailed: "Kopiëren is niet gelukt. Probeer het opnieuw.",
