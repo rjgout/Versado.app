@@ -8717,10 +8717,11 @@
     },
     {
       "file": "src/components/AppSelect.tsx",
-      "sha256": "0c09c33bf917954d671308577350a1869a24e6a3caec8831fa6b663cfbdefa5a",
+      "sha256": "9e1978be84d6a11f01a6fd8727d7d3bc7d3698eda6e017734ae2aea64807b10e",
       "boundary": "client",
       "imports": [
-        "react"
+        "react",
+        "react-dom"
       ],
       "methods": [],
       "requests": [],
@@ -10594,7 +10595,7 @@
     },
     {
       "file": "src/components/ShopClient.tsx",
-      "sha256": "2bb3307ffcff22ae9f463da20ae642b5377eaa04431bab8b3f9d3f51a8b22b8f",
+      "sha256": "96362a2385ad45b33ae0588c686aed717df154017cb7fd5fbe97fc5e342c6d62",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -17986,7 +17987,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "abc655638f87b3b42e90678e47d5679d59324d95a66747d795f72dc9598713c5",
+      "sha256": "87fa00d20eda96a24f4dd5ba7c817735cf65a36f20b156a80572aecef854f7e8",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18001,7 +18002,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "41dc6e928a8c2e9dfcb56bfacf76141ee6f1f20e52993d974a0a30ff254c28d5",
+      "sha256": "8d893cd9832a5463417ff5c1b35a8539b1b475e008cbbf43deda8088a21d513a",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18016,7 +18017,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "caa4cb1ebdd4504a0ff594156c53a653e9fd406ef266a4df2b40cbc4e48ad4aa",
+      "sha256": "8521525d6fce78c4de04ed36370960614414e9c66a194558a8b68d753b7a94c3",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18031,7 +18032,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "2d1493f6118668e2078736557cc7bfb9093324f7e4aa8f36ec583f70e3e8dfba",
+      "sha256": "40bef68c3dd707b521da0f4fa9e22f97197ed222fdb15a24bd983a435c03d53b",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18114,7 +18115,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "d2e9cdbde9cf24ced7b69736baf42f5fb0b417683133ecda21dde890df4ed037",
+      "sha256": "c2206ba890795d15d652333107ee3bc65d22d8240d2d46e2c014c1bb19646a21",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -21862,7 +21863,7 @@
     },
     {
       "file": "src/lib/snelleZendeling/match.ts",
-      "sha256": "f521e6200f8e76dcedfb3177cb79e97a0a975585ed56cad9555434b9015343c0",
+      "sha256": "b17cc517a11444638b7d473fb4ced8fb1b662121c56ea2a87f4496d5a0c521ea",
       "boundary": "context-dependent",
       "imports": [
         "./matchRules",
@@ -22116,7 +22117,7 @@
     },
     {
       "file": "src/lib/snelleZendeling/streak.ts",
-      "sha256": "d92396803a5161b33fd714780aeca4b1eb4e5f57c5b89142beb912d97f89366e",
+      "sha256": "cd22d5a9e475dfaff513a41557afe131ac799d4a408d2b97b43d4e40cff14ed8",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -66678,10 +66679,11 @@
     },
     {
       "file": "src/components/AppSelect.tsx",
-      "sha256": "0c09c33bf917954d671308577350a1869a24e6a3caec8831fa6b663cfbdefa5a",
+      "sha256": "9e1978be84d6a11f01a6fd8727d7d3bc7d3698eda6e017734ae2aea64807b10e",
       "boundary": "client",
       "imports": [
-        "react"
+        "react",
+        "react-dom"
       ],
       "methods": [],
       "requests": [],
@@ -68555,7 +68557,7 @@
     },
     {
       "file": "src/components/ShopClient.tsx",
-      "sha256": "2bb3307ffcff22ae9f463da20ae642b5377eaa04431bab8b3f9d3f51a8b22b8f",
+      "sha256": "96362a2385ad45b33ae0588c686aed717df154017cb7fd5fbe97fc5e342c6d62",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -72470,6 +72472,7 @@
     "tests/cfm-programme.test.ts",
     "tests/cfm-reading-typography.test.ts",
     "tests/cfm-references.test.ts",
+    "tests/cfm-sources-image.test.ts",
     "tests/cfm-sources.test.ts",
     "tests/cfm-step-navigation.test.ts",
     "tests/cfm-study-origin.test.ts",
@@ -72642,6 +72645,7 @@
     "tests/security-hardening.integration.test.ts",
     "tests/security-policy.test.ts",
     "tests/shell-layout.test.ts",
+    "tests/shop-layout.browser.mjs",
     "tests/snelle-zendeling-difficulty.test.ts",
     "tests/snelle-zendeling-genees.integration.test.ts",
     "tests/snelle-zendeling-genees.test.ts",

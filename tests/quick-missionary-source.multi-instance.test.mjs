@@ -72,7 +72,7 @@ test("Twee echte productie-instances: lobbybron, uitnodiging, reconnect, dubbele
  const wrong=await db.quickMissionaryReviveOption.findFirstOrThrow({where:{questionId:enQuestion,isCorrect:false}});
  assert.equal((await post(1,b,`/api/snelle-zendeling/runs/${rb.id}/revive/answer`,{exerciseId:enQuestion,optionId:wrong.id})).status,200);
  assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:rb.id}})).eliminatedSeq,1);assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:ra.id}})).status,"FINISHED");assert.equal(await db.quickMissionaryDuoResult.count({where:{matchId:payload.match.matchId}}),1);
- assert.deepEqual(await state(a),beforeA);assert.deepEqual(await state(b),beforeB);
+ assert.deepEqual(await state(a),beforeA);assert.deepEqual(await state(b),{...beforeB,currentStreak:beforeB.currentStreak+1},"de afgeronde gespeelde run telt ook bij een fout antwoord");
  assert.equal(await db.xPTransaction.count({where:{userId:{in:[a.id,b.id]}}}),0);
 });
 

@@ -49,6 +49,7 @@ try {
       if (!process.argv.includes("--content-only")) await run("npx", ["tsx", "tests/header-wordsearch.browser.mjs", ...process.argv.slice(2)], env);
       await run("npx", ["tsx", "tests/content-picker.browser.mjs", ...process.argv.slice(2)], env);
       await run("npx", ["tsx", "tests/profile-guide.browser.mjs"], env);
+      await run("npx", ["tsx", "tests/shop-layout.browser.mjs"], env);
       await run("npx", ["tsx", "tests/card-management.browser.mjs"], env);
     }
     await run("npx", ["tsx", "tests/game-availability.socket.mjs"], env);
