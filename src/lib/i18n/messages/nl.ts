@@ -452,6 +452,11 @@ export const nl = {
     notifyLongBody: "Hoe lang het ook geleden is, je kunt altijd weer verdergaan.",
   },
   streakCelebration: {
+    share: "Deel je reeks",
+    shareCopy: "Kopieer je reeks",
+    shareText: "Ik heb een reeks van {n} dagen op Versado!",
+    shareCopied: "Je reeks is gekopieerd. Plak hem waar je wilt delen.",
+    shareFailed: "Kopiëren is niet gelukt. Probeer het opnieuw.",
     bannerTitle: "Reeks verlengd!",
     bannerDay: "{n} dag",
     bannerDays: "{n} dagen",

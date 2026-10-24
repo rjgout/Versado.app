@@ -30,6 +30,13 @@ webbrowsertests (`tests/game-streak-completion.integration.test.ts`,
 native spelschermen in de matrix blijven open; er is geen apparaatvalidatie
 uitgevoerd voor deze wijziging.
 
+De deelknop in de persoonlijke reeksviering gebruikt de centrale platformadapter
+(`shareContent`): Capacitor Share op iOS/Android, Web Share in ondersteunde browsers,
+en tekst kopiëren als browserterugval. De webflow wordt gecontroleerd in
+`tests/puzzle-streak-banner.browser.mjs`. De lokale native reeksviering en echte
+apparaatvalidatie blijven onderdeel van de bestaande open native pariteitsdekking;
+deze wijziging claimt geen volledige native oplevering.
+
 ## Gedeelde voorwaarden per functie
 
 Elke paginarij hieronder erft het bijbehorende domeinbeleid uit de functiematrix, inclusief opslag, fouten, beide native platformen, testvereisten en blokkades. De pagina- en API-tabellen voegen de exacte route, bron, rendergrens en aangetroffen contract-/authinformatie toe. Een lege native contractdekking betekent **ontbreekt**, niet toegestaan via een algemene bearer-bypass.

@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, Clock3, X } from "lucide-react";
+import { Check, Clock3, Share2, X } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import UserAvatar from "@/components/UserAvatar";
 import PersonalMascot from "@/components/versado/PersonalMascot";
 import SystemIcon from "@/components/versado/SystemIcon";
-import { focusRing, primaryButton } from "@/components/versado/styles";
+import { focusRing, primaryButton, secondaryButton } from "@/components/versado/styles";
 import { NudgeButton, type Person } from "@/components/social/shared";
+import { canShareContent, shareContent } from "@/lib/platform";
 import type { CelebrationFriend, CelebrationGroup, CelebrationGroupMember } from "@/lib/streakCelebration";
 
 export interface StreakCelebrationValue {
@@ -131,11 +132,36 @@ function GroupStep({ groups }: { groups: CelebrationGroup[] }) {
 export default function StreakCelebrationFlow({ value, onDone }: { value: StreakCelebrationValue; onDone: () => void }) {
   const t = useT();
   const [data, setData] = useState<SocialData | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const [shareMessage, setShareMessage] = useState("");
+  const [canShare, setCanShare] = useState(false);
+  useEffect(() => setCanShare(canShareContent()), []);
+
+  async function shareStreak() {
+    if (sharing) return;
+    setSharing(true);
+    setShareMessage("");
+    const content = { title: "Versado", text: t("streakCelebration.shareText", { n: value.streak }), url: "https://versado.app" };
+    try {
+      if (canShareContent()) {
+        await shareContent(content);
+      } else {
+        await navigator.clipboard.writeText(`${content.text}\n${content.url}`);
+        setShareMessage(t("streakCelebration.shareCopied"));
+      }
+    } catch {
+      setShareMessage(t("streakCelebration.shareFailed"));
+    } finally {
+      setSharing(false);
+    }
+  }
+
   const [step, setStep] = useState<Step>("personal");
 
   useEffect(() => {
     setData(null);
     setStep("personal");
+    setShareMessage("");
     let cancelled = false;
     fetch("/api/streak/celebration", { cache: "no-store" })
       .then((response) => response.ok ? response.json() as Promise<SocialData> : Promise.reject(new Error("social")))
@@ -175,10 +201,19 @@ export default function StreakCelebrationFlow({ value, onDone }: { value: Streak
           {step === "groups" && data && <GroupStep groups={data.groups} />}
         </main>
 
-        <footer className="mx-auto w-full max-w-2xl">
+        <footer className="mx-auto flex w-full max-w-2xl flex-col gap-3">
+          {step === "personal" && (
+            <>
+              <button type="button" data-streak-share className={`${secondaryButton} min-h-12 w-full gap-2 border-vs-accent/40 text-base text-vs-accent`} onClick={() => void shareStreak()} disabled={sharing}>
+                <Share2 className="h-5 w-5 shrink-0" aria-hidden />
+                <span>{t(canShare ? "streakCelebration.share" : "streakCelebration.shareCopy")}</span>
+              </button>
+              <p role="status" className="text-center text-sm font-semibold text-vs-fg-2 empty:hidden">{shareMessage}</p>
+            </>
+          )}
           <button
             type="button"
-            className={`${primaryButton} h-12 w-full text-base`}
+            className={`${primaryButton} min-h-12 w-full text-base`}
             disabled={!data}
             onClick={() => nextStep ? setStep(nextStep) : onDone()}
           >

@@ -184,7 +184,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
       step1: "Complete at least one activity every day, such as a lesson, a practice round, a game or a finished reading step. How short or long it is does not matter.",
       step2: "If you miss a day, Versado automatically uses a streak freeze if you have one. It keeps your streak.",
       step3: "If you have no streak freeze left, your streak breaks.",
-      more: "The first completed activity of the day continues your streak; a second activity the same day gives no extra streak day. XP and streak are separate: an activity without XP can count too. Just opening, browsing or starting does not count; it has to be truly completed. A day follows the time zone of your account. While playing, a new streak day appears immediately in a banner at the top. Swipe it up or close it; your game continues. The fullscreen celebration follows later, after your activity.",
+      more: "The first completed activity of the day continues your streak; a second activity the same day gives no extra streak day. XP and streak are separate: an activity without XP can count too. Just opening, browsing or starting does not count; it has to be truly completed. A day follows the time zone of your account. While playing, a new streak day appears immediately in a banner at the top. Swipe it up or close it; your game continues. The fullscreen celebration follows later, after your activity. In the personal fullscreen celebration you can share or copy your streak day count.",
     },
     progressDivisions: {
       title: "Division",

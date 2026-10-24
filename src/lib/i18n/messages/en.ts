@@ -830,6 +830,11 @@ export const en: PartialMessages = {
     notifyLongBody: "However long it's been, you can always continue.",
   },
   streakCelebration: {
+    share: "Share your streak",
+    shareCopy: "Copy your streak",
+    shareText: "I have a {n}-day streak on Versado!",
+    shareCopied: "Your streak is copied. Paste it where you want to share.",
+    shareFailed: "Could not copy. Please try again.",
     bannerTitle: "Streak extended!",
     bannerDay: "{n} day",
     bannerDays: "{n} days",

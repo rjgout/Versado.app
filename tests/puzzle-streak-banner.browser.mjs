@@ -94,8 +94,34 @@ try {
     await post(pa,sessionId,body); // Dezelfde serverafronding/retry geeft geen tweede banner.
     await pa.reload(); await pa.locator("canvas").first().waitFor();
     await pa.waitForTimeout(300); assert.equal(await banner.count(),0,"refresh herhaalt de banner niet");
+    await pa.addInitScript((mode) => {
+      window.__streakShared = null; window.__streakCopied = null;
+      Object.defineProperty(navigator, "share", { configurable: true, value: mode === "auto" ? undefined : async (content) => {
+        window.__streakShared = content;
+        if (mode === "close") throw new DOMException("Cancelled", "AbortError");
+      } });
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async text => { window.__streakCopied = text; } } });
+    }, dismiss);
     await pa.goto(`${base}/dashboard`); await pa.locator("#streak-celebration-title").waitFor();
     assert.ok((await prisma.streakDay.findUniqueOrThrow({where:{userId_dayKey:{userId:a.id,dayKey:today}}})).celebrationShownAt);
+    const shareButton = pa.locator("[data-streak-share]");
+    await shareButton.waitFor();
+    await shareButton.scrollIntoViewIfNeeded();
+    const shareBounds = await shareButton.boundingBox();
+    assert.ok(shareBounds.x >= 0 && shareBounds.x + shareBounds.width <= width + 1);
+    if (dismiss === "auto") {
+      await pa.evaluate(() => { navigator.clipboard.writeText = async () => { throw new Error("clipboard denied"); }; });
+      await shareButton.click();
+      await pa.getByRole("status").filter({ hasText: "Kopiëren is niet gelukt" }).waitFor();
+      await pa.evaluate(() => { navigator.clipboard.writeText = async text => { window.__streakCopied = text; }; });
+    }
+    await shareButton.click();
+    await waitFor(async () => pa.evaluate(() => Boolean(window.__streakShared || window.__streakCopied)), "deelactie uitgevoerd");
+    const shared = await pa.evaluate(() => ({ shared: window.__streakShared, copied: window.__streakCopied }));
+    if (dismiss === "auto") assert.match(shared.copied, /42.*Versado![\s\S]*https:\/\/versado.app/);
+    else { assert.equal(shared.shared.title, "Versado"); assert.match(shared.shared.text, /42/); assert.equal(shared.shared.url, "https://versado.app"); assert.equal(shared.copied, null, "annuleren kopieert niets"); }
+    assert.equal(await pa.locator("#streak-celebration-title").count(), 1, "delen of annuleren sluit de viering niet");
+    await pa.screenshot({ path: `${output}/share-${width}-${scale}.png` });
     assert.deepEqual(errors,[]);
     await ca.close(); await cb.close();
   }
