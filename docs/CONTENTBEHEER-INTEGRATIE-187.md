@@ -1,8 +1,11 @@
 # Contentbeheer V2: integratie van PR #187 met actuele main
 
-Basis: `main` `89b8e4a59c42daa218f9bb693f033c6e669a9ace` (#210), bestaande PR-hoofdcommit
+Oorspronkelijke basis: `main` `89b8e4a59c42daa218f9bb693f033c6e669a9ace` (#210), bestaande PR-hoofdcommit
 `8c5e7626362a4eb99e8c76d0d9d1b11d9f027067`. De bestaande draft-PR wordt bijgewerkt met een normale merge van main;
-geen vervangende implementatie, force-push of nieuwe feature-PR. De productieacceptatie blijft afzonderlijk in draft-PR #211.
+geen vervangende implementatie, force-push of nieuwe feature-PR.
+Tijdens de eindcontrole kwam #213 op main: `abddbe49fcda03fa9998e3326d40b8082071d19e`. Ook deze main is geïntegreerd;
+de CFM-weeklabelpresentatie, browserasserties en screenshot blijven intact. De gegenereerde native inventaris is opnieuw gecontroleerd.
+Alle 27 checks waren groen op de voorafgaande integratiecommit `e38f565e`; de nieuwe eindcommit wordt opnieuw volledig in CI getest. De productieacceptatie blijft afzonderlijk in draft-PR #211.
 
 ## Vier conflicten en leidende implementatie
 
@@ -28,7 +31,7 @@ naast de Contentbeheer-kaarten en fout-/bevestigingsteksten. De gezamenlijke str
 - #195: distributieprofielen en releaseblokkades blijven intact; lokale native audiopariteit is hiermee niet bewezen.
 - #200/#208: dependencybestanden blijven exact gelijk aan main, inclusief de exacte Nodemailer-pin en de nieuwere dev-dependencies.
   Ook de actuele bronloze-runregel blijft ongewijzigd in de spelimplementatie.
-- #209/#210: de main-verbeteringen aan CFM-kaarten en reeksbanner blijven behouden.
+- #209/#210/#213: de main-verbeteringen aan CFM-kaarten en reeksbanner blijven behouden.
 - Uit #187: aparte aanvullende content-/Schriftkaarten, planHash-flow, ChapterAudioCheck, ContentUpdateRun, RETIRED en
   transactionele legacy-audioafhandeling. Geen tweede importer of publicatiesysteem.
 
