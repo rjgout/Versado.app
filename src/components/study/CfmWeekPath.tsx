@@ -1,9 +1,10 @@
 "use client";
 import { Fragment, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Check, ChevronDown, Circle, PlayCircle } from "lucide-react";
 import { useT, useUiLanguage } from "@/components/I18nProvider";
-import { ActiveChapterCard, CARD, ChapterThumb, Connector, DoneMark, Heading, THUMB_PAD, type VisualState } from "@/components/reading/pathParts";
+import { ActiveChapterCard, CARD, Connector, DoneMark, Heading, type VisualState } from "@/components/reading/pathParts";
 import { focusRing, primaryButton } from "@/components/versado/styles";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
@@ -37,6 +38,14 @@ interface StepPlanRow { index: number; title: string | null; continued: boolean;
 interface StepPlanResponse { revisionId: string; state: StepProgressState; steps: StepPlanRow[] }
 
 const mediaSrc = (id: string | null) => (id ? `/api/study-media/${encodeURIComponent(id)}` : null);
+
+function LessonImage({ src }: { src: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return null;
+  return <div className="relative mb-3 aspect-video overflow-hidden rounded-xl bg-vs-subtle">
+    <Image unoptimized src={src} alt="" fill sizes="(min-width: 1024px) 640px, 100vw" loading="lazy" className="object-contain" onError={() => setFailed(true)} />
+  </div>;
+}
 
 function WeekSteps({ week, sessionKey }: { week: WeekRow; sessionKey: string }) {
   const t = useT();
@@ -154,7 +163,6 @@ export default function CfmWeekPath({
           </>
         );
         const imageSrc = mediaSrc(week.imageMediaId);
-        const thumb = !!imageSrc;
         const href = lessonBase(week.lessonId, week.collectionId);
         const isOpen = opened.has(week.id);
         return (
@@ -167,21 +175,20 @@ export default function CfmWeekPath({
                 subtitle={subtitle}
                 eyebrow={labelKey ? t(labelKey) : undefined}
                 artworkKeys={[]}
-                imageSrc={imageSrc}
+                imageSrc={null}
               >
                 {mode === "STEPS" ? (
-                  <WeekSteps week={week} sessionKey={sessionKey} />
+                  <>{imageSrc && <LessonImage key={imageSrc} src={imageSrc} />}<WeekSteps week={week} sessionKey={sessionKey} /></>
                 ) : (
-                  <Link href={href} prefetch={false} onClick={() => onOpenWeek?.(week.lessonKey, week.workKey)} className={`${primaryButton} min-h-12 w-full sm:w-auto`}>
+                  <>{imageSrc && <LessonImage key={imageSrc} src={imageSrc} />}<Link href={href} prefetch={false} onClick={() => onOpenWeek?.(week.lessonKey, week.workKey)} className={`${primaryButton} min-h-12 w-full sm:w-auto`}>
                     {week.read ? t("cfmStudy.openWeek") : t("cfmStudy.continueWeek")}
-                  </Link>
+                  </Link></>
                 )}
               </ActiveChapterCard>
               </div>
             ) : mode === "FREE" ? (
               <div className={`${CARD} relative ${state === "started" ? "border-vs-accent/50" : "border-vs-line"}`} data-chapter-card-state={state}>
-                {thumb && <ChapterThumb artworkKeys={[]} imageSrc={imageSrc} fadeTo="to-vs-surface" />}
-                <Link href={href} prefetch={false} onClick={() => onOpenWeek?.(week.lessonKey, week.workKey)} className={`relative flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${thumb ? THUMB_PAD : ""} ${focusRing}`}>
+                <Link href={href} prefetch={false} onClick={() => onOpenWeek?.(week.lessonKey, week.workKey)} className={`relative flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${focusRing}`}>
                   <Heading label={week.title} subtitle={subtitle} />
                   {state === "done" && <DoneMark />}
                 </Link>
@@ -189,14 +196,13 @@ export default function CfmWeekPath({
             ) : (
               <div className={`${CARD} border-vs-line`} data-chapter-card-state={state}>
                 <div className="relative">
-                  {thumb && <ChapterThumb artworkKeys={[]} imageSrc={imageSrc} fadeTo="to-vs-surface" />}
                   <button
                     type="button"
                     onClick={() => toggle(week.id)}
                     aria-expanded={isOpen}
                     aria-controls={`week-${week.id}`}
                     aria-label={`${week.title}: ${isOpen ? t("cfmStudy.collapseWeek") : t("cfmStudy.expandWeek")}`}
-                    className={`relative flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${thumb ? THUMB_PAD : ""} ${focusRing}`}
+                    className={`relative flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${focusRing}`}
                   >
                     <Heading label={week.title} subtitle={subtitle} />
                     {state === "done" && <DoneMark />}
@@ -205,7 +211,7 @@ export default function CfmWeekPath({
                 </div>
                 {isOpen && (
                   <div id={`week-${week.id}`} onClickCapture={() => onOpenWeek?.(week.lessonKey, week.workKey)} className="border-t border-vs-line p-[clamp(0.5rem,3vw,0.75rem)]">
-                    <WeekSteps week={week} sessionKey={sessionKey} />
+                    <>{imageSrc && <LessonImage key={imageSrc} src={imageSrc} />}<WeekSteps week={week} sessionKey={sessionKey} /></>
                   </div>
                 )}
               </div>
