@@ -83,6 +83,9 @@ test("Een onbekende oude bron wordt nooit uit profiel/BOM afgeleid en kost geen 
  await assert.rejects(runs.requestReviveQuestion(run.id,user),/NO_QUESTION/); assert.equal((await runs.buyGeneesInRun(run.id,user)).result.ok,false);
  await runs.finishQuickMissionaryRun(run.id,user,0); assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:run.id}})).contentCollectionId,null); assert.deepEqual(await economy(user),before);
  assert.equal(await db.streakActivity.count({where:{userId:user}}),0,"automatisch afsluiten van een bronloze sessie is geen reeksactiviteit");
+ await runs.finishQuickMissionaryRun(run.id,user,0);
+ assert.deepEqual(await economy(user),before);
+ assert.equal(await db.streakActivity.count({where:{userId:user}}),0,"herhaald afsluiten blijft zonder bijeffecten");
 });
 
 test("Oude reeds uitgegeven vraag herstelt alleen haar bewezen bron onder de runlock", {skip},async()=>{

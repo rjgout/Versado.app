@@ -74,7 +74,7 @@ export function formatWeekPeriod(startsOn: string | null, endsOnExclusive: strin
   const start = new Date(`${startsOn}T00:00:00Z`);
   const end = new Date(new Date(`${endsOnExclusive}T00:00:00Z`).getTime() - 86_400_000);
   try {
-    return new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", timeZone: "UTC" }).formatRange(start, end);
+    return new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).formatRange(start, end);
   } catch {
     return `${startsOn} – ${end.toISOString().slice(0, 10)}`;
   }
