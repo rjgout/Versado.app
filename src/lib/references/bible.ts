@@ -12,6 +12,7 @@ const codes: Record<string, string> = {
 /** Alleen officiële Bijbel-URL's; de URL en het zichtbare label moeten hetzelfde begin aanwijzen.
  * Beschikbaarheid en versnummering worden daarna tegen de echte interne editie gecontroleerd. */
 export function bibleUrlTarget(raw: string, label: string) {
+  if (label.length > 512) return null;
   if (raw.length > 2048 || /[\u0000-\u0020\\]/.test(raw) || /%(?!2c)/i.test(raw)) return null;
   let url: URL;
   try { url = new URL(raw); } catch { return null; }
@@ -41,6 +42,7 @@ export function bibleUrlTarget(raw: string, label: string) {
   if (!passages.length || passages[0].chapter !== Number(match[3])) return null;
   const id = url.searchParams.get("id");
   if (id) {
+    if (!/^p[1-9]\d{0,2}(?:-p?[1-9]\d{0,2})?(?:,p[1-9]\d{0,2}(?:-p?[1-9]\d{0,2})?)*$/.test(id)) return null;
     const selected = parseOtbPassage(`${bookCodes[match[2]]}:${match[3]}:${id.replace(/p/g, "")}`);
     if (!selected || JSON.stringify(selected.verses) !== JSON.stringify(passages[0].verses)) return null;
   }

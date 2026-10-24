@@ -13626,7 +13626,7 @@
     },
     {
       "file": "src/components/study/CfmWeekPath.tsx",
-      "sha256": "21bdbe11956d274af6fbc75a390024adf55adfb518a0ea8665fafdba90c0a71b",
+      "sha256": "3ca7c6ef9e39ba2b33e127f8c9ca33ee4f6731ba3462429750bea983becc5bcb",
       "boundary": "client",
       "imports": [
         "./PersonalStudyParts",
@@ -13641,6 +13641,7 @@
         "@/lib/studyContent/weekLabels",
         "@/lib/studyContent/weekSelection",
         "lucide-react",
+        "next/image",
         "next/link",
         "react"
       ],
@@ -13673,7 +13674,7 @@
     },
     {
       "file": "src/components/study/PersonalStudyParts.tsx",
-      "sha256": "a42541a88f130218968b782c97e192941ad2ce435121734f3ffe2a31061760ff",
+      "sha256": "14a03fbc27cdd39700570566604d78c119b51fd266c9c1d0d85b3b5a297531d1",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -21033,6 +21034,22 @@
       ]
     },
     {
+      "file": "src/lib/references/bible.ts",
+      "sha256": "fff0093a5d5af43e6a6cdcfa8deb69eedca80a0498bd2a69aba83ae02a47ec0d",
+      "boundary": "context-dependent",
+      "imports": [
+        "../studyContent/cfmScripture",
+        "./otb",
+        "./standardWorks"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "bibleUrlTarget"
+      ]
+    },
+    {
       "file": "src/lib/references/contract.ts",
       "sha256": "d7d6f794bbccf15d283a0c818cec05c47cde6727a401cc022b1440976692f754",
       "boundary": "context-dependent",
@@ -21100,7 +21117,7 @@
     },
     {
       "file": "src/lib/references/otb.ts",
-      "sha256": "e54fd243b2e696c58529bd2b71aa963595acb9f487973cb44319de4bb10144ea",
+      "sha256": "4bde9b1e4ee9c817a3c7d47634a5aaa6387afd2aae9e06a010573670875b4781",
       "boundary": "context-dependent",
       "imports": [
         "../../../scripts/otb/bookMapping"
@@ -21115,9 +21132,10 @@
     },
     {
       "file": "src/lib/references/resolver.ts",
-      "sha256": "cbe036d6ef6a40290af65d477bf1fb4add08fdfbbeccb98124ddc58ecf1cbfbf",
+      "sha256": "f3590bb85adff4e8d09f2e51392e9ea677658dcac345328c2dc51a846421a951",
       "boundary": "context-dependent",
       "imports": [
+        "./bible",
         "./contract",
         "./evidence",
         "./hymns",
@@ -25728,6 +25746,7 @@
         "src/lib/podcasts.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
         "src/lib/references/hymns.ts",
@@ -29154,6 +29173,7 @@
         "src/lib/puzzle/puzzleNotify.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
         "src/lib/references/hymns.ts",
@@ -29282,6 +29302,7 @@
         "src/lib/podcasts.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
         "src/lib/references/hymns.ts",
@@ -29405,6 +29426,7 @@
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
         "src/lib/references/audit.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
         "src/lib/references/hymns.ts",
@@ -29529,6 +29551,7 @@
         "src/lib/podcasts.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
         "src/lib/references/hymns.ts",
@@ -45549,6 +45572,7 @@
         "src/lib/podcasts.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
         "src/lib/references/hymns.ts",
@@ -45843,6 +45867,7 @@
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
         "src/lib/references/hymns.ts",
@@ -71425,7 +71450,7 @@
     },
     {
       "file": "src/components/study/CfmWeekPath.tsx",
-      "sha256": "21bdbe11956d274af6fbc75a390024adf55adfb518a0ea8665fafdba90c0a71b",
+      "sha256": "3ca7c6ef9e39ba2b33e127f8c9ca33ee4f6731ba3462429750bea983becc5bcb",
       "boundary": "client",
       "imports": [
         "./PersonalStudyParts",
@@ -71440,6 +71465,7 @@
         "@/lib/studyContent/weekLabels",
         "@/lib/studyContent/weekSelection",
         "lucide-react",
+        "next/image",
         "next/link",
         "react"
       ],
@@ -71472,7 +71498,7 @@
     },
     {
       "file": "src/components/study/PersonalStudyParts.tsx",
-      "sha256": "a42541a88f130218968b782c97e192941ad2ce435121734f3ffe2a31061760ff",
+      "sha256": "14a03fbc27cdd39700570566604d78c119b51fd266c9c1d0d85b3b5a297531d1",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -72458,6 +72484,7 @@
     "tests/cfm-2027.integration.test.ts",
     "tests/cfm-2027.test.ts",
     "tests/cfm-auto-publish.integration.test.ts",
+    "tests/cfm-card-improvements.test.ts",
     "tests/cfm-collection-isolation.integration.test.ts",
     "tests/cfm-courses.integration.test.ts",
     "tests/cfm-courses.test.ts",
@@ -72470,6 +72497,7 @@
     "tests/cfm-programme.test.ts",
     "tests/cfm-reading-typography.test.ts",
     "tests/cfm-references.test.ts",
+    "tests/cfm-sources-image.test.ts",
     "tests/cfm-sources.test.ts",
     "tests/cfm-step-navigation.test.ts",
     "tests/cfm-study-origin.test.ts",

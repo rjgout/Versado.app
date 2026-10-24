@@ -6,6 +6,8 @@
 - `PersonalStudyParts.formatWeekPeriod` vroeg geen jaar aan Intl. Alleen de formatteringsoptie is toegevoegd; dezelfde datumregel en klassen blijven gebruikt. Intl toont bij overgangsweken beide jaren.
 - `CfmWeekPath` ontving al `imageMediaId` uit `catalogue.lessonImageMedia` (eerste inhoudelijke figuur ≥300 px, gekoppeld aan de gepubliceerde revisie en READY-media). De afbeelding stond alleen als decoratieve thumbnail/header weergegeven. Ze staat nu in de open inhoud, via bestaande geautoriseerde `/api/study-media` en Next Image. Een vaste 16:9-ruimte, object-contain, lazy loading en verwijderen bij laadfout voorkomen vervorming en blijvende lege foutcontainers. Gesloten kaarten monteren geen afbeelding; de actieve kaart is volgens het bestaande contract altijd open.
 
+De gepinde bronbestanden van zowel 2026 als 2027 bevatten in alle 52 lessen afbeeldingen; de bestaande revisie-/READY-koppeling bepaalt welke daarvan in een kaart beschikbaar is. Geen directe hotlinks of nieuwe opslag toegevoegd.
+
 ## Behouden gedrag en grenzen
 
 - Annotatiecomponenten, selectoren, vensters, notities, bladwijzers en markeringen zijn niet gewijzigd. Geen alinea, citaat, tekstpreview of extra tekstveld toegevoegd.
@@ -30,3 +32,6 @@ Mobiele componentfixture met de echte `CfmWeekPath`, 375 × 812, officiële afbe
 - Lokale browsercomponentfixture geslaagd: toetsenbord, gesloten/open/opnieuw open, meerdere kaarten, ontbrekende afbeelding, afbeeldings-error-handler, geen horizontale overflow op 320/375 px in licht/donker. Bij een afbeelding wordt vóór laden ruimte gereserveerd. Een echte trage netwerkverbinding en volledige sessieterugkeer zijn hiermee niet end-to-end bewezen.
 - De eerste geïsoleerde integratierun voltooide de migratiecontroles maar kon de testserver niet starten doordat de productiebuild nog liep. De runner wordt na de build opnieuw uitgevoerd; resultaat en GitHub Actions worden in de PR vastgelegd.
 - Productie/NAS niet benaderd; geen reset, productie-import, deployment of merge uitgevoerd.
+- Herhaalde geïsoleerde run: alle 16 API-/resolverintegratietests geslaagd. Browser-suite loopt afzonderlijk door de bestaande navigatie-/terugkeer-/conflictscenario's.
+- De eerste GitHub native-parity-check signaleerde de gewijzigde broninventaris. De bestaande generator is uitgevoerd (alleen inventaris; geen native functionaliteitswijziging); de zes pariteitstests en de inventarischeck slagen lokaal.
+- De vier nieuwe gerichte regressietests zijn opgenomen in het bestaande `npm run test:references`-commando (22 tests geslaagd), zodat de bestaande CI ze meeneemt.
