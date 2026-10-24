@@ -92,8 +92,8 @@ test("Browser: oude run afronden en oude lobby expliciet bevestigen, mobiel en d
    const old=await db.quickMissionaryRun.create({data:{userId:a.id,dayKey:"2026-10-11",status:"DEAD_AWAITING_REVIVE",reviveUsed:true}});
    await page.goto(`http://localhost:${ports[0]}/snelle-zendeling/run/${old.id}`);await page.getByRole("status").filter({hasText:"oorspronkelijke uitgave"}).waitFor();
    assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:old.id}})).status,"FINISHED");
-   assert.deepEqual(await state(a),{...before,currentStreak:1});
-   assert.equal(await db.streakActivity.count({where:{userId:a.id}}),1);
+   assert.deepEqual(await state(a),before,"een bronloze run of lobbybevestiging geeft geen reeksbeloning");
+   assert.equal(await db.streakActivity.count({where:{userId:a.id}}),0,"automatisch afsluiten telt niet als inhoudelijke activiteit");
    await page.screenshot({path:`/tmp/versado-qm-source-browser/legacy-run-${width}.png`});
    const flying=await db.quickMissionaryRun.create({data:{userId:a.id,dayKey:"2026-10-11",status:"IN_PROGRESS",score:7,startedAt:new Date(Date.now()-120000)}});
    await page.goto(`http://localhost:${ports[0]}/snelle-zendeling/run/${flying.id}`);
@@ -107,8 +107,8 @@ test("Browser: oude run afronden en oude lobby expliciet bevestigen, mobiel en d
    await page.goto(`http://localhost:${ports[0]}/snelle-zendeling/samen/${code}`);const confirm=page.getByRole("button",{name:"Gebruik mijn huidige uitgave"});await confirm.waitFor();
    if(width===320) await page.evaluate(()=>{document.documentElement.style.fontSize="200%"});
    await page.screenshot({path:`/tmp/versado-qm-source-browser/legacy-lobby-${width}.png`});if(width===1280){await confirm.focus();await page.keyboard.press("Enter")}else await confirm.click();await confirm.waitFor({state:"hidden"});
-   assert.equal((await db.liveGamePlayer.findUniqueOrThrow({where:{gameId_userId:{gameId:g.id,userId:a.id}}})).contentCollectionId,"content_bom");assert.deepEqual(await state(a),{...before,currentStreak:1});
-   assert.equal(await db.streakActivity.count({where:{userId:a.id}}),2,"beide gespeelde runs tellen, lobbybevestiging geeft geen extra activiteit");
+   assert.equal((await db.liveGamePlayer.findUniqueOrThrow({where:{gameId_userId:{gameId:g.id,userId:a.id}}})).contentCollectionId,"content_bom");assert.deepEqual(await state(a),before,"een bronloze run of lobbybevestiging geeft geen reeksbeloning");
+   assert.equal(await db.streakActivity.count({where:{userId:a.id}}),0,"beide bronloze runs en de lobbybevestiging blijven zonder reeksactiviteit");
    assert.equal(await db.xPTransaction.count({where:{userId:a.id}}),0);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));await ctx.close();
   }

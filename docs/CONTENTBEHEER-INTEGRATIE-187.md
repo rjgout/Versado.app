@@ -13,6 +13,10 @@ geen vervangende implementatie, force-push of nieuwe feature-PR. De productieacc
 | `tests/quick-missionary-source.integration.test.ts` | Main #200/#208 is leidend: een bronloze oude run geeft ook bij herhaald automatisch afsluiten geen reeksactiviteit. De extra #187-controles op nul XP, geen Genees-vraag en onveranderde economie blijven behouden. |
 | `tests/quick-missionary-source.multi-instance.test.mjs` | De huidige brongebonden reeksregel van main blijft leidend. Een werkelijk gespeelde run mét bewezen bron telt ook na een fout antwoord; alleen starten telt niet. Extra retry via de andere Node-instance mag geen tweede activiteit opleveren. |
 
+Ook buiten de conflictmarkeringen bleken oude #187-browserasserties nog een beloning voor bronloze runs te verwachten. De echte
+spelbrowserregressie reproduceerde dit; alle betreffende asserts vereisen nu nul activiteit, op mobiel én desktop, inclusief de
+lobbybevestiging na twee oude runs. De spelimplementatie van main is ongewijzigd.
+
 Alle vijf taalbestanden zijn inhoudelijk samengevoegd: de bestaande main-teksten voor winkel, CFM en reeksbanner blijven,
 naast de Contentbeheer-kaarten en fout-/bevestigingsteksten. De gezamenlijke structuur wordt met de bestaande i18n-check gecontroleerd.
 
