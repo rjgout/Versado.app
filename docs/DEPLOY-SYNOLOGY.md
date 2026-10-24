@@ -211,9 +211,13 @@ PostgreSQL-consistente backup (een gevalideerde logische dump of passende
 consistente snapshot; alleen een willekeurige kopie van een draaiende datamap
 bewijst dat niet). Bescherm ook de permanente `study-media`-map inclusief
 `.versado-study-volume.json`, het brandingvolume en de stackconfiguratie met
-geheimen in besloten opslag. De map `audio` ernaast
-hoeft niet in de back-up: die wordt bij de volgende contentlading vanzelf
-opnieuw gevuld.
+geheimen in besloten opslag. Neem ook de volledige permanente map `audio` mee:
+Audio V2 bewaart onveranderlijke objecten en publicatieverwijzingen in combinatie
+met PostgreSQL. Een gewone contentlading reconstrueert die combinatie niet.
+Maak een consistente database-/audioback-up met gepauzeerde schrijvers, bewaar
+die buiten het betrokken volume en test herstel in een geïsoleerde omgeving.
+Zie [Audio V2: productieacceptatie](audio-v2/PRODUCTIE-ACCEPTATIE.md) voor de
+controlevolgorde, opslagberekening en afzonderlijke goedkeuringsmomenten.
 
 Wil je liever een los, herstelbaar databasedump-bestand, gebruik dan de
 meegeleverde scripts (`scripts/backup.sh` / `scripts/restore.sh`) — die

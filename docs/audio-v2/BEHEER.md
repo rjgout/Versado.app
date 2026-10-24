@@ -3,6 +3,10 @@
 Alle opdrachten op de echte NAS en alle uitrolhandelingen worden uitsluitend door de eigenaar gedaan.
 Codex heeft alleen een geïsoleerde ontwikkel-/testomgeving gebruikt. Er is niets gepubliceerd of gedeployd.
 
+Voor een eerste NAS-uitrol: volg het [acceptatie- en uitrolplan](PRODUCTIE-ACCEPTATIE.md).
+Dat onderscheidt de werkelijk gemergede Audio V2 van de nog openstaande Contentbeheer-PR,
+bevat alleen-lezen controles en vereist afzonderlijk akkoord voor downloaden, registreren en publiceren.
+
 ## Ontvangen en beoordelen
 
 De bestaande audio-mount blijft staan; voeg geen andere hoofdmap of nieuw volume toe.
