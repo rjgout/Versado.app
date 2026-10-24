@@ -10,9 +10,12 @@ export interface RunStreakEvent {
 
 /** Alleen gespeelde, definitief afgeronde runs; starten en meteen sluiten telt niet. */
 export async function recordFinishedRun(tx: Prisma.TransactionClient, run: {
-  id: string; userId: string; score: number; status: string;
+  id: string; userId: string; score: number; status: string; contentCollectionId: string | null;
   reviveUsed: boolean; played?: boolean; eliminatedHow?: string | null;
 }, at: Date): Promise<RunStreakEvent | null> {
+  // Een oude sessie zonder bewezen bron wordt bij openen alleen veilig gesloten.
+  // Die automatische opruiming is geen nieuwe, gevalideerde spelafronding.
+  if (!run.contentCollectionId) return null;
   const played = run.played || run.score > 0 || run.reviveUsed || run.status === "DEAD_AWAITING_REVIVE" || run.status === "REVIVE_READY"
     || run.eliminatedHow === "CRASH" || run.eliminatedHow === "GENEES_WRONG";
   if (!played) return null;
