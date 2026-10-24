@@ -14,7 +14,7 @@ of van acceptatie op de NAS. Productie kan bovendien een andere image draaien da
 Een lokale, werkboomvrije `git merge-tree`-simulatie tegen deze main vindt vier conflicten:
 `docs/NATIVE-FEATURE-PARITY.md`, `docs/native-feature-parity.inventory.json`,
 `tests/quick-missionary-source.integration.test.ts` en `tests/quick-missionary-source.multi-instance.test.mjs`.
-Dit is geen uitgevoerde merge of branchwijziging. GitHub meldde tijdens de statusaanvraag nog `mergeable=UNKNOWN`.
+Dit is geen uitgevoerde merge of branchwijziging. GitHub bevestigt inmiddels `mergeable=false`, `mergeable_state=dirty`.
 
 | Onderdeel | Werkelijke status op deze main | Actie tegen dubbele implementatie |
 |---|---|---|
