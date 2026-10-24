@@ -184,7 +184,7 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
       step1: "Schließe jeden Tag mindestens eine Aktivität ab, etwa eine Lektion, eine Übungsrunde, ein Spiel oder einen abgeschlossenen Leseschritt. Wie kurz oder lang sie ist, spielt keine Rolle.",
       step2: "Verpasst du einen Tag, setzt Versado automatisch einen Serien-Freeze ein, wenn du einen hast. Er bewahrt deine Serie.",
       step3: "Hast du keinen Serien-Freeze mehr, bricht deine Serie ab.",
-      more: "Die erste abgeschlossene Aktivität des Tages setzt deine Serie fort; eine zweite am selben Tag gibt keinen zusätzlichen Serientag. XP und Serie sind getrennt: Auch eine Aktivität ohne XP kann zählen. Nur öffnen, stöbern oder beginnen zählt nicht, sie muss wirklich abgeschlossen sein. Ein Tag richtet sich nach der Zeitzone deines Kontos.",
+      more: "Die erste abgeschlossene Aktivität des Tages setzt deine Serie fort; eine zweite am selben Tag gibt keinen zusätzlichen Serientag. XP und Serie sind getrennt: Auch eine Aktivität ohne XP kann zählen. Nur öffnen, stöbern oder beginnen zählt nicht, sie muss wirklich abgeschlossen sein. Ein Tag richtet sich nach der Zeitzone deines Kontos. Beim Spielen erscheint ein neuer Serientag sofort als Banner oben. Wische es nach oben oder schließe es; dein Spiel läuft weiter. Die Vollbildfeier folgt später nach deiner Aktivität.",
     },
     progressDivisions: {
       title: "Liga",

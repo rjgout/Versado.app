@@ -830,6 +830,9 @@ export const es: PartialMessages = {
     notifyLongBody: "No importa cuánto tiempo haya pasado: siempre puedes continuar.",
   },
   "streakCelebration": {
+    bannerTitle: "¡Racha ampliada!",
+    bannerDay: "{n} día",
+    bannerDays: "{n} días",
     "title": "Tu racha continúa",
     "personalMessage": "{n} días. Hoy también lo lograste.",
     "daysOnRow": "días seguidos",

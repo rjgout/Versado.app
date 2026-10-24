@@ -830,6 +830,9 @@ export const de: PartialMessages = {
     notifyLongBody: "Egal, wie lange es her ist: Du kannst jederzeit weitermachen.",
   },
   streakCelebration: {
+    bannerTitle: "Serie verlängert!",
+    bannerDay: "{n} Tag",
+    bannerDays: "{n} Tage",
     title: "Deine Serie geht weiter",
     personalMessage: "{n} Tage. Heute wieder geschafft.",
     daysOnRow: "Tage in Folge",
