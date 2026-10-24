@@ -47,6 +47,31 @@ function LessonImage({ src }: { src: string }) {
   </div>;
 }
 
+/** Dezelfde overlaykleuren en teksthiërarchie als ActiveChapterCard; tekst blijft in de flow bij lange titels. */
+function LessonHeading({ imageSrc, title, subtitle, active = false, trailing }: {
+  imageSrc: string | null; title: string; subtitle: React.ReactNode; active?: boolean; trailing?: React.ReactNode;
+}) {
+  const [failed, setFailed] = useState(false);
+  const showImage = !!imageSrc && !failed;
+  if (!showImage && !active) return <span className="flex min-h-12 w-full items-center gap-3 px-3 py-2"><Heading label={title} subtitle={subtitle} />{trailing}</span>;
+  return (
+    <span data-cfm-lesson-heading data-image-overlay={showImage || undefined} className={`relative grid w-full min-w-0 overflow-hidden ${showImage ? "bg-vs-overlay" : "bg-gradient-to-br from-vs-accent-soft to-vs-surface"}`}>
+      {showImage && <>
+        <span aria-hidden className="col-start-1 row-start-1 aspect-video w-full" />
+        <Image unoptimized src={imageSrc!} alt="" fill sizes="(min-width: 1024px) 640px, 100vw" loading="lazy" className="pointer-events-none object-cover" onError={() => setFailed(true)} />
+        <span aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-vs-overlay/90 via-vs-overlay/50 to-transparent" />
+      </>}
+      <span className={`relative col-start-1 row-start-1 flex min-w-0 self-end items-end gap-3 p-[clamp(0.5rem,3vw,0.75rem)] ${showImage ? "pt-10 text-white" : "text-vs-fg"}`}>
+        <span className="min-w-0 flex-1">
+          <span role={active ? "heading" : undefined} aria-level={active ? 2 : undefined} className={`vs-wrap block font-extrabold leading-snug ${active ? "text-xl" : "text-base"}`}>{title}</span>
+          <span className={`vs-wrap mt-1 block text-xs ${active ? "font-semibold" : ""} ${showImage ? "text-white/90" : "text-vs-fg-3"}`}>{subtitle}</span>
+        </span>
+        {trailing}
+      </span>
+    </span>
+  );
+}
+
 function WeekSteps({ week, sessionKey }: { week: WeekRow; sessionKey: string }) {
   const t = useT();
   const base = lessonBase(week.lessonId, week.collectionId);
@@ -63,7 +88,7 @@ function WeekSteps({ week, sessionKey }: { week: WeekRow; sessionKey: string }) 
   const active = (lastOpened && statusOf(lastOpened.fingerprint) !== "COMPLETED" ? lastOpened : null) ?? steps.find((s) => statusOf(s.fingerprint) !== "COMPLETED") ?? null;
   return (
     <div className="space-y-2">
-      <ol className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,9rem),1fr))] gap-1.5 p-0">
+      <ol className="m-0 grid list-none grid-cols-2 gap-1.5 p-0">
         {steps.map((step) => {
           const status = statusOf(step.fingerprint);
           const isActive = active?.index === step.index;
@@ -176,9 +201,13 @@ export default function CfmWeekPath({
                 eyebrow={labelKey ? t(labelKey) : undefined}
                 artworkKeys={[]}
                 imageSrc={null}
+                header={mode === "STEPS" ? <>
+                  {labelKey && <p className="px-[clamp(0.5rem,3vw,0.75rem)] py-2 text-xs font-extrabold uppercase tracking-wide text-vs-accent">{t(labelKey)}</p>}
+                  <LessonHeading key={imageSrc} imageSrc={imageSrc} title={week.title} subtitle={subtitle} active />
+                </> : undefined}
               >
                 {mode === "STEPS" ? (
-                  <>{imageSrc && <LessonImage key={imageSrc} src={imageSrc} />}<WeekSteps week={week} sessionKey={sessionKey} /></>
+                  <WeekSteps week={week} sessionKey={sessionKey} />
                 ) : (
                   <>{imageSrc && <LessonImage key={imageSrc} src={imageSrc} />}<Link href={href} prefetch={false} onClick={() => onOpenWeek?.(week.lessonKey, week.workKey)} className={`${primaryButton} min-h-12 w-full sm:w-auto`}>
                     {week.read ? t("cfmStudy.openWeek") : t("cfmStudy.continueWeek")}
@@ -202,16 +231,21 @@ export default function CfmWeekPath({
                     aria-expanded={isOpen}
                     aria-controls={`week-${week.id}`}
                     aria-label={`${week.title}: ${isOpen ? t("cfmStudy.collapseWeek") : t("cfmStudy.expandWeek")}`}
-                    className={`relative flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${focusRing}`}
+                    className={`${isOpen ? "relative block w-full overflow-hidden rounded-t-2xl" : "relative flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 py-2"} text-left ${focusRing}`}
                   >
-                    <Heading label={week.title} subtitle={subtitle} />
-                    {state === "done" && <DoneMark />}
-                    <ChevronDown size={16} aria-hidden className={`vs-motion shrink-0 text-vs-fg-3 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                    {isOpen ? <LessonHeading key={imageSrc} imageSrc={imageSrc} title={week.title} subtitle={subtitle} trailing={<>
+                      {state === "done" && <DoneMark />}
+                      <ChevronDown size={16} aria-hidden className="vs-motion shrink-0 rotate-180 transition-transform" />
+                    </>} /> : <>
+                      <Heading label={week.title} subtitle={subtitle} />
+                      {state === "done" && <DoneMark />}
+                      <ChevronDown size={16} aria-hidden className="vs-motion shrink-0 text-vs-fg-3 transition-transform" />
+                    </>}
                   </button>
                 </div>
                 {isOpen && (
                   <div id={`week-${week.id}`} onClickCapture={() => onOpenWeek?.(week.lessonKey, week.workKey)} className="border-t border-vs-line p-[clamp(0.5rem,3vw,0.75rem)]">
-                    <>{imageSrc && <LessonImage key={imageSrc} src={imageSrc} />}<WeekSteps week={week} sessionKey={sessionKey} /></>
+                    <WeekSteps week={week} sessionKey={sessionKey} />
                   </div>
                 )}
               </div>

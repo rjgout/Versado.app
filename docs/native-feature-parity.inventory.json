@@ -12893,7 +12893,7 @@
     },
     {
       "file": "src/components/reading/pathParts.tsx",
-      "sha256": "9f8f09e379be2c29c2446b3388c8e226c1d91fe42c064d091c4c675801d20e85",
+      "sha256": "890d6896f429f2097a748cd5c867e2cca389da173a05cff6dab69aef433798b1",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -13627,7 +13627,7 @@
     },
     {
       "file": "src/components/study/CfmWeekPath.tsx",
-      "sha256": "3ca7c6ef9e39ba2b33e127f8c9ca33ee4f6731ba3462429750bea983becc5bcb",
+      "sha256": "634e05a31f0f442f2b5b326e3086e318a8803eca6d608789c837be7b3de5586c",
       "boundary": "client",
       "imports": [
         "./PersonalStudyParts",
@@ -70763,7 +70763,7 @@
     },
     {
       "file": "src/components/reading/pathParts.tsx",
-      "sha256": "9f8f09e379be2c29c2446b3388c8e226c1d91fe42c064d091c4c675801d20e85",
+      "sha256": "890d6896f429f2097a748cd5c867e2cca389da173a05cff6dab69aef433798b1",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -71452,7 +71452,7 @@
     },
     {
       "file": "src/components/study/CfmWeekPath.tsx",
-      "sha256": "3ca7c6ef9e39ba2b33e127f8c9ca33ee4f6731ba3462429750bea983becc5bcb",
+      "sha256": "634e05a31f0f442f2b5b326e3086e318a8803eca6d608789c837be7b3de5586c",
       "boundary": "client",
       "imports": [
         "./PersonalStudyParts",
@@ -72487,6 +72487,7 @@
     "tests/cfm-2027.test.ts",
     "tests/cfm-auto-publish.integration.test.ts",
     "tests/cfm-card-improvements.test.ts",
+    "tests/cfm-card-overlay.browser.mjs",
     "tests/cfm-collection-isolation.integration.test.ts",
     "tests/cfm-courses.integration.test.ts",
     "tests/cfm-courses.test.ts",
