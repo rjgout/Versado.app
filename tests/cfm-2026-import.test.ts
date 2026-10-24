@@ -120,9 +120,10 @@ test("OTB-doelen hebben bestaande canonieke hoofdstukken/verzen of een expliciet
       else valid++;
     }
   }
-  assert.equal(valid, 1960);
+  // Eén officiële bronlink noemt Johannes 1:14 maar wijst naar Exodus 1:14; die blijft veilig geblokkeerd.
+  assert.equal(valid, 1959);
   assert.equal(external, 1001, "1096 − 95 video's die nu een videoblok zijn");
-  assert.equal(blocked, 553);
+  assert.equal(blocked, 554);
 });
 test("onbekende structuur, bronidentiteit en ontbrekende media stoppen; geen verzonnen vertaling", async () => {
   const s = await source("01");
@@ -242,4 +243,10 @@ test("video's: officiële MP4-bronnen op exacte hosts, standaard 720p, geen ifra
     }
   }
   assert.equal(count, 95);
+});
+
+test("een Johannes-label met een Exodus-bron wordt nooit intern als Exodus geopend", () => {
+ const target = cfmReferenceTarget("https://www.churchofjesuschrist.org/study/scriptures/ot/ex/1?id=p14&lang=nld#p14", "Johannes 1:14", manifest.lessons[14].sourceUrl);
+ assert.ok(target.sourceKey.startsWith("unverified-numbering:"));
+ assert.equal(parseOtbPassage(target.sourceKey), null);
 });

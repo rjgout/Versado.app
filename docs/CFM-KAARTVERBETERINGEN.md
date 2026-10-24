@@ -35,3 +35,9 @@ Mobiele componentfixture met de echte `CfmWeekPath`, 375 × 812, officiële afbe
 - Herhaalde geïsoleerde run: alle 16 API-/resolverintegratietests geslaagd. Ook alle 28 browserscenario’s slagen: 320/390/844/1280 px, licht/donker, 100/200% tekst, vijf UI-talen, Meer lezen en terugkeer, conflicten en netwerkfouten. Dit bewijst de bestaande terugkeerroute, naast de afzonderlijke CFM-kaartfixture.
 - De eerste GitHub native-parity-check signaleerde de gewijzigde broninventaris. De bestaande generator is uitgevoerd (alleen inventaris; geen native functionaliteitswijziging); de zes pariteitstests en de inventarischeck slagen lokaal.
 - De vier nieuwe gerichte regressietests zijn opgenomen in het bestaande `npm run test:references`-commando (22 tests geslaagd), zodat de bestaande CI ze meeneemt.
+
+## Herstel van de drie CI-blokkades
+
+- **CFM-import:** de NT-boekherkenning onthult één bestaande foutieve officiële bronlink in les 15: label `Johannes 1:14`, URL `ot/ex/1?id=p14`. Die mag niet als Exodus openen. Een expliciete regressietest bewaakt de diagnose `unverified-numbering`. Daarom tellen de import-/browserfixtures nu 1959 interne en 554 niet-oplosbare verwijzingen; de 553 historisch beoordeelde gevallen blijven onveranderd. Geen brontekst of bron-URL aangepast.
+- **Quick Missionary:** de bestaande afronder registreert bewust een gespeelde run met `reviveUsed`, ook bij nul punten, als leeractiviteit. De test controleert nu afzonderlijk dat bronloze revive-/koopacties niets muteren, en dat afronden uitsluitend de verwachte reeksregistratie toevoegt. XP, Genees, hints, cursus en bron blijven gelijk; herhaald afronden is idempotent. Geen spel- of reekslogica gewijzigd.
+- **Security:** Zod 4.6.7 en de compatibele dependency-updates uit `npm audit fix` sluiten de gemelde productie-advisories (onder meer undici 6.29.1, fast-uri 3.1.9 en nodemailer 10.2.1). Het productie-auditresultaat en de opnieuw gedraaide checks staan bij de PR.

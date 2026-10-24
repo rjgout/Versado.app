@@ -81,7 +81,14 @@ test("Een onbekende oude bron wordt nooit uit profiel/BOM afgeleid en kost geen 
  const run=await db.quickMissionaryRun.create({data:{userId:user,dayKey:"2026-10-11",status:"DEAD_AWAITING_REVIVE",reviveUsed:true}});
  const view=await runs.getQuickMissionaryRunView(run.id,user); assert.equal(view.reviveUnavailableReason,"legacy-source"); assert.equal(view.deathOption,"none");
  await assert.rejects(runs.requestReviveQuestion(run.id,user),/NO_QUESTION/); assert.equal((await runs.buyGeneesInRun(run.id,user)).result.ok,false);
- await runs.finishQuickMissionaryRun(run.id,user,0); assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:run.id}})).contentCollectionId,null); assert.deepEqual(await economy(user),before);
+ // Bronloze revive-/koopacties wijzigen ook de reeks niet.
+ assert.deepEqual(await economy(user),before);
+ await runs.finishQuickMissionaryRun(run.id,user,0);
+ assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:run.id}})).contentCollectionId,null);
+ // Bewust afronden registreert volgens het bestaande contract een leeractiviteit, ook bij nul punten.
+ assert.deepEqual(await economy(user), { ...before, currentStreak: 1 });
+ await runs.finishQuickMissionaryRun(run.id,user,0);
+ assert.deepEqual(await economy(user), { ...before, currentStreak: 1 });
 });
 
 test("Oude reeds uitgegeven vraag herstelt alleen haar bewezen bron onder de runlock", {skip},async()=>{
