@@ -830,6 +830,9 @@ export const fr: PartialMessages = {
     notifyLongBody: "Quel que soit le temps écoulé, tu peux toujours continuer.",
   },
   streakCelebration: {
+    bannerTitle: "Série prolongée !",
+    bannerDay: "{n} jour",
+    bannerDays: "{n} jours",
     title: "Ta série continue",
     personalMessage: "{n} jours. Tu as réussi aujourd’hui aussi.",
     daysOnRow: "jours d’affilée",

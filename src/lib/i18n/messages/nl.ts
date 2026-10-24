@@ -452,6 +452,9 @@ export const nl = {
     notifyLongBody: "Hoe lang het ook geleden is, je kunt altijd weer verdergaan.",
   },
   streakCelebration: {
+    bannerTitle: "Reeks verlengd!",
+    bannerDay: "{n} dag",
+    bannerDays: "{n} dagen",
     title: "Je reeks leeft voort",
     personalMessage: "{n} dagen. Vandaag weer gelukt.",
     daysOnRow: "dagen op rij",
