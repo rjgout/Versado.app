@@ -7,23 +7,24 @@ na het betreffende akkoord. Deel rapporten zonder credentials, cookies, tokens o
 
 ## 1. Eerst de werkelijke ontwikkelstatus
 
-Gecontroleerde `main`: `89b8e4a59c42daa218f9bb693f033c6e669a9ace` (#210). PR [#187](https://github.com/rjgout/Versado.app/pull/187):
-**OPEN, draft, `merged=false`, geen mergecommit**, hoofdcommit `8c5e7626362a4eb99e8c76d0d9d1b11d9f027067`.
-De 27 groene checks op die PR waren bewijs voor die commit met de toenmalige basis; geen bewijs van een merge
-of van acceptatie op de NAS. Productie kan bovendien een andere image draaien dan `main`.
-Een lokale, werkboomvrije `git merge-tree`-simulatie tegen deze main vindt vier conflicten:
-`docs/NATIVE-FEATURE-PARITY.md`, `docs/native-feature-parity.inventory.json`,
-`tests/quick-missionary-source.integration.test.ts` en `tests/quick-missionary-source.multi-instance.test.mjs`.
-Dit is geen uitgevoerde merge of branchwijziging. GitHub bevestigt inmiddels `mergeable=false`, `mergeable_state=dirty`.
+Gecontroleerde `main`: `89b8e4a59c42daa218f9bb693f033c6e669a9ace` (#210). PR [#187](https://github.com/rjgout/Versado.app/pull/187)
+is **OPEN, draft en ongemerged**. De integratiecommit `4891523d6f78f8aa0dd1ad94684fc172369c97e5` bevat deze main en lost de vier
+conflicten inhoudelijk op; GitHub bevestigt `mergeable=true`. De twee native inventarisbestanden zijn opnieuw gegenereerd;
+de twee speltests behouden de actuele main-regel voor bronloze runs. De eerdere 27 groene checks op `8c5e7626` gelden niet als
+bewijs voor deze integratiecommit: controleer de volledige nieuwe CI en de onafhankelijke beoordeling vóór enig mergebesluit.
+Productie kan bovendien een andere image draaien dan `main`.
+
+Het integratierapport staat in #187 onder `docs/CONTENTBEHEER-INTEGRATIE-187.md`; geen tweede implementatie toevoegen.
+Deze document-PR bevat het rapport niet opnieuw en geeft geen merge- of uitroltoestemming.
 
 | Onderdeel | Werkelijke status op deze main | Actie tegen dubbele implementatie |
 |---|---|---|
 | Stabiele oefenidentiteit, behoud van pogingen/voortgang, importlock, OTB-beheerinstellingen | Al aanwezig via #184, `29252462` | Hergebruiken; niet opnieuw bouwen |
 | AudioPackage/Recording/Publication, veilige ontvangst/Range/auth, beheerpreview/publicatie, zes verborgen tekstuitgaven, officiële importer en metadata | Al aanwezig via #194, `fffb41bf` | Audio-servermodules/importscripts/audio-DDL zijn sinds die merge inhoudelijk ongewijzigd |
 | Native distributieprofielen | Al aanwezig via #195, `350d4683` | Niet opnieuw toevoegen of releasegates wijzigen |
-| Twee Contentbeheer-kaarten; controleren/voorbereiden/publiceren met planHash; ContentUpdateRun; ChapterAudioCheck; RETIRED; transactionele legacy-audio + controleafhandeling | **Niet op main**; nog in #187 | Eerst onafhankelijke review en gerichte integratie; geen tweede systeem maken |
+| Twee Contentbeheer-kaarten; controleren/voorbereiden/publiceren met planHash; ContentUpdateRun; ChapterAudioCheck; RETIRED; transactionele legacy-audio + controleafhandeling | **Niet op main**; nog in #187 | Geïntegreerd met actuele main in #187, nog niet gemerged; nieuwe CI en onafhankelijke review vereist |
 | Vier herstelde runtime-dependencyversies uit #187 | Inmiddels ook op main via #200 (`985c6738`) en #208 (`b28db54b`): Zod 4.6.7, Nodemailer 10.2.1, fast-uri 3.1.9, Undici 6.29.1 | Geen dubbele securitypatch of downgrade; main pint Nodemailer expliciet |
-| Legacy-run zonder bewezen bron | Main #200 sluit die **zonder reeksactiviteit**; #208 versterkt de regressietest. De oude #187-test verwacht juist activiteit | Behoud de actuele main-regel; oude #187-testwijziging niet blind overnemen |
+| Legacy-run zonder bewezen bron | Main #200 sluit die **zonder reeksactiviteit**; #208 versterkt de regressietest. Oude #187-assertie is in `4891523d` gecorrigeerd | Behoud nul reeksactiviteit én de extra economie-/retrycontroles |
 | CFM-runtimebestanden, winkel-/CFM-verbeteringen, wegveegbare reeksbanner | #201, #200, #208, #209, #210 zijn op main en deels nieuwer dan #187 | Behoud main; geen volledige oude branch/tree terugzetten |
 
 Controlecommando's in een ontwikkelcheckout, niet op productie:
@@ -32,14 +33,15 @@ Controlecommando's in een ontwikkelcheckout, niet op productie:
 git fetch origin main feature/content-beheer-v2-beheerkaarten
 gh api repos/rjgout/Versado.app/pulls/187 --jq '{state,draft,merged,head:.head.sha,merge_commit_sha}'
 git log -10 --oneline origin/main
-git diff origin/main...8c5e7626362a4eb99e8c76d0d9d1b11d9f027067 --stat
-git diff origin/main 8c5e7626362a4eb99e8c76d0d9d1b11d9f027067 -- package.json package-lock.json tests/quick-missionary-source.integration.test.ts
+git diff origin/main...origin/feature/content-beheer-v2-beheerkaarten --stat
+git diff origin/main origin/feature/content-beheer-v2-beheerkaarten -- package.json package-lock.json tests/quick-missionary-source.integration.test.ts
 ```
 
 Audio V2 kan afzonderlijk worden geaccepteerd op een beoordeelde main-image. Dan ontbreken de nieuwe #187-kaarten
 en controlemarkeringen nog: **geen Schriftupdate, reseed, audiospiegeling of andere tekstschrijver tijdens de acceptatie**.
-Voor gecombineerde acceptatie van Contentbeheer V2 is eerst een opnieuw beoordeelde integratie van #187 nodig,
-met de actuele main-regels en nieuwe CI. Dit plan geeft geen toestemming om #187 te mergen.
+Voor gecombineerde acceptatie is eerst de nieuwe CI en onafhankelijke beoordeling van de geïntegreerde #187 nodig.
+De integratie voorkomt tevens automatische cursussen voor de zes verborgen Audio V2-tekstuitgaven en beschermt actieve
+ContentUpdateRun-logrijen op andere processen tegen foutieve onderbrekingsmarkering. Dit plan geeft geen toestemming om #187 te mergen.
 
 ## 2. Beslismomenten
 
@@ -71,6 +73,24 @@ Op een nieuwe database komt november vóór december. Op een database met Audio 
 later worden toegepast; dat scenario is geïsoleerd getest in #187 (`scripts/audio/test-isolated.mjs`). De audio-migratie
 heeft geen afhankelijkheid van ChapterAudioCheck. Geen bestaande migratie hernoemen of wijzigen: toekomstige timestamps
 in deze keten zijn geen reden om geschiedenis te herschrijven.
+
+De integratie verandert de migratievolgorde en bestandschecksums niet. Het nieuwe geïsoleerde bewijs gebruikt alle **205**
+Nederlandse legacy-audiohoofdstukken vóór de Audio V2-migratie; daarna wordt Contentbeheer V2 toegepast. IDs, tekst, audio-URL's,
+kop- en vers-tijdcodes blijven exact gelijk; de nieuwe controlebackfill is CURRENT met de juiste teksthash. Dit is geen inventarisatie
+van de NAS en geen bewijs dat productie die migraties al heeft toegepast.
+
+Bij een gecombineerde uitrol, uitsluitend na apart akkoord:
+
+1. Onderhoud en consistente DB-/audioback-up volgens §5; leg alle oude app- en importschrijvers vast.
+2. Stop die oude schrijvers vóór migratie/start van de nieuwe image. Geen gemengde oude algemene reload naast de nieuwe Schriftflow.
+3. Pas de volledige normale migratieketen van de beoordeelde image toe; controleer historie/checksums zonder automatische correcties.
+4. Start de nieuwe image, controleer gezondheid en maak de **na migratie** controlebaseline van de 205 hoofdstukken.
+5. Voer de goedgekeurde audiopilot uit. Geen reseed, Schriftpublicatie of audiospiegeling tijdens deze acceptatie.
+6. Een latere aanvullende contentupdate gebruikt uitsluitend de nieuwe beheerkaart; een Schriftupdate blijft een apart
+   controleren → voorbereiden → publiceren-besluit. De zes tekstuitgaven blijven verborgen en zonder cursussen/oefeningen.
+
+Rollback verwijdert geen enumwaarden, tabellen of migratiehistorie. Een oude image mag pas terug na bewijs van RETIRED-compatibiliteit;
+houd zijn algemene reload uit. Bij twijfel vooruit herstellen; een volledige DB-restore verliest nieuwere voortgang en vraagt apart akkoord.
 
 Referentiechecksums van de gelezen migratiebestanden:
 
