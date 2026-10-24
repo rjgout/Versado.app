@@ -8,7 +8,7 @@ na het betreffende akkoord. Deel rapporten zonder credentials, cookies, tokens o
 ## 1. Eerst de werkelijke ontwikkelstatus
 
 Gecontroleerde `main`: `89b8e4a59c42daa218f9bb693f033c6e669a9ace` (#210). PR [#187](https://github.com/rjgout/Versado.app/pull/187)
-is **OPEN, draft en ongemerged**. De integratiecommit `4891523d6f78f8aa0dd1ad94684fc172369c97e5` bevat deze main en lost de vier
+is **OPEN, draft en ongemerged**. De integratiecommit `e38f565e20cc1184914ed7af7cea140303dd1cc5` bevat deze main en lost de vier
 conflicten inhoudelijk op; GitHub bevestigt `mergeable=true`. De twee native inventarisbestanden zijn opnieuw gegenereerd;
 de twee speltests behouden de actuele main-regel voor bronloze runs. De eerdere 27 groene checks op `8c5e7626` gelden niet als
 bewijs voor deze integratiecommit: controleer de volledige nieuwe CI en de onafhankelijke beoordeling vóór enig mergebesluit.
@@ -24,7 +24,7 @@ Deze document-PR bevat het rapport niet opnieuw en geeft geen merge- of uitrolto
 | Native distributieprofielen | Al aanwezig via #195, `350d4683` | Niet opnieuw toevoegen of releasegates wijzigen |
 | Twee Contentbeheer-kaarten; controleren/voorbereiden/publiceren met planHash; ContentUpdateRun; ChapterAudioCheck; RETIRED; transactionele legacy-audio + controleafhandeling | **Niet op main**; nog in #187 | Geïntegreerd met actuele main in #187, nog niet gemerged; nieuwe CI en onafhankelijke review vereist |
 | Vier herstelde runtime-dependencyversies uit #187 | Inmiddels ook op main via #200 (`985c6738`) en #208 (`b28db54b`): Zod 4.6.7, Nodemailer 10.2.1, fast-uri 3.1.9, Undici 6.29.1 | Geen dubbele securitypatch of downgrade; main pint Nodemailer expliciet |
-| Legacy-run zonder bewezen bron | Main #200 sluit die **zonder reeksactiviteit**; #208 versterkt de regressietest. Oude #187-assertie is in `4891523d` gecorrigeerd | Behoud nul reeksactiviteit én de extra economie-/retrycontroles |
+| Legacy-run zonder bewezen bron | Main #200 sluit die **zonder reeksactiviteit**; #208 versterkt de regressietest. Oude #187-assertie is in `e38f565e` gecorrigeerd | Behoud nul reeksactiviteit én de extra economie-/retrycontroles |
 | CFM-runtimebestanden, winkel-/CFM-verbeteringen, wegveegbare reeksbanner | #201, #200, #208, #209, #210 zijn op main en deels nieuwer dan #187 | Behoud main; geen volledige oude branch/tree terugzetten |
 
 Controlecommando's in een ontwikkelcheckout, niet op productie:
