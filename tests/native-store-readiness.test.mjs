@@ -21,10 +21,12 @@ const completeFiles = () => ({
   "android/app/build.gradle": 'applicationId "app.versado.app"\nVERSADO_VERSION_CODE VERSADO_VERSION_NAME\nsigningConfigs {\nVERSADO_UPLOAD_KEYSTORE_PATH',
   "android/app/src/main/AndroidManifest.xml": '<intent-filter android:autoVerify="true"/>',
   "android/app/src/main/java/app/versado/app/MainActivity.java": "ActivityInfo.SCREEN_ORIENTATION_PORTRAIT",
-  "ios/App/App.xcodeproj/project.pbxproj": "PRODUCT_BUNDLE_IDENTIFIER = app.versado.app;\nIPHONEOS_DEPLOYMENT_TARGET = 15.0;\nCODE_SIGN_ENTITLEMENTS = App/App.entitlements;",
+  "ios/App/App.xcodeproj/project.pbxproj": "PrivacyInfo.xcprivacy in Resources\nPRODUCT_BUNDLE_IDENTIFIER = app.versado.app;\nIPHONEOS_DEPLOYMENT_TARGET = 15.0;\nCODE_SIGN_ENTITLEMENTS = App/App.entitlements;",
   "ios/App/App/Info.plist": "<key>UISupportedInterfaceOrientations</key>\n<array><string>UIInterfaceOrientationPortrait</string></array>\n<key>ITSAppUsesNonExemptEncryption</key><false/>",
   "ios/App/App/PrivacyInfo.xcprivacy": "<plist/>",
   ".github/workflows/native.yml": "xcodebuild -scheme App archive\n./gradlew :app:bundleRelease",
+  ".github/workflows/native-ios-release.yml": "on:\n  workflow_dispatch:\njobs:\n  x:\n    if: github.ref == 'refs/heads/main'\n    environment: ios-testflight\n    steps: xcodebuild -exportArchive <key>destination</key><string>export</string>",
+  "scripts/native/ios-release-guard.mjs": "metadata.compileProbe !== false local-store-test testflight",
   "public/.well-known/apple-app-site-association": "{}",
   "public/.well-known/assetlinks.json": "[]",
   "src/lib/native/api.ts": 'req.method === "DELETE" && path === "account"; minimumNativeVersion',
@@ -95,4 +97,20 @@ test("zonder vastgelegde origins blijft de eigenaarsblokkade open, ook als de co
     assert.equal(report.blockers.find((item) => item.id === "distribution-origins-configured").ok, false);
   }
   assert.equal(evaluate(memoryFs({ ...files, "scripts/native/distribution-origins.json": "{kapot" })).blockers.find((item) => item.id === "distribution-origins-configured").ok, false);
+});
+
+test("de iOS-poort-guard faalt zodra de poort compileproeven doorlaat of de workflow uploadt of op een PR draait", () => {
+  const files = completeFiles();
+  const guard = (patch) => evaluate(memoryFs({ ...files, ...patch })).guards.find((item) => item.id === "ios-signing-refuses-probe").ok;
+  assert.equal(guard({}), true);
+  assert.equal(guard({ "scripts/native/ios-release-guard.mjs": "" }), false);
+  assert.equal(guard({ ".github/workflows/native-ios-release.yml": files[".github/workflows/native-ios-release.yml"] + "\n xcrun altool --upload-app" }), false);
+  assert.equal(guard({ ".github/workflows/native-ios-release.yml": files[".github/workflows/native-ios-release.yml"].replace("on:\n", "on:\n  pull_request:\n") }), false);
+});
+
+test("het privacy manifest telt pas als opgelost als het ook in het app-target is opgenomen", () => {
+  const files = completeFiles();
+  const manifest = (patch) => evaluate(memoryFs({ ...files, ...patch })).blockers.find((item) => item.id === "ios-privacy-manifest").ok;
+  assert.equal(manifest({ "ios/App/App/PrivacyInfo.xcprivacy": "<plist/>" }), true);
+  assert.equal(manifest({ "ios/App/App.xcodeproj/project.pbxproj": "PRODUCT_BUNDLE_IDENTIFIER = app.versado.app;" }), false);
 });
