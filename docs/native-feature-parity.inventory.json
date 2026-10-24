@@ -13649,7 +13649,7 @@
     },
     {
       "file": "src/components/study/CfmWeekPath.tsx",
-      "sha256": "634e05a31f0f442f2b5b326e3086e318a8803eca6d608789c837be7b3de5586c",
+      "sha256": "99e4bc2b76f667dac671020c9293e805747baef88abf33f078926b4670e3e4a6",
       "boundary": "client",
       "imports": [
         "./PersonalStudyParts",
@@ -71614,7 +71614,7 @@
     },
     {
       "file": "src/components/study/CfmWeekPath.tsx",
-      "sha256": "634e05a31f0f442f2b5b326e3086e318a8803eca6d608789c837be7b3de5586c",
+      "sha256": "99e4bc2b76f667dac671020c9293e805747baef88abf33f078926b4670e3e4a6",
       "boundary": "client",
       "imports": [
         "./PersonalStudyParts",
