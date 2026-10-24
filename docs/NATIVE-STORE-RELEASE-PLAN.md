@@ -394,6 +394,27 @@ i18n-check; CI: native-platform-builds bouwt voor Android en iOS de profielen de
 eigenaar. **WP3 (Android):** `local-store-test` + `play-test`, `NATIVE_BUILD_NUMBER` → `VERSADO_VERSION_CODE`, uploadsleutel
 uit secrets, allowlist-origin.
 
+### 5.2 CI-compilebewijs versus echte ondertekende distributiebuilds
+
+Een groene CI betekent **niet** dat er een distributiebuild bestaat. Het onderscheid is bewust hard:
+
+| | CI-compilebewijs (elke PR/push) | Echte ondertekende distributiebuild (handmatig) |
+|---|---|---|
+| Doel | Bewijzen dat de keten compileert en dat de poorten werken | Een installeerbaar artifact voor TestFlight of Play-test |
+| Backend-origin | Alleen `https://example.invalid` (`compileProbe:true`) | Een origin uit de allowlist (`distribution-origins.json`) |
+| Signing | Geen; of een wegwerpsleutel die in de runner ontstaat en verdwijnt | Uploadsleutel/API-sleutel uit de beschermde omgeving |
+| Artifact | Geen distributieartifact (debug-APK/simulatorzip als compileproef) | Getekende AAB of IPA, 7 dagen bewaard, sha256 in de samenvatting |
+| Start | Automatisch | Alleen `workflow_dispatch` vanaf `main`, omgeving met goedkeurders |
+| Upload naar store | Nooit | Nooit door de workflow; de eigenaar plaatst het artifact handmatig |
+| Wat het bewijst | Compilatie, poortgedrag (weigert probe/intern/foute versie), privacy manifest en versie in het archief | Pas na de eerste echte run en een toesteltest (M0/M1) |
+
+Een compileproef wordt in elke laag geweigerd voor tekenen of archiveren: Gradle (`GradleException`), `android-release-guard.mjs` /
+`ios-release-guard.mjs`, en de CI bewijst dat met een wegwerpsleutel respectievelijk een probe-archief. Workflowinvoer wordt nooit
+in shelltekst geïnterpoleerd (alleen via `env`, met voorafgaande validatie) en secrets staan alleen in de stap die ze gebruikt.
+Open veiligheidspunten voor de eigenaar: beperk de App Store Connect API-sleutel tot de minimaal nodige rol (`-allowProvisioningUpdates`
+mag certificaten en profielen aanmaken), zet vereiste goedkeurders op beide omgevingen, en overweeg een vastgezette uploadcertificaat-vingerafdruk
+zodra de sleutel bestaat.
+
 ## 6. TestFlight-traject (iOS)
 
 | Stap | Wie | Resultaat |
@@ -603,6 +624,12 @@ Alle voorwaarden zijn controleerbaar; geen enkele mag worden overgeslagen of ver
 8. Store-assets, iconen en teksten zijn definitief en eigendom/gelicentieerd; contentrechten bevestigd (D13).
 9. TestFlight/Play-testtrajecten zijn doorlopen (inclusief de 14 dagen indien van toepassing) zonder open blokkerende bevindingen.
 10. De eigenaar geeft schriftelijk akkoord op de indiening; productie-uitrol en indiening zijn eigenaarshandelingen.
+
+## 12.1 Gerelateerde voorstellen en plannen
+
+- Scope en tijdelijke pariteitsuitzonderingen voor optie B: `docs/NATIVE-MOBILE-1-0-OPTIE-B.md` (voorstel, nog niet doorgevoerd).
+- WP4 ontwerp accountverwijdering en juridische toegang: `docs/NATIVE-WP4-ACCOUNTVERWIJDERING.md` (ontwerp ter goedkeuring).
+- NAS-teststack: `docs/NAS-TESTSTACK-PLAN.md` (plan; geen origin ingevuld).
 
 ## 13. Eindadvies: eerste werkpakket
 
