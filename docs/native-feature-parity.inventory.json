@@ -10709,7 +10709,7 @@
     },
     {
       "file": "src/components/StreakCelebrationFlow.tsx",
-      "sha256": "19d3a89297adb9f3796fe69cfe534c1baedd886dfc8302c9267d24f4879e3297",
+      "sha256": "a6cfb2b43499ba2ea78d60eb3cfdf87a575f81fefe2fb88e15f92fbc10091b2c",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -10718,6 +10718,7 @@
         "@/components/versado/PersonalMascot",
         "@/components/versado/SystemIcon",
         "@/components/versado/styles",
+        "@/lib/platform",
         "@/lib/streakCelebration",
         "lucide-react",
         "react"
@@ -10726,7 +10727,9 @@
       "requests": [
         "/api/streak/celebration"
       ],
-      "checks": [],
+      "checks": [
+        "canShareContent"
+      ],
       "exports": [
         "StreakCelebrationFlow"
       ]
@@ -18161,7 +18164,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "fc4e619cb17d01cb61b0042b99bb70595032f94a65264dcfe27729dd83bbe66b",
+      "sha256": "12ebf05c8bc619e7590677745cd8be3ca832c026fe170be41ce2197b0bb80f72",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18176,7 +18179,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "91d02831ec8708ab649aa04ebf5fb23ec7e6704073a03066f8e72329f3b41a79",
+      "sha256": "845b11307ed1a36edd9b9d5e4f772998c884ab4f08eab36cd8b7c2835a7a752d",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18191,7 +18194,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "aef8902c1d2168264d0e324bfc901a1ec58c0c4891636f3f56e2a95b46a72c46",
+      "sha256": "19325d7cabae5edba23fd6a145075604a8eefc3ba565ecf4ea82bfcc3414d8ec",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18206,7 +18209,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "499f622910c9c2e26552d8af7baa75b177a8f14981ba11cefee3b24d5530f7d7",
+      "sha256": "611c3f55626313a360f4300b8780ebc7debc1bf6800fbebf1c3c8605bf478c4c",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18221,7 +18224,7 @@
     },
     {
       "file": "src/lib/i18n/messages/kompas/de.ts",
-      "sha256": "1f2b81195e8d582d616964dc87c5a67acbebfe740850739c376c89f67da36b2a",
+      "sha256": "9ae5d9412012fd4addd1129afd7e4c6715f9e05930a8a6b617ae0ea41de0ea1e",
       "boundary": "context-dependent",
       "imports": [
         "../../core"
@@ -18235,7 +18238,7 @@
     },
     {
       "file": "src/lib/i18n/messages/kompas/en.ts",
-      "sha256": "81e0e8f93e0cf4e8fe53b713b86220c0cc659e5216a775818eb213671958d321",
+      "sha256": "002a56f49b776ed5ccf2c1188ac634c408b82e35567b7c4c48c39c2bb0f72ac4",
       "boundary": "context-dependent",
       "imports": [
         "../../core"
@@ -18249,7 +18252,7 @@
     },
     {
       "file": "src/lib/i18n/messages/kompas/es.ts",
-      "sha256": "cb8b49646ae3b05dfac25fdf6106b5017f13dfb3693a3a59ad59fa0e4dbc83a2",
+      "sha256": "8a8360b0a553a151d26e527c2f1e8cc8396063263b812fb245aba5d300ee9708",
       "boundary": "context-dependent",
       "imports": [
         "../../core"
@@ -18263,7 +18266,7 @@
     },
     {
       "file": "src/lib/i18n/messages/kompas/fr.ts",
-      "sha256": "7eb999e68d2321bfe05f8d89c2cef3fe5707e5c345203199fb24fb9091b4062b",
+      "sha256": "376225b0230a80d50f5d417429fa84aba91fb09e8e116e722544f536c0a3ebac",
       "boundary": "context-dependent",
       "imports": [
         "../../core"
@@ -18277,7 +18280,7 @@
     },
     {
       "file": "src/lib/i18n/messages/kompas/nl.ts",
-      "sha256": "209c8c62834b6be3214f79098a1486d0da21ac9eb5a798db361e1d2f6acd0164",
+      "sha256": "c833b5fda57b76f1c4f1d1c948d43d8eddbf8bee87abb818edf4caabca938725",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -18289,7 +18292,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "8b551727d77a35fe37ae007ee069f87fe570dfb98fb45eadce97351aad31c0ac",
+      "sha256": "62a22697472c948b02bdc8a422d2a40db0b24b7c3dd6b9338049804154d60909",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -18477,7 +18480,7 @@
     },
     {
       "file": "src/lib/kompas/registry.ts",
-      "sha256": "686dbdb9ec3d41b910dbb140ebb9678e38e6d7a80c1bc7083a9769120633e959",
+      "sha256": "65064f2793f7705d209cbaf80a5b612aad9f26f557e8deb777cf746eaeab6297",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/gameCatalog",
@@ -25541,9 +25544,13 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/bridge.ts",
+        "src/lib/native/client.ts",
+        "src/lib/native/contract.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/platform.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -25608,6 +25615,7 @@
         "src/lib/data/hooks.ts",
         "src/lib/data/mutation.ts",
         "src/lib/data/topics.ts",
+        "src/lib/platform.ts",
         "src/lib/readAloudPlayerContext.tsx",
         "src/lib/socketClient.ts",
         "src/lib/useActivity.ts",
@@ -48899,9 +48907,13 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/bridge.ts",
+        "src/lib/native/client.ts",
+        "src/lib/native/contract.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/platform.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -48950,6 +48962,7 @@
         "src/lib/data/hints.ts",
         "src/lib/data/hooks.ts",
         "src/lib/data/topics.ts",
+        "src/lib/platform.ts",
         "src/lib/socketClient.ts",
         "src/lib/xpBroadcast.ts"
       ],
@@ -50264,10 +50277,14 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/bridge.ts",
+        "src/lib/native/client.ts",
+        "src/lib/native/contract.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
         "src/lib/openActions.ts",
+        "src/lib/platform.ts",
         "src/lib/podcasts.ts",
         "src/lib/presence.ts",
         "src/lib/push.ts",
@@ -50367,6 +50384,7 @@
         "src/lib/data/hooks.ts",
         "src/lib/data/mutation.ts",
         "src/lib/data/topics.ts",
+        "src/lib/platform.ts",
         "src/lib/socketClient.ts",
         "src/lib/xpBroadcast.ts"
       ],
@@ -52493,9 +52511,13 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/bridge.ts",
+        "src/lib/native/client.ts",
+        "src/lib/native/contract.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/platform.ts",
         "src/lib/podcasts.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
@@ -52569,6 +52591,7 @@
         "src/lib/data/hooks.ts",
         "src/lib/data/mutation.ts",
         "src/lib/data/topics.ts",
+        "src/lib/platform.ts",
         "src/lib/readAloudPlayerContext.tsx",
         "src/lib/socketClient.ts",
         "src/lib/useActivity.ts",
@@ -53833,9 +53856,13 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/bridge.ts",
+        "src/lib/native/client.ts",
+        "src/lib/native/contract.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/platform.ts",
         "src/lib/podcasts.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
@@ -53907,6 +53934,7 @@
         "src/lib/data/hooks.ts",
         "src/lib/data/mutation.ts",
         "src/lib/data/topics.ts",
+        "src/lib/platform.ts",
         "src/lib/readAloudPlayerContext.tsx",
         "src/lib/socketClient.ts",
         "src/lib/useActivity.ts",
@@ -54429,9 +54457,13 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/bridge.ts",
+        "src/lib/native/client.ts",
+        "src/lib/native/contract.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/platform.ts",
         "src/lib/podcasts.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
@@ -54514,6 +54546,7 @@
         "src/lib/data/hooks.ts",
         "src/lib/data/mutation.ts",
         "src/lib/data/topics.ts",
+        "src/lib/platform.ts",
         "src/lib/readAloudPlayerContext.tsx",
         "src/lib/socketClient.ts",
         "src/lib/studyOrigin.ts",
@@ -54880,9 +54913,13 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/bridge.ts",
+        "src/lib/native/client.ts",
+        "src/lib/native/contract.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/platform.ts",
         "src/lib/podcastChapters.ts",
         "src/lib/podcastPlayerContext.tsx",
         "src/lib/push.ts",
@@ -54967,6 +55004,7 @@
         "src/lib/data/hooks.ts",
         "src/lib/data/mutation.ts",
         "src/lib/data/topics.ts",
+        "src/lib/platform.ts",
         "src/lib/podcastPlayerContext.tsx",
         "src/lib/readAloudPlayerContext.tsx",
         "src/lib/socketClient.ts",
@@ -59621,9 +59659,13 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/bridge.ts",
+        "src/lib/native/client.ts",
+        "src/lib/native/contract.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/platform.ts",
         "src/lib/podcasts.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
@@ -59695,6 +59737,7 @@
         "src/lib/data/hooks.ts",
         "src/lib/data/mutation.ts",
         "src/lib/data/topics.ts",
+        "src/lib/platform.ts",
         "src/lib/readAloudPlayerContext.tsx",
         "src/lib/socketClient.ts",
         "src/lib/useActivity.ts",
@@ -59859,9 +59902,13 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/bridge.ts",
+        "src/lib/native/client.ts",
+        "src/lib/native/contract.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/platform.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -59924,6 +59971,7 @@
         "src/lib/data/hooks.ts",
         "src/lib/data/mutation.ts",
         "src/lib/data/topics.ts",
+        "src/lib/platform.ts",
         "src/lib/readAloudPlayerContext.tsx",
         "src/lib/socketClient.ts",
         "src/lib/useActivity.ts",
@@ -60464,9 +60512,13 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/bridge.ts",
+        "src/lib/native/client.ts",
+        "src/lib/native/contract.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/platform.ts",
         "src/lib/podcasts.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
@@ -60544,6 +60596,7 @@
         "src/lib/data/hooks.ts",
         "src/lib/data/mutation.ts",
         "src/lib/data/topics.ts",
+        "src/lib/platform.ts",
         "src/lib/readAloudPlayerContext.tsx",
         "src/lib/socketClient.ts",
         "src/lib/useActivity.ts",
@@ -61051,9 +61104,13 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/bridge.ts",
+        "src/lib/native/client.ts",
+        "src/lib/native/contract.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/platform.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -61121,6 +61178,7 @@
         "src/lib/data/hooks.ts",
         "src/lib/data/mutation.ts",
         "src/lib/data/topics.ts",
+        "src/lib/platform.ts",
         "src/lib/readAloudPlayerContext.tsx",
         "src/lib/references/returnContext.ts",
         "src/lib/socketClient.ts",
@@ -61788,9 +61846,13 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/bridge.ts",
+        "src/lib/native/client.ts",
+        "src/lib/native/contract.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/platform.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -61838,6 +61900,7 @@
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
         "src/lib/data/topics.ts",
+        "src/lib/platform.ts",
         "src/lib/socketClient.ts",
         "src/lib/xpBroadcast.ts"
       ],
@@ -63674,9 +63737,13 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/native/bridge.ts",
+        "src/lib/native/client.ts",
+        "src/lib/native/contract.ts",
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/platform.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -63739,6 +63806,7 @@
         "src/lib/data/hooks.ts",
         "src/lib/data/mutation.ts",
         "src/lib/data/topics.ts",
+        "src/lib/platform.ts",
         "src/lib/socketClient.ts",
         "src/lib/useServerCountdown.ts",
         "src/lib/xpBroadcast.ts"
@@ -69280,7 +69348,7 @@
     },
     {
       "file": "src/components/StreakCelebrationFlow.tsx",
-      "sha256": "19d3a89297adb9f3796fe69cfe534c1baedd886dfc8302c9267d24f4879e3297",
+      "sha256": "a6cfb2b43499ba2ea78d60eb3cfdf87a575f81fefe2fb88e15f92fbc10091b2c",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -69289,6 +69357,7 @@
         "@/components/versado/PersonalMascot",
         "@/components/versado/SystemIcon",
         "@/components/versado/styles",
+        "@/lib/platform",
         "@/lib/streakCelebration",
         "lucide-react",
         "react"
@@ -69297,7 +69366,9 @@
       "requests": [
         "/api/streak/celebration"
       ],
-      "checks": [],
+      "checks": [
+        "canShareContent"
+      ],
       "exports": [
         "StreakCelebrationFlow"
       ]

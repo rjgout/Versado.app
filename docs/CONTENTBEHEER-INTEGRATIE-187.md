@@ -5,6 +5,9 @@ Oorspronkelijke basis: `main` `89b8e4a59c42daa218f9bb693f033c6e669a9ace` (#210),
 geen vervangende implementatie, force-push of nieuwe feature-PR.
 Tijdens de eindcontrole kwam #213 op main: `abddbe49fcda03fa9998e3326d40b8082071d19e`. Ook deze main is geïntegreerd;
 de CFM-weeklabelpresentatie, browserasserties en screenshot blijven intact. De gegenereerde native inventaris is opnieuw gecontroleerd.
+Daarna volgde #212 op main: `48f8974ce709444cc0fee96e61a53dd507dd87d9`. De deelknop, centrale platformadapter, vijf talen,
+Kompas-uitleg en share-browserasserties zijn behouden. Het aanvullende conflict betrof uitsluitend de gegenereerde JSON-inventaris;
+die is volledig opnieuw opgebouwd uit de gecombineerde bronboom. Geen audio of reeksregel is hierdoor gewijzigd.
 Alle 27 checks waren groen op de voorafgaande integratiecommit `e38f565e`; de nieuwe eindcommit wordt opnieuw volledig in CI getest. De productieacceptatie blijft afzonderlijk in draft-PR #211.
 
 ## Vier conflicten en leidende implementatie
@@ -31,7 +34,7 @@ naast de Contentbeheer-kaarten en fout-/bevestigingsteksten. De gezamenlijke str
 - #195: distributieprofielen en releaseblokkades blijven intact; lokale native audiopariteit is hiermee niet bewezen.
 - #200/#208: dependencybestanden blijven exact gelijk aan main, inclusief de exacte Nodemailer-pin en de nieuwere dev-dependencies.
   Ook de actuele bronloze-runregel blijft ongewijzigd in de spelimplementatie.
-- #209/#210/#213: de main-verbeteringen aan CFM-kaarten en reeksbanner blijven behouden.
+- #209/#210/#212/#213: de main-verbeteringen aan CFM-kaarten en reeksbanner blijven behouden.
 - Uit #187: aparte aanvullende content-/Schriftkaarten, planHash-flow, ChapterAudioCheck, ContentUpdateRun, RETIRED en
   transactionele legacy-audioafhandeling. Geen tweede importer of publicatiesysteem.
 
@@ -83,5 +86,16 @@ De werkelijk uitgevoerde resultaten en eindcommit staan ook in de PR-beschrijvin
   gepushte eindcommit gecontroleerd; een oude groene #187-commit geldt niet als bewijs voor deze integratie.
 
 Dit is ontwikkel-/testbewijs, geen productie- of fysieke apparaattest. Er zijn geen productie-imports, NAS-downloads, audio-
-publicaties, deployments, merges of wijzigingen aan Bijbel-, CFM- of FSY-audio uitgevoerd. Alle echte brondata in tests komt uit de
-repository; MP3's zijn synthetische testbestanden. De 19 reviewgevallen blijven buiten publicatie.
+publicaties, deployments, merges of wijzigingen aan Bijbel-, CFM- of FSY-audio uitgevoerd. Brondata voor de audio-/migratietests komt uit de
+repository; MP3's zijn synthetische testbestanden. De aanvullende #213-componentbrowser gebruikt één lokaal gedownloade officiële
+lesafbeelding met exacte gepinde checksum; geen NAS of audio. De 19 reviewgevallen blijven buiten publicatie.
+
+
+### Lay-outregressie uit de volledige CI
+
+De navigatietest speelde werkelijk een eerste Woordzoeker uit. Sinds main #210 verschijnt de uitgestelde fullscreen reeksviering
+pas bij terugkeer naar Spelen. De test klikte direct het volgende spel en raakte, afhankelijk van timing, de voorliggende dialoog.
+De test controleert nu expliciet dat de resultaatkaart voorrang houdt, wacht na het verlaten op de echte viering en sluit die via
+haar gewone knop voordat hij verder navigeert. Geen force-click, mock, skip of verzwakte navigatie-/beloningsassertie; geen wijziging
+van de productiereekslogica. De volledige geïsoleerde layoutbrowser is met deze testcorrectie opnieuw geslaagd, inclusief alle drie Woordzoeker-spellen,
+contentkiezer, profiel/gids, winkel, kaartbeheer en Socket.io-regressies. Na de laatste main-integratie volgt opnieuw de volledige CI.

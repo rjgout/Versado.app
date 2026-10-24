@@ -184,7 +184,7 @@ export const kompasFr: NonNullable<PartialMessages["kompas"]> = {
       step1: "Termine au moins une activité chaque jour, par exemple une leçon, une ronde d’entraînement, un jeu ou une étape de lecture terminée. Sa durée n’a pas d’importance.",
       step2: "Si tu manques un jour, Versado utilise automatiquement un gel de série si tu en as un. Il préserve ta série.",
       step3: "Si tu n’as plus de gel de série, ta série s’interrompt.",
-      more: "La première activité terminée de la journée prolonge ta série ; une deuxième le même jour ne donne pas de jour de plus. XP et série sont séparés : une activité sans XP peut aussi compter. Ouvrir, parcourir ou commencer ne suffit pas : il faut vraiment terminer. Un jour suit le fuseau horaire de ton compte. Pendant le jeu, un nouveau jour de série apparaît immédiatement dans une bannière en haut. Balaie-la vers le haut ou ferme-la ; le jeu continue. La célébration en plein écran vient plus tard, après ton activité.",
+      more: "La première activité terminée de la journée prolonge ta série ; une deuxième le même jour ne donne pas de jour de plus. XP et série sont séparés : une activité sans XP peut aussi compter. Ouvrir, parcourir ou commencer ne suffit pas : il faut vraiment terminer. Un jour suit le fuseau horaire de ton compte. Pendant le jeu, un nouveau jour de série apparaît immédiatement dans une bannière en haut. Balaie-la vers le haut ou ferme-la ; le jeu continue. La célébration en plein écran vient plus tard, après ton activité. Dans la célébration personnelle en plein écran, tu peux partager ou copier ton nombre de jours de série.",
     },
     progressDivisions: {
       title: "Division",
