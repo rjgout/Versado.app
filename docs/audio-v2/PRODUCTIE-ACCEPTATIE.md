@@ -7,11 +7,12 @@ na het betreffende akkoord. Deel rapporten zonder credentials, cookies, tokens o
 
 ## 1. Eerst de werkelijke ontwikkelstatus
 
-Gecontroleerde `main`: `89b8e4a59c42daa218f9bb693f033c6e669a9ace` (#210). PR [#187](https://github.com/rjgout/Versado.app/pull/187)
-is **OPEN, draft en ongemerged**. De integratiecommit `e38f565e20cc1184914ed7af7cea140303dd1cc5` bevat deze main en lost de vier
-conflicten inhoudelijk op; GitHub bevestigt `mergeable=true`. De twee native inventarisbestanden zijn opnieuw gegenereerd;
-de twee speltests behouden de actuele main-regel voor bronloze runs. De eerdere 27 groene checks op `8c5e7626` gelden niet als
-bewijs voor deze integratiecommit: controleer de volledige nieuwe CI en de onafhankelijke beoordeling vóór enig mergebesluit.
+Gecontroleerde `main`: `abddbe49fcda03fa9998e3326d40b8082071d19e` (#213). PR [#187](https://github.com/rjgout/Versado.app/pull/187)
+is **OPEN, draft en ongemerged**. De integratiecommit `e99a4955a115d0bb9b2140c196b06efadbb74a95` bevat deze main en lost de vier
+conflicten inhoudelijk op. De tijdens de eindcontrole toegevoegde main-wijziging #213 (CFM-weeklabel op de lesafbeelding)
+is eveneens behouden. GitHub bevestigt een conflictvrije integratie. De twee native inventarisbestanden zijn opnieuw gegenereerd;
+de twee speltests behouden de actuele main-regel voor bronloze runs. Alle 27 checks waren groen op de voorafgaande integratiecommit `e38f565e`; ook dat geldt niet als
+bewijs voor de nieuwe eindcommit: controleer de volledige nieuwe CI en de onafhankelijke beoordeling vóór enig mergebesluit.
 Productie kan bovendien een andere image draaien dan `main`.
 
 Het integratierapport staat in #187 onder `docs/CONTENTBEHEER-INTEGRATIE-187.md`; geen tweede implementatie toevoegen.
@@ -24,8 +25,8 @@ Deze document-PR bevat het rapport niet opnieuw en geeft geen merge- of uitrolto
 | Native distributieprofielen | Al aanwezig via #195, `350d4683` | Niet opnieuw toevoegen of releasegates wijzigen |
 | Twee Contentbeheer-kaarten; controleren/voorbereiden/publiceren met planHash; ContentUpdateRun; ChapterAudioCheck; RETIRED; transactionele legacy-audio + controleafhandeling | **Niet op main**; nog in #187 | Geïntegreerd met actuele main in #187, nog niet gemerged; nieuwe CI en onafhankelijke review vereist |
 | Vier herstelde runtime-dependencyversies uit #187 | Inmiddels ook op main via #200 (`985c6738`) en #208 (`b28db54b`): Zod 4.6.7, Nodemailer 10.2.1, fast-uri 3.1.9, Undici 6.29.1 | Geen dubbele securitypatch of downgrade; main pint Nodemailer expliciet |
-| Legacy-run zonder bewezen bron | Main #200 sluit die **zonder reeksactiviteit**; #208 versterkt de regressietest. Oude #187-assertie is in `e38f565e` gecorrigeerd | Behoud nul reeksactiviteit én de extra economie-/retrycontroles |
-| CFM-runtimebestanden, winkel-/CFM-verbeteringen, wegveegbare reeksbanner | #201, #200, #208, #209, #210 zijn op main en deels nieuwer dan #187 | Behoud main; geen volledige oude branch/tree terugzetten |
+| Legacy-run zonder bewezen bron | Main #200 sluit die **zonder reeksactiviteit**; #208 versterkt de regressietest. Oude #187-assertie is in `e99a4955` gecorrigeerd | Behoud nul reeksactiviteit én de extra economie-/retrycontroles |
+| CFM-runtimebestanden, winkel-/CFM-verbeteringen, wegveegbare reeksbanner, weeklabel op lesafbeelding | #201, #200, #208, #209, #210 en #213 zijn op main en behouden in de geïntegreerde #187 | Behoud main; geen volledige oude branch/tree terugzetten |
 
 Controlecommando's in een ontwikkelcheckout, niet op productie:
 
