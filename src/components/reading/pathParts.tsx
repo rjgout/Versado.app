@@ -139,6 +139,7 @@ export function ActiveChapterCard({
   progress,
   imageSrc = null,
   children,
+  header,
 }: {
   label: string;
   subtitle: React.ReactNode;
@@ -150,13 +151,15 @@ export function ActiveChapterCard({
   /** Optioneel: een voortgangsbalk (Stap voor stap telt stappen). */
   progress?: { now: number; max: number; percent: number };
   children: React.ReactNode;
+  /** Optionele inhoudskop; behoudt de gedeelde kaartrand en body. */
+  header?: React.ReactNode;
 }) {
   const hasImage = hasArtwork(artworkKeys);
   const showImage = hasImage || !!imageSrc;
   return (
     <div className="vs-rise rounded-[1.125rem] bg-gradient-to-br from-vs-accent via-vs-accent to-vs-xp-fill p-[2px] shadow-lg shadow-vs-accent/25 ring-[3px] ring-vs-accent/15">
       <article className="overflow-hidden rounded-2xl bg-vs-surface" aria-label={label}>
-        <div className={`relative flex flex-col justify-end ${showImage ? "min-h-[9.5rem] bg-vs-overlay sm:min-h-[11rem]" : "min-h-[6.5rem] bg-gradient-to-br from-vs-accent-soft to-vs-surface"}`}>
+        {header ?? <div className={`relative flex flex-col justify-end ${showImage ? "min-h-[9.5rem] bg-vs-overlay sm:min-h-[11rem]" : "min-h-[6.5rem] bg-gradient-to-br from-vs-accent-soft to-vs-surface"}`}>
           {showImage ? (
             <>
               {imageSrc ? (
@@ -186,7 +189,7 @@ export function ActiveChapterCard({
               </div>
             )}
           </div>
-        </div>
+        </div>}
         <div className="bg-gradient-to-b from-vs-accent-soft/60 to-vs-surface p-[clamp(0.5rem,3vw,0.75rem)]">{children}</div>
       </article>
     </div>
