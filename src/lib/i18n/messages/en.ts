@@ -2554,7 +2554,7 @@ export const en: PartialMessages = {
     note3: "If you buy something in a week in which you haven't practiced yet, you still take part in your division that week, with a negative score. You can then be demoted.",
     hints: "Hints",
     hintTitle: "💡 Hint",
-    hintText: "In the Word Game, highlights which letters on your rack can form a word together — usable anywhere hints can be used, no matter how many you collect.",
+    hintText: "Use hints for extra help while playing, for example in the Word Game, Word of the Day, Guess the Chapter and Jigsaw Puzzle. All games that support hints share the same stock. Choose the available help you want inside the game.",
     quantity: "Quantity",
     geneesTitle: "Recover",
     geneesText: "Keep flying after a crash by answering one question about the Book of Mormon correctly. Each Recover belongs to your account and works in solo and shared runs.",

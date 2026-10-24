@@ -2554,7 +2554,7 @@ export const fr: PartialMessages = {
     note3: "Si tu achètes quelque chose une semaine où tu ne t’es pas encore entraîné, tu participes quand même cette semaine-là dans ta division, avec un score négatif. Tu peux alors être relégué.",
     hints: "Indices",
     hintTitle: "💡 Indice",
-    hintText: "Au jeu de mots, met en évidence les lettres de ton chevalet qui peuvent former un mot ensemble — utilisable partout où les indices sont permis, quel que soit le nombre que tu en as.",
+    hintText: "Utilise des indices pour obtenir de l’aide pendant les jeux, par exemple au jeu de mots, au Mot du jour, à Devine le chapitre et au puzzle. Tous les jeux qui proposent des indices partagent la même réserve. Choisis dans le jeu l’aide disponible que tu souhaites utiliser.",
     quantity: "Quantité",
     geneesTitle: "Reprends ton vol",
     geneesText: "Continue de voler après une collision en répondant correctement à une question sur le Livre de Mormon. Chaque reprise est liée à ton compte et fonctionne en solo comme en partie à plusieurs.",
