@@ -1,34 +1,15 @@
 import { PrismaClient } from "@/generated/prisma/client";
 import { seedBooks } from "../../prisma/content";
 import { withContentImportLock } from "./contentImportLock";
+import { SCRIPTURE_SOURCES } from "./scriptureSources";
 import { syncCourses } from "./courses";
 import { importBooks } from "../../prisma/importContent";
 import { importChapterAudio, type ChapterAudioSeed } from "../../prisma/importAudio";
 import { mirrorChapterAudio } from "./audioMirror";
 import bomAudio from "../../prisma/bomAudio.json";
-import bomAudioEn from "../../prisma/bomAudio.en.json";
-import bomAudioDe from "../../prisma/bomAudio.de.json";
-import bomAudioFr from "../../prisma/bomAudio.fr.json";
-import bomAudioEs from "../../prisma/bomAudio.es.json";
-import dcContent from "../../prisma/dcContent.json";
-import pgpContent from "../../prisma/pgpContent.json";
-import bomContentEn from "../../prisma/bomContent.en.json";
-import bomContentEs from "../../prisma/bomContent.es.json";
-import bomContentDe from "../../prisma/bomContent.de.json";
-import bomContentFr from "../../prisma/bomContent.fr.json";
-import dcContentEn from "../../prisma/dcContent.en.json";
-import pgpContentEn from "../../prisma/pgpContent.en.json";
-import type { SeedBook } from "../../prisma/content";
 import {
-  BOM_EN_COLLECTION_ID,
-  BOM_ES_COLLECTION_ID,
-  BOM_DE_COLLECTION_ID,
-  BOM_FR_COLLECTION_ID,
   BOM_COLLECTION_ID,
   DC_COLLECTION_ID,
-  DC_EN_COLLECTION_ID,
-  PGP_COLLECTION_ID,
-  PGP_EN_COLLECTION_ID,
 } from "./contentCollections";
 import { podcastEpisodes } from "../../prisma/podcastContent";
 import { kastVanMormonEpisodes } from "../../prisma/kastVanMormonContent";
@@ -98,24 +79,21 @@ const achievementDefs = [
  * zodat de adminbackend de voortgangsregels kan opvangen en teruggeven aan
  * de admin, in plaats van dat ze alleen in de containerlogs verdwijnen.
  */
-// Begintijden per vers in de voorgelezen hoofdstukken per uitgave (berekend
-// met scripts/bom-audio). De Nederlandse staat hierboven los, omdat die bij
-// de standaardcollectie hoort die altijd bestaat.
-const audioByCollection: Partial<Record<string, ChapterAudioSeed[]>> = {
-  [BOM_EN_COLLECTION_ID]: bomAudioEn as ChapterAudioSeed[],
-  [BOM_DE_COLLECTION_ID]: bomAudioDe as ChapterAudioSeed[],
-  [BOM_FR_COLLECTION_ID]: bomAudioFr as ChapterAudioSeed[],
-  [BOM_ES_COLLECTION_ID]: bomAudioEs as ChapterAudioSeed[],
-};
+
+export interface SeedOptions {
+  /** Standaard true (CLI en volledige seed). Bij false blijven de Schriftteksten (ook de Bijbel/OTB), hun oefeningen en de audio (inclusief het spiegelen van audiobestanden) onaangeroerd: die lopen via de beheerflow "Schriftbronnen bijwerken". */
+  scriptures?: boolean;
+}
 
 export async function runSeed(
   client: PrismaClient,
   log: (msg: string) => void = console.log,
   progress?: (progress: OtbImportProgress) => void,
   studyImport?: () => Promise<void>,
+  options: SeedOptions = {},
 ): Promise<void> {
   // Nooit twee imports tegelijk (adminknop en terminal, of een dubbele klik): de tweede stopt netjes met een duidelijke melding.
-  await withContentImportLock(() => runSeedLocked(client, log, progress, studyImport));
+  await withContentImportLock(() => runSeedLocked(client, log, progress, studyImport, options));
 }
 
 async function runSeedLocked(
@@ -123,20 +101,26 @@ async function runSeedLocked(
   log: (msg: string) => void,
   progress?: (progress: OtbImportProgress) => void,
   studyImport?: () => Promise<void>,
+  options: SeedOptions = {},
 ): Promise<void> {
+  const scriptures = options.scriptures !== false;
   if (studyImport) await inPhase("Studiecontent", studyImport);
-  log("Seeding boeken, hoofdstukken, verzen en oefeningen...");
-  await inPhase("Boeken", () => importBooks(client, seedBooks, log, BOM_COLLECTION_ID));
-  await inPhase("Voorgelezen hoofdstukken", () => importChapterAudio(client, bomAudio as ChapterAudioSeed[], BOM_COLLECTION_ID, log));
+  if (scriptures) {
+    log("Seeding boeken, hoofdstukken, verzen en oefeningen...");
+    await inPhase("Boeken", () => importBooks(client, seedBooks, log, BOM_COLLECTION_ID));
+    await inPhase("Voorgelezen hoofdstukken", () => importChapterAudio(client, bomAudio as ChapterAudioSeed[], BOM_COLLECTION_ID, log));
+  }
 
   // De OTB-import staat los van de cursussen: hij gebruikt geen syncCourses en
   // draait pas na de eerste cursussynchronisatie, maar een fout daarin blijft
   // een Bijbelfout en een cursusfout hierboven blijft een cursusfout.
-  log("Open Translation Bible voorbereiden...");
-  await inPhase("Bijbel (OTB)", async () => {
-    const otbSource = await preparePinnedOtbSource(log);
-    await importOtbTrial(client, otbSource, log, progress);
-  });
+  if (scriptures) {
+    log("Open Translation Bible voorbereiden...");
+    await inPhase("Bijbel (OTB)", async () => {
+      const otbSource = await preparePinnedOtbSource(log);
+      await importOtbTrial(client, otbSource, log, progress);
+    });
+  }
 
   // Leer en Verbonden en de Parel van Grote Waarde, en de Engelse uitgaven
   // van alle drie, elk in een eigen collectie. Alleen als die collectie
@@ -146,21 +130,11 @@ async function runSeedLocked(
   // gegenereerde oefeningen en hints.
   let loopFailed = false;
   try {
-    for (const [collectionId, books, label] of [
-      [DC_COLLECTION_ID, dcContent as SeedBook[], "Leer en Verbonden"],
-      [PGP_COLLECTION_ID, pgpContent as SeedBook[], "Parel van Grote Waarde"],
-      [BOM_EN_COLLECTION_ID, bomContentEn as SeedBook[], "Book of Mormon (Engels)"],
-      [BOM_ES_COLLECTION_ID, bomContentEs as SeedBook[], "Libro de Mormón (Spaans)"],
-      [BOM_DE_COLLECTION_ID, bomContentDe as SeedBook[], "Das Buch Mormon (Duits)"],
-      [BOM_FR_COLLECTION_ID, bomContentFr as SeedBook[], "Le Livre de Mormon (Frans)"],
-      [DC_EN_COLLECTION_ID, dcContentEn as SeedBook[], "Doctrine and Covenants (Engels)"],
-      [PGP_EN_COLLECTION_ID, pgpContentEn as SeedBook[], "Pearl of Great Price (Engels)"],
-    ] as const) {
+    for (const { id: collectionId, books, label, audio } of scriptures ? SCRIPTURE_SOURCES.filter((source) => source.id !== BOM_COLLECTION_ID) : []) {
       if (!(await client.contentCollection.findUnique({ where: { id: collectionId }, select: { id: true } }))) continue;
       log(`Seeding ${label}...`);
       await inPhase(`Boeken (${label})`, async () => {
         await importBooks(client, books, log, collectionId, { syncCourses: false });
-        const audio = audioByCollection[collectionId];
         if (audio) await importChapterAudio(client, audio, collectionId, log);
       });
     }
@@ -227,8 +201,10 @@ async function runSeedLocked(
   // Als laatste: het ophalen van de audio kan bij een eerste keer lang duren
   // (ruim een gigabyte per taal), en de content hierboven hoort daar niet op
   // te wachten. Hoofdstukken zonder kopie spelen intussen van de bron.
-  log("Voorgelezen hoofdstukken spiegelen...");
-  await inPhase("Audio spiegelen", () => mirrorChapterAudio(client, log));
+  if (scriptures) {
+    log("Voorgelezen hoofdstukken spiegelen...");
+    await inPhase("Audio spiegelen", () => mirrorChapterAudio(client, log));
+  }
 
   log("Seed klaar.");
 }

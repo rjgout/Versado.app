@@ -7,6 +7,7 @@ import { prisma } from "../src/lib/db";
 import { chapterSourceHash, sha256, type AudioManifest } from "../src/lib/audio/contract";
 import { importAudioPackage, publishAudio, activeChapterAudio, accessibleRecording, scanAudioPackages } from "../src/lib/audio/library";
 import { ensureHiddenAudioTextEditions } from "../src/lib/audio/hiddenEditions";
+import { flagAudioForTextChanges, markAudioCurrent } from "../src/lib/audioCheck";
 import { importChapterAudio } from "../prisma/importAudio";
 const url = new URL(process.env.AUDIO_TEST_DATABASE_URL ?? "http://invalid");
 if (url.hostname !== "127.0.0.1" || url.pathname !== "/versado_audio_test" || process.env.DATABASE_URL !== url.href) throw new Error("Eigen audiorunner vereist");
@@ -164,10 +165,22 @@ test("intrekking tijdens lockwachten verhindert een nieuwe beheerpublicatie",asy
  admin={...admin,sessionVersion:admin.sessionVersion+1};
 });
 test("tekstupdate blokkeert oude opname én publicatie, behoudt bestanden en legacygegevens",async()=>{
- const previous=await chapter();await prisma.verse.update({where:{id:previous.verses[0].id},data:{text:"Gewijzigde tekst"}});
- assert.equal(await activeChapterAudio(await chapter()),null);assert.equal(await accessibleRecording({isAdmin:false},first),null);
- await assert.rejects(publishAudio(admin,first,2),/SOURCE_MISMATCH/);
- await prisma.verse.update({where:{id:previous.verses[0].id},data:{text:previous.verses[0].text}});
+ const previous=await chapter();
+ await flagAudioForTextChanges(prisma,[{chapterId,hasAudio:true,before:previous.verses.map(v=>v.text),after:["Gewijzigde tekst",previous.verses[1].text]}]);
+ await prisma.verse.update({where:{id:previous.verses[0].id},data:{text:"Gewijzigde tekst"}});
+ try {
+  assert.equal((await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}})).status,"NEEDS_REVIEW");
+  assert.equal(await activeChapterAudio(await chapter()),null);assert.equal(await accessibleRecording({isAdmin:false},first),null);
+  await assert.rejects(publishAudio(admin,first,2),/SOURCE_MISMATCH/);
+  await markAudioCurrent(prisma,chapterId,admin.id);
+  assert.equal(await activeChapterAudio(await chapter()),null,"legacy-bevestiging omzeilt nooit de V2-brontekstbinding");
+  await assert.rejects(publishAudio(admin,first,2),/SOURCE_MISMATCH/);
+  assert.equal((await chapter()).audioUrl,previous.audioUrl);
+  assert.deepEqual((await chapter()).verses.map(v=>v.audioStart),previous.verses.map(v=>v.audioStart));
+ } finally {
+  await prisma.verse.update({where:{id:previous.verses[0].id},data:{text:previous.verses[0].text}});
+  await markAudioCurrent(prisma,chapterId);
+ }
 });
 test("ontbrekend of corrupt gepubliceerd object valt terug op TTS en kan niet opnieuw worden gepubliceerd",async()=>{
  const file=path.join(root,"objects",sha256(bytes)+".mp3");
@@ -186,6 +199,48 @@ test("contenttoegang volgt publicatie en zichtbaarheid; adminpreview blijft expl
 });
 test("onvolledige legacy-import wist geen Nederlandse hoofdstukaudio of verstijdcodes",async()=>{
  const previous=await chapter();await importChapterAudio(prisma,[],"audio-test-nl",()=>{});assert.deepEqual(await chapter(),previous);
+});
+test("ongeldige legacy-tijdcodes behouden audio en markeren de controle; ongewijzigde gegevens lossen die niet op",async()=>{
+ const previous=await chapter();
+ const entry={book:"bofm/audio-test",chapter:1,url:previous.audioUrl!,headingStart:previous.audioHeadingStart??0,headingEnd:previous.audioHeadingEnd??0,verseStarts:previous.verses.map(v=>v.audioStart!)};
+ for(const invalid of [
+  {...entry,headingStart:Number.NaN}, {...entry,headingEnd:Number.POSITIVE_INFINITY},
+  {...entry,headingStart:2,headingEnd:1}, {...entry,headingStart:-1},
+  {...entry,verseStarts:[0.2]}, {...entry,verseStarts:[1.2,0.2]},
+  {...entry,verseStarts:[-1,1]}, {...entry,verseStarts:[0,Number.NaN]},
+ ]) {
+  await importChapterAudio(prisma,[invalid],"audio-test-nl",()=>{});
+  assert.deepEqual(await chapter(),previous);
+  assert.equal((await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}})).status,"NEEDS_REVIEW");
+ }
+ // Maak kopgegevens gelijk voordat een ongewijzigde import wordt beoordeeld.
+ await prisma.chapter.update({where:{id:chapterId},data:{audioHeadingStart:entry.headingStart,audioHeadingEnd:entry.headingEnd}});
+ await importChapterAudio(prisma,[entry],"audio-test-nl",()=>{});
+ assert.equal((await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}})).status,"NEEDS_REVIEW");
+ await prisma.chapter.update({where:{id:chapterId},data:{audioHeadingStart:previous.audioHeadingStart,audioHeadingEnd:previous.audioHeadingEnd}});
+});
+test("legacy-audio, verstijdcodes en controle rollen samen terug; een geldige retry behoudt V2-publicatie",async()=>{
+ const previous=await chapter(),publication=await prisma.audioPublication.findUniqueOrThrow({where:{targetKey:`chapter:${chapterId}`}});
+ const check=await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}});
+ const entry={book:"bofm/audio-test",chapter:1,url:"https://assets.churchofjesuschrist.org/replacement.mp3",headingStart:0,headingEnd:0.5,verseStarts:[0.75,1.75]};
+ await prisma.$executeRawUnsafe(`CREATE FUNCTION audio_legacy_fail() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW."audioStart" = 0.75 THEN RAISE EXCEPTION 'legacy timing test failure'; END IF; RETURN NEW; END $$`);
+ await prisma.$executeRawUnsafe(`CREATE TRIGGER audio_legacy_fail BEFORE UPDATE ON "Verse" FOR EACH ROW EXECUTE FUNCTION audio_legacy_fail()`);
+ try {
+  await assert.rejects(importChapterAudio(prisma,[entry],"audio-test-nl",()=>{}),/legacy timing test failure/);
+  assert.deepEqual(await chapter(),previous);
+  assert.deepEqual(await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}}),check);
+ } finally {
+  await prisma.$executeRawUnsafe(`DROP TRIGGER audio_legacy_fail ON "Verse"`);
+  await prisma.$executeRawUnsafe(`DROP FUNCTION audio_legacy_fail()`);
+ }
+ await importChapterAudio(prisma,[entry],"audio-test-nl",()=>{});
+ assert.equal((await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}})).status,"CURRENT");
+ assert.deepEqual((await chapter()).verses.map(v=>v.audioStart),entry.verseStarts);
+ const approved=await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}});
+ await importChapterAudio(prisma,[entry],"audio-test-nl",()=>{});
+ assert.deepEqual(await prisma.chapterAudioCheck.findUniqueOrThrow({where:{chapterId}}),approved,"een identieke retry schrijft geen controle opnieuw");
+ assert.deepEqual(await prisma.audioPublication.findUniqueOrThrow({where:{targetKey:`chapter:${chapterId}`}}),publication);
+ assert.ok(await activeChapterAudio(await chapter()));
 });
 test("automatische scanner registreert een volgende vraag zonder publicatie of Redis",async()=>{
  for(let i=0;i<25;i++)await fs.mkdir(path.join(root,"incoming",`aaa-incomplete-${i}`));

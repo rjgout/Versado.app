@@ -81,7 +81,19 @@ test("Een onbekende oude bron wordt nooit uit profiel/BOM afgeleid en kost geen 
  const run=await db.quickMissionaryRun.create({data:{userId:user,dayKey:"2026-10-11",status:"DEAD_AWAITING_REVIVE",reviveUsed:true}});
  const view=await runs.getQuickMissionaryRunView(run.id,user); assert.equal(view.reviveUnavailableReason,"legacy-source"); assert.equal(view.deathOption,"none");
  await assert.rejects(runs.requestReviveQuestion(run.id,user),/NO_QUESTION/); assert.equal((await runs.buyGeneesInRun(run.id,user)).result.ok,false);
- await runs.finishQuickMissionaryRun(run.id,user,0); assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:run.id}})).contentCollectionId,null); assert.deepEqual(await economy(user),before);
+ assert.deepEqual(await economy(user),before,"een geweigerde vraag/aankoop verandert de economie of reeks niet");
+ assert.equal(await db.streakActivity.count({where:{userId:user}}),0);
+ assert.equal(await db.quickMissionaryReviveSeen.count({where:{runId:run.id}}),0);
+ // Sinds #198 telt deze al gespeelde legacy-run bij definitief afronden wel voor de reeks, zonder bronfallback of XP/Genees.
+ await runs.finishQuickMissionaryRun(run.id,user,0);
+ assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:run.id}})).contentCollectionId,null);
+ const completed={...before,currentStreak:1};
+ assert.deepEqual(await economy(user),completed);
+ assert.equal(await db.streakActivity.count({where:{userId:user}}),1);
+ assert.equal(await db.xPTransaction.count({where:{userId:user}}),0);
+ await runs.finishQuickMissionaryRun(run.id,user,0);
+ assert.deepEqual(await economy(user),completed,"afrondingsretry geeft geen tweede reeksactiviteit of economische mutatie");
+ assert.equal(await db.streakActivity.count({where:{userId:user}}),1);
 });
 
 test("Oude reeds uitgegeven vraag herstelt alleen haar bewezen bron onder de runlock", {skip},async()=>{

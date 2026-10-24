@@ -118,6 +118,18 @@ export function startReseedJob(
       }
     : undefined;
   const currentJob = current;
+  // "Nieuwe content ophalen" laat de Schriftteksten met rust: die lopen via Schriftbronnen bijwerken (controleren, voorbereiden, publiceren).
+  const startedMs = Date.now();
+  const runRow = prisma.contentUpdateRun
+    .create({ data: { kind: "CONTENT_UPDATE", createdById: study?.actor.id ?? null } })
+    .catch(() => null);
+  const record = async (status: "OK" | "FAILED", error: string | null) => {
+    const row = await runRow;
+    if (!row) return;
+    await prisma.contentUpdateRun
+      .update({ where: { id: row.id }, data: { status, finishedAt: new Date(), durationMs: Date.now() - startedMs, error, sources: current.logs.slice(-50) } })
+      .catch(() => undefined);
+  };
   const runPromise = runSeed(
     prisma,
     (msg) => {
@@ -127,15 +139,18 @@ export function startReseedJob(
       current.progress = progress;
     },
     studyImport,
+    { scriptures: false },
   )
-    .then(() => {
+    .then(async () => {
       current.status = "done";
       current.finishedAt = new Date().toISOString();
+      await record("OK", null);
     })
-    .catch((e) => {
+    .catch(async (e) => {
       current.status = "error";
       current.error = e instanceof Error ? e.message : String(e);
       current.finishedAt = new Date().toISOString();
+      await record("FAILED", current.error);
     });
 
   // Ook na een fout halverwege: de oefeningen kunnen dan al zijn bijgewerkt.

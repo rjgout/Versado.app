@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { PrismaClient } from "../../src/generated/prisma/client";
@@ -69,13 +70,31 @@ export async function upsertOtbCollection(client: PrismaClient, collection: type
   });
 }
 
-/** Importeert de volledige gepinde OTB-bron in hoofdstukbatches. */
+export interface OtbCollectionChange { collectionId: string; chaptersNew: number; chaptersChanged: number; versesChanged: number }
+
+export interface OtbImportResult {
+  dryRun: boolean;
+  /** Alleen collecties waar iets verandert. */
+  changes: OtbCollectionChange[];
+  /** Hash over de gepinde bronversie en de volledige inhoud van elk hoofdstuk dat verandert: wijzigt de bron, dan wijzigt deze hash. */
+  contentDigest: string;
+  skippedChapters: number;
+}
+
+/**
+ * Importeert de volledige gepinde OTB-bron in hoofdstukbatches. Met `dryRun` wordt alleen vergeleken (de bron wordt volledig
+ * gevalideerd, maar er wordt niets geschreven, ook geen collectie aangemaakt).
+ */
 export async function importOtbFull(
   client: PrismaClient,
   sourceRoot: string,
   log: (message: string) => void = console.log,
   onProgress?: ProgressCallback,
-): Promise<void> {
+  options: { dryRun?: boolean } = {},
+): Promise<OtbImportResult> {
+  const dryRun = options.dryRun === true;
+  const changeByCollection = new Map<string, OtbCollectionChange>();
+  const digest = createHash("sha256");
   log("OTB-bronversie controleren...");
   await assertPinnedSource(sourceRoot);
   log("Bijbelstructuur valideren...");
@@ -93,13 +112,14 @@ export async function importOtbFull(
   const totalImportChapters = validation.scans.reduce((total, scan) => total + scan.chapterCount, 0);
   let completedChapters = 0;
   let skippedChapters = 0;
+  digest.update(lock.upstreamCommit);
 
   for (const locale of OTB_LOCALES) {
     const chaptersByBook = await readLocale(sourceRoot, locale);
     const language = OTB_LANGUAGE_BY_LOCALE[locale];
     for (const collection of OTB_COLLECTIONS.filter((item) => item.locale === locale)) {
       const sourceUrl = `https://github.com/OpenTranslationBible/open-bible/tree/${lock.upstreamCommit}/lang/${collection.locale}`;
-      await upsertOtbCollection(client, collection, sourceUrl, lock.license, lock.licenseUrl);
+      if (!dryRun) await upsertOtbCollection(client, collection, sourceUrl, lock.license, lock.licenseUrl);
       const bookNumbers = OTB_BOOK_NUMBERS.filter((number) => otbWorkForBookNumber(number) === collection.work);
       log(`${collection.work === "old-testament" ? "Oude Testament" : "Nieuwe Testament"} — ${language}: ${bookNumbers.length} boeken laden...`);
 
@@ -145,6 +165,16 @@ export async function importOtbFull(
             continue;
           }
 
+          const change = changeByCollection.get(collection.id) ?? { collectionId: collection.id, chaptersNew: 0, chaptersChanged: 0, versesChanged: 0 };
+          if (!stored) change.chaptersNew += 1;
+          else change.chaptersChanged += 1;
+          const storedTexts = new Map((stored?.verses ?? []).map((verse) => [verse.number, verse.text]));
+          change.versesChanged += [...chapter.verses].filter(([number, text]) => storedTexts.get(number) !== text).length;
+          changeByCollection.set(collection.id, change);
+          digest.update(`${bookSlug}:${chapter.chapter}\n`);
+          for (const [number, text] of [...chapter.verses].sort((a, b) => a[0] - b[0])) digest.update(`${number}:${text}\n`);
+          if (dryRun) continue;
+
           // Elke hoofdstukbatch is atomair; eerdere batches blijven staan en
           // een volgende reload kan ontbrekende batches veilig aanvullen.
           await client.$transaction(async (tx) => {
@@ -183,6 +213,7 @@ export async function importOtbFull(
     }
   }
   log(`OTB-content gecontroleerd: ${totalChapters * OTB_LOCALES.length} hoofdstukken, waarvan ${skippedChapters} ongewijzigd overgeslagen.`);
+  return { dryRun, changes: [...changeByCollection.values()], contentDigest: digest.digest("hex"), skippedChapters };
 }
 
 // De CLI-naam blijft bestaan voor de bestaande workflow; de inhoud is nu volledig.
