@@ -8774,10 +8774,11 @@
     },
     {
       "file": "src/components/AppSelect.tsx",
-      "sha256": "0c09c33bf917954d671308577350a1869a24e6a3caec8831fa6b663cfbdefa5a",
+      "sha256": "9e1978be84d6a11f01a6fd8727d7d3bc7d3698eda6e017734ae2aea64807b10e",
       "boundary": "client",
       "imports": [
-        "react"
+        "react",
+        "react-dom"
       ],
       "methods": [],
       "requests": [],
@@ -10651,7 +10652,7 @@
     },
     {
       "file": "src/components/ShopClient.tsx",
-      "sha256": "2bb3307ffcff22ae9f463da20ae642b5377eaa04431bab8b3f9d3f51a8b22b8f",
+      "sha256": "96362a2385ad45b33ae0588c686aed717df154017cb7fd5fbe97fc5e342c6d62",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -10757,16 +10758,18 @@
     },
     {
       "file": "src/components/StreakContinuation.tsx",
-      "sha256": "0f7d61023374d48b49db8648d7463120243771ed807dbaacce816e75fabc9b28",
+      "sha256": "99a798c17f53d352630bba0cf5d4d8fa71fe4dcade3351fc5048e61c7759031d",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/StreakCelebrationFlow",
+        "@/components/StreakEarnedBanner",
         "@/components/versado/MascotSlot",
         "@/components/versado/SystemIcon",
         "@/lib/celebrationGate",
         "@/lib/learning/streakReturnRules",
         "@/lib/socketClient",
+        "@/lib/streakBanner",
         "@/lib/xpBroadcast",
         "lucide-react",
         "next/link",
@@ -10783,6 +10786,23 @@
         "StreakContinuationCard",
         "StreakContinuationProvider",
         "useStreakContinuation"
+      ]
+    },
+    {
+      "file": "src/components/StreakEarnedBanner.tsx",
+      "sha256": "45268679237abd66dd2ecc8624b336131fa5357fe165b06913c7be45bcfbd19c",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/versado/SystemIcon",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "StreakEarnedBanner"
       ]
     },
     {
@@ -12974,7 +12994,7 @@
     },
     {
       "file": "src/components/reading/pathParts.tsx",
-      "sha256": "9f8f09e379be2c29c2446b3388c8e226c1d91fe42c064d091c4c675801d20e85",
+      "sha256": "890d6896f429f2097a748cd5c867e2cca389da173a05cff6dab69aef433798b1",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -13708,7 +13728,7 @@
     },
     {
       "file": "src/components/study/CfmWeekPath.tsx",
-      "sha256": "21bdbe11956d274af6fbc75a390024adf55adfb518a0ea8665fafdba90c0a71b",
+      "sha256": "634e05a31f0f442f2b5b326e3086e318a8803eca6d608789c837be7b3de5586c",
       "boundary": "client",
       "imports": [
         "./PersonalStudyParts",
@@ -13723,6 +13743,7 @@
         "@/lib/studyContent/weekLabels",
         "@/lib/studyContent/weekSelection",
         "lucide-react",
+        "next/image",
         "next/link",
         "react"
       ],
@@ -13755,7 +13776,7 @@
     },
     {
       "file": "src/components/study/PersonalStudyParts.tsx",
-      "sha256": "a42541a88f130218968b782c97e192941ad2ce435121734f3ffe2a31061760ff",
+      "sha256": "14a03fbc27cdd39700570566604d78c119b51fd266c9c1d0d85b3b5a297531d1",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -15983,13 +16004,14 @@
     },
     {
       "file": "src/lib/contentCollectionIds.ts",
-      "sha256": "4285f7da7d8b05b46afb1f49bdb84f37ac572d33edf3f937ed3745664d472d8c",
+      "sha256": "d7b7dba71b18d6ab2620a126616f9a460f1d4cedd45c4ccbaaf082b1b1c5e0b1",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
       "requests": [],
       "checks": [],
       "exports": [
+        "AUDIO_ONLY_TEXT_EDITION_IDS",
         "BOM_COLLECTION_ID"
       ]
     },
@@ -16157,7 +16179,7 @@
     },
     {
       "file": "src/lib/contentUpdate.ts",
-      "sha256": "85929e3312ebb68353981698c52060706e4e8dbac5a20f9d04163f15ba083387",
+      "sha256": "490831c4d9e1af691fc8581054a017ccf617ca6f9b10771f47d66aeb3b158e80",
       "boundary": "context-dependent",
       "imports": [
         "../../prisma/importAudio",
@@ -16168,6 +16190,7 @@
         "@/generated/prisma/client",
         "@/lib/audioMirror",
         "@/lib/contentImportLock",
+        "@/lib/contentUpdateRun",
         "@/lib/courses",
         "@/lib/learning/contentProgress",
         "@/lib/scriptureSources",
@@ -16188,6 +16211,22 @@
         "publishScriptures",
         "recentUpdateRuns",
         "sourceDigestOf"
+      ]
+    },
+    {
+      "file": "src/lib/contentUpdateRun.ts",
+      "sha256": "654945f74ba0d62092452f0c396eda97e786cd4449c43719a3fcdeaaa3ca3dd1",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/generated/prisma/client",
+        "node:crypto",
+        "pg"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "withContentUpdateRun"
       ]
     },
     {
@@ -16307,7 +16346,7 @@
     },
     {
       "file": "src/lib/courses.ts",
-      "sha256": "2396b34a6e4f1f0070c8d035fbf5df1a89ea4f77801bd12c466b0069b03730e7",
+      "sha256": "01562d7b8ccc81d4fe36aeea97b26f8d151bf00fbd9f3279a392550927bf259d",
       "boundary": "context-dependent",
       "imports": [
         "./chapterTerm",
@@ -18122,7 +18161,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "6f58d3770435c670933ed4bf281d70f7071af8dba59a6fda73e7156fc9ec5ac1",
+      "sha256": "fc4e619cb17d01cb61b0042b99bb70595032f94a65264dcfe27729dd83bbe66b",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18137,7 +18176,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "c7d24a40bf0152d0ec8a23429c9fa4a32bc8d5d84713904df26c13b88f3c9547",
+      "sha256": "91d02831ec8708ab649aa04ebf5fb23ec7e6704073a03066f8e72329f3b41a79",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18152,7 +18191,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "adc60b4aa2457e082f860fd164c47aaf0214e90b55fa3fcba645c59db4611d72",
+      "sha256": "aef8902c1d2168264d0e324bfc901a1ec58c0c4891636f3f56e2a95b46a72c46",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18167,7 +18206,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "003be8eea43ab5fd8f7f60081feb26a6df56b4930cd3f1a4dfd9b059c87e3a2f",
+      "sha256": "499f622910c9c2e26552d8af7baa75b177a8f14981ba11cefee3b24d5530f7d7",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18182,7 +18221,7 @@
     },
     {
       "file": "src/lib/i18n/messages/kompas/de.ts",
-      "sha256": "895021cf7855c860c5f0965bdd34026394fad12ff5b285846bcd91c63c41ff28",
+      "sha256": "1f2b81195e8d582d616964dc87c5a67acbebfe740850739c376c89f67da36b2a",
       "boundary": "context-dependent",
       "imports": [
         "../../core"
@@ -18196,7 +18235,7 @@
     },
     {
       "file": "src/lib/i18n/messages/kompas/en.ts",
-      "sha256": "01c3ebe10290314caab73cd6a5d0bdb997054da0b69d0517c5eb393611564b28",
+      "sha256": "81e0e8f93e0cf4e8fe53b713b86220c0cc659e5216a775818eb213671958d321",
       "boundary": "context-dependent",
       "imports": [
         "../../core"
@@ -18210,7 +18249,7 @@
     },
     {
       "file": "src/lib/i18n/messages/kompas/es.ts",
-      "sha256": "f4a5502447e924878e9f40d3f48ac3059097231384ae144ce70bf47208d32716",
+      "sha256": "cb8b49646ae3b05dfac25fdf6106b5017f13dfb3693a3a59ad59fa0e4dbc83a2",
       "boundary": "context-dependent",
       "imports": [
         "../../core"
@@ -18224,7 +18263,7 @@
     },
     {
       "file": "src/lib/i18n/messages/kompas/fr.ts",
-      "sha256": "579d7c037b39c36cd092561a3abb7bf0e90c6792cc20eba5faab8d7ec5e553ee",
+      "sha256": "7eb999e68d2321bfe05f8d89c2cef3fe5707e5c345203199fb24fb9091b4062b",
       "boundary": "context-dependent",
       "imports": [
         "../../core"
@@ -18238,7 +18277,7 @@
     },
     {
       "file": "src/lib/i18n/messages/kompas/nl.ts",
-      "sha256": "5e1f98da3fc5f0212bffb5dbb559b3e2eaeb37c923b38235200180f15a6f6144",
+      "sha256": "209c8c62834b6be3214f79098a1486d0da21ac9eb5a798db361e1d2f6acd0164",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -18250,7 +18289,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "0e04c2d032a6a1235a47ea442a3245b8509b5fd366ac74ee1d67dffe9ac3687a",
+      "sha256": "8b551727d77a35fe37ae007ee069f87fe570dfb98fb45eadce97351aad31c0ac",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -18438,7 +18477,7 @@
     },
     {
       "file": "src/lib/kompas/registry.ts",
-      "sha256": "93916fc12bea99130ac1c4cbcbcce74773ae4d74257054813e46f34ff2293ca9",
+      "sha256": "686dbdb9ec3d41b910dbb140ebb9678e38e6d7a80c1bc7083a9769120633e959",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/gameCatalog",
@@ -21169,6 +21208,22 @@
       ]
     },
     {
+      "file": "src/lib/references/bible.ts",
+      "sha256": "fff0093a5d5af43e6a6cdcfa8deb69eedca80a0498bd2a69aba83ae02a47ec0d",
+      "boundary": "context-dependent",
+      "imports": [
+        "../studyContent/cfmScripture",
+        "./otb",
+        "./standardWorks"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "bibleUrlTarget"
+      ]
+    },
+    {
       "file": "src/lib/references/contract.ts",
       "sha256": "d7d6f794bbccf15d283a0c818cec05c47cde6727a401cc022b1440976692f754",
       "boundary": "context-dependent",
@@ -21236,7 +21291,7 @@
     },
     {
       "file": "src/lib/references/otb.ts",
-      "sha256": "e54fd243b2e696c58529bd2b71aa963595acb9f487973cb44319de4bb10144ea",
+      "sha256": "4bde9b1e4ee9c817a3c7d47634a5aaa6387afd2aae9e06a010573670875b4781",
       "boundary": "context-dependent",
       "imports": [
         "../../../scripts/otb/bookMapping"
@@ -21251,9 +21306,10 @@
     },
     {
       "file": "src/lib/references/resolver.ts",
-      "sha256": "cbe036d6ef6a40290af65d477bf1fb4add08fdfbbeccb98124ddc58ecf1cbfbf",
+      "sha256": "f3590bb85adff4e8d09f2e51392e9ea677658dcac345328c2dc51a846421a951",
       "boundary": "context-dependent",
       "imports": [
+        "./bible",
         "./contract",
         "./evidence",
         "./hymns",
@@ -21443,11 +21499,12 @@
     },
     {
       "file": "src/lib/reseedJob.ts",
-      "sha256": "b5344c7a3e1d3de30ec1d25a1563ee641dbab5219c16284e77b6da818b33941b",
+      "sha256": "7b0c52aacd88d7bdff63c9ec21059cb4862a2b46c4dfc33723db03dffb39ab16",
       "boundary": "context-dependent",
       "imports": [
         "../../scripts/otb/import-core",
         "@/generated/prisma/client",
+        "@/lib/contentUpdateRun",
         "@/lib/i18n",
         "@/lib/i18n/core",
         "@/lib/learning/contentProgress",
@@ -21716,7 +21773,7 @@
     },
     {
       "file": "src/lib/seed.ts",
-      "sha256": "05b87b65c32a430b8103c450b89b3c1146dbe8f820d46cdbd0aa6c6a05e60d9e",
+      "sha256": "11f5d512b8378514bee5ef38fd5bf698b4c7286b87f594330bec29dee8eb5200",
       "boundary": "context-dependent",
       "imports": [
         "../../prisma/alleskennerContent",
@@ -22033,7 +22090,7 @@
     },
     {
       "file": "src/lib/snelleZendeling/match.ts",
-      "sha256": "f521e6200f8e76dcedfb3177cb79e97a0a975585ed56cad9555434b9015343c0",
+      "sha256": "b17cc517a11444638b7d473fb4ced8fb1b662121c56ea2a87f4496d5a0c521ea",
       "boundary": "context-dependent",
       "imports": [
         "./matchRules",
@@ -22287,7 +22344,7 @@
     },
     {
       "file": "src/lib/snelleZendeling/streak.ts",
-      "sha256": "d92396803a5161b33fd714780aeca4b1eb4e5f57c5b89142beb912d97f89366e",
+      "sha256": "cd22d5a9e475dfaff513a41557afe131ac799d4a408d2b97b43d4e40cff14ed8",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -22699,6 +22756,20 @@
         "giftFreeze",
         "grantMilestoneFreeze",
         "recordLearningActivity"
+      ]
+    },
+    {
+      "file": "src/lib/streakBanner.ts",
+      "sha256": "84795baa20e293df98991c77275dfa3f60755eb7b126287d4d5b1d93e4235d6c",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/learning/streakReturnRules"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "earnedStreakBanner"
       ]
     },
     {
@@ -25364,6 +25435,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
@@ -25489,6 +25561,7 @@
         "src/lib/social/rules.ts",
         "src/lib/socketClient.ts",
         "src/lib/speechAudioSession.ts",
+        "src/lib/streakBanner.ts",
         "src/lib/streakCelebration.ts",
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
@@ -25522,6 +25595,7 @@
         "src/components/ReadAloudPlayer.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
@@ -25899,6 +25973,7 @@
         "src/lib/podcasts.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
         "src/lib/references/hymns.ts",
@@ -26207,6 +26282,7 @@
         "src/lib/contentPickerContract.ts",
         "src/lib/contentRouting.ts",
         "src/lib/contentUpdate.ts",
+        "src/lib/contentUpdateRun.ts",
         "src/lib/courseIntegrity.ts",
         "src/lib/courses.ts",
         "src/lib/crypto.ts",
@@ -29416,6 +29492,7 @@
         "src/lib/contentImportLock.ts",
         "src/lib/contentPickerContract.ts",
         "src/lib/contentRouting.ts",
+        "src/lib/contentUpdateRun.ts",
         "src/lib/courseIntegrity.ts",
         "src/lib/courseText.ts",
         "src/lib/courses.ts",
@@ -29497,6 +29574,7 @@
         "src/lib/puzzle/puzzleNotify.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
         "src/lib/references/hymns.ts",
@@ -29618,6 +29696,7 @@
         "src/lib/contentPickerContract.ts",
         "src/lib/contentRouting.ts",
         "src/lib/contentUpdate.ts",
+        "src/lib/contentUpdateRun.ts",
         "src/lib/courseIntegrity.ts",
         "src/lib/courseText.ts",
         "src/lib/courses.ts",
@@ -29699,6 +29778,7 @@
         "src/lib/puzzle/puzzleNotify.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
         "src/lib/references/hymns.ts",
@@ -29827,6 +29907,7 @@
         "src/lib/podcasts.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
         "src/lib/references/hymns.ts",
@@ -29950,6 +30031,7 @@
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
         "src/lib/references/audit.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
         "src/lib/references/hymns.ts",
@@ -30074,6 +30156,7 @@
         "src/lib/podcasts.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
         "src/lib/references/hymns.ts",
@@ -46094,6 +46177,7 @@
         "src/lib/podcasts.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
         "src/lib/references/hymns.ts",
@@ -46388,6 +46472,7 @@
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
         "src/lib/references/evidence.ts",
         "src/lib/references/hymns.ts",
@@ -48722,6 +48807,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/FocusLayout.tsx",
@@ -48830,6 +48916,7 @@
         "src/lib/social/nudges.ts",
         "src/lib/social/rules.ts",
         "src/lib/socketClient.ts",
+        "src/lib/streakBanner.ts",
         "src/lib/streakCelebration.ts",
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
@@ -48855,6 +48942,7 @@
         "src/components/IntroAudioButton.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -50040,6 +50128,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/kompas/KompasEntryCard.tsx",
         "src/components/social/shared.tsx",
@@ -50202,6 +50291,7 @@
         "src/lib/social/together.ts",
         "src/lib/socketClient.ts",
         "src/lib/streak.ts",
+        "src/lib/streakBanner.ts",
         "src/lib/streakCelebration.ts",
         "src/lib/streakContinuation.ts",
         "src/lib/studyContent/catalogue.ts",
@@ -50256,6 +50346,7 @@
         "src/components/LiveRefresh.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/kompas/KompasEntryCard.tsx",
         "src/components/social/shared.tsx",
@@ -52293,6 +52384,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
@@ -52423,6 +52515,7 @@
         "src/lib/social/rules.ts",
         "src/lib/socketClient.ts",
         "src/lib/speechAudioSession.ts",
+        "src/lib/streakBanner.ts",
         "src/lib/streakCelebration.ts",
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
@@ -52462,6 +52555,7 @@
         "src/components/ReadAloudPlayer.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
@@ -53630,6 +53724,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
@@ -53760,6 +53855,7 @@
         "src/lib/social/rules.ts",
         "src/lib/socketClient.ts",
         "src/lib/speechAudioSession.ts",
+        "src/lib/streakBanner.ts",
         "src/lib/streakCelebration.ts",
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
@@ -53797,6 +53893,7 @@
         "src/components/ReadAloudPlayer.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
@@ -54214,6 +54311,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
@@ -54355,6 +54453,7 @@
         "src/lib/socketClient.ts",
         "src/lib/speechAudioSession.ts",
         "src/lib/streak.ts",
+        "src/lib/streakBanner.ts",
         "src/lib/streakCelebration.ts",
         "src/lib/streakContinuation.ts",
         "src/lib/studyContent/cfmProgramme.ts",
@@ -54401,6 +54500,7 @@
         "src/components/ReaderBackTarget.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
@@ -54666,6 +54766,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/UserTag.tsx",
         "src/components/alleskenner/AlleskennerGame.tsx",
@@ -54801,6 +54902,7 @@
         "src/lib/social/rules.ts",
         "src/lib/socketClient.ts",
         "src/lib/speechAudioSession.ts",
+        "src/lib/streakBanner.ts",
         "src/lib/streakCelebration.ts",
         "src/lib/study/units.ts",
         "src/lib/studyContent/cfmProgramme.ts",
@@ -54848,6 +54950,7 @@
         "src/components/ReadAloudPlayer.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/alleskenner/AlleskennerGame.tsx",
         "src/components/alleskenner/AlleskennerRoom.tsx",
@@ -59409,6 +59512,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
@@ -59539,6 +59643,7 @@
         "src/lib/social/rules.ts",
         "src/lib/socketClient.ts",
         "src/lib/speechAudioSession.ts",
+        "src/lib/streakBanner.ts",
         "src/lib/streakCelebration.ts",
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
@@ -59576,6 +59681,7 @@
         "src/components/ReadAloudPlayer.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
@@ -59648,6 +59754,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
@@ -59772,6 +59879,7 @@
         "src/lib/social/rules.ts",
         "src/lib/socketClient.ts",
         "src/lib/speechAudioSession.ts",
+        "src/lib/streakBanner.ts",
         "src/lib/streakCelebration.ts",
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
@@ -59803,6 +59911,7 @@
         "src/components/ReadAloudPlayer.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
@@ -60241,6 +60350,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
@@ -60378,6 +60488,7 @@
         "src/lib/socketClient.ts",
         "src/lib/speechAudioSession.ts",
         "src/lib/streak.ts",
+        "src/lib/streakBanner.ts",
         "src/lib/streakCelebration.ts",
         "src/lib/streakContinuation.ts",
         "src/lib/studyContent/cfmProgramme.ts",
@@ -60419,6 +60530,7 @@
         "src/components/ReadingLessonFlow.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
@@ -60832,6 +60944,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/annotations/MarkSwatch.tsx",
@@ -60960,6 +61073,7 @@
         "src/lib/social/rules.ts",
         "src/lib/socketClient.ts",
         "src/lib/speechAudioSession.ts",
+        "src/lib/streakBanner.ts",
         "src/lib/streakCelebration.ts",
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
@@ -60992,6 +61106,7 @@
         "src/components/ReadAloudPlayer.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/annotations/AnnotationActions.tsx",
         "src/components/learning/ContentStatus.tsx",
@@ -61582,6 +61697,7 @@
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakClient.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/MascotSlot.tsx",
@@ -61689,6 +61805,7 @@
         "src/lib/social/nudges.ts",
         "src/lib/social/rules.ts",
         "src/lib/socketClient.ts",
+        "src/lib/streakBanner.ts",
         "src/lib/streakCalendar.ts",
         "src/lib/streakCelebration.ts",
         "src/lib/streakContinuation.ts",
@@ -61714,6 +61831,7 @@
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakClient.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/social/shared.tsx",
         "src/components/versado/PersonalMascot.tsx",
@@ -63455,6 +63573,7 @@
         "src/components/ScriptureAvatar.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/UserTag.tsx",
         "src/components/WordGameClient.tsx",
@@ -63573,6 +63692,7 @@
         "src/lib/social/rules.ts",
         "src/lib/socketClient.ts",
         "src/lib/streak.ts",
+        "src/lib/streakBanner.ts",
         "src/lib/streakCelebration.ts",
         "src/lib/streakContinuation.ts",
         "src/lib/studyContent/cfmProgramme.ts",
@@ -63606,6 +63726,7 @@
         "src/components/I18nProvider.tsx",
         "src/components/StreakCelebrationFlow.tsx",
         "src/components/StreakContinuation.tsx",
+        "src/components/StreakEarnedBanner.tsx",
         "src/components/UserAvatar.tsx",
         "src/components/WordGameClient.tsx",
         "src/components/WordGameHintPanel.tsx",
@@ -67224,10 +67345,11 @@
     },
     {
       "file": "src/components/AppSelect.tsx",
-      "sha256": "0c09c33bf917954d671308577350a1869a24e6a3caec8831fa6b663cfbdefa5a",
+      "sha256": "9e1978be84d6a11f01a6fd8727d7d3bc7d3698eda6e017734ae2aea64807b10e",
       "boundary": "client",
       "imports": [
-        "react"
+        "react",
+        "react-dom"
       ],
       "methods": [],
       "requests": [],
@@ -69101,7 +69223,7 @@
     },
     {
       "file": "src/components/ShopClient.tsx",
-      "sha256": "2bb3307ffcff22ae9f463da20ae642b5377eaa04431bab8b3f9d3f51a8b22b8f",
+      "sha256": "96362a2385ad45b33ae0588c686aed717df154017cb7fd5fbe97fc5e342c6d62",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -69207,16 +69329,18 @@
     },
     {
       "file": "src/components/StreakContinuation.tsx",
-      "sha256": "0f7d61023374d48b49db8648d7463120243771ed807dbaacce816e75fabc9b28",
+      "sha256": "99a798c17f53d352630bba0cf5d4d8fa71fe4dcade3351fc5048e61c7759031d",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/StreakCelebrationFlow",
+        "@/components/StreakEarnedBanner",
         "@/components/versado/MascotSlot",
         "@/components/versado/SystemIcon",
         "@/lib/celebrationGate",
         "@/lib/learning/streakReturnRules",
         "@/lib/socketClient",
+        "@/lib/streakBanner",
         "@/lib/xpBroadcast",
         "lucide-react",
         "next/link",
@@ -69233,6 +69357,23 @@
         "StreakContinuationCard",
         "StreakContinuationProvider",
         "useStreakContinuation"
+      ]
+    },
+    {
+      "file": "src/components/StreakEarnedBanner.tsx",
+      "sha256": "45268679237abd66dd2ecc8624b336131fa5357fe165b06913c7be45bcfbd19c",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/versado/SystemIcon",
+        "lucide-react",
+        "react"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "StreakEarnedBanner"
       ]
     },
     {
@@ -71307,7 +71448,7 @@
     },
     {
       "file": "src/components/reading/pathParts.tsx",
-      "sha256": "9f8f09e379be2c29c2446b3388c8e226c1d91fe42c064d091c4c675801d20e85",
+      "sha256": "890d6896f429f2097a748cd5c867e2cca389da173a05cff6dab69aef433798b1",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -71996,7 +72137,7 @@
     },
     {
       "file": "src/components/study/CfmWeekPath.tsx",
-      "sha256": "21bdbe11956d274af6fbc75a390024adf55adfb518a0ea8665fafdba90c0a71b",
+      "sha256": "634e05a31f0f442f2b5b326e3086e318a8803eca6d608789c837be7b3de5586c",
       "boundary": "client",
       "imports": [
         "./PersonalStudyParts",
@@ -72011,6 +72152,7 @@
         "@/lib/studyContent/weekLabels",
         "@/lib/studyContent/weekSelection",
         "lucide-react",
+        "next/image",
         "next/link",
         "react"
       ],
@@ -72043,7 +72185,7 @@
     },
     {
       "file": "src/components/study/PersonalStudyParts.tsx",
-      "sha256": "a42541a88f130218968b782c97e192941ad2ce435121734f3ffe2a31061760ff",
+      "sha256": "14a03fbc27cdd39700570566604d78c119b51fd266c9c1d0d85b3b5a297531d1",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -73029,6 +73171,8 @@
     "tests/cfm-2027.integration.test.ts",
     "tests/cfm-2027.test.ts",
     "tests/cfm-auto-publish.integration.test.ts",
+    "tests/cfm-card-improvements.test.ts",
+    "tests/cfm-card-overlay.browser.mjs",
     "tests/cfm-collection-isolation.integration.test.ts",
     "tests/cfm-courses.integration.test.ts",
     "tests/cfm-courses.test.ts",
@@ -73199,6 +73343,7 @@
     "tests/puzzle-rules.test.ts",
     "tests/puzzle-settle.integration.test.ts",
     "tests/puzzle-solo.integration.test.ts",
+    "tests/puzzle-streak-banner.browser.mjs",
     "tests/puzzle-visibility.browser.mjs",
     "tests/quick-missionary-source.integration.test.ts",
     "tests/quick-missionary-source.multi-instance.test.mjs",
@@ -73215,6 +73360,7 @@
     "tests/security-hardening.integration.test.ts",
     "tests/security-policy.test.ts",
     "tests/shell-layout.test.ts",
+    "tests/shop-layout.browser.mjs",
     "tests/snelle-zendeling-difficulty.test.ts",
     "tests/snelle-zendeling-genees.integration.test.ts",
     "tests/snelle-zendeling-genees.test.ts",
@@ -73226,6 +73372,7 @@
     "tests/social-links.integration.test.ts",
     "tests/social-rules.test.ts",
     "tests/social.integration.test.ts",
+    "tests/streak-banner.test.ts",
     "tests/streak-calendar.test.ts",
     "tests/streak-celebration-deferral.test.ts",
     "tests/streak-celebration.integration.test.ts",

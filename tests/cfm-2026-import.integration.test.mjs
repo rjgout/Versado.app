@@ -40,7 +40,7 @@ async function bulkPublicationScenarios({ f, collection, editions, report, befor
   assert.equal(review.ready, 52);
   assert.equal(review.blocked + review.missing, 0);
   assert.equal(review.totals.blocking, 0);
-  assert.equal(review.totals.displayOnly, 553, "de 553 bekende, gecontroleerde niet-klikbare verwijzingen");
+  assert.equal(review.totals.displayOnly, 554, "553 beoordeelde gevallen plus de foutieve Johannes/Exodus-bronlink");
   assert.equal(review.totals.figures, review.totals.mediaReady);
   assert.equal(review.lessons.length, 52);
   await assert.rejects(studyProgramReview(f.owner.actor, collection.id), (e) => e.code === "FORBIDDEN");
@@ -371,12 +371,12 @@ test("52 officiële CFM-concepten: echte OTB-doelen, persistente media, idempote
   }
   const refs = report.lessons.flatMap((l) => l.references),
     internal = refs.filter((r) => r.diagnosis === "INTERNAL_VERIFIED");
-  assert.equal(internal.length, 1960);
+  assert.equal(internal.length, 1959); // Johannes 1:14 met een Exodus-bron blijft veilig geblokkeerd.
   assert.equal(
     refs.filter((r) => r.diagnosis === "EXTERNAL_VERIFIED").length,
     1001,
   );
-  assert.equal(refs.filter((r) => r.diagnosis === "UNRESOLVED").length, 553);
+  assert.equal(refs.filter((r) => r.diagnosis === "UNRESOLVED").length, 554);
   const adminOverview = await fetch(`${assertReferenceTestEnvironment()}/api/admin/study-publications`, { headers: { cookie: f.admin.cookie } });
   assert.equal(adminOverview.status, 200);
   const overview = await adminOverview.json();

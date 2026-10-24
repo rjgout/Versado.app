@@ -86,7 +86,7 @@ try {
       await card.locator("[data-program-review]").focus();
       await page.keyboard.press("Enter");
       await card.locator('[data-count="known"]').waitFor({ timeout: 90000 });
-      assert.equal(await card.locator('[data-count="known"]').innerText(), "553");
+      assert.equal(await card.locator('[data-count="known"]').innerText(), "554");
       assert.equal(await card.locator("[data-lesson-status]").count(), 52);
       for (const control of await card.locator("input, select, button, a[download]").all()) {
         if (!(await control.isVisible())) continue;
@@ -147,7 +147,7 @@ try {
     await program.locator("[data-program-review]").click();
     await program.locator('[data-count="blocking"]').waitFor({ timeout: 90000 });
     assert.equal(await program.locator('[data-count="ready"]').innerText(), "52");
-    assert.equal(await program.locator('[data-count="known"]').innerText(), "553");
+    assert.equal(await program.locator('[data-count="known"]').innerText(), "554");
     assert.equal(await program.locator('[data-count="blocking"]').innerText(), "Geen");
     assert.equal(await program.locator("[data-lesson-status=ready]").count(), 52);
     await program.scrollIntoViewIfNeeded();

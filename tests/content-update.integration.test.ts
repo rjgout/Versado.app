@@ -6,6 +6,8 @@
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
 import { Client } from "pg";
+import { spawn } from "node:child_process";
+import { once } from "node:events";
 import { mkdtemp, mkdir, rm, writeFile, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -261,4 +263,56 @@ test("een door een herstart onderbroken run blijft niet eeuwig bezig", { skip },
   assert.ok((await L.update.markInterruptedRuns(L.db)) >= 1);
   const row = await L.db.contentUpdateRun.findUniqueOrThrow({ where: { id: stale.id } });
   assert.deepEqual([row.status, row.error], ["FAILED", "INTERRUPTED"]);
+});
+
+
+test("een actieve logrij op een ander Node-proces blijft bezig; procesuitval maakt herstel en retry mogelijk", { skip, timeout: 30_000 }, async () => {
+  const child = spawn(process.execPath, ["--import", "tsx", "--input-type=module", "-e", `
+    import { prisma } from './src/lib/db.ts';
+    import { withContentUpdateRun } from './src/lib/contentUpdateRun.ts';
+    await withContentUpdateRun(prisma, { kind: 'SCRIPTURE_PREPARE', createdById: ${JSON.stringify(admin)} }, async (run) => {
+      await prisma.contentUpdateRun.update({ where: { id: run.id }, data: { startedAt: new Date(Date.now() - 60_000) } });
+      process.send({ id: run.id });
+      await new Promise(() => {});
+    });
+  `], { env: process.env, stdio: ["ignore", "ignore", "inherit", "ipc"] });
+  let runId: string | undefined;
+  try {
+    const [message] = await once(child, "message");
+    runId = (message as { id: string }).id;
+    await L.update.markInterruptedRuns(L.db);
+    assert.equal((await L.db.contentUpdateRun.findUniqueOrThrow({ where: { id: runId } })).status, "RUNNING", "bronvoorbereiding is ook zonder de algemene importlock actief");
+  } finally {
+    const exited = once(child, "exit");
+    child.kill("SIGKILL");
+    await exited;
+  }
+  // PostgreSQL verwerkt het verbreken van de eigenaarsverbinding asynchroon.
+  for (let i = 0; i < 50; i++) {
+    await L.update.markInterruptedRuns(L.db);
+    if ((await L.db.contentUpdateRun.findUniqueOrThrow({ where: { id: runId } })).status === "FAILED") break;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  const abandoned = await L.db.contentUpdateRun.findUniqueOrThrow({ where: { id: runId } });
+  assert.deepEqual([abandoned.status, abandoned.error], ["FAILED", "INTERRUPTED"]);
+  const retried = await L.update.checkScriptures(L.db, { prepare: true, adminId: admin, sources: sourceWith(), otb: null });
+  assert.equal(retried.status, "OK");
+  assert.notEqual(retried.runId, runId);
+  assert.equal((await L.db.contentUpdateRun.findUniqueOrThrow({ where: { id: runId } })).status, "FAILED", "retry wist het eerdere auditspoor niet");
+});
+
+test("een onschrijfbaar beheerlogboek blokkeert de import voordat contentwerk start", { skip }, async () => {
+  const { withContentUpdateRun } = await import("../src/lib/contentUpdateRun");
+  let executed = false;
+  await L.db.$executeRawUnsafe(`CREATE FUNCTION content_log_test_failure() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW."createdById" = 'log-failure-test' THEN RAISE EXCEPTION 'synthetische logboekfout'; END IF; RETURN NEW; END $$`);
+  await L.db.$executeRawUnsafe(`CREATE TRIGGER content_log_test_failure BEFORE INSERT ON "ContentUpdateRun" FOR EACH ROW EXECUTE FUNCTION content_log_test_failure()`);
+  const before = await snapshot();
+  try {
+    await assert.rejects(withContentUpdateRun(L.db, { kind: "CONTENT_UPDATE", createdById: "log-failure-test" }, async () => { executed = true; }), /synthetische logboekfout/);
+    assert.equal(executed, false);
+    assert.deepEqual(await snapshot(), before);
+  } finally {
+    await L.db.$executeRawUnsafe(`DROP TRIGGER content_log_test_failure ON "ContentUpdateRun"`);
+    await L.db.$executeRawUnsafe(`DROP FUNCTION content_log_test_failure()`);
+  }
 });

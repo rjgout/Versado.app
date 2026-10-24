@@ -830,6 +830,9 @@ export const de: PartialMessages = {
     notifyLongBody: "Egal, wie lange es her ist: Du kannst jederzeit weitermachen.",
   },
   streakCelebration: {
+    bannerTitle: "Serie verlängert!",
+    bannerDay: "{n} Tag",
+    bannerDays: "{n} Tage",
     title: "Deine Serie geht weiter",
     personalMessage: "{n} Tage. Heute wieder geschafft.",
     daysOnRow: "Tage in Folge",
@@ -2554,7 +2557,7 @@ export const de: PartialMessages = {
     note3: "Kaufst du etwas in einer Woche, in der du noch nicht geübt hast, nimmst du diese Woche trotzdem in deiner Liga teil, mit negativer Wertung. Dann kannst du absteigen.",
     hints: "Tipps",
     hintTitle: "💡 Tipp",
-    hintText: "Markiert beim Wortspiel, welche Buchstaben auf deinem Bänkchen zusammen ein Wort bilden können — überall einsetzbar, wo Tipps verwendet werden können, egal wie viele du sammelst.",
+    hintText: "Nutze Tipps als zusätzliche Hilfe beim Spielen, zum Beispiel im Wortspiel, Wort des Tages, Kapitelraten und Puzzle. Alle Spiele mit Tippfunktion nutzen denselben Vorrat. Wähle im Spiel, welche verfügbare Hilfe du nutzen möchtest.",
     quantity: "Anzahl",
     geneesTitle: "Rette dich",
     geneesText: "Fliege nach einem Absturz weiter, indem du eine Frage zum Buch Mormon richtig beantwortest. Jedes „Rette dich“ gehört zu deinem Konto und gilt solo und in gemeinsamen Runs.",

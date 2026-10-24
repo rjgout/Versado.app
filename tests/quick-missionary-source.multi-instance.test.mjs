@@ -73,11 +73,11 @@ test("Twee echte productie-instances: lobbybron, uitnodiging, reconnect, dubbele
  assert.equal((await post(1,b,`/api/snelle-zendeling/runs/${rb.id}/revive/answer`,{exerciseId:enQuestion,optionId:wrong.id})).status,200);
  assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:rb.id}})).eliminatedSeq,1);assert.equal((await db.quickMissionaryRun.findUniqueOrThrow({where:{id:ra.id}})).status,"FINISHED");assert.equal(await db.quickMissionaryDuoResult.count({where:{matchId:payload.match.matchId}}),1);
  assert.deepEqual(await state(a),beforeA,"alleen starten zonder spelen geeft de winnaar geen reeksactiviteit");
- assert.deepEqual(await state(b),{...beforeB,currentStreak:1},"de gespeelde run telt ook na een fout Genees-antwoord");
+ assert.deepEqual(await state(b),{...beforeB,currentStreak:beforeB.currentStreak+1},"de gespeelde run met bewezen bron telt ook na een fout Genees-antwoord");
  assert.equal(await db.streakActivity.count({where:{userId:a.id}}),0);
  assert.equal(await db.streakActivity.count({where:{userId:b.id}}),1);
  assert.equal((await post(0,b,`/api/snelle-zendeling/runs/${rb.id}/finish`,{score:0})).status,200);
- assert.deepEqual(await state(b),{...beforeB,currentStreak:1});
+ assert.deepEqual(await state(b),{...beforeB,currentStreak:beforeB.currentStreak+1});
  assert.equal(await db.streakActivity.count({where:{userId:b.id}}),1,"retry via de andere instance verdubbelt de reeksactiviteit niet");
  assert.equal(await db.xPTransaction.count({where:{userId:{in:[a.id,b.id]}}}),0);
 });

@@ -1,3 +1,4 @@
+import { withContentUpdateRun } from "@/lib/contentUpdateRun";
 import { createHash } from "node:crypto";
 import { Prisma, type PrismaClient } from "@/generated/prisma/client";
 import { importBooks, type BooksImportStats, type ChapterChange } from "../../prisma/importContent";
@@ -225,31 +226,32 @@ export interface ScriptureCheckOutcome {
  * controleren gebruikt wat er al staat.
  */
 export async function checkScriptures(client: PrismaClient, opts: PlanOptions & { prepare: boolean; adminId?: string | null }): Promise<ScriptureCheckOutcome> {
-  const run = await client.contentUpdateRun.create({ data: { kind: opts.prepare ? "SCRIPTURE_PREPARE" : "SCRIPTURE_CHECK", createdById: opts.adminId ?? null } });
-  const started = Date.now();
-  try {
-    const otb = await resolveOtbRoot(opts, opts.prepare);
-    const { plan, results } = await withContentImportLock(() => computeScripturePlan(client, otb.root, opts));
-    if (otb.error) results.splice(0, results.length, ...results.filter((result) => result.key !== OTB_KEY));
-    if (otb.error) results.push({ key: OTB_KEY, label: OTB_LABEL, status: "error", durationMs: 0, counts: null, message: otb.error });
-    const status = aggregateStatus(results);
-    // Een plan met een fout in een bron is niet publiceerbaar: de handtekening wordt dan niet gegeven.
-    const planHash = opts.prepare && status === "OK" ? planHashOf(plan) : null;
-    const upToDate = plan.sources.every((source) => source.counts.changedChapters === 0) && (plan.otb?.changes.length ?? 0) === 0;
-    await client.contentUpdateRun.update({
-      where: { id: run.id },
-      data: {
-        status, finishedAt: new Date(), durationMs: Date.now() - started,
-        sources: results as unknown as Prisma.InputJsonValue,
-        plan: opts.prepare ? (plan as unknown as Prisma.InputJsonValue) : Prisma.JsonNull,
-        planHash,
-      },
-    });
-    return { runId: run.id, status, results, planHash, upToDate };
-  } catch (error) {
-    await client.contentUpdateRun.update({ where: { id: run.id }, data: { status: "FAILED", finishedAt: new Date(), durationMs: Date.now() - started, error: error instanceof Error ? error.message : String(error) } });
-    throw error;
-  }
+  return withContentUpdateRun(client, { kind: opts.prepare ? "SCRIPTURE_PREPARE" : "SCRIPTURE_CHECK", createdById: opts.adminId ?? null }, async (run) => {
+    const started = Date.now();
+    try {
+      const otb = await resolveOtbRoot(opts, opts.prepare);
+      const { plan, results } = await withContentImportLock(() => computeScripturePlan(client, otb.root, opts));
+      if (otb.error) results.splice(0, results.length, ...results.filter((result) => result.key !== OTB_KEY));
+      if (otb.error) results.push({ key: OTB_KEY, label: OTB_LABEL, status: "error", durationMs: 0, counts: null, message: otb.error });
+      const status = aggregateStatus(results);
+      // Een plan met een fout in een bron is niet publiceerbaar: de handtekening wordt dan niet gegeven.
+      const planHash = opts.prepare && status === "OK" ? planHashOf(plan) : null;
+      const upToDate = plan.sources.every((source) => source.counts.changedChapters === 0) && (plan.otb?.changes.length ?? 0) === 0;
+      await client.contentUpdateRun.update({
+        where: { id: run.id },
+        data: {
+          status, finishedAt: new Date(), durationMs: Date.now() - started,
+          sources: results as unknown as Prisma.InputJsonValue,
+          plan: opts.prepare ? (plan as unknown as Prisma.InputJsonValue) : Prisma.JsonNull,
+          planHash,
+        },
+      });
+      return { runId: run.id, status, results, planHash, upToDate };
+    } catch (error) {
+      await client.contentUpdateRun.update({ where: { id: run.id }, data: { status: "FAILED", finishedAt: new Date(), durationMs: Date.now() - started, error: error instanceof Error ? error.message : String(error) } });
+      throw error;
+    }
+  });
 }
 
 export class PlanMismatchError extends Error {
@@ -272,55 +274,56 @@ export async function publishScriptures(client: PrismaClient, opts: PlanOptions 
   const sources = opts.sources ?? SCRIPTURE_SOURCES;
   const prepared = await client.contentUpdateRun.findFirst({ where: { kind: "SCRIPTURE_PREPARE", planHash: opts.planHash, status: "OK" }, orderBy: { startedAt: "desc" }, select: { id: true } });
   if (!prepared) throw new PlanMismatchError("NO_PREPARED_PLAN");
-  const run = await client.contentUpdateRun.create({ data: { kind: "SCRIPTURE_PUBLISH", planHash: opts.planHash, createdById: opts.adminId ?? null } });
-  const started = Date.now();
-  const results: SourceResult[] = [];
-  try {
-    const otb = await resolveOtbRoot(opts, false);
-    await withContentImportLock(async () => {
-      const { plan, results: dry } = await computeScripturePlan(client, otb.root, opts);
-      if (otb.error || dry.some((result) => result.status === "error") || planHashOf(plan) !== opts.planHash) throw new PlanMismatchError("PLAN_CHANGED");
-      try {
-        for (const source of sources) {
-          const t0 = Date.now();
-          const planned = plan.sources.find((entry) => entry.key === source.id);
-          if (!planned) { results.push({ key: source.id, label: source.label, status: "skipped", durationMs: 0, counts: null, message: "collectionMissing" }); continue; }
-          try {
-            const stats = await importBooks(client, source.books, log, source.id, { syncCourses: false });
-            if (source.audio) await importChapterAudio(client, source.audio, source.id, log);
-            results.push({ key: source.id, label: source.label, status: "ok", durationMs: Date.now() - t0, counts: countsOf(stats), message: null });
-          } catch (error) {
-            results.push({ key: source.id, label: source.label, status: "error", durationMs: Date.now() - t0, counts: null, message: error instanceof Error ? error.message : String(error) });
+  return withContentUpdateRun(client, { kind: "SCRIPTURE_PUBLISH", planHash: opts.planHash, createdById: opts.adminId ?? null }, async (run) => {
+    const started = Date.now();
+    const results: SourceResult[] = [];
+    try {
+      const otb = await resolveOtbRoot(opts, false);
+      await withContentImportLock(async () => {
+        const { plan, results: dry } = await computeScripturePlan(client, otb.root, opts);
+        if (otb.error || dry.some((result) => result.status === "error") || planHashOf(plan) !== opts.planHash) throw new PlanMismatchError("PLAN_CHANGED");
+        try {
+          for (const source of sources) {
+            const t0 = Date.now();
+            const planned = plan.sources.find((entry) => entry.key === source.id);
+            if (!planned) { results.push({ key: source.id, label: source.label, status: "skipped", durationMs: 0, counts: null, message: "collectionMissing" }); continue; }
+            try {
+              const stats = await importBooks(client, source.books, log, source.id, { syncCourses: false });
+              if (source.audio) await importChapterAudio(client, source.audio, source.id, log);
+              results.push({ key: source.id, label: source.label, status: "ok", durationMs: Date.now() - t0, counts: countsOf(stats), message: null });
+            } catch (error) {
+              results.push({ key: source.id, label: source.label, status: "error", durationMs: Date.now() - t0, counts: null, message: error instanceof Error ? error.message : String(error) });
+            }
           }
-        }
-        if (plan.otb && otb.root) {
-          const t0 = Date.now();
-          try {
-            await importOtbFull(client, otb.root, log);
-            results.push({ key: OTB_KEY, label: OTB_LABEL, status: "ok", durationMs: Date.now() - t0, counts: otbCounts(plan.otb.changes), message: null });
-          } catch (error) {
-            results.push({ key: OTB_KEY, label: OTB_LABEL, status: "error", durationMs: Date.now() - t0, counts: null, message: error instanceof Error ? error.message : String(error) });
+          if (plan.otb && otb.root) {
+            const t0 = Date.now();
+            try {
+              await importOtbFull(client, otb.root, log);
+              results.push({ key: OTB_KEY, label: OTB_LABEL, status: "ok", durationMs: Date.now() - t0, counts: otbCounts(plan.otb.changes), message: null });
+            } catch (error) {
+              results.push({ key: OTB_KEY, label: OTB_LABEL, status: "error", durationMs: Date.now() - t0, counts: null, message: error instanceof Error ? error.message : String(error) });
+            }
           }
-        }
-      } finally {
-        if (results.some((result) => result.status === "ok")) {
-          try { await syncCourses(client); } catch (error) {
-            results.push({ key: "courses", label: "Cursussen", status: "error", durationMs: 0, counts: null, message: error instanceof Error ? error.message : String(error) });
+        } finally {
+          if (results.some((result) => result.status === "ok")) {
+            try { await syncCourses(client); } catch (error) {
+              results.push({ key: "courses", label: "Cursussen", status: "error", durationMs: 0, counts: null, message: error instanceof Error ? error.message : String(error) });
+            }
           }
+          clearExercisePlanCache();
         }
-        clearExercisePlanCache();
-      }
-    });
-    const status = aggregateStatus(results);
-    await client.contentUpdateRun.update({ where: { id: run.id }, data: { status, finishedAt: new Date(), durationMs: Date.now() - started, sources: results as unknown as Prisma.InputJsonValue } });
-    return { runId: run.id, status, results };
-  } catch (error) {
-    await client.contentUpdateRun.update({
-      where: { id: run.id },
-      data: { status: "FAILED", finishedAt: new Date(), durationMs: Date.now() - started, sources: results as unknown as Prisma.InputJsonValue, error: error instanceof Error ? error.message : String(error) },
-    });
-    throw error;
-  }
+      });
+      const status = aggregateStatus(results);
+      await client.contentUpdateRun.update({ where: { id: run.id }, data: { status, finishedAt: new Date(), durationMs: Date.now() - started, sources: results as unknown as Prisma.InputJsonValue } });
+      return { runId: run.id, status, results };
+    } catch (error) {
+      await client.contentUpdateRun.update({
+        where: { id: run.id },
+        data: { status: "FAILED", finishedAt: new Date(), durationMs: Date.now() - started, sources: results as unknown as Prisma.InputJsonValue, error: error instanceof Error ? error.message : String(error) },
+      });
+      throw error;
+    }
+  });
 }
 
 /** Audiobestanden van de voorgelezen hoofdstukken lokaal spiegelen: een aparte, bewuste actie, nooit onderdeel van een normale contentupdate of Schriftpublicatie. */
@@ -333,14 +336,17 @@ export async function recentUpdateRuns(client: PrismaClient, kinds: ("CONTENT_UP
   return client.contentUpdateRun.findMany({ where: { kind: { in: kinds } }, orderBy: { startedAt: "desc" }, take });
 }
 
-/**
- * Een run die RUNNING blijft terwijl er in dit proces geen taak loopt, is onderbroken (herstart of crash): de lock vervalt vanzelf met de
- * verbinding, maar de logrij zou eeuwig "bezig" blijven. Alleen aanroepen als de aanroeper zeker weet dat er geen eigen taak loopt.
- */
+/** Markeer uitsluitend oude runs zonder levende eigenaar; een actieve run op een andere instance blijft RUNNING. */
 export async function markInterruptedRuns(client: PrismaClient): Promise<number> {
-  const result = await client.contentUpdateRun.updateMany({
-    where: { status: "RUNNING", startedAt: { lt: new Date(Date.now() - 5_000) } },
-    data: { status: "FAILED", finishedAt: new Date(), error: "INTERRUPTED" },
-  });
-  return result.count;
+  const cutoff = new Date(Date.now() - 5_000);
+  const candidates = await client.contentUpdateRun.findMany({ where: { status: "RUNNING", startedAt: { lt: cutoff } }, select: { id: true } });
+  let count = 0;
+  for (const { id } of candidates) {
+    count += await client.$transaction(async (tx) => {
+      const [lock] = await tx.$queryRaw<{ ok: boolean }[]>`SELECT pg_try_advisory_xact_lock(hashtextextended(${`content-update-run:${id}`}, 0)) AS ok`;
+      if (!lock?.ok) return 0;
+      return (await tx.contentUpdateRun.updateMany({ where: { id, status: "RUNNING", startedAt: { lt: cutoff } }, data: { status: "FAILED", finishedAt: new Date(), error: "INTERRUPTED" } })).count;
+    });
+  }
+  return count;
 }

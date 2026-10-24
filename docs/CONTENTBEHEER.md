@@ -6,21 +6,22 @@ Wat niet gewijzigd is, wordt niet opnieuw aangemaakt.
 Dit document is de bron van waarheid voor het contentbeheer. Het beschrijft de audit (wat bewezen en wat vermoed is), de regels die nu
 gelden, wat er nog komt en wat er bij de uitrol hoort. De gebruikersgerichte stappen staan in `README.md` en `docs/DEPLOY-SYNOLOGY.md`.
 
-## 1. De huidige keten (feitelijk)
+## 1. De huidige keten
 
-`/adminbackend/systeem` → `ReseedClient` → `POST /api/admin/reseed` → `startReseedJob` (`src/lib/reseedJob.ts`, één in-memory job per
-proces) → `runSeed` (`src/lib/seed.ts`). `npm run db:seed` roept dezelfde `runSeed` aan. De knop heet in de interface "Content opnieuw
-laden" en is dus **niet** alleen "nieuwe content ophalen": `runSeed` doet, in deze volgorde, alles:
+Adminbackend → Systeem heeft twee gescheiden beheerkaarten:
 
-1. optioneel studiecontent (CFM-concepten, alleen na snapshotgoedkeuring);
-2. Boek van Mormon (nl): verzen, hoofdstukken, **oefeningen**, cursussen (`importBooks` + `syncCourses`) en audiotijden;
-3. Bijbel (OTB, alle talen): bron gepind in `scripts/otb/source-lock.json`, download of cache, daarna per hoofdstuk een transactie;
-4. Leer en Verbonden, Parel van Grote Waarde en de Engelse/Duitse/Franse/Spaanse uitgaven: dezelfde `importBooks`, per collectie;
-5. podcastoefeningen uit `prisma/podcastContent.ts` en `kastVanMormonContent.ts`, daarna de RSS-feeds (`syncPodcastFeed`);
-6. FSY (`syncFsyContent`), kindercursus, introductiecursus, Genees-vragen, Slimste Heilige, prestaties;
-7. audio spiegelen (`mirrorChapterAudio`, gedownload naar `AUDIO_DIR`).
+- **Nieuwe content ophalen** → `/api/admin/reseed` → `startReseedJob` → `runSeed(..., { scriptures: false })`.
+  Dit verwerkt aanvullende content, met dezelfde bestaande bron- en snapshotgoedkeuringen. Schriftteksten, hun oefeningen,
+  schriftcursussen, audio en vers-tijdcodes blijven buiten deze actie. De bestaande expliciete CFM-vrijgaveregels blijven gelden;
+  deze scheiding introduceert geen toestemming voor andere automatische publicatie.
+- **Schriftbronnen bijwerken** → `/api/admin/scripture-update` → controleren → voorbereiden → publiceren met planHash.
+  Alleen deze bewuste actie kan de repo-Schriftbronnen bijwerken. Spiegelen van legacy-MP3's is een afzonderlijke bevestigde actie.
 
-Er is geen schakeling tussen "nieuwe aanvullende content" en "de Schriften opnieuw importeren".
+De CLI `npm run db:seed` blijft bewust de **volledige** seed inclusief Schriften uitvoeren; gebruik hem nooit als vervanging voor de
+veilige aanvullende beheerkaart. Beide paden gebruiken de bestaande PostgreSQL-importlock. De zes uitsluitend voor Audio V2
+verborgen tekstuitgaven worden nooit automatisch naar cursussen gepromoveerd.
+
+De bevindingen in §2 betreffen de oorspronkelijke implementatie; huidige garanties en beperkingen staan hieronder.
 
 ## 2. Bewezen oorzaken
 
@@ -44,12 +45,11 @@ Daarnaast overschreef de podcast-import bij elke run de titel van een bestaande 
   audio; die netwerkonderdelen zijn lokaal niet gemeten.
 - Productiegegevens kunnen al verweesde open oefensessies bevatten van eerdere reloads. Dat is vast te stellen met
   `scripts/content-architecture/diagnose-content-integrity-readonly.mjs` (alleen lezen, zie §8).
-- Een gedeeltelijk mislukte OTB-import blijft eerder aangevulde hoofdstukken laten staan (per hoofdstuk atomair); dat is veilig maar
-  wordt nog niet als "gedeeltelijk" aan de beheerder gemeld (gepland, §6).
+- Een gedeeltelijk mislukte Schriftimport kan eerder gecommitte hoofdstukken behouden. De run meldt FAILED/PARTIAL; zie §6.
 
 ## 4. Wat deze wijziging (stap 1, beschermend) doet
 
-Geen schemawijziging, geen migratie, geen nieuwe afhankelijkheid.
+De oorspronkelijke bescherming uit #184 had geen schemawijziging. Contentbeheer V2 voegt de additieve migratie uit §8 toe.
 
 - **Stabiele oefen-identiteit** (`src/lib/exerciseSync.ts`, `prisma/importContent.ts`): een oefening is "dezelfde" als type, vers, vraag,
   geaccepteerde antwoorden, woordenbank en de *juiste* opties gelijk zijn. Dan blijven id, opties, antwoordgeschiedenis, XP-bijschrijving,
@@ -73,75 +73,63 @@ Geen schemawijziging, geen migratie, geen nieuwe afhankelijkheid.
   tweede start (andere knop of terminal) stopt direct met een duidelijke melding. De lock vervalt vanzelf bij een crash.
 - Na een import in hetzelfde proces wordt de oefenplan-cache gewist (`clearExercisePlanCache`).
 
-## 5. Contentversies en audio (huidige stand)
+## 5. Contentversies en audio
 
-- Tekst en audio hangen zo samen: `Chapter.audioUrl` (bron) en `Verse.audioStart` (begintijd per vers, uit `prisma/bomAudio*.json`),
-  de hoofdstukkop-tijden en de lokale kopie via `mirrorChapterAudio`/`playableAudioUrl`. `importChapterAudio` slaat een hoofdstuk over als
-  het aantal verzen niet meer klopt (er worden nooit tijdcodes op de verkeerde verzen gezet).
-- Verzen worden op hun plaats bijgewerkt (id blijft, dus bladwijzers, markeringen en notities blijven).
-- **Nog niet aanwezig**: een registratie van welke audio door een tekstwijziging verouderd is. Een gewijzigd vers laat `audioStart` van
-  dat vers zoals het was. Het ontwerp daarvoor staat in §6 (stap 3); automatische regeneratie of verwijdering is uitdrukkelijk niet
-  de bedoeling.
+Legacy-audio bestaat uit `Chapter.audioUrl`, hoofdstukkoptijden, `Verse.audioStart` en lokale MP3's. `ChapterAudioCheck` legt de
+laatst bevestigde teksthash vast. Een tekstwijziging markeert het hoofdstuk als NEEDS_REVIEW, met behoud van de audio en tijdcodes.
+Ongewijzigde audiogegevens lossen die controle niet op. Alleen geldige nieuwe audiogegevens of expliciete beheerbevestiging doen dat.
+Audio, gewijzigde vers-tijdcodes en de controle delen per hoofdstuk één transactie: een schrijffout laat de vorige stand intact.
 
-## 6. Wat nog komt (voorstel, wacht op akkoord)
+Audio V2 blijft een afzonderlijke, onveranderlijke registratie met expliciete publicatiepointer en exacte brontekstbinding.
+Een legacy-controle bevestigen publiceert geen V2-opname en omzeilt nooit de bronhash. De 19 oorspronkelijke reviewgevallen
+worden door deze integratie niet vrijgegeven. Bijbel-, CFM- en FSY-audio veranderen niet.
 
-Dit zijn architectuurkeuzes en worden daarom eerst voorgelegd.
+## 6. Controleren → Voorbereiden → Publiceren
 
-**Stap 2 — twee gescheiden beheeracties (geen schemawijziging nodig voor de kern)**
+Controleren en voorbereiden zijn drooglopen voor content; zij schrijven wel een beheerlogrij. Alleen voorbereiden kan de reeds
+gepinde OTB-bron downloaden. Publiceren downloadt of spiegelt niets, herberekent het plan onder de gedeelde importlock en weigert
+een gewijzigde bron of databasestand. De planHash bindt de volledige broninhoud, tellingen, hoofdstukwijzigingen en relevante
+content-/audiocontrolestand. Gebruiksgegevens blijven buiten de hash; hun behoud wordt in de importtransacties gecontroleerd.
 
-- *Nieuwe content ophalen*: een eigen runner (`runContentUpdate`) met alleen de aanvullende bronnen (podcastfeeds en -oefeningen, FSY,
-  CFM-concepten na snapshotgoedkeuring, kinder- en introductiecursus). Roept nooit `importBooks`, OTB, `syncCourses` voor Schriften of audio
-  aan. Per bron een status (`ok`, `overgeslagen`, `fout`), duur, aantal toegevoegd/bijgewerkt/overgeslagen en foutmelding; een falende
-  bron laat bestaande gepubliceerde content staan en maakt het eindresultaat "gedeeltelijk". Dezelfde lock.
-- *Schriftbronnen bijwerken*: de bestaande Schriftimport achter een eigen, bewust uitgebreidere kaart. Drie stappen: **controleren**
-  (droogloop: vergelijkt de repo-bron en de gepinde OTB-commit met de database, schrijft niets), **voorbereiden** (toont per boek/hoofdstuk
-  de wijzigingen, de gevolgen voor oefeningen — behouden/nieuw/buiten gebruik — en voor audio) en **publiceren** met een
-  bevestigingsstap. Aanbeveling: de bevestiging is een *planhandtekening* (hash van het berekende plan). De beheerder bevestigt precies dat
-  plan; bij publiceren wordt het opnieuw berekend en alleen uitgevoerd als de handtekening klopt. Zo is geen aparte opslag van een
-  "voorbereid plan" nodig. Bronversie: voor repo-content de inhoudshash per collectie, voor OTB de pin in `source-lock.json`. Geen nieuwe
-  externe bron zonder vastgestelde licentie en herkomst.
+Publicatie is per bron/hoofdstuk, niet één transactie over alle Schriften. Een fout rolt het getroffen hoofdstuk terug, maar kan
+eerdere hoofdstukken laten staan; de run meldt FAILED/PARTIAL. Na een deelfout opnieuw controleren en voorbereiden, niet een oude
+planHash forceren. De eerdere run en fout blijven in het logboek. Een identieke geslaagde herimport behoudt bestaande identiteiten.
 
-**Stap 3 — audio-afhankelijkheden (schemawijziging, daarom apart akkoord)**
-
-Aanbeveling: een klein model `ChapterAudioCheck` (hoofdstuk, tekst-hash op het moment van de laatste goedgekeurde audio, status
-`CURRENT | NEEDS_REVIEW`, tijdstempel). Een import vergelijkt de tekst-hash per hoofdstuk; alleen bij een echte tekstwijziging wordt het
-hoofdstuk `NEEDS_REVIEW` (met onderscheid naar tijdcodes, transcripties en woordmarkeringen waar die bestaan). Bestaande audio blijft
-afspeelbaar; vervanging wordt eerst gevalideerd (aantal verzen, tijdcodes oplopend) en pas daarna omgezet. Geen nieuwe audio-engine.
-Alternatief zonder schema: de controlekaart toont alleen het manifest per run (niet blijvend). Voorkeur: het model, omdat de status
-anders na elke herstart verloren gaat.
-
-**Stap 4 — gedaan (goedgekeurd):** `ContentStatus.RETIRED` is de aparte status voor buiten gebruik gestelde oefeningen (migratie
-`20261127120000_content_beheer_v2`, `ALTER TYPE … ADD VALUE`, achterwaarts compatibel). `REJECTED` blijft uitsluitend "handmatig afgewezen".
+Iedere run heeft vóór zijn logrij een PostgreSQL-sessielock op zijn eigen run-ID, ook tijdens bronvoorbereiding buiten de algemene
+importlock. Herstel markeert alleen oude RUNNING-rijen waarvoor die eigenaarslock vrij is. Een beheer-GET op een andere instance
+mag een actieve run dus niet als onderbroken markeren. Bij procesuitval vervalt de lock en blijft de rij FAILED/INTERRUPTED zichtbaar;
+een retry krijgt een nieuwe rij. Een onschrijfbaar startlogboek blokkeert de import. Een fout bij de eindregistratie wordt als fout
+getoond, niet stil als succes. In-memory voortgang is tijdelijk; het duurzame runlogboek is leidend na herstart.
 
 ## 7. Wanneer gebruik je wat
 
 - **Nieuwe podcastaflevering, FSY-les, kinder- of introcontent**: de normale reload (en, zodra stap 2 er is, *Nieuwe content ophalen*).
   Ongewijzigde content wordt overgeslagen; herhaald uitvoeren verandert niets.
-- **Eenmaal per jaar of bij een officiële tekstrevisie**: *Schriftbronnen bijwerken* (stap 2). Tot dan raakt een gewone reload de Schriften
-  alleen aan voor zover de bron in de repo is gewijzigd, en dan veilig volgens §4.
+- **Bij een officiële tekstrevisie**: bewust *Schriftbronnen bijwerken*. Een aanvullende update raakt die Schriften niet.
 - **Nooit** een reload als herstelmiddel voor gebruikersproblemen: dat is niet nodig en is nu ook niet meer destructief.
 
 ## 8. Uitrol en herstel
 
 Dit raakt bestaande gebruikersgegevens: behandel het als productiegevoelig. Er is geen productie-import of -herstel uitgevoerd.
 
-1. **Back-up vooraf**: `pg_dump` van de productiedatabase (zie README, Back-ups) en bewaar het bestand buiten de container.
+1. **Back-up vooraf**: consistente PostgreSQL- en persistente audioback-up buiten de container, onder goedgekeurd onderhoud; zie het acceptatieplan in PR #211.
 2. **Alleen lezen controleren** (vóór en na): `node scripts/content-architecture/diagnose-content-integrity-readonly.mjs --confirm-readonly`.
    Toont, zonder persoons- of tekstgegevens, het aantal verweesde open oefensessies, oefeningen buiten gebruik, lessen zonder oefeningen,
    en actieve contentkeuzes op een onbeschikbare collectie. `GEEN_BEKENDE_SCHADE` is de gewenste uitkomst.
-3. **Compatibiliteit**: geen migratie; de nieuwe code werkt op de bestaande database. De eerste reload na uitrol vergelijkt de bestaande
-   oefeningen met de gegenereerde (zelfde generator, deterministisch): wat gelijk is wordt behouden (gemeten: 34.661 van 34.661 bestaande
-   oefeningen behouden). Alleen wat in de bron werkelijk anders is, wordt geversioneerd; het logboek meldt de aantallen per collectie
-   ("behouden / bijgewerkt / nieuw / buiten gebruik / verwijderd").
-4. **Volgorde**: uitrollen (nieuwe container) → diagnose → pas daarna, met afzonderlijke toestemming, een reload → diagnose opnieuw.
+3. **Compatibiliteit**: de normale migratieketen bevat `20261127120000_content_beheer_v2`: RETIRED, ChapterAudioCheck met backfill
+   voor bestaande legacy-audio en ContentUpdateRun. Geen oude migratie aanpassen of hernoemen. De migratie mag ook volgen op een
+   database waar Audio V2 al aanwezig is; het geïsoleerde bewijs staat in `scripts/audio/test-isolated.mjs`.
+4. **Volgorde**: eerst afzonderlijke toestemming op back-up, beoordeelde image en onderhoud. Stop alle oude app-/importprocessen;
+   migreer met de normale keten; start de nieuwe image; diagnoseer. Pas daarna, met apart akkoord, een expliciete contentactie.
+   Oude processen met de algemene reload mogen niet naast de nieuwe beheerflow blijven schrijven.
 5. **Herstel van al getroffen gebruikers**: een verweesde open set is alleen een verloren set: de gebruiker start de oefening opnieuw
    (de set wordt dan nieuw uitgedeeld; oude open sets verlopen vanzelf). Door eerdere reloads cascade-verwijderde
    antwoordgeschiedenis en XP-bijschrijvingen zijn **niet** uit de huidige database te reconstrueren; alleen een back-up van vóór die
    reload bevat ze. Een gerichte herstelroute (credits uit de back-up koppelen aan de nieuwe oefening met dezelfde inhoudshandtekening) is
    technisch mogelijk, maar wordt pas gebouwd na akkoord en na inzicht uit de diagnose.
-6. **Rollback**: geen schemawijziging, dus terug naar de vorige image is genoeg. Buiten gebruik gestelde oefeningen (`RETIRED`) worden
-   door de oude code ook niet uitgedeeld; er is dus niets terug te draaien. Houd na de uitrol de back-up uit stap 1 aan tot de eerste
-   reload veilig is bevestigd.
+6. **Rollback**: verwijder geen enumwaarden, tabellen of migratiehistorie. Een teruggezette oudere image is alleen veilig als zijn
+   omgang met RETIRED vooraf bewezen is; laat oude algemene reloads uit. Kies bij twijfel een vooruitfix. Een volledige database-
+   restore verliest nieuwere voortgang en vereist een afzonderlijk herstelbesluit plus de bijpassende audioback-up.
 7. **Verificatie na uitrol**: `/api/health`, de diagnose (stap 2), een tweede reload (logboek meldt overal "0 nieuw, 0 verwijderd"), de
    contentkiezer (Bijbel nog zichtbaar zoals ingesteld) en een testgebruiker die een oefenset uitdeelt vóór en inlevert ná een reload.
 
@@ -154,7 +142,7 @@ Dit raakt bestaande gebruikersgegevens: behandel het als productiegevoelig. Er i
 - Per collectie meldt de log: `Oefeningen: N ongewijzigd behouden, … nieuw, … buiten gebruik gesteld, … verwijderd` en
   `Verzen: … nieuw, … gewijzigd, … verwijderd`. Een herhaalde run met dezelfde bron toont overal 0.
 
-## 8. Beheerkaarten (Adminbackend → Systeem)
+## 10. Beheerkaarten (Adminbackend → Systeem)
 
 Twee afzonderlijke kaarten, beide onder de importlock (`withContentImportLock`) en beide met een logboekrij in `ContentUpdateRun`:
 
@@ -178,10 +166,10 @@ Twee afzonderlijke kaarten, beide onder de importlock (`withContentImportLock`) 
   wordt nooit verwijderd. Een beheerder bevestigt per hoofdstuk expliciet (`markAudioCurrent`); nieuwe, gevalideerde audiogegevens zetten het hoofdstuk ook weer
   op CURRENT. **Audiobestanden spiegelen** (`mirrorChapterAudio`) is een aparte knop op dezelfde kaart; tot dan spelen hoofdstukken van de bron.
 - Extra schemabesluit: het model `ContentUpdateRun` (alleen contentgegevens, geen persoonsgegevens) is toegevoegd voor het logboek; zonder dat model gaat de status
-  na een herstart verloren. De migratie is additief en verandert geen bestaande gegevens.
+  na een herstart verloren. De migratie is additief: hij backfillt alleen de nieuwe audiocontroletabel en verandert geen bestaande content of voortgang.
 
 ### Aanbevolen volgorde bij een Schriftupdate (door de eigenaar uit te voeren)
-1. Deploy de nieuwe image (de migratie `20261127120000_content_beheer_v2` is additief) en controleer dat de app gezond start.
+1. Alleen na uitroltoestemming: volg §8, met passende database- én audioback-up, migratie en controle van de nieuwe image.
 2. *Nieuwe content ophalen* raakt de Schriften niet meer; gebruik die voor feeds en overige content.
 3. *Schriftbronnen bijwerken*: **Controleren** (niets wordt geschreven), dan **Voorbereiden** (downloadt de OTB-bron en toont per bron de tellingen), lees het plan
    (verzen nieuw/gewijzigd/verwijderd, oefeningen behouden/nieuw/buiten gebruik, hoofdstukken met audio die ter controle worden aangemerkt) en pas daarna **Publiceren**.

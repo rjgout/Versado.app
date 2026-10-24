@@ -247,3 +247,15 @@ kalender, meldingen en de SQL-backfill op bestaande gebruikers.
   - migratiedata;
   - resetten;
   - een nieuw boek zonder sleutel.
+
+### Directe reeksbanner
+
+Een bevestigde nieuwe reeksdag toont tijdens een activiteit een compacte banner
+bovenaan, ook bij samen spelen. De banner is omhoog weg te vegen, heeft een
+sluitknop en verdwijnt na zes seconden (lezen met muis/focus of slepen pauzeert
+dat verdwijnen). Hij neemt geen focus over en pauzeert of navigeert het spel
+niet. Alleen een eerste paginaweergave, een freeze of een gedeeltelijke
+terugkeerpoging toont geen banner. Per gebruiker en reeksdag wordt de banner
+binnen het tabblad eenmaal getoond; de server blijft de bron voor de reeksdag.
+De fullscreen viering wordt hierdoor niet geclaimd en blijft op de bestaande
+veilige afronding wachten (`celebrationGate.ts`).

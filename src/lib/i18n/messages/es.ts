@@ -830,6 +830,9 @@ export const es: PartialMessages = {
     notifyLongBody: "No importa cuánto tiempo haya pasado: siempre puedes continuar.",
   },
   "streakCelebration": {
+    bannerTitle: "¡Racha ampliada!",
+    bannerDay: "{n} día",
+    bannerDays: "{n} días",
     "title": "Tu racha continúa",
     "personalMessage": "{n} días. Hoy también lo lograste.",
     "daysOnRow": "días seguidos",
@@ -2565,7 +2568,7 @@ export const es: PartialMessages = {
     "note3": "Si compras algo en una semana en la que aún no has practicado, seguirás participando en tu división esa semana, con una puntuación negativa. Luego podrás ser degradado.",
     "hints": "Pistas",
     "hintTitle": "💡 Pista",
-    "hintText": "En el juego de palabras, resalta qué letras en tu estante pueden formar una palabra juntas; se pueden usar en cualquier lugar donde se puedan usar pistas, sin importar cuántas recoger.",
+    "hintText": "Usa pistas para recibir ayuda al jugar, por ejemplo en el juego de palabras, Palabra del día, Adivina el capítulo y el rompecabezas. Todos los juegos que admiten pistas comparten la misma reserva. Elige dentro del juego qué ayuda disponible quieres usar.",
     "quantity": "Cantidad",
     "geneesTitle": "Recupérate",
     "geneesText": "Sigue volando tras un choque respondiendo bien una pregunta sobre el Libro de Mormón. Cada Recupérate pertenece a tu cuenta y vale en solitario y en partidas compartidas.",

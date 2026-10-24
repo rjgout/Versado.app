@@ -147,7 +147,7 @@ async function runSeedLocked(
     // synchronisatie een echte fout van de run (anders blijven oefenkoppelingen onbemerkt achter).
     log("Cursussen synchroniseren...");
     let syncError: unknown = null;
-    await inPhase("Cursussen", () => syncCourses(client)).catch((error) => {
+    await inPhase("Cursussen", () => syncCourses(client, { scriptures })).catch((error) => {
       syncError = error;
       log(`Cursussen synchroniseren mislukt: ${error instanceof Error ? error.message : String(error)}`);
     });

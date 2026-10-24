@@ -1,3 +1,4 @@
+import { withContentUpdateRun } from "@/lib/contentUpdateRun";
 import { importAllCfmDrafts } from "@/lib/studyContent/cfm2026Import";
 import { autoPublishCfmVolume } from "@/lib/studyContent/cfmAutoPublish";
 import { CFM_SOURCES } from "@/lib/studyContent/cfmSources";
@@ -120,38 +121,36 @@ export function startReseedJob(
   const currentJob = current;
   // "Nieuwe content ophalen" laat de Schriftteksten met rust: die lopen via Schriftbronnen bijwerken (controleren, voorbereiden, publiceren).
   const startedMs = Date.now();
-  const runRow = prisma.contentUpdateRun
-    .create({ data: { kind: "CONTENT_UPDATE", createdById: study?.actor.id ?? null } })
-    .catch(() => null);
-  const record = async (status: "OK" | "FAILED", error: string | null) => {
-    const row = await runRow;
-    if (!row) return;
-    await prisma.contentUpdateRun
-      .update({ where: { id: row.id }, data: { status, finishedAt: new Date(), durationMs: Date.now() - startedMs, error, sources: current.logs.slice(-50) } })
-      .catch(() => undefined);
-  };
-  const runPromise = runSeed(
-    prisma,
-    (msg) => {
-      current.logs.push(msg);
-    },
-    (progress) => {
-      current.progress = progress;
-    },
-    studyImport,
-    { scriptures: false },
-  )
-    .then(async () => {
-      current.status = "done";
-      current.finishedAt = new Date().toISOString();
+  // Zonder duurzame logrij wordt geen import gestart. Ook een andere instance kan de actieve eigenaar herkennen.
+  const runPromise = withContentUpdateRun(prisma, { kind: "CONTENT_UPDATE", createdById: study?.actor.id ?? null }, async (row) => {
+    const record = async (status: "OK" | "FAILED", error: string | null) => {
+      await prisma.contentUpdateRun.update({ where: { id: row.id }, data: { status, finishedAt: new Date(), durationMs: Date.now() - startedMs, error, sources: current.logs.slice(-50) } });
+    };
+    try {
+      await runSeed(
+        prisma,
+        (msg) => {
+          current.logs.push(msg);
+        },
+        (progress) => {
+          current.progress = progress;
+        },
+        studyImport,
+        { scriptures: false },
+      );
       await record("OK", null);
-    })
-    .catch(async (e) => {
-      current.status = "error";
-      current.error = e instanceof Error ? e.message : String(e);
-      current.finishedAt = new Date().toISOString();
-      await record("FAILED", current.error);
-    });
+    } catch (error) {
+      await record("FAILED", error instanceof Error ? error.message : String(error));
+      throw error;
+    }
+  }).then(() => {
+    current.status = "done";
+    current.finishedAt = new Date().toISOString();
+  }).catch((error) => {
+    current.status = "error";
+    current.error = error instanceof Error ? error.message : String(error);
+    current.finishedAt = new Date().toISOString();
+  });
 
   // Ook na een fout halverwege: de oefeningen kunnen dan al zijn bijgewerkt.
   void runPromise.finally(() => clearExercisePlanCache());

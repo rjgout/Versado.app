@@ -252,7 +252,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **140 pagina's**, **237 fysieke routehandlers**, **419 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **140 pagina's**, **237 fysieke routehandlers**, **420 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -895,6 +895,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/StreakCelebrationFlow.tsx](../src/components/StreakCelebrationFlow.tsx) | use client | StreakCelebrationFlow
 [src/components/StreakClient.tsx](../src/components/StreakClient.tsx) | use client | StreakClient
 [src/components/StreakContinuation.tsx](../src/components/StreakContinuation.tsx) | use client | StreakContinuationCard, StreakContinuationProvider, useStreakContinuation
+[src/components/StreakEarnedBanner.tsx](../src/components/StreakEarnedBanner.tsx) | use client | StreakEarnedBanner
 [src/components/SubpageBackBar.tsx](../src/components/SubpageBackBar.tsx) | use client | SubpageBackBar
 [src/components/ThemePreference.tsx](../src/components/ThemePreference.tsx) | use client | ThemePreference
 [src/components/ThemeScript.tsx](../src/components/ThemeScript.tsx) | contextafhankelijk / server-entry waar page/layout | ThemeScript

@@ -149,7 +149,7 @@ export default function ShopClient() {
           <div className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{t("shop.hints")}</div>
         </div>
         <div className="card !py-3 !px-5 !bg-ice-50 dark:!bg-slate-800 !border-ice-400/30 dark:!border-slate-700">
-          <div className="flex items-center gap-1 text-xl font-extrabold text-ice-600 dark:text-ice-400"><SystemIcon kind="freeze" className="h-5 w-5" aria-hidden />{data.freezeCount}</div>
+          <div className="flex items-center justify-center gap-1 text-xl font-extrabold text-ice-600 dark:text-ice-400"><SystemIcon kind="freeze" className="h-5 w-5" aria-hidden />{data.freezeCount}</div>
           <div className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500">{t("lesson.freezes")}</div>
         </div>
         <div className="card !py-3 !px-5 !bg-gold-50 dark:!bg-slate-800 !border-gold-400/30 dark:!border-slate-700">

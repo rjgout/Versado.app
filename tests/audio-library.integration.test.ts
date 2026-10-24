@@ -6,6 +6,7 @@ import { execFileSync, spawn } from "node:child_process";
 import { prisma } from "../src/lib/db";
 import { chapterSourceHash, sha256, type AudioManifest } from "../src/lib/audio/contract";
 import { importAudioPackage, publishAudio, activeChapterAudio, accessibleRecording, scanAudioPackages } from "../src/lib/audio/library";
+import { syncCourses } from "../src/lib/courses";
 import { ensureHiddenAudioTextEditions } from "../src/lib/audio/hiddenEditions";
 import { flagAudioForTextChanges, markAudioCurrent } from "../src/lib/audioCheck";
 import { importChapterAudio } from "../prisma/importAudio";
@@ -256,6 +257,9 @@ test("databaseconstraints beschermen collectiebinding, target en verwijdercascad
 
 test("zes goedgekeurde ontbrekende tekstuitgaven blijven verborgen, idempotent en zonder leereffecten",async()=>{
  await ensureHiddenAudioTextEditions(prisma);
+ // De volledige Contentbeheer-naloop mag deze tekstuitgaven niet tot cursussen promoveren.
+ await syncCourses(prisma);
+ await syncCourses(prisma, { scriptures: false });
  for(const prefix of ["dc","pgp"])for(const language of ["de","fr","es"]){
   const id=`content_${prefix}_${language}`,c=await prisma.contentCollection.findUniqueOrThrow({where:{id}});
   assert.equal(c.editionKey,prefix === "dc" ? "dc-testament" : "pgp");assert.equal(c.enabled,false);assert.equal(c.visibleToUsers,false);assert.equal(c.publicationState,"DRAFT");
@@ -267,4 +271,29 @@ test("zes goedgekeurde ontbrekende tekstuitgaven blijven verborgen, idempotent e
  await prisma.verse.update({where:{id:verse.id},data:{text:"Bestaande beheerwijziging voor idempotentietest"}});
  try {await ensureHiddenAudioTextEditions(prisma);assert.equal(await prisma.verse.count({where:{chapter:{book:{contentCollectionId:"content_dc_de"}}}}),count);assert.equal((await prisma.verse.findUniqueOrThrow({where:{id:verse.id}})).text,"Bestaande beheerwijziging voor idempotentietest");}
  finally{await prisma.verse.update({where:{id:verse.id},data:{text:verse.text}});}
+});
+
+
+test("alle 205 Nederlandse legacy-audiohoofdstukken blijven exact behouden bij herimport en aanvullende cursussynchronisatie", async () => {
+ const { seedBooks } = await import("../prisma/content");
+ const { importBooks } = await import("../prisma/importContent");
+ const { default: entries } = await import("../prisma/bomAudio.json");
+ assert.equal(entries.length, 205);
+ await importBooks(prisma, seedBooks, () => {}, "content_bom", { syncCourses: false });
+ await importChapterAudio(prisma, entries, "content_bom", () => {});
+ const state = () => prisma.chapter.findMany({ where: { book: { contentCollectionId: "content_bom" }, audioUrl: { not: null } }, orderBy: { id: "asc" }, select: { id: true, audioUrl: true, audioHeadingStart: true, audioHeadingEnd: true, audioCheck: true, verses: { orderBy: { number: "asc" }, select: { id: true, text: true, audioStart: true } } } });
+ // De migratiefixture heeft één extra synthetisch audiohoofdstuk, buiten de beschermde bron.
+ const before = await state();
+ assert.equal(before.filter((c) => c.id !== "audio-before-chapter").length, 205);
+ const filesBefore = await fs.readdir(root);
+ const pointers = await prisma.audioPublication.findMany({ orderBy: { targetKey: "asc" } });
+ await syncCourses(prisma);
+ const courses = await prisma.course.findMany({ where: { type: { in: ["FREE_CHOICE", "FRONT_TO_BACK", "READING_LESSONS"] } }, orderBy: { id: "asc" }, include: { lessons: { orderBy: { id: "asc" }, include: { exercises: true } } } });
+ await importBooks(prisma, seedBooks, () => {}, "content_bom", { syncCourses: false });
+ await importChapterAudio(prisma, entries, "content_bom", () => {});
+ await syncCourses(prisma, { scriptures: false });
+ assert.deepEqual(await state(), before, "tekst, id's, audio, koppen, vers-tijdcodes en controlemarkeringen blijven gelijk");
+ assert.deepEqual(await fs.readdir(root), filesBefore, "geen audiobestanden gedownload, verwijderd of toegevoegd");
+ assert.deepEqual(await prisma.audioPublication.findMany({ orderBy: { targetKey: "asc" } }), pointers, "geen Audio V2-publicatie gewijzigd");
+ assert.deepEqual(await prisma.course.findMany({ where: { type: { in: ["FREE_CHOICE", "FRONT_TO_BACK", "READING_LESSONS"] } }, orderBy: { id: "asc" }, include: { lessons: { orderBy: { id: "asc" }, include: { exercises: true } } } }), courses, "aanvullende update raakt schriftcursussen en leskoppelingen niet");
 });
