@@ -31,7 +31,7 @@ async function person(language = "nl") {
   } }); users.push(user.id); return user;
 }
 async function context(user, width, scale = 100) {
-  const ctx = await browser.newContext({ viewport: { width, height: 844 }, colorScheme: "dark", serviceWorkers: "block", reducedMotion: "reduce" });
+  const ctx = await browser.newContext({ viewport: { width, height: 844 }, timezoneId: "Europe/Amsterdam", colorScheme: "dark", serviceWorkers: "block", reducedMotion: "reduce" });
   await ctx.addCookies([{ name: SESSION_COOKIE, value: await createSessionToken(user.id), url: base }]);
   if (scale !== 100) await ctx.addInitScript(() => {
     document.addEventListener("DOMContentLoaded", () => { document.documentElement.style.fontSize = "200%"; });
