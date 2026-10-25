@@ -40,3 +40,5 @@ Interne navigatie blijft afhankelijk van daadwerkelijk aanwezige en toegankelijk
 ## Aanvullende CI-controle vóór merge
 
 De volledige 2026-importbrowsertest verwachtte nog dat Nieuwe Testament-verwijzingen niet klikbaar waren. Die verwachting is aangepast aan de gevraagde reparatie: zonder interne NT-editie opent de verwijzing de juiste officiële NT-bron, zonder substitutie door een OT-hoofdstuk. Een afzonderlijke controle kiest een echte `unverified-numbering`-verwijzing uit de gepinde bron en bevestigt dat die niet klikbaar wordt. De blokkadecontrole blijft dus bestaan voor inhoudelijk afwijkende verwijzingen.
+
+De programmacontext-browsertest verwacht nu expliciet géén studiehero op Spelen. De bestaande controles voor leskeuze, Vandaag, Leren, terugnavigatie en behoud van gebruikersgegevens blijven behouden in alle vijf testtalen en schermformaten.
