@@ -33,7 +33,10 @@ try {
     await select.waitFor(); assert.match(await select.innerText(), /Andere Schriftbron/);
     assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).dailyTextSource, f.other.work);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-    await select.scrollIntoViewIfNeeded(); await page.screenshot({ path: `${output}/profile-${language}-${scale}.png` });
+    await select.scrollIntoViewIfNeeded();
+    const labelFits = await select.locator("[data-daily-text-source-label]").evaluate(label => label.scrollWidth <= label.clientWidth + 1 && label.scrollHeight <= label.clientHeight + 1);
+    assert.ok(labelFits, "de gekozen bronnaam wordt ook bij 200% tekst volledig weergegeven");
+    await page.screenshot({ path: `${output}/profile-${language}-${scale}.png` });
     await page.route("**/api/account", route => route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "synthetic" }) }));
     await select.click(); await page.getByRole("option", { name: "Eigen Schriftbron", exact: true }).click();
     await page.getByRole("alert").filter({ hasText: t("profile.dailyTextSourceSaveFailed") }).waitFor();
@@ -50,6 +53,8 @@ try {
     try {
       await page.reload();
       await page.getByText(QUOTE, { exact: true }).waitFor();
+      await page.getByText(QUOTE, { exact: true }).scrollIntoViewIfNeeded();
+      await page.screenshot({ path: `${output}/cfm-${language}-${scale}.png` });
       await page.getByRole("link", { name: t("dashboard.readMore"), exact: true }).click();
       await page.locator("#study-day-quote").waitFor();
       assert.equal(new URL(page.url()).searchParams.get("weergave"), "volledig");

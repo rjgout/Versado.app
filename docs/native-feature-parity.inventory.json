@@ -12548,7 +12548,7 @@
     },
     {
       "file": "src/components/profile/ProfileSettingsViews.tsx",
-      "sha256": "e004cb3dba17a0664b20b718635f061837d52919e1d2a007b830776b244452e0",
+      "sha256": "c64441aa7d402c367633dd9d65c468ee760b7015210055924189deaf7010e5c8",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -71222,7 +71222,7 @@
     },
     {
       "file": "src/components/profile/ProfileSettingsViews.tsx",
-      "sha256": "e004cb3dba17a0664b20b718635f061837d52919e1d2a007b830776b244452e0",
+      "sha256": "c64441aa7d402c367633dd9d65c468ee760b7015210055924189deaf7010e5c8",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
