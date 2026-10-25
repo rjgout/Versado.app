@@ -1,150 +1,517 @@
-# Audiobibliotheek V2 — acceptatie en uitrol op Synology
+# Audiobibliotheek V2 — acceptatie en uitrol door de eigenaar
 
-Voorbereidingsdocument, gecontroleerd op 24 oktober 2026. **Geen uitvoeringsbewijs of uitroltoestemming.**
-Er is geen NAS benaderd, productiequery uitgevoerd, bestand op de NAS gedownload, import gestart of opname gepubliceerd.
-De cloudomgeving heeft geen geconfigureerde NAS-/VPN-toegang. De onderstaande commando's zijn voor de eigenaar,
-na het betreffende akkoord. Deel rapporten zonder credentials, cookies, tokens of persoonsgegevens.
+Repositorycontrole: **25 oktober 2026**, main **`419ba1e51ee9ac102ef82ee024b0affab974cfb9`**.
+Dit is een uitvoerbaar voorbereidingsdocument, geen uitvoeringsverslag of toestemming.
+Codex heeft geen NAS, Portainer of productieomgeving benaderd. Werkelijke containers, mounts, vrije ruimte,
+images, bestanden, migratiehistorie en registraties zijn **onbekend totdat de eigenaar ze zelf vastlegt**.
 
-## 1. Eerst de werkelijke ontwikkelstatus
+## Wat de repository bevestigt
 
-Gecontroleerde `main`: `48f8974ce709444cc0fee96e61a53dd507dd87d9` (#212, inclusief #213). PR [#187](https://github.com/rjgout/Versado.app/pull/187)
-is **OPEN, draft en ongemerged**. De integratiecommit `5fe0f5e405076a5bebd7f8128d8040de0df0d360` bevat deze main en lost de vier
-conflicten inhoudelijk op. De tijdens de eindcontrole toegevoegde main-wijziging #213 (CFM-weeklabel op de lesafbeelding)
-is eveneens behouden, net als #212 (delen vanuit de reeksviering en vijf vertalingen). De aanvullende inventarisconflictresolutie
-is opnieuw gegenereerd. De lay-outtest handelt de echte uitgestelde viering af voordat hij het volgende spel opent; geen wijziging
-van de productiereeksregels. GitHub bevestigt een conflictvrije integratie. De twee native inventarisbestanden zijn opnieuw gegenereerd;
-de twee speltests behouden de actuele main-regel voor bronloze runs. Alle 27 checks waren groen op de voorafgaande integratiecommit `e38f565e`; ook dat geldt niet als
-bewijs voor de nieuwe eindcommit: controleer de volledige nieuwe CI en de onafhankelijke beoordeling vóór enig mergebesluit.
-Productie kan bovendien een andere image draaien dan `main`.
-
-Het integratierapport staat in #187 onder `docs/CONTENTBEHEER-INTEGRATIE-187.md`; geen tweede implementatie toevoegen.
-Deze document-PR bevat het rapport niet opnieuw en geeft geen merge- of uitroltoestemming.
-
-| Onderdeel | Werkelijke status op deze main | Actie tegen dubbele implementatie |
+| Onderdeel | Bevestigd in de broncode | Niet hiermee bewezen |
 |---|---|---|
-| Stabiele oefenidentiteit, behoud van pogingen/voortgang, importlock, OTB-beheerinstellingen | Al aanwezig via #184, `29252462` | Hergebruiken; niet opnieuw bouwen |
-| AudioPackage/Recording/Publication, veilige ontvangst/Range/auth, beheerpreview/publicatie, zes verborgen tekstuitgaven, officiële importer en metadata | Al aanwezig via #194, `fffb41bf` | Audio-servermodules/importscripts/audio-DDL zijn sinds die merge inhoudelijk ongewijzigd |
-| Native distributieprofielen | Al aanwezig via #195, `350d4683` | Niet opnieuw toevoegen of releasegates wijzigen |
-| Twee Contentbeheer-kaarten; controleren/voorbereiden/publiceren met planHash; ContentUpdateRun; ChapterAudioCheck; RETIRED; transactionele legacy-audio + controleafhandeling | **Niet op main**; nog in #187 | Geïntegreerd met actuele main in #187, nog niet gemerged; nieuwe CI en onafhankelijke review vereist |
-| Vier herstelde runtime-dependencyversies uit #187 | Inmiddels ook op main via #200 (`985c6738`) en #208 (`b28db54b`): Zod 4.6.7, Nodemailer 10.2.1, fast-uri 3.1.9, Undici 6.29.1 | Geen dubbele securitypatch of downgrade; main pint Nodemailer expliciet |
-| Legacy-run zonder bewezen bron | Main #200 sluit die **zonder reeksactiviteit**; #208 versterkt de regressietest. Oude #187-assertie is in `5fe0f5e4` gecorrigeerd | Behoud nul reeksactiviteit én de extra economie-/retrycontroles |
-| CFM-runtimebestanden, winkel-/CFM-verbeteringen, wegveegbare reeksbanner, weeklabel op lesafbeelding | #201, #200, #208, #209, #210, #212 en #213 zijn op main en behouden in de geïntegreerde #187 | Behoud main; geen volledige oude branch/tree terugzetten |
+| Contentbeheer V2 | #187 is gemerged in `419ba1e5`; aparte beheerkaarten, planHash, ChapterAudioCheck, ContentUpdateRun, RETIRED en transactionele legacy-audio | Of deze image en migratie op de NAS staan |
+| Audio V2 | #194 is opgenomen; AudioPackage → AudioRecording → afzonderlijke AudioPublication | Aanwezige NAS-bestanden, registraties of publicaties |
+| Bestaande Nederlandse audio | `prisma/bomAudio.json` bevat 205 hoofdstukken; NL Ether 1 staat daar niet in | Of de NAS exact deze 205 heeft en alle MP3's aanwezig zijn |
+| Zes tekstuitgaven | DC/PGP in de/fr/es worden indien afwezig verborgen toegevoegd; bestaande teksten worden overgeslagen; cursussynchronisatie sluit ze uit | Of ze op de NAS bestaan en hun huidige instellingen |
+| Officiële bronset | 1.965 doelen, 1.974 varianten, 1.973 unieke audiohashes; vijf Ether 1-kandidaten VALIDATED | Of een nieuwe download nog identieke bytes/tekst levert |
+| Review | 12 onzekere uitlijningen + 7 zonder veilige grenzen = 19 uitgesloten publicatiekandidaten | Een inhoudelijke vrijgave van die gevallen |
 
-Controlecommando's in een ontwikkelcheckout, niet op productie:
+Bronnen: [Contentbeheer](../CONTENTBEHEER.md), [integratierapport #187](../CONTENTBEHEER-INTEGRATIE-187.md),
+[importer](../../scripts/audio/import-official.ts), [ontvanger/publicatie](../../src/lib/audio/library.ts),
+[verborgen uitgaven](../../src/lib/audio/hiddenEditions.ts), [Docker-start](../../Dockerfile),
+[composevoorbeeld](../../deploy/docker-compose.yml), [broninventaris](../../data/audio/official-inventory.json).
+Nieuwe main-wijzigingen blijven behouden; deze PR wijzigt uitsluitend documentatie, geen software, audio of migratie.
+
+## Leeswijzer en beslismomenten
+
+Voer de fasen op volgorde uit. Elke handeling heeft **Waar, Wat, Waarom, Verwachte uitkomst en Bij fouten**.
+De technische bijlagen bevatten de precieze commando's; uitvoeren is altijd werk van de eigenaar.
+
+| Label | Werkelijke werking |
+|---|---|
+| **LEZEN** | Geen beoogde wijziging van database, audio of containerstatus; alleen inspectie/SELECT |
+| **RAPPORT** | Leest bronnen, maar maakt nieuwe besloten rapportbestanden; geen DB-/audiowijziging |
+| **WIJZIGT** | Download, back-upbestand, onderhoud, stop/start, migratie, import of publicatie; eerst het genoemde akkoord |
+
+Een page-GET is niet altijd alleen lezen: openen van de Schriftbeheerkaart kan achtergelaten ContentUpdateRun-rijen
+als FAILED/INTERRUPTED markeren. **Controleren** schrijft een logrij; **Voorbereiden** schrijft bovendien een plan en kan
+de OTB-bron downloaden. **Publiceren** daar is een tekst-/oefenupdate, géén audiopublicatie. Gebruik deze knoppen niet
+als NAS-inventarisatie. `db:seed`, `db:import` en `audio:mirror` horen niet bij deze audioacceptatie.
+
+Een complete `incoming/<pakket>/READY` kan na appstart door de scanner automatisch worden **geregistreerd**.
+Appstart kan dus, naast migraties en andere bestaande achtergrondtaken, ook importwerk veroorzaken. Vooraf onbekende
+complete pakketten of lopende imports verklaren; zonder registratieakkoord niet deployen of hervatten. Er is geen hier
+veronderstelde scanner-uitknop. De scanner publiceert nooit automatisch.
+
+Afzonderlijke beslissingen van de eigenaar: rapportopslag → onderhoud/back-up/herstelproef → image/deployment → pilotdownload
+→ pilotregistratie (inclusief eventuele zes tekstuitgaven) → vijf expliciete pilotpublicaties → bulkdownload/-registratie
+→ iedere vervolgpublicatie. Een akkoord op deze document-PR is geen akkoord op die uitvoeringen.
+
+## Fase 1 — Alleen-lezen inventarisatie
+
+### 1.1 Bestaande omgeving identificeren — LEZEN
+
+- **Waar:** Portainer (Stacks/Containers/Volumes) en DSM (Storage Manager/File Station), alleen bekijken.
+- **Wat:** noteer werkelijke app-/DB-/Redis-/proxy-/deployagentnamen, stacknaam, images, bindmounts/volumes, overige appinstanties,
+  externe importers, cronjobs en eventuele automatische updaters. Noteer alleen geselecteerde instellingen; deel geen volledige env/inspect
+  of stackexport met geheimen. Gebruik voorlopig geen Deploy, Update, Pull-and-redeploy, Restart, console-seed of herstelknop.
+- **Waarom:** de repo bevat een voorbeeldstack, niet jouw werkelijke configuratie. Onderhoud van de proxy stopt geen andere schrijvers.
+- **Verwachte uitkomst:** een namen-/mount-/schrijverslijst die je later aan concrete containers en paden kunt koppelen.
+- **Bij fouten:** niets aanmaken, verplaatsen of corrigeren. Ontbrekende informatie eerst verklaren; Codex krijgt geen toegang.
+
+### 1.2 Exacte image en instellingen lezen — LEZEN
+
+- **Waar:** SSH op de NAS, **Bash**; voer [bijlage A](#bijlage-a--sessie-en-containerinspectie) uit.
+- **Wat:** vul de werkelijke namen/paden in, lees image-ID/digests, build-SHA, AUDIO_DIR, rechten, DB-image en aanwezige CLI.
+- **Waarom:** een tag zoals `latest` zegt niet welke code draait; `docker exec … printenv` start of migreert de app niet.
+- **Verwachte uitkomst:** opgeslagen technische waarden zonder credentials; een ontbrekende nieuwe CLI op een oude image wordt gemeld.
+- **Bij fouten:** container/pad niet gokken en geen container starten als controle. Een ontbrekende CLI is vóór deployment informatie,
+  na deployment van de gekozen nieuwe image een stopcriterium.
+
+### 1.3 Besloten database-/bestandsbaseline — RAPPORT
+
+- **Waar:** SSH en de bestaande PostgreSQL-container; [bijlagen B–E](#bijlage-b--alleen-lezen-database-inventaris).
+- **Wat:** kies een nieuwe rapportmap buiten audio; maak de SELECT-inventaris, beschermingssnapshot, tekstexport indien de huidige CLI
+  aanwezig is, en bestandsinventaris. De DB-query gebruikt een READ ONLY-transactie; de rapporten zijn nieuwe bestanden.
+  Ontbreekt de export-CLI, noteer dat en maak de export na deployment, vóór iedere audio-import. Gebruik geen importer als alternatief.
+- **Waarom:** vóór/na-vergelijkingen bewaken registraties/publicatiepointers, 205 NL-hoofdstukken, controlemarkeringen en zes uitgaven.
+- **Verwachte uitkomst:** 205 NL_LEGACY-rijen of een vooraf verklaard verschil; bestaande zes uitgaven hebben false/false/DRAFT,
+  nul Course/Exercise en onveranderde tekst-/vers-ID's. Ontbrekende uitgaven blijven als ontbrekend genoteerd.
+  Elke READY-map is aan een bekende, beoordeelde receipt gekoppeld; geen onbekende PROCESSING-/FAILED-backlog of actieve import.
+- **Bij fouten:** een afwijkende telling, checksum, uitgave of symlink is een stopcriterium. Niets wissen, reseeden, publiceren of in SQL
+  aanpassen. Rapporteer ontbrekende MP3's als ontbrekend. De eerste inventaris bij een nog draaiende app is een momentopname;
+  herhaal de DB-/bestandssnapshot nadat alle schrijvers in fase 3 zijn gestopt voor de consistente back-upbaseline.
+
+## Fase 2 — Opslagcapaciteit en mounts
+
+### 2.1 Mount en vrije ruimte toetsen — LEZEN
+
+- **Waar:** DSM Storage Manager voor volume/pool/quota/snapshots; Portainer voor effectieve mounts; SSH voor `df`/`du`.
+- **Wat:** vergelijk met het repo-voorbeeld `/volume1/docker/jehova-app/audio:/data/audio`, zonder dit als NAS-feit aan te nemen.
+  Gebruik de in fase 1 vastgestelde AUDIO-map, controleer dat ze geen symlink is en voer uit:
 
 ```bash
-git fetch origin main feature/content-beheer-v2-beheerkaarten
-gh api repos/rjgout/Versado.app/pulls/187 --jq '{state,draft,merged,head:.head.sha,merge_commit_sha}'
-git log -10 --oneline origin/main
-git diff origin/main...origin/feature/content-beheer-v2-beheerkaarten --stat
-git diff origin/main origin/feature/content-beheer-v2-beheerkaarten -- package.json package-lock.json tests/quick-missionary-source.integration.test.ts
+test -d "$AUDIO" && test ! -L "$AUDIO"
+df -Pk "$AUDIO"
+df -Pi "$AUDIO"
+du -sk "$AUDIO"
+available_kib=$(df -Pk "$AUDIO" | awk 'NR==2 {print $4}')
+case "$available_kib" in ''|*[!0-9]*) echo 'STOP: vrije ruimte niet betrouwbaar gelezen'; exit 1;; esac
+required_kib=$((30 * 1024 * 1024))
+printf 'Beschikbaar: %s KiB; richtwaarde extra vrij: %s KiB
+' "$available_kib" "$required_kib"
+test "$available_kib" -ge "$required_kib" || { echo 'STOP: minder dan 30 GiB vrij'; exit 1; }
 ```
 
-Audio V2 kan afzonderlijk worden geaccepteerd op een beoordeelde main-image. Dan ontbreken de nieuwe #187-kaarten
-en controlemarkeringen nog: **geen Schriftupdate, reseed, audiospiegeling of andere tekstschrijver tijdens de acceptatie**.
-Voor gecombineerde acceptatie is eerst de nieuwe CI en onafhankelijke beoordeling van de geïntegreerde #187 nodig.
-De integratie voorkomt tevens automatische cursussen voor de zes verborgen Audio V2-tekstuitgaven en beschermt actieve
-ContentUpdateRun-logrijen op andere processen tegen foutieve onderbrekingsmarkering. Dit plan geeft geen toestemming om #187 te mergen.
+- **Waarom:** de onderzochte set vraagt onderstaande extra opslag; DB, bestaande audio en back-ups komen daar afzonderlijk bij.
+- **Verwachte uitkomst:** dezelfde blijvende audiomount, passende app-UID/rechten, voldoende bytes én bruikbare inode-/quotacapaciteit.
+  Controleer in DSM ook snapshotreserve en de normale vrije-volumemarge. Een niet-ondersteunde inodeweergave is geen positieve meting.
+- **Bij fouten:** stop de bulkvoorbereiding. Geen `chown -R`, `chmod -R`, volumeprune, bestandverplaatsing of cacheverwijdering als snelle fix.
 
-## 2. Beslismomenten
+Berekening uit de gepinde repositorymetadata, **geen NAS-meting**:
 
-1. **Inventarisatie:** alleen lezen, broncommit/image/mount/database/capaciteit vaststellen; afwijkingen verklaren.
-2. **Onderhoud/back-up/deployment:** afzonderlijk akkoord op image-digest, eventuele migraties, onderhoudsvenster en bewezen herstelkopie.
-3. **Download:** afzonderlijk akkoord voor de pilot, later voor de volledige gecontroleerde bronset.
-4. **Registratie:** afzonderlijk akkoord op pilotmanifest en de eventuele aanmaak van de zes verborgen uitgaven.
-   Dit is een database- en volumemutatie, ook al worden nul opnamen gepubliceerd.
-5. **Pilotpublicatie:** expliciet akkoord op de vijf opname-ID's, checksums, bronhashes en huidige pointerversies.
-   Pas daarna zijn gewone versnavigatie/minispeler met de nieuwe opname te testen.
-6. **Vervolgpublicatie:** apart akkoord per beoordeelde batch. Nooit alle VALIDATED opnamen automatisch publiceren.
+| Opslagdeel | Bytes | GiB |
+|---|---:|---:|
+| Broncache: 1.974 URL-/stemvarianten (D) | 7.168.283.880 | 6,676 |
+| Objecten: 1.973 unieke inhoudshashes (S) | 7.159.935.725 | 6,668 |
+| Grootste tijdelijk bestand (M) | 25.009.564 | 0,0233 |
+| D + S + M | 14.353.229.169 | **13,367 ≈ 13,4** |
 
-Zonder stap 5: uitsluitend beheerpreview van kandidaten; de gewone lezer blijft legacy-audio/TTS gebruiken.
-Volledige speleracceptatie vóór productiepublicatie kan in een afzonderlijk goedgekeurde, geïsoleerde acceptatieomgeving
-met eigen testaccounts, database en audiovolume. Geen productieback-up met persoonsgegevens in een onbeveiligde testapp starten.
+De Franse Alma 30-varianten delen bytes, niet hun bronidentiteit. Op hetzelfde filesystem gebruikt staging/incoming hardlinks;
+objects krijgt een eigen kopie. Bij EXDEV kan nog circa 6,676 GiB extra kopie ontstaan. Metadata, bestaande legacy-audio,
+filesystem-/snapshot-overhead en groei zijn extra. **30 GiB extra vrij bij de bulkstart** is een conservatieve richtwaarde,
+geen garantie voor iedere NAS. Meet opnieuw vóór iedere grote stap. De back-upbestemming moet apart ruimte bieden voor de
+volledige huidige audiomap, DB-dump, overige volumes/configuratie en versiebehoud; een back-up op dezelfde pool is geen externe kopie.
 
-## 3. Migratievolgorde en imagecontrole
+## Fase 3 — Database en audio samen back-uppen en herstel toetsen
 
-| Migratie | Voorwaarde / gevolg |
+### 3.1 Onderhoud en schrijvers stilzetten — WIJZIGT beschikbaarheid
+
+- **Waar:** Versado-adminbackend → Deployen & onderhoudsmodus, vervolgens Portainer/SSH.
+- **Wat:** na onderhoudsakkoord onderhoud inschakelen; wacht op afronding van imports/leases. Stop alle vastgelegde appinstanties en
+  externe content-/audio-/DB-schrijvers, pauzeer eventuele automatische herstarts/updaters. Stop **niet** PostgreSQL, en laat de
+  onderhoudsproxy staan. Voor de gecontroleerde appcontainer is het exacte stopcommando:
+
+```bash
+docker stop "$APP"
+docker inspect --format '{{.State.Status}}' "$APP"
+```
+
+  Stop overige vastgelegde schrijvers elk bewust via hun eigen beheer; gebruik geen generieke stop-all-loop. Start nu niets opnieuw.
+- **Waarom:** onderhoud alleen blokkeert geen bestaande sockets, scheduler of externe importers; een afgestemde DB/audio-kopie vraagt stilstand.
+- **Verwachte uitkomst:** alle beoogde schrijvers aantoonbaar stil, DB actief, geen lopende import. Herhaal B, C en E met nieuwe namen
+  (`inventaris-stil.jsonl`, `beschermd-stil.jsonl`, `bestanden-stil.json`); export D moest vóór stop gemaakt zijn, zonder tekstschrijvers.
+- **Bij fouten:** geen gedeeltelijk voltooide import als geslaagde baseline voorstellen. Wacht of beoordeel de fout; forceer geen leases/statussen.
+
+### 3.2 Consistente externe back-up maken — WIJZIGT back-upbestanden
+
+- **Waar:** DSM/Hyper Backup voor beschermde externe bestemming/configuratie; SSH voor [bijlage F](#bijlage-f--back-up-en-geïsoleerde-herstelproef).
+- **Wat:** maak één nieuwe set met PostgreSQL custom dump en de volledige audiomap, inclusief objects/incoming/staging en broncache.
+  Bewaar ook de huidige stack/secrets, image-ID/digest, branding en andere blijvende volumes, waaronder study-media met zijn marker.
+  Deze bestanden vallen buiten de scope van de audio-tar en moeten in hetzelfde onderhoudsvenster in de bestaande back-up worden meegenomen.
+- **Waarom:** de database bevat verwijzingen naar de bestanden; alleen een audiokopie, een live PG-datamapkopie of een gewone seed reconstrueert dit niet.
+- **Verwachte uitkomst:** niet-lege dump/tar, hashes kloppen, dump-TOC leesbaar, archief leesbaar, externe en versleutelde opslag met herstelbare sleutels.
+  Een custom dump is op zichzelf niet versleuteld; een DSM-snapshot op dezelfde NAS is niet de externe herstelkopie.
+- **Bij fouten:** stop vóór deployment/import. Bewaar oude sets; label de nieuwe onvolledige set als onbruikbaar en overschrijf niets.
+
+### 3.3 Herstelproef en terugvalbesluit — WIJZIGT uitsluitend nieuwe testdoelen
+
+- **Waar:** eigen geïsoleerde herstelomgeving, eventueel door de eigenaar op de NAS; bijlage F bevat afgeschermde testdoelen.
+- **Wat:** herstel de dump in een nieuwe lege test-DB en audio in een nieuwe map; controleer hashes, baselinerijen en referenties samen.
+  Start geen herstelde productieapp met echte accounts, SMTP of externe koppelingen. Noteer benodigde hersteltijd en bewaartermijn.
+- **Waarom:** `pg_restore --list` bewijst alleen leesbaarheid, niet succesvol herstel of bijpassende objecten.
+- **Verwachte uitkomst:** echte restore zonder fout naar uitsluitend testdoelen, dezelfde beschermde rijenset en beschikbare objecten;
+  koppelingen met SHA/byteSize zijn gecontroleerd. De eigenaar tekent het herstelbewijs af vóór de volgende fase.
+- **Bij fouten:** stop; geen restore naar de echte DB en geen oude set wissen. Bijlage F geeft geen toestemming voor productieherstel.
+
+## Fase 4 — Nieuwe image veilig deployen
+
+### 4.1 Image downloaden en aan broncommit koppelen — WIJZIGT lokale imagecache
+
+- **Waar:** GitHub Actions/Packages voor de gekozen main-build, SSH voor pull/inspect.
+- **Wat:** kies een beoordeelde image die #187 bevat. Leg de werkelijke package-digest en bijbehorende broncommit vast; geen verondersteld
+  `latest` of verzonnen digest. De workflow bouwt `ghcr.io/rjgout/jehova-app` en gebruikt onder meer een korte `sha-…`-tag.
+  Voer uitsluitend na download-/uitrolakkoord uit:
+
+```bash
+NEW_IMAGE='ghcr.io/rjgout/jehova-app@sha256:VUL_GECONTROLEERDE_DIGEST_IN'
+SOURCE_SHA='VUL_VOLLEDIGE_GOEDGEKEURDE_BRONCOMMIT_IN'
+case "$NEW_IMAGE" in *VUL*) echo 'STOP: digest invullen'; exit 1;; esac
+case "$SOURCE_SHA" in *VUL*) echo 'STOP: broncommit invullen'; exit 1;; esac
+docker pull "$NEW_IMAGE"
+actual_revision=$(docker image inspect "$NEW_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')
+test "$actual_revision" = "$SOURCE_SHA" || { echo 'STOP: image en broncommit verschillen'; exit 1; }
+docker image inspect "$NEW_IMAGE" --format '{{.Id}} {{json .RepoDigests}}'
+```
+
+- **Waarom:** pull haalt bytes op maar start geen container. Een nieuwe app **starten** voert daarentegen automatisch
+  `recoverFailedMigrations.ts`, `prisma migrate deploy` en daarna server/scheduler uit.
+- **Verwachte uitkomst:** immutable digest en broncommit passen bij de goedgekeurde build; oude image-ID/digest blijft bewaard en lokaal beschikbaar.
+- **Bij fouten:** geen `docker run IMAGE` als inspectie gebruiken: de standaard-entrypoint zou migreren/starten. Geen pull-/TLS-/checksumfout negeren.
+
+### 4.2 Alleen de app vervangen — WIJZIGT container, DB-schema en achtergrondwerk
+
+- **Waar:** Portainer → bestaande stack → Editor, onder het afgesproken onderhoud.
+- **Wat:** bewaar de bestaande stackexport/secrets besloten. Wijzig alleen de app-image naar de vastgelegde `NEW_IMAGE`-digest.
+  Behoud alle bestaande mounts, environment, netwerken, container- en servicenames; plak niet de hele repo-voorbeeldstack over productie.
+  Gebruik **Update the stack** uitsluitend na controle van de verschillen. Zet een algemene re-pull/force-recreate van andere diensten niet aan;
+  de app-image is al gepulld. Als jouw Portainer-versie geen beperkte wijziging toelaat: stop en laat het uitvoeringsplan beoordelen.
+  DB, Redis, proxy en deployagent krijgen in deze ronde geen andere image of configuratie. Oude appschrijvers blijven uit.
+- **Waarom:** dit is het expliciete start-/migratiemoment. Een nieuwe image wijzigt niet vanzelf de audiomount.
+- **Verwachte uitkomst:** alleen de bedoelde nieuwe app draait, op de vorige mounts en dezelfde DB; proxy blijft onder onderhoud.
+- **Bij fouten:** houd onderhoud aan en lees private app-/migratielogs. Geen blind Restart, redeploy-loop, seed, migrate reset/resolve of downmigratie.
+  De automatische recovery kent slechts specifiek gepinde oude mislukte migraties; hij is geen generieke reparatie voor Audio/Contentbeheer.
+
+De normale keten bevat `20261020120000_content_work_publication`, `20261029120000_study_identity`,
+`20261030120000_study_import_publication`, vervolgens `20261127120000_content_beheer_v2` en
+`20261204120000_audio_library_v2`, naast de overige bestaande migraties. Op een verse DB loopt november vóór december;
+op een DB met Audio V2 kan de ontbrekende novembermigratie later volgen. Dat is geïsoleerd getest in #187, inclusief alle 205 NL-hoofdstukken.
+Nooit alleen geselecteerde SQL-bestanden handmatig toepassen, namen hernoemen of toegepaste SQL/checksums veranderen.
+
+| Migratiebestand | Ongewijzigde SHA-256 |
 |---|---|
-| `20261020120000_content_work_publication` | Bestaande werk-/uitgave-identiteiten |
-| `20261029120000_study_identity` | Onder andere StudyRevision |
-| `20261030120000_study_import_publication` | Samengestelde collectie-index voor de AudioRecording-FK |
-| `20261127120000_content_beheer_v2` | Alleen in #187: RETIRED, ChapterAudioCheck met legacy-backfill, ContentUpdateRun |
-| `20261204120000_audio_library_v2` | Op main: AudioPackage, AudioRecording, AudioPublication en constraints |
+| `20261127120000_content_beheer_v2/migration.sql` | `09ff08e06449733ba78ae35319faf5355839921c496fb44dbaed512e26484d66` |
+| `20261204120000_audio_library_v2/migration.sql` | `0f53acb44a291c68369d7b68a0482bb23b919c1b98c5c5712685c8e3c640fa9b` |
 
-Pas de **volledige normale migratieketen** van de beoordeelde image toe, nooit alleen deze tabelrijen handmatig.
-Op een nieuwe database komt november vóór december. Op een database met Audio V2 kan de nog ontbrekende novembermigratie
-later worden toegepast; dat scenario is geïsoleerd getest in #187 (`scripts/audio/test-isolated.mjs`). De audio-migratie
-heeft geen afhankelijkheid van ChapterAudioCheck. Geen bestaande migratie hernoemen of wijzigen: toekomstige timestamps
-in deze keten zijn geen reden om geschiedenis te herschrijven.
+## Fase 5 — Controles na deployment
 
-De integratie verandert de migratievolgorde en bestandschecksums niet. Het nieuwe geïsoleerde bewijs gebruikt alle **205**
-Nederlandse legacy-audiohoofdstukken vóór de Audio V2-migratie; daarna wordt Contentbeheer V2 toegepast. IDs, tekst, audio-URL's,
-kop- en vers-tijdcodes blijven exact gelijk; de nieuwe controlebackfill is CURRENT met de juiste teksthash. Dit is geen inventarisatie
-van de NAS en geen bewijs dat productie die migraties al heeft toegepast.
+### 5.1 Technische gezondheid en databehoud — LEZEN/RAPPORT
 
-Bij een gecombineerde uitrol, uitsluitend na apart akkoord:
+- **Waar:** Portainer voor status/private logs; SSH voor inspectie, health-GET en herhaalde B/C/E-rapporten.
+- **Wat:** lees status en broncommit, maak nieuwe snapshots met suffix `na-deploy`. Geen check-/prepare-/publishknoppen gebruiken.
 
-1. Onderhoud en consistente DB-/audioback-up volgens §5; leg alle oude app- en importschrijvers vast.
-2. Stop die oude schrijvers vóór migratie/start van de nieuwe image. Geen gemengde oude algemene reload naast de nieuwe Schriftflow.
-3. Pas de volledige normale migratieketen van de beoordeelde image toe; controleer historie/checksums zonder automatische correcties.
-4. Start de nieuwe image, controleer gezondheid en maak de **na migratie** controlebaseline van de 205 hoofdstukken.
-5. Voer de goedgekeurde audiopilot uit. Geen reseed, Schriftpublicatie of audiospiegeling tijdens deze acceptatie.
-6. Een latere aanvullende contentupdate gebruikt uitsluitend de nieuwe beheerkaart; een Schriftupdate blijft een apart
-   controleren → voorbereiden → publiceren-besluit. De zes tekstuitgaven blijven verborgen en zonder cursussen/oefeningen.
+```bash
+docker inspect --format '{{.State.Status}} {{.State.Health.Status}} {{.Config.Image}}' "$APP"
+docker exec "$APP" printenv NEXT_PUBLIC_BUILD_SHA
+docker exec "$APP" node -e 'fetch("http://localhost:"+(process.env.PORT||3000)+"/api/health").then(async r=>{console.log(r.status,await r.text());if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))'
+```
 
-Rollback verwijdert geen enumwaarden, tabellen of migratiehistorie. Een oude image mag pas terug na bewijs van RETIRED-compatibiliteit;
-houd zijn algemene reload uit. Bij twijfel vooruit herstellen; een volledige DB-restore verliest nieuwere voortgang en vraagt apart akkoord.
+- **Waarom:** groen health bewijst basisgezondheid, niet mediakwaliteit. De migratie mag uitsluitend nieuwe controle-/logtabellen vullen,
+  geen bestaande teksten, hintsaldi, voortgang, legacy-URL's, tijdcodes of publicatiepointers vervangen.
+- **Verwachte uitkomst:** juiste digest/broncommit, gezonde app, migraties finished zonder onverklaarde checksum-/foutregistraties;
+  dezelfde 205 NL_LEGACY-rijen, dezelfde publicatiepointers en dezelfde bestaande tekst-/vers-ID's. Nieuwe ChapterAudioCheck-rijen
+  zijn de verwachte backfill; reeds bestaande controles blijven intact. Maak **nu** een na-migratie/before-import baseline voor controles.
+  De zes uitgaven blijven verborgen; ontbreken mag vóór de expliciete registratie nog steeds.
+- **Bij fouten:** houd onderhoud aan. Een nieuwe backfill is geen reden om alle oude controles op CURRENT te zetten.
+  Geen volledige `cmp` tussen pre-migratie en post-migratie controles eisen als de tabel eerst ontbrak; vergelijk bestaande rijen apart.
+  Bij onverwachte tekst-/audio-/pointerwijziging stoppen en beoordelen, niet herstellen met een reload.
 
-Referentiechecksums van de gelezen migratiebestanden:
+### 5.2 Beheerflow herkennen en onderhoud afronden — WIJZIGT mogelijk beheerlog/gebruikersstatus
 
-- Audio V2: `0f53acb44a291c68369d7b68a0482bb23b919c1b98c5c5712685c8e3c640fa9b`.
-- Contentbeheer V2 in #187: `09ff08e06449733ba78ae35319faf5355839921c496fb44dbaed512e26484d66`.
+- **Waar:** Versado-adminbackend → Systeem; Audiobibliotheek onder Content → Audio (`/adminbackend/content/audio`).
+- **Wat:** herken de twee beheerkaarten en hun logboek. Openen van de Schriftkaart kan uitsluitend onbeheerde oude RUNNING-rijen
+  als FAILED/INTERRUPTED markeren; actieve eigenaars op andere processen worden door hun PG-lock beschermd. Voer geen update uit.
+  De eigenaar kan onderhoud pas na bovenstaande controles bewust opheffen; importschrijvers blijven voor de pilot exclusief geblokkeerd.
+- **Waarom:** onderscheid de volgende bestaande handelingen; geen ervan is impliciet nodig om reeds aanwezige audio terug te krijgen.
+- **Verwachte uitkomst:** beheerrechten werken, twee kaarten aanwezig, fouten/runs zichtbaar en geen onbedoelde contentactie.
+- **Bij fouten:** geen mislukte run verwijderen of status in SQL aanpassen. Leg run-ID/fase/fout vast; lees de onderstaande retryregels.
 
-De Docker-startopdracht draait automatisch `recoverFailedMigrations.ts` en `prisma migrate deploy` vóór de app.
-Een herstart met een nieuwe image is dus **geen alleen-lezen inspectie**. Eerst back-up/akkoord; nu geen migrate deploy,
-reset, resolve, handmatige SQL-correctie of test tegen een blijvende database.
-Controleer `_prisma_migrations` alleen lezend: naam, checksum, finished_at, rolled_back_at en onvoltooide runs.
-Een afwijkende checksum of mislukte migratie is een stopcriterium, geen aanleiding voor automatisch herstel.
+| Handeling | Definitieve werking sinds #187 |
+|---|---|
+| Nieuwe content ophalen | `runSeed(..., {scriptures:false})`; geen Schriftteksten/-oefeningen/-cursussen of audiomirror. Bestaande CFM-snapshot/vrijgaveregels blijven leidend; deze audioacceptatie start dit niet. |
+| Controleren | Contentdroogloop, wel ContentUpdateRun; geen download van OTB. |
+| Voorbereiden | Contentdroogloop, wel log/plan/planHash en eventueel gepinde OTB-download; geen audioacceptatiestap. |
+| Schrift-Publiceren | Herberekent plan onder importlock; verouderde planHash wordt geweigerd. Per hoofdstuk transacties; veranderde gebruikte oefeningen RETIRED, historie/open sets behouden. |
+| Tekstwijziging met legacy-audio | ChapterAudioCheck NEEDS_REVIEW; audio/tijdcodes blijven. Ongewijzigde audio heft de controle niet op. Nieuwe geldige audio, tijden en controle delen één commit; een fout rolt die drie terug. |
+| Audio ter controle bevestigen | Alleen expliciete legacy-controle; geen V2-registratie/publicatie en geen bronhashbypass. |
+| Audiobestanden spiegelen | Aparte bewuste download, geen gewone contentupdate. Niet uitvoeren in deze ronde. |
+| Audio V2 registreren | Receipts/objects/Recording en eventueel zes verborgen uitgaven; **geen AudioPublication**. |
+| Audio V2 publiceren | Alleen expliciete beheerbevestiging op opname en huidige pointerversie, met bron-/object-/sessiecontrole in de transactie; tekstzichtbaarheid blijft apart. |
 
-## 4. Alleen-lezen controles door de eigenaar
+Een Schriftupdate is geen globale transactie: eerdere hoofdstukken kunnen na een fout gecommit blijven. Controleer het logboek,
+vergelijk de stand en **bereid opnieuw voor**; forceer geen oude planHash. Een crash wordt via de vrijgevallen eigenaarslock herkenbaar.
+Een startlogfout blokkeert de import; eindlogfouten worden als fout getoond. Geen automatische correctie van gebruikersvoortgang.
+Bij app-rollback blijven migraties bestaan. RETIRED-compatibiliteit van een oudere image moet vooraf bewezen zijn. De deployagent
+schrijft na gezonde deploy de **nieuwe** image als last-good; zijn handmatige rollbackknop is geen bewijs dat de vorige image terugkomt.
+Bewaar daarom de vorige digest zelf. Een DB-restore verliest nieuwere voortgang en is geen oplossing voor één afspeelfout.
 
-De repo-stack (`deploy/docker-compose.yml`) bevat de opgegeven mount
-`/volume1/docker/jehova-app/audio:/data/audio`. Dat bewijst niet dat de bestaande Portainer-stack hetzelfde doet.
-Vervang namen uitsluitend na controle in Portainer. Geen volledige `docker inspect`/omgeving dumpen vanwege geheimen.
-De voorbeelden zijn voor één Bash-sessie op de NAS; bij een nieuwe sessie de gecontroleerde variabelen opnieuw instellen.
-Fail-fast/noclobber voorkomt doorgaan na fouten en overschrijven van bestaande vóór-rapporten. Ook deze opdrachten zijn hier niet uitgevoerd.
+## Fase 6 — Ether 1-pilot in vijf talen
+
+### 6.1 Broncheckout en gereedschap voorbereiden — WIJZIGT bronbestanden, geen DB
+
+- **Waar:** SSH op de vooraf goedgekeurde downloadhost (NAS uitsluitend door de eigenaar), of een aparte ontwikkelhost.
+- **Wat:** Python 3.11+, curl, ffmpeg en ffprobe controleren; geen Vosk nodig voor exact gepinde uitlijningen.
+  Gebruik een checkout van exact `SOURCE_SHA`; als die nog ontbreekt, uitsluitend na bron-downloadakkoord in een **nieuwe** map:
+
+```bash
+SOURCE=/VUL_BESLOTEN_NIEUWE_BRONMAP_IN
+case "$SOURCE" in *VUL*) echo 'STOP: bronmap kiezen'; exit 1;; esac
+test ! -e "$SOURCE"
+git clone --no-checkout https://github.com/rjgout/Versado.app.git "$SOURCE"
+git -C "$SOURCE" checkout --detach "$SOURCE_SHA"
+test "$(git -C "$SOURCE" rev-parse HEAD)" = "$SOURCE_SHA"
+```
+
+- **Waarom:** downloader en metadata moeten bij de image passen; de runtime-image heeft geen Python en bevat geen bron-MP3's.
+- **Verwachte uitkomst:** gecontroleerde checkout/gereedschappen; bij een bestaande checkout eerst commit en schone status controleren, geen blind pull.
+- **Bij fouten:** stop. Geen gereedschappen ongemerkt op de NAS installeren, geen heruitlijning/modeldownload en geen seed starten.
+  Bij externe download: transporteer uitsluitend de nieuwe werkmap na aparte goedkeuring en verifieer dezelfde hashes op de NAS;
+  gebruik geen synchronisatie met delete. Een ontbrekende dependency is geen reden om de importer te vervangen.
+
+### 6.2 Vijf gecontroleerde opnamen downloaden — WIJZIGT nieuwe broncache
+
+- **Waar:** SSH, goedgekeurde checkout en [bijlage G](#bijlage-g--pilotdownload-via-bestaande-validator).
+- **Wat:** download Ether 1 voor onderstaande uitgaven, buiten incoming/objects en buiten de legacy-hoofdmap.
+  De inspectie ziet twee Engelse stemmen en downloadt daardoor zes bestanden; selecteer precies vijf registratiekandidaten.
+- **Waarom:** één canonieke passage vergelijkt vijf talen, vers-navigatie en taalvoorkeur zonder de bestaande 205 NL-hoofdstukken te vervangen.
+- **Verwachte uitkomst:** exacte tekst-/audiohashes, vijf VALIDATED kandidaten, juiste uitgaven; NL Ether 1 is ook volgens jouw DB-baseline geen beschermd oud audiohoofdstuk.
+- **Bij fouten:** stop bij gewijzigde bron/bytes/uitgave of bestaand beschermd NL-doel. Geen hashes aanpassen, tijden gokken of tekst zichtbaar maken.
+  Geen registratie voordat de selectie en de DB-baseline beoordeeld zijn.
+
+| Taal | Bestaande BOM-collectie | Familie | Stem | Onderzochte bytes |
+|---|---|---|---|---:|
+| nl | content_bom | bofm | audio | 3.086.844 |
+| en | content_bom_en | bofm | male | 2.981.144 |
+| de | content_bom_de | bofm | audio | 2.592.605 |
+| fr | content_bom_fr | bofm | audio | 3.322.613 |
+| es | content_bom_es | bofm | audio | 3.192.255 |
+
+### 6.3 Alleen registreren en vergelijken — WIJZIGT bestanden/DB, geen publicatie
+
+- **Waar:** SSH; de bestaande app-importer, [bijlage H](#bijlage-h--pilotregistratie-en-nacontrole).
+- **Wat:** eerst nieuwe B/C/D/E-baselines na de migratie en een exclusief importvenster zonder andere aanleveraars/backlog.
+  Bij één al exact geregistreerde pilot de vijf-kandidaten-CLI niet uitvoeren; beoordeel bestaande IDs en laat een ontbrekende selectie apart vastleggen.
+  Na registratieakkoord de CLI uitvoeren en voor/na vergelijken.
+- **Waarom:** de CLI kan ook zes ontbrekende DC/PGP-tekstuitgaven aanmaken: content_dc_de/fr/es en content_pgp_de/fr/es.
+  Per uitgave atomair, false/false/DRAFT, geen cursussen/oefeningen; bestaande uitgaven worden niet herschreven.
+- **Verwachte uitkomst:** bij vijf nieuwe kandidaten imported:5, missingAlignment:0, mismatched:0, failed:0, published:0; vijf technische registraties,
+  geen nieuwe AudioPublication, alle vooraf bestaande 205 hoofdstukken/MP3-hashes/controles onveranderd, zes uitgaven verborgen zonder Course/Exercise-toename.
+- **Bij fouten:** lees receipt/foutcode; geen DB-status/lease forceren. Bij gedeeltelijk resultaat eerst opnieuw inventariseren.
+  Exact dezelfde batch is herhaalveilig; vers controlemoment kan een andere pakketidentiteit geven. Details staan bij fase 8 en herstel.
+
+## Fase 7 — Beoordelen vóór audiopublicatie
+
+### 7.1 Beheerpreview en schriftelijk besluit — APP-GEBRUIK, geen publicatie
+
+- **Waar:** Versado-adminbackend → Content → Audio.
+- **Wat:** beluister alle vijf via de aparte beheerpreview. Leg recording-ID, taal/stem, targetKey, bronhash, SHA-256, kwaliteit,
+  huidige publicatie-ID/pointerversie en bevindingen vast. Controleer bestaande leesrechten; maak geen verborgen tekstuitgave zichtbaar om te testen.
+- **Waarom:** technisch VALIDATED is geen luisterkundige goedkeuring. Een kandidaatpreview bewijst nog niet de normale vers-/minispelerflow.
+- **Verwachte uitkomst:** eigenaar heeft vijf concrete kandidaten beoordeeld; geen publicatiepointer verandert.
+- **Bij fouten:** kandidaat buiten publicatie laten; bij bron-/segmentfout een nieuw beoordeeld pakket, geen SQL-promotie of aanpassing van een immutable opname.
+
+### 7.2 Alleen goedgekeurde pilots publiceren en speler testen — WIJZIGT AudioPublication
+
+- **Waar:** dezelfde adminbackend, daarna de gewone lezer op de echte doelbrowsers/toestellen.
+- **Wat:** pas na expliciet akkoord op de vijf IDs/hashes/versies ieder afzonderlijk bevestigen; geen API-loop of bulkknop.
+  Gebruik de testmatrix hieronder. Zonder productiepublicatieakkoord kan volledige speleracceptatie alleen in een apart goedgekeurde geïsoleerde omgeving.
+- **Waarom:** publicatie is de bewuste pointerwissel, los van registratie en tekstzichtbaarheid.
+- **Verwachte uitkomst:** uitsluitend de vijf goedgekeurde pointers wijzigen; de 205 beschermde NL-hoofdstukken en 19 reviewgevallen blijven buiten publicatie.
+- **Bij fouten:** CAS-conflict → opnieuw lezen en beslissen, niet blind met een hogere versie opnieuw verzenden. Slechte opname niet verder publiceren;
+  herstel zo nodig bewust naar een eerder geregistreerde broncompatibele VALIDATED kandidaat. Geen algemene unpublish-/legacy-CLI of pointerdelete verzinnen.
+
+| Proef na pilotpublicatie (of in goedgekeurde acceptatieomgeving) | Acceptatiecriterium |
+|---|---|
+| Eigen tekst-/audiotaal voor alle vijf pilots | Juiste uitgave en stem; geen stilzwijgende andere tekst/taal |
+| Vers 1, midden, laatste vers; snel vooruit/achteruit zoeken | Begin/eindgrens klopt hoorbaar, geen verkeerde versselectie |
+| NL Ether 1 lezen, audio naar en/de/fr/es en terug | Dezelfde canonieke passage en uitgavefamilie, voorkeur blijft correct |
+| Minispeler: pauze/hervat, navigatie naar andere pagina, stop | Eén speler, correcte tekst/tijd, geen dubbele geluidsbron |
+| iPhone/Safari en Android/Chrome; desktop; 320px/200% tekst | Bediening bereikbaar, geen overflow, herstel na netwerkonderbreking |
+| Range/HEAD/seeken; logout en gewone gebruiker versus adminpreview | 206/HEAD correct; afgeschermde of ingetrokken audio niet leesbaar |
+| NL Ether 2, mits vooraf geen legacy-audio/pointer is vastgesteld, of een ander al leesbaar hoofdstuk zonder audio | Apparaat-TTS volgens bestaande terugval, passende beschikbare stem; afwezigheid eerlijk melden |
+| Bron-/objectfouten en tekstwijziging | Eerst geïsoleerd: TTS bij ongeldige actieve V2-opname, geen ongewenste oude V2-opname |
+| Zes verborgen uitgaven en 19 reviewgevallen | Niet zichtbaar voor gewone gebruikers; geen reviewpublicatie |
+
+Geen productieobject verwijderen/corrumperen, sessies van anderen intrekken of brontekst wijzigen als foutinjectietest.
+Voor een hoofdstuk zonder V2-pointer blijft bestaande legacy-audio de eerste terugval; pas als die ontbreekt volgt TTS.
+Lokale Capacitor-audiopariteit ontbreekt nog op de gecontroleerde basis: web/PWA-bewijs is geen bewijs van native audio,
+achtergrondaudio, lockscreen-/headsetbediening of lifecycle-herstel. Registreer die apparaattests afzonderlijk als nog open.
+Publicatie verandert nooit tekstzichtbaarheid: verborgen DC/PGP blijft verborgen, ook met een audiopointer.
+
+## Fase 8 — Volledige officiële bibliotheek, na pilotacceptatie
+
+### 8.1 Volledige set downloaden en bekende registraties uitsluiten — WIJZIGT broncache/selectie
+
+- **Waar:** goedgekeurde downloadhost/SSH; [bijlage I](#bijlage-i--volledige-download-bronvergelijking-en-selectie).
+- **Wat:** na apart bulkdownloadakkoord een andere nieuwe werkmap gebruiken, met één worker beginnen en exact tegen de gepinde bronset vergelijken.
+  In een exclusief importvenster de actuele DB-inventaris nemen en bekende bronidentiteiten uit de selectie halen.
+- **Waarom:** checkedAt zit in het manifest en daarmee in pakket-ID. Dezelfde MP3-bytes met een nieuwe controledatum zijn niet vanzelf dezelfde Recording.
+  Deduplicatie gebruikt werk/familie/taal/boek/hoofdstuk/stem/bron-URL/audiohash/teksthash; Franse Alma 30-URL's blijven afzonderlijke varianten.
+- **Verwachte uitkomst:** 1.965 identiteiten/1.974 identieke varianten; verified-inventaris bewaard. Met vijf bestaande pilots en verder lege bibliotheek:
+  1.969 nieuwe kandidaten; bij meer bestaande data minder. Dit is een verwachting voor die beginsituatie, geen NAS-feit.
+- **Bij fouten:** bronverschil → stoppen en herbeoordelen. Nul kandidaten → geen nieuwe import. Een hervatte downloader kan inventory.json vervangen;
+  dan eerst opnieuw vergelijken en selecteren met verse DB-inventaris, niet blind registreren.
+
+### 8.2 Batch registreren, controleren en publicatie apart besluiten — WIJZIGT bestanden/DB
+
+- **Waar:** SSH voor importer en rapporten; adminbackend voor beoordeling; bijlage I.
+- **Wat:** pas na registratieakkoord de bestaande CLI op de gecontroleerde selectie uitvoeren. Herhaal B/C/D/E en vergelijk beschermde data,
+  pointers en bestaande tekst-ID's. Reviewgevallen mogen herkenbaar NEEDS_REVIEW geregistreerd zijn maar blijven buiten publicatie.
+- **Waarom:** registratie van de bibliotheek is geen toestemming voor brede beschikbaarstelling of vervanging van legacy-audio.
+- **Verwachte uitkomst:** alleen ontbrekende kandidaten toegevoegd, geen dubbele pilotregistratie, nul automatische publicaties;
+  zes uitgaven verborgen, nul cursussen/oefeningen daarvoor, oorspronkelijke 19 identiteiten en 205 NL-hoofdstukken niet overgepubliceerd.
+- **Bij fouten:** gedeeltelijke import eerst inventariseren; receipts/bestanden bewaren. Geen bulkpublish, kwaliteitsveldpromotie, seed of datareset.
+  Vervolgpublicatie alleen per beoordeelde batch met apart akkoord op IDs/versies. Eén pointer per hoofdstuk; stemmen zijn alternatieven.
+
+| Taal | Werk / hoofdstuk | Stemmen | Aantal |
+|---|---|---|---:|
+| nl | bofm / 1-ne 1 | audio | 1 |
+| de | bofm / morm 1; pgp / js-h 1 | audio | 2 |
+| en | dc-testament / dc 44; dc 84; pgp / js-h 1 | 44 male; 84 female+male; js-h female+male | 5 |
+| es | dc-testament / dc 84; pgp / js-h 1 | audio | 2 |
+| fr | bofm / 1-ne 18; dc-testament / dc 2,12,14,17,32; pgp / js-h 1, moses 3, moses 4 | audio | 9 |
+
+Samen 12 onzekere alignments en 7 zonder veilige volledige grenzen. De exacte hashes en uitkomsten staan in
+`data/audio/official-alignments.json` en `docs/audio-v2/RESULTATEN.md`. Een nieuwe opname voor zo'n doel blijft buiten
+deze publicatieronde totdat afzonderlijke review én expliciet publicatieakkoord bestaan. Geen kwaliteitsveld in SQL promoveren.
+De overige 1.955 technisch VALIDATED registraties zijn **niet automatisch luisterkundig goedgekeurd**.
+Er is maar één actieve publicatiepointer per hoofdstuk: verschillende stemmen zijn alternatieven, geen gelijktijdige publicaties.
+Publiceer de 205 beschermde bestaande NL-hoofdstukken in deze acceptatieronde evenmin over met V2-opnamen.
+
+## Storingen, prestaties en herstelbesluit
+
+### Storing behandelen — eerst LEZEN, herstel uitsluitend na afzonderlijk WIJZIGINGS-akkoord
+
+- **Waar:** private app-/importlogs, SELECT-rapporten en adminbackend; ernstig herstel alleen door de eigenaar in onderhoud.
+- **Wat:** stop nieuwe aanlevering; lees receipt, run-ID/fase, bronhash, objecthash en actuele pointer. Gebruik onderstaande foutafhandeling.
+  Een afspeelfout vraagt geen volledige database-restore. Bij ernstig dataverlies pas na apart herstelbesluit alle schrijvers stoppen,
+  de geteste bijpassende DB-/audiokopie en compatibele image gezamenlijk terugzetten en de fase-5-controles herhalen.
+- **Waarom:** eerdere hoofdstukcommits, durable objecten en databaseverwijzingen moeten samen beoordeeld worden.
+- **Verwachte uitkomst:** een verklaarde fout en een gerichte herhaal-/herstelbeslissing; originele bestanden, receipts, historie en back-up blijven bewaard.
+- **Bij fouten:** geen ad-hoc productie-restore, brede delete, schema-/enum-drop, reset of volumeprune. Herstel eerst opnieuw op lege testdoelen toetsen.
+
+De volledige set bevat circa 238,4 uur speelduur. Ideale netwerktijd voor 7,168 GB: circa 96 minuten bij 10 Mbit/s,
+19 minuten bij 50 Mbit/s of 10 minuten bij 100 Mbit/s; exclusief TLS, bronlimieten, pagina's en volledige decodering.
+Dit zijn berekeningen, **geen NAS-benchmarks**. De importer verifieert/hasht/decodeert opnieuw; meet de vijf pilots met
+`time`, `docker stats`, `df`, fouttellingen en normale appresponstijden. Plan bulk buiten piekgebruik en pauzeer bij
+ruimte onder de afgesproken grens, aanhoudende hoge IO/CPU, oplopende HTTP-fouten of merkbare verslechtering van de app.
+Spreek vooraf concrete grenzen af; voorstel: minimaal 30 GiB vrij bij de start, nul nieuwe HTTP-5xx, en pauzeren als
+de gemeten p95-responstijd vijf minuten boven tweemaal de vóór-baseline blijft. Meet daarvoor dezelfde lees-/seekacties
+minstens tienmaal per pilottaal. Dit zijn voorgestelde acceptatiegrenzen, geen gemeten NAS-resultaten.
+De downloader begrenst netwerkverzoeken en decodeertijd; trage bestanden mogen falen, niet met onvolledige bytes doorgaan.
+
+- HTTP-/decode-/checksumfout: geen registratie van dat bestand; oorzaak vastleggen en gecontroleerd hervatten.
+- SOURCE_MISMATCH: stoppen voor dat doel; echte productie-editie/tekst vergelijken. Nooit hashes, Verse-ID's of tekst passend maken.
+- PROCESSING-lease maximaal vijf minuten; FAILED krijgt backoff tot maximaal één uur. Dezelfde ongewijzigde batch kan daarna opnieuw; scanner maximaal twintig kandidaten per minuut.
+  Na een onderbreking kunnen complete pakketten later nog worden **geregistreerd**, nooit vanzelf gepubliceerd.
+- PROCESSING door een andere worker: CLI kan een niet-READY resultaat melden terwijl de scanner afrondt. Wachten, uitsluitend
+  lezend de receipt controleren en dezelfde batch herhalen; geen lease, manifestHash of status met SQL wijzigen.
+- Gewijzigde manifestinhoud: nieuw pakket-ID; PACKAGE_ID_REUSED of LEASE_LOST niet met SQL omzeilen.
+- DB-/procesfout: registratie en READY delen één transactie; een al duurzaam object kan achterblijven. Bewaren, niet automatisch wissen;
+  idempotente retry kan dat object hergebruiken. CLI kan gedeeltelijk geslaagd zijn: inventariseren vóór herhalen.
+- Zes-uitgaven-aanmaak faalt: per-uitgave rollback, andere al aangemaakte uitgaven blijven verborgen; geen automatische correctie
+  van bestaande collecties. Nul nieuwe cursussen/oefeningen blijft een harde eis.
+- Mislukte publicatie: pointertransactie rolt terug. Vorige publicatie blijft actief; geen geforceerde hogere CAS-versie proberen.
+
+Herstelvolgorde na akkoord: stop nieuwe aanlevering/importers; behoud alle bestanden/receipts; vergelijk snapshots en foutcodes.
+Bij een fout beluisterde publicatie: laat de eigenaar een eerder geregistreerde, nog broncompatibele VALIDATED opname bewust
+terug publiceren met de actuele pointerversie. Er is **geen algemene unpublish-/terug-naar-legacy-CLI**; geen pointerrij wissen
+om dat te simuleren. Bij ontbrekend/corrupt actief V2-object volgt TTS, niet gegarandeerd de oude legacy-opname.
+Bij ernstig dataverlies: schrijvers pauzeren, afgestemde DB/audio-back-up en passende image onder apart herstelakkoord terugzetten,
+eerst geïsoleerd verifiëren. Een DB-restore kan nieuwere gebruikersvoortgang terugdraaien: daarom niet gebruiken voor een enkele
+afspeelfout. Geen schema-/enum-drop, reset, brede verwijderquery, `rsync --delete` of volumeprune als rollback.
+Een oude appimage is na RETIRED-gebruik niet zonder compatibiliteitscontrole een veilige #187-rollback.
+
+## Aftekenlijst voor de eigenaar
+
+- [ ] Werkelijke namen, images/digests, mounts, databaseversie, schrijvers en migratiehistorie vastgelegd; onbekenden verklaard.
+- [ ] 205 NL-hoofdstukken, bestaande MP3-hashes/mtime, controles, tekst-ID's en publicatiepointers hebben een bruikbare baseline.
+- [ ] Zes uitgaven ontbreken bewust of blijven false/false/DRAFT met nul Course/Exercise; 19 reviewidentiteiten vastgelegd.
+- [ ] Minimaal afgesproken extra ruimte, inodes/quota/snapshotreserve én aparte back-upcapaciteit gecontroleerd door de eigenaar.
+- [ ] Alle schrijvers stil, consistente externe DB/audio-set plus overige volumes/configuratie; echte geïsoleerde herstelproef afgetekend.
+- [ ] Deployment apart goedgekeurd op immutable digest/broncommit; geen onbekende incoming-READY-backlog.
+- [ ] Na deployment: migraties/gezondheid/data vergeleken; nieuwe controlebackfill apart van bestaande controles behandeld.
+- [ ] Vijf Ether 1-kandidaten exact in de juiste uitgaven; download en registratie afzonderlijk goedgekeurd; nul publicatie bij registratie.
+- [ ] Vijf concrete pilotpublicaties vooraf expliciet goedgekeurd, of speler uitsluitend in geïsoleerde acceptatie getest.
+- [ ] Vers-navigatie, minispeler, vijf talen, TTS en rechten op doelbrowsers/toestellen door de eigenaar afgetekend.
+- [ ] Prestaties, foutcodes, retries en herstelduur vastgelegd; native/apparaatachterstand afzonderlijk genoteerd.
+- [ ] Bulkselectie tegen actuele registraties gecontroleerd; 19 reviewgevallen en 205 beschermde NL-publicaties uitgesloten.
+- [ ] Iedere vervolgpublicatie apart beoordeeld en goedgekeurd. Geen contentactie of audiopublicatie als verborgen deploymentstap.
+
+Alle NAS-specifieke vakken blijven open totdat de eigenaar de handeling werkelijk heeft uitgevoerd en bewijs heeft vastgelegd.
+
+## Technische bijlagen — alleen uitvoeren bij de genoemde fase
+
+Dezelfde Bash-sessie bewaart variabelen. Leg APP, DB, AUDIO, RUN, REPORT, BACKUP, SOURCE_SHA, SOURCE en gebruikte WORK/FULL-paden
+besloten vast. Na een verbroken sessie eerst die gecontroleerde waarden herstellen, met `set -euo pipefail`, noclobber en umask 077;
+geen volgende fase uitvoeren met ontbrekende variabelen. Bestaande baselines en een ongewijzigde importbatch blijven behouden:
+maak hun map niet opnieuw en download die batch niet opnieuw als registratie-retry. Nieuwe rapporten/exports krijgen een nieuwe suffix;
+een werkelijk nieuwe downloadcontrole krijgt een nieuwe RUN/werkmap en opnieuw vergelijking/deduplicatie. Nooit vóórbestanden overschrijven.
+Een codeblok is geen toestemming. **Kopieer geen complete pagina naar een terminal.**
+
+### Bijlage A — sessie en containerinspectie
+
+- **Waar:** SSH/Bash; LEZEN.
+- **Wat:** Vul eerst gecontroleerde namen in. Bij een gestopte app werken exec-opdrachten niet; start haar niet om te inspecteren.
 
 ```bash
 set -euo pipefail
 set -o noclobber
-APP=jehova-app
-DB=jehova-db
-AUDIO=/volume1/docker/jehova-app/audio
+umask 077
+APP=VUL_APP_CONTAINER_IN
+DB=VUL_DB_CONTAINER_IN
+AUDIO=/VUL_WERKELIJKE_AUDIOBINDMOUNT_IN
+case "$APP:$DB:$AUDIO" in *VUL*) echo 'STOP: eerst namen/pad in Portainer controleren en invullen'; exit 1;; esac
+RUN=$(date -u +%Y%m%dT%H%M%SZ)
+test -d "$AUDIO" && test ! -L "$AUDIO"
 docker inspect --format '{{.Config.Image}} {{.Image}}' "$APP"
 docker image inspect "$(docker inspect --format '{{.Image}}' "$APP")" --format '{{json .RepoDigests}}'
 docker inspect --format '{{range .Mounts}}{{println .Source "->" .Destination "rw=" .RW}}{{end}}' "$APP"
+docker inspect --format '{{.Config.Image}} {{.Image}}' "$DB"
 docker exec "$APP" printenv AUDIO_DIR
 docker exec "$APP" printenv NEXT_PUBLIC_BUILD_SHA
 docker exec "$APP" id
 docker exec "$APP" stat -c '%d %u:%g %a %n' /data/audio
-docker exec "$APP" test -f /app/scripts/audio/import-official.ts
-docker exec "$APP" test -f /app/data/audio/official-alignments.json
-df -Pk "$AUDIO"
-df -Pi "$AUDIO"
-du -sk "$AUDIO"
+if docker exec "$APP" test -f /app/scripts/audio/import-official.ts; then echo 'Import-CLI aanwezig'; else echo 'Import-CLI ontbreekt in huidige image'; fi
+if docker exec "$APP" test -f /app/data/audio/official-alignments.json; then echo 'Metadata aanwezig'; else echo 'Metadata ontbreekt in huidige image'; fi
 docker stats --no-stream "$APP" "$DB"
 ```
 
-Vereist: exacte bindmount, `/data/audio`, bestaand persistent volume, correcte apprechten, geen onverwachte symlinks,
-voldoende vrije bytes/inodes en back-updekking. Noteer image-digest/broncommit; inspecteer of de bestaande image de CLI
-`/app/scripts/audio/import-official.ts` en de gepinde `data/audio`-metadata bevat. Geen `chown -R`, `chmod -R`, volumeprune
-of verplaatsing van legacybestanden. Nieuwe werkmappen mogen later uitsluitend met passende rechten worden aangemaakt.
+- **Waarom:** Namen/UID/build/mount komen uit de werkelijke omgeving; de voorbeelden gelden niet vanzelf.
+- **Verwachte uitkomst:** Geregistreerde oude digest/broncommit, DB-image en effectieve audiomount.
+- **Bij fouten:** Stop bij onbekend pad, symlink of verkeerde container; geen wijziging van rechten of mounts als inspectie.
 
-Bewaar rapporten buiten de audiomap, in een besloten map (onderstaande rapportmap is een voorbeeld, geen bronvolume):
+### Bijlage B — alleen-lezen database-inventaris
+
+- **Waar:** SSH; RAPPORT: nieuwe map/SQL/JSONL, DB uitsluitend READ ONLY.
+- **Wat:** Eenmalig nieuwe rapportmap en inventaris.sql maken. Hergebruik later alleen de psql-regel met een nieuw uitvoerbestand.
 
 ```bash
 umask 077
-REPORT=/volume1/docker/jehova-app/audio-acceptatie-20261024
+REPORT_PARENT=/VUL_BESTAANDE_BESLOTEN_RAPPORTMAP_IN
+case "$REPORT_PARENT" in *VUL*) echo 'STOP: rapportparent kiezen'; exit 1;; esac
+test -d "$REPORT_PARENT"
+REPORT="$REPORT_PARENT/audio-acceptatie-$RUN"
 test ! -e "$REPORT" || { echo 'Kies een nieuwe rapportmap; bestaande baseline niet overschrijven.'; exit 1; }
 mkdir "$REPORT"
 cat > "$REPORT/inventaris.sql" <<'SQL'
@@ -169,16 +536,25 @@ SELECT jsonb_build_object('type','EDITION','id',i.id,'missing',c.id IS NULL,'wor
  'exercises',(SELECT count(*) FROM "Exercise" e JOIN "Chapter" h ON h.id=e."chapterId" JOIN "Book" b ON b.id=h."bookId" WHERE b."contentCollectionId"=c.id))
 FROM (VALUES ('content_dc_de'),('content_dc_fr'),('content_dc_es'),('content_pgp_de'),('content_pgp_fr'),('content_pgp_es')) i(id)
 LEFT JOIN "ContentCollection" c ON c.id=i.id ORDER BY i.id;
+SELECT jsonb_build_object('type','DB_SIZE','bytes',pg_database_size(current_database()));
+SELECT 'SELECT jsonb_build_object(''type'',''UPDATE_RUN'',''id'',id,''kind'',kind,''status'',status,''startedAt'',"startedAt",''finishedAt'',"finishedAt",''error'',error) FROM "ContentUpdateRun" ORDER BY "startedAt" DESC LIMIT 20;'
+WHERE to_regclass('"ContentUpdateRun"') IS NOT NULL \gexec
 COMMIT;
 SQL
 docker exec -i "$DB" sh -c 'exec psql -X -q -A -t -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < "$REPORT/inventaris.sql" > "$REPORT/inventaris-voor.jsonl"
 ```
 
-Sla deze afzonderlijke beschermingsquery op als `$REPORT/beschermd.sql` en voer haar vóór/na iedere import uit naar
-verschillende rapportbestanden. Dit exporteert geen accounts. Neem de **na goedgekeurde migratie** bestaande
-controlemarkeringen als importbaseline; een nieuwe #187-backfill is een aparte migratiestap.
+- **Waarom:** Inspecteert migraties, tabelaanwezigheid, receipts, registraties, pointers, uitgaven, runs en databaseomvang.
+- **Verwachte uitkomst:** Geen onverklaarde migratiefout/checksum; query werkt ook als nieuwe audio-/controletabellen nog ontbreken.
+- **Bij fouten:** Niet bestaande rapporten overschrijven. Een onvoltooide migratie of onbekende import is een stopcriterium, geen SQL-reparatieopdracht.
 
-```sql
+### Bijlage C — beschermde legacy- en controlebaseline
+
+- **Waar:** SSH; RAPPORT.
+- **Wat:** Bewaar SQL en eerste baseline; herhaal de laatste psql-regel met een nieuwe suffix bij stilstand, na migratie en vóór/na import.
+
+```bash
+cat > "$REPORT/beschermd.sql" <<'SQL'
 BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY;
 SET LOCAL statement_timeout = '30s';
 SELECT jsonb_build_object('type','NL_LEGACY','id',c.id,'book',b.key,'number',c.number,'url',c."audioUrl",'headingStart',c."audioHeadingStart",'headingEnd',c."audioHeadingEnd",
@@ -188,41 +564,48 @@ WHERE b."contentCollectionId"='content_bom' AND c."audioUrl" IS NOT NULL ORDER B
 SELECT 'SELECT jsonb_build_object(''type'',''AUDIO_CHECK'',''row'',to_jsonb(a)-''reviewedById'',''rowMD5'',md5(to_jsonb(a)::text)) FROM "ChapterAudioCheck" a ORDER BY "chapterId";'
 WHERE to_regclass('"ChapterAudioCheck"') IS NOT NULL \gexec
 COMMIT;
-```
-
-```bash
+SQL
 docker exec -i "$DB" sh -c 'exec psql -X -q -A -t -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < "$REPORT/beschermd.sql" > "$REPORT/beschermd-voor.jsonl"
 ```
 
-Verwacht 205 `NL_LEGACY`-rijen; bij een ander aantal **stoppen en verklaren**, niets wissen of naar een seed terugzetten.
-Leg ook de bestaande zes uitgaven vast: identiteiten, tekst-/vers-ID's en teksthashes via de bestaande tekstexport
-(`scripts/audio/export-targets.ts`, alleen-lezen DB maar maakt een nieuw exportbestand). Gebruik die export na akkoord
-voor dezelfde vergelijking, niet voor herschrijven van productie. Bestaande uitgaven mogen niet worden overschreven.
+- **Waarom:** Bewaking van URLs, kop-/vers-tijden, teksthashes en controlemarkeringen, zonder accounts te exporteren.
+- **Verwachte uitkomst:** 205 NL_LEGACY-rijen volgens de onderzochte set; afwijking eerst verklaren. Nieuwe migratiebackfill is apart van importbaseline.
+- **Bij fouten:** Bestaande controles nooit resetten. Vergelijk NL_LEGACY vóór/na deployment; bestaande AUDIO_CHECK-rijen blijven gelijk, alleen nieuwe backfill mag erbij.
 
-Na akkoord op het maken van dit besloten exportbestand (de DB wordt alleen gelezen):
+### Bijlage D — tekstexport met bestaande CLI
+
+- **Waar:** SSH bij draaiende, gecontroleerde app; RAPPORT.
+- **Wat:** Exporteer alleen bij aanwezige CLI; de opdracht leest de DB, maar maakt een nieuw 0600-bestand in de container en een besloten kopie. Voor een na-export zowel EXPORT als TARGET_EXPORT een nieuwe suffix geven; beide vóórbestanden bewaren.
 
 ```bash
-docker exec -w /app "$APP" npx tsx scripts/audio/export-targets.ts /tmp/audio-targets-voor-20261024.json
-docker cp "$APP:/tmp/audio-targets-voor-20261024.json" "$REPORT/targets-voor.json"
+EXPORT="/tmp/audio-targets-$RUN-voor.json"
+TARGET_EXPORT="$REPORT/targets-voor.json"
+test ! -e "$TARGET_EXPORT"
+docker exec -w /app "$APP" npx tsx scripts/audio/export-targets.ts "$EXPORT"
+docker cp "$APP:$EXPORT" "$TARGET_EXPORT"
 ```
 
-Herhaal na registratie met een **nieuwe** bestandsnaam. Vergelijk alle vooraf bestaande target-/vers-ID's, bronhashes,
-tekstsegmenten en de zes collectie-identiteiten; alleen vooraf ontbrekende verborgen uitgaven mogen erbij komen.
-Het exportscript weigert een bestaand uitvoerbestand te overschrijven. Vergelijk bronhashes ook voor reeds geregistreerde
-opnamen: een oude opname die niet meer bij de productietekst past blijft buiten publicatie.
+- **Waarom:** Legt bestaande hoofdstuk-/vers-ID’s, tekst en bronhash vast; geen credentials of accounts.
+- **Verwachte uitkomst:** Alle vooraf bestaande IDs/hash/segmenten blijven bij latere export gelijk; uitsluitend ontbrekende zes uitgaven mogen erbij.
+- **Bij fouten:** Bestaat het exportbestand al, dan weigert de CLI. Kies een nieuwe naam; geen importer of seed als export gebruiken.
 
-Inventariseer bestanden met Python 3.11+ op de NAS (of de equivalente bestaande beheertool). Dit leest alleen;
-legacy-MP3's op de hoofdmap krijgen een volledige hash, geneste bestanden alleen een stat om de eerste scan te beperken:
+### Bijlage E — bestanden en READY-backlog
+
+- **Waar:** SSH met Python 3.11+; RAPPORT, audio uitsluitend gelezen.
+- **Wat:** Hash de bestaande hoofdmap-MP3’s; geneste bestanden krijgen eerst een stat. Herhaal met nieuwe rapportnaam.
 
 ```bash
 python3 -I - "$AUDIO" > "$REPORT/bestanden-voor.json" <<'PY'
 import hashlib,json,os,pathlib,stat,sys
 root=pathlib.Path(sys.argv[1]); rows=[]
-for base,dirs,files in os.walk(root,followlinks=False):
+assert root.is_dir() and not root.is_symlink(), 'STOP: ongeldige inventarisroot'
+def fail(error): raise error
+for base,dirs,files in os.walk(root,followlinks=False,onerror=fail):
     for name in dirs+files:
         p=pathlib.Path(base)/name; s=p.lstat()
         if stat.S_ISLNK(s.st_mode): raise SystemExit('STOP: symlink '+str(p))
-        if not stat.S_ISREG(s.st_mode): continue
+        if stat.S_ISDIR(s.st_mode): continue
+        if not stat.S_ISREG(s.st_mode): raise SystemExit('STOP: afwijkend bestandstype '+str(p))
         row={'path':str(p.relative_to(root)),'bytes':s.st_size,'mtimeNs':s.st_mtime_ns}
         if p.parent==root and p.suffix.lower()=='.mp3':
             with p.open('rb') as f: row['sha256']=hashlib.file_digest(f,'sha256').hexdigest()
@@ -231,75 +614,130 @@ print(json.dumps(sorted(rows,key=lambda r:r['path']),indent=2))
 PY
 ```
 
-Koppel de 205 URL's aan `mirrorFileName()` (`src/lib/audioMirror.ts`: toegestane HTTPS-host + MP3-basename).
-Registreer ontbrekende lokale kopieën als ontbrekend; download of vervang ze niet tijdens inventarisatie.
-Leg bij bestaande objecten ook ontbrekende/mismatchede `<sha256>.mp3` vast; de afspeelroute verifieert de bytes opnieuw.
-Bewaar rapporten met datum, image-digest en broncommit. NAS-aanwezigheid en vrije ruimte zijn pas daarna bewezen.
+- **Waarom:** Bewaking van naam/bytes/mtime/SHA; geen scan met symlinkvolging.
+- **Verwachte uitkomst:** Elke beschermde legacy-MP3 behoudt alle waarden. Controleer aanwezige objecthashes tegen registraties en verklaar iedere incoming/*/READY.
+- **Bij fouten:** Een ontbrekend bestand blijft een ontbrekend bestand; niet downloaden/vervangen. Geneste stat alleen bewijst geen objectchecksum: controleer geselecteerde objecten aanvullend vóór publicatie.
 
-## 5. Opslag en back-up
+### Bijlage F — back-up en geïsoleerde herstelproef
 
-Gerekend uit de **onderzochte bronset** in `official-inventory.json`, geen NAS-meting:
-
-| Omvang | Bytes | GiB |
-|---|---:|---:|
-| 1.974 downloadvarianten (D) | 7.168.283.880 | 6,676 |
-| 1.973 unieke inhoudshashes / objecten (S) | 7.159.935.725 | 6,668 |
-| Grootste bestand (M) | 25.009.564 | 0,0233 |
-| D + S + één tijdelijk bestand | 14.353.229.169 | 13,367 |
-
-De Franse Alma 30-URL's delen bytes; de broncache gebruikt URL-hashes, de objectopslag inhoudshashes.
-Bij broncache **onder dezelfde audiomount** hardlinkt de importer naar staging/incoming, maar objects is een eigen kopie.
-Andere filesystems veroorzaken een extra kopie (EXDEV); dan kan circa D extra nodig zijn.
-Metadata, pagina's, filesystem-/snapshot-overhead, bestaande legacybestanden (L), andere productiegegevens en groei
-komen erbovenop. Richtwaarde: **minimaal 30 GiB extra vrije ruimte** boven het bestaande gebruik voor deze bulkactie,
-plus afzonderlijke back-upcapaciteit en het normale vrije-volumepercentage. Bereken opnieuw bij gewijzigde bronbytes.
-Geen Vosk-modellen, woordtranscripten of ASR-cache nodig bij exact hergebruik van de gepinde uitlijningen.
-
-Back-up **vóór** deployment/migratie of registratie: alle appinstanties en andere schrijvers onder goedgekeurd onderhoud
-quiescent maken; DB laten draaien. Maak een consistente logische DB-dump plus de volledige audiomap (legacy, objects,
-incoming, staging), stackconfiguratie/secrets in besloten opslag en de overige bestaande appvolumes volgens het beheerbeleid.
-Een live kopie van de PostgreSQL-datamap of alleen `audio` is onvoldoende. Een snapshot op dezelfde NAS is geen externe back-up.
-Bewaar de back-up versleuteld met afzonderlijk herstelbaar sleutelbeheer; een PostgreSQL custom dump is op zichzelf niet versleuteld.
-Voorbeeld uitsluitend na onderhoudsakkoord; doel moet op een **andere beschermde opslag** liggen:
+- **Waar:** SSH/DSM na fase-3-akkoord; WIJZIGT back-upbestanden en uitsluitend nieuwe testdoelen.
+- **Wat:** Eerst dump/tar/hashcontrole; daarna echte restoreproef zonder app of netwerkpoort.
 
 ```bash
-BACKUP=/pad/naar/andere/beschermde/opslag/audio-v2-voor
-umask 077
-mkdir -p "$BACKUP"
-# Eerst alle expliciet geïdentificeerde app-/importschrijvers pauzeren; niet blind andere containers stoppen.
+BACKUP_ROOT=/VUL_BESTAANDE_EXTERNE_BESCHERMDE_BACKUPMAP_IN
+case "$BACKUP_ROOT" in *VUL*) echo 'STOP: externe bestemming kiezen'; exit 1;; esac
+test -d "$BACKUP_ROOT"
+df -Pk "$BACKUP_ROOT"
+BACKUP="$BACKUP_ROOT/audio-v2-$RUN"
+test ! -e "$BACKUP"
+mkdir -m 700 "$BACKUP"
 docker exec "$DB" sh -c 'exec pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --format=custom' > "$BACKUP/database.dump"
 tar -cpf "$BACKUP/audio.tar" -C "$AUDIO" .
-sha256sum "$BACKUP/database.dump" "$BACKUP/audio.tar" > "$BACKUP/SHA256SUMS"
+test -s "$BACKUP/database.dump" && test -s "$BACKUP/audio.tar"
+(cd "$BACKUP" && sha256sum database.dump audio.tar > SHA256SUMS)
+(cd "$BACKUP" && sha256sum -c SHA256SUMS)
 docker exec -i "$DB" pg_restore --list < "$BACKUP/database.dump" > "$BACKUP/dump-inhoud.txt"
+tar -tf "$BACKUP/audio.tar" > "$BACKUP/audio-inhoud.txt"
 ```
 
-Controleer exitcodes, archiefleesbaarheid, hashes, beschikbare back-upruimte en een daadwerkelijke restore in een
-**eigen geïsoleerde DB/volumecombinatie**. Start geen herstelde productieapp met echte e-mail-/externe koppelingen.
-Leg herstelduur vast en bewaar de oude image-digest. Pas daarna schrijvers gecontroleerd hervatten.
-
-## 6. Pilotdownload en registratie — pas na afzonderlijk akkoord
-
-Gebruik een checkout van de goedgekeurde imagebron op de NAS. Vereisten op de downloadhost: Python 3.11+,
-`curl`, `ffmpeg`, `ffprobe`, veilige HTTPS-toegang en voldoende ruimte. De app-image heeft de Node-importer en ffmpeg,
-**geen Python**. Ontbrekende hulpmiddelen zijn een stopcriterium; niet stilzwijgend op de NAS installeren.
-Een vooraf goedgekeurde externe downloadhost met dezelfde geverifieerde bestanden is een alternatief, met expliciete overdracht
-en ruimtecontrole; maak geen nieuwe permanente ASR-service.
-
-Pilot: **Ether 1 in nl/en/de/fr/es**, Engels `male`, overige talen `audio`. Alle vijf zijn technisch VALIDATED in de
-onderzochte metadata. NL Ether 1 staat niet bij de 205 legacy-hoofdstukken; bevestig dat ook in de productie-inventaris.
-Als daar al beschermde NL-audio staat: niet publiceren, eerst een andere gevalideerde NL-pilot laten kiezen.
-Dezelfde canonieke verwijzing maakt ook een veilige taalwissel tussen vijf uitgaven testbaar.
-Controleer dat de vijf bestaande BOM-uitgaven al leesbaar zijn voor het testaccount. Verander geen tekstzichtbaarheid
-om een audiotest mogelijk te maken; gebruik anders beheerpreview of de geïsoleerde acceptatieomgeving.
-
-Onderstaande selectie gebruikt de bestaande officiële downloader/validator, geen nieuwe importer. De downloader inspecteert
-alle stemmen op de vijf pagina's (dus zes bronbestanden door twee Engelse stemmen); de importinventaris bevat precies vijf.
-Hij schrijft uitsluitend in een **nieuwe** werkmap, buiten incoming/objects en buiten de legacy-hoofdmap.
+**Uitsluitend nieuwe testdoelen; geen productieherstel.** Deze volgende groep maakt een lege, niet-gepubliceerde testcontainer,
+een nieuw volume en een nieuwe herstelmap. Vereist een geverifieerde PostgreSQL-image met dezelfde majorversie en officiële
+POSTGRES_PASSWORD_FILE-ondersteuning; gebruik de bestaande DB-image-ID pas na die controle. `openssl` en Python 3.11+ moeten aanwezig zijn.
+Er wordt geen app gestart, geen dump over de bestaande DB gezet en geen audiomap vervangen.
 
 ```bash
-cd /pad/naar/goedgekeurde/broncheckout
+command -v openssl
+PG_IMAGE=$(docker inspect --format '{{.Image}}' "$DB")
+docker exec "$DB" postgres --version
+TEST_DB="versado-audio-restore-$RUN"
+TEST_VOL="${TEST_DB}-pg"
+RESTORE_PARENT=/VUL_BESTAANDE_BESLOTEN_TESTMAP_IN
+case "$RESTORE_PARENT" in *VUL*) echo 'STOP: testparent kiezen'; exit 1;; esac
+test -d "$RESTORE_PARENT"
+RESTORE_AUDIO="$RESTORE_PARENT/audio-$RUN"
+test ! -e "$RESTORE_AUDIO"
+mkdir -m 700 "$RESTORE_AUDIO"
+case "$TEST_DB" in versado-audio-restore-*) ;; *) exit 1;; esac
+test "$TEST_DB" != "$DB"
+if docker container inspect "$TEST_DB" >/dev/null 2>&1; then echo 'STOP: testcontainer bestaat al'; exit 1; fi
+if docker volume inspect "$TEST_VOL" >/dev/null 2>&1; then echo 'STOP: testvolume bestaat al'; exit 1; fi
+TEST_SECRET="$REPORT/restore-password-$RUN"
+test ! -e "$TEST_SECRET"
+openssl rand -hex 32 > "$TEST_SECRET"
+docker volume create "$TEST_VOL"
+docker run -d --name "$TEST_DB" --network none   --mount "type=volume,source=$TEST_VOL,target=/var/lib/postgresql/data"   --mount "type=bind,source=$TEST_SECRET,target=/run/secrets/pg-password,readonly"   -e POSTGRES_USER=restore_test -e POSTGRES_DB=restore_test   -e POSTGRES_PASSWORD_FILE=/run/secrets/pg-password "$PG_IMAGE"
+ready=0
+for attempt in $(seq 1 60); do
+  if docker exec "$TEST_DB" pg_isready -U restore_test -d restore_test >/dev/null 2>&1; then ready=1; break; fi
+  sleep 1
+done
+test "$ready" -eq 1 || { echo 'STOP: testdatabase niet gereed'; exit 1; }
+docker exec -i "$TEST_DB" pg_restore --exit-on-error --no-owner --no-privileges -U restore_test -d restore_test < "$BACKUP/database.dump"
+python3 -I - "$BACKUP/audio.tar" <<'RESTORE_PY'
+import pathlib,sys,tarfile
+with tarfile.open(sys.argv[1]) as archive:
+    for member in archive.getmembers():
+        p=pathlib.PurePosixPath(member.name)
+        assert not p.is_absolute() and '..' not in p.parts, member.name
+        assert member.isfile() or member.isdir() or member.islnk(), member.name
+        if member.islnk():
+            target=pathlib.PurePosixPath(member.linkname)
+            assert not target.is_absolute() and '..' not in target.parts, member.linkname
+print('Relatieve bestanden/mappen/hardlinks, geen symlinks of afwijkende archiefpaden.')
+RESTORE_PY
+tar -xpf "$BACKUP/audio.tar" -C "$RESTORE_AUDIO"
+docker exec -i "$TEST_DB" psql -X -q -A -t -v ON_ERROR_STOP=1 -U restore_test -d restore_test < "$REPORT/beschermd.sql" > "$REPORT/hersteltest-beschermd.jsonl"
+cmp "$REPORT/beschermd-stil.jsonl" "$REPORT/hersteltest-beschermd.jsonl"
+docker exec -i "$TEST_DB" psql -X -q -A -t -v ON_ERROR_STOP=1 -U restore_test -d restore_test < "$REPORT/inventaris.sql" > "$REPORT/hersteltest-inventaris.jsonl"
+python3 -I - "$RESTORE_AUDIO" "$REPORT/inventaris-stil.jsonl" "$REPORT/hersteltest-inventaris.jsonl" <<'OBJECT_PY'
+import hashlib,json,pathlib,re,sys
+root=pathlib.Path(sys.argv[1]); assert root.is_dir() and not root.is_symlink()
+def rows(filename): return [json.loads(line) for line in pathlib.Path(filename).read_text().splitlines() if line.strip()]
+before,after=rows(sys.argv[2]),rows(sys.argv[3])
+for kind in ['RECORDING','PUBLICATION','EDITION','PILOT_EDITION','PACKAGE']:
+    assert [r for r in before if r.get('type')==kind]==[r for r in after if r.get('type')==kind], kind
+seen={}
+for row in after:
+    if row.get('type')!='RECORDING': continue
+    r=row['row']; sha=r['sha256']; size=int(r['byteSize'])
+    assert re.fullmatch('[a-f0-9]{64}',sha), 'Ongeldige objecthash'
+    if sha in seen: assert seen[sha]==size; continue
+    f=root/'objects'/(sha+'.mp3'); assert f.is_file() and not f.is_symlink() and f.stat().st_size==size, str(f)
+    with f.open('rb') as handle: assert hashlib.file_digest(handle,'sha256').hexdigest()==sha, str(f)
+    seen[sha]=size
+print({'hersteldeUniekeV2Objecten':len(seen),'registratiesEnPointersGelijk':True})
+OBJECT_PY
+```
+
+De eigenaar herhaalt ook de bestandsinventaris E met `RESTORE_AUDIO` als leespad en een nieuwe rapportnaam.
+Vergelijk pad/bytes/SHA van alle beschermde MP3's; tar kan mtime afronden, dus een mtime-diff bij restore apart verklaren.
+Het bovenstaande objectprogramma controleert alle herstelde AudioRecording-verwijzingen op bestand, byteSize en SHA-256 en
+vergelijkt registraties/pointers/uitgaven/receipts. Zijn er nul AudioRecording-rijen, dan zijn er nog geen V2-objecten in deze set; de legacy-hashcontrole blijft verplicht. Vergelijk de migratiehistorie apart op namen/checksums/status; DB_SIZE hoeft na
+restore niet fysiek gelijk te zijn. Maak geen nieuwe registraties/publicaties. Geen app met productieaccounts/secrets/mail starten.
+
+De proef gebruikt `--no-owner --no-privileges` uitsluitend voor de geïsoleerde testrol; dit bewijst niet de productierollen/ACL's.
+Een werkelijk herstelbesluit vraagt de vastgelegde echte rollen, credentials, image, overige volumes en mountrechten.
+Testcontainers/-volumes en het testwachtwoord pas na aftekening bewust via hun exacte nieuwe namen opruimen; geen prune.
+Productieherstel: onderhoud en alle schrijvers stil → huidige stand extra bewaren → geteste bijpassende DB/audio-set naar
+beoordeelde lege doelen herstellen → rollen/rechten/overige volumes/configuratie herstellen → consistente koppelingen en migratiehistorie
+controleren → alleen na akkoord compatibele app aansluiten/starten → fase 5/pilot herhalen → onderhoud bewust opheffen.
+Er staat geen generiek destructief productie-restorecommando in dit document: de werkelijke doelen en credentials zijn nog onbekend.
+Het bestaande `scripts/restore.sh` gebruikt `pg_restore --clean --if-exists` tegen de gekozen DB en is geen alleen-lezen controle.
+
+- **Waarom:** Consistente DB/audio-kopie én daadwerkelijke herstelbaarheid; niet alleen een dump-TOC.
+- **Verwachte uitkomst:** Alle opdrachten eindigen met 0; stille baseline, registraties, pointers en bestandshashes komen overeen. Overige volumes/configuratie zijn apart gedekt.
+- **Bij fouten:** Niet doorgaan na fout. Geen productiepad/DB invullen als TEST_DB of RESTORE_AUDIO; oude back-ups en bronbestanden blijven staan. Een volledige DB-restore draait nieuwere gebruikersvoortgang terug.
+
+### Bijlage G — pilotdownload via bestaande validator
+
+- **Waar:** SSH op goedgekeurde downloadhost; WIJZIGT een nieuwe werkmap.
+- **Wat:** Onderstaande paden zijn de NAS-uitvoering door de eigenaar; bij externe download eerst een apart overdrachtsplan. Exacte checkout vereist.
+
+```bash
+cd "$SOURCE"
 for tool in python3 curl ffmpeg ffprobe; do command -v "$tool" || exit 1; done
-WORK="$AUDIO/_official-pilot-20261024"
+WORK="$AUDIO/_official-pilot-$RUN"
+test ! -e "$WORK"
 test ! -L "$WORK" || exit 1
 python3 -I - "$WORK" <<'PY'
 import argparse,importlib.util,json,pathlib,sys
@@ -327,84 +765,46 @@ print('Vijf gecontroleerde kandidaten; geen DB of publicatie gewijzigd.')
 PY
 ```
 
-Een checksum/tekstverschil stopt de pilot. Niet de gepinde hashes aanpassen of tijdcodes gokken.
-Geen `prepare_text_editions.py`, seed, `audio:mirror` of Vosk-heruitlijning in deze procedure.
-Controleer dat het broncommit en de gepinde metadata gelijk zijn aan die in de app-image.
-Als ook maar één pilotidentiteit volgens de inventaris al exact geregistreerd is, **de onderstaande vijf-kandidaten-CLI niet uitvoeren**:
-beoordeel de bestaande opname-ID's en stel ontbrekende doelen eerst als een afzonderlijke, expliciet gecontroleerde selectie samen.
-Na downloadcontrole, back-up en **registratieakkoord**:
+- **Waarom:** Gebruikt de bestaande tasks/inspect-downloader, geen tweede importer; controleert bronhash, bytes, checksum en gepinde kwaliteit.
+- **Verwachte uitkomst:** Vijf geselecteerde kandidaten in inventory.json; zes bronbestanden kunnen gedownload zijn. Geen DB of publicatie gewijzigd.
+- **Bij fouten:** Iedere assertie-/HTTP-/decodefout stopt de selectie. Geen hashes/tijden passend maken; niet in incoming downloaden. Een nieuwe map voorkomt verouderde receipts als nieuwe netwerkcontrole te presenteren. Na een mislukte pilotdownload eerst oorzaak/ruimte beoordelen en voor een nieuwe controle een nieuwe RUN/werkmap kiezen; geen bulkdownloader op de pilotmap loslaten. Een registratie-retry gebruikt juist dezelfde ongewijzigde batch, zonder herdownload.
+
+### Bijlage H — pilotregistratie en nacontrole
+
+- **Waar:** SSH bij gecontroleerde draaiende nieuwe app; WIJZIGT DB en audiomount.
+- **Wat:** Alleen na registratieakkoord, lege/onverklaarde backlog uitgesloten en passende mount op /data/audio.
 
 ```bash
-docker exec -w /app "$APP" npx tsx scripts/audio/import-official.ts /data/audio/_official-pilot-20261024
+WORK_NAME=${WORK##*/}
+case "$WORK" in "$AUDIO"/_official-pilot-*) ;; *) echo 'STOP: werkmap niet onder gecontroleerde audiomount'; exit 1;; esac
+time docker exec -w /app "$APP" npx tsx scripts/audio/import-official.ts "/data/audio/$WORK_NAME"
+docker exec -i "$DB" sh -c 'exec psql -X -q -A -t -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < "$REPORT/beschermd.sql" > "$REPORT/beschermd-na-pilot.jsonl"
+cmp "$REPORT/beschermd-importbaseline.jsonl" "$REPORT/beschermd-na-pilot.jsonl"
+docker exec -i "$DB" sh -c 'exec psql -X -q -A -t -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < "$REPORT/inventaris.sql" > "$REPORT/inventaris-na-pilot.jsonl"
 ```
 
-Er is **geen dry-run- of publish-optie** op deze CLI. Hij gebruikt de bestaande ontvangende service, maakt pakketten
-en objecten aan, en kan bij de eerste aanroep alle zes ontbrekende tekstuitgaven aanmaken: DC/PGP in de/fr/es,
-`enabled=false`, `visibleToUsers=false`, `DRAFT`. Dat maakt boeken/hoofdstukken/verzen, **geen cursussen of oefeningen**.
-Bestaande uitgaven worden overgeslagen, niet herschreven. Stop bij afwijkende bestaande identiteiten/flags/teksten.
-Elke ontbrekende uitgave wordt apart transactioneel aangemaakt; een fout kan eerdere, nog verborgen uitgaven laten staan.
+Maak `beschermd-importbaseline.jsonl` met C **na migratie en vóór registratie**; gebruik niet de pre-migratiecontrole als importbaseline.
+Vergelijk in de twee inventarisbestanden alle PUBLICATION-rijen exact en de reeds bestaande RECORDING-rijen op identiteit/hash;
+vergelijk ook D en E met nieuwe bestandsnamen. Nieuwe opnamen mogen alleen bij de vijf goedgekeurde targets horen.
+De CLI heeft **geen dry-run- of publish-vlag** en maakt de zes ontbrekende tekstuitgaven vóór het lezen van inventory.json.
+Een lege/foute inventaris is dus geen veilige proef. De scanner kan complete incoming-pakketten gelijktijdig claimen;
+PROCESSING is geen bewijs van een definitieve fout. Wacht en lees de receipts vóór een identieke retry.
 
-Vereist importerresultaat: `imported:5`, `mismatched:0`, `failed:0`, `published:0`, geen nieuwe reviewafwijking.
-Bij al aanwezige identieke pakketten zijn READY-receipts idempotent herbruikbaar; vergelijk de bestaande registratie-ID's.
-De scanner kan complete incoming-pakketten ook registreren, maar publiceert nooit. Alleen READY klaarleggen is dus al
-toestemming tot registratie nodig. Nooit downloadwerk rechtstreeks in incoming zetten.
-Houd het importvenster exclusief: geen andere aanleveraars/importers en geen onbeoordeelde complete incoming-backlog.
-Laat reeds lopende leases aflopen/afronden en inventariseer opnieuw voordat een volgende batch wordt samengesteld.
+- **Waarom:** Registratie blijft gescheiden van publicatie; data/pointers/controles moeten aantoonbaar gelijk blijven.
+- **Verwachte uitkomst:** Bij vijf nieuwe pilots imported:5, missingAlignment:0, failed:0, mismatched:0, published:0; controlematige cmp eindigt met 0.
+- **Bij fouten:** Niet cmp omzeilen of baseline overschrijven. Eerst receipt/status/foutcode en gedeeltelijke resultaten inventariseren; geen lease-/status-SQL.
 
-Na afloop opnieuw inventariseren. `AudioPublication` moet bytegelijk blijven aan de vóórregistratie-snapshot;
-nieuwe registraties zijn nog geen publicaties. Herhaal `beschermd.sql` naar `beschermd-na.jsonl` en vergelijk:
+### Bijlage I — volledige download, bronvergelijking en selectie
 
-```bash
-docker exec -i "$DB" sh -c 'exec psql -X -q -A -t -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < "$REPORT/beschermd.sql" > "$REPORT/beschermd-na.jsonl"
-cmp "$REPORT/beschermd-voor.jsonl" "$REPORT/beschermd-na.jsonl"
-```
-
-Herhaal ook de bestandsinventaris naar een nieuw rapport: **elke bestaande legacy-hoofdmap-MP3** behoudt naam, bytes,
-mtime en SHA-256; alle 205 NL-hoofdstukken behouden URL, kop-/verstijdcodes en aanwezige controlemarkeringen.
-De zes verborgen uitgaven moeten bestaan zonder nieuwe Course-/Exercise-rijen; bestaande vers-ID's/teksthashes blijven gelijk.
-
-## 7. Luister- en publicatieacceptatie
-
-Leg per pilot vast: opname-ID, taal/stem, bronhash, SHA-256, kwaliteit, targetKey, bestaande pointer + versie, gebruikerrol,
-browser/toestel en geconstateerde fouten. Eerst alle vijf via **expliciete beheerpreview** beluisteren.
-Publicatie uitsluitend via `/adminbackend/content/audio` na schriftelijk akkoord op die vijf IDs; geen SQL-INSERTs,
-automatische API-loop of globale publicatieknop. Een versieconflict vraagt opnieuw lezen en beoordelen.
-
-| Proef na pilotpublicatie (of in goedgekeurde acceptatieomgeving) | Acceptatiecriterium |
-|---|---|
-| Eigen tekst-/audiotaal voor alle vijf pilots | Juiste uitgave en stem; geen stilzwijgende andere tekst/taal |
-| Vers 1, midden, laatste vers; snel vooruit/achteruit zoeken | Begin/eindgrens klopt hoorbaar, geen verkeerde versselectie |
-| NL Ether 1 lezen, audio naar en/de/fr/es en terug | Dezelfde canonieke passage en uitgavefamilie, voorkeur blijft correct |
-| Minispeler: pauze/hervat, navigatie naar andere pagina, stop | Eén speler, correcte tekst/tijd, geen dubbele geluidsbron |
-| iPhone/Safari en Android/Chrome; desktop; 320px/200% tekst | Bediening bereikbaar, geen overflow, herstel na netwerkonderbreking |
-| Range/HEAD/seeken; logout en gewone gebruiker versus adminpreview | 206/HEAD correct; afgeschermde of ingetrokken audio niet leesbaar |
-| NL Ether 2, mits vooraf geen legacy-audio/pointer is vastgesteld, of een ander al leesbaar hoofdstuk zonder audio | Apparaat-TTS volgens bestaande terugval, passende beschikbare stem; afwezigheid eerlijk melden |
-| Bron-/objectfouten en tekstwijziging | Eerst geïsoleerd: TTS bij ongeldige actieve V2-opname, geen ongewenste oude V2-opname |
-| Zes verborgen uitgaven en 19 reviewgevallen | Niet zichtbaar voor gewone gebruikers; geen reviewpublicatie |
-
-Geen productieobject verwijderen/corrumperen, sessies van anderen intrekken of brontekst wijzigen als foutinjectietest.
-Voor een hoofdstuk zonder V2-pointer blijft bestaande legacy-audio de eerste terugval; pas als die ontbreekt volgt TTS.
-Lokale Capacitor-audiopariteit ontbreekt nog op de gecontroleerde basis: web/PWA-bewijs is geen bewijs van native audio,
-achtergrondaudio, lockscreen-/headsetbediening of lifecycle-herstel. Registreer die apparaattests afzonderlijk als nog open.
-Publicatie verandert nooit tekstzichtbaarheid: verborgen DC/PGP blijft verborgen, ook met een audiopointer.
-
-## 8. Volledige bronset en de 19 reviewgevallen
-
-Pas na pilotacceptatie en apart download-/registratieakkoord, in een **andere** nieuwe werkmap:
+- **Waar:** SSH op goedgekeurde downloadhost, daarna gecontroleerde app; WIJZIGT eerst cache/selectie, pas laatste blok DB.
+- **Wat:** Download na apart akkoord met één worker; vergelijk offline; maak de verse DB-inventaris en filter bekende identiteiten; laatste blok uitsluitend na registratieakkoord.
 
 ```bash
-FULL="$AUDIO/_official-volledig-20261024"
+FULL="$AUDIO/_official-volledig-$RUN"
+test ! -e "$FULL"
+cd "$SOURCE"
 python3 -I scripts/audio/official_inventory.py --root "$FULL" --languages nl en de fr es --download --workers 1
 ```
-
-Start met één worker; bij aantoonbaar voldoende CPU/IO/netwerk eventueel twee (tool ondersteunt maximaal acht).
-Een nieuwe werkmap geeft verse broncontroles; hervatten in dezelfde map hergebruikt receipts met hun oorspronkelijke datum.
-Voer vóór registratie een offline vergelijking uit met de gepinde `data/audio/official-inventory.json`:
-precies 1.965 hoofdstuk-taalidentiteiten, dezelfde bronhashes, per doel dezelfde URL/stem/SHA-256/bytes,
-1.974 DOWNLOADED_VALIDATED opnamen, nul onbereikbare/mismatchede doelen. Leg het diff-rapport voor bij elke afwijking;
-deze aantallen gelden alleen voor de onderzochte set. Nieuwe of vervangen officiële bestanden vragen herbeoordeling,
-geen uitbreiding van de import om de telling alsnog groen te krijgen.
-
 ```bash
 python3 -I - "$FULL" > "$REPORT/bronvergelijking.txt" <<'PY'
 import json,pathlib,sys
@@ -427,14 +827,6 @@ assert count==1974
 print('1965 identiteiten, 1974 identieke gecontroleerde opnamen, geen bron-/bytediff.')
 PY
 ```
-
-Gebruik de gepinde alignments alleen bij exacte audio- én bronhash; ontbrekende/onzekere grenzen blijven NEEDS_REVIEW.
-Een nieuwe controledatum zit in het manifest en daarmee in de pakketidentiteit: **gelijke MP3-bytes alleen zijn geen
-garantie op hetzelfde Recording-ID**. Voorkom dubbele registraties van de pilot of eerdere imports door, in het exclusieve
-importvenster, de actuele alleen-lezen inventaris opnieuw te nemen en bekende identiteiten uit de importselectie te halen.
-Gebruik werk/familie/taal/boek/hoofdstuk/stem/bron-URL/audiohash/teksthash, niet alleen een bestandsnaam of inhoudshash.
-De twee Franse Alma 30-URL's blijven zo correct als twee aangeboden varianten herkenbaar.
-
 ```bash
 docker exec -i "$DB" sh -c 'exec psql -X -q -A -t -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < "$REPORT/inventaris.sql" > "$REPORT/inventaris-voor-bulk.jsonl"
 python3 -I - "$FULL" "$REPORT/inventaris-voor-bulk.jsonl" <<'PY'
@@ -464,83 +856,14 @@ print({'nieuweKandidaten':count,'alGeregistreerd':skipped,'published':0})
 PY
 ```
 
-Deze stap wijzigt alleen de lokale importselectie; de geverifieerde broninventaris blijft bewaard. Hij schrijft geen database
-en is geen alternatieve ontvanger. Voor vijf nieuwe pilots en verder een lege bibliotheek verwacht je 1.969 nieuwe kandidaten;
-bij een reeds gevulde bibliotheek minder. Bij nul kandidaten geen nieuwe import/downloadronde starten.
-De selectie en de onveranderde bronbestanden vormen samen de goed te keuren batch. Een downloaderhervatting kan `inventory.json`
-weer vervangen: herhaal dan eerst bronvergelijking en selectie met een nieuwe actuele DB-inventaris; nooit blind importeren.
-
-Registratie na akkoord gebruikt dezelfde CLI:
+Alleen na akkoord op de geselecteerde nieuwe kandidaten; dezelfde gevalideerde batch niet opnieuw downloaden:
 
 ```bash
-docker exec -w /app "$APP" npx tsx scripts/audio/import-official.ts /data/audio/_official-volledig-20261024
+FULL_NAME=${FULL##*/}
+case "$FULL" in "$AUDIO"/_official-volledig-*) ;; *) echo 'STOP: bulkmap niet op gecontroleerde audiomount'; exit 1;; esac
+time docker exec -w /app "$APP" npx tsx scripts/audio/import-official.ts "/data/audio/$FULL_NAME"
 ```
-De bestaande pilot-ID's blijven behouden door de selectie; retries met dezelfde ongewijzigde batch zijn herhaalveilig.
-Herhaal de volledige vóór/na-controles; 1.974 registraties zijn een bronsetverwachting, geen aanname over al aanwezige andere registraties.
-Geen bulkpublicatie. Houd **ook de oorspronkelijke negentien identiteiten expliciet in quarantaine**:
 
-| Taal | Werk / hoofdstuk | Stemmen | Aantal |
-|---|---|---|---:|
-| nl | bofm / 1-ne 1 | audio | 1 |
-| de | bofm / morm 1; pgp / js-h 1 | audio | 2 |
-| en | dc-testament / dc 44; dc 84; pgp / js-h 1 | 44 male; 84 female+male; js-h female+male | 5 |
-| es | dc-testament / dc 84; pgp / js-h 1 | audio | 2 |
-| fr | bofm / 1-ne 18; dc-testament / dc 2,12,14,17,32; pgp / js-h 1, moses 3, moses 4 | audio | 9 |
-
-Samen 12 onzekere alignments en 7 zonder veilige volledige grenzen. De exacte hashes en uitkomsten staan in
-`data/audio/official-alignments.json` en `docs/audio-v2/RESULTATEN.md`. Een nieuwe opname voor zo'n doel blijft buiten
-deze publicatieronde totdat afzonderlijke review én expliciet publicatieakkoord bestaan. Geen kwaliteitsveld in SQL promoveren.
-De overige 1.955 technisch VALIDATED registraties zijn **niet automatisch luisterkundig goedgekeurd**.
-Er is maar één actieve publicatiepointer per hoofdstuk: verschillende stemmen zijn alternatieven, geen gelijktijdige publicaties.
-Publiceer de 205 beschermde bestaande NL-hoofdstukken in deze acceptatieronde evenmin over met V2-opnamen.
-
-## 9. Prestaties, fouten en herstel
-
-De volledige set bevat circa 238,4 uur speelduur. Ideale netwerktijd voor 7,168 GB: circa 96 minuten bij 10 Mbit/s,
-19 minuten bij 50 Mbit/s of 10 minuten bij 100 Mbit/s; exclusief TLS, bronlimieten, pagina's en volledige decodering.
-Dit zijn berekeningen, **geen NAS-benchmarks**. De importer verifieert/hasht/decodeert opnieuw; meet de vijf pilots met
-`time`, `docker stats`, `df`, fouttellingen en normale appresponstijden. Plan bulk buiten piekgebruik en pauzeer bij
-ruimte onder de afgesproken grens, aanhoudende hoge IO/CPU, oplopende HTTP-fouten of merkbare verslechtering van de app.
-Spreek vooraf concrete grenzen af; voorstel: minimaal 30 GiB vrij bij de start, nul nieuwe HTTP-5xx, en pauzeren als
-de gemeten p95-responstijd vijf minuten boven tweemaal de vóór-baseline blijft. Meet daarvoor dezelfde lees-/seekacties
-minstens tienmaal per pilottaal. Dit zijn voorgestelde acceptatiegrenzen, geen gemeten NAS-resultaten.
-De downloader begrenst netwerkverzoeken en decodeertijd; trage bestanden mogen falen, niet met onvolledige bytes doorgaan.
-
-- HTTP-/decode-/checksumfout: geen registratie van dat bestand; oorzaak vastleggen en gecontroleerd hervatten.
-- SOURCE_MISMATCH: stoppen voor dat doel; echte productie-editie/tekst vergelijken. Nooit hashes, Verse-ID's of tekst passend maken.
-- FAILED/backoff: zelfde ongewijzigde pakket kan opnieuw, lease maximaal vijf minuten; scanner maximaal twintig pogingen per minuut.
-  Na een onderbreking kunnen complete pakketten later nog worden **geregistreerd**, nooit vanzelf gepubliceerd.
-- PROCESSING door een andere worker: CLI kan een niet-READY resultaat melden terwijl de scanner afrondt. Wachten, uitsluitend
-  lezend de receipt controleren en dezelfde batch herhalen; geen lease, manifestHash of status met SQL wijzigen.
-- Gewijzigde manifestinhoud: nieuw pakket-ID; PACKAGE_ID_REUSED of LEASE_LOST niet met SQL omzeilen.
-- DB-/procesfout: registratie en READY delen één transactie; een al duurzaam object kan achterblijven. Bewaren, niet automatisch wissen;
-  idempotente retry kan dat object hergebruiken. CLI kan gedeeltelijk geslaagd zijn: inventariseren vóór herhalen.
-- Zes-uitgaven-aanmaak faalt: per-uitgave rollback, andere al aangemaakte uitgaven blijven verborgen; geen automatische correctie
-  van bestaande collecties. Nul nieuwe cursussen/oefeningen blijft een harde eis.
-- Mislukte publicatie: pointertransactie rolt terug. Vorige publicatie blijft actief; geen geforceerde hogere CAS-versie proberen.
-
-Herstelvolgorde na akkoord: stop nieuwe aanlevering/importers; behoud alle bestanden/receipts; vergelijk snapshots en foutcodes.
-Bij een fout beluisterde publicatie: laat de eigenaar een eerder geregistreerde, nog broncompatibele VALIDATED opname bewust
-terug publiceren met de actuele pointerversie. Er is **geen algemene unpublish-/terug-naar-legacy-CLI**; geen pointerrij wissen
-om dat te simuleren. Bij ontbrekend/corrupt actief V2-object volgt TTS, niet gegarandeerd de oude legacy-opname.
-Bij ernstig dataverlies: schrijvers pauzeren, afgestemde DB/audio-back-up en passende image onder apart herstelakkoord terugzetten,
-eerst geïsoleerd verifiëren. Een DB-restore kan nieuwere gebruikersvoortgang terugdraaien: daarom niet gebruiken voor een enkele
-afspeelfout. Geen schema-/enum-drop, reset, brede verwijderquery, `rsync --delete` of volumeprune als rollback.
-Een oude appimage is na RETIRED-gebruik niet zonder compatibiliteitscontrole een veilige #187-rollback.
-
-## 10. Aftekenlijst
-
-- [ ] Werkelijke image/commit en PR-status gecontroleerd; gekozen Audio-only of gecombineerde route vastgelegd.
-- [ ] Geen ontbrekende #187-functionaliteit als al gemerged aangenomen; geen huidige main-fixes teruggedraaid.
-- [ ] Mount, eigenaar/rechten, symlinks, vrije ruimte/inodes, huidige databaserijen en migratiechecksums bewezen.
-- [ ] 205 NL-hoofdstukken + legacybestanden beschermd met vóór-snapshots; afwijkingen vooraf verklaard.
-- [ ] Consistente externe DB/audio-back-up en geïsoleerd herstel bewezen; onderhouds-/deployakkoord vastgelegd.
-- [ ] Vijf pilotkandidaten exact bij de onderzochte bytes/tekst; download- en registratieakkoord vastgelegd.
-- [ ] Registratie: nul publicaties; 205 NL en controles bytegelijk; zes uitgaven verborgen; geen Course/Exercise-toename.
-- [ ] Eigenaar heeft de precieze vijf pilotpublicaties expliciet goedgekeurd vóór spelerproeven.
-- [ ] Vijf talen, versspringen, minispeler, taalvoorkeur, TTS en rechten op echte doelbrowsers afgetekend.
-- [ ] NAS-prestaties en fout-/retry-/herstelgedrag gemeten; native/apparaatachterstand afzonderlijk genoteerd.
-- [ ] Volledige bronset apart goedgekeurd; oorspronkelijke 19 reviewgevallen en 205 beschermde NL-publicaties uitgesloten.
-- [ ] Vervolgpublicaties uitsluitend na expliciet akkoord op de beoordeelde IDs/versies; geen automatische publicatie.
-
-Alle nu nog onbewezen NAS-/productiewaarden blijven open punten voor de eigenaar. Dit document autoriseert geen uitvoering.
+- **Waarom:** Behoudt pilot-ID’s, bewaart inventory.verified.json en gebruikt dezelfde ontvangende importer.
+- **Verwachte uitkomst:** 1.965 doelen/1.974 identieke varianten; aantal nieuwe kandidaten + bekende = 1.974; nul publicaties door importer.
+- **Bij fouten:** Geen bronverschil negeren, verified-inventaris overschrijven of tweede import van verse checkedAt-data zonder deduplicatie starten. Bij nul nieuwe kandidaten laatste blok niet uitvoeren.

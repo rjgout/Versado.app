@@ -184,7 +184,7 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
       step1: "Completa al menos una actividad cada día, como una lección, una ronda de práctica, un juego o un paso de lectura terminado. No importa si es corta o larga.",
       step2: "Si pierdes un día, Versado usa automáticamente una congelación de racha si tienes una. Conserva tu racha.",
       step3: "Si ya no tienes congelaciones de racha, tu racha se rompe.",
-      more: "La primera actividad completada del día continúa tu racha; una segunda el mismo día no da un día extra. XP y racha son independientes: una actividad sin XP también puede contar. Solo abrir, explorar o empezar no cuenta; tiene que estar realmente completada. Un día sigue la zona horaria de tu cuenta. Mientras juegas, un nuevo día de racha aparece al instante en un aviso en la parte superior. Deslízalo hacia arriba o ciérralo; el juego continúa. La celebración a pantalla completa llega después de tu actividad.",
+      more: "La primera actividad completada del día continúa tu racha; una segunda el mismo día no da un día extra. XP y racha son independientes: una actividad sin XP también puede contar. Solo abrir, explorar o empezar no cuenta; tiene que estar realmente completada. Un día sigue la zona horaria de tu cuenta. Mientras juegas, un nuevo día de racha aparece al instante en un aviso en la parte superior. Deslízalo hacia arriba o ciérralo; el juego continúa. La celebración a pantalla completa llega después de tu actividad. En la celebración personal a pantalla completa puedes compartir o copiar tus días de racha.",
     },
     progressDivisions: {
       title: "Liga",
