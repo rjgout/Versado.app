@@ -52,11 +52,24 @@ onderdeel van één gedeelde oefenservice zijn; exacte DDL hoort bij het impleme
 
 ## 2. Leesvragen en inhoudelijke gelijkwaardigheid
 
-### Vaststaande opdracht
+### Definitieve productbesluiten voor PR #216 (25 oktober 2026)
 
-- Iedere CFM-leesstap krijgt drie vragen; ook in één keer lezen krijgt vragen.
-- Zelfde bestaande antwoord-, XP-, voortgangs-, herkansings- en beloningsregels als
-  de bijbehorende BOM-leesroute. Geen tweede XP-systeem, geen nieuwe bedragen.
+1. Iedere CFM-leesstap krijgt **drie vragen**, volgens de bestaande Boek van Mormon-logica.
+2. De volledige weekles biedt **dezelfde achttien vragen** aan als de zes stappen,
+   overeenkomstig de bestaande volledige-hoofdstukroute. Dit is geen open keuze meer.
+3. Hergebruik de bestaande vraagvormen: ontbrekende woorden aanvullen (`FILL_BLANK`),
+   woorden kiezen (`WORD_BANK`) en waar/niet waar (`TRUE_FALSE`), waar passend.
+4. Vragen gaan over de **daadwerkelijk gelezen schriftteksten**. Geen lange,
+   zelfbedachte uitleg, interpretatievragen of beoordeling van persoonlijke geloofsopvattingen.
+5. Neem de bestaande XP-regels volledig over: één maximale basisbeloning per inhoud,
+   de bestaande bonusvoorwaarden en normale herhalingskorting. Geen nieuwe bedragen.
+6. Hergebruik antwoordcontrole, feedback, correctieronde en voortgangsregistratie
+   uit de bijbehorende bestaande leesroute. Geen afzonderlijke CFM-vragenengine.
+7. De huidige werking van Versado Dorp blijft ongewijzigd; bereid alleen een
+   toekomstige koppeling voor.
+
+Aanvullende behoudseisen:
+
 - Geen dubbele basisbeloning door routewissel, opnieuw openen, kalenderwisseling,
   taalwissel, revisie of reset. Bewust opnieuw oefenen houdt de bestaande korting.
 - Officiële inhoud, vragen/opdrachten daarin, media, links, annotaties en bestaande
@@ -77,20 +90,19 @@ zevende beloningsdeel. De huidige READ-status is voor alle weergaven dezelfde
 logische les, terwijl stapstatus editie-/fingerprintgebonden is. Alle zes stappen
 afronden zet momenteel NIET automatisch READ. Dat bestaande onderscheid bewaren.
 
-**Aanbevolen oefenplan, nog te bevestigen:** één weekplan met zes delen van drie
-vragen (N = 18), gebonden aan de persoonlijke bronblokken. Staproute krijgt het
-eigen deel; vrije studie en volledige officiële weergave krijgen dezelfde zes
-delen achter elkaar. Dit volgt het hoofdstukprincipe: volledig lezen krijgt de
-som van de delen. Drie losse weekvragen naast achttien stapvragen geeft ongelijke
-belasting/voltooiing en is geen veilige rechtstreekse overname van de huidige regels.
-Als product toch drie weekvragen wil, is eerst een expliciet alternatief
-credit-/dekkingsbesluit nodig; geen stilzwijgende aparte weekbonus bouwen.
+**Vastgesteld oefenplan:** één weekplan met zes delen van drie vragen (N = 18).
+Elk deel hoort bij de schriftteksten die in die stap daadwerkelijk worden gelezen;
+het persoonlijke stappenplan koppelt die leesinhoud aan de week. De staproute krijgt
+het eigen deel; vrije studie en volledige officiële weergave krijgen dezelfde zes
+delen achter elkaar. Volledig lezen krijgt zo de som van de delen, zoals bij de
+bestaande hoofdstukroute. Er komt geen aparte set van drie weekvragen, zevende
+beloningsdeel of extra weekbonus.
 
-Concreet advies voor de eerste vragenbank: drie vaste goedgekeurde vraagidentiteiten
-per stap per gepubliceerd plan; optievolgorde mag wisselen. De weekroute geeft de
-unie van die achttien uit. Een grotere bank met willekeurige alternatieven kan later,
-maar vereist eerst bewezen credit-equivalentie, zodat nieuwe varianten geen extra
-basisbeloning of schijnbare dekking van een andere stap veroorzaken.
+Dezelfde vraagidentiteiten en inhoudscredits horen bij beide routes. Hergebruik de
+bestaande selectie-/sessielogica; het implementatiepakket legt vast hoe de drie
+uitgegeven vragen per deel samen dezelfde weekset vormen. Optievolgorde mag wisselen.
+Nieuwe vraagvarianten of een andere route mogen geen extra basisbeloning of
+schijnbare dekking van een andere stap veroorzaken; geen eigen CFM-selectieengine.
 
 De beoogde bediening volgt de bestaande routes: stap lezen → drie vragen → bestaande
 feedback en serveruitslag → verder; week in één keer lezen → expliciete leesafronding
@@ -101,15 +113,24 @@ De toekomstige submit-hook mag de stap bij geldige volledige inzending afvinken;
 de huidige losse COMPLETE-route krijgt geen beloningsbevoegdheid. Geen stap- of
 weekafronding afleiden uit alleen scrollpositie.
 
-**Aanbevolen vraaginhoud:** drie gecontroleerde, objectief beantwoordbare vragen per
-stap uit de werkelijk zichtbare tekst; bestaande keuze-/woordbank/waar-onwaarvormen,
-antwoordcontrole, hint- en feedbackvoorzieningen hergebruiken waar passend.
-Persoonlijke geloofservaringen, gebed, notities en reflectie hebben geen goed/foutscore.
-Ook een stap die vooral een video bevat moet vanuit de aanwezige leesinhoud een
-verantwoorde set hebben; anders expliciet onbeschikbaar, geen verzonnen vraag.
-Met minder dan drie goedgekeurde vragen is de nieuwe vragenfunctie voor die stap
-niet gereed. Lezen blijft beschikbaar en geeft geen vragen-XP. Geen andere taal of
-ander jaar invullen om het minimum te halen.
+**Vastgestelde vraaginhoud:** drie vragen per stap uit de daadwerkelijk gelezen
+schriftteksten, met de bestaande invul-, woordkeuze- en waar/niet-waarvormen waar
+passend. Gebruik de bestaande controle, feedback en correctieronde; geen lange,
+zelfbedachte toelichting, interpretatievragen of beoordeling van persoonlijke
+gebeden, geloofsopvattingen, notities en ervaringen. Officiële reflectievragen
+blijven lesinhoud en worden niet automatisch goed/foutvragen.
+
+**Technische uitwerking vóór implementatie:** het huidige persoonlijke plan koppelt
+CFM-bronblokken aan stappen; een verwijzingslabel bewijst niet welke schrifttekst
+in welke editie werkelijk is gelezen. Leg daarom per vragenplan de concrete
+schriftpassages, beschikbare teksteditie/taal en koppeling aan de leesstap vast.
+Gebruik de bestaande schriftlezer, bewezen verwijzingsresolutie en oefenbronselectie;
+vervang ontbrekende tekst niet door lescommentaar, videotekst, een andere vertaling
+of een verzonnen passage. Geen nieuwe registratie van leesgedrag of afgedwongen
+scrollbewijs: neem de bestaande lees-/afrondingslogica over. Deze bronbinding is
+een technische uitvoeringsvoorwaarde, geen nog te nemen besluit over vraaginhoud.
+Met minder dan drie passende vragen of ontbrekende schrifttekst is de vragenfunctie
+voor die stap niet gereed. De bestaande les blijft leesbaar zonder vragen-XP.
 
 ### Identiteit en beloningscontract voor de latere implementatie
 
@@ -119,8 +140,9 @@ ander jaar invullen om het minimum te halen.
    reset nooit een eerdere beloningshistorie. Een CFM-les over Alma is niet hetzelfde
    als het canonieke hoofdstuk Alma: verwijzingen openen verdient geen credit.
 2. Een gepubliceerd vragenplan legt broneditie/revisie/hash, persoonlijke planversie,
-   blokdekking, vraagversie en stabiele vraagidentiteiten vast. Het bindt dezelfde
-   credits aan beide routes. Geen nieuwe credits door een vraag alleen te verplaatsen,
+   blokdekking, gelezen schriftpassages en teksteditie, vraagversie en stabiele
+   vraagidentiteiten vast. Het bindt dezelfde credits aan beide routes.
+   Geen nieuwe credits door een vraag alleen te verplaatsen,
    opnieuw te publiceren of te vertalen. N is de gezamenlijke weekset, geen sessiegrootte.
 3. Gebruik de bestaande sessie-uitgifte/submitketen met een StudyLesson-adapter:
    controleer actuele rechten, exacte bron en uitgegeven vragen; beoordeel server-side;
@@ -130,7 +152,7 @@ ander jaar invullen om het minimum te halen.
 4. Gebruik uitsluitend `applyAttempt` en centrale constanten: momenteel
    `XP_PER_CORRECT_STANDARD = 10`, `XP_PERFECT_BONUS_STANDARD = 20`,
    `REPEAT_DISCOUNT = 0.1` (`xpRules.ts`). Bovengrens basis =
-   `maxContentBaseXp(N)`; bij aanbevolen N=18 nu 200, ongeacht route. De bonus is
+   `maxContentBaseXp(N)`; bij vastgesteld N=18 nu 200, ongeacht route. De bonus is
    eenmaal per weekinhoud, niet zesmaal per stap of nogmaals voor volledig lezen.
    De som van cumulatief nieuwe goede antwoorden bepaalt de bonus, niet noodzakelijk
    één perfecte poging. Geen `standardContentXp` per CFM-stap aanroepen.
@@ -167,12 +189,12 @@ ander jaar invullen om het minimum te halen.
 
 `submitExerciseSession` roept nu `checkAndAwardAchievements` aan en geeft per tien
 inhouden met `exercisesCompletedAt` een mijlpaalbevriezing. De prestatiequeries tellen
-alle zulke ContentProgress-rijen zonder bronfilter; daardoor kan een CFM-adapter
-onbedoeld ‘hoofdstuk’-prestaties activeren. De pure beloningsregels staan vast, maar
-het labelen/tellen van een CFM-week als zo'n inhoudseenheid moet expliciet worden
-bevestigd. Aanbeveling: hoogstens één volledig geoefende week telt als één eenheid,
-nooit zes stappen plus de week; behoud bestaand bezit en geef geen historische backfill.
-Ook de milestonecode moet dan veilig omgaan met een reeds bestaande READ-rij.
+alle zulke ContentProgress-rijen zonder bronfilter. Hergebruik die bestaande
+voortgangs- en beloningsketen met één logische weekinhoud voor de achttien vragen,
+nooit zes afzonderlijke beloningsinhouden plus de week. Bestaande voorwaarden en
+behaald bezit blijven behouden, zonder historische backfill. Correcte labels en
+het veilig verwerken van een reeds bestaande READ-rij bij een nieuwe oefenafronding
+zijn technische validatiepunten; geen nieuwe CFM-prestatie- of mijlpaalregeling.
 
 Dorp gebruikt momenteel een andere grondslag: canonieke BOM-READ, geen
 `exercisesCompletedAt`, algemene XP of prestatie. De [Dorp-2D-specificatie](../VERSADO-DORP-FASE-2D.md)
@@ -233,18 +255,18 @@ verhouding tot lezen versus vragen, groepsbijdragen en eventuele historie.
   focustoestand, i18n en Kompas. Nieuwe browsergame is niet automatisch native klaar.
   Geen XP-/reeks-/Dorp-beloning voor het nieuwe spel afleiden uit CFM-quizregels.
 
-## 4. Productbesluiten vóór de betreffende implementatie
+## 4. Resterende uitwerking en productbesluiten voor latere fasen
 
-| Besluit | Aanbeveling / grens | Blokkeert |
+| Uitwerking / besluit | Grens | Nodig voor |
 |---|---|---|
-| Volledige weekvragen | Dezelfde 18 vragen, in zes delen, als de stappen; geen aparte set van drie | Fase A: oefenplan/UX goedkeuren |
-| Vraagproductie en review | Brongebonden, gecontroleerde vragenbank; bestaande generatoren slechts als hulpmiddel na inhoudelijke toets. Bepaal auteur, review/publicatie en dekking van alle lessen | Fase A: vraagcontent en publicatiecontract |
-| Prestaties en mijlpaalbevriezing | Eén week = hoogstens één oefeninhoud; bestaande centrale voorwaarden en bezit behouden; correcte algemene labels | Fase A-contract, uiterlijk vóór fase B-acceptatie |
-| Dorp-bijdrage | Geen verandering nu; apart goedkeuren hoe CFM-lezen/vragen later bijdragen | Alleen latere Dorp-uitbreiding, niet CFM-XP |
+| Vraagproductie en bronbinding (uitwerking) | Bestaande vraagvormen/generatie en review hergebruiken; concrete gelezen schrifttekst per stap, vraagdekking en publicatie vastleggen binnen de definitieve besluiten | Fase A: technisch implementatiepakket |
+| Prestaties en mijlpaalbevriezing (validatie) | Bestaande regels en voortgang overnemen; één logische weekinhoud, geen nieuwe CFM-regeling; labels en bestaande READ-rijen controleren | Fase A/B-tests |
+| Dorp-bijdrage (later productbesluit) | Huidige werking blijft definitief ongewijzigd; alleen toekomstige koppeling voorbereiden | Alleen latere Dorp-uitbreiding, niet fase A/B |
 | Spelbronprioriteit | Leg conflictregel vast voor actieve schriftuurcollectie versus huidige/bewust gekozen CFM-les, en wat ‘van toepassing’ betekent | Fase C |
 | Spelronderegels | Budgetaantal, rondeaantal, letter-/accentnormalisatie, herhaalde letter, fout volledig woord, beurt na goed antwoord, hints/tijdslimiet, winst/verlies en beloningen nog kiezen | Fase C; geen bedragen of zes-pogingenregel van Woord van de Dag lenen |
 | Klas en presentatie | Beurtvolgorde, laat aansluiten, offline speler, hostuitval/overdracht, fysieke leerlingen zonder telefoon, koppeling/autorisatie van het tweede scherm | Fase D; accountplicht en geen gastmodus staan vast |
 
-Deze open keuzes hoeven deze documentatie-PR niet te blokkeren. Er start geen
-implementatie voordat het bijbehorende pakket is beoordeeld. Bestaande vragen-XP
+De CFM-productbesluiten in §2 staan vast; technische uitwerking heropent ze niet.
+De resterende spel- en toekomstige Dorp-keuzes blokkeren deze documentatie-PR niet.
+Er start geen implementatie voordat het bijbehorende pakket is beoordeeld. Bestaande vragen-XP
 wordt niet aangepast om een open spel- of Dorp-besluit alvast in te vullen.

@@ -22,25 +22,37 @@ herkomst en scopegrenzen beschrijven. Iedere fase vraagt afzonderlijke beoordeli
 ### Fase A — CFM-leesvragen en XP
 
 **Afhankelijkheden:** bestaande CFM-jaargangen, gepubliceerde revisies, zesstappenplan,
-centrale learning-/XP-services. Vóór codewerk: bevestig het weekvragenplan, vraagreview
-en de betekenis van een week voor bestaande prestatie-/mijlpaaltellers (§4 van 31).
+centrale learning-/XP-services. De zeven CFM-productbesluiten zijn definitief
+vastgelegd in §2 van 31: drie vragen per stap, dezelfde achttien bij de weekroute,
+bestaande vraagvormen en volledige hergebruik van leer-/beloningsregels; Dorp
+blijft ongewijzigd. Vóór codewerk: werk de concrete schriftbronbinding,
+vraagdekking en compatibele adapter uit (§4 van 31); heropen deze besluiten niet.
 
-**Werkvolgorde:** (1) brongebonden vraagdekking en versie-/creditcontract uitwerken;
+**Werkvolgorde:** (1) vraagdekking op daadwerkelijk gelezen schriftteksten en
+versie-/creditcontract uitwerken;
 (2) minimaal benodigde additieve StudyLesson-adapter voor de bestaande sessie- en
 beloningsservice; (3) vragen tonen in stap- en volledige leesroute met bestaande
-vraagkaarten, feedback en uitslag. Geen kunstmatige hoofdstukken of eigen XP-engine.
+vraagkaarten, antwoordcontrole, feedback, correctieronde en voortgangsregistratie.
+Hergebruik ontbrekende woorden aanvullen, woorden kiezen en waar/niet waar waar
+passend. Geen kunstmatige hoofdstukken, eigen XP-engine of aparte CFM-vragenengine.
 
 **Acceptatie:** drie gecontroleerde vragen per CFM-stap; de weekroute krijgt dezelfde
-inhoudelijke oefenset (advies: 6 × 3). Eén logische weekgrens en bonus, route-onafhankelijke
-basis-XP via `rewards.ts`/`xpRules.ts`, serverbeoordeling en atomaire sessieclaim.
+achttien vragen (6 × 3), overeenkomstig de volledige-hoofdstukroute. Vragen zijn
+gebaseerd op de werkelijk gelezen schriftteksten; geen lange zelfbedachte uitleg,
+interpretatievragen of beoordeling van persoonlijke geloofsopvattingen. Eén logische
+weekgrens en bonus volgens de bestaande voorwaarden, route-onafhankelijke maximale
+basis-XP en normale herhalingskorting via `rewards.ts`/`xpRules.ts`, serverbeoordeling
+en atomaire sessieclaim.
 READ, leesstapstatus en oefencredits blijven onderscheiden. Oude afgevinkte stappen
 en READ blijven behouden zonder retroactieve quiz-XP. Geen nieuwe achterstand,
 jaarpercentage of verplicht inhaalschema. Geen wijziging aan officiële lesbody,
 video, afbeelding, verwijzing, annotatievenster of inschrijving.
 
 **Risico's/tests:** ontbrekende of subjectieve vragen; verkeerd N; zes stapbonussen;
-verplichte Chapter-FK's; vraag-/revisiewijziging die credits reset. Unit: drie per
-stap, weekdekking, `applyAttempt` en plan-/creditmapping. Geïsoleerde integratie:
+verplichte Chapter-FK's; vraag-/revisiewijziging die credits reset; een verwijzing
+die ten onrechte als gelezen schrifttekst geldt. Unit: drie per stap, exact dezelfde
+achttien vragen in de weekroute, passende vraagvormen, bron-/editie-/taalbinding,
+weekdekking, `applyAttempt` en plan-/creditmapping. Geïsoleerde integratie:
 stappen → week en week → stappen, deels fout en later verbeterd, gelijktijdige
 routes, dubbele submit/verloren response, onvolledige/andermans sessie, ingetrokken
 bron, nieuwe revisie, reset en taal-/jaar-/weekwissel. Exact dezelfde onderliggende
@@ -50,8 +62,9 @@ Vereiste checks: TypeScript, lint, i18n, productiebuild en gerichte learning-/CF
 
 ### Fase B — Validatie, mobiel en bestaande beloningssystemen
 
-**Afhankelijkheden:** fase A technisch gereed; goedgekeurde telbetekenis voor
-prestaties en mijlpaalbevriezingen. Geen release-acceptatie van A vóór deze validatie.
+**Afhankelijkheden:** fase A technisch gereed volgens de definitieve besluiten;
+bestaande voortgang, prestaties en mijlpaalbevriezingen via de gedeelde service.
+Geen release-acceptatie van A vóór deze validatie.
 
 **Werk:** controleer end-to-end uitgifte → feedback/herkansing → submit → XP/competitie,
 reeks/terugkeer, prestaties en refresh/notificatie. Bevestig dat oude gebruikersdata
@@ -60,8 +73,8 @@ invoeren onder het mom van koppeling. Een echte Dorp-uitbreiding vraagt een apar
 
 **Acceptatie:** één gezamenlijke beloningshistorie in alle routes; centrale caps,
 korting en voorwaarden ongewijzigd; nooit beloning voor openen/scrollen/annoteren.
-Prestaties/mijlpaal tellen een week hoogstens één keer volgens het goedgekeurde
-contract. Bestaande Dorp-groei blijft exact canonieke BOM-READ tellen. Bron-/activiteits-
+Prestaties/mijlpaal volgen de bestaande regels met één logische weekinhoud,
+zonder extra stapbeloningsregeling. Bestaande Dorp-groei blijft exact canonieke BOM-READ tellen. Bron-/activiteits-
 en creditsleutels zijn bruikbaar voor een latere goedgekeurde Dorp-adapter.
 
 **Risico's/tests:** hoofdstukprestaties die onbedoeld zesmaal tellen, bestaande

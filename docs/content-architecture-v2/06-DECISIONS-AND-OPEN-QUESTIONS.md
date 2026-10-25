@@ -8,8 +8,9 @@ implementatie. Deze afronding autoriseert geen fase 1.
 
 **Aanvulling 25 oktober 2026:** de nieuwe CFM-leesvragenopdracht en vaststaande
 spelafspraken staan in [31](31-CFM-LEESVRAGEN-XP-EN-VERBORGEN-WOORD.md), met een
-afzonderlijke lijst nog open keuzes (§4). De eerdere vier fase-0-besluiten blijven
-genomen; dat betekent niet dat deze nieuwe vervolgkeuzes al zijn goedgekeurd.
+afzonderlijke lijst resterende uitwerking en latere productkeuzes (§4). De zeven
+CFM-productbesluiten zijn definitief verwerkt in §2 van 31 en P26/P28–P33 hieronder.
+Zij zijn geen open vragen meer; technische uitwerking autoriseert geen implementatie.
 Uitvoeringsprioriteit: [roadmap A–D](04-IMPLEMENTATION-ROADMAP.md#vervolg-a-d--cfm-leesvragen-eerst).
 
 ## 1. Besluiten van de producteigenaar
@@ -41,8 +42,14 @@ Uitvoeringsprioriteit: [roadmap A–D](04-IMPLEMENTATION-ROADMAP.md#vervolg-a-d-
 | P23 | Interne previews alleen bij bewezen canonieke én editie-equivalentie | Anders bekende officiële externe bron of nette melding; geen stille vertalingssubstitutie |
 | P24 | Eerste CFM-content: volledig gecontroleerd Nederlands, 2026 | Meertalig ontwerp en vijf bestaande UI-talen behouden; andere contenttalen alleen beschikbaar én gepubliceerd aanbieden |
 | P25 | Bestaande publicaties, relevante revisies, snapshots, gerefereerde media en persoonlijke annotaties behouden | Geen automatische garbage collection of destructieve contractmigratie zonder afzonderlijk goedgekeurd beleid |
-| P26 | CFM-leesvragen en XP eerst: drie vragen per stap, ook vragen bij volledig lezen, bestaande BOM-regels | Eén inhoudsgebonden beloningsgrens; volledige weekset nog bevestigen. Onderzoek/documentatie nu, geen implementatie |
+| P26 | Drie vragen per CFM-leesstap volgens de bestaande Boek van Mormon-logica | Hergebruik de bestaande lees-/vragenlogica; uitsluitend documentatie nu, geen implementatie |
 | P27 | Het Verborgen Woord: solo/klas, bron-/CFM-gebonden gecontroleerde bank, beurtletters of heel woord, gezamenlijk foutenbudget, hostproxy, gesynchroniseerde presentatie, accountplicht en geen gasten | Nadere definitieve afspraken en open regels in 31; geen gastpatroon of hangmanbeeld; schriftuur + toelichting na afloop |
+| P28 | Volledige CFM-weekles biedt dezelfde achttien vragen als de zes stappen | Zelfde oefenset/credits als de volledige-hoofdstukroute; geen aparte drie weekvragen |
+| P29 | Bestaande vraagvormen: ontbrekende woorden aanvullen, woorden kiezen en waar/niet waar waar passend | Hergebruik FILL_BLANK, WORD_BANK en TRUE_FALSE; geen nieuw CFM-vraagtype |
+| P30 | Vragen op daadwerkelijk gelezen schriftteksten baseren | Concrete passage/editie aan de stap binden; geen lange zelfbedachte uitleg, interpretatievragen of beoordeling van persoonlijke geloofsopvattingen |
+| P31 | Bestaande XP-regels volledig overnemen | Eén maximale basisbeloning per inhoud, bestaande bonusvoorwaarden en normale herhalingskorting; geen tweede XP-systeem |
+| P32 | Bestaande antwoordcontrole, feedback, correctieronde en voortgangsregistratie hergebruiken | Gedeelde services en routegedrag; geen afzonderlijke CFM-vragenengine |
+| P33 | Versado Dorp blijft werken zoals nu | Alleen toekomstige koppeling voorbereiden; geen CFM-groeipunten of wijziging van huidige Dorp-regels |
 
 Deze besluiten zijn uitgangspunt, geen vragenlijst. Ook de huidige XP- en
 reeksregels, zes pogingen bij Woord van de Dag, betaalde hints en puzzelarchitectuur
