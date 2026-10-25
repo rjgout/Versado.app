@@ -362,7 +362,7 @@
     },
     {
       "file": "src/app/api/account/route.ts",
-      "sha256": "89019119b1f1563fd9fcc0fe284c73a11819e89118a5cfe63df3e360d2273720",
+      "sha256": "eb98d371b14bd26425dea31caa90a37870c75280947670fa4a62aa8733d49035",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -377,6 +377,7 @@
         "@/lib/characterAssets",
         "@/lib/companion",
         "@/lib/content-inventory/origin",
+        "@/lib/dailyText",
         "@/lib/db",
         "@/lib/dorp/notifications",
         "@/lib/handle",
@@ -4260,13 +4261,14 @@
     },
     {
       "file": "src/app/api/profile/route.ts",
-      "sha256": "d14e1d430ee92033ef985e4f936707f02c574a552d7567a5213615d7a857ce2d",
+      "sha256": "b923012ffef0545b8f771104df0a2b17cdd08b2474c1a866487a775065b59669",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/achievements",
         "@/lib/apiError",
         "@/lib/avatarUnlocks",
         "@/lib/companion",
+        "@/lib/dailyText",
         "@/lib/dates",
         "@/lib/db",
         "@/lib/leagues",
@@ -10180,7 +10182,7 @@
     },
     {
       "file": "src/components/ProfileClient.tsx",
-      "sha256": "4ded75ed44d7747ee5a7b60484f4a3d0b2c96daa1d1de7cbc75faa5e2c7c65df",
+      "sha256": "788cd6a748c139895a2c5fb31086685d3acb7bd02129b700e25bee00290360e9",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -12464,7 +12466,7 @@
     },
     {
       "file": "src/components/profile/ProfileSettingsViews.tsx",
-      "sha256": "062487a8ea9b058c785bdaf16b146776d8a1f9d41e8b370b11aaf5de22db1293",
+      "sha256": "e004cb3dba17a0664b20b718635f061837d52919e1d2a007b830776b244452e0",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -12497,7 +12499,7 @@
     },
     {
       "file": "src/components/profile/profileData.ts",
-      "sha256": "30859a8d3862d4a52d19df33f4ac263d3a6663954c3caad24f3e72bdcc665bb0",
+      "sha256": "d0d9f91153dd7dc01cd399204a10f425a411321f8e63bdbc3f778c1c1aec95a1",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -14232,7 +14234,7 @@
     },
     {
       "file": "src/components/today/TodaySection.tsx",
-      "sha256": "e99b826a2c3df5ee8d4f6e7bb1910b38f416eb48f7027336ae90bba2ffc775e1",
+      "sha256": "a682df7e013785ee9cfdd608afc703cb765f262840e0d389f6d196aa750b2721",
       "boundary": "context-dependent",
       "imports": [
         "@/components/today/SectionHeader",
@@ -16242,19 +16244,41 @@
     },
     {
       "file": "src/lib/dailyText.ts",
-      "sha256": "86a6bc4ef0ecaba602658c00d393aa175a3a4fa241d9e5a113fd97880796552c",
+      "sha256": "b221ecc4e22dbf2f57446611e37a76cd75b229f1855fddf361534e922774f5ca",
       "boundary": "context-dependent",
       "imports": [
-        "@/lib/contentCollections",
-        "@/lib/dates",
+        "@/lib/contentAccess",
+        "@/lib/dailyTextRules",
         "@/lib/db",
-        "@/lib/scriptureRefs"
+        "@/lib/references/resolver",
+        "@/lib/studyContent/cfmProgramme",
+        "@/lib/studyContent/cfmVolumes",
+        "@/lib/studyContent/fixtureAdapter",
+        "@/lib/studyContent/revisions",
+        "@/lib/studyContent/schema",
+        "@/lib/timeZone"
       ],
       "methods": [],
       "requests": [],
       "checks": [],
       "exports": [
+        "dailyTextSourceOptions",
         "getTextOfTheDay"
+      ]
+    },
+    {
+      "file": "src/lib/dailyTextRules.ts",
+      "sha256": "744974cfdd55a6273182c5364dafaa124c6a3d36e76e0e5df29fee5349b3f34f",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/studyContent/schema"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "dailyTextIndex",
+        "lessonDailyQuotes"
       ]
     },
     {
@@ -18010,7 +18034,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "e06f9acd6638da336597421c23f6ac39fd1f9074836db416efcfea78bebc9515",
+      "sha256": "b66721c9adaaed1df7b2f1092737a2a511da955b319abb76291d45d1ccaf3c03",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18025,7 +18049,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "d13679217d2f1e28c51cbab017c7522009deea3b371491648ba2677f7778fe2f",
+      "sha256": "2cc2b3017fdb19fbfbd8986656eaaf5f87f5ce131ef0b46c3cabb31408641dd7",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18040,7 +18064,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "438d2ee5273ac990f85e3071623b804b0e9533f232eab88806b13a33ba698b08",
+      "sha256": "a0a1c497f0b6652d2bf737fe04ba0fb0e1d428f695992b24346b955a762df993",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18055,7 +18079,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "8d135dbefcc8e0be9e1afff30a2f1bb3c37182113c7ef9be975468efd8e6539f",
+      "sha256": "ddf5519144956be9180894471554d3dd7a0b146e2412033925c26e98927faa55",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18070,7 +18094,7 @@
     },
     {
       "file": "src/lib/i18n/messages/kompas/de.ts",
-      "sha256": "9ae5d9412012fd4addd1129afd7e4c6715f9e05930a8a6b617ae0ea41de0ea1e",
+      "sha256": "0ac1e3854a70379258a3348dd66ae881956911fe9ddc2280dad063c15c159a2f",
       "boundary": "context-dependent",
       "imports": [
         "../../core"
@@ -18084,7 +18108,7 @@
     },
     {
       "file": "src/lib/i18n/messages/kompas/en.ts",
-      "sha256": "002a56f49b776ed5ccf2c1188ac634c408b82e35567b7c4c48c39c2bb0f72ac4",
+      "sha256": "8e510fdd8a01e06ae3ad272daaa7b3474bd77c29a43a2eee500ba208e3f67201",
       "boundary": "context-dependent",
       "imports": [
         "../../core"
@@ -18098,7 +18122,7 @@
     },
     {
       "file": "src/lib/i18n/messages/kompas/es.ts",
-      "sha256": "8a8360b0a553a151d26e527c2f1e8cc8396063263b812fb245aba5d300ee9708",
+      "sha256": "e5ef8b2e92ef04806ce9698a8db4f6f35e817db87de92680b9a6af8dc1bda5f6",
       "boundary": "context-dependent",
       "imports": [
         "../../core"
@@ -18112,7 +18136,7 @@
     },
     {
       "file": "src/lib/i18n/messages/kompas/fr.ts",
-      "sha256": "376225b0230a80d50f5d417429fa84aba91fb09e8e116e722544f536c0a3ebac",
+      "sha256": "52eb6a7e2f046ca83ec97b7aca9ddb68ec15db9913b820a26b4a4cd9ce88e6d7",
       "boundary": "context-dependent",
       "imports": [
         "../../core"
@@ -18126,7 +18150,7 @@
     },
     {
       "file": "src/lib/i18n/messages/kompas/nl.ts",
-      "sha256": "c833b5fda57b76f1c4f1d1c948d43d8eddbf8bee87abb818edf4caabca938725",
+      "sha256": "d9e5ecd6c62f4a049d97cee95bb9f107f2fd09ab85afdc4ed8e69afff3edab70",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -18138,7 +18162,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "d235f98585b1a6faa6c4049e045e47272dd6ae54ac76bd605deb00efdc55644f",
+      "sha256": "5bb603489b42462da0df7652a43f1210ce165faa6bbf821b63629f54ce304445",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -18326,7 +18350,7 @@
     },
     {
       "file": "src/lib/kompas/registry.ts",
-      "sha256": "65064f2793f7705d209cbaf80a5b612aad9f26f557e8deb777cf746eaeab6297",
+      "sha256": "76400d30796e3c9a930866c4ea9cb9e42d9ccef6fea657111d57be7bcf798b9e",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/gameCatalog",
@@ -19820,7 +19844,7 @@
     },
     {
       "file": "src/lib/notify.ts",
-      "sha256": "ba324a37a1b2d8b228d4983d1b4b88c5b3d897b87a4795bbf7c557a2ffa2361b",
+      "sha256": "b6ce551bab3e7bdb50350b3f3f63686c08e88dfea9c24844921ec9783fb5128d",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -21389,7 +21413,7 @@
     },
     {
       "file": "src/lib/scheduler.ts",
-      "sha256": "8432f6ed69b0dcf39520278e69912bcdea202daded2d5f2c41d5019652c84cf3",
+      "sha256": "f795dff98a99ced8d74c7347da3f94cf322c45412e5f20f5981e6101b53baa4e",
       "boundary": "context-dependent",
       "imports": [
         "./audio/library",
@@ -21420,6 +21444,7 @@
       "exports": [
         "PODCAST_FEED_SYNC_INTERVAL_MS",
         "createPodcastFeedSyncTicker",
+        "runDailyTextTick",
         "runPodcastFeedSyncTick",
         "runSeasonRolloverTick",
         "startNotificationSchedulers"
@@ -23926,7 +23951,7 @@
     },
     {
       "file": "src/lib/today.ts",
-      "sha256": "80666f4f4bc79a3ddacea3d71656789709be7909ae31d32c038bcd53dbedc670",
+      "sha256": "50cec8bfc6c1dc9afe36a1c5331b9acc985ec20abe694cd8e8ea75ac7afbc596",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -26638,7 +26663,7 @@
     },
     {
       "file": "src/app/api/account/route.ts",
-      "sha256": "89019119b1f1563fd9fcc0fe284c73a11819e89118a5cfe63df3e360d2273720",
+      "sha256": "eb98d371b14bd26425dea31caa90a37870c75280947670fa4a62aa8733d49035",
       "boundary": "context-dependent",
       "imports": [
         "@/generated/prisma/client",
@@ -26653,6 +26678,7 @@
         "@/lib/characterAssets",
         "@/lib/companion",
         "@/lib/content-inventory/origin",
+        "@/lib/dailyText",
         "@/lib/db",
         "@/lib/dorp/notifications",
         "@/lib/handle",
@@ -26700,7 +26726,10 @@
         "src/lib/characterAssets.ts",
         "src/lib/companion.ts",
         "src/lib/content-inventory/origin.ts",
+        "src/lib/contentAccess.ts",
         "src/lib/crypto.ts",
+        "src/lib/dailyText.ts",
+        "src/lib/dailyTextRules.ts",
         "src/lib/data/scopes.ts",
         "src/lib/dates.ts",
         "src/lib/db.ts",
@@ -26714,6 +26743,15 @@
         "src/lib/dorp/types.ts",
         "src/lib/email.ts",
         "src/lib/handle.ts",
+        "src/lib/hymnAvailability.ts",
+        "src/lib/hymns/access.ts",
+        "src/lib/hymns/library/server.ts",
+        "src/lib/hymns/notation/decode.ts",
+        "src/lib/hymns/notation/lyrics.ts",
+        "src/lib/hymns/notation/musicxml.ts",
+        "src/lib/hymns/notation/types.ts",
+        "src/lib/hymns/score/melody.ts",
+        "src/lib/hymns/types.ts",
         "src/lib/i18n/core.ts",
         "src/lib/i18n/index.ts",
         "src/lib/i18n/messages/de.ts",
@@ -26741,6 +26779,13 @@
         "src/lib/puzzle/puzzleNotify.ts",
         "src/lib/rateLimit.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
+        "src/lib/references/contract.ts",
+        "src/lib/references/evidence.ts",
+        "src/lib/references/hymns.ts",
+        "src/lib/references/otb.ts",
+        "src/lib/references/resolver.ts",
+        "src/lib/references/standardWorks.ts",
         "src/lib/requestBody.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts",
@@ -26750,6 +26795,22 @@
         "src/lib/social/groupFreeze.ts",
         "src/lib/social/groups.ts",
         "src/lib/social/rules.ts",
+        "src/lib/studyContent/cfm2026Manifest.ts",
+        "src/lib/studyContent/cfm2027Manifest.ts",
+        "src/lib/studyContent/cfmPersonalFixture.ts",
+        "src/lib/studyContent/cfmProgramme.ts",
+        "src/lib/studyContent/cfmScripture.ts",
+        "src/lib/studyContent/cfmSources.ts",
+        "src/lib/studyContent/cfmVolumes.ts",
+        "src/lib/studyContent/fixtureAdapter.ts",
+        "src/lib/studyContent/manifest.ts",
+        "src/lib/studyContent/policy.ts",
+        "src/lib/studyContent/readingPosition.ts",
+        "src/lib/studyContent/readingPositionContract.ts",
+        "src/lib/studyContent/readingVisitProof.ts",
+        "src/lib/studyContent/revisions.ts",
+        "src/lib/studyContent/schema.ts",
+        "src/lib/studyContextContract.ts",
         "src/lib/timeZone.ts",
         "src/lib/unsubscribe.ts",
         "src/lib/xp.ts"
@@ -26766,6 +26827,7 @@
         "src/lib/characterAssets.ts",
         "src/lib/companion.ts",
         "src/lib/content-inventory/origin.ts",
+        "src/lib/dailyText.ts",
         "src/lib/db.ts",
         "src/lib/dorp/notifications.ts",
         "src/lib/handle.ts",
@@ -40491,13 +40553,14 @@
     },
     {
       "file": "src/app/api/profile/route.ts",
-      "sha256": "d14e1d430ee92033ef985e4f936707f02c574a552d7567a5213615d7a857ce2d",
+      "sha256": "b923012ffef0545b8f771104df0a2b17cdd08b2474c1a866487a775065b59669",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/achievements",
         "@/lib/apiError",
         "@/lib/avatarUnlocks",
         "@/lib/companion",
+        "@/lib/dailyText",
         "@/lib/dates",
         "@/lib/db",
         "@/lib/leagues",
@@ -40527,8 +40590,21 @@
         "src/lib/avatarUnlocks.ts",
         "src/lib/characterAssets.ts",
         "src/lib/companion.ts",
+        "src/lib/contentAccess.ts",
+        "src/lib/dailyText.ts",
+        "src/lib/dailyTextRules.ts",
+        "src/lib/data/scopes.ts",
         "src/lib/dates.ts",
         "src/lib/db.ts",
+        "src/lib/hymnAvailability.ts",
+        "src/lib/hymns/access.ts",
+        "src/lib/hymns/library/server.ts",
+        "src/lib/hymns/notation/decode.ts",
+        "src/lib/hymns/notation/lyrics.ts",
+        "src/lib/hymns/notation/musicxml.ts",
+        "src/lib/hymns/notation/types.ts",
+        "src/lib/hymns/score/melody.ts",
+        "src/lib/hymns/types.ts",
         "src/lib/i18n/core.ts",
         "src/lib/i18n/index.ts",
         "src/lib/i18n/messages/de.ts",
@@ -40546,14 +40622,40 @@
         "src/lib/leagueTiers.ts",
         "src/lib/leagues.ts",
         "src/lib/mascots.ts",
+        "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
+        "src/lib/references/contract.ts",
+        "src/lib/references/evidence.ts",
+        "src/lib/references/hymns.ts",
+        "src/lib/references/otb.ts",
+        "src/lib/references/resolver.ts",
+        "src/lib/references/standardWorks.ts",
         "src/lib/requestLanguage.ts",
-        "src/lib/session.ts"
+        "src/lib/session.ts",
+        "src/lib/studyContent/cfm2026Manifest.ts",
+        "src/lib/studyContent/cfm2027Manifest.ts",
+        "src/lib/studyContent/cfmPersonalFixture.ts",
+        "src/lib/studyContent/cfmProgramme.ts",
+        "src/lib/studyContent/cfmScripture.ts",
+        "src/lib/studyContent/cfmSources.ts",
+        "src/lib/studyContent/cfmVolumes.ts",
+        "src/lib/studyContent/fixtureAdapter.ts",
+        "src/lib/studyContent/manifest.ts",
+        "src/lib/studyContent/policy.ts",
+        "src/lib/studyContent/readingPosition.ts",
+        "src/lib/studyContent/readingPositionContract.ts",
+        "src/lib/studyContent/readingVisitProof.ts",
+        "src/lib/studyContent/revisions.ts",
+        "src/lib/studyContent/schema.ts",
+        "src/lib/studyContextContract.ts",
+        "src/lib/timeZone.ts"
       ],
       "directModules": [
         "src/lib/achievements.ts",
         "src/lib/apiError.ts",
         "src/lib/avatarUnlocks.ts",
         "src/lib/companion.ts",
+        "src/lib/dailyText.ts",
         "src/lib/dates.ts",
         "src/lib/db.ts",
         "src/lib/leagues.ts",
@@ -49630,6 +49732,7 @@
         "src/lib/courses.ts",
         "src/lib/crypto.ts",
         "src/lib/dailyText.ts",
+        "src/lib/dailyTextRules.ts",
         "src/lib/data/client.ts",
         "src/lib/data/fetchJson.ts",
         "src/lib/data/hooks.ts",
@@ -49660,7 +49763,14 @@
         "src/lib/generalConference.ts",
         "src/lib/hymnAvailability.ts",
         "src/lib/hymns/access.ts",
+        "src/lib/hymns/library/server.ts",
+        "src/lib/hymns/notation/decode.ts",
+        "src/lib/hymns/notation/lyrics.ts",
+        "src/lib/hymns/notation/musicxml.ts",
+        "src/lib/hymns/notation/types.ts",
+        "src/lib/hymns/score/melody.ts",
         "src/lib/hymns/sunday.ts",
+        "src/lib/hymns/types.ts",
         "src/lib/i18n/core.ts",
         "src/lib/i18n/index.ts",
         "src/lib/i18n/messages/de.ts",
@@ -49725,7 +49835,13 @@
         "src/lib/puzzle/puzzleNotify.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
-        "src/lib/scriptureRefs.ts",
+        "src/lib/references/bible.ts",
+        "src/lib/references/contract.ts",
+        "src/lib/references/evidence.ts",
+        "src/lib/references/hymns.ts",
+        "src/lib/references/otb.ts",
+        "src/lib/references/resolver.ts",
+        "src/lib/references/standardWorks.ts",
         "src/lib/session.ts",
         "src/lib/social/common.ts",
         "src/lib/social/friendStreaks.ts",
@@ -49744,12 +49860,22 @@
         "src/lib/streakCelebration.ts",
         "src/lib/streakContinuation.ts",
         "src/lib/studyContent/catalogue.ts",
+        "src/lib/studyContent/cfm2026Manifest.ts",
+        "src/lib/studyContent/cfm2027Manifest.ts",
         "src/lib/studyContent/cfmCourses.ts",
+        "src/lib/studyContent/cfmPersonalFixture.ts",
         "src/lib/studyContent/cfmProgramme.ts",
+        "src/lib/studyContent/cfmScripture.ts",
+        "src/lib/studyContent/cfmSources.ts",
         "src/lib/studyContent/cfmVolumes.ts",
+        "src/lib/studyContent/fixtureAdapter.ts",
+        "src/lib/studyContent/manifest.ts",
         "src/lib/studyContent/personalStudy.ts",
         "src/lib/studyContent/personalStudyOverrides.ts",
+        "src/lib/studyContent/policy.ts",
+        "src/lib/studyContent/readingPosition.ts",
         "src/lib/studyContent/readingPositionContract.ts",
+        "src/lib/studyContent/readingVisitProof.ts",
         "src/lib/studyContent/revisions.ts",
         "src/lib/studyContent/schema.ts",
         "src/lib/studyContent/stepProgress.ts",
@@ -68307,7 +68433,7 @@
     },
     {
       "file": "src/components/ProfileClient.tsx",
-      "sha256": "4ded75ed44d7747ee5a7b60484f4a3d0b2c96daa1d1de7cbc75faa5e2c7c65df",
+      "sha256": "788cd6a748c139895a2c5fb31086685d3acb7bd02129b700e25bee00290360e9",
       "boundary": "client",
       "imports": [
         "@/components/ConfirmProvider",
@@ -70502,7 +70628,7 @@
     },
     {
       "file": "src/components/profile/ProfileSettingsViews.tsx",
-      "sha256": "062487a8ea9b058c785bdaf16b146776d8a1f9d41e8b370b11aaf5de22db1293",
+      "sha256": "e004cb3dba17a0664b20b718635f061837d52919e1d2a007b830776b244452e0",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -72133,7 +72259,7 @@
     },
     {
       "file": "src/components/today/TodaySection.tsx",
-      "sha256": "e99b826a2c3df5ee8d4f6e7bb1910b38f416eb48f7027336ae90bba2ffc775e1",
+      "sha256": "a682df7e013785ee9cfdd608afc703cb765f262840e0d389f6d196aa750b2721",
       "boundary": "context-dependent",
       "imports": [
         "@/components/today/SectionHeader",
@@ -72686,6 +72812,9 @@
     "tests/course-identity.integration.test.ts",
     "tests/course-scripts.test.ts",
     "tests/course-sync.integration.test.ts",
+    "tests/daily-text.browser.mjs",
+    "tests/daily-text.integration.test.ts",
+    "tests/daily-text.test.ts",
     "tests/dictionary-view.test.ts",
     "tests/divisions.test.ts",
     "tests/dorp-audit.integration.test.ts",

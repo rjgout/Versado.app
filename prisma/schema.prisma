@@ -260,11 +260,11 @@ model User {
   // (welke gebeurtenissen) staat hieronder bij notify*.
   emailNotificationsEnabled    Boolean @default(false)
   pushNotificationsEnabled     Boolean @default(false)
-  // "HH:MM", geïnterpreteerd in de lokale tijd van de server/container (er
-  // is nergens in deze app een per-gebruiker tijdzone bijgehouden — zie
-  // dayKey() in src/lib/dates.ts die ook al bewust op UTC-dagbuckets werkt).
+  // "HH:MM" in User.timeZone; zolang die onbekend is geldt Europe/Amsterdam.
   dailyReminderTime            String  @default("20:00")
   dailyTextTime                String  @default("09:00")
+  // Werk voor push/mail; het permanente CFM-programma is de standaard.
+  dailyTextSource              String  @default("kom-dan-en-volg-mij")
   notifyDailyText              Boolean @default(false)
   // Voorkomen dat de in-process scheduler (zie src/lib/scheduler.ts) dezelfde
   // dag/week twee keer een herinnering/uitslag stuurt.
