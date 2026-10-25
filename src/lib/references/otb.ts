@@ -45,7 +45,7 @@ const books: readonly Book[] = [
   { key: "zac", names: ["zacharia", "zach", "zac", "zechariah", "zech"] },
   { key: "mal", names: ["maleachi", "mal", "malachi"] },
   { key: "mat", names: ["mattheus", "matthew", "mat", "matt"] },
-  { key: "mrk", names: ["marcus", "mark", "mrk"] },
+  { key: "mrk", names: ["markus", "marcus", "mark", "mrk"] },
   { key: "luk", names: ["lukas", "lucas", "luke", "luk"] },
   { key: "jhn", names: ["johannes", "john", "jhn"] },
   { key: "act", names: ["handelingen", "acts", "act"] },

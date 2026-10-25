@@ -24,7 +24,7 @@ import {
 } from "./contract";
 import { parseOtbPassage, parseOtbPassageSet, type OtbPassage } from "./otb";
 import { formatRanges, labelMatchesPassage } from "./standardWorks";
-import { bibleUrlTarget } from "./bible";
+import { bibleUrlTarget, retryableScriptureReference } from "./bible";
 import { hymnFromOfficialUrl } from "./hymns";
 import { getHymnsAccess } from "@/lib/hymnAvailability";
 export type ReferenceActor = { id: string; isAdmin: boolean };
@@ -709,7 +709,7 @@ export async function referenceInTransaction(
     studyObjectHash(row.originalTarget) !== studyObjectHash(source.target)
   )
     throw new Error("REFERENCE_UNAVAILABLE");
-  if (!["INTERNAL_VERIFIED", "EXTERNAL_VERIFIED"].includes(row.diagnosis)) return {origin: origin.lesson, result: {kind:"unavailable" as const, reason:"unverified" as const, diagnosticKey:row.id}};
+  if (!["INTERNAL_VERIFIED", "EXTERNAL_VERIFIED"].includes(row.diagnosis) && !retryableScriptureReference(source.target, source.label)) return {origin: origin.lesson, result: {kind:"unavailable" as const, reason:"unverified" as const, diagnosticKey:row.id}};
   const [resolved] = await resolveReferenceBatch(db, actor, origin.lesson, [
     {
       target: source.target,
