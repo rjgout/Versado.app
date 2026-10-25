@@ -143,9 +143,9 @@ test("een inhoudelijk gewijzigde vraag wordt veilig geversioneerd: oude blijft v
   assert.equal(changed.exercises.deleted, unusedOnes.length, "ongebruikte, gewijzigde vragen zijn veilig verwijderd");
   assert.ok(changed.exercises.created >= aboutVerse1.length);
   assert.equal(changed.exercises.kept, totalBefore - aboutVerse1.length, "alle vragen over andere verzen behouden hun id");
-  assert.equal((await L.db.exercise.findUniqueOrThrow({ where: { id: aboutVerse1[0].id } })).status, "REJECTED");
+  assert.equal((await L.db.exercise.findUniqueOrThrow({ where: { id: aboutVerse1[0].id } })).status, "RETIRED");
   assert.equal(await L.db.exercise.count({ where: { id: { in: unusedOnes } } }), 0);
-  assert.equal(await L.db.exercise.count({ where: { id: { in: expectedRetired }, status: "REJECTED" } }), expectedRetired.length, "de antwoordgeschiedenis blijft aan bestaande rijen hangen");
+  assert.equal(await L.db.exercise.count({ where: { id: { in: expectedRetired }, status: "RETIRED" } }), expectedRetired.length, "de antwoordgeschiedenis blijft aan bestaande rijen hangen");
 
   // De oude vraag blijft onveranderlijk en kan door wie haar kreeg nog worden afgerond.
   const submitted = await L.progress.submitExerciseSession(userId, sessionIssued.id, [{ exerciseId: aboutVerse1[0].id, given: ["x"] }]);
@@ -231,7 +231,7 @@ test("een buiten gebruik gestelde oefening blijft voor wie haar in een open set 
   const chapter = await firstChapter();
   const exercise = await L.db.exercise.findFirstOrThrow({ where: { chapterId: chapter.id, status: "APPROVED" } });
   await L.db.exerciseSession.create({ data: { userId, chapterId: chapter.id, contentKey: `test:${collectionId}`, exerciseIds: JSON.stringify([exercise.id]) } });
-  await L.db.exercise.update({ where: { id: exercise.id }, data: { status: "REJECTED" } });
+  await L.db.exercise.update({ where: { id: exercise.id }, data: { status: "RETIRED" } });
   assert.ok(await L.db.exercise.findFirst({ where: await access.exerciseAccessWhere(userId, exercise.id, {}) }), "wie de set heeft, ziet de oefening nog");
   assert.equal(await L.db.exercise.findFirst({ where: await access.exerciseAccessWhere(other, exercise.id, {}) }), null, "een ander ziet een buiten gebruik gestelde oefening niet");
   await L.db.exercise.update({ where: { id: exercise.id }, data: { status: "APPROVED" } });
@@ -243,7 +243,7 @@ test("een buiten gebruik gestelde oefening wordt nooit uitgedeeld, ook niet uit 
   const warm = await L.progress.issueExerciseSession(await makeUser(), chapter.id); // vult de plancache
   assert.ok(warm.exercises.length > 0);
   const victim = warm.exercises[0].id;
-  await L.db.exercise.update({ where: { id: victim }, data: { status: "REJECTED" } });
+  await L.db.exercise.update({ where: { id: victim }, data: { status: "RETIRED" } });
   try {
     for (let i = 0; i < 15; i++) {
       const next = await L.progress.issueExerciseSession(await makeUser(), chapter.id);

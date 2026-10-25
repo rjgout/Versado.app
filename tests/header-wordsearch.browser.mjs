@@ -6,7 +6,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { prisma } from "../src/lib/db.ts";
 import { createSessionToken, SESSION_COOKIE } from "../src/lib/auth.ts";
 import { GAME_CATALOG } from "../src/lib/gameCatalog.ts";
-import { messagesFor } from "../src/lib/i18n/index.ts";
+import { getT, messagesFor } from "../src/lib/i18n/index.ts";
 
 const database = new URL(process.env.LEARNING_TEST_DATABASE_URL ?? "http://invalid");
 if (process.env.DATABASE_URL !== process.env.LEARNING_TEST_DATABASE_URL || database.hostname !== "127.0.0.1" || database.pathname !== "/versado_layout_test") throw new Error("Gebruik uitsluitend de lokale wegwerpdatabase");
@@ -290,7 +290,16 @@ try {
       const before = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
       const retried = await context.request.post(`${base}/api/word-search/${game.id}/find`, { data: { start: words.at(-1).start, end: words.at(-1).end } }); assert.equal(retried.status(), 200);
       const after = await prisma.user.findUniqueOrThrow({ where: { id: user.id } }); assert.equal(after.xp, before.xp); assert.equal(after.currentStreak, before.currentStreak);
+      const celebration = page.locator('[role="dialog"][aria-labelledby="streak-celebration-title"]');
+      assert.equal(await celebration.count(), 0, "de resultaatkaart blijft voorrang houden op de reeksviering");
       await page.getByRole("link", { name: "Terug naar spellen", exact: true }).click(); await page.waitForURL(`${base}/live`);
+      if (level === "EASY") {
+        // De eerste echte afronding geeft een reeks. Sinds #210 volgt de fullscreen viering pas na het verlaten van de activiteit.
+        // Wacht en sluit via de echte bediening; door de overlay heen klikken zou de navigatieregressie verbergen.
+        await celebration.waitFor();
+        await celebration.getByRole("button", { name: getT("nl")("streakCelebration.close"), exact: true }).click();
+        await celebration.waitFor({ state: "detached" });
+      }
       results.push({ level, size: game.size, words: words.length, xp: completed.xpEarned, retryWithoutReward: true });
     }
     assert.deepEqual(errors, [], "clientfouten");
