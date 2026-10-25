@@ -3,7 +3,7 @@ import { capitalize, chapterTerm } from "./chapterTerm";
 import { ensurePodcasts, PODCASTS, PODCASTS_COLLECTION_ID } from "./podcasts";
 import { splitVerseRange } from "./learning/exercisePlan";
 import { isStudyCourseType } from "./readingCourses";
-import { BOM_COLLECTION_ID } from "./contentCollectionIds";
+import { AUDIO_ONLY_TEXT_EDITION_IDS, BOM_COLLECTION_ID } from "./contentCollectionIds";
 import { findDuplicateReadingCourses } from "./courseIntegrity";
 
 export const FRONT_TO_BACK_SLUG = "voor-naar-achter";
@@ -259,7 +259,7 @@ async function syncScriptureCourses(
  * weggegooid en herbouwd. Cursussen per boek bestaan niet meer (migratie
  * 20260924210000_remove_by_book_courses).
  */
-export async function syncCourses(db: PrismaClient): Promise<void> {
+export async function syncCourses(db: PrismaClient, options: { scriptures?: boolean } = {}): Promise<void> {
   // De historische standaardcursussen (en hun slugs) horen bij het Boek van Mormon, vastgelegd op id. Nooit "de eerste ingeschakelde
   // collectie op volgorde": een nieuwe collectie met dezelfde `order` (of een uitgeschakeld Boek van Mormon) maakte van een andere
   // collectie de standaard, waardoor de historische cursussen verhuisden en het Boek van Mormon een tweede set kreeg.
@@ -293,37 +293,40 @@ export async function syncCourses(db: PrismaClient): Promise<void> {
     },
   });
 
-  // Een Boek van Mormon zonder hoofdstukken (nog niet geïmporteerd) laat de bestaande cursussen ongemoeid.
-  await syncScriptureCourses(db, defaultCollection, books, true, {
-    freeChoice: "Kies zelf welk hoofdstuk je wil doen, in elke volgorde.",
-    frontToBack: "Eén vaste volgorde door alle boeken heen, hoofdstuk na hoofdstuk.",
-    frontToBackName: "Hoofdstuk voor hoofdstuk",
-    readingLessons: "Lees het hele Boek van Mormon in korte stappen van ongeveer 5 tot 10 verzen.",
-  });
-
-  // De andere schriftcollecties (Leer en Verbonden, Parel van Grote Waarde):
-  // dezelfde soorten cursussen, elk over de eigen boeken.
-  const otherBooks = await db.book.findMany({
-    where: { contentCollectionId: { not: defaultCollection.id } },
-    orderBy: { order: "asc" },
-    include: { chapters: { orderBy: { order: "asc" } }, contentCollection: { select: { id: true, slug: true, name: true } } },
-  });
-  const byCollection = new Map<string, { collection: ScriptureCollection; books: typeof otherBooks }>();
-  for (const book of otherBooks) {
-    const entry = byCollection.get(book.contentCollectionId) ?? { collection: book.contentCollection, books: [] };
-    entry.books.push(book);
-    byCollection.set(book.contentCollectionId, entry);
-  }
-  for (const { collection, books: collectionBooks } of byCollection.values()) {
-    const term = chapterTerm(collectionBooks[0]?.slug, collection.id);
-    const across = collectionBooks.length > 1 ? " door alle boeken heen," : ",";
-    await syncScriptureCourses(db, collection, collectionBooks, false, {
-      freeChoice: `Kies zelf welk${term.singular === "afdeling" ? "e" : ""} ${term.singular} je wil doen, in elke volgorde.`,
-      frontToBack: `Eén vaste volgorde${across} ${term.singular} na ${term.singular}.`,
-      // "Afdeling voor afdeling" bij de Leer en Verbonden.
-      frontToBackName: `${capitalize(term.singular)} voor ${term.singular}`,
-      readingLessons: `Lees ${NAME_IN_SENTENCE[collection.id] ?? collection.name} helemaal door, in korte stappen van ongeveer 5 tot 10 verzen.`,
+  // Een aanvullende contentupdate synchroniseert geen schriftcursussen of leskoppelingen.
+  if (options.scriptures !== false) {
+    // Een Boek van Mormon zonder hoofdstukken (nog niet geïmporteerd) laat de bestaande cursussen ongemoeid.
+    await syncScriptureCourses(db, defaultCollection, books, true, {
+      freeChoice: "Kies zelf welk hoofdstuk je wil doen, in elke volgorde.",
+      frontToBack: "Eén vaste volgorde door alle boeken heen, hoofdstuk na hoofdstuk.",
+      frontToBackName: "Hoofdstuk voor hoofdstuk",
+      readingLessons: "Lees het hele Boek van Mormon in korte stappen van ongeveer 5 tot 10 verzen.",
     });
+
+    // De andere schriftcollecties (Leer en Verbonden, Parel van Grote Waarde):
+    // dezelfde soorten cursussen, elk over de eigen boeken.
+    const otherBooks = await db.book.findMany({
+      where: { contentCollectionId: { not: defaultCollection.id, notIn: AUDIO_ONLY_TEXT_EDITION_IDS } },
+      orderBy: { order: "asc" },
+      include: { chapters: { orderBy: { order: "asc" } }, contentCollection: { select: { id: true, slug: true, name: true } } },
+    });
+    const byCollection = new Map<string, { collection: ScriptureCollection; books: typeof otherBooks }>();
+    for (const book of otherBooks) {
+      const entry = byCollection.get(book.contentCollectionId) ?? { collection: book.contentCollection, books: [] };
+      entry.books.push(book);
+      byCollection.set(book.contentCollectionId, entry);
+    }
+    for (const { collection, books: collectionBooks } of byCollection.values()) {
+      const term = chapterTerm(collectionBooks[0]?.slug, collection.id);
+      const across = collectionBooks.length > 1 ? " door alle boeken heen," : ",";
+      await syncScriptureCourses(db, collection, collectionBooks, false, {
+        freeChoice: `Kies zelf welk${term.singular === "afdeling" ? "e" : ""} ${term.singular} je wil doen, in elke volgorde.`,
+        frontToBack: `Eén vaste volgorde${across} ${term.singular} na ${term.singular}.`,
+        // "Afdeling voor afdeling" bij de Leer en Verbonden.
+        frontToBackName: `${capitalize(term.singular)} voor ${term.singular}`,
+        readingLessons: `Lees ${NAME_IN_SENTENCE[collection.id] ?? collection.name} helemaal door, in korte stappen van ongeveer 5 tot 10 verzen.`,
+      });
+    }
   }
 
   // Per podcast één cursus, zonder CourseChapter-rijen: de PodcastEpisode-

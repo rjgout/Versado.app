@@ -530,6 +530,7 @@ model Chapter {
   liveGames            LiveGame[]
   readingSessions      ReadingSession[]
   exerciseSessions     ExerciseSession[]
+  audioCheck           ChapterAudioCheck?
   courseChapters       CourseChapter[]
   courseLessons        CourseLesson[]
   courseProgressCursor UserCourseProgress[]
@@ -1688,6 +1689,9 @@ enum ContentStatus {
   IN_REVIEW
   APPROVED
   REJECTED
+  // Vervangen door een inhoudelijk andere vraag bij een contentimport. Wordt nooit meer uitgedeeld, maar blijft bestaan zodat een
+  // al uitgedeelde oefenset afgerond kan worden en de antwoordgeschiedenis intact blijft (docs/CONTENTBEHEER.md).
+  RETIRED
 }
 
 model Exercise {
@@ -4120,6 +4124,68 @@ model NativeAuthChallenge {
   sessionVersion Int?
   totpSecretEncrypted String?
   @@index([expiresAt])
+}
+
+
+enum AudioCheckStatus {
+  CURRENT
+  NEEDS_REVIEW
+}
+
+// Of de voorgelezen audio van een hoofdstuk nog bij de huidige tekst hoort. `textHash` is de hash van de verzen waarbij de audio
+// (en haar tijdcodes) voor het laatst als passend is vastgesteld; verandert een import de tekst, dan wordt het hoofdstuk NEEDS_REVIEW.
+// De audio zelf blijft altijd afspeelbaar: er wordt nooit automatisch iets verwijderd of vervangen. Zie docs/CONTENTBEHEER.md.
+model ChapterAudioCheck {
+  id            String           @id @default(cuid())
+  chapterId     String           @unique
+  chapter       Chapter          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  status        AudioCheckStatus @default(CURRENT)
+  // md5 over de verstekst in volgorde (zie src/lib/audioCheck.ts; dezelfde berekening staat in de migratie).
+  textHash      String
+  // Hash van de tekst waar het hoofdstuk nu mee is bijgewerkt, zolang het NEEDS_REVIEW is.
+  pendingHash   String?
+  // JSON: { reason, changedVerses: number[], verseCountBefore, verseCountAfter } van de laatste wijziging.
+  detail        Json?
+  flaggedAt     DateTime?
+  reviewedAt    DateTime?
+  reviewedById  String?
+  updatedAt     DateTime         @updatedAt
+
+  @@index([status])
+}
+
+enum ContentUpdateKind {
+  CONTENT_UPDATE
+  SCRIPTURE_CHECK
+  SCRIPTURE_PREPARE
+  SCRIPTURE_PUBLISH
+}
+
+enum ContentUpdateStatus {
+  RUNNING
+  OK
+  PARTIAL
+  FAILED
+}
+
+// Logboek van de beheeracties "Nieuwe content ophalen" en "Schriftbronnen bijwerken": per run de status, duur en per bron het resultaat.
+// Alleen gegevens over content; nooit gebruikersgegevens. Een controle of voorbereiding wijzigt geen gebruikerscontent.
+model ContentUpdateRun {
+  id          String              @id @default(cuid())
+  kind        ContentUpdateKind
+  status      ContentUpdateStatus @default(RUNNING)
+  startedAt   DateTime            @default(now())
+  finishedAt  DateTime?
+  durationMs  Int?
+  // JSON: per bron { key, status: "ok"|"skipped"|"error", durationMs, counts, message }.
+  sources     Json                @default("[]")
+  // Bij een voorbereiding het berekende plan (samenvatting) en de handtekening waarmee gepubliceerd moet worden.
+  plan        Json?
+  planHash    String?
+  error       String?
+  createdById String?
+
+  @@index([kind, startedAt])
 }
 
 // Kleine, bevroren vraaginhoud; geen kopie van hoofdstukken of complete contentcollecties.

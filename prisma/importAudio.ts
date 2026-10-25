@@ -1,4 +1,5 @@
 import type { PrismaClient } from "../src/generated/prisma/client";
+import { markAudioCurrent } from "../src/lib/audioCheck";
 
 // Voorgelezen hoofdstukken: per hoofdstuk het audiobestand van de kerk in de
 // taal van de uitgave, met de begintijd van elk vers en van de hoofdstukkop.
@@ -18,11 +19,20 @@ export interface ChapterAudioSeed {
   verseStarts: number[];
 }
 
-const CHUNK = 500;
+/** Tijdcodes zijn bruikbaar als er één per vers is en ze niet teruglopen; anders horen ze niet bij deze tekst. */
+export function audioEntryIsValid(entry: ChapterAudioSeed, verseCount: number): boolean {
+  if (entry.verseStarts.length !== verseCount) return false;
+  if (![entry.headingStart, entry.headingEnd].every((time) => Number.isFinite(time) && time >= 0) || entry.headingEnd < entry.headingStart) return false;
+  for (let i = 1; i < entry.verseStarts.length; i++) if (!(entry.verseStarts[i] >= entry.verseStarts[i - 1])) return false;
+  return entry.verseStarts.every((start) => Number.isFinite(start) && start >= 0);
+}
 
 /**
- * Zet de audio op de hoofdstukken en verzen. Idempotent: schrijft alleen wat
- * verschilt. Een onvolledige import verwijdert nooit bestaande audio. Draait na importBooks, want die maakt de verzen aan.
+ * Zet de audio op de hoofdstukken en verzen. Idempotent, en nooit destructief: alleen gevalideerde audiogegevens (één geldige begintijd
+ * per vers) worden toegepast, en wat er al staat wordt nooit weggehaald, ook niet als een hoofdstuk niet (meer) in de lijst staat of de
+ * gegevens niet bij de tekst passen. Zulke hoofdstukken blijven afspeelbaar en worden ter controle aangemerkt (ChapterAudioCheck).
+ * Alleen nieuwe, gevalideerde gegevens voor een hoofdstuk zetten het weer op "passend" (CURRENT). Draait na importBooks, want die
+ * maakt de verzen aan.
  */
 export async function importChapterAudio(
   prisma: PrismaClient,
@@ -39,15 +49,17 @@ export async function importChapterAudio(
       audioUrl: true,
       audioHeadingStart: true,
       audioHeadingEnd: true,
+      audioCheck: { select: { status: true } },
       book: { select: { slug: true, key: true } },
       verses: { select: { id: true, number: true, audioStart: true } },
     },
   });
 
-  const verseUpdates: { id: string; audioStart: number | null }[] = [];
+  let verseUpdates = 0;
   let chapterUpdates = 0;
   let withAudio = 0;
   let skipped = 0;
+  let resolved = 0;
   for (const chapter of chapters) {
     // Nederlandse audiometadata gebruikt historisch de slug; nieuwe uitgaven
     // gebruiken de taaloverschrijdende Book.key. Zo blijft het bestaande
@@ -55,42 +67,47 @@ export async function importChapterAudio(
     const entry =
       (chapter.book.key ? byKey.get(`${chapter.book.key}:${chapter.number}`) : undefined) ??
       byKey.get(`${chapter.book.slug}:${chapter.number}`);
-    // Een telling die niet klopt met de verzen in de database hoort bij een
-    // andere tekst: dan liever geen audio dan verzen die verspringen.
-    const usable = entry && entry.verseStarts.length === chapter.verses.length
-      && [entry.headingStart, entry.headingEnd, ...entry.verseStarts].every((t) => Number.isFinite(t) && t >= 0)
-      && entry.headingEnd >= entry.headingStart
-      && entry.verseStarts.every((t, i) => i === 0 || t >= entry.verseStarts[i - 1]) ? entry : null;
+    const usable = entry && audioEntryIsValid(entry, chapter.verses.length) ? entry : null;
     if (entry && !usable) skipped += 1;
-    if (!usable) continue;
+    // Bestaande audio blijft staan als er geen (geldige) nieuwe gegevens voor zijn.
+    if (!usable) {
+      if (chapter.audioUrl) withAudio += 1;
+      if (entry && chapter.audioUrl && chapter.audioCheck?.status !== "NEEDS_REVIEW") {
+        await prisma.chapterAudioCheck.upsert({
+          where: { chapterId: chapter.id },
+          create: { chapterId: chapter.id, status: "NEEDS_REVIEW", textHash: "onbekend", flaggedAt: new Date(), detail: { reason: "AUDIO_DATA_INVALID", changedVerses: [], verseCountBefore: chapter.verses.length, verseCountAfter: entry.verseStarts.length } },
+          update: { status: "NEEDS_REVIEW", flaggedAt: new Date(), detail: { reason: "AUDIO_DATA_INVALID", changedVerses: [], verseCountBefore: chapter.verses.length, verseCountAfter: entry.verseStarts.length } },
+        });
+      }
+      continue;
+    }
     withAudio += 1;
 
-    const data = {
-      audioUrl: usable?.url ?? null,
-      audioHeadingStart: usable?.headingStart ?? null,
-      audioHeadingEnd: usable?.headingEnd ?? null,
-    };
-    if (
-      chapter.audioUrl !== data.audioUrl ||
-      chapter.audioHeadingStart !== data.audioHeadingStart ||
-      chapter.audioHeadingEnd !== data.audioHeadingEnd
-    ) {
-      await prisma.chapter.update({ where: { id: chapter.id }, data });
-      chapterUpdates += 1;
-    }
-    for (const verse of chapter.verses) {
-      const start = usable?.verseStarts[verse.number - 1] ?? null;
-      if (verse.audioStart !== start) verseUpdates.push({ id: verse.id, audioStart: start });
-    }
+    const data = { audioUrl: usable.url, audioHeadingStart: usable.headingStart, audioHeadingEnd: usable.headingEnd };
+    const chapterChanged = chapter.audioUrl !== data.audioUrl || chapter.audioHeadingStart !== data.audioHeadingStart || chapter.audioHeadingEnd !== data.audioHeadingEnd;
+    const changedVerses = chapter.verses.flatMap((verse) => {
+      const audioStart = usable.verseStarts[verse.number - 1] ?? null;
+      return verse.audioStart !== audioStart ? [{ id: verse.id, audioStart }] : [];
+    });
+    const status = chapter.audioCheck?.status;
+    const resolveCheck = !chapter.audioCheck || (status === "NEEDS_REVIEW" && (chapterChanged || changedVerses.length > 0));
+    if (!chapterChanged && changedVerses.length === 0 && !resolveCheck) continue;
+    // Audio, tijdcodes en controle delen één commitgrens: bij een schrijffout blijft de openstaande controle behouden.
+    // Ongewijzigde tijdcodes zijn geen bewijs dat audio bij een gewijzigde tekst past.
+    await prisma.$transaction(async (tx) => {
+      if (chapterChanged) await tx.chapter.update({ where: { id: chapter.id }, data });
+      for (const verse of changedVerses) await tx.verse.update({ where: { id: verse.id }, data: { audioStart: verse.audioStart } });
+      if (resolveCheck) await markAudioCurrent(tx, chapter.id);
+    });
+    if (chapterChanged) chapterUpdates += 1;
+    verseUpdates += changedVerses.length;
+    if (resolveCheck && status === "NEEDS_REVIEW") resolved += 1;
   }
 
-  for (let i = 0; i < verseUpdates.length; i += CHUNK) {
-    const chunk = verseUpdates.slice(i, i + CHUNK);
-    await prisma.$transaction(chunk.map((v) => prisma.verse.update({ where: { id: v.id }, data: { audioStart: v.audioStart } })));
-  }
   log(
-    `  Audio: ${withAudio} hoofdstukken met audio, ${chapterUpdates} hoofdstukken en ${verseUpdates.length} verzen bijgewerkt` +
-      (skipped ? `, ${skipped} overgeslagen (aantal verzen klopt niet)` : "") +
+    `  Audio: ${withAudio} hoofdstukken met audio, ${chapterUpdates} hoofdstukken en ${verseUpdates} verzen bijgewerkt` +
+      (skipped ? `, ${skipped} niet toegepast (tijdcodes kloppen niet met de tekst; bestaande audio blijft staan, ter controle aangemerkt)` : "") +
+      (resolved ? `, ${resolved} controle(s) afgehandeld door nieuwe gevalideerde audiogegevens` : "") +
       "."
   );
 }
