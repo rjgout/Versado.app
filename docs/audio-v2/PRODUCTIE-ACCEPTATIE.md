@@ -537,6 +537,7 @@ test ! -e "$REPORT" || { echo 'Kies een nieuwe rapportmap; bestaande baseline ni
 mkdir "$REPORT"
 cat > "$REPORT/inventaris.sql" <<'SQL'
 BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY;
+SET LOCAL TIME ZONE 'UTC';
 SET LOCAL statement_timeout = '30s';
 SELECT jsonb_build_object('type','MIGRATION','name',migration_name,'checksum',checksum,'finished',finished_at,'rolledBack',rolled_back_at)
 FROM "_prisma_migrations" ORDER BY started_at,migration_name;
@@ -572,6 +573,7 @@ docker exec -i "$DB" sh -c 'exec psql -X -q -A -t -v ON_ERROR_STOP=1 -U "$POSTGR
 ```
 
 - **Waarom:** Inspecteert migraties, tabelaanwezigheid, receipts, registraties, pointers, uitgaven, runs en databaseomvang.
+  De rapporttransacties normaliseren tijdstempels naar UTC, ook bij een andere tijdzone van de herstelserver.
   TEXT_EDITION/HIDDEN_TEXT bewaren de werkelijke uitgave-/tekst-/versidentiteit en teksthashes ook zonder export-CLI;
   vergelijk die bestaande rijen vóór/na deployment. Een onverwachte alternatieve uitgave-ID eerst verklaren.
 - **Verwachte uitkomst:** Geen onverklaarde migratiefout/checksum; query werkt ook als nieuwe audio-/controletabellen nog ontbreken.
@@ -585,6 +587,7 @@ docker exec -i "$DB" sh -c 'exec psql -X -q -A -t -v ON_ERROR_STOP=1 -U "$POSTGR
 ```bash
 cat > "$REPORT/beschermd.sql" <<'SQL'
 BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY;
+SET LOCAL TIME ZONE 'UTC';
 SET LOCAL statement_timeout = '30s';
 SELECT jsonb_build_object('type','NL_LEGACY','id',c.id,'book',b.key,'number',c.number,'url',c."audioUrl",'headingStart',c."audioHeadingStart",'headingEnd',c."audioHeadingEnd",
  'verses',(SELECT jsonb_agg(jsonb_build_object('id',v.id,'number',v.number,'start',v."audioStart",'textMD5',md5(v.text)) ORDER BY v.number) FROM "Verse" v WHERE v."chapterId"=c.id))
