@@ -11,6 +11,7 @@ import { courseArtworkKeys } from "@/lib/artwork";
 import { readingResumeHref } from "@/lib/courseResume";
 import { isStudyCourseType } from "@/lib/readingCourses";
 import { getStudyCourseSummary } from "@/lib/studyContent/courseSummary";
+import { courseTypeMatchesContent } from "@/lib/courseContent";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -42,7 +43,7 @@ export async function GET() {
   // Alleen de cursussen die deze gebruiker aan zijn persoonlijke lijst
   // toevoegde (zie subscribeUserToCourse) — de rest staat in de catalogus
   // (/api/courses/catalog, "Voeg nieuwe cursus toe").
-  const subscribedCourses = courses.filter((c) => progressByCourseId.has(c.id));
+  const subscribedCourses = courses.filter((c) => courseTypeMatchesContent(c.type, c.contentCollection.work) && progressByCourseId.has(c.id));
 
   const result = await Promise.all(
     subscribedCourses.map(async (course) => {

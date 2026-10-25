@@ -72,7 +72,7 @@ const isStudyType = (type: string) => type === "STUDY_STEPS" || type === "STUDY_
 export default function CoursesClient() {
   const t = useT();
   const cardSave = useCardListSave();
-  const [catalog, setCatalog] = useState<CatalogCourseView[] | null>(null);
+  const [catalogRequested, setCatalogRequested] = useState(false);
   const [addingId, setAddingId] = useState<string | null>(null);
   /** Een volgorde die net lokaal is gekozen (na toevoegen), voordat de opgeslagen volgorde bijgewerkt is. */
   const orderOverride = useRef<string[] | null>(null);
@@ -102,10 +102,13 @@ export default function CoursesClient() {
       : t("courses.error")
     : null;
 
-  async function loadCatalog() {
-    const res = await fetch("/api/courses/catalog");
-    if (res.ok) setCatalog((await res.json()).courses);
-  }
+  // Ook het aanbod volgt de contentkey; een open of eerder geladen CFM-catalogus mag niet meeverhuizen.
+  const catalogQuery = useLiveQuery<CatalogCourseView[]>(["courses", "catalog"], async () => {
+    const data = await fetchJson<{ courses: CatalogCourseView[] }>("/api/courses/catalog");
+    return data.courses;
+  }, { scopes: ["courses"], contentScoped: true, enabled: catalogRequested });
+  const catalog = catalogQuery.data ?? null;
+  const setCatalog = catalogQuery.setData;
 
   if (loadError) {
     return (
@@ -155,7 +158,6 @@ export default function CoursesClient() {
       });
     });
     if (!saved) return;
-    setCatalog(null);
   }
 
   async function add(courseId: string) {
@@ -178,7 +180,7 @@ export default function CoursesClient() {
     });
     setAddingId(null);
     if (!saved) return;
-    setCatalog((cur) => cur?.filter((c) => c.id !== courseId) ?? null);
+    setCatalog((cur) => cur?.filter((c) => c.id !== courseId));
   }
 
   const progressText = (course: CourseView) =>
@@ -285,9 +287,7 @@ export default function CoursesClient() {
         items={pickerItems}
         busyId={addingId}
         disabled={cardSave.busy}
-        onOpen={() => {
-          if (!catalog) loadCatalog();
-        }}
+        onOpen={() => setCatalogRequested(true)}
         onAdd={add}
       />
       </div>

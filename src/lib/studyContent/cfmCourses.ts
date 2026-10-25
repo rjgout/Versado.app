@@ -3,6 +3,7 @@ import { markCourseStarted } from "@/lib/courses";
 import { localizedCourse } from "@/lib/courseText";
 import { modeOfStudyCourse, type StudyCourseType } from "@/lib/readingCourses";
 import { cfmAnchorCollectionId, cfmAnchorOfCollectionId } from "./cfmProgramme";
+import { isPersonalStudyWork } from "./personalStudyOverrides";
 
 /** De CFM-collectie van 2026 (Oude Testament, Nederlands); haar cursussen hebben de oorspronkelijke slugs. */
 export const CFM_COLLECTION_ID = "content_cfm_ot_2026_nl";
@@ -42,7 +43,9 @@ export const CFM_COURSES = CFM_COURSE_KINDS.map((kind) => ({ ...kind, slug: cfmC
  * ongemoeid, ook een door de beheerder uitgezette of hernoemde cursus; er wordt niemand ingeschreven en niets zichtbaar
  * gemaakt: de collectie zelf bepaalt dat. Herhaald of gelijktijdig aanroepen levert nooit dubbele cursussen op.
  */
-export async function ensureCfmCourses(db: Pick<Prisma.TransactionClient, "course">, collection: { id: string; slug: string }) {
+export async function ensureCfmCourses(db: Pick<Prisma.TransactionClient, "course" | "contentCollection">, collection: { id: string; slug: string }) {
+  const source = await db.contentCollection.findUnique({ where: { id: collection.id }, select: { work: true, contentWork: { select: { kind: true } } } });
+  if (source?.contentWork?.kind !== "STUDY_PROGRAM" || !isPersonalStudyWork(source.work ?? "")) return;
   // Eén programma, één set cursussen: alleen het anker (de eerste jaargang) draagt Stap voor stap en Vrije studie. Een latere
   // jaargang krijgt nooit eigen cursuskaarten; zijn weken zitten in de cursussen van het programma.
   if (cfmAnchorCollectionId(collection) !== collection.id) return;
