@@ -2,7 +2,7 @@ import type { PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { getPublishedStudyLesson, type PublishedStudyDTO } from "./revisions";
 import { PERSONAL_STUDY_STEPS, PERSONAL_STUDY_VERSION, validatePersonalPlan, type PersonalStudyPlan } from "./personalStudy";
-import { legacyPersonalPlan, personalStudyFor } from "./personalStudyOverrides";
+import { CFM_2027_PERSONAL_VERSION, legacyPersonalPlan, previousPersonalPlan, personalStudyFor } from "./personalStudyOverrides";
 
 type Actor = { id: string; isAdmin: boolean };
 export type StepStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
@@ -67,10 +67,10 @@ export async function getStepProgress(
 }
 
 /**
- * Omzetting van de zevenstappenindeling (versie 1) naar de zesstappenindeling. Een nieuwe stap geldt alleen als afgerond
+ * Inhoudelijke dekking vanuit de eerdere zevenstappenindeling of de oorspronkelijke 2027-indeling. Een nieuwe stap geldt alleen als afgerond
  * als elke oude stap die ook maar één van zijn blokken bevat afgerond is, met een identieke inhoudsvingerafdruk (dus
- * dezelfde brontekst). Alles wat zo niet volledig gedekt is begint opnieuw; oude rijen blijven ongemoeid bewaard.
- * Idempotent: een bestaande rij van de nieuwe indeling wordt nooit overschreven of verlaagd.
+ * dezelfde brontekst). Niet-gedekte inhoud telt nooit als afgerond; oude rijen blijven ongemoeid bewaard.
+ * Begonnen 2027-inhoud blijft bezig; idempotent: bestaande rijen worden nooit overschreven of verlaagd.
  */
 async function coverLegacyProgress(
   actor: Actor,
@@ -79,28 +79,31 @@ async function coverLegacyProgress(
   client: Pick<PrismaClient, "studyStepProgress">,
 ) {
   const legacyRows = await client.studyStepProgress.findMany({
-    where: { userId: actor.id, lessonEditionId: lesson.editionId, planVersion: { lt: PERSONAL_STUDY_VERSION }, status: "COMPLETED" },
-    select: { stepFingerprint: true, completedAt: true },
+    where: { userId: actor.id, lessonEditionId: lesson.editionId, planVersion: { lt: plan.version }, status: plan.version > PERSONAL_STUDY_VERSION ? { in: ["IN_PROGRESS", "COMPLETED"] } : "COMPLETED" },
+    select: { stepFingerprint: true, status: true, openedAt: true, completedAt: true },
   });
   if (!legacyRows.length) return;
-  const legacy = legacyPersonalPlan(lesson);
-  if (!legacy.supported) return;
-  const doneAt = new Map(legacyRows.map((r) => [r.stepFingerprint, r.completedAt]));
-  const legacyStepOfBlock = new Map<string, (typeof legacy.steps)[number]>();
-  for (const step of legacy.steps) for (const id of step.blockIds) legacyStepOfBlock.set(id, step);
-  const covered = plan.steps.flatMap((step) => {
-    const sources = new Set(step.blockIds.map((id) => legacyStepOfBlock.get(id)));
-    if (!sources.size || [...sources].some((source) => !source || !doneAt.has(source.fingerprint))) return [];
-    const at = [...sources].map((source) => doneAt.get(source!.fingerprint)!.getTime());
-    return [{ step, completedAt: new Date(Math.max(...at)) }];
-  });
-  if (!covered.length) return;
+  const byFingerprint = new Map(legacyRows.map(r => [r.stepFingerprint, r]));
+  const covered = new Map<string, { step: typeof plan.steps[number]; status: "IN_PROGRESS" | "COMPLETED"; openedAt: Date; completedAt: Date | null }>();
+  for (const legacy of [legacyPersonalPlan(lesson), previousPersonalPlan(lesson)]) {
+    if (!legacy.supported) continue;
+    const sourceOfBlock = new Map(legacy.steps.flatMap(step => step.blockIds.map(id => [id, step] as const)));
+    for (const step of plan.steps) {
+      const sources = new Set(step.blockIds.map(id => sourceOfBlock.get(id)));
+      const rows = [...sources].flatMap(source => source && byFingerprint.has(source.fingerprint) ? [byFingerprint.get(source.fingerprint)!] : []);
+      if (!rows.length) continue;
+      const completed = !sources.has(undefined) && rows.length === sources.size && rows.every(r => r.status === "COMPLETED" && r.completedAt);
+      if (!completed && plan.version <= PERSONAL_STUDY_VERSION) continue;
+      if (covered.get(step.fingerprint)?.status === "COMPLETED") continue;
+      covered.set(step.fingerprint, { step, status: completed ? "COMPLETED" : "IN_PROGRESS", openedAt: new Date(Math.max(...rows.map(r => r.openedAt.getTime()))), completedAt: completed ? new Date(Math.max(...rows.map(r => r.completedAt!.getTime()))) : null });
+    }
+  }
+  if (!covered.size) return;
   await client.studyStepProgress.createMany({
-    data: covered.map(({ step, completedAt }) => ({
+    data: [...covered.values()].map(({ step, status, openedAt, completedAt }) => ({
       userId: actor.id, lessonEditionId: lesson.editionId, stepFingerprint: step.fingerprint, stepIndex: step.index,
-      planVersion: PERSONAL_STUDY_VERSION, revisionId: lesson.revisionId, status: "COMPLETED" as const, openedAt: completedAt, completedAt,
-    })),
-    skipDuplicates: true,
+      planVersion: plan.version, revisionId: lesson.revisionId, status, openedAt, completedAt,
+    })), skipDuplicates: true,
   });
 }
 
@@ -112,13 +115,15 @@ export async function completedStepCounts(
 ): Promise<Map<string, number>> {
   if (!editions.length) return new Map();
   const rows = await client.studyStepProgress.findMany({
-    where: { userId: actor.id, status: "COMPLETED", planVersion: PERSONAL_STUDY_VERSION, lessonEditionId: { in: editions.map((e) => e.editionId) } },
-    select: { lessonEditionId: true, revisionId: true },
+    where: { userId: actor.id, planVersion: { in: [PERSONAL_STUDY_VERSION, CFM_2027_PERSONAL_VERSION] }, lessonEditionId: { in: editions.map((e) => e.editionId) } },
+    select: { lessonEditionId: true, revisionId: true, planVersion: true, status: true },
   });
   const current = new Map(editions.map((e) => [e.editionId, e.revisionId]));
   const counts = new Map<string, number>();
+  const latest = new Map<string, number>();
+  for (const row of rows) if (current.get(row.lessonEditionId) === row.revisionId) latest.set(row.lessonEditionId, Math.max(latest.get(row.lessonEditionId) ?? 0, row.planVersion));
   for (const row of rows)
-    if (current.get(row.lessonEditionId) === row.revisionId) counts.set(row.lessonEditionId, (counts.get(row.lessonEditionId) ?? 0) + 1);
+    if (current.get(row.lessonEditionId) === row.revisionId && row.planVersion === latest.get(row.lessonEditionId) && row.status === "COMPLETED") counts.set(row.lessonEditionId, (counts.get(row.lessonEditionId) ?? 0) + 1);
   return counts;
 }
 
@@ -149,7 +154,9 @@ export async function recordStepProgress(
       const step = plan.steps[input.stepIndex - 1];
       if (!step || step.fingerprint !== input.stepFingerprint) throw new StepProgressError("INVALID");
 
-      const changed = await applyStepProgress(tx, actor.id, { lessonEditionId: input.lessonEditionId, revisionId: published.revisionId, step, action: input.action });
+      // Draag bestaande dekking over vóór OPEN een nieuwe rij kan maken.
+      await coverLegacyProgress(actor, published, plan, tx);
+      const changed = await applyStepProgress(tx, actor.id, { lessonEditionId: input.lessonEditionId, revisionId: published.revisionId, step, action: input.action, planVersion: plan.version });
       return { state: (await getStepProgress(actor, published, plan, tx))!, changed };
     },
     { maxWait: 5000, timeout: 10000 },
@@ -165,7 +172,7 @@ type Tx = Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0];
 export async function applyStepProgress(
   tx: Tx,
   userId: string,
-  input: { lessonEditionId: string; revisionId: string; step: { index: number; fingerprint: string }; action: "OPEN" | "COMPLETE" },
+  input: { lessonEditionId: string; revisionId: string; step: { index: number; fingerprint: string }; action: "OPEN" | "COMPLETE"; planVersion?: number },
 ): Promise<boolean> {
   const { step } = input;
   await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${JSON.stringify([userId, "step", input.lessonEditionId])}, 0))`;
@@ -175,7 +182,7 @@ export async function applyStepProgress(
   if (!existing) {
     await tx.studyStepProgress.create({
       data: {
-        userId, lessonEditionId: input.lessonEditionId, stepFingerprint: step.fingerprint, stepIndex: step.index, planVersion: PERSONAL_STUDY_VERSION,
+        userId, lessonEditionId: input.lessonEditionId, stepFingerprint: step.fingerprint, stepIndex: step.index, planVersion: input.planVersion ?? PERSONAL_STUDY_VERSION,
         revisionId: input.revisionId, openedAt: now,
         status: input.action === "COMPLETE" ? "COMPLETED" : "IN_PROGRESS", completedAt: input.action === "COMPLETE" ? now : null,
       },

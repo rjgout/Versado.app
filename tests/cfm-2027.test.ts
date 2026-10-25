@@ -92,3 +92,30 @@ test("2027: jaarwisseling en archief met de echte officiële weken", () => {
   assert.equal(isWeekArchived(weeks[2], "2027-02-03"), false, "week 1 van 2027 eindigt op 3 januari: nog zichtbaar t/m 3 februari");
   assert.equal(isWeekArchived(weeks[2], "2027-02-04"), true);
 });
+
+test("2027: alle 52 lessen hebben een schone persoonlijke route met zes inhoudelijke stappen, zonder bronwijziging", async () => {
+  const { personalStudyFor, loadPersonalStudyOverrides, previousPersonalPlan } = await import("../src/lib/studyContent/personalStudyOverrides");
+  const { validatePersonalPlan, text8 } = await import("../src/lib/studyContent/personalStudy");
+  for (const lesson of manifest.lessons) {
+    const parsed = await loadCfmLesson(lesson.sourceKey, CFM_SOURCE_2027);
+    const input = { workKey: manifest.workKey, sourceKey: lesson.sourceKey, body: parsed.document };
+    const before = JSON.stringify(input.body);
+    const plan = personalStudyFor(input);
+    assert.ok(plan.supported, lesson.sourceKey);
+    if (!plan.supported) continue;
+    assert.equal(plan.version, 3);
+    assert.equal(plan.steps.length, 6);
+    assert.deepEqual(validatePersonalPlan(input.body, plan), []);
+    assert.ok(plan.steps.every(step => step.blockIds.length > 0));
+    assert.ok(plan.weekTitle, lesson.sourceKey);
+    const hidden = loadPersonalStudyOverrides(input.workKey, input.sourceKey).hide!;
+    for (const item of hidden) {
+      const block = input.body.sections[0].blocks.find(b => b.id === item.id)!;
+      assert.equal(text8(block), item.text8, `${lesson.sourceKey}/${item.id}`);
+      assert.ok(!plan.steps.some(s => s.blockIds.includes(item.id)));
+    }
+    const previous = previousPersonalPlan(input);
+    if (!["14", "52"].includes(lesson.sourceKey)) assert.ok(previous.supported, "oude voortgang blijft exact herleidbaar");
+    assert.equal(JSON.stringify(input.body), before);
+  }
+});

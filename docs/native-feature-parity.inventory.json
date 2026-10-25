@@ -2509,7 +2509,7 @@
     },
     {
       "file": "src/app/api/courses/catalog/route.ts",
-      "sha256": "e8c3597bb4929d842fad8bcee4edd5d65e60dfe27b69a2b0eef475e2534c65fa",
+      "sha256": "d43d78e1e5dd63725b404c167798948126c306926caa76af972394b1a8a13f9d",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
@@ -2521,6 +2521,7 @@
         "@/lib/db",
         "@/lib/i18n",
         "@/lib/session",
+        "@/lib/studyContent/cfmCourses",
         "next/server"
       ],
       "methods": [
@@ -2536,7 +2537,7 @@
     },
     {
       "file": "src/app/api/courses/route.ts",
-      "sha256": "647392bb6ee4b4f97a3b4d0f8eb32175d17c741b75f00100086f144014586b74",
+      "sha256": "a0953edb182a3cdf81c2e04e1906307535640f0b2f0ebd3034145e53009d2715",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
@@ -2551,6 +2552,7 @@
         "@/lib/learning/courseProgress",
         "@/lib/readingCourses",
         "@/lib/session",
+        "@/lib/studyContent/cfmCourses",
         "@/lib/studyContent/courseSummary",
         "next/server"
       ],
@@ -6915,11 +6917,10 @@
     },
     {
       "file": "src/app/live/page.tsx",
-      "sha256": "11df58a4c59f6e79227a711e37793d250e5f878d3c6258bf57cf6d0647dffb9b",
+      "sha256": "ce2e871447eab483d3d8746b5387e069b7ecfc082ab7170f332f40c40e2d72ce",
       "boundary": "context-dependent",
       "imports": [
         "@/components/LiveLobbyForm",
-        "@/components/study/ProgramContextPanel",
         "@/lib/contentCollections",
         "@/lib/gameSettings",
         "@/lib/session",
@@ -13692,7 +13693,7 @@
     },
     {
       "file": "src/components/study/CfmCourseView.tsx",
-      "sha256": "cbc3ecf0f94036888b056ae269208d50ac41cfe0d97f76addc1c8ac4570344e5",
+      "sha256": "7996460133d192f9f5ffaf1fea68665345cce2672fa7bd0b1015b243dafe311a",
       "boundary": "client",
       "imports": [
         "./CfmWeekPath",
@@ -21258,10 +21259,11 @@
     },
     {
       "file": "src/lib/references/bible.ts",
-      "sha256": "fff0093a5d5af43e6a6cdcfa8deb69eedca80a0498bd2a69aba83ae02a47ec0d",
+      "sha256": "75746dd37dcac61433d30a2cbdff36f62cf476feef61ad7b5e95340d5629e2ad",
       "boundary": "context-dependent",
       "imports": [
         "../studyContent/cfmScripture",
+        "./evidence",
         "./otb",
         "./standardWorks"
       ],
@@ -21269,7 +21271,9 @@
       "requests": [],
       "checks": [],
       "exports": [
-        "bibleUrlTarget"
+        "bibleUrlTarget",
+        "retryableBibleReference",
+        "retryableScriptureReference"
       ]
     },
     {
@@ -21340,7 +21344,7 @@
     },
     {
       "file": "src/lib/references/otb.ts",
-      "sha256": "4bde9b1e4ee9c817a3c7d47634a5aaa6387afd2aae9e06a010573670875b4781",
+      "sha256": "7e6b6e492e4c930b78589aca9ed3960fc925907a0879a961fc0402a30ec34445",
       "boundary": "context-dependent",
       "imports": [
         "../../../scripts/otb/bookMapping"
@@ -21355,7 +21359,7 @@
     },
     {
       "file": "src/lib/references/resolver.ts",
-      "sha256": "f3590bb85adff4e8d09f2e51392e9ea677658dcac345328c2dc51a846421a951",
+      "sha256": "4443f24a096fb3370d81b841ebabb14046376a483239cf41e36b0b9e7e766f12",
       "boundary": "context-dependent",
       "imports": [
         "./bible",
@@ -23129,12 +23133,14 @@
     },
     {
       "file": "src/lib/studyContent/cfmCourses.ts",
-      "sha256": "769b69fd0e072a4500d558bf25877b6fab9f252fe8683802c12d97b6292a1b24",
+      "sha256": "9581b024ca46fa258a429c76d89230a500c9590b4085fd602fc7e438ac8af473",
       "boundary": "context-dependent",
       "imports": [
         "./cfmProgramme",
+        "./cfmVolumes",
         "./personalStudyOverrides",
         "@/generated/prisma/client",
+        "@/lib/contentAccess",
         "@/lib/courseText",
         "@/lib/courses",
         "@/lib/readingCourses"
@@ -23146,6 +23152,7 @@
         "CFM_COLLECTION_ID",
         "CFM_COURSES",
         "CFM_COURSE_KINDS",
+        "cfmCourseListWhere",
         "cfmCoursePathHref",
         "cfmCoursePathTarget",
         "cfmCourseSlug",
@@ -23255,7 +23262,7 @@
     },
     {
       "file": "src/lib/studyContent/cfmSources.ts",
-      "sha256": "49ac70bff3045bb552bb0c0414387622597283531f09a45b89ccb60eb113cce2",
+      "sha256": "f7ab64c3ad0a7c6cf7a574ebb30b788f2f8cafa5498ea6d2d77a7f408e2b11fc",
       "boundary": "context-dependent",
       "imports": [
         "../../../data/study-content/cfm-2026-nl/media-lock.json",
@@ -23505,7 +23512,7 @@
     },
     {
       "file": "src/lib/studyContent/personalStudy.ts",
-      "sha256": "9cb0fbd992bc365c1440f78d2ba6f5ce1e36b5d5d2c6b4d54160ce182c9acfc7",
+      "sha256": "3ecf8ada02633b3a26840c1b4c71612b70b0091d4f4dc6ffabfcd7edd5425409",
       "boundary": "context-dependent",
       "imports": [
         "./readingPositionContract",
@@ -23563,10 +23570,11 @@
     },
     {
       "file": "src/lib/studyContent/personalStudyOverrides.ts",
-      "sha256": "8256d25994abd779d4d446141939279c24bba3d695334855daeffa6c120dda1a",
+      "sha256": "1fa22de495739b02929a2215129d56bc0b53f57f49fdc8038ebb79f42a33ab60",
       "boundary": "context-dependent",
       "imports": [
         "../../../data/study-content/cfm-2026-nl/personal-study-overrides.json",
+        "../../../data/study-content/cfm-2027-nl/personal-study-overrides.json",
         "./personalStudy",
         "./readingPositionContract",
         "zod"
@@ -23575,10 +23583,12 @@
       "requests": [],
       "checks": [],
       "exports": [
+        "CFM_2027_PERSONAL_VERSION",
         "isPersonalStudyWork",
         "legacyPersonalPlan",
         "loadPersonalStudyOverrides",
         "personalStudyFor",
+        "previousPersonalPlan",
         "safePersonalPlan"
       ]
     },
@@ -23760,7 +23770,7 @@
     },
     {
       "file": "src/lib/studyContent/reader.ts",
-      "sha256": "fd73fbcd48ee2cbaec8c947a2c43374c33b2d43897a340c4136e6e0d60cca85b",
+      "sha256": "8d4528eb10a44f13347de945eff3e25d6db54d575c8e99b017c49e23e33bd849",
       "boundary": "context-dependent",
       "imports": [
         "./readStatus",
@@ -23768,7 +23778,8 @@
         "./readingPositionContract",
         "./readingVisitProof",
         "./revisions",
-        "@/lib/db"
+        "@/lib/db",
+        "@/lib/references/bible"
       ],
       "methods": [],
       "requests": [],
@@ -23921,7 +23932,7 @@
     },
     {
       "file": "src/lib/studyContent/stepProgress.ts",
-      "sha256": "c6aba7541569292fcfa22d1ccab8bdf91b938f173f6cab3bb5bf15d17ff70795",
+      "sha256": "98e0398c745390c115733539a186275981365d0db4deffae914fcb209e588809",
       "boundary": "context-dependent",
       "imports": [
         "./personalStudy",
@@ -34187,7 +34198,7 @@
     },
     {
       "file": "src/app/api/courses/route.ts",
-      "sha256": "647392bb6ee4b4f97a3b4d0f8eb32175d17c741b75f00100086f144014586b74",
+      "sha256": "a0953edb182a3cdf81c2e04e1906307535640f0b2f0ebd3034145e53009d2715",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
@@ -34202,6 +34213,7 @@
         "@/lib/learning/courseProgress",
         "@/lib/readingCourses",
         "@/lib/session",
+        "@/lib/studyContent/cfmCourses",
         "@/lib/studyContent/courseSummary",
         "next/server"
       ],
@@ -34238,8 +34250,10 @@
         "src/lib/contentPickerContract.ts",
         "src/lib/contentRouting.ts",
         "src/lib/courseContent.ts",
+        "src/lib/courseIntegrity.ts",
         "src/lib/courseResume.ts",
         "src/lib/courseText.ts",
+        "src/lib/courses.ts",
         "src/lib/crypto.ts",
         "src/lib/data/scopes.ts",
         "src/lib/dates.ts",
@@ -34303,6 +34317,7 @@
         "src/lib/notificationGroups.ts",
         "src/lib/notify.ts",
         "src/lib/notifyCategories.ts",
+        "src/lib/podcasts.ts",
         "src/lib/push.ts",
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
@@ -34313,6 +34328,7 @@
         "src/lib/streak.ts",
         "src/lib/streakContinuation.ts",
         "src/lib/studyContent/catalogue.ts",
+        "src/lib/studyContent/cfmCourses.ts",
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
         "src/lib/studyContent/courseSummary.ts",
@@ -34345,6 +34361,7 @@
         "src/lib/learning/courseProgress.ts",
         "src/lib/readingCourses.ts",
         "src/lib/session.ts",
+        "src/lib/studyContent/cfmCourses.ts",
         "src/lib/studyContent/courseSummary.ts"
       ],
       "clientBoundaries": [],
@@ -34530,7 +34547,7 @@
     },
     {
       "file": "src/app/api/courses/catalog/route.ts",
-      "sha256": "e8c3597bb4929d842fad8bcee4edd5d65e60dfe27b69a2b0eef475e2534c65fa",
+      "sha256": "d43d78e1e5dd63725b404c167798948126c306926caa76af972394b1a8a13f9d",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
@@ -34542,6 +34559,7 @@
         "@/lib/db",
         "@/lib/i18n",
         "@/lib/session",
+        "@/lib/studyContent/cfmCourses",
         "next/server"
       ],
       "methods": [
@@ -34572,7 +34590,9 @@
         "src/lib/contentPickerContract.ts",
         "src/lib/contentRouting.ts",
         "src/lib/courseContent.ts",
+        "src/lib/courseIntegrity.ts",
         "src/lib/courseText.ts",
+        "src/lib/courses.ts",
         "src/lib/data/scopes.ts",
         "src/lib/db.ts",
         "src/lib/exerciseGen.ts",
@@ -34598,6 +34618,7 @@
         "src/lib/i18n/serverTexts.ts",
         "src/lib/jigsawQuestions.ts",
         "src/lib/languages.ts",
+        "src/lib/learning/exercisePlan.ts",
         "src/lib/mascots.ts",
         "src/lib/mysteries/game.ts",
         "src/lib/mysteries/mystery001a.ts",
@@ -34619,10 +34640,12 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
+        "src/lib/podcasts.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
         "src/lib/requestLanguage.ts",
         "src/lib/session.ts",
+        "src/lib/studyContent/cfmCourses.ts",
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
         "src/lib/studyContent/personalStudy.ts",
@@ -34644,7 +34667,8 @@
         "src/lib/courseText.ts",
         "src/lib/db.ts",
         "src/lib/i18n/index.ts",
-        "src/lib/session.ts"
+        "src/lib/session.ts",
+        "src/lib/studyContent/cfmCourses.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
@@ -51933,9 +51957,12 @@
         "src/lib/puzzle/puzzleNotify.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
+        "src/lib/references/evidence.ts",
         "src/lib/references/otb.ts",
         "src/lib/references/returnContext.ts",
+        "src/lib/references/standardWorks.ts",
         "src/lib/references/tripContract.ts",
         "src/lib/returnTo.ts",
         "src/lib/scrollRestore.ts",
@@ -54766,11 +54793,10 @@
     },
     {
       "file": "src/app/live/page.tsx",
-      "sha256": "11df58a4c59f6e79227a711e37793d250e5f878d3c6258bf57cf6d0647dffb9b",
+      "sha256": "ce2e871447eab483d3d8746b5387e069b7ecfc082ab7170f332f40c40e2d72ce",
       "boundary": "context-dependent",
       "imports": [
         "@/components/LiveLobbyForm",
-        "@/components/study/ProgramContextPanel",
         "@/lib/contentCollections",
         "@/lib/gameSettings",
         "@/lib/session",
@@ -54793,13 +54819,8 @@
         "src/components/AppSelect.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/LiveLobbyForm.tsx",
-        "src/components/LiveRefresh.tsx",
         "src/components/ScriptureAvatar.tsx",
         "src/components/UserAvatar.tsx",
-        "src/components/study/CfmTodayCard.tsx",
-        "src/components/study/PersonalStudyParts.tsx",
-        "src/components/study/ProgramContextPanel.tsx",
-        "src/components/study/ProgramLessonPicker.tsx",
         "src/components/versado/ContentCard.tsx",
         "src/components/versado/MascotSlot.tsx",
         "src/components/versado/MediaArtwork.tsx",
@@ -54813,27 +54834,21 @@
         "src/lib/avatarAccessories.ts",
         "src/lib/avatarTypes.ts",
         "src/lib/chapterScenes.ts",
-        "src/lib/chapterTerm.ts",
         "src/lib/characterAssets.ts",
         "src/lib/contentAccess.ts",
         "src/lib/contentCollectionIds.ts",
         "src/lib/contentCollections.ts",
         "src/lib/contentPickerContract.ts",
         "src/lib/contentRouting.ts",
-        "src/lib/courseIntegrity.ts",
-        "src/lib/courseText.ts",
-        "src/lib/courses.ts",
         "src/lib/data/client.ts",
         "src/lib/data/fetchJson.ts",
         "src/lib/data/hooks.ts",
-        "src/lib/data/mutation.ts",
         "src/lib/data/pause.ts",
         "src/lib/data/scopes.ts",
         "src/lib/data/store.ts",
         "src/lib/data/topics.ts",
         "src/lib/db.ts",
         "src/lib/exerciseGen.ts",
-        "src/lib/fsyPresentation.ts",
         "src/lib/gameAvailability.ts",
         "src/lib/gameAvailabilityPolicy.ts",
         "src/lib/gameCatalog.ts",
@@ -54842,21 +54857,11 @@
         "src/lib/hymnAvailability.ts",
         "src/lib/hymns/access.ts",
         "src/lib/i18n/core.ts",
-        "src/lib/i18n/index.ts",
-        "src/lib/i18n/messages/de.ts",
-        "src/lib/i18n/messages/en.ts",
-        "src/lib/i18n/messages/es.ts",
-        "src/lib/i18n/messages/fr.ts",
-        "src/lib/i18n/messages/kompas/de.ts",
-        "src/lib/i18n/messages/kompas/en.ts",
-        "src/lib/i18n/messages/kompas/es.ts",
-        "src/lib/i18n/messages/kompas/fr.ts",
         "src/lib/i18n/messages/kompas/nl.ts",
         "src/lib/i18n/messages/nl.ts",
         "src/lib/jigsawQuestions.ts",
         "src/lib/kompas/registry.ts",
         "src/lib/languages.ts",
-        "src/lib/learning/exercisePlan.ts",
         "src/lib/listOrder.ts",
         "src/lib/mascots.ts",
         "src/lib/mysteries/game.ts",
@@ -54879,33 +54884,20 @@
         "src/lib/mysteries/mystery006b.ts",
         "src/lib/mysteries/mystery006c.ts",
         "src/lib/mysteries/types.ts",
-        "src/lib/podcasts.ts",
-        "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
         "src/lib/session.ts",
         "src/lib/socketClient.ts",
-        "src/lib/studyContent/catalogue.ts",
-        "src/lib/studyContent/cfmCourses.ts",
         "src/lib/studyContent/cfmProgramme.ts",
         "src/lib/studyContent/cfmVolumes.ts",
-        "src/lib/studyContent/personalStudy.ts",
-        "src/lib/studyContent/personalStudyOverrides.ts",
-        "src/lib/studyContent/readingPositionContract.ts",
         "src/lib/studyContent/revisions.ts",
         "src/lib/studyContent/schema.ts",
-        "src/lib/studyContent/stepProgress.ts",
-        "src/lib/studyContent/weekContext.ts",
-        "src/lib/studyContent/weekLabels.ts",
-        "src/lib/studyContent/weekSelection.ts",
         "src/lib/studyContext.ts",
         "src/lib/studyContextContract.ts",
-        "src/lib/timeZone.ts",
         "src/lib/wordSearch/content.ts",
         "src/lib/wordSearch/generator.ts"
       ],
       "directModules": [
         "src/components/LiveLobbyForm.tsx",
-        "src/components/study/ProgramContextPanel.tsx",
         "src/lib/contentCollections.ts",
         "src/lib/gameSettings.ts",
         "src/lib/session.ts"
@@ -54915,18 +54907,13 @@
         "src/components/AppSelect.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/LiveLobbyForm.tsx",
-        "src/components/LiveRefresh.tsx",
         "src/components/UserAvatar.tsx",
-        "src/components/study/CfmTodayCard.tsx",
-        "src/components/study/PersonalStudyParts.tsx",
-        "src/components/study/ProgramLessonPicker.tsx",
         "src/components/versado/ContentCard.tsx",
         "src/components/versado/MediaArtwork.tsx",
         "src/components/versado/PersonalMascot.tsx",
         "src/components/versado/useCardListSave.ts",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
-        "src/lib/data/mutation.ts",
         "src/lib/data/topics.ts",
         "src/lib/socketClient.ts"
       ],
@@ -54937,7 +54924,6 @@
         "/api/list-order",
         "/api/list-order?listKey=${listKey}",
         "/api/live/create",
-        "/api/study-context",
         "/api/users/avatars?ids=${encodeURIComponent(ids.join(\",\"))}"
       ],
       "authEvidence": [
@@ -62370,9 +62356,12 @@
         "src/lib/puzzle/puzzleNotify.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
+        "src/lib/references/evidence.ts",
         "src/lib/references/otb.ts",
         "src/lib/references/returnContext.ts",
+        "src/lib/references/standardWorks.ts",
         "src/lib/references/tripContract.ts",
         "src/lib/returnTo.ts",
         "src/lib/scrollRestore.ts",
@@ -62529,7 +62518,10 @@
         "src/lib/pushEndpoint.ts",
         "src/lib/puzzle/puzzleNotify.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
+        "src/lib/references/evidence.ts",
         "src/lib/references/otb.ts",
+        "src/lib/references/standardWorks.ts",
         "src/lib/session.ts",
         "src/lib/streak.ts",
         "src/lib/streakContinuation.ts",
@@ -62708,9 +62700,12 @@
         "src/lib/puzzle/puzzleNotify.ts",
         "src/lib/readingCourses.ts",
         "src/lib/realtime.ts",
+        "src/lib/references/bible.ts",
         "src/lib/references/contract.ts",
+        "src/lib/references/evidence.ts",
         "src/lib/references/otb.ts",
         "src/lib/references/returnContext.ts",
+        "src/lib/references/standardWorks.ts",
         "src/lib/references/tripContract.ts",
         "src/lib/returnTo.ts",
         "src/lib/scrollRestore.ts",
@@ -65769,11 +65764,10 @@
     },
     {
       "file": "src/app/live/page.tsx",
-      "sha256": "11df58a4c59f6e79227a711e37793d250e5f878d3c6258bf57cf6d0647dffb9b",
+      "sha256": "ce2e871447eab483d3d8746b5387e069b7ecfc082ab7170f332f40c40e2d72ce",
       "boundary": "context-dependent",
       "imports": [
         "@/components/LiveLobbyForm",
-        "@/components/study/ProgramContextPanel",
         "@/lib/contentCollections",
         "@/lib/gameSettings",
         "@/lib/session",
@@ -72356,7 +72350,7 @@
     },
     {
       "file": "src/components/study/CfmCourseView.tsx",
-      "sha256": "cbc3ecf0f94036888b056ae269208d50ac41cfe0d97f76addc1c8ac4570344e5",
+      "sha256": "7996460133d192f9f5ffaf1fea68665345cce2672fa7bd0b1015b243dafe311a",
       "boundary": "client",
       "imports": [
         "./CfmWeekPath",

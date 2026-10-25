@@ -1,6 +1,7 @@
+import { parseScriptureUrl } from "./evidence";
 import { OT_SCRIPTURE } from "../studyContent/cfmScripture";
-import { parseOtbPassage, type OtbPassage } from "./otb";
-import { parseVerseSpec } from "./standardWorks";
+import { parseOtbPassage, parseOtbPassageSet, type OtbPassage } from "./otb";
+import { labelMatchesPassage, parseVerseSpec } from "./standardWorks";
 
 const codes: Record<string, string> = {
   matt: "mat", mark: "mrk", luke: "luk", john: "jhn", acts: "act", rom: "rom",
@@ -50,4 +51,27 @@ export function bibleUrlTarget(raw: string, label: string) {
   if (url.hash && passages[0].verses && !passages[0].verses.includes(Number(url.hash.slice(2)))) return null;
   return { workKey: match[1] === "ot" ? "old-testament" : "new-testament", editionKey: "otb", language,
     sourceKey: passages.length === 1 ? `otb:${passages[0].bookKey}:${passages[0].chapter}${passages[0].verses ? `:${passages[0].verses.join(",")}` : ""}` : `otb-set:${passages.map(p => `${p.bookKey}:${p.chapter}${p.verses ? `:${p.verses.join(",")}` : ""}`).join(";")}` };
+}
+
+/** Alleen opnieuw beoordelen wanneer de onveranderde officiële URL en het label nu bewijsbaar overeenkomen. */
+export function retryableBibleReference(target: Record<string, unknown>, label: string): boolean {
+  const key = target.sourceKey;
+  if (typeof key !== "string") return false;
+  if (key.startsWith("otb:") || key.startsWith("otb-set:")) {
+    if (typeof target.externalUrl !== "string") return false;
+    const mapped = bibleUrlTarget(target.externalUrl, label);
+    if (!mapped || mapped.workKey !== target.workKey || mapped.editionKey !== target.editionKey || mapped.language !== target.language) return false;
+    const passages = (value: string) => { const single = parseOtbPassage(value); return single ? [single] : parseOtbPassageSet(value); };
+    return JSON.stringify(passages(mapped.sourceKey)) === JSON.stringify(passages(key));
+  }
+  const raw = key.startsWith("unverified-range:") ? key.slice("unverified-range:".length) : key;
+  return bibleUrlTarget(raw, label) !== null;
+}
+
+/** Een oude diagnose is geen blijvende blokkade voor een nu bewijsbare schriftverwijzing. */
+export function retryableScriptureReference(target: Record<string, unknown>, label: string): boolean {
+  if (retryableBibleReference(target, label)) return true;
+  const passage = typeof target.sourceKey === "string" ? parseScriptureUrl(target.sourceKey) : null;
+  if (!passage || passage.language !== "nl" || !labelMatchesPassage(label, passage)) return false;
+  return typeof target.workKey !== "string" || (target.workKey === passage.book.work && target.editionKey === passage.book.editionKey && target.language === "nl");
 }

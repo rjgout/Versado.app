@@ -1,3 +1,4 @@
+import { cfmCourseListWhere } from "@/lib/studyContent/cfmCourses";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCourseChapterProgress } from "@/lib/learning/courseProgress";
@@ -22,7 +23,7 @@ export async function GET() {
 
   const [courses, userProgress] = await Promise.all([
     prisma.course.findMany({
-      where: { enabled: true, contentCollectionId: contentContext.active.id },
+      where: cfmCourseListWhere(user, contentContext.active.id),
       orderBy: { order: "asc" },
       include: {
         _count: { select: { chapters: true } },

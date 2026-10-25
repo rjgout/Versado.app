@@ -198,6 +198,8 @@ try {
   if (cfmSuite) {
     if (!/^cfm-[a-z0-9-]+\.integration\.test\.ts$/.test(cfmSuite)) throw new Error("Onbekende CFM-suite");
     await run("npx",["tsx","--test",`tests/${cfmSuite}`],env);
+    // Het programma gebruikt dezelfde voortgangsbrug als de oorspronkelijke zes-/zevenstappenroutes.
+    if (cfmSuite === "cfm-programme.integration.test.ts") await run("npx",["tsx","--test","tests/study-steps.integration.test.ts"],env);
   }
   if(process.argv.includes("--reference-preview")) {
     const longChapterOnly = process.argv.includes("--long-chapter-only");

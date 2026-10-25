@@ -1,4 +1,6 @@
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
+import { readingAccessWhere } from "@/lib/contentAccess";
+import { CFM_VOLUMES } from "./cfmVolumes";
 import { markCourseStarted } from "@/lib/courses";
 import { localizedCourse } from "@/lib/courseText";
 import { modeOfStudyCourse, type StudyCourseType } from "@/lib/readingCourses";
@@ -106,3 +108,12 @@ export async function cfmCoursePathTarget(
 }
 
 export { modeOfStudyCourse };
+
+/** De actieve schriftbron plus het toegankelijke, permanente CFM-programma in de bestaande cursuslijst/-catalogus. */
+export function cfmCourseListWhere(actor: { isAdmin: boolean }, activeCollectionId: string): Prisma.CourseWhereInput {
+  const anchors = [...new Set(CFM_VOLUMES.map(v => cfmAnchorOfCollectionId(v.collectionId)))];
+  return { enabled: true, OR: [
+    { contentCollectionId: activeCollectionId },
+    { type: { in: ["STUDY_STEPS", "STUDY_FREE"] }, contentCollectionId: { in: anchors }, contentCollection: readingAccessWhere(actor) },
+  ] };
+}

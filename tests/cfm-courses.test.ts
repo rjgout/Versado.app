@@ -71,3 +71,14 @@ test("cursusidentiteit: CFM 2026 houdt zijn slugs, een ander jaar krijgt eigen a
   // De identiteit hangt niet af van de weergegeven of vertaalde naam.
   assert.equal(cfmCourseSlug(next, "STUDY_STEPS"), cfmCourseSlug(next, "STUDY_STEPS"));
 });
+
+test("de archiefingang staat vóór de eerste weekkaart; Spelen bevat geen studiehero", async () => {
+  const { createElement } = await import("react");
+  const { renderToStaticMarkup } = await import("react-dom/server");
+  const { default: CfmCourseView } = await import("../src/components/study/CfmCourseView");
+  const html = renderToStaticMarkup(createElement(CfmCourseView, { courseName: "Kom dan en volg Mij", mode: "STEPS", weeks: [{ id: "fixture-week", lessonId: "l", collectionId: "c", lessonKey: "k", title: "Eerste les", startsOn: "2027-01-04", endsOnExclusive: "2027-01-11", read: false, stepsDone: 0, imageMediaId: null }], activeWeekId: null, resumeReason: null, sessionKey: "fixture", contexts: {}, archiveHref: "/archief" }));
+  assert.ok(html.includes("data-cfm-archive-link"));
+  assert.ok(html.includes("data-cfm-week-path"));
+  assert.ok(html.indexOf("data-cfm-archive-link") < html.indexOf("data-cfm-week-path"));
+  assert.doesNotMatch(readFileSync("src/app/live/page.tsx", "utf8"), /ProgramContextPanel|CfmTodayCard/);
+});
