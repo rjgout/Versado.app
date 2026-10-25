@@ -116,7 +116,9 @@
     "audio:import-official": "tsx scripts/audio/import-official.ts",
     "test:audio": "tsx --test tests/audio-library.test.ts",
     "test:audio:integration": "node scripts/audio/test-isolated.mjs",
-    "test:audio:browser": "node scripts/audio/test-isolated.mjs --browser"
+    "test:audio:browser": "node scripts/audio/test-isolated.mjs --browser",
+    "test:daily-text": "tsx --test tests/daily-text.test.ts",
+    "test:daily-text:integration": "node scripts/content-architecture/test-access-isolated.mjs --focused --daily-text --browser"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

@@ -14,6 +14,9 @@ on:
       - 'src/components/AdminContentSwitcherClient.tsx'
       - 'tests/hymns-availability*'
       - 'tests/hymns-visibility-migration.mjs'
+      - 'src/lib/dailyText*.ts'
+      - 'tests/daily-text*'
+      - 'tests/fixtures/daily-text.ts'
       - 'prisma/schema.prisma'
       - 'prisma/migrations/**'
       - 'src/lib/mysteries/**'
@@ -202,6 +205,7 @@ jobs:
       - name: Echte HTTP-toegang, studiecontext en migratiebehoud op eigen PostgreSQL
         run: |
           npm run test:study-content:integration
+          npm run test:daily-text:integration
           npm run test:annotations:integration -- --browser
       - name: Regressie, lint en vertalingen
         run: |
@@ -213,6 +217,14 @@ jobs:
           npm run test:live-data
           npm run lint
           npx tsx scripts/i18n/check.ts
+
+      - name: Dagtekstbrowserbewijs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-text-browser
+          path: /tmp/versado-daily-text-browser
+          if-no-files-found: ignore
 
       - name: Dorp-browserbewijs
         if: always()

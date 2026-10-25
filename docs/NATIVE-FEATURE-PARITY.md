@@ -37,6 +37,14 @@ en tekst kopiëren als browserterugval. De webflow wordt gecontroleerd in
 apparaatvalidatie blijven onderdeel van de bestaande open native pariteitsdekking;
 deze wijziging claimt geen volledige native oplevering.
 
+De contentgebonden dagtekst gebruikt gedeelde serverselectie voor Vandaag en de
+scheduler, met `User.dailyTextSource` (standaard CFM) als additieve profielinstelling.
+De bronkeuze verandert geen sessies, kanalen of voortgang. De webprofielkeuze en
+serverselectie worden geïsoleerd getest; lokale native profielinstellingen/Vandaag
+en echte push-/mailontvangst op iOS en Android zijn hiermee niet gevalideerd. De
+bestaande ontbrekende native dekking blijft open; geen web-only uitzondering of
+volledige native oplevering geclaimd.
+
 ## Gedeelde voorwaarden per functie
 
 Elke paginarij hieronder erft het bijbehorende domeinbeleid uit de functiematrix, inclusief opslag, fouten, beide native platformen, testvereisten en blokkades. De pagina- en API-tabellen voegen de exacte route, bron, rendergrens en aangetroffen contract-/authinformatie toe. Een lege native contractdekking betekent **ontbreekt**, niet toegestaan via een algemene bearer-bypass.

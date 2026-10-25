@@ -120,7 +120,8 @@ export default function TodaySection({ data, language, dayComplete = false, serv
               </blockquote>
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 md:mt-auto md:pt-4 lg:mt-4 lg:pt-0">
                 <p className="text-sm font-semibold text-vs-fg-3">
-                  {dailyText.bookName} {dailyText.chapterNumber}:{dailyText.verseNumber}
+                  {dailyText.reference}
+                  <span className="mt-1 block text-xs font-normal">{dailyText.sourceName}</span>
                 </p>
                 <Link href={dailyText.href} className={secondaryButton}>
                   {t("dashboard.readMore")}
