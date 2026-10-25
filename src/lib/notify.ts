@@ -422,16 +422,17 @@ export async function notifySeasonResult(
   });
 }
 
-export async function notifyDailyText(userId: string, text: { href: string; bookName: string; chapterNumber: number; verseNumber: number; content: string }): Promise<void> {
-  // Rechtstreeks naar het vers, net als een klik op de tekst van de dag op het dashboard.
-  const reference = `${text.bookName} ${text.chapterNumber}:${text.verseNumber}`;
+export async function notifyDailyText(userId: string, text: { href: string; reference?: string; sourceName?: string; bookName?: string | null; chapterNumber?: number | null; verseNumber?: number | null; content: string }): Promise<void> {
+  // Rechtstreeks naar het vers of lescitaat, net als de dagtekst op Vandaag.
+  const reference = text.reference ?? `${text.bookName} ${text.chapterNumber}:${text.verseNumber}`;
+  const escape = (value: string) => value.replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]!);
   await notifyUser({
     userId,
     category: "dailyText",
     url: text.href,
     content: (t) => ({
       subject: t("notify.dailyTextSubject"),
-      emailBody: `📖 <strong>${reference}</strong><br />${text.content}`,
+      emailBody: `📖 <strong>${escape(reference)}</strong>${text.sourceName ? `<br />${escape(text.sourceName)}` : ""}<br />${escape(text.content)}`,
       emailText: `📖 ${reference} — ${text.content} —`,
       ctaLabel: t("notify.ctaReadMore"),
       pushTitle: t("notify.dailyTextTitle"),

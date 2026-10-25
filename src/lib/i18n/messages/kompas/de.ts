@@ -201,7 +201,7 @@ export const kompasDe: NonNullable<PartialMessages["kompas"]> = {
       step1: "Tippe oben rechts auf deinen Avatar.",
       step2: "Wähle Avatar ändern, um eine andere Figur oder freigeschaltete Accessoires zu wählen.",
       step3: "Öffne Datenschutz, um festzulegen, ob Freunde deine Erfolge sehen dürfen.",
-      more: "Die Sprache der App und die Sprache des Schrifttextes sind zwei getrennte Entscheidungen. Beide wählst du in deinem Profil; die Sprache des Textes auch oben bei den Schriften. Öffne Mein Dorf im Profil, wenn es verfügbar ist. Unter Datenschutz bestimmst du, ob Freunde es besuchen dürfen.",
+      more: "Die Sprache der App und die Sprache des Schrifttextes sind zwei getrennte Entscheidungen. Beide wählst du in deinem Profil; die Sprache des Textes auch oben bei den Schriften. Öffne Mein Dorf im Profil, wenn es verfügbar ist. Unter Datenschutz bestimmst du, ob Freunde es besuchen dürfen. Unter Benachrichtigungen wählst du die Quelle für den Tagestext per Push und E-Mail. Standard ist die aktuelle Wochenlektion von Komm und folge mir nach. Unter Heute folgt der Text deinen aktiven Inhalten, mit dieser Wochenlektion als Ersatz.",
     },
     start: {
       title: "Erste Schritte",

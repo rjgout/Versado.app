@@ -201,7 +201,7 @@ export const kompasEs: NonNullable<PartialMessages["kompas"]> = {
       step1: "Toca tu avatar arriba a la derecha.",
       step2: "Elige Cambiar avatar para seleccionar otro personaje o tus accesorios desbloqueados.",
       step3: "Abre Privacidad para decidir si tus amigos pueden ver tus logros.",
-      more: "El idioma de la aplicación y el idioma del texto de las Escrituras son dos elecciones distintas. Eliges ambos en tu perfil; el idioma del texto también arriba, junto a las Escrituras. Abre Mi pueblo desde tu perfil cuando esté disponible. En Privacidad eliges si tus amigos pueden visitarlo.",
+      more: "El idioma de la aplicación y el idioma del texto de las Escrituras son dos elecciones distintas. Eliges ambos en tu perfil; el idioma del texto también arriba, junto a las Escrituras. Abre Mi pueblo desde tu perfil cuando esté disponible. En Privacidad eliges si tus amigos pueden visitarlo. En Notificaciones eliges la fuente del texto del día para notificaciones y correo. Por defecto es la lección de esta semana de Ven, sígueme. En Hoy, el texto sigue tu contenido activo, con esa lección semanal como alternativa.",
     },
     start: {
       title: "Primeros pasos",

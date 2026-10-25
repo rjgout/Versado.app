@@ -1,6 +1,6 @@
 # Audiobibliotheek V2 — acceptatie en uitrol door de eigenaar
 
-Repositorycontrole: **25 oktober 2026**, main **`419ba1e51ee9ac102ef82ee024b0affab974cfb9`**.
+Repositorycontrole: **25 oktober 2026**, main **`391db19371da3d7a26020b3fac5fa092cd99a4b5`**.
 Dit is een uitvoerbaar voorbereidingsdocument, geen uitvoeringsverslag of toestemming.
 Codex heeft geen NAS, Portainer of productieomgeving benaderd. Werkelijke containers, mounts, vrije ruimte,
 images, bestanden, migratiehistorie en registraties zijn **onbekend totdat de eigenaar ze zelf vastlegt**.
@@ -73,7 +73,8 @@ Afzonderlijke beslissingen van de eigenaar: rapportopslag → onderhoud/back-up/
 - **Waar:** SSH en de bestaande PostgreSQL-container; [bijlagen B–E](#bijlage-b--alleen-lezen-database-inventaris).
 - **Wat:** kies een nieuwe rapportmap buiten audio; maak de SELECT-inventaris, beschermingssnapshot, tekstexport indien de huidige CLI
   aanwezig is, en bestandsinventaris. De DB-query gebruikt een READ ONLY-transactie; de rapporten zijn nieuwe bestanden.
-  Ontbreekt de export-CLI, noteer dat en maak de export na deployment, vóór iedere audio-import. Gebruik geen importer als alternatief.
+  Bijlage B legt ook zonder export-CLI de bestaande verborgen teksten met vers-ID’s en teksthashes vast.
+  Ontbreekt de export-CLI, noteer dat en maak de aanvullende export na deployment, vóór iedere audio-import. Gebruik geen importer als alternatief.
 - **Waarom:** vóór/na-vergelijkingen bewaken registraties/publicatiepointers, 205 NL-hoofdstukken, controlemarkeringen en zes uitgaven.
 - **Verwachte uitkomst:** 205 NL_LEGACY-rijen of een vooraf verklaard verschil; bestaande zes uitgaven hebben false/false/DRAFT,
   nul Course/Exercise en onveranderde tekst-/vers-ID's. Ontbrekende uitgaven blijven als ontbrekend genoteerd.
@@ -204,7 +205,8 @@ docker image inspect "$NEW_IMAGE" --format '{{.Id}} {{json .RepoDigests}}'
 
 De normale keten bevat `20261020120000_content_work_publication`, `20261029120000_study_identity`,
 `20261030120000_study_import_publication`, vervolgens `20261127120000_content_beheer_v2` en
-`20261204120000_audio_library_v2`, naast de overige bestaande migraties. Op een verse DB loopt november vóór december;
+`20261204120000_audio_library_v2` en `20261205120000_daily_text_source` (#215), naast de overige bestaande migraties.
+De laatste voegt alleen `User.dailyTextSource` met standaardwaarde toe; hij wijzigt geen audio of bestaande kanaal-/tijdinstellingen. Op een verse DB loopt november vóór december;
 op een DB met Audio V2 kan de ontbrekende novembermigratie later volgen. Dat is geïsoleerd getest in #187, inclusief alle 205 NL-hoofdstukken.
 Nooit alleen geselecteerde SQL-bestanden handmatig toepassen, namen hernoemen of toegepaste SQL/checksums veranderen.
 
@@ -536,6 +538,12 @@ SELECT jsonb_build_object('type','EDITION','id',i.id,'missing',c.id IS NULL,'wor
  'exercises',(SELECT count(*) FROM "Exercise" e JOIN "Chapter" h ON h.id=e."chapterId" JOIN "Book" b ON b.id=h."bookId" WHERE b."contentCollectionId"=c.id))
 FROM (VALUES ('content_dc_de'),('content_dc_fr'),('content_dc_es'),('content_pgp_de'),('content_pgp_fr'),('content_pgp_es')) i(id)
 LEFT JOIN "ContentCollection" c ON c.id=i.id ORDER BY i.id;
+SELECT jsonb_build_object('type','TEXT_EDITION','id',id,'work',work,'family',"editionKey",'language',language,'enabled',enabled,'visible',"visibleToUsers",'state',"publicationState")
+FROM "ContentCollection" WHERE work IN ('dc-testament','pgp') AND "editionKey"=work AND language IN ('de','fr','es') ORDER BY id;
+SELECT jsonb_build_object('type','HIDDEN_TEXT','collectionId',b."contentCollectionId",'bookId',b.id,'key',b.key,'slug',b.slug,'nameMD5',md5(b.name),'chapterId',c.id,'number',c.number,'headingMD5',md5(coalesce(c.heading,'')),
+ 'verses',(SELECT jsonb_agg(jsonb_build_object('id',v.id,'number',v.number,'textMD5',md5(v.text)) ORDER BY v.number) FROM "Verse" v WHERE v."chapterId"=c.id))
+FROM "Chapter" c JOIN "Book" b ON b.id=c."bookId" JOIN "ContentCollection" k ON k.id=b."contentCollectionId"
+WHERE k.work IN ('dc-testament','pgp') AND k."editionKey"=k.work AND k.language IN ('de','fr','es') ORDER BY b."contentCollectionId",b.key,c.number;
 SELECT jsonb_build_object('type','DB_SIZE','bytes',pg_database_size(current_database()));
 SELECT 'SELECT jsonb_build_object(''type'',''UPDATE_RUN'',''id'',id,''kind'',kind,''status'',status,''startedAt'',"startedAt",''finishedAt'',"finishedAt",''error'',error) FROM "ContentUpdateRun" ORDER BY "startedAt" DESC LIMIT 20;'
 WHERE to_regclass('"ContentUpdateRun"') IS NOT NULL \gexec
@@ -545,6 +553,8 @@ docker exec -i "$DB" sh -c 'exec psql -X -q -A -t -v ON_ERROR_STOP=1 -U "$POSTGR
 ```
 
 - **Waarom:** Inspecteert migraties, tabelaanwezigheid, receipts, registraties, pointers, uitgaven, runs en databaseomvang.
+  TEXT_EDITION/HIDDEN_TEXT bewaren de werkelijke uitgave-/tekst-/versidentiteit en teksthashes ook zonder export-CLI;
+  vergelijk die bestaande rijen vóór/na deployment. Een onverwachte alternatieve uitgave-ID eerst verklaren.
 - **Verwachte uitkomst:** Geen onverklaarde migratiefout/checksum; query werkt ook als nieuwe audio-/controletabellen nog ontbreken.
 - **Bij fouten:** Niet bestaande rapporten overschrijven. Een onvoltooide migratie of onbekende import is een stopcriterium, geen SQL-reparatieopdracht.
 

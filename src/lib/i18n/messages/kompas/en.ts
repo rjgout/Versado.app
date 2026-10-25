@@ -201,7 +201,7 @@ export const kompasEn: NonNullable<PartialMessages["kompas"]> = {
       step1: "Tap your avatar at the top right.",
       step2: "Choose Change avatar to pick another character or your unlocked accessories.",
       step3: "Open Privacy to decide whether friends may view your achievements.",
-      more: "The language of the app and the language of the Scripture text are two separate choices. You choose both in your profile; the text language also at the top, next to the Scriptures. Open My village in your profile when it is available. Under Privacy you choose whether friends may visit.",
+      more: "The language of the app and the language of the Scripture text are two separate choices. You choose both in your profile; the text language also at the top, next to the Scriptures. Open My village in your profile when it is available. Under Privacy you choose whether friends may visit. Under Notifications, choose a source for the daily text in push and email. The default is this week’s Come, Follow Me lesson. On Today, the text follows your active content, with that weekly lesson as fallback.",
     },
     start: {
       title: "Getting started",
