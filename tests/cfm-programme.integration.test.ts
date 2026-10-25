@@ -165,17 +165,18 @@ test("bestaande gebruikersgegevens blijven ongemoeid wanneer een jaargang versch
   assert.equal(first.user.activeCourseId, steps.id);
 });
 
-test("CFM-cursussen blijven toevoegbaar naast een andere actieve bron, met gewone publicatie- en zichtbaarheidsrechten", async () => {
+test("CFM-cursussen staan uitsluitend bij hun eigen bron, met gewone publicatie- en zichtbaarheidsrechten", async () => {
   const { cfmCourseListWhere } = await import("../src/lib/studyContent/cfmCourses");
   const courses = await prisma.course.findMany({ where: cfmCourseListWhere(member, "content_bom") });
-  assert.equal(courses.filter(c => c.contentCollectionId === a.volume.collectionId).length, 2);
+  assert.equal(courses.filter(c => c.contentCollectionId === a.volume.collectionId).length, 0);
+  assert.equal(await prisma.course.count({ where: cfmCourseListWhere(member, a.volume.collectionId) }), 2);
   const original = await prisma.contentCollection.findUniqueOrThrow({ where: { id: a.volume.collectionId } });
   try {
     await prisma.contentCollection.update({ where: { id: original.id }, data: { visibleToUsers: false } });
-    assert.equal(await prisma.course.count({ where: { AND: [cfmCourseListWhere(member, "content_bom"), { contentCollectionId: a.volume.collectionId }] } }), 0);
-    assert.equal(await prisma.course.count({ where: { AND: [cfmCourseListWhere(admin, "content_bom"), { contentCollectionId: a.volume.collectionId }] } }), 2);
+    assert.equal(await prisma.course.count({ where: { AND: [cfmCourseListWhere(member, a.volume.collectionId), { contentCollectionId: a.volume.collectionId }] } }), 0);
+    assert.equal(await prisma.course.count({ where: { AND: [cfmCourseListWhere(admin, a.volume.collectionId), { contentCollectionId: a.volume.collectionId }] } }), 2);
     await prisma.contentCollection.update({ where: { id: original.id }, data: { publicationState: "DRAFT" } });
-    assert.equal(await prisma.course.count({ where: { AND: [cfmCourseListWhere(admin, "content_bom"), { contentCollectionId: a.volume.collectionId }] } }), 0);
+    assert.equal(await prisma.course.count({ where: { AND: [cfmCourseListWhere(admin, a.volume.collectionId), { contentCollectionId: a.volume.collectionId }] } }), 0);
   } finally {
     await prisma.contentCollection.update({ where: { id: original.id }, data: { visibleToUsers: original.visibleToUsers, publicationState: original.publicationState } });
   }

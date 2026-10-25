@@ -210,6 +210,10 @@ try {
     await run("npx",["tsx","--test","tests/reading-position.integration.test.ts"],env);
     if(process.argv.includes("--browser"))await run("npx",["tsx","tests/study-reader.browser.mjs"],env);
   }
+  if(process.argv.includes("--cfm-content")) {
+    await run("npx",["tsx","--test","tests/course-content.test.ts","tests/cfm-courses.integration.test.ts"],env);
+    if(process.argv.includes("--browser")) await run("npx",["tsx","tests/cfm-course-content.browser.mjs"],env);
+  }
   if(process.argv.includes("--daily-text")) {
     await run("npx",["tsx","--test","tests/daily-text.test.ts","tests/daily-text.integration.test.ts"],env);
     if(process.argv.includes("--browser")) await run("npx",["tsx","tests/daily-text.browser.mjs"],env);

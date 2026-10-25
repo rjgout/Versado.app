@@ -369,3 +369,12 @@ Mij" met de collectienaam, "Deze week" met de officiële periode, de echte lesti
 studeren" of "Verder met studeren" naar de studieles volgens de gekozen leeswijze (Stap voor stap hervat zelf bij de juiste stap); secundair
 "Bekijk de zes stappen" naar het weekpad. Zonder kalenderweek heet de hervatweek "Laatst gekozen week" of "Laatst bestudeerd" (zie hierboven); zonder hervatweek is er één neutrale
 ingang "Bekijk de studieweken". Geen percentage, geen aantal afgeronde weken, niets hardcoded.
+
+CFM-cursustypes (`STUDY_STEPS`, `STUDY_FREE`) zijn uitsluitend zichtbaar bij een
+CFM-werk. Zowel de persoonlijke cursuslijst, het toevoegaanbod als hervatkaarten
+controleren dit naast het collectie-id. Historische verkeerde koppelingen worden
+niet verwijderd en voortgang blijft bewaard, maar ze verschijnen niet bij andere
+content en kunnen daar niet opnieuw worden toegevoegd of via een oude link geopend.
+Ook de aanmaak van CFM-cursussen weigert andere werken. Het toevoegaanbod gebruikt
+net als de cursuslijst een contentgebonden querykey, zodat een open catalogus na
+een contentwissel nooit CFM-kaarten van de vorige bron blijft tonen.

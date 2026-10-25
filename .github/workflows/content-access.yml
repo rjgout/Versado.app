@@ -14,6 +14,10 @@ on:
       - 'src/components/AdminContentSwitcherClient.tsx'
       - 'tests/hymns-availability*'
       - 'tests/hymns-visibility-migration.mjs'
+      - 'src/lib/courseContent.ts'
+      - 'src/app/api/courses/**'
+      - 'tests/course-content.test.ts'
+      - 'tests/cfm-course-content.browser.mjs'
       - 'src/lib/dailyText*.ts'
       - 'tests/daily-text*'
       - 'tests/fixtures/daily-text.ts'
@@ -206,6 +210,7 @@ jobs:
         run: |
           npm run test:study-content:integration
           npm run test:daily-text:integration
+          npm run test:cfm-content:integration
           npm run test:annotations:integration -- --browser
       - name: Regressie, lint en vertalingen
         run: |
@@ -217,6 +222,14 @@ jobs:
           npm run test:live-data
           npm run lint
           npx tsx scripts/i18n/check.ts
+
+      - name: CFM-bronisolatie in de browser
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfm-content-browser
+          path: /tmp/versado-cfm-content-browser
+          if-no-files-found: ignore
 
       - name: Dagtekstbrowserbewijs
         if: always()

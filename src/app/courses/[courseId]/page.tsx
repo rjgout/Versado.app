@@ -13,6 +13,7 @@ import StudyTogetherButton from "@/components/study/StudyTogetherButton";
 import { canStartStudy } from "@/lib/study/startAvailability";
 import { localizedCourse } from "@/lib/courseText";
 import { isReadingPathType, isStudyCourseType } from "@/lib/readingCourses";
+import { courseTypeMatchesContent } from "@/lib/courseContent";
 
 export default async function CourseDetailPage({ params }: { params: Promise<{ courseId: string }> }) {
   const user = await getCurrentUser();
@@ -28,6 +29,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
     include: { contentCollection: { select: { work: true } } },
   });
   if (!course) redirect("/courses");
+  if (!courseTypeMatchesContent(course.type, course.contentCollection.work)) redirect("/courses");
   if (!(await isContentCollectionSelectable(course.contentCollectionId, user.isAdmin))) redirect("/courses");
   // Naam in de taal van de app; voor Nederlands de databasewaarde.
   const courseName = localizedCourse({ ...course, work: course.contentCollection.work }, user.uiLanguage).name;
