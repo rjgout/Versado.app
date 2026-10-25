@@ -1,6 +1,6 @@
 # Audiobibliotheek V2 — acceptatie en uitrol door de eigenaar
 
-Repositorycontrole: **25 oktober 2026**, main **`391db19371da3d7a26020b3fac5fa092cd99a4b5`**.
+Repositorycontrole: **25 oktober 2026**, main **`e7264f05eeda725b2540198d5592908ebb6de09d`**.
 Dit is een uitvoerbaar voorbereidingsdocument, geen uitvoeringsverslag of toestemming.
 Codex heeft geen NAS, Portainer of productieomgeving benaderd. Werkelijke containers, mounts, vrije ruimte,
 images, bestanden, migratiehistorie en registraties zijn **onbekend totdat de eigenaar ze zelf vastlegt**.
@@ -46,6 +46,24 @@ veronderstelde scanner-uitknop. De scanner publiceert nooit automatisch.
 Afzonderlijke beslissingen van de eigenaar: rapportopslag → onderhoud/back-up/herstelproef → image/deployment → pilotdownload
 → pilotregistratie (inclusief eventuele zes tekstuitgaven) → vijf expliciete pilotpublicaties → bulkdownload/-registratie
 → iedere vervolgpublicatie. Een akkoord op deze document-PR is geen akkoord op die uitvoeringen.
+
+## Toegang en huidige toestemming
+
+Bij deze repositorybeoordeling is geen NAS-/Portainer-/productietoegang beschikbaar: geen geconfigureerde VPN,
+NAS-identiteit of productiecredentials. Er is geen verbinding geprobeerd en geen inventarisatie op productie uitgevoerd.
+Onderstaande toegang betreft wat de **eigenaar** nodig heeft; er wordt geen NAS-toegang voor Codex aangevraagd.
+Geselecteerde, van geheimen ontdane rapporten kunnen later als beoordelingsmateriaal dienen.
+
+| Stap | Benodigde toegang door eigenaar | Toestemming / veilige grens |
+|---|---|---|
+| Container-/mount-/ruimte-/migratie-inventaris | DSM/Portainer-weergave; voor commando’s SSH met leesrechten op de vastgestelde audiomap en beheerder die geselecteerde Docker-inspect/exec-opdrachten uitvoert; DB-SELECT-toegang | Alleen-lezen inventarisatie is toegestaan; geen containerstart, schema-/datamutatie of importer. Een Docker-socket/groepslidmaatschap geeft brede beheermacht en is geen alleen-lezen rol. |
+| Hashes/rapporten/dump-TOC van een bestaande back-up lezen | Leesrechten op een gekozen bestaande back-up; besloten nieuwe rapportmap en eventueel bestaande PostgreSQL-container voor pg_restore --list | Bronnen uitsluitend lezen; rapporten niet overschrijven. Een leesbare TOC bewijst geen herstelbaarheid. Geen wachtwoorden, volledige databasekopie of stacksecrets delen. |
+| Nieuwe afgestemde back-upset maken | Eigenaar kan alle schrijvers stoppen; dumprechten in DB; leesrechten op alle blijvende bestanden; schrijf/toegangsrechten op externe versleutelde back-upbestemming | **Nog afzonderlijk akkoord nodig:** onderhoud/stoppen én nieuwe DB-/audio-/configuratieback-up met concrete bestemming en ruimte. Productie blijft ongewijzigd totdat dat besluit is genomen. |
+| Echte geïsoleerde herstelproef | Geverifieerde back-upset, lokale Docker-beheerrechten, passende PostgreSQL-image, vrije testcapaciteit en nieuwe besloten testmap | **Nog afzonderlijk akkoord nodig:** expliciet nieuwe testcontainer/volume/map, geen productie-DB, app, netwerkpoort of import. De proef wijzigt testdoelen; dit is geen alleen-lezen inventarisatie. |
+| Nieuwe app starten/deployen | Eigenaar beheert bestaande Portainer-stack en image-digests | **Nog afzonderlijk deploymentakkoord nodig**; start kan migraties en scannerregistraties uitvoeren. |
+| Ether 1-bronnen ophalen | Goedgekeurde downloadhost met vijf taalbronnen, gereedschappen en nieuwe werkmap | **Nog afzonderlijk downloadakkoord nodig**; in deze opdracht alleen voorbereid, niet gedownload. |
+| Vijf Ether 1-kandidaten registreren | Gecontroleerde app, audiomount en DB; vooraf inventaris/back-up/herstelbewijs | **Nog afzonderlijk import-/DB-akkoord nodig**, inclusief eventuele aanmaak van zes ontbrekende verborgen tekstuitgaven; geen publicatie. |
+| Ether 1 publiceren | Bevoegde beheerder, vijf beoordeelde opname-ID’s/hashes en actuele pointerversies | **Nog afzonderlijk publicatieakkoord nodig**; registratie of merge geeft dit akkoord niet. |
 
 ## Fase 1 — Alleen-lezen inventarisatie
 
@@ -208,6 +226,7 @@ De normale keten bevat `20261020120000_content_work_publication`, `2026102912000
 `20261204120000_audio_library_v2` en `20261205120000_daily_text_source` (#215), naast de overige bestaande migraties.
 De laatste voegt alleen `User.dailyTextSource` met standaardwaarde toe; hij wijzigt geen audio of bestaande kanaal-/tijdinstellingen. Op een verse DB loopt november vóór december;
 op een DB met Audio V2 kan de ontbrekende novembermigratie later volgen. Dat is geïsoleerd getest in #187, inclusief alle 205 NL-hoofdstukken.
+De latere main-merge #214 (`e7264f05`) behoudt deze migraties en de Audio-/Contentbeheer-kern; hij wijzigt CFM-plaatsing en verwijzingen, geen audioarchitectuur.
 Nooit alleen geselecteerde SQL-bestanden handmatig toepassen, namen hernoemen of toegepaste SQL/checksums veranderen.
 
 | Migratiebestand | Ongewijzigde SHA-256 |
@@ -352,7 +371,7 @@ test "$(git -C "$SOURCE" rev-parse HEAD)" = "$SOURCE_SHA"
 | Range/HEAD/seeken; logout en gewone gebruiker versus adminpreview | 206/HEAD correct; afgeschermde of ingetrokken audio niet leesbaar |
 | NL Ether 2, mits vooraf geen legacy-audio/pointer is vastgesteld, of een ander al leesbaar hoofdstuk zonder audio | Apparaat-TTS volgens bestaande terugval, passende beschikbare stem; afwezigheid eerlijk melden |
 | Bron-/objectfouten en tekstwijziging | Eerst geïsoleerd: TTS bij ongeldige actieve V2-opname, geen ongewenste oude V2-opname |
-| Zes verborgen uitgaven en 19 reviewgevallen | Niet zichtbaar voor gewone gebruikers; geen reviewpublicatie |
+| Zes verborgen tekstuitgaven en 19 reviewopnamen | Zes uitgaven niet zichtbaar voor gewone gebruikers; geen V2-publicatie van de 19 reviewopnamen. Bestaande leesrechten en legacy-audio blijven behouden. |
 
 Geen productieobject verwijderen/corrumperen, sessies van anderen intrekken of brontekst wijzigen als foutinjectietest.
 Voor een hoofdstuk zonder V2-pointer blijft bestaande legacy-audio de eerste terugval; pas als die ontbreekt volgt TTS.
@@ -704,7 +723,7 @@ import hashlib,json,pathlib,re,sys
 root=pathlib.Path(sys.argv[1]); assert root.is_dir() and not root.is_symlink()
 def rows(filename): return [json.loads(line) for line in pathlib.Path(filename).read_text().splitlines() if line.strip()]
 before,after=rows(sys.argv[2]),rows(sys.argv[3])
-for kind in ['RECORDING','PUBLICATION','EDITION','PILOT_EDITION','PACKAGE']:
+for kind in ['MIGRATION','RECORDING','PUBLICATION','EDITION','PILOT_EDITION','TEXT_EDITION','HIDDEN_TEXT','PACKAGE']:
     assert [r for r in before if r.get('type')==kind]==[r for r in after if r.get('type')==kind], kind
 seen={}
 for row in after:
@@ -722,7 +741,7 @@ OBJECT_PY
 De eigenaar herhaalt ook de bestandsinventaris E met `RESTORE_AUDIO` als leespad en een nieuwe rapportnaam.
 Vergelijk pad/bytes/SHA van alle beschermde MP3's; tar kan mtime afronden, dus een mtime-diff bij restore apart verklaren.
 Het bovenstaande objectprogramma controleert alle herstelde AudioRecording-verwijzingen op bestand, byteSize en SHA-256 en
-vergelijkt registraties/pointers/uitgaven/receipts. Zijn er nul AudioRecording-rijen, dan zijn er nog geen V2-objecten in deze set; de legacy-hashcontrole blijft verplicht. Vergelijk de migratiehistorie apart op namen/checksums/status; DB_SIZE hoeft na
+vergelijkt migraties, registraties/pointers/uitgaven/receipts en verborgen tekst-/versidentiteit met teksthashes. Zijn er nul AudioRecording-rijen, dan zijn er nog geen V2-objecten in deze set; de legacy-hashcontrole blijft verplicht. Vergelijk de migratiehistorie apart op namen/checksums/status; DB_SIZE hoeft na
 restore niet fysiek gelijk te zijn. Maak geen nieuwe registraties/publicaties. Geen app met productieaccounts/secrets/mail starten.
 
 De proef gebruikt `--no-owner --no-privileges` uitsluitend voor de geïsoleerde testrol; dit bewijst niet de productierollen/ACL's.

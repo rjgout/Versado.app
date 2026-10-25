@@ -164,3 +164,52 @@ test("bestaande gebruikersgegevens blijven ongemoeid wanneer een jaargang versch
   assert.deepEqual(await snapshot(), first);
   assert.equal(first.user.activeCourseId, steps.id);
 });
+
+test("CFM-cursussen blijven toevoegbaar naast een andere actieve bron, met gewone publicatie- en zichtbaarheidsrechten", async () => {
+  const { cfmCourseListWhere } = await import("../src/lib/studyContent/cfmCourses");
+  const courses = await prisma.course.findMany({ where: cfmCourseListWhere(member, "content_bom") });
+  assert.equal(courses.filter(c => c.contentCollectionId === a.volume.collectionId).length, 2);
+  const original = await prisma.contentCollection.findUniqueOrThrow({ where: { id: a.volume.collectionId } });
+  try {
+    await prisma.contentCollection.update({ where: { id: original.id }, data: { visibleToUsers: false } });
+    assert.equal(await prisma.course.count({ where: { AND: [cfmCourseListWhere(member, "content_bom"), { contentCollectionId: a.volume.collectionId }] } }), 0);
+    assert.equal(await prisma.course.count({ where: { AND: [cfmCourseListWhere(admin, "content_bom"), { contentCollectionId: a.volume.collectionId }] } }), 2);
+    await prisma.contentCollection.update({ where: { id: original.id }, data: { publicationState: "DRAFT" } });
+    assert.equal(await prisma.course.count({ where: { AND: [cfmCourseListWhere(admin, "content_bom"), { contentCollectionId: a.volume.collectionId }] } }), 0);
+  } finally {
+    await prisma.contentCollection.update({ where: { id: original.id }, data: { visibleToUsers: original.visibleToUsers, publicationState: original.publicationState } });
+  }
+});
+
+test("de opgeschoonde 2027-route behoudt afgeronde en begonnen inhoud uit de oorspronkelijke zes stappen", async () => {
+  const { getStepProgress } = await import("../src/lib/studyContent/stepProgress");
+  const { loadCfmLesson } = await import("../src/lib/studyContent/cfm2026Import");
+  const editionId = a.editionIds[0];
+  const revisionId = (await prisma.studyLessonEdition.findUniqueOrThrow({ where: { id: editionId } })).publishedRevisionId!;
+  const { CFM_SOURCE_2027 } = await import("../src/lib/studyContent/cfmSources");
+  const { personalStudyFor, previousPersonalPlan } = await import("../src/lib/studyContent/personalStudyOverrides");
+  const parsed = await loadCfmLesson("15", CFM_SOURCE_2027);
+  const lesson = { editionId, revisionId, workKey: CFM_SOURCE_2027.manifest.workKey, sourceKey: "15", body: parsed.document };
+  const current = personalStudyFor(lesson), previous = previousPersonalPlan(lesson);
+  assert.ok(current.supported && previous.supported);
+  if (!current.supported || !previous.supported) return;
+  const user_ = await user(false, a.volume.collectionId);
+  for (const step of previous.steps) await prisma.studyStepProgress.create({ data: { userId: user_.id, lessonEditionId: editionId, revisionId, stepFingerprint: step.fingerprint, stepIndex: step.index, planVersion: 2, status: "COMPLETED", openedAt: new Date(), completedAt: new Date() } });
+  const state = await getStepProgress({ id: user_.id, isAdmin: false }, lesson, current);
+  assert.equal(state!.completedCount, 6);
+  assert.equal(await prisma.studyStepProgress.count({ where: { userId: user_.id, planVersion: 2 } }), 6, "oude rijen blijven behouden");
+  assert.equal(await prisma.studyStepProgress.count({ where: { userId: user_.id, planVersion: 3 } }), 6);
+  await getStepProgress({ id: user_.id, isAdmin: false }, lesson, current);
+  assert.equal(await prisma.studyStepProgress.count({ where: { userId: user_.id } }), 12, "idempotent");
+  const started = await user(false, a.volume.collectionId);
+  const old = previous.steps[0];
+  await prisma.studyStepProgress.create({ data: { userId: started.id, lessonEditionId: editionId, revisionId, stepFingerprint: old.fingerprint, stepIndex: old.index, planVersion: 2, status: "IN_PROGRESS" } });
+  const partial = await getStepProgress({ id: started.id, isAdmin: false }, lesson, current);
+  assert.ok(partial!.steps.some(step => step.status === "IN_PROGRESS"));
+  assert.equal(partial!.completedCount, 0, "beginnen is nooit afronden");
+  const partlyDone = await user(false, a.volume.collectionId);
+  for (const step of previous.steps.slice(0, 3)) await prisma.studyStepProgress.create({ data: { userId: partlyDone.id, lessonEditionId: editionId, revisionId, stepFingerprint: step.fingerprint, stepIndex: step.index, planVersion: 2, status: "COMPLETED", completedAt: new Date() } });
+  const mapped = await getStepProgress(partlyDone, lesson, current);
+  const oldOwner = new Map(previous.steps.flatMap(step => step.blockIds.map(id => [id, step.index] as const)));
+  assert.deepEqual(mapped!.steps.map(step => step.status === "COMPLETED"), current.steps.map(step => step.blockIds.every(id => (oldOwner.get(id) ?? 99) <= 3)), "alleen volledig gedekte inhoud telt als afgerond");
+});

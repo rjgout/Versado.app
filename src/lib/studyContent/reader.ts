@@ -1,3 +1,4 @@
+import { retryableScriptureReference } from "@/lib/references/bible";
 import { prisma } from "@/lib/db";
 import { getPublishedStudyLesson, type PublishedStudyDTO } from "./revisions";
 import { getReadingPosition } from "./readingPosition";
@@ -28,13 +29,13 @@ export async function getStudyReader(
       select: { mediaKey: true, media: { select: { id: true, status: true } } },
     }),
     getStudyLessonReadState(prisma, actor.id, lesson),
-    prisma.contentReference.findMany({where:{revisionId:lesson.revisionId,diagnosis:{notIn:["INTERNAL_VERIFIED","EXTERNAL_VERIFIED"]}},select:{occurrenceKey:true}}),
+    prisma.contentReference.findMany({where:{revisionId:lesson.revisionId,diagnosis:{notIn:["INTERNAL_VERIFIED","EXTERNAL_VERIFIED"]}},select:{occurrenceKey:true,originalTarget:true,label:true}}),
   ]);
   // Een gelijktijdige pointerwissel is zichtbaar als update, maar vervangt deze
   // gevalideerde body niet. Media-API hercontroleert actuele publicatierechten.
   return {
     lesson,
-    blockedReferences: blocked.map(r => r.occurrenceKey),
+    blockedReferences: blocked.filter(r => !retryableScriptureReference(r.originalTarget as Record<string, unknown>, r.label)).map(r => r.occurrenceKey),
     visitProof: sessionKey
       ? issueReadingVisitProof(actor.id, lesson.editionId, lesson.revisionId, sessionKey)
       : null,

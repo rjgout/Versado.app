@@ -7,6 +7,8 @@ de eigenaar voert daar alle controles, downloads, back-ups, imports, deployments
 De uitvoerbare eigenaarshandleiding is [PRODUCTIE-ACCEPTATIE.md](PRODUCTIE-ACCEPTATIE.md). Zij bevat acht fasen, concrete
 commando's en per handeling Waar/Wat/Waarom/Verwachte uitkomst/Bij fouten. Begin niet met een importcommando uit een oud verslag.
 Dit document beschrijft het contract en afzonderlijke ontwikkeltools, geen verleende uitvoeringstoestemming.
+Zie ook [toegang en huidige toestemming](PRODUCTIE-ACCEPTATIE.md#toegang-en-huidige-toestemming): momenteel geen NAS-toegang;
+alleen-lezen inventarisatie, back-up, echte testrestore, deployment, download, registratie en publicatie zijn afzonderlijke stappen.
 
 ## Drie verschillende beheerflows
 
