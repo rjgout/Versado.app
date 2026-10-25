@@ -6,6 +6,12 @@ Vastgelegde UX-besluiten worden niet opnieuw ter discussie gesteld.
 Technische modelnamen/interfaces blijven voorstellen, geen reeds uitgevoerde
 implementatie. Deze afronding autoriseert geen fase 1.
 
+**Aanvulling 25 oktober 2026:** de nieuwe CFM-leesvragenopdracht en vaststaande
+spelafspraken staan in [31](31-CFM-LEESVRAGEN-XP-EN-VERBORGEN-WOORD.md), met een
+afzonderlijke lijst nog open keuzes (§4). De eerdere vier fase-0-besluiten blijven
+genomen; dat betekent niet dat deze nieuwe vervolgkeuzes al zijn goedgekeurd.
+Uitvoeringsprioriteit: [roadmap A–D](04-IMPLEMENTATION-ROADMAP.md#vervolg-a-d--cfm-leesvragen-eerst).
+
 ## 1. Besluiten van de producteigenaar
 
 | ID | Vaststaand besluit | Ontwerpgevolg |
@@ -35,6 +41,8 @@ implementatie. Deze afronding autoriseert geen fase 1.
 | P23 | Interne previews alleen bij bewezen canonieke én editie-equivalentie | Anders bekende officiële externe bron of nette melding; geen stille vertalingssubstitutie |
 | P24 | Eerste CFM-content: volledig gecontroleerd Nederlands, 2026 | Meertalig ontwerp en vijf bestaande UI-talen behouden; andere contenttalen alleen beschikbaar én gepubliceerd aanbieden |
 | P25 | Bestaande publicaties, relevante revisies, snapshots, gerefereerde media en persoonlijke annotaties behouden | Geen automatische garbage collection of destructieve contractmigratie zonder afzonderlijk goedgekeurd beleid |
+| P26 | CFM-leesvragen en XP eerst: drie vragen per stap, ook vragen bij volledig lezen, bestaande BOM-regels | Eén inhoudsgebonden beloningsgrens; volledige weekset nog bevestigen. Onderzoek/documentatie nu, geen implementatie |
+| P27 | Het Verborgen Woord: solo/klas, bron-/CFM-gebonden gecontroleerde bank, beurtletters of heel woord, gezamenlijk foutenbudget, hostproxy, gesynchroniseerde presentatie, accountplicht en geen gasten | Nadere definitieve afspraken en open regels in 31; geen gastpatroon of hangmanbeeld; schriftuur + toelichting na afloop |
 
 Deze besluiten zijn uitgangspunt, geen vragenlijst. Ook de huidige XP- en
 reeksregels, zes pogingen bij Woord van de Dag, betaalde hints en puzzelarchitectuur
