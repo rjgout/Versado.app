@@ -36,3 +36,7 @@ Screenshot: ingelogde, geïsoleerde testomgeving met uitdrukkelijk synthetische 
 Geen productiequery, productie-import, reset, migratie, deployment of merge. Geen wijzigingen aan annotatievensters, citaten/previews daarin, markeringen, bladwijzers of privénotities. Video’s, audio, les-/cursusidentiteiten en de drie gewone leesmethoden blijven op hun bestaande codepaden. Voortgangsdekking schrijft uitsluitend via de bestaande studiestappentabel bij normaal gebruik; er is geen dataconversiescript voor productie.
 
 Interne navigatie blijft afhankelijk van daadwerkelijk aanwezige en toegankelijke schriftcontent. Ontbrekende edities of vertalingen worden niet verzonnen; de bestaande veilige terugval blijft gelden. Historische diagnoses worden niet stil in de database herschreven.
+
+## Aanvullende CI-controle vóór merge
+
+De volledige 2026-importbrowsertest verwachtte nog dat Nieuwe Testament-verwijzingen niet klikbaar waren. Die verwachting is aangepast aan de gevraagde reparatie: zonder interne NT-editie opent de verwijzing de juiste officiële NT-bron, zonder substitutie door een OT-hoofdstuk. Een afzonderlijke controle kiest een echte `unverified-numbering`-verwijzing uit de gepinde bron en bevestigt dat die niet klikbaar wordt. De blokkadecontrole blijft dus bestaan voor inhoudelijk afwijkende verwijzingen.

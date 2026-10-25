@@ -615,9 +615,30 @@ try {
     const page = await context.newPage();
     await page.goto(base + flow.ntHref);
     await page.locator("[data-study-reader]").waitFor();
-    assert.equal(await page.locator('[data-reference-key="ref-b-p2-1"]').count(),0,"Geblokkeerde verwijzing is geen knop");
-    const label=page.getByText("Johannes 6:48",{exact:true}).first();await label.waitFor();assert.equal(await label.evaluate(e=>e.closest("a,button")===null),true);
-    results.push({ width: 390, newTestamentNoOtbFallback: true });
+    const reference = page.getByRole("button", { name: "Johannes 6:48", exact: true }).first();
+    await reference.waitFor();
+    const response = page.waitForResponse(r => new URL(r.url()).pathname === "/api/study-references" && r.request().method() === "POST");
+    await reference.click();
+    const resolved = await (await response).json();
+    assert.equal(resolved.kind, "external", "zonder interne NT-editie blijft de officiële bron beschikbaar");
+    const source = new URL(resolved.url);
+    assert.equal(source.hostname, "www.churchofjesuschrist.org");
+    assert.equal(source.pathname, "/study/scriptures/nt/john/6");
+    assert.equal(source.searchParams.get("id"), "p48");
+    await page.locator("dialog[open]").getByRole("link", { name: "Open de officiële bron", exact: true }).waitFor();
+    assert.equal(await page.locator("dialog[open]").getByRole("button", { name: "Meer lezen", exact: true }).count(), 0, "geen vervanging door een Oude Testament-hoofdstuk");
+    results.push({ width: 390, newTestamentOfficialFallback: true, noOldTestamentSubstitution: true });
+
+    // Een echte nummeringsafwijking blijft expliciet geblokkeerd, ook na de nieuwe runtime-resolutie.
+    const editions = await prisma.studyLessonEdition.findMany({ where: { collectionId: flow.collectionId, publishedRevisionId: { not: null } }, select: { lessonId: true, publishedRevisionId: true } });
+    const unresolved = await prisma.contentReference.findMany({ where: { revisionId: { in: editions.map(e => e.publishedRevisionId) }, diagnosis: "UNRESOLVED" }, select: { occurrenceKey: true, originalTarget: true, revisionId: true } });
+    const mismatch = unresolved.find(r => String(r.originalTarget.sourceKey).startsWith("unverified-numbering:"));
+    assert.ok(mismatch, "de gepinde bron bevat echte nummeringsafwijkingen");
+    const edition = editions.find(e => e.publishedRevisionId === mismatch.revisionId);
+    await page.goto(`${base}/study-lesson/${edition.lessonId}/${flow.collectionId}?weergave=volledig`);
+    await page.locator(`[data-blocked-reference="${mismatch.occurrenceKey}"]`).first().waitFor();
+    assert.equal(await page.locator(`[data-reference-key="${mismatch.occurrenceKey}"]`).count(), 0, "een nummeringsafwijking wordt nooit een interne knop");
+    results.push({ numberingMismatchStillBlocked: true });
     await context.close();
   }
   const after = await prisma.user.findUniqueOrThrow({
