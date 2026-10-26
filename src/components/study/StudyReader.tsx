@@ -616,7 +616,7 @@ function ReaderVisit({
         </BlockedReferencesContext.Provider>
         </ReferenceActionsContext.Provider>
         {!legacy && Boolean(data.scriptureReadingSteps?.some(index=>!currentStep || index===currentStep.index)) && (
-          <section data-study-scripture-readings className="min-w-0 space-y-6 border-t border-vs-line pt-4 text-base text-vs-fg">
+          <section data-study-scripture-readings className="min-w-0 break-words space-y-6 border-t border-vs-line pt-4 text-base text-vs-fg">
             <h2 className="text-xl font-extrabold">{t("cfmExercises.scriptureReading")}</h2>
             {(data.scriptureReadings??[]).filter(reading=>!currentStep || reading.stepIndex===currentStep.index).map((reading,index,readings)=>(
               <section key={`${reading.stepIndex}:${reading.bookKey}:${reading.chapter}`} data-study-scripture-reading={reading.stepIndex} className="min-w-0 space-y-3">

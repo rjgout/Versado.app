@@ -129,6 +129,13 @@ voltooid en afgebroken; voor de bevestigde variant wordt de opgeslagen sessie
 gecontroleerd vóór herladen. Een willekeurige al zichtbare alert geldt niet als
 bewijs van serveropslag. De browsercontrole bewaakt dat screenshots inhoud tonen.
 
+De eerste CI-proef vond horizontale overflow in de aanvullende lezing. Een bredere
+fallbackfont maakt “Schriftlezing” bij 200% tekst circa 286px breed bij slechts
+256px inhoudsruimte op 320px. De aanvullende sectie gebruikt nu bestaande
+`break-words`-opmaak. De 320px-proef forceert hiervoor DejaVu Sans op de kop en
+behoudt de strikte scrollbreedtecontrole; foutmeldingen noemen afmetingen en
+uitstekende elementen. Er is geen tekst verkleind of controle versoepeld.
+
 Reproduceren na `npm run build`:
 
 ```bash

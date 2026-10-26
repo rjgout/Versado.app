@@ -71,13 +71,22 @@ async function showReading(page, heading, path) {
   assert.ok(Math.max(...stats.channels.map(c => c.stdev)) > 5, "screenshot toont leesbare inhoud, geen lege achtergrond");
 }
 async function noOverflow(page) {
-  assert.ok(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth + 1,
-    ),
-    "geen horizontale scroll",
-  );
+  const layout = await page.evaluate(() => ({
+    width: innerWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    readingHeadingInsideSection: [...document.querySelectorAll("[data-study-scripture-readings] h2")].every(el => {
+      const bounds = el.parentElement.getBoundingClientRect(), range = document.createRange();
+      range.selectNodeContents(el);
+      return [...range.getClientRects()].every(r => r.right <= bounds.right + 1 && r.left >= bounds.left - 1);
+    }),
+    overflow: [...document.querySelectorAll("main *")].filter(el => {
+      const r = el.getBoundingClientRect();
+      return !el.children.length && r.width && (r.right > innerWidth + 1 || r.left < -1);
+    }).slice(0, 8).map(el => ({ tag: el.tagName, className: el.className, text: el.textContent?.slice(0, 45), right: el.getBoundingClientRect().right })),
+  }));
+  assert.ok(layout.scrollWidth <= layout.width + 1 && layout.readingHeadingInsideSection, "geen horizontale scroll of uitstekende leeskop: " + JSON.stringify(layout));
 }
+
 async function accepted(issued) {
   const rows = await prisma.exercise.findMany({
     where: { id: { in: issued.exercises.map((q) => q.id) } },
@@ -146,7 +155,7 @@ try {
     } else await page.goto(base + readerPath);
     await page.locator("[data-study-reader-body]").waitFor();
     if (scale === 2)
-      await page.addStyleTag({ content: "html{font-size:200% !important}" });
+      await page.addStyleTag({ content: 'html{font-size:200% !important}[data-study-scripture-readings] h2{font-family:"DejaVu Sans",sans-serif}' });
     const body = await page.locator("[data-study-reader-body]").innerText(),
       sections = page.locator("[data-study-scripture-reading]");
     assert.equal(await sections.count(), step ? 1 : 6);
@@ -211,7 +220,7 @@ try {
     assert.equal(issued.exercises.length, step ? 3 : 18);
     await page.locator("[data-exercise-progress]").waitFor();
     if (scale === 2) {
-      await page.addStyleTag({ content: "html{font-size:200% !important}" });
+      await page.addStyleTag({ content: 'html{font-size:200% !important}[data-study-scripture-readings] h2{font-family:"DejaVu Sans",sans-serif}' });
       assert.equal(
         await page.evaluate(
           () => getComputedStyle(document.documentElement).fontSize,
@@ -381,6 +390,7 @@ try {
       width,
       scheme,
       scale,
+      wideReadingHeadingFont: scale === 2,
       step,
       visibleVerses: step ? 3 : 15,
       questions: issued.exercises.length,
