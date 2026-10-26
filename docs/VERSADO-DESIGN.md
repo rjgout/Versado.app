@@ -665,7 +665,6 @@ Om te weten waar de impact zit. **Niet vooraf aanpassen voor het redesign.**
 - **Navigatie**: `BottomNav.tsx` (zes naar vier bestemmingen, actieve
   markering, iconen), header in `layout.tsx` (avatar/profielingang), mogelijk
   een eigen navigatie voor tablet/desktop.
-- **Divisie-uitslag**: bij terugkomst verschijnt de laatste afgesloten deelname eenmaal fullscreen, na een eventuele reeksviering en buiten een activiteit. `WeeklyResultCelebration` gebruikt het divisie-embleem en de gekozen `PersonalMascot` (`celebrate`, `encourage` of `success`). Alleen sluiten markeert de uitslag als bekeken (`WeeklyScore.resultSeenAt`); pushvoorkeuren, XP en deelname blijven ongewijzigd.
 - **Vandaag**: `src/app/dashboard/page.tsx`, met de bestaande bronnen
   hierboven (`/api/activity-status`, meldingen, `UserCourseProgress`,
   podcastposities, dagelijkse content).
