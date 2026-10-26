@@ -74,6 +74,21 @@ test("twee pakket-ID's met een nieuw checkedAt geven op twee processen één can
  assert.equal(await prisma.audioRecording.count({where:{sourceMetadata:{path:["url"],equals:source}}}),1);
  assert.equal(await prisma.audioPackage.count({where:{id:{in:["canonical-first","canonical-second"]},status:"READY"}}),2);
 });
+test("nieuwe kwaliteit en tijdcodes blijven aparte onveranderlijke versies; een echte replay dupliceert niet",async()=>{
+ const source="https://assets.churchofjesuschrist.org/versioned-alignment.mp3";
+ const review=await fixture("version-review",{quality:"NEEDS_REVIEW",mutate:m=>{m.source.url=source;}});
+ const checked=await fixture("version-checked",{mutate:m=>{m.source.url=source;}});
+ assert.equal((await importAudioPackage(review.folder)).status,"READY");assert.equal((await importAudioPackage(checked.folder)).status,"READY");
+ const revised=await fixture("version-revised",{mutate:m=>{m.source.url=source;}});
+ const payload=JSON.parse(await fs.readFile(path.join(revised.folder,"segments.json"),"utf8"));
+ for(const segment of payload.segments){segment.start+=0.05;segment.end+=0.05;}
+ const data=Buffer.from(JSON.stringify(payload));revised.manifest.segments.sha256=sha256(data);await fs.writeFile(path.join(revised.folder,"segments.json"),data);await fs.writeFile(path.join(revised.folder,"manifest.json"),JSON.stringify(revised.manifest));
+ assert.equal((await importAudioPackage(revised.folder)).status,"READY");
+ const replay=await fixture("version-replay",{mutate:m=>{m.source.url=source;m.segments.sha256=sha256(data);}});await fs.writeFile(path.join(replay.folder,"segments.json"),data);
+ assert.equal((await importAudioPackage(replay.folder)).status,"READY");
+ assert.equal(await prisma.audioRecording.count({where:{sourceMetadata:{path:["url"],equals:source}}}),3,"review, geldig en nieuwe grenzen behouden ieder hun eigen versie");
+ assert.equal((await prisma.audioRecording.findUniqueOrThrow({where:{packageId:"version-review"}})).quality&&((await prisma.audioRecording.findUniqueOrThrow({where:{packageId:"version-review"}})).quality as {status:string}).status,"NEEDS_REVIEW");
+});
 test("defecte checksum en verkeerde editie blijven FAILED; actieve opname blijft behouden",async()=>{
  for(const [name,mutate] of [["bad-checksum",(m:AudioManifest)=>{m.audio.sha256="0".repeat(64);}],["bad-language",(m:AudioManifest)=>{m.language="en";}],["bad-source",(m:AudioManifest)=>{m.sourceHash="0".repeat(64);}]] as const){
   const f=await fixture(name,{mutate});assert.equal((await importAudioPackage(f.folder)).status,"FAILED");assert.equal(await prisma.audioRecording.count({where:{packageId:name}}),0);

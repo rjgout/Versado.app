@@ -288,6 +288,14 @@ Bewaar daarom de vorige digest zelf. Een DB-restore verliest nieuwere voortgang 
 
 ## Fase 6 — Ether 1-pilot in vijf talen
 
+**Met de nieuwe officiële-audiobediening:** gebruik na afzonderlijk goedgekeurde uitrol
+[Adminbackend → Content → Audio](ADMIN-OFFICIELE-AUDIO.md) voor download/controle en de aparte registratie.
+De gewone eigenaarspilot vereist dan geen SSH, losse JSON-controles of Docker-socket in de app. Behoud de baselines en
+beslismomenten uit dit runbook; publicatie en pilotacceptatie blijven afzonderlijke bevestigingen in fase 7.
+De technische opdrachten hieronder zijn een geavanceerde terugvalroute. Gebruik beide routes niet tegelijk voor dezelfde kandidaten.
+Een ontbrekende tekstuitgave blijft in de beheerbediening geblokkeerd; alleen de oude expliciete CLI kan de zes uitgaven toevoegen.
+
+
 ### 6.1 Broncheckout en gereedschap voorbereiden — WIJZIGT bronbestanden, geen DB
 
 - **Waar:** SSH op de vooraf goedgekeurde downloadhost (NAS uitsluitend door de eigenaar), of een aparte ontwikkelhost.

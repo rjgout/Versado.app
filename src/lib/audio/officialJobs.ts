@@ -33,7 +33,8 @@ async function target(source: OfficialSource, db: DB) {
 }
 async function existing(source: OfficialSource, db: DB) {
   const chapter = await target(source, db);
-  return db.audioRecording.findFirst({ where: { chapterId: chapter.id, sourceHash: source.sourceHash, sha256: source.sha256, sourceKind: "OFFICIAL", voice: { path: ["name"], equals: source.voice }, sourceMetadata: { path: ["url"], equals: source.url } } });
+  const segments=chapter.verses.map((v,i)=>({id:v.id,kind:"VERSE",sourceHash:sha256(v.text),start:source.starts[i],end:source.starts[i+1]??source.duration}));
+  return db.audioRecording.findFirst({ where: { chapterId: chapter.id, sourceHash: source.sourceHash, sha256: source.sha256, sourceKind: "OFFICIAL",quality:{path:["status"],equals:"VALIDATED"},segments:{equals:json(segments)}, voice: { path: ["name"], equals: source.voice }, sourceMetadata: { path: ["url"], equals: source.url } } });
 }
 export async function requestOfficialAudio(actor: Actor, action: "download" | "register" | "resume" | "approvePilot", ids: string[], db: PrismaClient = prisma, catalogue: readonly OfficialSource[] = officialSources) {
   if (action === "approvePilot") return db.$transaction(async (tx) => {
@@ -202,7 +203,7 @@ export async function officialOverview(db: PrismaClient = prisma) {
   const textTargets=new Set(chapters.map((c)=>JSON.stringify([c.book.contentCollectionId,c.book.key,c.number])));
   const records=await db.audioRecording.findMany({
     where:{sourceKind:"OFFICIAL"},
-    select:{id:true,sourceHash:true,sha256:true,sourceMetadata:true,voice:true,
+    select:{id:true,sourceHash:true,sha256:true,sourceMetadata:true,voice:true,quality:true,segments:true,duration:true,
       chapter:{select:{id:true,number:true,book:{select:{key:true,contentCollection:{select:{work:true,editionKey:true,language:true}}}}}},
       publication:{select:{version:true}},
     },
@@ -210,7 +211,9 @@ export async function officialOverview(db: PrismaClient = prisma) {
   const found=new Map(records.flatMap((r)=>{
     if(!r.chapter)return [];
     const c=r.chapter.book.contentCollection;
-    return [[objectHash({work:c.work,editionKey:c.editionKey,language:c.language,bookKey:r.chapter.book.key,chapterNumber:r.chapter.number,voice:(r.voice as {name?:string}).name,url:(r.sourceMetadata as {url?:string}).url,sha256:r.sha256,sourceHash:r.sourceHash}),r] as const];
+    const segments=Array.isArray(r.segments)?r.segments as {start?:number}[]:[];
+    const alignmentHash=objectHash({quality:(r.quality as {status?:string}).status??"",starts:segments.map(s=>s.start),duration:r.duration});
+    return [[objectHash({work:c.work,editionKey:c.editionKey,language:c.language,bookKey:r.chapter.book.key,chapterNumber:r.chapter.number,voice:(r.voice as {name?:string}).name,url:(r.sourceMetadata as {url?:string}).url,sha256:r.sha256,sourceHash:r.sourceHash,alignmentHash}),r] as const];
   }));
   let root:string|undefined,freeBytes:number|null=null;
   try{root=await audioRoot();const space=await fs.statfs(root);freeBytes=space.bavail*space.bsize;}catch{}
@@ -224,7 +227,7 @@ export async function officialOverview(db: PrismaClient = prisma) {
     const textPresent=!!collection&&textTargets.has(JSON.stringify([collection.id,s.bookKey,s.chapterNumber]));
     let blockReason: string|null=!root?"STORAGE_UNAVAILABLE":!textPresent?"TARGET_MISSING":null;
     if(s.pilot&&!blockReason)try{await target(s,db);}catch(error){blockReason=officialErrorCode(error);}
-    return {id:s.id,work:s.work,language:s.language,bookKey:s.bookKey,chapterNumber:s.chapterNumber,voice:s.voice,bytes:s.bytes,pilot:s.pilot,protected:s.legacyProtected,review:s.quality!=="VALIDATED",editionPresent:!!collection,textPresent,status:task?.status??(recording?"REGISTERED":"NOT_CHECKED"),phase:task?.phase??null,waiting:task?.status==="QUEUED"&&!!task.leaseUntil&&task.leaseUntil>new Date(),recovering:task?.status==="RUNNING"&&!!task.leaseUntil&&task.leaseUntil<=new Date(),bytesDownloaded:task?.bytesDownloaded??0,errorCode:task?.errorCode??null,checkedAt:task?.checkedAt?.toISOString()??null,recordingId:recording?.id??null,published:!!recording?.publication,pointerVersion:publications.find((p)=>p.targetKey===`chapter:${recording?.chapter?.id}`)?.version??0,local,cachePresent,blockReason,attempts:task?.attempts??0};
+    return {id:s.id,work:s.work,language:s.language,bookKey:s.bookKey,chapterNumber:s.chapterNumber,voice:s.voice,bytes:s.bytes,pilot:s.pilot,protected:s.legacyProtected,review:s.quality!=="VALIDATED",editionPresent:!!collection,textPresent,tracked:!!task,status:task?.status??(recording?"REGISTERED":"NOT_CHECKED"),phase:task?.phase??null,waiting:task?.status==="QUEUED"&&!!task.leaseUntil&&task.leaseUntil>new Date(),recovering:task?.status==="RUNNING"&&!!task.leaseUntil&&task.leaseUntil<=new Date(),bytesDownloaded:task?.bytesDownloaded??0,errorCode:task?.errorCode??null,checkedAt:task?.checkedAt?.toISOString()??null,recordingId:recording?.id??null,published:!!recording?.publication,pointerVersion:publications.find((p)=>p.targetKey===`chapter:${recording?.chapter?.id}`)?.version??0,local,cachePresent,blockReason,attempts:task?.attempts??0};
   }));
   return {storageAvailable:!!root,freeBytes,pilotApproved:approved,pilot:rows.filter((r)=>r.pilot),groups:["bofm","dc-testament","pgp"].flatMap((work)=>["nl","en","de","fr","es"].map((language)=>{
     const items=rows.filter((r)=>r.work===work&&r.language===language);

@@ -48,8 +48,8 @@ export default function OfficialAudioClient({initialData,sessionKey}:{initialDat
     finally{mutex.current=false;setBusy(false);}
   }
   const selectionLabel=(ids:string[])=>data?.pilot.filter((r)=>ids.includes(r.id)).map((r)=>`${t("officialAudio.ether")} 1 · ${r.language}`).join("\n")??"";
-  const pilotLabel=`${t("officialAudio.ether")} 1 · nl, en, de, fr, es`;
-  const downloading=data?.pilot.filter((r)=>!r.blockReason&&!r.recordingId&&r.status==="NOT_CHECKED").map((r)=>r.id)??[];
+  const pilotLabel=selectionLabel(data?.pilot.map((row)=>row.id)??[]);
+  const downloading=data?.pilot.filter((r)=>!r.blockReason&&((!r.recordingId&&r.status==="NOT_CHECKED")||(!r.tracked&&r.status==="REGISTERED"))).map((r)=>r.id)??[];
   const registering=data?.pilot.filter((r)=>!r.blockReason&&!r.recordingId&&r.status==="VALIDATED"&&r.local&&r.cachePresent).map((r)=>r.id)??[];
   return <>
     {data&&!data.storageAvailable&&<AdminNotice kind="error">{t("officialAudio.storageMissing")}</AdminNotice>}

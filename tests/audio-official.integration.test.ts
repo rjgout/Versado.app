@@ -8,7 +8,7 @@ import { prisma } from "../src/lib/db";
 import { sha256,type AudioManifest } from "../src/lib/audio/contract";
 import { pilotSources,officialSources } from "../src/lib/audio/officialCatalogue";
 import { requestOfficialAudio as requestProduction,runOfficialAudioTick,officialOverview } from "../src/lib/audio/officialJobs";
-import { hasApprovedPilot } from "../src/lib/audio/officialGuard";
+import { hasApprovedPilot,assertOfficialPublication } from "../src/lib/audio/officialGuard";
 import { publishAudio,importAudioPackage,scanAudioPackages } from "../src/lib/audio/library";
 import { officialSeed,officialPage } from "./fixtures/audio/official-source";
 import { mockOfficialNetwork,type OfficialMock } from "./fixtures/audio/official-network";
@@ -175,4 +175,20 @@ test("ontbrekende tekst wordt zichtbaar FAILED zonder tekstimport; ontbrekende o
   const status=await officialOverview();assert.equal(status.storageAvailable,false);assert.ok(status.pilot.every(r=>r.blockReason==="STORAGE_UNAVAILABLE"));
   await assert.rejects(requestOfficialAudio(actor,"download",[ids[0]]));assert.equal(await prisma.officialAudioTask.count(),count);
  }finally{process.env.AUDIO_DIR=previous;}
+});
+test("bestaande geldige officiële opname wordt gekoppeld zonder download, dubbele registratie of publicatie",async()=>{
+ const id=ids[0],task=await prisma.officialAudioTask.findUniqueOrThrow({where:{id}}),beforeCalls=await audioCalls(),pointers=await prisma.audioPublication.findMany({orderBy:{targetKey:"asc"}});
+ await prisma.officialAudioTask.delete({where:{id}});assert.equal(await hasApprovedPilot(prisma),false);
+ await requestOfficialAudio(actor,"download",[id]);const adopted=await prisma.officialAudioTask.findUniqueOrThrow({where:{id}});
+ assert.equal(adopted.status,"REGISTERED");assert.equal(adopted.recordingId,task.recordingId);assert.equal(await audioCalls(),beforeCalls);
+ assert.equal(await prisma.audioRecording.count({where:{packageId:prefix+id}}),1);assert.deepEqual(await prisma.audioPublication.findMany({orderBy:{targetKey:"asc"}}),pointers);
+ await requestOfficialAudio(actor,"approvePilot",[]);assert.equal(await hasApprovedPilot(prisma),true);
+});
+test("publicatiebescherming kan niet met een andere stemnaam, kwaliteitslabel of bronsoort worden omzeild",async()=>{
+ const source=officialSources.find(s=>s.work==="pgp"&&s.language==="de"&&s.quality!=="VALIDATED")!;
+ const chapter=await prisma.chapter.findFirstOrThrow({where:{number:source.chapterNumber,book:{key:source.bookKey,contentCollectionId:source.collectionId}}});
+ const record=await prisma.audioRecording.findFirstOrThrow({where:{packageId:{startsWith:prefix}}});
+ await assert.rejects(prisma.$transaction(tx=>assertOfficialPublication(tx,{...record,chapterId:chapter.id,work:source.work,editionKey:source.editionKey,language:source.language,sourceHash:source.sourceHash,sha256:source.sha256,voice:{name:"renamed"},quality:{status:"VALIDATED"},sourceMetadata:{url:source.url}})),/SOURCE_PROTECTED/);
+ const protectedSource=officialSources.find(s=>s.legacyProtected)!,protectedChapter=await prisma.chapter.findFirstOrThrow({where:{number:protectedSource.chapterNumber,book:{key:protectedSource.bookKey,contentCollectionId:protectedSource.collectionId}}});
+ await assert.rejects(prisma.$transaction(tx=>assertOfficialPublication(tx,{...record,chapterId:protectedChapter.id,sourceKind:"GENERATED"})),/SOURCE_PROTECTED/);
 });

@@ -11371,7 +11371,7 @@
     },
     {
       "file": "src/components/admin/OfficialAudioClient.tsx",
-      "sha256": "f11c7df40cb59a37d24a906fffbd21c751bb80d09e20b3b5753a9bca14c3c8f4",
+      "sha256": "0846220496b7d39b248e9502bab467426a922bfa3b7a68bd343ec9c7ade21047",
       "boundary": "client",
       "imports": [
         "./AdminNotice",
@@ -15513,7 +15513,7 @@
     },
     {
       "file": "src/lib/audio/library.ts",
-      "sha256": "0f447a250c652c1523396471a0d888baeb31b9767e5b28b46434da108b073369",
+      "sha256": "d1f51b98f1b7f2319b6d91e2e6c5014e999278ca650423e58b595098982f484b",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
@@ -15545,7 +15545,7 @@
     },
     {
       "file": "src/lib/audio/officialCatalogue.ts",
-      "sha256": "78d42b88223aa5b0285612c2f3edc52ed0f03bcc02ef4fd6fcc74094df65e5bd",
+      "sha256": "3297627fe8ff739f00fb8c461f5a7e60370f620d815e20fd708d80579755db6b",
       "boundary": "context-dependent",
       "imports": [
         "../../../data/audio/official-alignments.json",
@@ -15584,7 +15584,7 @@
     },
     {
       "file": "src/lib/audio/officialGuard.ts",
-      "sha256": "d51a471755af0563f5b7c18fe633923e99c9fd2e10c81c6a98c8ee1b4f70db8e",
+      "sha256": "b292d8e202c4510d59ac01737bedc1695385a245291737475b507542e8ad3c22",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
@@ -15607,7 +15607,7 @@
     },
     {
       "file": "src/lib/audio/officialJobs.ts",
-      "sha256": "f4d83a0357c05abcb8564018dad281588365ef5a9a424da2e46a76ac5143fe46",
+      "sha256": "91b5c7fbd36a7bcda619b0a93fe4f27d12f9c4cda1352c098d532d3a94884096",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
@@ -70435,7 +70435,7 @@
     },
     {
       "file": "src/components/admin/OfficialAudioClient.tsx",
-      "sha256": "f11c7df40cb59a37d24a906fffbd21c751bb80d09e20b3b5753a9bca14c3c8f4",
+      "sha256": "0846220496b7d39b248e9502bab467426a922bfa3b7a68bd343ec9c7ade21047",
       "boundary": "client",
       "imports": [
         "./AdminNotice",

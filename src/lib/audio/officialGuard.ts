@@ -25,10 +25,17 @@ export async function hasApprovedPilot(db: Prisma.TransactionClient | PrismaClie
 export async function assertOfficialPublication(tx: Prisma.TransactionClient, candidate: AudioRecording) {
   // Zelfde lock vóór iedere pointerwissel, ook als een gegenereerde opname een pilot zou vervangen.
   await lockOfficialPolicy(tx);
+  const chapter=candidate.chapterId?await tx.chapter.findUnique({where:{id:candidate.chapterId},include:{book:{include:{contentCollection:true}}}}):null;
+  const known=chapter?officialSources.filter(s=>s.work===chapter.book.contentCollection.work&&s.editionKey===chapter.book.contentCollection.editionKey&&s.language===chapter.book.contentCollection.language&&s.bookKey===chapter.book.key&&s.chapterNumber===chapter.number):[];
+  if(known.some(s=>s.legacyProtected))throw Error("SOURCE_PROTECTED");
   if (candidate.sourceKind !== "OFFICIAL") return;
+  if(known.some(s=>s.quality!=="VALIDATED"&&(s.voice===(candidate.voice as {name?:string}).name||(s.sha256===candidate.sha256&&s.sourceHash===candidate.sourceHash))))throw Error("SOURCE_PROTECTED");
   const task = await tx.officialAudioTask.findFirst({where:{recordingId:candidate.id}});
   const source = (task?officialSource(task.id):undefined)??officialSources.find((s) => s.sha256 === candidate.sha256 && s.sourceHash === candidate.sourceHash && s.url === (candidate.sourceMetadata as {url?:string}).url && s.voice === (candidate.voice as {name?:string}).name);
-  if (!source) return; // Bestaande andere importcontracten behouden hun eigen validaties.
+  if (!source) {
+    if(known.length&&!await hasApprovedPilot(tx))throw Error("PILOT_REQUIRED");
+    return; // Bestaande andere importcontracten behouden hun eigen validaties.
+  }
   if (source.legacyProtected || source.quality !== "VALIDATED") throw Error("SOURCE_PROTECTED");
   if (!source.pilot && !await hasApprovedPilot(tx)) throw Error("PILOT_REQUIRED");
 }
