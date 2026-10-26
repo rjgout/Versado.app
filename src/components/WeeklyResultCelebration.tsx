@@ -6,35 +6,52 @@ import { X } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import PersonalMascot from "@/components/versado/PersonalMascot";
 import DivisionEmblem from "@/components/versado/DivisionEmblem";
-import { visibleCelebration } from "@/lib/celebrationGate";
+import { getSocket } from "@/lib/socketClient";
+import { celebrationDeferredOn, visibleCelebration } from "@/lib/celebrationGate";
 import type { WeeklyResult } from "@/lib/weeklyResult";
 
 /** De server bewaart bekeken; alleen de open presentatie is lokaal. */
-export default function WeeklyResultCelebration({ enabled }: { enabled: boolean }) {
+export default function WeeklyResultCelebration() {
   const pathname = usePathname();
   const t = useT();
   const [result, setResult] = useState<WeeklyResult | null>(null);
   const dismissed = useRef(new Set<string>());
   const dialog = useRef<HTMLDialogElement>(null);
-  const shown = enabled ? visibleCelebration(result, pathname) : null;
+  const shown = visibleCelebration(result, pathname);
 
   useEffect(() => {
-    if (!enabled || !visibleCelebration(true, pathname)) return;
+    if (celebrationDeferredOn(pathname)) return;
     let cancelled = false;
+    let busy = false;
     async function refresh() {
-      if (document.visibilityState !== "visible") return;
+      if (document.visibilityState !== "visible" || busy || cancelled) return;
+      busy = true;
       try {
         const response = await fetch("/api/competition/result", { cache: "no-store" });
         if (!response.ok || cancelled) return;
         const data: { result: WeeklyResult | null } = await response.json();
         if (!cancelled) setResult(data.result && !dismissed.current.has(data.result.weekStart) ? data.result : null);
       } catch { /* Bij heropenen of netwerkherstel opnieuw proberen, zonder navigatie te blokkeren. */ }
+      finally { busy = false; }
     }
     void refresh();
     document.addEventListener("visibilitychange", refresh);
     window.addEventListener("online", refresh);
-    return () => { cancelled = true; document.removeEventListener("visibilitychange", refresh); window.removeEventListener("online", refresh); };
-  }, [enabled, pathname]);
+    // Ook bij een al geopende app: het bestaande meldingssignaal ververst direct.
+    // Polling vangt een weekgrens of gemist signaal zonder pushvoorkeur op.
+    const socket = getSocket();
+    socket.on("notifications_changed", refresh);
+    socket.on("connect", refresh);
+    const timer = window.setInterval(refresh, 30_000);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("online", refresh);
+      socket.off("notifications_changed", refresh);
+      socket.off("connect", refresh);
+      window.clearInterval(timer);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     const element = dialog.current;

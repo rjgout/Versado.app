@@ -42,7 +42,7 @@ try {
     const api = await context.request.get(`${base}/api/competition/result`); assert.equal(api.status(), 200);
     assert.equal((await api.json()).result.weekStart, ended);
     if (index === 0) {
-      // De bestaande reeksviering gaat voor; de divisie wacht tijdens een leesactiviteit.
+      // Alleen de leesactiviteit stelt uit; een open reeksviering blokkeert de uitslag niet.
       await prisma.user.update({ where: { id: ids[0] }, data: { currentStreak: 7, longestStreak: 7, lastStudyDate: new Date().toISOString().slice(0, 10), lastStudyTimeZone: "UTC", timeZone: "UTC" } });
       await prisma.streakDay.create({ data: { userId: ids[0], dayKey: new Date().toISOString().slice(0, 10), status: "STUDIED" } });
       await Promise.all([page.waitForResponse(response => response.url().endsWith("/api/streak/continuation")), page.goto(`${base}/scripture/${fixture.ownChapter.id}`)]);
@@ -50,9 +50,18 @@ try {
       assert.equal(await page.locator("[data-weekly-result]:modal").count(), 0);
       assert.equal((await prisma.streakDay.findFirstOrThrow({ where: { userId: ids[0] } })).celebrationShownAt, null);
       await page.goto(`${base}/dashboard`);
-      await page.getByRole("heading", { name: "Je reeks leeft voort", exact: true }).waitFor();
+    } else if (index === 15) {
+      // De app staat al open wanneer een uitslag beschikbaar komt. Een falende
+      // reeks-API mag dit onafhankelijke scherm niet tegenhouden.
+      await prisma.weeklyScore.update({ where: { userId_weekStart: { userId: ids[index], weekStart: ended } }, data: { resultSeenAt: new Date() } });
+      await page.route("**/api/streak/continuation", route => route.fulfill({ status: 503, json: {} }));
+      await page.clock.install();
+      await Promise.all([page.waitForResponse(response => response.url().endsWith("/api/competition/result")), page.goto(`${base}/dashboard`)]);
       assert.equal(await page.locator("[data-weekly-result]:modal").count(), 0);
-      await page.getByRole("button", { name: "Sluiten", exact: true }).click();
+      await page.evaluate(() => { document.body.dataset.weeklyOnlineTest = "same-page"; });
+      await prisma.weeklyScore.update({ where: { userId_weekStart: { userId: ids[index], weekStart: ended } }, data: { resultSeenAt: null } });
+      await Promise.all([page.waitForResponse(response => response.url().endsWith("/api/competition/result")), page.clock.fastForward(30_000)]);
+      assert.equal(await page.locator("body").getAttribute("data-weekly-online-test"), "same-page");
     } else await page.goto(`${base}/dashboard`);
     const dialog = page.locator("[data-weekly-result]:modal");
     await dialog.getByRole("heading", { name: title, exact: true }).waitFor();
@@ -70,6 +79,10 @@ try {
     await page.screenshot({ path: `${output}/${index}-large-bottom.png` });
     await Promise.all([page.waitForResponse(response => response.url().endsWith("/api/competition/result") && response.request().method() === "POST" && response.ok()), dialog.locator("footer button").click()]);
     assert.equal(await getWeeklyResult(ids[index]), null);
+    if (index === 0) {
+      await page.getByRole("heading", { name: "Je reeks leeft voort", exact: true }).waitFor();
+      await page.getByRole("button", { name: "Sluiten", exact: true }).click();
+    }
     await Promise.all([page.waitForResponse(response => response.url().endsWith("/api/competition/result") && response.request().method() === "GET"), page.reload()]);
     assert.equal(await page.locator("[data-weekly-result]:modal").count(), 0);
     assert.deepEqual(errors, []);
@@ -79,5 +92,5 @@ try {
   const withoutSeen = rows => rows.map(({ resultSeenAt, ...row }) => row);
   assert.deepEqual(withoutSeen(after), withoutSeen(before));
   assert.equal(await prisma.leagueGroup.count({ where: { id: group.id, memberCount: 30 } }), 1);
-  console.log("Divisie-uitslag: promotie, behoud, degradatie; eigen gids; reeksviering eerst; activiteiten uitgesteld; heropenen en eenmaal sluiten; 320px/200%/Frans; XP en deelname ongewijzigd.");
+  console.log("Divisie-uitslag: promotie, behoud, degradatie; eigen gids; onafhankelijk van reeksviering en reeks-API; beschikbaar tijdens online sessie zonder navigatie; activiteiten uitgesteld; heropenen en eenmaal sluiten; 320px/200%/Frans; XP en deelname ongewijzigd.");
 } finally { await browser.close(); await prisma.user.deleteMany({ where: { id: { in: ids } } }); await prisma.leagueGroup.delete({ where: { id: group.id } }); await prisma.$disconnect(); }

@@ -1,4 +1,5 @@
 import FreezeGiftPopup from "@/components/FreezeGiftPopup";
+import WeeklyResultCelebration from "@/components/WeeklyResultCelebration";
 import { StreakContinuationProvider } from "@/components/StreakContinuation";
 import { ConfirmProvider } from "@/components/ConfirmProvider";
 import type { Metadata, Viewport } from "next";
@@ -154,6 +155,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <NextNavigationProvider>
         <LiveDataProvider userId={user?.id} collectionId={contentContext?.active.id} language={contentContext?.contentLanguage} initialContentContext={contentContext ?? undefined} sessionKey={sessionKey}>
         <CompanionProvider character={companionToMascot(user?.companion)}>
+        {user && <WeeklyResultCelebration key={user.id} />}
         <StreakContinuationProvider userId={user?.id}>
         <ConfirmProvider>
         <KompasProvider>
