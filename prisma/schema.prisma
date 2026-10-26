@@ -2143,6 +2143,8 @@ model WeeklyScore {
   userId    String
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   weekStart String // yyyy-mm-dd (maandag)
+  // Alleen presentatie: geen invloed op XP, rangschikking of pushvoorkeuren.
+  resultSeenAt DateTime?
   xp        Int          @default(0)
   tier      LeagueTier   @default(BRONZE)
   // Beide nullable: bestaande rijen (van vóór groepen/seizoenen) blijven

@@ -11,6 +11,7 @@ import { onXpChanged } from "@/lib/xpBroadcast";
 import { getSocket } from "@/lib/socketClient";
 import type { StreakContinuationView } from "@/lib/learning/streakReturnRules";
 import StreakCelebrationFlow, { type StreakCelebrationValue } from "@/components/StreakCelebrationFlow";
+import WeeklyResultCelebration from "@/components/WeeklyResultCelebration";
 import StreakEarnedBanner from "@/components/StreakEarnedBanner";
 import { earnedStreakBanner, type EarnedStreakBanner } from "@/lib/streakBanner";
 import { celebrationDeferredOn, shouldClaimStreakCelebration, visibleCelebration } from "@/lib/celebrationGate";
@@ -48,6 +49,7 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
   const t = useT();
   const pathname = usePathname();
   const [value, setValue] = useState<StreakContinuationView | null>(null);
+  const [celebrationCheckedFor, setCelebrationCheckedFor] = useState<string | null>(null);
   const [welcome, setWelcome] = useState(false);
   const [banner, setBanner] = useState<(EarnedStreakBanner & { userId: string }) | null>(null);
   const pendingEarnedEvent = useRef(false);
@@ -130,7 +132,8 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
         }
         latest.current = next;
         setValue(next);
-        void claimCelebration();
+        await claimCelebration();
+        if (!cancelled) setCelebrationCheckedFor(accountId);
         if (next.status === "INTERRUPTED") {
           const key = `streak-return:${userId}:${next.interruptedDay}`;
           let alreadyShown = shown.current.has(key);
@@ -204,6 +207,7 @@ export function StreakContinuationProvider({ userId, children }: { userId?: stri
         <button type="button" className="btn-primary mt-5 w-full" onClick={() => setWelcome(false)}>{t("streakReturn.continue")}</button>
       </>}
     </dialog>
+    {userId && <WeeklyResultCelebration key={userId} enabled={celebrationCheckedFor === userId && !celebration && !welcome} />}
     {shownCelebration && <StreakCelebrationFlow value={shownCelebration} onDone={() => setCelebration(null)} />}
   </Context.Provider>;
 }

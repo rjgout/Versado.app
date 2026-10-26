@@ -3,6 +3,17 @@ import { kompasEs } from "./kompas/es";
 
 // Spaanse app-teksten; ontbrekende teksten vallen terug volgens fallbackChain.
 export const es: PartialMessages = {
+  weeklyResult: {
+    "label": "Resultado de división",
+    "promoted": "¡Has ascendido!",
+    "demoted": "Has descendido",
+    "stayed": "Te quedas en tu división",
+    "promotedBody": "Ahora juegas en {tier}. ¡A por una nueva semana!",
+    "demotedBody": "Ahora juegas en {tier}. Tu guía te acompaña.",
+    "stayedBody": "Sigues en {tier}. ¡Una nueva semana, nuevas oportunidades!",
+    "continue": "Continuar"
+},
+
   audioLibrary: {
     "local": "Disponible localmente",
     "legacyCount": "Audio de capítulo existente",

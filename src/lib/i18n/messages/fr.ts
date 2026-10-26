@@ -3,6 +3,17 @@ import { kompasFr } from "./kompas/fr";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const fr: PartialMessages = {
+  weeklyResult: {
+    "label": "Résultat de division",
+    "promoted": "Tu as été promu !",
+    "demoted": "Tu as été rétrogradé",
+    "stayed": "Tu restes dans ta division",
+    "promotedBody": "Tu joues maintenant en {tier}. Place à une nouvelle semaine !",
+    "demotedBody": "Tu joues maintenant en {tier}. Ton guide est à tes côtés.",
+    "stayedBody": "Tu restes en {tier}. Une nouvelle semaine, de nouvelles chances !",
+    "continue": "Continuer"
+},
+
   audioLibrary: {
     "local": "Présent localement",
     "legacyCount": "Audio de chapitre existant",

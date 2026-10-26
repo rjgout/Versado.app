@@ -267,7 +267,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **140 pagina's**, **237 fysieke routehandlers**, **420 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **140 pagina's**, **238 fysieke routehandlers**, **421 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -504,6 +504,7 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/chapters/[chapterId]/audio-languages` | GET | [src/app/api/chapters/[chapterId]/audio-languages/route.ts](../src/app/api/chapters/[chapterId]/audio-languages/route.ts) | leren; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/chapters/[chapterId]/read` | POST | [src/app/api/chapters/[chapterId]/read/route.ts](../src/app/api/chapters/[chapterId]/read/route.ts) | leren; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/chapters/[chapterId]/submit` | POST | [src/app/api/chapters/[chapterId]/submit/route.ts](../src/app/api/chapters/[chapterId]/submit/route.ts) | leren; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/competition/result` | GET, POST | [src/app/api/competition/result/route.ts](../src/app/api/competition/result/route.ts) | sociaal; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/content-api/status` | GET | [src/app/api/content-api/status/route.ts](../src/app/api/content-api/status/route.ts) | leren; verifyContentApiKey | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/content-context` | GET, PUT | [src/app/api/content-context/route.ts](../src/app/api/content-context/route.ts) | leren; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/courses` | GET | [src/app/api/courses/route.ts](../src/app/api/courses/route.ts) | leren; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
@@ -918,6 +919,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/TwoFactorSettings.tsx](../src/components/TwoFactorSettings.tsx) | use client | TwoFactorSettings
 [src/components/UserAvatar.tsx](../src/components/UserAvatar.tsx) | use client | UserAvatar, invalidateAvatarCache, setAvatarAppearance
 [src/components/UserTag.tsx](../src/components/UserTag.tsx) | contextafhankelijk / server-entry waar page/layout | UserTag
+[src/components/WeeklyResultCelebration.tsx](../src/components/WeeklyResultCelebration.tsx) | use client | WeeklyResultCelebration
 [src/components/WordDetailClient.tsx](../src/components/WordDetailClient.tsx) | use client | WordDetailClient
 [src/components/WordGameClient.tsx](../src/components/WordGameClient.tsx) | use client | WordGameClient
 [src/components/WordGameHintPanel.tsx](../src/components/WordGameHintPanel.tsx) | use client | WordGameHintPanel
