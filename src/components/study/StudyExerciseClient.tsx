@@ -19,6 +19,11 @@ import {
 import { chapterTerm } from "@/lib/chapterTerm";
 import FocusLayout from "@/components/versado/FocusLayout";
 class ReadingVisitRequiredError extends Error {}
+class StudyExerciseRequestError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+  }
+}
 type Issued = {
   sessionId: string;
   exercises: Exercise[];
@@ -101,7 +106,7 @@ export default function StudyExerciseClient({
       router.replace(returnHref);
       throw new ReadingVisitRequiredError(data.error);
     }
-    if (!res.ok) throw new Error(data.error ?? t("courses.error"));
+    if (!res.ok) throw new StudyExerciseRequestError(data.error ?? t("courses.error"), res.status);
     return data;
   }
   async function start() {
@@ -164,7 +169,9 @@ export default function StudyExerciseClient({
     } catch (e) {
       if (current !== generation.current) return;
       if (e instanceof ReadingVisitRequiredError) return;
-      removeDraft();
+      // Een tijdelijk transport-/serverprobleem mag bevestigde antwoorden niet wissen.
+      if (e instanceof StudyExerciseRequestError && [400, 403, 404, 409].includes(e.status))
+        removeDraft();
       setError(
         e instanceof Error &&
           !(e instanceof TypeError) &&

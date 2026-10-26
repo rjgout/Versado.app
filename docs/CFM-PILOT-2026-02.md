@@ -57,7 +57,9 @@ selecties, geen impliciete toestemming om alle hoofdstukken te toetsen.
   en controleren beschikbaarheid en hashes opnieuw.
 - `StudyReader` toont de geselecteerde verzen na de ongewijzigde stapinhoud en vóór
   de bestaande vragenactie. De volledige week toont dezelfde vijftien verzen eenmaal,
-  gegroepeerd per stap. Stap 1 dupliceert de al aanwezige citaten niet.
+  gegroepeerd per stap. Stap 1 dupliceert de al aanwezige citaten niet. Een
+  readonly vergelijking bevestigt dat geen van de vijftien aanvullende volledige
+  verzen al letterlijk in de oorspronkelijke lesbody staat.
 - `ScriptureVerses` hergebruikt de bestaande versweergave uit `ReferencePreview`
   (nummering, taal, leesbare alinea's, contrast en relatieve tekstmaten). Geen tweede
   schriftuurlezer, navigatiesysteem of annotatiemodel. De nieuwe sectie staat buiten
@@ -74,7 +76,9 @@ selecties, geen impliciete toestemming om alle hoofdstukken te toetsen.
   `resumeStudyExerciseSession` controleert eigenaar, leeftijd, actuele bron/revisie,
   vraagvolgorde en eventueel reeds opgeslagen resultaat. Serverbeoordeling blijft
   leidend; een lokaal correctheidsvlaggetje verdient geen XP. Hervatten van een
-  bevestigde inzending herstelt ook de gedeelde voortgangscache.
+  bevestigde inzending herstelt ook de gedeelde voortgangscache. Tijdelijke
+  netwerk-/serverfouten bij hervatten bewaren het checkpoint voor retry; alleen
+  aantoonbaar ongeldige of ingetrokken sessies ruimen het lokale concept op.
 - Ontbrekende/verborgen/veranderde of verkeerde bron: melding en geen betrokken
   vragen. Lezen, bestaand afvinken en historie blijven beschikbaar. Geen import,
   andere vertaling of afgekapt citaat als vervanging. `CFM_EXERCISES=off` stopt
@@ -118,7 +122,7 @@ afzonderlijke engine-/regressietests.
 | TypeScript en schone lokale productiebuild | Geslaagd |
 | Volledige ESLint | 0 fouten, 171 waarschuwingen; waaronder bestaande waarschuwingen en de effect-startwaarschuwing in StudyExerciseClient |
 | Bestaande browserregressies | 6 scenario's geslaagd, inclusief Boek van Mormon-hoofdstukvragen, correctieronde, officiële 2027-stap en lezen zonder vragen |
-| Echte pilotbrowser | 4 scenario's geslaagd: week 390px/donker, stap 3 320px/licht/200%, stap 5 320px/donker/200%, ontbrekende bron. Touch/toetsenbord, geen horizontale overflow, lesbody intact, terugkeer, checkpoint en verlies van bevestigde én onbevestigde inzending |
+| Echte pilotbrowser | 4 scenario's geslaagd: week 390px/donker, stap 3 320px/licht/200%, stap 5 320px/donker/200%, ontbrekende bron. Touch/toetsenbord, geen horizontale overflow, lesbody intact, terugkeer, checkpoint, een tijdelijke netwerkfout tijdens hervatten en verlies van bevestigde én onbevestigde inzending |
 
 De verloren-antwoordproef wacht expliciet tot de onderschepte serverresponse is
 voltooid en afgebroken; voor de bevestigde variant wordt de opgeslagen sessie
@@ -218,5 +222,7 @@ Chromium op 320/390 px is browserbewijs, geen fysieke iPhone-/iPad-/Android-test
 De lokale native router heeft nog geen CFM-studielezer/vragenroute of algemeen
 Bearer-contract. Native broninventaris en compilatie bewijzen geen functionele
 CFM-pariteit. Zie [native pariteit](NATIVE-FEATURE-PARITY.md).
-Er wordt geen volledige native ondersteuning, offlinegarantie of onafhankelijke
-menselijke inhoudsgoedkeuring geclaimd. Geen productiehandelingen uitgevoerd.
+Het checkpoint bewaart bevestigde antwoorden binnen dezelfde browsersessie;
+geen cross-device-conceptensynchronisatie of volledige offlinegarantie.
+Er wordt geen volledige native ondersteuning of onafhankelijke menselijke
+inhoudsgoedkeuring geclaimd. Geen productiehandelingen uitgevoerd.

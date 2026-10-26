@@ -234,12 +234,19 @@ try {
     await page.keyboard.press("Control+Home");
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     await page.screenshot({ animations: "disabled", path: `${out}/question-${step ?? "week"}-${width}-${scheme}.png` });
-    let lost = false;
+    let lost = false, failedResume = false;
+    const resumeFailure = Promise.withResolvers();
     const dropped = Promise.withResolvers();
     // Voorkom een ongevangen handlerfout vóór de hoofdflow deze belofte afwacht.
     dropped.promise.catch(() => {});
     if (!step || step===5)
       await page.route("**/api/study-exercises", async (route) => {
+        if (!step && route.request().postDataJSON()?.action === "resume" && !failedResume) {
+          failedResume = true;
+          await route.abort("failed");
+          resumeFailure.resolve();
+          return;
+        }
         if (route.request().postDataJSON()?.action === "submit" && !lost) {
           lost = true;
           try {
@@ -267,12 +274,15 @@ try {
               JSON.parse(sessionStorage.getItem(k))?.checkpoint?.index === 2,
           ),
         );
-        const resumed = page.waitForResponse(
-          (r) =>
-            r.url().endsWith("/api/study-exercises") &&
-            r.request().postDataJSON()?.action === "resume",
-        );
         await page.reload();
+        await resumeFailure.promise;
+        const retry = page.getByRole("button", { name: t("progress.practice", { n: 18 }), exact: true });
+        await retry.waitFor();
+        assert.ok(await page.evaluate(() => Object.keys(sessionStorage).some(k => k.startsWith("cfm-exercise:") && !k.endsWith(":visit") && JSON.parse(sessionStorage.getItem(k))?.checkpoint?.index === 2)), "verbindingsfout bij hervatten bewaart de twee bevestigde antwoorden");
+        const resumed = page.waitForResponse(
+          r => r.url().endsWith("/api/study-exercises") && r.request().postDataJSON()?.action === "resume",
+        );
+        await retry.click();
         const resume = await (await resumed).json();
         assert.equal(resume.issued.sessionId, issued.sessionId);
         assert.equal(resume.result, null);
@@ -378,6 +388,7 @@ try {
       bodyUnchanged: true,
       noOverflow: true,
       resumedSameSession: !step,
+      resumeNetworkFailureRecovered: !step,
       lostResponseRecovered: !step,
       unconfirmedRetryRecovered: step===5,
       xpTransactions: 1,
