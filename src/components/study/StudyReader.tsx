@@ -318,7 +318,7 @@ function ReaderVisit({
       )}
       {stepError && <p role="status" className="text-sm text-vs-danger">{stepError}</p>}
       {stepStatus === "COMPLETED" && <p className="text-sm text-vs-fg-2">{t("cfmStudy.stepDone")}</p>}
-      <nav className="flex gap-2" aria-label={t("cfmStudy.stepNavigation")}>
+      <nav className="flex flex-wrap gap-2" aria-label={t("cfmStudy.stepNavigation")}>
         {stepNumber > 1 && (
           <Link href={`${base}/stappen/${stepNumber - 1}`} prefetch={false} replace data-step-prev className={`${secondaryButton} min-h-12 flex-1`}>
             <ChevronLeft aria-hidden className="h-5 w-5 shrink-0" />
@@ -616,7 +616,7 @@ function ReaderVisit({
         </BlockedReferencesContext.Provider>
         </ReferenceActionsContext.Provider>
         {!legacy && Boolean(data.scriptureReadingSteps?.some(index=>!currentStep || index===currentStep.index)) && (
-          <section data-study-scripture-readings className="min-w-0 break-words space-y-6 border-t border-vs-line pt-4 text-base text-vs-fg">
+          <section data-study-scripture-readings className="min-w-0 space-y-6 border-t border-vs-line pt-4 text-base text-vs-fg">
             <h2 className="text-xl font-extrabold">{t("cfmExercises.scriptureReading")}</h2>
             {(data.scriptureReadings??[]).filter(reading=>!currentStep || reading.stepIndex===currentStep.index).map((reading,index,readings)=>(
               <section key={`${reading.stepIndex}:${reading.bookKey}:${reading.chapter}`} data-study-scripture-reading={reading.stepIndex} className="min-w-0 space-y-3">

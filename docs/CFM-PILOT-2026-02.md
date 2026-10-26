@@ -129,12 +129,19 @@ voltooid en afgebroken; voor de bevestigde variant wordt de opgeslagen sessie
 gecontroleerd vóór herladen. Een willekeurige al zichtbare alert geldt niet als
 bewijs van serveropslag. De browsercontrole bewaakt dat screenshots inhoud tonen.
 
-De eerste CI-proef vond horizontale overflow in de aanvullende lezing. Een bredere
-fallbackfont maakt “Schriftlezing” bij 200% tekst circa 286px breed bij slechts
-256px inhoudsruimte op 320px. De aanvullende sectie gebruikt nu bestaande
-`break-words`-opmaak. De 320px-proef forceert hiervoor DejaVu Sans op de kop en
-behoudt de strikte scrollbreedtecontrole; foutmeldingen noemen afmetingen en
-uitstekende elementen. Er is geen tekst verkleind of controle versoepeld.
+CI vond horizontale overflow op 320px/200%. De oorspronkelijke kop-hypothese is
+verworpen: bestaande tekstafbreking houdt de kop binnen zijn kolom. Met DejaVu Sans
+voor de hele pagina is de werkelijke oorzaak lokaal exact gereproduceerd:
+**“Volgende stap” eindigt op 324,28px**. De twee bestaande CFM-navigatieknoppen
+passen met die font/tekstgrootte niet naast elkaar. Alleen hun nav krijgt
+`flex-wrap`: normale weergave blijft naast elkaar, bij ruimtegebrek worden het
+twee rijen. Een geïsoleerde proef met de echte knopstijlen meet vóór 324px en na
+320px documentbreedte. Geen wijziging aan de gedeelde knoppen of overige leesmethoden.
+
+De browserproef forceert de bredere fallbackfont op de hele pagina, behoudt de
+strikte scrollbreedtecontrole, controleert de kop binnen de tekstkolom en bedient
+de volgende/vorige stap met touch/toetsenbord. Diagnostiek noemt ook scrollpositie
+en uitstekende elementen. Geen tekst verkleind of controle versoepeld.
 
 Reproduceren na `npm run build`:
 

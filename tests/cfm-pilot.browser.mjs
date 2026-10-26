@@ -73,16 +73,18 @@ async function showReading(page, heading, path) {
 async function noOverflow(page) {
   const layout = await page.evaluate(() => ({
     width: innerWidth,
+    scrollX,
+    readerMode: document.querySelector('[data-reader-mode]')?.getAttribute('data-reader-mode'),
     scrollWidth: document.documentElement.scrollWidth,
     readingHeadingInsideSection: [...document.querySelectorAll("[data-study-scripture-readings] h2")].every(el => {
       const bounds = el.parentElement.getBoundingClientRect(), range = document.createRange();
       range.selectNodeContents(el);
       return [...range.getClientRects()].every(r => r.right <= bounds.right + 1 && r.left >= bounds.left - 1);
     }),
-    overflow: [...document.querySelectorAll("main *")].filter(el => {
+    overflow: [...document.querySelectorAll("body *")].filter(el => {
       const r = el.getBoundingClientRect();
-      return !el.children.length && r.width && (r.right > innerWidth + 1 || r.left < -1);
-    }).slice(0, 8).map(el => ({ tag: el.tagName, className: el.className, text: el.textContent?.slice(0, 45), right: el.getBoundingClientRect().right })),
+      return r.width && r.right + scrollX > innerWidth + 1;
+    }).slice(0, 8).map(el => ({ tag: el.tagName, className: el.className, text: el.textContent?.slice(0, 45), right: el.getBoundingClientRect().right + scrollX })),
   }));
   assert.ok(layout.scrollWidth <= layout.width + 1 && layout.readingHeadingInsideSection, "geen horizontale scroll of uitstekende leeskop: " + JSON.stringify(layout));
 }
@@ -155,7 +157,7 @@ try {
     } else await page.goto(base + readerPath);
     await page.locator("[data-study-reader-body]").waitFor();
     if (scale === 2)
-      await page.addStyleTag({ content: 'html{font-size:200% !important}[data-study-scripture-readings] h2{font-family:"DejaVu Sans",sans-serif}' });
+      await page.addStyleTag({ content: 'html{font-size:200% !important}body,body *{font-family:"DejaVu Sans",sans-serif !important}' });
     const body = await page.locator("[data-study-reader-body]").innerText(),
       sections = page.locator("[data-study-scripture-reading]");
     assert.equal(await sections.count(), step ? 1 : 6);
@@ -220,7 +222,7 @@ try {
     assert.equal(issued.exercises.length, step ? 3 : 18);
     await page.locator("[data-exercise-progress]").waitFor();
     if (scale === 2) {
-      await page.addStyleTag({ content: 'html{font-size:200% !important}[data-study-scripture-readings] h2{font-family:"DejaVu Sans",sans-serif}' });
+      await page.addStyleTag({ content: 'html{font-size:200% !important}body,body *{font-family:"DejaVu Sans",sans-serif !important}' });
       assert.equal(
         await page.evaluate(
           () => getComputedStyle(document.documentElement).fontSize,
@@ -384,13 +386,27 @@ try {
       await page
         .getByText(t("cfmStudy.statusCompleted"), { exact: true })
         .waitFor();
+    if (step) {
+      await page.locator("[data-step-next]").tap();
+      await page.waitForURL(base + lessonPath + `/stappen/${step + 1}`);
+      await page.locator("[data-study-scripture-readings]").waitFor();
+      assert.equal(await page.locator("[data-study-scripture-readings] [data-scripture-verse]").count(), 3);
+      await noOverflow(page);
+      await page.locator("[data-step-prev]").focus();
+      await page.keyboard.press("Enter");
+      await page.waitForURL(base + lessonPath + `/stappen/${step}`);
+      await page.getByText(t("cfmStudy.statusCompleted"), { exact: true }).waitFor();
+      await noOverflow(page);
+      assert.equal(await prisma.xPTransaction.count({ where: { userId: a.user.id, reason: "LESSON_COMPLETED" } }), 1);
+    }
     assert.deepEqual(errors, []);
     results.push({
       officialPilot: true,
       width,
       scheme,
       scale,
-      wideReadingHeadingFont: scale === 2,
+      wideFallbackFont: scale === 2,
+      nextPreviousStepAtLargeText: Boolean(step),
       step,
       visibleVerses: step ? 3 : 15,
       questions: issued.exercises.length,
