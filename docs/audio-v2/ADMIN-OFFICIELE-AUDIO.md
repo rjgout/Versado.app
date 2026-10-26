@@ -4,6 +4,8 @@ Ontwikkelwerk op basis van main `55ef86e65def1d3094138a0846dedfe2f6ed7440`.
 Deze functionaliteit is ontwikkelwerk voor een draft-PR; beschikbaarheid op de NAS vereist later afzonderlijk uitrolakkoord.
 Geen productie-, NAS-, import-, publicatie-, deployment- of mergehandeling door Codex.
 
+Zie ook [bulkvoorbereiding en afzonderlijke publicatie](BULK-HERSTEL.md) voor de vervolgcorrectie, veilige deelfouten en mobiele hoofdstukselectie.
+
 ## Bediening voor de eigenaar
 
 Open **Adminbackend → Content → Audio**. Het eerste blok behandelt uitsluitend Ether 1 in nl/en/de/fr/es,

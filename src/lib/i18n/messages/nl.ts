@@ -17,6 +17,28 @@ export const nl = {
 },
 
   officialAudio: {
+    "previousPage": "Vorige pagina",
+    "nextPage": "Volgende pagina",
+
+    "databaseBusy": "De database is tijdelijk bezet. Eerdere stappen blijven bewaard; vernieuw het overzicht en probeer de resterende selectie opnieuw.",
+    "serviceError": "De server kan de actie nu niet afronden. Eerdere stappen blijven bewaard. Probeer later opnieuw.",
+    "batchTooLarge": "Kies maximaal 20 opnamen per aanvraag. De beheerpagina verdeelt grotere selecties automatisch.",
+    "downloadRequired": "Download en controleer deze opname eerst.",
+    "resumeUnavailable": "Deze taak kan niet worden hervat. Vernieuw het overzicht en kies de passende stap.",
+    "publicationConflict": "Dit hoofdstuk is inmiddels gepubliceerd. De bestaande opname is niet vervangen.",
+    "selectPublications": "Selecteer geregistreerde opnamen om te publiceren",
+    "publishSelected": "Geselecteerde opnamen publiceren",
+    "confirmPublishSelection": "Alleen de onderstaande gecontroleerde opnamen publiceren? Bestaande publicaties worden niet vervangen. Downloaden en registreren publiceren nooit audio.",
+    "selectAll": "Selecteer alle beschikbare hoofdstukken",
+    "clearSelection": "Selectie wissen",
+    "batchProgress": "Voorbereid: {done} van {total}. Eerdere stappen blijven bewaard.",
+    "partialFailure": "Niet alle acties zijn afgerond. Controleer de hoofdstukstatussen en probeer alleen de resterende acties opnieuw.",
+    "alreadyRegistered": "Deze opnamen zijn al geregistreerd. Selecteer ze hieronder voor afzonderlijke publicatie.",
+    "refreshHint": "Actieve taken worden iedere 15 seconden ververst; zonder actieve taken iedere 2 minuten.",
+    "refresh": "Overzicht vernieuwen",
+    "unpublished": "Nog niet gepubliceerd",
+    "otherPublished": "Een andere opname is al gepubliceerd; deze blijft actief.",
+
     "missingText": "Ontbrekende teksthoofdstukken",
     "storageMissing": "De audiomap is niet beschikbaar. Controleer de ingestelde opslag; er wordt niets gedownload of geregistreerd.",
     "storageFull": "Er is onvoldoende vrije opslagruimte. Maak eerst veilig ruimte vrij; bestaande bestanden blijven behouden.",

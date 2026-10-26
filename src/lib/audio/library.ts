@@ -112,7 +112,7 @@ export async function scanAudioPackages(db: PrismaClient = prisma) {
 }
 
 /** Alleen bestaande beheeridentiteit; publiceert audio, nooit de bijbehorende contentcollectie. */
-export async function publishAudio(actor: { id: string; isAdmin: boolean; sessionVersion: number }, recordingId: string, expectedVersion: number, db: PrismaClient = prisma) {
+export async function publishAudio(actor: { id: string; isAdmin: boolean; sessionVersion: number }, recordingId: string, expectedVersion: number, db: PrismaClient = prisma, options: { onlyIfUnpublished?: boolean } = {}) {
   if (!actor.isAdmin) throw new Error("FORBIDDEN");
   const candidate = await db.audioRecording.findUniqueOrThrow({ where: { id: recordingId } });
   if (!candidate.chapterId || (candidate.quality as { status?: string }).status !== "VALIDATED") throw new Error("QUALITY_REVIEW_REQUIRED");
@@ -131,6 +131,11 @@ export async function publishAudio(actor: { id: string; isAdmin: boolean; sessio
     if (c.work !== candidate.work || c.editionKey !== candidate.editionKey || c.language !== candidate.language) throw new Error("SOURCE_MISMATCH");
     validateSegments(segmentsSchema.shape.segments.parse(candidate.segments), chapter.verses, candidate.duration);
     const current = await tx.audioPublication.findUnique({ where: { targetKey: candidate.targetKey } });
+    // De officiële bulkbediening mag nooit een bestaande publicatie vervangen, ook niet bij een race.
+    if(options.onlyIfUnpublished&&current) {
+      if(current.recordingId===recordingId)return current;
+      throw Error("PUBLICATION_CONFLICT");
+    }
     if ((current?.version ?? 0) !== expectedVersion) throw new Error("PUBLICATION_CONFLICT");
     if (current?.recordingId === recordingId) return current;
     return tx.audioPublication.upsert({ where: { targetKey: candidate.targetKey }, create: { targetKey: candidate.targetKey, recordingId, publishedBy: actor.id }, update: { recordingId, publishedBy: actor.id, publishedAt: new Date(), version: { increment: 1 } } });

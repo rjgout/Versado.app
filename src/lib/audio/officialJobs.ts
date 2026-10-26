@@ -9,7 +9,7 @@ import { chapterSourceHash, objectHash, sha256, type AudioManifest } from "./con
 import { officialSources, pilotSources, type OfficialSource } from "./officialCatalogue";
 import { downloadOfficial, validateOfficialPage, type OfficialNetwork } from "./officialDownload";
 import { audioRoot, safeDirectory, readBounded, storeAudio, verifyObject } from "./storage";
-import { importAudioPackage } from "./library";
+import { importAudioPackage, publishAudio } from "./library";
 import { lockAudioAdmin, lockOfficialPolicy, hasApprovedPilot } from "./officialGuard";
 
 type Actor = { id: string; sessionVersion: number };
@@ -18,6 +18,11 @@ const json = (value: unknown) => value as Prisma.InputJsonValue;
 const packageName = (id: string) => `admin-official-${id}`;
 export const officialErrorCode = (error: unknown) => {
   const code=(error as NodeJS.ErrnoException)?.code;
+  const meta=(error as {meta?:{code?:string;driverAdapterError?:{cause?:{originalCode?:string}}}})?.meta;
+  const sqlCode=meta?.code??meta?.driverAdapterError?.cause?.originalCode;
+  if(["P2010","P2039"].includes(code??"")&&["55P03","40P01","57014"].includes(sqlCode??""))return "DATABASE_BUSY";
+  if (["P2028","P2034","P2024","55P03","40P01"].includes(code??"")) return "DATABASE_BUSY";
+  if (["P1001","P1002","P1017"].includes(code??"")) return "DATABASE_UNAVAILABLE";
   if(code==="ENOSPC")return "STORAGE_FULL";
   if(code==="EACCES"||code==="EROFS")return "STORAGE_PERMISSION";
   if(code==="ENOENT")return "STORAGE_UNAVAILABLE";
@@ -31,10 +36,10 @@ async function target(source: OfficialSource, db: DB) {
   if (source.language === "nl" && source.pilot && chapter.audioUrl) throw Error("LEGACY_PROTECTED");
   return chapter;
 }
-async function existing(source: OfficialSource, db: DB) {
+async function existing(source: OfficialSource, db: DB, recordingId?:string) {
   const chapter = await target(source, db);
   const segments=chapter.verses.map((v,i)=>({id:v.id,kind:"VERSE",sourceHash:sha256(v.text),start:source.starts[i],end:source.starts[i+1]??source.duration}));
-  return db.audioRecording.findFirst({ where: { chapterId: chapter.id, sourceHash: source.sourceHash, sha256: source.sha256, sourceKind: "OFFICIAL",quality:{path:["status"],equals:"VALIDATED"},segments:{equals:json(segments)}, voice: { path: ["name"], equals: source.voice }, sourceMetadata: { path: ["url"], equals: source.url } } });
+  return db.audioRecording.findFirst({ where: { ...(recordingId?{id:recordingId}:{}),chapterId: chapter.id, sourceHash: source.sourceHash, sha256: source.sha256, sourceKind: "OFFICIAL",quality:{path:["status"],equals:"VALIDATED"},segments:{equals:json(segments)}, voice: { path: ["name"], equals: source.voice }, sourceMetadata: { path: ["url"], equals: source.url } } });
 }
 export async function requestOfficialAudio(actor: Actor, action: "download" | "register" | "resume" | "approvePilot", ids: string[], db: PrismaClient = prisma, catalogue: readonly OfficialSource[] = officialSources) {
   if (action === "approvePilot") return db.$transaction(async (tx) => {
@@ -47,53 +52,84 @@ export async function requestOfficialAudio(actor: Actor, action: "download" | "r
     await tx.officialAudioTask.updateMany({ where: { id: { in: tasks.map((t) => t.id) } }, data: { pilotApprovalKey: randomUUID(), pilotApprovedById: actor.id, pilotApprovedAt: new Date() } });
     return { accepted: 5 };
   });
-  if (!ids.length || ids.length > 300 || new Set(ids).size !== ids.length) throw Error("INVALID_ACTION");
-  const sources = ids.map((id) => { const s = catalogue.find((item)=>item.id===id); if (!s) throw Error("SOURCE_UNKNOWN"); return s; });
-  return db.$transaction(async (tx) => {
-    await lockAudioAdmin(tx, actor);
-    await lockOfficialPolicy(tx);
-    await audioRoot();
-    if (sources.some((s) => !s.pilot) && !await hasApprovedPilot(tx)) throw Error("PILOT_REQUIRED");
-    for (const source of sources.sort((a,b) => a.id.localeCompare(b.id))) {
-      if(source.legacyProtected||source.quality!=="VALIDATED")throw Error("SOURCE_PROTECTED");
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`official-task:${source.id}`}, 0))::text`;
-      const task = await tx.officialAudioTask.findUnique({ where: { id: source.id } });
-      if (task?.status === "RUNNING" || task?.status === "QUEUED") continue;
-      try {await target(source,tx);}
-      catch(error){
-        const code=officialErrorCode(error);if(!["TARGET_MISSING","SOURCE_MISMATCH"].includes(code))throw error;
+  if (!ids.length || ids.length > 2000 || new Set(ids).size !== ids.length) throw Error("INVALID_ACTION");
+  const sources = ids.map((id) => { const s = catalogue.find((item)=>item.id===id); if (!s) throw Error("SOURCE_UNKNOWN"); return s; }).sort((a,b)=>a.id.localeCompare(b.id));
+  if(sources.some(s=>s.legacyProtected||s.quality!=="VALIDATED"))throw Error("SOURCE_PROTECTED");
+  const root=await audioRoot();
+  let accepted=0;
+  // Eén hoofdstuk per commit. Een trage bron of verloren response draait eerdere voorbereidingen niet terug.
+  for(const [index,source] of sources.entries()) {
+    try {
+      // Geen audio lezen/hashen in een database-transactie of terwijl de beheer-/policylock wordt vastgehouden.
+      let targetError:string|null=null, found:Awaited<ReturnType<typeof existing>>=null;
+      let present=false,cachePresent=false;
+      try { found=await existing(source,db); }
+      catch(error){const code=officialErrorCode(error);if(!["TARGET_MISSING","SOURCE_MISMATCH"].includes(code))throw error;targetError=code;}
+      if(found) {
+        try {await verifyObject(source.sha256,source.bytes);present=true;}
+        catch(error){if((error as NodeJS.ErrnoException).code!=="ENOENT")throw error;}
+      } else if(action==="download"&&!targetError) {
+        cachePresent=await cached(source,path.join(root,"official-cache",source.id));
+        if(cachePresent)try{await verifyObject(source.sha256,source.bytes);present=true;}
+        catch(error){if((error as NodeJS.ErrnoException).code!=="ENOENT")throw error;}
+      }
+      await db.$transaction(async tx=>{
+        // Prisma's deadline annuleert een lopende PostgreSQL-lockquery niet vanzelf.
+        await tx.$executeRawUnsafe("SET LOCAL lock_timeout = '1500ms'");
+        await tx.$executeRawUnsafe("SET LOCAL statement_timeout = '4000ms'");
+        await lockAudioAdmin(tx,actor);
+        await lockOfficialPolicy(tx);
+        if(!source.pilot&&!await hasApprovedPilot(tx))throw Error("PILOT_REQUIRED");
+        await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`official-task:${source.id}`}, 0))::text`;
+        const task=await tx.officialAudioTask.findUnique({where:{id:source.id}});
+        if(task?.status==="RUNNING"||task?.status==="QUEUED")return;
+        if(targetError) {
+          if(action==="register"&&(!task||task.status!=="VALIDATED"))throw Error("DOWNLOAD_REQUIRED");
+          const phase=action==="register"?"REGISTER":action==="resume"?task?.phase??"DOWNLOAD":"DOWNLOAD";
+          await tx.officialAudioTask.upsert({where:{id:source.id},create:{id:source.id,actorId:actor.id,actorSessionVersion:actor.sessionVersion,status:"FAILED",phase,errorCode:targetError},update:{status:"FAILED",errorCode:targetError,actorId:actor.id,actorSessionVersion:actor.sessionVersion,phase}});
+          return;
+        }
+        if(found) {
+          if((action==="download"||action==="resume")&&!present) {
+            await tx.officialAudioTask.upsert({where:{id:source.id},create:{id:source.id,actorId:actor.id,actorSessionVersion:actor.sessionVersion,recordingId:found.id},update:{status:"QUEUED",phase:"DOWNLOAD",actorId:actor.id,actorSessionVersion:actor.sessionVersion,recordingId:found.id,errorCode:null}});
+          } else {
+            await tx.officialAudioTask.upsert({where:{id:source.id},create:{id:source.id,actorId:actor.id,actorSessionVersion:actor.sessionVersion,status:"REGISTERED",recordingId:found.id},update:{status:"REGISTERED",recordingId:found.id,errorCode:null}});
+          }
+          return;
+        }
         if(action==="register"&&(!task||task.status!=="VALIDATED"))throw Error("DOWNLOAD_REQUIRED");
-        const phase=action==="register"?"REGISTER":action==="resume"?task?.phase??"DOWNLOAD":"DOWNLOAD";
-        await tx.officialAudioTask.upsert({where:{id:source.id},create:{id:source.id,actorId:actor.id,actorSessionVersion:actor.sessionVersion,status:"FAILED",phase,errorCode:code},update:{status:"FAILED",errorCode:code,actorId:actor.id,actorSessionVersion:actor.sessionVersion,phase}});
-        continue;
-      }
-      const found = await existing(source, tx);
-      if (found) {
-        let present = false;
-        try { await verifyObject(source.sha256, source.bytes); present = true; }
-        catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; }
-        if ((action === "download" || action === "resume") && !present) {
-          await tx.officialAudioTask.upsert({ where: { id: source.id }, create: { id: source.id, actorId: actor.id, actorSessionVersion: actor.sessionVersion, recordingId: found.id }, update: { status: "QUEUED", phase: "DOWNLOAD", actorId: actor.id, actorSessionVersion: actor.sessionVersion, recordingId: found.id, errorCode: null } });
-          continue;
-        }
-        await tx.officialAudioTask.upsert({ where: { id: source.id }, create: { id: source.id, actorId: actor.id, actorSessionVersion: actor.sessionVersion, status: "REGISTERED", recordingId: found.id }, update: { status: "REGISTERED", recordingId: found.id, errorCode: null } });
-        continue;
-      }
-      if (action === "register" && (!task || task.status !== "VALIDATED")) throw Error("DOWNLOAD_REQUIRED");
-      if (action === "download" && task?.status === "VALIDATED") {
-        const root = await audioRoot();
-        if (await cached(source,path.join(root,"official-cache",source.id))) {
-          try { await verifyObject(source.sha256,source.bytes); continue; }
-          catch(error){if((error as NodeJS.ErrnoException).code!=="ENOENT")throw error;}
-        }
-      }
-      if (action === "resume" && task?.status !== "FAILED") throw Error("RESUME_NOT_ALLOWED");
-      const phase = action === "register" ? "REGISTER" : action === "resume" ? task!.phase : "DOWNLOAD";
-      await tx.officialAudioTask.upsert({ where: { id: source.id }, create: { id: source.id, actorId: actor.id, actorSessionVersion: actor.sessionVersion }, update: { actorId: actor.id, actorSessionVersion: actor.sessionVersion, phase, status: "QUEUED", errorCode: null, leaseUntil: null, leaseToken: null, ...(phase === "REGISTER" ? { registrationApprovedAt: new Date() } : {}) } });
+        if(action==="download"&&task?.status==="VALIDATED"&&cachePresent&&present)return;
+        if(action==="resume"&&task?.status!=="FAILED")throw Error("RESUME_NOT_ALLOWED");
+        const phase=action==="register"?"REGISTER":action==="resume"?task!.phase:"DOWNLOAD";
+        await tx.officialAudioTask.upsert({where:{id:source.id},create:{id:source.id,actorId:actor.id,actorSessionVersion:actor.sessionVersion},update:{actorId:actor.id,actorSessionVersion:actor.sessionVersion,phase,status:"QUEUED",errorCode:null,leaseUntil:null,leaseToken:null,...(phase==="REGISTER"?{registrationApprovedAt:new Date()}:{})}});
+      },{timeout:5000,maxWait:2000});
+      accepted++;
+    }catch(error){
+      if(!accepted)throw error;
+      return {accepted,remainingIds:sources.slice(index).map(s=>s.id),errorCode:officialErrorCode(error)};
     }
-    return { accepted: sources.length };
-  }, { timeout: 30000 });
+  }
+  return {accepted,remainingIds:[] as string[],errorCode:null};
 }
+
+/** Afzonderlijk bevestigd besluit; één bestaande publicatietransactie per kandidaat, nooit vervangen. */
+export async function publishOfficialSelection(actor:Actor&{isAdmin:boolean}, selections:{id:string;recordingId:string}[], db:PrismaClient=prisma, catalogue:readonly OfficialSource[]=officialSources) {
+  if(!selections.length||selections.length>20||new Set(selections.map(s=>s.id)).size!==selections.length)throw Error("INVALID_ACTION");
+  const results:{id:string;status:"PUBLISHED"|"FAILED";errorCode:string|null}[]=[];
+  for(const selection of selections) {
+    try {
+      const source=catalogue.find(s=>s.id===selection.id);
+      if(!source)throw Error("SOURCE_UNKNOWN");
+      if(source.legacyProtected||source.quality!=="VALIDATED")throw Error("SOURCE_PROTECTED");
+      const record=await existing(source,db,selection.recordingId);
+      if(!record||record.id!==selection.recordingId)throw Error("SOURCE_MISMATCH");
+      await publishAudio(actor,record.id,0,db,{onlyIfUnpublished:true});
+      results.push({id:source.id,status:"PUBLISHED",errorCode:null});
+    }catch(error){results.push({id:selection.id,status:"FAILED",errorCode:officialErrorCode(error)});}
+  }
+  return {results};
+}
+
 async function cached(source: OfficialSource, folder: string) {
   try { const bytes = await readBounded(path.join(folder,"audio.mp3"), source.bytes); if (bytes.length !== source.bytes || sha256(bytes) !== source.sha256) throw Error("CACHE_CORRUPT"); return true; }
   catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return false; throw error; }
@@ -199,8 +235,9 @@ export async function runOfficialAudioTick(db: PrismaClient = prisma, network: O
 export async function officialOverview(db: PrismaClient = prisma) {
   const tasks=await db.officialAudioTask.findMany(), approved=await hasApprovedPilot(db);
   const collections=await db.contentCollection.findMany({where:{work:{in:["bofm","dc-testament","pgp"]}},select:{id:true,work:true,editionKey:true,language:true}});
-  const chapters=await db.chapter.findMany({where:{book:{contentCollection:{work:{in:["bofm","dc-testament","pgp"]}}}},select:{number:true,book:{select:{key:true,contentCollectionId:true}}}});
-  const textTargets=new Set(chapters.map((c)=>JSON.stringify([c.book.contentCollectionId,c.book.key,c.number])));
+  const chapters=await db.chapter.findMany({where:{book:{contentCollection:{work:{in:["bofm","dc-testament","pgp"]}}}},select:{number:true,book:{select:{key:true,name:true,contentCollectionId:true}}}});
+  const textNames=new Map(chapters.map(c=>[JSON.stringify([c.book.contentCollectionId,c.book.key,c.number]),c.book.name]));
+  const textTargets=new Set(textNames.keys());
   const records=await db.audioRecording.findMany({
     where:{sourceKind:"OFFICIAL"},
     select:{id:true,sourceHash:true,sha256:true,sourceMetadata:true,voice:true,quality:true,segments:true,duration:true,
@@ -219,19 +256,25 @@ export async function officialOverview(db: PrismaClient = prisma) {
   try{root=await audioRoot();const space=await fs.statfs(root);freeBytes=space.bavail*space.bsize;}catch{}
   const publications=await db.audioPublication.findMany({select:{targetKey:true,version:true}});
   const present=async(file:string,size:number)=>{try{const stat=await fs.lstat(file);return stat.isFile()&&stat.size===size;}catch{return false;}};
-  const rows=await Promise.all(officialSources.map(async(s)=>{
-    const task=tasks.find((t)=>t.id===s.id),recording=found.get(s.id);
-    const local=!!root && await present(path.join(root,"objects",s.sha256+".mp3"),s.bytes);
-    const cachePresent=!!root && await present(path.join(root,"official-cache",s.id,"audio.mp3"),s.bytes);
+  const tasksById=new Map(tasks.map(task=>[task.id,task]));
+  const stats=new Map<string,Promise<boolean>>();
+  const once=(file:string,size:number)=>{const key=`${file}:${size}`;if(!stats.has(key))stats.set(key,present(file,size));return stats.get(key)!;};
+  const rows:Awaited<ReturnType<typeof row>>[]=[];
+  async function row(s:OfficialSource){
+    const task=tasksById.get(s.id),recording=found.get(s.id);
+    const local=!!root && !!(task||recording) && await once(path.join(root,"objects",s.sha256+".mp3"),s.bytes);
+    const cachePresent=!!root && !!task && await once(path.join(root,"official-cache",s.id,"audio.mp3"),s.bytes);
     const collection=collections.find((c)=>c.work===s.work&&c.editionKey===s.editionKey&&c.language===s.language);
     const textPresent=!!collection&&textTargets.has(JSON.stringify([collection.id,s.bookKey,s.chapterNumber]));
     let blockReason: string|null=!root?"STORAGE_UNAVAILABLE":!textPresent?"TARGET_MISSING":null;
     if(s.pilot&&!blockReason)try{await target(s,db);}catch(error){blockReason=officialErrorCode(error);}
-    return {id:s.id,work:s.work,language:s.language,bookKey:s.bookKey,chapterNumber:s.chapterNumber,voice:s.voice,bytes:s.bytes,pilot:s.pilot,protected:s.legacyProtected,review:s.quality!=="VALIDATED",editionPresent:!!collection,textPresent,tracked:!!task,status:task?.status??(recording?"REGISTERED":"NOT_CHECKED"),phase:task?.phase??null,waiting:task?.status==="QUEUED"&&!!task.leaseUntil&&task.leaseUntil>new Date(),recovering:task?.status==="RUNNING"&&!!task.leaseUntil&&task.leaseUntil<=new Date(),bytesDownloaded:task?.bytesDownloaded??0,errorCode:task?.errorCode??null,checkedAt:task?.checkedAt?.toISOString()??null,recordingId:recording?.id??null,published:!!recording?.publication,pointerVersion:publications.find((p)=>p.targetKey===`chapter:${recording?.chapter?.id}`)?.version??0,local,cachePresent,blockReason,attempts:task?.attempts??0};
-  }));
+    return {id:s.id,work:s.work,language:s.language,bookKey:s.bookKey,bookName:textNames.get(JSON.stringify([collection?.id,s.bookKey,s.chapterNumber]))??s.bookKey,chapterNumber:s.chapterNumber,voice:s.voice,bytes:s.bytes,pilot:s.pilot,protected:s.legacyProtected,review:s.quality!=="VALIDATED",editionPresent:!!collection,textPresent,tracked:!!task,status:task?.status??(recording?"REGISTERED":"NOT_CHECKED"),phase:task?.phase??null,waiting:task?.status==="QUEUED"&&!!task.leaseUntil&&task.leaseUntil>new Date(),recovering:task?.status==="RUNNING"&&!!task.leaseUntil&&task.leaseUntil<=new Date(),bytesDownloaded:task?.bytesDownloaded??0,errorCode:task?.errorCode??null,checkedAt:task?.checkedAt?.toISOString()??null,recordingId:recording?.id??null,publishable:!!recording&&!!local&&s.quality==="VALIDATED"&&!s.legacyProtected&&!blockReason&&!publications.some(p=>p.targetKey===`chapter:${recording.chapter?.id}`),published:!!recording?.publication,pointerVersion:publications.find((p)=>p.targetKey===`chapter:${recording?.chapter?.id}`)?.version??0,local,cachePresent,blockReason,attempts:task?.attempts??0};
+  }
+  // Maximaal acht gelijktijdige bestandcontroles, ook bij een volledige bibliotheek.
+  for(let index=0;index<officialSources.length;index+=8)rows.push(...await Promise.all(officialSources.slice(index,index+8).map(row)));
   return {storageAvailable:!!root,freeBytes,pilotApproved:approved,pilot:rows.filter((r)=>r.pilot),groups:["bofm","dc-testament","pgp"].flatMap((work)=>["nl","en","de","fr","es"].map((language)=>{
     const items=rows.filter((r)=>r.work===work&&r.language===language);
-    return {work,language,targets:new Set(items.map((r)=>`${r.bookKey}:${r.chapterNumber}`)).size,missingText:new Set(items.filter((r)=>!r.textPresent).map((r)=>`${r.bookKey}:${r.chapterNumber}`)).size,candidates:items.length,checked:items.filter((r)=>r.checkedAt).length,registered:items.filter((r)=>r.recordingId).length,published:items.filter((r)=>r.published).length,missing:items.filter((r)=>r.recordingId&&!r.local).length,review:items.filter((r)=>r.review).length,protected:items.filter((r)=>r.protected).length,editionPresent:items.some((r)=>r.editionPresent),downloadIds:items.filter((r)=>r.textPresent&&!r.protected&&!r.review&&(!r.recordingId||!r.local)&&!["QUEUED","RUNNING","VALIDATED"].includes(r.status)).map((r)=>r.id),registerIds:items.filter((r)=>r.textPresent&&r.status==="VALIDATED"&&r.cachePresent&&r.local&&!r.recordingId).map((r)=>r.id),resumeIds:items.filter((r)=>r.textPresent&&r.status==="FAILED").map((r)=>r.id),jobs:items.filter((r)=>r.status!=="NOT_CHECKED")};
+    return {work,language,targets:new Set(items.map((r)=>`${r.bookKey}:${r.chapterNumber}`)).size,missingText:new Set(items.filter((r)=>!r.textPresent).map((r)=>`${r.bookKey}:${r.chapterNumber}`)).size,candidates:items.length,checked:items.filter((r)=>r.checkedAt).length,registered:items.filter((r)=>r.recordingId).length,published:items.filter((r)=>r.published).length,missing:items.filter((r)=>r.recordingId&&!r.local).length,review:items.filter((r)=>r.review).length,protected:items.filter((r)=>r.protected).length,editionPresent:items.some((r)=>r.editionPresent),downloadIds:items.filter((r)=>r.textPresent&&!r.protected&&!r.review&&(!r.recordingId||!r.local)&&!["QUEUED","RUNNING"].includes(r.status)&&(r.status!=="VALIDATED"||!r.local||!r.cachePresent)).map((r)=>r.id),registerIds:items.filter((r)=>r.textPresent&&!r.protected&&!r.review&&r.status==="VALIDATED"&&r.cachePresent&&r.local&&!r.recordingId).map((r)=>r.id),resumeIds:items.filter((r)=>r.textPresent&&!r.protected&&!r.review&&r.status==="FAILED").map((r)=>r.id),jobs:items.filter((r)=>r.status!=="NOT_CHECKED")};
   })),active:tasks.some((t)=>["RUNNING","QUEUED"].includes(t.status))};
 }
 export type OfficialOverview=Awaited<ReturnType<typeof officialOverview>>;

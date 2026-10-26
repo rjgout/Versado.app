@@ -15,6 +15,28 @@ export const en: PartialMessages = {
 },
 
   officialAudio: {
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+
+    "databaseBusy": "The database is temporarily busy. Earlier steps are saved; refresh and retry the remaining selection.",
+    "serviceError": "The server cannot finish this action now. Earlier steps are saved. Try again later.",
+    "batchTooLarge": "Choose at most 20 recordings per request. The admin page splits larger selections automatically.",
+    "downloadRequired": "Download and validate this recording first.",
+    "resumeUnavailable": "This task cannot be resumed. Refresh and choose the appropriate step.",
+    "publicationConflict": "This chapter has been published meanwhile. Its existing recording was not replaced.",
+    "selectPublications": "Select registered recordings to publish",
+    "publishSelected": "Publish selected recordings",
+    "confirmPublishSelection": "Publish only the validated recordings listed below? Existing publications will not be replaced. Downloading and registration never publish audio.",
+    "selectAll": "Select all available chapters",
+    "clearSelection": "Clear selection",
+    "batchProgress": "Prepared: {done} of {total}. Earlier steps are saved.",
+    "partialFailure": "Some actions are unfinished. Check the chapter statuses and retry only the remaining actions.",
+    "alreadyRegistered": "These recordings are already registered. Select them below for separate publication.",
+    "refreshHint": "Active tasks refresh every 15 seconds; without active tasks every 2 minutes.",
+    "refresh": "Refresh overview",
+    "unpublished": "Not published yet",
+    "otherPublished": "Another recording is already published; it remains active.",
+
     "missingText": "Missing text chapters",
     "storageMissing": "The audio directory is unavailable. Check the configured storage; nothing is downloaded or registered.",
     "storageFull": "There is not enough free storage. Safely free space first; existing files are preserved.",

@@ -15,6 +15,28 @@ export const es: PartialMessages = {
 },
 
   officialAudio: {
+    "previousPage": "Página anterior",
+    "nextPage": "Página siguiente",
+
+    "databaseBusy": "La base de datos está ocupada temporalmente. Los pasos anteriores se conservan; actualiza y vuelve a intentar la selección restante.",
+    "serviceError": "El servidor no puede finalizar esta acción ahora. Los pasos anteriores se conservan. Inténtalo más tarde.",
+    "batchTooLarge": "Selecciona como máximo 20 grabaciones por solicitud. La página divide automáticamente las selecciones mayores.",
+    "downloadRequired": "Descarga y valida esta grabación primero.",
+    "resumeUnavailable": "Esta tarea no puede reanudarse. Actualiza y elige el paso adecuado.",
+    "publicationConflict": "Este capítulo ya se ha publicado. No se ha sustituido su grabación existente.",
+    "selectPublications": "Seleccionar grabaciones registradas para publicar",
+    "publishSelected": "Publicar grabaciones seleccionadas",
+    "confirmPublishSelection": "¿Publicar solo las grabaciones verificadas que aparecen a continuación? No se sustituirán las publicaciones existentes. Descargar y registrar nunca publica audio.",
+    "selectAll": "Seleccionar todos los capítulos disponibles",
+    "clearSelection": "Borrar selección",
+    "batchProgress": "Preparadas: {done} de {total}. Se conservan los pasos anteriores.",
+    "partialFailure": "Algunas acciones no se han completado. Revisa los capítulos y reintenta solo las acciones restantes.",
+    "alreadyRegistered": "Estas grabaciones ya están registradas. Selecciónalas abajo para publicarlas por separado.",
+    "refreshHint": "Las tareas activas se actualizan cada 15 segundos; sin tareas activas, cada 2 minutos.",
+    "refresh": "Actualizar resumen",
+    "unpublished": "Aún no publicado",
+    "otherPublished": "Ya hay otra grabación publicada y seguirá activa.",
+
     "missingText": "Capítulos de texto ausentes",
     "storageMissing": "La carpeta de audio no está disponible. Comprueba el almacenamiento configurado; no se descarga ni registra nada.",
     "storageFull": "No hay espacio libre suficiente. Libera espacio de forma segura; se conservan los archivos existentes.",

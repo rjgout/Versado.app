@@ -15,6 +15,28 @@ export const fr: PartialMessages = {
 },
 
   officialAudio: {
+    "previousPage": "Page précédente",
+    "nextPage": "Page suivante",
+
+    "databaseBusy": "La base de données est temporairement occupée. Les étapes précédentes sont conservées ; actualisez et réessayez la sélection restante.",
+    "serviceError": "Le serveur ne peut pas terminer cette action pour le moment. Les étapes précédentes sont conservées. Réessayez plus tard.",
+    "batchTooLarge": "Choisissez au maximum 20 enregistrements par requête. La page répartit automatiquement les sélections plus grandes.",
+    "downloadRequired": "Téléchargez et vérifiez cet enregistrement au préalable.",
+    "resumeUnavailable": "Cette tâche ne peut pas reprendre. Actualisez et choisissez l’étape appropriée.",
+    "publicationConflict": "Ce chapitre a été publié entre-temps. Son enregistrement existant n’a pas été remplacé.",
+    "selectPublications": "Sélectionner les enregistrements inscrits à publier",
+    "publishSelected": "Publier les enregistrements sélectionnés",
+    "confirmPublishSelection": "Publier uniquement les enregistrements vérifiés ci-dessous ? Les publications existantes ne seront pas remplacées. Le téléchargement et l’inscription ne publient jamais de contenu audio.",
+    "selectAll": "Sélectionner tous les chapitres disponibles",
+    "clearSelection": "Effacer la sélection",
+    "batchProgress": "Préparés : {done} sur {total}. Les étapes précédentes sont conservées.",
+    "partialFailure": "Certaines actions restent inachevées. Vérifiez les chapitres et réessayez uniquement les actions restantes.",
+    "alreadyRegistered": "Ces enregistrements sont déjà inscrits. Sélectionnez-les ci-dessous pour les publier séparément.",
+    "refreshHint": "Les tâches actives sont actualisées toutes les 15 secondes ; sinon toutes les 2 minutes.",
+    "refresh": "Actualiser l’aperçu",
+    "unpublished": "Pas encore publié",
+    "otherPublished": "Un autre enregistrement est déjà publié et reste actif.",
+
     "missingText": "Chapitres de texte manquants",
     "storageMissing": "Le dossier audio est indisponible. Vérifiez le stockage configuré ; rien n’est téléchargé ni enregistré.",
     "storageFull": "L’espace libre est insuffisant. Libérez d’abord de la place en sécurité ; les fichiers existants sont conservés.",
