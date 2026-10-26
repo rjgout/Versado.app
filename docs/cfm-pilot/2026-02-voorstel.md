@@ -2,7 +2,13 @@
 
 **NIET GEACTIVEERD.** Dit is een concreet inhoudelijk voorstel, geen volledige officiële pilot in de app. Geen vraagrijen of nieuwe koppelingen gepubliceerd. De officiële CFM-les blijft ongewijzigd.
 
-Keuze die eerst nodig is: mogen de geselecteerde, reeds gekoppelde schriftverzen herkenbaar als aanvullende schriftlezing in de bestaande stap worden aangeboden vóór de vragen? Alleen dan mogen de vijftien nieuwe conceptvragen over die verzen gaan.
+**Besluit 26 oktober 2026: uitsluitend de huidige zichtbare CFM-tekst toetsen.**
+Aanvullende schriftlezing is niet gekozen. P01–P03 zijn gebaseerd op bestaande
+zichtbare citaten; P04–P18 vereisen extra tekst en zijn daarom **niet toegestaan
+voor activering**. De onderstaande vijftien voorstellen blijven alleen als
+onderzoeksverantwoording bewaard. Dit document is geen goedgekeurde achttienvragenset.
+Stap 1 blijft beschikbaar; de week is niet volledig. Zie de
+[verwerkte bronkeuze en gevolgen](../CFM-VRAAGDEKKING-ONDERZOEK.md#4-besluit-uitsluitend-de-huidige-zichtbare-cfm-tekst-26-oktober-2026).
 
 De onderstaande bron-/antwoordcontrole is door Codex uitgevoerd, met de bestaande generator en centrale antwoordcontrole. Geen onafhankelijke menselijke goedkeuring geclaimd. Het inhoudelijk lezen van de vragen vervangt de latere gebruikers-/apparaatvalidatie niet.
 
@@ -20,9 +26,9 @@ De onderstaande bron-/antwoordcontrole is door Codex uitgevoerd, met de bestaand
 |---|---|---|
 | 1 | `b-p1`, `b-p2`: Genesis 1:1, Mozes 1:36 staan al geciteerd | Geen nieuwe lezing nodig voor de bestaande drie vragen |
 | 2 | `b-p3`: Mozes 1:4, 6, 12 | Exact deze drie verzen |
-| 3 | `b-p5`: andere verzen uit Mozes 1, voortgezet onderwerp identiteit | Mozes 1:3, 7, 9 als expliciete beheerdersselectie binnen dat hoofdstuk; nog productmatig te bevestigen |
+| 3 | `b-p5`: andere verzen uit Mozes 1, voortgezet onderwerp identiteit | Mozes 1:3, 7, 9 als expliciete beheerdersselectie binnen dat hoofdstuk; niet gekozen onder de huidige bronafbakening |
 | 4 | `b-scripture_title2`, `b-p7`, `b-p8`: Mozes 1:12–26 / 13–18 | Mozes 1:13, 16, 18 |
-| 5 | `b-figure1_p1`: lezen hoe Mozes Satan weerstond in Mozes 1 | Mozes 1:20, 21, 25, voortgezet onderwerp; nog als concrete selectie te bevestigen |
+| 5 | `b-figure1_p1`: lezen hoe Mozes Satan weerstond in Mozes 1 | Mozes 1:20, 21, 25, voortgezet onderwerp; niet gekozen onder de huidige bronafbakening |
 | 6 | `b-p10`, `b-p11`: Mozes 1:31–39 en Abraham 3:22–28 | Mozes 1:39; Abraham 3:24, 25 |
 
 De titel met “Mozes 1; Abraham 3” is geen bewijs dat alle verzen al zijn gelezen. Stap 3 en 5 vragen bovendien een expliciete selectie binnen de bredere officiële opdracht; deze keuze wordt niet stilzwijgend als bestaande bronkoppeling voorgesteld.

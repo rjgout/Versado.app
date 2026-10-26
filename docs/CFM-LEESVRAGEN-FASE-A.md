@@ -4,10 +4,12 @@ Ontwikkelbasis: `origin/main` **55ef86e6**, inclusief de definitieve besluiten v
 PR #216 en de contentafbakening van PR #217. Dit verslag hoort bij de afzonderlijke fase-A-draft. Geen merge,
 productie-import, uitrol of wijziging van productiegegevens uitgevoerd.
 
-**Vervolg vraagdekking/pilot:** zie de [oorzakenanalyse en het open bronbesluit](CFM-VRAAGDEKKING-ONDERZOEK.md).
-Een concrete officiële pilot is voorbereid, maar aanvullende schriftlezing is niet
-geactiveerd vóór een expliciet productbesluit. De onderstaande technische
-werking en de 17/624-dekking zijn ongewijzigd.
+**Vervolg vraagdekking/pilot:** zie de [oorzakenanalyse en definitieve bronkeuze](CFM-VRAAGDEKKING-ONDERZOEK.md).
+De eigenaar heeft op 26 oktober 2026 gekozen voor uitsluitend de huidige zichtbare
+CFM-tekst. Er wordt geen aanvullende schriftlezing toegevoegd. De vijftien conceptvragen
+die extra verzen vereisen worden niet geactiveerd. De onderstaande technische werking
+en de **17/624-dekking, nul volledige officiële weken** zijn ongewijzigd. Fase A is
+inhoudelijk nog niet releasegereed; een volledige officiële pilot is niet aangetoond.
 
 ## Werking en hergebruik
 

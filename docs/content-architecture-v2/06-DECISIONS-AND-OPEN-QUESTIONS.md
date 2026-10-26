@@ -50,6 +50,7 @@ Uitvoeringsprioriteit: [roadmap A–D](04-IMPLEMENTATION-ROADMAP.md#vervolg-a-d-
 | P31 | Bestaande XP-regels volledig overnemen | Eén maximale basisbeloning per inhoud, bestaande bonusvoorwaarden en normale herhalingskorting; geen tweede XP-systeem |
 | P32 | Bestaande antwoordcontrole, feedback, correctieronde en voortgangsregistratie hergebruiken | Gedeelde services en routegedrag; geen afzonderlijke CFM-vragenengine |
 | P33 | Versado Dorp blijft werken zoals nu | Alleen toekomstige koppeling voorbereiden; geen CFM-groeipunten of wijziging van huidige Dorp-regels |
+| P34 | Uitsluitend de huidige zichtbare CFM-tekst toetsen (26 oktober 2026) | Geen aanvullende verzen toevoegen om vraagdekking te halen; alleen al getoonde, gecontroleerde schriftcitaten. Voorstel 2026/02 P04–P18 niet activeren. Drie vragen per stap en dezelfde achttien per week blijven het acceptatiedoel; onvoldoende dekking betekent niet gereed. |
 
 Deze besluiten zijn uitgangspunt, geen vragenlijst. Ook de huidige XP- en
 reeksregels, zes pogingen bij Woord van de Dag, betaalde hints en puzzelarchitectuur

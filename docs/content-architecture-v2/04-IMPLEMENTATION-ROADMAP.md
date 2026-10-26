@@ -29,8 +29,12 @@ hebben momenteel drie gecontroleerde vragen; nul officiële weken hebben achttie
 De technische weekroute is met synthetische inhoud getest. Fase A is hiermee
 geen inhoudelijk geaccepteerde release; B–D zijn niet gestart.
 Het [vervolgonderzoek naar vraagdekking en officiële pilot](../CFM-VRAAGDEKKING-ONDERZOEK.md)
-bevat een concreet voorstel voor 2026/02. Aanvullende gekoppelde schriftlezing
-vraagt eerst een expliciet productbesluit; de pilot is nog niet geactiveerd.
+bevat het eerdere voorstel voor 2026/02. Het besluit van 26 oktober 2026 is
+**uitsluitend de huidige zichtbare CFM-tekst toetsen** (P34). Aanvullende gekoppelde
+schriftlezing wordt niet toegevoegd; de vijftien daarvan afhankelijke conceptvragen
+worden niet geactiveerd. Eerst de reeds zichtbare schriftcitaten inhoudelijk
+inventariseren en beoordelen. Zolang geen week zes geschikte sets heeft, blijft de
+volledige officiële pilot en daarmee inhoudelijke acceptatie van A open.
 
 **Afhankelijkheden:** bestaande CFM-jaargangen, gepubliceerde revisies, zesstappenplan,
 centrale learning-/XP-services. De zeven CFM-productbesluiten zijn definitief
