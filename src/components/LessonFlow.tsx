@@ -1078,12 +1078,12 @@ function ExerciseActionArea({
               {t("lesson.skip")}
             </button>
           ) : null}
-          <button className={`${focus ? "w-full !px-3" : "ml-auto"} btn-primary min-h-12`} disabled={!canCheck || disabled || checking} onClick={onCheck}>
+          <button className={`${focus ? "w-full !px-2" : "ml-auto"} btn-primary min-h-12`} disabled={!canCheck || disabled || checking} onClick={onCheck}>
             {checking ? t("lesson.checking") : t("lesson.check")}
           </button>
         </div>
       ) : (
-        <button className={`btn-primary min-h-12 w-full animate-pop ${focus ? "!px-3" : ""}`} disabled={disabled} onClick={onNext}>
+        <button className={`btn-primary min-h-12 w-full animate-pop ${focus ? "!px-2" : ""}`} disabled={disabled} onClick={onNext}>
           {disabled ? t("courses.busy") : t("lesson.continue")}
         </button>
       )}
