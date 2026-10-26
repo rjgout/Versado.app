@@ -18,7 +18,8 @@ async function chapter(id = chapterId) { return prisma.chapter.findUniqueOrThrow
 async function fixture(name: string, options: { chapterId?: string; quality?: "VALIDATED" | "NEEDS_REVIEW"; mutate?: (manifest: AudioManifest) => void } = {}) {
  const ch=await chapter(options.chapterId),folder=path.join(root,"incoming",name);await fs.mkdir(folder,{recursive:true});
  const segments=Buffer.from(JSON.stringify({schemaVersion:1,segments:ch.verses.map((v,i)=>({id:v.id,kind:"VERSE",sourceHash:sha256(v.text),start:i+0.2,end:i+1.2}))}));
- const manifest:AudioManifest={schemaVersion:1,packageId:name,collectionId:"audio-test-nl",work:"bofm",editionKey:"default",language:"nl",target:{kind:"CHAPTER",bookKey:"bofm/audio-test",chapterNumber:ch.number},sourceHash:chapterSourceHash(ch),sourceKind:"OFFICIAL",source:{name:"Synthetische bron",url:"https://assets.churchofjesuschrist.org/audio-fixture.mp3",checkedAt:new Date().toISOString(),rights:"Uitsluitend testfixture"},voice:{name:"test"},audio:{file:"audio.mp3",sha256:sha256(bytes),bytes:bytes.length,duration,format:"mp3"},segments:{file:"segments.json",sha256:sha256(segments)},quality:options.quality??"VALIDATED"};
+ // Afzonderlijke testopnamen hebben een eigen bron-URL; gelijke canonieke identiteit hoort voortaan één opname te geven.
+ const manifest:AudioManifest={schemaVersion:1,packageId:name,collectionId:"audio-test-nl",work:"bofm",editionKey:"default",language:"nl",target:{kind:"CHAPTER",bookKey:"bofm/audio-test",chapterNumber:ch.number},sourceHash:chapterSourceHash(ch),sourceKind:"OFFICIAL",source:{name:"Synthetische bron",url:`https://assets.churchofjesuschrist.org/audio-fixture-${name}.mp3`,checkedAt:new Date().toISOString(),rights:"Uitsluitend testfixture"},voice:{name:"test"},audio:{file:"audio.mp3",sha256:sha256(bytes),bytes:bytes.length,duration,format:"mp3"},segments:{file:"segments.json",sha256:sha256(segments)},quality:options.quality??"VALIDATED"};
  options.mutate?.(manifest);
  await fs.writeFile(path.join(folder,"audio.mp3"),bytes);await fs.writeFile(path.join(folder,"segments.json"),segments);await fs.writeFile(path.join(folder,"manifest.json"),JSON.stringify(manifest));await fs.writeFile(path.join(folder,"READY"),"1\n");
  return {folder,manifest};
@@ -63,6 +64,30 @@ test("beheerpublicatie en toegang: gewone gebruiker geen preview of beheerrechte
  const p=await publishAudio(admin,first,0);assert.equal(p.version,1);
  assert.ok(await accessibleRecording(ordinary,first));assert.ok(await activeChapterAudio(await chapter()));
  await assert.rejects(publishAudio(admin,first,0),/PUBLICATION_CONFLICT/);
+});
+test("twee pakket-ID's met een nieuw checkedAt geven op twee processen één canonieke officiële opname",async()=>{
+ const source="https://assets.churchofjesuschrist.org/canonical-retry.mp3";
+ const first=await fixture("canonical-first",{mutate:m=>{m.source.url=source;}}),second=await fixture("canonical-second",{mutate:m=>{m.source.url=source;m.source.checkedAt=new Date(Date.now()+1000).toISOString();}});
+ await Promise.all([first,second].map(f=>new Promise<void>((resolve,reject)=>{
+  const child=spawn(process.execPath,["--import","tsx","tests/fixtures/audio/import-worker.ts",f.folder],{env:process.env,stdio:["ignore","pipe","pipe"]});let errors="";child.stderr.on("data",d=>{errors+=d;});child.on("error",reject);child.on("exit",code=>code===0?resolve():reject(Error(errors)));
+ })));
+ assert.equal(await prisma.audioRecording.count({where:{sourceMetadata:{path:["url"],equals:source}}}),1);
+ assert.equal(await prisma.audioPackage.count({where:{id:{in:["canonical-first","canonical-second"]},status:"READY"}}),2);
+});
+test("nieuwe kwaliteit en tijdcodes blijven aparte onveranderlijke versies; een echte replay dupliceert niet",async()=>{
+ const source="https://assets.churchofjesuschrist.org/versioned-alignment.mp3";
+ const review=await fixture("version-review",{quality:"NEEDS_REVIEW",mutate:m=>{m.source.url=source;}});
+ const checked=await fixture("version-checked",{mutate:m=>{m.source.url=source;}});
+ assert.equal((await importAudioPackage(review.folder)).status,"READY");assert.equal((await importAudioPackage(checked.folder)).status,"READY");
+ const revised=await fixture("version-revised",{mutate:m=>{m.source.url=source;}});
+ const payload=JSON.parse(await fs.readFile(path.join(revised.folder,"segments.json"),"utf8"));
+ for(const segment of payload.segments){segment.start+=0.05;segment.end+=0.05;}
+ const data=Buffer.from(JSON.stringify(payload));revised.manifest.segments.sha256=sha256(data);await fs.writeFile(path.join(revised.folder,"segments.json"),data);await fs.writeFile(path.join(revised.folder,"manifest.json"),JSON.stringify(revised.manifest));
+ assert.equal((await importAudioPackage(revised.folder)).status,"READY");
+ const replay=await fixture("version-replay",{mutate:m=>{m.source.url=source;m.segments.sha256=sha256(data);}});await fs.writeFile(path.join(replay.folder,"segments.json"),data);
+ assert.equal((await importAudioPackage(replay.folder)).status,"READY");
+ assert.equal(await prisma.audioRecording.count({where:{sourceMetadata:{path:["url"],equals:source}}}),3,"review, geldig en nieuwe grenzen behouden ieder hun eigen versie");
+ assert.equal((await prisma.audioRecording.findUniqueOrThrow({where:{packageId:"version-review"}})).quality&&((await prisma.audioRecording.findUniqueOrThrow({where:{packageId:"version-review"}})).quality as {status:string}).status,"NEEDS_REVIEW");
 });
 test("defecte checksum en verkeerde editie blijven FAILED; actieve opname blijft behouden",async()=>{
  for(const [name,mutate] of [["bad-checksum",(m:AudioManifest)=>{m.audio.sha256="0".repeat(64);}],["bad-language",(m:AudioManifest)=>{m.language="en";}],["bad-source",(m:AudioManifest)=>{m.sourceHash="0".repeat(64);}]] as const){

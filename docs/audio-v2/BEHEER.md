@@ -10,6 +10,16 @@ Dit document beschrijft het contract en afzonderlijke ontwikkeltools, geen verle
 Zie ook [toegang en huidige toestemming](PRODUCTIE-ACCEPTATIE.md#toegang-en-huidige-toestemming): momenteel geen NAS-toegang;
 alleen-lezen inventarisatie, back-up, echte testrestore, deployment, download, registratie en publicatie zijn afzonderlijke stappen.
 
+## Officiële bronnen bedienen zonder SSH
+
+Na afzonderlijk goedgekeurde uitrol van deze versie staat de bediening onder **Adminbackend → Content → Audio**.
+Start met **Ether 1 downloaden**, daarna **Gecontroleerde pilots registreren**, preview en afzonderlijk **Pilots publiceren**.
+De vijf hoofdstuk-/taalcombinaties staan in de bevestigingen. **Pilot goedkeuren** na de spelercontrole ontsluit grotere selecties
+zonder zelf een download, registratie of publicatie te starten. Ontbrekende teksten worden niet automatisch toegevoegd.
+
+Zie [bediening, taakherstel en testgrenzen](ADMIN-OFFICIELE-AUDIO.md). De CLI’s hieronder blijven ontwikkel-/geavanceerde hulpmiddelen;
+ze zijn niet nodig voor de normale pilotbediening. De legacy-mirror en afspeelroutes blijven behouden.
+
 ## Drie verschillende beheerflows
 
 | Flow | Gegevens en grenzen |

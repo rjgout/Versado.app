@@ -4237,6 +4237,7 @@ model AudioPackage {
 }
 
 model AudioRecording {
+  officialTasks OfficialAudioTask[]
   id String @id @default(cuid())
   packageId String @unique
   package AudioPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
@@ -4275,4 +4276,29 @@ model AudioPublication {
   // Auditanker, geen gebruikersdata en geen nieuwe sessie- of contentpublicatielaag.
   publishedBy String
   @@unique([recordingId, targetKey])
+}
+
+// Alleen orkestratie van officiële Audio V2-bronnen; geen tweede opname-/publicatielaag.
+model OfficialAudioTask {
+  id String @id
+  status String @default("QUEUED")
+  phase String @default("DOWNLOAD")
+  actorId String
+  actorSessionVersion Int
+  attempts Int @default(0)
+  bytesDownloaded Int @default(0)
+  leaseToken String?
+  leaseUntil DateTime?
+  checkedAt DateTime?
+  registrationApprovedAt DateTime?
+  manifest Json?
+  recordingId String?
+  recording AudioRecording? @relation(fields: [recordingId], references: [id], onDelete: SetNull)
+  errorCode String?
+  pilotApprovalKey String?
+  pilotApprovedById String?
+  pilotApprovedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, leaseUntil])
 }

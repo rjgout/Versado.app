@@ -267,7 +267,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **140 pagina's**, **237 fysieke routehandlers**, **420 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **140 pagina's**, **238 fysieke routehandlers**, **421 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -282,7 +282,7 @@ Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en au
 `/adminbackend/communicatie` | [src/app/adminbackend/communicatie/page.tsx](../src/app/adminbackend/communicatie/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/email.ts; src/lib/i18n/index.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend/content` | [src/app/adminbackend/content/page.tsx](../src/app/adminbackend/content/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/i18n/index.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend/content-preview` | [src/app/adminbackend/content-preview/page.tsx](../src/app/adminbackend/content-preview/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/chapterTerm.ts; src/lib/contentAccess.ts; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
-`/adminbackend/content/audio` | [src/app/adminbackend/content/audio/page.tsx](../src/app/adminbackend/content/audio/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/audio/library.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/adminbackend/content/audio` | [src/app/adminbackend/content/audio/page.tsx](../src/app/adminbackend/content/audio/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/audio/library.ts; src/lib/audio/officialJobs.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend/content/inspect` | [src/app/adminbackend/content/inspect/page.tsx](../src/app/adminbackend/content/inspect/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminContentInspection.ts; src/lib/adminGuard.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend/content/study-publications` | [src/app/adminbackend/content/study-publications/page.tsx](../src/app/adminbackend/content/study-publications/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/studyContent/admin.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/adminbackend/gebruikers` | [src/app/adminbackend/gebruikers/page.tsx](../src/app/adminbackend/gebruikers/page.tsx); Server Component-entry | beheer | Zelfde doel-URL; ontbreekt in lokale router | requireAdminPage; src/lib/adminGuard.ts; src/lib/dates.ts; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/i18n/serverTexts.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
@@ -433,6 +433,7 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/admin/alleskenner/[id]` | PUT | [src/app/api/admin/alleskenner/[id]/route.ts](../src/app/api/admin/alleskenner/[id]/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/audio` | GET, POST | [src/app/api/admin/audio/route.ts](../src/app/api/admin/audio/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/audio-checks` | GET, POST | [src/app/api/admin/audio-checks/route.ts](../src/app/api/admin/audio-checks/route.ts) | beheer; getCurrentUser, requireAdmin | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/admin/audio/official` | GET, POST | [src/app/api/admin/audio/official/route.ts](../src/app/api/admin/audio/official/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/branding` | GET, PUT | [src/app/api/admin/branding/route.ts](../src/app/api/admin/branding/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/changelog` | GET, POST | [src/app/api/admin/changelog/route.ts](../src/app/api/admin/changelog/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/changelog/[entryId]` | DELETE, PATCH | [src/app/api/admin/changelog/[entryId]/route.ts](../src/app/api/admin/changelog/[entryId]/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
@@ -937,6 +938,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/admin/AdminSection.tsx](../src/components/admin/AdminSection.tsx) | contextafhankelijk / server-entry waar page/layout | AdminSection
 [src/components/admin/AdminStudyPublicationsClient.tsx](../src/components/admin/AdminStudyPublicationsClient.tsx) | use client | AdminStudyPublicationsClient
 [src/components/admin/AdminTable.tsx](../src/components/admin/AdminTable.tsx) | contextafhankelijk / server-entry waar page/layout | AdminTable
+[src/components/admin/OfficialAudioClient.tsx](../src/components/admin/OfficialAudioClient.tsx) | use client | OfficialAudioClient
 [src/components/admin/ScriptureUpdateClient.tsx](../src/components/admin/ScriptureUpdateClient.tsx) | use client | ScriptureUpdateClient
 [src/components/admin/StudyRevisionContent.tsx](../src/components/admin/StudyRevisionContent.tsx) | contextafhankelijk / server-entry waar page/layout | StudyRevisionContent
 [src/components/alleskenner/AlleskennerGame.tsx](../src/components/alleskenner/AlleskennerGame.tsx) | use client | AlleskennerGame, TEAM_DOTS

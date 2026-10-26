@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { readingAccessWhere, collectionAccessWhere, type ContentActor } from "@/lib/contentAccess";
 import { audioRoot, safeDirectory, readBounded, storeAudio, verifyObject } from "./storage";
 import { manifestSchema, segmentsSchema, packageId, sha256, chapterSourceHash, validateSegments, type AudioManifest } from "./contract";
+import { assertOfficialRegistration, assertOfficialPublication } from "./officialGuard";
 
 type DB = PrismaClient | Prisma.TransactionClient;
 async function target(db: DB, manifest: AudioManifest) {
@@ -67,9 +68,18 @@ export async function importAudioPackage(folder: string, db: PrismaClient = pris
     }
     await storeAudio(folder, manifest);
     await db.$transaction(async (tx) => {
+      await assertOfficialRegistration(tx, manifest);
+      // Canonieke bronidentiteit, ook voor de bestaande officiële CLI. Een nieuw checkedAt geeft geen tweede opname.
+      if (manifest.sourceKind === "OFFICIAL") await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${JSON.stringify([manifest.collectionId, manifest.target, manifest.sourceHash, manifest.audio.sha256, manifest.voice.name, manifest.source.url,manifest.quality,sha256(JSON.stringify(segments))])}, 0))::text`;
       const claimed = await tx.audioPackage.updateMany({ where: { id: name, leaseToken: token, status: "PROCESSING", leaseUntil: { gt: new Date() } }, data: { status: "READY", errorCode: null } });
       if (!claimed.count) throw new Error("LEASE_LOST");
-      await target(tx, manifest);
+      // De tekst mag niet tussen de controle en registratie veranderen, ook bij verloren importlockverbinding.
+      await tx.$queryRaw`SELECT "id" FROM "Chapter" WHERE "id" = ${chapter.id} FOR SHARE`;
+      await tx.$queryRaw`SELECT "id" FROM "Verse" WHERE "chapterId" = ${chapter.id} ORDER BY "id" FOR SHARE`;
+      const current=await target(tx, manifest);
+      if (current.id !== chapter.id) throw Error("SOURCE_MISMATCH");
+      if(segments.length||manifest.quality==="VALIDATED")validateSegments(segments,current.verses,manifest.audio.duration);
+      if (manifest.sourceKind === "OFFICIAL" && await tx.audioRecording.findFirst({ where: { collectionId: manifest.collectionId, chapterId: chapter.id, sourceHash: manifest.sourceHash, sha256: manifest.audio.sha256, sourceKind: "OFFICIAL",quality:{path:["status"],equals:manifest.quality},segments:{equals:json(segments)}, voice: { path: ["name"], equals: manifest.voice.name }, sourceMetadata: { path: ["url"], equals: manifest.source.url ?? "" } } })) return;
       await tx.audioRecording.create({ data: { packageId: name, targetKey: `chapter:${chapter.id}`, chapterId: chapter.id, collectionId: manifest.collectionId, work: manifest.work, editionKey: manifest.editionKey, language: manifest.language, sourceHash: manifest.sourceHash, sourceKind: manifest.sourceKind, sourceMetadata: json(manifest.source), voice: json(manifest.voice), quality: json({ status: manifest.quality, report }), segments: json(segments), sha256: manifest.audio.sha256, byteSize: manifest.audio.bytes, duration: manifest.audio.duration } });
     });
   } catch (error) {
@@ -111,6 +121,7 @@ export async function publishAudio(actor: { id: string; isAdmin: boolean; sessio
     await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${actor.id} FOR UPDATE`;
     const user = await tx.user.findUnique({ where: { id: actor.id } });
     if (!user?.isAdmin || user.sessionVersion !== actor.sessionVersion) throw new Error("FORBIDDEN");
+    await assertOfficialPublication(tx, candidate);
     await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${candidate.targetKey}, 0))::text`;
     await tx.$queryRaw`SELECT "id" FROM "Chapter" WHERE "id" = ${candidate.chapterId} FOR UPDATE`;
     await tx.$queryRaw`SELECT "id" FROM "Verse" WHERE "chapterId" = ${candidate.chapterId} ORDER BY "id" FOR SHARE`;
