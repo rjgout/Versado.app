@@ -3,6 +3,13 @@
 Onderdeel van draft-PR #218, uitsluitend `cfm-old-testament-2026/02`:
 **Mozes 1; Abraham 3**. Geen productie-import, deployment of merge.
 
+De featurebranch is gerebased op `origin/main` **bf7d6657** (inclusief #219–#221).
+De officiële audiotaken en divisie-uitslag blijven intact. Bij de conflictoplossing
+zijn beide afhankelijke migratiesets in de eigen testrunner behouden en is de
+native-inventaris uit de gecombineerde bron opnieuw gegenereerd. `main` is niet gewijzigd. De geïntegreerde schone build, Prisma-validatie,
+TypeScript (lokaal met 4GiB heap), 18 pure controles, de volledige CFM-database-
+en browsersuite en de native-inventariscontrole zijn opnieuw geslaagd.
+
 ## Definitief productbesluit
 
 **P35 vervangt P34** uit het [besluitenregister](content-architecture-v2/06-DECISIONS-AND-OPEN-QUESTIONS.md).
@@ -120,7 +127,7 @@ afzonderlijke engine-/regressietests.
 | Dorp/focus/shell / Dorp-database en migratie | 56/56, 18/18; bestaande tabellen/constraints behouden, conflictrollback en herhaalde migratie gecontroleerd |
 | Native inventaris/pariteit / native regressies | Actuele inventaris; 6/6 en 56/56. Geen functionele CFM-nativepariteit bewezen |
 | TypeScript en schone lokale productiebuild | Geslaagd |
-| Volledige ESLint | 0 fouten, 171 waarschuwingen; waaronder bestaande waarschuwingen en de effect-startwaarschuwing in StudyExerciseClient |
+| Volledige ESLint | 0 fouten, 172 waarschuwingen; waaronder bestaande waarschuwingen en de effect-startwaarschuwing in StudyExerciseClient |
 | Bestaande browserregressies | 6 scenario's geslaagd, inclusief Boek van Mormon-hoofdstukvragen, correctieronde, officiële 2027-stap en lezen zonder vragen |
 | Echte pilotbrowser | 4 scenario's geslaagd: week 390px/donker, stap 3 320px/licht/200%, stap 5 320px/donker/200%, ontbrekende bron. Touch/toetsenbord, geen horizontale overflow, lesbody intact, terugkeer, checkpoint, een tijdelijke netwerkfout tijdens hervatten en verlies van bevestigde én onbevestigde inzending |
 

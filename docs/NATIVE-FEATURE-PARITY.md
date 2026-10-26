@@ -278,7 +278,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **140 pagina's**, **239 fysieke routehandlers**, **422 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **141 pagina's**, **240 fysieke routehandlers**, **425 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -413,6 +413,7 @@ Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en au
 `/study-lesson/[lessonId]/[collectionId]` | [src/app/study-lesson/[lessonId]/[collectionId]/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/annotations/studyFocus.ts; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/session.ts; src/lib/studyContent/cfmCourses.ts; src/lib/studyContent/personalStudyPage.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/study-lesson/[lessonId]/[collectionId]/stappen` | [src/app/study-lesson/[lessonId]/[collectionId]/stappen/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/stappen/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts; src/lib/studyContent/personalStudyPage.ts; src/lib/studyContent/stepProgress.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/study-lesson/[lessonId]/[collectionId]/stappen/[stap]` | [src/app/study-lesson/[lessonId]/[collectionId]/stappen/[stap]/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/stappen/[stap]/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/db.ts; src/lib/session.ts; src/lib/studyContent/cfmCourses.ts; src/lib/studyContent/personalStudyPage.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/study-lesson/[lessonId]/[collectionId]/vragen` | [src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/session.ts; src/lib/studyContent/exerciseSource.ts; src/lib/studyContent/pilotReadings.ts; src/lib/studyContent/revisions.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/tools` | [src/app/tools/page.tsx](../src/app/tools/page.tsx); Server Component-entry | media-hulpmiddelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/contentCollections.ts; src/lib/db.ts; src/lib/dictionary.ts; src/lib/i18n/index.ts; src/lib/i18n/core.ts; src/lib/languages.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/tools/dictionary` | [src/app/tools/dictionary/page.tsx](../src/app/tools/dictionary/page.tsx); Server Component-entry | media-hulpmiddelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/tools/dictionary/[word]` | [src/app/tools/dictionary/[word]/page.tsx](../src/app/tools/dictionary/[word]/page.tsx); Server Component-entry | media-hulpmiddelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
@@ -645,6 +646,7 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/streak/celebration` | GET, POST | [src/app/api/streak/celebration/route.ts](../src/app/api/streak/celebration/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/streak/continuation` | GET, POST | [src/app/api/streak/continuation/route.ts](../src/app/api/streak/continuation/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/study-context` | GET, PUT | [src/app/api/study-context/route.ts](../src/app/api/study-context/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/study-exercises` | POST | [src/app/api/study-exercises/route.ts](../src/app/api/study-exercises/route.ts) | overig-vandaag; assertReadingOffered, getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/study-folder` | GET | [src/app/api/study-folder/route.ts](../src/app/api/study-folder/route.ts) | leren; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/study-media/[mediaId]` | GET | [src/app/api/study-media/[mediaId]/route.ts](../src/app/api/study-media/[mediaId]/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/study-preference` | PUT | [src/app/api/study-preference/route.ts](../src/app/api/study-preference/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
@@ -803,6 +805,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/app/study-lesson/[lessonId]/[collectionId]/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/page.tsx) | contextafhankelijk / server-entry waar page/layout | Page
 [src/app/study-lesson/[lessonId]/[collectionId]/stappen/[stap]/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/stappen/[stap]/page.tsx) | contextafhankelijk / server-entry waar page/layout | Page
 [src/app/study-lesson/[lessonId]/[collectionId]/stappen/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/stappen/page.tsx) | contextafhankelijk / server-entry waar page/layout | Page
+[src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx) | contextafhankelijk / server-entry waar page/layout | Page
 [src/app/tools/dictionary/[word]/page.tsx](../src/app/tools/dictionary/[word]/page.tsx) | contextafhankelijk / server-entry waar page/layout | DictionaryWordPage
 [src/app/tools/dictionary/page.tsx](../src/app/tools/dictionary/page.tsx) | contextafhankelijk / server-entry waar page/layout | DictionaryPage
 [src/app/tools/page.tsx](../src/app/tools/page.tsx) | contextafhankelijk / server-entry waar page/layout | ToolsPage
@@ -883,7 +886,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/KidsLessonFlow.tsx](../src/components/KidsLessonFlow.tsx) | use client | KidsLessonFlow
 [src/components/LanguageSettings.tsx](../src/components/LanguageSettings.tsx) | use client | LanguageSettings
 [src/components/LeaderboardClient.tsx](../src/components/LeaderboardClient.tsx) | use client | LeaderboardClient
-[src/components/LessonFlow.tsx](../src/components/LessonFlow.tsx) | use client | ExerciseCard, LessonFlow, LessonResultMascot, ReaderView
+[src/components/LessonFlow.tsx](../src/components/LessonFlow.tsx) | use client | ExerciseCard, ExerciseSessionQuestions, LessonFlow, LessonResultMascot, ReaderView, SummaryScreen
 [src/components/LiveDataProvider.tsx](../src/components/LiveDataProvider.tsx) | use client | LiveDataProvider
 [src/components/LiveLobbyForm.tsx](../src/components/LiveLobbyForm.tsx) | use client | LiveLobbyForm
 [src/components/LiveRefresh.tsx](../src/components/LiveRefresh.tsx) | use client | LiveRefresh
@@ -1059,6 +1062,8 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/study/ReferencePreview.tsx](../src/components/study/ReferencePreview.tsx) | use client | ReferencePreview
 [src/components/study/ReferenceReturn.tsx](../src/components/study/ReferenceReturn.tsx) | use client | ReferenceReturn
 [src/components/study/RichContentBlocks.tsx](../src/components/study/RichContentBlocks.tsx) | use client | InlineContent, RichContentBlocks
+[src/components/study/ScriptureVerses.tsx](../src/components/study/ScriptureVerses.tsx) | contextafhankelijk / server-entry waar page/layout | ScriptureVerses
+[src/components/study/StudyExerciseClient.tsx](../src/components/study/StudyExerciseClient.tsx) | use client | StudyExerciseClient
 [src/components/study/StudyReader.tsx](../src/components/study/StudyReader.tsx) | use client | StudyReader
 [src/components/study/StudyRoom.tsx](../src/components/study/StudyRoom.tsx) | use client | StudyRoom
 [src/components/study/StudyTogetherButton.tsx](../src/components/study/StudyTogetherButton.tsx) | use client | StudyTogetherButton

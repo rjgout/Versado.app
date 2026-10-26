@@ -4,6 +4,8 @@ Alle belangrijke gebruikersgerichte wijzigingen en releases worden hieronder bij
 
 ## Nog niet uitgebracht
 
+- Nieuw (Kom dan en volg Mij): de Nederlandse pilotweek 5–11 januari 2026 biedt officiële schriftlezing en drie leesvragen per stap. De volledige week gebruikt dezelfde achttien vragen en bestaande XP-regels. Lezen zonder vragen blijft mogelijk; bestaande notities en voortgang blijven behouden.
+
 - Nieuw (beheer): audiobibliotheek met zelfstandige pakketontvangst, bron- en tekstversiecontrole en bewuste publicatie per opname. Bestaande hoofdstukaudio en apparaat-TTS blijven beschikbaar; onzekere verstijdcodes blijven ter beoordeling afgeschermd.
 
 - Beveiliging: Next.js bijgewerkt naar 16.4.2 voor de gepubliceerde kwetsbaarheden in afbeeldingsoptimalisatie, Server Actions en caching.
