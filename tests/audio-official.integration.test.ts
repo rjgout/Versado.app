@@ -206,3 +206,122 @@ test("publicatiebescherming kan niet met een andere stemnaam, kwaliteitslabel of
  const protectedSource=officialSources.find(s=>s.legacyProtected)!,protectedChapter=await prisma.chapter.findFirstOrThrow({where:{number:protectedSource.chapterNumber,book:{key:protectedSource.bookKey,contentCollectionId:protectedSource.collectionId}}});
  await assert.rejects(prisma.$transaction(tx=>assertOfficialPublication(tx,{...record,chapterId:protectedChapter.id,sourceKind:"GENERATED"})),/SOURCE_PROTECTED/);
 });
+
+test("volledige Duitse selectie blijft duurzaam bij meer dan 30 seconden voorbereiding",async()=>{
+ const selected=officialSources.filter(s=>s.work==="bofm"&&s.language==="de"&&!s.legacyProtected&&s.quality==="VALIDATED"&&!s.pilot).map(s=>s.id);
+ assert.equal(selected.length,237);
+ await prisma.$executeRawUnsafe("CREATE FUNCTION official_bulk_delay() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN PERFORM pg_sleep(0.14); RETURN NEW; END $$");
+ await prisma.$executeRawUnsafe('CREATE TRIGGER official_bulk_delay BEFORE INSERT ON "OfficialAudioTask" FOR EACH ROW EXECUTE FUNCTION official_bulk_delay()');
+ try{
+  await requestOfficialAudio(actor,"download",selected);
+  assert.equal(await prisma.officialAudioTask.count({where:{id:{in:selected}}}),selected.length);
+ }finally{
+  await prisma.$executeRawUnsafe('DROP TRIGGER official_bulk_delay ON "OfficialAudioTask"');
+  await prisma.$executeRawUnsafe('DROP FUNCTION official_bulk_delay()');
+  await prisma.officialAudioTask.deleteMany({where:{id:{in:selected}}});
+ }
+});
+
+test("volledige vijf taalcollecties: begrensde aanvragen, gelijktijdige voorbereiding, geen dubbele taken of publicaties",async()=>{
+ const {BOOK_KEYS_BY_SLUG}=await import("../prisma/bookKeys");
+ const {officialBatches}=await import("../src/lib/audio/officialControls");
+ const addedBooks:string[]=[],addedChapters:string[]=[],beforeTasks=await prisma.officialAudioTask.findMany(),pointers=await prisma.audioPublication.findMany({orderBy:{targetKey:"asc"}});
+ type SeedBook={slug:string;key?:string;name:string;chapters:{number:number;heading?:string;verses:string[]}[]};
+ const headings=JSON.parse(await fs.readFile("prisma/bomChapterHeadings.json","utf8")) as [string,number,string][];
+ try {
+  for(const language of ["nl","en","de","fr","es"]) {
+   const collection=pilotSources.find(s=>s.language===language)!.collectionId;
+   const books=JSON.parse(await fs.readFile(`prisma/bomContent${language==="nl"?"":"."+language}.json`,"utf8")) as SeedBook[];
+   for(const [order,seed]of books.entries()) {
+    const key=seed.key??BOOK_KEYS_BY_SLUG[seed.slug];
+    let book=await prisma.book.findFirst({where:{contentCollectionId:collection,key}});
+    if(!book){book=await prisma.book.create({data:{slug:`bulk-${language}-${order}`,name:seed.name,key,order,contentCollectionId:collection}});addedBooks.push(book.id);}
+    const existingChapters=new Set((await prisma.chapter.findMany({where:{bookId:book.id},select:{number:true}})).map(c=>c.number));
+    for(const chapter of seed.chapters)if(!existingChapters.has(chapter.number)) {
+     const row=await prisma.chapter.create({data:{bookId:book.id,number:chapter.number,order:chapter.number,heading:language==="nl"?headings.find(([slug,n])=>slug===seed.slug&&n===chapter.number)?.[2]??null:chapter.heading??null,verses:{create:chapter.verses.map((text,i)=>({number:i+1,text}))}}});addedChapters.push(row.id);
+    }
+   }
+  }
+  const contentBefore=await snapshot();
+  const otherAdmin=await prisma.user.create({data:{email:"bulk-other-admin@audio.invalid",handle:"BulkOther",discriminator:"01",passwordHash:"unused",isAdmin:true}});
+  const all=officialSources.filter(s=>s.work==="bofm"&&!s.legacyProtected&&s.quality==="VALIDATED"&&!s.pilot);
+  for(const language of ["nl","en","de","fr","es"]) {
+   const selection=all.filter(s=>s.language===language).map(s=>s.id);
+   if(language==="en")assert.equal(selection.length,477,"de oude API-grens van 300 is te klein voor deze echte selectie");
+   const batches=officialBatches(selection);assert.ok(batches.every(b=>b.length<=20));
+   for(const batch of batches) {
+    const results=await Promise.all([requestOfficialAudio(actor,"download",batch),requestOfficialAudio(otherAdmin,"download",batch)]);
+    assert.ok(results.every(r=>r.accepted===batch.length));
+   }
+   assert.equal(await prisma.officialAudioTask.count({where:{id:{in:selection}}}),selection.length);
+  }
+  assert.deepEqual(await snapshot(),contentBefore);assert.deepEqual(await prisma.audioPublication.findMany({orderBy:{targetKey:"asc"}}),pointers);
+  const failures=await prisma.officialAudioTask.findMany({where:{id:{in:all.map(s=>s.id)},status:"FAILED"},select:{id:true,errorCode:true}});
+  assert.deepEqual(failures,[],"alle bronhashes zijn tegen de volledige echte tekstuitgaven gecontroleerd");
+  const start=performance.now(),overview=await officialOverview();
+  console.log(JSON.stringify({fullCatalogueOverviewMs:Math.round(performance.now()-start),rows:overview.groups.reduce((n,g)=>n+g.jobs.length,0),bytes:Buffer.byteLength(JSON.stringify(overview)),pollActiveMs:15000,pollIdleMs:120000,nasMeasured:false}));
+ }finally {
+  await prisma.officialAudioTask.deleteMany({where:{id:{notIn:beforeTasks.map(t=>t.id)}}});
+  for(const task of beforeTasks)await prisma.officialAudioTask.update({where:{id:task.id},data:{actorId:task.actorId,actorSessionVersion:task.actorSessionVersion,status:task.status,phase:task.phase,leaseToken:task.leaseToken,leaseUntil:task.leaseUntil}});
+  await prisma.chapter.deleteMany({where:{id:{in:addedChapters}}});await prisma.book.deleteMany({where:{id:{in:addedBooks}}});
+ }
+ assert.deepEqual(await snapshot(),baseline);
+});
+
+test("gedeeltelijke voorbereidingsfout bewaart eerdere commits; retry verwerkt alleen de rest",async()=>{
+ const selected=officialSources.filter(s=>s.work==="bofm"&&s.language==="de"&&!s.pilot&&s.quality==="VALIDATED").slice(0,4).map(s=>s.id).sort();
+ const failed=selected[2];
+ await prisma.$executeRawUnsafe(`CREATE FUNCTION official_partial_fail() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.id = '${failed}' THEN RAISE EXCEPTION 'synthetische fout'; END IF; RETURN NEW; END $$`);
+ await prisma.$executeRawUnsafe('CREATE TRIGGER official_partial_fail BEFORE INSERT ON "OfficialAudioTask" FOR EACH ROW EXECUTE FUNCTION official_partial_fail()');
+ try {
+  const result=await requestOfficialAudio(actor,"download",selected);
+  assert.equal(result.accepted,2);assert.equal("errorCode" in result&&result.errorCode,"AUDIO_TASK_FAILED");
+  assert.equal(await prisma.officialAudioTask.count({where:{id:{in:selected}}}),2);
+ }finally {await prisma.$executeRawUnsafe('DROP TRIGGER official_partial_fail ON "OfficialAudioTask"');await prisma.$executeRawUnsafe('DROP FUNCTION official_partial_fail()');}
+ await requestOfficialAudio(actor,"download",selected);assert.equal(await prisma.officialAudioTask.count({where:{id:{in:selected}}}),4);
+ await prisma.officialAudioTask.deleteMany({where:{id:{in:selected}}});
+});
+
+test("bulkpublicatie is expliciet, idempotent en vervangt bij twee beheerders nooit een bestaande pointer",async()=>{
+ const {publishOfficialSelection}=await import("../src/lib/audio/officialJobs");
+ const catalogue=officialSources.map(s=>config.sources.find(fake=>fake.id===s.id)??s);
+ const source=config.sources[1],task=await prisma.officialAudioTask.findUniqueOrThrow({where:{id:source.id}}),record=await prisma.audioRecording.findUniqueOrThrow({where:{id:task.recordingId!}});
+ const original=await prisma.audioPublication.findUniqueOrThrow({where:{targetKey:record.targetKey}});
+ const otherAdmin=await prisma.user.create({data:{email:"publish-other-admin@audio.invalid",handle:"PublishOther",discriminator:"01",passwordHash:"unused",isAdmin:true}});
+ // Alleen eigen testfixture: maak het pilotdoel tijdelijk vrij. Daardoor zijn uitsluitend pilotacties toegestaan.
+ await prisma.audioPublication.delete({where:{targetKey:record.targetKey}});
+ try {
+  const selection=[{id:source.id,recordingId:record.id}];
+  const results=await Promise.all([publishOfficialSelection({...actor,isAdmin:true},selection,prisma,catalogue),publishOfficialSelection(otherAdmin,selection,prisma,catalogue)]);
+  assert.ok(results.every(r=>r.results[0].status==="PUBLISHED"));
+  const current=await prisma.audioPublication.findUniqueOrThrow({where:{targetKey:record.targetKey}});
+  const retry=await publishOfficialSelection({...actor,isAdmin:true},selection,prisma,catalogue);assert.equal(retry.results[0].status,"PUBLISHED");
+  assert.deepEqual(await prisma.audioPublication.findUniqueOrThrow({where:{targetKey:record.targetKey}}),current);
+  const alternatePackage=await prisma.audioPackage.create({data:{id:"bulk-alternate",manifestHash:"alternate",leaseToken:"unused",leaseUntil:new Date(),status:"READY"}});
+  const alternate=await prisma.audioRecording.create({data:{...Object.fromEntries(Object.entries(record).filter(([key])=>!["id","createdAt","packageId"].includes(key))),packageId:alternatePackage.id}} as Parameters<typeof prisma.audioRecording.create>[0]);
+  const conflict=await publishOfficialSelection({...actor,isAdmin:true},[{id:source.id,recordingId:alternate.id}],prisma,catalogue);
+  assert.equal(conflict.results[0].errorCode,"PUBLICATION_CONFLICT");assert.deepEqual(await prisma.audioPublication.findUniqueOrThrow({where:{targetKey:record.targetKey}}),current);
+  await prisma.audioRecording.delete({where:{id:alternate.id}});await prisma.audioPackage.delete({where:{id:alternatePackage.id}});
+  const denied=await publishOfficialSelection({...actor,isAdmin:true,sessionVersion:actor.sessionVersion+1},selection,prisma,catalogue);
+  assert.equal(denied.results[0].errorCode,"FORBIDDEN");
+  const protectedSource=officialSources.find(s=>s.legacyProtected)!,review=officialSources.find(s=>s.quality!=="VALIDATED")!;
+  const blocked=await publishOfficialSelection({...actor,isAdmin:true},[protectedSource,review].map(s=>({id:s.id,recordingId:record.id})),prisma,catalogue);
+  assert.ok(blocked.results.every(r=>r.errorCode==="SOURCE_PROTECTED"));
+  const partial=await publishOfficialSelection({...actor,isAdmin:true},[selection[0],{id:review.id,recordingId:record.id}],prisma,catalogue);
+  assert.deepEqual(partial.results.map(r=>r.status),["PUBLISHED","FAILED"]);
+ }finally {await prisma.audioPublication.deleteMany({where:{targetKey:record.targetKey}});await prisma.audioPublication.create({data:original});}
+ assert.deepEqual(await snapshot(),baseline);
+});
+
+
+test("wachten op een concurrerende policylock geeft een veilige databasebezetcode, geen ongeldige invoer",async()=>{
+ const {officialErrorCode}=await import("../src/lib/audio/officialJobs");
+ const source=officialSources.find(s=>s.work==="bofm"&&s.language==="de"&&!s.pilot&&s.quality==="VALIDATED")!;
+ let acquired!:()=>void,release!:()=>void;const held=new Promise<void>(r=>{acquired=r;}),gate=new Promise<void>(r=>{release=r;});
+ const holder=prisma.$transaction(async tx=>{await tx.$queryRaw`SELECT pg_advisory_xact_lock(726540108)::text`;acquired();await gate;},{timeout:15000});
+ await held;const started=performance.now(),timer=setTimeout(release,6000);
+ try {await assert.rejects(requestOfficialAudio(actor,"download",[source.id]),error=>officialErrorCode(error)==="DATABASE_BUSY");}
+ finally{clearTimeout(timer);release();await holder;}
+ assert.ok(performance.now()-started<5000,"PostgreSQL annuleert de lockwacht vóór de Prisma-deadline");
+ assert.equal(await prisma.officialAudioTask.count({where:{id:source.id}}),0);
+});

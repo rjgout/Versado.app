@@ -121,3 +121,7 @@ Bij ontbrekend/corrupt actief V2-object of gewijzigde brontekst volgt TTS; dat i
 Er is geen algemene unpublish-/terug-naar-legacy-CLI. Een eerdere broncompatibele VALIDATED opname kan alleen bewust opnieuw gepubliceerd worden.
 
 De exacte eigenaarshandelingen en veilige herstelgrenzen staan in [het acceptatieplan](PRODUCTIE-ACCEPTATIE.md).
+
+## Grote selecties en geregistreerde hoofdstukken
+
+Zie [bulkherstel en afzonderlijke publicatie](BULK-HERSTEL.md). De beheerpagina verdeelt grote selecties in kleine batches, bewaart eerdere commits bij deelfouten en biedt een aparte hoofdstukselectie voor publicatie. Downloaden en registreren publiceren nooit automatisch. Bestaande publicaties worden door de nieuwe bulkactie niet vervangen.

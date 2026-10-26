@@ -1,12 +1,14 @@
+import { BOOK_KEYS_BY_SLUG } from "../../../prisma/bookKeys";
 import { readFileSync } from "node:fs";
 import type { OfficialSource } from "../../../src/lib/audio/officialCatalogue";
-interface Book { slug:string; chapters:{number:number;heading?:string;verses:string[]}[] }
+interface Book { slug:string;key?:string; chapters:{number:number;heading?:string;verses:string[]}[] }
 export function officialSeed(source: OfficialSource) {
   const suffix=source.language==="nl"?"":`.${source.language}`;
   const books=JSON.parse(readFileSync(`prisma/bomContent${suffix}.json`,"utf8")) as Book[];
-  const book=books[13],chapter=book.chapters.find((c)=>c.number===1)!;
+  const book=books.find(b=>(b.key??BOOK_KEYS_BY_SLUG[b.slug])===source.bookKey)!;
+  const chapter=book.chapters.find(c=>c.number===source.chapterNumber)!;
   const headings=JSON.parse(readFileSync("prisma/bomChapterHeadings.json","utf8")) as [string,number,string][];
-  const heading=source.language==="nl"?headings.find(([slug,n])=>slug===book.slug&&n===1)?.[2]??null:chapter.heading??null;
+  const heading=source.language==="nl"?headings.find(([slug,n])=>slug===book.slug&&n===source.chapterNumber)?.[2]??null:chapter.heading??null;
   return {heading,verses:chapter.verses};
 }
 const escape=(text:string)=>text.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");

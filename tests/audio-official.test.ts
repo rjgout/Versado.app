@@ -52,3 +52,15 @@ test("hangende DNS en responsebody kunnen worden afgebroken zonder een open resp
  const request=downloadOfficial(pilotSources[0].pageUrl,b.signal,{resolve:resolver,transport:async()=>({status:200,headers:{"content-type":"application/json"},body:{[Symbol.asyncIterator]:()=>({next:()=>new Promise(()=>{})})},close:()=>{closed=true;}})});
  setTimeout(()=>b.abort(),10);await assert.rejects(request);assert.equal(closed,true);
 });
+
+test("alle echte taalgroepen passen zonder verlies in HTTP-batches van maximaal twintig",async()=>{
+ const {officialBatches,OFFICIAL_BATCH_SIZE}=await import("../src/lib/audio/officialControls");
+ assert.equal(OFFICIAL_BATCH_SIZE,20);
+ for(const language of ["nl","en","de","fr","es"]) {
+  const selected=officialSources.filter(s=>s.work==="bofm"&&s.language===language&&!s.legacyProtected&&s.quality==="VALIDATED");
+  const batches=officialBatches(selected);
+  assert.deepEqual(batches.flat(),selected);assert.ok(batches.every(b=>b.length>0&&b.length<=20));
+  assert.ok(batches.every(b=>Buffer.byteLength(JSON.stringify({action:"download",ids:b.map(s=>s.id)}))<32768));
+ }
+ assert.equal(officialBatches(officialSources.filter(s=>s.work==="bofm"&&s.language==="en")).length,24);
+});

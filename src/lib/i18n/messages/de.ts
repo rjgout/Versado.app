@@ -15,6 +15,28 @@ export const de: PartialMessages = {
 },
 
   officialAudio: {
+    "previousPage": "Vorherige Seite",
+    "nextPage": "Nächste Seite",
+
+    "databaseBusy": "Die Datenbank ist vorübergehend belegt. Bisherige Schritte bleiben gespeichert; aktualisiere die Übersicht und versuche die restliche Auswahl erneut.",
+    "serviceError": "Der Server kann die Aktion derzeit nicht abschließen. Bisherige Schritte bleiben gespeichert. Versuche es später erneut.",
+    "batchTooLarge": "Wähle höchstens 20 Aufnahmen pro Anfrage. Die Verwaltungsseite teilt größere Auswahlen automatisch auf.",
+    "downloadRequired": "Lade diese Aufnahme zuerst herunter und prüfe sie.",
+    "resumeUnavailable": "Diese Aufgabe kann nicht fortgesetzt werden. Aktualisiere die Übersicht und wähle den passenden Schritt.",
+    "publicationConflict": "Dieses Kapitel wurde inzwischen veröffentlicht. Die bestehende Aufnahme wurde nicht ersetzt.",
+    "selectPublications": "Registrierte Aufnahmen zur Veröffentlichung auswählen",
+    "publishSelected": "Ausgewählte Aufnahmen veröffentlichen",
+    "confirmPublishSelection": "Nur die unten aufgeführten geprüften Aufnahmen veröffentlichen? Bestehende Veröffentlichungen werden nicht ersetzt. Herunterladen und Registrieren veröffentlichen niemals Audio.",
+    "selectAll": "Alle verfügbaren Kapitel auswählen",
+    "clearSelection": "Auswahl aufheben",
+    "batchProgress": "Vorbereitet: {done} von {total}. Bisherige Schritte bleiben gespeichert.",
+    "partialFailure": "Einige Aktionen sind noch offen. Prüfe den Kapitelstatus und wiederhole nur die verbleibenden Aktionen.",
+    "alreadyRegistered": "Diese Aufnahmen sind bereits registriert. Wähle sie unten zur gesonderten Veröffentlichung aus.",
+    "refreshHint": "Aktive Aufgaben werden alle 15 Sekunden aktualisiert, ohne aktive Aufgaben alle 2 Minuten.",
+    "refresh": "Übersicht aktualisieren",
+    "unpublished": "Noch nicht veröffentlicht",
+    "otherPublished": "Eine andere Aufnahme ist bereits veröffentlicht und bleibt aktiv.",
+
     "missingText": "Fehlende Textkapitel",
     "storageMissing": "Der Audioordner ist nicht verfügbar. Den eingerichteten Speicher prüfen; nichts wird heruntergeladen oder registriert.",
     "storageFull": "Es ist nicht genügend Speicher frei. Zuerst sicher Platz schaffen; vorhandene Dateien bleiben erhalten.",

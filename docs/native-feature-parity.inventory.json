@@ -677,13 +677,13 @@
     },
     {
       "file": "src/app/api/admin/audio/official/route.ts",
-      "sha256": "f3b2024f1a361f6b49a865909ba2d8199fd634c16bc2b812aad033857a4ad990",
+      "sha256": "f80de5c2d78f9523423df8c6c915aa438f15781e1f45d9c7a1700c7a6ffeb0e7",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
+        "@/lib/audio/officialControls",
         "@/lib/audio/officialJobs",
         "@/lib/content-inventory/origin",
-        "@/lib/i18n/core",
         "@/lib/requestBody",
         "@/lib/session",
         "next/server",
@@ -11421,7 +11421,7 @@
     },
     {
       "file": "src/components/admin/OfficialAudioClient.tsx",
-      "sha256": "0846220496b7d39b248e9502bab467426a922bfa3b7a68bd343ec9c7ade21047",
+      "sha256": "9aacb99a29bef11d5fb5529c9e13b822de6d1ce2ceadf146a19764f71f2c81d2",
       "boundary": "client",
       "imports": [
         "./AdminNotice",
@@ -11429,6 +11429,7 @@
         "@/components/ConfirmProvider",
         "@/components/I18nProvider",
         "@/components/versado/styles",
+        "@/lib/audio/officialControls",
         "@/lib/audio/officialJobs",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
@@ -15563,7 +15564,7 @@
     },
     {
       "file": "src/lib/audio/library.ts",
-      "sha256": "d1f51b98f1b7f2319b6d91e2e6c5014e999278ca650423e58b595098982f484b",
+      "sha256": "086cb66fd90ac9095df24b84dbe4fc03c2cebdc584957aa5f4bccd21fc3e556a",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
@@ -15612,6 +15613,22 @@
       ]
     },
     {
+      "file": "src/lib/audio/officialControls.ts",
+      "sha256": "9f7e250e7ee266a3ecbbc5a955548817286a9c3d7d5d40f39d5de95ce9f5dca8",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/i18n/core"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "OFFICIAL_BATCH_SIZE",
+        "officialBatches",
+        "officialReasons"
+      ]
+    },
+    {
       "file": "src/lib/audio/officialDownload.ts",
       "sha256": "fbd50302170546d129234877281152ddb695a42050014de7a3dfecd91abf38b1",
       "boundary": "context-dependent",
@@ -15657,7 +15674,7 @@
     },
     {
       "file": "src/lib/audio/officialJobs.ts",
-      "sha256": "91b5c7fbd36a7bcda619b0a93fe4f27d12f9c4cda1352c098d532d3a94884096",
+      "sha256": "f5a8fece2def3d32fb252023c0e1b522b6549b02f7ad0cdb3c4410aba908a3e6",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
@@ -15682,6 +15699,7 @@
       "exports": [
         "officialErrorCode",
         "officialOverview",
+        "publishOfficialSelection",
         "requestOfficialAudio",
         "runOfficialAudioTick"
       ]
@@ -18415,7 +18433,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "61a4a01daa26d5eac7374e1aeeafcd2d62a47ecd97b6d70e584d74e95bf34d42",
+      "sha256": "aff52180e6b8c27eb46e5cc52acda5c745f5dcb7ec7f42d0663daa048511efab",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18430,7 +18448,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "fee778d5d1be6c7b491d3be060bffec538602ae47fefd70845247c5f03a605ee",
+      "sha256": "117326742e7e6d7d4bb2b7ad42139b175f31a14174895211ea8f2335b99bf387",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18445,7 +18463,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "09679a318acaa76237906b619e2cde19d54c61e35ef632a9ba9656dd58b50352",
+      "sha256": "95d0904b26ec6d83e4297fb9a4e8dae1b9d543aec0741bd054142b7fac78a8a1",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18460,7 +18478,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "4983c4b702a710b5bbb0d613980584fe62617a4ed2c516f2961a5cebf5205b75",
+      "sha256": "e0d2ecf925073488a5ff11fcb51f23d9a22854ffdfcfbc9d1632e9839adaeacc",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18543,7 +18561,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "32a75a97eca819029afbe0e1078508a005c3e2918ce4a9b0ff22f2e1942cb3b6",
+      "sha256": "7c04653ef2ee312fd4b438c22c70e4b1f5eea918aea2e1c162efd3527872fe5d",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -25962,6 +25980,7 @@
         "src/lib/audio/contract.ts",
         "src/lib/audio/library.ts",
         "src/lib/audio/officialCatalogue.ts",
+        "src/lib/audio/officialControls.ts",
         "src/lib/audio/officialDownload.ts",
         "src/lib/audio/officialGuard.ts",
         "src/lib/audio/officialJobs.ts",
@@ -28295,13 +28314,13 @@
     },
     {
       "file": "src/app/api/admin/audio/official/route.ts",
-      "sha256": "f3b2024f1a361f6b49a865909ba2d8199fd634c16bc2b812aad033857a4ad990",
+      "sha256": "f80de5c2d78f9523423df8c6c915aa438f15781e1f45d9c7a1700c7a6ffeb0e7",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
+        "@/lib/audio/officialControls",
         "@/lib/audio/officialJobs",
         "@/lib/content-inventory/origin",
-        "@/lib/i18n/core",
         "@/lib/requestBody",
         "@/lib/session",
         "next/server",
@@ -28328,6 +28347,7 @@
         "src/lib/audio/contract.ts",
         "src/lib/audio/library.ts",
         "src/lib/audio/officialCatalogue.ts",
+        "src/lib/audio/officialControls.ts",
         "src/lib/audio/officialDownload.ts",
         "src/lib/audio/officialGuard.ts",
         "src/lib/audio/officialJobs.ts",
@@ -28371,9 +28391,9 @@
       ],
       "directModules": [
         "src/lib/apiError.ts",
+        "src/lib/audio/officialControls.ts",
         "src/lib/audio/officialJobs.ts",
         "src/lib/content-inventory/origin.ts",
-        "src/lib/i18n/core.ts",
         "src/lib/requestBody.ts",
         "src/lib/session.ts"
       ],
@@ -70593,7 +70613,7 @@
     },
     {
       "file": "src/components/admin/OfficialAudioClient.tsx",
-      "sha256": "0846220496b7d39b248e9502bab467426a922bfa3b7a68bd343ec9c7ade21047",
+      "sha256": "9aacb99a29bef11d5fb5529c9e13b822de6d1ce2ceadf146a19764f71f2c81d2",
       "boundary": "client",
       "imports": [
         "./AdminNotice",
@@ -70601,6 +70621,7 @@
         "@/components/ConfirmProvider",
         "@/components/I18nProvider",
         "@/components/versado/styles",
+        "@/lib/audio/officialControls",
         "@/lib/audio/officialJobs",
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
