@@ -670,6 +670,7 @@ model StudyLesson {
 }
 
 model StudyLessonEdition {
+  studyExercises Exercise[]
   legacyFsyLesson FsyLesson? @relation("FsyStudyEdition")
   annotationBookmark Bookmark[] @relation("BookmarkEdition")
   annotationHighlight Highlight[] @relation("HighlightEdition")
@@ -1696,8 +1697,11 @@ enum ContentStatus {
 
 model Exercise {
   id            String           @id @default(cuid())
-  chapterId     String
-  chapter       Chapter          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  chapterId     String?
+  chapter       Chapter?         @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  studyLessonEditionId String?
+  studyLessonEdition StudyLessonEdition? @relation(fields: [studyLessonEditionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "Exercise_studyEdition_fkey")
+  studySource Json?
   order         Int
   type          ExerciseType
   status        ContentStatus    @default(APPROVED)
@@ -1716,6 +1720,7 @@ model Exercise {
 
   @@index([chapterId])
   @@index([sourceVerseId])
+  @@index([studyLessonEditionId])
 }
 
 // Nog niet gebruikt door de huidige generatoren (FILL_BLANK/WORD_BANK/
@@ -1843,8 +1848,10 @@ model ExerciseSession {
   id             String        @id @default(cuid())
   userId         String
   user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  chapterId      String
-  chapter        Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  chapterId      String?
+  chapter        Chapter?      @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  studyContext   Json?
+  result         Json?
   contentKey     String
   // JSON-array met de uitgedeelde Exercise-id's.
   exerciseIds    String

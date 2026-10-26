@@ -4471,6 +4471,7 @@ export const fr: PartialMessages = {
     viewAllRequests: "Voir les {n} demandes", viewAllGroupActions: "Voir les {n} actions de groupe",
   },
   kompas: kompasFr,
+  cfmExercises: {"title": "Questions de lecture", "unavailable": "Il manque encore des questions vérifiées sur les Écritures pour cette lecture. Vous pouvez continuer à lire."},
   cfmStudy: {
     "modeLabel": "Mode de lecture",
     "modeFree": "Étude libre",

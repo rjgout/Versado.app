@@ -612,6 +612,9 @@ function ReaderVisit({
         </article>
         </BlockedReferencesContext.Provider>
         </ReferenceActionsContext.Provider>
+        {!legacy && data.exerciseCounts && <div className="border-t border-vs-line pt-4">
+          {(currentStep?data.exerciseCounts[currentStep.index-1]===3:data.exerciseCounts.every(n=>n===3)) ? <Link data-study-exercises replace href={`${base}/vragen${currentStep?`?stap=${currentStep.index}`:pageMode==='full'?'?volledig=1':''}`} prefetch={false} className="btn-primary">{t('progress.practice',{n:currentStep?3:18})}</Link>:<p role="status" className="text-sm text-vs-fg-2">{t('cfmExercises.unavailable')}</p>}
+        </div>}
         {!legacy && pageMode !== "step" && (
           <footer className="space-y-4 border-t border-vs-line pt-4">
             {markReadSection}

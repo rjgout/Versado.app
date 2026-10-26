@@ -17,6 +17,9 @@
 
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { loadStudyExerciseSource, studyExerciseContextSchema, type ExerciseActor } from '@/lib/studyContent/exerciseSource';
+import { applyStepProgress } from '@/lib/studyContent/stepProgress';
+import { QUESTIONS_PER_PART as STUDY_PART_SIZE } from '@/lib/learning/exercisePlan';
 import { emitToUser } from "@/lib/realtime";
 import { isExerciseCorrect } from "@/lib/exerciseGen";
 import { awardXp } from "@/lib/xp";
@@ -76,6 +79,7 @@ export async function getExercisePlans(db: Db, chapterIds: string[]): Promise<Ma
     const verseCountById = new Map(verseCounts.map((row) => [row.chapterId, row._count._all]));
     const exercisesById = new Map<string, { id: string; verseNumber: number | null }[]>();
     for (const exercise of exercises) {
+      if (!exercise.chapterId) continue;
       const list = exercisesById.get(exercise.chapterId) ?? [];
       list.push({ id: exercise.id, verseNumber: exercise.sourceVerse?.number ?? null });
       exercisesById.set(exercise.chapterId, list);
@@ -347,7 +351,7 @@ export interface SubmittedAnswer {
 export interface ExerciseSessionContext {
   sessionId: string;
   userId: string;
-  chapterId: string;
+  chapterId: string | null;
   contentKey: string;
   courseLessonId: string | null;
 }
@@ -370,6 +374,143 @@ export interface SessionHooks {
   afterGrade?: (tx: Tx, session: ExerciseSessionContext, outcome: { scorePercent: number; xpEarned: number }) => Promise<void>;
 }
 
+type ContentExerciseOutcome = Omit<ContentExerciseResult, "chapterId"> & {
+  chapterId: string | null;
+  replayed?: boolean;
+};
+export interface IssuedStudySet {
+  sessionId: string;
+  exercises: IssuedExercise[];
+  groups: Array<{ index: number; count: number }>;
+}
+export type StudyContentExerciseResult = Omit<
+  ContentExerciseResult,
+  "chapterId"
+> & { chapterId: null; replayed?: boolean };
+export async function submitExerciseSession(
+  userId: string,
+  sessionId: string,
+  answers: SubmittedAnswer[],
+  hooks: SessionHooks = {},
+): Promise<ContentExerciseResult> {
+  const result = await submitContentExerciseSession(
+    userId,
+    sessionId,
+    answers,
+    hooks,
+  );
+  if (!result.chapterId) throw new ExerciseSessionError("NOT_FOUND");
+  return { ...result, chapterId: result.chapterId };
+}
+export async function submitStudyExerciseSession(
+  actor: ExerciseActor,
+  sessionId: string,
+  answers: SubmittedAnswer[],
+) {
+  const result = await submitContentExerciseSession(
+    actor.id,
+    sessionId,
+    answers,
+    {},
+    actor,
+  );
+  return result as StudyContentExerciseResult;
+}
+
+export async function issueStudyExerciseSession(
+  actor: ExerciseActor,
+  input: { editionId: string; revisionId: string; stepIndex: number | null },
+): Promise<IssuedStudySet | null> {
+  return prisma.$transaction(
+    async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "User" WHERE id=${actor.id} FOR UPDATE`;
+      await tx.$queryRaw`SELECT id FROM "StudyLessonEdition" WHERE id=${input.editionId} FOR SHARE`;
+      const source = await loadStudyExerciseSource(actor, input.editionId, tx);
+      if (!source || source.lesson.revisionId !== input.revisionId)
+        throw new ExerciseSessionError("LOCKED");
+      const parts = source.plan.parts.filter(
+        (p) => input.stepIndex === null || p.index === input.stepIndex,
+      );
+      if (
+        !parts.length ||
+        parts.some((p) => p.questions.length !== STUDY_PART_SIZE)
+      )
+        return null;
+      const questions = parts.flatMap((p) => p.questions);
+      // Codebeoordeelde broncatalogus: alleen ontbrekende rijen toevoegen.
+      // Bestaande vragen/opties, ingetrokken status en historie nooit overschrijven.
+      const created = source.prepared.length
+        ? await tx.exercise.createManyAndReturn({
+            data: source.prepared.map((q) => ({
+              id: q.id,
+              studyLessonEditionId: input.editionId,
+              studySource: q.studySource,
+              order: 0,
+              type: q.type,
+              status: "APPROVED" as const,
+              verseRef: q.verseRef,
+              prompt: q.prompt,
+              answers: JSON.stringify(q.answers),
+              wordBank: q.wordBank ? JSON.stringify(q.wordBank) : null,
+            })),
+            skipDuplicates: true,
+            select: { id: true },
+          })
+        : [];
+      const createdIds = new Set(created.map((q) => q.id));
+      const options = source.prepared
+        .filter((q) => createdIds.has(q.id))
+        .flatMap((q) =>
+          (q.options ?? []).map((label, order) => ({
+            exerciseId: q.id,
+            label,
+            order,
+            isCorrect: label.toLowerCase() === q.answers[0],
+          })),
+        );
+      if (options.length) await tx.questionOption.createMany({ data: options });
+      await tx.exerciseSession.deleteMany({
+        where: {
+          userId: actor.id,
+          submittedAt: null,
+          createdAt: { lt: new Date(Date.now() - SESSION_MAX_AGE_MS) },
+        },
+      });
+      const studyContext = {
+        editionId: input.editionId,
+        revisionId: input.revisionId,
+        fingerprint: source.plan.fingerprint,
+        stepIndex: input.stepIndex,
+      };
+      const session = await tx.exerciseSession.create({
+        data: {
+          userId: actor.id,
+          contentKey: source.contentKey,
+          exerciseIds: JSON.stringify(questions.map((q) => q.id)),
+          studyContext,
+        },
+      });
+      return {
+        sessionId: session.id,
+        exercises: questions.map((q) => ({
+          id: q.id,
+          type: q.type,
+          prompt: q.prompt,
+          verseRef: q.verseRef,
+          blanks: q.answers.length,
+          options: q.options,
+          wordBank: q.wordBank,
+        })),
+        groups: parts.map((p) => ({
+          index: p.index,
+          count: p.questions.length,
+        })),
+      };
+    },
+    { timeout: 20000 },
+  );
+}
+
 /**
  * Levert een uitgedeelde set in. Alles gebeurt in één transactie:
  * - de set wordt atomair geclaimd (submittedAt), dus dubbelklikken of twee
@@ -379,157 +520,335 @@ export interface SessionHooks {
  *   stand ophogen;
  * - XP volgt uit rewards.ts, de reeks uit recordLearningActivity.
  */
-export async function submitExerciseSession(
+async function submitContentExerciseSession(
   userId: string,
   sessionId: string,
   answers: SubmittedAnswer[],
-  hooks: SessionHooks = {}
-): Promise<ContentExerciseResult> {
-  return prisma.$transaction(
-    async (tx) => {
-      // Dezelfde lockvolgorde als andere leeractiviteiten: gebruiker vóór XP/feed.
-      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
-      const session = await tx.exerciseSession.findUnique({ where: { id: sessionId } });
-      if (!session || session.userId !== userId) throw new ExerciseSessionError("NOT_FOUND");
-      if (session.submittedAt) throw new ExerciseSessionError("ALREADY_SUBMITTED");
-      const context: ExerciseSessionContext = {
-        sessionId,
-        userId,
-        chapterId: session.chapterId,
-        contentKey: session.contentKey,
-        courseLessonId: session.courseLessonId,
-      };
-      await hooks.validate?.(tx, context);
-
-      const claimed = await tx.exerciseSession.updateMany({
-        where: { id: sessionId, userId, submittedAt: null },
-        data: { submittedAt: new Date() },
-      });
-      if (claimed.count === 0) throw new ExerciseSessionError("ALREADY_SUBMITTED");
-
-      // Precies de uitgedeelde vragen, elk één keer, allemaal beantwoord.
-      const issued = JSON.parse(session.exerciseIds) as string[];
-      const givenById = new Map<string, string[]>();
-      for (const answer of answers) {
-        if (issued.includes(answer.exerciseId) && !givenById.has(answer.exerciseId)) givenById.set(answer.exerciseId, answer.given);
-      }
-      if (issued.length === 0 || givenById.size !== issued.length) throw new ExerciseSessionError("INCOMPLETE");
-
-      const exercises = await tx.exercise.findMany({ where: { id: { in: issued } } });
-      const results: ContentExerciseResult["results"] = [];
-      for (const id of issued) {
-        const exercise = exercises.find((e) => e.id === id);
-        if (!exercise) throw new ExerciseSessionError("NOT_FOUND");
-        const accepted = JSON.parse(exercise.answers) as string[];
-        results.push({ exerciseId: id, correct: isExerciseCorrect(exercise.type, givenById.get(id)!, accepted), correctAnswer: accepted });
-      }
-      await tx.exerciseAttempt.createMany({
-        data: results.map((r) => ({ userId, exerciseId: r.exerciseId, givenText: givenById.get(r.exerciseId)!.join(" "), correct: r.correct })),
-      });
-      const correctCount = results.filter((r) => r.correct).length;
-      const scorePercent = Math.round((correctCount / results.length) * 100);
-
-      // Eén inzending tegelijk per gebruiker en inhoud.
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}), hashtext(${session.contentKey}))`;
-
-      const credits = await tx.contentExerciseCredit.findMany({ where: { userId, exerciseId: { in: issued } } });
-      const creditById = new Map(credits.map((c) => [c.exerciseId, c]));
-      const newAnswered = results.filter((r) => !creditById.has(r.exerciseId));
-      const newCorrect = results.filter((r) => r.correct && !creditById.get(r.exerciseId)?.correct);
-      if (newAnswered.length > 0) {
-        await tx.contentExerciseCredit.createMany({
-          data: newAnswered.map((r) => ({ userId, exerciseId: r.exerciseId, contentKey: session.contentKey, correct: r.correct })),
-          skipDuplicates: true,
+  hooks: SessionHooks = {},
+  studyActor?: ExerciseActor,
+): Promise<ContentExerciseOutcome> {
+  return prisma
+    .$transaction(
+      async (tx) => {
+        // Dezelfde lockvolgorde als andere leeractiviteiten: gebruiker vóór XP/feed.
+        await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
+        const session = await tx.exerciseSession.findUnique({
+          where: { id: sessionId },
         });
-      }
-      const improved = newCorrect.filter((r) => creditById.has(r.exerciseId)).map((r) => r.exerciseId);
-      if (improved.length > 0) {
-        await tx.contentExerciseCredit.updateMany({ where: { userId, exerciseId: { in: improved } }, data: { correct: true } });
-      }
-
-      const plan = await getExercisePlan(tx, session.chapterId);
-      const total = plan.total;
-      const row = await tx.contentProgress.upsert({
-        where: { userId_contentKey: { userId, contentKey: session.contentKey } },
-        create: { userId, contentKey: session.contentKey, lastChapterId: session.chapterId },
-        update: { lastChapterId: session.chapterId },
-      });
-      const before = withLegacy(
-        { answered: row.exerciseAnswered, rewardCorrect: row.rewardCorrect, bonusAwarded: row.rewardBonusAt !== null },
-        { legacyXp: row.legacyXp, legacyCompleted: row.legacyCompleted },
-        total
-      );
-      const outcome = applyAttempt(before, total, { newAnswered: newAnswered.length, newCorrect: newCorrect.length, correct: correctCount });
-      const now = new Date();
-      const exercisesCompletedNow = row.exercisesCompletedAt === null && total > 0 && outcome.next.answered >= total;
-      await tx.contentProgress.update({
-        where: { id: row.id },
-        data: {
-          exerciseAnswered: outcome.next.answered,
-          rewardCorrect: outcome.next.rewardCorrect,
-          rewardBonusAt: outcome.bonusXp > 0 ? now : undefined,
-          exercisesCompletedAt: exercisesCompletedNow ? now : undefined,
-          baseXpEarned: { increment: outcome.baseXp + outcome.bonusXp },
-        },
-      });
-
-      // Een stap van een leesroute: dat leesgedeelte is daarmee gelezen.
-      if (session.courseLessonId) await markStepRead(tx, userId, session.courseLessonId);
-
-      const xpEarned = outcome.baseXp + outcome.bonusXp + outcome.repeatXp;
-      await hooks.afterGrade?.(tx, context, { scorePercent, xpEarned });
-
-      if (xpEarned > 0) {
-        const metadata = {
-          contentKey: session.contentKey,
+        if (!session || session.userId !== userId)
+          throw new ExerciseSessionError("NOT_FOUND");
+        const studyContext = studyExerciseContextSchema.safeParse(
+          session.studyContext,
+        );
+        if (studyActor && studyContext.success) {
+          if (Date.now() - session.createdAt.getTime() > SESSION_MAX_AGE_MS)
+            throw new ExerciseSessionError("LOCKED");
+          await tx.$queryRaw`SELECT id FROM "StudyLessonEdition" WHERE id=${studyContext.data.editionId} FOR SHARE`;
+          await tx.$queryRaw`SELECT id FROM "Exercise" WHERE "studyLessonEditionId"=${studyContext.data.editionId} FOR SHARE`;
+        }
+        const study =
+          studyActor && studyContext.success
+            ? await loadStudyExerciseSource(
+                studyActor,
+                studyContext.data.editionId,
+                tx,
+              )
+            : null;
+        if (
+          !session.chapterId &&
+          (!study ||
+            !studyContext.success ||
+            study.lesson.revisionId !== studyContext.data.revisionId ||
+            study.plan.fingerprint !== studyContext.data.fingerprint ||
+            session.contentKey !== study.contentKey)
+        )
+          throw new ExerciseSessionError("LOCKED");
+        if (
+          (session.chapterId && studyActor) ||
+          (!session.chapterId && !studyActor)
+        )
+          throw new ExerciseSessionError("NOT_FOUND");
+        if (session.submittedAt) {
+          if (study && session.result)
+            return {
+              ...(session.result as unknown as StudyContentExerciseResult),
+              replayed: true,
+            };
+          throw new ExerciseSessionError("ALREADY_SUBMITTED");
+        }
+        const context: ExerciseSessionContext = {
+          sessionId,
+          userId,
           chapterId: session.chapterId,
-          exerciseSessionId: sessionId,
-          readingLessonId: session.courseLessonId ?? undefined,
-          scorePercent,
+          contentKey: session.contentKey,
+          courseLessonId: session.courseLessonId,
+        };
+        await hooks.validate?.(tx, context);
+
+        const claimed = await tx.exerciseSession.updateMany({
+          where: { id: sessionId, userId, submittedAt: null },
+          data: { submittedAt: new Date() },
+        });
+        if (claimed.count === 0)
+          throw new ExerciseSessionError("ALREADY_SUBMITTED");
+
+        // Precies de uitgedeelde vragen, elk één keer, allemaal beantwoord.
+        const issued = JSON.parse(session.exerciseIds) as string[];
+        const givenById = new Map<string, string[]>();
+        for (const answer of answers) {
+          if (
+            issued.includes(answer.exerciseId) &&
+            !givenById.has(answer.exerciseId)
+          )
+            givenById.set(answer.exerciseId, answer.given);
+        }
+        if (issued.length === 0 || givenById.size !== issued.length)
+          throw new ExerciseSessionError("INCOMPLETE");
+
+        if (study) {
+          const expected = study.plan.parts
+            .filter(
+              (part) =>
+                !studyContext.success ||
+                studyContext.data.stepIndex === null ||
+                part.index === studyContext.data.stepIndex,
+            )
+            .flatMap((p) => p.questions.map((q) => q.id));
+          if (
+            JSON.stringify(issued) !== JSON.stringify(expected) ||
+            expected.length !==
+              (studyContext.success && studyContext.data.stepIndex
+                ? STUDY_PART_SIZE
+                : study.plan.total)
+          )
+            throw new ExerciseSessionError("LOCKED");
+        }
+        const exercises = await tx.exercise.findMany({
+          where: {
+            id: { in: issued },
+            ...(study
+              ? {
+                  status: "APPROVED" as const,
+                  studyLessonEditionId: study.lesson.editionId,
+                }
+              : { chapterId: session.chapterId! }),
+          },
+        });
+        const results: ContentExerciseResult["results"] = [];
+        for (const id of issued) {
+          const exercise = exercises.find((e) => e.id === id);
+          if (!exercise) throw new ExerciseSessionError("NOT_FOUND");
+          const accepted = JSON.parse(exercise.answers) as string[];
+          results.push({
+            exerciseId: id,
+            correct: isExerciseCorrect(
+              exercise.type,
+              givenById.get(id)!,
+              accepted,
+            ),
+            correctAnswer: accepted,
+          });
+        }
+        await tx.exerciseAttempt.createMany({
+          data: results.map((r) => ({
+            userId,
+            exerciseId: r.exerciseId,
+            givenText: givenById.get(r.exerciseId)!.join(" "),
+            correct: r.correct,
+          })),
+        });
+        const correctCount = results.filter((r) => r.correct).length;
+        const scorePercent = Math.round((correctCount / results.length) * 100);
+
+        // Eén inzending tegelijk per gebruiker en inhoud.
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}), hashtext(${session.contentKey}))`;
+
+        const credits = await tx.contentExerciseCredit.findMany({
+          where: { userId, exerciseId: { in: issued } },
+        });
+        const creditById = new Map(credits.map((c) => [c.exerciseId, c]));
+        const newAnswered = results.filter(
+          (r) => !creditById.has(r.exerciseId),
+        );
+        const newCorrect = results.filter(
+          (r) => r.correct && !creditById.get(r.exerciseId)?.correct,
+        );
+        if (newAnswered.length > 0) {
+          await tx.contentExerciseCredit.createMany({
+            data: newAnswered.map((r) => ({
+              userId,
+              exerciseId: r.exerciseId,
+              contentKey: session.contentKey,
+              correct: r.correct,
+            })),
+            skipDuplicates: true,
+          });
+        }
+        const improved = newCorrect
+          .filter((r) => creditById.has(r.exerciseId))
+          .map((r) => r.exerciseId);
+        if (improved.length > 0) {
+          await tx.contentExerciseCredit.updateMany({
+            where: { userId, exerciseId: { in: improved } },
+            data: { correct: true },
+          });
+        }
+
+        const plan = study
+          ? study.plan
+          : await getExercisePlan(tx, session.chapterId!);
+        const total = plan.total;
+        const row = await tx.contentProgress.upsert({
+          where: {
+            userId_contentKey: { userId, contentKey: session.contentKey },
+          },
+          create: {
+            userId,
+            contentKey: session.contentKey,
+            lastChapterId: session.chapterId ?? undefined,
+          },
+          update: { lastChapterId: session.chapterId ?? undefined },
+        });
+        const before = withLegacy(
+          {
+            answered: row.exerciseAnswered,
+            rewardCorrect: row.rewardCorrect,
+            bonusAwarded: row.rewardBonusAt !== null,
+          },
+          { legacyXp: row.legacyXp, legacyCompleted: row.legacyCompleted },
+          total,
+        );
+        const outcome = applyAttempt(before, total, {
+          newAnswered: newAnswered.length,
+          newCorrect: newCorrect.length,
+          correct: correctCount,
+        });
+        const now = new Date();
+        const exercisesCompletedNow =
+          row.exercisesCompletedAt === null &&
+          total > 0 &&
+          outcome.next.answered >= total;
+        await tx.contentProgress.update({
+          where: { id: row.id },
+          data: {
+            exerciseAnswered: outcome.next.answered,
+            rewardCorrect: outcome.next.rewardCorrect,
+            rewardBonusAt: outcome.bonusXp > 0 ? now : undefined,
+            exercisesCompletedAt: exercisesCompletedNow ? now : undefined,
+            baseXpEarned: { increment: outcome.baseXp + outcome.bonusXp },
+          },
+        });
+
+        // Een stap van een leesroute: dat leesgedeelte is daarmee gelezen.
+        if (session.courseLessonId)
+          await markStepRead(tx, userId, session.courseLessonId);
+
+        const xpEarned = outcome.baseXp + outcome.bonusXp + outcome.repeatXp;
+        await hooks.afterGrade?.(tx, context, { scorePercent, xpEarned });
+
+        if (xpEarned > 0) {
+          const metadata = {
+            contentKey: session.contentKey,
+            chapterId: session.chapterId,
+            exerciseSessionId: sessionId,
+            readingLessonId: session.courseLessonId ?? undefined,
+            scorePercent,
+            baseXp: outcome.baseXp,
+            bonusXp: outcome.bonusXp,
+            repeatXp: outcome.repeatXp,
+          };
+          await awardXp(tx, userId, xpEarned, "LESSON_COMPLETED", metadata);
+          await awardCompetitionXp(tx, userId, "LESSON", xpEarned, {
+            metadata,
+          });
+        }
+
+        let streak = await recordLearningActivity(tx, userId, {
+          kind: "CONTENT_EXERCISES",
+          answered: results.length,
+          required: issued.length,
+          key: `content:${sessionId}`,
+        });
+        if (exercisesCompletedNow) {
+          const completed = await tx.contentProgress.count({
+            where: { userId, exercisesCompletedAt: { not: null } },
+          });
+          if (completed % CHAPTERS_MILESTONE_FOR_FREEZE === 0)
+            streak = await grantMilestoneFreeze(tx, userId, streak);
+        }
+        const newAchievements = await checkAndAwardAchievements(tx, userId);
+        const content = study
+          ? {
+              ...resolveContentState(
+                await tx.contentProgress.findUnique({ where: { id: row.id } }),
+                total,
+              ),
+              contentKey: session.contentKey,
+              xpAvailable: Math.max(
+                0,
+                maxContentBaseXp(total) -
+                  outcome.next.rewardCorrect * XP_PER_CORRECT -
+                  (outcome.next.bonusAwarded ? COMPLETION_BONUS : 0),
+              ),
+            }
+          : (
+              await getChapterStates(tx, userId, [
+                await loadChapter(tx, session.chapterId!),
+              ])
+            ).get(session.chapterId!)!;
+        if (study)
+          for (const part of study.plan.parts) {
+            if (
+              part.questions.length === STUDY_PART_SIZE &&
+              part.questions.every((q) => issued.includes(q.id))
+            )
+              await applyStepProgress(tx, userId, {
+                lessonEditionId: study.lesson.editionId,
+                revisionId: study.lesson.revisionId,
+                step: part,
+                action: "COMPLETE",
+                planVersion: study.plan.personalVersion,
+              });
+          }
+        const result = {
+          results,
+          correctCount,
+          total: results.length,
           baseXp: outcome.baseXp,
           bonusXp: outcome.bonusXp,
           repeatXp: outcome.repeatXp,
+          content,
+          chapterId: session.chapterId,
+          xpEarned,
+          chapterCompleted: content.done,
+          scorePercent,
+          currentStreak: streak.currentStreak,
+          longestStreak: streak.longestStreak,
+          streakBroken: streak.streakBroken,
+          freezeUsed: streak.freezeUsed,
+          freezesEarned: streak.freezesEarned,
+          freezeCount: streak.freezeCount,
+          newAchievements,
+          alreadyStudiedToday: streak.alreadyStudiedToday,
+          dayEarned: streak.dayEarned,
         };
-        await awardXp(tx, userId, xpEarned, "LESSON_COMPLETED", metadata);
-        await awardCompetitionXp(tx, userId, "LESSON", xpEarned, { metadata });
-      }
-
-      let streak = await recordLearningActivity(tx, userId, { kind: "CONTENT_EXERCISES", answered: results.length, required: issued.length, key: `content:${sessionId}` });
-      if (exercisesCompletedNow) {
-        const completed = await tx.contentProgress.count({ where: { userId, exercisesCompletedAt: { not: null } } });
-        if (completed % CHAPTERS_MILESTONE_FOR_FREEZE === 0) streak = await grantMilestoneFreeze(tx, userId, streak);
-      }
-      const newAchievements = await checkAndAwardAchievements(tx, userId);
-      const content = (await getChapterStates(tx, userId, [await loadChapter(tx, session.chapterId)])).get(session.chapterId)!;
-
-      return {
-        results,
-        correctCount,
-        total: results.length,
-        baseXp: outcome.baseXp,
-        bonusXp: outcome.bonusXp,
-        repeatXp: outcome.repeatXp,
-        content,
-        chapterId: session.chapterId,
-        xpEarned,
-        chapterCompleted: content.done,
-        scorePercent,
-        currentStreak: streak.currentStreak,
-        longestStreak: streak.longestStreak,
-        streakBroken: streak.streakBroken,
-        freezeUsed: streak.freezeUsed,
-        freezesEarned: streak.freezesEarned,
-        freezeCount: streak.freezeCount,
-        newAchievements,
-        alreadyStudiedToday: streak.alreadyStudiedToday,
-        dayEarned: streak.dayEarned,
-      };
-    },
-    { timeout: 20000 }
-  ).then((result) => {
-    emitToUser(userId, "streak_changed", { dayEarned: result.dayEarned === true, currentStreak: result.currentStreak });
-    return result;
-  });
+        if (study)
+          await tx.exerciseSession.update({
+            where: { id: session.id },
+            data: { result: JSON.parse(JSON.stringify(result)) },
+          });
+        return result;
+      },
+      { timeout: 20000 },
+    )
+    .then((result) => {
+      if (!("replayed" in result && result.replayed))
+        emitToUser(userId, "streak_changed", {
+          dayEarned: result.dayEarned === true,
+          currentStreak: result.currentStreak,
+        });
+      return result;
+    });
 }
 
 /**

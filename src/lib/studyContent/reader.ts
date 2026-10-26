@@ -1,4 +1,6 @@
 import { retryableScriptureReference } from "@/lib/references/bible";
+import { isPersonalStudyWork } from './personalStudyOverrides';
+import { loadStudyExerciseSource } from './exerciseSource';
 import { prisma } from "@/lib/db";
 import { getPublishedStudyLesson, type PublishedStudyDTO } from "./revisions";
 import { getReadingPosition } from "./readingPosition";
@@ -11,6 +13,7 @@ export interface StudyReaderDTO {
   readState: StudyReadState;
   media: Array<{ mediaKey: string; mediaId: string | null }>;
   visitProof: string | null;
+  exerciseCounts?: number[];
   blockedReferences?: string[];
 }
 /** Geen profielkeuze, voortgangswrite of tweede rechtenlaag. */
@@ -33,8 +36,10 @@ export async function getStudyReader(
   ]);
   // Een gelijktijdige pointerwissel is zichtbaar als update, maar vervangt deze
   // gevalideerde body niet. Media-API hercontroleert actuele publicatierechten.
+  const exerciseSource=isPersonalStudyWork(lesson.workKey)?await loadStudyExerciseSource(actor,lesson.editionId,prisma):null;
   return {
     lesson,
+    exerciseCounts: exerciseSource?.lesson.revisionId===lesson.revisionId?exerciseSource.plan.parts.map(p=>p.questions.length):undefined,
     blockedReferences: blocked.filter(r => !retryableScriptureReference(r.originalTarget as Record<string, unknown>, r.label)).map(r => r.occurrenceKey),
     visitProof: sessionKey
       ? issueReadingVisitProof(actor.id, lesson.editionId, lesson.revisionId, sessionKey)

@@ -4943,6 +4943,7 @@ export const nl = {
     },
   },
   kompas: kompasNl,
+  cfmExercises: {"title": "Leesvragen", "unavailable": "Voor deze leesinhoud zijn nog onvoldoende gecontroleerde schriftvragen beschikbaar. Je kunt gewoon verder lezen."},
   cfmStudy: {
     "modeLabel": "Leeswijze",
     "modeFree": "Vrije studie",

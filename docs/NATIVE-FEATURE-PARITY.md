@@ -13,6 +13,17 @@ oplevering. Android-/iOS-compilatie is uitsluitend een regressiecontrole. Fysiek
 achtergrondaudio, hoofdtelefoonbediening en herstel na lifecycle-wissels zijn niet hiermee bewezen.
 Zie [Audioarchitectuur V2](AUDIO-ARCHITECTUUR-V2.md).
 
+## CFM-leesvragen — fase-A-draft
+
+De web/PWA-vragenroute en de gedeelde backend ondersteunen de gecontroleerde
+CFM-bronadapter. De lokale native router mist de CFM-studielezer en heeft nog
+geen lokale vragenroute of expliciet Bearer-contract voor deze endpoint.
+Er is geen cookie-terugval of remote-webview als native implementatie toegevoegd.
+Chromium-controles bewijzen geen iPhone/iPad/Android-pariteit. Er is geen
+platformuitzondering goedgekeurd; deze draft claimt geen volledige native of
+functionele oplevering. Zie [fase-A-verslag](CFM-LEESVRAGEN-FASE-A.md) en de
+[inhoudelijke dekking](CFM-VRAAGDEKKING.md).
+
 ## Doel, bewijs en grens
 
 Iedere bestaande functie moet bruikbaar zijn op web/PWA, lokaal gebundeld iOS/iPadOS en Android. Er zijn **geen goedgekeurde web-only uitzonderingen**. Remote-preview, een link naar de website, een lege route of een route in deze inventaris is geen native equivalent. `CAPACITOR_BUILD_PROFILE=release` blijft geblokkeerd.

@@ -1,7 +1,10 @@
 # CFM-leesvragen, XP en Het Verborgen Woord — onderzoek en ontwerp
 
 Onderzocht op 25 oktober 2026, vanaf `origin/main` **e7264f05** (PR #214).
-Status: uitsluitend documentatie; geen implementatie- of uitroltoestemming.
+Historische onderzoeksstatus van PR #216: uitsluitend documentatie. De eigenaar
+heeft daarna fase A afzonderlijk opgedragen. Actuele draftstatus, hergebruik en
+beperkingen staan in [het fase-A-verslag](../CFM-LEESVRAGEN-FASE-A.md); de
+onderstaande inventaris beschrijft de situatie vóór implementatie. Geen uitroltoestemming.
 De uitvoeringsvolgorde en fasecriteria staan uitsluitend in de
 [bestaande roadmap, vervolg A–D](04-IMPLEMENTATION-ROADMAP.md#vervolg-a-d--cfm-leesvragen-eerst).
 Dit document onderbouwt die planning; het is geen tweede roadmap.

@@ -58,7 +58,7 @@ try {
   // Daarna synthetische bestaande records vóór de nieuwe additieve migratie.
   const migrationPath = join(temporary, "migrations");
   // Audio en de afhankelijke beheertaken verwijzen naar latere tabellen: pas met de volledige keten toepassen.
-  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context", "20261027120000_quick_missionary_source", "20261028120000_mystery_attempt", "20261029120000_study_identity", "20261030120000_study_import_publication", "20261031120000_reading_position", "20261101120000_content_selection_version", "20261102120000_hymns_content_visibility", "20261103120000_study_publication_audit_actions", "20261104120000_annotation_targets", "20261117120000_annotation_resolution", "20261118120000_fsy_study_handover", "20261119120000_word_search_source_context", "20261121120000_study_step_progress", "20261123120000_study_step_plan_version", "20261204120000_audio_library_v2", "20261206120000_official_audio_tasks"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
+  for (const name of readdirSync("prisma/migrations")) if (!["20261020120000_content_work_publication", "20261021120000_user_study_context", "20261027120000_quick_missionary_source", "20261028120000_mystery_attempt", "20261029120000_study_identity", "20261030120000_study_import_publication", "20261031120000_reading_position", "20261101120000_content_selection_version", "20261102120000_hymns_content_visibility", "20261103120000_study_publication_audit_actions", "20261104120000_annotation_targets", "20261117120000_annotation_resolution", "20261118120000_fsy_study_handover", "20261119120000_word_search_source_context", "20261121120000_study_step_progress", "20261123120000_study_step_plan_version", "20261204120000_audio_library_v2", "20261206120000_official_audio_tasks", "20261206120000_study_exercise_sessions"].includes(name)) cpSync(join("prisma/migrations",name),join(migrationPath,name),{recursive:true});
   const config = join(temporary,"prisma.config.mjs");
   const require = createRequire(import.meta.url);
   writeFileSync(config, `import {defineConfig} from ${JSON.stringify(require.resolve("prisma/config"))}; export default defineConfig({schema:${JSON.stringify(resolve("prisma/schema.prisma"))},migrations:{path:${JSON.stringify(migrationPath)}},datasource:{url:process.env.DATABASE_URL}});`);
@@ -108,8 +108,10 @@ try {
   await run("npx", ["prisma", "migrate", "deploy", "--config", config], env);
   await run("node", ["tests/fsy-conversion-migration.mjs", "verify"], env);
   await run("node", ["tests/game-resolver-migration.mjs", "prepare"], env);
+  await run("node", ["tests/cfm-exercises-migration.mjs", "prepare"], env);
   await run("npm", ["run", "db:migrate:deploy"], env);
   await run("node", ["tests/game-resolver-migration.mjs", "verify"], env);
+  await run("node", ["tests/cfm-exercises-migration.mjs", "verify"], env);
   await run("npm", ["run", "db:migrate:deploy"], env);
   if (process.argv.includes("--availability-performance")) {
     await run("npx", ["tsx", "scripts/content-architecture/benchmark-availability.mjs", ...(process.argv.includes("--assert-budget") ? ["--assert-budget"] : [])], env);
@@ -154,6 +156,14 @@ try {
       await run("npx", ["tsx", "tests/fixtures/mystery-learning.mjs"], env);
       for (const suite of ["test:learning", "test:streak-return", "test:streak-calendar", "test:time"]) await run("npm", ["run", suite], env);
     }
+  }
+  if(process.argv.includes("--cfm-exercises")) {
+    await run("npx",["tsx","--test","tests/cfm-exercises.test.ts","tests/cfm-exercises.integration.test.ts"],env);
+    await run("npx",["tsx","--test","tests/study-steps.integration.test.ts"],env);
+    await run("npx",["tsx","tests/fixtures/mystery-learning.mjs"],env);
+    await run("npm",["run","test:learning"],env);
+    await run("npm",["run","test:kompas"],env);
+    if(process.argv.includes("--browser"))await run("npx",["tsx","tests/cfm-exercises.browser.mjs"],env);
   }
   if(process.argv.includes("--lesson-word-pools")) {
     await run("npx",["tsx","--test","tests/lesson-word-pool.test.ts","tests/lesson-word-pool.integration.test.mjs"],env);

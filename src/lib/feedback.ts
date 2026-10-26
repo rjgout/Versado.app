@@ -1,6 +1,7 @@
 import { randomBytes } from "crypto";
 import { z } from "zod";
 import type { FeedbackStatus } from "@/generated/prisma/client";
+import { loadStudyExerciseSource } from '@/lib/studyContent/exerciseSource';
 import { prisma } from "@/lib/db";
 import { sendMail } from "@/lib/email";
 import { APP_NAME } from "@/lib/brand";
@@ -103,7 +104,7 @@ type QuestionContext = {
  */
 export async function createExerciseFeedback(input: ExerciseFeedbackInput) {
   const user = await prisma.user.findUniqueOrThrow({ where: { id: input.userId }, select: { uiLanguage: true, contentLanguage: true } });
-  const question = await findQuestionContext(input.source, input.questionId, input.courseId, input.lessonId);
+  const question = await findQuestionContext(input.source, input.questionId, input.courseId, input.lessonId, input.userId);
   if (!question) return { ok: false as const, error: "Vraag niet gevonden." };
 
   const t = getT(user.uiLanguage);
@@ -178,7 +179,7 @@ function isUniqueConstraintError(error: unknown): boolean {
   return typeof error === "object" && error !== null && "code" in error && (error as { code?: string }).code === "P2002";
 }
 
-async function findQuestionContext(source: ExerciseFeedbackSource, questionId: string, courseId?: string, lessonId?: string): Promise<QuestionContext | null> {
+async function findQuestionContext(source: ExerciseFeedbackSource, questionId: string, courseId?: string, lessonId?: string, userId?:string): Promise<QuestionContext | null> {
   if (source === "SCRIPTURE") {
     const question = await prisma.exercise.findUnique({
       where: { id: questionId },
@@ -187,7 +188,15 @@ async function findQuestionContext(source: ExerciseFeedbackSource, questionId: s
         courseLessonLinks: { include: { lesson: { select: { id: true, courseId: true } } } },
       },
     });
-    if (!question) return null;
+    if(!question)return null;
+    if(!question.chapter){
+      if(!userId||!question.studyLessonEditionId)return null;
+      const actor=await prisma.user.findUnique({where:{id:userId},select:{id:true,isAdmin:true}});
+      const source=actor?await loadStudyExerciseSource(actor,question.studyLessonEditionId,prisma):null;
+      const valid=source?.plan.parts.flatMap(p=>p.questions).find(q=>q.id===questionId);
+      if(!source||!valid)return null;
+      return {source:'SCRIPTURE',id:question.id,prompt:valid.prompt,type:valid.type,answers:valid.answers,verseRef:valid.verseRef,courseId:null,lessonId:source.lesson.lessonId,contentKey:source.contentKey,chapterId:null,contentLanguage:source.lesson.language};
+    }
     const link = question.courseLessonLinks.find((item) => !courseId || item.lesson.courseId === courseId) ?? question.courseLessonLinks[0];
     return {
       source,

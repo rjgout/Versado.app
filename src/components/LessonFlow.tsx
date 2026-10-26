@@ -102,7 +102,7 @@ interface SubmittedAnswer {
   correct: boolean;
 }
 
-interface SummaryResult {
+export interface SummaryResult {
   correctCount: number;
   total: number;
   xpEarned: number;
@@ -132,18 +132,8 @@ export default function LessonFlow({ chapterId, bookName, chapterNumber, previou
   const [read, setRead] = useState<ReadState>(content.read);
   const [justMarkedRead, setJustMarkedRead] = useState(false);
   const [showLongNotice, setShowLongNotice] = useState(stepsHref !== null);
-  const [error, setError] = useState<string | null>(null);
   const hasExercises = sessionId !== null && exercises.length > 0;
-  const [index, setIndex] = useState(0);
-  const [answers, setAnswers] = useState<SubmittedAnswer[]>([]);
-  const [reviewQueue, setReviewQueue] = useState<string[]>([]);
-  const [reviewPos, setReviewPos] = useState(0);
   const [summary, setSummary] = useState<SummaryResult | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  const current = exercises[index];
-  const exerciseById = useMemo(() => new Map(exercises.map((e) => [e.id, e])), [exercises]);
-
   useActivityStatus("📖", `Leest ${bookName} ${chapterNumber}`);
 
   // Registreer dat dit hoofdstuk gelezen wordt, los van of de quiz erna
@@ -157,64 +147,6 @@ export default function LessonFlow({ chapterId, bookName, chapterNumber, previou
     }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapterId]);
-
-  async function finishExercises(finalAnswers: SubmittedAnswer[]) {
-    setSubmitting(true);
-    const res = await fetch(`/api/chapters/${chapterId}/submit`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, answers: finalAnswers, challengeId, courseId }),
-    });
-    const data = await res.json().catch(() => ({}));
-    setSubmitting(false);
-    if (!res.ok) {
-      setError(data.error ?? t("courses.error"));
-      return;
-    }
-    setSummary(data);
-    setPhase("summary");
-    announceXpChanged();
-  }
-
-  function onExerciseDone(given: string[], correct: boolean) {
-    const next = [...answers, { exerciseId: current.id, given, correct }];
-    setAnswers(next);
-    if (index + 1 < exercises.length) {
-      setIndex(index + 1);
-    } else {
-      const wrongIds = next.filter((a) => !a.correct).map((a) => a.exerciseId);
-      if (wrongIds.length > 0) {
-        setReviewQueue(wrongIds);
-        setReviewPos(0);
-        setPhase("review");
-      } else {
-        finishExercises(next);
-      }
-    }
-  }
-
-  function advanceReview(latestAnswers: SubmittedAnswer[]) {
-    if (reviewPos + 1 < reviewQueue.length) {
-      setReviewPos(reviewPos + 1);
-    } else {
-      finishExercises(latestAnswers);
-    }
-  }
-
-  function onReviewDone(given: string[], correct: boolean) {
-    const currentId = reviewQueue[reviewPos];
-    const updated = answers.map((a) => (a.exerciseId === currentId ? { ...a, given, correct } : a));
-    setAnswers(updated);
-    advanceReview(updated);
-  }
-
-  function skipCurrentReview() {
-    advanceReview(answers);
-  }
-
-  function skipAllReview() {
-    finishExercises(answers);
-  }
 
   // Lezen levert geen XP op; het uitdrukkelijk markeren als gelezen telt wel één keer als activiteit voor de reeks. Het hoofdstuk staat daarna wel
   // als gelezen in elke leesroute.
@@ -270,65 +202,149 @@ export default function LessonFlow({ chapterId, bookName, chapterNumber, previou
     );
   }
 
-  if (phase === "exercises" && current) {
-    return (
-      <FocusLayout className="max-w-2xl gap-6">
-        <ExerciseCard
-          key={current.id}
-          exercise={current}
-          onDone={onExerciseDone}
-          disabled={submitting}
-          focus
-          progress={{ current: index, total: exercises.length }}
-          feedbackContext={{ source: "SCRIPTURE", questionId: current.id, courseId, contentKey, chapterId, verseRef: current.verseRef, contentLanguage: language }}
-        />
-        {error && <p className="text-sm font-bold text-red-600 dark:text-red-400">{error}</p>}
-      </FocusLayout>
-    );
-  }
-
-  if (phase === "review") {
-    const reviewExercise = exerciseById.get(reviewQueue[reviewPos]);
-    if (!reviewExercise) {
-      finishExercises(answers);
-      return null;
-    }
-    return (
-      <FocusLayout className="max-w-2xl gap-6">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-extrabold text-brand-800 dark:text-brand-300">
-            {t("lesson.reviewTitle", { pos: reviewPos + 1, total: reviewQueue.length })}
-          </h2>
-          <button
-            className="text-sm font-bold text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
-            onClick={skipAllReview}
-            disabled={submitting}
-          >
-            {t("lesson.skipAll")}
-          </button>
-        </div>
-        <p className="text-slate-500 dark:text-slate-400 text-sm -mt-2">
-          {t("lesson.reviewHint")}
-        </p>
-        <ExerciseCard
-          key={reviewExercise.id}
-          exercise={reviewExercise}
-          onDone={onReviewDone}
-          onSkip={skipCurrentReview}
-          disabled={submitting}
-          focus
-          progress={{ current: reviewPos, total: reviewQueue.length }}
-          feedbackContext={{ source: "SCRIPTURE", questionId: reviewExercise.id, courseId, contentKey, chapterId, verseRef: reviewExercise.verseRef, contentLanguage: language }}
-        />
-      </FocusLayout>
-    );
-  }
+  if (phase === "exercises") return <ExerciseSessionQuestions
+    exercises={exercises} review
+    feedbackContext={exercise=>({source:'SCRIPTURE',questionId:exercise.id,courseId,contentKey,chapterId,verseRef:exercise.verseRef,contentLanguage:language})}
+    submit={async answers=>{
+      const res=await fetch(`/api/chapters/${chapterId}/submit`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId,answers,challengeId,courseId})});
+      const data=await res.json(); if(!res.ok)throw new Error(data.error??t('courses.error'));return data as SummaryResult;
+    }} onComplete={result=>{setSummary(result);setPhase('summary');announceXpChanged();}} />;
 
   if (phase === "summary" && summary) {
     return <SummaryScreen summary={summary} nextChapterId={nextChapterId} term={term} courseId={courseId} />;
   }
 
   return null;
+}
+
+/** Gedeelde vraagkaarten, correctieronde en retry; inhoud en XP blijven serverwerk. */
+export function ExerciseSessionQuestions<Result>({
+  exercises,
+  review,
+  submit,
+  onComplete,
+  onCheck,
+  feedbackContext,
+  groupForIndex,
+}: {
+  exercises: Exercise[];
+  review: boolean;
+  submit: (answers: SubmittedAnswer[]) => Promise<Result>;
+  onComplete: (result: Result) => void;
+  onCheck?: (
+    exercise: Exercise,
+    given: string[],
+  ) => Promise<{ correct: boolean; correctAnswer: string[] | null }>;
+  feedbackContext?: (exercise: Exercise) => ExerciseFeedbackContext;
+  groupForIndex?: (index: number) => string;
+}) {
+  const t = useT();
+  const [index, setIndex] = useState(0),
+    [answers, setAnswers] = useState<SubmittedAnswer[]>([]);
+  const [reviewQueue, setReviewQueue] = useState<string[] | null>(null),
+    [reviewPos, setReviewPos] = useState(0);
+  const [pending, setPending] = useState<SubmittedAnswer[] | null>(null),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState<string | null>(null);
+  const current = reviewQueue
+    ? exercises.find((e) => e.id === reviewQueue[reviewPos])
+    : exercises[index];
+  async function finish(final: SubmittedAnswer[]) {
+    if (busy) return;
+    setPending(final);
+    setBusy(true);
+    setError(null);
+    try {
+      onComplete(await submit(final));
+    } catch (e) {
+      setError(e instanceof Error && !(e instanceof TypeError) && !(e instanceof SyntaxError) ? e.message : t("courses.error"));
+    } finally {
+      setBusy(false);
+    }
+  }
+  function advance(final: SubmittedAnswer[]) {
+    if (reviewQueue) {
+      if (reviewPos + 1 < reviewQueue.length) setReviewPos(reviewPos + 1);
+      else void finish(final);
+    } else if (index + 1 < exercises.length) setIndex(index + 1);
+    else {
+      const wrong = review
+        ? final.filter((a) => !a.correct).map((a) => a.exerciseId)
+        : [];
+      if (wrong.length) {
+        setReviewQueue(wrong);
+        setReviewPos(0);
+      } else void finish(final);
+    }
+  }
+  function done(given: string[], correct: boolean) {
+    if (!current) return;
+    const final = reviewQueue
+      ? answers.map((a) =>
+          a.exerciseId === current.id ? { ...a, given, correct } : a,
+        )
+      : [...answers, { exerciseId: current.id, given, correct }];
+    setAnswers(final);
+    advance(final);
+  }
+  return (
+    <FocusLayout className="max-w-2xl gap-6">
+      {groupForIndex && !reviewQueue && (
+        <p className="font-bold text-vs-fg" data-exercise-group>
+          {groupForIndex(index)}
+        </p>
+      )}
+      {reviewQueue && !pending && (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl font-extrabold">
+              {t("lesson.reviewTitle", {
+                pos: reviewPos + 1,
+                total: reviewQueue.length,
+              })}
+            </h2>
+            <button
+              className="btn-secondary"
+              disabled={busy}
+              onClick={() => void finish(answers)}
+            >
+              {t("lesson.skipAll")}
+            </button>
+          </div>
+          <p className="text-sm text-vs-fg-2">{t("lesson.reviewHint")}</p>
+        </>
+      )}
+      {!pending && current && (
+        <ExerciseCard
+          key={(reviewQueue ? "review:" : "question:") + current.id}
+          exercise={current}
+          onDone={done}
+          onSkip={reviewQueue ? () => advance(answers) : undefined}
+          disabled={busy}
+          focus
+          progress={{
+            current: reviewQueue ? reviewPos : index,
+            total: reviewQueue ? reviewQueue.length : exercises.length,
+          }}
+          onCheck={onCheck ? (given) => onCheck(current, given) : undefined}
+          feedbackContext={feedbackContext?.(current)}
+        />
+      )}
+      {busy && <p role="status">{t("courses.busy")}</p>}
+      {error && (
+        <div role="alert">
+          <p className="text-vs-danger">{error}</p>
+          <button
+            className="btn-primary"
+            disabled={busy}
+            onClick={() => pending && void finish(pending)}
+          >
+            {t("studyReader.retry")}
+          </button>
+        </div>
+      )}
+    </FocusLayout>
+  );
 }
 
 export function ReaderView({
@@ -832,7 +848,7 @@ export function ExerciseCard({
             </span>
           ))}
         </p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] gap-3">
           {options.map((opt) => {
             const isCorrectOption = checked && correctAnswer && normalizeAnswer(opt) === normalizeAnswer(correctAnswer[0] ?? "");
             const isWrongPick = checked && choice === opt && !isCorrectOption;
@@ -1056,18 +1072,18 @@ function ExerciseActionArea({
         </div>
       )}
       {!checked ? (
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {onSkip ? (
             <button className="text-sm font-bold text-vs-fg-3 hover:text-vs-fg" disabled={disabled} onClick={onSkip}>
               {t("lesson.skip")}
             </button>
           ) : null}
-          <button className={`${focus ? "w-full" : "ml-auto"} btn-primary min-h-12`} disabled={!canCheck || disabled || checking} onClick={onCheck}>
+          <button className={`${focus ? "w-full !px-3" : "ml-auto"} btn-primary min-h-12`} disabled={!canCheck || disabled || checking} onClick={onCheck}>
             {checking ? t("lesson.checking") : t("lesson.check")}
           </button>
         </div>
       ) : (
-        <button className="btn-primary min-h-12 w-full animate-pop" disabled={disabled} onClick={onNext}>
+        <button className={`btn-primary min-h-12 w-full animate-pop ${focus ? "!px-3" : ""}`} disabled={disabled} onClick={onNext}>
           {disabled ? t("courses.busy") : t("lesson.continue")}
         </button>
       )}
@@ -1075,16 +1091,18 @@ function ExerciseActionArea({
   );
 }
 
-function SummaryScreen({
+export function SummaryScreen({
   summary,
   nextChapterId,
   term,
   courseId,
+  returnHref,
 }: {
   summary: SummaryResult;
   nextChapterId: string | null;
   term: ChapterTerm;
   courseId?: string;
+  returnHref?: string;
 }) {
   const t = useT();
   return (
@@ -1148,8 +1166,8 @@ function SummaryScreen({
       )}
 
       <div className="flex gap-3 mt-4">
-        <Link href="/dashboard" className="btn-secondary">
-          {t("lesson.backToLessons")}
+        <Link href={returnHref??"/dashboard"} replace={!!returnHref} className="btn-secondary">
+          {t(returnHref?"misc.backToLesson":"lesson.backToLessons")}
         </Link>
         {nextChapterId && (
           <Link href={`/lesson/${nextChapterId}${courseId ? `?cursus=${courseId}` : ""}`} className="btn-primary">

@@ -4471,6 +4471,7 @@ export const de: PartialMessages = {
     viewAllRequests: "Alle {n} Anfragen anzeigen", viewAllGroupActions: "Alle {n} Gruppenaktionen anzeigen",
   },
   kompas: kompasDe,
+  cfmExercises: {"title": "Lesefragen", "unavailable": "Für diesen Lesestoff gibt es noch nicht genügend geprüfte Schriftfragen. Du kannst einfach weiterlesen."},
   cfmStudy: {
     "modeLabel": "Lesemodus",
     "modeFree": "Freies Studium",
