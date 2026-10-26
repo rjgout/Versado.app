@@ -5,6 +5,7 @@ import { getPublishedStudyLesson } from "@/lib/studyContent/revisions";
 import { loadStudyExerciseSource } from "@/lib/studyContent/exerciseSource";
 import StudyExerciseClient from "@/components/study/StudyExerciseClient";
 import ReaderBackTarget from "@/components/ReaderBackTarget";
+import { pilotReadingSelections } from "@/lib/studyContent/pilotReadings";
 import { getT } from "@/lib/i18n";
 export default async function Page({
   params,
@@ -51,6 +52,7 @@ export default async function Page({
         returnHref={returnHref}
         sessionKey={await navigationSessionKey()}
         available={available}
+        requiresReadingVisit={pilotReadingSelections(source.lesson).length>0}
       />
     </>
   );

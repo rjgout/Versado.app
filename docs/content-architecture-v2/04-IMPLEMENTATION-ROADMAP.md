@@ -24,17 +24,17 @@ herkomst en scopegrenzen beschrijven. Iedere fase vraagt afzonderlijke beoordeli
 
 **Draftstatus:** de gedeelde sessie-/vragen-/XP-route is uitgewerkt; zie
 [implementatieverslag](../CFM-LEESVRAGEN-FASE-A.md) en
-[vraagdekking](../CFM-VRAAGDEKKING.md). Slechts 17 van 624 officiële stappen
-hebben momenteel drie gecontroleerde vragen; nul officiële weken hebben achttien.
-De technische weekroute is met synthetische inhoud getest. Fase A is hiermee
-geen inhoudelijk geaccepteerde release; B–D zijn niet gestart.
-Het [vervolgonderzoek naar vraagdekking en officiële pilot](../CFM-VRAAGDEKKING-ONDERZOEK.md)
-bevat het eerdere voorstel voor 2026/02. Het besluit van 26 oktober 2026 is
-**uitsluitend de huidige zichtbare CFM-tekst toetsen** (P34). Aanvullende gekoppelde
-schriftlezing wordt niet toegevoegd; de vijftien daarvan afhankelijke conceptvragen
-worden niet geactiveerd. Eerst de reeds zichtbare schriftcitaten inhoudelijk
-inventariseren en beoordelen. Zolang geen week zes geschikte sets heeft, blijft de
-volledige officiële pilot en daarmee inhoudelijke acceptatie van A open.
+[vraagdekking](../CFM-VRAAGDEKKING.md). Met beschikbare gecontroleerde Nederlandse PGP-tekst hebben 22 van 624 officiële
+stappen drie vragen; één officiële week (2026/02) heeft dezelfde achttien in beide
+routes. Vijf stappen hebben aanvullende schriftlezing; stap 1 gebruikt bestaande
+zichtbare citaten. Zie [pilotverslag](../CFM-PILOT-2026-02.md) voor broncontrole,
+tests en platformgrenzen. Er blijven 602 stappen zonder complete set. Fase A is
+hiermee nog geen volledige inhoudelijke release; B–D zijn niet gestart.
+Het [dekkingsonderzoek](../CFM-VRAAGDEKKING-ONDERZOEK.md) bewaart de historische
+17/624-triage. Definitief besluit **P35 vervangt P34**: aanvullende officiële verzen
+mogen, mits daadwerkelijk zichtbaar aangeboden vóór de vragen. Alleen de pilotweek
+is uitgewerkt. Volgende stap na beoordeling: begrensde bronvoorbereiding en
+inhoudelijke review via bestaand contentbeheer; geen automatische massapublicatie.
 
 **Afhankelijkheden:** bestaande CFM-jaargangen, gepubliceerde revisies, zesstappenplan,
 centrale learning-/XP-services. De zeven CFM-productbesluiten zijn definitief

@@ -66,6 +66,11 @@ try {
     await page.locator("[data-study-reader]").waitFor();
     await page.locator("[data-study-exercises]").waitFor();
     const historyBefore = await page.evaluate(() => history.length);
+    const issuing = page.waitForResponse(
+      (r) =>
+        r.url().endsWith("/api/study-exercises") &&
+        r.request().postDataJSON()?.action === "issue",
+    );
     await page.locator("[data-study-exercises]").click();
     await page.waitForURL(base + questionPath);
     assert.equal(
@@ -73,20 +78,6 @@ try {
       historyBefore,
       "vragen blijven dezelfde studieactiviteit in de teruggeschiedenis",
     );
-    await page
-      .getByRole("heading", { name: t("cfmExercises.title"), exact: true })
-      .waitFor();
-    const issuing = page.waitForResponse(
-      (r) =>
-        r.url().endsWith("/api/study-exercises") &&
-        r.request().postDataJSON()?.action === "issue",
-    );
-    await page
-      .getByRole("button", {
-        name: t("progress.practice", { n: fullWeek ? 18 : 3 }),
-        exact: true,
-      })
-      .click();
     const issued = await (await issuing).json();
     assert.equal(issued.exercises.length, fullWeek ? 18 : 3);
     if (scale === 2)
@@ -204,7 +195,7 @@ try {
       });
       await assertCheckFits();
       await answer(issued.exercises[0]);
-      await page.getByRole("alert").waitFor();
+      await page.getByRole("alert").filter({ has: page.getByRole("button", { name: t("studyReader.retry"), exact: true }) }).waitFor();
       const replay = page.waitForResponse(
         (r) =>
           r.url().endsWith("/api/study-exercises") &&
@@ -290,12 +281,6 @@ try {
     `${base}/study-lesson/${real.lesson.id}/${real.key}/stappen/1`,
   );
   await realPage.locator("[data-study-exercises]").click();
-  await realPage
-    .getByRole("button", {
-      name: t("progress.practice", { n: 3 }),
-      exact: true,
-    })
-    .click();
   await realPage.locator("[data-exercise-progress]").waitFor();
   await realPage.screenshot({
     path: out + "/official-2027-question-390-dark.png",

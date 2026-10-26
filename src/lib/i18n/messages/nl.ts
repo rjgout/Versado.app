@@ -4943,7 +4943,7 @@ export const nl = {
     },
   },
   kompas: kompasNl,
-  cfmExercises: {"title": "Leesvragen", "unavailable": "Voor deze leesinhoud zijn nog onvoldoende gecontroleerde schriftvragen beschikbaar. Je kunt gewoon verder lezen."},
+  cfmExercises: { readFirst: "Lees eerst de bijbehorende schrifttekst.", scriptureReading: "Schriftlezing bij deze studie", scriptureUnavailable: "De bijbehorende schrifttekst is momenteel niet beschikbaar in deze uitgave.","title": "Leesvragen", "unavailable": "Voor deze leesinhoud zijn nog onvoldoende gecontroleerde schriftvragen beschikbaar. Je kunt gewoon verder lezen."},
   cfmStudy: {
     "modeLabel": "Leeswijze",
     "modeFree": "Vrije studie",

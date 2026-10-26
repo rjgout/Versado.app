@@ -4,12 +4,13 @@ Ontwikkelbasis: `origin/main` **55ef86e6**, inclusief de definitieve besluiten v
 PR #216 en de contentafbakening van PR #217. Dit verslag hoort bij de afzonderlijke fase-A-draft. Geen merge,
 productie-import, uitrol of wijziging van productiegegevens uitgevoerd.
 
-**Vervolg vraagdekking/pilot:** zie de [oorzakenanalyse en definitieve bronkeuze](CFM-VRAAGDEKKING-ONDERZOEK.md).
-De eigenaar heeft op 26 oktober 2026 gekozen voor uitsluitend de huidige zichtbare
-CFM-tekst. Er wordt geen aanvullende schriftlezing toegevoegd. De vijftien conceptvragen
-die extra verzen vereisen worden niet geactiveerd. De onderstaande technische werking
-en de **17/624-dekking, nul volledige officiële weken** zijn ongewijzigd. Fase A is
-inhoudelijk nog niet releasegereed; een volledige officiële pilot is niet aangetoond.
+**Officiële pilot:** 2026/02 heeft nu zes stappen en dezelfde achttien vragen in
+de weekroute, bij werkelijk beschikbare Nederlandse PGP-bronnen. Brondekking:
+**22/624 stappen en één volledige week**, tegenover 17/624 en nul vóór de pilot.
+Zie het [pilotverslag](CFM-PILOT-2026-02.md), de
+[definitieve bron-/vraagcontrole](cfm-pilot/2026-02-voorstel.md) en het
+[historische oorzakenonderzoek](CFM-VRAAGDEKKING-ONDERZOEK.md). Alleen deze week
+heeft toestemming voor aanvullende zichtbare schriftlezing (P35 vervangt P34); geen massale uitbreiding.
 
 ## Werking en hergebruik
 
@@ -47,18 +48,20 @@ inhoudelijk nog niet releasegereed; een volledige officiële pilot is niet aange
 
 ## Inhoudelijke dekking en grens
 
-**17 van 624 officiële stappen** (104 lessen uit 2026/2027) hebben momenteel
-voldoende gecontroleerde vragen. **Geen volledige officiële week** heeft nu een
-complete achttienvragenset. Dit is een wezenlijke beperking: het einddoel van
-vragen bij alle stappen en volledige weeklessen is inhoudelijk nog niet behaald.
-De technische weekflow is getest met een expliciet synthetische achttienvragenfixture.
+**22 van 624 officiële stappen** (104 lessen uit 2026/2027) hebben nu voldoende
+gecontroleerde bronvragen, mits de aanvullende pilotbronnen werkelijk toegankelijk
+zijn. **Eén officiële week** heeft de complete achttienvragenset: 2026/02.
+De overige **602 stappen** hebben nog geen complete gecontroleerde set. Dit is
+géén volledige inhoudelijke release-acceptatie van alle lessen.
 
-Het [dekkingsoverzicht](CFM-VRAAGDEKKING.md) noemt elke les en stap. Het betekent
-‘geen goedgekeurd aanbod’ waar een nul staat, niet dat ieder mogelijk broncitaat
-individueel is afgekeurd. Veel stappen bevatten studietips of alleen verwijzingen.
-Verdere dekking vereist gecontroleerde schrifttekst die werkelijk tot de gelezen
-inhoud behoort. De officiële lessen zijn niet uitgebreid of herschreven om dit
-tekort te omzeilen. Ontbrekende contenttalen/edities krijgen geen taalvervanging.
+Het [dekkingsoverzicht](CFM-VRAAGDEKKING.md) gebruikt de gepinde bronbestanden,
+geen productie-inventaris. In de app controleert de pilotadapter normale leesrechten,
+`pgp`/`pgp`/`nl`, volledige hoofdstukhashes, de exacte versselectie en de bijbehorende
+CFM-blokken. Ontbrekende, verborgen of afwijkende bronnen krijgen geen fallback.
+De officiële CFM-body is niet herschreven. Voor stap 1 blijven de zichtbare citaten
+en bestaande vraag-ID’s behouden; de vijftien nieuwe vragen staan tegenover vijftien
+echt aangeboden verzen. De aparte synthetische enginefixture blijft bestaan als
+technische regressie, naast de officiële pilot.
 
 Reproduceer het readonly rapport zonder database of import:
 
@@ -75,8 +78,8 @@ De huidige bovengrens volgt uit `maxContentBaseXp(18)`: 18 × 10 + 20 = 200.
 Geen afzonderlijke stapbonus. De cumulatieve goede antwoorden bepalen de bestaande
 bonus; een fout kan later verbeteren. Alleen een poging zonder nieuwe basis/bonus
 krijgt de bestaande herhalingskorting. Competitie houdt haar eigen centrale caps.
-Bij de huidige gedeeltelijke officiële dekking wordt de volledige weekbonus dus
-niet toegekend.
+Buiten de volledige pilot voorkomt gedeeltelijke dekking dat een volledige
+weekbonus wordt toegekend. De pilot volgt exact dezelfde bestaande bonusregel.
 
 Dezelfde ExerciseSession/ExerciseAttempt/ContentExerciseCredit/ContentProgress-tabellen
 worden gebruikt. De sessie wordt eenmaal geclaimd onder de bestaande gebruikers-
@@ -140,10 +143,11 @@ Browserbewijs betreft een eigen PostgreSQL en een echte productiebuild, op
 390 px/donker en 320 px/licht én donker met 200% tekst, inclusief touch/toetsenbord,
 correctieronde, fout/retry, zes vraaggroepen, terug naar de les en cacheverversing.
 De oorspronkelijke hoofdstukflow wordt eveneens bediend. De officiële 2027-vraag
-wordt op een geïsoleerde kopie van de gepinde tekst gecontroleerd; de volledige
-achttienvragenweek gebruikt uitdrukkelijk synthetische testinhoud.
+wordt op een geïsoleerde kopie van de gepinde tekst gecontroleerd; de oorspronkelijke volledige-weekfixture gebruikt synthetische testinhoud. De
+[officiële pilot](CFM-PILOT-2026-02.md) heeft afzonderlijke echte bron-, route-, XP-
+en browsertests; de resultaten zijn daar apart vastgelegd.
 
-### Uitgevoerde controles
+### Eerder uitgevoerde controles van de technische basis
 
 | Controle | Resultaat |
 |---|---|
@@ -178,10 +182,12 @@ expliciet synthetische vragen; geen officiële achttienvragendekking geclaimd.
 - [Lezen en afronden zonder vragen](screenshots/cfm-leesvragen/reading-without-questions-320.png)
 - [Browserresultaten](screenshots/cfm-leesvragen/results.json)
 
+De actuele officiële pilotbeelden en hertests staan in het [pilotverslag](CFM-PILOT-2026-02.md).
+
 ## Nog onder fase B en inhoudelijke acceptatie
 
 - Meer gecontroleerde brondekking, zonder vragen over alleen genoemde verwijzingen;
-  de actuele nul volledige weken is geen afgeronde productacceptatie.
+  één gecontroleerde pilot is geen volledige productacceptatie van 104 lessen.
 - Onafhankelijke inhoudelijke review van de catalogus en de gegenereerde vraagkeuzes.
 - Echte iPhone Safari-, iPad- en Android-controles, lifecycle, traag/offline netwerk,
   leespositie en toegankelijkheid op toestellen. Chromium-touch is geen apparaatbewijs.

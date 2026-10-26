@@ -1,5 +1,6 @@
 "use client";
 
+import type { ExerciseCheckpoint } from "@/lib/learning/exerciseCheckpoint";
 import AnnotationActions from "@/components/annotations/AnnotationActions";
 import { useLiveQuery } from "@/lib/data/hooks";
 import { fetchJson } from "@/lib/data/fetchJson";
@@ -226,6 +227,8 @@ export function ExerciseSessionQuestions<Result>({
   onCheck,
   feedbackContext,
   groupForIndex,
+  initialCheckpoint,
+  onCheckpoint,
 }: {
   exercises: Exercise[];
   review: boolean;
@@ -237,15 +240,18 @@ export function ExerciseSessionQuestions<Result>({
   ) => Promise<{ correct: boolean; correctAnswer: string[] | null }>;
   feedbackContext?: (exercise: Exercise) => ExerciseFeedbackContext;
   groupForIndex?: (index: number) => string;
+  initialCheckpoint?: ExerciseCheckpoint | null;
+  onCheckpoint?: (checkpoint: ExerciseCheckpoint) => void;
 }) {
   const t = useT();
-  const [index, setIndex] = useState(0),
-    [answers, setAnswers] = useState<SubmittedAnswer[]>([]);
-  const [reviewQueue, setReviewQueue] = useState<string[] | null>(null),
-    [reviewPos, setReviewPos] = useState(0);
-  const [pending, setPending] = useState<SubmittedAnswer[] | null>(null),
+  const [index, setIndex] = useState(initialCheckpoint?.index ?? 0),
+    [answers, setAnswers] = useState<SubmittedAnswer[]>(initialCheckpoint?.answers ?? []);
+  const [reviewQueue, setReviewQueue] = useState<string[] | null>(initialCheckpoint?.reviewQueue ?? null),
+    [reviewPos, setReviewPos] = useState(initialCheckpoint?.reviewPos ?? 0);
+  const [pending, setPending] = useState<SubmittedAnswer[] | null>(initialCheckpoint?.pending ?? null),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState<string | null>(null);
+    [error, setError] = useState<string | null>(initialCheckpoint?.pending ? t("apiErrors.notSaved") : null);
+  useEffect(()=>{ onCheckpoint?.({index,answers,reviewQueue,reviewPos,pending}); },[index,answers,reviewQueue,reviewPos,pending,onCheckpoint]);
   const current = reviewQueue
     ? exercises.find((e) => e.id === reviewQueue[reviewPos])
     : exercises[index];

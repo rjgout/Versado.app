@@ -623,4 +623,6 @@ jobs:
         if: always()
         with:
           name: cfm-exercises-browser
-          path: /tmp/versado-cfm-exercises-browser
+          path: |
+            /tmp/versado-cfm-exercises-browser
+            /tmp/versado-cfm-pilot-browser

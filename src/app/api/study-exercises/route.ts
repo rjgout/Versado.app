@@ -1,3 +1,6 @@
+import { validReadingVisitProof } from "@/lib/studyContent/readingVisitProof";
+import { pilotReadingSelections } from "@/lib/studyContent/pilotReadings";
+import type { ExerciseLesson } from "@/lib/studyContent/exercisePlan";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
@@ -6,6 +9,7 @@ import { getT } from "@/lib/i18n";
 import { inventoryOriginAllowed } from "@/lib/content-inventory/origin";
 import {
   issueStudyExerciseSession,
+  resumeStudyExerciseSession,
   submitStudyExerciseSession,
   ExerciseSessionError,
 } from "@/lib/learning/contentProgress";
@@ -16,10 +20,45 @@ import {
 import { isExerciseCorrect } from "@/lib/exerciseGen";
 import { notifyNewAchievements } from "@/lib/notify";
 const id = z.string().min(1).max(128);
+const visitProof = z.string().max(1500).optional();
+class ReadingVisitRequired extends Error {}
+function assertReadingOffered(
+  actorId: string,
+  sessionKey: string,
+  source: {
+    lesson: ExerciseLesson & { revisionId: string };
+    plan: { fingerprint: string };
+  },
+  stepIndex: number | null,
+  proof: string | undefined,
+) {
+  if (
+    pilotReadingSelections(source.lesson).length &&
+    !validReadingVisitProof(
+      proof,
+      actorId,
+      source.lesson.editionId,
+      `${source.lesson.revisionId}:${source.plan.fingerprint}:${stepIndex ?? "week"}`,
+      sessionKey,
+    )
+  )
+    throw new ReadingVisitRequired();
+}
 const schema = z.discriminatedUnion("action", [
   z
     .object({
+      action: z.literal("resume"),
+      visitProof,
+      sessionId: id,
+      editionId: id,
+      revisionId: id,
+      stepIndex: z.number().int().min(1).max(6).nullable(),
+    })
+    .strict(),
+  z
+    .object({
       action: z.literal("issue"),
+      visitProof,
       editionId: id,
       revisionId: id,
       stepIndex: z.number().int().min(1).max(6).nullable(),
@@ -28,6 +67,7 @@ const schema = z.discriminatedUnion("action", [
   z
     .object({
       action: z.literal("check"),
+      visitProof,
       sessionId: id,
       exerciseId: id,
       given: z.array(z.string().max(2000)).min(1).max(30),
@@ -36,6 +76,7 @@ const schema = z.discriminatedUnion("action", [
   z
     .object({
       action: z.literal("submit"),
+      visitProof,
       sessionId: id,
       answers: z
         .array(
@@ -64,8 +105,9 @@ export async function POST(req: NextRequest) {
   const actor = await getCurrentUser(),
     t = getT(actor?.uiLanguage);
   if (!actor) return response({ error: t("apiErrors.notLoggedIn") }, 401);
+  const sessionKey = await navigationSessionKey();
   if (
-    req.headers.get("X-Reading-Session") !== (await navigationSessionKey()) ||
+    req.headers.get("X-Reading-Session") !== sessionKey ||
     !inventoryOriginAllowed(req.headers, req.url, process.env.APP_URL)
   )
     return response({ error: t("apiErrors.forbidden") }, 403);
@@ -83,8 +125,47 @@ export async function POST(req: NextRequest) {
     return response({ error: t("apiErrors.invalidInput") }, 400);
   try {
     const input = parsed.data;
+    if (input.action === "issue" || input.action === "resume") {
+      const source = await loadStudyExerciseSource(
+        actor,
+        input.editionId,
+        prisma,
+      );
+      if (source)
+        assertReadingOffered(
+          actor.id,
+          sessionKey,
+          source,
+          input.stepIndex,
+          input.visitProof,
+        );
+    } else if (input.action === "submit") {
+      const session = await prisma.exerciseSession.findFirst({
+        where: { id: input.sessionId, userId: actor.id },
+      });
+      const context = studyExerciseContextSchema.safeParse(
+        session?.studyContext,
+      );
+      if (context.success) {
+        const source = await loadStudyExerciseSource(
+          actor,
+          context.data.editionId,
+          prisma,
+        );
+        if (source)
+          assertReadingOffered(
+            actor.id,
+            sessionKey,
+            source,
+            context.data.stepIndex,
+            input.visitProof,
+          );
+      }
+    }
     if (input.action === "issue")
       return response(await issueStudyExerciseSession(actor, input));
+    if (input.action === "resume")
+      return response(await resumeStudyExerciseSession(actor, input));
     if (input.action === "submit") {
       const result = await submitStudyExerciseSession(
         actor,
@@ -116,6 +197,13 @@ export async function POST(req: NextRequest) {
       source.plan.fingerprint !== context.data.fingerprint
     )
       throw new ExerciseSessionError("LOCKED");
+    assertReadingOffered(
+      actor.id,
+      sessionKey,
+      source,
+      context.data.stepIndex,
+      input.visitProof,
+    );
     const question = source.plan.parts
       .flatMap((p) => p.questions)
       .find((q) => q.id === input.exerciseId);
@@ -125,6 +213,11 @@ export async function POST(req: NextRequest) {
       correctAnswer: question.answers,
     });
   } catch (error) {
+    if (error instanceof ReadingVisitRequired)
+      return response(
+        { error: t("cfmExercises.readFirst"), code: "READ_REQUIRED" },
+        409,
+      );
     if (error instanceof ExerciseSessionError)
       return response(
         {

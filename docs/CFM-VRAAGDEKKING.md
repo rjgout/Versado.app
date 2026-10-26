@@ -1,13 +1,13 @@
 # CFM-vraagdekking — fase A
 
-Gegenereerd uit de gepinde bronbestanden en de expliciet gecontroleerde citaten. Geen productie-inventaris.
+Gegenereerd uit de gepinde bronbestanden, de gecontroleerde citaatcatalogus en de expliciet goedgekeurde pilotselectie 2026/02. Geen productie-inventaris. De pilot vereist in de app een toegankelijke Nederlandse PGP-uitgave met exact de gecontroleerde hoofdstuktekst.
 
 Een 0 betekent: geen goedgekeurde vraagdekking; verwijzingen alleen zijn onvoldoende. Het rapport beweert niet dat ieder ontbrekend citaat individueel inhoudelijk is beoordeeld.
 
 | Jaargang | Les | Stap 1 | Stap 2 | Stap 3 | Stap 4 | Stap 5 | Stap 6 | Volledige week |
 |---|---|---|---|---|---|---|---|---|
 | cfm-old-testament-2026 | 01 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| cfm-old-testament-2026 | 02 | 3 | 0 | 0 | 0 | 0 | 0 | 0 |
+| cfm-old-testament-2026 | 02 | 3 | 3 | 3 | 3 | 3 | 3 | 18 |
 | cfm-old-testament-2026 | 03 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | cfm-old-testament-2026 | 04 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | cfm-old-testament-2026 | 05 | 3 | 0 | 0 | 0 | 0 | 0 | 0 |
@@ -111,6 +111,10 @@ Een 0 betekent: geen goedgekeurde vraagdekking; verwijzingen alleen zijn onvoldo
 | cfm-new-testament-2027 | 51 | 3 | 0 | 0 | 0 | 0 | 0 | 0 |
 | cfm-new-testament-2027 | 52 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 
-Beschikbaar: 17 stappen met drie vragen; 0 volledige weken met achttien vragen.
+Beschikbaar: 22 stappen met drie vragen; 1 volledige week met achttien vragen.
 
-De volledige-weekflow is technisch met een expliciete synthetische 18-vragenfixture getest; dit is geen claim van officiële weekdekking. Meer officiële dekking vraagt gecontroleerde schriftcitaten binnen de bestaande leesinhoud, zonder de officiële les te wijzigen.
+Aanvullende schriftlezing: 5 stappen, 15 geselecteerde officiële verzen; stap 1 van de pilot gebruikt reeds zichtbare citaten zonder duplicatie.
+
+Bron-/antwoordvalidatie: de pilotcontrole toetst alle geselecteerde vragen op bronhash, letterlijke reconstructie en juiste/foute antwoorden met de bestaande generator. Inhoudelijke beoordeling: door Codex; geen onafhankelijke menselijke goedkeuring. Zie [pilotverslag](CFM-PILOT-2026-02.md) en [vraagcontrole](cfm-pilot/2026-02-voorstel.md).
+
+Verschil met de vorige bronmeting: +5 stappen (17 → 22) en +1 volledige officiële week (0 → 1). De overige 602 stappen hebben nog geen complete gecontroleerde vragenset. Er is geen massale uitbreiding geactiveerd. Bij ontbrekende/afwijkende interne PGP-tekst vallen de betrokken pilotvragen veilig weg; dit rapport bewijst geen productiepublicatie of beschikbaarheid. De officiële pilot is afzonderlijk met echte bronnen getest; synthetische enginefixtures blijven apart benoemd.

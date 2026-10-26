@@ -18,6 +18,7 @@
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { loadStudyExerciseSource, studyExerciseContextSchema, type ExerciseActor } from '@/lib/studyContent/exerciseSource';
+import type { StudyQuestion } from "@/lib/studyContent/exercisePlan";
 import { applyStepProgress } from '@/lib/studyContent/stepProgress';
 import { QUESTIONS_PER_PART as STUDY_PART_SIZE } from '@/lib/learning/exercisePlan';
 import { emitToUser } from "@/lib/realtime";
@@ -425,7 +426,7 @@ export async function issueStudyExerciseSession(
     async (tx) => {
       await tx.$queryRaw`SELECT id FROM "User" WHERE id=${actor.id} FOR UPDATE`;
       await tx.$queryRaw`SELECT id FROM "StudyLessonEdition" WHERE id=${input.editionId} FOR SHARE`;
-      const source = await loadStudyExerciseSource(actor, input.editionId, tx);
+      const source = await loadStudyExerciseSource(actor, input.editionId, tx, true);
       if (!source || source.lesson.revisionId !== input.revisionId)
         throw new ExerciseSessionError("LOCKED");
       const parts = source.plan.parts.filter(
@@ -490,25 +491,27 @@ export async function issueStudyExerciseSession(
           studyContext,
         },
       });
-      return {
-        sessionId: session.id,
-        exercises: questions.map((q) => ({
-          id: q.id,
-          type: q.type,
-          prompt: q.prompt,
-          verseRef: q.verseRef,
-          blanks: q.answers.length,
-          options: q.options,
-          wordBank: q.wordBank,
-        })),
-        groups: parts.map((p) => ({
-          index: p.index,
-          count: p.questions.length,
-        })),
-      };
+      return studySetPayload(session.id, parts);
     },
     { timeout: 20000 },
   );
+}
+
+function studySetPayload(sessionId: string, parts: Array<{ index: number; questions: StudyQuestion[] }>): IssuedStudySet {
+  return { sessionId, exercises: parts.flatMap(p=>p.questions).map(q=>({id:q.id,type:q.type,prompt:q.prompt,verseRef:q.verseRef,blanks:q.answers.length,options:q.options,wordBank:q.wordBank})), groups:parts.map(p=>({index:p.index,count:p.questions.length})) };
+}
+/** Herstel uitsluitend een eigen, actuele sessie; geen nieuwe poging of beloningswrite. */
+export async function resumeStudyExerciseSession(actor: ExerciseActor, input: { sessionId: string; editionId: string; revisionId: string; stepIndex: number | null }): Promise<{ issued: IssuedStudySet; result: StudyContentExerciseResult | null }> {
+  const session=await prisma.exerciseSession.findFirst({where:{id:input.sessionId,userId:actor.id}});
+  const context=studyExerciseContextSchema.safeParse(session?.studyContext);
+  if(!session || !context.success || session.chapterId || context.data.editionId!==input.editionId || context.data.revisionId!==input.revisionId || context.data.stepIndex!==input.stepIndex) throw new ExerciseSessionError("NOT_FOUND");
+  if(Date.now()-session.createdAt.getTime()>SESSION_MAX_AGE_MS) throw new ExerciseSessionError("LOCKED");
+  const source=await loadStudyExerciseSource(actor,input.editionId,prisma);
+  if(!source || source.lesson.revisionId!==input.revisionId || source.plan.fingerprint!==context.data.fingerprint || session.contentKey!==source.contentKey) throw new ExerciseSessionError("LOCKED");
+  const parts=source.plan.parts.filter(p=>input.stepIndex===null || p.index===input.stepIndex);
+  const expected=parts.flatMap(p=>p.questions.map(q=>q.id));
+  if(parts.some(p=>p.questions.length!==STUDY_PART_SIZE) || JSON.stringify(expected)!==session.exerciseIds) throw new ExerciseSessionError("LOCKED");
+  return {issued:studySetPayload(session.id,parts),result:session.submittedAt && session.result ? session.result as unknown as StudyContentExerciseResult : null};
 }
 
 /**
@@ -552,6 +555,7 @@ async function submitContentExerciseSession(
                 studyActor,
                 studyContext.data.editionId,
                 tx,
+                true,
               )
             : null;
         if (

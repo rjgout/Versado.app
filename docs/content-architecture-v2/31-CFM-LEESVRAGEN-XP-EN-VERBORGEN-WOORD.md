@@ -71,13 +71,15 @@ onderdeel van één gedeelde oefenservice zijn; exacte DDL hoort bij het impleme
 7. De huidige werking van Versado Dorp blijft ongewijzigd; bereid alleen een
    toekomstige koppeling voor.
 
-**Aanvullend definitief bronbesluit (26 oktober 2026, P34):** uitsluitend de huidige
-zichtbare CFM-tekst toetsen. Geen aanvullende schriftverzen toevoegen voor vragen
-over alleen gekoppelde passages. De bestaande vraaginhoudelijke eisen blijven
-gelden: gecontroleerde schriftcitaten, geen interpretatie- of reflectiebeoordeling.
-De drie/achttien-eis blijft het acceptatiedoel; ontbrekende geschikte tekst geeft
-geen toestemming voor kunstmatige vragen. De [dekkingsanalyse](../CFM-VRAAGDEKKING-ONDERZOEK.md)
-registreert dat nog geen volledige officiële pilot is aangetoond.
+**Definitief bronbesluit P35 — aanvullende schriftlezing (26 oktober 2026):**
+P34 (uitsluitend de eerder zichtbare CFM-tekst) is expliciet vervangen. Vragen mogen
+gaan over bestaande zichtbare CFM-schriftcitaten én aanvullende officiële verzen
+binnen de persoonlijke leesstap. **Eerst lezen, daarna vragen**: de volledige
+gebruikte tekst moet zichtbaar worden aangeboden, niet alleen een link of verborgen
+generatorbron. De officiële CFM-lesbody blijft intact. Lezen en volgende stappen
+blijven toegankelijk zonder quiz, tijdsdrempel of foutloos resultaat. Leesvinkjes
+geven geen quiz-XP. De pilot is beperkt tot 2026/02; overige weken worden niet
+automatisch uitgebreid. Zie [pilotarchitectuur en bewijs](../CFM-PILOT-2026-02.md).
 
 Aanvullende behoudseisen:
 
@@ -135,8 +137,8 @@ blijven lesinhoud en worden niet automatisch goed/foutvragen.
 CFM-bronblokken aan stappen; een verwijzingslabel bewijst niet welke schrifttekst
 in welke editie werkelijk is gelezen. Leg daarom per vragenplan de concrete
 schriftpassages, beschikbare teksteditie/taal en koppeling aan de leesstap vast.
-Gebruik bewezen verwijzingsresolutie voor broncontrole van reeds zichtbare citaten;
-alleen een schriftlezerlink geeft geen extra toetsbare inhoud. Gebruik de bestaande oefenbronselectie;
+Gebruik de bestaande tekstweergave, schriftuurdatabase, bewezen verwijzingsresolutie
+en oefenbronselectie. Alleen een schriftlezerlink geeft geen extra toetsbare inhoud;
 vervang ontbrekende tekst niet door lescommentaar, videotekst, een andere vertaling
 of een verzonnen passage. Geen nieuwe registratie van leesgedrag of afgedwongen
 scrollbewijs: neem de bestaande lees-/afrondingslogica over. Deze bronbinding is

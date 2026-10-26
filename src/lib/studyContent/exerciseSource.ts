@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { loadPilotReadings } from "./pilotReadingSource";
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { getPublishedStudyLesson } from "./revisions";
 import { studyLessonContentKey } from "./readStatus";
@@ -23,6 +24,7 @@ export async function loadStudyExerciseSource(
   actor: ExerciseActor,
   editionId: string,
   db: PrismaClient | Prisma.TransactionClient,
+  lockScriptures = false,
 ) {
   if (process.env.CFM_EXERCISES === "off") return null;
   const edition = await db.studyLessonEdition.findUnique({
@@ -30,13 +32,20 @@ export async function loadStudyExerciseSource(
     select: { lessonId: true, collectionId: true },
   });
   if (!edition) return null;
-  const lesson = await getPublishedStudyLesson(
+  const published = await getPublishedStudyLesson(
     actor,
     edition.lessonId,
     edition.collectionId,
     db,
   );
-  if (!lesson) return null;
+  if (!published) return null;
+  const scriptureReadings = await loadPilotReadings(
+    actor,
+    published,
+    db,
+    lockScriptures,
+  );
+  const lesson = { ...published, scriptureReadings };
   const stored = await db.exercise.findMany({
     where: { studyLessonEditionId: editionId },
     include: { options: { orderBy: { order: "asc" } } },
@@ -62,6 +71,12 @@ export async function loadStudyExerciseSource(
     if (!stored.some((e) => e.id === question.id)) questions.push(question);
   const plan = studyExercisePlan(lesson, questions);
   return plan
-    ? { lesson, plan, prepared, contentKey: studyLessonContentKey(lesson) }
+    ? {
+        lesson,
+        plan,
+        prepared,
+        scriptureReadings,
+        contentKey: studyLessonContentKey(lesson),
+      }
     : null;
 }

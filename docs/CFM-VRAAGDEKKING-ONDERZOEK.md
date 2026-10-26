@@ -1,11 +1,12 @@
 # CFM-vraagdekking: oorzaken en besluit over een officiële pilot
 
 Vervolg op draft-PR #218, onderzocht op branch `feat/cfm-leesvragen-xp`.
-**Stop vóór bronverbreding:** de huidige bronafbakening blijft gelden. Een volledige
-pilot is niet geactiveerd. Er is geen productiequery, import, publicatie of deployment
-uitgevoerd. Het productbesluit van 26 oktober 2026 is: **uitsluitend de huidige zichtbare
-CFM-tekst toetsen**. Dit verslag verwerkt dat besluit; geen vervanging van de
-bestaande fase-A-roadmap.
+**Actuele status:** besluit P35 vervangt de eerdere beperking P34. Aanvullende
+officiële verzen mogen zichtbaar worden aangeboden vóór de vragen. Alleen 2026/02
+is uitgewerkt; zie [pilotverslag](CFM-PILOT-2026-02.md). De tellingen hieronder
+bewaren de **historische meting vóór de pilot**: 17/624 en nul volledige weken.
+Actueel met beschikbare PGP-tekst: **22/624, één volledige week, 602 onvolledige stappen**.
+Er is geen productiequery, import, publicatie of deployment uitgevoerd.
 
 ## 1. Wat de 17/624 wel en niet betekent
 
@@ -103,48 +104,23 @@ schriftuurdatabase. Zo hoort het zolang de gebruiker alleen dat CFM-blok heeft g
 Alleen een link openen bewijst bovendien niet dat een volledige opgegeven reeks is
 getoond; een afgekapt preview mag geen vragen over de weggelaten verzen opleveren.
 
-## 4. Besluit: uitsluitend de huidige zichtbare CFM-tekst (26 oktober 2026)
+## 4. Definitief productbesluit en officiële pilot
 
-**Eerder voorgestelde pilot: 5–11 januari 2026, ‘Dit is mijn werk en mijn heerlijkheid’:
-Mozes 1; Abraham 3 (`2026/02`).** Deze bestaande officiële les verwijst aantoonbaar
-naar teksten die in de Nederlandse `pgp`-uitgave in de repository staan. Voor de
-vijftien conceptvragen zou geen OTB-vertalingsvervanging nodig zijn.
+P34 (uitsluitend de reeds zichtbare CFM-tekst) is door de eigenaar expliciet
+vervangen door **P35: eerst lezen, daarna vragen**. Aanvullende officiële verzen
+mogen binnen de persoonlijke stap zichtbaar worden aangeboden. De officiële
+CFM-lesbody blijft ongewijzigd; vragen zonder daadwerkelijk aangeboden tekst zijn
+niet toegestaan. Geen tijdsdrempel, quizplicht of correctheidsdrempel voor doorlezen.
 
-**Niet gekozen alternatief, uitsluitend ter herkomst:** toon een duidelijk onderscheiden **schriftlezing bij deze stap**
-met de geselecteerde volledige verzen uit de bestaande interne bron vóór de vragen.
-Hergebruik de bestaande passage-resolver en versweergave; geen herschrijven van het
-CFM-document, geen nieuw annotatiedoel in de officiële les en geen nieuw kaartsysteem.
-De tekst moet daadwerkelijk beschikbaar en aangeboden zijn. Alleen een les- of
-linklabel telt niet. Bind de vraagset aan precies die passage, taal, uitgave en hash.
-Dit alternatief wordt niet uitgevoerd.
-
-Het [uitgewerkte voorstel met achttien conceptvragen](cfm-pilot/2026-02-voorstel.md)
-toont per vraag bron, passage, type, vaste seed, antwoord en geschiktheidsreden.
-Drie zijn bestaande zichtbare-citaatvragen; vijftien vereisen de aanvullende lezing.
-De selectie voor stap 3 en 5 binnen het hele hoofdstuk is expliciet als destijds voorgestelde
-product-/beheerkeuze gemarkeerd. Er zijn geen echte productie-Exercise-ID's opgevraagd.
-Alle bestaande stap-1-vragen en identiteiten moeten bij uitvoering worden behouden.
-
-**Definitieve keuze van de eigenaar:** “Uitsluitend de huidige zichtbare CFM-tekst
-toetsen.” Deze laatste keuze gaat vóór de eerder aangeleverde opdracht die voor
-één pilot aanvullende verzen toestond. Er worden geen extra schriftverzen aan de
-leesstappen toegevoegd en vragen mogen niet leunen op alleen gekoppelde passages.
-De bestaande eis van daadwerkelijk gelezen schrifttekst blijft gelden: dit besluit
-is geen toestemming voor interpretatievragen, het beoordelen van reflectieopdrachten
-of willekeurige quizvragen over lescommentaar.
-
-**Gevolg voor 2026/02:** stap 1 heeft drie beschikbare vragen uit de bestaande
-zichtbare citaten. Stappen 2–6 hebben geen complete gecontroleerde vraagset. De
-vijftien conceptvragen P04–P18 zijn onder dit besluit niet toegestaan en blijven
-uitsluitend historische concepten, buiten catalogus en runtime. Deze week is dus
-geen volledige officiële pilot; het doel van achttien vragen is niet behaald.
-De telling blijft **17/624 stappen, nul volledige weken, 607 onvolledige stappen**.
-
-Een lokale uitwerking met aanvullende verzen is na deze laatste keuze uit de
-werkbranch gehaald; de bronadapter, vraagcatalogus, runtime en XP blijven ten
-opzichte van commit `337a019b` ongewijzigd. Proeven op die verlaten uitwerking
-zijn geen acceptatiebewijs voor deze PR. Er is geen productiehandeling uitgevoerd.
-Er is geen open toestemmingsvraag over diezelfde bronkeuze meer.
+De gekozen week is **5–11 januari 2026, Mozes 1; Abraham 3 (`2026/02`)**.
+De vijftien voorheen geblokkeerde conceptvragen hebben nu expliciete versselecties
+en zichtbare lezing uit de bestaande Nederlandse `pgp`-uitgave. Stap 1 houdt de
+bestaande citaten en vraagidentiteiten; vijf overige stappen krijgen elk drie verzen
+en drie vragen. Stap 3: Mozes 1:3, 7, 9. Stap 5: Mozes 1:20, 21, 25.
+Selectieredenen, bronhashes en runtimegedrag staan in het
+[pilotverslag](CFM-PILOT-2026-02.md); de
+[vraagcontrole](cfm-pilot/2026-02-voorstel.md) vermeldt bron, passage, type en antwoord.
+Geen onafhankelijke menselijke inhoudelijke goedkeuring geclaimd.
 
 ## 5. Uitvoerbare uitbreiding binnen de bestaande fase A
 
@@ -155,8 +131,9 @@ bouwstenen, geen reeds bestaande complete CFM-vragenbeheerfunctie.
 
 1. **Bronselectie voorbereiden:** Codex of beheerder maakt per gepubliceerde
    lesrevisie en persoonlijke stap een voorstel uit exacte, reeds zichtbare
-   schriftcitaten in die stap. Gekoppelde maar niet getoonde verzen vallen af. Een hoofdstuklabel vormt geen
-   goedgekeurde bronselectie. Bewaar waarom de selectie bij het onderwerp hoort.
+   schriftcitaten in die stap. Of uit expliciet geselecteerde officiële passages die binnen de stap zichtbaar
+   worden aangeboden. Gekoppelde maar niet getoonde verzen vallen af. Een
+   hoofdstuklabel vormt geen goedgekeurde bronselectie. Bewaar waarom de selectie bij het onderwerp hoort.
 2. **Automatisch controleren:** normale toegang, bronrechten/publicatiestatus,
    werk/taal/uitgave, versnummering, volledige selectie zonder afkapping, bronhash,
    CFM-revisie en stapvingerafdruk. Ontbrekende vertalingen worden niet vervangen.
@@ -189,45 +166,21 @@ bouwstenen, geen reeds bestaande complete CFM-vragenbeheerfunctie.
    de betreffende vragen. Valideer nieuwe jaren en gewijzigde revisies vóór
    vrijgave. Toon welke gaten ontbreken, niet alleen een totaalscore.
 
-## 6. Acceptatie en tests bij een geschikte week binnen de bronkeuze
+## 6. Actueel bewijs en resterend werk
 
-De officiële pilot moet dan in een eigen testdatabase de gepinde echte CFM-revisie
-gebruiken, met vragen uitsluitend uit de al zichtbare schriftcitaten. Geen synthetische week.
-Test alle zes stappen los, dezelfde achttien IDs in de weekroute, beide routevolgorden,
-centraal berekende XP/bonus/herhalingskorting, fouten later verbeteren, dubbele
-submit/concurrency/verloren response en reeds bestaande credits/leesvinkjes.
-Ook wijzigende passagehash, andere editie, ontbrekende toegang en afgekapt preview.
-Controleer annotatie-/leespositiebehoud en nul nieuwe Dorp-groei. Browser: bestaande zichtbare
-passages vóór de vragen, 320/390 px, 200% tekst, licht/donker, terugkeer en zes groepen.
+De officiële pilot wordt afzonderlijk met de echte gepinde CFM-revisie en echte
+Nederlandse PGP-teksten getest. Synthetische achttienvragenfixtures blijven bestaan
+als technische enginetests en zijn geen bewijs van officiële inhoud.
+Zie het [pilotverslag](CFM-PILOT-2026-02.md) voor werkelijk uitgevoerde tests,
+bron-/antwoordcontrole, XP- en voortgangsregressies en screenshots.
 
-**Niet aangetoond binnen de gekozen bronnen:** een complete officiële pilot en
-bijbehorende volledige route-/XP-integratie en browserflow. De bestaande synthetische achttienvragentests zijn geen
-vervanging voor dat bewijs. Native router/Bearer- en fysieke iPhone/iPad/Android-
-beperkingen uit [het fase-A-verslag](CFM-LEESVRAGEN-FASE-A.md) blijven open.
+De CSV blijft de historische nulmeting en wordt niet als actuele dekking gepresenteerd.
+Het [actuele dekkingsrapport](CFM-VRAAGDEKKING.md) is opnieuw reproduceerbaar met
+`npx tsx scripts/study-content/cfm-exercise-coverage.ts --output docs/CFM-VRAAGDEKKING.md`.
+De snapshot daarin bewijst geen publicatie of toegang in een productie-installatie.
 
-## 7. Status van deze aanvulling
-
-| Soort bewijs | Status |
-|---|---|
-| Technisch geïmplementeerd | Alleen readonly audit en reproduceerbare triage. De bestaande runtime is niet gewijzigd. |
-| Inhoudelijk door Codex onderzocht | Bestaande catalogus; vier misleidende kandidaatweken; bronselectie en achttien conceptvragen voor 2026/02. |
-| Automatisch gevalideerd | 624 stappen, 45 bestaande bronchecks, tellingen, generator/antwoordcontrole van de concepten; resultaten in PR #218. |
-| Nog te beoordelen | Geschikte zichtbare schriftcitaten en onafhankelijke inhoudelijke review; volledige officiële pilot en tests; apparaat-/nativevalidatie. Bronverbreding is niet gekozen. |
-
-De actuele CI-status en werkelijk uitgevoerde checks worden in PR #218 bijgehouden.
-
-### Controle na verwerking van P34
-
-- Readonly audit opnieuw uitgevoerd: 624 stappen, 45 geldige catalogusbronnen,
-  17 complete stappen; CSV bytegelijk aan de vastgelegde triage.
-- Dekkingsgenerator opnieuw uitgevoerd: rapport bytegelijk; nul volledige weken.
-  Voor 2026/02 zijn de aantallen per stap **3, 0, 0, 0, 0, 0**.
-- Vier bestaande pure CFM-vraagtests opnieuw geslaagd, inclusief afwijzing van
-  verwijzingen zonder citaat en gewijzigde bron-/taalgegevens.
-- Deze aanvulling wijzigt uitsluitend zes documentatiebestanden; relatieve
-  linkdoelen en `git diff --check` gecontroleerd. Geen nieuwe runtime-, schema-,
-  annotatie-, voortgangs-, XP- of Dorp-wijziging.
-- De laatste volledige CI-run vóór deze documentatieaanvulling is **28/28 groen
-  op `337a019b`**, inclusief `cfm-exercises`, productiebuild en native-compilatie.
-  Nieuwe checks na de documentatiecommit worden afzonderlijk in PR #218 vermeld;
-  native-compilatie bewijst geen functionele CFM-pariteit.
+De 602 overige onvolledige stappen zijn niet semantisch allemaal beoordeeld; de
+oude mechanische categorieën mogen niet worden hergebruikt als actuele exclusieve
+oorzakenverdeling. Uitbreiding vraagt gecontroleerde bronkoppeling en vraagreview
+vóór publicatie; geen nieuwe XP-engine, massale import of tweede contentbeheer.
+Native router/Bearer- en fysieke apparaatbeperkingen blijven expliciet open.

@@ -284,3 +284,42 @@ export async function officialCfmExerciseFixture(year = 2027) {
   });
   return { admin, key, lesson, edition, revision };
 }
+
+// Echte gepinde CFM-les en officiële PGP-verzen, uitsluitend in de wegwerpdatabase.
+export async function officialPilotFixture({ scriptures = true } = {}) {
+  assertReferenceTestEnvironment();
+  const { CFM_SOURCE_2026 } = await import("../../src/lib/studyContent/cfmSources.ts");
+  const { loadCfmLesson } = await import("../../src/lib/studyContent/cfm2026Import.ts");
+  const { readFileSync } = await import("node:fs");
+  const source=CFM_SOURCE_2026, admin=await referenceAccount(true);
+  await prisma.contentWork.upsert({where:{key:source.manifest.workKey},create:{key:source.manifest.workKey,kind:"STUDY_PROGRAM"},update:{}});
+  let collection=await prisma.contentCollection.findFirst({where:{work:source.manifest.workKey,editionKey:source.manifest.editionKey,language:"nl"}});
+  if(!collection)collection=await prisma.contentCollection.create({data:{id:"cfm-pilot-fixture-nl",slug:"cfm-pilot-fixture-nl",name:"Officiële pilotbron — geïsoleerde kopie",icon:"",work:source.manifest.workKey,editionKey:source.manifest.editionKey,language:"nl",publicationState:"PUBLISHED",visibleToUsers:true}});
+  let edition=await prisma.studyLessonEdition.findFirst({where:{collectionId:collection.id,slug:"pilot-proof-2026-02"}});
+  let lesson,revision;
+  if(edition){lesson=await prisma.studyLesson.findUniqueOrThrow({where:{id:edition.lessonId}});revision=await prisma.studyRevision.findUniqueOrThrow({where:{id:edition.publishedRevisionId}});}
+  else{
+    const period=await prisma.studyPeriod.create({data:{workKey:source.manifest.workKey,sourceKey:"pilot-proof-"+randomUUID(),year:2026,label:"Geïsoleerde officiële pilot"}});
+    lesson=await prisma.studyLesson.create({data:{workKey:source.manifest.workKey,periodId:period.id,sourceKey:"02",order:1,startsOn:new Date("2026-01-05T00:00:00Z"),endsOnExclusive:new Date("2026-01-12T00:00:00Z")}});
+    edition=await prisma.studyLessonEdition.create({data:{lessonId:lesson.id,collectionId:collection.id,workKey:source.manifest.workKey,slug:"pilot-proof-2026-02"}});
+    const parsed=await loadCfmLesson("02",source);
+    revision=await appendStudyRevision(admin.actor,edition.id,{schemaVersion:1,title:parsed.title,body:parsed.document,sourceMetadata:{sourceKey:"02",name:"Officiële pilotfixture"},rightsMetadata:{holder:"Bestaande officiële bronsnapshot",permission:"Alleen geïsoleerde kopie, geen productiepublicatie"}});
+    edition=await prisma.studyLessonEdition.update({where:{id:edition.id},data:{publishedRevisionId:revision.id}});
+  }
+  let pgpCollection=await prisma.contentCollection.findFirst({where:{work:"pgp",editionKey:"pgp",language:"nl"}});
+  if(scriptures){
+    await prisma.contentWork.upsert({where:{key:"pgp"},create:{key:"pgp",kind:"SCRIPTURE"},update:{}});
+    if(!pgpCollection)pgpCollection=await prisma.contentCollection.create({data:{id:"pilot-pgp-nl",slug:"pilot-pgp-nl",name:"Parel van grote waarde — echte testbron",icon:"",work:"pgp",editionKey:"pgp",language:"nl",publicationState:"PUBLISHED",visibleToUsers:true}});
+    pgpCollection=await prisma.contentCollection.update({where:{id:pgpCollection.id},data:{enabled:true,visibleToUsers:true,publicationState:"PUBLISHED"}});
+    const books=JSON.parse(readFileSync("prisma/pgpContent.json","utf8"));
+    for(const [slug,key,number] of [["mozes","pgp/moses",1],["abraham","pgp/abr",3]]){
+      const sourceBook=books.find(b=>b.slug===slug),sourceChapter=sourceBook.chapters.find(c=>c.number===number);
+      let book=await prisma.book.findFirst({where:{contentCollectionId:pgpCollection.id,key}});
+      if(!book)book=await prisma.book.create({data:{slug:"pilot-"+slug+"-"+randomUUID(),key,name:sourceBook.name,order:1,contentCollectionId:pgpCollection.id}});
+      let chapter=await prisma.chapter.findFirst({where:{bookId:book.id,number}});
+      if(!chapter)chapter=await prisma.chapter.create({data:{bookId:book.id,number,order:number,verses:{create:sourceChapter.verses.map((text,i)=>({number:i+1,text}))}}});
+      else for(const [i,text] of sourceChapter.verses.entries())await prisma.verse.upsert({where:{chapterId_number:{chapterId:chapter.id,number:i+1}},create:{chapterId:chapter.id,number:i+1,text},update:{text}});
+    }
+  }
+  return {admin,key:collection.id,collection,lesson,edition,revision,pgpCollection};
+}

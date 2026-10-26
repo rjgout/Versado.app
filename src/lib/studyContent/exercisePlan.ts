@@ -16,6 +16,13 @@ import {
   type ReaderDocument,
 } from "./readingPositionContract";
 
+import {
+  pilotScriptureProofSchema,
+  pilotQuestionSources,
+  validPilotScriptureSource,
+  type StudyScriptureReading,
+} from "./pilotReadings";
+
 export const STUDY_EXERCISES_TOTAL = 6 * QUESTIONS_PER_PART;
 export const studyQuestionSourceSchema = z
   .object({
@@ -26,6 +33,7 @@ export const studyQuestionSourceSchema = z
     sourceUrl: z.string().url(),
     seed: z.number().int().min(0).max(100),
     type: z.enum(["FILL_BLANK", "WORD_BANK", "TRUE_FALSE"]),
+    scripture: pilotScriptureProofSchema.optional(),
   })
   .strict();
 export type StudyQuestionSource = z.infer<typeof studyQuestionSourceSchema>;
@@ -38,6 +46,8 @@ export type ExerciseLesson = {
   sourceKey: string;
   language: string;
   editionId: string;
+  editionKey?: string;
+  scriptureReadings?: StudyScriptureReading[];
   body: ReaderDocument;
 };
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -46,7 +56,7 @@ const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 const SOURCES = z
   .record(
     z.string(),
-    z.array(studyQuestionSourceSchema.omit({ type: true })),
+    z.array(studyQuestionSourceSchema.omit({ type: true, scripture: true })),
   )
   .parse(sourceCatalogue.sources);
 export function generateStudyQuestion(
@@ -85,6 +95,11 @@ export function validStudyQuestionSource(
   lesson: ExerciseLesson,
   source: StudyQuestionSource,
 ) {
+  if (source.scripture)
+    return validPilotScriptureSource(lesson, {
+      ...source,
+      scripture: source.scripture,
+    });
   const url = new URL(source.sourceUrl);
   if (
     url.protocol !== "https:" ||
@@ -122,11 +137,11 @@ export function preparedStudyQuestions(
 ): StudyQuestion[] {
   if (lesson.language !== "nl") return [];
   const sources = SOURCES[`${lesson.workKey}/${lesson.sourceKey}`] ?? [];
-  if (!sources.length) return [];
+
   // Eén kandidaat per bestaand vraagtype per gelezen citaat; geen extra
   // invulvarianten maken om een inhoudelijk tekort kunstmatig aan te vullen.
   // De vastgelegde seed blijft gelijk wanneer de catalogus wordt uitgebreid/herordend.
-  return sources.flatMap((citation) => {
+  const legacy = sources.flatMap((citation) => {
     return (["FILL_BLANK", "WORD_BANK", "TRUE_FALSE"] as const).flatMap(
       (type) => {
         const source = { ...citation, type };
@@ -148,6 +163,26 @@ export function preparedStudyQuestions(
       },
     );
   });
+  const linked: StudyQuestion[] = pilotQuestionSources(lesson).flatMap(
+    (source) => {
+      if (!validStudyQuestionSource(lesson, source)) return [];
+      const generated = generateStudyQuestion(source, lesson.language);
+      return generated
+        ? [
+            {
+              ...generated,
+              id:
+                "studyq-pilot-" +
+                sha(
+                  `${lesson.editionId}|${source.scripture.pilot}|${source.blockId}|${source.scripture.bookKey}|${source.scripture.chapter}|${source.scripture.verse}|${source.quote}|${source.type}|${source.seed}`,
+                ).slice(0, 40),
+              studySource: source,
+            },
+          ]
+        : [];
+    },
+  );
+  return [...legacy, ...linked];
 }
 export function studyExercisePlan(
   lesson: ExerciseLesson,
@@ -177,19 +212,33 @@ export function studyExercisePlan(
       JSON.stringify({
         personal: personal.fingerprint,
         questions: parts.map((p) =>
-          p.questions.map((q) => [
-            q.id,
-            q.type,
-            q.prompt,
-            q.answers,
-            q.wordBank ?? null,
-            q.options ?? [],
-            q.studySource.blockId,
-            q.studySource.verseRef,
-            q.studySource.quote,
-            q.studySource.sourceUrl,
-            q.studySource.seed,
-          ]),
+          p.questions.map((q) => {
+            const identity = [
+              q.id,
+              q.type,
+              q.prompt,
+              q.answers,
+              q.wordBank ?? null,
+              q.options ?? [],
+              q.studySource.blockId,
+              q.studySource.verseRef,
+              q.studySource.quote,
+              q.studySource.sourceUrl,
+              q.studySource.seed,
+            ];
+            return q.studySource.scripture
+              ? [
+                  ...identity,
+                  [
+                    q.studySource.scripture.pilot,
+                    q.studySource.scripture.bookKey,
+                    q.studySource.scripture.chapter,
+                    q.studySource.scripture.verse,
+                    q.studySource.scripture.chapterHash,
+                  ],
+                ]
+              : identity;
+          }),
         ),
       }),
     ),
