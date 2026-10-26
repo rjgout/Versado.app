@@ -304,7 +304,7 @@ export function ExerciseSessionQuestions<Result>({
               })}
             </h2>
             <button
-              className="btn-secondary"
+              className="btn-secondary !px-3"
               disabled={busy}
               onClick={() => void finish(answers)}
             >

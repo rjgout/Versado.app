@@ -8,7 +8,8 @@
         "quote": "Alle dingen hebben hun gelijkenis, en alle dingen worden geschapen en gemaakt om van Mij te getuigen",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/pgp/moses/6?lang=nld&id=p63#p63",
         "verseRef": "Mozes 6:63",
-        "blockTextHash": "cde0efa3"
+        "blockTextHash": "cde0efa3",
+        "seed": 0
       }
     ],
     "cfm-old-testament-2026/02": [
@@ -17,14 +18,16 @@
         "quote": "In het begin schiep God de hemel en de aarde",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/gen/1?id=p1&lang=nld#p1",
         "verseRef": "Genesis 1:1",
-        "blockTextHash": "d61177b4"
+        "blockTextHash": "d61177b4",
+        "seed": 0
       },
       {
         "blockId": "b-p2",
         "quote": "Wees uw dienstknecht genadig, o God, en vertel mij aangaande deze aarde en de bewoners daarvan en ook de hemelen",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/pgp/moses/1?lang=nld&id=p36#p36",
         "verseRef": "Mozes 1:36",
-        "blockTextHash": "80bd897c"
+        "blockTextHash": "80bd897c",
+        "seed": 1
       }
     ],
     "cfm-old-testament-2026/05": [
@@ -33,14 +36,16 @@
         "quote": "Henoch wandelde met God, en hij was niet meer, want God nam hem weg",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/gen/5?id=p24&lang=nld#p24",
         "verseRef": "Genesis 5:24",
-        "blockTextHash": "0e7809d5"
+        "blockTextHash": "0e7809d5",
+        "seed": 0
       },
       {
         "blockId": "b-p2",
         "quote": "zal er ook aan het einde van de wereld zijn",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/pgp/moses/6?lang=nld&id=p7#p7",
         "verseRef": "Mozes 6:7",
-        "blockTextHash": "3cb8e934"
+        "blockTextHash": "3cb8e934",
+        "seed": 1
       }
     ],
     "cfm-old-testament-2026/12": [
@@ -49,14 +54,16 @@
         "quote": "God heeft dat ten goede gedacht",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/gen/50?id=p20&lang=nld#p20",
         "verseRef": "Genesis 50:20",
-        "blockTextHash": "7495052c"
+        "blockTextHash": "7495052c",
+        "seed": 0
       },
       {
         "blockId": "b-p2",
         "quote": "heel het huis van zijn vader",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/gen/47?id=p12&lang=nld#p12",
         "verseRef": "Genesis 47:12",
-        "blockTextHash": "7495052c"
+        "blockTextHash": "7495052c",
+        "seed": 1
       }
     ],
     "cfm-old-testament-2026/16": [
@@ -65,14 +72,16 @@
         "quote": "Laten wij sterk zijn, gelijk Mozes; want hij sprak waarlijk tot de wateren van de Rode Zee en die scheidden zich her- en derwaarts, en onze vaderen, die uit gevangenschap kwamen, trokken erdoorheen op droge grond",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/bofm/1-ne/4?lang=nld&id=p2#p2",
         "verseRef": "1 Nephi 4:2",
-        "blockTextHash": "7f143260"
+        "blockTextHash": "7f143260",
+        "seed": 0
       },
       {
         "blockId": "b-p2",
         "quote": "Hef uw hoofd op en verheug u",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/bofm/mosiah/7?lang=nld&id=p19#p19",
         "verseRef": "Mosiah 7:19)",
-        "blockTextHash": "7f143260"
+        "blockTextHash": "7f143260",
+        "seed": 1
       }
     ],
     "cfm-old-testament-2026/17": [
@@ -81,21 +90,24 @@
         "quote": "Alles wat de Heere gesproken heeft, zullen wij doen en Hem gehoorzamen",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/24?id=p7&lang=nld#p7",
         "verseRef": "Exodus 24:7",
-        "blockTextHash": "77a094ee"
+        "blockTextHash": "77a094ee",
+        "seed": 0
       },
       {
         "blockId": "b-p1",
         "quote": "zodat Ik in hun midden kan wonen",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/25?id=p8&lang=nld#p8",
         "verseRef": "Exodus 25:8",
-        "blockTextHash": "77a094ee"
+        "blockTextHash": "77a094ee",
+        "seed": 1
       },
       {
         "blockId": "b-p2",
         "quote": "barmhartig en genadig, geduldig en rijk aan goedertierenheid en trouw",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/34?id=p6&lang=nld#p6",
         "verseRef": "Exodus 34:6",
-        "blockTextHash": "f990a77d"
+        "blockTextHash": "f990a77d",
+        "seed": 2
       }
     ],
     "cfm-old-testament-2026/18": [
@@ -104,14 +116,16 @@
         "quote": "Heilig moet u zijn, want Ik, de Heere, uw God, ben heilig",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/lev/19?id=p2&lang=nld#p2",
         "verseRef": "Leviticus 19:2",
-        "blockTextHash": "6eaffdc7"
+        "blockTextHash": "6eaffdc7",
+        "seed": 0
       },
       {
         "blockId": "b-p1",
         "quote": "Ik kan u heilig maken",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/60?lang=nld&id=p7#p7",
         "verseRef": "Leer en Verbonden 60:7",
-        "blockTextHash": "6eaffdc7"
+        "blockTextHash": "6eaffdc7",
+        "seed": 1
       }
     ],
     "cfm-old-testament-2026/37": [
@@ -120,14 +134,16 @@
         "quote": "De slotsom van al wat door u gehoord is, is dit: Vrees God, en houd u aan Zijn geboden, want dit geldt voor alle mensen",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/eccl/12?id=p13&lang=nld#p13",
         "verseRef": "Prediker 12:13",
-        "blockTextHash": "59df5d0e"
+        "blockTextHash": "59df5d0e",
+        "seed": 0
       },
       {
         "blockId": "b-p2",
         "quote": "Vertrouw op de Heere met heel je hart",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/prov/3?id=p5&lang=nld#p5",
         "verseRef": "Spreuken 3:5",
-        "blockTextHash": "59df5d0e"
+        "blockTextHash": "59df5d0e",
+        "seed": 1
       }
     ],
     "cfm-old-testament-2026/44": [
@@ -136,28 +152,32 @@
         "quote": "om weg te rukken en af te breken",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/jer/1?id=p10&lang=nld#p10",
         "verseRef": "Jeremia 1:10",
-        "blockTextHash": "5a794d70"
+        "blockTextHash": "5a794d70",
+        "seed": 0
       },
       {
         "blockId": "b-p1",
         "quote": "om te bouwen en te planten",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/jer/1?id=p10&lang=nld#p10",
         "verseRef": "Jeremia 1:10",
-        "blockTextHash": "5a794d70"
+        "blockTextHash": "5a794d70",
+        "seed": 1
       },
       {
         "blockId": "b-p1",
         "quote": "Spruit van gerechtigheid",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/jer/33?id=p15&lang=nld#p15",
         "verseRef": "Jeremia 33:15",
-        "blockTextHash": "5a794d70"
+        "blockTextHash": "5a794d70",
+        "seed": 2
       },
       {
         "blockId": "b-p1",
         "quote": "Ik zal hun rouw veranderen in vreugde",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/ot/jer/31?id=p13&lang=nld#p13",
         "verseRef": "Jeremia 31:13",
-        "blockTextHash": "5a794d70"
+        "blockTextHash": "5a794d70",
+        "seed": 3
       }
     ],
     "cfm-new-testament-2027/01": [
@@ -166,14 +186,16 @@
         "quote": "Geen ding zal bij God onmogelijk zijn",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/luke/1?id=p37&lang=nld#p37",
         "verseRef": "Lukas 1:37",
-        "blockTextHash": "640bb4d9"
+        "blockTextHash": "640bb4d9",
+        "seed": 0
       },
       {
         "blockId": "b-p_xr7mn",
         "quote": "Laat met mij geschieden overeenkomstig uw woord",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/luke/1?id=p38&lang=nld#p38",
         "verseRef": "Lukas 1:38",
-        "blockTextHash": "640bb4d9"
+        "blockTextHash": "640bb4d9",
+        "seed": 1
       }
     ],
     "cfm-new-testament-2027/17": [
@@ -182,28 +204,32 @@
         "quote": "verdeeldheid onder de menigte vanwege Hem",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/john/7?id=p43&lang=nld#p43",
         "verseRef": "Johannes 7:43",
-        "blockTextHash": "211aa500"
+        "blockTextHash": "211aa500",
+        "seed": 0
       },
       {
         "blockId": "b-p_gqK2h",
         "quote": "Hij misleidt de menigte",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/john/7?id=p12&lang=nld#p12",
         "verseRef": "Johannes 7:12",
-        "blockTextHash": "211aa500"
+        "blockTextHash": "211aa500",
+        "seed": 1
       },
       {
         "blockId": "b-p_gqK2h",
         "quote": "Hoe kan een zondig mens zulke tekenen doen?",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/john/9?id=p16&lang=nld#p16",
         "verseRef": "Johannes 9:16",
-        "blockTextHash": "211aa500"
+        "blockTextHash": "211aa500",
+        "seed": 2
       },
       {
         "blockId": "b-p_gqK2h",
         "quote": "nooit heeft een mens zo gesproken als deze Mens",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/john/7?id=p46&lang=nld#p46",
         "verseRef": "Johannes 7:46",
-        "blockTextHash": "211aa500"
+        "blockTextHash": "211aa500",
+        "seed": 3
       }
     ],
     "cfm-new-testament-2027/20": [
@@ -212,14 +238,16 @@
         "quote": "Ik ben de stem van iemand die roept in de woestijn: Maak de weg van de Heere recht",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/john/1?id=p23&lang=nld#p23",
         "verseRef": "Johannes 1:23",
-        "blockTextHash": "c568f4de"
+        "blockTextHash": "c568f4de",
+        "seed": 0
       },
       {
         "blockId": "b-p_q0vLZ",
         "quote": "Hosanna! Gezegend is Hij Die komt in de Naam van de Heere, de Koning van Israël!",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/john/12?id=p13&lang=nld#p13",
         "verseRef": "Johannes 12:13",
-        "blockTextHash": "c568f4de"
+        "blockTextHash": "c568f4de",
+        "seed": 1
       }
     ],
     "cfm-new-testament-2027/27": [
@@ -228,14 +256,16 @@
         "quote": "Galilese mannen, waarom staat u omhoog te kijken naar de hemel?",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/acts/1?id=p11&lang=nld#p11",
         "verseRef": "Handelingen 1:11",
-        "blockTextHash": "923c7788"
+        "blockTextHash": "923c7788",
+        "seed": 0
       },
       {
         "blockId": "b-p_zNpOZ",
         "quote": "Deze Jezus, Die van u opgenomen is naar de hemel, zal op dezelfde wijze terugkomen als u Hem naar de hemel hebt zien gaan",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/acts/1?id=p11&lang=nld#p11",
         "verseRef": "Handelingen 1:11",
-        "blockTextHash": "923c7788"
+        "blockTextHash": "923c7788",
+        "seed": 1
       }
     ],
     "cfm-new-testament-2027/28": [
@@ -244,14 +274,16 @@
         "quote": "ik heb van velen over deze man gehoord hoeveel kwaad hij Uw heiligen in Jeruzalem gedaan heeft",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/acts/9?id=p13&lang=nld#p13",
         "verseRef": "Handelingen 9:13",
-        "blockTextHash": "c52e189c"
+        "blockTextHash": "c52e189c",
+        "seed": 0
       },
       {
         "blockId": "b-p_xw8Gf",
         "quote": "Deze is voor Mij een uitverkoren instrument om Mijn Naam te brengen naar de heidenen en de koningen en de Israëlieten",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/acts/9?id=p15&lang=nld#p15",
         "verseRef": "Handelingen 9:15",
-        "blockTextHash": "c52e189c"
+        "blockTextHash": "c52e189c",
+        "seed": 1
       }
     ],
     "cfm-new-testament-2027/38": [
@@ -260,28 +292,32 @@
         "quote": "En God is bij machte elke vorm van genade overvloedig te maken in u, zodat u, wanneer u in alles altijd al het nodige bezit, overvloedig kunt zijn in elk goed werk",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/2-cor/9?id=p8&lang=nld#p8",
         "verseRef": "2 Korinthe 9:8",
-        "blockTextHash": "87665592"
+        "blockTextHash": "87665592",
+        "seed": 0
       },
       {
         "blockId": "b-p_fSjjP",
         "quote": "er is meer dan genoeg",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/dc-testament/dc/104?lang=nld&id=p17#p17",
         "verseRef": "Leer en Verbonden 104:17",
-        "blockTextHash": "87665592"
+        "blockTextHash": "87665592",
+        "seed": 1
       },
       {
         "blockId": "b-p_fSjjP",
         "quote": "God heeft een blijmoedige gever lief",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/2-cor/9?id=p7&lang=nld#p7",
         "verseRef": "2 Korinthe 9:7",
-        "blockTextHash": "87665592"
+        "blockTextHash": "87665592",
+        "seed": 2
       },
       {
         "blockId": "b-p_fSjjP",
         "quote": "niet met tegenzin of uit dwang",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/2-cor/9?id=p7&lang=nld#p7",
         "verseRef": "2 Korinthe 9:7",
-        "blockTextHash": "87665592"
+        "blockTextHash": "87665592",
+        "seed": 3
       }
     ],
     "cfm-new-testament-2027/41": [
@@ -290,21 +326,24 @@
         "quote": "de vrede van God, die alle begrip te boven gaat",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/philip/4?id=p7&lang=nld#p7",
         "verseRef": "Filippenzen 4:7",
-        "blockTextHash": "e50d265c"
+        "blockTextHash": "e50d265c",
+        "seed": 0
       },
       {
         "blockId": "b-p_g7fhu",
         "quote": "in Hem hebben wij de verlossing",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/col/1?id=p14&lang=nld#p14",
         "verseRef": "Kolossenzen 1:14",
-        "blockTextHash": "e50d265c"
+        "blockTextHash": "e50d265c",
+        "seed": 1
       },
       {
         "blockId": "b-p_g7fhu",
         "quote": "Alle dingen kan ik aan door Christus, Die mij kracht geeft",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/philip/4?id=p13&lang=nld#p13",
         "verseRef": "Filippenzen 4:13",
-        "blockTextHash": "e50d265c"
+        "blockTextHash": "e50d265c",
+        "seed": 2
       }
     ],
     "cfm-new-testament-2027/45": [
@@ -313,21 +352,24 @@
         "quote": "oog gericht houden op Jezus, de Leidsman en Voleinder van het geloof",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/heb/12?id=p2&lang=nld#p2",
         "verseRef": "Hebreeën 12:2",
-        "blockTextHash": "c9bb2183"
+        "blockTextHash": "c9bb2183",
+        "seed": 0
       },
       {
         "blockId": "b-p_cHAXT",
         "quote": "tot Hem naderen met een waarachtig hart, in volle zekerheid van het geloof",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/heb/10?id=p22&lang=nld#p22",
         "verseRef": "Hebreeën 10:22",
-        "blockTextHash": "c9bb2183"
+        "blockTextHash": "c9bb2183",
+        "seed": 1
       },
       {
         "blockId": "b-p_cHAXT",
         "quote": "Hogepriester van de toekomstige heilsgoederen",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/heb/9?id=p11&lang=nld#p11",
         "verseRef": "Hebreeën 9:11",
-        "blockTextHash": "c9bb2183"
+        "blockTextHash": "c9bb2183",
+        "seed": 2
       }
     ],
     "cfm-new-testament-2027/51": [
@@ -336,21 +378,24 @@
         "quote": "het Lam Dat geslacht is, van de grondlegging van de wereld af",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/rev/13?id=p8&lang=nld#p8",
         "verseRef": "Openbaring 13:8",
-        "blockTextHash": "e86080ac"
+        "blockTextHash": "e86080ac",
+        "seed": 0
       },
       {
         "blockId": "b-p_t8Qc0",
         "quote": "een nieuwe hemel en een nieuwe aarde",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/rev/21?id=p1&lang=nld#p1",
         "verseRef": "Openbaring 21:1",
-        "blockTextHash": "e86080ac"
+        "blockTextHash": "e86080ac",
+        "seed": 1
       },
       {
         "blockId": "b-p_tDoR7",
         "quote": "Ja, kom, Heere Jezus!",
         "sourceUrl": "https://www.churchofjesuschrist.org/study/scriptures/nt/rev/22?id=p20&lang=nld#p20",
         "verseRef": "Openbaring 22:20",
-        "blockTextHash": "2cfd6ccf"
+        "blockTextHash": "2cfd6ccf",
+        "seed": 2
       }
     ]
   }

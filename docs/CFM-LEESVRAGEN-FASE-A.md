@@ -1,7 +1,7 @@
 # CFM-leesvragen en XP — fase A
 
-Ontwikkelbasis: `origin/main` **39f7fd57**, inclusief de definitieve besluiten van
-PR #216. Dit verslag hoort bij de afzonderlijke fase-A-draft. Geen merge,
+Ontwikkelbasis: `origin/main` **55ef86e6**, inclusief de definitieve besluiten van
+PR #216 en de contentafbakening van PR #217. Dit verslag hoort bij de afzonderlijke fase-A-draft. Geen merge,
 productie-import, uitrol of wijziging van productiegegevens uitgevoerd.
 
 ## Werking en hergebruik
@@ -32,7 +32,9 @@ productie-import, uitrol of wijziging van productiegegevens uitgevoerd.
   een bewuste uitgifte toegevoegd. Bestaande rijen, vraagstatussen en opties worden
   niet overschreven. Concepten/ingetrokken of afwijkende vragen zijn niet speelbaar.
   Er is geen nieuwe publieke vraagbeheer- of publicatie-API.
-- Vraag-ID's zijn stabiel binnen de leseditie; credits en beloningsgrens gebruiken
+- Vraag-ID's zijn stabiel binnen de leseditie; de generatorseed ligt per citaat vast
+  en hangt niet af van de catalogusvolgorde. Een vergelijking over alle 104 lessen
+  bevestigt dat de vastlegging geen bestaande vraag-ID, tekst of antwoord wijzigt. Credits en beloningsgrens gebruiken
   de bestaande logische weekidentiteit uit `studyLessonContentKey`. Een andere
   leesroute, herpublicatie of kalenderweek maakt geen tweede beloningsinhoud.
 
@@ -120,7 +122,7 @@ Geen destructieve downmigratie of automatische productieherstelactie toegevoegd.
 
 ## Verificatie
 
-De definitieve lokale resultaten en CI-status staan in de draft-PR. De suites
+Lokale suites zijn groen; de actuele CI-status staat in de draft-PR. De suites
 controleren bronhashes en dekking van alle geregistreerde jaargangen, dezelfde
 vraag-ID's per route, eerste/foute/verbeterde/herhaalde antwoorden, concurrency,
 verloren response, reset, oude READ en stapvoortgang, editie/taal/revisie, noodstop,
@@ -128,11 +130,46 @@ prestaties/mijlpaal en ongewijzigde Dorp-bijdragen. De gewone hoofdstukengine wo
 tegen hetzelfde N en dezelfde XP-/herhaaluitkomsten vergeleken.
 
 Browserbewijs betreft een eigen PostgreSQL en een echte productiebuild, op
-390 px/donker en 320 px/licht met 200% tekst, inclusief touch/toetsenbord,
+390 px/donker en 320 px/licht én donker met 200% tekst, inclusief touch/toetsenbord,
 correctieronde, fout/retry, zes vraaggroepen, terug naar de les en cacheverversing.
 De oorspronkelijke hoofdstukflow wordt eveneens bediend. De officiële 2027-vraag
 wordt op een geïsoleerde kopie van de gepinde tekst gecontroleerd; de volledige
 achttienvragenweek gebruikt uitdrukkelijk synthetische testinhoud.
+
+### Uitgevoerde controles
+
+| Controle | Resultaat |
+|---|---|
+| CFM-vragen: bron, gedeelde identiteit, XP, revisie, rechten, replay, concurrency | 16/16 |
+| Bestaande stapvoortgang / gedeelde learning / Kompas met database | 9/9, 29/29, 69/69 |
+| Persoonlijke CFM-studie / 2026–2027-media / annotatie-unitcontroles | 101/101, 35/35, 56/56 |
+| Dorp, focus/shell en overige gedeelde leerregels | 56/56 en 34/34 |
+| Cursus-contentisolatie van PR #217 | 1/1 |
+| Migratie, 161 bestaande tabellen en geforceerde conflictrollback | Geslaagd; geen productieverbinding |
+| Mobiele Chromium-browser | Zes scenario’s; zie screenshots en grenzen hierboven |
+| Prisma, TypeScript, productiebuild, native broninventaris | Geslaagd |
+| Volledige ESLint-run | 0 fouten, 170 waarschuwingen; gerichte eindcontrole eveneens 0 fouten |
+| i18n | Nieuwe teksten in alle vijf talen; algemene audit meldt 418 bestaande ontbrekende sleutels per niet-Nederlandse taal |
+
+Reproduceer de database-/browsercontrole op een eigen Docker-host na `npm run build`:
+
+```bash
+node scripts/content-architecture/test-access-isolated.mjs --focused --cfm-exercises --browser
+```
+
+### Mobiele screenshots
+
+Alle beelden zijn gemaakt met Chromium en een eigen testdatabase. De officiële
+2027-stap gebruikt een kopie van de gepinde bron. Week-/resultaatbeelden gebruiken
+expliciet synthetische vragen; geen officiële achttienvragendekking geclaimd.
+
+- [Officiële 2027-stap, 390 px donker](screenshots/cfm-leesvragen/official-2027-question-390-dark.png)
+- [Weekvraag, 390 px donker](screenshots/cfm-leesvragen/question-390-dark.png)
+- [Stapvraag, 320 px licht met 200% tekst](screenshots/cfm-leesvragen/question-320-light.png)
+- [Correctieronde, 320 px donker met 200% tekst](screenshots/cfm-leesvragen/review-320-dark.png)
+- [Gedeeld XP-resultaat](screenshots/cfm-leesvragen/result-390-dark.png)
+- [Lezen en afronden zonder vragen](screenshots/cfm-leesvragen/reading-without-questions-320.png)
+- [Browserresultaten](screenshots/cfm-leesvragen/results.json)
 
 ## Nog onder fase B en inhoudelijke acceptatie
 

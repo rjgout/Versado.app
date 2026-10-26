@@ -46,7 +46,7 @@ const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 const SOURCES = z
   .record(
     z.string(),
-    z.array(studyQuestionSourceSchema.omit({ seed: true, type: true })),
+    z.array(studyQuestionSourceSchema.omit({ type: true })),
   )
   .parse(sourceCatalogue.sources);
 export function generateStudyQuestion(
@@ -125,10 +125,11 @@ export function preparedStudyQuestions(
   if (!sources.length) return [];
   // Eén kandidaat per bestaand vraagtype per gelezen citaat; geen extra
   // invulvarianten maken om een inhoudelijk tekort kunstmatig aan te vullen.
-  return sources.flatMap((citation, seed) => {
+  // De vastgelegde seed blijft gelijk wanneer de catalogus wordt uitgebreid/herordend.
+  return sources.flatMap((citation) => {
     return (["FILL_BLANK", "WORD_BANK", "TRUE_FALSE"] as const).flatMap(
       (type) => {
-        const source = { ...citation, seed, type };
+        const source = { ...citation, type };
         if (!validStudyQuestionSource(lesson, source)) return [];
         const generated = generateStudyQuestion(source, lesson.language);
         return generated
@@ -138,7 +139,7 @@ export function preparedStudyQuestions(
                 id:
                   "studyq-" +
                   sha(
-                    `${lesson.editionId}|${source.blockId}|${source.quote}|${type}|${seed}`,
+                    `${lesson.editionId}|${source.blockId}|${source.quote}|${type}|${source.seed}`,
                   ).slice(0, 40),
                 studySource: source,
               },

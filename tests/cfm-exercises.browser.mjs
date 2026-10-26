@@ -131,7 +131,7 @@ try {
     );
     await page.screenshot({
       path: `${out}/question-${width}-${scheme}.png`,
-      fullPage: true,
+      fullPage: false,
     });
     const stored = await prisma.exercise.findMany({
         where: { id: { in: issued.exercises.map((e) => e.id) } },
@@ -200,7 +200,7 @@ try {
         .waitFor();
       await page.screenshot({
         path: `${out}/review-${width}-${scheme}.png`,
-        fullPage: true,
+        fullPage: false,
       });
       await assertCheckFits();
       await answer(issued.exercises[0]);
@@ -231,7 +231,7 @@ try {
     );
     await page.screenshot({
       path: `${out}/result-${width}-${scheme}.png`,
-      fullPage: true,
+      fullPage: false,
     });
     await page
       .getByRole("link", { name: t("misc.backToLesson"), exact: true })
@@ -299,7 +299,7 @@ try {
   await realPage.locator("[data-exercise-progress]").waitFor();
   await realPage.screenshot({
     path: out + "/official-2027-question-390-dark.png",
-    fullPage: true,
+    fullPage: false,
   });
   assert.ok(
     await realPage.evaluate(
@@ -389,7 +389,7 @@ try {
   );
   await page.screenshot({
     path: out + "/reading-without-questions-320.png",
-    fullPage: true,
+    fullPage: false,
   });
   await context.close();
   results.push({
