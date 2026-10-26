@@ -3,6 +3,17 @@ import { kompasEn } from "./kompas/en";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const en: PartialMessages = {
+  weeklyResult: {
+    "label": "Division result",
+    "promoted": "You’ve been promoted!",
+    "demoted": "You’ve been relegated",
+    "stayed": "You’re staying in your division",
+    "promotedBody": "You’re now in {tier}. Here’s to a new week!",
+    "demotedBody": "You’re now in {tier}. Your guide is by your side.",
+    "stayedBody": "You’re staying in {tier}. A new week, new opportunities!",
+    "continue": "Continue"
+},
+
   officialAudio: {
     "missingText": "Missing text chapters",
     "storageMissing": "The audio directory is unavailable. Check the configured storage; nothing is downloaded or registered.",

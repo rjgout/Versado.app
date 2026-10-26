@@ -3,6 +3,17 @@ import { kompasDe } from "./kompas/de";
 
 // Ontbrekende teksten vallen terug volgens fallbackChain (src/lib/languages.ts).
 export const de: PartialMessages = {
+  weeklyResult: {
+    "label": "Ligaergebnis",
+    "promoted": "Du bist aufgestiegen!",
+    "demoted": "Du bist abgestiegen",
+    "stayed": "Du bleibst in deiner Liga",
+    "promotedBody": "Du spielst jetzt in {tier}. Auf in eine neue Woche!",
+    "demotedBody": "Du spielst jetzt in {tier}. Dein Begleiter ist an deiner Seite.",
+    "stayedBody": "Du bleibst in {tier}. Eine neue Woche, neue Chancen!",
+    "continue": "Weiter"
+},
+
   officialAudio: {
     "missingText": "Fehlende Textkapitel",
     "storageMissing": "Der Audioordner ist nicht verfügbar. Den eingerichteten Speicher prüfen; nichts wird heruntergeladen oder registriert.",

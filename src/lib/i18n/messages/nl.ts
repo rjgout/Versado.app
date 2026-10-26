@@ -5,6 +5,17 @@
 import { kompasNl } from "./kompas/nl";
 
 export const nl = {
+  weeklyResult: {
+    "label": "Divisie-uitslag",
+    "promoted": "Je bent gepromoveerd!",
+    "demoted": "Je bent gedegradeerd",
+    "stayed": "Je blijft in je divisie",
+    "promotedBody": "Je speelt nu in {tier}. Op naar een nieuwe week!",
+    "demotedBody": "Je speelt nu in {tier}. Je gids gaat met je mee.",
+    "stayedBody": "Je blijft in {tier}. Een nieuwe week, nieuwe kansen!",
+    "continue": "Verder"
+},
+
   officialAudio: {
     "missingText": "Ontbrekende teksthoofdstukken",
     "storageMissing": "De audiomap is niet beschikbaar. Controleer de ingestelde opslag; er wordt niets gedownload of geregistreerd.",

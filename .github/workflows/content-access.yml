@@ -14,6 +14,11 @@ on:
       - 'src/components/AdminContentSwitcherClient.tsx'
       - 'tests/hymns-availability*'
       - 'tests/hymns-visibility-migration.mjs'
+      - 'src/lib/weeklyResult.ts'
+      - 'src/components/WeeklyResultCelebration.tsx'
+      - 'src/components/StreakContinuation.tsx'
+      - 'src/app/api/competition/result/**'
+      - 'tests/weekly-result.browser.mjs'
       - 'src/lib/courseContent.ts'
       - 'src/app/api/courses/**'
       - 'tests/course-content.test.ts'
@@ -211,6 +216,7 @@ jobs:
           npm run test:study-content:integration
           npm run test:daily-text:integration
           npm run test:cfm-content:integration
+          npm run test:weekly-result:integration
           npm run test:annotations:integration -- --browser
       - name: Regressie, lint en vertalingen
         run: |
@@ -222,6 +228,14 @@ jobs:
           npm run test:live-data
           npm run lint
           npx tsx scripts/i18n/check.ts
+
+      - name: Divisie-uitslagbrowserbewijs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-result-browser
+          path: /tmp/versado-weekly-result-browser
+          if-no-files-found: ignore
 
       - name: CFM-bronisolatie in de browser
         if: always()

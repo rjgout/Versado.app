@@ -2441,6 +2441,29 @@
       ]
     },
     {
+      "file": "src/app/api/competition/result/route.ts",
+      "sha256": "1f11c9ba28cc022673c67a928718071d8ff51ffb1473ab8ef6ad7e42b941f55f",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/apiError",
+        "@/lib/session",
+        "@/lib/weeklyResult",
+        "next/server"
+      ],
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "requests": [],
+      "checks": [
+        "getCurrentUser"
+      ],
+      "exports": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
       "file": "src/app/api/content-api/status/route.ts",
       "sha256": "765db642d13c76afd97301c8a5a4e6d39369e3d0ab2165bf42278558a80cec61",
       "boundary": "context-dependent",
@@ -6819,7 +6842,7 @@
     },
     {
       "file": "src/app/layout.tsx",
-      "sha256": "8eab335bda9bc053317f7047857405c3c0846a9b5a297bf4a859e834490bef36",
+      "sha256": "721acaa2936aabb4d88792ae813fac4fe992b925f61965474dbde3d89e51a18f",
       "boundary": "context-dependent",
       "imports": [
         "./globals.css",
@@ -6846,6 +6869,7 @@
         "@/components/SubpageBackBar",
         "@/components/ThemeScript",
         "@/components/TimeZoneSync",
+        "@/components/WeeklyResultCelebration",
         "@/components/kompas/ContextOffer",
         "@/components/kompas/KompasProvider",
         "@/components/navigation/NextNavigationProvider",
@@ -10966,6 +10990,32 @@
       "checks": [],
       "exports": [
         "UserTag"
+      ]
+    },
+    {
+      "file": "src/components/WeeklyResultCelebration.tsx",
+      "sha256": "aadd8ea8843c4f808a29a491ced078a19fbf6ed94904219a15bb2fd7b139aafd",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/versado/DivisionEmblem",
+        "@/components/versado/PersonalMascot",
+        "@/lib/celebrationGate",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks",
+        "@/lib/data/mutation",
+        "@/lib/weeklyResult",
+        "lucide-react",
+        "next/navigation",
+        "react"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/competition/result"
+      ],
+      "checks": [],
+      "exports": [
+        "WeeklyResultCelebration"
       ]
     },
     {
@@ -18365,7 +18415,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "2716b7b9ed2dcf0a10dba3fc802405ab887d137ab0f1f8f116a6dbd3d767cfc6",
+      "sha256": "61a4a01daa26d5eac7374e1aeeafcd2d62a47ecd97b6d70e584d74e95bf34d42",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18380,7 +18430,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "4ba7c4c3973a6b88670e38718dcd6a3c7cb68a1f2ef685e8614ac10930adcf53",
+      "sha256": "fee778d5d1be6c7b491d3be060bffec538602ae47fefd70845247c5f03a605ee",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18395,7 +18445,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "f7bbbf289d5f19b876efe189a3c05cab5ae3cc97c5a18b0c99f423f396eae508",
+      "sha256": "09679a318acaa76237906b619e2cde19d54c61e35ef632a9ba9656dd58b50352",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18410,7 +18460,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "d1ec29c676df8166039f2df78e1e0d64c63a2e90aacbf8e4bd8d9b1bcd892989",
+      "sha256": "4983c4b702a710b5bbb0d613980584fe62617a4ed2c516f2961a5cebf5205b75",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18493,7 +18543,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "25624d753c72174d7dd09316206b4f7c2ff38b8c94f0f28ee83439d938d203f5",
+      "sha256": "32a75a97eca819029afbe0e1078508a005c3e2918ce4a9b0ff22f2e1942cb3b6",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -24515,6 +24565,25 @@
         "achievementVisualFor",
         "podiumAssetForRank",
         "visualIdentityAsset"
+      ]
+    },
+    {
+      "file": "src/lib/weeklyResult.ts",
+      "sha256": "9bff198e62cd254906b31c6035c8c665701026532c558b0ee6c3d7068e5a8d49",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/generated/prisma/enums",
+        "@/lib/dates",
+        "@/lib/db",
+        "@/lib/leagueTiers",
+        "@/lib/leagues"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "acknowledgeWeeklyResult",
+        "getWeeklyResult"
       ]
     },
     {
@@ -34285,6 +34354,68 @@
         "src/lib/learning/contentProgress.ts",
         "src/lib/notify.ts",
         "src/lib/session.ts"
+      ],
+      "clientBoundaries": [],
+      "requestEvidence": [],
+      "authEvidence": [
+        "getCurrentUser"
+      ]
+    },
+    {
+      "file": "src/app/api/competition/result/route.ts",
+      "sha256": "1f11c9ba28cc022673c67a928718071d8ff51ffb1473ab8ef6ad7e42b941f55f",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/apiError",
+        "@/lib/session",
+        "@/lib/weeklyResult",
+        "next/server"
+      ],
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "requests": [],
+      "checks": [
+        "getCurrentUser"
+      ],
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "route": "/api/competition/result",
+      "kind": "api",
+      "domain": "sociaal",
+      "dependencies": [
+        "src/app/api/competition/result/route.ts",
+        "src/lib/apiError.ts",
+        "src/lib/auth.ts",
+        "src/lib/dates.ts",
+        "src/lib/db.ts",
+        "src/lib/i18n/core.ts",
+        "src/lib/i18n/index.ts",
+        "src/lib/i18n/messages/de.ts",
+        "src/lib/i18n/messages/en.ts",
+        "src/lib/i18n/messages/es.ts",
+        "src/lib/i18n/messages/fr.ts",
+        "src/lib/i18n/messages/kompas/de.ts",
+        "src/lib/i18n/messages/kompas/en.ts",
+        "src/lib/i18n/messages/kompas/es.ts",
+        "src/lib/i18n/messages/kompas/fr.ts",
+        "src/lib/i18n/messages/kompas/nl.ts",
+        "src/lib/i18n/messages/nl.ts",
+        "src/lib/i18n/serverTexts.ts",
+        "src/lib/languages.ts",
+        "src/lib/leagueTiers.ts",
+        "src/lib/leagues.ts",
+        "src/lib/requestLanguage.ts",
+        "src/lib/session.ts",
+        "src/lib/weeklyResult.ts"
+      ],
+      "directModules": [
+        "src/lib/apiError.ts",
+        "src/lib/session.ts",
+        "src/lib/weeklyResult.ts"
       ],
       "clientBoundaries": [],
       "requestEvidence": [],
@@ -65911,7 +66042,7 @@
     },
     {
       "file": "src/app/layout.tsx",
-      "sha256": "8eab335bda9bc053317f7047857405c3c0846a9b5a297bf4a859e834490bef36",
+      "sha256": "721acaa2936aabb4d88792ae813fac4fe992b925f61965474dbde3d89e51a18f",
       "boundary": "context-dependent",
       "imports": [
         "./globals.css",
@@ -65938,6 +66069,7 @@
         "@/components/SubpageBackBar",
         "@/components/ThemeScript",
         "@/components/TimeZoneSync",
+        "@/components/WeeklyResultCelebration",
         "@/components/kompas/ContextOffer",
         "@/components/kompas/KompasProvider",
         "@/components/navigation/NextNavigationProvider",
@@ -70033,6 +70165,32 @@
       ]
     },
     {
+      "file": "src/components/WeeklyResultCelebration.tsx",
+      "sha256": "aadd8ea8843c4f808a29a491ced078a19fbf6ed94904219a15bb2fd7b139aafd",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/versado/DivisionEmblem",
+        "@/components/versado/PersonalMascot",
+        "@/lib/celebrationGate",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks",
+        "@/lib/data/mutation",
+        "@/lib/weeklyResult",
+        "lucide-react",
+        "next/navigation",
+        "react"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/competition/result"
+      ],
+      "checks": [],
+      "exports": [
+        "WeeklyResultCelebration"
+      ]
+    },
+    {
       "file": "src/components/WordDetailClient.tsx",
       "sha256": "a079bda5159eb9505bd64a77514ad7f7148128e8726d903ef10d89ae23428905",
       "boundary": "client",
@@ -73974,6 +74132,7 @@
     "tests/unsubscribe.integration.test.ts",
     "tests/unsubscribe.test.ts",
     "tests/visual-identity-assets.test.ts",
+    "tests/weekly-result.browser.mjs",
     "tests/word-game-hints.browser.mjs",
     "tests/word-game-hints.integration.test.ts",
     "tests/word-game-hints.test.ts",
