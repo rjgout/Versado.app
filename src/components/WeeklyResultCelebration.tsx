@@ -6,52 +6,25 @@ import { X } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import PersonalMascot from "@/components/versado/PersonalMascot";
 import DivisionEmblem from "@/components/versado/DivisionEmblem";
-import { getSocket } from "@/lib/socketClient";
+import { useLiveQuery } from "@/lib/data/hooks";
+import { fetchJson } from "@/lib/data/fetchJson";
+import { jsonMutation } from "@/lib/data/mutation";
 import { celebrationDeferredOn, visibleCelebration } from "@/lib/celebrationGate";
 import type { WeeklyResult } from "@/lib/weeklyResult";
 
 /** De server bewaart bekeken; alleen de open presentatie is lokaal. */
-export default function WeeklyResultCelebration() {
+export default function WeeklyResultCelebration({ userId }: { userId: string }) {
   const pathname = usePathname();
   const t = useT();
-  const [result, setResult] = useState<WeeklyResult | null>(null);
-  const dismissed = useRef(new Set<string>());
+  const query = useLiveQuery<{ result: WeeklyResult | null }>(
+    ["competition", "weekly-result", userId],
+    () => fetchJson("/api/competition/result"),
+    { scopes: ["notifications"], enabled: !celebrationDeferredOn(pathname), staleTime: 0, pollMs: 30_000 },
+  );
+  const result = query.data?.result ?? null;
+  const [dismissed, setDismissed] = useState<string[]>([]);
   const dialog = useRef<HTMLDialogElement>(null);
-  const shown = visibleCelebration(result, pathname);
-
-  useEffect(() => {
-    if (celebrationDeferredOn(pathname)) return;
-    let cancelled = false;
-    let busy = false;
-    async function refresh() {
-      if (document.visibilityState !== "visible" || busy || cancelled) return;
-      busy = true;
-      try {
-        const response = await fetch("/api/competition/result", { cache: "no-store" });
-        if (!response.ok || cancelled) return;
-        const data: { result: WeeklyResult | null } = await response.json();
-        if (!cancelled) setResult(data.result && !dismissed.current.has(data.result.weekStart) ? data.result : null);
-      } catch { /* Bij heropenen of netwerkherstel opnieuw proberen, zonder navigatie te blokkeren. */ }
-      finally { busy = false; }
-    }
-    void refresh();
-    document.addEventListener("visibilitychange", refresh);
-    window.addEventListener("online", refresh);
-    // Ook bij een al geopende app: het bestaande meldingssignaal ververst direct.
-    // Polling vangt een weekgrens of gemist signaal zonder pushvoorkeur op.
-    const socket = getSocket();
-    socket.on("notifications_changed", refresh);
-    socket.on("connect", refresh);
-    const timer = window.setInterval(refresh, 30_000);
-    return () => {
-      cancelled = true;
-      document.removeEventListener("visibilitychange", refresh);
-      window.removeEventListener("online", refresh);
-      socket.off("notifications_changed", refresh);
-      socket.off("connect", refresh);
-      window.clearInterval(timer);
-    };
-  }, [pathname]);
+  const shown = visibleCelebration(result && !dismissed.includes(result.weekStart) ? result : null, pathname);
 
   useEffect(() => {
     const element = dialog.current;
@@ -61,9 +34,9 @@ export default function WeeklyResultCelebration() {
 
   function close() {
     if (!shown) return;
-    dismissed.current.add(shown.weekStart);
-    void fetch("/api/competition/result", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ weekStart: shown.weekStart }), keepalive: true }).catch(() => {});
-    setResult(null);
+    setDismissed(current => [...current, shown.weekStart]);
+    query.setData({ result: null });
+    void jsonMutation("/api/competition/result", { json: { weekStart: shown.weekStart }, keepalive: true }, { invalidates: ["notifications"] }).catch(() => {});
   }
 
   return <dialog ref={dialog} data-weekly-result aria-labelledby="weekly-result-title" aria-describedby="weekly-result-body"

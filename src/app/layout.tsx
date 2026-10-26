@@ -155,7 +155,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <NextNavigationProvider>
         <LiveDataProvider userId={user?.id} collectionId={contentContext?.active.id} language={contentContext?.contentLanguage} initialContentContext={contentContext ?? undefined} sessionKey={sessionKey}>
         <CompanionProvider character={companionToMascot(user?.companion)}>
-        {user && <WeeklyResultCelebration key={user.id} />}
+        {user && <WeeklyResultCelebration key={user.id} userId={user.id} />}
         <StreakContinuationProvider userId={user?.id}>
         <ConfirmProvider>
         <KompasProvider>

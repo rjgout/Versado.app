@@ -6814,7 +6814,7 @@
     },
     {
       "file": "src/app/layout.tsx",
-      "sha256": "318a686603ee990770ddc216f00799ad4da326b380c3d16d37b884b6a8b8bbca",
+      "sha256": "721acaa2936aabb4d88792ae813fac4fe992b925f61965474dbde3d89e51a18f",
       "boundary": "context-dependent",
       "imports": [
         "./globals.css",
@@ -10966,14 +10966,16 @@
     },
     {
       "file": "src/components/WeeklyResultCelebration.tsx",
-      "sha256": "6d7d0060c988a039e4acb44b3585dd74f97fd64725689d958634655320537a85",
+      "sha256": "aadd8ea8843c4f808a29a491ced078a19fbf6ed94904219a15bb2fd7b139aafd",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/versado/DivisionEmblem",
         "@/components/versado/PersonalMascot",
         "@/lib/celebrationGate",
-        "@/lib/socketClient",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks",
+        "@/lib/data/mutation",
         "@/lib/weeklyResult",
         "lucide-react",
         "next/navigation",
@@ -65766,7 +65768,7 @@
     },
     {
       "file": "src/app/layout.tsx",
-      "sha256": "318a686603ee990770ddc216f00799ad4da326b380c3d16d37b884b6a8b8bbca",
+      "sha256": "721acaa2936aabb4d88792ae813fac4fe992b925f61965474dbde3d89e51a18f",
       "boundary": "context-dependent",
       "imports": [
         "./globals.css",
@@ -69890,14 +69892,16 @@
     },
     {
       "file": "src/components/WeeklyResultCelebration.tsx",
-      "sha256": "6d7d0060c988a039e4acb44b3585dd74f97fd64725689d958634655320537a85",
+      "sha256": "aadd8ea8843c4f808a29a491ced078a19fbf6ed94904219a15bb2fd7b139aafd",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
         "@/components/versado/DivisionEmblem",
         "@/components/versado/PersonalMascot",
         "@/lib/celebrationGate",
-        "@/lib/socketClient",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks",
+        "@/lib/data/mutation",
         "@/lib/weeklyResult",
         "lucide-react",
         "next/navigation",
