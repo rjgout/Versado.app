@@ -85,8 +85,8 @@ voor de knopvolgorde; daadwerkelijke workers, registratie, publicatie en commitr
 De regressies omvatten twee echte Node-workers, twee verschillende pakketten voor één canonieke opname, behoud van nieuwe
 onveranderlijke tijdcode-/kwaliteitsversies, rollback/fouttrigger, verloren antwoord, echte procesuitval, bron-/bytefouten,
 rolintrekking tijdens een trage actie, een echte tekst-/commitlockrace, ontbrekende tekst/opslag en hergebruik van bestaande opnamen.
-De 205 legacyhoofdstukken plus historische fixture, verborgen uitgaven, controlemarkeringen, cursussen/oefeningen en hintsaldi
-blijven in de gegevenssnapshots gelijk. Nieuw aangemaakte testuitgaven en testpublicaties bestaan uitsluitend in wegwerpdatabases.
+De 205 legacyhoofdstukken plus historische fixture, verborgen uitgaven, controlemarkeringen, cursussen/oefeningen, hintsaldi, XP-ledger en XP-/reekscaches,
+reeksactiviteiten en hoofdstuk-/cursus-/lesvoortgang blijven in de gegevenssnapshots gelijk. Nieuw aangemaakte testuitgaven en testpublicaties bestaan uitsluitend in wegwerpdatabases.
 
 Werkelijk uitgevoerde eindcontroles:
 

@@ -18,7 +18,21 @@ const root=process.env.AUDIO_TEST_ROOT!,configFile=path.join(root,"official-mock
 let config:OfficialMock,actor:{id:string;sessionVersion:number},baseline:unknown;
 const ids=pilotSources.map(s=>s.id),prefix="admin-official-";
 const requestOfficialAudio=(a:{id:string;sessionVersion:number},action:Parameters<typeof requestProduction>[1],selected:string[])=>requestProduction(a,action,selected,prisma,officialSources.map(s=>config.sources.find(fake=>fake.id===s.id)??s));
-async function snapshot(){return {collections:await prisma.contentCollection.findMany({orderBy:{id:"asc"}}),chapters:await prisma.chapter.findMany({orderBy:{id:"asc"},include:{verses:{orderBy:{number:"asc"}},audioCheck:true}}),courses:await prisma.course.count(),exercises:await prisma.exercise.count(),hints:(await prisma.user.findUniqueOrThrow({where:{id:"audio-before-user"}})).hintBalance};}
+async function snapshot(){
+ const ordered=<T,>(rows:T[])=>rows.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
+ return {
+  collections:await prisma.contentCollection.findMany({orderBy:{id:"asc"}}),
+  chapters:await prisma.chapter.findMany({orderBy:{id:"asc"},include:{verses:{orderBy:{number:"asc"}},audioCheck:true}}),
+  courses:await prisma.course.count(),exercises:await prisma.exercise.count(),
+  hints:(await prisma.user.findUniqueOrThrow({where:{id:"audio-before-user"}})).hintBalance,
+  actorProgress:await prisma.user.findUniqueOrThrow({where:{id:actor.id},select:{xpTotal:true,currentStreak:true,longestStreak:true,freezeCount:true}}),
+  xp:ordered(await prisma.xPTransaction.findMany()),
+  streaks:ordered(await prisma.streakActivity.findMany()),
+  chapterProgress:ordered(await prisma.chapterProgress.findMany()),
+  courseProgress:ordered(await prisma.userCourseProgress.findMany()),
+  lessonProgress:ordered(await prisma.userCourseLessonProgress.findMany()),
+ };
+}
 function worker(){const child=spawn(process.execPath,["--import","tsx","tests/fixtures/audio/official-worker.ts",configFile],{env:process.env,stdio:["ignore","pipe","pipe"]});let errors="";child.stderr.on("data",d=>{errors+=d;});const done=new Promise<void>((ok,no)=>{child.on("error",no);child.on("exit",(code,signal)=>code===0||signal==="SIGKILL"?ok():no(Error(errors)));});return {child,done};}
 async function tick(){await runOfficialAudioTick(prisma,mockOfficialNetwork(config),config.sources);}
 async function audioCalls(){const lines=await fs.readFile(config.logFile,"utf8").then(s=>s.trim().split("\n")).catch(()=>[]);return lines.filter(s=>s in config.audio).length;}
