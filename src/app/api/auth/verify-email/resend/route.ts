@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   const rawToken = await createAuthToken(user.id, "EMAIL_VERIFY");
   const link = `${getBaseUrl(req)}/verify-email?token=${rawToken}`;
   const { subject, html, text } = verifyEmailTemplate(getT(user.uiLanguage), link);
-  const result = await sendMail({ to: user.email, subject, html, text });
+  const result = await sendMail({ to: user.email, subject, html, text, meta: { kind: "EMAIL_VERIFY", userId: user.id } });
   if (!result.ok) return await apiErrorText(result.error, 502);
 
   return NextResponse.json({ ok: true });
