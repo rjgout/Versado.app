@@ -399,6 +399,14 @@ try {
   });
   writeFileSync(out + "/results.json", JSON.stringify(results, null, 2));
   console.log(JSON.stringify({ cfmExercisesBrowser: results }));
+} catch (error) {
+  // Ook via de Checks-API leesbaar als het logarchief nog niet beschikbaar is.
+  const message = String(error?.stack ?? error)
+    .replaceAll("%", "%25")
+    .replaceAll("\r", "%0D")
+    .replaceAll("\n", "%0A");
+  console.error("::error title=CFM browsercontrole::" + message);
+  throw error;
 } finally {
   await browser.close();
   await prisma.$disconnect();
