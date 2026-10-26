@@ -4,6 +4,11 @@ Ontwikkelbasis: `origin/main` **55ef86e6**, inclusief de definitieve besluiten v
 PR #216 en de contentafbakening van PR #217. Dit verslag hoort bij de afzonderlijke fase-A-draft. Geen merge,
 productie-import, uitrol of wijziging van productiegegevens uitgevoerd.
 
+**Vervolg vraagdekking/pilot:** zie de [oorzakenanalyse en het open bronbesluit](CFM-VRAAGDEKKING-ONDERZOEK.md).
+Een concrete officiële pilot is voorbereid, maar aanvullende schriftlezing is niet
+geactiveerd vóór een expliciet productbesluit. De onderstaande technische
+werking en de 17/624-dekking zijn ongewijzigd.
+
 ## Werking en hergebruik
 
 - Een ondersteunde leesstap biedt na de tekst drie vragen. De weekroute deelt

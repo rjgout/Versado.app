@@ -28,6 +28,9 @@ herkomst en scopegrenzen beschrijven. Iedere fase vraagt afzonderlijke beoordeli
 hebben momenteel drie gecontroleerde vragen; nul officiële weken hebben achttien.
 De technische weekroute is met synthetische inhoud getest. Fase A is hiermee
 geen inhoudelijk geaccepteerde release; B–D zijn niet gestart.
+Het [vervolgonderzoek naar vraagdekking en officiële pilot](../CFM-VRAAGDEKKING-ONDERZOEK.md)
+bevat een concreet voorstel voor 2026/02. Aanvullende gekoppelde schriftlezing
+vraagt eerst een expliciet productbesluit; de pilot is nog niet geactiveerd.
 
 **Afhankelijkheden:** bestaande CFM-jaargangen, gepubliceerde revisies, zesstappenplan,
 centrale learning-/XP-services. De zeven CFM-productbesluiten zijn definitief
