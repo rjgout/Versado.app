@@ -24,6 +24,16 @@ test("datumregel toont één jaartal, en beide jaren bij de jaargrens", () => {
   const boundary = formatWeekPeriod("2026-12-28","2027-01-04","nl")!;
   assert.match(boundary,/2026/); assert.match(boundary,/2027/);
 });
+test("datumregel is stabiel tussen Node- en browser-ICU, ook over maand en jaar", () => {
+  assert.equal(formatWeekPeriod("2026-10-19","2026-10-26","nl"),"19–25 oktober 2026");
+  assert.equal(formatWeekPeriod("2026-10-26","2026-11-02","nl"),"26 oktober – 1 november 2026");
+  assert.equal(formatWeekPeriod("2026-12-28","2027-01-04","nl"),"28 december 2026 – 3 januari 2027");
+  for(const locale of ["nl","en","de","fr","es"]) {
+    const label=formatWeekPeriod("2026-12-28","2027-01-04",locale)!;
+    assert.doesNotMatch(label,/[\u00a0\u2009\u202f]/);
+    assert.equal(label.match(/2026/g)?.length,1);assert.equal(label.match(/2027/g)?.length,1);
+  }
+});
 test("resolver gebruikt toegankelijke OTB-editie en bestaande reader; ontbrekende vertaling valt extern terug", async () => {
   for (const [code, language] of [["nld","nl"],["eng","en"],["deu","de"],["fra","fr"],["spa","es"]]) {
     for (const available of [true,false]) {

@@ -11,10 +11,10 @@ import {
   resetReadingProgress,
   type IssuedStudySet,
 } from "../src/lib/learning/contentProgress";
-import { loadStudyExerciseSource } from "../src/lib/studyContent/exerciseSource";
+import { loadStudyExerciseSource, studyStepQuestionState } from "../src/lib/studyContent/exerciseSource";
 import { getStudyReader } from "../src/lib/studyContent/reader";
 import { personalStudyFor } from "../src/lib/studyContent/personalStudyOverrides";
-import { applyStepProgress } from "../src/lib/studyContent/stepProgress";
+import { applyStepProgress, recordStepProgress } from "../src/lib/studyContent/stepProgress";
 import {
   maxContentBaseXp,
   XP_PER_CORRECT,
@@ -176,6 +176,38 @@ test("echte officiële week: alle zes stappen krijgen exact hun aangeboden verze
   );
   const again = await issue(actor);
   assert.deepEqual(again.exercises, full.exercises);
+});
+
+test("navigatie: lezen en vragen blijven gescheiden; foute volledige inzending is gemaakt, weekroute telt mee, geschiedenis blijft na reset", async () => {
+  const actor = await account(), source = await loadStudyExerciseSource(actor, f.edition.id, prisma);
+  assert.ok(source);
+  const plan = personalStudyFor(source.lesson);
+  assert.ok(plan.supported);
+  const step = plan.steps[0];
+  const progress = { lessonEditionId: f.edition.id, revisionId: f.revision.id, stepIndex: 1, stepFingerprint: step.fingerprint };
+  await recordStepProgress(actor, { ...progress, action: "OPEN" });
+  assert.equal(await prisma.studyStepProgress.count({where:{userId:actor.id,status:"COMPLETED"}}), 0);
+  assert.equal(await studyStepQuestionState(actor, {...input(1),stepIndex:1}), "available");
+  const completed = await recordStepProgress(actor, {...progress, action:"COMPLETE"});
+  assert.equal(completed.changed, true);
+  assert.equal((await recordStepProgress(actor,{...progress, action:"COMPLETE"})).changed, false);
+  assert.equal(await prisma.xPTransaction.count({where:{userId:actor.id}}), 0);
+  assert.equal(await studyStepQuestionState(actor, {...input(1),stepIndex:1}), "available", "oude leesvink is geen gemaakte quiz");
+  const s = await issue(actor,1);
+  assert.equal(await studyStepQuestionState(actor,{...input(1),stepIndex:1}), "available", "onderbroken sessie blijft te hervatten");
+  await submitStudyExerciseSession(actor,s.sessionId,s.exercises.map(q=>({exerciseId:q.id,given:["onjuist-controleantwoord"]})));
+  assert.equal(await studyStepQuestionState(actor,{...input(1),stepIndex:1}), "completed", "fout beantwoorde vragen blokkeren lezen niet");
+  assert.equal(await studyStepQuestionState(actor,{...input(2),stepIndex:2}), "available");
+  const interrupted = await issue(actor,2);
+  const full=await issue(actor);
+  await submitStudyExerciseSession(actor,full.sessionId,await answers(full,18));
+  for(let n=1;n<=6;n++) assert.equal(await studyStepQuestionState(actor,{...input(n),stepIndex:n}),"completed");
+  assert.equal(await studyStepQuestionState(actor,{...input(2),stepIndex:2,exerciseSessionId:interrupted.sessionId}),"completed","latere weekinzending maakt een oud deelconcept niet opnieuw verplicht");
+  assert.equal(await studyStepQuestionState(actor,{...input(1),stepIndex:1,exerciseSessionId:s.sessionId}),"available","een verloren eigen inzendresponse kan het opgeslagen resultaat hervatten");
+  await prisma.$transaction(tx => resetReadingProgress(tx, actor.id));
+  assert.equal(await studyStepQuestionState(actor,{...input(3),stepIndex:3}),"completed");
+  assert.equal(await prisma.xPTransaction.count({where:{userId:actor.id}}),0);
+  assert.equal(await countCanonicalReadContributions(prisma,[actor.id]),0);
 });
 
 test("zes echte stappen gevolgd door de week: één basisgrens, één perfecte bonus en normale herhalingskorting", async () => {

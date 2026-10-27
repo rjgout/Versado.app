@@ -13,14 +13,14 @@ oplevering. Android-/iOS-compilatie is uitsluitend een regressiecontrole. Fysiek
 achtergrondaudio, hoofdtelefoonbediening en herstel na lifecycle-wissels zijn niet hiermee bewezen.
 Zie [Audioarchitectuur V2](AUDIO-ARCHITECTUUR-V2.md).
 
-## CFM-leesvragen — fase-A-draft
+## CFM-leesvragen — fase-A-pilot
 
 De web/PWA-vragenroute en de gedeelde backend ondersteunen de gecontroleerde
 CFM-bronadapter. De lokale native router mist de CFM-studielezer en heeft nog
 geen lokale vragenroute of expliciet Bearer-contract voor deze endpoint.
 Er is geen cookie-terugval of remote-webview als native implementatie toegevoegd.
 Chromium-controles bewijzen geen iPhone/iPad/Android-pariteit. Er is geen
-platformuitzondering goedgekeurd; deze draft claimt geen volledige native of
+platformuitzondering goedgekeurd; deze pilot claimt geen volledige native of
 functionele oplevering. Zie [fase-A-verslag](CFM-LEESVRAGEN-FASE-A.md) en de
 [inhoudelijke dekking](CFM-VRAAGDEKKING.md).
 
@@ -415,7 +415,7 @@ Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en au
 `/study-lesson/[lessonId]/[collectionId]` | [src/app/study-lesson/[lessonId]/[collectionId]/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/annotations/studyFocus.ts; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/session.ts; src/lib/studyContent/cfmCourses.ts; src/lib/studyContent/personalStudyPage.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/study-lesson/[lessonId]/[collectionId]/stappen` | [src/app/study-lesson/[lessonId]/[collectionId]/stappen/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/stappen/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts; src/lib/studyContent/personalStudyPage.ts; src/lib/studyContent/stepProgress.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/study-lesson/[lessonId]/[collectionId]/stappen/[stap]` | [src/app/study-lesson/[lessonId]/[collectionId]/stappen/[stap]/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/stappen/[stap]/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/db.ts; src/lib/session.ts; src/lib/studyContent/cfmCourses.ts; src/lib/studyContent/personalStudyPage.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
-`/study-lesson/[lessonId]/[collectionId]/vragen` | [src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/session.ts; src/lib/studyContent/exerciseSource.ts; src/lib/studyContent/pilotReadings.ts; src/lib/studyContent/revisions.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/study-lesson/[lessonId]/[collectionId]/vragen` | [src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx](../src/app/study-lesson/[lessonId]/[collectionId]/vragen/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/db.ts; src/lib/i18n/index.ts; src/lib/session.ts; src/lib/studyContent/cfmCourses.ts; src/lib/studyContent/exerciseSource.ts; src/lib/studyContent/pilotReadings.ts; src/lib/studyContent/revisions.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/tools` | [src/app/tools/page.tsx](../src/app/tools/page.tsx); Server Component-entry | media-hulpmiddelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/contentCollections.ts; src/lib/db.ts; src/lib/dictionary.ts; src/lib/i18n/index.ts; src/lib/i18n/core.ts; src/lib/languages.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/tools/dictionary` | [src/app/tools/dictionary/page.tsx](../src/app/tools/dictionary/page.tsx); Server Component-entry | media-hulpmiddelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/tools/dictionary/[word]` | [src/app/tools/dictionary/[word]/page.tsx](../src/app/tools/dictionary/[word]/page.tsx); Server Component-entry | media-hulpmiddelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs

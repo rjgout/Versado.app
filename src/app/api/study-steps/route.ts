@@ -4,6 +4,7 @@ import { getCurrentUser, navigationSessionKey } from "@/lib/session";
 import { getT } from "@/lib/i18n";
 import { inventoryOriginAllowed } from "@/lib/content-inventory/origin";
 import { getStepProgressForEdition, recordStepProgress, StepProgressError } from "@/lib/studyContent/stepProgress";
+import { studyStepQuestionState } from "@/lib/studyContent/exerciseSource";
 
 export const runtime = "nodejs";
 
@@ -13,7 +14,8 @@ const requestSchema = z
     revisionId: z.string().min(1).max(128),
     stepIndex: z.number().int().min(1).max(6),
     stepFingerprint: z.string().regex(/^[0-9a-f]{16}$/),
-    action: z.enum(["OPEN", "COMPLETE"]),
+    action: z.enum(["OPEN", "COMPLETE", "CONTINUE"]),
+    exerciseSessionId: z.string().min(1).max(128).optional(),
   })
   .strict();
 
@@ -51,7 +53,16 @@ export async function POST(req: NextRequest) {
   const parsed = requestSchema.safeParse(json);
   if (!parsed.success) return response({ error: t("apiErrors.invalidInput") }, 400);
   try {
-    return response(await recordStepProgress(user, parsed.data));
+    const input = parsed.data;
+    // Eerst de bewuste leesactie bewaren. Een mislukte vraagcontrole kan daarna
+    // veilig opnieuw: afronden is monotoon/idempotent en kent geen quiz-XP toe.
+    const result = await recordStepProgress(user, { ...input, action: input.action === "CONTINUE" ? "COMPLETE" : input.action });
+    if (input.action !== "CONTINUE") return response(result);
+    const questions = await studyStepQuestionState(user, {
+      editionId: input.lessonEditionId, revisionId: input.revisionId, stepIndex: input.stepIndex,
+      exerciseSessionId: input.exerciseSessionId,
+    });
+    return response({ ...result, questions });
   } catch (error) {
     if (error instanceof StepProgressError) {
       if (error.code === "REVISION_CHANGED") return response({ code: error.code, state: error.state, error: t("apiErrors.notSaved") }, 409);

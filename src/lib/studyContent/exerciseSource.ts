@@ -1,3 +1,5 @@
+import { prisma } from "@/lib/db";
+import { QUESTIONS_PER_PART as STUDY_PART_SIZE } from "@/lib/learning/exercisePlan";
 import { z } from "zod";
 import { loadPilotReadings } from "./pilotReadingSource";
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
@@ -79,4 +81,37 @@ export async function loadStudyExerciseSource(
         contentKey: studyLessonContentKey(lesson),
       }
     : null;
+}
+
+/** Alleen navigatieadvies uit dezelfde goedgekeurde set en bestaande inzendhistorie.
+ * Een volledig ingeleverde set telt ongeacht de score; leesstatus en XP zijn geen quizvoltooiing.
+ * Transport-/databasefouten worden bewust niet als ontbrekende vragen behandeld.
+ */
+export async function studyStepQuestionState(
+  actor: ExerciseActor,
+  input: { editionId: string; revisionId: string; stepIndex: number; exerciseSessionId?: string },
+): Promise<"available" | "completed" | "unavailable"> {
+  const source = await loadStudyExerciseSource(actor, input.editionId, prisma);
+  if (!source) return "unavailable";
+  if (source.lesson.revisionId !== input.revisionId) throw new Error("REVISION_CHANGED");
+  const part = source.plan.parts.find(p => p.index === input.stepIndex);
+  if (!part || part.questions.length !== STUDY_PART_SIZE) return "unavailable";
+  const where: Prisma.ExerciseSessionWhereInput = {
+      userId: actor.id, contentKey: source.contentKey, chapterId: null,
+      submittedAt: { not: null },
+      exerciseIds: { in: [JSON.stringify(part.questions.map(q => q.id)), JSON.stringify(source.plan.parts.flatMap(p => p.questions.map(q => q.id)))] },
+      AND: [
+        { studyContext: { path: ["editionId"], equals: input.editionId } },
+        { studyContext: { path: ["revisionId"], equals: input.revisionId } },
+        { studyContext: { path: ["fingerprint"], equals: source.plan.fingerprint } },
+      ],
+  };
+  const completed = await prisma.exerciseSession.findFirst({ where, select: { id: true } });
+  if (!completed) return "available";
+  // Herstel een reeds ingeleverde eigen sessie na antwoordverlies naar het resultaat.
+  // Een oudere onafgemaakte set verplicht niet opnieuw na voltooiing via de weekroute.
+  if (input.exerciseSessionId && await prisma.exerciseSession.findFirst({
+    where: { ...where, id: input.exerciseSessionId }, select: { id: true },
+  })) return "available";
+  return "completed";
 }

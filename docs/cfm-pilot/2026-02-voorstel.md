@@ -4,7 +4,7 @@
 de persoonlijke leesstap zichtbaar worden aangeboden vóór de vragen. De selectie
 hieronder geldt uitsluitend voor de pilot 2026/02; geen massale uitbreiding.
 
-**Geïmplementeerd in draft-PR #218, niet in productie uitgerold.** De eigenaar heeft de aanvullende schriftlezing uitsluitend voor deze officiële pilotweek goedgekeurd. De officiële CFM-les is ongewijzigd. Beschikbaarheid vereist de normale leesrechten op de exact gecontroleerde Nederlandse PGP-uitgave.
+**Geïmplementeerd via PR #218 (inmiddels gemerged).** De eigenaar meldt een proef op een echte iPhone van de bestaande web/PWA-pilot. De opvolgende leesflowcorrectie is nog niet gemerged of uitgerold door Codex. De eigenaar heeft de aanvullende schriftlezing uitsluitend voor deze officiële pilotweek goedgekeurd. De officiële CFM-les is ongewijzigd. Beschikbaarheid vereist de normale leesrechten op de exact gecontroleerde Nederlandse PGP-uitgave.
 
 De vijftien geselecteerde verzen worden herkenbaar aangeboden vóór de vragen in de betreffende stap en eenmaal in de volledige weekroute. De bestaande stap-1-vragen gaan over de al zichtbare officiële CFM-citaten. De definitieve selectie staat in `data/study-content/cfm-pilot-2026-02.json`, inclusief stapvingerafdrukken, blok-/verwijzingshashes, hoofdstukhashes, vraagtypen en vaste seeds.
 

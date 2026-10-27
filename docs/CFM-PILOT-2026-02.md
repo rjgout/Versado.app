@@ -1,14 +1,16 @@
 # Officiële CFM-pilot — 5–11 januari 2026
 
-Onderdeel van draft-PR #218, uitsluitend `cfm-old-testament-2026/02`:
-**Mozes 1; Abraham 3**. Geen productie-import, deployment of merge.
-
-De featurebranch is gerebased op `origin/main` **bf7d6657** (inclusief #219–#221).
-De officiële audiotaken en divisie-uitslag blijven intact. Bij de conflictoplossing
-zijn beide afhankelijke migratiesets in de eigen testrunner behouden en is de
-native-inventaris uit de gecombineerde bron opnieuw gegenereerd. `main` is niet gewijzigd. De geïntegreerde schone build, Prisma-validatie,
-TypeScript (lokaal met 4GiB heap), 18 pure controles, de volledige CFM-database-
-en browsersuite en de native-inventariscontrole zijn opnieuw geslaagd.
+De oorspronkelijke pilot is via [PR #218](https://github.com/rjgout/Versado.app/pull/218)
+gemerged op uitdrukkelijk verzoek van de eigenaar (`82a8e89a`). De huidige
+leesflowcorrectie uit `8363ca22` is afzonderlijk overgenomen op
+`feat/cfm-leesflow-automatische-vragen`, vanaf actuele `origin/main` `2824c44d`.
+`git cherry` bevestigde dat alleen deze commit nog ontbrak; de gerichte cherry-pick
+was conflictvrij. De bestaande pilot en de latere audiocorrecties op main blijven
+behouden. De eigenaar heeft hiervoor een nieuwe draft-PR toegestaan: een gemergede
+PR kan bij GitHub niet opnieuw als draft worden geopend. Geen nieuwe merge,
+deployment of productiehandeling uitgevoerd.
+De eerder gemelde `mergeable: false` was een echt conflict in twee gegenereerde
+inventarisbestanden na #222; die zijn opnieuw gegenereerd vóór de groene merge.
 
 ## Definitief productbesluit
 
@@ -22,6 +24,61 @@ blijft de enige planning; B–D en massale uitbreiding zijn niet gestart.
 
 Lezen blijft zelfstandig mogelijk: geen quizplicht, minimumleestijd, scrollbewijs
 of correctheidsdrempel voor een volgende stap. Lezen/afvinken levert geen quiz-XP.
+
+## Leesflowcorrectie na iPhone-acceptatie van de eerdere pilot
+
+De eigenaar meldt dat de eerdere web/PWA-pilot op een echte iPhone werkt. Dat is
+geen apparaatbewijs voor deze nieuwe bediening of voor de lokale native app.
+
+**P36:** lezen → **Volgende stap** → drie vragen → bestaand resultaat → volgende
+leesstap. De losse knoppen **Oefeningen maken · 3 vragen** en **Stap afronden**
+verdwijnen uitsluitend in de persoonlijke stapweergave. De volledige week behoudt
+de bestaande vragenactie en dezelfde achttien vragen/correctieronde.
+
+- `ReadingLessonFlow.tsx` toont eerst de tekst, daarna de vragen en het resultaat;
+  zijn bestaande resultaatvervolgactie is het patroon. `completeReadingLesson`
+  in `src/lib/readingLessons.ts` registreert de gewone schriftstap via de
+  centrale submit-hook; `completeReadingOnlyStep` handelt lezen zonder vragen af.
+  CFM behoudt zijn afzonderlijke stapstatus zonder automatische READ/reeksactie. `LessonFlow.tsx` levert de
+  gedeelde kaarten, feedback, correctieronde, retry en resultaatweergave.
+- `StudyReader.continueStep` bewaart eerst de leespositie en roept **CONTINUE** op
+  de bestaande `/api/study-steps` aan. Dat gebruikt `recordStepProgress(COMPLETE)`;
+  vingerafdrukken, monotone status, oude afrondingen en idempotentie blijven gelijk.
+  Alleen openen/scrollen en **Vorige stap** registreren geen afronding.
+- `studyStepQuestionState` in de bestaande bronadapter controleert de actuele
+  goedgekeurde drie vragen én de servergeschiedenis. Een reeds ingeleverde
+  stapset of identieke volledige week voorkomt opnieuw verplicht oefenen,
+  onafhankelijk van de score. Een oude leesmarkering is geen gemaakte quiz.
+  Een lokaal onderbroken checkpoint hervat dezelfde sessie. Is de identieke set
+  intussen via de weekroute ingeleverd, dan wordt dat oude concept bewaard maar
+  niet opnieuw opgedrongen. Een reeds ingeleverd lokaal concept herstelt na een
+  verloren response de opgeslagen resultaatkaart.
+- Drie vragen beschikbaar: bestaande vraagroute start vanzelf. Geen vragen:
+  rechtstreeks verder zonder quizfout of XP. Tijdelijke netwerk-/serverfouten:
+  leesvoortgang blijft server-side bewaard; blijf op de huidige stap en retry met
+  dezelfde normale vervolgactie. Geen stille terugval naar 'geen vragen'.
+- Fout of overslaan blokkeert de leesroute niet. CFM gebruikt de bestaande
+  overslaanbediening om verder te lezen met behoud van de niet-ingeleverde set
+  en bevestigde antwoorden. Geen fictieve antwoorden of quizbeloning; later
+  hervatten gaat verder in dezelfde sessie. De weekcorrectieronde
+  blijft bestaan en kan met de bestaande actie worden overgeslagen.
+- De bestaande resultaatkaart blijft staan zolang de gebruiker die bekijkt.
+  Haar **enige bestaande vervolgactie** gaat rechtstreeks naar de volgende stap;
+  geen terugkeer naar de afgeronde stap, extra bevestiging of timer die feedback
+  wegdrukt. Na stap 6 gaat die actie naar het bestaande cursus-/weekpad met de
+  bijgewerkte voortgang. Zonder vragen gebeurt dit direct. Nooit een stap 7 of
+  nieuwe CFM-viering. De bewuste hele-les-READ-actie blijft afzonderlijk bereikbaar.
+- Dezelfde sessie-, antwoord-, checkpoint-, cache-, XP- en beloningsservices blijven
+  leidend. De bestaande submit-afronding blijft compatibel/idempotent; lezen kan
+  al veilig afgerond zijn vóór quizinzending. Een onzekere antwoordcontrole bewaart
+  de geselecteerde invoer voor opnieuw controleren, zonder foutfeedback te verzinnen.
+- Stap- en vraagnavigatie vervangen hetzelfde geschiedenisitem. De bestaande
+  herkomst-/terugkeermechanismen, scrollherstel en focus op de nieuwe leeskop blijven
+  gelden. Geen eigen navigatie- of voortgangsopslag.
+
+Nieuwe verificatie wordt hieronder afzonderlijk gerapporteerd; de oude groene
+runs gelden niet als bewijs voor deze correctie. Dekking, bronmanifest, vragen,
+XP-bedragen en het uitbreidingsvoorstel blijven ongewijzigd.
 
 ## Selectie en broncontrole
 
@@ -43,7 +100,7 @@ De bestaande leesrechten en publicatiestatus gelden; geen stille andere taal/uit
 | 6 | Mozes 1:39; Abraham 3:24, 25 | `b-p10`/`b-p11`: Gods werk en het doel van het aardse leven; binnen de opgegeven 1:31–39 en 3:22–28 | P16–P18 |
 
 Dit is een door Codex onderbouwde en reproduceerbare selectie, ter beoordeling in
-de draft. De eigenaar heeft de bronverbreding toegestaan; dat is geen onafhankelijke
+de oorspronkelijke pilot. De eigenaar heeft de bronverbreding toegestaan; dat is geen onafhankelijke
 menselijke inhoudelijke goedkeuring van iedere vraag. De
 [vraagcontrole](cfm-pilot/2026-02-voorstel.md) bevat de exacte passage, officiële URL,
 vraagvorm, seed, correcte antwoorden, afleiders en geschiktheidsreden per concept.
@@ -87,9 +144,20 @@ selecties, geen impliciete toestemming om alle hoofdstukken te toetsen.
   netwerk-/serverfouten bij hervatten bewaren het checkpoint voor retry; alleen
   aantoonbaar ongeldige of ingetrokken sessies ruimen het lokale concept op.
 - Ontbrekende/verborgen/veranderde of verkeerde bron: melding en geen betrokken
-  vragen. Lezen, bestaand afvinken en historie blijven beschikbaar. Geen import,
+  vragen. Lezen, voortgaan via Volgende stap en historie blijven beschikbaar. Geen import,
   andere vertaling of afgekapt citaat als vervanging. `CFM_EXERCISES=off` stopt
   oefeningen; de beschikbare aanvullende lezing blijft zelfstandig leesbaar.
+
+### Noodzakelijke correctie in gedeelde CFM-datumweergave
+
+De brede lezer-/terugkeerproef reproduceerde React-hydratatiefout #418 op het
+weekpad en Vandaag. Een afzonderlijke vergelijking toont: Node/ICU 78.3 geeft
+`26 oktober\u2009–\u20091 november 2026`, Chromium geeft gewone spaties. Hetzelfde
+verschil bestaat bij een jaargrens. `formatWeekPeriod` blijft de bestaande
+Intl-lokalisatie gebruiken en normaliseert uitsluitend deze vaste/dunne spaties.
+Compacte weken, alle jaartallen en de vijf talen blijven behouden; er is geen
+nieuwe datumformatter of wijziging van kalender-/jaarlogica. De regressietest
+controleert maandgrenzen, beide jaren en spaties in alle vijf UI-talen.
 
 ## Vraagidentiteit, XP en behoud
 
@@ -110,7 +178,60 @@ wist geen oefencredits. Geen nieuwe Dorp-bijdragen; canonieke BOM-READ blijft ge
 Bestaande lesmedia, notities, markeringen, bladwijzers, leespositie, inschrijving,
 les-ID's en andere CFM-weken worden niet aangepast. Er is geen nieuwe migratie.
 
-## Verificatie en bewijssoorten
+## Verificatie van de leesflowcorrectie (27 oktober 2026)
+
+| Controle | Uitkomst |
+|---|---|
+| TypeScript en schone productiebuild | Geslaagd op de actuele bron, inclusief de gedeelde datumcorrectie |
+| Volledige ESLint / i18n | 0 fouten, dezelfde 172 waarschuwingen; geen nieuwe UI-vertalingen nodig |
+| CFM-/datum-/referentie- en sessiesuite | 25/25; inclusief vijf referentie-/datumtests |
+| Echte officiële pilot met database | 11/11; beide routes, herhaling, bonus, concurrency, dubbele submit, verloren response, reset en bestaande gegevens |
+| Bestaande stappen / centrale learning / Kompas | 9/9, 29/29, 69/69 |
+| CFM-persoonlijke studie / referenties / 2026–2027-media | 101/101, 23/23, 35/35 |
+| Annotaties | 56 unittests; databasegroepen 18/18, 12/12, 10/10 en 2/2 |
+| Dorp/focus/shell / Dorp-database | 56/56 en 18/18; geen nieuwe groei of beloningen |
+| Native regressies / broninventaris | 56/56 en 6/6; inventaris actueel, functionele CFM-nativepariteit blijft open |
+| Bestaande CFM-/Boek van Mormon-browserproef | Zes scenario's groen, waaronder echte 2027-bron en hoofdstukcorrectieronde |
+| Brede persoonlijke-studiebrowser | 13/13; annotaties, leespositie, terugkeer, oudere Safari-fallback gesimuleerd, cursusbeheer, media, 320px/200%, donker/licht en reduced motion |
+| Echte officiële pilotbrowser | Zeven scenario's groen; alle zes stappen, 18 weekvragen, bestaande resultaten, fout antwoord, vrijwillig overslaan, hervatten, beide soorten antwoordverlies, geen vragen en laatste stap zonder vragen |
+
+Geen skips in de genoemde suites. De migratie-/integriteitsproef bewaart **162**
+bestaande tabellen en historische rijen, met atomaire conflictrollback. Deze ronde
+voegt geen schema of migratie toe. Browserproeven gebruiken uitsluitend eigen
+wegwerpaccounts/databases en officiële gepinde tekst; er is geen productie benaderd.
+Testmedia kunnen de bestaande fallback tonen; productieafbeeldingen zijn niet geïmporteerd.
+
+De brede persoonlijke-studieproef is aan de nieuwe bediening aangepast. Nieuwe
+onafhankelijke herkomstscenario's gebruiken een eigen leerling; optionele
+Kompas-aanbiedingen staan in de testfixture uit. Afbeeldingen worden daadwerkelijk
+gedecodeerd en gecontroleerd op hun bestaande media-route. De consolecontrole
+blijft streng en detecteerde de hierboven beschreven echte hydratatiefout.
+
+De touchproef voert vóór footerbediening een echte gebruikersscroll uit, na
+hydratie/focus op de leeskop. Programmascroll door een testtool beëindigt het
+centrale scrollherstel niet; deze invoervolgorde bootst de echte veeg na. Geen
+wijziging aan de gedeelde scrollcontroller of versoepeling van overflowcontroles.
+Screenshots controleren dat de bedoelde lezing of knop volledig in beeld staat.
+
+### Screenshots van de vereenvoudigde bediening
+
+| Lezen en Volgende stap (390px licht) | Bestaand resultaat en direct verder |
+|---|---|
+| ![Leesstap met twee navigatieknoppen](screenshots/cfm-pilot-2026-02/flow-step2-390-light.png) | ![Resultaat met bestaande vervolgactie](screenshots/cfm-pilot-2026-02/flow-result2-390-light.png) |
+
+[Laatste leesstap](screenshots/cfm-pilot-2026-02/flow-step6-390-light.png) ·
+[320px donker/200% tekst](screenshots/cfm-pilot-2026-02/scripture-5-320-dark.png) ·
+[Bron niet beschikbaar](screenshots/cfm-pilot-2026-02/missing-scripture-320-light.png) ·
+[Zeven machineleesbare browserscenario's](screenshots/cfm-pilot-2026-02/results.json).
+
+De relevante lokale suites worden opnieuw uitgevoerd na de cherry-pick op actuele
+main. De nieuwe draft-PR vermeldt de definitieve resultaten en GitHub Actions-status
+op zijn eigen laatste commit, zonder registry-publicatie of deployment. De eerdere
+elf groene branchworkflows (28 jobs) op `8363ca22` blijven historisch bewijs; zij
+vervangen geen CI op deze nieuwe branch.
+
+## Historische verificatie van de oorspronkelijke pilot
+
 
 De volledige proef gebruikt echte gepinde CFM-inhoud en officiële PGP-tekst in
 uitsluitend een eigen wegwerpdatabase. Oudere synthetische fixtures blijven
@@ -168,9 +289,10 @@ npm run test:native
 
 Voor alleen de pilotbrowser bestaat de lokale focusoptie
 `--focused --cfm-pilot-browser --browser`; CI gebruikt de volledige CFM-suite.
-GitHub Actions wordt op de daadwerkelijk gepushte eindcommit gecontroleerd;
-[PR #218](https://github.com/rjgout/Versado.app/pull/218) vermeldt commit en actuele
-checks. Oudere groene runs gelden niet als bewijs voor de nieuwe wijzigingen.
+GitHub Actions wordt op de daadwerkelijk gepushte eindcommit gecontroleerd.
+PR #218 is al gemerged; de leesflowcorrectie wordt nu in een afzonderlijke draft-PR
+aangeboden. Oudere groene branchruns of PR-runs gelden niet als bewijs voor de
+nieuwe eindcommit.
 
 | Statussoort | Betekenis |
 |---|---|
@@ -243,7 +365,8 @@ Chromium op 320/390 px is browserbewijs, geen fysieke iPhone-/iPad-/Android-test
 De lokale native router heeft nog geen CFM-studielezer/vragenroute of algemeen
 Bearer-contract. Native broninventaris en compilatie bewijzen geen functionele
 CFM-pariteit. Zie [native pariteit](NATIVE-FEATURE-PARITY.md).
-Het checkpoint bewaart bevestigde antwoorden binnen dezelfde browsersessie;
+Het checkpoint bewaart bevestigde antwoorden binnen dezelfde browsersessie en
+volgt de bestaande servertermijn van zeven dagen voor het hervatten van sessies;
 geen cross-device-conceptensynchronisatie of volledige offlinegarantie.
 Er wordt geen volledige native ondersteuning of onafhankelijke menselijke
 inhoudsgoedkeuring geclaimd. Geen productiehandelingen uitgevoerd.
