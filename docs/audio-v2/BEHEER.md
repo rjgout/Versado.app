@@ -13,12 +13,14 @@ alleen-lezen inventarisatie, back-up, echte testrestore, deployment, download, r
 ## Officiële bronnen bedienen zonder SSH
 
 Na afzonderlijk goedgekeurde uitrol van deze versie staat de bediening onder **Adminbackend → Content → Audio**.
-Start met **Ether 1 downloaden**, daarna **Gecontroleerde pilots registreren**, preview en afzonderlijk **Pilots publiceren**.
-De vijf hoofdstuk-/taalcombinaties staan in de bevestigingen. **Pilot goedkeuren** na de spelercontrole ontsluit grotere selecties
-zonder zelf een download, registratie of publicatie te starten. Ontbrekende teksten worden niet automatisch toegevoegd.
+Kies de bron en taal, bevestig **Downloaden** en daarna apart **Registreren**. Selecteer vervolgens gecontroleerde registraties
+voor een afzonderlijke publicatiebevestiging. De Ether 1-pilotkaart en goedkeuringspoort zijn verwijderd; het hoofdstuk blijft behouden.
+Bij Nederlands zijn de 34 aanvullende V2-hoofdstukken geen vervanging van de 205 legacy-hoofdstukken. De samenvatting en
+aparte bestandsteller maken duidelijk wat geregistreerd, gepubliceerd of nog te herstellen is.
 
-Zie [bediening, taakherstel en testgrenzen](ADMIN-OFFICIELE-AUDIO.md). De CLI’s hieronder blijven ontwikkel-/geavanceerde hulpmiddelen;
-ze zijn niet nodig voor de normale pilotbediening. De legacy-mirror en afspeelroutes blijven behouden.
+Zie [bediening](ADMIN-OFFICIELE-AUDIO.md) en [Nederlandse voortgang/taakherstel](NL-VOORTGANG.md).
+De CLI’s hieronder blijven ontwikkel-/geavanceerde hulpmiddelen; zij zijn niet nodig voor normale bediening.
+De bestaande legacy-mirror en afspeelroutes blijven behouden.
 
 ## Drie verschillende beheerflows
 

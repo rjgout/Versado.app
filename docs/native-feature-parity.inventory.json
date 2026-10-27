@@ -678,7 +678,7 @@
     },
     {
       "file": "src/app/api/admin/audio/official/route.ts",
-      "sha256": "f80de5c2d78f9523423df8c6c915aa438f15781e1f45d9c7a1700c7a6ffeb0e7",
+      "sha256": "e18553126347b2de7ef2e2c394ceba2b2babb673ad831bf3ca696388bdb57d8b",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
@@ -11598,7 +11598,7 @@
     },
     {
       "file": "src/components/admin/OfficialAudioClient.tsx",
-      "sha256": "9aacb99a29bef11d5fb5529c9e13b822de6d1ce2ceadf146a19764f71f2c81d2",
+      "sha256": "d77ac4e380b684ec5b35beec8addc7cca6a32af88ac808ae6e4fbd6199d7df4c",
       "boundary": "client",
       "imports": [
         "./AdminNotice",
@@ -11611,13 +11611,11 @@
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/data/mutation",
-        "@/lib/dates",
         "@/lib/i18n/core",
         "react"
       ],
       "methods": [],
       "requests": [
-        "/api/admin/audio",
         "/api/admin/audio/official"
       ],
       "checks": [],
@@ -15845,7 +15843,7 @@
     },
     {
       "file": "src/lib/audio/officialCatalogue.ts",
-      "sha256": "3297627fe8ff739f00fb8c461f5a7e60370f620d815e20fd708d80579755db6b",
+      "sha256": "8ab930cc23d747653bf302928148d63c9382ce2984f5c42d4cd0b994a92f4ba6",
       "boundary": "context-dependent",
       "imports": [
         "../../../data/audio/official-alignments.json",
@@ -15857,13 +15855,12 @@
       "checks": [],
       "exports": [
         "officialSource",
-        "officialSources",
-        "pilotSources"
+        "officialSources"
       ]
     },
     {
       "file": "src/lib/audio/officialControls.ts",
-      "sha256": "9f7e250e7ee266a3ecbbc5a955548817286a9c3d7d5d40f39d5de95ce9f5dca8",
+      "sha256": "91cd0e2b462c0b63ff400128474d4c716edc904f4757a5b5e4ab213283a25a4a",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/i18n/core"
@@ -15874,7 +15871,8 @@
       "exports": [
         "OFFICIAL_BATCH_SIZE",
         "officialBatches",
-        "officialReasons"
+        "officialReasons",
+        "officialTaskRecoverable"
       ]
     },
     {
@@ -15900,15 +15898,12 @@
     },
     {
       "file": "src/lib/audio/officialGuard.ts",
-      "sha256": "b292d8e202c4510d59ac01737bedc1695385a245291737475b507542e8ad3c22",
+      "sha256": "f329e048468aca77641aba73cfd7c480faccafcfd1a464dfb284ab63d0caa244",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
         "./officialCatalogue",
-        "./storage",
-        "@/generated/prisma/client",
-        "node:fs",
-        "node:path"
+        "@/generated/prisma/client"
       ],
       "methods": [],
       "requests": [],
@@ -15916,23 +15911,24 @@
       "exports": [
         "assertOfficialPublication",
         "assertOfficialRegistration",
-        "hasApprovedPilot",
         "lockAudioAdmin",
         "lockOfficialPolicy"
       ]
     },
     {
       "file": "src/lib/audio/officialJobs.ts",
-      "sha256": "f5a8fece2def3d32fb252023c0e1b522b6549b02f7ad0cdb3c4410aba908a3e6",
+      "sha256": "1c3a884a6f0adb9103dbb7b168700bd776ea14c7f7826578a84e4622256364a5",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
         "./library",
         "./officialCatalogue",
+        "./officialControls",
         "./officialDownload",
         "./officialGuard",
         "./storage",
         "@/generated/prisma/client",
+        "@/lib/audioMirror",
         "@/lib/contentImportLock",
         "@/lib/db",
         "node:crypto",
@@ -18686,7 +18682,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "27cf7754099a8906984106ce2952b98de9b0799eb49bf973eaa1d56c2be15ef9",
+      "sha256": "8fcba081789a9d0b9411ff540c03adb8fcf6a05882e14d71e51766a6a54523d5",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18701,7 +18697,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "8668abece3d431fb12911db6827c4193c85982febe7b8f04ab08ff3141b39e93",
+      "sha256": "7134a9ff48f22c9cc1ba60b8709a88d82fddb100219784758cdf136651aab860",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18716,7 +18712,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "dd87bc712593dd7c2c97b04ece7ff3e0a0208aa277dc141bd23f092942821ac5",
+      "sha256": "2dbfd7626731c5357a761ef010ae0fb67d4bb1cfcf4cf3977121d129cd03ec09",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18731,7 +18727,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "d03ac60aa5490d358bbe1f36fd38849ec1f0df9b56c504017d1ed9a43157d1a6",
+      "sha256": "b302ea613a3ae97a576f1f72e3daec199aee8968cacb59b80181c304fdf7f63a",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18814,7 +18810,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "c600c1d92076378415b4bd84ef756391f87955d163c7580726a524fbd9c0bf02",
+      "sha256": "ea07413b2e99b55228d7d80c68773521ca220a83e4386f46f44bb431ff007d0f",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -26507,7 +26503,6 @@
         "src/lib/data/scopes.ts",
         "src/lib/data/store.ts",
         "src/lib/data/topics.ts",
-        "src/lib/dates.ts",
         "src/lib/db.ts",
         "src/lib/exerciseGen.ts",
         "src/lib/gameAvailability.ts",
@@ -28838,7 +28833,7 @@
     },
     {
       "file": "src/app/api/admin/audio/official/route.ts",
-      "sha256": "f80de5c2d78f9523423df8c6c915aa438f15781e1f45d9c7a1700c7a6ffeb0e7",
+      "sha256": "e18553126347b2de7ef2e2c394ceba2b2babb673ad831bf3ca696388bdb57d8b",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
@@ -72623,7 +72618,7 @@
     },
     {
       "file": "src/components/admin/OfficialAudioClient.tsx",
-      "sha256": "9aacb99a29bef11d5fb5529c9e13b822de6d1ce2ceadf146a19764f71f2c81d2",
+      "sha256": "d77ac4e380b684ec5b35beec8addc7cca6a32af88ac808ae6e4fbd6199d7df4c",
       "boundary": "client",
       "imports": [
         "./AdminNotice",
@@ -72636,13 +72631,11 @@
         "@/lib/data/fetchJson",
         "@/lib/data/hooks",
         "@/lib/data/mutation",
-        "@/lib/dates",
         "@/lib/i18n/core",
         "react"
       ],
       "methods": [],
       "requests": [
-        "/api/admin/audio",
         "/api/admin/audio/official"
       ],
       "checks": [],

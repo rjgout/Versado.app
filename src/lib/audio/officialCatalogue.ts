@@ -6,7 +6,7 @@ export interface OfficialSource {
   id: string; collectionId: string; work: string; editionKey: string; language: string;
   bookKey: string; chapterNumber: number; sourceHash: string; voice: string; url: string;
   sha256: string; bytes: number; duration: number; verses: number; pageUrl: string;
-  quality: string; starts: number[]; legacyProtected: boolean; pilot: boolean;
+  quality: string; starts: number[]; legacyProtected: boolean;
 }
 type Alignment = { quality: string; sha256: string; sourceHash: string; sourceUrl: string; starts: number[]; duration: number };
 const known = alignments.recordings as unknown as Record<string, Alignment>;
@@ -17,7 +17,6 @@ export const officialSources: OfficialSource[] = inventory.chapters.flatMap((cha
   const safe = aligned?.quality === "VALIDATED" && aligned.sha256 === recording.sha256 && aligned.sourceHash === chapter.sourceHash && Math.abs(aligned.duration - recording.duration) <= 0.15 && aligned.starts.length === chapter.expectedVerseCount && aligned.starts.every((start, i, all) => Number.isFinite(start) && start >= 0 && start < recording.duration && (!i || all[i - 1] < start));
   const alignmentHash = objectHash({quality:safe?"VALIDATED":"NEEDS_REVIEW",starts:aligned?.starts??[],duration:recording.duration});
   const identity = { work: chapter.work, editionKey: chapter.editionKey, language: chapter.language, bookKey: chapter.bookKey, chapterNumber: chapter.chapterNumber, voice: recording.voice, url: recording.url, sha256: recording.sha256, sourceHash: chapter.sourceHash, alignmentHash };
-  return { ...identity, id: objectHash(identity), collectionId: chapter.collectionId!, bytes: recording.bytes, duration: recording.duration, verses: chapter.expectedVerseCount, pageUrl: chapter.pageUrl, quality: safe ? "VALIDATED" : "NEEDS_REVIEW", starts: aligned?.starts ?? [], legacyProtected: chapter.language === "nl" && chapter.legacySeedListed, pilot: chapter.work === "bofm" && chapter.bookKey === "bofm/ether" && chapter.chapterNumber === 1 && recording.voice === (chapter.language === "en" ? "male" : "audio") };
+  return { ...identity, id: objectHash(identity), collectionId: chapter.collectionId!, bytes: recording.bytes, duration: recording.duration, verses: chapter.expectedVerseCount, pageUrl: chapter.pageUrl, quality: safe ? "VALIDATED" : "NEEDS_REVIEW", starts: aligned?.starts ?? [], legacyProtected: chapter.language === "nl" && chapter.legacySeedListed };
 }));
-export const pilotSources = officialSources.filter((source) => source.pilot);
 export const officialSource = (id: string) => officialSources.find((source) => source.id === id);
