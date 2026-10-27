@@ -4306,6 +4306,11 @@ model OfficialAudioTask {
   recordingId String?
   recording AudioRecording? @relation(fields: [recordingId], references: [id], onDelete: SetNull)
   errorCode String?
+  legacyBaseline Json?
+  legacyApprovedAt DateTime?
+  legacyAcceptanceKey String?
+  legacyAcceptedById String?
+  legacyAcceptedAt DateTime?
   pilotApprovalKey String?
   pilotApprovedById String?
   pilotApprovedAt DateTime?

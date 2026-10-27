@@ -21,7 +21,7 @@ export interface ReadAloudSource {
    * deze bron ophoudt (het begin van het vers erna), of null om tot het eind
    * van het bestand door te spelen.
    */
-  audio?: { url: string; end: number | null } | null;
+  audio?: { url: string; end: number | null; fallback?: { url:string; end:number|null; verses:ReadAloudVerse[] } | null } | null;
   /** Taal van de tekst (src/lib/languages.ts); bepaalt de computerstem. Zonder: Nederlands. */
   language?: string;
 }
@@ -136,8 +136,16 @@ export function ReadAloudPlayerProvider({ children }: { children: React.ReactNod
     };
     el.onended = () => finishAudio();
     el.onerror = () => {
-      playingRef.current = false;
-      setIsPlaying(false);
+      const current=sourceRef.current, fallback=current?.audio?.fallback;
+      if(playingRef.current&&current&&fallback&&fallback.verses.length===current.verses.length&&fallback.verses.every(v=>v.audioStart!=null)) {
+        // Alleen door de server gecontroleerde legacy-uitgangssituatie; één poging, met eigen versgrenzen.
+        const restored={...current,verses:fallback.verses,audio:{url:fallback.url,end:fallback.end}};
+        sourceRef.current=restored;setSource(restored);
+        el.onloadedmetadata=()=>{el.onloadedmetadata=null;if(sourceRef.current!==restored||!playingRef.current)return;el.playbackRate=speedRef.current;el.currentTime=restored.verses[currentIndexRef.current]?.audioStart??0;void el.play().catch(finishAudio);};
+        el.src=fallback.url;el.load();
+        return;
+      }
+      finishAudio();
     };
     audioRef.current = el;
     return el;

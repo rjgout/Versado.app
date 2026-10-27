@@ -1,5 +1,6 @@
 import type { Prisma, AudioRecording } from "@/generated/prisma/client";
 import { objectHash, type AudioManifest } from "./contract";
+import { assertLegacyAllowed } from "./legacyConversion";
 import { officialSource, officialSources } from "./officialCatalogue";
 export async function lockOfficialPolicy(tx: Prisma.TransactionClient) {
   await tx.$queryRaw`SELECT pg_advisory_xact_lock(726540108)::text`;
@@ -9,7 +10,14 @@ export async function assertOfficialPublication(tx: Prisma.TransactionClient, ca
   await lockOfficialPolicy(tx);
   const chapter=candidate.chapterId?await tx.chapter.findUnique({where:{id:candidate.chapterId},include:{book:{include:{contentCollection:true}}}}):null;
   const known=chapter?officialSources.filter(s=>s.work===chapter.book.contentCollection.work&&s.editionKey===chapter.book.contentCollection.editionKey&&s.language===chapter.book.contentCollection.language&&s.bookKey===chapter.book.key&&s.chapterNumber===chapter.number):[];
-  if(known.some(s=>s.legacyProtected))throw Error("SOURCE_PROTECTED");
+  if(known.some(s=>s.legacyProtected)) {
+    const task=await tx.officialAudioTask.findFirst({where:{recordingId:candidate.id,legacyApprovedAt:{not:null}}});
+    const source=task&&officialSource(task.id);
+    const manifest=task?.manifest as unknown as AudioManifest|null;
+    if(task?.status!=="REGISTERED"||!task.checkedAt||!task.registrationApprovedAt||!source?.legacyProtected||candidate.sourceKind!=="OFFICIAL"||!manifest||manifest.sourceHash!==candidate.sourceHash||manifest.audio.sha256!==candidate.sha256||source.sourceHash!==candidate.sourceHash||(candidate.sourceMetadata as {url?:string}).url!==source.url||(candidate.voice as {name?:string}).name!==source.voice)throw Error("SOURCE_PROTECTED");
+    await assertLegacyAllowed(tx,source);
+    return true;
+  }
   if (candidate.sourceKind !== "OFFICIAL") return;
   if(known.some(s=>s.quality!=="VALIDATED"&&(s.voice===(candidate.voice as {name?:string}).name||(s.sha256===candidate.sha256&&s.sourceHash===candidate.sourceHash))))throw Error("SOURCE_PROTECTED");
   const task = await tx.officialAudioTask.findFirst({where:{recordingId:candidate.id}});
@@ -35,5 +43,6 @@ export async function assertOfficialRegistration(tx: Prisma.TransactionClient, m
   await lockOfficialPolicy(tx);
   await tx.$queryRaw`SELECT "id" FROM "OfficialAudioTask" WHERE "id" = ${id} FOR UPDATE`;
   const task = await tx.officialAudioTask.findUniqueOrThrow({ where: { id } });
-  if (task.actorId !== before.actorId || task.actorSessionVersion !== before.actorSessionVersion || !["QUEUED","RUNNING"].includes(task.status) || task.phase !== "REGISTER" || !task.registrationApprovedAt || !task.manifest || objectHash(task.manifest) !== objectHash(manifest) || source.legacyProtected || source.quality !== "VALIDATED") throw Error("REGISTRATION_NOT_APPROVED");
+  if (task.actorId !== before.actorId || task.actorSessionVersion !== before.actorSessionVersion || !["QUEUED","RUNNING"].includes(task.status) || task.phase !== "REGISTER" || !task.registrationApprovedAt || !task.manifest || objectHash(task.manifest) !== objectHash(manifest) || source.quality !== "VALIDATED") throw Error("REGISTRATION_NOT_APPROVED");
+  if(source.legacyProtected)await assertLegacyAllowed(tx,source);
 }

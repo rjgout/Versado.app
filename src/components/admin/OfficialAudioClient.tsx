@@ -9,6 +9,7 @@ import type { MessageKey } from "@/lib/i18n/core";
 import { secondaryButton, dangerButton } from "@/components/versado/styles";
 import type { OfficialOverview } from "@/lib/audio/officialJobs";
 import { officialBatches, officialReasons } from "@/lib/audio/officialControls";
+import LegacyAudioClient from "./LegacyAudioClient";
 import AdminSection from "./AdminSection";
 import AdminNotice from "./AdminNotice";
 
@@ -77,6 +78,7 @@ export default function OfficialAudioClient({initialData,sessionKey}:{initialDat
     setSelected(previous=>[...previous.filter(id=>!groupIds.has(id)),...choices]);
   }
   return <>
+    <LegacyAudioClient sessionKey={sessionKey}/>
     {data&&!data.storageAvailable&&<AdminNotice kind="error">{t("officialAudio.storageMissing")}</AdminNotice>}
     {data?.freeBytes!==null&&data?.freeBytes!==undefined&&<p className="text-sm text-vs-fg-2">{t("officialAudio.freeSpace")}: {Math.floor(data.freeBytes/1073741824)} GiB</p>}
     {(error||query.error)&&<AdminNotice kind="error"><span className="whitespace-pre-line">{error??t("officialAudio.failed")}</span></AdminNotice>}
