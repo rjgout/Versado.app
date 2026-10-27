@@ -2,7 +2,9 @@
 
 Oorspronkelijke ontwikkelbasis: `origin/main` **55ef86e6**, inclusief de besluiten
 van PR #216 en #217. PR #218 is op verzoek van de eigenaar inmiddels gemerged.
-De huidige leesflowcorrectie P36 staat op dezelfde featurebranch vanaf `11c1fef9`;
+De huidige leesflowcorrectie P36 staat na een gerichte cherry-pick van `8363ca22`
+op `feat/cfm-leesflow-automatische-vragen` vanaf actuele main `2824c44d`, voor
+een afzonderlijke draft-PR op verzoek van de eigenaar;
 geen nieuwe merge, productie-import, uitrol of productiegegevenswijziging uitgevoerd.
 
 **Officiële pilot:** 2026/02 heeft nu zes stappen en dezelfde achttien vragen in
@@ -135,7 +137,7 @@ Geen destructieve downmigratie of automatische productieherstelactie toegevoegd.
 ## Verificatie
 
 De onderstaande suites zijn historisch pilotbewijs; de actuele leesflowcorrectie
-en branch-CI staan in het pilotverslag en de vervolgupdate bij de gemergede PR #218. De suites
+en nieuwe PR-CI staan in het pilotverslag en de afzonderlijke draft-PR. De suites
 controleren bronhashes en dekking van alle geregistreerde jaargangen, dezelfde
 vraag-ID's per route, eerste/foute/verbeterde/herhaalde antwoorden, concurrency,
 verloren response, reset, oude READ en stapvoortgang, editie/taal/revisie, noodstop,
@@ -205,7 +207,7 @@ Het Verborgen Woord, extra spelmodi en productiehandelingen zijn niet uitgevoerd
 
 ## Leesflowcorrectie P36
 
-De pilot uit PR #218 is al gemerged. De opvolgende bediening op dezelfde featurebranch
+De pilot uit PR #218 is al gemerged. De afzonderlijk aangeboden opvolgende bediening
 vervangt de twee losse stapknoppen door Volgende stap: leesvoortgang bewaren,
 beschikbare vragen starten, bestaand resultaat en direct volgende stap. De weekroute
 blijft gelijk. Zie het actuele [pilotverslag](CFM-PILOT-2026-02.md). De eerdere

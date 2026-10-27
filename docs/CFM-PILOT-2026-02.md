@@ -2,9 +2,13 @@
 
 De oorspronkelijke pilot is via [PR #218](https://github.com/rjgout/Versado.app/pull/218)
 gemerged op uitdrukkelijk verzoek van de eigenaar (`82a8e89a`). De huidige
-leesflowcorrectie wordt op dezelfde featurebranch voorbereid vanaf `main`
-`11c1fef9`; geen nieuwe PR, merge, deployment of productiehandeling uitgevoerd.
-Een gemergede PR kan bij GitHub niet opnieuw als draft worden geopend.
+leesflowcorrectie uit `8363ca22` is afzonderlijk overgenomen op
+`feat/cfm-leesflow-automatische-vragen`, vanaf actuele `origin/main` `2824c44d`.
+`git cherry` bevestigde dat alleen deze commit nog ontbrak; de gerichte cherry-pick
+was conflictvrij. De bestaande pilot en de latere audiocorrecties op main blijven
+behouden. De eigenaar heeft hiervoor een nieuwe draft-PR toegestaan: een gemergede
+PR kan bij GitHub niet opnieuw als draft worden geopend. Geen nieuwe merge,
+deployment of productiehandeling uitgevoerd.
 De eerder gemelde `mergeable: false` was een echt conflict in twee gegenereerde
 inventarisbestanden na #222; die zijn opnieuw gegenereerd vóór de groene merge.
 
@@ -220,10 +224,11 @@ Screenshots controleren dat de bedoelde lezing of knop volledig in beeld staat.
 [Bron niet beschikbaar](screenshots/cfm-pilot-2026-02/missing-scripture-320-light.png) ·
 [Zeven machineleesbare browserscenario's](screenshots/cfm-pilot-2026-02/results.json).
 
-CI wordt als **branchverificatie** op de laatst gepushte commit uitgevoerd via de
-bestaande elf workflows (28 jobs), zonder registry-publicatie of deployment. De
-update bij PR #218 vermeldt commit en definitieve resultaten. Een oude PR-run
-op de gemergede commit geldt niet als bewijs voor deze correctie.
+De relevante lokale suites worden opnieuw uitgevoerd na de cherry-pick op actuele
+main. De nieuwe draft-PR vermeldt de definitieve resultaten en GitHub Actions-status
+op zijn eigen laatste commit, zonder registry-publicatie of deployment. De eerdere
+elf groene branchworkflows (28 jobs) op `8363ca22` blijven historisch bewijs; zij
+vervangen geen CI op deze nieuwe branch.
 
 ## Historische verificatie van de oorspronkelijke pilot
 
@@ -285,8 +290,9 @@ npm run test:native
 Voor alleen de pilotbrowser bestaat de lokale focusoptie
 `--focused --cfm-pilot-browser --browser`; CI gebruikt de volledige CFM-suite.
 GitHub Actions wordt op de daadwerkelijk gepushte eindcommit gecontroleerd.
-PR #218 is al gemerged; handmatige branchruns worden afzonderlijk vermeld en zijn
-geen PR-checks op de oude gemergede commit. Oudere groene runs gelden niet als bewijs voor de nieuwe wijzigingen.
+PR #218 is al gemerged; de leesflowcorrectie wordt nu in een afzonderlijke draft-PR
+aangeboden. Oudere groene branchruns of PR-runs gelden niet als bewijs voor de
+nieuwe eindcommit.
 
 | Statussoort | Betekenis |
 |---|---|
