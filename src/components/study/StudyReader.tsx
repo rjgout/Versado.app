@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { CheckCircle2, ChevronLeft, ChevronRight, RotateCcw, RefreshCw } from "lucide-react";
+import { studyExerciseDraftKey } from "@/lib/learning/exerciseCheckpoint";
 import { useT } from "@/components/I18nProvider";
 import FocusLayout from "@/components/versado/FocusLayout";
 import { useLiveQuery } from "@/lib/data/hooks";
@@ -15,6 +16,7 @@ import type { WeekContext } from "@/lib/studyContent/weekContext";
 import { HeaderMenu, StepDots, WeekNav, lessonBase, menuItem } from "./PersonalStudyParts";
 import { primaryButton, secondaryButton } from "@/components/versado/styles";
 import StudyAnnotations from "@/components/annotations/StudyAnnotations";
+import ScriptureVerses from "./ScriptureVerses";
 import RichContentBlocks, { InlineContent } from "./RichContentBlocks";
 import { useAnnotationFocus } from "./useAnnotationFocus";
 import { useStudyMarkRead } from "./useStudyMarkRead";
@@ -119,6 +121,7 @@ function ReaderVisit({
   const legacy = !view;
   const pageMode = legacy ? "full" : personal.mode;
   const currentStep = view && pageMode === "step" && personal.stepIndex ? view.steps[personal.stepIndex - 1] ?? null : null;
+  const exerciseVisitProof=currentStep?data.exerciseVisitProofs?.steps[currentStep.index-1]:data.exerciseVisitProofs?.week;
   // Alleen de weergave filtert: dezelfde bronblokken, ids en volgorde. Annotaties en selectors rekenen met het volledige document.
   const displayDoc = useMemo<ReaderDocument>(() => {
     const body = data.lesson.body;
@@ -315,7 +318,7 @@ function ReaderVisit({
       )}
       {stepError && <p role="status" className="text-sm text-vs-danger">{stepError}</p>}
       {stepStatus === "COMPLETED" && <p className="text-sm text-vs-fg-2">{t("cfmStudy.stepDone")}</p>}
-      <nav className="flex gap-2" aria-label={t("cfmStudy.stepNavigation")}>
+      <nav className="flex flex-wrap gap-2" aria-label={t("cfmStudy.stepNavigation")}>
         {stepNumber > 1 && (
           <Link href={`${base}/stappen/${stepNumber - 1}`} prefetch={false} replace data-step-prev className={`${secondaryButton} min-h-12 flex-1`}>
             <ChevronLeft aria-hidden className="h-5 w-5 shrink-0" />
@@ -612,6 +615,22 @@ function ReaderVisit({
         </article>
         </BlockedReferencesContext.Provider>
         </ReferenceActionsContext.Provider>
+        {!legacy && Boolean(data.scriptureReadingSteps?.some(index=>!currentStep || index===currentStep.index)) && (
+          <section data-study-scripture-readings className="min-w-0 space-y-6 border-t border-vs-line pt-4 text-base text-vs-fg">
+            <h2 className="text-xl font-extrabold">{t("cfmExercises.scriptureReading")}</h2>
+            {(data.scriptureReadings??[]).filter(reading=>!currentStep || reading.stepIndex===currentStep.index).map((reading,index,readings)=>(
+              <section key={`${reading.stepIndex}:${reading.bookKey}:${reading.chapter}`} data-study-scripture-reading={reading.stepIndex} className="min-w-0 space-y-3">
+                {!currentStep && readings[index-1]?.stepIndex!==reading.stepIndex && <p className="font-bold">{t("cfmStudy.stepOf",{n:reading.stepIndex,total:6})}</p>}
+                <h3 className="font-bold">{reading.bookName} {reading.chapter}:{reading.verses.map(verse=>verse.number).join(", ")}</h3>
+                <ScriptureVerses verses={reading.verses} language={reading.language} />
+              </section>
+            ))}
+            {data.scriptureReadingSteps?.some(index=>(!currentStep || index===currentStep.index) && (data.scriptureReadings??[]).filter(reading=>reading.stepIndex===index).reduce((count,reading)=>count+reading.verses.length,0)<3) && <p role="status" className="text-sm text-vs-fg-2">{t("cfmExercises.scriptureUnavailable")}</p>}
+          </section>
+        )}
+        {!legacy && data.exerciseCounts && <div className="border-t border-vs-line pt-4">
+          {(currentStep?data.exerciseCounts[currentStep.index-1]===3:data.exerciseCounts.every(n=>n===3)) ? <Link data-study-exercises replace onClick={()=>{const proof=exerciseVisitProof;if(proof)try{sessionStorage.setItem(studyExerciseDraftKey(sessionKey,data.lesson.editionId,data.lesson.revisionId,currentStep?.index??null)+":visit",proof);}catch{}}} href={`${base}/vragen${currentStep?`?stap=${currentStep.index}`:pageMode==='full'?'?volledig=1':''}${exerciseVisitProof?`#leesbewijs=${encodeURIComponent(exerciseVisitProof)}`:""}`} prefetch={false} className="btn-primary">{t('progress.practice',{n:currentStep?3:18})}</Link>:<p role="status" className="text-sm text-vs-fg-2">{t('cfmExercises.unavailable')}</p>}
+        </div>}
         {!legacy && pageMode !== "step" && (
           <footer className="space-y-4 border-t border-vs-line pt-4">
             {markReadSection}

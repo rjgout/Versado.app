@@ -252,6 +252,7 @@ async function syncChapterExercises(
       include: { options: { orderBy: { order: "asc" }, select: { label: true, isCorrect: true } } },
     });
     for (const row of rows) {
+      if (!row.chapterId) continue;
       existingRows.push({ id: row.id, chapterId: row.chapterId, order: row.order, status: row.status, hint: row.hint, sourceVerseId: row.sourceVerseId, signature: exerciseSignature(row), options: optionsFingerprint(row.options) });
     }
   }

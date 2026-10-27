@@ -148,6 +148,7 @@ async function syncReadingLessons(
 
   const exercisesByChapter = new Map<string, { id: string; verseNumber: number | null }[]>();
   for (const exercise of exercises) {
+    if (!exercise.chapterId) continue;
     const list = exercisesByChapter.get(exercise.chapterId) ?? [];
     list.push({ id: exercise.id, verseNumber: exercise.sourceVerse?.number ?? null });
     exercisesByChapter.set(exercise.chapterId, list);

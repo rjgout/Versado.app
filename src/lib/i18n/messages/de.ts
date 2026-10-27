@@ -4563,6 +4563,7 @@ export const de: PartialMessages = {
     viewAllRequests: "Alle {n} Anfragen anzeigen", viewAllGroupActions: "Alle {n} Gruppenaktionen anzeigen",
   },
   kompas: kompasDe,
+  cfmExercises: { readFirst: "Lies zuerst die zugehörige Schriftstelle.", scriptureReading: "Schriftlesung zu diesem Studium", scriptureUnavailable: "Der zugehörige Schrifttext ist in dieser Ausgabe derzeit nicht verfügbar.","title": "Lesefragen", "unavailable": "Für diesen Lesestoff gibt es noch nicht genügend geprüfte Schriftfragen. Du kannst einfach weiterlesen."},
   cfmStudy: {
     "modeLabel": "Lesemodus",
     "modeFree": "Freies Studium",
