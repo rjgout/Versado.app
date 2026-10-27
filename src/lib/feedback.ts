@@ -18,7 +18,7 @@ export function feedbackRecipient(): string | null {
 export async function sendFeedbackMail(input: Omit<Parameters<typeof sendMail>[0], "to">) {
   const to = feedbackRecipient();
   if (!to) return { ok: false, error: "Geen feedbackontvanger geconfigureerd." };
-  return sendMail({ ...input, to });
+  return sendMail({ ...input, to, meta: { ...input.meta, kind: "FEEDBACK" } });
 }
 
 function escapeHtml(text: string): string {

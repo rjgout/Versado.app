@@ -225,6 +225,9 @@ try {
     await run("npx",["tsx","--test","tests/reading-position.integration.test.ts"],env);
     if(process.argv.includes("--browser"))await run("npx",["tsx","tests/study-reader.browser.mjs"],env);
   }
+  if(process.argv.includes("--mail-history")) {
+    await run("npx",["tsx","tests/mail-history.browser.mjs"],env);
+  }
   if(process.argv.includes("--weekly-result")) {
     await run("npx",["tsx","tests/weekly-result.browser.mjs"],env);
   }

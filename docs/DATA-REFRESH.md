@@ -203,3 +203,7 @@ tonen "n van 7 stappen"). De eigen query gebruikt sessionKey + editie + geopende
 inhoudsvingerafdruk van de stap, niet op het stapnummer. Stap openen of afronden loopt via `jsonMutation` naar
 `/api/study-steps`; dat is uitsluitend studievoortgang en dus nooit `activityCompleted`, XP, reeks of leesstatus.
 Geen polling en geen eigen focus-/online-listener.
+
+## Mailhistorie in beheer
+
+`mailLog` is de accountbrede beheerdataset voor verzendhistorie. `MailHistoryClient` gebruikt `useLiveQuery` met filters/paginering in de key en `pollMs: 60_000` omdat SMTP- en pixelverwerkingen geen realtime-onderwerp hebben. De centrale laag pauzeert verborgen/offline tabs en ververst bij terugkeer. Herverzenden gebruikt `jsonMutation` en maakt alleen `mailLog` ongeldig. Geen eigen timers, socket- of focushandlers.
