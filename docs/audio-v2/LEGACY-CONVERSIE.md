@@ -143,7 +143,7 @@ staan in de PR-beschrijving. Geen testresultaat betekent dat de NAS, productie o
 is gecontroleerd.
 
 Werkelijk lokaal uitgevoerd: **17 unit-tests, 65 integratietests (30 bestaande, 23 officiële,
-12 conversieproeven) en 98 browserassertions**, zonder fouten of skips. Schone productiebuild,
+12 conversieproeven) en 101 browserassertions**, zonder fouten of skips. Schone productiebuild,
 TypeScript, Prisma-validatie en native inventariscontrole slagen. De afzonderlijke proef met drie
 nieuw gedownloade officiële MP3's is eveneens geslaagd in een eigen wegwerpdatabase.
 [Bronbewijs](legacy-pilot-source-check.json) bevat de concrete publieke bronidentiteiten en hashes.
@@ -154,3 +154,7 @@ De gedeelde contenttestrunner houdt de nieuwe afhankelijke migratie, net als de 
 audiotaken, buiten de opzettelijk onvolledige eerste migratiefase. De volledige keten wordt daarna
 wel toegepast. De gerichte content-/oefenregressie met deze testvolgorde is opnieuw geslaagd;
 er is geen CFM-, FSY- of andere contentfunctionaliteit aangepast.
+
+De extra spelerproeven reproduceren ook een fout-event gevolgd door een afgewezen play-promise,
+een NotSupportedError zonder fout-event en een autoplayweigering. Een verouderde promise mag de
+reeds gestarte legacy-bron niet stoppen; autoplayweigering start geen andere bron automatisch.

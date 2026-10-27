@@ -141,7 +141,7 @@ export function ReadAloudPlayerProvider({ children }: { children: React.ReactNod
         // Alleen door de server gecontroleerde legacy-uitgangssituatie; één poging, met eigen versgrenzen.
         const restored={...current,verses:fallback.verses,audio:{url:fallback.url,end:fallback.end}};
         sourceRef.current=restored;setSource(restored);
-        el.onloadedmetadata=()=>{el.onloadedmetadata=null;if(sourceRef.current!==restored||!playingRef.current)return;el.playbackRate=speedRef.current;el.currentTime=restored.verses[currentIndexRef.current]?.audioStart??0;void el.play().catch(finishAudio);};
+        el.onloadedmetadata=()=>{el.onloadedmetadata=null;if(sourceRef.current!==restored||!playingRef.current)return;el.playbackRate=speedRef.current;el.currentTime=restored.verses[currentIndexRef.current]?.audioStart??0;void el.play().catch(()=>{if(sourceRef.current===restored&&playingRef.current)finishAudio();});};
         el.src=fallback.url;el.load();
         return;
       }
@@ -157,9 +157,17 @@ export function ReadAloudPlayerProvider({ children }: { children: React.ReactNod
     const el = ensureAudio();
     const startAt = current.verses[index]?.audioStart ?? 0;
     const go = () => {
+      if(sourceRef.current!==current||!playingRef.current)return;
       el.playbackRate = speedRef.current;
       el.currentTime = startAt;
-      el.play().catch(() => {
+      el.play().catch((error:unknown) => {
+        // Het fout-event kan de bron al hebben vervangen. Een oude promise mag die terugval niet stoppen.
+        if(sourceRef.current!==current)return;
+        if(current.audio?.fallback&&(error as {name?:string})?.name==="NotSupportedError") {
+          el.dispatchEvent(new Event("error"));
+          return;
+        }
+        // Een autoplayweigering blijft een pauze; die mag geen andere bron automatisch starten.
         playingRef.current = false;
         setIsPlaying(false);
       });

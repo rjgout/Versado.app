@@ -66,7 +66,7 @@ try {
  await ctx.addInitScript(()=>{
   window.__audio=[];window.__media=[];const proto=HTMLMediaElement.prototype,times=new WeakMap();
   Object.defineProperty(proto,'currentTime',{configurable:true,get(){return times.get(this)??0;},set(v){times.set(this,v);}});
-  proto.load=function(){setTimeout(()=>this.onloadedmetadata?.(),0);};proto.pause=function(){};proto.play=function(){window.__audio.push({src:this.src,at:this.currentTime});if(!window.__media.includes(this))window.__media.push(this);return Promise.resolve();};
+  proto.load=function(){setTimeout(()=>this.onloadedmetadata?.(),0);};proto.pause=function(){};proto.play=function(){window.__audio.push({src:this.src,at:this.currentTime});if(!window.__media.includes(this))window.__media.push(this);const failure=window.__rejectNextPlay;window.__rejectNextPlay=null;if(failure){if(failure==='race')queueMicrotask(()=>this.onerror?.());return Promise.reject(new DOMException('Synthetic playback rejection',failure==='blocked'?'NotAllowedError':'NotSupportedError'));}return Promise.resolve();};
   Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{getVoices:()=>[],cancel(){},pause(){},resume(){},speak(){}}});
  });
  await page.goto(base+'/lesson/'+chapter.id);await page.getByRole('button',{name:t('player.readAloud'),exact:false}).click();await page.waitForFunction(()=>window.__audio.length>0);
@@ -75,6 +75,18 @@ try {
  await page.evaluate(()=>window.__media.at(-1).onerror());await page.waitForFunction(()=>window.__audio.at(-1).src.includes('/api/audio/')&&!window.__audio.at(-1).src.includes('/recordings/'));
  check('afspeelfout gebruikt oude audio met oude tijdcode van vers twee',await page.evaluate(at=>Math.abs(window.__audio.at(-1).at-at)<0.01,chapter.verses[1].audioStart));
  check('minispeler blijft beschikbaar na terugval',await page.getByRole('button',{name:t('player.stopAria'),exact:true}).count()===1);
+ await page.getByRole('button',{name:t('player.stopAria'),exact:true}).click();
+ for(const failure of ['race','unsupported','blocked']){
+  await page.reload();await page.getByRole('button',{name:t('player.readAloud'),exact:false}).waitFor();await page.evaluate(mode=>window.__rejectNextPlay=mode,failure);await page.getByRole('button',{name:t('player.readAloud'),exact:false}).click();
+  if(failure==='blocked'){
+   await page.waitForFunction(()=>window.__audio.length>0);await page.getByRole('button',{name:t('player.play'),exact:true}).waitFor();
+   await page.waitForTimeout(100);check('autoplayweigering start geen onverwachte legacy-audio',await page.evaluate(()=>!window.__audio.some(a=>!a.src.includes('/recordings/'))));
+  }else{
+   await page.waitForFunction(()=>window.__audio.some(a=>a.src.includes('/api/audio/')&&!a.src.includes('/recordings/')),{},{timeout:2000});
+   check(failure==='race'?'play-reject na fout-event stopt de legacy-terugval niet':'NotSupportedError zonder fout-event gebruikt de gecontroleerde terugval',await page.evaluate(()=>!window.__audio.at(-1).src.includes('/recordings/')));
+  }
+  await page.getByRole('button',{name:t('player.stopAria'),exact:true}).click();
+ }
  check('geen browserexceptions',errors.length===0);
  writeFileSync(join(output,'legacy-results.json'),JSON.stringify({results,errors},null,2));
 }catch(error){await page.screenshot({path:join(output,'legacy-failure.png'),fullPage:true});writeFileSync(join(output,'legacy-failure.html'),await page.content());throw error;}
