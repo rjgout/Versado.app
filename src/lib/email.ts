@@ -159,7 +159,7 @@ export async function sendMail(input: SendMailInput): Promise<{ ok: boolean; err
     }
   } catch (e) {
     const code = typeof e === "object" && e && "code" in e ? String(e.code) : "";
-    status = ["ETIMEDOUT", "ECONNRESET", "ESOCKET"].includes(code) ? "UNKNOWN" : "FAILED";
+    status = ["ETIMEDOUT", "ECONNRESET", "ESOCKET", "ECONNECTION"].includes(code) ? "UNKNOWN" : "FAILED";
     error = redact(e instanceof Error ? e.message : "SMTP_ERROR").slice(0, 1000);
     outcome = { ok: false, error: "Het versturen van de e-mail is mislukt of kon niet worden bevestigd." };
   }

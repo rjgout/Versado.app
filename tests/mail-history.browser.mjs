@@ -14,7 +14,7 @@ import { startPendingRegistration } from "../src/lib/registration.ts";
 import { dailyTextFixture, dailyTextTestEnvironment } from "./fixtures/daily-text.ts";
 
 const base = dailyTextTestEnvironment(), fixture = await dailyTextFixture();
-const captured = [], sockets = new Set(); let rejectRecipient = false;
+const captured = [], sockets = new Set(); let rejectRecipient = false, closeAfterData = false;
 const smtp = createServer(socket => {
   sockets.add(socket); socket.on("close", () => sockets.delete(socket)); socket.on("error", () => {});
   let buffer = "", data = false, message = [];
@@ -24,7 +24,7 @@ const smtp = createServer(socket => {
     while (buffer.includes("\n")) {
       const offset = buffer.indexOf("\n"), line = buffer.slice(0, offset).replace(/\r$/, ""); buffer = buffer.slice(offset + 1);
       if (data) {
-        if (line === ".") { captured.push(message.join("\r\n")); message = []; data = false; socket.write("250 2.0.0 queued synthetic\r\n"); }
+        if (line === ".") { captured.push(message.join("\r\n")); message = []; data = false; if (closeAfterData) { socket.destroy(); continue; } socket.write("250 2.0.0 queued synthetic\r\n"); }
         else message.push(line); continue;
       }
       if (/^(EHLO|HELO)/i.test(line)) socket.write("250-localhost\r\n250 AUTH PLAIN\r\n");
@@ -92,6 +92,11 @@ try {
   await prisma.emailSettings.update({ where: { id: "singleton" }, data: { enabled: false } });
   assert.equal((await send(user.email, "SMTP uit")).ok, false); assert.equal((await lastMail(user.email)).status, "SKIPPED");
   await prisma.emailSettings.update({ where: { id: "singleton" }, data: { enabled: true } });
+
+  closeAfterData = true;
+  assert.equal((await send(user.email, "Bevestiging verloren na DATA")).ok, false);
+  assert.equal((await lastMail(user.email)).status, "UNKNOWN");
+  closeAfterData = false;
 
   const count = captured.length;
   const claims = await Promise.all([post(operator, original.id), post(operator, original.id)]);
