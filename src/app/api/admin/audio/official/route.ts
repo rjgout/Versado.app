@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     if(input&&typeof input==="object"&&"ids" in input&&Array.isArray(input.ids)&&input.ids.length>OFFICIAL_BATCH_SIZE)return apiError("officialAudio.batchTooLarge",413);
     const id=z.string().regex(/^[a-f0-9]{64}$/);
     const body=z.discriminatedUnion("action",[
-      z.object({action:z.enum(["download","register","resume","approvePilot"]),ids:z.array(id).max(OFFICIAL_BATCH_SIZE)}).strict(),
+      z.object({action:z.enum(["download","register","resume"]),ids:z.array(id).max(OFFICIAL_BATCH_SIZE)}).strict(),
       z.object({action:z.literal("publish"),selections:z.array(z.object({id,recordingId:z.string().min(1).max(200)}).strict()).min(1).max(OFFICIAL_BATCH_SIZE)}).strict(),
     ]).parse(input);
     if(body.action==="publish")return NextResponse.json(await publishOfficialSelection(user,body.selections),{headers});

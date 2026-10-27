@@ -1,6 +1,8 @@
 import { BOOK_KEYS_BY_SLUG } from "../../../prisma/bookKeys";
 import { readFileSync } from "node:fs";
-import type { OfficialSource } from "../../../src/lib/audio/officialCatalogue";
+import {officialSources,type OfficialSource} from "../../../src/lib/audio/officialCatalogue";
+// Alleen representatieve netwerk-/MP3-testfixtures; geen productiepilot of goedkeuringspoort.
+export const sampleSources=officialSources.filter(s=>s.work==="bofm"&&s.bookKey==="bofm/ether"&&s.chapterNumber===1&&s.voice===(s.language==="en"?"male":"audio"));
 interface Book { slug:string;key?:string; chapters:{number:number;heading?:string;verses:string[]}[] }
 export function officialSeed(source: OfficialSource) {
   const suffix=source.language==="nl"?"":`.${source.language}`;

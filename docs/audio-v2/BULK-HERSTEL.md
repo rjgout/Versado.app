@@ -3,6 +3,8 @@
 Deze correctie volgt op de adminbediening uit #220, vanaf main `b322b455fbd763cfba99ecf373defa8a8bfc6ae4`.
 Er zijn geen productie-, NAS-, Portainer-, import-, deployment- of audiopublicatiehandelingen uitgevoerd.
 
+De actuele vervolgcorrectie verwijdert de pilotpoort en verduidelijkt de Nederlandse telling: zie [Nederlandse voortgang](NL-VOORTGANG.md). De tests en screenshots onderaan dit document horen bij #221.
+
 ## Oorzaak en bewijs
 
 De Engelse Boek-van-Mormon-selectie telt 478 gevalideerde stemvarianten voor 239 hoofdstukken. De oude interface stuurde die hele selectie terwijl zowel API als domein maximaal 300 IDs accepteerden. De 32.055 bytes JSON passen wel binnen de bestaande 32-KiB-bodygrens: bij deze selectie was het aantal IDs de blokkade. Duits heeft 238 gevalideerde kandidaten, Frans 240 en Spaans 239; Nederlands heeft 34 aanvullende kandidaten buiten de 205 beschermde legacy-hoofdstukken.
@@ -22,7 +24,7 @@ De Nederlandse situatie met 34 gecontroleerde en geregistreerde opnamen is geen 
 5. **Geselecteerde opnamen publiceren** toont de exacte hoofdstukken, talen en stemmen ter bevestiging. Annuleren verandert niets. Registratie en download publiceren nooit automatisch. De bestaande kwaliteits-, tekst-, bestands- en beheercontroles blijven ook op de server verplicht.
 6. Bij een deelfout blijven geslaagde commits behouden en worden mislukte publicaties met hun hoofdstuk gemeld. Ververs en beoordeel alleen de resterende kandidaten. Een eerdere succesvolle publicatie wordt bij een retry niet opnieuw geschreven.
 
-De vijf Ether 1-pilots en de afzonderlijke pilotgoedkeuring blijven bestaan. Bulkacties blijven vergrendeld zonder geldige goedkeuring. De zes verborgen tekstuitgaven blijven verborgen; ontbrekende teksten worden niet aangemaakt. De 205 legacy-hoofdstukken en 19 reviewidentiteiten blijven beschermd.
+De eerdere Ether 1-pilotpoort uit #221 is inmiddels vervallen; beheer gebeurt normaal per bron en taal, met behoud van de afzonderlijke registratie- en publicatiebevestiging. De zes verborgen tekstuitgaven blijven verborgen; ontbrekende teksten worden niet aangemaakt. De 205 legacy-hoofdstukken en 19 reviewidentiteiten blijven beschermd.
 
 ## Transacties, herstart en gelijktijdig beheer
 
