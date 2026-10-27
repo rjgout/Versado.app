@@ -6170,6 +6170,20 @@
       ]
     },
     {
+      "file": "src/app/contact/page.tsx",
+      "sha256": "c6f6fd68705c18956bc987f342631ec472dcba217fed848e8d272666a18a5d34",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/legal/ContactContent"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ContactPage"
+      ]
+    },
+    {
       "file": "src/app/content/page.tsx",
       "sha256": "563060dba596b2bdfafea7b38f3b18a82d0a857475135440858561ac56b4f1c1",
       "boundary": "context-dependent",
@@ -6419,6 +6433,20 @@
       "exports": [
         "VersadoDorpPrototypePage",
         "metadata"
+      ]
+    },
+    {
+      "file": "src/app/disclaimer/page.tsx",
+      "sha256": "5242824da447475116fbddc078160446623c9cffa880699ab9846597d43dd93e",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/legal/DisclaimerContent"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "DisclaimerPage"
       ]
     },
     {
@@ -9513,7 +9541,7 @@
     },
     {
       "file": "src/components/Footer.tsx",
-      "sha256": "63ac024af82492fdaaa8b90d9140a21f7ef83633e8d03c0de5e1127bc9368ab5",
+      "sha256": "8ee6e0f95c5f1434888df72cc9a914fbf952b1cc893571a0f3054f71baa71e3b",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -12476,6 +12504,20 @@
       ]
     },
     {
+      "file": "src/components/legal/ContactContent.tsx",
+      "sha256": "742e0eb3369e0fca0e6d46255af0761122665f500b613b059e1dd55981bdc15e",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ContactContent"
+      ]
+    },
+    {
       "file": "src/components/legal/CookiesContent.tsx",
       "sha256": "667c5e00249c94065935f1d9b7e4488d89a516de2e26314ce671ea0e583beecc",
       "boundary": "client",
@@ -12488,6 +12530,21 @@
       "checks": [],
       "exports": [
         "CookiesContent"
+      ]
+    },
+    {
+      "file": "src/components/legal/DisclaimerContent.tsx",
+      "sha256": "9b2a270a1920c3dd8c08223f43dcc536d39f9bb39ef1b5b656f4363b9068dafc",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "DisclaimerContent"
       ]
     },
     {
@@ -12627,7 +12684,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "45acbe49a2edada1914bd70c842c42379c3b1719fe0187ad9cc8b8b2798181b6",
+      "sha256": "91a29b6394a75e6335ecebef8078353038c6fb09ddbf1b86a0f47f8f034fb75d",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -12637,7 +12694,9 @@
         "@/components/account/AccountActionsProvider",
         "@/components/account/PasswordChangeForm",
         "@/components/account/TwoFactorCards",
+        "@/components/legal/ContactContent",
         "@/components/legal/CookiesContent",
+        "@/components/legal/DisclaimerContent",
         "@/components/legal/PrivacyContent",
         "@/components/navigation/AppNavigation",
         "@/components/shell/FocusModeController",
@@ -18623,7 +18682,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "03a99da28d622b1d84369cb5ecf9a13d0d1465021764104f0d8ffbc19f97df6f",
+      "sha256": "8fcba081789a9d0b9411ff540c03adb8fcf6a05882e14d71e51766a6a54523d5",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18638,7 +18697,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "4c215e30c03116ed1ca223ee68e0939130aaa16ed6529d58cb4ed0b7faaf59f0",
+      "sha256": "7134a9ff48f22c9cc1ba60b8709a88d82fddb100219784758cdf136651aab860",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18653,7 +18712,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "a2da568837333bca9d96dd9e2bf49efede401caebaa737f98bbcfd8a3a0a5127",
+      "sha256": "2dbfd7626731c5357a761ef010ae0fb67d4bb1cfcf4cf3977121d129cd03ec09",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18668,7 +18727,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "7ac948c9df0a8dc320c89076ab3079c048225f0e86516a5d5251764b31353990",
+      "sha256": "b302ea613a3ae97a576f1f72e3daec199aee8968cacb59b80181c304fdf7f63a",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18751,7 +18810,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "afcdedb3374b0f28ced5ce66fa07636705544f3b4953598eb6f6c66b031a6a75",
+      "sha256": "ea07413b2e99b55228d7d80c68773521ca220a83e4386f46f44bb431ff007d0f",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -20222,7 +20281,7 @@
     },
     {
       "file": "src/lib/native/navigation.ts",
-      "sha256": "6735587f09a29173a882f043ff4a1abdce4cd2dd432ed8a2f8c718dac0c546da",
+      "sha256": "739789c87c62c863220bfa008782fcdcdae7e1e1d3bc9b7cc338de99a01725f2",
       "boundary": "context-dependent",
       "imports": [],
       "methods": [],
@@ -50996,6 +51055,41 @@
       ]
     },
     {
+      "file": "src/app/contact/page.tsx",
+      "sha256": "c6f6fd68705c18956bc987f342631ec472dcba217fed848e8d272666a18a5d34",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/legal/ContactContent"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ContactPage"
+      ],
+      "route": "/contact",
+      "kind": "page",
+      "domain": "hulp-juridisch",
+      "dependencies": [
+        "src/app/contact/page.tsx",
+        "src/components/I18nProvider.tsx",
+        "src/components/legal/ContactContent.tsx",
+        "src/lib/i18n/core.ts",
+        "src/lib/i18n/messages/kompas/nl.ts",
+        "src/lib/i18n/messages/nl.ts",
+        "src/lib/languages.ts"
+      ],
+      "directModules": [
+        "src/components/legal/ContactContent.tsx"
+      ],
+      "clientBoundaries": [
+        "src/components/I18nProvider.tsx",
+        "src/components/legal/ContactContent.tsx"
+      ],
+      "requestEvidence": [],
+      "authEvidence": []
+    },
+    {
       "file": "src/app/content/page.tsx",
       "sha256": "563060dba596b2bdfafea7b38f3b18a82d0a857475135440858561ac56b4f1c1",
       "boundary": "context-dependent",
@@ -52602,6 +52696,43 @@
       "authEvidence": [
         "getCurrentUser"
       ]
+    },
+    {
+      "file": "src/app/disclaimer/page.tsx",
+      "sha256": "5242824da447475116fbddc078160446623c9cffa880699ab9846597d43dd93e",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/legal/DisclaimerContent"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "DisclaimerPage"
+      ],
+      "route": "/disclaimer",
+      "kind": "page",
+      "domain": "hulp-juridisch",
+      "dependencies": [
+        "src/app/disclaimer/page.tsx",
+        "src/components/I18nProvider.tsx",
+        "src/components/legal/DisclaimerContent.tsx",
+        "src/components/navigation/AppNavigation.tsx",
+        "src/lib/i18n/core.ts",
+        "src/lib/i18n/messages/kompas/nl.ts",
+        "src/lib/i18n/messages/nl.ts",
+        "src/lib/languages.ts"
+      ],
+      "directModules": [
+        "src/components/legal/DisclaimerContent.tsx"
+      ],
+      "clientBoundaries": [
+        "src/components/I18nProvider.tsx",
+        "src/components/legal/DisclaimerContent.tsx",
+        "src/components/navigation/AppNavigation.tsx"
+      ],
+      "requestEvidence": [],
+      "authEvidence": []
     },
     {
       "file": "src/app/dorp/page.tsx",
@@ -67087,6 +67218,20 @@
       ]
     },
     {
+      "file": "src/app/contact/page.tsx",
+      "sha256": "c6f6fd68705c18956bc987f342631ec472dcba217fed848e8d272666a18a5d34",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/legal/ContactContent"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ContactPage"
+      ]
+    },
+    {
       "file": "src/app/content/page.tsx",
       "sha256": "563060dba596b2bdfafea7b38f3b18a82d0a857475135440858561ac56b4f1c1",
       "boundary": "context-dependent",
@@ -67336,6 +67481,20 @@
       "exports": [
         "VersadoDorpPrototypePage",
         "metadata"
+      ]
+    },
+    {
+      "file": "src/app/disclaimer/page.tsx",
+      "sha256": "5242824da447475116fbddc078160446623c9cffa880699ab9846597d43dd93e",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/components/legal/DisclaimerContent"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "DisclaimerPage"
       ]
     },
     {
@@ -70402,7 +70561,7 @@
     },
     {
       "file": "src/components/Footer.tsx",
-      "sha256": "63ac024af82492fdaaa8b90d9140a21f7ef83633e8d03c0de5e1127bc9368ab5",
+      "sha256": "8ee6e0f95c5f1434888df72cc9a914fbf952b1cc893571a0f3054f71baa71e3b",
       "boundary": "client",
       "imports": [
         "@/components/I18nProvider",
@@ -73276,6 +73435,20 @@
       ]
     },
     {
+      "file": "src/components/legal/ContactContent.tsx",
+      "sha256": "742e0eb3369e0fca0e6d46255af0761122665f500b613b059e1dd55981bdc15e",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "ContactContent"
+      ]
+    },
+    {
       "file": "src/components/legal/CookiesContent.tsx",
       "sha256": "667c5e00249c94065935f1d9b7e4488d89a516de2e26314ce671ea0e583beecc",
       "boundary": "client",
@@ -73288,6 +73461,21 @@
       "checks": [],
       "exports": [
         "CookiesContent"
+      ]
+    },
+    {
+      "file": "src/components/legal/DisclaimerContent.tsx",
+      "sha256": "9b2a270a1920c3dd8c08223f43dcc536d39f9bb39ef1b5b656f4363b9068dafc",
+      "boundary": "client",
+      "imports": [
+        "@/components/I18nProvider",
+        "@/components/navigation/AppNavigation"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [],
+      "exports": [
+        "DisclaimerContent"
       ]
     },
     {
@@ -73427,7 +73615,7 @@
     },
     {
       "file": "src/components/native/NativeFoundation.tsx",
-      "sha256": "45acbe49a2edada1914bd70c842c42379c3b1719fe0187ad9cc8b8b2798181b6",
+      "sha256": "91a29b6394a75e6335ecebef8078353038c6fb09ddbf1b86a0f47f8f034fb75d",
       "boundary": "client",
       "imports": [
         "./NativeEmailConfirmation",
@@ -73437,7 +73625,9 @@
         "@/components/account/AccountActionsProvider",
         "@/components/account/PasswordChangeForm",
         "@/components/account/TwoFactorCards",
+        "@/components/legal/ContactContent",
         "@/components/legal/CookiesContent",
+        "@/components/legal/DisclaimerContent",
         "@/components/legal/PrivacyContent",
         "@/components/navigation/AppNavigation",
         "@/components/shell/FocusModeController",

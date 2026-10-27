@@ -1,7 +1,8 @@
 # Nederlandse voortgang en normaal audiobeheer
 
 Vervolg op #221, vanaf main `82a8e89aa8a950f1b70b12343b13a9029a781469`.
-Geen productie-, NAS-, download-, import-, publicatie-, deployment- of mergehandeling uitgevoerd.
+Tijdens uitvoering gesynchroniseerd met main `11c1fef9cc1f859cc72e9b94755a8cf4fc75ab62` (#223); disclaimer, contactpagina, footer en native navigatie behouden.
+Geen productie-, NAS-, download-, import-, publicatie-, deployment- of mergehandeling naar main uitgevoerd.
 
 ## Waarom de Nederlandse teller 34 kan blijven
 
