@@ -10,7 +10,8 @@ echte programma's → annotaties → lesgebonden spellen. Migraties:
 CFM-leesvragen en bestaande XP-regels gaan vóór Het Verborgen Woord. C en D
 zijn de uitwerking van de bestaande pakketten 5C/5D, geen tweede spelplanning.
 5A/5B leveren al resolver-/woordpoolinfrastructuur; ze bevatten geen gameplay.
-Deze aanvulling autoriseert uitsluitend onderzoek en documentatie.
+De oorspronkelijke aanvulling uit PR #216 was uitsluitend documentatie. De eigenaar
+heeft daarna fase A afzonderlijk opgedragen; deze draft implementeert alleen A.
 
 ## Vervolg A-D — CFM-leesvragen eerst
 
@@ -20,6 +21,20 @@ Dit is de enige uitvoeringsplanning; oudere fasen hieronder blijven de technisch
 herkomst en scopegrenzen beschrijven. Iedere fase vraagt afzonderlijke beoordeling.
 
 ### Fase A — CFM-leesvragen en XP
+
+**Draftstatus:** de gedeelde sessie-/vragen-/XP-route is uitgewerkt; zie
+[implementatieverslag](../CFM-LEESVRAGEN-FASE-A.md) en
+[vraagdekking](../CFM-VRAAGDEKKING.md). Met beschikbare gecontroleerde Nederlandse PGP-tekst hebben 22 van 624 officiële
+stappen drie vragen; één officiële week (2026/02) heeft dezelfde achttien in beide
+routes. Vijf stappen hebben aanvullende schriftlezing; stap 1 gebruikt bestaande
+zichtbare citaten. Zie [pilotverslag](../CFM-PILOT-2026-02.md) voor broncontrole,
+tests en platformgrenzen. Er blijven 602 stappen zonder complete set. Fase A is
+hiermee nog geen volledige inhoudelijke release; B–D zijn niet gestart.
+Het [dekkingsonderzoek](../CFM-VRAAGDEKKING-ONDERZOEK.md) bewaart de historische
+17/624-triage. Definitief besluit **P35 vervangt P34**: aanvullende officiële verzen
+mogen, mits daadwerkelijk zichtbaar aangeboden vóór de vragen. Alleen de pilotweek
+is uitgewerkt. Volgende stap na beoordeling: begrensde bronvoorbereiding en
+inhoudelijke review via bestaand contentbeheer; geen automatische massapublicatie.
 
 **Afhankelijkheden:** bestaande CFM-jaargangen, gepubliceerde revisies, zesstappenplan,
 centrale learning-/XP-services. De zeven CFM-productbesluiten zijn definitief

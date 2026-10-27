@@ -1,4 +1,5 @@
 "use client";
+import ScriptureVerses from "./ScriptureVerses";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
@@ -231,14 +232,7 @@ export default function ReferencePreview({
                     {t("referencePreview.truncated")}
                   </p>
                 )}
-                {result.preview.verses.map((v) => (
-                  <p key={v.number} className="leading-relaxed">
-                    <sup className="mr-2 font-bold text-vs-accent">
-                      {v.number}
-                    </sup>
-                    {v.text}
-                  </p>
-                ))}
+                <ScriptureVerses verses={result.preview.verses} language={result.language} />
               </div>
             ) : (
               <RichContentBlocks

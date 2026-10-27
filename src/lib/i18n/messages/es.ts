@@ -4557,6 +4557,7 @@ export const es: PartialMessages = {
     viewAllRequests: "Ver las {n} solicitudes", viewAllGroupActions: "Ver las {n} acciones de grupo",
   },
   "kompas": kompasEs,
+  cfmExercises: { readFirst: "Lee primero el pasaje de las Escrituras correspondiente.", scriptureReading: "Lectura de las Escrituras para este estudio", scriptureUnavailable: "El texto de las Escrituras correspondiente no está disponible actualmente en esta edición.","title": "Preguntas de lectura", "unavailable": "Aún no hay suficientes preguntas verificadas de las Escrituras para esta lectura. Puedes seguir leyendo."},
   cfmStudy: {
     "modeLabel": "Modo de lectura",
     "modeFree": "Estudio libre",

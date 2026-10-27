@@ -5,6 +5,12 @@ regels elke cursus (nu en later) zich moet houden. Geldt voor elke
 contentbron met hoofdstukken (Boek van Mormon, Leer en Verbonden, Parel van
 Grote Waarde, in elke taal) en elke leesroute.
 
+**CFM-fase-A-draft:** de StudyLesson-adapter gebruikt dezelfde inlevertransactie,
+credits en beloningsregels. Een week is één oefeninhoud met N=18; een ondersteund
+deel geeft drie vragen. Broncontrole en de huidige gedeeltelijke beschikbaarheid
+staan in [CFM-leesvragen fase A](CFM-LEESVRAGEN-FASE-A.md). Dit is geen nieuwe
+XP-regeling en geen wijziging van Dorp-groei of de afzonderlijke READ-actie.
+
 ## De invariant
 
 > Leesvoortgang hoort bij de inhoud, niet bij de cursus.

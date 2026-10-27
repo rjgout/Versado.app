@@ -9,6 +9,13 @@ gedaan.
 > veranderen nooit. Alles hieronder is presentatie en studievoortgang bovenop de gepubliceerde revisie. Er is geen
 > contentreload, geen nieuwe publicatie en geen wijziging in bestaande studiegegevens nodig.
 
+**Fase-A-draft:** een aanvullende bronadapter biedt leesvragen waar voldoende
+gecontroleerde, daadwerkelijk gelezen schrifttekst aanwezig is. Leesstapstatus,
+READ en vragencredits blijven onderscheiden; alleen de vragen volgen de gedeelde
+learning-/XP-keten. Zie het [implementatieverslag](CFM-LEESVRAGEN-FASE-A.md) en het
+[dekkingsoverzicht](CFM-VRAAGDEKKING.md). De oudere audit hieronder beschrijft de
+leeslaag vóór deze uitbreiding, niet volledige beschikbaarheid van vragen.
+
 ## 1. Fase 0 — audit: wat is er, en wat is geverifieerd
 
 Geverifieerd tegen de actuele `main` (`4fc35027`), niet tegen aannames.
