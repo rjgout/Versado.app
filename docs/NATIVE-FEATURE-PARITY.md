@@ -267,7 +267,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **140 pagina's**, **242 fysieke routehandlers**, **423 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **142 pagina's**, **242 fysieke routehandlers**, **427 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -299,6 +299,7 @@ Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en au
 `/chapter-guess` | [src/app/chapter-guess/page.tsx](../src/app/chapter-guess/page.tsx); Server Component-entry | spelen | Zelfde doel-URL; ontbreekt in lokale router | canStartGame; getCurrentUser; src/lib/gameAvailability.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/chapter-guess/solo/[gameId]` | [src/app/chapter-guess/solo/[gameId]/page.tsx](../src/app/chapter-guess/solo/[gameId]/page.tsx); Server Component-entry | spelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/competition` | [src/app/competition/page.tsx](../src/app/competition/page.tsx); Server Component-entry | sociaal | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/contact` | [src/app/contact/page.tsx](../src/app/contact/page.tsx); Server Component-entry | hulp-juridisch | Lokale gedeelde inhoud; apparaatbewijs open | Zie bron en rootlayout; nog expliciet beoordelen | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/content` | [src/app/content/page.tsx](../src/app/content/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/contentCollections.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/cookies` | [src/app/cookies/page.tsx](../src/app/cookies/page.tsx); Server Component-entry | hulp-juridisch | Lokale gedeelde inhoud; apparaatbewijs open | Zie bron en rootlayout; nog expliciet beoordelen | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/courses` | [src/app/courses/page.tsx](../src/app/courses/page.tsx); Server Component-entry | leren | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/i18n/index.ts; src/lib/session.ts; src/lib/studyContent/catalogue.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
@@ -309,6 +310,7 @@ Route | Bron / rendergrens | Domeinbeleid | Native scherm / status | Data- en au
 `/dashboard` | [src/app/dashboard/page.tsx](../src/app/dashboard/page.tsx); Server Component-entry | overig-vandaag | Lokale route; Foundation gedeeltelijk, geen volledige functiepariteit | getCurrentUser; src/lib/email.ts; src/lib/generalConference.ts; src/lib/hymns/sunday.ts; src/lib/session.ts; src/lib/timeZone.ts; src/lib/today.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/dev/lofzangen` | [src/app/dev/lofzangen/page.tsx](../src/app/dev/lofzangen/page.tsx); Server Component-entry | media-hulpmiddelen | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; getHymnsAccess; src/lib/hymnAvailability.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/dev/versado-dorp` | [src/app/dev/versado-dorp/page.tsx](../src/app/dev/versado-dorp/page.tsx); Server Component-entry | dorp | Zelfde doel-URL; ontbreekt in lokale router | getCurrentUser; src/lib/dorp/access.ts; src/lib/session.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
+`/disclaimer` | [src/app/disclaimer/page.tsx](../src/app/disclaimer/page.tsx); Server Component-entry | hulp-juridisch | Lokale gedeelde inhoud; apparaatbewijs open | Zie bron en rootlayout; nog expliciet beoordelen | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/dorp` | [src/app/dorp/page.tsx](../src/app/dorp/page.tsx); Server Component-entry | dorp | Zelfde doel-URL; ontbreekt in lokale router | src/lib/dorp/pageAccess.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/dorp/groups/[groupId]` | [src/app/dorp/groups/[groupId]/page.tsx](../src/app/dorp/groups/[groupId]/page.tsx); Server Component-entry | dorp | Zelfde doel-URL; ontbreekt in lokale router | src/lib/db.ts; src/lib/dorp/pageAccess.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
 `/dorp/visit/[userId]` | [src/app/dorp/visit/[userId]/page.tsx](../src/app/dorp/visit/[userId]/page.tsx); Server Component-entry | dorp | Zelfde doel-URL; ontbreekt in lokale router | src/lib/dorp/pageAccess.ts; src/lib/dorp/service.ts | Webtests: JSON-index; native: geen volledig route-/apparaatbewijs
@@ -690,6 +692,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/app/chapter-guess/page.tsx](../src/app/chapter-guess/page.tsx) | contextafhankelijk / server-entry waar page/layout | ChapterGuessPage
 [src/app/chapter-guess/solo/[gameId]/page.tsx](../src/app/chapter-guess/solo/[gameId]/page.tsx) | contextafhankelijk / server-entry waar page/layout | ChapterGuessSoloPage
 [src/app/competition/page.tsx](../src/app/competition/page.tsx) | contextafhankelijk / server-entry waar page/layout | CompetitionPage
+[src/app/contact/page.tsx](../src/app/contact/page.tsx) | contextafhankelijk / server-entry waar page/layout | ContactPage
 [src/app/content/page.tsx](../src/app/content/page.tsx) | contextafhankelijk / server-entry waar page/layout | ContentPage
 [src/app/cookies/page.tsx](../src/app/cookies/page.tsx) | contextafhankelijk / server-entry waar page/layout | CookiesPage
 [src/app/courses/[courseId]/archief/page.tsx](../src/app/courses/[courseId]/archief/page.tsx) | contextafhankelijk / server-entry waar page/layout | CfmArchivePage
@@ -700,6 +703,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/app/dashboard/page.tsx](../src/app/dashboard/page.tsx) | contextafhankelijk / server-entry waar page/layout | DashboardPage
 [src/app/dev/lofzangen/page.tsx](../src/app/dev/lofzangen/page.tsx) | contextafhankelijk / server-entry waar page/layout | HymnsPocPage, dynamic, metadata
 [src/app/dev/versado-dorp/page.tsx](../src/app/dev/versado-dorp/page.tsx) | contextafhankelijk / server-entry waar page/layout | VersadoDorpPrototypePage, metadata
+[src/app/disclaimer/page.tsx](../src/app/disclaimer/page.tsx) | contextafhankelijk / server-entry waar page/layout | DisclaimerPage
 [src/app/dorp/groups/[groupId]/page.tsx](../src/app/dorp/groups/[groupId]/page.tsx) | contextafhankelijk / server-entry waar page/layout | GroupDorpPage
 [src/app/dorp/page.tsx](../src/app/dorp/page.tsx) | contextafhankelijk / server-entry waar page/layout | DorpPage
 [src/app/dorp/visit/[userId]/page.tsx](../src/app/dorp/visit/[userId]/page.tsx) | contextafhankelijk / server-entry waar page/layout | VisitDorpPage
@@ -980,7 +984,9 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/kompas/TourButton.tsx](../src/components/kompas/TourButton.tsx) | use client | TourButton
 [src/components/kompas/TourOverlay.tsx](../src/components/kompas/TourOverlay.tsx) | use client | TourOverlay
 [src/components/learning/ContentStatus.tsx](../src/components/learning/ContentStatus.tsx) | use client | ContentStatusInline, ContentStatusLine, LongChapterNotice, SharedProgressHint
+[src/components/legal/ContactContent.tsx](../src/components/legal/ContactContent.tsx) | use client | ContactContent
 [src/components/legal/CookiesContent.tsx](../src/components/legal/CookiesContent.tsx) | use client | CookiesContent
+[src/components/legal/DisclaimerContent.tsx](../src/components/legal/DisclaimerContent.tsx) | use client | DisclaimerContent
 [src/components/legal/PrivacyContent.tsx](../src/components/legal/PrivacyContent.tsx) | use client | PrivacyContent
 [src/components/mysteries/Mystery001aClient.tsx](../src/components/mysteries/Mystery001aClient.tsx) | use client | MysteryClient
 [src/components/mysteries/MysteryDetailPage.tsx](../src/components/mysteries/MysteryDetailPage.tsx) | contextafhankelijk / server-entry waar page/layout | MysteryDetailPage
