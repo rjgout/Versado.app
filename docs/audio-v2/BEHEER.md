@@ -127,3 +127,9 @@ De exacte eigenaarshandelingen en veilige herstelgrenzen staan in [het acceptati
 ## Grote selecties en geregistreerde hoofdstukken
 
 Zie [bulkherstel en afzonderlijke publicatie](BULK-HERSTEL.md). De beheerpagina verdeelt grote selecties in kleine batches, bewaart eerdere commits bij deelfouten en biedt een aparte hoofdstukselectie voor publicatie. Downloaden en registreren publiceren nooit automatisch. Bestaande publicaties worden door de nieuwe bulkactie niet vervangen.
+
+## Begrensde Nederlandse legacy-conversie
+
+De afzonderlijke beheerkaart, drie proefhoofdstukken, beschermde uitgangssituatie en terugval staan in
+[Legacy-audio overzetten](LEGACY-CONVERSIE.md). Gewone downloads blijven `legacyProtected` respecteren.
+Dit pad vereist een eigen bevestiging en schaalt pas na afzonderlijke acceptatie van drie proefhoofdstukken op.

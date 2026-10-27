@@ -677,6 +677,35 @@
       ]
     },
     {
+      "file": "src/app/api/admin/audio/legacy/route.ts",
+      "sha256": "058af84c53ad6a70b6f5fd6ec415d019bef728fe09b0edab15f75af82e08d0a3",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/apiError",
+        "@/lib/audio/legacyConversion",
+        "@/lib/audio/officialControls",
+        "@/lib/audio/officialJobs",
+        "@/lib/content-inventory/origin",
+        "@/lib/requestBody",
+        "@/lib/session",
+        "next/server",
+        "zod"
+      ],
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "requests": [],
+      "checks": [
+        "assertLegacySource",
+        "getCurrentUser"
+      ],
+      "exports": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
       "file": "src/app/api/admin/audio/official/route.ts",
       "sha256": "e18553126347b2de7ef2e2c394ceba2b2babb673ad831bf3ca696388bdb57d8b",
       "boundary": "context-dependent",
@@ -2366,7 +2395,7 @@
     },
     {
       "file": "src/app/api/chapters/[chapterId]/audio-languages/route.ts",
-      "sha256": "fa4b3111be0dd977bdf7914a13c2b542367cffed861b96286288eba3609ad76c",
+      "sha256": "65e1f209d81148f7fbc462c28d74f03e795e31956fb4953d19350732ead6a3ba",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
@@ -10638,7 +10667,7 @@
     },
     {
       "file": "src/components/ReadAloudPlayer.tsx",
-      "sha256": "4661cd5fb7830a6faaff51a6fb592274a45d61ef0ed0c60ecc8cdba83b80e3cd",
+      "sha256": "04863de416fb28744dc99c7d85b8e83d4ee0df9b3496a462e610b7047e5a3ff8",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -11597,12 +11626,39 @@
       ]
     },
     {
-      "file": "src/components/admin/OfficialAudioClient.tsx",
-      "sha256": "d77ac4e380b684ec5b35beec8addc7cca6a32af88ac808ae6e4fbd6199d7df4c",
+      "file": "src/components/admin/LegacyAudioClient.tsx",
+      "sha256": "36feebe305a584ea59d17dc730c65d7f190ec436c6c2c51e8448df4df3828983",
       "boundary": "client",
       "imports": [
         "./AdminNotice",
         "./AdminSection",
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/components/versado/styles",
+        "@/lib/audio/legacyConversion",
+        "@/lib/audio/officialControls",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks",
+        "@/lib/data/mutation",
+        "react"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/admin/audio/legacy"
+      ],
+      "checks": [],
+      "exports": [
+        "LegacyAudioClient"
+      ]
+    },
+    {
+      "file": "src/components/admin/OfficialAudioClient.tsx",
+      "sha256": "ed1e54dd9cbcf9b1b89c27a7b1545bca263698b0ba07a5c164c6b978fc585ab9",
+      "boundary": "client",
+      "imports": [
+        "./AdminNotice",
+        "./AdminSection",
+        "./LegacyAudioClient",
         "@/components/ConfirmProvider",
         "@/components/I18nProvider",
         "@/components/versado/styles",
@@ -15810,11 +15866,47 @@
       ]
     },
     {
-      "file": "src/lib/audio/library.ts",
-      "sha256": "086cb66fd90ac9095df24b84dbe4fc03c2cebdc584957aa5f4bccd21fc3e556a",
+      "file": "src/lib/audio/legacyConversion.ts",
+      "sha256": "1679e9030fb7c5bb603faf8fddcf4e6c3ea20e5af71db0cbeef6e660f8182304",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
+        "./officialCatalogue",
+        "./storage",
+        "@/generated/prisma/client",
+        "@/lib/audioMirror",
+        "@/lib/db",
+        "node:crypto",
+        "node:fs",
+        "node:path",
+        "zod"
+      ],
+      "methods": [],
+      "requests": [],
+      "checks": [
+        "assertLegacyBaseline",
+        "assertLegacySource"
+      ],
+      "exports": [
+        "LEGACY_PILOT_IDS",
+        "assertLegacyAllowed",
+        "assertLegacyBaseline",
+        "assertLegacySource",
+        "legacyFallback",
+        "legacyInventory",
+        "legacyPilotApproved",
+        "legacySources",
+        "prepareLegacyConversion"
+      ]
+    },
+    {
+      "file": "src/lib/audio/library.ts",
+      "sha256": "8fb5180c9ba64fbabaeadf91c350e21088bf18ac4070153d49b24157277bd2fb",
+      "boundary": "context-dependent",
+      "imports": [
+        "./contract",
+        "./legacyConversion",
+        "./officialCatalogue",
         "./officialGuard",
         "./storage",
         "@/generated/prisma/client",
@@ -15828,6 +15920,7 @@
       "methods": [],
       "requests": [],
       "checks": [
+        "assertLegacyBaseline",
         "assertOfficialPublication",
         "assertOfficialRegistration",
         "verifyObject"
@@ -15860,7 +15953,7 @@
     },
     {
       "file": "src/lib/audio/officialControls.ts",
-      "sha256": "91cd0e2b462c0b63ff400128474d4c716edc904f4757a5b5e4ab213283a25a4a",
+      "sha256": "cc8c9d45f8ca2f45b670f39b01a61b524b2453d2e43dd4571072f91a389f64f8",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/i18n/core"
@@ -15898,16 +15991,19 @@
     },
     {
       "file": "src/lib/audio/officialGuard.ts",
-      "sha256": "f329e048468aca77641aba73cfd7c480faccafcfd1a464dfb284ab63d0caa244",
+      "sha256": "578c1016af604ca9e2c0d0163951329b256af8a5f10c450903851d9157809351",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
+        "./legacyConversion",
         "./officialCatalogue",
         "@/generated/prisma/client"
       ],
       "methods": [],
       "requests": [],
-      "checks": [],
+      "checks": [
+        "assertLegacyAllowed"
+      ],
       "exports": [
         "assertOfficialPublication",
         "assertOfficialRegistration",
@@ -15917,10 +16013,11 @@
     },
     {
       "file": "src/lib/audio/officialJobs.ts",
-      "sha256": "1c3a884a6f0adb9103dbb7b168700bd776ea14c7f7826578a84e4622256364a5",
+      "sha256": "d50c579f0bf78b76dcafea0e0d628ca79d5e7b7d5e42cc2f0383e583e67f2341",
       "boundary": "context-dependent",
       "imports": [
         "./contract",
+        "./legacyConversion",
         "./library",
         "./officialCatalogue",
         "./officialControls",
@@ -15939,12 +16036,17 @@
       "methods": [],
       "requests": [],
       "checks": [
+        "assertLegacyAllowed",
+        "assertLegacyBaseline",
+        "assertLegacySource",
         "verifyObject"
       ],
       "exports": [
+        "approveLegacyPilot",
         "officialErrorCode",
         "officialOverview",
         "publishOfficialSelection",
+        "requestLegacyAudio",
         "requestOfficialAudio",
         "runOfficialAudioTick"
       ]
@@ -18682,7 +18784,7 @@
     },
     {
       "file": "src/lib/i18n/messages/de.ts",
-      "sha256": "8fcba081789a9d0b9411ff540c03adb8fcf6a05882e14d71e51766a6a54523d5",
+      "sha256": "3477dfaa1860a5c0e68fd8edf529e52d327c84b47cd64ca9b493efb1daf65665",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18697,7 +18799,7 @@
     },
     {
       "file": "src/lib/i18n/messages/en.ts",
-      "sha256": "7134a9ff48f22c9cc1ba60b8709a88d82fddb100219784758cdf136651aab860",
+      "sha256": "080145894e888d6e839bb0723a81fcad0b93d86a614a85beb92b4a7493ab6ad7",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18712,7 +18814,7 @@
     },
     {
       "file": "src/lib/i18n/messages/es.ts",
-      "sha256": "2dbfd7626731c5357a761ef010ae0fb67d4bb1cfcf4cf3977121d129cd03ec09",
+      "sha256": "59beb84e00a6adc1045182c86078aef1825f19f3919663fe9751680ba1d6413c",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18727,7 +18829,7 @@
     },
     {
       "file": "src/lib/i18n/messages/fr.ts",
-      "sha256": "b302ea613a3ae97a576f1f72e3daec199aee8968cacb59b80181c304fdf7f63a",
+      "sha256": "500a98eeae8770bf16cc6a5c75bc0e60c0f1ed8fe1268434d3a57153370ec87a",
       "boundary": "context-dependent",
       "imports": [
         "../core",
@@ -18810,7 +18912,7 @@
     },
     {
       "file": "src/lib/i18n/messages/nl.ts",
-      "sha256": "ea07413b2e99b55228d7d80c68773521ca220a83e4386f46f44bb431ff007d0f",
+      "sha256": "bb165983916151246d99e830209c9b56c06b8fd28acc103b0a7abd05ac87e832",
       "boundary": "context-dependent",
       "imports": [
         "./kompas/nl"
@@ -21670,7 +21772,7 @@
     },
     {
       "file": "src/lib/readAloudPlayerContext.tsx",
-      "sha256": "cd6433ec7d0b457e20efac2064e071a49242f0aeeb8613a5524dae7289b79190",
+      "sha256": "cce5aeba9d6e166bffd1a8d01cafe0499f4dba6d9641da01ec508eac7beb78a4",
       "boundary": "client",
       "imports": [
         "@/lib/languages",
@@ -26473,6 +26575,7 @@
         "src/components/admin/AdminNotice.tsx",
         "src/components/admin/AdminPageHeader.tsx",
         "src/components/admin/AdminSection.tsx",
+        "src/components/admin/LegacyAudioClient.tsx",
         "src/components/admin/OfficialAudioClient.tsx",
         "src/components/versado/PageIntro.tsx",
         "src/components/versado/styles.ts",
@@ -26480,6 +26583,7 @@
         "src/lib/alleskenner/content.ts",
         "src/lib/alleskenner/validate.ts",
         "src/lib/audio/contract.ts",
+        "src/lib/audio/legacyConversion.ts",
         "src/lib/audio/library.ts",
         "src/lib/audio/officialCatalogue.ts",
         "src/lib/audio/officialControls.ts",
@@ -26569,6 +26673,7 @@
         "src/components/ConfirmProvider.tsx",
         "src/components/I18nProvider.tsx",
         "src/components/admin/AdminAudioClient.tsx",
+        "src/components/admin/LegacyAudioClient.tsx",
         "src/components/admin/OfficialAudioClient.tsx",
         "src/lib/data/client.ts",
         "src/lib/data/hooks.ts",
@@ -26578,6 +26683,7 @@
       ],
       "requestEvidence": [
         "/api/admin/audio",
+        "/api/admin/audio/legacy",
         "/api/admin/audio/official"
       ],
       "authEvidence": [
@@ -28723,6 +28829,7 @@
         "src/app/api/admin/audio/route.ts",
         "src/lib/apiError.ts",
         "src/lib/audio/contract.ts",
+        "src/lib/audio/legacyConversion.ts",
         "src/lib/audio/library.ts",
         "src/lib/audio/officialCatalogue.ts",
         "src/lib/audio/officialGuard.ts",
@@ -28832,6 +28939,102 @@
       ]
     },
     {
+      "file": "src/app/api/admin/audio/legacy/route.ts",
+      "sha256": "058af84c53ad6a70b6f5fd6ec415d019bef728fe09b0edab15f75af82e08d0a3",
+      "boundary": "context-dependent",
+      "imports": [
+        "@/lib/apiError",
+        "@/lib/audio/legacyConversion",
+        "@/lib/audio/officialControls",
+        "@/lib/audio/officialJobs",
+        "@/lib/content-inventory/origin",
+        "@/lib/requestBody",
+        "@/lib/session",
+        "next/server",
+        "zod"
+      ],
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "requests": [],
+      "checks": [
+        "assertLegacySource",
+        "getCurrentUser"
+      ],
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "route": "/api/admin/audio/legacy",
+      "kind": "api",
+      "domain": "beheer",
+      "dependencies": [
+        "src/app/api/admin/audio/legacy/route.ts",
+        "src/lib/apiError.ts",
+        "src/lib/audio/contract.ts",
+        "src/lib/audio/legacyConversion.ts",
+        "src/lib/audio/library.ts",
+        "src/lib/audio/officialCatalogue.ts",
+        "src/lib/audio/officialControls.ts",
+        "src/lib/audio/officialDownload.ts",
+        "src/lib/audio/officialGuard.ts",
+        "src/lib/audio/officialJobs.ts",
+        "src/lib/audio/storage.ts",
+        "src/lib/audioMirror.ts",
+        "src/lib/auth.ts",
+        "src/lib/content-inventory/origin.ts",
+        "src/lib/contentAccess.ts",
+        "src/lib/contentImportLock.ts",
+        "src/lib/db.ts",
+        "src/lib/i18n/core.ts",
+        "src/lib/i18n/index.ts",
+        "src/lib/i18n/messages/de.ts",
+        "src/lib/i18n/messages/en.ts",
+        "src/lib/i18n/messages/es.ts",
+        "src/lib/i18n/messages/fr.ts",
+        "src/lib/i18n/messages/kompas/de.ts",
+        "src/lib/i18n/messages/kompas/en.ts",
+        "src/lib/i18n/messages/kompas/es.ts",
+        "src/lib/i18n/messages/kompas/fr.ts",
+        "src/lib/i18n/messages/kompas/nl.ts",
+        "src/lib/i18n/messages/nl.ts",
+        "src/lib/i18n/serverTexts.ts",
+        "src/lib/languages.ts",
+        "src/lib/references/otb.ts",
+        "src/lib/requestBody.ts",
+        "src/lib/requestLanguage.ts",
+        "src/lib/session.ts",
+        "src/lib/studyContent/cfm2026Manifest.ts",
+        "src/lib/studyContent/cfm2027Manifest.ts",
+        "src/lib/studyContent/cfmScripture.ts",
+        "src/lib/studyContent/cfmSources.ts",
+        "src/lib/studyContent/cfmVolumes.ts",
+        "src/lib/studyContent/download.ts",
+        "src/lib/studyContent/manifest.ts",
+        "src/lib/studyContent/policy.ts",
+        "src/lib/studyContent/revisions.ts",
+        "src/lib/studyContent/schema.ts",
+        "src/lib/studyContent/storage.ts",
+        "src/lib/studyContextContract.ts"
+      ],
+      "directModules": [
+        "src/lib/apiError.ts",
+        "src/lib/audio/legacyConversion.ts",
+        "src/lib/audio/officialControls.ts",
+        "src/lib/audio/officialJobs.ts",
+        "src/lib/content-inventory/origin.ts",
+        "src/lib/requestBody.ts",
+        "src/lib/session.ts"
+      ],
+      "clientBoundaries": [],
+      "requestEvidence": [],
+      "authEvidence": [
+        "assertLegacySource",
+        "getCurrentUser"
+      ]
+    },
+    {
       "file": "src/app/api/admin/audio/official/route.ts",
       "sha256": "e18553126347b2de7ef2e2c394ceba2b2babb673ad831bf3ca696388bdb57d8b",
       "boundary": "context-dependent",
@@ -28864,6 +29067,7 @@
         "src/app/api/admin/audio/official/route.ts",
         "src/lib/apiError.ts",
         "src/lib/audio/contract.ts",
+        "src/lib/audio/legacyConversion.ts",
         "src/lib/audio/library.ts",
         "src/lib/audio/officialCatalogue.ts",
         "src/lib/audio/officialControls.ts",
@@ -32506,6 +32710,7 @@
         "src/app/api/audio/recordings/[id]/route.ts",
         "src/lib/apiError.ts",
         "src/lib/audio/contract.ts",
+        "src/lib/audio/legacyConversion.ts",
         "src/lib/audio/library.ts",
         "src/lib/audio/officialCatalogue.ts",
         "src/lib/audio/officialGuard.ts",
@@ -34891,7 +35096,7 @@
     },
     {
       "file": "src/app/api/chapters/[chapterId]/audio-languages/route.ts",
-      "sha256": "fa4b3111be0dd977bdf7914a13c2b542367cffed861b96286288eba3609ad76c",
+      "sha256": "65e1f209d81148f7fbc462c28d74f03e795e31956fb4953d19350732ead6a3ba",
       "boundary": "context-dependent",
       "imports": [
         "@/lib/apiError",
@@ -34922,6 +35127,7 @@
         "src/app/api/chapters/[chapterId]/audio-languages/route.ts",
         "src/lib/apiError.ts",
         "src/lib/audio/contract.ts",
+        "src/lib/audio/legacyConversion.ts",
         "src/lib/audio/library.ts",
         "src/lib/audio/officialCatalogue.ts",
         "src/lib/audio/officialGuard.ts",
@@ -71658,7 +71864,7 @@
     },
     {
       "file": "src/components/ReadAloudPlayer.tsx",
-      "sha256": "4661cd5fb7830a6faaff51a6fb592274a45d61ef0ed0c60ecc8cdba83b80e3cd",
+      "sha256": "04863de416fb28744dc99c7d85b8e83d4ee0df9b3496a462e610b7047e5a3ff8",
       "boundary": "client",
       "imports": [
         "@/components/AppSelect",
@@ -72617,12 +72823,39 @@
       ]
     },
     {
-      "file": "src/components/admin/OfficialAudioClient.tsx",
-      "sha256": "d77ac4e380b684ec5b35beec8addc7cca6a32af88ac808ae6e4fbd6199d7df4c",
+      "file": "src/components/admin/LegacyAudioClient.tsx",
+      "sha256": "36feebe305a584ea59d17dc730c65d7f190ec436c6c2c51e8448df4df3828983",
       "boundary": "client",
       "imports": [
         "./AdminNotice",
         "./AdminSection",
+        "@/components/ConfirmProvider",
+        "@/components/I18nProvider",
+        "@/components/versado/styles",
+        "@/lib/audio/legacyConversion",
+        "@/lib/audio/officialControls",
+        "@/lib/data/fetchJson",
+        "@/lib/data/hooks",
+        "@/lib/data/mutation",
+        "react"
+      ],
+      "methods": [],
+      "requests": [
+        "/api/admin/audio/legacy"
+      ],
+      "checks": [],
+      "exports": [
+        "LegacyAudioClient"
+      ]
+    },
+    {
+      "file": "src/components/admin/OfficialAudioClient.tsx",
+      "sha256": "ed1e54dd9cbcf9b1b89c27a7b1545bca263698b0ba07a5c164c6b978fc585ab9",
+      "boundary": "client",
+      "imports": [
+        "./AdminNotice",
+        "./AdminSection",
+        "./LegacyAudioClient",
         "@/components/ConfirmProvider",
         "@/components/I18nProvider",
         "@/components/versado/styles",
@@ -75874,7 +76107,7 @@
     },
     {
       "file": "src/lib/readAloudPlayerContext.tsx",
-      "sha256": "cd6433ec7d0b457e20efac2064e071a49242f0aeeb8613a5524dae7289b79190",
+      "sha256": "cce5aeba9d6e166bffd1a8d01cafe0499f4dba6d9641da01ec508eac7beb78a4",
       "boundary": "client",
       "imports": [
         "@/lib/languages",
@@ -75974,6 +76207,8 @@
     "tests/annotation-revision-resolution.test.ts",
     "tests/annotation-selector.test.ts",
     "tests/artwork.test.ts",
+    "tests/audio-legacy.browser.mjs",
+    "tests/audio-legacy.integration.test.ts",
     "tests/audio-library.browser.mjs",
     "tests/audio-library.integration.test.ts",
     "tests/audio-library.test.ts",

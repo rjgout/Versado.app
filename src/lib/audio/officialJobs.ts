@@ -12,6 +12,7 @@ import { officialSources, type OfficialSource } from "./officialCatalogue";
 import { downloadOfficial, validateOfficialPage, type OfficialNetwork } from "./officialDownload";
 import { audioRoot, safeDirectory, readBounded, storeAudio, verifyObject } from "./storage";
 import { importAudioPackage, publishAudio } from "./library";
+import { assertLegacyAllowed, assertLegacySource, prepareLegacyConversion, legacySources, LEGACY_PILOT_IDS, legacyPilotApproved, assertLegacyBaseline } from "./legacyConversion";
 import { lockAudioAdmin, lockOfficialPolicy } from "./officialGuard";
 
 type Actor = { id: string; sessionVersion: number };
@@ -31,7 +32,8 @@ export const officialErrorCode = (error: unknown) => {
   return error instanceof Error && /^[A-Z_]{2,80}$/.test(error.message) ? error.message : "AUDIO_TASK_FAILED";
 };
 async function target(source: OfficialSource, db: DB) {
-  if (source.legacyProtected || source.quality !== "VALIDATED") throw Error("SOURCE_PROTECTED");
+  if (source.quality !== "VALIDATED") throw Error("SOURCE_PROTECTED");
+  if(source.legacyProtected)await assertLegacyAllowed(db,source);
   const chapter = await db.chapter.findFirst({ where: { number: source.chapterNumber, book: { key: source.bookKey, contentCollection: { work: source.work, editionKey: source.editionKey, language: source.language } } }, include: { book: true, verses: { orderBy: { number: "asc" } } } });
   if (!chapter) throw Error("TARGET_MISSING");
   if (chapterSourceHash(chapter) !== source.sourceHash || chapter.verses.length !== source.verses) throw Error("SOURCE_MISMATCH");
@@ -42,10 +44,10 @@ async function existing(source: OfficialSource, db: DB, recordingId?:string) {
   const segments=chapter.verses.map((v,i)=>({id:v.id,kind:"VERSE",sourceHash:sha256(v.text),start:source.starts[i],end:source.starts[i+1]??source.duration}));
   return db.audioRecording.findFirst({ where: { ...(recordingId?{id:recordingId}:{}),chapterId: chapter.id, sourceHash: source.sourceHash, sha256: source.sha256, sourceKind: "OFFICIAL",quality:{path:["status"],equals:"VALIDATED"},segments:{equals:json(segments)}, voice: { path: ["name"], equals: source.voice }, sourceMetadata: { path: ["url"], equals: source.url } } });
 }
-export async function requestOfficialAudio(actor: Actor, action: "download" | "register" | "resume", ids: string[], db: PrismaClient = prisma, catalogue: readonly OfficialSource[] = officialSources) {
+export async function requestOfficialAudio(actor: Actor, action: "download" | "register" | "resume", ids: string[], db: PrismaClient = prisma, catalogue: readonly OfficialSource[] = officialSources, conversion = false) {
   if (!ids.length || ids.length > 2000 || new Set(ids).size !== ids.length) throw Error("INVALID_ACTION");
   const sources = ids.map((id) => { const s = catalogue.find((item)=>item.id===id); if (!s) throw Error("SOURCE_UNKNOWN"); return s; }).sort((a,b)=>a.id.localeCompare(b.id));
-  if(sources.some(s=>s.legacyProtected||s.quality!=="VALIDATED"))throw Error("SOURCE_PROTECTED");
+  if(sources.some(s=>(s.legacyProtected&&!conversion)||s.quality!=="VALIDATED"))throw Error("SOURCE_PROTECTED");
   const root=await audioRoot();
   let accepted=0;
   // Eén hoofdstuk per commit. Een trage bron of verloren response draait eerdere voorbereidingen niet terug.
@@ -70,6 +72,7 @@ export async function requestOfficialAudio(actor: Actor, action: "download" | "r
         await tx.$executeRawUnsafe("SET LOCAL statement_timeout = '4000ms'");
         await lockAudioAdmin(tx,actor);
         await lockOfficialPolicy(tx);
+        if(source.legacyProtected)await assertLegacyAllowed(tx,source);
         await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`official-task:${source.id}`}, 0))::text`;
         const task=await tx.officialAudioTask.findUnique({where:{id:source.id}});
         if((task?.status==="RUNNING"||task?.status==="QUEUED")&&!(action==="resume"&&officialTaskRecoverable(task)))return;
@@ -80,10 +83,14 @@ export async function requestOfficialAudio(actor: Actor, action: "download" | "r
           return;
         }
         if(found) {
-          if((action==="download"||action==="resume")&&!present) {
+          if(source.legacyProtected&&action==="register"&&!task?.checkedAt)throw Error("DOWNLOAD_REQUIRED");
+          if((action==="download"||action==="resume")&&(!present||(source.legacyProtected&&!task?.checkedAt))) {
             await tx.officialAudioTask.upsert({where:{id:source.id},create:{id:source.id,actorId:actor.id,actorSessionVersion:actor.sessionVersion,recordingId:found.id},update:{status:"QUEUED",phase:"DOWNLOAD",actorId:actor.id,actorSessionVersion:actor.sessionVersion,recordingId:found.id,errorCode:null}});
           } else {
-            await tx.officialAudioTask.upsert({where:{id:source.id},create:{id:source.id,actorId:actor.id,actorSessionVersion:actor.sessionVersion,status:"REGISTERED",recordingId:found.id},update:{status:"REGISTERED",recordingId:found.id,errorCode:null}});
+            const registration=source.legacyProtected&&action==="register";
+            const status=source.legacyProtected&&!task?.registrationApprovedAt&&!registration?"VALIDATED":"REGISTERED";
+            const consent=registration?{registrationApprovedAt:new Date(),actorId:actor.id,actorSessionVersion:actor.sessionVersion,phase:"REGISTER"}:{};
+            await tx.officialAudioTask.upsert({where:{id:source.id},create:{id:source.id,actorId:actor.id,actorSessionVersion:actor.sessionVersion,status,recordingId:found.id,...consent},update:{status,recordingId:found.id,errorCode:null,...consent}});
           }
           return;
         }
@@ -103,14 +110,14 @@ export async function requestOfficialAudio(actor: Actor, action: "download" | "r
 }
 
 /** Afzonderlijk bevestigd besluit; één bestaande publicatietransactie per kandidaat, nooit vervangen. */
-export async function publishOfficialSelection(actor:Actor&{isAdmin:boolean}, selections:{id:string;recordingId:string}[], db:PrismaClient=prisma, catalogue:readonly OfficialSource[]=officialSources) {
+export async function publishOfficialSelection(actor:Actor&{isAdmin:boolean}, selections:{id:string;recordingId:string}[], db:PrismaClient=prisma, catalogue:readonly OfficialSource[]=officialSources,conversion=false) {
   if(!selections.length||selections.length>20||new Set(selections.map(s=>s.id)).size!==selections.length)throw Error("INVALID_ACTION");
   const results:{id:string;status:"PUBLISHED"|"FAILED";errorCode:string|null}[]=[];
   for(const selection of selections) {
     try {
       const source=catalogue.find(s=>s.id===selection.id);
       if(!source)throw Error("SOURCE_UNKNOWN");
-      if(source.legacyProtected||source.quality!=="VALIDATED")throw Error("SOURCE_PROTECTED");
+      if((source.legacyProtected&&!conversion)||source.quality!=="VALIDATED")throw Error("SOURCE_PROTECTED");
       const record=await existing(source,db,selection.recordingId);
       if(!record||record.id!==selection.recordingId)throw Error("SOURCE_MISMATCH");
       await publishAudio(actor,record.id,0,db,{onlyIfUnpublished:true});
@@ -140,11 +147,12 @@ async function perform(task: OfficialAudioTask, token: string, signal: AbortSign
     const report = Buffer.from(JSON.stringify({ quality:"VALIDATED",sourceHash:source.sourceHash,sha256:source.sha256,starts:source.starts,method:"PINNED_OFFICIAL_ALIGNMENT" }));
     const manifest: AudioManifest = { schemaVersion:1,packageId:packageName(task.id),collectionId:chapter.book.contentCollectionId,work:source.work,editionKey:source.editionKey,language:source.language as AudioManifest["language"],target:{kind:"CHAPTER",bookKey:source.bookKey,chapterNumber:source.chapterNumber},sourceHash:source.sourceHash,sourceKind:"OFFICIAL",source:{name:"The Church of Jesus Christ of Latter-day Saints",url:source.url,checkedAt:checkedAt.toISOString(),rights:"Officiële opname; bestaande bronvoorwaarden blijven van toepassing. Geen openbare audiomirror."},voice:{name:source.voice},audio:{file:"audio.mp3",sha256:source.sha256,bytes:source.bytes,duration:source.duration,format:"mp3"},segments:{file:"segments.json",sha256:sha256(segments)},quality:"VALIDATED",qualityReport:{file:"quality-report.json",sha256:sha256(report)} };
     let validated=false;
-    if (!await cached(source,folder)) {
+    const freshLegacy=source.legacyProtected&&!task.checkedAt;
+    if (!freshLegacy&&!await cached(source,folder)) {
       try { const object = await verifyObject(source.sha256,source.bytes); await fs.link(object,path.join(folder,"audio.mp3")); }
       catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; }
     }
-    if (!await cached(source,folder)) {
+    if (freshLegacy||!await cached(source,folder)) {
       const name=`${token}.mp3`,temp=path.join(folder,name);
       try {
         await downloadOfficial(source.url,signal,network,temp,source.bytes,async(size)=>{
@@ -161,7 +169,9 @@ async function perform(task: OfficialAudioTask, token: string, signal: AbortSign
     await checkLease();
     await db.$transaction(async (tx) => {
       await lockAudioAdmin(tx,{id:task.actorId,sessionVersion:task.actorSessionVersion});
-      const changed = await tx.officialAudioTask.updateMany({ where:{id:task.id,leaseToken:token,status:"RUNNING"},data:{status:task.recordingId?"REGISTERED":"VALIDATED",manifest:json(manifest),checkedAt,bytesDownloaded:source.bytes,errorCode:null,leaseUntil:null} });
+      await lockOfficialPolicy(tx);
+      if(source.legacyProtected)await assertLegacyAllowed(tx,source);
+      const changed = await tx.officialAudioTask.updateMany({ where:{id:task.id,leaseToken:token,status:"RUNNING"},data:{status:task.recordingId&&(!source.legacyProtected||task.registrationApprovedAt)?"REGISTERED":"VALIDATED",manifest:json(manifest),checkedAt,bytesDownloaded:source.bytes,errorCode:null,leaseUntil:null} });
       if (!changed.count) throw Error("LEASE_LOST");
     });
   } else {
@@ -273,3 +283,41 @@ export async function officialOverview(db: PrismaClient = prisma) {
   })),active:tasks.some((t)=>["RUNNING","QUEUED"].includes(t.status))};
 }
 export type OfficialOverview=Awaited<ReturnType<typeof officialOverview>>;
+
+/** Uitsluitend het expliciete conversie-endpoint; normale aanvragen blijven legacyProtected weigeren. */
+export async function requestLegacyAudio(actor:Actor,action:"download"|"register"|"resume",ids:string[],planHash:string|undefined,db:PrismaClient=prisma,catalogue:readonly OfficialSource[]=officialSources) {
+  if(!ids.length||ids.length>3||new Set(ids).size!==ids.length)throw Error("INVALID_ACTION");
+  for(const id of ids){const source=catalogue.find(s=>s.id===id);if(!source)throw Error("SOURCE_PROTECTED");assertLegacySource(source);}
+  if(action==="download") {
+    const plan=await prepareLegacyConversion(ids,db);
+    if(plan.planHash!==planHash)throw Error("LEGACY_BASELINE_CHANGED");
+    for(const baseline of plan.baselines)await db.$transaction(async tx=>{
+      await lockAudioAdmin(tx,actor);await lockOfficialPolicy(tx);
+      if(!(LEGACY_PILOT_IDS as readonly string[]).includes(baseline.sourceId)&&!await legacyPilotApproved(tx))throw Error("LEGACY_PILOT_REQUIRED");
+      const before=await tx.officialAudioTask.findUnique({where:{id:baseline.sourceId}});
+      if(before?.legacyBaseline){
+        if(objectHash(before.legacyBaseline)!==objectHash(baseline))throw Error("LEGACY_BASELINE_CHANGED");
+        await assertLegacyBaseline(tx,legacySources.find(s=>s.id===baseline.sourceId)!);
+        return;
+      }
+      await tx.officialAudioTask.upsert({where:{id:baseline.sourceId},create:{id:baseline.sourceId,actorId:actor.id,actorSessionVersion:actor.sessionVersion,status:"FAILED",errorCode:"LEGACY_PREPARED",legacyBaseline:json(baseline),legacyApprovedAt:new Date()},update:{legacyBaseline:json(baseline),legacyApprovedAt:new Date()}});
+      await assertLegacyBaseline(tx,legacySources.find(s=>s.id===baseline.sourceId)!);
+    },{timeout:5000});
+  }
+  return requestOfficialAudio(actor,action,ids,db,catalogue,true);
+}
+/** Eigenaar bevestigt beluistering, telefoon, versnavigatie en terugval voor precies de drie proefhoofdstukken. */
+export async function approveLegacyPilot(actor:Actor,db:PrismaClient=prisma) {
+  const records=await db.officialAudioTask.findMany({where:{id:{in:[...LEGACY_PILOT_IDS]}},include:{recording:true}});
+  if(records.length!==3||records.some(t=>t.status!=="REGISTERED"||!t.recording))throw Error("LEGACY_PILOT_INCOMPLETE");
+  for(const task of records)await verifyObject(task.recording!.sha256,task.recording!.byteSize);
+  return db.$transaction(async tx=>{
+    await lockAudioAdmin(tx,actor);await lockOfficialPolicy(tx);
+    const current=await tx.officialAudioTask.findMany({where:{id:{in:[...LEGACY_PILOT_IDS]}},orderBy:{id:"asc"}});
+    for(const task of current){if(task.status!=="REGISTERED")throw Error("LEGACY_PILOT_INCOMPLETE");await assertLegacyBaseline(tx,legacySources.find(s=>s.id===task.id)!);if(task.recordingId!==records.find(r=>r.id===task.id)?.recordingId)throw Error("LEGACY_PILOT_INCOMPLETE");}
+    if(current.length!==3||await tx.audioPublication.count({where:{recordingId:{in:current.map(t=>t.recordingId!)}}})!==3)throw Error("LEGACY_PILOT_INCOMPLETE");
+    const key=objectHash(current.map(t=>({id:t.id,recordingId:t.recordingId,baseline:t.legacyBaseline})));
+    await tx.officialAudioTask.updateMany({where:{id:{in:[...LEGACY_PILOT_IDS]}},data:{legacyAcceptanceKey:key,legacyAcceptedById:actor.id,legacyAcceptedAt:new Date()}});
+    return {approved:true};
+  });
+}

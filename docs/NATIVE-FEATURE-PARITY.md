@@ -278,7 +278,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **143 pagina's**, **243 fysieke routehandlers**, **430 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **143 pagina's**, **244 fysieke routehandlers**, **431 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -447,6 +447,7 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/admin/alleskenner/[id]` | PUT | [src/app/api/admin/alleskenner/[id]/route.ts](../src/app/api/admin/alleskenner/[id]/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/audio` | GET, POST | [src/app/api/admin/audio/route.ts](../src/app/api/admin/audio/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/audio-checks` | GET, POST | [src/app/api/admin/audio-checks/route.ts](../src/app/api/admin/audio-checks/route.ts) | beheer; getCurrentUser, requireAdmin | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/admin/audio/legacy` | GET, POST | [src/app/api/admin/audio/legacy/route.ts](../src/app/api/admin/audio/legacy/route.ts) | beheer; assertLegacySource, getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/audio/official` | GET, POST | [src/app/api/admin/audio/official/route.ts](../src/app/api/admin/audio/official/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/branding` | GET, PUT | [src/app/api/admin/branding/route.ts](../src/app/api/admin/branding/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/changelog` | GET, POST | [src/app/api/admin/changelog/route.ts](../src/app/api/admin/changelog/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
@@ -962,6 +963,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/admin/AdminSection.tsx](../src/components/admin/AdminSection.tsx) | contextafhankelijk / server-entry waar page/layout | AdminSection
 [src/components/admin/AdminStudyPublicationsClient.tsx](../src/components/admin/AdminStudyPublicationsClient.tsx) | use client | AdminStudyPublicationsClient
 [src/components/admin/AdminTable.tsx](../src/components/admin/AdminTable.tsx) | contextafhankelijk / server-entry waar page/layout | AdminTable
+[src/components/admin/LegacyAudioClient.tsx](../src/components/admin/LegacyAudioClient.tsx) | use client | LegacyAudioClient
 [src/components/admin/OfficialAudioClient.tsx](../src/components/admin/OfficialAudioClient.tsx) | use client | OfficialAudioClient
 [src/components/admin/ScriptureUpdateClient.tsx](../src/components/admin/ScriptureUpdateClient.tsx) | use client | ScriptureUpdateClient
 [src/components/admin/StudyRevisionContent.tsx](../src/components/admin/StudyRevisionContent.tsx) | contextafhankelijk / server-entry waar page/layout | StudyRevisionContent

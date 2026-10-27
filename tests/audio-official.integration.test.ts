@@ -348,7 +348,7 @@ test("normaal audiobeheer heeft geen Ether-goedkeuring nodig en herstelt oude ta
   assert.equal(await audioCalls(),calls);assert.equal(await prisma.audioRecording.count(),records);assert.deepEqual(await prisma.audioPublication.findMany({orderBy:{targetKey:"asc"}}),pointers);
  }finally {
   const {id,createdAt,updatedAt,...restore}=before;void id;void createdAt;void updatedAt;
-  await prisma.officialAudioTask.update({where:{id:source.id},data:{...restore,manifest:restore.manifest===null?Prisma.DbNull:restore.manifest as Prisma.InputJsonValue}});
+  await prisma.officialAudioTask.update({where:{id:source.id},data:{...restore,legacyBaseline:restore.legacyBaseline===null?Prisma.DbNull:restore.legacyBaseline as Prisma.InputJsonValue,manifest:restore.manifest===null?Prisma.DbNull:restore.manifest as Prisma.InputJsonValue}});
  }
  assert.deepEqual(await snapshot(),baseline);
 });

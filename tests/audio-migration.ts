@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { writeFile, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { BOOK_KEYS_BY_SLUG } from "../prisma/bookKeys";
 import { seedBooks } from "../prisma/content";
 import audio from "../prisma/bomAudio.json";
 import { chapterTextHash } from "../src/lib/audioCheck";
@@ -17,7 +18,7 @@ try {
     for (const [order, book] of seedBooks.entries()) {
       const chapters = book.chapters.filter((c) => audio.some((e) => e.book === book.slug && e.chapter === c.number));
       if (!chapters.length) continue;
-      await prisma.book.create({ data: { slug: book.slug, key: book.key, name: book.name, order, contentCollectionId: "content_bom", chapters: { create: chapters.map((c) => {
+      await prisma.book.create({ data: { slug: book.slug, key: book.key ?? BOOK_KEYS_BY_SLUG[book.slug], name: book.name, order, contentCollectionId: "content_bom", chapters: { create: chapters.map((c) => {
         const entry = audio.find((e) => e.book === book.slug && e.chapter === c.number)!;
         return { number: c.number, order: c.number - 1, heading: c.heading, audioUrl: entry.url, audioHeadingStart: entry.headingStart, audioHeadingEnd: entry.headingEnd, verses: { create: c.verses.map((text, i) => ({ number: i + 1, text, audioStart: entry.verseStarts[i] })) } };
       }) } } });

@@ -7,6 +7,8 @@ import { prisma } from "@/lib/db";
 import { readingAccessWhere, collectionAccessWhere, type ContentActor } from "@/lib/contentAccess";
 import { audioRoot, safeDirectory, readBounded, storeAudio, verifyObject } from "./storage";
 import { manifestSchema, segmentsSchema, packageId, sha256, chapterSourceHash, validateSegments, type AudioManifest } from "./contract";
+import { assertLegacyBaseline, legacyFallback } from "./legacyConversion";
+import { officialSource } from "./officialCatalogue";
 import { assertOfficialRegistration, assertOfficialPublication } from "./officialGuard";
 
 type DB = PrismaClient | Prisma.TransactionClient;
@@ -77,6 +79,8 @@ export async function importAudioPackage(folder: string, db: PrismaClient = pris
       await tx.$queryRaw`SELECT "id" FROM "Chapter" WHERE "id" = ${chapter.id} FOR SHARE`;
       await tx.$queryRaw`SELECT "id" FROM "Verse" WHERE "chapterId" = ${chapter.id} ORDER BY "id" FOR SHARE`;
       const current=await target(tx, manifest);
+      const source=manifest.packageId.startsWith("admin-official-")?officialSource(manifest.packageId.slice("admin-official-".length)):undefined;
+      if(source?.legacyProtected)await assertLegacyBaseline(tx,source);
       if (current.id !== chapter.id) throw Error("SOURCE_MISMATCH");
       if(segments.length||manifest.quality==="VALIDATED")validateSegments(segments,current.verses,manifest.audio.duration);
       if (manifest.sourceKind === "OFFICIAL" && await tx.audioRecording.findFirst({ where: { collectionId: manifest.collectionId, chapterId: chapter.id, sourceHash: manifest.sourceHash, sha256: manifest.audio.sha256, sourceKind: "OFFICIAL",quality:{path:["status"],equals:manifest.quality},segments:{equals:json(segments)}, voice: { path: ["name"], equals: manifest.voice.name }, sourceMetadata: { path: ["url"], equals: manifest.source.url ?? "" } } })) return;
@@ -121,7 +125,7 @@ export async function publishAudio(actor: { id: string; isAdmin: boolean; sessio
     await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${actor.id} FOR UPDATE`;
     const user = await tx.user.findUnique({ where: { id: actor.id } });
     if (!user?.isAdmin || user.sessionVersion !== actor.sessionVersion) throw new Error("FORBIDDEN");
-    await assertOfficialPublication(tx, candidate);
+    const conversion=await assertOfficialPublication(tx, candidate);
     await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${candidate.targetKey}, 0))::text`;
     await tx.$queryRaw`SELECT "id" FROM "Chapter" WHERE "id" = ${candidate.chapterId} FOR UPDATE`;
     await tx.$queryRaw`SELECT "id" FROM "Verse" WHERE "chapterId" = ${candidate.chapterId} ORDER BY "id" FOR SHARE`;
@@ -130,9 +134,10 @@ export async function publishAudio(actor: { id: string; isAdmin: boolean; sessio
     const c = chapter.book.contentCollection;
     if (c.work !== candidate.work || c.editionKey !== candidate.editionKey || c.language !== candidate.language) throw new Error("SOURCE_MISMATCH");
     validateSegments(segmentsSchema.shape.segments.parse(candidate.segments), chapter.verses, candidate.duration);
+    if(conversion){const task=await tx.officialAudioTask.findFirstOrThrow({where:{recordingId:candidate.id}});await assertLegacyBaseline(tx,officialSource(task.id)!);}
     const current = await tx.audioPublication.findUnique({ where: { targetKey: candidate.targetKey } });
     // De officiële bulkbediening mag nooit een bestaande publicatie vervangen, ook niet bij een race.
-    if(options.onlyIfUnpublished&&current) {
+    if((options.onlyIfUnpublished||conversion)&&current) {
       if(current.recordingId===recordingId)return current;
       throw Error("PUBLICATION_CONFLICT");
     }
@@ -147,13 +152,13 @@ export async function activeChapterAudio(chapter: { id: string; heading: string 
   const recording = pointer.recording;
   const anchor = await db.chapter.findUnique({ where: { id: chapter.id }, select: { book: { select: { contentCollectionId: true } } } });
   if (anchor?.book.contentCollectionId !== recording.collectionId) return null;
-  if (recording.sourceHash !== chapterSourceHash(chapter)) return null; // Expliciete TTS bij gewijzigde tekst, nooit oude opname vermengen.
+  if (recording.sourceHash !== chapterSourceHash(chapter)) return await legacyFallback(chapter.id,db) ? undefined : null; // Alleen een exact gelijk gebleven legacy-uitgave mag terugvallen; gewijzigde tekst krijgt TTS.
   try {
     const segments = segmentsSchema.shape.segments.parse(recording.segments);
     validateSegments(segments, chapter.verses, recording.duration);
     await verifyObject(recording.sha256, recording.byteSize);
-    return { url: `/api/audio/recordings/${recording.id}`, verses: chapter.verses.map((v, i) => ({ number: v.number, text: v.text, audioStart: segments[i].start })) };
-  } catch { return null; }
+    return { url: `/api/audio/recordings/${recording.id}`, legacyFallback:await legacyFallback(chapter.id,db), verses: chapter.verses.map((v, i) => ({ number: v.number, text: v.text, audioStart: segments[i].start })) };
+  } catch { return await legacyFallback(chapter.id,db) ? undefined : null; }
 }
 export async function accessibleRecording(actor: ContentActor, id: string, db: DB = prisma, preview = false) {
   if (preview && actor.isAdmin) {

@@ -77,3 +77,11 @@ test("herstel onderscheidt mislukte en verlaten taken van levende workers en imp
  assert.equal(officialTaskRecoverable({status:"FAILED",leaseUntil:null,updatedAt:fresh},now),true);
  for(const status of ["REGISTERED","VALIDATED"])assert.equal(officialTaskRecoverable({status,leaseUntil:null,updatedAt:old},now),false);
 });
+
+test("conversie heeft precies drie vaste lengtes en kan gewone bescherming of review niet opheffen",async()=>{
+ const {LEGACY_PILOT_IDS,legacySources,assertLegacySource}=await import("../src/lib/audio/legacyConversion");
+ assert.equal(legacySources.length,205);assert.equal(legacySources.filter(s=>s.quality!=="VALIDATED").length,1);
+ const samples=LEGACY_PILOT_IDS.map(id=>legacySources.find(s=>s.id===id)!);
+ assert.deepEqual(samples.map(s=>s.verses),[6,26,77]);assert.ok(samples[0].duration<90&&samples[2].duration>1200);
+ for(const source of samples){assert.doesNotThrow(()=>assertLegacySource(source));for(const changed of [{...source,legacyProtected:false},{...source,language:"en"},{...source,work:"pgp"},{...source,quality:"NEEDS_REVIEW"},{...source,id:"f".repeat(64)}])assert.throws(()=>assertLegacySource(changed),/SOURCE_PROTECTED/);}
+});
