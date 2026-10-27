@@ -7,6 +7,7 @@ import StudyExerciseClient from "@/components/study/StudyExerciseClient";
 import ReaderBackTarget from "@/components/ReaderBackTarget";
 import { pilotReadingSelections } from "@/lib/studyContent/pilotReadings";
 import { getT } from "@/lib/i18n";
+import { cfmCoursePathTarget } from "@/lib/studyContent/cfmCourses";
 export default async function Page({
   params,
   searchParams,
@@ -38,6 +39,8 @@ export default async function Page({
   const returnHref = stepIndex
     ? `${base}/stappen/${stepIndex}`
     : base + (query.volledig === "1" ? "?weergave=volledig" : "");
+  const path = stepIndex === 6 ? await cfmCoursePathTarget(prisma, collectionId, "STEPS", actor.uiLanguage) : null;
+  const nextHref = stepIndex ? stepIndex < 6 ? `${base}/stappen/${stepIndex + 1}` : path?.href ?? "/courses" : null;
   return (
     <>
       <ReaderBackTarget
@@ -50,6 +53,7 @@ export default async function Page({
         revisionId={lesson.revisionId}
         stepIndex={stepIndex}
         returnHref={returnHref}
+        nextHref={nextHref}
         sessionKey={await navigationSessionKey()}
         available={available}
         requiresReadingVisit={pilotReadingSelections(source.lesson).length>0}

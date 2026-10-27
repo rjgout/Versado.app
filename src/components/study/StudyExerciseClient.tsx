@@ -18,6 +18,7 @@ import {
 } from "@/lib/learning/exerciseCheckpoint";
 import { chapterTerm } from "@/lib/chapterTerm";
 import FocusLayout from "@/components/versado/FocusLayout";
+import { useStudyReturnToPath } from "@/lib/studyOrigin";
 class ReadingVisitRequiredError extends Error {}
 class StudyExerciseRequestError extends Error {
   constructor(message: string, readonly status: number) {
@@ -37,6 +38,7 @@ export default function StudyExerciseClient({
   sessionKey,
   available,
   requiresReadingVisit,
+  nextHref = null,
 }: {
   editionId: string;
   revisionId: string;
@@ -45,6 +47,7 @@ export default function StudyExerciseClient({
   sessionKey: string;
   available: boolean;
   requiresReadingVisit: boolean;
+  nextHref?: string | null;
 }) {
   const t = useT(),
     [issued, setIssued] = useState<Issued | null>(null),
@@ -53,6 +56,8 @@ export default function StudyExerciseClient({
     [checkpoint, setCheckpoint] = useState<ExerciseCheckpoint | null>(null),
     [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const returnToPath = useStudyReturnToPath(returnHref, nextHref ?? "/courses");
+  const continueReading = () => { if (stepIndex === 6) returnToPath(); else if (nextHref) router.replace(nextHref); };
   const generation = useRef<object | null>(null);
   const draftKey = studyExerciseDraftKey(
     sessionKey,
@@ -205,11 +210,14 @@ export default function StudyExerciseClient({
         nextChapterId={null}
         term={chapterTerm(null)}
         returnHref={returnHref}
+        continuation={nextHref ? { label: t(stepIndex === 6 ? "cfmStudy.backToPath" : "cfmStudy.nextStep"), onContinue: continueReading } : undefined}
       />
     );
   if (issued)
     return (
       <ExerciseSessionQuestions
+        retryCheckErrors
+        onSkipRemaining={nextHref ? continueReading : undefined}
         exercises={issued.exercises}
         initialCheckpoint={checkpoint}
         onCheckpoint={(state) => saveDraft(issued.sessionId, state)}

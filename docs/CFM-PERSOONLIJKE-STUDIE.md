@@ -127,6 +127,12 @@ gewone taal; niets verdwijnt zonder reden (test).
 
 ## 5. Voortgang, leespositie en reeks (Fase 5)
 
+Actuele bediening (P36): **Volgende stap** bewaart de leesstap automatisch en start
+beschikbare, nog niet gemaakte vragen. Geen losse oefen- of afvinkknop. Zonder
+vragen direct verder; bij tijdelijke fouten retry. De bestaande resultaatvervolgactie
+gaat direct naar de volgende stap of na stap 6 het bestaande weekpad.
+**Vorige stap** verandert geen afronding. Zie [pilotverslag](CFM-PILOT-2026-02.md).
+
 * **Tabel `StudyStepProgress`** (migratie `20261121120000_study_step_progress`, additief): sleutel
   `(userId, lessonEditionId, stepFingerprint)`; status `IN_PROGRESS`/`COMPLETED`; `CHECK` dat afgerond ⇔ tijdstip; stapnummer 1–7 in de tabel (oude zevenstappenrijen blijven geldig); nieuwe stappen zijn 1–6.
 * **Vingerafdruk per stap** = hash van plan-versie, blok-id's en brontekst van de stap. Bij een nieuwe revisie met andere stapgrenzen

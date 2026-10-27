@@ -2,7 +2,7 @@
 
 Onderzocht op 25 oktober 2026, vanaf `origin/main` **e7264f05** (PR #214).
 Historische onderzoeksstatus van PR #216: uitsluitend documentatie. De eigenaar
-heeft daarna fase A afzonderlijk opgedragen. Actuele draftstatus, hergebruik en
+heeft daarna fase A afzonderlijk opgedragen. Actuele implementatiestatus, leesflowcorrectie, hergebruik en
 beperkingen staan in [het fase-A-verslag](../CFM-LEESVRAGEN-FASE-A.md); de
 onderstaande inventaris beschrijft de situatie vóór implementatie. Geen uitroltoestemming.
 De uitvoeringsvolgorde en fasecriteria staan uitsluitend in de
@@ -117,13 +117,18 @@ uitgegeven vragen per deel samen dezelfde weekset vormen. Optievolgorde mag wiss
 Nieuwe vraagvarianten of een andere route mogen geen extra basisbeloning of
 schijnbare dekking van een andere stap veroorzaken; geen eigen CFM-selectieengine.
 
-De beoogde bediening volgt de bestaande routes: stap lezen → drie vragen → bestaande
-feedback en serveruitslag → verder; week in één keer lezen → expliciete leesafronding
+De actuele bediening (P36) volgt de bestaande routes: stap lezen → **Volgende stap**
+(leesvoortgang bewaren) → drie beschikbare vragen → bestaande feedback/serveruitslag
+→ bestaande resultaatvervolgactie rechtstreeks naar de volgende stap; week in één keer lezen → expliciete leesafronding
 zonder XP en aanbod van de volledige set → bestaande hoofdstukflow met review en
 uitslag. Bewaar positie en herkomst bij beide routes. Een reeds afgeronde leesstap
 kan nog onbeantwoorde vragen aanbieden, zonder het leesvinkje in te trekken.
-De toekomstige submit-hook mag de stap bij geldige volledige inzending afvinken;
-de huidige losse COMPLETE-route krijgt geen beloningsbevoegdheid. Geen stap- of
+De bestaande submit-hook behoudt zijn idempotente compatibiliteitsafronding;
+COMPLETE/CONTINUE op de bestaande staproute krijgt geen beloningsbevoegdheid.
+Ontbrekende vragen slaan de quiz over; tijdelijke fouten krijgen retry. De losse
+oefen- en afvinkknop vervallen in Stap voor stap. Onderbroken sets blijven bewaard;
+reeds ingeleverde stap-/weekvragen worden niet opnieuw verplicht. Na stap 6 volgt
+het bestaande weekpad, zonder zevende stap of nieuwe vieringsflow. Geen stap- of
 weekafronding afleiden uit alleen scrollpositie.
 
 **Vastgestelde vraaginhoud:** drie vragen per stap uit de daadwerkelijk gelezen

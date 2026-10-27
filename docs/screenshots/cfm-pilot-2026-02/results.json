@@ -10,6 +10,7 @@
     "visibleVerses": 15,
     "questions": 18,
     "returnToLesson": true,
+    "automaticStepContinuation": false,
     "bodyUnchanged": true,
     "noOverflow": true,
     "resumedSameSession": true,
@@ -29,7 +30,8 @@
     "step": 3,
     "visibleVerses": 3,
     "questions": 3,
-    "returnToLesson": true,
+    "returnToLesson": false,
+    "automaticStepContinuation": true,
     "bodyUnchanged": true,
     "noOverflow": true,
     "resumedSameSession": false,
@@ -49,7 +51,8 @@
     "step": 5,
     "visibleVerses": 3,
     "questions": 3,
-    "returnToLesson": true,
+    "returnToLesson": false,
+    "automaticStepContinuation": true,
     "bodyUnchanged": true,
     "noOverflow": true,
     "resumedSameSession": false,
@@ -60,7 +63,42 @@
     "dorpContributions": 0
   },
   {
+    "officialPilot": true,
+    "allSixSteps": true,
+    "width": 390,
+    "scheme": "light",
+    "automaticReadingProgress": true,
+    "automaticQuestionStart": true,
+    "existingResultBeforeNextStep": true,
+    "wrongAnswersDoNotBlock": true,
+    "continueResponseLossRecovered": true,
+    "checkNetworkFailureRecovered": true,
+    "interruptedStepResumed": true,
+    "completedQuestionsNotForced": true,
+    "browserBackForward": true,
+    "keyboardFocus": true,
+    "lastStepReturnsToExistingCourse": true,
+    "questions": 18,
+    "dorpContributions": 0
+  },
+  {
+    "officialPilot": true,
+    "skipPreservesReading": true,
+    "partialAnswersPreserved": true,
+    "skipXp": 0,
+    "resumedSameSession": true,
+    "answersAfterResume": 3
+  },
+  {
+    "officialPilot": true,
+    "lostSubmitResponseThroughReaderRecovered": true,
+    "sameSessionAndResult": true,
+    "noRepeatedQuestions": true,
+    "xpTransactions": 1
+  },
+  {
     "missingSource": true,
+    "lastStepWithoutQuestions": true,
     "readingAndStepCompletionPreserved": true,
     "xp": 0
   }

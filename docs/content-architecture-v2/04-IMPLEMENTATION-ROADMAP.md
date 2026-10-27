@@ -22,7 +22,8 @@ herkomst en scopegrenzen beschrijven. Iedere fase vraagt afzonderlijke beoordeli
 
 ### Fase A — CFM-leesvragen en XP
 
-**Draftstatus:** de gedeelde sessie-/vragen-/XP-route is uitgewerkt; zie
+**Pilotstatus:** PR #218 is gemerged; de leesflowcorrectie P36 wacht afzonderlijk
+op beoordeling. De gedeelde sessie-/vragen-/XP-route is uitgewerkt; zie
 [implementatieverslag](../CFM-LEESVRAGEN-FASE-A.md) en
 [vraagdekking](../CFM-VRAAGDEKKING.md). Met beschikbare gecontroleerde Nederlandse PGP-tekst hebben 22 van 624 officiële
 stappen drie vragen; één officiële week (2026/02) heeft dezelfde achttien in beide
@@ -33,8 +34,9 @@ hiermee nog geen volledige inhoudelijke release; B–D zijn niet gestart.
 Het [dekkingsonderzoek](../CFM-VRAAGDEKKING-ONDERZOEK.md) bewaart de historische
 17/624-triage. Definitief besluit **P35 vervangt P34**: aanvullende officiële verzen
 mogen, mits daadwerkelijk zichtbaar aangeboden vóór de vragen. Alleen de pilotweek
-is uitgewerkt. Volgende stap na beoordeling: begrensde bronvoorbereiding en
-inhoudelijke review via bestaand contentbeheer; geen automatische massapublicatie.
+is uitgewerkt. Huidige begrensde vervolgronde **P36**: natuurlijke persoonlijke leesflow en hercontrole
+van dezelfde pilot (zie pilotverslag). Geen uitbreiding naar andere weken; die vraagt
+afzonderlijk akkoord. Het bestaande uitbreidingsvoorstel blijft staan.
 
 **Afhankelijkheden:** bestaande CFM-jaargangen, gepubliceerde revisies, zesstappenplan,
 centrale learning-/XP-services. De zeven CFM-productbesluiten zijn definitief
