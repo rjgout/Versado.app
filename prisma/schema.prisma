@@ -13,6 +13,7 @@ datasource db {
 // --- Accounts ---------------------------------------------------------
 
 model User {
+  mailMessages MailMessage[]
   id                 String    @id @default(cuid())
   email              String    @unique
   // handle+discriminator vormen samen de unieke, doorzoekbare "tag"
@@ -446,6 +447,7 @@ model EmailSettings {
   enabled         Boolean  @default(false)
   smtpHost        String?
   smtpPort        Int      @default(587)
+  trackOpens      Boolean  @default(false)
   smtpSecure      Boolean  @default(false) // true = impliciete TLS (poort 465), false = STARTTLS (587)
   smtpUsername    String?
   // AES-256-GCM-versleuteld met een sleutel afgeleid van SESSION_SECRET (zie
@@ -4303,4 +4305,35 @@ model OfficialAudioTask {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([status, leaseUntil])
+}
+
+// Verzendhistorie, maximaal 90 dagen; geen onversleutelde mailinhoud of authenticatietokens.
+model MailMessage {
+  id String @id @default(cuid())
+  recipient String
+  userId String?
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind String
+  category String?
+  subject String
+  previewText String
+  payloadEnc String?
+  status String
+  error String?
+  smtpMessageId String?
+  smtpResponse String?
+  trackingHash String? @unique
+  firstOpenedAt DateTime?
+  lastOpenedAt DateTime?
+  openCount Int @default(0)
+  resendOfId String?
+  resendOf MailMessage? @relation("MailRetries", fields: [resendOfId], references: [id], onDelete: SetNull)
+  retries MailMessage[] @relation("MailRetries")
+  actorId String?
+  lastResendAt DateTime?
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+  @@index([createdAt])
+  @@index([recipient, createdAt])
+  @@index([status, createdAt])
 }

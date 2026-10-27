@@ -1,3 +1,4 @@
+import { cleanupMailHistory } from "@/lib/mailHistory";
 import { scanAudioPackages } from "./audio/library";
 import { runOfficialAudioTick } from "./audio/officialJobs";
 import { prisma } from "@/lib/db";
@@ -411,6 +412,7 @@ async function runRegistrationCleanupTick(): Promise<void> {
   const now = Date.now();
   if (now - lastRegistrationCleanup < 60 * 60_000) return;
   lastRegistrationCleanup = now;
+  await cleanupMailHistory(new Date(now));
   const { pending, accounts } = await cleanupRegistrations(new Date(now));
   if (pending || accounts) console.log(`Opgeruimd: ${pending} aanmelding(en), ${accounts} onbevestigd(e) account(s).`);
 }

@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     const rawToken = await createAuthToken(user.id, "PASSWORD_RESET");
     const link = `${getBaseUrl(req)}/reset-password?token=${rawToken}`;
     const { subject, html, text } = resetPasswordTemplate(getT(user.uiLanguage), link);
-    await sendMail({ to: user.email, subject, html, text });
+    await sendMail({ to: user.email, subject, html, text, meta: { kind: "PASSWORD_RESET", userId: user.id } });
   }
 
   return NextResponse.json(GENERIC_RESPONSE);

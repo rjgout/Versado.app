@@ -267,7 +267,7 @@ De onafhankelijke review volgt door ChatGPT. #176 en #178 blijven ongemerged.
 <!-- BEGIN NATIVE PARITY INVENTORY -->
 ## Volledige broninventaris (gegenereerd)
 
-Gevonden: **140 pagina's**, **239 fysieke routehandlers**, **422 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
+Gevonden: **140 pagina's**, **242 fysieke routehandlers**, **423 JSX-modules**, **12 profiel-queryschermen**. Een catch-all route kan meerdere logische endpoints bevatten.
 
 De JSON-bijlage bevat per route alle transitief bereikbare lokale modules, clientgrenzen en statische requestpaden. Dat is een afhankelijkheidsinventaris, geen autorisatiebewijs; voorwaarden per HTTP-methode blijven apart te controleren. Een Client Component kan via een gedeelde helper nog een serverafhankelijkheid hebben. Een module zonder eigen `use client` is contextafhankelijk, niet automatisch browsergeschikt.
 
@@ -458,6 +458,8 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/admin/league-settings` | GET, PUT | [src/app/api/admin/league-settings/route.ts](../src/app/api/admin/league-settings/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/live-games` | GET | [src/app/api/admin/live-games/route.ts](../src/app/api/admin/live-games/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/live-games/[gameId]` | DELETE | [src/app/api/admin/live-games/[gameId]/route.ts](../src/app/api/admin/live-games/[gameId]/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/admin/mail-history` | GET | [src/app/api/admin/mail-history/route.ts](../src/app/api/admin/mail-history/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/admin/mail-history/[id]/resend` | POST | [src/app/api/admin/mail-history/[id]/resend/route.ts](../src/app/api/admin/mail-history/[id]/resend/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/reseed` | GET, POST | [src/app/api/admin/reseed/route.ts](../src/app/api/admin/reseed/route.ts) | beheer; getCurrentUser, requireAdmin, requireCfmApproval | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/scripture-update` | GET, POST | [src/app/api/admin/scripture-update/route.ts](../src/app/api/admin/scripture-update/route.ts) | beheer; getCurrentUser, requireAdmin | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/admin/study-media/[mediaId]` | GET | [src/app/api/admin/study-media/[mediaId]/route.ts](../src/app/api/admin/study-media/[mediaId]/route.ts) | beheer; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
@@ -566,6 +568,7 @@ Endpoint | Methoden | Bron | Domein / authenticatie | Native beschikbaarheid
 `/api/live/create-alleskenner` | POST | [src/app/api/live/create-alleskenner/route.ts](../src/app/api/live/create-alleskenner/route.ts) | spelen; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/live/create-chapter-guess` | POST | [src/app/api/live/create-chapter-guess/route.ts](../src/app/api/live/create-chapter-guess/route.ts) | spelen; canStartGame, getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/live/create-family-game` | POST | [src/app/api/live/create-family-game/route.ts](../src/app/api/live/create-family-game/route.ts) | spelen; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
+`/api/mail/open/[token]` | GET, HEAD | [src/app/api/mail/open/[token]/route.ts](../src/app/api/mail/open/[token]/route.ts) | overig-vandaag; controle in bron/service nodig | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/me` | GET | [src/app/api/me/route.ts](../src/app/api/me/route.ts) | overig-vandaag; getCurrentUser | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/mysteries/[mystery]/[variant]/progress` | GET, POST | [src/app/api/mysteries/[mystery]/[variant]/progress/route.ts](../src/app/api/mysteries/[mystery]/[variant]/progress/route.ts) | spelen; controle in bron/service nodig | Geen algemene bearer-toegang; expliciet contract vereist
 `/api/mysteries/[mystery]/hint` | POST | [src/app/api/mysteries/[mystery]/hint/route.ts](../src/app/api/mysteries/[mystery]/hint/route.ts) | spelen; controle in bron/service nodig | Geen algemene bearer-toegang; expliciet contract vereist
@@ -878,6 +881,7 @@ Module | Eigen grens | Geëxporteerde namen
 [src/components/LiveRefresh.tsx](../src/components/LiveRefresh.tsx) | use client | LiveRefresh
 [src/components/LobbyClosedNotice.tsx](../src/components/LobbyClosedNotice.tsx) | use client | LobbyClosedNotice
 [src/components/LobbyInviteCard.tsx](../src/components/LobbyInviteCard.tsx) | use client | LobbyInviteCard
+[src/components/MailHistoryClient.tsx](../src/components/MailHistoryClient.tsx) | use client | MailHistoryClient
 [src/components/NativeAppBridge.tsx](../src/components/NativeAppBridge.tsx) | use client | NativeAppBridge
 [src/components/NavUserBadges.tsx](../src/components/NavUserBadges.tsx) | use client | NavUserBadges
 [src/components/NotificationCenter.tsx](../src/components/NotificationCenter.tsx) | use client | NotificationCenter
