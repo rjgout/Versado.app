@@ -149,3 +149,8 @@ nieuw gedownloade officiële MP3's is eveneens geslaagd in een eigen wegwerpdata
 [Bronbewijs](legacy-pilot-source-check.json) bevat de concrete publieke bronidentiteiten en hashes.
 De [mobiele opname](../screenshots/official-audio/legacy-conversion-320-nl.png) toont de volledige
 kaart op 320 px met synthetische beheerstatus, geen productiegegevens.
+
+De gedeelde contenttestrunner houdt de nieuwe afhankelijke migratie, net als de officiële
+audiotaken, buiten de opzettelijk onvolledige eerste migratiefase. De volledige keten wordt daarna
+wel toegepast. De gerichte content-/oefenregressie met deze testvolgorde is opnieuw geslaagd;
+er is geen CFM-, FSY- of andere contentfunctionaliteit aangepast.
